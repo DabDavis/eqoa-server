@@ -32,6 +32,40 @@ the game's coordinates. The sources, best first:
   ("ports you to Kerra Isle (SE) right next to the quest npc"), a town's
   coachman or waysender.
 
+Five teleports EQOAEmu's workbook brought (tools/import_eqoaemu_spells.py,
+2026-11-01) whose Location named no place, or the workbook's one stand-in:
+
+- Circle of Dead Hills (druid 60) to the Dead Hills (SE) in the Rathe, by
+  Fendren the Forgotten: "Dead Hills Port ... Druid, Wizard ... Effect: Ports
+  to Dead Hills SE (where Fendren is)" (EQOA-Data's Dead Hills Portal Quest);
+  its level 53 guide puts that quest's port, Astral Displacement, at the
+  lizardman ruins (W) and calls the two "the same place": Fendren's own words
+  taken.
+- Envaric Acension (druid, necromancer, wizard 60) into the first chamber of
+  the Prophet of Envar's tower ("teleports your group into the tower of the
+  Prophet Envar", "Ports to the first chamber of PoE's tower", EQOA-Data's
+  Envaric Ascension guide): the nobles' floor (the guide's first chamber,
+  where its "Jal'Raeth Nobles" stand), at its middle, a floor disc (sprite
+  174DA8B2: four on the disc, three in that tower). The chamber is a room of
+  the zone's own collision, walled all round; the server lands a place under
+  a roof where a body walks to from it (entity/gates.go), so in the chamber.
+- Sky Portal (druid, wizard 60) to the Plane of Sky's main isle ("port up to
+  the main PoS isle with a wiz/druid", "the main Island (where you originally
+  port up to)", its Plane of Sky guide): where the Endless Tower's portal lands
+  players (handlers/waysender.go's Sky Portal), beside Sartheret.
+- Stonewatcher's Portal (the wizard's mastery for North Ro Gate) to Stone
+  Watchers: "He sends you to Stone Watchers (C) next to a dam (wizard's port
+  takes you very close)" (its stat-boost quests, the wisdom trial). The dam is
+  the disc's (three walls, sprite ECE32E16, and two towers, 045C386C, across
+  the zone's river in its (N), 110 north of the guide's (C)), the trial's
+  gnoll by its west end: the west bank there, ours.
+- Odus Escape (wizard 55) to Arcadin, where Odus gate and Odus Portal land: an
+  escape lands where its gate does (the Nerius, Sslathis and Kelinar's Escape
+  rows lie on their gates' places).
+
+Their group radius is their records' own (spelleffect.effects' radius, the
+workbook's: OWN), as the import's rows for the other new teleports have it.
+
 Which ninth the Melton, North Ro and Commons pyramids are: Melton's the one
 north-west of the Bolash daemons' hill in Druid's Watch (s) ("s/e of the wiz
 port-melton", EQOA-Data's Zaoran Plateau guide), North Ro's the one
@@ -61,15 +95,20 @@ rules, done again here). Without them nothing is written.
 
     python3 -E -s tools/seed_spell_gates.py --db eqoa.db --ground worlds/ground            report
     python3 -E -s tools/seed_spell_gates.py --db eqoa.db --ground worlds/ground --apply    write it
-    python3 -E -s tools/seed_spell_gates.py --db eqoa.db --undo                              take it back
+    python3 -E -s tools/seed_spell_gates.py --db eqoa.db --undo                              take the last run back
 
 Rows go in in one transaction, source seed, each logged in spell_gate_seed
-with what was written; a spell that has a row already (a GM's) is left
-alone and said. --undo deletes the rows a run wrote that no GM changed since
-(a changed one is said and kept), drops the log, and the table when the
-run made it and it is empty again. A copy of the database
-is made first (--no-backup to skip). The server reads the table at its
-start and at a GM's edit in the panel: restart it after.
+with what was written and the run's time; a spell that has a row already (a
+GM's, the import's, an earlier run's) is left alone and said, and so is one
+an earlier run wrote that is gone since (a GM took it out). A run on a
+database an earlier run wrote (the live one, 2026-10-26) adds what is
+missing to the log, as a run of its own. --undo takes the last run back:
+deletes the rows it wrote that no GM changed since (a changed one is said
+and kept) and its log rows; with none left it drops the log, and the table
+when the first run made it and it is empty again; a second --undo takes the
+run before. A copy of the database is made first (--no-backup to skip). The
+server reads the table at its start and at a GM's edit in the panel:
+restart it after.
 """
 import argparse
 import datetime
@@ -92,6 +131,10 @@ LOG = "spell_gate_seed"
 MADE = "#made the table"  # the log's mark that a run made spellgates
 
 SELF, GROUP, EVAC = "self", "group", "evac"
+
+# a group gate's radius as its record has it (own_radius): the workbook's
+# teleports carry their own in spelleffect.effects, as the import's rows do
+OWN = None
 
 # a zone's cell, and the middle of each of its ninths as CLIENT's
 # UpdateLocation names them (its thirds: 333.34 either side of the middle)
@@ -149,6 +192,13 @@ RATHE_STONE = stone(1, 6251.0, 65.2, 2703.0, "Cyclops Fortress (W)'s druid stone
 KUMAJ = beside("Prophet of Kumaj", 2, "Kerra Isle (SE), by the Prophet of Kumaj")
 KELINAR = stone(0, 12487.3, 68.2, 25490.2, "Kelinar's town (SW), among its four hums (sprite D9C129A4) by its sorcerers' tower: ours")
 ARCADIN = beside("Waysender Yuresh", 2, "Arcadin, by its waysender: ours")
+DEAD_HILLS = beside("Fendren the Forgotten", 1, "Dead Hills (SE) in the Rathe, by Fendren the Forgotten")
+ENVAR_TOWER = stone(1, 5276.4, 71.4, 9261.2, "the first chamber of the Prophet of Envar's tower (Envar, the Rathe), the nobles' "
+                    "floor, its middle (a floor disc, sprite 174DA8B2), inside: the server lands it under the chamber's roof")
+SKY_ISLE = stone(4, 4834.8, 250.1, 5524.7, "the Plane of Sky's main isle, where the Endless Tower's portal lands players "
+                 "(handlers/waysender.go's Sky Portal), beside Sartheret")
+STONEWATCH_DAM = stone(0, 19045.0, 52.0, 30541.0, "Stone Watchers (N), the west bank at the dam across its river (walls ECE32E16 "
+                       "and towers 045C386C), by the wisdom trial's reaver gnoll: ours, by the words")
 SAERK = middle(0, 20000, 12000, "NW", "Saerk Towers")
 SYCAMORE = middle(0, 22000, 22000, "C", "Sycamore Joy's Rest")
 STONEBRUNT = middle(2, 8000, 6000, "C", "Stonebrunt Mountains")
@@ -213,6 +263,23 @@ GATES = [
      "Group, Set Maximum Power to 0, teleport to SBM"),
     ("Toxxulia Circle", GROUP, 0, "Kerra Isle", KUMAJ,
      "Group, Set Maximum Power to 0, teleport to Toxx; 'This spell ports you to Kerra Isle (SE) right next to the quest npc Prophet of Kumaj'"),
+    # ---- EQOAEmu's workbook's (2026-11-01): their records say group
+    ("Circle of Dead Hills", GROUP, OWN, "the Dead Hills", DEAD_HILLS,
+     "Group (its record), druid 60; 'Dead Hills Port ... Druid, Wizard ... Effect: Ports to Dead Hills SE (where Fendren is)' "
+     "(EQOA-Data's Dead Hills Portal Quest, Fendren the Forgotten's); its level 53 guide calls the DH53 port's lizardman "
+     "ruins (W) 'the same place': Fendren's own words taken"),
+    ("Envaric Acension", GROUP, OWN, "the Prophet of Envar's tower", ENVAR_TOWER,
+     "Group (its record), druid, necromancer and wizard 60; 'teleports your group into the tower of the Prophet Envar', "
+     "'Effect: Ports to the first chamber of PoE's tower' (EQOA-Data's Envaric Ascension guide)"),
+    ("Sky Portal", GROUP, OWN, "the Plane of Sky", SKY_ISLE,
+     "Group (its record), druid and wizard 60; 'port up to the main PoS isle with a wiz/druid', 'the main Island (where "
+     "you originally port up to)' (EQOA-Data's Plane of Sky guide)"),
+    ("Stonewatcher's Portal", GROUP, OWN, "Stone Watchers", STONEWATCH_DAM,
+     "Group (its record), the wizard's mastery for North Ro Gate; 'He sends you to Stone Watchers (C) next to a dam "
+     "(wizard's port takes you very close)' (EQOA-Data's stat-boost quests, the wisdom trial)"),
+    ("Odus Escape", GROUP, OWN, "Arcadin", ARCADIN,
+     "Group (its record), wizard 55; where Odus gate and Odus Portal land, as an escape lands where its gate does "
+     "(the Nerius, Sslathis and Kelinar's Escape rows)"),
 ]
 
 
@@ -229,6 +296,46 @@ def floor_at(g, x, y, z):
         if h <= y + STEP_UP:
             return h
     return None
+
+
+def floor_nearest(g, x, y, z):
+    """entity/gates.go's gateFloorLocked: the terrain's floor nearest y at
+    (x, z), the highest at most RISE (and the step) above it, or the one under
+    y when that is nearer (the ground's floors hold a chamber's ceilings too);
+    None for none."""
+    up = floor_at(g, x, y + RISE, z)
+    if up is None:
+        return None
+    down = floor_at(g, x, y, z)
+    if down is not None and abs(y - down) < abs(up - y):
+        return down
+    return up
+
+
+def covered(g, x, y, z):
+    """entity/gates.go's coveredLocked: a floor of the terrain more than OPEN
+    over the floor at (x, y, z)."""
+    top = floor_at(g, x, y + 1000, z)
+    return top is not None and top > y + OPEN
+
+
+def own_radius(db, name):
+    """A group gate's radius as its records have it: spelleffect.effects'
+    radius (the workbook's area, JSON), the largest of its name's records; 0
+    (the server's 20) with none."""
+    if not has_table(db, "spellpattern") or not has_table(db, "spelleffect"):
+        return 0.0
+    if "effects" not in {r[1] for r in db.execute("PRAGMA table_info(spelleffect)")}:
+        return 0.0
+    best = 0.0
+    for (text,) in db.execute("SELECT e.effects FROM spellpattern p JOIN spelleffect e ON e.spellid = p.spellid "
+                              "WHERE lower(trim(p.spellname)) = ?", (name.lower(),)):
+        try:
+            r = float((json.loads(text) if text and text.strip() else {}).get("radius") or 0)
+        except (ValueError, TypeError, AttributeError):
+            continue
+        best = max(best, r)
+    return best
 
 
 class Near:
@@ -264,14 +371,19 @@ def open_dry(g, env, x, fy, z):
 
 def landing(g, env, x, y, z, near):
     """entity/gates.go's landing: (x, y, z, how far from the place, room), the
-    place as written when it stands well above the terrain."""
-    base = floor_at(g, x, y + RISE, z)
+    place as written when it stands well above the terrain; a place under a
+    roof on its floor, room None: the server lands it where a body walks to
+    from it (open ground first, else under the roof), by the walls files,
+    which this report does not read."""
+    base = floor_nearest(g, x, y, z)
     if base is not None and base < y - ABOVE:
         return x, y, z, 0.0, CLEAR
     if base is None:
         base = floor_at(g, x, 1e6, z)
     if base is None:
         return x, y, z, 0.0, 0.0
+    if covered(g, x, base, z):
+        return x, base, z, 0.0, None
     best = None
     for d in STEPS:
         for k in range(1 if d == 0 else 16):
@@ -340,7 +452,7 @@ def anchor_of(db, a, ground):
             x, y, z = r[0] + 3 * math.sin(h), r[1], r[2] + 3 * math.cos(h)
         gr = ground(world)
         if gr is not None:
-            fy = floor_at(gr[0], x, y + RISE, z)
+            fy = floor_nearest(gr[0], x, y, z)
             if fy is None or fy < y - RISE:
                 fy = floor_at(gr[0], x, 1e6, z)
             if fy is None:
@@ -377,6 +489,8 @@ def plan(db, ground_dir):
 
     rows, missing = [], []
     for spell, kind, radius, place, a, why in GATES:
+        if radius is OWN:
+            radius = own_radius(db, spell)
         at, err = anchor_of(db, a, ground)
         if at is None:
             missing.append(f"{spell}: {err}")
@@ -414,23 +528,49 @@ SCHEMA = """CREATE TABLE IF NOT EXISTS spellgates (
 COLS = ("spell", "kind", "place", "world", "x", "y", "z", "radius", "note", "source")
 
 
-def apply(db, rows):
-    if has_table(db, LOG):
-        sys.exit(f"this database holds a run already ({LOG}): --undo it first")
+def standing(db, rows):
+    """Each planned row's standing, by its spell: "there" (spellgates has a
+    row of the name: a GM's, the import's, an earlier run's), "gone" (an
+    earlier run wrote it and it is not there now: a GM took it out), else
+    "new"."""
+    there = set()
+    if has_table(db, "spellgates"):
+        there = {r[0] for r in db.execute("SELECT lower(trim(spell)) FROM spellgates WHERE spell IS NOT NULL")}
+    logged = {r[0] for r in db.execute(f"SELECT spell FROM {LOG}")} if has_table(db, LOG) else set()
+    return {r["spell"]: "there" if r["spell"] in there else "gone" if r["spell"] in logged else "new" for r in rows}
+
+
+def apply(db, rows, when=None):
+    """Writes the rows standing "new" (standing) in one transaction, each
+    logged under this run's time; the rest are left alone. A database an
+    earlier run wrote keeps its log, this run's rows added to it (a run a
+    second, at most: the time is the run's key). Returns (wrote, kept, gone):
+    the names written, those with a row there, those an earlier run wrote that
+    are gone since."""
     if any(r["y"] is None for r in rows):
         sys.exit("not written: a place has no height (--ground worlds/ground)")
-    wrote, kept = [], []
+    when = when or datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
+    wrote, kept, gone = [], [], []
     db.execute("BEGIN IMMEDIATE")
     try:
+        if has_table(db, LOG):
+            last = db.execute(f"SELECT max(applied) FROM {LOG}").fetchone()[0]
+            if last is not None and when <= last:
+                raise SystemExit(f"the last run was applied at {last}, this one at {when}: run it again in a second")
         made = not has_table(db, "spellgates")
+        if made and has_table(db, LOG) and db.execute(f"SELECT count(*) FROM {LOG} WHERE spell = ?", (MADE,)).fetchone()[0]:
+            raise SystemExit(f"{LOG} says a run made spellgates, and the table is gone: look before writing")
         db.execute(SCHEMA)  # the server makes it too; a database it has not opened yet
-        db.execute(f"CREATE TABLE {LOG} (spell TEXT PRIMARY KEY, row TEXT NOT NULL, applied TEXT NOT NULL)")
-        when = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
+        db.execute(f"CREATE TABLE IF NOT EXISTS {LOG} (spell TEXT PRIMARY KEY, row TEXT NOT NULL, applied TEXT NOT NULL)")
         if made:
             db.execute(f"INSERT INTO {LOG} VALUES (?, '[]', ?)", (MADE, when))
+        how = standing(db, rows)
         for r in rows:
-            if db.execute("SELECT count(*) FROM spellgates WHERE lower(trim(spell)) = ?", (r["spell"],)).fetchone()[0]:
+            if how[r["spell"]] == "there":
                 kept.append(r["_name"])
+                continue
+            if how[r["spell"]] == "gone":
+                gone.append(r["_name"])
                 continue
             vals = [r[c] for c in COLS]
             db.execute(f"INSERT INTO spellgates ({', '.join(COLS)}) VALUES ({', '.join('?' * len(COLS))})", vals)
@@ -440,17 +580,22 @@ def apply(db, rows):
     except BaseException:
         db.execute("ROLLBACK")
         raise
-    return wrote, kept
+    return wrote, kept, gone
 
 
 def undo(db):
+    """Takes the last run back (the latest time in the log): deletes the rows
+    it wrote that no GM changed since (a changed one is said and kept) and its
+    log rows; with none left, drops the log, and spellgates when the first run
+    made it and it is empty again. Returns (deleted, changed, the run's time)."""
     if not has_table(db, LOG):
         sys.exit("no run to undo here")
     deleted, changed = 0, []
     db.execute("BEGIN IMMEDIATE")
     try:
+        last = db.execute(f"SELECT max(applied) FROM {LOG}").fetchone()[0]
         made = False
-        for spell, row in db.execute(f"SELECT spell, row FROM {LOG} ORDER BY spell").fetchall():
+        for spell, row in db.execute(f"SELECT spell, row FROM {LOG} WHERE applied = ? ORDER BY spell", (last,)).fetchall():
             if spell == MADE:
                 made = True
                 continue
@@ -461,14 +606,16 @@ def undo(db):
                 changed.append(spell)
                 continue
             deleted += db.execute("DELETE FROM spellgates WHERE spell = ?", (spell,)).rowcount
-        db.execute(f"DROP TABLE {LOG}")
+        db.execute(f"DELETE FROM {LOG} WHERE applied = ?", (last,))
+        if db.execute(f"SELECT count(*) FROM {LOG}").fetchone()[0] == 0:
+            db.execute(f"DROP TABLE {LOG}")
         if made and db.execute("SELECT count(*) FROM spellgates").fetchone()[0] == 0:
-            db.execute("DROP TABLE spellgates")  # this run made it
+            db.execute("DROP TABLE spellgates")  # the first run made it
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")
         raise
-    return deleted, changed
+    return deleted, changed, last
 
 
 def backup(db, path):
@@ -480,18 +627,24 @@ def backup(db, path):
     return out
 
 
-def report(rows, missing):
-    worlds = {0: "Tunaria", 1: "Rathe", 2: "Odus"}
+def report(rows, missing, how=None):
+    worlds = {0: "Tunaria", 1: "Rathe", 2: "Odus", 3: "Lavastorm", 4: "Plane of Sky", 5: "Secrets"}
+    how = how or {}
     print(f"{len(rows)} gates: {sum(r['kind'] == SELF for r in rows)} self, {sum(r['kind'] == GROUP for r in rows)} group, "
-          f"{sum(r['kind'] == EVAC for r in rows)} evacuations")
+          f"{sum(r['kind'] == EVAC for r in rows)} evacuations; {sum(v == 'new' for v in how.values())} to write")
     for r in rows:
         y = "?" if r["y"] is None else f"{r['y']:.1f}"
-        line = f"  {r['_name']:24} {r['kind']:5} {r['place']:28} {worlds.get(r['world'], r['world'])} ({r['x']:.0f}, {y}, {r['z']:.0f})"
+        line = (f"  {r['_name']:24} {r['kind']:5} r{r['radius']:<3.0f} {r['place']:28} {worlds.get(r['world'], r['world'])} "
+                f"({r['x']:.0f}, {y}, {r['z']:.0f})")
         if r["_land"] is not None:
             lx, ly, lz, d, room = r["_land"]
-            line += f" lands {d:.0f} off at ({lx:.0f}, {ly:.1f}, {lz:.0f})" + ("" if room >= CLEAR else f", {room:.0f} from a creature")
+            if room is None:
+                line += " under a roof: the server lands it where a body walks to from it (the walls files, not read here)"
+            else:
+                line += f" lands {d:.0f} off at ({lx:.0f}, {ly:.1f}, {lz:.0f})" + ("" if room >= CLEAR else f", {room:.0f} from a creature")
         if not r["_records"]:
             line += " [no spellpattern record of the name]"
+        line += {"there": " [a row there: left alone]", "gone": " [an earlier run's, taken out since: left alone]"}.get(how.get(r["spell"]), "")
         print(line)
     for m in missing:
         print("  left out:", m)
@@ -509,20 +662,22 @@ def main():
     if args.undo:
         if not args.no_backup:
             print("backup:", backup(db, args.db))
-        deleted, changed = undo(db)
-        print(f"deleted {deleted} rows" + (f"; kept, changed since: {', '.join(changed)}" if changed else ""))
+        deleted, changed, run = undo(db)
+        print(f"the run of {run}: deleted {deleted} rows" + (f"; kept, changed since: {', '.join(changed)}" if changed else ""))
         return
     ground = args.ground if os.path.isdir(args.ground) else None
     if ground is None:
         print(f"(no ground files at {args.ground}: no heights, nothing can be written)")
     rows, missing = plan(db, ground)
-    report(rows, missing)
+    report(rows, missing, standing(db, rows))
     if args.apply:
         if not args.no_backup:
             print("backup:", backup(db, args.db))
-        wrote, kept = apply(db, rows)
-        print(f"wrote {len(wrote)} rows" + (f"; left alone, a row there already: {', '.join(kept)}" if kept else "")
-              + "; restart the server")
+        wrote, kept, gone = apply(db, rows)
+        print(f"wrote {len(wrote)} rows" + (f" ({', '.join(wrote)})" if wrote else "")
+              + (f"; left alone, a row there already: {len(kept)}" if kept else "")
+              + (f"; left alone, an earlier run's taken out since: {', '.join(gone)}" if gone else "")
+              + ("; restart the server" if wrote else ""))
     else:
         print("(report only: --apply to write it)")
 

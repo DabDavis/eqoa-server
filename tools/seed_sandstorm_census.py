@@ -97,6 +97,36 @@ PLAYER_IDS = 100_000_000
 MATCH = 150.0
 SIGHT = 120.0
 SIGHT_UP = 60.0
+# the harvester's track clock (its "t"): wall-clock milliseconds below 2^30,
+# the DRDP clock (eqoa-rust-headless): track_clock puts a UTC time on it
+TRACK_CLOCK = 1 << 30
+# a creature is seen walking at a pace over WALKING a second; a chase is
+# Sandstorm's run state (3) or a pace over CHASE (it walks at 4.92)
+WALKING = 0.2
+CHASE = 6.0
+# a creature watched this long on end without a step stood (Sandstorm's rests
+# between legs are 4.1 to 4.6 s)
+STILL_WATCH = 20.0
+# two census creatures of a name, of two flights, this near each other and
+# each where the other flight passed within DEDUPE_COVER across (SIGHT_UP over
+# or under), are one spawn seen twice (dedupe)
+DEDUPE_LINK = 50.0
+DEDUPE_COVER = 100.0
+# a row of ours this near a census creature, its name spelled alike, is it
+SPELLING_REACH = 5.0
+# --move: npcmove rows, logged in MOVE_LOG; a kind no census creature was
+# watched long enough of moves as its family (the name less its last word)
+# when FAMILY_MIN of those were and FAMILY_SHARE of them one way
+MOVE_LOG = "sandstorm_census_move"
+FAMILY_MIN = 5
+FAMILY_SHARE = 0.75
+# kinds whose move is said here, not measured: the Isle of Dread's sea
+# creatures, glimpsed 3.6 s each (the user, 2026-10-31, of the census's
+# creatures that stood: "same with IoD"); they swim where they spawned
+MOVE_SAID = {
+    "devourer": (1, "the Isle of Dread's sea, glimpsed only: wanders (the user: \"same with IoD\")"),
+    "ray of agony": (1, "the Isle of Dread's sea, glimpsed only: wanders (the user: \"same with IoD\")"),
+}
 LOG = "sandstorm_census_seed"
 META = "sandstorm_census_meta"
 
@@ -118,31 +148,181 @@ def key(name):
     return (name or "").strip().lower().rstrip("$").strip()
 
 
-def read_census(paths, exclude=()):
-    """id -> {looks, name, places [(t, x, y, z, h)]} for every creature seen,
-    but those whose name (any case) is in `exclude`: what Sandstorm put in
-    for an event, not its world (--exclude)."""
+def flight_of(path):
+    """A track file's flight: its name without the harvester's endings."""
+    b = os.path.basename(path)
+    for end in (".json.track.jsonl", ".track.jsonl", ".jsonl"):
+        if b.endswith(end):
+            return b[: -len(end)]
+    return b
+
+
+def track_clock(when):
+    """A UTC time ("2026-10-31T13:46:52Z") on the tracks' clock."""
+    d = datetime.datetime.fromisoformat(when.strip().replace("Z", "+00:00"))
+    if d.tzinfo is None:
+        d = d.replace(tzinfo=datetime.timezone.utc)
+    return int(d.timestamp() * 1000) % TRACK_CLOCK
+
+
+def read_census(paths, exclude=(), restarts=()):
+    """(epoch, id) -> {looks, name, flight, places [(t, x, y, z, h)], mv} for
+    every creature seen, but those whose name (any case) is in `exclude`: what
+    Sandstorm put in for an event, not its world (--exclude).
+
+    Sandstorm gives a creature a new id each time it spawns, from a counter a
+    restart of its server starts again (at 20,000,000; 2026-10-31 it restarted
+    at 13:46:52 and 14:53:45 UTC), so an id names one creature only between
+    two restarts: `restarts` (on the tracks' clock, track_clock) split the
+    census into epochs, a track file's by when it begins (a restart ends every
+    session). flight: the track file a creature was first seen in. mv: how it
+    moved while watched, out of the velocity Sandstorm sends with a creature's
+    place: walked (a step at a walk, out of a chase), chase (it ran at
+    someone), watch (its longest watch on end, s)."""
     exclude = {key(n) for n in exclude}
+    restarts = sorted(restarts)
     seen = {}
+    motion = collections.defaultdict(list)  # (epoch, id) -> [(t, pace, state)]
     for path in paths:
+        fl, epoch = flight_of(path), None
         with open(path) as f:
             for line in f:
                 try:
                     r = json.loads(line)
                 except ValueError:
                     continue  # a line the harvester was still writing
+                if epoch is None and "t" in r:
+                    epoch = sum(1 for x in restarts if r["t"] >= x)
+                ep = r.get("epoch", epoch or 0)
                 if "who" in r:
-                    i = r["who"]
-                    if i < PLAYER_IDS:
-                        seen.setdefault(i, {"places": []})
-                        seen[i].setdefault("looks", r)
+                    if r["who"] < PLAYER_IDS:
+                        c = seen.setdefault((ep, r["who"]), {"places": [], "flight": r.get("flight", fl)})
+                        c.setdefault("looks", {k: v for k, v in r.items() if k not in ("epoch", "flight")})
                 elif "id" in r and r["id"] < PLAYER_IDS:
-                    c = seen.setdefault(r["id"], {"places": []})
+                    k = (ep, r["id"])
+                    c = seen.setdefault(k, {"places": [], "flight": r.get("flight", fl)})
                     c["name"] = r["name"]
                     c["places"].append((r["t"], r["x"], r["y"], r["z"], r.get("h", 0.0)))
+                    if "mv" in r:
+                        c["mv"] = r["mv"]
+                    elif "v" in r:
+                        v = r["v"] or [0, 0, 0]
+                        motion[k].append((r["t"], math.hypot(v[0], v[2]), r.get("st", 0)))
+    for k, ms in motion.items():
+        ms.sort()
+        watch, start = 0.0, ms[0][0]
+        for a, b in zip(ms, ms[1:]):
+            if b[0] - a[0] > 2000:
+                start = b[0]
+            watch = max(watch, (b[0] - start) / 1000)
+        seen[k]["mv"] = dict(walked=any(WALKING < p <= CHASE and st != 3 for _, p, st in ms),
+                             chase=any(p > CHASE or st == 3 for _, p, st in ms), watch=round(watch, 1))
     # a nameless entity (a spawner, a marker) is no creature to make
-    return {i: c for i, c in seen.items()
+    return {k: c for k, c in seen.items()
             if c.get("places") and c.get("looks") and key(c.get("name")) and key(c.get("name")) not in exclude}
+
+
+def read_flights(paths, step=10.0):
+    """flight -> its places (its `self` lines), one every `step`."""
+    out = collections.defaultdict(list)
+    for path in paths:
+        fl = flight_of(path)
+        with open(path) as f:
+            for line in f:
+                if '"self"' not in line:
+                    continue
+                try:
+                    r = json.loads(line)
+                except ValueError:
+                    continue
+                p = r.get("self")
+                if not p or len(p) != 3:
+                    continue
+                pts = out[r.get("flight", fl)]
+                if not pts or math.dist(pts[-1], p) >= step:
+                    pts.append(tuple(p))
+    return dict(out)
+
+
+def dedupe(census, flights, link=DEDUPE_LINK, cover=DEDUPE_COVER, up=SIGHT_UP):
+    """(drop, by_flight): the census creatures that are another's spawn seen
+    again, and how many each flight loses. Sandstorm gives a creature a new id
+    each time it spawns, and spawns them as a player comes (its id counter
+    runs on through a census: a flight's ids are its own hour's), so a place
+    two flights saw, a zone flown again or the edge two zones share, has its
+    creatures twice under two ids (the census of 2026-10-31: Rathe 922 of
+    5,760, Oggok flown three times; Odus 704 of 6,616). Two creatures of a
+    name from two flights, within `link` of each other, each where the other's
+    flight passed within `cover` across and `up` over or under (it would have
+    been seen), are joined; of a joined group the flight that saw the most is
+    kept (a tie: the one that passed nearest), the others' dropped. A flight
+    never meets itself: two of a name it saw are two creatures."""
+    grids = {}
+    for fl, pts in flights.items():
+        g = collections.defaultdict(list)
+        for p in pts:
+            g[(int(p[0] // 100), int(p[2] // 100))].append(p)
+        grids[fl] = g
+    places = {k: place(c) for k, c in census.items()}
+    reach = int(cover // 100) + 1
+    near_cache = {}
+
+    def near(fl, k):
+        """How near flight fl passed creature k (across, within up), inf for never."""
+        if (fl, k) not in near_cache:
+            x, y, z, _ = places[k]
+            best, g = math.inf, grids.get(fl, {})
+            cx, cz = int(x // 100), int(z // 100)
+            for i in range(cx - reach, cx + reach + 1):
+                for j in range(cz - reach, cz + reach + 1):
+                    for p in g.get((i, j), ()):
+                        if abs(p[1] - y) <= up:
+                            best = min(best, math.hypot(p[0] - x, p[2] - z))
+            near_cache[(fl, k)] = best
+        return near_cache[(fl, k)]
+
+    cells = collections.defaultdict(list)
+    for k, c in census.items():
+        x, _, z, _ = places[k]
+        cells[(key(c["name"]), int(x // link), int(z // link))].append(k)
+    parent = {k: k for k in census}
+
+    def find(k):
+        while parent[k] != k:
+            parent[k] = parent[parent[k]]
+            k = parent[k]
+        return k
+
+    for k, c in census.items():
+        x, _, z, _ = places[k]
+        nk = key(c["name"])
+        for di in (-1, 0, 1):
+            for dj in (-1, 0, 1):
+                for o in cells.get((nk, int(x // link) + di, int(z // link) + dj), ()):
+                    oc = census[o]
+                    if o <= k or oc["flight"] == c["flight"]:
+                        continue
+                    ox, _, oz, _ = places[o]
+                    if math.hypot(ox - x, oz - z) <= link and near(oc["flight"], k) <= cover and near(c["flight"], o) <= cover:
+                        a, b = find(k), find(o)
+                        if a != b:
+                            parent[a] = b
+    groups = collections.defaultdict(list)
+    for k in census:
+        groups[find(k)].append(k)
+    drop, by_flight = set(), collections.Counter()
+    for g in groups.values():
+        of = collections.defaultdict(list)
+        for k in g:
+            of[census[k]["flight"]].append(k)
+        if len(of) < 2:
+            continue
+        keep = min(of, key=lambda fl: (-len(of[fl]), statistics.mean(min(near(fl, k), 1e9) for k in g), fl))
+        for fl, ks in of.items():
+            if fl != keep:
+                drop.update(ks)
+                by_flight[fl] += len(ks)
+    return drop, by_flight
 
 
 def read_path(paths, step=20.0):
@@ -181,22 +361,28 @@ class Sight:
         return False
 
 
-def compact(census, path, flight=()):
+def compact(census, path, flights=None):
     """The census as two lines a creature, its first `who` line and one place
     line at its place (place: the median, the height near it, the last
-    heading), which read_census reads back to the same census for plan, and
-    the flight's path (read_path's) as `self` lines: the track files are
-    tens of megabytes, this a few."""
+    heading; its epoch, its flight and how it moved, mv), which read_census
+    reads back to the same census for plan, dedupe and --move, and each
+    flight's path (read_flights') as `self` lines with their flight: the
+    track files are tens of megabytes, this a few."""
     with open(path, "w") as f:
-        for p in flight:
-            f.write(json.dumps(dict(self=list(p))) + "\n")
-        for i in sorted(census):
-            c = census[i]
+        for fl in sorted(flights or {}):
+            for p in flights[fl]:
+                f.write(json.dumps(dict(self=list(p), flight=fl)) + "\n")
+        for k in sorted(census):
+            ep, i = k
+            c = census[k]
             x, y, z, h = place(c)
             last = c["places"][-1]
-            f.write(json.dumps(c["looks"]) + "\n")
-            f.write(json.dumps(dict(t=last[0], id=i, name=c["name"], lvl=c["looks"].get("lvl"), model=c["looks"].get("model"),
-                                    x=x, y=y, z=z, h=h)) + "\n")
+            f.write(json.dumps(dict(c["looks"], epoch=ep, flight=c["flight"])) + "\n")
+            line = dict(t=last[0], id=i, name=c["name"], lvl=c["looks"].get("lvl"), model=c["looks"].get("model"),
+                        x=x, y=y, z=z, h=h, epoch=ep, flight=c["flight"])
+            if "mv" in c:
+                line["mv"] = c["mv"]
+            f.write(json.dumps(line) + "\n")
 
 
 def place(c):
@@ -225,23 +411,60 @@ def spellings(db):
     return {k: v.most_common(1)[0][0] for k, v in c.items()}
 
 
-def cased(db, names):
-    """The spelling fix_npc_name_case.py gives each new name (Sandstorm's, as
-    the census has it), by its rules over this database's evidence, and
-    whether those rules read it a kind's (generic) rather than someone's."""
+def cased(db, names, rows=None):
+    """The spelling tools/fix_npc_name_case.py's rules give each new name
+    (Sandstorm's, as the census has it: it capitalizes every word, and spells
+    some names two ways, "Ogre Thug" and "ogre thug"), one for every spelling
+    of a name, and whether those rules read it a kind's (generic). rows: fold
+    key -> [creatures of the name, of them a town's peaceful person, of them
+    on a players' race body], as that tool's town_rows counts a name's rows,
+    so a name the census saw three times or more is a kind whatever its words
+    (its KIND_ROWS: "Toxic Mist" is "toxic mist") and a town's people keep
+    their capitals. The rules are what our style is (2026-10-30: a generic
+    name lowercase but for its proper words, "Ankextet soldier"; an
+    individual's, a pet's, a town's people's and a place's as written)."""
     try:
         import fix_npc_name_case as nc
         ev = nc.load_evidence(db)
     except Exception as e:  # no evidence: every name someone's, made only when two or more carry it
         print(f"casing: {e}: Sandstorm's spellings kept", file=sys.stderr)
         return {n: (n, False) for n in names}
-    out = {}
+    spellings = collections.defaultdict(collections.Counter)
     for n in names:
-        k = nc.fold(n)
-        ev.variants[k][n] += 1
-        d = nc.decide(ev, k)
-        out[n] = (d.target if d is not None and d.target else n, d is not None and d.kind == "generic")
+        spellings[nc.fold(n)][n] += 1
+    for k, ns in spellings.items():
+        ev.variants[k].update(ns)
+    out = {}
+    for k, ns in spellings.items():
+        d = nc.decide(ev, k, (rows or {}).get(k))
+        target = d.target if d is not None and d.target else ns.most_common(1)[0][0]
+        if d is not None and d.kind == "individual" and len(k.split()) == 1 and (rows or {}).get(k, [0])[0] >= nc.KIND_ROWS:
+            # one word the census saw three times or more: a kind's ("Devourer", "Necrapede"), not someone's
+            target, d = k, nc.Decision(k, "generic", k, f"one word, seen {(rows or {})[k][0]} times: a kind")
+        for n in ns:
+            out[n] = (target, d is not None and d.kind == "generic")
     return out
+
+
+def spelled_alike(a, b, most=2):
+    """Two names two letters or fewer apart (an edit distance): a spelling of
+    one name, as "orge thug" is of "ogre thug"."""
+    if a == b or abs(len(a) - len(b)) > most or min(len(a), len(b)) < 6:
+        return a == b
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        cur = [i]
+        for j, cb in enumerate(b, 1):
+            cur.append(min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ca != cb)))
+        prev = cur
+    return prev[-1] <= most
+
+
+def player_bodies(db):
+    """The players' race bodies (charactermodel): a town's people wear them."""
+    if not has_table(db, "charactermodel"):
+        return set()
+    return {m & 0xFFFFFFFF for (m,) in db.execute("SELECT modelid FROM charactermodel") if m is not None}
 
 
 def pet_names(db):
@@ -316,6 +539,28 @@ def plan(db, census, world, match=MATCH, with_npcs=False, swap=False, with_named
             continue
         matched[i] = (rid, dist)
         used.add(rid)
+    # a row of ours on the very spot under a spelling of the name (the
+    # quests' "orge thug" is Sandstorm's "ogre thug", "Seamsteress Kella" its
+    # "Seamstress Kella"): one creature, ours
+    near = collections.defaultdict(list)
+    for k in ours:
+        for d in ours[k]:
+            near[(int(d["x_coord"] // 10), int(d["z_coord"] // 10))].append(d)
+    for i, c in census.items():
+        if i in matched:
+            continue
+        x, _, z, _ = place(c)
+        best = None
+        for di in (-1, 0, 1):
+            for dj in (-1, 0, 1):
+                for d in near.get((int(x // 10) + di, int(z // 10) + dj), ()):
+                    dist = math.hypot(d["x_coord"] - x, d["z_coord"] - z)
+                    if d["id"] not in used and dist <= SPELLING_REACH and spelled_alike(key(c["name"]), key(d["npc_name"])) \
+                            and (best is None or dist < best[0]):
+                        best = (dist, d["id"])
+        if best:
+            matched[i] = (best[1], best[0])
+            used.add(best[1])
     pets = pet_names(db)
     is_pet = lambda i: key(census[i]["name"]) in pets or key(census[i]["name"]).endswith("animation")
     missing = [i for i in census if i not in matched and (with_pets or not is_pet(i))]
@@ -323,7 +568,14 @@ def plan(db, census, world, match=MATCH, with_npcs=False, swap=False, with_named
     creatures = [i for i in missing if not census[i]["looks"].get("npc_flags", 0) & 0x80]
     people = [i for i in missing if census[i]["looks"].get("npc_flags", 0) & 0x80]
     new_names = sorted({census[i]["name"].strip() for i in missing if key(census[i]["name"]) not in ours_spelling})
-    casing = cased(db, new_names)
+    bodies = player_bodies(db)
+    name_rows = collections.defaultdict(lambda: [0, 0, 0])  # as fix_npc_name_case.town_rows counts a name's rows
+    for c in census.values():
+        r, body = name_rows[" ".join(c["name"].split()).lower()], (c["looks"].get("model") or 0) & 0xFFFFFFFF in bodies
+        r[0] += 1
+        r[1] += bool(c["looks"].get("npc_flags", 0) & 0x80 and body)
+        r[2] += body
+    casing = cased(db, new_names, name_rows)
     seen_count = collections.Counter(key(census[i]["name"]) for i in census)
     in_world = collections.Counter(key(d["npc_name"]) for k in ours for d in ours[k])
 
@@ -364,7 +616,7 @@ def plan(db, census, world, match=MATCH, with_npcs=False, swap=False, with_named
                    torso=armor[0], forearm=armor[1], gloves=armor[2], legs=armor[3], feet=armor[4], head=armor[5],
                    hair_color=hair[0], hair_length=hair[1], hair_style=hair[2], face=lk.get("face", 0),
                    robe_style=str(lk.get("robe", 255)), npc_id=0, dt_kill=None)
-        adds.append(dict(row={c2: row.get(c2) for c2 in cols if c2 != "id"}, census_id=i, new_name=k not in ours_spelling,
+        adds.append(dict(row={c2: row.get(c2) for c2 in cols if c2 != "id"}, census_id=i[1], new_name=k not in ours_spelling,
                          sand_class=lk.get("class", 0), template_row=tmpl["id"] if tmpl else None))
     report = dict(seen=len(census), matched=len(matched), missing_creatures=len(creatures), missing_people=len(people),
                   adds=len(adds), removes=len(removes), unseen_kept=len(unseen),
@@ -457,6 +709,104 @@ def undo(db, world):
     return n
 
 
+def move_rules(db, census, said=MOVE_SAID):
+    """name key -> (roam, note): how the census's kinds move on Sandstorm,
+    where the server would move them otherwise by their kind (entity's
+    movement: wildlife wanders, anything else stands; tools/seed_npc_move.py
+    keeps its lists). Sandstorm walks most of its creatures, wildlife or not
+    (82% of Odus's and 86% of Rathe's watched 20 s or more), and stands its
+    sentries, its keeps' and crypts' creatures and its casters: a kind walks
+    when as many of its creatures were seen walking (a step at a walk, out of
+    a chase) as were watched STILL_WATCH on end without one, and stands
+    otherwise; a kind none of whose creatures was watched long enough moves as
+    its family (its name less its last word, "Ankexfen" of "Ankexfen knight")
+    when FAMILY_MIN of the family's were and FAMILY_SHARE of them one way;
+    `said` says some outright. Wildlife is made to stand only when two or more
+    of its kind stood and none walked. A name npcmove has a row of, a town's
+    people (the NPC bit, a players' race body) and a kind nothing is known of
+    are left to the server."""
+    import seed_npc_move as mv
+    undead = {}
+    if has_table(db, "npcundead"):
+        undead = {key(n): bool(u) for n, u in db.execute("SELECT name, undead FROM npcundead")}
+    rows = {}
+    if has_table(db, "npcmove"):
+        rows = {key(n) for (n,) in db.execute("SELECT name FROM npcmove")}
+    bodies = player_bodies(db)
+    seen = collections.defaultdict(lambda: [0, 0])  # key -> [walked, stood]
+    kinds = set()
+    for c in census.values():
+        lk, k = c["looks"], key(c["name"])
+        if lk.get("npc_flags", 0) & 0x80 or (lk.get("model") or 0) & 0xFFFFFFFF in bodies:
+            continue
+        kinds.add(k)
+        m = c.get("mv")
+        if not m:
+            continue
+        if m["walked"]:
+            seen[k][0] += 1
+        elif not m["chase"] and m["watch"] >= STILL_WATCH:
+            seen[k][1] += 1
+    family = collections.defaultdict(lambda: [0, 0])
+    for k, (w, st) in seen.items():
+        if len(k.split()) > 1:
+            f = " ".join(k.split()[:-1])
+            family[f][0] += w
+            family[f][1] += st
+    out = {}
+    for k in sorted(kinds):
+        if k in rows:
+            continue
+        w, st = seen.get(k, (0, 0))
+        if k in said:
+            roam, why = said[k]
+        elif w or st:
+            if w == st:
+                continue  # as many stood as walked: as its kind
+            roam = 1 if w > st else 0
+            why = f"Sandstorm's census: {w} of {w + st} watched {'walking' if roam else 'walking; the rest stood'}"
+        else:
+            f = " ".join(k.split()[:-1])
+            fw, fs = family.get(f, (0, 0)) if f else (0, 0)
+            if fw + fs < FAMILY_MIN or max(fw, fs) < FAMILY_SHARE * (fw + fs):
+                continue
+            roam = 1 if fw > fs else 0
+            why = f"Sandstorm's census: none watched long enough; the {f} kinds {fw} of {fw + fs} walking"
+        wild = bool(mv.wildlife_word(k)) and not mv.is_undead(k, undead)
+        if (roam == 1) == wild:
+            continue  # the server moves it so by its kind already
+        if roam == 0 and (st < 2 or w > 0) and k not in said:
+            continue  # wildlife stands only on plain evidence
+        out[k] = (roam, why)
+    return out
+
+
+def apply_move(db, rules):
+    """Writes move_rules' rows into npcmove (source sandstorm-census), logged
+    in MOVE_LOG for --move --undo; a second is refused while the log is there."""
+    if has_table(db, MOVE_LOG):
+        sys.exit(f"the census's movement is applied already ({MOVE_LOG}): --move --undo it first")
+    if not has_table(db, "npcmove"):
+        sys.exit("no table npcmove (the server makes it at its start)")
+    db.execute(f"CREATE TABLE {MOVE_LOG} (seq INTEGER PRIMARY KEY AUTOINCREMENT, rid INTEGER NOT NULL, name TEXT NOT NULL)")
+    for k, (roam, note) in sorted(rules.items()):
+        cur = db.execute("INSERT INTO npcmove (name, roam, radius, water, note, source) VALUES (?, ?, 0, '', ?, ?)",
+                         (k, roam, note, SOURCE))
+        db.execute(f"INSERT INTO {MOVE_LOG} (rid, name) VALUES (?, ?)", (cur.lastrowid, k))
+
+
+def undo_move(db):
+    """Takes --move's rows out of npcmove again (a row a GM has since made
+    another source's is left) and drops the log."""
+    if not has_table(db, MOVE_LOG):
+        sys.exit(f"the census's movement is not applied ({MOVE_LOG})")
+    n = 0
+    for rid, name in db.execute(f"SELECT rid, name FROM {MOVE_LOG}").fetchall():
+        n += db.execute("DELETE FROM npcmove WHERE rowid = ? AND name = ? AND source = ?", (rid, name, SOURCE)).rowcount
+    db.execute(f"DROP TABLE {MOVE_LOG}")
+    return n
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--db", default=DEFAULT_DB)
@@ -471,14 +821,23 @@ def main():
     ap.add_argument("--sight-up", type=float, default=SIGHT_UP, help="... and this near it over or under")
     ap.add_argument("--exclude", action="append", default=[],
                     help="a name never made nor matched (an event's spawn); again for more, or @file with a name a line")
+    ap.add_argument("--restart", action="append", default=[],
+                    help="when Sandstorm restarted during the census (UTC, 2026-10-31T13:46:52Z; again for more, or a comma "
+                         "list): an id names one creature only between two")
+    ap.add_argument("--no-dedupe", action="store_true", help="keep a spawn two flights saw twice (dedupe)")
     ap.add_argument("--plan", help="write the rows it would add, as JSON")
     ap.add_argument("--compact", help="write the census as two lines a creature (read back as a track file)")
+    ap.add_argument("--move", action="store_true",
+                    help="npcmove rows for the census's kinds as Sandstorm moves them (move_rules; every world's census at once)")
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--undo", action="store_true")
     a = ap.parse_args()
     db = sqlite3.connect(a.db, timeout=5)
     if a.undo:
         with db:
+            if a.move:
+                print(f"undone: {undo_move(db)} npcmove rows")
+                return
             n = undo(db, a.world)
         print(f"undone: {dict(n)}")
         return
@@ -491,11 +850,32 @@ def main():
             exclude += [line.strip() for line in open(e[1:]) if line.strip() and not line.startswith("#")]
         else:
             exclude.append(e)
-    census = read_census(files, exclude)
-    flight = read_path(files)
+    restarts = [track_clock(t) for r in a.restart for t in r.split(",") if t.strip()]
+    census = read_census(files, exclude, restarts)
+    flights = read_flights(files)
     if a.compact:
-        compact(census, a.compact, flight)
-        print(f"compact: {len(census)} creatures and {len(flight)} places of the flight to {a.compact}")
+        compact(census, a.compact, flights)
+        print(f"compact: {len(census)} creatures and {sum(map(len, flights.values()))} places of {len(flights)} flights "
+              f"to {a.compact}")
+    if not a.no_dedupe:
+        drop, by_flight = dedupe(census, flights)
+        census = {k: c for k, c in census.items() if k not in drop}
+        print(f"dedupe: {len(drop)} creatures another flight saw too, dropped"
+              + (" (" + ", ".join(f"{fl} {n}" for fl, n in by_flight.most_common()) + ")" if drop else ""))
+    if a.move:
+        rules = move_rules(db, census)
+        walk = sorted(k for k, (r, _) in rules.items() if r)
+        stand = sorted(k for k, (r, _) in rules.items() if not r)
+        print(f"move: {len(walk)} kinds walk ({sum(1 for c in census.values() if key(c['name']) in walk)} of the census's "
+              f"creatures), {len(stand)} stand, where the server's kinds say otherwise")
+        for k in walk + stand:
+            print(f"  {'walks ' if rules[k][0] else 'stands'}  {k}: {rules[k][1]}")
+        if a.apply:
+            with db:
+                apply_move(db, rules)
+            print(f"applied: {len(rules)} npcmove rows ({MOVE_LOG})")
+        return
+    flight = [p for fl in sorted(flights) for p in flights[fl]]
     if a.swap and not flight:
         sys.exit("--swap needs the census flight's path (the tracks' self lines)")
     sight = Sight(flight, a.sight, a.sight_up) if a.swap else None

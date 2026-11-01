@@ -23,7 +23,7 @@ SCHEMA = [
     "feet INTEGER, head INTEGER, hair_color INTEGER, hair_length INTEGER, hair_style INTEGER, face INTEGER, robe_style TEXT, "
     "race TEXT, unk_j INTEGER, npc_level INTEGER, npc_type INTEGER, npc_id INTEGER, unk_k INTEGER, unk_i TEXT, "
     "pd_icon INTEGER, unk_m INTEGER, unk_n INTEGER, unk_o INTEGER)",
-    "CREATE TABLE spellpattern (spellid INTEGER PRIMARY KEY, spellname TEXT)",
+    "CREATE TABLE spellpattern (spellid INTEGER PRIMARY KEY, spellname TEXT, spelldesc TEXT)",
     "CREATE TABLE npcclass (name TEXT PRIMARY KEY, class INTEGER NOT NULL, source TEXT NOT NULL)",
     "CREATE TABLE lootcreature (npc_name TEXT PRIMARY KEY, region TEXT NOT NULL DEFAULT '', profile TEXT NOT NULL DEFAULT '', "
     "source TEXT NOT NULL DEFAULT 'gm')",
@@ -31,6 +31,8 @@ SCHEMA = [
     "source TEXT NOT NULL DEFAULT 'gm')",
     "CREATE TABLE queststeptargets (target TEXT NOT NULL)",
     "CREATE TABLE npcpaths (npcid INTEGER NOT NULL, seq INTEGER NOT NULL)",
+    "CREATE TABLE npcmove (name TEXT PRIMARY KEY, roam INTEGER NOT NULL DEFAULT -1, radius REAL NOT NULL DEFAULT 0, "
+    "water TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm')",
 ]
 BEAR, VIPER, SPIRIT, LORD, MAN = 0x1001, 0x2002, 0x3003, 0x4004, 0x5005
 
@@ -39,7 +41,7 @@ def build(path):
     db = sqlite3.connect(path, isolation_level=None)
     for s in SCHEMA:
         db.execute(s)
-    db.execute("INSERT INTO spellpattern VALUES (1, 'Feral Spirit')")
+    db.execute("INSERT INTO spellpattern (spellid, spellname, spelldesc) VALUES (1, 'Feral Spirit', 'Summons a spirit')")
     # ours: a bear where the census sees one, another far off
     for x in (5000.0, 9000.0):
         db.execute("INSERT INTO npcs (npc_name, x_coord, y_coord, z_coord, world, modelid, size, npc_level, npc_type, hp, "
@@ -89,7 +91,7 @@ class CensusTest(unittest.TestCase):
         # the casing rules want a whole database's evidence: here, a kind's
         # name lower case, a lord's someone's
         self.cased = sc.cased
-        sc.cased = lambda db, names: {n: ((n, False) if n.startswith("Lord ") else (n.lower(), True)) for n in names}
+        sc.cased = lambda db, names, rows=None: {n: ((n, False) if n.startswith("Lord ") else (n.lower(), True)) for n in names}
 
     def tearDown(self):
         sc.cased = self.cased
@@ -102,7 +104,7 @@ class CensusTest(unittest.TestCase):
 
     def test_the_kind_we_lack_is_made_and_nothing_else(self):
         census = sc.read_census([self.track])
-        self.assertNotIn(200_000_001, census, "a player")
+        self.assertNotIn(200_000_001, {i for _, i in census}, "a player")
         adds, removes, report = sc.plan(self.db, census, 1)
         self.assertEqual(removes, [], "nothing removed without --swap")
         self.assertEqual(report["matched"], 1, "the bear within MATCH of ours")
@@ -162,7 +164,7 @@ class SwapTest(unittest.TestCase):
         self.track = os.path.join(self.dir.name, "run.json.track.jsonl")
         track(self.track)
         self.cased = sc.cased
-        sc.cased = lambda db, names: {n: ((n, False) if n.startswith("Lord ") else (n.lower(), True)) for n in names}
+        sc.cased = lambda db, names, rows=None: {n: ((n, False) if n.startswith("Lord ") else (n.lower(), True)) for n in names}
 
     def tearDown(self):
         sc.cased = self.cased
@@ -218,8 +220,12 @@ class SwapTest(unittest.TestCase):
     def test_compact_keeps_the_census_and_the_flight(self):
         out = os.path.join(self.dir.name, "census.jsonl")
         census = sc.read_census([self.track])
-        sc.compact(census, out, [(1.0, 2.0, 3.0), (100.0, 2.0, 3.0)])
+        sc.compact(census, out, {"run": [(1.0, 2.0, 3.0), (100.0, 2.0, 3.0)]})
         self.assertEqual(sc.read_path([out]), [(1.0, 2.0, 3.0), (100.0, 2.0, 3.0)])
+        self.assertEqual(sc.read_flights([out]), {"run": [(1.0, 2.0, 3.0), (100.0, 2.0, 3.0)]})
+        back = sc.read_census([out])
+        self.assertEqual(sorted(back), sorted(census), "the same creatures, epochs and all")
+        self.assertEqual({k: c["mv"] for k, c in back.items()}, {k: c["mv"] for k, c in census.items()}, "how they moved")
         a1 = sc.plan(self.db, census, 1)[0]
         a2 = sc.plan(self.db, sc.read_census([out]), 1)[0]
         self.assertEqual([x["row"] for x in a1], [x["row"] for x in a2])
@@ -238,6 +244,152 @@ class SwapTest(unittest.TestCase):
         with self.db:
             sc.undo(self.db, 1)
         self.assertEqual(self.dump(), before)
+
+
+def lines_to(path, lines):
+    with open(path, "w") as f:
+        for r in lines:
+            f.write(json.dumps(r) + "\n")
+
+
+def looks(i, name, model, t=1, flags=0, lvl=20):
+    return dict(t=t, who=i, name=name, kind=130, lvl=lvl, model=model, model2=0, scale=1.0, race=0, **{"class": 0},
+                npc_flags=flags, items=[0, 0, 0], items_over=[0, 0, 0], item_types=[0, 0], armor=[0] * 6,
+                armor_tint=[0] * 6, hair=[0, 0, 0], face=0, robe=255, robe_tint=0)
+
+
+def seen(t, i, name, x, z, pace=0.0, st=0):
+    return dict(t=t, id=i, name=name, lvl=20, model=0, x=x, y=61.0, z=z, h=0.0, v=[pace, 0, 0], st=st, wf=0)
+
+
+def flight(t0, x0, x1, z, step=10):
+    """A flight's self lines along z from x0 to x1."""
+    return [dict(t=t0 + k, self=[float(x), 80.0, float(z)]) for k, x in enumerate(range(int(x0), int(x1) + 1, step))]
+
+
+class MoreTest(unittest.TestCase):
+    """Restarts, two flights over one place, a spelling of our name on its
+    spot, the casing's counts and --move."""
+
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory()
+        self.db = build(os.path.join(self.dir.name, "t.db"))
+        self.cased = sc.cased
+        sc.cased = lambda db, names, rows=None: {n: (n.lower(), True) for n in names}
+
+    def tearDown(self):
+        sc.cased = self.cased
+        self.db.close()
+        self.dir.cleanup()
+
+    def path(self, name):
+        return os.path.join(self.dir.name, name)
+
+    def test_a_restart_makes_an_id_two_creatures(self):
+        # id 20000005 a viper before the restart (t 100) and a beetle after it (t 900)
+        lines_to(self.path("a.json.track.jsonl"), [looks(20000005, "Grass Viper", VIPER, t=100),
+                                                   seen(100, 20000005, "Grass Viper", 6000.0, 6000.0)])
+        lines_to(self.path("b.json.track.jsonl"), [looks(20000005, "Fire Beetle", BEAR, t=900),
+                                                   seen(900, 20000005, "Fire Beetle", 9000.0, 9000.0)])
+        files = [self.path("a.json.track.jsonl"), self.path("b.json.track.jsonl")]
+        two = sc.read_census(files, restarts=[500])
+        self.assertEqual(sorted(c["name"] for c in two.values()), ["Fire Beetle", "Grass Viper"])
+        self.assertEqual(sorted(two), [(0, 20000005), (1, 20000005)])
+        # the control: without the restart the two are one, its place between them
+        one = sc.read_census(files)
+        self.assertEqual(len(one), 1)
+
+    def test_a_spawn_two_flights_saw_is_made_once(self):
+        # flight a (t 100) and flight b (t 5000) both pass over z 6000; each sees the viper spawn
+        # there under its own id; a sees a second viper 30 off that b never came near
+        a = flight(100, 5800, 6200, 6000) + [looks(20000001, "Grass Viper", VIPER, t=100), seen(110, 20000001, "Grass Viper", 6000.0, 6010.0),
+                                             looks(20000002, "Grass Viper", VIPER, t=100), seen(110, 20000002, "Grass Viper", 6000.0, 6040.0)]
+        b = flight(5000, 5800, 6200, 6000) + [looks(20000101, "Grass Viper", VIPER, t=5000), seen(5010, 20000101, "Grass Viper", 6003.0, 6012.0)]
+        lines_to(self.path("a.json.track.jsonl"), a)
+        lines_to(self.path("b.json.track.jsonl"), b)
+        files = [self.path("a.json.track.jsonl"), self.path("b.json.track.jsonl")]
+        census = sc.read_census(files)
+        drop, by = sc.dedupe(census, sc.read_flights(files))
+        self.assertEqual(drop, {(0, 20000101)}, "b's viper is a's, seen again; a saw both of the pair")
+        self.assertEqual(dict(by), {"b": 1})
+        # the control: one flight seeing two of a kind on one spot keeps both
+        lines_to(self.path("c.json.track.jsonl"), flight(100, 5800, 6200, 6000) + [
+            looks(1, "Grass Viper", VIPER), seen(110, 1, "Grass Viper", 6000.0, 6010.0),
+            looks(2, "Grass Viper", VIPER), seen(110, 2, "Grass Viper", 6001.0, 6011.0)])
+        c = [self.path("c.json.track.jsonl")]
+        self.assertEqual(sc.dedupe(sc.read_census(c), sc.read_flights(c))[0], set())
+        # and a flight that never passed near the other's creature does not drop it
+        far = flight(5000, 9800, 10200, 9000) + [looks(20000101, "Grass Viper", VIPER, t=5000),
+                                                  seen(5010, 20000101, "Grass Viper", 6003.0, 6012.0)]
+        lines_to(self.path("d.json.track.jsonl"), far)
+        files = [self.path("a.json.track.jsonl"), self.path("d.json.track.jsonl")]
+        self.assertEqual(sc.dedupe(sc.read_census(files), sc.read_flights(files))[0], set())
+
+    def test_our_row_spelled_otherwise_on_its_spot_is_ours(self):
+        ins = ("INSERT INTO npcs (npc_name, x_coord, y_coord, z_coord, world, modelid, size, npc_level, npc_type, hp, "
+               "hp_percent, unk_i, robe_style) VALUES (?, ?, 60, ?, 1, 7, 1.0, 15, 0, 1, 255, '15', '255')")
+        self.db.execute(ins, ("orge thug", 8861.0, 5548.0))
+        lines_to(self.path("a.json.track.jsonl"), [looks(5, "Ogre Thug", BEAR), seen(1, 5, "Ogre Thug", 8862.0, 5549.0),
+                                                   looks(6, "Ogre Thug", BEAR), seen(1, 6, "Ogre Thug", 8962.0, 5549.0)])
+        census = sc.read_census([self.path("a.json.track.jsonl")])
+        adds, _, report = sc.plan(self.db, census, 1)
+        self.assertEqual(report["matched"], 1, "the thug on our orge thug's spot is ours")
+        self.assertEqual([round(a["row"]["x_coord"]) for a in adds], [8962], "the one 100 off is made")
+        self.assertTrue(sc.spelled_alike("seamstress kella", "seamsteress kella"))
+        self.assertFalse(sc.spelled_alike("kerran priest", "kerran soldier"))
+        self.assertFalse(sc.spelled_alike("rat", "bat"), "short names are not guessed at")
+
+    def test_the_casing_counts_the_census(self):
+        sc.cased = self.cased  # the real rules, over this database's evidence
+        rows = {"toxic mist": [3, 0, 0]}
+        out = sc.cased(self.db, ["Toxic Mist", "Ogre Thug", "ogre thug"], rows)
+        self.assertEqual(out["Toxic Mist"][0], "toxic mist", "seen three times: a kind, lowercase")
+        self.assertEqual(out["Ogre Thug"][0], out["ogre thug"][0], "one spelling a name")
+        self.assertEqual(out["Ogre Thug"][0], "ogre thug")
+        # the control: once, an unknown head keeps Sandstorm's capitals
+        self.assertEqual(sc.cased(self.db, ["Toxic Mist"], {"toxic mist": [1, 0, 0]})["Toxic Mist"][0], "Toxic Mist")
+        # one word seen three times is a kind's, once someone's
+        self.assertEqual(sc.cased(self.db, ["Devourer"], {"devourer": [6, 0, 0]})["Devourer"][0], "devourer")
+        self.assertEqual(sc.cased(self.db, ["Naris"], {"naris": [1, 0, 0]})["Naris"][0], "Naris")
+
+    def test_move_rows_from_how_sandstorm_moved_them(self):
+        lines = flight(1, 0, 100, 0)
+        def watch(i, name, model, pace, t0=1, secs=25, flags=0, st=0):
+            lines.append(looks(i, name, model, t=t0, flags=flags))
+            lines.extend(seen(t0 + 1000 * s, i, name, 50.0, 50.0, pace=(pace if s % 4 == 1 else 0.0), st=st) for s in range(secs))
+        watch(1, "Tae Ew Soldier", 0x7001, 4.9)       # walked: not wildlife, so a row
+        watch(2, "Tae Ew Soldier", 0x7001, 4.9)
+        watch(3, "Kappa Guard", 0x7002, 0.0)          # stood: as its kind (it stands): no row
+        watch(17, "Ankextet Guard", 0x7009, 4.9)      # one walked, one stood: as its kind, no row
+        watch(18, "Ankextet Guard", 0x7009, 0.0)
+        watch(4, "Grass Viper", VIPER, 0.0)           # wildlife that stood, twice: a row to stand
+        watch(5, "Grass Viper", VIPER, 0.0)
+        watch(6, "Tiger", 0x7003, 0.0)                # wildlife that stood once: left to wander
+        watch(7, "Town Crier", 0x7004, 4.9, flags=0x80)  # a person: never a row
+        watch(8, "Ankexfen Knight", 0x7005, 4.9)      # the Ankexfen family: five walk...
+        for i in range(9, 13):
+            watch(i, "Ankexfen Priest", 0x7005, 4.9)
+        watch(13, "Ankexfen Scout", 0x7005, 4.9, secs=2)  # ...and a scout glimpsed: walks as they do
+        watch(14, "Imprisoned Soul", 0x7006, 12.0, st=3)  # a chase: no evidence either way
+        watch(15, "Devourer", 0x7007, 0.0, secs=3)    # said outright (MOVE_SAID)
+        watch(16, "Fire Beetle", 0x7008, 4.9)         # walked, but npcmove has a row: kept
+        self.db.execute("INSERT INTO npcmove (name, roam, source) VALUES ('fire beetle', 0, 'gm')")
+        lines_to(self.path("m.json.track.jsonl"), lines)
+        census = sc.read_census([self.path("m.json.track.jsonl")])
+        rules = sc.move_rules(self.db, census)
+        self.assertEqual({k: r for k, (r, _) in rules.items()},
+                         {"tae ew soldier": 1, "grass viper": 0, "ankexfen knight": 1, "ankexfen priest": 1, "ankexfen scout": 1,
+                          "devourer": 1})
+        before = list(self.db.execute("SELECT * FROM npcmove ORDER BY rowid"))
+        with self.db:
+            sc.apply_move(self.db, rules)
+        self.assertEqual(self.db.execute("SELECT roam, source FROM npcmove WHERE name = 'tae ew soldier'").fetchone(),
+                         (1, sc.SOURCE))
+        with self.assertRaises(SystemExit):
+            sc.apply_move(self.db, rules)
+        with self.db:
+            self.assertEqual(sc.undo_move(self.db), len(rules))
+        self.assertEqual(list(self.db.execute("SELECT * FROM npcmove ORDER BY rowid")), before)
 
 
 if __name__ == "__main__":

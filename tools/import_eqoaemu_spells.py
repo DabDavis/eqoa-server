@@ -522,6 +522,43 @@ def item_ref(wb, items_by_name, e, id_col, count):
     return out
 
 
+# a line's clause naming an item it makes or takes: "Summon Unit of Blood x1"
+# (Feed's), "Reagent Unit of Blood x2" (the vampires' abilities); "Summon
+# Player" is a kind of its own and "Summons a pet" a pet's
+LINE_ITEM_WORDS = {"item": re.compile(r"(?i)^summon (?!player\b)(.+?)(?: x\d+)?$"),
+                   "consume": re.compile(r"(?i)^reagent (.+?)(?: x\d+)?$")}
+
+
+def name_items_by_line(j, old, items_by_name):
+    """A made ("item") or taken ("consume") item the workbook names none of
+    (its Created Item Info sheet has no row of it: Feed's Unit of Blood, the
+    vampires' reagents), named as a spell of ours names it in its line, when
+    the line names exactly one of that kind and it is an item of ours: the
+    server reads a spell's effects alone (the brief's contract), so a name
+    only the line had would make nothing and take nothing (a free cast). The
+    workbook's count stays. Returns what it named, for the report."""
+    done = []
+
+    def walk(objs):
+        for o in objs:
+            yield o
+            yield from walk(o.get("procs") or [])
+
+    clauses = [c.strip() for c in old.split(",")]
+    for key, words in LINE_ITEM_WORDS.items():
+        blank = [o[key] for o in walk(j["effects"]) if key in o and not (o[key].get("name") or "").strip()]
+        named = [m.group(1).strip() for m in map(words.match, clauses) if m]
+        ours = [n for n in named if our_item(items_by_name, n) is not None]
+        if len(blank) != 1 or len(ours) != 1:
+            continue
+        it = blank[0]
+        it["name"], it["patternid"] = ours[0], our_item(items_by_name, ours[0])
+        if not str(it.get("sheet_item_id") or "").strip():
+            it.pop("sheet_item_id", None)
+        done.append(f"{'makes' if key == 'item' else 'takes'} {ours[0]} x{it.get('count', 1)}")
+    return done
+
+
 def effect_objects(e, ctx, wb, items_by_name, proc_of=None):
     """One Effects row as the brief's effect objects (one a figure; a row of
     one TYPE_KIND kind its object first). proc_of: "offense" or "defense"
@@ -1388,6 +1425,15 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None):
 
         # what it does
         if j["effects"]:
+            if rec is not None:
+                for what in name_items_by_line(j, (erows.get(sid) or {}).get("line") or "", items_by_name):
+                    lists["an item the workbook names none of, named as our line names it"].append(
+                        f"{sid} {rec['spellname']}: {what}")
+            for key in ("item", "consume"):
+                if any(key in o and not (o[key].get("name") or "").strip() for o in j["effects"]):
+                    lists[f"an item the workbook names none of, {'made' if key == 'item' else 'taken'} by a spell "
+                          f"none of whose lines name one (it {'makes' if key == 'item' else 'takes'} nothing)"].append(
+                        f"{sid} {cell(s, 'Name')}")
             line = line_of(j, proc_desc, new_scope, item_names)
             text = dumps(j)
             now = erows.get(sid)
@@ -1774,6 +1820,19 @@ def swap_json_spells(text, old, new, classes):
     return json.dumps(o, separators=(",", ":"), ensure_ascii=False) if hit else text
 
 
+def one_letter_apart(a, b):
+    """Whether two names of ten letters or more differ by one letter put in,
+    taken out or changed ("kithacor circle", "kithicor circle")."""
+    if a == b or min(len(a), len(b)) < 10 or abs(len(a) - len(b)) > 1:
+        return False
+    if len(a) > len(b):
+        a, b = b, a
+    i = 0
+    while i < len(a) and a[i] == b[i]:
+        i += 1
+    return a[i + (len(a) == len(b)):] == b[i + 1:]
+
+
 def plan_gates(db, gates, lists, counts):
     """A new teleport's spellgates row where its Location is a place: the
     world it names and its point, a group's the spell's radius (gates.go);
@@ -1793,9 +1852,11 @@ def plan_gates(db, gates, lists, counts):
     for g in gates:
         if g["location"]:
             places[g["location"]].add(place_of(g["name"]).lower())
-    known = []
+    known, rows = [], {}
     if has_table(db, "spellgates"):
         known = db.execute("SELECT place, world, x, z FROM main.spellgates WHERE place <> ''").fetchall()
+        cols = columns(db, "spellgates")
+        rows = {r[0]: dict(zip(cols, r)) for r in db.execute(f"SELECT {', '.join(cols)} FROM main.spellgates WHERE place <> ''")}
     for g in gates:
         key = g["name"].strip().lower()
         tag = f"{g['spellid']} {g['name']}"
@@ -1805,8 +1866,20 @@ def plan_gates(db, gates, lists, counts):
             x, y, z = (float(v) for v in parts[1:4])
         except (ValueError, IndexError):
             x = y = z = None
+        twins = [k for k in rows if one_letter_apart(key, k)] if world is None or x is None else []
         if key in have:
             lists["a new teleport whose name a spellgates row has: that row kept"].append(tag)
+        elif len(twins) == 1:
+            # the workbook's second record of a circle we have, spelled one
+            # letter otherwise and with no place of its own (Kithacor Circle,
+            # Kithicor Circle's level 60 twin for every race): its twin's place
+            row = dict(rows[twins[0]])
+            row.update(spell=key, note=f"{NOTE}: {g['name']}, spelled as {twins[0]!r} is but for one letter, its "
+                                       f"Location {g['location'] or 'none'}: that row's place", source="eqoaemu")
+            out.append(row)
+            have.add(key)
+            lists["a new teleport with no place named as a spellgates row is but for one letter: that row's place"].append(
+                f"{tag} = {twins[0]} ({row['place']})")
         elif world is None or x is None:
             lists["a new teleport with no place in its Location (no spellgates row)"].append(
                 f"{tag}: {g['location'] or 'none'}")

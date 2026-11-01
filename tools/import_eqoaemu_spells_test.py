@@ -6,6 +6,7 @@ scopes, the areas, the class rows (a were's none), a vendor spell's scroll and
 its merchants, the quest and drop spells listed, the line as the server's
 reader takes it, a plan through a file, --apply's log, a second --apply
 refused, and --undo exact with a row a GM changed since left."""
+import collections
 import json
 import os
 import sqlite3
@@ -465,6 +466,61 @@ class ImportTest(unittest.TestCase):
         self.db.execute("INSERT INTO spellgates VALUES ('mai`adra''s gate')")
         self.assertFalse(im.rename_safe("Mai`adra's Gate", "Mai'adra's Gate", self.db), "a gate keyed by the backtick")
         self.assertTrue(im.rename_safe("Mai`adra's Hope", "Mai'adra's Hope", self.db), "a backtick no key holds")
+
+
+class LineItemsTest(unittest.TestCase):
+    """A made or taken item the workbook names none of takes our line's name
+    (Feed's Unit of Blood, the vampires' reagents): the server reads the
+    effects alone, so without it a summon makes nothing and a reagent is free."""
+
+    def test_named_as_the_line_names_it(self):
+        ours = {im.fold("Unit of Blood"): 709302, im.fold("Fire Potion"): 7}
+        feed = {"effects": [{"kind": "hp", "amount": -1}, {"kind": "create_item", "item": {"count": 1, "sheet_item_id": ""}}]}
+        done = im.name_items_by_line(feed, "Target, Drain HP by 40 to 60 give self, Summon Unit of Blood x1", ours)
+        self.assertEqual(done, ["makes Unit of Blood x1"])
+        self.assertEqual(feed["effects"][1]["item"], {"count": 1, "name": "Unit of Blood", "patternid": 709302})
+        gaze = {"effects": [{"kind": "hate", "amount": -500, "consume": {"count": 10, "sheet_item_id": ""}}]}
+        self.assertEqual(im.name_items_by_line(gaze, "Target, Set Aggro to 0, Reagent Unit of Blood x10", ours),
+                         ["takes Unit of Blood x10"])
+        self.assertEqual(gaze["effects"][0]["consume"]["patternid"], 709302)
+        # the workbook's count stays (Vitality: our line's 5, its 6)
+        vit = {"effects": [{"kind": "stat", "consume": {"count": 6, "sheet_item_id": ""}}]}
+        im.name_items_by_line(vit, "Self, Increase HP by 1000, 60sec, Reagent Unit of Blood x5", ours)
+        self.assertEqual(vit["effects"][0]["consume"]["count"], 6)
+
+    def test_left_unnamed(self):
+        ours = {im.fold("Unit of Blood"): 709302, im.fold("Fire Potion"): 7}
+        for line in ("Self, Creates an item x6",                                    # no name in the line
+                     "Self, Summon Ruby Shard x2",                                  # none of ours
+                     "Self, Summon Unit of Blood, Summon Fire Potion",              # two: which is which
+                     "Group, Summon Player", "Self, Summons a pet"):
+            j = {"effects": [{"kind": "create_item", "item": {"count": 1, "sheet_item_id": ""}}]}
+            self.assertEqual(im.name_items_by_line(j, line, ours), [], line)
+            self.assertNotIn("name", j["effects"][0]["item"], line)
+        # one the workbook names is left as it is
+        j = {"effects": [{"kind": "create_item", "item": {"count": 1, "name": "Fire Mix Potion"}}]}
+        self.assertEqual(im.name_items_by_line(j, "Self, Summon Unit of Blood", ours), [])
+
+    def test_gate_twins(self):
+        self.assertTrue(im.one_letter_apart("kithacor circle", "kithicor circle"))
+        self.assertTrue(im.one_letter_apart("sycamore circle", "sycamor circle"))
+        self.assertFalse(im.one_letter_apart("odus gate", "odus gates"))              # too short to tell
+        self.assertFalse(im.one_letter_apart("nerius portal", "melton portal"))
+        db = sqlite3.connect(":memory:")
+        db.execute("""CREATE TABLE spellgates (spell TEXT PRIMARY KEY, kind TEXT NOT NULL DEFAULT 'self',
+                      place TEXT NOT NULL DEFAULT '', world INTEGER NOT NULL DEFAULT 0, x REAL NOT NULL DEFAULT 0,
+                      y REAL NOT NULL DEFAULT 0, z REAL NOT NULL DEFAULT 0, radius REAL NOT NULL DEFAULT 0,
+                      note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm')""")
+        db.execute("INSERT INTO spellgates VALUES ('kithicor circle', 'group', 'Saerk Towers', 0, 20333.3, 80.6, "
+                   "12333.3, 0, 'seeded', 'seed')")
+        lists, counts = collections.defaultdict(list), collections.Counter()
+        out = im.plan_gates(db, [dict(spellid=900434, name="Kithacor Circle", location="", group=True, radius=0),
+                                 dict(spellid=900429, name="Circle of Dead Hills", location="", group=True, radius=0)],
+                            lists, counts)
+        self.assertEqual([(g["spell"], g["place"], g["x"], g["source"]) for g in out],
+                         [("kithacor circle", "Saerk Towers", 20333.3, "eqoaemu")])
+        self.assertEqual(lists["a new teleport with no place in its Location (no spellgates row)"],
+                         ["900429 Circle of Dead Hills: none"])
 
 
 class IconTest(unittest.TestCase):

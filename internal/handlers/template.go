@@ -378,6 +378,7 @@ func (h *CharacterHandler) ApplyTemplate(sess *session.Session) ([]string, error
 	gw.SetPlayerTunar(sid, templateTunar, player.BankTunar)
 	bankMu.Unlock()
 	h.applyEquipmentFromDB(player, sid, true)
+	handsChanged(gw, h.inventoryStore, sess, player) // a fight swings with the new hands (combat.go)
 	gw.SyncSelfChannels(sess)
 	if now, ok := gw.PlayerSnapshot(player.ServerID); ok {
 		h.queueMemoryDump(sess, &now)

@@ -16,13 +16,21 @@ type Gear struct {
 	// ItemCredit counts them (regen.go), not summed
 	PoTItems, HoTItems     []int
 	PR, DR, FR, CR, LR, AR int // 22-27
-	// WeaponDamage is the primary weapon's itempattern.weapondamage (the
-	// tooltip's DMG), 0 for none; WeaponCond its condition (hit points over
-	// their most, 1 when the item holds none) and WeaponTwoHanded whether
-	// it takes both hands. The player's melee rolls on them (offence.go).
+	// WeaponDamage is the swinging weapon's itempattern.weapondamage (the
+	// tooltip's DMG), 0 for none: the main hand's or the two-hander's, else
+	// the ranged weapon's (handlers' wornGear); WeaponCond its condition (hit
+	// points over their most, 1 when the item holds none) and
+	// WeaponTwoHanded whether it takes both hands. WeaponSlot is the equip
+	// slot it is worn in (14, 16 or 18; 0 none). The player's melee rolls on
+	// them (offence.go).
 	WeaponDamage    int
 	WeaponCond      float64
 	WeaponTwoHanded bool
+	WeaponSlot      int
+	// BareHands: no weapon in the hands (equip slots 14, 15 and 16; a shield
+	// or an item held is none) and nothing in the ranged slot (18), where a
+	// monk's melee rolls on its hand to hand (offence.go)
+	BareHands bool
 }
 
 // Add puts one worn item's stats, by stat id, into the sums.

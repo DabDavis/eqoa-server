@@ -47,6 +47,9 @@ type EquipHandler struct {
 
 	fishing *FishingHandler // a fishing pole used from the HUD (fishing.go)
 	craft   *CraftHandler   // a recipe scroll used (craft.go)
+
+	// hands is what the switches for an art remember (handswitch.go)
+	hands handMemory
 }
 
 // NewEquipHandler creates the handler. spells may be nil: no scroll is then
@@ -454,9 +457,8 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 	// Refresh the visual equipment bytes. The state channel is serialized from
 	// the Player struct every tick, so this is what actually makes the change
 	// show up on the character. (A test's handler may have no CharacterHandler.)
-	if h.charHandler != nil {
-		h.charHandler.applyEquipmentFromDB(player, serverID, false)
-	}
+	// A fight in progress swings with the hands from its next round.
+	h.wornChanged(sess, player, serverID)
 	if fishAfter {
 		h.fishing.StartFishing(sess)
 	} else if _, row, err := invItemByKey(items, sessionInvList(sess), key); plan.equip && h.fishing != nil &&
@@ -518,6 +520,11 @@ func (h *EquipHandler) applyPlan(sess *session.Session, serverID uint32, plan eq
 		log.Printf("%s: serverID=%d EQUIP %q (key=%d, list index %d) to slot %d, %d displaced",
 			who, serverID, plan.name, plan.key, plan.index, plan.slot, len(plan.changes)-1)
 		sess.Queue().AddWithSequence(equipItemMessage(plan.index, plan.slot))
+		if plan.slot == equipRanged && len(plan.changes) > 0 {
+			// the ranged weapon it holds now, for the switch for an art (handswitch.go)
+			id := plan.changes[len(plan.changes)-1].itemID
+			h.hands.update(serverID, func(k *keptHands) { k.ranged = id })
+		}
 	}
 	return true
 }

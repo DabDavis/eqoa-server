@@ -90,6 +90,7 @@ func TestZonesLoadAsAskedAndTheOldestGo(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer g.Close()
+	g.SetKeep(keep)
 	for i := range zones {
 		if _, ok := g.Floor(2, float32(i*100)+25, 10, 25); !ok {
 			t.Fatalf("zone %d: no floor", i)
@@ -119,5 +120,47 @@ func TestAZoneTooWideIsRefused(t *testing.T) {
 	defer f.Close()
 	if err := Write(f, []Zone{{Strips: [][]Vertex{quad(0, 0, 17000, 10, flat)}}}); err == nil {
 		t.Error("a zone 17000 wide was written")
+	}
+}
+
+// keep is the zones a test keeps loaded (SetKeep).
+const keep = 32
+
+// Open keeps every zone once read: none is let go, and none read twice.
+func TestEveryZoneKeptByDefault(t *testing.T) {
+	dir := t.TempDir()
+	flat := func(float32, float32) float32 { return 10 }
+	var zones []Zone
+	for i := 0; i < 80; i++ {
+		x := float32(i * 100)
+		zones = append(zones, Zone{Strips: [][]Vertex{quad(x, 0, x+50, 50, flat)}})
+	}
+	writeWorld(t, dir, 2, zones)
+	g, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer g.Close()
+	for round := 0; round < 2; round++ {
+		for i := range zones {
+			if _, ok := g.Floor(2, float32(i*100)+25, 10, 25); !ok {
+				t.Fatalf("zone %d: no floor", i)
+			}
+		}
+	}
+	if g.Loads != len(zones) || len(g.worlds[2].loaded) != len(zones) {
+		t.Errorf("%d loads, %d kept, want %d of each", g.Loads, len(g.worlds[2].loaded), len(zones))
+	}
+	// the control: kept to 32, the second round reads them all again
+	g2, _ := Open(dir)
+	defer g2.Close()
+	g2.SetKeep(keep)
+	for round := 0; round < 2; round++ {
+		for i := range zones {
+			g2.Floor(2, float32(i*100)+25, 10, 25)
+		}
+	}
+	if g2.Loads != 2*len(zones) {
+		t.Errorf("kept to %d: %d loads, want %d", keep, g2.Loads, 2*len(zones))
 	}
 }

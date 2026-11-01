@@ -216,6 +216,14 @@ type WorldConfig struct {
 	// lines); "enforce" leaves the player where it last was right and moves
 	// the client back. #movecheck changes it while the server runs.
 	MoveCheck string `yaml:"movecheck"`
+
+	// GroundZones is how many zones of the ground files stay loaded at once
+	// (and as many of the walls files'), the least lately used let go past
+	// it: unset or 0, every zone once read (all six worlds: 652 MB at most,
+	// 2.4 MB a zone on average). A small machine may cap it; players spread
+	// over more zones than it holds make the server read zones over and over
+	// (internal/ground's Ground.keep).
+	GroundZones int `yaml:"ground_zones"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

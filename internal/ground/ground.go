@@ -59,13 +59,6 @@ const (
 	// its walls' (sparse: Tunaria's are 5% of its terrain).
 	cell     float32 = 8
 	wallCell float32 = 32
-
-	// keep is how many zones are kept loaded at once: Tunaria's take 2.25 MB
-	// each on average and load in 6 ms (12 at most); a creature moves only
-	// near a player, so this is a few zones a player. The walls files' zones
-	// are kept as many again, counted apart (Tunaria's 32 and every buffer
-	// they place, 11 MB; 0.3 ms a zone).
-	keep = 32
 )
 
 // Vertex is a point of a strip, in world units.
@@ -233,6 +226,16 @@ type Ground struct {
 	worlds map[uint8]*world
 	walls  map[uint8]*wallWorld
 	clock  uint64
+	// keep is how many zones stay loaded at once (SetKeep), the walls
+	// files' as many again, counted apart; 0, every zone once read. A zone
+	// loads in 6 ms (12 at most) and takes 2.4 MB on average loaded, all six
+	// worlds' 652 MB with their walls and buffers (Tunaria's 175 zones 418
+	// MB of it). It was 32: a few zones a player, enough for a handful, but
+	// a judge of 250 players' moves (entity/movecheck.go) spread over the
+	// worlds read a zone for nearly every report and would have taken 13
+	// cores to keep up (2026-11-01); the creatures near the players ask the
+	// same zones.
+	keep int
 	// Loads counts the zones read from the ground files, WallLoads those
 	// read from the walls files (for a test and the log).
 	Loads, WallLoads int
@@ -298,6 +301,15 @@ func (g *Ground) Worlds() (worlds, zones int) {
 		zones += len(w.entries)
 	}
 	return
+}
+
+// SetKeep sets how many zones stay loaded at once (and as many of the walls
+// files' zones), the least lately used let go past it; 0 (Open's) keeps
+// every zone once read.
+func (g *Ground) SetKeep(n int) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	g.keep = max(0, n)
 }
 
 // Close closes the files.
@@ -612,7 +624,7 @@ func (g *Ground) wallZoneLocked(w *wallWorld, i int) (*wallZone, error) {
 	for _, ww := range g.walls {
 		total += len(ww.loaded)
 	}
-	for total > keep {
+	for g.keep > 0 && total > g.keep {
 		var oldW *wallWorld
 		oldI, oldUsed := -1, uint64(math.MaxUint64)
 		for _, ww := range g.walls {
@@ -647,7 +659,7 @@ func (g *Ground) zoneLocked(w *world, i int) (*zoneGrid, error) {
 	for _, ww := range g.worlds {
 		total += len(ww.loaded)
 	}
-	for total > keep {
+	for g.keep > 0 && total > g.keep {
 		var oldW *world
 		oldI, oldUsed := -1, uint64(math.MaxUint64)
 		for _, ww := range g.worlds {

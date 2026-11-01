@@ -147,7 +147,10 @@ class TuneBalance(unittest.TestCase):
 
     def test_the_seeds_are_the_tuning(self):
         """internal/database/balanceseed.go (a table made new) is what this tool makes of the 01:30 table: the level,
-        con and class rows (the class and level rows are the two tunings', tools/retune_balance_test.py)."""
+        con and class rows (the class and level rows are the later tunings', tools/retune_balance_test.py), but for
+        the level rows' pet columns, which the re-fit after the workbook's import moved (100 at every row,
+        tools/refit_eqoaemu_balance.py) from what this makes of them (what that tool goes from)."""
+        import refit_eqoaemu_balance as rf
         self.run_tool("--apply")
         c = sqlite3.connect(self.db)
         made = {r[0]: tuple(r[1:]) for r in c.execute(f"SELECT level, {', '.join(tb.LEVEL_COLS)} FROM balancelevel")}
@@ -162,7 +165,14 @@ class TuneBalance(unittest.TestCase):
         levels = {int(m[0]): tuple(map(float, m[1:])) for m in re.findall(
             r"\{Level: (\d+), HPPct: " + num + ", DamagePct: " + num + ", ConPct: " + num + ", PetHPPct: " + num +
             ", PetDamagePct: " + num + ", ArtCooldownMS: " + num + ", RegenPct: " + num, go)}
-        self.assertEqual(levels, made)
+        pets = [tb.LEVEL_COLS.index("pet_hp_pct"), tb.LEVEL_COLS.index("pet_damage_pct")]
+        rest = lambda v: tuple(x for i, x in enumerate(v) if i not in pets)  # noqa: E731
+        self.assertEqual({l: rest(v) for l, v in levels.items()}, {l: rest(v) for l, v in made.items()})
+        self.assertEqual({tuple(v[i] for i in pets) for v in levels.values()}, {rf.PET_LEVEL})
+        self.assertEqual(set(made), set(rf.PET_LEVEL_BEFORE))
+        for l, v in made.items():
+            for i, want in zip(pets, rf.PET_LEVEL_BEFORE[l]):
+                self.assertAlmostEqual(v[i], want, places=9, msg=f"level {l}")
         cons = {int(m[0]): tuple(map(float, m[1:])) for m in re.findall(
             r"\{Diff: (\d+), DamagePct: " + num + ", TakenPct: " + num + ", RootResistPct: " + num + ", RootBreakPct: " + num, go)}
         self.assertEqual(cons, made_cons)

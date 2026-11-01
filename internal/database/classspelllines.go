@@ -2,8 +2,8 @@ package database
 
 // ClassSpellLine is one of a class's spells (classspells) with what the
 // world needs to cast it on its own: its ability record's level, scope,
-// name and description, and its spelleffect line and visual ("" and 0 for a
-// spell with no row there).
+// name and description, and its spelleffect line, effects (JSON) and visual
+// ("", "" and 0 for a spell with no row there).
 type ClassSpellLine struct {
 	SpellID int
 	Level   int
@@ -11,6 +11,7 @@ type ClassSpellLine struct {
 	Name    string
 	Desc    string
 	Line    string
+	Effects string
 	FX      uint32
 }
 
@@ -20,7 +21,7 @@ type ClassSpellLine struct {
 func (db *SQLiteDB) ClassSpellLines(class int) ([]ClassSpellLine, error) {
 	rows, err := db.Query(`
 		SELECT sp.spellid, sp.abilitylvl, sp.scope, sp.spellname, COALESCE(sp.spelldesc, ''),
-			COALESCE(se.line, ''), COALESCE(se.fxdict, 0), COALESCE(cs.source, '')
+			COALESCE(se.line, ''), COALESCE(se.effects, ''), COALESCE(se.fxdict, 0), COALESCE(cs.source, '')
 		FROM classspells cs
 		JOIN spellpattern sp ON sp.spellid = cs.spellid
 		LEFT JOIN spelleffect se ON se.spellid = sp.spellid
@@ -35,7 +36,7 @@ func (db *SQLiteDB) ClassSpellLines(class int) ([]ClassSpellLine, error) {
 		var l ClassSpellLine
 		var fx int64
 		var source string
-		if err := rows.Scan(&l.SpellID, &l.Level, &l.Scope, &l.Name, &l.Desc, &l.Line, &fx, &source); err != nil {
+		if err := rows.Scan(&l.SpellID, &l.Level, &l.Scope, &l.Name, &l.Desc, &l.Line, &l.Effects, &fx, &source); err != nil {
 			return nil, err
 		}
 		if !Granted(source) {

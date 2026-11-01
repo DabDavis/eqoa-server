@@ -71,6 +71,9 @@ type savedMods struct {
 	// reads as none
 	Line string `json:",omitempty"`
 	Rank int    `json:",omitempty"`
+	// a meal's or a drink's rule (consumable.go); a row kept before reads as
+	// none, the default rule
+	Food *FoodRule `json:",omitempty"`
 }
 
 func savedEffects(p *Player, now time.Time) []database.BuffRow {
@@ -85,7 +88,8 @@ func savedEffects(p *Player, now time.Time) []database.BuffRow {
 			tick = max(0, e.NextTick.Sub(now).Milliseconds())
 		}
 		sm := savedMods{StatMods: e.Mods, Proc: e.Proc, ProcMax: e.ProcMax, ProcScale: e.ProcScale, ProcScalePct: e.ProcScalePct,
-			ProcCap: e.ProcCap, Form: e.Form, FormSize: e.FormSize, Ticks: e.Ticks, Shield: e.Shield, Line: e.Line, Rank: e.Rank}
+			ProcCap: e.ProcCap, Form: e.Form, FormSize: e.FormSize, Ticks: e.Ticks, Shield: e.Shield, Line: e.Line, Rank: e.Rank,
+			Food: e.Food}
 		if e.PowerCapped {
 			top := e.PowerCap
 			sm.PowerCap = &top
@@ -137,6 +141,11 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 			ae.Ticks = sm.Ticks
 			ae.Shield = sm.Shield
 			ae.Line, ae.Rank = sm.Line, sm.Rank
+			if sm.Food != nil {
+				r := *sm.Food
+				r.Since = now // its fights count from the login
+				ae.Food = &r
+			}
 			if sm.PowerCap != nil {
 				ae.PowerCap, ae.PowerCapped = *sm.PowerCap, true
 			}

@@ -208,3 +208,90 @@ func TestConsumableKeptOverALogout(t *testing.T) {
 		t.Errorf("restored meal through a fight: HoT %d", p2.HoTNow())
 	}
 }
+
+// A meal or a drink with a foodeffect row (EQOAEmu's workbook, the import of
+// 2026-11-01): its own time, ended by any spell its eater casts when its row
+// says so, and by a fight when its row says so, a drink too, which is then
+// refused in a fight; kept over a logout with its rule. The control: a drink
+// whose row says no contact runs through a fight, as one with no row does.
+func TestConsumableRuleFromItsRow(t *testing.T) {
+	w, sess, p, now := newEater(t)
+	ale := Consumable{Drink: true, Name: "pale ale", Icon: waterIcon, Amount: 12, Duration: 2 * time.Minute,
+		Rule: &FoodRule{EndsOnCast: true, EndsOnContact: true}}
+	cider := Consumable{Drink: true, Name: "plain cider", Icon: waterIcon, Amount: 5, Duration: 2 * time.Minute,
+		Rule: &FoodRule{}}
+	if err := w.Consume(sess, ale, now); err != nil {
+		t.Fatal(err)
+	}
+	w.mu.Lock()
+	w.effectSystem(now.Add(ConsumableDuration + time.Second))
+	w.mu.Unlock()
+	if p.PoTNow() != 22 {
+		t.Fatalf("a second past the minute: PoT %d, want 22 (its row's two minutes)", p.PoTNow())
+	}
+	// a cast ends it
+	w.mu.Lock()
+	w.endFoodOnCastLocked(p)
+	w.mu.Unlock()
+	if p.PoTNow() != 10 || len(p.Effects) != 0 {
+		t.Fatalf("after a cast: PoT %d, %d effects", p.PoTNow(), len(p.Effects))
+	}
+	// a fight ends a drink whose row says contact, and refuses one in a fight
+	w.Consume(sess, ale, now)
+	p.LastCombatTime = now.Add(time.Second)
+	w.mu.Lock()
+	w.consumableSystem(now.Add(2 * time.Second))
+	w.mu.Unlock()
+	if len(p.Effects) != 0 {
+		t.Fatalf("a contact drink through a fight: %d effects", len(p.Effects))
+	}
+	p.AttackTarget = 2002
+	if err := w.Consume(sess, ale, now.Add(3*time.Second)); err != ErrConsumeFighting {
+		t.Fatalf("a contact drink in a fight: %v, want ErrConsumeFighting", err)
+	}
+	if err := w.Consume(sess, cider, now.Add(3*time.Second)); err != nil {
+		t.Fatalf("a drink no fight ends, in a fight: %v", err)
+	}
+	p.AttackTarget = 0
+	w.mu.Lock()
+	w.consumableSystem(now.Add(4 * time.Second))
+	w.endFoodOnCastLocked(p) // its row says no cast either
+	w.mu.Unlock()
+	if p.PoTNow() != 15 {
+		t.Fatalf("the cider through a fight and a cast: PoT %d, want 15", p.PoTNow())
+	}
+	// over a logout the rule comes back with it (the ale replaces the cider:
+	// one drink at a time)
+	w.Consume(sess, ale, now.Add(5*time.Second))
+	rows, _ := w.SavedEffects(p.ServerID, now.Add(10*time.Second))
+	w2, sess2, p2, later := newEater(t)
+	w2.RestoreEffects(sess2, rows, later)
+	if p2.PoTNow() != 22 {
+		t.Fatalf("restored: PoT %d, want 22", p2.PoTNow())
+	}
+	w2.mu.Lock()
+	w2.endFoodOnCastLocked(p2)
+	w2.mu.Unlock()
+	if p2.PoTNow() != 10 || len(p2.Effects) != 0 {
+		t.Errorf("a restored ale through a cast: PoT %d, %d effects; want 10, 0", p2.PoTNow(), len(p2.Effects))
+	}
+}
+
+// An item with both a HoT and a PoT (the workbook's Blessed Fish) gives both
+// from the meal's slot: a drink beside it adds its own, another meal
+// replaces it whole.
+func TestConsumableGivesBoth(t *testing.T) {
+	w, sess, p, now := newEater(t)
+	w.Consume(sess, Consumable{Name: "blessed fish", Icon: breadIcon, Amount: 33, Also: 33}, now)
+	if p.HoTNow() != 53 || p.PoTNow() != 43 {
+		t.Fatalf("the fish: HoT %d PoT %d, want 53, 43", p.HoTNow(), p.PoTNow())
+	}
+	w.Consume(sess, Consumable{Drink: true, Name: "well water", Icon: waterIcon, Amount: 2}, now)
+	if p.PoTNow() != 45 {
+		t.Fatalf("the fish and a drink: PoT %d, want 45", p.PoTNow())
+	}
+	w.Consume(sess, Consumable{Name: "hearty bread", Icon: breadIcon, Amount: 10}, now)
+	if p.HoTNow() != 30 || p.PoTNow() != 12 {
+		t.Errorf("bread after the fish: HoT %d PoT %d, want 30, 12", p.HoTNow(), p.PoTNow())
+	}
+}

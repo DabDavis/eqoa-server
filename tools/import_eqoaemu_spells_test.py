@@ -467,5 +467,19 @@ class ImportTest(unittest.TestCase):
         self.assertTrue(im.rename_safe("Mai`adra's Hope", "Mai'adra's Hope", self.db), "a backtick no key holds")
 
 
+class IconTest(unittest.TestCase):
+    """icon_of: the workbook's IconID byte-reversed, unless only the id as
+    written is an icon on the disc; neither: none."""
+
+    def test_the_way_round_the_disc_has(self):
+        signed = lambda v: struct.unpack("<i", struct.pack("<I", v))[0]  # noqa: E731
+        disc = {0x7C84475E, 0x5F49041D}
+        self.assertEqual(im.icon_of("0x1D04495F", disc), signed(0x5F49041D), "reversed, as the workbook mostly writes it")
+        self.assertEqual(im.icon_of("0x7C84475E", disc), signed(0x7C84475E), "written our way round: taken as written")
+        self.assertIsNone(im.icon_of("0x12345678", disc), "no icon either way round")
+        self.assertEqual(im.icon_of("0x12345678"), signed(0x78563412), "no disc read: reversed, as before")
+        self.assertIsNone(im.icon_of("12 34", disc))
+
+
 if __name__ == "__main__":
     unittest.main()

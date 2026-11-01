@@ -529,6 +529,44 @@ class ImportTest(unittest.TestCase):
         plain = im.plan(self.db, wb, smap, weres=WERES)
         self.assertNotIn(121, [e["spellid"] for e in plain["effects"] + plain["spells"]], "the control: no table row, left")
 
+    def test_ours_makes_and_cures(self):
+        """A spell of ours the workbook lacks that makes an item (MAKES) takes
+        its maker's frame (as this plan writes the maker), making the count of
+        our item by its name, at its own level; one that cures (CURES) is a
+        cure of up to its count of harmful effects, a friendly target's as its
+        record's scope has it; their lines and descriptions ours. The control:
+        without the tables' rows they are left. The names made up."""
+        x = self.db.execute
+        x("INSERT INTO spellpattern VALUES (122, 20, 0, 0, 16528, 2, 50, -1809115846, 5, 0, 3, -1, 'Weak Brewing', "
+          "'SELF Summon Weak Draught')")
+        x("INSERT INTO spellpattern VALUES (123, 16, 0, 0, 16880, 2, 0, 486870879, 5, 1, 1, -1, 'Mending Tonic', "
+          "'Dispel Effect x2')")
+        x("INSERT INTO spelleffect VALUES (122, 'SELF Summon Weak Draught', 9, 'eqoa-data alchemist')")
+        x("INSERT INTO spelleffect VALUES (123, 'Dispel Effect x2', 9, 'eqoa-data alchemist')")
+        x("INSERT INTO classspells VALUES (14, 122, 'eqoa-data'), (14, 123, 'eqoa-data')")
+        saved = im.MAKES, im.CURES, im.OURS_DESC
+        im.MAKES, im.CURES = {"weak brewing": ("brew fire", "Weak Draught", 1)}, {"mending tonic": 2}
+        im.OURS_DESC = {"weak brewing": "Makes a Weak Draught.", "mending tonic": "Cures two."}
+        try:
+            p = self.plan()
+        finally:
+            im.MAKES, im.CURES, im.OURS_DESC = saved
+        brew = self.effects(p, 122)
+        maker = self.effects(p, 900265)
+        self.assertEqual(brew["effects"], [{"type": "Create Item", "kind": "create_item",
+                                            "item": {"count": 1, "name": "Weak Draught", "patternid": 10}}])
+        self.assertEqual({k: v for k, v in brew.items() if k not in ("level", "effects")},
+                         {k: v for k, v in maker.items() if k not in ("level", "effects")}, "the maker's frame")
+        self.assertEqual((brew["level"], self.line(p, 122)), (20, "Self, Summon Weak Draught"))
+        cure = self.effects(p, 123)
+        self.assertEqual((cure["scope"], cure["target_type"], cure["effects"]),
+                         ("target", "Friendly", [{"type": "Remove Ability", "kind": "cure", "removes": "", "cure_max": 2}]))
+        self.assertEqual(self.line(p, 123), "Target, Cure up to 2 harmful effects")
+        descs = {e["spellid"]: e["set"].get("spelldesc") for e in p["spells"] if e["spellid"] in (122, 123)}
+        self.assertEqual(descs, {122: "Makes a Weak Draught.", 123: "Cures two."})
+        plain = self.plan()
+        self.assertFalse({122, 123} & {e["spellid"] for e in plain["effects"] + plain["spells"]}, "the control: left")
+
     def test_apply_undo(self):
         before = self.dump()
         p = self.plan()

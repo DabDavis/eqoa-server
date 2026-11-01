@@ -249,7 +249,7 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	if w.playerShieldsLocked(sess, player, npc, now) { // its damage shield and defensive procs (dshield.go)
 		return
 	}
-	w.procHealsLocked(player, true, now)             // its defensive proc heals (workbook.go)
+	w.procHealsLocked(player, npc, true, now)        // its defensive proc heals (workbook.go)
 	w.procSpellsLocked(player, sess, npc, true, now) // and spell procs (workbookmore.go)
 }
 

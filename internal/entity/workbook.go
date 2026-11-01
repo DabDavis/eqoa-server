@@ -82,6 +82,9 @@ type EffectRules struct {
 	ProcHealScale    Stat `json:",omitempty"`
 	ProcHealScalePct int  `json:",omitempty"`
 	ProcHealChance   int  `json:",omitempty"`
+	// ProcHealUndead: the proc heals only at a hit on, or by, an undead
+	// creature (the workbook's "Enemy - Undead" proc; none heals so yet)
+	ProcHealUndead bool `json:",omitempty"`
 	// Disguise: the factions do not attack the bearer on sight
 	// (workbookmore.go)
 	Disguise bool `json:",omitempty"`
@@ -123,6 +126,7 @@ func (ae *ActiveEffect) workbookLasting(e SpellEffect, d *SpellDef) bool {
 	case EffectProcHeal:
 		ae.Rules.ProcHeal, ae.Rules.ProcHealDef = e.Amount, e.Defense
 		ae.Rules.ProcHealScale, ae.Rules.ProcHealScalePct, ae.Rules.ProcHealChance = e.Scale, e.ScalePct, e.Chance
+		ae.Rules.ProcHealUndead = e.Undead
 	default:
 		return false
 	}
@@ -477,12 +481,16 @@ func cureMatches(ae *ActiveEffect, words string) bool {
 
 // procHealsLocked heals a player by its proc heals: its offensive ones
 // (defense false) after one of its melee hits at the proc chance, its
-// defensive ones (true) after a hit on it at theirs. Must be called with the
-// lock held.
-func (w *World) procHealsLocked(p *Player, defense bool, now time.Time) {
+// defensive ones (true) after a hit on it at theirs; npc is the creature
+// hit or hitting (one for the undead alone heals only by an undead one).
+// Must be called with the lock held.
+func (w *World) procHealsLocked(p *Player, npc *NPC, defense bool, now time.Time) {
 	for _, ae := range p.Effects {
 		r := ae.Rules
 		if r.ProcHeal <= 0 || r.ProcHealDef != defense || !now.Before(ae.Until) {
+			continue
+		}
+		if r.ProcHealUndead && (npc == nil || !w.undeadLocked(npc)) {
 			continue
 		}
 		chance := r.ProcHealChance

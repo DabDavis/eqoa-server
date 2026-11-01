@@ -66,7 +66,9 @@ import (
 // does, how long what lasts of it lasts, its chance (0: an offensive proc's,
 // by its bearer's INT), and whether a hit on the bearer sets it off.
 type ProcSpell struct {
-	Defense  bool          `json:",omitempty"`
+	Defense bool `json:",omitempty"`
+	// Undead: it fires on undead creatures alone (the proc's own target type)
+	Undead   bool          `json:",omitempty"`
 	Effects  []SpellEffect `json:",omitempty"`
 	Duration time.Duration `json:",omitempty"`
 	Chance   int           `json:",omitempty"`
@@ -96,7 +98,7 @@ func (w *World) procSpellsLocked(p *Player, sess *session.Session, npc *NPC, def
 			continue
 		}
 		for i, ps := range ae.ProcSpells {
-			if ps.Defense != defense || npc.Dead || p.IsDead() {
+			if ps.Defense != defense || npc.Dead || p.IsDead() || (ps.Undead && !w.undeadLocked(npc)) {
 				continue
 			}
 			chance := ps.Chance

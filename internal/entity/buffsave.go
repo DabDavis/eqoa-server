@@ -54,6 +54,8 @@ type savedMods struct {
 	ProcScale    Stat `json:",omitempty"`
 	ProcScalePct int  `json:",omitempty"`
 	ProcCap      int  `json:",omitempty"`
+	// a proc for the undead alone; none on a row kept before
+	ProcUndead bool `json:",omitempty"`
 	// an illusion's body and its scale (illusion.go); a row kept before
 	// illusions reads as none
 	Form     uint32  `json:",omitempty"`
@@ -92,7 +94,7 @@ func savedEffects(p *Player, now time.Time) []database.BuffRow {
 			tick = max(0, e.NextTick.Sub(now).Milliseconds())
 		}
 		sm := savedMods{StatMods: e.Mods, Proc: e.Proc, ProcMax: e.ProcMax, ProcScale: e.ProcScale, ProcScalePct: e.ProcScalePct,
-			ProcCap: e.ProcCap, Form: e.Form, FormSize: e.FormSize, Ticks: e.Ticks, Shield: e.Shield, Line: e.Line, Rank: e.Rank,
+			ProcCap: e.ProcCap, ProcUndead: e.ProcUndead, Form: e.Form, FormSize: e.FormSize, Ticks: e.Ticks, Shield: e.Shield, Line: e.Line, Rank: e.Rank,
 			Food: e.Food}
 		if e.PowerCapped {
 			top := e.PowerCap
@@ -146,6 +148,7 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 			_ = json.Unmarshal([]byte(r.Mods), &sm)
 			ae.Mods, ae.Proc, ae.ProcMax = sm.StatMods, sm.Proc, sm.ProcMax
 			ae.ProcScale, ae.ProcScalePct, ae.ProcCap = sm.ProcScale, sm.ProcScalePct, sm.ProcCap
+			ae.ProcUndead = sm.ProcUndead
 			ae.Form, ae.FormSize = sm.Form, sm.FormSize
 			ae.Ticks = sm.Ticks
 			ae.Shield = sm.Shield

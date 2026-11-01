@@ -474,7 +474,7 @@ func TestWorkbookProcHeals(t *testing.T) {
 	}
 	procIntn = func(int) int { return 0 }
 	c.w.mu.Lock()
-	c.w.procHealsLocked(c.p, true, c.at(0))
+	c.w.procHealsLocked(c.p, nil, true, c.at(0))
 	c.w.mu.Unlock()
 	if c.p.HP != 325 {
 		t.Errorf("after a hit on it: %d HP, want 325", c.p.HP)
@@ -508,5 +508,37 @@ func TestWorkbookUndeadCheck(t *testing.T) {
 		if !d.Workbook || d.undeadOnly() != c.undead || d.UndeadOnly != c.undead {
 			t.Errorf("%s: undead only %v (field %v), want %v", c.name, d.undeadOnly(), d.UndeadOnly, c.undead)
 		}
+	}
+}
+
+// Avatar's shape as the follow-up writes it (the user, 2026-11-01: "a one
+// time max hp buff and massive stat buff lasts until next avatar recast"):
+// a heal of the workbook's HP1 once, at the landing, after the maximum it
+// raises (so a target at full health gains it all), the stats and the
+// maximum for the duration, and no tick; a recast takes the first one's
+// place. Made-up figures.
+func TestAOneTimeHealWithAMaxHPBuff(t *testing.T) {
+	c := newCaster(t)
+	c.p.HP, c.p.MaxHP = 536, 536
+	sp := wbSpell(9100, 20, 1, "Test Colossus", `{"v":1,"scope":"target","target_type":"Friendly","harmful":false,"duration_s":120,"stack":1,"level":20,
+		"effects":[{"id":"0001","type":"Dmg/Heal","kind":"hp","amount":300},
+			{"id":"0002","type":"Statistic Change","kind":"stat","stat":"str","amount":40},
+			{"id":"0002","type":"Statistic Change","kind":"stat","stat":"maxhp","amount":300}]}`)
+	sp.Recast = 0
+	c.castOn(t, sp, 0)
+	if c.p.MaxHPNow() != 836 || c.p.HP != 836 || c.p.Mods.Str != 40 {
+		t.Fatalf("at its landing: %d/%d HP, STR +%d; want 836/836, +40", c.p.HP, c.p.MaxHPNow(), c.p.Mods.Str)
+	}
+	if len(c.p.Effects) != 1 || c.p.Effects[0].HPTick != 0 {
+		t.Fatalf("what lasts: %+v", c.p.Effects)
+	}
+	c.p.HP = 500
+	c.tick(30 * time.Second)
+	if c.p.HP != 500 {
+		t.Errorf("30 s on, %d HP: it healed again", c.p.HP)
+	}
+	c.castOn(t, sp, 60*time.Second) // recast: its place taken, healed once more
+	if len(c.p.Effects) != 1 || c.p.MaxHPNow() != 836 || c.p.HP != 800 {
+		t.Errorf("recast: %d effects, %d/%d HP; want 1, 800/836", len(c.p.Effects), c.p.HP, c.p.MaxHPNow())
 	}
 }

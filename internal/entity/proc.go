@@ -65,11 +65,14 @@ func procResistPct(bearerLevel, targetLevel int) int {
 // a capped one does no more than its cap.
 //
 // resistOff is what arcane resist debuffs on the creature take off its
-// chance to resist, in points (enchanter.go).
-func procRolls(effects []*ActiveEffect, stat func(Stat) int, bearerLevel, targetLevel, resistOff int, now time.Time, intn func(int) int) (hits []int, resisted int) {
+// chance to resist, in points (enchanter.go); undead says whether it is
+// undead (asked only of a proc for the undead alone, which nothing else sets
+// off: Smite Undead's, the workbook's "Enemy - Undead").
+func procRolls(effects []*ActiveEffect, stat func(Stat) int, bearerLevel, targetLevel, resistOff int, undead func() bool,
+	now time.Time, intn func(int) int) (hits []int, resisted int) {
 	intel := stat(StatInt)
 	for _, ae := range effects {
-		if ae.Proc <= 0 || !now.Before(ae.Until) {
+		if ae.Proc <= 0 || !now.Before(ae.Until) || (ae.ProcUndead && !undead()) {
 			continue
 		}
 		if intn(100) >= procChancePct(intel) {
@@ -94,7 +97,8 @@ func procRolls(effects []*ActiveEffect, stat func(Stat) int, bearerLevel, target
 // playerProcsLocked runs a player's procs after one of its melee hits on a
 // creature still standing. It reports a kill.
 func (w *World) playerProcsLocked(sess *session.Session, p *Player, npc *NPC, now time.Time) bool {
-	hits, resisted := procRolls(p.Effects, p.StatNow, p.Level, npc.Level, npcResistOffPct(npc, now), now, procIntn)
+	undead := func() bool { return w.undeadLocked(npc) }
+	hits, resisted := procRolls(p.Effects, p.StatNow, p.Level, npc.Level, npcResistOffPct(npc, now), undead, now, procIntn)
 	if resisted > 0 {
 		log.Printf("Proc: %s's proc resisted by %s", p.Name, npc.Name)
 	}
@@ -104,7 +108,7 @@ func (w *World) playerProcsLocked(sess *session.Session, p *Player, npc *NPC, no
 			return true
 		}
 	}
-	w.procHealsLocked(p, false, now)             // its offensive proc heals (workbook.go)
+	w.procHealsLocked(p, npc, false, now)        // its offensive proc heals (workbook.go)
 	w.procSpellsLocked(p, sess, npc, false, now) // and spell procs (workbookmore.go)
 	return npc.Dead
 }
@@ -116,7 +120,8 @@ func (w *World) petProcsLocked(ps *petState, t *NPC, now time.Time) bool {
 	pet := ps.npc
 	// a pet has no stats of its own: each is its INT's stand-in, 3 a level
 	petStat := func(Stat) int { return petIntPerLvl * pet.Level }
-	hits, resisted := procRolls(pet.Effects, petStat, pet.Level, t.Level, npcResistOffPct(t, now), now, procIntn)
+	undead := func() bool { return w.undeadLocked(t) }
+	hits, resisted := procRolls(pet.Effects, petStat, pet.Level, t.Level, npcResistOffPct(t, now), undead, now, procIntn)
 	if resisted > 0 {
 		log.Printf("Proc: the pet %q's proc resisted by %s", pet.Name, t.Name)
 	}

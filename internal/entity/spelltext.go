@@ -141,7 +141,8 @@ type SpellEffect struct {
 	// Cap is the most the effect does, its scale included ("max 250"); 0
 	// for no cap
 	Cap int
-	// Undead: a shield that answers undead attackers alone (dshield.go)
+	// Undead: a shield that answers undead attackers alone (dshield.go), or
+	// a proc that fires on undead creatures alone (proc.go, workbook.go)
 	Undead bool
 	// Set: the stat is set to Amount, not changed by it ("Set STR to 500"):
 	// the difference from the bearer's own stat as the spell lands

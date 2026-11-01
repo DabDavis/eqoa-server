@@ -323,32 +323,32 @@ class ImportCMsTest(unittest.TestCase):
 
 class FixSlipsTest(unittest.TestCase):
     """fix_slips: an ability named by another class's spell of the same name
-    is the rank's class's spell; nothing else moves."""
+    is the rank's class's spell; nothing else moves (the ids made up)."""
 
     def test_another_class_spell_put_right(self):
         spells = m.Sheet([["SpellID", "Name", "CLASS"],
-                          ["0276", "Tranquility", "ENC"], ["0635", "Tranquility", "WAR"], ["0633", "Serenity", "WAR"],
-                          ["0278", "Composure +", "ENC"], ["062F", "Composure", "WAR"],
-                          ["0374", "Siphon Strength", "NEC"], ["05A3", "Siphon Strength", "SK"],
-                          ["0177", "Lightning Strike", "DRD"], ["031E", "Lightning Strike", "MNK"],
-                          ["0701", "Lightning Strike", "MNK"], ["0800", "Pet Bite", ""], ["0801", "Pet Bite", "WAR"]])
+                          ["0A76", "Tranquility", "ENC"], ["0A35", "Tranquility", "WAR"], ["0A33", "Serenity", "WAR"],
+                          ["0A78", "Composure +", "ENC"], ["0A2F", "Composure", "WAR"],
+                          ["0B74", "Siphon Strength", "NEC"], ["0BA3", "Siphon Strength", "SK"],
+                          ["0B17", "Lightning Strike", "DRD"], ["0B1E", "Lightning Strike", "MNK"],
+                          ["0B01", "Lightning Strike", "MNK"], ["0800", "Pet Bite", ""], ["0801", "Pet Bite", "WAR"]])
         W = m.read_ranks(m.Sheet([HEAD] + [
-            wrow("02E4", "Tranquility", cls="Class", sub="Warrior", klass="WAR",
-                 adds=[("0633", "Serenity"), ("0276", "Tranquility"), ("0278", "Composure +")]),
-            wrow("02B4", "Parasitic Bond 1", cls="Class", sub="Shadowknight", klass="SK",
-                 abil=[("0374", "Siphon Strength")], removes=[("0374", "Siphon Strength")]),
-            wrow("0208", "Focused Strike 1", cls="Class", sub="Monk", klass="MNK", adds=[("0177", "Lightning Strike")]),
-            wrow("00C9", "Hide", adds=[("0276", "Tranquility")]),
+            wrow("0CE4", "Tranquility", cls="Class", sub="Warrior", klass="WAR",
+                 adds=[("0A33", "Serenity"), ("0A76", "Tranquility"), ("0A78", "Composure +")]),
+            wrow("0CB4", "Parasitic Bond 1", cls="Class", sub="Shadowknight", klass="SK",
+                 abil=[("0B74", "Siphon Strength")], removes=[("0B74", "Siphon Strength")]),
+            wrow("0C08", "Focused Strike 1", cls="Class", sub="Monk", klass="MNK", adds=[("0B17", "Lightning Strike")]),
+            wrow("0CC9", "Hide", adds=[("0A76", "Tranquility")]),
             wrow("0900", "Bite", cls="Class", sub="Warrior", klass="WAR", adds=[("0800", "Pet Bite")]),
         ]))
         fixed = m.fix_slips(W, m.read_spell_owners(spells))
         self.assertEqual(sorted((h, k, a, b) for h, k, a, b, _ in fixed),
-                         [("02B4", "abil", 0x374, 0x5A3), ("02B4", "removes", 0x374, 0x5A3), ("02E4", "adds", 0x276, 0x635)])
+                         [("0CB4", "abil", 0xB74, 0xBA3), ("0CB4", "removes", 0xB74, 0xBA3), ("0CE4", "adds", 0xA76, 0xA35)])
         by = {w["hex"]: w for w in W}
-        self.assertEqual([x for x, _ in by["02E4"]["adds"]], [0x633, 0x635, 0x278],
+        self.assertEqual([x for x, _ in by["0CE4"]["adds"]], [0xA33, 0xA35, 0xA78],
                          "the class's own spell moved, the slip left, or a + spell taken for its base")
-        self.assertEqual([x for x, _ in by["0208"]["adds"]], [0x177], "two of the class's spells of the name: guessed")
-        self.assertEqual([x for x, _ in by["00C9"]["adds"]], [0x276], "a rank of every class taken for a slip")
+        self.assertEqual([x for x, _ in by["0C08"]["adds"]], [0xB17], "two of the class's spells of the name: guessed")
+        self.assertEqual([x for x, _ in by["0CC9"]["adds"]], [0xA76], "a rank of every class taken for a slip")
         self.assertEqual([x for x, _ in by["0900"]["adds"]], [0x800], "a spell of no class taken for a slip")
         self.assertEqual(m.fix_slips(W, m.read_spell_owners(spells)), [], "a second pass found more")
         self.assertEqual(m.fix_slips(W, m.read_spell_owners(None)), [], "no Spells sheet: something moved")

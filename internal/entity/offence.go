@@ -1,6 +1,9 @@
 package entity
 
-import "math"
+import (
+	"math"
+	"time"
+)
 
 // A player's melee hit on an NPC, as Sandstorm's lands: measured 2026-10-22
 // on Muniel's Tea Garden's training dummies and a beach Gharial, 1,595
@@ -72,7 +75,19 @@ func targetDefence(npc *NPC) float64 {
 			return 245.85 // the Lv55 is tougher than its level
 		}
 	}
-	l := float64(npc.Level)
+	return targetDefenceAt(npc, npc.Level)
+}
+
+// targetDefenceAt is targetDefence for a creature counted as of that level
+// (an OFF mod's, workbookmore.go); a dummy keeps its measured defence.
+func targetDefenceAt(npc *NPC, level int) float64 {
+	if npc.Dummy == TrainingDummy {
+		switch npc.Level {
+		case 20, 30, 45, 55:
+			return targetDefence(npc)
+		}
+	}
+	l := float64(level)
 	return 3.26*(l-20) + 0.0652*(l-20)*(l-30)
 }
 
@@ -88,7 +103,7 @@ func playerMeleeRoll(p *Player, npc *NPC) (floor, low, high int) {
 	}
 	a := offenceArchs[archetypeOf(p.Class)]
 	str, dex := float64(p.StatNow(StatStr)), float64(p.StatNow(StatDex))
-	def := a.Defence * targetDefence(npc)
+	def := a.Defence * targetDefenceAt(npc, npc.Level-p.Mods.OffMod) // an OFF mod's levels (workbookmore.go)
 	high = int(math.Round(offHighD*d + offHighSTR*str + a.High - def))
 	low = min(int(math.Round(a.LowShare*(offLowD+offLowDEX*dex)*d+a.Low-def)), high)
 	floor = int(math.Floor(offFloorD*fl + offFloorSTR*str))
@@ -101,5 +116,7 @@ func playerMeleeRoll(p *Player, npc *NPC) (floor, low, high int) {
 func playerMeleeHit(p *Player, npc *NPC, intn func(int) int) int {
 	floor, low, high := playerMeleeRoll(p, npc)
 	hit := low + intn(high-low+1)
-	return npc.meleeTaken(max(hit, floor) + max(p.Mods.Melee, 0)) // as its class template takes it (classtemplate.go)
+	// as its class template takes it (classtemplate.go), and the creature's
+	// melee resist debuff of the weapon's kind (workbookmore.go)
+	return npc.meleeTaken(meleeDebuffed(p, npc, max(hit, floor)+max(p.Mods.Melee, 0), time.Now()))
 }

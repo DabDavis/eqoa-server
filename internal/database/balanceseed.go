@@ -68,9 +68,18 @@ const balanceFloorNote = "damage_pct x (2L+1)/(4*ceil(L/2)): the floor's step ev
 // druid of 5 and 10 and a magician of 44's pet to their reds, five yellows
 // the cut left at the edge of their win rates); the shadow knight's 13-60
 // fitted with Punish Death for the undead alone (the undead check of
-// 2026-11-01). A new
-// database wants tools/seed_roamers.py too, and the workbook's import: these
-// rows are fitted on it.
+// 2026-11-01). Then fitted again for the import's follow-up fixes
+// (tools/refit_eqoaemu_followup.py, the same day): a monk's bare hands roll
+// a hand-to-hand DMG and its punches are cast, a ranger dual wields and
+// switches to its bow, a paladin's kit switches to a blunt weapon, Avatar
+// heals once and no kit wears a NO RENT item or a broken record, so the
+// monk's, the ranger's and the paladin's rows 1-60, the bard's 1-13 and 60
+// and the shaman's 51-54 are the simulator's fit on them by the same
+// method, with cells at the targets' edges set after (a shadow knight of 53
+// and 60, a druid of 41 and 53, an enchanter's pet at 52 and 60, an
+// alchemist of 16, a rooting wizard of 50 and 60). A new database wants
+// tools/seed_roamers.py too, and the workbook's import and its follow-up:
+// these rows are fitted on them.
 //
 // The combat arts' cooldown (art_cooldown_ms, by the player's level): 1.5 s
 // at every level, the length a global cooldown commonly has, so no burst
@@ -161,8 +170,9 @@ var (
 	// pet's hit points (a share of BalanceSeedLevels' pet column) and the
 	// share of its own damage that lands: the re-fit after the workbook's
 	// import (tools/refit_eqoaemu_balance.py's REFIT, 2026-11-01; above),
-	// fitted by the simulator at every level 1-60 to both yellows at once
-	// (the player's low point, SimResult.LowHP, or a pet's, averaged over the
+	// with the follow-up's spans over it (tools/refit_eqoaemu_followup.py's
+	// FOLLOWUP), fitted by the simulator at every level 1-60 to both yellows
+	// at once (the player's low point, SimResult.LowHP, or a pet's, averaged over the
 	// fights won one and two up near 25%; one up won 80% of the time, a
 	// healer's 90% and eased 8%, two up 65%), levels 1-12 each a row and each
 	// curve above them cut to its fewest rows within 4% of every level's fit

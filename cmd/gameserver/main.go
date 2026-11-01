@@ -106,6 +106,12 @@ func main() {
 	} else {
 		gameWorld.SetModelSexes(sexes)
 	}
+	// and its race, the voice its NPC speaks in: a guest of another town talks as its people do
+	if races, err := npcStore.ModelRaces(); err != nil {
+		log.Printf("Entity world: the bodies' races: %v (every speaker talks as its town)", err)
+	} else {
+		gameWorld.SetModelRaces(races)
+	}
 	gameWorld.LoadNPCs(npcStore)
 	// The game's balance (entity/balance.go, tables balancelevel and
 	// balancecon): the NPCs' hit points and what a fight's hits do

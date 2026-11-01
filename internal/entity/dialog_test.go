@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -64,7 +65,7 @@ func TestDialogCandidates(t *testing.T) {
 		{ID: 9, Line: "Never.", Race: -1, Weight: 0},
 	}
 	got := map[int]int{}
-	for _, c := range DialogCandidates(lines, "Freeport", RoleGuard, "Guard Hollin", MoodNeutral, "male", 0) {
+	for _, c := range DialogCandidates(lines, "Freeport", RoleGuard, "Guard Hollin", MoodNeutral, "male", 0, DialogVoice{Race: -1, Resident: true}) {
 		got[c.Line.ID] = c.Weight
 	}
 	want := map[int]int{1: 1, 2: 3, 3: 6}
@@ -76,15 +77,15 @@ func TestDialogCandidates(t *testing.T) {
 			t.Errorf("line %d: weight %d, want %d", id, got[id], w)
 		}
 	}
-	hostile := DialogCandidates(lines, "Freeport", RoleGuard, "Guard Hollin", MoodHostile, "male", 2)
+	hostile := DialogCandidates(lines, "Freeport", RoleGuard, "Guard Hollin", MoodHostile, "male", 2, DialogVoice{Race: -1, Resident: true})
 	if len(hostile) != 1 || hostile[0].Line.ID != 7 {
 		t.Errorf("hostile to a dark elf: %+v, want only line 7 (the race's line is not hostile)", hostile)
 	}
-	own := DialogCandidates(lines, "Freeport", RoleGuard, "Guard Dahvel", MoodNeutral, "male", 0)
+	own := DialogCandidates(lines, "Freeport", RoleGuard, "Guard Dahvel", MoodNeutral, "male", 0, DialogVoice{Race: -1, Resident: true})
 	if len(own) != 1 || own[0].Line.ID != 4 {
 		t.Errorf("Guard Dahvel, a line of his own: %+v, want that one alone", own)
 	}
-	if mine := DialogCandidates(lines, "Freeport", RoleGuard, "Guard Dahvel", MoodHostile, "male", 0); len(mine) != 0 {
+	if mine := DialogCandidates(lines, "Freeport", RoleGuard, "Guard Dahvel", MoodHostile, "male", 0, DialogVoice{Race: -1, Resident: true}); len(mine) != 0 {
 		t.Errorf("Guard Dahvel to a hostile listener: %+v, want nothing (his line is not hostile; the pool's are not his)", mine)
 	}
 }
@@ -108,7 +109,7 @@ func TestDialogBySex(t *testing.T) {
 		{"", map[int]int{1: 1}},
 	} {
 		got := map[int]int{}
-		for _, p := range DialogCandidates(lines, "", RoleCitizen, "Sabeth", MoodNeutral, c.sex, 0) {
+		for _, p := range DialogCandidates(lines, "", RoleCitizen, "Sabeth", MoodNeutral, c.sex, 0, DialogVoice{Race: -1, Resident: true}) {
 			got[p.Line.ID] = p.Weight
 		}
 		if len(got) != len(c.want) {
@@ -264,5 +265,78 @@ func TestOwnLines(t *testing.T) {
 	val.Dead = true
 	if _, line, _, ok := f.w.TownLine(f.p, val, lines, 0); ok {
 		t.Errorf("the dead spoke his own lines: %q", line)
+	}
+}
+
+// Each speaker talks in its own people's voice: a guest (an ogre in a dark
+// elves' town, Bouncer Frada) never says its host town's lines and says its
+// race's, the away ones too; a town's own folk say the town's lines, their
+// race's lines but not the away ones, and the common lines, unless they are
+// trolls or ogres; a troll on a road says its race's lines, never the common
+// ones; a town's own races are a fifth of its speakers or its most common.
+func TestDialogVoices(t *testing.T) {
+	const human, darkElf, troll, ogre = 0, 2, 5, 9
+	lines := []database.NPCDialogLine{
+		{ID: 1, Line: "A common line.", Race: -1, Weight: 1},
+		{ID: 2, Town: "Neriak", Line: "Neriak's own.", Race: -1, Weight: 1},
+		{ID: 3, Line: "Me smash.", Race: -1, Weight: 1, Voiced: true, SpeakerRace: ogre},
+		{ID: 4, Line: "Oggok far. %t smell funny.", Race: -1, Weight: 1, Voiced: true, SpeakerRace: ogre, Away: true},
+		{ID: 5, Line: "Troll hungry.", Race: -1, Weight: 1, Voiced: true, SpeakerRace: troll},
+		{ID: 6, Town: "Grobb", Line: "Grobb strong.", Race: -1, Weight: 1},
+		{ID: 7, Line: "Far from Freeport, this.", Race: -1, Weight: 1, Voiced: true, SpeakerRace: human, Away: true},
+	}
+	ids := func(town string, v DialogVoice) map[int]bool {
+		out := map[int]bool{}
+		for _, c := range DialogCandidates(lines, town, RoleCitizen, "Someone", MoodNeutral, "male", 0, v) {
+			out[c.Line.ID] = true
+		}
+		return out
+	}
+	same := func(what string, got map[int]bool, want ...int) {
+		t.Helper()
+		w := map[int]bool{}
+		for _, id := range want {
+			w[id] = true
+		}
+		if len(got) != len(w) {
+			t.Errorf("%s: lines %v, want %v", what, got, want)
+			return
+		}
+		for id := range w {
+			if !got[id] {
+				t.Errorf("%s: lines %v, want %v", what, got, want)
+				return
+			}
+		}
+	}
+	same("an ogre guest in Neriak", ids("Neriak", DialogVoice{Race: ogre}), 3, 4)
+	same("a dark elf of Neriak", ids("Neriak", DialogVoice{Race: darkElf, Resident: true}), 1, 2)
+	same("a troll of Grobb", ids("Grobb", DialogVoice{Race: troll, Resident: true}), 5, 6)
+	same("a human guest in Neriak", ids("Neriak", DialogVoice{Race: human}), 1, 7)
+	same("a troll on a road", ids("", DialogVoice{Race: troll}), 5)
+	same("an ogre of Oggok", ids("Oggok", DialogVoice{Race: ogre, Resident: true}), 3)
+	same("a body of no players' race", ids("Neriak", DialogVoice{Race: -1, Resident: true}), 1, 2)
+
+	// the town's own races, from the World's NPCs
+	f := newAggroFix(t, 20)
+	f.w.SetModelRaces(map[uint32]int{humanBody: darkElf, 0x11111111: ogre})
+	for i := 0; i < 9; i++ {
+		f.npc(EntityID(3000+i), fmt.Sprintf("Citizen %d", i), 10, humanBody, 1000+float32(i), 1000)
+	}
+	frada := f.npc(3100, "Bouncer Frada", 30, 0x11111111, 1100, 1000)
+	var rows []database.NPCFactionRow
+	for i := 0; i < 9; i++ {
+		rows = append(rows, database.NPCFactionRow{Name: fmt.Sprintf("citizen %d", i), World: -1, Faction: "Citizens of Neriak"})
+	}
+	f.w.SetNPCFactions(append(rows, database.NPCFactionRow{Name: "bouncer frada", World: -1, Faction: "Citizens of Neriak"}))
+	f.w.mu.Lock()
+	v := f.w.dialogVoiceLocked(frada, "Neriak")
+	own := f.w.townRacesLocked()["Neriak"]
+	f.w.mu.Unlock()
+	if v.Race != ogre || v.Resident {
+		t.Errorf("Bouncer Frada's voice: %+v, want an ogre guest", v)
+	}
+	if !own[darkElf] || own[ogre] {
+		t.Errorf("Neriak's own races %v, want the dark elves alone (one ogre of ten)", own)
 	}
 }

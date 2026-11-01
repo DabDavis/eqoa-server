@@ -724,21 +724,28 @@ var catalog = map[string]tableNote{
 			"priest, scholar, worker, noble, citizen), name (one NPC), mood (empty: neutral, friendly or warm; else a comma " +
 			"list of neutral, friendly, warm, wary, hostile: the listener's standing with the speaker's faction, as the " +
 			"target box's face shows it), race (the listener's), sex (the speaker's by its body: male or female, empty any; " +
-			"a line of a husband or a wife), weight. A line of its town counts three times, of its role twice, of its " +
-			"name six times, of its race or sex twice. In a line %p is the listener's name, %r its race, %c its class, %t the town, %n " +
-			"the speaker. tools/seed_town_dialog.py's rows are source ours (its --undo deletes those no GM changed).",
+			"a line of a husband or a wife), speaker's race (a people's own voice: a speaker of another race never says it), " +
+			"away (said only by a guest of that race, away from its own towns), weight. Every speaker talks in its own " +
+			"people's voice: a guest (its race under a fifth of its town's speakers: Neriak's ogre bouncer) says its race's " +
+			"lines, never its host town's; trolls and ogres never say the common lines (no town, no race). An NPC with lines " +
+			"of its own name says those alone. A line of its town counts three times, of its role twice, of its " +
+			"name six times, of its people three times, of its race or sex twice. In a line %p is the listener's name, %r its race, %c its class, %t the town, %n " +
+			"the speaker. tools/seed_town_dialog.py's rows are source ours (its --undo deletes those no GM changed); " +
+			"tools/seed_npc_lines.py's (a name's or a race's own lines) too.",
 		Live:   "At once: the next talk.",
 		Search: []string{"line", "town", "role", "name", "mood", "sex", "source"},
 		Cols: map[string]colNote{
-			"town":   {Label: "Town", Help: "the speaker's town, as its faction names it; empty any"},
-			"role":   {Label: "Role", Help: "guard, trader, priest, scholar, worker, noble or citizen; empty any"},
-			"name":   {Label: "NPC", Help: "one NPC's name; empty any"},
-			"mood":   {Label: "Mood", Help: "empty: neutral, friendly or warm; else e.g. wary or hostile,friendly"},
-			"race":   {Label: "Listener's race", Enum: "race", Help: "-1 any"},
-			"sex":    {Label: "Speaker's sex", Help: "male or female, the speaker's by its body; empty any"},
-			"line":   {Label: "Line", Help: "%p name, %r race, %c class, %t town, %n speaker"},
-			"weight": {Label: "Weight", Help: "how often against the others that fit"},
-			"source": {Label: "Source", Help: "gm, or ours for tools/seed_town_dialog.py's rows"},
+			"town":         {Label: "Town", Help: "the speaker's town, as its faction names it; empty any"},
+			"role":         {Label: "Role", Help: "guard, trader, priest, scholar, worker, noble or citizen; empty any"},
+			"name":         {Label: "NPC", Help: "one NPC's name; empty any"},
+			"mood":         {Label: "Mood", Help: "empty: neutral, friendly or warm; else e.g. wary or hostile,friendly"},
+			"race":         {Label: "Listener's race", Enum: "race", Help: "-1 any"},
+			"sex":          {Label: "Speaker's sex", Help: "male or female, the speaker's by its body; empty any"},
+			"speaker_race": {Label: "Speaker's race", Enum: "race", Help: "a people's own voice: only a speaker of this race (by its body) says it; -1 any"},
+			"away":         {Label: "Away", Help: "1: a race's line said only by a guest, away from its own towns"},
+			"line":         {Label: "Line", Help: "%p name, %r race, %c class, %t town, %n speaker"},
+			"weight":       {Label: "Weight", Help: "how often against the others that fit"},
+			"source":       {Label: "Source", Help: "gm, or ours for tools/seed_town_dialog.py's rows"},
 		},
 	},
 	"signtext": {

@@ -49,6 +49,7 @@ func TestRealTownDialog(t *testing.T) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	byTown, byRole := map[string]int{}, map[string]int{}
+	guests := map[int]int{} // the speakers who are guests, by race
 	speakers, silentFolk := 0, 0
 	for _, npc := range w.NPCs {
 		town, role, ok := w.dialogSpeakerLocked(npc)
@@ -64,10 +65,29 @@ func TestRealTownDialog(t *testing.T) {
 		if _, wild := w.wildlifeLocked(npc); wild || w.undeadLocked(npc) {
 			t.Errorf("%s speaks: wildlife or undead", npc.Name)
 		}
+		voice := w.dialogVoiceLocked(npc, town)
+		if !voice.Resident && voice.Race >= 0 {
+			guests[voice.Race]++
+		}
 		for race := 0; race <= 10; race++ {
-			if len(DialogCandidates(lines, town, role, npc.Name, MoodNeutral, w.dialogSexLocked(npc), race)) == 0 {
+			picks := DialogCandidates(lines, town, role, npc.Name, MoodNeutral, w.dialogSexLocked(npc), race, voice)
+			if len(picks) == 0 {
 				t.Errorf("%s (%s, %s) has nothing to say to race %d", npc.Name, town, role, race)
 				break
+			}
+			// each in its own people's voice: a guest never speaks for its host
+			// town, a troll or an ogre never says a common line
+			for _, c := range picks {
+				l := c.Line
+				if l.Voiced || l.Name != "" {
+					continue
+				}
+				if l.Town != "" && !voice.Resident {
+					t.Errorf("%s, a guest in %s (race %d), would say the town's %q", npc.Name, town, voice.Race, l.Line)
+				}
+				if l.Town == "" && BrokenSpeech(voice.Race) {
+					t.Errorf("%s (race %d) would say the common %q", npc.Name, voice.Race, l.Line)
+				}
 			}
 		}
 	}
@@ -83,6 +103,7 @@ func TestRealTownDialog(t *testing.T) {
 		}
 		t.Logf("%-32s %d speakers", name, byTown[town])
 	}
+	t.Logf("guests (a race not their town's own) by race: %v", guests)
 	t.Logf("%d speakers of %d NPCs (by role %v); %d of a town's people say nothing (wildlife, undead, dummies)",
 		speakers, len(w.NPCs), byRole, silentFolk)
 	if speakers == 0 {

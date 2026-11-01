@@ -20,6 +20,8 @@ re-fit's rows, against the 10:20 state (that database before the follow-up, the 
   easier, at 7-8 a yellow two up lost, and at 60 a yellow two up won 35%;
   Avatar (a shaman's of 51) heals once at its landing, not 1500 a tick: at the 10:20 re-fit's 4-5x (fitted on the
   tick) a shaman of 51-54 lost every yellow;
+  a rooting wizard of 50, its staff the Phase Staff until the follow-up made it NO RENT (no kit wears one: INT 175 ->
+  150, power 659 -> 624), won a yellow two up 48% (68% at 10:20), and one of 60 57%;
   at the edges of the targets: a shadow knight of 53 and 60 (one up won 75-78%), a druid of 41 (its red won alone 57%)
   and of 53 (38% left), an enchanter's pet at 52 and 60 (one up won 75% and 62%), an alchemist of 16 rooting (two up
   52%).
@@ -32,10 +34,11 @@ level's fit, dealt exact. Cells set after, each a row and checked with the simul
 floor (15-18, a level 10 roamer's crits still leaving it 12-16%) dealing the least of 115 and 130 that brings it within
 6 of the target, and the edges above, each a one-level span: a shadow knight of 53 and 60 a step of 0.9 lower, a druid
 of 41 times 1.15 (its red) and of 53 times 1.15 (too easy), an enchanter's pet at 52 and 60 at 40 and 33 (a point or
-two more wins its reds alone), an alchemist of 16 a step of 0.9 lower. Under them nothing that was on the targets at
-10:20 is off them but a rooting wizard of 50 (two up won 48%: the root play the 10:20 re-fit could not fit, won with
-the root held and lost when it breaks, at any share or dealt); as at 10:20, a level 1's yellow one up is too easy for a
-paladin and a bard, and a shaman's pet at 52 and 54 comes out of its yellows at 12-14%.
+two more wins its reds alone), an alchemist of 16 a step of 0.9 lower, a rooting wizard of 50 and 60 at the yellow
+stage's 65 and 110 (its win rates met, its low point the root play's 46% and 76%, as at its other levels: won with the
+root held, lost when it breaks). Under them every cell on the targets at 10:20 is on them; as at 10:20, a level 1's
+yellow one up is too easy for a paladin and a bard, and a shaman's pet at 52 and 54 comes out of its yellows at
+12-14%.
 
 It writes balanceclasslevel's rows of each class in SPAN (its spans of levels lo..hi) to FOLLOWUP's, each change only while
 the row holds what tools/refit_eqoaemu_balance.py left it (a row a GM changed is left, and said); the other classes'
@@ -88,6 +91,7 @@ SPAN = {
     7: [(41, 41), (52, 53)],
     8: [(51, 54)],
     12: [(51, 53), (59, 60)],
+    13: [(50, 50), (60, 60)],
     14: [(16, 16)],
 }
 # balanceclasslevel: class -> {level: (melee_taken_pct, pet_hp_pct, dealt_pct)}, the follow-up's rows in its span
@@ -100,6 +104,7 @@ FOLLOWUP = {
     7: {41: (86, 100, 100), 52: (48, 100, 100), 53: (62, 100, 100)},
     8: {51: (200, 113, 100), 52: (188, 106, 100), 53: (176, 126, 100), 54: (146, 126, 100)},
     12: {51: (100, 37.5, 100), 52: (100, 40, 100), 53: (100, 38.5, 100), 59: (100, 32, 100), 60: (100, 33, 100)},
+    13: {50: (65, 100, 100), 60: (110, 100, 100)},
     14: {16: (35, 100, 100)},
 }
 

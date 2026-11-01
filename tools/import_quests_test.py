@@ -147,6 +147,21 @@ class ImportQuests(unittest.TestCase):
         self.assertEqual((n["quests"], n["items"], n["progress"], n["held"]), (3, 1, 1, 1))
         self.assertEqual(state(self.db), before, "undo leaves the database as it was")
 
+    def test_a_write_in_the_callers_transaction(self):
+        # own=False writes inside the caller's transaction: its rollback takes
+        # it all back, its commit keeps it (tools/fix_eqoaemu_places.py)
+        before = state(self.db)
+        self.db.execute("BEGIN IMMEDIATE")
+        written, kept, made = iq.write(self.db, iq.plan(self.db, self.files), own=False)
+        self.assertEqual((written, kept, made), (3, [], 1))
+        self.assertTrue(self.db.in_transaction, "the caller's transaction is still open")
+        self.db.execute("ROLLBACK")
+        self.assertEqual(state(self.db), before, "rolled back with the caller's")
+        self.db.execute("BEGIN IMMEDIATE")
+        iq.write(self.db, iq.plan(self.db, self.files), own=False)
+        self.db.execute("COMMIT")
+        self.assertEqual(self.db.execute("SELECT count(*) FROM quest_import_quests").fetchone()[0], 3)
+
 
 
 def old_digest(db, qid):

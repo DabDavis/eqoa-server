@@ -661,9 +661,12 @@ def class_rewards(byclass, pid):
     return json.dumps(out, separators=(",", ":")) if out else ""
 
 
-def write(db, p):
-    """Write the plan: returns (written, left as a GM changed them, items made)."""
-    db.execute("BEGIN IMMEDIATE")
+def write(db, p, own=True):
+    """Write the plan: returns (written, left as a GM changed them, items made).
+    own: in a transaction of its own; False, in the caller's (a tool that
+    writes a quest again among its own rows: tools/fix_eqoaemu_places.py)."""
+    if own:
+        db.execute("BEGIN IMMEDIATE")
     try:
         ensure_quest_tables(db)
         for stmt in LOG_DDL:
@@ -773,9 +776,11 @@ def write(db, p):
                        (x["key"], qid, x["file"], digest(db, qid), 0 if x["draft"] else 1))
             written += 1
         db.executemany("INSERT OR REPLACE INTO quest_import_meta VALUES (?, ?)", sorted(meta.items()))
-        db.execute("COMMIT")
+        if own:
+            db.execute("COMMIT")
     except BaseException:
-        db.execute("ROLLBACK")
+        if own:
+            db.execute("ROLLBACK")
         raise
     return written, kept, made
 

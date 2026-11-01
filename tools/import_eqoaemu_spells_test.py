@@ -488,6 +488,46 @@ class ImportTest(unittest.TestCase):
         self.assertEqual(self.line(p, 101), "Target, Decrease Hitpoints by 100 ; Increase 15% based on DEX",
                          "the control: the fixture's own names")
 
+    def test_a_mirror_takes_its_originals_effects(self):
+        """A spell of ours the workbook lacks (MIRRORS) takes the effects of
+        the original a workbook row writes, mirrored: its own level, its lowest
+        receiver's as far below it as the original's, its hate proc raising by
+        the table's figure, the original's ids out; its record a target spell
+        as the original is, its description ours. The control: without the
+        table's row it is left. The names made up."""
+        x = self.db.execute
+        x("INSERT INTO spellpattern VALUES (120, 25, 0, 0, 16880, 1, 300, 486870879, 5, 1, 30, -1, 'Soothing Mask', 'Ours.')")
+        x("INSERT INTO spellpattern VALUES (121, 15, 0, 0, 16880, 1, 45, 593297002, 5, 2, 30, -1, 'Glaring Mask', "
+          "'Group, Enchant warriors weapon with taunt, 5min')")
+        x("INSERT INTO spelleffect VALUES (121, 'Group, Enchant warriors weapon with taunt, 5min', 7, 'eqoa-data enchanter')")
+        x("INSERT INTO classspells VALUES (12, 120, 'eqoa-data'), (12, 121, 'eqoa-data')")
+        wb = im.Workbook(dict(WORKBOOK, Spells=SPELLS + [spell(
+            "0120", "Soothing Mask", CLASS="ENC", Level=25, MinLevelEffect=15, StackType=1, Scope="Target",
+            Target_Type="Friendly", Duration=300, EffectID1="0E30", TYPE="Offensive Proc", ArchType="Offensive Proc")],
+            Effects=WORKBOOK["Effects"] + [eff("0E30", "Offensive Proc", Duration=300, ApplyProc1="0E31", Scope="Target",
+                                               Target_Type="Friendly", Level=25), eff("0E31", "Modify Hate", Hate=-10, Level=25)]))
+        smap = dict(MAP, **{"0120": (120, "name")})
+        saved = im.MIRRORS
+        im.MIRRORS = {"glaring mask": ("soothing mask", 15)}
+        try:
+            p = im.plan(self.db, wb, smap, weres=WERES)
+        finally:
+            im.MIRRORS = saved
+        orig, mine = self.effects(p, 120), self.effects(p, 121)
+        self.assertEqual(orig["effects"][0]["procs"][0]["amount"], -10)
+        self.assertEqual((mine["level"], mine["min_level"], mine["stack"], mine["duration_s"]), (15, 5, 1, 300))
+        self.assertEqual(mine["effects"], [{"type": "Offensive Proc", "kind": "proc", "procs": [
+            {"type": "Modify Hate", "kind": "hate", "amount": 15, "on": "offense", "scope": "target", "target_type": "Enemy"}]}])
+        self.assertEqual({k: v for k, v in mine.items() if k not in ("level", "min_level", "effects")},
+                         {k: v for k, v in orig.items() if k not in ("level", "min_level", "effects")}, "the rest the original's")
+        self.assertEqual(self.line(p, 121), "Target, Add Offensive Proc: Increase Hate by 15 when it hits, 5min")
+        rec = next(e for e in p["spells"] if e["spellid"] == 121)
+        self.assertEqual(rec["set"], {"scope": 1, "iconColor": im.FRAMES["Red"], "spelldesc": im.MIRROR_DESC})
+        e = next(e for e in p["effects"] if e["spellid"] == 121)
+        self.assertEqual(e["set"]["source"], "eqoa-data enchanter; effects ours: the mirror of the workbook's Soothing Mask")
+        plain = im.plan(self.db, wb, smap, weres=WERES)
+        self.assertNotIn(121, [e["spellid"] for e in plain["effects"] + plain["spells"]], "the control: no table row, left")
+
     def test_apply_undo(self):
         before = self.dump()
         p = self.plan()

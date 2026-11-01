@@ -168,6 +168,18 @@ func (h *SimHands) fits(req string) bool {
 	return equipFits(&p, req)
 }
 
+// holds is whether the hands hold anything in a hand (a weapon, a shield, an
+// item held): what a switch to a ranged weapon takes off and puts back after
+// its cast (simFight.handsBack), as the server's switch remembers a player's.
+func (h *SimHands) holds() bool {
+	for _, s := range []int{14, 15, 16, 17, 19, 20} {
+		if h.Worn[s] {
+			return true
+		}
+	}
+	return false
+}
+
 // simBareHands is hands holding nothing.
 func simBareHands() SimHands { return SimHands{Gear: Gear{WeaponCond: 1, BareHands: true}} }
 

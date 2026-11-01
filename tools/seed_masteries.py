@@ -105,6 +105,7 @@ SCHEMA = """
 		requires      TEXT NOT NULL DEFAULT '',
 		require_spells TEXT NOT NULL DEFAULT '',
 		require_ranks TEXT NOT NULL DEFAULT '',
+		require_quests TEXT NOT NULL DEFAULT '',
 		effects       TEXT NOT NULL DEFAULT '',
 		adds          TEXT NOT NULL DEFAULT '',
 		add_spells    TEXT NOT NULL DEFAULT '',

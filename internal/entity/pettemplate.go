@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"sort"
 	"time"
 
 	"github.com/eqoa/server/internal/database"
@@ -174,7 +175,7 @@ func (ps *petState) petAbilityClocks(foe EntityID, now time.Time) *templateFight
 // petAtFoe is whether a kind is cast at what the pet fights.
 func petAtFoe(kind string) bool {
 	switch kind {
-	case database.AbilityNuke, database.AbilityLifetap, database.AbilityTaunt:
+	case database.AbilityNuke, database.AbilityLifetap, database.AbilityTaunt, database.AbilityRoot:
 		return true
 	}
 	return false
@@ -317,6 +318,9 @@ func (w *World) petWantsLocked(ps *petState, a *templateAbility, now time.Time) 
 			return !buffOn(ps.owner.Effects, s)
 		}
 		return !buffOn(ps.npc.Effects, s)
+	case database.AbilityRoot:
+		t := w.NPCs[ps.target] // not again on what its root still holds
+		return t != nil && !t.rooted(now)
 	}
 	return true
 }
@@ -423,6 +427,170 @@ func (w *World) petCastSystemLocked(now time.Time) {
 	}
 }
 
+// A pet's area spell lands on its area too (the user, 2026-11-01: "fix them
+// all", of the workbook's Air pets' area nukes, which their import cast on
+// the target alone): a nuke whose spell is round its target (the workbook's
+// target-based area: Air AoE, Lightning Maelstrom's kind) hits the target with
+// its whole figure (the spell's hp and hp2, its target a second time: the
+// workbook's legend) and every creature the pet may fight within the area's
+// radius of it, nearest first and as many as the area's cap, with the area's
+// own figure (hp2); a root (AbilityRoot) holds its target and the same others.
+// A pet's ability of the kind "aoe" is still never cast (petTemplateTurnLocked).
+
+// petAreaFoesLocked is the creatures round t a pet's area spell lands on
+// besides t: those the pet may fight, not hidden, within the area's radius of
+// t, nearest first, the area's cap with t counted. Must be called with the
+// lock held.
+func (w *World) petAreaFoesLocked(pet, t *NPC, area SpellArea, now time.Time) []*NPC {
+	if area.Centre != AreaOnTarget || w.SpatialIndex == nil {
+		return nil
+	}
+	r := area.radiusFor(true)
+	type near struct {
+		npc *NPC
+		d   float32
+	}
+	var out []near
+	for _, id := range w.SpatialIndex.QueryRadius(t.X, t.Z, r) {
+		o := w.NPCs[id]
+		if o == nil || o == t || !petMayFight(pet, o) || o.hiddenAt(now) {
+			continue
+		}
+		if d := dist3(o.X, o.Y, o.Z, t.X, t.Y, t.Z); d <= r {
+			out = append(out, near{o, d})
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].d < out[j].d })
+	if most := area.most() - 1; len(out) > most {
+		out = out[:max(most, 0)]
+	}
+	foes := make([]*NPC, len(out))
+	for i, n := range out {
+		foes[i] = n.npc
+	}
+	return foes
+}
+
+// petSplashLocked lands a pet's area nuke's figure on the others of its area
+// (petAreaFoesLocked), each as one of the pet's hits.
+func (w *World) petSplashLocked(ps *petState, t *NPC, c *petCast, a *templateAbility, now time.Time) {
+	area := c.spell.Area
+	if area.Centre != AreaOnTarget {
+		return
+	}
+	effects := area.Effects
+	if effects == nil {
+		effects = c.spell.Def.Effects
+	}
+	pet := ps.npc
+	for _, o := range w.petAreaFoesLocked(pet, t, area, now) {
+		n, _ := templateFigure(effects, a.DamageOr())
+		if pet.sheet != nil {
+			n, _ = sheetFigure(pet, effects, a.DamageOr(), false)
+		}
+		if n <= 0 {
+			continue
+		}
+		log.Printf("Pet: %s's %q splashes %q on %s for %d before the balance", ps.owner.Name, pet.Name, c.spell.Name, o.Name, n)
+		w.petDamageLocked(ps, o, n, now)
+	}
+}
+
+// petRootLocked lands a pet's root (the workbook's Djinni Vizier's Air Root)
+// on its target and, for an area spell, the others round it: each held for
+// the spell's time unless it resists, as a player's root on it is resisted by
+// the con (balancecon's root_resist_pct at the pet's balance level, the
+// arcane resist debuffs on it taken off: root.go), and freed as any root is
+// by a hit (rootBreakLocked: the pet's own melee too).
+func (w *World) petRootLocked(ps *petState, t *NPC, spell *CastSpell, now time.Time) {
+	pet, d := ps.npc, &spell.Def
+	if d.Duration <= 0 {
+		return
+	}
+	level := w.balanceLevelOf(pet)
+	for _, o := range append([]*NPC{t}, w.petAreaFoesLocked(pet, t, spell.Area, now)...) {
+		if balanced(o) {
+			chance := w.balance.Con(o.Level-level).RootResistPct - float64(npcResistOffPct(o, now))
+			if chance > 0 && float64(rootIntn(10000)) < chance*100 {
+				log.Printf("Pet: %s resists %s's %q's %q (%.0f%%)", o.Name, ps.owner.Name, pet.Name, spell.Name, chance)
+				continue
+			}
+		}
+		keep := o.Effects[:0]
+		for _, e := range o.Effects {
+			if e.SpellID != spell.SpellID {
+				keep = append(keep, e)
+			}
+		}
+		o.Effects = append(keep, &ActiveEffect{SpellID: spell.SpellID, Name: spell.Name, Icon: spell.Icon,
+			Caster: ps.owner.ServerID, Until: now.Add(d.Duration), Root: true, Line: BuffLine(spell), Rank: lineRank(spell)})
+		if w.affected == nil {
+			w.affected = make(map[EntityID]*NPC)
+		}
+		w.affected[o.ServerID] = o
+		o.stopMoving()
+		log.Printf("Pet: %s's %q roots %s with %q for %v", ps.owner.Name, pet.Name, o.Name, spell.Name, d.Duration)
+	}
+}
+
+// petDrainStatsLocked lands what a pet's drain takes of its target's stats
+// (the workbook's Undead Bane, its necromancer's pets from 30: STR and AC
+// taken and given to the pet for a minute; the user, 2026-11-01:
+// "necromancers mummy and higher pets have a drain"): each drained stat
+// lowered on the creature as a player's debuff is (an effect of the spell's,
+// which counts in its fights: pet.go's creatureMods) and raised on the pet
+// for the spell's time (an effect of its own, which counts in the pet's:
+// effectMods), a share of the pet's own stat added as the workbook's scale
+// gives it (petStat). Never resisted, as a pet's nuke is not.
+func (w *World) petDrainStatsLocked(ps *petState, t *NPC, spell *CastSpell, now time.Time) {
+	pet, d := ps.npc, &spell.Def
+	if d.Duration <= 0 {
+		return
+	}
+	var loss, gain StatMods
+	for _, e := range d.Effects {
+		if e.Kind != EffectStat || e.Amount >= 0 || e.Drain == DrainNone || e.Self {
+			continue
+		}
+		n := -e.Amount
+		if e.Scale != StatNone && e.ScalePct != 0 {
+			n += pet.petStat(e.Scale) * e.ScalePct / 100
+		}
+		loss.add(e.Stat, -n)
+		gain.add(e.Stat, n)
+	}
+	if loss == (StatMods{}) {
+		return
+	}
+	until := now.Add(d.Duration)
+	// on the creature, as a player's harm lands (cast.go's landOnNPCLocked)
+	cut := t.Effects[:0]
+	for _, e := range t.Effects {
+		if e.SpellID != spell.SpellID {
+			cut = append(cut, e)
+		}
+	}
+	t.Effects = append(cut, &ActiveEffect{SpellID: spell.SpellID, Name: spell.Name, Icon: spell.Icon, Caster: ps.owner.ServerID,
+		Until: until, Mods: loss, Line: BuffLine(spell), Rank: lineRank(spell)})
+	t.syncEffectMaxHP()
+	if w.affected == nil {
+		w.affected = make(map[EntityID]*NPC)
+	}
+	w.affected[t.ServerID] = t
+	// on the pet, its own share: its earlier one taken off
+	own := -spell.SpellID
+	keep := pet.Effects[:0]
+	for _, e := range pet.Effects {
+		if e.SpellID != own {
+			keep = append(keep, e)
+		}
+	}
+	pet.Effects = append(keep, &ActiveEffect{SpellID: own, Name: spell.Name, Icon: spell.Icon, Caster: ps.owner.ServerID,
+		Until: until, Mods: gain})
+	pet.syncEffectMaxHP()
+	log.Printf("Pet: %s's %q drains %s with %q: %+v", ps.owner.Name, pet.Name, t.Name, spell.Name, gain)
+}
+
 // petLandLocked lands a pet's cast: a harmful spell's figure (its hits
 // rolled, no stat: a pet has none, at the ability's percent) on the
 // creature as one of the pet's hits (petDamageLocked), a tap's drained
@@ -441,17 +609,28 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 		if pet.sheet != nil {
 			hit, drained = sheetFigure(pet, c.spell.Def.Effects, a.DamageOr(), false) // its stats scale it (petstats.go)
 		}
+		if a.Kind == database.AbilityLifetap {
+			w.petDrainStatsLocked(ps, t, c.spell, now) // a drain of stats: Undead Bane's
+		}
 		if hit <= 0 {
 			return
 		}
 		pet.LastCombatTime = now
 		log.Printf("Pet: %s's %q lands %q on %s for %d before the balance", ps.owner.Name, pet.Name, c.spell.Name, t.Name, hit)
+		w.petSplashLocked(ps, t, c, a, now) // an area spell's others (before the target's hit, which may kill it)
 		w.petDamageLocked(ps, t, hit, now)
 		if drained > 0 && pet.HP < pet.MaxHP {
 			n := min(drained, pet.MaxHP-pet.HP)
 			pet.HP += n
 			w.tellPetHealLocked(ps, n)
 		}
+	case database.AbilityRoot:
+		t := w.NPCs[c.target]
+		if t == nil || t.Dead || t.World != pet.World {
+			return
+		}
+		pet.LastCombatTime = now
+		w.petRootLocked(ps, t, c.spell, now)
 	case database.AbilityHeal:
 		n := petHealFigure(c.spell, a)
 		if pet.sheet != nil {
@@ -628,11 +807,11 @@ func (w *World) PetTemplateSummary() string {
 		len(w.templates.weapon))
 }
 
-// petOnly is whether an ability is a pet's alone: a taunt, a buff, a heal
+// petOnly is whether an ability is a pet's alone: a taunt, a buff, a root, a heal
 // on its owner or of its own share (an NPC of the template casts none).
 func petOnly(a *templateAbility) bool {
 	switch {
-	case a.Kind == database.AbilityTaunt, a.Kind == database.AbilityBuff:
+	case a.Kind == database.AbilityTaunt, a.Kind == database.AbilityBuff, a.Kind == database.AbilityRoot:
 		return true
 	case a.Kind == database.AbilityHeal && (a.HealPct > 0 || a.TargetOr() == database.AbilityOnOwner):
 		return true

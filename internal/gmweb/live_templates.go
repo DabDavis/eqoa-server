@@ -14,7 +14,7 @@ import (
 // the next fight by it uses its abilities.
 
 // classTemplateAbilitiesHelp is the abilities column's form, for the catalog.
-const classTemplateAbilitiesHelp = `a JSON list, each {"kind": nuke | aoe | lifetap | heal | taunt | buff (the last two a pet's), ` +
+const classTemplateAbilitiesHelp = `a JSON list, each {"kind": nuke | aoe | lifetap | heal | taunt | buff | root (the last three a pet's; a root holds what the pet fights, and round it for an area spell), ` +
 	`"every": seconds from one cast's start to the next (2-3600), "first": seconds into a fight before the first, ` +
 	`"chain": true to cast it as soon as the ability before it is cast (its clock then unused), ` +
 	`"chance": % of its due casts (100), "damage_pct": % of its spell's figures (100), ` +

@@ -86,8 +86,10 @@ func TestWorkbookKindsMapOntoTheEngines(t *testing.T) {
 	if len(d.Items) != 1 || d.Items[0] != (SpellItem{Name: "Test Loaf", Count: 3}) {
 		t.Errorf("the item: %+v", d.Items)
 	}
+	// the sprite as the workbook writes it, byte-reversed: the body is the
+	// CSprite the other way round (spriteBody)
 	d = SpellDefFrom("Test Shape", "", "", `{"v":1,"scope":"self","duration_s":60,"effects":[{"kind":"illusion","sprite":"0x12345678"}]}`)
-	if d.FormKind != FormSelf || d.FormModel != 0x12345678 || d.Duration != time.Minute {
+	if d.FormKind != FormSelf || d.FormModel != 0x78563412 || d.Duration != time.Minute {
 		t.Errorf("the illusion: %+v", d)
 	}
 	d = SpellDefFrom("True Form", "", "", `{"v":1,"scope":"self","effects":[{"kind":"illusion","sprite":"0x12345678"}]}`)
@@ -370,6 +372,139 @@ func TestWorkbookLull(t *testing.T) {
 	}
 }
 
+// A root that ends at contact (the workbook's Root, Arcane Bindings,
+// Caltrops) holds after its landing and ends at the next hit; until
+// 2026-11-01 its own landing's anger was that contact, and it never held.
+func TestARootThatEndsAtContactHoldsUntilAHit(t *testing.T) {
+	noResist(t)
+	root := wbSpell(9811, 8, 1, "Test Root", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"duration_s":36,
+		"effects":[{"kind":"speed","amount":-100,"absolute":true,"resist":"ar","dispel_on_contact":true}]}`)
+	c := newCaster(t)
+	c.npc.HP, c.npc.MaxHP, c.npc.Level = 5000, 5000, 5
+	held := func() bool {
+		for _, e := range c.npc.Effects {
+			if e.SpellID == root.SpellID && e.Root {
+				return true
+			}
+		}
+		return false
+	}
+	if !c.w.StartCast(c.sess, root, c.npcO, c.at(0)) {
+		t.Fatal("not begun")
+	}
+	c.tick(root.CastTime + castLand)
+	if !held() {
+		t.Fatal("the root ended at its own landing")
+	}
+	b := strike()
+	b.SpellID = 9812
+	if !c.w.StartCast(c.sess, b, c.npcO, c.at(5*time.Second)) {
+		t.Fatal("the strike not begun")
+	}
+	c.tick(5*time.Second + b.CastTime + castLand)
+	if held() {
+		t.Error("the root held through a hit")
+	}
+}
+
+// A spell whose snare ends at contact and whose damage ticks (Caltrops):
+// its own tick is no contact for itself, so it holds through its ticks; a
+// hit from elsewhere ends the snare alone, the part the workbook marks (the
+// user, 2026-11-01: "yes only end the marked part"), and its tick goes on to
+// its 18 s. Until then the hit ended its ticks with it.
+func TestASpellsOwnTickDoesNotEndItsContactSnare(t *testing.T) {
+	noResist(t)
+	caltrops := wbSpell(9831, 4, 1, "Test Caltrops", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"duration_s":18,
+		"effects":[{"kind":"hp_tick","amount":-5,"resist":"pierce"},{"kind":"speed","amount":-50,"resist":"dr","duration_s":8,"dispel_on_contact":true}]}`)
+	c := newCaster(t)
+	c.npc.HP, c.npc.MaxHP, c.npc.Level = 5000, 5000, 5
+	on := func() *ActiveEffect {
+		for _, e := range c.npc.Effects {
+			if e.SpellID == caltrops.SpellID {
+				return e
+			}
+		}
+		return nil
+	}
+	if !c.w.StartCast(c.sess, caltrops, c.npcO, c.at(0)) {
+		t.Fatal("not begun")
+	}
+	at := caltrops.CastTime + castLand
+	c.tick(at)
+	c.tick(at + 7*time.Second)
+	if e := on(); e == nil || c.npc.HP >= 5000 || c.npc.snareFactor(c.at(at+7*time.Second)) != 0.5 {
+		t.Fatalf("after its ticks: on %v, HP %d, pace %v", e != nil, c.npc.HP, c.npc.snareFactor(c.at(at+7*time.Second)))
+	}
+	b := strike()
+	b.SpellID = 9832
+	if !c.w.StartCast(c.sess, b, c.npcO, c.at(8*time.Second)) {
+		t.Fatal("the strike not begun")
+	}
+	c.tick(8*time.Second + b.CastTime + castLand)
+	e := on()
+	if e == nil {
+		t.Fatal("the hit ended its ticks with its snare")
+	}
+	if e.Snare || e.Rules.SpeedPct != 0 || c.npc.snareFactor(c.at(11*time.Second)) != 1 || e.HPTick >= 0 {
+		t.Errorf("after a hit: snare %v, slow %d%%, pace %v, tick %d; want the snare gone, the tick on",
+			e.Snare, e.Rules.SpeedPct, c.npc.snareFactor(c.at(11*time.Second)), e.HPTick)
+	}
+	hp := c.npc.HP
+	c.tick(at + 13*time.Second)
+	if c.npc.HP >= hp {
+		t.Errorf("its tick stopped after the hit: HP %d, was %d", c.npc.HP, hp)
+	}
+	c.tick(at + 19*time.Second)
+	if on() != nil {
+		t.Error("still on past its 18 s")
+	}
+}
+
+// A harmful spell the workbook gives no time whose effect ends at contact
+// lasts until contact (Enshrouding darkness, the shadow knight's snare: the
+// user's "until hit"): still on ten minutes later, gone at a hit. The
+// control: a debuff of no time that does not end at contact lasts none.
+func TestASnareOfNoTimeThatEndsAtContactLastsUntilHit(t *testing.T) {
+	noResist(t)
+	snare := wbSpell(9821, 60, 1, "Test Darkness", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"stack":0,"level":60,
+		"effects":[{"id":"07A7","type":"Statistic Change","kind":"speed","amount":-50,"resist":"ar","dispel_on_contact":true}]}`)
+	if snare.Def.Duration != untilContact {
+		t.Fatalf("the snare's time %v, want %v", snare.Def.Duration, untilContact)
+	}
+	stench := wbSpell(9822, 6, 1, "Test Stench", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,
+		"effects":[{"kind":"stat","stat":"agi","amount":-5}]}`)
+	if stench.Def.Duration != 0 {
+		t.Fatalf("the control's time %v, want none", stench.Def.Duration)
+	}
+	c := newCaster(t)
+	c.npc.HP, c.npc.MaxHP, c.npc.Level = 5000, 5000, 55
+	on := func() bool {
+		for _, e := range c.npc.Effects {
+			if e.SpellID == snare.SpellID {
+				return true
+			}
+		}
+		return false
+	}
+	if !c.w.StartCast(c.sess, snare, c.npcO, c.at(0)) {
+		t.Fatal("not begun")
+	}
+	c.tick(snare.CastTime + castLand)
+	c.tick(10 * time.Minute)
+	if !on() {
+		t.Fatal("the snare is gone before any hit")
+	}
+	b := strike()
+	b.SpellID = 9823
+	if !c.w.StartCast(c.sess, b, c.npcO, c.at(10*time.Minute)) {
+		t.Fatal("the strike not begun")
+	}
+	c.tick(10*time.Minute + b.CastTime + castLand)
+	if on() {
+		t.Error("the snare stayed through a hit")
+	}
+}
+
 // A cure takes off what its words remove and leaves the rest: poison goes,
 // a disease stays (the control); no words take every harmful effect.
 func TestWorkbookCure(t *testing.T) {
@@ -390,6 +525,40 @@ func TestWorkbookCure(t *testing.T) {
 	c.castOn(t, all, 10*time.Second)
 	if got := c.effectNames(); len(got) != 1 || got[0] != "Test Skin" {
 		t.Errorf("after a cure of anything harmful: %v", got)
+	}
+}
+
+// A cure the workbook leaves at "ID?" goes by its spell's name (the user:
+// "by name"): an antidote takes the poison and leaves the disease, a
+// curative the reverse, a mask's removal is a mask's; one whose name says
+// nothing still takes every harmful effect (the control).
+func TestAnIDCureGoesByItsName(t *testing.T) {
+	put := func(c *caster) {
+		until := c.at(time.Hour)
+		c.p.Effects = append(c.p.Effects,
+			&ActiveEffect{SpellID: 1, Name: "Test Venom", Until: until, Rules: EffectRules{Harm: true, Resist: StatPR}},
+			&ActiveEffect{SpellID: 2, Name: "Test Fever", Until: until, Rules: EffectRules{Harm: true, Resist: StatDR}},
+			&ActiveEffect{SpellID: 3, Name: "Test Hex", Until: until, Rules: EffectRules{Harm: true, Resist: StatAR}},
+			&ActiveEffect{SpellID: 4, Name: "Test Skin", Until: until, Mods: StatMods{AC: 10}})
+	}
+	for _, k := range []struct {
+		name string
+		left string
+	}{
+		{"Minor Antidote", "Test Fever,Test Hex,Test Skin"},
+		{"Vital Curative", "Test Venom,Test Hex,Test Skin"},
+		{"Test Purity", "Test Skin"},
+	} {
+		c := newCaster(t)
+		put(c)
+		cure := wbSpell(971, 5, 0, k.name, `{"v":1,"scope":"self","effects":[{"kind":"cure","removes":"ID?"}]}`)
+		c.castOn(t, cure, 0)
+		if got := strings.Join(c.effectNames(), ","); got != k.left {
+			t.Errorf("after %s: %s, want %s", k.name, got, k.left)
+		}
+	}
+	if mask := wbSpell(972, 5, 0, "Remove Mask", `{"v":1,"scope":"self","effects":[{"kind":"cure","removes":"ID?"}]}`); len(mask.Def.Removes) != 1 || mask.Def.Removes[0] != "mask" {
+		t.Errorf("Remove Mask removes %q", mask.Def.Removes)
 	}
 }
 

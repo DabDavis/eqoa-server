@@ -167,6 +167,8 @@ type SimResult struct {
 	PetLowHP        int
 	PetLevel        int
 	Casts           int
+	// Debuffs is how many of Casts were pure debuffs (simDebuffs)
+	Debuffs int
 	// LowHP is the fewest hit points the player had in the fight (the
 	// user's "take you down to less than a third hp": a class that heals
 	// itself ends a fight higher than it was taken down to)
@@ -259,10 +261,16 @@ type simFight struct {
 	t0   time.Time
 
 	nukes, heals, petHeals []CastSpell
-	roots                  []CastSpell // the book's roots, one that holds through a hit first, then the highest (SimPlay.Root)
-	reserve                int         // power kept for a heal
+	debuffs                []CastSpell // the book's pure debuffs worth its while, the highest of each line (simDebuffs, sortBook)
+	debuffCasts            int
+	debuffed               map[int]bool // the debuffs cast this fight, by spell id
+	nextDebuff             time.Time    // no debuff before then (simDebuffEvery)
+	roots                  []CastSpell  // the book's roots, one that holds through a hit first, then the highest (SimPlay.Root)
+	reserve                int          // power kept for a heal
 	casts                  int
 	hands                  int       // the kit's Hands it holds
+	back                   int       // the Hands a switch to a ranged weapon took off, for the way back (handsBack)
+	took                   bool      // the Hands it holds are that switch's ranged weapon, nothing changed since
 	moveUntil              time.Time // a rooting caster stepping back: no cast till then
 	rootAt                 float32   // how far off its NPC a rooting caster stands (simRootAt)
 	rootLands              time.Time // a rooting caster's root in flight lands then
@@ -328,6 +336,19 @@ func newSimFight(pl SimPlayer, foe SimNPC, b *Balance) *simFight {
 
 	f := &simFight{w: w, sess: sess, p: p, npc: npc, pl: pl, t0: time.Unix(1_900_000_000, 0), rootAt: apart}
 	f.sortBook()
+	// the hands a switch took off back after its cast, as the server's hook
+	// puts a player's back (cast.go handsBackLocked): each member's own
+	w.onHandsBack = func(s *session.Session, _ *Player) {
+		ms := f.mates
+		if ms == nil {
+			ms = []*simFight{f}
+		}
+		for _, m := range ms {
+			if m.sess == s {
+				m.handsBack()
+			}
+		}
+	}
 	return f
 }
 
@@ -375,35 +396,54 @@ func (f *simFight) swing() Swing {
 // hold switches the player's hands to the kit's Hands i, as the server's
 // switch does (handlers/handswitch.go): what they add and their attack
 // types, its stats from them, and a fight's swing from its next round
-// (HandsChanged).
+// (HandsChanged). Any change of hands forgets a switch's ranged weapon (took),
+// as the server's applyPlan does; handsFor sets it again after its own.
 func (f *simFight) hold(i int) {
 	w, p := f.w, f.p
 	w.mu.Lock()
 	simDress(p, &f.pl, i)
 	p.RecalcStats(false)
 	w.mu.Unlock()
-	f.hands = i
+	f.hands, f.took = i, false
 	w.HandsChanged(f.sess, f.swing())
 }
 
 // handsFor is the server's switch for a spell its hands do not fit, when
 // that alone would refuse it (CastWantsHands): the first of the kit's other
 // Hands that fits it (handlers/handswitch.go takes the ones a switch took
-// off first, a kit's first Hands).
+// off first, a kit's first Hands). A switch to a ranged weapon from hands
+// that held anything remembers them for the way back (back, took: handsBack)
+// and marks the spell (CastSpell.HandsBack: a self cast's own switch), as
+// the server's does.
 func (f *simFight) handsFor(s *CastSpell, target uint32) {
 	if len(f.pl.Hands) < 2 || s.Def.ReqEquip == "" || !f.w.CastWantsHands(f.sess, *s, target, f.now) {
 		return
 	}
 	for i := range f.pl.Hands {
 		if i != f.hands && f.pl.Hands[i].fits(s.Def.ReqEquip) {
+			from := f.hands
 			f.hold(i)
+			if f.pl.Hands[i].Worn[18] && f.pl.Hands[from].holds() {
+				f.back, f.took, s.HandsBack = from, true, true
+			}
 			return
 		}
 	}
 }
 
+// handsBack is the server's way back after a cast that wants a ranged weapon
+// (handlers/handswitch.go HandsBack): the hands a switch took off to take up
+// the one it holds taken up again, while it holds that weapon still, nothing
+// else changed since (took).
+func (f *simFight) handsBack() {
+	if f.took && f.pl.Hands[f.hands].Worn[18] {
+		f.hold(f.back)
+	}
+}
+
 // tick is one of the World's ticks, the systems a fight lives in, in the
-// tick's order (systems.go tickLocked).
+// tick's order (systems.go tickLocked), then the hands a cast's switch took
+// off put back with the lock let go, as Tick does (runHandsBack).
 func (f *simFight) tick() {
 	f.now = f.now.Add(simTick)
 	w := f.w
@@ -419,6 +459,7 @@ func (f *simFight) tick() {
 	w.regenSystem(f.now)
 	w.npcRegenSystem(f.now) // pets', and a creature's out of its fight (npcregen.go)
 	w.mu.Unlock()
+	w.runHandsBack()
 	f.sess.Queue().GetPending() // what was sent: no one reads it
 }
 
@@ -497,7 +538,7 @@ func (f *simFight) run(limit time.Duration) SimResult {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	r := SimResult{Won: npc.Dead, Died: p.IsDead(), Time: f.now.Sub(f.t0), HP: p.HP, MaxHP: p.MaxHPNow(),
-		Power: p.Power, MaxPower: p.MaxPowerNow(), NPCHP: npc.HP, NPCMaxHP: maxHP, Casts: f.casts, LowHP: low}
+		Power: p.Power, MaxPower: p.MaxPowerNow(), NPCHP: npc.HP, NPCMaxHP: maxHP, Casts: f.casts, Debuffs: f.debuffCasts, LowHP: low}
 	if pet != nil {
 		r.HadPet, r.PetDied, r.PetHP, r.PetMaxHP, r.PetLevel = true, pet.Dead || pet.HP <= 0, pet.HP, pet.MaxHP, pet.Level
 		r.PetLowHP = petLow
@@ -681,13 +722,15 @@ const (
 	rolePetHeal
 	roleBuff
 	roleSummon
+	roleDebuff
 )
 
 // simRole is what a spell is to the simulator: a harmful spell at a target
-// that does damage is a nuke (a damage over time one too, a life tap); a
-// beneficial one that gives hit points a heal (scope 3: the pet's); a
-// lasting beneficial one with no form, gate, summoning, invisibility or
-// price a buff; a summoning a pet's.
+// that does damage is a nuke (a damage over time one too, a life tap); one
+// that does none but lowers a stat that counts in a creature's fights a
+// debuff (simDebuffs); a beneficial one that gives hit points a heal (scope
+// 3: the pet's); a lasting beneficial one with no form, gate, summoning,
+// invisibility or price a buff; a summoning a pet's.
 func simRole(s *CastSpell) spellRole {
 	d := &s.Def
 	if d.Summons() {
@@ -718,6 +761,9 @@ func simRole(s *CastSpell) spellRole {
 		if damage && s.Scope == 1 {
 			return roleNuke
 		}
+		if s.Scope == 1 && simDebuffs(d) {
+			return roleDebuff
+		}
 	case bad:
 	case heal && s.Scope == 3:
 		return rolePetHeal
@@ -727,6 +773,33 @@ func simRole(s *CastSpell) spellRole {
 		return roleBuff
 	}
 	return roleNone
+}
+
+// simDebuffs is whether a harmful spell's lasting part lowers its target's
+// stats that count in a creature's fights (the user, 2026-11-01: "make the
+// sim cast pure debuffs too"; pet.go's creatureMods): STR, DEX, AGI, AC, its
+// maximum hit points, a resist (its caster's nukes then land more often:
+// workbook.go's npcResistKindPct) or a melee kind (workbookmore.go). Not STA,
+// WIS, INT or CHA, which count for nothing on a creature, nor a pact's price
+// on its caster.
+func simDebuffs(d *SpellDef) bool {
+	if d.Duration <= 0 {
+		return false
+	}
+	for _, e := range d.Effects {
+		if e.Kind != EffectStat || e.Self || e.Amount >= 0 {
+			continue
+		}
+		if e.Drain != DrainNone {
+			return true // a drain: its caster gains what its target loses (lifetap.go), whatever the stat
+		}
+		switch e.Stat {
+		case StatStr, StatDex, StatAgi, StatAC, StatMaxHP, StatFR, StatCR, StatPR, StatDR, StatLR, StatAR,
+			StatPierce, StatBlunt, StatSlash, StatRanged:
+			return true
+		}
+	}
+	return false
 }
 
 // simDamage is what a cast of the spell does to its target from this
@@ -800,6 +873,32 @@ func (f *simFight) sortBook() {
 			f.heals = append(f.heals, s)
 		case rolePetHeal:
 			f.petHeals = append(f.petHeals, s)
+		case roleDebuff:
+			f.debuffs = append(f.debuffs, s)
+		}
+	}
+	// the highest of each debuff's line (only the best of a line counts on a
+	// creature: creatureMods), the highest lines first
+	sort.SliceStable(f.debuffs, func(i, j int) bool { return f.debuffs[i].Level > f.debuffs[j].Level })
+	best := f.debuffs[:0]
+	for _, s := range f.debuffs {
+		line, dup := BuffLine(&s), false
+		for _, b := range best {
+			if sameLine(BuffLine(&b), line) {
+				dup = true
+				break
+			}
+		}
+		if !dup {
+			best = append(best, s)
+		}
+	}
+	// only what helps this player (debuffHelps), so that it spends no power
+	// or cast time on what changes nothing in its fight
+	f.debuffs = best[:0]
+	for _, s := range best {
+		if f.debuffHelps(&s) {
+			f.debuffs = append(f.debuffs, s)
 		}
 	}
 	for _, s := range f.pl.Spells {
@@ -811,6 +910,7 @@ func (f *simFight) sortBook() {
 	rate := func(s *CastSpell) float64 { return simDamage(s, p) / lockoutOf(s).Seconds() }
 	sort.SliceStable(f.nukes, func(i, j int) bool { return rate(&f.nukes[i]) > rate(&f.nukes[j]) })
 	sort.SliceStable(f.heals, func(i, j int) bool { return simHeal(&f.heals[i], p) > simHeal(&f.heals[j], p) })
+
 	sort.SliceStable(f.petHeals, func(i, j int) bool { return simHeal(&f.petHeals[i], p) > simHeal(&f.petHeals[j], p) })
 	if len(f.heals) > 0 {
 		f.reserve = f.heals[0].PowerCost
@@ -951,8 +1051,134 @@ func (f *simFight) onFoe(s *CastSpell) bool {
 	return false
 }
 
-// play is the player's hands for a tick: a heal when low, else its best
-// nuke that is up, else nothing (the attack button stays held).
+// debuffHelps is whether a debuff changes something in this player's fight,
+// as a player picks what to cast: STR, DEX or the maximum always (the
+// creature's hits, its hit points), AC, AGI or a melee kind only when the
+// creature is hit in melee (the player, its pet or its group), a resist only
+// when one of the player's own nukes rolls on it.
+func (f *simFight) debuffHelps(s *CastSpell) bool {
+	melee := f.pl.Play.Melee || f.pl.Play.Pet || len(f.mates) > 1
+	for _, e := range s.Def.Effects {
+		if e.Kind != EffectStat || e.Self || e.Amount >= 0 {
+			continue
+		}
+		if e.Drain != DrainNone {
+			return true // what it drains is its caster's (the user: shadow knights "buff and debuff")
+		}
+		switch e.Stat {
+		case StatStr, StatDex, StatMaxHP:
+			return true
+		case StatAC, StatAgi, StatPierce, StatBlunt, StatSlash, StatRanged:
+			if melee {
+				return true
+			}
+		case StatFR, StatCR, StatPR, StatDR, StatLR, StatAR:
+			for _, n := range f.nukes {
+				for _, ne := range n.Def.Effects {
+					if ne.Resist == e.Stat {
+						return true
+					}
+				}
+			}
+		}
+	}
+	return false
+}
+
+// castDebuff casts the first debuff of the book that is worth it now
+// (debuffNow) and whose line is not on the NPC, and reports whether it
+// began.
+func (f *simFight) castDebuff(pet *NPC, cast func(CastSpell, uint32) bool) bool {
+	w := f.w
+	for _, s := range f.debuffs {
+		if f.pl.Play.Root && s.CastTime > simRootLongCast {
+			continue
+		}
+		w.mu.RLock()
+		ok := f.debuffNow(&s) && f.ready(&s, f.reserve) && !f.lineOnFoe(&s) && f.keepsHate(pet, &s)
+		w.mu.RUnlock()
+		if ok && cast(s, simFoeID) {
+			f.debuffCasts++
+			if f.debuffed == nil {
+				f.debuffed = map[int]bool{}
+			}
+			f.debuffed[s.SpellID] = true
+			f.nextDebuff = f.now.Add(simDebuffEvery)
+			return true
+		}
+	}
+	return false
+}
+
+// simDebuffEvery is how long a player lets its nukes go between two debuffs
+// (one resisted too): a player weaves them in, and a fight that is a race of
+// taps is not spent on them (ours).
+const simDebuffEvery = 12 * time.Second
+
+// A fight is a long one, worth a player's debuffs, when at the pace the NPC
+// has lost its hit points since the fight began (seen from simDebuffLook
+// on) what it has left takes simLongFight or more; a race (a shadow
+// knight's taps against a yellow, over in 12 s) is not spent on them. Ours:
+// no record of how players debuffed.
+const (
+	simDebuffLook = 10 * time.Second
+	simLongFight  = 45 * time.Second
+)
+
+// longFight is whether the fight has simLongFight left at its pace so far.
+func (f *simFight) longFight() bool {
+	if len(f.debuffs) == 0 || f.now.Before(f.nextDebuff) {
+		return false
+	}
+	el := f.now.Sub(f.t0)
+	if el < simDebuffLook {
+		return false
+	}
+	w := f.w
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	lost := f.npc.MaxHP - f.npc.HP
+	if lost <= 0 {
+		return true // nothing taken off it yet: a long fight
+	}
+	left := time.Duration(float64(el) * float64(f.npc.HP) / float64(lost))
+	return left >= simLongFight
+}
+
+// debuffNow is whether the player casts a debuff now, as a player spends
+// its power: only on a foe of a higher level
+// (an even, blue or green fight is over before a debuff pays), once, and
+// again when it has worn off only while the player has half its power and
+// the foe half its hit points left. Ours: no record of how players debuffed.
+func (f *simFight) debuffNow(s *CastSpell) bool {
+	if f.npc.Level <= f.p.Level {
+		return false
+	}
+	if !f.debuffed[s.SpellID] {
+		return true
+	}
+	return f.p.Power*2 >= f.p.MaxPowerNow() && f.npc.HP*2 >= f.npc.MaxHP
+}
+
+// lineOnFoe is whether the spell's lasting part, or another of its line, is
+// on the NPC (a debuff's: only the best of a line counts on a creature).
+func (f *simFight) lineOnFoe(s *CastSpell) bool {
+	if f.onFoe(s) {
+		return true
+	}
+	line := BuffLine(s)
+	for _, ae := range f.npc.Effects {
+		if sameLine(ae.Line, line) && f.now.Before(ae.Until) {
+			return true
+		}
+	}
+	return false
+}
+
+// play is the player's hands for a tick: a heal when low, else in a long
+// fight (longFight) a debuff of its book whose line is not on the NPC when
+// it is worth it (debuffNow), else its best nuke that is up, else nothing
+// (the attack button stays held).
 func (f *simFight) play(pet *NPC) {
 	if !f.pl.Play.Spells {
 		return
@@ -1006,6 +1232,9 @@ func (f *simFight) play(pet *NPC) {
 	}
 	if f.pl.Play.Root && f.rootPlay(cast) {
 		return
+	}
+	if f.longFight() && f.castDebuff(pet, cast) {
+		return // a long fight's debuffs first (debuffNow, longFight)
 	}
 	for _, s := range f.nukes {
 		if f.pl.Play.Root && s.CastTime > simRootLongCast {

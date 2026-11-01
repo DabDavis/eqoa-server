@@ -21,11 +21,12 @@ DictIDs BYTE-REVERSED, as npcs.modelid and npcs.primary_weapon keep them (all
 Sandstorm's recorded one wore); --models (cmd/modelbake's file of the disc's
 bodies) and the NPCs wearing each are checked and said. Its spells become its
 abilities, pinned by their ids here, each by what its effects do: a hit on
-the enemy a nuke (an area one on its target alone: a pet casts no area
-spell), a drained hit a life tap, a heal on itself, its owner or either (the
+the enemy a nuke (an area one on its target and round it), a root at the
+enemy a root, a drained hit a life tap, a heal on itself, its owner or either (the
 sheet's "Owner/Self"), a buff on its owner, a "Modify Hate" a taunt of hate
-alone (no damage: the sheet gives none); a debuff or a snare has no pet kind
-and is left out, said. Each on a clock of its spell's recast (2 s at least),
+alone (no damage: the sheet gives none), a drain of the enemy's stats a life
+tap of them (the pet gains what it takes); a debuff or a snare has no pet
+kind and is left out, said. Each on a clock of its spell's recast (2 s at least),
 the first 1 s into a fight and the next 2 s after (ours). Its spells are new
 to this server (900000 + their hex ids): the spell import makes their
 records; an ability pinning one not there yet casts nothing, said.
@@ -272,8 +273,14 @@ def ability_of(spell, effects, spellid, i):
         a.update(kind="taunt", hits=[[1, 0, 0]])
         return a, ""
     if typ in ("dmg/heal", "drain") and hp1 < 0 and target == "enemy":
+        # an area spell lands round its target too (entity/pettemplate.go's petSplashLocked)
         a.update(kind="lifetap" if typ == "drain" else "nuke", spell_id=spellid)
-        return a, ("an area spell, cast on its target alone" if "aoe" in scope else "")
+        return a, ""
+    if typ == "statistic absolute" and (num(e.get("SPEED")) or 0) < 0 and target == "enemy":
+        # a speed set below nothing at the enemy: a root (the Djinni Vizier's Air Root), on
+        # its target and round it for an area spell (entity/pettemplate.go's petRootLocked)
+        a.update(kind="root", spell_id=spellid)
+        return a, ""
     if typ == "dmg/heal" and hp1 > 0:
         on = {"owner": "owner", "owner/self": "either"}.get(target, "self" if scope == "self" else None)
         if on is None:
@@ -289,12 +296,47 @@ def ability_of(spell, effects, spellid, i):
         if scope == "self":
             a.update(kind="buff", spell_id=spellid, target="self")
             return a, ""
-    if typ == "drain" and hp1 == 0:
-        return None, "a debuff of the enemy's stats (no pet ability kind; a creature here has no such stats)"
+    if typ == "drain" and hp1 == 0 and target == "enemy":
+        # a drain of the enemy's stats (a necromancer's pet's Undead Bane): a
+        # life tap of its stats, the pet's for the spell's time and the
+        # creature's loss, which counts in its fights since 2026-11-01
+        # (entity/pettemplate.go's petDrainStatsLocked); the sheet gives only
+        # the first rank a time (60 s), tools/fix_eqoaemu_pet_drains.py the rest
+        a.update(kind="lifetap", spell_id=spellid)
+        return a, ""
     return None, f"{e.get('TYPE')} on {e.get('Scope')} {e.get('Target Type')}: no pet ability kind"
 
 
-def plan(db, sheets, smap, models=None):
+# A pet spell the sheet names in error is put right by the operator's file of fixes
+# (--pet-fixes: PetID, the sheet's SpellID, the right one, a note; tab-separated, kept beside
+# the sheets, as the workbook's ids are not in this repository): the user, 2026-11-01, of the
+# magician's Ghilan Noble, whose third spell in the sheet is the necromancer's skeleton's first
+# strike where it skips her own water nuke of her level: "use her water nuke 55".
+
+
+def read_pet_fixes(path):
+    """The operator's file of pet spell fixes: (PetID, sheet SpellID) -> the right SpellID."""
+    out = {}
+    if not path:
+        return out
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            if line.startswith("#") or not line.strip():
+                continue
+            cols = [c.strip().upper() for c in line.rstrip("\n").split("\t")]
+            if len(cols) >= 3 and cols[0] != "PETID":
+                out[(cols[0], cols[1])] = cols[2]
+    return out
+
+# The classes whose pets' buffs land on the pet itself, not on its owner as the sheet's
+# "Owner" has them (the user, 2026-11-01: "the pets buff themselves not the player, the water
+# pets will heal the player though"; the alchemist's contraptions and the wizard's familiars
+# buff their owner: "the 3 alchemist pets do buff the owner so that is correct", "the wizard
+# familiars buff the wizard").
+SELF_BUFF_CLASSES = {"MAG"}
+
+
+def plan(db, sheets, smap, models=None, fixes=None):
     """The rows to write and what was found; every count and doubt said."""
     spells = {s["SpellID"].strip().upper(): s for s in sheets["Spells"] if s.get("SpellID", "").strip()}
     effects = {e["EffectID"].strip().upper(): e for e in sheets["Effects"] if e.get("EffectID", "").strip()}
@@ -396,6 +438,10 @@ def plan(db, sheets, smap, models=None):
             ref = (p.get(k) or "").strip().upper()
             if not ref:
                 continue
+            if fixes and (pid, ref) in fixes:
+                ab_notes.append(f"{ref}: the sheet's slip, its {fixes[(pid, ref)]} cast (--pet-fixes)")
+                counts["pet spells put right by the fixes file"] += 1
+                ref = fixes[(pid, ref)]
             counts["pet spells named"] += 1
             s = spells.get(ref)
             if s is None:
@@ -418,6 +464,8 @@ def plan(db, sheets, smap, models=None):
                        else "abilities pinning a spell not in the database yet (the spell import makes it)"] += 1
             if why:
                 ab_notes.append(f"{s.get('Name')!r}: {why}")
+            if a.get("kind") == "buff" and a.get("target") == "owner" and set((sp.get("CLASS") or "").split()) & SELF_BUFF_CLASSES:
+                a["target"] = "self"  # the magician's pets buff themselves (SELF_BUFF_CLASSES)
             abilities.append(a)
         row["abilities"] = json.dumps(abilities, separators=(",", ":"))
         spell_names = [spells[r.strip().upper()]["Name"] for r in (p.get(k) or "" for k in ("Spell1", "Spell2", "Spell3", "Spell4"))
@@ -573,6 +621,7 @@ def main():
     ap.add_argument("--sheets", help="or a folder of its sheets as .tsv (07-Pets.tsv, 02-Spells.tsv, 03-Effects.tsv)")
     ap.add_argument("--spellmap", help="the workbook's SpellID -> spellid map (.tsv: sheet_id, spellid, ...)")
     ap.add_argument("--models", help="cmd/modelbake's file of the disc's bodies (worlds/models.txt), to check the bodies")
+    ap.add_argument("--pet-fixes", help="the operator's file of pet spells the sheet names in error (.tsv: PetID, SpellID, the right SpellID)")
     ap.add_argument("--save-plan", metavar="FILE", help="write the plan (JSON) and stop")
     ap.add_argument("--plan", metavar="FILE", help="a plan --save-plan wrote, instead of the sheets and the map")
     ap.add_argument("--verbose", action="store_true", help="every doubt, not the first twenty")
@@ -599,7 +648,7 @@ def main():
         if not ((a.sheet or a.sheets) and a.spellmap):
             sys.exit("--sheet or --sheets, and --spellmap (or --plan)")
         rows, pts, notes, counts = plan(db, read_sheets(a), read_spellmap(a.spellmap),
-                                        read_models(a.models) if a.models else None)
+                                        read_models(a.models) if a.models else None, read_pet_fixes(a.pet_fixes))
     for k, n in sorted(counts.items()):
         print(f"  {k}: {n}")
     for n in notes if a.verbose else notes[:20]:

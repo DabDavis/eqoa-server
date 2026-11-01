@@ -446,6 +446,9 @@ func (w *World) applyBalanceLocked(npc *NPC) {
 			npc.MaxHP = max(1, int(math.Round(float64(npc.MaxHP)*float64(t.HPPct)/100)))
 		}
 	}
+	// its effects' maximum on its new hit points (pet.go)
+	npc.effMaxHP = 0
+	npc.syncEffectMaxHP()
 	npc.HP = npc.MaxHP
 }
 

@@ -336,6 +336,7 @@ func newPet(t *NPC, id EntityID, owner *Player, name string, level int) *NPC {
 	pet.Class = classWarrior // its swing a warrior's (petSwing has the enchanter's)
 	pet.MaxHP = NPCMaxHP(level)
 	pet.HP = pet.MaxHP
+	pet.effMaxHP = 0
 	pet.OffMod, pet.DefMod, pet.WeaponDamage = NPCOffMod(level), NPCDefMod(level), NPCWeaponDamage(level)
 	if pet.PrimaryWeapon == 0 && pet.SecondaryWeapon == 0 {
 		pet.PrimaryType, pet.SecondaryType = 1, 5 // Sandstorm's pet's hands
@@ -1095,12 +1096,13 @@ func petMeleeHit(pet, t *NPC, intn func(int) int) int {
 	}
 	r := creatureRoll(pet.Level)
 	m := pet.effectMods()
-	top := int(math.Round(r.Top - targetDefence(t)))
+	def := targetDefence(t) + t.creatureDefence(pet.Level) // its effects' AC and AGI
+	top := int(math.Round(r.Top - def))
 	low := top - r.Width
 	floor := r.Floor
 	if m.Str != 0 || m.Dex != 0 {
 		str := float64(m.Str)
-		top = int(math.Round(r.Top - targetDefence(t) + offHighSTR*str))
+		top = int(math.Round(r.Top - def + offHighSTR*str))
 		low = min(low+int(math.Round(petDexShare*float64(m.Dex)*float64(r.Width))), top)
 		floor += int(math.Floor(offFloorSTR * str))
 	}
@@ -1131,9 +1133,70 @@ func npcHitOnPet(npc, pet *NPC, intn func(int) int) int {
 	return max(hit, r.Floor, 1)
 }
 
+// creatureMods is what a creature's effects add to its stats in its fights,
+// as a pet's do: the debuffs players and their pets put on it (the user,
+// 2026-11-01: "yes make player debuffs count too"; until then a creature
+// fought by its level alone, and an AC, STR, DEX or AGI debuff on one did
+// nothing) and the buffs a charmed creature kept when it went free ("make
+// the released mob's buffs count in its fights too"), each until it runs
+// out, only the best of a line (bestOfLine). STR and DEX move its rolls as
+// a pet's effects move its own (meleeRoll.withMods: on players, pets and
+// guards), AC and AGI the hits on it as a player's take off a creature's
+// (creatureDefence), a maximum its
+// maximum hit points (syncEffectMaxHP); its resists were counted already
+// (workbook.go's npcResistKindPct), its STA, WIS, INT and CHA count for
+// nothing (no creature's hit points or hits come from them). Nothing for a
+// pet: its effects count through effectMods.
+func (n *NPC) creatureMods() StatMods {
+	var m StatMods
+	if n.Owner != 0 {
+		return m
+	}
+	for i, e := range n.Effects {
+		if !n.bestOfLine(i) {
+			continue
+		}
+		m.sum(e.Mods)
+	}
+	return m
+}
+
+// bestOfLine is whether the NPC's i-th effect is the best of its line on it
+// (the highest rank, the first of equals), as only the best of a line counts
+// on a player (buffline.go): two ranks of a debuff's line on a creature count
+// as the higher. An effect of no line always counts.
+func (n *NPC) bestOfLine(i int) bool {
+	e := n.Effects[i]
+	if e.Line == "" {
+		return true
+	}
+	for j, o := range n.Effects {
+		if j == i || !sameLine(o.Line, e.Line) {
+			continue
+		}
+		if o.Rank > e.Rank || o.Rank == e.Rank && j < i {
+			return false
+		}
+	}
+	return true
+}
+
+// creatureDefence is what a creature's AC and AGI effects take off an
+// attacker's roll on it (an AC debuff: a negative, the roll higher): as a
+// player's take off a creature's top (defence.go: the creature line's AC
+// slope at the attacker's level, a tank's per point of AGI). Ours: no record
+// of a creature's armour against a player exists.
+func (n *NPC) creatureDefence(attackerLevel int) float64 {
+	m := n.creatureMods()
+	if m.AC == 0 && m.Agi == 0 {
+		return 0
+	}
+	return creatureRoll(attackerLevel).ACSlope*float64(m.AC) + agiSlope[archTank]*float64(m.Agi)
+}
+
 // effectMods is what the NPC's effects add to its stats: a pet's own buffs
-// and those cast on it. Only a pet's are used (npcHitOnPet, petMeleeHit); a
-// creature still fights by its level alone.
+// and those cast on it, which its fights take (npcHitOnPet, petMeleeHit); a
+// creature's are creatureMods.
 func (n *NPC) effectMods() StatMods {
 	var m StatMods
 	for _, e := range n.Effects {
@@ -1235,14 +1298,22 @@ func (w *World) retargetLocked(npc *NPC) {
 // petEffectsLocked, its AC, AGI, STR and DEX count in its fights: pet.go's
 // npcHitOnPet and petMeleeHit; its other stats a pet does not use).
 func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *session.Session, pet *NPC, now time.Time) {
-	for _, e := range cs.spell.Def.Effects {
-		if e.Kind != EffectHP {
-			continue
+	// a spell that raises the maximum heals after the raise, as on a player
+	// (landOnPlayerLocked), or a pet at full health would get none of it
+	raises := cs.spell.Def.RaisesMaxHP()
+	heal := func() {
+		for _, e := range cs.spell.Def.Effects {
+			if e.Kind != EffectHP {
+				continue
+			}
+			if n := spellAmount(e, caster); n > 0 && pet.HP < pet.MaxHP {
+				pet.HP = min(pet.HP+n, pet.MaxHP)
+				w.tellAmountLocked(caster, casterSess, pet.ServerID, n)
+			}
 		}
-		if n := spellAmount(e, caster); n > 0 && pet.HP < pet.MaxHP {
-			pet.HP = min(pet.HP+n, pet.MaxHP)
-			w.tellAmountLocked(caster, casterSess, pet.ServerID, n)
-		}
+	}
+	if !raises {
+		heal()
 	}
 	if ae := lasting(cs, caster, now); ae != nil {
 		if over := putOnPetLocked(pet, &cs.spell, ae); over != nil {
@@ -1252,8 +1323,62 @@ func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *sessi
 				w.sendColoredLocked(casterSess, fmt.Sprintf(lineStronger, pet.Name, over.Name), castRefusalRGB)
 			}
 		}
+		pet.syncEffectMaxHP()
+	}
+	if raises {
+		heal()
 	}
 	log.Printf("Cast: %s's %q lands on the pet %q (%d/%d HP, %d effects)", caster.Name, cs.spell.Name, pet.Name, pet.HP, pet.MaxHP, len(pet.Effects))
+}
+
+// A pet's maximum hit points take its effects (the user, 2026-11-01, of the
+// shaman's Avatar: "a one time max hp buff and massive stat buff"; until
+// then a pet's maximum took none, so Avatar on a pet only healed it): MaxHP
+// is its own (the balance's, its template's) plus what its effects add,
+// effMaxHP. A raise's heal comes after it (landOnPetLocked); an effect's end
+// takes its raise back within the pet's tick (petEffectsLocked), whatever
+// took the effect off, its hit points kept within the lower maximum; the
+// balance setting a pet's hit points again keeps the raise
+// (applyBalanceLocked). A charmed creature set free keeps its effects and
+// their raise until each runs out (the user, 2026-11-01: "is charm
+// breaks/release the mob retains all buffs until they expire": charm.go's
+// releaseCharmLocked puts it on the creatures' effects, effectSystem, which
+// takes the raise back as they end); a creature's maximum takes its effects
+// as a pet's does, a player's debuff on it too (creatureMods); a respawn is
+// a new life, without them.
+
+// effectsMaxHP is what the NPC's effects add to its maximum hit points: each
+// effect's maximum and its hit point factor at the NPC's level, as a
+// player's (MaxHPNow).
+func (n *NPC) effectsMaxHP() int {
+	add := 0
+	for _, ae := range n.Effects {
+		add += ae.Mods.MaxHP + ae.Mods.HPFactor*n.Level
+	}
+	return add
+}
+
+// syncEffectMaxHP moves the NPC's maximum hit points by what its effects add
+// now against what they added, its hit points kept within it.
+func (n *NPC) syncEffectMaxHP() {
+	add := n.effectsMaxHP()
+	if add == n.effMaxHP {
+		return
+	}
+	n.MaxHP = max(n.MaxHP+add-n.effMaxHP, 1)
+	n.effMaxHP = add
+	n.HP = min(n.HP, n.MaxHP)
+}
+
+// dropEffectMaxHP takes back what the NPC's effects added to its maximum (a
+// respawn: its effects gone with its life).
+func (n *NPC) dropEffectMaxHP() {
+	if n.effMaxHP == 0 {
+		return
+	}
+	n.MaxHP = max(n.MaxHP-n.effMaxHP, 1)
+	n.effMaxHP = 0
+	n.HP = min(n.HP, n.MaxHP)
 }
 
 // putOnPetLocked keeps a beneficial spell's lasting effect on a pet, only the
@@ -1301,6 +1426,7 @@ func (w *World) petEffectsLocked(ps *petState, now time.Time) {
 		}
 	}
 	pet.Effects = left
+	pet.syncEffectMaxHP() // a raise that ended (or went another way) taken back
 }
 
 // sendSetPet is 0x007E: the pet's id, one raw u32 into m_petId.

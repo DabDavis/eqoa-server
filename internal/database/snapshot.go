@@ -42,7 +42,7 @@ import (
 // SnapshotVersion names the sanitiser's rules: the panel's audit line and the
 // snapshot's own snapshot_info table say which made a file. Raise it with
 // every change to what is taken out.
-const SnapshotVersion = 5
+const SnapshotVersion = 6
 
 // SnapshotInfoTable is the table a snapshot carries saying what it is: the
 // sanitiser's version, when it was made and by whom, and what was taken out.
@@ -146,7 +146,10 @@ var snapshotRules = map[string]snapshotRule{
 	"cmcatalog_eqoaemu_chars_log": {allow: []string{"key"}, why: "tools/import_eqoaemu_cms.py's log of the characters' rows it changed (spells, charcms)"},
 	"eqoaemu_followup_log":        {allow: []string{"key"}, why: "tools/fix_eqoaemu_followup.py's log"},
 	"eqoaemu_followup_meta":       {allow: []string{"key"}, why: "tools/fix_eqoaemu_followup.py's facts"},
+	"eqoaemu_followup2_log":       {allow: []string{"key"}, why: "tools/fix_eqoaemu_followup2.py's log"},
+	"eqoaemu_followup2_meta":      {allow: []string{"key"}, why: "tools/fix_eqoaemu_followup2.py's facts"},
 	"eqoaemu_pets_log":            {allow: []string{"rowkey"}, why: "tools/import_eqoaemu_pets.py's log"},
+	"eqoaemu_pet_abilities_log":   {why: "tools/fix_eqoaemu_pet_abilities.py's log"},
 	"eqoaemu_spell_import_log":    {allow: []string{"key"}, why: "tools/import_eqoaemu_spells.py's log"},
 	"eqoaemu_spell_import_meta":   {allow: []string{"key"}, why: "tools/import_eqoaemu_spells.py's facts"},
 	"fishing_seed":                {allow: []string{"key"}, why: "tools/seed_fishing.py's log"},

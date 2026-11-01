@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"math/bits"
 	"strconv"
 	"strings"
 	"sync"
@@ -176,6 +177,17 @@ func jsonStat(s string) (Stat, bool) {
 // it.
 func invisibleSprite(v uint32) bool { return v == 0x435EF663 || v == 0x63F65E43 }
 
+// spriteBody is the body a workbook SpriteID shows: the CHAR.ESF CSprite of
+// that DictID read the other way round. The workbook writes every SpriteID
+// byte-reversed against the disc's DictIDs, which npcs.modelid and
+// charactermodel hold and the entity channel carries as they are (measured
+// 2026-11-01 against the disc's 568 CSprites: 106 of 106 of its spell
+// effects' sprites and 6 of 6 of its item effects'). Until then the sprite
+// was sent as written, a model no CSprite has, and every illusion the
+// workbook gives by its sprite showed none (the brief's contract: "as
+// written; the lane resolves byte order").
+func spriteBody(v uint32) uint32 { return bits.ReverseBytes32(v) }
+
 // ParseSpellJSON reads a spell's workbook effects (the file's doc). name and
 // desc are its record's, which say what an illusion is.
 func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
@@ -225,6 +237,9 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 		}
 		n := len(d.Effects)
 		d.readEffectJSON(name, desc, e, scope == "target_aoe", &area)
+		for i := n; i < len(d.Effects); i++ {
+			d.Effects[i].EndsOnContact = e.DispelOnContact // its own mark (workbook.go's contactSplit)
+		}
 		switch es := strings.ToLower(strings.TrimSpace(e.Scope)); {
 		case es == "self" && scope != "self" && scope != "player_aoe":
 			// an effect of the spell's on its caster (a price, a tap's own
@@ -238,8 +253,32 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 			for i := n; i < len(d.Effects); i++ {
 				targetOnly[i] = true
 			}
+		case es == "group" && scope == "target" && groupShare(d.Effects[n:]):
+			// a share for the caster's group in a spell cast at an enemy
+			// (the shadow knight's screams' AC): its caster's, its group's
+			// when a mastery adds the spell (ShareGroup, lifetap.go)
+			for i := n; i < len(d.Effects); i++ {
+				d.Effects[i].Self, d.Effects[i].ShareGroup = true, true
+			}
+			d.ShareRadius = float32(s.Radius)
 		case es != "" && es != scope && es != "self" && es != "target":
 			d.unsupported("an effect for %q in a spell for %q (it lands as the spell's)", es, scope)
+		}
+	}
+	// invisibility is one part here (an Alter Appearance to the invisible
+	// body is read as invisibility: invisibleSprite), so a spell whose
+	// Invisible part a hit ends loses its invisibility whole, its invisible
+	// body with it (Elemental Veil, Spirit Walk: the workbook marks their
+	// Invisible and not their invisible body; marked alone, a hit would end
+	// nothing seen)
+	for _, e := range d.Effects {
+		if e.Kind == EffectInvis && e.EndsOnContact {
+			for i := range d.Effects {
+				if d.Effects[i].Kind == EffectInvis {
+					d.Effects[i].EndsOnContact = true
+				}
+			}
+			break
 		}
 	}
 	switch {
@@ -258,6 +297,13 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 	}
 	if d.FormKind != FormNone {
 		d.Harmful = false
+	}
+	// a harmful spell the workbook gives no time whose effect ends at
+	// contact lasts until contact (untilContact, workbook.go): Enshrouding
+	// darkness, the shadow knight's snare, Duration 0 and DisspellOnContact
+	// 1 (the user, 2026-11-01: "until hit"); until then it lasted no time
+	if d.Duration <= 0 && d.DispelOnContact && d.Harmful {
+		d.Duration = untilContact
 	}
 	// the undead check, which the workbook's Legend calls the one oddity of a
 	// negative HP1 and its Target Type gives only some of the undead spells
@@ -309,6 +355,25 @@ func (d *SpellDef) unsupported(format string, args ...any) {
 	d.Unsupported = append(d.Unsupported, fmt.Sprintf(format, args...))
 }
 
+// cureByName is what a cure the workbook leaves at "ID?" (it does not know
+// which) takes off, by its spell's name (the user, 2026-11-01: "by name"):
+// an antidote poison, a curative disease, a mask's removal a mask
+// (cureMatches' words); "" when the name says nothing, and the cure takes
+// every harmful effect as before (the warriors' stances, the monks' Purity,
+// Spirit of the Wolf).
+func cureByName(name string) string {
+	n := strings.ToLower(name)
+	switch {
+	case strings.Contains(n, "antidote"):
+		return "poison"
+	case strings.Contains(n, "curative"):
+		return "disease"
+	case strings.Contains(n, "mask"):
+		return "mask"
+	}
+	return ""
+}
+
 // seconds is a workbook duration as a time.
 func seconds(s float64) time.Duration {
 	if s <= 0 {
@@ -335,6 +400,18 @@ func effectOf(k EffectKind, e effectJSON) SpellEffect {
 		out.Resist = st
 	}
 	return out
+}
+
+// groupShare is whether a workbook effect's parts for a group, in a spell
+// cast at an enemy, are a share for the caster's side: each raises a stat
+// (Arcane Bonding's root on the target's group of enemies is not one).
+func groupShare(es []SpellEffect) bool {
+	for _, e := range es {
+		if e.Kind != EffectStat || e.Amount <= 0 {
+			return false
+		}
+	}
+	return len(es) > 0
 }
 
 // readEffectJSON adds one workbook effect to d; area collects a
@@ -445,7 +522,7 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 			d.Target = TargetSelf
 			d.Effects = append(d.Effects, SpellEffect{Kind: EffectIllusion, ID: e.ID})
 		}
-		d.FormModel = uint32(v)
+		d.FormModel = spriteBody(uint32(v))
 		if d.Form == "" {
 			d.Form = strings.ToLower(strings.TrimSpace(e.Sprite))
 		}
@@ -469,6 +546,11 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 			se = effectOf(EffectHP, e)
 		case strings.EqualFold(e.Stat, "power") || strings.EqualFold(e.Stat, "pow"):
 			se = effectOf(EffectPower, e)
+		case strings.EqualFold(e.Stat, "hot"):
+			// hit points over time, each tick's to the caster (Infernal
+			// Bond's: the sheet's HoT column of a Drain, its line "Decrease
+			// HP per tic by 240, give to self"; cast.go's tick)
+			se = effectOf(EffectHPTick, e)
 		case ok && st <= StatAR:
 			se = effectOf(EffectStat, e)
 			se.Stat = st
@@ -494,7 +576,13 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 		d.Unread = append(d.Unread, "teleport to "+d.Location)
 	case "cure":
 		add(SpellEffect{Kind: EffectCure, ID: e.ID})
-		d.Removes = append(d.Removes, strings.TrimSpace(e.Removes))
+		rm := strings.TrimSpace(e.Removes)
+		if strings.EqualFold(rm, "id?") {
+			if by := cureByName(name); by != "" {
+				rm = by
+			}
+		}
+		d.Removes = append(d.Removes, rm)
 	case "charm":
 		add(effectOf(EffectCharm, e))
 	case "invis":

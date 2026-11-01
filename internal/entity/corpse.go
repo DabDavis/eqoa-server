@@ -165,6 +165,8 @@ func (w *World) respawnNPCLocked(npc *NPC) {
 	npc.Y = npc.SpawnY
 	npc.Z = npc.SpawnZ
 	npc.Facing = npc.SpawnFacing
+	npc.Effects = nil
+	npc.dropEffectMaxHP() // a released charm's raise gone with its effects (pet.go)
 	npc.HP = npc.MaxHP
 	npc.Dead = false
 	npc.DeathTime = time.Time{}

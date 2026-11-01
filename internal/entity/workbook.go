@@ -33,7 +33,10 @@ import (
 //   - Dispel on cast: what lasts ends when its bearer begins a cast. Dispel
 //     on contact: when its bearer is hit in melee or a harmful spell lands on
 //     it (a player by a creature's hit; a creature by any hit or hostile act,
-//     updateAggro).
+//     updateAggro), the parts the workbook marks alone (the user,
+//     2026-11-01: "yes only end the marked part"): the rest of the effect
+//     stays and runs to its time (contactSplit), one whose every lasting
+//     part is marked ending whole.
 //   - Mitigation (and the invulnerables): that share of each melee hit on a
 //     player is not taken, up to its most over the effect's time; the
 //     workbook says it "has no effect on spells".
@@ -334,25 +337,158 @@ func (w *World) dispelOnCastLocked(p *Player) {
 }
 
 // contactPlayerLocked ends what lasts on a player that ends when it is hit
-// or harmed.
+// or harmed: an effect whose parts the workbook marks only some of loses
+// those (endContactParts), its new speed told and its stats summed again as
+// a whole effect's end does them (effectsChangedLocked; its body and its
+// invisibility are read from its parts as they are now); any other, whole.
 func (w *World) contactPlayerLocked(p *Player) {
 	for _, e := range append([]*ActiveEffect(nil), p.Effects...) {
-		if e.Rules.DispelOnContact {
-			log.Printf("Cast: %q ends on %s: a hit", e.Name, p.Name)
-			w.removeEffectLocked(p, e.SpellID)
+		if !e.Rules.DispelOnContact {
+			continue
 		}
+		if e.contact != nil {
+			speed := p.SpeedNow()
+			e.endContactParts()
+			log.Printf("Cast: %q's parts that end at a hit end on %s, the rest stays", e.Name, p.Name)
+			w.effectsChangedLocked(p, speed)
+			continue
+		}
+		log.Printf("Cast: %q ends on %s: a hit", e.Name, p.Name)
+		w.removeEffectLocked(p, e.SpellID)
 	}
 }
 
+// contactSplit is what the parts of an effect a hit ends put on (Marked)
+// beside what its other parts do (Rest), each as lasting builds it from
+// those parts alone; Form: its illusion is among the marked parts alone.
+type contactSplit struct {
+	Marked, Rest *ActiveEffect
+	Form         bool `json:",omitempty"`
+}
+
+// contactSplitOf is the split of a spell whose workbook marks only some of
+// its lasting parts dispel_on_contact (SpellEffect.EndsOnContact), nil for
+// one a hit ends whole: every lasting part marked (Arcane Shock's snare
+// beside its instant hit), none marked, or one that lasts until a hit, its
+// time the hit's (untilContact).
+func contactSplitOf(cs *castState, caster *Player, now time.Time) *contactSplit {
+	d := &cs.spell.Def
+	if !d.DispelOnContact || d.Duration == untilContact {
+		return nil
+	}
+	var marked, rest []SpellEffect
+	markedForm, restForm := false, false
+	for _, e := range d.Effects {
+		if e.EndsOnContact {
+			marked = append(marked, e)
+			markedForm = markedForm || e.Kind == EffectIllusion
+		} else {
+			rest = append(rest, e)
+			restForm = restForm || e.Kind == EffectIllusion
+		}
+	}
+	if len(marked) == 0 || len(rest) == 0 {
+		return nil
+	}
+	of := func(effects []SpellEffect) *ActiveEffect {
+		c := *cs
+		c.spell.Def.Effects = effects
+		return lastingParts(&c, caster, now)
+	}
+	r := of(rest)
+	if r == nil || !(r.lastsAnything() || restForm || hasSetStat(rest)) {
+		return nil // only its marked parts last: a hit ends it whole
+	}
+	m := of(marked)
+	if m == nil {
+		return nil
+	}
+	return &contactSplit{Marked: m, Rest: r, Form: markedForm && !restForm}
+}
+
+// hasSetStat reports a stat set among the parts (setStatsLocked's).
+func hasSetStat(effects []SpellEffect) bool {
+	for _, e := range effects {
+		if e.Kind == EffectStat && e.Set {
+			return true
+		}
+	}
+	return false
+}
+
+// endContactParts takes off what the effect's parts a hit ends put on
+// (contact.Marked), what its other parts put on staying as it is now
+// (contact.Rest: a heal's ticks left, a mitigation's spent share): their
+// stats and ticks taken back, a hold, a slow, a speed or an invisibility
+// gone unless another part gives it too, an illusion's body gone with its
+// part. What stays ends at no hit more and runs to its time.
+func (ae *ActiveEffect) endContactParts() {
+	m, r := ae.contact.Marked, ae.contact.Rest
+	ae.HPTick -= m.HPTick
+	ae.PowerTick -= m.PowerTick
+	if m.TickDrain != DrainNone && r.TickDrain == DrainNone {
+		ae.TickDrain, ae.TickRange = DrainNone, 0
+	}
+	ae.Mods.take(m.Mods)
+	ae.Root = ae.Root && (!m.Root || r.Root)
+	ae.Snare = ae.Snare && (!m.Snare || r.Snare)
+	ae.Speed = ae.Speed && (!m.Speed || r.Speed)
+	ae.Invis = ae.Invis && (!m.Invis || r.Invis)
+	if m.Proc != 0 || m.ProcMax != 0 {
+		ae.Proc, ae.ProcMax, ae.ProcScale, ae.ProcScalePct, ae.ProcCap, ae.ProcUndead =
+			r.Proc, r.ProcMax, r.ProcScale, r.ProcScalePct, r.ProcCap, r.ProcUndead
+	}
+	if m.Shield != nil {
+		ae.Shield = r.Shield
+	}
+	if m.PowerCapped {
+		ae.PowerCap, ae.PowerCapped = r.PowerCap, r.PowerCapped
+	}
+	mr, rr := m.Rules, r.Rules
+	if mr.SpeedPct != 0 {
+		ae.Rules.SpeedPct = rr.SpeedPct
+	}
+	if mr.MitigatePct != 0 {
+		ae.Rules.MitigatePct, ae.Rules.MitigateLeft, ae.Rules.MitigateCapped = rr.MitigatePct, rr.MitigateLeft, rr.MitigateCapped
+	}
+	if mr.ProcHeal != 0 {
+		ae.Rules.ProcHeal, ae.Rules.ProcHealDef, ae.Rules.ProcHealScale = rr.ProcHeal, rr.ProcHealDef, rr.ProcHealScale
+		ae.Rules.ProcHealScalePct, ae.Rules.ProcHealChance, ae.Rules.ProcHealUndead = rr.ProcHealScalePct, rr.ProcHealChance, rr.ProcHealUndead
+	}
+	ae.Rules.Lull = ae.Rules.Lull && (!mr.Lull || rr.Lull)
+	ae.Rules.Breath = ae.Rules.Breath && (!mr.Breath || rr.Breath)
+	ae.Rules.Hide = ae.Rules.Hide && (!mr.Hide || rr.Hide)
+	ae.Rules.Disguise = ae.Rules.Disguise && (!mr.Disguise || rr.Disguise)
+	if ae.contact.Form {
+		ae.Form, ae.FormSize = 0, 0
+	}
+	ae.Rules.DispelOnContact = false
+	ae.contact = nil
+}
+
+// untilContact is how long a harmful effect stays that the workbook gives no
+// time but ends at contact (Enshrouding darkness: the user's "until hit"):
+// a day, so a hit ends it, or its bearer's death, respawn or a restart.
+const untilContact = 24 * time.Hour
+
 // contactNPCLocked ends what lasts on a creature that ends when it is hit
-// or harmed (a lull).
+// or harmed (a lull, a snare): the marked parts alone of an effect whose
+// workbook marks only some (endContactParts: a creature's slows, holds,
+// body and invisibility are read from its parts as they are now), any other
+// whole.
 func contactNPCLocked(npc *NPC) {
 	if len(npc.Effects) == 0 {
 		return
 	}
 	left := npc.Effects[:0]
 	for _, e := range npc.Effects {
-		if e.Rules.DispelOnContact {
+		if e.Rules.DispelOnContact && !e.ticking { // its own tick is no contact for itself
+			if e.contact != nil {
+				e.endContactParts()
+				log.Printf("Cast: %q's parts that end at a hit end on %s, the rest stays", e.Name, npc.Name)
+				left = append(left, e)
+				continue
+			}
 			log.Printf("Cast: %q ends on %s: a hit", e.Name, npc.Name)
 			continue
 		}

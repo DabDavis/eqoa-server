@@ -435,3 +435,45 @@ func TestALifeTapHealsWhatLanded(t *testing.T) {
 		}
 	}
 }
+
+// A drain over time (Infernal Bond's, the workbook's Drain of INT and of HoT,
+// "Decrease HP per tic by 240, give to self"): each tick takes its figure
+// from the creature and gives it to the caster; a damage tick of no drain
+// gives nothing (the control).
+func TestADrainOverTimeGivesEachTickToItsCaster(t *testing.T) {
+	noResist(t)
+	bond := wbSpell(9701, 60, 1, "Test Bond", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"duration_s":30,"stack":0,"level":60,
+		"effects":[{"id":"07AD","type":"Drain","kind":"drain","stat":"int","amount":-60,"resist":"ar"},{"id":"07AD","type":"Drain","kind":"drain","stat":"hot","amount":-240,"resist":"ar"}]}`)
+	if len(bond.Def.Unsupported) != 0 {
+		t.Fatalf("read with %v left over", bond.Def.Unsupported)
+	}
+	plain := wbSpell(9702, 60, 1, "Test Rot", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"duration_s":30,"stack":0,"level":60,
+		"effects":[{"id":"0001","type":"Dmg/Heal","kind":"hp_tick","amount":-240}]}`)
+	for _, c := range []struct {
+		spell CastSpell
+		gain  int
+	}{{bond, 240}, {plain, 0}} {
+		k := newCaster(t)
+		k.p.Class, k.p.Level, k.p.HP, k.p.MaxHP = 3, 60, 1000, 3000
+		k.npc.HP, k.npc.MaxHP, k.npc.Level = 20000, 20000, 60
+		k.landSeen(t, c.spell, k.npcO)
+		k.w.mu.Lock()
+		var ae *ActiveEffect
+		for _, e := range k.npc.Effects {
+			if e.SpellID == c.spell.SpellID {
+				ae = e
+			}
+		}
+		if ae == nil {
+			k.w.mu.Unlock()
+			t.Fatalf("%s: nothing lasting on the creature", c.spell.Name)
+		}
+		hp, mine := k.npc.HP, k.p.HP
+		k.w.tickNPCEffectLocked(k.npc, ae, ae.NextTick)
+		took, gained := hp-k.npc.HP, k.p.HP-mine
+		k.w.mu.Unlock()
+		if took != 240 || gained != c.gain {
+			t.Errorf("%s's tick: the creature lost %d, the caster gained %d; want 240 and %d", c.spell.Name, took, gained, c.gain)
+		}
+	}
+}

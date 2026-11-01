@@ -130,6 +130,12 @@ type SpellEffect struct {
 	// pact's price ("Decrease Hitpoints by 50 to Self"), "Increase AC by
 	// 25 Self", "Increase Caster HP by 1160" (lifetap.go)
 	Self bool
+	// ShareGroup is a Self effect the workbook gives the caster's group (a
+	// shadow knight's scream's AC): the caster's alone, its group's in the
+	// spell's radius only when a mastery rank adds the spell (the user,
+	// 2026-11-01: "SK drain should land on themself by default, CM may allow
+	// group"; lifetap.go's landOnCasterLocked)
+	ShareGroup bool
 	// Drain is where what the target loses goes: a life tap's damage heals
 	// its caster (or the caster's group), a drained stat or power is the
 	// caster's (lifetap.go)
@@ -162,15 +168,22 @@ type SpellEffect struct {
 	Chance int
 	// Defense: a proc heal set off by a hit on the bearer, not by its own
 	Defense bool
+	// EndsOnContact: the workbook marks this part dispel_on_contact
+	// (spelljson.go): a hit on its bearer ends it, and the spell's parts
+	// not marked stay (contactSplit, workbook.go)
+	EndsOnContact bool
 }
 
 // SpellDef is a spell's line, read: whom it lands on, what it does, how
 // long what lasts lasts, and whether it is cast at an enemy.
 type SpellDef struct {
-	Target   SpellTarget
-	Effects  []SpellEffect
-	Duration time.Duration // 0: it all happens when it lands
-	Harmful  bool
+	// ShareRadius is how far a group's share reaches the caster's group
+	// (ShareGroup: the workbook's radius of the spell), 0 its range
+	ShareRadius float32
+	Target      SpellTarget
+	Effects     []SpellEffect
+	Duration    time.Duration // 0: it all happens when it lands
+	Harmful     bool
 	// Pet is the creature a summoning line names ("Summons an Iron Golem to
 	// your defense": "iron golem"), "" when it names none ("Summons a pet").
 	Pet string

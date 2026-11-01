@@ -494,6 +494,10 @@ func cureMatches(ae *ActiveEffect, words string) bool {
 		return ae.Speed
 	case has("mask", "illusion"):
 		return ae.Form != 0
+	case w == "mitigation":
+		// a barrier: an effect that mitigates melee hits (the paladin's
+		// Clay to Talimus's Barriers; their hold is part of the effect)
+		return ae.Rules.MitigatePct > 0
 	case w == "stance":
 		// a stance's cure: the bearer's other stances (its own spell is
 		// never cured by itself: cureLocked)

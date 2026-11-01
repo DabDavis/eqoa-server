@@ -449,6 +449,10 @@ func cureByName(name string) string {
 		return "disease"
 	case strings.Contains(n, "mask"):
 		return "mask"
+	case strings.Contains(n, "shield break"):
+		// the paladin's Take a Shield Break: its own barriers end, their
+		// hold with them (the user, 2026-11-01: "yes end the barriers")
+		return "mitigation"
 	}
 	return ""
 }

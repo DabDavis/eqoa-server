@@ -730,6 +730,27 @@ func TestASpeedBuffsIDCureEndsOtherSpeedBuffs(t *testing.T) {
 	}
 }
 
+// The paladin's Take a Shield Break (a cure of "ID?" by its name) ends the
+// paladin's barriers, an effect that mitigates melee, and leaves a harmful
+// effect and a resist buff of a barrier's name (the controls).
+func TestAShieldBreakEndsTheBarriers(t *testing.T) {
+	brk := wbSpell(9881, 1, 0, "Take a Shield Break", `{"v":1,"scope":"self","target_type":"Self","harmful":false,"stack":0,"level":1,
+		"effects":[{"kind":"cure","removes":"ID?","scale":"str","scale_pct":40}]}`)
+	if len(brk.Def.Removes) != 1 || brk.Def.Removes[0] != "mitigation" {
+		t.Fatalf("its cure %q", brk.Def.Removes)
+	}
+	c := newCaster(t)
+	until := c.at(time.Hour)
+	c.p.Effects = append(c.p.Effects,
+		&ActiveEffect{SpellID: 1, Name: "Test Venom", Until: until, Rules: EffectRules{Harm: true, Resist: StatPR}},
+		&ActiveEffect{SpellID: 2, Name: "Test Granite Barrier", Until: until, Root: true, Rules: EffectRules{MitigatePct: 50, MitigateLeft: 6000, MitigateCapped: true}},
+		&ActiveEffect{SpellID: 3, Name: "Test Elemental Barrier", Until: until, Mods: StatMods{FR: 45}})
+	c.castOn(t, brk, 0)
+	if got := strings.Join(c.effectNames(), ","); got != "Test Venom,Test Elemental Barrier" {
+		t.Errorf("after the break: %s, want the barrier ended alone", got)
+	}
+}
+
 // A player below a spell's lowest level is not affected; one at it is (the
 // control).
 func TestWorkbookLowestLevel(t *testing.T) {

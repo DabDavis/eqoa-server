@@ -28,6 +28,12 @@ import (
 // most common one this server's NPCs of that name wear, at their size. The
 // lines' "Faction Change" is not done: nothing here makes a creature's
 // regard depend on the body it sees.
+//
+// The workbook gives an illusion by its sprite (spelljson.go, read the other
+// way round: spriteBody); a race's body by sprite is still the bearer's own
+// sex's of that race. An item's use may give one too (potion.go): a drink
+// shows its drinker in its body as a spell's illusion does, and a thrown
+// potion's goes on the creature it hits for its time (NPC.Body).
 
 // FormKind is whom an illusion spell lands on.
 type FormKind int
@@ -118,12 +124,12 @@ func (w *World) SetRaceModels(models map[[2]int]uint32) {
 	}
 }
 
-// illusionBodyLocked is the body an illusion of form shows bearer in: a
-// race's for the bearer's sex, at that race's players' size (racesize.go), or
-// a creature's at its size. ok is false when this server has none.
-func (w *World) illusionBodyLocked(form string, bearer *Player) (model uint32, size float32, ok bool) {
+// illusionBodyLocked is the body an illusion of form shows a bearer of sex in:
+// a race's for that sex, at that race's players' size (racesize.go), or a
+// creature's at its size. ok is false when this server has none.
+func (w *World) illusionBodyLocked(form string, sex int) (model uint32, size float32, ok bool) {
 	if race, isRace := illusionRaces[form]; isRace {
-		m := w.raceModels[raceSex{race, bearer.Sex}]
+		m := w.raceModels[raceSex{race, sex}]
 		return m, w.raceSizeLocked(race), m != 0
 	}
 	words := strings.Fields(form)
@@ -174,24 +180,145 @@ func (w *World) endIllusionsLocked(t *Player, keep int) bool {
 	return gone
 }
 
+// raceBodyLocked is, when model is one of the players' race bodies
+// (charactermodel), that race's body for a bearer of sex: the workbook's
+// sprites give the male body of each race (every Glamour and race Illusion,
+// the Creative Mix Potion's ogre), and an illusion of a race is its bearer's
+// own sex's body, as one by the race's name is.
+func (w *World) raceBodyLocked(model uint32, sex int) (body uint32, race int, ok bool) {
+	for k, m := range w.raceModels {
+		if m == model {
+			if b := w.raceModels[raceSex{k.race, sex}]; b != 0 {
+				return b, k.race, true
+			}
+			return model, k.race, true
+		}
+	}
+	return model, 0, false
+}
+
 // landIllusionLocked gives an illusion's lasting effect its body and takes
 // any other illusion off its bearer first (a new illusion replaces the
 // old). An illusion of a body this server lacks lands as its stats alone.
 func (w *World) landIllusionLocked(cs *castState, t *Player, ae *ActiveEffect) {
 	d := &cs.spell.Def
 	w.endIllusionsLocked(t, cs.spell.SpellID)
-	model, size, ok := w.illusionBodyLocked(d.Form, t)
+	model, size, ok := w.illusionBodyLocked(d.Form, t.Sex)
 	if d.FormModel != 0 {
-		// the workbook's sprite (spelljson.go): its body, at the bearer's
-		// size unless its name's body says another
+		// the workbook's sprite (spelljson.go) or an item's body (potion.go):
+		// its body, at the bearer's size unless its name's body says
+		// another; a race's body the bearer's sex's of that race, at the
+		// race's size
 		model, ok = d.FormModel, true
+		if b, race, isRace := w.raceBodyLocked(d.FormModel, t.Sex); isRace {
+			model, size = b, w.raceSizeLocked(race)
+		}
 	}
 	if !ok {
 		log.Printf("Cast: %q on %s: no body of %q on this server: no illusion", cs.spell.Name, t.Name, d.Form)
 		return
 	}
+	if !onDisc(model) {
+		log.Printf("Cast: %q on %s: the disc has no body %#x: no illusion", cs.spell.Name, t.Name, model)
+		return
+	}
 	ae.Form, ae.FormSize = model, size
 	log.Printf("Cast: %q shows %s as %q (model %#x)", cs.spell.Name, t.Name, d.Form, model)
+}
+
+// onDisc is whether the disc has a body of model, as far as the server knows
+// the disc's bodies (reach.go's table, cmd/modelbake's <worlds>/models.txt):
+// a body it lacks is shown on no one (a GM's mistyped body, a sprite read the
+// wrong way round), and without the table every body is taken as given.
+func onDisc(model uint32) bool {
+	m := modelRadii.Load()
+	if m == nil || len(*m) == 0 {
+		return true
+	}
+	_, ok := (*m)[model]
+	return ok
+}
+
+// Body is the model and scale a creature is shown with: the newest illusion
+// on it (a thrown potion's, potion.go), at its body's size or the creature's
+// own, else its own; a corpse its own. Only the look changes: its reach, its
+// aggro and its voice still go by its own body (ModelID).
+func (n *NPC) Body() (model uint32, size float32) {
+	if !n.Dead {
+		for i := len(n.Effects) - 1; i >= 0; i-- {
+			if e := n.Effects[i]; e.Form != 0 {
+				if e.FormSize > 0 {
+					return e.Form, e.FormSize
+				}
+				return e.Form, n.Size
+			}
+		}
+	}
+	return uint32(n.ModelID), n.Size
+}
+
+// hasIllusion is whether the spell shows what it lands on in another body.
+func (d *SpellDef) hasIllusion() bool {
+	for _, e := range d.Effects {
+		if e.Kind == EffectIllusion {
+			return true
+		}
+	}
+	return false
+}
+
+// landNPCIllusionLocked gives an illusion that lands on a creature (a thrown
+// potion's body: the Transmutive Potion's albino rat, 2026-11-01) its
+// lasting effect's body: by its name as a player's is, a race's of the sex
+// of the creature's own body (charactermodel; a creature's male), or the
+// body itself (FormModel) at the size this server's NPCs wearing it have,
+// else the creature's own. Seen by everyone who sees the creature (its
+// channel's model and scale, statesync.go); it goes with the effect, at its
+// end, at the creature's death (a corpse is its own body) and respawn, and
+// when a GM's edit makes it again (UpsertNPC, ReloadNPCs; a copy of it, a
+// quest's spawn, is made with no effect: devspawn.go).
+func (w *World) landNPCIllusionLocked(cs *castState, npc *NPC, ae *ActiveEffect) {
+	d := &cs.spell.Def
+	sex := w.modelSex[uint32(npc.ModelID)]
+	model, size, ok := w.illusionBodyLocked(d.Form, sex)
+	if d.FormModel != 0 {
+		model, ok, size = d.FormModel, true, 0
+		if b, _, isRace := w.raceBodyLocked(d.FormModel, sex); isRace {
+			model = b // at the creature's own size: NPCs keep their rows' sizes (racesize.go)
+		} else {
+			size = w.bodySizeLocked(model)
+		}
+	}
+	if !ok {
+		log.Printf("Cast: %q on %s: no body of %q on this server: no illusion", cs.spell.Name, npc.Name, d.Form)
+		return
+	}
+	if !onDisc(model) {
+		log.Printf("Cast: %q on %s: the disc has no body %#x: no illusion", cs.spell.Name, npc.Name, model)
+		return
+	}
+	ae.Form, ae.FormSize = model, size
+	log.Printf("Cast: %q shows %s as model %#x", cs.spell.Name, npc.Name, model)
+}
+
+// bodySizeLocked is the size this server's own NPCs wearing model have (the
+// most common, the smaller of a tie; not a GM's copy or a pet), 0 when none
+// wears it.
+func (w *World) bodySizeLocked(model uint32) float32 {
+	count := map[float32]int{}
+	for _, n := range w.NPCs {
+		if n.Temporary || n.Owner != 0 || uint32(n.ModelID) != model || n.Size <= 0 {
+			continue
+		}
+		count[n.Size]++
+	}
+	best, most := float32(0), 0
+	for s, k := range count {
+		if k > most || (k == most && s < best) {
+			best, most = s, k
+		}
+	}
+	return best
 }
 
 // glamourTargetsLocked is whom a glamour lands on: the caster when it names

@@ -1447,7 +1447,11 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 	if cs.spell.Def.forgets() {
 		return // the gaze angers nothing: what lasts of it, and its hate of 1, are not given
 	}
-	if ae := lasting(cs, caster, now); ae != nil && w.rootResistLocked(caster, casterSess, npc, ae, now) { // root.go
+	ae := lasting(cs, caster, now)
+	if ae != nil && cs.spell.Def.hasIllusion() {
+		w.landNPCIllusionLocked(cs, npc, ae) // illusion.go: a thrown potion's body on the creature
+	}
+	if ae != nil && w.rootResistLocked(caster, casterSess, npc, ae, now) { // root.go
 		for i, old := range npc.Effects {
 			if old.SpellID == ae.SpellID {
 				npc.Effects = append(npc.Effects[:i], npc.Effects[i+1:]...)

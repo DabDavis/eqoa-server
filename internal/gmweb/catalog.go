@@ -1178,6 +1178,11 @@ var catalog = map[string]tableNote{
 			"wear":      {Label: "Wears off", Help: "percent a six-second tick"},
 			"area":      {Label: "Splash", Help: "a thrown one's: how far round its target creatures take it too"},
 			"source":    {Label: "Source", Help: "gm, or potions for tools/seed_potions.py's rows (its --undo deletes those)"},
+			"body": {Label: "Body", Format: hex32, Help: "a CHAR.ESF model (as an NPC's model) its drinker shows (a race's body " +
+				"of the drinker's own sex), or a thrown one's creature, while it lasts; 0 none but an illusion its effect name " +
+				"says (Illusion: Ogre)"},
+			"target_line": {Label: "Target's own", Help: "a thrown one's: what its target alone takes beside the line, in its " +
+				"words (Target, Decrease Hitpoints by 500); the line lands on the target and every creature in the splash"},
 		},
 	},
 	"itempattern": {

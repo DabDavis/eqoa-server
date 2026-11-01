@@ -28,6 +28,9 @@ cmcatalog (entity/cmbuy.go), the workbook winning wherever it has a value:
   needs, adds or takes away named by the id of another class's spell, where
   the Spells sheet has exactly one spell of that name for the rank's class,
   is that spell (the warrior's Tranquility named the enchanter's), each said.
+- The Transmuter's second and third ranks take each other's descriptions
+  (DESC_SWAPS: the workbook's guesses are each other's; the user, 2026-11-01:
+  "swap them").
 - A cell left empty (or "NO DESCRIPTION FOUND") is no value: ours stays. A
   group of cells is the workbook's whole when it fills any of it (the 29
   stats, the base stats, the abilities added, ...).
@@ -387,6 +390,29 @@ def fix_slips(W, owners):
                 out.append((x, nm))
             w[kind] = out
     return fixed
+
+
+# Ranks whose workbook descriptions are each other's (the user, 2026-11-01:
+# "swap them"): the Transmuter's second and third ranks, whose descriptions
+# guess "Rat?" for the one whose potion is an ogre's body (the workbook's
+# own Created Item sheets: the Creative Mix Potion) and "Ogre Pill?" for the
+# one whose thrown potion turns its target into an albino rat (the
+# Transmutative Mix Potion). By the ranks' names, folded.
+DESC_SWAPS = [("creative transmutation", "transmutative mixture")]
+
+
+def swap_descriptions(W):
+    """DESC_SWAPS' ranks given each other's workbook descriptions (both of a
+    pair found, in one mastery). Returns the names swapped."""
+    done = []
+    for a, b in DESC_SWAPS:
+        wa = [w for w in W if fold(w["name"]) == a]
+        wb = [w for w in W if fold(w["name"]) == b]
+        if len(wa) != 1 or len(wb) != 1 or wa[0].get("sub") != wb[0].get("sub"):
+            continue
+        wa[0]["desc"], wb[0]["desc"] = wb[0]["desc"], wa[0]["desc"]
+        done.append((wa[0]["name"], wb[0]["name"]))
+    return done
 
 
 def read_spellmap(path):
@@ -1672,6 +1698,8 @@ def main():
             spells = Sheet(tsv_table(sp)) if os.path.exists(sp) else None
         W = read_ranks(cms)
         slips = fix_slips(W, read_spell_owners(spells))
+        for a, b in swap_descriptions(W):
+            print(f"the workbook's descriptions of {a} and {b}, each the other's: swapped")
         print(f"the workbook's ability ids of another class's spell, put right: {len(slips)}")
         for hx, kind, was, now, nm in slips:
             what = {"abil": "requires", "adds": "adds", "removes": "takes away"}[kind]

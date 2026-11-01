@@ -427,6 +427,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// casts' reagents (reagent.go)
 	spellbookHandler := NewSpellbookHandler(gameWorld, spellStore)
 	spellbookHandler.SetInventory(invStore)
+	// an art's required equipment put in the hands (handswitch.go)
+	spellbookHandler.SetHandSwitch(equipHandler.SwitchHandsFor)
 	spellbookHandler.RegisterHandlers(r)
 
 	// Register the world-load handler (0x0049). This is what re-describes the

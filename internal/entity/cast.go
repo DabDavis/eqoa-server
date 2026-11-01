@@ -577,57 +577,18 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	if p == nil || p.IsDead() {
 		return false
 	}
-	if p.Casting != nil && now.Before(p.Casting.ends) {
-		// the same spell past its cast time is its recovery's to answer
-		// (below); within the cast time, or another spell in the 0.4 s
-		// after it: nothing, as on Sandstorm
-		if p.Casting.spell.SpellID != spell.SpellID || now.Before(p.Casting.castEnds) {
-			log.Printf("Cast: %s casts %q during %q: not answered", p.Name, spell.Name, p.Casting.spell.Name)
-			return false
-		}
-	}
-	for _, l := range p.Lockouts {
-		if l.spellID == spell.SpellID && now.Before(l.until) {
-			w.recoveryAnswerLocked(sess, p, &spell, l.until.Sub(now), now)
-			return false
-		}
-	}
-	if isArt(&spell) && now.Before(p.artReady) { // the arts' global cooldown (balance.go)
+	switch wait, until := p.castWaitFor(&spell, now); wait {
+	case castDuring:
+		log.Printf("Cast: %s casts %q during %q: not answered", p.Name, spell.Name, p.Casting.spell.Name)
+		return false
+	case castLocked:
+		w.recoveryAnswerLocked(sess, p, &spell, until.Sub(now), now)
+		return false
+	case castCooling:
 		log.Printf("Cast: %s uses %q %v before the arts' cooldown ends: not answered", p.Name, spell.Name, p.artReady.Sub(now).Round(time.Millisecond))
 		return false
 	}
-	// a charm while a pet is out is refused before anything is looked at,
-	// whatever is targeted (charm.go)
-	refusal := w.charmPetRefusalLocked(p, &spell)
-	var targets []EntityID
-	if refusal == "" {
-		targets, refusal = w.castTargetsLocked(sess, p, &spell, targetObjectID)
-	}
-	fizzle := false
-	if refusal == "" && spell.Def.Harmful {
-		refusal = w.waterRefusalLocked(p, targets) // water.go
-	}
-	if refusal == "" && spell.Def.undeadOnly() {
-		refusal, fizzle = w.undeadStartLocked(targets) // undead.go
-	}
-	if refusal == "" && spell.Def.TargetKind != "" {
-		refusal, fizzle = w.targetKindStartLocked(&spell.Def, targets) // workbookmore.go
-	}
-	if refusal == "" && spell.Def.ReqEquip != "" {
-		refusal = equipRefusal(p, spell.Def.ReqEquip) // workbookmore.go
-	}
-	if refusal == "" && spell.Def.Charms() {
-		refusal = w.charmStartLocked(&spell, targets) // charm.go
-	}
-	if refusal == "" && spell.Def.Resurrects() > 0 {
-		refusal, fizzle = w.rezStartLocked(targets, &spell.Def, now) // resurrect.go
-	}
-	if refusal == "" {
-		refusal = w.gateStartLocked(sess, &spell) // gates.go
-	}
-	if refusal == "" && p.Power < spell.PowerCost {
-		refusal = castNoPower
-	}
+	targets, refusal, fizzle := w.castRefusalLocked(sess, p, &spell, targetObjectID, now, true)
 	if refusal != "" {
 		log.Printf("Cast: %s casts %q on %#x: %s", p.Name, spell.Name, targetObjectID, refusal)
 		if fizzle {
@@ -666,6 +627,101 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	log.Printf("Cast: %s begins %q (spell %d) on %#x: %v cast, %d power (%d left), lands in %v",
 		p.Name, spell.Name, spell.SpellID, targetObjectID, spell.CastTime, spell.PowerCost, p.Power, spell.CastTime+castLand)
 	return true
+}
+
+// castWait is what StartCast does with a cast before its checks.
+type castWait int
+
+const (
+	castGoes    castWait = iota // on to its checks (castRefusalLocked)
+	castDuring                  // within another cast: not answered
+	castLocked                  // the ability locked out: its recovery's answer
+	castCooling                 // an art within the arts' cooldown: not answered
+)
+
+// castWaitFor is what StartCast does with the player's cast before its
+// checks, and when the ability's lockout ends for one locked out.
+func (p *Player) castWaitFor(spell *CastSpell, now time.Time) (castWait, time.Time) {
+	if p.Casting != nil && now.Before(p.Casting.ends) {
+		// the same spell past its cast time is its recovery's to answer
+		// (below); within the cast time, or another spell in the 0.4 s
+		// after it: nothing, as on Sandstorm
+		if p.Casting.spell.SpellID != spell.SpellID || now.Before(p.Casting.castEnds) {
+			return castDuring, time.Time{}
+		}
+	}
+	for _, l := range p.Lockouts {
+		if l.spellID == spell.SpellID && now.Before(l.until) {
+			return castLocked, l.until
+		}
+	}
+	if isArt(spell) && now.Before(p.artReady) { // the arts' global cooldown (balance.go)
+		return castCooling, time.Time{}
+	}
+	return castGoes, time.Time{}
+}
+
+// castRefusalLocked is a cast's checks after its waits, in StartCast's
+// order: whom it lands on, or the line refusing it and whether it fizzles.
+// With hands false its required equipment is left out (CastWantsHands).
+// Must be called with the lock held.
+func (w *World) castRefusalLocked(sess *session.Session, p *Player, spell *CastSpell, targetObjectID uint32, now time.Time,
+	hands bool) (targets []EntityID, refusal string, fizzle bool) {
+	// a charm while a pet is out is refused before anything is looked at,
+	// whatever is targeted (charm.go)
+	refusal = w.charmPetRefusalLocked(p, spell)
+	if refusal == "" {
+		targets, refusal = w.castTargetsLocked(sess, p, spell, targetObjectID)
+	}
+	if refusal == "" && spell.Def.Harmful {
+		refusal = w.waterRefusalLocked(p, targets) // water.go
+	}
+	if refusal == "" && spell.Def.undeadOnly() {
+		refusal, fizzle = w.undeadStartLocked(targets) // undead.go
+	}
+	if refusal == "" && spell.Def.TargetKind != "" {
+		refusal, fizzle = w.targetKindStartLocked(&spell.Def, targets) // workbookmore.go
+	}
+	if refusal == "" && hands && spell.Def.ReqEquip != "" {
+		refusal = equipRefusal(p, spell.Def.ReqEquip) // workbookmore.go
+	}
+	if refusal == "" && spell.Def.Charms() {
+		refusal = w.charmStartLocked(spell, targets) // charm.go
+	}
+	if refusal == "" && spell.Def.Resurrects() > 0 {
+		refusal, fizzle = w.rezStartLocked(targets, &spell.Def, now) // resurrect.go
+	}
+	if refusal == "" {
+		refusal = w.gateStartLocked(sess, spell) // gates.go
+	}
+	if refusal == "" && p.Power < spell.PowerCost {
+		refusal = castNoPower
+	}
+	return targets, refusal, fizzle
+}
+
+// CastWantsHands reports a cast its required equipment alone would refuse:
+// the spell names weapons the player's hands do not hold (the workbook's
+// required equipment, workbookmore.go), and nothing else (its target, its
+// range, power, the ability's lockout, the arts' cooldown, another cast on)
+// would refuse it or let it go. The handlers then put what it wants in the
+// hands from the pack (handlers/handswitch.go) before StartCast; any other
+// cast is StartCast's to answer as it always was, the hands left alone.
+func (w *World) CastWantsHands(sess *session.Session, spell CastSpell, targetObjectID uint32, now time.Time) bool {
+	if spell.Def.ReqEquip == "" {
+		return false
+	}
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil || p.IsDead() || equipFits(p, spell.Def.ReqEquip) {
+		return false
+	}
+	if wait, _ := p.castWaitFor(&spell, now); wait != castGoes {
+		return false
+	}
+	_, refusal, _ := w.castRefusalLocked(sess, p, &spell, targetObjectID, now, false)
+	return refusal == ""
 }
 
 // castTargetsLocked is whom a cast will land on, or the line refusing it.

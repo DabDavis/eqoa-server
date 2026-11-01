@@ -172,9 +172,15 @@ func npcMeleeDebuffPct(npc *NPC, kind Stat, now time.Time) int {
 }
 
 // meleeDebuffed is a player's melee hit of n on a creature with its debuff
-// of the weapon's kind.
+// of the weapon's kind: the main hand's, or a ranged weapon's when it is the
+// ranged one that swings (Gear.WeaponSlot 18: no weapon in hand, whose main
+// hand reads as bare).
 func meleeDebuffed(p *Player, npc *NPC, n int, now time.Time) int {
-	if pct := npcMeleeDebuffPct(npc, meleeKindOf(p.PrimaryType), now); pct > 0 {
+	t := p.PrimaryType
+	if p.Gear.WeaponSlot == 18 {
+		t = byte(p.Gear.WeaponType)
+	}
+	if pct := npcMeleeDebuffPct(npc, meleeKindOf(t), now); pct > 0 {
 		return n * (100 + pct) / 100
 	}
 	return n
@@ -185,6 +191,22 @@ func meleeDebuffed(p *Player, npc *NPC, n int, now time.Time) int {
 // 4 crushing, 5 and 6 piercing, 7 a bow, 9 a crossbow, 10 thrown).
 var equipCodes = map[string][]byte{"1HS": {1}, "2HS": {2}, "1HB": {3}, "2HB": {4}, "1HP": {5}, "2HP": {6},
 	"RANGE": {7, 9, 10}, "RANGED": {7, 9, 10}}
+
+// ReqEquipCodes is a spell's required equipment as equipFits reads it: its
+// codes, upper case (1HS ... 2HP, RANGE, SHIELD, NONE, ANY), in its order.
+func ReqEquipCodes(req string) []string {
+	var out []string
+	for _, tok := range strings.Split(strings.ToUpper(req), ",") {
+		if tok = strings.TrimSpace(tok); tok != "" {
+			out = append(out, tok)
+		}
+	}
+	return out
+}
+
+// EquipCodeTypes is the attack types a weapon's code names (equipCodes):
+// "1HS" 1, "RANGE" 7, 9 and 10; none for any other.
+func EquipCodeTypes(code string) []byte { return equipCodes[code] }
 
 // handEmpty is a hand with no weapon: nothing, or bare hands (11).
 func handEmpty(t byte) bool { return t == 0 || t == 11 }
@@ -214,6 +236,12 @@ func equipFits(p *Player, req string) bool {
 	}
 	return false
 }
+
+// HandsFit is equipFits for the handlers: whether the hands a player's worn
+// look gives it (PrimaryType, SecondaryType, Shield) hold what a spell's
+// required equipment names; the switch for an art checks the hands it would
+// make with it before it makes them (handlers/handswitch.go).
+func HandsFit(p *Player, req string) bool { return equipFits(p, req) }
 
 // castWrongWeapon refuses a cast whose required equipment no hand holds
 // (ours).

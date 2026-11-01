@@ -25,11 +25,20 @@ type SpellbookHandler struct {
 	gameWorld *entity.World
 	store     *database.SpellbookStore
 	inv       *database.InventoryStore // a cast's reagents (reagent.go)
+	// switchHands puts what a cast's required equipment names in the
+	// caster's hands (the EquipHandler's SwitchHandsFor, handswitch.go)
+	switchHands func(sess *session.Session, p *entity.Player, req string) bool
 }
 
 // SetInventory gives the casts their reagents' inventory (reagent.go).
 // Without it a cast that costs items is refused.
 func (h *SpellbookHandler) SetInventory(inv *database.InventoryStore) { h.inv = inv }
+
+// SetHandSwitch gives the casts the switch of hands an art's required
+// equipment wants (handswitch.go). Without it such a cast is refused.
+func (h *SpellbookHandler) SetHandSwitch(fn func(sess *session.Session, p *entity.Player, req string) bool) {
+	h.switchHands = fn
+}
 
 func NewSpellbookHandler(gw *entity.World, store *database.SpellbookStore) *SpellbookHandler {
 	return &SpellbookHandler{gameWorld: gw, store: store}

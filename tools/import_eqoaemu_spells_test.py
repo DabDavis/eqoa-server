@@ -264,7 +264,7 @@ class ImportTest(unittest.TestCase):
         self.assertEqual(self.line(p, 900262), "Target, Decrease Hitpoints by 30, 5min", "a weapon proc's hit, its desc says proc")
         self.assertEqual(self.line(p, 900263), "Self, Damage Shield Decrease Hitpoints by 8, 5min")
         self.assertEqual(self.line(p, 900264), "Summons a Fire Imp to aid you")
-        self.assertEqual(self.line(p, 900265), "Self, Summon Fire Mix Potion x3")
+        self.assertEqual(self.line(p, 900265), "Self, Summon Fire Potion x3", "our item's own name")
         self.assertEqual(self.line(p, 900266), "Target, Decrease Hitpoints by 60 aoe Decrease Hitpoints by 25")
         self.assertEqual(self.line(p, 104), "Group, Increase Maximum HP by 40, Radius 30, 30min")
         self.assertEqual(self.line(p, 106), "Target, Increase Hate by 300 ; Increase 10% based on STR")

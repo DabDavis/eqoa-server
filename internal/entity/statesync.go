@@ -328,12 +328,13 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 		buf[27] = 255
 	}
 
-	// Model
-	modelID := uint32(n.ModelID)
+	// Model and scale: its own, an illusion's while one is on it (a thrown
+	// potion's: illusion.go's NPC.Body)
+	modelID, size := n.Body()
 	binary.LittleEndian.PutUint32(buf[28:32], modelID)
 	// Offset 32-35: ModelID2 (0 in eqoa.live — only set for upgraded models)
 	// Leave as 0x00000000
-	binary.LittleEndian.PutUint32(buf[36:40], math.Float32bits(n.Size))
+	binary.LittleEndian.PutUint32(buf[36:40], math.Float32bits(size))
 
 	// Offset 40-42: the velocity (npcmove.go), units a second × 128/21, which
 	// CLIENT carries a creature along between updates (ExtrapolateMove); 0

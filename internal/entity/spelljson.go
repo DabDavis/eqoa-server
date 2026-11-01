@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"math/bits"
 	"strconv"
 	"strings"
 	"sync"
@@ -175,6 +176,17 @@ func jsonStat(s string) (Stat, bool) {
 // it is invisibility, as the workbook's invisibilities "alter appearance" to
 // it.
 func invisibleSprite(v uint32) bool { return v == 0x435EF663 || v == 0x63F65E43 }
+
+// spriteBody is the body a workbook SpriteID shows: the CHAR.ESF CSprite of
+// that DictID read the other way round. The workbook writes every SpriteID
+// byte-reversed against the disc's DictIDs, which npcs.modelid and
+// charactermodel hold and the entity channel carries as they are (measured
+// 2026-11-01 against the disc's 568 CSprites: 106 of 106 of its spell
+// effects' sprites and 6 of 6 of its item effects'). Until then the sprite
+// was sent as written, a model no CSprite has, and every illusion the
+// workbook gives by its sprite showed none (the brief's contract: "as
+// written; the lane resolves byte order").
+func spriteBody(v uint32) uint32 { return bits.ReverseBytes32(v) }
 
 // ParseSpellJSON reads a spell's workbook effects (the file's doc). name and
 // desc are its record's, which say what an illusion is.
@@ -445,7 +457,7 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 			d.Target = TargetSelf
 			d.Effects = append(d.Effects, SpellEffect{Kind: EffectIllusion, ID: e.ID})
 		}
-		d.FormModel = uint32(v)
+		d.FormModel = spriteBody(uint32(v))
 		if d.Form == "" {
 			d.Form = strings.ToLower(strings.TrimSpace(e.Sprite))
 		}

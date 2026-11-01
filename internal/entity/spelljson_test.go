@@ -86,8 +86,10 @@ func TestWorkbookKindsMapOntoTheEngines(t *testing.T) {
 	if len(d.Items) != 1 || d.Items[0] != (SpellItem{Name: "Test Loaf", Count: 3}) {
 		t.Errorf("the item: %+v", d.Items)
 	}
+	// the sprite as the workbook writes it, byte-reversed: the body is the
+	// CSprite the other way round (spriteBody)
 	d = SpellDefFrom("Test Shape", "", "", `{"v":1,"scope":"self","duration_s":60,"effects":[{"kind":"illusion","sprite":"0x12345678"}]}`)
-	if d.FormKind != FormSelf || d.FormModel != 0x12345678 || d.Duration != time.Minute {
+	if d.FormKind != FormSelf || d.FormModel != 0x78563412 || d.Duration != time.Minute {
 		t.Errorf("the illusion: %+v", d)
 	}
 	d = SpellDefFrom("True Form", "", "", `{"v":1,"scope":"self","effects":[{"kind":"illusion","sprite":"0x12345678"}]}`)

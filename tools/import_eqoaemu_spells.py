@@ -169,7 +169,9 @@ CREATE TABLE IF NOT EXISTS {LOG} (
 KEYS = {"spellpattern": ["spellid"], "spelleffect": ["spellid"], "spellarea": ["spellid"],
         "classspells": ["class", "spellid"], "itempattern": ["patternid"], "npcitem": ["itemid"],
         "spells": ["id"], "charbuffs": ["serverid", "seq"], "cmcatalog": ["id"], "queststeps": ["questid", "step"],
-        "spellgates": ["spell"]}
+        "spellgates": ["spell"], "foodeffect": ["patternid"], "itemeffect": ["patternid"]}
+# a food, drink or potion made from the Created Item sheets: 910000 + the workbook's ItemID
+ITEM_BASE = 910000
 # the worlds a Location names (gmweb's world numbers)
 WORLDS = {"tunaria": 0, "rathe": 1, "odus": 2, "lavastorm": 3, "plane of sky": 4, "secrets": 5}
 NOTE = "EQOAEmu's workbook (2020)"
@@ -274,7 +276,7 @@ EXTRA_KEYS = {
 }
 
 SHEETS = {"Spells": "02-Spells.tsv", "Effects": "03-Effects.tsv", "Created Item Info": "04-Created_Item_Info.tsv",
-          "Pets": "07-Pets.tsv"}
+          "Created Item Effects": "05-Created_Item_Effects.tsv", "Pets": "07-Pets.tsv"}
 
 
 # ---- reading -------------------------------------------------------------------
@@ -442,6 +444,9 @@ class Workbook:
             if n is not None and cell(r, "Name"):
                 self.items[n] = cell(r, "Name")
         self.pets = {hexid(r.get("PetID")): r for r in sheets["Pets"] if hexid(r.get("PetID"))}
+        self.item_info = sheets.get("Created Item Info") or []
+        self.item_effects = {hexid(e.get("EffectID")): e for e in sheets.get("Created Item Effects") or []
+                             if hexid(e.get("EffectID"))}
 
 
 def spell_ctx(s, wb):
@@ -466,7 +471,7 @@ def effect_ids(s):
 # " Mix Potion" as " Potion", no trailing " Potion", " Fire Potion" as
 # " Cocktail" (the potions seed_potions.py made are named so)
 ITEM_NAME_VARIANTS = [(r"\s+effect$", ""), (r"\s+mix\s+potion$", " potion"), (r"\s+potion$", ""),
-                      (r"\s+fire\s+potion$", " cocktail")]
+                      (r"\s+fire\s+potion$", " cocktail"), (r"s$", "")]
 
 
 def our_item(items_by_name, name):
@@ -1115,6 +1120,31 @@ def scroll_curve(db):
     return lambda level: max(1, round(Rule.on_curve(curve, level) or 1)) if curve else 1
 
 
+def rename_safe(old, new, db=None):
+    """Whether a record may take the workbook's spelling: every lookup of a
+    spell by its name reads both alike. scribe.go's exactKey and spellKey and
+    the quest importer's fold are blind to case, spacing and a backtick for an
+    apostrophe; database.SpellGateKey, pettemplate's and the class templates'
+    keys and the Go code's names (area.go, illusion.go, spellnotes.go...) to
+    case. A rename that changes more than case and a backtick would need
+    every one of those carried; none of the workbook's does (2026-11-01)."""
+    if exact_key(old) != exact_key(new):
+        return False
+    if old.strip().lower() == new.strip().lower() or db is None:
+        return True
+    # a backtick read as an apostrophe is not case alone: the keys blind only
+    # to case must hold no row of the old name
+    lo = old.strip().lower()
+    for table, col in (("spellgates", "spell"), ("pettemplate", "spell")):
+        if has_table(db, table) and db.execute(f"SELECT 1 FROM main.{table} WHERE lower(trim({col})) = ?", (lo,)).fetchone():
+            return False
+    if has_table(db, "classtemplates") and "abilities" in columns(db, "classtemplates"):
+        for (a,) in db.execute("SELECT abilities FROM main.classtemplates"):
+            if lo in (a or "").lower():
+                return False
+    return True
+
+
 def pick_owner(rows, rec, linked, sandstorm_classes=()):
     """Of several workbook rows mapped onto one record, the record's own: a
     row of a class the record is linked to today (classspells), else its
@@ -1200,9 +1230,10 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None):
     for pid, name in db.execute("SELECT patternid, itemname FROM main.itempattern ORDER BY patternid"):
         items_by_name.setdefault(fold(name), pid)
         item_names[pid] = name
-
     lists = collections.defaultdict(list)
     counts = collections.Counter()
+    foods = plan_foods(db, wb, items_by_name, item_names, lists, counts)
+
     by_sid = collections.defaultdict(list)
     split_of = {}   # a split row's new spellid -> the record it leaves
     for s in wb.spells:
@@ -1301,6 +1332,23 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None):
             old = (erows.get(sid) or {}).get("line") or ""
             proc_desc = bool(re.search(r"\bproc\b|chance to deal additional", (rec["spelldesc"] or "").lower())) or \
                 (bool(re.search(r"\bdecrease (?:hitpoints|hp) by \d+", old.lower())) and "proc" not in old.lower())
+            # workbook wins on all (the user, 2026-11-01): its icon, frame and
+            # spelling too; a rename is one every lookup by name reads alike
+            # (rename_safe) or it is kept and listed
+            icon, frame = icon_of(cell(s, "IconID")), FRAMES.get(cell(s, "IconBGDColor"))
+            if icon is not None:
+                want["icon"] = icon
+            if frame is not None:
+                want["iconColor"] = frame
+            nm = cell(s, "Name")
+            if nm and nm != rec["spellname"]:
+                if rename_safe(rec["spellname"], nm, db):
+                    want["spellname"] = nm
+                    lists["a spell renamed as the workbook spells it (every lookup by name reads both alike)"].append(
+                        f"{sid} {rec['spellname']!r} -> {nm!r}")
+                else:
+                    lists["a spell the workbook spells otherwise, its name kept (a lookup by name reads it otherwise)"].append(
+                        f"{sid} {rec['spellname']!r}: the workbook's {nm!r}")
             changed = {k: v for k, v in want.items() if rec.get(k) != v}
             if changed:
                 spells.append(dict(spellid=sid, action="update", sheet_id=hexid(s.get("SpellID")),
@@ -1403,10 +1451,156 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None):
 
     scrolls, stock = plan_scrolls(db, new_rows, records, lists, counts, links, moves, migrations)
     p = dict(spells=spells, effects=effects, areas=area_rows, links=links, scrolls=scrolls, stock=stock,
-             moves=moves, migrations=migrations, gates=gate_rows,
+             moves=moves, migrations=migrations, gates=gate_rows, foods=foods,
              lists={k: v for k, v in lists.items()}, counts=dict(counts), effect_clash=wb.effect_clash)
     p["changes"] = changes_of(p)
     return p
+
+
+MEAL_DESC = re.compile(r"(?i)\bmeal\b.*\bhealth regeneration\b")      # handlers/consume.go's
+DRINK_DESC = re.compile(r"(?i)\bbeverage\b.*\bpower regeneration\b")
+DRINK_TEXT = "A refreshing beverage that increases power regeneration."   # every drink of ours
+POTION_NAME = re.compile(r"(?i)\b(potion|draught|vaccine|elixir|tonic)\b")
+
+
+def plan_foods(db, wb, items_by_name, item_names, lists, counts):
+    """The workbook's food and drink (its Created Item sheets: an item whose
+    effects give its eater power over time, health over time or health, and
+    nothing else; the user, 2026-11-01: "yes add the food too"): ours take
+    its HoT and PoT (they held their level, tools/stock_grocers.py's stand-in);
+    one we lack is made as its nearest sibling of ours is (a drink a drink's
+    row, a meal a meal's: art, stack, usable type 2, trade), 910000 + its
+    ItemID, described as ours are; each gets its foodeffect row (its time,
+    DisspellOnCast, DisspellOnContact). One that heals at once as well as over
+    time is a potion (itemeffect, entity/potion.go: drunk, its line's heal now
+    and its ticks), as ours of that kind are. items_by_name and item_names
+    take the made ones, so the summoning spells name them."""
+    out = dict(updates=[], items=[], foodeffects=[], itemeffects=[])
+    if not wb.item_info:
+        return out
+    cols = columns(db, "itempattern")
+    rows = {r[0]: dict(zip(cols, r)) for r in db.execute(f"SELECT {', '.join(cols)} FROM main.itempattern")}
+    have_fe = {r[0] for r in db.execute("SELECT patternid FROM main.foodeffect")} if has_table(db, "foodeffect") else set()
+    ie = {}
+    if has_table(db, "itemeffect"):
+        ie = {r[0]: r[1] for r in db.execute("SELECT patternid, line FROM main.itemeffect")}
+    ie_src = {}
+    if has_table(db, "itemeffect"):
+        ie_src = {r[0]: r[1] for r in db.execute("SELECT patternid, source FROM main.itemeffect")}
+    # the potions an item could be modelled on: tools/seed_potions.py's drunk ones
+    drunk = [r for pid, r in rows.items() if (ie.get(pid) or "").lower().startswith("self") and ie_src.get(pid) == "potions"]
+    found = []   # (kind, our row) of the workbook's foods we have: a made one's siblings
+    groups = collections.OrderedDict()
+    for r in wb.item_info:
+        iid = num(r, "ItemID")
+        if isinstance(iid, int):
+            groups.setdefault(iid, []).append(r)
+    foods = []
+    for iid, rs in groups.items():
+        effs = [wb.item_effects[e] for r in rs for e in effect_ids(r) if e in wb.item_effects]
+        if not effs:
+            continue
+        figures = collections.Counter()
+        ok = True
+        for e in effs:
+            if cell(e, "Scope").split(" ")[0] not in ("Self", "") or cell(e, "TYPE") not in ("Statistic Change", "Dmg/Heal"):
+                ok = False
+            for col in [c for c, _ in STAT_COLS] + ["HP1", "HP2", "DoT", "POW", "SPEED", "HP Factors", "OFF Mods", "DEF Mods"]:
+                v = num(e, col)
+                if not v:
+                    continue
+                if col == "PoT" and v > 0:
+                    figures["pot"] += v
+                elif col == "HoT" and v > 0:
+                    figures["hot"] += v
+                elif col == "HP1" and v > 0:
+                    figures["hot" if (num(e, "Duration") or 0) > 0 else "heal"] += v
+                else:
+                    ok = False
+        name = re.sub(r"(?i)\s+effect$", "", cell(rs[0], "Name")).strip()
+        if not ok or not figures or POTION_NAME.search(name):
+            continue  # not a food or a drink (an alchemist's potion is not this part's)
+        potion = figures["heal"] > 0
+        foods.append(dict(iid=iid, name=name, level=num(rs[0], "Level") or 1, figures=figures, potion=potion,
+                          kind="potion" if potion else "meal" if figures["hot"] else "drink",
+                          dur=max(num(e, "Duration") or 0 for e in effs),
+                          cast=any(cell(e, "DisspellOnCast") == "1" for e in effs),
+                          contact=any(cell(e, "DisspellOnContact") == "1" for e in effs)))
+    # ours first (a made one's siblings are the workbook's foods we have, of its kind)
+    for f in foods:
+        f["pid"] = our_item(items_by_name, f["name"])
+        if f["pid"] not in rows:
+            f["pid"] = None
+    siblings = collections.defaultdict(list)
+    for f in foods:
+        if f["pid"] is not None and not f["potion"]:
+            siblings["meal" if f["figures"]["hot"] else "drink"].append(rows[f["pid"]])
+    for f in foods:
+        figures, name, level, potion = f["figures"], f["name"], f["level"], f["potion"]
+        tag = f"{name} (L{level}, {f['kind']})"
+        pid = f["pid"]
+        if pid is not None:
+            row = rows[pid]
+            if potion:
+                lists["a potion of the workbook's we have (its itemeffect row left)"].append(f"{pid} {tag}")
+                continue
+            want = {}
+            if figures["hot"]:
+                want["HoT"] = figures["hot"]
+            if figures["pot"]:
+                want["PoT"] = figures["pot"]
+            changed = {k: v for k, v in want.items() if row.get(k) != v}
+            if changed:
+                out["updates"].append(dict(patternid=pid, name=row["itemname"], before={k: row.get(k) for k in changed},
+                                           set=changed))
+                counts["foods and drinks given the workbook's figures"] += 1
+        else:
+            pool = drunk if potion else siblings["meal" if figures["hot"] else "drink"]
+            if not pool:
+                lists["a food of the workbook's with no sibling of ours to make it as"].append(tag)
+                continue
+            sib = min(pool, key=lambda r: (abs((r["levelreq"] or 0) - level), r["patternid"]))
+            pid = ITEM_BASE + f["iid"]
+            if pid in rows:
+                lists["a made food's id taken"].append(f"{pid} {tag}")
+                continue
+            a = article(name.lower())
+            if potion:
+                desc = f"{a[0].upper()}{a[1:]}, a draught that heals at once and over time."
+            elif figures["hot"]:
+                desc = (f"{a[0].upper()}{a[1:]}, a meal that will increase health regeneration"
+                        f"{' and power regeneration' if figures['pot'] else ''}.")
+            else:
+                desc = DRINK_TEXT
+            row = dict(sib)
+            row.update(patternid=pid, itemname=name, levelreq=level, itemdesc=desc)
+            if not potion:
+                row.update(HoT=figures["hot"] or None, PoT=figures["pot"] or None)
+            out["items"].append(dict(patternid=pid, row=row, sibling=sib["patternid"]))
+            rows[pid] = row
+            items_by_name.setdefault(fold(name), pid)
+            item_names[pid] = name
+            counts["foods and drinks made"] += 1
+            lists["a food or drink made (as its sibling)"].append(f"{pid} {tag}, as {sib['patternid']} {sib['itemname']}")
+        if potion:
+            parts = []
+            if figures["heal"]:
+                parts.append(f"Increase Hitpoints by {figures['heal']}")
+            if figures["hot"]:
+                parts.append(f"Increase HP per tic by {figures['hot']}")
+            if figures["pot"]:
+                parts.append(f"Increase Power per tic by {figures['pot']}")
+            line = "Self, " + ", ".join(parts) + (f", {fmt_dur(f['dur'])}" if f["dur"] else "")
+            if pid not in ie:
+                out["itemeffects"].append(dict(patternid=pid, line=line, name="", icon=0, breaks="", wear=0, area=0.0,
+                                               source="eqoaemu"))
+                counts["potions given their itemeffect row"] += 1
+            continue
+        if pid not in have_fe:
+            out["foodeffects"].append(dict(patternid=pid, duration_s=int(f["dur"]), ends_on_cast=int(f["cast"]),
+                                           ends_on_contact=int(f["contact"]), source="eqoaemu"))
+            counts["foodeffect rows"] += 1
+    return out
 
 
 def token_swap(text, old, new):
@@ -1620,6 +1814,8 @@ def changes_of(p):
                         row={"class": x["cls"], "spellid": x["spellid"], "source": x["source"]}))
     for x in p["scrolls"]:
         out.append(dict(tbl="itempattern", action="insert", key={"patternid": x["patternid"]}, row=x["row"]))
+    for x in (p.get("foods") or {}).get("items", []):
+        out.append(dict(tbl="itempattern", action="insert", key={"patternid": x["patternid"]}, row=x["row"]))
     for x in p["stock"]:
         out.append(dict(tbl="npcitem", action="insert", key=None, note=x["name"],
                         row={"npcid": x["npcid"], "stackleft": 1, "remainHP": 0, "remaincharge": 0,
@@ -1629,6 +1825,14 @@ def changes_of(p):
                         note=m.get("note", "")))
     for g in p["gates"]:
         out.append(dict(tbl="spellgates", action="insert", key={"spell": g["spell"]}, row=g))
+    f = p.get("foods") or {}
+    for x in f.get("updates", []):
+        out.append(dict(tbl="itempattern", action="update", key={"patternid": x["patternid"]}, before=x["before"],
+                        set=x["set"], note=x["name"]))
+    for x in f.get("foodeffects", []):
+        out.append(dict(tbl="foodeffect", action="insert", key={"patternid": x["patternid"]}, row=x))
+    for x in f.get("itemeffects", []):
+        out.append(dict(tbl="itemeffect", action="insert", key={"patternid": x["patternid"]}, row=x))
     return out
 
 
@@ -1774,7 +1978,8 @@ def plan_scrolls(db, new_rows, records, lists, counts, links=(), moves=(), migra
 
 
 REPORT_ORDER = ["records made", "records updated", "  abilitylvl changed", "  range changed", "  casttime changed",
-                "  recast changed", "  power changed", "  scope changed", "records as the workbook has them already",
+                "  recast changed", "  power changed", "  scope changed", "  icon changed", "  iconColor changed",
+                "  spellname changed", "records as the workbook has them already",
                 "effects rows made", "effects rows written", "no effect in the workbook: line kept", "areas made",
                 "areas changed", "class rows", "new spells of no class (a pet's or a creature's)",
                 "new mastery spells (the masteries lane's)", "new quest spells a quest's reward already gives",
@@ -1859,6 +2064,12 @@ SPELLGATES_DDL = """CREATE TABLE spellgates (spell TEXT PRIMARY KEY, kind TEXT N
     note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm')"""
 
 
+# database/foodeffect.go's table, for a database that lacks it
+FOODEFFECT_DDL = """CREATE TABLE foodeffect (patternid INTEGER PRIMARY KEY, duration_s INTEGER NOT NULL DEFAULT 0,
+    ends_on_cast INTEGER NOT NULL DEFAULT 0, ends_on_contact INTEGER NOT NULL DEFAULT 0,
+    source TEXT NOT NULL DEFAULT 'gm')"""
+
+
 def apply(db, p):
     """Every planned change whose row is still as planned, in one
     transaction, each logged; returns (done, changed since)."""
@@ -1878,7 +2089,7 @@ def apply(db, p):
         for tbl, ddl in (("spellarea", "CREATE TABLE spellarea (spellid INTEGER PRIMARY KEY, centre INTEGER NOT NULL "
                                        "DEFAULT 0, radius REAL NOT NULL DEFAULT 0, maxtargets INTEGER NOT NULL DEFAULT 0, "
                                        "note TEXT NOT NULL DEFAULT '')"),
-                         ("spellgates", SPELLGATES_DDL)):
+                         ("spellgates", SPELLGATES_DDL), ("foodeffect", FOODEFFECT_DDL)):
             made[tbl] = not has_table(db, tbl) and any(c["tbl"] == tbl for c in changes)
             if made[tbl]:
                 db.execute(ddl)
@@ -1927,6 +2138,7 @@ def apply(db, p):
         now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
         for k, v in {"applied_at": now, "sqlite_sequence": dumps(seqs), "added_effects_column": str(int(added)),
                      "made_spellarea": str(int(made["spellarea"])), "made_spellgates": str(int(made["spellgates"])),
+                     "made_foodeffect": str(int(made["foodeffect"])),
                      "counts": dumps(p["counts"])}.items():
             db.execute(f"INSERT OR REPLACE INTO {META} VALUES (?, ?)", (k, v))
         db.execute("COMMIT")
@@ -2015,7 +2227,7 @@ def undo(db, force=False):
     if meta.get("added_effects_column") == "1" and not left and \
             not db.execute("SELECT count(*) FROM main.spelleffect WHERE effects <> ''").fetchone()[0]:
         db.execute("ALTER TABLE main.spelleffect DROP COLUMN effects")
-    for t in ("spellarea", "spellgates"):
+    for t in ("spellarea", "spellgates", "foodeffect"):
         if meta.get(f"made_{t}") == "1" and not db.execute(f"SELECT count(*) FROM main.{t}").fetchone()[0]:
             db.execute(f"DROP TABLE main.{t}")
     return back, left, leftover

@@ -17,7 +17,8 @@ spell is named through that map, here and in the other lanes' tools.
 What it writes, and from what:
 
   spellpattern, a spell the map says is ours: abilitylvl (Level), range,
-      casttime, recast, power, scope, where the workbook has a value, and
+      casttime, recast (two teleports' are not the workbook's 3 s: RECASTS),
+      power, scope, where the workbook has a value, and
       (the user, 2026-11-01: "workbook wins on all") its icon, frame and
       spelling as a new spell's below; a rename only where every lookup by
       name reads the two alike (rename_safe), else listed; spelldesc and
@@ -223,6 +224,14 @@ KEYS = {"spellpattern": ["spellid"], "spelleffect": ["spellid"], "spellarea": ["
 ITEM_BASE = 910000
 # a made item that has no ItemID (the sheets' one of none, OUR_KINDS'): 950000 + its spell's SpellID
 MADE_BASE = 950000
+# Recasts that are not the workbook's, by the spell's name (lower case): of
+# the five teleports its Location left with no place (tools/seed_spell_gates.py),
+# Envaric Acension's is the hour EQOA-Data's Envaric Ascension guide gives
+# ("Recast: 3600"), and the Circle of Dead Hills' its kin's, every druid
+# circle's on this server (ours, by kin); the other three keep the
+# workbook's 3, every wizard gate's, portal's and escape's here (2026-11-01,
+# the EQOAEmu follow-ups' places).
+RECASTS = {"envaric acension": 3600, "circle of dead hills": 600}
 # a Dmg/Heal row with a positive HP1 lasting at most this many seconds heals
 # each tick; one lasting longer heals once, at its landing (the doc)
 HEAL_TICKS_UP_TO = 60
@@ -1442,6 +1451,8 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None):
         for col, k in (("casttime", "CastTime"), ("recast", "Recast"), ("power", "PowerCost")):
             if num(s, k) is not None:
                 want[col] = int(num(s, k))
+        if cell(s, "Name").strip().lower() in RECASTS:
+            want["recast"] = RECASTS[cell(s, "Name").strip().lower()]
         summon = any(o["kind"] == "summon" for o in j["effects"])
         if scope is not None and not (rez and rec is not None):
             # a rez is cast at a player, a pet made beside its caster (the doc)

@@ -302,6 +302,23 @@ class ImportTest(unittest.TestCase):
         for sid, r in new.items():
             self.assertNotRegex(r["spelldesc"].lower(), r"\bproc\b", sid)
 
+    def test_recasts(self):
+        # a recast RECASTS names is the spell's, a new record's and ours alike;
+        # the control: every other keeps the workbook's 3
+        saved = im.RECASTS
+        im.RECASTS = {"moon portal": 600, "ember bolt": 45}
+        try:
+            p = self.plan()
+        finally:
+            im.RECASTS = saved
+        new = {e["spellid"]: e["row"] for e in p["spells"] if e["action"] == "insert"}
+        up = {e["spellid"]: e for e in p["spells"] if e["action"] == "update"}
+        self.assertEqual((new[900274]["recast"], new[900275]["recast"], new[900273]["recast"]), (600, 3, 3))
+        self.assertEqual(up[101]["set"].get("recast"), 45)
+        plain = {e["spellid"]: e for e in self.plan()["spells"] if e["action"] == "update"}
+        self.assertNotIn("recast", plain[101]["set"], "without the rule: the workbook's 3, ours already")
+        self.assertEqual(im.RECASTS, {"envaric acension": 3600, "circle of dead hills": 600})
+
     def test_split(self):
         p = self.plan()
         new = {e["spellid"]: e["row"] for e in p["spells"] if e["action"] == "insert"}

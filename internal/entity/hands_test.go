@@ -59,7 +59,8 @@ func TestAMonksBareHandsRollItsHandToHand(t *testing.T) {
 // reach of 25, so a crab 20 off is hit) and the one after on its delay. The
 // control: without it the fight swings its engagement's Attack4 on, and the
 // crab 20 off is out of its reach. A new engagement's swing is the hands'
-// then, a change before it forgotten.
+// then, a change before it forgotten; hands put back as they swing leave
+// nothing waiting.
 func TestHandsChangedSwingsFromTheNextRound(t *testing.T) {
 	bow := Swing{Kind: 11, Delay: 5 * time.Second, Reach: 25}
 	for _, changed := range []bool{true, false} {
@@ -94,6 +95,12 @@ func TestHandsChangedSwingsFromTheNextRound(t *testing.T) {
 	f.w.EngageAttack(f.sess, f.npcID, swing6s, f.t0.Add(time.Second))
 	if f.p.swingNew || f.p.Swing != swing6s {
 		t.Errorf("a new engagement kept the change before it: %+v", f.p.Swing)
+	}
+	// the hands back as they swing (or armour changed): nothing waits
+	f.w.HandsChanged(f.sess, bow)
+	f.w.HandsChanged(f.sess, swing6s)
+	if f.p.swingNew {
+		t.Error("the hands put back left the bow's swing waiting")
 	}
 }
 

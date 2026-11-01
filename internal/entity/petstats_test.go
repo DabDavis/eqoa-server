@@ -14,7 +14,7 @@ import (
 // slope for each of AGI, as a player's (defence.go); its own hit gains a
 // tank's STR share at the top and the floor, and its DEX raises the bottom by
 // petDexShare of the roll's width. The control: with no effects both rolls
-// are the formulas they were.
+// are the formulas they were. A creature's own effects count as well.
 func TestAPetsOwnStatsCountInItsFights(t *testing.T) {
 	pet := &NPC{ServerID: 1, Name: "Earth Elemental", Level: 34, Owner: 9}
 	foe := &NPC{ServerID: 2, Name: "Desert Crab", Level: 50}
@@ -54,10 +54,14 @@ func TestAPetsOwnStatsCountInItsFights(t *testing.T) {
 	if math.Abs(petDexShare-0.001555) > 0.000005 {
 		t.Errorf("petDexShare %.6f, want a tank's 0.001555 (offence.go's lines)", petDexShare)
 	}
-	// a creature's own effects (a player's harm on it) do not move its roll
+	// a creature's own effects count too (the user, 2026-11-01: "yes make
+	// player debuffs count too"): -500 AC on it adds what its AC takes off,
+	// the creature line's AC slope at the pet's level a point (pet.go's
+	// creatureDefence)
 	target.Effects = []*ActiveEffect{{SpellID: 1, Mods: StatMods{AC: -500}}}
-	if got := petMeleeHit(fire, target, diceHigh); got != high {
-		t.Errorf("the pet's top on a creature with -500 AC on it %d, want %d: a creature fights by its level", got, high)
+	cursed := int(math.Round(cr.Top - (targetDefence(target) + creatureRoll(fire.Level).ACSlope*-500) + offHighSTR*25))
+	if got := petMeleeHit(fire, target, diceHigh); got != cursed || got <= high {
+		t.Errorf("the pet's top on a creature with -500 AC on it %d, want %d, over its %d on one without", got, cursed, high)
 	}
 }
 

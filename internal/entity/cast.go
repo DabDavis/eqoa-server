@@ -148,6 +148,12 @@ type CastSpell struct {
 	Def          SpellDef
 	FX           uint32    // 0x00B1's visual; 0 for the stand-in of its kind
 	Area         SpellArea // what it lands on beside its target (area.go)
+	// HandsBack is the handlers' switch of hands for the cast having taken
+	// up a ranged weapon in place of the hands it took off
+	// (handlers/handswitch.go): a self cast's landing gives them back, the
+	// bow borrowed for it (handsBackLocked; a cast at a creature gives back
+	// a switch's hands by its reach, marked or not)
+	HandsBack bool
 	// resist is the resist that cuts a templated NPC's spell's hit on a
 	// player, by its element (classtemplate.go); a player's spell has none
 	resist Stat
@@ -249,11 +255,20 @@ type ActiveEffect struct {
 	NextTick  time.Time
 	HPTick    int // each tick, signed
 	PowerTick int
-	Mods      StatMods
-	Root      bool
-	Snare     bool
-	Speed     bool
-	Invis     bool
+	// TickDrain is whom a damage tick's take goes to (a drain over time:
+	// Infernal Bond's "Decrease HP per tic by 240, give to self"), DrainNone
+	// for nobody; TickRange the spell's range, for a group's share.
+	TickDrain DrainTo
+	TickRange float32
+	// ticking is set while the effect's own tick lands: its hit is no
+	// contact for itself (contactNPCLocked), as Caltrops' tick ended its own
+	// snare at its landing
+	ticking bool
+	Mods    StatMods
+	Root    bool
+	Snare   bool
+	Speed   bool
+	Invis   bool
 	// Proc is a proc's damage (proc.go): what the bearer's melee hits may do
 	// more, 0 for none; ProcMax the top of its range.
 	Proc, ProcMax int
@@ -296,6 +311,10 @@ type ActiveEffect struct {
 	// Rules are what the workbook's effects say beside their numbers
 	// (workbook.go): kept over a logout
 	Rules EffectRules
+	// contact is what its parts a hit ends put on beside what its other
+	// parts do, when the workbook marks only some (workbook.go): kept over
+	// a logout; nil when a hit ends it whole, or nothing
+	contact *contactSplit
 	// ProcSpells are its procs that cast more than a hit (workbookmore.go)
 	ProcSpells []ProcSpell
 }
@@ -389,6 +408,36 @@ func (m *StatMods) add(st Stat, n int) {
 	case StatDefMod:
 		m.DefMod += n
 	}
+}
+
+// take takes o's changes back off m (an effect's parts that end at a hit:
+// endContactParts).
+func (m *StatMods) take(o StatMods) {
+	m.Str -= o.Str
+	m.Sta -= o.Sta
+	m.Agi -= o.Agi
+	m.Dex -= o.Dex
+	m.Wis -= o.Wis
+	m.Int -= o.Int
+	m.Cha -= o.Cha
+	m.AC -= o.AC
+	m.MaxHP -= o.MaxHP
+	m.MaxPower -= o.MaxPower
+	m.FR -= o.FR
+	m.CR -= o.CR
+	m.PR -= o.PR
+	m.DR -= o.DR
+	m.LR -= o.LR
+	m.AR -= o.AR
+	m.HoT -= o.HoT
+	m.PoT -= o.PoT
+	m.Melee -= o.Melee
+	m.Pierce -= o.Pierce
+	m.Blunt -= o.Blunt
+	m.Slash -= o.Slash
+	m.HPFactor -= o.HPFactor
+	m.OffMod -= o.OffMod
+	m.DefMod -= o.DefMod
 }
 
 func (m *StatMods) sum(o StatMods) {
@@ -724,6 +773,103 @@ func (w *World) CastWantsHands(sess *session.Session, spell CastSpell, targetObj
 	return refusal == ""
 }
 
+// HandsBackFunc is the hook that puts back the hands a switch took off for
+// a cast (handlers' HandsBack, handswitch.go). It runs with the World's lock
+// let go, after the tick that landed the cast (runHandsBack).
+type HandsBackFunc func(sess *session.Session, p *Player)
+
+// OnHandsBack sets the hands-back hook.
+func (w *World) OnHandsBack(fn HandsBackFunc) {
+	w.mu.Lock()
+	w.onHandsBack = fn
+	w.mu.Unlock()
+}
+
+// handsBackLocked is a cast's hands at its landing. Any cast whose required
+// equipment is a ranged weapon (wantsRanged: an arrow art) hands its caster
+// to the hands-back hook (runHandsBack), which gives back the hands a switch
+// took off to take up the bow it holds (handlers/handswitch.go: whenever that
+// was, a pull at range's arrow art too), when the caster stands within its
+// melee reach of the cast's target: CLIENT's TargetInRange for bare hands or
+// a melee weapon (meleeReach, a creature's allowance for its size: npcReach,
+// reach.go). So a ranger's arrow art used in melee leaves it on its blades
+// and one shot from further keeps the bow, its auto-attack shooting on (asked
+// whether the server should "switch back to the blades by itself right after
+// an arrow art used in melee range", of a ranger left swinging its bow until
+// a blade art, the user, 2026-11-01: "lets fix all these"; a pull at range
+// included, the coordinator's ruling of the same day). A self cast's target
+// is its caster: the bow its own switch took up (CastSpell.HandsBack) is
+// borrowed for it and goes back, and with a switch's bow already in hand its
+// reach is the one to the creature it fights (none, the bow kept), so a buff
+// at range keeps a shooting ranger's bow. Never while another cast is on
+// (begun after this one's busy time: Casting), which has its own hands. Must
+// be called with the lock held.
+func (w *World) handsBackLocked(cs *castState, caster *Player) {
+	if !wantsRanged(cs.spell.Def.ReqEquip) || caster.Casting != nil || caster.IsDead() || len(cs.targets) == 0 {
+		return
+	}
+	target := cs.targets[0]
+	if target == caster.ServerID {
+		if cs.spell.HandsBack {
+			w.queueHandsBackLocked(caster) // the bow its own switch took up: borrowed
+			return
+		}
+		target = caster.AttackTarget // the creature it fights, if any
+	}
+	var x, y, z float32
+	reach := float32(meleeReach)
+	switch {
+	case target == 0:
+		return // no fight: the bow kept
+	case w.Players[target] != nil:
+		x, y, z = w.Players[target].GetPosition()
+	case w.NPCs[target] != nil:
+		npc := w.NPCs[target]
+		x, y, z = npc.GetPosition()
+		reach = npcReach(npc)
+	default:
+		return // gone: no reach to stand in
+	}
+	if outOfRange(caster, x, y, z, reach) {
+		if cs.spell.HandsBack { // its own switch's bow (said once a switch, not at every shot)
+			log.Printf("Hands: %s's %q landed %.1f from its target (melee reach %.1f): the ranged weapon kept", caster.Name, cs.spell.Name,
+				dist3(caster.X, caster.Y, caster.Z, x, y, z), reach)
+		}
+		return
+	}
+	w.queueHandsBackLocked(caster)
+}
+
+// queueHandsBackLocked queues the caster for the hands-back hook
+// (runHandsBack). Must be called with the lock held.
+func (w *World) queueHandsBackLocked(caster *Player) {
+	if sess := w.findSessionByEntityIDLocked(caster.ServerID); sess != nil {
+		w.handsBack = append(w.handsBack, respawnDue{sess: sess, p: caster})
+	}
+}
+
+// runHandsBack hands each player whose hands go back (handsBackLocked) to
+// the hands-back hook, one that began a cast or died since left as it is.
+// Must be called WITHOUT the lock.
+func (w *World) runHandsBack() {
+	w.mu.Lock()
+	due, fn := w.handsBack, w.onHandsBack
+	w.handsBack = nil
+	back := due[:0]
+	for _, d := range due {
+		if d.p.Casting == nil && !d.p.IsDead() {
+			back = append(back, d)
+		}
+	}
+	w.mu.Unlock()
+	if fn == nil {
+		return
+	}
+	for _, d := range back {
+		fn(d.sess, d.p)
+	}
+}
+
 // castTargetsLocked is whom a cast will land on, or the line refusing it.
 // The ability's scope decides, as CLIENT words it (VITargetWord): a self
 // spell lands on the caster whatever is targeted (Sandstorm answered one
@@ -917,6 +1063,7 @@ func (w *World) castSystem(now time.Time) []respawnDue {
 		if g := w.landLocked(cs, caster, now); g {
 			gates = append(gates, respawnDue{sess: w.findSessionByEntityIDLocked(caster.ServerID), p: caster})
 		}
+		w.handsBackLocked(cs, caster) // the hands its switch took off, back in melee reach
 	}
 	for i := len(keep); i < len(w.casts); i++ {
 		w.casts[i] = nil
@@ -1036,8 +1183,19 @@ func capAmount(n, cap int) int {
 }
 
 // lasting is the part of a spell that stays on its target for the
-// duration, from this caster, or nil when nothing does.
+// duration, from this caster, or nil when nothing does; with what its parts
+// a hit ends put on beside its other parts' when the workbook marks only
+// some (contactSplitOf, workbook.go).
 func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
+	ae := lastingParts(cs, caster, now)
+	if ae != nil {
+		ae.contact = contactSplitOf(cs, caster, now)
+	}
+	return ae
+}
+
+// lastingParts is lasting's effect of the spell's parts as they are.
+func lastingParts(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 	d := &cs.spell.Def
 	dur := d.Duration
 	if dur <= 0 {
@@ -1063,6 +1221,9 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 		switch e.Kind {
 		case EffectHPTick:
 			ae.HPTick += spellAmount(e, caster)
+			if e.Drain != DrainNone && e.Amount < 0 {
+				ae.TickDrain, ae.TickRange = e.Drain, cs.spell.Range
+			}
 		case EffectPowerTick:
 			ae.PowerTick += spellAmount(e, caster)
 		case EffectStat:
@@ -1335,26 +1496,37 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 	if cs.spell.Def.forgets() {
 		return // the gaze angers nothing: what lasts of it, and its hate of 1, are not given
 	}
-	if ae := lasting(cs, caster, now); ae != nil && w.rootResistLocked(caster, casterSess, npc, ae, now) { // root.go
+	// a spell that only holds or slows still angers it, a resisted root too
+	// (root.go): hate of 1, as a resisted charm's, since a hate of none makes
+	// no enemy (addThreatLocked takes the highest above 0); a lull that took
+	// angers nothing (workbook.go). It comes before what lasts of the spell
+	// goes on: the anger is a contact (contactNPCLocked), which ends what was
+	// on the creature that ends at a hit, and until 2026-11-01 it came after,
+	// so every root and snare that ends at contact ended at its own landing
+	// (Root, Arcane Bindings, Caltrops, Enshrouding darkness: the user's
+	// "until hit")
+	if !cs.spell.Def.lulls() && !cs.spell.Def.picks() { // a pickpocket angers only when caught (workbookmore.go)
+		w.updateAggro(npc, caster.ServerID, 1)
+	}
+	ae := lasting(cs, caster, now)
+	if ae != nil && cs.spell.Def.hasIllusion() {
+		w.landNPCIllusionLocked(cs, npc, ae) // illusion.go: a thrown potion's body on the creature
+	}
+	if ae != nil && w.rootResistLocked(caster, casterSess, npc, ae, now) { // root.go
 		for i, old := range npc.Effects {
 			if old.SpellID == ae.SpellID {
 				npc.Effects = append(npc.Effects[:i], npc.Effects[i+1:]...)
 				break
 			}
 		}
+		ae.Line, ae.Rank = BuffLine(&cs.spell), lineRank(&cs.spell) // only the best of a line counts (pet.go's creatureMods)
 		npc.Effects = append(npc.Effects, ae)
+		npc.syncEffectMaxHP() // a maximum's debuff (pet.go's creatureMods)
 		if w.affected == nil {
 			w.affected = make(map[EntityID]*NPC)
 		}
 		w.affected[npc.ServerID] = npc
 		w.tickNPCEffectLocked(npc, ae, now)
-	}
-	// a spell that only holds or slows still angers it, a resisted root too
-	// (root.go): hate of 1, as a resisted charm's, since a hate of none makes
-	// no enemy (addThreatLocked takes the highest above 0); a lull that took
-	// angers nothing (workbook.go)
-	if !cs.spell.Def.lulls() && !cs.spell.Def.picks() { // a pickpocket angers only when caught (workbookmore.go)
-		w.updateAggro(npc, caster.ServerID, 1)
 	}
 }
 
@@ -1389,7 +1561,16 @@ func (w *World) spellHitLocked(caster *Player, casterSess *session.Session, npc 
 
 // tickNPCEffectLocked runs a damage tick on a creature when one is due.
 func (w *World) tickNPCEffectLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
-	if ae.NextTick.IsZero() || now.Before(ae.NextTick) || ae.HPTick >= 0 {
+	if ae.NextTick.IsZero() || now.Before(ae.NextTick) || ae.HPTick == 0 {
+		return
+	}
+	if ae.HPTick > 0 {
+		// a heal over time cast on it as a charmed pet, kept once it went
+		// free (charm.go); a pet's own tick in petEffectsLocked
+		if npc.Owner == 0 && !npc.Dead {
+			ae.NextTick = ae.NextTick.Add(effectTick)
+			npc.HP = min(npc.HP+ae.HPTick, npc.MaxHP)
+		}
 		return
 	}
 	ae.NextTick = ae.NextTick.Add(effectTick)
@@ -1397,9 +1578,20 @@ func (w *World) tickNPCEffectLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 	if ae.Rules.Twice { // the workbook's first tick, twice (workbook.go)
 		ae.Rules.Twice, times = false, 2
 	}
+	ae.ticking = true
+	defer func() { ae.ticking = false }()
 	for ; times > 0; times-- {
 		if caster := w.Players[ae.Caster]; caster != nil && !npc.Dead {
-			if w.spellHitLocked(caster, w.findSessionByEntityIDLocked(caster.ServerID), npc, -ae.HPTick) {
+			sess := w.findSessionByEntityIDLocked(caster.ServerID)
+			died := w.spellHitLocked(caster, sess, npc, -ae.HPTick)
+			// a drain over time: each tick's figure to the caster (or its
+			// group), whole, as a tap's is though it killed (lifetap.go)
+			if ae.TickDrain != DrainNone && !caster.IsDead() {
+				for _, p := range w.tickDrainersLocked(caster, ae) {
+					w.healLocked(caster, sess, p, -ae.HPTick)
+				}
+			}
+			if died {
 				return
 			}
 		}
@@ -1429,6 +1621,9 @@ func (w *World) effectSystem(now time.Time) {
 	for id, npc := range w.affected {
 		if len(npc.Effects) == 0 || npc.Dead || w.NPCs[id] != npc {
 			npc.Effects = nil
+			if !npc.Dead && npc.effMaxHP != 0 {
+				npc.syncEffectMaxHP() // its last maximum's effect ended (pet.go)
+			}
 			delete(w.affected, id)
 			continue
 		}
@@ -1439,6 +1634,7 @@ func (w *World) effectSystem(now time.Time) {
 			}
 		}
 		npc.Effects = left
+		npc.syncEffectMaxHP() // a maximum's effect that ended taken back (pet.go)
 		for _, ae := range append([]*ActiveEffect(nil), npc.Effects...) {
 			w.tickNPCEffectLocked(npc, ae, now)
 			if npc.Dead {

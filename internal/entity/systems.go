@@ -26,7 +26,8 @@ func (w *World) Tick(now time.Time) {
 	w.runDuelPurse() // a duel's wager held or paid (duelpurse.go)
 	w.runRespawns(due)
 	w.runGates(gates)
-	w.runTravels() // the spells that send players to a named place (gates.go)
+	w.runTravels()   // the spells that send players to a named place (gates.go)
+	w.runHandsBack() // the hands a switch took off for a cast, back after it (cast.go)
 	w.runCorpsesGone(gone)
 }
 

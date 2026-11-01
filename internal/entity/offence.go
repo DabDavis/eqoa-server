@@ -147,6 +147,7 @@ func playerMeleeRoll(p *Player, npc *NPC) (floor, low, high int) {
 	a := offenceArchs[archetypeOf(p.Class)]
 	str, dex := float64(p.StatNow(StatStr)), float64(p.StatNow(StatDex))
 	def := a.Defence * targetDefenceAt(npc, npc.Level-p.Mods.OffMod) // an OFF mod's levels (workbookmore.go)
+	def += npc.creatureDefence(p.Level)                              // its effects' AC and AGI (pet.go)
 	high = int(math.Round(offHighD*d + offHighSTR*str + a.High - def))
 	low = min(int(math.Round(a.LowShare*(offLowD+offLowDEX*dex)*d+a.Low-def)), high)
 	floor = int(math.Floor(offFloorD*fl + offFloorSTR*str))

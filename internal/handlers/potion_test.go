@@ -248,6 +248,30 @@ func TestThrownPotionKnownFromItsRow(t *testing.T) {
 	}
 }
 
+// A row's body and its target's own share reach the use as the World reads
+// it (itemeffect's body and target_line, 2026-11-01): the body an illusion
+// on whom it lands, the share a hit of its own. The control: a row without
+// them gives neither. Made-up figures.
+func TestPotionRowCarriesItsBodyAndTargetShare(t *testing.T) {
+	r := database.ItemEffectRow{PatternID: 90007, Line: "Target, Decrease STR by 75, 24sec", Body: 0xF1E2D3C4,
+		TargetLine: "Target, Decrease Hitpoints by 15"}
+	pe := potionFromRow(r, "Test Flask")
+	illusion := false
+	for _, e := range pe.Def.Effects {
+		illusion = illusion || e.Kind == entity.EffectIllusion
+	}
+	if pe.Body != 0xF1E2D3C4 || pe.Def.FormModel != 0xF1E2D3C4 || !illusion || !pe.Thrown() {
+		t.Errorf("the body: %#x, model %#x, illusion %v, thrown %v", pe.Body, pe.Def.FormModel, illusion, pe.Thrown())
+	}
+	if len(pe.TargetShare) != 1 || pe.TargetShare[0].Kind != entity.EffectHP || pe.TargetShare[0].Amount != -15 {
+		t.Errorf("the target's own share: %+v", pe.TargetShare)
+	}
+	ctl := potionFromRow(database.ItemEffectRow{PatternID: 90007, Line: "Target, Decrease STR by 75, 24sec"}, "Test Flask")
+	if ctl.Body != 0 || ctl.Def.FormModel != 0 || len(ctl.TargetShare) != 0 {
+		t.Errorf("the control: %+v", ctl)
+	}
+}
+
 // A ranger's Forage spell summons its food as the game's records name it
 // (Allakhazam's archived AK 209: "Summon Item: foraged berries"; jib's bug
 // report of 2026-10-27, RNG-1; tools/fix_archived_spells.py makes the

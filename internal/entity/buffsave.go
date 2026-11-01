@@ -80,6 +80,11 @@ type savedMods struct {
 	// a meal's or a drink's rule (consumable.go); a row kept before reads as
 	// none, the default rule
 	Food *FoodRule `json:",omitempty"`
+	// what its parts a hit ends put on beside its other parts' (workbook.go's
+	// contactSplit), while they are on: a part a hit ended is gone from the
+	// effect's own fields and from this, so a login brings it back on no one;
+	// a row kept before reads as none (a hit ends it whole, as then)
+	Contact *contactSplit `json:",omitempty"`
 }
 
 func savedEffects(p *Player, now time.Time) []database.BuffRow {
@@ -95,7 +100,7 @@ func savedEffects(p *Player, now time.Time) []database.BuffRow {
 		}
 		sm := savedMods{StatMods: e.Mods, Proc: e.Proc, ProcMax: e.ProcMax, ProcScale: e.ProcScale, ProcScalePct: e.ProcScalePct,
 			ProcCap: e.ProcCap, ProcUndead: e.ProcUndead, Form: e.Form, FormSize: e.FormSize, Ticks: e.Ticks, Shield: e.Shield, Line: e.Line, Rank: e.Rank,
-			Food: e.Food}
+			Food: e.Food, Contact: e.contact}
 		if e.PowerCapped {
 			top := e.PowerCap
 			sm.PowerCap = &top
@@ -162,6 +167,7 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 				ae.Food = &r
 			}
 			ae.ProcSpells = sm.ProcSpells
+			ae.contact = sm.Contact
 			if sm.PowerCap != nil {
 				ae.PowerCap, ae.PowerCapped = *sm.PowerCap, true
 			}

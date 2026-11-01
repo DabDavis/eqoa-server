@@ -118,12 +118,13 @@ var dummyRolls = map[DummyKind]map[int]meleeRoll{
 }
 
 // npcMeleeRoll is the NPC's roll: a dummy's measured one, else a
-// creature's of its level.
+// creature's of its level, with what its effects add to its STR and DEX
+// (creatureMods, pet.go).
 func npcMeleeRoll(npc *NPC) meleeRoll {
 	c := creatureRoll(npc.Level)
 	r, ok := dummyRolls[npc.Dummy][npc.Level]
 	if !ok {
-		return c
+		return c.withMods(npc.creatureMods())
 	}
 	if r.Width == 0 {
 		r.Width = c.Width
@@ -131,5 +132,19 @@ func npcMeleeRoll(npc *NPC) meleeRoll {
 	if r.ACSlope == 0 {
 		r.ACSlope = c.ACSlope
 	}
+	return r.withMods(npc.creatureMods())
+}
+
+// withMods is the roll with what an NPC's effects add to its STR and DEX, as
+// a pet's effects move its own (petMeleeHit): STR raises the top and the
+// floor by a tank's lines (offence.go), DEX the bottom by petDexShare of the
+// width a point.
+func (r meleeRoll) withMods(m StatMods) meleeRoll {
+	if m.Str == 0 && m.Dex == 0 {
+		return r
+	}
+	r.Top += offHighSTR * float64(m.Str)
+	r.Floor += int(math.Floor(offFloorSTR * float64(m.Str)))
+	r.Width = max(r.Width-int(math.Round(petDexShare*float64(m.Dex)*float64(r.Width))), 0)
 	return r
 }

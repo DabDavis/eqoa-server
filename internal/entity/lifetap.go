@@ -214,8 +214,8 @@ func (w *World) landOnCasterLocked(cs *castState, caster *Player, sess *session.
 	out := *cs
 	out.spell.Def.Effects = rest
 
-	var mods StatMods
-	stats := false
+	var mods, shared StatMods
+	stats, group := false, false
 	for _, e := range own {
 		n := spellAmount(e, caster)
 		switch e.Kind {
@@ -231,12 +231,35 @@ func (w *World) landOnCasterLocked(cs *castState, caster *Player, sess *session.
 		case EffectStat:
 			mods.add(e.Stat, n)
 			stats = true
+			if e.ShareGroup {
+				shared.add(e.Stat, n)
+				group = true
+			}
 		}
 	}
 	if stats && d.Duration > 0 && !caster.IsDead() {
 		w.casterShareLocked(cs, caster, mods, now)
+		// a mastery's form of it shares the group's part with the caster's
+		// group in its radius (the user, 2026-11-01: "SK drain should land on
+		// themself by default, CM may allow group")
+		if group && w.masterySpellLocked(cs.spell.SpellID) {
+			for _, m := range w.groupMembersLocked(caster) {
+				if m != caster && !m.IsDead() && m.World == caster.World && !outOfRange(caster, m.X, m.Y, m.Z, groupShareReach(cs)) {
+					w.shareOnLocked(cs, caster, m, shared, now)
+				}
+			}
+		}
 	}
 	return &out
+}
+
+// groupShareReach is how far a group's share reaches its caster's group:
+// the workbook's radius of the spell, else its range.
+func groupShareReach(cs *castState) float32 {
+	if r := cs.spell.Def.ShareRadius; r > 0 {
+		return r
+	}
+	return cs.spell.Range
 }
 
 // payPriceLocked takes a price of n hit points off the caster, less its
@@ -266,23 +289,29 @@ func (w *World) payPriceLocked(cs *castState, caster *Player, sess *session.Sess
 // one the spell leaves on a target, oneself included). A share landed this
 // same moment (a second stat of one line) is added to it.
 func (w *World) casterShareLocked(cs *castState, caster *Player, mods StatMods, now time.Time) {
+	w.shareOnLocked(cs, caster, caster, mods, now)
+}
+
+// shareOnLocked is casterShareLocked's on any bearer of the caster's side
+// (a mastery's scream's group: landOnCasterLocked).
+func (w *World) shareOnLocked(cs *castState, caster, bearer *Player, mods StatMods, now time.Time) {
 	until := now.Add(cs.spell.Def.Duration)
 	id := -cs.spell.SpellID
-	for _, e := range caster.Effects {
+	for _, e := range bearer.Effects {
 		if e.SpellID == id && e.Until.Equal(until) {
-			speed := caster.SpeedNow()
+			speed := bearer.SpeedNow()
 			e.Mods.sum(mods)
-			w.effectsChangedLocked(caster, speed)
+			w.effectsChangedLocked(bearer, speed)
 			return
 		}
 	}
 	ae := &ActiveEffect{SpellID: id, Name: cs.spell.Name, Icon: cs.spell.Icon,
 		Caster: caster.ServerID, Until: until, Mods: mods, Line: BuffLine(&cs.spell), Rank: cs.spell.Level}
-	if !w.shareTakesLocked(caster, ae) { // only the best of a line (buffline.go)
+	if !w.shareTakesLocked(bearer, ae) { // only the best of a line (buffline.go)
 		return
 	}
-	w.dropLineLocked(caster, ae)
-	w.addEffectLocked(caster, ae, now)
+	w.dropLineLocked(bearer, ae)
+	w.addEffectLocked(bearer, ae, now)
 }
 
 // drainLocked gives the caster (or its group) what one drained effect took
@@ -321,6 +350,21 @@ func (w *World) drainersLocked(cs *castState, caster *Player, to DrainTo) []*Pla
 	out := []*Player{caster}
 	for _, m := range w.groupMembersLocked(caster) {
 		if m != caster && !m.IsDead() && m.World == caster.World && !outOfRange(caster, m.X, m.Y, m.Z, cs.spell.Range) {
+			out = append(out, m)
+		}
+	}
+	return out
+}
+
+// tickDrainersLocked is drainersLocked's for a drain over time's tick: the
+// caster, or the caster and its group within the spell's range of it.
+func (w *World) tickDrainersLocked(caster *Player, ae *ActiveEffect) []*Player {
+	if ae.TickDrain != DrainGroup {
+		return []*Player{caster}
+	}
+	out := []*Player{caster}
+	for _, m := range w.groupMembersLocked(caster) {
+		if m != caster && !m.IsDead() && m.World == caster.World && !outOfRange(caster, m.X, m.Y, m.Z, ae.TickRange) {
 			out = append(out, m)
 		}
 	}

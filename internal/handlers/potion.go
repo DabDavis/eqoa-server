@@ -57,7 +57,10 @@ func (h *EquipHandler) potionOf(p *database.ItemPatternRecord) (entity.PotionEff
 }
 
 func potionFromRow(r database.ItemEffectRow, itemName string) entity.PotionEffect {
-	return entity.NewPotionEffect(r.PatternID, itemName, r.Line, r.Name, r.Icon, r.Breaks, r.Wear, r.Area)
+	pe := entity.NewPotionEffect(r.PatternID, itemName, r.Line, r.Name, r.Icon, r.Breaks, r.Wear, r.Area)
+	pe.SetBody(r.Body)              // the body it shows (entity/illusion.go)
+	pe.SetTargetShare(r.TargetLine) // a thrown one's target's own share
+	return pe
 }
 
 // usesPotion is whether this Use is the potion's use rather than the wear: a

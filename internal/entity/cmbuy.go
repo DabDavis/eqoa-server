@@ -176,6 +176,28 @@ func (r *CMRank) BookChange() (gives, takes []CMAbility) {
 type cmCatalog struct {
 	byID  map[int]*CMRank
 	order []*CMRank
+	adds  map[int]bool // the spells a rank adds (masterySpellLocked)
+}
+
+// note keeps a rank, and the spells it adds.
+func (c *cmCatalog) note(r *CMRank) {
+	c.byID[r.ID] = r
+	c.order = append(c.order, r)
+	if c.adds == nil {
+		c.adds = map[int]bool{}
+	}
+	for _, a := range r.Adds {
+		if a.SpellID != 0 {
+			c.adds[a.SpellID] = true
+		}
+	}
+}
+
+// masterySpellLocked is whether a mastery rank adds the spell (a scream's
+// mastery form, which shares its group's part: lifetap.go). Must be called
+// with the lock held.
+func (w *World) masterySpellLocked(id int) bool {
+	return w.cms != nil && w.cms.adds[id]
 }
 
 // ParseCMRank reads a cmcatalog row; what it cannot read it leaves out.
@@ -257,9 +279,7 @@ func (w *World) LoadCMCatalog(db *database.SQLiteDB) (int, error) {
 	}
 	cat := &cmCatalog{byID: make(map[int]*CMRank, len(rows))}
 	for _, r := range rows {
-		c := ParseCMRank(r)
-		cat.byID[c.ID] = c
-		cat.order = append(cat.order, c)
+		cat.note(ParseCMRank(r))
 	}
 	w.mu.Lock()
 	w.cms = cat
@@ -276,9 +296,7 @@ func (w *World) LoadCMCatalog(db *database.SQLiteDB) (int, error) {
 func (w *World) SetCMCatalog(rows []database.CMRankRow) {
 	cat := &cmCatalog{byID: make(map[int]*CMRank, len(rows))}
 	for _, r := range rows {
-		c := ParseCMRank(r)
-		cat.byID[c.ID] = c
-		cat.order = append(cat.order, c)
+		cat.note(ParseCMRank(r))
 	}
 	w.mu.Lock()
 	w.cms = cat

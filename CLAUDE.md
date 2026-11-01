@@ -663,9 +663,9 @@ every red alone from 8 under pet columns fitted for the server's own. It sets `b
 `pet_damage_pct` 100 at every row (a workbook pet's hits land as a player's) and every class's
 `balanceclasslevel` rows to the simulator's fit by the earlier fits' method (both yellows in the class's own play,
 `dealt_pct` where no share met their win rates, a red a lone loss, every summoner's `pet_hp_pct` on its book's pet
-but the wizard's, whose familiars are passive, levels 1-10 by the low-level check; six cells after: a shadow
+but the wizard's, whose familiars are passive, levels 1-10 by the low-level check; eleven cells after: a shadow
 knight of 5 to the fire bat fight, a magician of 4 and an alchemist of 6 to their even fights, a druid of 5 and 10
-and a magician of 44's pet to their reds), each row only while
+and a magician of 44's pet to their reds, five yellows off the cut's edge), each row only while
 it is the four tunings'; 812 rows on eqoaclassic's copy of 07:15 with the import in. For it the simulator's root
 play roots with a root that holds through a hit first (every workbook root ends at one) and stands within its reach
 (`simRootAt`), and a kit holds what its arts need (`simHands`: a rogue a piercer, a paladin a blunt weapon, a bard

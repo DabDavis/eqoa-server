@@ -578,7 +578,10 @@ func TestRealLowLevelsEvenAndBelow(t *testing.T) {
 // a warrior, a rogue and a cleric by hand and a wizard and an alchemist
 // rooting win one up at least 70% of the time and two up half of it, at 25,
 // 35 and 45. The control: under jib's wizard as he made it (35%) a rogue of
-// 35 loses its one up more often than not.
+// 35 fails that check. It lost its one up more often than not until a
+// creature's effects counted in its fights (2026-11-01: the rogue's debuffs
+// on the wizard; 44% won), and wins it now with 6% left (88%) and loses its
+// two up (38%), where the wisp leaves it 100% and 81%.
 func TestRealWispsAreYellows(t *testing.T) {
 	db := simRealDB(t)
 	b := simRealBalance(t, db)
@@ -613,8 +616,12 @@ func TestRealWispsAreYellows(t *testing.T) {
 	if all["wizard"] == nil {
 		t.Fatal("no wizard template to fight the control by")
 	}
-	if c := SimCellOf(kit(6, 35), SimNPC{Template: all["wizard"]}, 1, b, 16, 1, 10*time.Minute); c.WinShare() >= 0.5 {
-		t.Errorf("the control: a rogue of 35 won %.0f%% of its one up against jib's wizard (35%%): the check tells nothing", 100*c.WinShare())
+	wiz := SimNPC{Template: all["wizard"]}
+	c1 := SimCellOf(kit(6, 35), wiz, 1, b, 16, 1, 10*time.Minute)
+	c2 := SimCellOf(kit(6, 35), wiz, 2, b, 16, 1, 10*time.Minute)
+	if c1.WinShare() >= 0.7 && c2.WinShare() >= 0.5 {
+		t.Errorf("the control: a rogue of 35 won %.0f%% of its one up and %.0f%% of its two up against jib's wizard (35%%): the check tells nothing",
+			100*c1.WinShare(), 100*c2.WinShare())
 	}
 }
 

@@ -585,7 +585,7 @@ Training dummies are never touched.
 | `balancelevel` (Balance by level) | an NPC's level (the line between rows) | `hp_pct` (of 60 a level), `damage_pct` (its melee hits; **a row at every level 1-14 evens out the floor's step**: an NPC's least hit is `(level+1)/2` (`defence.go`), a step at each odd level, and there most of its hits on a tank are that floor, so the seed is the line's times `(2L+1)/(4*ceil(L/2))`), `con_pct` (how much of the con table its level takes; seed 100 at every level), `pet_hp_pct`/`pet_damage_pct` (a SUMMONED pet's, by its owner's level; seed 100 at every level since the workbook's pets, which fight as a player of their kind, 2026-11-01: `tools/refit_eqoaemu_balance.py`, below; 2026-10-30's 100-540 and 225-560 were for the server's own pets; a table's untouched rows of the first tuning take 2026-10-29's seven tenths, `BalanceSeedRevisions`), `regen_pct` (its heal out of a fight a tick, seed 5), and **by a PLAYER's level** `art_cooldown_ms` (the combat arts' global cooldown, seed 1500) |
 | `balancecon` (Balance by con) | the NPC's level less its foe's (1-2 yellow, 3+ red) | `damage_pct` (its melee on that foe), `taken_pct` (what that foe deals it; seed 147/68 one up, 140/70 two, 190/53 three, 220/45 four, 230/45 five), `root_resist_pct` and `root_break_pct` (`root.go`: a root's, and a snare's resist, at its landing; each hit on a rooted NPC; seed 0/5 even and one up, 10/10, 30/20, 45/25, 60/30 for 2..5; not scaled by `con_pct`) |
 | `balanceclass` (Balance by class) | a player's class | `melee_taken_pct`: the share of an NPC's melee hit it takes (seed 100 for every class since 2026-10-30: 2026-10-29's ranger 70, bard 80 and rogue 65 moved into the next table) |
-| `balanceclasslevel` (Balance by class and level) | a player's class and level (the line between that class's rows) | `melee_taken_pct`: times Balance by class's share, by the player's level (a class whose strength turns with its level: a monk takes 46-205% at 1-12 and 192% at 60); `pet_hp_pct`: its summoned pet's hit points, a share of Balance by level's pet column (each class's pets lag their owner their own way, and an NPC's hits on a pet take the con on the PET's level); `dealt_pct`: the share of the player's own damage (melee, spells and their ticks, procs, damage shields; not its pet's) that lands on an NPC, after Balance by con's `taken_pct`: a fight's LENGTH by class where `melee_taken_pct` is its danger, for a class whose fights outlast it (a rooting wizard of 8-18 out of power with a roamer's crits still to come); a table made before it gets it at 100 at the next start. Seed: both fitted by the simulator at every level 1-60 to both yellows at once (the player's low point, the least hit points in a fight won, or the pet's hit points left, averaged over one and two up near 25%; one up won 80% of the time, a healer's 90% and eased 8% off its cliff, two up 65%), levels 1-12 each a row and above them the fewest rows within 4% of every level's fit (the pets' 7%; the re-fit of 2026-11-01, `tools/refit_eqoaemu_balance.py`, and its follow-up's, `tools/refit_eqoaemu_followup.py`); the druid's melee on its hand-to-hand play, the wizard's and the alchemist's on their root play. Seeded only with a fresh balance: an older database gets it empty, for the tool |
+| `balanceclasslevel` (Balance by class and level) | a player's class and level (the line between that class's rows) | `melee_taken_pct`: times Balance by class's share, by the player's level (a class whose strength turns with its level: a monk takes 46-205% at 1-12 and 192% at 60); `pet_hp_pct`: its summoned pet's hit points, a share of Balance by level's pet column (each class's pets lag their owner their own way, and an NPC's hits on a pet take the con on the PET's level); `dealt_pct`: the share of the player's own damage (melee, spells and their ticks, procs, damage shields; not its pet's) that lands on an NPC, after Balance by con's `taken_pct`: a fight's LENGTH by class where `melee_taken_pct` is its danger, for a class whose fights outlast it (a rooting wizard of 8-18 out of power with a roamer's crits still to come); a table made before it gets it at 100 at the next start. Seed: both fitted by the simulator at every level 1-60 to both yellows at once (the player's low point, the least hit points in a fight won, or the pet's hit points left, averaged over one and two up near 25%; one up won 80% of the time, a healer's 90% and eased 8% off its cliff, two up 65%), levels 1-12 each a row and above them the fewest rows within 4% of every level's fit (the pets' 7%; the re-fit of 2026-11-01, `tools/refit_eqoaemu_balance.py`, its follow-up's, `tools/refit_eqoaemu_followup.py`, and the second round's, `tools/refit_eqoaemu_followup2.py`); the druid's melee on its hand-to-hand play, the wizard's and the alchemist's on their root play. Seeded only with a fresh balance: an older database gets it empty, for the tool |
 
 Besides the tables, the same day: **only the best of a buff line counts** on a player
 (`buffline.go`: a line is a lasting spell's kinds and stats with the way each moves, and whether a
@@ -678,8 +678,9 @@ on a monk that kept a weapon, bare hands rolling weapon damage 0, so its 30 punc
 and a ranger that held a bow beside its blade, a pair the game never allows, whose GetSwing is Attack1: the follow-up's
 re-fit below fits them again on the kits as they are now),
 carries what its other arts want (`simOtherHands`: a ranger its bow; a monk carries no weapon, its Fierce Strike refused)
-and switches to it for them as the server switches a player's (`handlers/handswitch.go`), its swing and DMG those of
-what it holds; a group's members hold their hands too (until 2026-11-01 only its first did). A
+and switches to it for them as the server switches a player's (`handlers/handswitch.go`), and back to the hands it took
+off once such an art has landed within its melee reach of the creature (since the second round, below: a ranger in melee
+is back on its blades after each arrow art), its swing and DMG those of what it holds; a group's members hold their hands too (until 2026-11-01 only its first did). A
 rooting wizard or alchemist wins its yellows as often as asked but keeps 40-60% when it does (won with the root
 held, lost when it breaks: no share or dealt moves the low point), and a shaman of 51-54 took 4-5x an NPC's melee
 under it (fitted while Avatar healed 1500 a tick; it heals once since the follow-up, below). Apply it with the import's
@@ -699,11 +700,41 @@ and 60, an alchemist of 16 rooting, and a rooting wizard of 50 (the Phase Crown,
 each row only while it is the 10:20 re-fit's: 164 rows on eqoaclassic's copy of 14:07. Under them every cell the 10:20
 state had on the targets is on them (off them: a monk 43 levels -> 0, a ranger 26 -> 0, a paladin 10 -> 1, a shaman of
 51-54 on them now), the rooting wizard of 50 but for its low point (its win rates met, 46% left: the root play's, as at
-its other levels), and the even fights as they were (the median class 67-86% left). The seeds hold the six tunings'
-result. The follow-up's ranger rows were fitted on a ranger that kept its bow after an arrow art: since the switch's
-way back (2026-11-01 evening, `handlers/handswitch.go`) a ranger in melee is back on its blades after each one, in the
-simulator too, and from level 8 (its first arrow art) its fights are shorter and its yellows easier: they are the next
-re-fit's. Kits move with
+its other levels), and the even fights as they were (the median class 67-86% left). **Then
+`tools/refit_eqoaemu_followup2.py`** (same flags, log `balance_eqoaemu_followup2_log`), with the second round's server
+and data (2026-11-01 evening: `tools/fix_eqoaemu_followup2.py`, `fix_eqoaemu_places.py`, `fix_broken_records.py`,
+`fix_scrolls.py`, `remove_leftover_spells.py`, `fix_eqoaemu_pet_abilities.py`). The rows before it were fitted on a
+ranger that kept its bow after an arrow art until a blade art, on a simulator whose player cast no debuffs, and on
+creatures that fought by their level alone (a debuff on one did nothing). Since the round a ranger in melee is back on
+its blades after each arrow art (the switch's way back, `handlers/handswitch.go`, the kit's too), a creature's effects
+count in its fights (a player's debuffs: STR and DEX its rolls, AC and AGI the rolls on it, a maximum its hit points; a
+freed charm's buffs; only the best of a line), the simulator's player casts its book's pure debuffs and drains in a long
+fight (above), roots and snares that end at a hit hold until one (the landing's anger had ended them at once), the pets'
+abilities are the workbook's (a necromancer's pets from 30 cast Undead Bane, and one with Undead Blood no longer its
+owner's tap), the druid's four EQOA-Data leftovers (Nature Form, which roots its caster, among them) and the shaman's
+two heals over time of 49 (Savage and Tribal Healing) are out of their lists, the level 60 epic options take the
+workbook's records, and the broken records take real figures or lose the template (the eight test pieces, plain level
+60 gear now, are what level 60 kits wear). On them, under the 16:38 re-fit's rows: a ranger from 8, its first arrow
+art, kept 3-10 points more through a yellow (ten levels over 36%), a shaman won its reds alone at nine levels of 4-16
+and at 37-60 (every one at 45-48 and 57-60) and its pet kept 4-19 points more, a druid of 50-60 won its reds alone, a
+necromancer's pet won its reds alone at seven levels of 34-43 and an enchanter's pet at six of 44-60, a rogue of 19-60
+and a warrior of 46-60 (Rend, which lowers the armour of what it strikes, counts on the creature now) kept 4-10 points
+more, a bard of 58-60 7-14 more (60 at 38%: the test pieces), a monk of 60 won two up 62%, and a shadow knight of
+21-50, spending power and time on its debuffs and drains where its taps were, won a yellow one up 57-78% at 24 and
+29-31 and kept 8-14% at 34-38; a player's own hold (the druid's Spirit Form, the paladin's barriers) and the parts a
+cast or an action ends moved no class's fights. It fits again by the same stages and targets the ranger's rows 8-60,
+the shaman's 4-60 and its pet's (49-60 on its list without the two heals), the rogue's 19-60, the shadow knight's 21-51
+(its share alone, at the undead check's dealt bands of 150 and 130), the warrior's 46-60, the bard's 57-60, the druid's
+50-60, the enchanter's pet's 5-60 and the necromancer's pet's 5-7 and 34-60, and sets cells at the targets' edges after,
+each a row checked with the simulator (a ranger of 10 dealing 115, its low point a level 10 roamer's crits; a shadow
+knight of 24, 28 and 50, where the cut's line left a yellow's win rate just under its bar; a druid of 60 at 135, its red;
+a bard and a monk of 60 a step of 0.9 lower, their two up; the enchanter's pet at 45 and at each level 49-60 a row of its
+own, 31-40: the knife edge between its yellows and its reds alone), each row only while it is the 16:38 re-fit's: 244
+rows on eqoaclassic's copy of 18:59 with the round's data in. Under them no cell of any class the 18:59 state had on the
+targets is off them, thirteen that were off are on (a shaman of 29, its pet at 19, 27, 28, 52 and 54, the enchanter's
+pet at 7, 50, 51, 53, 54, 57 and 59), the even fights are as they were (the median class 67-86% left), and two of a
+level win their reds three up 75-100% of the time, three every one. The paladin, the cleric, the magician, the wizard
+and the alchemist moved a point or two or not at all, and the monk but at 60: their rows are the 16:38 re-fit's. The seeds hold the seven tunings' result. Kits move with
 the items, so a data change that reaches what classes wear can move a class off its targets again:
 `balancesim_real_test.go` with `EQOA_REAL_DB` on a copy is the check. A kit wears nothing NO RENT (`simPick`: rent 0, what a spell conjures, which every worn item of rent 0 is; 262 of 2,700 kits had worn a magician's stone in a ranger's ranged slot, the Phase Shield or the Phase Staff, 2026-11-01).
 

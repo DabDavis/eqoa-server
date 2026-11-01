@@ -188,6 +188,7 @@ func (w *World) chaseLocked(npc *NPC, x, z, vx, vz float32, now time.Time) (inRe
 	if pace >= NPCRunFrom {
 		npc.Loco = LocoRun
 	}
+	npc.Loco = locoIn(npc.Loco, npc.swimming, pace) // a chase into deep water swims (water.go)
 	return d-step <= reach, false
 }
 

@@ -148,3 +148,154 @@ func TestAPetFollowsItsOwnerOverABridge(t *testing.T) {
 		}
 	}
 }
+
+// riverWater is bridgeGround's river: deep water under the bridge to 57,
+// three under its deck.
+type riverWater struct{}
+
+func (riverWater) Flags(_ uint8, x, y, _ float32) (uint32, bool) {
+	if onDeck(x) && y < 57 {
+		return envWater, true
+	}
+	return 0, true
+}
+
+// A pet that follows its owner over a bridge across deep water walks the
+// deck, out of the water and with the walk's animations (the user,
+// 2026-11-01: "the hulking bones pet is on the bridge ,but swimming in mid
+// air. seems to trigger at where the bridge meets the land"): its step was
+// grounded on the river's bed first, made a swimmer there, and kept the
+// swim's animation once set on the deck. The control: its owner swimming
+// the river under the bridge, the pet swims after it.
+func TestAPetOnABridgeOverWaterWalks(t *testing.T) {
+	walk := func(t *testing.T, y float32) (swam, walked int, pet *NPC) {
+		r := newPetRig(t)
+		r.w.SetGround(bridgeGround{})
+		r.w.SetEnv(riverWater{})
+		r.p.X, r.p.Y, r.p.Z = 8610, 60, 5421.5
+		pet, _ = r.summon(t, fireElemental(), 0)
+		for ms := 100; ms <= 12_000; ms += 100 {
+			r.p.X = min(8610+float32(ms)/1000*8.8, 8688)
+			if onDeck(r.p.X) {
+				r.p.Y = y
+			}
+			r.w.mu.Lock()
+			r.w.petSystem(r.at(time.Duration(ms) * time.Millisecond))
+			r.w.mu.Unlock()
+			if !onDeck(pet.X) || pet.X < 8634 {
+				continue
+			}
+			switch {
+			case pet.Loco == LocoSwim || pet.Loco == LocoTread || pet.swimming:
+				swam++
+				if y == 60 {
+					t.Fatalf("on the deck at x %.1f y %.2f: animation %d, swimming %v; want the walk's, out of the water", pet.X, pet.Y, pet.Loco, pet.swimming)
+				}
+			default:
+				walked++
+			}
+		}
+		return swam, walked, pet
+	}
+	if swam, walked, pet := walk(t, 60); swam != 0 || walked == 0 || pet.Y != 60 {
+		t.Errorf("over the deck: %d steps swimming, %d walking, ended at y %.2f", swam, walked, pet.Y)
+	}
+	if swam, walked, pet := walk(t, 57-swimDepth); swam == 0 || walked != 0 || math.Abs(float64(pet.Y-(57-swimDepth))) > 0.06 || pet.Loco != LocoTread {
+		t.Errorf("the control, its owner swimming under the bridge: %d steps swimming, %d walking, ended at y %.2f animation %d", swam, walked, pet.Y, pet.Loco)
+	}
+}
+
+// archGround is bridgeGround's river under an arched bridge: its deck rises
+// from the banks' 60 to 63 ten units in, so its crest at a bridge's end
+// stands over the land beside it (Neriak's by half a unit and more).
+type archGround struct{}
+
+func archDeck(x float32) float32 { return 60 + 0.3*min(x-8630, 8690-x, 10) }
+
+func (archGround) Floor(world uint8, x, y, z float32) (float32, bool) {
+	return bridgeGround{}.Floor(world, x, y, z)
+}
+
+func (archGround) Support(_ uint8, x, y, _, up, down float32) (float32, bool) {
+	best, found := float32(0), false
+	hs := []float32{terrainAt(x)}
+	if onDeck(x) {
+		hs = append(hs, archDeck(x))
+	}
+	for _, h := range hs {
+		if h >= y-down && h <= y+up && (!found || h > best) {
+			best, found = h, true
+		}
+	}
+	return best, found
+}
+
+func (archGround) PlacedSupport(_ uint8, x, y, _, up, down float32) (float32, bool) {
+	if h := archDeck(x); onDeck(x) && h >= y-down && h <= y+up {
+		return h, true
+	}
+	return 0, false
+}
+
+// A pet keeps to an arched bridge's deck over deep water while its owner
+// steps off it onto lower land at either end (the same report): looked for
+// from its owner's feet alone, the deck's crest a few units behind was out
+// of reach, and the pet fell to the river's bed under it and swam. The
+// control: the owner on a ground that cannot tell the deck from the terrain
+// (no PlacedSupport) leaves the pet as before, in the river, swimming.
+func TestAPetKeepsToAnArchedDeck(t *testing.T) {
+	cross := func(t *testing.T, g Ground, from, to float32) (off int, worst float32) {
+		r := newPetRig(t)
+		r.w.SetGround(g)
+		r.w.SetEnv(riverWater{})
+		r.p.X, r.p.Y, r.p.Z = from, 60, 5421.5
+		pet, _ := r.summon(t, fireElemental(), 0)
+		dir := float32(1)
+		if to < from {
+			dir = -1
+		}
+		for ms := 100; ms <= 14_000; ms += 100 {
+			x := from + dir*float32(ms)/1000*8.8
+			if dir*(x-to) > 0 {
+				x = to
+			}
+			r.p.X, r.p.Y = x, 60
+			if onDeck(x) {
+				r.p.Y = archDeck(x)
+			}
+			r.w.mu.Lock()
+			r.w.petSystem(r.at(time.Duration(ms) * time.Millisecond))
+			r.w.mu.Unlock()
+			if !onDeck(pet.X) {
+				continue
+			}
+			if d := float32(math.Abs(float64(pet.Y - archDeck(pet.X)))); d > 0.01 || pet.swimming || pet.Loco == LocoSwim || pet.Loco == LocoTread {
+				off++
+				worst = max(worst, d)
+			}
+		}
+		return off, worst
+	}
+	for _, c := range []struct {
+		name     string
+		from, to float32
+	}{{"west to east", 8610, 8700}, {"east to west", 8710, 8620}} {
+		if off, worst := cross(t, archGround{}, c.from, c.to); off != 0 {
+			t.Errorf("%s: %d steps off the deck or swimming (%.1f under it at worst)", c.name, off, worst)
+		}
+	}
+	if off, _ := cross(t, archSupportOnly{}, 8610, 8700); off == 0 {
+		t.Errorf("the control: a ground that cannot tell the deck kept the pet on it")
+	}
+}
+
+// archSupportOnly is archGround without PlacedSupport.
+type archSupportOnly struct{}
+
+func (archSupportOnly) Floor(world uint8, x, y, z float32) (float32, bool) {
+	return archGround{}.Floor(world, x, y, z)
+}
+
+func (archSupportOnly) Support(world uint8, x, y, z, up, down float32) (float32, bool) {
+	return archGround{}.Support(world, x, y, z, up, down)
+}

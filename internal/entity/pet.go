@@ -790,6 +790,13 @@ func (w *World) petStepLocked(pet *NPC, x, z, toward, speed, dt float32) {
 	if deck, placed := w.placedFloorLocked(pet.World, pet.X, toward, pet.Z); placed && (!ok || deck > y) {
 		y, ok = deck, true
 	}
+	// and the deck it walks on goes on under it, though its owner stands
+	// lower: on the land at a bridge's end, under the deck's crest, a pet
+	// still on the deck looked only from its owner's feet, found the river's
+	// bed under the deck and swam there (2026-11-01, the same report)
+	if deck, on := w.deckUnderLocked(pet.World, pet.X, own, pet.Z); on && (!ok || deck > y) {
+		y, ok = deck, true
+	}
 	if ok {
 		pet.Y = y
 	} else if y, ok := w.ground.Floor(pet.World, pet.X, own, pet.Z); ok {
@@ -797,11 +804,32 @@ func (w *World) petStepLocked(pet *NPC, x, z, toward, speed, dt float32) {
 	} else {
 		pet.Y = own
 	}
-	// in deep water it swims at the surface (water.go), its animation
-	// stepNPCToward's walk or run made a swim
-	if w.swimLocked(pet) && pet.Loco != LocoStand && pet.Loco != LocoTread {
-		pet.Loco = LocoSwim
+	// in deep water it swims at the surface (water.go), and its animation is
+	// the floor's it stands on now: stepNPCToward grounds a pet on the
+	// terrain alone and plays a swim there, so over a river a pet on a
+	// bridge's deck swam on the deck (the user, 2026-11-01: "the hulking
+	// bones pet is on the bridge ,but swimming in mid air. seems to trigger
+	// at where the bridge meets the land")
+	pet.Loco = locoIn(pet.Loco, w.swimLocked(pet), speed)
+}
+
+// locoIn is a move's animation for a body in the water or out of it: a walk
+// or a run in it a swim and standing in it treading water, a swim out of it
+// the walk or the run by its speed and a tread standing.
+func locoIn(l byte, swims bool, speed float32) byte {
+	switch {
+	case swims && (l == LocoWalk || l == LocoRun):
+		return LocoSwim
+	case swims && l == LocoStand:
+		return LocoTread
+	case !swims && l == LocoSwim && speed >= NPCRunFrom:
+		return LocoRun
+	case !swims && l == LocoSwim:
+		return LocoWalk
+	case !swims && l == LocoTread:
+		return LocoStand
 	}
+	return l
 }
 
 // supportGround is a Ground that knows every surface, what is placed on the
@@ -829,6 +857,25 @@ func (w *World) placedFloorLocked(world uint8, x, y, z float32) (float32, bool) 
 		return 0, false
 	}
 	return s.Support(world, x, y, z, petDeckUp, petDeckDown)
+}
+
+// deckGround is a Ground that tells what is placed on the terrain apart
+// from it (internal/ground's PlacedSupport).
+type deckGround interface {
+	PlacedSupport(world uint8, x, y, z, up, down float32) (float32, bool)
+}
+
+// deckUnderLocked is the highest floor placed on the terrain (never the
+// terrain's own) at (x, z) from petDeckDown under y to petDeckUp over it, y
+// the pet's own height: the deck it walks on, going on under it; false with
+// a ground that cannot tell, or none there. Must be called with the lock
+// held.
+func (w *World) deckUnderLocked(world uint8, x, y, z float32) (float32, bool) {
+	p, ok := w.ground.(deckGround)
+	if !ok {
+		return 0, false
+	}
+	return p.PlacedSupport(world, x, y, z, petDeckUp, petDeckDown)
 }
 
 // petChooseTargetLocked lets go of a target that is gone, dead or too far

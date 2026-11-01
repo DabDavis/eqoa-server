@@ -92,10 +92,13 @@ const (
 // AbilityKinds are the kinds, in the order the help lists them.
 var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff}
 
-// Who a pet's heal or buff lands on (TemplateAbility.Target).
+// Who a pet's heal or buff lands on (TemplateAbility.Target); either is a
+// heal's alone: its owner or itself, whichever is the lower share of its hit
+// points below its threshold (a workbook pet's "Owner/Self" heal).
 const (
-	AbilityOnOwner = "owner"
-	AbilityOnSelf  = "self"
+	AbilityOnOwner  = "owner"
+	AbilityOnSelf   = "self"
+	AbilityOnEither = "either"
 )
 
 // AbilityStats are the stats a buff may be picked by (TemplateAbility.Stat).
@@ -117,6 +120,9 @@ type TemplateAbility struct {
 	Kind string `json:"kind"`
 	// Spell pins the spell by its name (any class's), whatever the level.
 	Spell string `json:"spell,omitempty"`
+	// SpellID pins it by its id instead (petstats: a workbook pet's own
+	// spells, which no class's book has).
+	SpellID int `json:"spell_id,omitempty"`
 	// Line is words the spell's name must hold (a spell line by name:
 	// "storm", "tap"); empty, any of its kind.
 	Line string `json:"line,omitempty"`
@@ -328,10 +334,16 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 // checkPetAbility holds a pet's fields of an ability to what its kind takes.
 func checkPetAbility(n int, a TemplateAbility) error {
 	switch {
-	case a.Target != "" && a.Target != AbilityOnOwner && a.Target != AbilityOnSelf:
-		return fmt.Errorf("ability %d: target %q: owner or self", n, a.Target)
+	case a.Target != "" && a.Target != AbilityOnOwner && a.Target != AbilityOnSelf && a.Target != AbilityOnEither:
+		return fmt.Errorf("ability %d: target %q: owner, self or either", n, a.Target)
 	case a.Target != "" && a.Kind != AbilityHeal && a.Kind != AbilityBuff:
 		return fmt.Errorf("ability %d: a target is a heal's or a buff's", n)
+	case a.Target == AbilityOnEither && a.Kind != AbilityHeal:
+		return fmt.Errorf("ability %d: target either is a heal's", n)
+	case a.SpellID < 0:
+		return fmt.Errorf("ability %d: spell_id %d: a spell's id (0 none)", n, a.SpellID)
+	case a.SpellID != 0 && a.Spell != "":
+		return fmt.Errorf("ability %d: a spell pinned by name and by id", n)
 	case a.SpellsOf != nil && (*a.SpellsOf < 0 || *a.SpellsOf > 14):
 		return fmt.Errorf("ability %d: spells_of %d: 0 (Warrior) to 14 (Alchemist)", n, *a.SpellsOf)
 	case a.Stat != "" && !oneOf(a.Stat, AbilityStats):

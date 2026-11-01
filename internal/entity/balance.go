@@ -431,7 +431,8 @@ func (w *World) applyBalanceLocked(npc *NPC) {
 		return
 	}
 	if summoned(npc) {
-		npc.MaxHP = pct(NPCMaxHP(npc.Level), w.balance.Level(w.balanceLevelOf(npc)).PetHPPct)
+		// its level's, or a workbook pet's own (petstats.go)
+		npc.MaxHP = pct(npc.petBaseHP(), w.balance.Level(w.balanceLevelOf(npc)).PetHPPct)
 		if o := w.Players[npc.Owner]; o != nil {
 			// its owner's class and level's share of it (balanceclasslevel)
 			npc.MaxHP = pct(npc.MaxHP, w.balance.PetHPPctAt(o.Class, o.Level))

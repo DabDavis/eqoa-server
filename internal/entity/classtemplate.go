@@ -209,10 +209,12 @@ func (n *NPC) meleeTaken(hit int) int {
 // templates by summoning (pettemplate.go) and the summoning spells that are
 // a weapon version; problems what of the tables the world could not use.
 type classTemplates struct {
-	byName   map[string]*ClassTemplate
-	use      map[string]string
-	pets     map[database.PetTemplateKey]*petTemplate
-	weapon   map[int]bool
+	byName map[string]*ClassTemplate
+	use    map[string]string
+	pets   map[database.PetTemplateKey]*petTemplate
+	weapon map[int]bool
+	// sheets is the workbook's pets by summoning spell (petstats.go)
+	sheets   map[int]*petSheet
 	problems []string
 }
 
@@ -416,19 +418,19 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 			if ra.SpellsOf != nil {
 				from = []int{*ra.SpellsOf} // a pet's from another class's lines (pettemplate.go)
 			}
-			if ra.Spell == "" && (ra.Kind == database.AbilityTaunt || ra.Kind == database.AbilityHeal && ra.HealPct > 0) {
+			if ra.Spell == "" && ra.SpellID == 0 && (ra.Kind == database.AbilityTaunt || ra.Kind == database.AbilityHeal && ra.HealPct > 0) {
 				t.abilities = append(t.abilities, a) // a taunt and a heal of its share cast no spell
 				continue
 			}
-			if ra.Spell != "" {
-				ts, ok, err := db.TemplateSpellNamed(ra.Spell)
+			if ra.Spell != "" || ra.SpellID != 0 {
+				ts, ok, err := pinnedTemplateSpell(db, ra) // by name, or by id (petstats.go)
 				if err != nil {
 					return 0, fmt.Errorf("classtemplates %q: %w", name, err)
 				}
 				if ok {
 					a.pinned = templateSpellOf(ts)
 				} else {
-					t.problems = append(t.problems, fmt.Sprintf("ability %d: no spell named %q (it casts nothing)", i+1, ra.Spell))
+					t.problems = append(t.problems, fmt.Sprintf("ability %d: %s (it casts nothing)", i+1, pinWords(ra)))
 				}
 			} else {
 				found := false
@@ -495,9 +497,16 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 		pets[k] = pt
 	}
 
+	// the workbook's pets (petstats.go)
+	sheets, sheetProblems, err := loadPetSheets(db)
+	if err != nil {
+		return 0, err
+	}
+	problems = append(problems, sheetProblems...)
+
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	w.templates = classTemplates{byName: byName, use: use, pets: pets, weapon: weapon, problems: problems}
+	w.templates = classTemplates{byName: byName, use: use, pets: pets, weapon: weapon, sheets: sheets, problems: problems}
 	n := 0
 	for _, npc := range w.NPCs {
 		w.applyTemplateLocked(npc)
@@ -529,7 +538,11 @@ func (w *World) ClassTemplateSummary() []string {
 	if n > 0 {
 		first = fmt.Sprintf("%d NPCs of %d names fight by a class template (npctemplate); %d templates: %s", n, len(named), len(names), strings.Join(names, ", "))
 	}
-	return append([]string{first}, w.templates.problems...)
+	out := []string{first}
+	if len(w.templates.sheets) > 0 {
+		out = append(out, w.petSheetSummaryLocked()) // the workbook's pets (petstats.go)
+	}
+	return append(out, w.templates.problems...)
 }
 
 // ClassTemplateProblems is what of the tables the world could not use.
@@ -812,6 +825,11 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 			w.playerDiedLocked(sess, p, now)
 		}
 	} else if pet := w.NPCs[id]; pet != nil && pet.Owner != 0 && !pet.Dead {
+		if share := pet.petResistShare(c.spell.resist); share > 0 {
+			// a workbook pet's resists (petstats.go); any other takes it whole
+			hit = max(int(math.Round(float64(hit)*(1-share))), 1)
+			drained = int(math.Round(float64(drained) * (1 - share)))
+		}
 		pet.HP = max(pet.HP-hit, 0)
 		pet.LastCombatTime = now
 		log.Printf("Template: %s's %q hits the pet %q for %d (HP %d/%d)", npc.Name, c.spell.Name, pet.Name, hit, pet.HP, pet.MaxHP)

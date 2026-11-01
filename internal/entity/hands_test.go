@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/eqoa/server/internal/protocol"
 )
 
 // A monk's bare hands roll its hand to hand (offence.go): the fit's line by
@@ -164,5 +166,45 @@ func TestCastWantsHandsOnlyWhenTheEquipmentAloneRefuses(t *testing.T) {
 	}
 	if !told {
 		t.Error("the weapon refusal not told")
+	}
+}
+
+// A duel's melee takes up a change of hands as a fight with a creature does:
+// the round in hand lands as it was swung (four hits), the next swings what
+// is held now (one hit, on the client's beat). The control: with no change
+// the next round is four hits again.
+func TestADuelsSwingFollowsTheHands(t *testing.T) {
+	four := Swing{Kind: 5, Delay: 6 * time.Second, Reach: 4.5}
+	one := Swing{Kind: 0, Delay: 3 * time.Second, Reach: 4.5}
+	for _, changed := range []bool{true, false} {
+		d := newDuelists(t)
+		d.start(t)
+		d.a.Gear.WeaponDamage, d.a.Gear.WeaponCond = 40, 1
+		if !d.w.EngageAttack(d.sa, d.aSeesB, four, d.at(2*time.Second)) {
+			t.Fatal("not engaged")
+		}
+		d.a.AutoAttack = true
+		run := func(from, to time.Duration) int {
+			for x := from; x <= to; x += 100 * time.Millisecond {
+				d.w.mu.Lock()
+				d.w.attackSystem(d.at(x))
+				d.w.mu.Unlock()
+			}
+			return len(ofOp(duelDrain(d.sa), protocol.OpcodeDamageIndication))
+		}
+		n := run(2*time.Second, 3100*time.Millisecond)
+		if changed {
+			d.w.HandsChanged(d.sa, one)
+		}
+		if n += run(3200*time.Millisecond, 7900*time.Millisecond); n != 4 {
+			t.Errorf("changed %v: the round in hand landed %d hits, want its four", changed, n)
+		}
+		want, swing := 1, one
+		if !changed {
+			want, swing = 4, four // 8.5, 9, 9.7 and 10.4 s
+		}
+		if n := run(8*time.Second, 10900*time.Millisecond); n != want || d.a.Swing != swing {
+			t.Errorf("changed %v: the next round %d hits by 10.9 s, swing %+v; want %d", changed, n, d.a.Swing, want)
+		}
 	}
 }

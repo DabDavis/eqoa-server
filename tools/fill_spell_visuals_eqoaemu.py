@@ -109,8 +109,10 @@ def ods_rows(path, sheet):
 
 # ---- the disc's visuals (as the GM panel's esfcore.js reads SPELLFX.CSF) ----------------
 
-def disc_visuals(iso):
-    """Every 0xC200 record's DictID (its 0xC210) in the disc's DATA2/SPELLFX.CSF."""
+def disc_records(iso, parts):
+    """The top-level records of a CSF on the disc (parts: its path, e.g.
+    ("DATA2", "SPELLFX.CSF")) as (type, body offset, size, children) over its
+    inflated data: (data, roots)."""
     sec = 2048
     with open(iso, "rb") as f:
         def read(lba, n):
@@ -120,7 +122,7 @@ def disc_visuals(iso):
         if pvd[1:6] != b"CD001":
             raise SystemExit(f"{iso}: not an ISO 9660 image")
         lba, size = struct.unpack_from("<I", pvd, 156 + 2)[0], struct.unpack_from("<I", pvd, 156 + 10)[0]
-        for part in ("DATA2", "SPELLFX.CSF"):
+        for part in parts:
             data, p, found = read(lba, size), 0, None
             while p < len(data):
                 n = data[p]
@@ -144,7 +146,7 @@ def disc_visuals(iso):
         pos += 8 + n
     data = bytes(out)
     if data[:4][::-1] != b"OBJF":
-        raise SystemExit("SPELLFX.CSF: no OBJF container inside")
+        raise SystemExit(f"{parts[-1]}: no OBJF container inside")
     pos, stack, roots = struct.unpack_from("<q", data, 16)[0], [], []
     while True:
         while stack and stack[-1][0] == 0:
@@ -166,6 +168,12 @@ def disc_visuals(iso):
             pos = body
         else:
             pos = body + sz
+    return data, roots
+
+
+def disc_visuals(iso):
+    """Every 0xC200 record's DictID (its 0xC210) in the disc's DATA2/SPELLFX.CSF."""
+    data, roots = disc_records(iso, ("DATA2", "SPELLFX.CSF"))
     ids = set()
     for t, _, _, kids in roots:
         if t != 0xC200:
@@ -175,6 +183,15 @@ def disc_visuals(iso):
                 ids.add(struct.unpack_from("<I", data, kb)[0])
                 break
     return ids
+
+
+def disc_icons(iso):
+    """Every surface's DictID in the disc's DATA2/UI.CSF (its top-level 0x1000
+    records' first word): the icons an ability record can show (the client
+    draws an ability's icon by that DictID; every spell icon eqoaclassic had
+    before 2026-11-01, 39, is one of its 83)."""
+    data, roots = disc_records(iso, ("DATA2", "UI.CSF"))
+    return {struct.unpack_from("<I", data, b)[0] for t, b, sz, _ in roots if t == 0x1000 and sz >= 4}
 
 
 def dictid(text, disc):

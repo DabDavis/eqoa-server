@@ -33,7 +33,8 @@ What it writes, and from what:
       add/require/remove_spells), the quest rewards of those classes alone
       (queststeps' spells and choices) or for them (byclass).
     a new spell: the same, and icon = IconID byte-reversed (the client's
-      DictID, a signed 32-bit int as the column holds it), iconColor by
+      DictID, a signed 32-bit int as the column holds it; with --iso, the way
+      round that is an icon in the disc's UI.CSF: icon_of), iconColor by
       IconBGDColor as every record of ours has its frame (Red 486870879 the
       target frame, Yellow -1809115846 self, Purple 593297002 group, Gray
       439871130 pet, Green -1580294943 the storms' area frame on Sandstorm's
@@ -393,13 +394,24 @@ def range_of(col):
     return struct.unpack(">f", struct.pack(">I", (col & 0xFFFF) << 16))[0]
 
 
-def icon_of(text):
-    """IconID byte-reversed, as the signed int the icon column holds; None if not 8 hex digits."""
+def icon_of(text, icons=None):
+    """IconID as the signed int the icon column holds: byte-reversed, as the
+    workbook mostly writes it, unless that is no icon on the disc and the id as
+    written is one (icons: disc_icons' set; 2026-11-01's workbook writes 12 of
+    its spells' ids our way round, Lightning Arrow's 0x7C84475E among them, and
+    reversed they were no icon at all); None if not 8 hex digits, or with the
+    disc read when neither way round is an icon."""
     t = (text or "").strip()
     t = t[2:] if t[:2].lower() == "0x" else t
     if not re.fullmatch(r"[0-9a-fA-F]{8}", t):
         return None
-    return struct.unpack("<i", struct.pack(">I", int(t, 16)))[0]
+    v = int(t, 16)
+    r = struct.unpack("<I", struct.pack(">I", v))[0]
+    if icons is not None and r not in icons:
+        if v not in icons:
+            return None
+        r = v
+    return struct.unpack("<i", struct.pack("<I", r))[0]
 
 
 def equip_mask(text):
@@ -1214,9 +1226,10 @@ def split_map(db, wb, map_path, out_path):
     return done
 
 
-def plan(db, wb, smap, disc=None, link_existing=False, weres=None):
+def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None):
     """Everything --apply would write, and the report's lists. weres: the
-    were quests' reward spells (were_rewards)."""
+    were quests' reward spells (were_rewards); icons: the disc's (disc_icons),
+    which IconID's byte order is read by (icon_of)."""
     weres = weres or {}
     rcols = columns(db, "spellpattern")
     records = {r[0]: dict(zip(rcols, r)) for r in db.execute(f"SELECT {', '.join(rcols)} FROM main.spellpattern")}
@@ -1318,7 +1331,7 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None):
             # no range given: the records' convention for its kind
             want["range"] = range_bits(FAR if rez or new_scope in (2, 3) else TOUCH)
         if rec is None:
-            icon = icon_of(cell(s, "IconID"))
+            icon = icon_of(cell(s, "IconID"), icons)
             frame = FRAMES.get(cell(s, "IconBGDColor"))
             eq = equip_mask(cell(s, "ReqEQuipment"))
             if icon is None:
@@ -1346,9 +1359,12 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None):
             # workbook wins on all (the user, 2026-11-01): its icon, frame and
             # spelling too; a rename is one every lookup by name reads alike
             # (rename_safe) or it is kept and listed
-            icon, frame = icon_of(cell(s, "IconID")), FRAMES.get(cell(s, "IconBGDColor"))
+            icon, frame = icon_of(cell(s, "IconID"), icons), FRAMES.get(cell(s, "IconBGDColor"))
             if icon is not None:
                 want["icon"] = icon
+            elif icons is not None and icon_of(cell(s, "IconID")) is not None:
+                lists["the workbook's icon is no icon on the disc either way round (ours kept)"].append(
+                    f"{sid} {rec['spellname']}: {cell(s, 'IconID')}")
             if frame is not None:
                 want["iconColor"] = frame
             nm = cell(s, "Name")
@@ -2300,12 +2316,12 @@ def main():
     else:
         if not (a.sheets or a.ods) or not a.map:
             sys.exit("--sheets or --ods, and --map (or --plan)")
-        disc = None
+        disc = icons = None
         if a.iso:
             import fill_spell_visuals_eqoaemu as fsv
-            disc = fsv.disc_visuals(a.iso)
+            disc, icons = fsv.disc_visuals(a.iso), fsv.disc_icons(a.iso)
         p = plan(db, Workbook(read_workbook(a.sheets, a.ods)), read_map(a.map), disc, a.link_existing,
-                 were_rewards(a.were_quests))
+                 were_rewards(a.were_quests), icons)
         p["were_quest_spells"] = were_quest_check(p, read_map(a.map), Workbook(read_workbook(a.sheets, a.ods)),
                                                   were_rewards(a.were_quests))
     report(p, a.list)

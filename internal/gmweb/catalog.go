@@ -911,11 +911,12 @@ var catalog = map[string]tableNote{
 		Help: "How the creatures of a name move, by NPC NAME as NPC classes key it (lower case, no trailing space or $; " +
 			"entity/movement.go, wildlife.go, water.go). Wanders: as its kind (-1, the default, and what a name with no row " +
 			"does): wildlife wanders round its spawn, anything else stands on its spawn until pulled and goes back there " +
-			"after; 1 wanders, wildlife or not (a camp's roamers, a patrol; townsfolk bodies too); 0 stands until pulled. " +
+			"after; 1 wanders, wildlife or not (a camp's roamers, a patrol; townsfolk bodies too; the kinds Sandstorm's " +
+			"census saw walking, source sandstorm-census); 0 stands until pulled. " +
 			"Wildlife is an animal by its name's last word (Giant Rat, Wolf Pack Leader, red ant warrior: not Fire Giant, Orc " +
 			"Pawn, serpent guardian, nor an undead Skeletal Wolf); an NPC's page says whether it wanders and why. An NPC " +
 			"players talk to (the NPC bit) never wanders: a path walks it. radius its own wander radius (0: the server's, " +
-			"75); water what it keeps to: land (it never wanders into the water), both (in and out of it: crocodiles, " +
+			"70, Sandstorm's); water what it keeps to: land (it never wanders into the water), both (in and out of it: crocodiles, " +
 			"caiman, crabs), water (it keeps to the water, wandering and fighting), empty by where it spawned. A fight takes " +
 			"a creature where its enemy is, but one of the water stops at the water's edge; no damage crosses the water's " +
 			"edge (a harmful spell is refused, a melee hit lost). A creature that stands off the ground (a keep's floor, a " +

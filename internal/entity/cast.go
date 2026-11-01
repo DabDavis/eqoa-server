@@ -265,6 +265,9 @@ type ActiveEffect struct {
 	ProcCap      int
 	// ProcUndead: the proc fires on undead creatures alone (Smite Undead's)
 	ProcUndead bool
+	// Kept: cast on a creature while it was a charmed pet and kept when it
+	// went free, so it counts in the creature's fights (charm.go, keptMods)
+	Kept bool
 	// Form is the body an illusion shows its bearer in (illusion.go), 0 for
 	// none; FormSize its scale, 0 for the bearer's own.
 	Form     uint32

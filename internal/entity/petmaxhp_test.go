@@ -114,3 +114,63 @@ func TestAFreedCharmKeepsItsBuffsUntilTheyEnd(t *testing.T) {
 		t.Errorf("back after a death under the buff: %d/%d, %d effects; want %d/%d, none", crab2.HP, crab2.MaxHP, len(crab2.Effects), own2, own2)
 	}
 }
+
+// A freed charm's kept buffs count in its fights (the user, 2026-11-01:
+// "make the released mob's buffs count in its fights too"): STR 100, AC 200
+// and AGI 50 cast on the charmed crab, then the crab let go; while the buff
+// lasts its roll on its old master has a tank's STR terms on it (its top
+// 0.196 a point higher, its floor 0.02 a point), and its master's roll on it
+// loses what its AC and AGI take off, as a player's take off a creature's
+// (the creature line's AC slope at the attacker's level, a tank's per point
+// of AGI); at the buff's end both are as before. The control: a creature
+// never charmed, with the same numbers on it from a spell (what players
+// cast on a creature counts in no fight), rolls by its level alone. Before
+// the change neither roll moved.
+func TestAFreedCharmsBuffsCountInItsFights(t *testing.T) {
+	defer func(f func(int) int) { charmIntn = f }(charmIntn)
+	charmIntn = dice(99)
+	r, flesh, _ := charmRig(t)
+	crab := r.enemy
+	rolls := func(npc *NPC) (meleeRoll, int) {
+		r.w.mu.Lock()
+		defer r.w.mu.Unlock()
+		_, _, high := playerMeleeRoll(r.p, npc)
+		return npcMeleeRollFor(npc, r.p), high
+	}
+	r0, h0 := rolls(crab)
+	if began, _ := castCharm(t, r, captivation(), crabID, 0); !began || crab.Owner == 0 {
+		t.Fatal("not charmed")
+	}
+	buff := wbSpell(9203, 20, 1, "Test Hardening", `{"v":1,"scope":"target","target_type":"Friendly","harmful":false,"duration_s":60,"stack":1,"level":20,
+		"effects":[{"id":"0001","type":"Statistic Change","kind":"stat","stat":"str","amount":100},
+			{"id":"0002","type":"Statistic Change","kind":"stat","stat":"ac","amount":200},
+			{"id":"0003","type":"Statistic Change","kind":"stat","stat":"agi","amount":50}]}`)
+	r.w.mu.Lock()
+	r.w.landOnPetLocked(&castState{spell: buff, caster: r.p.ServerID, targets: []EntityID{crab.ServerID}}, r.p, r.sess, crab, r.at(10*time.Second))
+	r.w.mu.Unlock()
+	r.w.PetCommand(r.sess, petCmdDismiss, 0, r.at(20*time.Second))
+	if crab.Owner != 0 {
+		t.Fatal("not let go")
+	}
+	r1, h1 := rolls(crab)
+	if d := r1.Top - r0.Top; d < offHighSTR*100-0.001 || d > offHighSTR*100+0.001 || r1.Floor-r0.Floor != 2 {
+		t.Errorf("its roll under the kept buff: top +%.3f, floor +%d; want +%.3f, +2", d, r1.Floor-r0.Floor, offHighSTR*100)
+	}
+	want := creatureRoll(r.p.Level).ACSlope*200 + agiSlope[archTank]*50
+	if d := float64(h0 - h1); d < want-1 || d > want+1 {
+		t.Errorf("its master's top on it: %d less; want %.1f less", h0-h1, want)
+	}
+	r.w.mu.Lock()
+	r.w.effectSystem(r.at(75 * time.Second)) // past the buff's minute
+	r.w.mu.Unlock()
+	if r2, h2 := rolls(crab); r2 != r0 || h2 != h0 {
+		t.Errorf("after the buff's end: roll %+v, top on it %d; want %+v, %d", r2, h2, r0, h0)
+	}
+
+	f0, fh0 := rolls(flesh)
+	flesh.Effects = append(flesh.Effects, &ActiveEffect{SpellID: 9204, Name: "Test Curse", Until: r.at(time.Hour),
+		Mods: StatMods{Str: 100, AC: 200, Agi: 50}})
+	if f1, fh1 := rolls(flesh); f1 != f0 || fh1 != fh0 {
+		t.Errorf("the control, a creature never charmed: roll %+v, top on it %d; want %+v, %d", f1, fh1, f0, fh0)
+	}
+}

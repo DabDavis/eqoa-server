@@ -1096,12 +1096,13 @@ func petMeleeHit(pet, t *NPC, intn func(int) int) int {
 	}
 	r := creatureRoll(pet.Level)
 	m := pet.effectMods()
-	top := int(math.Round(r.Top - targetDefence(t)))
+	def := targetDefence(t) + t.keptDefence(pet.Level) // a freed charm's buffs
+	top := int(math.Round(r.Top - def))
 	low := top - r.Width
 	floor := r.Floor
 	if m.Str != 0 || m.Dex != 0 {
 		str := float64(m.Str)
-		top = int(math.Round(r.Top - targetDefence(t) + offHighSTR*str))
+		top = int(math.Round(r.Top - def + offHighSTR*str))
 		low = min(low+int(math.Round(petDexShare*float64(m.Dex)*float64(r.Width))), top)
 		floor += int(math.Floor(offFloorSTR * str))
 	}
@@ -1132,9 +1133,44 @@ func npcHitOnPet(npc, pet *NPC, intn func(int) int) int {
 	return max(hit, r.Floor, 1)
 }
 
+// keptMods is what a creature's kept effects add to its stats: those cast on
+// it as a charmed pet and kept when it went free (the user, 2026-11-01:
+// "make the released mob's buffs count in its fights too"; charm.go marks
+// them), until each runs out. Their STR and DEX move its rolls as a pet's
+// effects move its own (meleeRoll.withMods), their AC and AGI take off the
+// hits on it as a player's take off a creature's (keptDefence). Nothing for
+// a pet (its effects count through effectMods) or a creature never charmed,
+// which fights by its level alone: what players cast on a creature counts in
+// no fight.
+func (n *NPC) keptMods() StatMods {
+	var m StatMods
+	if n.Owner != 0 {
+		return m
+	}
+	for _, e := range n.Effects {
+		if e.Kept {
+			m.sum(e.Mods)
+		}
+	}
+	return m
+}
+
+// keptDefence is what a freed charm's kept AC and AGI take off an attacker's
+// roll on it: as a player's take off a creature's top (defence.go: the
+// creature line's AC slope at the attacker's level, a tank's per point of
+// AGI). Ours: no record of a creature's armour against a player exists.
+func (n *NPC) keptDefence(attackerLevel int) float64 {
+	m := n.keptMods()
+	if m.AC == 0 && m.Agi == 0 {
+		return 0
+	}
+	return creatureRoll(attackerLevel).ACSlope*float64(m.AC) + agiSlope[archTank]*float64(m.Agi)
+}
+
 // effectMods is what the NPC's effects add to its stats: a pet's own buffs
 // and those cast on it. Only a pet's are used (npcHitOnPet, petMeleeHit); a
-// creature still fights by its level alone.
+// creature fights by its level alone, but for a freed charm's kept buffs
+// (keptMods).
 func (n *NPC) effectMods() StatMods {
 	var m StatMods
 	for _, e := range n.Effects {

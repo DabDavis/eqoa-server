@@ -351,11 +351,14 @@ func templateCandidates(a database.TemplateAbility, spells []*CastSpell) []*Cast
 // templateSpellOf is a template spell's record as a templated NPC casts it:
 // as a player's book entry is cast (SpellOf), a spellarea row over its area.
 func templateSpellOf(ts database.TemplateSpell) *CastSpell {
-	s := SpellOf(&ts.Pattern, 0, ts.Line, ts.FX)
+	s := SpellOfRow(&ts.Pattern, 0, ts.Line, ts.Effects, ts.FX)
 	if ts.HasArea {
 		s.Area = s.Area.With(AreaRule{Centre: ts.Area.Centre, Radius: float32(ts.Area.Radius), Max: ts.Area.MaxTargets})
 	}
 	s.resist = templateResist(ts.Pattern.SpellName, ts.Line)
+	if st, ok := workbookResist(&s.Def); ok { // the workbook's resist basis (workbook.go)
+		s.resist = st
+	}
 	return &s
 }
 

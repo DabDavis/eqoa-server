@@ -60,6 +60,13 @@ const (
 	EffectDefProc                       // a creature's melee hit on the bearer may take Amount back (dshield.go)
 	EffectPowerCap                      // the bearer's maximum power at most Amount while it lasts; lasting no time, its power taken down to it (powercap.go)
 	EffectForget                        // the target forgets its hate for the caster (vampire.go: Vampiric Gaze)
+	// the workbook's (spelljson.go, workbook.go)
+	EffectCure     // harmful effects off the target, SpellDef.Removes's
+	EffectMitigate // Amount% of each melee hit on the bearer not taken, AmountMax at most over its time (0: no limit)
+	EffectLull     // the creature neither notices nor comes to help while it lasts
+	EffectBreath   // the bearer does not run out of breath
+	EffectHide     // unseen (EffectInvis) as a rogue hides
+	EffectProcHeal // the bearer's proc heals it Amount (Defense: when hit, else when hitting)
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -87,6 +94,16 @@ const (
 	// StatMelee is what the bearer's every melee hit does more ("Increase
 	// Damage per Hit by 500": Frenzy, vampire.go); no stat channel shows it
 	StatMelee
+	// StatHoT and StatPoT are added to the six-second regen (regen.go), as a
+	// meal's and a drink's are: the workbook's HoT and PoT (spelljson.go)
+	StatHoT
+	StatPoT
+	// the workbook's melee resists (a resist basis, a debuff's stat): no
+	// creature or player has one yet
+	StatPierce
+	StatBlunt
+	StatSlash
+	StatRanged
 )
 
 // SpellEffect is one effect of a spell as its line gives it: Amount, plus
@@ -120,6 +137,20 @@ type SpellEffect struct {
 	// the difference from the bearer's own stat as the spell lands
 	// (vampire.go's setStatsLocked)
 	Set bool
+	// LevelPct: the caster's level times LevelPct/100 more, signed as the
+	// effect is (the workbook's "Level Scaling?", spelljson.go)
+	LevelPct int
+	// Resist is the resist a harmful effect is resisted by (the workbook's
+	// "Resist Basis", workbook.go); StatNone for none
+	Resist Stat
+	// ID is the workbook's EffectID, "" for a line's effect: effects of one
+	// ID are resisted together
+	ID string
+	// Chance is a proc's chance in percent (the workbook's defensive procs:
+	// 100); 0 for its kind's
+	Chance int
+	// Defense: a proc heal set off by a hit on the bearer, not by its own
+	Defense bool
 }
 
 // SpellDef is a spell's line, read: whom it lands on, what it does, how
@@ -163,6 +194,35 @@ type SpellDef struct {
 	// x2": the vampires' abilities, vampire.go); "" for none.
 	Reagent      string
 	ReagentCount int
+
+	// What only the workbook's effects say (spelljson.go): Workbook marks a
+	// spell read from them.
+	Workbook bool
+	// Stack is the workbook's stack type (0 none) and StackLevel the level
+	// it compares (buffline.go); MinLevel the lowest level a player may be to
+	// receive it (workbook.go)
+	Stack, StackLevel, MinLevel int
+	// Area is the workbook's area, nil for a line's (area.go reads the line)
+	Area *SpellArea
+	// SheetPetID is the workbook's pet a summoning makes, for the pets'
+	// templates (the pets lane's); the pet itself is still by name (Pet)
+	SheetPetID string
+	// FormModel is an illusion's body by its sprite, 0 for one by name
+	FormModel uint32
+	// Items are what it makes (potion.go's summoning of items)
+	Items []SpellItem
+	// Location is a teleport's place as the workbook writes it
+	// ("Tunaria,21329.541,84.87512,7652.036"): read only through a
+	// spellgates row of its name (gates.go)
+	Location string
+	// Removes is what a cure takes off, in the workbook's words
+	Removes []string
+	// DispelOnCast and DispelOnContact end what lasts of it when its bearer
+	// casts, or is hit or harmed (workbook.go)
+	DispelOnCast, DispelOnContact bool
+	// Unsupported is what the workbook says that the engine has no rule
+	// for, for the log
+	Unsupported []string
 }
 
 // Charms reports whether the spell makes its target the caster's pet.

@@ -392,12 +392,16 @@ func (db *SQLiteDB) initSchema() error {
 
 	-- spelleffect: what each spell does, as EQOA-Data's spell lists word
 	-- it, and the visual CastingCombat names for it (0: the server's
-	-- stand-in); tools/import_spell_effects.py fills it
+	-- stand-in); tools/import_spell_effects.py fills it. effects is the
+	-- same as structured JSON (entity/spelljson.go, from EQOAEmu's spell
+	-- workbook): when it is not empty it is what the spell does, the line
+	-- kept to read (ensureSpellEffects adds it to an older table)
 	CREATE TABLE IF NOT EXISTS spelleffect (
 		spellid INTEGER PRIMARY KEY,
 		line    TEXT NOT NULL,
 		fxdict  INTEGER NOT NULL,
-		source  TEXT NOT NULL
+		source  TEXT NOT NULL,
+		effects TEXT NOT NULL DEFAULT ''
 	);
 
 	-- charbuffs: a character's spell effects kept over a logout, what is
@@ -598,6 +602,9 @@ func (db *SQLiteDB) initSchema() error {
 	}
 	if err := db.initQuests(); err != nil {
 		return fmt.Errorf("quests: %w", err)
+	}
+	if err := db.ensureSpellEffects(); err != nil { // spellbook.go: spelleffect.effects
+		return err
 	}
 	if err := db.ensureNPCAggro(); err != nil {
 		return err

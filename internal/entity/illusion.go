@@ -181,6 +181,11 @@ func (w *World) landIllusionLocked(cs *castState, t *Player, ae *ActiveEffect) {
 	d := &cs.spell.Def
 	w.endIllusionsLocked(t, cs.spell.SpellID)
 	model, size, ok := w.illusionBodyLocked(d.Form, t)
+	if d.FormModel != 0 {
+		// the workbook's sprite (spelljson.go): its body, at the bearer's
+		// size unless its name's body says another
+		model, ok = d.FormModel, true
+	}
 	if !ok {
 		log.Printf("Cast: %q on %s: no body of %q on this server: no illusion", cs.spell.Name, t.Name, d.Form)
 		return

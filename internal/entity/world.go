@@ -852,6 +852,7 @@ func (w *World) updateAggro(npc *NPC, attackerID EntityID, damage int) {
 	if npc.Dummy != NotDummy {
 		return // a dummy holds no grudge: it fights its one player (dummy.go)
 	}
+	contactNPCLocked(npc) // a lull ends at a hit or a hostile act (workbook.go)
 	w.addThreatLocked(npc, attackerID, damage)
 	w.socialAssistLocked(npc, attackerID)
 }

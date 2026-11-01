@@ -347,6 +347,14 @@ func (w *World) summonItemsLocked(cs *castState, caster *Player, sess *session.S
 		return false // a pet (pet.go)
 	}
 	found := false
+	// the workbook's items, by name (spelljson.go)
+	for _, it := range d.Items {
+		found = true
+		log.Printf("Cast: %s's %q makes %q (x%d)", caster.Name, cs.spell.Name, it.Name, it.Count)
+		if fn := w.potions.onSummon; fn != nil && sess != nil {
+			go fn(sess, caster.CharServerID, it.Name, it.Count, cs.spell.Name)
+		}
+	}
 	for _, u := range d.Unread {
 		m := reSummonItem.FindStringSubmatch(strings.TrimSpace(reParens.ReplaceAllString(u, "")))
 		if m == nil || reSummonCreature.MatchString(u) {

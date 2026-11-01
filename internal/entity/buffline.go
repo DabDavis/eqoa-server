@@ -51,6 +51,22 @@ import (
 // before 2026-10-29 has none and stacks until it ends. `balancesim -lines`
 // prints every class's lines off a database.
 
+// A spell read from EQOAEmu's workbook (spelljson.go) goes by the workbook's
+// rule instead, read from its formula (2026-11-01: every StackType of its
+// Spells sheet is one formula of the spell's scope, 1 single target, 2 self,
+// 3 group and the areas, 4 the illusions, so a stack type is the class of
+// whom it lands on) and its legend ("Used to overwrite lesser buffs of the
+// same stack type and statistic effect"; an effect's Level "May be used to
+// override lower level buffs that have the same stack type"): its line is its
+// stack type, its bearer and its stats, and two such lines are one when their
+// stack types and bearers are and they share a stat (sameLine); its rank is
+// the workbook's level. So a self buff and a group buff of one stat both
+// count, where a line's forms are one line. The rule is the same: a lower
+// rank under a higher is refused, a higher takes the lower off, whole (the
+// shared stat's spell is one effect). A workbook spell with no stack type has
+// no line: nothing it stacks with is refused or taken off (a recast of the
+// same spell still replaces itself, addEffectLocked).
+
 // BuffLine is a spell's line, "" for one that has none: no lasting part but
 // ticks, an illusion, a pet's summoning or a charm. (A spell that lands on a
 // player is one cast on a friend or a self spell: Reckless Force's line reads
@@ -92,12 +108,57 @@ func BuffLine(s *CastSpell) string {
 	if s.Scope == 3 {
 		bearer = "pet"
 	}
+	if d.Workbook {
+		if d.Stack <= 0 {
+			return "" // no stack type: no line (the file's doc)
+		}
+		return fmt.Sprintf("%s%d %s %s", stackLinePrefix, d.Stack, bearer, strings.Join(keys, " "))
+	}
 	return bearer + " " + strings.Join(keys, " ")
+}
+
+// stackLinePrefix begins a workbook stack type's line.
+const stackLinePrefix = "stack"
+
+// sameLine reports whether two effects' lines are one (the file's doc): the
+// same line, or two workbook stack lines of one stack type and bearer that
+// share a stat.
+func sameLine(a, b string) bool {
+	if a == "" || b == "" {
+		return false
+	}
+	if a == b {
+		return true
+	}
+	if !strings.HasPrefix(a, stackLinePrefix) || !strings.HasPrefix(b, stackLinePrefix) {
+		return false
+	}
+	af, bf := strings.Fields(a), strings.Fields(b)
+	if len(af) < 3 || len(bf) < 3 || af[0] != bf[0] || af[1] != bf[1] {
+		return false
+	}
+	for _, k := range af[2:] {
+		for _, j := range bf[2:] {
+			if k == j {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// lineRank is a spell's rank on its line: the workbook's level for a spell
+// of a stack type, else its record's.
+func lineRank(s *CastSpell) int {
+	if s.Def.Workbook && s.Def.Stack > 0 && s.Def.StackLevel > 0 {
+		return s.Def.StackLevel
+	}
+	return s.Level
 }
 
 // statLineNames are the stats as a line names them, by Stat.
 var statLineNames = []string{"none", "STR", "STA", "AGI", "DEX", "WIS", "INT", "CHA", "AC", "maxHP", "maxPower",
-	"FR", "CR", "PR", "DR", "LR", "AR", "damage", "?"}
+	"FR", "CR", "PR", "DR", "LR", "AR", "damage", "HoT", "PoT", "pierce", "blunt", "slash", "ranged", "?"}
 
 var buffKindNames = map[EffectKind]string{EffectShield: "shield", EffectDefProc: "defproc", EffectProc: "proc",
 	EffectSpeed: "speed", EffectInvis: "invis", EffectPowerCap: "powercap"}
@@ -112,12 +173,12 @@ const (
 // when an effect of its line of a higher rank is on, of which the caster is
 // told. Must be called with the lock held.
 func (w *World) lineTakesLocked(caster *Player, casterSess *session.Session, t *Player, spell *CastSpell, ae *ActiveEffect) bool {
-	ae.Line, ae.Rank = BuffLine(spell), spell.Level
+	ae.Line, ae.Rank = BuffLine(spell), lineRank(spell)
 	if ae.Line == "" {
 		return true
 	}
 	for _, e := range t.Effects {
-		if e.Line != ae.Line || e.SpellID == ae.SpellID || e.Rank <= ae.Rank {
+		if !sameLine(e.Line, ae.Line) || e.SpellID == ae.SpellID || e.Rank <= ae.Rank {
 			continue
 		}
 		log.Printf("Cast: %s's %q (rank %d) does not take on %s: %q (rank %d) is on, line %s",
@@ -143,7 +204,7 @@ func (w *World) shareTakesLocked(caster *Player, ae *ActiveEffect) bool {
 		return true
 	}
 	for _, e := range caster.Effects {
-		if e.Line == ae.Line && e.SpellID != ae.SpellID && e.Rank > ae.Rank {
+		if sameLine(e.Line, ae.Line) && e.SpellID != ae.SpellID && e.Rank > ae.Rank {
 			log.Printf("Cast: %s's share of %q (rank %d) does not take: %q (rank %d) is on", caster.Name, ae.Name, ae.Rank, e.Name, e.Rank)
 			return false
 		}
@@ -160,7 +221,7 @@ func (w *World) dropLineLocked(t *Player, ae *ActiveEffect) {
 	}
 	var drop []int
 	for _, e := range t.Effects {
-		if e.Line == ae.Line && e.SpellID != ae.SpellID {
+		if sameLine(e.Line, ae.Line) && e.SpellID != ae.SpellID {
 			drop = append(drop, e.SpellID)
 		}
 	}

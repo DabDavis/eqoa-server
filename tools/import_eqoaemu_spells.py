@@ -187,6 +187,52 @@ TYPE_KIND = {"Summon Pet": "summon", "Alter Appearance": "illusion", "Create Ite
              "Enduring Breath": "breath", "Hide": "hide", "Pickpocket": "pickpocket",
              "Ressurect Player": "resurrect", "Invulnerable": "invulnerable", "Offensive Proc": "proc",
              "Defensive Proc": "def_proc", "Summon Player": "summon_player", "Increase Speed": "speed"}
+# database/were.go's IsWereAbility: a were form or a were's ability, by its
+# name or description. No class grant gives one (#template, the new
+# characters'), so none gets a classspells row here, whatever CLASS says.
+WERE_ABILITY = re.compile(r"(?i)\bwere(rat|wolf|bear|lion|gator)|(rat|lion|wolf|bear|gator)were\b|power of the beast|"
+                          r"^assume the form of|^cm: illusion\.?$")
+WERE_QUESTS = os.path.join(HERE, "quests", "data", "weres.json")
+# the were quests' kinds (their keys' second part) as a description words them
+WERE_KIND = {"wolfwere": "Werewolf", "bearwere": "Werebear", "ratwere": "Wererat", "lionwere": "Werelion",
+             "gatorwere": "Weregator", "werehunter": "Werehunter", "vampire": "Vampire"}
+
+
+def is_were_ability(name, desc):
+    return bool(WERE_ABILITY.search(name or "") or WERE_ABILITY.search(desc or ""))
+
+
+def quest_fold(s):
+    """A name as tools/import_quests.py matches a reward by it."""
+    s = str(s or "").lower().replace("\u2019", "'").replace("`", "'").replace("'", "")
+    return " ".join(re.sub(r"[^\w\s-]", " ", s).split())
+
+
+def were_rewards(path):
+    """The spells the were quests give, by quest_fold: (the name as the file
+    spells it, the quest's key)."""
+    out = {}
+    if not path or not os.path.exists(path):
+        return out
+
+    def walk(o, key):
+        if isinstance(o, dict):
+            for k, v in o.items():
+                if k == "spells" and isinstance(v, list):
+                    for n in v:
+                        out.setdefault(quest_fold(n), (n, key))
+                else:
+                    walk(v, key)
+        elif isinstance(o, list):
+            for x in o:
+                walk(x, key)
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    for q in data.get("quests", []):
+        walk(q, q.get("key", ""))
+    return out
+
+
 # the kinds whose own code picks whom they land on (pet.go, charm.go,
 # illusion.go, the gates, resurrect.go): no spellarea row for them, as
 # area.go's reading leaves pets, charms and illusions out
@@ -727,7 +773,7 @@ def clause(o, spell):
     if k == "breath":
         return ["Enduring Breath"]
     if k == "hide":
-        return ["Hide"]
+        return ["Invis"]  # the server's nearest: unseen (the old lines' word for it)
     if k == "pickpocket":
         return ["Pickpocket"]
     if k == "faction":
@@ -752,9 +798,15 @@ def proc_words(o, spell):
     its hit (ParseSpell makes it a proc); anything else in words no reader
     takes for a hit."""
     hits = [p for p in o.get("procs") or [] if p["kind"] == "hp" and (p.get("amount") or 0) < 0]
-    if o["kind"] == "def_proc" and hits and len(hits) == len(o.get("procs") or []):
+    if o["kind"] == "def_proc" and hits:
         p = hits[0]
-        return [f"Damage Shield Decrease Hitpoints by {abs(p['amount'])}" + scale_words(p)]
+        out = [f"Damage Shield Decrease Hitpoints by {abs(p['amount'])}" + scale_words(p)]
+        for q in (o.get("procs") or []):
+            if q is not p:
+                words = clause(q, {"scope": "", "harmful": True})
+                if words:
+                    out.append("Add Defensive Proc: " + " ".join(words).replace(";", "") + " when hit")
+        return out
     if o["kind"] == "proc" and spell.get("proc_desc") and hits and not spell["harmful"]:
         p = hits[0]
         return [f"Decrease Hitpoints by {abs(p['amount'])}" + scale_words(p)]
@@ -818,11 +870,23 @@ def line_of(j, proc_desc=False, record_scope=None):
 
 # ---- a new spell's description ----------------------------------------------------
 
-def desc_of(j, cm):
+def desc_of(j, cm, name="", were_quest="", were_form=False):
     """A sentence or two of what a new spell does, in the style of ours (the
     workbook has none): never the words the line's reader takes from a
     description ("proc" but for a weapon proc, "undead" but for an undead
-    spell, "the form of" but for an illusion)."""
+    spell, "the form of" but for an illusion). A were form is "Assume the
+    form of the <name>." as ours are; a were quest's reward names its were
+    and archetype first ("Werewolf caster ability."), as ours do ("Wererat
+    Melee Ability - Debuff AC"), which is what IsWereAbility reads."""
+    if were_form or re.fullmatch(r"(?i)(rat|lion|wolf|bear|gator)were", (name or "").strip()):
+        return f"Assume the form of the {re.sub(r'(?i)\s+form$', '', name.strip()).lower()}."
+    lead = ""
+    if were_quest:
+        parts = were_quest.split("/")
+        kind = WERE_KIND.get(parts[1] if len(parts) > 1 else "", "")
+        arch = re.sub(r"^(?:L\d+|trials|ability|p\d+)-?", "", parts[-1]) if len(parts) > 2 else ""
+        if kind:
+            lead = f"{kind} {arch + ' ' if arch else ''}ability. "
     whom = {"self": "you", "target": "the target", "group": "your group", "pet": "your pet",
             "target_aoe": "the target and those near it", "player_aoe": "you and those near you"}.get(j["scope"], "the target")
     whose = {"self": "your", "target": "the target's", "group": "your group's", "pet": "your pet's",
@@ -931,7 +995,7 @@ def desc_of(j, cm):
     if j.get("target_type", "").lower().endswith("undead") and "undead" not in text.lower():
         text += " Works on undead alone."
     text = re.sub(r"\bproc\b", "", text) if "chance to deal additional" not in text else text
-    return text[:127]
+    return (lead + text)[:127]
 
 
 # ---- the plan -------------------------------------------------------------------
@@ -1003,8 +1067,10 @@ def pick_owner(rows, rec, linked):
     return max(rows, key=score)
 
 
-def plan(db, wb, smap, disc=None, link_existing=False):
-    """Everything --apply would write, and the report's lists."""
+def plan(db, wb, smap, disc=None, link_existing=False, weres=None):
+    """Everything --apply would write, and the report's lists. weres: the
+    were quests' reward spells (were_rewards)."""
+    weres = weres or {}
     rcols = columns(db, "spellpattern")
     records = {r[0]: dict(zip(rcols, r)) for r in db.execute(f"SELECT {', '.join(rcols)} FROM main.spellpattern")}
     ecols = columns(db, "spelleffect")
@@ -1060,6 +1126,10 @@ def plan(db, wb, smap, disc=None, link_existing=False):
         rez = any(o["kind"] == "resurrect" for o in j["effects"])
         cm = cell(s, "Learn Method") == "CM"
         classes = class_mask(cell(s, "CLASS"))
+        quest = weres.get(quest_fold(cell(s, "Name")))
+        # a body every class may take is a were's form: the were quests are
+        # any class's, and the forms past the first their masteries (were.go)
+        were_form = any(o["kind"] == "illusion" for o in j["effects"]) and len(set(classes)) == len(CLASSES)
 
         # the record
         want = {}
@@ -1104,13 +1174,18 @@ def plan(db, wb, smap, disc=None, link_existing=False):
                        recast=want.get("recast", 0), eqprequire=-1 if eq is None else eq,
                        spellname=cell(s, "Name"), spelldesc="")
             proc_desc = any(o["kind"] == "proc" for o in j["effects"]) and not j["harmful"]
-            row["spelldesc"] = desc_of(j, cm)
+            row["spelldesc"] = desc_of(j, cm, row["spellname"], quest[1] if quest else "", were_form)
             spells.append(dict(spellid=sid, action="insert", sheet_id=hexid(s.get("SpellID")), name=row["spellname"],
                                row=row))
-            new_rows[sid] = (s, j)
+            new_rows[sid] = (s, j, False)
             counts["records made"] += 1
         else:
-            proc_desc = bool(re.search(r"\bproc\b|chance to deal additional", (rec["spelldesc"] or "").lower()))
+            # what makes the record's line a proc today: its description's
+            # words, or (enchanter.go) its name, which an old line of a plain
+            # hit on a friend shows
+            old = (erows.get(sid) or {}).get("line") or ""
+            proc_desc = bool(re.search(r"\bproc\b|chance to deal additional", (rec["spelldesc"] or "").lower())) or \
+                (bool(re.search(r"\bdecrease (?:hitpoints|hp) by \d+", old.lower())) and "proc" not in old.lower())
             changed = {k: v for k, v in want.items() if rec.get(k) != v}
             if changed:
                 spells.append(dict(spellid=sid, action="update", sheet_id=hexid(s.get("SpellID")),
@@ -1165,9 +1240,18 @@ def plan(db, wb, smap, disc=None, link_existing=False):
                 area_rows.append(dict(spellid=sid, action="update", before={k: now.get(k) for k in want_a}, set=want_a))
                 counts["areas changed"] += 1
 
-        # whose it is
+        # whose it is: a were's is no class's (were.go)
         src = "cm (eqoaemu)" if cm else "eqoaemu"
-        if rec is None:
+        were = quest is not None or were_form or is_were_ability(cell(s, "Name"),
+                                                     spells[-1]["row"]["spelldesc"] if rec is None else rec["spelldesc"])
+        if were:
+            if classes:
+                counts["were forms and abilities: no class rows"] += 1
+                lists["a were's (were.go, or a were quest's reward): record and effects, no class rows, no scroll"].append(
+                    f"{sid} {cell(s, 'Name')}" + (f" (the quest file: {quest[0]!r}, {quest[1]})" if quest else ""))
+            if rec is None:
+                new_rows[sid] = (s, j, True)
+        elif rec is None:
             for c in classes:
                 links.append(dict(cls=c, spellid=sid, source=src))
         elif link_existing:
@@ -1193,7 +1277,7 @@ def plan_scrolls(db, new_rows, records, lists, counts):
     """The new spells' ways in: a vendor spell's scroll and its merchants; the
     quest and drop spells listed."""
     names = sorted([(sid, r["spellname"], r["abilitylvl"]) for sid, r in records.items()] +
-                   [(sid, cell(s, "Name"), num(s, "Level") or 1) for sid, (s, _) in new_rows.items()])
+                   [(sid, cell(s, "Name"), num(s, "Level") or 1) for sid, (s, _, _) in new_rows.items()])
     icols = columns(db, "itempattern")
     scroll_rows = [dict(zip(icols, r)) for r in
                    db.execute("SELECT * FROM main.itempattern WHERE itemicon = ? AND equipslot = -1", (SCROLL_ICON,))]
@@ -1214,11 +1298,13 @@ def plan_scrolls(db, new_rows, records, lists, counts):
     size = collections.Counter(dict(db.execute("SELECT npcid, count(*) FROM main.npcitem GROUP BY npcid").fetchall()))
     nextlist = dict(db.execute("SELECT npcid, coalesce(max(listnumber), -1) + 1 FROM main.npcitem GROUP BY npcid").fetchall())
     scrolls, stock = [], []
-    for sid, (s, j) in sorted(new_rows.items()):
+    for sid, (s, j, were) in sorted(new_rows.items()):
         classes = class_mask(cell(s, "CLASS"))
         if not classes:
             counts["new spells of no class (a pet's or a creature's)"] += 1
             continue
+        if were:
+            continue  # its quest or mastery gives it
         learn, how = cell(s, "Learn Method"), cell(s, "ScrollSource")
         name, level = cell(s, "Name"), num(s, "Level") or 1
         tag = f"{sid} {name} ({cell(s, 'CLASS')} L{level})"
@@ -1310,6 +1396,31 @@ REPORT_ORDER = ["records made", "records updated", "  abilitylvl changed", "  ra
                 "merchants stocked"]
 
 
+def were_quest_check(p, smap, wb, weres):
+    """Each were quest's reward spell: found in the workbook (and so given a
+    record here or ours already), found under another spelling the quest
+    importer does not resolve, or not in the workbook at all."""
+    sheet = collections.defaultdict(list)
+    for s in wb.spells:
+        sheet[quest_fold(cell(s, "Name"))].append(s)
+    near = {re.sub(r"(.)\1", r"\1", k): k for k in sheet}  # one letter doubled: "Reptillian"
+    out = {"found": [], "spelled differently": [], "missing": []}
+    for k, (name, key) in sorted(weres.items(), key=lambda kv: kv[1][1]):
+        rows = sheet.get(k)
+        if rows:
+            ids = sorted({smap.get(hexid(r.get("SpellID")), (None, ""))[0] for r in rows} - {None})
+            out["found"].append(f"{name} ({key}): {', '.join(map(str, ids))}")
+            continue
+        other = near.get(re.sub(r"(.)\1", r"\1", k))
+        if other:
+            r = sheet[other][0]
+            out["spelled differently"].append(f"{name} ({key}): the workbook's {cell(r, 'Name')!r}, "
+                                              f"{smap.get(hexid(r.get('SpellID')), (None, ''))[0]}")
+        else:
+            out["missing"].append(f"{name} ({key})")
+    return out
+
+
 def report(p, full=False):
     c = p["counts"]
     for k in REPORT_ORDER + sorted(k for k in c if k not in REPORT_ORDER):
@@ -1323,6 +1434,10 @@ def report(p, full=False):
             print(f"      {x}")
         if not full and len(v) > 5:
             print("      ...")
+    for k, v in (p.get("were_quest_spells") or {}).items():
+        print(f"  the were quests' reward spells, {k}: {len(v)}")
+        for x in (v if full or k != "found" else v[:5]):
+            print(f"      {x}")
 
 
 # ---- writing it -------------------------------------------------------------------
@@ -1504,6 +1619,8 @@ def main():
     ap.add_argument("--map", help="the SpellID map (sheet_id, spellid, how)")
     ap.add_argument("--iso", help="the Frontiers disc: a made spelleffect row takes the workbook's visual if the disc has it")
     ap.add_argument("--link-existing", action="store_true", help="give spells we have the classes the workbook adds")
+    ap.add_argument("--were-quests", default=WERE_QUESTS,
+                    help="the were quests' file, whose reward spells are no class's (default tools/quests/data/weres.json)")
     ap.add_argument("--save-plan", metavar="FILE")
     ap.add_argument("--plan", metavar="FILE")
     ap.add_argument("--list", action="store_true", help="every listed spell, not five a list")
@@ -1533,7 +1650,10 @@ def main():
         if a.iso:
             import fill_spell_visuals_eqoaemu as fsv
             disc = fsv.disc_visuals(a.iso)
-        p = plan(db, Workbook(read_workbook(a.sheets, a.ods)), read_map(a.map), disc, a.link_existing)
+        p = plan(db, Workbook(read_workbook(a.sheets, a.ods)), read_map(a.map), disc, a.link_existing,
+                 were_rewards(a.were_quests))
+        p["were_quest_spells"] = were_quest_check(p, read_map(a.map), Workbook(read_workbook(a.sheets, a.ods)),
+                                                  were_rewards(a.were_quests))
     report(p, a.list)
     if a.save_plan:
         p["made"] = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")

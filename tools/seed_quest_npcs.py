@@ -135,8 +135,9 @@ KIND = {
 LAND, WATER, BOTH = "land", "water", "both"
 
 
-def S(name, role, body, place, count=1, level=None, note="", water=LAND):
-    return dict(name=name, role=role, body=body, place=place, count=count, level=level, note=note, water=water)
+def S(name, role, body, place, count=1, level=None, note="", water=LAND, facing=None):
+    return dict(name=name, role=role, body=body, place=place, count=count, level=level, note=note, water=water,
+                facing=facing)
 
 
 # body: ("race", race, sex) | ("kind", KIND key) | ("npc", name: that row's body)
@@ -145,6 +146,8 @@ def S(name, role, body, place, count=1, level=None, note="", water=LAND):
 #        an "at" with a height stands on the floor nearest it (a chamber under rock, whose top floor is the
 #        rock's and whose lowest the ground under it: the vampires' Sanctuary)
 # water: LAND (out of the water), WATER (a fish: in it) or BOTH (an alligator, a crab)
+# facing: the row's facing byte (heading h x 256/2pi, h looking along (sin h, cos h) in (x, z), as
+#         entity's headingTo); None, a random one (drawn either way, so the other rows' stay as they were)
 SPECS = [
     # --- Freeport ---
     S("Crim Arikson", TALKER, ("race", "human", MALE), ("ff",), note="the forger in Bastable Village"),
@@ -168,8 +171,10 @@ SPECS = [
     S("Denouncer R`Noxt", TALKER, ("race", "darkelf", MALE), ("ff",)),
     S("Denouncer T`Crit", TALKER, ("race", "darkelf", MALE), ("ff",), note="above the ghoul captains' dock"),
     S("Dragoon V`Ghen", TALKER, ("npc", "Haltak V`Ghen"), ("ff",), note="the outpost north of the city; Haltak's brother"),
-    S("Valrean V`Ghen", FOE, ("npc", "Haltak V`Ghen"), ("near", "Dragoon V`Ghen", 55, 0), level=13,
-      note="in the tent below the outpost (the map's point, 55 from his brother); the files spelled him Valraen and Valrean"),
+    S("Valrean V`Ghen", FOE, ("npc", "Haltak V`Ghen"), ("at", 0, 25228.0, 8534.9), level=13, facing=135,
+      note="in the tent below the outpost, under its roof (2026-11-01: a player on the quest stood in it; 55 from "
+           "his brother, the map's point, was 117 off in the open), facing its door: the walls file's one gap "
+           "round the middle, headings 180-200 between two poles; the files spelled him Valraen and Valrean"),
     S("Dragoon X`Talin", TALKER, ("race", "darkelf", MALE), ("ff",), note="his tower up the river west of Neriak"),
     S("Arzen", FOE, ("race", "darkelf", MALE), ("ff",), note="on the rocky hill north of X`Talin's tower"),
     S("Xeruin", FOE, ("race", "darkelf", FEMALE), ("ff",), note="camps in the tents up the river with Guryon"),
@@ -934,8 +939,11 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None, att
                 level = spec["level"] or lv or row.get("npc_level") or 1
                 if src == "ff":
                     level = lv or level
+                facing = rng.randrange(256)
+                if spec.get("facing") is not None:
+                    facing = spec["facing"]
                 row.update(npc_name=spec["name"], world=world, x_coord=round(x, 3), y_coord=round(y, 4),
-                           z_coord=round(z, 3), facing=rng.randrange(256), npc_level=int(level),
+                           z_coord=round(z, 3), facing=facing, npc_level=int(level),
                            npc_type=TYPE[spec["role"]], npc_id=0, dt_kill=None, zone=0)
                 rows.append(dict(row=row, name=spec["name"], source=src, template=tpl.get("id"), note=spec["note"]))
                 placed.append((world, x, z))

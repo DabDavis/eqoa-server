@@ -1387,7 +1387,7 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None):
     gate_rows = plan_gates(db, gates, lists, counts)
     counts["class rows"] = len(links)
 
-    scrolls, stock = plan_scrolls(db, new_rows, records, lists, counts, links, moves)
+    scrolls, stock = plan_scrolls(db, new_rows, records, lists, counts, links, moves, migrations)
     p = dict(spells=spells, effects=effects, areas=area_rows, links=links, scrolls=scrolls, stock=stock,
              moves=moves, migrations=migrations, gates=gate_rows,
              lists={k: v for k, v in lists.items()}, counts=dict(counts), effect_clash=wb.effect_clash)
@@ -1618,7 +1618,7 @@ def changes_of(p):
     return out
 
 
-def plan_scrolls(db, new_rows, records, lists, counts, links=(), moves=()):
+def plan_scrolls(db, new_rows, records, lists, counts, links=(), moves=(), migrations=()):
     """The new spells' ways in: a vendor spell's scroll and its merchants; the
     quest and drop spells listed. A scroll is judged as scribe.go will read
     it after the import: each class's spells as classspells will hold them."""
@@ -1644,6 +1644,10 @@ def plan_scrolls(db, new_rows, records, lists, counts, links=(), moves=()):
         by_key[spell_key(r["itemname"])].append(r)
     taken = {r[0] for r in db.execute("SELECT patternid FROM main.itempattern")}
     q_items, q_spells = quest_rewards(db)
+    for m in migrations:   # the rewards a split moved to its record
+        if m["tbl"] == "queststeps":
+            for v in m["set"].values():
+                q_spells.update(int(x) for x in re.findall(r"\d+", v or ""))
     price = scroll_curve(db)
     # vendor bands: npcid -> class -> levels of its scrolls of the class; and the size of each catalog
     bands = collections.defaultdict(lambda: collections.defaultdict(list))

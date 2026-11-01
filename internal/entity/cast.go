@@ -249,6 +249,11 @@ type ActiveEffect struct {
 	NextTick  time.Time
 	HPTick    int // each tick, signed
 	PowerTick int
+	// TickDrain is whom a damage tick's take goes to (a drain over time:
+	// Infernal Bond's "Decrease HP per tic by 240, give to self"), DrainNone
+	// for nobody; TickRange the spell's range, for a group's share.
+	TickDrain DrainTo
+	TickRange float32
 	Mods      StatMods
 	Root      bool
 	Snare     bool
@@ -1063,6 +1068,9 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 		switch e.Kind {
 		case EffectHPTick:
 			ae.HPTick += spellAmount(e, caster)
+			if e.Drain != DrainNone && e.Amount < 0 {
+				ae.TickDrain, ae.TickRange = e.Drain, cs.spell.Range
+			}
 		case EffectPowerTick:
 			ae.PowerTick += spellAmount(e, caster)
 		case EffectStat:
@@ -1410,7 +1418,16 @@ func (w *World) tickNPCEffectLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 	}
 	for ; times > 0; times-- {
 		if caster := w.Players[ae.Caster]; caster != nil && !npc.Dead {
-			if w.spellHitLocked(caster, w.findSessionByEntityIDLocked(caster.ServerID), npc, -ae.HPTick) {
+			sess := w.findSessionByEntityIDLocked(caster.ServerID)
+			died := w.spellHitLocked(caster, sess, npc, -ae.HPTick)
+			// a drain over time: each tick's figure to the caster (or its
+			// group), whole, as a tap's is though it killed (lifetap.go)
+			if ae.TickDrain != DrainNone && !caster.IsDead() {
+				for _, p := range w.tickDrainersLocked(caster, ae) {
+					w.healLocked(caster, sess, p, -ae.HPTick)
+				}
+			}
+			if died {
 				return
 			}
 		}

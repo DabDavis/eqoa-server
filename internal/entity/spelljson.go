@@ -489,6 +489,11 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 			se = effectOf(EffectHP, e)
 		case strings.EqualFold(e.Stat, "power") || strings.EqualFold(e.Stat, "pow"):
 			se = effectOf(EffectPower, e)
+		case strings.EqualFold(e.Stat, "hot"):
+			// hit points over time, each tick's to the caster (Infernal
+			// Bond's: the sheet's HoT column of a Drain, its line "Decrease
+			// HP per tic by 240, give to self"; cast.go's tick)
+			se = effectOf(EffectHPTick, e)
 		case ok && st <= StatAR:
 			se = effectOf(EffectStat, e)
 			se.Stat = st

@@ -1389,7 +1389,16 @@ func (w *World) spellHitLocked(caster *Player, casterSess *session.Session, npc 
 
 // tickNPCEffectLocked runs a damage tick on a creature when one is due.
 func (w *World) tickNPCEffectLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
-	if ae.NextTick.IsZero() || now.Before(ae.NextTick) || ae.HPTick >= 0 {
+	if ae.NextTick.IsZero() || now.Before(ae.NextTick) || ae.HPTick == 0 {
+		return
+	}
+	if ae.HPTick > 0 {
+		// a heal over time cast on it as a charmed pet, kept once it went
+		// free (charm.go); a pet's own tick in petEffectsLocked
+		if npc.Owner == 0 && !npc.Dead {
+			ae.NextTick = ae.NextTick.Add(effectTick)
+			npc.HP = min(npc.HP+ae.HPTick, npc.MaxHP)
+		}
 		return
 	}
 	ae.NextTick = ae.NextTick.Add(effectTick)
@@ -1429,6 +1438,9 @@ func (w *World) effectSystem(now time.Time) {
 	for id, npc := range w.affected {
 		if len(npc.Effects) == 0 || npc.Dead || w.NPCs[id] != npc {
 			npc.Effects = nil
+			if !npc.Dead && npc.effMaxHP != 0 {
+				npc.syncEffectMaxHP() // a released charm's last raise ended (pet.go)
+			}
 			delete(w.affected, id)
 			continue
 		}
@@ -1439,6 +1451,9 @@ func (w *World) effectSystem(now time.Time) {
 			}
 		}
 		npc.Effects = left
+		if npc.effMaxHP != 0 {
+			npc.syncEffectMaxHP() // a released charm's raise as its effects end (pet.go)
+		}
 		for _, ae := range append([]*ActiveEffect(nil), npc.Effects...) {
 			w.tickNPCEffectLocked(npc, ae, now)
 			if npc.Dead {

@@ -55,3 +55,62 @@ func TestAPetsMaximumTakesItsBuffs(t *testing.T) {
 		t.Errorf("after its end: %d/%d with %d effects; want %d/%d, none", pet.HP, pet.MaxHP, len(pet.Effects), own, own)
 	}
 }
+
+// A charmed creature set free keeps what was cast on it until each runs out
+// (the user, 2026-11-01: "is charm breaks/release the mob retains all buffs
+// until they expire"): a maximum raised by 300 stays raised after its master
+// lets it go and comes back down when the buff's minute is over (it was never
+// on the creatures' effects, so it never ran out); a respawn brings it back
+// without them.
+func TestAFreedCharmKeepsItsBuffsUntilTheyEnd(t *testing.T) {
+	defer func(f func(int) int) { charmIntn = f }(charmIntn)
+	charmIntn = dice(99)
+	r, _, _ := charmRig(t)
+	crab := r.enemy
+	if began, _ := castCharm(t, r, captivation(), crabID, 0); !began || crab.Owner == 0 {
+		t.Fatal("not charmed")
+	}
+	own := crab.MaxHP
+	giant := wbSpell(9202, 20, 1, "Test Colossus", `{"v":1,"scope":"target","target_type":"Friendly","harmful":false,"duration_s":60,"stack":1,"level":20,
+		"effects":[{"id":"0001","type":"Dmg/Heal","kind":"hp","amount":300},
+			{"id":"0002","type":"Statistic Change","kind":"stat","stat":"maxhp","amount":300}]}`)
+	r.w.mu.Lock()
+	cs := &castState{spell: giant, caster: r.p.ServerID, targets: []EntityID{crab.ServerID}}
+	r.w.landOnPetLocked(cs, r.p, r.sess, crab, r.at(10*time.Second))
+	r.w.mu.Unlock()
+	if crab.MaxHP != own+300 || crab.HP != own+300 {
+		t.Fatalf("on the pet: %d/%d; want %d/%d", crab.HP, crab.MaxHP, own+300, own+300)
+	}
+	r.w.PetCommand(r.sess, petCmdDismiss, 0, r.at(20*time.Second))
+	effects := func(d time.Duration) {
+		r.w.mu.Lock()
+		defer r.w.mu.Unlock()
+		r.w.effectSystem(r.at(d))
+	}
+	effects(30 * time.Second)
+	if crab.Owner != 0 || crab.MaxHP != own+300 || len(crab.Effects) != 1 {
+		t.Fatalf("set free, 20 s left of the buff: owner %d, maximum %d, %d effects; want 0, %d, 1", crab.Owner, crab.MaxHP, len(crab.Effects), own+300)
+	}
+	effects(75 * time.Second)
+	if crab.MaxHP != own || crab.HP > own || len(crab.Effects) != 0 {
+		t.Errorf("past the buff's minute: %d/%d, %d effects; want at most %d/%d, none", crab.HP, crab.MaxHP, len(crab.Effects), own, own)
+	}
+
+	// a death under the buff, then a respawn: its own maximum
+	r2, _, _ := charmRig(t)
+	crab2 := r2.enemy
+	castCharm(t, r2, captivation(), crabID, 0)
+	own2 := crab2.MaxHP
+	r2.w.mu.Lock()
+	cs2 := &castState{spell: giant, caster: r2.p.ServerID, targets: []EntityID{crab2.ServerID}}
+	r2.w.landOnPetLocked(cs2, r2.p, r2.sess, crab2, r2.at(10*time.Second))
+	r2.w.mu.Unlock()
+	r2.w.PetCommand(r2.sess, petCmdDismiss, 0, r2.at(20*time.Second))
+	r2.w.mu.Lock()
+	r2.w.killNPC(crab2)
+	r2.w.respawnNPCLocked(crab2)
+	r2.w.mu.Unlock()
+	if crab2.MaxHP != own2 || crab2.HP != own2 || len(crab2.Effects) != 0 {
+		t.Errorf("back after a death under the buff: %d/%d, %d effects; want %d/%d, none", crab2.HP, crab2.MaxHP, len(crab2.Effects), own2, own2)
+	}
+}

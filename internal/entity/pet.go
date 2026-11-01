@@ -1096,7 +1096,7 @@ func petMeleeHit(pet, t *NPC, intn func(int) int) int {
 	}
 	r := creatureRoll(pet.Level)
 	m := pet.effectMods()
-	def := targetDefence(t) + t.keptDefence(pet.Level) // a freed charm's buffs
+	def := targetDefence(t) + t.creatureDefence(pet.Level) // its effects' AC and AGI
 	top := int(math.Round(r.Top - def))
 	low := top - r.Width
 	floor := r.Floor
@@ -1133,34 +1133,37 @@ func npcHitOnPet(npc, pet *NPC, intn func(int) int) int {
 	return max(hit, r.Floor, 1)
 }
 
-// keptMods is what a creature's kept effects add to its stats: those cast on
-// it as a charmed pet and kept when it went free (the user, 2026-11-01:
-// "make the released mob's buffs count in its fights too"; charm.go marks
-// them), until each runs out. Their STR and DEX move its rolls as a pet's
-// effects move its own (meleeRoll.withMods), their AC and AGI take off the
-// hits on it as a player's take off a creature's (keptDefence). Nothing for
-// a pet (its effects count through effectMods) or a creature never charmed,
-// which fights by its level alone: what players cast on a creature counts in
-// no fight.
-func (n *NPC) keptMods() StatMods {
+// creatureMods is what a creature's effects add to its stats in its fights,
+// as a pet's do: the debuffs players and their pets put on it (the user,
+// 2026-11-01: "yes make player debuffs count too"; until then a creature
+// fought by its level alone, and an AC, STR, DEX or AGI debuff on one did
+// nothing) and the buffs a charmed creature kept when it went free ("make
+// the released mob's buffs count in its fights too"), each until it runs
+// out. STR and DEX move its rolls as a pet's effects move its own
+// (meleeRoll.withMods: on players, pets and guards), AC and AGI the hits on
+// it as a player's take off a creature's (creatureDefence), a maximum its
+// maximum hit points (syncEffectMaxHP); its resists were counted already
+// (workbook.go's npcResistKindPct), its STA, WIS, INT and CHA count for
+// nothing (no creature's hit points or hits come from them). Nothing for a
+// pet: its effects count through effectMods.
+func (n *NPC) creatureMods() StatMods {
 	var m StatMods
 	if n.Owner != 0 {
 		return m
 	}
 	for _, e := range n.Effects {
-		if e.Kept {
-			m.sum(e.Mods)
-		}
+		m.sum(e.Mods)
 	}
 	return m
 }
 
-// keptDefence is what a freed charm's kept AC and AGI take off an attacker's
-// roll on it: as a player's take off a creature's top (defence.go: the
-// creature line's AC slope at the attacker's level, a tank's per point of
-// AGI). Ours: no record of a creature's armour against a player exists.
-func (n *NPC) keptDefence(attackerLevel int) float64 {
-	m := n.keptMods()
+// creatureDefence is what a creature's AC and AGI effects take off an
+// attacker's roll on it (an AC debuff: a negative, the roll higher): as a
+// player's take off a creature's top (defence.go: the creature line's AC
+// slope at the attacker's level, a tank's per point of AGI). Ours: no record
+// of a creature's armour against a player exists.
+func (n *NPC) creatureDefence(attackerLevel int) float64 {
+	m := n.creatureMods()
 	if m.AC == 0 && m.Agi == 0 {
 		return 0
 	}
@@ -1168,9 +1171,8 @@ func (n *NPC) keptDefence(attackerLevel int) float64 {
 }
 
 // effectMods is what the NPC's effects add to its stats: a pet's own buffs
-// and those cast on it. Only a pet's are used (npcHitOnPet, petMeleeHit); a
-// creature fights by its level alone, but for a freed charm's kept buffs
-// (keptMods).
+// and those cast on it, which its fights take (npcHitOnPet, petMeleeHit); a
+// creature's are creatureMods.
 func (n *NPC) effectMods() StatMods {
 	var m StatMods
 	for _, e := range n.Effects {
@@ -1317,7 +1319,9 @@ func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *sessi
 // their raise until each runs out (the user, 2026-11-01: "is charm
 // breaks/release the mob retains all buffs until they expire": charm.go's
 // releaseCharmLocked puts it on the creatures' effects, effectSystem, which
-// takes the raise back as they end); a respawn is a new life, without them.
+// takes the raise back as they end); a creature's maximum takes its effects
+// as a pet's does, a player's debuff on it too (creatureMods); a respawn is
+// a new life, without them.
 
 // effectsMaxHP is what the NPC's effects add to its maximum hit points: each
 // effect's maximum and its hit point factor at the NPC's level, as a

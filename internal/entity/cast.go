@@ -265,9 +265,6 @@ type ActiveEffect struct {
 	ProcCap      int
 	// ProcUndead: the proc fires on undead creatures alone (Smite Undead's)
 	ProcUndead bool
-	// Kept: cast on a creature while it was a charmed pet and kept when it
-	// went free, so it counts in the creature's fights (charm.go, keptMods)
-	Kept bool
 	// Form is the body an illusion shows its bearer in (illusion.go), 0 for
 	// none; FormSize its scale, 0 for the bearer's own.
 	Form     uint32
@@ -1346,6 +1343,7 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 			}
 		}
 		npc.Effects = append(npc.Effects, ae)
+		npc.syncEffectMaxHP() // a maximum's debuff (pet.go's creatureMods)
 		if w.affected == nil {
 			w.affected = make(map[EntityID]*NPC)
 		}
@@ -1442,7 +1440,7 @@ func (w *World) effectSystem(now time.Time) {
 		if len(npc.Effects) == 0 || npc.Dead || w.NPCs[id] != npc {
 			npc.Effects = nil
 			if !npc.Dead && npc.effMaxHP != 0 {
-				npc.syncEffectMaxHP() // a released charm's last raise ended (pet.go)
+				npc.syncEffectMaxHP() // its last maximum's effect ended (pet.go)
 			}
 			delete(w.affected, id)
 			continue
@@ -1454,9 +1452,7 @@ func (w *World) effectSystem(now time.Time) {
 			}
 		}
 		npc.Effects = left
-		if npc.effMaxHP != 0 {
-			npc.syncEffectMaxHP() // a released charm's raise as its effects end (pet.go)
-		}
+		npc.syncEffectMaxHP() // a maximum's effect that ended taken back (pet.go)
 		for _, ae := range append([]*ActiveEffect(nil), npc.Effects...) {
 			w.tickNPCEffectLocked(npc, ae, now)
 			if npc.Dead {

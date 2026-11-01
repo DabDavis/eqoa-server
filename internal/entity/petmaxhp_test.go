@@ -122,10 +122,8 @@ func TestAFreedCharmKeepsItsBuffsUntilTheyEnd(t *testing.T) {
 // 0.196 a point higher, its floor 0.02 a point), and its master's roll on it
 // loses what its AC and AGI take off, as a player's take off a creature's
 // (the creature line's AC slope at the attacker's level, a tank's per point
-// of AGI); at the buff's end both are as before. The control: a creature
-// never charmed, with the same numbers on it from a spell (what players
-// cast on a creature counts in no fight), rolls by its level alone. Before
-// the change neither roll moved.
+// of AGI); at the buff's end both are as before. Before the change neither
+// roll moved.
 func TestAFreedCharmsBuffsCountInItsFights(t *testing.T) {
 	defer func(f func(int) int) { charmIntn = f }(charmIntn)
 	charmIntn = dice(99)
@@ -166,11 +164,55 @@ func TestAFreedCharmsBuffsCountInItsFights(t *testing.T) {
 	if r2, h2 := rolls(crab); r2 != r0 || h2 != h0 {
 		t.Errorf("after the buff's end: roll %+v, top on it %d; want %+v, %d", r2, h2, r0, h0)
 	}
+	_ = flesh
+}
 
-	f0, fh0 := rolls(flesh)
-	flesh.Effects = append(flesh.Effects, &ActiveEffect{SpellID: 9204, Name: "Test Curse", Until: r.at(time.Hour),
-		Mods: StatMods{Str: 100, AC: 200, Agi: 50}})
-	if f1, fh1 := rolls(flesh); f1 != f0 || fh1 != fh0 {
-		t.Errorf("the control, a creature never charmed: roll %+v, top on it %d; want %+v, %d", f1, fh1, f0, fh0)
+// A player's debuffs on a creature count in its fights (the user,
+// 2026-11-01: "yes make player debuffs count too"; until then a creature
+// fought by its level alone): STR -50, AC -200 and AGI -40 cast on the crab
+// take a tank's STR terms off its roll on the caster and add what its AC and
+// AGI took off to the caster's roll on it; a maximum's debuff of 300 lowers
+// its maximum hit points (and its hit points with it, at full health), and
+// at the debuff's end the maximum is back, its hit points where the debuff
+// left them. Before the change none of it moved.
+func TestAPlayersDebuffsCountInACreaturesFights(t *testing.T) {
+	noResist(t)
+	r, _, _ := charmRig(t)
+	crab := r.enemy
+	rolls := func() (meleeRoll, int) {
+		r.w.mu.Lock()
+		defer r.w.mu.Unlock()
+		_, _, high := playerMeleeRoll(r.p, crab)
+		return npcMeleeRollFor(crab, r.p), high
+	}
+	r0, h0 := rolls()
+	own := crab.MaxHP
+	curse := wbSpell(9205, 20, 1, "Test Withering", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"duration_s":60,"stack":1,"level":20,
+		"effects":[{"id":"0001","type":"Statistic Change","kind":"stat","stat":"str","amount":-50},
+			{"id":"0002","type":"Statistic Change","kind":"stat","stat":"ac","amount":-200},
+			{"id":"0003","type":"Statistic Change","kind":"stat","stat":"agi","amount":-40},
+			{"id":"0004","type":"Statistic Change","kind":"stat","stat":"maxhp","amount":-300}]}`)
+	r.w.mu.Lock()
+	r.w.landOnNPCLocked(&castState{spell: curse, caster: r.p.ServerID, targets: []EntityID{crab.ServerID}}, r.p, r.sess, crab, r.at(10*time.Second))
+	r.w.mu.Unlock()
+	if len(crab.Effects) == 0 {
+		t.Fatal("the debuff did not land")
+	}
+	r1, h1 := rolls()
+	if d := r0.Top - r1.Top; d < offHighSTR*50-0.001 || d > offHighSTR*50+0.001 || r0.Floor-r1.Floor != 1 {
+		t.Errorf("its roll under the debuff: top -%.3f, floor -%d; want -%.3f, -1", d, r0.Floor-r1.Floor, offHighSTR*50)
+	}
+	want := creatureRoll(r.p.Level).ACSlope*200 + agiSlope[archTank]*40
+	if d := float64(h1 - h0); d < want-1 || d > want+1 {
+		t.Errorf("the caster's top on it: %d more; want %.1f more", h1-h0, want)
+	}
+	if crab.MaxHP != own-300 || crab.HP != own-300 {
+		t.Errorf("its maximum under the debuff: %d/%d; want %d/%d", crab.HP, crab.MaxHP, own-300, own-300)
+	}
+	r.w.mu.Lock()
+	r.w.effectSystem(r.at(75 * time.Second)) // past the debuff's minute
+	r.w.mu.Unlock()
+	if r2, h2 := rolls(); r2 != r0 || h2 != h0 || crab.MaxHP != own || crab.HP != own-300 {
+		t.Errorf("after the debuff's end: roll %+v, top on it %d, %d/%d; want %+v, %d, %d/%d", r2, h2, crab.HP, crab.MaxHP, r0, h0, own-300, own)
 	}
 }

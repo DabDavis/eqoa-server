@@ -768,16 +768,30 @@ func (w *World) petFollowLocked(ps *petState, dt float32) {
 // alone, a pet on a hill sent at a creature below stood inside the hill at
 // the creature's height until the slope came down to it (the user,
 // 2026-10-31: "when i was sending jedds pet skeleton to attack mobs, it would
-// glitch under the hill i was on then run at the mob"). Must be called with
-// the lock held.
+// glitch under the hill i was on then run at the mob"). A floor placed on
+// the ground at toward's height (a bridge's deck, a house's floor, a stair:
+// the walls files', placedFloor) is taken over the terrain under it: the
+// terrain's alone, a pet following its owner over a bridge walked the river
+// bed under it (the user, 2026-11-01: "Jedds pet skeleton collision made it
+// stand under the bridge"). Must be called with the lock held.
 func (w *World) petStepLocked(pet *NPC, x, z, toward, speed, dt float32) {
 	own := pet.Y
 	pet.Y = toward
 	w.stepNPCToward(pet, x, z, speed, dt)
-	if w.ground == nil || !w.spawnOnGroundLocked(pet) {
+	// where it was summoned is no spawn: a pet summoned on a bridge or a
+	// house's floor looks for its floor as one summoned on the terrain does
+	// (groundNPCLocked would keep it at its summoning height 10 off it, then
+	// put it on the terrain under it); one summoned in the water keeps the
+	// water's rule
+	if w.ground == nil || (!w.spawnOnGroundLocked(pet) && w.spawnInWaterLocked(pet)) {
 		return
 	}
-	if _, ok := w.ground.Floor(pet.World, pet.X, toward, pet.Z); ok {
+	y, ok := w.ground.Floor(pet.World, pet.X, toward, pet.Z)
+	if deck, placed := w.placedFloorLocked(pet.World, pet.X, toward, pet.Z); placed && (!ok || deck > y) {
+		y, ok = deck, true
+	}
+	if ok {
+		pet.Y = y
 		return
 	}
 	if y, ok := w.ground.Floor(pet.World, pet.X, own, pet.Z); ok {
@@ -785,6 +799,33 @@ func (w *World) petStepLocked(pet *NPC, x, z, toward, speed, dt float32) {
 	} else {
 		pet.Y = own
 	}
+}
+
+// supportGround is a Ground that knows every surface, what is placed on the
+// terrain too (internal/ground's Support: the highest floor looking up
+// within a span of heights).
+type supportGround interface {
+	Support(world uint8, x, y, z, up, down float32) (float32, bool)
+}
+
+// How far over and under a height a pet looks for a floor placed there: a
+// stair's step over its owner's feet (not a table's top or a bridge's rail),
+// and a few units under them.
+const (
+	petDeckUp   float32 = 0.5
+	petDeckDown float32 = 4
+)
+
+// placedFloorLocked is the highest floor at (x, z) from petDeckDown under y
+// to petDeckUp over it, the terrain's or anything's placed on it; false with
+// a ground that knows only the terrain, or none there. Must be called with
+// the lock held.
+func (w *World) placedFloorLocked(world uint8, x, y, z float32) (float32, bool) {
+	s, ok := w.ground.(supportGround)
+	if !ok {
+		return 0, false
+	}
+	return s.Support(world, x, y, z, petDeckUp, petDeckDown)
 }
 
 // petChooseTargetLocked lets go of a target that is gone, dead or too far

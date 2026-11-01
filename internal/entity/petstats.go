@@ -133,17 +133,28 @@ func loadPetSheets(db *database.SQLiteDB) (map[int]*petSheet, []string, error) {
 }
 
 // petBodyLocked is the NPC a workbook pet is made after: of this server's
-// own NPCs wearing its body (not pets, not a GM's copies), the most common
-// size's, the lowest id; else the one pet.go would have picked, its body put
-// on (a body no NPC wears: the disc has it); nil when there is neither. Must
-// be called with the lock held.
+// own NPCs wearing its body (not pets, not a GM's copies) at a person's size
+// (petSizeLeast to petSizeMost), the most common size's, the lowest id; a
+// body worn only bigger or smaller, the commonest wearer at the body's own
+// scale, 1; else the one pet.go would have picked, its body put on (a body
+// no NPC wears: the disc has it); nil when there is neither. Taken from
+// every wearer, Hulking Bones wore the skeletal giants' body at their 2.2
+// (the user, 2026-11-01: "hulking bones scale is too big"). Must be called
+// with the lock held.
 func (w *World) petBodyLocked(s *petSheet, spellName, lineName string, class int) *NPC {
 	if s.Model != 0 {
-		var wearing []*NPC
+		var wearing, sized []*NPC
 		for _, npc := range w.NPCs {
 			if !npc.Temporary && npc.Owner == 0 && uint32(npc.ModelID) == s.Model {
 				wearing = append(wearing, npc)
+				if npc.Size >= petSizeLeast && npc.Size <= petSizeMost {
+					sized = append(sized, npc)
+				}
 			}
+		}
+		rescale := len(sized) == 0
+		if !rescale {
+			wearing = sized
 		}
 		if len(wearing) > 0 {
 			sizes := map[float32]int{}
@@ -157,6 +168,11 @@ func (w *World) petBodyLocked(s *petSheet, spellName, lineName string, class int
 				}
 				return a.ServerID < b.ServerID
 			})
+			if rescale {
+				body := *wearing[0]
+				body.Size = 1
+				return &body
+			}
 			return wearing[0]
 		}
 	}
@@ -170,6 +186,14 @@ func (w *World) petBodyLocked(s *petSheet, spellName, lineName string, class int
 	body.PrimaryWeapon, body.SecondaryWeapon, body.Shield = 0, 0, 0
 	return &body
 }
+
+// A workbook pet takes the size its body's wearers have within a person's
+// (ours): not a giant's that wears the same body (the skeletal giants' 2.2),
+// nor a creature's shrunk below it.
+const (
+	petSizeLeast float32 = 0.75
+	petSizeMost  float32 = 1.5
+)
 
 // applyPetSheet makes a new pet the row's: its body, weapons and their
 // hands, its numbers for the balance and the fights (the file's doc).

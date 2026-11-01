@@ -1151,8 +1151,12 @@ func (w *World) petEffectsLocked(ps *petState, now time.Time) {
 			continue
 		}
 		ae.NextTick = ae.NextTick.Add(effectTick)
+		n := ae.HPTick
+		if ae.Rules.Twice { // the workbook's first tick, twice (workbook.go)
+			ae.Rules.Twice, n = false, 2*n
+		}
 		if pet.HP < pet.MaxHP {
-			pet.HP = min(pet.HP+ae.HPTick, pet.MaxHP)
+			pet.HP = min(pet.HP+n, pet.MaxHP)
 		}
 	}
 	pet.Effects = left

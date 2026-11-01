@@ -217,6 +217,10 @@ type Player struct {
 	WalkFlags       uint32 // the last 0x40's walker flags (clientupdate.go)
 	HasWalkFlags    bool
 
+	// mv is the server's own view of the player's moves (movecheck.go):
+	// the place last taken from its 0x40, the speed in hand, the fall
+	mv moveState
+
 	// Stood is the last place the player was known to stand, on a floor or
 	// in a liquid (clientupdate.go's Standing): where it arrived (a login, a
 	// server-side move, a respawn) or a 0x40 whose walker flags say so;

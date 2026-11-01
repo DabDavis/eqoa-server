@@ -70,6 +70,13 @@ func main() {
 	// A creature's corpse, its return and its wander (entity/corpse.go,
 	// entity/roam.go), set before the NPCs are loaded so each takes them.
 	gameWorld.SetCorpseTimes(cfg.World.CorpseDecay, cfg.World.RespawnAfter)
+	// The server's own view of a player's moves (entity/movecheck.go)
+	if m, err := entity.ParseMoveCheckMode(cfg.World.MoveCheck); err != nil {
+		log.Printf("WARNING: world.%v; the movement check logs", err)
+	} else {
+		entity.SetMoveCheck(m)
+	}
+	log.Printf("Movement check: %s (world.movecheck, #movecheck)", entity.MoveCheck())
 	if cfg.World.RoamRadius != 0 {
 		gameWorld.SetRoamRadius(cfg.World.RoamRadius)
 	}

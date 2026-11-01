@@ -3,6 +3,7 @@ package entity
 import (
 	"encoding/binary"
 	"math"
+	"time"
 )
 
 // clientupdate.go — what the server takes out of a client's own state
@@ -67,7 +68,7 @@ func (p *Player) noteStood() {
 // server: a session quit half a second in saved 56.7 over a floor at 54.1,
 // and the next login arrived at 59.7).
 func (p *Player) SavePlace() (x, y, z float32, back bool) {
-	if p.HasWalkFlags && !Standing(p.WalkFlags) && p.HasStood && p.StoodWorld == p.World {
+	if p.inAir() && p.HasStood && p.StoodWorld == p.World {
 		return p.StoodX, p.StoodY, p.StoodZ, true
 	}
 	return p.X, p.Y, p.Z, false
@@ -136,10 +137,21 @@ type ClientUpdate struct {
 	HasWalkFlags    bool
 	AutoAttack      bool // byte 36
 	HasAutoAttack   bool
+	World           byte // byte 0, the client's own world
+	HasWorld        bool
+	At              time.Time // when it came (zero: now)
 }
 
+// locoStates are the locomotion states CLIENT's walk makes
+// (VIWalkControl::UpdateLocomotion: 0-6 on land and in the air, 10-13
+// sideways and swimming); the byte goes to every client that sees the
+// player (statesync.go), so another value is not passed on.
+var locoStates = [256]bool{0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 10: true, 11: true, 12: true, 13: true}
+
 // ApplyClientUpdate puts one 0x40 on the player, under one lock so the state
-// sync never sees the position without its velocity.
+// sync never sees the position without its velocity. Its place is judged
+// first (movecheck.go): a place the judge does not take leaves the player
+// where it was, standing still.
 func (w *World) ApplyClientUpdate(id EntityID, u ClientUpdate) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -148,22 +160,52 @@ func (w *World) ApplyClientUpdate(id EntityID, u ClientUpdate) {
 	if !ok {
 		return
 	}
-	oldX, oldZ := p.X, p.Z
-	p.X, p.Y, p.Z = u.X, u.Y, u.Z
+	now := u.At
+	if now.IsZero() {
+		now = time.Now()
+	}
+	take, at := w.judgeMoveLocked(p, &u, now)
+	if take {
+		x, y, z := u.X, u.Y, u.Z
+		if at != nil {
+			x, y, z = at[0], at[1], at[2] // as far as its speed reached
+		}
+		oldX, oldZ := p.X, p.Z
+		p.X, p.Y, p.Z = x, y, z
+		w.SpatialIndex.Update(id, oldX, oldZ, x, z)
+	}
+	p.mv.tookMove(p, now, take)
 	if u.HasFacing {
 		p.Facing = u.Facing
 	}
-	w.SpatialIndex.Update(id, oldX, oldZ, u.X, u.Z)
-	if u.HasVelocity {
+	mode := MoveCheck()
+	switch {
+	case !take:
+		p.VelX, p.VelY, p.VelZ = 0, 0, 0
+	case u.HasVelocity && mode == MoveCheckEnforce:
+		// no faster than the speed it has: every client that sees it moves
+		// it along this between reports, and a creature chasing it leads it
+		v := u.Velocity
+		top := p.mv.speed(p, now) * mcSlack
+		if h := float32(math.Hypot(float64(v[0]), float64(v[2]))); h > top && h > 0 {
+			v[0], v[2] = v[0]*top/h, v[2]*top/h
+		}
+		p.VelX, p.VelY, p.VelZ = v[0], v[1], v[2]
+	case u.HasVelocity:
 		p.VelX, p.VelY, p.VelZ = u.Velocity[0], u.Velocity[1], u.Velocity[2]
 	}
-	p.Animation = u.Animation
+	if mode == MoveCheckOff || locoStates[u.Animation] {
+		p.Animation = u.Animation
+	} else {
+		p.Animation = 0
+	}
 	if u.HasWalkFlags {
 		p.WalkFlags, p.HasWalkFlags = u.WalkFlags, true
 	}
 	// a report standing (or one with no flags, which says nothing of it) is
-	// where it stood
-	if !u.HasWalkFlags || Standing(u.WalkFlags) {
+	// where it stood; where the judge enforces and knows the ground, its own
+	// word, not the walker's
+	if take && !p.inAir() {
 		p.noteStood()
 	}
 	if u.HasAutoAttack {

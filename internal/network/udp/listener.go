@@ -805,7 +805,8 @@ func (l *Listener) processClientUpdate(sess *session.Session, msg *protocol.Mess
 		player := l.gameWorld.SessionPlayer(sess)
 		if player != nil {
 			reportWorldMismatch(sess, player, decoded[0])
-			u := entity.ClientUpdate{X: posX, Y: posY, Z: posZ, Facing: facing, HasFacing: hasFacing, Animation: animation}
+			u := entity.ClientUpdate{X: posX, Y: posY, Z: posZ, Facing: facing, HasFacing: hasFacing, Animation: animation,
+				World: decoded[0], HasWorld: true}
 			u.Velocity, u.HasVelocity = entity.ClientUpdateVelocity(decoded)
 			u.AutoAttack, u.HasAutoAttack = entity.ClientUpdateAutoAttack(decoded)
 			u.WalkFlags, u.HasWalkFlags = entity.ClientUpdateWalkFlags(decoded)

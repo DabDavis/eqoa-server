@@ -217,3 +217,32 @@ func utf16le(s string) []byte {
 	}
 	return b
 }
+
+// An item's foodeffect row reaches the World's Consume with its time and
+// rule, read at the use; an item with both a HoT and a PoT hands both on.
+// The control: an item with no row hands neither.
+func TestUseFoodTakesItsRow(t *testing.T) {
+	f := newScribeFixture(t)
+	got := f.eats(nil)
+	fish := f.ware("blessed fish", "A blessed fish, a meal that will increase health regeneration and power regeneration.", -1, 10, 33, 33)
+	bread := f.ware("hearty bread", mealText, -1, 10, 5, -1)
+	if _, err := f.db.Exec(`INSERT INTO foodeffect (patternid, duration_s, ends_on_cast, ends_on_contact, source) VALUES (?, 180, 1, 0, 'test')`, fish); err != nil {
+		t.Fatal(err)
+	}
+	f.own(fish, 1)
+	f.own(bread, 1)
+	f.loadList()
+	f.use(0)
+	f.loadList()
+	f.use(0)
+	if len(*got) != 2 {
+		t.Fatalf("eaten %d", len(*got))
+	}
+	c := (*got)[0]
+	if c.Amount != 33 || c.Also != 33 || c.Duration != 180*time.Second || c.Rule == nil || !c.Rule.EndsOnCast || c.Rule.EndsOnContact {
+		t.Errorf("the fish handed on as %+v (rule %+v)", c, c.Rule)
+	}
+	if b := (*got)[1]; b.Also != 0 || b.Duration != 0 || b.Rule != nil {
+		t.Errorf("the bread, with no row, handed on as %+v", b)
+	}
+}

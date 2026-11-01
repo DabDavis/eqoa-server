@@ -46,6 +46,11 @@ import (
 // An item of type 2 named a ration, cuisine or snacks (the ten: field, trail,
 // mine, tundra, plains, jungle, thicket rations, Gnomish Ration, travel
 // cuisine, toad snacks) is eaten as a meal: OURS, its level's HoT (1).
+//
+// An item with both a HoT and a PoT gives both (EQOAEmu's workbook's Blessed
+// Fish: the meal's slot, entity/consumable.go), and an item's foodeffect row
+// (database/foodeffect.go, read at each use) gives it its own time and what
+// ends it.
 
 var (
 	mealDesc   = regexp.MustCompile(`(?i)\bmeal\b.*\bhealth regeneration\b`)
@@ -73,7 +78,7 @@ const rationEffectName = "Food"
 // fight (entity/consumable.go), so one taken in a fight would be gone at
 // once. A drink is taken mid-fight, as Sandstorm took one.
 const (
-	consumeFighting = "You can't eat while you are fighting."
+	consumeFighting = "You can't eat or drink that while you are fighting."
 	consumeTooLow   = scribeTooLow
 )
 
@@ -92,11 +97,11 @@ func consumableOf(p *database.ItemPatternRecord) (entity.Consumable, bool) {
 	}
 	switch {
 	case mealDesc.MatchString(p.ItemDesc):
-		c.Icon, c.Amount = consumableEffectIcon, own(p.HoT)
+		c.Icon, c.Amount, c.Also = consumableEffectIcon, own(p.HoT), max(own(p.PoT), 0)
 	case p.ProcAnim == usableType && rationName.MatchString(p.ItemName):
-		c.Name, c.Icon, c.Amount = rationEffectName, consumableEffectIcon, own(p.HoT)
+		c.Name, c.Icon, c.Amount, c.Also = rationEffectName, consumableEffectIcon, own(p.HoT), max(own(p.PoT), 0)
 	case drinkDesc.MatchString(p.ItemDesc):
-		c.Drink, c.Icon, c.Amount = true, consumableEffectIcon, own(p.PoT)
+		c.Drink, c.Icon, c.Amount, c.Also = true, consumableEffectIcon, own(p.PoT), max(own(p.HoT), 0)
 	default:
 		return entity.Consumable{}, false
 	}
@@ -119,6 +124,15 @@ func (h *EquipHandler) consume(sess *session.Session, player *entity.Player, idx
 	}
 	if h.eat == nil {
 		return
+	}
+	if h.inventoryStore != nil {
+		switch fe, ok, err := h.inventoryStore.FoodEffect(row.Pattern.PatternID); {
+		case err != nil:
+			log.Printf("Consume: %s, %q: its foodeffect row: %v", player.Name, row.Pattern.ItemName, err)
+		case ok:
+			c.Duration = time.Duration(fe.DurationS) * time.Second
+			c.Rule = &entity.FoodRule{EndsOnCast: fe.EndsOnCast, EndsOnContact: fe.EndsOnContact}
+		}
 	}
 	switch err := h.eat(sess, c, time.Now()); {
 	case errors.Is(err, entity.ErrConsumeFighting):

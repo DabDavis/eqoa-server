@@ -257,8 +257,9 @@ func SimBookFromDB(db *database.SQLiteDB, class, level int, all bool) ([]CastSpe
 		if err != nil || sp == nil {
 			continue
 		}
-		line, fx, _, _ := store.SpellEffect(id)
-		def := ParseSpellNamed(sp.SpellName, line, sp.SpellDesc)
+		row, _, _ := store.SpellEffectRow(id)
+		line, fx := row.Line, row.FX
+		def := SpellDefFrom(sp.SpellName, line, sp.SpellDesc, row.Effects) // the workbook's when it has them
 		book = append(book, CastSpell{SpellID: sp.SpellID, DisplayIndex: i + 1, Level: sp.AbilityLvl, Scope: sp.Scope,
 			Name: sp.SpellName, Icon: uint32(sp.Icon), CastTime: time.Duration(sp.CastTime) * time.Second,
 			Recast: time.Duration(sp.Recast) * time.Second, PowerCost: sp.Power,

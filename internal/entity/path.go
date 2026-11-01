@@ -507,9 +507,7 @@ func (w *World) pathStepLocked(npc *NPC, p *NPCPath, now time.Time) {
 	}
 	pt := p.Points[st.next]
 	speed := p.speed()
-	if npc.snared(now) {
-		speed /= 2
-	}
+	speed *= npc.snareFactor(now) // a snare's slow (workbook.go)
 	arrived := w.stepNPCToward(npc, pt.X, pt.Z, speed, dt)
 	w.pathHeightLocked(npc, pt.X, pt.Y, pt.Z)
 	if !arrived || dt <= 0 {
@@ -544,9 +542,7 @@ func (w *World) pathHomeStepLocked(npc *NPC, now time.Time) (done bool) {
 		return false
 	}
 	speed := NPCWalkSpeed
-	if npc.snared(now) {
-		speed /= 2
-	}
+	speed *= npc.snareFactor(now) // a snare's slow (workbook.go)
 	arrived := w.stepNPCToward(npc, npc.SpawnX, npc.SpawnZ, speed, dt)
 	w.pathHeightLocked(npc, npc.SpawnX, npc.SpawnY, npc.SpawnZ)
 	if !arrived || dt <= 0 {

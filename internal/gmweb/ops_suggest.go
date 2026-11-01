@@ -28,6 +28,7 @@ import (
 // spell in one query (the database has one connection).
 type spellFacts struct {
 	name, line, desc string
+	effects          string // spelleffect.effects (entity/spelljson.go)
 	level            int
 	cast             float64
 	fx               uint32
@@ -35,7 +36,8 @@ type spellFacts struct {
 }
 
 func (s *Server) spellFactsAll() (map[int]*spellFacts, error) {
-	rs, err := s.d.DB.Query(`SELECT p.spellid, p.spellname, p.spelldesc, p.abilitylvl, p.casttime, COALESCE(e.line, ''), COALESCE(e.fxdict, 0)
+	rs, err := s.d.DB.Query(`SELECT p.spellid, p.spellname, p.spelldesc, p.abilitylvl, p.casttime, COALESCE(e.line, ''), COALESCE(e.fxdict, 0),
+		COALESCE(e.effects, '')
 		FROM spellpattern p LEFT JOIN spelleffect e ON e.spellid = p.spellid`)
 	if err != nil {
 		return nil, err
@@ -45,7 +47,7 @@ func (s *Server) spellFactsAll() (map[int]*spellFacts, error) {
 		var id int
 		var f spellFacts
 		var cast, fx int64
-		if err := rs.Scan(&id, &f.name, &f.desc, &f.level, &cast, &f.line, &fx); err != nil {
+		if err := rs.Scan(&id, &f.name, &f.desc, &f.level, &cast, &f.line, &fx, &f.effects); err != nil {
 			rs.Close()
 			return nil, err
 		}
@@ -150,7 +152,7 @@ func (s *Server) visualSuggestions(status string, class int, standInOnly bool, s
 		if class >= 0 && !containsInt(f.classes, class) {
 			continue
 		}
-		d := entity.ParseSpellNamed(f.name, f.line, f.desc)
+		d := entity.SpellDefFrom(f.name, f.line, f.desc, f.effects)
 		current := map[string]any{}
 		if f.fx != 0 {
 			current["own"] = handlers.Hex32(f.fx)

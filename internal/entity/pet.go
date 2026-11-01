@@ -1121,15 +1121,15 @@ func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *sessi
 // (that effect given back); else it takes off every effect of its line of
 // its rank or below, and an earlier cast of the same spell, and goes on.
 func putOnPetLocked(pet *NPC, spell *CastSpell, ae *ActiveEffect) (over *ActiveEffect) {
-	ae.Line, ae.Rank = BuffLine(spell), spell.Level
+	ae.Line, ae.Rank = BuffLine(spell), lineRank(spell)
 	for _, e := range pet.Effects {
-		if ae.Line != "" && e.Line == ae.Line && e.SpellID != ae.SpellID && e.Rank > ae.Rank {
+		if sameLine(e.Line, ae.Line) && e.SpellID != ae.SpellID && e.Rank > ae.Rank {
 			return e
 		}
 	}
 	left := pet.Effects[:0]
 	for _, e := range pet.Effects {
-		if e.SpellID != ae.SpellID && (ae.Line == "" || e.Line != ae.Line) {
+		if e.SpellID != ae.SpellID && !sameLine(e.Line, ae.Line) {
 			left = append(left, e)
 		}
 	}

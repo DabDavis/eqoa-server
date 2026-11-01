@@ -1,0 +1,489 @@
+package entity
+
+import (
+	"fmt"
+	"log"
+	"strings"
+	"time"
+
+	"github.com/eqoa/server/internal/session"
+)
+
+// workbook.go — the mechanics EQOAEmu's spell workbook uses that the lines
+// never did (spelljson.go reads them into a SpellDef; the user's "workbook
+// wins", 2026-11-01). Each rule here acts on a spell read from the workbook's
+// effects alone, so a spell read from its line is as it was.
+//
+//   - A resist: a harmful effect with a resist basis may be resisted by the
+//     creature it lands on, wholly (effects of one workbook EffectID
+//     together). No creature has resists of its own, so the chance is the one
+//     the server's creatures already resist a proc by (proc.go): 5% against
+//     a caster of its level, 3 more a level it is above the caster, at most
+//     75%, less what resist debuffs of that kind on it take off (enchanter.go's
+//     rule, by kind); a dummy never resists (dummy.go's measured hits), a
+//     charm keeps its own roll (charm.go) and a hold or a slow the con's
+//     (root.go). On a player (a templated creature's spell, classtemplate.go)
+//     the player's resist of that kind takes its share (resist.go). Ours: the
+//     workbook says only "Can resist up to a cap %".
+//   - Ticks twice at the landing: the workbook's legend, "HoT and PoT tick
+//     twice on first effect and every 6seconds after" (DoT the same); the
+//     server's first tick was once at the landing (hot.go), so a workbook
+//     spell's first tick lands twice, then they go on as the server's do (a
+//     player's heal on the regen tick, a creature's damage every 6 s).
+//   - Dispel on cast: what lasts ends when its bearer begins a cast. Dispel
+//     on contact: when its bearer is hit in melee or a harmful spell lands on
+//     it (a player by a creature's hit; a creature by any hit or hostile act,
+//     updateAggro).
+//   - Mitigation (and the invulnerables): that share of each melee hit on a
+//     player is not taken, up to its most over the effect's time; the
+//     workbook says it "has no effect on spells".
+//   - Lull: a lulled creature notices no one (aggro.go) and comes to no one's
+//     help (socialaggro.go) while it lasts; its landing angers nothing.
+//   - Enduring breath: a player under water loses no breath while it lasts.
+//   - Hide: unseen as invisibility is (invis.go), and ends as it says.
+//   - A cure takes harmful effects off its target by the words it removes
+//     (cureMatches); the workbook's own "ID?" (it does not know which) and no
+//     words take every harmful effect, as the potions' cure does.
+//   - The lowest level that may receive it: a player below it is not
+//     affected, the caster told (ours: "<name> is too low a level for that
+//     spell.").
+//   - A snare's slow by its percent (-30, -50) where a line's halves the pace,
+//     and on a player a slow of its own beside the buff that carries it
+//     (Towering Wall's AC with -30).
+//   - Proc heals: a proc that heals heals its bearer, an offensive one at the
+//     proc chance of its hits (proc.go), a defensive one at every hit on it.
+
+// EffectRules are what a workbook effect does beside its numbers, kept with
+// it over a logout (buffsave.go).
+type EffectRules struct {
+	// SpeedPct is the bearer's run speed this many percent slower when
+	// negative (a workbook snare or a buff's own slow)
+	SpeedPct        int  `json:",omitempty"`
+	DispelOnCast    bool `json:",omitempty"`
+	DispelOnContact bool `json:",omitempty"`
+	// MitigatePct of each melee hit on the bearer is not taken, at most
+	// MitigateLeft more (0: no limit; MitigateCapped says there is one)
+	MitigatePct    int  `json:",omitempty"`
+	MitigateLeft   int  `json:",omitempty"`
+	MitigateCapped bool `json:",omitempty"`
+	Lull           bool `json:",omitempty"`
+	Breath         bool `json:",omitempty"`
+	Hide           bool `json:",omitempty"`
+	// Resist is the resist its harm goes by and Harm whether it was a
+	// harmful spell's (a cure's words go by them)
+	Resist Stat `json:",omitempty"`
+	Harm   bool `json:",omitempty"`
+	// Twice: its first tick lands twice (the workbook's)
+	Twice bool `json:",omitempty"`
+	// a proc that heals its bearer (ProcHealDef: when hit), with its scale
+	// on the bearer's stat at each proc and its chance (0: the proc's)
+	ProcHeal         int  `json:",omitempty"`
+	ProcHealDef      bool `json:",omitempty"`
+	ProcHealScale    Stat `json:",omitempty"`
+	ProcHealScalePct int  `json:",omitempty"`
+	ProcHealChance   int  `json:",omitempty"`
+}
+
+// rulesOf is a cast's rules for what lasts of it.
+func rulesOf(d *SpellDef) EffectRules {
+	r := EffectRules{DispelOnCast: d.DispelOnCast, DispelOnContact: d.DispelOnContact, Harm: d.Harmful, Twice: d.Workbook}
+	for _, e := range d.Effects {
+		if e.Resist != StatNone {
+			r.Resist = e.Resist
+			break
+		}
+	}
+	return r
+}
+
+// workbookLasting puts one of the workbook's own kinds on what lasts, and
+// reports whether it was one; anything else is lasting's.
+func (ae *ActiveEffect) workbookLasting(e SpellEffect, d *SpellDef) bool {
+	switch e.Kind {
+	case EffectSnare:
+		if e.Amount >= 0 {
+			return false // a line's snare: lasting's, half the pace
+		}
+		ae.Rules.SpeedPct = min(ae.Rules.SpeedPct, e.Amount)
+		ae.Snare = ae.Snare || d.Harmful
+	case EffectMitigate:
+		ae.Rules.MitigatePct = max(ae.Rules.MitigatePct, e.Amount)
+		ae.Rules.MitigateLeft, ae.Rules.MitigateCapped = e.AmountMax, e.AmountMax > 0
+	case EffectLull:
+		ae.Rules.Lull = true
+	case EffectBreath:
+		ae.Rules.Breath = true
+	case EffectHide:
+		ae.Invis, ae.Rules.Hide = true, true
+	case EffectProcHeal:
+		ae.Rules.ProcHeal, ae.Rules.ProcHealDef = e.Amount, e.Defense
+		ae.Rules.ProcHealScale, ae.Rules.ProcHealScalePct, ae.Rules.ProcHealChance = e.Scale, e.ScalePct, e.Chance
+	default:
+		return false
+	}
+	return true
+}
+
+// snareFactor is what the creature's slows leave of its pace: a line's
+// snare half, a workbook snare its percent less (the slowest one), 1 for
+// none.
+func (n *NPC) snareFactor(now time.Time) float32 {
+	f := float32(1)
+	for _, e := range n.Effects {
+		if !now.Before(e.Until) {
+			continue
+		}
+		switch {
+		case e.Rules.SpeedPct < 0:
+			f = min(f, float32(100+max(e.Rules.SpeedPct, -100))/100)
+		case e.Snare:
+			f = min(f, 0.5)
+		}
+	}
+	return f
+}
+
+// slowFactor is what a player's own slows leave of its run speed (a buff's
+// SpeedPct), 1 for none.
+func (p *Player) slowFactor() float32 {
+	f := float32(1)
+	for _, e := range p.Effects {
+		if e.duelFoe == 0 && e.Rules.SpeedPct < 0 {
+			f = min(f, float32(100+max(e.Rules.SpeedPct, -100))/100)
+		}
+	}
+	return f
+}
+
+// lulledAt reports a lull on the creature.
+func (n *NPC) lulledAt(now time.Time) bool {
+	for _, e := range n.Effects {
+		if e.Rules.Lull && now.Before(e.Until) {
+			return true
+		}
+	}
+	return false
+}
+
+// holdsBreath reports an enduring breath on the player.
+func (p *Player) holdsBreath() bool {
+	for _, e := range p.Effects {
+		if e.Rules.Breath {
+			return true
+		}
+	}
+	return false
+}
+
+// lulls reports whether the spell lulls.
+func (d *SpellDef) lulls() bool {
+	for _, e := range d.Effects {
+		if e.Kind == EffectLull {
+			return true
+		}
+	}
+	return false
+}
+
+// resistOutcomeWords is the caster's line for a spell its target resisted
+// whole (EverQuest's words: no recording of EQOA's exists).
+const spellResisted = "Your target resisted the %s spell."
+
+// resistible reports whether an effect is one a creature's resist turns:
+// harm with a resist basis, not a charm's (its own roll) nor a hold's or a
+// slow's (the con's, root.go).
+func resistible(e SpellEffect) bool {
+	if e.Resist == StatNone || e.Self {
+		return false
+	}
+	switch e.Kind {
+	case EffectCharm, EffectRoot, EffectSnare:
+		return false
+	case EffectHP, EffectHPTick, EffectPower, EffectPowerTick, EffectStat:
+		return e.Amount < 0
+	}
+	return true
+}
+
+// npcResistKindPct is how many points the resist debuffs of a kind on a
+// creature take off its chance to resist, in percent: npcResistOffPct's rule
+// for arcane, for each kind (the strongest one's).
+func npcResistKindPct(npc *NPC, st Stat, now time.Time) int {
+	if st == StatAR {
+		return npcResistOffPct(npc, now)
+	}
+	off := 0
+	for _, e := range npc.Effects {
+		if !now.Before(e.Until) {
+			continue
+		}
+		var v int
+		switch st {
+		case StatFR:
+			v = e.Mods.FR
+		case StatCR:
+			v = e.Mods.CR
+		case StatLR:
+			v = e.Mods.LR
+		case StatPR:
+			v = e.Mods.PR
+		case StatDR:
+			v = e.Mods.DR
+		}
+		off = max(off, -v)
+	}
+	if off == 0 {
+		return 0
+	}
+	return int(ResistShare(off)*100 + 0.5)
+}
+
+// npcSpellResistPct is the chance, in percent, a creature resists a workbook
+// effect of that resist from a caster of that level (the file's doc).
+func npcSpellResistPct(casterLevel int, npc *NPC, st Stat, now time.Time) int {
+	return max(procResistPct(casterLevel, npc.Level)-npcResistKindPct(npc, st, now), 0)
+}
+
+// resistLocked rolls a workbook spell's resists as it lands on a creature:
+// the cast with what the creature resisted taken out, and false when it
+// resisted all of the spell's harm, of which the caster is told. A spell
+// with nothing to resist, or a line's, is the cast as it is.
+func (w *World) resistLocked(cs *castState, caster *Player, casterSess *session.Session, npc *NPC, now time.Time) (*castState, bool) {
+	d := &cs.spell.Def
+	if !d.Workbook || npc.Dummy != NotDummy {
+		return cs, true
+	}
+	rolled := map[string]bool{} // an EffectID's roll: resisted or not
+	harm, kept := 0, 0
+	var effects []SpellEffect
+	for _, e := range d.Effects {
+		if !resistible(e) {
+			effects = append(effects, e)
+			continue
+		}
+		harm++
+		key := e.ID
+		if key == "" {
+			key = fmt.Sprintf("#%d", len(rolled))
+		}
+		resisted, ok := rolled[key]
+		if !ok {
+			resisted = procIntn(100) < npcSpellResistPct(caster.Level, npc, e.Resist, now)
+			rolled[key] = resisted
+		}
+		if !resisted {
+			effects = append(effects, e)
+			kept++
+		}
+	}
+	if harm == 0 || kept == harm {
+		return cs, true
+	}
+	log.Printf("Cast: %s resists %d of %s's %q's %d harmful effects", npc.Name, harm-kept, caster.Name, cs.spell.Name, harm)
+	if kept == 0 && casterSess != nil {
+		w.sendColoredLocked(casterSess, fmt.Sprintf(spellResisted, cs.spell.Name), castRefusalRGB)
+	}
+	if len(effects) == 0 {
+		return cs, false
+	}
+	c := *cs
+	c.spell.Def.Effects = effects
+	return &c, true
+}
+
+// workbookResist is the resist a templated creature's workbook spell's hit
+// on a player goes by (classtemplate.go): its first hit's, a player's resist
+// (FR to AR), else none.
+func workbookResist(d *SpellDef) (Stat, bool) {
+	if !d.Workbook {
+		return StatNone, false
+	}
+	for _, e := range d.Effects {
+		if e.Kind == EffectHP && e.Amount < 0 && e.Resist >= StatFR && e.Resist <= StatAR {
+			return e.Resist, true
+		}
+	}
+	return StatNone, true
+}
+
+// dispelOnCastLocked ends what lasts on a player that ends when it casts.
+func (w *World) dispelOnCastLocked(p *Player) {
+	for _, e := range append([]*ActiveEffect(nil), p.Effects...) {
+		if e.Rules.DispelOnCast {
+			log.Printf("Cast: %q ends on %s: a cast", e.Name, p.Name)
+			w.removeEffectLocked(p, e.SpellID)
+		}
+	}
+}
+
+// contactPlayerLocked ends what lasts on a player that ends when it is hit
+// or harmed.
+func (w *World) contactPlayerLocked(p *Player) {
+	for _, e := range append([]*ActiveEffect(nil), p.Effects...) {
+		if e.Rules.DispelOnContact {
+			log.Printf("Cast: %q ends on %s: a hit", e.Name, p.Name)
+			w.removeEffectLocked(p, e.SpellID)
+		}
+	}
+}
+
+// contactNPCLocked ends what lasts on a creature that ends when it is hit
+// or harmed (a lull).
+func contactNPCLocked(npc *NPC) {
+	if len(npc.Effects) == 0 {
+		return
+	}
+	left := npc.Effects[:0]
+	for _, e := range npc.Effects {
+		if e.Rules.DispelOnContact {
+			log.Printf("Cast: %q ends on %s: a hit", e.Name, npc.Name)
+			continue
+		}
+		left = append(left, e)
+	}
+	for i := len(left); i < len(npc.Effects); i++ {
+		npc.Effects[i] = nil
+	}
+	npc.Effects = left
+}
+
+// mitigateLocked is a creature's melee hit of n on a player less what its
+// mitigations take off (the strongest one with any left), their most spent
+// as they go.
+func mitigateLocked(p *Player, n int, now time.Time) int {
+	var best *ActiveEffect
+	for _, e := range p.Effects {
+		if e.Rules.MitigatePct <= 0 || !now.Before(e.Until) || e.Rules.MitigateCapped && e.Rules.MitigateLeft <= 0 {
+			continue
+		}
+		if best == nil || e.Rules.MitigatePct > best.Rules.MitigatePct {
+			best = e
+		}
+	}
+	if best == nil || n <= 0 {
+		return n
+	}
+	off := n * best.Rules.MitigatePct / 100
+	if best.Rules.MitigateCapped {
+		off = min(off, best.Rules.MitigateLeft)
+		best.Rules.MitigateLeft -= off
+	}
+	if off > 0 {
+		log.Printf("Combat: %s's %q takes %d off a hit of %d", p.Name, best.Name, off, n)
+	}
+	return n - off
+}
+
+// tooLowLocked reports a player below the spell's lowest level to receive it,
+// telling its caster. Must be called with the lock held.
+func (w *World) tooLowLocked(caster *Player, casterSess *session.Session, t *Player, s *CastSpell) bool {
+	d := &s.Def
+	if d.MinLevel <= 0 || t.Level >= d.MinLevel || t == caster {
+		return false
+	}
+	log.Printf("Cast: %s's %q does not take on %s: level %d, its lowest %d", caster.Name, s.Name, t.Name, t.Level, d.MinLevel)
+	if casterSess != nil {
+		w.sendColoredLocked(casterSess, fmt.Sprintf(tooLowWords, t.Name), castRefusalRGB)
+	}
+	return true
+}
+
+// tooLowWords tells a caster its target is below a spell's lowest level
+// (ours: no recording has it).
+const tooLowWords = "%s is too low a level for that spell."
+
+// cureLocked takes off a player the effects a cure's words remove
+// (cureMatches), its own spell's left on. Must be called with the lock held.
+func (w *World) cureLocked(cs *castState, t *Player) int {
+	n := 0
+	for _, ae := range append([]*ActiveEffect(nil), t.Effects...) {
+		if ae.SpellID == cs.spell.SpellID {
+			continue
+		}
+		for _, words := range cs.spell.Def.Removes {
+			if cureMatches(ae, words) {
+				log.Printf("Cast: %s's %q cures %q off %s", w.entityNameLocked(cs.caster), cs.spell.Name, ae.Name, t.Name)
+				w.removeEffectLocked(t, ae.SpellID)
+				n++
+				break
+			}
+		}
+	}
+	return n
+}
+
+// harmfulEffect reports an effect that harms its bearer: a harmful spell's,
+// a damage tick, a hold or a slow, a stat taken.
+func harmfulEffect(ae *ActiveEffect) bool {
+	return ae.Rules.Harm || ae.duelFoe != 0 || ae.HPTick < 0 || ae.PowerTick < 0 || ae.Root || ae.Snare || ae.Mods.harmful()
+}
+
+// cureMatches reports whether a cure's words take the effect off: poison
+// (PR, or a poison's or venom's name), disease (DR, a disease's or a
+// plague's), curse (AR), slow or snare (a slow), speed (a speed buff, the
+// workbook's "removing lesser speed boosts"), mask (an illusion: the rogues'
+// masks), else an effect named by them; no words or the workbook's "ID?"
+// any harmful one.
+func cureMatches(ae *ActiveEffect, words string) bool {
+	w := strings.ToLower(strings.TrimSpace(words))
+	name := strings.ToLower(ae.Name)
+	has := func(s ...string) bool {
+		for _, x := range s {
+			if strings.Contains(w, x) {
+				return true
+			}
+		}
+		return false
+	}
+	named := func(s ...string) bool {
+		for _, x := range s {
+			if strings.Contains(name, x) {
+				return true
+			}
+		}
+		return false
+	}
+	switch {
+	case w == "" || w == "id?" || w == "all" || has("harmful", "everything"):
+		return harmfulEffect(ae)
+	case has("poison", "venom"):
+		return harmfulEffect(ae) && (ae.Rules.Resist == StatPR || named("poison", "venom"))
+	case has("disease", "plague") && !strings.Contains(name, w):
+		return harmfulEffect(ae) && (ae.Rules.Resist == StatDR || named("disease", "plague"))
+	case has("curse"):
+		return harmfulEffect(ae) && (ae.Rules.Resist == StatAR || named("curse"))
+	case has("slow", "snare"):
+		return ae.Snare || ae.Rules.SpeedPct < 0
+	case has("speed"):
+		return ae.Speed
+	case has("mask", "illusion"):
+		return ae.Form != 0
+	}
+	return w != "" && strings.Contains(name, w)
+}
+
+// procHealsLocked heals a player by its proc heals: its offensive ones
+// (defense false) after one of its melee hits at the proc chance, its
+// defensive ones (true) after a hit on it at theirs. Must be called with the
+// lock held.
+func (w *World) procHealsLocked(p *Player, defense bool, now time.Time) {
+	for _, ae := range p.Effects {
+		r := ae.Rules
+		if r.ProcHeal <= 0 || r.ProcHealDef != defense || !now.Before(ae.Until) {
+			continue
+		}
+		chance := r.ProcHealChance
+		if chance <= 0 {
+			chance = procChancePct(p.StatNow(StatInt))
+		}
+		if procIntn(100) >= chance {
+			continue
+		}
+		n := r.ProcHeal
+		if r.ProcHealScale != StatNone && r.ProcHealScalePct != 0 {
+			n += p.StatNow(r.ProcHealScale) * r.ProcHealScalePct / 100
+		}
+		log.Printf("Proc: %s's %q heals it for %d", p.Name, ae.Name, n)
+		w.healLocked(p, w.findSessionByEntityIDLocked(p.ServerID), p, n)
+	}
+}

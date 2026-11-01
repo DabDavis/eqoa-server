@@ -17,9 +17,11 @@ spell is named through that map, here and in the other lanes' tools.
 What it writes, and from what:
 
   spellpattern, a spell the map says is ours: abilitylvl (Level), range,
-      casttime, recast, power, scope, where the workbook has a value; icon,
-      iconColor, spellname, spelldesc and eqprequire stay ours (its icons
-      agreed with Sandstorm's records for 123 of 163). Several workbook rows
+      casttime, recast, power, scope, where the workbook has a value, and
+      (the user, 2026-11-01: "workbook wins on all") its icon, frame and
+      spelling as a new spell's below; a rename only where every lookup by
+      name reads the two alike (rename_safe), else listed; spelldesc and
+      eqprequire stay ours (the workbook has no description). Several workbook rows
       mapped onto one record (one name, two classes' different spells) set it
       from the row that is the record's own (a class the record is linked to,
       its level, a class of Sandstorm's, its scope, the lowest SpellID); the
@@ -91,6 +93,13 @@ What it writes, and from what:
       grant hands it out; the masteries' own tool gives it through cmcatalog
       add_spells). A spell we have keeps its rows; --link-existing adds the
       classes the workbook gives it that hold no spell of its name.
+
+  itempattern, foodeffect, itemeffect: the workbook's food and drink
+      (plan_foods: its Created Item sheets' items that give only power or
+      health over time, or health): ours take its HoT and PoT, one we lack is
+      made as a sibling of ours (910000 + its ItemID), each its foodeffect row
+      (its time, DisspellOnCast, DisspellOnContact: entity/consumable.go);
+      one that heals at once as well is a potion, an itemeffect line.
 
   spellgates: a new teleport whose Location names a world and a point gets
       its row (kind group or self by its scope, its radius the spell's, the

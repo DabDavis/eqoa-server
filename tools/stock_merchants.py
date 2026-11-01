@@ -94,7 +94,13 @@ below):
 Every change is logged in merchant_stock (what it was and what it became) and
 --undo puts it all back but a row changed since (a GM's edit: left alone and
 named); the md5 of the touched tables' rows taken before --apply is checked
-after --undo. A second --apply is refused while merchant_stock is there. Both
+after --undo. A second --apply is refused while merchant_stock is there, but
+for --more: a later run, for the merchants made since (2026-11-01: the 10-31
+census of Rathe and Odus brought 20 of Sandstorm's flagged merchants with no
+catalog), which plans as the first run does for the merchants that sell
+nothing and that no run logged (left out or keyed), prices its own catalogs'
+items alone, and appends to merchant_stock, so --undo takes every run back,
+the last first. Both
 take a copy of the database first (<db>.bak-<when>-pre-merchants). Report only
 by default. Restart the server after --apply or --undo: catalogs and prices
 are read as they are needed, but the NPCs' npc_id at its start.
@@ -801,7 +807,10 @@ def catalog_level(items, patterns):
     return statistics.median(lv) if lv else 0
 
 
-def plan(db, prh, measured, patterns):
+def plan(db, prh, measured, patterns, more=False):
+    """What --apply writes. more: a later run (--more) on a database a run
+    stocked: only the merchants that sell nothing and that no run logged
+    (left out, or keyed), and only their catalogs' items priced."""
     p = Plan()
     npcs = load_npcs(db)
     by_id = {n["id"]: n for n in npcs}
@@ -811,6 +820,11 @@ def plan(db, prh, measured, patterns):
             catalogs[key].append(pid)
     merchants = [n for n in npcs if n["type"] & MERCHANT]
     empty = [n for n in merchants if not (n["npc_id"] and catalogs.get(n["npc_id"]))]
+    logged_prices = set()
+    if more:
+        logged = {k for (k,) in db.execute("SELECT key FROM merchant_stock WHERE what IN ('left out', 'npc_id')")}
+        empty = [n for n in empty if n["id"] not in logged]
+        logged_prices = {k for (k,) in db.execute("SELECT key FROM merchant_stock WHERE what IN ('free', 'gm price')")}
     region = region_levels(npcs, merchants)
     town = towns(merchants)
 
@@ -955,6 +969,10 @@ def plan(db, prh, measured, patterns):
     # is what a merchant pays for it, left as it is)
     wanted = {x for n in merchants if n["npc_id"] for x in catalogs.get(n["npc_id"], ())}
     wanted |= {x for items, _ in p.stock.values() for x in items}
+    if more:
+        # a later run prices its own catalogs' items alone; an item a run
+        # logged as Sandstorm's 0 or a GM's stays as that run found it
+        wanted = {x for items, _ in p.stock.values() for x in items} - logged_prices
     p.odd = []
     ours_set = set_by(db)
     for x in sorted(wanted):
@@ -1313,6 +1331,9 @@ def main(argv=None):
                     help="Sandstorm's prices: eqoa harvest JSON files or directories of them, or a TSV/CSV of name, price")
     ap.add_argument("--apply", action="store_true", help="write the catalogs and prices")
     ap.add_argument("--undo", action="store_true", help="put back everything a run wrote")
+    ap.add_argument("--more", action="store_true",
+                    help="a later run on a database a run stocked: the merchants that sell nothing and no run logged "
+                         "(made since: a census, a GM) get a catalog by the same rules, appended to merchant_stock")
     ap.add_argument("--no-backup", action="store_true", help="write without a copy first")
     a = ap.parse_args(argv)
     db = sqlite3.connect(a.db, isolation_level=None)
@@ -1336,8 +1357,10 @@ def main(argv=None):
         return 0
     if not a.prh:
         ap.error("--prh is needed")
-    if a.apply and stocked:
-        ap.error("merchant_stock is there: this database was stocked already (--undo first)")
+    if a.apply and stocked and not a.more:
+        ap.error("merchant_stock is there: this database was stocked already (--undo first, or --more)")
+    if a.more and not stocked:
+        ap.error("--more is a later run: merchant_stock is not there (a first run is --apply alone)")
     prh = sqlite3.connect(f"file:{os.path.abspath(a.prh)}?mode=ro&immutable=1", uri=True)
     patterns = load_patterns(db)
     measured = Measured()
@@ -1346,7 +1369,7 @@ def main(argv=None):
     measured.fill_items(patterns)
     if not measured.items:
         ap.error("no measured prices: give --prices (an eqoa harvest), or import one first")
-    p = plan(db, prh, measured, patterns)
+    p = plan(db, prh, measured, patterns, more=a.more)
     report(db, p, patterns, measured, files)
     if not a.apply:
         print("(report only: --apply writes them)")

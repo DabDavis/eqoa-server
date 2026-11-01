@@ -31,6 +31,11 @@ cmcatalog (entity/cmbuy.go), the workbook winning wherever it has a value:
 - The Transmuter's second and third ranks take each other's descriptions
   (DESC_SWAPS: the workbook's guesses are each other's; the user, 2026-11-01:
   "swap them").
+- The necromancer's Teachings of Morthalis 1 adds Flesh Mastery +, the spell
+  it means (RANK_ADDS: the workbook's adds the Flesh Mastery it requires and
+  takes away, so it did nothing, where its other four ranks each swap a pet
+  buff for its "+"; the user, 2026-11-01: "yes fix it"): the record of ours of
+  that name, as the Spells sheet has no row of it.
 - A cell left empty (or "NO DESCRIPTION FOUND") is no value: ours stays. A
   group of cells is the workbook's whole when it fills any of it (the 29
   stats, the base stats, the abilities added, ...).
@@ -399,6 +404,14 @@ def fix_slips(W, owners):
 # one whose thrown potion turns its target into an albino rat (the
 # Transmutative Mix Potion). By the ranks' names, folded.
 DESC_SWAPS = [("creative transmutation", "transmutative mixture")]
+# A rank that adds the spell it requires and takes away, where it means
+# another (the workbook's error; the user, 2026-11-01: "yes fix it"), by the
+# rank's name -> (the spell it names, the one it adds): the necromancer's
+# Teachings of Morthalis 1 adds Flesh Mastery, so it did nothing, where its
+# other four ranks each swap a pet buff for its "+"; it adds Flesh Mastery +,
+# which the Spells sheet has no row of (its effect is on Flesh Mastery's row:
+# import_eqoaemu_spells.py's TWO_SPELLS), the record of ours of that name.
+RANK_ADDS = {"Teachings of Morthalis 1": ("Flesh Mastery", "Flesh Mastery +")}
 
 
 def swap_descriptions(W):
@@ -412,6 +425,26 @@ def swap_descriptions(W):
             continue
         wa[0]["desc"], wb[0]["desc"] = wb[0]["desc"], wa[0]["desc"]
         done.append((wa[0]["name"], wb[0]["name"]))
+    return done
+
+
+def fix_rank_adds(W):
+    """RANK_ADDS' ranks given the spell each means: the one it adds of the
+    name it gives is the other, by name (no Spells-sheet id: Ctx.spell finds
+    the record of ours of that name). Returns (the rank's id, its name, the
+    spell named, the one added) of each put right."""
+    done = []
+    for w in W:
+        for rank, (was, means) in RANK_ADDS.items():
+            if fold(w["name"]) != fold(rank):
+                continue
+            out = []
+            for x, nm in w["adds"]:
+                if x is not None and slip_name(nm) == slip_name(was):
+                    done.append((w["hex"], w["name"], nm, means))
+                    x, nm = None, means
+                out.append((x, nm))
+            w["adds"] = out
     return done
 
 
@@ -684,8 +717,17 @@ class Ctx:
 
     def spell(self, x, name):
         """A workbook spell as our id and the window's "Name@level" (0 when
-        the map lacks it)."""
-        hit = self.spellmap.get(x)
+        the map lacks it); one of no Spells-sheet id (x None: RANK_ADDS'),
+        the record of ours of its name."""
+        if x is None:
+            mine = sorted(sid for sid, (nm, _) in self.spells.items()
+                          if (nm or "").strip().rstrip("$").strip().lower() == name.strip().lower())
+            hit = (mine[0], "by its name") if len(mine) == 1 else None
+            if not hit:
+                self.unmapped[f"{name} (no Spells-sheet row: {'several' if mine else 'none'} of ours of its name)"] += 1
+                return 0, name
+        else:
+            hit = self.spellmap.get(x)
         if not hit:
             self.unmapped[f"{x:04X} {name}"] += 1
             return 0, name
@@ -1700,6 +1742,8 @@ def main():
         slips = fix_slips(W, read_spell_owners(spells))
         for a, b in swap_descriptions(W):
             print(f"the workbook's descriptions of {a} and {b}, each the other's: swapped")
+        for hx, name, was, means in fix_rank_adds(W):
+            print(f"the workbook's {hx} {name} adds {was} where it means {means}: put right")
         print(f"the workbook's ability ids of another class's spell, put right: {len(slips)}")
         for hx, kind, was, now, nm in slips:
             what = {"abil": "requires", "adds": "adds", "removes": "takes away"}[kind]

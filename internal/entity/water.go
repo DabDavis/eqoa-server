@@ -178,3 +178,81 @@ func (w *World) tellApartLocked(sess *session.Session, p *Player, npc *NPC, now 
 	}
 	w.sendColoredLocked(sess, line, castRefusalRGB)
 }
+
+// Swimming, for the creatures of the land and the pets (the user,
+// 2026-11-01: "also pets should swim if in water, also npcs, not just
+// players"): one whose place is in water deeper than it can wade swims at
+// the surface as a player does, its feet swimDepth under it, and CLIENT
+// plays the liquid's animations for it (byte 58: LocoSwim moving, LocoTread
+// still), where it walked the water's bed under the swimmers it followed or
+// chased. CLIENT's walk takes a body as at the surface while its middle (1.2
+// over its feet, m_parm38) is in the liquid and its top (1.8, m_parm30) is
+// not; swimDepth is between them (ours: no recording of a swimming creature
+// exists). A creature of the water (one that spawned in it, or npcmove's
+// word) keeps its own depth and its animations, as does one of both (a
+// crocodile on the bed); a pet summoned on land swims after its owner, one
+// summoned in the water keeps the water's rule (pet.go). CLIENT's own
+// ExtrapolateGround leaves a creature where it is sent when no floor lies
+// within 1.5 under it, so it shows one floating at the surface.
+const (
+	swimDepth float32 = 1.5
+	// surfaceSearch is how far over a body the surface is looked for
+	surfaceSearch float32 = 400
+)
+
+// waterSurfaceLocked is the top of the water over a point in it: the first
+// height above it the zone leaves say is out of it, to a twentieth; false
+// for a point out of the water (or no water known). hint is a surface found
+// near it before (a swimmer's last), tried first: two lookups where it
+// holds; else the search widens (1, 2, 4 ... over the point) and halves, a
+// score of lookups in the deepest sea. Must be called with the lock held.
+func (w *World) waterSurfaceLocked(world uint8, x, y, z, hint float32) (float32, bool) {
+	if !w.waterAtLocked(world, x, y, z) {
+		return 0, false
+	}
+	if hint > y && w.waterAtLocked(world, x, hint-0.025, z) && !w.waterAtLocked(world, x, hint+0.025, z) {
+		return hint, true
+	}
+	lo, hi := y, y
+	for step := float32(1); ; step *= 2 {
+		hi = y + step
+		if step > surfaceSearch {
+			return 0, false
+		}
+		if !w.waterAtLocked(world, x, hi, z) {
+			break
+		}
+		lo = hi
+	}
+	for hi-lo > 0.05 {
+		mid := (lo + hi) / 2
+		if w.waterAtLocked(world, x, mid, z) {
+			lo = mid
+		} else {
+			hi = mid
+		}
+	}
+	return lo, true
+}
+
+// swimLocked puts a creature of the land or a pet just set on its floor at
+// the water's surface when the water there is deeper than swimDepth, and
+// says whether it swims; anything else is left as it is, out of the water.
+// Must be called with the lock held.
+func (w *World) swimLocked(npc *NPC) bool {
+	npc.swimming = false
+	if w.env == nil || npc.Dead {
+		return false
+	}
+	if npc.Owner == 0 && w.keepsToLocked(npc) != keepsToLand {
+		return false
+	}
+	top, ok := w.waterSurfaceLocked(npc.World, npc.X, npc.Y+bodyAbove, npc.Z, npc.surface)
+	if !ok || top-npc.Y <= swimDepth {
+		return false // out of the water, or wading
+	}
+	npc.Y = top - swimDepth
+	npc.VelY = 0
+	npc.swimming, npc.surface = true, top
+	return true
+}

@@ -90,6 +90,7 @@ func (w *World) groundNPCLocked(npc *NPC) {
 		if y, ok := w.ground.Floor(npc.World, npc.X, npc.Y, npc.Z); ok {
 			npc.Y = y
 		}
+		w.swimLocked(npc) // water.go: in deep water it swims at the surface
 		return
 	}
 	if w.spawnInWaterLocked(npc) {
@@ -105,4 +106,5 @@ func (w *World) groundNPCLocked(npc *NPC) {
 	if y, ok := w.ground.Floor(npc.World, npc.X, npc.Y, npc.Z); ok {
 		npc.Y = y
 	}
+	w.swimLocked(npc)
 }

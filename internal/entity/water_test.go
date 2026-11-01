@@ -306,3 +306,100 @@ func TestNPCMoveStandsACreature(t *testing.T) {
 		t.Errorf("rows of roam -1 (as its kind): the rat wanders %v, the Hexbone %v", w.wanders(rat), w.wanders(hex))
 	}
 }
+
+// A creature of the land taken into deep water (a chase, its way home, a
+// path) swims at the surface (the user, 2026-11-01: "also pets should swim
+// if in water, also npcs, not just players"), its feet swimDepth under it,
+// swimming while it moves and treading water when it stops; at the edge,
+// where it can wade, it walks the bed. The controls: with no water known it
+// walks the sea floor; a creature of the water keeps its depth and its walk.
+func TestACreatureOfTheLandSwimsInDeepWater(t *testing.T) {
+	const surface = 50
+	run := func(w *World, npc *NPC, water bool) (swimAt, wadeAt int, worst float32) {
+		w.mu.Lock()
+		defer w.mu.Unlock()
+		for i := 0; i < 400; i++ {
+			arrived := w.stepNPCToward(npc, 2030, 1000, 5, 0.1)
+			floor := beachFloor(npc.X)
+			switch {
+			case !water:
+			case surface-floor > swimDepth+0.1:
+				swimAt++
+				if d := npc.Y - (surface - swimDepth); d > worst || -d > worst {
+					worst = max(d, -d)
+				}
+				if !arrived && npc.Loco != LocoSwim {
+					t.Fatalf("at x %.1f, %.1f deep: animation %d, want the swim's %d", npc.X, surface-floor, npc.Loco, LocoSwim)
+				}
+			case surface-floor < swimDepth-0.1 && floor < surface:
+				wadeAt++
+				if npc.Y != floor || npc.Loco == LocoSwim {
+					t.Fatalf("wading at x %.1f: y %.2f animation %d, want the bed %.2f walking", npc.X, npc.Y, npc.Loco, floor)
+				}
+			}
+			if arrived {
+				break
+			}
+		}
+		return swimAt, wadeAt, worst
+	}
+	w := beachWorld(t, true)
+	orc := addNPC(w, 100, "orc pawn", 1985, 1000, creatureModel, 0)
+	orc.Y, orc.SpawnY = 60, 60
+	swimAt, wadeAt, worst := run(w, orc, true)
+	if swimAt < 50 || wadeAt == 0 || worst > 0.06 {
+		t.Errorf("into the sea: %d steps swimming (%.2f off the surface at worst), %d wading", swimAt, worst, wadeAt)
+	}
+	if orc.Loco != LocoTread || !orc.swimming {
+		t.Errorf("stopped in the sea: animation %d (swimming %v), want treading water %d", orc.Loco, orc.swimming, LocoTread)
+	}
+	w.mu.Lock()
+	for i := 0; i < 200 && !w.stepNPCToward(orc, 1980, 1000, 5, 0.1); i++ { // back out onto the land
+	}
+	w.mu.Unlock()
+	if orc.swimming || orc.Y != 60 || orc.Loco != LocoStand {
+		t.Errorf("back on the land: y %.1f, swimming %v, animation %d", orc.Y, orc.swimming, orc.Loco)
+	}
+
+	w = beachWorld(t, false) // the control: no water known
+	orc = addNPC(w, 100, "orc pawn", 1985, 1000, creatureModel, 0)
+	orc.Y, orc.SpawnY = 60, 60
+	if run(w, orc, false); orc.Y != 40 || orc.swimming {
+		t.Errorf("no water known: it ended at y %.1f (swimming %v), want the sea floor, 40", orc.Y, orc.swimming)
+	}
+
+	w = beachWorld(t, true) // the control: a creature of the water
+	shark := addNPC(w, 101, "mako shark", 2020, 1000, creatureModel, 0)
+	shark.Y, shark.SpawnY = 40, 40
+	w.mu.Lock()
+	w.stepNPCToward(shark, 2030, 1000, 5, 0.5)
+	w.mu.Unlock()
+	if shark.Y != 40 || shark.swimming || shark.Loco != LocoWalk {
+		t.Errorf("a creature of the water: y %.1f, swimming %v, animation %d; want its own depth, 40, walking", shark.Y, shark.swimming, shark.Loco)
+	}
+}
+
+// A pet summoned on the shore swims after its owner into deep water.
+func TestAPetSwimsAfterItsOwner(t *testing.T) {
+	r := newPetRig(t)
+	r.w.SetGround(beach{})
+	r.w.SetEnv(seaWater{})
+	r.p.X, r.p.Y, r.p.Z = 1985, 60, 1000
+	pet, _ := r.summon(t, fireElemental(), 0)
+	r.p.X, r.p.Y = 2030, 50-swimDepth // the owner swims out
+	swam := false
+	for ms := 100; ms <= 20_000; ms += 100 {
+		r.w.mu.Lock()
+		r.w.petSystem(r.at(time.Duration(ms) * time.Millisecond))
+		r.w.mu.Unlock()
+		if pet.X > 2005 && pet.Loco != LocoStand && pet.Loco != LocoTread {
+			if d := pet.Y - (50 - swimDepth); d > 0.06 || d < -0.06 || pet.Loco != LocoSwim {
+				t.Fatalf("at x %.1f: y %.2f, animation %d; want the surface's %.1f, swimming", pet.X, pet.Y, pet.Loco, 50-swimDepth)
+			}
+			swam = true
+		}
+	}
+	if d := pet.Y - (50 - swimDepth); !swam || pet.X < 2020 || d > 0.06 || d < -0.06 || pet.Loco != LocoTread {
+		t.Errorf("the pet ended at x %.1f y %.2f, animation %d (swam %v); want beside its owner, treading water", pet.X, pet.Y, pet.Loco, swam)
+	}
+}

@@ -79,6 +79,18 @@ gates' seed (tools/seed_spell_gates.py) were applied to.
      where its effects are still as the import wrote them (its log's last
      row for them); else listed, left.
 
+  6. The enchanter's taunting Visages (MIRRORS, import_eqoaemu_spells.py's: a
+     fresh import makes the same; the user, 2026-11-01: "yes make it a taunt
+     proc", "yes make them taunt procs"): Alarming, Haunting and Ghastly
+     Visage, whose EQOA-Data lines read to no effect, take Calming Visage's
+     effects (a friendly target's offensive proc of kind hate, 5 min, its
+     stack) with their procs raising the hate of what the bearer's weapon
+     hits by 10, 20 and 40 (ours), at their own levels; their records target
+     spells as Calming Visage is (scope, frame), their descriptions ours
+     (import_eqoaemu_spells.py's mirror_changes on Calming Visage's effects
+     as the import's log has them). Only a spell with no effects of its own
+     yet is written; else listed, left.
+
 Where two of the five land stays as tools/seed_spell_gates.py put them:
 the Circle of Dead Hills at Fendren's spot (Fendren's guide: "Ports to Dead
 Hills SE (where Fendren is)", its level 53 guide that his port goes "to the
@@ -111,7 +123,8 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import import_quests as iq  # noqa: E402
-from import_eqoaemu_spells import DURATIONS, RECASTS, dumps as im_dumps, with_duration  # noqa: E402
+from import_eqoaemu_spells import DURATIONS, MIRRORS, RECASTS, dumps as im_dumps, with_duration  # noqa: E402
+import import_eqoaemu_spells as im  # noqa: E402
 
 DEFAULT_DB = os.path.join(HERE, "..", "eqoa.db")
 LOG = "eqoaemu_places_log"
@@ -306,6 +319,42 @@ def plan_durations(db, durations, ch, said):
                            note=f"{sname}: what lasts of it {want} s (DURATIONS: the workbook's 0)"))
 
 
+def plan_mirrors(db, mirrors, ch, said):
+    cols = [c for c in ("spellid", "spellname", "abilitylvl", "scope", "iconColor", "spelldesc") if c in columns(db, "spellpattern")]
+    recs = [dict(zip(cols, r)) for r in db.execute(f"SELECT {', '.join(cols)} FROM spellpattern")]
+    has_fx = has_table(db, "spelleffect") and "effects" in columns(db, "spelleffect")
+    for name, (orig, hate) in sorted(mirrors.items()):
+        mine = [r for r in recs if im.exact_key(r["spellname"]) == im.exact_key(name)]
+        theirs = [r for r in recs if im.exact_key(r["spellname"]) == im.exact_key(orig)]
+        if len(mine) != 1 or len(theirs) != 1 or not has_fx:
+            said["a mirror whose spell or original is not one record here (left)"].append(
+                f"{name}: {len(mine)} records, {orig}: {len(theirs)}")
+            continue
+        rec, o = mine[0], theirs[0]
+        orow = db.execute("SELECT effects FROM spelleffect WHERE spellid = ?", (o["spellid"],)).fetchone()
+        wrote = import_wrote(db, o["spellid"])
+        if orow is None or not (orow[0] or "").strip() or wrote is None or wrote[1] != orow[0]:
+            said["a mirror's original not as the import wrote it (left)"].append(f"{o['spellid']} {o['spellname']}")
+            continue
+        r = db.execute("SELECT line, effects, source FROM spelleffect WHERE spellid = ?", (rec["spellid"],)).fetchone()
+        now = dict(zip(("line", "effects", "source"), r)) if r else None
+        record, eff = im.mirror_changes(rec, now, o["scope"], o["iconColor"], o["spellname"], json.loads(orow[0]), hate)
+        if not record and not eff:
+            said["mirrors as they are to be"].append(f"{rec['spellid']} {rec['spellname']}")
+            continue
+        if now is None or (eff and (now.get("effects") or "").strip()):
+            said["a mirror's spell with effects of its own or no effects row (left: a GM's?)"].append(
+                f"{rec['spellid']} {rec['spellname']}")
+            continue
+        tag = f"{rec['spellname']}: {o['spellname']}'s mirror, a taunt of {hate} (MIRRORS)"
+        if record:
+            ch.append(dict(tbl="spellpattern", action="update", ref={"spellid": rec["spellid"]}, before=record["before"],
+                           set=record["set"], note=tag))
+        if eff:
+            ch.append(dict(tbl="spelleffect", action="update", ref={"spellid": rec["spellid"]}, before=eff["before"],
+                           set=eff["set"], note=tag))
+
+
 def plan_tower(db, gems, chambers, ch, said):
     for g in gems:
         # its two items: one of the name there is used; one to make whose id
@@ -481,7 +530,8 @@ def plan_isle(db, talked_to, ch, said):
                            note=f"{name}: the NPC bit"))
 
 
-def plan(db, recasts=None, gems=None, chambers=None, portal=PORTAL, keys=QUEST_KEYS, talked_to=TALKED_TO, durations=None):
+def plan(db, recasts=None, gems=None, chambers=None, portal=PORTAL, keys=QUEST_KEYS, talked_to=TALKED_TO, durations=None,
+         mirrors=None):
     """Every change --apply would make, in order, and the report's lines."""
     ch, said = [], collections.defaultdict(list)
     plan_recasts(db, RECASTS if recasts is None else recasts, ch, said)
@@ -489,6 +539,7 @@ def plan(db, recasts=None, gems=None, chambers=None, portal=PORTAL, keys=QUEST_K
     q = plan_quests(db, portal, keys, said)
     plan_isle(db, talked_to, ch, said)
     plan_durations(db, DURATIONS if durations is None else durations, ch, said)
+    plan_mirrors(db, MIRRORS if mirrors is None else mirrors, ch, said)
     return dict(changes=ch, quests=q, said=dict(said))
 
 

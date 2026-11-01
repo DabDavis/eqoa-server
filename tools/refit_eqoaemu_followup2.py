@@ -1,0 +1,213 @@
+#!/usr/bin/env python3
+"""The balance re-fitted again for the EQOAEmu follow-ups' second round (2026-11-01, evening, after the 16:38 UTC re-fit,
+tools/refit_eqoaemu_followup.py): the classes that round moved, fitted again by the same method to the same targets.
+
+DOCSTRING-FINDINGS
+
+It writes balanceclasslevel's rows of each class in SPAN (its spans of levels lo..hi) to FOLLOWUP's, each change only
+while the row holds what tools/refit_eqoaemu_followup.py left it (a row a GM changed is left, and said); the other
+classes' rows and the rows outside a class's span are not touched, nor balancelevel. Every change is logged in
+balance_eqoaemu_followup2_log (the row's key, the whole row before and after: NULL for one added or taken out, why);
+--undo puts back each row still as this left it and drops the log; a second --apply only does what is still to do.
+Both copy the database first (<db>.bak-<when>-pre-eqoaemufollowup2) unless --no-backup. Report only by default.
+Nothing is done on a database the 16:38 re-fit has not been applied to (tools/refit_eqoaemu_followup.py first). The
+server reads the balance tables at its start and at once at a save of any Balance page in the GM panel. Apply it with
+the second round's server and data (tools/fix_eqoaemu_followup2.py, fix_eqoaemu_places.py, fix_broken_records.py,
+fix_scrolls.py, remove_druid_leftover_spells.py, fix_eqoaemu_pet_abilities.py): the rows are fitted on them.
+internal/database/balanceseed.go holds the same rows (a table made new).
+
+    tools/refit_eqoaemu_followup2.py [--db eqoa.db] [--apply | --undo] [--no-backup]
+"""
+import argparse
+import datetime
+import json
+import os
+import shutil
+import sqlite3
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import refit_eqoaemu_balance as rf  # noqa: E402  the 10:20 re-fit: the row helpers
+import refit_eqoaemu_followup as fu  # noqa: E402  the 16:38 re-fit: what this goes from
+import retune_balance as retune  # noqa: E402  balanceclasslevel's order
+
+DEFAULT_DB = os.path.join(HERE, "..", "eqoa.db")
+LOG = "balance_eqoaemu_followup2_log"
+LOG_SCHEMA = f"""CREATE TABLE IF NOT EXISTS {LOG} (
+    seq     INTEGER PRIMARY KEY AUTOINCREMENT,
+    tbl     TEXT NOT NULL,   -- balanceclasslevel
+    place   TEXT NOT NULL,   -- the row's key, JSON
+    before  TEXT,            -- the whole row before, JSON; NULL: added
+    after   TEXT,            -- the whole row after, JSON; NULL: taken out
+    why     TEXT NOT NULL,
+    applied TEXT NOT NULL
+)"""
+CL = rf.CL  # balanceclasslevel
+WHY = ("the balance re-fitted for the EQOAEmu follow-ups' second round (tools/refit_eqoaemu_followup2.py; 2026-11-01 "
+       "evening: a ranger's blades back after an arrow art, creatures' effects counting, the simulator's debuffs, roots "
+       "held until a hit, the pets' abilities, the druid's leftovers out, the broken records fixed)")
+
+# class -> [(lo, hi), ...]: the levels fitted again; FOLLOWUP's rows there take the place of the 16:38 re-fit's
+SPAN = {}
+# balanceclasslevel: class -> {level: (melee_taken_pct, pet_hp_pct, dealt_pct)}, this re-fit's rows in its span
+FOLLOWUP = {}
+
+
+def in_span(c, level):
+    return any(lo <= level <= hi for lo, hi in SPAN.get(c, ()))
+
+
+def before_rows():
+    """the 16:38 re-fit's rows (tools/refit_eqoaemu_followup.py's whole table) in each span"""
+    was = fu.whole_rows()
+    return {c: {l: v for l, v in was.get(c, {}).items() if in_span(c, l)} for c in SPAN}
+
+
+def after_rows():
+    return {c: {l: tuple(map(float, v)) for l, v in by.items()} for c, by in FOLLOWUP.items()}
+
+
+def whole_rows():
+    """balanceclasslevel as the three re-fits leave it: the 16:38 re-fit's table, each span's FOLLOWUP's (the seeds)"""
+    out = fu.whole_rows()
+    for c, by in after_rows().items():
+        out[c] = {l: v for l, v in out.get(c, {}).items() if not in_span(c, l)}
+        out[c].update(by)
+        out[c] = dict(sorted(out[c].items()))
+    return out
+
+
+def is_whole(db):
+    """Whether balanceclasslevel is the three re-fits' rows already, every one (a table made new: the seeds are them)."""
+    have = fu.table_rows(db)
+    want = {(c, l): v for c, by in whole_rows().items() for l, v in by.items()}
+    return set(have) == set(want) and all(rf.same(have[k], want[k]) for k in want)
+
+
+def followup_done(db):
+    """Whether the 16:38 re-fit is what this goes from: its log (or this tool's), or its rows, every one."""
+    return rf.has_table(db, fu.LOG) or rf.has_table(db, LOG) or fu.is_whole(db)
+
+
+def plan(db):
+    """The changes [(table, key, row before or None, row after or None)] and the rows left, with why."""
+    changes, kept = [], []
+    if not FOLLOWUP:
+        return changes, [("everything", "no re-fit in this copy of the tool (FOLLOWUP is empty)")]
+    if not rf.has_table(db, CL) or "dealt_pct" not in rf.columns(db, CL):
+        return changes, [(CL, "no such table or no dealt_pct: tools/tune_balance.py and tools/retune_balance.py first")]
+    if not followup_done(db) and not is_whole(db):
+        return changes, [("everything", "not the state the 16:38 re-fit leaves: tools/refit_eqoaemu_followup.py first")]
+    was, want = before_rows(), after_rows()
+    places = [(c, l) for c in sorted(SPAN) for l in sorted(set(was.get(c, {})) | set(want.get(c, {})))]
+    for c, l in places:
+        old, new = was.get(c, {}).get(l), want.get(c, {}).get(l)
+        if rf.same(old, new):
+            continue
+        r = rf.row_of(db, CL, {"class": c, "level": l})
+        have = rf.cl_values(r)
+        if rf.same(have, new):
+            continue  # done already
+        if not rf.same(have, old):
+            kept.append((f"{CL} {c} {l}", f"{have if have else 'no row'}, not the 16:38 re-fit's "
+                                          f"{old if old else 'no row'}: a GM's"))
+            continue
+        after = None
+        if new is not None:
+            after = dict(r) if r else {"class": c, "level": l, "note": "", "source": "seed"}
+            after.update({"melee_taken_pct": new[0], "pet_hp_pct": new[1], "dealt_pct": new[2]})
+        changes.append((CL, {"class": c, "level": l}, r, after))
+    return changes, kept
+
+
+def backup(path):
+    when = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    dst, n = f"{path}.bak-{when}-pre-eqoaemufollowup2", 1
+    while os.path.exists(dst):
+        n += 1
+        dst = f"{path}.bak-{when}-{n}-pre-eqoaemufollowup2"
+    shutil.copy2(path, dst)
+    return dst
+
+
+def apply(db, changes):
+    when = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    db.execute("BEGIN IMMEDIATE")
+    try:
+        db.execute(LOG_SCHEMA)
+        for tbl, key, before, after in changes:
+            db.execute(f"INSERT INTO {LOG} (tbl, place, before, after, why, applied) VALUES (?, ?, ?, ?, ?, ?)",
+                       (tbl, json.dumps(key, sort_keys=True), None if before is None else json.dumps(before, sort_keys=True),
+                        None if after is None else json.dumps(after, sort_keys=True), WHY, when))
+            rf.write_row(db, tbl, key, after, insert=before is None)
+        retune.reorder(db)
+        db.execute("COMMIT")
+    except BaseException:
+        db.execute("ROLLBACK")
+        raise
+
+
+def undo(db):
+    if not rf.has_table(db, LOG):
+        print("nothing logged: nothing to undo")
+        return
+    logged = db.execute(f"SELECT seq, tbl, place, before, after FROM {LOG} ORDER BY seq DESC").fetchall()
+    back = 0
+    db.execute("BEGIN IMMEDIATE")
+    try:
+        for seq, tbl, place, before, after in logged:
+            if tbl != CL:
+                raise SystemExit(f"{LOG} names table {tbl!r}, which this tool never writes")
+            key = json.loads(place)
+            now = rf.row_of(db, tbl, key)
+            if now != (None if after is None else json.loads(after)):
+                print(f"  {tbl} {place}: changed since: left as it is")
+                continue
+            rf.write_row(db, tbl, key, None if before is None else json.loads(before), insert=now is None)
+            back += 1
+        retune.reorder(db)
+        db.execute(f"DROP TABLE {LOG}")
+        db.execute("COMMIT")
+    except BaseException:
+        db.execute("ROLLBACK")
+        raise
+    print(f"put back {back} of {len(logged)} rows; the server takes them at its next start or a Balance page's next save")
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap.add_argument("--db", default=DEFAULT_DB)
+    ap.add_argument("--no-backup", action="store_true", help="no copy of the database first (tests)")
+    g = ap.add_mutually_exclusive_group()
+    g.add_argument("--apply", action="store_true", help="write the re-fit (logged)")
+    g.add_argument("--undo", action="store_true", help="put back what --apply changed")
+    a = ap.parse_args()
+    if not os.path.exists(a.db):
+        sys.exit(f"{a.db}: no such database")
+    db = sqlite3.connect(a.db, timeout=30, isolation_level=None)
+    db.execute("PRAGMA busy_timeout = 30000")
+    if a.undo:
+        if not a.no_backup and rf.has_table(db, LOG):
+            print(f"copy: {backup(a.db)}")
+        undo(db)
+        return
+    changes, kept = plan(db)
+    for c in changes:
+        print(rf.describe(c))
+    for what, why in kept:
+        print(f"left as it is: {what} ({why})")
+    print(f"{len(changes)} rows to change, {len(kept)} left")
+    if not a.apply or not changes:
+        if not a.apply:
+            print("report only: --apply to write")
+        return
+    if not a.no_backup:
+        print(f"copy: {backup(a.db)}")
+    apply(db, changes)
+    print(f"changed {len(changes)} rows: the server takes them at its next start, or at once at the next save of a "
+          "Balance page in the GM panel")
+
+
+if __name__ == "__main__":
+    main()

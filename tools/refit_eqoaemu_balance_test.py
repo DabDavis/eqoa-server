@@ -116,19 +116,22 @@ class RefitEqoaemuBalance(unittest.TestCase):
 
     def test_the_seeds_are_the_refit(self):
         """internal/database/balanceseed.go's class and level rows are the re-fit's (with the follow-up's spans over
-        them, tools/refit_eqoaemu_followup.py) and its level rows' pet columns the re-fit's, so a table made new is
-        what the six tools make of an older one (the earlier tunings' tests follow their chain through this tool)"""
+        them, tools/refit_eqoaemu_followup.py, and the second round's over those, tools/refit_eqoaemu_followup2.py)
+        and its level rows' pet columns the re-fit's, so a table made new is what the seven tools make of an older one
+        (the earlier tunings' tests follow their chain through this tool)"""
         import refit_eqoaemu_followup as fu
+        import refit_eqoaemu_followup2 as f2
         with open(os.path.join(HERE, "..", "internal", "database", "balanceseed.go")) as f:
             go = f.read()
         cl = {}
         for cls, l, v, pv, dv in re.findall(r"\{Class: (\d+), Level: (\d+), MeleeTakenPct: ([\d.]+), PetHPPct: ([\d.]+)"
                                             r"(?:, DealtPct: ([\d.]+))?\}", go):
             cl.setdefault(int(cls), {})[int(l)] = (float(v), float(pv), float(dv) if dv else 100.0)
-        self.assertEqual(cl, fu.whole_rows())
-        for c, by in rf.REFIT.items():  # outside the follow-up's spans, this re-fit's
-            self.assertEqual({l: v for l, v in cl[c].items() if not fu.in_span(c, l)},
-                             {l: tuple(map(float, v)) for l, v in by.items() if not fu.in_span(c, l)}, c)
+        self.assertEqual(cl, f2.whole_rows())
+        for c, by in rf.REFIT.items():  # outside the two follow-ups' spans, this re-fit's
+            out = lambda l: not fu.in_span(c, l) and not f2.in_span(c, l)  # noqa: E731
+            self.assertEqual({l: v for l, v in cl[c].items() if out(l)},
+                             {l: tuple(map(float, v)) for l, v in by.items() if out(l)}, c)
         pets = re.findall(r"\{Level: (\d+), HPPct: [\d.]+, DamagePct: [\d.]+, ConPct: [\d.]+, PetHPPct: ([\d.]+), "
                           r"PetDamagePct: ([\d.]+)", go)
         self.assertEqual({int(l) for l, _, _ in pets}, set(rf.PET_LEVEL_BEFORE))

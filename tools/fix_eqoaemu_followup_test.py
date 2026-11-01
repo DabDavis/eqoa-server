@@ -11,7 +11,6 @@ exact."""
 import contextlib
 import json
 import os
-import sqlite3
 import sys
 import tempfile
 import unittest

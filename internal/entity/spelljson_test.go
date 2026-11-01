@@ -480,3 +480,33 @@ func TestWorkbookProcHeals(t *testing.T) {
 		t.Errorf("after a hit on it: %d HP, want 325", c.p.HP)
 	}
 }
+
+// The undead check on the workbook's spells (2026-11-01): "Enemy - Undead"
+// (the control), a harmful spell named for the undead that the workbook calls
+// "Enemy" (a paladin's Disrupt Undead), and one whose line says "Target
+// undead" (Punish Death) are for undead alone; a friendly spell its name and
+// its line give the undead (a paladin's Smite Undead, a proc on a friend) and
+// a harmful spell with neither are for anyone.
+func TestWorkbookUndeadCheck(t *testing.T) {
+	nuke := func(tt string) string {
+		return `{"v":1,"scope":"target","target_type":"` + tt + `","harmful":true,
+			"effects":[{"id":"0003","kind":"hp","amount":-140,"resist":"ar"}]}`
+	}
+	friend := `{"v":1,"scope":"target","target_type":"Friendly","harmful":false,"duration_s":300,
+		"effects":[{"id":"0004","kind":"stat","stat":"str","amount":10}]}`
+	for _, c := range []struct {
+		name, line, js string
+		undead         bool
+	}{
+		{"Test Death", "", nuke("Enemy - Undead"), true},
+		{"Test Disrupt Undead", "", nuke("Enemy"), true},
+		{"Test Punishment", "Target undead, Decrease Hitpoints by 118", nuke("Enemy"), true},
+		{"Test Bolt", "Target, Decrease Hitpoints by 118", nuke("Enemy"), false},
+		{"Test Smite Undead", "Target undead, Decrease HP by 32, 5min", friend, false},
+	} {
+		d := SpellDefFrom(c.name, c.line, "", c.js)
+		if !d.Workbook || d.undeadOnly() != c.undead || d.UndeadOnly != c.undead {
+			t.Errorf("%s: undead only %v (field %v), want %v", c.name, d.undeadOnly(), d.UndeadOnly, c.undead)
+		}
+	}
+}

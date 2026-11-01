@@ -70,6 +70,23 @@ on this database, and only these parts of it taken):
      Transmuter ranks whose workbook descriptions are each other's
      (import_eqoaemu_cms.py's DESC_SWAPS) take them so, against the CMs
      sheet's own text (one already so is left; one a GM changed, said).
+  5. The workbook's errors, put right as the imports read them now (the user,
+     2026-11-01: "yes fix it", "change it"): a Spells row that carries a
+     second spell's effects beside its own (import_eqoaemu_spells.py's
+     TWO_SPELLS: Flesh Mastery's, its "+" rank's beside its own) takes its own
+     alone, and the record of ours of the second's name (Flesh Mastery +) the
+     second's row and effects, their lines too; a record of ours whose
+     description says other than its row does takes ours (DESCRIPTIONS:
+     Flesh Mastery +'s named charisma, Agonize Death's was cut off mid-word);
+     the rank that adds the first where it means the second
+     (import_eqoaemu_cms.py's RANK_ADDS: Teachings of Morthalis 1) adds the
+     second, as the masteries import writes it now. A column of these only
+     where it is as the import's log wrote it, or, one the import did not
+     write, where no one changed it since the import (gm_audit), else listed;
+     a rank's abilities where they are as the masteries import's log wrote
+     them. Its owners' books stay as they are (a rank's swap is made at its
+     purchase): each is said, one whose book differs from what buying it
+     gives now with what it lacks or holds.
 
 A spell's effects row is changed only where it is as the import's log wrote
 it (a GM's change since is left, and said); every other row only where it is
@@ -446,6 +463,174 @@ def desc_changes(db, ranks, lists, counts):
     return out
 
 
+def when(text):
+    """A logged time (ISO, Z or an offset; none: UTC), None when it is none."""
+    try:
+        t = datetime.datetime.fromisoformat((text or "").strip().replace(" ", "T"))
+    except ValueError:
+        return None
+    return t if t.tzinfo else t.replace(tzinfo=datetime.timezone.utc)
+
+
+def import_applied(db):
+    """When the spells import was applied (its meta), None when it was not."""
+    if not im.has_table(db, im.META):
+        return None
+    r = db.execute(f"SELECT value FROM main.{im.META} WHERE key = 'applied_at'").fetchone()
+    return when(r[0]) if r else None
+
+
+def changed_since(db, tbl, key, cols, since):
+    """Whether gm_audit (the GM panel's lines, and a tool's that writes
+    there) changes any of a row's columns at or after since."""
+    if since is None or not im.has_table(db, "gm_audit"):
+        return False
+    for at, before, after in db.execute("SELECT at, before, after FROM main.gm_audit WHERE tbl = ? AND rowkey = ?",
+                                        (tbl, im.dumps(key))):
+        t = when(at)
+        if t is None or t < since:
+            continue
+        b, a = fu.loads(before), fu.loads(after)
+        b, a = b if isinstance(b, dict) else {}, a if isinstance(a, dict) else {}
+        if any(b.get(c) != a.get(c) for c in cols):
+            return True
+    return False
+
+
+def touched(db, tbl, sid, cols, now, wrote, since):
+    """The doc's 5 rule for an erratum's columns of a row (now: as they are):
+    each the import wrote is as its log has it, and the rest no one changed
+    since the import (gm_audit). Returns the columns that are not so."""
+    logged = wrote.get((tbl, im.dumps({"spellid": sid}))) or {}
+    off = []
+    for c in cols:
+        if c in logged and (fu.loads(now.get(c)) != fu.loads(logged[c]) if c == "effects" else now.get(c) != logged[c]):
+            off.append(c)
+    rest = [c for c in cols if c not in logged]
+    if rest and changed_since(db, tbl, {"spellid": sid}, rest, since):
+        off += rest
+    return off
+
+
+def errata_changes(db, p, ours, wrote, lists, counts):
+    """The doc's 5, the spells: what the import's plan (p) writes on the
+    records the workbook's errata touch (p["errata"]: a row TWO_SPELLS cut
+    takes its own effects, the second spell's record of ours its row's
+    record and effects, a record DESCRIPTIONS names its description), each
+    column where touched says it may; a merged record's (ours) columns are
+    the merge's, its description guarded too (guard_merged_descriptions)."""
+    er = p.get("errata") or {}
+    first, second, described = set(er.get("first", [])), set(er.get("second", [])), set(er.get("description", []))
+    since = import_applied(db)
+    out = []
+    for e in p["spells"]:
+        sid = e["spellid"]
+        if e["action"] != "update" or sid in ours or not (sid in second or sid in described):
+            continue
+        cols = [c for c in e["set"] if sid in second or c == "spelldesc"]
+        off = touched(db, "spellpattern", sid, cols, e["before"], wrote, since)
+        if off:
+            lists["a workbook erratum's record changed since the import (left)"].append(f"{sid}: {', '.join(off)}")
+        cols = [c for c in cols if c not in off]
+        if cols:
+            out.append(dict(tbl="spellpattern", action="update", key={"spellid": sid},
+                            before={c: e["before"][c] for c in cols}, set={c: e["set"][c] for c in cols},
+                            note="the workbook's errata: " + ("the second spell's record" if sid in second else
+                                                              "a description of ours put right")))
+            counts["errata: records put right"] += 1
+    for e in p["effects"]:
+        sid = e["spellid"]
+        if e["action"] != "update" or sid in ours or sid not in first | second:
+            continue
+        logged = wrote.get(("spelleffect", im.dumps({"spellid": sid})))
+        cols = ["line", "effects"] + ([] if logged is not None and "fxdict" in logged else ["source"])
+        now = e["before"]
+        before, after = {k: now.get(k) for k in cols}, {k: e["set"].get(k) for k in cols}
+        if before == after:
+            continue
+        off = touched(db, "spelleffect", sid, cols, now, wrote, since)
+        if off:
+            lists["a workbook erratum's effects row changed since the import (left)"].append(f"{sid}: {', '.join(off)}")
+            continue
+        out.append(dict(tbl="spelleffect", action="update", key={"spellid": sid}, before=before, set=after,
+                        note="the workbook's errata: " + ("the row's own effects" if sid in first else
+                                                          "the second spell's effects")))
+        counts["errata: effects rows put right"] += 1
+    return out
+
+
+def guard_merged_descriptions(db, p, changes, wrote, lists):
+    """A merged record's description put right (DESCRIPTIONS) is the doc's
+    5's too: dropped from its update where touched says it may not be."""
+    described = set((p.get("errata") or {}).get("description", []))
+    since = import_applied(db)
+    for c in changes:
+        sid = (c.get("key") or {}).get("spellid")
+        if c["tbl"] != "spellpattern" or c["action"] != "update" or sid not in described or "spelldesc" not in c["set"]:
+            continue
+        if touched(db, "spellpattern", sid, ["spelldesc"], c["before"], wrote, since):
+            lists["a workbook erratum's record changed since the import (left)"].append(f"{sid}: spelldesc")
+            c["before"].pop("spelldesc")
+            c["set"].pop("spelldesc")
+    return [c for c in changes if c["tbl"] != "spellpattern" or c["action"] != "update" or c["set"]]
+
+
+def rank_changes(db, ranks, smap, lists, counts):
+    """The doc's 5, the masteries: each RANK_ADDS rank of ours (cmcatalog,
+    by name) adds what the masteries import's rules write for it now (its
+    abilities of the CMs sheet put right, import_eqoaemu_cms.fix_rank_adds,
+    and named as its SpellNames names them), where its abilities are as that
+    import's log wrote them (else listed); its owners' books stay (a rank's
+    swap is made at its purchase), each said."""
+    out = []
+    W = [dict(w) for w in ranks or [] if "adds" in w and "hex" in w]
+    if not W or not im.has_table(db, "cmcatalog") or not {"adds", "add_spells"} <= set(im.columns(db, "cmcatalog")):
+        return out
+    fixed = cms.fix_rank_adds(W)
+    if not fixed:
+        return out
+    ctx = cms.SpellNames(db, {int(k, 16): (v[0], v[1]) for k, v in smap.items() if re.fullmatch(r"[0-9A-F]{1,4}", k)},
+                         {})
+    logged = {}
+    if im.has_table(db, cms.LOG):
+        logged = {rid: (fu.loads(a) or {}, when(t))
+                  for rid, a, t in db.execute(f"SELECT id, after, applied FROM main.{cms.LOG}")}
+    rows = db.execute("SELECT id, name, adds, add_spells, removes, remove_spells FROM main.cmcatalog ORDER BY id").fetchall()
+    for hx, name, was, means in fixed:
+        w = next(x for x in W if x["hex"] == hx)
+        adds, add_spells = ctx.abilities(w["adds"])
+        if ctx.unmapped:
+            lists["a rank put right whose spell none of ours, or several, are (left)"].append(
+                f"{hx} {name}: {', '.join(sorted(ctx.unmapped))}")
+            ctx.unmapped.clear()
+            continue
+        for rid, nm, a, s, rm, rms in rows:
+            if cms.fold(nm) != cms.fold(name):
+                continue
+            if (a, s) == (adds, add_spells):
+                continue
+            log, at = logged.get(rid) or ({}, None)
+            if log.get("adds", a) != a or log.get("add_spells", s) != s or \
+                    ("adds" not in log and changed_since(db, "cmcatalog", {"id": rid}, ["adds", "add_spells"], at)):
+                lists["a rank put right that a GM changed since the masteries import (left)"].append(f"{rid} {nm}")
+                continue
+            out.append(dict(tbl="cmcatalog", action="update", key={"id": rid}, before={"adds": a, "add_spells": s},
+                            set={"adds": adds, "add_spells": add_spells},
+                            note=f"the workbook's errata: {nm} adds {means}, not {was}"))
+            counts["errata: ranks put right"] += 1
+            lists["a rank given the spell it means (RANK_ADDS)"].append(f"{rid} {nm}: {a!r} -> {adds!r} ({add_spells})")
+            gives, takes = cms.book_change(dict(adds=adds, add_spells=add_spells, removes=rm, remove_spells=rms))
+            if im.has_table(db, "charcms") and im.has_table(db, "spells"):
+                for (sid,) in db.execute("SELECT serverid FROM main.charcms WHERE cmid = ? ORDER BY serverid", (rid,)):
+                    held = {x for (x,) in db.execute("SELECT spellid FROM main.spells WHERE serverid = ?", (sid,))}
+                    lack = [g for g in gives if g[1] not in held]
+                    keep = [t for t in takes if t[1] in held]
+                    lists["an owner of a rank put right (its book as it is: a rank's swap is made at its purchase)"].append(
+                        f"character {sid}, {rid} {nm}: " + ("its book as buying it gives now" if not lack and not keep else
+                                                            f"lacks {lack}, holds {keep}"))
+    return out
+
+
 def plan(db, wb, smap, disc=None, icons=None, weres=None, bodies=None, ranks=None, decided=None):
     """Everything --apply would write (changes), and the report's lists.
     ranks: the CMs sheet's ranks (import_eqoaemu_cms.read_ranks), for the
@@ -509,6 +694,13 @@ def plan(db, wb, smap, disc=None, icons=None, weres=None, bodies=None, ranks=Non
         c["note"] = "one spell's two records: the workbook's area or class row on ours"
         counts[f"merged: {c['tbl']} rows of ours ({c['action']})"] += 1
     changes += rows
+    # the workbook's errata (the doc's 5): the records they touch, the rank
+    changes = guard_merged_descriptions(db, p, changes, wrote, lists)
+    changes += errata_changes(db, p, ours, wrote, lists, counts)
+    changes += rank_changes(db, ranks, smap, lists, counts)
+    for k, v in p["lists"].items():
+        if k.endswith(("(TWO_SPELLS)", "(DESCRIPTIONS)")) or k.startswith("a workbook erratum's"):
+            lists[k] = v
     # the items: made ones, their rows, the uses made and changed
     made = im.changes_of(dict(spells=[], effects=[], areas=[], moves=[], links=[], scrolls=[], stock=[], migrations=[],
                               gates=[], foods={}, made=p["made"]))

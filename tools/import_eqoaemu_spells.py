@@ -14,6 +14,14 @@ spellid, how; existing spells matched by name, name and class where several
 share one, a new one numbered 900000 + int(SpellID, 16)). Every workbook
 spell is named through that map, here and in the other lanes' tools.
 
+The workbook's errors are put right as it is read (the user, 2026-11-01: "yes
+fix it"): a Spells row that carries a second spell's effects beside its own is
+two rows, the second on the record of ours of its name (TWO_SPELLS: Flesh
+Mastery's row gives its "+" rank's 40 a stat for 30 minutes beside its own 20
+for 5, so Flesh Mastery takes its own and Flesh Mastery + the other, as each
+of the necromancer's other pet buffs and its "+" are; the mastery rank that
+swaps them, import_eqoaemu_cms.py's RANK_ADDS).
+
 What it writes, and from what:
 
   spellpattern, a spell the map says is ours: abilitylvl (Level), range,
@@ -22,7 +30,10 @@ What it writes, and from what:
       (the user, 2026-11-01: "workbook wins on all") its icon, frame and
       spelling as a new spell's below; a rename only where every lookup by
       name reads the two alike (rename_safe), else listed; spelldesc and
-      eqprequire stay ours (the workbook has no description). Several workbook rows
+      eqprequire stay ours (the workbook has no description), but for a record
+      DESCRIPTIONS names, whose own says other than its row does (Flesh
+      Mastery +'s names charisma; Agonize Death's, EQOA-Data's, is cut off
+      mid-word: the user's "change it"). Several workbook rows
       mapped onto one record (one name, two classes' different spells) set it
       from the row that is the record's own (a class the record is linked to,
       its level, a class of Sandstorm's, its scope, the lowest SpellID); the
@@ -281,6 +292,26 @@ MIRRORS = {"alarming visage": ("calming visage", 10), "haunting visage": ("calmi
            "ghastly visage": ("calming visage", 40)}
 MIRROR_DESC = "Enchants the target's weapon with taunt: what its blows strike comes to hate it more."
 MIRROR_NOTE = "effects ours: the mirror of the workbook's {}"
+# The workbook's errors, put right (the user, 2026-11-01: "yes fix it", "change
+# it"). TWO_SPELLS: a Spells-sheet row that carries a second spell's effects
+# beside its own, by its name (folded) -> the second spell's name and the
+# places (EffectID1-4) of its effects in the row. Flesh Mastery's row gives its
+# "+" rank's 40 STR, STA and DEX for 30 minutes beside its own 20 for 5, where
+# each of the necromancer's other pet buffs has its "+" a row of its own, the
+# one its mastery rank swaps it for (import_eqoaemu_cms.py's RANK_ADDS). The
+# second spell is a row of its own (two_spells), on the record of ours of its
+# name (the map's rule for a spell we have; none of ours: listed).
+TWO_SPELLS = {"flesh mastery": ("Flesh Mastery +", (2,))}
+# DESCRIPTIONS: a record of ours whose own description says other than what
+# the workbook's row it takes does, by its name (folded) -> ours (None: made
+# from its effects, as a new record's is: desc_of). Flesh Mastery +'s names
+# charisma; Agonize Death's is EQOA-Data's cut off mid-word (the record takes
+# the workbook's Agonize Undead: its hit and its wound over 24 seconds).
+DESCRIPTIONS = {"flesh mastery +": None,
+                "agonize death": "Level 60 Epic third spell option. An arcane strike at an undead foe. Its wound "
+                                 "damages it over 24 seconds. Resisted by AR."}
+# the key on a Spells row two_spells made, naming the row it was cut from
+ERRATUM_OF = "erratum of"
 # a Dmg/Heal row with a positive HP1 lasting at most this many seconds heals
 # each tick; one lasting longer heals once, at its landing (the doc)
 HEAL_TICKS_UP_TO = 60
@@ -546,11 +577,44 @@ def race_mask(text):
 
 # ---- the effects, as the brief's JSON v1 ----------------------------------------
 
+def two_spells(spells, effects):
+    """The Spells sheet's rows, each TWO_SPELLS row made two: the row with its
+    own effects alone, then the second spell's row (its name, the effects at
+    its places, its time theirs, a mastery's as the other "+" rows are; no
+    SpellID of its own, ERRATUM_OF naming the row's). A row whose places hold
+    no effect stays as it is (the workbook put right). Returns the rows and
+    what was cut, as (the row's SpellID, its name, the second's, its effects)."""
+    out, cut = [], []
+    for s in spells:
+        spec = TWO_SPELLS.get(fold(cell(s, "Name")))
+        if spec is None:
+            out.append(s)
+            continue
+        name, places = spec
+        ids = [hexid(s.get(f"EffectID{i}")) for i in range(1, 5)]
+        mine = [x for i, x in enumerate(ids, 1) if x and i not in places]
+        theirs = [x for i, x in enumerate(ids, 1) if x and i in places]
+        if not theirs:
+            out.append(s)
+            continue
+        first, second = dict(s), dict(s)
+        for i in range(1, 5):
+            first[f"EffectID{i}"] = mine[i - 1] if i <= len(mine) else ""
+            second[f"EffectID{i}"] = theirs[i - 1] if i <= len(theirs) else ""
+        second.update({"SpellID": "", "Name": name, "Learn Method": "CM", "ScrollSource": "",
+                       ERRATUM_OF: hexid(s.get("SpellID"))})
+        times = {num(effects[x], "Duration") for x in theirs if x in effects} - {None, 0}
+        if len(times) == 1:
+            second["Duration"] = str(times.pop())
+        out += [first, second]
+        cut.append((hexid(s.get("SpellID")), cell(s, "Name"), name, theirs))
+    return out, cut
+
+
 class Workbook:
     """The sheets, indexed."""
 
     def __init__(self, sheets):
-        self.spells = sheets["Spells"]
         self.effects, self.effect_clash = {}, []
         for e in sheets["Effects"]:
             i = hexid(e.get("EffectID"))
@@ -561,6 +625,7 @@ class Workbook:
                     self.effect_clash.append(i)   # the first kept
                 continue
             self.effects[i] = e
+        self.spells, self.errata = two_spells(sheets["Spells"], self.effects)
         self.items = {}
         for r in sheets["Created Item Info"]:
             n = num(r, "ItemID")
@@ -1533,8 +1598,27 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None, b
 
     by_sid = collections.defaultdict(list)
     split_of = {}   # a split row's new spellid -> the record it leaves
+    # the records the workbook's errata touch: a row two_spells cut (first), its
+    # second spell's (second), a description put right (description)
+    errata = {"first": set(), "second": set(), "description": set()}
+    for cut in getattr(wb, "errata", []):
+        lists["a workbook row carrying a second spell's effects, made two (TWO_SPELLS)"].append(
+            f"{cut[0]} {cut[1]}: {', '.join(cut[3])} -> {cut[2]}")
     for s in wb.spells:
         sid_hex = hexid(s.get("SpellID"))
+        if not sid_hex and s.get(ERRATUM_OF):
+            # the second spell of a row two_spells cut: the record of ours of its name
+            mine = [sid for sid, r in records.items() if exact_key(r["spellname"]) == exact_key(cell(s, "Name"))]
+            if len(mine) != 1:
+                lists["a workbook erratum's second spell: none of ours, or several, of its name (left)"].append(
+                    f"{s[ERRATUM_OF]} {cell(s, 'Name')}: {mine or 'none'}")
+                continue
+            by_sid[mine[0]].append(s)
+            errata["second"].add(mine[0])
+            m = map_entry(smap, s[ERRATUM_OF])
+            if m is not None:
+                errata["first"].add(m[0])
+            continue
         if not sid_hex:
             continue
         if sid_hex not in smap:
@@ -1675,6 +1759,15 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None, b
                 else:
                     lists["a spell the workbook spells otherwise, its name kept (a lookup by name reads it otherwise)"].append(
                         f"{sid} {rec['spellname']!r}: the workbook's {nm!r}")
+            # a description of ours that says other than this row does (DESCRIPTIONS)
+            if fold(rec["spellname"]) in DESCRIPTIONS:
+                text = DESCRIPTIONS[fold(rec["spellname"])]
+                want["spelldesc"] = text if text is not None else \
+                    desc_of(j, cm, rec["spellname"], quest[1] if quest else "", were_form)
+                errata["description"].add(sid)
+                if want["spelldesc"] != rec["spelldesc"]:
+                    lists["a record of ours given the description its row says (DESCRIPTIONS)"].append(
+                        f"{sid} {rec['spellname']}: {want['spelldesc']!r}")
             changed = {k: v for k, v in want.items() if rec.get(k) != v}
             if changed:
                 spells.append(dict(spellid=sid, action="update", sheet_id=hexid(s.get("SpellID")),
@@ -1808,6 +1901,7 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None, b
     p = dict(spells=spells, effects=effects, areas=area_rows, links=links, scrolls=scrolls, stock=stock,
              moves=moves, migrations=migrations, gates=gate_rows, foods=foods, made=made.out,
              made_spells=sorted(made.settled), folds=folds,
+             errata={k: sorted(v) for k, v in errata.items()},
              lists={k: v for k, v in lists.items()}, counts=dict(counts), effect_clash=wb.effect_clash)
     p["changes"] = changes_of(p)
     return p

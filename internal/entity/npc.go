@@ -67,6 +67,9 @@ type NPC struct {
 
 	// Effects is the spells on it (cast.go): damage ticks, holds, slows.
 	Effects []*ActiveEffect
+	// effMaxHP is what a pet's effects add to its maximum hit points now,
+	// MaxHP holding it (syncEffectMaxHP, pet.go).
+	effMaxHP int
 
 	// Combat — computed from level via SOE formulas
 	OffMod       int

@@ -264,6 +264,7 @@ func (w *World) unCharmLocked(npc *NPC) uint8 {
 	npc.NPCType = h.npcType
 	npc.Faction = h.faction
 	npc.Charm = nil
+	npc.dropEffectMaxHP()          // its effects raise a pet's maximum alone (pet.go)
 	npc.Power, npc.MaxPower = 0, 0 // a creature again: no power (npcregen.go)
 	return h.world
 }

@@ -336,6 +336,7 @@ func newPet(t *NPC, id EntityID, owner *Player, name string, level int) *NPC {
 	pet.Class = classWarrior // its swing a warrior's (petSwing has the enchanter's)
 	pet.MaxHP = NPCMaxHP(level)
 	pet.HP = pet.MaxHP
+	pet.effMaxHP = 0
 	pet.OffMod, pet.DefMod, pet.WeaponDamage = NPCOffMod(level), NPCDefMod(level), NPCWeaponDamage(level)
 	if pet.PrimaryWeapon == 0 && pet.SecondaryWeapon == 0 {
 		pet.PrimaryType, pet.SecondaryType = 1, 5 // Sandstorm's pet's hands
@@ -1235,14 +1236,22 @@ func (w *World) retargetLocked(npc *NPC) {
 // petEffectsLocked, its AC, AGI, STR and DEX count in its fights: pet.go's
 // npcHitOnPet and petMeleeHit; its other stats a pet does not use).
 func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *session.Session, pet *NPC, now time.Time) {
-	for _, e := range cs.spell.Def.Effects {
-		if e.Kind != EffectHP {
-			continue
+	// a spell that raises the maximum heals after the raise, as on a player
+	// (landOnPlayerLocked), or a pet at full health would get none of it
+	raises := cs.spell.Def.RaisesMaxHP()
+	heal := func() {
+		for _, e := range cs.spell.Def.Effects {
+			if e.Kind != EffectHP {
+				continue
+			}
+			if n := spellAmount(e, caster); n > 0 && pet.HP < pet.MaxHP {
+				pet.HP = min(pet.HP+n, pet.MaxHP)
+				w.tellAmountLocked(caster, casterSess, pet.ServerID, n)
+			}
 		}
-		if n := spellAmount(e, caster); n > 0 && pet.HP < pet.MaxHP {
-			pet.HP = min(pet.HP+n, pet.MaxHP)
-			w.tellAmountLocked(caster, casterSess, pet.ServerID, n)
-		}
+	}
+	if !raises {
+		heal()
 	}
 	if ae := lasting(cs, caster, now); ae != nil {
 		if over := putOnPetLocked(pet, &cs.spell, ae); over != nil {
@@ -1252,8 +1261,57 @@ func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *sessi
 				w.sendColoredLocked(casterSess, fmt.Sprintf(lineStronger, pet.Name, over.Name), castRefusalRGB)
 			}
 		}
+		pet.syncEffectMaxHP()
+	}
+	if raises {
+		heal()
 	}
 	log.Printf("Cast: %s's %q lands on the pet %q (%d/%d HP, %d effects)", caster.Name, cs.spell.Name, pet.Name, pet.HP, pet.MaxHP, len(pet.Effects))
+}
+
+// A pet's maximum hit points take its effects (the user, 2026-11-01, of the
+// shaman's Avatar: "a one time max hp buff and massive stat buff"; until
+// then a pet's maximum took none, so Avatar on a pet only healed it): MaxHP
+// is its own (the balance's, its template's) plus what its effects add,
+// effMaxHP. A raise's heal comes after it (landOnPetLocked); an effect's end
+// takes its raise back within the pet's tick (petEffectsLocked), whatever
+// took the effect off, its hit points kept within the lower maximum; the
+// balance setting a pet's hit points again keeps the raise
+// (applyBalanceLocked); a charm's end takes it back (unCharmLocked).
+
+// effectsMaxHP is what the NPC's effects add to its maximum hit points: each
+// effect's maximum and its hit point factor at the NPC's level, as a
+// player's (MaxHPNow).
+func (n *NPC) effectsMaxHP() int {
+	add := 0
+	for _, ae := range n.Effects {
+		add += ae.Mods.MaxHP + ae.Mods.HPFactor*n.Level
+	}
+	return add
+}
+
+// syncEffectMaxHP moves the NPC's maximum hit points by what its effects add
+// now against what they added, its hit points kept within it.
+func (n *NPC) syncEffectMaxHP() {
+	add := n.effectsMaxHP()
+	if add == n.effMaxHP {
+		return
+	}
+	n.MaxHP = max(n.MaxHP+add-n.effMaxHP, 1)
+	n.effMaxHP = add
+	n.HP = min(n.HP, n.MaxHP)
+}
+
+// dropEffectMaxHP takes back what the NPC's effects add to its maximum (a
+// charm's end: its effects are a creature's again, which count for no
+// maximum).
+func (n *NPC) dropEffectMaxHP() {
+	if n.effMaxHP == 0 {
+		return
+	}
+	n.MaxHP = max(n.MaxHP-n.effMaxHP, 1)
+	n.effMaxHP = 0
+	n.HP = min(n.HP, n.MaxHP)
 }
 
 // putOnPetLocked keeps a beneficial spell's lasting effect on a pet, only the
@@ -1301,6 +1359,7 @@ func (w *World) petEffectsLocked(ps *petState, now time.Time) {
 		}
 	}
 	pet.Effects = left
+	pet.syncEffectMaxHP() // a raise that ended (or went another way) taken back
 }
 
 // sendSetPet is 0x007E: the pet's id, one raw u32 into m_petId.

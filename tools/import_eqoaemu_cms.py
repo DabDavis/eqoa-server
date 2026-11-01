@@ -614,7 +614,10 @@ def plan(db, W, spellmap, levels, opts):
         owned[cmid].append((sid, paid))
     gm_rows = set()
     if has_table(db, "gm_audit"):
-        for (k,) in db.execute("SELECT rowkey FROM gm_audit WHERE tbl = 'cmcatalog' AND reverted_by IS NULL"):
+        # a GM's edit in the panel or by an agent, not a tool's (this one's
+        # own lines, an --undo's, say via "tool")
+        for (k,) in db.execute("SELECT rowkey FROM gm_audit WHERE tbl = 'cmcatalog' AND reverted_by IS NULL "
+                               "AND via != ?", (VIA,)):
             try:
                 gm_rows.add(int(json.loads(k)["id"]))
             except (ValueError, KeyError, TypeError):

@@ -423,6 +423,10 @@ func (w *World) HandsChanged(sess *session.Session, swing Swing) {
 	if p == nil || p.AttackTarget == 0 {
 		return
 	}
+	if swing == p.Swing { // the swing it makes now (armour changed, or the hands back): nothing waits
+		p.swingNew = false
+		return
+	}
 	p.swingNext, p.swingNew = swing, true
 	log.Printf("Combat: %s's hands changed: the next round swings %d (%v, reach %.1f)", p.Name, swing.Kind, swing.Delay, swing.Reach)
 }

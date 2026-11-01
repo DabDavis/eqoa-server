@@ -63,8 +63,9 @@ func SimBaseStats(class, race, level int) [7]int {
 // least, 1 the best) among those of the last ten levels it may wear (all
 // below when there are none), the best weapon of that place for its hands
 // (a shield in the off hand for a tank or a priest that may hold one, a
-// second weapon for a melee class), and every spell of its class up to its
-// level in its book.
+// second weapon for a melee class; a monk's bare hands), what its other arts
+// want carried beside (Hands: a ranger's bow), and every spell of its class
+// up to its level in its book.
 func SimKitFromDB(db *database.SQLiteDB, class, race, level int, tier float64) (SimPlayer, error) {
 	pl := SimPlayer{Class: class, Race: race, Level: level, Base: SimBaseStats(class, race, level),
 		Play: SimPlay{Melee: true, Buffs: true, Spells: true}}

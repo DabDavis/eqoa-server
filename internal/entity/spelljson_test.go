@@ -649,6 +649,35 @@ func TestACureOfUpToThree(t *testing.T) {
 	}
 }
 
+// A spell for a target with a part for the area round its caster (the
+// warrior's Taunting Shout: 100 hate on its target, 20 on every creature
+// within 10 of the warrior): the target takes both, a creature 6 from the
+// warrior the area's part, one 30 off nothing.
+func TestAShoutsAreaPartIsRoundTheWarrior(t *testing.T) {
+	noResist(t)
+	shout := wbSpell(9851, 5, 1, "Test Shout", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"stack":0,"level":5,"radius":10,
+		"effects":[{"id":"07BB","type":"Modify Hate","kind":"hate","amount":20,"scope":"player_aoe"},
+		{"id":"07BC","type":"Modify Hate","kind":"hate","amount":100}]}`)
+	if len(shout.Def.Unsupported) != 0 || shout.Area.Centre != AreaOnCaster {
+		t.Fatalf("read with %v left over, an area of %v", shout.Def.Unsupported, shout.Area.Centre)
+	}
+	k := newCaster(t)
+	k.npc.HP, k.npc.MaxHP, k.npc.Level = 5000, 5000, 5
+	k.w.SpatialIndex.Insert(k.npc.ServerID, k.npc.X, k.npc.Z)
+	mk := func(id EntityID, dx float32) *NPC {
+		n := &NPC{ServerID: id, Name: "Test Crab", Level: 5, HP: 5000, MaxHP: 5000, X: k.p.X + dx, Y: k.p.Y, Z: k.p.Z}
+		k.w.NPCs[id] = n
+		k.w.SpatialIndex.Insert(id, n.X, n.Z)
+		return n
+	}
+	near, far := mk(7301, -6), mk(7302, -30)
+	k.landSeen(t, shout, k.npcO)
+	tT, tN, tF := k.npc.Threats[k.p.ServerID], near.Threats[k.p.ServerID], far.Threats[k.p.ServerID]
+	if tT < 120 || tN < 20 || tN >= tT || tF != 0 {
+		t.Errorf("hate: the target %d, 6 from the warrior %d, 30 off %d", tT, tN, tF)
+	}
+}
+
 // A player below a spell's lowest level is not affected; one at it is (the
 // control).
 func TestWorkbookLowestLevel(t *testing.T) {

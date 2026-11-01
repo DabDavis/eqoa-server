@@ -239,6 +239,7 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 	d.Duration = seconds(s.DurationS)
 	var area []SpellEffect
 	targetOnly := map[int]bool{} // a target-based area spell's effects for its target alone
+	casterArea := map[int]bool{} // a target spell's effects for the area round its caster too
 	for _, e := range s.Effects {
 		if d.Duration <= 0 && e.DurationS > 0 {
 			d.Duration = seconds(e.DurationS)
@@ -273,6 +274,15 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 				d.Effects[i].Self, d.Effects[i].ShareGroup = true, true
 			}
 			d.ShareRadius = float32(s.Radius)
+		case es == "player_aoe" && scope == "target":
+			// a part for the area round its caster in a spell cast at a
+			// target (the warrior's Shouts: the target's hate, and every
+			// creature's round the warrior): the target takes it with the
+			// rest, the area's others it alone (2026-11-01; until then the
+			// target alone took it)
+			for i := n; i < len(d.Effects); i++ {
+				casterArea[i] = true
+			}
 		case es != "" && es != scope && es != "self" && es != "target":
 			d.unsupported("an effect for %q in a spell for %q (it lands as the spell's)", es, scope)
 		}
@@ -345,6 +355,14 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 		d.Area = &SpellArea{Centre: AreaOnCaster, Radius: r, Why: "the workbook's player-based area"}
 	case scope == "group" && r > 0:
 		d.Area = &SpellArea{Centre: AreaOnCaster, Radius: r, Why: fmt.Sprintf("the workbook's group radius %g", s.Radius)}
+	case len(casterArea) > 0:
+		var share []SpellEffect
+		for i := range d.Effects {
+			if casterArea[i] {
+				share = append(share, d.Effects[i])
+			}
+		}
+		d.Area = &SpellArea{Centre: AreaOnCaster, Radius: r, Effects: share, Why: "the workbook's area round its caster in a spell for a target"}
 	default:
 		d.Area = &SpellArea{} // the workbook gives none: no line words make one
 	}

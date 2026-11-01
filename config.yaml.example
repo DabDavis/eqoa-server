@@ -70,6 +70,11 @@ world:
   # (5s when unset) before the game goes back to its login. Unset: none.
   # restart_notice: "Restarting Server, log back in 20 seconds."
   # restart_notice_wait: 5s
+  # The check of a player's own moves (entity/movecheck.go): off takes every
+  # 0x40 as before; log (unset) takes every one and logs the rest (MOVECHECK);
+  # enforce leaves a player where it was last right and moves the client back.
+  # #movecheck off|log|enforce changes it while the server runs.
+  # movecheck: log
 
 patch:
   # Directory holding the client patch payloads. A relative path resolves

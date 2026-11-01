@@ -56,6 +56,7 @@ func SpellDefFrom(name, line, desc, effects string) SpellDef {
 	if strings.TrimSpace(effects) != "" {
 		d, err := ParseSpellJSON(name, desc, effects)
 		if err == nil {
+			d.undeadFromLine(line)
 			return d
 		}
 		if _, seen := badSpellJSON.LoadOrStore(name, true); !seen {
@@ -63,6 +64,22 @@ func SpellDefFrom(name, line, desc, effects string) SpellDef {
 		}
 	}
 	return ParseSpellNamed(name, line, desc)
+}
+
+// undeadFromLine makes a harmful spell read from the workbook for undead
+// alone when its line says "Target undead" (EQOA-Data's words, which the line
+// reader reads the same way: spelltext.go's target words), the one thing a
+// line still gives a spell its effects make: the workbook marks Punish Death
+// and Exorcise "Enemy" where EQOA-Data and the live game have them for
+// undead (2026-11-01). A friendly spell keeps the workbook's reading (a
+// paladin's Wards and Smite Undead, procs its line says "Target undead").
+func (d *SpellDef) undeadFromLine(line string) {
+	if !d.Harmful || d.undeadOnly() {
+		return
+	}
+	if strings.HasPrefix(strings.ToLower(strings.TrimSpace(line)), "target undead") {
+		d.UndeadOnly = true
+	}
 }
 
 // badSpellJSON is the spells whose effects were logged as unread, once each.
@@ -239,6 +256,14 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 	if d.FormKind != FormNone {
 		d.Harmful = false
 	}
+	// the undead check, which the workbook's Legend calls the one oddity of a
+	// negative HP1 and its Target Type gives only some of the undead spells
+	// ("Enemy - Undead": the cleric's Death line, the Charm Undead line;
+	// "Enemy": the paladin's and the cleric's Undead lines, Punish Death,
+	// Exorcise): a harmful spell named for the undead is for undead alone,
+	// as its line's reading has it (undead.go); SpellDefFrom adds a line's
+	// own "Target undead"
+	d.readUndead(name, desc)
 	r := float32(s.Radius)
 	switch {
 	case scope == "target_aoe":

@@ -427,6 +427,9 @@ const tooLowWords = "%s is too low a level for that spell."
 func (w *World) cureLocked(cs *castState, t *Player) int {
 	n := 0
 	for _, ae := range append([]*ActiveEffect(nil), t.Effects...) {
+		if most := cs.spell.Def.CureMax; most > 0 && n >= most {
+			break // a cure of so many (CureMax)
+		}
 		if ae.SpellID == cs.spell.SpellID {
 			continue
 		}

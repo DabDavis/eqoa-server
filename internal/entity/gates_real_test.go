@@ -16,8 +16,9 @@ import (
 // cmd/groundbake's) and the server's own creatures: each lands where the
 // server would set a player, on a pyramid's top as written, else on the
 // terrain within 200 of its place, under the open sky and out of the water,
-// in one of the disc's six worlds; a place under a roof with no open ground
-// near (the vampires' Sanctuary) on itself. Skipped without both: neither is
+// in one of the disc's six worlds; a place under a roof with no open ground a
+// body walks to (the vampires' Sanctuary, Envar's tower) under its roof, on
+// itself or where a body walks to from it. Skipped without both: neither is
 // in this repository.
 func TestRealSpellGatesLand(t *testing.T) {
 	dir := os.Getenv("EQOA_GROUND_DIR")
@@ -85,16 +86,23 @@ func TestRealSpellGatesLand(t *testing.T) {
 		d := distXZ(x, z, row.X, row.Z)
 		fy, ok := g.Floor(row.World, x, y+0.1, z)
 		top, _ := g.Floor(row.World, x, y+1000, z)
+		w.mu.Lock()
+		base, _ := w.gateFloorLocked(row.World, row.X, row.Y, row.Z)
+		inside := w.coveredLocked(row.World, row.X, base, row.Z)
+		walks := w.gateWalkLocked(row.World, row.X, base, row.Z, x, y, z)
+		w.mu.Unlock()
 		switch {
 		case !ok || math.Abs(float64(fy-y)) > 0.05:
 			t.Errorf("%s: landed at (%.1f, %.1f, %.1f), off the terrain (%.1f)", row.Spell, x, y, z, fy)
-		case top > y+gateOpen && d > 0:
+		case top > y+gateOpen && !inside:
 			t.Errorf("%s: landed under a floor %.1f above", row.Spell, top-y)
+		case top > y+gateOpen && d > 0 && !walks:
+			t.Errorf("%s: landed under a roof %.0f off its place, where no body walks to from it", row.Spell, d)
 		case top > y+gateOpen:
-			// a place under a roof with no open ground near enough (the
-			// vampires' Sanctuary, in the rock): the search's last resort,
-			// the place itself
-			t.Logf("%-24s %s: under a roof, no open ground within the search: on its place", row.Spell, row.Place)
+			// a place under a roof with no open ground a body walks to (the
+			// vampires' Sanctuary, in the rock; Envar's tower): under its
+			// roof, the place itself or where a body walks to from it
+			t.Logf("%-24s %s: under a roof, no open ground it walks to: %.0f off its place, at (%.0f, %.1f, %.0f)", row.Spell, row.Place, d, x, y, z)
 			continue
 		case env != nil && w.waterAtLocked(row.World, x, y+bodyAbove, z):
 			t.Errorf("%s: landed in the water", row.Spell)

@@ -2,6 +2,7 @@ package entity
 
 import (
 	"encoding/binary"
+	"math"
 	"net"
 	"strings"
 	"testing"
@@ -446,5 +447,86 @@ func TestAGroupLandsRoundItsCaster(t *testing.T) {
 	w.ground = nil
 	if s := w.GateRingSpot(at, 2); s != at {
 		t.Errorf("the control: no ground put ring 2 at %+v, want the spot", s)
+	}
+}
+
+// gateChamber is a flat terrain at 50 with a chamber round (2000, 2000):
+// its roof (the floor above, 75) over |x|, |z| within 20 of its middle,
+// walls along that square (walled: a way across it is blocked) and a table
+// placed in its middle (3 round it).
+type gateChamber struct{ walled bool }
+
+func (gateChamber) Floor(_ uint8, x, y, z float32) (float32, bool) {
+	if inChamber(x, z) && y+2 >= 75 {
+		return 75, true
+	}
+	return 50, 50 <= y+2
+}
+
+func inChamber(x, z float32) bool {
+	return float32(math.Abs(float64(x-2000))) < 20 && float32(math.Abs(float64(z-2000))) < 20
+}
+
+func (c gateChamber) Wall(_ uint8, x0, _, z0, x1, _, z1 float32) bool {
+	return c.walled && inChamber(x0, z0) != inChamber(x1, z1)
+}
+
+func (gateChamber) Placed(_ uint8, x0, _, z0, x1, _, z1 float32) bool {
+	return distXZ(x0, z0, 2000, 2000) < 3 || distXZ(x1, z1, 2000, 2000) < 3
+}
+
+// A place inside a walled chamber (under its roof, no way out) lands inside
+// it: under the roof, off the table in its middle, the clearest spot from the
+// creature in it (one on the roof over its west half, another floor, counts
+// for nothing), though open ground level with its floor is clear outside;
+// the group rings round its caster inside, never through the wall. The
+// controls: the same chamber with no walls (an overhang) takes the traveller
+// out onto the open ground, as any place under a roof was; a place outside
+// lands on open ground as before.
+func TestAGateIntoAChamberLandsInside(t *testing.T) {
+	w := NewWorld()
+	w.ground = gateChamber{walled: true}
+	w.playerModels = map[uint32]bool{0x70D898C6: true}
+	w.NPCs[1] = &NPC{ServerID: 1, Name: "noble", ModelID: 0x1234, X: 2012, Y: 50, Z: 2000, SpawnX: 2012, SpawnY: 50, SpawnZ: 2000}
+	w.SpatialIndex.Insert(1, 2012, 2000)
+	w.NPCs[3] = &NPC{ServerID: 3, Name: "gargoyle", ModelID: 0x1234, X: 1988, Y: 75, Z: 2000, SpawnX: 1988, SpawnY: 75, SpawnZ: 2000}
+	w.SpatialIndex.Insert(3, 1988, 2000)
+	land := func(x, z float32) (float32, float32, float32) {
+		w.mu.Lock()
+		defer w.mu.Unlock()
+		return w.gateLandingLocked(database.SpellGate{World: 0, X: x, Y: 50, Z: z})
+	}
+	x, y, z := land(2000, 2000)
+	switch {
+	case !inChamber(x, z) || y != 50:
+		t.Fatalf("a chamber's place landed at (%.1f, %.1f, %.1f), outside it", x, y, z)
+	case distXZ(x, z, 2000, 2000) < 3:
+		t.Errorf("landed %.1f off the middle, on the table", distXZ(x, z, 2000, 2000))
+	case distXZ(x, z, 2012, 2000) < 25:
+		t.Errorf("landed %.1f from the creature, want the chamber's clearest spot (the one on the roof another floor's)", distXZ(x, z, 2012, 2000))
+	}
+	// the group round its caster by the chamber's west wall: inside, 3 off,
+	// or on the caster's spot where 3 off is through the wall
+	at := GateSpot{World: 0, X: 1981.5, Y: 50, Z: 2000}
+	for ring := 1; ring <= 4; ring++ {
+		s := w.GateRingSpot(at, ring)
+		switch {
+		case !inChamber(s.X, s.Z):
+			t.Errorf("ring %d at (%.1f, %.1f), through the chamber's wall", ring, s.X, s.Z)
+		case ring == 3 && s != at:
+			t.Errorf("ring 3 at (%.1f, %.1f), want the caster's spot (3 west is outside)", s.X, s.Z)
+		case ring != 3 && distXZ(s.X, s.Z, at.X, at.Z) < 2.9:
+			t.Errorf("ring %d at (%.1f, %.1f), want 3 off inside", ring, s.X, s.Z)
+		}
+	}
+
+	// the controls: no walls, and out onto the open ground; a place outside
+	w.ground = gateChamber{}
+	if x, y, z := land(2000, 2000); inChamber(x, z) || y != 50 {
+		t.Errorf("the control: an overhang's place landed at (%.1f, %.1f, %.1f), under it", x, y, z)
+	}
+	w.ground = gateChamber{walled: true}
+	if x, y, z := land(2100, 2000); x != 2100 || y != 50 || z != 2000 {
+		t.Errorf("the control: an open place landed at (%.1f, %.1f, %.1f), want itself", x, y, z)
 	}
 }

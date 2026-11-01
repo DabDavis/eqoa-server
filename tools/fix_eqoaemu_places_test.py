@@ -26,7 +26,9 @@ import fix_eqoaemu_places as fp  # noqa: E402
 import import_quests as iq  # noqa: E402
 
 SCHEMA = """
-CREATE TABLE spellpattern (spellid INTEGER PRIMARY KEY AUTOINCREMENT, spellname TEXT NOT NULL, recast INTEGER NOT NULL DEFAULT 3);
+CREATE TABLE spellpattern (spellid INTEGER PRIMARY KEY AUTOINCREMENT, spellname TEXT NOT NULL, recast INTEGER NOT NULL DEFAULT 3,
+    abilitylvl INTEGER NOT NULL DEFAULT 1, scope INTEGER NOT NULL DEFAULT 1, iconColor INTEGER NOT NULL DEFAULT 0,
+    spelldesc TEXT NOT NULL DEFAULT '');
 CREATE TABLE classspells (class INTEGER NOT NULL, spellid INTEGER NOT NULL, source TEXT NOT NULL, PRIMARY KEY (class, spellid));
 CREATE TABLE itempattern (patternid INTEGER PRIMARY KEY AUTOINCREMENT, itemcost INTEGER NOT NULL, unk1 INTEGER NOT NULL,
     itemicon INTEGER NOT NULL, unk2 INTEGER NOT NULL, equipslot INTEGER NOT NULL, unk3 INTEGER NOT NULL, trade INTEGER NOT NULL,
@@ -56,6 +58,12 @@ CREATE TABLE spelleffect (spellid INTEGER PRIMARY KEY, line TEXT NOT NULL DEFAUL
 CREATE TABLE eqoaemu_spell_import_log (seq INTEGER PRIMARY KEY, tbl TEXT NOT NULL, key TEXT NOT NULL, action TEXT NOT NULL,
     before TEXT, after TEXT, note TEXT NOT NULL DEFAULT '');
 """
+
+# made up: three spells of ours made the mirror of one the import wrote (6.)
+MIRRORS = {"glaring mask": ("soothing mask", 15), "dull mask": ("soothing mask", 5), "odd mask": ("soothing mask", 7)}
+SOOTHING = ('{"v":1,"scope":"target","target_type":"Friendly","harmful":false,"duration_s":300,"stack":1,"level":25,'
+            '"min_level":15,"effects":[{"id":"0E30","type":"Offensive Proc","kind":"proc","procs":[{"id":"0E31",'
+            '"type":"Modify Hate","kind":"hate","amount":-10,"on":"offense","scope":"target","target_type":"Enemy"}]}]}')
 
 # made up: four lasting debuffs the workbook gave no time (5.)
 DURATIONS = {"mire cloud": 30, "ash veil": 30, "bog mark": 30, "quick rot": 30}
@@ -142,6 +150,29 @@ def make(dir):
         after = dict(logged, effects=debuff(stat, 30 if sid == 907 else None))
         db.execute("INSERT INTO eqoaemu_spell_import_log (tbl, key, action, after) VALUES ('spelleffect', ?, 'update', ?)",
                    (fp.im_dumps({"spellid": sid}), fp.im_dumps(after)))
+    # the mirrors' original as the import wrote it; Glaring Mask as EQOA-Data's import
+    # left it, Dull Mask its mirror already, Odd Mask a GM's effects of its own
+    taunt = "Group, Enchant warriors weapon with taunt, 5min"
+    for sid, name, lv, scope, frame, desc, line, fx in (
+            (910, "Soothing Mask", 25, 1, 486870879, "Ours.", "Target, x", SOOTHING),
+            (911, "Glaring Mask", 15, 2, 593297002, taunt, taunt, ""),
+            (912, "Dull Mask", 20, 2, 593297002, taunt, taunt, ""),
+            (913, "Odd Mask", 30, 2, 593297002, taunt, taunt, '{"v":1,"effects":[]}')):
+        db.execute("INSERT INTO spellpattern (spellid, spellname, abilitylvl, scope, iconColor, spelldesc) VALUES (?, ?, ?, ?, ?, ?)",
+                   (sid, name, lv, scope, frame, desc))
+        db.execute("INSERT INTO spelleffect (spellid, line, source, effects) VALUES (?, ?, 'eqoa-data enchanter', ?)",
+                   (sid, line, fx))
+    db.execute("INSERT INTO eqoaemu_spell_import_log (tbl, key, action, after) VALUES ('spelleffect', ?, 'update', ?)",
+               (fp.im_dumps({"spellid": 910}), fp.im_dumps({"line": "Target, x", "effects": SOOTHING})))
+    rec = dict(zip(("spellid", "spellname", "abilitylvl", "scope", "iconColor", "spelldesc"),
+                   db.execute("SELECT spellid, spellname, abilitylvl, scope, iconColor, spelldesc FROM spellpattern "
+                              "WHERE spellid = 912").fetchone()))
+    record, eff = fp.im.mirror_changes(rec, dict(line=taunt, effects="", source="eqoa-data enchanter"), 1, 486870879,
+                                       "Soothing Mask", json.loads(SOOTHING), 5)
+    db.execute(f"UPDATE spellpattern SET {', '.join(f'{k} = ?' for k in record['set'])} WHERE spellid = 912",
+               list(record["set"].values()))
+    db.execute(f"UPDATE spelleffect SET {', '.join(f'{k} = ?' for k in eff['set'])} WHERE spellid = 912",
+               list(eff["set"].values()))
     return db, path, qfile
 
 
@@ -163,7 +194,7 @@ class FixPlaces(unittest.TestCase):
 
     def plan(self):
         return fp.plan(self.db, recasts=RECASTS, gems=GEMS, chambers=CHAMBERS, portal=self.qfile, keys=KEYS, talked_to=TALKED,
-                       durations=DURATIONS)
+                       durations=DURATIONS, mirrors=MIRRORS)
 
     def by(self, p, tbl, action):
         return [c for c in p["changes"] if c["tbl"] == tbl and c["action"] == action]
@@ -171,7 +202,7 @@ class FixPlaces(unittest.TestCase):
     def test_plan(self):
         p = self.plan()
         # recasts: from the workbook's 3; a GM's 45 left; one as it is to be
-        self.assertEqual([(c["ref"], c["set"]) for c in self.by(p, "spellpattern", "update")],
+        self.assertEqual([(c["ref"], c["set"]) for c in self.by(p, "spellpattern", "update") if "recast" in c["set"]],
                          [({"spellid": 901}, {"recast": 3600})])
         self.assertIn("902 Moon Circle 45", p["said"]["a recast not the workbook's 3 (left: a GM's figure?)"])
         self.assertIn("903 Tide Gate 900", p["said"]["recasts as they are to be"])
@@ -210,7 +241,7 @@ class FixPlaces(unittest.TestCase):
         self.assertIn("Sky Guard: quest 5 step 1 kill", p["said"]["an isle NPC a quest kills (left without the NPC bit)"])
         self.assertEqual([c["row"]["aggressive"] for c in self.by(p, "npcaggro", "insert")], [0])
         # the debuffs' times: the import's effects take duration_s after "harmful", the import's line its time
-        times = {c["ref"]["spellid"]: c for c in self.by(p, "spelleffect", "update")}
+        times = {c["ref"]["spellid"]: c for c in self.by(p, "spelleffect", "update") if c["ref"]["spellid"] in range(904, 908)}
         self.assertEqual(sorted(times), [904, 906])
         self.assertEqual(times[904]["set"], {"effects": debuff("agi", 30), "line": "Target, Decrease AGI by 5, 30sec"})
         self.assertEqual(times[906]["set"], {"effects": debuff("str", 30)}, "a line the import did not write is kept")
@@ -218,6 +249,18 @@ class FixPlaces(unittest.TestCase):
                       p["said"]["a duration's line not the import's, kept (a look: does it say a time?)"])
         self.assertTrue(p["said"]["a duration's effects not as the import wrote them (left: a GM's?)"][0].startswith("905 Ash Veil"))
         self.assertIn("907 Quick Rot 30 s", p["said"]["durations as they are to be"])
+        # the mirrors: Glaring Mask a target spell with Soothing Mask's effects, its proc's hate raised by 15
+        rec = next(c for c in self.by(p, "spellpattern", "update") if c["ref"] == {"spellid": 911})
+        self.assertEqual(rec["set"], {"scope": 1, "iconColor": 486870879, "spelldesc": fp.im.MIRROR_DESC})
+        fx = next(c for c in self.by(p, "spelleffect", "update") if c["ref"] == {"spellid": 911})
+        j = json.loads(fx["set"]["effects"])
+        self.assertEqual((j["level"], j["min_level"], j["effects"][0]["procs"][0]["amount"]), (15, 5, 15))
+        self.assertNotIn("id", j["effects"][0], "the original's ids left out")
+        self.assertEqual(fx["set"]["line"], "Target, Add Offensive Proc: Increase Hate by 15 when it hits, 5min")
+        self.assertEqual(p["said"]["mirrors as they are to be"], ["912 Dull Mask"])
+        self.assertEqual(p["said"]["a mirror's spell with effects of its own or no effects row (left: a GM's?)"],
+                         ["913 Odd Mask"])
+        self.assertNotIn({"spellid": 913}, [c["ref"] for c in p["changes"]])
 
     def test_apply_again_and_undo(self):
         before = dump(self.db)

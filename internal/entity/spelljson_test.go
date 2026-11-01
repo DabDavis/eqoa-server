@@ -528,6 +528,40 @@ func TestWorkbookCure(t *testing.T) {
 	}
 }
 
+// A cure the workbook leaves at "ID?" goes by its spell's name (the user:
+// "by name"): an antidote takes the poison and leaves the disease, a
+// curative the reverse, a mask's removal is a mask's; one whose name says
+// nothing still takes every harmful effect (the control).
+func TestAnIDCureGoesByItsName(t *testing.T) {
+	put := func(c *caster) {
+		until := c.at(time.Hour)
+		c.p.Effects = append(c.p.Effects,
+			&ActiveEffect{SpellID: 1, Name: "Test Venom", Until: until, Rules: EffectRules{Harm: true, Resist: StatPR}},
+			&ActiveEffect{SpellID: 2, Name: "Test Fever", Until: until, Rules: EffectRules{Harm: true, Resist: StatDR}},
+			&ActiveEffect{SpellID: 3, Name: "Test Hex", Until: until, Rules: EffectRules{Harm: true, Resist: StatAR}},
+			&ActiveEffect{SpellID: 4, Name: "Test Skin", Until: until, Mods: StatMods{AC: 10}})
+	}
+	for _, k := range []struct {
+		name string
+		left string
+	}{
+		{"Minor Antidote", "Test Fever,Test Hex,Test Skin"},
+		{"Vital Curative", "Test Venom,Test Hex,Test Skin"},
+		{"Test Purity", "Test Skin"},
+	} {
+		c := newCaster(t)
+		put(c)
+		cure := wbSpell(971, 5, 0, k.name, `{"v":1,"scope":"self","effects":[{"kind":"cure","removes":"ID?"}]}`)
+		c.castOn(t, cure, 0)
+		if got := strings.Join(c.effectNames(), ","); got != k.left {
+			t.Errorf("after %s: %s, want %s", k.name, got, k.left)
+		}
+	}
+	if mask := wbSpell(972, 5, 0, "Remove Mask", `{"v":1,"scope":"self","effects":[{"kind":"cure","removes":"ID?"}]}`); len(mask.Def.Removes) != 1 || mask.Def.Removes[0] != "mask" {
+		t.Errorf("Remove Mask removes %q", mask.Def.Removes)
+	}
+}
+
 // A player below a spell's lowest level is not affected; one at it is (the
 // control).
 func TestWorkbookLowestLevel(t *testing.T) {

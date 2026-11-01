@@ -528,6 +528,16 @@ def match(W, O, spellmap):
                 and p["classes"] & o["classes"] and p["races"] & o["races"]]
         if len(cands) == 1 and len(mine) == 1:
             take(cands[0], o, "the last ability of its master class")
+    # the rank after the same rank, one left on each side (Greater Geomancy,
+    # our Geomancy 6: both after Geomancy 5)
+    for o in O:
+        if o["id"] in taken or not o["parent"]:
+            continue
+        after = [w for w in W if not cover[w["wid"]] and compat(w, o) and w["cat"] == o["category"]
+                 and any(o["parent"] in [p["id"] for p in cover.get(x, [])] for x, _ in w["reqs"])]
+        mine = [p for p in O if p["id"] not in taken and p["parent"] == o["parent"] and compat(after[0], p)] if after else []
+        if len(after) == 1 and len(mine) == 1:
+            take(after[0], o, "the rank after the same rank")
     # the same rank for our other classes (a master class an archetype shares,
     # our row a class): its other rows of ours by the name it now matched
     for w in W:
@@ -1028,17 +1038,8 @@ def apply(db, p, allow_missing=False):
     """Every planned change whose row is still as planned, in one
     transaction: (done, changed since)."""
     entries = p["changes"] + p["inserts"] + p["disables"]
-    if not allow_missing:
-        have = {r[0] for r in db.execute("SELECT spellid FROM spellpattern")}
-        need = set()
-        for e in entries:
-            cols = e["row"] if e["op"] == "insert" else e["after"]
-            for k in ("add_spells", "require_spells", "remove_spells"):
-                need |= {i for i in id_list(cols.get(k, "")) if i > 0}
-        lack = sorted(need - have)
-        if lack:
-            sys.exit(f"{len(lack)} spells the plan gives, needs or takes are not in spellpattern ({lack[:8]} ...): "
-                     f"run the spells import first, or --allow-missing-spells")
+    if not allow_missing and missing_spells(db, p):
+        sys.exit("spells the plan names are not in spellpattern: run the spells import first")
     done = stale = 0
     when = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     db.execute("BEGIN IMMEDIATE")
@@ -1076,6 +1077,17 @@ def apply(db, p, allow_missing=False):
         db.execute("ROLLBACK")
         raise
     return done, stale
+
+
+def missing_spells(db, p):
+    """The spells a plan gives, needs or takes that spellpattern lacks."""
+    have = {r[0] for r in db.execute("SELECT spellid FROM spellpattern")}
+    need = set()
+    for e in p["changes"] + p["inserts"] + p["disables"]:
+        cols = e["row"] if e["op"] == "insert" else e["after"]
+        for k in ("add_spells", "require_spells", "remove_spells"):
+            need |= {i for i in id_list(cols.get(k, "")) if i > 0}
+    return sorted(need - have)
 
 
 def undo(db):
@@ -1116,6 +1128,53 @@ def undo(db):
     return back, left, why
 
 
+def check(db):
+    """What the catalog holds that the server would read wrong: a parent or a
+    needed rank that is not there, a parent chain that loops, a stat key the
+    server skips, a name or text CLIENT cuts, a bought rank not in it, two
+    offered ranks one player would see twice. ([(what, row)], counts)."""
+    rows = {r["id"]: r for r in ours(db)}
+    bad = []
+    for r in rows.values():
+        if r["parent"] and r["parent"] not in rows:
+            bad.append(("its parent is not in the catalog", r))
+        for t in id_list(r["require_ranks"]):
+            if t not in rows:
+                bad.append((f"a rank it needs ({t}) is not in the catalog", r))
+        seen, up = set(), r["id"]
+        while up and up in rows and up not in seen:
+            seen.add(up)
+            up = rows[up]["parent"]
+        if up and up in seen:
+            bad.append(("its parent chain loops", r))
+        for col in ("effects", "minstats"):
+            for f in (r[col] or "").split(","):
+                k = f.partition(":")[0].strip().lower().replace(" ", "")
+                if k and k not in SERVER_KEYS:
+                    bad.append((f"{col} key {k!r} the server skips", r))
+        if len(r["name"]) > 63:
+            bad.append(("a name past 63 characters", r))
+        if len((r["description"] or r["mastery"]) + f" Cost: {r['cost']}.") > 255:
+            bad.append(("a text past 255 characters with its cost", r))
+        for names, ids in (("requires", "require_spells"), ("adds", "add_spells"), ("removes", "remove_spells")):
+            if r[ids] and len(id_list(r[ids])) != len(ability_names(r[names])):
+                bad.append((f"{names} and {ids} differ in length", r))
+    if has_table(db, "charcms"):
+        for (cmid,) in db.execute("SELECT DISTINCT cmid FROM charcms"):
+            if cmid not in rows:
+                bad.append(("a bought rank not in the catalog", {"id": cmid, "name": "?"}))
+    on = [r for r in rows.values() if r["enabled"]]
+    by = collections.defaultdict(list)
+    for r in on:
+        by[(r["category"], r["fname"])].append(r)
+    for group in by.values():
+        for i, a in enumerate(group):
+            for b in group[i + 1:]:
+                if a["classes"] & b["classes"] and a["races"] & b["races"]:
+                    bad.append((f"offered twice to one player (with {b['id']})", a))
+    return bad, collections.Counter(r["category"] for r in on)
+
+
 def backup(path):
     dst = f"{path}.bak-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}-pre-eqoaemu-cms"
     src, out = sqlite3.connect(path, timeout=30), sqlite3.connect(dst)
@@ -1148,16 +1207,24 @@ def main():
     ap.add_argument("--allow-missing-spells", action="store_true",
                     help="--apply though spells the plan names are not in spellpattern yet")
     ap.add_argument("--no-backup", action="store_true")
+    ap.add_argument("--check", action="store_true", help="say what in the catalog the server would read wrong")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true")
     g.add_argument("--undo", action="store_true")
     a = ap.parse_args()
     if not os.path.exists(a.db):
         sys.exit(f"{a.db}: no such database")
-    if (a.apply or a.undo) and not a.no_backup:
-        print(f"copy: {backup(a.db)}")
     db = sqlite3.connect(a.db, timeout=30, isolation_level=None)
     db.execute("PRAGMA busy_timeout = 30000")
+    if a.undo and not a.no_backup:
+        print(f"copy: {backup(a.db)}")
+    if a.check:
+        bad, cats = check(db)
+        print("offered: " + ", ".join(f"{CATEGORY_NAMES[c]} {n}" for c, n in sorted(cats.items())))
+        for what, r in bad:
+            print(f"  {r['id']} {r['name']}: {what}")
+        print(f"{len(bad)} problems")
+        return
     if a.undo:
         back, left, why = undo(db)
         print(f"put back {back}; left {left}")
@@ -1187,6 +1254,13 @@ def main():
             print(f"plan: {a.save_plan}")
             return
     if a.apply:
+        if not a.allow_missing_spells:
+            lack = missing_spells(db, p)
+            if lack:
+                sys.exit(f"{len(lack)} spells the plan gives, needs or takes are not in spellpattern ({lack[:8]} ...): "
+                         f"run the spells import first, or --allow-missing-spells")
+        if not a.no_backup:
+            print(f"copy: {backup(a.db)}")
         done, stale = apply(db, p, a.allow_missing_spells)
         print(f"written {done}; {stale} changed since the plan, left")
     else:

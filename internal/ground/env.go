@@ -228,6 +228,11 @@ func (e *Env) Worlds() int {
 	return n
 }
 
+// Knows reports whether world has an environment file.
+func (e *Env) Knows(world uint8) bool {
+	return e.worlds[world] != nil
+}
+
 // Flags is what (x, y, z) in world is in (EnvWater and the rest), false
 // where the server has no file for the world or the point is in no zone.
 func (e *Env) Flags(world uint8, x, y, z float32) (uint32, bool) {

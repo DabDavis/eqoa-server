@@ -175,7 +175,9 @@ func unquant(n int16, q float32, span bool) float32 {
 type tri [3]Vertex
 
 // zoneGrid is a loaded zone, compact: its strips' vertices once each, each
-// floor triangle by its first vertex (the strip's next two finish it), and a
+// floor triangle by its first vertex (the strip's next two finish it; every
+// other one of a strip by that vertex's complement, turned as the game's
+// collision turns it, stripTri, so its front is the game's), and a
 // grid over the zone's bounds of the triangles each cell meets; and the same
 // of its walls (the triangles too steep to stand on), each by its first
 // vertex or, for every other triangle of a strip, that vertex's complement
@@ -201,6 +203,10 @@ type triGrid struct {
 
 func (z *zoneGrid) tri(i int32) tri {
 	v := z.tris[i]
+	if v < 0 {
+		v = ^v
+		return tri{z.verts[v+1], z.verts[v], z.verts[v+2]}
+	}
 	return tri{z.verts[v], z.verts[v+1], z.verts[v+2]}
 }
 
@@ -365,8 +371,10 @@ func (w *world) load(i int) (*zoneGrid, error) {
 		for k := int32(0); k+2 < int32(n); k++ {
 			t := tri{z.verts[first+k], z.verts[first+k+1], z.verts[first+k+2]}
 			switch {
-			case floor(t):
+			case floor(t) && k%2 == 0:
 				z.tris = append(z.tris, first+k)
+			case floor(t):
+				z.tris = append(z.tris, ^(first + k)) // turned as wall's are
 			case degenerate(t):
 			case k%2 == 0:
 				z.walls = append(z.walls, first+k)

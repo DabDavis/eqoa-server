@@ -40,7 +40,9 @@ import's log wrote it (a GM's change since is left, and said); the rest only
 where the row is still as planned. Report by default. --save-plan FILE writes
 what --apply would do and stops (the plan needs the workbook, and with --iso
 the disc, for a made potion's effect icon as the import reads icons);
---plan FILE applies such a plan where the database is. --apply writes it all
+--plan FILE applies such a plan where the database is, its merges' rows
+read there again (a book that took the new record since the plan was made
+is moved too: refresh_merges). --apply writes it all
 in one transaction, every row logged in eqoaemu_followup_log by the import's
 own apply (its key, the columns before and after, a deleted row's rowid);
 --undo puts each logged row back as it was (one changed since is left, and
@@ -329,6 +331,22 @@ def plan(db, wb, smap, disc=None, icons=None, weres=None):
                 merges=pairs, touched=sorted(touched))
 
 
+def refresh_merges(db, p):
+    """A plan's merges read again where the database is (--plan F --apply on
+    the server): a book, buff, mastery or quest that came to name the new
+    record after the plan was made is taken too, as it is now."""
+    lists, counts = collections.defaultdict(list), collections.Counter()
+    fresh, keep = [], []
+    tags = [f"{m['new']} into {m['ours']}" for m in p.get("merges") or [] if not m.get("done")]
+    for c in p["changes"]:
+        (keep if not any((c.get("note") or "").startswith(t) for t in tags) else []).append(c)
+    for m in p.get("merges") or []:
+        if not m.get("done") and im.has_table(db, "spellpattern") and \
+                db.execute("SELECT 1 FROM main.spellpattern WHERE spellid = ?", (m["new"],)).fetchone():
+            fresh += merge_changes(db, m, lists, counts)
+    return dict(p, changes=fresh + keep)
+
+
 def report(p, full=False):
     for k, v in sorted(p["counts"].items()):
         print(f"  {k}: {v}")
@@ -381,7 +399,7 @@ def main():
         return
     if a.plan:
         with open(a.plan, encoding="utf-8") as f:
-            p = json.load(f)
+            p = refresh_merges(db, json.load(f))
     else:
         if not (a.sheets or a.ods) or not a.map:
             sys.exit("--sheets or --ods, and --map (or --plan)")

@@ -44,7 +44,8 @@ import (
 //   - Lull: a lulled creature notices no one (aggro.go) and comes to no one's
 //     help (socialaggro.go) while it lasts; its landing angers nothing.
 //   - Enduring breath: a player under water loses no breath while it lasts.
-//   - Hide: unseen as invisibility is (invis.go), and ends as it says.
+//   - Hide: unseen as invisibility is (invis.go), and ends as it says; its
+//     slow ends with the hiding at its bearer's action too (parts.go).
 //   - A cure takes harmful effects off its target by the words it removes
 //     (cureMatches); the workbook's own "ID?" (it does not know which) and no
 //     words take every harmful effect, as the potions' cure does.

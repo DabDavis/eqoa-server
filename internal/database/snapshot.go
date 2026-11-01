@@ -42,7 +42,7 @@ import (
 // SnapshotVersion names the sanitiser's rules: the panel's audit line and the
 // snapshot's own snapshot_info table say which made a file. Raise it with
 // every change to what is taken out.
-const SnapshotVersion = 3
+const SnapshotVersion = 4
 
 // SnapshotInfoTable is the table a snapshot carries saying what it is: the
 // sanitiser's version, when it was made and by whom, and what was taken out.
@@ -135,34 +135,39 @@ var snapshotRules = map[string]snapshotRule{
 	// Named like a secret, holding none: the content tools' provenance (their
 	// --undo, and what the real-data tests read). A key column is a row's key
 	// in the table the tool changed, a meta table's key the name of a fact.
-	"archived_spells_fix_log":    {allow: []string{"rowkey"}, why: "tools/fix_archived_spells.py's log"},
-	"balance_spells_fix_log":     {allow: []string{"rowkey"}, why: "tools/fix_balance_spells.py's log"},
-	"boss_loot_seed":             {allow: []string{"key"}, why: "tools/seed_boss_loot.py's log"},
-	"camp_loot_seed":             {allow: []string{"key"}, why: "tools/seed_camp_loot.py's log"},
-	"eqoadata_extra_import_meta": {allow: []string{"key"}, why: "tools/import_eqoadata_mastery_spells.py's facts"},
-	"eqoadata_extra_import_rows": {allow: []string{"key", "key2"}, why: "tools/import_eqoadata_mastery_spells.py's log"},
-	"eqoadata_spell_import_meta": {allow: []string{"key"}, why: "tools/import_eqoadata_spells.py's facts"},
-	"eqoadata_spell_import_rows": {allow: []string{"key", "key2"}, why: "tools/import_eqoadata_spells.py's log"},
-	"fishing_seed":               {allow: []string{"key"}, why: "tools/seed_fishing.py's log"},
-	"grocer_stock":               {allow: []string{"key"}, why: "tools/stock_grocers.py's log"},
-	"merchant_stock":             {allow: []string{"key"}, why: "tools/stock_merchants.py's log"},
-	"pod_seed_meta":              {allow: []string{"key"}, why: "tools/seed_pod.py's facts"},
-	"pod_seed_rules":             {allow: []string{"keycol"}, why: "tools/seed_pod.py's log (keycol names a key column)"},
-	"potion_rules_log":           {allow: []string{"rowkey"}, why: "tools/fix_potion_rules.py's log"},
-	"prh_import_keyed":           {why: "tools/import_prh_content.py's log (keyed NPC rows)"},
-	"prh_import_meta":            {allow: []string{"key"}, why: "tools/import_prh_content.py's facts"},
-	"quest_import_meta":          {allow: []string{"key"}, why: "tools/import_quests.py's facts"},
-	"quest_import_quests":        {allow: []string{"key"}, why: "tools/import_quests.py's log (key: a guide's section)"},
-	"quest_npc_seed_meta":        {allow: []string{"key"}, why: "tools/seed_quest_npcs.py's facts"},
-	"sandstorm_import_meta":      {allow: []string{"key"}, why: "tools/import_sandstorm_harvest.py's facts"},
-	"sandstorm_import_rows":      {allow: []string{"key"}, why: "tools/import_sandstorm_harvest.py's log"},
-	"spell_fill_log":             {allow: []string{"rowkey"}, why: "the spell fill's log"},
-	"spell_fill_meta":            {allow: []string{"key"}, why: "the spell fill's facts"},
-	"spell_pages_sweep_log":      {allow: []string{"rowkey"}, why: "tools/sweep_spell_pages.py's log"},
-	"spell_records_fix_log":      {allow: []string{"rowkey"}, why: "tools/fix_spell_records.py's log"},
-	"tested_spells_fix_log":      {allow: []string{"rowkey"}, why: "tools/fix_tested_spells.py's log"},
-	"tradeskill_seed":            {allow: []string{"key"}, why: "tools/seed_tradeskills.py's log"},
-	"wildlife_seed_meta":         {allow: []string{"key"}, why: "tools/seed_wildlife.py's facts"},
+	"archived_spells_fix_log":     {allow: []string{"rowkey"}, why: "tools/fix_archived_spells.py's log"},
+	"balance_spells_fix_log":      {allow: []string{"rowkey"}, why: "tools/fix_balance_spells.py's log"},
+	"boss_loot_seed":              {allow: []string{"key"}, why: "tools/seed_boss_loot.py's log"},
+	"camp_loot_seed":              {allow: []string{"key"}, why: "tools/seed_camp_loot.py's log"},
+	"eqoadata_extra_import_meta":  {allow: []string{"key"}, why: "tools/import_eqoadata_mastery_spells.py's facts"},
+	"eqoadata_extra_import_rows":  {allow: []string{"key", "key2"}, why: "tools/import_eqoadata_mastery_spells.py's log"},
+	"eqoadata_spell_import_meta":  {allow: []string{"key"}, why: "tools/import_eqoadata_spells.py's facts"},
+	"eqoadata_spell_import_rows":  {allow: []string{"key", "key2"}, why: "tools/import_eqoadata_spells.py's log"},
+	"cmcatalog_eqoaemu_chars_log": {allow: []string{"key"}, why: "tools/import_eqoaemu_cms.py's log of the characters' rows it changed (spells, charcms)"},
+	"eqoaemu_pets_log":            {allow: []string{"rowkey"}, why: "tools/import_eqoaemu_pets.py's log"},
+	"eqoaemu_spell_import_log":    {allow: []string{"key"}, why: "tools/import_eqoaemu_spells.py's log"},
+	"eqoaemu_spell_import_meta":   {allow: []string{"key"}, why: "tools/import_eqoaemu_spells.py's facts"},
+	"fishing_seed":                {allow: []string{"key"}, why: "tools/seed_fishing.py's log"},
+	"grocer_stock":                {allow: []string{"key"}, why: "tools/stock_grocers.py's log"},
+	"merchant_stock":              {allow: []string{"key"}, why: "tools/stock_merchants.py's log"},
+	"pod_seed_meta":               {allow: []string{"key"}, why: "tools/seed_pod.py's facts"},
+	"pod_seed_rules":              {allow: []string{"keycol"}, why: "tools/seed_pod.py's log (keycol names a key column)"},
+	"potion_rules_log":            {allow: []string{"rowkey"}, why: "tools/fix_potion_rules.py's log"},
+	"prh_import_keyed":            {why: "tools/import_prh_content.py's log (keyed NPC rows)"},
+	"prh_import_meta":             {allow: []string{"key"}, why: "tools/import_prh_content.py's facts"},
+	"quest_import_meta":           {allow: []string{"key"}, why: "tools/import_quests.py's facts"},
+	"quest_import_quests":         {allow: []string{"key"}, why: "tools/import_quests.py's log (key: a guide's section)"},
+	"quest_npc_seed_meta":         {allow: []string{"key"}, why: "tools/seed_quest_npcs.py's facts"},
+	"sandstorm_import_meta":       {allow: []string{"key"}, why: "tools/import_sandstorm_harvest.py's facts"},
+	"sandstorm_import_rows":       {allow: []string{"key"}, why: "tools/import_sandstorm_harvest.py's log"},
+	"spell_fill_log":              {allow: []string{"rowkey"}, why: "the spell fill's log"},
+	"spell_fill_meta":             {allow: []string{"key"}, why: "the spell fill's facts"},
+	"spell_pages_sweep_log":       {allow: []string{"rowkey"}, why: "tools/sweep_spell_pages.py's log"},
+	"spell_records_fix_log":       {allow: []string{"rowkey"}, why: "tools/fix_spell_records.py's log"},
+	"tested_spells_fix_log":       {allow: []string{"rowkey"}, why: "tools/fix_tested_spells.py's log"},
+	"tradeskill_seed":             {allow: []string{"key"}, why: "tools/seed_tradeskills.py's log"},
+	"town_wildlife_seed_meta":     {allow: []string{"key"}, why: "tools/seed_town_wildlife.py's facts, a town's"},
+	"wildlife_seed_meta":          {allow: []string{"key"}, why: "tools/seed_wildlife.py's facts"},
 }
 
 // renamePlayerAccounts gives every player's account (acctlevel 0 or less) the

@@ -294,6 +294,8 @@ type ActiveEffect struct {
 	// Rules are what the workbook's effects say beside their numbers
 	// (workbook.go): kept over a logout
 	Rules EffectRules
+	// ProcSpells are its procs that cast more than a hit (workbookmore.go)
+	ProcSpells []ProcSpell
 }
 
 // StatMods is what effects add to a player's stats (kept over a logout as
@@ -322,6 +324,14 @@ type StatMods struct {
 	// Melee is added to every melee hit the bearer lands (offence.go's
 	// playerMeleeHit): Frenzy's damage per hit (vampire.go)
 	Melee int `json:",omitempty"`
+	// the workbook's melee resists (a creature's debuff of each: negative),
+	// hit point factor and off and def mods (workbookmore.go)
+	Pierce   int `json:",omitempty"`
+	Blunt    int `json:",omitempty"`
+	Slash    int `json:",omitempty"`
+	HPFactor int `json:",omitempty"`
+	OffMod   int `json:",omitempty"`
+	DefMod   int `json:",omitempty"`
 }
 
 func (m *StatMods) add(st Stat, n int) {
@@ -364,6 +374,18 @@ func (m *StatMods) add(st Stat, n int) {
 		m.HoT += n
 	case StatPoT:
 		m.PoT += n
+	case StatPierce, StatRanged: // the workbook's "ranged" was pierce (its known issues)
+		m.Pierce += n
+	case StatBlunt:
+		m.Blunt += n
+	case StatSlash:
+		m.Slash += n
+	case StatHPFactor:
+		m.HPFactor += n
+	case StatOffMod:
+		m.OffMod += n
+	case StatDefMod:
+		m.DefMod += n
 	}
 }
 
@@ -387,6 +409,12 @@ func (m *StatMods) sum(o StatMods) {
 	m.HoT += o.HoT
 	m.PoT += o.PoT
 	m.Melee += o.Melee
+	m.Pierce += o.Pierce
+	m.Blunt += o.Blunt
+	m.Slash += o.Slash
+	m.HPFactor += o.HPFactor
+	m.OffMod += o.OffMod
+	m.DefMod += o.DefMod
 }
 
 // StatNow is a stat as the client sees it: the player's own, plus effects,
@@ -434,7 +462,7 @@ func (p *Player) StatNow(st Stat) int {
 // MaxHPNow is the maximum hit points with effects: what they add, and what
 // their stamina adds through the class's formula.
 func (p *Player) MaxHPNow() int {
-	n := p.MaxHP + p.Mods.MaxHP
+	n := p.MaxHP + p.Mods.MaxHP + p.Mods.HPFactor*p.Level // a hit point factor's (workbookmore.go)
 	if sta := p.StatNow(StatSta); sta != p.Sta {
 		n += p.maxHPFor(sta) - p.maxHPFor(p.Sta)
 	}
@@ -579,6 +607,12 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	}
 	if refusal == "" && spell.Def.undeadOnly() {
 		refusal, fizzle = w.undeadStartLocked(targets) // undead.go
+	}
+	if refusal == "" && spell.Def.TargetKind != "" {
+		refusal, fizzle = w.targetKindStartLocked(&spell.Def, targets) // workbookmore.go
+	}
+	if refusal == "" && spell.Def.ReqEquip != "" {
+		refusal = equipRefusal(p, spell.Def.ReqEquip) // workbookmore.go
 	}
 	if refusal == "" && spell.Def.Charms() {
 		refusal = w.charmStartLocked(&spell, targets) // charm.go
@@ -961,6 +995,7 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 	ae := &ActiveEffect{SpellID: cs.spell.SpellID, Name: cs.spell.Name, Icon: cs.spell.Icon, Caster: caster.ServerID,
 		Until: now.Add(dur), NextTick: now, Ticks: d.Ticks}
 	ae.Rules = rulesOf(d) // workbook.go
+	ae.ProcSpells = d.ProcSpells
 	any := false
 	for _, e := range d.Effects {
 		if ae.workbookLasting(e, d) { // workbook.go: its own kinds
@@ -1060,6 +1095,8 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 			illusion = true
 		case EffectCure:
 			w.cureLocked(cs, t) // workbook.go
+		case EffectSummonPlayer:
+			w.summonPlayerLocked(cs, caster, t) // workbookmore.go
 		}
 	}
 	if ae := lasting(cs, caster, now); ae != nil && w.lineTakesLocked(caster, casterSess, t, &cs.spell, ae) && // buffline.go
@@ -1229,6 +1266,8 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 			w.updateAggro(npc, caster.ServerID, spellAmount(e, caster))
 		case EffectForget:
 			w.forgetLocked(npc, caster) // vampire.go: Vampiric Gaze
+		case EffectPickpocket:
+			w.pickpocketLocked(caster, casterSess, npc, now) // workbookmore.go
 		default:
 			// a drained stat or power is the caster's (lifetap.go)
 			w.drainLocked(cs, caster, casterSess, e, -spellAmount(e, caster), now)
@@ -1255,7 +1294,7 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 	// (root.go): hate of 1, as a resisted charm's, since a hate of none makes
 	// no enemy (addThreatLocked takes the highest above 0); a lull that took
 	// angers nothing (workbook.go)
-	if !cs.spell.Def.lulls() {
+	if !cs.spell.Def.lulls() && !cs.spell.Def.picks() { // a pickpocket angers only when caught (workbookmore.go)
 		w.updateAggro(npc, caster.ServerID, 1)
 	}
 }

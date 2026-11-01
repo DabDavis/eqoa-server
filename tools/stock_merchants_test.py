@@ -470,6 +470,45 @@ class StockMerchantsTest(unittest.TestCase):
         self.assertEqual(quiet(["--db", self.path, "--undo", "--no-backup"]), 0)
         self.assertEqual(dump(self.db()), before)
 
+    def test_more_stocks_the_merchants_made_since(self):
+        """--more (2026-11-01: the census's 20 merchants): refused on a
+        database no run stocked; after a run, only the merchants made since
+        get a catalog (or are left out) by the same rules, nothing a run wrote
+        moves, and --undo takes both runs back to the first run's start."""
+        argv = ["--db", self.path, "--prh", self.prh, "--prices", self.harvest, "--no-backup"]
+        with self.assertRaises(SystemExit):
+            quiet(argv + ["--more", "--apply"])
+        before = dump(self.db())
+        self.assertEqual(quiet(argv + ["--apply"]), 0)
+        db = self.db()
+        first = dump(db)
+        add = """INSERT INTO npcs (npc_name, x_coord, y_coord, z_coord, world, npc_level, npc_type, npc_id)
+            VALUES (?, ?, 0, ?, 0, 10, 129, 0)"""
+        new = db.execute(add, ("Merchant Newcomer", 1010, 1010)).lastrowid
+        crafter = db.execute(add, ("Master Craftsman Nobody", 1012, 1012)).lastrowid
+        old_left = {k for (k,) in db.execute("SELECT key FROM merchant_stock WHERE what = 'left out'")}
+        self.assertEqual(quiet(argv + ["--more", "--apply"]), 0)
+        db = self.db()
+        key = db.execute("SELECT npc_id FROM npcs WHERE id = ?", (new,)).fetchone()[0]
+        self.assertEqual(key, new, "the new merchant not keyed to its own row")
+        names = [n for (n,) in db.execute("""SELECT p.itemname FROM npcitem i JOIN itempattern p USING(patternid)
+            WHERE i.npcid = ? ORDER BY i.listnumber""", (key,))]
+        self.assertEqual(names, [n for n in sm.GENERAL_GOODS if n in self.w.p], "not the general goods")
+        left = {k: note for k, note in db.execute("SELECT key, note FROM merchant_stock WHERE what = 'left out'")}
+        self.assertIn("master craftsman", left[crafter])
+        self.assertEqual(set(left) - {crafter}, old_left, "a run's left-out merchant logged again or lost")
+        now = dump(db)
+        for t in ("itempattern",):
+            self.assertEqual(now[t], first[t], "a price the first run left moved")
+        old_rows = [r for r in now["npcitem"] if r[1] != key]
+        self.assertEqual(old_rows, first["npcitem"], "a first run's catalog row moved")
+        # one undo takes both runs back
+        self.assertEqual(quiet(["--db", self.path, "--undo", "--no-backup"]), 0)
+        db = self.db()
+        db.execute("DELETE FROM npcs WHERE id IN (?, ?)", (new, crafter))
+        db.execute("UPDATE sqlite_sequence SET seq = seq - 2 WHERE name = 'npcs'")
+        self.assertEqual(dump(db), before)
+
     def test_undo_leaves_a_row_changed_since(self):
         argv = ["--db", self.path, "--prh", self.prh, "--prices", self.harvest, "--no-backup"]
         quiet(argv + ["--apply"])

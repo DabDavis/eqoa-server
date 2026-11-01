@@ -178,6 +178,20 @@ class FollowupTest(unittest.TestCase):
         self.assertEqual(left, 0)
         self.assertEqual(self.db.execute("SELECT count(*) FROM charinventory WHERE patternid = 940101").fetchone(), (0,))
 
+    def test_a_plan_applied_later_takes_the_books_since(self):
+        """A plan made on a copy, applied where a fourth alchemist has since
+        bought the rank: its merges are read there again, so the new book row
+        names ours too; the control, the plan as made, misses it."""
+        p = json.loads(json.dumps(self.plan()))
+        self.db.execute("INSERT INTO characters VALUES (84, 14)")
+        self.db.execute("INSERT INTO spells (id, serverid, spellid) VALUES (95, 84, 900548)")
+        self.assertNotIn({"id": 95}, [c["key"] for c in p["changes"] if c["tbl"] == "spells"], "the control")
+        q = fu.refresh_merges(self.db, p)
+        self.assertIn({"id": 95}, [c["key"] for c in q["changes"] if c["tbl"] == "spells"])
+        self.assertEqual(len(q["changes"]), len(p["changes"]) + 1)
+        im.apply(self.db, q, fu.LOG, fu.META, fu.WHAT)
+        self.assertEqual(self.db.execute("SELECT spellid FROM spells WHERE id = 95").fetchone(), (303,))
+
     def test_edits(self):
         self.assertEqual(fu.edits("glimmerine mixture", "glimmerene mixture"), 1)
         self.assertEqual(fu.edits("transmute", "transmutate"), 2)

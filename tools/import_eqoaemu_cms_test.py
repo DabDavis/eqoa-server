@@ -378,5 +378,73 @@ class SwapDescriptionsTest(unittest.TestCase):
         self.assertEqual([w["desc"] for w in W], ["Guess A?", "Guess B?"])
 
 
+class RankAddsTest(unittest.TestCase):
+    """fix_rank_adds: a RANK_ADDS rank that adds the spell it requires and
+    takes away adds the one it means (the user, 2026-11-01: "yes fix it"),
+    which Ctx finds as the record of ours of its name (no Spells-sheet row).
+    The controls: the workbook's rank as it is adds what it requires; another
+    rank, and the rank's requires and removes, are left; a name none or
+    several of ours bear is no spell (0, said). Every name made up."""
+
+    TABLE = {"Bone Teachings 1": ("Bone Mastery", "Bone Mastery +")}
+
+    def setUp(self):
+        self.db = sqlite3.connect(":memory:")
+        self.addCleanup(self.db.close)
+        x = self.db.execute
+        x("CREATE TABLE spellpattern (spellid INTEGER PRIMARY KEY, spellname TEXT, abilitylvl INTEGER)")
+        x("INSERT INTO spellpattern VALUES (120, 'Bone Mastery +', 23), (900768, 'Bone Mastery', 23), "
+          "(134, 'Rot Mastery +', 33), (900770, 'Rot Mastery', 33)")
+        self.W = m.read_ranks(m.Sheet([HEAD] + [
+            wrow("0F01", "Bone Teachings 1", cls="Class", sub="Necromancer", klass="NEC", level="25", points="25",
+                 abil=[("0300", "Bone Mastery")], adds=[("0300", "Bone Mastery")], removes=[("0300", "Bone Mastery")]),
+            wrow("0F02", "Bone Teachings 2", cls="Class", sub="Necromancer", klass="NEC", level="35", points="25",
+                 abil=[("0302", "Rot Mastery")], adds=[("0303", "Rot Mastery +")], removes=[("0302", "Rot Mastery")]),
+        ]))
+        self.by = {w["hex"]: w for w in self.W}
+        self.spellmap = {0x300: (900768, "new"), 0x302: (900770, "new"), 0x303: (134, "name")}
+
+    def fix(self):
+        keep = getattr(m, "RANK_ADDS", None)
+        m.RANK_ADDS = self.TABLE
+        try:
+            return m.fix_rank_adds(self.W)
+        finally:
+            m.RANK_ADDS = keep
+
+    def ctx(self):
+        return m.Ctx(self.db, self.W, self.spellmap, {}, {})
+
+    def test_the_controls(self):
+        ctx = self.ctx()
+        self.assertEqual(ctx.abilities(self.by["0F01"]["adds"]), ("Bone Mastery@23", "900768"),
+                         "the workbook's rank adds what it requires")
+        self.assertEqual(ctx.abilities(self.by["0F02"]["adds"]), ("Rot Mastery +@33", "134"))
+
+    def test_the_rank_adds_what_it_means(self):
+        self.assertEqual(self.fix(), [("0F01", "Bone Teachings 1", "Bone Mastery", "Bone Mastery +")])
+        ctx = self.ctx()
+        self.assertEqual(ctx.abilities(self.by["0F01"]["adds"]), ("Bone Mastery +@23", "120"),
+                         "the record of ours of its name")
+        self.assertEqual(ctx.abilities(self.by["0F01"]["abil"]), ("Bone Mastery@23", "900768"), "what it requires stays")
+        self.assertEqual(ctx.abilities(self.by["0F01"]["removes"]), ("Bone Mastery@23", "900768"),
+                         "and what it takes away")
+        self.assertEqual(ctx.abilities(self.by["0F02"]["adds"]), ("Rot Mastery +@33", "134"), "another rank left")
+        self.assertEqual(ctx.unmapped, {})
+        self.assertEqual(self.fix(), [], "a second pass puts nothing more right")
+        self.assertEqual(m.RANK_ADDS, {"Teachings of Morthalis 1": ("Flesh Mastery", "Flesh Mastery +")})
+
+    def test_a_name_none_or_several_of_ours_bear_is_none(self):
+        self.fix()
+        self.db.execute("DELETE FROM spellpattern WHERE spellid = 120")
+        ctx = self.ctx()
+        self.assertEqual(ctx.abilities(self.by["0F01"]["adds"]), ("Bone Mastery +", ""))
+        self.assertEqual(list(ctx.unmapped), ["Bone Mastery + (no Spells-sheet row: none of ours of its name)"])
+        self.db.execute("INSERT INTO spellpattern VALUES (121, 'Bone Mastery +', 23), (122, 'bone mastery +', 23)")
+        ctx = self.ctx()
+        self.assertEqual(ctx.abilities(self.by["0F01"]["adds"]), ("Bone Mastery +", ""))
+        self.assertEqual(list(ctx.unmapped), ["Bone Mastery + (no Spells-sheet row: several of ours of its name)"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -7,6 +7,7 @@ its merchants, the quest and drop spells listed, the line as the server's
 reader takes it, a plan through a file, --apply's log, a second --apply
 refused, and --undo exact with a row a GM changed since left."""
 import collections
+import contextlib
 import json
 import os
 import sqlite3
@@ -1175,6 +1176,133 @@ class BodiesAndSharesTest(unittest.TestCase):
         after = {t: sorted(map(repr, self.db.execute(f"SELECT * FROM {t}"))) for (t,) in
                  self.db.execute("SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()}
         self.assertEqual(after, before)
+
+
+# The workbook's errata (made up here: a pet buff's row carrying its "+"
+# rank's effect beside its own, a record of ours whose description is cut off)
+ERRATA_FX = [eff("0301", "Statistic Change", STR=20, STA=20, DEX=20, Duration=300, Scope="Pet", Target_Type="Friendly"),
+             eff("0302", "Statistic Change", STR=40, STA=40, DEX=40, Duration=1800, Scope="Pet", Target_Type="Friendly"),
+             eff("0305", "Dmg/Heal", HP1=-90, Resist_Basis="AR")]
+ERRATA_ROWS = [spell("0300", "Bone Mastery", CLASS="NEC", Level=23, Scope="Pet", Target_Type="Friendly", Duration=300,
+                     ScrollSource="Quest", IconBGDColor="Gray", TYPE="Statistic Change", ArchType="Pet Buff",
+                     EffectID1="0301", EffectID2="0302"),
+               spell("0304", "Grim Wailing", CLASS="NEC", Level=60, EffectID1="0305", ScrollSource="Quest")]
+ERRATA_MAP = {"0300": (im.NEW_BASE + 0x300, "new"), "0304": (122, "name")}
+TWO = {"bone mastery": ("Bone Mastery +", (2,))}
+DESCS = {"bone mastery +": None, "grim wail": "Our own words, put right."}
+BONE = im.NEW_BASE + 0x300
+
+
+@contextlib.contextmanager
+def errata(two=None, descs=None):
+    """The import's errata tables as given (none: the import as it was
+    before them)."""
+    keep = {k: getattr(im, k, None) for k in ("TWO_SPELLS", "DESCRIPTIONS")}
+    im.TWO_SPELLS, im.DESCRIPTIONS = two or {}, descs or {}
+    try:
+        yield
+    finally:
+        for k, v in keep.items():
+            setattr(im, k, v)
+
+
+def errata_of_ours(x):
+    """The records of ours the errata name: the "+" pet buff (the old dump's
+    line, a description naming charisma, its class's row) and the record
+    whose description is cut off."""
+    rec = "INSERT INTO spellpattern VALUES (?, ?, 0, 0, ?, 2, 40, ?, ?, ?, 3, -1, ?, ?)"
+    icon = struct.unpack("<i", struct.pack(">I", 0x11223344))[0]
+    x(rec, (120, 23, F30, im.FRAMES["Gray"], icon, 3, "Bone Mastery +", "CM: Raises your pet's charisma."))
+    x(rec, (122, 60, F30, im.FRAMES["Red"], icon, 1, "Grim Wail", "Level 60 option. This ability uses the power of the de"))
+    x("INSERT INTO spelleffect VALUES (120, 'Pet, Increase DEX & Str by 20, 5min', 0, 'eqoa-data necromancer')")
+    x("INSERT INTO spelleffect VALUES (122, 'Target, Decrease Hitpoints by 80', 0, 'eqoa-data')")
+    x("INSERT INTO classspells VALUES (11, 120, 'dump'), (11, 122, 'eqoa-data')")
+
+
+class ErrataTest(unittest.TestCase):
+    """The workbook's errors put right (the user, 2026-11-01: "yes fix it",
+    "change it"): a row carrying a second spell's effects is two rows, its
+    own and the second's, the second on the record of ours of its name; a
+    record of ours DESCRIPTIONS names takes its description (ours, or made
+    from its effects). The controls: without the errata the import is as it
+    was; a second spell none of ours is named is listed and makes nothing.
+    Every name and figure made up."""
+
+    def setUp(self):
+        self.db = sqlite3.connect(os.path.join(tempfile.mkdtemp(), "e.db"), isolation_level=None)
+        make_schema(self.db.execute)
+        errata_of_ours(self.db.execute)
+
+    def plan(self, two=TWO, descs=DESCS):
+        with errata(two, descs):
+            wb = im.Workbook({"Spells": ERRATA_ROWS, "Effects": ERRATA_FX, "Created Item Info": [],
+                              "Created Item Effects": [], "Pets": []})
+            return wb, im.plan(self.db, wb, ERRATA_MAP, weres={})
+
+    @staticmethod
+    def of(p, key, sid):
+        return [e for e in p[key] if e["spellid"] == sid]
+
+    def test_a_row_of_two_spells_is_two(self):
+        wb, p = self.plan()
+        made = self.of(p, "effects", BONE)[0]["row"]
+        j = json.loads(made["effects"])
+        self.assertEqual((j["duration_s"], [(o["id"], o["stat"], o["amount"]) for o in j["effects"]]),
+                         (300, [("0301", "str", 20), ("0301", "sta", 20), ("0301", "dex", 20)]), "its own effect alone")
+        self.assertEqual(made["line"], "Pet, Increase STR by 20, Increase STA by 20, Increase DEX by 20, 5min")
+        self.assertEqual(wb.errata, [("0300", "Bone Mastery", "Bone Mastery +", ["0302"])])
+        self.assertEqual(p["errata"], {"first": [BONE], "second": [120], "description": [120, 122]})
+        new = self.of(p, "spells", BONE)[0]["row"]
+        self.assertEqual(new["spelldesc"], "A buff that increases your pet's STR, STA and DEX.")
+        plus = self.of(p, "effects", 120)[0]
+        j = json.loads(plus["set"]["effects"])
+        self.assertEqual((j["duration_s"], [(o["id"], o["stat"], o["amount"]) for o in j["effects"]]),
+                         (1800, [("0302", "str", 40), ("0302", "sta", 40), ("0302", "dex", 40)]),
+                         "the second's on ours, its time its effect's")
+        self.assertTrue(all("duration_s" not in o for o in j["effects"]))
+        self.assertEqual(plus["set"]["line"], "Pet, Increase STR by 40, Increase STA by 40, Increase DEX by 40, 30min")
+        self.assertEqual(plus["set"]["source"], "eqoa-data necromancer; effects from EQOAEmu's workbook")
+        up = {e["spellid"]: e["set"] for e in p["spells"] if e["action"] == "update"}
+        self.assertEqual(up[120]["spelldesc"], "CM: A buff that increases your pet's STR, STA and DEX.",
+                         "made from its effects, a mastery's")
+        self.assertEqual(up[122], {"spelldesc": "Our own words, put right."}, "ours, and nothing else of it")
+        self.assertNotIn("not in the map", p["lists"], "the second row needs no map row")
+
+    def test_the_controls(self):
+        wb, p = self.plan(None, None)
+        j = json.loads(self.of(p, "effects", BONE)[0]["row"]["effects"])
+        self.assertEqual([o["id"] for o in j["effects"]], ["0301"] * 3 + ["0302"] * 3, "as the import was: both")
+        self.assertEqual(self.of(p, "effects", 120), [], "and the record of ours untouched")
+        self.assertNotIn(120, [e["spellid"] for e in p["spells"]])
+        self.assertNotIn("spelldesc", {e["spellid"]: e for e in p["spells"]}.get(122, {}).get("set", {}))
+        self.assertEqual(getattr(wb, "errata", []), [])
+        self.assertEqual(p.get("errata", {"first": [], "second": [], "description": []}),
+                         {"first": [], "second": [], "description": []})
+
+    def test_a_second_spell_none_of_ours_is_named(self):
+        # listed, nothing made of it, the first still cut
+        self.db.execute("DELETE FROM spellpattern WHERE spellid = 120")
+        wb, p = self.plan()
+        self.assertEqual(p["lists"]["a workbook erratum's second spell: none of ours, or several, of its name (left)"],
+                         ["0300 Bone Mastery +: none"])
+        self.assertEqual([e["spellid"] for e in p["spells"] if e["action"] == "insert"], [BONE])
+        j = json.loads(self.of(p, "effects", BONE)[0]["row"]["effects"])
+        self.assertEqual([o["id"] for o in j["effects"]], ["0301"] * 3)
+        # the row put right in the workbook (no effect at the second's place): left as it is
+        rows = [dict(ERRATA_ROWS[0], EffectID2=""), ERRATA_ROWS[1]]
+        with errata(TWO, DESCS):
+            self.assertEqual(im.Workbook({"Spells": rows, "Effects": ERRATA_FX, "Created Item Info": [],
+                                          "Created Item Effects": [], "Pets": []}).errata, [])
+
+    def test_the_tables(self):
+        self.assertEqual(im.TWO_SPELLS, {"flesh mastery": ("Flesh Mastery +", (2,))})
+        self.assertEqual(sorted(im.DESCRIPTIONS), ["agonize death", "flesh mastery +"])
+        self.assertIsNone(im.DESCRIPTIONS["flesh mastery +"])
+        text = im.DESCRIPTIONS["agonize death"]
+        self.assertLessEqual(len(text), 127, "the descriptions' 127 (desc_of's)")
+        self.assertIn("undead foe", text)
+        self.assertIn("24 seconds", text)
+        self.assertNotRegex(text.lower(), r"\bproc\b", "a word the line's reader takes")
 
 
 if __name__ == "__main__":

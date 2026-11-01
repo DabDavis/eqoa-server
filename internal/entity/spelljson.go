@@ -355,6 +355,25 @@ func (d *SpellDef) unsupported(format string, args ...any) {
 	d.Unsupported = append(d.Unsupported, fmt.Sprintf(format, args...))
 }
 
+// cureByName is what a cure the workbook leaves at "ID?" (it does not know
+// which) takes off, by its spell's name (the user, 2026-11-01: "by name"):
+// an antidote poison, a curative disease, a mask's removal a mask
+// (cureMatches' words); "" when the name says nothing, and the cure takes
+// every harmful effect as before (the warriors' stances, the monks' Purity,
+// Spirit of the Wolf).
+func cureByName(name string) string {
+	n := strings.ToLower(name)
+	switch {
+	case strings.Contains(n, "antidote"):
+		return "poison"
+	case strings.Contains(n, "curative"):
+		return "disease"
+	case strings.Contains(n, "mask"):
+		return "mask"
+	}
+	return ""
+}
+
 // seconds is a workbook duration as a time.
 func seconds(s float64) time.Duration {
 	if s <= 0 {
@@ -557,7 +576,13 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 		d.Unread = append(d.Unread, "teleport to "+d.Location)
 	case "cure":
 		add(SpellEffect{Kind: EffectCure, ID: e.ID})
-		d.Removes = append(d.Removes, strings.TrimSpace(e.Removes))
+		rm := strings.TrimSpace(e.Removes)
+		if strings.EqualFold(rm, "id?") {
+			if by := cureByName(name); by != "" {
+				rm = by
+			}
+		}
+		d.Removes = append(d.Removes, rm)
 	case "charm":
 		add(effectOf(EffectCharm, e))
 	case "invis":

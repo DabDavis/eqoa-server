@@ -407,7 +407,7 @@ func (w *World) summonPlayerLocked(cs *castState, caster, t *Player) {
 // its level less the player's DEF mods (the file's doc), a dummy's measured.
 func npcMeleeRollFor(npc *NPC, p *Player) meleeRoll {
 	if p.Mods.DefMod != 0 && npc.Dummy == NotDummy {
-		return creatureRoll(max(npc.Level-p.Mods.DefMod, 1)).withMods(npc.keptMods()) // a freed charm's buffs (pet.go)
+		return creatureRoll(max(npc.Level-p.Mods.DefMod, 1)).withMods(npc.creatureMods()) // its effects' STR and DEX (pet.go)
 	}
 	return npcMeleeRoll(npc)
 }

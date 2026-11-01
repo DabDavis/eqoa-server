@@ -243,17 +243,14 @@ func (w *World) releaseCharmLocked(ps *petState, sess *session.Session, text str
 	// it keeps what was cast on it until each runs out (the user,
 	// 2026-11-01: "is charm breaks/release the mob retains all buffs until
 	// they expire"): its maximum's raise (pet.go) and its heals over time,
-	// on the creatures' effects from now on (effectSystem), and its STR, DEX,
-	// AC and AGI in its fights as a pet's ("make the released mob's buffs
-	// count in its fights too": keptMods)
+	// on the creatures' effects from now on (effectSystem), and in its fights
+	// as every creature's effects count ("make the released mob's buffs
+	// count in its fights too": creatureMods, pet.go)
 	if len(npc.Effects) > 0 {
 		if w.affected == nil {
 			w.affected = make(map[EntityID]*NPC)
 		}
 		w.affected[npc.ServerID] = npc
-		for _, ae := range npc.Effects {
-			ae.Kept = true // and they count in its fights (keptMods, pet.go)
-		}
 	}
 	if npc.World != home {
 		oldX, oldZ := npc.X, npc.Z

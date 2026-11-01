@@ -262,7 +262,8 @@ class ImportTest(unittest.TestCase):
         self.assertEqual(self.effects(p, 900263)["effects"][0]["procs"][0]["on"], "defense")
         self.assertEqual(self.effects(p, 900264)["effects"][0]["pet"], {"sheet_pet_id": "0001", "name": "Fire Imp"})
         self.assertEqual(self.effects(p, 900265)["effects"][0]["item"],
-                         {"count": 3, "name": "Fire Mix Potion", "patternid": 7}, "an item ours by our name for it")
+                         {"count": 3, "name": "Fire Potion", "patternid": 7, "sheet_name": "Fire Mix Potion"},
+                         "an item ours by our name for it: under ours, which the server's summon finds it by")
         aoe = self.effects(p, 900266)
         self.assertEqual((aoe["scope"], aoe["radius"]), ("target_aoe", 15))
         self.assertEqual([o["kind"] for o in aoe["effects"]], ["hp", "hp2"])
@@ -469,37 +470,68 @@ class ImportTest(unittest.TestCase):
 
 
 class LineItemsTest(unittest.TestCase):
-    """A made or taken item the workbook names none of takes our line's name
-    (Feed's Unit of Blood, the vampires' reagents): the server reads the
-    effects alone, so without it a summon makes nothing and a reagent is free."""
+    """Every made or taken item under the name the server finds it by: an item
+    of ours by the workbook's name takes ours (Acidic Mix Potion is our Acidic
+    Potion), one it names none of ours of, or not at all, takes our line's
+    (Neriak Cocktail's Grobb Cocktail, Feed's Unit of Blood, the vampires'
+    reagents): the server reads the effects alone, so without it a summon
+    makes nothing and a reagent is free."""
+
+    NAMES = {709302: "Unit of Blood", 7: "Fire Potion", 50002: "Acidic Potion", 50025: "Draught",
+             61: "Grobb Cocktail", 50104: "foraged herb"}
+
+    def settle(self, j, line):
+        ours = {im.fold(n): pid for pid, n in self.NAMES.items()}
+        return im.settle_item_names(j, line, ours, self.NAMES)
 
     def test_named_as_the_line_names_it(self):
-        ours = {im.fold("Unit of Blood"): 709302, im.fold("Fire Potion"): 7}
         feed = {"effects": [{"kind": "hp", "amount": -1}, {"kind": "create_item", "item": {"count": 1, "sheet_item_id": ""}}]}
-        done = im.name_items_by_line(feed, "Target, Drain HP by 40 to 60 give self, Summon Unit of Blood x1", ours)
-        self.assertEqual(done, ["makes Unit of Blood x1"])
+        self.assertEqual(self.settle(feed, "Target, Drain HP by 40 to 60 give self, Summon Unit of Blood x1"),
+                         ([], ["makes Unit of Blood x1"]))
         self.assertEqual(feed["effects"][1]["item"], {"count": 1, "name": "Unit of Blood", "patternid": 709302})
         gaze = {"effects": [{"kind": "hate", "amount": -500, "consume": {"count": 10, "sheet_item_id": ""}}]}
-        self.assertEqual(im.name_items_by_line(gaze, "Target, Set Aggro to 0, Reagent Unit of Blood x10", ours),
-                         ["takes Unit of Blood x10"])
+        self.assertEqual(self.settle(gaze, "Target, Set Aggro to 0, Reagent Unit of Blood x10"), ([], ["takes Unit of Blood x10"]))
         self.assertEqual(gaze["effects"][0]["consume"]["patternid"], 709302)
         # the workbook's count stays (Vitality: our line's 5, its 6)
         vit = {"effects": [{"kind": "stat", "consume": {"count": 6, "sheet_item_id": ""}}]}
-        im.name_items_by_line(vit, "Self, Increase HP by 1000, 60sec, Reagent Unit of Blood x5", ours)
+        self.settle(vit, "Self, Increase HP by 1000, 60sec, Reagent Unit of Blood x5")
         self.assertEqual(vit["effects"][0]["consume"]["count"], 6)
+        # an item the workbook names that is none of ours: our line's, the workbook's name kept
+        cocktail = {"effects": [{"kind": "create_item", "item": {"count": 3, "name": "Neriak Fire Potion"}}]}
+        self.assertEqual(self.settle(cocktail, "SELF Summon Grobb Cocktail"),
+                         ([], ["makes Grobb Cocktail x3 (the workbook's 'Neriak Fire Potion', none of ours)"]))
+        self.assertEqual(cocktail["effects"][0]["item"], {"count": 3, "name": "Grobb Cocktail", "patternid": 61,
+                                                          "sheet_name": "Neriak Fire Potion"})
+        # the line's words as the server's reader takes them
+        for line in ("Self, Summon Item: foraged herb", "Summons Foraged Herb X3", "SELF Summon foraged herb (a meal)"):
+            j = {"effects": [{"kind": "create_item", "item": {"count": 1, "name": "Wild Roots"}}]}
+            self.assertEqual(self.settle(j, line)[1], ["makes foraged herb x1 (the workbook's 'Wild Roots', none of ours)"], line)
+
+    def test_ours_by_the_workbooks_name(self):
+        acid = {"effects": [{"kind": "create_item", "item": {"count": 6, "name": "Acidic Mix Potion", "patternid": 50002}}]}
+        self.assertEqual(self.settle(acid, "Summon Acidic Potion X3"), (["'Acidic Mix Potion' -> 'Acidic Potion'"], []))
+        self.assertEqual(acid["effects"][0]["item"], {"count": 6, "name": "Acidic Potion", "patternid": 50002,
+                                                      "sheet_name": "Acidic Mix Potion"})
+        # matched here though the plan's item_ref had not (a consume, a name by a variant)
+        dr = {"effects": [{"kind": "create_item", "item": {"count": 1, "name": "Draught Potion"}}]}
+        self.assertEqual(self.settle(dr, "")[0], ["'Draught Potion' -> 'Draught'"])
+        # already ours by our own name: as it is
+        fire = {"effects": [{"kind": "create_item", "item": {"count": 1, "name": "Fire Potion", "patternid": 7}}]}
+        self.assertEqual(self.settle(fire, "SELF Summon Grobb Cocktail"), ([], []))
+        self.assertNotIn("sheet_name", fire["effects"][0]["item"])
 
     def test_left_unnamed(self):
-        ours = {im.fold("Unit of Blood"): 709302, im.fold("Fire Potion"): 7}
         for line in ("Self, Creates an item x6",                                    # no name in the line
                      "Self, Summon Ruby Shard x2",                                  # none of ours
                      "Self, Summon Unit of Blood, Summon Fire Potion",              # two: which is which
-                     "Group, Summon Player", "Self, Summons a pet"):
+                     "Group, Summon Player", "Self, Summons a pet", "Summons a zombie to your aid"):
             j = {"effects": [{"kind": "create_item", "item": {"count": 1, "sheet_item_id": ""}}]}
-            self.assertEqual(im.name_items_by_line(j, line, ours), [], line)
+            self.assertEqual(self.settle(j, line), ([], []), line)
             self.assertNotIn("name", j["effects"][0]["item"], line)
-        # one the workbook names is left as it is
-        j = {"effects": [{"kind": "create_item", "item": {"count": 1, "name": "Fire Mix Potion"}}]}
-        self.assertEqual(im.name_items_by_line(j, "Self, Summon Unit of Blood", ours), [])
+        # two made items none of ours: which is which, so neither
+        two = {"effects": [{"kind": "create_item", "item": {"count": 1, "name": "A"}},
+                           {"kind": "create_item", "item": {"count": 1, "name": "B"}}]}
+        self.assertEqual(self.settle(two, "SELF Summon Grobb Cocktail"), ([], []))
 
     def test_gate_twins(self):
         self.assertTrue(im.one_letter_apart("kithacor circle", "kithicor circle"))

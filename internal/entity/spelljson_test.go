@@ -419,7 +419,18 @@ func TestWorkbookSlows(t *testing.T) {
 	if f := npc.snareFactor(now); f != 0.5 {
 		t.Errorf("a line's snare: %v, want 0.5", f)
 	}
+	// the control: a line's slow by a figure still halves the pace
 	c := newCaster(t)
+	lineSlow := strike()
+	lineSlow.SpellID, lineSlow.Def = 982, ParseSpellText("Target, Decrease Movement Speed by 30, 30sec")
+	if !c.w.StartCast(c.sess, lineSlow, c.npcO, c.at(0)) {
+		t.Fatal("the line's slow not begun")
+	}
+	c.tick(lineSlow.CastTime + castLand)
+	if f := c.npc.snareFactor(c.at(lineSlow.CastTime + castLand)); f != 0.5 {
+		t.Errorf("a line's slow: %v, want 0.5", f)
+	}
+	c = newCaster(t)
 	wall := wbSpell(981, 5, 0, "Test Bulwark", `{"v":1,"scope":"self","duration_s":45,"effects":[{"kind":"stat","stat":"ac","amount":50},
 		{"kind":"speed","amount":-30}]}`)
 	before := c.p.SpeedNow()

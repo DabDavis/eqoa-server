@@ -101,7 +101,7 @@ func rulesOf(d *SpellDef) EffectRules {
 func (ae *ActiveEffect) workbookLasting(e SpellEffect, d *SpellDef) bool {
 	switch e.Kind {
 	case EffectSnare:
-		if e.Amount >= 0 {
+		if e.Amount >= 0 || !d.Workbook {
 			return false // a line's snare: lasting's, half the pace
 		}
 		ae.Rules.SpeedPct = min(ae.Rules.SpeedPct, e.Amount)
@@ -201,8 +201,10 @@ func resistible(e SpellEffect) bool {
 		return false
 	case EffectHP, EffectHPTick, EffectPower, EffectPowerTick, EffectStat:
 		return e.Amount < 0
+	case EffectHate, EffectLull, EffectForget:
+		return true
 	}
-	return true
+	return false // what is not harm (a buff's part) is never resisted
 }
 
 // npcResistKindPct is how many points the resist debuffs of a kind on a

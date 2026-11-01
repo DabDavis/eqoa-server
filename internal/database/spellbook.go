@@ -123,6 +123,26 @@ func (s *SpellbookStore) SpellNames() ([]SpellName, error) {
 	return out, rows.Err()
 }
 
+// ClassSpellIDs is the spells a class has (classspells), by id: which of
+// several records of one name a scroll teaches a character of the class
+// (handlers/scribe.go), every source counted.
+func (s *SpellbookStore) ClassSpellIDs(class int) (map[int]bool, error) {
+	rows, err := s.db.Query(`SELECT spellid FROM classspells WHERE class = ?`, class)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[int]bool{}
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		out[id] = true
+	}
+	return out, rows.Err()
+}
+
 // AddSpell puts a spell in a character's book at display index order, off
 // the bar, with no lockout and -1 at VIAbility+0x14: the record Sandstorm
 // sends for a scroll just scribed.

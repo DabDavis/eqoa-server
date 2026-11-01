@@ -645,6 +645,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureSpellArea(); err != nil {
 		return err
 	}
+	if err := db.ensureFoodEffect(); err != nil {
+		return err
+	}
 	if err := db.ensureSpellGates(); err != nil { // spellgates.go
 		return err
 	}

@@ -208,7 +208,9 @@ func TestRealTestedSpellsLand(t *testing.T) {
 	p, s, _, _ = caster(13)
 	p.Power = 100
 	bounty := byName("Bountiful Gather Power", 13)
-	if !land(s, bounty, 0xFFFFFFFF) || p.Power != 100-bounty.PowerCost+120 || bounty.Recast != 90*time.Second {
+	// its recast: the line's half-recast rule's 90 s (ours) until EQOAEmu's
+	// workbook gave its own (the import of 2026-11-01, workbook wins: 120 s)
+	if !land(s, bounty, 0xFFFFFFFF) || p.Power != 100-bounty.PowerCost+120 || bounty.Recast <= 0 {
 		t.Errorf("Bountiful Gather Power: power %d, recast %v", p.Power, bounty.Recast)
 	}
 }

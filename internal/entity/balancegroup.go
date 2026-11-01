@@ -70,7 +70,7 @@ func newSimGroup(pls []SimPlayer, foe SimNPC, b *Balance) []*simFight {
 			Level: pl.Level, Speed: 8.833333, X: lead.p.X, Y: lead.p.Y, Z: lead.p.Z + float32(k), World: 0}
 		p.BaseStr, p.BaseSta, p.BaseAgi, p.BaseDex = pl.Base[0], pl.Base[1], pl.Base[2], pl.Base[3]
 		p.BaseWis, p.BaseInt, p.BaseCha = pl.Base[4], pl.Base[5], pl.Base[6]
-		p.Gear = pl.Gear
+		simDress(p, &pl, 0) // its hands too (until 2026-11-01 only the first member's: the others' arts were refused)
 		p.CMEffects = pl.CMs
 		p.RecalcStats(true)
 		w.Players[p.ServerID] = p
@@ -169,6 +169,11 @@ func runSimGroup(ms []*simFight, limit time.Duration) SimGroupResult {
 	}
 	for lead.now.Before(lead.t0) {
 		groupTick(ms)
+	}
+	for _, m := range ms {
+		if m.hands != 0 {
+			m.hold(0) // a buff's switch: its fighting hands taken up again for the pull
+		}
 	}
 	w.mu.Lock()
 	for i, m := range ms {

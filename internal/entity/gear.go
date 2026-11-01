@@ -21,12 +21,13 @@ type Gear struct {
 	// the ranged weapon's (handlers' wornGear); WeaponCond its condition (hit
 	// points over their most, 1 when the item holds none) and
 	// WeaponTwoHanded whether it takes both hands. WeaponSlot is the equip
-	// slot it is worn in (14, 16 or 18; 0 none). The player's melee rolls on
-	// them (offence.go).
+	// slot it is worn in (14, 16 or 18; 0 none) and WeaponType its attack
+	// type. The player's melee rolls on them (offence.go).
 	WeaponDamage    int
 	WeaponCond      float64
 	WeaponTwoHanded bool
 	WeaponSlot      int
+	WeaponType      int
 	// BareHands: no weapon in the hands (equip slots 14, 15 and 16; a shield
 	// or an item held is none) and nothing in the ranged slot (18), where a
 	// monk's melee rolls on its hand to hand (offence.go)

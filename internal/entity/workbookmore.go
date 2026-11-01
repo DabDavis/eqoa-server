@@ -170,9 +170,15 @@ func npcMeleeDebuffPct(npc *NPC, kind Stat, now time.Time) int {
 }
 
 // meleeDebuffed is a player's melee hit of n on a creature with its debuff
-// of the weapon's kind.
+// of the weapon's kind: the main hand's, or a ranged weapon's when it is the
+// ranged one that swings (Gear.WeaponSlot 18: no weapon in hand, whose main
+// hand reads as bare).
 func meleeDebuffed(p *Player, npc *NPC, n int, now time.Time) int {
-	if pct := npcMeleeDebuffPct(npc, meleeKindOf(p.PrimaryType), now); pct > 0 {
+	t := p.PrimaryType
+	if p.Gear.WeaponSlot == 18 {
+		t = byte(p.Gear.WeaponType)
+	}
+	if pct := npcMeleeDebuffPct(npc, meleeKindOf(t), now); pct > 0 {
 		return n * (100 + pct) / 100
 	}
 	return n

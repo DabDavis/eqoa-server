@@ -37,9 +37,12 @@ element (pet earth, water, fire, air), a necromancer's "pet necromancer"
 round) but Grand Animation (pet.go's two hits); every other class's pets
 swing as pet.go has them.
 
-Each row written is a row edit as the GM panel writes one (gm_audit, as dab,
-via "tool") and is logged in eqoaemu_pets_log for --undo, which puts back
-each row still as written (one a GM changed since is left, and said). The
+Every pet the workbook has takes its row whole, over a GM's too (the user,
+2026-11-01: "workbook wins on all", "the correct pet models are in the
+worksheet"). Each row written is a row edit as the GM panel writes one
+(gm_audit, as dab, via "tool") and is logged in eqoaemu_pets_log for --undo,
+which puts back each row still as written (one a GM changed since is left,
+and said). The
 server reads petstats at its start, or at once at a GM's edit of the
 templates or of petstats in the panel.
 
@@ -489,9 +492,10 @@ def write_row(db, tbl, row):
 
 
 def apply(db, rows, pts):
-    """Every planned row in one transaction: a row a GM made or changed (source not this tool's) is left; returns
-    (written, unchanged, left)."""
-    written = same = left = 0
+    """Every planned row in one transaction; returns (written, unchanged, a GM's replaced). The user, 2026-11-01:
+    "workbook wins on all", "the correct pet models are in the worksheet": a petstats row a GM made or changed is
+    replaced too (its row logged, so --undo puts it back); a pettemplate row there by now (a GM's) is left."""
+    written = same = replaced = 0
     db.execute("BEGIN IMMEDIATE")
     try:
         for s in (AUDIT_SCHEMA, LOG_SCHEMA, PETSTATS_SCHEMA, PETTEMPLATE_SCHEMA):
@@ -500,23 +504,25 @@ def apply(db, rows, pts):
             for row in entries:
                 k = {c: row[c] for c in KEYS[tbl]}
                 before = row_of(db, tbl, k)
-                if before is not None and before.get("source") not in (SOURCE, "seed"):
-                    left += 1
-                    continue
                 if before is not None and all(before.get(c) == v for c, v in row.items()):
                     same += 1
                     continue
+                if tbl == "pettemplate" and before is not None:
+                    continue  # planned where none was: a GM's since, left
                 write_row(db, tbl, row)
                 after = row_of(db, tbl, k)
                 a = audit(db, "insert" if before is None else "update", tbl, k, before, after, DETAIL)
                 db.execute(f"INSERT INTO {LOG} (tbl, rowkey, before, after, audit) VALUES (?, ?, ?, ?, ?)",
                            (tbl, go_json(k), None if before is None else go_json(before), go_json(after), a))
                 written += 1
+                if before is not None and before.get("source") != SOURCE:
+                    replaced += 1
+                    print(f"  replaced: {tbl} {go_json(k)}, a {before.get('source')!r} row (the workbook wins on all)")
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")
         raise
-    return written, same, left
+    return written, same, replaced
 
 
 def undo(db):
@@ -607,8 +613,8 @@ def main():
         print(f"plan: {a.save_plan} ({len(rows)} pets, {len(pts)} pettemplate rows)")
         return
     if a.apply:
-        written, same, left = apply(db, rows, pts)
-        print(f"wrote {written}; {same} already so; {left} a GM's, left")
+        written, same, replaced = apply(db, rows, pts)
+        print(f"wrote {written} ({replaced} of them over a GM's row); {same} already so")
     else:
         print(f"{len(rows)} petstats rows, {len(pts)} pettemplate rows: --apply to write")
 

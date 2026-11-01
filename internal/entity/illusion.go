@@ -218,8 +218,25 @@ func (w *World) landIllusionLocked(cs *castState, t *Player, ae *ActiveEffect) {
 		log.Printf("Cast: %q on %s: no body of %q on this server: no illusion", cs.spell.Name, t.Name, d.Form)
 		return
 	}
+	if !onDisc(model) {
+		log.Printf("Cast: %q on %s: the disc has no body %#x: no illusion", cs.spell.Name, t.Name, model)
+		return
+	}
 	ae.Form, ae.FormSize = model, size
 	log.Printf("Cast: %q shows %s as %q (model %#x)", cs.spell.Name, t.Name, d.Form, model)
+}
+
+// onDisc is whether the disc has a body of model, as far as the server knows
+// the disc's bodies (reach.go's table, cmd/modelbake's <worlds>/models.txt):
+// a body it lacks is shown on no one (a GM's mistyped body, a sprite read the
+// wrong way round), and without the table every body is taken as given.
+func onDisc(model uint32) bool {
+	m := modelRadii.Load()
+	if m == nil || len(*m) == 0 {
+		return true
+	}
+	_, ok := (*m)[model]
+	return ok
 }
 
 // Body is the model and scale a creature is shown with: the newest illusion
@@ -274,6 +291,10 @@ func (w *World) landNPCIllusionLocked(cs *castState, npc *NPC, ae *ActiveEffect)
 	}
 	if !ok {
 		log.Printf("Cast: %q on %s: no body of %q on this server: no illusion", cs.spell.Name, npc.Name, d.Form)
+		return
+	}
+	if !onDisc(model) {
+		log.Printf("Cast: %q on %s: the disc has no body %#x: no illusion", cs.spell.Name, npc.Name, model)
 		return
 	}
 	ae.Form, ae.FormSize = model, size

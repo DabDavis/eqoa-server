@@ -58,8 +58,10 @@ type savedMods struct {
 	// illusions reads as none
 	Form     uint32  `json:",omitempty"`
 	FormSize float32 `json:",omitempty"`
-	// a workbook effect's rules (workbook.go); none on a row kept before
-	Rules *EffectRules `json:",omitempty"`
+	// a workbook effect's rules (workbook.go) and its spell procs
+	// (workbookmore.go); none on a row kept before
+	Rules      *EffectRules `json:",omitempty"`
+	ProcSpells []ProcSpell  `json:",omitempty"`
 	// a heal over time's ticks left (hot.go); a row kept before reads as
 	// none, an effect that ticks until it ends
 	Ticks int `json:",omitempty"`
@@ -100,6 +102,7 @@ func savedEffects(p *Player, now time.Time) []database.BuffRow {
 			r := e.Rules
 			sm.Rules = &r
 		}
+		sm.ProcSpells = e.ProcSpells
 		mods, _ := json.Marshal(sm)
 		flags := 0
 		for _, f := range []struct {
@@ -155,6 +158,7 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 				r.Since = now // its fights count from the login
 				ae.Food = &r
 			}
+			ae.ProcSpells = sm.ProcSpells
 			if sm.PowerCap != nil {
 				ae.PowerCap, ae.PowerCapped = *sm.PowerCap, true
 			}

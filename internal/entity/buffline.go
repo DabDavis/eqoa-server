@@ -158,7 +158,8 @@ func lineRank(s *CastSpell) int {
 
 // statLineNames are the stats as a line names them, by Stat.
 var statLineNames = []string{"none", "STR", "STA", "AGI", "DEX", "WIS", "INT", "CHA", "AC", "maxHP", "maxPower",
-	"FR", "CR", "PR", "DR", "LR", "AR", "damage", "HoT", "PoT", "pierce", "blunt", "slash", "ranged", "?"}
+	"FR", "CR", "PR", "DR", "LR", "AR", "damage", "HoT", "PoT", "pierce", "blunt", "slash", "ranged", "hpfactor", "offmod",
+	"defmod", "?"}
 
 var buffKindNames = map[EffectKind]string{EffectShield: "shield", EffectDefProc: "defproc", EffectProc: "proc",
 	EffectSpeed: "speed", EffectInvis: "invis", EffectPowerCap: "powercap"}

@@ -67,6 +67,10 @@ const (
 	EffectBreath   // the bearer does not run out of breath
 	EffectHide     // unseen (EffectInvis) as a rogue hides
 	EffectProcHeal // the bearer's proc heals it Amount (Defense: when hit, else when hitting)
+	// the rest of the workbook's (workbookmore.go)
+	EffectPickpocket   // a rogue's hand in the creature's pockets
+	EffectSummonPlayer // the target brought to the caster (Call of the Hero)
+	EffectDisguise     // the factions do not attack the bearer on sight while it lasts
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -104,6 +108,12 @@ const (
 	StatBlunt
 	StatSlash
 	StatRanged
+	// StatHPFactor is maximum hit points a level more; StatOffMod and
+	// StatDefMod the levels the bearer's melee counts as above its foe's, and
+	// its foe's melee below its own (workbookmore.go)
+	StatHPFactor
+	StatOffMod
+	StatDefMod
 )
 
 // SpellEffect is one effect of a spell as its line gives it: Amount, plus
@@ -220,6 +230,15 @@ type SpellDef struct {
 	// DispelOnCast and DispelOnContact end what lasts of it when its bearer
 	// casts, or is hit or harmed (workbook.go)
 	DispelOnCast, DispelOnContact bool
+	// ProcSpells are a proc buff's procs that do more than hit or heal: a
+	// hate, a stat taken, a tick, power (workbookmore.go)
+	ProcSpells []ProcSpell
+	// ReqEquip is the weapons a cast needs held, as the workbook writes
+	// them ("1HS,2HS", "Range", "Shield", "None"); "" any (workbookmore.go)
+	ReqEquip string
+	// TargetKind is the creatures alone it works on beside the undead:
+	// "animal" or "summoned" (workbookmore.go); "" any
+	TargetKind string
 	// Unsupported is what the workbook says that the engine has no rule
 	// for, for the log
 	Unsupported []string

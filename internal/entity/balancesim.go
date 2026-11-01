@@ -268,6 +268,18 @@ func newSimFight(pl SimPlayer, foe SimNPC, b *Balance) *simFight {
 	p.BaseStr, p.BaseSta, p.BaseAgi, p.BaseDex = pl.Base[0], pl.Base[1], pl.Base[2], pl.Base[3]
 	p.BaseWis, p.BaseInt, p.BaseCha = pl.Base[4], pl.Base[5], pl.Base[6]
 	p.Gear = pl.Gear
+	// its hands, for a spell's required equipment (workbookmore.go): the
+	// kit's weapon, a shield (17), an off-hand weapon (15) or a bow (20)
+	p.PrimaryType = byte(pl.AttackType)
+	if pl.Worn[17] {
+		p.Shield = 1
+	}
+	if pl.Worn[15] {
+		p.SecondaryType = 1
+	}
+	if pl.Worn[20] {
+		p.SecondaryType = 7
+	}
 	p.CMEffects = pl.CMs
 	p.RecalcStats(true)
 	w.Players[p.ServerID] = p

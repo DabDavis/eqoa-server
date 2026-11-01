@@ -68,6 +68,17 @@ gates' seed (tools/seed_spell_gates.py) were applied to.
      only by an npcaggro row. A name a quest kills, loots or spawns hostile is
      left, said.
 
+  5. Two lasting debuffs' times (DURATIONS, import_eqoaemu_spells.py's: a
+     fresh import makes the same). The workbook gives the mastery Swamp
+     Stench's AGI and AC and the rogue's epic Strategic Blow's AC Duration 0,
+     so neither lasted any time nor landed (entity/cast.go's lasting): each
+     takes 30 s, the user's figure (2026-11-01: "30 sec for both"), as
+     import_eqoaemu_spells.py's with_duration writes it: duration_s in its
+     effects and its line ending in the time, as the import's line writer
+     ends a line with one (its line the import's, as its log has it). Only
+     where its effects are still as the import wrote them (its log's last
+     row for them); else listed, left.
+
 Where two of the five land stays as tools/seed_spell_gates.py put them:
 the Circle of Dead Hills at Fendren's spot (Fendren's guide: "Ports to Dead
 Hills SE (where Fendren is)", its level 53 guide that his port goes "to the
@@ -84,8 +95,8 @@ a database it was applied to). --undo takes the last run back: each row
 still as it wrote it put back as it was (a row changed since is left, and
 said), the item and loot counters too. Both take a copy of the database
 first (--no-backup to skip). The server reads npcs, npcaggro, spellgates and
-the quests at its start: restart it after; the items, their uses and the
-loot are read as they are used.
+the quests at its start: restart it after; the items, their uses, the loot
+and a spell's effects (at each cast) are read as they are used.
 
     tools/fix_eqoaemu_places.py [--db eqoa.db] [--apply | --undo] [--no-backup]
 """
@@ -100,12 +111,13 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import import_quests as iq  # noqa: E402
-from import_eqoaemu_spells import RECASTS  # noqa: E402
+from import_eqoaemu_spells import DURATIONS, RECASTS, dumps as im_dumps, with_duration  # noqa: E402
 
 DEFAULT_DB = os.path.join(HERE, "..", "eqoa.db")
 LOG = "eqoaemu_places_log"
 SOURCE = "eqoaemu places"
 WORKBOOK_RECAST = 3   # the five teleports' recast in the workbook
+IMPORT_LOG = "eqoaemu_spell_import_log"   # import_eqoaemu_spells.py's: what it wrote (5.)
 
 # ---- 2. the tower --------------------------------------------------------------
 
@@ -244,6 +256,54 @@ def plan_recasts(db, recasts, ch, said):
             else:
                 ch.append(dict(tbl="spellpattern", action="update", ref={"spellid": sid}, before={"recast": recast},
                                set={"recast": want}, note=f"{sname}: recast {recast} -> {want}"))
+
+
+def import_wrote(db, sid):
+    """A spell's spelleffect row as import_eqoaemu_spells.py last wrote it:
+    (its line, None when it kept the line it found; its effects), or None
+    when its log has no row for it."""
+    if not has_table(db, IMPORT_LOG):
+        return None
+    r = db.execute(f"SELECT after FROM {IMPORT_LOG} WHERE tbl = 'spelleffect' AND key = ? AND after IS NOT NULL "
+                   "ORDER BY seq DESC LIMIT 1", (im_dumps({"spellid": sid}),)).fetchone()
+    if r is None:
+        return None
+    a = json.loads(r[0])
+    return a.get("line"), a.get("effects")
+
+
+def plan_durations(db, durations, ch, said):
+    for name, want in sorted(durations.items()):
+        rows = db.execute("SELECT spellid, spellname FROM spellpattern WHERE lower(trim(spellname)) = ? ORDER BY spellid",
+                          (name,)).fetchall()
+        if not rows:
+            said["a duration's spell is not here"].append(name)
+        for sid, sname in rows:
+            r = db.execute("SELECT line, effects FROM spelleffect WHERE spellid = ?", (sid,)).fetchone() \
+                if has_table(db, "spelleffect") and "effects" in columns(db, "spelleffect") else None
+            if r is None or not (r[1] or "").strip():
+                said["a duration's spell with no workbook effects (left)"].append(f"{sid} {sname}")
+                continue
+            line, fx = r
+            try:
+                j = json.loads(fx)
+            except ValueError:
+                j = {}
+            if isinstance(j, dict) and j.get("duration_s") == want:
+                said["durations as they are to be"].append(f"{sid} {sname} {want} s")
+                continue
+            wrote = import_wrote(db, sid)
+            new = with_duration(fx, line if line == wrote[0] else None, want) if wrote and wrote[1] == fx else None
+            if new is None:
+                said["a duration's effects not as the import wrote them (left: a GM's?)"].append(f"{sid} {sname}: {fx}")
+                continue
+            before, set_ = {"effects": fx}, {"effects": new[0]}
+            if new[1] is None:
+                said["a duration's line not the import's, kept (a look: does it say a time?)"].append(f"{sid} {sname}: {line}")
+            elif new[1] != line:
+                before["line"], set_["line"] = line, new[1]
+            ch.append(dict(tbl="spelleffect", action="update", ref={"spellid": sid}, before=before, set=set_,
+                           note=f"{sname}: what lasts of it {want} s (DURATIONS: the workbook's 0)"))
 
 
 def plan_tower(db, gems, chambers, ch, said):
@@ -421,13 +481,14 @@ def plan_isle(db, talked_to, ch, said):
                            note=f"{name}: the NPC bit"))
 
 
-def plan(db, recasts=None, gems=None, chambers=None, portal=PORTAL, keys=QUEST_KEYS, talked_to=TALKED_TO):
+def plan(db, recasts=None, gems=None, chambers=None, portal=PORTAL, keys=QUEST_KEYS, talked_to=TALKED_TO, durations=None):
     """Every change --apply would make, in order, and the report's lines."""
     ch, said = [], collections.defaultdict(list)
     plan_recasts(db, RECASTS if recasts is None else recasts, ch, said)
     plan_tower(db, GEMS if gems is None else gems, CHAMBERS if chambers is None else chambers, ch, said)
     q = plan_quests(db, portal, keys, said)
     plan_isle(db, talked_to, ch, said)
+    plan_durations(db, DURATIONS if durations is None else durations, ch, said)
     return dict(changes=ch, quests=q, said=dict(said))
 
 

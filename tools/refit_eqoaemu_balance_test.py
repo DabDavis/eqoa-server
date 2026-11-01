@@ -115,16 +115,20 @@ class RefitEqoaemuBalance(unittest.TestCase):
         self.assertEqual(self.levels()[45]["pet_damage_pct"], rf.PET_LEVEL[1])  # the control: the rest are the re-fit's
 
     def test_the_seeds_are_the_refit(self):
-        """internal/database/balanceseed.go's class and level rows are the re-fit's and its level rows' pet columns
-        the re-fit's, so a table made new is what the five tools make of an older one (the earlier tunings' tests
-        follow their chain through this tool)"""
+        """internal/database/balanceseed.go's class and level rows are the re-fit's (with the follow-up's spans over
+        them, tools/refit_eqoaemu_followup.py) and its level rows' pet columns the re-fit's, so a table made new is
+        what the six tools make of an older one (the earlier tunings' tests follow their chain through this tool)"""
+        import refit_eqoaemu_followup as fu
         with open(os.path.join(HERE, "..", "internal", "database", "balanceseed.go")) as f:
             go = f.read()
         cl = {}
         for cls, l, v, pv, dv in re.findall(r"\{Class: (\d+), Level: (\d+), MeleeTakenPct: ([\d.]+), PetHPPct: ([\d.]+)"
                                             r"(?:, DealtPct: ([\d.]+))?\}", go):
             cl.setdefault(int(cls), {})[int(l)] = (float(v), float(pv), float(dv) if dv else 100.0)
-        self.assertEqual(cl, {c: {l: tuple(map(float, v)) for l, v in by.items()} for c, by in rf.REFIT.items()})
+        self.assertEqual(cl, fu.whole_rows())
+        for c, by in rf.REFIT.items():  # outside the follow-up's spans, this re-fit's
+            self.assertEqual({l: v for l, v in cl[c].items() if not fu.in_span(c, l)},
+                             {l: tuple(map(float, v)) for l, v in by.items() if not fu.in_span(c, l)}, c)
         pets = re.findall(r"\{Level: (\d+), HPPct: [\d.]+, DamagePct: [\d.]+, ConPct: [\d.]+, PetHPPct: ([\d.]+), "
                           r"PetDamagePct: ([\d.]+)", go)
         self.assertEqual({int(l) for l, _, _ in pets}, set(rf.PET_LEVEL_BEFORE))

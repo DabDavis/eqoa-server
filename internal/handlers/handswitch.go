@@ -120,7 +120,31 @@ func (h *EquipHandler) SwitchHandsFor(sess *session.Session, player *entity.Play
 		log.Printf("Hands: %s carries nothing it may wear that meets %q", player.Name, req)
 		return false
 	}
+	// the hands it takes off, for the way back (a ranged weapon it puts on is
+	// applyPlan's to keep, after these)
 	before := handsWorn(items)
+	h.hands.update(sid, func(k *keptHands) {
+		if before.main != 0 || before.off != 0 {
+			k.main, k.off = before.main, before.off
+		}
+		if before.ranged != 0 {
+			k.ranged = before.ranged
+		}
+	})
+	done := h.applySwitch(sess, sid, items, sw)
+	// what it did is the game's, all or part (a database refusal stops it)
+	h.wornChanged(sess, player, sid)
+	if done {
+		log.Printf("Hands: %s's hands switched for %q (%s): took off %d/%d/%d", player.Name, req, sw.what, before.main, before.off, before.ranged)
+	}
+	return done
+}
+
+// applySwitch makes the switch: the slots it empties (0x0040 each), then each
+// item put on as the item menu's equip puts one on (planEquipInto, 0x003F),
+// the hands read again between (what one displaced is off). False when the
+// database refused a change or an item left the list.
+func (h *EquipHandler) applySwitch(sess *session.Session, sid uint32, items []database.CharInventoryEntry, sw handSwitch) bool {
 	for _, slot := range sw.off {
 		for _, e := range inventoryRows(items) {
 			if e.EquipLoc != slot {
@@ -133,9 +157,9 @@ func (h *EquipHandler) SwitchHandsFor(sess *session.Session, player *entity.Play
 		}
 	}
 	for _, o := range sw.on {
-		// what the last one displaced is off now: read the hands again
-		if items, err = h.inventoryStore.GetCharacterItems(sid); err != nil {
-			log.Printf("Hands: %s's items: %v", player.Name, err)
+		items, err := h.inventoryStore.GetCharacterItems(sid)
+		if err != nil {
+			log.Printf("Hands: serverID=%d's items: %v", sid, err)
 			return false
 		}
 		var e *database.CharInventoryEntry
@@ -146,24 +170,13 @@ func (h *EquipHandler) SwitchHandsFor(sess *session.Session, player *entity.Play
 		}
 		idx := listIndexOf(items, sessionInvList(sess), o.itemID)
 		if e == nil || idx < 0 || !fitsEquip(e.Pattern.EquipSlot, o.slot) {
-			log.Printf("Hands: %s's item %d is gone from its list", player.Name, o.itemID)
+			log.Printf("Hands: serverID=%d's item %d is gone from its list", sid, o.itemID)
 			return false
 		}
 		if !h.applyPlan(sess, sid, planEquipInto(inventoryRows(items), idx, e, o.slot), "Hands") {
 			return false
 		}
 	}
-	// the hands it took off, for the way back
-	h.hands.update(sid, func(k *keptHands) {
-		if before.main != 0 || before.off != 0 {
-			k.main, k.off = before.main, before.off
-		}
-		if before.ranged != 0 {
-			k.ranged = before.ranged
-		}
-	})
-	log.Printf("Hands: %s's hands switched for %q (%s): took off %d/%d/%d", player.Name, req, sw.what, before.main, before.off, before.ranged)
-	h.wornChanged(sess, player, sid)
 	return true
 }
 

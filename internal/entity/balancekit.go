@@ -152,6 +152,10 @@ type SimHands struct {
 	AttackType, Range  int
 	Primary, Secondary byte
 	Gear               Gear
+	// off is the other hand's item (in offSlot), which another weapon put
+	// in the main hand leaves where it is (simOtherHands)
+	off     *database.ItemPatternRecord
+	offSlot int
 }
 
 // fits is whether the hands hold what a spell's required equipment names.
@@ -190,6 +194,7 @@ func simMeleeHands(main *database.ItemPatternRecord, two bool, off *database.Ite
 	if off != nil && !two {
 		add(off)
 		h.Worn[offSlot] = true
+		h.off, h.offSlot = off, offSlot
 		if offSlot == 15 || offSlot == 20 {
 			h.Secondary = byte(off.AttackType)
 		}
@@ -337,12 +342,17 @@ func simOtherHands(class, level int, tier float64, book []CastSpell, hands simHa
 			if main == nil {
 				continue
 			}
-			var off *database.ItemPatternRecord
-			knight := class == 2 || class == 3 // holds no second weapon (handlers' offHandWeaponBarred)
-			if !two && archetypeOf(class) == archMelee && !knight {
-				off = simPick(of(bySlot[14], typed), level, tier, simWeaponScore)
+			// beside a one-hander a melee class's second weapon of the kind
+			// (a knight holds none: handlers' offHandWeaponBarred), else what
+			// its other hand held, which a weapon put in the main hand leaves
+			// (a shield, an item held)
+			off, offSlot := have[0].off, have[0].offSlot
+			if !two && archetypeOf(class) == archMelee {
+				if second := simPick(of(bySlot[14], typed), level, tier, simWeaponScore); second != nil {
+					off, offSlot = second, 15
+				}
 			}
-			out = append(out, simMeleeHands(main, two, off, 15))
+			out = append(out, simMeleeHands(main, two, off, offSlot))
 		case none:
 			out = append(out, simBareHands())
 		}

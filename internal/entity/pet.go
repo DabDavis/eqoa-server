@@ -1139,9 +1139,10 @@ func npcHitOnPet(npc, pet *NPC, intn func(int) int) int {
 // fought by its level alone, and an AC, STR, DEX or AGI debuff on one did
 // nothing) and the buffs a charmed creature kept when it went free ("make
 // the released mob's buffs count in its fights too"), each until it runs
-// out. STR and DEX move its rolls as a pet's effects move its own
-// (meleeRoll.withMods: on players, pets and guards), AC and AGI the hits on
-// it as a player's take off a creature's (creatureDefence), a maximum its
+// out, only the best of a line (bestOfLine). STR and DEX move its rolls as
+// a pet's effects move its own (meleeRoll.withMods: on players, pets and
+// guards), AC and AGI the hits on it as a player's take off a creature's
+// (creatureDefence), a maximum its
 // maximum hit points (syncEffectMaxHP); its resists were counted already
 // (workbook.go's npcResistKindPct), its STA, WIS, INT and CHA count for
 // nothing (no creature's hit points or hits come from them). Nothing for a
@@ -1151,10 +1152,33 @@ func (n *NPC) creatureMods() StatMods {
 	if n.Owner != 0 {
 		return m
 	}
-	for _, e := range n.Effects {
+	for i, e := range n.Effects {
+		if !n.bestOfLine(i) {
+			continue
+		}
 		m.sum(e.Mods)
 	}
 	return m
+}
+
+// bestOfLine is whether the NPC's i-th effect is the best of its line on it
+// (the highest rank, the first of equals), as only the best of a line counts
+// on a player (buffline.go): two ranks of a debuff's line on a creature count
+// as the higher. An effect of no line always counts.
+func (n *NPC) bestOfLine(i int) bool {
+	e := n.Effects[i]
+	if e.Line == "" {
+		return true
+	}
+	for j, o := range n.Effects {
+		if j == i || !sameLine(o.Line, e.Line) {
+			continue
+		}
+		if o.Rank > e.Rank || o.Rank == e.Rank && j < i {
+			return false
+		}
+	}
+	return true
 }
 
 // creatureDefence is what a creature's AC and AGI effects take off an

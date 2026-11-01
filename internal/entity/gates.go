@@ -402,10 +402,7 @@ func (w *World) gateLandingLocked(g database.SpellGate) (x, y, z float32) {
 		for k := 0; k < n; k++ {
 			h := float64(k) * math.Pi / 8
 			px, pz := g.X+d*float32(math.Cos(h)), g.Z+d*float32(math.Sin(h))
-			fy, ok := w.ground.Floor(g.World, px, base+gateRise, pz)
-			if covered {
-				fy, ok = w.gateFloorLocked(g.World, px, base, pz) // under the roof, not on its ceiling
-			}
+			fy, ok := w.spotFloorLocked(g.World, px, base, pz, covered)
 			if !ok || float32(math.Abs(float64(fy-base))) > gateRise || !apart(px, fy, pz) {
 				continue
 			}
@@ -456,6 +453,17 @@ func (w *World) gateFloorLocked(world uint8, x, y, z float32) (float32, bool) {
 	return up, true
 }
 
+// spotFloorLocked is the floor of a spot round a place whose floor is at
+// height y: the highest within gateRise over it, or from under a roof the
+// one nearest it (gateFloorLocked: the room's floor, not its ceiling). Must
+// be called with the lock held and the ground set.
+func (w *World) spotFloorLocked(world uint8, x, y, z float32, covered bool) (float32, bool) {
+	if covered {
+		return w.gateFloorLocked(world, x, y, z)
+	}
+	return w.ground.Floor(world, x, y+gateRise, z)
+}
+
 // coveredLocked reports whether a floor of the terrain stands more than
 // gateOpen over the floor at (x, y, z): a roof, an overhang, another floor.
 // Must be called with the lock held and the ground set.
@@ -504,10 +512,7 @@ func (w *World) GateRingSpot(at GateSpot, ring int) GateSpot {
 		return GateSpot{World: at.World, X: px, Y: at.Y, Z: pz, Place: at.Place}
 	}
 	inside := w.coveredLocked(at.World, at.X, at.Y, at.Z)
-	fy, ok := w.ground.Floor(at.World, px, at.Y+gateRise, pz)
-	if inside {
-		fy, ok = w.gateFloorLocked(at.World, px, at.Y, pz) // under the roof, not on its ceiling
-	}
+	fy, ok := w.spotFloorLocked(at.World, px, at.Y, pz, inside)
 	if !ok || float32(math.Abs(float64(fy-at.Y))) > gateRise || w.waterAtLocked(at.World, px, fy+bodyAbove, pz) {
 		return at
 	}

@@ -948,6 +948,19 @@ class BodiesAndSharesTest(unittest.TestCase):
         self.assertEqual((sour["line"], sour["body"]), ("Target, Decrease STR by 10, 24sec", 0x88776655),
                          "a thrown use's body, for its creature")
 
+    def test_a_body_the_disc_lacks_is_listed(self):
+        path = os.path.join(tempfile.mkdtemp(), "models.txt")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("# the bodies' edges\n44332211 1.000\n")
+        self.assertEqual(im.read_bodies(path), {0x44332211})
+        p = im.plan(self.db, self.wb, self.MAP, weres={}, bodies=im.read_bodies(path))
+        upd = {x["patternid"]: x["set"] for x in p["made"]["itemeffect_updates"]}
+        uses = {x["patternid"]: x for x in p["made"]["itemeffects"]}
+        self.assertEqual(upd[60010]["body"], 0x44332211, "on the disc: written")
+        self.assertNotIn("body", uses[60011], "no CSprite of it: not written")
+        self.assertEqual(p["lists"]["a use's body no CSprite on the disc has (not written)"],
+                         ["60011 Sour Potion (the workbook's Sour Mix Potion): 0x88776655"])
+
     def test_a_merged_spells_item_takes_the_workbooks_use(self):
         p = self.plan()
         upd = {x["patternid"]: x for x in p["made"]["itemeffect_updates"]}

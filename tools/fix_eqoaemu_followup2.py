@@ -42,7 +42,8 @@ A spell's effects row is changed only where it is as the import's log wrote
 it (a GM's change since is left, and said); every other row only where it is
 still as planned. Report by default. --save-plan FILE writes what --apply
 would do and stops (the plan needs the workbook, and with --iso the disc, for
-a use's icon as the import reads icons); --plan FILE applies such a plan where
+a use's icon as the import reads icons; with --bodies, cmd/modelbake's
+models.txt, a body the disc has no CSprite of is listed and not written); --plan FILE applies such a plan where
 the database is, its merges and folds read there again (a book, a copy or a
 lot that came to name the new record or the folded item since the plan was
 made is taken too). --apply writes it all in one transaction, every row
@@ -55,7 +56,7 @@ the potions' uses, the masteries and the books at its start: restart it after
 either.
 
     tools/fix_eqoaemu_followup2.py --sheets <dir of TSVs> | --ods <workbook.ods> --map <spellmap.tsv>
-        [--iso <disc.iso>] [--db eqoa.db] [--save-plan FILE]
+        [--iso <disc.iso>] [--bodies <worlds/models.txt>] [--db eqoa.db] [--save-plan FILE]
     tools/fix_eqoaemu_followup2.py --db eqoa.db --plan FILE --apply
     tools/fix_eqoaemu_followup2.py --db eqoa.db --undo
 """
@@ -193,11 +194,11 @@ def fold_changes(db, f, lists, counts):
     return out
 
 
-def plan(db, wb, smap, disc=None, icons=None, weres=None):
+def plan(db, wb, smap, disc=None, icons=None, weres=None, bodies=None):
     """Everything --apply would write (changes), and the report's lists."""
     lists, counts = collections.defaultdict(list), collections.Counter()
     pairs = merges(db, smap, lists)
-    p = im.plan(db, wb, smap, disc, False, weres or {}, icons)
+    p = im.plan(db, wb, smap, disc, False, weres or {}, icons, bodies)
     wrote = fu.import_writes(db)
     changes = []
     for m in pairs:
@@ -243,7 +244,7 @@ def plan(db, wb, smap, disc=None, icons=None, weres=None):
             str(s) for s in p["made_spells"]]
     for k, v in p["lists"].items():
         if k.startswith(("an item of ours", "a use the import wrote", "an item the workbook names that a spell",
-                         "a potion made", "a made item", "an item no source gives")):
+                         "a potion made", "a made item", "an item no source gives", "a use's body")):
             lists[k] = v
     return dict(changes=changes, lists={k: v for k, v in lists.items()}, counts=dict(counts), merges=pairs,
                 folds=folds)
@@ -285,6 +286,8 @@ def main():
     ap.add_argument("--ods", help="the workbook itself (.ods)")
     ap.add_argument("--map", help="the import's SpellID map (sheet_id, spellid, how), the merged row on ours")
     ap.add_argument("--iso", help="the Frontiers disc: a use's effect icon read the way round the disc has it")
+    ap.add_argument("--bodies", help="cmd/modelbake's models.txt (the disc's CSprites): a use's body the disc lacks "
+                                     "listed and not written")
     ap.add_argument("--were-quests", default=im.WERE_QUESTS)
     ap.add_argument("--save-plan", metavar="FILE")
     ap.add_argument("--plan", metavar="FILE")
@@ -316,7 +319,7 @@ def main():
             import fill_spell_visuals_eqoaemu as fsv
             disc, icons = fsv.disc_visuals(a.iso), fsv.disc_icons(a.iso)
         p = plan(db, im.Workbook(im.read_workbook(a.sheets, a.ods)), im.read_map(a.map), disc, icons,
-                 im.were_rewards(a.were_quests))
+                 im.were_rewards(a.were_quests), im.read_bodies(a.bodies) if a.bodies else None)
     fu.report(p, a.list)
     if a.save_plan:
         p["made"] = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")

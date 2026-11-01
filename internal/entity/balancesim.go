@@ -98,10 +98,11 @@ type SimPlay struct {
 	Pet      bool
 	PetSpell int
 	// Root: it fights as a rooting caster does (root.go's reason): from
-	// simRootRange off it opens with its highest root (of those that hold
-	// through a hit, when it has one: sortBook), and whenever the NPC
-	// is free (resisted, broken, worn off) it roots it again before anything
-	// else; once the NPC is held it steps back to simRootRange (the walk's
+	// simRootRange off it (or a step inside its root's reach: simRootAt)
+	// opens with its highest root (of those that hold through a hit, when it
+	// has one: simRootBefore), and whenever the NPC is free (resisted,
+	// broken, worn off) it roots it again before anything else; once the NPC
+	// is held it steps back to that distance (the walk's
 	// time spent casting nothing) and casts its spells from there, none of
 	// more than simRootLongCast
 	Root bool
@@ -185,6 +186,7 @@ const (
 	simApart     = 2.0  // how far apart a melee fight starts
 	simOwnerAt   = 7.0  // how far off its NPC a pet's owner stands
 	simRootRange = 18.0 // how far off its NPC a rooting caster stands
+	simRootNear  = 8.0  // the nearest it stands, for a root of a short reach (simRootAt)
 	// simRootLongCast is the longest cast a rooting caster starts: one longer
 	// (a wizard's Phoenix Glory, 15 s) would hold its hands through a break
 	simRootLongCast = 5 * time.Second
@@ -247,6 +249,7 @@ type simFight struct {
 	reserve                int         // power kept for a heal
 	casts                  int
 	moveUntil              time.Time // a rooting caster stepping back: no cast till then
+	rootAt                 float32   // how far off its NPC a rooting caster stands (simRootAt)
 	rootLands              time.Time // a rooting caster's root in flight lands then
 	// mates is the group a member fights in (balancegroup.go), itself
 	// included, in the group's order; nil for a player alone
@@ -283,7 +286,7 @@ func newSimFight(pl SimPlayer, foe SimNPC, b *Balance) *simFight {
 	}
 	apart := float32(simApart)
 	if pl.Play.Root {
-		apart = simRootRange
+		apart = simRootAt(pl.Spells)
 	}
 	rec := &database.NPCRecord{ID: int(simFoe), NPCName: name, NPCLevel: foe.Level, NPCType: 0x0100,
 		XCoord: p.X + apart, YCoord: p.Y, ZCoord: p.Z, Size: 1}
@@ -308,7 +311,7 @@ func newSimFight(pl SimPlayer, foe SimNPC, b *Balance) *simFight {
 	vs.ChannelEntity[0] = npc.ServerID
 	vs.ChannelObjectID[0] = simFoeID
 
-	f := &simFight{w: w, sess: sess, p: p, npc: npc, pl: pl, t0: time.Unix(1_900_000_000, 0)}
+	f := &simFight{w: w, sess: sess, p: p, npc: npc, pl: pl, t0: time.Unix(1_900_000_000, 0), rootAt: apart}
 	f.sortBook()
 	return f
 }
@@ -716,16 +719,7 @@ func (f *simFight) sortBook() {
 			f.roots = append(f.roots, s)
 		}
 	}
-	// a root that holds through a hit first (the workbook's roots end on
-	// contact: a rooting caster's own nuke frees the creature, so it would
-	// root again at every cast, 210 power a time for a wizard's Arcane
-	// Shackles at 45), then the highest
-	sort.SliceStable(f.roots, func(i, j int) bool {
-		if a, b := f.roots[i].Def.DispelOnContact, f.roots[j].Def.DispelOnContact; a != b {
-			return b
-		}
-		return f.roots[i].Level > f.roots[j].Level
-	})
+	sort.SliceStable(f.roots, func(i, j int) bool { return simRootBefore(&f.roots[i], &f.roots[j]) })
 	rate := func(s *CastSpell) float64 { return simDamage(s, p) / lockoutOf(s).Seconds() }
 	sort.SliceStable(f.nukes, func(i, j int) bool { return rate(&f.nukes[i]) > rate(&f.nukes[j]) })
 	sort.SliceStable(f.heals, func(i, j int) bool { return simHeal(&f.heals[i], p) > simHeal(&f.heals[j], p) })
@@ -950,6 +944,37 @@ func simRoots(s *CastSpell) bool {
 	return false
 }
 
+// simRootBefore is whether a rooting caster takes root a before b: one that
+// holds through a hit first (the workbook's roots end on contact: a rooting
+// caster's own nuke frees the creature, so it would root again at every
+// cast, 210 power a time for a wizard's Arcane Shackles at 45), then the
+// highest.
+func simRootBefore(a, b *CastSpell) bool {
+	if a.Def.DispelOnContact != b.Def.DispelOnContact {
+		return b.Def.DispelOnContact
+	}
+	return a.Level > b.Level
+}
+
+// simRootAt is how far off its NPC a rooting caster stands: simRootRange,
+// or a step inside the reach of its farthest-reaching root that holds
+// through a hit when none reaches that far (a wizard's Arcane Bindings-Wiz,
+// 15: the one of its roots that holds); a root of no more than a melee
+// reach (the alchemist's Adhesives, 4.5) is cast from where the caster is
+// or not at all, never walked to.
+func simRootAt(book []CastSpell) float32 {
+	at := float32(0)
+	for i := range book {
+		if s := &book[i]; simRoots(s) && !s.Def.DispelOnContact && s.Range-1 >= simRootNear {
+			at = max(at, min(simRootRange, s.Range-1))
+		}
+	}
+	if at == 0 {
+		return simRootRange
+	}
+	return at
+}
+
 // SimHasRoot is whether the kit's book has a root.
 func SimHasRoot(pl SimPlayer) bool {
 	for i := range pl.Spells {
@@ -987,22 +1012,23 @@ func (f *simFight) rootPlay(cast func(CastSpell, uint32) bool) bool {
 		}
 		return false // no root up: its spells, the NPC on its way
 	}
-	if d >= simRootRange-1 {
+	at := f.rootAt
+	if d >= at-1 {
 		return false
 	}
-	// held and near: back to simRootRange off it, at its run
+	// held and near: back to its distance off it (simRootAt), at its run
 	w.mu.Lock()
 	ox, oz := p.X, p.Z
 	if d < 0.01 {
-		p.X = npc.X + simRootRange
+		p.X = npc.X + at
 	} else {
-		p.X = npc.X + (p.X-npc.X)/d*simRootRange
-		p.Z = npc.Z + (p.Z-npc.Z)/d*simRootRange
+		p.X = npc.X + (p.X-npc.X)/d*at
+		p.Z = npc.Z + (p.Z-npc.Z)/d*at
 	}
 	w.SpatialIndex.Update(p.ServerID, ox, oz, p.X, p.Z)
 	speed := float64(p.SpeedNow())
 	w.mu.Unlock()
-	f.moveUntil = f.now.Add(time.Duration(float64(simRootRange-d) / max(speed, 1) * float64(time.Second)))
+	f.moveUntil = f.now.Add(time.Duration(float64(at-d) / max(speed, 1) * float64(time.Second)))
 	return true
 }
 

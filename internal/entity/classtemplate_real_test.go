@@ -12,9 +12,11 @@ import (
 
 // jib's five templates over a real server's spells (EQOA_REAL_DB names its
 // database; a copy is read): the database made at a start with this code has
-// the five and gives none to any NPC, every ability finds a spell of its
-// kind from the level its class first has one, and what each picks is the
-// level's: the wizard's area spell never Phoenix Glory (its 15 s cast) and
+// the five and gives a template to no NPC its npctemplate rows do not name
+// (a GM's, or tools/seed_roamers.py's: the roamer and the wisp, 26,813 NPCs
+// of 2,234 names on eqoaclassic since 2026-10-30), every ability finds a
+// spell of its kind from the level its class first has one, and what each
+// picks is the level's: the wizard's area spell never Phoenix Glory (its 15 s cast) and
 // its nuke never a 180 s nova, the necromancer's tap the line's rank of its
 // level, the shadow knight's its strike of the level, never the 300 s Blood
 // line (Bloodwasp ... Bloodwraith). Skipped without a
@@ -42,8 +44,20 @@ func TestRealClassTemplatesPickTheirLevelsSpells(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if n != 0 {
-		t.Errorf("%d NPCs fight by a template on a database no GM gave one", n)
+	uses, err := db.NPCTemplates()
+	if err != nil {
+		t.Fatal(err)
+	}
+	named := 0
+	w.mu.RLock()
+	for _, npc := range w.NPCs {
+		if uses[database.NPCClassKey(npc.Name)] != "" {
+			named++
+		}
+	}
+	w.mu.RUnlock()
+	if n != named {
+		t.Errorf("%d NPCs fight by a template where npctemplate names %d", n, named)
 	}
 	for _, l := range w.ClassTemplateSummary() {
 		t.Log(l)

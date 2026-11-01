@@ -167,6 +167,8 @@ type SimResult struct {
 	PetLowHP        int
 	PetLevel        int
 	Casts           int
+	// Debuffs is how many of Casts were pure debuffs (simDebuffs)
+	Debuffs int
 	// LowHP is the fewest hit points the player had in the fight (the
 	// user's "take you down to less than a third hp": a class that heals
 	// itself ends a fight higher than it was taken down to)
@@ -259,6 +261,8 @@ type simFight struct {
 	t0   time.Time
 
 	nukes, heals, petHeals []CastSpell
+	debuffs                []CastSpell // the book's pure debuffs, the highest of each line (simDebuffs)
+	debuffCasts            int
 	roots                  []CastSpell // the book's roots, one that holds through a hit first, then the highest (SimPlay.Root)
 	reserve                int         // power kept for a heal
 	casts                  int
@@ -497,7 +501,7 @@ func (f *simFight) run(limit time.Duration) SimResult {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	r := SimResult{Won: npc.Dead, Died: p.IsDead(), Time: f.now.Sub(f.t0), HP: p.HP, MaxHP: p.MaxHPNow(),
-		Power: p.Power, MaxPower: p.MaxPowerNow(), NPCHP: npc.HP, NPCMaxHP: maxHP, Casts: f.casts, LowHP: low}
+		Power: p.Power, MaxPower: p.MaxPowerNow(), NPCHP: npc.HP, NPCMaxHP: maxHP, Casts: f.casts, Debuffs: f.debuffCasts, LowHP: low}
 	if pet != nil {
 		r.HadPet, r.PetDied, r.PetHP, r.PetMaxHP, r.PetLevel = true, pet.Dead || pet.HP <= 0, pet.HP, pet.MaxHP, pet.Level
 		r.PetLowHP = petLow
@@ -681,13 +685,15 @@ const (
 	rolePetHeal
 	roleBuff
 	roleSummon
+	roleDebuff
 )
 
 // simRole is what a spell is to the simulator: a harmful spell at a target
-// that does damage is a nuke (a damage over time one too, a life tap); a
-// beneficial one that gives hit points a heal (scope 3: the pet's); a
-// lasting beneficial one with no form, gate, summoning, invisibility or
-// price a buff; a summoning a pet's.
+// that does damage is a nuke (a damage over time one too, a life tap); one
+// that does none but lowers a stat that counts in a creature's fights a
+// debuff (simDebuffs); a beneficial one that gives hit points a heal (scope
+// 3: the pet's); a lasting beneficial one with no form, gate, summoning,
+// invisibility or price a buff; a summoning a pet's.
 func simRole(s *CastSpell) spellRole {
 	d := &s.Def
 	if d.Summons() {
@@ -718,6 +724,9 @@ func simRole(s *CastSpell) spellRole {
 		if damage && s.Scope == 1 {
 			return roleNuke
 		}
+		if s.Scope == 1 && simDebuffs(d) {
+			return roleDebuff
+		}
 	case bad:
 	case heal && s.Scope == 3:
 		return rolePetHeal
@@ -727,6 +736,30 @@ func simRole(s *CastSpell) spellRole {
 		return roleBuff
 	}
 	return roleNone
+}
+
+// simDebuffs is whether a harmful spell's lasting part lowers its target's
+// stats that count in a creature's fights (the user, 2026-11-01: "make the
+// sim cast pure debuffs too"; pet.go's creatureMods): STR, DEX, AGI, AC, its
+// maximum hit points, a resist (its caster's nukes then land more often:
+// workbook.go's npcResistKindPct) or a melee kind (workbookmore.go). Not STA,
+// WIS, INT or CHA, which count for nothing on a creature, nor a pact's price
+// on its caster.
+func simDebuffs(d *SpellDef) bool {
+	if d.Duration <= 0 {
+		return false
+	}
+	for _, e := range d.Effects {
+		if e.Kind != EffectStat || e.Self || e.Amount >= 0 {
+			continue
+		}
+		switch e.Stat {
+		case StatStr, StatDex, StatAgi, StatAC, StatMaxHP, StatFR, StatCR, StatPR, StatDR, StatLR, StatAR,
+			StatPierce, StatBlunt, StatSlash, StatRanged:
+			return true
+		}
+	}
+	return false
 }
 
 // simDamage is what a cast of the spell does to its target from this
@@ -800,8 +833,27 @@ func (f *simFight) sortBook() {
 			f.heals = append(f.heals, s)
 		case rolePetHeal:
 			f.petHeals = append(f.petHeals, s)
+		case roleDebuff:
+			f.debuffs = append(f.debuffs, s)
 		}
 	}
+	// the highest of each debuff's line (only the best of a line counts on a
+	// creature: creatureMods), the highest lines first
+	sort.SliceStable(f.debuffs, func(i, j int) bool { return f.debuffs[i].Level > f.debuffs[j].Level })
+	best := f.debuffs[:0]
+	for _, s := range f.debuffs {
+		line, dup := BuffLine(&s), false
+		for _, b := range best {
+			if sameLine(BuffLine(&b), line) {
+				dup = true
+				break
+			}
+		}
+		if !dup {
+			best = append(best, s)
+		}
+	}
+	f.debuffs = best
 	for _, s := range f.pl.Spells {
 		if simRoots(&s) {
 			f.roots = append(f.roots, s)
@@ -951,8 +1003,24 @@ func (f *simFight) onFoe(s *CastSpell) bool {
 	return false
 }
 
-// play is the player's hands for a tick: a heal when low, else its best
-// nuke that is up, else nothing (the attack button stays held).
+// lineOnFoe is whether the spell's lasting part, or another of its line, is
+// on the NPC (a debuff's: only the best of a line counts on a creature).
+func (f *simFight) lineOnFoe(s *CastSpell) bool {
+	if f.onFoe(s) {
+		return true
+	}
+	line := BuffLine(s)
+	for _, ae := range f.npc.Effects {
+		if sameLine(ae.Line, line) && f.now.Before(ae.Until) {
+			return true
+		}
+	}
+	return false
+}
+
+// play is the player's hands for a tick: a heal when low, else a debuff of
+// its book whose line is not on the NPC, else its best nuke that is up,
+// else nothing (the attack button stays held).
 func (f *simFight) play(pet *NPC) {
 	if !f.pl.Play.Spells {
 		return
@@ -1006,6 +1074,18 @@ func (f *simFight) play(pet *NPC) {
 	}
 	if f.pl.Play.Root && f.rootPlay(cast) {
 		return
+	}
+	for _, s := range f.debuffs { // a debuff first, as a player opens with one (simDebuffs)
+		if f.pl.Play.Root && s.CastTime > simRootLongCast {
+			continue
+		}
+		w.mu.RLock()
+		ok := f.ready(&s, f.reserve) && !f.lineOnFoe(&s) && f.keepsHate(pet, &s)
+		w.mu.RUnlock()
+		if ok && cast(s, simFoeID) {
+			f.debuffCasts++
+			return
+		}
 	}
 	for _, s := range f.nukes {
 		if f.pl.Play.Root && s.CastTime > simRootLongCast {

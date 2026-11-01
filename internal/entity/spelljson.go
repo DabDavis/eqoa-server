@@ -237,6 +237,9 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 		}
 		n := len(d.Effects)
 		d.readEffectJSON(name, desc, e, scope == "target_aoe", &area)
+		for i := n; i < len(d.Effects); i++ {
+			d.Effects[i].EndsOnContact = e.DispelOnContact // its own mark (workbook.go's contactSplit)
+		}
 		switch es := strings.ToLower(strings.TrimSpace(e.Scope)); {
 		case es == "self" && scope != "self" && scope != "player_aoe":
 			// an effect of the spell's on its caster (a price, a tap's own
@@ -260,6 +263,22 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 			d.ShareRadius = float32(s.Radius)
 		case es != "" && es != scope && es != "self" && es != "target":
 			d.unsupported("an effect for %q in a spell for %q (it lands as the spell's)", es, scope)
+		}
+	}
+	// invisibility is one part here (an Alter Appearance to the invisible
+	// body is read as invisibility: invisibleSprite), so a spell whose
+	// Invisible part a hit ends loses its invisibility whole, its invisible
+	// body with it (Elemental Veil, Spirit Walk: the workbook marks their
+	// Invisible and not their invisible body; marked alone, a hit would end
+	// nothing seen)
+	for _, e := range d.Effects {
+		if e.Kind == EffectInvis && e.EndsOnContact {
+			for i := range d.Effects {
+				if d.Effects[i].Kind == EffectInvis {
+					d.Effects[i].EndsOnContact = true
+				}
+			}
+			break
 		}
 	}
 	switch {

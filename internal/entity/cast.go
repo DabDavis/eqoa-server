@@ -311,6 +311,10 @@ type ActiveEffect struct {
 	// Rules are what the workbook's effects say beside their numbers
 	// (workbook.go): kept over a logout
 	Rules EffectRules
+	// contact is what its parts a hit ends put on beside what its other
+	// parts do, when the workbook marks only some (workbook.go): kept over
+	// a logout; nil when a hit ends it whole, or nothing
+	contact *contactSplit
 	// ProcSpells are its procs that cast more than a hit (workbookmore.go)
 	ProcSpells []ProcSpell
 }
@@ -404,6 +408,36 @@ func (m *StatMods) add(st Stat, n int) {
 	case StatDefMod:
 		m.DefMod += n
 	}
+}
+
+// take takes o's changes back off m (an effect's parts that end at a hit:
+// endContactParts).
+func (m *StatMods) take(o StatMods) {
+	m.Str -= o.Str
+	m.Sta -= o.Sta
+	m.Agi -= o.Agi
+	m.Dex -= o.Dex
+	m.Wis -= o.Wis
+	m.Int -= o.Int
+	m.Cha -= o.Cha
+	m.AC -= o.AC
+	m.MaxHP -= o.MaxHP
+	m.MaxPower -= o.MaxPower
+	m.FR -= o.FR
+	m.CR -= o.CR
+	m.PR -= o.PR
+	m.DR -= o.DR
+	m.LR -= o.LR
+	m.AR -= o.AR
+	m.HoT -= o.HoT
+	m.PoT -= o.PoT
+	m.Melee -= o.Melee
+	m.Pierce -= o.Pierce
+	m.Blunt -= o.Blunt
+	m.Slash -= o.Slash
+	m.HPFactor -= o.HPFactor
+	m.OffMod -= o.OffMod
+	m.DefMod -= o.DefMod
 }
 
 func (m *StatMods) sum(o StatMods) {
@@ -1149,8 +1183,19 @@ func capAmount(n, cap int) int {
 }
 
 // lasting is the part of a spell that stays on its target for the
-// duration, from this caster, or nil when nothing does.
+// duration, from this caster, or nil when nothing does; with what its parts
+// a hit ends put on beside its other parts' when the workbook marks only
+// some (contactSplitOf, workbook.go).
 func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
+	ae := lastingParts(cs, caster, now)
+	if ae != nil {
+		ae.contact = contactSplitOf(cs, caster, now)
+	}
+	return ae
+}
+
+// lastingParts is lasting's effect of the spell's parts as they are.
+func lastingParts(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 	d := &cs.spell.Def
 	dur := d.Duration
 	if dur <= 0 {

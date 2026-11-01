@@ -408,21 +408,23 @@ func TestARootThatEndsAtContactHoldsUntilAHit(t *testing.T) {
 }
 
 // A spell whose snare ends at contact and whose damage ticks (Caltrops):
-// its own tick is no contact for itself, so it holds through its ticks and
-// ends at a hit from elsewhere.
+// its own tick is no contact for itself, so it holds through its ticks; a
+// hit from elsewhere ends the snare alone, the part the workbook marks (the
+// user, 2026-11-01: "yes only end the marked part"), and its tick goes on to
+// its 18 s. Until then the hit ended its ticks with it.
 func TestASpellsOwnTickDoesNotEndItsContactSnare(t *testing.T) {
 	noResist(t)
 	caltrops := wbSpell(9831, 4, 1, "Test Caltrops", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"duration_s":18,
 		"effects":[{"kind":"hp_tick","amount":-5,"resist":"pierce"},{"kind":"speed","amount":-50,"resist":"dr","duration_s":8,"dispel_on_contact":true}]}`)
 	c := newCaster(t)
 	c.npc.HP, c.npc.MaxHP, c.npc.Level = 5000, 5000, 5
-	on := func() bool {
+	on := func() *ActiveEffect {
 		for _, e := range c.npc.Effects {
 			if e.SpellID == caltrops.SpellID {
-				return true
+				return e
 			}
 		}
-		return false
+		return nil
 	}
 	if !c.w.StartCast(c.sess, caltrops, c.npcO, c.at(0)) {
 		t.Fatal("not begun")
@@ -430,8 +432,8 @@ func TestASpellsOwnTickDoesNotEndItsContactSnare(t *testing.T) {
 	at := caltrops.CastTime + castLand
 	c.tick(at)
 	c.tick(at + 7*time.Second)
-	if !on() || c.npc.HP >= 5000 {
-		t.Fatalf("after its ticks: on %v, HP %d", on(), c.npc.HP)
+	if e := on(); e == nil || c.npc.HP >= 5000 || c.npc.snareFactor(c.at(at+7*time.Second)) != 0.5 {
+		t.Fatalf("after its ticks: on %v, HP %d, pace %v", e != nil, c.npc.HP, c.npc.snareFactor(c.at(at+7*time.Second)))
 	}
 	b := strike()
 	b.SpellID = 9832
@@ -439,8 +441,22 @@ func TestASpellsOwnTickDoesNotEndItsContactSnare(t *testing.T) {
 		t.Fatal("the strike not begun")
 	}
 	c.tick(8*time.Second + b.CastTime + castLand)
-	if on() {
-		t.Error("the snare stayed through a hit")
+	e := on()
+	if e == nil {
+		t.Fatal("the hit ended its ticks with its snare")
+	}
+	if e.Snare || e.Rules.SpeedPct != 0 || c.npc.snareFactor(c.at(11*time.Second)) != 1 || e.HPTick >= 0 {
+		t.Errorf("after a hit: snare %v, slow %d%%, pace %v, tick %d; want the snare gone, the tick on",
+			e.Snare, e.Rules.SpeedPct, c.npc.snareFactor(c.at(11*time.Second)), e.HPTick)
+	}
+	hp := c.npc.HP
+	c.tick(at + 13*time.Second)
+	if c.npc.HP >= hp {
+		t.Errorf("its tick stopped after the hit: HP %d, was %d", c.npc.HP, hp)
+	}
+	c.tick(at + 19*time.Second)
+	if on() != nil {
+		t.Error("still on past its 18 s")
 	}
 }
 

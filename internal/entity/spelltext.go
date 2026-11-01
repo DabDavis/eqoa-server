@@ -168,6 +168,10 @@ type SpellEffect struct {
 	Chance int
 	// Defense: a proc heal set off by a hit on the bearer, not by its own
 	Defense bool
+	// EndsOnContact: the workbook marks this part dispel_on_contact
+	// (spelljson.go): a hit on its bearer ends it, and the spell's parts
+	// not marked stay (contactSplit, workbook.go)
+	EndsOnContact bool
 }
 
 // SpellDef is a spell's line, read: whom it lands on, what it does, how

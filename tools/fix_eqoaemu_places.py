@@ -91,6 +91,17 @@ gates' seed (tools/seed_spell_gates.py) were applied to.
      as the import's log has them). Only a spell with no effects of its own
      yet is written; else listed, left.
 
+  7. Two alchemist spells of ours the workbook lacks given effects of ours
+     (MAKES, CURES, import_eqoaemu_spells.py's: a fresh import makes the
+     same; the user, 2026-11-01: "yes make frosty potion summon a frosty
+     potion, make it cure up to 3 effects"): Frosty Mixture makes one Frosty
+     Potion (our item by the server's own lookup by name) in Icy Mixture's
+     frame, Restorative cures up to three of the harmful effects on its
+     bearer, the first come by first; their lines and descriptions ours
+     (import_eqoaemu_spells.py's ours_changes, the maker as the import's log
+     has it). Only a spell with no effects of its own yet is written; else
+     listed, left.
+
 Where two of the five land stays as tools/seed_spell_gates.py put them:
 the Circle of Dead Hills at Fendren's spot (Fendren's guide: "Ports to Dead
 Hills SE (where Fendren is)", its level 53 guide that his port goes "to the
@@ -123,7 +134,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import import_quests as iq  # noqa: E402
-from import_eqoaemu_spells import DURATIONS, MIRRORS, RECASTS, dumps as im_dumps, with_duration  # noqa: E402
+from import_eqoaemu_spells import CURES, DURATIONS, MAKES, MIRRORS, RECASTS, dumps as im_dumps, with_duration  # noqa: E402
 import import_eqoaemu_spells as im  # noqa: E402
 
 DEFAULT_DB = os.path.join(HERE, "..", "eqoa.db")
@@ -355,6 +366,66 @@ def plan_mirrors(db, mirrors, ch, said):
                            set=eff["set"], note=tag))
 
 
+def our_item_by_name(db, name):
+    """(patternid, name) of the item the server finds by name: the lowest
+    numbered of the name that is no spell's scroll (import_eqoaemu_spells.py's
+    items_by_name), or None."""
+    for pid, n, icon, slot in db.execute("SELECT patternid, itemname, itemicon, equipslot FROM itempattern ORDER BY patternid"):
+        if not (icon == im.SCROLL_ICON and slot == -1) and im.fold(n) == im.fold(name):
+            return pid, n
+    return None
+
+
+def plan_ours(db, makes, cures, ch, said):
+    cols = [c for c in ("spellid", "spellname", "abilitylvl", "scope", "iconColor", "spelldesc") if c in columns(db, "spellpattern")]
+    recs = [dict(zip(cols, r)) for r in db.execute(f"SELECT {', '.join(cols)} FROM spellpattern")]
+    has_fx = has_table(db, "spelleffect") and "effects" in columns(db, "spelleffect")
+
+    def one(name):
+        return [r for r in recs if im.exact_key(r["spellname"]) == im.exact_key(name)]
+    todo = []
+    for name, (maker, item, count) in sorted(makes.items()):
+        mine, theirs, it = one(name), one(maker), our_item_by_name(db, item)
+        if len(mine) != 1 or len(theirs) != 1 or it is None or not has_fx:
+            said["a spell of ours to make an item whose record, maker or item is not one here (left)"].append(
+                f"{name}: {len(mine)} records, {maker}: {len(theirs)}, {item}: {it}")
+            continue
+        o = theirs[0]
+        orow = db.execute("SELECT effects FROM spelleffect WHERE spellid = ?", (o["spellid"],)).fetchone()
+        wrote = import_wrote(db, o["spellid"])
+        if orow is None or not (orow[0] or "").strip() or wrote is None or wrote[1] != orow[0]:
+            said["a maker not as the import wrote it (left)"].append(f"{o['spellid']} {o['spellname']}")
+            continue
+        j = im.makes_json(json.loads(orow[0]), mine[0]["abilitylvl"], it[1], it[0], count)
+        todo.append((mine[0], name, j, f"effects ours: {o['spellname']}'s, making our {it[1]}", {it[0]: it[1]},
+                     f"a {it[1]}"))
+    for name, n in sorted(cures.items()):
+        mine = one(name)
+        if len(mine) != 1 or not has_fx:
+            said["a spell of ours to cure whose record is not one here (left)"].append(f"{name}: {len(mine)} records")
+            continue
+        j = im.cures_json(mine[0]["scope"], mine[0]["abilitylvl"], n)
+        todo.append((mine[0], name, j, f"effects ours: a cure of up to {n}", None, f"a cure of up to {n}"))
+    for rec, name, j, note, item_names, what in todo:
+        r = db.execute("SELECT line, effects, source FROM spelleffect WHERE spellid = ?", (rec["spellid"],)).fetchone()
+        now = dict(zip(("line", "effects", "source"), r)) if r else None
+        record, eff = im.ours_changes(rec, now, {"spelldesc": im.OURS_DESC.get(name)}, j, note, item_names)
+        if not record and not eff:
+            said["spells of ours given their effects already"].append(f"{rec['spellid']} {rec['spellname']}")
+            continue
+        if now is None or (eff and (now.get("effects") or "").strip()):
+            said["a spell of ours with effects of its own or no effects row (left: a GM's?)"].append(
+                f"{rec['spellid']} {rec['spellname']}")
+            continue
+        tag = f"{rec['spellname']}: {what} (MAKES, CURES)"
+        if record:
+            ch.append(dict(tbl="spellpattern", action="update", ref={"spellid": rec["spellid"]}, before=record["before"],
+                           set=record["set"], note=tag))
+        if eff:
+            ch.append(dict(tbl="spelleffect", action="update", ref={"spellid": rec["spellid"]}, before=eff["before"],
+                           set=eff["set"], note=tag))
+
+
 def plan_tower(db, gems, chambers, ch, said):
     for g in gems:
         # its two items: one of the name there is used; one to make whose id
@@ -531,7 +602,7 @@ def plan_isle(db, talked_to, ch, said):
 
 
 def plan(db, recasts=None, gems=None, chambers=None, portal=PORTAL, keys=QUEST_KEYS, talked_to=TALKED_TO, durations=None,
-         mirrors=None):
+         mirrors=None, makes=None, cures=None):
     """Every change --apply would make, in order, and the report's lines."""
     ch, said = [], collections.defaultdict(list)
     plan_recasts(db, RECASTS if recasts is None else recasts, ch, said)
@@ -540,6 +611,7 @@ def plan(db, recasts=None, gems=None, chambers=None, portal=PORTAL, keys=QUEST_K
     plan_isle(db, talked_to, ch, said)
     plan_durations(db, DURATIONS if durations is None else durations, ch, said)
     plan_mirrors(db, MIRRORS if mirrors is None else mirrors, ch, said)
+    plan_ours(db, MAKES if makes is None else makes, CURES if cures is None else cures, ch, said)
     return dict(changes=ch, quests=q, said=dict(said))
 
 

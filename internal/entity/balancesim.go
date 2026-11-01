@@ -261,10 +261,12 @@ type simFight struct {
 	t0   time.Time
 
 	nukes, heals, petHeals []CastSpell
-	debuffs                []CastSpell // the book's pure debuffs, the highest of each line (simDebuffs)
+	debuffs                []CastSpell // the book's pure debuffs worth its while, the highest of each line (simDebuffs, sortBook)
 	debuffCasts            int
-	roots                  []CastSpell // the book's roots, one that holds through a hit first, then the highest (SimPlay.Root)
-	reserve                int         // power kept for a heal
+	debuffed               map[int]bool // the debuffs cast this fight, by spell id
+	nextDebuff             time.Time    // no debuff before then (simDebuffEvery)
+	roots                  []CastSpell  // the book's roots, one that holds through a hit first, then the highest (SimPlay.Root)
+	reserve                int          // power kept for a heal
 	casts                  int
 	hands                  int       // the kit's Hands it holds
 	moveUntil              time.Time // a rooting caster stepping back: no cast till then
@@ -753,6 +755,9 @@ func simDebuffs(d *SpellDef) bool {
 		if e.Kind != EffectStat || e.Self || e.Amount >= 0 {
 			continue
 		}
+		if e.Drain != DrainNone {
+			return true // a drain: its caster gains what its target loses (lifetap.go), whatever the stat
+		}
 		switch e.Stat {
 		case StatStr, StatDex, StatAgi, StatAC, StatMaxHP, StatFR, StatCR, StatPR, StatDR, StatLR, StatAR,
 			StatPierce, StatBlunt, StatSlash, StatRanged:
@@ -853,7 +858,14 @@ func (f *simFight) sortBook() {
 			best = append(best, s)
 		}
 	}
-	f.debuffs = best
+	// only what helps this player (debuffHelps), so that it spends no power
+	// or cast time on what changes nothing in its fight
+	f.debuffs = best[:0]
+	for _, s := range best {
+		if f.debuffHelps(&s) {
+			f.debuffs = append(f.debuffs, s)
+		}
+	}
 	for _, s := range f.pl.Spells {
 		if simRoots(&s) {
 			f.roots = append(f.roots, s)
@@ -863,6 +875,7 @@ func (f *simFight) sortBook() {
 	rate := func(s *CastSpell) float64 { return simDamage(s, p) / lockoutOf(s).Seconds() }
 	sort.SliceStable(f.nukes, func(i, j int) bool { return rate(&f.nukes[i]) > rate(&f.nukes[j]) })
 	sort.SliceStable(f.heals, func(i, j int) bool { return simHeal(&f.heals[i], p) > simHeal(&f.heals[j], p) })
+
 	sort.SliceStable(f.petHeals, func(i, j int) bool { return simHeal(&f.petHeals[i], p) > simHeal(&f.petHeals[j], p) })
 	if len(f.heals) > 0 {
 		f.reserve = f.heals[0].PowerCost
@@ -1003,6 +1016,115 @@ func (f *simFight) onFoe(s *CastSpell) bool {
 	return false
 }
 
+// debuffHelps is whether a debuff changes something in this player's fight,
+// as a player picks what to cast: STR, DEX or the maximum always (the
+// creature's hits, its hit points), AC, AGI or a melee kind only when the
+// creature is hit in melee (the player, its pet or its group), a resist only
+// when one of the player's own nukes rolls on it.
+func (f *simFight) debuffHelps(s *CastSpell) bool {
+	melee := f.pl.Play.Melee || f.pl.Play.Pet || len(f.mates) > 1
+	for _, e := range s.Def.Effects {
+		if e.Kind != EffectStat || e.Self || e.Amount >= 0 {
+			continue
+		}
+		if e.Drain != DrainNone {
+			return true // what it drains is its caster's (the user: shadow knights "buff and debuff")
+		}
+		switch e.Stat {
+		case StatStr, StatDex, StatMaxHP:
+			return true
+		case StatAC, StatAgi, StatPierce, StatBlunt, StatSlash, StatRanged:
+			if melee {
+				return true
+			}
+		case StatFR, StatCR, StatPR, StatDR, StatLR, StatAR:
+			for _, n := range f.nukes {
+				for _, ne := range n.Def.Effects {
+					if ne.Resist == e.Stat {
+						return true
+					}
+				}
+			}
+		}
+	}
+	return false
+}
+
+// castDebuff casts the first debuff of the book that is worth it now
+// (debuffNow) and whose line is not on the NPC, and reports whether it
+// began.
+func (f *simFight) castDebuff(pet *NPC, cast func(CastSpell, uint32) bool) bool {
+	w := f.w
+	for _, s := range f.debuffs {
+		if f.pl.Play.Root && s.CastTime > simRootLongCast {
+			continue
+		}
+		w.mu.RLock()
+		ok := f.debuffNow(&s) && f.ready(&s, f.reserve) && !f.lineOnFoe(&s) && f.keepsHate(pet, &s)
+		w.mu.RUnlock()
+		if ok && cast(s, simFoeID) {
+			f.debuffCasts++
+			if f.debuffed == nil {
+				f.debuffed = map[int]bool{}
+			}
+			f.debuffed[s.SpellID] = true
+			f.nextDebuff = f.now.Add(simDebuffEvery)
+			return true
+		}
+	}
+	return false
+}
+
+// simDebuffEvery is how long a player lets its nukes go between two debuffs
+// (one resisted too): a player weaves them in, and a fight that is a race of
+// taps is not spent on them (ours).
+const simDebuffEvery = 12 * time.Second
+
+// A fight is a long one, worth a player's debuffs, when at the pace the NPC
+// has lost its hit points since the fight began (seen from simDebuffLook
+// on) what it has left takes simLongFight or more; a race (a shadow
+// knight's taps against a yellow, over in 12 s) is not spent on them. Ours:
+// no record of how players debuffed.
+const (
+	simDebuffLook = 10 * time.Second
+	simLongFight  = 45 * time.Second
+)
+
+// longFight is whether the fight has simLongFight left at its pace so far.
+func (f *simFight) longFight() bool {
+	if len(f.debuffs) == 0 || f.now.Before(f.nextDebuff) {
+		return false
+	}
+	el := f.now.Sub(f.t0)
+	if el < simDebuffLook {
+		return false
+	}
+	w := f.w
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	lost := f.npc.MaxHP - f.npc.HP
+	if lost <= 0 {
+		return true // nothing taken off it yet: a long fight
+	}
+	left := time.Duration(float64(el) * float64(f.npc.HP) / float64(lost))
+	return left >= simLongFight
+}
+
+// debuffNow is whether the player casts a debuff now, as a player spends
+// its power: only on a foe of a higher level
+// (an even, blue or green fight is over before a debuff pays), once, and
+// again when it has worn off only while the player has half its power and
+// the foe half its hit points left. Ours: no record of how players debuffed.
+func (f *simFight) debuffNow(s *CastSpell) bool {
+	if f.npc.Level <= f.p.Level {
+		return false
+	}
+	if !f.debuffed[s.SpellID] {
+		return true
+	}
+	return f.p.Power*2 >= f.p.MaxPowerNow() && f.npc.HP*2 >= f.npc.MaxHP
+}
+
 // lineOnFoe is whether the spell's lasting part, or another of its line, is
 // on the NPC (a debuff's: only the best of a line counts on a creature).
 func (f *simFight) lineOnFoe(s *CastSpell) bool {
@@ -1018,9 +1140,10 @@ func (f *simFight) lineOnFoe(s *CastSpell) bool {
 	return false
 }
 
-// play is the player's hands for a tick: a heal when low, else a debuff of
-// its book whose line is not on the NPC, else its best nuke that is up,
-// else nothing (the attack button stays held).
+// play is the player's hands for a tick: a heal when low, else in a long
+// fight (longFight) a debuff of its book whose line is not on the NPC when
+// it is worth it (debuffNow), else its best nuke that is up, else nothing
+// (the attack button stays held).
 func (f *simFight) play(pet *NPC) {
 	if !f.pl.Play.Spells {
 		return
@@ -1075,17 +1198,8 @@ func (f *simFight) play(pet *NPC) {
 	if f.pl.Play.Root && f.rootPlay(cast) {
 		return
 	}
-	for _, s := range f.debuffs { // a debuff first, as a player opens with one (simDebuffs)
-		if f.pl.Play.Root && s.CastTime > simRootLongCast {
-			continue
-		}
-		w.mu.RLock()
-		ok := f.ready(&s, f.reserve) && !f.lineOnFoe(&s) && f.keepsHate(pet, &s)
-		w.mu.RUnlock()
-		if ok && cast(s, simFoeID) {
-			f.debuffCasts++
-			return
-		}
+	if f.longFight() && f.castDebuff(pet, cast) {
+		return // a long fight's debuffs first (debuffNow, longFight)
 	}
 	for _, s := range f.nukes {
 		if f.pl.Play.Root && s.CastTime > simRootLongCast {

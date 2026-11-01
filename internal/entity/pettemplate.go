@@ -423,6 +423,64 @@ func (w *World) petCastSystemLocked(now time.Time) {
 	}
 }
 
+// petDrainStatsLocked lands what a pet's drain takes of its target's stats
+// (the workbook's Undead Bane, its necromancer's pets from 30: STR and AC
+// taken and given to the pet for a minute; the user, 2026-11-01:
+// "necromancers mummy and higher pets have a drain"): each drained stat
+// lowered on the creature as a player's debuff is (an effect of the spell's,
+// which counts in its fights: pet.go's creatureMods) and raised on the pet
+// for the spell's time (an effect of its own, which counts in the pet's:
+// effectMods), a share of the pet's own stat added as the workbook's scale
+// gives it (petStat). Never resisted, as a pet's nuke is not.
+func (w *World) petDrainStatsLocked(ps *petState, t *NPC, spell *CastSpell, now time.Time) {
+	pet, d := ps.npc, &spell.Def
+	if d.Duration <= 0 {
+		return
+	}
+	var loss, gain StatMods
+	for _, e := range d.Effects {
+		if e.Kind != EffectStat || e.Amount >= 0 || e.Drain == DrainNone || e.Self {
+			continue
+		}
+		n := -e.Amount
+		if e.Scale != StatNone && e.ScalePct != 0 {
+			n += pet.petStat(e.Scale) * e.ScalePct / 100
+		}
+		loss.add(e.Stat, -n)
+		gain.add(e.Stat, n)
+	}
+	if loss == (StatMods{}) {
+		return
+	}
+	until := now.Add(d.Duration)
+	// on the creature, as a player's harm lands (cast.go's landOnNPCLocked)
+	cut := t.Effects[:0]
+	for _, e := range t.Effects {
+		if e.SpellID != spell.SpellID {
+			cut = append(cut, e)
+		}
+	}
+	t.Effects = append(cut, &ActiveEffect{SpellID: spell.SpellID, Name: spell.Name, Icon: spell.Icon, Caster: ps.owner.ServerID,
+		Until: until, Mods: loss, Line: BuffLine(spell), Rank: lineRank(spell)})
+	t.syncEffectMaxHP()
+	if w.affected == nil {
+		w.affected = make(map[EntityID]*NPC)
+	}
+	w.affected[t.ServerID] = t
+	// on the pet, its own share: its earlier one taken off
+	own := -spell.SpellID
+	keep := pet.Effects[:0]
+	for _, e := range pet.Effects {
+		if e.SpellID != own {
+			keep = append(keep, e)
+		}
+	}
+	pet.Effects = append(keep, &ActiveEffect{SpellID: own, Name: spell.Name, Icon: spell.Icon, Caster: ps.owner.ServerID,
+		Until: until, Mods: gain})
+	pet.syncEffectMaxHP()
+	log.Printf("Pet: %s's %q drains %s with %q: %+v", ps.owner.Name, pet.Name, t.Name, spell.Name, gain)
+}
+
 // petLandLocked lands a pet's cast: a harmful spell's figure (its hits
 // rolled, no stat: a pet has none, at the ability's percent) on the
 // creature as one of the pet's hits (petDamageLocked), a tap's drained
@@ -440,6 +498,9 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 		hit, drained := templateFigure(c.spell.Def.Effects, a.DamageOr())
 		if pet.sheet != nil {
 			hit, drained = sheetFigure(pet, c.spell.Def.Effects, a.DamageOr(), false) // its stats scale it (petstats.go)
+		}
+		if a.Kind == database.AbilityLifetap {
+			w.petDrainStatsLocked(ps, t, c.spell, now) // a drain of stats: Undead Bane's
 		}
 		if hit <= 0 {
 			return

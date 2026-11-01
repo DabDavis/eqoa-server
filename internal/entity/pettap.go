@@ -127,6 +127,23 @@ func (w *World) petTapForLocked(level int) *PetTap {
 	return best
 }
 
+// ownsTap is whether the pet's template gives it a life tap of its own (a
+// workbook pet's Undead Blood, from the level 16 pet: the user, 2026-11-01,
+// "necromancers mummy and higher pets have a drain"): it drains by that
+// (pettemplate.go), not by its owner's tap as well, the workbook's figures
+// winning (until then both, from the level 20 pet).
+func (ps *petState) ownsTap() bool {
+	if ps.tmpl == nil || ps.tmpl.tmpl == nil {
+		return false
+	}
+	for _, a := range ps.tmpl.tmpl.abilities {
+		if a.Kind == database.AbilityLifetap {
+			return true
+		}
+	}
+	return false
+}
+
 // petTapIntn is the taps' dice (a test's own).
 var petTapIntn = rand.Intn
 
@@ -134,7 +151,7 @@ var petTapIntn = rand.Intn
 // tap is up. It reports a kill.
 func (w *World) petTapLocked(ps *petState, t *NPC, now time.Time) bool {
 	pet := ps.npc
-	if pet.Charm != nil || ps.owner.Class != classNecromancer || pet.Level < petTapLevel || now.Before(ps.tapNext) {
+	if pet.Charm != nil || ps.owner.Class != classNecromancer || pet.Level < petTapLevel || now.Before(ps.tapNext) || ps.ownsTap() {
 		return false
 	}
 	tap := w.petTapForLocked(pet.Level)

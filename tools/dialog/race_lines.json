@@ -1,0 +1,195 @@
+{
+ "comment": [
+  "Each race's own voice (tools/seed_npc_lines.py; entity/dialog.go's DialogVoice): a block's lines are said only by a",
+  "speaker of its speaker_race (by its body); \"away\" ones only by a guest of that race, in a town not its people's",
+  "(a fifth of the town's speakers or fewer), or on a road; the others by any of it, at home too. Trolls and ogres say",
+  "no common line (no town, no race), so theirs cover the roles and the moods. %p the listener's name, %r its race,",
+  "%c its class, %t the town the speaker stands in (a line with it is not said on a road), %n the speaker. Ours: the",
+  "user, 2026-11-01, \"Bouncer Frada has Dark Elf dialogue, he is a guest only there, should still talk like Ogre\",",
+  "\"look throughout whole database for the races to have their own dialogue\"; written in EQOA's voice from",
+  "claude-notes/eqoa-lore.md and the towns' own lines."
+ ],
+ "blocks": [
+  {"speaker_race": "ogre", "say": [
+    "Me strong. You see? Me strong.",
+    "Rallos Zek make ogre for fighting. Ogre good at it.",
+    "You little. Me big. Dat how it is.",
+    "Me no think too much. Thinking make head hurt.",
+    "You want fight? No? Okay. Me eat instead.",
+    "Ogre no forget. Ogre just... not remember sometimes."
+  ]},
+  {"speaker_race": "ogre", "role": "guard", "say": [
+    "Me watch dis door. Nobody get past me.",
+    "You make trouble, me smash. Simple.",
+    "Boss say keep bad ones out. You bad one? You no look bad. Okay. Go.",
+    "Me stand here all day. Good job. Get paid in food."
+  ]},
+  {"speaker_race": "ogre", "role": "trader", "say": [
+    "You buy? Me no count good. You pay what fair. Me know if not fair.",
+    "Good stuff here. Me no break it. Mostly.",
+    "Shiny for stuff. Stuff for shiny. Dat how trade work."
+  ]},
+  {"speaker_race": "ogre", "role": "priest", "say": [
+    "Rallos Zek want blood and strong arms. You got strong arms?",
+    "Pray loud. Gods hear better when loud."
+  ]},
+  {"speaker_race": "ogre", "role": "worker", "say": [
+    "Me carry heavy thing. Me carry many heavy thing.",
+    "Work hard, eat good. Dat ogre life."
+  ]},
+  {"speaker_race": "ogre", "away": true, "say": [
+    "Oggok far away. Me miss mud of Feerrott.",
+    "%t people small and talk fancy. Me no understand half.",
+    "Dey pay me good here in %t. Food not so good.",
+    "Me come to %t for coin. Me stay for coin. Coin good."
+  ]},
+  {"speaker_race": "ogre", "mood": "wary", "say": [
+    "Me no like you face. Go away before me decide.",
+    "Me watching you, %r. You do bad, me smash."
+  ]},
+  {"speaker_race": "ogre", "mood": "hostile", "say": [
+    "You stay, me smash. You go, maybe me no smash.",
+    "Me remember you. You bad. Go now."
+  ]},
+
+  {"speaker_race": "troll", "say": [
+    "Troll hungry. Troll always hungry.",
+    "You smell like food, %r. Good food.",
+    "Cazic-Thule watch troll. Troll no scared.",
+    "Frogloks bad. Frogloks crunchy, but bad.",
+    "Troll heal fast. Cut troll, troll still come.",
+    "Swamp good. Swamp wet. Troll like wet."
+  ]},
+  {"speaker_race": "troll", "role": "guard", "say": [
+    "Troll watch. You no make trouble.",
+    "Me guard. Me bite if need.",
+    "Nobody sneak past troll. Troll nose know.",
+    "You walk. Me watch. Dat deal."
+  ]},
+  {"speaker_race": "troll", "role": "trader", "say": [
+    "Troll sell good stuff. You pay shiny.",
+    "No eat da goods. Dat rule. Troll make rule hard to keep.",
+    "You want? Me got. You pay, you take."
+  ]},
+  {"speaker_race": "troll", "role": "priest", "say": [
+    "Fear make strong. Cazic-Thule teach dat.",
+    "Bring offering. Meat good offering."
+  ]},
+  {"speaker_race": "troll", "role": "worker", "say": [
+    "Dig, carry, dig. Troll no tired.",
+    "Work done. Now eat. Den more work."
+  ]},
+  {"speaker_race": "troll", "away": true, "say": [
+    "Grobb far. %t smell funny, but food okay.",
+    "Troll miss swamp. %t too dry.",
+    "%t folk look at troll funny. Troll look back. Dey stop.",
+    "Troll come to %t for work. Troll get paid in meat. Good deal."
+  ]},
+  {"speaker_race": "troll", "mood": "wary", "say": [
+    "Troll no trust you. You keep hands where troll see.",
+    "You smell like trouble, %r. Troll no like trouble. Troll eat trouble."
+  ]},
+  {"speaker_race": "troll", "mood": "hostile", "say": [
+    "You go now, or troll have dinner.",
+    "Troll remember face. Your face bad."
+  ]},
+
+  {"speaker_race": "dark elf", "say": [
+    "Hate is honest, %r. Kindness is only a mask for weakness.",
+    "Innoruuk's children owe nothing to anyone. Remember that.",
+    "Every house in Neriak keeps its knives sharp. So do I."
+  ]},
+  {"speaker_race": "dark elf", "away": true, "say": [
+    "Do not mistake my presence in %t for friendship.",
+    "I am here on House business. Yours, I suspect, is elsewhere.",
+    "%t is crude, but it is useful. That is all I ask of a place.",
+    "The surface is too bright. I count the days until Neriak's dark.",
+    "They tolerate me in %t because they fear what I might do otherwise. Wise of them."
+  ]},
+  {"speaker_race": "dark elf", "mood": "wary", "say": [
+    "Keep your distance, %r. I have not decided what you are worth."
+  ]},
+
+  {"speaker_race": "elf", "say": [
+    "Tunare's grace on you, %r.",
+    "Listen to the trees long enough and they will tell you everything.",
+    "A song carries further than a sword, and does less harm on the way."
+  ]},
+  {"speaker_race": "elf", "away": true, "say": [
+    "I miss the songs of Fayspires. %t has only noise.",
+    "There are too few trees in %t. Tunare finds me even so.",
+    "The Feir'dal travel more than they let on. I am proof of it.",
+    "%t is kind enough, in its way. It simply forgets to be quiet."
+  ]},
+
+  {"speaker_race": "human", "say": [
+    "Marr watch over you, %r.",
+    "Work hard, trade fair, and keep your blade where you can reach it.",
+    "There is no road in Norrath a human has not walked. Most of them twice."
+  ]},
+  {"speaker_race": "human", "away": true, "say": [
+    "A long way from Freeport, this. Or Qeynos, depending who asks.",
+    "%t has its ways. I keep my head down and my purse closer.",
+    "I came to %t for the trade and stayed for the coin.",
+    "Humans go everywhere, %r. Someone has to."
+  ]},
+
+  {"speaker_race": "dwarf", "say": [
+    "Brell keep you, %r. Stone is the only honest thing in Norrath.",
+    "A good axe, a good ale and a deep mine. What else is there?",
+    "Never trust a beard you can see through."
+  ]},
+  {"speaker_race": "dwarf", "away": true, "say": [
+    "The ale in %t is thin as a goblin's excuse.",
+    "Moradhim is under the mountain, where a dwarf belongs. I'm here for the work.",
+    "Too much sky in %t. A dwarf feels it pressing on his head.",
+    "They build with wood here. Wood! I give it ten winters."
+  ]},
+
+  {"speaker_race": "gnome", "say": [
+    "Mind the gears, %r! Everything worth doing is half finished.",
+    "Bristlebane favors the curious. And the small. And the quick.",
+    "If it can be wound up, I can make it walk. Eventually."
+  ]},
+  {"speaker_race": "gnome", "away": true, "say": [
+    "%t has no proper workshops! I've had to make my own.",
+    "Klick'Anon ticks and hums all night. %t is so terribly quiet.",
+    "The folk of %t think my inventions explode. Only the early ones do.",
+    "I came to %t for the parts. Wonderful scrap here, if you know where to look."
+  ]},
+
+  {"speaker_race": "halfling", "say": [
+    "Have you eaten, %r? Never trust a place that doesn't feed you.",
+    "A full belly and a short walk home: that's a good day.",
+    "Bristlebane laughs at the tall folk. I try not to, out loud."
+  ]},
+  {"speaker_race": "halfling", "away": true, "say": [
+    "Rivervale's pies, now that's a reason to travel. %t's, not so much.",
+    "Everything in %t is built for the tall. I've had to climb onto three stools today.",
+    "I miss the river. %t has no proper fishing at all."
+  ]},
+
+  {"speaker_race": "barbarian", "say": [
+    "The Tribunal sees all, %r. Even what you hide.",
+    "A Northman settles a quarrel with fists, then shares an ale. Simpler that way.",
+    "Cold makes you strong. Ale makes you warm. Both make you a barbarian."
+  ]},
+  {"speaker_race": "barbarian", "away": true, "say": [
+    "Too warm in %t. A Northman sweats like a bear in spring.",
+    "In Halas they would have sung songs about this place. Short ones.",
+    "%t folk talk and talk. In Halas we would have finished the fight by now.",
+    "I miss the snow. Snow is honest."
+  ]},
+
+  {"speaker_race": "erudite", "say": [
+    "Knowledge is the only coin that keeps its worth, %r.",
+    "Quellious teaches patience. I am still learning it.",
+    "Ignorance is a choice. A remarkably popular one."
+  ]},
+  {"speaker_race": "erudite", "away": true, "say": [
+    "One learns a great deal in %t, chiefly about the limits of others.",
+    "Highbourne's libraries would humble this whole town. Still, %t has its curiosities.",
+    "I am here to study. The locals are, regrettably, part of the study."
+  ]}
+ ]
+}

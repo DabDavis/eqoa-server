@@ -30,6 +30,13 @@ import (
 //     "" any: a line of a husband or a wife is said by the one it fits (the
 //     user, 2026-10-29: "most of the city folk are men so would be nice if we
 //     had Male/Female lines");
+//   - speaker_race: the speaker's race by its body (charactermodel), -1 any:
+//     a race's own voice, so a guest talks as its people do (the user,
+//     2026-11-01: "Bouncer Frada has Dark Elf dialogue, he is a guest only
+//     there, should still talk like Ogre", "look throughout whole database
+//     for the races to have their own dialogue");
+//   - away: 1 for a race's line said only away from its own towns (a guest
+//     homesick, or of the town it is in: "%t");
 //   - weight: how often against the other lines that fit.
 //
 // In a line, %p is the listener's name, %r its race, %c its class, %t the
@@ -45,20 +52,29 @@ CREATE TABLE IF NOT EXISTS npcdialog (
 	sex    TEXT NOT NULL DEFAULT '',
 	line   TEXT NOT NULL,
 	weight INTEGER NOT NULL DEFAULT 1,
-	source TEXT NOT NULL DEFAULT 'gm'
+	source TEXT NOT NULL DEFAULT 'gm',
+	speaker_race INTEGER NOT NULL DEFAULT -1,
+	away   INTEGER NOT NULL DEFAULT 0
 );`
 
 func (db *SQLiteDB) ensureNPCDialog() error {
 	if _, err := db.Exec(npcDialogSchema); err != nil {
 		return fmt.Errorf("npcdialog: %w", err)
 	}
-	has, err := hasColumn(db.DB, "npcdialog", "sex")
-	if err != nil {
-		return fmt.Errorf("npcdialog: %w", err)
-	}
-	if !has {
-		if _, err := db.Exec(`ALTER TABLE npcdialog ADD COLUMN sex TEXT NOT NULL DEFAULT ''`); err != nil {
+	// columns an older table lacks
+	for _, c := range []struct{ name, def string }{
+		{"sex", "TEXT NOT NULL DEFAULT ''"},
+		{"speaker_race", "INTEGER NOT NULL DEFAULT -1"},
+		{"away", "INTEGER NOT NULL DEFAULT 0"},
+	} {
+		has, err := hasColumn(db.DB, "npcdialog", c.name)
+		if err != nil {
 			return fmt.Errorf("npcdialog: %w", err)
+		}
+		if !has {
+			if _, err := db.Exec(`ALTER TABLE npcdialog ADD COLUMN ` + c.name + ` ` + c.def); err != nil {
+				return fmt.Errorf("npcdialog: %w", err)
+			}
 		}
 	}
 	return nil
@@ -72,6 +88,9 @@ type NPCDialogLine struct {
 	Sex                    string // "male", "female" or "" (any)
 	Line                   string
 	Weight                 int
+	Voiced                 bool // a race's own voice: said only by a speaker of SpeakerRace (speaker_race >= 0)
+	SpeakerRace            int  // that race, by the speaker's body (speaker_race; -1 any)
+	Away                   bool // a race's line said only away from its own towns (a guest's)
 }
 
 // npcDialogFor is how long a read of npcdialog is kept: a row a tool writes
@@ -101,7 +120,7 @@ func (db *SQLiteDB) NPCDialog() ([]NPCDialogLine, error) {
 	if npcDialogCache.db == db && time.Since(npcDialogCache.at) < npcDialogFor {
 		return npcDialogCache.lines, nil
 	}
-	rows, err := db.Query(`SELECT id, town, role, name, mood, race, sex, line, weight FROM npcdialog ORDER BY id`)
+	rows, err := db.Query(`SELECT id, town, role, name, mood, race, sex, line, weight, speaker_race, away FROM npcdialog ORDER BY id`)
 	if err != nil {
 		return nil, err
 	}
@@ -109,9 +128,10 @@ func (db *SQLiteDB) NPCDialog() ([]NPCDialogLine, error) {
 	var out []NPCDialogLine
 	for rows.Next() {
 		var l NPCDialogLine
-		if err := rows.Scan(&l.ID, &l.Town, &l.Role, &l.Name, &l.Mood, &l.Race, &l.Sex, &l.Line, &l.Weight); err != nil {
+		if err := rows.Scan(&l.ID, &l.Town, &l.Role, &l.Name, &l.Mood, &l.Race, &l.Sex, &l.Line, &l.Weight, &l.SpeakerRace, &l.Away); err != nil {
 			return nil, err
 		}
+		l.Voiced = l.SpeakerRace >= 0
 		out = append(out, l)
 	}
 	if err := rows.Err(); err != nil {

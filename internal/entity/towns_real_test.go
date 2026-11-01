@@ -112,6 +112,11 @@ func realWorld(t *testing.T) *World {
 		t.Fatal(err)
 	}
 	w.SetModelSexes(sexes)
+	races, err := store.ModelRaces()
+	if err != nil {
+		t.Fatal(err)
+	}
+	w.SetModelRaces(races)
 	w.LoadNPCs(store)
 	return w
 }

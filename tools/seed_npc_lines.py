@@ -5,10 +5,17 @@ per character if needed, especially for quest npcs").
 
 An NPC with lines of its own name in npcdialog says those alone when talked
 to with nothing else to say (entity/dialog.go: its own pool, never the town
-lines, wherever it stands and whatever its body). They are ours, kept in
-tools/dialog/npc_lines.json (--lines): blocks of a name and its lines, each
-with a mood, a race and a weight as town_lines.json's; each line becomes a row
-of source "ours" (town, role and sex empty).
+lines, wherever it stands and whatever its body). And each race has a voice of
+its own (the user, 2026-11-01: "Bouncer Frada has Dark Elf dialogue, he is a
+guest only there, should still talk like Ogre", "look throughout whole
+database for the races to have their own dialogue"): a race's lines
+(npcdialog.speaker_race) are said only by speakers of that race, its "away"
+ones only by a guest of it (a town not its people's), and trolls and ogres say
+no common line. They are ours, kept in tools/dialog/npc_lines.json (a name's)
+and tools/dialog/race_lines.json (a race's) (--lines, again for more files):
+blocks of a name or a speaker_race and their lines, each with a mood, a
+listener's race, a role, away and a weight as town_lines.json's; each line
+becomes a row of source "ours".
 
 The report says per NPC how many lines the file gives it, how many of them
 are in the table, and how many spawns of that name npcs has (none: said).
@@ -33,10 +40,14 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_DB = os.path.join(HERE, "..", "eqoa.db")
-DEFAULT_LINES = os.path.join(HERE, "dialog", "npc_lines.json")
+DEFAULT_LINES = [os.path.join(HERE, "dialog", "npc_lines.json"), os.path.join(HERE, "dialog", "race_lines.json")]
 SOURCE = "ours"
 MOODS = {"neutral", "friendly", "warm", "wary", "hostile"}
 BOX = 217  # a 0x0046 box's characters (handlers' questBoxChars), the speaker's name before the line
+ROLES = {"guard", "trader", "priest", "scholar", "worker", "noble", "citizen"}
+# the races as the wire numbers them (CLAUDE.md's constants)
+RACES = {"human": 0, "elf": 1, "dark elf": 2, "darkelf": 2, "gnome": 3, "dwarf": 4, "troll": 5, "barbarian": 6,
+         "halfling": 7, "erudite": 8, "ogre": 9}
 # database/npcdialog.go's npcDialogSchema, word for word (seed_town_dialog.py's)
 SCHEMA = """CREATE TABLE IF NOT EXISTS npcdialog (
 	id     INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,16 +59,21 @@ SCHEMA = """CREATE TABLE IF NOT EXISTS npcdialog (
 	sex    TEXT NOT NULL DEFAULT '',
 	line   TEXT NOT NULL,
 	weight INTEGER NOT NULL DEFAULT 1,
-	source TEXT NOT NULL DEFAULT 'gm'
+	source TEXT NOT NULL DEFAULT 'gm',
+	speaker_race INTEGER NOT NULL DEFAULT -1,
+	away   INTEGER NOT NULL DEFAULT 0
 )"""
+# the columns an older table lacks (the server adds them at its start too)
+ADDED = (("sex", "TEXT NOT NULL DEFAULT ''"), ("speaker_race", "INTEGER NOT NULL DEFAULT -1"), ("away", "INTEGER NOT NULL DEFAULT 0"))
 LOG_SCHEMA = """CREATE TABLE IF NOT EXISTS npcdialog_own_seed (
     id   INTEGER PRIMARY KEY,   -- npcdialog.id written
     row  TEXT NOT NULL          -- the row as written, JSON
 )"""
-COLS = ("town", "role", "name", "mood", "race", "sex", "line", "weight")
+COLS = ("town", "role", "name", "mood", "race", "sex", "line", "weight", "speaker_race", "away")
+DEFAULTS = {"speaker_race": -1, "away": 0}  # a row logged before those columns
 
 
-def key(name):
+def fold_name(name):
     """A name as npcclass keys one (database.NPCClassKey)."""
     n = (name or "").strip().lower()
     return n[:-1].strip() if n.endswith("$") else n
@@ -67,31 +83,55 @@ def has_table(db, name):
     return db.execute("SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = ?", (name,)).fetchone()[0] > 0
 
 
-def rows_of(path):
-    """The rows the file's blocks make (each its JSON), and its problems."""
-    with open(path, encoding="utf-8") as f:
-        d = json.load(f)
+def rows_of(paths):
+    """The rows the files' blocks make (each its JSON), and their problems."""
     rows, problems = [], []
-    for i, b in enumerate(d.get("blocks") or []):
-        name, mood = (b.get("name") or "").strip(), (b.get("mood") or "").strip()
-        if not name:
-            problems.append(f"block {i}: no name")
-            continue
-        if mood and any(m.strip() not in MOODS for m in mood.split(",")):
-            problems.append(f"block {i} ({name}): mood {mood!r}")
-        for line in b.get("say") or []:
-            if not isinstance(line, str) or not line.strip():
-                problems.append(f"block {i} ({name}): an empty line")
+    for path in ([paths] if isinstance(paths, str) else paths):
+        with open(path, encoding="utf-8") as f:
+            d = json.load(f)
+        base = os.path.basename(path)
+        for i, b in enumerate(d.get("blocks") or []):
+            name, mood = (b.get("name") or "").strip(), (b.get("mood") or "").strip()
+            role, sr = (b.get("role") or "").strip(), b.get("speaker_race", "")
+            who = f"{base} block {i} ({name or sr})"
+            race_of = RACES.get(str(sr).strip().lower(), sr if isinstance(sr, int) else None) if sr != "" else -1
+            if bool(name) == (sr != ""):
+                problems.append(f"{who}: a name or a speaker_race, one of them")
                 continue
-            if len(f"{name}: {line}") > BOX:
-                problems.append(f"block {i} ({name}): {len(name) + 2 + len(line)} characters with the name, past a box's {BOX}: {line[:40]!r}")
-            rows.append({"town": "", "role": "", "name": name, "mood": mood, "race": int(b.get("race", -1)),
-                         "sex": "", "line": line, "weight": int(b.get("weight", 1))})
+            if race_of is None or not -1 <= race_of <= 9:
+                problems.append(f"{who}: speaker_race {sr!r}")
+                continue
+            if b.get("away") and race_of < 0:
+                problems.append(f"{who}: away is a race's")
+            if mood and any(m.strip() not in MOODS for m in mood.split(",")):
+                problems.append(f"{who}: mood {mood!r}")
+            if role and role not in ROLES:
+                problems.append(f"{who}: role {role!r}")
+            speaker = name or "Someone Longnamed"  # a race's line goes out under any speaker's name
+            for line in b.get("say") or []:
+                if not isinstance(line, str) or not line.strip():
+                    problems.append(f"{who}: an empty line")
+                    continue
+                if len(f"{speaker}: {line}") > BOX:
+                    problems.append(f"{who}: {len(speaker) + 2 + len(line)} characters with the name, past a box's {BOX}: {line[:40]!r}")
+                rows.append({"town": "", "role": role, "name": name, "mood": mood, "race": int(b.get("race", -1)),
+                             "sex": "", "line": line, "weight": int(b.get("weight", 1)),
+                             "speaker_race": race_of, "away": 1 if b.get("away") else 0})
     return rows, problems
 
 
 def as_json(r):
+    if isinstance(r, str):
+        r = json.loads(r)
+    r = {**DEFAULTS, **r}  # a row logged before speaker_race and away: as it reads now
     return json.dumps(r, sort_keys=True, ensure_ascii=False)
+
+
+def ensure_columns(db):
+    have = [r[1] for r in db.execute("PRAGMA table_info(npcdialog)")]
+    for c, d in ADDED:
+        if have and c not in have:
+            db.execute(f"ALTER TABLE npcdialog ADD COLUMN {c} {d}")
 
 
 def current(db, i):
@@ -104,7 +144,7 @@ def current(db, i):
 
 def as_written(db, i, written):
     r, src = current(db, i)
-    return r is not None and src == SOURCE and as_json(r) == written
+    return r is not None and src == SOURCE and as_json(r) == as_json(written)
 
 
 def logged(db):
@@ -128,14 +168,18 @@ def backup(path):
 
 def report(db, rows):
     """Per NPC: the file's lines, those in the table, its spawns."""
-    have = collections.Counter(json.loads(r)["name"] for r in logged(db).values())
-    per = collections.Counter(r["name"] for r in rows)
+    key = lambda r: r["name"] or f"({next(k for k, v in RACES.items() if v == r['speaker_race'])} voice{', away' if r.get('away') else ''})"
+    have = collections.Counter(key({**DEFAULTS, **json.loads(r)}) for r in logged(db).values())
+    per = collections.Counter(key(r) for r in rows)
     spawns = collections.Counter()
     if has_table(db, "npcs"):
         for (n,) in db.execute("SELECT npc_name FROM npcs"):
-            spawns[key(n)] += 1
+            spawns[fold_name(n)] += 1
     for name, n in sorted(per.items()):
-        s = spawns.get(key(name), 0)
+        if name.startswith("("):
+            print(f"  {name}: {n} lines, {have.get(name, 0)} logged in the table")
+            continue
+        s = spawns.get(fold_name(name), 0)
         print(f"  {name}: {n} lines, {have.get(name, 0)} logged in the table, {s} spawns" +
               ("   <- no NPC of this name" if s == 0 else ""))
     return per
@@ -147,8 +191,9 @@ def apply(db, rows):
     db.execute("BEGIN IMMEDIATE")
     try:
         db.execute(SCHEMA)
+        ensure_columns(db)
         db.execute(LOG_SCHEMA)
-        log = logged(db)
+        log = {i: as_json(j) for i, j in logged(db).items()}
         written = set(log.values())
         wanted = {as_json(r): r for r in rows}
         for j, r in wanted.items():
@@ -183,6 +228,7 @@ def undo(db):
     gone = kept = 0
     db.execute("BEGIN IMMEDIATE")
     try:
+        ensure_columns(db)
         for i, j in log.items():
             if as_written(db, i, j):
                 db.execute("DELETE FROM npcdialog WHERE id = ?", (i,))
@@ -200,7 +246,8 @@ def undo(db):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--db", default=DEFAULT_DB)
-    ap.add_argument("--lines", default=DEFAULT_LINES, help="the lines (default tools/dialog/npc_lines.json)")
+    ap.add_argument("--lines", action="append", metavar="FILE",
+                    help="a file of lines, again for more (default tools/dialog/npc_lines.json and race_lines.json)")
     ap.add_argument("--no-backup", action="store_true", help="no copy of the database first (tests)")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true", help="bring the table to the file (logged)")
@@ -216,13 +263,13 @@ def main():
         gone, kept = undo(db)
         print(f"took out {gone} lines; {kept} a GM changed since left as they are")
         return
-    rows, problems = rows_of(a.lines)
+    rows, problems = rows_of(a.lines or DEFAULT_LINES)
     for p in problems:
         print(f"problem: {p}")
     if problems:
         sys.exit("the lines have problems: nothing written")
     per = report(db, rows)
-    print(f"{len(rows)} lines for {len(per)} NPCs")
+    print(f"{len(rows)} lines for {len(per)} NPCs and voices")
     if a.apply:
         added, gone, kept = apply(db, rows)
         print(f"added {added}, took out {gone}, left {kept} a GM changed; the server hears them within 30 s")

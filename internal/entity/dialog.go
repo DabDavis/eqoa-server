@@ -25,6 +25,19 @@ import (
 // can have pools per character if needed, especially for quest npcs"). None
 // speaks in a fight (a quest's attack event turns one on the player).
 //
+// Each speaker talks in its own people's voice (DialogVoice; the user,
+// 2026-11-01: "Bouncer Frada has Dark Elf dialogue, he is a guest only there,
+// should still talk like Ogre", "look throughout whole database for the races
+// to have their own dialogue"): its body's race (charactermodel), and whether
+// that race is one of its town's own (a fifth of the town's speakers or more,
+// or its most common: townRacesLocked). A town's lines are its own people's,
+// so a guest never says its host town's lines; it says its race's lines
+// (npcdialog.speaker_race), the away ones too (a guest homesick, or of "%t").
+// A town's own folk say the town's lines, their race's lines that are not
+// away ones, and the common lines (no town, no race), except trolls and
+// ogres (BrokenSpeech), whose speech the common lines are not: a speaker of
+// theirs says only its town's and its race's.
+//
 // What it says (TownLine): a line of npcdialog whose selectors fit (an empty
 // one fits anyone): the speaker's town, its role by its name (NPCRole), its
 // name, the mood (DialogMood: the listener's standing with its faction, as
@@ -139,6 +152,83 @@ func (w *World) SetModelSexes(sexes map[uint32]int) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.modelSex = sexes
+}
+
+// SetModelRaces names the players' race bodies' races (charactermodel), the
+// voice a speaker on one talks in.
+func (w *World) SetModelRaces(races map[uint32]int) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.modelRace = races
+	w.townRaces = townRaceCache{}
+}
+
+// TownResidentShare is how much of a town's speakers a race must be to be one
+// of the town's own (its most common always is): Dark Solace's erudites (24%),
+// gnomes and dark elves are its own, Neriak's one ogre, Bouncer Frada, a guest.
+const TownResidentShare = 0.2
+
+// townRaceCache is each town's own races, made from the World's NPCs and made
+// again when their number changes (a GM's or a quest's spawn).
+type townRaceCache struct {
+	n     int
+	races map[string]map[int]bool
+}
+
+// townRacesLocked is each town's own races (TownResidentShare): of the
+// players' race bodies of the NPCs of the town's factions. Must be called with
+// the World's lock held.
+func (w *World) townRacesLocked() map[string]map[int]bool {
+	if w.townRaces.races != nil && w.townRaces.n == len(w.NPCs) {
+		return w.townRaces.races
+	}
+	counts := map[string]map[int]int{}
+	for _, n := range w.NPCs {
+		r, ok := w.modelRace[uint32(n.ModelID)]
+		if !ok || n.Owner != 0 || n.Dummy != NotDummy {
+			continue
+		}
+		town := DialogTown(w.npcFactionLocked(n))
+		if town == "" {
+			continue
+		}
+		if counts[town] == nil {
+			counts[town] = map[int]int{}
+		}
+		counts[town][r]++
+	}
+	races := make(map[string]map[int]bool, len(counts))
+	for town, c := range counts {
+		total, top, topN := 0, -1, 0
+		for r, k := range c {
+			total += k
+			if k > topN || (k == topN && r < top) {
+				top, topN = r, k
+			}
+		}
+		own := map[int]bool{top: true}
+		for r, k := range c {
+			if float64(k) >= TownResidentShare*float64(total) {
+				own[r] = true
+			}
+		}
+		races[town] = own
+	}
+	w.townRaces = townRaceCache{n: len(w.NPCs), races: races}
+	return races
+}
+
+// dialogVoiceLocked is the voice npc talks in, in its town ("" none). Must be
+// called with the World's lock held.
+func (w *World) dialogVoiceLocked(npc *NPC, town string) DialogVoice {
+	r, ok := w.modelRace[uint32(npc.ModelID)]
+	switch {
+	case !ok:
+		return DialogVoice{Race: -1, Resident: true}
+	case town == "":
+		return DialogVoice{Race: r}
+	}
+	return DialogVoice{Race: r, Resident: w.townRacesLocked()[town][r]}
 }
 
 // dialogSexLocked is npc's sex as a line names it, "male" or "female" by its
@@ -257,10 +347,29 @@ type DialogPick struct {
 	Weight int
 }
 
+// DialogVoice is whose voice a speaker talks in (the file's comment): its
+// body's race (-1 when no players' race body is it: it talks as its town) and
+// whether that race is one of its town's own (false on a road: no town).
+type DialogVoice struct {
+	Race     int
+	Resident bool
+}
+
+// BrokenSpeech is whether a race's people do not speak the common lines'
+// tongue: trolls and ogres (the town lines of Grobb, Honjour, Oggok and
+// Kerplunk are in theirs).
+func BrokenSpeech(race int) bool { return race == raceTroll || race == raceOgre }
+
+// The races as the wire numbers them (CLAUDE.md's constants), those the voice names.
+const (
+	raceTroll = 5
+	raceOgre  = 9
+)
+
 // DialogCandidates are the lines that fit a speaker of the town, role and
-// name speaking in the mood to a listener of the race, each with its weight
-// (the file's comment).
-func DialogCandidates(lines []database.NPCDialogLine, town, role, name, mood, sex string, race int) []DialogPick {
+// name speaking in the mood to a listener of the race, in the speaker's
+// voice, each with its weight (the file's comment).
+func DialogCandidates(lines []database.NPCDialogLine, town, role, name, mood, sex string, race int, voice DialogVoice) []DialogPick {
 	key := database.NPCClassKey(name)
 	own := ownLines(lines, name)
 	var out []DialogPick
@@ -270,6 +379,19 @@ func DialogCandidates(lines []database.NPCDialogLine, town, role, name, mood, se
 		}
 		if own && l.Name == "" {
 			continue // a speaker with lines of its own says those alone
+		}
+		switch {
+		case l.Voiced:
+			if l.SpeakerRace != voice.Race || (l.Away && voice.Resident) {
+				continue // another people's voice, or a guest's line said at home
+			}
+		case l.Name != "":
+		case l.Town != "":
+			if !voice.Resident {
+				continue // a guest does not speak for its host town
+			}
+		case BrokenSpeech(voice.Race):
+			continue // the common lines are not a troll's or an ogre's tongue
 		}
 		if l.Town != "" && !strings.EqualFold(l.Town, town) {
 			continue
@@ -305,6 +427,9 @@ func DialogCandidates(lines []database.NPCDialogLine, town, role, name, mood, se
 		if l.Sex != "" {
 			wt *= 2
 		}
+		if l.Voiced {
+			wt *= 3 // a people's own voice, as a town's own line
+		}
 		if strings.TrimSpace(l.Mood) != "" {
 			wt *= 2
 		}
@@ -329,7 +454,7 @@ func (w *World) TownLine(p *Player, npc *NPC, lines []database.NPCDialogLine, la
 		town, role = DialogTown(w.npcFactionLocked(npc)), NPCRole(npc.Name)
 	}
 	mood := w.dialogMoodLocked(p, npc)
-	picks := DialogCandidates(lines, town, role, npc.Name, mood, w.dialogSexLocked(npc), p.Race)
+	picks := DialogCandidates(lines, town, role, npc.Name, mood, w.dialogSexLocked(npc), p.Race, w.dialogVoiceLocked(npc, town))
 	if len(picks) > 1 && last != 0 {
 		kept := picks[:0:0]
 		for _, c := range picks {

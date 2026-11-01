@@ -57,9 +57,30 @@ class SeedNPCLinesTest(unittest.TestCase):
         self.assertEqual(self.db.execute("SELECT count(*) FROM npcdialog WHERE name = ''").fetchone()[0], 1, "the town line went")
         self.assertFalse(snl.has_table(self.db, "npcdialog_own_seed"))
 
+    def test_race_blocks_and_an_old_log(self):
+        b = [{"speaker_race": "ogre", "away": True, "say": ["Oggok far."]},
+             {"speaker_race": "troll", "role": "guard", "say": ["Troll watch."]}]
+        rows = self.rows(b)
+        got = sorted((r["speaker_race"], r["away"], r["role"], r["name"]) for r in rows)
+        self.assertEqual(got, [(5, 0, "guard", ""), (9, 1, "", "")])
+        self.assertEqual(snl.apply(self.db, rows), (2, 0, 0))
+        self.assertEqual(self.db.execute("SELECT speaker_race, away FROM npcdialog WHERE line = 'Oggok far.'").fetchone(), (9, 1))
+        # a name's line logged before speaker_race and away existed is still the one written
+        cur = self.db.execute("INSERT INTO npcdialog (name, line, weight, source) VALUES ('Valrean V`Ghen', 'Old one.', 1, 'ours')")
+        old = {"town": "", "role": "", "name": "Valrean V`Ghen", "mood": "", "race": -1, "sex": "", "line": "Old one.", "weight": 1}
+        self.db.execute("INSERT INTO npcdialog_own_seed VALUES (?, ?)", (cur.lastrowid, snl.json.dumps(old, sort_keys=True)))
+        b.append({"name": "Valrean V`Ghen", "say": ["Old one."]})
+        self.assertEqual(snl.apply(self.db, self.rows(b)), (0, 0, 0), "the old log's row was written again or taken out")
+        self.assertEqual(self.db.execute("SELECT count(*) FROM npcdialog WHERE line = 'Old one.'").fetchone()[0], 1)
+
     def test_problems(self):
         _, problems = snl.rows_of(lines_file(self.dir, [{"name": "", "say": ["x"]}, {"name": "A", "mood": "angry", "say": ["y", " "]},
                                                          {"name": "B", "say": ["z" * 300]}]))
+        self.assertEqual(len(problems), 4, problems)
+        _, problems = snl.rows_of(lines_file(self.dir, [{"name": "A", "speaker_race": "ogre", "say": ["x"]},
+                                                         {"speaker_race": "wookie", "say": ["x"]},
+                                                         {"speaker_race": "troll", "role": "pirate", "say": ["x"]},
+                                                         {"name": "B", "away": True, "say": ["x"]}]))
         self.assertEqual(len(problems), 4, problems)
 
     def test_the_shipped_file(self):
@@ -67,6 +88,11 @@ class SeedNPCLinesTest(unittest.TestCase):
         self.assertEqual(problems, [])
         self.assertTrue(any(r["name"] == "Valrean V`Ghen" for r in rows))
         self.assertTrue(any(r["mood"] == "" for r in rows), "no line for a neutral listener")
+        for race in range(10):
+            self.assertTrue(any(r["speaker_race"] == race and r["mood"] == "" for r in rows), f"race {race} has no voice of its own")
+        for race in (5, 9):  # trolls and ogres say no common line: every role needs theirs
+            roles = {r["role"] for r in rows if r["speaker_race"] == race and not r["away"]}
+            self.assertTrue({"", "guard", "trader"} <= roles, f"race {race}'s roles: {roles}")
 
 
 if __name__ == "__main__":

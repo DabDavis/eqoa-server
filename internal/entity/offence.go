@@ -113,8 +113,11 @@ var (
 	handToHandAt0      = -4.0
 )
 
-// classMonk is the monk's class id.
-const classMonk = 4
+// The monk's class id, and the ranger's (balancekit.go).
+const (
+	classMonk   = 4
+	classRanger = 1
+)
 
 // handToHandDMG is a monk's bare hands' DMG at a level.
 func handToHandDMG(level int) int {

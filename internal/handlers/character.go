@@ -1156,7 +1156,7 @@ func wornGear(items []database.CharInventoryEntry) entity.Gear {
 		w = ranged
 	}
 	if w != nil {
-		g.WeaponDamage, g.WeaponSlot = w.Pattern.WeaponDamage, w.EquipLoc
+		g.WeaponDamage, g.WeaponSlot, g.WeaponType = w.Pattern.WeaponDamage, w.EquipLoc, w.Pattern.AttackType
 		if w.RemainHP > 0 && w.Pattern.MaxHP > 0 && w.RemainHP < w.Pattern.MaxHP {
 			g.WeaponCond = float64(w.RemainHP) / float64(w.Pattern.MaxHP)
 		}

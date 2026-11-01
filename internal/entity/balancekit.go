@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"math"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -107,13 +108,115 @@ func SimKitFromDB(db *database.SQLiteDB, class, race, level int, tier float64) (
 	// itself (the workbook's required equipment, which a cast without it is
 	// refused for: workbookmore.go): a weapon of the type most of them
 	// name (a rogue's backstabs a one-handed piercer, a paladin's strikes a
-	// blunt weapon, a bard's and a ranger's blades a slashing one) and a bow
-	// in place of a second weapon where its arrows want one (a ranger's);
-	// its pick of that kind as any weapon's, by the tier (simHands). Never
-	// bare hands: a monk's punches want them, but a bare hand rolls a
-	// weapon's damage of 0 (offence.go), and a monk of 20-60 without its
-	// weapon lost every fight one up, so it keeps the weapon (2026-11-01)
+	// blunt weapon, a bard's and a ranger's blades a slashing one), a second
+	// weapon in the off hand for a melee class (a ranger dual wields), a
+	// shield for a tank or a priest; its pick of that kind as any weapon's,
+	// by the tier (simHands). A monk's are bare (its punches want them; its
+	// hand to hand: offence.go), and it carries no weapon (until 2026-11-01
+	// it held one and its 30 punches were never cast). What its other arts
+	// want it carries beside (simOtherHands: a ranger's bow for its arrows)
+	// and switches to for them, as the server switches a player's hands for
+	// an art (handlers/handswitch.go)
 	hands := simHandsOf(book)
+	fight := simBareHands()
+	if class != classMonk {
+		fight = simFightingHands(class, level, tier, hands, bySlot)
+	}
+	sets := []SimHands{fight}
+	if class != classMonk {
+		sets = append(sets, simOtherHands(class, level, tier, book, hands, bySlot, sets)...)
+	}
+	pl.Body, pl.Hands = g, sets
+	pl.Gear = g.with(fight.Gear)
+	pl.Worn, pl.AttackType = fight.Worn, fight.AttackType
+	switch {
+	case fight.Worn[15]:
+		pl.SecondaryType = int(fight.Secondary)
+	case fight.Worn[20]:
+		pl.SecondaryType = -1 // a held item: no weapon in that hand
+	}
+	pl.Spells = book
+	return pl, nil
+}
+
+// SimHands is one way a kit holds its hands (SimKitFromDB): the equip slots
+// worn (14 main hand, 15 off hand, 16 both hands, 17 shield, 18 ranged, 19
+// and 20 held), the swinging item's attack type and reach for its swing
+// (SwingFor: 1-6 melee, 7, 9 or 10 ranged with its range; 0 bare hands), the
+// hands' attack types as the server's worn look gives them (the main hand's;
+// the off hand's or the ranged weapon's), for a spell's required equipment,
+// and what its items add (their stats, and the swinging weapon's DMG as
+// handlers' wornGear takes it).
+type SimHands struct {
+	Worn               [21]bool
+	AttackType, Range  int
+	Primary, Secondary byte
+	Gear               Gear
+}
+
+// fits is whether the hands hold what a spell's required equipment names.
+func (h *SimHands) fits(req string) bool {
+	p := Player{PrimaryType: h.Primary, SecondaryType: h.Secondary}
+	if h.Worn[17] {
+		p.Shield = 1
+	}
+	return equipFits(&p, req)
+}
+
+// simBareHands is hands holding nothing.
+func simBareHands() SimHands { return SimHands{Gear: Gear{WeaponCond: 1, BareHands: true}} }
+
+// simMeleeHands is hands holding a weapon in the main hand (both, for a
+// two-hander) and off in the other hand's offSlot (15 a second weapon, 17 a
+// shield, 20 an item held; nil none, and none beside a two-hander).
+func simMeleeHands(main *database.ItemPatternRecord, two bool, off *database.ItemPatternRecord, offSlot int) SimHands {
+	h := SimHands{Gear: Gear{WeaponCond: 1}}
+	add := func(it *database.ItemPatternRecord) {
+		for id, v := range simItemStats(it) {
+			h.Gear.Add(id, v)
+		}
+	}
+	add(main)
+	slot := 14
+	if two {
+		slot = 16
+	}
+	h.Worn[slot] = true
+	h.Gear.WeaponDamage, h.Gear.WeaponTwoHanded, h.Gear.WeaponSlot, h.Gear.WeaponType = main.WeaponDamage, two, slot, main.AttackType
+	h.AttackType, h.Primary = main.AttackType, byte(main.AttackType)
+	if h.AttackType > 6 {
+		h.AttackType = 1 // a melee swing, whatever the record calls it
+	}
+	if off != nil && !two {
+		add(off)
+		h.Worn[offSlot] = true
+		if offSlot == 15 || offSlot == 20 {
+			h.Secondary = byte(off.AttackType)
+		}
+	}
+	return h
+}
+
+// simRangedHands is hands holding a ranged weapon alone, as its equip leaves
+// them (equip.go's equipDisplaces: a bow takes the hands off).
+func simRangedHands(bow *database.ItemPatternRecord) SimHands {
+	h := SimHands{Gear: Gear{WeaponCond: 1, WeaponDamage: bow.WeaponDamage, WeaponSlot: 18, WeaponType: bow.AttackType}}
+	for id, v := range simItemStats(bow) {
+		h.Gear.Add(id, v)
+	}
+	h.Worn[18] = true
+	h.AttackType, h.Range, h.Secondary = bow.AttackType, bow.Unk5, byte(bow.AttackType)
+	return h
+}
+
+// simFightingHands is the hands a kit fights with: the weapon of the type
+// most of its arts name (or any), a second one for a melee class, a shield
+// for a tank or a priest that may hold one, else an item held (not a melee
+// class); a two-hander where it deals more a second as GetSwing swings it
+// (a rogue or a bard swings one once a round), never in place of a shield,
+// nor for a ranger, which dual wields (the user, 2026-11-01: "they can dual
+// wield and switch to a bow").
+func simFightingHands(class, level int, tier float64, hands simHands, bySlot map[int][]database.ItemPatternRecord) SimHands {
 	arch := archetypeOf(class)
 	mains, twos := hands.weapons(append(append([]database.ItemPatternRecord(nil), bySlot[12]...), bySlot[14]...)), hands.weapons(bySlot[15])
 	if len(mains) == 0 && len(twos) == 0 { // none of the kind to be had: any
@@ -121,16 +224,6 @@ func SimKitFromDB(db *database.SQLiteDB, class, race, level int, tier float64) (
 	}
 	main := simPick(mains, level, tier, simWeaponScore)
 	two := simPick(twos, level, tier, simWeaponScore)
-	var bow *database.ItemPatternRecord
-	if hands.bowed() {
-		var bows []database.ItemPatternRecord
-		for _, it := range bySlot[16] {
-			if it.AttackType == 7 || it.AttackType == 9 || it.AttackType == 10 {
-				bows = append(bows, it)
-			}
-		}
-		bow = simPick(bows, level, tier, simWeaponScore)
-	}
 	var off *database.ItemPatternRecord
 	offSlot := 0
 	switch {
@@ -138,7 +231,7 @@ func SimKitFromDB(db *database.SQLiteDB, class, race, level int, tier float64) (
 		if off = simPick(bySlot[13], level, tier, simArmourScore); off != nil {
 			offSlot = 17
 		}
-	case arch == archMelee && bow == nil:
+	case arch == archMelee:
 		if off = simPick(hands.weapons(bySlot[14]), level, tier, simWeaponScore); off == nil {
 			off = simPick(bySlot[14], level, tier, simWeaponScore)
 		}
@@ -146,14 +239,11 @@ func SimKitFromDB(db *database.SQLiteDB, class, race, level int, tier float64) (
 			offSlot = 15
 		}
 	}
-	if off == nil && arch != archMelee && bow == nil {
+	if off == nil && arch != archMelee {
 		if off = simPick(bySlot[18], level, tier, simArmourScore); off != nil {
 			offSlot = 20
 		}
 	}
-	// a tank or a priest keeps its shield; anyone else takes the hands that
-	// deal more a second as GetSwing swings them (a rogue or a bard swings
-	// a two-hander once a round)
 	rate := func(it *database.ItemPatternRecord, worn [21]bool, two bool) float64 {
 		d := float64(it.WeaponDamage)
 		if two {
@@ -163,43 +253,116 @@ func SimKitFromDB(db *database.SQLiteDB, class, race, level int, tier float64) (
 		return d * float64(len(swingHits(kind))) / SwingDelay(kind).Seconds()
 	}
 	useTwo := two != nil && main == nil
-	if two != nil && main != nil && offSlot != 17 {
+	if two != nil && main != nil && offSlot != 17 && class != classRanger {
 		var w1, w2 [21]bool
 		w1[14], w1[offSlot] = true, off != nil
 		w2[16] = true
-		w1[18], w2[18] = bow != nil, bow != nil // a bow held with either changes the swing (GetSwing)
 		useTwo = rate(two, w2, true) > rate(main, w1, false)
 	}
 	switch {
 	case useTwo:
-		wear(two, 1)
-		g.WeaponDamage, g.WeaponTwoHanded = two.WeaponDamage, true
-		pl.Worn[16], pl.AttackType = true, two.AttackType
+		return simMeleeHands(two, true, nil, 0)
 	case main != nil:
-		wear(main, 1)
-		g.WeaponDamage = main.WeaponDamage
-		pl.Worn[14], pl.AttackType = true, main.AttackType
-		if off != nil {
-			wear(off, 1)
-			pl.Worn[offSlot] = true
-			switch offSlot {
-			case 15:
-				pl.SecondaryType = off.AttackType
-			case 20:
-				pl.SecondaryType = -1 // a held item: no weapon in that hand
+		return simMeleeHands(main, false, off, offSlot)
+	}
+	return simBareHands()
+}
+
+// simOtherHands is what a kit carries for the arts its fighting hands do not
+// fit (have, the first its fighting hands), each the hands the server's
+// switch would put on for them: a bow where its arrows are a line of its arts
+// (simHands.bowed: a ranger's 24 to its 20 blades), a weapon of the kind its
+// other blows name (a second one for a melee class but a knight, as the
+// switch gives one), bare hands; an art no kind of which it may wear (or a
+// shield's: a tank or a priest fights with its own) is refused, as a
+// player's is with nothing carried.
+func simOtherHands(class, level int, tier float64, book []CastSpell, hands simHands, bySlot map[int][]database.ItemPatternRecord, have []SimHands) []SimHands {
+	var out []SimHands
+	fitted := func(req string) bool {
+		for i := range have {
+			if have[i].fits(req) {
+				return true
 			}
 		}
+		for i := range out {
+			if out[i].fits(req) {
+				return true
+			}
+		}
+		return false
 	}
-	if bow != nil {
-		wear(bow, 1)
-		pl.Worn[18], pl.SecondaryType = true, bow.AttackType
+	for i := range book {
+		req := book[i].Def.ReqEquip
+		if req == "" || fitted(req) {
+			continue
+		}
+		var types []int
+		var ranged, none bool
+		for _, code := range ReqEquipCodes(req) {
+			switch code {
+			case "RANGE", "RANGED":
+				ranged = true
+			case "NONE":
+				none = true
+			default:
+				for _, t := range EquipCodeTypes(code) {
+					types = append(types, int(t))
+				}
+			}
+		}
+		of := func(items []database.ItemPatternRecord, keep func(*database.ItemPatternRecord) bool) []database.ItemPatternRecord {
+			var o []database.ItemPatternRecord
+			for i := range items {
+				if keep(&items[i]) {
+					o = append(o, items[i])
+				}
+			}
+			return o
+		}
+		typed := func(it *database.ItemPatternRecord) bool { return slices.Contains(types, it.AttackType) }
+		switch {
+		case ranged && hands.bowed():
+			bows := of(bySlot[16], func(it *database.ItemPatternRecord) bool {
+				return (it.AttackType == 7 || it.AttackType == 9 || it.AttackType == 10) && it.WeaponDamage > 0 // never a thrown potion
+			})
+			if bow := simPick(bows, level, tier, simWeaponScore); bow != nil {
+				out = append(out, simRangedHands(bow))
+			}
+		case len(types) > 0:
+			main := simPick(of(append(append([]database.ItemPatternRecord(nil), bySlot[12]...), bySlot[14]...), typed), level, tier, simWeaponScore)
+			two := main == nil
+			if two {
+				main = simPick(of(bySlot[15], typed), level, tier, simWeaponScore)
+			}
+			if main == nil {
+				continue
+			}
+			var off *database.ItemPatternRecord
+			knight := class == 2 || class == 3 // holds no second weapon (handlers' offHandWeaponBarred)
+			if !two && archetypeOf(class) == archMelee && !knight {
+				off = simPick(of(bySlot[14], typed), level, tier, simWeaponScore)
+			}
+			out = append(out, simMeleeHands(main, two, off, 15))
+		case none:
+			out = append(out, simBareHands())
+		}
 	}
-	if pl.AttackType > 6 {
-		pl.AttackType = 1 // a melee swing, whatever the record calls it
-	}
-	pl.Gear = g
-	pl.Spells = book
-	return pl, nil
+	return out
+}
+
+// with is what a kit wears all told: g its body's, h its hands' (their stats
+// added, the weapon's fields theirs).
+func (g Gear) with(h Gear) Gear {
+	out := g
+	out.Str, out.Sta, out.Agi, out.Dex = g.Str+h.Str, g.Sta+h.Sta, g.Agi+h.Agi, g.Dex+h.Dex
+	out.Wis, out.Int, out.Cha = g.Wis+h.Wis, g.Int+h.Int, g.Cha+h.Cha
+	out.MaxHP, out.MaxPower, out.AC = g.MaxHP+h.MaxHP, g.MaxPower+h.MaxPower, g.AC+h.AC
+	out.PoTItems = append(append([]int(nil), g.PoTItems...), h.PoTItems...)
+	out.HoTItems = append(append([]int(nil), g.HoTItems...), h.HoTItems...)
+	out.PR, out.DR, out.FR, out.CR, out.LR, out.AR = g.PR+h.PR, g.DR+h.DR, g.FR+h.FR, g.CR+h.CR, g.LR+h.LR, g.AR+h.AR
+	out.WeaponDamage, out.WeaponCond, out.WeaponTwoHanded = h.WeaponDamage, h.WeaponCond, h.WeaponTwoHanded
+	out.WeaponSlot, out.WeaponType, out.BareHands = h.WeaponSlot, h.WeaponType, h.BareHands
+	return out
 }
 
 // simHands is what a book's spells want held (their ReqEquip, the
@@ -302,13 +465,14 @@ func SimStartKitFromDB(db *database.SQLiteDB, class, race, level int) (SimPlayer
 		for id, v := range simItemStats(&rec) {
 			g.Add(id, v)
 		}
-		g.WeaponDamage, pl.AttackType = rec.WeaponDamage, rec.AttackType
+		g.WeaponDamage, g.WeaponType, pl.AttackType = rec.WeaponDamage, rec.AttackType, rec.AttackType
 		if rec.EquipSlot == 15 {
-			g.WeaponTwoHanded, pl.Worn[16] = true, true
+			g.WeaponTwoHanded, g.WeaponSlot, pl.Worn[16] = true, 16, true
 		} else {
-			pl.Worn[14] = true
+			g.WeaponSlot, pl.Worn[14] = 14, true
 		}
 	}
+	g.BareHands = !pl.Worn[14] && !pl.Worn[16] // a monk's: its hand to hand (offence.go)
 	if pl.AttackType > 6 {
 		pl.AttackType = 1
 	}

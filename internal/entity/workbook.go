@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -575,8 +576,8 @@ func harmfulEffect(ae *ActiveEffect) bool {
 // (PR, or a poison's or venom's name), disease (DR, a disease's or a
 // plague's), curse (AR), slow or snare (a slow), speed (a speed buff, the
 // workbook's "removing lesser speed boosts"), mask (an illusion: the rogues'
-// masks), else an effect named by them; no words or the workbook's "ID?"
-// any harmful one.
+// masks), DoT (a harmful effect whose tick hurts), else an effect named by
+// them; no words or the workbook's "ID?" any harmful one.
 func cureMatches(ae *ActiveEffect, words string) bool {
 	w := strings.ToLower(strings.TrimSpace(words))
 	name := strings.ToLower(ae.Name)
@@ -611,9 +612,16 @@ func cureMatches(ae *ActiveEffect, words string) bool {
 		return ae.Speed
 	case has("mask", "illusion"):
 		return ae.Form != 0
+	case reDoTWord.MatchString(w) || has("damage over time"):
+		// a damage over time (Envaric Salve's "PoE DoT?": the user,
+		// 2026-11-01, "damage over time"): a harmful effect whose tick hurts
+		return harmfulEffect(ae) && ae.HPTick < 0
 	}
 	return w != "" && strings.Contains(name, w)
 }
+
+// reDoTWord is a cure's "DoT" as a word of its own ("antidote" holds one).
+var reDoTWord = regexp.MustCompile(`\bdots?\b`)
 
 // procHealsLocked heals a player by its proc heals: its offensive ones
 // (defense false) after one of its melee hits at the proc chance, its

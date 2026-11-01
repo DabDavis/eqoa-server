@@ -252,3 +252,40 @@ func TestADestroyedContraptionsBoostIsItsGroups(t *testing.T) {
 		}
 	}
 }
+
+// A self spell's part for the group reaches the caster's group in its radius,
+// the caster among them, with no mastery (the bard's Chant of Battle: "yes
+// reach the group"); not a member 50 off nor a stranger beside. Celedonicus'
+// Grand Finale: the group's +5000 power to the bard too ("include bard in the
+// +5000"), its -5000 the bard's price.
+func TestABardsGroupSongReachesTheGroup(t *testing.T) {
+	setup := func() (*caster, *Player, *Player, *Player) {
+		c := newCaster(t)
+		c.p.Class, c.p.Power, c.p.MaxPower = 5, 1000, 9999
+		mk := func(id EntityID, dx float32) *Player {
+			p := &Player{ServerID: id, Name: "Test Mate", HP: 500, MaxHP: 500, Power: 100, MaxPower: 9999, Str: 50, X: c.p.X + dx, Y: c.p.Y, Z: c.p.Z}
+			c.w.Players[id] = p
+			return p
+		}
+		near, far, stranger := mk(52001, 10), mk(52002, 50), mk(52003, 5)
+		c.w.groups = map[uint32]*Group{7: {ID: 7, Members: []EntityID{c.p.ServerID, near.ServerID, far.ServerID}}}
+		c.p.GroupID, near.GroupID, far.GroupID = 7, 7, 7
+		return c, near, far, stranger
+	}
+	chant := wbSpell(9891, 3, 0, "Test Chant", `{"v":1,"scope":"self","target_type":"Self","harmful":false,"duration_s":45,"stack":2,"level":3,"radius":30,
+		"effects":[{"id":"0097","type":"Statistic Change","kind":"stat","stat":"str","amount":5,"scope":"group","target_type":"Friendly"}]}`)
+	c, near, far, stranger := setup()
+	str0 := c.p.StatNow(StatStr)
+	c.castOn(t, chant, 0)
+	if c.p.StatNow(StatStr) != str0+5 || near.StatNow(StatStr) != 55 || far.StatNow(StatStr) != 50 || stranger.StatNow(StatStr) != 50 {
+		t.Errorf("the chant: bard %+d, near %d, far %d, stranger %d", c.p.StatNow(StatStr)-str0, near.StatNow(StatStr), far.StatNow(StatStr), stranger.StatNow(StatStr))
+	}
+	finale := wbSpell(9892, 60, 0, "Test Finale", `{"v":1,"scope":"self","target_type":"Self","harmful":false,"stack":0,"level":60,"radius":30,
+		"effects":[{"id":"00F3","type":"Statistic Change","kind":"power","amount":5000,"scope":"group","target_type":"Friendly"},
+		{"id":"00F4","type":"Statistic Change","kind":"power","amount":-5000}]}`)
+	c, near, far, stranger = setup()
+	c.castOn(t, finale, 0)
+	if c.p.Power != c.p.MaxPower-finale.PowerCost || near.Power != 5100 || far.Power != 100 || stranger.Power != 100 { // castOn fills the bard's power first
+		t.Errorf("the finale: bard %d (cost %d), near %d, far %d, stranger %d", c.p.Power, finale.PowerCost, near.Power, far.Power, stranger.Power)
+	}
+}

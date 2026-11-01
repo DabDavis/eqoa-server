@@ -136,6 +136,11 @@ type SpellEffect struct {
 	// 2026-11-01: "SK drain should land on themself by default, CM may allow
 	// group"; lifetap.go's landOnCasterLocked)
 	ShareGroup bool
+	// ShareAll makes a ShareGroup the group's whatever adds the spell: a
+	// self spell's part for the group, its caster among them (the bard's
+	// Chant of Battle; the user, 2026-11-01: "yes reach the group";
+	// Celedonicus' Grand Finale's power too: "include bard in the +5000")
+	ShareAll bool
 	// Drain is where what the target loses goes: a life tap's damage heals
 	// its caster (or the caster's group), a drained stat or power is the
 	// caster's (lifetap.go)

@@ -1182,7 +1182,7 @@ def split_map(db, wb, map_path, out_path):
     by_sid = collections.defaultdict(list)
     for s in wb.spells:
         m = map_entry(smap, hexid(s.get("SpellID")))
-        if m and m[1] not in ("new", "split") and m[0] in records:
+        if m and m[1].split(" ")[0] not in ("new", "split") and m[0] in records:
             by_sid[m[0]].append(s)
     split = {}
     for sid, rows in by_sid.items():
@@ -1253,6 +1253,8 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None):
             lists["not in the map"].append(f"{sid_hex} {cell(s, 'Name')}")
             continue
         sid, how, frm = map_entry(smap, sid_hex)
+        # the map's words: "new" (a lane's "new (pets lane)" too), "split", else a record of ours
+        how = how.split(" ")[0] if how.split(" ")[0] in ("new", "split") else how
         if how == "split" and sid in records:
             how = "made"  # a plan made again after its own --apply: the record is ours now
         if how not in ("new", "split") and sid not in records:
@@ -1652,7 +1654,7 @@ def plan_splits(db, wb, smap, splits, records, links, lists, counts):
     owners = collections.defaultdict(set)
     for s in wb.spells:
         m = map_entry(smap, hexid(s.get("SpellID")))
-        if m and m[1] != "split":
+        if m and m[1].split(" ")[0] != "split":
             owners[m[0]] |= set(class_mask(cell(s, "CLASS")))
     cs = {(c, sid): src for c, sid, src in db.execute("SELECT class, spellid, source FROM main.classspells")}
     tclass = dict(db.execute("SELECT serverid, tclass FROM main.characters")) if has_table(db, "characters") else {}

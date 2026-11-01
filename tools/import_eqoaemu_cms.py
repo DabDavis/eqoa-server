@@ -24,6 +24,10 @@ cmcatalog (entity/cmbuy.go), the workbook winning wherever it has a value:
   (our master classes shared by an archetype are a row a class: each keeps its
   class), several workbook ranks one of ours (the two Focus lines, one for the
   casters and melee, one for the tanks and priests, are our one line for all).
+- **The workbook's own slips are put right** (`fix_slips`): an ability a rank
+  needs, adds or takes away named by the id of another class's spell, where
+  the Spells sheet has exactly one spell of that name for the rank's class,
+  is that spell (the warrior's Tranquility named the enchanter's), each said.
 - A cell left empty (or "NO DESCRIPTION FOUND") is no value: ours stays. A
   group of cells is the workbook's whole when it fills any of it (the 29
   stats, the base stats, the abilities added, ...).
@@ -330,6 +334,59 @@ def read_spell_levels(sheet):
         if x is not None and lvl:
             out.setdefault(x, lvl)
     return out
+
+
+def slip_name(s):
+    """A spell's name as fix_slips compares it: case and apostrophes aside, a
+    "+" kept ("Serenity +" is another spell than "Serenity")."""
+    s = (s or "").lower().replace("’", "'").replace("`", "'").replace("'", "")
+    return " ".join(re.sub(r"[^a-z0-9+]+", " ", s).split())
+
+
+def read_spell_owners(sheet):
+    """The Spells sheet's name and classes (a mask, 0 for none) of each
+    SpellID, for fix_slips."""
+    out = {}
+    if sheet is None or not sheet.has("SpellID"):
+        return out
+    bits = {c: i for i, c in enumerate(CLASS_NAMES)}
+    for r in sheet.rows:
+        x = hexid(sheet.get(r, "SpellID"))
+        if x is not None:
+            out.setdefault(x, (slip_name(sheet.get(r, "Name")), mask_of(sheet.get(r, "CLASS"), bits, ALL_CLASSES,
+                                                                        ALL_CLASSES)[0]))
+    return out
+
+
+def fix_slips(W, owners):
+    """The workbook's own slips put right: an ability a rank requires, adds or
+    takes away, named by the id of a spell of none of the rank's classes, where
+    the Spells sheet has exactly one spell of that name of the rank's classes,
+    is that spell (2026-11-01's workbook: the warrior's Tranquility names the
+    enchanter's Tranquility, 0276, and no mastery names the warrior's own,
+    0635; the shadow knight's Parasitic Bond 1 requires the necromancer's
+    Siphon Strength, which no shadow knight holds, so it could never be
+    bought; eight such ids in six ranks). A rank of every class, or a spell of
+    no class, is never one. Returns each id put right: (rank hex, kind, the
+    sheet's id, the one taken, the name)."""
+    byname = collections.defaultdict(list)
+    for x, (nm, cls) in owners.items():
+        if nm and cls:
+            byname[nm].append((x, cls))
+    fixed = []
+    for w in W:
+        for kind in ("abil", "adds", "removes"):
+            out = []
+            for x, nm in w[kind]:
+                own = owners.get(x)
+                if own and own[1] and not own[1] & w["classes"]:
+                    alt = sorted(y for y, cls in byname.get(own[0], []) if y != x and cls & w["classes"])
+                    if len(alt) == 1:
+                        fixed.append((w["hex"], kind, x, alt[0], nm))
+                        x = alt[0]
+                out.append((x, nm))
+            w[kind] = out
+    return fixed
 
 
 def read_spellmap(path):
@@ -1614,6 +1671,11 @@ def main():
             sp = os.path.join(a.tsv_dir, "02-Spells.tsv")
             spells = Sheet(tsv_table(sp)) if os.path.exists(sp) else None
         W = read_ranks(cms)
+        slips = fix_slips(W, read_spell_owners(spells))
+        print(f"the workbook's ability ids of another class's spell, put right: {len(slips)}")
+        for hx, kind, was, now, nm in slips:
+            what = {"abil": "requires", "adds": "adds", "removes": "takes away"}[kind]
+            print(f"  {hx} {next(w['name'] for w in W if w['hex'] == hx)} {what} {nm}: {was:04X} -> {now:04X}")
         p = plan(db, W, read_spellmap(a.spellmap), read_spell_levels(spells),
                  {"weres": a.weres, "racial_mc": "keep" if a.racial_mc == "keep" else "master"})
         report(p, a.list)

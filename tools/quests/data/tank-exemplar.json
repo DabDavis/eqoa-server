@@ -342,18 +342,11 @@
      "kind": "talk",
      "target": "Priest of Rallos Zek",
      "journal": "Ask the Priest of Rallos Zek for your defensive reward.",
-     "says": "Then learn this, and be still.",
-     "rewards": {
-      "spells": [
-       "Serenity"
-      ]
-     }
+     "says": "Then learn this, and be still."
     }
    ],
-   "unresolved": [
-    "Serenity"
-   ],
-   "notes": "From EQOA-Data Quests/TankExemplar/warrior.json, Serenity (Defensive Path) and Rewards (github.com/Jadiction/EQOA-Data, MIT). Offered at 2,000 standing with the Guards of Diren Hold (Dhia's chest). The guide's Serenity (+65 WIS for ten minutes, opened for a class mastery point) is no spell here yet, so this quest is a draft until it is."
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/TankExemplar/warrior.json, Serenity (Defensive Path) and Rewards (github.com/Jadiction/EQOA-Data, MIT). Offered at 2,000 standing with the Guards of Diren Hold (Dhia's chest). The guide's Serenity (+65 WIS for ten minutes, opened for a class mastery point): finishing this quest opens the warrior's Tranquility mastery (cmcatalog's require_quests, EQOAEmu's workbook's), which teaches Serenity with Composure, Focused Composure, Stoicism and Tranquility when bought; the quest gives no spell itself."
   },
   {
    "key": "TankExemplar/paladin/main",
@@ -524,18 +517,11 @@
      "kind": "talk",
      "target": "Priest of Marr",
      "journal": "Return to the Priest of Marr.",
-     "says": "Then take Alesthenies' mercy with you.",
-     "rewards": {
-      "spells": [
-       "Alesthenies' Mercy"
-      ]
-     }
+     "says": "Then take Alesthenies' mercy with you."
     }
    ],
-   "unresolved": [
-    "Alesthenies' Mercy"
-   ],
-   "notes": "From EQOA-Data Quests/TankExemplar/paladin.json, Final Choice and Mercy Path (github.com/Jadiction/EQOA-Data, MIT). The guide's Roygar of Marr's Fist, who first sends you, is not in (the priest sends you). Priestess Agilyna is placed by the guide's words. The guide's Alesthenies' Mercy (an armour buff of 300 to 1,000, opened for a class mastery point) is no spell here yet, so this quest is a draft until it is."
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/TankExemplar/paladin.json, Final Choice and Mercy Path (github.com/Jadiction/EQOA-Data, MIT). The guide's Roygar of Marr's Fist, who first sends you, is not in (the priest sends you). Priestess Agilyna is placed by the guide's words. The guide's Alesthenies' Mercy (an armour buff of 300 to 1,000, opened for a class mastery point): finishing this quest opens the Alesthenies' Mercy mastery (cmcatalog's require_quests, EQOAEmu's workbook's), which teaches it when bought; the quest gives no spell itself."
   },
   {
    "key": "TankExemplar/shadowknight/main",
@@ -789,18 +775,11 @@
      "kind": "talk",
      "target": "Priest of Bertoxxulous",
      "journal": "Return to the Priest of Bertoxxulous.",
-     "says": "Drink, then.",
-     "rewards": {
-      "spells": [
-       "Soultap"
-      ]
-     }
+     "says": "Drink, then."
     }
    ],
-   "unresolved": [
-    "Soultap"
-   ],
-   "notes": "From EQOA-Data Quests/TankExemplar/shadowknight.json, Soultap Path and Rewards (github.com/Jadiction/EQOA-Data, MIT). Offered at 2,000 standing with the Disciples of Plague (the box). The guide's Soultap (restores about 8,000 power, fifteen minutes' recast, opened for a class mastery point) is no spell here yet, so this quest is a draft until it is."
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/TankExemplar/shadowknight.json, Soultap Path and Rewards (github.com/Jadiction/EQOA-Data, MIT). Offered at 2,000 standing with the Disciples of Plague (the box). The guide's Soultap (restores about 8,000 power, fifteen minutes' recast, opened for a class mastery point): finishing this quest opens the Soul Tap mastery (cmcatalog's require_quests, EQOAEmu's workbook's), which teaches Soul Tap when bought; the quest gives no spell itself."
   },
   {
    "key": "TankExemplar/shadowknight/souls",
@@ -888,18 +867,11 @@
      "kind": "talk",
      "target": "Priest of Bertoxxulous",
      "journal": "Demand your reward of the Priest of Bertoxxulous.",
-     "says": "Rend, then.",
-     "rewards": {
-      "spells": [
-       "Soul Cleave"
-      ]
-     }
+     "says": "Rend, then."
     }
    ],
-   "unresolved": [
-    "Soul Cleave"
-   ],
-   "notes": "From EQOA-Data Quests/TankExemplar/shadowknight.json, AoE Strike Path and Rewards (github.com/Jadiction/EQOA-Data, MIT). Offered at 2,000 standing with the Minions of Bertoxxulous (the zombie). The guide's Soul Cleave (the strike line made area strikes, opened for a class mastery point) is no spell here yet, so this quest is a draft until it is."
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/TankExemplar/shadowknight.json, AoE Strike Path and Rewards (github.com/Jadiction/EQOA-Data, MIT). Offered at 2,000 standing with the Minions of Bertoxxulous (the zombie). The guide's Soul Cleave (the strike line made area strikes, opened for a class mastery point): finishing this quest opens the Soul Cleave mastery (cmcatalog's require_quests, EQOAEmu's workbook's), which turns the strike line into the cleave line (Paincleave to Deathcleave) when bought; the quest gives no spell itself."
   }
  ],
  "items": [

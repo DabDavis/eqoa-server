@@ -576,13 +576,24 @@ def report(p, verbose=False):
             print(f"  draft {x['key']}: {'; '.join(x['why'])}")
 
 
+def fixer_added(db, qid):
+    """The kill and loot steps' other creatures tools/fix_quest_targets.py
+    added to a quest (its log's "added" lines), as (step, folded name): the
+    tool's, not a GM's, so they are no change (digest) and a run again carries
+    them across (write)."""
+    if not has_table(db, "quest_targets_fix_log"):
+        return set()
+    return {(n, fold(t)) for n, t in db.execute(
+        "SELECT step, new FROM quest_targets_fix_log WHERE questid = ? AND action = 'added'", (qid,))}
+
+
 def digest(db, qid):
     """A quest's rows as one value, to tell a GM's change by: its row, its
     steps, the trips it unlocks and its kill and loot steps' other creatures
-    (queststeptargets: a GM's or tools/fix_quest_targets.py's, which this
-    import never writes). The LATER_COLS, the trips and the creatures count
-    only when the quest has them, so a quest an import logged before they were
-    there digests as it did."""
+    (queststeptargets: a GM's; the rows tools/fix_quest_targets.py's log says
+    it added are left out, write carrying them across). The LATER_COLS, the
+    trips and the creatures count only when the quest has them, so a quest an
+    import logged before they were there digests as it did."""
     h = hashlib.md5()
     for table, cols, order in (("quests", QUEST_COLS, ""), ("queststeps", STEP_COLS, " ORDER BY step")):
         have = set(columns(db, table))
@@ -597,7 +608,9 @@ def digest(db, qid):
         if trips:
             h.update(repr(("unlocks", trips)).encode())
     if has_table(db, "queststeptargets"):
-        others = db.execute("SELECT step, target FROM queststeptargets WHERE questid = ? ORDER BY step, target", (qid,)).fetchall()
+        tool = fixer_added(db, qid)
+        others = [(n, t) for n, t in db.execute("SELECT step, target FROM queststeptargets WHERE questid = ? ORDER BY step, target",
+                                                (qid,)) if (n, fold(t)) not in tool]
         if others:
             h.update(repr(("targets", others)).encode())
     return h.hexdigest()
@@ -702,13 +715,20 @@ def write(db, p):
                 top += 1
                 ids[x["key"]] = top
         written, kept = 0, []
+        p["targets_carried"], p["targets_dropped"] = 0, []
         for x in p["quests"]:
             qid, q = ids[x["key"]], x["q"]
+            carry = []
             if x["key"] in logged:
                 have = db.execute("SELECT count(*) FROM quests WHERE questid = ?", (qid,)).fetchone()[0]
                 if have and digest(db, qid) != logged[x["key"]][1]:
                     kept.append(x["key"])
                     continue
+                if has_table(db, "queststeptargets"):
+                    tool = fixer_added(db, qid)
+                    was = {n: (k, fold(t)) for n, k, t in db.execute("SELECT step, kind, target FROM queststeps WHERE questid = ?", (qid,))}
+                    carry = [(n, t, was.get(n)) for n, t in db.execute("SELECT step, target FROM queststeptargets WHERE questid = ?",
+                                                                       (qid,)) if (n, fold(t)) in tool]
                 db.execute("DELETE FROM quests WHERE questid = ?", (qid,))
                 db.execute("DELETE FROM queststeps WHERE questid = ?", (qid,))
                 db.execute("DELETE FROM questunlocks WHERE questid = ?", (qid,))
@@ -740,6 +760,15 @@ def write(db, p):
                            [row[c] for c in STEP_COLS])
             db.executemany("INSERT OR IGNORE INTO questunlocks (questid, npc, dest) VALUES (?, ?, ?)",
                            [(qid, npc, to) for npc, to in x["unlocks"]])
+            # tools/fix_quest_targets.py's creatures back on their steps, while the
+            # step is still the one it added them to (its kind and its own creature)
+            for n, t, was in carry:
+                now = next(((st["kind"], fold(st["target"])) for st in x["steps"] if st["step"] == n), None)
+                if was is not None and now == was:
+                    db.execute("INSERT OR IGNORE INTO queststeptargets (questid, step, target) VALUES (?, ?, ?)", (qid, n, t))
+                    p["targets_carried"] += 1
+                else:
+                    p["targets_dropped"].append(f"{x['key']} step {n}: {t} (the file changed the step it was added to)")
             db.execute("INSERT OR REPLACE INTO quest_import_quests VALUES (?, ?, ?, ?, ?)",
                        (x["key"], qid, x["file"], digest(db, qid), 0 if x["draft"] else 1))
             written += 1
@@ -836,6 +865,10 @@ def main():
         print(f"wrote {written} quests and made {made} items; restart the server")
         for k in kept:
             print("  left as a GM changed it:", k)
+        if p.get("targets_carried") or p.get("targets_dropped"):
+            print(f"  tools/fix_quest_targets.py's creatures kept on their steps: {p['targets_carried']}")
+        for d in p.get("targets_dropped", []):
+            print("  dropped:", d)
     else:
         print("(a report: --apply writes it)")
 

@@ -1977,6 +1977,7 @@ class MadeItems:
         if has_table(db, "spellgates"):
             self.gates = db.execute("SELECT spell, place, world, x, z FROM main.spellgates WHERE place <> '' "
                                     "ORDER BY spell").fetchall()
+        self.index = None  # fold(name) -> patternids, made at the first lookup
         self.made = {}     # an item's key -> its patternid, once found or made
         self.given = set()  # items of ours given a use
         self.settled = set()  # the spells whose items this named
@@ -1985,10 +1986,14 @@ class MadeItems:
     # the server's lookup of an item by its name (database.ItemPatternByName):
     # no spell scroll, one with a use first, then the lowest id
     def by_name(self, name):
-        n = fold(name)
+        if self.index is None:
+            self.index = collections.defaultdict(list)
+            for pid, r in self.rows.items():
+                self.index[fold(r["itemname"])].append(pid)
         best = None
-        for pid, r in self.rows.items():
-            if fold(r["itemname"]) != n or (r["itemicon"] == SCROLL_ICON and r["equipslot"] == -1):
+        for pid in self.index.get(fold(name), []):
+            r = self.rows[pid]
+            if r["itemicon"] == SCROLL_ICON and r["equipslot"] == -1:
                 continue
             key = (pid not in self.uses, pid)
             if best is None or key < best[0]:
@@ -2075,6 +2080,8 @@ class MadeItems:
 
     def keep(self, pid, row):
         self.rows[pid] = row
+        if self.index is not None:
+            self.index[fold(row["itemname"])].append(pid)
         self.items_by_name.setdefault(fold(row["itemname"]), pid)
         self.item_names[pid] = row["itemname"]
 

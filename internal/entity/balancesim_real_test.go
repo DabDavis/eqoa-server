@@ -124,25 +124,29 @@ func TestRealBalanceGearCurve(t *testing.T) {
 	}
 }
 
-// On a server's own kits, books and pets (EQOA_REAL_DB): the seed rows make
-// the warrior and the paladin meet the targets at 30 and 50 (an even won, a +2
-// a tough fight, a +5 lost more than won), and the control, no balance, makes
-// a +5 a pushover for them. The monk is left out: its self heals and arts beat
-// its yellows at 30 with three quarters of its hit points (a gap the balance
-// notes name).
+// On a server's own kits, books and pets (EQOA_REAL_DB): the balance it
+// fights under (simRealBalance: its own tables once tuned, else the seed
+// rows; the workbook's spells of 2026-11-01 took the seed's warrior of 30 to
+// 79% left two up, tools/refit_eqoaemu_balance.py's rows bring it back)
+// makes the warrior and the paladin meet the targets at 30 and 50 (an even
+// won, a +2 a tough fight, a +5 lost more than won), and the control, no
+// balance, makes a +5 a pushover for them. The monk is left out: its self
+// heals and arts beat its yellows at 30 with three quarters of its hit
+// points (a gap the balance notes name).
 func TestRealBalanceSeedOnRealKits(t *testing.T) {
 	db := simRealDB(t)
+	b := simRealBalance(t, db)
 	for _, class := range []int{classWarrior, 2} {
 		for _, level := range []int{30, 50} {
 			pl, err := SimKitFromDB(db, class, 0, level, 0.5)
 			if err != nil {
 				t.Fatal(err)
 			}
-			even := SimCellOf(pl, SimNPC{}, 0, SeedBalance(), 16, 1, 10*time.Minute)
-			yellow := SimCellOf(pl, SimNPC{}, 2, SeedBalance(), 16, 1, 10*time.Minute)
-			red := SimCellOf(pl, SimNPC{}, 5, SeedBalance(), 16, 1, 10*time.Minute)
+			even := SimCellOf(pl, SimNPC{}, 0, b, 16, 1, 10*time.Minute)
+			yellow := SimCellOf(pl, SimNPC{}, 2, b, 16, 1, 10*time.Minute)
+			red := SimCellOf(pl, SimNPC{}, 5, b, 16, 1, 10*time.Minute)
 			if even.WinShare() < 0.95 || (yellow.Won > 0 && yellow.HPLeft > 0.75) || red.WinShare() > 0.7 {
-				t.Errorf("class %d L%d under the seed: even won %.0f%%, +2 %.0f%% HP left, +5 won %.0f%%",
+				t.Errorf("class %d L%d under the tables: even won %.0f%%, +2 %.0f%% HP left, +5 won %.0f%%",
 					class, level, 100*even.WinShare(), 100*yellow.HPLeft, 100*red.WinShare())
 			}
 			was := SimCellOf(pl, SimNPC{}, 5, nil, 8, 1, 10*time.Minute)
@@ -160,7 +164,11 @@ func TestRealBalanceSeedOnRealKits(t *testing.T) {
 // end), wins it nearly always given the time (15-20 minutes under the con
 // rows of 2026-10-30, so the control's fights may last 30); a rooting wizard
 // of 50 pays for a yellow two up under the chances, and with none wins it
-// untouched (the control). A wizard's roots do not take a red at all.
+// nearly always with most of its hit points (the control: untouched under
+// the old Arcane Shackles, which held 50 s from a 1 s cast; the workbook's
+// end at a hit, so the wizard roots with its Arcane Bindings-Wiz, 36 s from
+// a 3 s cast, and a re-root costs it a blow or two). A wizard's roots do not
+// take a red at all.
 func TestRealRootPlayHeldToTheCon(t *testing.T) {
 	db := simRealDB(t)
 	none := SeedBalance().WithConColumn([][2]float64{{0, 0}}, func(r *database.BalanceCon, v float64) {
@@ -184,7 +192,7 @@ func TestRealRootPlayHeldToTheCon(t *testing.T) {
 	wizard := kit(13)
 	paid := SimCellOf(wizard, SimNPC{}, 2, SeedBalance(), 16, 1, 10*time.Minute)
 	free := SimCellOf(wizard, SimNPC{}, 2, none, 16, 1, 10*time.Minute)
-	if free.WinShare() < 0.95 || free.HPLeft < 0.9 {
+	if free.WinShare() < 0.95 || free.HPLeft < 0.6 {
 		t.Errorf("a wizard rooting with no root chances: +2 won %.0f%% with %.0f%% left (the control)", 100*free.WinShare(), 100*free.HPLeft)
 	}
 	if paid.WinShare() > 0.9 && paid.HPLeft > 0.75 {

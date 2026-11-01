@@ -110,6 +110,9 @@ type effectJSON struct {
 	Mitigation      *mitigateJSON `json:"mitigation"`
 	Procs           []effectJSON  `json:"procs"`
 	On              string        `json:"on"`
+	// Absolute is a "Statistic Absolute" row's figure: set, not changed by
+	// (the spells lane's key: its speed below 0 a root, its power set)
+	Absolute bool `json:"absolute"`
 }
 
 type petJSON struct {
@@ -345,7 +348,11 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 			add(effectOf(EffectHPTick, e))
 		}
 	case "power":
-		if e.Amount != 0 {
+		if e.Absolute {
+			se := effectOf(EffectPower, e) // the bearer's power set to it (cast.go)
+			se.Set = true
+			add(se)
+		} else if e.Amount != 0 {
 			add(effectOf(EffectPower, e))
 		}
 	case "power_tick":
@@ -518,6 +525,12 @@ const mitigateNoLimit = 100000
 func (d *SpellDef) readSpeedJSON(e effectJSON) {
 	n := round(e.Amount)
 	switch {
+	case n < 0 && e.Absolute:
+		// a speed set below nothing: held in place (the spells lane's "Root"),
+		// resisted as a root is (root.go)
+		se := effectOf(EffectRoot, e)
+		se.Amount, se.AmountMax = 0, 0
+		d.Effects = append(d.Effects, se)
 	case n > 0 || strings.EqualFold(strings.TrimSpace(e.Kind), "speed") && e.Amount == 0:
 		// a speed with no figure is the movement buff too
 		d.Effects = append(d.Effects, SpellEffect{Kind: EffectSpeed, Amount: n, AmountMax: n, ID: e.ID})

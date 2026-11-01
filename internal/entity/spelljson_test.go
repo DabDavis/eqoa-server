@@ -122,6 +122,13 @@ func TestWorkbookKindsMapOntoTheEngines(t *testing.T) {
 		d.Effects[2].Kind != EffectStat || !d.Effects[2].Set || d.Effects[2].Stat != StatStr {
 		t.Errorf("the slow and the sets: %+v", d.Effects)
 	}
+	// a "Statistic Absolute" speed below 0 holds in place; its power is set
+	d = SpellDefFrom("Test Bind", "", "", `{"v":1,"scope":"target","harmful":true,"duration_s":30,
+		"effects":[{"kind":"speed","amount":-50,"absolute":true},{"kind":"power","amount":240,"absolute":true}]}`)
+	if len(d.Effects) != 2 || d.Effects[0].Kind != EffectRoot || d.Effects[1].Kind != EffectPower || !d.Effects[1].Set ||
+		d.Effects[1].Amount != 240 {
+		t.Errorf("the absolutes: %+v", d.Effects)
+	}
 	d = SpellDefFrom("Test Thorns", "", "", `{"v":1,"scope":"self","duration_s":300,"effects":[{"kind":"def_proc","procs":[
 		{"kind":"hp","amount":-8,"on":"defense","resist":"pierce"},{"kind":"hp","amount":12,"on":"defense"}]},
 		{"kind":"proc","procs":[{"kind":"hp","amount":-20,"on":"offense","scale":"int","scale_pct":10}]}]}`)

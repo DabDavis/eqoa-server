@@ -1036,7 +1036,10 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 			}
 			w.healLocked(caster, casterSess, t, spellAmount(e, caster))
 		case EffectPower:
-			if n := spellAmount(e, caster); n > 0 {
+			if e.Set { // the workbook's power set to a figure (spelljson.go)
+				t.Power = min(max(e.Amount, 0), t.MaxPowerNow())
+				t.StatsDirty = true
+			} else if n := spellAmount(e, caster); n > 0 {
 				t.Power = min(t.Power+n, t.MaxPowerNow())
 				t.StatsDirty = true
 			}

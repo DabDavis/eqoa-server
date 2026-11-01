@@ -226,3 +226,70 @@ func TestAPetsSwingEndsItsInvisibilityAlone(t *testing.T) {
 		t.Errorf("after its swing: %d effects, invisible %v; want the AC staying", len(pet.Effects), pet.invisible())
 	}
 }
+
+// a rogue's hide's kind: unseen, and slowed while hidden, each part ending at
+// a hit or a cast
+const hideJSON = `{"v":1,"scope":"self","target_type":"Self","duration_s":300,"effects":[
+	{"kind":"hide","dispel_on_cast":true,"dispel_on_contact":true},
+	{"kind":"speed","amount":-30,"dispel_on_cast":true,"dispel_on_contact":true}]}`
+
+// A hide's slow ends with the hiding at its bearer's action, though the
+// workbook marks it to end only at a hit or a cast (the user, 2026-11-01:
+// "end the slow"): the whole hide ends and the run speed is told again. On
+// the code before, the slow stayed to its time. The controls: a hit and a
+// cast still end it whole; another invisibility's speed stays at an action,
+// and so does a slow beside an invisibility that is not a hide (the rule is
+// the hide's alone).
+func TestAHidesSlowEndsWithTheHiding(t *testing.T) {
+	c := bodyRig(t)
+	run := c.p.SpeedNow()
+	hide := wbSpell(9921, 1, 0, "Test Lurk", hideJSON)
+	c.land(t, hide, 0xFFFFFFFF, 0)
+	if !c.p.Invisible() || c.p.SpeedNow() >= run {
+		t.Fatalf("landed: invisible %v, speed %v (run %v); want hidden and slowed", c.p.Invisible(), c.p.SpeedNow(), run)
+	}
+	c.w.BreakInvis(c.sess, "a swing")
+	if v, ok := lastSpeedSent(c.sent()); effectNamed(c.p.Effects, 9921) != nil || c.p.Invisible() || c.p.SpeedNow() != run ||
+		!ok || v != run {
+		t.Errorf("after an action: on %v, invisible %v, speed %v, told %v %v; want it gone, the run's %v told",
+			effectNamed(c.p.Effects, 9921) != nil, c.p.Invisible(), c.p.SpeedNow(), v, ok, run)
+	}
+
+	for _, end := range []struct {
+		why string
+		do  func(*caster)
+	}{
+		{"a hit", func(d *caster) { d.contactPlayer() }},
+		{"a cast", func(d *caster) { d.w.mu.Lock(); d.w.dispelOnCastLocked(d.p); d.w.mu.Unlock() }},
+	} {
+		d := bodyRig(t)
+		d.land(t, hide, 0xFFFFFFFF, 0)
+		end.do(d)
+		if v, ok := lastSpeedSent(d.sent()); effectNamed(d.p.Effects, 9921) != nil || d.p.Invisible() || d.p.SpeedNow() != run ||
+			!ok || v != run {
+			t.Errorf("after %s: on %v, invisible %v, speed %v, told %v %v; want it gone, the run's %v told", end.why,
+				effectNamed(d.p.Effects, 9921) != nil, d.p.Invisible(), d.p.SpeedNow(), v, ok, run)
+		}
+	}
+
+	f := bodyRig(t)
+	vanish := wbSpell(9922, 30, 0, "Test Quick Fade", `{"v":1,"scope":"self","target_type":"Self","duration_s":300,"effects":[
+		{"kind":"speed","amount":130,"dispel_on_cast":true,"dispel_on_contact":true},
+		{"kind":"invis","dispel_on_cast":true,"dispel_on_contact":true}]}`)
+	f.land(t, vanish, 0xFFFFFFFF, 0)
+	f.w.BreakInvis(f.sess, "a swing")
+	if effectNamed(f.p.Effects, 9922) == nil || f.p.Invisible() || f.p.SpeedNow() <= run {
+		t.Errorf("another invisibility's speed after an action: on %v, invisible %v, speed %v (run %v); want it on, seen, fast",
+			effectNamed(f.p.Effects, 9922) != nil, f.p.Invisible(), f.p.SpeedNow(), run)
+	}
+	g := bodyRig(t)
+	veil := wbSpell(9923, 30, 0, "Test Heavy Veil", `{"v":1,"scope":"self","target_type":"Self","duration_s":300,"effects":[
+		{"kind":"invis","dispel_on_cast":true,"dispel_on_contact":true},
+		{"kind":"speed","amount":-30,"dispel_on_cast":true,"dispel_on_contact":true}]}`)
+	g.land(t, veil, 0xFFFFFFFF, 0)
+	g.w.BreakInvis(g.sess, "a swing")
+	if effectNamed(g.p.Effects, 9923) == nil || g.p.Invisible() || g.p.SpeedNow() >= run {
+		t.Errorf("an invisibility's slow, not a hide's, after an action: on %v, invisible %v, speed %v (run %v); want it on, "+
+			"seen, slowed", effectNamed(g.p.Effects, 9923) != nil, g.p.Invisible(), g.p.SpeedNow(), run)
+	}
+}

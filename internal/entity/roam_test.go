@@ -3,6 +3,7 @@ package entity
 import (
 	"math"
 	"math/rand"
+	"sort"
 	"testing"
 	"time"
 )
@@ -55,11 +56,12 @@ func run(w *World, start time.Time, d time.Duration, each func(now time.Time)) t
 func TestACreatureWandersWithinItsRadiusAtAWalkAndRests(t *testing.T) {
 	w := roamWorld(t)
 	npc := addNPC(w, 100, "beetle", 1005, 1000, creatureModel, 0)
-	var walked, rests, pauses, fulls int
+	var walked, stood, rests int
 	var resting time.Time
 	var legFromX, legFromZ float32
+	var legs []float64
 	px, pz := npc.X, npc.Z
-	run(w, time.Now(), 5*time.Minute, func(now time.Time) {
+	run(w, time.Now(), 30*time.Minute, func(now time.Time) {
 		step := math.Hypot(float64(npc.X-px), float64(npc.Z-pz))
 		px, pz = npc.X, npc.Z
 		if d := math.Hypot(float64(npc.X-npc.SpawnX), float64(npc.Z-npc.SpawnZ)); d > float64(DefaultRoamRadius)+0.01 {
@@ -78,31 +80,28 @@ func TestACreatureWandersWithinItsRadiusAtAWalkAndRests(t *testing.T) {
 				t.Fatalf("walking at %.2f, want %v", v, NPCWalkSpeed)
 			}
 			if !resting.IsZero() {
-				// a pause or a rest after a walk (the first, before any, is
-				// shorter)
+				// Sandstorm's rest after a walk (the first, before any, is
+				// shorter), and never a short pause
 				rest, slack := now.Sub(resting), 200*time.Millisecond
-				pause := rest >= roamPauseMin-slack && rest <= roamPauseMax+slack
-				full := rest >= roamRestMin-slack && rest <= roamRestMax+slack
-				if walked > 1 && !pause && !full {
-					t.Fatalf("stood %v between walks, want a pause of %v to %v or a rest of %v to %v", rest, roamPauseMin, roamPauseMax, roamRestMin, roamRestMax)
-				}
-				if walked > 1 && pause {
-					pauses++
-				} else if walked > 1 {
-					fulls++
+				if walked > 1 && (rest < roamRestMin-slack || rest > roamRestMax+slack) {
+					t.Fatalf("stood %v between walks, want Sandstorm's rest of %v to %v", rest, roamRestMin, roamRestMax)
 				}
 				resting = time.Time{}
 			}
 		default:
+			if walked > 0 {
+				stood++
+			}
 			if npc.Loco != LocoStand {
 				t.Fatalf("standing with animation %d", npc.Loco)
 			}
 			if resting.IsZero() {
 				if walked > 0 {
-					// a leg of 5 to 35
-					if leg := distXZ(legFromX, legFromZ, npc.X, npc.Z); leg < roamLegMin-0.01 || leg > roamLegMax+0.01 {
-						t.Fatalf("walked a leg of %.2f, want %v to %v", leg, roamLegMin, roamLegMax)
+					leg := distXZ(legFromX, legFromZ, npc.X, npc.Z)
+					if leg < roamMinStep-0.01 || leg > roamLegs[len(roamLegs)-1]+0.01 {
+						t.Fatalf("walked a leg of %.2f, want %v to %v", leg, roamMinStep, roamLegs[len(roamLegs)-1])
 					}
+					legs = append(legs, float64(leg))
 				}
 				resting = now
 				rests++
@@ -110,11 +109,34 @@ func TestACreatureWandersWithinItsRadiusAtAWalkAndRests(t *testing.T) {
 			}
 		}
 	})
-	if walked == 0 || rests < 5 {
-		t.Fatalf("in five minutes it walked %d ticks and rested %d times", walked, rests)
+	if len(legs) < 100 {
+		t.Fatalf("in thirty minutes it walked %d legs", len(legs))
 	}
-	if pauses == 0 || fulls == 0 {
-		t.Errorf("%d pauses and %d rests in five minutes: both should come", pauses, fulls)
+	// Sandstorm's legs: median 19, 90% under 40.4 (roam.go); on its feet
+	// about half the time
+	sort.Float64s(legs)
+	med, p90 := legs[len(legs)/2], legs[len(legs)*9/10]
+	if med < 14 || med > 25 || p90 < 30 || p90 > 50 {
+		t.Errorf("legs median %.1f, 90%% under %.1f: want Sandstorm's 19 and 40", med, p90)
+	}
+	if f := float64(walked) / float64(walked+stood); f < 0.38 || f > 0.62 {
+		t.Errorf("on its feet %.0f%% of the time, want about half, as Sandstorm's", f*100)
+	}
+}
+
+// Sandstorm's leg lengths are drawn as measured: roamLeg at u is the table
+// at its points and straight between them.
+func TestALegIsSandstormsLength(t *testing.T) {
+	for i, want := range roamLegs {
+		if got := roamLeg(float64(i) / float64(len(roamLegs)-1)); math.Abs(float64(got-want)) > 1e-4 {
+			t.Errorf("roamLeg(%d/20) = %v, want %v", i, got, want)
+		}
+	}
+	if got, want := roamLeg(0.525), (roamLegs[10]+roamLegs[11])/2; math.Abs(float64(got-want)) > 1e-4 {
+		t.Errorf("roamLeg(0.525) = %v, want %v (halfway)", got, want)
+	}
+	if roamLeg(-1) != roamLegs[0] || roamLeg(2) != roamLegs[len(roamLegs)-1] {
+		t.Errorf("roamLeg out of 0..1 is not clamped")
 	}
 }
 

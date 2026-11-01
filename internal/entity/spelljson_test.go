@@ -372,6 +372,123 @@ func TestWorkbookLull(t *testing.T) {
 	}
 }
 
+// A root that ends at contact (the workbook's Root, Arcane Bindings,
+// Caltrops) holds after its landing and ends at the next hit; until
+// 2026-11-01 its own landing's anger was that contact, and it never held.
+func TestARootThatEndsAtContactHoldsUntilAHit(t *testing.T) {
+	noResist(t)
+	root := wbSpell(9811, 8, 1, "Test Root", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"duration_s":36,
+		"effects":[{"kind":"speed","amount":-100,"absolute":true,"resist":"ar","dispel_on_contact":true}]}`)
+	c := newCaster(t)
+	c.npc.HP, c.npc.MaxHP, c.npc.Level = 5000, 5000, 5
+	held := func() bool {
+		for _, e := range c.npc.Effects {
+			if e.SpellID == root.SpellID && e.Root {
+				return true
+			}
+		}
+		return false
+	}
+	if !c.w.StartCast(c.sess, root, c.npcO, c.at(0)) {
+		t.Fatal("not begun")
+	}
+	c.tick(root.CastTime + castLand)
+	if !held() {
+		t.Fatal("the root ended at its own landing")
+	}
+	b := strike()
+	b.SpellID = 9812
+	if !c.w.StartCast(c.sess, b, c.npcO, c.at(5*time.Second)) {
+		t.Fatal("the strike not begun")
+	}
+	c.tick(5*time.Second + b.CastTime + castLand)
+	if held() {
+		t.Error("the root held through a hit")
+	}
+}
+
+// A spell whose snare ends at contact and whose damage ticks (Caltrops):
+// its own tick is no contact for itself, so it holds through its ticks and
+// ends at a hit from elsewhere.
+func TestASpellsOwnTickDoesNotEndItsContactSnare(t *testing.T) {
+	noResist(t)
+	caltrops := wbSpell(9831, 4, 1, "Test Caltrops", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"duration_s":18,
+		"effects":[{"kind":"hp_tick","amount":-5,"resist":"pierce"},{"kind":"speed","amount":-50,"resist":"dr","duration_s":8,"dispel_on_contact":true}]}`)
+	c := newCaster(t)
+	c.npc.HP, c.npc.MaxHP, c.npc.Level = 5000, 5000, 5
+	on := func() bool {
+		for _, e := range c.npc.Effects {
+			if e.SpellID == caltrops.SpellID {
+				return true
+			}
+		}
+		return false
+	}
+	if !c.w.StartCast(c.sess, caltrops, c.npcO, c.at(0)) {
+		t.Fatal("not begun")
+	}
+	at := caltrops.CastTime + castLand
+	c.tick(at)
+	c.tick(at + 7*time.Second)
+	if !on() || c.npc.HP >= 5000 {
+		t.Fatalf("after its ticks: on %v, HP %d", on(), c.npc.HP)
+	}
+	b := strike()
+	b.SpellID = 9832
+	if !c.w.StartCast(c.sess, b, c.npcO, c.at(8*time.Second)) {
+		t.Fatal("the strike not begun")
+	}
+	c.tick(8*time.Second + b.CastTime + castLand)
+	if on() {
+		t.Error("the snare stayed through a hit")
+	}
+}
+
+// A harmful spell the workbook gives no time whose effect ends at contact
+// lasts until contact (Enshrouding darkness, the shadow knight's snare: the
+// user's "until hit"): still on ten minutes later, gone at a hit. The
+// control: a debuff of no time that does not end at contact lasts none.
+func TestASnareOfNoTimeThatEndsAtContactLastsUntilHit(t *testing.T) {
+	noResist(t)
+	snare := wbSpell(9821, 60, 1, "Test Darkness", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"stack":0,"level":60,
+		"effects":[{"id":"07A7","type":"Statistic Change","kind":"speed","amount":-50,"resist":"ar","dispel_on_contact":true}]}`)
+	if snare.Def.Duration != untilContact {
+		t.Fatalf("the snare's time %v, want %v", snare.Def.Duration, untilContact)
+	}
+	stench := wbSpell(9822, 6, 1, "Test Stench", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,
+		"effects":[{"kind":"stat","stat":"agi","amount":-5}]}`)
+	if stench.Def.Duration != 0 {
+		t.Fatalf("the control's time %v, want none", stench.Def.Duration)
+	}
+	c := newCaster(t)
+	c.npc.HP, c.npc.MaxHP, c.npc.Level = 5000, 5000, 55
+	on := func() bool {
+		for _, e := range c.npc.Effects {
+			if e.SpellID == snare.SpellID {
+				return true
+			}
+		}
+		return false
+	}
+	if !c.w.StartCast(c.sess, snare, c.npcO, c.at(0)) {
+		t.Fatal("not begun")
+	}
+	c.tick(snare.CastTime + castLand)
+	c.tick(10 * time.Minute)
+	if !on() {
+		t.Fatal("the snare is gone before any hit")
+	}
+	b := strike()
+	b.SpellID = 9823
+	if !c.w.StartCast(c.sess, b, c.npcO, c.at(10*time.Minute)) {
+		t.Fatal("the strike not begun")
+	}
+	c.tick(10*time.Minute + b.CastTime + castLand)
+	if on() {
+		t.Error("the snare stayed through a hit")
+	}
+}
+
 // A cure takes off what its words remove and leaves the rest: poison goes,
 // a disease stays (the control); no words take every harmful effect.
 func TestWorkbookCure(t *testing.T) {

@@ -710,6 +710,26 @@ func TestAStanceEndsTheOtherStances(t *testing.T) {
 	}
 }
 
+// A run speed buff whose cure is the workbook's "ID?" (Spirit of the Wolf)
+// ends its bearer's other speed buffs and leaves its harm (the user: "yes
+// make them end other speed buffs").
+func TestASpeedBuffsIDCureEndsOtherSpeedBuffs(t *testing.T) {
+	wolf := wbSpell(9871, 8, 0, "Test Wolf Spirit", `{"v":1,"scope":"self","target_type":"Self","harmful":false,"duration_s":1800,"stack":2,"level":8,
+		"effects":[{"kind":"cure","removes":"ID?"},{"kind":"speed","amount":30}]}`)
+	if len(wolf.Def.Removes) != 1 || wolf.Def.Removes[0] != "speed" || wolf.Def.Stance {
+		t.Fatalf("its cure %q, a stance %v", wolf.Def.Removes, wolf.Def.Stance)
+	}
+	c := newCaster(t)
+	until := c.at(time.Hour)
+	c.p.Effects = append(c.p.Effects,
+		&ActiveEffect{SpellID: 1, Name: "Test Venom", Until: until, Rules: EffectRules{Harm: true, Resist: StatPR}},
+		&ActiveEffect{SpellID: 2, Name: "Test Haste", Until: until, Speed: true})
+	c.castOn(t, wolf, 0)
+	if got := strings.Join(c.effectNames(), ","); got != "Test Venom,Test Wolf Spirit" {
+		t.Errorf("after the wolf: %s, want the venom kept, the haste ended", got)
+	}
+}
+
 // A player below a spell's lowest level is not affected; one at it is (the
 // control).
 func TestWorkbookLowestLevel(t *testing.T) {

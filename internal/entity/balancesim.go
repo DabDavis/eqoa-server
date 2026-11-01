@@ -98,7 +98,8 @@ type SimPlay struct {
 	Pet      bool
 	PetSpell int
 	// Root: it fights as a rooting caster does (root.go's reason): from
-	// simRootRange off it opens with its highest root, and whenever the NPC
+	// simRootRange off it opens with its highest root (of those that hold
+	// through a hit, when it has one: sortBook), and whenever the NPC
 	// is free (resisted, broken, worn off) it roots it again before anything
 	// else; once the NPC is held it steps back to simRootRange (the walk's
 	// time spent casting nothing) and casts its spells from there, none of
@@ -242,7 +243,7 @@ type simFight struct {
 	t0   time.Time
 
 	nukes, heals, petHeals []CastSpell
-	roots                  []CastSpell // the book's roots, the highest first (SimPlay.Root)
+	roots                  []CastSpell // the book's roots, one that holds through a hit first, then the highest (SimPlay.Root)
 	reserve                int         // power kept for a heal
 	casts                  int
 	moveUntil              time.Time // a rooting caster stepping back: no cast till then
@@ -715,7 +716,16 @@ func (f *simFight) sortBook() {
 			f.roots = append(f.roots, s)
 		}
 	}
-	sort.SliceStable(f.roots, func(i, j int) bool { return f.roots[i].Level > f.roots[j].Level })
+	// a root that holds through a hit first (the workbook's roots end on
+	// contact: a rooting caster's own nuke frees the creature, so it would
+	// root again at every cast, 210 power a time for a wizard's Arcane
+	// Shackles at 45), then the highest
+	sort.SliceStable(f.roots, func(i, j int) bool {
+		if a, b := f.roots[i].Def.DispelOnContact, f.roots[j].Def.DispelOnContact; a != b {
+			return b
+		}
+		return f.roots[i].Level > f.roots[j].Level
+	})
 	rate := func(s *CastSpell) float64 { return simDamage(s, p) / lockoutOf(s).Seconds() }
 	sort.SliceStable(f.nukes, func(i, j int) bool { return rate(&f.nukes[i]) > rate(&f.nukes[j]) })
 	sort.SliceStable(f.heals, func(i, j int) bool { return simHeal(&f.heals[i], p) > simHeal(&f.heals[j], p) })

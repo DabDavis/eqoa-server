@@ -118,6 +118,7 @@ type effectJSON struct {
 	Scope           string        `json:"scope"`
 	DispelOnCast    bool          `json:"dispel_on_cast"`
 	DispelOnContact bool          `json:"dispel_on_contact"`
+	CureMax         int           `json:"cure_max"` // a cure's most effects taken (Restorative's 3), 0 all
 	Pet             *petJSON      `json:"pet"`
 	Item            *itemJSON     `json:"item"`
 	Consume         *itemJSON     `json:"consume"`
@@ -261,10 +262,13 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 			for i := n; i < len(d.Effects); i++ {
 				targetOnly[i] = true
 			}
-		case es == "group" && scope == "target" && groupShare(d.Effects[n:]):
+		case es == "group" && (scope == "target" || scope == "pet") && groupShare(d.Effects[n:]):
 			// a share for the caster's group in a spell cast at an enemy
-			// (the shadow knight's screams' AC): its caster's, its group's
-			// when a mastery adds the spell (ShareGroup, lifetap.go)
+			// (the shadow knight's screams' AC) or at its pet (the
+			// alchemist's Destroy Contraption: the group's healing over time
+			// and power as its contraption goes; the user, 2026-11-01, "make
+			// like scream"): its caster's, its group's when a mastery adds the
+			// spell (ShareGroup, lifetap.go)
 			for i := n; i < len(d.Effects); i++ {
 				d.Effects[i].Self, d.Effects[i].ShareGroup = true, true
 			}
@@ -432,7 +436,7 @@ func effectOf(k EffectKind, e effectJSON) SpellEffect {
 // (Arcane Bonding's root on the target's group of enemies is not one).
 func groupShare(es []SpellEffect) bool {
 	for _, e := range es {
-		if e.Kind != EffectStat || e.Amount <= 0 {
+		if e.Kind != EffectStat && e.Kind != EffectPower || e.Amount <= 0 {
 			return false
 		}
 	}
@@ -608,6 +612,9 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 			}
 		}
 		d.Removes = append(d.Removes, rm)
+		if e.CureMax > 0 {
+			d.CureMax = e.CureMax
+		}
 	case "charm":
 		add(effectOf(EffectCharm, e))
 	case "invis":

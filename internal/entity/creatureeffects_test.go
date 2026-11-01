@@ -196,3 +196,59 @@ func TestAPetsAreaNukeAndRootLandRoundItsTarget(t *testing.T) {
 		t.Errorf("the root outlasted its 10 s")
 	}
 }
+
+// The alchemist's Destroy Contraption (the user: "make like scream"): its pet
+// takes the blast, and the group's healing over time and power land on the
+// caster and, when a mastery adds the spell, its group within 30; one 50 off
+// gets nothing, and without the mastery the group nothing (the control).
+func TestADestroyedContraptionsBoostIsItsGroups(t *testing.T) {
+	noResist(t)
+	blast := func(id int, name string) CastSpell {
+		sp := wbSpell(id, 44, 3, name, `{"v":1,"scope":"pet","target_type":"Friendly","harmful":false,"stack":0,"level":44,"radius":30,
+			"effects":[{"id":"005D","type":"Dmg/Heal","kind":"hp","amount":-20000},
+			{"id":"005E","type":"Dmg/Heal","kind":"power","amount":50,"duration_s":24,"scope":"group"},
+			{"id":"005E","type":"Dmg/Heal","kind":"stat","stat":"hot","amount":150,"duration_s":24,"scope":"group"}]}`)
+		sp.Recast = 0
+		return sp
+	}
+	for _, mastery := range []bool{true, false} {
+		r := newPetRig(t)
+		pet, _ := r.summon(t, fireElemental(), 0)
+		r.p.Class, r.p.Power, r.p.MaxPower = 14, 100, 5000
+		near := &Player{ServerID: 51002, Name: "Near", HP: 500, MaxHP: 500, Power: 100, MaxPower: 5000, X: r.p.X + 10, Y: r.p.Y, Z: r.p.Z, World: r.p.World}
+		far := &Player{ServerID: 51003, Name: "Far", HP: 500, MaxHP: 500, Power: 100, MaxPower: 5000, X: r.p.X + 50, Y: r.p.Y, Z: r.p.Z, World: r.p.World}
+		r.w.Players[near.ServerID], r.w.Players[far.ServerID] = near, far
+		r.w.groups = map[uint32]*Group{7: {ID: 7, Members: []EntityID{r.p.ServerID, near.ServerID, far.ServerID}}}
+		r.p.GroupID, near.GroupID, far.GroupID = 7, 7, 7
+		sp := blast(9501, "Test Contraption Blast")
+		if mastery {
+			r.w.SetCMCatalog([]database.CMRankRow{{ID: 1, Category: 2, Classes: 1 << 14, Races: 2047, Mastery: "Test Contraptions", Rank: 1,
+				Name: "Test Blast", Adds: "Test Contraption Blast@44", AddSpells: "9501", Enabled: true}})
+		}
+		if !r.w.StartCast(r.sess, sp, r.me, r.at(20*time.Second)) {
+			t.Fatalf("mastery %v: the blast did not begin", mastery)
+		}
+		r.w.mu.Lock()
+		r.w.castSystem(r.at(20*time.Second + sp.CastTime + castLand))
+		r.w.mu.Unlock()
+		hot := func(p *Player) int {
+			n := 0
+			for _, e := range p.Effects {
+				n += e.Mods.HoT
+			}
+			return n
+		}
+		if pet.HP > 0 && !pet.Dead {
+			t.Errorf("mastery %v: the contraption stands at %d", mastery, pet.HP)
+		}
+		if hot(r.p) != 150 || r.p.Power <= 100 {
+			t.Errorf("mastery %v: the alchemist's HoT %d, power %d", mastery, hot(r.p), r.p.Power)
+		}
+		if got := hot(near) == 150 && near.Power > 100; got != mastery {
+			t.Errorf("mastery %v: the near member's HoT %d, power %d", mastery, hot(near), near.Power)
+		}
+		if hot(far) != 0 || far.Power != 100 {
+			t.Errorf("mastery %v: the far member's HoT %d, power %d", mastery, hot(far), far.Power)
+		}
+	}
+}

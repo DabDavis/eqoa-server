@@ -215,7 +215,8 @@ func (w *World) landOnCasterLocked(cs *castState, caster *Player, sess *session.
 	out.spell.Def.Effects = rest
 
 	var mods, shared StatMods
-	stats, group := false, false
+	stats, group, sharedStats := false, false, false
+	sharedPower := 0
 	for _, e := range own {
 		n := spellAmount(e, caster)
 		switch e.Kind {
@@ -228,25 +229,38 @@ func (w *World) landOnCasterLocked(cs *castState, caster *Player, sess *session.
 		case EffectPower:
 			caster.Power = min(max(caster.Power+n, 0), caster.MaxPowerNow())
 			caster.StatsDirty = true
+			if e.ShareGroup && n > 0 {
+				sharedPower += n // Destroy Contraption's power for the group
+				group = true
+			}
 		case EffectStat:
 			mods.add(e.Stat, n)
 			stats = true
 			if e.ShareGroup {
 				shared.add(e.Stat, n)
-				group = true
+				group, sharedStats = true, true
 			}
 		}
 	}
-	if stats && d.Duration > 0 && !caster.IsDead() {
+	lasting := stats && d.Duration > 0
+	if lasting && !caster.IsDead() {
 		w.casterShareLocked(cs, caster, mods, now)
-		// a mastery's form of it shares the group's part with the caster's
-		// group in its radius (the user, 2026-11-01: "SK drain should land on
-		// themself by default, CM may allow group")
-		if group && w.masterySpellLocked(cs.spell.SpellID) {
-			for _, m := range w.groupMembersLocked(caster) {
-				if m != caster && !m.IsDead() && m.World == caster.World && !outOfRange(caster, m.X, m.Y, m.Z, groupShareReach(cs)) {
-					w.shareOnLocked(cs, caster, m, shared, now)
-				}
+	}
+	// a mastery's form of it shares the group's part with the caster's group
+	// in its radius (the user, 2026-11-01: "SK drain should land on themself
+	// by default, CM may allow group"): its stats for the spell's time, its
+	// power at once
+	if group && !caster.IsDead() && w.masterySpellLocked(cs.spell.SpellID) {
+		for _, m := range w.groupMembersLocked(caster) {
+			if m == caster || m.IsDead() || m.World != caster.World || outOfRange(caster, m.X, m.Y, m.Z, groupShareReach(cs)) {
+				continue
+			}
+			if lasting && sharedStats {
+				w.shareOnLocked(cs, caster, m, shared, now)
+			}
+			if sharedPower > 0 {
+				m.Power = min(m.Power+sharedPower, m.MaxPowerNow())
+				m.StatsDirty = true
 			}
 		}
 	}

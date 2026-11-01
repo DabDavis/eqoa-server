@@ -1306,9 +1306,20 @@ func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *sessi
 			if e.Kind != EffectHP {
 				continue
 			}
-			if n := spellAmount(e, caster); n > 0 && pet.HP < pet.MaxHP {
+			switch n := spellAmount(e, caster); {
+			case n > 0 && pet.HP < pet.MaxHP:
 				pet.HP = min(pet.HP+n, pet.MaxHP)
 				w.tellAmountLocked(caster, casterSess, pet.ServerID, n)
+			case n < 0 && !e.Self && !pet.Dead:
+				// its owner's blast on it (the alchemist's Destroy
+				// Contraption, -20000: until 2026-11-01 a friendly spell's
+				// hit on a pet was dropped and the contraption stood)
+				pet.HP = max(pet.HP+n, 0)
+				w.tellAmountLocked(caster, casterSess, pet.ServerID, n)
+				if pet.HP == 0 {
+					log.Printf("Cast: %s's %q destroys the pet %q", caster.Name, cs.spell.Name, pet.Name)
+					w.killNPC(pet)
+				}
 			}
 		}
 	}

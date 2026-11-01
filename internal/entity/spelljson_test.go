@@ -625,6 +625,30 @@ func TestATargetSpellOfAreaEffectsIsAnArea(t *testing.T) {
 	}
 }
 
+// A cure of up to three (Restorative: the user, "make it cure up to 3
+// effects") takes three of four harmful effects, in the order they came, and
+// leaves the newest; one of no count takes all four (the control).
+func TestACureOfUpToThree(t *testing.T) {
+	for _, k := range []struct {
+		js   string
+		left string
+	}{
+		{`{"v":1,"scope":"self","effects":[{"kind":"cure","removes":"","cure_max":3}]}`, "Test D"},
+		{`{"v":1,"scope":"self","effects":[{"kind":"cure","removes":""}]}`, ""},
+	} {
+		c := newCaster(t)
+		until := c.at(time.Hour)
+		for i, n := range []string{"Test A", "Test B", "Test C", "Test D"} {
+			c.p.Effects = append(c.p.Effects, &ActiveEffect{SpellID: i + 1, Name: n, Until: until, Rules: EffectRules{Harm: true, Resist: StatAR}})
+		}
+		cure := wbSpell(974, 16, 0, "Test Restorative", k.js)
+		c.castOn(t, cure, 0)
+		if got := strings.Join(c.effectNames(), ","); got != k.left {
+			t.Errorf("%s: left %q, want %q", k.js, got, k.left)
+		}
+	}
+}
+
 // A player below a spell's lowest level is not affected; one at it is (the
 // control).
 func TestWorkbookLowestLevel(t *testing.T) {

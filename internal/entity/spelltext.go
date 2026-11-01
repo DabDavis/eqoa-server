@@ -242,6 +242,10 @@ type SpellDef struct {
 	Location string
 	// Removes is what a cure takes off, in the workbook's words
 	Removes []string
+	// CureMax is the most effects a cure takes off, in the order its bearer
+	// came by them (Restorative's three: the user, 2026-11-01, "make it cure
+	// up to 3 effects"; the order ours), 0 every one its words take.
+	CureMax int
 	// DispelOnCast and DispelOnContact end what lasts of it when its bearer
 	// casts, or is hit or harmed (workbook.go)
 	DispelOnCast, DispelOnContact bool

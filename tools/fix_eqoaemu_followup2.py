@@ -19,7 +19,15 @@ on this database, and only these parts of it taken):
      (merge_changes: a book holding both keeps ours, one holding the new alone
      takes ours, the masteries, quests and kept buffs naming it name ours, its
      class rows and area go). A rank moved to a new record the map does not
-     put on ours is two spells: listed, left.
+     put on ours is two spells: listed, left. The same for a new record the
+     import made for a workbook row the map now puts on ours with no rank moved to it
+     (the level 60 epic reward quests' options, 2026-11-01, the user: "yes,
+     yes check them": the quest's choice gives ours, nothing the new one;
+     each pairing checked before its row went in): ours also takes the
+     area and class rows a fresh import gives it, and the new record's visual
+     where ours has none (the workbook's Graphic, which the import gave the
+     record it made; tools/fill_spell_visuals_eqoaemu.py matches spells by
+     name, so it never gave ours).
   2. The item such a spell makes is the one its line names (the
      Transformative Pill), and it takes the workbook's use over its own as the
      record takes the workbook's record (the Creative Mix Potion's: a heal of
@@ -114,12 +122,13 @@ MADE_BY = (im.LOG, fu.LOG)
 def merges(db, smap, lists):
     """The doc's 1: (ours, new, the rank) of each rank the masteries import
     moved from a record of ours to a new one whose workbook row the map puts
-    on ours."""
+    on ours, then (ours, new, None) of each new record the import made for a
+    workbook row the map now puts on ours with no rank moved to it."""
     out = []
-    if not im.has_table(db, "cmcatalog_eqoaemu_log"):
-        return out
     recs = {r[0]: r[1] for r in db.execute("SELECT spellid, spellname FROM main.spellpattern")}
-    for rid, op, before, after in db.execute("SELECT id, op, before, after FROM main.cmcatalog_eqoaemu_log ORDER BY rowid"):
+    ranks = db.execute("SELECT id, op, before, after FROM main.cmcatalog_eqoaemu_log ORDER BY rowid").fetchall() \
+        if im.has_table(db, "cmcatalog_eqoaemu_log") else []
+    for rid, op, before, after in ranks:
         b, a = fu.loads(before) or {}, fu.loads(after) or {}
         if op != "update" or not isinstance(b, dict) or not isinstance(a, dict) or \
                 "add_spells" not in b or "add_spells" not in a:
@@ -136,6 +145,25 @@ def merges(db, smap, lists):
             lists["a rank the masteries import moved to a new record the map does not put on ours (left: two spells)"].append(tag)
             continue
         out.append(dict(ours=ours, new=made, rank=rid, ours_name=recs[ours], new_name=recs[made]))
+        lists["one spell's two records made one (ours kept: the map's row on it)"].append(tag)
+    # a new record the import made for a row the map now spells otherwise on ours
+    seen = {m["new"] for m in out}
+    made_by_import = set()
+    if im.has_table(db, im.LOG):
+        made_by_import = {json.loads(k).get("spellid") for (k,) in db.execute(
+            f"SELECT key FROM main.{im.LOG} WHERE tbl = 'spellpattern' AND action = 'insert'")}
+    for hx in sorted(smap):
+        m = im.map_entry(smap, hx)
+        if m is None or not m[1].startswith("spelled otherwise") or not re.fullmatch(r"[0-9A-F]{1,4}", hx):
+            continue
+        ours, made = m[0], im.NEW_BASE + int(hx, 16)
+        if made in seen or made == ours or made not in recs or ours not in recs:
+            continue  # merged by its rank, or once already (gone), or not ours
+        tag = f"row {hx}: {made} {recs[made]!r} -> {ours} {recs[ours]!r}"
+        if made not in made_by_import:
+            lists["a record of a row the map spells otherwise on ours that the import did not make (left)"].append(tag)
+            continue
+        out.append(dict(ours=ours, new=made, rank=None, ours_name=recs[ours], new_name=recs[made]))
         lists["one spell's two records made one (ours kept: the map's row on it)"].append(tag)
     return out
 
@@ -268,6 +296,31 @@ def plan(db, wb, smap, disc=None, icons=None, weres=None, bodies=None, ranks=Non
             changes.append(dict(tbl="spelleffect", action="update", key={"spellid": sid}, before=before, set=after,
                                 note="one spell's two records: the workbook's effects on ours"))
             counts["effects rows of ours taking a merged record's workbook effects"] += 1
+    # the merged record's visual on ours where ours has none
+    for m in pairs:
+        a = db.execute("SELECT fxdict FROM main.spelleffect WHERE spellid = ?", (m["ours"],)).fetchone()
+        b = db.execute("SELECT fxdict FROM main.spelleffect WHERE spellid = ?", (m["new"],)).fetchone()
+        if a is None or b is None or not b[0] or a[0] == b[0]:
+            continue
+        if a[0]:
+            lists["a merged record's visual not ours (ours kept)"].append(f"{m['new']} into {m['ours']}: {b[0]}, ours {a[0]}")
+            continue
+        c = next((c for c in changes if c["tbl"] == "spelleffect" and c["action"] == "update"
+                  and c["key"] == {"spellid": m["ours"]}), None)
+        if c is None:
+            changes.append(dict(tbl="spelleffect", action="update", key={"spellid": m["ours"]}, before={"fxdict": a[0]},
+                                set={"fxdict": b[0]}, note="one spell's two records: the merged record's visual on ours"))
+        else:
+            c["before"]["fxdict"], c["set"]["fxdict"] = a[0], b[0]
+        counts["effects rows of ours taking a merged record's visual"] += 1
+    # and the area and class rows a fresh import gives ours
+    rows = im.changes_of(dict(spells=[], effects=[], areas=[e for e in p["areas"] if e["spellid"] in ours], moves=[],
+                              links=[x for x in p["links"] if x["spellid"] in ours], scrolls=[], stock=[], migrations=[],
+                              gates=[], foods={}, made={}))
+    for c in rows:
+        c["note"] = "one spell's two records: the workbook's area or class row on ours"
+        counts[f"merged: {c['tbl']} rows of ours ({c['action']})"] += 1
+    changes += rows
     # the items: made ones, their rows, the uses made and changed
     made = im.changes_of(dict(spells=[], effects=[], areas=[], moves=[], links=[], scrolls=[], stock=[], migrations=[],
                               gates=[], foods={}, made=p["made"]))

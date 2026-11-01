@@ -46,13 +46,14 @@ Five teleports EQOAEmu's workbook brought (tools/import_eqoaemu_spells.py,
   Prophet Envar", "Ports to the first chamber of PoE's tower", EQOA-Data's
   Envaric Ascension guide): the nobles' floor (the guide's first chamber,
   where its "Jal'Raeth Nobles" stand), at its middle, a floor disc (sprite
-  174DA8B2: four on the disc, three in that tower). The chamber is a room of
-  the zone's own collision, walled all round; the server lands a place under
-  a roof where a body walks to from it (entity/gates.go), so in the chamber.
+  174DA8B2: four on the disc, three in that tower; the spot ours). The
+  chamber is a room of the zone's own collision, walled all round; the
+  server lands a place under a roof where a body walks to from it
+  (entity/gates.go), so in the chamber.
 - Sky Portal (druid, wizard 60) to the Plane of Sky's main isle ("port up to
   the main PoS isle with a wiz/druid", "the main Island (where you originally
   port up to)", its Plane of Sky guide): where the Endless Tower's portal lands
-  players (handlers/waysender.go's Sky Portal), beside Sartheret.
+  players (handlers/waysender.go's Sky Portal), beside Sartheret: the spot ours.
 - Stonewatcher's Portal (the wizard's mastery for North Ro Gate) to Stone
   Watchers: "He sends you to Stone Watchers (C) next to a dam (wizard's port
   takes you very close)" (its stat-boost quests, the wisdom trial). The dam is
@@ -194,9 +195,10 @@ KELINAR = stone(0, 12487.3, 68.2, 25490.2, "Kelinar's town (SW), among its four 
 ARCADIN = beside("Waysender Yuresh", 2, "Arcadin, by its waysender: ours")
 DEAD_HILLS = beside("Fendren the Forgotten", 1, "Dead Hills (SE) in the Rathe, by Fendren the Forgotten")
 ENVAR_TOWER = stone(1, 5276.4, 71.4, 9261.2, "the first chamber of the Prophet of Envar's tower (Envar, the Rathe), the nobles' "
-                    "floor, its middle (a floor disc, sprite 174DA8B2), inside: the server lands it under the chamber's roof")
+                    "floor, its middle (a floor disc, sprite 174DA8B2; the spot ours), inside: the server lands it under the "
+                    "chamber's roof")
 SKY_ISLE = stone(4, 4834.8, 250.1, 5524.7, "the Plane of Sky's main isle, where the Endless Tower's portal lands players "
-                 "(handlers/waysender.go's Sky Portal), beside Sartheret")
+                 "(handlers/waysender.go's Sky Portal), beside Sartheret: the spot ours")
 STONEWATCH_DAM = stone(0, 19045.0, 52.0, 30541.0, "Stone Watchers (N), the west bank at the dam across its river (walls ECE32E16 "
                        "and towers 045C386C), by the wisdom trial's reaver gnoll: ours, by the words")
 SAERK = middle(0, 20000, 12000, "NW", "Saerk Towers")

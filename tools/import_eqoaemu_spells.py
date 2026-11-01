@@ -124,8 +124,9 @@ What it writes, and from what:
       Appearance's sprite the other way round (itemeffect.body, as the
       server reads a spell's sprite: the workbook writes every SpriteID
       byte-reversed; the invisible body none, its Invisible said by the
-      line), its reach (unk5) its Range; what no line says (a resist)
-      listed. It is named as our records
+      line; with --bodies, cmd/modelbake's models.txt, one the disc has no
+      CSprite of listed and not written), its reach (unk5) its Range; what
+      no line says (a resist) listed. It is named as our records
       name such items (MADE_NAMES: "<X> Corrective" for the sheets' "<X>
       Cure Potion", "<X> Potion" for a "<X> Mix Potion", no " Effect"),
       910000 + its ItemID (950000 + its spell's SpellID with none). One no
@@ -186,7 +187,7 @@ window, so no restart is needed; the class templates and pet taps read
 classspells at the start.
 
     tools/import_eqoaemu_spells.py --sheets <dir of TSVs> | --ods <workbook.ods>
-        --map <spellmap.tsv> [--iso <disc.iso>] [--db eqoa.db] [--save-plan FILE]
+        --map <spellmap.tsv> [--iso <disc.iso>] [--bodies <worlds/models.txt>] [--db eqoa.db] [--save-plan FILE]
     tools/import_eqoaemu_spells.py --db eqoa.db --plan FILE --apply
     tools/import_eqoaemu_spells.py --db eqoa.db --undo [--force]
 """
@@ -1382,10 +1383,12 @@ def split_map(db, wb, map_path, out_path):
     return done
 
 
-def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None):
+def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None, bodies=None):
     """Everything --apply would write, and the report's lists. weres: the
     were quests' reward spells (were_rewards); icons: the disc's (disc_icons),
-    which IconID's byte order is read by (icon_of)."""
+    which IconID's byte order is read by (icon_of); bodies: the disc's
+    CSprites (read_bodies), a use's body no CSprite has listed and not
+    written."""
     weres = weres or {}
     rcols = columns(db, "spellpattern")
     records = {r[0]: dict(zip(rcols, r)) for r in db.execute(f"SELECT {', '.join(rcols)} FROM main.spellpattern")}
@@ -1413,7 +1416,7 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None):
     lists = collections.defaultdict(list)
     counts = collections.Counter()
     foods = plan_foods(db, wb, items_by_name, item_names, lists, counts)
-    made = MadeItems(db, wb, items_by_name, item_names, lists, counts, icons, foods)
+    made = MadeItems(db, wb, items_by_name, item_names, lists, counts, icons, foods, bodies)
 
     by_sid = collections.defaultdict(list)
     split_of = {}   # a split row's new spellid -> the record it leaves
@@ -2018,6 +2021,19 @@ USE_DEFAULTS = {"line": "", "name": "", "icon": 0, "breaks": "", "wear": 0, "are
 ITEMEFFECT_ADDED = [("body", "INTEGER NOT NULL DEFAULT 0"), ("target_line", "TEXT NOT NULL DEFAULT ''")]
 
 
+def read_bodies(path):
+    """The disc's CSprites, as cmd/modelbake writes them (<worlds>/models.txt,
+    which the server reads: a line a body, its DictID in hex first; # a
+    comment)."""
+    out = set()
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            w = line.split("#", 1)[0].split()
+            if w:
+                out.add(int(w[0], 16))
+    return out
+
+
 def potion_desc(name, objs, thrown, area, place, cures):
     """A made potion's description, in the words of ours (seed_potions.py's)."""
     kinds = {o["kind"] for o in objs}
@@ -2060,8 +2076,9 @@ class MadeItems:
     makes"): settle() names each spell's created items as the server finds
     them, making those none of ours; out holds what --apply writes."""
 
-    def __init__(self, db, wb, items_by_name, item_names, lists, counts, icons=None, foods=None):
+    def __init__(self, db, wb, items_by_name, item_names, lists, counts, icons=None, foods=None, bodies=None):
         self.db, self.wb, self.lists, self.counts, self.icons = db, wb, lists, counts, icons
+        self.bodies = bodies
         self.items_by_name, self.item_names = items_by_name, item_names
         self.cols = columns(db, "itempattern")
         self.rows = {r[0]: dict(zip(self.cols, r)) for r in
@@ -2298,7 +2315,7 @@ class MadeItems:
         icon = (icon_of(cell(info, "IconID"), self.icons) or 0) if lasting and not thrown else 0
         self.out["items"].append(dict(patternid=pid, row=row, sibling=sib["patternid"]))
         self.out["itemeffects"].append(dict(patternid=pid, line=line, name="", icon=icon, breaks="", wear=0,
-                                            area=float(area), source="eqoaemu", **potion_extras(objs, thrown, area)))
+                                            area=float(area), source="eqoaemu", **self.extras(objs, thrown, area, tag)))
         self.keep(pid, row)
         self.uses[pid] = self.out["itemeffects"][-1]
         self.counts["made items (potions)"] += 1
@@ -2341,7 +2358,7 @@ class MadeItems:
         level = num(info, "Level") or num(s, "Level") or 1
         objs, radius = self.effects_of(rows)
         area = radius if thrown else 0
-        extras = potion_extras(objs, thrown, area)
+        extras = self.extras(objs, thrown, area, tag)
         if old is not None and not replace:
             self.given.add(pid)
             self.use_columns(pid, r, tag, old, {"body": extras.get("body", 0),
@@ -2379,6 +2396,17 @@ class MadeItems:
             line=line, icon=(icon_of(cell(info, "IconID"), self.icons) or 0) if lasting and not thrown else 0,
             area=float(area), body=extras.get("body", 0), target_line=extras.get("target_line", ""), source="eqoaemu"),
             True)
+
+    def extras(self, objs, thrown, area, tag):
+        """A use's columns past its line (potion_extras), its body only
+        where the disc has that CSprite when the disc's bodies are known
+        (--bodies): one it lacks listed, not written (the server shows no
+        body the disc lacks either: entity/illusion.go)."""
+        out = potion_extras(objs, thrown, area)
+        if "body" in out and self.bodies is not None and out["body"] not in self.bodies:
+            self.lists["a use's body no CSprite on the disc has (not written)"].append(f"{tag}: {out['body']:#010x}")
+            del out["body"]
+        return out
 
     def use_columns(self, pid, r, tag, old, want, replace):
         """An existing use's columns made want's: all of them (replace: the
@@ -3171,6 +3199,8 @@ def main():
     ap.add_argument("--ods", help="the workbook itself (.ods)")
     ap.add_argument("--map", help="the SpellID map (sheet_id, spellid, how)")
     ap.add_argument("--iso", help="the Frontiers disc: a made spelleffect row takes the workbook's visual if the disc has it")
+    ap.add_argument("--bodies", help="cmd/modelbake's models.txt (the disc's CSprites): a use's body the disc lacks "
+                                     "listed and not written")
     ap.add_argument("--link-existing", action="store_true", help="give spells we have the classes the workbook adds")
     ap.add_argument("--were-quests", default=WERE_QUESTS,
                     help="the were quests' file, whose reward spells are no class's (default tools/quests/data/weres.json)")
@@ -3214,7 +3244,7 @@ def main():
             import fill_spell_visuals_eqoaemu as fsv
             disc, icons = fsv.disc_visuals(a.iso), fsv.disc_icons(a.iso)
         p = plan(db, Workbook(read_workbook(a.sheets, a.ods)), read_map(a.map), disc, a.link_existing,
-                 were_rewards(a.were_quests), icons)
+                 were_rewards(a.were_quests), icons, read_bodies(a.bodies) if a.bodies else None)
         p["were_quest_spells"] = were_quest_check(p, read_map(a.map), Workbook(read_workbook(a.sheets, a.ods)),
                                                   were_rewards(a.were_quests))
     report(p, a.list)

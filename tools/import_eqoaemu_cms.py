@@ -41,7 +41,11 @@ cmcatalog (entity/cmbuy.go), the workbook winning wherever it has a value:
   disabled (never deleted), unless a character owns it.
 - charcms is not touched: what a character paid stays its paid cost; a
   bought rank whose cost changes is counted.
-- Rows a GM changed (gm_audit, tbl cmcatalog) are overwritten too, and listed.
+- Rows a GM changed (gm_audit, tbl cmcatalog, through the panel or an agent:
+  not a tool's line) are overwritten too, and listed.
+- A rank's prerequisites the sheet names by a master class other than its
+  own are the sheet's slip and left out (Death Knight's abilities name
+  Slayer: one master class at a time would bar them for good).
 - The workbook's racial master classes (Deputy, Juggernaut, ...: our seed put
   them under Racial, 1) are Master Class, 4, as CLIENT's window and the one
   master class rule (OneMasterClass) read them: --racial-mc keep leaves 1.

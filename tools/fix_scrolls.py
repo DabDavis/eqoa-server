@@ -29,7 +29,8 @@ spell early; and some scrolls sold or held name no spell at all.
      and the evidence (the level, the description's words), not written;
      so is a clear one neither sold nor held. A scroll's art on a quest item
      (no word of scribing in its name or description: "mystical parchment")
-     is counted and left.
+     or on a tradeskill's recipe (a name ending in "Recipe") is counted and
+     left.
 
 The server refuses a scroll whose spell is above its scriber's level
 whatever the scroll's own level says (handlers/scribe.go, the same day), so

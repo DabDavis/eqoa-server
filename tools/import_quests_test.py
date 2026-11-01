@@ -238,10 +238,9 @@ class LaterFields(unittest.TestCase):
         self.assertEqual(state(self.db), before, "undo leaves the database as it was")
 
     def test_a_steps_other_creatures_are_a_change_and_go_with_undo(self):
-        """A row of queststeptargets (a GM's, or tools/fix_quest_targets.py's)
-        on an imported quest is a change: a run again leaves the quest as it is;
-        --undo deletes the rows with the quest. The control: a quest without
-        any digests as it did."""
+        """A row of queststeptargets a GM put on an imported quest is a change:
+        a run again leaves the quest as it is; --undo deletes the rows with the
+        quest. The control: a quest without any digests as it did."""
         before = state(self.db)
         iq.write(self.db, iq.plan(self.db, self.files))
         q, _ = self.quest("1-20/testmoor/warrior/L1")
@@ -258,6 +257,47 @@ class LaterFields(unittest.TestCase):
         self.assertEqual(n["creatures"], 1)
         self.db.execute("DROP TABLE queststeptargets")
         self.assertEqual(state(self.db), before, "undo leaves the database as it was")
+
+    def test_the_fix_tools_creatures_are_carried_across_a_run_again(self):
+        """The rows tools/fix_quest_targets.py's log says it added are no GM's
+        change (2026-11-01: 56 imported quests carried only those, so a run
+        again left every one as it was, the were-hunters' Mistmoore quests as
+        drafts): a run again writes the quest and keeps each row on its step
+        while the step is still the one it was added to, drops it (said) when
+        the file changed that step, and a GM's own row beside it is a change."""
+        iq.write(self.db, iq.plan(self.db, self.files))
+        q, steps = self.quest("1-20/testmoor/warrior/L1")
+        loot = next(s for s in steps if s["kind"] == "loot")
+        self.db.execute("CREATE TABLE queststeptargets (questid INTEGER NOT NULL, step INTEGER NOT NULL, "
+                        "target TEXT NOT NULL, PRIMARY KEY (questid, step, target))")
+        self.db.execute("CREATE TABLE quest_targets_fix_log (seq INTEGER PRIMARY KEY AUTOINCREMENT, questid INTEGER NOT NULL, "
+                        "step INTEGER NOT NULL, action TEXT NOT NULL, old TEXT NOT NULL, new TEXT NOT NULL, why TEXT NOT NULL, "
+                        "applied TEXT NOT NULL)")
+        self.db.execute("INSERT INTO queststeptargets VALUES (?, ?, 'Moor Rat')", (q["questid"], loot["step"]))
+        self.db.execute("INSERT INTO quest_targets_fix_log (questid, step, action, old, new, why, applied) "
+                        "VALUES (?, ?, 'added', '', 'Moor Rat', 'test', 'now')", (q["questid"], loot["step"]))
+        # the file's quest changed (its notes): written again, the tool's row kept
+        self.files = json.loads(json.dumps(self.files))
+        l1 = next(x for _, d in self.files for x in d["quests"] if x["key"] == "1-20/testmoor/warrior/L1")
+        l1["notes"] = "changed"
+        p = iq.plan(self.db, self.files)
+        written, kept, _ = iq.write(self.db, p)
+        self.assertEqual(kept, [], "the tool's row taken for a GM's change")
+        self.assertEqual((p["targets_carried"], p["targets_dropped"]), (1, []))
+        self.assertEqual(self.quest("1-20/testmoor/warrior/L1")[0]["notes"], "changed", "the quest was not written again")
+        self.assertEqual(self.db.execute("SELECT step, target FROM queststeptargets").fetchall(), [(loot["step"], "Moor Rat")])
+        # the file changed the step itself: the row goes, said
+        next(s for s in l1["steps"] if s.get("kind") == "loot")["target"] = "Moor Ghost"
+        p = iq.plan(self.db, self.files)
+        _, kept, _ = iq.write(self.db, p)
+        self.assertEqual(kept, [])
+        self.assertEqual(p["targets_carried"], 0)
+        self.assertEqual(len(p["targets_dropped"]), 1, p["targets_dropped"])
+        self.assertEqual(self.db.execute("SELECT count(*) FROM queststeptargets").fetchone()[0], 0)
+        # a GM's own row is still a change
+        self.db.execute("INSERT INTO queststeptargets VALUES (?, ?, 'field boar')", (q["questid"], loot["step"]))
+        _, kept, _ = iq.write(self.db, iq.plan(self.db, self.files))
+        self.assertEqual(kept, ["1-20/testmoor/warrior/L1"])
 
     def test_an_earlier_imports_digest_still_holds(self):
         iq.write(self.db, iq.plan(self.db, self.files, routes=ROUTES))

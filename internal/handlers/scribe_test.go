@@ -435,3 +435,32 @@ func TestScribeExactNameAndClass(t *testing.T) {
 		t.Errorf("a scroll of a spell known was taken: %d rows left", len(rows))
 	}
 }
+
+// A scroll asks for its spell's own level too (2026-11-01: a shadow knight's
+// scroll of level 4 taught a spell of level 12 at 4): a level 4 knight with
+// a scroll of level 4 whose spell is of level 12 is refused in the level's
+// words, the scroll kept and the book as it was; the control, the same
+// knight at 12, learns it. The names and numbers are made up.
+func TestScribeAsksForTheSpellsLevel(t *testing.T) {
+	f := newScribeFixture(t)
+	f.player.Class, f.player.Level = int(ClassShadowKnight), 4
+	f.spell(7, "Shroud of Ash", 12)
+	if _, err := f.db.Exec(`INSERT INTO classspells (class, spellid, source) VALUES (?, 7, 'test')`, int(ClassShadowKnight)); err != nil {
+		t.Fatal(err)
+	}
+	f.own(f.item("Shroud of Ash", true, 1<<int(ClassShadowKnight), 4, 1), 1)
+	f.loadList()
+	msgs := f.use(0)
+	if !bytes.Contains(bytes.Join(msgs, nil), utf16le(scribeTooLow)) {
+		t.Errorf("a level 4 knight: sent %s, want %q", ops(msgs), scribeTooLow)
+	}
+	if len(f.book()) != 0 || len(f.rowsOf()) != 1 {
+		t.Fatalf("a level 4 knight: book %+v, %d items: want nothing learned, the scroll kept", f.book(), len(f.rowsOf()))
+	}
+	f.player.Level = 12
+	f.loadList()
+	f.use(0)
+	if b := f.book(); len(b) != 1 || b[0].SpellID != 7 || len(f.rowsOf()) != 0 {
+		t.Errorf("the control, a level 12 knight: book %+v, %d items left", b, len(f.rowsOf()))
+	}
+}

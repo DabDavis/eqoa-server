@@ -32,7 +32,9 @@ import (
 // lines are not Sandstorm's: the race one (Sandstorm's scroll masks name the
 // races that can be the class, so no character of the class is refused by
 // race), and the one for a scroll whose spell has no record here (Sandstorm
-// has one for every scroll it sells).
+// has one for every scroll it sells). The level is the scroll's and its
+// spell's both: a scroll of a lower level than its spell is refused in the
+// level's words too (ours: Sandstorm's scrolls ask for their spells' levels).
 
 // scrollIcon is the art every spell scroll carries (itempattern.itemicon):
 // all 508 of Sandstorm's vendor scrolls show it, and Return Home's. A scroll
@@ -178,6 +180,14 @@ func (h *EquipHandler) scribe(sess *session.Session, player *entity.Player, idx 
 	spell, ok := scrollSpellFor(names, p.ItemName, p.LevelReq, has)
 	if !ok {
 		refuse(scribeNoSpell)
+		return
+	}
+	// and the spell's own level: no scroll teaches a spell above its scriber
+	// (2026-11-01: a scroll of level 4 taught a shadow knight of 4 Veil of
+	// Death, a spell of level 12; tools/fix_scrolls.py brings a scroll's
+	// level to its spell's)
+	if player.Level < spell.Level {
+		refuse(scribeTooLow)
 		return
 	}
 	book, err := h.spells.GetCharacterSpells(player.CharServerID)

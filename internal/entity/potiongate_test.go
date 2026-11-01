@@ -97,3 +97,44 @@ func TestAPotionToNoPlaceIsRefused(t *testing.T) {
 		t.Errorf("the control: sent %v", f.travellers())
 	}
 }
+
+// A gem's line (Envar's gems' shape, tools/fix_eqoaemu_places.py; the names
+// made up): what using it costs (its reagent, held and taken by the
+// handlers), what it gives after (its summoning, a cracked gem: no pet), and
+// the place it sends its user, a self gate's row by its place; the drinker
+// alone at the next tick's travels. The controls: a line that summons a pet
+// gives no item, and one with neither costs and gives nothing.
+func TestAGemLineCostsGivesAndSends(t *testing.T) {
+	f := newGateFixture(t)
+	f.member(1002, "Friend", 1003, 50, 1000)
+	f.gate(database.SpellGate{Spell: "Amber Stone", Kind: database.GateSelf, Place: "Upper Hall of the Glass Spire", World: 1,
+		X: 500, Y: 91.4, Z: 600})
+	pe := NewPotionEffect(950002, "Amber Stone",
+		"Self, Reagent Cracked Opal Stone x1, Teleport to the Upper Hall of the Glass Spire, Summon Cracked Amber Stone x1", "", 0, "", 0, 0)
+	if pe.Thrown() || pe.Def.Harmful || pe.Def.Summons() {
+		t.Fatalf("read as thrown %v, harmful %v, a pet %v: want a drunk potion", pe.Thrown(), pe.Def.Harmful, pe.Def.Summons())
+	}
+	if r, n := pe.Reagent(); r != "cracked opal stone" || n != 1 {
+		t.Errorf("costs %d %q, want 1 cracked opal stone", n, r)
+	}
+	if got := pe.Summons(); len(got) != 1 || got[0] != (SpellItem{Name: "cracked amber stone", Count: 1}) {
+		t.Errorf("gives %+v, want one cracked amber stone", got)
+	}
+	if r, err := f.w.UsePotion(f.sess, pe, 0, f.t0); err != nil || r != "" {
+		t.Fatalf("refused %q (%v)", r, err)
+	}
+	f.w.runTravels()
+	if got := f.travellers(); len(got) != 1 || got[0] != "Wizard" || f.sent[0].To.World != 1 || f.sent[0].To.X != 500 {
+		t.Errorf("sent %v %+v, want the drinker alone to the row's place", got, f.sent)
+	}
+
+	// the controls
+	pet := NewPotionEffect(950003, "Odd Flask", "Self, Summons a pet", "", 0, "", 0, 0)
+	if got := pet.Summons(); len(got) != 0 {
+		t.Errorf("a pet's summoning gives %+v", got)
+	}
+	plain := NewPotionEffect(950004, "Plain Draught", "Self, Increase Power by 25", "", 0, "", 0, 0)
+	if r, n := plain.Reagent(); r != "" || n != 0 || len(plain.Summons()) != 0 {
+		t.Errorf("a plain draught costs %d %q and gives %+v", n, r, plain.Summons())
+	}
+}

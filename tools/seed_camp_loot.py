@@ -15,7 +15,8 @@ of neighbouring quadrants, against 77% for the next). So:
     its name in itempattern (the lowest id of a name, never a spell scroll)
     for creatures from 5 levels below its own to 5 above (an item of level 55
     or more up to 70, for the raid creatures above 60; one with no level for
-    any), weight 1;
+    any), weight 1; a record of the old server's test template (a PoT or a
+    resist past 500: the Khal Warlord's Khal Sword) none (2026-11-01);
   - each XP camp of tools/gen_camp_teles.py's (the #tele camps) binds its
     creatures (every name of its kind within 150 of its anchor) in npcloot to
     its zone's biome table, the quadrant its point on EQOA-Data's map falls
@@ -100,6 +101,15 @@ def table_of(source_name):
     return n.lower()
 
 
+def junk(it):
+    """A record of the old server's test template (a PoT or a resist past
+    500, a damage of 999: entity/balancekit.go's simBroken), as EQOA-Data
+    holds the Khal Sword "dropped by the Khal Warlord's": no one's drop
+    (tools/fix_broken_records.py, 2026-11-01)."""
+    st = it.get("stats") or {}
+    return any((st.get(k) or 0) > 500 for k in ("pot", "pr", "dr", "fr", "cr", "lr", "ar")) or (it.get("damage") or 0) >= 999
+
+
 def items_by_table(data):
     out = collections.defaultdict(list)  # table -> [(name, level)]
     for f in sorted(glob.glob(os.path.join(data, "Information", "databases", "items", "*.json"))):
@@ -107,7 +117,7 @@ def items_by_table(data):
         items = d["items"] if isinstance(d, dict) else d
         for it in items:
             src = it.get("source")
-            if not src:
+            if not src or junk(it):
                 continue
             for s in src if isinstance(src, list) else [src]:
                 if s.get("type") == "mobDrop" and s.get("name"):

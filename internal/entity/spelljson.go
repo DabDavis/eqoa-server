@@ -274,6 +274,16 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 				d.Effects[i].Self, d.Effects[i].ShareGroup = true, true
 			}
 			d.ShareRadius = float32(s.Radius)
+		case es == "group" && scope == "self" && groupShare(d.Effects[n:]):
+			// a self spell's part for the group (the bard's PB AE songs:
+			// Chant of Battle, Elemental Rhythms; Celedonicus' Grand
+			// Finale's power): the caster's and its group's in the radius,
+			// whatever adds the spell (2026-11-01; until then the caster's
+			// alone)
+			for i := n; i < len(d.Effects); i++ {
+				d.Effects[i].Self, d.Effects[i].ShareGroup, d.Effects[i].ShareAll = true, true, true
+			}
+			d.ShareRadius = float32(s.Radius)
 		case es == "player_aoe" && scope == "target":
 			// a part for the area round its caster in a spell cast at a
 			// target (the warrior's Shouts: the target's hate, and every
@@ -301,6 +311,21 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 			if d.Effects[i].Kind == EffectInvis {
 				d.Effects[i].EndsOnContact = d.Effects[i].EndsOnContact || e.EndsOnContact
 				d.Effects[i].EndsOnCast = d.Effects[i].EndsOnCast || e.EndsOnCast
+			}
+		}
+	}
+	// a self spell with a part for its group: its own parts below nothing are
+	// its caster's price (Celedonicus' Grand Finale's -5000 power beside the
+	// group's +5000, the bard among them: "include bard in the +5000"),
+	// landed with the caster's other parts, a price first (lifetap.go)
+	if scope == "self" {
+		shares := false
+		for _, e := range d.Effects {
+			shares = shares || e.ShareAll
+		}
+		for i := range d.Effects {
+			if e := &d.Effects[i]; shares && !e.ShareGroup && e.Amount < 0 && (e.Kind == EffectHP || e.Kind == EffectPower || e.Kind == EffectStat) {
+				e.Self = true
 			}
 		}
 	}

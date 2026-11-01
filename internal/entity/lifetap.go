@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -215,8 +216,12 @@ func (w *World) landOnCasterLocked(cs *castState, caster *Player, sess *session.
 	out.spell.Def.Effects = rest
 
 	var mods, shared StatMods
-	stats, group, sharedStats := false, false, false
+	stats, group, sharedStats, always := false, false, false, false
 	sharedPower := 0
+	// a price before a gift (a pact's: price first, then heal; Celedonicus'
+	// Grand Finale's -5000 before its +5000, so a full bard pays and is
+	// given back rather than given nothing and charged)
+	sort.SliceStable(own, func(i, j int) bool { return own[i].Amount < 0 && own[j].Amount >= 0 })
 	for _, e := range own {
 		n := spellAmount(e, caster)
 		switch e.Kind {
@@ -241,16 +246,17 @@ func (w *World) landOnCasterLocked(cs *castState, caster *Player, sess *session.
 				group, sharedStats = true, true
 			}
 		}
+		always = always || e.ShareAll
 	}
-	lasting := stats && d.Duration > 0
-	if lasting && !caster.IsDead() {
+	lasting := d.Duration > 0
+	if stats && lasting && !caster.IsDead() {
 		w.casterShareLocked(cs, caster, mods, now)
 	}
 	// a mastery's form of it shares the group's part with the caster's group
 	// in its radius (the user, 2026-11-01: "SK drain should land on themself
 	// by default, CM may allow group"): its stats for the spell's time, its
 	// power at once
-	if group && !caster.IsDead() && w.masterySpellLocked(cs.spell.SpellID) {
+	if group && !caster.IsDead() && (always || w.masterySpellLocked(cs.spell.SpellID)) {
 		for _, m := range w.groupMembersLocked(caster) {
 			if m == caster || m.IsDead() || m.World != caster.World || outOfRange(caster, m.X, m.Y, m.Z, groupShareReach(cs)) {
 				continue

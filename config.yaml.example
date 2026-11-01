@@ -75,6 +75,11 @@ world:
   # enforce leaves a player where it was last right and moves the client back.
   # #movecheck off|log|enforce changes it while the server runs.
   # movecheck: log
+  # How many zones of the ground files stay loaded (and as many of the walls
+  # files'): unset or 0 keeps every zone once read (all six worlds 652 MB at
+  # most, 2.4 MB a zone on average); a small machine may cap it, at the cost of
+  # reading zones again when players spread over more than it holds.
+  # ground_zones: 0
 
 patch:
   # Directory holding the client patch payloads. A relative path resolves

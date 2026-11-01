@@ -81,6 +81,14 @@ class ImportCMsTest(unittest.TestCase):
         x("INSERT INTO quests VALUES (500, 'Dropkick', 1)")
         x("INSERT INTO queststeps VALUES (500, 1, '12')")
         x("INSERT INTO quests VALUES (501, 'Soultap', 0)")
+        # the were quests as tools/import_quests.py keys them: a kind's p3 gives its form
+        x("CREATE TABLE quest_import_quests (key TEXT PRIMARY KEY, questid INTEGER NOT NULL)")
+        for qid, key, name, on in [(601, "Weres/wolfwere/p3", "The Hunt", 1), (602, "Weres/bearwere/p3", "Mirin", 0),
+                                   (603, "Weres/ratwere/p3", "Trissen", 1), (604, "Weres/lionwere/p3", "Jensen", 1),
+                                   (605, "Weres/gatorwere/p3", "Julian", 0),
+                                   (606, "Weres/werehunter/brand", "The Werehunter's Brand", 1)]:
+            x("INSERT INTO quests VALUES (?, ?, ?)", (qid, name, on))
+            x("INSERT INTO quest_import_quests VALUES (?, ?)", (key, qid))
         src = "eqoa-data cms"
         rows = [
             # id, cat, classes, races, mastery, rank, name, parent, cost, level, effects, adds, add_spells, desc
@@ -141,6 +149,10 @@ class ImportCMsTest(unittest.TestCase):
                  points="75", reqs=[("03A6", "Slayer")], adds=[("05EB", "Undead Servitude")], stats={"AR": 50}),
             wrow("009A", "Heightened Awareness 1", sub="Were Hunter", lyc="Were Hunter", quest="QUEST ID",
                  stats={"STA Max": 10}),
+            wrow("00A1", "Bite", sub="Were", lyc="Werebeast", quest="QUEST ID", adds=[("070D", "Bite")]),
+            wrow("00A7", "Feral Bear Form 1", sub="Were", lyc="Werebear", quest="QUEST ID"),
+            wrow("0356", "Heroic Were-Hunter", cls="Master Class", sub="Heroic Were-Hunter", klass="WAR PAL SK",
+                 level="55", points="200", spent="500", reqs=[("009A", "Heightened Awareness 1")], stats={"AC": 200}),
             wrow("02E5", "Ankle Biter", cls="Class", sub="Warrior", klass="WAR", level="55", points="1",
                  quest="QUEST ID", adds=[("0630", "Dropkick")]),
             wrow("02BF", "Soul Tap", cls="Class", sub="Shadowknight", klass="SK", level="55", points="1",
@@ -190,18 +202,27 @@ class ImportCMsTest(unittest.TestCase):
         # new ranks
         ins = {e["id"]: e for e in p["inserts"]}
         self.assertEqual(set(ins), {900000 + 0x009A, 900000 + 0x02E5, 900000 + 0x02BF, 900000 + 0x0003,
-                                    900000 + 0x03C7})
+                                    900000 + 0x03C7, 900000 + 0x00A1, 900000 + 0x00A7, 900000 + 0x0356})
         sk = ins[900000 + 0x03C7]
         self.assertEqual((sk["row"]["classes"], sk["how"]), (8, "classes no rank of ours is for"),
                          "the sheet's Soldier is the shadow knight's too, which has no row of ours")
         b3 = ins[900003]["row"]
         self.assertEqual((b3["parent"], b3["mastery"], b3["rank"], b3["enabled"]), (2, "Brawn", 3, 1))
-        self.assertEqual(ins[900000 + 0x009A]["row"]["enabled"], 0, "a were rank is disabled")
+        gate = {i: (ins[i]["row"]["require_quests"], ins[i]["row"]["enabled"]) for i in ins}
+        self.assertEqual(gate[900000 + 0x009A], ("606", 1), "a were-hunter's rank needs the brand")
+        self.assertEqual(gate[900000 + 0x0356], ("606", 1), "a Were-Hunter master class too")
+        self.assertEqual(gate[900000 + 0x00A7], ("602", 1), "a werebear's needs the bear's form quest, a draft")
+        self.assertEqual(gate[900000 + 0x00A1], ("601|602|603|604|605", 1), "a werebeast's any were's")
+        self.assertEqual(p["were_gates"]["werebeast (any were)"], "601|602|603|604|605")
+        self.assertIn(f"{900000 + 0x00A7} Feral Bear Form 1: 602 Mirin",
+                      p["notes"]["new ranks gated on a draft quest (it bars no one until it is in the game)"])
+        self.assertEqual(m.parse_groups("601|602, 7"), [[601, 602], [7]])
+        off = {e["id"]: e for e in self.plan(weres="off")["inserts"]}
+        self.assertEqual(off[900000 + 0x00A1]["row"]["enabled"], 0, "--weres off: written disabled")
         self.assertEqual(ins[900000 + 0x02E5]["row"]["require_quests"], "500", "the quest rewarding Dropkick")
         self.assertEqual(ins[900000 + 0x02E5]["row"]["enabled"], 1)
         self.assertEqual(ins[900000 + 0x02BF]["row"]["require_quests"], "501")
-        self.assertEqual(ins[900000 + 0x02BF]["row"]["enabled"], 0, "its quest is a draft: no one would be barred")
-        self.assertEqual(self.plan(weres="on")["inserts"][0]["row"]["enabled"], 1)
+        self.assertEqual(ins[900000 + 0x02BF]["row"]["enabled"], 1, "a draft's rank is offered, gated on it")
         self.assertEqual(self.plan(racial_mc="keep")["changes"][0]["id"], 1)
         keep = {c["id"]: c for c in self.plan(racial_mc="keep")["changes"]}
         self.assertNotIn("category", keep[1641]["after"])

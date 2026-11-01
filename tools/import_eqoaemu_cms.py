@@ -30,12 +30,16 @@ cmcatalog (entity/cmbuy.go), the workbook winning wherever it has a value:
 - **A rank we lack is NEW**, id 900000 + its hex id (the import's
   convention: the spells' too). A were or were-hunter rank (Lycanthropy, the
   Were and Were Hunter sub-categories, the Were-Hunter master classes) is
-  written DISABLED (enabled 0) unless --weres on: the were lines are not built
-  on this server (no lycanthropy, CLAUDE.md "Not built: the were lines"), and
-  the user said of the were forms in F3 pass 17 "Remove them". A new rank the
-  workbook marks "QUEST ID" takes the quest it names that is in the game
-  (found by the abilities it adds or by name), else is written disabled: a
-  quest not in the game bars no one (cmBlockLocked).
+  offered behind the quest that makes a character its kind (the user,
+  2026-11-01: "lets add weres and werehunters back"; WERE_KINDS: a kind's p3,
+  which gives its form; a werebeast's any of the five, "a|b|c", which the
+  server reads as a group any one quest meets; a were-hunter's the brand),
+  found through quest_import_quests; --weres off writes them disabled. A new
+  rank the workbook marks "QUEST ID" takes the quest that rewards an ability
+  it adds, or is named as it or one, or whose notes name it as opened for a
+  mastery point (the tank exemplars'), else is written disabled. A quest not
+  in the game (a draft) bars no one (cmBlockLocked): such gates are listed,
+  as the drafts go live with the spells they lack.
 - Our ranks the workbook lacks stay as they are, but one clearly the same as
   a NEW workbook rank (its name, or its stats at its level, in its group) is
   disabled (never deleted), unless a character owns it.
@@ -564,9 +568,17 @@ class Ctx:
         self.spells = {sid: (name, lvl) for sid, name, lvl in
                        db.execute("SELECT spellid, spellname, abilitylvl FROM spellpattern")}
         self.quests = {}
+        self.quest_notes = {}
         if has_table(db, "quests"):
-            for qid, name, enabled in db.execute("SELECT questid, name, enabled FROM quests"):
+            notes = "notes" in [r[1] for r in db.execute("PRAGMA table_info(quests)")]
+            for qid, name, enabled, text in db.execute(
+                    f"SELECT questid, name, enabled, {'notes' if notes else chr(39) * 2} FROM quests"):
                 self.quests[qid] = (name, enabled)
+                self.quest_notes[qid] = text or ""
+        self.import_keys = {}  # tools/import_quests.py's key -> questid
+        if has_table(db, "quest_import_quests"):
+            self.import_keys = {k: q for k, q in db.execute("SELECT key, questid FROM quest_import_quests")}
+        self.were_gates = {}
         self.quest_spells = collections.defaultdict(set)  # spellid -> quests rewarding it
         if has_table(db, "queststeps"):
             for qid, sp in db.execute("SELECT questid, spells FROM queststeps WHERE spells != ''"):
@@ -762,18 +774,28 @@ def plan(db, W, spellmap, levels, opts):
                   "removes", "remove_spells", "description"):
             row[k] = d.get(k, "")
         row["require_quests"] = ""
-        off = []
-        if is_were(w) and opts.get("weres") != "on":
-            off.append("a were or were-hunter rank (the were lines are not built here)")
-        if w["quest"]:
+        off, gate = [], ""
+        if is_were(w):
+            gate, kind = were_gate(ctx, w)
+            if opts.get("weres") == "off":
+                off.append("a were or were-hunter rank (--weres off)")
+            elif not gate:
+                off.append(f"no quest of its kind ({kind}) in quest_import_quests")
+            else:
+                ctx.were_gates[kind] = gate
+        elif w["quest"]:
             q = quest_for(ctx, w, d)
-            if q and ctx.quests[q][1]:
-                row["require_quests"] = str(q)
-            elif q:
-                row["require_quests"] = str(q)
-                off.append(f"its quest {q} ({ctx.quests[q][0]}) is a draft")
-            elif not is_were(w):
+            if q:
+                gate = str(q)
+            else:
                 off.append("the quest it needs is not found")
+        row["require_quests"] = gate
+        # a group whose quests are all drafts bars no one until one is in the game
+        open_groups = [g for g in parse_groups(gate) if not any(ctx.quests.get(q, ("", 0))[1] for q in g)]
+        if open_groups and not off:
+            notes["new ranks gated on a draft quest (it bars no one until it is in the game)"].append(
+                f"{nid} {row['name']}: " + ", ".join(f"{q} {ctx.quests.get(q, ('?',))[0]}"
+                                                    for g in open_groups for q in g))
         if off:
             row["enabled"] = 0
         inserts.append({"op": "insert", "id": nid, "wb": w["hex"], "how": why, "row": row, "off": off})
@@ -849,7 +871,8 @@ def plan(db, W, spellmap, levels, opts):
                 taken=taken, cover={w: [o["id"] for o in v] for w, v in cover.items()}, notes=notes,
                 cost_changed=cost_changed, two_mc=two_mc, adds_missing=adds_missing,
                 gm_rows=sorted(gm_rows), unmapped=ctx.unmapped, missing_spells=ctx.missing_spells,
-                lyc=[(w["hex"], w["name"], w["lyc"]) for w in W if w["lyc"]],
+                lyc=[(w["hex"], w["name"], w["lyc"]) for w in W if w["lyc"]], were_gates=ctx.were_gates,
+                quests=ctx.quests,
                 quest_marked=[(w["hex"], w["name"]) for w in W if w["quest"]],
                 O=byo, W=ctx.byw)
 
@@ -917,6 +940,50 @@ def new_line(w, d, byo, rows_of):
     return w["base"], w["num"] or 1
 
 
+# A were rank's kind (the sheet's Lycanthropy column) is the quest that makes
+# a character one, as our quest data has it (tools/quests/data/weres.json,
+# imported under these keys, quest_import_quests): each kind's chain p1, p2,
+# p3, and p3 gives the form (Weres/bearwere/p3's last step the spell
+# Bearwere); a werebeast's rank (any were) any of the five; a were-hunter's
+# (the Were Hunter ranks and the Were-Hunter master classes) the brand, the
+# quest that joins one to them ("Will you join the Were-Hunters? I will brand
+# you with silver. No lycan's bite will ever take you after that": +1000 with
+# the Werehunters of Tunaria; the trials after it are the level 50-60 path).
+WERE_KINDS = {"werewolf": "wolfwere", "werebear": "bearwere", "wererat": "ratwere", "werelion": "lionwere",
+              "weregator": "gatorwere"}
+WEREHUNTER_QUEST = "Weres/werehunter/brand"
+
+
+def were_gate(ctx, w):
+    """A were or were-hunter rank's require_quests ("" when its quest is not
+    imported) and its kind."""
+    lyc, sub = fold(w["lyc"]), fold(w["sub"])
+    if lyc == "were hunter" or "were hunter" in sub:
+        kind, keys = "were-hunter", [WEREHUNTER_QUEST]
+    elif lyc in WERE_KINDS:
+        kind, keys = lyc, [f"Weres/{WERE_KINDS[lyc]}/p3"]
+    else:  # Werebeast, and a were rank naming no kind: any were
+        kind, keys = "werebeast (any were)", [f"Weres/{k}/p3" for k in WERE_KINDS.values()]
+    ids = [ctx.import_keys[k] for k in keys if k in ctx.import_keys]
+    if len(ids) != len(keys):
+        return "", kind
+    return "|".join(str(i) for i in ids), kind
+
+
+def parse_groups(text):
+    """require_quests as the server reads it (database.ParseRequires): every
+    group, a group met by any of its quests."""
+    out = []
+    for part in (text or "").split(","):
+        g = [int(x) for x in re.findall(r"-?\d+", part)]
+        if "|" in part:
+            if g:
+                out.append(g)
+        else:
+            out += [[x] for x in g]
+    return out
+
+
 def quest_for(ctx, w, d):
     """The quest a "QUEST ID" rank needs: one rewarding a spell it adds, else
     one named as the rank or a spell it adds, else 0."""
@@ -928,7 +995,12 @@ def quest_for(ctx, w, d):
     names = {fold(w["name"])} | {fold(n) for _, n in w["adds"]}
     names |= {n.replace(" ", "") for n in names}
     hits = [q for q, (nm, _) in ctx.quests.items() if fold(nm) in names or fold(nm).replace(" ", "") in names]
-    return hits[0] if len(hits) == 1 else 0
+    if len(hits) == 1:
+        return hits[0]
+    rank = fold(w["name"])
+    told = [q for q, notes in ctx.quest_notes.items() if rank and f" {rank} " in f" {fold(notes)} "
+            and "mastery point" in notes]
+    return told[0] if len(told) == 1 else 0
 
 
 # ---- the report ---------------------------------------------------------------------------
@@ -995,6 +1067,10 @@ def report(p, full=False):
     print(f"Lycanthropy marked: {len(p['lyc'])} ranks (" + ", ".join(
         f"{k} {n}" for k, n in collections.Counter(x[2] for x in p['lyc']).most_common()) + ")")
     print(f"Quest marked (\"QUEST ID\"): {len(p['quest_marked'])} ranks")
+    for kind, gate in sorted(p["were_gates"].items()):
+        qs = [f"{q} {p['quests'].get(q, ('?', 0))[0]}" + ("" if p["quests"].get(q, ("", 0))[1] else " (draft)")
+              for g in parse_groups(gate) for q in g]
+        print(f"  {kind} ranks need {'any of ' if '|' in gate else ''}{', '.join(qs)}")
     for k, v in p["notes"].items():
         print(f"{k}: {len(v)}")
         for x in v:
@@ -1166,6 +1242,12 @@ def check(db):
         for names, ids in (("requires", "require_spells"), ("adds", "add_spells"), ("removes", "remove_spells")):
             if r[ids] and len(id_list(r[ids])) != len(ability_names(r[names])):
                 bad.append((f"{names} and {ids} differ in length", r))
+    quests = {q for (q,) in db.execute("SELECT questid FROM quests")} if has_table(db, "quests") else set()
+    for r in rows.values():
+        for g in parse_groups(r["require_quests"]):
+            for q in g:
+                if q not in quests:
+                    bad.append((f"a quest it needs ({q}) is not in quests (it bars no one)", r))
     if has_table(db, "charcms"):
         for (cmid,) in db.execute("SELECT DISTINCT cmid FROM charcms"):
             if cmid not in rows:
@@ -1204,8 +1286,9 @@ def main():
     ap.add_argument("--sheet", help="EQOAEmu's workbook (.ods), the operator's copy")
     ap.add_argument("--tsv-dir", help="its sheets as TSV (06-CMs.tsv, 02-Spells.tsv)")
     ap.add_argument("--spellmap", help="the import's spell map: the workbook's SpellID to our spellid (TSV)")
-    ap.add_argument("--weres", choices=("off", "on"), default="off",
-                    help="the were and were-hunter ranks written offered (on) or disabled (off, the default)")
+    ap.add_argument("--weres", choices=("off", "on"), default="on",
+                    help="the were and were-hunter ranks offered, each behind its kind's quest (on, the default), "
+                         "or written disabled (off)")
     ap.add_argument("--racial-mc", choices=("master", "keep"), default="master",
                     help="the racial master classes in Master Class (4, the workbook's) or kept in Racial (1)")
     ap.add_argument("--save-plan", metavar="FILE", help="write the plan (JSON) and stop")

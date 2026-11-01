@@ -40,7 +40,9 @@ Five teleports EQOAEmu's workbook brought (tools/import_eqoaemu_spells.py,
   to Dead Hills SE (where Fendren is)" (EQOA-Data's Dead Hills Portal Quest);
   its level 53 guide puts that quest's port, Astral Displacement, at the
   lizardman ruins (W) and calls the two "the same place": Fendren's own words
-  taken.
+  taken, and kept (2026-11-01, round 2): both guides put Fendren's port where
+  Fendren is, and disagree only about the 53 quest's own port, which no
+  record of ours has.
 - Envaric Acension (druid, necromancer, wizard 60) into the first chamber of
   the Prophet of Envar's tower ("teleports your group into the tower of the
   Prophet Envar", "Ports to the first chamber of PoE's tower", EQOA-Data's
@@ -49,7 +51,11 @@ Five teleports EQOAEmu's workbook brought (tools/import_eqoaemu_spells.py,
   174DA8B2: four on the disc, three in that tower; the spot ours). The
   chamber is a room of the zone's own collision, walled all round; the
   server lands a place under a roof where a body walks to from it
-  (entity/gates.go), so in the chamber.
+  (entity/gates.go), so in the chamber. The landing stays (2026-11-01,
+  round 2): every character has Return Home, and the way up is the
+  chambers' gems (tools/fix_eqoaemu_places.py, which also gives Envaric
+  Acension its guide's hour of recast and the Circle of Dead Hills its kin's
+  600).
 - Sky Portal (druid, wizard 60) to the Plane of Sky's main isle ("port up to
   the main PoS isle with a wiz/druid", "the main Island (where you originally
   port up to)", its Plane of Sky guide): where the Endless Tower's portal lands
@@ -59,7 +65,10 @@ Five teleports EQOAEmu's workbook brought (tools/import_eqoaemu_spells.py,
   takes you very close)" (its stat-boost quests, the wisdom trial). The dam is
   the disc's (three walls, sprite ECE32E16, and two towers, 045C386C, across
   the zone's river in its (N), 110 north of the guide's (C)), the trial's
-  gnoll by its west end: the west bank there, ours.
+  gnoll by its west end: the west bank there, ours, and kept (2026-11-01,
+  round 2): the trial's next step is "speak to gnoll npc", and its reaver
+  gnoll stands on the west shore (its tsrif, dnoces and driht are spawned
+  only during the trial).
 - Odus Escape (wizard 55) to Arcadin, where Odus gate and Odus Portal land: an
   escape lands where its gate does (the Nerius, Sslathis and Kelinar's Escape
   rows lie on their gates' places).

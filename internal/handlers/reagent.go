@@ -18,32 +18,46 @@ import (
 // refusals, while the caster carries fewer (its bank's do not count), and
 // they are taken (the database, the session's list, 0x003C) only when the
 // World begins the cast, so a cast refused for any other reason takes none.
-// The refusal's words are ours: Sandstorm has one, never recorded.
+// The refusal's words are ours: Sandstorm has one, never recorded. A
+// potion's line says the same of what using it costs (potion.go: Envar's
+// gems, each needing the cracked gem the last one left), refused and taken
+// the same way, with the potion.
 
 // reagentRows is the caster's carried stacks of the cast's reagent, oldest
 // first, or false with the cast refused (said to the caster).
 func (h *SpellbookHandler) reagentRows(sess *session.Session, p *entity.Player, spell *entity.CastSpell) ([]database.CharInventoryEntry, bool) {
-	d := &spell.Def
+	return reagentHeld(h.inv, sess, p, "Cast", spell.Name, &spell.Def)
+}
+
+// reagentHeld is the player's carried stacks of the reagent d names, oldest
+// first, or false with what needs it (what: a spell's or an item's name)
+// refused, said to the player in red; tag begins the log's line ("Cast",
+// "Potion").
+func reagentHeld(inv *database.InventoryStore, sess *session.Session, p *entity.Player, tag, what string, d *entity.SpellDef) ([]database.CharInventoryEntry, bool) {
+	verb := "uses"
+	if tag == "Cast" {
+		verb = "casts"
+	}
 	refuse := func(text string) {
-		log.Printf("Cast: %s casts %q: %s", p.Name, spell.Name, text)
+		log.Printf("%s: %s %s %q: %s", tag, p.Name, verb, what, text)
 		SendColoredChat(sess, text, scribeRefusalRGB[0], scribeRefusalRGB[1], scribeRefusalRGB[2])
 	}
-	if h.inv == nil {
-		refuse(fmt.Sprintf("%s needs %s, and none can be carried here.", spell.Name, reagentWords(d.Reagent, d.ReagentCount)))
+	if inv == nil {
+		refuse(fmt.Sprintf("%s needs %s, and none can be carried here.", what, reagentWords(d.Reagent, d.ReagentCount)))
 		return nil, false
 	}
-	pat, ok, err := h.inv.ItemPatternByName(d.Reagent)
+	pat, ok, err := inv.ItemPatternByName(d.Reagent)
 	if err != nil {
-		log.Printf("Cast: %q's reagent %q: %v", spell.Name, d.Reagent, err)
+		log.Printf("%s: %q's reagent %q: %v", tag, what, d.Reagent, err)
 		return nil, false
 	}
 	if !ok {
-		refuse(fmt.Sprintf("%s needs %s, which this server does not have.", spell.Name, reagentWords(d.Reagent, d.ReagentCount)))
+		refuse(fmt.Sprintf("%s needs %s, which this server does not have.", what, reagentWords(d.Reagent, d.ReagentCount)))
 		return nil, false
 	}
-	items, err := h.inv.GetCharacterItems(p.CharServerID)
+	items, err := inv.GetCharacterItems(p.CharServerID)
 	if err != nil {
-		log.Printf("Cast: %s's inventory: %v", p.Name, err)
+		log.Printf("%s: %s's inventory: %v", tag, p.Name, err)
 		return nil, false
 	}
 	var held []database.CharInventoryEntry
@@ -55,7 +69,7 @@ func (h *SpellbookHandler) reagentRows(sess *session.Session, p *entity.Player, 
 		}
 	}
 	if n < d.ReagentCount {
-		refuse(fmt.Sprintf("%s needs %s; you have %d.", spell.Name, reagentWords(pat.ItemName, d.ReagentCount), n))
+		refuse(fmt.Sprintf("%s needs %s; you have %d.", what, reagentWords(pat.ItemName, d.ReagentCount), n))
 		return nil, false
 	}
 	return held, true
@@ -64,6 +78,13 @@ func (h *SpellbookHandler) reagentRows(sess *session.Session, p *entity.Player, 
 // takeReagent takes n of the stacks held, in the database, the session's
 // list and the client's (0x003C), the first stacks first.
 func (h *SpellbookHandler) takeReagent(sess *session.Session, p *entity.Player, held []database.CharInventoryEntry, n int) {
+	takeStacks(h.inv, sess, p, "Cast", held, n)
+}
+
+// takeStacks takes n of the stacks held, in the database, the session's list
+// and the client's (0x003C), the first stacks first; tag begins the log's
+// line.
+func takeStacks(inv *database.InventoryStore, sess *session.Session, p *entity.Player, tag string, held []database.CharInventoryEntry, n int) {
 	l := sessionInvList(sess)
 	for _, r := range held {
 		if n <= 0 {
@@ -72,12 +93,12 @@ func (h *SpellbookHandler) takeReagent(sess *session.Session, p *entity.Player, 
 		k := min(n, r.StackLeft)
 		var err error
 		if k >= r.StackLeft {
-			err = h.inv.DeleteCharItem(p.CharServerID, r.ItemID)
+			err = inv.DeleteCharItem(p.CharServerID, r.ItemID)
 		} else {
-			err = h.inv.SetItemStack(p.CharServerID, r.ItemID, r.StackLeft-k)
+			err = inv.SetItemStack(p.CharServerID, r.ItemID, r.StackLeft-k)
 		}
 		if err != nil {
-			log.Printf("Cast: taking %d %q from %s: %v", k, r.Pattern.ItemName, p.Name, err)
+			log.Printf("%s: taking %d %q from %s: %v", tag, k, r.Pattern.ItemName, p.Name, err)
 			return
 		}
 		n -= k
@@ -86,7 +107,7 @@ func (h *SpellbookHandler) takeReagent(sess *session.Session, p *entity.Player, 
 				queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(idx, 0, k))
 			}
 		}
-		log.Printf("Cast: %s spends %d %q", p.Name, k, r.Pattern.ItemName)
+		log.Printf("%s: %s spends %d %q", tag, p.Name, k, r.Pattern.ItemName)
 	}
 }
 

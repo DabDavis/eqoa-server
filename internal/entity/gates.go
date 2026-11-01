@@ -71,7 +71,11 @@ const GateGroupRadius float32 = 20
 // roof, on a floor with nothing placed on it (the wander's clearLocked: no
 // table, no pillar), the clearest, nearest the place first, the NPCs of its
 // own floor alone counted (the chambers over and under it are other rooms).
-// The group lands gateRing round its caster.
+// A spot under the roof is on the room's own floor, within gateStep of the
+// place's: the ground's floors hold ceilings too, and a hole in a chamber's
+// floor shows the top of the ceiling under it, 5 lower in the second chamber
+// of the Prophet's tower, where a body stands on nothing (2026-11-01, Envar's
+// gems). The group lands gateRing round its caster.
 const (
 	gateRise    float32 = 12
 	gateOpen    float32 = 8
@@ -80,6 +84,7 @@ const (
 	gateApart   float32 = 2.5
 	gateAbove   float32 = 6
 	gateRing    float32 = 3
+	gateStep    float32 = 2   // the ground's step (internal/ground's StepUp): a room's own floor
 	gateSky     float32 = 1e6 // above every floor: the floor there is the topmost
 )
 
@@ -410,6 +415,9 @@ func (w *World) gateLandingLocked(g database.SpellGate) (x, y, z float32) {
 			if roofed && !covered {
 				continue // under a roof, an overhang, another floor
 			}
+			if roofed && float32(math.Abs(float64(fy-base))) > gateStep {
+				continue // under the roof, off the room's own floor: a hole's ceiling, a ledge in a wall
+			}
 			if covered && !w.gateWalkLocked(g.World, g.X, base, g.Z, px, fy, pz) {
 				continue // through a wall from under the roof, or onto what stands on its floor
 			}
@@ -493,7 +501,8 @@ func (w *World) gateWalkLocked(world uint8, x0, y0, z0, x1, y1, z1 float32) bool
 // the terrain and the ground has a floor there near at's height, out of the
 // water, and when at is inside (under a roof) under a roof too, walked to
 // from at through no wall, nothing placed on its floor (a chamber's walls
-// and tables); at at's height when at stands above the terrain (a pyramid's
+// and tables), on at's own floor (within gateStep: not a hole's ceiling); at
+// at's height when at stands above the terrain (a pyramid's
 // top); else at itself, as a player without the ground lands (a height
 // guessed off a slope could be under it).
 func (w *World) GateRingSpot(at GateSpot, ring int) GateSpot {
@@ -516,8 +525,9 @@ func (w *World) GateRingSpot(at GateSpot, ring int) GateSpot {
 	if !ok || float32(math.Abs(float64(fy-at.Y))) > gateRise || w.waterAtLocked(at.World, px, fy+bodyAbove, pz) {
 		return at
 	}
-	if inside && (!w.coveredLocked(at.World, px, fy, pz) || !w.gateWalkLocked(at.World, at.X, at.Y, at.Z, px, fy, pz)) {
-		return at // inside: through its wall, out under the sky, or onto a table
+	if inside && (!w.coveredLocked(at.World, px, fy, pz) || !w.gateWalkLocked(at.World, at.X, at.Y, at.Z, px, fy, pz) ||
+		float32(math.Abs(float64(fy-at.Y))) > gateStep) {
+		return at // inside: through its wall, out under the sky, onto a table, or off the room's own floor
 	}
 	return GateSpot{World: at.World, X: px, Y: fy, Z: pz, Place: at.Place}
 }

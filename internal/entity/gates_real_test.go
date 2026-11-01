@@ -17,9 +17,9 @@ import (
 // server would set a player, on a pyramid's top as written, else on the
 // terrain within 200 of its place, under the open sky and out of the water,
 // in one of the disc's six worlds; a place under a roof with no open ground a
-// body walks to (the vampires' Sanctuary, Envar's tower) under its roof, on
-// itself or where a body walks to from it. Skipped without both: neither is
-// in this repository.
+// body walks to (the vampires' Sanctuary, Envar's tower and its chambers, the
+// gems' rows) under its roof, on itself or where a body walks to from it, on
+// its own floor. Skipped without both: neither is in this repository.
 func TestRealSpellGatesLand(t *testing.T) {
 	dir := os.Getenv("EQOA_GROUND_DIR")
 	src := os.Getenv("EQOA_REAL_DB")
@@ -98,6 +98,8 @@ func TestRealSpellGatesLand(t *testing.T) {
 			t.Errorf("%s: landed under a floor %.1f above", row.Spell, top-y)
 		case top > y+gateOpen && d > 0 && !walks:
 			t.Errorf("%s: landed under a roof %.0f off its place, where no body walks to from it", row.Spell, d)
+		case top > y+gateOpen && math.Abs(float64(y-base)) > float64(gateStep):
+			t.Errorf("%s: landed under a roof at %.2f, off its place's own floor (%.2f): a hole's, a ledge's", row.Spell, y, base)
 		case top > y+gateOpen:
 			// a place under a roof with no open ground a body walks to (the
 			// vampires' Sanctuary, in the rock; Envar's tower): under its

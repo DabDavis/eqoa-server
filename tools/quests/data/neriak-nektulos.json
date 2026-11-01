@@ -3119,6 +3119,18 @@
      "says": "My brother Valraen keeps the tent below. Ask him."
     },
     {
+     "kind": "talk",
+     "target": "Valrean V`Ghen",
+     "journal": "Ask Valrean V`Ghen in the tent below the outpost for the locked box.",
+     "says": "Furess's packages? The courier left them in my keeping, and in my keeping they stay. Whatever she locked in that box is worth more to a V`Ghen than her thanks.\nMy brother sent you down here, did he? Then he can bury you. Innoruuk feeds on errand-runners, %p!",
+     "events": [
+      {
+       "on": "done",
+       "do": "attack"
+      }
+     ]
+    },
+    {
      "kind": "loot",
      "target": "Valrean V`Ghen",
      "items": [
@@ -3129,7 +3141,7 @@
      ],
      "count": 1,
      "chance": 1.0,
-     "journal": "Take the locked box from Valraen V'Ghen in the tent below the outpost."
+     "journal": "Defeat Valrean V`Ghen and take the locked box."
     },
     {
      "kind": "show",
@@ -4019,6 +4031,18 @@
      "says": "My brother Valraen keeps the tent below. Ask him."
     },
     {
+     "kind": "talk",
+     "target": "Valrean V`Ghen",
+     "journal": "Ask Valrean V`Ghen in the tent below the outpost for the locked box.",
+     "says": "Furess's packages? The courier left them in my keeping, and in my keeping they stay. Whatever she locked in that box is worth more to a V`Ghen than her thanks.\nMy brother sent you down here, did he? Then he can bury you. Innoruuk feeds on errand-runners, %p!",
+     "events": [
+      {
+       "on": "done",
+       "do": "attack"
+      }
+     ]
+    },
+    {
      "kind": "loot",
      "target": "Valrean V`Ghen",
      "items": [
@@ -4029,7 +4053,7 @@
      ],
      "count": 1,
      "chance": 1.0,
-     "journal": "Take the locked box from Valraen V'Ghen in the tent below the outpost."
+     "journal": "Defeat Valrean V`Ghen and take the locked box."
     },
     {
      "kind": "show",
@@ -5688,6 +5712,18 @@
      "says": "My brother Valraen keeps the tent below. Ask him."
     },
     {
+     "kind": "talk",
+     "target": "Valrean V`Ghen",
+     "journal": "Ask Valrean V`Ghen in the tent below the outpost for the locked box.",
+     "says": "Furess's packages? The courier left them in my keeping, and in my keeping they stay. Whatever she locked in that box is worth more to a V`Ghen than her thanks.\nMy brother sent you down here, did he? Then he can bury you. Innoruuk feeds on errand-runners, %p!",
+     "events": [
+      {
+       "on": "done",
+       "do": "attack"
+      }
+     ]
+    },
+    {
      "kind": "loot",
      "target": "Valrean V`Ghen",
      "items": [
@@ -5698,7 +5734,7 @@
      ],
      "count": 1,
      "chance": 1.0,
-     "journal": "Take the locked box from Valraen V'Ghen in the tent below the outpost."
+     "journal": "Defeat Valrean V`Ghen and take the locked box."
     },
     {
      "kind": "show",
@@ -7443,6 +7479,18 @@
      "says": "My brother Valraen keeps the tent below. Ask him."
     },
     {
+     "kind": "talk",
+     "target": "Valrean V`Ghen",
+     "journal": "Ask Valrean V`Ghen in the tent below the outpost for the locked box.",
+     "says": "Furess's packages? The courier left them in my keeping, and in my keeping they stay. Whatever she locked in that box is worth more to a V`Ghen than her thanks.\nMy brother sent you down here, did he? Then he can bury you. Innoruuk feeds on errand-runners, %p!",
+     "events": [
+      {
+       "on": "done",
+       "do": "attack"
+      }
+     ]
+    },
+    {
      "kind": "loot",
      "target": "Valrean V`Ghen",
      "items": [
@@ -7453,7 +7501,7 @@
      ],
      "count": 1,
      "chance": 1.0,
-     "journal": "Take the locked box from Valraen V'Ghen in the tent below the outpost."
+     "journal": "Defeat Valrean V`Ghen and take the locked box."
     },
     {
      "kind": "show",

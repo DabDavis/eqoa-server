@@ -225,6 +225,7 @@ const (
 	EventSay      = "say"      // an NPC's words to the player, a box a line
 	EventGive     = "give"     // items into the player's inventory
 	EventSpawn    = "spawn"    // a copy of an NPC beside the player, for the step
+	EventAttack   = "attack"   // an NPC near the player turns on it (the step's target unless named): a step's
 	EventVisual   = "visual"   // a spell visual played on the player
 	EventTeleport = "teleport" // the player moved to a place
 	EventVampire  = "vampire"  // the player made a vampire (charvampire, entity/vampire.go): the bats' infection
@@ -235,17 +236,17 @@ const (
 var (
 	QuestEventWhens   = []string{EventAccept, EventFinish}
 	StepEventWhens    = []string{EventStart, EventDone}
-	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventVisual, EventTeleport, EventVampire}
+	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventAttack, EventVisual, EventTeleport, EventVampire}
 )
 
 // QuestEvent is one thing a quest or a step does at one of its times, kept as
 // a JSON array in the events column.
 type QuestEvent struct {
 	On      string  `json:"on"`                // when: accept or finish (a quest's), start or done (a step's)
-	Do      string  `json:"do"`                // what: popup, say, give, spawn, visual, teleport, vampire
+	Do      string  `json:"do"`                // what: popup, say, give, spawn, attack, visual, teleport, vampire
 	Text    string  `json:"text,omitempty"`    // popup, say: the words (%p the player's name)
 	Answer  string  `json:"answer,omitempty"`  // popup: its one answer ("OK" when none)
-	NPC     string  `json:"npc,omitempty"`     // say: who says it (nobody: no name before it); spawn: whom
+	NPC     string  `json:"npc,omitempty"`     // say: who says it (nobody: no name before it); spawn: whom; attack: who (none: the step's target)
 	Items   string  `json:"items,omitempty"`   // give: patternid*count, comma separated
 	Hostile bool    `json:"hostile,omitempty"` // spawn: it may be attacked, and attacks the player
 	FX      string  `json:"fx,omitempty"`      // visual: its DictID (0x1DAEB5B6)
@@ -320,6 +321,10 @@ func EventProblems(s string, step bool) []string {
 			}
 			if !step {
 				add(i, "a spawn is a step's: it goes when the step is done")
+			}
+		case EventAttack:
+			if !step {
+				add(i, "an attack is a step's: the NPC near the player then, its target unless named")
 			}
 		case EventVisual:
 			if _, ok := ParseVisualID(e.FX); !ok {

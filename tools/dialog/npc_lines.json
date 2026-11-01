@@ -1,0 +1,40 @@
+{
+ "comment": [
+  "Lines of one NPC's own (tools/seed_npc_lines.py; entity/dialog.go): an NPC named here says these alone when",
+  "talked to with nothing else to say (no quest step, shop, route or sign), never the town pool, wherever it",
+  "stands and whatever its body. A block is a name and its lines, with a mood (neutral, friendly, warm, wary,",
+  "hostile, comma separated; none: a neutral, friendly or warm listener), a race (the listener's, -1 any) and a",
+  "weight as town_lines.json's; %p the listener's name, %r race, %c class, %t town, %n the speaker. Ours: the",
+  "user, 2026-11-01, \"give him specific lines talking about his brother, etc. special dialog and not the pool\",",
+  "\"we can have pools per character if needed, especially for quest npcs\"."
+ ],
+ "blocks": [
+  {
+   "name": "Valrean V`Ghen",
+   "note": "the tent below the outpost north of Neriak; Dragoon V`Ghen's brother; Lady Furess's Packages turns him on the player",
+   "say": [
+    "My brother keeps the tower, and I keep the tent. He calls it duty. I call it waiting my turn.",
+    "Dragoon V`Ghen sees the whole road from up there, and still he cannot see what goes on under his own boots.",
+    "The firebats grow bold this season. Let the fresh ones out of the city burn their fingers on them; I have better things to watch.",
+    "Couriers come up this road from the docks every day, %r. Some of what they carry even reaches the people it was meant for.",
+    "Neriak sends its finest to stand watch over Nektulos. It sent my brother, too.",
+    "When my brother is called back to the city, this outpost will be mine. Remember whose tent you stood in, %p.",
+    "Mind the firebats on your way back to the city, %c. My brother hates scraping fools off his road."
+   ]
+  },
+  {
+   "name": "Valrean V`Ghen",
+   "mood": "wary",
+   "say": [
+    "You have been seen with the wrong sort in Neriak, %r. Say what you want of a V`Ghen, or move along."
+   ]
+  },
+  {
+   "name": "Valrean V`Ghen",
+   "mood": "hostile",
+   "say": [
+    "Another step into my tent, %r, and my brother will find what is left of you in the morning."
+   ]
+  }
+ ]
+}

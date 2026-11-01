@@ -48,9 +48,9 @@ func TestDialogMoodFits(t *testing.T) {
 	}
 }
 
-// A town's own line counts three times a generic one, its role's twice, a
-// line for the speaker's name six times; a line of another town, role,
-// race or mood is not said.
+// A town's own line counts three times a generic one, its role's twice; a
+// line of another town, role, race or mood is not said. A speaker with lines
+// of its own name says those alone (TestOwnLines), never the pool's.
 func TestDialogCandidates(t *testing.T) {
 	lines := []database.NPCDialogLine{
 		{ID: 1, Line: "Any.", Race: -1, Weight: 1},
@@ -64,10 +64,10 @@ func TestDialogCandidates(t *testing.T) {
 		{ID: 9, Line: "Never.", Race: -1, Weight: 0},
 	}
 	got := map[int]int{}
-	for _, c := range DialogCandidates(lines, "Freeport", RoleGuard, "Guard Dahvel", MoodNeutral, "male", 0) {
+	for _, c := range DialogCandidates(lines, "Freeport", RoleGuard, "Guard Hollin", MoodNeutral, "male", 0) {
 		got[c.Line.ID] = c.Weight
 	}
-	want := map[int]int{1: 1, 2: 3, 3: 6, 4: 6}
+	want := map[int]int{1: 1, 2: 3, 3: 6}
 	if len(got) != len(want) {
 		t.Fatalf("lines %v, want %v", got, want)
 	}
@@ -76,9 +76,16 @@ func TestDialogCandidates(t *testing.T) {
 			t.Errorf("line %d: weight %d, want %d", id, got[id], w)
 		}
 	}
-	hostile := DialogCandidates(lines, "Freeport", RoleGuard, "Guard Dahvel", MoodHostile, "male", 2)
+	hostile := DialogCandidates(lines, "Freeport", RoleGuard, "Guard Hollin", MoodHostile, "male", 2)
 	if len(hostile) != 1 || hostile[0].Line.ID != 7 {
 		t.Errorf("hostile to a dark elf: %+v, want only line 7 (the race's line is not hostile)", hostile)
+	}
+	own := DialogCandidates(lines, "Freeport", RoleGuard, "Guard Dahvel", MoodNeutral, "male", 0)
+	if len(own) != 1 || own[0].Line.ID != 4 {
+		t.Errorf("Guard Dahvel, a line of his own: %+v, want that one alone", own)
+	}
+	if mine := DialogCandidates(lines, "Freeport", RoleGuard, "Guard Dahvel", MoodHostile, "male", 0); len(mine) != 0 {
+		t.Errorf("Guard Dahvel to a hostile listener: %+v, want nothing (his line is not hostile; the pool's are not his)", mine)
 	}
 }
 
@@ -204,5 +211,58 @@ func TestTownLine(t *testing.T) {
 	}
 	if !strings.Contains(DialogSay("%t", f.p, "x", "Klick`Anon"), "Klick'Anon") {
 		t.Error("Klick`Anon is said Klick'Anon")
+	}
+}
+
+// A speaker with lines of its own says those alone (its own pool: a quest's
+// people), never the generic ones that fit it too; it speaks with no town's
+// faction and on a creature's body; nobody speaks in a fight (a quest's attack
+// event turned it on the player), and the others keep the pool.
+func TestOwnLines(t *testing.T) {
+	f := newAggroFix(t, 20)
+	f.p.Name, f.p.Race, f.p.Class = "Walker", 0, 0
+	lines := []database.NPCDialogLine{
+		{ID: 1, Line: "Welcome, %p.", Race: -1, Weight: 1000},
+		{ID: 2, Name: "Valrean V`Ghen", Line: "My brother keeps the tower.", Race: -1, Weight: 1},
+		{ID: 3, Name: "valrean v`ghen", Line: "I keep the tent, %p.", Race: -1, Weight: 1},
+		{ID: 4, Name: "Hermit Olen", Line: "Leave me be.", Race: -1, Weight: 1},
+	}
+	val := f.npc(2101, "Valrean V`Ghen", 13, humanBody, 1010, 1010)
+	hermit := f.npc(2102, "Hermit Olen", 5, 0x12345678, 1020, 1010) // no town's faction, a creature's body (too low to attack on sight)
+	citizen := f.npc(2103, "Sabeth Riverhand", 10, humanBody, 1030, 1010)
+	f.w.SetNPCFactions([]database.NPCFactionRow{
+		{Name: "valrean v`ghen", World: -1, Faction: "Citizens of Freeport"},
+		{Name: "sabeth riverhand", World: -1, Faction: "Citizens of Freeport"},
+	})
+	f.p.Factions = map[string]int{"Citizens of Freeport": 0}
+
+	seen := map[int]int{}
+	for i := 0; i < 60; i++ {
+		speaker, line, id, ok := f.w.TownLine(f.p, val, lines, 0)
+		if !ok || speaker != "Valrean V`Ghen" {
+			t.Fatalf("Valrean: %q %q %v", speaker, line, ok)
+		}
+		if id == 3 && line != "I keep the tent, Walker." {
+			t.Errorf("his words filled in: %q", line)
+		}
+		seen[id]++
+	}
+	if seen[1] != 0 || seen[2] == 0 || seen[3] == 0 {
+		t.Errorf("Valrean's lines said %v, want his own two only", seen)
+	}
+	if _, line, id, ok := f.w.TownLine(f.p, hermit, lines, 0); !ok || id != 4 {
+		t.Errorf("the hermit (no town, a creature's body): %q %d %v, want his own line", line, id, ok)
+	}
+	if _, line, id, ok := f.w.TownLine(f.p, citizen, lines, 0); !ok || id != 1 {
+		t.Errorf("a citizen: %q %d %v, want the pool's", line, id, ok)
+	}
+	val.CurrentEnemy = f.p.ServerID
+	if _, line, _, ok := f.w.TownLine(f.p, val, lines, 0); ok {
+		t.Errorf("Valrean spoke in a fight: %q", line)
+	}
+	val.CurrentEnemy = 0
+	val.Dead = true
+	if _, line, _, ok := f.w.TownLine(f.p, val, lines, 0); ok {
+		t.Errorf("the dead spoke his own lines: %q", line)
 	}
 }

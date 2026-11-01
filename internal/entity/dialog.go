@@ -19,7 +19,11 @@ import (
 // "Siloth knight" says nothing); on a body of a players' race
 // (charactermodel) or with the NPC bit, alive, and not wildlife, undead, a
 // pet, a charmed creature or a training dummy: a gnoll's guard or a
-// skeleton's says nothing.
+// skeleton's says nothing. An NPC with lines of its own name (npcdialog.name)
+// is a speaker of its own: it says only those, its own pool, wherever it
+// stands and whatever its body (a quest's people; the user, 2026-11-01: "we
+// can have pools per character if needed, especially for quest npcs"). None
+// speaks in a fight (a quest's attack event turns one on the player).
 //
 // What it says (TownLine): a line of npcdialog whose selectors fit (an empty
 // one fits anyone): the speaker's town, its role by its name (NPCRole), its
@@ -151,11 +155,30 @@ func (w *World) dialogSexLocked(npc *NPC) string {
 	}
 }
 
+// dialogAble is whether npc may say anything: alive, not a pet, a charmed
+// creature or a training dummy, and not in a fight (a quest's attack event
+// turns a townsperson on the player: Valrean V`Ghen).
+func dialogAble(npc *NPC) bool {
+	return !npc.Dead && npc.Owner == 0 && npc.Charm == nil && npc.Dummy == NotDummy && npc.CurrentEnemy == 0
+}
+
+// ownLines is whether lines hold any of the speaker called name's own (their
+// npcdialog.name its name, as npcclass keys a name): then it says those alone.
+func ownLines(lines []database.NPCDialogLine, name string) bool {
+	key := database.NPCClassKey(name)
+	for _, l := range lines {
+		if l.Name != "" && l.Line != "" && l.Weight > 0 && database.NPCClassKey(l.Name) == key {
+			return true
+		}
+	}
+	return false
+}
+
 // dialogSpeakerLocked reports whether npc says town dialog, and its town (""
 // none: a guard on a road) and role. Must be called with the World's lock
 // held.
 func (w *World) dialogSpeakerLocked(npc *NPC) (town, role string, ok bool) {
-	if npc.Dead || npc.Owner != 0 || npc.Charm != nil || npc.Dummy != NotDummy {
+	if !dialogAble(npc) {
 		return "", "", false
 	}
 	if !w.playerModels[uint32(npc.ModelID)] && npc.NPCType&0x80 == 0 {
@@ -239,10 +262,14 @@ type DialogPick struct {
 // (the file's comment).
 func DialogCandidates(lines []database.NPCDialogLine, town, role, name, mood, sex string, race int) []DialogPick {
 	key := database.NPCClassKey(name)
+	own := ownLines(lines, name)
 	var out []DialogPick
 	for _, l := range lines {
 		if l.Line == "" || l.Weight <= 0 || (town == "" && strings.Contains(l.Line, "%t")) {
 			continue // a line naming the town, from a speaker of none (a guard on a road)
+		}
+		if own && l.Name == "" {
+			continue // a speaker with lines of its own says those alone
 		}
 		if l.Town != "" && !strings.EqualFold(l.Town, town) {
 			continue
@@ -295,7 +322,11 @@ func (w *World) TownLine(p *Player, npc *NPC, lines []database.NPCDialogLine, la
 	defer w.mu.Unlock()
 	town, role, ok := w.dialogSpeakerLocked(npc)
 	if !ok {
-		return "", "", 0, false
+		// a speaker of its own lines, wherever it stands and whatever its body
+		if !dialogAble(npc) || !ownLines(lines, npc.Name) {
+			return "", "", 0, false
+		}
+		town, role = DialogTown(w.npcFactionLocked(npc)), NPCRole(npc.Name)
 	}
 	mood := w.dialogMoodLocked(p, npc)
 	picks := DialogCandidates(lines, town, role, npc.Name, mood, w.dialogSexLocked(npc), p.Race)

@@ -1901,8 +1901,10 @@ def apply(db, p):
                     stale += 1
                     continue
                 w, args = where_of(tbl, c["key"])
+                # its rowid too, so --undo puts it back where it was (a dump's order)
+                rid = db.execute(f"SELECT rowid FROM main.{tbl} WHERE {w}", args).fetchone()[0]
                 db.execute(f"DELETE FROM main.{tbl} WHERE {w}", args)
-                log(db, tbl, c["key"], "delete", c["before"], None, c.get("note"))
+                log(db, tbl, c["key"], "delete", dict(c["before"], rowid=rid), None, c.get("note"))
             done += 1
         now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
         for k, v in {"applied_at": now, "sqlite_sequence": dumps(seqs), "added_effects_column": str(int(added)),
@@ -1964,14 +1966,19 @@ def undo(db, force=False):
                 db.execute(f"UPDATE main.{tbl} SET {', '.join(f'{k} = ?' for k in before)} WHERE {w}",
                            [*before.values(), *args])
             else:
-                now = row_now(db, tbl, key, list(before))
+                cols = [k for k in before if k != "rowid"]
+                now = row_now(db, tbl, key, cols)
                 if now is not None:
-                    if now != before:
+                    if now != {k: before[k] for k in cols}:
                         left += 1
                         leftover.append(f"{tbl} {dumps(key)}")
                         continue
+                elif "rowid" in before and not db.execute(f"SELECT 1 FROM main.{tbl} WHERE rowid = ?",
+                                                          (before["rowid"],)).fetchone():
+                    db.execute(f"INSERT INTO main.{tbl} (rowid, {', '.join(cols)}) VALUES (?, {', '.join('?' * len(cols))})",
+                               [before["rowid"], *(before[k] for k in cols)])
                 else:
-                    insert(db, tbl, before)
+                    insert(db, tbl, {k: before[k] for k in cols})
             back += 1
         meta = dict(db.execute(f"SELECT key, value FROM {META}").fetchall())
         seqs = json.loads(meta.get("sqlite_sequence", "{}"))

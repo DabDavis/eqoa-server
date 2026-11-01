@@ -188,6 +188,103 @@ class EpicOptionTest(unittest.TestCase):
                          [f"row 0240: {HEX_NEW} 'Grim Wailing Hex' -> 320 'Wailing Hex'"])
 
 
+# two records of ours that are one spell (made up), merged as the user decided;
+# an item numbered as the folded spell is another record (items and spells share
+# no id space)
+GROVE, GROOVE = 330, 331
+DECIDED = {GROVE: ("Glade Grove", GROOVE, "Glade Groove", "a made-up word")}
+CHOICES = ('{"ask":"Which ability do you take?","options":[{"answer":"Glade Grove","says":"Then it is yours.",'
+           '"spells":"330","items":"330"},{"answer":"Other","says":"Then it is yours.","spells":"777"}]}')
+BYCLASS = '{"5":{"spells":"330","items":"330"}}'
+
+
+def two_of_ours(db):
+    x = db.execute
+    rec = "INSERT INTO spellpattern VALUES (?, 49, 0, 0, ?, 2, 700, -1809115846, 7, 2, 48, -1, ?, 'Ours.')"
+    x(rec, (GROVE, imt.F45, "Glade Grove"))
+    x(rec, (GROOVE, imt.F45, "Glade Groove"))
+    x("INSERT INTO spelleffect VALUES (330, 'Group, Increase Power per tic by 175, 24sec', 0, 'eqoa-data')")
+    x("INSERT INTO spelleffect VALUES (331, 'Group, Increase Power per tic by 175, 24sec', 55, 'eqoa-data')")
+    x("INSERT INTO classspells VALUES (5, 330, 'eqoa-data'), (5, 331, 'eqoa-data')")
+    x("INSERT INTO characters VALUES (84, 5), (85, 5)")
+    x("INSERT INTO spells (id, serverid, spellid) VALUES (96, 84, 330), (97, 85, 330), (98, 85, 331)")
+    x("INSERT INTO charbuffs VALUES (84, 0, 330, 84)")
+    x("INSERT INTO cmcatalog (id, classes, name, rank, add_spells) VALUES (88, 32, 'Grove Rank', 1, '330, 777')")
+    x("INSERT INTO quests VALUES (61, '5')")
+    x("INSERT INTO queststeps (questid, step, rewarditems, choices, byclass) VALUES (61, 1, '330*2', ?, ?)", (CHOICES, BYCLASS))
+    item = ("INSERT INTO itempattern (patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, "
+            "attacktype, weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, "
+            "unk6, craft, itemname, itemdesc, model, color) VALUES (?, 0, 0, ?, 0, -1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, "
+            "50, 32767, 1023, 0, 0, 0, 0, ?, ?, 0, -1)")
+    x(item, (GROVE, 512, "Ghost Goo", "Goo a ghost leaves."))
+    x(item, (60030, im.SCROLL_ICON, "Glade Grove", "A scroll of Glade Grove."))
+
+
+class DecidedMergeTest(unittest.TestCase):
+    """Two records of ours that are one spell, merged as the user decided:
+    what named the folded one names the kept one (a book holding both keeps
+    the kept one, a kept buff, a mastery, a quest step's choices and byclass
+    in their "spells" alone: the item of the same number stays), its scroll
+    renamed, its class row and record out, the kept record untouched; made
+    only while both records are the ones named; a second plan empty; --undo
+    exact. Every name and figure made up."""
+
+    def setUp(self):
+        d = tempfile.mkdtemp()
+        self.wb = im.Workbook({"Spells": BS["SPELLS"], "Effects": BS["EFFECTS"], "Created Item Info": BS["ITEMS"],
+                               "Created Item Effects": BS["ITEM_EFFECTS"], "Pets": []})
+        self.db = imt.made_db(os.path.join(d, "f.db"))
+        ours(self.db)
+        two_of_ours(self.db)
+        with old_rules():
+            im.apply(self.db, im.plan(self.db, self.wb, OLD_MAP, weres={}))
+        masteries_import(self.db)
+
+    def plan(self, decided=DECIDED):
+        return f2.plan(self.db, self.wb, NEW_MAP, weres={}, ranks=RANKS, decided=decided)
+
+    def row(self, tbl, where):
+        return self.db.execute(f"SELECT * FROM {tbl} WHERE {where}").fetchall()
+
+    def test_the_folded_record_merged_into_the_kept_one(self):
+        kept = (self.row("spellpattern", "spellid = 331"), self.row("spelleffect", "spellid = 331"))
+        before = dump(self.db)
+        p = self.plan()
+        self.assertIn(dict(ours=GROOVE, new=GROVE, rank=None, ours_name="Glade Groove", new_name="Glade Grove",
+                           decided="a made-up word"), p["merges"])
+        done, stale = im.apply(self.db, p, f2.LOG, f2.META, f2.WHAT)
+        self.assertEqual(stale, 0)
+        for tbl in ("spellpattern", "spelleffect"):
+            self.assertEqual(self.row(tbl, "spellid = 330"), [], tbl)
+        self.assertEqual((self.row("spellpattern", "spellid = 331"), self.row("spelleffect", "spellid = 331")), kept,
+                         "the kept record takes nothing: it is the workbook's already")
+        self.assertEqual(self.row("classspells", "spellid IN (330, 331)"), [(5, 331, "eqoa-data")])
+        self.assertEqual(sorted(self.row("spells", "id IN (96, 97, 98)")), [(96, 84, 331), (98, 85, 331)],
+                         "the book holding both keeps the kept one")
+        self.assertEqual(self.row("charbuffs", "serverid = 84"), [(84, 0, 331, 84)])
+        self.assertEqual(self.db.execute("SELECT add_spells FROM cmcatalog WHERE id = 88").fetchone(), ("331, 777",))
+        self.assertEqual(self.db.execute("SELECT rewarditems, choices, byclass FROM queststeps WHERE questid = 61").fetchone(),
+                         ("330*2", CHOICES.replace('"spells":"330"', '"spells":"331"'),
+                          '{"5":{"spells":"331","items":"330"}}'), "its spells alone: the item of the same number stays")
+        self.assertEqual(self.db.execute("SELECT itemname FROM itempattern WHERE patternid IN (330, 60030) ORDER BY patternid")
+                         .fetchall(), [("Ghost Goo",), ("Glade Groove",)], "the item stays; the scroll is the kept one's")
+        again = self.plan()
+        self.assertEqual(again["lists"]["a merge the user decided, made already (its record gone)"],
+                         ["330 'Glade Grove' -> 331 'Glade Groove'"])
+        self.assertEqual(again["changes"], [], "a second plan has nothing to do")
+        back, left, _ = im.undo(self.db, False, f2.LOG, f2.META, f2.WHAT)
+        self.assertEqual(left, 0)
+        self.assertEqual(dump(self.db), before)
+
+    def test_records_not_the_ones_named_are_left(self):
+        self.db.execute("UPDATE spellpattern SET spellname = 'Glade Groove II' WHERE spellid = 331")
+        p = self.plan()
+        self.assertNotIn(GROVE, [m["new"] for m in p["merges"]])
+        self.assertEqual(p["lists"]["a merge the user decided whose records are not the ones named (left)"],
+                         ["330 'Glade Grove' -> 331 'Glade Groove': 330 is 'Glade Grove', 331 'Glade Groove II'"])
+        self.assertFalse([c for c in p["changes"] if GROVE in (c["key"] or {}).values()], "nothing of it written")
+
+
 class Followup2Test(unittest.TestCase):
     def setUp(self):
         d = tempfile.mkdtemp()

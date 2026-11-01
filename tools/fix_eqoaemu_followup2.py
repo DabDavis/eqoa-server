@@ -27,7 +27,16 @@ on this database, and only these parts of it taken):
      area and class rows a fresh import gives it, and the new record's visual
      where ours has none (the workbook's Graphic, which the import gave the
      record it made; tools/fill_spell_visuals_eqoaemu.py matches spells by
-     name, so it never gave ours).
+     name, so it never gave ours). And two records of ours that are one spell,
+     merged as the user decided (DECIDED_MERGES, 2026-11-01: "yes merge
+     them"): the epics' Power Grove into Power Groove and Doomed Tower into
+     Doom Tower, the records that carry the workbook's rows; what named the
+     folded one names the other (books, kept buffs, masteries, quests: a
+     quest step's choices and byclass in their "spells" alone, an item of
+     the same number being another record), a scroll of its name renamed to
+     the other's, its class rows, area and record out; the record kept takes
+     nothing (it is the workbook's already). Made only while both records
+     are still the ones named, else listed.
   2. The item such a spell makes is the one its line names (the
      Transformative Pill), and it takes the workbook's use over its own as the
      record takes the workbook's record (the Creative Mix Potion's: a heal of
@@ -117,13 +126,22 @@ for _t, _k, _c in FOLD_TABLES + FOLD_LISTS:
     im.KEYS.setdefault(_t, _k)
 # the tables an item the import made is logged in, by the tool that made it
 MADE_BY = (im.LOG, fu.LOG)
+# Two records of ours that are one spell, merged as the user decided: the
+# record folded -> (its name, the record of ours kept, that one's name, the
+# user's word), made only while both are still the ones named (the doc's 1)
+DECIDED_MERGES = {
+    700629: ("Power Grove", 701201, "Power Groove", 'the user, 2026-11-01: "yes merge them"'),
+    701129: ("Doomed Tower", 700590, "Doom Tower", 'the user, 2026-11-01: "yes merge them"'),
+}
 
 
-def merges(db, smap, lists):
+def merges(db, smap, lists, decided=None):
     """The doc's 1: (ours, new, the rank) of each rank the masteries import
     moved from a record of ours to a new one whose workbook row the map puts
     on ours, then (ours, new, None) of each new record the import made for a
-    workbook row the map now puts on ours with no rank moved to it."""
+    workbook row the map now puts on ours with no rank moved to it, then the
+    merges the user decided (decided, DECIDED_MERGES by default: "new" the
+    record folded)."""
     out = []
     recs = {r[0]: r[1] for r in db.execute("SELECT spellid, spellname FROM main.spellpattern")}
     ranks = db.execute("SELECT id, op, before, after FROM main.cmcatalog_eqoaemu_log ORDER BY rowid").fetchall() \
@@ -165,6 +183,79 @@ def merges(db, smap, lists):
             continue
         out.append(dict(ours=ours, new=made, rank=None, ours_name=recs[ours], new_name=recs[made]))
         lists["one spell's two records made one (ours kept: the map's row on it)"].append(tag)
+    # two of ours, as the user decided
+    for old, (was, to, to_name, word) in sorted((DECIDED_MERGES if decided is None else decided).items()):
+        tag = f"{old} {was!r} -> {to} {to_name!r}"
+        if old not in recs and recs.get(to) == to_name:
+            lists["a merge the user decided, made already (its record gone)"].append(tag)
+            continue
+        if recs.get(old) != was or recs.get(to) != to_name or old in seen:
+            lists["a merge the user decided whose records are not the ones named (left)"].append(
+                f"{tag}: {old} is {recs.get(old)!r}, {to} {recs.get(to)!r}")
+            continue
+        out.append(dict(ours=to, new=old, rank=None, ours_name=to_name, new_name=was, decided=word))
+        lists["two records of ours made one, as the user decided (the one with the workbook's row kept)"].append(
+            f"{tag} ({word})")
+    return out
+
+
+def spells_swap(text, old, new):
+    """A quest step's byclass or choices (import_quests.py's compact JSON)
+    with old's id swapped for new's in its "spells" alone: an item of the
+    same number is another record. None when the text is not that JSON."""
+    try:
+        j = json.loads(text)
+    except ValueError:
+        return None
+    if json.dumps(j, separators=(",", ":")) != text:
+        return None
+
+    def walk(o):
+        if isinstance(o, dict):
+            return {k: im.token_swap(v, old, new) if k == "spells" and isinstance(v, str) else walk(v) for k, v in o.items()}
+        if isinstance(o, list):
+            return [walk(x) for x in o]
+        return o
+    return json.dumps(walk(j), separators=(",", ":"))
+
+
+def merge_changes(db, m, lists, counts):
+    """The first follow-up's merge_changes, a quest step's byclass and
+    choices swapped in their "spells" alone (spells_swap), and for a merge
+    the user decided a scroll of the folded record's name renamed to the
+    kept one's (its own scrolls' rule: none of that name there already)."""
+    out = []
+    for c in fu.merge_changes(db, m, lists, counts):
+        if c["tbl"] == "queststeps" and c["action"] == "update":
+            after = dict(c["set"])
+            for col in ("byclass", "choices"):
+                if col in c["before"]:
+                    v = spells_swap(c["before"][col], m["new"], m["ours"])
+                    if v is None:
+                        lists["a quest step's JSON not as the quest importer writes it (left)"].append(
+                            f"{c['key']} {col}: {m['new']} into {m['ours']}")
+                        v = c["before"][col]
+                    after[col] = v
+            changed = {k: v for k, v in after.items() if v != c["before"].get(k)}
+            if not changed:
+                counts["merged: queststeps rows naming ours"] -= 1
+                continue
+            c = dict(c, before={k: c["before"][k] for k in changed}, set=changed)
+        out.append(c)
+    if m.get("decided"):
+        names = {im.exact_key(n) for (n,) in db.execute(
+            "SELECT itemname FROM main.itempattern WHERE itemicon = ? AND equipslot = -1", (im.SCROLL_ICON,))}
+        for pid, name in db.execute("SELECT patternid, itemname FROM main.itempattern WHERE itemicon = ? AND equipslot = -1 "
+                                    "ORDER BY patternid", (im.SCROLL_ICON,)).fetchall():
+            if im.exact_key(name) != im.exact_key(m["new_name"]):
+                continue
+            if im.exact_key(m["ours_name"]) in names:
+                lists["a scroll of a folded record's name, a scroll of the kept one's there too (left: "
+                      "tools/fix_scrolls.py or the user)"].append(f"{pid} {name!r}")
+                continue
+            out.append(dict(tbl="itempattern", action="update", key={"patternid": pid}, before={"itemname": name},
+                            set={"itemname": m["ours_name"]}, note=f"{m['new']} into {m['ours']}: its scroll"))
+            counts["merged: scrolls of the folded record's name renamed"] += 1
     return out
 
 
@@ -261,19 +352,20 @@ def desc_changes(db, ranks, lists, counts):
     return out
 
 
-def plan(db, wb, smap, disc=None, icons=None, weres=None, bodies=None, ranks=None):
+def plan(db, wb, smap, disc=None, icons=None, weres=None, bodies=None, ranks=None, decided=None):
     """Everything --apply would write (changes), and the report's lists.
     ranks: the CMs sheet's ranks (import_eqoaemu_cms.read_ranks), for the
-    descriptions."""
+    descriptions; decided the merges the user decided (DECIDED_MERGES)."""
     lists, counts = collections.defaultdict(list), collections.Counter()
-    pairs = merges(db, smap, lists)
+    pairs = merges(db, smap, lists, decided)
     p = im.plan(db, wb, smap, disc, False, weres or {}, icons, bodies)
     wrote = fu.import_writes(db)
     changes = []
     for m in pairs:
-        changes += fu.merge_changes(db, m, lists, counts)
-    ours = {m["ours"] for m in pairs}
-    # the record of ours a merge keeps takes the workbook's
+        changes += merge_changes(db, m, lists, counts)
+    # the record of ours a merge keeps takes the workbook's (one of a merge
+    # the user decided is the workbook's already)
+    ours = {m["ours"] for m in pairs if not m.get("decided")}
     for e in p["spells"]:
         if e["action"] == "update" and e["spellid"] in ours:
             changes.append(dict(tbl="spellpattern", action="update", key={"spellid": e["spellid"]}, before=e["before"],
@@ -298,6 +390,8 @@ def plan(db, wb, smap, disc=None, icons=None, weres=None, bodies=None, ranks=Non
             counts["effects rows of ours taking a merged record's workbook effects"] += 1
     # the merged record's visual on ours where ours has none
     for m in pairs:
+        if m.get("decided"):
+            continue
         a = db.execute("SELECT fxdict FROM main.spelleffect WHERE spellid = ?", (m["ours"],)).fetchone()
         b = db.execute("SELECT fxdict FROM main.spelleffect WHERE spellid = ?", (m["new"],)).fetchone()
         if a is None or b is None or not b[0] or a[0] == b[0]:
@@ -358,7 +452,7 @@ def refresh(db, p):
     fresh = []
     for m in p.get("merges") or []:
         if db.execute("SELECT 1 FROM main.spellpattern WHERE spellid = ?", (m["new"],)).fetchone():
-            fresh += fu.merge_changes(db, m, lists, counts)
+            fresh += merge_changes(db, m, lists, counts)
     for f in p.get("folds") or []:
         fresh += fold_changes(db, f, lists, counts)
     return dict(p, changes=fresh + keep)

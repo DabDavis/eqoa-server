@@ -266,7 +266,11 @@ func (p *plan) undeadKinds(w int) map[string]*kind {
 
 // placeCamps places the rules' camps of world w before the fill: each
 // camp's count of its kinds on the open land within campSpread of its point,
-// campSpacing apart and clear of every creature; what was placed.
+// campSpacing apart and clear of every creature, less those of its kinds
+// standing there already (the rules fill what the census of Sandstorm's
+// Rathe left empty, the user's "for what the census leaves empty"; it found
+// Sandstorm's own thugs and Tae Ew commanders at these points); what was
+// placed.
 func (p *plan) placeCamps(land *landGrid, w int, open func(int) bool, occupied *index, rng *rand.Rand) []fill {
 	var out []fill
 	for i := range zoneRules {
@@ -279,6 +283,12 @@ func (p *plan) placeCamps(land *landGrid, w int, open func(int) bool, occupied *
 			if !ok {
 				continue
 			}
+			there := p.campKindsAt(r, c, w, cx, cz)
+			if there >= c.count {
+				say("camp %q in %s: %d of its kinds stand round (%.0f, %.0f) already, none placed", c.what, r.zone, there, cx, cz)
+				continue
+			}
+			c.count -= there
 			// the open samples round the point, nearest first
 			type cand struct {
 				k int
@@ -328,6 +338,28 @@ func (p *plan) placeCamps(land *landGrid, w int, open func(int) bool, occupied *
 		}
 	}
 	return out
+}
+
+// campKindsAt is how many creatures of a camp's kinds (its own, else its
+// rule's) stand within campSpread of (x, z) in world w.
+func (p *plan) campKindsAt(r *zoneRule, c ruleCamp, w int, x, z float64) int {
+	want := map[string]bool{}
+	for _, rk := range r.kinds {
+		in := len(c.kinds) == 0
+		for _, k := range c.kinds {
+			in = in || k == rk.name
+		}
+		if in {
+			want[database.NPCClassKey(rk.name)] = true
+		}
+	}
+	n := 0
+	for _, row := range p.in.rows {
+		if row.world == w && want[row.key] && math.Hypot(row.x-x, row.z-z) <= campSpread {
+			n++
+		}
+	}
+	return n
 }
 
 // A camp's spread round its point and its creatures' spacing.

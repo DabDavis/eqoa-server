@@ -4,8 +4,9 @@ data here): a rank matched by name, by its stats, by the ability it adds and
 by its line keeps our id and takes the sheet's values; a sheet rank of several
 of our rows (a row a class), two sheet ranks of one of ours (merged); a racial
 master class to Master Class; new ranks (id 900000 + hex, their prerequisites
-our ids, a were rank and a quest's drafted rank disabled, a quest found); a
-blank keeps ours; a GM's row overwritten; charcms untouched; --apply's audit
+our ids; a were rank behind its kind's quest, a werebeast's any of the five, a
+were-hunter's the brand, all disabled with --weres off; a quest found, a
+draft's rank offered behind it and listed); a blank keeps ours; a GM's row overwritten; charcms untouched; --apply's audit
 lines, a stale plan, missing spells refused; --undo exact, a row changed since
 and a new rank bought since left."""
 import json

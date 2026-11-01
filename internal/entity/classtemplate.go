@@ -282,8 +282,11 @@ func templateKindTakes(kind string, s *CastSpell) bool {
 	if d.Summons() || d.Charms() || d.FormKind != FormNone || d.undeadOnly() || d.hasProc() {
 		return false
 	}
-	var hits, drains, heals, price bool
+	var hits, drains, heals, price, roots bool
 	for _, e := range d.Effects {
+		if e.Kind == EffectRoot {
+			roots = true
+		}
 		if e.Kind == EffectStat && e.Amount < 0 && e.Drain != DrainNone && !e.Self {
 			drains = true // a drain of stats (a necromancer's pet's Undead Bane: pettemplate.go)
 		}
@@ -317,6 +320,8 @@ func templateKindTakes(kind string, s *CastSpell) bool {
 		return d.Harmful && area && hits && !drains
 	case database.AbilityLifetap:
 		return d.Harmful && single && drains
+	case database.AbilityRoot:
+		return d.Harmful && roots && !hits
 	case database.AbilityHeal:
 		// a heal is at once: a lasting spell that raises hit points is a
 		// buff (the cleric's Courage line), a heal over time a tick's

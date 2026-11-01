@@ -22,6 +22,19 @@ class SeedCampLootTest(unittest.TestCase):
         self.assertEqual(scl.table_of("the Khal Warlord's"), "khal warlord")
         self.assertEqual(scl.table_of("Khal Viceroy"), "khal viceroy")
 
+    def test_the_templates_records_drop_off_no_one(self):
+        # an item of the old server's test template (PoT and resists past 500,
+        # damage 999) is no one's drop; the control, a real one of the table, is
+        d = tempfile.mkdtemp()
+        items = os.path.join(d, "Information", "databases", "items")
+        os.makedirs(items)
+        with open(os.path.join(items, "weapons.json"), "w") as f:
+            f.write('{"items": [{"name": "Test Blade", "damage": 999, "stats": {"pot": 987, "lr": 927}, '
+                    '"source": {"type": "mobDrop", "name": "the Test Lord\'s"}}, '
+                    '{"name": "Test Dagger", "damage": 40, "requirements": {"level": 20}, '
+                    '"source": {"type": "mobDrop", "name": "the Test Lord\'s"}}]}')
+        self.assertEqual(dict(scl.items_by_table(d)), {"test lord": [("Test Dagger", 20)]})
+
     def test_level_window(self):
         self.assertEqual(scl.window(20), (15, 25))
         self.assertEqual(scl.window(3), (1, 8))

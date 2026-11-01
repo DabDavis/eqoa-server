@@ -61,7 +61,7 @@ type savedMods struct {
 	// a workbook effect's rules (workbook.go) and its spell procs
 	// (workbookmore.go); none on a row kept before
 	Rules      *EffectRules `json:",omitempty"`
-	ProcSpells []ProcSpell   `json:",omitempty"`
+	ProcSpells []ProcSpell  `json:",omitempty"`
 	// a heal over time's ticks left (hot.go); a row kept before reads as
 	// none, an effect that ticks until it ends
 	Ticks int `json:",omitempty"`

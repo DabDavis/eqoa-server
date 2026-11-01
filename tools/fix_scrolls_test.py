@@ -83,10 +83,14 @@ def make(dir):
     spell(7, "Thornveil", 7, DRD)
     scroll(112, "thornveil scroll", 5, [DRD], "A scroll of Thornveil.")
     sell(9004, 112)
-    # a dead scroll sold whose name means no spell exactly: listed with its best candidate
+    # a dead scroll sold whose name means no spell exactly: listed with its best
+    # candidate, whose own scroll its merchant sells too (a fold the user may decide)
     spell(8, "Stonehide III", 12, DRD)
     scroll(113, "Stonehide 3", 12, [DRD], "Scribing this scroll hardens your skin.")
-    sell(9005, 113)
+    scroll(119, "Stonehide III", 12, [DRD], "This scroll will allow you to learn Stonehide III.")
+    sell(9005, 113, 119)
+    sell(9008, 113)
+    db.execute("INSERT INTO charinventory (serverid, patternid) VALUES (7002, 113)")
     # a dead scroll for two classes whose spell a scroll teaches one of them only: listed
     spell(9, "Frostling", 20, MAG, WIZ)
     scroll(114, "Frostling", 20, [WIZ], "This scroll will allow you to learn Frostling.")
@@ -173,6 +177,46 @@ class FixScrollsTest(unittest.TestCase):
         self.assertEqual((left, run), ([], "2026-01-01T00:00:00+00:00"))
         self.assertEqual(back, 1 + 3 + 3 + 1)   # renamed, levels, the fold's rows (2 + the dropped one) and record
         self.assertEqual(dump(self.path), before)
+
+    # the user's decision, made up: the dead Stonehide 3 into the scroll of Stonehide III
+    DECIDE = {113: ("Stonehide 3", 119, "Stonehide III", "a made-up word")}
+
+    def test_decided_fold(self):
+        before = dump(self.path)
+        p = fs.plan(self.db, decided=self.DECIDE)
+        fold = next(c for c in p["folds"] if c["patternid"] == 113)
+        self.assertEqual(fold["fold"], 119)
+        self.assertIn("as the user decided (a made-up word)", fold["how"])
+        self.assertNotIn("a dead scroll sold or held, its spell unclear (listed: the user's call)", p["lists"])
+        n_ren, n_lv, n_fold, moved, dropped, stale = fs.apply(self.db, p, "2026-01-01T00:00:00+00:00")
+        self.assertEqual((n_ren, n_lv, n_fold, moved, dropped, stale), (1, 3, 2, 4, 2, 0))   # the rule's 111 and 113
+        self.assertIsNone(self.item(113))
+        self.assertEqual(self.db.execute("SELECT npcid, patternid FROM npcitem WHERE npcid IN (9005, 9008) ORDER BY npcid")
+                         .fetchall(), [(9005, 119), (9008, 119)], "a merchant that sold both keeps one row")
+        self.assertEqual(self.db.execute("SELECT patternid FROM charinventory WHERE serverid = 7002").fetchall(), [(119,)])
+        again = fs.plan(self.db, decided=self.DECIDE)
+        self.assertEqual(again["lists"]["a fold the user decided, made already (its record gone)"],
+                         ["113 'Stonehide 3' -> 119 'Stonehide III'"])
+        self.assertEqual(fs.apply(self.db, again, "2026-01-01T00:00:01+00:00"), (0, 0, 0, 0, 0, 0))
+        back, left, _ = fs.fb.undo(self.db, fs.LOG)
+        self.assertEqual(left, [])
+        self.assertEqual(dump(self.path), before)
+
+    def test_decided_fold_refused(self):
+        # a record not the one the user named any more (a GM's rename since): the fold refused, listed, nothing of it written
+        key = "a fold the user decided whose records are not the ones named (left)"
+        for pid, name, why in ((119, "Stonehide Three", "119 is 'Stonehide Three' now"),
+                               (113, "Stonehide 3 (old)", "it is 'Stonehide 3 (old)' now")):
+            self.db.execute("UPDATE itempattern SET itemname = ? WHERE patternid = ?", (name, pid))
+            before = dump(self.path)
+            p = fs.plan(self.db, decided=self.DECIDE)
+            self.assertNotIn(113, [c["patternid"] for c in p["folds"]])
+            self.assertEqual(p["lists"][key], [f"113 'Stonehide 3' -> 119 'Stonehide III': {why}"])
+            fs.apply(self.db, dict(p, renames=[], levels=[], folds=[c for c in p["folds"] if c["patternid"] == 113]),
+                     "2026-01-01T00:00:00+00:00")
+            self.assertEqual(dump(self.path), before, why)
+            self.db.execute("UPDATE itempattern SET itemname = ? WHERE patternid = ?",
+                            ("Stonehide III" if pid == 119 else "Stonehide 3", pid))
 
     def test_stale_row_left(self):
         p = fs.plan(self.db)

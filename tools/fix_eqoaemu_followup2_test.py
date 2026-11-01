@@ -93,6 +93,101 @@ def masteries_import(db):
     x("INSERT INTO auction_lots (lot, seller, patternid, stack) VALUES (7, 81, ?, 1)", (MADE,))
 
 
+# a level 60 epic's option (made up): the workbook's hex a new record the import
+# made, the map's row now on ours, no rank moved to it
+HEX = imt.spell("0240", "Grim Wailing Hex", CLASS="SHA", Level=60, ScrollSource="Quest", TYPE="Statistic Change",
+                Scope="TB AoE", Graphic="0x11223355", CastTime=3, Recast=300, PowerCost=600, Duration=120, EffectID1="0241")
+HEX_FX = imt.eff("0241", "Statistic Change", STA=-50, AC=-300, Duration=120, Scope="TB AoE", AoERadius=10)
+HEX_NEW = im.NEW_BASE + 0x240
+OLD_EPIC_MAP = dict(OLD_MAP, **{"0240": (HEX_NEW, "new")})
+NEW_EPIC_MAP = dict(NEW_MAP, **{"0240": (320, "spelled otherwise (Wailing Hex, a level 60 epic's option)")})
+VISUAL = 287454037   # the disc's visual the import gave the record it made (its --iso)
+
+
+def hex_of_ours(db):
+    """The epic option of ours: EQOA-Data's line, no visual, its class's row."""
+    x = db.execute
+    x("INSERT INTO spellpattern VALUES (320, 60, 0, 0, ?, 3, 600, -1809115846, 7, 1, 300, -1, 'Wailing Hex', 'Ours.')",
+      (imt.F45,))
+    x("INSERT INTO spelleffect VALUES (320, 'Target, Decrease STA by 60, Decrease AC by 350, 2min', 0, 'eqoa-data')")
+    x("INSERT INTO classspells VALUES (8, 320, 'eqoa-data')")
+
+
+def dump(db):
+    out = {}
+    for (t,) in db.execute("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name"):
+        out[t] = (db.execute(f"PRAGMA table_info({t})").fetchall(), sorted(map(repr, db.execute(f"SELECT * FROM {t}"))))
+    return out
+
+
+class EpicOptionTest(unittest.TestCase):
+    """A new record the import made for a workbook row the map now puts on a
+    record of ours with no rank moved to it (the level 60 epics' options):
+    merged as a rank's record is, ours taking the area a fresh import gives
+    it and the merged record's visual; the map's row decides; --undo exact."""
+
+    def setUp(self):
+        d = tempfile.mkdtemp()
+        self.wb = im.Workbook({"Spells": BS["SPELLS"] + [HEX], "Effects": BS["EFFECTS"] + [HEX_FX],
+                               "Created Item Info": BS["ITEMS"], "Created Item Effects": BS["ITEM_EFFECTS"], "Pets": []})
+        self.db = imt.made_db(os.path.join(d, "f.db"))
+        ours(self.db)
+        hex_of_ours(self.db)
+        with old_rules():
+            im.apply(self.db, im.plan(self.db, self.wb, OLD_EPIC_MAP, weres={}))
+        masteries_import(self.db)
+        self.db.execute("UPDATE spelleffect SET fxdict = ? WHERE spellid = ?", (VISUAL, HEX_NEW))
+        self.db.execute("INSERT INTO spells (id, serverid, spellid) VALUES (95, 82, ?)", (HEX_NEW,))   # a GM's
+        self.fresh = imt.made_db(os.path.join(d, "fresh.db"))
+        ours(self.fresh)
+        hex_of_ours(self.fresh)
+        im.apply(self.fresh, im.plan(self.fresh, self.wb, NEW_EPIC_MAP, weres={}))
+
+    def plan(self, smap=NEW_EPIC_MAP):
+        return f2.plan(self.db, self.wb, smap, weres={}, ranks=RANKS)
+
+    def test_the_new_record_merged_into_ours(self):
+        p = self.plan()
+        self.assertIn(dict(ours=320, new=HEX_NEW, rank=None, ours_name="Wailing Hex", new_name="Grim Wailing Hex"),
+                      p["merges"])
+        got = {(c["tbl"], c["action"], json.dumps(c["key"], sort_keys=True)) for c in p["changes"]}
+        for tbl, action, key in (("spellpattern", "delete", {"spellid": HEX_NEW}), ("spelleffect", "delete", {"spellid": HEX_NEW}),
+                                 ("classspells", "delete", {"class": 8, "spellid": HEX_NEW}),
+                                 ("spellarea", "delete", {"spellid": HEX_NEW}), ("spells", "update", {"id": 95}),
+                                 ("spellpattern", "update", {"spellid": 320}), ("spelleffect", "update", {"spellid": 320}),
+                                 ("spellarea", "insert", {"spellid": 320})):
+            self.assertIn((tbl, action, json.dumps(key, sort_keys=True)), got, (tbl, action, key))
+        done, stale = im.apply(self.db, p, f2.LOG, f2.META, f2.WHAT)
+        self.assertEqual(stale, 0)
+        for tbl, where in (("spellpattern", "spellid = 320"), ("spellarea", "spellid = 320"),
+                           ("classspells", f"spellid IN (320, {HEX_NEW})")):
+            self.assertEqual(sorted(self.db.execute(f"SELECT * FROM {tbl} WHERE {where}")),
+                             sorted(self.fresh.execute(f"SELECT * FROM {tbl} WHERE {where}")), tbl)
+        a = self.db.execute("SELECT line, fxdict, effects FROM spelleffect WHERE spellid = 320").fetchone()
+        b = self.fresh.execute("SELECT line, fxdict, effects FROM spelleffect WHERE spellid = 320").fetchone()
+        self.assertEqual((a[0], json.loads(a[2])), (b[0], json.loads(b[2])), "ours as a fresh import leaves it")
+        self.assertEqual((a[1], b[1]), (VISUAL, 0), "and the merged record's visual, which a fresh import leaves 0")
+        for tbl in ("spellpattern", "spelleffect", "spellarea"):
+            self.assertIsNone(self.db.execute(f"SELECT 1 FROM {tbl} WHERE spellid = ?", (HEX_NEW,)).fetchone(), tbl)
+        self.assertEqual(self.db.execute("SELECT spellid FROM spells WHERE id = 95").fetchone(), (320,))
+        self.assertEqual(self.plan()["changes"], [], "a second plan has nothing to do")
+
+    def test_the_maps_row_decides_and_undo_is_exact(self):
+        self.assertNotIn(320, [m["ours"] for m in self.plan(OLD_EPIC_MAP)["merges"]], "the import's map: no merge")
+        before = dump(self.db)
+        im.apply(self.db, self.plan(), f2.LOG, f2.META, f2.WHAT)
+        back, left, _ = im.undo(self.db, False, f2.LOG, f2.META, f2.WHAT)
+        self.assertEqual(left, 0)
+        self.assertEqual(dump(self.db), before)
+
+    def test_a_record_the_import_did_not_make_is_left(self):
+        self.db.execute(f"DELETE FROM {im.LOG} WHERE tbl = 'spellpattern' AND key = ?", (im.dumps({"spellid": HEX_NEW}),))
+        p = self.plan()
+        self.assertNotIn(320, [m["ours"] for m in p["merges"]])
+        self.assertEqual(p["lists"]["a record of a row the map spells otherwise on ours that the import did not make (left)"],
+                         [f"row 0240: {HEX_NEW} 'Grim Wailing Hex' -> 320 'Wailing Hex'"])
+
+
 class Followup2Test(unittest.TestCase):
     def setUp(self):
         d = tempfile.mkdtemp()

@@ -266,6 +266,21 @@ RECASTS = {"envaric acension": 3600, "circle of dead hills": 600}
 # "30 sec for both"; EQOA-Data's line gave Strategic Blow's AC 45 seconds).
 # The spell's duration_s, where its row has none (spell_json, with_duration).
 DURATIONS = {"swamp stench": 30, "strategic blow": 30}
+# Spells of ours the workbook lacks, made the mirror of one it has (the user,
+# 2026-11-01: "yes make it a taunt proc", "yes make them taunt procs"): the
+# enchanter's taunting Visages, whose EQOA-Data lines ("Group, Enchant
+# warriors weapon with taunt, 5min", "Group, Weapon proc, 5min") read to no
+# effect, each Calming Visage's effects (a friendly target's offensive proc
+# of kind hate, 5 min, its stack) with its proc raising by the figure here
+# (ours) the hate of what its bearer's weapon hits; at its own record's
+# level, its lowest receiver's as far below it as the original's (10); its
+# record a target spell as the original is (scope, frame), its description
+# MIRROR_DESC (ours). mirror_json, mirror_changes; spell name -> (the
+# original's, the hate a proc gives).
+MIRRORS = {"alarming visage": ("calming visage", 10), "haunting visage": ("calming visage", 20),
+           "ghastly visage": ("calming visage", 40)}
+MIRROR_DESC = "Enchants the target's weapon with taunt: what its blows strike comes to hate it more."
+MIRROR_NOTE = "effects ours: the mirror of the workbook's {}"
 # a Dmg/Heal row with a positive HP1 lasting at most this many seconds heals
 # each tick; one lasting longer heals once, at its landing (the doc)
 HEAL_TICKS_UP_TO = 60
@@ -932,6 +947,43 @@ def dumps(o):
     return json.dumps(o, separators=(",", ":"), ensure_ascii=False)
 
 
+def mirror_json(j, level, hate):
+    """An original's effects (JSON v1, a dict) mirrored for a spell of ours
+    the workbook lacks (MIRRORS): its own level, its lowest receiver's as far
+    below it as the original's, every proc of kind hate raising by hate, the
+    original's effect ids (the workbook's rows of it) left out."""
+    out = json.loads(json.dumps(j))
+    if "level" in out:
+        out["level"] = level
+    if "min_level" in out and j.get("level") is not None:
+        out["min_level"] = max(1, level - (j["level"] - j["min_level"]))
+    for e in out.get("effects") or []:
+        e.pop("id", None)
+        for p in e.get("procs") or []:
+            p.pop("id", None)
+            if p.get("kind") == "hate":
+                p["amount"] = hate
+    return out
+
+
+def mirror_changes(rec, now, scope, frame, orig_name, orig_json, hate):
+    """A spell of ours made the mirror of an original (MIRRORS): its record's
+    update (scope and frame the original's, its description MIRROR_DESC) and
+    its effects row's (the mirrored effects, their line, its source), each
+    None where it is so already. rec its record, now its effects row; scope
+    and frame the original's as written; orig_json its effects (a dict)."""
+    want = {k: v for k, v in (("scope", scope), ("iconColor", frame), ("spelldesc", MIRROR_DESC)) if v is not None}
+    changed = {k: v for k, v in want.items() if rec.get(k) != v}
+    record = (dict(before={k: rec.get(k) for k in changed}, set=changed) if changed else None)
+    mj = mirror_json(orig_json, rec["abilitylvl"], hate)
+    src = (now or {}).get("source") or "eqoa-data"
+    note = MIRROR_NOTE.format(orig_name)
+    after = dict(line=line_of(mj), effects=dumps(mj), source=src if note in src else f"{src}; {note}")
+    before = {k: (now or {}).get(k) or "" for k in after}
+    effects = dict(before=before, set=after) if before != after else None
+    return record, effects
+
+
 def with_duration(effects, line, seconds):
     """A spell's effects (JSON text) and line as this import wrote them with
     no time, as it writes them with one (DURATIONS): duration_s after
@@ -1504,6 +1556,7 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None, b
     splits, gates = [], []
     folds = []      # an item the workbook's name found where a record the map spells otherwise makes another
     new_rows = {}   # spellid -> (sheet row, json, a were's) of a new spell
+    written = {}    # spellid -> (sheet row, json) of every record a row writes (the mirrors' originals)
     for sid, rows in sorted(by_sid.items()):
         rec = records.get(sid)
         s = rows[0] if len(rows) == 1 or rec is None else pick_owner(rows, rec, linked[sid])
@@ -1513,6 +1566,7 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None, b
                     f"{hexid(o.get('SpellID'))} {cell(o, 'Name')} {cell(o, 'CLASS')} L{cell(o, 'Level')} -> {sid} "
                     f"(set from {hexid(s.get('SpellID'))} {cell(s, 'CLASS')} L{cell(s, 'Level')})")
         j, missing = spell_json(s, wb, items_by_name)
+        written[sid] = (s, j)
         for m in missing:
             lists["an effect the Effects sheet lacks"].append(f"{hexid(s.get('SpellID'))} {cell(s, 'Name')}: {m}")
         # the items it makes under the names the server finds them by, ours
@@ -1745,6 +1799,7 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None, b
             if miss:
                 lists["a class the workbook gives a spell we have, with no spell of its name (--link-existing)"].append(
                     f"{sid} {rec['spellname']}: {' '.join(miss)}")
+    plan_mirrors(records, erows, written, spells, effects, lists, counts)
     moves, migrations = plan_splits(db, wb, smap, splits, records, links, lists, counts)
     gate_rows = plan_gates(db, gates, lists, counts)
     counts["class rows"] = len(links)
@@ -2881,6 +2936,33 @@ def changes_of(p):
     for x in m.get("foodeffects", []):
         out.append(dict(tbl="foodeffect", action="insert", key={"patternid": x["patternid"]}, row=x))
     return out
+
+
+def plan_mirrors(records, erows, written, spells, effects, lists, counts):
+    """MIRRORS: each spell of ours the workbook lacks made the mirror of an
+    original a workbook row writes, as this plan writes it."""
+    by_name = collections.defaultdict(list)
+    for sid, r in records.items():
+        by_name[exact_key(r["spellname"])].append(sid)
+    for name, (orig, hate) in sorted(MIRRORS.items()):
+        mine, theirs = by_name.get(exact_key(name), []), [x for x in by_name.get(exact_key(orig), []) if x in written]
+        if len(mine) != 1 or len(theirs) != 1 or mine[0] in written:
+            lists["a mirror whose spell or original is not one record here (left)"].append(
+                f"{name} ({mine}) of {orig} ({theirs})")
+            continue
+        sid, osid = mine[0], theirs[0]
+        s, j = written[osid]
+        record, eff = mirror_changes(records[sid], erows.get(sid), SCOPE.get(cell(s, "Scope")),
+                                     FRAMES.get(cell(s, "IconBGDColor")), cell(s, "Name"), j, hate)
+        if record:
+            spells.append(dict(spellid=sid, action="update", sheet_id="", name=records[sid]["spellname"], **record))
+            counts["records made mirrors"] += 1
+        if eff and sid in erows:
+            effects.append(dict(spellid=sid, action="update", **eff))
+            counts["effects rows made mirrors"] += 1
+        elif eff:
+            effects.append(dict(spellid=sid, action="insert", row=dict(spellid=sid, fxdict=0, **eff["set"])))
+            counts["effects rows made mirrors"] += 1
 
 
 def plan_scrolls(db, new_rows, records, lists, counts, links=(), moves=(), migrations=()):

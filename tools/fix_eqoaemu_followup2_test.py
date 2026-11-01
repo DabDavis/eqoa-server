@@ -276,6 +276,47 @@ class DecidedMergeTest(unittest.TestCase):
         self.assertEqual(left, 0)
         self.assertEqual(dump(self.db), before)
 
+    def test_a_scroll_folded_into_the_kept_ones_and_its_gate_out(self):
+        """A scroll of the folded name where one of the kept name is there
+        too: folded into it (its merchants' rows moved, one that sells both
+        keeping the kept scroll's alone; a held copy and a quest's items moved,
+        a spell of the same number in the quest's spells left; the kept scroll
+        priced as the folded where it had none), its record out; the folded
+        name's gate out (nothing else of that name casts it), the kept one's
+        kept; --undo exact."""
+        x = self.db.execute
+        x("UPDATE itempattern SET itemcost = 500 WHERE patternid = 60030")
+        item = ("INSERT INTO itempattern (patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, "
+                "attacktype, weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, "
+                "unk6, craft, itemname, itemdesc, model, color) VALUES (60031, 0, 0, ?, 0, -1, 0, 0, 1, 0, 0, 0, 0, 49, 1, "
+                "0, 50, 32, 1023, 0, 0, 0, 0, 'Glade Groove', 'A scroll of Glade Groove.', 0, -1)")
+        x(item, (im.SCROLL_ICON,))
+        x("INSERT INTO npcitem (itemid, npcid, patternid) VALUES (701, 9100, 60030), (702, 9100, 60031), (703, 9101, 60030)")
+        x("INSERT INTO charinventory (itemid, serverid, patternid) VALUES (601, 84, 60030)")
+        x("INSERT INTO quests VALUES (62, '5')")
+        x("INSERT INTO queststeps (questid, step, rewarditems, choices) VALUES (62, 1, '60030', ?)",
+          ('{"ask":"Which?","options":[{"answer":"A scroll","says":"Yours.","items":"60030","spells":"60030"}]}',))
+        x("INSERT INTO spellgates (spell, kind, place, world, x, y, z) VALUES ('glade grove', 'group', 'A Hill', 0, 1, 2, 3), "
+          "('glade groove', 'group', 'A Vale', 0, 4, 5, 6)")
+        before = dump(self.db)
+        p = self.plan()
+        done, stale = im.apply(self.db, p, f2.LOG, f2.META, f2.WHAT)
+        self.assertEqual(stale, 0)
+        self.assertEqual(sorted(self.db.execute("SELECT itemid, npcid, patternid FROM npcitem WHERE itemid IN (701, 702, 703)")),
+                         [(702, 9100, 60031), (703, 9101, 60031)], "a merchant that sells both keeps the kept scroll alone")
+        self.assertEqual(self.db.execute("SELECT patternid FROM charinventory WHERE itemid = 601").fetchone(), (60031,))
+        self.assertEqual(self.db.execute("SELECT rewarditems, choices FROM queststeps WHERE questid = 62").fetchone(),
+                         ("60031", '{"ask":"Which?","options":[{"answer":"A scroll","says":"Yours.","items":"60031",'
+                                   '"spells":"60030"}]}'), "its items alone: a spell of the same number stays")
+        self.assertEqual(self.db.execute("SELECT patternid, itemcost FROM itempattern WHERE patternid IN (60030, 60031)")
+                         .fetchall(), [(60031, 500)], "the folded scroll out, the kept one priced as it")
+        self.assertEqual([r[0] for r in self.db.execute("SELECT spell FROM spellgates WHERE spell LIKE 'glade%' ORDER BY spell")],
+                         ["glade groove"], "the folded name's gate out, the kept one's kept")
+        self.assertEqual(self.plan()["changes"], [], "a second plan has nothing to do")
+        back, left, _ = im.undo(self.db, False, f2.LOG, f2.META, f2.WHAT)
+        self.assertEqual(left, 0)
+        self.assertEqual(dump(self.db), before)
+
     def test_records_not_the_ones_named_are_left(self):
         self.db.execute("UPDATE spellpattern SET spellname = 'Glade Groove II' WHERE spellid = 331")
         p = self.plan()

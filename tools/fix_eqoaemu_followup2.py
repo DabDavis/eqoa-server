@@ -33,10 +33,16 @@ on this database, and only these parts of it taken):
      Doom Tower, the records that carry the workbook's rows; what named the
      folded one names the other (books, kept buffs, masteries, quests: a
      quest step's choices and byclass in their "spells" alone, an item of
-     the same number being another record), a scroll of its name renamed to
-     the other's, its class rows, area and record out; the record kept takes
-     nothing (it is the workbook's already). Made only while both records
-     are still the ones named, else listed.
+     the same number being another record), a scroll of its name folded into
+     the scroll of the other's where there is one (Barren Coast Portal's into
+     Barrens Coast Portal's: its merchants, copies and quests moved, a
+     merchant that sells both keeping one, the kept scroll priced as the
+     folded where it had none) and else renamed to the other's, its gate (a
+     spellgates row by its name) out where nothing else of that name casts
+     it, its class rows, area and record out; the record kept takes nothing
+     (it is the workbook's already). Made only while both records are still
+     the ones named, else listed (the user, 2026-11-01, of Barren Coast
+     Portal: "yes merge it").
   2. The item such a spell makes is the one its line names (the
      Transformative Pill), and it takes the workbook's use over its own as the
      record takes the workbook's record (the Creative Mix Potion's: a heal of
@@ -132,6 +138,7 @@ MADE_BY = (im.LOG, fu.LOG)
 DECIDED_MERGES = {
     700629: ("Power Grove", 701201, "Power Groove", 'the user, 2026-11-01: "yes merge them"'),
     701129: ("Doomed Tower", 700590, "Doom Tower", 'the user, 2026-11-01: "yes merge them"'),
+    700662: ("Barren Coast Portal", 901755, "Barrens Coast Portal", 'the user, 2026-11-01: "yes merge it"'),
 }
 
 
@@ -199,10 +206,11 @@ def merges(db, smap, lists, decided=None):
     return out
 
 
-def spells_swap(text, old, new):
+def json_swap(text, old, new, keys):
     """A quest step's byclass or choices (import_quests.py's compact JSON)
-    with old's id swapped for new's in its "spells" alone: an item of the
-    same number is another record. None when the text is not that JSON."""
+    with old's id swapped for new's under the keys named alone ("spells" for
+    a spell, "items" for an item: a record of the other kind may carry the
+    same number). None when the text is not that JSON."""
     try:
         j = json.loads(text)
     except ValueError:
@@ -212,11 +220,78 @@ def spells_swap(text, old, new):
 
     def walk(o):
         if isinstance(o, dict):
-            return {k: im.token_swap(v, old, new) if k == "spells" and isinstance(v, str) else walk(v) for k, v in o.items()}
+            return {k: im.token_swap(v, old, new) if k in keys and isinstance(v, str) else walk(v) for k, v in o.items()}
         if isinstance(o, list):
             return [walk(x) for x in o]
         return o
     return json.dumps(walk(j), separators=(",", ":"))
+
+
+def spells_swap(text, old, new):
+    """json_swap of a spell's id: in "spells" alone."""
+    return json_swap(text, old, new, ("spells",))
+
+
+def scroll_fold(db, x, y, tag, lists, counts):
+    """A scroll x of a folded record's name folded into the scroll y of the
+    kept one's: every copy held, lot, weapon set, loot, start kit, catch and
+    quest naming x names y (a quest step's byclass and choices in their
+    "items" alone), a merchant that sells both keeping y's row alone, y
+    priced as x where it has no price of its own and a merchant sold x
+    (else the merchant gives it away), then x's record out."""
+    out = []
+    sells_y = {n for (n,) in db.execute("SELECT npcid FROM main.npcitem WHERE patternid = ?", (y,))} \
+        if im.has_table(db, "npcitem") else set()
+    sold_x = False
+    for tbl, keys, col in FOLD_TABLES:
+        if not im.has_table(db, tbl) or col not in im.columns(db, tbl):
+            continue
+        for row in db.execute(f"SELECT {', '.join(keys)} FROM main.{tbl} WHERE {col} = ? ORDER BY rowid", (x,)).fetchall():
+            key = dict(zip(keys, row))
+            if tbl == "npcitem":
+                sold_x = True
+                r = fu.row_of(db, "npcitem", "itemid = ?", (key["itemid"],))
+                if r["npcid"] in sells_y:
+                    out.append(dict(tbl="npcitem", action="delete", key=key, before=r,
+                                    note=f"{tag}: its merchant sells the kept scroll"))
+                    counts["merged: a folded scroll's merchant rows deleted (the merchant sells the kept one)"] += 1
+                    continue
+                sells_y.add(r["npcid"])
+            out.append(dict(tbl=tbl, action="update", key=key, before={col: x}, set={col: y}, note=tag))
+            counts[f"merged: a folded scroll's {tbl} rows naming the kept one"] += 1
+    for tbl, keys, cols in FOLD_LISTS:
+        if not im.has_table(db, tbl):
+            continue
+        cols = [c for c in cols if c in im.columns(db, tbl)]
+        for row in db.execute(f"SELECT {', '.join(keys + cols)} FROM main.{tbl}").fetchall():
+            before, after = {}, {}
+            for c, v in zip(cols, row[len(keys):]):
+                w = json_swap(v, x, y, ("items",)) if c in ("byclass", "choices") and v else im.token_swap(v, x, y)
+                if w is None:
+                    lists["a quest step's JSON not as the quest importer writes it (left)"].append(
+                        f"{dict(zip(keys, row[:len(keys)]))} {c}: {tag}")
+                elif w != (v or ""):
+                    before[c], after[c] = v, w
+            if before:
+                out.append(dict(tbl=tbl, action="update", key=dict(zip(keys, row[:len(keys)])), before=before, set=after,
+                                note=tag))
+                counts[f"merged: a folded scroll's {tbl} rows naming the kept one"] += 1
+    cx, cy = (db.execute("SELECT itemcost FROM main.itempattern WHERE patternid = ?", (p,)).fetchone()[0] for p in (x, y))
+    if sold_x and not cy and cx:
+        out.append(dict(tbl="itempattern", action="update", key={"patternid": y}, before={"itemcost": cy},
+                        set={"itemcost": cx}, note=f"{tag}: the price its merchants sold the folded scroll at"))
+        lists["a kept scroll of no price given the folded one's (its merchants sold that)"].append(f"{y}: {cx} ({tag})")
+    for tbl in ("itemeffect", "foodeffect", "itempattern"):
+        if im.has_table(db, tbl):
+            r = fu.row_of(db, tbl, "patternid = ?", (x,))
+            if r is not None:
+                out.append(dict(tbl=tbl, action="delete", key={"patternid": x}, before=r, note=tag))
+                counts[f"merged: a folded scroll's {tbl} rows deleted"] += 1
+    if im.has_table(db, "defaultcharinventory"):
+        n = db.execute("SELECT count(*) FROM main.defaultcharinventory WHERE patternid = ?", (x,)).fetchone()[0]
+        if n:
+            lists["rows of defaultcharinventory (read by no code) naming a folded scroll (left)"].append(f"{tag}: {n}")
+    return out
 
 
 def merge_changes(db, m, lists, counts):
@@ -243,19 +318,38 @@ def merge_changes(db, m, lists, counts):
             c = dict(c, before={k: c["before"][k] for k in changed}, set=changed)
         out.append(c)
     if m.get("decided"):
-        names = {im.exact_key(n) for (n,) in db.execute(
-            "SELECT itemname FROM main.itempattern WHERE itemicon = ? AND equipslot = -1", (im.SCROLL_ICON,))}
-        for pid, name in db.execute("SELECT patternid, itemname FROM main.itempattern WHERE itemicon = ? AND equipslot = -1 "
-                                    "ORDER BY patternid", (im.SCROLL_ICON,)).fetchall():
+        tag = f"{m['new']} into {m['ours']}: its scroll"
+        scrolls = db.execute("SELECT patternid, itemname FROM main.itempattern WHERE itemicon = ? AND equipslot = -1 "
+                             "ORDER BY patternid", (im.SCROLL_ICON,)).fetchall()
+        kept = [pid for pid, name in scrolls if im.exact_key(name) == im.exact_key(m["ours_name"])]
+        for pid, name in scrolls:
             if im.exact_key(name) != im.exact_key(m["new_name"]):
                 continue
-            if im.exact_key(m["ours_name"]) in names:
-                lists["a scroll of a folded record's name, a scroll of the kept one's there too (left: "
-                      "tools/fix_scrolls.py or the user)"].append(f"{pid} {name!r}")
-                continue
-            out.append(dict(tbl="itempattern", action="update", key={"patternid": pid}, before={"itemname": name},
-                            set={"itemname": m["ours_name"]}, note=f"{m['new']} into {m['ours']}: its scroll"))
-            counts["merged: scrolls of the folded record's name renamed"] += 1
+            if len(kept) == 1:
+                out += scroll_fold(db, pid, kept[0], f"{tag} {pid} into {kept[0]}", lists, counts)
+                counts["merged: scrolls of the folded record's name folded into the kept one's"] += 1
+            elif not kept:
+                out.append(dict(tbl="itempattern", action="update", key={"patternid": pid}, before={"itemname": name},
+                                set={"itemname": m["ours_name"]}, note=tag))
+                counts["merged: scrolls of the folded record's name renamed"] += 1
+            else:
+                lists["a scroll of a folded record's name, several of the kept one's (left: the user)"].append(
+                    f"{pid} {name!r}: {kept}")
+        # its gate, by its name: out where nothing else of that name casts one
+        key = m["new_name"].strip().lower()
+        gate = fu.row_of(db, "spellgates", "spell = ?", (key,)) if im.has_table(db, "spellgates") else None
+        if gate is not None and key != m["ours_name"].strip().lower():
+            others = db.execute("SELECT count(*) FROM main.spellpattern WHERE lower(trim(spellname)) = ? AND spellid != ?",
+                                (key, m["new"])).fetchone()[0]
+            uses = db.execute("SELECT count(*) FROM main.itempattern p JOIN main.itemeffect e ON e.patternid = p.patternid "
+                              "WHERE lower(trim(p.itemname)) = ?", (key,)).fetchone()[0] \
+                if im.has_table(db, "itemeffect") else 0
+            if others or uses:
+                lists["a folded record's gate another of its name casts (left)"].append(f"{key}: {others} spells, {uses} uses")
+            else:
+                out.append(dict(tbl="spellgates", action="delete", key={"spell": key}, before=gate,
+                                note=f"{m['new']} into {m['ours']}: its gate (nothing else of its name casts it)"))
+                counts["merged: a folded record's gate deleted"] += 1
     return out
 
 

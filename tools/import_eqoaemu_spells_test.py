@@ -775,16 +775,18 @@ class MadeItemsTest(unittest.TestCase):
         self.assertEqual((ruin["itemname"], ruin["equipslot"], ruin["attacktype"], ruin["unk5"], ruin["levelreq"],
                           ruin["classuse"], ruin["itemicon"]), ("Ruin Cocktail", 16, 10, 30, 60, 16384, 502),
                          "a thrown splash as our cocktail, its reach the workbook's range")
-        self.assertEqual((uses[940102]["line"], uses[940102]["area"]),
-                         ("Target, Decrease Hitpoints by 400, Decrease HP per tic by 300, 18sec", 10.0),
-                         "the area's figure for all it reaches, the target's own share left out")
+        self.assertEqual((uses[940102]["line"], uses[940102]["area"], uses[940102]["target_line"]),
+                         ("Target, Decrease Hitpoints by 400, Decrease HP per tic by 300, 18sec", 10.0,
+                          "Target, Decrease Hitpoints by 400"),
+                         "the area's figure for all it reaches, the target's own share its own (HP1 beside HP2)")
         glimmer = made[950000 + 0x204]
         self.assertEqual((glimmer["itemname"], glimmer["itemicon"], glimmer["levelreq"]), ("Glimmer Potion", 504, 1),
                          "the sheets' item of no ItemID named for its spell, as our returning potion")
         self.assertEqual(uses[950000 + 0x204]["line"], "Self, Teleport to Glimmer Hollow", "the gate within 15's place")
         self.assertEqual(glimmer["itemdesc"], "Drinking this potion takes you to Glimmer Hollow.")
         listed = p["lists"]["a potion made (as its sibling of ours): its use"]
-        self.assertTrue(any("940102 Ruin Cocktail" in x and "its target's own hit" in x for x in listed))
+        self.assertFalse(any("own hit" in x for x in listed), "the target's own hit said, not listed")
+        self.assertNotIn("target_line", uses[940101], "a use with no share of its own has none")
 
     def test_what_no_source_gives(self):
         p = self.plan()
@@ -866,6 +868,145 @@ class MadeItemsTest(unittest.TestCase):
         self.assertEqual(im.made_name("Grand Cure Potion"), "Grand Corrective")
         self.assertEqual(im.made_name("Grand Restorative Potion"), "Grand Restorative")
         self.assertEqual(im.made_name("Mending Potion"), "Mending Potion", "else as written")
+
+
+class BodiesAndSharesTest(unittest.TestCase):
+    """What a use's columns say now (2026-11-01): a made potion's body (its
+    Alter Appearance sprite the other way round; the invisible body none, its
+    line's Invis), and a record of ours the map spells otherwise making the
+    item its line names, which takes the workbook's use over its own (its
+    effect's name kept), the item the workbook's name found instead listed
+    to be folded; a use the import wrote given its body or its target's own
+    share on a plan made again, a GM's value left. Every name and figure made
+    up, on MadeItemsTest's database."""
+
+    EFFECTS = [
+        eff("0231", "Create Item", CreatedItemID=30110, QTY=1, Scope="Self", Target_Type="Self"),
+        eff("0233", "Create Item", CreatedItemID=30111, QTY=1, Scope="Self", Target_Type="Self"),
+        eff("0235", "Create Item", CreatedItemID=30112, QTY=3, Scope="Self", Target_Type="Self"),
+        eff("0237", "Create Item", CreatedItemID=30102, QTY=3, Scope="Self", Target_Type="Self"),
+    ]
+    SPELLS = [
+        made_spell("0230", "Shiny Transmutation", "ALC", 60, "0231", learn="CM", source=""),   # ours as 310
+        made_spell("0232", "Sourer Mixture", "ALC", 60, "0233", learn="CM", source=""),        # ours as 311
+        made_spell("0234", "Faint Sublimation", "ALC", 20, "0235"),                             # new
+        made_spell("0236", "Ruin Cocktail", "ALC", 60, "0237", source="Quest"),                 # new
+    ]
+    ITEM_EFFECTS = MadeItemsTest.ITEM_EFFECTS + [
+        eff("0E20", "Alter Appearance", SpriteID="11223344", Duration=1800, Scope="Self", Target_Type="Self"),
+        eff("0E21", "Dmg/Heal", HP1=300, Duration=1800, Scope="Self", Target_Type="Self"),
+        eff("0E22", "Statistic Change", STR=30, HPMAX=300, Duration=1800, Scope="Self", Target_Type="Self"),
+        eff("0E23", "Alter Appearance", SpriteID="55667788", Duration=24, Scope="Target", Target_Type="Enemy"),
+        eff("0E24", "Statistic Change", STR=-10, Duration=24, Scope="Target", Target_Type="Enemy"),
+        eff("0E25", "Alter Appearance", SpriteID="435EF663", Duration=300, Scope="Self", Target_Type="Self"),
+        eff("0E26", "Invisible", Duration=300, Scope="Self", Target_Type="Self"),
+    ]
+    ITEMS = MadeItemsTest.ITEMS + [
+        info("Shiny Mix Potion", 30110, "ALC", 60, "Self", "Self", "0E20"),
+        info("Shiny Mix Potion", 30110, "ALC", 60, "Self", "Self", "0E21"),
+        info("Shiny Mix Potion", 30110, "ALC", 60, "Self", "Self", "0E22"),
+        info("Sour Mix Potion", 30111, "ALC", 60, "Target", "Enemy", "0E23", "0E24"),
+        info("Faint Potion", 30112, "ALC", 20, "Self", "Self", "0E25", "0E26"),
+    ]
+    MAP = {"0230": (310, "spelled otherwise (Shiny Transformative, ours)"), "0232": (311, "spelled otherwise"),
+           "0234": (900564, "new"), "0236": (900566, "new")}
+
+    def setUp(self):
+        self.path = os.path.join(tempfile.mkdtemp(), "b.db")
+        self.db = made_db(self.path)
+        x = self.db.execute
+        rec = "INSERT INTO spellpattern VALUES (?, 60, 0, 0, ?, 2, 100, -1809115846, 7, 0, 3, -1, ?, ?)"
+        x(rec, (310, F45, "Shiny Transformative", "Ours."))
+        x(rec, (311, F45, "Sour Mixture", "Ours."))
+        x("INSERT INTO spelleffect VALUES (310, 'Self, Summon Glimmer Pill', 0, 'gm')")
+        x("INSERT INTO spelleffect VALUES (311, 'Self, Summon Sour Potion', 0, 'eqoa-data')")
+        x("INSERT INTO classspells VALUES (14, 310, 'eqoa-data'), (14, 311, 'eqoa-data')")
+        item = ("INSERT INTO itempattern (patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, "
+                "attacktype, weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, "
+                "unk6, craft, itemname, itemdesc, model, color) VALUES (?, 0, 0, 512, 0, -1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, "
+                "50, 32767, 1023, 2, 1, 0, 0, ?, ?, 0, -1)")
+        x(item, (60010, "Glimmer Pill", "A pill of ours."))
+        x(item, (60011, "Sour Potion", "A potion of ours."))
+        x("INSERT INTO itemeffect (patternid, line, name, icon, source) VALUES (60010, "
+          "'Self, Increase Maximum HP by 50, Increase Hitpoints by 50, 10min', 'Illusion: Troll', 77, 'gm')")
+        self.wb = im.Workbook({"Spells": self.SPELLS, "Effects": self.EFFECTS, "Created Item Info": self.ITEMS,
+                               "Created Item Effects": self.ITEM_EFFECTS, "Pets": []})
+
+    def plan(self):
+        return im.plan(self.db, self.wb, self.MAP, weres={})
+
+    def test_bodies_the_other_way_round(self):
+        self.assertEqual(im.sprite_body("0x11223344"), 0x44332211)
+        self.assertEqual(im.sprite_body("435EF663"), 0, "the invisible body: invisibility, no body")
+        self.assertEqual(im.sprite_body(""), 0)
+        p = self.plan()
+        uses = {x["patternid"]: x for x in p["made"]["itemeffects"]}
+        faint = uses[910000 + 30112]
+        self.assertEqual(faint["line"], "Self, Invis, 5min")
+        self.assertNotIn("body", faint, "invisibility its line's, no body")
+        sour = uses[60011]
+        self.assertEqual((sour["line"], sour["body"]), ("Target, Decrease STR by 10, 24sec", 0x88776655),
+                         "a thrown use's body, for its creature")
+
+    def test_a_merged_spells_item_takes_the_workbooks_use(self):
+        p = self.plan()
+        upd = {x["patternid"]: x for x in p["made"]["itemeffect_updates"]}
+        pill = upd[60010]
+        self.assertEqual(pill["set"], {"body": 0x44332211, "line": "Self, Increase Hitpoints by 300, Increase STR by 30, "
+                                       "Increase Maximum HP by 300, 30min", "icon": im.icon_of("11223344"),
+                                       "source": "eqoaemu"})
+        self.assertEqual(pill["before"]["line"], "Self, Increase Maximum HP by 50, Increase Hitpoints by 50, 10min")
+        self.assertNotIn("name", pill["set"], "its effect's name kept")
+        e = next(e for e in p["effects"] if e["spellid"] == 310)
+        it = [o["item"] for o in json.loads(e["set"]["effects"])["effects"] if o["kind"] == "create_item"][0]
+        self.assertEqual((it["name"], it["patternid"], it["sheet_name"]), ("Glimmer Pill", 60010, "Shiny Mix Potion"))
+        self.assertEqual(p["folds"], [], "a fresh import: no other item of the workbook's name")
+        self.assertNotIn(910000 + 30110, {x["patternid"] for x in p["made"]["items"]}, "no Shiny Potion made")
+        # the control: the map's row a new record, the workbook's item is made and ours keeps its use
+        q = im.plan(self.db, self.wb, dict(self.MAP, **{"0230": (900560, "new")}), weres={})
+        self.assertIn(910000 + 30110, {x["patternid"] for x in q["made"]["items"]})
+        self.assertNotIn(60010, {x["patternid"] for x in q["made"]["itemeffect_updates"]})
+
+    def test_the_item_found_by_the_workbooks_name_is_listed_to_fold(self):
+        im.apply(self.db, im.plan(self.db, self.wb, dict(self.MAP, **{"0230": (900560, "new")}), weres={}))
+        made = self.db.execute("SELECT itemname FROM itempattern WHERE patternid = ?", (910000 + 30110,)).fetchone()
+        self.assertEqual(made, ("Shiny Potion",), "the import as it was: the workbook's item made")
+        p = self.plan()
+        self.assertEqual(p["folds"], [dict(name="Shiny Mix Potion", found=910000 + 30110, line=60010, spellid=310)])
+        upd = {x["patternid"] for x in p["made"]["itemeffect_updates"]}
+        self.assertIn(60010, upd, "the line's item takes the use all the same")
+
+    def test_a_use_the_import_wrote_is_given_its_columns(self):
+        im.apply(self.db, self.plan())
+        self.assertEqual(self.db.execute("SELECT body, target_line FROM itemeffect WHERE patternid = 940102").fetchone(),
+                         (0, "Target, Decrease Hitpoints by 400"))
+        # as a database the import left before the columns: none said
+        self.db.execute("UPDATE itemeffect SET target_line = '' WHERE patternid = 940102")
+        self.db.execute("UPDATE itemeffect SET body = 0 WHERE patternid = 60011")
+        p = self.plan()
+        upd = {x["patternid"]: x["set"] for x in p["made"]["itemeffect_updates"]}
+        self.assertEqual(upd, {940102: {"target_line": "Target, Decrease Hitpoints by 400"}, 60011: {"body": 0x88776655}})
+        # a GM's value since is left, and said
+        self.db.execute("UPDATE itemeffect SET target_line = 'Target, Decrease Hitpoints by 5' WHERE patternid = 940102")
+        p = self.plan()
+        self.assertNotIn(940102, {x["patternid"] for x in p["made"]["itemeffect_updates"]})
+        self.assertEqual(p["lists"]["a use the import wrote that a GM changed since: those columns left"],
+                         ["940102 Ruin Cocktail (the workbook's Ruin Fire Potion): target_line"])
+
+    def test_columns_added_and_taken_back(self):
+        before = {t: sorted(map(repr, self.db.execute(f"SELECT * FROM {t}"))) for (t,) in
+                  self.db.execute("SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()}
+        cols = im.columns(self.db, "itemeffect")
+        im.apply(self.db, self.plan())
+        self.assertEqual(im.columns(self.db, "itemeffect"), cols + ["body", "target_line"])
+        self.assertIsNone(im.plan(self.db, self.wb, self.MAP, weres={})["made"]["itemeffect_updates"] or None,
+                          "a second plan: nothing")
+        back, left, _ = im.undo(self.db)
+        self.assertEqual(left, 0)
+        self.assertEqual(im.columns(self.db, "itemeffect"), cols, "the columns it added gone again")
+        after = {t: sorted(map(repr, self.db.execute(f"SELECT * FROM {t}"))) for (t,) in
+                 self.db.execute("SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()}
+        self.assertEqual(after, before)
 
 
 if __name__ == "__main__":

@@ -138,7 +138,7 @@ func (w *World) helperLocked(helper, victim *NPC, now time.Time) bool {
 	}
 	if helper.Dead || helper.Owner != 0 || helper.Dummy != NotDummy || helper.NPCType&0x80 != 0 ||
 		helper.World != victim.World || helper.CurrentEnemy != 0 || helper.chase.returning ||
-		helper.hiddenAt(now) {
+		helper.hiddenAt(now) || helper.lulledAt(now) {
 		return false
 	}
 	faction := w.socialFactionLocked(helper)

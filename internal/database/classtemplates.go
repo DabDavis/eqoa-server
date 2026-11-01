@@ -580,10 +580,12 @@ func (db *SQLiteDB) NPCTemplates() (map[string]string, error) {
 }
 
 // TemplateSpell is a spell as a template's NPC casts it: its ability record
-// whole, its spelleffect line and visual, and its spellarea row if it has one.
+// whole, its spelleffect line, effects (JSON) and visual, and its spellarea
+// row if it has one.
 type TemplateSpell struct {
 	Pattern SpellPatternRecord
 	Line    string
+	Effects string
 	FX      uint32
 	Area    SpellAreaRow
 	HasArea bool
@@ -593,7 +595,7 @@ type TemplateSpell struct {
 // spelleffect se and spellarea sa.
 const templateSpellColumns = `sp.spellid, sp.abilitylvl, sp.unk2, sp.unk3, sp.range, sp.casttime, sp.power, sp.iconColor,
 	sp.icon, sp.scope, sp.recast, sp.eqprequire, sp.spellname, COALESCE(sp.spelldesc, ''), COALESCE(se.line, ''),
-	COALESCE(se.fxdict, 0), sa.centre, sa.radius, sa.maxtargets`
+	COALESCE(se.effects, ''), COALESCE(se.fxdict, 0), sa.centre, sa.radius, sa.maxtargets`
 
 func scanTemplateSpell(scan func(...any) error) (TemplateSpell, error) {
 	var s TemplateSpell
@@ -602,7 +604,7 @@ func scanTemplateSpell(scan func(...any) error) (TemplateSpell, error) {
 	var radius sql.NullFloat64
 	p := &s.Pattern
 	if err := scan(&p.SpellID, &p.AbilityLvl, &p.Unk2, &p.Unk3, &p.Range, &p.CastTime, &p.Power, &p.IconColor, &p.Icon,
-		&p.Scope, &p.Recast, &p.EqpRequire, &p.SpellName, &p.SpellDesc, &s.Line, &fx, &centre, &radius, &maxTargets); err != nil {
+		&p.Scope, &p.Recast, &p.EqpRequire, &p.SpellName, &p.SpellDesc, &s.Line, &s.Effects, &fx, &centre, &radius, &maxTargets); err != nil {
 		return s, err
 	}
 	s.FX = uint32(fx)
@@ -643,15 +645,15 @@ func (db *SQLiteDB) TemplateSpells(class int) ([]TemplateSpell, error) {
 }
 
 // TemplateSpellNamed is the spell of that name (any case) an ability pins:
-// of the records of the name, the one with a spelleffect line first, then
-// the lowest id; ok false when there is none.
+// of the records of the name, the one with a spelleffect line or effects
+// first, then the lowest id; ok false when there is none.
 func (db *SQLiteDB) TemplateSpellNamed(name string) (TemplateSpell, bool, error) {
 	row := db.QueryRow(`SELECT `+templateSpellColumns+`
 		FROM spellpattern sp
 		LEFT JOIN spelleffect se ON se.spellid = sp.spellid
 		LEFT JOIN spellarea sa ON sa.spellid = sp.spellid
 		WHERE lower(trim(sp.spellname)) = ?
-		ORDER BY (COALESCE(se.line, '') = ''), sp.spellid LIMIT 1`, strings.ToLower(strings.TrimSpace(name)))
+		ORDER BY (COALESCE(se.line, '') = '' AND COALESCE(se.effects, '') = ''), sp.spellid LIMIT 1`, strings.ToLower(strings.TrimSpace(name)))
 	s, err := scanTemplateSpell(row.Scan)
 	if errors.Is(err, sql.ErrNoRows) {
 		return TemplateSpell{}, false, nil

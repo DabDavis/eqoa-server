@@ -320,7 +320,7 @@ func (w *World) petWantsLocked(ps *petState, a *templateAbility, now time.Time) 
 func buffOn(effects []*ActiveEffect, s *CastSpell) bool {
 	line := BuffLine(s)
 	for _, e := range effects {
-		if e.SpellID == s.SpellID || line != "" && e.Line == line && e.Rank >= s.Level {
+		if e.SpellID == s.SpellID || sameLine(e.Line, line) && e.Rank >= lineRank(s) {
 			return true
 		}
 	}

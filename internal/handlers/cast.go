@@ -50,11 +50,11 @@ func (h *SpellbookHandler) handleUseSkill(sess *session.Session, msg *protocol.M
 		log.Printf("Cast: %s has nothing on bar slot %d", p.Name, slot)
 		return nil
 	}
-	line, fx, _, err := h.store.SpellEffect(e.Pattern.SpellID)
+	row, _, err := h.store.SpellEffectRow(e.Pattern.SpellID)
 	if err != nil {
 		log.Printf("Cast: %q's effect: %v", e.Pattern.SpellName, err)
 	}
-	spell := h.areaOf(castSpell(e, line, fx)) // spellarea.go
+	spell := h.areaOf(castSpellRow(e, row)) // spellarea.go
 	if spell.Def.Reagent == "" || spell.Def.ReagentCount <= 0 {
 		h.gameWorld.StartCast(sess, spell, target, time.Now())
 		return nil
@@ -79,6 +79,12 @@ func (h *SpellbookHandler) handleUseSkill(sess *session.Session, msg *protocol.M
 // database has none.
 func castSpell(e *database.CharSpellEntry, line string, fx uint32) entity.CastSpell {
 	return entity.SpellOf(&e.Pattern, e.AddedOrder, line, fx) // a templated NPC's spells are made so too
+}
+
+// castSpellRow is castSpell with the spell's whole spelleffect row: its
+// workbook effects, when it has any, are what it does (entity/spelljson.go).
+func castSpellRow(e *database.CharSpellEntry, row database.SpellEffectRow) entity.CastSpell {
+	return entity.SpellOfRow(&e.Pattern, e.AddedOrder, row.Line, row.Effects, row.FX)
 }
 
 // gatePlayer is the World's gate hook (entity/cast.go): Return Home's

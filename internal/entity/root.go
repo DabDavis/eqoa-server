@@ -63,13 +63,15 @@ func (w *World) rootResistLocked(caster *Player, casterSess *session.Session, np
 		w.sendColoredLocked(casterSess, text, castRefusalRGB)
 	}
 	ae.Root, ae.Snare = false, false
+	ae.Rules.SpeedPct = 0 // a workbook slow is resisted with it (workbook.go)
 	return ae.lastsAnything()
 }
 
 // lastsAnything is whether an effect does anything while it lasts.
 func (ae *ActiveEffect) lastsAnything() bool {
 	return ae.HPTick != 0 || ae.PowerTick != 0 || ae.Mods != (StatMods{}) || ae.Root || ae.Snare || ae.Speed ||
-		ae.Invis || ae.Proc != 0 || ae.Shield != nil || ae.PowerCapped || ae.Form != 0
+		ae.Invis || ae.Proc != 0 || ae.Shield != nil || ae.PowerCapped || ae.Form != 0 ||
+		ae.Rules.SpeedPct != 0 || ae.Rules.Lull || ae.Rules.MitigatePct != 0 || ae.Rules.Breath || ae.Rules.ProcHeal != 0 // workbook.go
 }
 
 // rootBreakLocked is a hit on the creature from an attacker of the level: a

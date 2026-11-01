@@ -217,7 +217,9 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	// as its class template makes it (classtemplate.go), then the balance's
 	// (balance.go: its level's, its con's and the player's class's)
 	damage := w.npcHitPlayerLocked(npc, player, npc.meleeOut(npcMeleeRoll(npc).hitOn(player, meleeIntn)))
+	damage = mitigateLocked(player, damage, now) // workbook.go: a mitigation's share off
 	player.HP -= damage
+	w.contactPlayerLocked(player) // what ends at a hit (workbook.go)
 	if player.HP < 0 {
 		player.HP = 0
 	}
@@ -244,7 +246,10 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 		log.Printf("Combat: player %s has died!", sess.RemoteAddr())
 		return
 	}
-	w.playerShieldsLocked(sess, player, npc, now) // its damage shield and defensive procs (dshield.go)
+	if w.playerShieldsLocked(sess, player, npc, now) { // its damage shield and defensive procs (dshield.go)
+		return
+	}
+	w.procHealsLocked(player, true, now) // its defensive proc heals (workbook.go)
 }
 
 // regenSystem gives every player its HoT in hit points and its PoT in power
@@ -404,7 +409,10 @@ func (w *World) breathSystem(now time.Time) {
 			p.Underwater = isSwimAnimation(p.Animation)
 		}
 
-		if p.Underwater {
+		if p.Underwater && p.holdsBreath() {
+			// an enduring breath (workbook.go): no breath lost
+			p.DrowningCounter = 0
+		} else if p.Underwater {
 			// Every 6 s under liquid: 32 of the 255 breath, then once it is
 			// gone the HP (pcaps/breath_capture.pcap, Sandstorm: 0xFF to 0
 			// in eight steps, 48 s of air). The breath reaches the client on

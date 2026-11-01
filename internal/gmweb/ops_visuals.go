@@ -265,9 +265,11 @@ func (s *Server) visualUses() (any, error) {
 	type spellRow struct {
 		id, level        int
 		name, line, desc string
+		effects          string
 		fx               int64
 	}
-	rs, err := s.d.DB.Query(`SELECT p.spellid, p.abilitylvl, p.spellname, p.spelldesc, COALESCE(e.line, ''), COALESCE(e.fxdict, 0)
+	rs, err := s.d.DB.Query(`SELECT p.spellid, p.abilitylvl, p.spellname, p.spelldesc, COALESCE(e.line, ''), COALESCE(e.fxdict, 0),
+		COALESCE(e.effects, '')
 		FROM spellpattern p LEFT JOIN spelleffect e ON e.spellid = p.spellid ORDER BY p.spellid`)
 	if err != nil {
 		return nil, err
@@ -275,7 +277,7 @@ func (s *Server) visualUses() (any, error) {
 	var rows []spellRow
 	for rs.Next() {
 		var r spellRow
-		if err := rs.Scan(&r.id, &r.level, &r.name, &r.desc, &r.line, &r.fx); err != nil {
+		if err := rs.Scan(&r.id, &r.level, &r.name, &r.desc, &r.line, &r.fx, &r.effects); err != nil {
 			rs.Close()
 			return nil, err
 		}
@@ -293,7 +295,7 @@ func (s *Server) visualUses() (any, error) {
 			used[fx] = append(used[fx], map[string]any{"spellid": r.id, "name": r.name, "level": r.level})
 			continue
 		}
-		_, kind := entity.StandInVisual(entity.ParseSpellNamed(r.name, r.line, r.desc))
+		_, kind := entity.StandInVisual(entity.SpellDefFrom(r.name, r.line, r.desc, r.effects))
 		standIn[kind]++
 	}
 	var list []map[string]any

@@ -104,6 +104,7 @@ func (w *World) playerProcsLocked(sess *session.Session, p *Player, npc *NPC, no
 			return true
 		}
 	}
+	w.procHealsLocked(p, false, now) // its offensive proc heals (workbook.go)
 	return false
 }
 

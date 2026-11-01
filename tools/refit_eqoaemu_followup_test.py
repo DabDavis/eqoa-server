@@ -148,15 +148,20 @@ class RefitEqoaemuFollowup(unittest.TestCase):
         self.assertEqual(self.tables(), before)
 
     def test_the_seeds_are_the_followup(self):
-        """internal/database/balanceseed.go's class and level rows are the two re-fits' (a table made new is what the
-        tools make of an older one; the earlier tunings' tests follow their chain through this tool)"""
+        """internal/database/balanceseed.go's class and level rows are the two re-fits' with the second round's spans
+        over them (tools/refit_eqoaemu_followup2.py: a table made new is what the tools make of an older one; the
+        earlier tunings' tests follow their chain through these tools)"""
+        import refit_eqoaemu_followup2 as f2
         with open(os.path.join(HERE, "..", "internal", "database", "balanceseed.go")) as f:
             go = f.read()
         cl = {}
         for cls, l, v, pv, dv in re.findall(r"\{Class: (\d+), Level: (\d+), MeleeTakenPct: ([\d.]+), PetHPPct: ([\d.]+)"
                                             r"(?:, DealtPct: ([\d.]+))?\}", go):
             cl.setdefault(int(cls), {})[int(l)] = (float(v), float(pv), float(dv) if dv else 100.0)
-        self.assertEqual(cl, fu.whole_rows())
+        self.assertEqual(cl, f2.whole_rows())
+        for c, by in fu.whole_rows().items():  # outside the second round's spans, the two re-fits'
+            self.assertEqual({l: v for l, v in cl[c].items() if not f2.in_span(c, l)},
+                             {l: v for l, v in by.items() if not f2.in_span(c, l)}, c)
 
 
 if __name__ == "__main__":

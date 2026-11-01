@@ -146,13 +146,15 @@ class RetuneBalance(unittest.TestCase):
         """internal/database/balanceseed.go's class and level rows are what the tools make of the 01:30 table: the
         first tuning, this re-fit, the pets' fit after it (tools/tune_pets.py), the pets' fit again for their buffs
         on themselves (tools/fit_pet_selfbuffs.py), the re-fit after the EQOAEmu workbook's import
-        (tools/refit_eqoaemu_balance.py) and the re-fit for its follow-up fixes (tools/refit_eqoaemu_followup.py)."""
+        (tools/refit_eqoaemu_balance.py), the re-fit for its follow-up fixes (tools/refit_eqoaemu_followup.py) and the
+        re-fit for their second round (tools/refit_eqoaemu_followup2.py)."""
         self.run_tool(FIRST, "--apply")
         self.run_tool(TOOL, "--apply")
         self.run_tool(os.path.join(HERE, "tune_pets.py"), "--apply")
         self.run_tool(os.path.join(HERE, "fit_pet_selfbuffs.py"), "--apply")
         self.run_tool(os.path.join(HERE, "refit_eqoaemu_balance.py"), "--apply")
         self.run_tool(os.path.join(HERE, "refit_eqoaemu_followup.py"), "--apply")
+        self.run_tool(os.path.join(HERE, "refit_eqoaemu_followup2.py"), "--apply")
         with open(os.path.join(HERE, "..", "internal", "database", "balanceseed.go")) as f:
             go = f.read()
         cl = {}

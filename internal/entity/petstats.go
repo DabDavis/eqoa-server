@@ -12,8 +12,11 @@ import (
 
 // petstats.go — a summoned pet of the workbook's numbers (table petstats,
 // database/petstats.go; the user's choice of 2026-11-01 for EQOAEmu's spell
-// workbook: "Workbook wins, re-fit"). A summoning spell with a petstats row
-// makes its pet out of the row:
+// workbook: "Workbook wins, re-fit", then "workbook wins on all" and "the
+// correct pet models are in the worksheet": its body and weapons over
+// whatever this server's NPCs, aliases and stand-ins gave the pet, GMs'
+// included). A summoning spell with a petstats row makes its pet out of the
+// row:
 //
 //   - its body the row's (the template NPC its size and colours come from
 //     one of this server's NPCs wearing that body, else the one pet.go would

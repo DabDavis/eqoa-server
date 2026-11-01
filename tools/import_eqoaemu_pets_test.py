@@ -6,8 +6,8 @@ numbers, stances and weapon kinds read, its spells made abilities by what
 they do (a nuke, an area nuke on its target, a taunt of hate alone, a heal of
 either, a lasting heal a buff on the owner, a debuff left out), a pettemplate
 row for a magician's pet by its element and none over one there; the apply's
-gm_audit lines, a GM's row left, the same plan again writing nothing, and
---undo exact; and the schema the same as the server's."""
+gm_audit lines, a GM's petstats row replaced (the workbook wins on all) and
+put back by --undo, the same plan again writing nothing, and --undo exact; and the schema the same as the server's."""
 import json
 import os
 import re
@@ -133,22 +133,23 @@ class ImportPetsTest(unittest.TestCase):
     def test_apply_undo(self):
         rows, pts, _, _ = self.plan()
         self.db.execute(ip.PETSTATS_SCHEMA)
-        # a GM's row for Summon Stone's spell is there already
+        # a GM's row for Summon Stone's spell is there already: the workbook wins on all
         self.db.execute("INSERT INTO petstats (spellid, name, hp, source) VALUES (20, 'a GM pet', 77, 'gm')")
         before = (self.table("petstats", "spellid"), self.table("pettemplate", "spell"))
-        written, same, left = ip.apply(self.db, rows, pts)
-        self.assertEqual((written, same, left), (4, 0, 1))
-        self.assertEqual(self.db.execute("SELECT name, hp FROM petstats WHERE spellid = 20").fetchone(), ("a GM pet", 77))
+        written, same, replaced = ip.apply(self.db, rows, pts)
+        self.assertEqual((written, same, replaced), (5, 0, 1))
+        self.assertEqual(self.db.execute("SELECT name, hp, source FROM petstats WHERE spellid = 20").fetchone(),
+                         ("Summon Stone", 500, "eqoaemu"))
         got = self.db.execute("SELECT name, model, wpn1_type, source FROM petstats WHERE spellid = 10").fetchone()
         self.assertEqual(got, ("Fiery Thing", 0x44332211, "slash", "eqoaemu"))
         a = self.db.execute("SELECT username, via, action, tbl, rowkey, before FROM gm_audit WHERE rowkey = '{\"spellid\":10}'").fetchone()
         self.assertEqual(a, ("dab", "tool", "insert", "petstats", '{"spellid":10}', None))
         # the same plan again writes nothing
-        self.assertEqual(ip.apply(self.db, rows, pts), (0, 4, 1))
+        self.assertEqual(ip.apply(self.db, rows, pts), (0, 5, 0))
         # a GM edits one of ours after: undo leaves it, puts the rest back
         self.db.execute("UPDATE petstats SET hp = 1 WHERE spellid = 900018")
         back, left = ip.undo(self.db)
-        self.assertEqual((back, left), (3, 1))
+        self.assertEqual((back, left), (4, 1))  # the GM's row for spell 20 back
         self.assertEqual(self.db.execute("SELECT hp FROM petstats WHERE spellid = 900018").fetchone(), (1,))
         self.db.execute("DELETE FROM petstats WHERE spellid = 900018")
         self.assertEqual((self.table("petstats", "spellid"), self.table("pettemplate", "spell")), before)

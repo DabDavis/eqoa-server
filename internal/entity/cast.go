@@ -166,7 +166,14 @@ type CastSpell struct {
 // (illusion.go) and gives a line where the database has none, and its area
 // as the line reads (area.go: a spellarea row goes over it, With).
 func SpellOf(sp *database.SpellPatternRecord, displayIndex int, line string, fx uint32) CastSpell {
-	def := ParseSpellNamed(sp.SpellName, line, sp.SpellDesc)
+	return SpellOfRow(sp, displayIndex, line, "", fx)
+}
+
+// SpellOfRow is SpellOf with the spell's workbook effects (spelleffect.effects,
+// JSON; "" for none), which when there are any are what it does
+// (SpellDefFrom, spelljson.go).
+func SpellOfRow(sp *database.SpellPatternRecord, displayIndex int, line, effects string, fx uint32) CastSpell {
+	def := SpellDefFrom(sp.SpellName, line, sp.SpellDesc, effects)
 	return CastSpell{
 		SpellID:      sp.SpellID,
 		DisplayIndex: displayIndex,
@@ -281,6 +288,9 @@ type ActiveEffect struct {
 	// (buffline.go): only the best of a line counts; "" for none
 	Line string
 	Rank int
+	// Rules are what the workbook's effects say beside their numbers
+	// (workbook.go): kept over a logout
+	Rules EffectRules
 }
 
 // StatMods is what effects add to a player's stats (kept over a logout as
@@ -347,6 +357,10 @@ func (m *StatMods) add(st Stat, n int) {
 		m.AR += n
 	case StatMelee:
 		m.Melee += n
+	case StatHoT:
+		m.HoT += n
+	case StatPoT:
+		m.PoT += n
 	}
 }
 
@@ -497,6 +511,7 @@ func (p *Player) SpeedNow() float32 {
 			slow = duelSnare
 		}
 	}
+	slow *= p.slowFactor() // a buff's own slow (workbook.go)
 	switch r := p.MoveRate(); {
 	case r <= moveRateBase:
 		return p.Speed * slow
@@ -593,6 +608,7 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 		p.artReady = now.Add(w.balance.ArtCooldown(p.Level))
 	}
 	w.breakInvisLocked(p, "a spell cast") // invis.go
+	w.dispelOnCastLocked(p)               // workbook.go: what ends at a cast
 	lockout := spell.CastTime + spell.Recast + castLockoutExtra
 	p.Lockouts = append(p.Lockouts, castLockout{spellID: spell.SpellID, displayIndex: spell.DisplayIndex, until: now.Add(lockout)})
 	cs := &castState{spell: spell, caster: p.ServerID, targets: targets, ends: now.Add(spell.CastTime + castBusy), lands: now.Add(spell.CastTime + castLand),
@@ -890,13 +906,16 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 // plus its percent of the caster's stat, signed as the effect is.
 func spellAmount(e SpellEffect, caster *Player) int {
 	n := rollAmount(e)
+	bonus := 0
 	if e.Scale != StatNone && e.ScalePct != 0 {
-		bonus := caster.StatNow(e.Scale) * e.ScalePct / 100
-		if n < 0 {
-			n -= bonus
-		} else {
-			n += bonus
-		}
+		bonus = caster.StatNow(e.Scale) * e.ScalePct / 100
+	}
+	// the workbook's level scaling: the caster's level times its share
+	bonus += caster.Level * e.LevelPct / 100
+	if n < 0 {
+		n -= bonus
+	} else {
+		n += bonus
 	}
 	return capAmount(n, e.Cap)
 }
@@ -937,8 +956,13 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 	}
 	ae := &ActiveEffect{SpellID: cs.spell.SpellID, Name: cs.spell.Name, Icon: cs.spell.Icon, Caster: caster.ServerID,
 		Until: now.Add(dur), NextTick: now, Ticks: d.Ticks}
+	ae.Rules = rulesOf(d) // workbook.go
 	any := false
 	for _, e := range d.Effects {
+		if ae.workbookLasting(e, d) { // workbook.go: its own kinds
+			any = true
+			continue
+		}
 		switch e.Kind {
 		case EffectHPTick:
 			ae.HPTick += spellAmount(e, caster)
@@ -995,6 +1019,9 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 // landOnPlayerLocked is a beneficial spell on a player: its instant part,
 // then what lasts, on the effects channel.
 func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *session.Session, t *Player, now time.Time) {
+	if w.tooLowLocked(caster, casterSess, t, &cs.spell) { // workbook.go: below its lowest level
+		return
+	}
 	illusion := false
 	// a spell that raises the maximum heals after the raise (spellnotes.go),
 	// or a target at full health would get none of it
@@ -1024,6 +1051,8 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 			w.endIllusionsLocked(t, 0) // illusion.go
 		case EffectIllusion:
 			illusion = true
+		case EffectCure:
+			w.cureLocked(cs, t) // workbook.go
 		}
 	}
 	if ae := lasting(cs, caster, now); ae != nil && w.lineTakesLocked(caster, casterSess, t, &cs.spell, ae) && // buffline.go
@@ -1137,6 +1166,17 @@ func (w *World) tickEffectLocked(t *Player, ae *ActiveEffect, now time.Time) {
 		return
 	}
 	w.advanceTickLocked(ae, now) // hot.go
+	times := 1
+	if ae.Rules.Twice { // the workbook's first tick, twice (workbook.go)
+		ae.Rules.Twice, times = false, 2
+	}
+	for ; times > 0; times-- {
+		w.runTickLocked(t, ae, now)
+	}
+}
+
+// runTickLocked is one tick of an effect on a player.
+func (w *World) runTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	if ae.HPTick < 0 {
 		w.duelTickLocked(t, ae, now) // a duel's damage over time (duelfight.go)
 	}
@@ -1161,6 +1201,11 @@ func (w *World) tickEffectLocked(t *Player, ae *ActiveEffect, now time.Time) {
 // no creature moves or uses its stats yet).
 func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *session.Session, npc *NPC, now time.Time) {
 	caster.LastCombatTime = now
+	cs, took := w.resistLocked(cs, caster, casterSess, npc, now) // workbook.go: its resists
+	if !took {
+		w.updateAggro(npc, caster.ServerID, 1) // resisted, it is angered all the same
+		return
+	}
 	for _, e := range cs.spell.Def.Effects {
 		switch e.Kind {
 		case EffectHP:
@@ -1201,8 +1246,11 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 	}
 	// a spell that only holds or slows still angers it, a resisted root too
 	// (root.go): hate of 1, as a resisted charm's, since a hate of none makes
-	// no enemy (addThreatLocked takes the highest above 0)
-	w.updateAggro(npc, caster.ServerID, 1)
+	// no enemy (addThreatLocked takes the highest above 0); a lull that took
+	// angers nothing (workbook.go)
+	if !cs.spell.Def.lulls() {
+		w.updateAggro(npc, caster.ServerID, 1)
+	}
 }
 
 // spellHitLocked is a spell's damage on a creature: the figure to the
@@ -1240,8 +1288,16 @@ func (w *World) tickNPCEffectLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 		return
 	}
 	ae.NextTick = ae.NextTick.Add(effectTick)
-	if caster := w.Players[ae.Caster]; caster != nil && !npc.Dead {
-		w.spellHitLocked(caster, w.findSessionByEntityIDLocked(caster.ServerID), npc, -ae.HPTick)
+	times := 1
+	if ae.Rules.Twice { // the workbook's first tick, twice (workbook.go)
+		ae.Rules.Twice, times = false, 2
+	}
+	for ; times > 0; times-- {
+		if caster := w.Players[ae.Caster]; caster != nil && !npc.Dead {
+			if w.spellHitLocked(caster, w.findSessionByEntityIDLocked(caster.ServerID), npc, -ae.HPTick) {
+				return
+			}
+		}
 	}
 }
 

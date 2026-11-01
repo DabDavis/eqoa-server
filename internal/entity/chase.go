@@ -155,9 +155,7 @@ func (w *World) chaseLocked(npc *NPC, x, z, vx, vz float32, now time.Time) (inRe
 		away = max((vx*(x-npc.X)+vz*(z-npc.Z))/d, 0)
 	}
 	speed := NPCRunSpeed
-	if npc.snared(now) {
-		speed /= 2
-	}
+	speed *= npc.snareFactor(now) // a snare's slow (workbook.go)
 	pace := min(away+chaseGain*(d-stop), speed)
 	step := pace * dt
 	if step <= chaseSlack || npc.rooted(now) || dt <= 0 {
@@ -263,9 +261,7 @@ func (w *World) homeSystem(now time.Time) {
 			continue
 		}
 		speed := NPCRunSpeed
-		if npc.snared(now) {
-			speed /= 2
-		}
+		speed *= npc.snareFactor(now) // a snare's slow (workbook.go)
 		if w.stepNPCToward(npc, npc.chase.fromX, npc.chase.fromZ, speed, dt) {
 			w.atHomeLocked(npc)
 			continue

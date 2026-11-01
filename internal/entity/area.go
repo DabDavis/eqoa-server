@@ -225,6 +225,9 @@ var areaNames = map[string]struct {
 // nothing, its name) gives it, the file's doc; AreaNone for a spell of one
 // target. d is the line read (ParseSpellNamed).
 func ReadSpellArea(name, line string, d SpellDef) SpellArea {
+	if d.Area != nil {
+		return *d.Area // the workbook's (spelljson.go)
+	}
 	if strings.TrimSpace(line) == "" {
 		line = DefaultSpellLine(name)
 	}

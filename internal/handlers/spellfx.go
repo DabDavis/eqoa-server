@@ -32,6 +32,12 @@ type spellVisualStore interface {
 	SetSpellVisual(spellID int, fx uint32, who database.GMEdit, detail string) (uint32, int64, error)
 }
 
+// spellEffectsReader reads a spell's workbook effects (spelleffect.effects:
+// database.SpellbookStore), where a spellVisualReader has them.
+type spellEffectsReader interface {
+	SpellEffectsJSON(spellID int) (string, error)
+}
+
 // spellVisualReader reads one spell's record and effect row.
 type spellVisualReader interface {
 	SpellPattern(spellID int) (*database.SpellPatternRecord, error)
@@ -106,7 +112,12 @@ func SpellVisualOf(r spellVisualReader, spellID int) (SpellVisual, error) {
 	if err != nil {
 		return SpellVisual{}, err
 	}
-	d := entity.ParseSpellNamed(sp.SpellName, line, sp.SpellDesc)
+	// its workbook effects, when the store has them (entity/spelljson.go)
+	effects := ""
+	if er, ok := r.(spellEffectsReader); ok {
+		effects, _ = er.SpellEffectsJSON(spellID)
+	}
+	d := entity.SpellDefFrom(sp.SpellName, line, sp.SpellDesc, effects)
 	v := SpellVisual{SpellID: sp.SpellID, Name: sp.SpellName, Level: sp.AbilityLvl, CastTime: time.Duration(sp.CastTime) * time.Second, Own: fx, Plays: fx, Harmful: d.Harmful, Target: targetWord(d.Target)}
 	if fx == 0 {
 		v.Plays, v.StandIn = entity.StandInVisual(d)

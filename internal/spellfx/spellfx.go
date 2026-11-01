@@ -132,11 +132,12 @@ func (s *Service) Spells() ([]Spell, error) {
 	type row struct {
 		id, level, class         int
 		name, desc, line, source string
+		effects                  string // spelleffect.effects (entity/spelljson.go)
 		cast                     int64
 		fx                       int64
 	}
 	rs, err := s.db.Query(`SELECT p.spellid, p.abilitylvl, p.spellname, p.spelldesc, p.casttime,
-			COALESCE(e.line, ''), COALESCE(e.fxdict, 0), cs.class, COALESCE(cs.source, '')
+			COALESCE(e.line, ''), COALESCE(e.fxdict, 0), cs.class, COALESCE(cs.source, ''), COALESCE(e.effects, '')
 		FROM classspells cs JOIN spellpattern p ON p.spellid = cs.spellid
 		LEFT JOIN spelleffect e ON e.spellid = p.spellid
 		ORDER BY cs.class, p.spellid`)
@@ -146,7 +147,7 @@ func (s *Service) Spells() ([]Spell, error) {
 	var rows []row
 	for rs.Next() {
 		var r row
-		if err := rs.Scan(&r.id, &r.level, &r.name, &r.desc, &r.cast, &r.line, &r.fx, &r.class, &r.source); err != nil {
+		if err := rs.Scan(&r.id, &r.level, &r.name, &r.desc, &r.cast, &r.line, &r.fx, &r.class, &r.source, &r.effects); err != nil {
 			rs.Close()
 			return nil, err
 		}
@@ -175,7 +176,7 @@ func (s *Service) Spells() ([]Spell, error) {
 			}
 			continue
 		}
-		d := entity.ParseSpellNamed(r.name, r.line, r.desc)
+		d := entity.SpellDefFrom(r.name, r.line, r.desc, r.effects)
 		sp := &Spell{ID: r.id, Name: strings.TrimSpace(r.name), Level: r.level, Classes: []int{r.class}, Line: r.line,
 			Harmful: d.Harmful, Target: targetName(d.Target), Cast: min(maxCast, max(0, float64(r.cast)))}
 		if r.fx != 0 {

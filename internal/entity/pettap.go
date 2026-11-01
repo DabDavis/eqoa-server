@@ -59,7 +59,7 @@ func petTapsOf(lines []database.ClassSpellLine) []PetTap {
 		if l.Scope != 1 {
 			continue
 		}
-		d := ParseSpellNamed(l.Name, l.Line, l.Desc)
+		d := SpellDefFrom(l.Name, l.Line, l.Desc, l.Effects)
 		if d.Target != TargetSingle {
 			continue
 		}

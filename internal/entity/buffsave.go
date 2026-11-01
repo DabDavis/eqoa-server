@@ -58,6 +58,8 @@ type savedMods struct {
 	// illusions reads as none
 	Form     uint32  `json:",omitempty"`
 	FormSize float32 `json:",omitempty"`
+	// a workbook effect's rules (workbook.go); none on a row kept before
+	Rules *EffectRules `json:",omitempty"`
 	// a heal over time's ticks left (hot.go); a row kept before reads as
 	// none, an effect that ticks until it ends
 	Ticks int `json:",omitempty"`
@@ -89,6 +91,10 @@ func savedEffects(p *Player, now time.Time) []database.BuffRow {
 		if e.PowerCapped {
 			top := e.PowerCap
 			sm.PowerCap = &top
+		}
+		if e.Rules != (EffectRules{}) {
+			r := e.Rules
+			sm.Rules = &r
 		}
 		mods, _ := json.Marshal(sm)
 		flags := 0
@@ -137,6 +143,9 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 			ae.Ticks = sm.Ticks
 			ae.Shield = sm.Shield
 			ae.Line, ae.Rank = sm.Line, sm.Rank
+			if sm.Rules != nil {
+				ae.Rules = *sm.Rules
+			}
 			if sm.PowerCap != nil {
 				ae.PowerCap, ae.PowerCapped = *sm.PowerCap, true
 			}

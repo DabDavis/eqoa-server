@@ -84,6 +84,10 @@ func (w *World) npcRegenSystem(now time.Time) {
 // petRegen is a pet's tick: its HoT and PoT as a player's base (regen.go),
 // a 50 of each maximum, at least 1, within the maximum.
 func (n *NPC) petRegen() {
+	if n.sheet != nil {
+		n.petSheetRegen() // a workbook pet's HoT and PoT (petstats.go)
+		return
+	}
 	if n.HP > 0 && n.HP < n.MaxHP {
 		n.HP = min(n.HP+max(1, n.MaxHP/50), n.MaxHP)
 	}
@@ -96,6 +100,9 @@ func (n *NPC) petRegen() {
 // level (the file's doc).
 func petPowerLocked(pet *NPC) {
 	pet.MaxPower = CalculateMaxPower(pet.Level, classWarrior, 0, 0, 0, 0, 0, 0, 0)
+	if pet.sheet != nil && pet.sheet.Power > 0 {
+		pet.MaxPower = pet.sheet.Power // a workbook pet's (petstats.go)
+	}
 	pet.Power = pet.MaxPower
 }
 

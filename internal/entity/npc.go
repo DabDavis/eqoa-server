@@ -207,6 +207,10 @@ type NPC struct {
 	tmpl   *ClassTemplate
 	tbase  templateBase
 	tfight *templateFight
+
+	// sheet is a workbook pet's petstats row (petstats.go), nil for every
+	// other NPC
+	sheet *petSheet
 }
 
 // GetEntityID returns the NPC's entity ID.

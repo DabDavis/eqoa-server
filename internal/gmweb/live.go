@@ -59,7 +59,7 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveMove()
 	case "balancelevel", "balancecon", "balanceclass", "balanceclasslevel":
 		return s.liveBalance() // live_balance.go
-	case "classtemplates", "npctemplate", "pettemplate":
+	case "classtemplates", "npctemplate", "pettemplate", "petstats":
 		return s.liveTemplates(t.Name, before, after) // live_templates.go
 	case "spellgates":
 		return s.liveSpellGates() // live_gates.go

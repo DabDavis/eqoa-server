@@ -1055,7 +1055,7 @@ var catalog = map[string]tableNote{
 			"hp":              {Label: "Hit points", Help: "before the balance's pet columns; 0 its level's"},
 			"wpn1_type":       {Label: "Main hand kind", Help: "slash, blunt or pierce"},
 			"wpn2_type":       {Label: "Off hand kind", Help: "slash, blunt or pierce"},
-			"abilities":       {Label: "Abilities", Help: classTemplateAbilitiesHelp + `; "spell_id": a spell pinned by its id`},
+			"abilities":       {Label: "Abilities", Format: "json", Help: classTemplateAbilitiesHelp + `; "spell_id": a spell pinned by its id`},
 			"keep_template":   {Label: "Keep template abilities", Help: "1: its Pet class templates row's abilities as well"},
 			"note":            {Label: "Note"},
 			"source":          {Label: "Source", Help: "eqoaemu (tools/import_eqoaemu_pets.py), or gm"},

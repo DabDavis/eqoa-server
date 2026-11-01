@@ -67,7 +67,7 @@ func TestWorkbookEffectsAreWhatASpellDoes(t *testing.T) {
 		t.Errorf("the pact: %+v", d)
 	}
 	// what the engine has no rule for is kept, never acted on
-	d = SpellDefFrom("Test Odd", "", "", `{"v":1,"scope":"target","harmful":true,"effects":[{"kind":"pickpocket"},{"kind":"def_mod","amount":3}]}`)
+	d = SpellDefFrom("Test Odd", "", "", `{"v":1,"scope":"target","harmful":true,"effects":[{"kind":"no_such"},{"kind":"stat_set","stat":"pierce","amount":3}]}`)
 	if len(d.Unsupported) != 2 || len(d.Effects) != 0 {
 		t.Errorf("the unsupported: %+v", d)
 	}

@@ -104,8 +104,9 @@ func (w *World) playerProcsLocked(sess *session.Session, p *Player, npc *NPC, no
 			return true
 		}
 	}
-	w.procHealsLocked(p, false, now) // its offensive proc heals (workbook.go)
-	return false
+	w.procHealsLocked(p, false, now)          // its offensive proc heals (workbook.go)
+	w.procSpellsLocked(p, sess, npc, false, now) // and spell procs (workbookmore.go)
+	return npc.Dead
 }
 
 // petProcsLocked runs a pet's procs after one of its melee hits on a

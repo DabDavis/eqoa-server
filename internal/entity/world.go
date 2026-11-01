@@ -60,6 +60,7 @@ type World struct {
 	// (cast.go)
 	casts    []*castState
 	onGate   GateFunc
+	onPurse  PurseFunc // a purse changed here saved (workbookmore.go)
 	affected map[EntityID]*NPC // creatures with a spell's effect on them
 	// The game's balance (balance.go): nil, none
 	balance *Balance

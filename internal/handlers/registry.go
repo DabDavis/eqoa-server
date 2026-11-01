@@ -304,6 +304,15 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	npcWindowHandler := NewNPCWindowHandler(sessionMgr, invStore)
 	if gameWorld != nil {
 		npcWindowHandler.SetGameWorld(gameWorld)
+		// a purse the World changes (entity/workbookmore.go: a pickpocket's take)
+		gameWorld.OnPurse(func(id uint32, tunar int) {
+			if invStore == nil {
+				return
+			}
+			if err := invStore.SetPurse(id, tunar); err != nil {
+				log.Printf("tunar: saving character %d's purse %d: %v", id, tunar, err)
+			}
+		})
 	}
 	npcWindowHandler.RegisterHandlers(r)
 	// The auction house (auction.go, database/auction.go): 0x1205 on its

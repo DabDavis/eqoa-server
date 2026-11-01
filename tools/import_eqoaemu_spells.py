@@ -21,9 +21,15 @@ What it writes, and from what:
       iconColor, spellname, spelldesc and eqprequire stay ours (its icons
       agreed with Sandstorm's records for 123 of 163). Several workbook rows
       mapped onto one record (one name, two classes' different spells) set it
-      from the row that is the record's own (its level, else a class of its
-      classspells rows, else its scope, else the lowest SpellID); the others
-      are listed, not applied: the map's to settle.
+      from the row that is the record's own (a class the record is linked to,
+      its level, a class of Sandstorm's, its scope, the lowest SpellID); the
+      others, split off in the map (--split-map: how "split", their own id
+      900000 + SpellID, split_from the record), are made new records, and what
+      was their classes' on the shared one moves over (plan_splits): their
+      classspells rows, the books of characters of those classes, their kept
+      buffs (charbuffs), the masteries of those classes alone (cmcatalog's
+      add/require/remove_spells), the quest rewards of those classes alone
+      (queststeps' spells and choices) or for them (byclass).
     a new spell: the same, and icon = IconID byte-reversed (the client's
       DictID, a signed 32-bit int as the column holds it), iconColor by
       IconBGDColor as every record of ours has its frame (Red 486870879 the
@@ -86,6 +92,11 @@ What it writes, and from what:
       add_spells). A spell we have keeps its rows; --link-existing adds the
       classes the workbook gives it that hold no spell of its name.
 
+  spellgates: a new teleport whose Location names a world and a point gets
+      its row (kind group or self by its scope, its radius the spell's, the
+      place as a row at that spot names it); a Location differently named
+      teleports share is the workbook's stand-in, listed.
+
   How a player gets a new class spell (its Learn Method and ScrollSource):
     Scroll + Vendor: a scroll as ours are (the scroll's art, worn nowhere:
       handlers/scribe.go scribes the first spell of its name at its level),
@@ -95,7 +106,9 @@ What it writes, and from what:
       holding its level (else the nearest band), as
       import_eqoadata_spells.py stocks one, never past the 40 records a
       client's merchant list holds. A spell a scroll of its name already
-      teaches, or would scribe another record of its name, gets none: listed.
+      teaches its class (handlers/scribe.go's rule: the exact name before
+      spellKey's, the class's record first), or would scribe another record
+      of its name, gets none: listed.
     Scroll + Quest: listed, unless a quest's reward already scribes it.
     Scroll + Drop: listed (no loot is changed).
     CM: nothing here (the masteries lane's).
@@ -104,11 +117,12 @@ What it writes, and from what:
 Report only by default. --save-plan FILE writes what --apply would do and
 stops; --plan FILE applies such a plan where the database is (each change
 only where the row is still as planned). --apply writes it all in one
-transaction, every row logged in eqoaemu_spell_import_log; --undo puts each
-logged row back as it was (one changed since is left, and said), the
-counters too, and drops the effects column if --apply made it and it is
-empty again; refused while a character holds a made spell or scroll, unless
---force. Both take a copy of the database first (SQLite's backup API). A
+transaction, every row logged in eqoaemu_spell_import_log (its key, the
+columns before and after; a deleted row's rowid); --undo puts each logged
+row back as it was (one changed since is left, and said), the counters
+too, and drops the effects column, a spellarea or spellgates table it made
+when they are empty again; refused while a character holds a made spell
+(a book a split moved aside) or scroll, unless --force. Both take a copy of the database first (SQLite's backup API). A
 cast reads its spell at the cast, a scroll at its use and a catalog at the
 window, so no restart is needed; the class templates and pet taps read
 classspells at the start.

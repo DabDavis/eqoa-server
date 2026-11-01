@@ -135,43 +135,49 @@ WORKBOOK = {"Spells": SPELLS, "Effects": EFFECTS + [eff("0013", "Create Item", C
 WERES = {im.quest_fold("Rage of Claws"): ("Rage of Claws", "Weres/wolfwere/L40-melee")}
 
 
+def make_schema(x):
+    """The server's tables the import reads and writes, as a test database
+    holds them (x: the connection's execute)."""
+    x("""CREATE TABLE spellpattern (spellid INTEGER PRIMARY KEY AUTOINCREMENT, abilitylvl INTEGER NOT NULL,
+         unk2 INTEGER NOT NULL, unk3 INTEGER NOT NULL, range INTEGER NOT NULL, casttime INTEGER NOT NULL,
+         power INTEGER NOT NULL, iconColor INTEGER NOT NULL, icon INTEGER NOT NULL, scope INTEGER NOT NULL,
+         recast INTEGER NOT NULL, eqprequire INTEGER NOT NULL, spellname TEXT NOT NULL, spelldesc TEXT NOT NULL)""")
+    x("CREATE TABLE spelleffect (spellid INTEGER PRIMARY KEY, line TEXT NOT NULL, fxdict INTEGER NOT NULL, source TEXT NOT NULL)")
+    x("CREATE TABLE classspells (class INTEGER NOT NULL, spellid INTEGER NOT NULL, source TEXT NOT NULL, PRIMARY KEY (class, spellid))")
+    x("""CREATE TABLE itempattern (patternid INTEGER PRIMARY KEY AUTOINCREMENT, itemcost INTEGER NOT NULL,
+         unk1 INTEGER NOT NULL, itemicon INTEGER NOT NULL, unk2 INTEGER NOT NULL, equipslot INTEGER NOT NULL,
+         unk3 INTEGER NOT NULL, trade INTEGER NOT NULL, rent INTEGER NOT NULL, unk4 INTEGER NOT NULL,
+         attacktype INTEGER NOT NULL, weapondamage INTEGER NOT NULL, unk5 INTEGER NOT NULL, levelreq INTEGER NOT NULL,
+         maxstack INTEGER NOT NULL, maxhp INTEGER NOT NULL, duration INTEGER NOT NULL, classuse INTEGER NOT NULL,
+         raceuse INTEGER NOT NULL, procanim INTEGER NOT NULL, lore INTEGER NOT NULL, unk6 INTEGER NOT NULL,
+         craft INTEGER NOT NULL, itemname TEXT NOT NULL, itemdesc TEXT NOT NULL, model INTEGER NOT NULL,
+         color INTEGER NOT NULL, str INTEGER, HoT INTEGER, PoT INTEGER)""")
+    x("""CREATE TABLE itemeffect (patternid INTEGER PRIMARY KEY, line TEXT NOT NULL, name TEXT NOT NULL DEFAULT '',
+         icon INTEGER NOT NULL DEFAULT 0, breaks TEXT NOT NULL DEFAULT '', wear INTEGER NOT NULL DEFAULT 0,
+         area REAL NOT NULL DEFAULT 0, source TEXT NOT NULL DEFAULT 'gm')""")
+    x("""CREATE TABLE npcitem (itemid INTEGER PRIMARY KEY AUTOINCREMENT, npcid INTEGER NOT NULL,
+         stackleft INTEGER NOT NULL DEFAULT 0, remainHP INTEGER NOT NULL DEFAULT 0, remaincharge INTEGER NOT NULL DEFAULT 0,
+         patternid INTEGER NOT NULL, equiploc INTEGER NOT NULL DEFAULT 0, location INTEGER NOT NULL DEFAULT 1,
+         listnumber INTEGER NOT NULL DEFAULT 0)""")
+    x("CREATE TABLE sandstorm_import_rows (seq INTEGER PRIMARY KEY AUTOINCREMENT, tbl TEXT, key INTEGER, action TEXT, old TEXT)")
+    x("CREATE TABLE spells (id INTEGER PRIMARY KEY AUTOINCREMENT, serverid INTEGER, spellid INTEGER)")
+    x("CREATE TABLE charinventory (itemid INTEGER PRIMARY KEY AUTOINCREMENT, serverid INTEGER, patternid INTEGER)")
+    x("CREATE TABLE queststeps (questid INTEGER, step INTEGER, rewarditems TEXT NOT NULL DEFAULT '', spells TEXT NOT NULL DEFAULT '', byclass TEXT NOT NULL DEFAULT '', choices TEXT NOT NULL DEFAULT '', PRIMARY KEY (questid, step))")
+    x("CREATE TABLE quests (questid INTEGER PRIMARY KEY, classes TEXT NOT NULL DEFAULT '')")
+    x("CREATE TABLE characters (serverid INTEGER PRIMARY KEY, tclass INTEGER NOT NULL)")
+    x("""CREATE TABLE cmcatalog (id INTEGER PRIMARY KEY, classes INTEGER NOT NULL, name TEXT NOT NULL DEFAULT '',
+         rank INTEGER NOT NULL DEFAULT 1, add_spells TEXT NOT NULL DEFAULT '', require_spells TEXT NOT NULL DEFAULT '',
+         remove_spells TEXT NOT NULL DEFAULT '')""")
+    x("""CREATE TABLE charbuffs (serverid INTEGER NOT NULL, seq INTEGER NOT NULL, spellid INTEGER NOT NULL,
+         caster INTEGER NOT NULL, PRIMARY KEY (serverid, seq))""")
+
+
 class ImportTest(unittest.TestCase):
     def setUp(self):
         self.path = os.path.join(tempfile.mkdtemp(), "t.db")
         self.db = sqlite3.connect(self.path, isolation_level=None)
         x = self.db.execute
-        x("""CREATE TABLE spellpattern (spellid INTEGER PRIMARY KEY AUTOINCREMENT, abilitylvl INTEGER NOT NULL,
-             unk2 INTEGER NOT NULL, unk3 INTEGER NOT NULL, range INTEGER NOT NULL, casttime INTEGER NOT NULL,
-             power INTEGER NOT NULL, iconColor INTEGER NOT NULL, icon INTEGER NOT NULL, scope INTEGER NOT NULL,
-             recast INTEGER NOT NULL, eqprequire INTEGER NOT NULL, spellname TEXT NOT NULL, spelldesc TEXT NOT NULL)""")
-        x("CREATE TABLE spelleffect (spellid INTEGER PRIMARY KEY, line TEXT NOT NULL, fxdict INTEGER NOT NULL, source TEXT NOT NULL)")
-        x("CREATE TABLE classspells (class INTEGER NOT NULL, spellid INTEGER NOT NULL, source TEXT NOT NULL, PRIMARY KEY (class, spellid))")
-        x("""CREATE TABLE itempattern (patternid INTEGER PRIMARY KEY AUTOINCREMENT, itemcost INTEGER NOT NULL,
-             unk1 INTEGER NOT NULL, itemicon INTEGER NOT NULL, unk2 INTEGER NOT NULL, equipslot INTEGER NOT NULL,
-             unk3 INTEGER NOT NULL, trade INTEGER NOT NULL, rent INTEGER NOT NULL, unk4 INTEGER NOT NULL,
-             attacktype INTEGER NOT NULL, weapondamage INTEGER NOT NULL, unk5 INTEGER NOT NULL, levelreq INTEGER NOT NULL,
-             maxstack INTEGER NOT NULL, maxhp INTEGER NOT NULL, duration INTEGER NOT NULL, classuse INTEGER NOT NULL,
-             raceuse INTEGER NOT NULL, procanim INTEGER NOT NULL, lore INTEGER NOT NULL, unk6 INTEGER NOT NULL,
-             craft INTEGER NOT NULL, itemname TEXT NOT NULL, itemdesc TEXT NOT NULL, model INTEGER NOT NULL,
-             color INTEGER NOT NULL, str INTEGER, HoT INTEGER, PoT INTEGER)""")
-        x("""CREATE TABLE itemeffect (patternid INTEGER PRIMARY KEY, line TEXT NOT NULL, name TEXT NOT NULL DEFAULT '',
-             icon INTEGER NOT NULL DEFAULT 0, breaks TEXT NOT NULL DEFAULT '', wear INTEGER NOT NULL DEFAULT 0,
-             area REAL NOT NULL DEFAULT 0, source TEXT NOT NULL DEFAULT 'gm')""")
-        x("""CREATE TABLE npcitem (itemid INTEGER PRIMARY KEY AUTOINCREMENT, npcid INTEGER NOT NULL,
-             stackleft INTEGER NOT NULL DEFAULT 0, remainHP INTEGER NOT NULL DEFAULT 0, remaincharge INTEGER NOT NULL DEFAULT 0,
-             patternid INTEGER NOT NULL, equiploc INTEGER NOT NULL DEFAULT 0, location INTEGER NOT NULL DEFAULT 1,
-             listnumber INTEGER NOT NULL DEFAULT 0)""")
-        x("CREATE TABLE sandstorm_import_rows (seq INTEGER PRIMARY KEY AUTOINCREMENT, tbl TEXT, key INTEGER, action TEXT, old TEXT)")
-        x("CREATE TABLE spells (id INTEGER PRIMARY KEY AUTOINCREMENT, serverid INTEGER, spellid INTEGER)")
-        x("CREATE TABLE charinventory (itemid INTEGER PRIMARY KEY AUTOINCREMENT, serverid INTEGER, patternid INTEGER)")
-        x("CREATE TABLE queststeps (questid INTEGER, step INTEGER, rewarditems TEXT NOT NULL DEFAULT '', spells TEXT NOT NULL DEFAULT '', byclass TEXT NOT NULL DEFAULT '', choices TEXT NOT NULL DEFAULT '', PRIMARY KEY (questid, step))")
-        x("CREATE TABLE quests (questid INTEGER PRIMARY KEY, classes TEXT NOT NULL DEFAULT '')")
-        x("CREATE TABLE characters (serverid INTEGER PRIMARY KEY, tclass INTEGER NOT NULL)")
-        x("""CREATE TABLE cmcatalog (id INTEGER PRIMARY KEY, classes INTEGER NOT NULL, name TEXT NOT NULL DEFAULT '',
-             rank INTEGER NOT NULL DEFAULT 1, add_spells TEXT NOT NULL DEFAULT '', require_spells TEXT NOT NULL DEFAULT '',
-             remove_spells TEXT NOT NULL DEFAULT '')""")
-        x("""CREATE TABLE charbuffs (serverid INTEGER NOT NULL, seq INTEGER NOT NULL, spellid INTEGER NOT NULL,
-             caster INTEGER NOT NULL, PRIMARY KEY (serverid, seq))""")
+        make_schema(x)
         # the split: 103 is the necromancer's (5) and the shaman's (8) today; the shaman's row splits off
         x("INSERT INTO characters VALUES (21, 8), (22, 11)")
         x("INSERT INTO spells (id, serverid, spellid) VALUES (31, 21, 103), (32, 22, 103)")
@@ -579,6 +585,287 @@ class IconTest(unittest.TestCase):
         self.assertIsNone(im.icon_of("0x12345678", disc), "no icon either way round")
         self.assertEqual(im.icon_of("0x12345678"), signed(0x78563412), "no disc read: reversed, as before")
         self.assertIsNone(im.icon_of("12 34", disc))
+
+
+class LongHealTest(unittest.TestCase):
+    """A Dmg/Heal row with a positive HP1: a heal each tick when it lasts a
+    minute or less, a heal at the landing when it lasts longer (its time the
+    buff's beside it); a negative one a hit either way."""
+
+    def objs(self, **kw):
+        ctx = dict(scope="Target", target_type="Friendly", duration=kw.get("Duration", 0), level=None, min_level=None,
+                   radius=0)
+        return im.effect_objects(eff("0F01", "Dmg/Heal", Target_Type="Friendly", **kw), ctx, im.Workbook(WORKBOOK), {})
+
+    def test_by_its_time(self):
+        self.assertEqual([(o["kind"], o["amount"]) for o in self.objs(HP1=200, Duration=24)], [("hp_tick", 200)])
+        self.assertEqual([(o["kind"], o["amount"]) for o in self.objs(HP1=200, Duration=60)], [("hp_tick", 200)],
+                         "a minute: still a tick")
+        self.assertEqual([(o["kind"], o["amount"]) for o in self.objs(HP1=900, Duration=1800, Modifier="Wis",
+                                                                      Percentage=10)], [("hp", 900)])
+        self.assertEqual(self.objs(HP1=900, Duration=1800, Modifier="Wis", Percentage=10)[0]["scale"], "wis")
+        self.assertEqual([o["kind"] for o in self.objs(HP1=-50, Duration=1800)], ["hp"], "a hit stays a hit")
+
+    def test_the_line_heals_once(self):
+        wb = im.Workbook(dict(WORKBOOK, Effects=WORKBOOK["Effects"] + [
+            eff("0F02", "Dmg/Heal", HP1=900, Duration=1800, Scope="Target", Target_Type="Friendly"),
+            eff("0F03", "Statistic Change", STR=50, HPMAX=900, Duration=1800, Scope="Target", Target_Type="Friendly")]))
+        j, _ = im.spell_json(spell("0300", "Spirit Mantle", EffectID1="0F02", EffectID2="0F03", Scope="Target",
+                                   Target_Type="Friendly", Duration=1800), wb, {})
+        self.assertEqual(im.line_of(j), "Target, Increase Hitpoints by 900, Increase STR by 50, Increase Maximum HP by 900, 30min")
+
+
+def made_spell(i, name, cls, level, effect, learn="Scroll", source="Vendor", **kw):
+    return spell(i, name, CLASS=cls, Level=level, EffectID1=effect, Scope="Self", Target_Type="Self",
+                 Learn_Method=learn, ScrollSource=source, TYPE="Create Item", **kw)
+
+
+def info(name, item_id, cls, level, scope, ttype, *effects, rng=1):
+    r = {"SpellID": "0A00", "Name": name, "ItemID": str(item_id), "CLASS": cls, "Level": str(level), "Scope": scope,
+         "Target Type": ttype, "Range": str(rng), "IconID": "11223344"}
+    for k, e in enumerate(effects, 1):
+        r[f"EffectID{k}"] = e
+    return r
+
+
+def made_db(path):
+    """MadeItemsTest's database: the potions, weapons and foods of ours the made
+    items are modelled on, the spells of ours whose words make them, a spell
+    gate (every name and figure made up)."""
+    db = sqlite3.connect(path, isolation_level=None)
+    x = db.execute
+    make_schema(x)
+    x("""CREATE TABLE foodeffect (patternid INTEGER PRIMARY KEY, duration_s INTEGER NOT NULL DEFAULT 0,
+         ends_on_cast INTEGER NOT NULL DEFAULT 0, ends_on_contact INTEGER NOT NULL DEFAULT 0,
+         source TEXT NOT NULL DEFAULT 'gm')""")
+    x(im.SPELLGATES_DDL)
+    x("INSERT INTO spellgates (spell, kind, place, world, x, y, z) VALUES ('moonwell circle', 'group', "
+      "'Glimmer Hollow', 0, 5000, 40, 6000)")
+    rec = "INSERT INTO spellpattern VALUES (?, 60, 0, 0, ?, 2, 100, -1809115846, 7, 0, 3, -1, ?, ?)"
+    fx = "INSERT INTO spelleffect VALUES (?, ?, 0, 'eqoa-data')"
+    # the spells of ours whose words make the potions the made ones are modelled on (their classes' rows)
+    for sid, name, line, cls in ((301, "Wonder Mixture", "SELF Summon Wonder Draught", 14),
+                                 (302, "Muddle Mixture", "SELF Summon Muddle Potion", 14),
+                                 (401, "Small Distillation", "SELF Summon Small Corrective", 14),
+                                 (402, "Old Cocktail", "SELF Summon Old Cocktail", 14),
+                                 (403, "Summon Returning Potion", "SELF Summon Returning Potion", 14),
+                                 (404, "Septic Mixture", "SELF Summon Septic Potion", 14),
+                                 (405, "Forage Berries", "Self, Summon Item: foraged berries", 1),
+                                 (406, "Summon: Weak Ale", "Self, Summon Weak Ale", 10)):
+        x(rec, (sid, F45, name, "Ours."))
+        x(fx, (sid, line))
+        x("INSERT INTO classspells VALUES (?, ?, 'eqoa-data')", (cls, sid))
+    item = ("INSERT INTO itempattern (patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, "
+            "attacktype, weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, "
+            "unk6, craft, itemname, itemdesc, model, color, HoT, PoT) "
+            "VALUES (?, 0, 0, ?, 0, ?, 0, ?, ?, 0, ?, ?, ?, ?, ?, ?, 50, ?, 1023, ?, 0, 0, 0, ?, ?, ?, -1, ?, ?)")
+    use = "INSERT INTO itemeffect (patternid, line, area, source) VALUES (?, ?, ?, 'potions')"
+    # pid, icon, slot, trade, rent, type, damage, reach, level, stack, item HP, classes, item type, name, desc, model, HoT, PoT
+    for r in ((50038, 501, -1, 0, 1, 0, 0, 0, 1, 3, 0, 32767, 2, "Small Corrective", "A corrective.", 0, None, None),
+              (50021, 502, 16, 0, 1, 10, 0, 20, 49, 999, 0, 16384, 0, "Old Cocktail", "A cocktail.", 0, None, None),
+              (50017, 503, 16, 0, 1, 10, 0, 20, 60, 999, 0, 16384, 0, "Septic Potion", "Thrown.", 0, None, None),
+              (50046, 504, -1, 0, 1, 0, 0, 0, 1, 3, 0, 32767, 2, "Returning Potion", "Home.", 0, None, None),
+              (5780, 505, 15, 0, 1, 4, 90, 0, 8, 1, 1600, 32766, 0, "Phase Staff", "A staff.", 77, None, None),
+              (6001, 506, 15, 0, 1, 4, 300, 0, 29, 1, 6000, 32767, 0, "Oak Maul", "", 0, None, None),
+              (6002, 506, 15, 0, 1, 4, 320, 0, 30, 1, 6200, 32767, 0, "Ash Maul", "", 0, None, None),
+              (6003, 506, 15, 0, 1, 4, 340, 0, 31, 1, 6400, 32767, 0, "Elm Maul", "", 0, None, None),
+              (705310, 507, 16, 0, 0, 10, 500, 25, 50, 2000, 5000, 31871, 0, "Shadow Knife", "A knife.", 88, None, None),
+              (50101, 508, -1, 1, 1, 0, 0, 0, 5, 50, 0, 32767, 2, "foraged berries",
+               "Berries, a meal that will increase health regeneration.", 0, 25, None),
+              (705313, 509, -1, 1, 0, 0, 0, 0, 8, 50, 0, 32767, 2, "Weak Ale", im.DRINK_TEXT, 0, None, 12),
+              (60001, 510, -1, 0, 1, 0, 0, 0, 1, 3, 0, 32767, 2, "Wonder Draught", "A draught.", 0, None, None),
+              (60002, 511, -1, 0, 1, 0, 0, 0, 1, 3, 0, 32767, 2, "Muddle Potion", "A potion.", 0, None, None),
+              # a scroll of a made item's name: never the item (the server's lookup)
+              (60003, SCROLL, -1, 0, 1, 0, 0, 0, 44, 1, 0, 16384, 2, "Grand Corrective", "A scroll.", 0, None, None)):
+        x(item, r)
+    for pid, line, area in ((50038, "Self, Dispel Effect x1", 0), (50021, "Target, Decrease Hitpoints by 100", 10),
+                            (50017, "Target, Decrease HP per tic by 10", 0), (50046, "Self, Return to bind point", 0)):
+        x(use, (pid, line, area))
+    x("INSERT INTO foodeffect VALUES (50101, 120, 1, 0, 'eqoaemu'), (705313, 120, 1, 1, 'eqoaemu')")
+    return db
+
+
+class MadeItemsTest(unittest.TestCase):
+    """The items the spells make that are none of ours (MadeItems), on a
+    database and a workbook of their own, every name and figure made up: a
+    cure, a thrown splash, a teleport to a spell gate's place, a conjured
+    staff and daggers no sheet gives, the racial food and drink, two items of
+    ours with no use given one (drunk; thrown, its row made a thrown
+    potion's), one cast at a friend left; each as ours of its kind, named as
+    our records name such items and found by the server's lookup."""
+
+    EFFECTS = [
+        eff("0201", "Create Item", CreatedItemID=30101, QTY=1, Scope="Self", Target_Type="Self"),
+        eff("0203", "Create Item", CreatedItemID=30102, QTY=3, Scope="Self", Target_Type="Self"),
+        eff("0205", "Create Item", QTY=1, Scope="Self", Target_Type="Self"),
+        eff("0207", "Create Item", CreatedItemID=39001, QTY=4, Scope="Self", Target_Type="Self"),
+        eff("0209", "Create Item", QTY=6, Scope="Self", Target_Type="Self"),
+        eff("020B", "Create Item", QTY=1, Scope="Self", Target_Type="Self"),
+        eff("020D", "Create Item", QTY=1, Scope="Self", Target_Type="Self"),
+        eff("020F", "Create Item", CreatedItemID=30103, QTY=3, Scope="Self", Target_Type="Self"),
+        eff("0211", "Create Item", CreatedItemID=30104, QTY=3, Scope="Self", Target_Type="Self"),
+        eff("0213", "Create Item", CreatedItemID=30105, QTY=1, Scope="Self", Target_Type="Self"),
+        eff("0215", "Create Item", CreatedItemID=30101, QTY=3, Scope="Self", Target_Type="Self"),
+    ]
+    SPELLS = [
+        made_spell("0200", "Grand Distillation", "ALC", 44, "0201", learn="CM", source=""),
+        made_spell("0202", "Ruin Cocktail", "ALC", 60, "0203", source="Quest"),
+        made_spell("0204", "Glimmer", "ALC", 20, "0205"),
+        made_spell("0206", "Ember Staff", "MAG", 30, "0207", source="Quest"),
+        made_spell("0208", "Shadow Daggers", "RGE", 51, "0209", learn="CM", source=""),
+        made_spell("020A", "Bake", " ".join(im.CLASSES), 6, "020B", learn="CM", source="", RACE="HLF"),
+        made_spell("020C", "Brew", " ".join(im.CLASSES), 6, "020D", learn="CM", source="", RACE="DWF"),
+        made_spell("020E", "Wonder Mixture", "ALC", 60, "020F"),     # ours: 301
+        made_spell("0210", "Muddle Mixture", "ALC", 60, "0211"),     # ours: 302
+        made_spell("0212", "Kind Mixture", "ALC", 60, "0213", learn="CM", source=""),
+        made_spell("0214", "Grand Distillations", "ALC", 44, "0215", learn="CM", source=""),
+    ]
+    MAP = {"0200": (900512, "new"), "0202": (900514, "new"), "0204": (900516, "new"), "0206": (900518, "new"),
+           "0208": (900520, "new"), "020A": (900522, "new"), "020C": (900524, "new"), "020E": (301, "name"),
+           "0210": (302, "name"), "0212": (900530, "new"), "0214": (900532, "new")}
+    ITEM_EFFECTS = [
+        eff("0E11", "Remove Ability", RemovesEffects="Grand Disease", Scope="Self", Target_Type="Self"),
+        eff("0E12", "Dmg/Heal", HP1=-400, HP2=-400, AoERadius=10, Scope="TB AoE", Target_Type="Enemy"),
+        eff("0E13", "Statistic Change", HoT=-300, Duration=18, AoERadius=10, Scope="TB AoE", Target_Type="Enemy",
+            Resist_Basis="AR"),
+        eff("0E14", "Teleport", Location="Tunaria,5003.5,40,6004.25", Scope="Self", Target_Type="Self"),
+        eff("0E15", "Dmg/Heal", HP1=50, Duration=24, Scope="Self", Target_Type="Self"),
+        eff("0E16", "Statistic Change", STR=-10, Duration=24, Scope="Target", Target_Type="Enemy"),
+        eff("0E17", "Statistic Change", PR=20, Duration=600, Scope="Target", Target_Type="Friendly"),
+    ]
+    ITEMS = [
+        info("Grand Cure Potion", 30101, "ALC", 44, "Self", "Self", "0E11"),
+        info("Ruin Fire Potion", 30102, "ALC", 60, "TB AoE", "Enemy", "0E12", rng=30),
+        info("Ruin Fire Potion", 30102, "ALC", 60, "TB AoE", "Enemy", "0E13", rng=30),
+        info("Glimmer Potion", "", "ALC", 20, "Self", "Self", "0E14"),
+        info("Wonder Mix Potion", 30103, "ALC", 60, "Self", "Self", "0E15"),
+        info("Muddle Mix Potion", 30104, "ALC", 60, "Target", "Enemy", "0E16"),
+        info("Kind Mix Potion", 30105, "ALC", 60, "Target", "Friendly", "0E17"),
+    ]
+
+    def setUp(self):
+        self.path = os.path.join(tempfile.mkdtemp(), "m.db")
+        self.db = made_db(self.path)
+        self.wb = im.Workbook({"Spells": self.SPELLS, "Effects": self.EFFECTS, "Created Item Info": self.ITEMS,
+                               "Created Item Effects": self.ITEM_EFFECTS, "Pets": []})
+
+    def plan(self):
+        return im.plan(self.db, self.wb, self.MAP, weres={})
+
+    def made(self, p):
+        return {x["patternid"]: x["row"] for x in p["made"]["items"]}
+
+    def uses(self, p):
+        return {x["patternid"]: x for x in p["made"]["itemeffects"]}
+
+    def made_item(self, p, sid):
+        e = next(e for e in p["effects"] if e["spellid"] == sid)
+        r = e.get("row") or e.get("set")
+        return [o["item"] for o in json.loads(r["effects"])["effects"] if o["kind"] == "create_item"][0], r["line"]
+
+    def test_potions_as_ours_of_their_kind(self):
+        p = self.plan()
+        made, uses = self.made(p), self.uses(p)
+        cure = made[940101]
+        self.assertEqual((cure["itemname"], cure["itemicon"], cure["levelreq"], cure["maxstack"], cure["trade"]),
+                         ("Grand Corrective", 501, 1, 3, 0), "the corrective line's name and row, level 1 as its sibling")
+        self.assertEqual(uses[940101]["line"], "Self, Dispel Effect x1")
+        self.assertEqual(cure["itemdesc"], "A potion that takes one harmful effect off its drinker.")
+        ruin = made[940102]
+        self.assertEqual((ruin["itemname"], ruin["equipslot"], ruin["attacktype"], ruin["unk5"], ruin["levelreq"],
+                          ruin["classuse"], ruin["itemicon"]), ("Ruin Cocktail", 16, 10, 30, 60, 16384, 502),
+                         "a thrown splash as our cocktail, its reach the workbook's range")
+        self.assertEqual((uses[940102]["line"], uses[940102]["area"]),
+                         ("Target, Decrease Hitpoints by 400, Decrease HP per tic by 300, 18sec", 10.0),
+                         "the area's figure for all it reaches, the target's own share left out")
+        glimmer = made[950000 + 0x204]
+        self.assertEqual((glimmer["itemname"], glimmer["itemicon"], glimmer["levelreq"]), ("Glimmer Potion", 504, 1),
+                         "the sheets' item of no ItemID named for its spell, as our returning potion")
+        self.assertEqual(uses[950000 + 0x204]["line"], "Self, Teleport to Glimmer Hollow", "the gate within 15's place")
+        self.assertEqual(glimmer["itemdesc"], "Drinking this potion takes you to Glimmer Hollow.")
+        listed = p["lists"]["a potion made (as its sibling of ours): its use"]
+        self.assertTrue(any("940102 Ruin Cocktail" in x and "its target's own hit" in x for x in listed))
+
+    def test_what_no_source_gives(self):
+        p = self.plan()
+        made = self.made(p)
+        staff = made[910000 + 39001]
+        self.assertEqual((staff["itemname"], staff["equipslot"], staff["attacktype"], staff["levelreq"], staff["rent"],
+                          staff["weapondamage"], staff["maxhp"], staff["model"], staff["classuse"]),
+                         ("Ember Staff", 15, 4, 30, 0, 320, 6200, 77, 32766),
+                         "our conjured staff's row, NO RENT, its damage and item HP our two-handed blunts' median")
+        self.assertEqual(staff["itemdesc"], "Conjured by the magician's Ember Staff.")
+        dagger = made[950000 + 0x208]
+        self.assertEqual((dagger["itemname"], dagger["weapondamage"], dagger["levelreq"], dagger["rent"], dagger["unk5"]),
+                         ("Shadow Dagger", 500, 51, 0, 25), "the conjured knife's, a level from it: its own figures")
+        pie, brew = made[950000 + 0x20A], made[950000 + 0x20C]
+        self.assertEqual((pie["itemname"], pie["HoT"], pie["levelreq"], pie["trade"], pie["itemicon"]),
+                         ("Halfling Pie", 25, 6, 1, 508), "a meal as the nearest a spell makes")
+        self.assertRegex(pie["itemdesc"], im.MEAL_DESC)
+        self.assertEqual((brew["itemname"], brew["PoT"], brew["rent"], brew["itemdesc"]), ("Dwarven Brew", 12, 0, im.DRINK_TEXT))
+        fe = {x["patternid"]: (x["duration_s"], x["ends_on_cast"], x["ends_on_contact"]) for x in p["made"]["foodeffects"]}
+        self.assertEqual(fe, {950000 + 0x20A: (120, 1, 0), 950000 + 0x20C: (120, 1, 1)}, "their models' food rows")
+        self.assertEqual(len(p["lists"]["an item no source gives, made as ours of its kind (OURS)"]), 4)
+
+    def test_the_spells_name_them(self):
+        p = self.plan()
+        it, line = self.made_item(p, 900512)
+        self.assertEqual(it, {"count": 1, "name": "Grand Corrective", "sheet_name": "Grand Cure Potion", "patternid": 940101})
+        self.assertEqual(line, "Self, Summon Grand Corrective")
+        self.assertEqual(self.made_item(p, 900532)[0]["patternid"], 940101, "a second spell of one item: one item")
+        self.assertEqual(self.made_item(p, 900518), ({"count": 4, "sheet_item_id": "39001", "name": "Ember Staff",
+                                                      "patternid": 949001}, "Self, Summon Ember Staff x4"))
+        self.assertEqual(self.made_item(p, 900520)[1], "Self, Summon Shadow Dagger x6")
+        desc = {s["spellid"]: s["row"]["spelldesc"] for s in p["spells"] if s["action"] == "insert"}
+        self.assertEqual(desc[900512], "CM: Creates 1 Grand Corrective.", "its description names the made item")
+        self.assertEqual(len(self.made(p)), 7, "the cure, the splash, the teleport, staff, dagger, pie and brew")
+        self.assertEqual(sorted(p["made_spells"]), [900512, 900514, 900516, 900518, 900520, 900522, 900524, 900532])
+
+    def test_ours_given_a_use(self):
+        p = self.plan()
+        uses = self.uses(p)
+        self.assertEqual(uses[60001]["line"], "Self, Increase HP per tic by 50, 24sec", "drunk: its row as it is")
+        self.assertEqual(uses[60002]["line"], "Target, Decrease STR by 10, 24sec")
+        upd = {x["patternid"]: x["set"] for x in p["made"]["updates"]}
+        self.assertEqual(upd, {60002: {"equipslot": 16, "attacktype": 10, "unk5": 20, "procanim": 0, "maxstack": 999,
+                                       "classuse": 16384, "levelreq": 60}}, "thrown: worn as our thrown potion is")
+        self.assertEqual(self.made_item(p, 301)[0]["name"], "Wonder Draught", "named as our line names it")
+        self.assertIn("50021 Old Cocktail", "".join(p["lists"].get("a potion made (as its sibling of ours): its use", [])))
+        self.assertEqual(p["lists"]["a made item whose use is cast at a friend (the potion reader throws at enemies): not made"],
+                         ["940105 Kind Potion (Kind Mixture's, L60)"])
+        it, _ = self.made_item(p, 900530)
+        self.assertNotIn("patternid", it, "the friend's potion: none made, the spell makes nothing")
+
+    def test_a_second_plan_makes_nothing_again(self):
+        before = self.dump()
+        p = self.plan()
+        done, stale = im.apply(self.db, p)
+        self.assertEqual(stale, 0)
+        self.assertEqual(self.db.execute("SELECT itemname, rent FROM itempattern WHERE patternid = 949001").fetchone(),
+                         ("Ember Staff", 0))
+        self.assertEqual(self.db.execute("SELECT line, area FROM itemeffect WHERE patternid = 940102").fetchone(),
+                         ("Target, Decrease Hitpoints by 400, Decrease HP per tic by 300, 18sec", 10.0))
+        q = self.plan()
+        self.assertEqual((q["made"]["items"], q["made"]["itemeffects"], q["made"]["updates"]), ([], [], []),
+                         "everything made is found by its name the second time")
+        self.assertEqual(self.made_item(q, 900512)[0]["patternid"], 940101)
+        back, left, _ = im.undo(self.db)
+        self.assertEqual(left, 0)
+        self.assertEqual(self.dump(), before, "--undo exact")
+
+    def dump(self):
+        out = {}
+        for (t,) in self.db.execute("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name"):
+            out[t] = sorted(map(repr, self.db.execute(f"SELECT * FROM {t}").fetchall()))
+        return out
+
+    def test_names(self):
+        self.assertEqual(im.made_name("Frost Ember Effect"), "Frost Ember")
+        self.assertEqual(im.made_name("Gale Mix Potion"), "Gale Potion")
+        self.assertEqual(im.made_name("Harbor Fire Potion"), "Harbor Cocktail")
+        self.assertEqual(im.made_name("Grand Cure Potion"), "Grand Corrective")
+        self.assertEqual(im.made_name("Grand Restorative Potion"), "Grand Restorative")
+        self.assertEqual(im.made_name("Mending Potion"), "Mending Potion", "else as written")
 
 
 if __name__ == "__main__":

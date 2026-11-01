@@ -2,13 +2,16 @@ package entity
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"math/rand"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -30,7 +33,12 @@ import (
 //     of the Wolf and an invisibility potion invisibility, each on the effects
 //     list by its own name and icon, a tonic a resist, a corrective or a
 //     restorative takes harmful effects off ("Dispel Effect xN"), a returning
-//     potion sends the drinker home.
+//     potion sends the drinker home, and a line that names a place sends it
+//     there ("Self, Teleport to Surefall Glade", EQOAEmu's Surefall Potion,
+//     2026-11-01): the spellgates row of that spell, else the first by its
+//     spell whose place it is (gates.go), its drinker landed as a self
+//     gate's caster; refused before anything is drunk when no row is that
+//     place, or its world is one the drinker's game cannot load.
 //   - Thrown ("Target, ..."): its hit and what lasts of it land on the
 //     creature targeted, as a spell's would (landOnNPCLocked), within the
 //     potion's throwing range, and on every creature within its splash
@@ -254,6 +262,24 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 
 	cost := 0
 	gate := false
+	// a potion that takes its drinker to a named place: that gate's landing
+	// (gates.go), or refused before anything is drunk
+	var travel *GateTravel
+	if place, ok := potionPlace(&pe.Def); ok {
+		g, found := w.namedGateLocked(place)
+		switch {
+		case !found:
+			return potionNoPlace, nil, nil
+		case g.Kind == database.GateEvac:
+			gate = true // an evacuation's place is its traveller's bind
+		case !w.loadsLocked(sess, g.World):
+			return fmt.Sprintf(gateCannotLoad, gatePlace(g)), nil, nil
+		default:
+			x, y, z := w.gateLandingLocked(g)
+			travel = &GateTravel{Sess: sess, P: p, Spell: pe.Name,
+				To: GateSpot{World: g.World, X: x, Y: y, Z: z, Place: gatePlace(g)}}
+		}
+	}
 	for _, e := range pe.Def.Effects {
 		switch {
 		case e.Kind == EffectHP && e.Amount < 0:
@@ -276,6 +302,12 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 	cs := &castState{spell: spell, caster: p.ServerID, targets: []EntityID{p.ServerID}}
 	w.landOnPlayerLocked(cs, p, sess, p, now)
 	log.Printf("Potion: %s drinks %q (%d health)", p.Name, pe.ItemName, cost)
+	if travel != nil {
+		// the tick hands it to the travel hook (runTravels), as a gate's
+		w.gates.due = append(w.gates.due, *travel)
+		log.Printf("Potion: %q sends %s to %s (%.1f, %.1f, %.1f) world %d", pe.ItemName, p.Name, travel.To.Place,
+			travel.To.X, travel.To.Y, travel.To.Z, travel.To.World)
+	}
 	if gate {
 		return "", &respawnDue{sess: sess, p: p}, nil
 	}
@@ -368,6 +400,46 @@ func (w *World) summonItemsLocked(cs *castState, caster *Player, sess *session.S
 		}
 	}
 	return found
+}
+
+// rePotionPlace is the place a drunk potion's line takes its drinker to
+// ("Teleport to Surefall Glade"), in the words the line reader leaves unread
+// (spelltext.go).
+var rePotionPlace = regexp.MustCompile(`^teleports?\s+(?:you\s+)?to\s+(?:the\s+)?(.+?)\.?$`)
+
+// potionNoPlace refuses a potion whose line names a place no gate is: ours,
+// as gates.go's refusals are.
+const potionNoPlace = "That potion has no destination here."
+
+// potionPlace is the place a potion's line names, if it names one.
+func potionPlace(d *SpellDef) (string, bool) {
+	for _, u := range d.Unread {
+		if m := rePotionPlace.FindStringSubmatch(strings.TrimSpace(u)); m != nil {
+			return strings.TrimSpace(m[1]), true
+		}
+	}
+	return "", false
+}
+
+// namedGateLocked is the gate a potion's place names: the spellgates row of
+// that spell ("Teleport to Jaggedpine Circle"), else the first, by its
+// spell, whose place it is ("Teleport to Surefall Glade"). Must be called
+// with the lock held.
+func (w *World) namedGateLocked(place string) (database.SpellGate, bool) {
+	if g, ok := w.gates.rows[database.SpellGateKey(place)]; ok {
+		return g, true
+	}
+	var keys []string
+	for k, g := range w.gates.rows {
+		if strings.EqualFold(strings.TrimSpace(g.Place), strings.TrimSpace(place)) {
+			keys = append(keys, k)
+		}
+	}
+	if len(keys) == 0 {
+		return database.SpellGate{}, false
+	}
+	sort.Strings(keys)
+	return w.gates.rows[keys[0]], true
 }
 
 // curePlayerLocked takes up to n harmful effects off a player (a corrective's

@@ -34,7 +34,9 @@ import (
 //     parent); require_quests the quests it must have finished first, their
 //     ids (quests.questid; a quest not in the game bars no one: the
 //     stat-boost quests open the stat-boost lines,
-//     tools/gate_stat_masteries.py).
+//     tools/gate_stat_masteries.py), read as quests.requires is
+//     (ParseRequires): ids apart each needed, "a|b|c" one of them (a
+//     werebeast's ranks: any were's form quest, tools/import_eqoaemu_cms.py).
 //   - effects is what it gives, by EQOA-Data's stat names ("STR:1,STRMax:15",
 //     "HP Factor:1", "Pow:500", "HoT:5", "MovRate:5", resists "FR".."DR");
 //     adds and removes the abilities it gives and takes ("Name@level; ...",

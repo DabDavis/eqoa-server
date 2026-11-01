@@ -27,7 +27,11 @@ spell early; and some scrolls sold or held name no spell at all.
      Anything else (a misspelling, a number for a numeral, a name two spells
      could be) is listed with the best candidate among its classes' spells
      and the evidence (the level, the description's words), not written;
-     so is a clear one neither sold nor held. A scroll's art on a quest item
+     so is a clear one neither sold nor held. A fold the user decided for
+     one listed so (DECIDED: each pair of records by its names, with the
+     user's word) is made the same way, only while both records are still
+     the ones named (the dead scroll teaching nothing, the other teaching);
+     else it is listed. A scroll's art on a quest item
      (no word of scribing in its name or description: "mystical parchment")
      or on a tradeskill's recipe (a name ending in "Recipe") is counted and
      left.
@@ -76,6 +80,13 @@ LEVEL_WORDS = re.compile(r"\b(Level\s+)(\d+)(\s*-)")
 # scroll in its name or description, no "Level N -", no "Summon"
 SCROLLISH = re.compile(r"(?i)\bscrib|\bscroll\b|\blevel\s+\d+\s*-|^summon\b")
 RECIPE = re.compile(r"(?i)\brecipe$")    # a tradeskill's recipe ("Use it to scribe the recipe")
+# Folds the user decided, of dead scrolls the rule lists (2.): the dead
+# scroll's id -> (its name, the scroll it is folded into, that one's name,
+# the user's word), made only while both records are still the ones named.
+DECIDED = {
+    20686: ("Hero Guard 3", 901017, "Hero Guard III", 'the user, 2026-11-01: "yes merge them"'),
+    20836: ("Infusions", 900061, "Infusion", 'the user, 2026-11-01: "yes merge them"'),
+}
 
 
 def classes_of(classuse):
@@ -107,9 +118,40 @@ def meant(name):
     return re.sub(r"(?i)^summon\s+", "", n).strip()
 
 
-def plan(db):
+def decided_folds(db, decided, taught, sold, held, lists):
+    """The folds the user decided (DECIDED) whose records are still the
+    ones named, as plan's folds; the rest listed. Returns (folds, the ids
+    they name)."""
+    cols = fb.columns(db, "itempattern")
+    folds = []
+    for pid, (was, to, to_name, word) in sorted(decided.items()):
+        r = db.execute(f"SELECT {', '.join(cols)} FROM itempattern WHERE patternid = ?", (pid,)).fetchone()
+        r = dict(zip(cols, r)) if r else None
+        t = db.execute("SELECT itemname FROM itempattern WHERE patternid = ?", (to,)).fetchone()
+        to_ok = t is not None and t[0] == to_name and to in taught
+        if r is None and to_ok:
+            lists["a fold the user decided, made already (its record gone)"].append(f"{pid} {was!r} -> {to} {to_name!r}")
+            continue
+        why = ("its record is gone" if r is None else
+               f"it is {r['itemname']!r} now" if r["itemname"] != was else
+               "it is no scroll now" if (r["itemicon"], r["equipslot"]) != (im.SCROLL_ICON, -1) else
+               "it teaches a spell now" if pid in taught else
+               f"{to} is gone" if t is None else
+               f"{to} is {t[0]!r} now" if t[0] != to_name else
+               f"{to} teaches no spell" if not to_ok else "")
+        if why:
+            lists["a fold the user decided whose records are not the ones named (left)"].append(
+                f"{pid} {was!r} -> {to} {to_name!r}: {why}")
+            continue
+        folds.append(dict(patternid=pid, name=was, fold=to, fold_name=to_name, row=r,
+                          how=f"teaches nothing (sold by {sold.get(pid, 0)}, held {held.get(pid, 0)}); folded into {to} "
+                              f"{to_name!r}, as the user decided ({word})"))
+    return folds, set(decided)
+
+
+def plan(db, decided=None):
     """What --apply would write (renames, levels, folds) and the report's
-    lists."""
+    lists; decided the folds the user decided (DECIDED by default)."""
     spells, own, scrolls = load(db)
     by_sid = {s[0]: s for s in spells}
     curve = im.scroll_curve(db)
@@ -127,10 +169,13 @@ def plan(db):
         else:
             dead.append(s)
 
-    # 2. the dead: folded, renamed or listed
-    folds, renames, names = [], [], {}
+    # 2. the dead: folded, renamed or listed; the user's decided folds first
+    folds, handled = decided_folds(db, DECIDED if decided is None else decided, taught, sold, held, lists)
+    renames, names = [], {}
     for s in dead:
         pid, name, classes = s["patternid"], s["itemname"], classes_of(s["classuse"])
+        if pid in handled:
+            continue
         where = f"sold by {sold.get(pid, 0)}, held {held.get(pid, 0)}"
         m = meant(name)
         ids = sorted({sid for sid, n, _ in spells if im.exact_key(n) == im.exact_key(m) and any(sid in own[c] for c in classes)})

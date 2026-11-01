@@ -356,6 +356,21 @@ func (w *World) drainersLocked(cs *castState, caster *Player, to DrainTo) []*Pla
 	return out
 }
 
+// tickDrainersLocked is drainersLocked's for a drain over time's tick: the
+// caster, or the caster and its group within the spell's range of it.
+func (w *World) tickDrainersLocked(caster *Player, ae *ActiveEffect) []*Player {
+	if ae.TickDrain != DrainGroup {
+		return []*Player{caster}
+	}
+	out := []*Player{caster}
+	for _, m := range w.groupMembersLocked(caster) {
+		if m != caster && !m.IsDead() && m.World == caster.World && !outOfRange(caster, m.X, m.Y, m.Z, ae.TickRange) {
+			out = append(out, m)
+		}
+	}
+	return out
+}
+
 func drainName(to DrainTo) string {
 	if to == DrainGroup {
 		return "the caster's group"

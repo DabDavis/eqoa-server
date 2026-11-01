@@ -294,7 +294,7 @@ func sheetMeleeHit(pet, t *NPC, intn func(int) int) (hit int, ok bool) {
 	d := float64(dmg)
 	a := offenceArchs[s.arch]
 	str, dex := float64(pet.petStat(StatStr)), float64(pet.petStat(StatDex))
-	def := a.Defence * targetDefence(t)
+	def := a.Defence*targetDefence(t) + t.keptDefence(pet.Level) // a freed charm's buffs (pet.go)
 	high := int(math.Round(offHighD*d + offHighSTR*str + a.High - def))
 	low := min(int(math.Round(a.LowShare*(offLowD+offLowDEX*dex)*d+a.Low-def)), high)
 	floor := int(math.Floor(offFloorD*d + offFloorSTR*str))

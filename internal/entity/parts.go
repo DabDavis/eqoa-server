@@ -2,23 +2,24 @@ package entity
 
 import (
 	"log"
+	"slices"
 	"time"
 )
 
-// parts.go — an effect's parts that end apart. The workbook marks each part
-// of a spell to end at a hit (dispel_on_contact) or at its bearer's cast
+// parts.go — an effect's parts that end apart. The workbook marks each part of
+// a spell to end at a hit (dispel_on_contact) or at its bearer's cast
 // (dispel_on_cast), and its bearer's own action (a cast, a swing, a throw:
-// invis.go) ends its invisibility; until 2026-11-01 each of these ended the
-// whole effect, so a hit took Group Wolf Form's form and stats with its
-// speed, a swing Spirit Walk's speed with its invisibility. The user,
-// 2026-11-01: "yes only end the marked part". An effect whose parts may end
-// apart keeps what each of its lasting parts puts on (effectPart, as
-// lastingParts builds it from that part alone, out of its caster's figures
-// as it landed), and an end takes off the parts it ends alone, the rest
-// staying to its time; one whose every lasting part ends ends whole, as
-// before. What a part's end does is what the whole effect's end does for
-// what that part gave: on a player the stats summed again and a new run
-// speed told (effectsChangedLocked), and the body, a hold, a slow and the
+// invis.go) ends its invisibility (a hide's slow with it, below); until
+// 2026-11-01 each of these ended the whole effect, so a hit took Group Wolf
+// Form's form and stats with its speed, a swing Spirit Walk's speed with its
+// invisibility. The user, 2026-11-01: "yes only end the marked part". An effect
+// whose parts may end apart keeps what each of its lasting parts puts on
+// (effectPart, as lastingParts builds it from that part alone, out of its
+// caster's figures as it landed), and an end takes off the parts it ends alone,
+// the rest staying to its time; one whose every lasting part ends ends whole,
+// as before. What a part's end does is what the whole effect's end does for
+// what that part gave: on a player the stats summed again and a new run speed
+// told (effectsChangedLocked), and the body, a hold, a slow and the
 // invisibility read from what is left (Body, SpeedNow, Invisible); on a
 // creature, what is left read the same way. The parts are kept over a logout
 // (buffsave.go), so an ended part comes back on no one.
@@ -153,6 +154,18 @@ func partsOf(cs *castState, caster *Player, now time.Time, dur time.Duration) []
 		}
 		if p := partOf(a, e); p.gives() || p.Form {
 			out = append(out, p)
+		}
+	}
+	// a rogue's hide slows its bearer while it hides, and the slow is the
+	// hiding's own: it ends with the hiding at its bearer's action, though
+	// the workbook marks it to end only at a hit or a cast (the user,
+	// 2026-11-01: "end the slow"). A slow beside any other invisibility is no
+	// hide's and ends as its marks say (the workbook has none)
+	if slices.ContainsFunc(out, func(p *effectPart) bool { return p.Hide }) {
+		for _, p := range out {
+			if p.SpeedPct < 0 {
+				p.Invisibility = true
+			}
 		}
 	}
 	for _, match := range []func(*effectPart) bool{partOnContact, partOnCast, partInvisible} {

@@ -18,6 +18,12 @@ necromancer's, "take it out" of the enchanter's epic option).
     effect (the user: "remove them").
   - The enchanter's Soothing Visage (700544, "Group, Weapon proc, 5min") and
     Adoration (700661): EQOA-Data's, taught by nothing ("remove them").
+  - The alchemist's Surefall Potion (700224), Fire Field Potion (700600) and
+    Acidic Mix Potion (700024), each with a working workbook twin (Surefall,
+    Fire Field, Acidic Mixture), Icy Mixtures (701017), Freezing Mixtures
+    (701090), Summon Returning Potion (701052), Serpent's Heart (700816) and
+    Badger Form (700127): EQOA-Data's, taught by nothing ("remove them with
+    quest check guarding").
   - The enchanter's Eldritch Rune (701132), one of the six spells its level
     60 epic reward quest offers: its line is only a description ("Level 60
     Epic third spell option. ..."), no source has its effects, and it did
@@ -54,6 +60,9 @@ LEFTOVERS = [
     (12, 701132, "Eldritch Rune"),
     (11, 701214, "Revert Lich"), (11, 700673, "Stone of Desecration"),
     (12, 700544, "Soothing Visage"), (12, 700661, "Adoration"),
+    (14, 700224, "Surefall Potion"), (14, 700600, "Fire Field Potion"), (14, 700024, "Acidic Mix Potion"),
+    (14, 701017, "Icy Mixtures"), (14, 701090, "Freezing Mixtures"), (14, 701052, "Summon Returning Potion"),
+    (14, 700816, "Serpent's Heart"), (14, 700127, "Badger Form"),
 ]
 # leftovers whose quest choices this takes out with them (the only quest that
 # may still name one: any other quest giving a leftover refuses it)

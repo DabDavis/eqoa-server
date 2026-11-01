@@ -38,7 +38,14 @@ import (
 //     2026-11-01): the spellgates row of that spell, else the first by its
 //     spell whose place it is (gates.go), its drinker landed as a self
 //     gate's caster; refused before anything is drunk when no row is that
-//     place, or its world is one the drinker's game cannot load.
+//     place, or its world is one the drinker's game cannot load. A line
+//     may cost an item and give one (handlers/potion.go: "Reagent X xN",
+//     held to use it and taken with it, refused in red without; "Summon X",
+//     given after it is used): Envar's gems (2026-11-01, EQOA-Data's
+//     Envaric Ascension guide), each sending its user up one chamber of the
+//     Prophet's tower and each needing the cracked gem the last one left
+//     ("If you do not have that cracked version of the gem, you will not be
+//     allowed to use the gem in the next chamber").
 //   - Thrown ("Target, ..."): its hit and what lasts of it land on the
 //     creature targeted, as a spell's would (landOnNPCLocked), within the
 //     potion's throwing range, and on every creature within its splash
@@ -387,19 +394,50 @@ func (w *World) summonItemsLocked(cs *castState, caster *Player, sess *session.S
 			go fn(sess, caster.CharServerID, it.Name, it.Count, cs.spell.Name)
 		}
 	}
+	for _, it := range unreadSummons(d) {
+		found = true
+		log.Printf("Cast: %s's %q summons %q (x%d)", caster.Name, cs.spell.Name, it.Name, it.Count)
+		if fn := w.potions.onSummon; fn != nil && sess != nil {
+			go fn(sess, caster.CharServerID, it.Name, it.Count, cs.spell.Name)
+		}
+	}
+	return found
+}
+
+// unreadSummons is each summoning of an item in a line's unread words, its
+// count the words' xN (0: the item's own, SummonItemFunc's).
+func unreadSummons(d *SpellDef) []SpellItem {
+	var out []SpellItem
 	for _, u := range d.Unread {
 		m := reSummonItem.FindStringSubmatch(strings.TrimSpace(reParens.ReplaceAllString(u, "")))
 		if m == nil || reSummonCreature.MatchString(u) {
 			continue
 		}
-		found = true
 		count, _ := strconv.Atoi(m[2])
-		log.Printf("Cast: %s's %q summons %q (x%d)", caster.Name, cs.spell.Name, m[1], count)
-		if fn := w.potions.onSummon; fn != nil && sess != nil {
-			go fn(sess, caster.CharServerID, m[1], count, cs.spell.Name)
-		}
+		out = append(out, SpellItem{Name: m[1], Count: count})
 	}
-	return found
+	return out
+}
+
+// Summons is what using the potion gives its user after it is used, as a
+// spell's summoning does (handlers/potion.go): the items its line summons
+// ("Summon Cracked Noble's Gem x1": one of Envar's gems leaves its cracked
+// version), none for a line that makes a pet.
+func (pe *PotionEffect) Summons() []SpellItem {
+	if pe.Def.Summons() {
+		return nil
+	}
+	return append(append([]SpellItem(nil), pe.Def.Items...), unreadSummons(&pe.Def)...)
+}
+
+// Reagent is the item using the potion costs and how many, "" for none: its
+// line's "Reagent X xN", held to use it and taken with it (handlers/
+// potion.go: Envar's gems, each needing the cracked gem the last one left).
+func (pe *PotionEffect) Reagent() (string, int) {
+	if pe.Def.Reagent == "" || pe.Def.ReagentCount <= 0 {
+		return "", 0
+	}
+	return pe.Def.Reagent, pe.Def.ReagentCount
 }
 
 // rePotionPlace is the place a drunk potion's line takes its drinker to

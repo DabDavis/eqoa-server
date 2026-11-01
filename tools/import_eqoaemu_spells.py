@@ -63,12 +63,17 @@ What it writes, and from what:
       Defensive Proc); the numbers the workbook's, untouched. Where the shape
       has no word for what a row says, the effect carries a key of its own
       (see EXTRA_KEYS). Two readings the shape leaves open, made here:
-        - a Dmg/Heal row with a positive HP1 and a duration is a heal each
-          tick ("hp_tick"): the workbook's legend has a heal tick as a HoT
-          does, twice at its landing and every 6 seconds after, and
-          Sandstorm's Minor Healing ticked its line's figure
-          (casting-sandstorm-20261021.md). A negative HP1 with a duration
-          stays a hit ("hp", its duration kept): the workbook's own
+        - a Dmg/Heal row with a positive HP1 and a duration of a minute or
+          less (HEAL_TICKS_UP_TO: every such row of the workbook's lasts 18
+          or 24 s) is a heal each tick ("hp_tick"): the workbook's legend has
+          a heal tick as a HoT does, twice at its landing and every 6 seconds
+          after, and Sandstorm's Minor Healing ticked its line's figure
+          (casting-sandstorm-20261021.md). One that lasts longer is a heal at
+          its landing ("hp"): the legend's HP1 is the "Damage (or heal) base
+          number", a heal over time its HoT, and the user's Avatar (2026-11-01)
+          "is a one time max hp buff and massive stat buff lasts until next
+          avatar recast": its time the buff's beside it. A negative HP1 with a
+          duration stays a hit ("hp", its duration kept): the workbook's own
           known-issues list calls some of those durations errors;
         - a DoT figure is damage whatever its sign ("hp_tick" negative): the
           column is "Damage over time".
@@ -101,6 +106,34 @@ What it writes, and from what:
       made as a sibling of ours (910000 + its ItemID), each its foodeffect row
       (its time, DisspellOnCast, DisspellOnContact: entity/consumable.go);
       one that heals at once as well is a potion, an itemeffect line.
+    and every other item a spell makes that is none of ours (MadeItems: the
+      server summons an item by its name, so a spell whose item we lack
+      makes nothing): one the Created Item sheets give (by its name, or for
+      a Create Item that names none, the sheets' item of no ItemID named for
+      its spell: the Surefall Potion) is a potion, as tools/seed_potions.py
+      made the alchemist's: its row its sibling's (an item with a use that
+      another spell of its class makes, drunk or thrown as it is, of its kind
+      (a cure, a teleport, a splash), the nearest its level; a level 1
+      sibling's stays 1), and its use an itemeffect line in the server's own
+      words (entity/potion.go reads it as spelltext.go reads a line): a cure
+      the sibling's "Dispel Effect xN", a teleport the place of the spell
+      gate within 15 of its Location ("Teleport to <place>", potion.go), a
+      thrown one's splash its AoERadius with the area's figure (the splash
+      lands one line on every creature in it, its target among them, so a
+      target's second share is left out), its reach (unk5) its Range; what
+      no line says (a body, a resist) listed. It is named as our records
+      name such items (MADE_NAMES: "<X> Corrective" for the sheets' "<X>
+      Cure Potion", "<X> Potion" for a "<X> Mix Potion", no " Effect"),
+      910000 + its ItemID (950000 + its spell's SpellID with none). One no
+      source gives is made by its spell's words (OUR_KINDS: a conjured
+      staff, a rogue's daggers, the racial masteries' food and drink) as our
+      item of its kind nearest its level is, OURS: a weapon NO RENT (rent 0,
+      as every conjured weapon of ours), its damage and item HP the median of
+      our weapons of its type within 2 levels when its model is further off
+      (tools/fix_dump_weapons.py's rule), a food its model's figures and
+      foodeffect row. An item of ours the sheets give a use for that has
+      none (no itemeffect, foodeffect or meal's or drink's words) takes the
+      workbook's, its row made a thrown one's when the use is thrown.
 
   spellgates: a new teleport whose Location names a world and a point gets
       its row (kind group or self by its scope, its radius the spell's, the
@@ -159,13 +192,16 @@ DEFAULT_DB = os.path.join(HERE, "..", "eqoa.db")
 
 LOG = "eqoaemu_spell_import_log"
 META = "eqoaemu_spell_import_meta"
-LOG_DDL = f"""
-CREATE TABLE IF NOT EXISTS {META} (
+def log_ddl(log=LOG, meta=META):
+    """A log table and a facts table, the import's or another tool's (the
+    follow-up's: tools/fix_eqoaemu_followup.py)."""
+    return f"""
+CREATE TABLE IF NOT EXISTS {meta} (
     key   TEXT PRIMARY KEY,
     value TEXT NOT NULL
 );
 -- Every row written, in order: --undo takes them back last first.
-CREATE TABLE IF NOT EXISTS {LOG} (
+CREATE TABLE IF NOT EXISTS {log} (
     seq     INTEGER PRIMARY KEY AUTOINCREMENT,
     tbl     TEXT NOT NULL,     -- one of KEYS' tables
     key     TEXT NOT NULL,     -- the row's key columns (JSON)
@@ -175,6 +211,9 @@ CREATE TABLE IF NOT EXISTS {LOG} (
     note    TEXT NOT NULL DEFAULT ''
 );
 """
+
+
+LOG_DDL = log_ddl()
 # each table written, by the columns that key a row
 KEYS = {"spellpattern": ["spellid"], "spelleffect": ["spellid"], "spellarea": ["spellid"],
         "classspells": ["class", "spellid"], "itempattern": ["patternid"], "npcitem": ["itemid"],
@@ -182,6 +221,11 @@ KEYS = {"spellpattern": ["spellid"], "spelleffect": ["spellid"], "spellarea": ["
         "spellgates": ["spell"], "foodeffect": ["patternid"], "itemeffect": ["patternid"]}
 # a food, drink or potion made from the Created Item sheets: 910000 + the workbook's ItemID
 ITEM_BASE = 910000
+# a made item that has no ItemID (the sheets' one of none, OUR_KINDS'): 950000 + its spell's SpellID
+MADE_BASE = 950000
+# a Dmg/Heal row with a positive HP1 lasting at most this many seconds heals
+# each tick; one lasting longer heals once, at its landing (the doc)
+HEAL_TICKS_UP_TO = 60
 # the worlds a Location names (gmweb's world numbers)
 WORLDS = {"tunaria": 0, "rathe": 1, "odus": 2, "lavastorm": 3, "plane of sky": 4, "secrets": 5}
 NOTE = "EQOAEmu's workbook (2020)"
@@ -661,7 +705,7 @@ def effect_objects(e, ctx, wb, items_by_name, proc_of=None):
             add(drain, amount=hp1)
         elif t == "Backstab":
             add("backstab", amount=hp1)
-        elif t == "Dmg/Heal" and hp1 > 0 and dur > 0:
+        elif t == "Dmg/Heal" and hp1 > 0 and 0 < dur <= HEAL_TICKS_UP_TO:
             add("hp_tick", amount=hp1)
         else:
             add("hp", amount=hp1, absolute=True if absolute else None)
@@ -1329,12 +1373,15 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None):
     if has_table(db, "sandstorm_import_rows"):
         sandstorm = {r[0] for r in db.execute("SELECT key FROM sandstorm_import_rows WHERE tbl = 'spellpattern'")}
     items_by_name, item_names = {}, {}
-    for pid, name in db.execute("SELECT patternid, itemname FROM main.itempattern ORDER BY patternid"):
-        items_by_name.setdefault(fold(name), pid)
+    for pid, name, icon, slot in db.execute("SELECT patternid, itemname, itemicon, equipslot FROM main.itempattern "
+                                            "ORDER BY patternid"):
+        if not (icon == SCROLL_ICON and slot == -1):  # never a spell's scroll, as the server's lookup
+            items_by_name.setdefault(fold(name), pid)
         item_names[pid] = name
     lists = collections.defaultdict(list)
     counts = collections.Counter()
     foods = plan_foods(db, wb, items_by_name, item_names, lists, counts)
+    made = MadeItems(db, wb, items_by_name, item_names, lists, counts, icons, foods)
 
     by_sid = collections.defaultdict(list)
     split_of = {}   # a split row's new spellid -> the record it leaves
@@ -1371,6 +1418,13 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None):
         j, missing = spell_json(s, wb, items_by_name)
         for m in missing:
             lists["an effect the Effects sheet lacks"].append(f"{hexid(s.get('SpellID'))} {cell(s, 'Name')}: {m}")
+        # the items it makes under the names the server finds them by, ours
+        # or made (MadeItems), before its description and its line name them
+        renamed, by_line = [], []
+        if j["effects"]:
+            old_line = ((erows.get(sid) or {}).get("line") or "") if rec is not None else ""
+            renamed, by_line = settle_item_names(j, old_line, items_by_name, item_names)
+            made.settle(s, j, sid)
         sheet_scope = cell(s, "Scope")
         scope = SCOPE.get(sheet_scope)
         rez = any(o["kind"] == "resurrect" for o in j["effects"])
@@ -1468,8 +1522,6 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None):
 
         # what it does
         if j["effects"]:
-            old_line = ((erows.get(sid) or {}).get("line") or "") if rec is not None else ""
-            renamed, by_line = settle_item_names(j, old_line, items_by_name, item_names)
             for what in renamed:
                 lists["a made or taken item of ours by the workbook's name, under our item's own"].append(
                     f"{sid} {cell(s, 'Name')}: {what}")
@@ -1579,7 +1631,8 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None):
 
     scrolls, stock = plan_scrolls(db, new_rows, records, lists, counts, links, moves, migrations)
     p = dict(spells=spells, effects=effects, areas=area_rows, links=links, scrolls=scrolls, stock=stock,
-             moves=moves, migrations=migrations, gates=gate_rows, foods=foods,
+             moves=moves, migrations=migrations, gates=gate_rows, foods=foods, made=made.out,
+             made_spells=sorted(made.settled),
              lists={k: v for k, v in lists.items()}, counts=dict(counts), effect_clash=wb.effect_clash)
     p["changes"] = changes_of(p)
     return p
@@ -1642,7 +1695,10 @@ def plan_foods(db, wb, items_by_name, item_names, lists, counts):
                 elif col == "HoT" and v > 0:
                     figures["hot"] += v
                 elif col == "HP1" and v > 0:
-                    figures["hot" if (num(e, "Duration") or 0) > 0 else "heal"] += v
+                    # a meal's health over time (its row a Statistic Change of
+                    # 2-3 minutes); a Dmg/Heal row as effect_objects reads it
+                    d = num(e, "Duration") or 0
+                    figures["hot" if 0 < d and (cell(e, "TYPE") != "Dmg/Heal" or d <= HEAL_TICKS_UP_TO) else "heal"] += v
                 else:
                     ok = False
         name = re.sub(r"(?i)\s+effect$", "", cell(rs[0], "Name")).strip()
@@ -1729,6 +1785,518 @@ def plan_foods(db, wb, items_by_name, item_names, lists, counts):
                                            ends_on_contact=int(f["contact"]), source="eqoaemu"))
             counts["foodeffect rows"] += 1
     return out
+
+
+# ---- the items the spells make (the user, 2026-11-01: "lets fix these") ----------
+
+# The Created Item sheets name an item's EFFECT ("<X> Effect", "<X> Mix
+# Potion"); a made item is named as our records name such items: no " Effect"
+# (the magician's conjured stones), EQOA-Data's "<X> Potion" for a Mixture's
+# "<X> Mix Potion", our "<X> Cocktail" for a "<X> Fire Potion", and the
+# Distillation and Purification lines' "<X> Corrective" and "<X> Restorative"
+# (EQOA-Data's and Allakhazam's 2004 records' words) for the sheets' "<X> Cure
+# Potion" and "<X> Restorative Potion"
+MADE_NAMES = [(r"\s+effect$", ""), (r"\s+mix\s+potion$", " Potion"), (r"\s+fire\s+potion$", " Cocktail"),
+              (r"\s+cure\s+potion$", " Corrective"), (r"\s+restorative\s+potion$", " Restorative")]
+# What a spell makes that no source names (no CreatedItemID, or one no sheet
+# row has; EQOA-Data and Allakhazam's archived pages name none either), by its
+# name's words: (its words, kind, the items of ours it is modelled on (a
+# food's: our meals or drinks a spell makes), its name (None: the spell's,
+# singular)). A conjured staff named as its spell is, as the magician's
+# Phase Staff; a rogue's daggers ("Creates 6", EQOA-Data's Rogue's Daggers)
+# its conjured Shadow Knife's kind, thrown; the racial masteries' food and
+# drink (EQOA-Data's Bake, "Summon food", and Brew, "summon drink"). OURS.
+OUR_KINDS = [
+    (re.compile(r"(?i)\bstaff$"), "weapon", ("phase staff",), None),
+    (re.compile(r"(?i)\bdaggers?$"), "weapon", ("shadow knife",), None),
+    (re.compile(r"(?i)^bake$"), "meal", None, "Halfling Pie"),
+    (re.compile(r"(?i)^brew$"), "drink", None, "Dwarven Brew"),
+]
+# who conjures a weapon, by the making spell's class, in our conjured items'
+# words ("Conjured by the magician's Phase Mallet.")
+CLASS_WORD = {10: "magician", 6: "rogue", 14: "alchemist", 12: "enchanter", 11: "necromancer", 13: "wizard"}
+NUMBER_WORD = {2: "two", 3: "three", 4: "four", 5: "five"}
+
+
+def made_name(name):
+    """A made item's name as our records name such items (MADE_NAMES)."""
+    n = " ".join((name or "").split())
+    for pat, to in MADE_NAMES:
+        m = re.search(pat, n, re.I)
+        if m:
+            return n[:m.start()] + to
+    return n
+
+
+def walk_effects(objs):
+    """Every effect object, a proc's own too."""
+    for o in objs:
+        yield o
+        yield from walk_effects(o.get("procs") or [])
+
+
+def item_makers(db):
+    """The classes whose spells make each item, by its name (fold): every
+    class spell (classspells) whose line or effects summon it."""
+    out = collections.defaultdict(set)
+    if not has_table(db, "spelleffect"):
+        return out
+    has_fx = "effects" in columns(db, "spelleffect")
+    q = ("SELECT c.class, e.line, " + ("e.effects" if has_fx else "''") +
+         " FROM main.classspells c JOIN main.spelleffect e ON e.spellid = c.spellid")
+    for c, line, eff in db.execute(q):
+        for n in line_items(line or "", "item"):
+            out[fold(n)].add(c)
+        try:
+            j = json.loads(eff) if (eff or "").strip() else {}
+        except ValueError:
+            j = {}
+        for o in walk_effects(j.get("effects") or [] if isinstance(j, dict) else []):
+            n = ((o.get("item") or {}).get("name") or "") if o.get("kind") == "create_item" else ""
+            if n:
+                out[fold(n)].add(c)
+    return out
+
+
+def potion_line(objs, thrown, area=0, place=None, cures=1):
+    """A potion's use in the words the potion reader reads (entity/potion.go
+    reads its itemeffect line as spelltext.go reads a spell's), and what of
+    the workbook's those words cannot say."""
+    spell = {"scope": "target" if thrown else "self", "harmful": thrown, "item_names": {}}
+    parts, unsaid = [], []
+    hits = [o for o in objs if o["kind"] in ("hp", "hp2") and (o.get("amount") or 0) < 0]
+    splash = None
+    if thrown and area and hits:
+        # the splash lands the line on every creature in it, its target
+        # among them (potion.go throwLocked): the area's figure for all
+        splash = next((o for o in hits if o["kind"] == "hp2"), hits[0])
+        if {o["kind"] for o in hits} == {"hp", "hp2"}:
+            unsaid.append("its target's own hit beside the area's (a splash lands one line on all it reaches)")
+    dur, lasting, said_splash = 0, False, False
+    for o in objs:
+        k, n = o["kind"], o.get("amount")
+        dur = max(dur, o.get("duration_s") or 0)
+        if splash is not None and o in hits:
+            if not said_splash:
+                parts.append(f"Decrease Hitpoints by {abs(splash['amount'])}" + scale_words(splash))
+                said_splash = True
+            continue
+        if k == "cure":
+            parts.append(f"Dispel Effect x{cures}")
+        elif k == "teleport":
+            if place:
+                parts.append(f"Teleport to {place}")
+            else:
+                unsaid.append(f"a teleport to {o.get('location') or 'nowhere'} (no spell gate is that place)")
+        elif k == "illusion":
+            unsaid.append("a body (the potion reader shows none)")
+        elif k in ("power", "stat_set", "speed") and o.get("absolute"):
+            unsaid.append(f"a {k} set to {n} (no potion's words for it)")
+        elif k in ("hp", "hp2", "hp_tick", "power", "power_tick", "stat", "speed", "invis", "gate"):
+            parts += clause(o, spell)
+            lasting = lasting or k in ("hp_tick", "power_tick", "stat", "speed", "invis")
+        else:
+            unsaid.append(f"{k} ({o.get('type')})")
+    if not parts:
+        return "", unsaid
+    line = ("Target" if thrown else "Self") + ", " + ", ".join(parts)
+    if dur and lasting:
+        line += ", " + fmt_dur(dur)
+    return line, unsaid
+
+
+def potion_desc(name, objs, thrown, area, place, cures):
+    """A made potion's description, in the words of ours (seed_potions.py's)."""
+    kinds = {o["kind"] for o in objs}
+    if thrown:
+        it = "cocktail" if "cocktail" in name.lower() else "potion"
+        if kinds & {"hp", "hp2"}:
+            return f"Thrown at an enemy, this {it} bursts on impact" + (", catching everything near it." if area else ".")
+        if "hp_tick" in kinds:
+            return f"Thrown at an enemy, this {it}'s contents eat away at it."
+        return f"Thrown at an enemy, this {it} weakens it."
+    if "cure" in kinds:
+        return ("A potion that takes one harmful effect off its drinker." if cures == 1 else
+                f"A potion that takes up to {NUMBER_WORD.get(cures, cures)} harmful effects off its drinker.")
+    if "teleport" in kinds and place:
+        return f"Drinking this potion takes you to {place}."
+    if "gate" in kinds:
+        return "Drinking this potion returns you to your bind point."
+    bits = []
+    if any(o["kind"] == "hp" and (o.get("amount") or 0) > 0 for o in objs):
+        bits.append("heals its drinker")
+    if any(o["kind"] == "hp_tick" and (o.get("amount") or 0) > 0 for o in objs):
+        bits.append("heals its drinker over time")
+    if any(o["kind"] == "power" and (o.get("amount") or 0) > 0 for o in objs):
+        bits.append("restores its power")
+    ups = []
+    for o in objs:
+        if o["kind"] == "stat" and (o.get("amount") or 0) > 0:
+            w = {"maxhp": "maximum hit points", "maxpower": "maximum power", "ac": "armor"}.get(o["stat"], STAT_WORD.get(o["stat"], o["stat"]))
+            if w not in ups:
+                ups.append(w)
+    if ups:
+        bits.append("raises its " + (", ".join(ups[:-1]) + " and " if len(ups) > 1 else "") + ups[-1] + " for a time")
+    if not bits:
+        return "A potion of an alchemist's making."
+    return "A potion that " + (", ".join(bits[:-1]) + " and " if len(bits) > 1 else "") + bits[-1] + "."
+
+
+class MadeItems:
+    """The items the spells make (the doc's "every other item a spell
+    makes"): settle() names each spell's created items as the server finds
+    them, making those none of ours; out holds what --apply writes."""
+
+    def __init__(self, db, wb, items_by_name, item_names, lists, counts, icons=None, foods=None):
+        self.db, self.wb, self.lists, self.counts, self.icons = db, wb, lists, counts, icons
+        self.items_by_name, self.item_names = items_by_name, item_names
+        self.cols = columns(db, "itempattern")
+        self.rows = {r[0]: dict(zip(self.cols, r)) for r in
+                     db.execute(f"SELECT {', '.join(self.cols)} FROM main.itempattern")}
+        self.uses = {}
+        if has_table(db, "itemeffect"):
+            ecols = columns(db, "itemeffect")
+            self.uses = {r[0]: dict(zip(ecols, r)) for r in db.execute(f"SELECT {', '.join(ecols)} FROM main.itemeffect")}
+        self.foods = {}
+        if has_table(db, "foodeffect"):
+            fcols = columns(db, "foodeffect")
+            self.foods = {r[0]: dict(zip(fcols, r)) for r in db.execute(f"SELECT {', '.join(fcols)} FROM main.foodeffect")}
+        # what plan_foods plans beside: its made foods, their figures, their
+        # foodeffect rows and the potions' uses
+        for x in (foods or {}).get("items", []):
+            self.rows[x["patternid"]] = dict(x["row"])
+        for x in (foods or {}).get("updates", []):
+            if x["patternid"] in self.rows:
+                self.rows[x["patternid"]] = dict(self.rows[x["patternid"]], **x["set"])
+        for x in (foods or {}).get("foodeffects", []):
+            self.foods[x["patternid"]] = x
+        for x in (foods or {}).get("itemeffects", []):
+            self.uses[x["patternid"]] = x
+        self.makers = item_makers(db)
+        self.gates = []
+        if has_table(db, "spellgates"):
+            self.gates = db.execute("SELECT spell, place, world, x, z FROM main.spellgates WHERE place <> '' "
+                                    "ORDER BY spell").fetchall()
+        self.index = None  # fold(name) -> patternids, made at the first lookup
+        self.made = {}     # an item's key -> its patternid, once found or made
+        self.given = set()  # items of ours given a use
+        self.settled = set()  # the spells whose items this named
+        self.out = dict(items=[], updates=[], itemeffects=[], foodeffects=[])
+
+    # the server's lookup of an item by its name (database.ItemPatternByName):
+    # no spell scroll, one with a use first, then the lowest id
+    def by_name(self, name):
+        if self.index is None:
+            self.index = collections.defaultdict(list)
+            for pid, r in self.rows.items():
+                self.index[fold(r["itemname"])].append(pid)
+        best = None
+        for pid in self.index.get(fold(name), []):
+            r = self.rows[pid]
+            if r["itemicon"] == SCROLL_ICON and r["equipslot"] == -1:
+                continue
+            key = (pid not in self.uses, pid)
+            if best is None or key < best[0]:
+                best = (key, pid)
+        return best[1] if best else None
+
+    def sheet_rows(self, name, spell):
+        """The Created Item Info rows of the item a create_item names, by its
+        name; one that names none, the sheets' item of no ItemID named for
+        its spell ("<spell> Potion")."""
+        rows = self.wb.item_info
+        if name:
+            return [r for r in rows if fold(cell(r, "Name")) == fold(name)]
+        lead = fold(spell) + " "
+        return [r for r in rows if num(r, "ItemID") is None and fold(cell(r, "Name")).startswith(lead)]
+
+    def effects_of(self, rows):
+        """The item's effects as the brief's effect objects, each with its
+        own row's time, and the largest AoERadius."""
+        objs, radius = [], 0
+        for r in rows:
+            ctx = dict(scope=cell(r, "Scope"), target_type=cell(r, "Target Type"), duration=0, level=None,
+                       min_level=None, radius=0)
+            for i in effect_ids(r):
+                e = self.wb.item_effects.get(i)
+                if e is None:
+                    continue
+                radius = max(radius, num(e, "AoERadius") or 0)
+                for o in effect_objects(e, ctx, self.wb, self.items_by_name):
+                    o.pop("consume", None)  # the item itself
+                    objs.append(o)
+        return objs, radius
+
+    def place_of(self, location):
+        """The place of the spell gate within 15 of a Location (plan_gates'
+        rule), None for none."""
+        parts = [x.strip() for x in (location or "").split(",")]
+        world = WORLDS.get(parts[0].lower()) if parts else None
+        try:
+            x, z = float(parts[1]), float(parts[3])
+        except (ValueError, IndexError):
+            return None
+        near = [(abs(gx - x) + abs(gz - z), place) for _, place, gw, gx, gz in self.gates
+                if gw == world and abs(gx - x) < 15 and abs(gz - z) < 15]
+        return min(near)[1] if near else None
+
+    def sibling(self, thrown, classes, level, want, last_word):
+        """The potion of ours a made one is made as: an item with a use that
+        another spell of its class makes (any class's when none), drunk or
+        thrown as it is, of its kind (want: cure, teleport, area), a cure of
+        its name's last word (a corrective's line, a restorative's), then
+        the nearest its level."""
+        if want != "cure":
+            last_word = None
+        def pool(any_class):
+            out = []
+            for pid, use in self.uses.items():
+                r = self.rows.get(pid)
+                if r is None or (use.get("line") or "").strip().lower().startswith("self") == thrown:
+                    continue
+                if not any_class and not (self.makers.get(fold(r["itemname"]), set()) & set(classes)):
+                    continue
+                out.append((pid, r, use))
+            return out
+        cands = pool(False) or pool(True)
+        if not cands:
+            return None, None
+
+        def kind(use):
+            line = (use.get("line") or "").lower()
+            return {"cure": "dispel effect" in line, "teleport": "bind point" in line or "teleport" in line,
+                    "area": (use.get("area") or 0) > 0}.get(want, True)
+        pid, r, use = min(cands, key=lambda c: (not kind(c[2]), last_word is not None and
+                                                fold(c[1]["itemname"]).split()[-1:] != [last_word],
+                                                abs((c[1]["levelreq"] or 0) - level), c[0]))
+        return r, use
+
+    def new_id(self, it, s, rows):
+        iid = num(rows[0], "ItemID") if rows else None
+        if not isinstance(iid, int) and str(it.get("sheet_item_id") or "").strip().isdigit():
+            iid = int(it["sheet_item_id"])
+        pid = ITEM_BASE + iid if isinstance(iid, int) else MADE_BASE + int(hexid(s.get("SpellID")) or "0", 16)
+        return None if pid in self.rows else pid
+
+    def keep(self, pid, row):
+        self.rows[pid] = row
+        if self.index is not None:
+            self.index[fold(row["itemname"])].append(pid)
+        self.items_by_name.setdefault(fold(row["itemname"]), pid)
+        self.item_names[pid] = row["itemname"]
+
+    def settle(self, s, j, sid=None):
+        """Each item j's spell makes under the name the server finds it by:
+        one of ours as settle_item_names left it, else one made here."""
+        for o in walk_effects(j["effects"]):
+            it = o.get("item") if o.get("kind") == "create_item" else None
+            if it is None:
+                continue
+            if it.get("patternid") is not None:
+                pid = self.by_name(it.get("name") or "")
+                if pid is not None:
+                    self.give_use(pid, self.sheet_rows(it.get("sheet_name") or it.get("name") or "", ""), s)
+                continue
+            pid = self.make(it, s)
+            if pid is None:
+                continue
+            nm = (it.get("name") or "").strip()
+            if nm and nm != self.item_names[pid]:
+                it["sheet_name"] = nm
+            it["name"], it["patternid"] = self.item_names[pid], pid
+            if not str(it.get("sheet_item_id") or "").strip():
+                it.pop("sheet_item_id", None)
+            if sid is not None:
+                self.settled.add(sid)
+
+    def make(self, it, s):
+        """The item a create_item names, found by its made name or made; its
+        patternid, None when nothing is known of it (listed)."""
+        spell = cell(s, "Name")
+        rows = self.sheet_rows((it.get("name") or "").strip(), spell)
+        our = None
+        if rows:
+            key, name = ("sheet", fold(cell(rows[0], "Name"))), made_name(cell(rows[0], "Name"))
+        else:
+            our = next((k for k in OUR_KINDS if k[0].search(spell.strip())), None)
+            if our is None:
+                return None
+            name = our[3] or re.sub(r"(?i)(dagger|knife|staff|blade)s$", r"\1", spell.strip())
+            key = ("ours", fold(spell))
+        if key in self.made:
+            return self.made[key]
+        pid = self.by_name(name)
+        if pid is not None:
+            self.made[key] = pid
+            if rows:
+                self.give_use(pid, rows, s)
+            return pid
+        pid = self.new_id(it, s, rows)
+        if pid is None:
+            self.lists["a made item's id taken (nothing made)"].append(f"{name} ({spell})")
+            return None
+        made = self.make_potion(pid, name, rows, s) if rows else self.make_ours(pid, name, our, s)
+        if made:
+            self.made[key] = pid
+            return pid
+        return None
+
+    def make_potion(self, pid, name, rows, s):
+        info = rows[0]
+        scope, ttype = cell(info, "Scope").split(" ")[0], cell(info, "Target Type").lower()
+        thrown = scope not in ("Self", "")
+        level = num(info, "Level") or num(s, "Level") or 1
+        classes = class_mask(cell(info, "CLASS")) or class_mask(cell(s, "CLASS"))
+        objs, radius = self.effects_of(rows)
+        tag = f"{pid} {name} ({cell(s, 'Name')}'s, L{level})"
+        if thrown and not ttype.startswith("enemy"):
+            self.lists["a made item whose use is cast at a friend (the potion reader throws at enemies): not made"].append(tag)
+            return False
+        kinds = {o["kind"] for o in objs}
+        want = "cure" if "cure" in kinds else "teleport" if kinds & {"teleport", "gate"} else "area" if thrown and radius else ""
+        sib, use = self.sibling(thrown, classes, level, want, fold(name).split()[-1])
+        if sib is None:
+            self.lists["a made item with no potion of ours to make it as: not made"].append(tag)
+            return False
+        cures = 1
+        m = re.search(r"(?i)dispel\s+effects?\s+x\s*(\d+)", use.get("line") or "")
+        if want == "cure" and m:
+            cures = int(m.group(1))
+        place = None
+        for o in objs:
+            if o["kind"] == "teleport":
+                place = self.place_of(o.get("location"))
+        area = radius if thrown else 0
+        line, unsaid = potion_line(objs, thrown, area, place, cures)
+        if not line:
+            self.lists["a made item whose use no potion's words say: not made"].append(f"{tag}: {', '.join(unsaid)}")
+            return False
+        row = dict(sib)
+        # tradeable but a crude or faulty spell's (tools/seed_potions.py's rule)
+        row.update(patternid=pid, itemname=name, levelreq=1 if sib["levelreq"] == 1 else level,
+                   trade=1 if fold(cell(s, "Name")).split()[:1] in (["crude"], ["faulty"]) else 0,
+                   itemdesc=self.desc(sib, s) or potion_desc(name, objs, thrown, area, place, cures))
+        rng = num(info, "Range")
+        if thrown and rng and rng > 1:
+            row["unk5"] = int(rng)
+        lasting = any(o.get("duration_s") for o in objs)
+        icon = (icon_of(cell(info, "IconID"), self.icons) or 0) if lasting and not thrown else 0
+        self.out["items"].append(dict(patternid=pid, row=row, sibling=sib["patternid"]))
+        self.out["itemeffects"].append(dict(patternid=pid, line=line, name="", icon=icon, breaks="", wear=0,
+                                            area=float(area), source="eqoaemu"))
+        self.keep(pid, row)
+        self.uses[pid] = self.out["itemeffects"][-1]
+        self.counts["made items (potions)"] += 1
+        self.lists["a potion made (as its sibling of ours): its use"].append(
+            f"{tag}, as {sib['patternid']} {sib['itemname']}: {line}" + (f"; unsaid: {', '.join(unsaid)}" if unsaid else ""))
+        return True
+
+    def desc(self, sib, s):
+        """A conjured item's words, as its sibling's ("Conjured by the
+        magician's Lava Stone."), for its own spell."""
+        m = re.match(r"(?i)^conjured by the (\w+)'s ", sib.get("itemdesc") or "")
+        return f"Conjured by the {m.group(1)}'s {cell(s, 'Name')}." if m else ""
+
+    def give_use(self, pid, rows, s):
+        """An item of ours with no use (no itemeffect, foodeffect or a meal's
+        or drink's words) that the sheets give one: the workbook's, as a
+        potion's; a thrown one's row made a thrown potion's."""
+        r = self.rows.get(pid)
+        if not rows or r is None or pid in self.uses or pid in self.foods or pid in self.given:
+            return
+        if MEAL_DESC.search(r["itemdesc"] or "") or DRINK_DESC.search(r["itemdesc"] or ""):
+            return
+        info = rows[0]
+        thrown = cell(info, "Scope").split(" ")[0] not in ("Self", "")
+        tag = f"{pid} {r['itemname']} (the workbook's {cell(info, 'Name')})"
+        if thrown and not cell(info, "Target Type").lower().startswith("enemy"):
+            self.lists["an item of ours with no use whose workbook use is cast at a friend: left"].append(tag)
+            return
+        level = num(info, "Level") or num(s, "Level") or 1
+        objs, radius = self.effects_of(rows)
+        line, unsaid = potion_line(objs, thrown, radius if thrown else 0, None, 1)
+        if not line:
+            self.lists["an item of ours with no use whose workbook use no potion's words say: left"].append(tag)
+            return
+        self.given.add(pid)
+        if thrown:
+            sib, _ = self.sibling(True, class_mask(cell(info, "CLASS")) or class_mask(cell(s, "CLASS")), level,
+                                  "area" if radius else "", "")
+            if sib is not None:
+                want = {k: sib[k] for k in ("equipslot", "attacktype", "unk5", "procanim", "maxstack", "classuse")}
+                want["levelreq"] = 1 if sib["levelreq"] == 1 else level
+                rng = num(info, "Range")
+                if rng and rng > 1:
+                    want["unk5"] = int(rng)
+                changed = {k: v for k, v in want.items() if r.get(k) != v}
+                if changed:
+                    self.out["updates"].append(dict(patternid=pid, name=r["itemname"], before={k: r.get(k) for k in changed},
+                                                    set=changed))
+                    r.update(changed)
+        self.out["itemeffects"].append(dict(patternid=pid, line=line, name="", icon=0, breaks="", wear=0,
+                                            area=float(radius if thrown else 0), source="eqoaemu"))
+        self.uses[pid] = self.out["itemeffects"][-1]
+        self.counts["items of ours given the workbook's use"] += 1
+        self.lists["an item of ours with no use given the workbook's"].append(
+            f"{tag}: {line}" + (f"; unsaid: {', '.join(unsaid)}" if unsaid else ""))
+
+    def make_ours(self, pid, name, our, s):
+        """An item no source gives, as our item of its kind nearest its level
+        (OUR_KINDS), OURS."""
+        _, kind, models, _ = our
+        level = num(s, "Level") or 1
+        tag = f"{pid} {name} ({cell(s, 'Name')}'s, L{level})"
+        if kind == "weapon":
+            cands = [r for r in self.rows.values() if fold(r["itemname"]) in models and r["equipslot"] >= 0]
+        else:
+            words = MEAL_DESC if kind == "meal" else DRINK_DESC
+            cands = [r for r in self.rows.values() if r["equipslot"] == -1 and words.search(r["itemdesc"] or "")
+                     and self.makers.get(fold(r["itemname"]))]
+        if not cands:
+            self.lists["an item no source gives with none of ours of its kind: not made"].append(tag)
+            return False
+        sib = min(cands, key=lambda r: (abs((r["levelreq"] or 0) - level), r["patternid"]))
+        row = dict(sib)
+        row.update(patternid=pid, itemname=name, levelreq=level)
+        why = f"as {sib['patternid']} {sib['itemname']}"
+        if kind == "weapon":
+            classes = class_mask(cell(s, "CLASS"))
+            who = CLASS_WORD.get(classes[0]) if len(set(classes)) == 1 else None
+            row["itemdesc"] = f"Conjured by the {who}'s {cell(s, 'Name')}." if who else f"Conjured by {cell(s, 'Name')}."
+            row["rent"] = 0  # NO RENT, as every conjured weapon of ours
+            if abs((sib["levelreq"] or 0) - level) > 2:
+                fig = self.weapon_figures(sib["attacktype"], level)
+                if fig:
+                    row["weapondamage"], row["maxhp"] = fig[0], fig[1]
+                    why += f", its damage and item HP the median of our type {sib['attacktype']} weapons within {fig[2]} levels"
+        else:
+            a = article(name.lower())
+            row["itemdesc"] = (f"{a[0].upper()}{a[1:]}, a meal that will increase health regeneration." if kind == "meal"
+                               else DRINK_TEXT)
+            fe = self.foods.get(sib["patternid"])
+            if fe:
+                self.out["foodeffects"].append(dict(patternid=pid, duration_s=fe["duration_s"], ends_on_cast=fe["ends_on_cast"],
+                                                    ends_on_contact=fe["ends_on_contact"], source="eqoaemu"))
+                self.foods[pid] = self.out["foodeffects"][-1]
+        self.out["items"].append(dict(patternid=pid, row=row, sibling=sib["patternid"]))
+        self.keep(pid, row)
+        self.counts["made items (ours: no source gives them)"] += 1
+        self.lists["an item no source gives, made as ours of its kind (OURS)"].append(f"{tag}, {why}")
+        return True
+
+    def weapon_figures(self, attacktype, level):
+        """(damage, item HP, span) of a weapon of the type at the level: the
+        median of ours within 2 levels, else 5, else 10 (three at least);
+        tools/fix_dump_weapons.py's rule."""
+        for span in (2, 5, 10):
+            near = [(r["weapondamage"], r["maxhp"]) for r in self.rows.values()
+                    if r["attacktype"] == attacktype and (r["weapondamage"] or 0) > 0 and (r["levelreq"] or 0) > 0
+                    and abs(r["levelreq"] - level) <= span]
+            if len(near) >= 3:
+                dmg = sorted(d for d, _ in near)
+                hp = sorted(h for _, h in near if h)
+                return dmg[len(dmg) // 2], (hp[len(hp) // 2] if hp else 0), span
+        return None
 
 
 def token_swap(text, old, new):
@@ -1988,6 +2556,17 @@ def changes_of(p):
         out.append(dict(tbl="foodeffect", action="insert", key={"patternid": x["patternid"]}, row=x))
     for x in f.get("itemeffects", []):
         out.append(dict(tbl="itemeffect", action="insert", key={"patternid": x["patternid"]}, row=x))
+    m = p.get("made") or {}
+    for x in m.get("items", []):
+        out.append(dict(tbl="itempattern", action="insert", key={"patternid": x["patternid"]}, row=x["row"],
+                        note=f"made as {x['sibling']}"))
+    for x in m.get("updates", []):
+        out.append(dict(tbl="itempattern", action="update", key={"patternid": x["patternid"]}, before=x["before"],
+                        set=x["set"], note=x["name"]))
+    for x in m.get("itemeffects", []):
+        out.append(dict(tbl="itemeffect", action="insert", key={"patternid": x["patternid"]}, row=x))
+    for x in m.get("foodeffects", []):
+        out.append(dict(tbl="foodeffect", action="insert", key={"patternid": x["patternid"]}, row=x))
     return out
 
 
@@ -2200,8 +2779,8 @@ def row_now(db, tbl, key, cols):
     return None if r is None else dict(zip(cols, r))
 
 
-def log(db, tbl, key, action, before, after, note=""):
-    db.execute(f"INSERT INTO {LOG} (tbl, key, action, before, after, note) VALUES (?, ?, ?, ?, ?, ?)",
+def log(db, tbl, key, action, before, after, note="", table=LOG):
+    db.execute(f"INSERT INTO {table} (tbl, key, action, before, after, note) VALUES (?, ?, ?, ?, ?, ?)",
                (tbl, dumps(key), action, None if before is None else dumps(before),
                 None if after is None else dumps(after), note or ""))
 
@@ -2225,12 +2804,13 @@ FOODEFFECT_DDL = """CREATE TABLE foodeffect (patternid INTEGER PRIMARY KEY, dura
     source TEXT NOT NULL DEFAULT 'gm')"""
 
 
-def apply(db, p):
+def apply(db, p, log_table=LOG, meta_table=META, what="an EQOAEmu spell import"):
     """Every planned change whose row is still as planned, in one
-    transaction, each logged; returns (done, changed since)."""
-    db.executescript(LOG_DDL)
-    if db.execute(f"SELECT count(*) FROM {LOG}").fetchone()[0]:
-        sys.exit("this database already holds an EQOAEmu spell import; --undo it first")
+    transaction, each logged (in log_table: the import's, or another tool's
+    that plans as it does); returns (done, changed since)."""
+    db.executescript(log_ddl(log_table, meta_table))
+    if db.execute(f"SELECT count(*) FROM {log_table}").fetchone()[0]:
+        sys.exit(f"this database already holds {what}; --undo it first")
     changes = p.get("changes") or changes_of(p)
     done = stale = 0
     db.execute("BEGIN IMMEDIATE")
@@ -2263,13 +2843,13 @@ def apply(db, p):
                     continue
                 row["listnumber"] = n[1]
                 cur = insert(db, tbl, row)
-                log(db, tbl, {"itemid": cur.lastrowid}, "insert", None, row, c.get("note"))
+                log(db, tbl, {"itemid": cur.lastrowid}, "insert", None, row, c.get("note"), log_table)
             elif act == "insert":
                 if row_now(db, tbl, c["key"], KEYS[tbl]) is not None:
                     stale += 1
                     continue
                 insert(db, tbl, c["row"])
-                log(db, tbl, c["key"], "insert", None, c["row"], c.get("note"))
+                log(db, tbl, c["key"], "insert", None, c["row"], c.get("note"), log_table)
                 if tbl == "itempattern":
                     scrolls.add(c["key"]["patternid"])
             elif act == "update":
@@ -2279,7 +2859,7 @@ def apply(db, p):
                 w, args = where_of(tbl, c["key"])
                 db.execute(f"UPDATE main.{tbl} SET {', '.join(f'{k} = ?' for k in c['set'])} WHERE {w}",
                            [*c["set"].values(), *args])
-                log(db, tbl, c["key"], "update", c["before"], c["set"], c.get("note"))
+                log(db, tbl, c["key"], "update", c["before"], c["set"], c.get("note"), log_table)
             elif act == "delete":
                 if row_now(db, tbl, c["key"], list(c["before"])) != c["before"]:
                     stale += 1
@@ -2288,14 +2868,14 @@ def apply(db, p):
                 # its rowid too, so --undo puts it back where it was (a dump's order)
                 rid = db.execute(f"SELECT rowid FROM main.{tbl} WHERE {w}", args).fetchone()[0]
                 db.execute(f"DELETE FROM main.{tbl} WHERE {w}", args)
-                log(db, tbl, c["key"], "delete", dict(c["before"], rowid=rid), None, c.get("note"))
+                log(db, tbl, c["key"], "delete", dict(c["before"], rowid=rid), None, c.get("note"), log_table)
             done += 1
         now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
         for k, v in {"applied_at": now, "sqlite_sequence": dumps(seqs), "added_effects_column": str(int(added)),
                      "made_spellarea": str(int(made["spellarea"])), "made_spellgates": str(int(made["spellgates"])),
                      "made_foodeffect": str(int(made["foodeffect"])),
                      "counts": dumps(p["counts"])}.items():
-            db.execute(f"INSERT OR REPLACE INTO {META} VALUES (?, ?)", (k, v))
+            db.execute(f"INSERT OR REPLACE INTO {meta_table} VALUES (?, ?)", (k, v))
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")
@@ -2303,13 +2883,13 @@ def apply(db, p):
     return done, stale
 
 
-def undo(db, force=False):
+def undo(db, force=False, log_table=LOG, meta_table=META, what="EQOAEmu spell import"):
     """Every logged row still as written put back, last first; returns
     (back, left, what was left)."""
-    if not has_table(db, LOG):
-        sys.exit("no EQOAEmu spell import to undo here")
+    if not has_table(db, log_table):
+        sys.exit(f"no {what} to undo here")
     entries = [(t, json.loads(k), a, None if b is None else json.loads(b), None if f is None else json.loads(f))
-               for t, k, a, b, f in db.execute(f"SELECT tbl, key, action, before, after FROM {LOG} ORDER BY seq DESC")]
+               for t, k, a, b, f in db.execute(f"SELECT tbl, key, action, before, after FROM {log_table} ORDER BY seq DESC")]
     made_spells = [k["spellid"] for t, k, a, _, _ in entries if t == "spellpattern" and a == "insert"]
     made_items = [k["patternid"] for t, k, a, _, _ in entries if t == "itempattern" and a == "insert"]
     moved_books = [k["id"] for t, k, a, _, _ in entries if t == "spells"]
@@ -2365,7 +2945,7 @@ def undo(db, force=False):
                 else:
                     insert(db, tbl, {k: before[k] for k in cols})
             back += 1
-        meta = dict(db.execute(f"SELECT key, value FROM {META}").fetchall())
+        meta = dict(db.execute(f"SELECT key, value FROM {meta_table}").fetchall())
         seqs = json.loads(meta.get("sqlite_sequence", "{}"))
         for t, col in (("spellpattern", "spellid"), ("itempattern", "patternid"), ("npcitem", "itemid")):
             top = db.execute(f"SELECT coalesce(max({col}), 0) FROM main.{t}").fetchone()[0]
@@ -2373,8 +2953,8 @@ def undo(db, force=False):
                 db.execute("UPDATE sqlite_sequence SET seq = ? WHERE name = ?", (max(seqs[t], top), t))
             elif not top:
                 db.execute("DELETE FROM sqlite_sequence WHERE name = ?", (t,))
-        db.execute(f"DROP TABLE {LOG}")
-        db.execute(f"DROP TABLE {META}")
+        db.execute(f"DROP TABLE {log_table}")
+        db.execute(f"DROP TABLE {meta_table}")
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")

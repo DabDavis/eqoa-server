@@ -409,12 +409,16 @@ func SimWithSpell(db *database.SQLiteDB, pl SimPlayer, id int) (SimPlayer, error
 
 // simPick is the item at the tier's place by score among those of the last
 // ten levels (all of them when none is), nil for none. An item of no level
-// (levelreq 0: a drop whose record lacks one, most of them a high level's)
-// and a GM's test item are no one's outfit.
+// (levelreq 0: a drop whose record lacks one, most of them a high level's),
+// a GM's test item and a NO RENT one (rent 0, CLIENT's m_rent: what a spell
+// conjures, the magician's Phase Mallet and stones and the rogue's Shadow
+// Knife; 2026-11-01 every worn item of rent 0 was one, and the kits had
+// put the stones in a ranger's ranged slot and the Phase Shield on a
+// warrior's arm, 262 of 2,700 kits) are no one's outfit.
 func simPick(items []database.ItemPatternRecord, level int, tier float64, score func(*database.ItemPatternRecord) int) *database.ItemPatternRecord {
 	var near, all []database.ItemPatternRecord
 	for _, it := range items {
-		if it.LevelReq < 1 || strings.Contains(strings.ToLower(it.ItemName), "test") {
+		if it.LevelReq < 1 || it.Rent == 0 || strings.Contains(strings.ToLower(it.ItemName), "test") {
 			continue
 		}
 		all = append(all, it)

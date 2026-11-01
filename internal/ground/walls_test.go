@@ -165,6 +165,7 @@ func TestWallZonesLoadAsAskedAndTheOldestGo(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer g.Close()
+	g.SetKeep(keep)
 	for i := range zones {
 		x := float32(i * 100)
 		if !g.Wall(0, x-3, 0, 0, x+3, 0, 0) {

@@ -118,10 +118,15 @@ func main() {
 	// F3 pass 24) keeps their wander off the walls; without those files only
 	// the terrain's own walls do.
 	if g, err := ground.Open(filepath.Join(worlds.Dir(cfg.Patch.WorldsDir), "ground")); err == nil {
+		g.SetKeep(cfg.World.GroundZones)
 		gameWorld.SetGround(g)
 		nw, nz := g.Worlds()
 		ww, wp := g.Walls()
-		log.Printf("Creatures: the ground of %d worlds (%d zones), read a zone at a time; what stands on it (walls) in %d worlds, %d placements", nw, nz, ww, wp)
+		kept := "every zone kept once read"
+		if cfg.World.GroundZones > 0 {
+			kept = fmt.Sprintf("at most %d kept (world.ground_zones)", cfg.World.GroundZones)
+		}
+		log.Printf("Creatures: the ground of %d worlds (%d zones), read a zone at a time, %s; what stands on it (walls) in %d worlds, %d placements", nw, nz, kept, ww, wp)
 	} else {
 		log.Printf("Creatures: no ground (%v): they keep their heights as they move", err)
 	}

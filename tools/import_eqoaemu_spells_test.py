@@ -62,13 +62,16 @@ EFFECTS = [
     eff("000D", "Alter Appearance", SpriteID="AABBCCDD", Duration=600, Scope="Self", Target_Type="Self"),
     eff("000E", "Statistic Change", STR=50, Duration=600, Scope="Self", Target_Type="Self"),
     eff("000F", "Modify Hate", Hate=300, Modifier="STR", Percentage=10),
+    eff("0010", "Teleport", Location="Tunaria,100.5,50,200.25", AoERadius=30, Scope="Group", Target_Type="Friendly"),
+    eff("0011", "Teleport", Location="Odus,7,8,9", Scope="Group", Target_Type="Friendly"),
+    eff("0012", "Teleport", Location="Odus,7,8,9", Scope="Group", Target_Type="Friendly"),
 ]
 SPELLS = [
     spell("0100", "Ember Bolt", EffectID1="0001", Level=12, CastTime=3),                        # ours: 101
     spell("0101", "Kind Mending", EffectID1="0002", Scope="Target", Target_Type="Friendly", CLASS="CL",
           IconBGDColor="Red", Range=1, Duration=24),                                             # ours: 102
     spell("0102", "Shared Name", EffectID1="0003", Level=5, CLASS="NEC"),                       # ours: 103 (its own)
-    spell("0103", "Shared Name", EffectID1="0003", Level=30, CLASS="SHA"),                      # ours: 103 (left)
+    spell("0103", "Shared Name", EffectID1="0003", Level=30, CLASS="SHA"),                      # 103 split: 900259
     spell("0104", "Gripping Earth", EffectID1="0004", Duration=36),                             # new, vendor
     spell("0105", "Stance of Iron", EffectID1="0005", Scope="Self", Target_Type="Self", Range=30, Duration=300,
           IconBGDColor="Yellow", ReqEQuipment="1HB,1HS,1HP", CLASS="WAR", RACE="HUM BAR"),     # new, vendor
@@ -88,8 +91,12 @@ SPELLS = [
     spell("010E", "Rage of Claws", EffectID1="000E", Scope="Self", Target_Type="Self", CLASS="RAN MNK"),  # a were quest's
     spell("010F", "Pet Strike", EffectID1="0001", CLASS="", Learn_Method="", ScrollSource=""),   # a pet's
     spell("0110", "Sure Taunt", EffectID1="000F", Level=20, Range=20, Recast=6),                 # ours: 106, Sandstorm's
+    spell("0111", "Hearth Portal", EffectID1="0010", Scope="Group", Target_Type="Friendly", ScrollSource="Quest"),
+    spell("0112", "Moon Portal", EffectID1="0011", Scope="Group", Target_Type="Friendly", ScrollSource="Quest"),
+    spell("0113", "Sun Escape", EffectID1="0012", Scope="Group", Target_Type="Friendly", ScrollSource="Quest"),
 ]
-MAP = {"0100": (101, "name"), "0101": (102, "name"), "0102": (103, "name"), "0103": (103, "name"),
+MAP = {"0100": (101, "name"), "0101": (102, "name"), "0102": (103, "name"), "0103": (900259, "split", 103),
+       "0111": (900273, "new"), "0112": (900274, "new"), "0113": (900275, "new"),
        "0104": (900260, "new"), "0105": (900261, "new"), "0106": (900262, "new"), "0107": (900263, "new"),
        "0108": (900264, "new"), "0109": (900265, "new"), "010A": (900266, "new"), "010B": (104, "name"),
        "010C": (105, "name"), "010D": (900269, "new"), "010E": (900270, "new"), "010F": (900271, "new"),
@@ -126,7 +133,23 @@ class ImportTest(unittest.TestCase):
         x("CREATE TABLE sandstorm_import_rows (seq INTEGER PRIMARY KEY AUTOINCREMENT, tbl TEXT, key INTEGER, action TEXT, old TEXT)")
         x("CREATE TABLE spells (id INTEGER PRIMARY KEY AUTOINCREMENT, serverid INTEGER, spellid INTEGER)")
         x("CREATE TABLE charinventory (itemid INTEGER PRIMARY KEY AUTOINCREMENT, serverid INTEGER, patternid INTEGER)")
-        x("CREATE TABLE queststeps (questid INTEGER, step INTEGER, rewarditems TEXT NOT NULL DEFAULT '', spells TEXT NOT NULL DEFAULT '', byclass TEXT NOT NULL DEFAULT '', choices TEXT NOT NULL DEFAULT '')")
+        x("CREATE TABLE queststeps (questid INTEGER, step INTEGER, rewarditems TEXT NOT NULL DEFAULT '', spells TEXT NOT NULL DEFAULT '', byclass TEXT NOT NULL DEFAULT '', choices TEXT NOT NULL DEFAULT '', PRIMARY KEY (questid, step))")
+        x("CREATE TABLE quests (questid INTEGER PRIMARY KEY, classes TEXT NOT NULL DEFAULT '')")
+        x("CREATE TABLE characters (serverid INTEGER PRIMARY KEY, tclass INTEGER NOT NULL)")
+        x("""CREATE TABLE cmcatalog (id INTEGER PRIMARY KEY, classes INTEGER NOT NULL, name TEXT NOT NULL DEFAULT '',
+             rank INTEGER NOT NULL DEFAULT 1, add_spells TEXT NOT NULL DEFAULT '', require_spells TEXT NOT NULL DEFAULT '',
+             remove_spells TEXT NOT NULL DEFAULT '')""")
+        x("""CREATE TABLE charbuffs (serverid INTEGER NOT NULL, seq INTEGER NOT NULL, spellid INTEGER NOT NULL,
+             caster INTEGER NOT NULL, PRIMARY KEY (serverid, seq))""")
+        # the split: 103 is the necromancer's (5) and the shaman's (8) today; the shaman's row splits off
+        x("INSERT INTO characters VALUES (21, 8), (22, 11)")
+        x("INSERT INTO spells (id, serverid, spellid) VALUES (31, 21, 103), (32, 22, 103)")
+        x("INSERT INTO charbuffs VALUES (21, 0, 103, 21), (22, 0, 103, 22)")
+        x("INSERT INTO cmcatalog VALUES (41, 256, 'Shaman Thing', 1, '103, 777', '', ''), "
+          "(42, 256, 'Shaman Other', 2, '', '103', '103'), (43, 2304, 'Both', 1, '103', '', '')")
+        x("INSERT INTO quests VALUES (51, '8'), (52, ''), (53, '8, 11')")
+        x("INSERT INTO queststeps (questid, step, spells, byclass) VALUES (51, 1, '103', ''), "
+          "(52, 1, '', '{\"8\":{\"spells\":\"103\"},\"11\":{\"spells\":\"103\"}}'), (53, 1, '103', '')")
         rec = "INSERT INTO spellpattern VALUES (?, ?, 0, 0, ?, ?, ?, ?, ?, ?, ?, -1, ?, ?)"
         x(rec, (101, 10, F30, 2, 40, 486870879, 111, 1, 3, "Ember Bolt", "Single target fire spell."))
         x(rec, (102, 4, F30, 3, 20, 486870879, 222, 1, 1, "Kind Mending", "Heals the target."))
@@ -138,6 +161,7 @@ class ImportTest(unittest.TestCase):
         x("INSERT INTO spelleffect VALUES (101, 'Target, Decrease Hitpoints by 90', 1234, 'eqoa-data wizard')")
         x("INSERT INTO spelleffect VALUES (104, 'Group, Increase Maximum HP by 30, 30min', 0, 'eqoa-data cleric')")
         x("INSERT INTO classspells VALUES (11, 103, 'dump')")
+        x("INSERT INTO classspells VALUES (8, 103, 'vendor')")
         x("INSERT INTO classspells VALUES (13, 101, 'dump')")
         # a wizard's scroll vendor (npc 50: levels 1-20, three scrolls), one full (npc 60), our potion
         item = ("INSERT INTO itempattern VALUES (?, ?, 0, ?, 0, ?, 0, 0, 1, 0, 0, 0, 0, ?, 1, 0, 0, ?, 1023, 2, 0, 0, 0, ?, '', 0, 0, NULL)")
@@ -211,7 +235,7 @@ class ImportTest(unittest.TestCase):
         self.assertEqual(up[101]["set"], {"abilitylvl": 12, "casttime": 3})
         self.assertEqual(up[102]["set"].get("range"), F45, "the workbook's 1 on a target spell is touch")
         self.assertNotIn("abilitylvl", up.get(103, {}).get("set", {}), "the record's own row is its level's")
-        self.assertIn("0103 Shared Name SHA L30 -> 103", " ".join(p["lists"]["several rows on one record: not applied (the map's to settle)"]))
+        self.assertNotIn("several rows on one record: not applied (the map's to settle)", p["lists"])
         self.assertEqual(up[104]["set"].get("range"), F20)
         self.assertNotIn("scope", up.get(105, {}).get("set", {}), "a rez keeps its scope")
         self.assertNotIn("range", up.get(105, {}).get("set", {}), "no range given: ours")
@@ -229,6 +253,48 @@ class ImportTest(unittest.TestCase):
         for sid, r in new.items():
             self.assertNotRegex(r["spelldesc"].lower(), r"\bproc\b", sid)
 
+    def test_split(self):
+        p = self.plan()
+        new = {e["spellid"]: e["row"] for e in p["spells"] if e["action"] == "insert"}
+        self.assertEqual((new[900259]["spellname"], new[900259]["abilitylvl"]), ("Shared Name", 30))
+        self.assertEqual(p["moves"], [{"cls": 8, "spellid": 103, "source": "vendor"}], "the shaman's row moves")
+        self.assertIn({"cls": 8, "spellid": 900259, "source": "vendor"}, p["links"])
+        mig = {(m["tbl"], json.dumps(m["key"], sort_keys=True)): (m["before"], m["set"]) for m in p["migrations"]}
+        self.assertEqual(mig[("spells", '{"id": 31}')], ({"spellid": 103}, {"spellid": 900259}), "the shaman's book")
+        self.assertNotIn(("spells", '{"id": 32}'), mig, "the necromancer's book keeps 103")
+        self.assertEqual(mig[("charbuffs", '{"seq": 0, "serverid": 21}')][1], {"spellid": 900259})
+        self.assertEqual(mig[("cmcatalog", '{"id": 41}')], ({"add_spells": "103, 777"}, {"add_spells": "900259, 777"}))
+        self.assertEqual(mig[("cmcatalog", '{"id": 42}')][1], {"require_spells": "900259", "remove_spells": "900259"})
+        self.assertNotIn(("cmcatalog", '{"id": 43}'), mig, "a mastery of both classes is left")
+        self.assertIn("43 Both 1 (add_spells): 900259 Shared Name from 103",
+                      p["lists"]["a mastery of a split record's classes and others: left naming the shared record"])
+        self.assertEqual(mig[("queststeps", '{"questid": 51, "step": 1}')][1], {"spells": "900259"})
+        self.assertEqual(json.loads(mig[("queststeps", '{"questid": 52, "step": 1}')][1]["byclass"]),
+                         {"8": {"spells": "900259"}, "11": {"spells": "103"}}, "byclass: the shaman's entry alone")
+        self.assertNotIn(("queststeps", '{"questid": 53, "step": 1}'), mig, "a quest of both classes is left")
+
+    def test_split_map(self):
+        d = os.path.dirname(self.path)
+        src, out = os.path.join(d, "map.tsv"), os.path.join(d, "split.tsv")
+        with open(src, "w") as f:
+            f.write("# a map\nsheet_id\tspellid\thow\tname\tclasses\tlearn\tsource\n"
+                    "0102\t103\tname\tShared Name\tNEC\tScroll\tVendor\n0103\t103\tname\tShared Name\tSHA\tScroll\tVendor\n")
+        done = im.split_map(self.db, self.wb, src, out)
+        self.assertEqual([(h, frm, to) for h, _, _, frm, to in done], [("0103", 103, 900259)])
+        m = im.read_map(out)
+        self.assertEqual(m["0103"], (900259, "split", 103))
+        self.assertEqual(m["0102"], (103, "name", None))
+        self.assertEqual(im.split_map(self.db, self.wb, out, out + "2"), [], "a split map splits nothing again")
+
+    def test_gates(self):
+        p = self.plan()
+        self.assertEqual(p["gates"], [{"spell": "hearth portal", "kind": "group", "place": "Hearth", "world": 0,
+                                       "x": 100.5, "y": 50.0, "z": 200.2, "radius": 30.0,
+                                       "note": "EQOAEmu's workbook (2020): Location Tunaria,100.5,50,200.25",
+                                       "source": "eqoaemu"}])
+        self.assertEqual(len(p["lists"]["a new teleport whose Location differently named teleports share "
+                                        "(the workbook's stand-in: no row)"]), 2)
+
     def test_areas_and_classes(self):
         p = self.plan()
         areas = {a["spellid"]: a["row"] if a["action"] == "insert" else a["set"] for a in p["areas"]}
@@ -244,7 +310,7 @@ class ImportTest(unittest.TestCase):
     def test_scrolls(self):
         p = self.plan()
         scrolls = {x["patternid"]: x["row"] for x in p["scrolls"]}
-        self.assertEqual(sorted(scrolls), [900260, 900261, 900265, 900266])
+        self.assertEqual(sorted(scrolls), [900259, 900260, 900261, 900265, 900266])
         s = scrolls[900260]
         self.assertEqual((s["itemicon"], s["equipslot"], s["levelreq"], s["classuse"], s["raceuse"]),
                          (SCROLL, -1, 10, 1 << 13, 3))
@@ -292,7 +358,7 @@ class ImportTest(unittest.TestCase):
         # a GM edits a row the import wrote; undo leaves that one
         self.db.execute("UPDATE spellpattern SET power = 999 WHERE spellid = 900260")
         back, left, leftover = im.undo(self.db)
-        self.assertEqual((left, leftover), (1, ["spellpattern 900260"]))
+        self.assertEqual((left, leftover), (1, ['spellpattern {"spellid":900260}']))
         self.db.execute("DELETE FROM spellpattern WHERE spellid = 900260")
         self.db.execute("UPDATE sqlite_sequence SET seq = (SELECT max(spellid) FROM spellpattern) WHERE name = 'spellpattern'")
         self.db.execute("ALTER TABLE spelleffect DROP COLUMN effects")
@@ -312,7 +378,9 @@ class ImportTest(unittest.TestCase):
             im.undo(self.db)
         back, left, _ = im.undo(self.db, force=True)
         self.assertEqual(left, 0)
-        self.assertEqual(self.db.execute("SELECT count(*) FROM spells").fetchone()[0], 0)
+        self.assertEqual(self.db.execute("SELECT count(*) FROM spells WHERE spellid >= 900000").fetchone()[0], 0)
+        self.assertEqual(self.db.execute("SELECT spellid FROM spells WHERE id = 31").fetchone()[0], 103,
+                         "the shaman's book back on the shared record")
 
     def test_helpers(self):
         self.assertEqual(im.range_of(im.range_bits(4.5)), 4.5)
@@ -324,8 +392,11 @@ class ImportTest(unittest.TestCase):
         self.assertEqual(im.quest_fold("Hunter's Scorn"), im.quest_fold("Hunters Scorn"))
         self.assertTrue(im.is_were_ability("Lionwere", ""))
         self.assertFalse(im.is_were_ability("Lion's Nobility", "Heals you."))
-        self.assertEqual(im.scroll_spell([(1, "Anthem of Hope +", 20), (9, "Anthem of Hope", 20)], "Anthem of Hope", 20), 1,
-                         "scribe.go's key: the first of the level")
+        self.assertEqual(im.scroll_spell([(1, "Anthem of Hope +", 20), (9, "Anthem of Hope", 20)], "Anthem of Hope", 20), 9,
+                         "scribe.go's exact name before its key")
+        self.assertEqual(im.scroll_spell([(1, "Anthem of Hope +", 20)], "Anthem of Hope", 20), 1, "the key when no exact")
+        self.assertEqual(im.scroll_spell([(3, "Hide", 1), (8, "Hide", 6)], "Hide", 1, {8}.__contains__), 8,
+                         "the class's record before the level's")
 
 
 if __name__ == "__main__":

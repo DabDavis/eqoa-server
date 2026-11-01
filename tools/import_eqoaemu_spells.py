@@ -143,15 +143,21 @@ CREATE TABLE IF NOT EXISTS {META} (
 -- Every row written, in order: --undo takes them back last first.
 CREATE TABLE IF NOT EXISTS {LOG} (
     seq     INTEGER PRIMARY KEY AUTOINCREMENT,
-    tbl     TEXT NOT NULL,     -- spellpattern | spelleffect | spellarea | classspells | itempattern | npcitem
-    key     INTEGER NOT NULL,  -- spellid, patternid, npcitem.itemid; classspells: the class
-    key2    INTEGER,           -- classspells: the spellid
-    action  TEXT NOT NULL,     -- insert | update
+    tbl     TEXT NOT NULL,     -- one of KEYS' tables
+    key     TEXT NOT NULL,     -- the row's key columns (JSON)
+    action  TEXT NOT NULL,     -- insert | update | delete
     before  TEXT,              -- the columns written, as they were (JSON); an insert: none
-    after   TEXT NOT NULL,     -- the columns written, as written (JSON)
+    after   TEXT,              -- the columns written, as written (JSON); a delete: none
     note    TEXT NOT NULL DEFAULT ''
 );
 """
+# each table written, by the columns that key a row
+KEYS = {"spellpattern": ["spellid"], "spelleffect": ["spellid"], "spellarea": ["spellid"],
+        "classspells": ["class", "spellid"], "itempattern": ["patternid"], "npcitem": ["itemid"],
+        "spells": ["id"], "charbuffs": ["serverid", "seq"], "cmcatalog": ["id"], "queststeps": ["questid", "step"],
+        "spellgates": ["spell"]}
+# the worlds a Location names (gmweb's world numbers)
+WORLDS = {"tunaria": 0, "rathe": 1, "odus": 2, "lavastorm": 3, "plane of sky": 4, "secrets": 5}
 NOTE = "EQOAEmu's workbook (2020)"
 NEW_BASE = 900000
 CLASSES = {"WAR": 0, "RAN": 1, "PAL": 2, "SK": 3, "MNK": 4, "BRD": 5, "RGE": 6, "DRD": 7, "SHA": 8, "CL": 9,
@@ -279,14 +285,24 @@ def read_workbook(sheets=None, ods=None):
 
 
 def read_map(path):
-    """sheet SpellID (upper case hex) -> (spellid, how)."""
+    """sheet SpellID (upper case hex) -> (spellid, how, split_from): a row
+    split from a record another row keeps (how "split") names that record."""
     out = {}
     with open(path, encoding="utf-8", newline="") as f:
         for r in csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE):
             if not r or r[0].startswith("#") or r[0] == "sheet_id" or len(r) < 3:
                 continue
-            out[r[0].strip().upper()] = (int(r[1]), r[2].strip())
+            frm = r[7].strip() if len(r) > 7 else ""
+            out[r[0].strip().upper()] = (int(r[1]), r[2].strip(), int(frm) if frm.isdigit() else None)
     return out
+
+
+def map_entry(smap, hx):
+    """A map row as (spellid, how, split_from), whatever its length."""
+    m = smap.get(hx)
+    if m is None:
+        return None
+    return (m[0], m[1], m[2] if len(m) > 2 else None)
 
 
 def cell(r, k):
@@ -1013,17 +1029,31 @@ def desc_of(j, cm, name="", were_quest="", were_form=False):
 
 # ---- the plan -------------------------------------------------------------------
 
-def scroll_spell(spells, scroll, level):
-    """handlers/scribe.go's scrollSpell over (spellid, name, level) in id order."""
-    key, first = spell_key(scroll), None
-    for sid, name, lv in spells:
-        if spell_key(name) != key:
-            continue
-        if lv == level:
-            return sid
-        if first is None:
-            first = sid
-    return first
+def exact_key(name):
+    """handlers/scribe.go's exactKey: spell_key with its "+" kept."""
+    n = (name or "").strip()
+    if n.endswith("$"):
+        n = n[:-1].rstrip()
+    n = re.sub(r"\s*\((?:[A-Za-z]{2,3}(?:\s*[,/]\s*)?)+\)\s*$", "", n)
+    return " ".join(n.replace("`", "'").lower().split())
+
+
+def scroll_spell(spells, scroll, level, has=None):
+    """handlers/scribe.go's scrollSpellFor over (spellid, name, level) in id
+    order: its exact name's records, else spell_key's; the first its class
+    has (has(spellid)) at the level, else the first its class has, else the
+    first at the level, else the first. has None counts no class."""
+    for same in (lambda n: exact_key(n) == exact_key(scroll), lambda n: spell_key(n) == spell_key(scroll)):
+        best, rank = None, 0
+        for sid, name, lv in spells:
+            if not same(name):
+                continue
+            r = 1 + (lv == level) + (2 if has is not None and has(sid) else 0)
+            if r > rank:
+                best, rank = sid, r
+        if best is not None:
+            return best
+    return None
 
 
 def item_ids(text):
@@ -1071,13 +1101,64 @@ def scroll_curve(db):
     return lambda level: max(1, round(Rule.on_curve(curve, level) or 1)) if curve else 1
 
 
-def pick_owner(rows, rec, linked):
-    """Of several workbook rows mapped onto one record, the record's own (the doc)."""
+def pick_owner(rows, rec, linked, sandstorm_classes=()):
+    """Of several workbook rows mapped onto one record, the record's own: a
+    row of a class the record is linked to today (classspells), else its
+    level, a class Sandstorm's dumps or vendors gave it (classspells dump or
+    vendor), its scope, the lowest SpellID. The others are split off
+    (split_map)."""
     def score(s):
         cls = set(class_mask(cell(s, "CLASS")))
-        return (num(s, "Level") == rec["abilitylvl"], bool(cls & linked), SCOPE.get(cell(s, "Scope")) == rec["scope"],
-                -int(hexid(s.get("SpellID")) or "0", 16))
+        return (bool(cls & linked), num(s, "Level") == rec["abilitylvl"], bool(cls & set(sandstorm_classes)),
+                SCOPE.get(cell(s, "Scope")) == rec["scope"], -int(hexid(s.get("SpellID")) or "0", 16))
     return max(rows, key=score)
+
+
+def split_map(db, wb, map_path, out_path):
+    """The map with each row that shares a record with the record's own row
+    given its own: spellid 900000 + its SpellID, how "split", split_from the
+    record (the coordinator, 2026-11-01: "workbook wins, so split them").
+    Returns the rows split, as (SpellID, name, classes, from, to)."""
+    smap = read_map(map_path)
+    records = {r[0]: (r[1], r[2]) for r in db.execute("SELECT spellid, abilitylvl, scope FROM main.spellpattern")}
+    linked, ss = collections.defaultdict(set), collections.defaultdict(set)
+    for c, sid, src in db.execute("SELECT class, spellid, source FROM main.classspells"):
+        linked[sid].add(c)
+        if src in ("dump", "vendor"):
+            ss[sid].add(c)
+    by_sid = collections.defaultdict(list)
+    for s in wb.spells:
+        m = map_entry(smap, hexid(s.get("SpellID")))
+        if m and m[1] not in ("new", "split") and m[0] in records:
+            by_sid[m[0]].append(s)
+    split = {}
+    for sid, rows in by_sid.items():
+        if len(rows) < 2:
+            continue
+        lvl, scope = records[sid]
+        own = pick_owner(rows, {"abilitylvl": lvl, "scope": scope}, linked[sid], ss[sid])
+        for r in rows:
+            if r is not own:
+                hx = hexid(r.get("SpellID"))
+                split[hx] = (NEW_BASE + int(hx, 16), sid)
+    out, done = [], []
+    with open(map_path, encoding="utf-8", newline="") as f:
+        for r in csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE):
+            if r and r[0] == "sheet_id":
+                r = r[:7] + ["split_from"]
+            elif r and not r[0].startswith("#") and len(r) >= 3:
+                hx = r[0].strip().upper()
+                r = (r + [""] * 8)[:8]
+                if hx in split:
+                    to, frm = split[hx]
+                    done.append((hx, r[3], r[4], frm, to))
+                    r[1], r[2], r[7] = str(to), "split", str(frm)
+            out.append(r)
+    with open(out_path, "w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f, delimiter="\t", quoting=csv.QUOTE_NONE, lineterminator="\n", escapechar="\\")
+        for r in out:
+            w.writerow(r)
+    return done
 
 
 def plan(db, wb, smap, disc=None, link_existing=False, weres=None):
@@ -1109,6 +1190,7 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None):
     lists = collections.defaultdict(list)
     counts = collections.Counter()
     by_sid = collections.defaultdict(list)
+    split_of = {}   # a split row's new spellid -> the record it leaves
     for s in wb.spells:
         sid_hex = hexid(s.get("SpellID"))
         if not sid_hex:
@@ -1116,14 +1198,19 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None):
         if sid_hex not in smap:
             lists["not in the map"].append(f"{sid_hex} {cell(s, 'Name')}")
             continue
-        sid, how = smap[sid_hex]
-        if how != "new" and sid not in records:
+        sid, how, frm = map_entry(smap, sid_hex)
+        if how == "split" and sid in records:
+            how = "made"  # a plan made again after its own --apply: the record is ours now
+        if how not in ("new", "split") and sid not in records:
             lists["the map names a record we lack"].append(f"{sid_hex} {cell(s, 'Name')} -> {sid}")
             continue
         by_sid[sid].append(s)
+        if how == "split":
+            split_of[sid] = frm
 
     spells, effects, area_rows, links = [], [], [], []
-    new_rows = {}   # spellid -> (sheet row, json) of a new spell
+    splits, gates = [], []
+    new_rows = {}   # spellid -> (sheet row, json, a were's) of a new spell
     for sid, rows in sorted(by_sid.items()):
         rec = records.get(sid)
         s = rows[0] if len(rows) == 1 or rec is None else pick_owner(rows, rec, linked[sid])
@@ -1260,11 +1347,22 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None):
                 area_rows.append(dict(spellid=sid, action="update", before={k: now.get(k) for k in want_a}, set=want_a))
                 counts["areas changed"] += 1
 
+        # a new teleport's place (gates.go reads spellgates by the name)
+        if rec is None:
+            for o in j["effects"]:
+                if o["kind"] == "teleport":
+                    gates.append(dict(spellid=sid, name=cell(s, "Name"), location=o.get("location") or "",
+                                      group=j["scope"] != "self", radius=j.get("radius") or 0))
+
         # whose it is: a were's is no class's (were.go)
         src = "cm (eqoaemu)" if cm else "eqoaemu"
         were = quest is not None or were_form or is_were_ability(cell(s, "Name"),
                                                      spells[-1]["row"]["spelldesc"] if rec is None else rec["spelldesc"])
-        if were:
+        if sid in split_of:
+            splits.append(dict(row=s, new=sid, shared=split_of[sid], classes=classes, source=src, were=were))
+            if were:
+                new_rows[sid] = (s, j, True)
+        elif were:
             if classes:
                 counts["were forms and abilities: no class rows"] += 1
                 lists["a were's (were.go, or a were quest's reward): record and effects, no class rows, no scroll"].append(
@@ -1285,19 +1383,259 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None):
             if miss:
                 lists["a class the workbook gives a spell we have, with no spell of its name (--link-existing)"].append(
                     f"{sid} {rec['spellname']}: {' '.join(miss)}")
+    moves, migrations = plan_splits(db, wb, smap, splits, records, links, lists, counts)
+    gate_rows = plan_gates(db, gates, lists, counts)
     counts["class rows"] = len(links)
 
-    scrolls, stock = plan_scrolls(db, new_rows, records, lists, counts)
-    return dict(spells=spells, effects=effects, areas=area_rows, links=links, scrolls=scrolls, stock=stock,
-                lists={k: v for k, v in lists.items()}, counts=dict(counts),
-                effect_clash=wb.effect_clash)
+    scrolls, stock = plan_scrolls(db, new_rows, records, lists, counts, links, moves)
+    p = dict(spells=spells, effects=effects, areas=area_rows, links=links, scrolls=scrolls, stock=stock,
+             moves=moves, migrations=migrations, gates=gate_rows,
+             lists={k: v for k, v in lists.items()}, counts=dict(counts), effect_clash=wb.effect_clash)
+    p["changes"] = changes_of(p)
+    return p
 
 
-def plan_scrolls(db, new_rows, records, lists, counts):
+def token_swap(text, old, new):
+    """A spell id swapped for another in a list of ids ("1517, 700308")."""
+    return re.sub(rf"(?<!\d){old}(?!\d)", str(new), text or "")
+
+
+def plan_splits(db, wb, smap, splits, records, links, lists, counts):
+    """Each split row's record gets the classes that were its row's on the
+    shared one (the coordinator, 2026-11-01): their classspells rows moved
+    over (the record's other classes keep theirs), and what a character of
+    such a class holds of the shared record: its book's entry (the bar slot
+    kept), its buffs kept over a logout (the caster's class), the masteries
+    of those classes alone that give, need or take it (cmcatalog), and the
+    quest rewards of those classes alone (queststeps' spells and choices) or
+    for them (byclass). A row whose classes the record's own row has too
+    adds its classes and moves nothing."""
+    moves, migrations = [], []
+    if not splits:
+        return moves, migrations
+    pending = {}   # (tbl, key) -> the migration of that row: one row, every split's swap on it
+
+    def migrate(tbl, key, col, value_now, swap, tag, count):
+        """The row's column swapped as its migration so far leaves it."""
+        k = (tbl, tuple(sorted(key.items())))
+        m = pending.get(k)
+        if m is None:
+            m = pending[k] = dict(tbl=tbl, key=key, before={}, set={}, note=tag)
+            migrations.append(m)
+            counts[count] += 1
+        elif tag not in m["note"]:
+            m["note"] += "; " + tag
+        if col not in m["before"]:
+            m["before"][col] = value_now
+        new = swap(m["set"].get(col, value_now))
+        if new != m["before"][col]:
+            m["set"][col] = new
+        else:
+            m["set"].pop(col, None)
+    owners = collections.defaultdict(set)
+    for s in wb.spells:
+        m = map_entry(smap, hexid(s.get("SpellID")))
+        if m and m[1] != "split":
+            owners[m[0]] |= set(class_mask(cell(s, "CLASS")))
+    cs = {(c, sid): src for c, sid, src in db.execute("SELECT class, spellid, source FROM main.classspells")}
+    tclass = dict(db.execute("SELECT serverid, tclass FROM main.characters")) if has_table(db, "characters") else {}
+    qclasses = {}
+    if has_table(db, "quests"):
+        for qid, cl in db.execute("SELECT questid, classes FROM main.quests"):
+            qclasses[qid] = {int(x) for x in re.findall(r"\d+", cl or "")}
+    for x in splits:
+        n, r = x["new"], x["shared"]
+        if r is None:
+            lists["a split row naming no record it leaves"].append(f"{n} {cell(x['row'], 'Name')}")
+            continue
+        moved = set(x["classes"]) - owners[r]
+        mask = sum(1 << c for c in moved)
+        tag = f"{n} {cell(x['row'], 'Name')} from {r}"
+        counts["records split off a shared one"] += 1
+        for c in x["classes"]:
+            if x["were"]:
+                continue
+            if c in moved and (c, r) in cs:
+                moves.append(dict(cls=c, spellid=r, source=cs[(c, r)]))
+                links.append(dict(cls=c, spellid=n, source=cs[(c, r)]))
+                counts["  class rows moved to the split record"] += 1
+            else:
+                links.append(dict(cls=c, spellid=n, source=x["source"]))
+        if not moved:
+            continue
+        for rowid, sid in db.execute("SELECT id, serverid FROM main.spells WHERE spellid = ?", (r,)).fetchall():
+            if tclass.get(sid) in moved:
+                migrate("spells", {"id": rowid}, "spellid", r, lambda v: n, tag, "  books moved to the split record")
+        if has_table(db, "charbuffs"):
+            for sid, seq, caster in db.execute("SELECT serverid, seq, caster FROM main.charbuffs WHERE spellid = ?",
+                                               (r,)).fetchall():
+                if tclass.get(caster, tclass.get(sid)) in moved:
+                    migrate("charbuffs", {"serverid": sid, "seq": seq}, "spellid", r, lambda v: n, tag,
+                            "  kept buffs moved to the split record")
+        if has_table(db, "cmcatalog"):
+            cols = [c for c in ("add_spells", "require_spells", "remove_spells") if c in columns(db, "cmcatalog")]
+            for row in db.execute(f"SELECT id, classes, name, rank, {', '.join(cols)} FROM main.cmcatalog").fetchall():
+                cid, cm_mask, name, rank, vals = row[0], row[1], row[2], row[3], dict(zip(cols, row[4:]))
+                hit = {c: v for c, v in vals.items() if token_swap(v, r, n) != (v or "")}
+                if not hit:
+                    continue
+                if cm_mask and cm_mask & ~mask == 0:
+                    for c, v in hit.items():
+                        migrate("cmcatalog", {"id": cid}, c, v, lambda w, r=r, n=n: token_swap(w, r, n), tag,
+                                "  masteries moved to the split record")
+                elif cm_mask & mask:
+                    lists["a mastery of a split record's classes and others: left naming the shared record"].append(
+                        f"{cid} {name} {rank} ({', '.join(hit)}): {tag}")
+        if has_table(db, "queststeps"):
+            qcols = [c for c in ("spells", "byclass", "choices") if c in columns(db, "queststeps")]
+            for row in db.execute(f"SELECT questid, step, {', '.join(qcols)} FROM main.queststeps").fetchall():
+                qid, step, vals = row[0], row[1], dict(zip(qcols, row[2:]))
+                if not any(token_swap(v, r, n) != (v or "") for v in vals.values()):
+                    continue
+                qc = qclasses.get(qid, set())
+                theirs = bool(qc) and qc <= moved
+                want = {}
+                if theirs and "spells" in vals and token_swap(vals["spells"], r, n) != (vals["spells"] or ""):
+                    want["spells"] = token_swap(vals["spells"], r, n)
+                if theirs and vals.get("choices"):
+                    want["choices"] = swap_json_spells(vals["choices"], r, n, None)
+                if vals.get("byclass"):
+                    want["byclass"] = swap_json_spells(vals["byclass"], r, n, moved)
+                want = {k: v for k, v in want.items() if v != (vals.get(k) or "")}
+                for k in want:
+                    swap = (lambda w, r=r, n=n: token_swap(w, r, n)) if k == "spells" else \
+                        (lambda w, r=r, n=n, moved=moved: swap_json_spells(w, r, n, moved)) if k == "byclass" else \
+                        (lambda w, r=r, n=n: swap_json_spells(w, r, n, None))
+                    migrate("queststeps", {"questid": qid, "step": step}, k, vals.get(k), swap, tag,
+                            "  quest rewards moved to the split record")
+                if not theirs and any(token_swap(vals.get(k), r, n) != (vals.get(k) or "") for k in ("spells", "choices")):
+                    if qc & moved:
+                        lists["a quest of a split record's classes and others: left giving the shared record"].append(
+                            f"quest {qid} step {step}: {tag}")
+    migrations[:] = [m for m in migrations if m["set"]]
+    return moves, migrations
+
+
+def swap_json_spells(text, old, new, classes):
+    """A byclass or choices column with the id swapped in its "spells":
+    byclass's entries of those classes alone (classes None: every option)."""
+    try:
+        o = json.loads(text)
+    except ValueError:
+        return text
+    hit = False
+    if isinstance(o, dict) and classes is not None:
+        for k, v in o.items():
+            if isinstance(v, dict) and k.strip().isdigit() and int(k) in classes and "spells" in v:
+                w = token_swap(str(v["spells"]), old, new)
+                if w != str(v["spells"]):
+                    v["spells"], hit = w, True
+    elif isinstance(o, dict) and classes is None:
+        for opt in o.get("options") or []:
+            if isinstance(opt, dict) and "spells" in opt:
+                w = token_swap(str(opt["spells"]), old, new)
+                if w != str(opt["spells"]):
+                    opt["spells"], hit = w, True
+    return json.dumps(o, separators=(",", ":"), ensure_ascii=False) if hit else text
+
+
+def plan_gates(db, gates, lists, counts):
+    """A new teleport's spellgates row where its Location is a place: the
+    world it names and its point, a group's the spell's radius (gates.go);
+    a Location several differently named teleports share is the workbook's
+    stand-in (listed), and a name a row already has keeps that row."""
+    out = []
+    if not gates:
+        return out
+    have = set()
+    if has_table(db, "spellgates"):
+        have = {r[0] for r in db.execute("SELECT spell FROM main.spellgates")}
+    def place_of(name):
+        """A teleport's place as its name says it: the spell's words gone."""
+        n = re.sub(r"(?i)\b(portal|escape|gate|circle|evacuation)\b", " ", name)
+        return " ".join(n.split())
+    places = collections.defaultdict(set)
+    for g in gates:
+        if g["location"]:
+            places[g["location"]].add(place_of(g["name"]).lower())
+    known = []
+    if has_table(db, "spellgates"):
+        known = db.execute("SELECT place, world, x, z FROM main.spellgates WHERE place <> ''").fetchall()
+    for g in gates:
+        key = g["name"].strip().lower()
+        tag = f"{g['spellid']} {g['name']}"
+        parts = [x.strip() for x in g["location"].split(",")]
+        world = WORLDS.get(parts[0].lower()) if parts else None
+        try:
+            x, y, z = (float(v) for v in parts[1:4])
+        except (ValueError, IndexError):
+            x = y = z = None
+        if key in have:
+            lists["a new teleport whose name a spellgates row has: that row kept"].append(tag)
+        elif world is None or x is None:
+            lists["a new teleport with no place in its Location (no spellgates row)"].append(
+                f"{tag}: {g['location'] or 'none'}")
+        elif len(places[g["location"]]) > 1:
+            lists["a new teleport whose Location differently named teleports share (the workbook's stand-in: no row)"].append(
+                f"{tag}: {g['location']}")
+        else:
+            near = [k for k in known if k[1] == world and abs(k[2] - x) < 15 and abs(k[3] - z) < 15]
+            place = near[0][0] if near else place_of(g["name"]) or g["name"].strip()
+            out.append(dict(spell=key, kind="group" if g["group"] else "self", place=place, world=world,
+                            x=round(x, 1), y=round(y, 1), z=round(z, 1), radius=float(g["radius"] or 0),
+                            note=f"{NOTE}: Location {g['location']}", source="eqoaemu"))
+            have.add(key)
+    counts["spell gates made"] = len(out)
+    return out
+
+
+def changes_of(p):
+    """Every planned write as one list, in the order --apply makes them."""
+    out = []
+    for tbl, items in (("spellpattern", p["spells"]), ("spelleffect", p["effects"]), ("spellarea", p["areas"])):
+        for e in items:
+            if e["action"] == "insert":
+                out.append(dict(tbl=tbl, action="insert", key={"spellid": e["spellid"]}, row=e["row"]))
+            else:
+                out.append(dict(tbl=tbl, action="update", key={"spellid": e["spellid"]}, before=e["before"], set=e["set"]))
+    for m in p["moves"]:
+        out.append(dict(tbl="classspells", action="delete", key={"class": m["cls"], "spellid": m["spellid"]},
+                        before={"class": m["cls"], "spellid": m["spellid"], "source": m["source"]}))
+    for x in p["links"]:
+        out.append(dict(tbl="classspells", action="insert", key={"class": x["cls"], "spellid": x["spellid"]},
+                        row={"class": x["cls"], "spellid": x["spellid"], "source": x["source"]}))
+    for x in p["scrolls"]:
+        out.append(dict(tbl="itempattern", action="insert", key={"patternid": x["patternid"]}, row=x["row"]))
+    for x in p["stock"]:
+        out.append(dict(tbl="npcitem", action="insert", key=None, note=x["name"],
+                        row={"npcid": x["npcid"], "stackleft": 1, "remainHP": 0, "remaincharge": 0,
+                             "patternid": x["patternid"], "equiploc": -1, "location": 1}))
+    for m in p["migrations"]:
+        out.append(dict(tbl=m["tbl"], action="update", key=m["key"], before=m["before"], set=m["set"],
+                        note=m.get("note", "")))
+    for g in p["gates"]:
+        out.append(dict(tbl="spellgates", action="insert", key={"spell": g["spell"]}, row=g))
+    return out
+
+
+def plan_scrolls(db, new_rows, records, lists, counts, links=(), moves=()):
     """The new spells' ways in: a vendor spell's scroll and its merchants; the
-    quest and drop spells listed."""
+    quest and drop spells listed. A scroll is judged as scribe.go will read
+    it after the import: each class's spells as classspells will hold them."""
     names = sorted([(sid, r["spellname"], r["abilitylvl"]) for sid, r in records.items()] +
                    [(sid, cell(s, "Name"), num(s, "Level") or 1) for sid, (s, _, _) in new_rows.items()])
+    after = collections.defaultdict(set)
+    for c, sid in db.execute("SELECT class, spellid FROM main.classspells"):
+        after[c].add(sid)
+    for m in moves:
+        after[m["cls"]].discard(m["spellid"])
+    for x in links:
+        after[x["cls"]].add(x["spellid"])
+
+    def teaches_for(r, classes, sid):
+        """Whether a scroll row teaches spell sid to a class of these it admits."""
+        return any(r["classuse"] >> c & 1 and scroll_spell(names, r["itemname"], r["levelreq"], after[c].__contains__) == sid
+                   for c in classes)
     icols = columns(db, "itempattern")
     scroll_rows = [dict(zip(icols, r)) for r in
                    db.execute("SELECT * FROM main.itempattern WHERE itemicon = ? AND equipslot = -1", (SCROLL_ICON,))]
@@ -1335,7 +1673,7 @@ def plan_scrolls(db, new_rows, records, lists, counts):
             lists["a new class spell with no Learn Method"].append(tag)
             continue
         existing = by_key.get(spell_key(name), [])
-        teaches = [r for r in existing if scroll_spell(names, r["itemname"], r["levelreq"]) == sid]
+        teaches = [r for r in existing if teaches_for(r, classes, sid)]
         if how == "Quest":
             given = [r["patternid"] for r in teaches if r["patternid"] in q_items] + ([sid] if sid in q_spells else [])
             if given:
@@ -1351,19 +1689,29 @@ def plan_scrolls(db, new_rows, records, lists, counts):
         if how != "Vendor":
             lists[f"a new scroll spell from {how or 'nowhere'}"].append(tag)
             continue
-        if existing:
-            if teaches:
+        # each class: a scroll of ours that admits it teaches it (covered),
+        # one admits it and teaches another record (listed), or none admits it
+        covered = {c for c in classes if any(r["classuse"] >> c & 1 and scroll_spell(
+            names, r["itemname"], r["levelreq"], after[c].__contains__) == sid for r in existing)}
+        clash = {c: [r for r in existing if r["classuse"] >> c & 1] for c in classes if c not in covered}
+        clash = {c: rs for c, rs in clash.items() if rs}
+        for c, rs in sorted(clash.items()):
+            other = scroll_spell(names, rs[0]["itemname"], rs[0]["levelreq"], after[c].__contains__)
+            lists["a new vendor spell whose name's scroll scribes another record for its class"].append(
+                tag + f": {next(k for k, v in CLASSES.items() if v == c)}, scroll {rs[0]['patternid']} "
+                f"{rs[0]['itemname']!r} scribes {other}")
+        classes = [c for c in classes if c not in covered and c not in clash]
+        if not classes:
+            if covered:
                 counts["new vendor spells a scroll of ours already teaches"] += 1
                 lists["a new vendor spell a scroll of ours teaches (no scroll made)"].append(
-                    tag + f": scroll {teaches[0]['patternid']}")
-            else:
-                other = scroll_spell(names, existing[0]["itemname"], existing[0]["levelreq"])
-                lists["a new vendor spell whose name's scroll scribes another record (scribe.go's key)"].append(
-                    tag + f": scroll {existing[0]['patternid']} {existing[0]['itemname']!r} scribes {other}")
+                    tag + f": scroll {', '.join(str(r['patternid']) for r in teaches)}")
             continue
-        if scroll_spell(names, name, level) != sid:
+        wrong = {c: scroll_spell(names, name, level, after[c].__contains__) for c in classes}
+        wrong = {c: x for c, x in wrong.items() if x != sid}
+        if wrong:
             lists["a new vendor spell a scroll of its name would not scribe (scribe.go's key)"].append(
-                tag + f": scribes {scroll_spell(names, name, level)}")
+                tag + f": scribes {sorted(set(wrong.values()))}")
             continue
         pid = sid
         if pid in taken:
@@ -1462,22 +1810,44 @@ def report(p, full=False):
 
 # ---- writing it -------------------------------------------------------------------
 
-def log(db, tbl, key, action, after, before=None, key2=None, note=""):
-    db.execute(f"INSERT INTO {LOG} (tbl, key, key2, action, before, after, note) VALUES (?, ?, ?, ?, ?, ?, ?)",
-               (tbl, key, key2, action, None if before is None else dumps(before), dumps(after), note))
+def where_of(tbl, key):
+    cols = KEYS[tbl]
+    return " AND ".join(f"{c} = ?" for c in cols), [key[c] for c in cols]
+
+
+def row_now(db, tbl, key, cols):
+    """The row's columns now, or None for no row."""
+    w, args = where_of(tbl, key)
+    r = db.execute(f"SELECT {', '.join(cols)} FROM main.{tbl} WHERE {w}", args).fetchone()
+    return None if r is None else dict(zip(cols, r))
+
+
+def log(db, tbl, key, action, before, after, note=""):
+    db.execute(f"INSERT INTO {LOG} (tbl, key, action, before, after, note) VALUES (?, ?, ?, ?, ?, ?)",
+               (tbl, dumps(key), action, None if before is None else dumps(before),
+                None if after is None else dumps(after), note or ""))
 
 
 def insert(db, table, row):
     cols = [c for c in columns(db, table) if c in row]
-    db.execute(f"INSERT INTO main.{table} ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
-               [row[c] for c in cols])
+    return db.execute(f"INSERT INTO main.{table} ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
+                      [row[c] for c in cols])
+
+
+# database/spellgates.go's table, for a database that lacks it
+SPELLGATES_DDL = """CREATE TABLE spellgates (spell TEXT PRIMARY KEY, kind TEXT NOT NULL DEFAULT 'self',
+    place TEXT NOT NULL DEFAULT '', world INTEGER NOT NULL DEFAULT 0, x REAL NOT NULL DEFAULT 0,
+    y REAL NOT NULL DEFAULT 0, z REAL NOT NULL DEFAULT 0, radius REAL NOT NULL DEFAULT 0,
+    note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm')"""
 
 
 def apply(db, p):
-    """Every planned change whose row is still as planned; returns (done, changed since)."""
+    """Every planned change whose row is still as planned, in one
+    transaction, each logged; returns (done, changed since)."""
     db.executescript(LOG_DDL)
     if db.execute(f"SELECT count(*) FROM {LOG}").fetchone()[0]:
         sys.exit("this database already holds an EQOAEmu spell import; --undo it first")
+    changes = p.get("changes") or changes_of(p)
     done = stale = 0
     db.execute("BEGIN IMMEDIATE")
     try:
@@ -1486,60 +1856,58 @@ def apply(db, p):
         added = "effects" not in columns(db, "spelleffect")
         if added:
             db.execute("ALTER TABLE main.spelleffect ADD COLUMN effects TEXT NOT NULL DEFAULT ''")
-        made_area = not has_table(db, "spellarea")
-        if made_area:
-            db.execute("CREATE TABLE spellarea (spellid INTEGER PRIMARY KEY, centre INTEGER NOT NULL DEFAULT 0, "
-                       "radius REAL NOT NULL DEFAULT 0, maxtargets INTEGER NOT NULL DEFAULT 0, note TEXT NOT NULL DEFAULT '')")
-        for tbl, key, entries in (("spellpattern", "spellid", p["spells"]), ("spelleffect", "spellid", p["effects"]),
-                                  ("spellarea", "spellid", p["areas"])):
-            cols = columns(db, tbl)
-            for e in entries:
-                cur = db.execute(f"SELECT {', '.join(cols)} FROM main.{tbl} WHERE {key} = ?", (e["spellid"],)).fetchone()
-                cur = dict(zip(cols, cur)) if cur else None
-                if e["action"] == "insert":
-                    if cur is not None:
-                        stale += 1
-                        continue
-                    insert(db, tbl, e["row"])
-                    log(db, tbl, e["spellid"], "insert", e["row"])
-                else:
-                    if cur is None or any(cur.get(k) != v for k, v in e["before"].items()):
-                        stale += 1
-                        continue
-                    sets = ", ".join(f"{k} = ?" for k in e["set"])
-                    db.execute(f"UPDATE main.{tbl} SET {sets} WHERE {key} = ?", [*e["set"].values(), e["spellid"]])
-                    log(db, tbl, e["spellid"], "update", e["set"], before=e["before"])
-                done += 1
-        for x in p["links"]:
-            if db.execute("SELECT 1 FROM main.classspells WHERE class = ? AND spellid = ?", (x["cls"], x["spellid"])).fetchone():
+        made = {}
+        for tbl, ddl in (("spellarea", "CREATE TABLE spellarea (spellid INTEGER PRIMARY KEY, centre INTEGER NOT NULL "
+                                       "DEFAULT 0, radius REAL NOT NULL DEFAULT 0, maxtargets INTEGER NOT NULL DEFAULT 0, "
+                                       "note TEXT NOT NULL DEFAULT '')"),
+                         ("spellgates", SPELLGATES_DDL)):
+            made[tbl] = not has_table(db, tbl) and any(c["tbl"] == tbl for c in changes)
+            if made[tbl]:
+                db.execute(ddl)
+        scrolls = set()
+        for c in changes:
+            tbl, act = c["tbl"], c["action"]
+            if not has_table(db, tbl):
                 stale += 1
                 continue
-            db.execute("INSERT INTO main.classspells (class, spellid, source) VALUES (?, ?, ?)",
-                       (x["cls"], x["spellid"], x["source"]))
-            log(db, "classspells", x["cls"], "insert", {"source": x["source"]}, key2=x["spellid"])
-            done += 1
-        for x in p["scrolls"]:
-            if db.execute("SELECT 1 FROM main.itempattern WHERE patternid = ?", (x["patternid"],)).fetchone():
-                stale += 1
-                continue
-            insert(db, "itempattern", x["row"])
-            log(db, "itempattern", x["patternid"], "insert", {"itemname": x["row"]["itemname"]})
-            done += 1
-        made_scrolls = {x["patternid"] for x in p["scrolls"]}
-        for x in p["stock"]:
-            n = db.execute("SELECT count(*) FROM main.npcitem WHERE npcid = ?", (x["npcid"],)).fetchone()[0]
-            if x["patternid"] not in made_scrolls or n >= LIST_CAP:
-                stale += 1
-                continue
-            lst = db.execute("SELECT coalesce(max(listnumber), -1) + 1 FROM main.npcitem WHERE npcid = ?",
-                             (x["npcid"],)).fetchone()[0]
-            c = db.execute("INSERT INTO main.npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, "
-                           "location, listnumber) VALUES (?, 1, 0, 0, ?, -1, 1, ?)", (x["npcid"], x["patternid"], lst))
-            log(db, "npcitem", c.lastrowid, "insert", {"npcid": x["npcid"], "patternid": x["patternid"]}, note=x["name"])
+            if act == "insert" and tbl == "npcitem":
+                row = dict(c["row"])
+                n = db.execute("SELECT count(*), coalesce(max(listnumber), -1) + 1 FROM main.npcitem WHERE npcid = ?",
+                               (row["npcid"],)).fetchone()
+                if row["patternid"] not in scrolls or n[0] >= LIST_CAP:
+                    stale += 1
+                    continue
+                row["listnumber"] = n[1]
+                cur = insert(db, tbl, row)
+                log(db, tbl, {"itemid": cur.lastrowid}, "insert", None, row, c.get("note"))
+            elif act == "insert":
+                if row_now(db, tbl, c["key"], KEYS[tbl]) is not None:
+                    stale += 1
+                    continue
+                insert(db, tbl, c["row"])
+                log(db, tbl, c["key"], "insert", None, c["row"], c.get("note"))
+                if tbl == "itempattern":
+                    scrolls.add(c["key"]["patternid"])
+            elif act == "update":
+                if row_now(db, tbl, c["key"], list(c["before"])) != c["before"]:
+                    stale += 1
+                    continue
+                w, args = where_of(tbl, c["key"])
+                db.execute(f"UPDATE main.{tbl} SET {', '.join(f'{k} = ?' for k in c['set'])} WHERE {w}",
+                           [*c["set"].values(), *args])
+                log(db, tbl, c["key"], "update", c["before"], c["set"], c.get("note"))
+            elif act == "delete":
+                if row_now(db, tbl, c["key"], list(c["before"])) != c["before"]:
+                    stale += 1
+                    continue
+                w, args = where_of(tbl, c["key"])
+                db.execute(f"DELETE FROM main.{tbl} WHERE {w}", args)
+                log(db, tbl, c["key"], "delete", c["before"], None, c.get("note"))
             done += 1
         now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
         for k, v in {"applied_at": now, "sqlite_sequence": dumps(seqs), "added_effects_column": str(int(added)),
-                     "made_spellarea": str(int(made_area)), "counts": dumps(p["counts"])}.items():
+                     "made_spellarea": str(int(made["spellarea"])), "made_spellgates": str(int(made["spellgates"])),
+                     "counts": dumps(p["counts"])}.items():
             db.execute(f"INSERT OR REPLACE INTO {META} VALUES (?, ?)", (k, v))
         db.execute("COMMIT")
     except BaseException:
@@ -1549,62 +1917,66 @@ def apply(db, p):
 
 
 def undo(db, force=False):
-    """Every logged row still as written put back; returns (back, left)."""
+    """Every logged row still as written put back, last first; returns
+    (back, left, what was left)."""
     if not has_table(db, LOG):
         sys.exit("no EQOAEmu spell import to undo here")
-    made_spells = [r[0] for r in db.execute(f"SELECT key FROM {LOG} WHERE tbl = 'spellpattern' AND action = 'insert'")]
-    made_items = [r[0] for r in db.execute(f"SELECT key FROM {LOG} WHERE tbl = 'itempattern'")]
+    entries = [(t, json.loads(k), a, None if b is None else json.loads(b), None if f is None else json.loads(f))
+               for t, k, a, b, f in db.execute(f"SELECT tbl, key, action, before, after FROM {LOG} ORDER BY seq DESC")]
+    made_spells = [k["spellid"] for t, k, a, _, _ in entries if t == "spellpattern" and a == "insert"]
+    made_items = [k["patternid"] for t, k, a, _, _ in entries if t == "itempattern" and a == "insert"]
+    moved_books = [k["id"] for t, k, a, _, _ in entries if t == "spells"]
+
+    def marks(n):
+        return ",".join("?" * n)
+    held_q = (f"FROM main.spells WHERE spellid IN ({marks(len(made_spells))}) AND id NOT IN ({marks(len(moved_books))})",
+              made_spells + moved_books)
     held = {}
     if made_spells:
-        held["spells"] = db.execute(f"SELECT count(*) FROM main.spells WHERE spellid IN ({','.join('?' * len(made_spells))})",
-                                    made_spells).fetchone()[0]
+        held["spells"] = db.execute("SELECT count(*) " + held_q[0], held_q[1]).fetchone()[0]
     if made_items and has_table(db, "charinventory"):
-        held["charinventory"] = db.execute(
-            f"SELECT count(*) FROM main.charinventory WHERE patternid IN ({','.join('?' * len(made_items))})",
-            made_items).fetchone()[0]
+        held["charinventory"] = db.execute(f"SELECT count(*) FROM main.charinventory WHERE patternid IN "
+                                           f"({marks(len(made_items))})", made_items).fetchone()[0]
     if any(held.values()) and not force:
         sys.exit(f"characters hold made spells or scrolls ({held}); --force to take them out with the import")
-    keys = {"spellpattern": "spellid", "spelleffect": "spellid", "spellarea": "spellid", "itempattern": "patternid",
-            "npcitem": "itemid"}
     back = left = 0
     leftover = []
     db.execute("BEGIN IMMEDIATE")
     try:
         if force:
             if made_spells:
-                db.execute(f"DELETE FROM main.spells WHERE spellid IN ({','.join('?' * len(made_spells))})", made_spells)
+                db.execute("DELETE " + held_q[0], held_q[1])
             if made_items and has_table(db, "charinventory"):
-                db.execute(f"DELETE FROM main.charinventory WHERE patternid IN ({','.join('?' * len(made_items))})",
-                           made_items)
-        for tbl, key, key2, action, before, after in db.execute(
-                f"SELECT tbl, key, key2, action, before, after FROM {LOG} ORDER BY seq DESC").fetchall():
-            after = json.loads(after)
-            if tbl == "classspells":
-                cur = db.execute("SELECT source FROM main.classspells WHERE class = ? AND spellid = ?", (key, key2)).fetchone()
-                if cur is None or cur[0] != after["source"]:
+                db.execute(f"DELETE FROM main.charinventory WHERE patternid IN ({marks(len(made_items))})", made_items)
+        for tbl, key, act, before, after in entries:
+            w, args = where_of(tbl, key)
+            if act == "insert":
+                if row_now(db, tbl, key, list(after)) != after:
                     left += 1
-                    leftover.append(f"classspells {key}/{key2}")
+                    leftover.append(f"{tbl} {dumps(key)}")
                     continue
-                db.execute("DELETE FROM main.classspells WHERE class = ? AND spellid = ?", (key, key2))
-                back += 1
-                continue
-            cols = list(after)
-            cur = db.execute(f"SELECT {', '.join(cols)} FROM main.{tbl} WHERE {keys[tbl]} = ?", (key,)).fetchone()
-            if cur is None or dict(zip(cols, cur)) != after:
-                left += 1
-                leftover.append(f"{tbl} {key}")
-                continue
-            if action == "insert":
-                db.execute(f"DELETE FROM main.{tbl} WHERE {keys[tbl]} = ?", (key,))
+                db.execute(f"DELETE FROM main.{tbl} WHERE {w}", args)
+            elif act == "update":
+                if row_now(db, tbl, key, list(after)) != after:
+                    left += 1
+                    leftover.append(f"{tbl} {dumps(key)}")
+                    continue
+                db.execute(f"UPDATE main.{tbl} SET {', '.join(f'{k} = ?' for k in before)} WHERE {w}",
+                           [*before.values(), *args])
             else:
-                b = json.loads(before)
-                db.execute(f"UPDATE main.{tbl} SET {', '.join(f'{k} = ?' for k in b)} WHERE {keys[tbl]} = ?",
-                           [*b.values(), key])
+                now = row_now(db, tbl, key, list(before))
+                if now is not None:
+                    if now != before:
+                        left += 1
+                        leftover.append(f"{tbl} {dumps(key)}")
+                        continue
+                else:
+                    insert(db, tbl, before)
             back += 1
         meta = dict(db.execute(f"SELECT key, value FROM {META}").fetchall())
         seqs = json.loads(meta.get("sqlite_sequence", "{}"))
-        for t in ("spellpattern", "itempattern", "npcitem"):
-            top = db.execute(f"SELECT coalesce(max({keys[t]}), 0) FROM main.{t}").fetchone()[0]
+        for t, col in (("spellpattern", "spellid"), ("itempattern", "patternid"), ("npcitem", "itemid")):
+            top = db.execute(f"SELECT coalesce(max({col}), 0) FROM main.{t}").fetchone()[0]
             if t in seqs:
                 db.execute("UPDATE sqlite_sequence SET seq = ? WHERE name = ?", (max(seqs[t], top), t))
             elif not top:
@@ -1618,8 +1990,9 @@ def undo(db, force=False):
     if meta.get("added_effects_column") == "1" and not left and \
             not db.execute("SELECT count(*) FROM main.spelleffect WHERE effects <> ''").fetchone()[0]:
         db.execute("ALTER TABLE main.spelleffect DROP COLUMN effects")
-    if meta.get("made_spellarea") == "1" and not db.execute("SELECT count(*) FROM main.spellarea").fetchone()[0]:
-        db.execute("DROP TABLE main.spellarea")
+    for t in ("spellarea", "spellgates"):
+        if meta.get(f"made_{t}") == "1" and not db.execute(f"SELECT count(*) FROM main.{t}").fetchone()[0]:
+            db.execute(f"DROP TABLE main.{t}")
     return back, left, leftover
 
 
@@ -1644,6 +2017,8 @@ def main():
     ap.add_argument("--link-existing", action="store_true", help="give spells we have the classes the workbook adds")
     ap.add_argument("--were-quests", default=WERE_QUESTS,
                     help="the were quests' file, whose reward spells are no class's (default tools/quests/data/weres.json)")
+    ap.add_argument("--split-map", metavar="OUT", help="write the map with each row that shares a record with "
+                    "the record's own split off (how 'split', its own id, split_from the record) and stop")
     ap.add_argument("--save-plan", metavar="FILE")
     ap.add_argument("--plan", metavar="FILE")
     ap.add_argument("--list", action="store_true", help="every listed spell, not five a list")
@@ -1662,6 +2037,14 @@ def main():
     if a.undo:
         back, left, leftover = undo(db, a.force)
         print(f"put back {back}; left {left} changed since" + (f": {', '.join(leftover[:20])}" if leftover else ""))
+        return
+    if a.split_map:
+        if not (a.sheets or a.ods) or not a.map:
+            sys.exit("--split-map needs --sheets or --ods, and --map")
+        done = split_map(db, Workbook(read_workbook(a.sheets, a.ods)), a.map, a.split_map)
+        for hx, name, classes, frm, to in done:
+            print(f"  {hx} {name} ({classes}): {frm} -> {to}")
+        print(f"split {len(done)}; map: {a.split_map}")
         return
     if a.plan:
         with open(a.plan, encoding="utf-8") as f:

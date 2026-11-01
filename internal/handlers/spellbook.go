@@ -26,8 +26,9 @@ type SpellbookHandler struct {
 	store     *database.SpellbookStore
 	inv       *database.InventoryStore // a cast's reagents (reagent.go)
 	// switchHands puts what a cast's required equipment names in the
-	// caster's hands (the EquipHandler's SwitchHandsFor, handswitch.go)
-	switchHands func(sess *session.Session, p *entity.Player, req string) bool
+	// caster's hands (the EquipHandler's SwitchHandsFor, handswitch.go), and
+	// says whether the cast's landing in melee reach puts them back (back)
+	switchHands func(sess *session.Session, p *entity.Player, req string) (switched, back bool)
 }
 
 // SetInventory gives the casts their reagents' inventory (reagent.go).
@@ -36,7 +37,7 @@ func (h *SpellbookHandler) SetInventory(inv *database.InventoryStore) { h.inv = 
 
 // SetHandSwitch gives the casts the switch of hands an art's required
 // equipment wants (handswitch.go). Without it such a cast is refused.
-func (h *SpellbookHandler) SetHandSwitch(fn func(sess *session.Session, p *entity.Player, req string) bool) {
+func (h *SpellbookHandler) SetHandSwitch(fn func(sess *session.Session, p *entity.Player, req string) (switched, back bool)) {
 	h.switchHands = fn
 }
 

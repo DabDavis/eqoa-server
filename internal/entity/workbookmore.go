@@ -208,6 +208,18 @@ func ReqEquipCodes(req string) []string {
 // "1HS" 1, "RANGE" 7, 9 and 10; none for any other.
 func EquipCodeTypes(code string) []byte { return equipCodes[code] }
 
+// wantsRanged is whether a spell's required equipment names a ranged weapon
+// (Range): the casts whose landing in melee reach gives back the hands a
+// switch took off to take one up (cast.go handsBackLocked).
+func wantsRanged(req string) bool {
+	for _, code := range ReqEquipCodes(req) {
+		if code == "RANGE" || code == "RANGED" {
+			return true
+		}
+	}
+	return false
+}
+
 // handEmpty is a hand with no weapon: nothing, or bare hands (11).
 func handEmpty(t byte) bool { return t == 0 || t == 11 }
 

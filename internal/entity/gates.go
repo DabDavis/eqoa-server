@@ -63,7 +63,15 @@ const GateGroupRadius float32 = 20
 // what the ground files leave out (the top of a wizard's pyramid, 31 above
 // its origin and 12 to 38 over the terrain round it, where the gates set a
 // player: "on top of a Pyramid ... safe place", Allakhazam's comments,
-// archived) and lands as written. The group lands gateRing round its caster.
+// archived) and lands as written. A place with a floor gateOpen above it
+// (a tower's chamber, a crypt, a cave) lands only where a body walks to from
+// it through no wall: on open ground so, as any place does, else, inside
+// (Envaric Acension's "teleports your group into the tower of the Prophet
+// Envar", EQOA-Data's portal guide: a chamber with no way out), under its
+// roof, on a floor with nothing placed on it (the wander's clearLocked: no
+// table, no pillar), the clearest, nearest the place first, the NPCs of its
+// own floor alone counted (the chambers over and under it are other rooms).
+// The group lands gateRing round its caster.
 const (
 	gateRise    float32 = 12
 	gateOpen    float32 = 8
@@ -304,8 +312,9 @@ func (w *World) gateTravellersLocked(caster *Player, g database.SpellGate) []*Pl
 
 // gateLandingLocked is where a gate to g lands (the rules above gateRise):
 // the place as written without the ground, with no terrain there, or where
-// it stands on what the ground leaves out. Must be called with the lock
-// held.
+// it stands on what the ground leaves out; from under a roof only where a
+// body walks to from it, under the roof when no open ground is. Must be
+// called with the lock held.
 func (w *World) gateLandingLocked(g database.SpellGate) (x, y, z float32) {
 	x, y, z = g.X, g.Y, g.Z
 	if w.ground == nil {
@@ -314,7 +323,7 @@ func (w *World) gateLandingLocked(g database.SpellGate) (x, y, z float32) {
 	// the place's floor: the terrain nearest its height; a place well above
 	// every floor there stands on what the ground leaves out (a pyramid's
 	// top), and one under the terrain is lifted to its top
-	base, ok := w.ground.Floor(g.World, g.X, g.Y+gateRise, g.Z)
+	base, ok := w.gateFloorLocked(g.World, g.X, g.Y, g.Z)
 	switch {
 	case ok && base < g.Y-gateAbove:
 		return
@@ -324,6 +333,9 @@ func (w *World) gateLandingLocked(g database.SpellGate) (x, y, z float32) {
 		}
 	}
 	y = base
+	// a place under a roof lands where a body walks to from it: on open
+	// ground, else under the roof (the rules above)
+	covered := w.coveredLocked(g.World, g.X, base, g.Z)
 	// the NPCs near: the creatures that attack on sight kept gateClear off (by
 	// where they stand or spawned), every body gateApart
 	reach := gateSteps[len(gateSteps)-1] + gateClear
@@ -352,22 +364,36 @@ func (w *World) gateLandingLocked(g database.SpellGate) (x, y, z float32) {
 			consider(npc)
 		}
 	}
-	room := func(px, pz float32) float32 {
+	// from under a roof only the NPCs on a spot's own floor count (within
+	// gateRise of it): the floors over and under a chamber are other rooms
+	level := func(y, fy float32) bool {
+		return !covered || float32(math.Abs(float64(y-fy))) <= gateRise
+	}
+	room := func(px, fy, pz float32) float32 {
 		r := gateClear
 		for _, npc := range hostile {
-			r = min(r, distXZ(npc.SpawnX, npc.SpawnZ, px, pz), distXZ(npc.X, npc.Z, px, pz))
+			if level(npc.SpawnY, fy) {
+				r = min(r, distXZ(npc.SpawnX, npc.SpawnZ, px, pz))
+			}
+			if level(npc.Y, fy) {
+				r = min(r, distXZ(npc.X, npc.Z, px, pz))
+			}
 		}
 		return r
 	}
-	apart := func(px, pz float32) bool {
+	apart := func(px, fy, pz float32) bool {
 		for _, npc := range bodies {
-			if distXZ(npc.X, npc.Z, px, pz) < gateApart {
+			if level(npc.Y, fy) && distXZ(npc.X, npc.Z, px, pz) < gateApart {
 				return false
 			}
 		}
 		return true
 	}
+	// the best open spot (b), and from under a roof the best spot under it a
+	// body walks to (in): the first with gateClear's room, else the clearest
 	var bx, by, bz, broom float32
+	var ix, iy, iz, iroom float32
+	inside := false
 	for _, d := range gateSteps {
 		n := 16
 		if d == 0 {
@@ -377,36 +403,91 @@ func (w *World) gateLandingLocked(g database.SpellGate) (x, y, z float32) {
 			h := float64(k) * math.Pi / 8
 			px, pz := g.X+d*float32(math.Cos(h)), g.Z+d*float32(math.Sin(h))
 			fy, ok := w.ground.Floor(g.World, px, base+gateRise, pz)
-			if !ok || float32(math.Abs(float64(fy-base))) > gateRise || !apart(px, pz) {
+			if covered {
+				fy, ok = w.gateFloorLocked(g.World, px, base, pz) // under the roof, not on its ceiling
+			}
+			if !ok || float32(math.Abs(float64(fy-base))) > gateRise || !apart(px, fy, pz) {
 				continue
 			}
-			if top, ok := w.ground.Floor(g.World, px, fy+1000, pz); ok && top > fy+gateOpen {
+			roofed := w.coveredLocked(g.World, px, fy, pz)
+			if roofed && !covered {
 				continue // under a roof, an overhang, another floor
+			}
+			if covered && !w.gateWalkLocked(g.World, g.X, base, g.Z, px, fy, pz) {
+				continue // through a wall from under the roof, or onto what stands on its floor
 			}
 			if w.waterAtLocked(g.World, px, fy+bodyAbove, pz) {
 				continue
 			}
-			r := room(px, pz)
-			if r >= gateClear {
+			r := room(px, fy, pz)
+			switch {
+			case !roofed && r >= gateClear:
 				return px, fy, pz
-			}
-			if r > broom {
+			case !roofed && r > broom:
 				bx, by, bz, broom = px, fy, pz, r
+			case roofed && (!inside || r > iroom):
+				ix, iy, iz, iroom, inside = px, fy, pz, r, true
 			}
 		}
 	}
-	if broom >= gateCrowded {
+	switch {
+	case broom >= gateCrowded:
 		return bx, by, bz
+	case inside:
+		return ix, iy, iz
 	}
 	return g.X, base, g.Z
+}
+
+// gateFloorLocked is the terrain's floor nearest the height y at (x, z):
+// the highest at most gateRise (and the ground's step) above it, a place
+// recorded a little under its floor landing on it, or the one under y when
+// that is nearer (the ground's floors hold a chamber's ceilings too, and one
+// 12.5 over Envar's first chamber is no floor of it). Must be called with
+// the lock held and the ground set.
+func (w *World) gateFloorLocked(world uint8, x, y, z float32) (float32, bool) {
+	up, ok := w.ground.Floor(world, x, y+gateRise, z)
+	if !ok {
+		return y, false
+	}
+	if down, ok := w.ground.Floor(world, x, y, z); ok && math.Abs(float64(y-down)) < math.Abs(float64(up-y)) {
+		return down, true
+	}
+	return up, true
+}
+
+// coveredLocked reports whether a floor of the terrain stands more than
+// gateOpen over the floor at (x, y, z): a roof, an overhang, another floor.
+// Must be called with the lock held and the ground set.
+func (w *World) coveredLocked(world uint8, x, y, z float32) bool {
+	top, ok := w.ground.Floor(world, x, y+1000, z)
+	return ok && top > y+gateOpen
+}
+
+// gateWalkLocked reports whether a body walks from the floor at (x0, y0, z0)
+// to the floor at (x1, y1, z1) through no wall, a knee over each (the
+// ground's walls, the terrain's and what is placed on it), and stands there
+// on its own floor, nothing placed on it (clearLocked, the wander's); a
+// ground that knows no walls leaves every way open. Must be called with the
+// lock held and the ground set.
+func (w *World) gateWalkLocked(world uint8, x0, y0, z0, x1, y1, z1 float32) bool {
+	if walls, ok := w.ground.(Walls); ok && walls.Wall(world, x0, y0+legKnee, z0, x1, y1+legKnee, z1) {
+		return false
+	}
+	if placed, ok := w.ground.(Placed); ok && !clearLocked(placed, world, x1, y1, z1, y1) {
+		return false
+	}
+	return true
 }
 
 // GateRingSpot is a group's ring-th place round at, gateRing off it a
 // quarter turn apart (ring 0: at itself): on the terrain there when at is on
 // the terrain and the ground has a floor there near at's height, out of the
-// water; at at's height when at stands above the terrain (a pyramid's top);
-// else at itself, as a player without the ground lands (a height guessed off
-// a slope could be under it).
+// water, and when at is inside (under a roof) under a roof too, walked to
+// from at through no wall, nothing placed on its floor (a chamber's walls
+// and tables); at at's height when at stands above the terrain (a pyramid's
+// top); else at itself, as a player without the ground lands (a height
+// guessed off a slope could be under it).
 func (w *World) GateRingSpot(at GateSpot, ring int) GateSpot {
 	if ring <= 0 {
 		return at
@@ -422,9 +503,16 @@ func (w *World) GateRingSpot(at GateSpot, ring int) GateSpot {
 	if cf, ok := w.ground.Floor(at.World, at.X, at.Y+gateRise, at.Z); ok && cf < at.Y-gateAbove {
 		return GateSpot{World: at.World, X: px, Y: at.Y, Z: pz, Place: at.Place}
 	}
+	inside := w.coveredLocked(at.World, at.X, at.Y, at.Z)
 	fy, ok := w.ground.Floor(at.World, px, at.Y+gateRise, pz)
+	if inside {
+		fy, ok = w.gateFloorLocked(at.World, px, at.Y, pz) // under the roof, not on its ceiling
+	}
 	if !ok || float32(math.Abs(float64(fy-at.Y))) > gateRise || w.waterAtLocked(at.World, px, fy+bodyAbove, pz) {
 		return at
+	}
+	if inside && (!w.coveredLocked(at.World, px, fy, pz) || !w.gateWalkLocked(at.World, at.X, at.Y, at.Z, px, fy, pz)) {
+		return at // inside: through its wall, out under the sky, or onto a table
 	}
 	return GateSpot{World: at.World, X: px, Y: fy, Z: pz, Place: at.Place}
 }

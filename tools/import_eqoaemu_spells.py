@@ -72,7 +72,7 @@ What it writes, and from what:
           its landing ("hp"): the legend's HP1 is the "Damage (or heal) base
           number", a heal over time its HoT, and the user's Avatar (2026-11-01)
           "is a one time max hp buff and massive stat buff lasts until next
-          avatar recast", its 1830 s the buff's. A negative HP1 with a
+          avatar recast": its time the buff's beside it. A negative HP1 with a
           duration stays a hit ("hp", its duration kept): the workbook's own
           known-issues list calls some of those durations errors;
         - a DoT figure is damage whatever its sign ("hp_tick" negative): the

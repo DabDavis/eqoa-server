@@ -147,7 +147,7 @@ var snapshotRules = map[string]snapshotRule{
 	"eqoaemu_followup_log":        {allow: []string{"key"}, why: "tools/fix_eqoaemu_followup.py's log"},
 	"eqoaemu_followup_meta":       {allow: []string{"key"}, why: "tools/fix_eqoaemu_followup.py's facts"},
 	"eqoaemu_pets_log":            {allow: []string{"rowkey"}, why: "tools/import_eqoaemu_pets.py's log"},
-	"eqoaemu_pet_drains_log":      {why: "tools/fix_eqoaemu_pet_drains.py's log"},
+	"eqoaemu_pet_abilities_log":   {why: "tools/fix_eqoaemu_pet_abilities.py's log"},
 	"eqoaemu_spell_import_log":    {allow: []string{"key"}, why: "tools/import_eqoaemu_spells.py's log"},
 	"eqoaemu_spell_import_meta":   {allow: []string{"key"}, why: "tools/import_eqoaemu_spells.py's facts"},
 	"fishing_seed":                {allow: []string{"key"}, why: "tools/seed_fishing.py's log"},

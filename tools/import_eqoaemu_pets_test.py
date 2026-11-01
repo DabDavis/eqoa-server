@@ -114,11 +114,12 @@ class ImportPetsTest(unittest.TestCase):
             # a drain of the enemy's stats a life tap of them (2026-11-01: a creature's stats count)
             {"every": 60.0, "first": 5.0, "kind": "lifetap", "spell_id": 902307}])
         self.assertNotIn("a debuff", a["note"])
-        self.assertIn("an area spell", a["note"])
+        self.assertNotIn("an area spell", a["note"])  # its area lands round its target too (pettemplate.go)
         self.assertEqual(json.loads(b["abilities"]), [
             {"every": 2.0, "first": 1.0, "kind": "taunt", "hits": [[1, 0, 0]]},
             {"every": 30.0, "first": 3.0, "kind": "heal", "spell_id": 902309, "target": "either", "below": 60},
-            {"every": 1800.0, "first": 5.0, "kind": "buff", "spell_id": 902310, "target": "owner"}])
+            # the magician's pets buff themselves (the user, 2026-11-01), the sheet's "Owner" notwithstanding
+            {"every": 1800.0, "first": 5.0, "kind": "buff", "spell_id": 902310, "target": "self"}])
         self.assertEqual(c["hp"], 0, "a cell not read is 0")
         self.assertTrue(any("0003" in n and "Base HP" in n for n in notes))
         self.assertEqual(counts["bodies on the disc"], 2)
@@ -128,6 +129,44 @@ class ImportPetsTest(unittest.TestCase):
         # a magician's pets by their element; Summon Stone's own row kept
         self.assertEqual([(p["spell"], p["template"], p["swing_class"]) for p in pts],
                          [("fiery thing", "pet fire", -1), ("brand new", "pet earth", -1)])
+
+    def test_roots_buffs_and_fixes(self):
+        """A root at the enemy a root; a wizard's pet's buff its owner's, a magician's its own; a spell the
+        operator's fixes name in error cast as the right one."""
+        sheets = {
+            "Pets": [pet("0011", "Test Vizier", "11223344", Spell1="0951", Spell2="0952"),
+                     pet("0012", "Test Familiar", "11223344", Type="Non-Combat", Spell1="0952"),
+                     pet("0013", "Test Noble", "11223344", Spell1="0953")],
+            "Spells": [
+                {"SpellID": "0021", "Name": "Test Vizier", "CLASS": "MAG", "Level": "55", "EffectID1": "0A11"},
+                {"SpellID": "0022", "Name": "Test Familiar", "CLASS": "WIZ", "Level": "8", "EffectID1": "0A12"},
+                {"SpellID": "0023", "Name": "Test Noble", "CLASS": "MAG", "Level": "55", "EffectID1": "0A13"},
+                {"SpellID": "0951", "Name": "Test Root", "Recast": "30", "EffectID1": "0B51"},
+                {"SpellID": "0952", "Name": "Test Grace", "Recast": "1800", "EffectID1": "0B52"},
+                {"SpellID": "0953", "Name": "Test Slip", "Recast": "15", "EffectID1": "0B53"},
+                {"SpellID": "0954", "Name": "Test Water", "Recast": "12", "EffectID1": "0B54"},
+            ],
+            "Effects": [
+                eff("0A11", "Summon Pet", "Self", "Self", PetID="0011"),
+                eff("0A12", "Summon Pet", "Self", "Self", PetID="0012"),
+                eff("0A13", "Summon Pet", "Self", "Self", PetID="0013"),
+                eff("0B51", "Statistic Absolute", "TB AoE", "Enemy", SPEED="-50", Duration="10"),
+                eff("0B52", "Statistic Change", "Owner", "Friendly", HPMAX="250", Duration="1800"),
+                eff("0B53", "Dmg/Heal", "Target", "Enemy", HP1="-10"),
+                eff("0B54", "Dmg/Heal", "Target", "Enemy", HP1="-440"),
+            ],
+        }
+        smap = {"0021": 30, "0022": 31, "0023": 32, "0951": 9701, "0952": 9702, "0953": 9703, "0954": 9704}
+        rows, _, _, counts = ip.plan(self.db, sheets, smap, fixes={("0013", "0953"): "0954"})
+        by = {r["sheet_pet_id"]: json.loads(r["abilities"]) for r in rows}
+        self.assertEqual([(a["kind"], a.get("spell_id"), a.get("target")) for a in by["0011"]],
+                         [("root", 9701, None), ("buff", 9702, "self")])
+        self.assertEqual([(a["kind"], a.get("spell_id"), a.get("target")) for a in by["0012"]], [("buff", 9702, "owner")])
+        self.assertEqual([(a["kind"], a.get("spell_id")) for a in by["0013"]], [("nuke", 9704)])
+        self.assertEqual(counts["pet spells put right by the fixes file"], 1)
+        with tempfile.NamedTemporaryFile("w", suffix=".tsv", delete=False) as f:
+            f.write("# PetID\tsheet SpellID\tright SpellID\tnote\n0013\t0953\t0954\ta test\n")
+        self.assertEqual(ip.read_pet_fixes(f.name), {("0013", "0953"): "0954"})
 
     def table(self, tbl, keycol):
         cur = self.db.execute(f"SELECT * FROM {tbl} ORDER BY {keycol}")

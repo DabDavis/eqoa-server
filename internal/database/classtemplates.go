@@ -87,10 +87,13 @@ const (
 	AbilityHeal    = "heal"
 	AbilityTaunt   = "taunt"
 	AbilityBuff    = "buff"
+	// AbilityRoot is a pet's root at what it fights, and round it for an
+	// area spell (the workbook's Djinni Vizier's Air Root: entity/pettemplate.go)
+	AbilityRoot = "root"
 )
 
 // AbilityKinds are the kinds, in the order the help lists them.
-var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff}
+var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot}
 
 // Who a pet's heal or buff lands on (TemplateAbility.Target); either is a
 // heal's alone: its owner or itself, whichever is the lower share of its hit

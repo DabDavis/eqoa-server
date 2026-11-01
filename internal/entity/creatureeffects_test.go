@@ -148,3 +148,48 @@ func TestANecromancersPetDrainsItsEnemysStats(t *testing.T) {
 		t.Errorf("a pet whose template has a life tap does not own one")
 	}
 }
+
+// A pet's area nuke lands round its target too (the user, 2026-11-01: "fix
+// them all", of the workbook's Air pets' area nukes, cast on the target
+// alone until then): the target takes the spell's whole figure (its hp and
+// hp2, the workbook's legend: the target a second time), a creature 8 off
+// it the area's own (hp2), one 40 off nothing. And a pet's root (the
+// Djinni Vizier's Air Root) holds its target and the creature beside it.
+func TestAPetsAreaNukeAndRootLandRoundItsTarget(t *testing.T) {
+	r := newPetRig(t)
+	pet, _ := r.summon(t, fireElemental(), 0)
+	ps := r.w.pets[r.p.ServerID]
+	mk := func(id EntityID, dx float32) *NPC {
+		n := &NPC{ServerID: id, Name: "Test Crab", Level: 40, HP: 5000, MaxHP: 5000, X: pet.X + 3 + dx, Y: pet.Y, Z: pet.Z, World: pet.World}
+		r.w.NPCs[id] = n
+		r.w.SpatialIndex.Insert(id, n.X, n.Z)
+		return n
+	}
+	target, near, far := mk(7101, 0), mk(7102, 8), mk(7103, 40)
+	gust := wbSpell(9601, 40, 1, "Test Gust", `{"v":1,"scope":"target_aoe","target_type":"Enemy","harmful":true,"stack":0,"level":40,"radius":15,
+		"effects":[{"id":"0001","type":"Dmg/Heal","kind":"hp","amount":-100},{"id":"0001","type":"Dmg/Heal","kind":"hp2","amount":-40}]}`)
+	a := &templateAbility{TemplateAbility: database.TemplateAbility{Kind: database.AbilityNuke}}
+	r.w.mu.Lock()
+	r.w.petLandLocked(&petCast{ps: ps, tmpl: ps.tmpl, a: a, spell: &gust, target: target.ServerID}, r.at(20*time.Second))
+	r.w.mu.Unlock()
+	tookT, tookN, tookF := 5000-target.HP, 5000-near.HP, 5000-far.HP
+	if tookT <= 0 || tookN <= 0 || tookF != 0 || tookT <= tookN {
+		t.Fatalf("hit: the target %d, 8 off %d, 40 off %d; want the target most, 8 off some, 40 off none", tookT, tookN, tookF)
+	}
+
+	defer func(f func(int) int) { rootIntn = f }(rootIntn)
+	rootIntn = func(int) int { return 9999 } // no resist
+	hold := wbSpell(9602, 40, 1, "Test Hold", `{"v":1,"scope":"target_aoe","target_type":"Enemy","harmful":true,"duration_s":10,"stack":0,"level":40,"radius":15,
+		"effects":[{"id":"0002","type":"Statistic Absolute","kind":"speed","amount":-50,"absolute":true}]}`)
+	root := &templateAbility{TemplateAbility: database.TemplateAbility{Kind: database.AbilityRoot}}
+	r.w.mu.Lock()
+	r.w.petLandLocked(&petCast{ps: ps, tmpl: ps.tmpl, a: root, spell: &hold, target: target.ServerID}, r.at(30*time.Second))
+	r.w.mu.Unlock()
+	now := r.at(31 * time.Second)
+	if !target.rooted(now) || !near.rooted(now) || far.rooted(now) {
+		t.Errorf("rooted: the target %v, 8 off %v, 40 off %v; want the first two", target.rooted(now), near.rooted(now), far.rooted(now))
+	}
+	if target.rooted(r.at(41 * time.Second)) {
+		t.Errorf("the root outlasted its 10 s")
+	}
+}

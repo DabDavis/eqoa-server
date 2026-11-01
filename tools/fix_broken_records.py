@@ -13,12 +13,20 @@ the balance kits off them and stays). Each takes, the first of these that
 has it:
 
   1. A record of ours of its name (as a player reads it, case, apostrophes
-     and a word's plural s aside) that is none of the template's: its
+     and a word's plural s aside) that is none of the template's. One of
+     exactly its name is the same item: the broken one is folded into it
+     (the user, 2026-11-01): every row naming it (REFS: the characters'
+     items, the old default inventory, merchants, auctions, start items,
+     loot tables and categories, item uses, catches, gear sets, pets'
+     weapons; the quests' item lists) names the real one, and its own record
+     goes. Ceremonial Vestments into the level 29 robe of its name (a third
+     copy of that robe, whose figures it had taken at first, moved the
+     balance kits' robe at 26-35). One whose name only reads alike takes its
      figures (FIGURES: level, class, race, the stats, AC, damage, item HP,
-     durability, trade, rent, lore, and its wear slot). Ceremonial Vestments
-     takes the level 29 robe's of its name; Wind Golem Gloves and Boots the
-     Wind Golem set's gloves and boots (level 58), whose names theirs
-     misspell (the boots worn on the shield's arm until then: the feet).
+     durability, trade, rent, lore, and its wear slot): Wind Golem Gloves and
+     Boots the Wind Golem set's gloves and boots (level 58), whose names
+     theirs misspell (the boots worn on the shield's arm until then: the
+     feet).
   2. EQOA-Data's record of its name (Information/databases/items/*.json)
      that is none of the template's: the priests' epic staves (Staff of
      Divinity, of Nature's Blessing, of Spiritual Energies): its stats, its
@@ -41,13 +49,16 @@ has it:
      anywhere but the template's.
 
 A held copy (charinventory) at more hit points than its record's new item HP
-is made whole at it: a weapon's condition is its hit points over its item HP
+(a folded one's, the real record's) is made whole at it: a weapon's
+condition is its hit points over its item HP
 (handlers/character.go's WeaponCond, uncapped), so a sword held at the
 template's 18500 would hit the harder. A loot table's row of a record left
 with no real record (3.) is taken out: the Khal Warlord's Khal Sword
 (EQOA-Data's junk record's "dropped by the Khal Warlord's"), which
 tools/seed_camp_loot.py no longer seeds. The old server's default inventory
-(table defaultcharinventory, read by no code) is left.
+(table defaultcharinventory, read by no code) is left, but for a folded
+record's rows; another tool's log naming a record (import_prh_content.py's
+id map, prh_import_ids) is its provenance, left: the report says each.
 
 The plan needs EQOA-Data, which the server's box lacks: --save-plan FILE
 here, --plan FILE --apply there (each record changed only where it is still
@@ -93,6 +104,22 @@ CLASSES = {"WAR": 0, "RAN": 1, "PAL": 2, "SK": 3, "MNK": 4, "BRD": 5, "ROG": 6, 
 ALL_CLASSES = (1 << len(CLASSES)) - 1
 WEAPON_SLOTS = (12, 13, 14, 15, 16)    # fill_weapon_durability.py's
 DURATION, MIN_SAMPLES = 50, 3          # the durability tools' rule
+
+# Every column that names an item record by its patternid, which a folded
+# record's rows move off (1.): the characters' items (banks too), the old
+# default inventory, merchants' stock, auctions, start items, loot tables and
+# categories, item uses, catches, gear sets and pets' weapons; and the
+# quests' item lists ("pid*n, pid") and their JSON's "items" (rewards by
+# class, choices, events). A table not here that names the record by a
+# column called patternid refuses the fold (look first); a tool's log is
+# its provenance and is left (LOG_TABLE).
+REFS = (("charinventory", "patternid"), ("defaultcharinventory", "patternid"), ("npcitem", "patternid"),
+        ("auction_lots", "patternid"), ("startitems", "patternid"), ("loottables", "patternid"), ("lootpool", "patternid"),
+        ("itemeffect", "patternid"), ("foodeffect", "patternid"), ("fishcatch", "itemid"), ("gearsets", "mainpattern"),
+        ("gearsets", "offpattern"), ("pettemplate", "weapon"))
+TEXT_REFS = (("queststeps", "items", "list"), ("queststeps", "rewarditems", "list"), ("queststeps", "byclass", "json"),
+             ("queststeps", "choices", "json"), ("queststeps", "events", "json"), ("quests", "events", "json"))
+LOG_TABLE = re.compile(r"(_log|_seed|_meta|_rows|_keyed|_ids|_items|_stock|_quests|_rules|_types)$")
 
 
 def has_table(db, t):
@@ -193,7 +220,21 @@ def plan(db, eqoa_data):
         if r["patternid"] not in bad:
             continue
         pid, name = r["patternid"], r["itemname"]
-        kin = sorted(ours.get(fold(name), []), key=lambda k: (k["equipslot"] != r["equipslot"], k["patternid"]))
+        kin = sorted(ours.get(fold(name), []), key=lambda k: (k["itemname"].strip().lower() != name.strip().lower(),
+                                                             k["equipslot"] != r["equipslot"], k["patternid"]))
+        if kin and kin[0]["itemname"].strip().lower() == name.strip().lower():
+            # the same item by its name: folded into it
+            k = kin[0]
+            refs = references(db, pid)
+            out.append(dict(patternid=pid, name=name, fold=k["patternid"], fold_name=k["itemname"], row=r, before={}, set={},
+                            strip=False, how=f"folded into {k['patternid']} {k['itemname']} (level {k['levelreq']}), the same "
+                                             f"item by its name: {', '.join(f'{t}.{c} {n}' for t, c, n in refs['moved']) or 'no row names it'}"))
+            lists["the records"].append(f"{pid} {name}: folded into {k['patternid']}")
+            for t, c, n in refs["provenance"]:
+                lists["another tool's log naming a folded record (its provenance: left)"].append(f"{t}.{c}: {n} ({pid})")
+            for t, c, n in refs["unknown"]:
+                lists["a table no rule knows naming a folded record (the fold refused there: look first)"].append(f"{t}.{c}: {n} ({pid})")
+            continue
         if kin:
             k = kin[0]
             want = {c: k[c] for c in FIGURES}
@@ -222,10 +263,136 @@ def plan(db, eqoa_data):
                 lists["the old default inventory's rows (read by no code: left)"].append(f"{pid}: {m}")
         if has_table(db, "loottables"):
             for lid, t in db.execute("SELECT id, tablename FROM loottables WHERE patternid = ?", (pid,)):
-                strip = any(c["patternid"] == pid and c["strip"] for c in out)
-                lists["loot rows of a record with no real record (taken out)" if strip else "loot rows of a fixed record (kept)"].append(
-                    f"{lid} {t}: {pid}")
+                c = next((c for c in out if c["patternid"] == pid), {})
+                kind = ("loot rows of a record with no real record (taken out)" if c.get("strip") else
+                        "loot rows of a folded record (the real one's now)" if c.get("fold") else "loot rows of a fixed record (kept)")
+                lists[kind].append(f"{lid} {t}: {pid}")
     return dict(changes=out, lists={k: v for k, v in lists.items()})
+
+
+def references(db, pid):
+    """The rows naming an item record: REFS' and TEXT_REFS' (moved by a
+    fold), a tool's log's (its provenance, left), any other table's column
+    named like a REFS one (unknown: the fold refused). Each (table, column,
+    rows)."""
+    out = dict(moved=[], provenance=[], unknown=[])
+    known = {(t, c) for t, c in REFS} | {(t, c) for t, c, _ in TEXT_REFS}
+    for t, c in REFS:
+        if has_table(db, t) and c in columns(db, t):
+            n = db.execute(f"SELECT count(*) FROM {t} WHERE {c} = ?", (pid,)).fetchone()[0]
+            if n:
+                out["moved"].append((t, c, n))
+    for t, c, how in TEXT_REFS:
+        if has_table(db, t) and c in columns(db, t):
+            n = sum(1 for (v,) in db.execute(f"SELECT {c} FROM {t} WHERE {c} LIKE ?", (f"%{pid}%",))
+                    if swap_items(v, pid, 0, how) != v)
+            if n:
+                out["moved"].append((t, c, n))
+    for (t,) in db.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name").fetchall():
+        if t == "itempattern":
+            continue
+        log_table = t == LOG or bool(LOG_TABLE.search(t))
+        for c in columns(db, t):
+            item_col = c.lower() == "patternid" or c.lower().endswith("pattern")
+            # a log's id map (import_prh_content.py's src_id, dst_id) names
+            # rows of every table: provenance whatever it names
+            if (t, c) in known or not (item_col or (log_table and c.lower() in ("src_id", "dst_id"))):
+                continue
+            n = db.execute(f"SELECT count(*) FROM {t} WHERE {c} = ?", (pid,)).fetchone()[0]
+            if n:
+                out["provenance" if log_table else "unknown"].append((t, c, n))
+    return out
+
+
+ITEM_TOKEN = r"(?<![0-9]){}(?=\*|\s*,|\s*$)"
+
+
+def swap_items(text, old, new, how):
+    """An item list ("701499*4, 31001") or a quest's JSON (rewards by class,
+    choices, events: their "items" strings) with the record old named new
+    instead; the text as it was where it names none."""
+    if not text or str(old) not in text:
+        return text
+    rx = re.compile(ITEM_TOKEN.format(old))
+
+    def in_list(v):
+        return rx.sub(str(new), v)
+    if how == "list":
+        return in_list(text)
+    try:
+        j = json.loads(text)
+    except ValueError:
+        return text
+    changed = [False]
+
+    def walk(o):
+        if isinstance(o, dict):
+            for k, v in o.items():
+                if k == "items" and isinstance(v, str) and in_list(v) != v:
+                    o[k] = in_list(v)
+                    changed[0] = True
+                else:
+                    walk(v)
+        elif isinstance(o, list):
+            for v in o:
+                walk(v)
+    walk(j)
+    return json.dumps(j, separators=(",", ":"), ensure_ascii=False) if changed[0] else text
+
+
+def fold_into(db, when, c):
+    """A broken record folded into the real one of its name (1.): every row
+    naming it moved, its held copies made whole at the real one's item HP,
+    its record deleted, each row logged; returns (rows moved, held copies)
+    or None when the record or the real one is not as planned, or a row
+    could not be moved (a key the real record holds already)."""
+    pid, to = c["patternid"], c["fold"]
+    cols = columns(db, "itempattern")
+    if row_now(db, "itempattern", {"patternid": pid}, cols) != {k: c["row"].get(k) for k in cols}:
+        return None
+    real = row_now(db, "itempattern", {"patternid": to}, ["itemname", "maxhp"])
+    if real is None or real["itemname"] != c["fold_name"]:
+        return None
+    if references(db, pid)["unknown"]:
+        return None
+    db.execute("SAVEPOINT fold")
+    moved, held, copies = 0, 0, []
+    try:
+        for t, col in REFS:
+            if not has_table(db, t) or col not in columns(db, t):
+                continue
+            for (rid,) in db.execute(f"SELECT rowid FROM {t} WHERE {col} = ? ORDER BY rowid", (pid,)).fetchall():
+                db.execute(f"UPDATE {t} SET {col} = ? WHERE rowid = ?", (to, rid))
+                log(db, when, t, {"rowid": rid}, "update", {col: pid}, {col: to}, f"{c['name']}: folded into {to}")
+                moved += 1
+                if t == "charinventory":
+                    copies.append(rid)
+        for t, col, how in TEXT_REFS:
+            if not has_table(db, t) or col not in columns(db, t):
+                continue
+            for rid, v in db.execute(f"SELECT rowid, {col} FROM {t} WHERE {col} LIKE ? ORDER BY rowid", (f"%{pid}%",)).fetchall():
+                w = swap_items(v, pid, to, how)
+                if w != v:
+                    db.execute(f"UPDATE {t} SET {col} = ? WHERE rowid = ?", (w, rid))
+                    log(db, when, t, {"rowid": rid}, "update", {col: v}, {col: w}, f"{c['name']}: folded into {to}")
+                    moved += 1
+    except sqlite3.IntegrityError:
+        db.execute("ROLLBACK TO fold")
+        db.execute("RELEASE fold")
+        return None
+    hp = real["maxhp"]
+    for rid in copies:
+        now = db.execute("SELECT remainHP FROM charinventory WHERE rowid = ?", (rid,)).fetchone()[0]
+        if hp and hp > 0 and now > hp:
+            db.execute("UPDATE charinventory SET remainHP = ? WHERE rowid = ?", (hp, rid))
+            log(db, when, "charinventory", {"rowid": rid}, "update", {"remainHP": now}, {"remainHP": hp},
+                f"a held {c['name']} made whole at {to}'s item HP")
+            held += 1
+    row = dict(row_now(db, "itempattern", {"patternid": pid}, cols), rowid_=pid)
+    db.execute("DELETE FROM itempattern WHERE patternid = ?", (pid,))
+    log(db, when, "itempattern", {"patternid": pid}, "delete", row, None, f"{c['name']}: folded into {to}")
+    db.execute("RELEASE fold")
+    return moved, held
 
 
 def from_data(r, it, taken, weapon_hp, lists):
@@ -316,12 +483,13 @@ def row_now(db, tbl, ref, cols):
 
 
 def apply(db, p, when=None):
-    """The plan's records still as planned, their held copies and loot rows
-    as the database has them now, in one transaction, each row logged;
-    returns (records, held copies, loot rows, stale)."""
+    """The plan's records still as planned, their held copies, loot rows and
+    a folded record's rows as the database has them now, in one
+    transaction, each row logged; returns (records, held copies, loot rows,
+    stale), the rows a fold moved in p["folded_rows"]."""
     when = when or datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
     made_log = not has_table(db, LOG)
-    recs = held = loot = stale = 0
+    recs = held = loot = stale = folded = 0
     db.execute("BEGIN IMMEDIATE")
     try:
         db.execute(LOG_DDL)
@@ -330,6 +498,18 @@ def apply(db, p, when=None):
             raise SystemExit(f"the last run was applied at {last}, this one at {when}: run it again in a second")
         for c in p["changes"]:
             ref = {"patternid": c["patternid"]}
+            if c.get("fold"):
+                if row_now(db, "itempattern", ref, ["itemname"]) is None and \
+                        row_now(db, "itempattern", {"patternid": c["fold"]}, ["itemname"]) is not None:
+                    continue  # folded already (a run again)
+                done = fold_into(db, when, c)
+                if done is None:
+                    stale += 1
+                else:
+                    recs += 1
+                    held += done[1]
+                    folded += done[0]
+                continue
             name = row_now(db, "itempattern", ref, ["itemname"])
             if name is None or name["itemname"] != c["name"]:
                 stale += 1
@@ -369,6 +549,7 @@ def apply(db, p, when=None):
     except BaseException:
         db.execute("ROLLBACK")
         raise
+    p["folded_rows"] = folded
     return recs, held, loot, stale
 
 
@@ -409,9 +590,13 @@ def undo(db):
 
 
 def report(p, full=True):
-    print(f"records: {len(p['changes'])}, {sum(1 for c in p['changes'] if c['set'])} to change")
+    print(f"records: {len(p['changes'])}, {sum(1 for c in p['changes'] if c['set'])} to change, "
+          f"{sum(1 for c in p['changes'] if c.get('fold'))} to fold")
     for c in p["changes"]:
         print(f"  {c['patternid']} {c['name']}: {c['how']}")
+        if c.get("fold"):
+            print(f"      its record goes ({dumps({k: c['row'][k] for k in ('levelreq', 'PoT', 'LR', 'maxhp')})} ...)")
+            continue
         if c["set"]:
             print(f"      {dumps(c['before'])}")
             print(f"   -> {dumps(c['set'])}")
@@ -471,7 +656,8 @@ def main():
         return
     if a.apply:
         recs, held, loot, stale = apply(db, p)
-        print(f"written: {recs} records, {held} held copies made whole, {loot} loot rows taken out; {stale} changed since the plan, left")
+        print(f"written: {recs} records ({p.get('folded_rows', 0)} rows moved by a fold), {held} held copies made whole, "
+              f"{loot} loot rows taken out; {stale} changed since the plan, left")
     else:
         print("(report only: --apply to write it)")
 

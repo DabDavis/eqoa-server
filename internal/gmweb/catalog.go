@@ -1034,6 +1034,22 @@ var catalog = map[string]tableNote{
 			"source":      {Label: "Source", Help: "gm, or seed for the rows the table was made with"},
 		},
 	},
+	"foodeffect": {
+		Label: "Food rules", Group: "Items & spells", Title: "patternid", Sort: "patternid",
+		Help: "How long a meal's or a drink's regeneration lasts and what ends it, by item (entity/consumable.go; EQOAEmu's spell " +
+			"workbook's created food and drink, the user's \"yes add the food too\", tools/import_eqoaemu_spells.py). An item with no " +
+			"row keeps the default: a minute, ended by a fight (auto-attack, a blow or a harmful spell landed, a hit taken). " +
+			"duration_s is the seconds it lasts; ends_on_cast 1 ends it when its eater casts any spell; ends_on_contact 1 ends it " +
+			"in a fight as the default does, and a drink that ends so is refused in one. The amounts are the item's own HoT and PoT.",
+		Live: "At once: the next use.",
+		Cols: map[string]colNote{
+			"patternid":       {Label: "Item", Ref: "itempattern", Help: "the meal or drink"},
+			"duration_s":      {Label: "Seconds", Help: "how long its regeneration lasts"},
+			"ends_on_cast":    {Label: "Ends on a cast", Help: "1: any spell its eater casts ends it"},
+			"ends_on_contact": {Label: "Ends in a fight", Help: "1: a fight ends it (and a drink is refused in one)"},
+			"source":          {Label: "Source", Help: "gm, or eqoaemu for the import's rows"},
+		},
+	},
 	"petstats": {
 		Label: "Pet stats", Group: "World", Title: "name", Sort: "spellid",
 		Help: "A summoned pet's own numbers, by its SUMMONING SPELL's id (entity/petstats.go; EQOAEmu's spell workbook, the " +

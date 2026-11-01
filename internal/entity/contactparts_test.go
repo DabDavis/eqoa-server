@@ -161,7 +161,7 @@ func TestAWhollyMarkedEffectEndsWhole(t *testing.T) {
 	shock := wbSpell(9907, 30, 1, "Test Shock", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"duration_s":10,
 		"effects":[{"kind":"hp","amount":-20},{"kind":"speed","amount":-40,"dispel_on_contact":true}]}`)
 	ae := lasting(&castState{spell: shock}, c.p, c.at(0))
-	if ae == nil || ae.contact != nil {
+	if ae == nil || ae.parts != nil {
 		t.Errorf("an instant hit beside the marked snare: split %+v, want none (ends whole)", ae)
 	}
 }

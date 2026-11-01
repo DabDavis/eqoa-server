@@ -562,6 +562,32 @@ func TestAnIDCureGoesByItsName(t *testing.T) {
 	}
 }
 
+// A cure of damage over time (Envaric Salve's "PoE DoT?": the user, "damage
+// over time") takes a harmful effect whose tick hurts and leaves a poison and
+// a curse that do not tick; an antidote still takes the poison alone (the
+// control: "antidote" holds the letters of "dot").
+func TestADoTCureTakesWhatTicks(t *testing.T) {
+	for _, k := range []struct {
+		name, removes, left string
+	}{
+		{"Envaric Salve", "PoE DoT?", "Test Sting,Test Hex,Test Skin"},
+		{"Minor Antidote", "ID?", "Test Rot,Test Hex,Test Skin"},
+	} {
+		c := newCaster(t)
+		until := c.at(time.Hour)
+		c.p.Effects = append(c.p.Effects,
+			&ActiveEffect{SpellID: 1, Name: "Test Rot", Until: until, HPTick: -50, NextTick: until, Rules: EffectRules{Harm: true, Resist: StatDR}},
+			&ActiveEffect{SpellID: 2, Name: "Test Sting", Until: until, Rules: EffectRules{Harm: true, Resist: StatPR}},
+			&ActiveEffect{SpellID: 3, Name: "Test Hex", Until: until, Rules: EffectRules{Harm: true, Resist: StatAR}},
+			&ActiveEffect{SpellID: 4, Name: "Test Skin", Until: until, Mods: StatMods{AC: 10}})
+		cure := wbSpell(973, 55, 0, k.name, `{"v":1,"scope":"self","effects":[{"kind":"cure","removes":"`+k.removes+`"}]}`)
+		c.castOn(t, cure, 0)
+		if got := strings.Join(c.effectNames(), ","); got != k.left {
+			t.Errorf("after %s: %s, want %s", k.name, got, k.left)
+		}
+	}
+}
+
 // A player below a spell's lowest level is not affected; one at it is (the
 // control).
 func TestWorkbookLowestLevel(t *testing.T) {

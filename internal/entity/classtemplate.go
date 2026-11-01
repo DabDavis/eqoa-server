@@ -287,9 +287,6 @@ func templateKindTakes(kind string, s *CastSpell) bool {
 		if e.Kind == EffectRoot {
 			roots = true
 		}
-		if e.Kind == EffectStat && e.Amount < 0 && e.Drain != DrainNone && !e.Self {
-			drains = true // a drain of stats (a necromancer's pet's Undead Bane: pettemplate.go)
-		}
 		if e.Kind != EffectHP {
 			continue
 		}

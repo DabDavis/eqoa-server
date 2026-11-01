@@ -754,9 +754,14 @@ def clause(o, spell):
         name = (o.get("pet") or {}).get("name")
         return [f"Summons {article(name)} to aid you" if name else "Summons a pet"]
     if k == "create_item":
+        # our item's own name, which the summon reads (potion.go); one that
+        # is none of ours in words no summon takes
         it = o.get("item") or {}
-        nm = it.get("name") or "an item"
-        return [f"Summon {nm}" + (f" x{it['count']}" if it.get("count", 1) > 1 else "")]
+        ours = (spell.get("item_names") or {}).get(it.get("patternid"))
+        times = f" x{it['count']}" if it.get("count", 1) > 1 else ""
+        if ours:
+            return [f"Summon {ours}{times}"]
+        return [f"Creates {it.get('name') or 'an item'}{times}"]
     if k == "illusion":
         return ["Gives Form"]
     if k == "teleport":
@@ -829,10 +834,10 @@ def article(name):
     return ("an " if n[:1].lower() in "aeiou" else "a ") + n
 
 
-def line_of(j, proc_desc=False, record_scope=None):
+def line_of(j, proc_desc=False, record_scope=None, item_names=None):
     """The spell's line in EQOA-Data's words (see the doc): its first word the
     record's scope, whom the server lands it on."""
-    spell = dict(scope=j["scope"], harmful=j["harmful"], proc_desc=proc_desc)
+    spell = dict(scope=j["scope"], harmful=j["harmful"], proc_desc=proc_desc, item_names=item_names or {})
     effects = j["effects"]
     if not effects:
         return ""
@@ -867,8 +872,8 @@ def line_of(j, proc_desc=False, record_scope=None):
     # a reagent the cast takes (vampire.go reads "Reagent <item> xN")
     for o in effects:
         c = o.get("consume") or {}
-        if c.get("name") and "patternid" in c:
-            parts.append(f"Reagent {c['name']} x{c.get('count', 1)}")
+        if c.get("patternid") in (item_names or {}):
+            parts.append(f"Reagent {item_names[c['patternid']]} x{c.get('count', 1)}")
     d = j.get("duration_s") or max([o.get("duration_s") or 0 for o in effects] + [0])
     line = head + ", " + ", ".join(p for p in parts if p)
     if d:
@@ -1096,9 +1101,10 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None):
     sandstorm = set()
     if has_table(db, "sandstorm_import_rows"):
         sandstorm = {r[0] for r in db.execute("SELECT key FROM sandstorm_import_rows WHERE tbl = 'spellpattern'")}
-    items_by_name = {}
+    items_by_name, item_names = {}, {}
     for pid, name in db.execute("SELECT patternid, itemname FROM main.itempattern ORDER BY patternid"):
         items_by_name.setdefault(fold(name), pid)
+        item_names[pid] = name
 
     lists = collections.defaultdict(list)
     counts = collections.Counter()
@@ -1206,7 +1212,7 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None):
 
         # what it does
         if j["effects"]:
-            line = line_of(j, proc_desc, new_scope)
+            line = line_of(j, proc_desc, new_scope, item_names)
             text = dumps(j)
             now = erows.get(sid)
             if now is None:

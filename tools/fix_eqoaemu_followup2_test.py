@@ -29,22 +29,26 @@ BS = {k: getattr(imt.BodiesAndSharesTest, k) for k in ("SPELLS", "EFFECTS", "ITE
 OLD_MAP = dict(BS["MAP"], **{"0230": (900560, "new")})
 NEW_MAP = BS["MAP"]
 MADE = im.ITEM_BASE + 30110   # the Shiny Potion the old import made for the workbook's name
+# the CMs sheet's two ranks DESC_SWAPS names, their own descriptions (made up)
+RANKS = [dict(name="Creative Transmutation", desc="Guess A?"), dict(name="Transmutative Mixture", desc="Guess B?")]
 
 
 @contextlib.contextmanager
 def old_rules():
     """The import's rules as it was applied: no use says a body or a target's
-    own share, and a record the map spells otherwise is read as any other."""
-    keep = im.potion_extras, im.settle_item_names, im.MadeItems.give_use
+    own share, a record the map spells otherwise is read as any other, and a
+    use of ours keeps its own time."""
+    keep = im.potion_extras, im.settle_item_names, im.MadeItems.give_use, im.MadeItems.ours_time
     plain = im.settle_item_names
     give = im.MadeItems.give_use
     im.potion_extras = lambda objs, thrown, area: {}
     im.settle_item_names = lambda j, old, a, b, line_first=False, folds=None: plain(j, old, a, b)
     im.MadeItems.give_use = lambda self, pid, rows, s, replace=False: give(self, pid, rows, s)
+    im.MadeItems.ours_time = lambda self, pid, r, rows, old: None
     try:
         yield
     finally:
-        im.potion_extras, im.settle_item_names, im.MadeItems.give_use = keep
+        im.potion_extras, im.settle_item_names, im.MadeItems.give_use, im.MadeItems.ours_time = keep
 
 
 def ours(db):
@@ -66,6 +70,11 @@ def ours(db):
     x("INSERT INTO itemeffect (patternid, line, name, icon, source) VALUES (60010, "
       "'Self, Increase Maximum HP by 50, Increase Hitpoints by 50, 10min', 'Illusion: Troll', 77, 'gm')")
     x("INSERT INTO cmcatalog VALUES (77, 16384, 'Shiny Rank', 2, '310', '', '')")
+    imt.invisible_of_ours(x)
+    # the two ranks whose descriptions the workbook swapped, as the masteries import wrote them
+    x("ALTER TABLE cmcatalog ADD COLUMN description TEXT NOT NULL DEFAULT ''")
+    x("INSERT INTO cmcatalog (id, classes, name, rank, description) VALUES "
+      "(78, 16384, 'Creative Transmutation', 2, 'Guess A?'), (79, 16384, 'Transmutative Mixture', 3, 'Guess B?')")
     x("INSERT INTO characters VALUES (81, 14), (82, 14), (83, 14)")
     x("INSERT INTO spells (id, serverid, spellid) VALUES (91, 81, 310), (92, 83, 310)")
     x("CREATE TABLE auction_lots (lot INTEGER PRIMARY KEY AUTOINCREMENT, seller INTEGER, patternid INTEGER, stack INTEGER)")
@@ -97,10 +106,13 @@ class Followup2Test(unittest.TestCase):
         # a fresh import's, for what the follow-up must leave alike
         self.fresh = imt.made_db(os.path.join(d, "fresh.db"))
         ours(self.fresh)
+        # a fresh masteries import with DESC_SWAPS writes the descriptions so
+        self.fresh.execute("UPDATE cmcatalog SET description = CASE id WHEN 78 THEN 'Guess B?' ELSE 'Guess A?' END "
+                           "WHERE id IN (78, 79)")
         im.apply(self.fresh, im.plan(self.fresh, self.wb, NEW_MAP, weres={}))
 
     def plan(self, smap=NEW_MAP):
-        return f2.plan(self.db, self.wb, smap, weres={})
+        return f2.plan(self.db, self.wb, smap, weres={}, ranks=RANKS)
 
     def kinds(self, p):
         out = {}
@@ -124,11 +136,17 @@ class Followup2Test(unittest.TestCase):
         self.assertEqual(k[("spellpattern", "delete")], [{"spellid": 900560}])
         self.assertEqual(k[("spells", "delete")], [{"id": 93}], "the book holding both keeps ours")
         self.assertEqual(k[("spells", "update")], [{"id": 94}], "the book holding the new alone takes ours")
-        self.assertEqual(k[("cmcatalog", "update")], [{"id": 77}])
+        self.assertEqual(k[("cmcatalog", "update")], [{"id": 77}, {"id": 78}, {"id": 79}],
+                         "the merged rank, then the two descriptions")
+        self.assertEqual(k[("itempattern", "update")], [{"patternid": 60010}], "the pill's level, the workbook's")
         self.assertEqual(k[("spellpattern", "update")], [{"spellid": 310}], "ours takes the workbook's record")
         self.assertEqual(sorted(x["spellid"] for x in k[("spelleffect", "update")]), [310])
         self.assertEqual(sorted(x["patternid"] for x in k[("itemeffect", "update")]),
-                         [60010, 60011, im.ITEM_BASE + 30102], "the pill's use, the sour body, the cocktail's share")
+                         [60010, 60011, 60012, im.ITEM_BASE + 30102],
+                         "the pill's use, the sour body, the hazy invisibility's time, the cocktail's share")
+        desc = {c["key"]["id"]: (c["before"]["description"], c["set"]["description"]) for c in p["changes"]
+                if c["tbl"] == "cmcatalog" and "description" in c["set"]}
+        self.assertEqual(desc, {78: ("Guess A?", "Guess B?"), 79: ("Guess B?", "Guess A?")})
         self.assertEqual(k[("charinventory", "update")], [{"itemid": 501}], "the copy held, onto the pill")
         self.assertEqual(k[("auction_lots", "update")], [{"lot": 7}])
         self.assertEqual(sorted((t, x["patternid"]) for (t, a), xs in k.items() if a == "delete" and t.startswith("item")
@@ -145,7 +163,9 @@ class Followup2Test(unittest.TestCase):
         done, stale = im.apply(self.db, self.plan(), f2.LOG, f2.META, f2.WHAT)
         self.assertEqual(stale, 0)
         for tbl, where in (("spellpattern", "spellid IN (310, 311)"), ("spelleffect", "spellid IN (310, 311)"),
-                           ("itemeffect", "1"), ("classspells", "spellid IN (310, 311, 900560)")):
+                           ("itemeffect", "1"), ("classspells", "spellid IN (310, 311, 900560)"),
+                           ("itempattern", "patternid IN (60010, 60011, 60012, 60013)"),
+                           ("cmcatalog", "id IN (78, 79)")):
             a = sorted(self.db.execute(f"SELECT * FROM {tbl} WHERE {where}"))
             b = sorted(self.fresh.execute(f"SELECT * FROM {tbl} WHERE {where}"))
             if tbl == "spelleffect":
@@ -163,6 +183,14 @@ class Followup2Test(unittest.TestCase):
         self.assertEqual(self.plan()["changes"], [], "a second plan has nothing to do")
         with self.assertRaises(SystemExit):
             im.apply(self.db, self.plan(), f2.LOG, f2.META, f2.WHAT)
+
+    def test_a_gms_description_is_left(self):
+        self.db.execute("UPDATE cmcatalog SET description = 'A GM''s words' WHERE id = 78")
+        p = self.plan()
+        self.assertEqual([c["key"] for c in p["changes"] if c["tbl"] == "cmcatalog" and "description" in c["set"]],
+                         [{"id": 79}])
+        self.assertEqual(p["lists"]["a rank's description a GM changed since the import (left)"],
+                         ["78 Creative Transmutation"])
 
     def test_the_maps_row_decides(self):
         p = self.plan(OLD_MAP)

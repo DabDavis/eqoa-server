@@ -37,6 +37,16 @@ on this database, and only these parts of it taken):
      and a thrown target-based area's target's own share (HP1 beside the
      line's HP2: the Cocktail of Death Potion's, Severupidus' Cocktail's), on
      every use the import wrote (a value a GM gave since left, and said).
+  4. The user's answers of 2026-11-01 ("yes make it level 60, use workbook
+     durations, swap them"): the merged spell's item takes the workbook's
+     item's level too (the Transformative Pill, 60); a use of ours the
+     workbook gives as invisibility takes the workbook's time (the Ethereal,
+     Faulty Ethereal and Aether Potions and the Phase Ring: the Created Item
+     Effects sheet's, which the import reads; its words otherwise ours, the
+     Volatile Ethereal Potion's speed listed, not said); and the two
+     Transmuter ranks whose workbook descriptions are each other's
+     (import_eqoaemu_cms.py's DESC_SWAPS) take them so, against the CMs
+     sheet's own text (one already so is left; one a GM changed, said).
 
 A spell's effects row is changed only where it is as the import's log wrote
 it (a GM's change since is left, and said); every other row only where it is
@@ -55,7 +65,7 @@ take a copy of the database first (SQLite's backup API). The server loads
 the potions' uses, the masteries and the books at its start: restart it after
 either.
 
-    tools/fix_eqoaemu_followup2.py --sheets <dir of TSVs> | --ods <workbook.ods> --map <spellmap.tsv>
+    tools/fix_eqoaemu_followup2.py --sheets <dir of TSVs (06-CMs.tsv too)> | --ods <workbook.ods> --map <spellmap.tsv>
         [--iso <disc.iso>] [--bodies <worlds/models.txt>] [--db eqoa.db] [--save-plan FILE]
     tools/fix_eqoaemu_followup2.py --db eqoa.db --plan FILE --apply
     tools/fix_eqoaemu_followup2.py --db eqoa.db --undo
@@ -72,6 +82,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import import_eqoaemu_spells as im  # noqa: E402
+import import_eqoaemu_cms as cms  # noqa: E402
 import fix_eqoaemu_followup as fu  # noqa: E402
 
 DEFAULT_DB = os.path.join(HERE, "..", "eqoa.db")
@@ -194,8 +205,38 @@ def fold_changes(db, f, lists, counts):
     return out
 
 
-def plan(db, wb, smap, disc=None, icons=None, weres=None, bodies=None):
-    """Everything --apply would write (changes), and the report's lists."""
+def desc_changes(db, ranks, lists, counts):
+    """The doc's 4, the descriptions: each of DESC_SWAPS' ranks of ours
+    (cmcatalog, by name) whose description is the CMs sheet's own for it
+    (ranks: read_ranks, unswapped) takes the other's."""
+    out = []
+    if not ranks or not im.has_table(db, "cmcatalog") or "description" not in im.columns(db, "cmcatalog"):
+        return out
+    text = {}
+    for w in ranks:
+        text.setdefault(cms.fold(w["name"]), w["desc"])
+    rows = db.execute("SELECT id, name, description FROM main.cmcatalog ORDER BY id").fetchall()
+    for a, b in cms.DESC_SWAPS:
+        if a not in text or b not in text:
+            continue
+        for mine, other in ((a, b), (b, a)):
+            for rid, name, desc in rows:
+                if cms.fold(name) != mine or desc == text[other]:
+                    continue
+                if desc != text[mine]:
+                    lists["a rank's description a GM changed since the import (left)"].append(f"{rid} {name}")
+                    continue
+                out.append(dict(tbl="cmcatalog", action="update", key={"id": rid}, before={"description": desc},
+                                set={"description": text[other]}, note="a pair of ranks' workbook descriptions, swapped"))
+                counts["ranks given the other's workbook description"] += 1
+                lists["a rank given the other's workbook description"].append(f"{rid} {name}: {text[other]!r}")
+    return out
+
+
+def plan(db, wb, smap, disc=None, icons=None, weres=None, bodies=None, ranks=None):
+    """Everything --apply would write (changes), and the report's lists.
+    ranks: the CMs sheet's ranks (import_eqoaemu_cms.read_ranks), for the
+    descriptions."""
     lists, counts = collections.defaultdict(list), collections.Counter()
     pairs = merges(db, smap, lists)
     p = im.plan(db, wb, smap, disc, False, weres or {}, icons, bodies)
@@ -239,12 +280,14 @@ def plan(db, wb, smap, disc=None, icons=None, weres=None, bodies=None):
         if out:
             folds.append(f)
         changes += out
+    changes += desc_changes(db, ranks, lists, counts)
     if p.get("made_spells"):
         lists["spells whose items are still none of ours (the first follow-up's to make: left)"] += [
             str(s) for s in p["made_spells"]]
     for k, v in p["lists"].items():
         if k.startswith(("an item of ours", "a use the import wrote", "an item the workbook names that a spell",
-                         "a potion made", "a made item", "an item no source gives", "a use's body")):
+                         "a potion made", "a made item", "an item no source gives", "a use's body",
+                         "an invisibility of ours")):
             lists[k] = v
     return dict(changes=changes, lists={k: v for k, v in lists.items()}, counts=dict(counts), merges=pairs,
                 folds=folds)
@@ -318,8 +361,10 @@ def main():
         if a.iso:
             import fill_spell_visuals_eqoaemu as fsv
             disc, icons = fsv.disc_visuals(a.iso), fsv.disc_icons(a.iso)
+        cm_sheet = cms.Sheet(cms.ods_table(a.ods, "CMs")) if a.ods else \
+            cms.Sheet(cms.tsv_table(os.path.join(a.sheets, "06-CMs.tsv")))
         p = plan(db, im.Workbook(im.read_workbook(a.sheets, a.ods)), im.read_map(a.map), disc, icons,
-                 im.were_rewards(a.were_quests), im.read_bodies(a.bodies) if a.bodies else None)
+                 im.were_rewards(a.were_quests), im.read_bodies(a.bodies) if a.bodies else None, cms.read_ranks(cm_sheet))
     fu.report(p, a.list)
     if a.save_plan:
         p["made"] = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")

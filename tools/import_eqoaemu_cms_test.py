@@ -354,5 +354,29 @@ class FixSlipsTest(unittest.TestCase):
         self.assertEqual(m.fix_slips(W, m.read_spell_owners(None)), [], "no Spells sheet: something moved")
 
 
+class SwapDescriptionsTest(unittest.TestCase):
+    """swap_descriptions: DESC_SWAPS' two ranks (by name, of one mastery) take
+    each other's descriptions (the user, 2026-11-01: "swap them"); a rank of
+    another name, or a pair split across masteries, keeps its own. The
+    descriptions made up."""
+
+    def test_the_pair_swapped(self):
+        W = m.read_ranks(m.Sheet([HEAD] + [
+            wrow("0D01", "Creative Transmutation", cls="Master Class", sub="Transmuter", desc="Guess A?"),
+            wrow("0D02", "Transmutative Mixture", cls="Master Class", sub="Transmuter", desc="Guess B?"),
+            wrow("0D03", "Other Rank", cls="Master Class", sub="Transmuter", desc="Its own."),
+        ]))
+        self.assertEqual(m.swap_descriptions(W), [("Creative Transmutation", "Transmutative Mixture")])
+        by = {w["hex"]: w["desc"] for w in W}
+        self.assertEqual(by, {"0D01": "Guess B?", "0D02": "Guess A?", "0D03": "Its own."})
+        # the control: the pair in two masteries is no pair
+        W = m.read_ranks(m.Sheet([HEAD] + [
+            wrow("0D01", "Creative Transmutation", cls="Master Class", sub="Transmuter", desc="Guess A?"),
+            wrow("0D02", "Transmutative Mixture", cls="Master Class", sub="Elsewhere", desc="Guess B?"),
+        ]))
+        self.assertEqual(m.swap_descriptions(W), [])
+        self.assertEqual([w["desc"] for w in W], ["Guess A?", "Guess B?"])
+
+
 if __name__ == "__main__":
     unittest.main()

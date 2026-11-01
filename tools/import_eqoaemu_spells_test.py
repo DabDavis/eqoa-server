@@ -615,6 +615,27 @@ class LongHealTest(unittest.TestCase):
         self.assertEqual(im.line_of(j), "Target, Increase Hitpoints by 900, Increase STR by 50, Increase Maximum HP by 900, 30min")
 
 
+def invisible_of_ours(x):
+    """An invisibility potion of ours and a speed one (their spells', their
+    rows' and their uses), as tools/seed_potions.py made them: their times
+    ours. Made up."""
+    rec = "INSERT INTO spellpattern VALUES (?, 27, 0, 0, ?, 2, 100, -1809115846, 7, 0, 3, -1, ?, ?)"
+    x(rec, (312, F45, "Hazy Sublimation", "Ours."))
+    x(rec, (313, F45, "Brisk Mixture", "Ours."))
+    x("INSERT INTO spelleffect VALUES (312, 'Self, Summon Hazy Potion x3', 0, 'eqoa-data')")
+    x("INSERT INTO spelleffect VALUES (313, 'Self, Summon Brisk Potion x3', 0, 'eqoa-data')")
+    x("INSERT INTO classspells VALUES (14, 312, 'eqoa-data'), (14, 313, 'eqoa-data')")
+    item = ("INSERT INTO itempattern (patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, "
+            "attacktype, weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, "
+            "unk6, craft, itemname, itemdesc, model, color) VALUES (?, 0, 0, 512, 0, -1, 0, 0, 1, 0, 0, 0, 0, 1, 3, 0, "
+            "50, 32767, 1023, 2, 0, 0, 0, ?, ?, 0, -1)")
+    x(item, (60012, "Hazy Potion", "Drinking this potion makes you invisible for a time."))
+    x(item, (60013, "Brisk Potion", "A potion of speed."))
+    x("INSERT INTO itemeffect (patternid, line, name, icon, breaks, wear, source) VALUES "
+      "(60012, 'Self, Invis, 1min', 'Hazy Sublimation', 9, 'attack,damage', 1, 'potions'), "
+      "(60013, 'Self, Sow, 1min', 'Brisk Quickening', 8, 'attack', 0, 'potions')")
+
+
 def made_spell(i, name, cls, level, effect, learn="Scroll", source="Vendor", **kw):
     return spell(i, name, CLASS=cls, Level=level, EffectID1=effect, Scope="Self", Target_Type="Self",
                  Learn_Method=learn, ScrollSource=source, TYPE="Create Item", **kw)
@@ -885,12 +906,16 @@ class BodiesAndSharesTest(unittest.TestCase):
         eff("0233", "Create Item", CreatedItemID=30111, QTY=1, Scope="Self", Target_Type="Self"),
         eff("0235", "Create Item", CreatedItemID=30112, QTY=3, Scope="Self", Target_Type="Self"),
         eff("0237", "Create Item", CreatedItemID=30102, QTY=3, Scope="Self", Target_Type="Self"),
+        eff("0239", "Create Item", CreatedItemID=30113, QTY=3, Scope="Self", Target_Type="Self"),
+        eff("023B", "Create Item", CreatedItemID=30114, QTY=3, Scope="Self", Target_Type="Self"),
     ]
     SPELLS = [
         made_spell("0230", "Shiny Transmutation", "ALC", 60, "0231", learn="CM", source=""),   # ours as 310
         made_spell("0232", "Sourer Mixture", "ALC", 60, "0233", learn="CM", source=""),        # ours as 311
         made_spell("0234", "Faint Sublimation", "ALC", 20, "0235"),                             # new
         made_spell("0236", "Ruin Cocktail", "ALC", 60, "0237", source="Quest"),                 # new
+        made_spell("0238", "Hazy Sublimation", "ALC", 27, "0239"),                              # ours as 312
+        made_spell("023A", "Brisk Mixture", "ALC", 20, "023B"),                                 # ours as 313
     ]
     ITEM_EFFECTS = MadeItemsTest.ITEM_EFFECTS + [
         eff("0E20", "Alter Appearance", SpriteID="11223344", Duration=1800, Scope="Self", Target_Type="Self"),
@@ -900,6 +925,10 @@ class BodiesAndSharesTest(unittest.TestCase):
         eff("0E24", "Statistic Change", STR=-10, Duration=24, Scope="Target", Target_Type="Enemy"),
         eff("0E25", "Alter Appearance", SpriteID="435EF663", Duration=300, Scope="Self", Target_Type="Self"),
         eff("0E26", "Invisible", Duration=300, Scope="Self", Target_Type="Self"),
+        eff("0E27", "Alter Appearance", SpriteID="435EF663", Duration=600, Scope="Self", Target_Type="Self"),
+        eff("0E28", "Invisible", Duration=600, Scope="Self", Target_Type="Self"),
+        eff("0E29", "Statistic Absolute", SPEED=130, Duration=600, Scope="Self", Target_Type="Self"),
+        eff("0E2A", "Statistic Absolute", SPEED=130, Duration=600, Scope="Self", Target_Type="Self"),
     ]
     ITEMS = MadeItemsTest.ITEMS + [
         info("Shiny Mix Potion", 30110, "ALC", 60, "Self", "Self", "0E20"),
@@ -907,9 +936,11 @@ class BodiesAndSharesTest(unittest.TestCase):
         info("Shiny Mix Potion", 30110, "ALC", 60, "Self", "Self", "0E22"),
         info("Sour Mix Potion", 30111, "ALC", 60, "Target", "Enemy", "0E23", "0E24"),
         info("Faint Potion", 30112, "ALC", 20, "Self", "Self", "0E25", "0E26"),
+        info("Hazy Potion", 30113, "ALC", 27, "Self", "Self", "0E27", "0E28", "0E29"),
+        info("Brisk Potion", 30114, "ALC", 20, "Self", "Self", "0E2A"),
     ]
     MAP = {"0230": (310, "spelled otherwise (Shiny Transformative, ours)"), "0232": (311, "spelled otherwise"),
-           "0234": (900564, "new"), "0236": (900566, "new")}
+           "0234": (900564, "new"), "0236": (900566, "new"), "0238": (312, "name"), "023A": (313, "name")}
 
     def setUp(self):
         self.path = os.path.join(tempfile.mkdtemp(), "b.db")
@@ -929,11 +960,21 @@ class BodiesAndSharesTest(unittest.TestCase):
         x(item, (60011, "Sour Potion", "A potion of ours."))
         x("INSERT INTO itemeffect (patternid, line, name, icon, source) VALUES (60010, "
           "'Self, Increase Maximum HP by 50, Increase Hitpoints by 50, 10min', 'Illusion: Troll', 77, 'gm')")
+        invisible_of_ours(x)
         self.wb = im.Workbook({"Spells": self.SPELLS, "Effects": self.EFFECTS, "Created Item Info": self.ITEMS,
                                "Created Item Effects": self.ITEM_EFFECTS, "Pets": []})
 
     def plan(self):
         return im.plan(self.db, self.wb, self.MAP, weres={})
+
+    def test_an_invisibility_of_ours_takes_the_workbooks_time(self):
+        p = self.plan()
+        upd = {x["patternid"]: x for x in p["made"]["itemeffect_updates"]}
+        self.assertEqual((upd[60012]["before"], upd[60012]["set"]),
+                         ({"line": "Self, Invis, 1min"}, {"line": "Self, Invis, 10min"}), "the workbook's 600 s")
+        self.assertEqual(p["lists"]["an invisibility of ours given the workbook's time: what else its use does, not said"],
+                         ["60012 Hazy Potion (the workbook's Hazy Potion): speed"])
+        self.assertNotIn(60013, upd, "the control: a speed of ours keeps its own time")
 
     def test_bodies_the_other_way_round(self):
         self.assertEqual(im.sprite_body("0x11223344"), 0x44332211)
@@ -970,6 +1011,9 @@ class BodiesAndSharesTest(unittest.TestCase):
                                        "source": "eqoaemu"})
         self.assertEqual(pill["before"]["line"], "Self, Increase Maximum HP by 50, Increase Hitpoints by 50, 10min")
         self.assertNotIn("name", pill["set"], "its effect's name kept")
+        lvl = [x for x in p["made"]["updates"] if x["patternid"] == 60010]
+        self.assertEqual([(x["before"], x["set"]) for x in lvl], [({"levelreq": 1}, {"levelreq": 60})],
+                         "the workbook's item's level, nothing else of its row")
         e = next(e for e in p["effects"] if e["spellid"] == 310)
         it = [o["item"] for o in json.loads(e["set"]["effects"])["effects"] if o["kind"] == "create_item"][0]
         self.assertEqual((it["name"], it["patternid"], it["sheet_name"]), ("Glimmer Pill", 60010, "Shiny Mix Potion"))

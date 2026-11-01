@@ -43,3 +43,34 @@ func TestASimKitWearsNothingConjured(t *testing.T) {
 		t.Errorf("the control: kit %+v worn %v, want the 900 sabre and the 90 buckler", pl.Gear, pl.Worn)
 	}
 }
+
+// A broken record (a PoT or a resist past any item's: the old dump's 987 PoT,
+// 927 LR) is no kit's either; the control: the same sabre with an item's
+// figures is the pick. Made-up items.
+func TestASimKitWearsNoBrokenRecord(t *testing.T) {
+	db, err := database.NewSQLite(t.TempDir() + "/kit.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, err := db.Exec(`INSERT INTO itempattern (patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent,
+		unk4, attacktype, weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, unk6,
+		craft, itemname, itemdesc, model, color, AC, PoT, LR)
+		VALUES (8101, 0, 0, 1, 0, 12, 0, 0, 1, 0, 1, 300, 0, 30, 1, 6000, 50, 32767, 2047, 0, 0, 0, 0, 'Fieldhand Blade', '', 0, 0, 0, 0, 0),
+		       (8104, 0, 0, 1, 0, 12, 0, 0, 1, 0, 1, 999, 0, 30, 1, 6000, 50, 32767, 2047, 0, 0, 0, 0, 'Gleaming Sabre', '', 0, 0, 0, 987, 927)`); err != nil {
+		t.Fatal(err)
+	}
+	pl, err := SimKitFromDB(db, 0, 0, 30, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if pl.Gear.WeaponDamage != 300 {
+		t.Errorf("kit %+v: want the 300 blade, not the broken record's 999", pl.Gear)
+	}
+	if _, err := db.Exec(`UPDATE itempattern SET PoT = 20, LR = 15 WHERE patternid = 8104`); err != nil {
+		t.Fatal(err)
+	}
+	if pl, err = SimKitFromDB(db, 0, 0, 30, 1); err != nil || pl.Gear.WeaponDamage != 999 {
+		t.Errorf("the control: kit %+v (%v), want the sabre's 999", pl.Gear, err)
+	}
+}

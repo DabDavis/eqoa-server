@@ -583,6 +583,26 @@ func SimWithSpell(db *database.SQLiteDB, pl SimPlayer, id int) (SimPlayer, error
 	return pl, fmt.Errorf("no spell %d of class %d at or below level %d", id, pl.Class, pl.Level)
 }
 
+// simBroken is a record whose figures no item of the game's has: a PoT or
+// a resist past simBrokenOver. Of eqoaclassic's (2026-11-01) every PoT is
+// 200 or less and every resist 65 or less but fifteen of the old dump's,
+// each with PoT 987 and LR 927 (DMG 999 on the weapons: Sapphire's and the
+// Khal Sword, a Staff of Divinity), which the kits had given a ranger of
+// 60; players hold some, so the records stay, but no class's balance is
+// fitted on them.
+func simBroken(it *database.ItemPatternRecord) bool {
+	for _, v := range []*int{it.PoT, it.PR, it.DR, it.FR, it.CR, it.LR, it.AR} {
+		if v != nil && *v > simBrokenOver {
+			return true
+		}
+	}
+	return false
+}
+
+// simBrokenOver is the most a record's PoT or resist is before simBroken
+// takes it for a broken one.
+const simBrokenOver = 500
+
 // simPick is the item at the tier's place by score among those of the last
 // ten levels (all of them when none is), nil for none. An item of no level
 // (levelreq 0: a drop whose record lacks one, most of them a high level's),
@@ -590,11 +610,12 @@ func SimWithSpell(db *database.SQLiteDB, pl SimPlayer, id int) (SimPlayer, error
 // conjures, the magician's Phase Mallet and stones and the rogue's Shadow
 // Knife; 2026-11-01 every worn item of rent 0 was one, and the kits had
 // put the stones in a ranger's ranged slot and the Phase Shield on a
-// warrior's arm, 262 of 2,700 kits) are no one's outfit.
+// warrior's arm, 262 of 2,700 kits) are no one's outfit; nor is a broken
+// record (simBroken).
 func simPick(items []database.ItemPatternRecord, level int, tier float64, score func(*database.ItemPatternRecord) int) *database.ItemPatternRecord {
 	var near, all []database.ItemPatternRecord
 	for _, it := range items {
-		if it.LevelReq < 1 || it.Rent == 0 || strings.Contains(strings.ToLower(it.ItemName), "test") {
+		if it.LevelReq < 1 || it.Rent == 0 || strings.Contains(strings.ToLower(it.ItemName), "test") || simBroken(&it) {
 			continue
 		}
 		all = append(all, it)

@@ -172,6 +172,7 @@ func (w *World) respawnNPCLocked(npc *NPC) {
 	npc.Threats = nil
 	npc.CurrentEnemy = 0
 	npc.guardHit = false // a new life (guards.go)
+	npc.swimming = false // on its spawn (water.go)
 	npc.stopMoving()
 	npc.roam = roamState{}
 	npc.path = pathState{}

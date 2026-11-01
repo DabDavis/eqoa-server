@@ -19,6 +19,11 @@ const (
 	LocoStand byte = 0
 	LocoWalk  byte = 1
 	LocoRun   byte = 3
+	// LocoSwim and LocoTread are the liquid's, as CLIENT's own walk plays
+	// them (VIWalkControl::UpdateLocomotion's liquid branch): 12 swimming
+	// (moving or turning), 13 treading water (water.go's swimmers)
+	LocoSwim  byte = 12
+	LocoTread byte = 13
 )
 
 // NPCWalkSpeed is a creature's walking pace, Sandstorm's (5.0 to 5.2 units a
@@ -66,16 +71,23 @@ func (w *World) stepNPCToward(npc *NPC, x, z, speed, dt float32) (arrived bool) 
 	if speed >= NPCRunFrom {
 		npc.Loco = LocoRun
 	}
+	if npc.swimming {
+		npc.Loco = LocoSwim
+	}
 	if w.SpatialIndex != nil {
 		w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.X, npc.Z)
 	}
 	return false
 }
 
-// stopMoving leaves it standing: no velocity, the standing animation.
+// stopMoving leaves it standing: no velocity, the standing animation (a
+// swimmer treading water).
 func (n *NPC) stopMoving() {
 	n.VelX, n.VelY, n.VelZ = 0, 0, 0
 	n.Loco = LocoStand
+	if n.swimming {
+		n.Loco = LocoTread
+	}
 }
 
 // moving reports an NPC with a velocity.

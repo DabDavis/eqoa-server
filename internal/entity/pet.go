@@ -792,12 +792,15 @@ func (w *World) petStepLocked(pet *NPC, x, z, toward, speed, dt float32) {
 	}
 	if ok {
 		pet.Y = y
-		return
-	}
-	if y, ok := w.ground.Floor(pet.World, pet.X, own, pet.Z); ok {
+	} else if y, ok := w.ground.Floor(pet.World, pet.X, own, pet.Z); ok {
 		pet.Y = y
 	} else {
 		pet.Y = own
+	}
+	// in deep water it swims at the surface (water.go), its animation
+	// stepNPCToward's walk or run made a swim
+	if w.swimLocked(pet) && pet.Loco != LocoStand && pet.Loco != LocoTread {
+		pet.Loco = LocoSwim
 	}
 }
 

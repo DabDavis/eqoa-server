@@ -79,6 +79,10 @@ type NPC struct {
 	// the channel). All zero for an NPC standing still, as before.
 	VelX, VelY, VelZ float32
 	Loco             byte
+	// swimming: it is at the water's surface, swimming (water.go's
+	// swimLocked); surface the height of that surface, found last
+	swimming bool
+	surface  float32
 
 	// SpawnPoint
 	SpawnX, SpawnY, SpawnZ float32

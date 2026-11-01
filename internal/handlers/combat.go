@@ -105,16 +105,22 @@ func (h *CombatHandler) HandleSwingOutOfReach(sess *session.Session, msg *protoc
 }
 
 // swingFor is the swing CLIENT's AutoAttackTick would make with this
-// player's gear: which of equip slots 14-20 are worn, and the first worn
-// item in 14, 16 or 18 in the client's list order, whose attack type and
-// range (the item record's field after the weapon damage) set the reach.
+// player's gear (swingOf).
 func (h *CombatHandler) swingFor(sess *session.Session, p *entity.Player) entity.Swing {
+	return swingOf(h.gameWorld, h.inventoryStore, sess, p)
+}
+
+// swingOf is the swing CLIENT's AutoAttackTick would make with this player's
+// gear: which of equip slots 14-20 are worn, and the first worn item in 14,
+// 16 or 18 in the client's list order, whose attack type and range (the item
+// record's field after the weapon damage) set the reach.
+func swingOf(gw *entity.World, inv *database.InventoryStore, sess *session.Session, p *entity.Player) entity.Swing {
 	var worn [21]bool
 	hasItem := false
 	var attackType, itemRange int
 	potion, potionLeft := 0, 0 // a potion worn as the thrown weapon (potion.go)
-	if h.inventoryStore != nil {
-		rows, err := h.inventoryStore.GetCharacterItems(p.CharServerID)
+	if inv != nil {
+		rows, err := inv.GetCharacterItems(p.CharServerID)
 		if err != nil {
 			log.Printf("Attack: inventory for %s: %v", p.Name, err)
 		}
@@ -127,7 +133,7 @@ func (h *CombatHandler) swingFor(sess *session.Session, p *entity.Player) entity
 			if !hasItem && (e == 14 || e == 16 || e == 18) {
 				hasItem = true
 				attackType, itemRange = r.Pattern.AttackType, r.Pattern.Unk5
-				if thrownPotion(h.gameWorld, h.inventoryStore, &r.Pattern) {
+				if thrownPotion(gw, inv, &r.Pattern) {
 					potion, potionLeft = r.Pattern.PatternID, r.StackLeft
 				}
 			}
@@ -136,6 +142,17 @@ func (h *CombatHandler) swingFor(sess *session.Session, p *entity.Player) entity
 	s := entity.SwingFor(p.Class, p.Level, worn, hasItem, attackType, itemRange)
 	s.Potion, s.PotionLeft = potion, potionLeft
 	return s
+}
+
+// handsChanged tells the World the player's hands changed (an item worn or
+// taken off, a weapon set, the switch for an art, #template): a fight in
+// progress swings with what it holds now from its next round, as CLIENT's
+// does (entity's HandsChanged).
+func handsChanged(gw *entity.World, inv *database.InventoryStore, sess *session.Session, p *entity.Player) {
+	if gw == nil || sess == nil || p == nil {
+		return
+	}
+	gw.HandsChanged(sess, swingOf(gw, inv, sess, p))
 }
 
 // inventoryListOrder is the carried items (not the bank) in the order the

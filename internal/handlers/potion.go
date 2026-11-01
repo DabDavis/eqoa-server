@@ -229,4 +229,7 @@ func (h *EquipHandler) potionThrown(sess *session.Session, charServerID uint32, 
 		return
 	}
 	queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(idx, 0, 1))
+	if row.EquipLoc >= 0 && row.StackLeft <= 1 {
+		h.wornChanged(sess, p, charServerID) // the last of the worn stack: the hands empty (a monk's bare again)
+	}
 }

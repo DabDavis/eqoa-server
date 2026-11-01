@@ -870,7 +870,7 @@ func (w *World) duelEngageLocked(p *Player, ent Entity, objectID uint32, swing S
 		return false
 	}
 	id := ent.GetEntityID()
-	p.Swing = swing
+	p.Swing, p.swingNew = swing, false
 	if p.AttackTarget == id && p.AttackObjectID == objectID {
 		p.pressed(now) // a press with the client's timer run out (attack.go)
 		return true
@@ -932,8 +932,8 @@ func (w *World) duelRoundLocked(p *Player, now time.Time) bool {
 		w.duelHurtPetLocked(d, p, pet, n, now)
 		return p.AttackTarget == 0
 	}
-	hits := swingHits(p.Swing.Kind)
 	land := func() bool {
+		hits := swingHits(p.Swing.Kind)
 		for p.RoundHits < len(hits) && !now.Before(p.RoundStart.Add(hits[p.RoundHits])) {
 			p.RoundHits++
 			if p.RoundHits == 1 {
@@ -954,6 +954,7 @@ func (w *World) duelRoundLocked(p *Player, now time.Time) bool {
 	if !ok {
 		return true
 	}
+	p.newRound() // the hands it holds now (attack.go HandsChanged)
 	p.RoundStart, p.RoundHits = start, 0
 	p.NextSwing = p.RoundStart.Add(p.Swing.Delay)
 	land()

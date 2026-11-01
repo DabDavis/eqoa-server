@@ -304,7 +304,7 @@ func (w *World) EngageAttack(sess *session.Session, objectID uint32, swing Swing
 		// swinging at it, though the 0x000F still comes.
 		return false
 	}
-	p.Swing = swing
+	p.Swing, p.swingNew = swing, false
 	if p.AttackTarget == npc.ServerID && p.AttackObjectID == objectID {
 		p.pressed(now) // a press with the client's timer run out: its timer from the press
 		return true
@@ -402,6 +402,37 @@ func (p *Player) disengage() {
 	p.ButtonReadAt = time.Time{}
 	p.roundWaits = false
 	p.RoundStart, p.RoundHits = time.Time{}, 0
+	p.swingNew = false
+}
+
+// HandsChanged is a change of the player's hands (an item worn or taken
+// off, a weapon set, the switch for an art: handlers'), with the swing CLIENT
+// would make with what it holds now. A fight in progress swings with it
+// from its next round, as the client's does: AutoAttackTick (0x00BC76A0)
+// picks its swing from the hands as they are at every due swing and puts its
+// timer on by that swing's delay, so the round in hand lands as it was
+// swung and the next comes on the client's beat with the new hands. Until
+// 2026-11-01 the swing was the engagement's for the whole fight (the next
+// 0x000F's: one comes only with the attack button pressed again), so a
+// player who took up a bow fought on with its blades' reach and rounds. Out
+// of a fight there is nothing to do: the next 0x000F's swing is the hands'.
+func (w *World) HandsChanged(sess *session.Session, swing Swing) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil || p.AttackTarget == 0 {
+		return
+	}
+	p.swingNext, p.swingNew = swing, true
+	log.Printf("Combat: %s's hands changed: the next round swings %d (%v, reach %.1f)", p.Name, swing.Kind, swing.Delay, swing.Reach)
+}
+
+// newRound takes up the swing the hands changed to (HandsChanged), at a
+// round's start.
+func (p *Player) newRound() {
+	if p.swingNew {
+		p.Swing, p.swingNew = p.swingNext, false
+	}
 }
 
 // Attacking reports whether the player's auto-attack is on now: a fight
@@ -458,6 +489,7 @@ func (w *World) attackSystem(now time.Time) {
 		if !ok {
 			continue
 		}
+		p.newRound() // the hands it holds now (HandsChanged)
 		p.RoundStart, p.RoundHits = start, 0
 		p.NextSwing = p.RoundStart.Add(p.Swing.Delay)
 		w.playerRoundHitsLocked(p, npc, now)

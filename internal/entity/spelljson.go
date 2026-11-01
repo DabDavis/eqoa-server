@@ -127,6 +127,9 @@ type effectJSON struct {
 	Mitigation      *mitigateJSON `json:"mitigation"`
 	Procs           []effectJSON  `json:"procs"`
 	On              string        `json:"on"`
+	// TargetType is a proc's own target type: "Enemy - Undead" fires on the
+	// undead alone (the proc's, not its buff's, which goes on a friend)
+	TargetType string `json:"target_type"`
 	// Absolute is a "Statistic Absolute" row's figure: set, not changed by
 	// (the spells lane's key: its speed below 0 a root, its power set)
 	Absolute bool `json:"absolute"`
@@ -596,11 +599,21 @@ func (d *SpellDef) readProcsJSON(kind string, e effectJSON) {
 		def := on == "defense" || on == "defence" || (on == "" && kind == "def_proc")
 		pk := strings.ToLower(strings.TrimSpace(p.Kind))
 		n := round(p.Amount)
+		// a proc for the undead alone (its own target type, "Enemy -
+		// Undead": Smite Undead's, Crusader's Aura's) fires only on an
+		// undead creature (undead.go); one for animals or summoned
+		// creatures is not read so (none is in the workbook)
+		tt := strings.ToLower(p.TargetType)
+		undead := strings.Contains(tt, "undead")
+		if strings.Contains(tt, "animal") || strings.Contains(tt, "summoned") {
+			d.unsupported("a proc for %q alone (it fires on any creature)", p.TargetType)
+		}
 		switch {
 		case (pk == "hp" || pk == "hp2") && n < 0:
 			se := effectOf(EffectProc, p)
 			se.Amount, se.AmountMax = -n, -n
 			se.ScaleBearer = se.Scale != StatNone // the proc effect's own modifier: its bearer's (the legend)
+			se.Undead = undead
 			if def {
 				se.Kind, se.Chance = EffectDefProc, 100
 				// a defensive proc's damage is worked out at its landing
@@ -611,6 +624,7 @@ func (d *SpellDef) readProcsJSON(kind string, e effectJSON) {
 		case pk == "hp" && n > 0:
 			se := effectOf(EffectProcHeal, p)
 			se.Defense = def
+			se.Undead = undead
 			if def {
 				se.Chance = 100
 			}
@@ -630,7 +644,7 @@ func (d *SpellDef) readProcsJSON(kind string, e effectJSON) {
 					pd.Effects[i].Self = true // on the bearer
 				}
 			}
-			ps := ProcSpell{Defense: def, Effects: pd.Effects, Duration: seconds(p.DurationS)}
+			ps := ProcSpell{Defense: def, Effects: pd.Effects, Duration: seconds(p.DurationS), Undead: undead}
 			if def {
 				ps.Chance = 100 // the legend's: a defensive proc at every hit
 			}

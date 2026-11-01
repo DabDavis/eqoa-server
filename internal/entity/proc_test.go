@@ -267,3 +267,98 @@ func TestAProcIsKeptOverALogout(t *testing.T) {
 		t.Errorf("an old row: %+v", q.Effects[1])
 	}
 }
+
+// notUndead is a creature that is not undead, for procRolls.
+func notUndead() bool { return false }
+
+// A proc whose own target type is the undead's (the workbook's "Enemy -
+// Undead": Smite Undead, a buff on a friend) fires on an undead creature
+// alone, and stays so over a logout; one whose target type is any enemy's
+// (the control) fires on anything. The same for a proc heal and a spell
+// proc.
+func TestAProcForTheUndeadAlone(t *testing.T) {
+	buff := func(tt string) string {
+		return `{"v":1,"scope":"target","target_type":"Friendly","harmful":false,"duration_s":300,"effects":[
+			{"id":"0001","type":"Offensive Proc","kind":"proc","procs":[
+				{"id":"0002","type":"Dmg/Heal","kind":"hp","amount":-35,"resist":"ar","on":"offense","scope":"target","target_type":"` + tt + `"},
+				{"id":"0003","type":"Dmg/Heal","kind":"hp","amount":20,"on":"offense","scope":"self","target_type":"` + tt + `"},
+				{"id":"0004","type":"Modify Hate","kind":"hate","amount":50,"on":"offense","scope":"target","target_type":"` + tt + `"}]}]}`
+	}
+	for tt, want := range map[string]bool{"Enemy - Undead": true, "Enemy": false} {
+		d := SpellDefFrom("Test Holy Edge", "", "", buff(tt))
+		var procs, heals int
+		for _, e := range d.Effects {
+			switch e.Kind {
+			case EffectProc:
+				procs++
+				if e.Undead != want {
+					t.Errorf("%s: the proc's undead %v, want %v", tt, e.Undead, want)
+				}
+			case EffectProcHeal:
+				heals++
+				if e.Undead != want {
+					t.Errorf("%s: the proc heal's undead %v, want %v", tt, e.Undead, want)
+				}
+			}
+		}
+		if procs != 1 || heals != 1 || len(d.ProcSpells) != 1 || d.ProcSpells[0].Undead != want {
+			t.Errorf("%s: %d procs, %d heals, spell procs %+v", tt, procs, heals, d.ProcSpells)
+		}
+	}
+
+	r := newProcRig(t)
+	defer func(f func(int) int) { procIntn = f }(procIntn)
+	until := r.at(10 * time.Minute)
+	r.friend.Effects = []*ActiveEffect{{SpellID: 9001, Name: "Test Holy Edge", Proc: 35, ProcMax: 35, ProcUndead: true, Until: until}}
+	strike := func(name string) int {
+		r.npc.Name, r.npc.Dead = name, false
+		r.npc.HP = r.npc.MaxHP
+		procIntn = dice(0, 99) // under the chance, over the resist
+		r.w.mu.Lock()
+		r.w.playerProcsLocked(r.fsess, r.friend, r.npc, r.at(time.Minute))
+		r.w.mu.Unlock()
+		return r.npc.MaxHP - r.npc.HP
+	}
+	if got := strike("restless skeleton"); got != 35 {
+		t.Errorf("on an undead creature the proc took %d, want 35", got)
+	}
+	if got := strike("sand crab"); got != 0 {
+		t.Errorf("on a crab the proc took %d, want none", got)
+	}
+	r.friend.Effects[0].ProcUndead = false // the control: a proc for any enemy
+	if got := strike("sand crab"); got != 35 {
+		t.Errorf("the control, a proc for any enemy, took %d from a crab, want 35", got)
+	}
+
+	// kept over a logout
+	r.friend.Effects[0].ProcUndead = true
+	rows := savedEffects(r.friend, r.at(time.Minute))
+	r.friend.Effects, r.friend.Buffs = nil, nil
+	if len(rows) != 1 || r.w.RestoreEffects(r.fsess, rows, r.at(time.Minute)) != 1 || !r.friend.Effects[0].ProcUndead {
+		t.Fatalf("after a logout: %+v", r.friend.Effects)
+	}
+	if got := strike("sand crab"); got != 0 {
+		t.Errorf("after a logout the proc took %d from a crab, want none", got)
+	}
+
+	// a proc heal and a spell proc for the undead alone
+	r.friend.Effects = []*ActiveEffect{{SpellID: 9002, Name: "Test Holy Edge", Until: until,
+		Rules:      EffectRules{ProcHeal: 20, ProcHealChance: 100, ProcHealUndead: true},
+		ProcSpells: []ProcSpell{{Undead: true, Chance: 100, Effects: []SpellEffect{{Kind: EffectHP, Amount: -11, AmountMax: -11}}}}}}
+	for name, want := range map[string]int{"restless skeleton": 20, "sand crab": 0} {
+		r.friend.HP = 100
+		hp := r.npc.MaxHP
+		r.npc.Name, r.npc.Dead, r.npc.HP = name, false, hp
+		procIntn = func(int) int { return 0 }
+		r.w.mu.Lock()
+		r.w.procHealsLocked(r.friend, r.npc, false, r.at(time.Minute))
+		r.w.procSpellsLocked(r.friend, r.fsess, r.npc, false, r.at(time.Minute))
+		r.w.mu.Unlock()
+		if r.friend.HP-100 != want {
+			t.Errorf("%s: the proc healed %d, want %d", name, r.friend.HP-100, want)
+		}
+		if took := hp - r.npc.HP; (want > 0) != (took > 0) {
+			t.Errorf("%s: the spell proc took %d", name, took)
+		}
+	}
+}

@@ -263,6 +263,8 @@ type ActiveEffect struct {
 	ProcScale    Stat
 	ProcScalePct int
 	ProcCap      int
+	// ProcUndead: the proc fires on undead creatures alone (Smite Undead's)
+	ProcUndead bool
 	// Form is the body an illusion shows its bearer in (illusion.go), 0 for
 	// none; FormSize its scale, 0 for the bearer's own.
 	Form     uint32
@@ -1031,6 +1033,7 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 				ae.Proc, ae.ProcMax = e.Amount+bonus, max(e.AmountMax, e.Amount)+bonus
 			}
 			ae.ProcCap = e.Cap
+			ae.ProcUndead = e.Undead
 			if e.Cap > 0 && !e.ScaleBearer {
 				ae.Proc, ae.ProcMax = min(ae.Proc, e.Cap), min(ae.ProcMax, e.Cap)
 			}

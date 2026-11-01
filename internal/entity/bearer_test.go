@@ -126,14 +126,14 @@ func TestABearersProcIsTheBearersStat(t *testing.T) {
 func TestAPetsBearersProc(t *testing.T) {
 	effects := []*ActiveEffect{{Proc: 40, ProcMax: 40, ProcScale: StatStr, ProcScalePct: 30, ProcCap: 65, Until: time.Unix(2_000_000_000, 0)}}
 	now := time.Unix(1_800_000_000, 0)
-	if hits, _ := procRolls(effects, flatStat(50), 30, 30, 0, now, dice(0, 99)); len(hits) != 1 || hits[0] != 55 {
+	if hits, _ := procRolls(effects, flatStat(50), 30, 30, 0, notUndead, now, dice(0, 99)); len(hits) != 1 || hits[0] != 55 {
 		t.Errorf("a bearer of 50: %v", hits)
 	}
-	if hits, _ := procRolls(effects, flatStat(300), 30, 30, 0, now, dice(0, 99)); len(hits) != 1 || hits[0] != 65 {
+	if hits, _ := procRolls(effects, flatStat(300), 30, 30, 0, notUndead, now, dice(0, 99)); len(hits) != 1 || hits[0] != 65 {
 		t.Errorf("a bearer of 300: %v, want the cap", hits)
 	}
 	effects[0].ProcScale, effects[0].ProcCap = StatNone, 0
-	if hits, _ := procRolls(effects, flatStat(300), 30, 30, 0, now, dice(0, 99)); len(hits) != 1 || hits[0] != 40 {
+	if hits, _ := procRolls(effects, flatStat(300), 30, 30, 0, notUndead, now, dice(0, 99)); len(hits) != 1 || hits[0] != 40 {
 		t.Errorf("the control, no scale: %v", hits)
 	}
 }

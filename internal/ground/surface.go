@@ -235,6 +235,19 @@ func (g *Ground) Support(worldN uint8, x, y, z, up, down float32) (float32, bool
 	return best, found
 }
 
+// PlacedSupport is Support of what is placed on the terrain alone (a
+// bridge's deck, a walkway, a house's floor): the highest such floor over
+// (x, z) from down below y to up above it; false where there is none.
+func (g *Ground) PlacedSupport(worldN uint8, x, y, z, up, down float32) (float32, bool) {
+	best, found := float32(0), false
+	for _, s := range g.Surfaces(worldN, x, z, y-down, y+up) {
+		if s.Up && s.Placed && (!found || s.Y > best) {
+			best, found = s.Y, true
+		}
+	}
+	return best, found
+}
+
 // Blocked reports what the way from (x0, y0, z0) to (x1, y1, z1) in world
 // passes through from its front (Crosses), named; false for nothing.
 func (g *Ground) Blocked(worldN uint8, x0, y0, z0, x1, y1, z1 float32) (string, bool) {

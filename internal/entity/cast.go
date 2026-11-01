@@ -148,6 +148,11 @@ type CastSpell struct {
 	Def          SpellDef
 	FX           uint32    // 0x00B1's visual; 0 for the stand-in of its kind
 	Area         SpellArea // what it lands on beside its target (area.go)
+	// HandsBack is the handlers' switch of hands for the cast having taken
+	// up a ranged weapon in place of the hands it took off
+	// (handlers/handswitch.go): at its landing, its caster within its melee
+	// reach of the cast's target, they go back (handsBackLocked)
+	HandsBack bool
 	// resist is the resist that cuts a templated NPC's spell's hit on a
 	// player, by its element (classtemplate.go); a player's spell has none
 	resist Stat
@@ -724,6 +729,78 @@ func (w *World) CastWantsHands(sess *session.Session, spell CastSpell, targetObj
 	return refusal == ""
 }
 
+// HandsBackFunc is the hook that puts back the hands a switch took off for
+// a cast (handlers' HandsBack, handswitch.go). It runs with the World's lock
+// let go, after the tick that landed the cast (runHandsBack).
+type HandsBackFunc func(sess *session.Session, p *Player)
+
+// OnHandsBack sets the hands-back hook.
+func (w *World) OnHandsBack(fn HandsBackFunc) {
+	w.mu.Lock()
+	w.onHandsBack = fn
+	w.mu.Unlock()
+}
+
+// handsBackLocked is a cast's hands at its landing. One the switch took up a
+// ranged weapon for (CastSpell.HandsBack) gives its caster the hands it took
+// off back (runHandsBack) when the caster stands within its melee reach of
+// the cast's target: CLIENT's TargetInRange for bare hands or a melee weapon
+// (meleeReach, a creature's allowance for its size: npcReach, reach.go), so
+// a ranger's arrow art used in melee leaves it on its blades and one shot
+// from further keeps the bow, its auto-attack shooting on (the user,
+// 2026-11-01: "lets fix all these", of a ranger left swinging its bow after
+// an arrow art until a blade art switched it back). A self cast's target is
+// its caster: the bow a self buff took up is only borrowed for it. Never
+// while another cast is on (begun after this one's busy time: Casting),
+// which has its own hands. Must be called with the lock held.
+func (w *World) handsBackLocked(cs *castState, caster *Player) {
+	if !cs.spell.HandsBack || caster.Casting != nil || caster.IsDead() || len(cs.targets) == 0 {
+		return
+	}
+	var x, y, z float32
+	reach := float32(meleeReach)
+	switch id := cs.targets[0]; {
+	case w.Players[id] != nil:
+		x, y, z = w.Players[id].GetPosition()
+	case w.NPCs[id] != nil:
+		npc := w.NPCs[id]
+		x, y, z = npc.GetPosition()
+		reach = npcReach(npc)
+	default:
+		return // gone: no reach to stand in
+	}
+	if outOfRange(caster, x, y, z, reach) {
+		log.Printf("Hands: %s's %q landed %.1f from its target (melee reach %.1f): the ranged weapon kept", caster.Name, cs.spell.Name,
+			dist3(caster.X, caster.Y, caster.Z, x, y, z), reach)
+		return
+	}
+	if sess := w.findSessionByEntityIDLocked(caster.ServerID); sess != nil {
+		w.handsBack = append(w.handsBack, respawnDue{sess: sess, p: caster})
+	}
+}
+
+// runHandsBack hands each player whose hands go back (handsBackLocked) to
+// the hands-back hook, one that began a cast or died since left as it is.
+// Must be called WITHOUT the lock.
+func (w *World) runHandsBack() {
+	w.mu.Lock()
+	due, fn := w.handsBack, w.onHandsBack
+	w.handsBack = nil
+	back := due[:0]
+	for _, d := range due {
+		if d.p.Casting == nil && !d.p.IsDead() {
+			back = append(back, d)
+		}
+	}
+	w.mu.Unlock()
+	if fn == nil {
+		return
+	}
+	for _, d := range back {
+		fn(d.sess, d.p)
+	}
+}
+
 // castTargetsLocked is whom a cast will land on, or the line refusing it.
 // The ability's scope decides, as CLIENT words it (VITargetWord): a self
 // spell lands on the caster whatever is targeted (Sandstorm answered one
@@ -917,6 +994,7 @@ func (w *World) castSystem(now time.Time) []respawnDue {
 		if g := w.landLocked(cs, caster, now); g {
 			gates = append(gates, respawnDue{sess: w.findSessionByEntityIDLocked(caster.ServerID), p: caster})
 		}
+		w.handsBackLocked(cs, caster) // the hands its switch took off, back in melee reach
 	}
 	for i := len(keep); i < len(w.casts); i++ {
 		w.casts[i] = nil

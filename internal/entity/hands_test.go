@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/eqoa/server/internal/protocol"
+	"github.com/eqoa/server/internal/session"
 )
 
 // A monk's bare hands roll its hand to hand (offence.go): the fit's line by
@@ -205,6 +206,89 @@ func TestADuelsSwingFollowsTheHands(t *testing.T) {
 		}
 		if n := run(8*time.Second, 10900*time.Millisecond); n != want || d.a.Swing != swing {
 			t.Errorf("changed %v: the next round %d hits by 10.9 s, swing %+v; want %d", changed, n, d.a.Swing, want)
+		}
+	}
+}
+
+// A cast whose switch took up a ranged weapon (HandsBack) hands its caster to
+// the hands-back hook once it has landed, with the lock let go
+// (runHandsBack), when the caster stands within its melee reach of the
+// cast's target: 4.5 off a creature of no known body, and 4.5 with the
+// allowance of 3 off a big one (reach.go); its own body for a self cast. Not
+// before the landing, not at range (the bow kept), not for a cast the switch
+// did not mark, not with another cast on at the landing or begun before the
+// hook runs. The controls: the first case, and the big creature's distance
+// off one of no body.
+func TestACastsHandsGoBackAtItsLandingInMeleeReach(t *testing.T) {
+	withBodies(t)
+	arrow := CastSpell{SpellID: 1151, DisplayIndex: 11, Scope: 1, Name: "Test Arrow", Range: 30,
+		Def: ParseSpellText("Target, Decrease Hitpoints by 1"), HandsBack: true}
+	arrow.Def.ReqEquip = "Range"
+	eye := CastSpell{SpellID: 1152, DisplayIndex: 12, Scope: 0, Name: "Test Eye",
+		Def: ParseSpellText("Self, Increase DEX by 5, 1min"), HandsBack: true}
+	eye.Def.ReqEquip = "Range"
+	hum := CastSpell{SpellID: 1153, DisplayIndex: 13, Scope: 0, Name: "Test Hum", CastTime: 2 * time.Second,
+		Def: ParseSpellText("Self, Increase STR by 1, 1min")}
+	for _, tc := range []struct {
+		name  string
+		spell CastSpell
+		set   func(c *caster)
+		cast  func(c *caster) // after the spell has begun
+		late  func(c *caster) // after its landing tick, before the hook runs
+		want  int
+	}{
+		{name: "in melee reach", spell: arrow, want: 1},
+		{name: "not marked by a switch", spell: func() CastSpell { s := arrow; s.HandsBack = false; return s }()},
+		{name: "at range", spell: arrow, set: func(c *caster) { c.npc.X = c.p.X + 20 }},
+		{name: "a big creature at 6.5", spell: arrow, set: func(c *caster) { c.npc.ModelID, c.npc.X = testGiant, c.p.X+6.5 }, want: 1},
+		{name: "a creature of no known body at 6.5", spell: arrow, set: func(c *caster) { c.npc.X = c.p.X + 6.5 }},
+		{name: "a self cast", spell: eye, set: func(c *caster) { c.npc.X = c.p.X + 40 }, want: 1},
+		{name: "another cast on at the landing", spell: arrow, cast: func(c *caster) {
+			if !c.w.StartCast(c.sess, hum, 0xFFFFFFFF, c.at(500*time.Millisecond)) {
+				t.Fatal("the second cast did not begin")
+			}
+		}},
+		{name: "a cast begun before the hook", spell: arrow, late: func(c *caster) {
+			c.w.mu.Lock()
+			c.p.Casting = &castState{spell: hum, ends: c.at(time.Hour), lands: c.at(time.Hour)}
+			c.w.mu.Unlock()
+		}},
+	} {
+		c := newCaster(t)
+		c.p.SecondaryType = 7 // the bow the switch took up, alone in the hands
+		var calls []string
+		c.w.OnHandsBack(func(s *session.Session, p *Player) {
+			if s != c.sess {
+				t.Errorf("%s: the hook was handed another session", tc.name)
+			}
+			calls = append(calls, p.Name)
+		})
+		if tc.set != nil {
+			tc.set(c)
+		}
+		target := c.npcO
+		if tc.spell.Scope == 0 {
+			target = 0xFFFFFFFF
+		}
+		if !c.w.StartCast(c.sess, tc.spell, target, c.at(0)) {
+			t.Fatalf("%s: %q did not begin: %x", tc.name, tc.spell.Name, c.sent())
+		}
+		if tc.cast != nil {
+			tc.cast(c)
+		}
+		c.tick(castLand - 100*time.Millisecond)
+		c.w.runHandsBack()
+		if len(calls) != 0 {
+			t.Errorf("%s: the hands went back before the landing", tc.name)
+		}
+		c.tick(castLand)
+		if tc.late != nil {
+			tc.late(c)
+		}
+		c.w.runHandsBack()
+		c.w.runHandsBack() // handed once
+		if len(calls) != tc.want {
+			t.Errorf("%s: the hook ran %d times, want %d", tc.name, len(calls), tc.want)
 		}
 	}
 }

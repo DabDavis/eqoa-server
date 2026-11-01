@@ -210,15 +210,56 @@ func (s *SpellbookStore) SetSpellVisual(spellID int, fx uint32, who GMEdit, deta
 
 // SpellEffect is a spell's spelleffect row: the line saying what it does
 // and the visual Sandstorm names for it (0 when none was recorded). ok is
-// false for a spell with no row.
+// false for a spell with no row. SpellEffectRow has its effects too.
 func (s *SpellbookStore) SpellEffect(spellID int) (line string, fx uint32, ok bool, err error) {
+	r, ok, err := s.SpellEffectRow(spellID)
+	return r.Line, r.FX, ok, err
+}
+
+// SpellEffectRow is a spell's spelleffect row whole: the line, the effects
+// (JSON, entity/spelljson.go; "" for none), the visual. What a spell does is
+// built from both by entity.SpellDefFrom: the effects when there are any,
+// else the line.
+type SpellEffectRow struct {
+	Line    string
+	Effects string
+	FX      uint32
+}
+
+// SpellEffectRow is a spell's spelleffect row; ok is false for a spell with
+// none.
+func (s *SpellbookStore) SpellEffectRow(spellID int) (SpellEffectRow, bool, error) {
+	var r SpellEffectRow
 	var dict int64
-	err = s.db.QueryRow(`SELECT line, fxdict FROM spelleffect WHERE spellid = ?`, spellID).Scan(&line, &dict)
+	err := s.db.QueryRow(`SELECT line, effects, fxdict FROM spelleffect WHERE spellid = ?`, spellID).Scan(&r.Line, &r.Effects, &dict)
 	if err == sql.ErrNoRows {
-		return "", 0, false, nil
+		return SpellEffectRow{}, false, nil
 	}
 	if err != nil {
-		return "", 0, false, err
+		return SpellEffectRow{}, false, err
 	}
-	return line, uint32(dict), true, nil
+	r.FX = uint32(dict)
+	return r, true, nil
+}
+
+// SpellEffectsJSON is a spell's spelleffect.effects ("" for none), for a
+// reader that has its line already.
+func (s *SpellbookStore) SpellEffectsJSON(spellID int) (string, error) {
+	r, _, err := s.SpellEffectRow(spellID)
+	return r.Effects, err
+}
+
+// ensureSpellEffects adds spelleffect.effects (the workbook's effects as
+// JSON, 2026-11-01) to a table made before it, its rows reading none.
+func (db *SQLiteDB) ensureSpellEffects() error {
+	has, err := hasColumn(db.DB, "spelleffect", "effects")
+	if err != nil {
+		return fmt.Errorf("spelleffect: %w", err)
+	}
+	if !has {
+		if _, err := db.Exec(`ALTER TABLE spelleffect ADD COLUMN effects TEXT NOT NULL DEFAULT ''`); err != nil {
+			return fmt.Errorf("spelleffect: %w", err)
+		}
+	}
+	return nil
 }

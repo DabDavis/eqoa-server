@@ -1205,6 +1205,8 @@ var catalog = map[string]tableNote{
 			"spellid": {Label: "Spell", Ref: "spellpattern"},
 			"line":    {Label: "What it does", Format: "multiline"},
 			"fxdict":  {Label: "Visual", Format: hex32},
+			"effects": {Label: "Effects (JSON)", Format: "multiline", Help: "EQOAEmu's spell workbook's effects as JSON " +
+				"(entity/spelljson.go): when not empty, what the spell does, the line then only words; empty, the line is read."},
 		},
 	},
 	"spellarea": {

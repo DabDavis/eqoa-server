@@ -145,9 +145,13 @@ What it writes, and from what:
       that one is listed, `folds`, and tools/fix_eqoaemu_followup2.py folds
       a made one into it), and that item takes the workbook's use over its
       own as the record takes the workbook's (its effect's name kept, its
-      icon a made potion's). A use the import wrote takes, on a plan made
-      again, the body and target's own share it says now (a GM's value since
-      left, and said).
+      icon a made potion's), and the workbook's item's level (the Pill's 60,
+      the user's "yes make it level 60", 2026-11-01). A use of ours the
+      workbook gives as invisibility (the Ethereal potions', the Phase
+      Ring's) takes the workbook's time in its line (the user's "use
+      workbook durations"; its words otherwise ours). A use the import wrote
+      takes, on a plan made again, the body and target's own share it says
+      now (a GM's value since left, and said).
 
   spellgates: a new teleport whose Location names a world and a point gets
       its row (kind group or self by its scope, its radius the spell's, the
@@ -1953,6 +1957,9 @@ def potion_line(objs, thrown, area=0, place=None, cures=1):
     return line, unsaid
 
 
+# a line's time, as spelltext.go's reDuration reads one ("4min", "18sec")
+LINE_TIME = re.compile(r"(?i)^(?:for\s+)?\d+(?:\.\d+)?\s*(?:sec|secs|second|seconds|s|min|mins|minute|minutes|hr|hrs|hour|"
+                       r"hours)$")
 # the invisible body, either way round: an illusion of it is invisibility
 # (entity/spelljson.go's invisibleSprite), which the use's own Invisible
 # effect says in its line
@@ -2346,6 +2353,7 @@ class MadeItems:
             return
         old = self.uses.get(pid)
         if old is not None and not replace and (old.get("source") or "") != "eqoaemu":
+            self.ours_time(pid, r, rows, old)
             return  # a use of ours
         if old is None and (MEAL_DESC.search(r["itemdesc"] or "") or DRINK_DESC.search(r["itemdesc"] or "")):
             return
@@ -2383,6 +2391,13 @@ class MadeItems:
                     self.out["updates"].append(dict(patternid=pid, name=r["itemname"], before={k: r.get(k) for k in changed},
                                                     set=changed))
                     r.update(changed)
+        if replace and r.get("levelreq") != level:
+            # the workbook's item's level too (the user, 2026-11-01, of the
+            # Transformative Pill: "yes make it level 60"), its other columns ours
+            self.out["updates"].append(dict(patternid=pid, name=r["itemname"], before={"levelreq": r.get("levelreq")},
+                                            set={"levelreq": level}))
+            r["levelreq"] = level
+            self.lists["an item of ours a merged spell makes: the workbook's level"].append(f"{tag}: L{level}")
         if old is None:
             self.out["itemeffects"].append(dict(patternid=pid, line=line, name="", icon=0, breaks="", wear=0,
                                                 area=float(area), source="eqoaemu", **extras))
@@ -2407,6 +2422,42 @@ class MadeItems:
             self.lists["a use's body no CSprite on the disc has (not written)"].append(f"{tag}: {out['body']:#010x}")
             del out["body"]
         return out
+
+    def ours_time(self, pid, r, rows, old):
+        """A use of ours the workbook gives as invisibility (the Ethereal
+        potions', the Phase Ring's: its Invisible effect) takes the
+        workbook's time, its line's own time put in its place (the user,
+        2026-11-01: "use workbook durations"); its words otherwise ours (the
+        Volatile Ethereal Potion's speed too: listed, not said)."""
+        if pid in self.given:
+            return
+        objs, _ = self.effects_of(rows)
+        if not any(o["kind"] == "invis" for o in objs):
+            return
+        self.given.add(pid)
+        tag = f"{pid} {r['itemname']} (the workbook's {cell(rows[0], 'Name')})"
+        dur = max([o.get("duration_s") or 0 for o in objs] + [0])
+        line = old.get("line") or ""
+        if not dur or not re.search(r"(?i)\binvis", line):
+            return
+        parts = [x.strip() for x in line.split(",")]
+        at = next((i for i in range(len(parts) - 1, 0, -1) if LINE_TIME.match(parts[i])), None)
+        if at is None:
+            parts.append(fmt_dur(dur))
+        else:
+            parts[at] = fmt_dur(dur)
+        want = ", ".join(parts)
+        unsaid = sorted({o["kind"] for o in objs} - {"invis", "illusion"})
+        if unsaid:
+            self.lists["an invisibility of ours given the workbook's time: what else its use does, not said"].append(
+                f"{tag}: {', '.join(unsaid)}")
+        if want == line:
+            return
+        self.out["itemeffect_updates"].append(dict(patternid=pid, name=r["itemname"], before={"line": line},
+                                                   set={"line": want}))
+        self.uses[pid] = dict(old, line=want)
+        self.counts["items of ours: an invisibility given the workbook's time"] += 1
+        self.lists["an item of ours: an invisibility given the workbook's time"].append(f"{tag}: {line!r} -> {want!r}")
 
     def use_columns(self, pid, r, tag, old, want, replace):
         """An existing use's columns made want's: all of them (replace: the

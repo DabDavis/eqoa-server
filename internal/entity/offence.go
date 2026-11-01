@@ -91,13 +91,56 @@ func targetDefenceAt(npc *NPC, level int) float64 {
 	return 3.26*(l-20) + 0.0652*(l-20)*(l-30)
 }
 
+// A monk's bare hands (the user, 2026-11-01: "fix the monks' bare hands"):
+// a monk with no weapon in its hands and none in the ranged slot
+// (Gear.BareHands) rolls on a hand-to-hand DMG by its level, a one-hander's
+// in repair, where a bare hand rolled a weapon's DMG of 0 (its STR alone). Its
+// punches want bare hands (the workbook's required equipment None,
+// workbookmore.go), so until then a monk fought with a weapon or with
+// nothing. Ours: no record of the live game's hand-to-hand damage exists,
+// and Sandstorm's unarmed characters do not swing at all. It is the line of
+// the server's own items: the median DMG of the one-handed weapons a monk may
+// wear (wear 12 and 14, attack types 1-6, a class mask with the monk's bit or
+// none, no GM's test item) at each levelreq 1-60 (eqoaclassic's of
+// 2026-11-01: 283 weapons over 58 levels) lies on 10.64 a level less 4
+// (least absolute deviations; each ten levels' median residual within 3 of
+// it; least squares on the medians 10.34 L + 5.6, on every weapon 10.95 L -
+// 6.1): 7 at level 1, 49 at 5, 102 at 10, 209 at 20, 315 at 30, 422 at 40,
+// 528 at 50, 634 at 60. The levels' own medians at 58-60 run above it (640,
+// 690, 700: the epics).
+var (
+	handToHandPerLevel = 10.64
+	handToHandAt0      = -4.0
+)
+
+// The monk's class id, and the ranger's (balancekit.go).
+const (
+	classMonk   = 4
+	classRanger = 1
+)
+
+// handToHandDMG is a monk's bare hands' DMG at a level.
+func handToHandDMG(level int) int {
+	return max(int(math.Round(handToHandPerLevel*float64(level)+handToHandAt0)), 1)
+}
+
+// meleeWeapon is what the player's melee rolls on: its weapon's DMG, its
+// condition and whether it takes both hands, or a monk's bare hands'
+// (handToHandDMG). Any other class's bare hands roll a weapon's 0.
+func (p *Player) meleeWeapon() (dmg int, cond float64, twoHanded bool) {
+	g := &p.Gear
+	if g.BareHands && p.Class == classMonk {
+		return handToHandDMG(p.Level), 1, false
+	}
+	return g.WeaponDamage, g.WeaponCond, g.WeaponTwoHanded
+}
+
 // playerMeleeRoll is the player's roll on the NPC: its floor and its ends.
 func playerMeleeRoll(p *Player, npc *NPC) (floor, low, high int) {
-	g := &p.Gear
-	cond := g.WeaponCond
-	d := float64(g.WeaponDamage) * rollWorth(cond)
-	fl := float64(g.WeaponDamage) * floorWorth(cond)
-	if g.WeaponTwoHanded {
+	dmg, cond, two := p.meleeWeapon()
+	d := float64(dmg) * rollWorth(cond)
+	fl := float64(dmg) * floorWorth(cond)
+	if two {
 		d *= offTwoHand
 		fl *= offFloorTwo
 	}

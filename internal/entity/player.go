@@ -171,7 +171,11 @@ type Player struct {
 	AttackObjectID uint32
 	NextSwing      time.Time
 	Swing          Swing
-	ButtonReadAt   time.Time
+	// swingNext is what the next round swings with when the hands changed in
+	// the fight (swingNew; attack.go HandsChanged)
+	swingNext    Swing
+	swingNew     bool
+	ButtonReadAt time.Time
 	// roundWaits: the next round waits for the button and the reach, and
 	// begins with the tick that sees both (attack.go)
 	roundWaits bool

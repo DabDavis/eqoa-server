@@ -105,17 +105,17 @@ func (w *World) playerStatsLocked(p *Player, now time.Time) []string {
 
 	foe := &NPC{Level: p.Level}
 	floor, low, high := playerMeleeRoll(p, foe)
-	hands := "one-handed"
-	if p.Gear.WeaponTwoHanded {
-		hands = "two-handed"
-	}
-	out = append(out, fmt.Sprintf("Melee: weapon DMG %d at %.0f%% (%s); on a level %d creature %d-%d a hit, never under %d",
-		p.Gear.WeaponDamage, p.Gear.WeaponCond*100, hands, p.Level, max(low, floor), max(high, floor), floor))
+	out = append(out, fmt.Sprintf("Melee: %s; on a level %d creature %d-%d a hit, never under %d",
+		meleeWeaponWords(p), p.Level, max(low, floor), max(high, floor), floor))
 	if p.AttackTarget != 0 && p.Swing.Delay > 0 {
 		s := p.Swing
 		line := fmt.Sprintf("Swing: %s every %.1f s, %d hits a round, reach %.1f", swingName(s.Kind), s.Delay.Seconds(), len(swingHits(s.Kind)), s.Reach)
 		if s.Potion != 0 {
 			line += fmt.Sprintf(", throwing potions (%d left)", s.PotionLeft)
+		}
+		if p.swingNew { // the hands changed in the fight (attack.go HandsChanged)
+			n := p.swingNext
+			line += fmt.Sprintf("; from the next round %s every %.1f s, reach %.1f", swingName(n.Kind), n.Delay.Seconds(), n.Reach)
 		}
 		out = append(out, line)
 	} else {
@@ -219,6 +219,27 @@ func (w *World) npcStatsLocked(npc *NPC, viewer *Player, now time.Time) []string
 	}
 	out = append(out, "Effects: "+effectsLine(npc.Effects, now))
 	return out
+}
+
+// meleeWeaponWords is what the player's melee rolls on (meleeWeapon), as
+// #stats says it.
+func meleeWeaponWords(p *Player) string {
+	g := &p.Gear
+	dmg, cond, two := p.meleeWeapon()
+	switch {
+	case g.BareHands && p.Class == classMonk:
+		return fmt.Sprintf("bare hands, a monk's hand to hand of level %d, DMG %d", p.Level, dmg)
+	case g.BareHands:
+		return "bare hands, DMG 0"
+	}
+	what := "weapon"
+	switch {
+	case g.WeaponSlot == 18:
+		what = "ranged weapon"
+	case two:
+		what = "two-handed weapon"
+	}
+	return fmt.Sprintf("%s DMG %d at %.0f%%", what, dmg, cond*100)
 }
 
 // hitRangeOn is a creature roll's hits on the player: lowest and highest.

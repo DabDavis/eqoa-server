@@ -1118,11 +1118,20 @@ func characterGear(items []database.CharInventoryEntry) []byte {
 
 // wornGear sums the stats of the items worn (an equip slot, not the bank),
 // by the stat ids the dump gives them (itemPatternStats), and takes the
-// primary weapon's damage, or the two-hander's, its condition (hit points
-// over their most; an item that holds none, as the default inventory's,
-// whole) and whether it takes both hands (wear slot 15).
+// swinging weapon's damage, its condition (hit points over their most; an
+// item that holds none, as the default inventory's, whole) and whether it
+// takes both hands (wear slot 15): the primary weapon's or the two-hander's,
+// else the ranged weapon's (equip slot 18), which CLIENT's GetSwing swings
+// only with no weapon in hand (until 2026-11-01 slot 18 was never read, and a
+// bow's or a thrown weapon's every swing rolled DMG 0; a potion worn as the
+// thrown weapon has DMG 0 and is thrown, not rolled: entity/potion.go). The
+// hands are bare with no weapon in 14, 15 or 16 (a shield, an item held,
+// bait and a fishing pole are none) and nothing in 18, where a monk's melee
+// rolls on its hand to hand (entity/offence.go).
 func wornGear(items []database.CharInventoryEntry) entity.Gear {
 	g := entity.Gear{WeaponCond: 1}
+	var main, ranged *database.CharInventoryEntry
+	armed := false
 	for i := range items {
 		it := &items[i]
 		if it.EquipLoc < 0 || it.Location != 0 {
@@ -1131,16 +1140,36 @@ func wornGear(items []database.CharInventoryEntry) entity.Gear {
 		for id, v := range itemPatternStats(&it.Pattern) {
 			g.Add(id, v)
 		}
-		if it.EquipLoc == 14 || it.EquipLoc == 16 {
-			g.WeaponDamage = it.Pattern.WeaponDamage
-			g.WeaponCond = 1
-			if it.RemainHP > 0 && it.Pattern.MaxHP > 0 && it.RemainHP < it.Pattern.MaxHP {
-				g.WeaponCond = float64(it.RemainHP) / float64(it.Pattern.MaxHP)
-			}
-			g.WeaponTwoHanded = it.EquipLoc == 16 || it.Pattern.EquipSlot == 15
+		switch it.EquipLoc {
+		case 14, 16:
+			main = it
+			armed = armed || handWeapon(&it.Pattern)
+		case 15:
+			armed = armed || handWeapon(&it.Pattern)
+		case equipRanged:
+			ranged = it
+			armed = true
 		}
 	}
+	w := main
+	if w == nil || !handWeapon(&w.Pattern) && ranged != nil {
+		w = ranged
+	}
+	if w != nil {
+		g.WeaponDamage, g.WeaponSlot, g.WeaponType = w.Pattern.WeaponDamage, w.EquipLoc, w.Pattern.AttackType
+		if w.RemainHP > 0 && w.Pattern.MaxHP > 0 && w.RemainHP < w.Pattern.MaxHP {
+			g.WeaponCond = float64(w.RemainHP) / float64(w.Pattern.MaxHP)
+		}
+		g.WeaponTwoHanded = w.EquipLoc == 16 || w.Pattern.EquipSlot == wearTwoHand
+	}
+	g.BareHands = !armed
 	return g
+}
+
+// handWeapon is whether an item worn in a weapon's hand (equip slots 14, 15
+// and 16) is a weapon: anything there but a fishing pole or bait.
+func handWeapon(p *database.ItemPatternRecord) bool {
+	return p.EquipSlot != wearFishingPole && p.EquipSlot != wearBait
 }
 
 // generateRandomName generates a random character name.

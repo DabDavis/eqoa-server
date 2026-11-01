@@ -47,6 +47,16 @@ type SimPlayer struct {
 	// look gives it (a second weapon's, a bow's 7), -1 a held item; 0 none
 	// given (newSimFight then reads it off Worn)
 	SecondaryType int
+	// Hands is what its hands may hold (SimKitFromDB): the first the hands it
+	// fights with (Gear, Worn and the types above are those, on its Body),
+	// the others what it switches to for an art the hands it holds do not
+	// fit (a ranger's bow for its arrows, its blades back for its blade
+	// arts), as the server switches a player's (handlers/handswitch.go):
+	// its swing and its DMG are then those of what it holds. Nil: it holds
+	// what Gear and Worn say, the whole fight
+	Hands []SimHands
+	// Body is what it wears but its hands, with Hands
+	Body Gear
 	// CMs is what its masteries give, by the mastery window's slots
 	CMs [CMSlots]int
 	// Spells is its book: what it may cast
@@ -252,6 +262,7 @@ type simFight struct {
 	roots                  []CastSpell // the book's roots, one that holds through a hit first, then the highest (SimPlay.Root)
 	reserve                int         // power kept for a heal
 	casts                  int
+	hands                  int       // the kit's Hands it holds
 	moveUntil              time.Time // a rooting caster stepping back: no cast till then
 	rootAt                 float32   // how far off its NPC a rooting caster stands (simRootAt)
 	rootLands              time.Time // a rooting caster's root in flight lands then
@@ -275,23 +286,7 @@ func newSimFight(pl SimPlayer, foe SimNPC, b *Balance) *simFight {
 		Speed: 8.833333, X: 10000, Y: 0, Z: 10000, World: 0}
 	p.BaseStr, p.BaseSta, p.BaseAgi, p.BaseDex = pl.Base[0], pl.Base[1], pl.Base[2], pl.Base[3]
 	p.BaseWis, p.BaseInt, p.BaseCha = pl.Base[4], pl.Base[5], pl.Base[6]
-	p.Gear = pl.Gear
-	// its hands, for a spell's required equipment (workbookmore.go): the
-	// kit's weapon, a shield (17), an off-hand weapon (15) or a bow (20);
-	// a kit that names its other hand (SimKitFromDB) as it does
-	p.PrimaryType = byte(pl.AttackType)
-	if pl.Worn[17] {
-		p.Shield = 1
-	}
-	switch {
-	case pl.SecondaryType > 0:
-		p.SecondaryType = byte(pl.SecondaryType)
-	case pl.SecondaryType < 0: // a held item: no weapon
-	case pl.Worn[15]:
-		p.SecondaryType = 1
-	case pl.Worn[20]:
-		p.SecondaryType = 7
-	}
+	simDress(p, &pl, 0)
 	p.CMEffects = pl.CMs
 	p.RecalcStats(true)
 	w.Players[p.ServerID] = p
@@ -336,6 +331,77 @@ func newSimFight(pl SimPlayer, foe SimNPC, b *Balance) *simFight {
 	return f
 }
 
+// simDress puts the kit's hands i on the player (Hands), on what it wears
+// but its hands, else its Gear; and its hands' attack types, for a spell's
+// required equipment (workbookmore.go): the kit's weapon, a shield (17), an
+// off-hand weapon (15) or a bow (20); a kit that names its other hand
+// (SimKitFromDB) as it does.
+func simDress(p *Player, pl *SimPlayer, i int) {
+	if len(pl.Hands) > 0 {
+		h := &pl.Hands[i]
+		p.Gear = pl.Body.with(h.Gear)
+		p.PrimaryType, p.SecondaryType, p.Shield = h.Primary, h.Secondary, 0
+		if h.Worn[17] {
+			p.Shield = 1
+		}
+		return
+	}
+	p.Gear = pl.Gear
+	p.PrimaryType = byte(pl.AttackType)
+	if pl.Worn[17] {
+		p.Shield = 1
+	}
+	switch {
+	case pl.SecondaryType > 0:
+		p.SecondaryType = byte(pl.SecondaryType)
+	case pl.SecondaryType < 0: // a held item: no weapon
+	case pl.Worn[15]:
+		p.SecondaryType = 1
+	case pl.Worn[20]:
+		p.SecondaryType = 7
+	}
+}
+
+// swing is the swing the player makes with the hands it holds (SwingFor on
+// them; a kit with no Hands its Worn's).
+func (f *simFight) swing() Swing {
+	if len(f.pl.Hands) == 0 {
+		return SwingFor(f.p.Class, f.p.Level, f.pl.Worn, f.pl.AttackType != 0, f.pl.AttackType, 0)
+	}
+	h := &f.pl.Hands[f.hands]
+	return SwingFor(f.p.Class, f.p.Level, h.Worn, h.AttackType != 0, h.AttackType, h.Range)
+}
+
+// hold switches the player's hands to the kit's Hands i, as the server's
+// switch does (handlers/handswitch.go): what they add and their attack
+// types, its stats from them, and a fight's swing from its next round
+// (HandsChanged).
+func (f *simFight) hold(i int) {
+	w, p := f.w, f.p
+	w.mu.Lock()
+	simDress(p, &f.pl, i)
+	p.RecalcStats(false)
+	w.mu.Unlock()
+	f.hands = i
+	w.HandsChanged(f.sess, f.swing())
+}
+
+// handsFor is the server's switch for a spell its hands do not fit, when
+// that alone would refuse it (CastWantsHands): the first of the kit's other
+// Hands that fits it (handlers/handswitch.go takes the ones a switch took
+// off first, a kit's first Hands).
+func (f *simFight) handsFor(s *CastSpell, target uint32) {
+	if len(f.pl.Hands) < 2 || s.Def.ReqEquip == "" || !f.w.CastWantsHands(f.sess, *s, target, f.now) {
+		return
+	}
+	for i := range f.pl.Hands {
+		if i != f.hands && f.pl.Hands[i].fits(s.Def.ReqEquip) {
+			f.hold(i)
+			return
+		}
+	}
+}
+
 // tick is one of the World's ticks, the systems a fight lives in, in the
 // tick's order (systems.go tickLocked).
 func (f *simFight) tick() {
@@ -373,6 +439,9 @@ func (f *simFight) run(limit time.Duration) SimResult {
 	}
 	for f.now.Before(f.t0) {
 		f.tick()
+	}
+	if f.hands != 0 {
+		f.hold(0) // a buff's switch: its fighting hands taken up again for the pull
 	}
 	w.mu.Lock()
 	p.HP, p.Power = p.MaxHPNow(), p.MaxPowerNow()
@@ -596,8 +665,7 @@ func (f *simFight) charm() *NPC {
 
 // engage presses the attack button at the NPC, and holds it.
 func (f *simFight) engage() {
-	swing := SwingFor(f.p.Class, f.p.Level, f.pl.Worn, f.pl.AttackType != 0, f.pl.AttackType, 0)
-	f.w.EngageAttack(f.sess, simFoeID, swing, f.now)
+	f.w.EngageAttack(f.sess, simFoeID, f.swing(), f.now)
 	f.w.mu.Lock()
 	f.p.AutoAttack = true
 	f.w.mu.Unlock()
@@ -809,6 +877,7 @@ func (f *simFight) castBuffs() {
 		if s.Scope == 1 {
 			target = simMe
 		}
+		f.handsFor(&s, target)
 		if f.w.StartCast(f.sess, s, target, f.now) {
 			for range int((s.CastTime + castLand + castBusy) / simTick) {
 				f.tick()
@@ -898,6 +967,7 @@ func (f *simFight) play(pet *NPC) {
 		return
 	}
 	cast := func(s CastSpell, target uint32) bool {
+		f.handsFor(&s, target) // the server's switch for its required equipment
 		if w.StartCast(f.sess, s, target, f.now) {
 			f.casts++
 			return true

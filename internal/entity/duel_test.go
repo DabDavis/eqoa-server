@@ -908,13 +908,18 @@ func TestDuelHoldAndSlow(t *testing.T) {
 	slowed := d.a.SpeedNow()
 	d.w.addEffectLocked(d.a, &ActiveEffect{SpellID: 802, Name: "Root", Until: d.at(time.Minute), Root: true, duelFoe: d.b.ServerID}, d.at(2*time.Second))
 	held := d.a.SpeedNow()
+	// a line's snare that is not a duel's slows no player; a hold of its own
+	// or a friend's cast holds it as a duel's does (Spirit Form's: the user,
+	// 2026-11-01, "yes hold the tree form")
+	d.w.addEffectLocked(d.c, &ActiveEffect{SpellID: 804, Name: "Odd Snare", Until: d.at(time.Minute), Snare: true}, d.at(2*time.Second))
+	unslowed := d.c.SpeedNow()
 	d.w.addEffectLocked(d.c, &ActiveEffect{SpellID: 803, Name: "Odd", Until: d.at(time.Minute), Root: true}, d.at(2*time.Second))
 	d.w.mu.Unlock()
 	if slowed != run*duelSnare || held != 0 {
 		t.Fatalf("run %v, slowed %v, held %v", run, slowed, held)
 	}
-	if d.c.SpeedNow() != d.c.Speed {
-		t.Fatalf("a hold that is not a duel's: %v", d.c.SpeedNow())
+	if unslowed != d.c.Speed || d.c.SpeedNow() != 0 {
+		t.Fatalf("not a duel's: a snare %v (want the run's %v), a hold %v (want 0)", unslowed, d.c.Speed, d.c.SpeedNow())
 	}
 	if got := ofOp(duelDrain(d.sa), protocol.OpcodePlayerSpeed); len(got) != 2 {
 		t.Fatalf("%d speeds sent as the hold and the slow landed, want 2", len(got))

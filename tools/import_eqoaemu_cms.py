@@ -689,29 +689,14 @@ def match(W, O, spellmap):
 
 # ---- the plan ----------------------------------------------------------------------------
 
-class Ctx:
-    def __init__(self, db, W, spellmap, levels, opts):
-        self.db, self.W, self.spellmap, self.levels, self.opts = db, W, spellmap, levels, opts
-        self.byw = {w["wid"]: w for w in W}
+class SpellNames:
+    """The workbook's spells as ours and as the window names them (Ctx's,
+    and tools/fix_eqoaemu_followup2.py's for a rank it puts right)."""
+
+    def __init__(self, db, spellmap, levels):
+        self.spellmap, self.levels = spellmap, levels
         self.spells = {sid: (name, lvl) for sid, name, lvl in
                        db.execute("SELECT spellid, spellname, abilitylvl FROM spellpattern")}
-        self.quests = {}
-        self.quest_notes = {}
-        if has_table(db, "quests"):
-            notes = "notes" in [r[1] for r in db.execute("PRAGMA table_info(quests)")]
-            for qid, name, enabled, text in db.execute(
-                    f"SELECT questid, name, enabled, {'notes' if notes else chr(39) * 2} FROM quests"):
-                self.quests[qid] = (name, enabled)
-                self.quest_notes[qid] = text or ""
-        self.import_keys = {}  # tools/import_quests.py's key -> questid
-        if has_table(db, "quest_import_quests"):
-            self.import_keys = {k: q for k, q in db.execute("SELECT key, questid FROM quest_import_quests")}
-        self.were_gates = {}
-        self.quest_spells = collections.defaultdict(set)  # spellid -> quests rewarding it
-        if has_table(db, "queststeps"):
-            for qid, sp in db.execute("SELECT questid, spells FROM queststeps WHERE spells != ''"):
-                for sid in id_list(sp.replace(";", ",").replace(" ", ",")):
-                    self.quest_spells[sid].add(qid)
         self.unmapped = collections.Counter()
         self.missing_spells = collections.Counter()
 
@@ -747,6 +732,30 @@ class Ctx:
             ids.append(str(sid))
             names.append(shown)
         return "; ".join(names), (",".join(ids) if any(i != "0" for i in ids) else "")
+
+
+class Ctx(SpellNames):
+    def __init__(self, db, W, spellmap, levels, opts):
+        super().__init__(db, spellmap, levels)
+        self.db, self.W, self.opts = db, W, opts
+        self.byw = {w["wid"]: w for w in W}
+        self.quests = {}
+        self.quest_notes = {}
+        if has_table(db, "quests"):
+            notes = "notes" in [r[1] for r in db.execute("PRAGMA table_info(quests)")]
+            for qid, name, enabled, text in db.execute(
+                    f"SELECT questid, name, enabled, {'notes' if notes else chr(39) * 2} FROM quests"):
+                self.quests[qid] = (name, enabled)
+                self.quest_notes[qid] = text or ""
+        self.import_keys = {}  # tools/import_quests.py's key -> questid
+        if has_table(db, "quest_import_quests"):
+            self.import_keys = {k: q for k, q in db.execute("SELECT key, questid FROM quest_import_quests")}
+        self.were_gates = {}
+        self.quest_spells = collections.defaultdict(set)  # spellid -> quests rewarding it
+        if has_table(db, "queststeps"):
+            for qid, sp in db.execute("SELECT questid, spells FROM queststeps WHERE spells != ''"):
+                for sid in id_list(sp.replace(";", ",").replace(" ", ",")):
+                    self.quest_spells[sid].add(qid)
 
 
 def target_ids(ctx, wid, row_classes, row_races, ids_of):

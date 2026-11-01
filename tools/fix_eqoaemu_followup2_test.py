@@ -18,6 +18,8 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import fix_eqoaemu_followup2 as f2  # noqa: E402
+import import_eqoaemu_cms as cms  # noqa: E402
+import import_eqoaemu_cms_test as cmt  # noqa: E402
 import import_eqoaemu_spells as im  # noqa: E402
 import import_eqoaemu_spells_test as imt  # noqa: E402
 
@@ -421,6 +423,143 @@ class Followup2Test(unittest.TestCase):
         back, left, _ = im.undo(self.db, False, f2.LOG, f2.META, f2.WHAT)
         self.assertEqual(left, 0)
         self.assertEqual(self.dump(self.db), before)
+
+
+# the workbook's errata (made up: import_eqoaemu_spells_test.py's ErrataTest's
+# rows and records), and a rank that adds the spell it requires
+RANK_ROWS = [cmt.wrow("0F01", "Bone Teachings 1", cls="Class", sub="Necromancer", klass="NEC", level="25", points="25",
+                      abil=[("0300", "Bone Mastery")], adds=[("0300", "Bone Mastery")], removes=[("0300", "Bone Mastery")])]
+RANK_TABLE = {"Bone Teachings 1": ("Bone Mastery", "Bone Mastery +")}
+
+
+@contextlib.contextmanager
+def errata(on=True):
+    """The imports' errata tables, made up (off: the imports as they were)."""
+    keep = getattr(cms, "RANK_ADDS", None)
+    cms.RANK_ADDS = RANK_TABLE if on else {}
+    try:
+        with imt.errata(imt.TWO if on else None, imt.DESCS if on else None):
+            yield
+    finally:
+        cms.RANK_ADDS = keep
+
+
+def errata_workbook():
+    return im.Workbook({"Spells": imt.ERRATA_ROWS, "Effects": imt.ERRATA_FX, "Created Item Info": [],
+                        "Created Item Effects": [], "Pets": []})
+
+
+class ErrataTest(unittest.TestCase):
+    """The doc's 5 on a database the imports left with the workbook's errors
+    (the second spell's effects summed on the first's record, the "+" record
+    of ours untouched, the rank adding what it requires): the first takes
+    its own effects alone, the record of ours the second's and its
+    description, the rank the spell it means, each as a fresh import writes
+    it; the owners' books stay, each said; a row someone changed since the
+    import is left, said; a second plan empty; --undo exact. The control:
+    without the errata, nothing of it. Every name and figure made up."""
+
+    def setUp(self):
+        d = tempfile.mkdtemp()
+        self.db = self.made(os.path.join(d, "e.db"))
+        with errata(False):
+            im.apply(self.db, im.plan(self.db, errata_workbook(), imt.ERRATA_MAP, weres={}))
+        x = self.db.execute
+        # the masteries import as it left the rank, logged; two owners, one holding the "+" already
+        x("CREATE TABLE cmcatalog_eqoaemu_log (id INTEGER, op TEXT, before TEXT, after TEXT, audit INTEGER, applied TEXT)")
+        x("INSERT INTO cmcatalog (id, classes, name, rank, adds, add_spells, requires, require_spells, removes, "
+          "remove_spells) VALUES (89, 2048, 'Bone Teachings 1', 1, 'Bone Mastery@23', ?, 'Bone Mastery@23', ?, "
+          "'Bone Mastery@23', ?)", (str(imt.BONE),) * 3)
+        x("INSERT INTO cmcatalog_eqoaemu_log VALUES (89, 'update', ?, ?, 0, '2026-01-01 00:00:00')",
+          (json.dumps({"adds": "Bone Mastery +@23", "add_spells": "120"}),
+           json.dumps({"adds": "Bone Mastery@23", "add_spells": str(imt.BONE)})))
+        x("INSERT INTO characters VALUES (86, 11), (87, 11)")
+        x("INSERT INTO charcms VALUES (86, 89, 25, 1), (87, 89, 25, 1)")
+        x("INSERT INTO spells (id, serverid, spellid) VALUES (191, 86, 120), (192, 87, ?)", (imt.BONE,))
+        # a fresh import's, with the errata
+        self.fresh = self.made(os.path.join(d, "fresh.db"))
+        with errata():
+            im.apply(self.fresh, im.plan(self.fresh, errata_workbook(), imt.ERRATA_MAP, weres={}))
+        self.ranks = cms.read_ranks(cms.Sheet([cmt.HEAD] + RANK_ROWS))
+
+    @staticmethod
+    def made(path):
+        db = imt.made_db(path)
+        imt.errata_of_ours(db.execute)
+        for col in ("adds", "requires", "removes"):
+            db.execute(f"ALTER TABLE cmcatalog ADD COLUMN {col} TEXT NOT NULL DEFAULT ''")
+        db.execute("CREATE TABLE charcms (serverid INTEGER, cmid INTEGER, cost INTEGER, bought INTEGER)")
+        db.executescript(cms.AUDIT_SCHEMA)
+        return db
+
+    def plan(self, on=True):
+        with errata(on):
+            return f2.plan(self.db, errata_workbook(), imt.ERRATA_MAP, weres={}, ranks=self.ranks)
+
+    def audit(self, sid, tbl, before, after, at):
+        self.db.execute("INSERT INTO gm_audit (at, accountid, username, via, action, tbl, rowkey, before, after) "
+                        "VALUES (?, 3, 'gm', 'web', 'update', ?, ?, ?, ?)",
+                        (at, tbl, im.dumps({"spellid": sid}), json.dumps(before), json.dumps(after)))
+
+    def keys(self, p):
+        return sorted((c["tbl"], json.dumps(c["key"], sort_keys=True)) for c in p["changes"])
+
+    def test_what_it_plans_and_writes(self):
+        before = dump(self.db)
+        p = self.plan()
+        self.assertEqual(self.keys(p), sorted([
+            ("cmcatalog", '{"id": 89}'), ("spelleffect", '{"spellid": 120}'), ("spelleffect", f'{{"spellid": {imt.BONE}}}'),
+            ("spellpattern", '{"spellid": 120}'), ("spellpattern", '{"spellid": 122}')]))
+        rank = next(c for c in p["changes"] if c["tbl"] == "cmcatalog")
+        self.assertEqual((rank["before"], rank["set"]), ({"adds": "Bone Mastery@23", "add_spells": str(imt.BONE)},
+                                                         {"adds": "Bone Mastery +@23", "add_spells": "120"}))
+        self.assertEqual(p["lists"]["an owner of a rank put right (its book as it is: a rank's swap is made at its "
+                                    "purchase)"],
+                         ["character 86, 89 Bone Teachings 1: its book as buying it gives now",
+                          f"character 87, 89 Bone Teachings 1: lacks [('Bone Mastery +', 120)], holds "
+                          f"[('Bone Mastery', {imt.BONE})]"])
+        done, stale = im.apply(self.db, p, f2.LOG, f2.META, f2.WHAT)
+        self.assertEqual((done, stale), (5, 0))
+        for tbl, where in (("spellpattern", f"spellid IN (120, 122, {imt.BONE})"),
+                           ("spelleffect", f"spellid IN (120, 122, {imt.BONE})")):
+            a = sorted(self.db.execute(f"SELECT * FROM {tbl} WHERE {where}"))
+            b = sorted(self.fresh.execute(f"SELECT * FROM {tbl} WHERE {where}"))
+            if tbl == "spelleffect":
+                a, b = ([(r[0], r[1], r[2], r[3], json.loads(r[4] or "null")) for r in t] for t in (a, b))
+            self.assertEqual(a, b, f"{tbl} as a fresh import with the errata leaves it")
+        self.assertEqual(self.db.execute("SELECT adds, add_spells, requires, require_spells, removes, remove_spells "
+                                         "FROM cmcatalog WHERE id = 89").fetchone(),
+                         ("Bone Mastery +@23", "120", "Bone Mastery@23", str(imt.BONE), "Bone Mastery@23", str(imt.BONE)),
+                         "as ranks 2-5 are: the first required and taken away, the second added")
+        self.assertEqual(sorted(self.db.execute("SELECT serverid, spellid FROM spells WHERE id IN (191, 192)")),
+                         [(86, 120), (87, imt.BONE)], "the books as they were")
+        self.assertEqual(self.plan()["changes"], [], "a second plan has nothing to do")
+        back, left, _ = im.undo(self.db, False, f2.LOG, f2.META, f2.WHAT)
+        self.assertEqual(left, 0)
+        self.assertEqual(dump(self.db), before)
+
+    def test_without_the_errata_nothing_of_it(self):
+        self.assertEqual(self.plan(on=False)["changes"], [])
+
+    def test_a_row_changed_since_the_import_is_left(self):
+        self.db.execute("UPDATE spelleffect SET line = 'A GM''s line' WHERE spellid = ?", (imt.BONE,))
+        self.audit(120, "spelleffect", {"line": "Pet, Increase DEX & Str by 20, 5min"}, {"line": "Another line"},
+                   "2999-01-01T00:00:00Z")
+        self.audit(122, "spellpattern", {"spelldesc": "Old words"}, {"spelldesc": "New words"}, "2999-01-01T00:00:00Z")
+        self.db.execute("UPDATE cmcatalog SET adds = 'Bone Mastery@23; Other@1' WHERE id = 89")
+        p = self.plan()
+        self.assertEqual(self.keys(p), [("spellpattern", '{"spellid": 120}')],
+                         "each row by itself: the second's description, which no one changed, alone")
+        self.assertEqual(p["lists"]["a workbook erratum's effects row changed since the import (left)"],
+                         ["120: line, effects, source", f"{imt.BONE}: line"])
+        self.assertEqual(p["lists"]["a workbook erratum's record changed since the import (left)"], ["122: spelldesc"])
+        self.assertEqual(p["lists"]["a rank put right that a GM changed since the masteries import (left)"],
+                         ["89 Bone Teachings 1"])
+
+    def test_a_change_before_the_import_counts_for_nothing(self):
+        self.audit(120, "spelleffect", {"line": "Older"}, {"line": "Pet, Increase DEX & Str by 20, 5min"},
+                   "2000-01-01T00:00:00Z")
+        self.assertIn(("spelleffect", '{"spellid": 120}'), self.keys(self.plan()))
 
 
 if __name__ == "__main__":

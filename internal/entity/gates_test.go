@@ -530,3 +530,72 @@ func TestAGateIntoAChamberLandsInside(t *testing.T) {
 		t.Errorf("the control: an open place landed at (%.1f, %.1f, %.1f), want itself", x, y, z)
 	}
 }
+
+// gateHoledFloor is a walled room round (3000, 3000), 24 across, its floor at
+// 90 under a roof at 120, with a hole in its floor along its east wall (x
+// 3006-3012, z within 3 of 3000) through which the ground's floors show the
+// top of the ceiling under it, at 85 (the second chamber of the Prophet's
+// tower has such a hole); the open terrain round it at 50.
+type gateHoledFloor struct{}
+
+func inHoledRoom(x, z float32) bool {
+	return float32(math.Abs(float64(x-3000))) < 12 && float32(math.Abs(float64(z-3000))) < 12
+}
+
+func inTheHole(x, z float32) bool {
+	return x > 3006 && x < 3012 && float32(math.Abs(float64(z-3000))) < 3
+}
+
+func (gateHoledFloor) Floor(_ uint8, x, y, z float32) (float32, bool) {
+	hs := []float32{50}
+	if inHoledRoom(x, z) {
+		hs = append(hs, 85, 120)
+		if !inTheHole(x, z) {
+			hs = append(hs, 90)
+		}
+	}
+	best, found := float32(0), false
+	for _, h := range hs {
+		if h <= y+2 && (!found || h > best) {
+			best, found = h, true
+		}
+	}
+	return best, found
+}
+
+func (gateHoledFloor) Wall(_ uint8, x0, _, z0, x1, _, z1 float32) bool {
+	return inHoledRoom(x0, z0) != inHoledRoom(x1, z1)
+}
+
+// A place in a room whose floor has a hole lands on the room's own floor,
+// never down the hole on the ceiling's top under it, though that spot is the
+// clearest from the creature in the room (the old search took it: 5 under
+// the floor, where a body stands on nothing); a group's ring round a caster
+// by the hole stays on the floor too. The control: the hole's floor is no
+// candidate, the floor's clearest spot is (17.7 from the creature).
+func TestAGateInARoomWithAHoleLandsOnItsFloor(t *testing.T) {
+	w := NewWorld()
+	w.ground = gateHoledFloor{}
+	w.playerModels = map[uint32]bool{0x70D898C6: true}
+	w.NPCs[1] = &NPC{ServerID: 1, Name: "knight", ModelID: 0x1234, X: 2992, Y: 90, Z: 3000, SpawnX: 2992, SpawnY: 90, SpawnZ: 3000}
+	w.SpatialIndex.Insert(1, 2992, 3000)
+	w.mu.Lock()
+	x, y, z := w.gateLandingLocked(database.SpellGate{World: 0, X: 3000, Y: 90, Z: 3000})
+	w.mu.Unlock()
+	switch {
+	case !inHoledRoom(x, z):
+		t.Fatalf("landed at (%.1f, %.1f, %.1f), out of the room", x, y, z)
+	case y != 90 || inTheHole(x, z):
+		t.Fatalf("landed at (%.1f, %.1f, %.1f), down the hole: want the room's floor at 90", x, y, z)
+	case distXZ(x, z, 2992, 3000) < 17:
+		t.Errorf("landed %.1f from the knight, want the floor's clearest spot (17.7)", distXZ(x, z, 2992, 3000))
+	}
+	// a group's ring round a caster beside the hole: ring 1 is 3 east, over it
+	at := GateSpot{World: 0, X: 3005, Y: 90, Z: 3000}
+	if s := w.GateRingSpot(at, 1); s.Y != 90 || inTheHole(s.X, s.Z) {
+		t.Errorf("ring 1 at (%.1f, %.1f, %.1f), down the hole: want the caster's spot", s.X, s.Y, s.Z)
+	}
+	if s := w.GateRingSpot(at, 2); s.Y != 90 || distXZ(s.X, s.Z, at.X, at.Z) < 2.9 {
+		t.Errorf("the control: ring 2 at (%.1f, %.1f, %.1f), want 3 off on the floor", s.X, s.Y, s.Z)
+	}
+}

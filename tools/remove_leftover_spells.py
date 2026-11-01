@@ -28,8 +28,9 @@ necromancer's, "take it out" of the enchanter's epic option).
     whose masteries of those names give their bonuses themselves, and
     "Warrior 49 Specialized Epic" (701256), a description alone: EQOA-Data's,
     taught by nothing ("yes remove them").
-  - The paladin's "49 Barrier" (701092), an epic record of a description
-    alone ("yes remove it").
+  - The paladin's "49 Barrier" (701092) and the monk's "Monk 49 Specialized
+    Epic 1" and "2" (701188, 701189), epic records of a description alone
+    ("yes remove it", "yes remove them").
   - The enchanter's Eldritch Rune (701132), one of the six spells its level
     60 epic reward quest offers: its line is only a description ("Level 60
     Epic third spell option. ..."), no source has its effects, and it did
@@ -71,6 +72,7 @@ LEFTOVERS = [
     (14, 700816, "Serpent's Heart"), (14, 700127, "Badger Form"),
     (0, 701124, "Defender's Toughness"), (0, 701158, "Hero's Mantle"), (0, 701256, "Warrior 49 Specialized Epic"),
     (2, 701092, "49 Barrier"),
+    (4, 701188, "Monk 49 Specialized Epic 1"), (4, 701189, "Monk 49 Specialized Epic 2"),
 ]
 # leftovers whose quest choices this takes out with them (the only quest that
 # may still name one: any other quest giving a leftover refuses it)

@@ -319,6 +319,34 @@ class ImportTest(unittest.TestCase):
         self.assertNotIn("recast", plain[101]["set"], "without the rule: the workbook's 3, ours already")
         self.assertEqual(im.RECASTS, {"envaric acension": 3600, "circle of dead hills": 600})
 
+    def test_durations(self):
+        # a time DURATIONS names is the spell's where its row has none (the
+        # workbook's Duration 0 on a lasting debuff), its line's too; and
+        # with_duration makes of what the import writes without it what the
+        # import writes with it (tools/fix_eqoaemu_places.py's live change);
+        # the control: without the rule, no time
+        plain = self.plan()
+        saved = im.DURATIONS
+        im.DURATIONS = {"ember bolt": 30}
+        try:
+            p = self.plan()
+        finally:
+            im.DURATIONS = saved
+        j = self.effects(p, 101)
+        keys = list(j)
+        self.assertEqual((j["duration_s"], keys.index("duration_s")), (30, keys.index("harmful") + 1))
+        self.assertNotIn("duration_s", self.effects(plain, 101), "without the rule: the workbook's 0")
+        was = self.by_id(plain, "effects", 101)[0]
+        was = was.get("row") or was.get("set")
+        now = self.by_id(p, "effects", 101)[0]
+        now = now.get("row") or now.get("set")
+        self.assertTrue(now["line"].endswith(", 30sec"), now["line"])
+        self.assertEqual(im.with_duration(was["effects"], was["line"], 30), (now["effects"], now["line"]))
+        self.assertEqual(im.with_duration(was["effects"], None, 30), (now["effects"], None), "a line it did not write kept")
+        self.assertIsNone(im.with_duration(now["effects"], now["line"], 30), "a time already: not the import's without one")
+        self.assertIsNone(im.with_duration(json.dumps(json.loads(was["effects"])), was["line"], 30), "not as it writes JSON")
+        self.assertEqual(im.DURATIONS, {"swamp stench": 30, "strategic blow": 30})
+
     def test_split(self):
         p = self.plan()
         new = {e["spellid"]: e["row"] for e in p["spells"] if e["action"] == "insert"}

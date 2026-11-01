@@ -51,7 +51,22 @@ CREATE TABLE factions (name TEXT PRIMARY KEY, standing INTEGER NOT NULL);
 CREATE TABLE charinventory (itemid INTEGER PRIMARY KEY AUTOINCREMENT, serverid INTEGER NOT NULL, stackleft INTEGER NOT NULL,
     patternid INTEGER NOT NULL);
 CREATE TABLE npcitem (itemid INTEGER PRIMARY KEY AUTOINCREMENT, npcid INTEGER NOT NULL, patternid INTEGER NOT NULL);
+CREATE TABLE spelleffect (spellid INTEGER PRIMARY KEY, line TEXT NOT NULL DEFAULT '', fxdict INTEGER NOT NULL DEFAULT 0,
+    source TEXT NOT NULL DEFAULT '', effects TEXT NOT NULL DEFAULT '');
+CREATE TABLE eqoaemu_spell_import_log (seq INTEGER PRIMARY KEY, tbl TEXT NOT NULL, key TEXT NOT NULL, action TEXT NOT NULL,
+    before TEXT, after TEXT, note TEXT NOT NULL DEFAULT '');
 """
+
+# made up: four lasting debuffs the workbook gave no time (5.)
+DURATIONS = {"mire cloud": 30, "ash veil": 30, "bog mark": 30, "quick rot": 30}
+
+
+def debuff(stat, time=None):
+    j = {"v": 1, "scope": "target", "target_type": "Enemy", "harmful": True}
+    if time:
+        j["duration_s"] = time
+    j.update(stack=0, level=6, effects=[{"id": "0001", "type": "Statistic Change", "kind": "stat", "stat": stat, "amount": -5}])
+    return fp.im_dumps(j)
 
 # made up: two gems of a tower, their chambers
 CHAMBERS = {"upper": ("Upper Hall of the Glass Spire", (100.0, 20.0, 200.0)),
@@ -114,6 +129,19 @@ def make(dir):
     db.execute("INSERT INTO quests (questid, name, enabled, giver) VALUES (5, 'Guard Hunt', 1, 'Old Warden')")
     db.execute("INSERT INTO queststeps (questid, step, kind, target) VALUES (5, 1, 'kill', 'Sky Guard')")
     db.execute("INSERT INTO queststeps (questid, step, kind, target) VALUES (5, 2, 'talk', 'Sky Clerk')")
+    # the debuffs as the import wrote them: Mire Cloud's effects and line both
+    # its; Ash Veil's effects a GM's since; Bog Mark's line one the import kept;
+    # Quick Rot's time there already
+    for sid, name, stat, line, fx, logged in (
+            (904, "Mire Cloud", "agi", "Target, Decrease AGI by 5", debuff("agi"), {"line": "Target, Decrease AGI by 5"}),
+            (905, "Ash Veil", "ac", "Target, Decrease AC by 5", debuff("ac").replace("-5", "-9"), {"line": "Target, Decrease AC by 5"}),
+            (906, "Bog Mark", "str", "Target, Decrease STR by 5 for 2 minutes", debuff("str"), {}),
+            (907, "Quick Rot", "sta", "Target, Decrease STA by 5, 30sec", debuff("sta", 30), {})):
+        db.execute("INSERT INTO spellpattern (spellid, spellname) VALUES (?, ?)", (sid, name))
+        db.execute("INSERT INTO spelleffect (spellid, line, effects) VALUES (?, ?, ?)", (sid, line, fx))
+        after = dict(logged, effects=debuff(stat, 30 if sid == 907 else None))
+        db.execute("INSERT INTO eqoaemu_spell_import_log (tbl, key, action, after) VALUES ('spelleffect', ?, 'update', ?)",
+                   (fp.im_dumps({"spellid": sid}), fp.im_dumps(after)))
     return db, path, qfile
 
 
@@ -134,7 +162,8 @@ class FixPlaces(unittest.TestCase):
         self.dir.cleanup()
 
     def plan(self):
-        return fp.plan(self.db, recasts=RECASTS, gems=GEMS, chambers=CHAMBERS, portal=self.qfile, keys=KEYS, talked_to=TALKED)
+        return fp.plan(self.db, recasts=RECASTS, gems=GEMS, chambers=CHAMBERS, portal=self.qfile, keys=KEYS, talked_to=TALKED,
+                       durations=DURATIONS)
 
     def by(self, p, tbl, action):
         return [c for c in p["changes"] if c["tbl"] == tbl and c["action"] == action]
@@ -180,6 +209,15 @@ class FixPlaces(unittest.TestCase):
         self.assertEqual(set(bits.values()), {128})
         self.assertIn("Sky Guard: quest 5 step 1 kill", p["said"]["an isle NPC a quest kills (left without the NPC bit)"])
         self.assertEqual([c["row"]["aggressive"] for c in self.by(p, "npcaggro", "insert")], [0])
+        # the debuffs' times: the import's effects take duration_s after "harmful", the import's line its time
+        times = {c["ref"]["spellid"]: c for c in self.by(p, "spelleffect", "update")}
+        self.assertEqual(sorted(times), [904, 906])
+        self.assertEqual(times[904]["set"], {"effects": debuff("agi", 30), "line": "Target, Decrease AGI by 5, 30sec"})
+        self.assertEqual(times[906]["set"], {"effects": debuff("str", 30)}, "a line the import did not write is kept")
+        self.assertIn("906 Bog Mark: Target, Decrease STR by 5 for 2 minutes",
+                      p["said"]["a duration's line not the import's, kept (a look: does it say a time?)"])
+        self.assertTrue(p["said"]["a duration's effects not as the import wrote them (left: a GM's?)"][0].startswith("905 Ash Veil"))
+        self.assertIn("907 Quick Rot 30 s", p["said"]["durations as they are to be"])
 
     def test_apply_again_and_undo(self):
         before = dump(self.db)
@@ -193,6 +231,8 @@ class FixPlaces(unittest.TestCase):
         self.assertEqual(self.db.execute("SELECT enabled FROM quests WHERE questid = ?", (qid["Test/spire/blocked"],)).fetchone()[0], 0)
         self.assertEqual(self.db.execute("SELECT spells FROM queststeps WHERE questid = ? AND step = 2",
                                          (qid["Test/spire/port"],)).fetchone()[0], "901")
+        self.assertEqual(self.db.execute("SELECT line, effects FROM spelleffect WHERE spellid = 904").fetchone(),
+                         ("Target, Decrease AGI by 5, 30sec", debuff("agi", 30)))
         once = dump(self.db)
         # a second run writes nothing and leaves every table as it was
         wrote, stale, _ = fp.apply(self.db, self.plan(), when="2026-11-01T20:00:05+00:00")

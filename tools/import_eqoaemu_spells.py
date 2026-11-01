@@ -61,7 +61,10 @@ What it writes, and from what:
       column is added when the database lacks it), built from the spell's
       EffectID1-4 rows of the Effects sheet, procs resolved (ApplyProc1/2 ->
       those rows, "on" offense for an Offensive Proc, defense for a
-      Defensive Proc); the numbers the workbook's, untouched. Where the shape
+      Defensive Proc); the numbers the workbook's, untouched, but for the
+      times of two lasting debuffs the workbook gives none (DURATIONS: its
+      Duration 0 on the spell's row and its effects', so the debuff lasted
+      no time and never landed). Where the shape
       has no word for what a row says, the effect carries a key of its own
       (see EXTRA_KEYS). Two readings the shape leaves open, made here:
         - a Dmg/Heal row with a positive HP1 and a duration of a minute or
@@ -235,6 +238,14 @@ MADE_BASE = 950000
 # workbook's 3, every wizard gate's, portal's and escape's here (2026-11-01,
 # the EQOAEmu follow-ups' places).
 RECASTS = {"envaric acension": 3600, "circle of dead hills": 600}
+# Times that are not the workbook's, by the spell's name (lower case): two
+# lasting debuffs it gives Duration 0, on the spell's row and on the effect
+# rows (02-Spells, 03-Effects), so the debuff lasted no time and never landed
+# (entity/cast.go's lasting): the mastery Swamp Stench's AGI and AC and the
+# rogue's epic Strategic Blow's AC take 30 s, the user's figure (2026-11-01:
+# "30 sec for both"; EQOA-Data's line gave Strategic Blow's AC 45 seconds).
+# The spell's duration_s, where its row has none (spell_json, with_duration).
+DURATIONS = {"swamp stench": 30, "strategic blow": 30}
 # a Dmg/Heal row with a positive HP1 lasting at most this many seconds heals
 # each tick; one lasting longer heals once, at its landing (the doc)
 HEAL_TICKS_UP_TO = 60
@@ -832,8 +843,9 @@ def spell_json(s, wb, items_by_name):
     if scope not in JSON_SCOPE or scope == "Owner":
         out["sheet_scope"] = scope
     out["harmful"] = ttype.lower().startswith("enemy")
-    if num(s, "Duration"):
-        out["duration_s"] = num(s, "Duration")
+    dur = num(s, "Duration") or DURATIONS.get(cell(s, "Name").strip().lower())
+    if dur:
+        out["duration_s"] = dur
     out["stack"] = num(s, "StackType") or 0
     if num(s, "Level") is not None:
         out["level"] = num(s, "Level")
@@ -873,6 +885,31 @@ def keep_line(j, old):
 
 def dumps(o):
     return json.dumps(o, separators=(",", ":"), ensure_ascii=False)
+
+
+def with_duration(effects, line, seconds):
+    """A spell's effects (JSON text) and line as this import wrote them with
+    no time, as it writes them with one (DURATIONS): duration_s after
+    "harmful", where spell_json puts it, and the line ending in its time, as
+    line_of ends it; None for effects it did not write so (a GM's or another
+    tool's). The live change (tools/fix_eqoaemu_places.py) writes these, so
+    a database the import ran on before DURATIONS matches a fresh import.
+    line None keeps the line (one this import did not write)."""
+    try:
+        j = json.loads(effects)
+    except ValueError:
+        return None
+    if not isinstance(j, dict) or dumps(j) != effects or "harmful" not in j or "duration_s" in j or \
+            any(o.get("duration_s") for o in j.get("effects") or []):
+        return None
+    out = {}
+    for k, v in j.items():
+        out[k] = v
+        if k == "harmful":
+            out["duration_s"] = seconds
+    if line is not None and line.strip():
+        line += ", " + fmt_dur(seconds)
+    return dumps(out), line
 
 
 # ---- the line, in EQOA-Data's words ----------------------------------------------

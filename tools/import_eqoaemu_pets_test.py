@@ -161,7 +161,7 @@ class ImportPetsTest(unittest.TestCase):
         self.assertEqual(cols(go.split("petStatsSchema = `")[1].split("`")[0]), cols(ip.PETSTATS_SCHEMA))
 
     def test_rev32(self):
-        self.assertEqual(ip.rev32("4162418A"), 0x8A416241)
+        self.assertEqual(ip.rev32("A1B2C3D4"), 0xD4C3B2A1)
         self.assertEqual(ip.rev32("0x11223344"), 0x44332211)
         self.assertEqual(ip.rev32(""), 0)
         self.assertEqual(ip.rev32("123"), 0)

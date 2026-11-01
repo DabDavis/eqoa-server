@@ -148,9 +148,9 @@ func jsonStat(s string) (Stat, bool) {
 	return st, ok
 }
 
-// invisibleSprite is the body the workbook's invisibilities "alter
-// appearance" to (Camouflage, Invisibility, Gather Shadows, Nature Walk, ...:
-// SpriteID 435EF663, either byte order): an illusion of it is invisibility.
+// invisibleSprite is the invisible body (either byte order): an illusion of
+// it is invisibility, as the workbook's invisibilities "alter appearance" to
+// it.
 func invisibleSprite(v uint32) bool { return v == 0x435EF663 || v == 0x63F65E43 }
 
 // ParseSpellJSON reads a spell's workbook effects (the file's doc). name and
@@ -485,13 +485,15 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 	}
 }
 
-// mitigateNoLimit is a mitigation's most that is no limit: the workbook's
-// 100,000 and 1,000,000 on its pet contraptions and its full invulnerables.
+// mitigateNoLimit is a mitigation's most that is no limit: no hit adds up to
+// it in an effect's time (the workbook writes such a most for a mitigation
+// meant to last the whole effect).
 const mitigateNoLimit = 100000
 
-// readSpeedJSON is a speed effect: faster (the workbook's 130 is Spirit of
-// the Wolf's 1.3, the movement buff's) or slower by a percent (its -30 and
-// -50: a snare on a creature, on a player a slow of its own; speed.go).
+// readSpeedJSON is a speed effect: faster (the movement buff's, cast.go's
+// speedBuff: the workbook writes it as a percent of the run) or slower by a
+// percent (a snare on a creature, on a player a slow of its own beside the
+// buff that carries it: workbook.go).
 func (d *SpellDef) readSpeedJSON(e effectJSON) {
 	n := round(e.Amount)
 	switch {

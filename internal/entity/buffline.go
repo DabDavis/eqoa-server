@@ -51,14 +51,21 @@ import (
 // before 2026-10-29 has none and stacks until it ends. `balancesim -lines`
 // prints every class's lines off a database.
 
-// A spell read from EQOAEmu's workbook (spelljson.go) with a stack type goes
-// by it (the workbook's legend: "Used to overwrite lesser buffs of the same
-// stack type and statistic effect"): its line is its stack type, its bearer
-// and its stats, and two such lines are one when their stack types and
-// bearers are and they share a stat (sameLine); its rank is the workbook's
-// level. The rule is the same: a lower rank under a higher is refused, a
-// higher takes the lower off, whole (the shared stat's spell is one effect).
-// One with no stack type is a line as any other spell's.
+// A spell read from EQOAEmu's workbook (spelljson.go) goes by the workbook's
+// rule instead, read from its formula (2026-11-01: every StackType of its
+// Spells sheet is one formula of the spell's scope, 1 single target, 2 self,
+// 3 group and the areas, 4 the illusions, so a stack type is the class of
+// whom it lands on) and its legend ("Used to overwrite lesser buffs of the
+// same stack type and statistic effect"; an effect's Level "May be used to
+// override lower level buffs that have the same stack type"): its line is its
+// stack type, its bearer and its stats, and two such lines are one when their
+// stack types and bearers are and they share a stat (sameLine); its rank is
+// the workbook's level. So a self buff and a group buff of one stat both
+// count, where a line's forms are one line. The rule is the same: a lower
+// rank under a higher is refused, a higher takes the lower off, whole (the
+// shared stat's spell is one effect). A workbook spell with no stack type has
+// no line: nothing it stacks with is refused or taken off (a recast of the
+// same spell still replaces itself, addEffectLocked).
 
 // BuffLine is a spell's line, "" for one that has none: no lasting part but
 // ticks, an illusion, a pet's summoning or a charm. (A spell that lands on a
@@ -101,7 +108,10 @@ func BuffLine(s *CastSpell) string {
 	if s.Scope == 3 {
 		bearer = "pet"
 	}
-	if d.Workbook && d.Stack > 0 {
+	if d.Workbook {
+		if d.Stack <= 0 {
+			return "" // no stack type: no line (the file's doc)
+		}
 		return fmt.Sprintf("%s%d %s %s", stackLinePrefix, d.Stack, bearer, strings.Join(keys, " "))
 	}
 	return bearer + " " + strings.Join(keys, " ")

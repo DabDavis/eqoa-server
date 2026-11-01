@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"testing"
+
+	"github.com/eqoa/server/internal/database"
 )
 
 // A pet's stats from its effects count in its fights (the user, 2026-10-30:
@@ -95,5 +97,49 @@ func TestOnlyTheBestOfALineCountsOnAPet(t *testing.T) {
 	}
 	if over := put(steel); over != nil || on() != "2 effects, AC +310, AGI +10" {
 		t.Errorf("Steelskin again: refused by %v, %s; want it in its own place", over, on())
+	}
+}
+
+// A workbook pet is made after its body's wearers of a person's size (the
+// user, 2026-11-01: "hulking bones scale is too big": its body is the one the
+// skeletal giants wear at 2.2); a body worn only by giants is the body at its
+// own scale; the control: a body worn at an elemental's 1.35 keeps it.
+func TestAPetTakesAPersonsSizeOfItsBody(t *testing.T) {
+	const body = 0x6AF98A82
+	w := NewWorld()
+	add := func(id EntityID, name string, model uint32, size float32) {
+		w.NPCs[id] = &NPC{ServerID: id, Name: name, ModelID: int64(model), Size: size}
+	}
+	for i := EntityID(1); i <= 6; i++ {
+		add(i, "skeletal giant", body, 2.206)
+	}
+	add(7, "ty'rizeth scout", body, 1)
+	add(8, "ty'rizeth scout", body, 1)
+	add(9, "Gigantic Skeletal", body, 4)
+	sheet := &petSheet{PetStats: database.PetStats{Name: "Test Bones", Model: body}}
+	w.mu.Lock()
+	got := w.petBodyLocked(sheet, "Test Bones", "", 11)
+	w.mu.Unlock()
+	if got == nil || got.Size != 1 || got.ServerID != 7 {
+		t.Fatalf("made after %+v, want the scout of size 1", got)
+	}
+	delete(w.NPCs, 7)
+	delete(w.NPCs, 8)
+	w.mu.Lock()
+	got = w.petBodyLocked(sheet, "Test Bones", "", 11)
+	w.mu.Unlock()
+	if got == nil || got.Size != 1 || uint32(got.ModelID) != body || w.NPCs[got.ServerID] == got {
+		t.Fatalf("a body only giants wear: %+v, want a copy at size 1", got)
+	}
+	if w.NPCs[1].Size != 2.206 {
+		t.Errorf("the giant itself was changed: %v", w.NPCs[1].Size)
+	}
+	add(20, "water elemental", 0x37874E21, 1.35) // the control
+	sheet.Model = 0x37874E21
+	w.mu.Lock()
+	got = w.petBodyLocked(sheet, "Test Water", "", 10)
+	w.mu.Unlock()
+	if got == nil || got.Size != 1.35 {
+		t.Errorf("the control: %+v, want the elemental's 1.35", got)
 	}
 }

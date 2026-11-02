@@ -577,11 +577,12 @@ func TestRealLowLevelsEvenAndBelow(t *testing.T) {
 // seed_roamers.py: the wisp, jib's wizard at 28% of a player's figures), and
 // a warrior, a rogue and a cleric by hand and a wizard and an alchemist
 // rooting win one up at least 70% of the time and two up half of it, at 25,
-// 35 and 45. The control: under jib's wizard as he made it (35%) a rogue of
-// 35 fails that check. It lost its one up more often than not until a
-// creature's effects counted in its fights (2026-11-01: the rogue's debuffs
-// on the wizard; 44% won), and wins it now with 6% left (88%) and loses its
-// two up (38%), where the wisp leaves it 100% and 81%.
+// 35 and 45. The control: under jib's wizard as he made it (35%) the same
+// check fails somewhere (2026-11-02: a rogue of 45 one up, an alchemist of 25
+// and 35 two up). It was a rogue of 35 losing its one up until a creature's
+// effects counted in its fights (2026-11-01: its debuffs on the wizard win
+// it) and its yellows were fitted again on a backstab that needs its caster
+// behind (it deals 115% at 35, to win its wisps: one cell the fit moves).
 func TestRealWispsAreYellows(t *testing.T) {
 	db := simRealDB(t)
 	b := simRealBalance(t, db)
@@ -617,11 +618,20 @@ func TestRealWispsAreYellows(t *testing.T) {
 		t.Fatal("no wizard template to fight the control by")
 	}
 	wiz := SimNPC{Template: all["wizard"]}
-	c1 := SimCellOf(kit(6, 35), wiz, 1, b, 16, 1, 10*time.Minute)
-	c2 := SimCellOf(kit(6, 35), wiz, 2, b, 16, 1, 10*time.Minute)
-	if c1.WinShare() >= 0.7 && c2.WinShare() >= 0.5 {
-		t.Errorf("the control: a rogue of 35 won %.0f%% of its one up and %.0f%% of its two up against jib's wizard (35%%): the check tells nothing",
-			100*c1.WinShare(), 100*c2.WinShare())
+	var failed []string
+	for _, class := range []int{0, 6, 9, 13, 14} {
+		for _, level := range []int{25, 35, 45} {
+			pl := kit(class, level)
+			y1 := SimCellOf(pl, wiz, 1, b, 16, 1, 10*time.Minute)
+			y2 := SimCellOf(pl, wiz, 2, b, 16, 1, 10*time.Minute)
+			if y1.WinShare() < 0.7 || y2.WinShare() < 0.5 {
+				failed = append(failed, fmt.Sprintf("class %d L%d %.0f%%/%.0f%%", class, level, 100*y1.WinShare(), 100*y2.WinShare()))
+			}
+		}
+	}
+	t.Logf("the control: under jib's wizard (35%%) the check fails at %v", failed)
+	if len(failed) == 0 {
+		t.Errorf("the control: under jib's wizard (35%%) every class won its yellows as against a wisp: the check tells nothing")
 	}
 }
 

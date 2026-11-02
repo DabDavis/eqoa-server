@@ -15,7 +15,7 @@ against the state live at 18:59 (that database before the round, the 18:50 serve
   count in its fights (a player's debuffs: STR and DEX its rolls, AC and AGI the rolls on it, a maximum its hit points):
   a shaman (its Wind and Malady lines) won its reds alone at nine levels of 4-16 (42-95%) and at 37-60 (45-100%, every
   one at 45-48 and 57-60) and kept 3-15 points more through a yellow, its pet 4-19 points more (its reds won alone at
-  57-59); a rogue of 19-60 kept 4-10 points more; a shadow knight of 21-50, which spends power and time on its debuffs
+  57-59); a shadow knight of 21-50, which spends power and time on its debuffs
   and drains where its taps were, kept less and won less (a yellow one up won 57-78% at 24 and 29-31, two up 22-60% at
   29-33, 8-14% left at 34-38); a warrior's Rend (46: it lowers the armour of what it strikes) and a bard's Deadly
   Verses (51, AC) count on the creature now: a warrior of 46-60 kept 4-6 points more (54, 55 and 58 over 36%), a bard
@@ -30,19 +30,28 @@ against the state live at 18:59 (that database before the round, the 18:50 serve
   26-34% (one up won 88% at 52 and 53, a priest's bar being 90%);
   the broken records take real figures or lose the template (the eight test pieces, plain level 60 gear now, are what
   level 60 kits wear), and the level 60 epic options take the workbook's records: every class of 60 moved a little, a
-  bard of 60 kept 38% (24% before) and a monk of 60 won two up 62%.
+  bard of 60 kept 38% (24% before) and a monk of 60 won two up 62%;
+  a backstab needs its caster in the creature's rear half and a creature faces what it swings at (entity/backstab.go),
+  so a rogue alone, the one the creature fights, backstabs no more: from 12, its first backstab art, it won one up
+  48-78% at 40-57 and two up 18-62%, and kept 8-17% at 21-22 and 36-39 (its debuffs alone had left it 4-10 points
+  easier at 19-60).
+The bard's songs reaching its group and its Grand Finale's price, the necromancer's Flesh Mastery, Agonize Death and
+Lich form, the warrior's stances, the alchemist's Destroy Contraption and Frosty Mixture, the wizard's Lightning
+Maelstrom, the enchanter's Visages, the cures and the leftovers of nine classes moved no class's fights in the
+simulator.
 The paladin, the cleric, the magician, the wizard and the alchemist moved a point or two or not at all, the monk but at
 60, and stay on the targets as they were.
 
 The rows, by the re-fits' stages (yellow, dealt, red, pets, low, the cut; tools/refit_eqoaemu_balance.py says them):
 the ranger's 8-60, the shaman's 4-60 and its pet's (49-60 on the shaman's list without its two heals), the rogue's
-19-60, the shadow knight's 21-51 (its share alone, at the undead check's dealt bands of 150 and 130), the warrior's
+12-60 (on the backstab that needs its caster behind), the shadow knight's 21-51 (its share alone, at the undead check's dealt bands of 150 and 130), the warrior's
 46-60, the bard's 57-60, the druid's 50-60, the enchanter's pet's 5-60 and the necromancer's pet's 5-7 and 34-60, levels
 1-12 each a row and above them the fewest within 4% of every level's fit (the pets' 7%), dealt exact. Cells set after,
 each a row and checked with the simulator: a ranger of 10 at 16 dealing 115 (the cut's 17 at 100 left it 14%: a level
 10 roamer's crits, the share alike at 15 and 16), a shadow knight of 24 at the yellow stage's own 322 and of 28 and 50
 a step of 0.9 lower (the cut's line left a yellow's win rate just under its bar), a druid of 60 at 135 (the cut's 131
-left its red won alone 42%, the red stage's 131.1 40%), a bard of 60 and a monk of 60 a step of 0.9 lower (76 and 173:
+left its red won alone 42%, the red stage's 131.1 40%), a rogue of 35 dealing 115 (it won its wisps, jib's casters at
+28%, two up 38% at the cut's row; 94% dealing 115, its roamer's yellows at 26%), a bard of 60 and a monk of 60 a step of 0.9 lower (76 and 173:
 two up won 52% and 62%), and the enchanter's pet at 45 and at every level 49-60 its own row of 31-40 (the knife edge
 between its yellows and its reds alone: each the hit points that win the yellows and lose the red, under where the red
 is won). Under them no cell of any class the 18:59 state had on the targets is off them, thirteen that were off are on
@@ -50,7 +59,7 @@ is won). Under them no cell of any class the 18:59 state had on the targets is o
 fights are as they were (the median class 67-86% left), and two of a level win their reds three up 75-100% of the time,
 three every one; the cells off the targets before are off them still (the level 1s, an alchemist of 2 and 3, the
 rooting wizard's and alchemist's low points, a rogue of 9 at 15%, a shadow knight of 5 at 41%, a magician's pet at 44
-and 46, a necromancer's pet at 1 and 2, an enchanter's pet at 1). 244 rows on eqoaclassic's copy of 18:59 with the
+and 46, a necromancer's pet at 1 and 2, an enchanter's pet at 1). 241 rows on eqoaclassic's copy of 18:59 with the
 round's data in.
 
 It writes balanceclasslevel's rows of each class in SPAN (its spans of levels lo..hi) to FOLLOWUP's, each change only
@@ -96,7 +105,7 @@ CL = rf.CL  # balanceclasslevel
 WHY = ("the balance re-fitted for the EQOAEmu follow-ups' second round (tools/refit_eqoaemu_followup2.py; 2026-11-01 "
        "evening: a ranger's blades back after an arrow art, creatures' effects counting, the simulator's debuffs, roots "
        "held until a hit, the pets' abilities, the druid's and shaman's leftovers out, the epic options and the broken "
-       "records on real records)")
+       "records on real records, a backstab from behind)")
 
 # class -> [(lo, hi), ...]: the levels fitted again; FOLLOWUP's rows there take the place of the 16:38 re-fit's
 SPAN = {
@@ -105,7 +114,7 @@ SPAN = {
     3: [(21, 51)],
     4: [(60, 60)],
     5: [(57, 60)],
-    6: [(19, 60)],
+    6: [(12, 60)],
     7: [(50, 60)],
     8: [(4, 48), (49, 60)],
     11: [(5, 7), (34, 60)],
@@ -118,7 +127,7 @@ FOLLOWUP = {
     3: {21: (315, 100, 150), 22: (335, 100, 150), 24: (322, 100, 150), 26: (335, 100, 150), 27: (296, 100, 150), 28: (286, 100, 150), 29: (204, 100, 130), 32: (231, 100, 130), 33: (180, 100, 130), 34: (204, 100, 130), 35: (169, 100, 130), 37: (140, 100, 130), 38: (159, 100, 130), 39: (192, 100, 130), 41: (217, 100, 130), 43: (217, 100, 130), 44: (180, 100, 130), 45: (159, 100, 130), 46: (180, 100, 130), 47: (180, 100, 130), 48: (150, 100, 130), 49: (315, 100, 130), 50: (302, 100, 130), 51: (357, 100, 130)},
     4: {60: (173, 100, 100)},
     5: {57: (83, 100, 100), 58: (94, 100, 100), 59: (73, 100, 100), 60: (76, 100, 100)},
-    6: {19: (19, 100, 100), 20: (40, 100, 100), 21: (32, 100, 100), 22: (36, 100, 100), 23: (28, 100, 100), 24: (59, 100, 100), 25: (40, 100, 100), 26: (28, 100, 100), 27: (22, 100, 100), 28: (28, 100, 100), 29: (25, 100, 100), 30: (28, 100, 100), 33: (28, 100, 100), 34: (36, 100, 100), 35: (40, 100, 100), 36: (28, 100, 100), 37: (40, 100, 100), 39: (32, 100, 100), 40: (46, 100, 100), 41: (52, 100, 100), 42: (52, 100, 100), 43: (40, 100, 100), 45: (52, 100, 100), 46: (46, 100, 100), 47: (52, 100, 100), 48: (34, 100, 100), 49: (67, 100, 100), 50: (52, 100, 100), 51: (52, 100, 100), 53: (64, 100, 100), 54: (40, 100, 100), 55: (55, 100, 100), 57: (52, 100, 100), 58: (46, 100, 100), 59: (22, 100, 100), 60: (52, 100, 100)},
+    6: {12: (25, 100, 100), 13: (25, 100, 100), 14: (32, 100, 100), 15: (32, 100, 100), 16: (25, 100, 100), 17: (25, 100, 100), 18: (25, 100, 115), 19: (17, 100, 100), 20: (32, 100, 100), 21: (25, 100, 100), 22: (28, 100, 100), 23: (25, 100, 100), 24: (52, 100, 100), 25: (32, 100, 100), 26: (25, 100, 100), 27: (22, 100, 100), 28: (25, 100, 100), 33: (25, 100, 100), 34: (32, 100, 100), 35: (45, 100, 115), 36: (22, 100, 100), 37: (32, 100, 100), 39: (22, 100, 100), 40: (36, 100, 100), 41: (40, 100, 100), 43: (30, 100, 100), 44: (32, 100, 100), 45: (40, 100, 100), 46: (36, 100, 100), 47: (36, 100, 100), 48: (28, 100, 100), 49: (59, 100, 100), 50: (42, 100, 100), 52: (36, 100, 100), 53: (46, 100, 100), 54: (25, 100, 100), 55: (40, 100, 100), 58: (36, 100, 100), 59: (19, 100, 100), 60: (52, 100, 100)},
     7: {50: (79, 100, 100), 51: (89, 100, 100), 52: (89, 100, 100), 53: (114, 100, 100), 54: (70, 100, 100), 55: (70, 100, 100), 56: (79, 100, 100), 57: (61, 100, 100), 58: (116, 100, 100), 59: (79, 100, 100), 60: (135, 100, 100)},
     8: {4: (78, 268, 100), 5: (95, 268, 100), 6: (117, 268, 100), 7: (143, 268, 100), 8: (143, 268, 100), 9: (95, 268, 100), 10: (95, 268, 100), 11: (99, 268, 100), 12: (114, 268, 100), 13: (114, 295, 100), 14: (129, 321, 100), 15: (129, 348, 100), 16: (101, 374, 100), 17: (114, 401, 100), 18: (101, 537, 100), 19: (79, 673, 100), 20: (89, 378, 100), 21: (79, 415, 100), 23: (101, 489, 100), 25: (107, 562, 100), 26: (101, 599, 100), 27: (114, 636, 100), 28: (114, 673, 100), 29: (114, 134, 100), 30: (114, 95, 100), 31: (129, 104, 100), 32: (129, 113, 100), 33: (114, 135, 100), 35: (121, 179, 100), 36: (106, 186, 100), 38: (129, 201, 100), 39: (122, 119, 100), 40: (116, 80, 100), 42: (114, 90, 100), 43: (129, 95, 100), 44: (129, 100, 100), 45: (114, 110, 100), 47: (114, 132, 100), 48: (171, 142, 100), 49: (129, 100, 100), 50: (129, 107, 100), 51: (272, 114, 100), 52: (240, 121, 100), 54: (226, 134, 100), 55: (129, 141, 100), 56: (146, 148, 100), 57: (197, 155, 100), 58: (216, 162, 100), 59: (166, 169, 100), 60: (219, 113, 100)},
     11: {5: (18, 253, 100), 6: (28, 284, 100), 7: (32, 357, 100), 34: (100, 71, 100), 35: (100, 63, 100), 36: (100, 71, 100), 39: (100, 67, 100), 40: (100, 50, 100), 43: (100, 63, 100), 46: (100, 63, 100), 48: (100, 75, 100), 49: (100, 53, 100), 51: (100, 50, 100), 54: (100, 63, 100), 55: (100, 56, 100), 59: (100, 84, 100), 60: (100, 60, 100)},

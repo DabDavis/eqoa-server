@@ -713,28 +713,34 @@ fight (above), roots and snares that end at a hit hold until one (the landing's 
 abilities are the workbook's (a necromancer's pets from 30 cast Undead Bane, and one with Undead Blood no longer its
 owner's tap), the druid's four EQOA-Data leftovers (Nature Form, which roots its caster, among them) and the shaman's
 two heals over time of 49 (Savage and Tribal Healing) are out of their lists, the level 60 epic options take the
-workbook's records, and the broken records take real figures or lose the template (the eight test pieces, plain level
-60 gear now, are what level 60 kits wear). On them, under the 16:38 re-fit's rows: a ranger from 8, its first arrow
-art, kept 3-10 points more through a yellow (ten levels over 36%), a shaman won its reds alone at nine levels of 4-16
-and at 37-60 (every one at 45-48 and 57-60) and its pet kept 4-19 points more, a druid of 50-60 won its reds alone, a
-necromancer's pet won its reds alone at seven levels of 34-43 and an enchanter's pet at six of 44-60, a rogue of 19-60
-and a warrior of 46-60 (Rend, which lowers the armour of what it strikes, counts on the creature now) kept 4-10 points
-more, a bard of 58-60 7-14 more (60 at 38%: the test pieces), a monk of 60 won two up 62%, and a shadow knight of
-21-50, spending power and time on its debuffs and drains where its taps were, won a yellow one up 57-78% at 24 and
-29-31 and kept 8-14% at 34-38; a player's own hold (the druid's Spirit Form, the paladin's barriers) and the parts a
-cast or an action ends moved no class's fights. It fits again by the same stages and targets the ranger's rows 8-60,
-the shaman's 4-60 and its pet's (49-60 on its list without the two heals), the rogue's 19-60, the shadow knight's 21-51
-(its share alone, at the undead check's dealt bands of 150 and 130), the warrior's 46-60, the bard's 57-60, the druid's
-50-60, the enchanter's pet's 5-60 and the necromancer's pet's 5-7 and 34-60, and sets cells at the targets' edges after,
-each a row checked with the simulator (a ranger of 10 dealing 115, its low point a level 10 roamer's crits; a shadow
-knight of 24, 28 and 50, where the cut's line left a yellow's win rate just under its bar; a druid of 60 at 135, its red;
-a bard and a monk of 60 a step of 0.9 lower, their two up; the enchanter's pet at 45 and at each level 49-60 a row of its
-own, 31-40: the knife edge between its yellows and its reds alone), each row only while it is the 16:38 re-fit's: 244
-rows on eqoaclassic's copy of 18:59 with the round's data in. Under them no cell of any class the 18:59 state had on the
-targets is off them, thirteen that were off are on (a shaman of 29, its pet at 19, 27, 28, 52 and 54, the enchanter's
-pet at 7, 50, 51, 53, 54, 57 and 59), the even fights are as they were (the median class 67-86% left), and two of a
-level win their reds three up 75-100% of the time, three every one. The paladin, the cleric, the magician, the wizard
-and the alchemist moved a point or two or not at all, and the monk but at 60: their rows are the 16:38 re-fit's. The seeds hold the seven tunings' result. Kits move with
+workbook's records, the broken records take real figures or lose the template (the eight test pieces, plain level 60
+gear now, are what level 60 kits wear), and a backstab needs its caster in the creature's rear half while a creature
+faces what it swings at (`entity/backstab.go`: a rogue alone, the one the creature fights, backstabs no more). On them,
+under the 16:38 re-fit's rows: a ranger from 8, its first arrow art, kept 3-10 points more through a yellow (ten levels
+over 36%), a shaman won its reds alone at nine levels of 4-16 and at 37-60 (every one at 45-48 and 57-60) and its pet
+kept 4-19 points more, a druid of 50-60 won its reds alone, a necromancer's pet won its reds alone at seven levels of
+34-43 and an enchanter's pet at six of 44-60, a warrior of 46-60 (Rend, which lowers the armour of what it strikes,
+counts on the creature now) kept 4-6 points more, a rogue from 12, its first backstab art, won one up 48-78% at 40-57
+and two up 18-62% and kept 8-17% at 21-22 and 36-39, a bard of 58-60 7-14 more (60 at 38%: the test pieces), a monk of
+60 won two up 62%, and a shadow knight of 21-50, spending power and time on its debuffs and drains where its taps were,
+won a yellow one up 57-78% at 24 and 29-31 and kept 8-14% at 34-38; a player's own hold (the druid's Spirit Form, the
+paladin's barriers), the parts a cast or an action ends, the bard's songs reaching its group and its Grand Finale's
+price, the necromancer's Flesh Mastery, Agonize Death and Lich form, the warrior's stances, the alchemist's Destroy
+Contraption, the wizard's Lightning Maelstrom, the enchanter's Visages, the cures and the leftovers of nine classes
+moved no class's fights. It fits again by the same stages and targets the ranger's rows 8-60, the shaman's 4-60 and its
+pet's (49-60 on its list without the two heals), the rogue's 12-60, the shadow knight's 21-51 (its share alone, at the
+undead check's dealt bands of 150 and 130), the warrior's 46-60, the bard's 57-60, the druid's 50-60, the enchanter's
+pet's 5-60 and the necromancer's pet's 5-7 and 34-60, and sets cells at the targets' edges after, each a row checked
+with the simulator (a ranger of 10 dealing 115, its low point a level 10 roamer's crits; a shadow knight of 24, 28 and
+50, where the cut's line left a yellow's win rate just under its bar; a druid of 60 at 135, its red; a rogue of 35
+dealing 115, the wisps' two up; a bard and a monk of 60 a step of 0.9 lower, their two up; the enchanter's pet at 45 and
+at each level 49-60 a row of its own, 31-40: the knife edge between its yellows and its reds alone), each row only while
+it is the 16:38 re-fit's: 241 rows on eqoaclassic's copy of 18:59 with the round's data in. Under them no cell of any
+class the 18:59 state had on the targets is off them, thirteen that were off are on (a shaman of 29, its pet at 19, 27,
+28, 52 and 54, the enchanter's pet at 7, 50, 51, 53, 54, 57 and 59), the even fights are as they were (the median class
+67-86% left), and two of a level win their reds three up 75-100% of the time, three every one. The paladin, the cleric,
+the magician, the wizard and the alchemist moved a point or two or not at all, and the monk but at 60: their rows are
+the 16:38 re-fit's. The seeds hold the seven tunings' result. Kits move with
 the items, so a data change that reaches what classes wear can move a class off its targets again:
 `balancesim_real_test.go` with `EQOA_REAL_DB` on a copy is the check. A kit wears nothing NO RENT (`simPick`: rent 0, what a spell conjures, which every worn item of rent 0 is; 262 of 2,700 kits had worn a magician's stone in a ranger's ranged slot, the Phase Shield or the Phase Staff, 2026-11-01).
 

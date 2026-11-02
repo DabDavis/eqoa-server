@@ -330,10 +330,9 @@ DESCRIPTIONS = {"flesh mastery +": None,
                                  "damages it over 24 seconds. Resisted by AR."}
 # MADE_ERRATA: a spell whose row makes another spell's item, by its name
 # (folded) -> the workbook's name of the item it makes, its own name's and
-# level's. The Created Item sheets' 13614 is Foraged Fruit (L35, HP1 85) and
-# 13615 Foraged Grub (L25, HP1 55), where the Spells sheet gives the ranger's
-# Forage Grub (L25) 13614 and Forage Fruit (L35) 13615 (the user, 2026-11-01:
-# "yes swap them").
+# level's: the Spells sheet gives the ranger's Forage Grub (L25) the created
+# item of Foraged Fruit (L35) and Forage Fruit the item of Foraged Grub, so
+# each made the other's meal (the user, 2026-11-01: "yes swap them").
 MADE_ERRATA = {"forage grub": "Foraged Grub", "forage fruit": "Foraged Fruit"}
 # MEAL_RULE: the workbook's meals that end as a meal of ours does (entity/
 # consumable.go: refused in a fight, ended by an aggressive action or a hit:

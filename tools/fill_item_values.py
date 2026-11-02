@@ -16,10 +16,16 @@ value 0 is given:
 1. Sandstorm's value for it (tools/stock_merchants.py's Measured: the harvests' wares and inventories, by
    name, else by Sandstorm's id at the same wear slot and level); a value of 0 there is kept, and listed;
 2. else stock_merchants' rule, fitted on those same values: a weapon without stats 1.845 x its damage,
-   anything else the median of the 3 nearest measured items of its kind (its error is printed, leave one out).
+   anything else the median of the 3 nearest measured items of its kind (its error is printed, leave one out),
+   without the measured items worth less than a fifth of their kind's within 5 levels (robust_rule): Sandstorm's
+   crafted Mithril Diamond ring, bracelet and pendant at 131 beside the earring's 3,614 had priced 93 dropped
+   jewels of 42-60 at 131, and cheap vendor goods and bait are no measure of a rare.
 Never, each listed:
 - a NO RENT record (rent 0): what a spell conjures (entity/balancekit.go simPick), which sold would be tunar
-  out of nothing;
+  out of nothing; nor an item a spell summons by name (a spelleffect line's "Summon X", "Summons X x3", or its
+  workbook items: the alchemist's thrown potions and cocktails, normal rent), for the same reason (Sandstorm
+  values its thrown potions 0);
+- a record in wear slot 17, which no record of Sandstorm's uses (two misfiled items: listed);
 - a crafted product (craftrecipes.product): the tradeskill seeds price theirs against their components;
 - a repeatable quest's reward (its steps' rewarditems, byclass, choices and give events, and the quest's
   own): done again and again it would mint tunar;
@@ -44,7 +50,7 @@ import statistics
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from stock_merchants import Measured, Rule, load_patterns  # noqa: E402
+from stock_merchants import Measured, Rule, load_patterns, norm  # noqa: E402
 
 DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqoa.db")
 GEAR = (1, 19)          # wear slots: head .. hands (handlers/equip.go); 20+ are fishing gear and tools
@@ -125,13 +131,69 @@ def gm_patterns(db):
     return out
 
 
+SUMMON = re.compile(r"\bsumm[ou]ns?\s+(?:item\s*:?\s*)?(?:an?\s+|the\s+)?(.+?)(?:\s+x\s*\d+)?$")
+NOT_ITEM = re.compile(r"\b(?:to your aid|to aid|creature|familiar|familar)\b")
+OUTLIER_SHARE, OUTLIER_SPAN, OUTLIER_MIN = 0.2, 5, 3
+
+
+def summoned_names(db):
+    """The names of the items a spell summons (entity/potion.go reSummonItem over a spelleffect line's parts,
+    and the workbook's items in its effects JSON), as norm() keys them."""
+    out = set()
+    if not has_table(db, "spelleffect"):
+        return out
+    cols = {r[1] for r in db.execute("PRAGMA table_info(spelleffect)")}
+    for line, eff in db.execute("SELECT line, " + ("effects" if "effects" in cols else "''") + " FROM spelleffect"):
+        for part in re.split(r"[;\n]", line or ""):
+            p = re.sub(r"\([^)]*\)", "", part).strip().lower()
+            m = SUMMON.search(p)
+            if m and not NOT_ITEM.search(p):
+                out.add(norm(m.group(1)))
+        if eff and "item" in eff.lower():
+            try:
+                o = json.loads(eff)
+            except ValueError:
+                continue
+            stack = [o]
+            while stack:
+                v = stack.pop()
+                if isinstance(v, dict):
+                    for k, x in v.items():
+                        if k.lower() in ("items", "item") and isinstance(x, list):
+                            out.update(norm(i["name"] if isinstance(i, dict) else i) for i in x
+                                       if isinstance(i, (dict, str)) and (i.get("name") if isinstance(i, dict) else i))
+                        else:
+                            stack.append(x)
+                elif isinstance(v, list):
+                    stack.extend(v)
+    return out
+
+
+def robust_rule(measured):
+    """stock_merchants' Rule without the measured items worth less than OUTLIER_SHARE of the median of their
+    kind's within OUTLIER_SPAN levels (at least OUTLIER_MIN of them): no measure of a dropped rare."""
+    rule = Rule(measured)
+    dropped = []
+    for k, pool in rule.pool.items():
+        keep = []
+        for p in pool:
+            band = [q["cost"] for q in pool if q is not p and abs(q["level"] - p["level"]) <= OUTLIER_SPAN]
+            if len(band) >= OUTLIER_MIN and p["cost"] < OUTLIER_SHARE * statistics.median(band):
+                dropped.append(p["name"])
+                continue
+            keep.append(p)
+        rule.pool[k] = keep
+    return rule, dropped
+
+
 def plan(db, measured):
     """[(patternid, name, value, source)] to write and [(patternid, name, why)] left."""
     patterns = load_patterns(db)
     measured.add_db(db, patterns)
     measured.fill_items(patterns)
-    rule = Rule(measured)
+    rule, _dropped = robust_rule(measured)
     no_rent = {pid for (pid,) in db.execute("SELECT patternid FROM itempattern WHERE rent = 0")}
+    summoned = summoned_names(db)
     crafted = {pid for (pid,) in db.execute("SELECT product FROM craftrecipes")} if has_table(db, "craftrecipes") else set()
     repeat = repeatable_rewards(db)
     gm = gm_patterns(db)
@@ -140,7 +202,8 @@ def plan(db, measured):
         p = patterns[pid]
         if p["cost"] != 0 or not (GEAR[0] <= p["slot"] <= GEAR[1]) or p["level"] < MIN_LEVEL:
             continue
-        why = ("NO RENT (a spell's)" if pid in no_rent else "a crafted product" if pid in crafted else
+        why = ("NO RENT (a spell's)" if pid in no_rent else "a spell summons it" if norm(p["name"]) in summoned else
+               "wear slot 17 (misfiled)" if p["slot"] == 17 else "a crafted product" if pid in crafted else
                "a repeatable quest's reward" if pid in repeat else "a GM changed it" if pid in gm else None)
         if why:
             left.append((pid, p["name"], why))

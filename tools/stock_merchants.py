@@ -492,12 +492,15 @@ class Rule:
 
     @staticmethod
     def distance(x, p):
+        # a negative AC or damage (a cursed record's) counts as none: log1p is not defined below -1
+        def lg(v):
+            return math.log1p(max(0, v or 0))
         d = abs(p["level"] - x["level"]) / 3
         a, b = name_words(x["name"]), name_words(p["name"])
         d += 1 - (len(a & b) / len(a | b) if a | b else 0)
-        d += abs(math.log1p(p["stats"].get("AC", 0)) - math.log1p(x["stats"].get("AC", 0))) / 0.35
-        d += abs(math.log1p(p["dmg"]) - math.log1p(x["dmg"])) / 0.35
-        d += abs(math.log1p(stat_points(p)) - math.log1p(stat_points(x))) / 0.35
+        d += abs(lg(p["stats"].get("AC", 0)) - lg(x["stats"].get("AC", 0))) / 0.35
+        d += abs(lg(p["dmg"]) - lg(x["dmg"])) / 0.35
+        d += abs(lg(stat_points(p)) - lg(stat_points(x))) / 0.35
         if p["slot"] != x["slot"]:
             d += 0.5
         return d

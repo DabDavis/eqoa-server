@@ -359,6 +359,13 @@ def sources(pages, want):
 
 # ---- this server ----
 
+def loot_name(name):
+    """A creature's name as the server's loot binds it (database.NPCClassKey: lower case, trimmed, a trailing $ off),
+    which key() is not: it reads a backtick as an apostrophe ("Gal`Saris ghoul")."""
+    n = (name or "").strip().lower()
+    return (n[:-1] if n.endswith("$") else n).strip()
+
+
 def has_table(db, name):
     return db.execute("SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = ?", (name,)).fetchone()[0] > 0
 
@@ -425,8 +432,10 @@ class Ours:
         self.style_icon = {k: c.most_common(1)[0][0] for k, c in by_style.items()}
         self.merchants = collections.defaultdict(list)                # key name -> npc_ids of merchants
         self.creatures = collections.defaultdict(set)                 # key name -> spawn levels
+        self.loot_names = collections.defaultdict(set)                # key name -> the names npcloot binds (NPCClassKey's)
         for name, npc_id, t, lvl in db.execute("SELECT npc_name, npc_id, npc_type, npc_level FROM npcs"):
             self.creatures[key(name)].add(lvl or 0)
+            self.loot_names[key(name)].add(loot_name(name))
             if npc_id and (t or 0) & 1:
                 self.merchants[key(name)].append(npc_id)
         self.catalog = collections.Counter(n for (n,) in db.execute("SELECT npcid FROM npcitem"))
@@ -684,13 +693,14 @@ def write(db, recs, rows, ours, log_table=LOG, kinds=None):
             for n in names:
                 if r["kind"] == "type" and not any(r["low"] <= l <= r["high"] for l in ours.creatures[n]):
                     continue
-                if (n, table) in tables:
-                    continue
-                tables.add((n, table))
-                cur = db.execute("INSERT OR IGNORE INTO npcloot (npc_name, tablename, chance, rolls, note, source) "
-                                 "VALUES (?, ?, ?, 1, ?, 'wiki')", (n, table, r["chance"], r["why"][:200]))
-                if cur.rowcount:
-                    log("npcloot", f"{n}|{table}", r["why"])
+                for ln in sorted(ours.loot_names.get(n) or {n}):
+                    if (ln, table) in tables:
+                        continue
+                    tables.add((ln, table))
+                    cur = db.execute("INSERT OR IGNORE INTO npcloot (npc_name, tablename, chance, rolls, note, source) "
+                                     "VALUES (?, ?, ?, 1, ?, 'wiki')", (ln, table, r["chance"], r["why"][:200]))
+                    if cur.rowcount:
+                        log("npcloot", f"{ln}|{table}", r["why"])
         elif r["kind"] == "pool":
             cur = db.execute("INSERT INTO lootpool (category, region, npc_name, patternid, weight, minlevel, maxlevel, source) "
                              "VALUES (?, ?, '', ?, 1, ?, ?, 'wiki')", (r.get("category", "uncommon"), r["target"], r["pid"], r["low"], r["high"]))

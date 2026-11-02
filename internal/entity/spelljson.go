@@ -58,6 +58,7 @@ func SpellDefFrom(name, line, desc, effects string) SpellDef {
 		d, err := ParseSpellJSON(name, desc, effects)
 		if err == nil {
 			d.undeadFromLine(line)
+			d.charmCapFromWords(line, desc)
 			return d
 		}
 		if _, seen := badSpellJSON.LoadOrStore(name, true); !seen {
@@ -65,6 +66,23 @@ func SpellDefFrom(name, line, desc, effects string) SpellDef {
 		}
 	}
 	return ParseSpellNamed(name, line, desc)
+}
+
+// charmCapFromWords gives a charm read from the workbook the level cap its
+// line or description words ("Charms up to level 58 mobs", Binding Grasp's;
+// "Charm up to level 54", the bard's), which no workbook field holds: until
+// 2026-11-02 such a charm took up to its own level (Binding Grasp, 60: Lady
+// Vox at 57), its words read only by the line's reader (spelltext.go).
+func (d *SpellDef) charmCapFromWords(line, desc string) {
+	if !d.Charms() || d.CharmMax > 0 {
+		return
+	}
+	for _, words := range []string{line, desc} {
+		if m := reCharmMax.FindStringSubmatch(strings.ToLower(words)); m != nil {
+			d.CharmMax = atoi(m[1])
+			return
+		}
+	}
 }
 
 // undeadFromLine makes a harmful spell read from the workbook for undead

@@ -36,8 +36,10 @@ import (
 // recording of the live game's refusal exists), a brief cast (charmFizzle:
 // jib's "fizzle, and not fire off") and no power taken, no lockout. A charm
 // cast with a pet out is refused before this (charm.go). An undead-only charm
-// takes undead with the charm's own roll (charm.go); every other charm still
-// fails on them ("Attempt resisted!", as Sandstorm's did on Rotting Flesh).
+// takes undead with the charm's own roll (charm.go), as every other charm
+// does since 2026-11-02 (the wiki's Charmable Mobs page: enchanters charmed
+// spectres, spirits, lost souls, ghouls and dead riders); until then they
+// failed on them ("Attempt resisted!", as Sandstorm's did on Rotting Flesh).
 
 // castNotUndead is the refusal of an undead-only spell at anything else.
 const castNotUndead = "This spell only works on the undead."

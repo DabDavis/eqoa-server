@@ -204,6 +204,12 @@ func main() {
 		log.Printf("WARNING: %v; undead by their names alone", err)
 	}
 	log.Printf("Creatures: %s", gameWorld.UndeadSummary())
+	// How the creatures of a name take a charm: uncharmable, a resist of
+	// their own, the template a charmed one fights by (entity/charm.go, table
+	// npccharm; its summary after the templates are read, below)
+	if _, err := gameWorld.LoadCharmRules(db); err != nil {
+		log.Printf("WARNING: %v; every creature takes a charm by its level alone", err)
+	}
 	// NPCs coming to the help of their own (entity/socialaggro.go, table
 	// npcsocial), and creatures healing once a fight is over (npcregen.go)
 	if _, err := gameWorld.LoadSocialRules(db); err != nil {
@@ -237,6 +243,7 @@ func main() {
 	for _, l := range gameWorld.ClassTemplateSummary() {
 		log.Printf("Creatures: %s", l)
 	}
+	log.Printf("Creatures: %s", gameWorld.CharmSummary())
 	// The class masteries a character may buy (entity/cmbuy.go, table
 	// cmcatalog): with none, none is offered, and every stat cap is the
 	// level's

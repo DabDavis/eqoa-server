@@ -82,17 +82,20 @@ func (w *World) npcRegenSystem(now time.Time) {
 }
 
 // petRegen is a pet's tick: its HoT and PoT as a player's base (regen.go),
-// a 50 of each maximum, at least 1, within the maximum.
+// a 50 of each maximum, at least 1, plus what its effects add to each (an
+// enchanter's Clarity or Power Flow on a charmed creature: charm.go), within
+// the maximum.
 func (n *NPC) petRegen() {
 	if n.sheet != nil {
 		n.petSheetRegen() // a workbook pet's HoT and PoT (petstats.go)
 		return
 	}
+	m := n.effectMods()
 	if n.HP > 0 && n.HP < n.MaxHP {
-		n.HP = min(n.HP+max(1, n.MaxHP/50), n.MaxHP)
+		n.HP = min(n.HP+max(1, n.MaxHP/50)+max(m.HoT, 0), n.MaxHP)
 	}
 	if n.MaxPower > 0 && n.Power < n.MaxPower {
-		n.Power = min(n.Power+max(1, n.MaxPower/50), n.MaxPower)
+		n.Power = min(n.Power+max(1, n.MaxPower/50)+max(m.PoT, 0), n.MaxPower)
 	}
 }
 

@@ -37,6 +37,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveAggro()
 	case "npcundead":
 		return s.liveUndead()
+	case "npccharm":
+		return s.liveCharm()
 	case "npcsocial":
 		return s.liveSocial()
 	case "npcspawnonly":
@@ -177,6 +179,19 @@ func (s *Server) liveUndead() string {
 		return "not applied to the world: " + err.Error()
 	}
 	return "at once: the next cast at a creature of that name uses it"
+}
+
+// liveCharm reads how the creatures of a name take a charm again
+// (entity/charm.go; the change is committed: the database is free). A pet
+// charmed already keeps the template it was charmed with.
+func (s *Server) liveCharm() string {
+	if s.d.World == nil || s.d.DB == nil {
+		return "no world is running: at the next start"
+	}
+	if _, err := s.d.World.LoadCharmRules(s.d.DB); err != nil {
+		return "not applied to the world: " + err.Error()
+	}
+	return "at once: the next charm cast at a creature of that name uses it (a creature charmed already keeps its template)"
 }
 
 // liveSocial reads which NPCs come to the help of their own again

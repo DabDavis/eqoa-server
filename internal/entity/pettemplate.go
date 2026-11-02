@@ -47,9 +47,15 @@ import (
 //     (pet.go); a taunt on what it fights, the top of its hate and a hit (a
 //     melee hit of its own, or the row's figure by level, landing as it is).
 //
-// A template's area spells and special are an NPC's alone. A pet with no
-// row (a shaman's, a wizard's, the Grand Animation, a charmed creature)
-// fights as pet.go always had it.
+// An ability of the kind "aoe" (an area spell of the class's) is cast at what
+// the pet fights and lands on its area (below); a template's timed special
+// (special_every and its kin) is a pet's crit as it is a creature's
+// (petTemplateSpecialLocked; special_chance, the kick by chance, an NPC's
+// alone). A charmed creature fights by its npccharm row's template
+// (charm.go), its class and swing its own, and its casts cost it their
+// spells' power (petCastCost) unless the ability is free. A pet with no row
+// (a shaman's, a wizard's, the Grand Animation, a charmed creature without
+// one) fights as pet.go always had it.
 
 // petTemplate is a pettemplate row as the world summons by it: its template.
 type petTemplate struct {
@@ -175,7 +181,7 @@ func (ps *petState) petAbilityClocks(foe EntityID, now time.Time) *templateFight
 // petAtFoe is whether a kind is cast at what the pet fights.
 func petAtFoe(kind string) bool {
 	switch kind {
-	case database.AbilityNuke, database.AbilityLifetap, database.AbilityTaunt, database.AbilityRoot:
+	case database.AbilityNuke, database.AbilityAoE, database.AbilityLifetap, database.AbilityTaunt, database.AbilityRoot:
 		return true
 	}
 	return false
@@ -215,7 +221,7 @@ func (w *World) petTemplateTurnLocked(ps *petState, t *NPC, now time.Time) bool 
 		if a.Chain || now.Before(f.next[i]) || ps.npc.Level < a.From || petShareHeal(a) {
 			continue
 		}
-		if petAtFoe(a.Kind) && t == nil || a.Kind == database.AbilityAoE {
+		if petAtFoe(a.Kind) && t == nil {
 			continue
 		}
 		if !w.petWantsLocked(ps, a, now) {
@@ -367,6 +373,10 @@ func (w *World) petCastLocked(ps *petState, i int, t *NPC, now time.Time) bool {
 	if spell == nil {
 		return false
 	}
+	cost := petCastCost(pet, a, spell)
+	if cost > pet.Power {
+		return false // a charmed creature out of power: it fights with its melee (charm.go)
+	}
 	c := &petCast{ps: ps, tmpl: ps.tmpl, a: a, spell: spell, lands: now.Add(spell.CastTime + castLand)}
 	switch {
 	case petAtFoe(a.Kind):
@@ -387,15 +397,67 @@ func (w *World) petCastLocked(ps *petState, i int, t *NPC, now time.Time) bool {
 		c.target = pet.ServerID
 	}
 	w.petCasts = append(w.petCasts, c)
+	pet.Power -= cost
 	f := pet.fight()
 	f.busy = now.Add(spell.CastTime + castBusy)
 	if j := i + 1; j < len(abilities) && abilities[j].Chain {
 		f.chain = j + 1
 	}
 	w.broadcastNPCSwingLocked(pet, c.target, uint32(spell.CastTime/time.Millisecond), spell.visual())
-	log.Printf("Pet: %s's %q (%s) begins %q (spell %d) on %s: %v cast", ps.owner.Name, pet.Name, ps.tmpl.Template, spell.Name,
-		spell.SpellID, w.entityNameLocked(c.target), spell.CastTime)
+	log.Printf("Pet: %s's %q (%s) begins %q (spell %d) on %s: %v cast, %d power (%d left)", ps.owner.Name, pet.Name, ps.tmpl.Template,
+		spell.Name, spell.SpellID, w.entityNameLocked(c.target), spell.CastTime, cost, pet.Power)
 	return true
+}
+
+// petCastCost is the power a pet's cast of the spell costs it: a charmed
+// creature's, its spell's power (charm.go: the wiki's tree "not casting as
+// much as usual ... give it some power"), none for an ability marked free; a
+// summoned pet's casts cost nothing.
+func petCastCost(pet *NPC, a *templateAbility, spell *CastSpell) int {
+	if pet.Charm == nil || a.Free || spell.PowerCost <= 0 {
+		return 0
+	}
+	return spell.PowerCost
+}
+
+// petTemplateSpecialLocked is a templated pet's special in its fight with t,
+// at each of its turns in reach (petFightLocked): a charm template's crit (the
+// wiki's rhinos' "3k+ critical dmg attack", the griffons' "700+ crit"), on its
+// template's clock of time at its foe as a creature's timed special is
+// (templateSpecialLocked: special_every, its first special_first into the
+// fight, each special_jitter either way, from special_from of its own level),
+// its level times special_damage as one of its hits (the balance's pet damage
+// and con), cast 0 with its visual. It reports a kill. Must be called with
+// the lock held.
+func (w *World) petTemplateSpecialLocked(ps *petState, t *NPC, now time.Time) bool {
+	if ps.tmpl == nil {
+		return false
+	}
+	tm, pet := ps.tmpl.tmpl, ps.npc
+	if tm.SpecialDamage <= 0 || tm.SpecialEvery <= 0 || pet.Level < tm.SpecialFrom {
+		return false
+	}
+	f := pet.fight()
+	switch gap := now.Sub(f.timedSeen); {
+	case f.timedSeen.IsZero():
+		f.timedLeft = templateJitter(tm.SpecialFirst, tm.SpecialJitter)
+	case gap > 0 && gap <= templateContactGap:
+		f.timedLeft -= gap // at its foe since its last turn
+	}
+	f.timedSeen = now
+	if f.timedLeft > 0 || now.Before(f.busy) {
+		return false
+	}
+	f.timedLeft = templateJitter(tm.SpecialEvery, tm.SpecialJitter)
+	n := max(int(math.Round(float64(pet.Level)*tm.SpecialDamage)), 1)
+	fx := tm.SpecialFX
+	if fx == 0 {
+		fx = templateSpecialFX
+	}
+	w.broadcastNPCSwingLocked(pet, t.ServerID, 0, fx)
+	pet.LastCombatTime = now
+	log.Printf("Pet: %s's %q (%s) lands its %s on %s for %d before the balance", ps.owner.Name, pet.Name, tm.Name, specialName(tm), t.Name, n)
+	return w.petDamageLocked(ps, t, n, now)
 }
 
 // petCastSystemLocked lands every templated pet's cast whose time has come,
@@ -435,28 +497,33 @@ func (w *World) petCastSystemLocked(now time.Time) {
 // workbook's legend) and every creature the pet may fight within the area's
 // radius of it, nearest first and as many as the area's cap, with the area's
 // own figure (hp2); a root (AbilityRoot) holds its target and the same others.
-// A pet's ability of the kind "aoe" is still never cast (petTemplateTurnLocked).
+// A caster's area (a "PB AE": the charm templates' area spells, 2026-11-02) is
+// round the pet itself, its target taking the spell's whole figure as well.
 
 // petAreaFoesLocked is the creatures round t a pet's area spell lands on
 // besides t: those the pet may fight, not hidden, within the area's radius of
 // t, nearest first, the area's cap with t counted. Must be called with the
 // lock held.
 func (w *World) petAreaFoesLocked(pet, t *NPC, area SpellArea, now time.Time) []*NPC {
-	if area.Centre != AreaOnTarget || w.SpatialIndex == nil {
+	if area.Centre == AreaNone || w.SpatialIndex == nil {
 		return nil
 	}
 	r := area.radiusFor(true)
+	cx, cy, cz := t.X, t.Y, t.Z
+	if area.Centre == AreaOnCaster {
+		cx, cy, cz = pet.X, pet.Y, pet.Z // a caster's area: round the pet (a charmed crawler's)
+	}
 	type near struct {
 		npc *NPC
 		d   float32
 	}
 	var out []near
-	for _, id := range w.SpatialIndex.QueryRadius(t.X, t.Z, r) {
+	for _, id := range w.SpatialIndex.QueryRadius(cx, cz, r) {
 		o := w.NPCs[id]
 		if o == nil || o == t || !petMayFight(pet, o) || o.hiddenAt(now) {
 			continue
 		}
-		if d := dist3(o.X, o.Y, o.Z, t.X, t.Y, t.Z); d <= r {
+		if d := dist3(o.X, o.Y, o.Z, cx, cy, cz); d <= r {
 			out = append(out, near{o, d})
 		}
 	}
@@ -475,7 +542,7 @@ func (w *World) petAreaFoesLocked(pet, t *NPC, area SpellArea, now time.Time) []
 // (petAreaFoesLocked), each as one of the pet's hits.
 func (w *World) petSplashLocked(ps *petState, t *NPC, c *petCast, a *templateAbility, now time.Time) {
 	area := c.spell.Area
-	if area.Centre != AreaOnTarget {
+	if area.Centre == AreaNone {
 		return
 	}
 	effects := area.Effects
@@ -600,7 +667,7 @@ func (w *World) petDrainStatsLocked(ps *petState, t *NPC, spell *CastSpell, now 
 func (w *World) petLandLocked(c *petCast, now time.Time) {
 	ps, pet, a := c.ps, c.ps.npc, c.a
 	switch a.Kind {
-	case database.AbilityNuke, database.AbilityLifetap:
+	case database.AbilityNuke, database.AbilityAoE, database.AbilityLifetap:
 		t := w.NPCs[c.target]
 		if t == nil || t.Dead || t.World != pet.World {
 			return

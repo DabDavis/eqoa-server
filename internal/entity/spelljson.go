@@ -545,7 +545,7 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 			add(effectOf(EffectHP, e))
 		}
 		if kind == "backstab" {
-			d.Ignored = append(d.Ignored, "backstab: from anywhere (no facing is tested)")
+			d.Backstab = true // its caster behind its target (backstab.go)
 		}
 	case "hp2":
 		if e.Amount == 0 {

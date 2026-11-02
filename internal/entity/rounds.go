@@ -134,6 +134,9 @@ func (n *NPC) endRound() {
 // sees the NPC, each with the ids it knows the NPC and the target by, and a
 // templated NPC's area spell's others it sees (classtemplate.go, area.go).
 func (w *World) broadcastNPCSwingLocked(npc *NPC, target EntityID, ms, fx uint32, others ...EntityID) {
+	// a creature faces what it swings at or casts on, so a rogue behind it
+	// while it fights another may backstab (backstab.go)
+	w.faceLocked(npc, target)
 	if w.SessionManager == nil {
 		return
 	}

@@ -120,6 +120,7 @@ func (w *World) sparRoundLocked(sess *session.Session, npc *NPC, p *Player, star
 // (said). line, when not empty, is said first. It reports the fight's end.
 func (w *World) sparHitLocked(sess *session.Session, npc *NPC, p *Player, damage int, line string, now time.Time) bool {
 	p.LastCombatTime = now
+	w.breakInvisLocked(p, "a hit") // invis.go: every invisibility, whatever gave it
 	npcObjectID := w.objectIDForEntityLocked(sess, npc.ServerID)
 	if line != "" {
 		w.sendChatToSession(sess, line)

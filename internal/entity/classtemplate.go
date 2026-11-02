@@ -820,6 +820,7 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 		p.HP = max(p.HP-taken, 0)
 		p.StatsDirty = true
 		p.LastCombatTime = now
+		w.breakInvisLocked(p, "a hit") // invis.go: every invisibility, whatever gave it
 		sess = w.findSessionByEntityIDLocked(p.ServerID)
 		if sess != nil {
 			if nid := w.objectIDForEntityLocked(sess, npc.ServerID); nid != 0 {
@@ -967,6 +968,7 @@ func (w *World) templateSpecialHitLocked(npc *NPC, target EntityID, now time.Tim
 		p.HP = max(p.HP-damage, 0)
 		p.StatsDirty = true
 		p.LastCombatTime = now
+		w.breakInvisLocked(p, "a hit") // invis.go: every invisibility, whatever gave it
 		sess := w.findSessionByEntityIDLocked(p.ServerID)
 		if sess != nil {
 			w.sendDamageIndication(sess, w.objectIDForEntityLocked(sess, npc.ServerID), -damage, sess.PlayerObjectID())

@@ -363,6 +363,10 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 	if cost > 0 && p.HP <= cost {
 		return PotionTooWeak, nil, nil
 	}
+	// a potion drunk shows its drinker (the user, 2026-11-02: "potions should
+	// still break it"), before its own effects land: an invisibility potion's
+	// stays (invis.go)
+	w.breakInvisLocked(p, "a potion")
 	if cost > 0 {
 		p.HP -= cost
 		p.StatsDirty = true

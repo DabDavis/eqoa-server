@@ -803,6 +803,7 @@ func (w *World) duelHurtLocked(d *Duel, attacker *Player, src EntityID, t *Playe
 		}
 	}
 	d.struck[t.ServerID] = true
+	w.breakInvisLocked(t, "a hit") // invis.go: every invisibility, whatever gave it
 	t.StatsDirty = true
 	if dmg < t.HP {
 		t.HP -= dmg

@@ -135,6 +135,8 @@ type World struct {
 
 	// The GMs' undead tags by NPC name, table npcundead (undead.go)
 	undead map[string]bool
+	// The GMs' charm rules by NPC name, table npccharm (charm.go)
+	charmRules map[string]database.CharmRule
 	// The NPC names that stand out of the world, there only for the quests'
 	// and triggers' spawns that copy them, table npcspawnonly (spawnonly.go)
 	spawnOnly map[string]bool

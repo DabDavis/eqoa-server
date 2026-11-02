@@ -135,8 +135,9 @@ func TestAnUndeadNukeTakesOnlyUndead(t *testing.T) {
 }
 
 // Coerce Undead: refused at the crab with the fizzle; Rotting Flesh, undead,
-// is taken on the charm's roll (and resisted on a roll under it), where the
-// enchanter's charm always fails on it.
+// is taken on the charm's roll (and resisted on a roll under it), as the
+// enchanter's charm takes it too since 2026-11-02 (charm.go: the wiki's
+// enchanters charmed spectres, ghouls and dead riders).
 func TestTheUndeadCharmTakesOnlyUndead(t *testing.T) {
 	defer func(f func(int) int) { charmIntn = f }(charmIntn)
 	charmIntn = dice(99)
@@ -164,7 +165,7 @@ func TestTheUndeadCharmTakesOnlyUndead(t *testing.T) {
 
 	charmIntn = dice(99)
 	r3, flesh3, fleshID3 := charmRig(t)
-	if _, _ = castCharm(t, r3, captivation(), fleshID3, 0); flesh3.Owner != 0 {
-		t.Errorf("the enchanter's charm took Rotting Flesh")
+	if _, _ = castCharm(t, r3, captivation(), fleshID3, 0); flesh3.Owner != r3.p.ServerID {
+		t.Errorf("the enchanter's charm did not take Rotting Flesh")
 	}
 }

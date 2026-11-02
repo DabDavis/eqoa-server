@@ -680,8 +680,8 @@ var catalog = map[string]tableNote{
 		Label: "Undead creatures", Group: "World", Title: "name", Sort: "name",
 		Help: "Which creatures are undead, by NPC NAME (lower case, no trailing $): the spells for undead alone (a " +
 			"\"Target undead\" line, as the ... Death nukes have, and the necromancer's Charm, Command, Control and Coerce " +
-			"Undead) are refused at anything else with \"This spell only works on the undead.\", and every other charm " +
-			"fails on undead. undead 1 makes every NPC of the name undead, 0 none, whatever its name says; a name with no " +
+			"Undead) are refused at anything else with \"This spell only works on the undead.\" (an enchanter's or a bard's " +
+			"charm takes undead as anything else: charm.go). undead 1 makes every NPC of the name undead, 0 none, whatever its name says; a name with no " +
 			"row is undead when its name says so (skeleton, zombie, ghoul, mummy, wraith, spectre, ghost...). Rows of " +
 			"source seed are tools/seed_npc_undead.py's, from the creatures' names and bodies: no record of the live game " +
 			"says which creatures were undead.",
@@ -692,6 +692,27 @@ var catalog = map[string]tableNote{
 			"undead": {Label: "Undead", Help: "1 yes, 0 no"},
 			"note":   {Label: "Note", Help: "why"},
 			"source": {Label: "Source", Help: "gm, or seed for tools/seed_npc_undead.py's rows (its --undo deletes those)"},
+		},
+	},
+	"npccharm": {
+		Label: "Charm rules", Group: "World", Title: "name", Sort: "name",
+		Help: "How the creatures of an NPC NAME (lower case, no trailing $) take a charm (entity/charm.go), over the " +
+			"charms' own level caps: charmable 0 refuses a charm cast at them (\"Your target cannot be charmed.\", nothing " +
+			"taken: the wiki's Were-Hunters, raging rhinos, the named raid mobs); resist_pct is their chance in percent to " +
+			"resist one that lands (0 the charm's own, 10; 100 never charmed: Ambassador Vu'Malik's charm \"will not stick\"), " +
+			"a resisted creature coming at its caster; template is the class template (Class templates) a charmed one " +
+			"fights by as a pet, its own class and hit points kept: its abilities cast from its master's side, each costing " +
+			"it its spell's power unless marked free (the wiki's trees, griffons, rhinos, wisps, Nasehir wizards). Rows " +
+			"of source seed are tools/seed_npc_charm.py's, from eqoa.fandom.com's Charmable Mobs and Charming pages.",
+		Live:   "At once: the next charm cast at a creature of that name uses it (one charmed already keeps its template).",
+		Search: []string{"name", "template", "note"},
+		Cols: map[string]colNote{
+			"name":       {Label: "NPC name (key)", Help: "lower case, as in NPCs without a trailing space or $"},
+			"charmable":  {Label: "Charmable", Help: "1 yes (its level decides), 0 never"},
+			"resist_pct": {Label: "Resist %", Help: "its chance to resist a charm that lands; 0 the default (10), 100 always"},
+			"template":   {Label: "Charm template", Help: "a Class templates name it fights by while charmed; empty: as itself"},
+			"note":       {Label: "Note", Help: "why"},
+			"source":     {Label: "Source", Help: "gm, or seed for tools/seed_npc_charm.py's rows (its --undo deletes those)"},
 		},
 	},
 	"npcspawnonly": {

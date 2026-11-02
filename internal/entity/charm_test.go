@@ -12,8 +12,9 @@ import (
 // The enchanter's charm (F3 20261025-164922), held to what Sandstorm sent
 // an enchanter of 49 (harvests/sandstorm-spells-20261021/pets/
 // dolph-charm-*.json): 0x007E with the creature's own id, 0x1003 with its
-// name, its channel's 142 3, 143 0 and npc flags 0x80; "Attempt resisted!"
-// on undead.
+// name, its channel's 142 3, 143 0 and npc flags 0x80; and to the live
+// game's rules as eqoa.fandom.com has them (2026-11-02, charm.go's doc): the
+// caps, undead charmed, the CHA share of the time, the one zone grace.
 
 func entrancing(name string, level int, line string) CastSpell {
 	return CastSpell{SpellID: 500 + level, DisplayIndex: 8, Level: level, Scope: 1, Name: name, CastTime: 5 * time.Second,
@@ -34,8 +35,10 @@ func enticement() CastSpell {
 func charmRig(t *testing.T) (*petRig, *NPC, uint32) {
 	r := newPetRig(t)
 	r.p.Name, r.p.Class, r.p.Level, r.p.Cha = "Dolph", classEnchanter, 49, 150
+	crab := r.enemy
+	crab.SpawnX, crab.SpawnY, crab.SpawnZ = crab.X, crab.Y, crab.Z
 	flesh := &NPC{ServerID: 3300, Name: "Rotting Flesh", Level: 1, HP: 40, MaxHP: 40, ModelID: 0x1BBB898C, Size: 1,
-		X: 8635, Y: 75, Z: 5425, World: 2}
+		X: 8635, Y: 75, Z: 5425, World: 2, SpawnX: 8635, SpawnY: 75, SpawnZ: 5425}
 	r.w.NPCs[flesh.ServerID] = flesh
 	r.w.SpatialIndex.Insert(flesh.ServerID, flesh.X, flesh.Z)
 	vs := GetOrCreateVisibility(r.sess)
@@ -227,25 +230,49 @@ func TestACharmMakesTheCreatureAPet(t *testing.T) {
 	}
 }
 
-// Resisted: undead always, with Sandstorm's line, and the creature comes at
-// the caster.
-func TestACharmOnUndeadIsResisted(t *testing.T) {
+// Undead are charmed as anything else (the wiki's Charmable Mobs page:
+// spectres, spirits, lost souls, ghouls and dead riders): an enchanter's
+// charm takes the Rotting Flesh; resisted (a roll under the charm's 10%), with
+// Sandstorm's line, and the creature comes at the caster. The controls: the
+// same roll does not resist at the crab, and the necromancer's undead charm
+// is refused at the crab (undead.go).
+func TestACharmTakesUndead(t *testing.T) {
 	r, flesh, fleshID := charmRig(t)
 	defer func(f func(int) int) { charmIntn = f }(charmIntn)
 	charmIntn = dice(99)
-	_, msgs := castCharm(t, r, captivation(), fleshID, 0)
+	if began, _ := castCharm(t, r, captivation(), fleshID, 0); !began || flesh.Owner != r.p.ServerID || r.w.petOfLocked(r.p) != flesh {
+		t.Fatalf("an undead not charmed: began %v, owner %d", began, flesh.Owner)
+	}
+
+	charmIntn = dice(9) // under the 10%: resisted
+	r2, flesh2, fleshID2 := charmRig(t)
+	_, msgs2 := castCharm(t, r2, captivation(), fleshID2, 0)
 	want := unhex(t, "7b0a1100000041007400740065006d00700074002000720065007300690073007400650064002100ff3f3f")
 	found := false
-	for _, m := range msgs {
+	for _, m := range msgs2 {
 		found = found || bytes.Equal(m, want)
 	}
-	if !found || flesh.Owner != 0 || flesh.CurrentEnemy != r.p.ServerID {
-		t.Errorf("sent %x; Rotting Flesh owner %d, enemy %d", msgs, flesh.Owner, flesh.CurrentEnemy)
+	if !found || flesh2.Owner != 0 || flesh2.CurrentEnemy != r2.p.ServerID {
+		t.Errorf("resisted: sent %x; Rotting Flesh owner %d, enemy %d", msgs2, flesh2.Owner, flesh2.CurrentEnemy)
 	}
-	charmIntn = dice(0)
-	r2, _, _ := charmRig(t)
-	if _, _ = castCharm(t, r2, captivation(), crabID, 0); r2.enemy.Owner != 0 || r2.enemy.CurrentEnemy != r2.p.ServerID {
-		t.Errorf("a roll under the resist took the crab: %+v", *r2.enemy)
+	charmIntn = dice(10) // the control: at the 10% it holds
+	r3, _, _ := charmRig(t)
+	if _, _ = castCharm(t, r3, captivation(), crabID, 0); r3.enemy.Owner != r3.p.ServerID {
+		t.Errorf("a roll of 10 did not take the crab: %+v", *r3.enemy)
+	}
+
+	r4, _, _ := charmRig(t)
+	r4.p.Class = classNecromancer
+	coerce := CastSpell{SpellID: 974, DisplayIndex: 8, Level: 50, Scope: 1, Name: "Coerce Undead", CastTime: 5 * time.Second,
+		Recast: 30 * time.Second, PowerCost: 260, Range: 30,
+		Def: ParseSpell("Target undead, Charm ; Increase 25% based on CHA, 2min", "CM: Charm an Undead")}
+	began, msgs := castCharm(t, r4, coerce, crabID, 0)
+	said := false
+	for _, m := range msgs {
+		said = said || bytes.Contains(m, wide16("only works on the undead"))
+	}
+	if began || r4.enemy.Owner != 0 || !said {
+		t.Errorf("the necromancer's undead charm at the crab: began %v, owner %d, %x", began, r4.enemy.Owner, msgs)
 	}
 }
 
@@ -260,19 +287,26 @@ func TestACharmEnds(t *testing.T) {
 		end     func(r *petRig)
 		hostile bool
 	}{
-		{"worn off", func(r *petRig) { r.tick(4*time.Minute + 10*time.Second) }, true},
+		// landed at 6.4 s, then 4 minutes and 150 CHA's 37.5 s
+		{"worn off", func(r *petRig) { r.tick(4*time.Minute + 40*time.Second); r.tick(4*time.Minute + 50*time.Second) }, true},
 		{"dismissed", func(r *petRig) { r.w.PetCommand(r.sess, petCmdDismiss, 0, r.at(time.Minute)) }, true},
 		{"its master logged out", func(r *petRig) { delete(r.w.Players, r.p.ServerID); r.tick(time.Minute) }, false},
 	} {
 		r, _, _ := charmRig(t)
 		crab := r.enemy
-		crab.Level = 3 // under Entrancing Enticement's 4
+		crab.Level = 2 // Entrancing Enticement's cap: its level 4 less 2
 		if began, _ := castCharm(t, r, enticement(), crabID, 0); !began || crab.Owner == 0 {
 			t.Fatalf("%s: not charmed", c.name)
 		}
 		r.tick(time.Minute - time.Second)
 		if crab.Owner == 0 {
 			t.Fatalf("%s: let go before its time", c.name)
+		}
+		if c.name == "worn off" {
+			r.tick(4*time.Minute + 20*time.Second) // past the line's 4 minutes, inside its CHA share
+			if crab.Owner == 0 {
+				t.Fatalf("%s: let go at the line's time, its CHA share not counted", c.name)
+			}
 		}
 		r.sent()
 		c.end(r)
@@ -290,19 +324,17 @@ func TestACharmEnds(t *testing.T) {
 }
 
 // Dead as a pet: its corpse is still its master's (no one loots it); it
-// comes back itself, in its own world, though it followed its master into
-// another; and one let go in another world is sent home.
+// comes back itself, at its spawn. Its master taken into another world (a
+// coach to Tunaria) takes it past its grace: the charm is gone, it is home at
+// once and fights no one, its master told; and one let go far from home in
+// its own world (three zones off) is sent home too, where one let go a zone
+// off (its grace) turns on its master there.
 func TestACharmedCreatureDiesAndComesBackItself(t *testing.T) {
 	defer func(f func(int) int) { charmIntn = f }(charmIntn)
 	charmIntn = dice(99)
 	r, _, _ := charmRig(t)
 	crab := r.enemy
 	castCharm(t, r, captivation(), crabID, 0)
-	r.p.World, r.p.X, r.p.Z = 0, 20000, 20000 // a coach to Tunaria
-	r.tick(time.Minute)
-	if crab.World != 0 || crab.Owner == 0 {
-		t.Fatalf("it did not come along: world %d, owner %d", crab.World, crab.Owner)
-	}
 	r.w.mu.Lock()
 	r.w.killNPC(crab)
 	r.w.mu.Unlock()
@@ -320,11 +352,41 @@ func TestACharmedCreatureDiesAndComesBackItself(t *testing.T) {
 	r2, _, _ := charmRig(t)
 	crab2 := r2.enemy
 	castCharm(t, r2, captivation(), crabID, 0)
-	r2.p.World, r2.p.X, r2.p.Z = 0, 20000, 20000
+	r2.sent()
+	r2.p.World, r2.p.X, r2.p.Z = 0, 20000, 20000 // a coach to Tunaria
 	r2.tick(time.Minute)
-	r2.w.PetCommand(r2.sess, petCmdDismiss, 0, r2.at(2*time.Minute))
-	if crab2.World != 2 || crab2.X != crab2.SpawnX || crab2.Owner != 0 || crab2.CurrentEnemy != 0 {
-		t.Errorf("let go in Tunaria: %+v", *crab2)
+	msgs := r2.sent()
+	if crab2.World != 2 || crab2.X != crab2.SpawnX || crab2.Owner != 0 || crab2.CurrentEnemy != 0 || r2.w.pets[r2.p.ServerID] != nil {
+		t.Errorf("its master in Tunaria: %+v", *crab2)
+	}
+	told := false
+	for _, m := range msgs {
+		told = told || opOfMsg(m) == protocol.OpcodeClearPet
+	}
+	if !told {
+		t.Errorf("its master was not told (0x007F): %x", msgs)
+	}
+
+	for _, c := range []struct {
+		name    string
+		dx      float32
+		home    bool
+		hostile bool
+	}{
+		{"a zone off", charmZone, false, true},
+		{"three zones off", 3 * charmZone, true, false},
+	} {
+		r3, _, _ := charmRig(t)
+		crab3 := r3.enemy
+		castCharm(t, r3, captivation(), crabID, 0)
+		r3.w.mu.Lock()
+		crab3.X += c.dx
+		r3.p.X = crab3.X + 2
+		r3.w.mu.Unlock()
+		r3.w.PetCommand(r3.sess, petCmdDismiss, 0, r3.at(time.Minute))
+		if home := crab3.X == crab3.SpawnX; home != c.home || (crab3.CurrentEnemy == r3.p.ServerID) != c.hostile || crab3.Owner != 0 {
+			t.Errorf("%s: home %v (want %v), enemy %d (hostile want %v)", c.name, home, c.home, crab3.CurrentEnemy, c.hostile)
+		}
 	}
 }
 

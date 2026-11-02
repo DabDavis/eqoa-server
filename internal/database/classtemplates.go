@@ -104,8 +104,9 @@ const (
 	AbilityOnEither = "either"
 )
 
-// AbilityStats are the stats a buff may be picked by (TemplateAbility.Stat).
-var AbilityStats = []string{"ac", "str", "sta", "agi", "dex", "wis", "int", "cha", "hp", "power"}
+// AbilityStats are the stats a buff may be picked by (TemplateAbility.Stat);
+// "ds" is a damage shield's (entity/dshield.go: a spell with one).
+var AbilityStats = []string{"ac", "str", "sta", "agi", "dex", "wis", "int", "cha", "hp", "power", "ds"}
 
 // AbilityElements are the elements a harmful spell may be picked by
 // (TemplateAbility.Element), as its resist names it.
@@ -175,6 +176,10 @@ type TemplateAbility struct {
 	// heals of its own share are cast by size: the biggest due whose share
 	// it is missing, no overheal (entity/pettemplate.go).
 	HealPct int `json:"heal_pct,omitempty"`
+	// Free is a charmed pet's cast of it that costs it no power (entity/
+	// charm.go: a charmed creature's spells cost it their power, the wiki's
+	// Nasehir wizards "chain cast, never run OOM"); a summoned pet's never cost.
+	Free bool `json:"free,omitempty"`
 	// Hits is a taunt's damage by the pet's level: points [level, least,
 	// most], a level between two the straight line between them, one below
 	// the first the first's and one past the last the last's (one point: the

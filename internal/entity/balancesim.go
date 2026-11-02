@@ -127,6 +127,10 @@ type SimPlay struct {
 	// play): the creature's own numbers, as charm.go keeps them
 	Charm     bool
 	CharmDiff int
+	// CharmTemplate is the class template the charmed creature fights by, as
+	// an npccharm row's template gives it one (charm.go, pettemplate.go: its
+	// casts spending its power); nil, it fights as itself
+	CharmTemplate *ClassTemplate
 }
 
 // SimNPC is the NPC: a row as the server spawns it.
@@ -193,16 +197,19 @@ func (r SimResult) LowShare() float64 {
 }
 
 const (
-	simTick      = 100 * time.Millisecond
-	simMe        = 0x00AA0001 // the player's object id
-	simFoeID     = 0x00BB0001 // the NPC's on the player's channel 0
-	simCharmID   = 0x00CC0001 // a creature to charm, on the player's channel 1
-	simPlayer    = EntityID(1001)
-	simFoe       = EntityID(5001)
-	simApart     = 2.0  // how far apart a melee fight starts
-	simOwnerAt   = 7.0  // how far off its NPC a pet's owner stands
-	simRootRange = 18.0 // how far off its NPC a rooting caster stands
-	simRootNear  = 8.0  // the nearest it stands, for a root of a short reach (simRootAt)
+	simTick    = 100 * time.Millisecond
+	simMe      = 0x00AA0001 // the player's object id
+	simFoeID   = 0x00BB0001 // the NPC's on the player's channel 0
+	simCharmID = 0x00CC0001 // a creature to charm, on the player's channel 1
+	// the creatures it charms, by kind (charm(): undead for an undead charm)
+	simCharmBeast    = "a sim beast"
+	simCharmSkeleton = "a sim skeleton"
+	simPlayer        = EntityID(1001)
+	simFoe           = EntityID(5001)
+	simApart         = 2.0  // how far apart a melee fight starts
+	simOwnerAt       = 7.0  // how far off its NPC a pet's owner stands
+	simRootRange     = 18.0 // how far off its NPC a rooting caster stands
+	simRootNear      = 8.0  // the nearest it stands, for a root of a short reach (simRootAt)
 	// simRootLongCast is the longest cast a rooting caster starts: one longer
 	// (a wizard's Phoenix Glory, 15 s) would hold its hands through a break
 	simRootLongCast = 5 * time.Second
@@ -327,6 +334,15 @@ func newSimFight(pl SimPlayer, foe SimNPC, b *Balance) *simFight {
 		w.templates.byName = map[string]*ClassTemplate{t.Name: t}
 		w.templates.use = map[string]string{database.NPCClassKey(npc.Name): t.Name}
 		w.applyTemplateLocked(npc)
+	}
+	if t := pl.Play.CharmTemplate; t != nil && pl.Play.Charm {
+		// the creature it charms by an npccharm row's template (charm())
+		if w.templates.byName == nil {
+			w.templates.byName = make(map[string]*ClassTemplate)
+		}
+		w.templates.byName[t.Name] = t
+		rule := database.CharmRule{Charmable: true, Template: t.Name}
+		w.charmRules = map[string]database.CharmRule{simCharmBeast: rule, simCharmSkeleton: rule}
 	}
 	w.NPCs[npc.ServerID] = npc
 	w.SpatialIndex.Insert(npc.ServerID, npc.X, npc.Z)
@@ -662,9 +678,9 @@ func (f *simFight) charm() *NPC {
 		return nil
 	}
 	w, p := f.w, f.p
-	name := "a sim beast"
+	name := simCharmBeast
 	if best.Def.undeadOnly() {
-		name = "a sim skeleton" // undead by its name (undead.go)
+		name = simCharmSkeleton // undead by its name (undead.go)
 	}
 	level := max(p.Level+f.pl.Play.CharmDiff, 1)
 	vs := GetOrCreateVisibility(f.sess)

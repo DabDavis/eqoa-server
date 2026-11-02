@@ -341,6 +341,9 @@ func templateCandidates(a database.TemplateAbility, spells []*CastSpell) []*Cast
 		if element != StatNone && s.resist != element || stat != StatNone && !spellRaises(s, stat) {
 			continue
 		}
+		if a.Stat == "ds" && !s.Def.hasShield() { // a damage shield (dshield.go)
+			continue
+		}
 		if a.MaxRecast > 0 && s.Recast.Seconds() > a.MaxRecast || a.MaxCast > 0 && s.CastTime.Seconds() > a.MaxCast {
 			continue
 		}

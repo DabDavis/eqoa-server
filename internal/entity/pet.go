@@ -711,6 +711,12 @@ func (w *World) petSystem(now time.Time) {
 
 		w.petEffectsLocked(ps, now)
 		if pet.World != owner.World || distXZ(pet.X, pet.Z, owner.X, owner.Z) > petLost {
+			if h := pet.Charm; h != nil && charmFar(pet, h.world, owner.World, owner.X, owner.Z) {
+				// its master taken past its grace: the charm is gone, and it
+				// home (charm.go: "a one zone grace for being CoHed or rezzed")
+				w.releaseCharmLocked(ps, sess, charmWornOff, false)
+				continue
+			}
 			// a teleport, a coach, another world: it comes along
 			oldX, oldZ := pet.X, pet.Z
 			pet.World = owner.World
@@ -978,6 +984,9 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 		}
 	}
 	if w.petSpecialDueLocked(ps, t, now) { // a spectre's instant (petrotation.go)
+		return
+	}
+	if w.petTemplateSpecialLocked(ps, t, now) { // a charm template's crit (pettemplate.go)
 		return
 	}
 	for pet.RoundHits < len(hits) && !now.Before(pet.RoundStart.Add(hits[pet.RoundHits])) {
@@ -1326,6 +1335,16 @@ func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *sessi
 	if !raises {
 		heal()
 	}
+	// power given now (an enchanter's Power Boon, Jet, Surge: the wiki's
+	// charmed tree that nukes again "as soon as it has a little bit more
+	// power"), into the pet's own pool (charm.go, npcregen.go)
+	for _, e := range cs.spell.Def.Effects {
+		if e.Kind == EffectPower && !e.Self && pet.MaxPower > 0 {
+			if n := spellAmount(e, caster); n > 0 && pet.Power < pet.MaxPower {
+				pet.Power = min(pet.Power+n, pet.MaxPower)
+			}
+		}
+	}
 	if ae := lasting(cs, caster, now); ae != nil {
 		if over := putOnPetLocked(pet, &cs.spell, ae); over != nil {
 			log.Printf("Cast: %s's %q (rank %d) does not take on the pet %q: %q (rank %d) is on, line %s",
@@ -1424,16 +1443,19 @@ func (w *World) petEffectsLocked(ps *petState, now time.Time) {
 			continue
 		}
 		left = append(left, ae)
-		if ae.HPTick <= 0 || ae.NextTick.IsZero() || now.Before(ae.NextTick) {
+		if ae.HPTick <= 0 && ae.PowerTick <= 0 || ae.NextTick.IsZero() || now.Before(ae.NextTick) {
 			continue
 		}
 		ae.NextTick = ae.NextTick.Add(effectTick)
-		n := ae.HPTick
+		n, pw := ae.HPTick, ae.PowerTick
 		if ae.Rules.Twice { // the workbook's first tick, twice (workbook.go)
-			ae.Rules.Twice, n = false, 2*n
+			ae.Rules.Twice, n, pw = false, 2*n, 2*pw
 		}
-		if pet.HP < pet.MaxHP {
+		if n > 0 && pet.HP < pet.MaxHP {
 			pet.HP = min(pet.HP+n, pet.MaxHP)
+		}
+		if pw > 0 && pet.MaxPower > 0 && pet.Power < pet.MaxPower {
+			pet.Power = min(pet.Power+pw, pet.MaxPower) // its power over time (charm.go: what its master gives it)
 		}
 	}
 	pet.Effects = left

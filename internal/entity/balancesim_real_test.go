@@ -3,6 +3,9 @@ package entity
 import (
 	"fmt"
 	"os"
+	"sort"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -194,6 +197,96 @@ func TestRealRootPlayHeldToTheCon(t *testing.T) {
 	}
 	if paid.WinShare() > 0.9 && paid.HPLeft > 0.75 {
 		t.Errorf("a wizard rooting under the seed: +2 won %.0f%% with %.0f%% left, as if its roots held", 100*paid.WinShare(), 100*paid.HPLeft)
+	}
+}
+
+// TestRealCharmTemplateProbe prints an enchanter's fights with a creature it
+// charmed at its cap (the highest level its book's charms take), fighting by
+// each charm template the database has (tools/seed_npc_charm.py: "charm
+// tree", ...) and as itself, against creatures of its own level and two and
+// three above: won, died and unfinished in ten minutes, the seconds of the
+// wins and the enchanter's hit points left; beside them its own summoned pet's
+// fights, for the measure; the enchanter casts nothing unless
+// EQOA_SIM_CHARM_CASTS is set (EQOA_SIM_CHARM=templates; EQOA_SIM_CHARM_LEVELS,
+// EQOA_SIM_CHARM_ONLY a template's name).
+func TestRealCharmTemplateProbe(t *testing.T) {
+	if os.Getenv("EQOA_SIM_CHARM") != "templates" {
+		t.Skip("EQOA_SIM_CHARM=templates prints charmed creatures' fights by the charm templates")
+	}
+	db := simRealDB(t)
+	tmpls, err := SimTemplatesFromDB(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var names []string
+	for n := range tmpls {
+		if strings.HasPrefix(n, "charm ") && (os.Getenv("EQOA_SIM_CHARM_ONLY") == "" || n == os.Getenv("EQOA_SIM_CHARM_ONLY")) {
+			names = append(names, n)
+		}
+	}
+	sort.Strings(names)
+	levels := []int{40, 45, 50, 55, 60}
+	if l := os.Getenv("EQOA_SIM_CHARM_LEVELS"); l != "" {
+		levels = nil
+		for _, f := range strings.Split(l, ",") {
+			n, _ := strconv.Atoi(f)
+			levels = append(levels, n)
+		}
+	}
+	cell := func(k SimPlayer, level int) string {
+		line := ""
+		for _, d := range []int{0, 2, 3} {
+			won, died, open, n := 0, 0, 0, 12
+			var secs, left float64
+			for s := range n {
+				r := SimulateFight(k, SimNPC{Level: level + d}, SeedBalance(), int64(s+1), 10*time.Minute)
+				switch {
+				case r.Won:
+					won++
+					secs += r.Time.Seconds()
+					left += float64(r.HP) / float64(max(r.MaxHP, 1))
+				case r.Died:
+					died++
+				default:
+					open++
+				}
+			}
+			line += fmt.Sprintf(" +%d won %2d died %2d open %2d %4.0fs hp %3.0f%% |", d, won, died, open,
+				secs/float64(max(won, 1)), 100*left/float64(max(won, 1)))
+		}
+		return line
+	}
+	for _, level := range levels {
+		pl, err := SimKitFromDB(db, classEnchanter, 0, level, 0.5)
+		if err != nil {
+			t.Fatal(err)
+		}
+		cd := 0
+		for d := -1; d >= -20; d-- {
+			if SimCharmable(pl, d) {
+				cd = d
+				break
+			}
+		}
+		if cd == 0 {
+			continue
+		}
+		// the enchanter stands by: the pet's fight alone (its own casts would
+		// draw the creature off a pet whose hate comes in a crit's jumps:
+		// keepsHate's 80% reads a spell's damage, not its hate)
+		pl.Play.Spells = os.Getenv("EQOA_SIM_CHARM_CASTS") != ""
+		own := pl
+		own.Play.Pet, own.Play.Melee = true, false
+		t.Logf("L%2d its own pet:              %s", level, cell(own, level))
+		for _, n := range append([]string{""}, names...) {
+			k := pl
+			k.Play.Charm, k.Play.CharmDiff, k.Play.Melee = true, cd, false
+			label := "as itself"
+			if n != "" {
+				k.Play.CharmTemplate, label = tmpls[n], n
+			}
+			t.Logf("L%2d charm %+d %-20s %s", level, cd, label, cell(k, level))
+		}
 	}
 }
 

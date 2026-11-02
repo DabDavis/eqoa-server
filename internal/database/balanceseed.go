@@ -86,13 +86,15 @@ const balanceFloorNote = "damage_pct x (2L+1)/(4*ceil(L/2)): the floor's step ev
 // it), the simulator's player casts its book's pure debuffs and drains in a
 // long fight, roots and snares that end at a hit hold until one, the pets'
 // abilities are the workbook's, the druid's and the shaman's leftovers are
-// out of their lists, and the level 60 epic options and the broken records
-// take real records, so the ranger's rows 8-60, the shaman's 4-60 and its
-// pet's, the rogue's 19-60, the shadow knight's 21-51, the warrior's 46-60,
+// out of their lists, the level 60 epic options and the broken records take
+// real records, and a backstab needs its caster behind its target, so the
+// ranger's rows 8-60, the shaman's 4-60 and its pet's, the rogue's 12-60, the
+// shadow knight's 21-51, the warrior's 46-60,
 // the bard's 57-60, the druid's 50-60, the enchanter's pet's 5-60 and the
 // necromancer's pet's 5-7 and 34-60 are the simulator's fit on them by the
 // same method, with cells at the targets' edges set after (a ranger of 10,
-// a shadow knight of 24, 28 and 50, a druid of 60, a bard and a monk of 60,
+// a shadow knight of 24, 28 and 50, a druid of 60, a rogue of 35 for its
+// wisps, a bard and a monk of 60,
 // the enchanter's pet at 45 and at every level 49-60). A new database wants
 // tools/seed_roamers.py too, and the workbook's import and both its
 // follow-ups: these rows are fitted on them.

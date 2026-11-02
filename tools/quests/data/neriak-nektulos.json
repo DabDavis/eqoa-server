@@ -6765,13 +6765,14 @@
      "rewards": {
       "xp": 883791,
       "items": [
-       "Stomp"
+       "Stomp",
+       "Cauldron Bracers"
       ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's pay for the trolls is not given; Underlord Bugrish is only spoken to here. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Stomp scroll, as Freeport's, Halas's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's pay for the trolls is not given; Underlord Bugrish is only spoken to here. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Stomp scroll, as Freeport's, Halas's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30). The Cauldron Bracers: the EQOA wiki's Item List names it for this quest; the record is tools/import_wiki_items.py's (run it before this file's import)."
   },
   {
    "key": "1-20/neriak-nektulos/warrior/L20",

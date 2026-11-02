@@ -7,7 +7,19 @@ import (
 	"time"
 
 	"github.com/eqoa/server/internal/protocol"
+	"github.com/eqoa/server/internal/session"
 )
+
+// breakInvis ends the session's player's invisibility as its own cast or
+// swing does (invis.go's breakInvisLocked, which StartCast, EngageAttack and
+// a round's swing call).
+func breakInvis(w *World, sess *session.Session, why string) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if p := w.sessionPlayerLocked(sess); p != nil {
+		w.breakInvisLocked(p, why)
+	}
+}
 
 // A player's own hold, and the parts a cast or the bearer's own action ends
 // (the user, 2026-11-01: "yes hold the tree form, yes only end the marked
@@ -92,7 +104,7 @@ func TestAnActionEndsTheInvisibilityAlone(t *testing.T) {
 	if !c.p.Invisible() || c.p.SpeedNow() <= run {
 		t.Fatalf("landed: invisible %v, speed %v", c.p.Invisible(), c.p.SpeedNow())
 	}
-	c.w.BreakInvis(c.sess, "an action")
+	breakInvis(c.w, c.sess, "a spell cast")
 	if e := effectNamed(c.p.Effects, 9913); e == nil || c.p.Invisible() || c.p.SpeedNow() <= run {
 		t.Fatalf("after an action: on %v, invisible %v, speed %v (run %v); want it on, seen, still fast",
 			e != nil, c.p.Invisible(), c.p.SpeedNow(), run)
@@ -110,7 +122,7 @@ func TestAnActionEndsTheInvisibilityAlone(t *testing.T) {
 	shadow := wbSpell(9914, 30, 0, "Test Bone Stroll", `{"v":1,"scope":"self","target_type":"Self","duration_s":600,"effects":[
 		{"kind":"invis"},{"kind":"illusion","sprite":"0x010C0B0A"}]}`)
 	d.land(t, shadow, 0xFFFFFFFF, 0)
-	d.w.BreakInvis(d.sess, "a swing")
+	breakInvis(d.w, d.sess, "a swing")
 	if m, _ := channelBody(d.p); d.p.Invisible() || m != testOgreMale {
 		t.Errorf("after an action: invisible %v, body %#x; want seen, the illusion's body", d.p.Invisible(), m)
 	}
@@ -123,7 +135,7 @@ func TestAnActionEndsAnInvisibilityAloneWhole(t *testing.T) {
 	alone := wbSpell(9915, 30, 0, "Test Fade", `{"v":1,"scope":"self","target_type":"Self","duration_s":600,"effects":[
 		{"kind":"invis"}]}`)
 	c.land(t, alone, 0xFFFFFFFF, 0)
-	c.w.BreakInvis(c.sess, "an action")
+	breakInvis(c.w, c.sess, "a spell cast")
 	if effectNamed(c.p.Effects, 9915) != nil {
 		t.Error("an invisibility alone stayed through an action")
 	}
@@ -131,7 +143,7 @@ func TestAnActionEndsAnInvisibilityAloneWhole(t *testing.T) {
 	shadows := wbSpell(9916, 30, 0, "Test Gloom", `{"v":1,"scope":"self","target_type":"Self","duration_s":330,"effects":[
 		{"kind":"invis"},{"kind":"illusion"}]}`)
 	d.land(t, shadows, 0xFFFFFFFF, 0)
-	d.w.BreakInvis(d.sess, "an action")
+	breakInvis(d.w, d.sess, "a spell cast")
 	if effectNamed(d.p.Effects, 9916) != nil {
 		t.Error("an invisibility beside an illusion of no body stayed through an action")
 	}
@@ -201,7 +213,7 @@ func TestPartsKeptOverALogout(t *testing.T) {
 	if d.w.RestoreEffects(d.sess, rows, d.at(0)) != 1 || !d.p.Invisible() {
 		t.Fatalf("restored: invisible %v", d.p.Invisible())
 	}
-	d.w.BreakInvis(d.sess, "an action")
+	breakInvis(d.w, d.sess, "a spell cast")
 	if effectNamed(d.p.Effects, 9913) == nil || d.p.Invisible() || d.p.SpeedNow() <= run {
 		t.Fatalf("an action after the login: on %v, invisible %v, speed %v", effectNamed(d.p.Effects, 9913) != nil,
 			d.p.Invisible(), d.p.SpeedNow())
@@ -248,7 +260,7 @@ func TestAHidesSlowEndsWithTheHiding(t *testing.T) {
 	if !c.p.Invisible() || c.p.SpeedNow() >= run {
 		t.Fatalf("landed: invisible %v, speed %v (run %v); want hidden and slowed", c.p.Invisible(), c.p.SpeedNow(), run)
 	}
-	c.w.BreakInvis(c.sess, "a swing")
+	breakInvis(c.w, c.sess, "a swing")
 	if v, ok := lastSpeedSent(c.sent()); effectNamed(c.p.Effects, 9921) != nil || c.p.Invisible() || c.p.SpeedNow() != run ||
 		!ok || v != run {
 		t.Errorf("after an action: on %v, invisible %v, speed %v, told %v %v; want it gone, the run's %v told",
@@ -277,7 +289,7 @@ func TestAHidesSlowEndsWithTheHiding(t *testing.T) {
 		{"kind":"speed","amount":130,"dispel_on_cast":true,"dispel_on_contact":true},
 		{"kind":"invis","dispel_on_cast":true,"dispel_on_contact":true}]}`)
 	f.land(t, vanish, 0xFFFFFFFF, 0)
-	f.w.BreakInvis(f.sess, "a swing")
+	breakInvis(f.w, f.sess, "a swing")
 	if effectNamed(f.p.Effects, 9922) == nil || f.p.Invisible() || f.p.SpeedNow() <= run {
 		t.Errorf("another invisibility's speed after an action: on %v, invisible %v, speed %v (run %v); want it on, seen, fast",
 			effectNamed(f.p.Effects, 9922) != nil, f.p.Invisible(), f.p.SpeedNow(), run)
@@ -287,7 +299,7 @@ func TestAHidesSlowEndsWithTheHiding(t *testing.T) {
 		{"kind":"invis","dispel_on_cast":true,"dispel_on_contact":true},
 		{"kind":"speed","amount":-30,"dispel_on_cast":true,"dispel_on_contact":true}]}`)
 	g.land(t, veil, 0xFFFFFFFF, 0)
-	g.w.BreakInvis(g.sess, "a swing")
+	breakInvis(g.w, g.sess, "a swing")
 	if effectNamed(g.p.Effects, 9923) == nil || g.p.Invisible() || g.p.SpeedNow() >= run {
 		t.Errorf("an invisibility's slow, not a hide's, after an action: on %v, invisible %v, speed %v (run %v); want it on, "+
 			"seen, slowed", effectNamed(g.p.Effects, 9923) != nil, g.p.Invisible(), g.p.SpeedNow(), run)

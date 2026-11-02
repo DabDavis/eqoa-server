@@ -93,7 +93,10 @@ ALIASES = {"short sword of ykesha": "short sword of the ykesha", "robe of the dr
            "seraphic planar breastplate": "seraphic planar chestplate", "q.staff of understanding": "quarterstaff of understanding",
            "centaur smithing hammer": "centaur smithy hammer", "essence weaver ring": "essenceweave ring",
            "brgith mossy spear": "bright mossy spear", "dog breath leggings": "dog breath legs",
-           "alpine walking staff": "alpine walking stick", "vambracers of toxicity": "bracers of toxicity"}
+           "alpine walking staff": "alpine walking stick", "vambracers of toxicity": "bracers of toxicity",
+           "packmaster helmet": "packmaster helm", "cizkik's stinger": "cizka's stinger"}
+# the wiki's name of a creature this server spells otherwise (wiki key -> ours)
+SOURCE_ALIASES = {"cazic thule": "cazicthule", "bertoxxulous": "bertoxxulous the plaguebringer"}
 ITEM_CATS = {"Category:Armor": None, "Category:Weapons": None, "Category:Chestpieces": 5, "Category:Boots": 11,
              "Category:Leggings": 10, "Category:Gauntlets": 19, "Category:Belts": 9, "Category:Robes": 2,
              "Category:Bracers": 7, "Category:Shields": 13, "Category:Helms": 1, "Category:Two-hand": 15,
@@ -123,7 +126,8 @@ UNDEAD_WORDS = (r"\b(?:skeletons?|skeletal|zombies?|ghouls?|ghasts?|mumm(?:y|ies
                 r"unliving|unresting|reanimated|risen|raised|cadavers?|rotting|decaying|bones|eidolons?|souls?|haunts?|dead|"
                 r"shades?|restless)\b")
 
-LOG_DDL = """CREATE TABLE IF NOT EXISTS wiki_item_import_log (
+LOG = "wiki_item_import_log"
+LOG_DDL = """CREATE TABLE IF NOT EXISTS {log} (
     seq     INTEGER PRIMARY KEY AUTOINCREMENT,
     tbl     TEXT NOT NULL,     -- itempattern | npcitem | loottables | npcloot | lootpool
     rid     TEXT NOT NULL,     -- the row: patternid, itemid, id, or npc_name|tablename
@@ -133,7 +137,8 @@ LOG_DDL = """CREATE TABLE IF NOT EXISTS wiki_item_import_log (
 
 
 def key(n):
-    n = re.sub(r"\[\[(?:[^|\]]*\|)?([^\]]*)\]\]", r"\1", html.unescape(n or ""))
+    n = re.sub(r"\[\[File:[^\]]*\]\]", "", html.unescape(n or ""))     # a picture beside a name in a list
+    n = re.sub(r"\[\[(?:[^|\]]*\|)?([^\]]*)\]\]", r"\1", n)
     n = re.sub(r"<[^>]+>|'''|''", "", n)
     return " ".join(n.replace("`", "'").replace("’", "'").replace("_", " ").lower().split()).strip(" .,:;*-")
 
@@ -292,8 +297,8 @@ def weapon_inside(name, slot, classes):
     """(OURS) a weapon's attack type when fix_dump_weapons' words miss: a weapon word inside a word ("warsword":
     a sword, slashing), else a caster's two-hander a staff (blunt); 0 when nothing says."""
     n = name.lower()
-    for words, at in (((("sword", "blade", "axe", "cutlass", "sabre", "scimitar")), 1), (("hammer", "club", "mace", "staff", "maul"), 3),
-                      (("spear", "dagger", "lance", "pike"), 5)):
+    for words, at in ((("sword", "blade", "axe", "cutlass", "sabre", "scimitar", "render", "splitter", "cleaver"), 1),
+                      (("hammer", "club", "mace", "staff", "maul", "cudgel"), 3), (("spear", "dagger", "lance", "pike", "claw"), 5)):
         if any(w in n for w in words):
             return at + (1 if slot == 15 else 0)
     if slot == 15 and classes and classes & (0b1111 << 10) and not classes & 0b1111111111:
@@ -568,7 +573,7 @@ def placements(it, ours):
         return out[:1]
     lo, hi = max(1, it["level"] - POOL_SPAN), it["level"] + POOL_SPAN
     for kind, who, a, b, ultra in it["sources"]:
-        k = key(who)
+        k = SOURCE_ALIASES.get(key(who), key(who))
         if kind == "named" and k in ours.creatures:
             out.append(("npcloot", k, NAMED_CHANCE, WEIGHT, 1, 100, f"the wiki: {who} drops it"))
         elif kind == "type":
@@ -638,11 +643,13 @@ def build(made, ours, rule, used_ids):
     return recs, rows
 
 
-def write(db, recs, rows, ours):
-    db.execute(LOG_DDL)
+def write(db, recs, rows, ours, log_table=LOG, kinds=None):
+    """Make the records and their rows, logged in log_table. kinds: {type word: names of that type} for the
+    "type" rows beside undead and frogloks."""
+    db.execute(LOG_DDL.format(log=log_table))
 
     def log(tbl, rid, what):
-        db.execute("INSERT INTO wiki_item_import_log (tbl, rid, what) VALUES (?, ?, ?)", (tbl, str(rid), what))
+        db.execute(f"INSERT INTO {log_table} (tbl, rid, what) VALUES (?, ?, ?)", (tbl, str(rid), what))
     # the AUTOINCREMENT counters the rows below move, for an undo that leaves the database as it found it
     for name, seq in db.execute("SELECT name, seq FROM sqlite_sequence WHERE name IN "
                                 "('itempattern', 'npcitem', 'loottables', 'lootpool')").fetchall():
@@ -672,7 +679,8 @@ def write(db, recs, rows, ours):
             names = [r["target"]] if r["kind"] == "npcloot" else [
                 n for n, lv in ours.creatures.items()
                 if (n in ours.undead and r["target"] == "undead") or
-                ("froglok" in n and r["target"] == "frogloks")]
+                ("froglok" in n and r["target"] == "frogloks") or
+                (kinds is not None and n in kinds.get(r["target"], ()))]
             for n in names:
                 if r["kind"] == "type" and not any(r["low"] <= l <= r["high"] for l in ours.creatures[n]):
                     continue
@@ -685,18 +693,18 @@ def write(db, recs, rows, ours):
                     log("npcloot", f"{n}|{table}", r["why"])
         elif r["kind"] == "pool":
             cur = db.execute("INSERT INTO lootpool (category, region, npc_name, patternid, weight, minlevel, maxlevel, source) "
-                             "VALUES ('uncommon', ?, '', ?, 1, ?, ?, 'wiki')", (r["target"], r["pid"], r["low"], r["high"]))
+                             "VALUES (?, ?, '', ?, 1, ?, ?, 'wiki')", (r.get("category", "uncommon"), r["target"], r["pid"], r["low"], r["high"]))
             log("lootpool", cur.lastrowid, f"{r['name']}: {r['why']}")
             placed["pool"] += 1
     return placed
 
 
-def undo(db):
-    if not has_table(db, "wiki_item_import_log"):
+def undo(db, log_table=LOG):
+    if not has_table(db, log_table):
         print("nothing logged: nothing to undo")
         return
     n = collections.Counter()
-    for tbl, rid, what in db.execute("SELECT tbl, rid, what FROM wiki_item_import_log ORDER BY seq DESC").fetchall():
+    for tbl, rid, what in db.execute(f"SELECT tbl, rid, what FROM {log_table} ORDER BY seq DESC").fetchall():
         if tbl == "sqlite_sequence":
             col = {"itempattern": "patternid", "npcitem": "itemid"}.get(rid, "id")
             top = db.execute(f"SELECT coalesce(max({col}), 0) FROM {rid}").fetchone()[0]
@@ -715,7 +723,7 @@ def undo(db):
         else:
             cur = db.execute(f"DELETE FROM {tbl} WHERE {'itemid' if tbl == 'npcitem' else 'id'} = ?", (int(rid),))
         n[tbl] += cur.rowcount
-    db.execute("DROP TABLE wiki_item_import_log")
+    db.execute(f"DROP TABLE {log_table}")
     print("deleted: " + ", ".join(f"{t} {c}" for t, c in sorted(n.items())))
 
 

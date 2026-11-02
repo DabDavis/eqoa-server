@@ -124,13 +124,19 @@ type SimPlay struct {
 	// own with the best charm of its book that takes that level (a
 	// necromancer's undead charm a skeleton; a resisted one is let be and
 	// another tried), which then fights for it as a summoned pet does (Pet's
-	// play): the creature's own numbers, as charm.go keeps them
+	// play): the creature's own numbers, as charm.go keeps them. Its book's
+	// weapon procs (an enchanter's Chaotic line, its Rune of Animation) go on
+	// the creature once it is charmed, not on itself (the user, 2026-11-02:
+	// "the Damage proc enchanter buff should help"), unless CharmProcsOff
 	Charm     bool
 	CharmDiff int
 	// CharmTemplate is the class template the charmed creature fights by, as
 	// an npccharm row's template gives it one (charm.go, pettemplate.go: its
 	// casts spending its power); nil, it fights as itself
 	CharmTemplate *ClassTemplate
+	// CharmProcsOff keeps the book's procs on the player in a charm's play
+	// (Buffs), as before 2026-11-02: what they add, measured
+	CharmProcsOff bool
 }
 
 // SimNPC is the NPC: a row as the server spawns it.
@@ -281,6 +287,7 @@ type simFight struct {
 	moveUntil              time.Time // a rooting caster stepping back: no cast till then
 	rootAt                 float32   // how far off its NPC a rooting caster stands (simRootAt)
 	rootLands              time.Time // a rooting caster's root in flight lands then
+	charmObj               uint32    // the charmed creature's object id on the player's channel (charm)
 	// mates is the group a member fights in (balancegroup.go), itself
 	// included, in the group's order; nil for a player alone
 	mates []*simFight
@@ -490,7 +497,9 @@ func (f *simFight) run(limit time.Duration) SimResult {
 	var pet *NPC
 	switch {
 	case f.pl.Play.Charm:
-		pet = f.charm()
+		if pet = f.charm(); pet != nil && f.pl.Play.Buffs {
+			f.buffCharmed()
+		}
 	case f.pl.Play.Pet:
 		pet = f.summon()
 	}
@@ -714,6 +723,7 @@ func (f *simFight) charm() *NPC {
 		}
 		w.mu.Unlock()
 		if pet != nil {
+			f.charmObj = simCharmID + uint32(try)
 			return pet
 		}
 	}
@@ -983,9 +993,13 @@ func (f *simFight) buffs() []CastSpell {
 	return out
 }
 
-// castBuffs casts the buffs on the player, one after another.
+// castBuffs casts the buffs on the player, one after another (a charm's
+// procs wait for the creature: procsForCharm).
 func (f *simFight) castBuffs() {
 	for _, s := range f.buffs() {
+		if f.procsForCharm(&s) {
+			continue
+		}
 		f.w.mu.Lock()
 		f.p.Power = f.p.MaxPowerNow()
 		f.w.mu.Unlock()
@@ -994,6 +1008,38 @@ func (f *simFight) castBuffs() {
 			target = simMe
 		}
 		f.handsFor(&s, target)
+		if f.w.StartCast(f.sess, s, target, f.now) {
+			for range int((s.CastTime + castLand + castBusy) / simTick) {
+				f.tick()
+			}
+		}
+	}
+}
+
+// procsForCharm is whether a buff of the book goes on the charmed creature
+// rather than on the player: a weapon proc that can be cast on another (its
+// own target's or a group's) in a charm's play (SimPlay.Charm, unless
+// CharmProcsOff), which a player who stands off would never use.
+func (f *simFight) procsForCharm(s *CastSpell) bool {
+	return f.pl.Play.Charm && !f.pl.Play.CharmProcsOff && s.Scope != 0 && s.Def.hasProc()
+}
+
+// buffCharmed casts the book's procs on the creature it charmed, as an
+// enchanter puts its Chaotic line on its charm: at the creature (a group's
+// form reaches it too, enchanter.go's groupProcPetsLocked), one after
+// another.
+func (f *simFight) buffCharmed() {
+	for _, s := range f.buffs() {
+		if !f.procsForCharm(&s) {
+			continue
+		}
+		f.w.mu.Lock()
+		f.p.Power = f.p.MaxPowerNow()
+		f.w.mu.Unlock()
+		target := f.charmObj
+		if s.Scope != 1 {
+			target = 0xFFFFFFFF
+		}
 		if f.w.StartCast(f.sess, s, target, f.now) {
 			for range int((s.CastTime + castLand + castBusy) / simTick) {
 				f.tick()

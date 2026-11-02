@@ -181,8 +181,11 @@ SPECS = [
     S("Grim", FOE, ("kind", "dog"), ("ff",), note="Guryon's dog"),
     S("Zezilbe Veldinox", FOE, ("race", "darkelf", MALE), ("ff",), note="on the road to Klick'Anon"),
     S("Captain Thender", FOE, ("race", "human", MALE), ("ff",), note="at the dock"),
-    S("Tailor Soldark", TALKER, ("race", "darkelf", MALE), ("near", "Pazin J`Esal", 25, 0), level=20,
-      note="at the bottom of the ramp inside Neriak's entrance, on the city's floor"),
+    S("Tailor Soldark", TALKER, ("race", "darkelf", MALE), ("at", 0, 25061.9, 8866.6), level=20, facing=192,
+      note="under the open pavilion in the Foreign Quarter's plaza, between Neriak's two tailor stalls (2026-11-02: "
+           "25 from Pazin J`Esal he stood in the street, 'should be in a stall or tent'): its roof 5.3 over a raised "
+           "floor on four poles 5.5 out, the plaza's one free stall or tent; facing west down the street (byte 192); "
+           "the guide has him at the bottom of the ramp inside Neriak's entrance"),
     S("Goblin Alchemist", FOE, ("kind", "goblin"), ("ff",), count=2, note="near the goblin camp at Saerk's Tower"),
     S("Imprisoned Wizard", FOE, ("race", "human", MALE), ("at", 0, 25362.0, 8719.0), level=13,
       note="at the far end of the arena: the map's point moved 24 to where the arena's floor (the city's) lies"),

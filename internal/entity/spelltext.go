@@ -257,6 +257,9 @@ type SpellDef struct {
 	// it took every harmful effect off (the twelve of the Controlled,
 	// Reckless, Furious, Frenzied, Frantic and Desperate lines).
 	Stance bool
+	// Backstab needs its caster behind its target (the workbook's backstab
+	// effects; backstab.go)
+	Backstab bool
 	// DispelOnCast and DispelOnContact end what lasts of it when its bearer
 	// casts, or is hit or harmed (workbook.go)
 	DispelOnCast, DispelOnContact bool
@@ -481,6 +484,9 @@ func ParseSpellText(line string) SpellDef {
 	if text == "" {
 		return d
 	}
+	// a line's hit "via backstab" needs its caster behind its target, as the
+	// workbook's backstab effects do (backstab.go: the rogue's Assassinate)
+	d.Backstab = strings.Contains(text, "via backstab")
 	// A summoning line is the whole spell: a pet beside the caster.
 	if ok, name := summonLine(text); ok {
 		d.Target = TargetSelf

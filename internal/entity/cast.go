@@ -738,6 +738,9 @@ func (w *World) castRefusalLocked(sess *session.Session, p *Player, spell *CastS
 	if refusal == "" && hands && spell.Def.ReqEquip != "" {
 		refusal = equipRefusal(p, spell.Def.ReqEquip) // workbookmore.go
 	}
+	if refusal == "" && spell.Def.Backstab {
+		refusal = w.backstabRefusalLocked(p, targets) // backstab.go
+	}
 	if refusal == "" && spell.Def.Charms() {
 		refusal = w.charmStartLocked(spell, targets) // charm.go
 	}

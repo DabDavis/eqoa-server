@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"math"
 	"strconv"
 	"strings"
 	"testing"
@@ -748,6 +749,47 @@ func TestAShieldBreakEndsTheBarriers(t *testing.T) {
 	c.castOn(t, brk, 0)
 	if got := strings.Join(c.effectNames(), ","); got != "Test Venom,Test Elemental Barrier" {
 		t.Errorf("after the break: %s, want the barrier ended alone", got)
+	}
+}
+
+// A backstab (the workbook's backstab effect, or a line's "via backstab")
+// needs its caster behind its target: refused in front of a creature that
+// faces it, landing from behind; a plain strike from in front lands (the
+// control). A creature swinging at someone turns to face it.
+func TestABackstabNeedsItsCasterBehind(t *testing.T) {
+	stab := wbSpell(9901, 12, 1, "Test Backstab", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"stack":0,"level":12,
+		"effects":[{"id":"0001","type":"Dmg/Heal","kind":"backstab","amount":-100}]}`)
+	line := ParseSpellText("Target, Decrease HP via Backstab by 500 ; Increase 200% based on DEX")
+	if !stab.Def.Backstab || !line.Backstab {
+		t.Fatalf("read as backstabs: workbook %v, line %v", stab.Def.Backstab, line.Backstab)
+	}
+	plain := wbSpell(9902, 12, 1, "Test Strike", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"stack":0,"level":12,
+		"effects":[{"id":"0001","type":"Dmg/Heal","kind":"hp","amount":-100}]}`)
+	for _, c := range []struct {
+		spell  CastSpell
+		facing float32 // the creature's, as seen against the caster to its -X
+		begins bool
+	}{
+		{stab, float32(3 * math.Pi / 2), false}, // facing the caster
+		{stab, float32(math.Pi / 2), true},      // facing away
+		{plain, float32(3 * math.Pi / 2), true},
+	} {
+		k := newCaster(t)
+		k.p.Class, k.p.Level = 6, 30
+		k.npc.HP, k.npc.MaxHP, k.npc.Level = 5000, 5000, 10
+		k.npc.X, k.npc.Z = k.p.X+2, k.p.Z
+		k.npc.Facing = c.facing
+		if got := k.w.StartCast(k.sess, c.spell, k.npcO, k.at(0)); got != c.begins {
+			t.Errorf("%s with the creature facing %.2f: began %v, want %v", c.spell.Name, c.facing, got, c.begins)
+		}
+	}
+	k := newCaster(t)
+	k.npc.X, k.npc.Z, k.npc.Facing = k.p.X+2, k.p.Z, 0
+	k.w.mu.Lock()
+	k.w.broadcastNPCSwingLocked(k.npc, k.p.ServerID, 0, 0)
+	k.w.mu.Unlock()
+	if behind(k.npc, k.p.X, k.p.Z) {
+		t.Errorf("after swinging at the caster the creature faces %.2f: the caster still behind it", k.npc.Facing)
 	}
 }
 

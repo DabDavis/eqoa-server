@@ -34,6 +34,10 @@ necromancer's, "take it out" of the enchanter's epic option).
   - The bard's Song of Ages (700671) and Light Fingers (700723), EQOA-Data's,
     and Flowing Flurry (900178), the workbook's own record whose effect row the
     workbook lacks: taught by nothing, doing nothing ("remove them").
+  - The rogue's Summon Shadow Knife (700674; the Rogue's Daggers mastery the
+    workbook's), Diversion (701059), Muscle Lock Assassin (701190) and Quick
+    Hands Burglar (701206; the Quick Hands mastery the workbook's):
+    EQOA-Data's, taught by nothing ("yes remove them").
   - The enchanter's Eldritch Rune (701132), one of the six spells its level
     60 epic reward quest offers: its line is only a description ("Level 60
     Epic third spell option. ..."), no source has its effects, and it did
@@ -77,6 +81,8 @@ LEFTOVERS = [
     (2, 701092, "49 Barrier"),
     (4, 701188, "Monk 49 Specialized Epic 1"), (4, 701189, "Monk 49 Specialized Epic 2"),
     (5, 700671, "Song of Ages"), (5, 700723, "Light Fingers"), (5, 900178, "Flowing Flurry"),
+    (6, 700674, "Summon Shadow Knife"), (6, 701059, "Diversion"), (6, 701190, "Muscle Lock Assassin"),
+    (6, 701206, "Quick Hands Burglar"),
 ]
 # leftovers whose quest choices this takes out with them (the only quest that
 # may still name one: any other quest giving a leftover refuses it)

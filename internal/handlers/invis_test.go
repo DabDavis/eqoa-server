@@ -16,10 +16,12 @@ import (
 // square, but only should drop if casting a spell, or attacking a mob".
 // Through the registry as the server wires it (RegisterDefaultHandlers),
 // the four emotes, square at a creature (0x0004, talking to it) and the
-// other messages that ended it from F3 20261026-014527 to that day (an item
-// used, a loot, a pet command, a merchant, a trade) leave an invisible
-// player invisible; the attack button at the creature ends it (the
-// control; a cast's end is entity's TestInvisibilityEndsWithACastOrAnAttack).
+// other messages that ended it from F3 20261026-014527 to that day (a loot,
+// a pet command, a merchant, a trade) leave an invisible player invisible;
+// the attack button at the creature ends it (the control; a cast's end is
+// entity's TestInvisibilityEndsWithACastOrAnAttack, a potion's and a hit's
+// its TestAPotionOrAHitEndsInvisibility: "potions should still break it,
+// hits too").
 func TestOnlyACastOrAnAttackEndsInvisibility(t *testing.T) {
 	db, err := database.NewSQLite(t.TempDir() + "/invis.db")
 	if err != nil {
@@ -91,7 +93,6 @@ func TestOnlyACastOrAnAttackEndsInvisibility(t *testing.T) {
 		{"a point", protocol.OpcodeEmotePoint, nil},
 		{"a cheer", protocol.OpcodeEmoteCheer, nil},
 		{"square at the creature", protocol.OpcodeInteract, at(protocol.OpcodeInteract)},
-		{"an item used", protocol.OpcodeInteractItem, nil},
 		{"a loot", protocol.OpcodeLootCorpse, at(protocol.OpcodeLootCorpse)},
 		{"a pet command", protocol.OpcodePetCommands, nil},
 		{"a merchant", protocol.OpcodeMerchantDiag, at(protocol.OpcodeMerchantDiag)},

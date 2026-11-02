@@ -111,6 +111,7 @@ func (w *World) dummyHitLocked(sess *session.Session, npc *NPC, p *Player, now t
 	}
 	p.HP = max(p.HP-damage, 0)
 	p.LastCombatTime = now
+	w.breakInvisLocked(p, "a hit") // invis.go: every invisibility, whatever gave it
 	npcObjectID := w.objectIDForEntityLocked(sess, npc.ServerID)
 	w.sendDamageIndication(sess, npcObjectID, -damage, sess.PlayerObjectID())
 	if p.HP <= 0 {

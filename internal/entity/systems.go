@@ -220,7 +220,8 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	damage := w.npcHitPlayerLocked(npc, player, npc.meleeOut(npcMeleeRollFor(npc, player).hitOn(player, meleeIntn)))
 	damage = mitigateLocked(player, damage, now) // workbook.go: a mitigation's share off
 	player.HP -= damage
-	w.contactPlayerLocked(player) // what ends at a hit (workbook.go)
+	w.contactPlayerLocked(player)       // what ends at a hit (workbook.go)
+	w.breakInvisLocked(player, "a hit") // invis.go: every invisibility, whatever gave it
 	if player.HP < 0 {
 		player.HP = 0
 	}

@@ -8,16 +8,22 @@ package entity
 // another player already landed on it (cast.go); at a pet it landed on the
 // pet's effects but showed nothing: a creature's state byte 154 is set now
 // as a player's is. What ends it here: its bearer beginning a cast
-// (cast.go), engaging a fight and every round it swings (attack.go, duel.go)
-// and a potion it throws (potion.go); a pet's, every round it swings; and a
-// hit on its bearer where the workbook marks the part to end at one (parts.go:
-// it marks every invisibility it has so). Nothing else of its bearer's ends
-// it (the user, 2026-11-02: "invisibility was dropping when emoting, pressing
-// square, but only should drop if casting a spell, or attacking a mob"): from
-// F3 20261026-014527 (jib: "Effectively any action other than movement,
-// targeting and chat should break invis") until that day the handlers' every
-// action message ended it before it was handled (an item used, talking to
-// someone, the emotes, merchants, the bank, trades, looting, pet commands).
+// (cast.go), engaging a fight and every round it swings (attack.go, duel.go),
+// a potion it drinks or throws (potion.go: a drink before its own effects
+// land, so an invisibility potion's stays), and every hit on it, whatever
+// gave the invisibility (a creature's swing, spell or special, a training or
+// sparring dummy's swing, a duel's hit: the workbook's own rule ends at a
+// creature's swing only the parts it marks, which left the EQOA-Data lines'
+// invisibilities on, Sneak's, Stalk's and Improved Invisibility's); a pet's,
+// every round it swings. Nothing else of its bearer's ends it (the user,
+// 2026-11-02: "invisibility was dropping when emoting, pressing square, but
+// only should drop if casting a spell, or attacking a mob", then "potions
+// should still break it, hits too"): from F3 20261026-014527 (jib:
+// "Effectively any action other than movement, targeting and chat should
+// break invis") until that day the handlers' every action message ended it
+// before it was handled (an item used, talking to someone, the emotes,
+// merchants, the bank, trades, looting, pet commands). A GM's Toggle Invis
+// (GMHidden) is no effect, and nothing ends it.
 // No recording says what Sandstorm or SOE sent when invisibility broke; the
 // effect simply goes from the effects channel. An effect with more than its
 // invisibility (Spirit Walk's speed, Superior Invisibility's skeleton) loses

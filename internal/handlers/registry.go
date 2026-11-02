@@ -23,9 +23,6 @@ type Registry struct {
 	// authHandler is retained so login tickets can be attached after the
 	// handlers are built.
 	authHandler *AuthHandler
-
-	// invis ends an action's sender's invisibility (invisactions.go)
-	invis InvisBreaker
 }
 
 // SetPasswordChecker lets the UDP handshake sign a username with no ticket in
@@ -102,7 +99,6 @@ func (r *Registry) Handle(sess *session.Session, msg *protocol.Message) error {
 		return nil
 	}
 
-	r.breakInvisFor(sess, msg.Opcode) // an action shows an invisible player
 	if err := handler(sess, msg); err != nil {
 		log.Printf("Handler error for opcode 0x%04X: %v", msg.Opcode, err)
 		return err
@@ -170,9 +166,6 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	serverHandler := NewServerHandler(serverIP)
 	charHandler := NewCharacterHandler(charStore, sessionMgr, invStore, spellStore)
 	if gameWorld != nil {
-		// any action but moving, targeting and chat shows an invisible player
-		// (invisactions.go)
-		r.SetInvisBreaker(gameWorld.BreakInvis)
 		charHandler.SetGameWorld(gameWorld)
 		// A dead player's respawn: the login spawn and a MemoryDump (respawn.go)
 		gameWorld.OnPlayerRespawn(charHandler.respawnPlayer)

@@ -30,7 +30,7 @@ class EstimateWikiItems(unittest.TestCase):
     """tools/estimate_wiki_items.py on a made-up wiki and database: a level 70 boss's "(Bard only)" vest made for the
     bard at 60, drawn as a bard's chain, its figures a chain vest's (never a freak record's, a cloth or a plate one's),
     dropped every kill; a name that says no slot a held item; a clan's ring at its sibling's level, in its creature
-    type's table bound to that type's creatures of its levels; a lost boss's charm in every region's rare pool; a
+    type's table bound to that type's creatures of its levels (by the server's own key of each name); a lost boss's charm in every region's rare pool; a
     piece with no item of ours near its level left; one of ours under a typo not made; a second apply refused; an
     undo deletes all of it. No game data."""
 
@@ -69,7 +69,7 @@ class EstimateWikiItems(unittest.TestCase):
         db.execute("CREATE TABLE npcs (id INTEGER PRIMARY KEY, npc_name TEXT, npc_id INTEGER, npc_type INTEGER, npc_level INTEGER)")
         db.executemany("INSERT INTO npcs VALUES (?, ?, ?, ?, ?)", [
             (1, "Great Wyrm", 0, 0, 70), (2, "Cave Boss", 0, 0, 45), (3, "gnoll pup", 0, 0, 34), (4, "gnoll pup", 0, 0, 36),
-            (5, "gnoll elder", 0, 0, 50)])
+            (5, "gnoll elder", 0, 0, 50), (6, "Ra`Gnoll Pup", 0, 0, 35)])
         db.execute("CREATE TABLE npcitem (itemid INTEGER PRIMARY KEY AUTOINCREMENT, npcid INTEGER, stackleft INTEGER, remainHP INTEGER, "
                    "remaincharge INTEGER, patternid INTEGER, equiploc INTEGER, location INTEGER, listnumber INTEGER)")
         db.execute("CREATE TABLE npcundead (name TEXT PRIMARY KEY, undead INTEGER, note TEXT, source TEXT)")
@@ -136,7 +136,8 @@ class EstimateWikiItems(unittest.TestCase):
         self.assertEqual(rec["Lost Charm"][:2], (4, 20), "a charm at its sibling's level (Cave Charm)")
         loot = set(db.execute("SELECT npc_name, tablename, chance FROM npcloot"))
         self.assertIn(("great wyrm", "wiki great wyrm", 100), loot, "a boss of 50 and up: every kill")
-        self.assertEqual({n for n, t, c in loot if t == "wiki gnolls"}, {"gnoll pup"}, "the gnolls within 3 of the ring's 35")
+        self.assertEqual({n for n, t, c in loot if t == "wiki gnolls"}, {"gnoll pup", "ra`gnoll pup"},
+                         "the gnolls within 3 of the ring's 35, each by the name the server's loot looks it up by (a backtick kept)")
         rows = sorted(db.execute("SELECT tablename, minlevel, maxlevel FROM loottables"))
         self.assertEqual(rows, [("wiki gnolls", 32, 38), ("wiki great wyrm", 1, 100), ("wiki great wyrm", 1, 100)])
         pool = list(db.execute("SELECT category, region, minlevel, maxlevel FROM lootpool WHERE source = 'wiki'"))

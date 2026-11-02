@@ -43,6 +43,11 @@ class FillItemValues(unittest.TestCase):
         db.execute("CREATE TABLE queststeps (questid INTEGER, step INTEGER, rewarditems TEXT, byclass TEXT, "
                    "choices TEXT, events TEXT)")
         db.execute("CREATE TABLE gm_audit (id INTEGER PRIMARY KEY, tbl TEXT, rowkey TEXT)")
+        db.execute("CREATE TABLE spelleffect (spellid INTEGER, line TEXT, fxdict INTEGER, source TEXT, effects TEXT)")
+        db.executemany("INSERT INTO spelleffect VALUES (?, ?, 0, 'test', ?)", [
+            (1, "Self, Summons Fizzy Potion x3 (sow)", ""),
+            (2, "Target, Summons a zombie to your aid", ""),
+            (3, "", json.dumps({"items": [{"name": "Workbook Charm", "count": 1}]}))])
 
         def item(pid, name, cost, slot, level, dmg=0, rent=1, ac=0):
             stats = {s: 0 for s in STATS}
@@ -64,6 +69,10 @@ class FillItemValues(unittest.TestCase):
             item(307, "Priced Cap", 50, 1, 10, ac=5),            # priced: left
             item(308, "Quest Bone", 0, -1, 10),                  # not gear: left
             item(309, "Bait", 0, 21, 10),                        # not gear: left
+            item(310, "Fizzy Potion", 0, 16, 10, dmg=20),        # a spell's line summons it: left
+            item(311, "Workbook Charm", 0, 4, 10),               # a spell's workbook items name it: left
+            item(312, "Misfiled Sword", 0, 17, 40),              # wear slot 17: left
+            item(313, "Grand Ring", 0, 8, 40),                   # jewelry: the outlier ring is no measure of it
         ]
         db.executemany(f"INSERT INTO itempattern VALUES ({','.join('?' * (12 + len(STATS)))})", rows)
         db.execute("INSERT INTO craftrecipes (product) VALUES (304)")
@@ -83,7 +92,9 @@ class FillItemValues(unittest.TestCase):
                 ware(3, "Iron Mace", 12, 3, 92, dmg=50),
                 ware(4, "Leather Cap", 1, 10, 100, ac=5), ware(5, "Leather Boots", 11, 10, 110, ac=5),
                 ware(6, "Leather Gloves", 19, 10, 120, ac=5), ware(7, "Silk Robe", 2, 30, 3000),
-                ware(8, "Free Handout", 5, 5, 0)]}]}, fh)
+                ware(8, "Free Handout", 5, 5, 0),
+                ware(9, "Gold Ring", 8, 40, 3000), ware(10, "Silver Ring", 8, 41, 3200), ware(11, "Ruby Ring", 8, 39, 3100),
+                ware(12, "Crafted Ring", 8, 40, 5)]}]}, fh)
 
     def tearDown(self):
         for f in os.listdir(self.dir):
@@ -97,13 +108,15 @@ class FillItemValues(unittest.TestCase):
 
     def test_fill_and_undo(self):
         out = self.tool()
-        self.assertIn("4 records valued", out)
+        self.assertIn("5 records valued", out)
         for name, why in [("Conjured Staff", "NO RENT"), ("Reward Belt", "a repeatable quest's reward"),
                           ("Choice Ring", "a repeatable quest's reward"), ("Event Gloves", "a repeatable quest's reward"),
-                          ("Crafted Ring", "a crafted product"), ("GM Robe", "a GM changed it")]:
+                          ("Crafted Ring", "a crafted product"), ("GM Robe", "a GM changed it"),
+                          ("Fizzy Potion", "a spell summons it"), ("Workbook Charm", "a spell summons it"),
+                          ("Misfiled Sword", "wear slot 17")]:
             self.assertRegex(out, f"left: \\d+ '{name}': {why}")
         self.assertEqual(dump(self.path), self.before, "a report writes nothing")
-        self.assertIn("wrote 4 values", self.tool("--apply"))
+        self.assertIn("wrote 5 values", self.tool("--apply"))
         db = sqlite3.connect(self.path)
         got = dict(db.execute("SELECT patternid, itemcost FROM itempattern"))
         db.close()
@@ -111,7 +124,8 @@ class FillItemValues(unittest.TestCase):
         self.assertAlmostEqual(got[201], 554, delta=2, msg="a plain weapon: the fitted multiple of its damage")
         self.assertEqual(got[202], 110, "armour: the median of the 3 nearest measured items")
         self.assertGreater(got[302], 0, "a one-time quest's reward is valued")
-        for pid in (203, 204, 300, 301, 303, 304, 305, 306, 308, 309):
+        self.assertEqual(got[313], 3100, "a rare ring: the median of the three rings near it, not the 5 of a crafted one")
+        for pid in (203, 204, 300, 301, 303, 304, 305, 306, 308, 309, 310, 311, 312):
             self.assertEqual(got[pid], 0, f"pattern {pid} is left at 0")
         self.assertEqual(got[307], 50, "a price of its own is kept")
         self.assertIn("wrote 0 values", self.tool("--apply"), "a second apply finds nothing")

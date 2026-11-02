@@ -92,6 +92,11 @@
          "Bracers of Radiance"
         ]
        },
+       "10": {
+        "items": [
+         "Chromatic Gloves"
+        ]
+       },
        "12": {
         "items": [
          "Bracers of Brilliance"
@@ -107,7 +112,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/17/fayspire.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The spellbook is ours (the guide names no item); Tesarin's pet is not in. The guide's Vaelan Wyndsorrow and Lutherian Doomsinger are the game's Vaelian Wyndsorrow and Lutherian Dawnsinger; its bard's and paladin's and cleric's Bracers are their level 17 sets'. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the warrior, shadowknight, monk, shaman, magician, necromancer, alchemist, who get the experience alone. Bracers of Brilliance is made here (no item has the name), with the look and stats of Bracers of Radiance."
+   "notes": "From EQOA-Data Quests/17/fayspire.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The spellbook is ours (the guide names no item); Tesarin's pet is not in. The guide's Vaelan Wyndsorrow and Lutherian Doomsinger are the game's Vaelian Wyndsorrow and Lutherian Dawnsinger; its bard's and paladin's and cleric's Bracers are their level 17 sets'. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the warrior, shadowknight, monk, shaman, necromancer, alchemist, who get the experience alone. Bracers of Brilliance is made here (no item has the name), with the look and stats of Bracers of Radiance. The magician's Chromatic Gloves (the wiki's Fayspires Magician Armor Quest): the EQOA wiki's Item List names it for this quest; the record is tools/import_wiki_items.py's (run it before this file's import)."
   },
   {
    "key": "17/freeport/main",
@@ -478,6 +483,11 @@
          "Belt of Radiance"
         ]
        },
+       "10": {
+        "items": [
+         "Chromatic Dagger"
+        ]
+       },
        "12": {
         "items": [
          "Gloves of Brilliance"
@@ -505,7 +515,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/17/halas.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's Novak Mcgregor and Undin Kalenn are the game's Nuvak McGregor and Udin Kalenn; it does not say to go back to Olga before Udin, but she sends you on. The fang and the letter are the guide's; the bards' Boots are the Boots of Harmony. The guide's good-only and dark elf notes are not a gate here. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the shadowknight, monk, magician, necromancer, alchemist, who get the experience alone."
+   "notes": "From EQOA-Data Quests/17/halas.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's Novak Mcgregor and Undin Kalenn are the game's Nuvak McGregor and Udin Kalenn; it does not say to go back to Olga before Udin, but she sends you on. The fang and the letter are the guide's; the bards' Boots are the Boots of Harmony. The guide's good-only and dark elf notes are not a gate here. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the shadowknight, monk, necromancer, alchemist, who get the experience alone. The magician's Chromatic Dagger (the wiki's Halas Magician Armor Quest): the EQOA wiki's Item List names it for this quest; the record is tools/import_wiki_items.py's (run it before this file's import)."
   },
   {
    "key": "17/highbourne/main",

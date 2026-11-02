@@ -5788,12 +5788,15 @@
       "xp": 157474,
       "spells": [
        "Artful Strike"
+      ],
+      "items": [
+       "Traveling Boots"
       ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/bard.json, Level 7; github.com/Jadiction/EQOA-Data). The Artful Strike scroll is the class's level 7 spell, the scroll the guides that name one give for this quest. Reward left out (not in the database): item Traveling Boots."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/bard.json, Level 7; github.com/Jadiction/EQOA-Data). The Artful Strike scroll is the class's level 7 spell, the scroll the guides that name one give for this quest. The guide's Traveling Boots: the EQOA wiki's Item List names it for this quest; the record is tools/import_wiki_items.py's (run it before this file's import)."
   },
   {
    "key": "1-20/qeynos/bard/L10",

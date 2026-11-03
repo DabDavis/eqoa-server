@@ -118,7 +118,8 @@ func applyPlan(db *database.SQLiteDB, p *plan, seed int64) error {
 	params, _ := json.Marshal(map[string]float64{"step": step, "maxRise": maxRise, "onGround": onGround,
 		"townClear": townClear, "npcClear": npcClear, "campKeep": campKeep, "clumpLink": clumpLink,
 		"territory": territory, "gapFill": p.gapFill, "fillSpacing": p.fillSpacing, "kindReach": kindReach,
-		"questWeight": p.questWeight, "questReach": questReach})
+		"questWeight": p.questWeight, "questReach": questReach, "groupRadius": p.groupRadius,
+		"questMin": float64(p.questMin), "questMinReach": p.questMinReach})
 	near, _ := json.Marshal(p.near)
 	meta := map[string]string{
 		"applied":    time.Now().UTC().Format(time.RFC3339),
@@ -132,6 +133,8 @@ func applyPlan(db *database.SQLiteDB, p *plan, seed int64) error {
 		"params":     string(params),
 		"near":       string(near),
 		"no_spread":  fmt.Sprint(p.noSpread),
+		"group":      fmt.Sprint(p.groupSizes, p.groupWeights),
+		"layers":     fmt.Sprint(p.layers),
 	}
 	for k, v := range meta {
 		if _, err := tx.Exec(`INSERT INTO `+logs.meta+` VALUES (?, ?)`, k, v); err != nil {

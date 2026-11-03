@@ -40,6 +40,214 @@ type plan struct {
 	// a place's level by its distance from a circle's town (-layers), in
 	// place of its creatures' (localLevel): newbie ground's layers
 	layers []layer
+	// a fill's group (-group): its size by weight and how far its others
+	// stand from the first (-group-radius); and the newbie quests' kinds kept
+	// to questMin within questMinReach of their givers (-quest-min)
+	groupSizes    []int
+	groupWeights  []float64
+	groupRadius   float64
+	questMin      int
+	questMinReach float64
+	questSteps    []questStep
+}
+
+// questStep is a quest's kill or loot step: the names it counts (its target
+// and queststeptargets' others), its quest's lowest level and where its
+// quest's givers stand.
+type questStep struct {
+	names    []string
+	minLevel int
+	givers   []place
+}
+
+// questMinLevel is the highest quest -quest-min keeps creatures for: a
+// starting town's first quests.
+const questMinLevel = 12
+
+// groupGap is how near two of a group may stand.
+const groupGap = 8.0
+
+// groupSize draws a group's size (1 without -group, drawing nothing).
+func (p *plan) groupSize(rng *rand.Rand) int {
+	if len(p.groupSizes) == 0 {
+		return 1
+	}
+	total := 0.0
+	for _, w := range p.groupWeights {
+		total += w
+	}
+	pick := rng.Float64() * total
+	for i, w := range p.groupWeights {
+		if pick -= w; pick <= 0 {
+			return p.groupSizes[i]
+		}
+	}
+	return p.groupSizes[len(p.groupSizes)-1]
+}
+
+// member is a place for another of a group round its first at (x, y, z):
+// within groupRadius and groupGap from the group's others, on open land the
+// first's floor reaches (within 5 of its height, no wall between, out of
+// the water, in its zone).
+func (p *plan) member(land *landGrid, open func(int) bool, x, y, z float64, group [][2]float64, rng *rand.Rand) (float64, float64, float64, bool) {
+	for try := 0; try < 12; try++ {
+		a := rng.Float64() * 2 * math.Pi
+		r := groupGap + rng.Float64()*(p.groupRadius-groupGap)
+		mx, mz := x+r*math.Cos(a), z+r*math.Sin(a)
+		if k := land.cell(mx, mz); k < 0 || !open(k) || zoneWord(land.world, mx, mz) != zoneWord(land.world, x, z) {
+			continue
+		}
+		h, ok := p.g.Floor(uint8(land.world), float32(mx), 1e6, float32(mz))
+		if !ok || math.Abs(float64(h)-y) > 5 || badAt(p.env, land.world, mx, float64(h), mz) {
+			continue
+		}
+		if p.g.Wall(uint8(land.world), float32(x), float32(y)+1, float32(z), float32(mx), h+1, float32(mz)) {
+			continue
+		}
+		near := false
+		for _, o := range group {
+			if math.Hypot(o[0]-mx, o[1]-mz) < groupGap {
+				near = true
+				break
+			}
+		}
+		if !near {
+			return round3(mx), round3(float64(h)), round3(mz), true
+		}
+	}
+	return 0, 0, 0, false
+}
+
+// sectionsFor is the bestiary's sections for (x, z): sectionsAt's, or the
+// world's Global table and the -near circle's own when it names them.
+func (p *plan) sectionsFor(w int, x, z float64) []string {
+	sections := p.sectionsAt(w, x, z)
+	if s := p.nearSections(x, z); s != nil {
+		var own []string
+		for _, sec := range sections {
+			if strings.HasSuffix(sec, "/Global") {
+				own = append(own, sec)
+			}
+		}
+		if len(own) == 0 && w == 0 {
+			own = []string{"Tunaria/Global"}
+		}
+		sections = append(own, s...)
+	}
+	return sections
+}
+
+// questMinimum keeps each newbie quest's kill or loot step's creatures to
+// questMin within questMinReach of each of its givers in the run's circles:
+// groups of the step's names that are wildlife kinds, at an open spot of
+// that reach far from any creature, at the place's layer within the kind's
+// levels (the bestiary's for the place, else its creatures').
+func (p *plan) questMinimum(land *landGrid, wp *worldPlan, open func(int) bool, rng *rand.Rand) []fill {
+	if p.questMin <= 0 {
+		return nil
+	}
+	w := land.world
+	have := map[string][][2]float64{}
+	for _, r := range p.in.rows {
+		if r.world == w && creature(r) {
+			have[r.key] = append(have[r.key], [2]float64{r.x, r.z})
+		}
+	}
+	occupied := newIndex(100)
+	for _, q := range wp.pointsAfter {
+		occupied.add(q.x, q.z, q.v)
+	}
+	for _, f := range wp.fills {
+		have[f.kind.key] = append(have[f.kind.key], [2]float64{f.x, f.z})
+		occupied.add(f.x, f.z, -1)
+	}
+	var out []fill
+	add := func(f fill) {
+		out = append(out, f)
+		occupied.add(f.x, f.z, -1)
+		have[f.kind.key] = append(have[f.kind.key], [2]float64{f.x, f.z})
+	}
+	for _, st := range p.questSteps {
+		if st.minLevel > questMinLevel {
+			continue
+		}
+		var ks []*kind
+		for _, n := range st.names {
+			if k := p.kinds[n]; k != nil && k.made == nil {
+				ks = append(ks, k)
+			}
+		}
+		if len(ks) == 0 {
+			continue
+		}
+		for _, g := range st.givers {
+			if g.world != w || !p.inNear(g.x, g.z) {
+				continue
+			}
+			count := func() int {
+				n := 0
+				for _, nm := range st.names {
+					for _, s := range have[nm] {
+						if math.Hypot(s[0]-g.x, s[1]-g.z) <= p.questMinReach {
+							n++
+						}
+					}
+				}
+				return n
+			}
+			for i := 0; i < 20 && count() < p.questMin; i++ {
+				k, ok := p.questSpot(land, open, occupied, g, rng)
+				if !ok {
+					break
+				}
+				kk := ks[i%len(ks)]
+				x, z := land.xz(k)
+				lo, hi := kk.levelRange(w)
+				if plo, phi, listed := p.primaRange(kk.key, p.sectionsFor(w, x, z), lo); listed {
+					lo, hi = plo, phi
+				}
+				place := p.layerLevel(x, z)
+				if place == 0 {
+					place = (lo + hi) / 2
+				}
+				place = max(lo, min(hi, place))
+				levelOf := func() int { return max(1, max(lo, min(hi, place+[]int{-1, 0, 0, 1}[rng.Intn(4)]))) }
+				fx, fy, fz := p.settle(land, k, rng)
+				add(fill{kind: kk, template: template(kk, w, fx, fz), level: levelOf(), x: fx, y: fy, z: fz,
+					facing: rng.Intn(256), source: "quest", placeLevel: place})
+				group := [][2]float64{{fx, fz}}
+				for n := p.groupSize(rng) - 1; n > 0; n-- {
+					mx, my, mz, ok := p.member(land, open, fx, fy, fz, group, rng)
+					if !ok {
+						break
+					}
+					add(fill{kind: kk, template: template(kk, w, mx, mz), level: levelOf(), x: mx, y: my, z: mz,
+						facing: rng.Intn(256), source: "quest", placeLevel: place})
+					group = append(group, [2]float64{mx, mz})
+				}
+			}
+		}
+	}
+	return out
+}
+
+// questSpot is an open sample within questMinReach of a giver (past 150 of
+// it), the farthest from any creature of a few drawn, none nearer than 30.
+func (p *plan) questSpot(land *landGrid, open func(int) bool, occupied *index, g place, rng *rand.Rand) (int, bool) {
+	best, bestD := -1, 30.0
+	for try := 0; try < 24; try++ {
+		a := rng.Float64() * 2 * math.Pi
+		r := 150 + rng.Float64()*(p.questMinReach-150)
+		k := land.cell(g.x+r*math.Cos(a), g.z+r*math.Sin(a))
+		if k < 0 || !open(k) {
+			continue
+		}
+		x, z := land.xz(k)
+		if d, _ := occupied.nearest(x, z, 500); d > bestD {
+			best, bestD = k, d
+		}
+	}
+	return best, best >= 0
 }
 
 // circle is a place a run is kept to (-near): within R of (X, Z); R0 is its
@@ -427,6 +635,11 @@ func (p *plan) world(w int) {
 		wp.pointsAfter = append(wp.pointsAfter, pt{f.x, f.z, -1})
 	}
 	wp.fills = append(campFills, gapFills...)
+	questFills := p.questMinimum(land, wp, open, rng)
+	for _, f := range questFills {
+		wp.pointsAfter = append(wp.pointsAfter, pt{f.x, f.z, -1})
+	}
+	wp.fills = append(wp.fills, questFills...)
 	wp.after = measure(land, open, wp.pointsAfter)
 	p.worlds = append(p.worlds, wp)
 	say("world %d: %d creatures, %d spread in %d clumps, %d filled; open land beyond 250 of a creature %.1f%% -> %.1f%%",
@@ -942,20 +1155,7 @@ func (p *plan) fillGaps(land *landGrid, wp *worldPlan, open func(int) bool, camp
 			occupied.add(fx, fz, -1)
 			continue
 		}
-		sections := p.sectionsAt(w, x, z)
-		if s := p.nearSections(x, z); s != nil {
-			// the world's Global table, then the circle's own sections
-			var own []string
-			for _, sec := range sections {
-				if strings.HasSuffix(sec, "/Global") {
-					own = append(own, sec)
-				}
-			}
-			if len(own) == 0 && w == 0 {
-				own = []string{"Tunaria/Global"}
-			}
-			sections = append(own, s...)
-		}
+		sections := p.sectionsFor(w, x, z)
 		// the free wildlife round it, by kind: its weight and its levels here
 		weight := map[*kind]float64{}
 		lvls := map[*kind][]weighed{}
@@ -1088,31 +1288,51 @@ func (p *plan) fillGaps(land *landGrid, wp *worldPlan, open func(int) bool, camp
 		for _, c := range cands {
 			total += c.w
 		}
-		pick := rng.Float64() * total
-		chosen := cands[len(cands)-1]
-		for _, c := range cands {
-			pick -= c.w
-			if pick <= 0 {
-				chosen = c
+		pickOne := func() cand {
+			pick := rng.Float64() * total
+			for _, c := range cands {
+				if pick -= c.w; pick <= 0 {
+					return c
+				}
+			}
+			return cands[len(cands)-1]
+		}
+		levelOf := func(c cand) int {
+			level := c.level + []int{-1, 0, 0, 1}[rng.Intn(4)]
+			if c.hi > 0 {
+				level = max(c.lo, min(c.hi, level))
+			}
+			return max(1, level)
+		}
+		sourceOf := func(c cand) string {
+			from := source
+			if c.src != "" {
+				from = c.src
+			}
+			if c.k.made != nil {
+				from = "made"
+			}
+			return from
+		}
+		chosen := pickOne()
+		level := levelOf(chosen)
+		fx, fy, fz := p.settle(land, gp.k, rng)
+		fills = append(fills, fill{kind: chosen.k, template: template(chosen.k, w, fx, fz), level: level,
+			x: fx, y: fy, z: fz, facing: rng.Intn(256), source: sourceOf(chosen), placeLevel: place})
+		occupied.add(fx, fz, -1)
+		// the rest of its group (-group), each a kind drawn again
+		group := [][2]float64{{fx, fz}}
+		for n := p.groupSize(rng) - 1; n > 0; n-- {
+			mx, my, mz, ok := p.member(land, open, fx, fy, fz, group, rng)
+			if !ok {
 				break
 			}
+			c := pickOne()
+			fills = append(fills, fill{kind: c.k, template: template(c.k, w, mx, mz), level: levelOf(c),
+				x: mx, y: my, z: mz, facing: rng.Intn(256), source: sourceOf(c), placeLevel: place})
+			occupied.add(mx, mz, -1)
+			group = append(group, [2]float64{mx, mz})
 		}
-		level := chosen.level + []int{-1, 0, 0, 1}[rng.Intn(4)]
-		if chosen.hi > 0 {
-			level = max(chosen.lo, min(chosen.hi, level))
-		}
-		level = max(1, level)
-		fx, fy, fz := p.settle(land, gp.k, rng)
-		from := source
-		if chosen.src != "" {
-			from = chosen.src
-		}
-		if chosen.k.made != nil {
-			from = "made"
-		}
-		fills = append(fills, fill{kind: chosen.k, template: template(chosen.k, w, fx, fz), level: level,
-			x: fx, y: fy, z: fz, facing: rng.Intn(256), source: from, placeLevel: place})
-		occupied.add(fx, fz, -1)
 	}
 	return fills, empty
 }

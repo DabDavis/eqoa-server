@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math/rand"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -151,5 +152,62 @@ func TestLayerLevel(t *testing.T) {
 	p.near[0].Sections = []string{"Tunaria/Swamp"}
 	if s := p.nearSections(10, 0); !reflect.DeepEqual(s, []string{"Tunaria/Swamp"}) || p.nearSections(5000, 0) != nil {
 		t.Errorf("nearSections: %v", s)
+	}
+}
+
+// -group's sizes by weight, and a group of one draws nothing: a run without
+// -group spends its random numbers as it did before the flag.
+func TestGroups(t *testing.T) {
+	sizes, weights, err := readGroup("1:40, 2:30,3:15")
+	if err != nil || !reflect.DeepEqual(sizes, []int{1, 2, 3}) || !reflect.DeepEqual(weights, []float64{40, 30, 15}) {
+		t.Fatalf("readGroup: %v %v %v", sizes, weights, err)
+	}
+	for _, bad := range []string{"0:5", "2", "2:0", "x:1", "21:1"} {
+		if _, _, err := readGroup(bad); err == nil {
+			t.Errorf("%q taken", bad)
+		}
+	}
+	p := &plan{}
+	a, b := rand.New(rand.NewSource(7)), rand.New(rand.NewSource(7))
+	if p.groupSize(a) != 1 || a.Float64() != b.Float64() {
+		t.Error("without -group a group is one and draws nothing")
+	}
+	p.groupSizes, p.groupWeights = []int{3}, []float64{1}
+	if p.groupSize(a) != 3 {
+		t.Error("one size: that size")
+	}
+}
+
+// A step's names (its target and queststeptargets' others) are one step, its
+// givers the NPCs of the giver's name with the NPC bit when any has it.
+func TestReadQuestGiversGroupsAStepsNames(t *testing.T) {
+	db, err := database.NewSQLite(filepath.Join(t.TempDir(), "t.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	for _, s := range []string{
+		`CREATE TABLE IF NOT EXISTS quests (questid INTEGER PRIMARY KEY, name TEXT, enabled INTEGER, giver TEXT, minlevel INTEGER)`,
+		`CREATE TABLE IF NOT EXISTS queststeps (questid INTEGER, step INTEGER, kind TEXT, target TEXT)`,
+		`CREATE TABLE IF NOT EXISTS queststeptargets (questid INTEGER, step INTEGER, target TEXT)`,
+		`DELETE FROM quests`, `DELETE FROM queststeps`, `DELETE FROM queststeptargets`,
+		`INSERT INTO quests (questid, name, enabled, giver, minlevel) VALUES (1, 'Scales', 1, 'Ostrel', 3), (2, 'Off', 0, 'Ostrel', 3)`,
+		`INSERT INTO queststeps (questid, step, kind, target) VALUES (1, 1, 'loot', 'reed python'), (1, 2, 'give', 'Ostrel'), (2, 1, 'loot', 'marsh newt')`,
+		`INSERT INTO queststeptargets (questid, step, target) VALUES (1, 1, 'Reed Serpent')`,
+	} {
+		if _, err := db.Exec(s); err != nil {
+			t.Fatalf("%s: %v", s, err)
+		}
+	}
+	in := &input{rows: []*npcRow{{key: "ostrel", world: 0, x: 10, z: 20}, {key: "ostrel", world: 0, x: 50, z: 60, typ: 0x80}}}
+	givers, steps, err := readQuestGivers(db, in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(steps) != 1 || !reflect.DeepEqual(steps[0].names, []string{"reed python", "reed serpent"}) || steps[0].minLevel != 3 {
+		t.Fatalf("steps %+v, want the one enabled loot step with both names", steps)
+	}
+	if !reflect.DeepEqual(steps[0].givers, []place{{0, 50, 60}}) || len(givers["reed serpent"]) != 1 {
+		t.Errorf("givers %+v %v: the NPC-bit Ostrel's place", steps[0].givers, givers)
 	}
 }

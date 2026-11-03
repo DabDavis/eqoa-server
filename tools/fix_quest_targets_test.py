@@ -196,5 +196,83 @@ class FixQuestTargets(unittest.TestCase):
         self.assertIn("1 changed since left as they are", r.stdout)
 
 
+class FamiliesAndTags(unittest.TestCase):
+    """A starting town's loot step whose creatures are few near its giver takes
+    their family's that stand there (the user: tarantula legs off spiderlings),
+    a name the user gave a step is taken whatever stands there, and a tagged
+    run logs apart. Made-up names."""
+
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory()
+        self.path = os.path.join(self.dir.name, "t.db")
+        db = sqlite3.connect(self.path, isolation_level=None)
+        db.executescript(SCHEMA)
+        iq.ensure_quest_tables(db)
+        npcs = [("Ostrel", 1000, 1000, 30, 128)]
+        npcs += [("glimmer tarantula", 1300, 1000, 4, 0)]                      # the step's own: one
+        npcs += [("glimmer spiderling", 1200 + 20 * i, 1100, 3, 0) for i in range(4)]  # its family, near
+        npcs += [("Queen Widow", 1250, 1250, 4, 0)]                            # one of a family, a single spawn
+        npcs += [("glimmer tarantula", 9000, 9000, 4, 0)]                      # far
+        npcs += [("reed python", 1100 + 15 * i, 1300, 4, 0) for i in range(12)]  # plenty of a step's own
+        npcs += [("reed serpent", 1150 + 15 * i, 1350, 3, 0) for i in range(3)]
+        db.executemany("INSERT INTO npcs (npc_name, world, x_coord, y_coord, z_coord, npc_level, npc_type) VALUES (?, 0, ?, 0, ?, ?, ?)",
+                       npcs)
+        db.executemany("INSERT INTO itempattern VALUES (?, ?)", [(30, "tarantula leg tip"), (31, "python scale")])
+        q = "INSERT INTO quests (questid, name, enabled, giver, minlevel) VALUES (?, ?, 1, 'Ostrel', ?)"
+        st = "INSERT INTO queststeps (questid, step, kind, target, items, count, chance, journal) VALUES (?, ?, 'loot', ?, ?, 2, 0.5, ?)"
+        db.execute(q, (11, "Leg Tips", 3))
+        db.execute(st, (11, 1, "glimmer tarantula", "30", "Take two tarantula leg tips from the glimmer tarantulas."))
+        db.execute(q, (12, "Leg Tips Later", 30))   # the control: past FEW_QUEST
+        db.execute(st, (12, 1, "glimmer tarantula", "30", "Take two tarantula leg tips from the glimmer tarantulas."))
+        db.execute(q, (13, "The Widow", 3))         # the control: someone's
+        db.execute(st, (13, 1, "Queen Widow", "30", "Take the queen's silk from the Queen Widow."))
+        db.execute(q, (14, "Reed Scales", 3))       # plenty of its own: the user's word alone adds
+        db.execute(st, (14, 1, "reed python", "31", "Take two python scales from the reed pythons."))
+        db.close()
+        self.user = dict(fqt.USER_TARGETS)
+        fqt.USER_TARGETS.clear()
+        fqt.USER_TARGETS[("reed scales", "ostrel", "reed python")] = (["reed serpent"], "the user's word (made up)")
+
+    def tearDown(self):
+        fqt.USER_TARGETS.clear()
+        fqt.USER_TARGETS.update(self.user)
+        fqt.LOG = "quest_targets_fix_log"
+        self.dir.cleanup()
+
+    def db(self):
+        return sqlite3.connect(self.path, isolation_level=None)
+
+    def test_few_takes_their_family_there_and_the_users_word(self):
+        db = self.db()
+        _, _, rows, changes, _, _, _, _ = fqt.plan(db)
+        added = {r["q"]["questid"]: add for r, target, add, why in changes}
+        self.assertEqual(added.get(11), ["glimmer spiderling"], "one tarantula near: the spiderlings there drop its leg tips")
+        self.assertNotIn(12, added, "a quest past FEW_QUEST is left")
+        self.assertNotIn(13, added, "someone's step (a capital on its last word) is left, and the lone widow is no family's")
+        self.assertEqual(added.get(14), ["reed serpent"], "the user's word, though its own creatures are plenty")
+        by = {r["q"]["questid"]: r for r in rows}
+        self.assertEqual(by[14]["family"], [], "twelve reed pythons near: not few")
+        db.close()
+
+    def test_a_tagged_run_logs_apart(self):
+        db = self.db()
+        w, _, _, changes, _, _, _, _ = fqt.plan(db)
+        fqt.apply(db, w, changes)
+        self.assertTrue(fqt.has_table(db, "quest_targets_fix_log"))
+        r = subprocess.run([sys.executable, "-E", "-s", TOOL, "--db", self.path, "--no-backup", "--apply"],
+                           capture_output=True, text=True)
+        self.assertNotEqual(r.returncode, 0, "the control: a second untagged run is refused")
+        db.execute("DELETE FROM queststeptargets")
+        fqt.LOG = "quest_targets_fix_log_town"
+        n = fqt.apply(db, w, changes)
+        self.assertTrue(fqt.has_table(db, "quest_targets_fix_log_town"))
+        self.assertEqual(n["added"], 2)
+        fqt.undo(db)
+        self.assertFalse(fqt.has_table(db, "quest_targets_fix_log_town"))
+        self.assertTrue(fqt.has_table(db, "quest_targets_fix_log"), "the untagged log is left")
+        self.assertEqual(db.execute("SELECT count(*) FROM queststeptargets").fetchone()[0], 0)
+        db.close()
+
+
 if __name__ == "__main__":
     unittest.main()

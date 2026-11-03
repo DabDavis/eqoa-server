@@ -63,7 +63,16 @@ ones ITEM_FIXES knows are given as their guides give them: on taking the quest
 (an accept event), or by a loot step before the hand-in (the steps after it,
 and the characters at them, moved down one).
 
-Every change is logged in quest_targets_fix_log; --undo takes back each one
+**A starting town's loot step whose creatures are few** (the user, 2026-11-03: "if the quest asks for tarantula
+legs, and there are spiderlings only nearby, they can drop the q items also. the name of the items can be
+misleading"): a quest up to FEW_QUEST whose loot step has fewer than FEW_MIN of its names' spawns near the quest at
+fitting levels takes up to FAMILY_MAX names of their family (FAMILIES: spiders, snakes, bats, rats, fliers...; the
+step's names' and its item's words) that stand near the quest at fitting levels, the most there first; never for a
+step spelled as someone's (a capital on its last word) or of a creature of one spawn. USER_TARGETS holds the user's
+own word for a step (the troll warrior's and shaman's python steps take bog serpents too).
+
+Every change is logged in quest_targets_fix_log (--tag NAME: quest_targets_fix_log_NAME, a run of its own applied
+and undone apart); --undo takes back each one
 still as written (a name's case aside: tools that lower NPC names may have run
 since). Report only by default. The server's quest engine reads the quests at
 its start and when the GM panel saves one: apply it before a (re)start, or
@@ -72,7 +81,7 @@ transaction). tools/import_quests.py keeps a quest this changed (its rows here
 are a change to it, as a GM's are); on a database imported afresh, run this
 after the import.
 
-    tools/fix_quest_targets.py [--db eqoa.db] [--tsv audit.tsv] [--apply | --undo]
+    tools/fix_quest_targets.py [--db eqoa.db] [--tsv audit.tsv] [--tag NAME] [--apply | --undo]
 """
 import argparse
 import collections
@@ -94,6 +103,56 @@ FIT_ABOVE = 3  # a creature fits a player taking a quest up to this many levels 
 FIT_BELOW = 10  # and down to this many below
 HIGH_ABOVE = 5  # a step whose every creature is more than this many levels above the quest's lowest is flagged
 LOW_QUEST = 20  # a quest up to this level whose creatures are far or above it takes the nearest fitting of their kind
+# A starting town's loot step whose creatures are few near the quest takes the creatures of their family that stand
+# there (the user, 2026-11-03: "if the quest asks for tarantula legs, and there are spiderlings only nearby, they can
+# drop the q items also. the name of the items can be misleading"): a quest up to FEW_QUEST, fewer than FEW_MIN of
+# its names' spawns near the quest at fitting levels, up to FAMILY_MAX of the family's names, the most there first.
+# A family is a creature's word (any of its name's), the step's names' and its item's (a tarantula's leg tips).
+FEW_QUEST = 12
+FEW_MIN = 10
+FAMILY_MAX = 4
+FAMILIES = {
+    "spider": "spider spiders spiderling spiderlings tarantula tarantulas widow widows arachnid arachnids",
+    "snake": "snake snakes serpent serpents python pythons viper vipers kingsnake kingsnakes moccasin moccasins adder "
+             "adders asp asps cobra cobras anaconda anacondas sidewinder sidewinders rattlesnake rattlesnakes boa boas",
+    "bat": "bat bats",
+    "rat": "rat rats",
+    "beetle": "beetle beetles firebeetle firebeetles scarab scarabs",
+    "ant": "ant ants",
+    "flier": "fly flies mosquito mosquitos mosquitoes dragonfly dragonflies drakeflies sparkflies emberflies fireflies "
+             "firefly sunflies bloodflies swampflies scorchflies saurianflies gnat gnats bug bugs",
+    "bird": "crow crows raven ravens magpie magpies rook rooks vulture vultures buzzard buzzards",
+    "crab": "crab crabs",
+    "fish": "pike pikes trout minnow minnows eel eels bass carp catfish",
+    "wolf": "wolf wolves",
+    "bear": "bear bears",
+    "badger": "badger badgers",
+    "boar": "boar boars",
+}
+FAMILY_OF = {w: f for f, ws in FAMILIES.items() for w in ws.split()}
+
+
+def families(name):
+    """The families a name's words are of ("widow hatchling" a spider's, "bog serpent" a snake's)."""
+    return {FAMILY_OF[w] for w in fold(name).replace("-", " ").split() if w in FAMILY_OF}
+
+
+# The user's own word for a step: (quest, giver, the step's target) -> the creatures it takes too, and why.
+USER_TARGETS = {
+    ("python scales", "underlord krullik", "python"): (
+        ["bog serpent"], 'the user, 2026-11-03: "for mesh it says python scales, but the bog serpents can drop also"; '
+                         'Prima\'s guide: "Go into the swamp and kill snakes. Return three ruined python scales"'),
+    ("a shaman weapon", "harbinger lacra", "python"): (
+        ["bog serpent"], 'Prima\'s guide: "Hunt pythons and bog serpents near the swamp for the chipped python fangs" '
+                         '(the user, 2026-11-03: "the bog serpents can drop also")'),
+}
+
+LOG = "quest_targets_fix_log"  # a tagged run's (--tag NAME): quest_targets_fix_log_NAME
+
+
+def log_ddl():
+    return LOG_DDL.replace("quest_targets_fix_log", LOG, 1)
+
 
 LOG_DDL = """CREATE TABLE IF NOT EXISTS quest_targets_fix_log (
     seq     INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -333,6 +392,10 @@ class World:
         # which can be attacked) as said, and every kind (its last words: "wolf
         # spider" of "large wolf spider") as said
         self.names, self.kinds, self.of_kind = {}, {}, collections.defaultdict(set)
+        self.of_family = collections.defaultdict(set)  # a family (FAMILIES) -> the names of it that spawn
+        for k in self.spawns:
+            for f in families(k):
+                self.of_family[f].add(k)
         plain = CUES | STOPS | DETERMINERS | AFTER | NUMBERS | {"and", "or"}
         for k, sp in self.spawns.items():
             # a name with a digit is a stand-in or a test's ("RE PC Fire 2")
@@ -583,12 +646,40 @@ def audit(w, quests):
                         flags.append("high")
                 if sources:
                     flags.append("journal")
+            # the user's own word for the step
+            user = USER_TARGETS.get((fold(q["name"]), fold(q["giver"]), fold(st["target"])))
+            if user and [k for k in map(fold, user[0]) if k not in names and w.spawns.get(k)]:
+                flags.append("user")
+            # few of its creatures near a starting town's quest: their family's there
+            family = []
+            # (not a named one's: a capital on its last word as it is spelled, "Madam Widow")
+            spelled = w.spell(fold(st["target"])) if w.spawns.get(fold(st["target"])) else (st["target"] or "")
+            someone = bool(re.search(r"(^|\s)[A-Z][^\s]*$", spelled.strip()))
+            if st["kind"] == "loot" and (q["minlevel"] or 1) <= FEW_QUEST and where and not someone and \
+                    sum(len(fitting(w, k, q, where)) for k in names) < FEW_MIN:
+                fams = set()
+                for k in names:
+                    fams |= families(k)
+                for pid, _ in parse_items(st["items"]):
+                    fams |= families(w.items.get(pid, ""))
+                cands = []
+                for f in sorted(fams):
+                    for k in sorted(w.of_family.get(f, ())):
+                        if k in names or k in folks or any(c == k for _, c in cands) or len(w.spawns.get(k, ())) < 2:
+                            continue  # (a creature of one spawn is someone: the chichan eel)
+                        n = len(fitting(w, k, q, where))
+                        if n:
+                            cands.append((-n, k))
+                family = [k for _, k in sorted(cands)[:FAMILY_MAX]]
+                if family:
+                    flags.append("few")
             # one known creature: a single spawn the line does not name as one of many (its own name in the
             # plural, or a kind it is of: "the crabs" of a lone "grobb crab"), or the line's "the X" of it
             many = any(m.plural and m.source and {k for k, _ in w.creatures(m)} & set(names) for m in ms)
             one = (sum(d["spawns"] for d in descs) == 1 and not many) or \
                 any(m.key in names and not m.kind and not m.generic for m in ms)
             rows.append({"q": q, "st": st, "names": names, "descs": descs, "mentions": ms, "sources": sources,
+                         "family": family, "user": user,
                          "events": evs, "by_event": by_event, "flags": flags, "where": where, "around": around,
                          "named": one, "triggered": triggered(st["journal"])})
     return rows
@@ -603,6 +694,9 @@ def decide(w, row):
     flags = set(row["flags"]) - {"spawn"}
     if not flags:
         return None, [], ""
+    if "user" in flags:
+        add = [k for k in dict.fromkeys(map(fold, row["user"][0])) if k not in names and w.spawns.get(k)]
+        return None, add, row["user"][1]
     if row["named"]:
         return None, [], "its creature is one known one (a single spawn): its journal's others are its company or its place"
     if row["triggered"]:
@@ -610,6 +704,14 @@ def decide(w, row):
     if not where:
         return None, [], "the quest has no place: its giver and its NPCs stand nowhere"
     gone = all(d["spawns"] == 0 for d in row["descs"])
+    if "few" in flags:
+        add = list(dict.fromkeys(list(row["sources"]) + list(row["family"])))
+        why = (f"few of its creatures near the quest (under {FEW_MIN} at fitting levels): their family's that stand there "
+               "(the user, 2026-11-03: \"if the quest asks for tarantula legs, and there are spiderlings only nearby, "
+               "they can drop the q items also\")")
+        if gone:
+            return add[0], add[1:], why
+        return None, add, why
     if row["sources"]:
         add = list(row["sources"])
         if gone:
@@ -865,13 +967,13 @@ def apply(db, w, changes, fixes=()):
     when = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     db.execute("BEGIN IMMEDIATE")
     try:
-        db.execute(LOG_DDL)
+        db.execute(log_ddl())
         db.execute(TARGETS_DDL)
         n = collections.Counter()
         for fx, q, what in fixes:
             if "events" in what:
                 db.execute("UPDATE quests SET events = ? WHERE questid = ?", (what["events"], q["questid"]))
-                db.execute("INSERT INTO quest_targets_fix_log (questid, step, action, old, new, why, applied) VALUES (?, 0, 'events', ?, ?, ?, ?)",
+                db.execute(f"INSERT INTO {LOG} (questid, step, action, old, new, why, applied) VALUES (?, 0, 'events', ?, ?, ?, ?)",
                            (q["questid"], q["events"] or "", what["events"], fx["why"], when))
                 n["events"] += 1
             else:
@@ -879,7 +981,7 @@ def apply(db, w, changes, fixes=()):
                 row = {c: what[c] for c in ("kind", "target", "items", "count", "chance", "journal")}
                 db.execute(f"INSERT INTO queststeps (questid, step, {', '.join(row)}) VALUES (?, ?, {', '.join('?' * len(row))})",
                            [q["questid"], what["step"], *row.values()])
-                db.execute("INSERT INTO quest_targets_fix_log (questid, step, action, old, new, why, applied) VALUES (?, ?, 'step', '', ?, ?, ?)",
+                db.execute(f"INSERT INTO {LOG} (questid, step, action, old, new, why, applied) VALUES (?, ?, 'step', '', ?, ?, ?)",
                            (q["questid"], what["step"], json.dumps(row, sort_keys=True), fx["why"], when))
                 n["steps"] += 1
         for r, target, add, why in changes:
@@ -887,7 +989,7 @@ def apply(db, w, changes, fixes=()):
             if target is not None:
                 new = w.spell(target)
                 db.execute("UPDATE queststeps SET target = ? WHERE questid = ? AND step = ?", (new, q["questid"], st["step"]))
-                db.execute("INSERT INTO quest_targets_fix_log (questid, step, action, old, new, why, applied) VALUES (?, ?, 'target', ?, ?, ?, ?)",
+                db.execute(f"INSERT INTO {LOG} (questid, step, action, old, new, why, applied) VALUES (?, ?, 'target', ?, ?, ?, ?)",
                            (q["questid"], st["step"], st["target"], new, why, when))
                 n["targets"] += 1
             for k in add:
@@ -895,7 +997,7 @@ def apply(db, w, changes, fixes=()):
                 cur = db.execute("INSERT OR IGNORE INTO queststeptargets (questid, step, target) VALUES (?, ?, ?)",
                                  (q["questid"], st["step"], new))
                 if cur.rowcount:
-                    db.execute("INSERT INTO quest_targets_fix_log (questid, step, action, old, new, why, applied) VALUES (?, ?, 'added', '', ?, ?, ?)",
+                    db.execute(f"INSERT INTO {LOG} (questid, step, action, old, new, why, applied) VALUES (?, ?, 'added', '', ?, ?, ?)",
                                (q["questid"], st["step"], new, why, when))
                     n["added"] += 1
         db.execute("COMMIT")
@@ -906,14 +1008,14 @@ def apply(db, w, changes, fixes=()):
 
 
 def undo(db):
-    if not has_table(db, "quest_targets_fix_log"):
+    if not has_table(db, LOG):
         print("nothing logged: nothing to undo")
         return
     db.execute("BEGIN IMMEDIATE")
     try:
         back = kept = 0
         for seq, qid, n, action, old, new in db.execute(
-                "SELECT seq, questid, step, action, old, new FROM quest_targets_fix_log ORDER BY seq DESC").fetchall():
+                f"SELECT seq, questid, step, action, old, new FROM {LOG} ORDER BY seq DESC").fetchall():
             if action == "added":
                 rows = [t for (t,) in db.execute("SELECT target FROM queststeptargets WHERE questid = ? AND step = ?", (qid, n))
                         if fold(t) == fold(new)]
@@ -951,7 +1053,7 @@ def undo(db):
                 else:
                     kept += 1
         # queststeptargets stays, empty or not: the server makes it and reads it (a GM's rows may be in it)
-        db.execute("DROP TABLE quest_targets_fix_log")
+        db.execute(f"DROP TABLE {LOG}")
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")
@@ -974,18 +1076,24 @@ def main():
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true", help="write the fixes (logged)")
     g.add_argument("--undo", action="store_true", help="take back what --apply wrote")
+    ap.add_argument("--tag", default="", help="a run of its own: its log quest_targets_fix_log_TAG, applied and undone apart")
     a = ap.parse_args()
+    global LOG
+    if a.tag:
+        if not re.fullmatch(r"[A-Za-z0-9_]+", a.tag):
+            sys.exit(f"--tag {a.tag!r}: letters, digits and _ only")
+        LOG = f"quest_targets_fix_log_{a.tag}"
     if not os.path.exists(a.db):
         sys.exit(f"{a.db}: no such database")
     db = sqlite3.connect(a.db, timeout=30, isolation_level=None)
     db.execute("PRAGMA busy_timeout = 30000")
     if a.undo:
-        if not a.no_backup and has_table(db, "quest_targets_fix_log"):
+        if not a.no_backup and has_table(db, LOG):
             print(f"copy: {backup(a.db)}")
         undo(db)
         return
-    if a.apply and has_table(db, "quest_targets_fix_log"):
-        sys.exit("quest_targets_fix_log is there: applied already (--undo first)")
+    if a.apply and has_table(db, LOG):
+        sys.exit(f"{LOG} is there: applied already (--undo first)")
     w, quests, rows, changes, undecided, gaps, fixes, left = plan(db)
     flags = collections.Counter(f for r in rows for f in r["flags"])
     on = collections.Counter(f for r in rows if r["q"]["enabled"] for f in r["flags"])

@@ -94,6 +94,13 @@ class FillItemDescriptions(unittest.TestCase):
         self.assertEqual(got[7], "Its own words.")
         self.assertEqual(got[8], PH, "a GM's record")
         self.assertIn("wrote 0 records", self.tool("--apply"))
+        out = self.tool("--ours", "--apply")
+        self.assertIn("wrote 3 records", out, "ours for the three no source describes")
+        got = self.descs()
+        for pid in (4, 5, 9):
+            self.assertNotEqual(got[pid].lower().rstrip("."), PH.lower().rstrip("."))
+            self.assertRegex(got[pid], r"^[A-Z].*\.$")
+        self.assertEqual(got[8], PH, "a GM's record, ours or not")
         self.tool("--undo")
         self.assertEqual(dump(self.path), self.before, "undo puts every row back")
 

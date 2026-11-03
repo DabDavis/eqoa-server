@@ -15,6 +15,10 @@ shows the description in the item's info window. A placeholder is replaced by, i
    "*Proc*", "Rediculously Rare Robe, most would kill to have it").
 4. **Allakhazam's item page** (`--pages`, fetch_item_pages.py's pages.json), its "Dropped by ..." left out
    (the submitter's, not the game's).
+5. **Ours** (`--ours`; the user, 2026-11-03: "go ahead and add your own description with eqoa flavor"):
+   tools/item_flavor.py writes one from the record's name, wear slot, look and figures, the way SOE's read (what
+   it is and what it is made of, a line its name's words or owner give, the magic it holds). Run it after
+   tools/fix_style0_looks.py, whose looks it names.
 
 A name two records of one source describe differently takes neither. The rest keep the placeholder and are
 counted. A record a GM edited (gm_audit) is listed and left. Logged in item_desc_fill_log with the text it
@@ -22,7 +26,7 @@ replaced; --undo puts back each record still as this left it, then drops the log
 client reads a record's description at its login: no restart; a player sees it at the next login.
 
     tools/fill_item_descriptions.py [--db eqoa.db] [--prices <harvests>] [--eqoa-data <folder>] [--pages <folder>]
-                                    [--only PATTERNID ...] [--apply | --undo]
+                                    [--ours] [--only PATTERNID ...] [--apply | --undo]
 """
 import argparse
 import collections
@@ -35,6 +39,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fix_dump_weapons import key  # noqa: E402
+import item_flavor  # noqa: E402
 
 DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqoa.db")
 PLACEHOLDER = re.compile(r"^\s*add a real description\.?\s*$", re.I)
@@ -134,13 +139,20 @@ def allakhazam_descs(folder):
     return seen
 
 
-def plan(db, sources, only=None):
+FIGURES = ("model", "levelreq", "attacktype", "str", "sta", "agi", "wis", "dex", "cha", "intelligence", "HPMAX",
+           "POWMAX", "PoT", "HoT", "AC", "PR", "DR", "FR", "CR", "LR", "AR")
+
+
+def plan(db, sources, only=None, ours=False):
     """[(patternid, name, old, new, source)] and [(patternid, name, why)] left, and the placeholders kept."""
     gm = gm_patterns(db)
     todo, left = [], []
     kept = 0
-    for pid, name, slot, desc in db.execute("SELECT patternid, itemname, equipslot, itemdesc FROM itempattern "
-                                            "ORDER BY patternid").fetchall():
+    cols = {r[1] for r in db.execute("PRAGMA table_info(itempattern)")}
+    have = [c for c in FIGURES if c in cols]
+    sel = "".join(f", coalesce({c}, 0)" for c in have)
+    for pid, name, slot, desc, *figs in db.execute(f"SELECT patternid, itemname, equipslot, itemdesc{sel} "
+                                                   "FROM itempattern ORDER BY patternid").fetchall():
         if not PLACEHOLDER.match(desc or "") or (only and pid not in only):
             continue
         k = key(name)
@@ -153,6 +165,10 @@ def plan(db, sources, only=None):
                 if len(got) == 1:
                     new, src = next(iter(got)), label
                     break
+        if new is None and ours:
+            item = {"name": name, "slot": slot, **dict(zip(have, figs))}
+            item["level"] = item.pop("levelreq", 0)
+            new, src = item_flavor.describe(item), "ours: written from its name, kind, look and figures"
         if new is None:
             kept += 1
             continue
@@ -194,6 +210,7 @@ def main():
     ap.add_argument("--prices", nargs="*", default=[], help="eqoa harvest JSON files or folders (Sandstorm's records)")
     ap.add_argument("--eqoa-data", help="a checkout of EQOA-Data")
     ap.add_argument("--pages", help="fetch_item_pages.py's folder (its pages.json)")
+    ap.add_argument("--ours", action="store_true", help="write our own for the placeholders no source describes")
     ap.add_argument("--only", type=int, nargs="+", help="only these patternids")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true", help="write the descriptions (logged)")
@@ -208,7 +225,7 @@ def main():
         return
     sources = [("Sandstorm's record", sandstorm_descs(a.prices)), ("EQOA-Data", eqoadata_descs(a.eqoa_data)),
                ("Allakhazam's page", allakhazam_descs(a.pages))]
-    todo, left, kept = plan(db, sources, set(a.only) if a.only else None)
+    todo, left, kept = plan(db, sources, set(a.only) if a.only else None, a.ours)
     by = collections.Counter(src.split(":")[0] for *_x, src in todo)
     print(f"{len(todo)} records change: " + ", ".join(f"{s}: {n}" for s, n in by.most_common()))
     for pid, name, _old, new, src in todo:

@@ -1,0 +1,119 @@
+{
+ "set": "freeport-pike",
+ "npcs": [
+  {
+   "name": "pike",
+   "role": "foe",
+   "body": [
+    "npc",
+    "pike"
+   ],
+   "place": [
+    "at",
+    0,
+    24875,
+    13550,
+    42.6
+   ],
+   "count": 3,
+   "level": 3,
+   "note": "the river by the broken bridge, west of Domnik Novandear: in the river north of Freeport by the broken bridge (Domnik Novandear's), for Guard Sareken's tough pike scales and Pike Meat (the user, 2026-11-03: \"add pike near freeport for the quests, should be north near the bridge and river\")",
+   "water": "water"
+  },
+  {
+   "name": "pike",
+   "role": "foe",
+   "body": [
+    "npc",
+    "pike"
+   ],
+   "place": [
+    "at",
+    0,
+    24812,
+    13450,
+    42.5
+   ],
+   "count": 3,
+   "level": 2,
+   "note": "the river above the bridge: in the river north of Freeport by the broken bridge (Domnik Novandear's), for Guard Sareken's tough pike scales and Pike Meat (the user, 2026-11-03: \"add pike near freeport for the quests, should be north near the bridge and river\")",
+   "water": "water"
+  },
+  {
+   "name": "pike",
+   "role": "foe",
+   "body": [
+    "npc",
+    "pike"
+   ],
+   "place": [
+    "at",
+    0,
+    24962,
+    13650,
+    44.3
+   ],
+   "count": 3,
+   "level": 3,
+   "note": "the river below the bridge: in the river north of Freeport by the broken bridge (Domnik Novandear's), for Guard Sareken's tough pike scales and Pike Meat (the user, 2026-11-03: \"add pike near freeport for the quests, should be north near the bridge and river\")",
+   "water": "water"
+  },
+  {
+   "name": "pike",
+   "role": "foe",
+   "body": [
+    "npc",
+    "pike"
+   ],
+   "place": [
+    "at",
+    0,
+    24750,
+    13350,
+    42.9
+   ],
+   "count": 2,
+   "level": 4,
+   "note": "the river's bend above the bridge: in the river north of Freeport by the broken bridge (Domnik Novandear's), for Guard Sareken's tough pike scales and Pike Meat (the user, 2026-11-03: \"add pike near freeport for the quests, should be north near the bridge and river\")",
+   "water": "water"
+  },
+  {
+   "name": "pike",
+   "role": "foe",
+   "body": [
+    "npc",
+    "pike"
+   ],
+   "place": [
+    "at",
+    0,
+    24712,
+    13200,
+    41.5
+   ],
+   "count": 2,
+   "level": 2,
+   "note": "the river below the three pike there: in the river north of Freeport by the broken bridge (Domnik Novandear's), for Guard Sareken's tough pike scales and Pike Meat (the user, 2026-11-03: \"add pike near freeport for the quests, should be north near the bridge and river\")",
+   "water": "water"
+  },
+  {
+   "name": "pike",
+   "role": "foe",
+   "body": [
+    "npc",
+    "pike"
+   ],
+   "place": [
+    "at",
+    0,
+    25087,
+    13750,
+    44.4
+   ],
+   "count": 2,
+   "level": 3,
+   "note": "the river's south-east reach: in the river north of Freeport by the broken bridge (Domnik Novandear's), for Guard Sareken's tough pike scales and Pike Meat (the user, 2026-11-03: \"add pike near freeport for the quests, should be north near the bridge and river\")",
+   "water": "water"
+  }
+ ]
+}

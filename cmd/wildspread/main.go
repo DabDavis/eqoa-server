@@ -80,8 +80,18 @@
 // its own tag), and a tagged run's fills stay where it put them in any
 // later run.
 //
-//	wildspread ... -worlds 0 -near @towns.txt -no-spread -gap 95 -spacing 100
-//	    -quest-weight 3 -tag towns [-apply | -undo]
+// -group size:weight,... makes a fill a group (the others within
+// -group-radius of the first, each kind drawn again: Sandstorm's newbie
+// creatures stand in twos and threes, a creature's nearest another a median
+// 22 off round Halas and Qeynos, where one creature every 100 read as bare
+// ground: the user, 2026-11-03, of Grobb's "the mobs are spread out too much
+// or too sparse"), and -quest-min N keeps each newbie quest's kill or loot
+// step's creatures (its target and queststeptargets' others) to N within
+// -quest-min-reach of its giver, in groups of the step's wildlife kinds.
+//
+//	wildspread ... -worlds 0 -near @towns.txt -no-spread -gap 90 -spacing 95
+//	    -group 1:20,2:28,3:22,4:14,5:9,6:7 -group-radius 28 -quest-weight 3 -quest-min 10
+//	    -layers 0:2,125:2,375:3,625:5,875:6,1250:11 -tag towns [-apply | -undo]
 package main
 
 import (
@@ -136,6 +146,10 @@ func main() {
 	spacing := flag.Float64("spacing", fillSpacing, "a filled creature from any other creature")
 	questWeight := flag.Float64("quest-weight", 1, "a kind a quest kills or loots, its giver within questReach, counts this many times in a fill")
 	layersFlag := flag.String("layers", "", "a fill's level by its distance from a -near circle's town (its fourth number): d:level[,d:level...]")
+	groupFlag := flag.String("group", "", "a fill is a group: its size by weight, size:weight[,size:weight...] (the others of a kind drawn again)")
+	groupRadius := flag.Float64("group-radius", 25, "how far a group's others stand from its first")
+	questMin := flag.Int("quest-min", 0, "a newbie quest's kill or loot step keeps this many of its creatures within -quest-min-reach of its giver")
+	questMinReach := flag.Float64("quest-min-reach", 1250, "the reach -quest-min counts within")
 	flag.Parse()
 	for _, c := range *tag {
 		if !(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '_') {
@@ -153,6 +167,13 @@ func main() {
 	}
 	if len(layers) > 0 && len(near) == 0 {
 		log.Fatal("-layers counts from -near's circles")
+	}
+	sizes, weights, err := readGroup(*groupFlag)
+	if err != nil {
+		log.Fatalf("-group: %v", err)
+	}
+	if *groupRadius <= groupGap || *questMin < 0 || *questMinReach <= 150 {
+		log.Fatalf("-group-radius over %v, -quest-min 0 or more, -quest-min-reach over 150", groupGap)
 	}
 	if *gap <= 0 || *spacing <= 0 || *questWeight <= 0 {
 		log.Fatal("-gap, -spacing and -quest-weight are more than 0")
@@ -211,8 +232,10 @@ func main() {
 	p := newPlan(in, g, env, *groundDir, words, camps, *seed)
 	p.near, p.noSpread, p.gapFill, p.fillSpacing, p.questWeight = near, *noSpread, *gap, *spacing, *questWeight
 	p.layers = layers
-	if *questWeight != 1 {
-		if p.questGivers, err = readQuestGivers(db, in); err != nil {
+	p.groupSizes, p.groupWeights, p.groupRadius = sizes, weights, *groupRadius
+	p.questMin, p.questMinReach = *questMin, *questMinReach
+	if *questWeight != 1 || *questMin > 0 {
+		if p.questGivers, p.questSteps, err = readQuestGivers(db, in); err != nil {
 			log.Fatalf("the quests: %v", err)
 		}
 	}
@@ -322,6 +345,28 @@ func readNear(s string) ([]circle, error) {
 		out = append(out, circle{v[0], v[1], v[2], v[3], secs})
 	}
 	return out, nil
+}
+
+// readGroup reads -group: size:weight pairs by ',' (none: a group of one).
+func readGroup(s string) ([]int, []float64, error) {
+	var sizes []int
+	var weights []float64
+	for _, part := range strings.Split(s, ",") {
+		if part = strings.TrimSpace(part); part == "" {
+			continue
+		}
+		sw := strings.Split(part, ":")
+		if len(sw) != 2 {
+			return nil, nil, fmt.Errorf("%q: size:weight", part)
+		}
+		n, err1 := strconv.Atoi(strings.TrimSpace(sw[0]))
+		w, err2 := strconv.ParseFloat(strings.TrimSpace(sw[1]), 64)
+		if err1 != nil || err2 != nil || n < 1 || n > 20 || w <= 0 {
+			return nil, nil, fmt.Errorf("%q: a size of 1-20 and a weight over 0", part)
+		}
+		sizes, weights = append(sizes, n), append(weights, w)
+	}
+	return sizes, weights, nil
 }
 
 // readLayers reads -layers: d:level pairs by ',', d rising.

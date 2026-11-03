@@ -195,37 +195,62 @@ func (in *input) readTables(db *database.SQLiteDB) error {
 }
 
 // readQuestGivers is, for each kind a quest's kill or loot step names (its
-// target and queststeptargets' others), where the quest's givers stand: the
-// NPCs of the giver's name with the NPC bit (-quest-weight).
-func readQuestGivers(db *database.SQLiteDB, in *input) (map[string][]place, error) {
-	type pair struct{ giver, target string }
-	var pairs []pair
-	rows, err := db.Query(`SELECT q.giver, s.target FROM queststeps s JOIN quests q ON q.questid = s.questid
-		WHERE s.kind IN ('kill', 'loot') AND q.enabled = 1
-		UNION SELECT q.giver, t.target FROM queststeptargets t
+// target and queststeptargets' others), where the quest's givers stand (the
+// NPCs of the giver's name, those with the NPC bit when any has it: a town's
+// people may have none), and the steps themselves (-quest-weight, -quest-min).
+func readQuestGivers(db *database.SQLiteDB, in *input) (map[string][]place, []questStep, error) {
+	type row struct {
+		qid, step, minLevel int
+		giver, target       string
+	}
+	var rs []row
+	// a step's own target first, then its others
+	rows, err := db.Query(`SELECT q.questid, s.step, COALESCE(q.minlevel, 1), q.giver, s.target, 0 FROM queststeps s
+		JOIN quests q ON q.questid = s.questid WHERE s.kind IN ('kill', 'loot') AND q.enabled = 1
+		UNION SELECT q.questid, s.step, COALESCE(q.minlevel, 1), q.giver, t.target, 1 FROM queststeptargets t
 		JOIN queststeps s ON s.questid = t.questid AND s.step = t.step JOIN quests q ON q.questid = t.questid
-		WHERE s.kind IN ('kill', 'loot') AND q.enabled = 1`)
+		WHERE s.kind IN ('kill', 'loot') AND q.enabled = 1
+		ORDER BY 1, 2, 6, 5`)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	for rows.Next() {
+		var r row
 		var g, t sql.NullString
-		if rows.Scan(&g, &t) == nil && g.Valid && t.Valid && t.String != "" {
-			pairs = append(pairs, pair{database.NPCClassKey(g.String), database.NPCClassKey(t.String)})
+		var other int
+		if rows.Scan(&r.qid, &r.step, &r.minLevel, &g, &t, &other) == nil && g.Valid && t.Valid && t.String != "" {
+			r.giver, r.target = database.NPCClassKey(g.String), database.NPCClassKey(t.String)
+			rs = append(rs, r)
 		}
 	}
 	if err := rows.Close(); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	at := map[string][]place{}
+	at, bit := map[string][]place{}, map[string][]place{}
 	for _, r := range in.rows {
-		if r.typ&0x80 != 0 && r.key != "" {
-			at[r.key] = append(at[r.key], place{r.world, r.x, r.z})
+		if r.key == "" {
+			continue
+		}
+		at[r.key] = append(at[r.key], place{r.world, r.x, r.z})
+		if r.typ&0x80 != 0 {
+			bit[r.key] = append(bit[r.key], place{r.world, r.x, r.z})
 		}
 	}
-	out := map[string][]place{}
-	for _, pr := range pairs {
-		out[pr.target] = append(out[pr.target], at[pr.giver]...)
+	giverAt := func(k string) []place {
+		if ps := bit[k]; len(ps) > 0 {
+			return ps
+		}
+		return at[k]
 	}
-	return out, nil
+	out := map[string][]place{}
+	var steps []questStep
+	for i, r := range rs {
+		out[r.target] = append(out[r.target], giverAt(r.giver)...)
+		if i == 0 || rs[i-1].qid != r.qid || rs[i-1].step != r.step {
+			steps = append(steps, questStep{minLevel: r.minLevel, givers: giverAt(r.giver)})
+		}
+		st := &steps[len(steps)-1]
+		st.names = append(st.names, r.target)
+	}
+	return out, steps, nil
 }

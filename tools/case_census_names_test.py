@@ -73,6 +73,45 @@ class CaseTest(unittest.TestCase):
         self.assertEqual(self.names(), before, "--undo puts back this pass alone")
         self.assertEqual(self.db.execute("SELECT target FROM queststeps").fetchone()[0], "Rabid Timberwolf")
 
+    def test_a_tagged_census_is_cased_and_undone_beside_another(self):
+        before = self.names()
+        done, problems = nc.apply(self.db, cc.plan(self.db))
+        self.assertEqual(problems, [])
+        mid = self.names()
+        # a city's census later, tagged: its kinds, beside a kind of the first census's left as written
+        self.db.execute("CREATE TABLE sandstorm_census_seed_w1_city (seq INTEGER PRIMARY KEY AUTOINCREMENT, tbl TEXT, rid INTEGER, "
+                        "census_id INTEGER, name TEXT, old TEXT)")
+        for name in ["Vorrel Sunbug"] * 3 + ["Quillek Hound"]:
+            cur = self.db.execute("INSERT INTO npcs (npc_name, npc_type, modelid, world) VALUES (?, 0, 7, 1)", (name,))
+            self.db.execute("INSERT INTO sandstorm_census_seed_w1_city (tbl, rid, census_id, name) VALUES ('npcs', ?, 2, ?)",
+                            (cur.lastrowid, name))
+        for _ in range(3):  # the first census's: renamed by an untagged pass, never by the city's
+            cur = self.db.execute("INSERT INTO npcs (npc_name, npc_type, modelid, world) VALUES ('Murk Gnasher', 0, 6, 1)")
+            self.db.execute("INSERT INTO sandstorm_census_seed_w1 (tbl, rid, census_id, name) VALUES ('npcs', ?, 1, 'Murk Gnasher')",
+                            (cur.lastrowid,))
+        added = self.names()
+        self.assertIn("Murk Gnasher", cc.plan(self.db).renames, "the control: an untagged pass takes every census's")
+        self.assertTrue(nc.logged(self.db))
+        try:
+            cc.use_log("city")
+            self.assertFalse(nc.logged(self.db), "the city's pass has a log of its own")
+            p = cc.plan(self.db, tag="city")
+            self.assertEqual(p.renames, {"Vorrel Sunbug": "Vorrel sunbug"},
+                             "its names alone: a kind's noun lowercase, a word no dictionary has kept, one made once left")
+            done, problems = nc.apply(self.db, p)
+            self.assertEqual(problems, [])
+            self.assertTrue(nc.has_table(self.db, "npc_name_case_census_log_city"))
+            self.assertIn("Murk Gnasher", self.names())
+            self.assertEqual(nc.undo(self.db)[1], [])
+            self.assertEqual(self.names(), added, "the city's pass undone alone")
+        finally:
+            cc.use_log()
+        self.assertEqual(nc.undo(self.db)[1], [])
+        for n in ("Vorrel Sunbug", "Quillek Hound", "Murk Gnasher"):
+            self.db.execute("DELETE FROM npcs WHERE npc_name = ?", (n,))
+        self.assertEqual(self.names(), before)
+        self.assertNotEqual(mid, before)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -81,7 +81,8 @@ the rowid, the census id), and every row removed with the whole row;
 --undo deletes the added and puts the removed back, ids and all. A second
 --apply in a world is refused while its census is in; --tag NAME gives a
 census tables of its own (sandstorm_census_seed_w<world>_<NAME>), applied
-and undone apart from the world's others. Report only by default (--plan writes the
+and undone apart from the world's others, and --move --tag NAME its own
+npcmove log (sandstorm_census_move_<NAME>). Report only by default (--plan writes the
 rows it would add as JSON). The server reads npcs at its start: apply with
 it stopped (a swap's before.sh), or restart after.
 
@@ -830,29 +831,39 @@ def move_rules(db, census, said=MOVE_SAID):
     return out
 
 
-def apply_move(db, rules):
+def move_log(tag=""):
+    """--move's log, a tagged census's (--tag) its own: one per census, so a
+    city's census is moved and undone apart from the worlds' (2026-11-03)."""
+    return MOVE_LOG + (f"_{tag}" if tag else "")
+
+
+def apply_move(db, rules, tag=""):
     """Writes move_rules' rows into npcmove (source sandstorm-census), logged
-    in MOVE_LOG for --move --undo; a second is refused while the log is there."""
-    if has_table(db, MOVE_LOG):
-        sys.exit(f"the census's movement is applied already ({MOVE_LOG}): --move --undo it first")
+    in move_log(tag) for --move --undo; a second is refused while that log is
+    there (move_rules leaves out a name npcmove has, so a tagged census's
+    rows never touch another's)."""
+    log = move_log(tag)
+    if has_table(db, log):
+        sys.exit(f"the census's movement is applied already ({log}): --move --undo it first")
     if not has_table(db, "npcmove"):
         sys.exit("no table npcmove (the server makes it at its start)")
-    db.execute(f"CREATE TABLE {MOVE_LOG} (seq INTEGER PRIMARY KEY AUTOINCREMENT, rid INTEGER NOT NULL, name TEXT NOT NULL)")
+    db.execute(f"CREATE TABLE {log} (seq INTEGER PRIMARY KEY AUTOINCREMENT, rid INTEGER NOT NULL, name TEXT NOT NULL)")
     for k, (roam, note) in sorted(rules.items()):
         cur = db.execute("INSERT INTO npcmove (name, roam, radius, water, note, source) VALUES (?, ?, 0, '', ?, ?)",
                          (k, roam, note, SOURCE))
-        db.execute(f"INSERT INTO {MOVE_LOG} (rid, name) VALUES (?, ?)", (cur.lastrowid, k))
+        db.execute(f"INSERT INTO {log} (rid, name) VALUES (?, ?)", (cur.lastrowid, k))
 
 
-def undo_move(db):
+def undo_move(db, tag=""):
     """Takes --move's rows out of npcmove again (a row a GM has since made
     another source's is left) and drops the log."""
-    if not has_table(db, MOVE_LOG):
-        sys.exit(f"the census's movement is not applied ({MOVE_LOG})")
+    log = move_log(tag)
+    if not has_table(db, log):
+        sys.exit(f"the census's movement is not applied ({log})")
     n = 0
-    for rid, name in db.execute(f"SELECT rid, name FROM {MOVE_LOG}").fetchall():
+    for rid, name in db.execute(f"SELECT rid, name FROM {log}").fetchall():
         n += db.execute("DELETE FROM npcmove WHERE rowid = ? AND name = ? AND source = ?", (rid, name, SOURCE)).rowcount
-    db.execute(f"DROP TABLE {MOVE_LOG}")
+    db.execute(f"DROP TABLE {log}")
     return n
 
 
@@ -868,7 +879,7 @@ def main():
     ap.add_argument("--swap", action="store_true", help="remove our creatures in the world but those a quest or a table keeps")
     ap.add_argument("--keep-townsfolk", action="store_true", help="--swap never removes a row with a players' race's body")
     ap.add_argument("--keep", action="append", default=[], help="--swap never removes a row of this name; again for more, or @file")
-    ap.add_argument("--tag", default="", help="this census's own log tables in the world (applied and undone apart)")
+    ap.add_argument("--tag", default="", help="this census's own log tables in the world, and --move's own log (applied and undone apart)")
     ap.add_argument("--sight", type=float, default=SIGHT, help="--swap removes only a row this near the census flight's path, across")
     ap.add_argument("--sight-up", type=float, default=SIGHT_UP, help="... and this near it over or under")
     ap.add_argument("--exclude", action="append", default=[],
@@ -890,7 +901,7 @@ def main():
     if a.undo:
         with db:
             if a.move:
-                print(f"undone: {undo_move(db)} npcmove rows")
+                print(f"undone: {undo_move(db, a.tag)} npcmove rows ({move_log(a.tag)})")
                 return
             n = undo(db, a.world, a.tag)
         print(f"undone: {dict(n)}")
@@ -930,8 +941,8 @@ def main():
             print(f"  {'walks ' if rules[k][0] else 'stands'}  {k}: {rules[k][1]}")
         if a.apply:
             with db:
-                apply_move(db, rules)
-            print(f"applied: {len(rules)} npcmove rows ({MOVE_LOG})")
+                apply_move(db, rules, a.tag)
+            print(f"applied: {len(rules)} npcmove rows ({move_log(a.tag)})")
         return
     flight = [p for fl in sorted(flights) for p in flights[fl]]
     if a.swap and not flight:

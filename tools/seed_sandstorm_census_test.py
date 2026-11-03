@@ -450,6 +450,38 @@ class MoreTest(unittest.TestCase):
             self.assertEqual(sc.undo_move(self.db), len(rules))
         self.assertEqual(list(self.db.execute("SELECT * FROM npcmove ORDER BY rowid")), before)
 
+    def test_a_tagged_census_moves_and_undoes_beside_another(self):
+        def census_of(name, kinds):
+            lines = flight(1, 0, 100, 0)
+            for i, (kind, model, pace) in enumerate(kinds, 1):
+                lines.append(looks(i, kind, model))
+                lines.extend(seen(1 + 1000 * s, i, kind, 50.0, 50.0, pace=(pace if s % 4 == 1 else 0.0)) for s in range(25))
+            lines_to(self.path(name), lines)
+            return sc.read_census([self.path(name)])
+        rows = lambda: list(self.db.execute("SELECT * FROM npcmove ORDER BY rowid"))
+        before = rows()
+        first = sc.move_rules(self.db, census_of("w.json.track.jsonl", [("Quillek Runner", 0x7101, 4.9)] * 2))
+        with self.db:
+            sc.apply_move(self.db, first)
+        mid = rows()
+        # a city's census later: a kind of its own, and the first's kind again (npcmove has it: left alone)
+        city = sc.move_rules(self.db, census_of("c.json.track.jsonl", [("Zorvan Drudge", 0x7102, 4.9)] * 2
+                                                + [("Quillek Runner", 0x7101, 0.0)] * 2))
+        self.assertEqual({k: r for k, (r, _) in city.items()}, {"zorvan drudge": 1})
+        with self.assertRaises(SystemExit):
+            sc.apply_move(self.db, city)  # the control: untagged, the first's log refuses it
+        with self.db:
+            sc.apply_move(self.db, city, "city")
+        self.assertTrue(sc.has_table(self.db, "sandstorm_census_move_city"))
+        with self.assertRaises(SystemExit):
+            sc.apply_move(self.db, city, "city")
+        with self.db:
+            self.assertEqual(sc.undo_move(self.db, "city"), 1)
+        self.assertEqual(rows(), mid, "the tagged census's movement undone alone")
+        with self.db:
+            self.assertEqual(sc.undo_move(self.db), 1)
+        self.assertEqual(rows(), before)
+
 
 if __name__ == "__main__":
     unittest.main()

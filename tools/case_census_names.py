@@ -40,11 +40,15 @@ Every row of such a name is renamed, in every world (a kept row of ours too:
 one name, one spelling), and every reference with it, by
 fix_npc_name_case.py's own apply (quests' givers and targets, faction hits,
 the tools' logs), logged in npc_name_case_census_log, not that tool's log:
---undo puts back this pass alone. Report only by default; --out writes the
+--undo puts back this pass alone. --tag NAME is a tagged census's pass
+(tools/seed_sandstorm_census.py --tag NAME, a city's census of 2026-11-03):
+only the names that census made are renamed (every census's rows still
+counted), logged in npc_name_case_census_log_<NAME>, applied and undone
+apart from the others. Report only by default; --out writes the
 change list. The running server reads names at its start: apply with it
 stopped (a swap's before.sh), before cmd/wildspread copies the names.
 
-    tools/case_census_names.py [--db eqoa.db] [--dict FILE] [--out DIR] [--apply | --undo]
+    tools/case_census_names.py [--db eqoa.db] [--dict FILE] [--tag NAME] [--out DIR] [--apply | --undo]
 """
 import argparse
 import collections
@@ -59,6 +63,9 @@ sys.path.insert(0, HERE)
 import fix_npc_name_case as nc  # noqa: E402
 
 LOG = "npc_name_case_census_log"
+# fix_npc_name_case.py's own log and its table's statement, as that tool has
+# them: use_log points its apply and undo at this pass's log
+NC_LOG, NC_LOG_DDL = nc.LOG, nc.LOG_DDL
 KIND_ROWS = nc.KIND_ROWS
 # a name the census made twice is a kind's too when its last word is a noun we
 # know ("Elder Ratwere", "Fetid Hydra"), not when it is no word ("Bouncer Trod")
@@ -73,10 +80,26 @@ ENDINGS = ("er", "or", "r", "ers", "ors", "s", "es", "ed", "ing", "ous", "ly", "
 APOSTROPHE = re.compile(r"[-'][A-Z]")
 
 
-def census_names(db):
-    """npc_name -> how many rows Sandstorm's census added of it, every world."""
+def log_name(tag=""):
+    """This pass's log; a tagged census's pass its own."""
+    return LOG + (f"_{tag}" if tag else "")
+
+
+def use_log(tag=""):
+    """fix_npc_name_case.py's apply and undo write and read the module's LOG:
+    this pass's log instead (a tagged census's its own)."""
+    nc.LOG = log_name(tag)
+    nc.LOG_DDL = NC_LOG_DDL.replace(NC_LOG, nc.LOG)
+
+
+def census_names(db, tag=None):
+    """npc_name -> how many rows Sandstorm's census added of it, every world;
+    with a tag, that census's alone (sandstorm_census_seed_w<world>_<tag>)."""
     out = collections.Counter()
+    mine = re.compile(rf"sandstorm_census_seed_w\d+_{re.escape(tag)}") if tag else None
     for (t,) in db.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'sandstorm_census_seed_w%'"):
+        if mine is not None and not mine.fullmatch(t):
+            continue
         for (n,) in db.execute(f"SELECT n.npc_name FROM {t} s JOIN npcs n ON n.id = s.rid "
                                f"WHERE s.tbl = 'npcs' AND s.old IS NULL"):
             if n:
@@ -159,10 +182,12 @@ def target_of(name, words):
     return " ".join(w if words.proper(w, i == hi) else w.lower() for i, w in enumerate(ws))
 
 
-def plan(db, dict_path=nc.DEFAULT_DICT):
-    """A fix_npc_name_case.Plan of the census kinds' renames."""
+def plan(db, dict_path=nc.DEFAULT_DICT, tag=""):
+    """A fix_npc_name_case.Plan of the census kinds' renames; with a tag,
+    of the names that census made (counted with every census's rows)."""
     ev = evidence_without_census(db, dict_path)
     made = census_names(db)
+    only = {nc.fold(n) for n in census_names(db, tag)} if tag else None
     words = Words(ev, [n for n, c in made.items() if c >= KIND_ROWS])
     town = nc.town_rows(db)
     spellings = collections.defaultdict(collections.Counter)
@@ -174,7 +199,7 @@ def plan(db, dict_path=nc.DEFAULT_DICT):
     decisions, renames = {}, {}
     for key, c in sorted(count.items()):
         names = spellings[key]
-        if c < PAIR_ROWS:
+        if c < PAIR_ROWS or (only is not None and key not in only):
             continue
         spelled = max(names, key=lambda n: (names[n], n))
         ws = nc.clean(spelled).split(" ")
@@ -205,21 +230,22 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--db", default=nc.DEFAULT_DB)
     ap.add_argument("--dict", default=nc.DEFAULT_DICT)
+    ap.add_argument("--tag", default="", help="a tagged census's pass (seed_sandstorm_census.py --tag): its names, its own log")
     ap.add_argument("--out", help="write the change list here (TSV)")
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--undo", action="store_true")
     a = ap.parse_args()
-    # this pass's own log: fix_npc_name_case.py's apply and undo write and read the module's LOG
-    nc.LOG = LOG
-    nc.LOG_DDL = nc.LOG_DDL.replace("npc_name_case_log", LOG)
+    if a.tag and not all(ch.isalnum() or ch == "_" for ch in a.tag):
+        sys.exit(f"--tag {a.tag!r}: letters, digits and _ only")
+    use_log(a.tag)  # this pass's own log, not fix_npc_name_case.py's
     db = sqlite3.connect(a.db, timeout=5, isolation_level=None)
     if a.undo:
         back, kept = nc.undo(db)
-        print(f"undone: {back} values put back" + (f"; kept {len(kept)}: " + "; ".join(kept[:20]) if kept else ""))
+        print(f"undone: {back} values put back ({nc.LOG})" + (f"; kept {len(kept)}: " + "; ".join(kept[:20]) if kept else ""))
         return
     if a.apply and nc.logged(db):
-        sys.exit(f"{LOG} holds a rename: applied already (--undo first)")
-    p = plan(db, a.dict)
+        sys.exit(f"{nc.LOG} holds a rename: applied already (--undo first)")
+    p = plan(db, a.dict, a.tag)
     rows = sum(c for n, c in ((n, sum(s[n] for s in p.spellings.values() if n in s)) for n in p.renames))
     print(f"census kinds renamed: {len(p.decisions)} names, {rows} rows")
     for n, new in sorted(p.renames.items(), key=lambda x: x[0].lower()):
@@ -234,7 +260,7 @@ def main():
         done, problems = nc.apply(db, p)
         if problems:
             sys.exit("nothing written: " + "; ".join(problems[:20]))
-        print("applied:", dict(done), f"({LOG})")
+        print("applied:", dict(done), f"({nc.LOG})")
 
 
 if __name__ == "__main__":

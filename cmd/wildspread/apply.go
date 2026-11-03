@@ -11,9 +11,26 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-const logSchema = `
-CREATE TABLE wildspread_meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);
-CREATE TABLE wildspread_moves (
+// logTables names a run's log: wildspread_meta, _moves, _adds and _kinds,
+// a tagged run's (-tag) each with "_<tag>" after it, so a run round a few
+// towns is applied and undone apart from the world's.
+type logTables struct{ meta, moves, adds, kinds string }
+
+func tablesFor(tag string) logTables {
+	sfx := ""
+	if tag != "" {
+		sfx = "_" + tag
+	}
+	return logTables{"wildspread_meta" + sfx, "wildspread_moves" + sfx, "wildspread_adds" + sfx, "wildspread_kinds" + sfx}
+}
+
+// logs is this run's log (main sets it from -tag).
+var logs = tablesFor("")
+
+func logSchema() string {
+	return `
+CREATE TABLE ` + logs.meta + ` (k TEXT PRIMARY KEY, v TEXT NOT NULL);
+CREATE TABLE ` + logs.moves + ` (
 	npc_row INTEGER PRIMARY KEY, -- the npcs row moved
 	world   INTEGER NOT NULL,
 	name    TEXT NOT NULL,
@@ -21,17 +38,18 @@ CREATE TABLE wildspread_moves (
 	new_x REAL NOT NULL, new_y REAL NOT NULL, new_z REAL NOT NULL,
 	clump   INTEGER NOT NULL
 );
-CREATE TABLE wildspread_adds (
+CREATE TABLE ` + logs.adds + ` (
 	npc_row      INTEGER PRIMARY KEY, -- the npcs row added
 	world        INTEGER NOT NULL,
 	name         TEXT NOT NULL,
 	level        INTEGER NOT NULL,
 	template_row INTEGER NOT NULL
 );`
+}
 
 func hasLog(db *database.SQLiteDB) (bool, error) {
 	var n int
-	err := db.QueryRow(`SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'wildspread_meta'`).Scan(&n)
+	err := db.QueryRow(`SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?`, logs.meta).Scan(&n)
 	return n > 0, err
 }
 
@@ -42,7 +60,7 @@ func applyPlan(db *database.SQLiteDB, p *plan, seed int64) error {
 		return err
 	}
 	defer tx.Rollback()
-	if _, err := tx.Exec(logSchema + kindsSchema); err != nil {
+	if _, err := tx.Exec(logSchema() + kindsSchema()); err != nil {
 		return fmt.Errorf("the log tables: %w", err)
 	}
 	var seqBefore sql.NullInt64
@@ -79,7 +97,7 @@ func applyPlan(db *database.SQLiteDB, p *plan, seed int64) error {
 				m.x, m.y, m.z, m.row.id); err != nil {
 				return err
 			}
-			if _, err := tx.Exec(`INSERT INTO wildspread_moves VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			if _, err := tx.Exec(`INSERT INTO `+logs.moves+` VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 				m.row.id, wp.w, m.row.name, ox, oy, oz, m.x, m.y, m.z, m.clump); err != nil {
 				return err
 			}
@@ -90,7 +108,7 @@ func applyPlan(db *database.SQLiteDB, p *plan, seed int64) error {
 			if err != nil {
 				return fmt.Errorf("a %s from npcs %d: %w", f.kind.spelling, f.template.id, err)
 			}
-			if _, err := tx.Exec(`INSERT INTO wildspread_adds VALUES (?, ?, ?, ?, ?)`,
+			if _, err := tx.Exec(`INSERT INTO `+logs.adds+` VALUES (?, ?, ?, ?, ?)`,
 				id, wp.w, f.kind.spelling, f.level, f.template.id); err != nil {
 				return err
 			}
@@ -99,7 +117,9 @@ func applyPlan(db *database.SQLiteDB, p *plan, seed int64) error {
 	}
 	params, _ := json.Marshal(map[string]float64{"step": step, "maxRise": maxRise, "onGround": onGround,
 		"townClear": townClear, "npcClear": npcClear, "campKeep": campKeep, "clumpLink": clumpLink,
-		"territory": territory, "gapFill": gapFill, "fillSpacing": fillSpacing, "kindReach": kindReach})
+		"territory": territory, "gapFill": p.gapFill, "fillSpacing": p.fillSpacing, "kindReach": kindReach,
+		"questWeight": p.questWeight, "questReach": questReach})
+	near, _ := json.Marshal(p.near)
 	meta := map[string]string{
 		"applied":    time.Now().UTC().Format(time.RFC3339),
 		"seed":       fmt.Sprint(seed),
@@ -110,17 +130,19 @@ func applyPlan(db *database.SQLiteDB, p *plan, seed int64) error {
 		"made_kinds": fmt.Sprint(len(madeDone)),
 		"kind_rows":  fmt.Sprint(kindRows),
 		"params":     string(params),
+		"near":       string(near),
+		"no_spread":  fmt.Sprint(p.noSpread),
 	}
 	for k, v := range meta {
-		if _, err := tx.Exec(`INSERT INTO wildspread_meta VALUES (?, ?)`, k, v); err != nil {
+		if _, err := tx.Exec(`INSERT INTO `+logs.meta+` VALUES (?, ?)`, k, v); err != nil {
 			return err
 		}
 	}
 	if err := tx.Commit(); err != nil {
 		return err
 	}
-	say("applied: %d moved, %d added (wildspread_moves, wildspread_adds); %d kinds made, %d of their rows (wildspread_kinds)",
-		moved, added, len(madeDone), kindRows)
+	say("applied: %d moved, %d added (%s, %s); %d kinds made, %d of their rows (%s)",
+		moved, added, logs.moves, logs.adds, len(madeDone), kindRows, logs.kinds)
 	return nil
 }
 
@@ -182,7 +204,7 @@ func undoPlan(db *database.SQLiteDB) error {
 		return err
 	}
 	if !ok {
-		return fmt.Errorf("no plan is applied (no wildspread_meta)")
+		return fmt.Errorf("no plan is applied (no %s)", logs.meta)
 	}
 	tx, err := db.Begin()
 	if err != nil {
@@ -190,7 +212,7 @@ func undoPlan(db *database.SQLiteDB) error {
 	}
 	defer tx.Rollback()
 	meta := map[string]string{}
-	rows, err := tx.Query(`SELECT k, v FROM wildspread_meta`)
+	rows, err := tx.Query(`SELECT k, v FROM ` + logs.meta)
 	if err != nil {
 		return err
 	}
@@ -209,7 +231,7 @@ func undoPlan(db *database.SQLiteDB) error {
 		ox, oy, oz, nx, ny, nz float64
 	}
 	var mvs []mv
-	rows, err = tx.Query(`SELECT npc_row, name, old_x, old_y, old_z, new_x, new_y, new_z FROM wildspread_moves`)
+	rows, err = tx.Query(`SELECT npc_row, name, old_x, old_y, old_z, new_x, new_y, new_z FROM ` + logs.moves)
 	if err != nil {
 		return err
 	}
@@ -237,7 +259,7 @@ func undoPlan(db *database.SQLiteDB) error {
 			say("npcs %d (%s) is not where this tool put it (moved or deleted since): left", m.id, m.name)
 		}
 	}
-	res, err := tx.Exec(`DELETE FROM npcs WHERE id IN (SELECT npc_row FROM wildspread_adds)`)
+	res, err := tx.Exec(`DELETE FROM npcs WHERE id IN (SELECT npc_row FROM ` + logs.adds + `)`)
 	if err != nil {
 		return err
 	}
@@ -257,7 +279,7 @@ func undoPlan(db *database.SQLiteDB) error {
 			return err
 		}
 	}
-	for _, t := range []string{"wildspread_moves", "wildspread_adds", "wildspread_meta"} {
+	for _, t := range []string{logs.moves, logs.adds, logs.meta} {
 		if _, err := tx.Exec(`DROP TABLE ` + t); err != nil {
 			return err
 		}

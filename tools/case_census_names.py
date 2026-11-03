@@ -113,8 +113,10 @@ def evidence_without_census(db, dict_path):
     census_rows = set()
     for (t,) in db.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'sandstorm_census_seed_w%'"):
         census_rows |= {r for (r,) in db.execute(f"SELECT rid FROM {t} WHERE tbl = 'npcs' AND old IS NULL")}
-    if nc.has_table(db, "wildspread_adds"):  # cmd/wildspread's fill: copies of the census's names
-        census_rows |= {r for (r,) in db.execute("SELECT npc_row FROM wildspread_adds")}
+    # cmd/wildspread's fills, a tagged run's (wildspread_adds_<tag>) too: copies of the census's names
+    for (t,) in db.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND (name = 'wildspread_adds' "
+                           "OR name LIKE 'wildspread\\_adds\\_%' ESCAPE '\\')").fetchall():
+        census_rows |= {r for (r,) in db.execute(f"SELECT npc_row FROM {t}")}
     ours = collections.Counter()
     for rid, n in db.execute("SELECT id, npc_name FROM npcs WHERE npc_name IS NOT NULL"):
         if rid not in census_rows:

@@ -27,6 +27,128 @@ type plan struct {
 	deadBodies map[uint32]bool
 	deadKinds  map[int]map[string]*kind
 	zoneLevels map[[2]int]int
+	// a run round a few places (-near): a creature outside every circle
+	// stays and nothing is placed outside them; fill only (-no-spread); the
+	// fill's distances (-gap, -spacing); and a kind a quest near the place
+	// kills or loots counted questWeight times (-quest-weight)
+	near        []circle
+	noSpread    bool
+	gapFill     float64
+	fillSpacing float64
+	questWeight float64
+	questGivers map[string][]place // a kind's key -> where the givers of the quests that kill or loot it stand
+	// a place's level by its distance from a circle's town (-layers), in
+	// place of its creatures' (localLevel): newbie ground's layers
+	layers []layer
+}
+
+// circle is a place a run is kept to (-near): within R of (X, Z); R0 is its
+// town's own reach, from which -layers' distances count; Sections, when
+// given, the bestiary's sections its wildlife comes from (with its world's
+// Global table), in place of EQOA-Data's biome for the zone.
+type circle struct {
+	X, Z, R, R0 float64
+	Sections    []string `json:",omitempty"`
+}
+
+// The shares of a -layers fill's pick: the wildlife round the place, the
+// bestiary's kinds of the place's biome, and its Global table's; within each,
+// a kind by its weight (the wildlife by nearness, twice when the bestiary
+// lists it for the biome; a quest's kind questWeight times).
+const (
+	layerLocalShare  = 0.5
+	layerBiomeShare  = 0.35
+	layerGlobalShare = 0.15
+)
+
+// nearSections is the sections the circle (x, z) is in gives, nil for none.
+func (p *plan) nearSections(x, z float64) []string {
+	for _, c := range p.near {
+		if len(c.Sections) > 0 && math.Hypot(x-c.X, z-c.Z) <= c.R {
+			return c.Sections
+		}
+	}
+	return nil
+}
+
+// layer is a place's level at a distance from a town's edge (-layers).
+type layer struct {
+	D     float64
+	Level float64
+}
+
+// layerLevel is the level -layers gives (x, z): by its distance from the
+// edge of the nearest town among the circles it is in, between the layers
+// in a line, the last one's beyond them.
+func (p *plan) layerLevel(x, z float64) int {
+	d := math.Inf(1)
+	for _, c := range p.near {
+		if h := math.Hypot(x-c.X, z-c.Z); h <= c.R {
+			d = math.Min(d, math.Max(0, h-c.R0))
+		}
+	}
+	if math.IsInf(d, 1) || len(p.layers) == 0 {
+		return 0
+	}
+	ls := p.layers
+	if d <= ls[0].D {
+		return int(math.Round(ls[0].Level))
+	}
+	for i := 1; i < len(ls); i++ {
+		if d <= ls[i].D {
+			f := (d - ls[i-1].D) / (ls[i].D - ls[i-1].D)
+			return int(math.Round(ls[i-1].Level + f*(ls[i].Level-ls[i-1].Level)))
+		}
+	}
+	return int(math.Round(ls[len(ls)-1].Level))
+}
+
+// levelRange is the levels of a kind's creatures in a world, 0 0 with none.
+func (k *kind) levelRange(w int) (lo, hi int) {
+	for _, r := range k.rows {
+		if r.world != w || r.level <= 0 {
+			continue
+		}
+		if lo == 0 || r.level < lo {
+			lo = r.level
+		}
+		hi = max(hi, r.level)
+	}
+	return lo, hi
+}
+
+// place is a spot in a world.
+type place struct {
+	world int
+	x, z  float64
+}
+
+// questReach is how far from a quest's giver its kill or loot step's kind
+// counts questWeight times: a town's first quests send it this far.
+const questReach = 2500.0
+
+// inNear says whether (x, z) is in the run's places (every place without -near).
+func (p *plan) inNear(x, z float64) bool {
+	if len(p.near) == 0 {
+		return true
+	}
+	for _, c := range p.near {
+		if math.Hypot(x-c.X, z-c.Z) <= c.R {
+			return true
+		}
+	}
+	return false
+}
+
+// questNear says whether a quest whose giver stands within questReach of
+// (x, z) in world w kills or loots the kind.
+func (p *plan) questNear(key string, w int, x, z float64) bool {
+	for _, g := range p.questGivers[key] {
+		if g.world == w && math.Hypot(x-g.x, z-g.z) <= questReach {
+			return true
+		}
+	}
+	return false
 }
 
 // kind is a wildlife kind: every creature of a name that the server
@@ -86,7 +208,7 @@ var coverBands = [4]float64{150, 250, 300, 500}
 func newPlan(in *input, g *ground.Ground, env *ground.Env, groundDir string, words []string, camps []campPoint,
 	seed int64) *plan {
 	p := &plan{in: in, g: g, env: env, groundDir: groundDir, words: words, camps: camps, seed: seed,
-		kinds: map[string]*kind{}}
+		kinds: map[string]*kind{}, gapFill: gapFill, fillSpacing: fillSpacing, questWeight: 1}
 	by := map[string][]*npcRow{}
 	for _, r := range in.rows {
 		if r.key != "" {
@@ -234,6 +356,14 @@ func (p *plan) world(w int) {
 			}
 			continue
 		}
+		if p.noSpread {
+			wp.kept["-no-spread: nothing moves"]++
+			continue
+		}
+		if !p.inNear(r.x, r.z) {
+			wp.kept["outside -near"]++
+			continue
+		}
 		movers = append(movers, r)
 	}
 	moving := map[int64]bool{}
@@ -263,7 +393,7 @@ func (p *plan) world(w int) {
 	for k := range left {
 		if land.kind[k] == sLand {
 			x, z := land.xz(k)
-			if r := p.ruleAt(w, x, z); r != nil && r.leave {
+			if r := p.ruleAt(w, x, z); (r != nil && r.leave) || !p.inNear(x, z) {
 				left[k] = true
 			}
 		}
@@ -714,7 +844,7 @@ func (p *plan) fillGaps(land *landGrid, wp *worldPlan, open func(int) bool, camp
 			continue
 		}
 		x, z := land.xz(k)
-		if d, _ := occupied.nearest(x, z, 5000); d > gapFill {
+		if d, _ := occupied.nearest(x, z, 5000); d > p.gapFill {
 			gaps = append(gaps, gap{k, d})
 		}
 	}
@@ -747,10 +877,13 @@ func (p *plan) fillGaps(land *landGrid, wp *worldPlan, open func(int) bool, camp
 	empty := 0
 	for _, gp := range gaps {
 		x, z := land.xz(gp.k)
-		if occupied.within(x, z, fillSpacing) {
+		if occupied.within(x, z, p.fillSpacing) {
 			continue
 		}
 		place := localLevel(x, z)
+		if len(p.layers) > 0 {
+			place = p.layerLevel(x, z) // newbie ground's layers, not its creatures'
+		}
 		// a zone with creatures of its own (zones.go)
 		if rule := p.ruleAt(w, x, z); rule != nil && (rule.undead || len(rule.kinds) > 0) {
 			var k *kind
@@ -810,6 +943,19 @@ func (p *plan) fillGaps(land *landGrid, wp *worldPlan, open func(int) bool, camp
 			continue
 		}
 		sections := p.sectionsAt(w, x, z)
+		if s := p.nearSections(x, z); s != nil {
+			// the world's Global table, then the circle's own sections
+			var own []string
+			for _, sec := range sections {
+				if strings.HasSuffix(sec, "/Global") {
+					own = append(own, sec)
+				}
+			}
+			if len(own) == 0 && w == 0 {
+				own = []string{"Tunaria/Global"}
+			}
+			sections = append(own, s...)
+		}
 		// the free wildlife round it, by kind: its weight and its levels here
 		weight := map[*kind]float64{}
 		lvls := map[*kind][]weighed{}
@@ -824,9 +970,79 @@ func (p *plan) fillGaps(land *landGrid, wp *worldPlan, open func(int) bool, camp
 			k      *kind
 			w      float64
 			level  int
-			lo, hi int // the bestiary's levels, 0 0 for none
+			lo, hi int    // the bestiary's levels, 0 0 for none
+			src    string // where it came from, when the run's layers drew it
 		}
 		var cands []cand
+		if len(p.layers) > 0 && place > 0 {
+			// the layer's level: a kind whose levels (the bestiary's for the
+			// place, else its creatures' in the world) take it in, from three
+			// groups each with its share of the pick (layerLocalShare...)
+			var biome, global []string
+			for _, s := range sections {
+				if strings.HasSuffix(s, "/Global") {
+					global = append(global, s)
+				} else {
+					biome = append(biome, s)
+				}
+			}
+			type layered struct {
+				c     cand
+				group int // 0 the wildlife round it, 1 the biome's, 2 the Global table's
+				raw   float64
+			}
+			var ls []layered
+			seen := map[*kind]bool{}
+			consider := func(k *kind, raw float64, local bool) {
+				if seen[k] {
+					return
+				}
+				group := 1
+				lo, hi, listed := p.primaRange(k.key, biome, place)
+				inBiome := listed
+				if !listed {
+					group = 2
+					if lo, hi, listed = p.primaRange(k.key, global, place); !listed {
+						if !local {
+							return
+						}
+						if lo, hi = k.levelRange(w); lo == 0 || k.spotsIn(w) < 2 {
+							return
+						}
+					}
+				}
+				if place < lo-1 || place > hi+1 {
+					return
+				}
+				if local {
+					group = 0
+					if inBiome {
+						raw *= 2
+					}
+				}
+				if p.questWeight != 1 && p.questNear(k.key, w, x, z) {
+					raw *= p.questWeight
+				}
+				seen[k] = true
+				ls = append(ls, layered{cand{k, 0, place, lo, hi, [...]string{"local", "biome", "global"}[group]}, group, raw})
+			}
+			for k, wt := range weight {
+				consider(k, wt, true)
+			}
+			for _, key := range keys {
+				consider(p.kinds[key], 1, false)
+			}
+			var tot [3]float64
+			for _, l := range ls {
+				tot[l.group] += l.raw
+			}
+			share := [3]float64{layerLocalShare, layerBiomeShare, layerGlobalShare}
+			for _, l := range ls {
+				l.c.w = share[l.group] * l.raw / tot[l.group]
+				cands = append(cands, l.c)
+			}
+			weight = nil
+		}
 		for k, wt := range weight {
 			lk := weightedMedian(lvls[k])
 			if place > 0 && abs(lk-place) > levelBand {
@@ -841,7 +1057,10 @@ func (p *plan) fillGaps(land *landGrid, wp *worldPlan, open func(int) bool, camp
 					continue
 				}
 			}
-			cands = append(cands, cand{k, wt, lk, lo, hi})
+			if p.questWeight != 1 && p.questNear(k.key, w, x, z) {
+				wt *= p.questWeight
+			}
+			cands = append(cands, cand{k, wt, lk, lo, hi, ""})
 		}
 		source := "local"
 		if len(cands) == 0 && place > 0 {
@@ -852,7 +1071,11 @@ func (p *plan) fillGaps(land *landGrid, wp *worldPlan, open func(int) bool, camp
 				if !listed || place+primaReach < lo || place-primaReach > hi {
 					continue
 				}
-				cands = append(cands, cand{k, 1, max(lo, min(hi, place)), lo, hi})
+				wt := 1.0
+				if p.questWeight != 1 && p.questNear(key, w, x, z) {
+					wt = p.questWeight
+				}
+				cands = append(cands, cand{k, wt, max(lo, min(hi, place)), lo, hi, ""})
 			}
 			source = "prima"
 		}
@@ -881,6 +1104,9 @@ func (p *plan) fillGaps(land *landGrid, wp *worldPlan, open func(int) bool, camp
 		level = max(1, level)
 		fx, fy, fz := p.settle(land, gp.k, rng)
 		from := source
+		if chosen.src != "" {
+			from = chosen.src
+		}
 		if chosen.k.made != nil {
 			from = "made"
 		}

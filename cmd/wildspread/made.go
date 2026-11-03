@@ -108,13 +108,15 @@ var madeTables = []struct{ table, name, id string }{
 	{"lootpool", "npc_name", "id"},
 }
 
-const kindsSchema = `
-CREATE TABLE wildspread_kinds (
+func kindsSchema() string {
+	return `
+CREATE TABLE ` + logs.kinds + ` (
 	seq   INTEGER PRIMARY KEY AUTOINCREMENT,
 	name  TEXT NOT NULL,    -- the made kind
 	tbl   TEXT NOT NULL,    -- the table a row was added to
 	rowid INTEGER NOT NULL  -- the row's rowid there
 );`
+}
 
 // writeMadeKind adds a made kind's rows to the tables a name keys (its
 // body's, renamed; its world's loot region; an npcmove row wandering one
@@ -127,7 +129,7 @@ func writeMadeKind(tx *sql.Tx, k *kind) (int, error) {
 		if err != nil {
 			return err
 		}
-		_, err = tx.Exec(`INSERT INTO wildspread_kinds (name, tbl, rowid) VALUES (?, ?, ?)`, k.spelling, tbl, id)
+		_, err = tx.Exec(`INSERT INTO `+logs.kinds+` (name, tbl, rowid) VALUES (?, ?, ?)`, k.spelling, tbl, id)
 		n++
 		return err
 	}
@@ -218,7 +220,7 @@ func writeMadeKind(tx *sql.Tx, k *kind) (int, error) {
 
 // undoMadeKinds deletes every row writeMadeKind logged.
 func undoMadeKinds(tx *sql.Tx) (int, error) {
-	rows, err := tx.Query(`SELECT tbl, rowid FROM wildspread_kinds`)
+	rows, err := tx.Query(`SELECT tbl, rowid FROM ` + logs.kinds)
 	if err != nil {
 		if strings.Contains(err.Error(), "no such table") {
 			return 0, nil
@@ -249,7 +251,7 @@ func undoMadeKinds(tx *sql.Tx) (int, error) {
 			n++
 		}
 	}
-	if _, err := tx.Exec(`DROP TABLE wildspread_kinds`); err != nil {
+	if _, err := tx.Exec(`DROP TABLE ` + logs.kinds); err != nil {
 		return n, err
 	}
 	return n, nil

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"math"
 	"strings"
@@ -164,6 +165,20 @@ func (in *input) readTables(db *database.SQLiteDB) error {
 	ids("its path's seed (npcpaths_seed)", `SELECT npcid FROM npcpaths_seed`)
 	ids("a sign (signtext)", `SELECT npcid FROM signtext`)
 	ids("a quest step names it (queststeps)", `SELECT npcid FROM queststeps WHERE npcid > 0`)
+	// a tagged run's fills (-tag) stay where it put them
+	var tagged []string
+	if tabs, err := db.Query(`SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'wildspread\_adds\_%' ESCAPE '\'`); err == nil {
+		for tabs.Next() {
+			var n string
+			if tabs.Scan(&n) == nil {
+				tagged = append(tagged, n)
+			}
+		}
+		tabs.Close()
+	}
+	for _, n := range tagged {
+		ids("placed by wildspread -tag "+strings.TrimPrefix(n, "wildspread_adds_"), `SELECT npc_row FROM `+n)
+	}
 	rows, err := db.Query(`SELECT name, world, x, z, radius FROM npcfaction WHERE radius > 0 AND world >= 0`)
 	if err == nil {
 		defer rows.Close()
@@ -177,4 +192,40 @@ func (in *input) readTables(db *database.SQLiteDB) error {
 		}
 	}
 	return nil
+}
+
+// readQuestGivers is, for each kind a quest's kill or loot step names (its
+// target and queststeptargets' others), where the quest's givers stand: the
+// NPCs of the giver's name with the NPC bit (-quest-weight).
+func readQuestGivers(db *database.SQLiteDB, in *input) (map[string][]place, error) {
+	type pair struct{ giver, target string }
+	var pairs []pair
+	rows, err := db.Query(`SELECT q.giver, s.target FROM queststeps s JOIN quests q ON q.questid = s.questid
+		WHERE s.kind IN ('kill', 'loot') AND q.enabled = 1
+		UNION SELECT q.giver, t.target FROM queststeptargets t
+		JOIN queststeps s ON s.questid = t.questid AND s.step = t.step JOIN quests q ON q.questid = t.questid
+		WHERE s.kind IN ('kill', 'loot') AND q.enabled = 1`)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var g, t sql.NullString
+		if rows.Scan(&g, &t) == nil && g.Valid && t.Valid && t.String != "" {
+			pairs = append(pairs, pair{database.NPCClassKey(g.String), database.NPCClassKey(t.String)})
+		}
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	at := map[string][]place{}
+	for _, r := range in.rows {
+		if r.typ&0x80 != 0 && r.key != "" {
+			at[r.key] = append(at[r.key], place{r.world, r.x, r.z})
+		}
+	}
+	out := map[string][]place{}
+	for _, pr := range pairs {
+		out[pr.target] = append(out[pr.target], at[pr.giver]...)
+	}
+	return out, nil
 }

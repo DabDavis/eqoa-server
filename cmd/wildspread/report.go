@@ -26,6 +26,12 @@ func (p *plan) report(dir string) error {
 		After300     float64 `json:"after_beyond_300_pct"`
 		Moved, Added int
 		AddedKinds   map[string]int `json:",omitempty"`
+		// the creatures standing in it before the plan, per 100,000 square
+		// units of its open land, and their levels' quartiles
+		Creatures int
+		Density   float64 `json:"creatures_per_100k"`
+		Levels    [3]int  `json:"levels_p25_p50_p75"`
+		levels    []int
 	}
 	type worldOut struct {
 		World      int
@@ -74,10 +80,13 @@ func (p *plan) report(dir string) error {
 			fw.Write([]string{fmt.Sprint(wp.w), f.kind.spelling, fmt.Sprint(f.level), fmt.Sprint(f.placeLevel), f.source,
 				f1(f.x), f1(f.y), f1(f.z), fmt.Sprint(f.facing), fmt.Sprint(f.template.id), p.zoneName(wp.w, f.x, f.z)})
 		}
-		if wp.w == 0 {
+		{
 			zs := map[string]*zoneStat{}
 			get := func(x, z float64) *zoneStat {
-				n := p.zoneName(0, x, z)
+				n := p.zoneName(wp.w, x, z)
+				if n == "" || n == "641" {
+					n = fmt.Sprintf("cell %d,%d", int(math.Floor(x/2000)), int(math.Floor(z/2000)))
+				}
 				if zs[n] == nil {
 					zs[n] = &zoneStat{Zone: n, AddedKinds: map[string]int{}}
 				}
@@ -105,6 +114,13 @@ func (p *plan) report(dir string) error {
 					s.After300++
 				}
 			}
+			for _, q := range wp.pointsBefore {
+				s := get(q.x, q.z)
+				s.Creatures++
+				if r := p.in.byID[int64(q.v)]; r != nil && r.level > 0 {
+					s.levels = append(s.levels, r.level)
+				}
+			}
 			for _, m := range wp.moves {
 				get(m.x, m.z).Moved++
 			}
@@ -117,6 +133,11 @@ func (p *plan) report(dir string) error {
 				if s.Land > 0 {
 					s.Before300 = math.Round(1000*s.Before300/float64(s.Land)) / 10
 					s.After300 = math.Round(1000*s.After300/float64(s.Land)) / 10
+					s.Density = math.Round(10*1e5*float64(s.Creatures)/(float64(s.Land)*step*step)) / 10
+				}
+				if n := len(s.levels); n > 0 {
+					sort.Ints(s.levels)
+					s.Levels = [3]int{s.levels[n/4], s.levels[n/2], s.levels[n*3/4]}
 				}
 				o.Zones = append(o.Zones, s)
 			}

@@ -67,16 +67,27 @@ the ground's creatures almost never), so a place the census never came near
 (a zone not flown yet, a deep dungeon, a basement under a flight) keeps
 what it has.
 
+--keep-townsfolk (a city's census, 2026-11-03: Qeynos's guards and citizens
+are npc_type 0, so --swap alone took 33 of them) never removes a row with a
+players' race's body (charactermodel: towns.go's townsfolk), and --keep
+NAME (again, or @file) never removes a row of that name (Qeynos's coin
+chest). A spawn seen again under a new id in one flight, of its name at its
+spot (within RESPAWN_SPOT) and never in view with the other, is one creature
+(respawned): Sandstorm gives its special townsfolk (Training Master, Hunter
+Garrick, Guild Chest) a new id every few minutes of a walk.
+
 Every row added is logged in sandstorm_census_seed_w<world> (the table,
 the rowid, the census id), and every row removed with the whole row;
 --undo deletes the added and puts the removed back, ids and all. A second
---apply in a world is refused while its census is in. Report only by default (--plan writes the
+--apply in a world is refused while its census is in; --tag NAME gives a
+census tables of its own (sandstorm_census_seed_w<world>_<NAME>), applied
+and undone apart from the world's others. Report only by default (--plan writes the
 rows it would add as JSON). The server reads npcs at its start: apply with
 it stopped (a swap's before.sh), or restart after.
 
     tools/seed_sandstorm_census.py --track 'zone-*.json.track.jsonl' --world 1
-        [--db eqoa.db] [--match 150] [--swap] [--with-npcs] [--with-named] [--with-pets]
-        [--plan out.json] [--apply | --undo]
+        [--db eqoa.db] [--match 150] [--swap [--keep-townsfolk] [--keep NAME]] [--with-npcs]
+        [--with-named] [--with-pets] [--tag NAME] [--plan out.json] [--apply | --undo]
 """
 import argparse
 import collections
@@ -111,6 +122,9 @@ STILL_WATCH = 20.0
 # each where the other flight passed within DEDUPE_COVER across (SIGHT_UP over
 # or under), are one spawn seen twice (dedupe)
 DEDUPE_LINK = 50.0
+# one flight's two creatures of a name this near each other and never in view
+# at one moment are one spawn under a new id (respawns)
+RESPAWN_SPOT = 5.0
 DEDUPE_COVER = 100.0
 # a row of ours this near a census creature, its name spelled alike, is it
 SPELLING_REACH = 5.0
@@ -131,10 +145,11 @@ LOG = "sandstorm_census_seed"
 META = "sandstorm_census_meta"
 
 
-def tables(world):
+def tables(world, tag=""):
     """A world's log and meta tables: each world's census is applied and
-    undone on its own."""
-    return f"{LOG}_w{world}", f"{META}_w{world}"
+    undone on its own, and a tagged census (--tag) apart from the others."""
+    t = f"_{tag}" if tag else ""
+    return f"{LOG}_w{world}{t}", f"{META}_w{world}{t}"
 SOURCE = "sandstorm-census"
 REGION = {0: "tunaria", 1: "rathe mountains", 2: "odus"}
 
@@ -242,6 +257,34 @@ def read_flights(paths, step=10.0):
                 if not pts or math.dist(pts[-1], p) >= step:
                     pts.append(tuple(p))
     return dict(out)
+
+
+def respawns(census, spot=RESPAWN_SPOT):
+    """The census creatures that are another's spawn seen again in the same
+    flight: of its name, within `spot` of it, never in view at one moment
+    with it (a walk's census, 2026-11-03: Sandstorm gave Qeynos's Training
+    Master nine ids in an hour and a half, one at a time, each on its spot);
+    of such a chain the one seen longest is kept."""
+    places = {k: place(c) for k, c in census.items()}
+    groups = collections.defaultdict(list)
+    for k, c in census.items():
+        groups[(c["flight"], key(c["name"]))].append(k)
+    drop = set()
+    for ks in groups.values():
+        if len(ks) < 2:
+            continue
+        ks.sort(key=lambda k: -len(census[k]["places"]))
+        kept_ = []
+        for k in ks:
+            x, _, z, _ = places[k]
+            times = {p[0] for p in census[k]["places"]}
+            same = next((j for j in kept_ if math.hypot(places[j][0] - x, places[j][2] - z) <= spot
+                         and not times & {p[0] for p in census[j]["places"]}), None)
+            if same is None:
+                kept_.append(k)
+            else:
+                drop.add(k)
+    return drop
 
 
 def dedupe(census, flights, link=DEDUPE_LINK, cover=DEDUPE_COVER, up=SIGHT_UP):
@@ -495,11 +538,16 @@ def kept(db):
     return ids, names
 
 
-def plan(db, census, world, match=MATCH, with_npcs=False, swap=False, with_named=False, with_pets=False, sight=None):
+def plan(db, census, world, match=MATCH, with_npcs=False, swap=False, with_named=False, with_pets=False, sight=None,
+         keep_townsfolk=False, keep=()):
     """(adds, removes, report): the rows to add, the rows of ours to remove
     (--swap: only those `sight`, a Sight, saw; all with none) and what was
     found."""
     keep_ids, keep_names = kept(db) if swap else (set(), set())
+    keep_names |= {key(n) for n in keep}
+    folk_bodies = set()
+    if keep_townsfolk and has_table(db, "charactermodel"):
+        folk_bodies = {m & 0xFFFFFFFF for (m,) in db.execute("SELECT modelid FROM charactermodel")}
     unseen = []
     db.row_factory = sqlite3.Row
     cols = [r[1] for r in db.execute("PRAGMA table_info(npcs)")]
@@ -510,7 +558,8 @@ def plan(db, census, world, match=MATCH, with_npcs=False, swap=False, with_named
     for r in db.execute("SELECT * FROM npcs"):
         d = dict(r)
         k = key(d["npc_name"])
-        if d["world"] == world and swap and not (d["npc_type"] or 0) & 0x80 and d["id"] not in keep_ids and k not in keep_names:
+        if d["world"] == world and swap and not (d["npc_type"] or 0) & 0x80 and d["id"] not in keep_ids and k not in keep_names \
+                and (d["modelid"] or 0) & 0xFFFFFFFF not in folk_bodies:
             if sight is None or sight.saw(d["x_coord"], d["y_coord"], d["z_coord"]):
                 removes.append(d)
             else:
@@ -642,8 +691,8 @@ def roamer_template(name, level, cls):
     return None
 
 
-def apply(db, adds, world, files, removes=()):
-    LOG, META = tables(world)
+def apply(db, adds, world, files, removes=(), tag=""):
+    LOG, META = tables(world, tag)
     if has_table(db, META):
         sys.exit(f"a census is applied already in world {world} ({META}): --undo it first")
     seq = db.execute("SELECT seq FROM sqlite_sequence WHERE name = 'npcs'").fetchone()
@@ -685,8 +734,8 @@ def apply(db, adds, world, files, removes=()):
         db.execute(f"INSERT INTO {META} VALUES (?, ?)", (k, v))
 
 
-def undo(db, world):
-    LOG, META = tables(world)
+def undo(db, world, tag=""):
+    LOG, META = tables(world, tag)
     if not has_table(db, LOG):
         sys.exit(f"no census is applied in world {world}")
     meta = dict(db.execute(f"SELECT k, v FROM {META}").fetchall()) if has_table(db, META) else {}
@@ -817,6 +866,9 @@ def main():
     ap.add_argument("--with-named", action="store_true", help="make the named creatures too")
     ap.add_argument("--with-pets", action="store_true", help="make the summoned pets too")
     ap.add_argument("--swap", action="store_true", help="remove our creatures in the world but those a quest or a table keeps")
+    ap.add_argument("--keep-townsfolk", action="store_true", help="--swap never removes a row with a players' race's body")
+    ap.add_argument("--keep", action="append", default=[], help="--swap never removes a row of this name; again for more, or @file")
+    ap.add_argument("--tag", default="", help="this census's own log tables in the world (applied and undone apart)")
     ap.add_argument("--sight", type=float, default=SIGHT, help="--swap removes only a row this near the census flight's path, across")
     ap.add_argument("--sight-up", type=float, default=SIGHT_UP, help="... and this near it over or under")
     ap.add_argument("--exclude", action="append", default=[],
@@ -832,13 +884,15 @@ def main():
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--undo", action="store_true")
     a = ap.parse_args()
+    if a.tag and not all(ch.isalnum() or ch == "_" for ch in a.tag):
+        sys.exit(f"--tag {a.tag!r}: letters, digits and _ only")
     db = sqlite3.connect(a.db, timeout=5)
     if a.undo:
         with db:
             if a.move:
                 print(f"undone: {undo_move(db)} npcmove rows")
                 return
-            n = undo(db, a.world)
+            n = undo(db, a.world, a.tag)
         print(f"undone: {dict(n)}")
         return
     files = sorted({p for g in a.track for p in glob.glob(g)})
@@ -858,6 +912,10 @@ def main():
         print(f"compact: {len(census)} creatures and {sum(map(len, flights.values()))} places of {len(flights)} flights "
               f"to {a.compact}")
     if not a.no_dedupe:
+        again = respawns(census)
+        census = {k: c for k, c in census.items() if k not in again}
+        if again:
+            print(f"respawns: {len(again)} creatures seen again under a new id on their spot in one flight, dropped")
         drop, by_flight = dedupe(census, flights)
         census = {k: c for k, c in census.items() if k not in drop}
         print(f"dedupe: {len(drop)} creatures another flight saw too, dropped"
@@ -879,7 +937,11 @@ def main():
     if a.swap and not flight:
         sys.exit("--swap needs the census flight's path (the tracks' self lines)")
     sight = Sight(flight, a.sight, a.sight_up) if a.swap else None
-    adds, removes, report = plan(db, census, a.world, a.match, a.with_npcs, a.swap, a.with_named, a.with_pets, sight)
+    keep = []
+    for e in a.keep:
+        keep += [line.strip() for line in open(e[1:]) if line.strip() and not line.startswith("#")] if e.startswith("@") else [e]
+    adds, removes, report = plan(db, census, a.world, a.match, a.with_npcs, a.swap, a.with_named, a.with_pets, sight,
+                                 a.keep_townsfolk, keep)
     print(f"{len(files)} track files: {report['seen']} creatures seen, {report['matched']} ours already, "
           f"{report['missing_creatures']} creatures and {report['missing_people']} townsfolk missing; {report['adds']} to add"
           + (f", {report['removes']} of ours to remove ({report['unseen_kept']} more out of the flight's sight kept)" if a.swap else ""))
@@ -904,8 +966,8 @@ def main():
             json.dump(dict(report=report, adds=adds, removes=removes), f, indent=1, default=str)
     if a.apply:
         with db:
-            apply(db, adds, a.world, files, removes)
-        print(f"applied: {len(adds)} rows added, {len(removes)} removed ({tables(a.world)[0]})")
+            apply(db, adds, a.world, files, removes, a.tag)
+        print(f"applied: {len(adds)} rows added, {len(removes)} removed ({tables(a.world, a.tag)[0]})")
 
 
 if __name__ == "__main__":

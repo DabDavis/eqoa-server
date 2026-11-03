@@ -246,6 +246,49 @@ class SwapTest(unittest.TestCase):
         self.assertEqual(self.dump(), before)
 
 
+    def test_keep_townsfolk_and_a_kept_name_stay_through_a_swap(self):
+        # a city's people of ours are npc_type 0 (a city's guards): a players'
+        # race's body keeps one, and so does a name given to --keep
+        self.db.execute("CREATE TABLE charactermodel (sex INTEGER NOT NULL, modelid INTEGER NOT NULL PRIMARY KEY, "
+                        "race INTEGER NOT NULL)")
+        self.db.execute("INSERT INTO charactermodel VALUES (0, ?, 0)", (MAN,))
+        ins = ("INSERT INTO npcs (npc_name, x_coord, y_coord, z_coord, world, modelid, size, npc_level, npc_type, hp, "
+               "hp_percent, unk_i, robe_style) VALUES (?, ?, 60, 5000, 1, ?, 1.0, 35, 0, 1, 255, '15', '255')")
+        self.db.execute(ins, ("Guard Tom", 8600.0, MAN))
+        self.db.execute(ins, ("tin box", 8700.0, 7))
+        census = sc.read_census([self.track])
+        _, removes, _ = sc.plan(self.db, census, 1, swap=True, keep_townsfolk=True, keep=["Tin Box"])
+        gone = {d["npc_name"] for d in removes}
+        self.assertNotIn("Guard Tom", gone, "a players' race's body: kept")
+        self.assertNotIn("tin box", gone, "a kept name, any case: kept")
+        self.assertIn("fire beetle", gone, "a creature of ours still goes")
+        # the control: without them both go
+        _, removes2, _ = sc.plan(self.db, census, 1, swap=True)
+        self.assertTrue({"Guard Tom", "tin box"} <= {d["npc_name"] for d in removes2})
+
+    def test_a_tagged_census_applies_and_undoes_beside_another(self):
+        before = self.dump()
+        census = sc.read_census([self.track])
+        adds, removes, _ = sc.plan(self.db, census, 1)
+        with self.db:
+            sc.apply(self.db, adds, 1, [self.track], removes)
+        mid = self.dump()
+        # the control: a second untagged census in the world is refused
+        with self.assertRaises(SystemExit):
+            with self.db:
+                sc.apply(self.db, adds, 1, [self.track], removes)
+        adds2, removes2, _ = sc.plan(self.db, census, 1, swap=True, keep_townsfolk=True)
+        with self.db:
+            sc.apply(self.db, adds2, 1, [self.track], removes2, tag="city")
+        self.assertTrue(sc.has_table(self.db, "sandstorm_census_seed_w1_city"))
+        with self.db:
+            sc.undo(self.db, 1, "city")
+        self.assertEqual(self.dump(), mid, "the tagged one undone alone")
+        with self.db:
+            sc.undo(self.db, 1)
+        self.assertEqual(self.dump(), before)
+
+
 def lines_to(path, lines):
     with open(path, "w") as f:
         for r in lines:
@@ -298,6 +341,22 @@ class MoreTest(unittest.TestCase):
         # the control: without the restart the two are one, its place between them
         one = sc.read_census(files)
         self.assertEqual(len(one), 1)
+
+    def test_a_spawn_seen_again_under_a_new_id_on_its_spot_is_one(self):
+        # one walk: Sandstorm gave its hall master a new id between two
+        # looks, on the same spot; two vipers side by side in view at once are two
+        lines_to(self.path("w.json.track.jsonl"),
+                 [looks(30, "Hall Master", MAN, t=10), seen(10, 30, "Hall Master", 4211.0, 17207.0),
+                  seen(11, 30, "Hall Master", 4211.0, 17207.0),
+                  looks(31, "Hall Master", MAN, t=500), seen(500, 31, "Hall Master", 4211.5, 17207.0),
+                  looks(40, "Grass Viper", VIPER, t=10), seen(10, 40, "Grass Viper", 6000.0, 6000.0),
+                  looks(41, "Grass Viper", VIPER, t=10), seen(10, 41, "Grass Viper", 6002.0, 6000.0)])
+        census = sc.read_census([self.path("w.json.track.jsonl")])
+        drop = sc.respawns(census)
+        self.assertEqual(drop, {(0, 31)}, "the later look of the master, seen less: dropped")
+        # the control: the vipers were in view at one moment, so both stay
+        self.assertNotIn((0, 40), drop)
+        self.assertNotIn((0, 41), drop)
 
     def test_a_spawn_two_flights_saw_is_made_once(self):
         # flight a (t 100) and flight b (t 5000) both pass over z 6000; each sees the viper spawn

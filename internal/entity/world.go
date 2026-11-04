@@ -155,6 +155,11 @@ type World struct {
 	// name; its own lock, as the GM panel reads under the World's read lock
 	wildMu    sync.Mutex
 	wildCache map[string]wildKind
+
+	// The NPCs each per-tick NPC system has work for (npcsets.go)
+	sets npcSets
+	// How long the tick's systems take (ticktime.go)
+	ticks tickTimer
 }
 
 // NewWorld creates and initializes a new game world.
@@ -593,7 +598,7 @@ func (w *World) LoadNPCs(npcStore *database.NPCStore) {
 	for _, rec := range npcs {
 		npc := NPCFromRecord(rec, classes[database.NPCClassKey(rec.NPCName)], w.rangedModels)
 		w.applyNPCSettingsLocked(npc)
-		w.NPCs[npc.ServerID] = npc
+		w.putNPCLocked(npc)
 		w.SpatialIndex.Insert(npc.ServerID, npc.X, npc.Z)
 		if npc.PrimaryWeapon != 0 {
 			hands[npc.PrimaryType]++
@@ -847,6 +852,7 @@ func (w *World) killNPC(npc *NPC) {
 	npc.CurrentEnemy = 0
 	npc.stopMoving()
 	npc.roam = roamState{}
+	w.wakeNPCLocked(npc) // a corpse, and its fight to put away (npcsets.go)
 
 	log.Printf("Combat: NPC '%s' killed (entity ID=%d)", npc.Name, npc.ServerID)
 }
@@ -871,6 +877,7 @@ func (w *World) addThreatLocked(npc *NPC, attackerID EntityID, damage int) {
 	if npc.Dummy != NotDummy {
 		return
 	}
+	w.wakeNPCLocked(npc)                  // a fight, and its regeneration's count after it (npcsets.go)
 	npc.calmTicks, npc.healing = 0, false // in a fight: no regeneration after it for a while (npcregen.go)
 	if npc.Threats == nil {
 		npc.Threats = make(map[EntityID]int64)

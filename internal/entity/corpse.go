@@ -121,12 +121,20 @@ func (w *World) ClearCorpse(id EntityID, died time.Time) bool {
 // corpseSystem is the corpses' decay and the creatures' return: a corpse
 // whose decay is up goes (its time noted, the hook told after the tick), a
 // GM's spawn with it, and a creature whose corpse went its respawn time ago
-// comes back on its spawn point. Every tick; must be called with the lock
-// held.
+// comes back on its spawn point. Every tick, over the dead (the corpses' set,
+// npcsets.go); must be called with the lock held.
 func (w *World) corpseSystem(now time.Time) []EntityID {
+	w.syncNPCSetsLocked()
+	if npcSetsCheck {
+		w.checkNPCSetLocked("corpse", &w.sets.corpse, corpseQuiet)
+	}
 	var gone []EntityID
-	for _, npc := range w.NPCs {
+	for id, npc := range w.sets.corpse.m {
+		if npc = w.setMember(w.sets.corpse.m, id, npc); npc == nil {
+			continue
+		}
 		if !npc.Dead {
+			delete(w.sets.corpse.m, id) // alive again
 			continue
 		}
 		if npc.DeathTime.IsZero() {
@@ -151,6 +159,7 @@ func (w *World) corpseSystem(now time.Time) []EntityID {
 		w.respawnNPCLocked(npc)
 		log.Printf("CorpseSystem: respawned NPC '%s' (entity ID=%d)", npc.Name, npc.ServerID)
 	}
+	w.sets.corpse.tidy()
 	return gone
 }
 
@@ -179,6 +188,7 @@ func (w *World) respawnNPCLocked(npc *NPC) {
 	npc.roam = roamState{}
 	npc.path = pathState{}
 	w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.SpawnX, npc.SpawnZ)
+	w.wakeNPCLocked(npc) // a new life: its last fight put away, its calm counted (npcsets.go)
 }
 
 // runCorpsesGone tells the hook which corpses decayed, the lock let go.

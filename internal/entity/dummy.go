@@ -75,6 +75,7 @@ func (w *World) dummyEngagedLocked(npc *NPC, p *Player, now time.Time) {
 	}
 	npc.DummyTarget = p.ServerID
 	npc.endRound()
+	w.wakeNPCLocked(npc) // npcsets.go
 	log.Printf("Dummy: %s fights %s", npc.Name, p.Name)
 }
 

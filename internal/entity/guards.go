@@ -172,12 +172,24 @@ func (w *World) guardsPreyLocked(g, c *NPC, now time.Time) bool {
 
 // guardWatchSystem is the town guards' look round their posts: each free one
 // takes on the nearest creature within its radius (the file's doc). Every
-// aggroScanTicks ticks; must be called with the lock held.
+// aggroScanTicks ticks, over the guards' set (npcsets.go: the NPCs whose
+// social rule could make them a town's guard); must be called with the lock
+// held.
 func (w *World) guardWatchSystem(now time.Time) {
 	if w.TickCount%aggroScanTicks != 0 || w.npcSocial.gen == 0 || len(w.playerModels) == 0 || w.SpatialIndex == nil {
 		return
 	}
-	for _, g := range w.NPCs {
+	w.syncNPCSetsLocked()
+	if w.sets.guardGen != w.npcSocial.gen {
+		w.refillGuardsLocked() // the social rules changed
+	}
+	if npcSetsCheck {
+		w.checkGuardSetLocked()
+	}
+	for id, g := range w.sets.guard.m {
+		if g = w.setMember(w.sets.guard.m, id, g); g == nil {
+			continue
+		}
 		if !w.guardFreeLocked(g, now) {
 			continue
 		}

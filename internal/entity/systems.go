@@ -29,47 +29,84 @@ func (w *World) Tick(now time.Time) {
 	w.runTravels()   // the spells that send players to a named place (gates.go)
 	w.runHandsBack() // the hands a switch took off for a cast, back after it (cast.go)
 	w.runCorpsesGone(gone)
+	w.ticks.mark(tsAfterLock)
 }
 
 // tickLocked is the tick's systems under the world lock. It returns the
 // players whose respawn came due, for runRespawns, those a gate sends home,
 // for runGates, and the creatures whose corpses decayed, for runCorpsesGone.
 func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityID) {
+	asked := time.Now()
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	// each system a lap of the tick timer's (ticktime.go)
+	t := &w.ticks
+	t.start(asked)
+	t.mark(tsLockWait)
 
 	w.TickCount++
 
-	w.aggroSystem(now)      // a creature's first move (aggro.go)
+	w.aggroSystem(now) // a creature's first move (aggro.go)
+	t.mark(tsAggro)
 	w.guardWatchSystem(now) // the town guards on creatures near their posts (guards.go)
+	t.mark(tsGuards)
 	w.aiSystem(now)
+	t.mark(tsAI)
 	w.templateSystem(now) // templated NPCs' casts landing (classtemplate.go)
+	t.mark(tsTemplates)
 	w.homeSystem(now)
+	t.mark(tsHome)
 	w.attackSystem(now)
+	t.mark(tsAttack)
 	w.petSystem(now)
+	t.mark(tsPets)
 	w.duelSystem(now) // duels' invitations and ends (duel.go)
+	t.mark(tsDuels)
 	gates := w.castSystem(now)
+	t.mark(tsCasts)
 	w.effectSystem(now)
+	t.mark(tsEffects)
 	w.consumableSystem(now)
+	t.mark(tsConsumables)
 	w.potionSystem(now)
+	t.mark(tsPotions)
 	gone := w.corpseSystem(now)
+	t.mark(tsCorpses)
 	w.roamSystem(now)
+	t.mark(tsRoam)
 	w.pathSystem(now)
+	t.mark(tsPaths)
 	due := w.playerRespawnSystem(now)
+	t.mark(tsRespawns)
 	w.regenSystem(now)
+	t.mark(tsRegen)
 	w.vampireSunSystem(now) // after the regen, as Sandstorm's (vampire.go)
-	w.npcRegenSystem(now)   // creatures out of a fight (npcregen.go)
+	t.mark(tsVampires)
+	w.npcRegenSystem(now) // creatures out of a fight (npcregen.go)
+	t.mark(tsNPCRegen)
 	w.breathSystem(now)
+	t.mark(tsBreath)
 	w.silentAirSystem(now) // movecheck.go
+	t.mark(tsSilentAir)
 	w.stateSyncSystem()
+	t.mark(tsStateSync)
 	w.entityChannelSyncSystem()
+	t.mark(tsEntityChannels)
 	w.statChannelSyncSystem()
+	t.mark(tsStatChannels)
 	w.buffChannelSyncSystem()
+	t.mark(tsBuffChannels)
 	w.guildAnnounceSystem()
+	t.mark(tsGuildAnnounce)
 	w.visibilitySystem()
+	t.mark(tsVisibility)
 	w.groupSyncSystem()
+	t.mark(tsGroupSync)
 	w.powerSyncSystem()
+	t.mark(tsPowerSync)
 	w.voiceSyncSystem(now) // a voice-on client's peers and credentials (voice.go)
+	t.mark(tsVoiceSync)
+	w.tickSeenLocked()
 	return due, gates, gone
 }
 
@@ -77,8 +114,8 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 // (rounds.go): its swing at its current enemy when a round begins, then the
 // round's hits. Out of its reach it runs at its enemy, and past its leash it
 // gives up and goes home (chase.go); it drops an enemy that is gone or dead,
-// and a new enemy starts a new round. Every tick; must be called with the
-// lock held.
+// and a new enemy starts a new round. Every tick, over the NPCs of the fights'
+// set (npcsets.go); must be called with the lock held.
 func (w *World) aiSystem(now time.Time) {
 	type fight struct {
 		npc   *NPC
@@ -89,9 +126,19 @@ func (w *World) aiSystem(now time.Time) {
 	var petFights [][2]*NPC // a creature and the pet it fights (pet.go)
 	var npcFights [][2]*NPC // a guard and its creature, either way (guards.go)
 
-	for _, npc := range w.NPCs {
-		if npc.Owner != 0 {
-			continue // a pet fights in petSystem (pet.go)
+	// only the NPCs with a fight, or a fight's end, to see to: a pet fights in
+	// petSystem (pet.go), and every other NPC has nothing (npcsets.go)
+	w.syncNPCSetsLocked()
+	if npcSetsCheck {
+		w.checkNPCSetLocked("fight", &w.sets.ai, aiQuiet)
+	}
+	for id, npc := range w.sets.ai.m {
+		if npc = w.setMember(w.sets.ai.m, id, npc); npc == nil {
+			continue
+		}
+		if aiQuiet(npc) {
+			delete(w.sets.ai.m, id) // nothing to do for it until its next fight
+			continue
 		}
 		if npc.Dummy != NotDummy {
 			if npc.DummyTarget != 0 {
@@ -162,6 +209,7 @@ func (w *World) aiSystem(now time.Time) {
 		}
 		fights = append(fights, fight{npc: npc, enemy: enemy})
 	}
+	w.sets.ai.tidy()
 
 	// The rounds after the checks: a player one NPC kills is off every
 	// NPC's list (playerDiedLocked) before the next one swings.

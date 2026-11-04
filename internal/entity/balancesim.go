@@ -351,7 +351,7 @@ func newSimFight(pl SimPlayer, foe SimNPC, b *Balance) *simFight {
 		rule := database.CharmRule{Charmable: true, Template: t.Name}
 		w.charmRules = map[string]database.CharmRule{simCharmBeast: rule, simCharmSkeleton: rule}
 	}
-	w.NPCs[npc.ServerID] = npc
+	w.putNPCLocked(npc)
 	w.SpatialIndex.Insert(npc.ServerID, npc.X, npc.Z)
 	vs := GetOrCreateVisibility(sess)
 	vs.ChannelEntity[0] = npc.ServerID
@@ -700,7 +700,7 @@ func (f *simFight) charm() *NPC {
 		w.mu.Lock()
 		c := NPCFromRecord(rec, 0, nil)
 		w.applyNPCSettingsLocked(c)
-		w.NPCs[c.ServerID] = c
+		w.putNPCLocked(c)
 		w.SpatialIndex.Insert(c.ServerID, c.X, c.Z)
 		vs.ChannelEntity[1], vs.ChannelObjectID[1] = c.ServerID, simCharmID+uint32(try)
 		p.Power = p.MaxPowerNow()
@@ -1073,7 +1073,7 @@ func (f *simFight) summon() *NPC {
 			continue
 		}
 		id := EntityID(7000 + i)
-		f.w.NPCs[id] = &NPC{ServerID: id, Name: name, Level: 1, ModelID: 0x1BBB898C, Size: 1, NPCType: 0x80, X: 40000, Z: 40000}
+		f.w.putNPCLocked(&NPC{ServerID: id, Name: name, Level: 1, ModelID: 0x1BBB898C, Size: 1, NPCType: 0x80, X: 40000, Z: 40000})
 	}
 	f.p.Power = f.p.MaxPowerNow()
 	f.w.mu.Unlock()

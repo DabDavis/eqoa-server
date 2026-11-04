@@ -115,7 +115,7 @@ func (w *World) SpawnNPCCopy(name string, x, y, z, facing float32, world uint8) 
 	c.SpawnOnly, c.HiddenUntil = false, time.Time{} // in every view near it
 	c.endDummyFight()
 	c.tfight = nil // its template's fight is its own (classtemplate.go)
-	w.NPCs[c.ServerID] = &c
+	w.putNPCLocked(&c)
 	w.SpatialIndex.Insert(c.ServerID, x, z)
 	return c.ServerID, t.Name, true
 }
@@ -135,7 +135,7 @@ func (w *World) DespawnNPC(id EntityID) (string, bool) {
 
 func (w *World) removeNPCLocked(npc *NPC) {
 	w.SpatialIndex.Remove(npc.ServerID, npc.X, npc.Z)
-	delete(w.NPCs, npc.ServerID)
+	w.dropNPCLocked(npc)
 }
 
 // NPCsNamed is the spawn spot of every NPC (not a GM's temporary copy) whose

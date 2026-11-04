@@ -280,6 +280,7 @@ func (w *World) charmLocked(caster *Player, sess *session.Session, npc *NPC, spe
 	npc.Threats, npc.CurrentEnemy = nil, 0
 	npc.endRound()
 	npc.endTemplateFight() // its enemy template's clocks (classtemplate.go)
+	w.wakeNPCLocked(npc)   // a pet's regeneration (npcsets.go)
 	npc.RoundTarget = 0
 	npc.stopMoving()
 	npc.roam = roamState{}
@@ -403,6 +404,7 @@ func (w *World) unCharmLocked(npc *NPC) uint8 {
 	npc.NPCType = h.npcType
 	npc.Faction = h.faction
 	npc.Charm = nil
+	w.wakeNPCLocked(npc)           // a creature again: its fights and its regeneration (npcsets.go)
 	npc.Power, npc.MaxPower = 0, 0 // a creature again: no power (npcregen.go)
 	npc.endTemplateFight()         // the pet template's clocks (pettemplate.go)
 	w.applyTemplateLocked(npc)

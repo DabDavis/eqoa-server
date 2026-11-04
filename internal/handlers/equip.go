@@ -69,6 +69,8 @@ func (h *EquipHandler) SetGameWorld(gw *entity.World) {
 // RegisterHandlers registers the equip handlers.
 func (h *EquipHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeInteractItem, h.HandleInteractItem)
+	// the item menu's Arrange (itemarrange below)
+	r.Register(protocol.OpcodeArrangeItem, h.HandleArrangeItem)
 	// the HUD's item quick slots and weapon sets (gearsets.go)
 	r.Register(protocol.OpcodePrepareItem, h.HandlePrepareItem)
 	r.Register(protocol.OpcodePrepareWeapon, h.HandlePrepareWeapon)
@@ -536,6 +538,56 @@ func (h *EquipHandler) applyPlan(sess *session.Session, serverID uint32, plan eq
 
 // equipItemMessage is EquipItem (0x003F), which the client's dispatcher reads
 // as two bytes for Msg003F: the item's LIST index, then the equip slot.
+// HandleArrangeItem is the item menu's Arrange (VIWndItemMenu::OnMessage 277;
+// VIClient::SwapItems, 0x00BCAC08, SendItemPair(61, ...)): {u32 the held
+// record's key, u32 the key of the record it goes to}, each GetSlotId's. The
+// client moves nothing itself: the server answers 0x003D {u8 from, u8 to} by
+// list index, and Msg003D (VIItemList::Op003D) moves the record there, the
+// ones between sliding along. Until 2026-11-04 nothing answered and Arrange
+// did nothing (the user: "arrange doesn't work for the inventory"). The new
+// order is kept (SetInventoryOrder), so the next login lists the pack so.
+func (h *EquipHandler) HandleArrangeItem(sess *session.Session, msg *protocol.Message) error {
+	data := msg.Data()
+	if len(data) < 8 {
+		log.Printf("ArrangeItem: short payload len=%d hex=%x", len(data), data)
+		return nil
+	}
+	r := buffer.NewReader(data)
+	ka, _ := r.ReadUint32()
+	kb, _ := r.ReadUint32()
+	l := sessionInvList(sess)
+	if l == nil {
+		return nil
+	}
+	a, b := l.index(ka), l.index(kb)
+	if a < 0 || b < 0 || a == b || !l.move(a, b) {
+		log.Printf("ArrangeItem: keys %d and %d (list indices %d, %d): nothing to move", ka, kb, a, b)
+		return nil
+	}
+	if h.playerOf != nil && h.inventoryStore != nil {
+		if p := h.playerOf(sess); p != nil {
+			if err := h.inventoryStore.SetInventoryOrder(p.CharServerID, l.itemIDs()); err != nil {
+				log.Printf("ArrangeItem: %s's new order not kept: %v", p.Name, err)
+			}
+		}
+	}
+	sess.Queue().AddWithSequence(arrangeItemMessage(a, b))
+	return nil
+}
+
+// arrangeItemMessage is 0x003D down: two bytes, the list index a record
+// leaves and the one it goes to (Msg003D).
+func arrangeItemMessage(from, to int) *protocol.Message {
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeArrangeItem)
+	buf := make([]byte, 8)
+	w := buffer.NewWriter(buf)
+	w.WriteUint16(uint16(protocol.OpcodeArrangeItem))
+	w.WriteByte(byte(from))
+	w.WriteByte(byte(to))
+	msg.SetData(buf[:w.Position()])
+	return msg
+}
+
 func equipItemMessage(index, equipLoc int) *protocol.Message {
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeEquipItem)
 	buf := make([]byte, 16)

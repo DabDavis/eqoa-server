@@ -204,6 +204,67 @@ func TestAShieldHurtsTheAttacker(t *testing.T) {
 	}
 }
 
+// thistlesJSON is the workbook's shape of the ranger's level 1 Thistlecoat:
+// filed as a "Defensive Proc" (every hit, by its legend), hitting back 8, AC
+// up 20, 450 s.
+const thistlesJSON = `{"v":1,"scope":"self","target_type":"Self","harmful":false,"duration_s":450,"stack":2,
+	"level":1,"sheet_type":"Defensive Proc","effects":[{"kind":"def_proc","procs":[{"kind":"hp","amount":-8,
+	"resist":"pierce","on":"defense","scope":"target","target_type":"Enemy"}]},{"kind":"stat","stat":"ac","amount":20}]}`
+
+// The ranger's coats are damage shields: Thistlecoat cast as the workbook
+// files it lands as a damage shield and answers every one of the crab's
+// hits, its 8 off the crab each time (the user, 2026-11-04: "thistlecoat is
+// supposed to be Damage shield"; read as dshield.go's defensive proc it
+// answered one hit in ten). Its mastery's name is a coat's too. The
+// controls: the same effects under a druid's coat's name ("Storm Coat") and
+// another name stay the workbook's defensive proc, for the re-fit (the
+// user's "Ranger coats now").
+func TestAWorkbookDamageShieldAnswersEveryHit(t *testing.T) {
+	c, crab := casterAndCrab(t)
+	thorns := CastSpell{SpellID: 1096, DisplayIndex: 3, Level: 1, Scope: 0, Name: "Thistlecoat", Icon: 0x2A2B2C2D,
+		CastTime: 3 * time.Second, Recast: 4 * time.Second, PowerCost: 7, Range: 4.5,
+		Def: SpellDefFrom("Thistlecoat", "", "", thistlesJSON)}
+	if !c.w.StartCast(c.sess, thorns, c.me, c.at(0)) {
+		t.Fatalf("the thorns did not begin: %x", c.sent())
+	}
+	c.tick(3*time.Second + castLand)
+	if len(c.p.Effects) != 1 || c.p.Effects[0].Shield == nil || *c.p.Effects[0].Shield != (Shield{Min: 8, Max: 8}) {
+		t.Fatalf("on the druid: %+v", c.p.Effects)
+	}
+	c.sent()
+	hit := damageMsg(t, c.npcO, -17, c.me)
+	answer := damageMsg(t, c.me, -8, c.npcO)
+	hits, answers := 0, 0
+	for d := time.Duration(0); d < 30*time.Second; d += 100 * time.Millisecond {
+		c.w.mu.Lock()
+		c.w.aiSystem(c.at(10*time.Second + d))
+		c.w.mu.Unlock()
+		for _, m := range c.sent() {
+			switch {
+			case sameMsgs([][]byte{m}, [][]byte{hit}):
+				hits++
+			case sameMsgs([][]byte{m}, [][]byte{answer}):
+				answers++
+			}
+		}
+	}
+	if hits < 5 || answers != hits || crab.HP != 2000-8*answers {
+		t.Errorf("in 30 s the crab hit %d times, the thorns answered %d, the crab at %d HP", hits, answers, crab.HP)
+	}
+	kind := func(name string) EffectKind {
+		d := SpellDefFrom(name, "", "", thistlesJSON)
+		return d.Effects[0].Kind
+	}
+	if k := kind("Thistlecoat +"); k != EffectShield {
+		t.Errorf("the mastery's thorns read as %v, want a damage shield", k)
+	}
+	for _, name := range []string{"Storm Coat", "Test Thorns"} {
+		if k := kind(name); k != EffectDefProc {
+			t.Errorf("the control: %q's thorns read as %v, want the workbook's defensive proc", name, k)
+		}
+	}
+}
+
 // A shield answers nothing once its time is over, whether still on the list
 // or taken off by the effects' sweep at its end.
 func TestNoShieldPastItsTime(t *testing.T) {

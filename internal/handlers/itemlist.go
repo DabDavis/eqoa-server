@@ -92,6 +92,38 @@ func (l *invList) index(key uint32) int {
 	return -1
 }
 
+// move is VIItemList::Op003D (0x00BE02F0): the record at list index a moves
+// to index b, the ones between sliding along by one. Out of range: false,
+// nothing moved.
+func (l *invList) move(a, b int) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if a < 0 || b < 0 || a >= len(l.recs) || b >= len(l.recs) {
+		return false
+	}
+	r := l.recs[a]
+	step := 1
+	if a > b {
+		step = -1
+	}
+	for i := a; i != b; i += step {
+		l.recs[i] = l.recs[i+step]
+	}
+	l.recs[b] = r
+	return true
+}
+
+// itemIDs are the records' charinventory rows, in list order.
+func (l *invList) itemIDs() []int {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	out := make([]int, len(l.recs))
+	for i, r := range l.recs {
+		out[i] = r.itemID
+	}
+	return out
+}
+
 // at is the record at list index i.
 func (l *invList) at(i int) (invRec, bool) {
 	l.mu.Lock()

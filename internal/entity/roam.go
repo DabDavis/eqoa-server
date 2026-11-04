@@ -51,6 +51,36 @@ import (
 // out of the water as it keeps (movement.go's legs, water.go); table
 // npcmove stands some on their spawns, and one standing off the ground (a
 // keep's floor, a bridge) does not wander.
+//
+// A creature of the land on the ground wanders between spots of its own
+// (the user, 2026-11-04: "do the leg caching too", after the tick's profile:
+// with players about, most of the wander's time was checking new legs,
+// movement.go's legCheckLocked, and most of that the walls and CLIENT's
+// set-down at every unit; claude-notes/server-tick-profile-20261103.md). It
+// keeps up to wanderSpotsMax: its spawn, then the end of each leg it walks
+// until it has them all, every leg until then picked as before. From then on
+// a leg's length is drawn as ever (roamLeg) and it walks to the spot whose
+// distance from where it stands is nearest that length, in whatever
+// direction the spot lies (none nearer than roamMinStep nor farther than its
+// radius), or to one it walked to from here before when that is nearly as
+// near (spotKnownSlack: a creature keeps to the ways it knows). The way from
+// one spot to another is checked whole the first time and remembered,
+// walkable or not: a way it walked before needs only its floor read again
+// (movement.go's legFloorsLocked), and one that failed is not tried again.
+// The radius, the town check (made at every leg), the rests and the walk are
+// as before; what changes is that its legs end on the same few places, as a
+// creature keeps to the same few places of its ground. Measured over eight
+// creatures' three hours each on open ground (TestAWandererWalksBetweenItsSpots
+// holds one to it): legs of median 19.7, 90% under 40.2 (Sandstorm's 19 and
+// 40.4; drawn anywhere, as every leg was before, they came out 16.9 and
+// 36.1, a leg ending past the radius drawn again), on its feet half the
+// time; a leg checked whole 56% of the time in its first ten minutes (its
+// spots being made), 20% in the next ten, 8% to forty minutes, 5% to an
+// hour, 1-2% after. One standing at none of its spots (a fight's end left it
+// elsewhere) walks back to one, that way checked whole; one whose spots will
+// not do takes a leg as before. Its spots are made again when what they were
+// found for changes: its spawn, world, radius, lift over the terrain or what
+// it keeps to, or the world's ground or water.
 
 // DefaultRoamRadius is how far from its spawn a creature wanders: Sandstorm's
 // (the file's comment), a little past the 66 its creatures kept to.
@@ -88,6 +118,81 @@ const roamRefreshTicks = 10
 
 // roamMinStep is the shortest walk a creature takes.
 const roamMinStep float32 = 2
+
+// wanderSpotsMax is how many spots a creature wanders between (the file's
+// comment); spotFloorSame how near the floor it stands on must be a spot's
+// for it to stand at that spot (a floor above or below it, a cave's under a
+// hill, is another place). A spot whose way from here it walked before is
+// taken over the spot nearest the drawn length while its length is off the
+// draw by no more than the nearest's and max(spotSlackMin, spotKnownSlack ×
+// the draw) more: a creature keeps to the ways it knows.
+const (
+	wanderSpotsMax         = 16
+	spotFloorSame  float32 = 0.5
+	spotKnownSlack float32 = 0.2
+	spotSlackMin   float32 = 2
+)
+
+// wanderSpots is a creature's spots (the file's comment): spot i at (x[i],
+// z[i]) on the floor y[i], spot 0 its spawn; bit j of tried[i] the way from
+// spot i to spot j checked whole, and of good[i] found walkable (a uint32's
+// bits: no more than 32 spots, which the line after the type holds it to).
+type wanderSpots struct {
+	key         wanderKey
+	n           int
+	x, y, z     [wanderSpotsMax]float32
+	tried, good [wanderSpotsMax]uint32
+}
+
+var _ [32 - wanderSpotsMax]struct{} // more spots than a uint32 has bits does not build
+
+// wanderKey is what a creature's spots were found for: the world's ground
+// and water (World.groundGen), and the creature's world, spawn, radius, lift
+// over the terrain and what it keeps to.
+type wanderKey struct {
+	gen            uint32
+	world          uint8
+	spawnX, spawnZ float32
+	radius, lift   float32
+	keeps          string
+}
+
+// add makes (x, z), on the floor y, a spot: its index, -1 when it has them
+// all.
+func (s *wanderSpots) add(x, y, z float32) int {
+	if s.n == wanderSpotsMax {
+		return -1
+	}
+	i := s.n
+	s.x[i], s.y[i], s.z[i] = x, y, z
+	s.n++
+	return i
+}
+
+// at is the spot at (x, z) on the floor y, -1 for none. A leg's end puts a
+// creature there exactly (stepNPCLocked).
+func (s *wanderSpots) at(x, y, z float32) int {
+	for i := 0; i < s.n; i++ {
+		if s.x[i] == x && s.z[i] == z && s.y[i]-y < spotFloorSame && y-s.y[i] < spotFloorSame {
+			return i
+		}
+	}
+	return -1
+}
+
+// learn keeps what the way from spot i to spot j was found; nothing for a
+// place that is no spot (-1).
+func (s *wanderSpots) learn(i, j int, walkable bool) {
+	if i < 0 || j < 0 {
+		return
+	}
+	s.tried[i] |= 1 << j
+	if walkable {
+		s.good[i] |= 1 << j
+	} else {
+		s.good[i] &^= 1 << j
+	}
+}
 
 // roamState is a creature's wander: walking to (toX, toZ), or resting until
 // restUntil, and when it last moved.
@@ -263,8 +368,9 @@ func (w *World) roamStepLocked(npc *NPC, now time.Time) {
 // lengths (roamLeg; at least roamMinStep, at most the radius) in any
 // direction from where it stands, ending within its radius of its spawn,
 // neither ending in a town nor passing through one unless its spawn is in
-// that town's ground (towns.go), and standable all along (legOKLocked); where
-// it stands when no such leg is found (it rests and tries again).
+// that town's ground (towns.go), and standable all along (legOKLocked), to
+// one of its spots once it has them all (the file's comment); where it
+// stands when no such leg is found (it rests and tries again).
 func (w *World) roamPointLocked(npc *NPC) (x, z float32) {
 	npc.roam.legUsable = false
 	r := w.roamRadiusLocked(npc)
@@ -272,6 +378,12 @@ func (w *World) roamPointLocked(npc *NPC) (x, z float32) {
 		return npc.SpawnX, npc.SpawnZ
 	}
 	townsfolk := w.inTownLocked(npc.World, npc.SpawnX, npc.SpawnZ)
+	spots, from := w.spotsLocked(npc, r)
+	if spots != nil && spots.n == wanderSpotsMax {
+		if x, z, ok := w.spotLegLocked(npc, spots, from, r, townsfolk); ok {
+			return x, z
+		}
+	}
 	for i := 0; i < 16; i++ {
 		d := min(max(roamLeg(w.roamRand().Float64()), roamMinStep), r)
 		a := w.roamRand().Float64() * 2 * math.Pi
@@ -288,14 +400,114 @@ func (w *World) roamPointLocked(npc *NPC) (x, z float32) {
 			npc.roam.heights = heights[:0] // its room kept for the next try
 			continue                       // somewhere it cannot stand, or into or out of the water (movement.go)
 		}
-		// the leg kept for the walk: its floor read off it at each step (legY)
-		npc.roam.heights = heights
-		npc.roam.legX, npc.roam.legZ, npc.roam.legLen = npc.X, npc.Z, distXZ(npc.X, npc.Z, x, z)
-		npc.roam.legUsable = len(heights) >= 2 && w.spawnOnGroundLocked(npc) &&
-			(w.env == nil || w.keepsToLocked(npc) == keepsToLand)
+		w.keepLegLocked(npc, x, z, heights)
+		if spots != nil && len(heights) > 0 {
+			// its end a spot while it has room for one, and the way there walkable
+			spots.learn(from, spots.add(x, heights[len(heights)-1], z), true)
+		}
 		return x, z
 	}
 	return npc.X, npc.Z
+}
+
+// spotLegLocked is a leg to one of npc's spots (the file's comment), from
+// the spot it stands at (from; -1 for none): up to 16 tries, each a length
+// drawn as ever and the spot whose distance from here is nearest it (or one
+// whose way from here it walked before, nearly as near: spotKnownSlack),
+// none tried already, none nearer than roamMinStep or farther than its
+// radius r, none whose way from here failed before; false when none will
+// do. Must be called with the lock held.
+func (w *World) spotLegLocked(npc *NPC, s *wanderSpots, from int, r float32, townsfolk bool) (x, z float32, ok bool) {
+	var skip uint32
+	if from >= 0 {
+		skip = s.tried[from] &^ s.good[from] // its way there failed
+	}
+	for i := 0; i < 16; i++ {
+		d := min(max(roamLeg(w.roamRand().Float64()), roamMinStep), r)
+		j, gap := -1, float32(0)
+		jk, gapk := -1, float32(0)
+		for k := 0; k < s.n; k++ {
+			if skip&(1<<k) != 0 {
+				continue
+			}
+			dk := distXZ(npc.X, npc.Z, s.x[k], s.z[k])
+			if dk < roamMinStep || dk > r {
+				skip |= 1 << k // where it stands, or as near; or past a leg's longest
+				continue
+			}
+			g := float32(math.Abs(float64(dk - d)))
+			if j < 0 || g < gap {
+				j, gap = k, g
+			}
+			if from >= 0 && s.good[from]&(1<<k) != 0 && (jk < 0 || g < gapk) {
+				jk, gapk = k, g
+			}
+		}
+		if jk >= 0 && gapk <= gap+max(spotSlackMin, spotKnownSlack*d) {
+			j = jk // a way it knows, as near the length as will do
+		}
+		if j < 0 {
+			return 0, 0, false
+		}
+		skip |= 1 << j
+		x, z = s.x[j], s.z[j]
+		if !townsfolk && w.legInTownLocked(npc.World, npc.X, npc.Z, x, z) {
+			continue // the towns are found again as their people change
+		}
+		heights := npc.roam.heights[:0]
+		walkable := from >= 0 && s.good[from]&(1<<j) != 0 && w.legFloorsLocked(npc, x, z, &heights)
+		if !walkable {
+			heights = heights[:0]
+			walkable = w.legCheckLocked(npc, x, z, &heights)
+			s.learn(from, j, walkable)
+		}
+		if !walkable {
+			npc.roam.heights = heights[:0]
+			continue
+		}
+		w.keepLegLocked(npc, x, z, heights)
+		return x, z, true
+	}
+	return 0, 0, false
+}
+
+// keepLegLocked keeps the leg npc walks to (x, z) for the walk, its floor
+// read off heights at each step (legY). Must be called with the lock held.
+func (w *World) keepLegLocked(npc *NPC, x, z float32, heights []float32) {
+	npc.roam.heights = heights
+	npc.roam.legX, npc.roam.legZ, npc.roam.legLen = npc.X, npc.Z, distXZ(npc.X, npc.Z, x, z)
+	npc.roam.legUsable = len(heights) >= 2 && w.spawnOnGroundLocked(npc) &&
+		(w.env == nil || w.keepsToLocked(npc) == keepsToLand)
+}
+
+// spotsLocked is npc's spots (the file's comment), made again when what they
+// were found for changed, and the one it stands at (-1 for none); nil for a
+// creature that keeps none: with no ground known, off the ground, or not of
+// the land alone. Must be called with the lock held.
+func (w *World) spotsLocked(npc *NPC, r float32) (*wanderSpots, int) {
+	if w.ground == nil || !w.spawnOnGroundLocked(npc) {
+		return nil, -1
+	}
+	keeps := keepsToLand
+	if w.env != nil {
+		if keeps = w.keepsToLocked(npc); keeps != keepsToLand {
+			return nil, -1
+		}
+	}
+	key := wanderKey{w.groundGen, npc.World, npc.SpawnX, npc.SpawnZ, r, npc.spawnLift, keeps}
+	s := npc.spots
+	if s == nil || s.key != key {
+		s = &wanderSpots{key: key}
+		if f, ok := w.ground.Floor(npc.World, npc.SpawnX, npc.SpawnY, npc.SpawnZ); ok {
+			s.add(npc.SpawnX, f, npc.SpawnZ)
+		}
+		npc.spots = s
+	}
+	here, ok := w.ground.Floor(npc.World, npc.X, npc.Y, npc.Z)
+	if !ok {
+		return s, -1
+	}
+	return s, s.at(npc.X, here, npc.Z)
 }
 
 // roamDuration is a time evenly between lo and hi.

@@ -97,8 +97,12 @@ type NPC struct {
 	// decayed (corpse.go). Zero while it is alive or its corpse still lies.
 	CorpseGone time.Time
 
-	// roam is its wander round its spawn (roam.go).
-	roam roamState
+	// roam is its wander round its spawn (roam.go), and spots the places it
+	// wanders between, with the ways between them it has tried (roam.go's
+	// leg cache; nil until it first wanders on the ground). spots outlives
+	// roam: a death, a fight or no player near leaves them.
+	roam  roamState
+	spots *wanderSpots
 
 	// chase is a fight's movement: its chase, its leash and the way home
 	// (chase.go).

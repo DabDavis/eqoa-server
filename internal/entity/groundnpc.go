@@ -32,6 +32,7 @@ func (w *World) SetGround(g Ground) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.ground = g
+	w.groundGen++
 }
 
 // How near the terrain a creature's spawn must be for it to stand on the

@@ -46,13 +46,22 @@ const npcCalmTicks = 2
 const npcCalmHealPct = 15
 
 // npcRegenSystem is the creatures' healing out of a fight (the file's doc).
-// Every RegenInterval; must be called with the lock held.
+// Every RegenInterval, over the regeneration's set (npcsets.go): the NPCs
+// with something to do; must be called with the lock held.
 func (w *World) npcRegenSystem(now time.Time) {
 	if w.TickCount%uint64(RegenInterval/(100*time.Millisecond)) != 0 {
 		return
 	}
-	for _, npc := range w.NPCs {
-		if npc.Dead || npc.Dummy != NotDummy {
+	w.syncNPCSetsLocked()
+	if npcSetsCheck {
+		w.checkNPCSetLocked("regeneration", &w.sets.regen, regenQuiet)
+	}
+	for id, npc := range w.sets.regen.m {
+		if npc = w.setMember(w.sets.regen.m, id, npc); npc == nil {
+			continue
+		}
+		if regenQuiet(npc) {
+			delete(w.sets.regen.m, id) // a corpse, a dummy, or whole and calm
 			continue
 		}
 		if npc.Owner != 0 {
@@ -79,6 +88,7 @@ func (w *World) npcRegenSystem(now time.Time) {
 			log.Printf("Regen: %s is whole again", npc.Name)
 		}
 	}
+	w.sets.regen.tidy()
 }
 
 // petRegen is a pet's tick: its HoT and PoT as a player's base (regen.go),

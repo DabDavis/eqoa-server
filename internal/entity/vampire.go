@@ -388,6 +388,7 @@ func (w *World) forgetLocked(npc *NPC, caster *Player) {
 			top, npc.CurrentEnemy = t, id
 		}
 	}
+	w.wakeNPCLocked(npc) // its next enemy, or its fight to put away (npcsets.go)
 	log.Printf("Cast: %s forgets %s (now on %d)", npc.Name, caster.Name, npc.CurrentEnemy)
 }
 

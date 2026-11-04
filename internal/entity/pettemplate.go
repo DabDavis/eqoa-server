@@ -858,6 +858,7 @@ func (w *World) petTopHateLocked(pet, t *NPC) {
 		t.Threats[pet.ServerID] = top + 1
 	}
 	t.CurrentEnemy = pet.ServerID
+	w.wakeNPCLocked(t) // npcsets.go
 }
 
 // PetTemplateSummary is the pets' templates for the server's log.

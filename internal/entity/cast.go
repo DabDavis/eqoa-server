@@ -1628,7 +1628,11 @@ func (w *World) effectSystem(now time.Time) {
 		if len(npc.Effects) == 0 || npc.Dead || w.NPCs[id] != npc {
 			npc.Effects = nil
 			if !npc.Dead && npc.effMaxHP != 0 {
+				was := npc.MaxHP
 				npc.syncEffectMaxHP() // its last maximum's effect ended (pet.go)
+				if npc.MaxHP > was {
+					w.wakeNPCLocked(npc) // short of its maximum: the regeneration's (npcsets.go)
+				}
 			}
 			delete(w.affected, id)
 			continue
@@ -1640,7 +1644,11 @@ func (w *World) effectSystem(now time.Time) {
 			}
 		}
 		npc.Effects = left
+		was := npc.MaxHP
 		npc.syncEffectMaxHP() // a maximum's effect that ended taken back (pet.go)
+		if npc.MaxHP > was {
+			w.wakeNPCLocked(npc) // short of its maximum: the regeneration's (npcsets.go)
+		}
 		for _, ae := range append([]*ActiveEffect(nil), npc.Effects...) {
 			w.tickNPCEffectLocked(npc, ae, now)
 			if npc.Dead {

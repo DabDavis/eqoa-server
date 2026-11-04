@@ -396,6 +396,7 @@ func TestThePetsStance(t *testing.T) {
 		r.enemy.X = r.p.X + 5 // within a creature's reach of the owner
 		if c.attacks {
 			r.enemy.CurrentEnemy = r.p.ServerID
+			r.w.wakeNPCLocked(r.enemy) // a fight begun by hand (npcsets.go)
 		}
 		if c.fights {
 			r.p.AttackTarget = r.enemy.ServerID

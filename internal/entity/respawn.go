@@ -111,6 +111,7 @@ func (w *World) dropAggroLocked(id EntityID) {
 				npc.CurrentEnemy = other
 			}
 		}
+		w.wakeNPCLocked(npc) // its next enemy, or its fight to put away (npcsets.go)
 	}
 }
 

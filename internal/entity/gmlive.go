@@ -41,11 +41,12 @@ func (w *World) UpsertNPC(rec *database.NPCRecord, class int) (created bool, err
 		}
 		oldX, oldZ := existing.X, existing.Z
 		*existing = *fresh
+		w.npcChangedLocked(existing) // npcsets.go
 		w.SpatialIndex.Update(existing.ServerID, oldX, oldZ, existing.X, existing.Z)
 		delete(w.affected, existing.ServerID)
 		return false, nil
 	}
-	w.NPCs[fresh.ServerID] = fresh
+	w.putNPCLocked(fresh)
 	w.SpatialIndex.Insert(fresh.ServerID, fresh.X, fresh.Z)
 	return true, nil
 }
@@ -256,6 +257,7 @@ func (w *World) ReloadNPCs(store *database.NPCStore) (loaded, removed int, err e
 			fresh.HiddenUntil = hold
 			oldX, oldZ := existing.X, existing.Z
 			*existing = *fresh
+			w.npcChangedLocked(existing) // npcsets.go
 			w.SpatialIndex.Update(existing.ServerID, oldX, oldZ, existing.X, existing.Z)
 			delete(w.affected, existing.ServerID)
 			loaded++
@@ -263,7 +265,7 @@ func (w *World) ReloadNPCs(store *database.NPCStore) (loaded, removed int, err e
 		}
 		keep[fresh.ServerID] = true
 		fresh.HiddenUntil = hold
-		w.NPCs[fresh.ServerID] = fresh
+		w.putNPCLocked(fresh)
 		w.SpatialIndex.Insert(fresh.ServerID, fresh.X, fresh.Z)
 		loaded++
 	}

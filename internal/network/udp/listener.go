@@ -33,6 +33,7 @@ type Listener struct {
 	handlers       *HandlerRegistry
 	gameWorld      *entity.World
 	charStore      *database.SQLiteCharacterStore
+	tickInterval   time.Duration // StartTickRoutine's, for the tick timer (entity/ticktime.go)
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -337,6 +338,7 @@ func (l *Listener) SendToSession(data []byte, sess *session.Session) error {
 // StartTickRoutine starts a background goroutine that ticks all sessions periodically.
 // This ensures keepalives and state updates are sent even when the client is silent.
 func (l *Listener) StartTickRoutine(interval time.Duration) func() {
+	l.tickInterval = interval
 	ticker := time.NewTicker(interval)
 	done := make(chan struct{})
 
@@ -362,12 +364,15 @@ func (l *Listener) StartTickRoutine(interval time.Duration) func() {
 	}
 }
 
-// tickAllSessions runs ECS systems and then ticks all active sessions.
+// tickAllSessions runs ECS systems and then ticks all active sessions; the
+// world's tick timer is told how long each part took (entity/ticktime.go).
 func (l *Listener) tickAllSessions() {
+	start := time.Now()
 	// Run ECS tick: process commands, AI, respawn, regen, state sync
 	if l.gameWorld != nil {
-		l.gameWorld.Tick(time.Now())
+		l.gameWorld.Tick(start)
 	}
+	worldDone := time.Now()
 
 	// Send packets for all sessions
 	rdp := NewRDPHandler(l)
@@ -417,6 +422,9 @@ func (l *Listener) tickAllSessions() {
 	// Remove terminated sessions and their ECS entities
 	for _, sess := range toRemove {
 		l.endSession(sess)
+	}
+	if l.gameWorld != nil {
+		l.gameWorld.TickTurn(start, worldDone, time.Now(), l.tickInterval)
 	}
 }
 

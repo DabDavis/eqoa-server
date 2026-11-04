@@ -432,7 +432,7 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 		pet.SwingFixed, pet.SwingKind, pet.SwingRound = true, k, round // Sandstorm's (petrotation.go)
 		hitScale = was / petHitRate(pet)                               // its damage a second kept
 	}
-	w.NPCs[pet.ServerID] = pet
+	w.putNPCLocked(pet)
 	w.SpatialIndex.Insert(pet.ServerID, pet.X, pet.Z)
 	if w.pets == nil {
 		w.pets = make(map[EntityID]*petState)
@@ -1016,6 +1016,7 @@ func (w *World) petTauntLocked(ps *petState, t *NPC, now time.Time) bool {
 			t.Threats[pet.ServerID] = top + 1
 		}
 		t.CurrentEnemy = pet.ServerID
+		w.wakeNPCLocked(t) // npcsets.go
 	}
 	n := petMeleeHit(pet, t, meleeIntn)
 	if petName(pet.Name) == grandAnimation {
@@ -1300,6 +1301,7 @@ func (w *World) retargetLocked(npc *NPC) {
 			npc.CurrentEnemy = id
 		}
 	}
+	w.wakeNPCLocked(npc) // its next enemy, or its fight to put away (npcsets.go)
 }
 
 // landOnPetLocked is a beneficial spell on a pet: a heal now, and what lasts

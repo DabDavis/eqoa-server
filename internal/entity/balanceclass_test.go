@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"math"
 	"testing"
 	"time"
 
@@ -154,7 +155,13 @@ func TestAClassDealtShareByLevel(t *testing.T) {
 		c.w.playerHitLocked(c.sess, c.p, npc, 0x01312E99)
 		return spell, 50000 - npc.HP
 	}
-	plain := SeedBalance().WithClassLevels(nil)
+	// the players' melee share by the creature's level (its own test below) held at all of it, as the share by
+	// class and level is what this measures
+	whole := func(b *Balance) *Balance {
+		return b.WithLevelColumn([][2]float64{{1, 100}}, func(r *database.BalanceLevel, v float64) { r.PlayerMeleePct = v })
+	}
+	b = whole(b)
+	plain := whole(SeedBalance().WithClassLevels(nil))
 	s, m := hits(b, 13)
 	_, m0 := hits(plain, 13)
 	if s != 150 || m != pct(m0, 150) || m0 < 2 {
@@ -164,6 +171,77 @@ func TestAClassDealtShareByLevel(t *testing.T) {
 	_, wm0 := hits(plain, 0)
 	if ws != 100 || wm != wm0 {
 		t.Errorf("the control, a warrior of 10 with no rows: its spell's 100 landed %d, its melee %d of %d", ws, wm, wm0)
+	}
+}
+
+// The players' melee by the creature's level and by the player's class and
+// level (the user, 2026-11-04: at levels 1-10 the creatures' hit points and
+// "players melee damage lower also", the healers' and casters' melee more):
+// an auto-attack hit on a creature of 10 lands its level's player_melee_pct
+// times its class's melee_dealt_pct (50 x 300: one and a half times), its
+// spells all of theirs; on a creature of 11 (its level's share 100) the
+// class's alone, three times.
+// pctByChance holds a share on average for a hit of 2 at 75% (1.5, where
+// rounding to the nearest keeps 2). The control: with both columns at 100 the
+// same hits land as they are.
+func TestAPlayersMeleeShareByLevelAndClass(t *testing.T) {
+	b := SeedBalance().WithLevelColumn([][2]float64{{1, 100}, {9, 100}, {10, 50}, {11, 100}},
+		func(r *database.BalanceLevel, v float64) { r.PlayerMeleePct = v }).
+		WithClassLevels([]database.BalanceClassLevel{{Class: 9, Level: 10, MeleeTakenPct: 100, MeleeDealtPct: 300}})
+	if got := b.PlayerMeleePctAt(10); got != 50 {
+		t.Errorf("player_melee_pct at 10: %g", got)
+	}
+	if got := b.MeleeDealtPctAt(9, 10); got != 300 {
+		t.Errorf("melee_dealt_pct of a cleric of 10: %g", got)
+	}
+	if got := b.MeleeDealtPctAt(0, 10); got != 100 {
+		t.Errorf("a class with no row: %g, want all of it", got)
+	}
+	hits := func(b *Balance, class, npcLevel int) (spell, melee int) {
+		c := newCaster(t)
+		c.w.balance = b
+		c.p.Class, c.p.Level = class, 10
+		c.p.Gear.WeaponDamage, c.p.Gear.WeaponCond = 40, 1
+		npc := &NPC{ServerID: 2003, Name: "a test orc", Level: npcLevel, HP: 50000, MaxHP: 50000, X: 101, Y: 10, Z: 100}
+		c.w.NPCs[npc.ServerID] = npc
+		was := meleeIntn
+		meleeIntn = func(n int) int { return n - 1 }
+		defer func() { meleeIntn = was }()
+		c.w.mu.Lock()
+		defer c.w.mu.Unlock()
+		c.w.spellHitLocked(c.p, c.sess, npc, 100)
+		spell = 50000 - npc.HP
+		npc.HP = 50000
+		c.w.playerHitLocked(c.sess, c.p, npc, 0x01312E99)
+		return spell, 50000 - npc.HP
+	}
+	whole := SeedBalance().WithLevelColumn([][2]float64{{1, 100}}, func(r *database.BalanceLevel, v float64) { r.PlayerMeleePct = v }).
+		WithClassLevels(nil)
+	for _, npcLevel := range []int{10, 11} {
+		s, m := hits(b, 9, npcLevel)
+		s0, m0 := hits(whole, 9, npcLevel)
+		share := 3.0 // a creature of 11: the class's 300 alone
+		if npcLevel == 10 {
+			share = 1.5 // 50 x 300
+		}
+		want := int(math.Floor(float64(m0) * share)) // the dice above never round up
+		if s != s0 || m != want || m0 < 2 {
+			t.Errorf("a cleric of 10 on a creature of %d: spell %d (all: %d), melee %d (want %d of %d)", npcLevel, s, s0, m, want, m0)
+		}
+	}
+	if s, m := hits(whole, 0, 10); s != 100 || m < 2 {
+		t.Errorf("the control, both columns at 100: spell %d, melee %d", s, m)
+	}
+	n, sum := 0, 0
+	intn := func(k int) int { n++; return (n * 7919) % k } // spread over the range
+	for range 10000 {
+		sum += pctByChance(2, 75, intn)
+	}
+	if avg := float64(sum) / 10000; avg < 1.45 || avg > 1.55 || pct(2, 75) != 2 {
+		t.Errorf("a hit of 2 at 75%%: %.3f on average by chance (pct: %d)", avg, pct(2, 75))
+	}
+	if got := pctByChance(1, 50, func(int) int { return 0 }); got != 1 {
+		t.Errorf("a hit of 1 at 50%%: %d, want at least 1", got)
 	}
 }
 

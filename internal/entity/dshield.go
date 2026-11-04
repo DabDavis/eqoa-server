@@ -239,14 +239,6 @@ func rangerCoat(name string) bool {
 	return strings.HasSuffix(n, "coat") && !strings.Contains(n, " ")
 }
 
-// rangerCoatShield reports one of the ranger's coats or its mastery ("Barbcoat
-// +"), whose workbook defensive proc is a damage shield (spelljson.go's
-// readProcsJSON): rangerCoat with the mastery's " +" taken off. The druid's
-// coats are two words ("Storm Coat") and stay as the workbook files them.
-func rangerCoatShield(name string) bool {
-	return rangerCoat(strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(name), "+")))
-}
-
 // readShield is what the spell's name and description say of its shield: a
 // ranger's coat's hit is its damage shield, and a shield whose description
 // says it hurts undead answers undead alone.

@@ -544,7 +544,7 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 	if attacker.Swing.Potion != 0 {
 		return w.thrownPotionHitLocked(sess, attacker, npc, objectID) // potion.go
 	}
-	damage := w.dealtLocked(npc, attacker, playerMeleeHit(attacker, npc, meleeIntn)) // balance.go
+	damage := w.meleeDealtLocked(npc, attacker, playerMeleeHit(attacker, npc, meleeIntn), meleeIntn) // balance.go
 	if npc.Dummy != NotDummy {
 		// told, taken off nothing; the dummy fights back (dummy.go)
 		now := time.Now()

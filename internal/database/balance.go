@@ -62,6 +62,13 @@ import (
 // cast at a creature), the milliseconds from one's start before another may
 // start (entity/balance.go ArtCooldown).
 //
+// balancelevel's player_melee_pct is the share of a player's own melee (its
+// auto-attack's hits) that lands on an NPC of the level (100 all of it; the
+// user, 2026-11-04: at levels 1-10 the creatures' hit points lower and
+// "players melee damage lower also"), times balanceclasslevel's
+// melee_dealt_pct for the player's class and level: spells, procs and damage
+// shields not.
+//
 // balancelevel's pet_special_hits is by a summoned pet's balance level (its
 // owner's, as pet_damage_pct): how many of its own melee hits a
 // necromancer's spectre's instant lands in one blow (entity/petrotation.go),
@@ -88,6 +95,7 @@ const balanceSchema = `
 		art_cooldown_ms REAL NOT NULL DEFAULT 0,
 		regen_pct      REAL NOT NULL DEFAULT 15,
 		pet_special_hits REAL NOT NULL DEFAULT 1.5,
+		player_melee_pct REAL NOT NULL DEFAULT 100,
 		note           TEXT NOT NULL DEFAULT '',
 		source         TEXT NOT NULL DEFAULT 'gm'
 	);
@@ -112,6 +120,7 @@ const balanceSchema = `
 		melee_taken_pct REAL NOT NULL DEFAULT 100,
 		pet_hp_pct      REAL NOT NULL DEFAULT 100,
 		dealt_pct       REAL NOT NULL DEFAULT 100,
+		melee_dealt_pct REAL NOT NULL DEFAULT 100,
 		note            TEXT NOT NULL DEFAULT '',
 		source          TEXT NOT NULL DEFAULT 'gm',
 		PRIMARY KEY (class, level)
@@ -131,7 +140,20 @@ type BalanceLevel struct {
 	// PetSpecialHits is how many of a spectre's own melee hits its instant
 	// lands, by the pet's balance level (the file's doc)
 	PetSpecialHits float64
+	// PlayerMeleePct is the share of a player's own melee that lands on an
+	// NPC of the level (the file's doc); 0 in a row made in code is all of
+	// it, as 100
+	PlayerMeleePct float64
 	Note           string
+}
+
+// PlayerMelee is the row's player_melee_pct, 100 when it was made in code
+// without one.
+func (r BalanceLevel) PlayerMelee() float64 {
+	if r.PlayerMeleePct <= 0 {
+		return 100
+	}
+	return r.PlayerMeleePct
 }
 
 // BalanceClass is one row of balanceclass.
@@ -151,7 +173,12 @@ type BalanceClassLevel struct {
 	// DealtPct is the share of the player's own damage that lands on an NPC
 	// (the file's doc); 0 in a row made in code is all of it, as 100
 	DealtPct float64
-	Note     string
+	// MeleeDealtPct is the share of the player's own melee (its auto-attack's
+	// hits) that lands, times DealtPct's; 0 in a row made in code is all of
+	// it, as 100 (the user, 2026-11-04: at levels 1-10 "players melee damage
+	// lower", "healers/casters do more melee damage")
+	MeleeDealtPct float64
+	Note          string
 }
 
 // Dealt is the row's dealt_pct, 100 when it was made in code without one.
@@ -160,6 +187,15 @@ func (r BalanceClassLevel) Dealt() float64 {
 		return 100
 	}
 	return r.DealtPct
+}
+
+// MeleeDealt is the row's melee_dealt_pct, 100 when it was made in code
+// without one.
+func (r BalanceClassLevel) MeleeDealt() float64 {
+	if r.MeleeDealtPct <= 0 {
+		return 100
+	}
+	return r.MeleeDealtPct
 }
 
 // balanceColumn is a column added to a balance table after the table was
@@ -205,9 +241,17 @@ var balanceColumns = []balanceColumn{
 	// and before its dealt column (eqoaclassic's of 2026-10-30 00:27, which
 	// tools/retune_balance.py writes it in): every row all of its damage
 	{"balanceclasslevel", "dealt_pct", "REAL NOT NULL DEFAULT 100", "class", func() map[int]float64 { return nil }},
+	// and before its melee column (2026-11-04): every row all of its melee,
+	// as before; the fit of levels 1-10 writes its rows
+	{"balanceclasslevel", "melee_dealt_pct", "REAL NOT NULL DEFAULT 100", "class", func() map[int]float64 { return nil }},
 	// the spectre's instant (2026-10-30): every row the column's default,
 	// which is the seed's (BalancePetSpecialHitsDefault)
 	{"balancelevel", "pet_special_hits", "REAL NOT NULL DEFAULT 1.5", "level", func() map[int]float64 { return nil }},
+	// and before the players' melee on a level (2026-11-04): every row all of
+	// it, as before, whatever the seed says (the seed's hit points at 1-10
+	// came down with its cut, and an older table's did not:
+	// tools/refit_low_levels.py writes both)
+	{"balancelevel", "player_melee_pct", "REAL NOT NULL DEFAULT 100", "level", func() map[int]float64 { return nil }},
 }
 
 // BalancePetSpecialHitsDefault is pet_special_hits' default and every seed
@@ -306,8 +350,9 @@ func (db *SQLiteDB) ensureBalance() error {
 	if fresh["balancelevel"] {
 		for _, r := range BalanceSeedLevels {
 			if _, err := db.Exec(`INSERT OR IGNORE INTO balancelevel (level, hp_pct, damage_pct, con_pct, pet_hp_pct, pet_damage_pct,
-				art_cooldown_ms, regen_pct, pet_special_hits, note, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'seed')`, r.Level, r.HPPct,
-				r.DamagePct, r.ConPct, r.PetHPPct, r.PetDamagePct, r.ArtCooldownMS, r.RegenPct, r.PetSpecialHits, r.Note); err != nil {
+				art_cooldown_ms, regen_pct, pet_special_hits, player_melee_pct, note, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'seed')`,
+				r.Level, r.HPPct, r.DamagePct, r.ConPct, r.PetHPPct, r.PetDamagePct, r.ArtCooldownMS, r.RegenPct, r.PetSpecialHits,
+				r.PlayerMelee(), r.Note); err != nil {
 				return fmt.Errorf("balancelevel: %w", err)
 			}
 		}
@@ -330,8 +375,9 @@ func (db *SQLiteDB) ensureBalance() error {
 	// older con rows
 	if fresh["balanceclasslevel"] && fresh["balancelevel"] {
 		for _, r := range BalanceSeedClassLevels {
-			if _, err := db.Exec(`INSERT OR IGNORE INTO balanceclasslevel (class, level, melee_taken_pct, pet_hp_pct, dealt_pct, note,
-				source) VALUES (?, ?, ?, ?, ?, ?, 'seed')`, r.Class, r.Level, r.MeleeTakenPct, r.PetHPPct, r.Dealt(), r.Note); err != nil {
+			if _, err := db.Exec(`INSERT OR IGNORE INTO balanceclasslevel (class, level, melee_taken_pct, pet_hp_pct, dealt_pct,
+				melee_dealt_pct, note, source) VALUES (?, ?, ?, ?, ?, ?, ?, 'seed')`, r.Class, r.Level, r.MeleeTakenPct, r.PetHPPct,
+				r.Dealt(), r.MeleeDealt(), r.Note); err != nil {
 				return fmt.Errorf("balanceclasslevel: %w", err)
 			}
 		}
@@ -349,7 +395,8 @@ func (db *SQLiteDB) ensureBalance() error {
 
 // BalanceClassLevels is every row of balanceclasslevel, by class and level.
 func (db *SQLiteDB) BalanceClassLevels() ([]BalanceClassLevel, error) {
-	rows, err := db.Query(`SELECT class, level, melee_taken_pct, pet_hp_pct, dealt_pct, note FROM balanceclasslevel ORDER BY class, level`)
+	rows, err := db.Query(`SELECT class, level, melee_taken_pct, pet_hp_pct, dealt_pct, melee_dealt_pct, note FROM balanceclasslevel
+		ORDER BY class, level`)
 	if err != nil {
 		return nil, err
 	}
@@ -357,7 +404,7 @@ func (db *SQLiteDB) BalanceClassLevels() ([]BalanceClassLevel, error) {
 	var out []BalanceClassLevel
 	for rows.Next() {
 		var r BalanceClassLevel
-		if err := rows.Scan(&r.Class, &r.Level, &r.MeleeTakenPct, &r.PetHPPct, &r.DealtPct, &r.Note); err != nil {
+		if err := rows.Scan(&r.Class, &r.Level, &r.MeleeTakenPct, &r.PetHPPct, &r.DealtPct, &r.MeleeDealtPct, &r.Note); err != nil {
 			return nil, err
 		}
 		out = append(out, r)
@@ -386,7 +433,7 @@ func (db *SQLiteDB) BalanceClasses() ([]BalanceClass, error) {
 // BalanceLevels is every row of balancelevel, by level.
 func (db *SQLiteDB) BalanceLevels() ([]BalanceLevel, error) {
 	rows, err := db.Query(`SELECT level, hp_pct, damage_pct, con_pct, pet_hp_pct, pet_damage_pct, art_cooldown_ms, regen_pct,
-		pet_special_hits, note FROM balancelevel ORDER BY level`)
+		pet_special_hits, player_melee_pct, note FROM balancelevel ORDER BY level`)
 	if err != nil {
 		return nil, err
 	}
@@ -395,7 +442,7 @@ func (db *SQLiteDB) BalanceLevels() ([]BalanceLevel, error) {
 	for rows.Next() {
 		var r BalanceLevel
 		if err := rows.Scan(&r.Level, &r.HPPct, &r.DamagePct, &r.ConPct, &r.PetHPPct, &r.PetDamagePct, &r.ArtCooldownMS,
-			&r.RegenPct, &r.PetSpecialHits, &r.Note); err != nil {
+			&r.RegenPct, &r.PetSpecialHits, &r.PlayerMeleePct, &r.Note); err != nil {
 			return nil, err
 		}
 		out = append(out, r)

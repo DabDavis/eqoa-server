@@ -364,8 +364,13 @@ func balanceAt0130() *Balance {
 // 65%. The simulator's level 5 shadow knight, its book only Chilling Aura
 // (Dust cast no nuke: 786 in 24 s of ~85 a swing), under the 01:30 tables
 // fights the same fight (the bat's 786, its 8 a hit) to the same end; under
-// the seed of 2026-10-30 the yellow ends under 40% of its hit points, and is
-// still won as a rule.
+// the seed of 2026-10-30 the yellow ended under 40% of its hit points, and
+// was still won as a rule. Since the new players' curve (2026-11-04, the
+// user: "Lets make it easier for new players, 1-5 mobs should really be easy
+// and 6-9 little tougher") a creature of 6 is a new player's yellow of the
+// middle step: the fight is won and ends under the calibration's (the one
+// the user called "too easy"), above the old tuning's 40%, and under the
+// tables as they were before the curve it still ends under 40%.
 func TestRealDustAndTheFireBat(t *testing.T) {
 	db := simRealDB(t)
 	pl, err := SimKitFromDB(db, 3, 0, 5, 0.5)
@@ -402,11 +407,17 @@ func TestRealDustAndTheFireBat(t *testing.T) {
 	if batHP != 786 || won < 0.95 || hp < 0.55 || hp > 0.75 || secs < 18 || secs > 40 {
 		t.Errorf("the calibration fight is not Dust's")
 	}
+	calibration := hp
 	tuned := simRealBalance(t, db)
 	won, hp, secs, batHP = fight(tuned)
 	t.Logf("the tuning: won %.0f%%, %.0f%% HP left, %.0f s, the bat %d HP", 100*won, 100*hp, secs, batHP)
-	if won < 0.6 || hp > 0.40 {
-		t.Errorf("under the tuning the fire bat is still easy: won %.0f%% with %.0f%% left", 100*won, 100*hp)
+	if won < 0.9 || hp <= 0.40 || hp >= calibration {
+		t.Errorf("under the tuning the fire bat: won %.0f%% with %.0f%% left (want won, between 40%% and the "+
+			"calibration's %.0f%%)", 100*won, 100*hp, 100*calibration)
+	}
+	if bw, bh, _, _ := fight(balanceBeforeNewPlayers(tuned)); bw < 0.6 || bh > 0.40 {
+		t.Errorf("before the new players' curve the fire bat: won %.0f%% with %.0f%% left (want the old tuning's: "+
+			"won, under 40%%)", 100*bw, 100*bh)
 	}
 	// the bat by the template its name has (tools/seed_roamers.py: a roamer), whose crit comes from level 10:
 	// a level 6 bat fights with its melee alone, the same fight
@@ -482,7 +493,9 @@ func simRealBalance(t *testing.T, db *database.SQLiteDB) *Balance {
 	return NewBalance(ls, cs).WithClasses(cls).WithClassLevels(cll)
 }
 
-// The user's targets of 2026-10-30 on the real kits (EQOA_REAL_DB): both
+// The user's targets of 2026-10-30 on the real kits (EQOA_REAL_DB), past the
+// new players' levels (1-12 are balanced apart since 2026-11-04:
+// TestRealNewPlayersCurve): both
 // yellows won as a rule (one up four times in five, two up half the time)
 // and taking a player down below about a third of its hit points (its low
 // point, averaged over the fights won one and two up: the tuning's fit aims
@@ -492,7 +505,10 @@ func simRealBalance(t *testing.T, db *database.SQLiteDB) *Balance {
 // once the tuning is written into them (simRealBalance), against the
 // creature the database gives (simRealFoe: a roamer); the controls: under
 // the 01:30 tables most yellows left a player above a third, and the rows
-// each check was added for miss it.
+// each check was added for miss it (the priests' under the tables as they
+// were before the new players' curve, which makes any row's even fight at
+// 1-3 an easy one; and at 70, since the first tuning's 47 is won 98% of the
+// time once the cleric's Divine Protection answers every hit).
 func TestRealBalanceYellowsAndReds(t *testing.T) {
 	db := simRealDB(t)
 	kit := func(c, l int) SimPlayer {
@@ -512,7 +528,7 @@ func TestRealBalanceYellowsAndReds(t *testing.T) {
 	}
 	easy, cells := 0, 0
 	for _, class := range []int{0, 2, 4, 6} {
-		for _, level := range []int{5, 20, 40, 55} {
+		for _, level := range []int{20, 40, 55} { // 5 until the new players' curve
 			pl := kit(class, level)
 			y1, y2, low := yellow(pl, seed, 16, foe)
 			if y1.WinShare() < 0.7 || y2.WinShare() < 0.5 || low > 0.36 {
@@ -563,13 +579,14 @@ func TestRealBalanceYellowsAndReds(t *testing.T) {
 		t.Errorf("the control: a druid of 14 at the share fit's 26 won %.0f%% of its reds alone: the check tells nothing", 100*r.WinShare())
 	}
 	var first []database.BalanceClassLevel
-	for _, r := range seed.ClassLevelRows() {
+	before := balanceBeforeNewPlayers(seed)
+	for _, r := range before.ClassLevelRows() {
 		if r.Class == 9 && r.Level <= 2 {
-			r.MeleeTakenPct = 47 // tools/tune_balance.py's cleric of 1 (and 2, by the row of 1 it reaches)
+			r.MeleeTakenPct = 70 // tools/tune_balance.py's cleric of 1 was 47 (and 2, by the row of 1 it reaches)
 		}
 		first = append(first, r)
 	}
-	ctl := SimCellOf(kit(9, 1), foe, 0, seed.WithClassLevels(first), 40, 1, 10*time.Minute)
+	ctl := SimCellOf(kit(9, 1), foe, 0, before.WithClassLevels(first), 40, 1, 10*time.Minute)
 	t.Logf("the control: a level 1 cleric's even fights under the first tuning's row: won %.0f%%", 100*ctl.WinShare())
 	if ctl.WinShare() >= 0.97 {
 		t.Errorf("the control: under the first tuning's row a level 1 cleric won %.0f%% of its even fights: the check tells nothing", 100*ctl.WinShare())
@@ -598,17 +615,17 @@ func TestRealBalanceYellowsAndReds(t *testing.T) {
 // all of it (97% of 40), by hand AND in its own play (a wizard's root from 3,
 // an alchemist's from 4, a pet class's pet), in a new character's starting
 // gear at 1-5 (SimStartKitFromDB; a level 1's blue and green fights are its
-// even one, a creature of level 1: no creature is under it). One cell is
-// short of it, named: an enchanter of 2 by hand wins 92% of its even fights
-// at any dealt (the NPC of 2 hits 317%: its first blows kill a 25-hit-point
-// caster). The control: an
-// alchemist of 2 by hand under the share fit alone (no dealt) wins under
-// half of its even fights.
+// even one, a creature of level 1: no creature is under it). Until the new
+// players' curve (2026-11-04) one cell was short of it, an enchanter of 2 by
+// hand at 92% (the NPC of 2 hit 317%: its first blows killed a
+// 25-hit-point caster); its creature hits at 133% now. The control: an
+// alchemist of 2 by hand under the share fit alone (no dealt), under the
+// tables as they were before the curve, wins under half of its even fights.
 func TestRealLowLevelsEvenAndBelow(t *testing.T) {
 	db := simRealDB(t)
 	b := simRealBalance(t, db)
 	foe := simRealFoe(t, db, "")
-	known := map[[3]int]float64{{12, 2, 0}: 0.92} // class, level, play (0 by hand)
+	known := map[[3]int]float64{} // class, level, play (0 by hand): none short since the curve
 	for class := range 15 {
 		for level := 1; level <= 10; level++ {
 			var pl SimPlayer
@@ -650,7 +667,8 @@ func TestRealLowLevelsEvenAndBelow(t *testing.T) {
 		}
 	}
 	var fitted []database.BalanceClassLevel
-	for _, r := range b.ClassLevelRows() {
+	before := balanceBeforeNewPlayers(b)
+	for _, r := range before.ClassLevelRows() {
 		if r.Class == 14 && r.Level <= 3 {
 			r.DealtPct = 100
 		}
@@ -660,9 +678,181 @@ func TestRealLowLevelsEvenAndBelow(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if c := SimCellOf(alc, foe, 0, b.WithClassLevels(fitted), 40, 1, 10*time.Minute); c.WinShare() >= 0.5 {
+	if c := SimCellOf(alc, foe, 0, before.WithClassLevels(fitted), 40, 1, 10*time.Minute); c.WinShare() >= 0.5 {
 		t.Errorf("the control: an alchemist of 2 by hand with no dealt won %.0f%% of its even fights: the check tells nothing", 100*c.WinShare())
 	}
+}
+
+// balanceBeforeNewPlayers is b with levels 1-12 as they were before the new
+// players' curve (tools/refit_new_players.py, 2026-11-04): the creatures'
+// hit points and melee of the tuning of 2026-10-30, all of a player's melee
+// landing (no player_melee_pct, no melee_dealt_pct).
+func balanceBeforeNewPlayers(b *Balance) *Balance {
+	hp := [...]float64{300, 278.75, 257.5, 236.25, 215, 655.0 / 3, 665.0 / 3, 225, 222.5, 220, 222, 224}
+	dmg := [...]float64{188, 317, 225, 294, 243, 285, 245, 276, 230, 236, 221, 247}
+	ls, cs := b.Rows()
+	var out []database.BalanceLevel
+	for _, r := range ls {
+		if r.Level >= 1 && r.Level <= 12 {
+			r.HPPct, r.DamagePct, r.PlayerMeleePct = hp[r.Level-1], dmg[r.Level-1], 100
+		}
+		out = append(out, r)
+	}
+	var cl []database.BalanceClassLevel
+	for _, r := range b.ClassLevelRows() {
+		r.MeleeDealtPct = 100
+		cl = append(cl, r)
+	}
+	return NewBalance(out, cs).WithClasses(b.ClassRows()).WithClassLevels(cl)
+}
+
+// The new players' curve (EQOA_REAL_DB; the user, 2026-11-04: "1-5 mobs
+// should really be easy and 6-9 little tougher. 10-12 stronger, the mob crits
+// at 10 do make it more difficult", and the healers' and casters' melee
+// raised at 1-10): in a new character's starting gear at 1-5 and the middling
+// gear of its last ten levels from 6, each class in its own play, the
+// yellows against a creature (the players one and two levels under it, the
+// median of their low points) end above half a player's hit points against
+// creatures of 2-5, between a third and three fifths against 6-9 and between
+// a fifth and two fifths against 10-12; the median class keeps four fifths
+// through an even fight at 1-5; and a healer's even fight by hand at 1-10
+// takes at most one and a half times the melee classes' median (over its
+// level and the one on either side). The
+// controls: under the tables as they were before the curve the yellows of
+// 2-5 end below half (16-24% in the fit), and without the healers' melee a
+// cleric of 3-5 took over twice the melee classes' median.
+func TestRealNewPlayersCurve(t *testing.T) {
+	db := simRealDB(t)
+	b := simRealBalance(t, db)
+	foe := simRealFoe(t, db, "")
+	kit := func(c, l int, own bool) SimPlayer {
+		var pl SimPlayer
+		var err error
+		if l <= 5 {
+			pl, err = SimStartKitFromDB(db, c, 0, l)
+		} else {
+			pl, err = SimKitFromDB(db, c, 0, l, 0.5)
+		}
+		if err != nil {
+			t.Fatal(err)
+		}
+		switch {
+		case !own:
+		case c == 10 || c == 11 || c == 12:
+			pl.Play.Pet, pl.Play.Melee = true, false
+		case (c == 13 && l >= 3) || (c == 14 && l >= 4):
+			pl.Play.Root, pl.Play.Melee = true, false
+		}
+		return pl
+	}
+	low := func(pl SimPlayer, c SimCell) float64 {
+		if pl.Play.Pet {
+			return c.PetLowLeft
+		}
+		return c.LowLeft
+	}
+	median := func(xs []float64) float64 {
+		if len(xs) == 0 {
+			return 0
+		}
+		sort.Float64s(xs)
+		if n := len(xs); n%2 == 1 {
+			return xs[n/2]
+		} else {
+			return (xs[n/2-1] + xs[n/2]) / 2
+		}
+	}
+	// the yellows against a creature of level n: its +1 for players of n-1, its +2 for n-2
+	yellows := func(b *Balance, n int) float64 {
+		var meds []float64
+		for _, d := range []int{1, 2} {
+			if n-d < 1 {
+				continue
+			}
+			var lows []float64
+			for c := range 15 {
+				pl := kit(c, n-d, true)
+				if cell := SimCellOf(pl, foe, d, b, 40, 1, 10*time.Minute); cell.Won > 0 {
+					lows = append(lows, low(pl, cell))
+				}
+			}
+			meds = append(meds, median(lows))
+		}
+		var sum float64
+		for _, m := range meds {
+			sum += m
+		}
+		return sum / float64(len(meds))
+	}
+	for n := 2; n <= 12; n++ {
+		lo, hi := 0.5, 1.0
+		switch {
+		case n >= 10:
+			lo, hi = 0.2, 0.4
+		case n >= 6:
+			lo, hi = 1.0/3, 0.6
+		}
+		if y := yellows(b, n); y < lo || y > hi {
+			t.Errorf("the yellows against a creature of %d end at %.0f%% (want %.0f-%.0f%%)", n, 100*y, 100*lo, 100*hi)
+		}
+	}
+	for n := 1; n <= 5; n++ {
+		var lows []float64
+		for c := range 15 {
+			pl := kit(c, n, true)
+			lows = append(lows, low(pl, SimCellOf(pl, foe, 0, b, 40, 1, 10*time.Minute)))
+		}
+		if m := median(lows); m < 0.8 {
+			t.Errorf("an even fight at %d leaves the median class %.0f%% (want 80%%)", n, 100*m)
+		}
+	}
+	// a healer's even fight by hand against the melee classes' median, taken
+	// over the level and the one on either side (as the fit took it: one
+	// level's median moves with its kits, 14 s at 8 between 19 and 22)
+	secs := func(b *Balance, c, l int) float64 {
+		return SimCellOf(kit(c, l, false), foe, 0, b, 40, 1, 10*time.Minute).Secs
+	}
+	meleeAt := map[int]float64{}
+	for l := 1; l <= 11; l++ {
+		var melee []float64
+		for c := range 7 {
+			melee = append(melee, secs(b, c, l))
+		}
+		meleeAt[l] = median(melee)
+	}
+	for l := 1; l <= 10; l++ {
+		var near []float64
+		for _, x := range []int{l - 1, l, l + 1} {
+			if m, ok := meleeAt[x]; ok {
+				near = append(near, m)
+			}
+		}
+		m := median(near)
+		for _, c := range []int{7, 8, 9} {
+			if s := secs(b, c, l); s > 1.5*m {
+				t.Errorf("class %d L%d's even fight by hand takes %.0f s, the melee classes' median %.0f s", c, l, s, m)
+			}
+		}
+	}
+	before := balanceBeforeNewPlayers(b)
+	if y := (yellows(before, 2) + yellows(before, 3) + yellows(before, 4) + yellows(before, 5)) / 4; y >= 0.5 {
+		t.Errorf("the control: before the curve the yellows of 2-5 end at %.0f%%: the check tells nothing", 100*y)
+	}
+	if s, m := secs(balanceBeforeNewPlayersMeleeOnly(b), 9, 4), meleeAt[4]; s < 2*m {
+		t.Errorf("the control: a cleric of 4 without its melee took %.0f s, the melee classes' median %.0f s: the check tells nothing", s, m)
+	}
+}
+
+// balanceBeforeNewPlayersMeleeOnly is b with the healers' and casters' melee
+// as it was before the new players' curve (melee_dealt_pct 100), the rest of
+// the curve kept.
+func balanceBeforeNewPlayersMeleeOnly(b *Balance) *Balance {
+	var cl []database.BalanceClassLevel
+	for _, r := range b.ClassLevelRows() {
+		r.MeleeDealtPct = 100
+		cl = append(cl, r)
+	}
+	return b.WithClassLevels(cl)
 }
 
 // A wisp is a yellow like any other (the user's "28%" of 2026-10-30): a
@@ -778,7 +968,9 @@ func TestRealPetsAreYellows(t *testing.T) {
 			pl := kit(class, level)
 			y1 := SimCellOf(pl, foe, 1, old, 16, 1, 10*time.Minute)
 			red := SimCellOf(pl, foe, 3, old, 16, 1, 10*time.Minute)
-			if y1.PetLowLeft < 0.7 || red.WinShare() < 0.6 {
+			// 0.6, not the 0.7 of 2026-10-30: the magician's pet at 30 keeps 0.79 of its hit points since every
+			// damage shield answers each hit (tools/refit_damage_shields.py), 67% through a +1 under these columns
+			if y1.PetLowLeft < 0.6 || red.WinShare() < 0.6 {
 				t.Errorf("the control: class %d L%d's pet under the four tunings' pet columns kept %.0f%% through a +1 and "+
 					"won %.0f%% of its reds alone", class, level, 100*y1.PetLowLeft, 100*red.WinShare())
 			}

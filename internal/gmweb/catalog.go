@@ -826,7 +826,9 @@ var catalog = map[string]tableNote{
 			"a fight, every 6 s from its third tick (a pet heals as a player does, whatever this says). pet_special_hits, " +
 			"by a summoned pet's owner's level as the pet columns are, is how many of its own melee hits a necromancer's " +
 			"spectre (Howling and Ancient Death) lands with its instant, the shake it gives its target 1-6 swings apart " +
-			"from 20 s into a fight (3, the default; 0 the visual alone). " +
+			"from 20 s into a fight (3, the default; 0 the visual alone). player_melee_pct is the share of a player's own " +
+			"auto-attack melee that lands on an NPC of the level (times Balance by class and level's melee_dealt_pct; " +
+			"levels 1-10: their creatures' lower hit points' cut, so a melee class's fights stay as long). " +
 			"A charmed creature keeps its own (an NPC's) hit points and damage. Training dummies are " +
 			"never touched. Rows of source seed are the tuning of 2026-10-29 (claude-notes/balance-20261029.md), held to " +
 			"its targets by the fight simulator: run cmd/balancesim on a copy of the database to see what a change does " +
@@ -846,6 +848,8 @@ var catalog = map[string]tableNote{
 				"from its third tick, of its most hit points (15 with no rows)"},
 			"pet_special_hits": {Label: "Spectre's instant, hits", Help: "0-20, by its owner's level: how many of a " +
 				"necromancer's spectre's own melee hits its instant lands in one blow (3; 0 the visual alone)"},
+			"player_melee_pct": {Label: "Players' melee %", Help: "of a player's own auto-attack melee on an NPC of this " +
+				"level that lands (spells, procs and damage shields not)"},
 			"note":   {Label: "Note"},
 			"source": {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
 		},
@@ -890,7 +894,9 @@ var catalog = map[string]tableNote{
 			"class's figure times this; pet_hp_pct, a summoned pet's hit points by its owner's class and level, a " +
 			"percent of Balance by level's pet_hp_pct (taken when the pet is summoned); dealt_pct, the share of the " +
 			"player's own damage (melee, spells and their ticks, procs, damage shields) that lands on an NPC, after " +
-			"Balance by con's taken_pct: a fight's length by class where melee_taken_pct is its danger. A class's rows make a line by " +
+			"Balance by con's taken_pct: a fight's length by class where melee_taken_pct is its danger; melee_dealt_pct, the share of " +
+			"its auto-attack's melee that lands, times dealt_pct's (levels 1-10's fit: melee classes' melee lower, healers' and casters' " +
+			"higher). A class's rows make a line by " +
 			"level (between two rows the straight line, below the first and past the last the end row's); a class with " +
 			"no rows takes Balance by class's figure, the whole of Balance by level's pet column and all of its damage at every level. Rows " +
 			"of source seed are the tuning of 2026-10-30 (claude-notes/balance-20261029.md); cmd/balancesim's " +
@@ -905,6 +911,8 @@ var catalog = map[string]tableNote{
 				"a percent of Balance by level's pet_hp_pct (each class's pets lag their owner their own way)"},
 			"dealt_pct": {Label: "Damage dealt %", Help: "of a player's own damage on an NPC that lands, after the con's " +
 				"(its pet's not: Balance by level's pet_damage_pct)"},
+			"melee_dealt_pct": {Label: "Melee dealt %", Help: "of a player's own auto-attack melee on an NPC that lands, times " +
+				"Damage dealt %'s (spells, procs and damage shields not)"},
 			"note":   {Label: "Note"},
 			"source": {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
 		},

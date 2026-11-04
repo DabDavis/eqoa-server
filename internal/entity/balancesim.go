@@ -207,6 +207,7 @@ const (
 	simMe      = 0x00AA0001 // the player's object id
 	simFoeID   = 0x00BB0001 // the NPC's on the player's channel 0
 	simCharmID = 0x00CC0001 // a creature to charm, on the player's channel 1
+	simPetID   = 0x00DD0001 // the summoned pet, on the player's channel 2 (petShields)
 	// the creatures it charms, by kind (charm(): undead for an undead charm)
 	simCharmBeast    = "a sim beast"
 	simCharmSkeleton = "a sim skeleton"
@@ -501,7 +502,9 @@ func (f *simFight) run(limit time.Duration) SimResult {
 			f.buffCharmed()
 		}
 	case f.pl.Play.Pet:
-		pet = f.summon()
+		if pet = f.summon(); pet != nil && f.pl.Play.Buffs {
+			f.buffPet(pet)
+		}
 	}
 	for f.now.Before(f.t0) {
 		f.tick()
@@ -647,6 +650,11 @@ func (f *simFight) prepTime() time.Duration {
 			}
 		}
 		d += pet
+		if f.pl.Play.Buffs {
+			for _, s := range f.petMarks() {
+				d += s.CastTime + castLand + castBusy + simTick
+			}
+		}
 	}
 	if f.pl.Play.Charm {
 		if s := f.charmSpell(); s != nil {
@@ -994,10 +1002,11 @@ func (f *simFight) buffs() []CastSpell {
 }
 
 // castBuffs casts the buffs on the player, one after another (a charm's
-// procs wait for the creature: procsForCharm).
+// procs wait for the creature: procsForCharm; a damage shield for another,
+// in a pet's play, waits for the pet: petShield).
 func (f *simFight) castBuffs() {
 	for _, s := range f.buffs() {
-		if f.procsForCharm(&s) {
+		if f.procsForCharm(&s) || f.petShield(&s) {
 			continue
 		}
 		f.w.mu.Lock()
@@ -1009,6 +1018,71 @@ func (f *simFight) castBuffs() {
 		}
 		f.handsFor(&s, target)
 		if f.w.StartCast(f.sess, s, target, f.now) {
+			for range int((s.CastTime + castLand + castBusy) / simTick) {
+				f.tick()
+			}
+		}
+	}
+}
+
+// petShield is whether a buff of the book goes on the summoned pet rather
+// than on the player: a damage shield cast on another (its target's) in a
+// pet's play, as a magician puts its Searing Aura on the pet that tanks. On
+// its owner, standing off, it answers only the hits that come to it, each
+// a hit of the owner's and its hate (dshield.go), which pulls the creature
+// off the pet: at every hit (the workbook's damage shields as shields,
+// 2026-11-04) a magician of 60 with its pet then lost even fights it had
+// won every time.
+func (f *simFight) petShield(s *CastSpell) bool {
+	return f.pl.Play.Pet && s.Scope == 1 && !s.Def.Harmful && s.Def.hasShield()
+}
+
+// petMarks is the book's pet buffs with a damage shield, the highest of
+// each line: a magician's Marks, which it puts on its pet (a pet's own
+// spell, Scope 3; the simulator casts no other pet buff, simRole leaving
+// them out of roleBuff, so every other class's fit stands as it was).
+func (f *simFight) petMarks() []CastSpell {
+	if !f.pl.Play.Pet {
+		return nil
+	}
+	best := map[string]int{}
+	var out []CastSpell
+	for _, s := range f.pl.Spells {
+		if s.Scope != 3 || s.Level > f.p.Level || s.Def.Harmful || !s.Def.hasShield() || s.Def.Duration < 30*time.Second {
+			continue
+		}
+		k := simBuffLine(&s)
+		if i, ok := best[k]; ok {
+			if s.Level >= out[i].Level {
+				out[i] = s
+			}
+			continue
+		}
+		best[k] = len(out)
+		out = append(out, s)
+	}
+	return out
+}
+
+// buffPet casts the book's damage shields for another (petShield) and its
+// pet buffs with one (petMarks) on the pet the summoning made, one after
+// another, the pet on the player's channel 2 as simPetID.
+func (f *simFight) buffPet(pet *NPC) {
+	vs := GetOrCreateVisibility(f.sess)
+	f.w.mu.Lock()
+	vs.ChannelEntity[2], vs.ChannelObjectID[2] = pet.ServerID, simPetID
+	f.w.mu.Unlock()
+	var on []CastSpell
+	for _, s := range f.buffs() {
+		if f.petShield(&s) {
+			on = append(on, s)
+		}
+	}
+	for _, s := range append(on, f.petMarks()...) {
+		f.w.mu.Lock()
+		f.p.Power = f.p.MaxPowerNow()
+		f.w.mu.Unlock()
+		if f.w.StartCast(f.sess, s, simPetID, f.now) {
 			for range int((s.CastTime + castLand + castBusy) / simTick) {
 				f.tick()
 			}

@@ -157,6 +157,13 @@ func (b *Balance) DealtPctAt(class, level int) float64 {
 	return b.classLevelPct(class, level, database.BalanceClassLevel.Dealt)
 }
 
+// MeleeDealtPctAt is the share of a player's own melee (its auto-attack's
+// hits) that lands on an NPC for a player of the class and level, times
+// DealtPctAt's (balanceclasslevel's melee_dealt_pct).
+func (b *Balance) MeleeDealtPctAt(class, level int) float64 {
+	return b.classLevelPct(class, level, database.BalanceClassLevel.MeleeDealt)
+}
+
 // Rows is the balance's rows, by level and by diff (none for a nil balance).
 func (b *Balance) Rows() ([]database.BalanceLevel, []database.BalanceCon) {
 	if b == nil {
@@ -273,7 +280,7 @@ func between(x, x0, x1 int, y0, y1 float64) float64 {
 // with no rows.
 func (b *Balance) Level(level int) database.BalanceLevel {
 	out := database.BalanceLevel{Level: level, HPPct: 100, DamagePct: 100, ConPct: 100, PetHPPct: 100, PetDamagePct: 100,
-		RegenPct: npcCalmHealPct, PetSpecialHits: database.BalancePetSpecialHitsDefault}
+		RegenPct: npcCalmHealPct, PetSpecialHits: database.BalancePetSpecialHitsDefault, PlayerMeleePct: 100}
 	if b == nil || len(b.levels) == 0 {
 		return out
 	}
@@ -294,9 +301,16 @@ func (b *Balance) Level(level int) database.BalanceLevel {
 		out.ArtCooldownMS = between(level, a.Level, c.Level, a.ArtCooldownMS, c.ArtCooldownMS)
 		out.RegenPct = between(level, a.Level, c.Level, a.RegenPct, c.RegenPct)
 		out.PetSpecialHits = between(level, a.Level, c.Level, a.PetSpecialHits, c.PetSpecialHits)
+		out.PlayerMeleePct = between(level, a.Level, c.Level, a.PlayerMelee(), c.PlayerMelee())
 	}
 	out.Level = level
 	return out
+}
+
+// PlayerMeleePctAt is the share of a player's own melee (its auto-attack's
+// hits) that lands on an NPC of the level (balancelevel's player_melee_pct).
+func (b *Balance) PlayerMeleePctAt(level int) float64 {
+	return b.Level(level).PlayerMelee()
 }
 
 // ArtCooldown is the combat arts' global cooldown for a player of the level
@@ -517,6 +531,39 @@ func (w *World) dealtLocked(npc *NPC, p *Player, n int) int {
 		return n
 	}
 	return pct(n, w.balance.DealtPctAt(p.Class, p.Level))
+}
+
+// meleeDealtLocked is n of a player's own melee hit on an NPC (its
+// auto-attack's): dealtLocked's, then the share of a player's melee that
+// lands on an NPC of its level (balancelevel's player_melee_pct) times the
+// share its class's melee lands at the player's level (balanceclasslevel's
+// melee_dealt_pct); the user, 2026-11-04: at levels 1-10 the creatures' hit
+// points and the players' melee on them lower, the healers' and casters'
+// melee more. The share is rounded by chance (pctByChance), so it holds on
+// average for a low level's small hits too.
+func (w *World) meleeDealtLocked(npc *NPC, p *Player, n int, intn func(int) int) int {
+	n = w.dealtLocked(npc, p, n)
+	if !balanced(npc) {
+		return n
+	}
+	return pctByChance(n, w.balance.PlayerMeleePctAt(npc.Level)*w.balance.MeleeDealtPctAt(p.Class, p.Level)/100, intn)
+}
+
+// pctByChance is n times p percent rounded up by the odds of its fraction (a
+// hit of 2 at 75% lands 1 half the time and 2 the other half), where pct
+// rounds to the nearest (at 75% a hit of 2 keeps all of it, one of 3 loses a
+// third): the share holds on average whatever the hits' size. At least 1
+// when n is; intn is the dice (meleeIntn), drawn only for a fraction.
+func pctByChance(n int, p float64, intn func(int) int) int {
+	if n <= 0 || p == 100 {
+		return n
+	}
+	x := float64(n) * p / 100
+	f := math.Floor(x)
+	if frac := x - f; frac > 0 && float64(intn(1<<20)) < frac*(1<<20) {
+		f++
+	}
+	return max(int(f), 1)
 }
 
 // petDealtLocked is n of a pet's damage on an NPC: a summoned pet's times its

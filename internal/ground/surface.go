@@ -31,7 +31,8 @@ func (g *Ground) Surfaces(worldN uint8, x, z, lo, hi float32) []Surface {
 	var out []Surface
 	in := func(h float32) bool { return h >= lo && h <= hi }
 	if w := g.worlds[worldN]; w != nil {
-		for i, e := range w.entries {
+		for _, zi := range w.terrainIndexLocked().near(x, z, x, z) {
+			i, e := int(zi), w.entries[zi]
 			if e.verts == 0 || x < e.minX || x > e.maxX || z < e.minZ || z > e.maxZ {
 				continue
 			}
@@ -59,7 +60,8 @@ func (g *Ground) Surfaces(worldN uint8, x, z, lo, hi float32) []Surface {
 	}
 	if w := g.walls[worldN]; w != nil {
 		a, b := Vertex{x, hi, z}, Vertex{x, lo, z}
-		for i, e := range w.zones {
+		for _, zi := range w.wallsIndexLocked().near(x, z, x, z) {
+			i, e := int(zi), w.zones[zi]
 			if e.count == 0 || !overlaps(b, a, e.lo, e.hi) {
 				continue
 			}
@@ -198,7 +200,8 @@ func (g *Ground) terrainFloorLocked(worldN uint8, a, b Vertex) bool {
 	if w == nil {
 		return false
 	}
-	for i, e := range w.entries {
+	for _, zi := range w.terrainIndexLocked().near(lo.X, lo.Z, hi.X, hi.Z) {
+		i, e := int(zi), w.entries[zi]
 		if e.verts == 0 || hi.X < e.minX || lo.X > e.maxX || hi.Z < e.minZ || lo.Z > e.maxZ {
 			continue
 		}

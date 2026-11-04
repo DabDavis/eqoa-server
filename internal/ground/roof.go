@@ -29,7 +29,8 @@ func (g *Ground) Roof(worldN uint8, x, y0, y1, z float32) bool {
 	defer g.mu.Unlock()
 	over := func(h float32, ok bool) bool { return ok && h > y0 && h <= y1 }
 	if w := g.worlds[worldN]; w != nil {
-		for i, e := range w.entries {
+		for _, zi := range w.terrainIndexLocked().near(x, z, x, z) {
+			i, e := int(zi), w.entries[zi]
 			if e.verts == 0 || x < e.minX || x > e.maxX || z < e.minZ || z > e.maxZ {
 				continue
 			}
@@ -55,7 +56,8 @@ func (g *Ground) Roof(worldN uint8, x, y0, y1, z float32) bool {
 	}
 	if w := g.walls[worldN]; w != nil {
 		a, b := Vertex{x, y0, z}, Vertex{x, y1, z}
-		for i, e := range w.zones {
+		for _, zi := range w.wallsIndexLocked().near(x, z, x, z) {
+			i, e := int(zi), w.zones[zi]
 			if e.count == 0 || !overlaps(a, b, e.lo, e.hi) {
 				continue
 			}

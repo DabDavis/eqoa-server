@@ -3,6 +3,7 @@ package udp
 import (
 	"errors"
 	"fmt"
+	"github.com/eqoa/server/internal/debuglog"
 	"log"
 
 	"github.com/eqoa/pkg/pkg/buffer"
@@ -80,8 +81,10 @@ func ParsePacket(data []byte) (*Packet, error) {
 		return nil, fmt.Errorf("failed to read segment header: %w", err)
 	}
 
-	log.Printf("ParsePacket: local=0x%04X remote=0x%04X flags=0x%X size=%d instance=0x%X",
-		localEndpoint, remoteEndpoint, header.Flags, header.Size, header.Instance)
+	if debuglog.Packets() {
+		log.Printf("ParsePacket: local=0x%04X remote=0x%04X flags=0x%X size=%d instance=0x%X",
+			localEndpoint, remoteEndpoint, header.Flags, header.Size, header.Instance)
+	}
 
 	// Check for reset connection - but only if it's ONLY the reset flag without other session flags
 	// Flag 0x10000 combined with HasInstance (0x2000) is NOT a reset - it's a session establishment
@@ -100,7 +103,9 @@ func ParsePacket(data []byte) (*Packet, error) {
 
 	// For packets with size=0 but HasInstance, create empty body (ACK-only packet)
 	if header.Size == 0 {
-		log.Printf("ParsePacket: size=0 packet (ACK-only), creating empty body")
+		if debuglog.Packets() {
+			log.Printf("ParsePacket: size=0 packet (ACK-only), creating empty body")
+		}
 		return &Packet{
 			LocalEndpoint:  localEndpoint,
 			RemoteEndpoint: remoteEndpoint,
@@ -224,8 +229,10 @@ func (b *PacketBuilder) WriteMessage(msg *protocol.Message, seqNum uint16) error
 		// RLE encode the data first
 		rleData := protocol.RunLengthEncode(msg.Data())
 
-		log.Printf("WriteMessage: type=0x%02X (state channel) seq=%d xorByte=%d rawSize=%d rleSize=%d",
-			msg.Type, seqNum, msg.XORByte, msg.Size(), len(rleData))
+		if debuglog.Packets() {
+			log.Printf("WriteMessage: type=0x%02X (state channel) seq=%d xorByte=%d rawSize=%d rleSize=%d",
+				msg.Type, seqNum, msg.XORByte, msg.Size(), len(rleData))
+		}
 
 		// Write ORIGINAL data size (matching C# and Java reference implementations).
 		// Both write the pre-RLE data size here, NOT the encoded content size.
@@ -252,8 +259,10 @@ func (b *PacketBuilder) WriteMessage(msg *protocol.Message, seqNum uint16) error
 	}
 
 	// Debug: log the size being written (cast opcode to uint16 to ensure numeric format)
-	log.Printf("WriteMessage: type=0x%02X opcode=0x%04X (%s) seq=%d size=%d dataHex=%x",
-		msg.Type, uint16(msg.Opcode), msg.Opcode.String(), seqNum, msg.Size(), msg.Data()[:min(20, msg.Size())])
+	if debuglog.Packets() {
+		log.Printf("WriteMessage: type=0x%02X opcode=0x%04X (%s) seq=%d size=%d dataHex=%x",
+			msg.Type, uint16(msg.Opcode), msg.Opcode.String(), seqNum, msg.Size(), msg.Data()[:min(20, msg.Size())])
+	}
 
 	// Write size (data already includes opcode for reliable messages)
 	if err := b.writer.WriteSize(msg.Size()); err != nil {

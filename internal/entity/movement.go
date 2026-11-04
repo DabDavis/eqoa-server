@@ -270,6 +270,15 @@ func (w *World) roamRadiusLocked(npc *NPC) float32 {
 // legOKLocked reports a wander leg from where a creature stands to (x, z)
 // that it can walk (the file's comment). Must be called with the lock held.
 func (w *World) legOKLocked(npc *NPC, x, z float32) bool {
+	return w.legCheckLocked(npc, x, z, nil)
+}
+
+// legCheckLocked is legOKLocked keeping, when heights is not nil and the
+// creature is on the ground, the floor it finds: its start's, then each
+// point's, legSample apart (roam.go keeps them for the walk: roamState.legY).
+// What a failed check left in heights means nothing. Must be called with the
+// lock held.
+func (w *World) legCheckLocked(npc *NPC, x, z float32, heights *[]float32) bool {
 	d := distXZ(npc.X, npc.Z, x, z)
 	n := int(d/legSample) + 1
 	onGround := w.spawnOnGroundLocked(npc)
@@ -290,6 +299,9 @@ func (w *World) legOKLocked(npc *NPC, x, z float32) bool {
 		if f, ok := w.ground.Floor(npc.World, npc.X, y, npc.Z); ok {
 			py = f
 		}
+		if heights != nil {
+			*heights = append(*heights, py)
+		}
 	}
 	for i := 1; i <= n; i++ {
 		t := float32(i) / float32(n)
@@ -300,6 +312,9 @@ func (w *World) legOKLocked(npc *NPC, x, z float32) bool {
 				return false // no floor, or a fall
 			}
 			y = f
+			if heights != nil {
+				*heights = append(*heights, y)
+			}
 		}
 		if walls != nil && walls.Wall(npc.World, px, py+knee, pz, sx, y+knee, sz) {
 			return false // a wall in the way

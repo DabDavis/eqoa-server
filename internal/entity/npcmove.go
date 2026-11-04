@@ -41,6 +41,23 @@ const (
 // updated. Within this step's reach it stops there and reports true. Must
 // be called with the lock held.
 func (w *World) stepNPCToward(npc *NPC, x, z, speed, dt float32) (arrived bool) {
+	return w.stepNPCLocked(npc, x, z, speed, dt, nil)
+}
+
+// stepNPCOnLegLocked is a wandering creature's step along the leg it walks
+// (roam.go): stepNPCToward's, its height read off the leg's floor as the
+// leg's check found it (roamState.legY) rather than asked of the ground at
+// each step, which was most of a step's cost with players about
+// (claude-notes/server-tick-profile-20261103.md); the ground is still asked
+// at the leg's end, and wherever the leg cannot say. Must be called with the
+// lock held.
+func (w *World) stepNPCOnLegLocked(npc *NPC, speed, dt float32) (arrived bool) {
+	return w.stepNPCLocked(npc, npc.roam.toX, npc.roam.toZ, speed, dt, &npc.roam)
+}
+
+// stepNPCLocked is stepNPCToward's step, its height on the way from leg when
+// leg can say (nil: the ground's). Must be called with the lock held.
+func (w *World) stepNPCLocked(npc *NPC, x, z, speed, dt float32, leg *roamState) (arrived bool) {
 	dx, dz := x-npc.X, z-npc.Z
 	dist := float32(math.Sqrt(float64(dx*dx + dz*dz)))
 	oldX, oldZ := npc.X, npc.Z
@@ -63,7 +80,11 @@ func (w *World) stepNPCToward(npc *NPC, x, z, speed, dt float32) (arrived bool) 
 		ux, uz := dx/dist, dz/dist
 		npc.X += ux * step
 		npc.Z += uz * step
-		w.groundNPCLocked(npc)
+		if y, ok := leg.legY(npc); ok {
+			npc.Y = y
+		} else {
+			w.groundNPCLocked(npc)
+		}
 		npc.VelX, npc.VelY, npc.VelZ = ux*speed, 0, uz*speed
 	}
 	npc.Facing = headingTo(dx, dz)

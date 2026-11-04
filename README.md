@@ -61,10 +61,10 @@ data, not code. Two ways to get it:
   `--apply` against it (their logs, which let `--undo` work, are not included).
 
 - **Build your own** from data you have: `cmd/importdump`, `cmd/extractdb`, `cmd/sqlimport`,
-  `tools/import_ff_npcs.py`, `tools/import_prh_content.py` (Return Home's static tables),
-  `tools/import_sandstorm_harvest.py` (what `eqoa harvest` collected off a server: its spell
-  vendors' catalogs, their items, the ability records) and `tools/import_spell_effects.py` (what
-  each spell does, from the EQOA-Data project's spell lists); `sql/` holds a few NPC set-ups.
+  `tools/import_ff_npcs.py`, `tools/import_prh_content.py` (Return Home's static tables), the
+  harvest importer in `tools/` (what `eqoa harvest` collected off a server: its spell vendors'
+  catalogs, their items, the ability records) and `tools/import_spell_effects.py` (what each
+  spell does, from the EQOA-Data project's spell lists); `sql/` holds a few NPC set-ups.
 
 ### 3. Files from your own disc (optional, recommended)
 

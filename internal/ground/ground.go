@@ -217,6 +217,7 @@ type world struct {
 	f       *os.File
 	entries []entry
 	loaded  map[int]*zoneGrid
+	index   *zoneIndex // its zones by place (zoneindex.go), made at its first query
 }
 
 // Ground is the worlds' ground, a file each, their zones loaded as asked;
@@ -492,7 +493,8 @@ func (g *Ground) Floor(worldN uint8, x, y, z float32) (float32, bool) {
 		return y, false
 	}
 	best, found := float32(0), false
-	for i, e := range w.entries {
+	for _, zi := range w.terrainIndexLocked().near(x, z, x, z) {
+		i, e := int(zi), w.entries[zi]
 		if e.verts == 0 || x < e.minX || x > e.maxX || z < e.minZ || z > e.maxZ {
 			continue
 		}
@@ -542,7 +544,8 @@ func (g *Ground) Placed(worldN uint8, x0, y0, z0, x1, y1, z1 float32) bool {
 func (g *Ground) terrainWallLocked(worldN uint8, a, b Vertex) bool {
 	lo, hi := lowest(a, b), highest(a, b)
 	if w := g.worlds[worldN]; w != nil {
-		for i, e := range w.entries {
+		for _, zi := range w.terrainIndexLocked().near(lo.X, lo.Z, hi.X, hi.Z) {
+			i, e := int(zi), w.entries[zi]
 			if e.verts == 0 || hi.X < e.minX || lo.X > e.maxX || hi.Z < e.minZ || lo.Z > e.maxZ {
 				continue
 			}
@@ -572,7 +575,8 @@ func (g *Ground) terrainWallLocked(worldN uint8, a, b Vertex) bool {
 func (g *Ground) placedLocked(worldN uint8, a, b Vertex) bool {
 	lo, hi := lowest(a, b), highest(a, b)
 	if w := g.walls[worldN]; w != nil {
-		for i, e := range w.zones {
+		for _, zi := range w.wallsIndexLocked().near(lo.X, lo.Z, hi.X, hi.Z) {
+			i, e := int(zi), w.zones[zi]
 			if e.count == 0 || !overlaps(lo, hi, e.lo, e.hi) {
 				continue
 			}

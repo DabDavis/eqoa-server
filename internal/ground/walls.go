@@ -240,6 +240,7 @@ type wallWorld struct {
 	zones  []wallEntry
 	read   []*wallBuffer
 	loaded map[int]*wallZone
+	index  *zoneIndex // its zones by place (zoneindex.go), made at its first query
 }
 
 // wallBuffer is a buffer read: its vertices and its strips, each with its

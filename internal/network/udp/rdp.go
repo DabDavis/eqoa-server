@@ -1,6 +1,7 @@
 package udp
 
 import (
+	"github.com/eqoa/server/internal/debuglog"
 	"log"
 	"sort"
 	"time"
@@ -43,15 +44,19 @@ func NewRDPHandler(listener *Listener) *RDPHandler {
 // ProcessIncoming processes an incoming packet for RDP operations.
 func (r *RDPHandler) ProcessIncoming(sess *session.Session, packet *Packet) {
 	if packet.Body == nil {
-		log.Printf("ProcessIncoming: packet has nil body, skipping")
+		if debuglog.Packets() {
+			log.Printf("ProcessIncoming: packet has nil body, skipping")
+		}
 		return
 	}
 
 	body := packet.Body
 	conn := sess.Connection()
 
-	log.Printf("ProcessIncoming: instanceID=0x%X, bodyFlags=0x%X, arrivalNum=%d, guaranteedAck=%d",
-		sess.InstanceID(), body.Flags, body.ArrivalNumber, body.GuaranteedAck)
+	if debuglog.Packets() {
+		log.Printf("ProcessIncoming: instanceID=0x%X, bodyFlags=0x%X, arrivalNum=%d, guaranteedAck=%d",
+			sess.InstanceID(), body.Flags, body.ArrivalNumber, body.GuaranteedAck)
+	}
 
 	// Check for delayed/duplicate packets
 	if body.ArrivalNumber <= conn.LastReceivedPacketSeq() {
@@ -67,10 +72,14 @@ func (r *RDPHandler) ProcessIncoming(sess *session.Session, packet *Packet) {
 
 	// Process guaranteed ack if present
 	if body.Flags&protocol.BodyFlagGuaranteedAck != 0 {
-		log.Printf("ProcessIncoming: GuaranteedAck flag is SET, calling processRDPReport")
+		if debuglog.Packets() {
+			log.Printf("ProcessIncoming: GuaranteedAck flag is SET, calling processRDPReport")
+		}
 		r.processRDPReport(sess, body)
 	} else {
-		log.Printf("ProcessIncoming: GuaranteedAck flag is NOT set")
+		if debuglog.Packets() {
+			log.Printf("ProcessIncoming: GuaranteedAck flag is NOT set")
+		}
 		// Still process state channel acks even without GuaranteedAck
 		if body.Flags&protocol.BodyFlagClientUpdateAck != 0 {
 			r.processStateAcks(sess, body)
@@ -90,16 +99,20 @@ func (r *RDPHandler) ProcessIncoming(sess *session.Session, packet *Packet) {
 func (r *RDPHandler) processRDPReport(sess *session.Session, body *protocol.SegmentBody) {
 	conn := sess.Connection()
 
-	log.Printf("processRDPReport: received GuaranteedAck=%d from %s (instanceID=0x%X)",
-		body.GuaranteedAck, sess.RemoteAddr(), sess.InstanceID())
+	if debuglog.Packets() {
+		log.Printf("processRDPReport: received GuaranteedAck=%d from %s (instanceID=0x%X)",
+			body.GuaranteedAck, sess.RemoteAddr(), sess.InstanceID())
+	}
 
 	// Update client's last received message
 	conn.SetClientLastReceivedMessage(body.GuaranteedAck)
 
 	// Check if we should trigger the ACK callback (e.g., send character list)
-	hasCallback, target, fired := sess.DebugAckCallback()
-	log.Printf("processRDPReport: before CheckAckCallback - hasCallback=%v, target=%d, fired=%v",
-		hasCallback, target, fired)
+	if debuglog.Packets() {
+		hasCallback, target, fired := sess.DebugAckCallback()
+		log.Printf("processRDPReport: before CheckAckCallback - hasCallback=%v, target=%d, fired=%v",
+			hasCallback, target, fired)
+	}
 
 	if sess.CheckAckCallback(body.GuaranteedAck) {
 		log.Printf("processRDPReport: ACK callback was triggered!")
@@ -118,10 +131,14 @@ func (r *RDPHandler) processStateAcks(sess *session.Session, body *protocol.Segm
 		return
 	}
 	conn := sess.Connection()
-	log.Printf("processStateAcks: %d state acks from %s (bodyFlags=0x%X)",
-		len(body.StateAcks), sess.RemoteAddr(), body.Flags)
+	if debuglog.Packets() {
+		log.Printf("processStateAcks: %d state acks from %s (bodyFlags=0x%X)",
+			len(body.StateAcks), sess.RemoteAddr(), body.Flags)
+	}
 	for _, stateAck := range body.StateAcks {
-		log.Printf("processStateAcks: channel=%d ack=%d", stateAck.Channel, stateAck.Ack)
+		if debuglog.Packets() {
+			log.Printf("processStateAcks: channel=%d ack=%d", stateAck.Channel, stateAck.Ack)
+		}
 		if session.EntitySlot(stateAck.Channel) >= 0 {
 			if state := conn.ServerObjectForChannel(stateAck.Channel); state != nil {
 				state.UpdateBaseXor(stateAck.Ack)
@@ -185,8 +202,10 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 	bodyFlags := rawFlags | protocol.BodyFlagRdpMessage | protocol.BodyFlagSessionAck
 	if bodyFlags&protocol.BodyFlagGuaranteedAck != 0 {
 		bodyFlags |= protocol.BodyFlagFlushAck
-		log.Printf("PreparePacket: Including GuaranteedAck! rawFlags=0x%X, bodyFlags=0x%X, lastRecvMsg=%d",
-			rawFlags, bodyFlags, sess.Connection().LastReceivedMessageSeq())
+		if debuglog.Packets() {
+			log.Printf("PreparePacket: Including GuaranteedAck! rawFlags=0x%X, bodyFlags=0x%X, lastRecvMsg=%d",
+				rawFlags, bodyFlags, sess.Connection().LastReceivedMessageSeq())
+		}
 	}
 
 	// Collect retransmits BEFORE draining pending. TakeRetransmits identifies a
@@ -231,8 +250,10 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 		hasInstance = true
 	}
 
-	log.Printf("PreparePacket: hasInstance=%v, didServerInitiate=%v, needsNewInstance=%v, instanceID=0x%X, sessionID=0x%X, playerObjectID=%d, pendingMsgs=%d",
-		hasInstance, didServerInitiate, sess.NeedsNewInstance(), sess.InstanceID(), sess.SessionID(), sess.PlayerObjectID(), len(pending))
+	if debuglog.Packets() {
+		log.Printf("PreparePacket: hasInstance=%v, didServerInitiate=%v, needsNewInstance=%v, instanceID=0x%X, sessionID=0x%X, playerObjectID=%d, pendingMsgs=%d",
+			hasInstance, didServerInitiate, sess.NeedsNewInstance(), sess.InstanceID(), sess.SessionID(), sess.PlayerObjectID(), len(pending))
+	}
 
 	// Build segment header flags (needed for patching body size later)
 	segFlags := uint64(0)
@@ -270,7 +291,9 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 	if didServerInitiate {
 		sessionID := sess.PlayerObjectID()
 		builder.WriteSessionID(sessionID)
-		log.Printf("PreparePacket: writing SessionID=%d (0x%X) to header (ObjectID for client)", sessionID, sessionID)
+		if debuglog.Packets() {
+			log.Printf("PreparePacket: writing SessionID=%d (0x%X) to header (ObjectID for client)", sessionID, sessionID)
+		}
 	}
 
 	// === Body starts here (body size = everything from here to end of messages) ===
@@ -353,7 +376,9 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 
 	// Finalize packet with CRC
 	packet := builder.Finish()
-	log.Printf("Outgoing packet hex (%d bytes): %x", len(packet), packet)
+	if debuglog.Packets() {
+		log.Printf("Outgoing packet hex (%d bytes): %x", len(packet), packet)
+	}
 	return packet
 }
 
@@ -462,8 +487,10 @@ func (r *RDPHandler) GenerateStateUpdates(sess *session.Session) entityRound {
 		sess.Queue().Add(msg)
 		count++
 		playerSent = true
-		log.Printf("GenerateStateUpdates: channel 0 (player), seq=%d, xorByte=%d, dataLen=%d",
-			seq, xorByte, len(data))
+		if debuglog.Packets() {
+			log.Printf("GenerateStateUpdates: channel 0 (player), seq=%d, xorByte=%d, dataLen=%d",
+				seq, xorByte, len(data))
+		}
 	}
 
 	// The entity slots past the player's, round robin from where the last
@@ -476,8 +503,10 @@ func (r *RDPHandler) GenerateStateUpdates(sess *session.Session) entityRound {
 	conn.SetStateUpdateOffset((round.start + MaxStateUpdatesPerTick) % round.n)
 
 	// Diagnostic summary: active channels vs sent channels
-	log.Printf("GenerateStateUpdates: SUMMARY sent=%d player=%v active=%d npcSent=%v",
-		count, playerSent, activeCount, sentNPC)
+	if debuglog.Packets() {
+		log.Printf("GenerateStateUpdates: SUMMARY sent=%d player=%v active=%d npcSent=%v",
+			count, playerSent, activeCount, sentNPC)
+	}
 
 	// Generate stat update (channel 0x42) using XOR delta encoding
 	statUpdate := conn.GetClientStatUpdate()
@@ -488,8 +517,10 @@ func (r *RDPHandler) GenerateStateUpdates(sess *session.Session) entityRound {
 		msg.XORByte = xorByte
 		msg.SetData(data)
 		sess.Queue().Add(msg)
-		log.Printf("GenerateStateUpdates: stat update, seq=%d, xorByte=%d, dataLen=%d",
-			seq, xorByte, len(data))
+		if debuglog.Packets() {
+			log.Printf("GenerateStateUpdates: stat update, seq=%d, xorByte=%d, dataLen=%d",
+				seq, xorByte, len(data))
+		}
 	}
 
 	// Generate buff update (channel 0x43) using XOR delta encoding
@@ -512,8 +543,10 @@ func (r *RDPHandler) GenerateStateUpdates(sess *session.Session) entityRound {
 		msg.XORByte = xorByte
 		msg.SetData(data)
 		sess.Queue().Add(msg)
-		log.Printf("GenerateStateUpdates: group update, seq=%d, xorByte=%d, dataLen=%d",
-			seq, xorByte, len(data))
+		if debuglog.Packets() {
+			log.Printf("GenerateStateUpdates: group update, seq=%d, xorByte=%d, dataLen=%d",
+				seq, xorByte, len(data))
+		}
 	}
 	return round
 }
@@ -543,14 +576,13 @@ func (r *RDPHandler) queueEntityUpdates(sess *session.Session, round *entityRoun
 			msg.SetData(data)
 			sess.Queue().Add(msg)
 			queued++
-			sent = append(sent, int(ch))
-			// Log first 16 bytes of delta for rendered-vs-not comparison
-			hexLen := 16
-			if len(data) < hexLen {
-				hexLen = len(data)
+			if debuglog.Packets() {
+				sent = append(sent, int(ch)) // for the SUMMARY line alone
+				// Log first 16 bytes of delta for rendered-vs-not comparison
+				hexLen := min(16, len(data))
+				log.Printf("CHANNEL_DELTA: ch=%d seq=%d xorByte=%d dataLen=%d first16=%x",
+					ch, seq, xorByte, len(data), data[:hexLen])
 			}
-			log.Printf("CHANNEL_DELTA: ch=%d seq=%d xorByte=%d dataLen=%d first16=%x",
-				ch, seq, xorByte, len(data), data[:hexLen])
 		}
 	}
 	return queued, active, sent

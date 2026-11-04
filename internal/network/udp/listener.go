@@ -2,8 +2,10 @@ package udp
 
 import (
 	"context"
+	"github.com/eqoa/server/internal/debuglog"
 	"log"
 	"net"
+	"net/netip"
 	"sync"
 	"time"
 
@@ -33,7 +35,8 @@ type Listener struct {
 	handlers       *HandlerRegistry
 	gameWorld      *entity.World
 	charStore      *database.SQLiteCharacterStore
-	tickInterval   time.Duration // StartTickRoutine's, for the tick timer (entity/ticktime.go)
+	tickInterval   time.Duration                // StartTickRoutine's, for the tick timer (entity/ticktime.go)
+	recvSeen       map[netip.AddrPort]*recvSeen // the read loop's own (noteReceived)
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -151,8 +154,12 @@ func (l *Listener) readLoop() {
 		copy(packetData, buf[:n])
 		l.bufferPool.Put(bufPtr)
 
-		log.Printf("UDP received %d bytes from %s", n, remoteAddr)
-		log.Printf("UDP raw hex: %x", packetData)
+		if debuglog.Packets() {
+			log.Printf("UDP received %d bytes from %s", n, remoteAddr)
+			log.Printf("UDP raw hex: %x", packetData)
+		} else {
+			l.noteReceived(n, remoteAddr, time.Now())
+		}
 
 		// Process packet in a goroutine
 		l.wg.Add(1)
@@ -161,6 +168,48 @@ func (l *Listener) readLoop() {
 			l.handlePacket(data, addr)
 		}(packetData, remoteAddr)
 	}
+}
+
+// receivedEvery is how often an address's packets get a line in the log while
+// the packet log is off (internal/debuglog): one "UDP received ..." line in
+// this, which the swap watcher (tools/swap_when_empty.sh) reads as someone
+// there; its count says how many came. cmd/movereplay reads only the packet
+// log's own "UDP received" lines, which end at the address.
+const receivedEvery = 30 * time.Second
+
+// recvSeen is an address's packets since its last line in the log.
+type recvSeen struct {
+	last    time.Time
+	packets int
+}
+
+// noteReceived is the read loop's word on a packet while the packet log is
+// off: a line for an address's first packet, then one every receivedEvery
+// with how many came. The read loop's alone (one goroutine).
+func (l *Listener) noteReceived(n int, addr *net.UDPAddr, now time.Time) {
+	key := addr.AddrPort()
+	s := l.recvSeen[key]
+	if s == nil {
+		if l.recvSeen == nil {
+			l.recvSeen = make(map[netip.AddrPort]*recvSeen)
+		}
+		if len(l.recvSeen) >= 4096 {
+			for k, o := range l.recvSeen {
+				if now.Sub(o.last) > 5*time.Minute {
+					delete(l.recvSeen, k)
+				}
+			}
+		}
+		s = &recvSeen{}
+		l.recvSeen[key] = s
+	}
+	s.packets++
+	if !s.last.IsZero() && now.Sub(s.last) < receivedEvery {
+		return
+	}
+	log.Printf("UDP received %d bytes from %s (%d packets since its last line; each packet's own lines: server.packet_log or #packetlog on)",
+		n, addr, s.packets)
+	s.last, s.packets = now, 0
 }
 
 // handlePacket processes a received packet.
@@ -172,8 +221,10 @@ func (l *Listener) handlePacket(data []byte, addr *net.UDPAddr) {
 		return
 	}
 
-	log.Printf("handlePacket: endpoint=0x%04X, instanceID=0x%X, hasBody=%v, isNew=%v",
-		packet.RemoteEndpoint, packet.GetInstanceID(), packet.Body != nil, packet.IsNewConnection())
+	if debuglog.Packets() {
+		log.Printf("handlePacket: endpoint=0x%04X, instanceID=0x%X, hasBody=%v, isNew=%v",
+			packet.RemoteEndpoint, packet.GetInstanceID(), packet.Body != nil, packet.IsNewConnection())
+	}
 
 	// Handle ResetConnection: remove session and stop processing
 	if packet.Header.Flags&protocol.SegmentFlagResetConnection != 0 && packet.Body == nil {
@@ -216,13 +267,17 @@ func (l *Listener) handlePacket(data []byte, addr *net.UDPAddr) {
 		return
 	}
 
-	log.Printf("handlePacket: session instance=0x%X, didServerInit=%v, remoteEndpoint=0x%04X",
-		sess.InstanceID(), sess.DidServerInitiate(), packet.RemoteEndpoint)
+	if debuglog.Packets() {
+		log.Printf("handlePacket: session instance=0x%X, didServerInit=%v, remoteEndpoint=0x%04X",
+			sess.InstanceID(), sess.DidServerInitiate(), packet.RemoteEndpoint)
+	}
 
 	// Update server endpoint if client targets a specific endpoint (not FFFE new connection)
 	// This detects when client connects to game server (0xB991) vs login server
 	if packet.RemoteEndpoint != 0xFFFE && packet.RemoteEndpoint != 0 {
-		log.Printf("handlePacket: updating server endpoint to 0x%04X", packet.RemoteEndpoint)
+		if debuglog.Packets() {
+			log.Printf("handlePacket: updating server endpoint to 0x%04X", packet.RemoteEndpoint)
+		}
 		sess.SetServerEndpoint(packet.RemoteEndpoint)
 		// NOTE: didServerInitiate is set later when character enters world (SendMemoryDump)
 		// NOT when they first connect to 0xB991 - this matches C# CreateMemoryDumpSession
@@ -319,7 +374,9 @@ func (l *Listener) flushSession(sess *session.Session) {
 		if err := l.SendToSession(data, sess); err != nil {
 			log.Printf("Failed to flush session %s: %v", sess.RemoteAddr(), err)
 		} else {
-			log.Printf("Flushed %d bytes to %s", len(data), sess.RemoteAddr())
+			if debuglog.Packets() {
+				log.Printf("Flushed %d bytes to %s", len(data), sess.RemoteAddr())
+			}
 		}
 	}
 }
@@ -761,8 +818,10 @@ func (l *Listener) processClientUpdate(sess *session.Session, msg *protocol.Mess
 	if len(decoded) > 35 {
 		animByte = decoded[35]
 	}
-	log.Printf("ClientPosition: seq=%d xor=%d pos=(%.1f, %.1f, %.1f) facing=%.2f anim=0x%02X decodedLen=%d from %s",
-		msg.Sequence, msg.XORByte, posX, posY, posZ, facing, animByte, len(decoded), sess.RemoteAddr())
+	if debuglog.Packets() {
+		log.Printf("ClientPosition: seq=%d xor=%d pos=(%.1f, %.1f, %.1f) facing=%.2f anim=0x%02X decodedLen=%d from %s",
+			msg.Sequence, msg.XORByte, posX, posY, posZ, facing, animByte, len(decoded), sess.RemoteAddr())
+	}
 
 	// Trigger world entry on first state channel 0x40 (matches C# Unreliables.cs)
 	if !sess.CharacterInWorld() {

@@ -2,6 +2,7 @@ package entity
 
 import (
 	"encoding/binary"
+	"github.com/eqoa/server/internal/debuglog"
 	"log"
 	"sort"
 	"time"
@@ -231,8 +232,10 @@ func (w *World) visibilitySystem() {
 			} else if p, ok := w.Players[c.ID]; ok {
 				npcName = p.Name
 			}
-			log.Printf("CHANNEL_MAP: NEW entity=%q objID=%d -> channel=%d (array idx=%d) distSq=%.0f",
-				npcName, objectID, session.EntityChannel(freeIdx+1), freeIdx, c.DistSq)
+			if debuglog.Packets() {
+				log.Printf("CHANNEL_MAP: NEW entity=%q objID=%d -> channel=%d (array idx=%d) distSq=%.0f",
+					npcName, objectID, session.EntityChannel(freeIdx+1), freeIdx, c.DistSq)
+			}
 
 			vis.ChannelEntity[freeIdx] = c.ID
 			vis.ChannelObjectID[freeIdx] = objectID
@@ -265,12 +268,16 @@ func (w *World) visibilitySystem() {
 			stateData := w.serializeEntityForChannel(sess, id, objectID)
 			if stateData != nil {
 				SetEntityState(conn.GetServerObject(i+1), stateData)
-				occupiedChannels = append(occupiedChannels, int(session.EntityChannel(i+1)))
+				if debuglog.Packets() {
+					occupiedChannels = append(occupiedChannels, int(session.EntityChannel(i+1))) // for the SUMMARY line alone
+				}
 			}
 		}
 
-		log.Printf("CHANNEL_MAP: SUMMARY candidates=%d occupied=%d/%d new=%d channels=%v",
-			len(candidates), len(occupiedChannels), slots, newCount, occupiedChannels)
+		if debuglog.Packets() {
+			log.Printf("CHANNEL_MAP: SUMMARY candidates=%d occupied=%d/%d new=%d channels=%v",
+				len(candidates), len(occupiedChannels), slots, newCount, occupiedChannels)
+		}
 
 		return true
 	})

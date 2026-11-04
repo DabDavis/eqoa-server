@@ -97,6 +97,41 @@ type roamState struct {
 	restUntil  time.Time
 	last       time.Time
 	nearPlayer bool
+
+	// The leg it walks to (toX, toZ), as its check found it (movement.go's
+	// legCheckLocked): where it began and how long it is, and the floor
+	// every legSample along it, heights[0] the start's. legUsable when a step
+	// may take its height from them (a creature of the land on the ground:
+	// legY); else every step asks the ground, as before.
+	legX, legZ, legLen float32
+	heights            []float32
+	legUsable          bool
+}
+
+// legOffLeg is how far off its leg a creature may be and still take its
+// height from it (legY): a step stays on the line, so only something else's
+// move of it (a fight, a GM) is more.
+const legOffLeg float32 = 0.25
+
+// legY is the floor under npc on the leg it walks, straight between the
+// heights its check found (legSample apart, the walk's own floor at those
+// points; a step's own ask of the ground is the same function from a height
+// at most legSample before): false for no leg, one that cannot say, a
+// swimmer, or a place off the leg (the step asks the ground then).
+func (r *roamState) legY(npc *NPC) (float32, bool) {
+	if r == nil || !r.legUsable || r.legLen <= 0 || npc.swimming || len(r.heights) < 2 {
+		return 0, false
+	}
+	ux, uz := (r.toX-r.legX)/r.legLen, (r.toZ-r.legZ)/r.legLen
+	rx, rz := npc.X-r.legX, npc.Z-r.legZ
+	along, off := rx*ux+rz*uz, rx*uz-rz*ux
+	if off > legOffLeg || off < -legOffLeg || along < -legOffLeg || along > r.legLen+legOffLeg {
+		return 0, false
+	}
+	n := len(r.heights) - 1
+	f := min(max(along/r.legLen, 0), 1) * float32(n)
+	i := min(int(f), n-1)
+	return r.heights[i] + (r.heights[i+1]-r.heights[i])*(f-float32(i)), true
 }
 
 // SetRoamRadius sets how far from its spawn a creature wanders (0 for no
@@ -218,7 +253,7 @@ func (w *World) roamStepLocked(npc *NPC, now time.Time) {
 	}
 	speed := NPCWalkSpeed
 	speed *= npc.snareFactor(now) // a snare's slow (workbook.go)
-	if w.stepNPCToward(npc, npc.roam.toX, npc.roam.toZ, speed, dt) {
+	if w.stepNPCOnLegLocked(npc, speed, dt) {
 		npc.roam.walking = false
 		npc.roam.restUntil = now.Add(w.roamDuration(roamRestMin, roamRestMax))
 	}
@@ -231,6 +266,7 @@ func (w *World) roamStepLocked(npc *NPC, now time.Time) {
 // that town's ground (towns.go), and standable all along (legOKLocked); where
 // it stands when no such leg is found (it rests and tries again).
 func (w *World) roamPointLocked(npc *NPC) (x, z float32) {
+	npc.roam.legUsable = false
 	r := w.roamRadiusLocked(npc)
 	if r < roamMinStep {
 		return npc.SpawnX, npc.SpawnZ
@@ -247,9 +283,16 @@ func (w *World) roamPointLocked(npc *NPC) (x, z float32) {
 		if !townsfolk && w.legInTownLocked(npc.World, npc.X, npc.Z, x, z) {
 			continue
 		}
-		if !w.legOKLocked(npc, x, z) {
-			continue // somewhere it cannot stand, or into or out of the water (movement.go)
+		heights := npc.roam.heights[:0]
+		if !w.legCheckLocked(npc, x, z, &heights) {
+			npc.roam.heights = heights[:0] // its room kept for the next try
+			continue                       // somewhere it cannot stand, or into or out of the water (movement.go)
 		}
+		// the leg kept for the walk: its floor read off it at each step (legY)
+		npc.roam.heights = heights
+		npc.roam.legX, npc.roam.legZ, npc.roam.legLen = npc.X, npc.Z, distXZ(npc.X, npc.Z, x, z)
+		npc.roam.legUsable = len(heights) >= 2 && w.spawnOnGroundLocked(npc) &&
+			(w.env == nil || w.keepsToLocked(npc) == keepsToLand)
 		return x, z
 	}
 	return npc.X, npc.Z

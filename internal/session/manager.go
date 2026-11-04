@@ -1,6 +1,7 @@
 package session
 
 import (
+	"github.com/eqoa/server/internal/debuglog"
 	"log"
 	"math/rand"
 	"net"
@@ -128,8 +129,10 @@ func (m *Manager) GetOrCreateSession(addr *net.UDPAddr, packet interface{}) *Ses
 			return true
 		})
 		if existingSession != nil {
-			log.Printf("GetOrCreateSession: instanceID=0, found existing session with instance=0x%X",
-				existingSession.InstanceID())
+			if debuglog.Packets() {
+				log.Printf("GetOrCreateSession: instanceID=0, found existing session with instance=0x%X",
+					existingSession.InstanceID())
+			}
 			return existingSession
 		}
 		// No existing session, generate a new instance ID (don't use 0!)

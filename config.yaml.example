@@ -24,6 +24,12 @@ server:
   read_timeout: 5s
   write_timeout: 5s
 
+  # Every packet's own debug lines in the log (received, sent, DRDP, state
+  # channels): about 100 lines a second a player, so off unless set. A GM's
+  # #packetlog turns them on or off while the server runs. cmd/movereplay reads
+  # a log written with them on.
+  # packet_log: false
+
 world:
   tick_rate: 100ms
 

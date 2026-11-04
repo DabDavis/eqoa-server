@@ -141,6 +141,13 @@ type ServerConfig struct {
 	// ReadTimeout and WriteTimeout apply to the patch server's HTTP listener.
 	ReadTimeout  time.Duration `yaml:"read_timeout"`
 	WriteTimeout time.Duration `yaml:"write_timeout"`
+
+	// PacketLog writes the packet path's debug lines: every packet received
+	// and sent, its DRDP and state channel work (internal/debuglog). Off by
+	// default: about 100 lines a second a player. cmd/movereplay reads the
+	// "UDP raw hex" lines, so a log for it is written with this on; a GM's
+	// #packetlog turns it on or off while the server runs.
+	PacketLog bool `yaml:"packet_log"`
 }
 
 // WorldConfig holds world/zone settings.

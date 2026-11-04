@@ -16,6 +16,7 @@ import (
 	"github.com/eqoa/server/internal/bootelf"
 	"github.com/eqoa/server/internal/config"
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/debuglog"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/gmweb"
 	"github.com/eqoa/server/internal/ground"
@@ -647,6 +648,8 @@ func main() {
 	}
 
 	log.Printf("World tick rate: %v", cfg.World.TickRate)
+	debuglog.SetPackets(cfg.Server.PacketLog)
+	log.Printf("Packet log: %v (server.packet_log; a GM's #packetlog turns it on or off)", cfg.Server.PacketLog)
 	log.Printf("Session pre-game timeout: %v", cfg.World.SessionTimeoutPre)
 	log.Printf("Session in-game timeout: %v", cfg.World.SessionTimeoutGame)
 

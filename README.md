@@ -270,6 +270,13 @@ tools/               data tools (imports, seeds, fixes; each --apply/--undo, log
 `CLAUDE.md` is the working notes: the design, the protocol details and why each odd-looking
 rule is there.
 
+## Sharing back
+
+Running a server from this code, or a fork of it? Fixes and improvements sent back here help
+every other server too: a pull request, or an issue saying what you changed, is welcome. Credit
+is appreciated, not required: the MIT licence asks only that its notice stays with the code.
+Contributions are taken under the same licence.
+
 ## License
 
 MIT (`LICENSE`), for this repository's own work: the server, its tools and its notes. It

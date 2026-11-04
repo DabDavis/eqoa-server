@@ -692,7 +692,7 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 			add(se)
 		}
 	case "proc", "def_proc":
-		d.readProcsJSON(kind, e)
+		d.readProcsJSON(name, kind, e)
 	case "gate":
 		add(SpellEffect{Kind: EffectGate, ID: e.ID})
 	case "teleport":
@@ -803,10 +803,24 @@ func (d *SpellDef) readSpeedJSON(e effectJSON) {
 
 // readProcsJSON is a proc buff: each of its procs' effects that hits is the
 // line reader's proc (an offensive proc's, proc.go) or defensive proc
-// (dshield.go: the workbook's defensive procs answer every hit, its legend's
-// "Defensive procs have 100% proc rate on hit"), a heal a heal of its bearer
-// at the proc (workbook.go); the rest is kept as unsupported.
-func (d *SpellDef) readProcsJSON(kind string, e effectJSON) {
+// (dshield.go), a heal a heal of its bearer at the proc (workbook.go); the
+// rest is kept as unsupported.
+//
+// The workbook files every damage shield as a defensive proc (its legend:
+// "Defensive procs have 100% proc rate on hit"): the ranger's coats from
+// Thistlecoat on, the druid's thorns, the magician's auras and pet marks, the
+// monk's stances, Chilling Aura (57 spells, 37 of them its arch type "Damage
+// Shield"; every one's line says "Damage Shield Decrease Hitpoints by N").
+// Read as dshield.go's defensive procs they answer one hit in ten
+// (defProcChancePct, resisted too). The ranger's coats, and their masteries,
+// are damage shields here (rangerCoatShield: every hit, unresisted, the
+// strongest of the bearer's; the user, 2026-11-04: "thistlecoat is supposed
+// to be Damage shield"). The rest wait for a re-fit of the balance, which was
+// fitted with them at one in ten: at every hit, on the real data, a druid of
+// 45 beat a red three up alone every time (62% as procs) and a magician of
+// 60's pet won 25-31% of its yellows (the user's choice: "Ranger coats
+// now").
+func (d *SpellDef) readProcsJSON(name, kind string, e effectJSON) {
 	if len(e.Procs) == 0 {
 		d.unsupported("a %s with no proc effects", kind)
 		return
@@ -833,8 +847,11 @@ func (d *SpellDef) readProcsJSON(kind string, e effectJSON) {
 			se.Undead = undead
 			if def {
 				se.Kind, se.Chance = EffectDefProc, 100
-				// a defensive proc's damage is worked out at its landing
-				// (Shield.with), its scale its caster's
+				if rangerCoatShield(name) {
+					se.Kind, se.Chance = EffectShield, 0
+				}
+				// a defensive proc's or a shield's damage is worked out at
+				// its landing (Shield.with), its scale its caster's
 				se.ScaleBearer = false
 			}
 			d.Effects = append(d.Effects, se)

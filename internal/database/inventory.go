@@ -71,6 +71,60 @@ func (s *InventoryStore) GetCharacterItems(serverID uint32) ([]CharInventoryEntr
 }
 
 // SetEquipLoc moves an item to an equipment slot, or to -1 to unequip it.
+// SetInventoryOrder keeps the order of a character's pack (location 0) as the
+// client's list holds it after the item menu's Arrange (0x003D): the rows of
+// itemIDs first, in that order, then every other row of the pack in its old
+// order, numbered from 0 (listnumber, which GetCharacterItems orders by, so
+// the next MemoryDump lists them so). Scoped by serverID: an itemid not the
+// character's is passed over.
+func (s *InventoryStore) SetInventoryOrder(serverID uint32, itemIDs []int) error {
+	rows, err := s.db.Query(`SELECT itemid FROM charinventory WHERE serverid = ? AND location = 0 ORDER BY listnumber, itemid`, serverID)
+	if err != nil {
+		return err
+	}
+	var all []int
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
+			return err
+		}
+		all = append(all, id)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	have := make(map[int]bool, len(all))
+	for _, id := range all {
+		have[id] = true
+	}
+	order := make([]int, 0, len(all))
+	placed := make(map[int]bool, len(all))
+	for _, id := range itemIDs {
+		if have[id] && !placed[id] {
+			order = append(order, id)
+			placed[id] = true
+		}
+	}
+	for _, id := range all {
+		if !placed[id] {
+			order = append(order, id)
+		}
+	}
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	for i, id := range order {
+		if _, err := tx.Exec(`UPDATE charinventory SET listnumber = ? WHERE itemid = ? AND serverid = ? AND location = 0`, i, id, serverID); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
 // Scoped by serverID as well as itemid so a bad key cannot touch another
 // character's inventory.
 func (s *InventoryStore) SetEquipLoc(serverID uint32, itemID int, equipLoc int) error {

@@ -31,7 +31,7 @@ func (s *Server) liveBalance() string {
 // (database.BalanceProblems).
 func checkBalanceRow(table string, row map[string]any) error {
 	key := "level"
-	cols := []string{"hp_pct", "damage_pct", "pet_hp_pct", "pet_damage_pct"}
+	cols := []string{"hp_pct", "damage_pct", "pet_hp_pct", "pet_damage_pct", "player_melee_pct"}
 	if table == "balancelevel" {
 		if v, present := row["con_pct"]; present && v != nil {
 			p, ok := asFloat(v)
@@ -87,7 +87,7 @@ func checkBalanceRow(table string, row map[string]any) error {
 	case "balanceclass":
 		key, cols = "class", []string{"melee_taken_pct"}
 	case "balanceclasslevel":
-		key, cols = "class", []string{"melee_taken_pct", "pet_hp_pct", "dealt_pct"}
+		key, cols = "class", []string{"melee_taken_pct", "pet_hp_pct", "dealt_pct", "melee_dealt_pct"}
 		lv, ok := asFloat(row["level"])
 		if !ok {
 			return badRequest("%s: level is a whole number", table)

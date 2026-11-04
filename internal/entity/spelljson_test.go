@@ -135,7 +135,7 @@ func TestWorkbookKindsMapOntoTheEngines(t *testing.T) {
 	d = SpellDefFrom("Test Thorns", "", "", `{"v":1,"scope":"self","duration_s":300,"effects":[{"kind":"def_proc","procs":[
 		{"kind":"hp","amount":-8,"on":"defense","resist":"pierce"},{"kind":"hp","amount":12,"on":"defense"}]},
 		{"kind":"proc","procs":[{"kind":"hp","amount":-20,"on":"offense","scale":"int","scale_pct":10}]}]}`)
-	if len(d.Effects) != 3 || d.Effects[0].Kind != EffectDefProc || d.Effects[0].Amount != 8 || d.Effects[0].Chance != 100 ||
+	if len(d.Effects) != 3 || d.Effects[0].Kind != EffectShield || d.Effects[0].Amount != 8 ||
 		d.Effects[1].Kind != EffectProcHeal || !d.Effects[1].Defense || d.Effects[1].Amount != 12 ||
 		d.Effects[2].Kind != EffectProc || d.Effects[2].Amount != 20 || !d.Effects[2].ScaleBearer || d.Harmful {
 		t.Errorf("the procs: %+v", d.Effects)

@@ -811,15 +811,13 @@ func (d *SpellDef) readSpeedJSON(e effectJSON) {
 // Thistlecoat on, the druid's thorns, the magician's auras and pet marks, the
 // monk's stances, Chilling Aura (57 spells, 37 of them its arch type "Damage
 // Shield"; every one's line says "Damage Shield Decrease Hitpoints by N").
-// Read as dshield.go's defensive procs they answer one hit in ten
-// (defProcChancePct, resisted too). The ranger's coats, and their masteries,
-// are damage shields here (rangerCoatShield: every hit, unresisted, the
-// strongest of the bearer's; the user, 2026-11-04: "thistlecoat is supposed
-// to be Damage shield"). The rest wait for a re-fit of the balance, which was
-// fitted with them at one in ten: at every hit, on the real data, a druid of
-// 45 beat a red three up alone every time (62% as procs) and a magician of
-// 60's pet won 25-31% of its yellows (the user's choice: "Ranger coats
-// now").
+// Read as dshield.go's defensive procs they answered one hit in ten
+// (defProcChancePct, resisted too); each is a damage shield here (every hit,
+// unresisted, the strongest of the bearer's): the ranger's coats first (the
+// user, 2026-11-04: "thistlecoat is supposed to be Damage shield"), then the
+// rest with the balance fitted again on them ("re-fit the other damage
+// shields": tools/refit_damage_shields.py). A defensive proc of another kind
+// (Innoruuk's Aura's hate) stays a proc.
 func (d *SpellDef) readProcsJSON(name, kind string, e effectJSON) {
 	if len(e.Procs) == 0 {
 		d.unsupported("a %s with no proc effects", kind)
@@ -846,10 +844,7 @@ func (d *SpellDef) readProcsJSON(name, kind string, e effectJSON) {
 			se.ScaleBearer = se.Scale != StatNone // the proc effect's own modifier: its bearer's (the legend)
 			se.Undead = undead
 			if def {
-				se.Kind, se.Chance = EffectDefProc, 100
-				if rangerCoatShield(name) {
-					se.Kind, se.Chance = EffectShield, 0
-				}
+				se.Kind = EffectShield
 				// a defensive proc's or a shield's damage is worked out at
 				// its landing (Shield.with), its scale its caster's
 				se.ScaleBearer = false

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"net"
+	"strings"
 	"testing"
 	"time"
 
@@ -211,14 +212,14 @@ const thistlesJSON = `{"v":1,"scope":"self","target_type":"Self","harmful":false
 	"level":1,"sheet_type":"Defensive Proc","effects":[{"kind":"def_proc","procs":[{"kind":"hp","amount":-8,
 	"resist":"pierce","on":"defense","scope":"target","target_type":"Enemy"}]},{"kind":"stat","stat":"ac","amount":20}]}`
 
-// The ranger's coats are damage shields: Thistlecoat cast as the workbook
-// files it lands as a damage shield and answers every one of the crab's
-// hits, its 8 off the crab each time (the user, 2026-11-04: "thistlecoat is
-// supposed to be Damage shield"; read as dshield.go's defensive proc it
-// answered one hit in ten). Its mastery's name is a coat's too. The
-// controls: the same effects under a druid's coat's name ("Storm Coat") and
-// another name stay the workbook's defensive proc, for the re-fit (the
-// user's "Ranger coats now").
+// The workbook's damage shields are damage shields: Thistlecoat cast as the
+// workbook files it lands as a damage shield and answers every one of the
+// crab's hits, its 8 off the crab each time (the user, 2026-11-04:
+// "thistlecoat is supposed to be Damage shield"; read as dshield.go's
+// defensive proc it answered one hit in ten), and the same effects under its
+// mastery's name, a druid's coat's ("Storm Coat") and any other read the
+// same (the same day: "re-fit the other damage shields"). The control: a
+// defensive proc that heals stays the bearer's heal at a hit.
 func TestAWorkbookDamageShieldAnswersEveryHit(t *testing.T) {
 	c, crab := casterAndCrab(t)
 	thorns := CastSpell{SpellID: 1096, DisplayIndex: 3, Level: 1, Scope: 0, Name: "Thistlecoat", Icon: 0x2A2B2C2D,
@@ -255,13 +256,14 @@ func TestAWorkbookDamageShieldAnswersEveryHit(t *testing.T) {
 		d := SpellDefFrom(name, "", "", thistlesJSON)
 		return d.Effects[0].Kind
 	}
-	if k := kind("Thistlecoat +"); k != EffectShield {
-		t.Errorf("the mastery's thorns read as %v, want a damage shield", k)
-	}
-	for _, name := range []string{"Storm Coat", "Test Thorns"} {
-		if k := kind(name); k != EffectDefProc {
-			t.Errorf("the control: %q's thorns read as %v, want the workbook's defensive proc", name, k)
+	for _, name := range []string{"Thistlecoat +", "Storm Coat", "Test Thorns"} {
+		if k := kind(name); k != EffectShield {
+			t.Errorf("%q's thorns read as %v, want a damage shield", name, k)
 		}
+	}
+	heal := SpellDefFrom("Test Mend", "", "", strings.Replace(thistlesJSON, `"amount":-8`, `"amount":8`, 1))
+	if len(heal.Effects) == 0 || heal.Effects[0].Kind != EffectProcHeal || !heal.Effects[0].Defense {
+		t.Errorf("the control: a healing defensive proc read as %+v", heal.Effects)
 	}
 }
 

@@ -52,16 +52,26 @@ func fightsPlayer(f *aggroFix, n *NPC) {
 	n.CurrentEnemy = f.p.ServerID
 }
 
-// A wolf that wandered to 28 off the guard's post is taken on, no player
-// near. Every control stands nearer, so the guard (who takes the nearest)
-// would take any of them it did not leave alone: a pet, a charmed creature,
-// a town guard on a creature's body, a camp's sentry of a guard faction, a
-// creature of the militia's own, an alley cat of Freeport's people, a bandit
-// on a players' race body, a sign post's and a blocker's body, one with the
-// NPC bit, a training and a sparring dummy, a dead wolf, a GM's peaceful
-// minnow, a quest's spawn, one out of the world, and a resident wolf spawned
-// 10 off the post; nor one 35 off.
-func TestATownGuardTakesOnACreatureThatWandersNear(t *testing.T) {
+// hitsNear puts the player 5 off the guard's post and n on it: a player being
+// hit in front of the guard (GuardHelpRadius).
+func (f *aggroFix) hitsNear(n *NPC) {
+	f.moveTo(2005, 2000)
+	fightsPlayer(f, n)
+}
+
+// A wolf at 28 off the guard's post hitting the player 5 off it is taken on.
+// Every control stands nearer and fights the player too, so the guard (who
+// takes the nearest) would take any of them it did not leave alone: a pet, a
+// charmed creature, a town guard on a creature's body, a camp's sentry of a
+// guard faction, a creature of the militia's own, an alley cat of Freeport's
+// people, a bandit on a players' race body, a sign post's and a blocker's
+// body, one with the NPC bit, a training and a sparring dummy, a dead wolf, a
+// GM's peaceful minnow, a quest's spawn, one out of the world, and a resident
+// wolf spawned 10 off the post; nor one 35 off. Then the rule's own: a wolf
+// that only came near, and one hitting the player 11 off the guard, are left
+// alone (the user's "unless a player is being hit within 10m"); the control,
+// the player 9 off.
+func TestATownGuardTakesOnACreatureHittingAPlayerBeforeIt(t *testing.T) {
 	f, g := newWatchFix(t)
 	f.w.factions.hits[database.NPCClassKey("militia hound")] = []FactionHit{{"Citizens of Freeport", -50}, {"The Freeport Militia", -10}}
 	f.w.SetNPCFactions([]database.NPCFactionRow{
@@ -99,10 +109,16 @@ func TestATownGuardTakesOnACreatureThatWandersNear(t *testing.T) {
 	kept.SpawnOnly = true
 	f.npc(326, "ravenous wolf", 20, bearBody, 2010, 2003) // a resident
 	f.wanderer(327, "ravenous wolf", 20, bearBody, 2035, 2000)
+	for id, n := range f.w.NPCs {
+		if id != g.ServerID {
+			fightsPlayer(f, n)
+		}
+	}
+	f.moveTo(2005, 2000)
 
 	f.watch()
 	if g.CurrentEnemy != wolf.ServerID {
-		t.Fatalf("the guard took on %q (%d), want the wolf that wandered in", f.w.NPCs[g.CurrentEnemy].Name, g.CurrentEnemy)
+		t.Fatalf("the guard took on %q (%d), want the wolf hitting the player", f.w.NPCs[g.CurrentEnemy].Name, g.CurrentEnemy)
 	}
 
 	// the controls: none of them alone draws it
@@ -113,6 +129,53 @@ func TestATownGuardTakesOnACreatureThatWandersNear(t *testing.T) {
 	if g.CurrentEnemy != 0 {
 		t.Errorf("with the wolf gone the guard took on %q", f.w.NPCs[g.CurrentEnemy].Name)
 	}
+
+	// the rule's own: near is not enough, nor a player 11 off; 9 off is
+	idle := f.wanderer(330, "ravenous wolf", 20, bearBody, 2020, 2000)
+	f.watch()
+	if g.CurrentEnemy != 0 {
+		t.Error("the guard took on a wolf that only came near, no player in its fight")
+	}
+	fightsPlayer(f, idle)
+	f.moveTo(2011, 2000)
+	f.watch()
+	if g.CurrentEnemy != 0 {
+		t.Error("the guard took on a wolf hitting a player 11 off it")
+	}
+	f.moveTo(2009, 2000)
+	f.watch()
+	if g.CurrentEnemy != idle.ServerID {
+		t.Errorf("the control: the player 9 off, the guard's enemy is %d, want the wolf %d", g.CurrentEnemy, idle.ServerID)
+	}
+}
+
+// A town's own wildlife is left alone, hitting a player in front of the
+// guard or not: a bat whose spawn lies in the town (f.town's ten townsfolk by
+// the guard's post, within townMargin), 200 from the post (so no resident of
+// it), at 28 off the guard and fighting the player 5 off it. The control: the
+// same bat spawned outside the town, hitting the same player, is taken on.
+func TestTheGuardsLeaveTheirTownsOwnWildlifeAlone(t *testing.T) {
+	f, g := newWatchFix(t)
+	f.town(2000, 2030)
+	own := f.npc(300, "bat", 2, bearBody, 2028, 2000)
+	own.SpawnX = 2200
+	f.w.mu.Lock()
+	inTown := f.w.inTownLocked(own.World, own.SpawnX, own.SpawnZ)
+	f.w.mu.Unlock()
+	if !inTown {
+		t.Fatal("the bat's spawn is not in the town: the test proves nothing")
+	}
+	f.hitsNear(own)
+	f.watch()
+	if g.CurrentEnemy != 0 {
+		t.Fatalf("the guard took on %q, the town's own bat", f.w.NPCs[g.CurrentEnemy].Name)
+	}
+	stranger := f.wanderer(301, "bat", 2, bearBody, 2029, 2000)
+	fightsPlayer(f, stranger)
+	f.watch()
+	if g.CurrentEnemy != stranger.ServerID {
+		t.Errorf("the guard took on %d, want the bat that came in from outside (%d)", g.CurrentEnemy, stranger.ServerID)
+	}
 }
 
 // The guard looks only while free, and only where a creature can be told
@@ -121,6 +184,7 @@ func TestATownGuardTakesOnACreatureThatWandersNear(t *testing.T) {
 func TestWhenAGuardLooks(t *testing.T) {
 	f, g := newWatchFix(t)
 	wolf := f.wanderer(300, "ravenous wolf", 20, bearBody, 2020, 2000)
+	f.hitsNear(wolf)
 	look := func() bool {
 		forget(g)
 		g.chase.returning = false
@@ -151,12 +215,13 @@ func TestWhenAGuardLooks(t *testing.T) {
 	}
 }
 
-// The guard runs to the wolf, kills it and walks back to its post; the kill
-// is the guards' (GuardsKill). The control: before the guard's first hit the
-// wolf is no one's.
+// The guard runs to the wolf hitting the player, kills it and walks back to
+// its post; the kill is the guards' (GuardsKill). The control: before the
+// guard's first hit the wolf is no one's.
 func TestAGuardKillsTheCreatureAndGoesBackToItsPost(t *testing.T) {
 	f, g := newWatchFix(t)
 	wolf := f.wanderer(300, "ravenous wolf", 20, bearBody, 2020, 2000)
+	f.hitsNear(wolf)
 	f.watch()
 	if g.CurrentEnemy != wolf.ServerID {
 		t.Fatalf("the guard did not take the wolf on: enemy %d", g.CurrentEnemy)
@@ -189,10 +254,12 @@ func TestAGuardGivesUpAHundredFromItsPost(t *testing.T) {
 	f, g := newWatchFix(t)
 	wolf := f.wanderer(300, "ravenous wolf", 20, bearBody, 2020, 2000)
 	wolf.HP, wolf.MaxHP = 1_000_000, 1_000_000
+	f.hitsNear(wolf)
 	f.watch()
 	if g.CurrentEnemy != wolf.ServerID {
 		t.Fatalf("the guard did not take the wolf on: enemy %d", g.CurrentEnemy)
 	}
+	forget(wolf) // it lets the player go and runs
 	// the wolf runs off east, ahead of the guard
 	var far float32
 	for i := 0; i < 300 && g.CurrentEnemy != 0; i++ {
@@ -318,11 +385,13 @@ func TestGuardTown(t *testing.T) {
 	}
 }
 
-// The world's tick runs the guards' look (tickLocked): a wolf that wandered
-// near is taken on at the next scan tick, whatever the other systems do.
+// The world's tick runs the guards' look (tickLocked): a wolf hitting the
+// player in front of the guard is taken on at the next scan tick, whatever
+// the other systems do.
 func TestTheTickRunsTheGuardsLook(t *testing.T) {
 	f, g := newWatchFix(t)
 	wolf := f.wanderer(300, "ravenous wolf", 20, bearBody, 2020, 2000)
+	f.hitsNear(wolf)
 	for i := 0; i < aggroScanTicks && g.CurrentEnemy == 0; i++ {
 		f.now = f.now.Add(100 * time.Millisecond)
 		f.w.tickLocked(f.now)

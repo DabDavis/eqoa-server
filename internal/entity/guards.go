@@ -7,12 +7,15 @@ import (
 	"time"
 )
 
-// Town guards keep their posts clear of creatures (F3 20261030-063534, jib:
-// "guards should assist players that get attacked in front of them, within a
-// range of 30 yards. If they engage a monster though, no loot or xp should be
-// given to the player if the guards hit it."; the user, 2026-10-31: "if a
-// creature wanders within range of the guard, it should aggro whether player
-// is involved or not", and a guard's leash of 100).
+// Town guards come to the help of a player a creature hits in front of them
+// (F3 20261030-063534, jib: "guards should assist players that get attacked
+// in front of them, within a range of 30 yards. If they engage a monster
+// though, no loot or xp should be given to the player if the guards hit
+// it."; the user, 2026-11-04: "lets stop guards from attacking mobs unless a
+// player is being hit within 10m"). From 2026-10-31 to then a guard took on
+// any creature that came near ("if a creature wanders within range of the
+// guard, it should aggro whether player is involved or not"); its leash of
+// 100 is that day's too.
 //
 // Who is a town guard (townGuardLocked): an NPC whose npcsocial row is social
 // and whose faction there (the row's, else the one its kill lowers most) is a
@@ -29,8 +32,11 @@ import (
 // What it does (guardWatchSystem, every aggroScanTicks): a town guard that is
 // free (alive, not fighting, not on its way home, not hidden, no NPC bit)
 // takes on the nearest creature within DefaultSocialRadius (30, the row's own
-// radius when it says) of it, as its own fight, whether a player fights the
-// creature or not. Only a generic creature (guardsPreyLocked); left alone:
+// radius when it says) of it that is fighting a player (its current enemy)
+// who stands within GuardHelpRadius (10) of the guard, alive and in its world
+// (fightsPlayerNearLocked), as its own fight; a creature that only comes
+// near, or fights a player farther off, is left alone. Only a generic
+// creature (guardsPreyLocked); left alone too:
 //   - a player's pet or a charmed creature (Owner, Charm): a player's own;
 //   - a town guard, or anything of a guard faction (its npcfaction or social
 //     faction): guards do not fight guards, a town's or a camp's;
@@ -51,7 +57,15 @@ import (
 //     01:24 UTC database that is 9 spawns and nothing else: 6 of Highpass
 //     Hold's pickclaws among its guards (L19-58, the Pickclaw Sashes and
 //     Captain Scilond's quests' targets), Qeynos's coin chest, Freeport's
-//     Khal Spy and a newbie quests' bat (tools/guards_measure.py).
+//     Khal Spy and a newbie quests' bat (tools/guards_measure.py);
+//   - a town's own: one whose spawn point lies in a town (towns.go's: within
+//     townMargin of a chain of its people), as the wander lets one that
+//     lives there walk in it and keeps every other out. Tethelin's newbie
+//     wildlife lives on the ground under its walkways, in its guards' reach
+//     (the user, 2026-11-04: "the wildlife should be below the walkways",
+//     then "leave town wildlife alone"): a newbie fighting a bat beside a
+//     guard keeps the kill. A creature from outside hitting a player in
+//     front of a guard is still taken on.
 //
 // The fight (npcFoeLocked, npcFightNPCLocked) is a fight's: the chase and the
 // way home (chase.go), with a guard's leash GuardLeash from where it began,
@@ -72,6 +86,18 @@ import (
 // GuardLeash is how far from its post a town guard follows a creature before
 // it gives the fight up and walks back (the user's, 2026-10-31).
 const GuardLeash float32 = 100
+
+// GuardHelpRadius is how near a guard the player a creature fights must stand
+// for the guard to take the creature on (the user's "within 10m", 2026-11-04).
+const GuardHelpRadius float32 = 10
+
+// fightsPlayerNearLocked reports creature c fighting a player who stands
+// within GuardHelpRadius of guard g, alive and in g's world (the file's doc).
+// Must be called with the lock held.
+func (w *World) fightsPlayerNearLocked(c, g *NPC) bool {
+	p, ok := w.Players[c.CurrentEnemy]
+	return ok && p != nil && !p.IsDead() && p.World == g.World && dist3(p.X, p.Y, p.Z, g.X, g.Y, g.Z) <= GuardHelpRadius
+}
 
 // SignpostBody and BlockerBody are bodies of things, never creatures: every
 // sign post and board's (CHAR.ESF 0x6A82352C, handlers/signs.go's SignBody),
@@ -155,6 +181,9 @@ func (w *World) guardsPreyLocked(g, c *NPC, now time.Time) bool {
 	if dist3(c.SpawnX, c.SpawnY, c.SpawnZ, g.SpawnX, g.SpawnY, g.SpawnZ) <= w.guardRadiusLocked(g) {
 		return false // a resident of the guard's post, not one that wandered in
 	}
+	if w.inTownLocked(c.World, c.SpawnX, c.SpawnZ) {
+		return false // a town's own, which lives there (the file's doc)
+	}
 	if w.townGuardLocked(c) {
 		return false
 	}
@@ -171,7 +200,8 @@ func (w *World) guardsPreyLocked(g, c *NPC, now time.Time) bool {
 }
 
 // guardWatchSystem is the town guards' look round their posts: each free one
-// takes on the nearest creature within its radius (the file's doc). Every
+// takes on the nearest creature within its radius hitting a player within
+// GuardHelpRadius of it (the file's doc). Every
 // aggroScanTicks ticks, over the guards' set (npcsets.go: the NPCs whose
 // social rule could make them a town's guard); must be called with the lock
 // held.
@@ -198,7 +228,7 @@ func (w *World) guardWatchSystem(now time.Time) {
 		var near float32
 		for _, id := range w.SpatialIndex.QueryRadius(g.X, g.Z, r) {
 			c, ok := w.NPCs[id]
-			if !ok || !w.guardsPreyLocked(g, c, now) {
+			if !ok || !w.guardsPreyLocked(g, c, now) || !w.fightsPlayerNearLocked(c, g) {
 				continue
 			}
 			if d := dist3(g.X, g.Y, g.Z, c.X, c.Y, c.Z); d <= r && (prey == nil || d < near) {

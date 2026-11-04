@@ -42,6 +42,10 @@ restart after.
 
     tools/seed_town_wildlife.py --town Tethelin --ground worlds/ground [--db eqoa.db]
         [--apply | --undo] [--seed N] [--verbose]
+
+A town's own ground is a seed of its own (TOWNS' inside entries, logged and
+undone apart): "Tethelin ground" puts the newbie quests' creatures on the
+forest floor under Tethelin's walkways, in the town.
 """
 import argparse
 import collections
@@ -63,10 +67,26 @@ DEFAULT_SEED = 25
 # A town: its middle (the people's, roughly), the ring to fill (from its
 # middle), the kinds with their shares, and the land's floor (round
 # Tethelin the open ground lies at 54.1, the town's platforms at 69-76).
+# A seed of a town's own ground (inside: each spawn IN the town, within
+# TOWN_MARGIN of its people, where every other seed keeps TOWN_CLEAR away)
+# may set its own square (cell, per_cell), levels, floor band round the land
+# (max_drop, max_rise) and spacing_dy: only an NPC within that height of a
+# spawn keeps SPACING from it (the town's people on its platforms stand
+# over the ground, not on it).
 TOWNS = {
     "Tethelin": dict(world=0, x=18300.0, z=7350.0, ring=(0.0, 1500.0), land=54.0,
                      kinds={"sparkflies": 4, "grass snake": 1, "grass viper": 1, "spiderling": 1, "bat": 1,
                             "rat": 1, "emberflies": 1, "fireflies": 1, "hatchling": 1}),
+    # The forest floor under Tethelin's walkways (the user, 2026-11-04: "no bats in teth for [a new
+    # ranger's] quest", "teth is devoid of wildlife", "the wildlife should be below the walkways"):
+    # the kinds its level 3 and 4 quests send new players for (bats, sparkflies, grass snakes,
+    # spiderlings, rats, fireflies), levels 1-3, one a 60-unit square of the town's own ground. Its
+    # guards leave a town's own wildlife alone (entity/guards.go), and the wander lets it walk there.
+    "Tethelin ground": dict(world=0, x=18300.0, z=7350.0, ring=(0.0, 400.0), land=53.0, inside=True,
+                            cell=60.0, per_cell=1, levels=((1e9, 1, 3),), max_drop=6.0, max_rise=5.0,
+                            spacing_dy=8.0,
+                            kinds={"bat": 3, "sparkflies": 2, "grass snake": 1, "spiderling": 1, "rat": 1,
+                                   "fireflies": 1}),
 }
 
 CELL = 250.0
@@ -74,6 +94,7 @@ PER_CELL = 2
 NEWBIE_LEVEL = 5              # what counts toward PER_CELL: creatures of this level or less
 LEVELS = ((500.0, 1, 2), (1000.0, 2, 3), (1e9, 3, 4))   # out to this far: these levels
 TOWN_CLEAR = sw.TOWN_CLEAR
+TOWN_MARGIN = 40.0            # entity/towns.go's townMargin: a point this near a town's people is in it
 SPACING = sw.SPACING
 MAX_DROP, MAX_RISE = 12.0, 25.0
 TRIES = 60
@@ -148,11 +169,11 @@ class Env:
 
 # ---- the plan ----------------------------------------------------------------------
 
-def level_at(d):
-    for far, lo, hi in LEVELS:
+def level_at(d, levels=LEVELS):
+    for far, lo, hi in levels:
         if d <= far:
             return lo, hi
-    return LEVELS[-1][1], LEVELS[-1][2]
+    return levels[-1][1], levels[-1][2]
 
 
 def plan(db, ground_dir, town_name, seed=DEFAULT_SEED):
@@ -168,9 +189,20 @@ def plan(db, ground_dir, town_name, seed=DEFAULT_SEED):
     if not os.path.exists(epath):
         sys.exit(f"no environment file {epath}: the water could not be kept out")
     g, env = sw.Ground(gpath), Env(epath)
+    cell, per_cell = town.get("cell", CELL), town.get("per_cell", PER_CELL)
+    levels, inside, dy = town.get("levels", LEVELS), town.get("inside", False), town.get("spacing_dy")
+    max_drop, max_rise = town.get("max_drop", MAX_DROP), town.get("max_rise", MAX_RISE)
     taken = sw.Grid(64.0)
     for n in npcs:
-        taken.add(n["world"], n["x"], n["z"], n["key"])
+        taken.add(n["world"], n["x"], n["z"], (n["key"], n["y"]))
+
+    def crowded(x, y, z):
+        """Another NPC within SPACING (with spacing_dy, only one standing at about the spawn's height)."""
+        for _, _, (_, ny) in taken.near(world, x, z, SPACING):
+            if dy is None or abs(ny - y) <= dy:
+                return True
+        return False
+
     left = [(k, why.get(k, "no body: no NPC of that name")) for k in town["kinds"] if k not in kinds]
     shares = [(k, w) for k, w in sorted(town["kinds"].items()) if k in kinds]
     total = sum(w for _, w in shares)
@@ -179,26 +211,26 @@ def plan(db, ground_dir, town_name, seed=DEFAULT_SEED):
     have = collections.Counter()
     for n in npcs:
         if n["world"] == world and n["level"] <= NEWBIE_LEVEL and n["key"] in kinds:
-            have[(math.floor(n["x"] / CELL), math.floor(n["z"] / CELL))] += 1
+            have[(math.floor(n["x"] / cell), math.floor(n["z"] / cell))] += 1
     rng = random.Random(seed)
     rows, cells, why_not = [], [], collections.Counter()
-    i0, i1 = math.floor((cx - r1) / CELL), math.floor((cx + r1) / CELL)
-    j0, j1 = math.floor((cz - r1) / CELL), math.floor((cz + r1) / CELL)
+    i0, i1 = math.floor((cx - r1) / cell), math.floor((cx + r1) / cell)
+    j0, j1 = math.floor((cz - r1) / cell), math.floor((cz + r1) / cell)
     for i in range(i0, i1 + 1):
         for j in range(j0, j1 + 1):
-            mx, mz = (i + 0.5) * CELL, (j + 0.5) * CELL
+            mx, mz = (i + 0.5) * cell, (j + 0.5) * cell
             d = math.hypot(mx - cx, mz - cz)
             if not r0 <= d <= r1:
                 continue
-            want = max(0, PER_CELL - have[(i, j)])
+            want = max(0, per_cell - have[(i, j)])
             got = 0
             for _ in range(want):
                 for _ in range(TRIES):
-                    x, z = rng.uniform(i * CELL, (i + 1) * CELL), rng.uniform(j * CELL, (j + 1) * CELL)
+                    x, z = rng.uniform(i * cell, (i + 1) * cell), rng.uniform(j * cell, (j + 1) * cell)
                     if not r0 <= math.hypot(x - cx, z - cz) <= r1:
                         why_not["off the ring"] += 1
                         continue
-                    y = g.floor_near(x, z, town["land"], MAX_DROP, MAX_RISE)
+                    y = g.floor_near(x, z, town["land"], max_drop, max_rise)
                     if y is None or y < town["land"]:
                         why_not["no land"] += 1
                         continue
@@ -206,10 +238,14 @@ def plan(db, ground_dir, town_name, seed=DEFAULT_SEED):
                     if f is None or f & BAD_ENV:
                         why_not["water or no zone"] += 1
                         continue
-                    if next(towns.near(world, x, z, TOWN_CLEAR), None) is not None:
+                    if inside:
+                        if next(towns.near(world, x, z, TOWN_MARGIN), None) is None:
+                            why_not["outside the town"] += 1
+                            continue
+                    elif next(towns.near(world, x, z, TOWN_CLEAR), None) is not None:
                         why_not["the town"] += 1
                         continue
-                    if next(taken.near(world, x, z, SPACING), None) is not None:
+                    if crowded(x, y, z):
                         why_not["another NPC"] += 1
                         continue
                     pick = rng.uniform(0, total)
@@ -219,7 +255,7 @@ def plan(db, ground_dir, town_name, seed=DEFAULT_SEED):
                             break
                     rows_k = kinds[key]
                     t = sw.template(rows_k, world, x, z)
-                    lo, hi = level_at(math.hypot(x - cx, z - cz))
+                    lo, hi = level_at(math.hypot(x - cx, z - cz), levels)
                     near = [n["level"] for n in rows_k if n["world"] == world]
                     lo, hi = max(lo, min(near)), min(hi, max(near))
                     lv = rng.randint(min(lo, hi), max(lo, hi))
@@ -229,7 +265,7 @@ def plan(db, ground_dir, town_name, seed=DEFAULT_SEED):
                                z_coord=round(z, 3), facing=rng.randrange(256), world=world, npc_level=lv,
                                npc_id=0, dt_kill=None, zone=0)
                     rows.append(dict(row=row, town=town_name, template=t["id"], kind=key))
-                    taken.add(world, x, z, key)
+                    taken.add(world, x, z, (key, y))
                     got += 1
                     break
             cells.append(dict(cell=(i, j), d=d, had=have[(i, j)], want=want, got=got))
@@ -318,12 +354,13 @@ def backup(db, path):
 
 def report(p, town, verbose=False):
     t = TOWNS[town]
-    print(f"{town} (world {t['world']}, round ({t['x']:.0f}, {t['z']:.0f}) to {t['ring'][1]:.0f}): "
-          f"{len(p['cells'])} squares of {CELL:.0f}, {sum(c['had'] for c in p['cells'])} newbie creatures in them, "
+    print(f"{town} (world {t['world']}, round ({t['x']:.0f}, {t['z']:.0f}) to {t['ring'][1]:.0f}"
+          f"{', in the town' if t.get('inside') else ''}): "
+          f"{len(p['cells'])} squares of {t.get('cell', CELL):.0f}, {sum(c['had'] for c in p['cells'])} newbie creatures in them, "
           f"{len(p['rows'])} spawns")
     filled = [c for c in p["cells"] if c["want"]]
     short = [c for c in filled if c["got"] < c["want"]]
-    print(f"    {len(filled)} squares under {PER_CELL}; {len(short)} found less room than they wanted "
+    print(f"    {len(filled)} squares under {t.get('per_cell', PER_CELL)}; {len(short)} found less room than they wanted "
           f"({sum(c['want'] - c['got'] for c in short)} spawns: no land, water, the town or other NPCs)")
     for k, n in sorted(collections.Counter(r["kind"] for r in p["rows"]).items(), key=lambda kv: -kv[1]):
         lv = collections.Counter(r["row"]["npc_level"] for r in p["rows"] if r["kind"] == k)

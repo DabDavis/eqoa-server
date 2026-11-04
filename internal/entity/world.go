@@ -92,6 +92,7 @@ type World struct {
 	towns        townGrid // the towns' people, for the wander to keep out of (towns.go); nil until first asked
 	townFolk     int
 	ground       Ground // where creatures stand (groundnpc.go); nil: their own heights
+	groundGen    uint32 // raised at each SetGround and SetEnv: what a creature's spots were found on (roam.go)
 	playerModels map[uint32]bool
 	modelSex     map[uint32]int // a players' race body's sex (charactermodel): 0 male, 1 female
 	modelRace    map[uint32]int // and its race: the voice its NPC speaks in (dialog.go)

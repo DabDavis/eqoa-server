@@ -67,6 +67,7 @@ func (w *World) SetEnv(e Env) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.env = e
+	w.groundGen++
 }
 
 // waterAtLocked reports a point in the water; false where the server knows

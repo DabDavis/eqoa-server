@@ -279,16 +279,36 @@ func (w *World) legOKLocked(npc *NPC, x, z float32) bool {
 // What a failed check left in heights means nothing. Must be called with the
 // lock held.
 func (w *World) legCheckLocked(npc *NPC, x, z float32, heights *[]float32) bool {
+	return w.legLocked(npc, x, z, heights, true)
+}
+
+// legFloorsLocked is legCheckLocked's floor alone, for a leg of a creature
+// on the ground found walkable before (roam.go's spots): the same heights
+// read the same way, none of the walls, CLIENT's set-down or the water
+// asked again; false where a point has no floor or one past a fall (the leg
+// is not as it was found, and is checked whole). Must be called with the
+// lock held.
+func (w *World) legFloorsLocked(npc *NPC, x, z float32, heights *[]float32) bool {
+	return w.spawnOnGroundLocked(npc) && w.legLocked(npc, x, z, heights, false)
+}
+
+// legLocked is the leg's check: its floor, and when whole the rest
+// (legCheckLocked). Must be called with the lock held.
+func (w *World) legLocked(npc *NPC, x, z float32, heights *[]float32, whole bool) bool {
 	d := distXZ(npc.X, npc.Z, x, z)
 	n := int(d/legSample) + 1
 	onGround := w.spawnOnGroundLocked(npc)
 	keeps := keepsToBoth
-	if w.env != nil {
+	if w.env != nil && whole {
 		keeps = w.keepsToLocked(npc)
 	}
 	y := npc.Y
-	walls, _ := w.ground.(Walls)
-	placed, _ := w.ground.(Placed)
+	var walls Walls
+	var placed Placed
+	if whole { // else the floor alone
+		walls, _ = w.ground.(Walls)
+		placed, _ = w.ground.(Placed)
+	}
 	if !onGround {
 		placed = nil // set down where it was sent: nothing of the ground's to keep it off
 	}

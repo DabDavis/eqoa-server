@@ -239,12 +239,13 @@ type CraftRecipes struct {
 	byScroll map[int][]*CraftRecipe
 	byUnits  map[string][]*CraftRecipe
 	consumed map[int]bool // the items some recipe loses on a failure
+	used     map[int]bool // the items some recipe takes, lost or kept
 }
 
 // newCraftRecipes indexes recipes (in id order).
 func newCraftRecipes(recipes []CraftRecipe) *CraftRecipes {
 	c := &CraftRecipes{byID: map[int]*CraftRecipe{}, byScroll: map[int][]*CraftRecipe{},
-		byUnits: map[string][]*CraftRecipe{}, consumed: map[int]bool{}}
+		byUnits: map[string][]*CraftRecipe{}, consumed: map[int]bool{}, used: map[int]bool{}}
 	for i := range recipes {
 		r := &recipes[i]
 		c.list = append(c.list, r)
@@ -255,6 +256,7 @@ func newCraftRecipes(recipes []CraftRecipe) *CraftRecipes {
 		key := CombineKey(r.Units())
 		c.byUnits[key] = append(c.byUnits[key], r)
 		for _, in := range r.Ingredients {
+			c.used[in.Item] = true
 			if !in.Keep {
 				c.consumed[in.Item] = true
 			}
@@ -310,6 +312,12 @@ func (c *CraftRecipes) Combine(units map[int]int) []*CraftRecipe {
 // the item combination is a valid recipe or not").
 func (c *CraftRecipes) ConsumedOnFail(item int) bool {
 	return c != nil && c.consumed[item]
+}
+
+// Uses is whether some recipe takes the item (lost or kept): an item none
+// does (a recipe's scroll, say) is no part of an Experiment.
+func (c *CraftRecipes) Uses(item int) bool {
+	return c != nil && c.used[item]
 }
 
 // craftRecipesFor is how long a read of craftrecipes is kept: a row a tool

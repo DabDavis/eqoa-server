@@ -81,21 +81,23 @@ func TestCraftGainByTheRecipesLevel(t *testing.T) {
 	}
 }
 
-// The roll: 0.60 at the difficulty, 0.05 a point either side, the two stats
-// over 120 at 1/2000 a point, within 0.05 and 0.95; each skill its own pair.
+// The roll: 0.95 at the difficulty, 0.005 a point either side, the two stats
+// over 120 at 1/2000 a point, within 0.90 and 0.98 (a small failure at every
+// level); each skill its own pair.
 func TestCraftChance(t *testing.T) {
 	near := func(a, b float64) bool { return math.Abs(a-b) < 1e-9 }
 	for _, c := range []struct {
 		points, difficulty, stats int
 		want                      float64
 	}{
-		{10, 10, 120, 0.60},
-		{12, 10, 120, 0.70},
-		{8, 10, 120, 0.50},
-		{10, 10, 320, 0.70},
-		{10, 10, 20, 0.55},
-		{30, 10, 120, 0.95}, // capped
-		{0, 30, 120, 0.05},  // floored
+		{10, 10, 120, 0.95},
+		{12, 10, 120, 0.96},
+		{8, 10, 120, 0.94},
+		{10, 10, 160, 0.97},
+		{10, 10, 20, 0.90},
+		{100, 106, 120, 0.92}, // a level's hardest recipe at its rank 0
+		{30, 10, 120, 0.98},   // capped
+		{0, 30, 120, 0.90},    // floored
 	} {
 		if got := craftChance(c.points, c.difficulty, c.stats); !near(got, c.want) {
 			t.Errorf("points %d, difficulty %d, stats %d: %.4f, want %.2f", c.points, c.difficulty, c.stats, got, c.want)

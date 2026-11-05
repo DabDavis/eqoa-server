@@ -77,18 +77,71 @@ func TestCraftExperimentNothing(t *testing.T) {
 }
 
 // Items that make nothing lose those some recipe loses on a failure (the
-// ore), whether or not the combination is a recipe: 12/4 with one (id, 1)
-// pair a unit, then 0x003C; the gem beside them is kept.
+// ore) at the small chance, craftNothingLoss: 12/4 with one (id, 1) pair a
+// unit, then 0x003C; the gem beside them is kept. The control: a roll not
+// under it takes nothing (12/2).
 func TestCraftExperimentNothingLosesTheConsumable(t *testing.T) {
 	f := newCraftFixture(t)
 	f.standard(5)
-	got := f.combine(f.ore, f.gem) // the recipe wants two ore: no match
+	f.dice = []float64{craftNothingLoss}
+	got := f.combine(f.ore, f.gem)
+	mustBytes(t, "12/2 at the roll's edge", onlyOne(t, got), reply(12).u8(2).u32(0).b)
+	if f.stack(f.ore) != 5 {
+		t.Fatalf("ore %d: a kept roll took some", f.stack(f.ore))
+	}
+	f.dice = []float64{craftNothingLoss / 2}
+	got = f.combine(f.ore, f.gem) // the recipe wants two ore: no match
 	mustOps(t, got, opcodeCraftReply, protocol.OpcodeRemoveInvItem)
 	want := reply(12).u8(4).u32(0).u32(1).u32(1).u32(uint32(f.ore)).u32(1).b
 	mustBytes(t, "12/4", got[0], want)
 	mustBytes(t, "the ore", got[1], removeMsg(1, 1))
 	if f.stack(f.ore) != 4 || f.stack(f.gem) != 2 {
 		t.Fatalf("ore %d, gems %d; want 4 and 2", f.stack(f.ore), f.stack(f.gem))
+	}
+}
+
+// The right items with the recipe's own scroll put in beside them: the scroll
+// (no recipe takes it) is no part of the combine, the recipe is made and the
+// scroll kept. The recipe not learned and not to be found by an Experiment:
+// 12/2 and a line naming the scroll that teaches it, nothing taken or worn;
+// learned, it is made.
+func TestCraftExperimentScrollAndUnlearnedRecipe(t *testing.T) {
+	f := newCraftFixture(t)
+	f.standard(5)
+	scroll := f.item("Test Plate Recipe", -1, 1, 1, 0, 0, 7004, "")
+	f.give(scroll, 1, 0, -1)
+	f.loadList()
+	if _, err := f.db.Exec(`UPDATE craftrecipes SET scroll = ? WHERE id = ?`, scroll, testRecipe); err != nil {
+		t.Fatal(err)
+	}
+	database.InvalidateCraftRecipes()
+	f.dice = []float64{0.5}
+	got := f.combine(f.ore, f.ore, f.gem, scroll)
+	if got[0][3] != craftExpDiscovered {
+		t.Fatalf("with the scroll beside them: 12/%d, want a discovery (12/%d)", got[0][3], craftExpDiscovered)
+	}
+	if f.stack(scroll) != 1 || f.stack(f.ore) != 3 || f.stack(f.plate) != 1 {
+		t.Fatalf("scroll %d, ore %d, plates %d; want 1, 3, 1", f.stack(scroll), f.stack(f.ore), f.stack(f.plate))
+	}
+	// not to be found by an Experiment, and not in the book
+	if _, err := f.db.Exec(`UPDATE craftrecipes SET discover = 0 WHERE id = ?`, testRecipe); err != nil {
+		t.Fatal(err)
+	}
+	database.InvalidateCraftRecipes()
+	f.clock = f.clock.Add(craftCooldown)
+	got = f.combine(f.ore, f.ore, f.gem, scroll)
+	mustOps(t, got, opcodeCraftReply, protocol.OpcodeColoredChat)
+	mustBytes(t, "12/2", got[0], reply(12).u8(2).u32(0).b)
+	mustBytes(t, "its line", got[1], redLine("You have not learned that recipe yet: use Test Plate Recipe from your inventory to learn it."))
+	if f.stack(f.ore) != 3 || f.stack(scroll) != 1 {
+		t.Fatalf("an unlearned recipe took: ore %d, scroll %d", f.stack(f.ore), f.stack(scroll))
+	}
+	f.learn(testRecipe)
+	f.clock = f.clock.Add(craftCooldown)
+	f.dice = []float64{0.5}
+	got = f.combine(f.ore, f.ore, f.gem)
+	if got[0][3] != craftExpMade {
+		t.Fatalf("learned: 12/%d, want made (12/%d)", got[0][3], craftExpMade)
 	}
 }
 
@@ -197,13 +250,16 @@ func TestCraftExperimentDiscoveryThenScribe(t *testing.T) {
 }
 
 // A recipe an Experiment may not find (discover 0) is not matched until it
-// is in the book; then it is made as one.
+// is in the book (12/2 and a line saying it is not learned, nothing taken);
+// then it is made as one.
 func TestCraftExperimentDoesNotFindTheUndiscoverable(t *testing.T) {
 	f := newCraftFixture(t)
 	f.standard(5)
 	f.recipe(105, 1, 0, 1, "Test Secret", f.plate, 1, 10, 40, false, 0, fmt.Sprintf(`[{"item": %d, "count": 2, "keep": true}]`, f.gem))
 	got := f.combine(f.gem, f.gem)
-	mustBytes(t, "not found", onlyOne(t, got), reply(12).u8(2).u32(0).b)
+	mustOps(t, got, opcodeCraftReply, protocol.OpcodeColoredChat)
+	mustBytes(t, "not found", got[0], reply(12).u8(2).u32(0).b)
+	mustBytes(t, "its line", got[1], redLine("You have not learned that recipe yet."))
 	f.learn(105)
 	f.dice = []float64{0.1}
 	if got = f.combine(f.gem, f.gem); got[0][3] != craftExpMade {

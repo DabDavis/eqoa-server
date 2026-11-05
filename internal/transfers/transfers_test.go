@@ -30,6 +30,16 @@ func fixture(t *testing.T) (*Server, *httptest.Server, *database.SQLiteDB) {
 		`INSERT INTO characters (charName, accountid, serverid, modelid, tclass, race, humType, level, haircolor, hairlength, hairstyle,
 			faceoption, sex, world, x, y, z) VALUES ('Hero', 3, 7, 1, 3, 5, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 			('Else', 4, 8, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0)`,
+		// a shadow knight's (Hero's class) level 20 path, the vampire's line
+		// and a flag
+		`INSERT INTO quests (questid, name, enabled, classes, source) VALUES
+			(41, 'The Dark Path', 1, '3', 'EQOA-Data 1-20/neriak/shadowknight/L20 (tools/import_quests.py)'),
+			(61, 'Razeal Has Won', 1, '', 'EQOA-Data Weres/vampire/p1 (tools/import_quests.py)'),
+			(62, 'Creed''s Lessons', 1, '', 'EQOA-Data Weres/vampire/L40 (tools/import_quests.py)'),
+			(71, 'The Manticores'' Riddles', 1, '', 'EQOA-Data Portal/plane-of-sky/portal-1 (tools/import_quests.py)')`,
+		`INSERT INTO queststeps (questid, step, kind, target, choices) VALUES
+			(41, 9, 'talk', 'Someone', '{"ask": "Which do you take?", "options": [{"answer": "Harm Touch"}, {"answer": "Dark Blade"}]}'),
+			(61, 1, 'talk', 'Someone', ''), (62, 1, 'talk', 'Someone', ''), (71, 1, 'talk', 'Someone', '')`,
 	} {
 		if _, err := db.Exec(q); err != nil {
 			t.Fatal(err)
@@ -127,8 +137,25 @@ func TestTransferRoutes(t *testing.T) {
 	if len(chars) != 1 || chars[0].(map[string]any)["name"] != "Hero" || chars[0].(map[string]any)["class"] != "Shadow Knight" {
 		t.Fatalf("characters %v", st["characters"])
 	}
+	// the catalog: Hero's class's path, the vampire's line, the flag; not
+	// for another account's character
+	code, cat, _ := c.do("GET", "/api/transfer/catalog?serverid=7", nil, true)
+	if code != 200 {
+		t.Fatalf("catalog: %d %v", code, cat)
+	}
+	b, _ := json.Marshal(cat["catalog"])
+	for _, want := range []string{`"quest":41`, `"answer":"Dark Blade"`, `"line":"vampire"`, `"label":"Plane of Sky"`} {
+		if !strings.Contains(string(b), want) {
+			t.Errorf("the catalog lacks %s: %s", want, b)
+		}
+	}
+	if code, _, _ := c.do("GET", "/api/transfer/catalog?serverid=8", nil, true); code != 400 {
+		t.Fatalf("another account's character's catalog: %d", code)
+	}
 	form := map[string]any{"serverid": 7, "from_server": "Sandstorm", "from_name": "Hero", "from_class": "Shadow Knight",
-		"from_level": 60, "from_masteries": 1040, "items": "Tower of Woe\nSlayer's Claw Earring x2", "notes": "<b>hi</b>"}
+		"from_level": 60, "from_masteries": 1040, "items": "Tower of Woe\nSlayer's Claw Earring x2", "notes": "<b>hi</b>",
+		"claims": map[string]any{"picks": []any{map[string]any{"quest": 41, "step": 9, "option": 1}}, "quests": []any{61, 71},
+			"line": "vampire", "other": "The Lost Ring"}}
 	if code, _, _ := c.do("POST", "/api/transfer/submit", form, true); code != http.StatusBadRequest {
 		t.Fatalf("a write without the page's header: %d", code)
 	}
@@ -145,8 +172,9 @@ func TestTransferRoutes(t *testing.T) {
 		t.Fatalf("another account's character: %d %v", code, out)
 	}
 	_, st, _ = c.do("GET", "/api/transfer/state", nil, true)
-	if ts := st["transfers"].([]any); len(ts) != 1 || ts[0].(map[string]any)["notes"] != "<b>hi</b>" || ts[0].(map[string]any)["plan"] != nil {
-		t.Fatalf("the list (the player's words as sent, no plan): %v", st["transfers"])
+	if ts := st["transfers"].([]any); len(ts) != 1 || ts[0].(map[string]any)["notes"] != "<b>hi</b>" || ts[0].(map[string]any)["plan"] != nil ||
+		ts[0].(map[string]any)["named"] != float64(3) || ts[0].(map[string]any)["line"] != "vampire" {
+		t.Fatalf("the list (the player's words as sent, no plan, the quests named): %v", st["transfers"])
 	}
 	if code, _, _ := c.do("POST", "/api/transfer/cancel", map[string]any{"id": id}, false); code != 200 {
 		t.Fatalf("cancel: %d", code)
@@ -204,6 +232,13 @@ document.getElementById('f').addEventListener('load', async () => {
     $('fromName').value = '<i>Hero</i>'; $('fromLevel').value = '60'; $('fromCM').value = '1040';
     $('fromClass').value = 'Shadow Knight';
     $('items').value = 'Tower of Woe\n<b>Slayer Claw Earring</b> x2';
+    if (!(await wait(() => !$('questsBox').classList.contains('hidden') && $('choice0')))) throw new Error('no quests offered');
+    $('choice0').value = '1';
+    $('line').value = 'vampire'; $('line').dispatchEvent(new Event('change'));
+    if (!(await wait(() => d.querySelectorAll('#lineQuests input').length === 2))) throw new Error('no line quests');
+    d.querySelector('#lineQuests input[value="61"]').checked = true;
+    d.querySelector('#flags input[value="71"]').checked = true;
+    $('otherQuests').value = 'The Lost Ring';
     $('form').requestSubmit();
     if (!(await wait(() => $('list').textContent.includes('waiting')))) throw new Error('not listed: ' + $('formMsg').textContent);
     if ($('list').querySelector('i') || !$('list').textContent.includes('<i>Hero</i>')) throw new Error('the name shown as markup');
@@ -245,7 +280,8 @@ document.getElementById('f').addEventListener('load', async () => {
 		t.Fatalf("the page did not file the transfer:\n%.2000s", dom)
 	}
 	list, err := db.AccountTransfers(3)
-	if err != nil || len(list) != 1 || list[0].FromMasteries != 1040 || !strings.Contains(list[0].Items, "<b>Slayer") {
+	if err != nil || len(list) != 1 || list[0].FromMasteries != 1040 || !strings.Contains(list[0].Items, "<b>Slayer") ||
+		list[0].Claims != `{"picks":[{"quest":41,"step":9,"option":1}],"quests":[61,71],"line":"vampire","other":"The Lost Ring"}` {
 		t.Fatalf("filed %+v %v", list, err)
 	}
 }

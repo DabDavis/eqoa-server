@@ -48,7 +48,9 @@ const transfersSchema = `
 		decided_by     TEXT NOT NULL DEFAULT '',
 		applied        TEXT NOT NULL DEFAULT '',
 		run            TEXT NOT NULL DEFAULT '',
-		told           INTEGER NOT NULL DEFAULT 0
+		told           INTEGER NOT NULL DEFAULT 0,
+		claims         TEXT NOT NULL DEFAULT '',
+		told_ready     INTEGER NOT NULL DEFAULT 0
 	);
 	CREATE INDEX IF NOT EXISTS idx_chartransfers_char ON chartransfers(serverid, status);
 	CREATE INDEX IF NOT EXISTS idx_chartransfers_status ON chartransfers(status);`
@@ -98,27 +100,47 @@ type Transfer struct {
 	Applied       string `json:"applied"`
 	Run           string `json:"run"`
 	Told          bool   `json:"told"`
+	// Claims is what the player says the character had done besides its gear
+	// (TransferClaims as JSON, "" none).
+	Claims string `json:"claims"`
+	// ToldReady is whether the player was told it was approved (in the game,
+	// on any character of the account).
+	ToldReady bool `json:"told_ready"`
 }
 
 // Open is whether a GM or the next login still has something to do with it.
 func (t Transfer) Open() bool { return t.Status == TransferWaiting || t.Status == TransferApproved }
 
 const transferCols = `id, accountid, serverid, charname, from_server, from_name, from_class, from_level, from_masteries,
-	items, notes, status, filed, updated, plan, answer, decided, decided_by, applied, run, told`
+	items, notes, status, filed, updated, plan, answer, decided, decided_by, applied, run, told, claims, told_ready`
 
 func scanTransfer(sc interface{ Scan(...any) error }) (Transfer, error) {
 	var t Transfer
-	var told int
+	var told, toldReady int
 	err := sc.Scan(&t.ID, &t.AccountID, &t.ServerID, &t.CharName, &t.FromServer, &t.FromName, &t.FromClass, &t.FromLevel,
 		&t.FromMasteries, &t.Items, &t.Notes, &t.Status, &t.Filed, &t.Updated, &t.Plan, &t.Answer, &t.Decided, &t.DecidedBy,
-		&t.Applied, &t.Run, &told)
-	t.Told = told != 0
+		&t.Applied, &t.Run, &told, &t.Claims, &toldReady)
+	t.Told, t.ToldReady = told != 0, toldReady != 0
 	return t, err
 }
 
 func (db *SQLiteDB) ensureTransfers() error {
 	if _, err := db.Exec(transfersSchema); err != nil {
 		return fmt.Errorf("chartransfers: %w", err)
+	}
+	// a table made before the claims (2026-11-05 05:57 to the next start)
+	for _, c := range []struct{ col, decl string }{
+		{"claims", `TEXT NOT NULL DEFAULT ''`}, {"told_ready", `INTEGER NOT NULL DEFAULT 0`},
+	} {
+		has, err := hasColumn(db.DB, "chartransfers", c.col)
+		if err != nil {
+			return err
+		}
+		if !has {
+			if _, err := db.Exec(`ALTER TABLE chartransfers ADD COLUMN ` + c.col + ` ` + c.decl); err != nil {
+				return fmt.Errorf("chartransfers.%s: %w", c.col, err)
+			}
+		}
 	}
 	return nil
 }
@@ -176,6 +198,10 @@ func (db *SQLiteDB) FileTransfer(t Transfer, now time.Time) (Transfer, error) {
 	if t.FromServer == "" {
 		t.FromServer = "Sandstorm"
 	}
+	claims, err := ParseTransferClaims(t.Claims)
+	if err != nil {
+		return Transfer{}, err
+	}
 	tx, err := db.Begin()
 	if err != nil {
 		return Transfer{}, err
@@ -202,11 +228,15 @@ func (db *SQLiteDB) FileTransfer(t Transfer, now time.Time) (Transfer, error) {
 	if forAccount >= TransferMaxOpen {
 		return Transfer{}, ErrTransferTooMany
 	}
+	if claims, err = knownClaims(tx, claims); err != nil {
+		return Transfer{}, err
+	}
+	t.Claims = FormatTransferClaims(claims)
 	stamp := transferStamp(now)
 	res, err := tx.Exec(`INSERT INTO chartransfers (accountid, serverid, charname, from_server, from_name, from_class, from_level,
-		from_masteries, items, notes, status, filed, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		from_masteries, items, notes, status, filed, updated, claims) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		t.AccountID, t.ServerID, t.CharName, t.FromServer, t.FromName, t.FromClass, t.FromLevel, t.FromMasteries, t.Items, t.Notes,
-		TransferWaiting, stamp, stamp)
+		TransferWaiting, stamp, stamp, t.Claims)
 	if err != nil {
 		return Transfer{}, err
 	}
@@ -451,8 +481,61 @@ func (db *SQLiteDB) TransfersToTell(serverID uint32) ([]Transfer, error) {
 }
 
 func (db *SQLiteDB) MarkTransferTold(id int64) error {
-	_, err := db.Exec(`UPDATE chartransfers SET told = 1 WHERE id = ?`, id)
+	_, err := db.Exec(`UPDATE chartransfers SET told = 1, told_ready = 1 WHERE id = ?`, id)
 	return err
+}
+
+// TransfersReadyToTell is an account's approved transfers it has not been
+// told of (once, on any of its characters in the world); MarkTransferToldReady
+// marks one told.
+func (db *SQLiteDB) TransfersReadyToTell(accountID int) ([]Transfer, error) {
+	return db.queryTransfers(`SELECT `+transferCols+` FROM chartransfers WHERE accountid = ? AND status = ? AND told_ready = 0 ORDER BY id`,
+		accountID, TransferApproved)
+}
+
+// MarkTransferToldReady marks a transfer's approval told.
+func (db *SQLiteDB) MarkTransferToldReady(id int64) error {
+	_, err := db.Exec(`UPDATE chartransfers SET told_ready = 1 WHERE id = ?`, id)
+	return err
+}
+
+// knownClaims is claims without the quests this server has no record of (a
+// page older than the quests, a hand-made request).
+func knownClaims(tx *sql.Tx, c TransferClaims) (TransferClaims, error) {
+	if len(c.Quests) == 0 && len(c.Picks) == 0 {
+		return c, nil
+	}
+	rows, err := tx.Query(`SELECT questid FROM quests`)
+	if err != nil {
+		return c, err
+	}
+	known := map[int]bool{}
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
+			return c, err
+		}
+		known[id] = true
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return c, err
+	}
+	var qs []int
+	for _, q := range c.Quests {
+		if known[q] {
+			qs = append(qs, q)
+		}
+	}
+	var ps []ClaimPick
+	for _, p := range c.Picks {
+		if known[p.Quest] {
+			ps = append(ps, p)
+		}
+	}
+	c.Quests, c.Picks = qs, ps
+	return c, nil
 }
 
 // --- the gear list, matched to this server's records

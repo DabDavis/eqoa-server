@@ -6,7 +6,9 @@
 // mastery points set; Preview says what the plan does, Approve keeps it (it
 // applies at the character's next login), Reject says why. An applied one
 // can be undone while its character is out of the world. Player text is shown
-// as text.
+// as text. The quests part lays out the class's catalog as the player saw it
+// (paths' and the epic's choices, the lines, the flags) with the player's
+// claims picked and ticked: what stays picked is marked done at the login.
 
 import { h, mount, pageHead, button, toast, card, empty, confirmBox } from '../lib/dom.js';
 import { op } from '../lib/api.js';
@@ -43,12 +45,93 @@ export async function render(box) {
     }
   }
 
+  // The quests part of the decision: the class's catalog (transfer_get) with
+  // the player's claims picked and ticked; plan() is its quests and vampire.
+  function questsPart(t, catalog, questNames) {
+    const claims = t.claims || {};
+    const picks = claims.picks || [];
+    const claimed = new Set(claims.quests || []);
+    const choices = [];
+    const node = h('div', { class: 'stack' });
+    const tick = (q, name) => h('label', { class: 'row small' },
+      h('input', { type: 'checkbox', dataset: { quest: String(q) }, checked: claimed.has(q) }), name || questNames[q] || ('quest ' + q),
+      claimed.has(q) ? h('span', { class: 'badge' }, 'claimed') : null);
+    const listed = new Set();
+    if (catalog) {
+      for (const c of catalog.choices || []) {
+        const mine = picks.find((p) => p.step === c.step && (p.quest === c.quest || (c.also || []).includes(p.quest)));
+        const quest = mine ? mine.quest : c.quest;
+        listed.add(quest);
+        const sel = h('select', { 'aria-label': c.ask || c.name }, h('option', { value: '' }, 'not done'),
+          ...c.options.map((o) => h('option', { value: String(o.option) }, o.answer)));
+        if (mine) sel.value = String(mine.option);
+        const chain = (c.chains || {})[quest] || [];
+        const withChain = h('input', { type: 'checkbox', checked: true });
+        choices.push({ sel, quest, step: c.step, chain, withChain });
+        node.appendChild(h('div', { class: 'row small' },
+          h('span', { text: `${c.kind === 'epic' ? 'Epic (60)' : 'Path ' + c.level}: ${questNames[quest] || c.name}: ${c.ask}` }), sel,
+          chain.length ? h('label', { class: 'row' }, withChain, `and its ${chain.length} earlier quests`) : null,
+          mine ? h('span', { class: 'badge' }, 'claimed') : null));
+      }
+      const lineSel = h('select', { 'aria-label': 'Line' }, h('option', { value: '' }, 'neither'),
+        ...(catalog.lines || []).map((l) => h('option', { value: l.line }, l.label)));
+      lineSel.value = claims.line || '';
+      const lineBox = h('div', { class: 'stack' });
+      const drawLine = () => {
+        const l = (catalog.lines || []).find((x) => x.line === lineSel.value);
+        mount(lineBox, l ? l.quests.map((q) => tick(q.quest, q.name)) : []);
+      };
+      lineSel.addEventListener('change', drawLine);
+      drawLine();
+      for (const l of catalog.lines || []) l.quests.forEach((q) => listed.add(q.quest));
+      node.appendChild(h('div', { class: 'row small' }, 'Line:', lineSel, claims.line ? h('span', { class: 'badge' }, 'claimed: ' + claims.line) : null));
+      node.appendChild(lineBox);
+      const flags = (catalog.flags || []);
+      flags.forEach((g) => g.quests.forEach((q) => listed.add(q.quest)));
+      const anyFlag = flags.some((g) => g.quests.some((q) => claimed.has(q.quest)));
+      if (flags.length) {
+        node.appendChild(h('details', { open: anyFlag }, h('summary', { class: 'small' }, 'Flags (the Portal quests)'),
+          ...flags.map((g) => h('div', { class: 'stack' }, h('strong', { class: 'small', text: g.label }), ...g.quests.map((q) => tick(q.quest, q.name))))));
+      }
+    } else {
+      node.appendChild(h('div', { class: 'faint small' }, 'No catalog: the character here has no class this server knows.'));
+    }
+    const strays = [...claimed].filter((q) => !listed.has(q));
+    if (strays.length) node.appendChild(h('div', { class: 'stack' }, h('div', { class: 'faint small' }, 'Claimed, not in the class\'s catalog:'),
+      ...strays.map((q) => tick(q))));
+    const vampire = h('input', { type: 'checkbox', checked: claims.line === 'vampire' });
+    node.appendChild(h('label', { class: 'row small' }, vampire, 'make a vampire (the sun burns it by day)'));
+    if (claims.other) node.appendChild(h('div', { class: 'stack' }, h('div', { class: 'faint small' }, 'Other quests, in the player\'s words:'),
+      h('pre', { class: 'json' }, claims.other)));
+    const extra = h('input', { type: 'text', placeholder: 'more quest ids done, comma separated (Quests page)' });
+    node.appendChild(extra);
+    function plan() {
+      const byQuest = new Map();
+      const add = (q) => { if (!byQuest.has(q)) byQuest.set(q, new Map()); return byQuest.get(q); };
+      for (const c of choices) {
+        if (c.sel.value === '') continue;
+        add(c.quest).set(c.step, Number(c.sel.value));
+        if (c.withChain.checked) c.chain.forEach(add);
+      }
+      node.querySelectorAll('input[data-quest]').forEach((b) => { if (b.checked) add(Number(b.dataset.quest)); });
+      for (const part of extra.value.split(',')) {
+        const id = Number(part.trim());
+        if (part.trim() && !(id > 0)) throw new Error(`"${part.trim()}" is not a quest id`);
+        if (id > 0) add(id);
+      }
+      const quests = [...byQuest].map(([quest, steps]) => ({ quest,
+        picks: [...steps].sort((a, b) => a[0] - b[0]).map(([st, o]) => `${st}:${o}`).join(', ') }));
+      return { quests, vampire: vampire.checked };
+    }
+    return { node, plan };
+  }
+
   function candLabel(c) {
     return `${c.name} (#${c.patternid}, ${SLOTS[c.slot] || 'slot ' + c.slot}, level ${c.level}${c.classuse === 0 ? ', NO CLASS MASK' : ''})`;
   }
 
   // The decision form for one transfer, from transfer_get.
-  function decide(t, lines, slot) {
+  function decide(t, lines, catalog, questNames, slot) {
     const level = h('input', { type: 'number', min: 1, max: 60, value: t.from_level, style: 'max-width: 6em' });
     const mastery = h('input', { type: 'number', min: 0, max: 1500, value: t.from_masteries, style: 'max-width: 7em' });
     const spells = h('input', { type: 'checkbox', checked: true });
@@ -88,6 +171,7 @@ export async function render(box) {
         extraBox.appendChild(h('div', { class: 'row small' }, 'extra:', count, 'of record #', pattern));
       },
     });
+    const quests = questsPart(t, catalog, questNames || {});
     function plan() {
       const items = [];
       for (const r of rows) {
@@ -100,7 +184,7 @@ export async function render(box) {
         } else items.push({ pattern: Number(r.pick.value), count });
       }
       return { level: Number(level.value), mastery_points: Number(mastery.value || 0), class_spells: spells.checked,
-        full_vitals: vitals.checked, items };
+        full_vitals: vitals.checked, items, ...quests.plan() };
     }
     const doPreview = async () => {
       try {
@@ -129,6 +213,8 @@ export async function render(box) {
         h('label', { class: 'row' }, spells, 'the class\'s spells'), h('label', { class: 'row' }, vitals, 'whole at the login')),
       h('div', { class: 'faint small' }, 'Gear: into the pack, the bank when the pack is full. "≈" is a near match: check it.'),
       ...lineRows, extraBox, h('div', { class: 'row' }, addExtra),
+      h('div', { class: 'faint small' }, 'Quests: what stays picked or ticked is marked done at the login, with the spells it gives the class (no experience, tunar or items).'),
+      quests.node,
       answer,
       h('div', { class: 'row' }, button('Preview', { class: 'small ghost', onclick: doPreview }),
         button('Approve', { class: 'small primary', title: 'It applies at the character\'s next login', onclick: approve }),
@@ -145,13 +231,16 @@ export async function render(box) {
       h('a', { href: '#/characters/' + t.serverid }, here), h('span', { class: 'faint' }, 'account ' + t.account),
       h('span', { class: 'grow' }), h('span', { class: 'faint', title: when(t.filed) }, 'asked ', ago(t.filed)));
     const what = h('div', { class: 'small' }, `${t.from_name} on ${t.from_server}: level ${t.from_level} ${t.from_class}, ${t.from_masteries} mastery points`);
+    const cl = t.claims || null;
+    const says = cl ? h('div', { class: 'small' }, `Says it did: ${(cl.picks || []).length} path or epic picks, ${(cl.quests || []).length} quests` +
+      (cl.line ? `, the ${cl.line} line` : '') + (cl.other ? ', and others in its words' : '') + ' (Decide lists them)') : null;
     const tools = [];
     if (t.status === 'waiting' || t.status === 'approved') {
       tools.push(button(t.status === 'approved' ? 'Change the plan' : 'Decide', {
         class: 'small primary', onclick: async () => {
           try {
             const out = await op('transfer_get', { id: t.id });
-            decide(out.transfer, out.lines || [], slot);
+            decide(out.transfer, out.lines || [], out.catalog || null, out.questNames || {}, slot);
           } catch (e) { toast(e.message, 'error'); }
         },
       }));
@@ -166,7 +255,7 @@ export async function render(box) {
       }));
     }
     return card(`Transfer #${t.id}`, h('div', { class: 'stack' },
-      meta, what,
+      meta, what, says,
       h('div', { class: 'faint small' }, 'Gear, as the player wrote it:'), h('pre', { class: 'json' }, t.items || '(none)'),
       t.notes ? h('div', { class: 'faint small' }, 'Notes:') : null, t.notes ? h('pre', { class: 'json' }, t.notes) : null,
       t.answer ? h('div', { class: 'small' }, 'Our word: ', h('span', { text: t.answer })) : null,

@@ -511,6 +511,28 @@ while the character is still in the world: a login taking it over waits), in one
 logged in `charmigrate_log`; the gear into the pack, the bank when it is full), and the player is told once in the
 world. `transfer_undo` takes it back while the character is out of the world.
 
+**Quests, paths, a line, flags** (the user, the same day: "add path, were or vamp, flags completed, quests, etc. to the
+form"): the page offers, for the character's class, the server's own quests in the game (`database.TransferCatalog`,
+route `catalog?serverid=`, a minute's cache): each path's choice (levels 20, 30, 40, 49: `1-20/<city>/<class>/L20`,
+`30,40,49/<group>/L<n>-<class>`) and the epic's (`60/<archetype>/reward-<class>`), each option by its index among the
+step's options as `charquests.picks` counts them (one that stays is not offered), another city's same choice as `also`,
+each quest's earlier quests of its own guide (`chains`: what a pick says was done too); the were lines and the vampire's
+(`Weres/<line>/...`, in order, the class's 40 alone); the flags (`Portal/<place>/...`) by place; and other quests in the
+player's words. Filed as `chartransfers.claims` (`TransferClaims` JSON: picks, quests, line, other; a quest this server
+lacks left out). The panel's Decide lays the same catalog out with the claims picked and ticked (a pick's earlier quests
+with it), a vampire box, more quest ids by hand; the plan's `quests` ({quest, picks "step:option"}) and `vampire` apply at
+the login (`charmove/quests.go`): each row finished (step 0, done at least once, the picks), the spells its steps give the
+class and the picked options' into the book, no experience, tunar or items (the gear list brings those); `charvampire`
+source `transfer`; every row logged and undone exactly; **then the quest engine reads the character's quests again**
+(`Quests().ReloadCharacter`: it keeps a character's quests from their first use for the server's run, and would offer the
+quests just done again; the undo does the same).
+**The player is told** (the user: "a notification sent to the player when their transfer is ready, along with the disclaimer
+about equipment approx and bug report"): approved, at once on any character of the account in the world (the transfer's own:
+log out and in), else at its next world entry (`told_ready`); arrived, at the transferred character's entry (`told`); each with
+the GM's word and, when the plan made records for items this server lacks, their names and the ask to report each with its
+correct stats, icon and model (`ApproximatedNotice`, `database.ApproximatedItems`); lines of at most 200 characters. The page
+says the same on its front and under an approved or applied transfer.
+
 `cmd/charmigrate` runs the same engine from a shell by a GM's plan (a JSON file kept outside this repository):
 level, mastery points, the class's spells, item records put right or made, items into the bank, the pack or
 `auto`, rows the character holds moved; one transaction logged in `charmigrate_log`, `-undo <run>` exact (a run's

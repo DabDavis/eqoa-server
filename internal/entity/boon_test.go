@@ -309,8 +309,18 @@ func TestBoonWords(t *testing.T) {
 	if boonTag(200) != "boon x2" || boonTag(150) != "boon x1.5" {
 		t.Errorf("tags: %q %q", boonTag(200), boonTag(150))
 	}
-	if (Boon{Percent: 150}).What() != "150% experience" || DefaultBoon.What() != "double experience" {
-		t.Errorf("what: %q %q", (Boon{Percent: 150}).What(), DefaultBoon.What())
+	for pct, want := range map[int]string{150: "150% experience", 200: "double experience", 300: "triple experience",
+		600: "6x experience", 1000: "10x experience", 450: "450% experience"} {
+		if got := (Boon{Percent: pct}).What(); got != want {
+			t.Errorf("what at %d%%: %q, want %q", pct, got, want)
+		}
+	}
+	if g := (BoonGiven{Name: "Boon of Freeport", Rule: Boon{Percent: 600, Duration: 4 * time.Hour}}).Line(); g !=
+		"You have been blessed by the Boon of Freeport: 6x experience for 4 hours of play." {
+		t.Errorf("the line at 6x: %q", g)
+	}
+	if boonTag(600) != "boon x6" {
+		t.Errorf("the tag at 6x: %q", boonTag(600))
 	}
 	if BoonName("") != "Boon" || BoonName(" Surefall ") != "Boon of Surefall" {
 		t.Errorf("names: %q %q", BoonName(""), BoonName(" Surefall "))

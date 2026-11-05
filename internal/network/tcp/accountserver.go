@@ -80,6 +80,10 @@ type AccountServer struct {
 	// guesses spread over them add up. Nil: not counted.
 	Limiter *auth.Limiter
 
+	// Transfers serves the character transfer page and its routes, /transfer
+	// and /api/transfer/... (internal/transfers); nil: none.
+	Transfers TransferRoutes
+
 	// SpellFX serves the community spell-visual page's two routes,
 	// /api/spellfx/spells and /api/spellfx/suggest (package spellfx), the
 	// suggestion handed the client's address as getClientIP reads it. Nil:
@@ -113,6 +117,27 @@ type SpellFXRoutes interface {
 type MapMarksRoutes interface {
 	ServeMarks(w http.ResponseWriter, r *http.Request)
 	ServeSuggest(w http.ResponseWriter, r *http.Request, clientIP string)
+}
+
+// CheckLogin is the account server's password check for another page (the
+// transfer page, internal/transfers): the account's id and name, else the
+// refusal its player reads; counted by the same login limits, and a banned
+// account refused.
+func (s *AccountServer) CheckLogin(r *http.Request, username, password string) (int, string, string) {
+	account, err := s.accountStore.GetByUsername(username)
+	if err != nil {
+		account = nil
+	}
+	if ok, refusal := s.checkPassword(r, account, username, password); !ok {
+		if refusal == "" {
+			refusal = "Invalid username or password"
+		}
+		return 0, "", refusal
+	}
+	if account.Banned {
+		return 0, "", "This account is suspended"
+	}
+	return account.ID, account.Username, ""
 }
 
 // checkPassword is a page's password check under the limiter: counted by the
@@ -156,6 +181,12 @@ func (s *AccountServer) checkPassword(r *http.Request, account *database.Account
 		s.Limiter.Succeed(ip, username)
 	}
 	return true, ""
+}
+
+// TransferRoutes is the character transfer page (internal/transfers).
+type TransferRoutes interface {
+	ServePage(w http.ResponseWriter, r *http.Request)
+	ServeAPI(w http.ResponseWriter, r *http.Request, path string)
 }
 
 // TeleportDest is one named shortcut as the web pages present it.
@@ -267,6 +298,21 @@ func (s *AccountServer) Handler() http.Handler {
 			return
 		}
 		s.MapMarks.ServeSuggest(w, r, s.getClientIP(r))
+	})
+	// the character transfer page and its routes (internal/transfers)
+	mux.HandleFunc("/transfer", func(w http.ResponseWriter, r *http.Request) {
+		if s.Transfers == nil {
+			http.NotFound(w, r)
+			return
+		}
+		s.Transfers.ServePage(w, r)
+	})
+	mux.HandleFunc("/api/transfer/", func(w http.ResponseWriter, r *http.Request) {
+		if s.Transfers == nil {
+			http.NotFound(w, r)
+			return
+		}
+		s.Transfers.ServeAPI(w, r, strings.TrimPrefix(r.URL.Path, "/api/transfer/"))
 	})
 	mux.HandleFunc("/api/voice/demo", func(w http.ResponseWriter, r *http.Request) {
 		if s.VoiceDemo == nil {

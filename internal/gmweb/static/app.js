@@ -16,6 +16,7 @@ const NAV = [
     ['accounts', 'Accounts', 'user'],
     ['characters', 'Characters', 'users'],
     ['petitions', 'Petitions', 'send'],
+    ['transfers', 'Character transfers', 'users'],
   ]],
   ['World', [
     ['npcs', 'NPCs', 'skull'],
@@ -53,6 +54,7 @@ const VIEWS = {
   accounts: () => import('./views/accounts.js'),
   characters: () => import('./views/characters.js'),
   petitions: () => import('./views/petitions.js'),
+  transfers: () => import('./views/transfers.js'),
   npcs: () => import('./views/npcs.js'),
   merchants: () => import('./views/merchants.js'),
   triggers: () => import('./views/triggers.js'),
@@ -171,16 +173,19 @@ function start(session) {
   route();
 }
 
-// The petitions waiting on a GM, beside Petitions in the navigation: asked
-// at the start and every minute while signed in.
+// The petitions and the character transfers waiting on a GM, beside their
+// pages in the navigation: asked at the start and every minute while signed
+// in.
 let badgeTimer = null;
 async function waitingBadge() {
   clearTimeout(badgeTimer);
   if (!state.session) return;
-  const link = nav?.querySelector('a[data-page="petitions"]');
-  if (link) {
+  for (const [page, name, args] of [['petitions', 'petition_list', { status: 'waiting', limit: 1 }],
+    ['transfers', 'transfer_list', { status: 'waiting', limit: 1 }]]) {
+    const link = nav?.querySelector(`a[data-page="${page}"]`);
+    if (!link) continue;
     try {
-      const out = await op('petition_list', { status: 'waiting', limit: 1 });
+      const out = await op(name, args);
       const n = out.counts?.waiting || 0;
       link.querySelector('.badge')?.remove();
       if (n > 0) link.appendChild(h('span', { class: 'badge warn', title: `${n} waiting on a GM` }, String(n)));

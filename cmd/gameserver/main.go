@@ -27,6 +27,7 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 	"github.com/eqoa/server/internal/spellfx"
+	"github.com/eqoa/server/internal/transfers"
 	"github.com/eqoa/server/internal/voice"
 	"github.com/eqoa/server/internal/worlds"
 )
@@ -528,6 +529,14 @@ func main() {
 	accountServer.SpellFX = spellfx.New(db)
 	// the community map marks every vanilla map draws, and their suggestions
 	accountServer.MapMarks = mapmarks.New(db)
+	// the character transfer page (internal/transfers): a player asks, a GM
+	// decides in the panel, the next login applies it (handlers/transfers.go)
+	charTransfers := transfers.New(db, accountServer.CheckLogin)
+	charTransfers.Tell = func(t database.Transfer) {
+		handlers.TellGMs(sessionMgr, accountStore, nil, fmt.Sprintf("[Transfer] #%d: %s (level %d %s, %s) for %s, on the GM panel's Character transfers",
+			t.ID, t.FromName, t.FromLevel, t.FromClass, t.FromServer, t.CharName))
+	}
+	accountServer.Transfers = charTransfers
 	// the voice demo's way in (internal/voice/demo.go), for clients on a
 	// server that offers no voice
 	if voiceSrv != nil && cfg.Voice.Demo.Enabled {

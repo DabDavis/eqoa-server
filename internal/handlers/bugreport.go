@@ -201,6 +201,26 @@ var errReportLimit = fmt.Errorf("too many reports lately")
 // reportLimitText is a refused filing's line.
 const reportLimitText = "You have sent several reports lately: please wait a minute and send it again."
 
+// TellGMs says a line in yellow to every GM in the world (acctlevel 1 or
+// more) but from's session: a new petition, a new character transfer.
+func TellGMs(sm *session.Manager, access accessLevels, from *session.Session, line string) {
+	if sm == nil || access == nil {
+		return
+	}
+	sm.ForEach(func(sess *session.Session) bool {
+		if sess == from || !sess.CharacterInWorld() || sess.PendingTermination() || sess.AccountID() == 0 {
+			return true
+		}
+		if _, replaced := sess.ReplacedFor(); replaced {
+			return true
+		}
+		if level, err := access.AccessLevel(sess.AccountID()); err == nil && level >= 1 {
+			SendColoredChat(sess, line, 255, 255, 0)
+		}
+		return true
+	})
+}
+
 // tellGMs says a new petition to every GM in the world but its own filer.
 func (h *SupportHandler) tellGMs(from *session.Session, p database.Petition, cat, sub, text string) {
 	if h.sessions == nil || h.access == nil || h.gameWorld == nil {
@@ -210,19 +230,7 @@ func (h *SupportHandler) tellGMs(from *session.Session, p database.Petition, cat
 	if r := []rune(short); len(r) > 100 {
 		short = string(r[:100]) + "..."
 	}
-	line := fmt.Sprintf("[Petition] Ticket #%d from %s (%s / %s): %s", p.ID, p.CharName, cat, sub, short)
-	h.sessions.ForEach(func(sess *session.Session) bool {
-		if sess == from || !sess.CharacterInWorld() || sess.PendingTermination() || sess.AccountID() == 0 {
-			return true
-		}
-		if _, replaced := sess.ReplacedFor(); replaced {
-			return true
-		}
-		if level, err := h.access.AccessLevel(sess.AccountID()); err == nil && level >= 1 {
-			SendColoredChat(sess, line, 255, 255, 0)
-		}
-		return true
-	})
+	TellGMs(h.sessions, h.access, from, fmt.Sprintf("[Petition] Ticket #%d from %s (%s / %s): %s", p.ID, p.CharName, cat, sub, short))
 }
 
 // ChatReport is /bug (or #bug) <what happened>: a petition on the spot under

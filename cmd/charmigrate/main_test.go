@@ -220,6 +220,53 @@ func TestUndoLeavesWhatChangedSince(t *testing.T) {
 	}
 }
 
+// Moves take rows the character holds to the pack (unequipped, at the end of
+// its list) and undo puts them back where they were; the control: a row
+// already there is left, one the character does not hold refuses the plan.
+func TestMovesAndUndo(t *testing.T) {
+	db, _ := migrateDB(t)
+	if err := migrate(db, testPlan(), true, false, io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	var ids []int
+	rows, _ := db.Query(`SELECT itemid FROM charinventory WHERE serverid = 126 AND location = 1 ORDER BY listnumber`)
+	for rows.Next() {
+		var id int
+		rows.Scan(&id)
+		ids = append(ids, id)
+	}
+	rows.Close()
+	before := dump(t, db)
+	p := planFile{Character: "Wanderer", Moves: []planMove{{ItemID: ids[0], To: "pack"}, {ItemID: ids[1], To: "pack"}}}
+	if err := migrate(db, p, true, false, io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	rows, _ = db.Query(`SELECT itemid || '@' || location || '/' || listnumber || '/' || equiploc FROM charinventory WHERE serverid = 126 AND location = 0 ORDER BY listnumber`)
+	for rows.Next() {
+		var s string
+		rows.Scan(&s)
+		got = append(got, s)
+	}
+	rows.Close()
+	want := []string{"1@0/0/14", strconv.Itoa(ids[0]) + "@0/1/-1", strconv.Itoa(ids[1]) + "@0/2/-1"}
+	if strings.Join(got, ",") != strings.Join(want, ",") {
+		t.Fatalf("pack %v, want %v", got, want)
+	}
+	var run string
+	db.QueryRow(`SELECT run FROM charmigrate_log WHERE kind = 'move' LIMIT 1`).Scan(&run)
+	if err := undoRun(db, run, false); err != nil {
+		t.Fatal(err)
+	}
+	if got := dump(t, db); got != before {
+		t.Fatalf("undo left:\n%s\nwas\n%s", got, before)
+	}
+	p.Moves = []planMove{{ItemID: 99999, To: "pack"}}
+	if err := migrate(db, p, true, false, io.Discard); err == nil || !strings.Contains(err.Error(), "holds no item") {
+		t.Fatalf("an item not held: %v", err)
+	}
+}
+
 // A plan is refused when it names no character here, a pack it would
 // overfill, or an item by both a pattern and a new record.
 func TestMigrateRefuses(t *testing.T) {

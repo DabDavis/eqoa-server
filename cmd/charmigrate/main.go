@@ -70,6 +70,15 @@ type planFile struct {
 	Items []planItem `json:"items"`
 	// To is where the items go: "bank" (the default) or "pack".
 	To string `json:"to"`
+	// Moves are rows the character holds already, moved to the bank or the
+	// pack (unequipped, at the end of its list): an earlier run's items
+	// taken out of the bank, say.
+	Moves []planMove `json:"moves"`
+}
+
+type planMove struct {
+	ItemID int    `json:"itemid"`
+	To     string `json:"to"`
 }
 
 type recordFix struct {
@@ -214,6 +223,11 @@ func readPlan(path string) (planFile, error) {
 	case "", "bank", "pack":
 	default:
 		return p, fmt.Errorf("to %q: bank or pack", p.To)
+	}
+	for _, m := range p.Moves {
+		if m.ItemID <= 0 || (m.To != "bank" && m.To != "pack") {
+			return p, fmt.Errorf("a move names an itemid and \"bank\" or \"pack\" (%d %q)", m.ItemID, m.To)
+		}
 	}
 	refs := map[string]bool{}
 	for _, n := range p.NewRecords {
@@ -376,6 +390,20 @@ func migrate(db *sql.DB, p planFile, apply, force bool, out io.Writer) error {
 	m := &migration{tx: tx, ch: ch, apply: apply, out: out, stamp: now.Format(time.RFC3339),
 		run: now.Format("20060102T150405Z") + "-" + strings.ToLower(ch.name)}
 	if apply {
+		// a run's id is its own: another in the same second gets -2, -3...
+		base := m.run
+		for n := 2; ; n++ {
+			var used int
+			if err := tx.QueryRow(`SELECT COUNT(*) FROM charmigrate_log WHERE run = ?`, m.run).Scan(&used); err != nil {
+				return err
+			}
+			if used == 0 {
+				break
+			}
+			m.run = fmt.Sprintf("%s-%d", base, n)
+		}
+	}
+	if apply {
 		m.say("Run %s: %s (serverid %d, class %d, race %d, level %d)", m.run, ch.name, ch.serverID, ch.class, ch.race, ch.level)
 	} else {
 		m.say("Dry run: %s (serverid %d, class %d, race %d, level %d); nothing written", ch.name, ch.serverID, ch.class, ch.race, ch.level)
@@ -408,6 +436,9 @@ func migrate(db *sql.DB, p planFile, apply, force bool, out io.Writer) error {
 		}
 	}
 	if err := m.giveItems(p.Items, made, p.To, force); err != nil {
+		return err
+	}
+	if err := m.moveItems(p.Moves); err != nil {
 		return err
 	}
 	if !apply {
@@ -792,6 +823,63 @@ func (m *migration) giveItems(items []planItem, made map[string]int, to string, 
 	return nil
 }
 
+// moveItems moves rows the character holds to the bank or the pack,
+// unequipped, at the end of that list; the pack held to packCap.
+func (m *migration) moveItems(moves []planMove) error {
+	if len(moves) == 0 {
+		return nil
+	}
+	var pack int
+	if err := m.tx.QueryRow(`SELECT COUNT(*) FROM charinventory WHERE serverid = ? AND location = 0`, m.ch.serverID).Scan(&pack); err != nil {
+		return err
+	}
+	for _, mv := range moves {
+		loc := 1
+		if mv.To == "pack" {
+			loc = 0
+		}
+		var name string
+		var from, equip, list int
+		err := m.tx.QueryRow(`SELECT p.itemname, c.location, c.equiploc, c.listnumber FROM charinventory c
+			JOIN itempattern p ON p.patternid = c.patternid WHERE c.itemid = ? AND c.serverid = ?`, mv.ItemID, m.ch.serverID).
+			Scan(&name, &from, &equip, &list)
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("the character holds no item %d", mv.ItemID)
+		}
+		if err != nil {
+			return err
+		}
+		if from == loc {
+			m.say("  %s (item %d) is in the %s already", name, mv.ItemID, mv.To)
+			continue
+		}
+		if loc == 0 {
+			if pack >= packCap {
+				return fmt.Errorf("the pack holds %d records: no room for %s", pack, name)
+			}
+			pack++
+		}
+		next := 0
+		if err := m.tx.QueryRow(`SELECT COALESCE(MAX(listnumber), -1) + 1 FROM charinventory WHERE serverid = ? AND location = ?`,
+			m.ch.serverID, loc).Scan(&next); err != nil {
+			return err
+		}
+		m.say("  %s (item %d) to the %s", name, mv.ItemID, mv.To)
+		if m.apply {
+			if _, err := m.tx.Exec(`UPDATE charinventory SET location = ?, equiploc = -1, listnumber = ? WHERE itemid = ? AND serverid = ?`,
+				loc, next, mv.ItemID, m.ch.serverID); err != nil {
+				return err
+			}
+		}
+		before := map[string]any{"location": from, "equiploc": equip, "listnumber": list}
+		after := map[string]any{"location": loc, "equiploc": -1, "listnumber": next}
+		if err := m.note("move", "charinventory", int64(mv.ItemID), before, after, name); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func listRuns(db *sql.DB) error {
 	rows, err := db.Query(`SELECT run, charname, COUNT(*), MIN(at), MAX(undone) FROM charmigrate_log GROUP BY run ORDER BY MIN(id)`)
 	if err != nil {
@@ -894,6 +982,22 @@ func undoOne(tx *sql.Tx, r logRow, force bool) (bool, error) {
 	switch r.kind {
 	case "item":
 		_, err := tx.Exec(`DELETE FROM charinventory WHERE itemid = ? AND serverid = ?`, r.rowID, r.serverID)
+		return err == nil, err
+	case "move":
+		var loc int
+		err := tx.QueryRow(`SELECT location FROM charinventory WHERE itemid = ? AND serverid = ?`, r.rowID, r.serverID).Scan(&loc)
+		if errors.Is(err, sql.ErrNoRows) {
+			fmt.Printf("  left: move %d, the item is gone\n", r.rowID)
+			return false, nil
+		}
+		if err != nil {
+			return false, err
+		}
+		if float64(loc) != after["location"] && changed(fmt.Sprintf("location %d", loc)) {
+			return false, nil
+		}
+		_, err = tx.Exec(`UPDATE charinventory SET location = ?, equiploc = ?, listnumber = ? WHERE itemid = ? AND serverid = ?`,
+			before["location"], before["equiploc"], before["listnumber"], r.rowID, r.serverID)
 		return err == nil, err
 	case "spell":
 		_, err := tx.Exec(`DELETE FROM spells WHERE id = ? AND serverid = ?`, r.rowID, r.serverID)

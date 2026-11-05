@@ -39,9 +39,15 @@ again, so a run that stops is resumed by running it again.
 - With --controls, also those of the melee and ranged weapons Sandstorm's
   records hold (eqoa harvest JSON). Sandstorm's types are the measure
   fix_weapon_types.py holds Allakhazam's to.
+- With --ids FILE, exactly the pages of those Allakhazam ids (one a line,
+  `#` a comment), in the file's order, whether a list names them or not
+  (tools/fix_item_classmasks.py --want-pages writes such a file: the pages
+  of its items with no class mask, the ones players can get first).
 - With neither, every listed item.
+- --max N stops after N pages fetched (the ones already here not counted),
+  so a long list is taken a share at a time.
 
-    tools/fetch_item_pages.py --out ~/.cache/eqoa-item-pages [--db eqoa.db] [--controls <harvests> ...] [--zones] [--lists-only] [--delay 5]
+    tools/fetch_item_pages.py --out ~/.cache/eqoa-item-pages [--db eqoa.db] [--controls <harvests> ...] [--ids FILE] [--max N] [--zones] [--lists-only] [--delay 5]
 """
 import argparse
 import glob
@@ -225,11 +231,25 @@ def wanted_names(db_path, controls):
     return names
 
 
+def read_ids(path):
+    """The Allakhazam ids in a file, one a line (a `#` and what follows it a
+    comment), in the file's order, each once."""
+    out = []
+    with open(path) as f:
+        for line in f:
+            line = line.split("#")[0].strip()
+            if line and int(line) not in out:
+                out.append(int(line))
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--out", required=True, help="the folder to fetch into (yours: nothing of it is committed)")
     ap.add_argument("--db", help="fetch only the pages of this database's weapons of no attack type (and --controls)")
     ap.add_argument("--controls", nargs="*", default=[], help="eqoa harvest JSON: Sandstorm's weapons' pages too")
+    ap.add_argument("--ids", help="fetch exactly these Allakhazam item ids (a file, one a line), in its order")
+    ap.add_argument("--max", type=int, default=0, help="stop after this many pages fetched (default 0: no limit)")
     ap.add_argument("--zones", action="store_true", help="the item lists by zone too")
     ap.add_argument("--lists-only", action="store_true", help="fetch the lists and stop")
     ap.add_argument("--delay", type=float, default=5.0, help="seconds between fetches (default 5)")
@@ -278,8 +298,11 @@ def main():
     if a.lists_only:
         return
 
-    want = wanted_names(a.db, a.controls)
-    ids = sorted({iid for k, v in lists.items() if want is None or k in want for iid, _ in v})
+    if a.ids:
+        ids = read_ids(a.ids)
+    else:
+        want = wanted_names(a.db, a.controls)
+        ids = sorted({iid for k, v in lists.items() if want is None or k in want for iid, _ in v})
     page_caps = captures(out, a.delay)
     pages_path = f"{out}/pages.json"
     pages = {}
@@ -287,14 +310,20 @@ def main():
         with open(pages_path) as f:
             pages = json.load(f)
     missing = []
+    fetched = 0
     for n, iid in enumerate(ids, 1):
         path = f"{out}/pages/{iid}.html"
         if not os.path.exists(path):
+            if a.max and fetched >= a.max:
+                print(f"stopped at --max {a.max}: {sum(1 for i in ids[n - 1:] if not os.path.exists(f'{out}/pages/{i}.html'))}"
+                      " pages still to fetch (run again to go on)", flush=True)
+                break
             c = best(page_caps.get(iid, []), iid)
             if not c:
                 missing.append(iid)
                 continue
             ok = fetch(f"https://web.archive.org/web/{c[0]}id_/{c[1]}", path)
+            fetched += 1
             time.sleep(a.delay)
             if not ok:
                 missing.append(iid)
@@ -311,7 +340,7 @@ def main():
         json.dump(pages, f, indent=1, sort_keys=True)
     with open(f"{out}/missing.json", "w") as f:
         json.dump(missing, f)
-    print(f"{len(ids)} pages wanted, {len(pages)} read, {len(missing)} with no capture or none came")
+    print(f"{len(ids)} pages wanted, {fetched} fetched now, {len(pages)} read, {len(missing)} with no capture or none came")
 
 
 if __name__ == "__main__":

@@ -324,7 +324,8 @@ var catalog = map[string]tableNote{
 	},
 	"charbuffs": {
 		Label: "Character effects", Group: "Players",
-		Help: "Spell effects kept over a logout, what is left of each (entity/buffsave.go).",
+		Help: "Spell effects kept over a logout, what is left of each (entity/buffsave.go). A spell of a negative id is " +
+			"none: -1001 a meal, -1002 a drink, -1003 a town's boon (entity/boon.go), below -1000000 a potion.",
 		Live: "Read when the character next enters the world.",
 		Cols: map[string]colNote{
 			"serverid": {Label: "Character", Ref: "characters"},

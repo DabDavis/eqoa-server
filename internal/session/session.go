@@ -131,11 +131,13 @@ type Session struct {
 	// Support's request on Bug Report from a key of its own and sends a note
 	// of its own side with what it files. bugNote is that note for the next
 	// petition filed, and bugNoteAt when it came. reportNotice: the line on
-	// how to report a bug went out.
+	// how to report a bug went out. boonNotice: the line on where the towns'
+	// boon is went out (handlers/boon.go).
 	bugReports   bool
 	bugNote      string
 	bugNoteAt    time.Time
 	reportNotice bool
+	boonNotice   bool
 }
 
 // SetMailLiveForms records the client's answer to the mail form offer.
@@ -179,6 +181,18 @@ func (s *Session) TakeBugNote(now time.Time) string {
 		return ""
 	}
 	return note
+}
+
+// TakeBoonNotice is true the first time it is asked: the line on where the
+// towns' boon is goes out once a session.
+func (s *Session) TakeBoonNotice() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.boonNotice {
+		return false
+	}
+	s.boonNotice = true
+	return true
 }
 
 // TakeReportNotice is true the first time it is asked: the line on how to

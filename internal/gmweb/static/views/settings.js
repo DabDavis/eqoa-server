@@ -28,6 +28,9 @@ export async function render(box) {
   const sunInterval = h('input', { type: 'number', min: '1', max: '3600', value: live.vampire_sun_interval, disabled: !admin });
   const sunShade = h('input', { type: 'checkbox', checked: live.vampire_sun_shade, disabled: !admin });
   const sunGMs = h('input', { type: 'checkbox', checked: live.vampire_sun_gms, disabled: !admin });
+  // the boon a town's announcement board gives (entity/boon.go)
+  const boonPct = h('input', { type: 'number', min: '100', max: '1000', value: live.boon_xp_pct, disabled: !admin });
+  const boonMinutes = h('input', { type: 'number', min: '1', max: '10080', value: live.boon_minutes, disabled: !admin });
 
   const save = button('Save settings', { class: 'primary', icon: 'save', disabled: !admin, onclick: async () => {
     const npc_text = {};
@@ -37,7 +40,8 @@ export async function render(box) {
     }
     try {
       const out = await op('update_settings', { npc_text, start_level: Number(level.value), start_all_spells: allSpells.checked, allow_auto_register: autoReg.checked,
-        vampire_sun_damage: Number(sunDamage.value), vampire_sun_interval: Number(sunInterval.value), vampire_sun_shade: sunShade.checked, vampire_sun_gms: sunGMs.checked });
+        vampire_sun_damage: Number(sunDamage.value), vampire_sun_interval: Number(sunInterval.value), vampire_sun_shade: sunShade.checked, vampire_sun_gms: sunGMs.checked,
+        boon_xp_pct: Number(boonPct.value), boon_minutes: Number(boonMinutes.value) });
       toast('Settings saved and applied', 'ok', out.configBackup ? 'config.yaml backed up to ' + out.configBackup : '');
     } catch (e) { toast(e.message, 'error'); }
   } });
@@ -93,7 +97,11 @@ export async function render(box) {
         h('label', null, 'Seconds between ticks', sunInterval),
         h('label', { class: 'check' }, sunShade, 'Shade shelters a vampire: anything over it (a roof, rock, a big tree\'s crown)'),
         h('label', { class: 'check' }, sunGMs, 'A GM\'s vampire burns too'),
-        h('p', { class: 'muted small' }, 'A vampire (the Vampires table, #vampire in the game) takes this while its client shows the sun up, 6:00 to 18:00; it can die of it.')))),
+        h('p', { class: 'muted small' }, 'A vampire (the Vampires table, #vampire in the game) takes this while its client shows the sun up, 6:00 to 18:00; it can die of it.'))),
+      card('The towns\' boon', h('div', { class: 'stack' },
+        h('label', null, 'Experience while it lasts, percent (200: double; 100: no boon)', boonPct),
+        h('label', null, 'Minutes of play it lasts (240: four hours)', boonMinutes),
+        h('p', { class: 'muted small' }, 'Talking to a town\'s announcement board (Freeport Announcements and the rest) gives the player this boon, or puts it back to its whole time. The percent counts at once for every boon on; the minutes for boons given after. Its time runs only while the character is in the world, and a death does not end it.')))),
     card('What NPCs say', h('div', { class: 'stack' },
       h('p', { class: 'muted small' }, 'An NPC of this exact name answers a talk with these words instead of the debug box.'),
       rows, admin ? button('Add a line', { icon: 'plus', class: 'small', onclick: () => addRow() }) : null)),

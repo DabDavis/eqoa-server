@@ -83,7 +83,9 @@ func (s *Server) registerAdminOps() {
 		Description: "The settings a GM panel can change while the server runs (npc_text: what NPCs say by name; " +
 			"start_level and start_all_spells for new characters; allow_auto_register: whether an unknown name " +
 			"registers itself at login; vampire_sun_damage, vampire_sun_interval (seconds), vampire_sun_shade and " +
-			"vampire_sun_gms: what the sun does to a vampire by day), and the rest of the configuration, read-only.",
+			"vampire_sun_gms: what the sun does to a vampire by day; boon_xp_pct and boon_minutes: the boon a town's " +
+			"announcement board gives whoever talks to it, its experience and its time of play), and the rest of the " +
+			"configuration, read-only.",
 		Handler: func(c *opCtx) (any, error) { return c.s.settingsView(), nil },
 	})
 	s.addOp(&Op{
@@ -99,6 +101,10 @@ func (s *Server) registerAdminOps() {
 			"vampire_sun_interval": integer("seconds between the sun's ticks on a vampire, 1-3600 (6: the regeneration's tick, Sandstorm's)"),
 			"vampire_sun_shade":    boolean("anything over a vampire (a roof, a floor above, a cave's or a cavern's rock, a big tree's crown) shelters it"),
 			"vampire_sun_gms":      boolean("a GM's vampire burns too (false spares it)"),
+			"boon_xp_pct": integer("the percent of every experience award (kills, quests) a town's boon gives while " +
+				"it lasts, 100-1000 (200: double); 100, the boards give none. Counts at once for every boon on"),
+			"boon_minutes": integer("how long a board's boon lasts, in minutes of play, 1-10080 (240: four hours); " +
+				"for the boons given after the change"),
 		}),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct {
@@ -107,11 +113,13 @@ func (s *Server) registerAdminOps() {
 				StartAllSpells    *bool             `json:"start_all_spells"`
 				AllowAutoRegister *bool             `json:"allow_auto_register"`
 				vampireSunChange
+				boonChange
 			}
 			if err := c.decode(&req); err != nil {
 				return nil, err
 			}
-			return c.s.updateSettings(c.a, req.NPCText, req.StartLevel, req.StartAllSpells, req.AllowAutoRegister, req.vampireSunChange)
+			return c.s.updateSettings(c.a, req.NPCText, req.StartLevel, req.StartAllSpells, req.AllowAutoRegister, req.vampireSunChange,
+				req.boonChange)
 		},
 	})
 	s.addOp(&Op{
@@ -231,9 +239,9 @@ func (s *Server) settingsNow() map[string]any {
 	if s.d.AutoRegister != nil {
 		auto = s.d.AutoRegister()
 	}
-	sun := entity.DefaultVampireSun
+	sun, boon := entity.DefaultVampireSun, entity.DefaultBoon
 	if s.d.World != nil {
-		sun = s.d.World.VampireSun()
+		sun, boon = s.d.World.VampireSun(), s.d.World.Boon()
 	}
 	return map[string]any{
 		"npc_text":             handlers.NPCText(),
@@ -244,7 +252,36 @@ func (s *Server) settingsNow() map[string]any {
 		"vampire_sun_interval": int(sun.Interval / time.Second),
 		"vampire_sun_shade":    sun.Shade,
 		"vampire_sun_gms":      sun.GMs,
+		"boon_xp_pct":          boon.Percent,
+		"boon_minutes":         int(boon.Duration / time.Minute),
 	}
+}
+
+// boonChange is update_settings' boon_* (entity/boon.go), each left as it is
+// when not given.
+type boonChange struct {
+	Percent *int `json:"boon_xp_pct"`
+	Minutes *int `json:"boon_minutes"`
+}
+
+// apply is the change on b, and the config.yaml keys it writes; an error
+// names a number out of its range.
+func (v boonChange) apply(b entity.Boon, changes map[string]any) (entity.Boon, bool, error) {
+	changed := false
+	if v.Percent != nil {
+		if *v.Percent < 100 || *v.Percent > 1000 {
+			return b, false, badRequest("boon_xp_pct is 100 to 1000")
+		}
+		b.Percent, changes["world.boon_xp_pct"], changed = *v.Percent, *v.Percent, true
+	}
+	if v.Minutes != nil {
+		if *v.Minutes < 1 || *v.Minutes > 10080 {
+			return b, false, badRequest("boon_minutes is 1 to 10080 (a week)")
+		}
+		b.Duration = time.Duration(*v.Minutes) * time.Minute
+		changes["world.boon_duration"], changed = b.Duration.String(), true
+	}
+	return b, changed, nil
 }
 
 // vampireSunChange is update_settings' vampire_sun_* (entity/vampire.go),
@@ -315,7 +352,8 @@ func (s *Server) settingsView() map[string]any {
 	}
 }
 
-func (s *Server) updateSettings(a *actor, npcText map[string]string, startLevel *int, allSpells, autoReg *bool, sunChange vampireSunChange) (any, error) {
+func (s *Server) updateSettings(a *actor, npcText map[string]string, startLevel *int, allSpells, autoReg *bool, sunChange vampireSunChange,
+	boonCh boonChange) (any, error) {
 	s.settingsMu.Lock()
 	defer s.settingsMu.Unlock()
 	before := s.settingsNow()
@@ -360,6 +398,14 @@ func (s *Server) updateSettings(a *actor, npcText map[string]string, startLevel 
 	if err != nil {
 		return nil, err
 	}
+	boon := entity.DefaultBoon
+	if s.d.World != nil {
+		boon = s.d.World.Boon()
+	}
+	boon, boonChanged, err := boonCh.apply(boon, changes)
+	if err != nil {
+		return nil, err
+	}
 	if len(changes) == 0 {
 		return nil, badRequest("nothing to change")
 	}
@@ -387,6 +433,11 @@ func (s *Server) updateSettings(a *actor, npcText map[string]string, startLevel 
 		s.d.World.SetVampireSun(sun)
 		w := &s.d.Config.World
 		w.VampireSunDamage, w.VampireSunInterval, w.VampireSunShade, w.VampireSunGMs = &sun.Damage, sun.Interval, &sun.Shade, &sun.GMs
+	}
+	if boonChanged && s.d.World != nil {
+		s.d.World.SetBoon(boon)
+		w := &s.d.Config.World
+		w.BoonXPPct, w.BoonDuration = &boon.Percent, boon.Duration
 	}
 	after := s.settingsNow()
 	s.audit(a, "settings", "", nil, before, after, "changed server settings")

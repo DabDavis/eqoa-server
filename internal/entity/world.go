@@ -76,6 +76,8 @@ type World struct {
 	regenAt time.Time
 	// How the sun treats vampires (vampire.go)
 	vampireSun VampireSun
+	// What the towns' boards' boon gives and for how long (boon.go)
+	boon Boon
 
 	// Corpses (corpse.go): how long one lies unlooted, how long after it
 	// goes its creature comes back, and the hook told which went.
@@ -174,6 +176,7 @@ func NewWorld() *World {
 		respawnAfter: DefaultRespawnAfter,
 		roamRadius:   DefaultRoamRadius,
 		vampireSun:   DefaultVampireSun,
+		boon:         DefaultBoon,
 	}
 	log.Println("Entity World initialized")
 	return w
@@ -902,8 +905,15 @@ func (w *World) addThreatLocked(npc *NPC, attackerID EntityID, damage int) {
 // share (splitXP, mastery.go); each point made is told as CLIENT's Recv03 is
 // (0x1402 sub-op 3), the debt left as 0x00D9 (CLIENT's mark on the player's
 // own target bar while it is above 0), and a level that changes the stat cap
-// tells it (0x001C).
+// tells it (0x001C). A town's boon on the player multiplies the whole award
+// first (boon.go), and its lines say so.
 func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
+	pct := w.boonPctLocked(player)
+	xp = xp * pct / 100
+	boon := ""
+	if pct != 100 {
+		boon = " (" + boonTag(pct) + ")"
+	}
 	shares := splitXP(player.Mastery, player.Level, player.Debt, xp)
 	levelXP, cmXP := shares.Level, shares.Mastery
 	made := gainMastery(&player.Mastery, cmXP)
@@ -948,12 +958,13 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 	// (recorded by questrec16, claude-notes/quests-sandstorm-20261025.md),
 	// and for the masteries' share "You received N class mastery XP." alone
 	// when it is all of it (a level 60's Sandstorm session in a client
-	// report's chat, F3 20261025-225337)
+	// report's chat, F3 20261025-225337); a boon's share named after them
+	// (ours)
 	if levelXP > 0 || (cmXP == 0 && shares.Debt == 0) {
-		w.sendChatToSession(sess, fmt.Sprintf("You receive %d XP.", levelXP))
+		w.sendChatToSession(sess, fmt.Sprintf("You receive %d XP%s.", levelXP, boon))
 	}
 	if cmXP > 0 {
-		w.sendChatToSession(sess, fmt.Sprintf("You received %d class mastery XP.", cmXP))
+		w.sendChatToSession(sess, fmt.Sprintf("You received %d class mastery XP%s.", cmXP, boon))
 	}
 	// what paid the debt, in our words: no record of the live game's line
 	if shares.Debt > 0 {
@@ -967,8 +978,8 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 		SendMasteryPoints(sess, player.Mastery)
 		logMastery(player.Name, made, player.Mastery)
 	}
-	log.Printf("Combat: awarded %d XP to %s (level %d, xpInLevel: %d/%d; %d to the level, %d to masteries, %d to the debt, %d owed)",
-		xp, sess.RemoteAddr(), player.Level, player.XPInLevel, CharXPDict[player.Level], levelXP, cmXP, shares.Debt, player.Debt)
+	log.Printf("Combat: awarded %d XP to %s (level %d, xpInLevel: %d/%d; %d to the level, %d to masteries, %d to the debt, %d owed; boon %d%%)",
+		xp, sess.RemoteAddr(), player.Level, player.XPInLevel, CharXPDict[player.Level], levelXP, cmXP, shares.Debt, player.Debt, pct)
 }
 
 // sendExpDebt sends 0x00D9: the experience debt as one raw u32 into CLIENT's

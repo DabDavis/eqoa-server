@@ -145,6 +145,9 @@ func (h *InteractHandler) SetGameWorld(gw *entity.World) {
 func (h *InteractHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeInteract, h.HandleInteract)
 	r.Register(protocol.OpcodeDialogueBoxOption, h.HandleDialogueOption)
+	if h.gameWorld != nil {
+		h.gameWorld.OnPlayerEntered(h.noticeBoon) // boon.go
+	}
 }
 
 // HandleInteract handles NPC interaction requests (opcode 0x0004).

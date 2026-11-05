@@ -3,9 +3,11 @@ package handlers
 import (
 	"os"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
@@ -189,5 +191,100 @@ func TestSeedSignsKeepsTheSignBody(t *testing.T) {
 	}
 	if v, _ := strconv.ParseUint(string(m[1]), 16, 32); v != SignBody {
 		t.Errorf("the tool's SIGN_BODY is 0x%X, the server's 0x%X", v, SignBody)
+	}
+}
+
+// A town's board gives its boon to whoever talks to it, after its words
+// (entity/boon.go: the Boon of its town, its buff visual played and a line in
+// chat), and a second talk renews it (its line alone); a board by its name
+// alone with nothing to say (Qeynos's) gives its own in its place. The
+// control: a road sign beside them gives none.
+func TestABoardGivesItsTownsBoon(t *testing.T) {
+	tw := newTalkWorld(t, 25403, 15725)
+	tw.p.HP, tw.p.MaxHP = 100, 100 // alive: the dead are given none
+	tw.s.SetPlayerObjectID(4242)
+	signRows(tw.h, database.SignText{NPCID: 462, Kind: database.SignKindBoard, Text: "Welcome to Freeport."},
+		database.SignText{NPCID: 702, Kind: database.SignKindRoad, Text: "North: Highpass Hold"})
+	board := tw.add(1, &entity.NPC{ServerID: 462, Name: "Freeport Announcements", ModelID: SignBody, SpawnX: 25404, SpawnY: 54.1, SpawnZ: 15726})
+	road := tw.add(2, &entity.NPC{ServerID: 702, Name: "signpost", ModelID: SignBody, SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
+	qeynos := tw.add(3, &entity.NPC{ServerID: 9001, Name: "Qeynos Announcements", ModelID: SignBody, SpawnX: 25402.5, SpawnY: 54.1, SpawnZ: 15724.5})
+	boons := func() []string {
+		var on []string
+		for _, e := range tw.p.Effects {
+			if e.SpellID == entity.BoonEffectID {
+				on = append(on, e.Name)
+			}
+		}
+		return on
+	}
+
+	tw.talk(road)
+	if m := questMsgs(tw.s); !slices.Equal(m, []string{"box:North: Highpass Hold"}) || len(tw.p.Effects) != 0 {
+		t.Fatalf("the control, a road sign: %q, %d effects", m, len(tw.p.Effects))
+	}
+	tw.talk(board)
+	if m := questMsgs(tw.s); !slices.Equal(m, []string{"box:Welcome to Freeport.", "op:00B1",
+		"chat:You have been blessed by the Boon of Freeport: double experience for 4 hours of play."}) {
+		t.Errorf("the board: %q", m)
+	}
+	if on := boons(); !slices.Equal(on, []string{"Boon of Freeport"}) {
+		t.Fatalf("boons on: %q", on)
+	}
+	tw.talk(board)
+	if m := questMsgs(tw.s); !slices.Equal(m, []string{"box:Welcome to Freeport.",
+		"chat:The Boon of Freeport renews your blessing: double experience for 4 hours of play."}) {
+		t.Errorf("the second talk: %q", m)
+	}
+	tw.talk(qeynos)
+	if m := questMsgs(tw.s); !slices.Equal(m, []string{
+		"chat:The Boon of Qeynos renews your blessing: double experience for 4 hours of play."}) {
+		t.Errorf("Qeynos's board: %q", m)
+	}
+	if on := boons(); !slices.Equal(on, []string{"Boon of Qeynos"}) {
+		t.Errorf("boons on: %q", on)
+	}
+}
+
+// A board's town is its name without "Announcements" (Surefall's board spells
+// it with one n); a name without the word is its own town.
+func TestBoardTown(t *testing.T) {
+	for name, want := range map[string]string{"Freeport Announcements": "Freeport", "Surefall Anouncements": "Surefall",
+		"Halas announcement": "Halas", "Town Crier": "Town Crier", "Announcements": ""} {
+		if got := BoardTown(name); got != want {
+			t.Errorf("%q: %q, want %q", name, got, want)
+		}
+	}
+}
+
+// A player entering the world with no boon on is told where it is, once a
+// session; one with a boon on is told nothing, and nobody is when the boards
+// give none (100%).
+func TestALoginIsToldWhereTheBoonIs(t *testing.T) {
+	tw := newTalkWorld(t, 25403, 15725)
+	tw.p.HP, tw.p.MaxHP = 100, 100
+	tw.h.tellBoon(tw.s)
+	if m := questMsgs(tw.s); !slices.Equal(m, []string{"chat:The Boon is available at all City Announcements: double experience for 4 hours of play."}) {
+		t.Fatalf("the login's line: %q", m)
+	}
+	tw.h.tellBoon(tw.s)
+	if m := questMsgs(tw.s); len(m) != 0 {
+		t.Errorf("told twice in a session: %q", m)
+	}
+
+	with := newTalkWorld(t, 25403, 15725)
+	with.p.HP, with.p.MaxHP = 100, 100
+	with.w.GiveBoon(with.s, "Halas", time.Now())
+	questMsgs(with.s)
+	with.h.tellBoon(with.s)
+	if m := questMsgs(with.s); len(m) != 0 {
+		t.Errorf("a player with a boon on was told: %q", m)
+	}
+
+	off := newTalkWorld(t, 25403, 15725)
+	off.p.HP, off.p.MaxHP = 100, 100
+	off.w.SetBoon(entity.Boon{Percent: 100})
+	off.h.tellBoon(off.s)
+	if m := questMsgs(off.s); len(m) != 0 {
+		t.Errorf("with no boon given, a login was told: %q", m)
 	}
 }

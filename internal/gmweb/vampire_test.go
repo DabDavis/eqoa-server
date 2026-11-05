@@ -106,9 +106,9 @@ func TestVampireEditsAreLive(t *testing.T) {
 }
 
 // The Settings page in a browser (Chromium, when installed): an admin sees the
-// Vampires in the sun card with the world's values, and its Save sends the
-// numbers it holds, which the world takes at once. The control: the world's
-// sun before the save is the defaults.
+// Vampires in the sun card and the towns' boon's with the world's values, and
+// its Save sends the numbers they hold, which the world takes at once. The
+// control: the world's sun and boon before the save are the defaults.
 func TestTheSettingsPagesSunInABrowser(t *testing.T) {
 	var browser string
 	for _, name := range []string{"chromium", "chromium-browser", "google-chrome", "google-chrome-stable"} {
@@ -124,8 +124,8 @@ func TestTheSettingsPagesSunInABrowser(t *testing.T) {
 	var id int
 	f.db.QueryRow(`SELECT accountid FROM accountinfo WHERE username = 'boss'`).Scan(&id)
 	f.enrolTOTP(id)
-	if got := f.world.VampireSun(); got != entity.DefaultVampireSun {
-		t.Fatalf("the control: the world starts at %+v", got)
+	if got, boon := f.world.VampireSun(), f.world.Boon(); got != entity.DefaultVampireSun || boon != entity.DefaultBoon {
+		t.Fatalf("the control: the world starts at %+v, %+v", got, boon)
 	}
 	harness := `<!doctype html><meta charset="utf-8"><div id="out"></div><script type="module">
 import { setCSRF } from '/static/lib/api.js';
@@ -146,6 +146,11 @@ const wait = async (ok) => { for (let i = 0; i < 100 && !ok(); i++) await new Pr
     if (nums.length !== 2 || nums[0].value !== '50' || nums[1].value !== '6') throw new Error('the values: ' + nums.map((i) => i.value));
     nums[0].value = '70';
     nums[1].value = '3';
+    if (!out.textContent.includes('The towns\' boon')) throw new Error('no boon card');
+    const boon = [...out.querySelectorAll('input[type=number]')].filter((i) => i.max === '1000' || i.max === '10080');
+    if (boon.length !== 2 || boon[0].value !== '200' || boon[1].value !== '240') throw new Error('the boon: ' + boon.map((i) => i.value));
+    boon[0].value = '300';
+    boon[1].value = '90';
     [...out.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Save settings').click();
     await new Promise((r) => setTimeout(r, 1500));
     out.dataset.done = '1';
@@ -185,5 +190,8 @@ const wait = async (ok) => { for (let i = 0; i < 100 && !ok(); i++) await new Pr
 	}
 	if got := f.world.VampireSun(); got.Damage != 70 || got.Interval != 3*time.Second || !got.Shade || !got.GMs {
 		t.Errorf("after the page's Save the world's sun is %+v, want 70 every 3s", got)
+	}
+	if got := f.world.Boon(); got != (entity.Boon{Percent: 300, Duration: 90 * time.Minute}) {
+		t.Errorf("after the page's Save the world's boon is %+v, want 300%% for 90 minutes", got)
 	}
 }

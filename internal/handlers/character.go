@@ -1153,7 +1153,7 @@ func wornGear(items []database.CharInventoryEntry) entity.Gear {
 			g.Add(id, v)
 		}
 		// what it does when its wearer is hit (entity/wornshield.go)
-		if s, ok := entity.WornShieldOf(it.Pattern.ItemName); ok {
+		if s, ok := entity.WornShieldOf(it.Pattern.PatternID, it.Pattern.ItemName); ok {
 			g.Shields = append(g.Shields, s)
 		}
 		switch it.EquipLoc {

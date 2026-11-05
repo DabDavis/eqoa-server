@@ -5,36 +5,57 @@ import (
 	"time"
 )
 
-// The items: by their record's name in any case, nothing for another.
+// The items: by their record's name in any case, nothing for another; a
+// record keyed by its id answers by it alone.
 func TestWornShieldOf(t *testing.T) {
-	if s, ok := WornShieldOf("Splendor"); !ok || s.Damage != 30 || s.Heal != 15 || s.Scale != StatNone || s.Item != "Splendor" {
+	of := func(name string) (WornShield, bool) { return WornShieldOf(0, name) }
+	if s, ok := of("Splendor"); !ok || s.Damage != 30 || s.Heal != 15 || s.Scale != StatNone || s.Item != "Splendor" {
 		t.Errorf("Splendor: %+v %v", s, ok)
 	}
-	if s, ok := WornShieldOf("breastplate of the ANOINTED "); !ok || s.Damage != 0 || s.Heal != 25 || s.HealMax != 75 || s.Scale != StatCha {
+	if s, ok := of("breastplate of the ANOINTED "); !ok || s.Damage != 0 || s.Heal != 15 || s.HealPct != 10 || s.HealMax != 75 ||
+		s.Scale != StatCha || s.Line {
 		t.Errorf("the Anointed: %+v %v", s, ok)
 	}
 	for _, name := range []string{"seraphic planar chestplate", "Seraphic Planar Breastplate"} {
-		if s, ok := WornShieldOf(name); !ok || s.Damage != 75 || s.Heal != 75 || s.Scale != StatInt {
+		if s, ok := of(name); !ok || s.Damage != 75 || s.Heal != 75 || s.Scale != StatInt || !s.Line {
 			t.Errorf("%s: %+v %v", name, s, ok)
 		}
 	}
 	for _, name := range []string{"traitorous breastplate", "worldbreaker chestguard", "Worldbreaker Breastplate", "Grundleskin Guard"} {
-		if s, ok := WornShieldOf(name); !ok || s.Damage != 0 || s.Heal != 25 || s.Scale != StatNone {
+		if s, ok := of(name); !ok || s.Damage != 0 || s.Heal != 25 || s.Scale != StatNone {
 			t.Errorf("%s: %+v %v", name, s, ok)
-		}
-	}
-	for _, name := range []string{"seraphic planar robe", "Seraphic Planar Greaves", "Worldbreaker Greaves", "Grundleskin Bracers", "Traitorous Greaves"} {
-		if _, ok := WornShieldOf(name); ok {
-			t.Errorf("%s answers a hit", name)
 		}
 	}
 	for _, name := range []string{"Crown of the Jaguar", "Nightshade Gloves", "nightshade gloves"} {
-		if s, ok := WornShieldOf(name); !ok || s.Damage != 30 || s.Heal != 15 || s.Scale != StatNone {
+		if s, ok := of(name); !ok || s.Damage != 30 || s.Heal != 15 || s.Scale != StatNone {
 			t.Errorf("%s: %+v %v", name, s, ok)
 		}
 	}
-	for _, name := range []string{"Robe of the Anointed", "Nightshade Boots", "Nite Jaguar-Hide Gloves"} {
-		if _, ok := WornShieldOf(name); ok {
+	// the sheet's, as this server names them
+	for name, want := range map[string]WornShield{
+		"Baleful Hide Chestguard": {Damage: 23, DamageTo: 24}, "Coat of Jagged Rust": {Damage: 39, DamageTo: 40},
+		"Golden Spiked Boots": {Damage: 30}, "Guard of the Deep": {Damage: 20}, "Rune Crested Gloves": {Damage: 30},
+		"Stinging Kite Shield": {Damage: 20}, "Thornlink": {Damage: 40}, "positronian energy shield": {Damage: 200, Undead: true},
+		"Marauder Breastplate": {Damage: 10, Heal: 5}, "Tower of Woe": {Damage: 90, Heal: 45},
+		"Mithron Chestplate": {Heal: 10, Power: 10}, "coralium chestguard": {Power: 15}, "Coral Tunic": {Power: 25},
+		"fathomsteel guard": {Power: 15}, "FesterTwig": {Power: 15},
+	} {
+		want.Item = name
+		if s, ok := of(name); !ok || s != want {
+			t.Errorf("%s: %+v %v, want %+v", name, s, ok, want)
+		}
+	}
+	// the named Mithril Breastplate by its record; the smiths' of its name answers nothing
+	if s, ok := WornShieldOf(2251, "Mithril Breastplate"); !ok || s.Power != 15 {
+		t.Errorf("the Mithril Breastplate (2251): %+v %v", s, ok)
+	}
+	if _, ok := WornShieldOf(703150, "mithril breastplate"); ok {
+		t.Error("a smith's mithril breastplate answers a hit")
+	}
+	for _, name := range []string{"Robe of the Anointed", "Nightshade Boots", "Nite Jaguar-Hide Gloves", "seraphic planar robe",
+		"Seraphic Planar Greaves", "Worldbreaker Greaves", "Grundleskin Bracers", "Traitorous Greaves", "Golden Spiked Bracers",
+		"shield of the isle", "Imperial Breastplate", "Tobrin's Eyepatch", "Martyr's Breastplate"} {
+		if _, ok := of(name); ok {
 			t.Errorf("%s answers a hit", name)
 		}
 	}
@@ -47,7 +68,7 @@ func TestWornShieldOf(t *testing.T) {
 // hit points the heal is neither given nor told; the damage still is.
 func TestSplendorHitsBackAndHeals(t *testing.T) {
 	c, crab := casterAndCrab(t)
-	s, _ := WornShieldOf("Splendor")
+	s, _ := WornShieldOf(2256, "Splendor")
 	c.p.Gear.Shields = []WornShield{s}
 	c.p.HP = c.p.MaxHPNow() - 100
 	c.sent()
@@ -92,19 +113,22 @@ func TestSplendorHitsBackAndHeals(t *testing.T) {
 	}
 }
 
-// The Breastplate of the Anointed (the user, 2026-11-05: "heals on contact
-// base starting at 25, max at 75 cha scales it"): no damage, the wearer
-// healed 25 at no CHA, 75 at its CHA cap and in a line between; CHA past
-// the cap counts as the cap.
+// The Breastplate of the Anointed (the sheet's formula, the user's choice:
+// "procs 15 + 10% cha, so at 600 cha procs for 75"): no damage, the wearer
+// healed 15 and a tenth of its CHA as the client shows it (within the cap:
+// 400 at level 46 and up), never past 75; 600 CHA reached with the cap
+// masteries heals 75, and more heals no more.
 func TestTheAnointedHealsByCha(t *testing.T) {
 	c, crab := casterAndCrab(t)
-	s, _ := WornShieldOf("Breastplate of the Anointed")
+	s, _ := WornShieldOf(1076, "Breastplate of the Anointed")
 	c.p.Gear.Shields = []WornShield{s}
 	capCha := c.p.StatCapOf(StatCha)
 	for _, k := range []struct {
-		cha, want int
-	}{{0, 25}, {capCha / 2, 50}, {capCha, 75}, {capCha + 100, 75}} {
+		cha, raise, want int
+	}{{0, 0, 15}, {100, 0, 25}, {200, 0, 35}, {capCha, 0, 15 + capCha/10}, {capCha + 100, 0, 15 + capCha/10},
+		{600, 600 - capCha, 75}, {800, 800 - capCha, 75}} {
 		c.p.Cha, c.p.Mods.Cha = k.cha, 0
+		c.p.CMEffects[cmSlotCap+int(StatCha-StatStr)] = k.raise
 		c.p.HP = c.p.MaxHPNow() - 200
 		c.sent()
 		c.w.mu.Lock()
@@ -113,14 +137,13 @@ func TestTheAnointedHealsByCha(t *testing.T) {
 		got := c.sent()
 		if healed := c.p.HP - (c.p.MaxHPNow() - 200); healed != k.want ||
 			!sameMsgs(got, [][]byte{damageMsg(t, c.me, k.want, c.me)}) {
-			t.Errorf("CHA %d of %d: healed %d, want %d; sent % X", k.cha, capCha, healed, k.want, got)
+			t.Errorf("CHA %d (cap %d): healed %d, want %d; sent % X", k.cha, c.p.StatCapOf(StatCha), healed, k.want, got)
 		}
 	}
 	if crab.HP != 2000 {
 		t.Errorf("the Anointed hurt the crab: %d HP", crab.HP)
 	}
 	// short by less than the heal: up to the most, the whole heal told
-	c.p.Cha = capCha
 	c.p.HP = c.p.MaxHPNow() - 10
 	c.w.mu.Lock()
 	c.w.playerShieldsLocked(c.sess, c.p, crab, c.at(time.Second))
@@ -136,7 +159,7 @@ func TestAWornShieldAnswersBesideASpellShield(t *testing.T) {
 	c, crab := casterAndCrab(t)
 	now := c.at(time.Minute)
 	c.p.Effects = []*ActiveEffect{shieldEffect("Barbshield", 8, 0, now.Add(time.Minute))}
-	s, _ := WornShieldOf("Splendor")
+	s, _ := WornShieldOf(2256, "Splendor")
 	c.p.Gear.Shields = []WornShield{s}
 	c.p.HP = c.p.MaxHPNow()
 	c.sent()
@@ -152,11 +175,10 @@ func TestAWornShieldAnswersBesideASpellShield(t *testing.T) {
 // The Seraphic Planar (the user, 2026-11-05: "75 heal and damage. scales with
 // int higher, one of the very best in the game"): both 75 at no INT, 225 at
 // the wearer's INT cap (the user's choice: the Anointed's 3x) and in a line
-// between, past
-// the cap the cap's; CHA moves nothing.
+// between, past the cap the cap's; CHA moves nothing.
 func TestTheSeraphicPlanarScalesByInt(t *testing.T) {
 	c, crab := casterAndCrab(t)
-	s, _ := WornShieldOf("seraphic planar chestplate")
+	s, _ := WornShieldOf(8527, "seraphic planar chestplate")
 	c.p.Gear.Shields = []WornShield{s}
 	capInt := c.p.StatCapOf(StatInt)
 	c.p.Cha = c.p.StatCapOf(StatCha)
@@ -176,5 +198,61 @@ func TestTheSeraphicPlanarScalesByInt(t *testing.T) {
 			t.Errorf("INT %d of %d: healed %d, hit %d, want %d; sent % X", k.intel, capInt, healed, crabHP-crab.HP, k.want, got)
 		}
 		crabHP = crab.HP
+	}
+}
+
+// A range is rolled each hit (the Coat of Jagged Rust's "Ds 39-40": both
+// ends come); power comes back to the wearer up to its most, told nothing
+// (the Coral Tunic's "25 mana back per hit"); the Positronian energy
+// shield's 200 lands on undead alone.
+func TestTheSheetsShields(t *testing.T) {
+	defer func(f func(int) int) { procIntn = f }(procIntn)
+
+	c, crab := casterAndCrab(t)
+	rust, _ := WornShieldOf(2273, "Coat of Jagged Rust")
+	c.p.Gear.Shields = []WornShield{rust}
+	hp := crab.HP
+	for _, roll := range []int{0, 1} {
+		procIntn = dice(roll)
+		c.w.mu.Lock()
+		c.w.playerShieldsLocked(c.sess, c.p, crab, c.at(time.Second))
+		c.w.mu.Unlock()
+		if want := 39 + roll; hp-crab.HP != want {
+			t.Errorf("the rust, rolling %d: hit %d, want %d", roll, hp-crab.HP, want)
+		}
+		hp = crab.HP
+	}
+
+	tunic, _ := WornShieldOf(3512, "Coral Tunic")
+	c.p.Gear.Shields = []WornShield{tunic}
+	top := c.p.MaxPowerNow()
+	c.p.Power = top - 30
+	c.sent()
+	for _, want := range []int{top - 5, top} {
+		c.w.mu.Lock()
+		c.w.playerShieldsLocked(c.sess, c.p, crab, c.at(time.Second))
+		c.w.mu.Unlock()
+		if c.p.Power != want {
+			t.Errorf("the tunic: power %d, want %d (of %d)", c.p.Power, want, top)
+		}
+	}
+	if got := c.sent(); len(got) != 0 || crab.HP != hp {
+		t.Errorf("the tunic: sent % X, the crab %d (was %d)", got, crab.HP, hp)
+	}
+
+	positronian, _ := WornShieldOf(6067, "positronian energy shield")
+	c.p.Gear.Shields = []WornShield{positronian}
+	c.w.mu.Lock()
+	c.w.playerShieldsLocked(c.sess, c.p, crab, c.at(time.Second))
+	c.w.mu.Unlock()
+	if crab.HP != hp {
+		t.Errorf("the positronian shield hurt a crab: %d (was %d)", crab.HP, hp)
+	}
+	crab.Name = "a decaying skeleton"
+	c.w.mu.Lock()
+	c.w.playerShieldsLocked(c.sess, c.p, crab, c.at(time.Second))
+	c.w.mu.Unlock()
+	if hp-crab.HP != 200 {
+		t.Errorf("the positronian shield on a skeleton: hit %d, want 200", hp-crab.HP)
 	}
 }

@@ -96,6 +96,7 @@ version.
 cmd/gameserver/      UDP game (port 10070) + TCP auth (port 9735) + HTTP patch (port 7000)
 cmd/wsrelay/         WebSocket relay for browser clients (wsrelay.py's protocol, host:port allow-list)
 cmd/workboard/       the work board from a shell on the box, as dab's sessions
+cmd/charmigrate/     a character moved in from another server by a GM's plan, from a shell
 internal/network/    RDP protocol, packet assembly
 internal/protocol/   Opcodes, message types, RLE encoding
 internal/session/    Session management, state channels, XOR delta
@@ -103,6 +104,8 @@ internal/handlers/   Opcode handlers
 internal/entity/     Player/NPC flat structs, World, systems
 internal/database/   SQLite persistence
 internal/gmweb/      the GM panel: web page, MCP + OAuth + OpenAPI for AI agents
+internal/transfers/  the character transfer page and its routes (the player's half)
+internal/charmove/   a character moved in by a plan, logged and undoable (transfers, cmd/charmigrate)
 ```
 
 ## Architecture: Flat Struct Entity System (`internal/entity/`)
@@ -488,11 +491,31 @@ are told each new ticket in yellow; the panel's navigation shows the waiting cou
 report (`world.report_notice`, on unless false): F3's line at the client's answer to the offer, else the
 line for every client 15 s in.
 
-`cmd/charmigrate` moves a character in from another server by a GM's plan (a JSON file kept outside this
-repository: level, mastery points, the class's spells, item records put right or made, items into the bank or
-the pack), in one transaction logged in `charmigrate_log`, `-undo <run>` exact; `-wait <gameserver.log>` applies
-only once the character's session has been cleaned up (the logout save would write over it), `-backup` copies
-the database first. First used 2026-11-05 for a Sandstorm 60 (the user's "lets do a manual migration").
+### Character transfers: a form, a GM's plan, the next login (`internal/transfers`, `database/transfers.go`, `internal/charmove`)
+
+The user, 2026-11-05: "players from sandstorm want to keep their characters", "build the form". A player makes the
+character here first (its class, race and look are theirs), then asks on **the transfer page** (`/transfer` on the
+account server, public as `https://<site>/eqoa/transfer` with its routes `/eqoa/account/api/transfer/...`: nginx
+locations of their own): signed in with this server's account (the account server's password check and login
+limits, a banned account refused; a session cookie of its own, HttpOnly, SameSite=Strict, Secure behind https;
+every write JSON with an `X-EQOA-Transfer` header, so no other site's page can write), it names a character of the
+account and what it was there (server, name, class, level, mastery points, the gear one item a line, notes), one
+open a character, three an account (table `chartransfers`, cleared from snapshots). Online GMs are told in yellow.
+**A GM decides on the panel's Character transfers page** (ops `transfer_list`, `transfer_get`, `transfer_preview`,
+`transfer_approve`, `transfer_reject`, `transfer_undo`): each gear line matched to this server's records
+(`MatchItemLines`: the same words, apostrophes, hyphens and a final s aside; our records' 32-character cut; else the
+most words in common, flagged to check), a copy of another record made for an item this server lacks, the level,
+mastery points, class spells; a dry run first; approved, audited. **It applies at the character's next login**
+(`handlers/transfers.go`, in `HandleSelectedChar` before the record is read, so no logout save writes over it; not
+while the character is still in the world: a login taking it over waits), in one transaction (`charmove.Migrate`,
+logged in `charmigrate_log`; the gear into the pack, the bank when it is full), and the player is told once in the
+world. `transfer_undo` takes it back while the character is out of the world.
+
+`cmd/charmigrate` runs the same engine from a shell by a GM's plan (a JSON file kept outside this repository):
+level, mastery points, the class's spells, item records put right or made, items into the bank, the pack or
+`auto`, rows the character holds moved; one transaction logged in `charmigrate_log`, `-undo <run>` exact (a run's
+id its own); `-wait <gameserver.log>` applies only once the character's session has been cleaned up, `-backup`
+copies the database first. First used 2026-11-05 for a Sandstorm 60 (the user's "lets do a manual migration").
 
 ### Rehabilitators: a character's resets, for every client (`handlers/rehab.go`, `rehabpaths.go`, `database/rehab.go`)
 
@@ -887,6 +910,7 @@ and on its own https host the session is a `__Host-` cookie no other host can se
   | `spellfx_suggestions.addr_hash`, `mapmark_suggestions.sender_hash` | each value replaced by an HMAC under a key thrown away | one sender's rows still group; nothing links them to the live hashes |
   | `workboard`, `workboard_overview` | every row deleted | what people and agents wrote each other (a note can hold a password or a token); the default overview is seeded again on open |
   | `petitions` | every row deleted | a player's own words to the staff and the staff's answers, with the account they came from |
+  | `chartransfers` | every row deleted | a player's own words about a character on another server, the GMs' answers, with the account they came from |
   | `sqlite_stat3`, `sqlite_stat4` | every row deleted | samples of the indexes' keys |
   | `snapshot_info` (added) | the sanitiser's version, when, by whom, what it took out | so a copy says what it is |
   | every other table | whole | the game: characters, items, NPCs, quests, spells, balance, templates, the tools' logs (their `key`/`rowkey` columns allowed by name) |
@@ -934,6 +958,10 @@ and on its own https host the session is a `__Host-` cookie no other host can se
   (revertible); not core operations. The page shows the open ones with Answer and Close, player text as text;
   `checkPetitionRow` holds the table editor to the statuses. The game reads the table at each request, so
   nothing needs a reload. A browser test drives the page (sign-in, list, Answer) when Chromium is installed.
+- **Character transfers** (`ops_transfers.go`, `static/views/transfers.js`; above): the open ones (waiting, then approved),
+  Decide's form (each gear line's record picked, an exact match already, a near one marked "≈" to check, a line with no
+  record a copy of another under its name), Preview (the dry run), Approve, Reject (a word the player reads), Undo of an
+  applied one; the navigation shows the waiting count, as Petitions'. A browser test drives Decide and Approve.
 - **Triggers** (`ops_triggers.go`, `static/views/triggers.js`; the GMs' scripted events, above): `trigger_list`,
   `trigger_get` (with its problems: `database.TriggerProblems` and a spawn's NPC or a give's item this server
   lacks), `trigger_save` (its row by slot, steps given as a list or its JSON and kept in `TriggerStep`'s own

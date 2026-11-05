@@ -421,6 +421,12 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	}
 	supportHandler.RegisterHandlers(r)
 	chatHandler.support = supportHandler // /bug (bugreport.go)
+	// a character transfer applied at the login is told once in the world
+	// (transfers.go)
+	if gameWorld != nil && charStore != nil {
+		transferDB := charStore.DB()
+		gameWorld.OnPlayerEntered(func(sess *session.Session, p *entity.Player) { tellTransfers(transferDB, sess, p) })
+	}
 
 	// Register the spell book's requests (0x0033, 0x003A, 0x00FE), and the
 	// casts' reagents (reagent.go)

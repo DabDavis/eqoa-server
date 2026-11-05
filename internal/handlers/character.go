@@ -514,6 +514,14 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 		}
 	}
 
+	// A GM's approved character transfer applies now, before this login reads
+	// the character (transfers.go): no logout save can write over it here.
+	if h.applyTransfer(uint32(record.ServerID)) {
+		if again, err := h.store.GetByServerID(charID); err == nil {
+			record = again
+		}
+	}
+
 	log.Printf("SelectedChar: selected '%s' (level %d race=%d class=%d)", record.CharName, record.Level, record.Race, record.TClass)
 
 	// Promote to a master session HERE, not when the character list was sent.

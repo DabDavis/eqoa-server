@@ -32,6 +32,9 @@ type Gear struct {
 	// or an item held is none) and nothing in the ranged slot (18), where a
 	// monk's melee rolls on its hand to hand (offence.go)
 	BareHands bool
+	// Shields are the worn items that answer a creature's melee hit on their
+	// wearer (wornshield.go: the Breastplate of the Anointed, Splendor)
+	Shields []WornShield
 }
 
 // Add puts one worn item's stats, by stat id, into the sums.

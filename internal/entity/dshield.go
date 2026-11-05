@@ -375,25 +375,32 @@ func shieldAnswers(effects []*ActiveEffect, bearerLevel, attackerLevel, resistOf
 // playerShieldsLocked answers a creature's melee hit on a player with the
 // player's shields: each answer a 0x00B1 of the player's at the creature and
 // its damage as the player's spell's (spellHitLocked: the figure, the hate,
-// a kill's XP and faction; a dummy's told, taken off nothing). Called after
-// the hit, while the player stands. It reports the creature's death.
+// a kill's XP and faction; a dummy's told, taken off nothing), then what its
+// worn items do at a hit (wornshield.go). Called after the hit, while the
+// player stands. It reports the creature's death.
 func (w *World) playerShieldsLocked(sess *session.Session, p *Player, npc *NPC, now time.Time) bool {
-	if len(p.Effects) == 0 || p.IsDead() || npc.Dead {
+	if p.IsDead() || npc.Dead {
 		return false
 	}
-	hits, resisted := shieldAnswers(p.Effects, p.Level, npc.Level, npcResistOffPct(npc, now),
-		func() bool { return w.undeadLocked(npc) }, now, procIntn)
-	if resisted > 0 {
-		log.Printf("Shield: %s's defensive proc resisted by %s", p.Name, npc.Name)
-	}
-	for _, h := range hits {
-		w.broadcastCastLocked(p, npc.ServerID, 0, fxShieldHit)
-		log.Printf("Shield: %s's %q answers %s for %d (proc %v)", p.Name, h.name, npc.Name, h.n, h.proc)
-		if w.spellHitLocked(p, sess, npc, h.n) {
-			return true
+	died := false
+	if len(p.Effects) > 0 {
+		hits, resisted := shieldAnswers(p.Effects, p.Level, npc.Level, npcResistOffPct(npc, now),
+			func() bool { return w.undeadLocked(npc) }, now, procIntn)
+		if resisted > 0 {
+			log.Printf("Shield: %s's defensive proc resisted by %s", p.Name, npc.Name)
+		}
+		for _, h := range hits {
+			w.broadcastCastLocked(p, npc.ServerID, 0, fxShieldHit)
+			log.Printf("Shield: %s's %q answers %s for %d (proc %v)", p.Name, h.name, npc.Name, h.n, h.proc)
+			if w.spellHitLocked(p, sess, npc, h.n) {
+				died = true
+				break
+			}
 		}
 	}
-	return false
+	// its worn items' answers (wornshield.go): their heals at a hit that
+	// killed the creature too, their damage only on one still standing
+	return w.wornShieldsLocked(sess, p, npc) || died
 }
 
 // petShieldsLocked answers a creature's melee hit on a pet with the pet's

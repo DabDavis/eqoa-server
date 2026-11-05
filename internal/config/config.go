@@ -206,6 +206,14 @@ type WorldConfig struct {
 	VampireSunShade    *bool         `yaml:"vampire_sun_shade"`
 	VampireSunGMs      *bool         `yaml:"vampire_sun_gms"`
 
+	// The towns' boon (entity/boon.go): talking to a town's announcement
+	// board gives the player BoonXPPct percent of every experience award
+	// (unset 200: double; 100, the boards give none) for BoonDuration of
+	// play (unset or 0: 4h). The GM panel's settings change both while the
+	// server runs.
+	BoonXPPct    *int          `yaml:"boon_xp_pct"`
+	BoonDuration time.Duration `yaml:"boon_duration"`
+
 	// RestartNotice is the line every player in the world is sent when the
 	// server stops (SIGINT or SIGTERM, or the GM panel's restart), in a GM
 	// broadcast's colour, RestartNoticeWait (unset or 0: 5s) before the game

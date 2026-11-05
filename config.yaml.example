@@ -71,6 +71,13 @@ world:
   # vampire_sun_shade: true
   # vampire_sun_gms: true
 
+  # The towns' boon (entity/boon.go): talking to a town's announcement board
+  # gives the player boon_xp_pct percent of every experience award (kills,
+  # quests; 200: double; 100: the boards give none) for boon_duration of play.
+  # The GM panel's settings change both while the server runs.
+  # boon_xp_pct: 200
+  # boon_duration: 4h
+
   # A line every player in the world gets when the server stops (a restart:
   # SIGTERM from systemctl, or the GM panel's restart), restart_notice_wait
   # (5s when unset) before the game goes back to its login. Unset: none.

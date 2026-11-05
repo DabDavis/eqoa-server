@@ -1658,11 +1658,14 @@ func (w *World) effectSystem(now time.Time) {
 	}
 }
 
-// clearSpellsLocked ends a dead player's cast and takes its effects off.
+// clearSpellsLocked ends a dead player's cast and takes its effects off, all
+// but a town's boon, which outlives a death (boon.go).
 func (w *World) clearSpellsLocked(p *Player) {
 	p.Casting = nil
-	for len(p.Effects) > 0 {
-		w.removeEffectLocked(p, p.Effects[0].SpellID)
+	for _, ae := range append([]*ActiveEffect(nil), p.Effects...) {
+		if ae.SpellID != BoonEffectID {
+			w.removeEffectLocked(p, ae.SpellID)
+		}
 	}
 }
 

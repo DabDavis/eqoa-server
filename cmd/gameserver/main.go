@@ -190,6 +190,9 @@ func main() {
 	} else {
 		log.Printf("Vampires: %d; %s", n, gameWorld.VampireSun())
 	}
+	// The towns' boards' boon (entity/boon.go)
+	gameWorld.SetBoon(boonOf(cfg.World))
+	log.Printf("Boon: %s", gameWorld.Boon())
 	log.Printf("Creatures: %s", gameWorld.AggroSummary())
 	// Nothing may attack a new character on sight where it first stands
 	// (entity/faction.go: the dark elf the ghoul servant killed, 2026-10-29)
@@ -702,6 +705,19 @@ func noticeRestart(w config.WorldConfig, sm *session.Manager) {
 	}
 	log.Printf("Restart notice: waiting %v before the shutdown notice", wait)
 	time.Sleep(wait)
+}
+
+// boonOf is world.boon_*, each unset one the default (entity.DefaultBoon:
+// double experience for four hours).
+func boonOf(w config.WorldConfig) entity.Boon {
+	b := entity.DefaultBoon
+	if w.BoonXPPct != nil {
+		b.Percent = *w.BoonXPPct
+	}
+	if w.BoonDuration > 0 {
+		b.Duration = w.BoonDuration
+	}
+	return b
 }
 
 // vampireSunOf is world.vampire_sun_*, each unset one the default

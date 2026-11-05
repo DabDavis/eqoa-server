@@ -4,6 +4,7 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
@@ -20,7 +21,9 @@ import (
 //
 // A sign says its row of signtext (database/signtext.go, tools/seed_signs.py)
 // in dialogue boxes, as a greeter says world.npc_text (a sign with no row
-// still does, by its name), and a board then the news row's words. Nothing
+// still does, by its name), and a board then the news row's words and gives
+// the town's boon (entity/boon.go: the user, 2026-11-05, "players want the
+// boon at the Freeport Announcement, and other city announcements"). Nothing
 // else answers a sign: never a quest (it gives none, and no step is done at
 // it), the town dialog, a shop or a route.
 
@@ -57,9 +60,22 @@ func signRow(npc *entity.NPC, rows map[int]database.SignText) (database.SignText
 	return row, ok
 }
 
+// IsBoard reports a town's announcement board: a sign whose row's kind is
+// board, or with no row one named as a board.
+func IsBoard(npc *entity.NPC, rows map[int]database.SignText) bool {
+	row, has := signRow(npc, rows)
+	return row.Kind == database.SignKindBoard || (!has && boardName.MatchString(npc.Name))
+}
+
+// BoardTown is the town a board's name gives, its "Announcements" taken off:
+// "Freeport Announcements" is Freeport's; a name without the word is its own.
+func BoardTown(name string) string {
+	return strings.TrimSpace(boardName.ReplaceAllString(name, ""))
+}
+
 // SignWords is what a sign says: its row's text, else world.npc_text's for
-// its name; a board's (its row's kind board, or with no row a board's name)
-// followed by the news row's when there is news. Empty: nothing.
+// its name; a board's (IsBoard) followed by the news row's when there is
+// news. Empty: nothing.
 func SignWords(npc *entity.NPC, rows map[int]database.SignText) string {
 	row, has := signRow(npc, rows)
 	text := strings.TrimSpace(row.Text)
@@ -67,8 +83,7 @@ func SignWords(npc *entity.NPC, rows map[int]database.SignText) string {
 		text, _ = npcTextFor(npc.Name)
 		text = strings.TrimSpace(text)
 	}
-	board := row.Kind == database.SignKindBoard || (!has && boardName.MatchString(npc.Name))
-	if news := strings.TrimSpace(rows[database.SignNewsID].Text); board && news != "" {
+	if news := strings.TrimSpace(rows[database.SignNewsID].Text); IsBoard(npc, rows) && news != "" {
 		if text == "" {
 			return news
 		}
@@ -77,8 +92,9 @@ func SignWords(npc *entity.NPC, rows map[int]database.SignText) string {
 	return text
 }
 
-// signSay answers a sign: its words in dialogue boxes, or nothing; it
-// reports whether the NPC was a sign (nothing else then answers it).
+// signSay answers a sign: its words in dialogue boxes, or nothing, and a
+// board's boon; it reports whether the NPC was a sign (nothing else then
+// answers it).
 func (h *InteractHandler) signSay(sess *session.Session, player *entity.Player, npc *entity.NPC) bool {
 	var rows map[int]database.SignText
 	if h.signTexts != nil {
@@ -92,15 +108,20 @@ func (h *InteractHandler) signSay(sess *session.Session, player *entity.Player, 
 		return false
 	}
 	forgetDialogs(player)
-	text := SignWords(npc, rows)
-	if text == "" {
+	if text := SignWords(npc, rows); text == "" {
 		log.Printf("Interact: the sign %s (%d) has nothing to say to %s", npc.Name, npc.ServerID, player.Name)
-		return true
+	} else {
+		// a box at most CLIENT shows, as a quest NPC's words (tellLocked); a
+		// '%' doubled, which CLIENT's text expander (VIClientText::Expand)
+		// shows as one
+		for _, part := range splitSay(text, questBoxChars) {
+			h.sendDialogueBox(sess, strings.ReplaceAll(part, "%", "%%"))
+		}
 	}
-	// a box at most CLIENT shows, as a quest NPC's words (tellLocked); a '%'
-	// doubled, which CLIENT's text expander (VIClientText::Expand) shows as one
-	for _, part := range splitSay(text, questBoxChars) {
-		h.sendDialogueBox(sess, strings.ReplaceAll(part, "%", "%%"))
+	if IsBoard(npc, rows) && h.gameWorld != nil {
+		if g, ok := h.gameWorld.GiveBoon(sess, BoardTown(npc.Name), time.Now()); ok {
+			SendClientMessage(sess, g.Line())
+		}
 	}
 	return true
 }

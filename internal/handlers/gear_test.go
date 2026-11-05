@@ -25,6 +25,22 @@ func TestWornGear(t *testing.T) {
 	}
 }
 
+// The worn items that answer a hit on their wearer (entity/wornshield.go)
+// come with the gear, by name in any case; carried or banked they do not.
+func TestWornGearCarriesItemShields(t *testing.T) {
+	items := []database.CharInventoryEntry{
+		{EquipLoc: 5, Pattern: database.ItemPatternRecord{ItemName: "Splendor"}},                        // chest
+		{EquipLoc: 1, Pattern: database.ItemPatternRecord{ItemName: "CROWN OF THE JAGUAR"}},             // head
+		{EquipLoc: -1, Pattern: database.ItemPatternRecord{ItemName: "Breastplate of the Anointed"}},    // carried
+		{EquipLoc: 19, Location: 1, Pattern: database.ItemPatternRecord{ItemName: "Nightshade Gloves"}}, // banked
+	}
+	g := wornGear(items)
+	if len(g.Shields) != 2 || g.Shields[0].Item != "Splendor" || g.Shields[0].Damage != 30 ||
+		g.Shields[1].Item != "CROWN OF THE JAGUAR" || g.Shields[1].Heal != 15 {
+		t.Errorf("the worn items' shields: %+v", g.Shields)
+	}
+}
+
 // The look is the worn items' alone: a weapon taken off leaves the hand, and
 // one worn again goes in the hand its equip slot names, the second hand's
 // weapon there whatever came first. The control: filling without clearing,

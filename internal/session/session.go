@@ -50,6 +50,10 @@ type Session struct {
 	// Message queue
 	queue *MessageQueue
 
+	// shown is what the client was shown lately, for a petition's server
+	// view (transcript.go)
+	shown transcript
+
 	// Timing
 	lastActivity   time.Time
 	timeoutTick    time.Time
@@ -121,6 +125,17 @@ type Session struct {
 	// clock is the game clock the session's client keeps, set by each 0x0013
 	// it was sent: its time of day (gameclock.go).
 	clock gameClock
+
+	// bugReports is the client's answer to the bug report offer
+	// (protocol.OpcodeBugReportOffer, handlers/bugreport.go): it opens
+	// Support's request on Bug Report from a key of its own and sends a note
+	// of its own side with what it files. bugNote is that note for the next
+	// petition filed, and bugNoteAt when it came. reportNotice: the line on
+	// how to report a bug went out.
+	bugReports   bool
+	bugNote      string
+	bugNoteAt    time.Time
+	reportNotice bool
 }
 
 // SetMailLiveForms records the client's answer to the mail form offer.
@@ -128,6 +143,54 @@ func (s *Session) SetMailLiveForms(on bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.mailLiveForms = on
+}
+
+// SetBugReports records the client's answer to the bug report offer.
+func (s *Session) SetBugReports(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.bugReports = on
+}
+
+// BugReports is whether the client said it reports bugs from a key of its own
+// with a note of its side. A client that never answered (a PS2) did not.
+func (s *Session) BugReports() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.bugReports
+}
+
+// SetBugNote keeps the client's note for the next petition it files.
+func (s *Session) SetBugNote(note string, at time.Time) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.bugNote, s.bugNoteAt = note, at
+}
+
+// TakeBugNote is the client's note for a petition filed at now, when it came
+// within the minute before (and none after: it goes with one petition), else
+// "".
+func (s *Session) TakeBugNote(now time.Time) string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	note, at := s.bugNote, s.bugNoteAt
+	s.bugNote, s.bugNoteAt = "", time.Time{}
+	if note == "" || now.Sub(at) > time.Minute || at.After(now.Add(time.Second)) {
+		return ""
+	}
+	return note
+}
+
+// TakeReportNotice is true the first time it is asked: the line on how to
+// report a bug is sent once a session.
+func (s *Session) TakeReportNotice() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.reportNotice {
+		return false
+	}
+	s.reportNotice = true
+	return true
 }
 
 // MailLiveForms is whether the client said it sends the live mail forms. A

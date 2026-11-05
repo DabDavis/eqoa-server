@@ -769,6 +769,10 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// a PS2 ignores it
 	SendMailOffer(sess)
 
+	// Offer the bug report key and note (bugreport.go): vanilla shows F3 and
+	// sends its note with each petition, a PS2 ignores it
+	SendBugReportOffer(sess)
+
 	// The four weapon sets (gearsets.go): SOE's live client reads them, a PS2
 	// skips them
 	if h.gearSets != nil {

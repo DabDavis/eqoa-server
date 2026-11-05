@@ -55,6 +55,11 @@ func (q *MessageQueue) AddWithSequence(msg *protocol.Message) uint16 {
 
 	data := msg.Data()
 
+	// What the client is shown, for a petition's server view (transcript.go)
+	if q.session != nil && inTranscript(msg.Opcode) {
+		q.session.shown.note(msg.Opcode, data, time.Now())
+	}
+
 	// Fragment large reliable messages (Java: Connection.sendMessage)
 	if msg.Type == protocol.MessageTypeReliable && len(data) > MaxFragmentSize {
 		log.Printf("Fragmenting message opcode=0x%04X size=%d into %d fragments",

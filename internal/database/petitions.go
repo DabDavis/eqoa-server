@@ -13,6 +13,10 @@ import (
 // Petitions: the players' requests to customer service, as CLIENT's VICSClient
 // files and reads them (handlers/support.go: Support's request form and inbox),
 // and the GMs' answers (the GM panel's Petitions page, gmweb/ops_petitions.go).
+// With each new petition the server keeps its own view of the moment it was
+// filed (server_view, JSON: handlers/petitionview.go), for the GMs alone: the
+// player's inbox never carries it, and petitionCols leaves it out of every list
+// (PetitionServerView reads it).
 //
 // A petition is its player's ticket: the number CLIENT shows under "Ticket #",
 // the category and subcategory chosen, when it was filed, and its text, all
@@ -45,7 +49,8 @@ const petitionsSchema = `
 		answered    TEXT NOT NULL DEFAULT '',
 		answered_by TEXT NOT NULL DEFAULT '',
 		closed      TEXT NOT NULL DEFAULT '',
-		closed_by   TEXT NOT NULL DEFAULT ''
+		closed_by   TEXT NOT NULL DEFAULT '',
+		server_view TEXT NOT NULL DEFAULT ''
 	);
 	CREATE INDEX IF NOT EXISTS idx_petitions_char ON petitions(serverid, status);
 	CREATE INDEX IF NOT EXISTS idx_petitions_status ON petitions(status, waiting);`
@@ -104,6 +109,10 @@ type Petition struct {
 	AnsweredBy  string `json:"answered_by"`
 	Closed      string `json:"closed"`
 	ClosedBy    string `json:"closed_by"`
+	// ServerView is what FilePetition keeps beside it (JSON), the server's
+	// view of the moment it was filed; scanPetition never reads it back
+	// (PetitionServerView does).
+	ServerView string `json:"-"`
 }
 
 // AnswerUnread is whether a GM answered and the player has not opened the
@@ -127,6 +136,13 @@ func scanPetition(sc interface{ Scan(...any) error }) (Petition, error) {
 func (db *SQLiteDB) ensurePetitions() error {
 	if _, err := db.Exec(petitionsSchema); err != nil {
 		return fmt.Errorf("petitions: %w", err)
+	}
+	if ok, err := hasColumn(db.DB, "petitions", "server_view"); err != nil {
+		return fmt.Errorf("petitions: %w", err)
+	} else if !ok {
+		if _, err := db.Exec(`ALTER TABLE petitions ADD COLUMN server_view TEXT NOT NULL DEFAULT ''`); err != nil {
+			return fmt.Errorf("petitions' server view: %w", err)
+		}
 	}
 	if _, err := db.Exec(`INSERT INTO sqlite_sequence (name, seq) SELECT 'petitions', 1000
 		WHERE NOT EXISTS (SELECT 1 FROM sqlite_sequence WHERE name = 'petitions')
@@ -203,8 +219,8 @@ func (db *SQLiteDB) FilePetition(p Petition, now time.Time) (Petition, error) {
 	}
 	stamp := petitionStamp(now)
 	res, err := tx.Exec(`INSERT INTO petitions (serverid, charname, accountid, category, subcategory, filed, text,
-		unread, status, waiting, updated) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 'open', 1, ?)`,
-		p.ServerID, p.CharName, p.AccountID, p.Category, p.Subcategory, stamp, p.Text, stamp)
+		unread, status, waiting, updated, server_view) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 'open', 1, ?, ?)`,
+		p.ServerID, p.CharName, p.AccountID, p.Category, p.Subcategory, stamp, p.Text, stamp, p.ServerView)
 	if err != nil {
 		return Petition{}, err
 	}
@@ -399,6 +415,17 @@ func (db *SQLiteDB) Petitions(q PetitionQuery) (PetitionList, error) {
 // likeEscape escapes LIKE's wildcards (and its escape) in s.
 func likeEscape(s string) string {
 	return strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(s)
+}
+
+// PetitionServerView is the server's view a petition was filed with (JSON),
+// "" when it has none (filed before there was one).
+func (db *SQLiteDB) PetitionServerView(id int64) (string, error) {
+	var v string
+	err := db.QueryRow(`SELECT server_view FROM petitions WHERE id = ?`, id).Scan(&v)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", ErrPetitionNotFound
+	}
+	return v, err
 }
 
 // PetitionByID is one petition, any character's.

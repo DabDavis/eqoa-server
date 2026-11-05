@@ -82,8 +82,18 @@ type csCategory struct {
 
 // csCategories are what the request form offers (a hidden one is listed but
 // not offered).
+//
+// Bug Report's topics are the server's own (bugreport.go): what a GM can act
+// on, and the game client apart. Crash and Graphics, its first two, stay
+// listed hidden so a ticket filed under them is still named; Sent from chat is
+// /bug's.
 var csCategories = []csCategory{
-	{id: 1, name: "Bug Report", subs: []csSub{{id: 10, name: "Crash"}, {id: 11, name: "Graphics"}, {id: 12, name: "Quest"}}},
+	{id: 1, name: "Bug Report", subs: []csSub{
+		{id: 12, name: "Quest"}, {id: 13, name: "Creature or NPC"}, {id: 14, name: "Item, loot or merchant"},
+		{id: 15, name: "Spell or ability"}, {id: 16, name: "Combat"}, {id: 17, name: "Other"},
+		{id: 18, name: "Game client"},
+		{id: 10, name: "Crash", hidden: true}, {id: 11, name: "Graphics", hidden: true},
+		{id: bugSubcategory, name: "Sent from chat", hidden: true}}},
 	{id: 2, name: "Stuck", subs: []csSub{{id: 20, name: "In terrain"}, {id: 21, name: "Lost in a zone"}}},
 	{id: 3, name: "Player Issue", subs: []csSub{{id: 30, name: "Harassment"}, {id: 31, name: "Other", hidden: true}}},
 	{id: 9, name: "Internal", hidden: true, subs: []csSub{{id: 90, name: "Notes"}}},
@@ -98,11 +108,26 @@ type petitionStore interface {
 	PlayerDelete(serverID uint32, id int64, now time.Time) error
 }
 
-// SupportHandler answers 0x0AA1 on the petitions table.
+// SupportHandler answers 0x0AA1 on the petitions table, and takes bug
+// reports (bugreport.go).
 type SupportHandler struct {
 	gameWorld *entity.World
 	store     petitionStore // nil: every request fails (csFailed)
+
+	sessions *session.Manager // the GMs told of a new petition
+	access   accessLevels     // who is a GM (devcmds.go)
+	quests   *QuestEngine     // a petition's quests under way (petitionview.go)
+	limit    reportLimiter
 }
+
+// SetSessions gives the handler the sessions, to tell GMs of a new petition.
+func (h *SupportHandler) SetSessions(sm *session.Manager) { h.sessions = sm }
+
+// SetAccessLevels gives the handler who is a GM. Without it no GM is told.
+func (h *SupportHandler) SetAccessLevels(a accessLevels) { h.access = a }
+
+// SetQuests gives a petition's view the character's quests.
+func (h *SupportHandler) SetQuests(q *QuestEngine) { h.quests = q }
 
 // NewSupportHandler is the handler on store (nil: none kept).
 func NewSupportHandler(gw *entity.World, store petitionStore) *SupportHandler {
@@ -111,8 +136,11 @@ func NewSupportHandler(gw *entity.World, store petitionStore) *SupportHandler {
 
 func (h *SupportHandler) RegisterHandlers(r *Registry) {
 	r.Register(opcodeCSRequest, h.handleRequest)
+	r.Register(protocol.OpcodeBugReportOffer, h.handleBugReportOffer)
+	r.Register(protocol.OpcodeBugReportNote, h.handleBugReportNote)
 	if h.gameWorld != nil {
 		h.gameWorld.OnPlayerEntered(h.announceAnswers)
+		h.gameWorld.OnPlayerEntered(h.noticeReporting)
 	}
 	log.Printf("Support: registered handlers")
 }
@@ -269,16 +297,16 @@ func (h *SupportHandler) handleRequest(sess *session.Session, msg *protocol.Mess
 			csReply(sess, 0, csBad, nil)
 			return nil
 		}
-		c, s := CSNames(cat, subcat)
-		p, err := h.store.FilePetition(database.Petition{ServerID: me.CharServerID, CharName: me.Name,
-			AccountID: sess.AccountID(), Category: cat, Subcategory: subcat,
-			Text: fmt.Sprintf("Your request (%s / %s) has been received:\n\n%s", c, s, database.PetitionText(text))}, now)
-		if err != nil {
+		if _, err := h.fileTicket(sess, me, cat, subcat, text, "support", now); err != nil {
 			log.Printf("Support: %s's request refused: %v", me.Name, err)
+			if err == errReportLimit {
+				SendErrorMessage(sess, reportLimitText)
+				csReply(sess, 0, csFailed, nil)
+				return nil
+			}
 			csReply(sess, 0, csStatus(err), nil)
 			return nil
 		}
-		log.Printf("Support: %s filed ticket %d (%d/%d): %q", me.Name, p.ID, cat, subcat, text)
 		csReply(sess, 0, csOK, nil)
 	case 1:
 		id, err := r.Read7BitEncodedInt64()

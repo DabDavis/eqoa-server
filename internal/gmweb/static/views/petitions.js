@@ -9,7 +9,10 @@
 // reads it in Support's inbox after getting new headers (told in chat when in
 // the world). Close (petition_close) once it is dealt with: the player is then
 // told it has been addressed; it is refused while an answer is unread, with
-// Close anyway. Both are in the Audit log, revertible.
+// Close anyway. Both are in the Audit log, revertible. Server's view
+// (petition_get's server_view) is what the server held when it was filed:
+// the character, its place and target with #stats' lines, what it was shown
+// around it and in the last minutes, its quests, the client and its note.
 
 import { h, mount, pageHead, button, toast, card, empty, confirmBox } from '../lib/dom.js';
 import { op } from '../lib/api.js';
@@ -45,6 +48,40 @@ export async function render(box) {
     }
   }
 
+  // The server's view of the moment a petition was filed, as GMs read it:
+  // every value shown as text (the lines and the note are players' words).
+  function viewBox(v) {
+    if (!v) return h('p', { class: 'faint small' }, 'No server view: filed before the server kept one.');
+    const c = v.character || {};
+    const kv = (label, val) => (val === undefined || val === null || val === '' ? null
+      : h('div', { class: 'row small' }, h('span', { class: 'faint', style: 'min-width: 8em' }, label), h('span', null, String(val))));
+    const place = (e) => `world ${e.world ?? ''} (${Math.round(e.x)}, ${Math.round(e.y)}, ${Math.round(e.z)})`;
+    const lines = (title, list) => (list && list.length
+      ? h('details', null, h('summary', { class: 'small' }, `${title} (${list.length})`), h('pre', { class: 'json' }, list.join('\n'))) : null);
+    const t = v.target;
+    const parts = [
+      kv('Filed', `${when(v.filed)} via ${v.via === 'chat' ? '/bug' : "Support's form"}`),
+      kv('Server', `build ${v.server?.build}, up ${v.server?.up}, ${v.server?.players} in the world`),
+      kv('Client', `${v.client?.disc}${v.client?.f3 ? ', vanilla with F3' : ''}${v.client?.mailForms ? ', live mail forms' : ''}`),
+      kv('Character', `${c.name}, level ${c.level} ${c.race} ${c.class}${c.dead ? ', dead' : ''}`),
+      kv('Place', `${place(c)}, facing ${Number(c.facing || 0).toFixed(2)}`),
+      kv('Health', `HP ${c.hp}/${c.maxHP}, power ${c.power}/${c.maxPower}, ${c.effects} effects`),
+      kv('Fighting', c.fighting),
+      kv('Tunar', `${c.tunar} on them, ${c.bankTunar} in the bank`),
+      t ? kv('Target', `${t.name} (${t.kind}${t.npcid ? ' ' + t.npcid : ''}${t.serverid ? ' char ' + t.serverid : ''}), level ${t.level}, HP ${t.hp}/${t.maxHP}, ${t.distance} away${t.dead ? ', dead' : ''}${t.fighting ? ', fighting ' + t.fighting : ''}${t.spawn ? `, spawn (${t.spawn.map(Math.round).join(', ')})` : ''}`) : kv('Target', 'none'),
+      lines("The character's #stats", v.stats),
+      t ? lines("The target's #stats", t.stats) : null,
+      v.quests?.length ? h('details', null, h('summary', { class: 'small' }, `Quests under way (${v.quests.length})`),
+        h('pre', { class: 'json' }, v.quests.map((q) => `${q.name} (${q.questid}): step ${q.step} of ${q.steps}${q.kind ? ' ' + q.kind : ''}${q.need ? ` ${q.count}/${q.need}` : ''}${q.journal ? ' - ' + q.journal : ''}`).join('\n'))) : null,
+      v.shown?.length ? h('details', null, h('summary', { class: 'small' }, `Shown around them (${v.shown.length})`),
+        h('pre', { class: 'json' }, v.shown.map((e) => `${e.distance}\t${e.name} (${e.kind}${e.npcid ? ' ' + e.npcid : ''}), level ${e.level}, HP ${e.hp}/${e.maxHP}${e.dead ? ', dead' : ''}${e.fighting ? ', fighting ' + e.fighting : ''}`).join('\n'))) : null,
+      v.lines?.length ? h('details', { open: true }, h('summary', { class: 'small' }, `What they were shown, last minutes (${v.lines.length})`),
+        h('pre', { class: 'json' }, v.lines.map((l) => `${l.ago.toFixed(1)}s\t${l.kind}\t${l.text}`).join('\n'))) : null,
+      v.client?.note ? h('details', null, h('summary', { class: 'small' }, "The client's note"), h('pre', { class: 'json' }, v.client.note)) : null,
+    ];
+    return h('div', { class: 'stack' }, ...parts);
+  }
+
   function petitionCard(p) {
     const open = p.status === 'open';
     const answer = h('textarea', { rows: '4', maxlength: 4000, 'aria-label': 'Your answer', placeholder: 'Your answer, as the player will read it' });
@@ -75,9 +112,24 @@ export async function render(box) {
         confirmLabel: 'Close anyway', danger: true }))) return;
       act('petition_close', { id: p.id, force: true }, (out) => out.message);
     };
+    const viewSlot = h('div');
+    const viewBtn = button("Server's view", {
+      class: 'small ghost', title: 'What the server held when it was filed',
+      onclick: async () => {
+        if (viewSlot.firstChild) { mount(viewSlot); return; }
+        try {
+          const out = await op('petition_get', { id: p.id });
+          mount(viewSlot, viewBox(out.server_view));
+        } catch (e) {
+          toast(e.message, 'error');
+        }
+      },
+    });
     return card(`Ticket #${p.id}`, h('div', { class: 'stack' },
       meta,
       h('pre', { class: 'json' }, p.text),
+      h('div', { class: 'row' }, viewBtn),
+      viewSlot,
       history.length ? h('div', { class: 'faint small' }, history.join(' · ')) : null,
       open ? h('div', { class: 'stack' },
         answer,

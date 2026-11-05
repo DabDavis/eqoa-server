@@ -163,11 +163,30 @@ function start(session) {
       h('span', { class: 'who' }, lvl, h('strong', { class: 'name' }, session.user.username)), themeBtn, outBtn),
     main);
   mount(app, shell);
+  waitingBadge();
   if (session.totp?.required && !session.totp.enabled) {
     location.hash = '#/security';
     toast('This server asks every GM for an authenticator: enrol one to go on.', 'warn');
   }
   route();
+}
+
+// The petitions waiting on a GM, beside Petitions in the navigation: asked
+// at the start and every minute while signed in.
+let badgeTimer = null;
+async function waitingBadge() {
+  clearTimeout(badgeTimer);
+  if (!state.session) return;
+  const link = nav?.querySelector('a[data-page="petitions"]');
+  if (link) {
+    try {
+      const out = await op('petition_list', { status: 'waiting', limit: 1 });
+      const n = out.counts?.waiting || 0;
+      link.querySelector('.badge')?.remove();
+      if (n > 0) link.appendChild(h('span', { class: 'badge warn', title: `${n} waiting on a GM` }, String(n)));
+    } catch { /* signed out, or a read the session may not make: no badge */ }
+  }
+  badgeTimer = setTimeout(waitingBadge, 60000);
 }
 
 window.addEventListener('hashchange', () => route());

@@ -345,6 +345,7 @@ func main() {
 	tcp.SeedAccounts(accountStore, cfg.Auth.Accounts, cfg.Auth.BCryptCost)
 
 	handlers.SetNPCText(cfg.World.NPCText)
+	handlers.SetReportNotice(cfg.World.ReportNotice == nil || *cfg.World.ReportNotice)
 	handlers.SetMaxEntitySlots(cfg.World.MaxEntitySlots)
 	handlers.SetMaxViewDistance(cfg.World.MaxViewDistance)
 

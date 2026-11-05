@@ -414,7 +414,13 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	if charStore != nil {
 		petitions = charStore.DB()
 	}
-	NewSupportHandler(gameWorld, petitions).RegisterHandlers(r)
+	supportHandler := NewSupportHandler(gameWorld, petitions)
+	supportHandler.SetSessions(sessionMgr)
+	if accountStore != nil {
+		supportHandler.SetAccessLevels(accountStore)
+	}
+	supportHandler.RegisterHandlers(r)
+	chatHandler.support = supportHandler // /bug (bugreport.go)
 
 	// Register the spell book's requests (0x0033, 0x003A, 0x00FE), and the
 	// casts' reagents (reagent.go)
@@ -446,6 +452,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 			log.Printf("Quests: not running: %v", err)
 		} else {
 			qe.drop = npcWindowHandler.AddQuestDrop // a loot step's drops (questloot.go)
+			supportHandler.SetQuests(qe)            // a petition's quests (petitionview.go)
 			qe.Start()
 			r.Register(protocol.OpcodeDeleteQuest, qe.HandleDrop)
 		}

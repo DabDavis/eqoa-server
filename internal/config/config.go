@@ -215,6 +215,11 @@ type WorldConfig struct {
 	RestartNotice     string        `yaml:"restart_notice"`
 	RestartNoticeWait time.Duration `yaml:"restart_notice_wait"`
 
+	// ReportNotice false leaves out the line a login is sent on how to report
+	// a bug (#bug, /bug, F3 and Support: handlers/bugreport.go); unset: sent,
+	// once a session, a few seconds after the player is in the world.
+	ReportNotice *bool `yaml:"report_notice"`
+
 	// MoveCheck is what the server does with a player's report of its own
 	// place (its 0x40) that its moves cannot have reached: in the air with
 	// nothing under it, under the ground, through a wall, faster than its

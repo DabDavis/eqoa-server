@@ -25,7 +25,8 @@ import (
 func TestPetitionsInThePanel(t *testing.T) {
 	f := newFixture(t)
 	p, err := f.db.FilePetition(database.Petition{ServerID: 7, CharName: "Hero", AccountID: 3, Category: 2, Subcategory: 20,
-		Text: "Your request (Stuck / In terrain) has been received:\n\nI fell through the floor"}, time.Now())
+		Text:       "Your request (Stuck / In terrain) has been received:\n\nI fell through the floor",
+		ServerView: `{"via":"chat","character":{"name":"Hero","x":25300}}`}, time.Now())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,6 +84,12 @@ func TestPetitionsInThePanel(t *testing.T) {
 	code, out = gm.op("petition_get", map[string]any{"id": 1001})
 	if code != 200 {
 		t.Fatalf("petition_get: %d %v", code, out)
+	}
+	if v, _ := out["server_view"].(map[string]any); v["via"] != "chat" || v["character"].(map[string]any)["name"] != "Hero" {
+		t.Errorf("server_view %v", out["server_view"])
+	}
+	if code, list := gm.op("petition_list", map[string]any{"full": true}); code != 200 || strings.Contains(fmt.Sprint(list), "25300") {
+		t.Errorf("petition_list carries the server view: %d %v", code, list)
 	}
 	hist := out["history"].([]any)
 	if len(hist) != 2 || !strings.Contains(fmt.Sprint(hist[0]), "answered petition 1001") ||
@@ -149,7 +156,12 @@ func TestThePetitionsPageInABrowser(t *testing.T) {
 	}
 	f := newFixture(t)
 	if _, err := f.db.FilePetition(database.Petition{ServerID: 7, CharName: "Hero", AccountID: 3, Category: 1, Subcategory: 10,
-		Text: "Your request (Bug Report / Crash) has been received:\n\n<b>crashed</b> at the docks"}, time.Now()); err != nil {
+		Text: "Your request (Bug Report / Crash) has been received:\n\n<b>crashed</b> at the docks",
+		ServerView: `{"filed":"2026-11-05T02:00:00Z","via":"chat","server":{"build":"abc123","up":"1h0m0s","players":3},` +
+			`"client":{"disc":"0x12","f3":true,"note":"build: dev-x"},"character":{"name":"Hero","level":10,"class":"Warrior",` +
+			`"race":"Human","world":0,"x":25300,"y":54,"z":15700,"hp":10,"maxHP":100,"power":1,"maxPower":2,"tunar":1,` +
+			`"bankTunar":0,"effects":0},"stats":["Hero: level 10 Human Warrior"],` +
+			`"lines":[{"ago":-3.2,"kind":"red line","text":"<i>the docks crane</i> fell"}]}`}, time.Now()); err != nil {
 		t.Fatal(err)
 	}
 	harness := `<!doctype html><meta charset="utf-8"><div id="out"></div><script type="module">
@@ -167,6 +179,9 @@ const wait = async (ok) => { for (let i = 0; i < 100 && !ok(); i++) await new Pr
     out.querySelector('textarea').value = 'Fixed in the next build.';
     [...out.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Answer').click();
     if (!(await wait(() => out.textContent.includes('GM: Fixed in the next build.')))) throw new Error('the answer did not show');
+    [...out.querySelectorAll('button')].find((b) => b.textContent.trim() === "Server's view").click();
+    if (!(await wait(() => out.textContent.includes('the docks crane')))) throw new Error('the server view did not show: ' + out.textContent.slice(0, 600));
+    if (!out.textContent.includes('build abc123') || !out.textContent.includes('vanilla with F3')) throw new Error('the view: ' + out.textContent.slice(0, 800));
     out.dataset.done = '1';
   } catch (e) {
     out.dataset.failed = String(e);
@@ -204,6 +219,9 @@ const wait = async (ok) => { for (let i = 0; i < 100 && !ok(); i++) await new Pr
 	}
 	if strings.Contains(dom, "<b>crashed</b>") || !strings.Contains(dom, "&lt;b&gt;crashed&lt;/b&gt;") {
 		t.Errorf("the player's words are not shown as text:\n%.3000s", dom)
+	}
+	if strings.Contains(dom, "<i>the docks crane</i>") || !strings.Contains(dom, "&lt;i&gt;the docks crane&lt;/i&gt;") {
+		t.Errorf("the server view's lines are not shown as text:\n%.3000s", dom)
 	}
 	p, _, _ := f.db.PetitionByID(1001)
 	if !strings.HasSuffix(p.Text, "\n\nGM: Fixed in the next build.") || !p.Unread || p.AnsweredBy != "gm" {

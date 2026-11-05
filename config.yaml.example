@@ -76,6 +76,9 @@ world:
   # (5s when unset) before the game goes back to its login. Unset: none.
   # restart_notice: "Restarting Server, log back in 20 seconds."
   # restart_notice_wait: 5s
+  # The line a login is sent once on how to report a bug (#bug, /bug, vanilla's
+  # F3, Support in the start menu: handlers/bugreport.go). On unless false.
+  # report_notice: false
   # The check of a player's own moves (entity/movecheck.go): off takes every
   # 0x40 as before; log (unset) takes every one and logs the rest (MOVECHECK);
   # enforce leaves a player where it was last right and moves the client back.

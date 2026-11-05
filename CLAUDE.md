@@ -215,7 +215,8 @@ and a death take it home. A race with no row keeps the origin and starts at Vaal
 Every `#` command (`internal/handlers/chat.go`, `devcmds.go`) needs an account whose
 `acctlevel` is 1 or more, read on each command (a database change counts without a new
 login); anyone else is answered `Unrecognized command "#x".` and nothing is said aloud.
-`#hddsetup` stays everyone's (a PS2 player's hard-disk setup, also the Freeport NPC's).
+`#hddsetup` stays everyone's (a PS2 player's hard-disk setup, also the Freeport NPC's), and so do
+`#bug`/`/bug` (a bug report on the spot, below), `#lfg`, `#fish` and `#roll`.
 A GM may also spell any of them `/name`: eqoa-rs forwards a `/command` it does not know (as
 Sandstorm's S2 does), a retail PS2 keeps an unknown one to itself. The dev console of F3
 20261021-003556: `#goto x y z [world] | <town or NPC>` (`#teleport` too), `#gotoplayer`,
@@ -465,6 +466,33 @@ Frontiers disc keeps working. Addresses below are Corsten's live CLIENT; word id
   one (status 2, as CLIENT refuses itself), and a ticket past the 8191 characters CLIENT keeps is sent by its
   end. Other statuses (`csFailed` and the rest) are ours; CLIENT shows any as "System is temporarily
   unavailable. (Code: -n)".
+
+### Bug reports: petitions with the server's own view (`handlers/bugreport.go`, `petitionview.go`)
+
+The user, 2026-11-05: players report this server's bugs as petitions, over the game's own connection, so a
+server hears only its own players (the F3 report server, shut down 2026-10-31, took every server's). Three ways
+in, one petition each: Support's request form on every client (Bug Report's topics are the server's own: Quest,
+Creature or NPC, Item, loot or merchant, Spell or ability, Combat, Other, Game client; Crash and Graphics hidden),
+`/bug <what happened>` or `#bug` (a PS2 keeps an unknown /command to itself; filed under the hidden topic Sent
+from chat), and vanilla's F3, which opens the form on Bug Report from a client that answered the offer
+(**0x7E0E**, not retail, a u32 both ways, sent with the other offers). Each is filed with **the server's view**
+(`petitions.server_view`, JSON, the GMs' alone, never sent to the player, left out of every list): the moment and
+the way it came, the build, the client (DiscVersion, the offers it answered) and its own note when it sent one
+(**0x7E0F**: u32 version 1, u32 byte count, UTF-8 "key: value" lines; vanilla's build, platform, graphics, frame
+rate, where it shows the player and its target, one message of at most 1,000 bytes, kept on the session for the
+next petition within a minute), the character (place, hit points, whom it fights), `#stats`' lines on it and its
+target, the entities its client is shown, its quests under way, and what it was shown in the last ten minutes
+(`session/transcript.go`: every text line, box, question, damage figure and death queued to it, the last 120,
+chat said to it among them). An account files at most one every 15 s and 12 an hour (refused in red). Online GMs
+are told each new ticket in yellow; the panel's navigation shows the waiting count. A login is told once how to
+report (`world.report_notice`, on unless false): F3's line at the client's answer to the offer, else the
+line for every client 15 s in.
+
+`cmd/charmigrate` moves a character in from another server by a GM's plan (a JSON file kept outside this
+repository: level, mastery points, the class's spells, item records put right or made, items into the bank or
+the pack), in one transaction logged in `charmigrate_log`, `-undo <run>` exact; `-wait <gameserver.log>` applies
+only once the character's session has been cleaned up (the logout save would write over it), `-backup` copies
+the database first. First used 2026-11-05 for a Sandstorm 60 (the user's "lets do a manual migration").
 
 ### Rehabilitators: a character's resets, for every client (`handlers/rehab.go`, `rehabpaths.go`, `database/rehab.go`)
 
@@ -896,8 +924,9 @@ and on its own https host the session is a `__Host-` cookie no other host can se
   "Where it stands" with its chain and Put in / Take out. A GM's mended draft goes in from the panel at once; the
   importer's re-run (server stopped) is for new content files, and leaves a quest a GM has changed alone.
 - **Petitions** (`ops_petitions.go`, `static/views/petitions.js`, `database/petitions.go`; the players' requests
-  from Support in the game, above): `petition_list` (open by default; `waiting`: filed or replied to since the
-  last answer; closed, deleted, all; by character or text; counts), `petition_get` (whole, with its history),
+  from Support in the game and `/bug`, above): `petition_list` (open by default; `waiting`: filed or replied to since the
+  last answer; closed, deleted, all; by character or text; counts), `petition_get` (whole, with its history and
+  `server_view`, the server's view of the moment it was filed: the page's Server's view button),
   `petition_answer` (the answer added to the text as "<signed>: <text>", signed "GM" unless named, never a
   login name; unread for the player, no longer waiting; the player told in chat when in the world) and
   `petition_close` (refused while an answer is unread, unless `force`: closed, the player could not open it to

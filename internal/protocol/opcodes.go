@@ -472,6 +472,25 @@ const (
 	// theirs by their length (162 the disc's, 201 the live game's).
 	OpcodeLiveLookInForce GameOpcode = 0x7E0D
 
+	// OpcodeBugReportOffer is not retail: whether a client opens Support's
+	// request form on Bug Report from a key of its own (vanilla's F3) and
+	// sends a note of its own side (OpcodeBugReportNote) with each petition
+	// it files, a u32 after the opcode, both ways. The server offers it (1)
+	// once the player is in the world (handlers/bugreport.go); a client that
+	// does answers 1, and the server's line on how to report a bug names its
+	// key. A PS2 ignores the offer, and a client of a server that never
+	// offers it shows no such key.
+	OpcodeBugReportOffer GameOpcode = 0x7E0E
+	// OpcodeBugReportNote is not retail: a client's note of its own side
+	// (its build, platform and graphics, frame rate, what it shows of itself
+	// and its target) for the petition it files next, by Support's form or
+	// by /bug, from a client that answered OpcodeBugReportOffer 1: a u32
+	// version (1), then a u32 byte count and that many bytes of UTF-8 text,
+	// "key: value" lines, at most BugNoteMax bytes. The server keeps it on the
+	// session for the next petition filed within a minute and puts it in that
+	// petition's server view, for the GMs alone.
+	OpcodeBugReportNote GameOpcode = 0x7E0F
+
 	// Voice chat (internal/voice, entity/voice.go): non-retail opcodes in a
 	// block of their own; a PS2 ignores them. Strings are a u16 byte length
 	// and UTF-8.
@@ -740,6 +759,10 @@ func (op GameOpcode) String() string {
 		return "LiveLook"
 	case OpcodeLiveLookInForce:
 		return "LiveLookInForce"
+	case OpcodeBugReportOffer:
+		return "BugReportOffer"
+	case OpcodeBugReportNote:
+		return "BugReportNote"
 	case OpcodeNoCollideList:
 		return "NoCollideList"
 	case OpcodeFactionPage:

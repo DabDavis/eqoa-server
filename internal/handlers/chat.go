@@ -69,6 +69,8 @@ type ChatHandler struct {
 
 	dyes     dyeStore     // #dye's (dye.go)
 	vampires vampireStore // #vampire's (vampirecmd.go)
+
+	support *SupportHandler // /bug's (bugreport.go)
 }
 
 // NewChatHandler creates a new chat handler.
@@ -199,6 +201,17 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 	// everyone's (roll.go)
 	if word, rest, _ := strings.Cut(message, " "); isRollWord(word) {
 		h.roll(sess, player, strings.Fields(rest))
+		return nil
+	}
+
+	// /bug (or #bug from a PS2, which keeps an unknown /command to itself):
+	// a bug report on the spot, everyone's (bugreport.go)
+	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/bug") || strings.EqualFold(word, "#bug") {
+		if h.support != nil {
+			h.support.ChatReport(sess, player, rest)
+		} else {
+			SendErrorMessage(sess, "This server keeps no reports.")
+		}
 		return nil
 	}
 

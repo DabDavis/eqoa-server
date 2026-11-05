@@ -75,6 +75,7 @@ func csWorld(t *testing.T) (*chatWorld, *SupportHandler, *database.SQLiteDB, *se
 	}
 	t.Cleanup(func() { db.Close() })
 	h := NewSupportHandler(c.gw, db)
+	h.limit.off = true // these tests file many at once (bugreport_test.go holds the limit)
 	h.RegisterHandlers(NewRegistry())
 	as, _ := c.join(1, "Ann", 100, 100, 0)
 	bs, _ := c.join(2, "Bob", 110, 110, 0)

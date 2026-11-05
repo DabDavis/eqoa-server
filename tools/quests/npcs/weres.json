@@ -1,0 +1,731 @@
+{
+ "set": "weres",
+ "npcs": [
+  {
+   "name": "wolfwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "wolfwere"
+   ],
+   "place": [
+    "at",
+    0,
+    6630,
+    8810,
+    63.7
+   ],
+   "count": 3,
+   "level": 31,
+   "note": "Unkempt Glade, a camp of the tail quest's wolfweres at 31-35: EQOA-Data Quests/Weres/wolfwere.json, Where to Get Infected, Level 30-40: Unkempt Glade; the tail quest's journal: the wolfweres of Unkempt North and the Unkempt Glade",
+   "water": "land"
+  },
+  {
+   "name": "wolfwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "wolfwere"
+   ],
+   "place": [
+    "at",
+    0,
+    6636,
+    8816,
+    63.7
+   ],
+   "count": 3,
+   "level": 33,
+   "note": "Unkempt Glade, a camp of the tail quest's wolfweres at 31-35: EQOA-Data Quests/Weres/wolfwere.json, Where to Get Infected, Level 30-40: Unkempt Glade; the tail quest's journal: the wolfweres of Unkempt North and the Unkempt Glade",
+   "water": "land"
+  },
+  {
+   "name": "wolfwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "wolfwere"
+   ],
+   "place": [
+    "at",
+    0,
+    6624,
+    8804,
+    63.7
+   ],
+   "count": 2,
+   "level": 35,
+   "note": "Unkempt Glade, a camp of the tail quest's wolfweres at 31-35: EQOA-Data Quests/Weres/wolfwere.json, Where to Get Infected, Level 30-40: Unkempt Glade; the tail quest's journal: the wolfweres of Unkempt North and the Unkempt Glade",
+   "water": "land"
+  },
+  {
+   "name": "wolfwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "wolfwere"
+   ],
+   "place": [
+    "at",
+    0,
+    6510,
+    6750,
+    68.9
+   ],
+   "count": 2,
+   "level": 34,
+   "note": "Unkempt North, a camp of the tail quest's wolfweres at 34-36: wolfwere.json, Level 30-40: Unkempt North (the server's 8 there are all L38)",
+   "water": "land"
+  },
+  {
+   "name": "wolfwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "wolfwere"
+   ],
+   "place": [
+    "at",
+    0,
+    6516,
+    6756,
+    68.9
+   ],
+   "count": 2,
+   "level": 36,
+   "note": "Unkempt North, a camp of the tail quest's wolfweres at 34-36: wolfwere.json, Level 30-40: Unkempt North (the server's 8 there are all L38)",
+   "water": "land"
+  },
+  {
+   "name": "wolfwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "wolfwere"
+   ],
+   "place": [
+    "at",
+    0,
+    8630,
+    7350,
+    60.0
+   ],
+   "count": 3,
+   "level": 33,
+   "note": "North Wilderlands, a camp of the tail quest's wolfweres at 33-35: wolfwere.json, Level 30-40: North Wilderlands (Lvl 34 confirmed)",
+   "water": "land"
+  },
+  {
+   "name": "wolfwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "wolfwere"
+   ],
+   "place": [
+    "at",
+    0,
+    8636,
+    7356,
+    60.0
+   ],
+   "count": 3,
+   "level": 35,
+   "note": "North Wilderlands, a camp of the tail quest's wolfweres at 33-35: wolfwere.json, Level 30-40: North Wilderlands (Lvl 34 confirmed)",
+   "water": "land"
+  },
+  {
+   "name": "wolfwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "wolfwere"
+   ],
+   "place": [
+    "at",
+    0,
+    12330,
+    19470,
+    69.2
+   ],
+   "count": 2,
+   "level": 36,
+   "note": "Forkwatch, a camp of the tail quest's wolfweres at 36-40: wolfwere.json, Level 30-40 and 40-50: Forkwatch (at level 37 near the arches on the river; Lvl 40 confirmed)",
+   "water": "land"
+  },
+  {
+   "name": "wolfwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "wolfwere"
+   ],
+   "place": [
+    "at",
+    0,
+    12336,
+    19476,
+    69.2
+   ],
+   "count": 2,
+   "level": 38,
+   "note": "Forkwatch, a camp of the tail quest's wolfweres at 36-40: wolfwere.json, Level 30-40 and 40-50: Forkwatch (at level 37 near the arches on the river; Lvl 40 confirmed)",
+   "water": "land"
+  },
+  {
+   "name": "wolfwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "wolfwere"
+   ],
+   "place": [
+    "at",
+    0,
+    12324,
+    19464,
+    69.2
+   ],
+   "count": 2,
+   "level": 40,
+   "note": "Forkwatch, a camp of the tail quest's wolfweres at 36-40: wolfwere.json, Level 30-40 and 40-50: Forkwatch (at level 37 near the arches on the river; Lvl 40 confirmed)",
+   "water": "land"
+  },
+  {
+   "name": "bearwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "bearwere"
+   ],
+   "place": [
+    "at",
+    0,
+    6630,
+    7230,
+    54.1
+   ],
+   "count": 3,
+   "level": 34,
+   "note": "Unkempt North, a camp of the tail quest's bearweres at 34-36: EQOA-Data Quests/Weres/bearwere.json, Were to Get Infected, Level 30-40: Unkempt North (the server's 9 there are all L43)",
+   "water": "land"
+  },
+  {
+   "name": "bearwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "bearwere"
+   ],
+   "place": [
+    "at",
+    0,
+    6636,
+    7236,
+    54.1
+   ],
+   "count": 3,
+   "level": 36,
+   "note": "Unkempt North, a camp of the tail quest's bearweres at 34-36: EQOA-Data Quests/Weres/bearwere.json, Were to Get Infected, Level 30-40: Unkempt North (the server's 9 there are all L43)",
+   "water": "land"
+  },
+  {
+   "name": "bearwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "bearwere"
+   ],
+   "place": [
+    "at",
+    0,
+    7410,
+    9650,
+    60.5
+   ],
+   "count": 3,
+   "level": 31,
+   "note": "Unkempt Glade, a camp of the tail quest's bearweres at 31-33: bearwere.json, Level 30-40: Unkempt Glade",
+   "water": "land"
+  },
+  {
+   "name": "bearwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "bearwere"
+   ],
+   "place": [
+    "at",
+    0,
+    7416,
+    9656,
+    60.5
+   ],
+   "count": 3,
+   "level": 33,
+   "note": "Unkempt Glade, a camp of the tail quest's bearweres at 31-33: bearwere.json, Level 30-40: Unkempt Glade",
+   "water": "land"
+  },
+  {
+   "name": "bearwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "bearwere"
+   ],
+   "place": [
+    "at",
+    0,
+    8210,
+    6570,
+    64.7
+   ],
+   "count": 3,
+   "level": 33,
+   "note": "North Wilderlands, a camp of the tail quest's bearweres at 33-35: bearwere.json, Level 30-40: North Wilderlands",
+   "water": "land"
+  },
+  {
+   "name": "bearwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "bearwere"
+   ],
+   "place": [
+    "at",
+    0,
+    8216,
+    6576,
+    64.7
+   ],
+   "count": 3,
+   "level": 35,
+   "note": "North Wilderlands, a camp of the tail quest's bearweres at 33-35: bearwere.json, Level 30-40: North Wilderlands",
+   "water": "land"
+  },
+  {
+   "name": "bearwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "bearwere"
+   ],
+   "place": [
+    "at",
+    0,
+    15650,
+    24270,
+    54.9
+   ],
+   "count": 3,
+   "level": 36,
+   "note": "Fort Alliance, a camp of the tail quest's bearweres at 36-38: bearwere.json, Level 30-40: Fort Alliance",
+   "water": "land"
+  },
+  {
+   "name": "bearwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "bearwere"
+   ],
+   "place": [
+    "at",
+    0,
+    15656,
+    24276,
+    54.9
+   ],
+   "count": 3,
+   "level": 38,
+   "note": "Fort Alliance, a camp of the tail quest's bearweres at 36-38: bearwere.json, Level 30-40: Fort Alliance",
+   "water": "land"
+  },
+  {
+   "name": "wererat",
+   "role": "foe",
+   "body": [
+    "npc",
+    "wererat"
+   ],
+   "place": [
+    "at",
+    0,
+    19330,
+    17450,
+    54.1
+   ],
+   "count": 3,
+   "level": 30,
+   "note": "Ferran's Hope, a camp of the tail quest's wererats at 30-34: EQOA-Data Quests/Weres/ratwere.json, Where to get infected, Level 30-35: Ferren's Hope (S/SE); the tail quest's journal: the wererats of Ferran's Hope",
+   "water": "land"
+  },
+  {
+   "name": "wererat",
+   "role": "foe",
+   "body": [
+    "npc",
+    "wererat"
+   ],
+   "place": [
+    "at",
+    0,
+    19336,
+    17456,
+    54.1
+   ],
+   "count": 3,
+   "level": 32,
+   "note": "Ferran's Hope, a camp of the tail quest's wererats at 30-34: EQOA-Data Quests/Weres/ratwere.json, Where to get infected, Level 30-35: Ferren's Hope (S/SE); the tail quest's journal: the wererats of Ferran's Hope",
+   "water": "land"
+  },
+  {
+   "name": "wererat",
+   "role": "foe",
+   "body": [
+    "npc",
+    "wererat"
+   ],
+   "place": [
+    "at",
+    0,
+    19324,
+    17444,
+    54.1
+   ],
+   "count": 2,
+   "level": 34,
+   "note": "Ferran's Hope, a camp of the tail quest's wererats at 30-34: EQOA-Data Quests/Weres/ratwere.json, Where to get infected, Level 30-35: Ferren's Hope (S/SE); the tail quest's journal: the wererats of Ferran's Hope",
+   "water": "land"
+  },
+  {
+   "name": "wererat",
+   "role": "foe",
+   "body": [
+    "npc",
+    "wererat"
+   ],
+   "place": [
+    "at",
+    0,
+    18910,
+    16790,
+    59.8
+   ],
+   "count": 3,
+   "level": 36,
+   "note": "Ferran's Hope, a camp of the tail quest's wererats at 36-38: ratwere.json, Level 35-40: Ferren's Hope (C) (yellow ratweres at 37)",
+   "water": "land"
+  },
+  {
+   "name": "wererat",
+   "role": "foe",
+   "body": [
+    "npc",
+    "wererat"
+   ],
+   "place": [
+    "at",
+    0,
+    18916,
+    16796,
+    59.8
+   ],
+   "count": 3,
+   "level": 38,
+   "note": "Ferran's Hope, a camp of the tail quest's wererats at 36-38: ratwere.json, Level 35-40: Ferren's Hope (C) (yellow ratweres at 37)",
+   "water": "land"
+  },
+  {
+   "name": "lionwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "lionwere"
+   ],
+   "place": [
+    "at",
+    0,
+    14510,
+    20690,
+    52.4
+   ],
+   "count": 3,
+   "level": 30,
+   "note": "Centaur Valley, a camp of the tail quest's lionweres at 30-34: EQOA-Data Quests/Weres/lionwere.json, Where to Get Infected, Level 30-34: Centaur Valley (hunt lionwere, not werelion); the tail quest's journal: the lionweres of Fort Alliance and Centaur Valley",
+   "water": "land"
+  },
+  {
+   "name": "lionwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "lionwere"
+   ],
+   "place": [
+    "at",
+    0,
+    14516,
+    20696,
+    52.4
+   ],
+   "count": 3,
+   "level": 32,
+   "note": "Centaur Valley, a camp of the tail quest's lionweres at 30-34: EQOA-Data Quests/Weres/lionwere.json, Where to Get Infected, Level 30-34: Centaur Valley (hunt lionwere, not werelion); the tail quest's journal: the lionweres of Fort Alliance and Centaur Valley",
+   "water": "land"
+  },
+  {
+   "name": "lionwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "lionwere"
+   ],
+   "place": [
+    "at",
+    0,
+    14504,
+    20684,
+    52.4
+   ],
+   "count": 2,
+   "level": 34,
+   "note": "Centaur Valley, a camp of the tail quest's lionweres at 30-34: EQOA-Data Quests/Weres/lionwere.json, Where to Get Infected, Level 30-34: Centaur Valley (hunt lionwere, not werelion); the tail quest's journal: the lionweres of Fort Alliance and Centaur Valley",
+   "water": "land"
+  },
+  {
+   "name": "lionwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "lionwere"
+   ],
+   "place": [
+    "at",
+    0,
+    12330,
+    24210,
+    60.3
+   ],
+   "count": 3,
+   "level": 32,
+   "note": "Kelinar, a camp of the tail quest's lionweres at 32-35: lionwere.json, Level 30-34 and 35-39: Kelinar",
+   "water": "land"
+  },
+  {
+   "name": "lionwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "lionwere"
+   ],
+   "place": [
+    "at",
+    0,
+    12336,
+    24216,
+    60.3
+   ],
+   "count": 3,
+   "level": 35,
+   "note": "Kelinar, a camp of the tail quest's lionweres at 32-35: lionwere.json, Level 30-34 and 35-39: Kelinar",
+   "water": "land"
+  },
+  {
+   "name": "lionwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "lionwere"
+   ],
+   "place": [
+    "at",
+    0,
+    13610,
+    19570,
+    69.2
+   ],
+   "count": 3,
+   "level": 33,
+   "note": "Forkwatch, a camp of the tail quest's lionweres at 33-36: lionwere.json, Level 30-34: Forkwatch (S, SE: between the rivers near Sonderal Village)",
+   "water": "land"
+  },
+  {
+   "name": "lionwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "lionwere"
+   ],
+   "place": [
+    "at",
+    0,
+    13616,
+    19576,
+    69.2
+   ],
+   "count": 3,
+   "level": 36,
+   "note": "Forkwatch, a camp of the tail quest's lionweres at 33-36: lionwere.json, Level 30-34: Forkwatch (S, SE: between the rivers near Sonderal Village)",
+   "water": "land"
+  },
+  {
+   "name": "gatorwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "elder weregator"
+   ],
+   "place": [
+    "at",
+    0,
+    16450,
+    30990,
+    50.5
+   ],
+   "count": 3,
+   "level": 30,
+   "note": "Dinbak, a camp of the tail quest's gatorweres at 30-33: EQOA-Data Quests/Weres/gatorwere.json, Infection Locations, Level 30-40: Dinbak (confirmed); the tail quest's journal: the gatorweres round Dinbak",
+   "water": "land"
+  },
+  {
+   "name": "gatorwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "elder weregator"
+   ],
+   "place": [
+    "at",
+    0,
+    16456,
+    30996,
+    50.5
+   ],
+   "count": 3,
+   "level": 33,
+   "note": "Dinbak, a camp of the tail quest's gatorweres at 30-33: EQOA-Data Quests/Weres/gatorwere.json, Infection Locations, Level 30-40: Dinbak (confirmed); the tail quest's journal: the gatorweres round Dinbak",
+   "water": "land"
+  },
+  {
+   "name": "gatorwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "elder weregator"
+   ],
+   "place": [
+    "at",
+    0,
+    15570,
+    23390,
+    54.1
+   ],
+   "count": 3,
+   "level": 30,
+   "note": "Brog Fens, a camp of the tail quest's gatorweres at 30-32: gatorwere.json, Level 30-40: Brog Fens S/SE",
+   "water": "land"
+  },
+  {
+   "name": "gatorwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "elder weregator"
+   ],
+   "place": [
+    "at",
+    0,
+    15576,
+    23396,
+    54.1
+   ],
+   "count": 3,
+   "level": 32,
+   "note": "Brog Fens, a camp of the tail quest's gatorweres at 30-32: gatorwere.json, Level 30-40: Brog Fens S/SE",
+   "water": "land"
+  },
+  {
+   "name": "gatorwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "elder weregator"
+   ],
+   "place": [
+    "at",
+    0,
+    18570,
+    30390,
+    55.3
+   ],
+   "count": 3,
+   "level": 34,
+   "note": "Stone Watchers, a camp of the tail quest's gatorweres at 34-36: gatorwere.json, Level 30-40: Stone Watchers (lvl 35 confirmed)",
+   "water": "land"
+  },
+  {
+   "name": "gatorwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "elder weregator"
+   ],
+   "place": [
+    "at",
+    0,
+    18576,
+    30396,
+    55.3
+   ],
+   "count": 3,
+   "level": 36,
+   "note": "Stone Watchers, a camp of the tail quest's gatorweres at 34-36: gatorwere.json, Level 30-40: Stone Watchers (lvl 35 confirmed)",
+   "water": "land"
+  },
+  {
+   "name": "gatorwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "elder weregator"
+   ],
+   "place": [
+    "at",
+    0,
+    17350,
+    29570,
+    54.2
+   ],
+   "count": 3,
+   "level": 37,
+   "note": "Lake Noregard, a camp of the tail quest's gatorweres at 37-39: gatorwere.json, Level 30-40: Lake Noregard (S)",
+   "water": "land"
+  },
+  {
+   "name": "gatorwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "elder weregator"
+   ],
+   "place": [
+    "at",
+    0,
+    17356,
+    29576,
+    54.2
+   ],
+   "count": 3,
+   "level": 39,
+   "note": "Lake Noregard, a camp of the tail quest's gatorweres at 37-39: gatorwere.json, Level 30-40: Lake Noregard (S)",
+   "water": "land"
+  }
+ ],
+ "attackable": [],
+ "peaceful": [
+  "Nunnie"
+ ]
+}

@@ -285,7 +285,7 @@
      "says": "Zaren is dead and the fever has run its course. You are one of us now, wolf.",
      "rewards": {
       "spells": [
-       "Werewolf Form"
+       "Wolfwere"
       ],
       "factions": [
        [
@@ -301,7 +301,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/Weres/wolfwere.json, The Hunt (github.com/Jadiction/EQOA-Data, MIT). Zaren is the server's row (level 44), not the player's level; the guide's Zaran. The antidote is the decline (it changes nothing). The faction with Werehunters of Tunaria (-1000) is ours: it keeps a lycan from the werehunters' brand, a second infection and the vampires' blood, as the guides say; a branded werehunter (+1000) is offered no infection."
+   "notes": "From EQOA-Data Quests/Weres/wolfwere.json, The Hunt (github.com/Jadiction/EQOA-Data, MIT). Zaren is the server's row (level 44), not the player's level; the guide's Zaran. The antidote is the decline (it changes nothing). The faction with Werehunters of Tunaria (-1000) is ours: it keeps a lycan from the werehunters' brand, a second infection and the vampires' blood, as the guides say; a branded werehunter (+1000) is offered no infection. The form is the guide's table's Wolfwere (STR +45, STA +45, INT -16), as the other four lines' are their tables' (Bearwere, Ratwere, Lionwere, Gatorwere); the older record Werewolf Form changes no stat."
   },
   {
    "key": "Weres/wolfwere/p1",

@@ -56,13 +56,16 @@ var DefaultBoon = Boon{Percent: 200, Duration: 4 * time.Hour}
 // On is whether the boards give a boon.
 func (b Boon) On() bool { return b.Percent > 100 && b.Duration > 0 }
 
-// What is what the boon gives, in words: "double experience".
+// What is what the boon gives, in words: "double experience", "6x
+// experience" (a whole multiple past triple), "150% experience".
 func (b Boon) What() string {
-	switch b.Percent {
-	case 200:
+	switch {
+	case b.Percent == 200:
 		return "double experience"
-	case 300:
+	case b.Percent == 300:
 		return "triple experience"
+	case b.Percent > 300 && b.Percent%100 == 0:
+		return fmt.Sprintf("%dx experience", b.Percent/100)
 	}
 	return fmt.Sprintf("%d%% experience", b.Percent)
 }

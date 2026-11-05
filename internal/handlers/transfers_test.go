@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net"
+	"strings"
 	"testing"
 	"time"
 
@@ -84,16 +86,77 @@ func TestTransferAppliesAtTheLogin(t *testing.T) {
 	if got, _, _ := db.TransferByID(idle.ID); got.Status != database.TransferApproved {
 		t.Fatalf("idle's transfer %s", got.Status)
 	}
-	// told once in the world
+	// told once in the world: its arrival with the GM's word; Idle's, still
+	// approved, as ready on Hero (another character of the account)
 	hs := sm.CreateSession(&net.UDPAddr{IP: net.IPv4(203, 0, 113, 7), Port: 5007}, 7, 7, 7, 1, true)
+	hs.SetAccountID(3)
 	hp := gw.CreatePlayer(hs, &database.CharacterRecord{ServerID: 7, CharName: "Hero"})
 	tellTransfers(db, hs, hp)
-	if n := len(hs.Queue().PeekPending()); n != 1 {
-		t.Fatalf("%d lines at the first entry", n)
+	lines := gmReplies(t, hs)
+	if len(lines) != 4 || !strings.Contains(lines[0], "has arrived (transfer #") || lines[1] != "A GM says: Welcome." ||
+		!strings.Contains(lines[2], fmt.Sprintf("transfer #%d is ready: log Idle in to receive it", idle.ID)) {
+		t.Fatalf("the lines at the first entry: %q", lines)
 	}
-	hs.Queue().GetPending()
 	tellTransfers(db, hs, hp)
-	if n := len(hs.Queue().PeekPending()); n != 0 {
-		t.Fatalf("told again: %d", n)
+	if lines := gmReplies(t, hs); len(lines) != 0 {
+		t.Fatalf("told again: %q", lines)
+	}
+}
+
+// An approval is told at once on a character of the account in the world
+// (the transfer's own: log out and in), with the items approximated and the
+// ask to report them, and marked told; none in the world, not told, so the
+// next entry tells it.
+func TestTransferApprovedIsTold(t *testing.T) {
+	db, err := database.NewSQLite(t.TempDir() + "/t.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	for _, q := range []string{
+		`INSERT INTO accountinfo (accountid, username, pwhash, acctstatus, acctlevel) VALUES (3, 'player', 'x', 1, 0)`,
+		`INSERT INTO characters (charName, accountid, serverid, modelid, tclass, race, humType, level, haircolor, hairlength, hairstyle,
+			faceoption, sex, world, x, y, z) VALUES ('Hero', 3, 7, 1, 3, 5, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0)`,
+	} {
+		if _, err := db.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	now := time.Now()
+	tr, err := db.FileTransfer(database.Transfer{AccountID: 3, ServerID: 7, FromName: "Hero", FromLevel: 60}, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan := `{"character": "Hero", "serverid": 7, "new_records": [{"ref": "new1", "like": 1, "set": {"itemname": "No-Dachi of Toxicity"}},
+		{"ref": "new2", "like": 1, "set": {"itemname": "Frosted Tattered Cape"}}], "items": [{"new": "new1"}, {"new": "new2"}]}`
+	if tr, _, err = db.ApproveTransfer(tr.ID, plan, "", database.GMEdit{Username: "gm"}, now); err != nil {
+		t.Fatal(err)
+	}
+	gw := entity.NewWorld()
+	sm := session.NewManager()
+	if TellTransferApproved(db, gw, sm, tr) {
+		t.Fatal("told with no one in the world")
+	}
+	sess := sm.CreateSession(&net.UDPAddr{IP: net.IPv4(203, 0, 113, 7), Port: 5007}, 7, 7, 7, 1, true)
+	sess.SetAccountID(3)
+	sess.SetCharacterInWorld(true)
+	gw.CreatePlayer(sess, &database.CharacterRecord{ServerID: 7, CharName: "Hero"})
+	if !TellTransferApproved(db, gw, sm, tr) {
+		t.Fatal("not told on the transfer's own character")
+	}
+	lines := gmReplies(t, sess)
+	all := strings.Join(lines, " ")
+	if len(lines) < 2 || !strings.Contains(lines[0], "is ready: log out and back in to receive it") ||
+		!strings.Contains(all, "approximated: No-Dachi of Toxicity, Frosted Tattered Cape.") ||
+		!strings.Contains(all, "correct stats, icon and model") {
+		t.Fatalf("lines %q", lines)
+	}
+	for _, l := range lines {
+		if len([]rune(l)) > transferLineMax {
+			t.Errorf("a line of %d characters: %q", len([]rune(l)), l)
+		}
+	}
+	if left, _ := db.TransfersReadyToTell(3); len(left) != 0 {
+		t.Fatal("told but not marked")
 	}
 }

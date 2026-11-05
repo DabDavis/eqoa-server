@@ -25,8 +25,22 @@ func transferFixture(t *testing.T) (*fixture, database.Transfer) {
 		weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, unk6, craft, itemname, itemdesc, model, color)
 		VALUES (6089, 0, 0, 1, 0, 13, 0, 0, 1, 0, 0, 0, 0, 60, 1, 100, 0, 8, 1023, 0, 0, 0, 0, 'Tower of Woe', '', 0, 0),
 		       (5408, 0, 0, 1, 0, 15, 0, 0, 1, 0, 2, 789, 0, 60, 1, 100, 0, 12, 1023, 0, 0, 0, 0, 'naginata of toxicity', 'It reeks.', 0, 0)`)
+	// a warrior's level 20 path (two cities ask it), the vampire's line, a flag
+	mustExec(t, f.db, `INSERT INTO quests (questid, name, enabled, classes, requires, source) VALUES
+		(11, 'Gnoll Ears', 1, '0', '', 'EQOA-Data 1-20/freeport/warrior/L19 (tools/import_quests.py)'),
+		(12, 'The Warrior''s Path', 1, '0', '11', 'EQOA-Data 1-20/freeport/warrior/L20 (tools/import_quests.py)'),
+		(22, 'The Qeynos Path', 1, '0', '', 'EQOA-Data 1-20/qeynos/warrior/L20 (tools/import_quests.py)'),
+		(61, 'Razeal Has Won', 1, '', '', 'EQOA-Data Weres/vampire/p1 (tools/import_quests.py)'),
+		(62, 'Creed''s Lessons', 1, '', '61', 'EQOA-Data Weres/vampire/L40 (tools/import_quests.py)'),
+		(71, 'The Manticores'' Riddles', 1, '', '', 'EQOA-Data Portal/plane-of-sky/portal-1 (tools/import_quests.py)')`)
+	two := `{"ask": "Which do you take?", "options": [{"answer": "Iron Will"}, {"answer": "Rend"}]}`
+	mustExec(t, f.db, `INSERT INTO queststeps (questid, step, kind, target, choices) VALUES
+		(11, 1, 'talk', 'A', ''), (12, 7, 'talk', 'A', ?), (22, 7, 'talk', 'A', ?), (61, 1, 'talk', 'A', ''), (62, 1, 'talk', 'A', ''),
+		(71, 1, 'talk', 'A', '')`, two, two)
 	tr, err := f.db.FileTransfer(database.Transfer{AccountID: 3, ServerID: 7, FromName: "Hero", FromClass: "Warrior", FromLevel: 60,
-		FromMasteries: 1040, Items: "Tower of Woe x2\nNo-dachi of toxicity\n<b>Frosted tattered cape</b>", Notes: "quests later"}, time.Now())
+		FromMasteries: 1040, Items: "Tower of Woe x2\nNo-dachi of toxicity\n<b>Frosted tattered cape</b>", Notes: "quests later",
+		Claims: `{"picks": [{"quest": 12, "step": 7, "option": 1}], "quests": [61, 71], "line": "vampire", "other": "<i>The Lost Ring</i>"}`},
+		time.Now())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,10 +72,18 @@ func TestTransfersInThePanel(t *testing.T) {
 	if l0["exact"] != true || l0["count"] != float64(2) || l1["exact"] != false || l2["candidates"] != nil && len(l2["candidates"].([]any)) != 0 {
 		t.Fatalf("lines %v", lines)
 	}
+	if out["catalog"] == nil || out["transfer"].(map[string]any)["claims"] == nil ||
+		out["questNames"].(map[string]any)["12"] != "The Warrior's Path" {
+		t.Fatalf("transfer_get's claims and catalog: %v %v %v", out["catalog"], out["transfer"].(map[string]any)["claims"], out["questNames"])
+	}
 	plan := map[string]any{"level": 60, "mastery_points": 1040, "class_spells": true, "full_vitals": true,
-		"items": []any{map[string]any{"pattern": 6089, "count": 2}, map[string]any{"like": 5408, "name": "No-Dachi of Toxicity"}}}
+		"items":   []any{map[string]any{"pattern": 6089, "count": 2}, map[string]any{"like": 5408, "name": "No-Dachi of Toxicity"}},
+		"quests":  []any{map[string]any{"quest": 12, "picks": "7:1"}, map[string]any{"quest": 11}, map[string]any{"quest": 61}},
+		"vampire": true}
 	code, out = gm.op("transfer_preview", map[string]any{"id": tr.ID, "plan": plan})
-	if code != 200 || !strings.Contains(out["preview"].(string), "No-Dachi of Toxicity") {
+	if code != 200 || !strings.Contains(out["preview"].(string), "No-Dachi of Toxicity") ||
+		!strings.Contains(out["preview"].(string), `Quest 12 "The Warrior's Path" done, picking "Rend"`) ||
+		!strings.Contains(out["preview"].(string), "Vampire: made one") {
 		t.Fatalf("preview: %d %v", code, out)
 	}
 	var n int
@@ -79,7 +101,7 @@ func TestTransfersInThePanel(t *testing.T) {
 	}
 	got, _, _ := f.db.TransferByID(tr.ID)
 	p, err := charmove.ParsePlan([]byte(got.Plan))
-	if err != nil || p.CharacterID != 7 || len(p.NewRecords) != 1 || p.To != "auto" {
+	if err != nil || p.CharacterID != 7 || len(p.NewRecords) != 1 || p.To != "auto" || len(p.Quests) != 3 || p.Quests[0].Picks != "7:1" || !p.Vampire {
 		t.Fatalf("the plan kept: %+v %v", p, err)
 	}
 	// the login applies it (handlers/transfers.go does as this), then undo
@@ -97,6 +119,10 @@ func TestTransfersInThePanel(t *testing.T) {
 	f.db.QueryRow(`SELECT COUNT(*) FROM charinventory WHERE serverid = 7`).Scan(&n)
 	if n != 0 {
 		t.Fatalf("%d items left after the undo", n)
+	}
+	f.db.QueryRow(`SELECT (SELECT COUNT(*) FROM charquests WHERE serverid = 7) + (SELECT COUNT(*) FROM charvampire WHERE serverid = 7)`).Scan(&n)
+	if n != 0 {
+		t.Fatalf("%d quest or vampire rows left after the undo", n)
 	}
 	if code, _ := gm.op("transfer_reject", map[string]any{"id": tr.ID, "answer": " "}); code != 400 {
 		t.Fatalf("a rejection without a word: %d", code)
@@ -139,6 +165,11 @@ const wait = async (ok) => { for (let i = 0; i < 100 && !ok(); i++) await new Pr
     const picks = [...out.querySelectorAll('select')].filter((s) => [...s.options].some((o) => o.value === 'make'));
     if (picks.length !== 3 || picks[0].value !== '6089' || picks[2].value !== 'make') throw new Error('picks ' + picks.map((s) => s.value));
     picks[2].value = 'skip'; picks[2].dispatchEvent(new Event('change'));
+    const path = [...out.querySelectorAll('select')].find((s) => [...s.options].some((o) => o.textContent === 'Rend'));
+    if (!path || path.value !== '1') throw new Error('the claimed path pick: ' + (path && path.value));
+    const ticked = [...out.querySelectorAll('input[data-quest]')].filter((b) => b.checked).map((b) => b.dataset.quest).sort();
+    if (ticked.join() !== '61,71') throw new Error('ticked ' + ticked.join());
+    if (out.querySelector('pre i')) throw new Error('the player\'s words as markup');
     [...out.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Approve').click();
     if (!(await wait(() => out.textContent.includes('approved')))) throw new Error('not approved: ' + out.textContent.slice(0, 400));
     out.dataset.done = '1';
@@ -182,5 +213,20 @@ const wait = async (ok) => { for (let i = 0; i < 100 && !ok(); i++) await new Pr
 	got, _, _ := f.db.TransferByID(tr.ID)
 	if got.Status != database.TransferApproved || !strings.Contains(got.Plan, "6089") || strings.Contains(got.Plan, "Frosted") {
 		t.Fatalf("the transfer %+v", got)
+	}
+	p, err := charmove.ParsePlan([]byte(got.Plan))
+	if err != nil {
+		t.Fatal(err)
+	}
+	quests := map[int]string{}
+	for _, q := range p.Quests {
+		quests[q.Quest] = q.Picks
+	}
+	// the pick with its earlier quest, the line's and the flag's ticked, the vampire
+	if len(quests) != 4 || quests[12] != "7:1" || quests[11] != "" || !p.Vampire {
+		t.Fatalf("the plan's quests %v, vampire %v", quests, p.Vampire)
+	}
+	if _, ok := quests[61]; !ok {
+		t.Fatalf("the line's claimed quest left out: %v", quests)
 	}
 }

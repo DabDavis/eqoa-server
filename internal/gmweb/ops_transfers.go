@@ -53,6 +53,10 @@ func init() {
 			"applied":        {Label: "Applied", Format: "stamp", ReadOnly: true},
 			"run":            {Label: "Run", ReadOnly: true, Help: "charmigrate_log's run: transfer_undo takes it back"},
 			"told":           {Label: "Told in the game", Enum: "bool", ReadOnly: true},
+			"claims": {Label: "Quests (the player's)", Format: "multiline", ReadOnly: true,
+				Help: "what the player says the character had done: picks of a path's or the epic's choices, quests done, the line, " +
+					"other quests in its words (database.TransferClaims)"},
+			"told_ready": {Label: "Told it was approved", Enum: "bool", ReadOnly: true},
 		},
 	}
 }
@@ -67,6 +71,10 @@ func (s *Server) transferJSON(t database.Transfer) map[string]any {
 		"from_name": t.FromName, "from_class": t.FromClass, "from_level": t.FromLevel, "from_masteries": t.FromMasteries,
 		"items": t.Items, "notes": t.Notes, "status": t.Status, "filed": t.Filed, "updated": t.Updated, "answer": t.Answer,
 		"decided": t.Decided, "decided_by": t.DecidedBy, "applied": t.Applied, "run": t.Run, "told": t.Told,
+		"told_ready": t.ToldReady,
+	}
+	if c, err := database.ParseTransferClaims(t.Claims); err == nil && !c.Empty() {
+		out["claims"] = c
 	}
 	var user string
 	s.d.DB.QueryRow(`SELECT username FROM accountinfo WHERE accountid = ?`, t.AccountID).Scan(&user)
@@ -100,7 +108,12 @@ type transferPlanArgs struct {
 		Desc    string `json:"desc"`
 		Count   int    `json:"count"`
 	} `json:"items"`
-	Note string `json:"note"`
+	Note   string `json:"note"`
+	Quests []struct {
+		Quest int    `json:"quest"`
+		Picks string `json:"picks"`
+	} `json:"quests"`
+	Vampire bool `json:"vampire"`
 }
 
 var transferPlanSchema = obj(map[string]any{
@@ -116,6 +129,12 @@ var transferPlanSchema = obj(map[string]any{
 		"count":   integer("how many (default 1, at most 20)"),
 	}), "the items it gets: into its pack, the bank when the pack is full"),
 	"note": str("a note kept with the plan (not shown to the player)"),
+	"quests": arr(obj(map[string]any{
+		"quest": integer("a quest (quests.questid) it has done: a path's, the epic's, a were line's, the vampire's, a flag"),
+		"picks": str("the options taken at its choices, \"step:option, ...\" from 0 (transfer_get's catalog has them)"),
+	}), "quests marked done: each row finished with its picks, and the spells its steps give the class (the picked options' too) "+
+		"into the book; no experience, tunar or items"),
+	"vampire": boolean("make the character a vampire (the sun burns it by day)"),
 })
 
 // buildTransferPlan is a GM's plan for t as charmove takes it.
@@ -148,6 +167,10 @@ func buildTransferPlan(t database.Transfer, a transferPlanArgs) (charmove.Plan, 
 			return p, fmt.Errorf("item %d names no record (pattern) and no record to copy (like)", i+1)
 		}
 	}
+	for _, q := range a.Quests {
+		p.Quests = append(p.Quests, charmove.QuestDone{Quest: q.Quest, Picks: strings.TrimSpace(q.Picks)})
+	}
+	p.Vampire = a.Vampire
 	return p, p.Check()
 }
 
@@ -195,7 +218,10 @@ func (s *Server) registerTransferOps() {
 		Description: "One transfer whole, with lines: each line of the player's gear list read (the name, how many) with this " +
 			"server's records it may be, best first (exact: the same words, apostrophes, hyphens and a final s aside, or our records' " +
 			"32-character cut of a longer name; else the most words in common), and its history. A line with no candidate is an item " +
-			"this server has no record of: give a copy of another record with its name (transfer_approve's like). " + transferDataNote,
+			"this server has no record of: give a copy of another record with its name (transfer_approve's like). With the player's " +
+			"claims (the transfer's claims: picks of a path's or the epic's choices, quests done, a were or the vampire's line, other " +
+			"quests in its words) and the catalog of its class (the choices with each option's index and each quest's earlier " +
+			"quests, the lines' quests, the flags by place) to decide them from: transfer_approve's quests and vampire. " + transferDataNote,
 		Input: obj(map[string]any{"id": integer("the transfer")}, "id"),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct{ ID int64 }
@@ -217,7 +243,31 @@ func (s *Server) registerTransferOps() {
 			if err != nil {
 				return nil, err
 			}
-			return map[string]any{"transfer": c.s.transferJSON(t), "lines": listOf(lines), "history": listOf(hist), "note": transferDataNote}, nil
+			out := map[string]any{"transfer": c.s.transferJSON(t), "lines": listOf(lines), "history": listOf(hist), "note": transferDataNote}
+			var class int
+			if err := c.s.d.DB.QueryRow(`SELECT tclass FROM characters WHERE serverid = ?`, t.ServerID).Scan(&class); err == nil {
+				cat, err := c.s.d.DB.TransferCatalog(class)
+				if err != nil {
+					return nil, err
+				}
+				out["catalog"] = cat
+			}
+			// a claimed quest the catalog does not list (out of the game since, another class's) by its name
+			if cl, err := database.ParseTransferClaims(t.Claims); err == nil {
+				names := map[string]string{}
+				ids := append([]int{}, cl.Quests...)
+				for _, p := range cl.Picks {
+					ids = append(ids, p.Quest)
+				}
+				for _, id := range ids {
+					var name string
+					if c.s.d.DB.QueryRow(`SELECT name FROM quests WHERE questid = ?`, id).Scan(&name) == nil {
+						names[fmt.Sprint(id)] = name
+					}
+				}
+				out["questNames"] = names
+			}
+			return out, nil
 		},
 	})
 	s.addOp(&Op{
@@ -293,11 +343,11 @@ func (s *Server) registerTransferOps() {
 			if err != nil {
 				return nil, badRequest("%v", err)
 			}
-			told := handlers.TellTransferApproved(c.s.d.World, c.s.d.Sessions, t.ServerID, t.ID)
+			told := handlers.TellTransferApproved(c.s.d.DB, c.s.d.World, c.s.d.Sessions, t)
 			log.Printf("GM %s (%s): approved transfer %d (%s for %s)", c.a.Username, c.a.Via, t.ID, t.FromName, t.CharName)
-			live := "applies at " + t.CharName + "'s next login"
+			live := "applies at " + t.CharName + "'s next login; the player is told when next in the world"
 			if told {
-				live = t.CharName + " is in the world and was told to log out and in"
+				live = "applies at " + t.CharName + "'s next login; the player is in the world and was told"
 			}
 			return map[string]any{"transfer": c.s.transferJSON(t), "preview": preview, "audit": audit, "live": live,
 				"message": fmt.Sprintf("Transfer %d approved", t.ID)}, nil
@@ -353,6 +403,12 @@ func (s *Server) registerTransferOps() {
 			taken, left, err := charmove.Undo(c.s.d.DB.DB, t.Run, false, &out)
 			if err != nil {
 				return nil, badRequest("%v", err)
+			}
+			// the quest engine keeps the character's quests from their first use: read them again
+			if p, err := charmove.ParsePlan([]byte(t.Plan)); err == nil && len(p.Quests) > 0 {
+				if q := handlers.Quests(); q != nil {
+					q.ReloadCharacter(t.ServerID)
+				}
 			}
 			t, audit, err := c.s.d.DB.MarkTransferUndone(t.ID, req.Answer, workWho(c.a), time.Now())
 			if err != nil {

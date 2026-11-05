@@ -44,7 +44,17 @@ type Server struct {
 
 	mu       sync.Mutex
 	sessions map[string]*session
+	catalogs map[int]catalogAt // by class, made again after catalogFresh
 }
+
+type catalogAt struct {
+	at  time.Time
+	cat database.TransferCatalog
+}
+
+// catalogFresh is how long a class's catalog is served before it is read
+// again off the quests (a GM's quest edits show within it).
+const catalogFresh = time.Minute
 
 type session struct {
 	accountID int
@@ -56,12 +66,12 @@ const (
 	cookieName  = "eqoa_transfer"
 	sessionIdle = 30 * time.Minute
 	maxSessions = 2000
-	maxBody     = 16 << 10
+	maxBody     = 32 << 10
 )
 
 // New is a transfer server on db with the account server's password check.
 func New(db *database.SQLiteDB, check Check) *Server {
-	return &Server{DB: db, Check: check, sessions: map[string]*session{}}
+	return &Server{DB: db, Check: check, sessions: map[string]*session{}, catalogs: map[int]catalogAt{}}
 }
 
 func writeJSON(w http.ResponseWriter, v any) {
@@ -149,10 +159,10 @@ func decode(r *http.Request, v any) error {
 	return dec.Decode(v)
 }
 
-// ServeAPI is /api/transfer/{login,state,submit,cancel,logout} (path the part
-// after /api/transfer/).
+// ServeAPI is /api/transfer/{login,state,catalog,submit,cancel,logout} (path
+// the part after /api/transfer/).
 func (s *Server) ServeAPI(w http.ResponseWriter, r *http.Request, path string) {
-	if path != "state" && !write(r) {
+	if path != "state" && path != "catalog" && !write(r) {
 		refuse(w, http.StatusBadRequest, "send it from the transfer page")
 		return
 	}
@@ -186,6 +196,26 @@ func (s *Server) ServeAPI(w http.ResponseWriter, r *http.Request, path string) {
 			return
 		}
 		s.serveState(w, ss)
+	case "catalog":
+		ss := s.session(r)
+		if ss == nil {
+			refuse(w, http.StatusUnauthorized, "sign in")
+			return
+		}
+		var class int
+		err := s.DB.QueryRow(`SELECT tclass FROM characters WHERE serverid = ? AND accountid = ?`, r.URL.Query().Get("serverid"),
+			ss.accountID).Scan(&class)
+		if err != nil {
+			refuse(w, http.StatusBadRequest, "that is not one of your characters")
+			return
+		}
+		cat, err := s.catalog(class)
+		if err != nil {
+			log.Printf("Transfers: the catalog of class %d: %v", class, err)
+			refuse(w, http.StatusInternalServerError, "the server could not read its quests")
+			return
+		}
+		writeJSON(w, map[string]any{"ok": true, "catalog": cat})
 	case "submit":
 		ss := s.session(r)
 		if ss == nil {
@@ -193,22 +223,27 @@ func (s *Server) ServeAPI(w http.ResponseWriter, r *http.Request, path string) {
 			return
 		}
 		var req struct {
-			ServerID      uint32 `json:"serverid"`
-			FromServer    string `json:"from_server"`
-			FromName      string `json:"from_name"`
-			FromClass     string `json:"from_class"`
-			FromLevel     int    `json:"from_level"`
-			FromMasteries int    `json:"from_masteries"`
-			Items         string `json:"items"`
-			Notes         string `json:"notes"`
+			ServerID      uint32          `json:"serverid"`
+			FromServer    string          `json:"from_server"`
+			FromName      string          `json:"from_name"`
+			FromClass     string          `json:"from_class"`
+			FromLevel     int             `json:"from_level"`
+			FromMasteries int             `json:"from_masteries"`
+			Items         string          `json:"items"`
+			Notes         string          `json:"notes"`
+			Claims        json.RawMessage `json:"claims"`
 		}
 		if err := decode(r, &req); err != nil {
 			refuse(w, http.StatusBadRequest, "the form did not read: reload the page")
 			return
 		}
+		claims := strings.TrimSpace(string(req.Claims))
+		if claims == "null" {
+			claims = ""
+		}
 		t, err := s.DB.FileTransfer(database.Transfer{AccountID: ss.accountID, ServerID: req.ServerID, FromServer: req.FromServer,
 			FromName: req.FromName, FromClass: req.FromClass, FromLevel: req.FromLevel, FromMasteries: req.FromMasteries,
-			Items: req.Items, Notes: req.Notes}, time.Now())
+			Items: req.Items, Notes: req.Notes, Claims: claims}, time.Now())
 		if err != nil {
 			refuse(w, http.StatusBadRequest, playerError(err))
 			return
@@ -251,7 +286,8 @@ func playerError(err error) string {
 		return err.Error()
 	}
 	msg := err.Error()
-	for _, ok := range []string{"name the character", "characters at most", "the level is", "mastery points are", "not one of your characters"} {
+	for _, ok := range []string{"name the character", "characters at most", "the level is", "mastery points are", "not one of your characters",
+		"the quests", "the other quests", "no line", "at most ", "no option", "no quest"} {
 		if strings.Contains(msg, ok) {
 			return msg
 		}
@@ -263,10 +299,46 @@ func playerError(err error) string {
 // playerView is a transfer as its player sees it: no GM's plan, no names but
 // the GM's word.
 func playerView(t database.Transfer) map[string]any {
-	return map[string]any{"id": t.ID, "serverid": t.ServerID, "charname": t.CharName, "from_server": t.FromServer,
+	v := map[string]any{"id": t.ID, "serverid": t.ServerID, "charname": t.CharName, "from_server": t.FromServer,
 		"from_name": t.FromName, "from_class": t.FromClass, "from_level": t.FromLevel, "from_masteries": t.FromMasteries,
 		"items": t.Items, "notes": t.Notes, "status": t.Status, "filed": t.Filed, "decided": t.Decided, "applied": t.Applied,
-		"answer": t.Answer}
+		"answer": t.Answer, "approximated": []string{}, "named": 0}
+	if c, err := database.ParseTransferClaims(t.Claims); err == nil {
+		named := len(c.Quests)
+		seen := map[int]bool{}
+		for _, p := range c.Picks {
+			if !seen[p.Quest] {
+				seen[p.Quest] = true
+				named++
+			}
+		}
+		v["named"], v["line"], v["other"] = named, c.Line, c.Other
+	}
+	// the names the GM's plan made for what this server lacked: to report
+	if t.Status == database.TransferApproved || t.Status == database.TransferApplied {
+		if names := database.ApproximatedItems(t.Plan); len(names) > 0 {
+			v["approximated"] = names
+		}
+	}
+	return v
+}
+
+// catalog is a class's catalog, made again once catalogFresh old.
+func (s *Server) catalog(class int) (database.TransferCatalog, error) {
+	s.mu.Lock()
+	c, ok := s.catalogs[class]
+	s.mu.Unlock()
+	if ok && time.Since(c.at) < catalogFresh {
+		return c.cat, nil
+	}
+	cat, err := s.DB.TransferCatalog(class)
+	if err != nil {
+		return cat, err
+	}
+	s.mu.Lock()
+	s.catalogs[class] = catalogAt{time.Now(), cat}
+	s.mu.Unlock()
+	return cat, nil
 }
 
 func (s *Server) serveState(w http.ResponseWriter, ss *session) {

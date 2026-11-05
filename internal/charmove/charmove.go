@@ -62,6 +62,12 @@ type Plan struct {
 	// pack (unequipped, at the end of its list): an earlier run's items
 	// taken out of the bank, say.
 	Moves []Move `json:"moves"`
+	// Quests are quests marked done, a transfer's path, epic, were line and
+	// flags (QuestDone, quests.go).
+	Quests []QuestDone `json:"quests,omitempty"`
+	// Vampire makes the character a vampire (table charvampire, source
+	// "transfer"), unless it is one.
+	Vampire bool `json:"vampire,omitempty"`
 }
 
 type Move struct {
@@ -170,7 +176,7 @@ func (p Plan) Check() error {
 			return fmt.Errorf("count %d: 1-20", it.Count)
 		}
 	}
-	return nil
+	return checkQuests(p.Quests)
 }
 
 type character struct {
@@ -304,6 +310,14 @@ func migrateTx(tx *sql.Tx, ch character, p Plan, apply, force bool, out io.Write
 	}
 	if p.ClassSpells {
 		if err := m.classSpells(); err != nil {
+			return "", err
+		}
+	}
+	if err := m.questsDone(p.Quests); err != nil {
+		return "", err
+	}
+	if p.Vampire {
+		if err := m.makeVampire(); err != nil {
 			return "", err
 		}
 	}
@@ -942,6 +956,10 @@ func undoOne(tx *sql.Tx, r logRow, force bool, out io.Writer) (bool, error) {
 		}
 		_, err = tx.Exec(`UPDATE itempattern SET `+strings.Join(sets, ", ")+` WHERE patternid = ?`, append(args, r.rowID)...)
 		return err == nil, err
+	case "quest":
+		return undoQuest(tx, r, before, after, changed)
+	case "vampire":
+		return undoVampire(tx, r)
 	case "newrecord":
 		var held int
 		if err := tx.QueryRow(`SELECT COUNT(*) FROM charinventory WHERE patternid = ?`, r.rowID).Scan(&held); err != nil {

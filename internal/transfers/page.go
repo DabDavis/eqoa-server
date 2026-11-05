@@ -43,6 +43,12 @@ const page = `<!DOCTYPE html>
   .status.cancelled { color: #999; }
   pre { white-space: pre-wrap; margin: 6px 0; font-family: inherit; color: #c8c8d8; }
   .small { font-size: .88em; color: #9aa0b8; }
+  fieldset { border: 1px solid #2a3a5e; border-radius: 6px; margin: 16px 0 0; padding: 6px 12px 12px; }
+  legend { color: #e0c070; padding: 0 6px; }
+  h3 { font-size: .95em; color: #c9b37a; margin: 12px 0 2px; }
+  .checks label { display: flex; gap: 8px; align-items: flex-start; margin: 4px 0; color: #c8c8d8; }
+  .checks input { width: auto; margin-top: 3px; }
+  .note { border-left: 3px solid #c9a646; padding: 4px 10px; margin: 10px 0 0; }
 </style>
 </head>
 <body>
@@ -55,10 +61,11 @@ const page = `<!DOCTYPE html>
       <li>Sign in below with this server's account and tell us what the character was: its level, its combat mastery points
         and its gear.</li>
       <li>A GM checks it. Once approved, it arrives the next time you log that character in: its level, its class's spells,
-        its mastery points to spend again, and its gear in your pack (the bank when the pack is full).</li>
+        its mastery points to spend again, the path, line, flags and quests a GM approves, and its gear in your pack (the bank
+        when the pack is full). You are told in the game when it is approved and when it arrives.</li>
     </ol>
-    <p class="small">Items this server has no record of are made by a GM as close as we can; tell a GM in the game (type
-      /bug) if one is off. Quests are not brought over.</p>
+    <p class="note">Some armor and equipment pieces are not on this server yet, so they will be approximated. Please submit a
+      bug report (type /bug in the game) to fix them with the correct stats, icon and model.</p>
   </div>
 
   <div class="card" id="signin">
@@ -97,6 +104,18 @@ const page = `<!DOCTYPE html>
         </div>
         <label for="items">Its gear, one item per line (write "x2" after an item you had two of)</label>
         <textarea id="items" maxlength="4000" placeholder="The Rotting Fist&#10;Slayer's Claw Earring x2&#10;Tower of Woe"></textarea>
+        <fieldset id="questsBox" class="hidden">
+          <legend>Path, line, flags and quests (optional)</legend>
+          <p class="small">What the character had done there. Leave anything you are not sure of: a GM checks each.</p>
+          <div id="choices"></div>
+          <label for="line">Were or vampire</label>
+          <select id="line"></select>
+          <div id="lineQuests" class="checks"></div>
+          <h3 id="flagsHead">Flags</h3>
+          <div id="flags" class="checks"></div>
+          <label for="otherQuests">Other quests it finished, one a line</label>
+          <textarea id="otherQuests" maxlength="2000"></textarea>
+        </fieldset>
         <label for="notes">Anything else a GM should know (a link to a screenshot helps)</label>
         <textarea id="notes" maxlength="2000"></textarea>
         <button type="submit" id="send">Send to the GMs</button>
@@ -142,6 +161,93 @@ const page = `<!DOCTYPE html>
   }
   classes.forEach(function (c) { $('fromClass').appendChild(el('option', null, c)); });
 
+  // the quests the character may say it did, off the server's own quests for
+  // its class (catalog); what is picked goes with the form as claims
+  var catalog = null;
+  function check(kind, q) {
+    var l = el('label');
+    var b = el('input');
+    b.type = 'checkbox';
+    b.value = q.quest;
+    b.className = kind;
+    l.appendChild(b);
+    l.appendChild(document.createTextNode(q.name));
+    return l;
+  }
+  function drawLine() {
+    var box = $('lineQuests');
+    box.textContent = '';
+    var v = $('line').value;
+    var line = ((catalog && catalog.lines) || []).filter(function (x) { return x.line === v; })[0];
+    if (!line) return;
+    box.appendChild(el('p', 'small', 'Which of its quests did it finish?'));
+    line.quests.forEach(function (q) { box.appendChild(check('linequest', q)); });
+  }
+  function drawCatalog() {
+    var ch = $('choices');
+    ch.textContent = '';
+    (catalog.choices || []).forEach(function (c, i) {
+      var l = el('label', null, (c.kind === 'epic' ? 'Epic (level 60)' : 'Level ' + c.level + ' path') + ': ' + (c.ask || c.name));
+      l.htmlFor = 'choice' + i;
+      var s = el('select');
+      s.id = 'choice' + i;
+      var none = el('option', null, 'Not done, or not sure');
+      none.value = '';
+      s.appendChild(none);
+      c.options.forEach(function (o) {
+        var op = el('option', null, o.answer);
+        op.value = o.option;
+        s.appendChild(op);
+      });
+      ch.appendChild(l);
+      ch.appendChild(s);
+    });
+    var line = $('line');
+    line.textContent = '';
+    var n = el('option', null, 'Neither');
+    n.value = '';
+    line.appendChild(n);
+    (catalog.lines || []).forEach(function (l) {
+      var o = el('option', null, l.label);
+      o.value = l.line;
+      line.appendChild(o);
+    });
+    drawLine();
+    var fl = $('flags');
+    fl.textContent = '';
+    (catalog.flags || []).forEach(function (g) {
+      fl.appendChild(el('h3', null, g.label));
+      g.quests.forEach(function (q) { fl.appendChild(check('flag', q)); });
+    });
+    $('flagsHead').hidden = !(catalog.flags || []).length;
+    $('otherQuests').value = '';
+  }
+  function loadCatalog() {
+    var id = Number($('char').value);
+    catalog = null;
+    $('questsBox').classList.add('hidden');
+    if (!id) return;
+    call('catalog?serverid=' + id).then(function (r) {
+      if (!r.ok || Number($('char').value) !== id) return;
+      catalog = r.catalog;
+      drawCatalog();
+      $('questsBox').classList.remove('hidden');
+    });
+  }
+  function claims() {
+    var c = { picks: [], quests: [], line: $('line').value || '', other: $('otherQuests').value };
+    if (!catalog) return c;
+    (catalog.choices || []).forEach(function (x, i) {
+      var s = $('choice' + i);
+      if (s && s.value !== '') c.picks.push({ quest: x.quest, step: x.step, option: Number(s.value) });
+    });
+    var boxes = document.querySelectorAll('#lineQuests input.linequest, #flags input.flag');
+    for (var i = 0; i < boxes.length; i++) if (boxes[i].checked) c.quests.push(Number(boxes[i].value));
+    return c;
+  }
+  $('line').addEventListener('change', drawLine);
+  $('char').addEventListener('change', loadCatalog);
+
   function render(state) {
     $('signin').classList.add('hidden');
     $('signedIn').classList.remove('hidden');
@@ -155,6 +261,7 @@ const page = `<!DOCTYPE html>
     });
     $('noChars').hidden = (state.characters || []).length > 0;
     $('send').disabled = (state.characters || []).length === 0;
+    if (!catalog) loadCatalog();
     var list = $('list');
     list.textContent = '';
     if (!(state.transfers || []).length) { list.appendChild(el('p', 'small', 'None yet.')); return; }
@@ -166,7 +273,15 @@ const page = `<!DOCTYPE html>
       head.appendChild(el('span', 'status ' + t.status, t.status === 'approved' ? 'approved, arrives at your next login' : t.status));
       d.appendChild(head);
       d.appendChild(el('div', 'small', 'Asked ' + new Date(t.filed).toLocaleString()));
+      if (t.named || t.line || t.other) {
+        d.appendChild(el('div', 'small', 'Quests named: ' + (t.named || 0) + (t.line ? ', ' + t.line : '') +
+          (t.other ? ', and others in your words' : '')));
+      }
       if (t.answer) { d.appendChild(el('div', 'small', 'A GM says:')); d.appendChild(el('pre', null, t.answer)); }
+      if ((t.approximated || []).length) {
+        d.appendChild(el('div', 'note small', 'Approximated, as they are not on this server yet: ' + t.approximated.join(', ') +
+          '. Please submit a bug report (type /bug in the game) with each one\'s correct stats, icon and model.'));
+      }
       if (t.status === 'waiting') {
         var b = el('button', 'ghost', 'Take it back');
         b.type = 'button';
@@ -204,12 +319,13 @@ const page = `<!DOCTYPE html>
     call('submit', {
       serverid: Number($('char').value), from_server: $('fromServer').value, from_name: $('fromName').value,
       from_class: $('fromClass').value, from_level: Number($('fromLevel').value), from_masteries: Number($('fromCM').value || 0),
-      items: $('items').value, notes: $('notes').value
+      items: $('items').value, notes: $('notes').value, claims: claims()
     }).then(function (r) {
       $('send').disabled = false;
       if (!r.ok) { say('formMsg', r.error); return; }
       say('formMsg', 'Sent: a GM will look at it. Its status is below.', true);
       $('items').value = ''; $('notes').value = ''; $('fromName').value = '';
+      if (catalog) drawCatalog();
       load();
     });
   });

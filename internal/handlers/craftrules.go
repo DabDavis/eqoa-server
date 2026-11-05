@@ -60,17 +60,26 @@ const (
 	craftPointsPerLvl  = 10
 )
 
-// The roll: 0.60 at a recipe's difficulty, 0.05 a skill point either side,
-// and the two stats of the craft's above 120 (a new character's 60 and 60)
-// adding 1/2000 a point; never below 0.05 or above 0.95.
+// The roll (the user, 2026-11-05: "crafting fails a lot. lets make it a
+// small failure rate all the way up"): 0.95 at a recipe's difficulty, 0.005 a
+// skill point either side, and the two stats of the craft's above 120 (a new
+// character's 60 and 60) adding 1/2000 a point; never below 0.90 or above
+// 0.98, so an attempt fails 2 to 10 times in a hundred at every level. It was
+// 0.60, 0.05 a point and within 0.05 and 0.95: a recipe of the skill's own
+// level (10 a level to 6 over) made 30 to 75 times in a hundred.
 const (
-	craftChanceBase     = 0.60
-	craftChancePerPoint = 0.05
-	craftChanceMin      = 0.05
-	craftChanceMax      = 0.95
+	craftChanceBase     = 0.95
+	craftChancePerPoint = 0.005
+	craftChanceMin      = 0.90
+	craftChanceMax      = 0.98
 	craftStatBase       = 120
 	craftStatDivisor    = 2000.0
 )
+
+// craftNothingLoss is the chance an Experiment whose items make nothing loses
+// the reagents some recipe would (12/4, "You broke a recipe reagent."); else
+// nothing is taken (12/2). It was every time.
+const craftNothingLoss = 0.05
 
 // craftCooldown is how soon after an attempt the next may be made, per
 // session (CLIENT's reply 5 says "You have not yet recovered.").
@@ -184,9 +193,9 @@ func craftStatSum(skill int, stats [7]int) int {
 	return stats[p[0]] + stats[p[1]]
 }
 
-// craftChance is the chance an attempt makes its recipe: 0.60, plus 0.05 a
+// craftChance is the chance an attempt makes its recipe: 0.95, plus 0.005 a
 // skill point over the recipe's difficulty (less one under), plus the two
-// stats over 120 at 1/2000 a point, kept within 0.05 and 0.95.
+// stats over 120 at 1/2000 a point, kept within 0.90 and 0.98.
 func craftChance(points, difficulty, statSum int) float64 {
 	c := craftChanceBase + craftChancePerPoint*float64(points-difficulty) + float64(statSum-craftStatBase)/craftStatDivisor
 	return min(max(c, craftChanceMin), craftChanceMax)

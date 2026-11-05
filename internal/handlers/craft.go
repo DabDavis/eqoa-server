@@ -113,6 +113,9 @@ const (
 	craftSayRecovering = "You have not yet recovered."
 	craftSayCannotMake = "That recipe cannot be made here yet."
 	craftSayKnown      = "You already know that recipe."
+	// an Experiment holding a recipe's items that it has not learned
+	craftSayUnlearned       = "You have not learned that recipe yet."
+	craftSayUnlearnedScroll = "You have not learned that recipe yet: use %s from your inventory to learn it."
 )
 
 // craftSession is what one session's crafting keeps between requests.
@@ -913,17 +916,39 @@ func (h *CraftHandler) combine(c *craftCtx, r *buffer.Reader) craftAnswer {
 			return craftAnswerOf(craftExpPayload(craftExpNothing))
 		}
 	}
+	// an item no recipe takes (the recipe's own scroll put in with its
+	// ingredients) is no part of the combine: left where it is
+	kept := order[:0]
+	for _, id := range order {
+		if c.recipes.Uses(id) {
+			kept = append(kept, id)
+		} else {
+			delete(units, id)
+		}
+	}
+	order = kept
+	if len(units) == 0 {
+		return craftAnswerOf(craftExpPayload(craftExpNothing))
+	}
 	book, err := h.bookOf(c)
 	if err != nil {
 		log.Printf("Craft: %s's book: %v", c.view.Name, err)
 		return craftUnanswered(craftReqCombine)
 	}
-	var rec *database.CraftRecipe
+	var rec, unlearned *database.CraftRecipe
 	for _, cand := range c.recipes.Combine(units) {
 		if cand.Discover || inBook(book, cand.ID) {
 			rec = cand
 			break
 		}
+		if unlearned == nil {
+			unlearned = cand
+		}
+	}
+	if rec == nil && unlearned != nil {
+		// the right items for a recipe an Experiment cannot find: it is
+		// learned first (its scroll), and nothing is taken
+		return craftRefusal(craftExpPayload(craftExpNothing), h.unlearnedLine(unlearned))
 	}
 	if rec == nil {
 		return h.combineNothing(c, held, units, order)
@@ -981,11 +1006,25 @@ func (h *CraftHandler) combineNothing(c *craftCtx, held []craftHeldRow, units ma
 	if !ok {
 		return craftAnswerOf(craftExpPayload(craftExpNothing))
 	}
+	if h.roll() >= craftNothingLoss {
+		return craftAnswerOf(craftExpPayload(craftExpNothing))
+	}
 	var out craftAnswer
 	taken := h.takeCraft(c.char(), c.l, held, takes, &out.batch)
 	log.Printf("Craft: %s's combine made nothing: %d of its items lost", c.view.Name, len(taken))
 	out.reply = craftExpFailedPayload(craftExpFailed, craftTookList(taken))
 	return out
+}
+
+// unlearnedLine is what a player is told whose Experiment holds the items of
+// a recipe it has not learned and cannot find: the scroll that teaches it.
+func (h *CraftHandler) unlearnedLine(rec *database.CraftRecipe) string {
+	if rec.Scroll > 0 && h.items != nil {
+		if p, err := h.items.GetItemPattern(rec.Scroll); err == nil && p.ItemName != "" {
+			return fmt.Sprintf(craftSayUnlearnedScroll, p.ItemName)
+		}
+	}
+	return craftSayUnlearned
 }
 
 // scribe is 5, a 12/7's Yes: the recipe it offered into the book, at its end

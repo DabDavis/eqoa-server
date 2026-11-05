@@ -378,7 +378,7 @@ func TestCraftCreateFailureTakesWhatAFailureLoses(t *testing.T) {
 	f := newCraftFixture(t)
 	f.standard(5)
 	f.learn(testRecipe)
-	f.dice = []float64{0.60} // not under 0.60: a failure
+	f.dice = []float64{0.95} // not under 0.95: a failure
 	got := f.create(testRecipe)
 	mustOps(t, got, opcodeCraftReply, protocol.OpcodeAdjustItemHP, protocol.OpcodeRemoveInvItem)
 	mustBytes(t, "10", got[0], reply(10).u32(0).u32(1).b)
@@ -490,7 +490,7 @@ func TestCraftCreateCooldown(t *testing.T) {
 	f := newCraftFixture(t)
 	f.standard(6)
 	f.learn(testRecipe)
-	f.dice = []float64{0.9}
+	f.dice = []float64{0.99}
 	f.create(testRecipe)
 	f.clock = f.clock.Add(craftCooldown - time.Millisecond)
 	got := f.create(testRecipe)
@@ -500,7 +500,7 @@ func TestCraftCreateCooldown(t *testing.T) {
 		t.Fatalf("a refused attempt took ore: %d left", f.stack(f.ore))
 	}
 	f.clock = f.clock.Add(time.Millisecond)
-	f.dice = []float64{0.9}
+	f.dice = []float64{0.99}
 	if got = f.create(testRecipe); got[0][2] != craftRepFailed {
 		t.Fatalf("a second on: reply %d", got[0][2])
 	}

@@ -69,8 +69,9 @@ func (h *EquipHandler) SetGameWorld(gw *entity.World) {
 // RegisterHandlers registers the equip handlers.
 func (h *EquipHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeInteractItem, h.HandleInteractItem)
-	// the item menu's Arrange (itemarrange below)
+	// the item menu's Arrange (itemarrange below) and Destroy (destroy.go)
 	r.Register(protocol.OpcodeArrangeItem, h.HandleArrangeItem)
+	r.Register(protocol.OpcodeRemoveInvItem, h.HandleDestroyItem)
 	// the HUD's item quick slots and weapon sets (gearsets.go)
 	r.Register(protocol.OpcodePrepareItem, h.HandlePrepareItem)
 	r.Register(protocol.OpcodePrepareWeapon, h.HandlePrepareWeapon)

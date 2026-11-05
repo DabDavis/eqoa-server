@@ -19,11 +19,25 @@ infection works and that the were creatures are in the correct zones with decent
   teaches this form now, not Werewolf Form, an older record that changes no stat:
   tools/import_quests.py writes that.)
 
-Every value changed is logged in were_lines_fix_log (table, row, column, old, new); --undo puts back
-each one still as this left it (one changed since is left and said) and drops the log; a second
---apply is refused while the log is there. Report only by default. The server reads npcs at its
-start: apply with it stopped (a swap's before.sh), or restart after; a spell's effects are read at
-each cast.
+And the user's choices of the same day, after the check (asked, each answered):
+- Zaren, the wolf line's named kill, at level 35, not 44: the lines open at 30 ("Zaren to 35, keep
+  the 43s"; in the live game he scaled to whoever called him).
+- The six line givers given the NPC bit (npc_type | 0x80: talked to, never attacked): Levandius,
+  Dorandas, Edward Duskrender, Corindas, Yindrius and The Bone Crusher ("Yes, unattackable").
+- A kill of a line's were raises its society by 10 ("Add +10 a kill"; the live game's kills raised
+  it, by no figure on record): factionhits rows, source were-kills, for the tail weres and the
+  other spelling of each (werewolf, werebear).
+- The wolf and bear lines' tails drop from the other spelling too ("The other spelling too": the
+  same beasts): the p2 loot step takes werewolf, the bear's werebear (queststeptargets rows; the
+  step's own target stays).
+
+Every value changed is logged in were_lines_fix_log (table, row, column, old, new; a row added is
+logged with its column "*insert*" and its values); --undo puts back each one still as this left it
+(one changed since is left and said), takes out each row it added and drops the log; a second
+--apply is refused while the log is there. Report only by default. The server reads npcs, quests
+and factionhits at its start: apply with it stopped (a swap's before.sh), or restart after; a
+spell's effects are read at each cast. tools/import_quests.py, re-run over a quest these rows
+were added to, deletes them (it rewrites the quest): run this after it.
 
     tools/fix_were_lines.py [--db eqoa.db] [--apply | --undo]
 """
@@ -38,6 +52,23 @@ ALLIGATOR = 1041154017   # a raging alligator's body: the qc seed's gatorweres
 WEREGATOR = 740132644    # the Gatorwere form's and Sandstorm's gatorweres' body
 WEREGATOR_SIZE = 1.1     # Sandstorm's scale for every one of them
 WOLFWERE = 901824        # the Wolfwere form
+
+ZAREN_LEVEL = 35         # the user's choice: the line opens at 30
+NPC_BIT = 0x80           # npc_type's low byte (CLIENT's flags): talked to, never attacked
+GIVERS = ["Levandius", "Dorandas", "Edward Duskrender", "Corindas", "Yindrius", "The Bone Crusher"]
+KILL_DELTA = 10          # the user's choice: a kill of a line's were, its society +10
+KILL_SOURCE = "were-kills"
+KILL_HITS = {            # a were (npcs' name, any case) -> its line's society (the p2 hand-in's faction)
+    "wolfwere": "Night Reapers", "werewolf": "Night Reapers",
+    "bearwere": "Wards of Dawn", "werebear": "Wards of Dawn",
+    "wererat": "Topi Di Ombra",
+    "lionwere": "Sunmanes",
+    "gatorwere": "The Bone Crusher",
+}
+TAIL_ALSO = {            # a tail quest's import key -> (its loot step's creature, the other spelling it takes too)
+    "Weres/wolfwere/p2": ("wolfwere", "werewolf"),
+    "Weres/bearwere/p2": ("bearwere", "werebear"),
+}
 
 LOG = "were_lines_fix_log"
 LOG_DDL = f"""CREATE TABLE {LOG} (
@@ -102,10 +133,64 @@ def wolfwere_changes(db):
     return out
 
 
+def zaren_changes(db):
+    """Zaren at the user's level 35 (one row, as the seed has him)."""
+    out = []
+    for rid, level in db.execute("SELECT id, npc_level FROM npcs WHERE lower(trim(npc_name)) = 'zaren' ORDER BY id"):
+        if level != ZAREN_LEVEL:
+            out.append(("npcs", rid, "npc_level", level, ZAREN_LEVEL, "the user's choice: Zaren at 35, the line opens at 30"))
+    return out
+
+
+def giver_changes(db):
+    """The line givers with the NPC bit, each row of their names that lacks it."""
+    out = []
+    for name in GIVERS:
+        for rid, t in db.execute("SELECT id, npc_type FROM npcs WHERE lower(trim(npc_name)) = lower(?) ORDER BY id", (name,)):
+            if not t & NPC_BIT:
+                out.append(("npcs", rid, "npc_type", t, t | NPC_BIT, f"the user's choice: {name}, a line's giver, never attacked"))
+    return out
+
+
+def kill_inserts(db):
+    """factionhits rows for the weres' kills, each that no row of its name and faction holds yet:
+    (inserts, the names and factions left as a row of theirs has them)."""
+    out, left = [], []
+    for npc, faction in KILL_HITS.items():
+        have = db.execute("SELECT delta, source FROM factionhits WHERE lower(trim(npc_name)) = ? AND faction = ?",
+                          (npc, faction)).fetchone()
+        if have:
+            left.append(f"{npc} / {faction}: {have[0]:+d} ({have[1]})")
+            continue
+        out.append(("factionhits", {"npc_name": npc, "faction": faction, "delta": KILL_DELTA, "source": KILL_SOURCE},
+                    f"the user's choice: a kill of a {npc}, {faction} +{KILL_DELTA}"))
+    return out, left
+
+
+def tail_inserts(db):
+    """queststeptargets rows: the tail quests' loot steps take the other spelling."""
+    out = []
+    for key, (own, also) in TAIL_ALSO.items():
+        row = db.execute("SELECT questid FROM quests WHERE source LIKE ?", (f"EQOA-Data {key} %",)).fetchone()
+        if row is None:
+            continue
+        qid = row[0]
+        step = db.execute("SELECT step FROM queststeps WHERE questid = ? AND kind = 'loot' AND lower(trim(target)) = ?",
+                          (qid, own)).fetchone()
+        if step is None:
+            continue
+        if db.execute("SELECT count(*) FROM queststeptargets WHERE questid = ? AND step = ? AND lower(trim(target)) = ?",
+                      (qid, step[0], also)).fetchone()[0]:
+            continue
+        out.append(("queststeptargets", {"questid": qid, "step": step[0], "target": also},
+                    f"the user's choice: {also}, the other spelling, drops the {own} tail too"))
+    return out
+
+
 KEY = {"npcs": "id", "spelleffect": "spellid"}
 
 
-def apply(db, changes):
+def apply(db, changes, inserts=()):
     db.execute(LOG_DDL)
     now = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
     n = 0
@@ -115,12 +200,27 @@ def apply(db, changes):
             db.execute(f"INSERT INTO {LOG} (tbl, rid, col, old, new, why, applied) VALUES (?, ?, ?, ?, ?, ?, ?)",
                        (tbl, rid, col, json.dumps(old), json.dumps(new), why, now))
             n += 1
+    for tbl, vals, why in inserts:
+        cols = list(vals)
+        cur = db.execute(f"INSERT INTO {tbl} ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})", [vals[c] for c in cols])
+        db.execute(f"INSERT INTO {LOG} (tbl, rid, col, old, new, why, applied) VALUES (?, ?, '*insert*', NULL, ?, ?, ?)",
+                   (tbl, cur.lastrowid, json.dumps(vals, sort_keys=True), why, now))
+        n += 1
     return n
 
 
 def undo(db):
     back, kept = 0, []
     for seq, tbl, rid, col, old, new in db.execute(f"SELECT seq, tbl, rid, col, old, new FROM {LOG} ORDER BY seq DESC").fetchall():
+        if col == "*insert*":
+            vals = json.loads(new)
+            where = " AND ".join(f"{c} IS ?" for c in vals)
+            cur = db.execute(f"DELETE FROM {tbl} WHERE rowid = ? AND {where}", [rid] + [vals[c] for c in vals])
+            if cur.rowcount:
+                back += 1
+            else:
+                kept.append(f"{tbl} row {rid} (changed or gone since)")
+            continue
         cur = db.execute(f"UPDATE {tbl} SET {col} = ? WHERE {KEY[tbl]} = ? AND {col} IS ?", (json.loads(old), rid, json.loads(new)))
         if cur.rowcount:
             back += 1
@@ -164,18 +264,27 @@ def main():
         raise SystemExit(f"{LOG} is in this database: applied already (--undo first)")
     gator, left = gator_changes(db)
     wolf = wolfwere_changes(db)
-    for tbl, rid, col, old, new, why in gator + wolf:
+    zaren = zaren_changes(db)
+    givers = giver_changes(db)
+    kills, kills_left = kill_inserts(db)
+    tails = tail_inserts(db)
+    for tbl, rid, col, old, new, why in gator + wolf + zaren + givers:
         print(f"{tbl} {rid} {col}: {short(old)} -> {short(new)}")
+    for tbl, vals, why in kills + tails:
+        print(f"{tbl} + {vals}")
     for rid, name in left:
         print(f"npcs {rid} {name!r}: on the alligator's body but no seed's row: left (a GM's)")
+    for s in kills_left:
+        print(f"factionhits {s}: a row of its own is there: left")
     rows = len({rid for _, rid, *_ in gator})
     print(f"{rows} gatorweres given the weregator's body ({len(gator)} values), {len(left)} left; "
-          f"the Wolfwere form: {len(wolf)} values")
+          f"the Wolfwere form: {len(wolf)} values; Zaren: {len(zaren)}; givers given the NPC bit: {len(givers)}; "
+          f"kill hits: {len(kills)} ({len(kills_left)} left); tail creatures: {len(tails)}")
     if not a.apply:
         print("report only: --apply to write")
         return
     db.execute("BEGIN IMMEDIATE")
-    n = apply(db, gator + wolf)
+    n = apply(db, gator + wolf + zaren + givers, kills + tails)
     db.execute("COMMIT")
     print(f"wrote {n} values; restart the server for the world to have them")
 

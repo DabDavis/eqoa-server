@@ -339,6 +339,22 @@ var wayRoutes = map[string][]wayRoute{
 		{To: "the cauldron", Arrive: "Fuming Portal"},
 	},
 
+	// Zaoran Plateau, the Secrets world's zone 5 (tools/seed_zp.py, jib's PR #4,
+	// places these NPCs). Razeal Moloch: "a post spawns in the center. Speak w/it
+	// and he is summoned to the isle; you recieve Razeal Raid Teleporter. Port up
+	// and own": the post by the cemetery, to the south-east isle, and a portal
+	// there back to it; a level 60 (the gravestones' ritual is not in). Rallos
+	// Zek's way stays the raid's "Portal of Rallos" below (a trigger's run spawns
+	// it and it sends the raid to the isle's own pad), so the PR's Akessan-bridges
+	// pair for it is not wired: its way back would land on a portal that stands
+	// only during a raid.
+	"Razeal's Summoning Post": {
+		{To: "Razeal's isle", Arrive: "Portal to the Plateau", MinLevel: 60},
+	},
+	"Portal to the Plateau": {
+		{To: "the cemetery", Arrive: "Razeal's Summoning Post"},
+	},
+
 	// The Portal guides' trips (tools/quests/data/portal.json; the places the
 	// Portal lane read off its guides and the ground: notes qe.md), each only a
 	// quest opens (QuestOnly: the quest that unlocks it). No guide gives a

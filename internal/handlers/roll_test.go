@@ -13,7 +13,7 @@ func TestRollRange(t *testing.T) {
 		lo, hi int
 		ok     bool
 	}{
-		{nil, 1, 100, true},
+		{nil, 0, 100, true},
 		{[]string{"20"}, 1, 20, true},
 		{[]string{"5", "50"}, 5, 50, true},
 		{[]string{"50", "5"}, 5, 50, true},
@@ -47,7 +47,7 @@ func TestRollIsHeardInSayRange(t *testing.T) {
 		return c, alice, near, far, elsewhere
 	}
 	for _, cmd := range []struct{ text, want string }{
-		{"/roll", "Alice rolls 100 (1 to 100)."},
+		{"/roll", "Alice rolls 100 (0 to 100)."},
 		{"/random 20", "Alice rolls 20 (1 to 20)."},
 		{"#roll 50 5", "Alice rolls 50 (5 to 50)."},
 	} {
@@ -75,10 +75,10 @@ func TestRollIsHeardInSayRange(t *testing.T) {
 	}
 }
 
-// The L2 menu's "Roll 0-99" is the bare opcode 0x00C8 (quick command 23): a
-// roll of 0 to 99, heard as /roll's is. The control: the chat handler
+// The menu's roll is the bare opcode 0x00C8 (quick command 23): a roll of 0 to
+// 100, the same as a plain /roll's (petition 1107), heard as /roll's is. The control: the chat handler
 // registers it, so the game's dispatcher reaches it.
-func TestTheL2MenusRollIsZeroToNinetyNine(t *testing.T) {
+func TestTheMenusRollIsZeroToAHundred(t *testing.T) {
 	old := rollDice
 	rollDice = func(n int) int { return n - 1 } // the most every time
 	defer func() { rollDice = old }()
@@ -89,7 +89,7 @@ func TestTheL2MenusRollIsZeroToNinetyNine(t *testing.T) {
 	c.send(alice, protocol.OpcodeRollRequest, nil)
 	for _, s := range []*session.Session{alice, near} {
 		got := heard(t, s)
-		if len(got) != 1 || got[0].text != "Alice rolls 99 (0 to 99)." || got[0].rgb != rollRGB {
+		if len(got) != 1 || got[0].text != "Alice rolls 100 (0 to 100)." || got[0].rgb != rollRGB {
 			t.Errorf("in range heard %+v", got)
 		}
 	}

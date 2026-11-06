@@ -661,7 +661,10 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 		p.artReady = now.Add(w.balance.ArtCooldown(p.Level))
 	}
 	w.breakInvisLocked(p, "a spell cast") // invis.go
-	w.dispelOnCastLocked(p)               // workbook.go: what ends at a cast
+	if spell.Def.Harmful {
+		w.breakBoardWolfLocked(p, "a harmful spell") // boardwolf.go
+	}
+	w.dispelOnCastLocked(p) // workbook.go: what ends at a cast
 	lockout := spell.CastTime + spell.Recast + castLockoutExtra
 	p.Lockouts = append(p.Lockouts, castLockout{spellID: spell.SpellID, displayIndex: spell.DisplayIndex, until: now.Add(lockout)})
 	cs := &castState{spell: spell, caster: p.ServerID, targets: targets, ends: now.Add(spell.CastTime + castBusy), lands: now.Add(spell.CastTime + castLand),

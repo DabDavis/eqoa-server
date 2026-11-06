@@ -415,7 +415,8 @@ func (w *World) throwLocked(sess *session.Session, p *Player, pe *PotionEffect, 
 			w.landOnNPCLocked(cs, p, sess, o, now)
 		}
 	}
-	w.breakInvisLocked(p, "a throw") // invis.go
+	w.breakInvisLocked(p, "a throw")     // invis.go
+	w.breakBoardWolfLocked(p, "a throw") // boardwolf.go
 	w.breakPotionsLocked(p, func(pe *PotionEffect) bool { return pe.BreaksOnAttack }, "a throw")
 }
 

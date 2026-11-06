@@ -28,6 +28,7 @@ func TestAPressWaitsForTheClientsSwingTimer(t *testing.T) {
 		t.Fatalf("the first round began at %v, want 0", f.p.RoundStart.Sub(f.t0))
 	}
 	f.w.StopAttackOnRetarget(f.sess, 0x0131_3012) // another target: the fight ends, the timer goes on
+	f.p.AutoAttack = true                         // the button pressed again (a target change lets it go)
 	if !f.w.EngageAttack(f.sess, f.npcID, swing, at(time.Second)) {
 		t.Fatal("not engaged again")
 	}
@@ -45,6 +46,7 @@ func TestAPressWaitsForTheClientsSwingTimer(t *testing.T) {
 	// the game's own: a swing out of reach, then a press 2 s later
 	f.w.SwingOutOfReach(f.sess, at(5500*time.Millisecond))
 	f.w.StopAttackOnRetarget(f.sess, 0x0131_3012)
+	f.p.AutoAttack = true
 	if !f.w.EngageAttack(f.sess, f.npcID, swing, at(7500*time.Millisecond)) {
 		t.Fatal("not engaged after the retry")
 	}

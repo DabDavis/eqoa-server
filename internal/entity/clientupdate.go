@@ -209,6 +209,9 @@ func (w *World) ApplyClientUpdate(id EntityID, u ClientUpdate) {
 		p.noteStood()
 	}
 	if u.HasAutoAttack {
+		if u.AutoAttack && !p.AutoAttack {
+			p.buttonUpAt = now
+		}
 		p.AutoAttack = u.AutoAttack
 	}
 }

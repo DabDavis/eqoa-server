@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -13,6 +14,7 @@ import (
 type TargetHandler struct {
 	sessionManager *session.Manager
 	gameWorld      *entity.World
+	inventoryStore *database.InventoryStore
 }
 
 // NewTargetHandler creates a new target handler.
@@ -23,6 +25,11 @@ func NewTargetHandler(sessionMgr *session.Manager) *TargetHandler {
 // SetGameWorld sets the game world reference (called after world init).
 func (h *TargetHandler) SetGameWorld(gw *entity.World) {
 	h.gameWorld = gw
+}
+
+// SetInventoryStore sets the store a player's hands are read from.
+func (h *TargetHandler) SetInventoryStore(s *database.InventoryStore) {
+	h.inventoryStore = s
 }
 
 // RegisterHandlers registers target handlers with the registry.
@@ -108,6 +115,11 @@ func (h *TargetHandler) HandleTarget(sess *session.Session, msg *protocol.Messag
 	// the client's.
 	player := h.gameWorld.SessionPlayer(sess)
 	if player != nil {
+		// the hands' swing, for a press on it that sends no 0x000F
+		// (entity/attack.go pressUnsentLocked: petition 1112)
+		if targetObjectID != 0xFFFFFFFF {
+			handsChanged(h.gameWorld, h.inventoryStore, sess, player)
+		}
 		h.gameWorld.SetTarget(player.ServerID, targetObjectID)
 	}
 

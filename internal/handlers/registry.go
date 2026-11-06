@@ -214,6 +214,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	if gameWorld != nil {
 		targetHandler.SetGameWorld(gameWorld)
 	}
+	targetHandler.SetInventoryStore(invStore)
 	combatHandler := NewCombatHandler(sessionMgr)
 	if gameWorld != nil {
 		combatHandler.SetGameWorld(gameWorld)

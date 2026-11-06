@@ -165,6 +165,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// Create handler instances
 	serverHandler := NewServerHandler(serverIP)
 	charHandler := NewCharacterHandler(charStore, sessionMgr, invStore, spellStore)
+	keepChars.Store(charHandler) // a restart's resumed sessions (keep.go)
 	if gameWorld != nil {
 		charHandler.SetGameWorld(gameWorld)
 		// A dead player's respawn: the login spawn and a MemoryDump (respawn.go)

@@ -29,6 +29,9 @@ type ConnectionData struct {
 	// Sequence tracking - incoming
 	lastReceivedPacketSeq  uint16
 	lastReceivedMessageSeq uint16
+	// rxSeen is the window of the client's reliable messages taken on a
+	// promoted session: bit i is lastReceivedMessageSeq - i (TakeReliable)
+	rxSeen uint64
 
 	// Sequence tracking - outgoing
 	lastSentPacketSeq  uint16
@@ -294,6 +297,7 @@ func (cd *ConnectionData) ResetForMasterSession() {
 	cd.clientLastReceivedMessage = 0
 	cd.lastReceivedPacketSeq = 0
 	cd.lastReceivedMessageSeq = 0
+	cd.rxSeen = 0
 }
 
 // ProcessPacket processes an incoming packet's sequence data.

@@ -42,8 +42,33 @@ sqlite3 eqoa.db "SELECT id, server_id, name, model_id FROM characters"
 database while it runs is the whole deploy (the database waits 5 s for a lock). A client gets item
 records at its login, so a player sees a record's change at the next one.
 
-**A code change needs a restart, which ends every session.** Each session's DRDP state and the World
-live in the process. `tools/swap_when_empty.sh` (cron, every minute) swaps a staged binary in only once
+**A code change restarts the server keeping everyone in the world** (`tools/swap_keep.sh`; the user,
+2026-11-06: "is there a way to keep folks in world and not boot with a restart", then "lets implement";
+`internal/network/udp/keep.go`, `session/keep.go`, `entity/keep.go`, `handlers/keep.go`,
+`claude-notes/session-keep-restart-20261106.md`). SIGUSR2 makes the process tell everyone in the world
+("The server is updating..."), stop reading and ticking, save everyone as a shutdown does, write each session
+down beside the database (`keep-sessions.json`: its key, flags and offers, both directions' packet and message
+numbers, every reliable message not yet acknowledged, each state channel's next number and value, the client's
+own channel and XOR bases, the character's target, lockouts and asked-for offers, the server's copies of its
+item lists, which entity is on each of its client's slots under which id, the groups), stop sending, and re-exec
+itself (the same PID: systemd sees no restart) with the game's UDP socket open across the exec, so no client is
+answered "port unreachable" (CLIENT ends a route at once on that) and its datagrams wait in the socket. The new
+image takes the socket (`EQOA_KEEP_FD`), loads as always and, before it reads a datagram, puts each session back:
+the character built from its row as a login builds it (`enterFromRecord`), each entity kept on its slot under its
+id (an NPC by its row and name, a player by its character; anything else taken away), the groups formed again;
+once the client has reported where it stands (or 2 s) it is sent a MemoryDump there, as a respawn is (one dead
+respawns), with its speed, lockouts and GM channel and "The server was updated. You stayed in the world." A
+fight, a cast on its way, a pet, a duel, a trade and an invitation end. The client's reliable messages are taken
+once each on a resumed session (`TakeReliable`: it resends what went unanswered through the freeze). A session
+that cannot be put back is told the server went down (0x07C0). The snapshot is read only by the same PID, in its
+format, under 60 s old. A failed exec leaves the server running. **The first swap INTO a binary with this is a
+cold one** (an older binary ignores SIGUSR2: `swap_keep.sh` then exits 3 and swaps nothing). Measured with
+eqoa-rust-headless against a private server through a real re-exec: 40 ms from the signal to the exec, the
+session back about a second later, the client never left the world.
+`tools/swap_keep.sh` runs the staging's `before.sh` in the hold (`keep.hold`/`keep.saved` beside the database,
+at most 12 s: `EQOA_BEFORE_MAX`), and a staging with a file named `cold` in it is refused (a long data step: swap
+it the old way). The cold paths below still work and still end every session.
+`tools/swap_when_empty.sh` (cron, every minute) swaps a staged binary in only once
 no one is connected: no UDP flow to the game port in the kernel's connection table, no Station login
 open, no `UDP received` line in the log's last two minutes (with the packet log off, one an address
 every 30 s: below), for two minutes on end. Stage a binary as

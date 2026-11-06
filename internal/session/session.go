@@ -138,6 +138,11 @@ type Session struct {
 	bugNoteAt    time.Time
 	reportNotice bool
 	boonNotice   bool
+
+	// resume is the MemoryDump a session carried through a restart is due,
+	// and resumed whether it was carried through one (keep.go)
+	resume  resumeDump
+	resumed bool
 }
 
 // SetMailLiveForms records the client's answer to the mail form offer.

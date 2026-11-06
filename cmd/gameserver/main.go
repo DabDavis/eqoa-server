@@ -39,6 +39,16 @@ func main() {
 
 	log.Println("EQOA Game Server starting...")
 
+	// A restart that kept the sessions (udp/keep.go): the game socket the last
+	// image held, still open, and what it wrote down. Taken first, and the
+	// variables cleared, so no later image takes a descriptor it does not hold.
+	keptConn, keptErr := udp.InheritedConn()
+	if keptErr != nil {
+		log.Printf("Keep: %v; the game port is bound anew", keptErr)
+	}
+	keptFile := os.Getenv(udp.KeepFileEnv)
+	os.Unsetenv(udp.KeepFileEnv)
+
 	// Load configuration
 	cfg, err := config.LoadOrDefault(*configPath)
 	if err != nil {
@@ -606,6 +616,29 @@ func main() {
 		defer gm.Stop()
 	}
 
+	// The sessions a restart kept (udp/keep.go), put back before a datagram
+	// is read: the clients' packets wait in the socket meanwhile
+	if keptConn != nil {
+		if a, ok := keptConn.LocalAddr().(*net.UDPAddr); !ok || a.Port != cfg.Server.GamePort {
+			log.Printf("Keep: the socket handed over is %s, not the game port %d: closed, the game port bound anew", keptConn.LocalAddr(), cfg.Server.GamePort)
+			keptConn.Close()
+			keptConn = nil
+		} else {
+			udpListener.Adopt(keptConn)
+		}
+	}
+	if keptFile != "" {
+		if snap, err := udp.ReadSnapshot(keptFile, time.Now()); err != nil {
+			log.Printf("Keep: no sessions resumed: %v", err)
+		} else if keptConn == nil {
+			log.Printf("Keep: %d sessions written down, but no socket came with them: none resumed", len(snap.Sessions))
+		} else {
+			resumed, told := udpListener.ResumeKept(snap, time.Now())
+			log.Printf("Keep: %d of %d sessions resumed, %d told the server went down; written %v ago",
+				resumed, len(snap.Sessions), told, time.Since(snap.Written).Round(time.Millisecond))
+		}
+	}
+
 	// Start UDP listener
 	if err := udpListener.Start(); err != nil {
 		log.Fatalf("Failed to start UDP listener: %v", err)
@@ -666,11 +699,27 @@ func main() {
 	log.Printf("Session pre-game timeout: %v", cfg.World.SessionTimeoutPre)
 	log.Printf("Session in-game timeout: %v", cfg.World.SessionTimeoutGame)
 
-	// Wait for shutdown signal
+	// Wait for shutdown signal; SIGUSR2 is a restart that keeps everyone in
+	// the world (udp/keep.go, tools/swap_keep.sh): the same binary path run
+	// again, a new build if one was copied there
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	if keepSignal != nil {
+		signal.Notify(sigChan, keepSignal)
+	}
 
-	<-sigChan
+	for sig := range sigChan {
+		if keepSignal == nil || sig != keepSignal {
+			break
+		}
+		log.Println("Keep: SIGUSR2, a restart that keeps the sessions")
+		if voiceSrv != nil {
+			voiceSrv.Close()
+			voiceSrv = nil
+		}
+		err := udpListener.KeepRestart(keepOptions(cfg))
+		log.Printf("Keep: the restart did not happen: %v; the server goes on", err)
+	}
 	log.Println("Shutdown signal received, stopping server...")
 	// Every client told first (0x07C0: the game back at its login with the
 	// shutdown notice), then everyone in the world saved as at a logout: their
@@ -685,6 +734,32 @@ func main() {
 	udpListener.SaveAll()
 
 	log.Println("Server stopped")
+}
+
+// keepNotice is what every player in the world is told as a restart that
+// keeps the sessions begins (handlers.ResumeLine once it is over).
+const keepNotice = "The server is updating. You stay in the world: it may stand still for a few seconds."
+
+// keepOptions is how this server restarts keeping its sessions: the snapshot
+// and the swap's handshake files beside the database (tools/swap_keep.sh),
+// and this binary's path run again with the same arguments.
+func keepOptions(cfg *config.Config) udp.KeepOptions {
+	dir := filepath.Dir(cfg.Server.DBPath)
+	exe, err := os.Executable()
+	if err != nil {
+		exe = os.Args[0]
+	}
+	return udp.KeepOptions{
+		File:    filepath.Join(dir, "keep-sessions.json"),
+		Notice:  keepNotice,
+		Hold:    filepath.Join(dir, "keep.hold"),
+		Saved:   filepath.Join(dir, "keep.saved"),
+		HoldMax: 20 * time.Second,
+		Exe:     strings.TrimSuffix(exe, " (deleted)"),
+		Args:    os.Args,
+		Env:     os.Environ(),
+		Exec:    syscall.Exec,
+	}
 }
 
 // noticeRestart sends world.restart_notice to everyone in the world, then

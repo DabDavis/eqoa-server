@@ -197,69 +197,46 @@ func (h *Heirlooms) View(serverID uint32, p *database.ItemPatternRecord) {
 		}
 	}
 	// every heirloom, weapons and shields too (the user: "let heirloom weapon
-	// get stats also and shields"), an epic's own figure kept where higher
-	heirloomStats(p, def.Class, level)
+	// get stats also and shields"), the same figures for every class; an epic
+	// from its level keeps the epic's own (the user's choice, 2026-11-06)
+	if !epicNow {
+		heirloomStats(p, level)
+	}
 }
 
-// heirloomSecondary are each class's two good secondary stats on its
-// heirlooms, by class (the user, 2026-11-06: "all heirlooms should
-// have stat increases also not just ac, can have hp, pow, str, sta, and 2
-// good secondary stats. for sk int and agi. for war dex and agi. etc."; the
-// rest ours, each class's casting stat where it has one and AGI or DEX for a
-// fighter, CHA for the bard's and enchanter's charms).
-var heirloomSecondary = [15][2]entity.Stat{
-	{entity.StatDex, entity.StatAgi}, // warrior
-	{entity.StatDex, entity.StatAgi}, // ranger
-	{entity.StatWis, entity.StatAgi}, // paladin
-	{entity.StatInt, entity.StatAgi}, // shadow knight
-	{entity.StatDex, entity.StatAgi}, // monk
-	{entity.StatCha, entity.StatDex}, // bard
-	{entity.StatDex, entity.StatAgi}, // rogue
-	{entity.StatWis, entity.StatInt}, // druid
-	{entity.StatWis, entity.StatAgi}, // shaman
-	{entity.StatWis, entity.StatCha}, // cleric
-	{entity.StatInt, entity.StatWis}, // magician
-	{entity.StatInt, entity.StatWis}, // necromancer
-	{entity.StatInt, entity.StatCha}, // enchanter
-	{entity.StatInt, entity.StatWis}, // wizard
-	{entity.StatInt, entity.StatWis}, // alchemist
+// The heirlooms' stats (the user, 2026-11-06: "lets tone down the heirloom to
+// +10 all stats 40 hp", then his choices: power 40 too, scaled up to it at 60,
+// an epic keeping its own from its level): each piece, armour, jewellery, a
+// shield or a weapon, carries heirloomStatTop of every stat (STR, STA, AGI,
+// DEX, WIS, INT, CHA) and heirloomPoolTop hit points and power at
+// heirloomTopLevel, its share below (rounded up: 1 of each at level 1), for
+// every class, whatever its level's best carries. Until then a piece took its
+// best's stats, hit points and power, raised to its class's (HP and power 1.25
+// a level, STR, STA and two of the class's stats one per 5 levels: 75, 75 and
+// 12 at 60).
+const (
+	heirloomTopLevel = 60
+	heirloomStatTop  = 10
+	heirloomPoolTop  = 40
+)
+
+// heirloomShare is top's share at the wearer's level: top at heirloomTopLevel
+// and over, rounded up below it.
+func heirloomShare(top, level int) int {
+	lv := min(max(level, 1), heirloomTopLevel)
+	return (top*lv + heirloomTopLevel - 1) / heirloomTopLevel
 }
 
-// heirloomStats gives an heirloom (armour, jewellery, a shield, a weapon) at
-// least its class's stats at its wearer's level (heirloomSecondary): hit points and
-// power 1.25 a level, STR, STA and the two secondary stats one per 5 levels
-// (at least 1), so a level 60's piece carries 75 HP, 75 power and 12 of each;
-// a figure its level's best already has higher stays (ours).
-func heirloomStats(p *database.ItemPatternRecord, class, level int) {
-	lv := max(level, 1)
-	pool, stat := (5*lv+2)/4, max(1, (lv+2)/5)
-	atLeast := func(v **int, n int) {
-		if *v == nil || **v < n {
-			x := n
-			*v = &x
-		}
-	}
-	atLeast(&p.HPMAX, pool)
-	atLeast(&p.POWMAX, pool)
-	atLeast(&p.Str, stat)
-	atLeast(&p.Sta, stat)
-	if class < 0 || class >= len(heirloomSecondary) {
-		return
-	}
-	for _, s := range heirloomSecondary[class] {
-		switch s {
-		case entity.StatAgi:
-			atLeast(&p.Agi, stat)
-		case entity.StatDex:
-			atLeast(&p.Dex, stat)
-		case entity.StatWis:
-			atLeast(&p.Wis, stat)
-		case entity.StatInt:
-			atLeast(&p.Intelligence, stat)
-		case entity.StatCha:
-			atLeast(&p.Cha, stat)
-		}
-	}
+// heirloomStats sets an heirloom's stats, hit points and power for its
+// wearer's level, in place of its best's: heirloomStatTop's share of each
+// stat and heirloomPoolTop's of hit points and power (10, 40 and 40 at 60; 5,
+// 20 and 20 at 30; 1, 1 and 1 at 1).
+func heirloomStats(p *database.ItemPatternRecord, level int) {
+	stat, pool := heirloomShare(heirloomStatTop, level), heirloomShare(heirloomPoolTop, level)
+	n := func(v int) *int { return &v }
+	p.Str, p.Sta, p.Agi, p.Dex = n(stat), n(stat), n(stat), n(stat)
+	p.Wis, p.Intelligence, p.Cha = n(stat), n(stat), n(stat)
+	p.HPMAX, p.POWMAX = n(pool), n(pool)
 }
 
 // epicOf is an epic heirloom's epic record, kept heirloomTTL.

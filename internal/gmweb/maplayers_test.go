@@ -109,8 +109,8 @@ func TestTheMapLayersAreCampsAndCoaches(t *testing.T) {
 		t.Errorf("map_camp freeport: %d, want 404 (a place, not a camp)", code)
 	}
 	if code, out = c.op("map_layers", map[string]any{"world": 1}); code != 200 || len(out["coaches"].([]any)) != 1 ||
-		out["coaches"].([]any)[0].(map[string]any)["routed"] != false {
-		t.Errorf("the Rathe's coaches %v, want Dilga alone, off the network", out["coaches"])
+		out["coaches"].([]any)[0].(map[string]any)["routed"] != true {
+		t.Errorf("the Rathe's coaches %v, want Dilga alone, Oggok's on the network", out["coaches"])
 	}
 	if len(out["towns"].([]any)) != 0 {
 		t.Errorf("the Rathe's towns %v, want none (EQOA-Data's map has none there)", out["towns"])

@@ -5,8 +5,8 @@ import "sort"
 // CoachMarker is a coach stop for a map (the GM panel's; F3 pass 18, the
 // user: "add the camps and coaches to the GM panel map too"): a coachman, the
 // town it serves, where it stands, the towns this server's coach menu may
-// offer from it (CoachMenu: the other coach towns of its world its coach runs
-// to, a player being offered those whose ledger it signed; every other coach
+// offer from it (CoachMenu: the other coach towns its coach runs to, in any
+// world, a player being offered those whose ledger it signed; every other coach
 // town of its world for a coachman off the network) and the towns the live
 // game's coach ran to (liveCoachRoutes, EQOA-Data's map).
 type CoachMarker struct {
@@ -47,10 +47,11 @@ func (w *World) CoachMarkers(world int) []CoachMarker {
 		m.Routed = routed
 		seen := map[string]bool{}
 		for id, other := range labels {
-			if o := w.NPCs[id]; o == nil || id == npc.ServerID || o.World != npc.World || seen[other] {
+			o := w.NPCs[id]
+			if o == nil || id == npc.ServerID || seen[other] {
 				continue
 			}
-			if routed && !CoachRunsTo(label, other) {
+			if routed && !CoachRunsTo(label, other) || !routed && o.World != npc.World {
 				continue
 			}
 			seen[other] = true

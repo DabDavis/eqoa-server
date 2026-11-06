@@ -55,10 +55,11 @@ func TestCoachMarkersAreTheWorldsCoachmen(t *testing.T) {
 	if wd := stop["Coachman Wanderer"]; wd.Named || wd.Routed || !slices.Equal(wd.Routes, []string{"Freeport", "Highpass Hold", "Qeynos"}) {
 		t.Errorf("the Wanderer %+v, want every other coach town of the world", wd)
 	}
-	// the Rathe's coachman is the Rathe's alone, with no route
+	// the Rathe's coachman is Oggok's, on the network (petition 1124): no route
+	// here, as Dark Solace's coachman is no stop of this world's fixture
 	rathe := w.CoachMarkers(1)
-	if len(rathe) != 1 || rathe[0].Name != "Coachman Dilga" || len(rathe[0].Routes) != 0 || rathe[0].Routed {
-		t.Fatalf("the Rathe's stops %+v, want Dilga with no route", rathe)
+	if len(rathe) != 1 || rathe[0].Name != "Coachman Dilga" || rathe[0].Town != "Oggok" || len(rathe[0].Routes) != 0 || !rathe[0].Routed {
+		t.Fatalf("the Rathe's stops %+v, want Dilga, Oggok's, on the network", rathe)
 	}
 	if len(w.CoachMarkers(-1)) != 5 {
 		t.Errorf("every world's: %d stops, want 5", len(w.CoachMarkers(-1)))

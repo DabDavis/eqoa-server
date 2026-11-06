@@ -469,3 +469,49 @@ func TestEveryLedgerAtOnceIsKeptAsItsOwnSource(t *testing.T) {
 		}
 	}
 }
+
+// Petition 1124, the GM Jibrish: "The Oggok coachman is not on the coach network
+// with any connected paths." Coachman Dilga, in the Rathe, is Oggok's: his coach
+// runs to Dark Solace in Tunaria and Dark Solace's back, each once the other's
+// ledger is signed, and a ride changes the player's world. The network's other
+// towns stay off his menu (Freeport, no route of his). The control: a coachman of
+// no town in the Rathe offers only the Rathe's.
+func TestOggoksCoachRunsAcrossWorlds(t *testing.T) {
+	tw := newTalkWorld(t, 8962, 7214)
+	tw.p.CharServerID, tw.p.World = 44, 1
+	book := ledgerBook{}
+	tw.h.ledger = book
+	tw.h.isGM = func(*session.Session) bool { return false }
+	dilga := &entity.NPC{ServerID: 101444, Name: "Coachman Dilga", World: 1, SpawnX: 8962, SpawnY: 54, SpawnZ: 7214}
+	nioclas := &entity.NPC{ServerID: 101026, Name: "Coachman Nioclas", World: 0, SpawnX: 12539, SpawnY: 84, SpawnZ: 21182}
+	ronks := &entity.NPC{ServerID: 416, Name: "Coachman Ronks", World: 0, SpawnX: 25273.7, SpawnY: 54.1, SpawnZ: 15719.1}
+	for _, n := range []*entity.NPC{dilga, nioclas, ronks} {
+		n.X, n.Y, n.Z = n.SpawnX, n.SpawnY, n.SpawnZ
+		tw.w.NPCs[n.ServerID] = n
+	}
+
+	dests, none, _ := tw.h.coachDests(tw.s, tw.p, dilga)
+	if len(dests) != 0 || !strings.Contains(none, "Dark Solace") {
+		t.Fatalf("no ledger signed: offered %v, says %q; want Dark Solace named and not offered", dests, none)
+	}
+	book[44] = map[string]bool{"Dark Solace": true, "Freeport": true, "Oggok": true}
+	dests, _, _ = tw.h.coachDests(tw.s, tw.p, dilga)
+	if len(dests) != 1 || dests[0].Name != "Dark Solace" || dests[0].World != 0 {
+		t.Fatalf("from Oggok: %+v, want Dark Solace of world 0 alone", dests)
+	}
+	back, _, _ := tw.h.coachDests(tw.s, tw.p, nioclas)
+	if len(back) != 1 || back[0].Name != "Oggok" || back[0].World != 1 || back[0].X != 8962 {
+		t.Fatalf("from Dark Solace: %+v, want Oggok of world 1, at Dilga's", back)
+	}
+	tw.h.travel(tw.s, tw.p, dests[0])
+	if tw.p.World != 0 {
+		t.Errorf("the ride left the player in world %d, want Tunaria", tw.p.World)
+	}
+
+	wanderer := &entity.NPC{ServerID: 9001, Name: "Coachman Wanderer", World: 1, SpawnX: 7000, SpawnY: 54, SpawnZ: 5000}
+	tw.w.NPCs[wanderer.ServerID] = wanderer
+	off, _, _ := tw.h.coachDests(tw.s, tw.p, wanderer)
+	if len(off) != 1 || off[0].Name != "Oggok" {
+		t.Errorf("a coachman of no town in the Rathe offers %+v, want the Rathe's Oggok alone", off)
+	}
+}

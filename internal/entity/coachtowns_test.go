@@ -65,7 +65,7 @@ func TestCoachTownsAreDistinctAndOnTheMap(t *testing.T) {
 			t.Errorf("%s's town %q is not one of coachTowns", coachman, town)
 		}
 	}
-	if len(coachLocationNames) != 30 {
-		t.Errorf("%d coachmen named, want the server's 30 (all but Rathe's Dilga)", len(coachLocationNames))
+	if len(coachLocationNames) != 31 {
+		t.Errorf("%d coachmen named, want the server's 31", len(coachLocationNames))
 	}
 }

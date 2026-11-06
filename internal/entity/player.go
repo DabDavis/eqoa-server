@@ -336,9 +336,10 @@ type CoachDest struct {
 
 	// World is the destination world index, sent RAW (not zigzag) in the
 	// 0x00B2 Teleport byte — verified by capture, see
-	// claude-notes/memcard-world-loading.md. Coach routes are all intra-world
-	// and leave this 0; a Gatekeeper/Harbormaster route is the only thing that
-	// currently sets it, and 8 is what reaches guk through the card loader.
+	// claude-notes/memcard-world-loading.md. A coach route's is its coachman's
+	// world, nearly always the one you stand in (Oggok to Dark Solace is not);
+	// a Gatekeeper/Harbormaster route sets it too, and 8 is what reaches guk
+	// through the card loader.
 	World uint8
 
 	// Fee is the tunar the trip costs (a waysender's; 0 free), MinLevel the

@@ -512,7 +512,7 @@ def plan(db, files, routes=False):
             told = [str(u) for u in (q.get("unresolved") or []) if str(u).strip()]
             quests.append(dict(key=key, file=fname, q=q, classes=classes, giver=giver or (q.get("giver") or ""),
                                steps=steps, events=qev, miss=miss, told=told, factionreq=", ".join(reqs),
-                               unlocks=unlocks, requires=requires_of(q)))
+                               unlocks=unlocks, requires=requires_of(q), hidden=bool(q.get("hidden"))))
     # a quest needing one that is missing or a draft is a draft too; a quest a
     # GM has changed since its import (left as it is) counts as the database has it
     by_key = {x["key"]: x for x in quests}
@@ -531,7 +531,7 @@ def plan(db, files, routes=False):
             return None if gm_kept[r] else f"the quest {r!r} it requires, a draft (a GM's)"
         if dep is None and r not in logged:
             return f"the quest {r!r} it requires, which no file has"
-        if dep is not None and dep.get("draft"):
+        if dep is not None and dep.get("draft") and not dep.get("hidden"):
             return f"the quest {r!r} it requires, a draft"
         return None
 
@@ -540,6 +540,13 @@ def plan(db, files, routes=False):
         changed = False
         for x in quests:
             if x.get("draft") or x["key"] in gm_kept:
+                continue
+            if x.get("hidden"):
+                # a marker (a were's fever: handlers/wereinfect.go): written as a
+                # draft, never offered, and finished by the server alone; one that
+                # requires it is not kept out by it
+                x["draft"], x["why"] = True, ["a marker the server finishes, never offered (hidden)"]
+                changed = True
                 continue
             why = list(x["miss"]) + [f"the file's unresolved {u!r}" for u in x["told"]]
             for r in x["requires"]:

@@ -981,6 +981,7 @@ func (w *World) templateSpecialHitLocked(npc *NPC, target EntityID, now time.Tim
 			w.playerDiedLocked(sess, p, now)
 			return
 		}
+		w.wereBiteLocked(sess, p, npc)           // a were's bite may infect (wereinfect.go)
 		w.playerShieldsLocked(sess, p, npc, now) // a melee hit's answer (dshield.go)
 		return
 	}

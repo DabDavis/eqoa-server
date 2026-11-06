@@ -178,6 +178,48 @@ def old_digest(db, qid):
     return h.hexdigest()
 
 
+class HiddenMarkers(unittest.TestCase):
+    """A hidden quest (a were's fever: handlers/wereinfect.go) is written as a
+    draft and never offered, and a quest requiring it is not kept out by it;
+    the control: the same marker not hidden keeps it out."""
+
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory()
+        self.db = make_db(os.path.join(self.dir.name, "q.db"))
+
+    def tearDown(self):
+        self.db.close()
+        self.dir.cleanup()
+
+    def content(self, hidden):
+        path = os.path.join(self.dir.name, f"weres-{hidden}.json")
+        marker = {"key": "Weres/testwere/infection", "name": "The Test Fever", "giver": "", "steps": [], "notes": "a marker"}
+        if hidden:
+            marker["hidden"] = True
+        hunt = {"key": "Weres/testwere/p3", "name": "The Test Hunt", "giver": "Captain Brindle", "minlevel": 1,
+                "requires": ["Weres/testwere/infection"],
+                "steps": [{"kind": "kill", "target": "Field Boar", "count": 1, "journal": "Kill a boar."}]}
+        with open(path, "w") as f:
+            json.dump({"quests": [marker, hunt]}, f)
+        return iq.load_files([path])
+
+    def row(self, key):
+        qid = self.db.execute("SELECT questid FROM quest_import_quests WHERE key = ?", (key,)).fetchone()[0]
+        return self.db.execute("SELECT questid, enabled, requires, notes FROM quests WHERE questid = ?", (qid,)).fetchone()
+
+    def test_a_hidden_marker_is_a_draft_that_keeps_nothing_out(self):
+        iq.write(self.db, iq.plan(self.db, self.content(True)))
+        marker, hunt = self.row("Weres/testwere/infection"), self.row("Weres/testwere/p3")
+        self.assertEqual(marker[1], 0, "the marker is never offered")
+        self.assertIn("hidden", marker[3])
+        self.assertEqual(hunt[1], 1, "the quest requiring it is in the game")
+        self.assertEqual(hunt[2], str(marker[0]), "and requires it by its id")
+
+    def test_the_control_a_marker_not_hidden_keeps_it_out(self):
+        iq.write(self.db, iq.plan(self.db, self.content(False)))
+        self.assertEqual(self.row("Weres/testwere/p3")[1], 0)
+
+
 class LaterFields(unittest.TestCase):
     def setUp(self):
         self.dir = tempfile.TemporaryDirectory()

@@ -521,9 +521,17 @@ func (r *wereRig) playLine(t *testing.T, line string, a wereArchetype) {
 	}
 	c.say("p2's loot step: %q%s at chance %.2f for %d of item %v; the World holds %d of them (%d attackable), levels %v",
 		tail.Target, alsoText(tail.Also), tail.Chance, tail.Count, tail.Items, len(ns), attack, lv)
+	// the tails until the society's 1000, which p3 requires beside the line's
+	// fever (wereinfect.go: a were's bite; the marker Weres/<line>/infection)
+	need := 0
+	for _, fr := range p3.FactionReqs {
+		if fr.Faction == soc {
+			need = fr.Min
+		}
+	}
 	hand := 0
 	for hand < 10 {
-		if r.why(c, p3) == "" {
+		if r.standing(c, soc) >= need {
 			break
 		}
 		if why := r.take(c, p2); why != "" {
@@ -538,10 +546,20 @@ func (r *wereRig) playLine(t *testing.T, line string, a wereArchetype) {
 		hand++
 		c.say("p2 hand-in %d: %d kills; %s now %d", hand, k, soc, r.standing(c, soc))
 	}
-	if why := r.why(c, p3); why != "" {
-		fail("p3 not offered after %d tail hand-ins: %s", hand, why)
+	if fever := r.lineQuest(line, "infection"); fever == nil {
+		fail("no fever marker (Weres/%s/infection)", line)
+		return
+	} else if r.why(c, p3) == "" {
+		fail("p3 offered with %s %d and no fever", soc, r.standing(c, soc))
 		return
 	}
+	// the bite: a were's melee hit that infects (entity/wereinfect.go rolls it)
+	r.qe.infect(entity.InfectionHit{Session: c.sess, ServerID: c.p.CharServerID, Name: c.p.Name, Line: line, NPCName: tail.Target})
+	if why := r.why(c, p3); why != "" {
+		fail("p3 not offered after %d tail hand-ins and the fever: %s", hand, why)
+		return
+	}
+	c.say("bitten by a %s: the fever; p3 offered", tail.Target)
 	// the giver's next offer is the infection
 	if why := r.take(c, p3); why != "" {
 		fail("p3: %s", why)

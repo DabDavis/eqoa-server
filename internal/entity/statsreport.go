@@ -107,6 +107,9 @@ func (w *World) playerStatsLocked(p *Player, now time.Time) []string {
 	floor, low, high := playerMeleeRoll(p, foe)
 	out = append(out, fmt.Sprintf("Melee: %s; on a level %d creature %d-%d a hit, never under %d",
 		meleeWeaponWords(p), p.Level, max(low, floor), max(high, floor), floor))
+	if line := weaponProcWords(p); line != "" {
+		out = append(out, line)
+	}
 	if p.AttackTarget != 0 && p.Swing.Delay > 0 {
 		s := p.Swing
 		line := fmt.Sprintf("Swing: %s every %.1f s, %d hits a round, reach %.1f", swingName(s.Kind), s.Delay.Seconds(), len(swingHits(s.Kind)), s.Reach)

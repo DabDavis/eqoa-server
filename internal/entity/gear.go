@@ -35,6 +35,11 @@ type Gear struct {
 	// Shields are the worn items that answer a creature's melee hit on their
 	// wearer (wornshield.go: the Breastplate of the Anointed, Splendor)
 	Shields []WornShield
+	// MainProc is the swinging weapon's proc (weaponproc.go), OffProc the off
+	// hand's (equip slot 15), nil for none; OffArmed: a weapon in the off
+	// hand, which makes every second hit of a round
+	MainProc, OffProc *WeaponProc
+	OffArmed          bool
 }
 
 // Add puts one worn item's stats, by stat id, into the sums.

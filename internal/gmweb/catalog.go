@@ -1245,7 +1245,7 @@ var catalog = map[string]tableNote{
 			"attacktype":   {Label: "Attack type", Section: "Combat"},
 			"weapondamage": {Label: "Weapon DMG", Section: "Combat"},
 			"procanim":     {Label: "Proc animation", Section: "Combat"},
-			"weaponproc":   {Label: "Proc", Section: "Combat"},
+			"weaponproc":   {Label: "Range (Return Home's copy, unread)", Help: "not a proc: Return Home's import put the record's range here (a bow's 25-50) and nothing reads it. A weapon procs by its Description (\"Procs a 100 point DD Spell.\", \"Proc a 25 point lifetap.\", \"Procs: Life Tap\"; entity/weaponproc.go)", Section: "Combat"},
 			"str":          {Label: "STR", Section: "Stats"},
 			"sta":          {Label: "STA", Section: "Stats"},
 			"agi":          {Label: "AGI", Section: "Stats"},

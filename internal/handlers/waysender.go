@@ -97,6 +97,50 @@ var wayRoutes = map[string][]wayRoute{
 		{To: "Lavastorm", Arrive: "Explorer Springa", MinLevel: 55},
 	},
 
+	// The boats (petition 1034, Zaeire: "Dockmasters in FP arent giving an
+	// option to visit either destination they offer. Bogman/hazinak nor the
+	// arc/som"): each dockmaster's harbours as EQOA-Data's map marks them
+	// (Map/zones.json: "Dockmaster Yarnning to Arc SoM", "Dockmaster Endol to
+	// Haz HB BV", "Dockmaster D'Eleth to FP HB BV", "Dockmaster Thinda to FP
+	// Arc", "Dockmaster Killeron to FP HB", "Dockmaster Bibbin to FP bv",
+	// "Dockmaster Geben to SoM"), each landing in front of the dockmaster of
+	// the harbour reached: Freeport's Odus boat Yarnning's, its other one
+	// Endol's ("Endol is at the end of the dock you teleport to. He teleports
+	// you to the Hazinak Outpost", neriak-nektulos/cleric; "using Dockmaster
+	// D'Eleth from Hazniak to Freeport", neriak-nektulos/warrior). Sandstorm's
+	// Bibbin offered "Bogman Village." and "Freeport." (pcaps/sandstorm-
+	// warp.pcap). Arcadin and the Stone of Morathals are Odus's (world 2),
+	// the rest Tunaria's. No fee: no guide gives one.
+	"Dockmaster Yarnning": {
+		{To: "Arcadin", Arrive: "Dockmaster Killeron"},
+		{To: "Stone of Morathals", Arrive: "Dockmaster Bibbin"},
+	},
+	"Dockmaster Endol": {
+		{To: "Hazinak", Arrive: "Dockmaster D'Eleth"},
+		{To: "Highbourne", Arrive: "Dockmaster Thinda"},
+		{To: "Bogman Village", Arrive: "Dockmaster Geben"},
+	},
+	"Dockmaster D'Eleth": {
+		{To: "Freeport", Arrive: "Dockmaster Endol"},
+		{To: "Highbourne", Arrive: "Dockmaster Thinda"},
+		{To: "Bogman Village", Arrive: "Dockmaster Geben"},
+	},
+	"Dockmaster Thinda": {
+		{To: "Freeport", Arrive: "Dockmaster Endol"},
+		{To: "Arcadin", Arrive: "Dockmaster Killeron"},
+	},
+	"Dockmaster Killeron": {
+		{To: "Freeport", Arrive: "Dockmaster Yarnning"},
+		{To: "Highbourne", Arrive: "Dockmaster Thinda"},
+	},
+	"Dockmaster Bibbin": {
+		{To: "Freeport", Arrive: "Dockmaster Yarnning"},
+		{To: "Bogman Village", Arrive: "Dockmaster Geben"},
+	},
+	"Dockmaster Geben": {
+		{To: "Stone of Morathals", Arrive: "Dockmaster Bibbin"},
+	},
+
 	// The Plane of Disease (F3 pass 17, "unable to travel to PoD"), the
 	// Secrets world's "Last Home" (world 5): "Log the quest by speaking to
 	// Necrologist Zizclank and his assistant Necroloigst Xeptip. Then you want

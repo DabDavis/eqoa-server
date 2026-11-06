@@ -5,8 +5,9 @@ import (
 	"testing"
 )
 
-// A character's resets in the panel (charresets): a GM gives Hero a free
-// path respec back as a row, audited, which the revert takes away again; a
+// A character's resets in the panel (charresets, a record since every reset
+// is free): a GM writes Hero's path count as a row, audited, which the revert
+// takes away again; a
 // kind the game does not count, a negative count and a row of no character
 // are refused. Deleting the character takes its counts with it. The
 // control: before the change Hero has no row.
@@ -72,9 +73,10 @@ func TestCharacterResetRowsAreAuditedAndRevertible(t *testing.T) {
 	}
 }
 
-// The rehabilitators' prices (rehabsettings) come with every default, a GM
-// changes one, audited and revertible; a setting the game does not read, one
-// spelled otherwise and a value no purse can pay are refused.
+// The rehabilitators' old prices (rehabsettings, read by nothing since every
+// reset is free) come with every default, a GM changes one, audited and
+// revertible; a setting that was never one, one spelled otherwise and a value
+// no purse can pay are refused.
 func TestRehabSettingsAreAGMs(t *testing.T) {
 	f := newFixture(t)
 	c := f.browser()

@@ -248,20 +248,18 @@ func (f *rehabFixture) spendTraining(str, sta int) {
 		str, sta, str+sta, f.sid)
 }
 
-// The menu says what the character has left and offers three answers, a
-// page of CLIENT's answer box (VIWndResponse shows three, then More, Back and
-// its own Close): a reset (then which, each free while a free one is left and
-// at its price after), a path, a rose. The question is a rehabilitator's box
-// (0x54), which no other NPC answers; a Close (255) and an old box do nothing.
+// The menu is the greeting and two answers: a reset (then which) and a path,
+// with no price, free count or rose anywhere (the user, 2026-11-06: every
+// reset free). The question is a rehabilitator's box (0x54), which no other
+// NPC answers; a Close (255) and an old box do nothing.
 func TestRehabilitatorsMenu(t *testing.T) {
 	f := newRehabFixture(t)
 	m := f.talk()
-	if !rehabSays(m, "Rehabilitator Anja: Be welcome, Talker.") ||
-		!rehabSays(m, "You have 1 free Combat Mastery reset, 1 free stat point reset and 2 free path respecs left, and hold no Rose of Rehabilitation.") {
+	if !rehabSays(m, "Rehabilitator Anja: Be welcome, Talker.") {
 		t.Fatalf("the greeting: %q", m)
 	}
 	q, answers := asked(m)
-	want := []string{"Reset my masteries or stat points", "Choose a path again (free)", "Buy a Rose of Rehabilitation (10,000,000 tunar)"}
+	want := []string{"Reset my masteries or stat points", "Choose a path again"}
 	if q != rehabAskMenu || strings.Join(answers, "|") != strings.Join(want, "|") {
 		t.Fatalf("the menu: %q %q", q, answers)
 	}
@@ -269,15 +267,19 @@ func TestRehabilitatorsMenu(t *testing.T) {
 	if !IsRehabBox(first) || first&0xFF000000 != 0x54000000 {
 		t.Errorf("the box id %#x is not a rehabilitator's", first)
 	}
+	all := append([]string(nil), m...)
 	m = f.pick(0)
+	all = append(all, m...)
 	q, answers = asked(m)
-	want = []string{"My Combat Masteries (free)", "My stat points (free)", "Both (free)"}
+	want = []string{"My Combat Masteries", "My stat points", "Both"}
 	if q != rehabAskResets || strings.Join(answers, "|") != strings.Join(want, "|") {
 		t.Fatalf("which reset: %q %q", q, answers)
 	}
-	for _, l := range append(answers, "Buy a Rose of Rehabilitation (10,000,000 tunar)") {
-		if len([]rune(l)) > questAnswerChars {
-			t.Errorf("%q is longer than CLIENT shows", l)
+	for _, l := range all {
+		for _, w := range []string{"free", "tunar", "Rose", "rose", " left"} {
+			if strings.Contains(l, w) {
+				t.Errorf("%q says %q", l, w)
+			}
 		}
 	}
 	// a Close keeps the box; the old menu's id answers nothing now
@@ -294,156 +296,151 @@ func TestRehabilitatorsMenu(t *testing.T) {
 	}
 }
 
-// A free Combat Mastery reset is used once: the masteries go, their points
-// come back, the count is kept; the next is asked 1,000,000 tunar and takes
-// exactly that, and with too little it is refused, nothing taken.
-func TestRehabMasteryResetFreeOnceThenPriced(t *testing.T) {
-	f := newRehabFixture(t)
-	f.purse(5000)
-	f.giveMastery()
-	f.resets()
-	m := f.pick(0)
-	if q, a := asked(m); q != "Shall I begin? It uses your free mastery reset." || strings.Join(a, "|") != "Yes, begin.|Not now." {
-		t.Fatalf("the question: %q %q (%q)", q, a, m)
+// pricedAsBefore sets the GMs' old settings to charge from the first reset:
+// no free one of any kind and every price high. The rehabilitators no longer
+// read them, so a test that passes with them set shows nothing is charged.
+func (f *rehabFixture) pricedAsBefore() {
+	f.t.Helper()
+	for setting, v := range map[string]int{"free_mastery": 0, "free_training": 0, "free_path": 0, "price_mastery": 1_000_000,
+		"price_training": 1_000_000, "price_both": 2_000_000, "price_rose": 10_000_000} {
+		f.exec(`UPDATE rehabsettings SET value = ? WHERE setting = ?`, v, setting)
 	}
-	m = f.pick(0)
-	if len(f.tw.p.CMs) != 0 || f.tw.p.Mastery.Points != 100 {
-		t.Fatalf("after the free reset: %v %+v (%q)", f.tw.p.CMs, f.tw.p.Mastery, m)
-	}
-	if owned, _ := f.store.LoadOwnedCMs(f.sid); len(owned) != 0 {
-		t.Errorf("the ranks kept: %v", owned)
-	}
-	if !rehabSays(m, "It is done. 1 mastery is unlearned, and 10 points are yours to spend again.") || !rehabSays(m, "That was your free mastery reset.") {
-		t.Errorf("the lines: %q", m)
-	}
-	if u, p := f.counts(database.ResetMastery); u != 1 || p != 0 || f.purseNow() != 5000 {
-		t.Errorf("used %d paid %d, purse %d: want 1 0 5000", u, p, f.purseNow())
-	}
+}
 
-	// the second: priced
-	f.giveMastery()
-	m = f.resets()
-	if _, a := asked(m); a[0] != "My Combat Masteries (1,000,000 tunar)" {
-		t.Fatalf("the second's price: %q", a)
+// saysNothingOfAPrice fails when a box in msgs speaks of a price, a free
+// count or a rose.
+func (f *rehabFixture) saysNothingOfAPrice(msgs []string) {
+	f.t.Helper()
+	for _, m := range msgs {
+		for _, w := range []string{"tunar", "paid", "free", "Rose", " left"} {
+			if strings.Contains(m, w) {
+				f.t.Errorf("%q says %q", m, w)
+			}
+		}
 	}
-	f.purse(999_999)
-	m = f.pick(0)
-	if !rehabSays(m, "That costs 1,000,000 tunar, and you carry 999,999 tunar.") || boxID(m) != 0 {
-		t.Fatalf("too little tunar: %q", m)
+}
+
+// A Combat Mastery reset is free every time: the masteries go, their points
+// come back, the count is kept; the fourth in a row is as free as the first,
+// with no tunar at all and the GMs' old prices set, and asks only "Shall I
+// begin?". Nothing to reset: said, nothing counted.
+func TestRehabMasteryResetAlwaysFree(t *testing.T) {
+	f := newRehabFixture(t)
+	f.pricedAsBefore()
+	f.purse(0)
+	for i := 1; i <= 4; i++ {
+		f.giveMastery()
+		m := f.resets()
+		f.saysNothingOfAPrice(m)
+		m = f.pick(0)
+		if q, a := asked(m); q != rehabAskBegin || strings.Join(a, "|") != "Yes, begin.|Not now." {
+			t.Fatalf("reset %d's question: %q %q (%q)", i, q, a, m)
+		}
+		f.saysNothingOfAPrice(m)
+		m = f.pick(0)
+		if len(f.tw.p.CMs) != 0 || f.tw.p.Mastery.Points != 100 {
+			t.Fatalf("after reset %d: %v %+v (%q)", i, f.tw.p.CMs, f.tw.p.Mastery, m)
+		}
+		if owned, _ := f.store.LoadOwnedCMs(f.sid); len(owned) != 0 {
+			t.Errorf("reset %d: the ranks kept: %v", i, owned)
+		}
+		if !rehabSays(m, "It is done. 1 mastery is unlearned, and 10 points are yours to spend again.") {
+			t.Errorf("reset %d's lines: %q", i, m)
+		}
+		f.saysNothingOfAPrice(m)
+		if u, p := f.counts(database.ResetMastery); u != i || p != 0 || f.purseNow() != 0 {
+			t.Errorf("reset %d: used %d paid %d, purse %d: want %d 0 0", i, u, p, f.purseNow(), i)
+		}
 	}
-	if len(f.tw.p.CMs) != 1 || f.purseNow() != 999_999 {
-		t.Fatalf("refused, yet changed: %v, purse %d", f.tw.p.CMs, f.purseNow())
-	}
-	f.purse(1_250_000)
-	f.resets()
-	m = f.pick(0)
-	if q, _ := asked(m); q != "Shall I begin? It costs 1,000,000 tunar." {
-		t.Fatalf("the paid question: %q", q)
-	}
-	m = f.pick(0)
-	if len(f.tw.p.CMs) != 0 || f.purseNow() != 250_000 || !rehabSays(m, "You paid 1,000,000 tunar.") {
-		t.Fatalf("the paid reset: %v, purse %d, %q", f.tw.p.CMs, f.purseNow(), m)
-	}
-	if u, p := f.counts(database.ResetMastery); u != 1 || p != 1 {
-		t.Errorf("used %d paid %d: want 1 1", u, p)
-	}
-	// nothing to reset: said, nothing taken
+	// nothing to reset: said, nothing counted
 	f.resets()
 	if m := f.pick(0); !rehabSays(m, rehabNoMastery) || boxID(m) != 0 {
 		t.Errorf("no masteries: %q", m)
 	}
+	if u, _ := f.counts(database.ResetMastery); u != 4 {
+		t.Errorf("nothing reset, yet counted: %d", u)
+	}
 }
 
-// A free stat point reset gives back the points spent, as #rst_both's
-// training half: the base stats as born, the row's tp columns 0, the trainer
-// told (0x001D); the next is priced by the GMs' setting, read at the talk, and
-// takes exactly that.
-func TestRehabStatPointsResetFreeOnceThenPriced(t *testing.T) {
+// A stat point reset gives back the points spent, as #rst_both's training
+// half: the base stats as born, the row's tp columns 0, the trainer told
+// (0x001D); free every time, the fourth too, the GMs' old prices set.
+func TestRehabStatPointsResetAlwaysFree(t *testing.T) {
 	f := newRehabFixture(t)
+	f.pricedAsBefore()
 	f.purse(800_000)
-	f.spendTraining(5, 3)
-	f.resets()
-	m := f.pick(1)
-	if q, _ := asked(m); q != "Shall I begin? It uses your free stat point reset." {
-		t.Fatalf("the question: %q (%q)", q, m)
-	}
-	m = f.pick(0)
-	rec, _ := f.store.GetByServerID(f.sid)
-	bs := entity.LookupBaseStats(0, 0)
-	if rec.TPStrength != 0 || rec.TPStamina != 0 || rec.UnusedTP != 8 || f.tw.p.BaseStr != bs.Str || f.tw.p.UnusedTP != 8 {
-		t.Fatalf("after: row tp %d/%d unused %d, base STR %d (born %d), unused %d", rec.TPStrength, rec.TPStamina,
-			rec.UnusedTP, f.tw.p.BaseStr, bs.Str, f.tw.p.UnusedTP)
-	}
-	if !rehabSays(m, "8 training points are yours to spend again.") {
-		t.Errorf("the lines: %q", m)
-	}
-	if !hasMsg(m, fmt.Sprintf("op:%04X", uint16(protocol.OpcodeUpdateTrainingPoints))) && !hasMsg(m, "op:001D") {
-		t.Errorf("the trainer not told: %q", m)
-	}
-	if u, p := f.counts(database.ResetTraining); u != 1 || p != 0 {
-		t.Errorf("used %d paid %d", u, p)
-	}
-
-	// a GM's price: read at the talk, taken exactly
-	f.exec(`UPDATE rehabsettings SET value = 750000 WHERE setting = 'price_training'`)
-	f.spendTraining(2, 0)
-	m = f.resets()
-	if _, a := asked(m); a[1] != "My stat points (750,000 tunar)" {
-		t.Fatalf("the GM's price: %q", a)
-	}
-	f.pick(1)
-	f.pick(0)
-	if f.purseNow() != 50_000 {
-		t.Errorf("the purse after 750,000 of 800,000: %d", f.purseNow())
-	}
-	if u, p := f.counts(database.ResetTraining); u != 1 || p != 1 {
-		t.Errorf("used %d paid %d: want 1 1", u, p)
+	for i := 1; i <= 4; i++ {
+		f.spendTraining(5, 3)
+		f.resets()
+		m := f.pick(1)
+		if q, _ := asked(m); q != rehabAskBegin {
+			t.Fatalf("reset %d's question: %q (%q)", i, q, m)
+		}
+		m = f.pick(0)
+		rec, _ := f.store.GetByServerID(f.sid)
+		bs := entity.LookupBaseStats(0, 0)
+		if rec.TPStrength != 0 || rec.TPStamina != 0 || rec.UnusedTP != 8 || f.tw.p.BaseStr != bs.Str || f.tw.p.UnusedTP != 8 {
+			t.Fatalf("after reset %d: row tp %d/%d unused %d, base STR %d (born %d), unused %d", i, rec.TPStrength, rec.TPStamina,
+				rec.UnusedTP, f.tw.p.BaseStr, bs.Str, f.tw.p.UnusedTP)
+		}
+		if !rehabSays(m, "8 training points are yours to spend again.") {
+			t.Errorf("reset %d's lines: %q", i, m)
+		}
+		if !hasMsg(m, fmt.Sprintf("op:%04X", uint16(protocol.OpcodeUpdateTrainingPoints))) && !hasMsg(m, "op:001D") {
+			t.Errorf("reset %d: the trainer not told: %q", i, m)
+		}
+		f.saysNothingOfAPrice(m)
+		if u, p := f.counts(database.ResetTraining); u != i || p != 0 || f.purseNow() != 800_000 {
+			t.Errorf("reset %d: used %d paid %d, purse %d", i, u, p, f.purseNow())
+		}
+		f.tw.p.UnusedTP = 0
+		f.exec(`UPDATE characters SET unusedTP = 0 WHERE serverid = ?`, f.sid)
 	}
 }
 
-// Both together: free while both have a free reset; with one left, the
-// other's price; with none, the price of both (a GM's 1,500,000 here, not the
-// two prices added); a GM's bonus gives one more free one.
+// Both together, free every time: four in a row with the GMs' old prices
+// set, each counted as one of each kind, the purse untouched; with only the
+// masteries to reset, both does them alone (said so).
 func TestRehabBothTogether(t *testing.T) {
 	f := newRehabFixture(t)
+	f.pricedAsBefore()
 	f.purse(4_000_000)
-	reset := func(wantLabel, wantQuestion string) {
-		t.Helper()
+	for i := 1; i <= 4; i++ {
 		f.giveMastery()
 		f.spendTraining(4, 0)
 		m := f.resets()
-		if _, a := asked(m); a[2] != wantLabel {
-			t.Fatalf("the label: %q, want %q", a[2], wantLabel)
+		if _, a := asked(m); a[2] != "Both" {
+			t.Fatalf("the label: %q", a[2])
 		}
 		m = f.pick(2)
-		if q, _ := asked(m); q != wantQuestion {
-			t.Fatalf("the question: %q, want %q (%q)", q, wantQuestion, m)
+		if q, _ := asked(m); q != rehabAskBegin || !rehabSays(m, rehabBothIs) {
+			t.Fatalf("reset %d's question: %q (%q)", i, q, m)
 		}
-		f.pick(0)
+		m = f.pick(0)
 		if len(f.tw.p.CMs) != 0 || f.tw.p.UnusedTP != 4 {
-			t.Fatalf("not reset: %v, unused %d", f.tw.p.CMs, f.tw.p.UnusedTP)
+			t.Fatalf("reset %d not done: %v, unused %d", i, f.tw.p.CMs, f.tw.p.UnusedTP)
 		}
+		f.saysNothingOfAPrice(m)
 		f.tw.p.UnusedTP = 0
-	}
-	reset("Both (free)", "Shall I begin? It uses your free mastery reset and your free stat point reset.")
-	if f.purseNow() != 4_000_000 {
-		t.Fatalf("free, yet %d", f.purseNow())
-	}
-	// a GM's price of both, not the two prices added
-	f.exec(`UPDATE rehabsettings SET value = 1500000 WHERE setting = 'price_both'`)
-	reset("Both (1,500,000 tunar)", "Shall I begin? It costs 1,500,000 tunar.")
-	if f.purseNow() != 2_500_000 {
-		t.Fatalf("after the price of both: %d", f.purseNow())
-	}
-	f.exec(`UPDATE charresets SET bonus = 1 WHERE serverid = ? AND kind = 'mastery'`, f.sid)
-	reset("Both (1,000,000 tunar)", "Shall I begin? It costs 1,000,000 tunar and your free mastery reset.")
-	if f.purseNow() != 1_500_000 {
-		t.Fatalf("after the stat points' price: %d", f.purseNow())
+		f.exec(`UPDATE characters SET unusedTP = 0 WHERE serverid = ?`, f.sid)
 	}
 	um, pm := f.counts(database.ResetMastery)
 	ut, pt := f.counts(database.ResetTraining)
-	if um != 2 || pm != 1 || ut != 1 || pt != 2 {
-		t.Errorf("mastery used %d paid %d, training used %d paid %d: want 2 1 1 2", um, pm, ut, pt)
+	if um != 4 || pm != 0 || ut != 4 || pt != 0 || f.purseNow() != 4_000_000 {
+		t.Errorf("mastery used %d paid %d, training used %d paid %d, purse %d: want 4 0 4 0 4000000", um, pm, ut, pt, f.purseNow())
+	}
+	// the masteries alone, through both
+	f.giveMastery()
+	f.resets()
+	if m := f.pick(2); !rehabSays(m, "You have spent no training points, so I will draw out your masteries alone.") {
+		t.Fatalf("both with no stat points spent: %q", m)
+	}
+	f.pick(0)
+	if um, _ := f.counts(database.ResetMastery); um != 5 || len(f.tw.p.CMs) != 0 {
+		t.Errorf("the masteries alone: used %d, ranks %v", um, f.tw.p.CMs)
+	}
+	if ut, _ := f.counts(database.ResetTraining); ut != 4 {
+		t.Errorf("no stat points reset, yet counted: %d", ut)
 	}
 }
 
@@ -604,8 +601,8 @@ func countOp(msgs []string, op uint16) int {
 // bank as picks from before were not kept; the epic's Warcry is not the 49's),
 // then the step's other options; on the yes Roar leaves the book (0x00B8),
 // Pillar of Strength enters it (0x00B3), the pick is kept, every quest row stays
-// as it was, no experience comes, the 40 and 49 picks stay, and the free respec
-// is counted. The control: "Not now." changes nothing.
+// as it was, no experience comes, the 40 and 49 picks stay, and the change is
+// counted, free. The control: "Not now." changes nothing.
 func TestRehabPathChosenAgainOnTheSpot(t *testing.T) {
 	f := newRehabFixture(t)
 	f.warriorPaths()
@@ -624,8 +621,7 @@ func TestRehabPathChosenAgainOnTheSpot(t *testing.T) {
 		!rehabSays(m, "Roar leaves your book and Pillar of Strength enters it.") {
 		t.Fatalf("the question's words: %q", m)
 	}
-	if q, a := asked(m); q != "Shall I make the change? This is a free path respec (1 left after)." ||
-		strings.Join(a, "|") != "Yes, change it.|Not now." {
+	if q, a := asked(m); q != rehabAskChange || strings.Join(a, "|") != "Yes, change it.|Not now." {
 		t.Fatalf("the question: %q %q", q, a)
 	}
 	f.pick(1) // not now
@@ -652,10 +648,10 @@ func TestRehabPathChosenAgainOnTheSpot(t *testing.T) {
 		t.Errorf("the client was told: %q", m)
 	}
 	if !rehabSays(m, "It is done. Your level 30 path is Pillar of Strength now.") ||
-		!rehabSays(m, "Out of your book: Roar. Into it: Pillar of Strength.") ||
-		!rehabSays(m, "That was a free path respec: 1 left.") {
+		!rehabSays(m, "Out of your book: Roar. Into it: Pillar of Strength.") {
 		t.Errorf("the lines: %q", m)
 	}
+	f.saysNothingOfAPrice(m)
 	if u, p := f.counts(database.ResetPath); u != 1 || p != 0 {
 		t.Errorf("path used %d paid %d", u, p)
 	}
@@ -847,10 +843,10 @@ func TestRehabInferredPickChanged(t *testing.T) {
 }
 
 // A path's item worn is taken off first, and a pack with no room for the new
-// item refuses: both before anything moves, the rose kept (it is used only
-// when the change is done). The controls: taken off, and with the falchion in
-// the pack (its record freed for the poleaxe), the change goes through for
-// the rose.
+// item refuses: both before anything moves, nothing counted. The controls:
+// taken off, and with the falchion in the pack (its record freed for the
+// poleaxe), the change goes through, free, past the two free path respecs
+// there were (the rose held is not taken).
 func TestRehabPathChangeRefusedBeforeAnythingMoves(t *testing.T) {
 	f := newRehabFixture(t)
 	f.warriorPaths()
@@ -859,12 +855,12 @@ func TestRehabPathChangeRefusedBeforeAnythingMoves(t *testing.T) {
 	unchanged := func(what string) {
 		t.Helper()
 		if !f.knows(spHowl) || f.knows(spForce) || f.held(itFalchion) != 1 || f.held(itPoleaxe) != 0 ||
-			f.held(database.RoseOfRehabilitation) != 1 || f.picks(qL40) != "1:0" {
+			f.picks(qL40) != "1:0" {
 			t.Fatalf("%s, yet changed: Howl %v Force %v falchion %d poleaxe %d roses %d picks %q", what, f.knows(spHowl),
 				f.knows(spForce), f.held(itFalchion), f.held(itPoleaxe), f.held(database.RoseOfRehabilitation), f.picks(qL40))
 		}
-		if _, p := f.counts(database.ResetPath); p != 0 {
-			t.Fatalf("%s, yet a rose counted", what)
+		if u, p := f.counts(database.ResetPath); u != 2 || p != 0 {
+			t.Fatalf("%s, yet counted: used %d paid %d", what, u, p)
 		}
 	}
 
@@ -896,104 +892,68 @@ func TestRehabPathChangeRefusedBeforeAnythingMoves(t *testing.T) {
 	f.pathsAsked()
 	f.pick(2)
 	m = f.pick(0)
-	if q, _ := asked(m); q != "Shall I make the change, for a Rose of Rehabilitation?" {
+	if q, _ := asked(m); q != rehabAskChange {
 		t.Fatalf("the control's question: %q", m)
 	}
 	f.pick(0)
-	if f.knows(spHowl) || f.held(itFalchion) != 0 || f.held(itPoleaxe) != 1 || f.held(database.RoseOfRehabilitation) != 0 {
+	if f.knows(spHowl) || f.held(itFalchion) != 0 || f.held(itPoleaxe) != 1 || f.held(database.RoseOfRehabilitation) != 1 {
 		t.Errorf("the control: Howl %v falchion %d poleaxe %d roses %d", f.knows(spHowl), f.held(itFalchion), f.held(itPoleaxe),
 			f.held(database.RoseOfRehabilitation))
 	}
-	if u, p := f.counts(database.ResetPath); u != 2 || p != 1 {
-		t.Errorf("path used %d paid %d: want 2 1", u, p)
+	if u, p := f.counts(database.ResetPath); u != 3 || p != 0 {
+		t.Errorf("path used %d paid %d: want 3 0", u, p)
 	}
 }
 
-// Past the free path respecs a path needs a rose: offered for sale, refused
-// with too little tunar (nothing taken), bought for exactly 10,000,000 and
-// given, then the paths asked and one changed for it, the rose gone; the menu
-// sells one too, at the GMs' price.
-func TestRehabRoseForAPath(t *testing.T) {
+// A path is free every time: past the two free respecs there were, with no
+// tunar, no rose and the GMs' old prices set, the same level 30 pick changed
+// back and forth four times on the spot, each counted, nothing paid, no rose
+// asked for or offered; a rose the character holds stays where it is, and a
+// mastery reset leaves it too.
+func TestRehabPathsAlwaysFree(t *testing.T) {
 	f := newRehabFixture(t)
 	f.warriorPaths()
+	f.pricedAsBefore()
 	f.exec(`INSERT INTO charresets (serverid, kind, used) VALUES (?, 'path', 2)`, f.sid)
-	m := f.talk()
-	if _, a := asked(m); a[1] != "Choose a path again (a Rose of Rehabilitation)" {
-		t.Fatalf("the menu: %q", a)
-	}
-	f.purse(9_999_999)
-	m = f.pick(1)
-	if !rehabSays(m, "I sell them for 10,000,000 tunar, and you carry 9,999,999 tunar.") || boxID(m) != 0 {
-		t.Fatalf("too little tunar: %q", m)
-	}
-	if f.purseNow() != 9_999_999 || f.held(database.RoseOfRehabilitation) != 0 {
-		t.Fatal("refused, yet changed")
-	}
-	f.purse(10_000_000)
-	f.talk()
-	m = f.pick(1)
-	if q, a := asked(m); q != "Will you buy one?" || a[0] != "Yes, buy a rose." {
-		t.Fatalf("the offer: %q", m)
-	}
-	m = f.pick(0)
-	if f.purseNow() != 0 || f.held(database.RoseOfRehabilitation) != 1 || !rehabSays(m, "You paid 10,000,000 tunar.") {
-		t.Fatalf("bought: purse %d, roses %d (%q)", f.purseNow(), f.held(database.RoseOfRehabilitation), m)
-	}
-	if q, _ := asked(m); q != rehabAskPath {
-		t.Fatalf("the paths not asked after the rose: %q", m)
-	}
-	f.pick(1)
-	m = f.pick(0)
-	if q, _ := asked(m); q != "Shall I make the change, for a Rose of Rehabilitation?" {
-		t.Fatalf("the question: %q", m)
-	}
-	m = f.pick(0)
-	if f.held(database.RoseOfRehabilitation) != 0 || f.knows(spRoar) || !f.knows(spStrength) || !rehabSays(m, "You gave up a Rose of Rehabilitation.") {
-		t.Fatalf("changed for the rose: roses %d, Roar %v, Pillar of Strength %v (%q)", f.held(database.RoseOfRehabilitation),
-			f.knows(spRoar), f.knows(spStrength), m)
-	}
-	if u, p := f.counts(database.ResetPath); u != 2 || p != 1 {
-		t.Errorf("path used %d paid %d: want 2 1", u, p)
-	}
-
-	// the menu's rose, at a GM's price
-	f.exec(`UPDATE rehabsettings SET value = 4000000 WHERE setting = 'price_rose'`)
-	f.purse(5_000_000)
-	m = f.talk()
-	if _, a := asked(m); a[2] != "Buy a Rose of Rehabilitation (4,000,000 tunar)" {
-		t.Fatalf("the menu's rose: %q", a)
-	}
-	f.pick(2)
-	f.pick(0)
-	if f.purseNow() != 1_000_000 || f.held(database.RoseOfRehabilitation) != 1 {
-		t.Errorf("bought from the menu: purse %d roses %d", f.purseNow(), f.held(database.RoseOfRehabilitation))
-	}
-}
-
-// A rose is for paths alone: a mastery reset past the free one asks tunar
-// and leaves the rose; the control: the next path change takes it.
-func TestRehabRoseIsForPathsOnly(t *testing.T) {
-	f := newRehabFixture(t)
-	f.warriorPaths()
-	f.exec(`INSERT INTO charresets (serverid, kind, used) VALUES (?, 'mastery', 1), (?, 'path', 2)`, f.sid, f.sid)
 	f.own(database.RoseOfRehabilitation, 1, -1, 0)
-	f.purse(1_000_000)
+	f.purse(0)
+	want := []string{"Pillar of Strength", "Roar"}
+	for i := 1; i <= 4; i++ {
+		m := f.talk()
+		f.saysNothingOfAPrice(m)
+		if _, a := asked(m); a[1] != "Choose a path again" {
+			t.Fatalf("change %d: the menu %q", i, a)
+		}
+		m = f.pick(1)
+		if q, _ := asked(m); q != rehabAskPath {
+			t.Fatalf("change %d: the paths not asked: %q", i, m)
+		}
+		f.pick(1) // the level 30 pick
+		m = f.pick(0)
+		if q, _ := asked(m); q != rehabAskChange {
+			t.Fatalf("change %d's question: %q", i, m)
+		}
+		f.saysNothingOfAPrice(m)
+		m = f.pick(0)
+		now := want[(i+1)%2]
+		if !rehabSays(m, "It is done. Your level 30 path is "+now+" now.") {
+			t.Fatalf("change %d: %q", i, m)
+		}
+		f.saysNothingOfAPrice(m)
+		if u, p := f.counts(database.ResetPath); u != 2+i || p != 0 || f.purseNow() != 0 || f.held(database.RoseOfRehabilitation) != 1 {
+			t.Fatalf("change %d: used %d paid %d, purse %d, roses %d", i, u, p, f.purseNow(), f.held(database.RoseOfRehabilitation))
+		}
+	}
+	if !f.knows(spRoar) || f.knows(spStrength) || f.picks(qL30) != "1:0" {
+		t.Errorf("after four changes: Roar %v, Pillar of Strength %v, picks %q", f.knows(spRoar), f.knows(spStrength), f.picks(qL30))
+	}
+	// a mastery reset leaves the rose too
 	f.giveMastery()
 	f.resets()
-	m := f.pick(0)
-	if q, _ := asked(m); q != "Shall I begin? It costs 1,000,000 tunar." {
-		t.Fatalf("the mastery question: %q", m)
-	}
-	f.pick(0)
-	if len(f.tw.p.CMs) != 0 || f.purseNow() != 0 || f.held(database.RoseOfRehabilitation) != 1 {
-		t.Fatalf("a mastery reset: ranks %v, purse %d, roses %d", f.tw.p.CMs, f.purseNow(), f.held(database.RoseOfRehabilitation))
-	}
-	f.pathsAsked()
-	f.pick(1)
 	f.pick(0)
 	f.pick(0)
-	if f.held(database.RoseOfRehabilitation) != 0 || f.knows(spRoar) {
-		t.Errorf("the path: roses %d, Roar %v", f.held(database.RoseOfRehabilitation), f.knows(spRoar))
+	if len(f.tw.p.CMs) != 0 || f.held(database.RoseOfRehabilitation) != 1 || f.purseNow() != 0 {
+		t.Errorf("a mastery reset: ranks %v, roses %d, purse %d", f.tw.p.CMs, f.held(database.RoseOfRehabilitation), f.purseNow())
 	}
 }
 

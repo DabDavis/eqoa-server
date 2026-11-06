@@ -40,6 +40,8 @@ type InteractHandler struct {
 
 	// dyer answers the Armor Dyers (dyer.go); nil: no dyer
 	dyer *Dyer
+	// genie is the lamps' genies (genie.go)
+	genie *Genie
 
 	// dialogLines is npcdialog (database.NPCDialog): what a town's people and
 	// the guards say (entity/dialog.go). Nil: they say nothing.
@@ -206,6 +208,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 
 	// A corpse: its loot (loot.go).
 	if npc, ok := targetEntity.(*entity.NPC); ok && npc.Dead && h.corpse != nil && h.corpse(sess, npc) {
+		return nil
+	}
+
+	// A lamp's genie (genie.go): its master's wishes, no one else's.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.genie.Talk(sess, player, npc) {
 		return nil
 	}
 
@@ -478,6 +485,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// a dyer's question (dyer.go); an old one does nothing
 	if h.dyer.Answer(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// a genie's (genie.go); an old one does nothing
+	if h.genie.Answer(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// a coachman's offer to sign every ledger at once (coachledger.go); an

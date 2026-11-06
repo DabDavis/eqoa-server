@@ -45,6 +45,9 @@ type EquipHandler struct {
 	eat      func(*session.Session, entity.Consumable, time.Time) error
 	consumed func(*session.Session) // the World's Consumed: the cheer
 
+	// genie is the lamps' genies (genie.go): a lamp's Use brings one
+	genie *Genie
+
 	fishing *FishingHandler // a fishing pole used from the HUD (fishing.go)
 	craft   *CraftHandler   // a recipe scroll used (craft.go)
 
@@ -429,6 +432,11 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 		}
 		if isScroll(&row.Pattern) {
 			h.scribe(sess, player, idx, row)
+			return nil
+		}
+		// the Genie's Lamp, never spent (genie.go)
+		if IsGenieLamp(&row.Pattern) {
+			h.genie.Summon(sess, player)
 			return nil
 		}
 		if c, ok := consumableOf(&row.Pattern); ok {

@@ -545,6 +545,36 @@ func (p *Player) Attacking() bool {
 	return p.AutoAttack || pressed || inHand
 }
 
+// broadcastPlayerSwingLocked shows everyone who sees the player, but the player,
+// its round's swing: 0x00B1 with the swing's effect at its target, as a creature's
+// (rounds.go). The swinger's own client plays its own (AutoAttackTick) and is sent
+// none, as Sandstorm's was; nothing told anyone else, so to them a player in a fight
+// stood still while its target's hit points fell (the GM Jibrish, watching two players
+// fight: "im not seeing their auto attack animations fire off reliably"). Must be
+// called with the lock held.
+func (w *World) broadcastPlayerSwingLocked(p *Player, target EntityID) {
+	name := SwingEffectName(p.Swing.Kind)
+	if name == "" || w.SessionManager == nil {
+		return
+	}
+	fx, ms := HashResourceID(name), uint32(p.Swing.Delay/time.Millisecond)
+	w.SessionManager.ForEach(func(s *session.Session) bool {
+		if !s.CharacterInWorld() || w.sessionPlayerLocked(s) == p {
+			return true
+		}
+		c := w.objectIDSeenByLocked(s, p.ServerID)
+		if c == 0 {
+			return true
+		}
+		t := w.objectIDSeenByLocked(s, target)
+		if t == 0 {
+			t = c
+		}
+		w.sendCastingCombat(s, c, t, ms, fx)
+		return true
+	})
+}
+
 // firstRound is how long after its 0x000F the first round's button is
 // read. The round itself is the press's: its hits on the press's clock, the
 // first 0.5 s after it (Attack1's), as the client's own swing, which plays
@@ -563,7 +593,8 @@ const firstRound = 250 * time.Millisecond
 // (roundStart); the round in hand lands whole, the button up or not, as
 // Sandstorm's did (a bard's hits went on 1.15 s past the release, and no
 // further, the training dummy still hitting him). The player's own swing is
-// played by its client: no 0x00B1. Every tick; must be called with the lock
+// played by its client: no 0x00B1 to it, one to those who see it
+// (broadcastPlayerSwingLocked). Every tick; must be called with the lock
 // held.
 func (w *World) attackSystem(now time.Time) {
 	for _, p := range w.Players {
@@ -590,6 +621,7 @@ func (w *World) attackSystem(now time.Time) {
 		p.RoundStart, p.RoundHits = start, 0
 		p.NextSwing = p.RoundStart.Add(p.Swing.Delay)
 		p.swingTimer = p.NextSwing
+		w.broadcastPlayerSwingLocked(p, npc.ServerID)
 		w.playerRoundHitsLocked(p, npc, now)
 	}
 }

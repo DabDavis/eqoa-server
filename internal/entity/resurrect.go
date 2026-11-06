@@ -191,12 +191,52 @@ func rezAmount(t *Player, pct int, now time.Time) int {
 	return max(0, min(n, t.Debt))
 }
 
-// rezStartLocked checks a rez as it begins (StartCast): when no target has
-// anything to recover, the refusal's line, and a fizzle (the lists' "the
-// spell fizzles otherwise"). A pet is no player: it has nothing to recover.
+// rezNamesAnotherLocked reports a rez's own targets naming a player other than
+// its caster. The workbook gives nearly every rez a group's scope at an endless
+// radius where its record and its line say a target, and an area of a group's
+// starts from its caster (areaStartLocked), so until 2026-11-06 every such rez cast
+// at someone landed on its caster, and on the group's others with no rez in it:
+// no debt came off anyone (petition 1128: "rez does not work i think it my be self
+// casting?"). Cast at someone, it is that one's alone. Must be called with the
+// lock held.
+func (w *World) rezNamesAnotherLocked(targets []EntityID, p *Player) bool {
+	for _, id := range targets {
+		if id != p.ServerID && w.Players[id] != nil {
+			return true
+		}
+	}
+	return false
+}
+
+// rezGroupNearLocked is the others of a group's rez cast at its caster, or a self
+// spell's of a group's scope: the members of its group within r in its world, dead
+// or alive, with something for it to do: a share of debt, or a way back to the body.
 // Must be called with the lock held.
-func (w *World) rezStartLocked(targets []EntityID, d *SpellDef, now time.Time) (refusal string, fizzle bool) {
+func (w *World) rezGroupNearLocked(p *Player, pct int, r float32, now time.Time) []areaNear {
+	var out []areaNear
+	for _, m := range w.groupMembersLocked(p) {
+		if m == p || m.World != p.World || (rezAmount(m, pct, now) <= 0 && !m.Rez.returns(now)) {
+			continue
+		}
+		if d := dist3(m.X, m.Y, m.Z, p.X, p.Y, p.Z); d <= r {
+			out = append(out, areaNear{m.ServerID, d})
+		}
+	}
+	return out
+}
+
+// rezStartLocked checks a rez as it begins (StartCast): when no target has
+// anything to recover, nor the caster's group for a group's rez cast at its
+// caster, the refusal's line, and a fizzle (the lists' "the spell fizzles
+// otherwise"). A pet is no player: it has nothing to recover. Must be called with
+// the lock held.
+func (w *World) rezStartLocked(p *Player, spell *CastSpell, targets []EntityID, now time.Time) (refusal string, fizzle bool) {
+	d := &spell.Def
 	pct := d.Resurrects()
+	if a := &spell.Area; a.Centre != AreaNone && (spell.Scope == 2 || d.Target == TargetGroup) && !w.rezNamesAnotherLocked(targets, p) &&
+		len(w.rezGroupNearLocked(p, pct, a.radiusFor(false), now)) > 0 {
+		return "", false
+	}
 	name := ""
 	for _, id := range targets {
 		if t := w.Players[id]; t != nil {

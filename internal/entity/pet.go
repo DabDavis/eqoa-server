@@ -665,7 +665,7 @@ var petStanceWords = map[petStance]string{
 	petPassive:    "Your pet is passive: it fights only when told to.",
 	petDefensive:  "Your pet is defensive: it fights what attacks you or it.",
 	petNeutral:    "Your pet is neutral: it fights what attacks it.",
-	petAggressive: "Your pet is aggressive: it fights what you fight, and what attacks you or it.",
+	petAggressive: "Your pet is aggressive: it fights what you fight, and what attacks you, it or your group.",
 }
 
 // petMayFight is whether a pet may take on the creature: alive, in its world,
@@ -894,8 +894,9 @@ func (w *World) deckUnderLocked(world uint8, x, y, z float32) (float32, bool) {
 
 // petChooseTargetLocked lets go of a target that is gone, dead or too far
 // from the owner, and gives a pet without one what its stance takes on:
-// the nearest creature fighting it (neutral, defensive, aggressive) or its
-// owner (defensive, aggressive), or what its owner fights (aggressive).
+// the nearest creature fighting it (neutral, defensive, aggressive), its
+// owner (defensive, aggressive) or a player of its owner's group (aggressive),
+// or what its owner fights (aggressive).
 func (w *World) petChooseTargetLocked(ps *petState, now time.Time) {
 	owner, pet := ps.owner, ps.npc
 	if ps.target != 0 {
@@ -929,7 +930,7 @@ func (w *World) petChooseTargetLocked(ps *petState, now time.Time) {
 		}
 		if ps.stance == petAggressive {
 			_, hurt := npc.Threats[owner.ServerID]
-			mine = mine || hurt
+			mine = mine || hurt || fightsGroupMate(w, owner, npc)
 		}
 		if !mine {
 			continue
@@ -941,6 +942,19 @@ func (w *World) petChooseTargetLocked(ps *petState, now time.Time) {
 	if best != nil {
 		ps.target = best.ServerID
 	}
+}
+
+// fightsGroupMate reports a creature fighting a player of the owner's group
+// (petition 1132, Jibmage: "When a pets stance is set to aggressive if any players
+// in the players group take damage, the pet should attack the mob hitting them"). The
+// creature must be within petAssist of the owner, as any the pet looks for. Must be
+// called with the lock held.
+func fightsGroupMate(w *World, owner *Player, npc *NPC) bool {
+	if owner.GroupID == 0 {
+		return false
+	}
+	m := w.Players[npc.CurrentEnemy]
+	return m != nil && m.GroupID == owner.GroupID
 }
 
 // petFightLocked takes the pet to its target and fights it in rounds there.

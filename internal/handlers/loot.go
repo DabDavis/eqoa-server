@@ -351,6 +351,7 @@ func (h *NPCWindowHandler) HandleLootItem(sess *session.Session, msg *protocol.M
 			ls.tookLocked(id, c, char, i, took)
 			looted = append(looted, lootTake{rec.Pattern.PatternID, took})
 			tellLooted(sess, rec.Pattern.ItemName, took)
+			h.tellGroupLooted(player, rec.Pattern.ItemName, took)
 			log.Printf("Loot: %s took %d %q", player.Name, took, rec.Pattern.ItemName)
 		}
 	}
@@ -392,6 +393,7 @@ func (h *NPCWindowHandler) HandleLootAll(sess *session.Session, msg *protocol.Me
 			ls.tookLocked(id, c, char, i, took)
 			looted = append(looted, lootTake{rec.Pattern.PatternID, took})
 			tellLooted(sess, rec.Pattern.ItemName, took)
+			h.tellGroupLooted(player, rec.Pattern.ItemName, took)
 		}
 		if took != rec.StackLeft {
 			left = true
@@ -418,6 +420,28 @@ func tellLooted(sess *session.Session, item string, n int) {
 	if !sess.LootMessagesOff() {
 		SendClientMessage(sess, lootStackLine(n, item))
 	}
+}
+
+// tellGroupLooted tells the looter's group what it took, each member by its own Loot
+// Messages option (petition 1145, Larrybird: "i cant see what my other grp is loooting
+// could be uber rare gear oooo no").
+func (h *NPCWindowHandler) tellGroupLooted(looter *entity.Player, item string, n int) {
+	if h.groupOf == nil || looter == nil {
+		return
+	}
+	for _, s := range h.groupOf(looter) {
+		if !s.LootMessagesOff() {
+			SendClientMessage(s, groupLootLine(looter.Name, n, item))
+		}
+	}
+}
+
+// groupLootLine is a group member's line for what another took.
+func groupLootLine(name string, n int, item string) string {
+	if n > 1 {
+		return fmt.Sprintf("%s receives %d %s from the corpse.", name, n, item)
+	}
+	return fmt.Sprintf("%s receives %s from the corpse.", name, item)
 }
 
 // lootStackLine is the line for n of an item.

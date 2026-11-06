@@ -1,11 +1,14 @@
 package handlers
 
 import (
+	"net"
 	"strings"
 	"testing"
 
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
+	"github.com/eqoa/server/internal/session"
 )
 
 // lootLinesOf are the chat lines among messages sent.
@@ -82,5 +85,52 @@ func TestTheCoinsLineFollowsTheOption(t *testing.T) {
 	f.h.giveCorpseCoins(f.sess, f.npc, 3)
 	if got := lootLinesOf(f.sent()); len(got) != 1 || got[0] != "You receive 3 tunar from the corpse." {
 		t.Errorf("with it on: %q", got)
+	}
+}
+
+// Petition 1145, Larrybird: "i cant see what my other grp is loooting could be uber rare gear". A take
+// from a corpse says what it gave to the looter's group, each by its own Loot Messages option; a take-all a
+// line an item. The control: with no group, nobody else hears.
+func TestTheGroupHearsWhatIsLooted(t *testing.T) {
+	f := newCorpseFixture(t, 2)
+	f.loadLists()
+	mate := session.NewManager().CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 0, 77), Port: 7077}, 77, 1, 1, 2, true)
+	off := session.NewManager().CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 0, 78), Port: 7078}, 78, 1, 1, 2, true)
+	opt := &FactionHandler{}
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeLootMessages)
+	msg.SetData([]byte{1, 1})
+	if err := opt.HandleLootMessages(off, msg); err != nil {
+		t.Fatal(err)
+	}
+	f.h.groupOf = func(*entity.Player) []*session.Session { return []*session.Session{mate, off} }
+	lines := func(s *session.Session) []string {
+		var msgs [][]byte
+		for _, m := range s.Queue().GetPending() {
+			msgs = append(msgs, append([]byte(nil), m.Data()...))
+		}
+		return lootLinesOf(msgs)
+	}
+	f.h.OpenCorpse(f.sess, f.npc)
+	f.sent()
+	f.send(protocol.OpcodeClientLoot, func(w *buffer.Writer) { w.WriteUint32(0); w.WriteUint32(1) })
+	got := lines(mate)
+	if len(got) != 1 || !strings.Contains(got[0], " receives ") || !strings.HasSuffix(got[0], " from the corpse.") {
+		t.Fatalf("the group heard %q", got)
+	}
+	if h := lines(off); len(h) != 0 {
+		t.Errorf("a member with the option off heard %q", h)
+	}
+	f.send(protocol.OpcodeLootTakeAll, nil)
+	if h := lines(mate); len(h) != 1 {
+		t.Errorf("a take-all of the one left: the group heard %q", h)
+	}
+	g := newCorpseFixture(t, 1)
+	g.loadLists()
+	g.h.groupOf = func(*entity.Player) []*session.Session { return nil }
+	g.h.OpenCorpse(g.sess, g.npc)
+	g.sent()
+	g.send(protocol.OpcodeLootTakeAll, nil)
+	if h := lootLinesOf(g.sent()); len(h) != 1 {
+		t.Errorf("no group: the looter heard %q", h)
 	}
 }

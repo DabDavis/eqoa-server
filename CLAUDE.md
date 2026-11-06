@@ -637,8 +637,9 @@ like the lvl 60 epics", "full set of jewelry, belts", "next to the starting q np
 dyer NPC nearby". `tools/seed_heirlooms.py [--list] [--apply|--undo]` writes, for each class, "Heirloom" records (ids
 714000+; helm, chestguard, bracers, gauntlets, greaves, boots, robe, earring, pendant, ring, bracelet, belt, a shield
 where the class wears one, and weapons in the look of the class's level 60 epics; a piece's look is the best of its slot
-by score, but a shadow knight's armour takes plate's alone (`ARMOUR_MODEL`: its helm was a cloth hat's, the user's "make
-SK heirloom plate it is cloth"; warriors' and paladins' helms still are, until the user says) and its two-hander the
+by score, but the plate classes' armour (warrior, paladin, shadow knight) takes plate's alone (`ARMOUR_MODEL`: their
+helms were a cloth hat's, the user's "make SK heirloom plate it is cloth", then of the warriors' and paladins' "yes fix",
+live 04:08 UTC) and the shadow knight's two-hander the
 Sword of Dreams' model, 0xB44E7A96, over bone crusher's columns (`LOOK_MODEL`, the user's picture: "this should be
 heirloom SK weapon for 2H"); both live on eqoaclassic since 04:00 UTC 2026-11-06), table `heirlooms` (each record's
 class and role), and beside each of the 74 class first-quest givers an **Heirloom Outfitter** (npc_type 0x81,

@@ -36,10 +36,13 @@ import (
 // regardless of whether or not the player chooses to return to their place
 // of death." Here:
 //
-//   - a death that adds debt (playerDiedLocked, deathdebt.go) keeps what it
-//     added as the character's chance of a rez (Player.Rez). A later death
-//     takes its place, so the earlier one's debt is past recovering; a death
-//     that adds nothing (below level 6) leaves no chance at all;
+//   - a death at any level (playerDiedLocked, deathdebt.go) keeps what it added
+//     to the debt, and where it happened, as the character's chance of a rez
+//     (Player.Rez). A later death takes its place and ends any offer of the
+//     earlier's way back, so the earlier one's debt and place are past recovering
+//     (petition 1130, the GM Jibrish: "One rez per death, if they die again they
+//     lose the ability to get rez'd from the previous death. Only the latest rez
+//     death location is saved");
 //   - a rez at a player, dead (the 15 s before its respawn) or released,
 //     found and in range as castTargetsLocked finds any player, takes the
 //     spell's share of that chance off the debt, at most what is still owed,
@@ -60,13 +63,10 @@ import (
 //     the world: the lists' "died recently" gives no figure. The time stops at
 //     a logout, as a spell effect's does (buffsave.go), so a lost connection
 //     just after a death does not lose it;
-//   - a rez never moves anyone and never revives: a dead target still
-//     respawns at its bind point 15 s after its death (respawn.go), with less
-//     to pay. The live game's rez was a teleport back to the body that the
-//     target had to accept (the client's own prompt is 0x00D3's resurrect
-//     form); here there is nothing to accept, as a lower debt never hurts,
-//     and reviving where the body lies would put a player back in the lava or
-//     the deep water that may have killed it, beside the creature that did;
+//   - the way back to the body is the target's to take (CLIENT's prompt, 0x00D3's
+//     resurrect form; petitions 1051, 1130): its Yes goes there, its No stays where
+//     it is, and the share comes off the debt whichever it answers. A rez has no
+//     level to it (petition 1130: "including level 60 res on level 1");
 //   - the target need not be in the caster's group, as the user chose: any
 //     player in range;
 //   - the share is rounded to the nearest point of experience, at most 100%;
@@ -87,7 +87,8 @@ type RezChance struct {
 	Until time.Time
 	// Placed and the place are where the death was (petition 1051): a rez in
 	// the chance's time offers its target the way back there, debt or none.
-	// Not kept over a logout (table charrez keeps the debt alone).
+	// Kept with the chance over a logout and a restart (table charrez; petition
+	// 1130, the GM Jibrish: "Only the latest rez death location is saved").
 	Placed  bool
 	World   uint8
 	X, Y, Z float32
@@ -174,11 +175,12 @@ func (d *SpellDef) Resurrects() int {
 	return 0
 }
 
-// noteRezChance keeps what a death added to the debt as the character's
-// chance of a rez: the latest death's alone, none for a death that added
-// nothing (playerDiedLocked).
+// noteRezChance keeps what a death added to the debt, and where it happened, as
+// the character's chance of a rez: the latest death's alone, so an offer still
+// waiting on the earlier one's way back ends with it (playerDiedLocked).
 func (p *Player) noteRezChance(debt int, now time.Time) {
 	p.Rez = RezChance{Debt: max(debt, 0), Until: now.Add(RezWindow), Placed: true, World: p.World, X: p.X, Y: p.Y, Z: p.Z}
+	p.RezReturn = RezReturn{}
 }
 
 // rezAmount is what a rez of pct percent gives t back now: its share of the
@@ -316,7 +318,8 @@ func (w *World) SavedRez(id EntityID, now time.Time) (database.RezRow, bool) {
 	if !p.Rez.live(now) {
 		return database.RezRow{}, true
 	}
-	return database.RezRow{Debt: p.Rez.Debt, LeftMS: p.Rez.Until.Sub(now).Milliseconds()}, true
+	c := p.Rez
+	return database.RezRow{Debt: c.Debt, LeftMS: c.Until.Sub(now).Milliseconds(), Placed: c.Placed, World: c.World, X: c.X, Y: c.Y, Z: c.Z}, true
 }
 
 // RestoreRez puts a kept chance of a rez back on the session's player at its
@@ -329,8 +332,9 @@ func (w *World) RestoreRez(sess *session.Session, row database.RezRow, now time.
 		return false
 	}
 	p.Rez = RezChance{}
-	if row.Debt > 0 && row.LeftMS > 0 {
-		p.Rez = RezChance{Debt: row.Debt, Until: now.Add(time.Duration(row.LeftMS) * time.Millisecond)}
+	if (row.Debt > 0 || row.Placed) && row.LeftMS > 0 {
+		p.Rez = RezChance{Debt: row.Debt, Until: now.Add(time.Duration(row.LeftMS) * time.Millisecond),
+			Placed: row.Placed, World: row.World, X: row.X, Y: row.Y, Z: row.Z}
 	}
 	return p.Rez.live(now)
 }

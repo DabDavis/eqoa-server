@@ -369,8 +369,8 @@ func TestTheChanceIsKeptOverASaveAndLoad(t *testing.T) {
 	r := newRezRig(t)
 	r.die(r.b, r.sb, 0)
 	row, ok := r.w.SavedRez(r.b.ServerID, r.at(10*time.Minute))
-	if !ok || row != (database.RezRow{Debt: 6137969, LeftMS: 20 * 60 * 1000}) {
-		t.Fatalf("kept %+v (%v), want the death's debt and twenty minutes", row, ok)
+	if !ok || row != (database.RezRow{Debt: 6137969, LeftMS: 20 * 60 * 1000, Placed: true, X: 106, Y: 10, Z: 100}) {
+		t.Fatalf("kept %+v (%v), want the death's debt, its place and twenty minutes", row, ok)
 	}
 	if err := store.SaveRez(r.b.CharServerID, row); err != nil {
 		t.Fatal(err)
@@ -393,6 +393,9 @@ func TestTheChanceIsKeptOverASaveAndLoad(t *testing.T) {
 	if !r2.cast(r2.sa, revive(), rezB, 19*time.Minute) || r2.b.Debt != 6137969-1227594 {
 		t.Fatalf("a rez 19 minutes after the login: Bran owes %d", r2.b.Debt)
 	}
+	if b := r2.b.RezReturn; b.X != 106 || b.Y != 10 || b.Z != 100 || b.Until.IsZero() { // petition 1130
+		t.Fatalf("the way back after the login: %+v", b)
+	}
 	r3 := login()
 	drain(r3.sa)
 	began := r3.w.StartCast(r3.sa, revive(), rezB, r3.at(20*time.Minute+time.Second))
@@ -411,6 +414,82 @@ func TestTheChanceIsKeptOverASaveAndLoad(t *testing.T) {
 	r4 := newRezRig(t)
 	if r4.w.RestoreRez(r4.sb, database.RezRow{}, r4.t0) || r4.b.Rez != (RezChance{}) {
 		t.Errorf("no row restores %+v", r4.b.Rez)
+	}
+}
+
+// Petition 1130, the GM Jibrish: "Resurrect spells should work on all levels, including
+// level 60 res on level 1." A rez the workbook gives a lowest level still lands on a
+// level 1, whose death left no debt: the way back is offered. The control: a buff of
+// that level and lowest level does not take on it.
+func TestALevel60RezReachesLevel1(t *testing.T) {
+	r := newRezRig(t)
+	offered := 0
+	r.w.OnRezOffer(func(*session.Session, string) { offered++ })
+	r.a.Level, r.b.Level = 60, 1
+	r.die(r.b, r.sb, 0)
+	rez := wbSpell(700761, 60, 1, "Reclamation", `{"v":1,"scope":"target","target_type":"Friendly","harmful":false,"min_level":55,
+		"effects":[{"id":"021D","type":"Ressurect Player","kind":"resurrect","rez_pct":-60}]}`)
+	if rez.Def.Resurrects() != 60 {
+		t.Fatalf("the rez's share: %d", rez.Def.Resurrects())
+	}
+	drain(r.sa)
+	if !r.cast(r.sa, rez, rezB, 2*time.Second) {
+		t.Fatalf("refused: %q", linesOf(drain(r.sa)))
+	}
+	if offered != 1 || r.b.RezReturn.Until.IsZero() {
+		t.Errorf("the offer: %d, %+v", offered, r.b.RezReturn)
+	}
+	buff := wbSpell(971, 60, 1, "Test Ward", `{"v":1,"scope":"target","target_type":"Friendly","min_level":55,"duration_s":600,
+		"effects":[{"kind":"stat","stat":"ac","amount":10}]}`)
+	alive := &Player{ServerID: 1009, Name: "Newbie", Level: 1, HP: 100, MaxHP: 100}
+	r.w.mu.Lock()
+	r.w.landOnPlayerLocked(&castState{spell: buff, caster: r.a.ServerID}, r.a, r.sa, alive, r.at(time.Minute))
+	r.w.mu.Unlock()
+	if len(alive.Effects) != 0 {
+		t.Errorf("the level 60 buff took on level 1")
+	}
+}
+
+// Petition 1130: "One rez per death, if they die again they lose the ability to get
+// rez'd from the previous death. Only the latest rez death location is saved." A death
+// ends the offer of the one before it, unanswered or not, and its share; the next rez
+// offers the latest place and gives a share of the latest debt, once.
+func TestOnlyTheLatestDeathCounts(t *testing.T) {
+	r := newRezRig(t)
+	r.w.OnRezOffer(func(*session.Session, string) {})
+	r.die(r.b, r.sb, 0)
+	if !r.cast(r.sa, revive(), rezB, 2*time.Second) || r.b.RezReturn.X != 106 {
+		t.Fatalf("the first rez: %+v", r.b.RezReturn)
+	}
+	first := r.b.Debt
+	r.respawn(20 * time.Second)
+	r.b.X, r.b.Z = 500, 600
+	r.die(r.b, r.sb, 30*time.Second)
+	if r.b.RezReturn != (RezReturn{}) {
+		t.Fatalf("the second death left the first's offer: %+v", r.b.RezReturn)
+	}
+	if _, _, _, _, ok := r.w.TakeRezReturn(r.sb, true, r.at(31*time.Second)); ok {
+		t.Fatal("a Yes to the first offer led somewhere after a later death")
+	}
+	if r.b.Debt <= first {
+		t.Fatalf("the second death added no debt: %d, was %d", r.b.Debt, first)
+	}
+	added, owed := r.b.Debt-first, r.b.Debt
+	if !r.cast(r.sa, renew(), rezB, 40*time.Second) { // no recast of its own, unlike Revive
+		t.Fatalf("the rez of the latest death was refused: %q", linesOf(drain(r.sa)))
+	}
+	if want := owed - (added*10+50)/100; r.b.Debt != want {
+		t.Errorf("the second rez left %d owed, want %d: 10%% of the latest death's", r.b.Debt, want)
+	}
+	if b := r.b.RezReturn; b.X != 500 || b.Z != 600 {
+		t.Errorf("the way back: %+v, want the latest death's place", b)
+	}
+	if r.b.Rez != (RezChance{}) {
+		t.Errorf("the chance not spent: %+v", r.b.Rez)
+	}
+	drain(r.sa)
+	if r.w.StartCast(r.sa, renew(), rezB, r.at(50*time.Second)) {
+		t.Error("a second rez of one death began")
 	}
 }
 

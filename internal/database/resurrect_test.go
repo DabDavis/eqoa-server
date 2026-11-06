@@ -48,4 +48,16 @@ func TestRezRoundTrip(t *testing.T) {
 	if got, _ := s.LoadRez(9); got != (RezRow{Debt: 2195, LeftMS: 60_000}) {
 		t.Errorf("the control: character 9's row is %+v", got)
 	}
+	// a death's place is kept with it (petition 1130), a low level's with no debt too,
+	// and a second start of the schema leaves the row as it is
+	placed := RezRow{LeftMS: 90_000, Placed: true, World: 3, X: 25146.277, Y: 54.125, Z: 16733.584}
+	if err := s.SaveRez(7, placed); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.ensureCharRez(); err != nil {
+		t.Fatalf("the schema a second time: %v", err)
+	}
+	if got, err := s.LoadRez(7); err != nil || got != placed {
+		t.Errorf("a place: loaded %+v (%v), want %+v", got, err, placed)
+	}
 }

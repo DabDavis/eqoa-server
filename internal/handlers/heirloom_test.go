@@ -292,3 +292,46 @@ func TestHeirloomArmourCarriesItsClassesStats(t *testing.T) {
 		t.Errorf("a shadow knight of 1's piece: HP %d STR %d INT %d AGI %d", val(one.HPMAX), val(one.Str), val(one.Intelligence), val(one.Agi))
 	}
 }
+
+// An epic heirloom deals no less than the best weapon of its kind at its
+// wearer's level (the user, 2026-11-06, of Tmac's 759 bow out-shooting the
+// heirloom bow's 754: "lets at least match it"): with a 700 blade of level 45
+// in reach, the rapier heirloom at 49 deals 700 with the rapier's stats and
+// proc. The control: with nothing better, the epic's own 561.
+func TestAnEpicHeirloomDealsAtLeastTheBest(t *testing.T) {
+	f := newHeirloomFixture(t)
+	n := func(v int) *int { return &v }
+	items := database.NewItemPatternStore(f.db)
+	for _, r := range []database.ItemPatternRecord{
+		{PatternID: 900020, ItemName: "Selo's Jeweled Rapier", EquipSlot: 14, LevelReq: 49, WeaponDamage: 561, AttackType: 5,
+			Dex: n(10), ClassUse: 32, Rent: 1, RaceUse: 32767, MaxStack: 1},
+		{PatternID: 714004, ItemName: "Heirloom Selo's Jeweled Rapier", EquipSlot: 14, LevelReq: 1, AttackType: 5,
+			ClassUse: 1, Rent: 1, RaceUse: 32767, MaxStack: 1},
+	} {
+		if err := items.UpsertItemPattern(&r); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := f.db.Exec(`INSERT INTO heirlooms (patternid, class, role, epic) VALUES (714004, 0, 'main', 900020)`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.inv.AddCharItem(f.sid, 714004, 1, 100, 0, 0); err != nil {
+		t.Fatal(err)
+	}
+	at49 := func() database.ItemPatternRecord {
+		f.h = NewHeirlooms(f.db)
+		f.h.Start(nil, nil)
+		f.h.Note(f.sid, 0, 0, 49)
+		return f.held()[714004]
+	}
+	if e := at49(); e.WeaponDamage != 561 || e.ProcName != "Selo's Jeweled Rapier" {
+		t.Fatalf("the control: damage %d proc %q; want the rapier's 561", e.WeaponDamage, e.ProcName)
+	}
+	if err := items.UpsertItemPattern(&database.ItemPatternRecord{PatternID: 900021, ItemName: "blade 45", EquipSlot: 14,
+		LevelReq: 45, WeaponDamage: 700, AttackType: 1, ClassUse: 1, Rent: 1, RaceUse: 32767, MaxStack: 1}); err != nil {
+		t.Fatal(err)
+	}
+	if e := at49(); e.WeaponDamage != 700 || val(e.Dex) < 10 || e.ProcName != "Selo's Jeweled Rapier" {
+		t.Errorf("with a 700 blade in reach: damage %d DEX %d proc %q; want 700 with the rapier's DEX and proc", e.WeaponDamage, val(e.Dex), e.ProcName)
+	}
+}

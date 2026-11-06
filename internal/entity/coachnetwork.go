@@ -52,7 +52,8 @@ func CoachRunsTo(a, b string) bool {
 
 // OnCoachNetwork is whether the town has a stable on the live game's coach
 // network. A coachman of a town that has one runs only to its neighbours
-// there; any other offers every coach town of his world, as all did before.
+// there, in whatever world they stand (Oggok, in the Rathe, to Dark Solace, in
+// Tunaria); any other offers every coach town of his world, as all did before.
 func OnCoachNetwork(town string) bool {
 	return len(coachNetwork[town]) > 0
 }

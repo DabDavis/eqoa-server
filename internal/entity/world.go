@@ -1173,7 +1173,8 @@ func IsCoachman(name string) bool {
 // warpLocationNames maps warp NPC names to the place they stand in.
 //
 // Gatekeepers and Harbormasters are the CROSS-WORLD travel NPCs; coachmen only
-// move you around within a world. That distinction is the whole reason a world
+// move you around within a world, but for the one route the coach network runs
+// across worlds (Oggok to Dark Solace: coachnetwork.go). That distinction is the whole reason a world
 // change needs one: a coach destination is an (x,y,z) in the world you are
 // already in, whereas another world means changing the world index the client
 // loads from. Only a client whose table has that world is offered it
@@ -1263,6 +1264,17 @@ func (w *World) GetWarpDestinations(excludeName string, loadable func(world uint
 // coachman appearing in this list would teleport the player to another world's
 // coordinates while leaving them in this one. Cheaper to exclude than to debug.
 func (w *World) GetCoachDestinations(excludeName string, inWorld uint8) []CoachDest {
+	return w.coachDestinations(excludeName, func(n *NPC) bool { return n.World == inWorld })
+}
+
+// GetCoachDestinationsEveryWorld is GetCoachDestinations of every world: what a
+// coachman on the network picks his neighbours from (CoachMenu), as Oggok's run
+// to Dark Solace across worlds.
+func (w *World) GetCoachDestinationsEveryWorld(excludeName string) []CoachDest {
+	return w.coachDestinations(excludeName, func(*NPC) bool { return true })
+}
+
+func (w *World) coachDestinations(excludeName string, keep func(*NPC) bool) []CoachDest {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 
@@ -1271,7 +1283,7 @@ func (w *World) GetCoachDestinations(excludeName string, inWorld uint8) []CoachD
 		if !IsCoachman(npc.Name) {
 			continue
 		}
-		if npc.Name == excludeName || npc.World != inWorld {
+		if npc.Name == excludeName || !keep(npc) {
 			continue
 		}
 		label, _ := coachLabel(npc)

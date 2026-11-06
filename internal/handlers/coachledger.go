@@ -20,10 +20,10 @@ import (
 // menu then offers only the towns his coach runs to whose ledgers the
 // character has signed; with none, he says so (coachNone) where the menu
 // would be. A GM (acctlevel 1 or more, read at each talk as the # commands
-// read it) is offered every coach town of the world, as everyone was before,
-// and so is anyone at a coachman whose town is not on the network (the
-// Rathe's Coachman Dilga, the only coach of his world). Without a ledger
-// store (no database) the menus are as before.
+// read it) is offered every coach town of the world and the ones his coach runs
+// to in another (Oggok's Dark Solace), as everyone was before, and anyone at a
+// coachman whose town is not on the network every coach town of the world.
+// Without a ledger store (no database) the menus are as before.
 //
 // Every ledger at once (the user, 2026-11-06: "lets add option to Coachmen to
 // grant all coaches if they want, but may break immersion"): a coachman on
@@ -98,8 +98,17 @@ func (h *InteractHandler) signLedger(sess *session.Session, player *entity.Playe
 func (h *InteractHandler) coachDests(sess *session.Session, player *entity.Player, npc *entity.NPC) (dests []entity.CoachDest, none string, every bool) {
 	all := h.gameWorld.GetCoachDestinations(npc.Name, npc.World)
 	town, named := entity.CoachTown(npc)
-	runs, routed := entity.CoachMenu(town, named, all)
-	if !routed || h.ledger == nil {
+	// a network's neighbours may stand in another world (Oggok's Dark Solace)
+	runs, routed := entity.CoachMenu(town, named, h.gameWorld.GetCoachDestinationsEveryWorld(npc.Name))
+	if !routed {
+		return all, "", false
+	}
+	for _, d := range runs {
+		if d.World != npc.World {
+			all = append(all, d)
+		}
+	}
+	if h.ledger == nil {
 		return all, "", false
 	}
 	if h.isGM != nil && h.isGM(sess) {

@@ -40,3 +40,9 @@
 .vscode/
 .idea/
 __pycache__/
+
+# a restart that keeps the sessions (internal/network/udp/keep.go): its snapshot and the swap's handshake
+/keep-sessions.json
+/keep-sessions.json.tmp
+/keep.hold
+/keep.saved

@@ -301,8 +301,18 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	if w.playerShieldsLocked(sess, player, npc, now) { // its damage shield and defensive procs (dshield.go)
 		return
 	}
-	w.procHealsLocked(player, npc, true, now)        // its defensive proc heals (workbook.go)
-	w.procSpellsLocked(player, sess, npc, true, now) // and spell procs (workbookmore.go)
+	w.defenceProcsLocked(sess, player, npc, now)
+}
+
+// defenceProcsLocked is what a creature's melee hit on a player sets off of
+// the player's own besides its shields: its defensive proc heals (Spirit
+// Shield's, Crusader's Aura's: workbook.go) and spell procs (workbookmore.go).
+// Every melee hit on a player runs it (petition 1048: a dummy's hits and a
+// class template's specials ran the shields alone, so Spirit Shield never
+// healed against them). Must be called with the lock held.
+func (w *World) defenceProcsLocked(sess *session.Session, p *Player, npc *NPC, now time.Time) {
+	w.procHealsLocked(p, npc, true, now)
+	w.procSpellsLocked(p, sess, npc, true, now)
 }
 
 // regenSystem gives every player its HoT in hit points and its PoT in power

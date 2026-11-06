@@ -67,11 +67,16 @@ import (
 type ProcKind int
 
 const (
-	ProcHit  ProcKind = iota // damage now
-	ProcTap                  // damage now, what landed back to the wielder
-	ProcDoT                  // damage every six seconds for a while
-	ProcCalm                 // the creature's hate for the wielder halved
+	ProcHit     ProcKind = iota // damage now
+	ProcTap                     // damage now, what landed back to the wielder
+	ProcDoT                     // damage every six seconds for a while
+	ProcCalm                    // the creature's hate for the wielder halved
+	ProcRestore                 // hit points and power back to the wielder and its group near
 )
+
+// procRestoreReach is how far from the wielder a group member a restoring
+// proc reaches stands at most (ours: the group spells' radius).
+const procRestoreReach = 30
 
 // WeaponProc is a weapon's proc.
 type WeaponProc struct {
@@ -80,11 +85,13 @@ type WeaponProc struct {
 	// Damage is a hit's or a tap's figure, or a DoT's a tick; a range rolls
 	// from Damage to DamageTo each proc
 	Damage, DamageTo int
-	Duration         time.Duration // a DoT's
-	Resist           Stat          // the element the creature resists it by (AR when none is said)
-	Only             string        // the creatures it fires on alone, by a word of their name ("goblin")
-	FX               uint32        // its visual
-	pattern          int           // the record, for a DoT's effect id
+	// Power is a restoring proc's power back (its hit points are Damage)
+	Power    int
+	Duration time.Duration // a DoT's
+	Resist   Stat          // the element the creature resists it by (AR when none is said)
+	Only     string        // the creatures it fires on alone, by a word of their name ("goblin")
+	FX       uint32        // its visual
+	pattern  int           // the record, for a DoT's effect id
 }
 
 // procDoTFor is how long a weapon's damage over time lasts (ours).
@@ -98,6 +105,10 @@ const fxProcLifeTap uint32 = 0xAF72B893
 var weaponProcsByName = map[string]WeaponProc{
 	// EQOA-Data's "proc" figures of the level 49 epic weapons
 	"selo's jeweled rapier": {Kind: ProcHit, Damage: 140},
+	// petition 1048, the GM Jibrish: "Hammer of the paragon should be hp50 50
+	// power AoE proc" (and 1047, Etman: it never procced in 150 swings): 50
+	// hit points and 50 power to its wielder and the group round it
+	"hammer of the paragon": {Kind: ProcRestore, Damage: 50, Power: 50},
 	"scimitar of fury":      {Kind: ProcHit, Damage: 100},
 	"virtus ferrum":         {Kind: ProcHit, Damage: 100},
 	// its "50 DoT": a dagger's, read as a poison (ours), for procDoTFor
@@ -173,7 +184,9 @@ var procElements = []struct {
 	st Stat
 }{{regexp.MustCompile(`\bdisease`), StatDR}, {regexp.MustCompile(`\bpoison`), StatPR},
 	{regexp.MustCompile(`\bice\b`), StatCR}, {regexp.MustCompile(`\bfrost`), StatCR}, {regexp.MustCompile(`\bcold\b`), StatCR},
-	{regexp.MustCompile(`\bfire\b`), StatFR}, {regexp.MustCompile(`\bflame`), StatFR}, {regexp.MustCompile(`\blightning`), StatLR}}
+	{regexp.MustCompile(`\bfire\b`), StatFR}, {regexp.MustCompile(`\bflame`), StatFR}, {regexp.MustCompile(`\blightning`), StatLR},
+	// petition 1053, Hoofbite: Davoh's Dirk "on hit, deals 100 piercing damage"
+	{regexp.MustCompile(`\bpierc`), StatPierce}}
 
 // elementOf is the element a description's proc is of, by its words: AR
 // (arcane, the enchanter's procs' and the server's default) when it names
@@ -204,7 +217,7 @@ func WeaponProcOf(patternID int, itemName, desc string) (WeaponProc, bool) {
 		switch wp.Kind {
 		case ProcTap:
 			wp.FX = fxProcLifeTap
-		case ProcCalm:
+		case ProcCalm, ProcRestore:
 			wp.FX = fxBuff
 		default:
 			wp.FX = fxDamage
@@ -228,6 +241,8 @@ func (wp WeaponProc) String() string {
 		s = fmt.Sprintf("%s a tick for %.0f s", figure, procDoTFor.Seconds())
 	case ProcCalm:
 		s = "its hate halved"
+	case ProcRestore:
+		s = fmt.Sprintf("%s hit points and %d power to its wielder and group", figure, wp.Power)
 	default:
 		s = figure
 	}
@@ -267,7 +282,7 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 	if procIntn(100) >= procChancePct(p.StatNow(StatInt)) {
 		return false
 	}
-	if npc.Dummy == NotDummy && procIntn(100) < npcSpellResistPct(p.Level, npc, wp.Resist, now) {
+	if wp.Kind != ProcRestore && npc.Dummy == NotDummy && procIntn(100) < npcSpellResistPct(p.Level, npc, wp.Resist, now) {
 		log.Printf("Proc: %s's %q resisted by %s", p.Name, wp.Item, npc.Name)
 		return false
 	}
@@ -276,6 +291,9 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 		n += procIntn(wp.DamageTo - wp.Damage + 1)
 	}
 	switch wp.Kind {
+	case ProcRestore:
+		w.restoreProcLocked(sess, p, wp, n)
+		return false
 	case ProcCalm:
 		w.broadcastCastLocked(p, p.ServerID, 0, wp.FX)
 		if t, ok := npc.Threats[p.ServerID]; ok && npc.Dummy == NotDummy {
@@ -323,4 +341,34 @@ func weaponProcWords(p *Player) string {
 	}
 	return fmt.Sprintf("Weapon procs: %s; %d%% a hit of its hand (INT %d)", strings.Join(parts, "; "),
 		procChancePct(p.StatNow(StatInt)), p.StatNow(StatInt))
+}
+
+// restoreProcLocked lands a restoring proc: n hit points and wp.Power power to
+// the wielder and to each living member of its group in its world within
+// procRestoreReach, each heal told as a spell's is (healLocked: 0x00DB to the
+// wielder and the one healed), a buff's visual on the wielder. Must be called
+// with the lock held.
+func (w *World) restoreProcLocked(sess *session.Session, p *Player, wp *WeaponProc, n int) {
+	w.broadcastCastLocked(p, p.ServerID, 0, wp.FX)
+	to := []*Player{p}
+	if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil {
+		for _, id := range g.Members {
+			m := w.Players[id]
+			if m == nil || m == p || m.IsDead() || m.World != p.World {
+				continue
+			}
+			if dx, dz := m.X-p.X, m.Z-p.Z; dx*dx+dz*dz > procRestoreReach*procRestoreReach {
+				continue
+			}
+			to = append(to, m)
+		}
+	}
+	for _, t := range to {
+		w.healLocked(p, sess, t, n)
+		if wp.Power > 0 && t.Power < t.MaxPowerNow() {
+			t.Power = min(t.Power+wp.Power, t.MaxPowerNow())
+			t.StatsDirty = true
+		}
+	}
+	log.Printf("Proc: %s's %q restores %d hit points and %d power to %d", p.Name, wp.Item, n, wp.Power, len(to))
 }

@@ -28,7 +28,7 @@ func TestTheBoardsWolfRunsUntilAHostileAct(t *testing.T) {
 	for _, e := range p.Effects {
 		if e.SpellID == BoardWolfEffectID {
 			n++
-			if !e.Until.Equal(t0.Add(30*time.Minute + BoardWolfLength)) || e.Name != BoardWolfName || e.Icon != BoardWolfIcon {
+			if !e.Until.Equal(t0.Add(30*time.Minute+BoardWolfLength)) || e.Name != BoardWolfName || e.Icon != BoardWolfIcon {
 				t.Errorf("renewed: %+v", e)
 			}
 		}

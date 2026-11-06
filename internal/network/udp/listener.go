@@ -343,7 +343,12 @@ func (l *Listener) handlePacket(data []byte, addr *net.UDPAddr) {
 					// second) are acknowledged, not handled twice
 					copied = !conn.TakeReliable(msg.Sequence)
 				} else {
-					conn.SetLastReceivedMessageSeq(msg.Sequence)
+					// any other: a copy the client sent again, its
+					// acknowledgment not yet seen (a stalled link sends
+					// one in every packet), by its number and contents
+					// (session/reliablecopies.go)
+					copied = !conn.TakeReliableOnce(msg.Sequence,
+						session.ReliableSum(byte(msg.Type), uint16(msg.Opcode), msg.Data()), time.Now())
 				}
 				// Set flag to ACK the reliable message back to client
 				sess.Queue().SetBodyFlags(protocol.BodyFlagGuaranteedAck | protocol.BodyFlagFlushAck)

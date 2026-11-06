@@ -312,7 +312,8 @@ func (w *World) EngageAttack(sess *session.Session, objectID uint32, swing Swing
 	p.AttackTarget = npc.ServerID
 	p.AttackObjectID = objectID
 	p.pressed(now)
-	w.breakInvisLocked(p, "an attack") // invis.go
+	w.breakInvisLocked(p, "an attack")     // invis.go
+	w.breakBoardWolfLocked(p, "an attack") // boardwolf.go
 	log.Printf("Combat: %s engages %s (swing %d, %v, reach %.1f)", p.Name, npc.Name, swing.Kind, swing.Delay, swing.Reach)
 	return true
 }
@@ -508,7 +509,8 @@ func (w *World) playerRoundHitsLocked(p *Player, npc *NPC, now time.Time) bool {
 		p.RoundHits++
 		if p.RoundHits == 1 {
 			// the client swung: a round a 0x00D8 calls off ends nothing
-			w.breakInvisLocked(p, "a swing") // invis.go
+			w.breakInvisLocked(p, "a swing")     // invis.go
+			w.breakBoardWolfLocked(p, "a swing") // boardwolf.go
 		}
 		if !inReach(p, npc) {
 			continue // swung at a target that stepped away

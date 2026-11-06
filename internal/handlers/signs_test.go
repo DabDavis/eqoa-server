@@ -224,7 +224,8 @@ func TestABoardGivesItsTownsBoon(t *testing.T) {
 	}
 	tw.talk(board)
 	if m := questMsgs(tw.s); !slices.Equal(m, []string{"box:Welcome to Freeport.", "op:00B1",
-		"chat:You have been blessed by the Boon of Freeport: double experience for 4 hours of play."}) {
+		"chat:You have been blessed by the Boon of Freeport: double experience for 4 hours of play.",
+		"chat:The spirit of the wolf quickens your step for an hour of play. A hostile act ends it."}) {
 		t.Errorf("the board: %q", m)
 	}
 	if on := boons(); !slices.Equal(on, []string{"Boon of Freeport"}) {
@@ -232,12 +233,14 @@ func TestABoardGivesItsTownsBoon(t *testing.T) {
 	}
 	tw.talk(board)
 	if m := questMsgs(tw.s); !slices.Equal(m, []string{"box:Welcome to Freeport.",
-		"chat:The Boon of Freeport renews your blessing: double experience for 4 hours of play."}) {
+		"chat:The Boon of Freeport renews your blessing: double experience for 4 hours of play.",
+		"chat:The board renews your Spirit of the Wolf for an hour of play. A hostile act ends it."}) {
 		t.Errorf("the second talk: %q", m)
 	}
 	tw.talk(qeynos)
 	if m := questMsgs(tw.s); !slices.Equal(m, []string{
-		"chat:The Boon of Qeynos renews your blessing: double experience for 4 hours of play."}) {
+		"chat:The Boon of Qeynos renews your blessing: double experience for 4 hours of play.",
+		"chat:The board renews your Spirit of the Wolf for an hour of play. A hostile act ends it."}) {
 		t.Errorf("Qeynos's board: %q", m)
 	}
 	if on := boons(); !slices.Equal(on, []string{"Boon of Qeynos"}) {

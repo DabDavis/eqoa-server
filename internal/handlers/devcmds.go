@@ -77,6 +77,7 @@ var gmCommands = map[string]bool{
 	"#trigger": true, "#craftskill": true, "#craftlearn": true,
 	"#clearbuffs": true, "#nukebuffs": true, "#dye": true, "#vampire": true,
 	"#rst_mastr": true, "#rst_both": true, "#rem_abil": true, "#banktunar": true, "#servdown": true,
+	"#giveitem": true,
 }
 
 // slashGM is the # spelling of a /command line that names a GM command
@@ -524,4 +525,45 @@ func (h *ChatHandler) npcInfoCommand(sess *session.Session, player *entity.Playe
 		return
 	}
 	SendDialogueBox(sess, 0, EntityInfo(target, id))
+}
+
+// giveItemMax is the most #giveitem gives at once (the GM panel's give_item's).
+const giveItemMax = 1000
+
+// giveItemCommand is #giveitem <item id> <player> [count] (petition 1046, the
+// GM Jibrish: "Add a gm only command to give a player an item. /giveitem
+// ITEMIDHERE PLAYERNAME should be the syntax"): count of the item (1 when not
+// given), new and at full condition, into the inventory of the player online
+// of that name, as the TEST menu's Give Item gives (gmGivePattern: stacked as
+// a purchase is, the player told "A GM gave you ..."); a player not online is
+// said so (the GM panel's give_item gives to one offline, at its next login).
+func (h *ChatHandler) giveItemCommand(sess *session.Session, gm *entity.Player, args []string) {
+	const usage = "Usage: #giveitem <item id> <player> [count]"
+	if len(args) < 2 {
+		h.gmReply(sess, usage)
+		return
+	}
+	id, err := strconv.Atoi(args[0])
+	if err != nil || id <= 0 {
+		h.gmReply(sess, fmt.Sprintf("%q is no item id. %s", args[0], usage))
+		return
+	}
+	n := 1
+	if len(args) > 2 {
+		if n, err = strconv.Atoi(args[2]); err != nil || n < 1 || n > giveItemMax {
+			h.gmReply(sess, fmt.Sprintf("The count is 1 to %d. %s", giveItemMax, usage))
+			return
+		}
+	}
+	t := h.gameWorld.PlayerByName(args[1])
+	if t == nil {
+		h.gmReply(sess, fmt.Sprintf("No player named %q is online (the GM panel's give_item gives to one offline).", args[1]))
+		return
+	}
+	to := SessionOfCharacter(h.gameWorld, h.sessionManager, t.CharServerID)
+	if to == nil {
+		h.gmReply(sess, fmt.Sprintf("%s is not in the world.", t.Name))
+		return
+	}
+	h.gmGiveNow(sess, gm, to, id, n)
 }

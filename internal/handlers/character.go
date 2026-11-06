@@ -1155,7 +1155,7 @@ func characterGear(items []database.CharInventoryEntry) []byte {
 // rolls on its hand to hand (entity/offence.go).
 func wornGear(items []database.CharInventoryEntry) entity.Gear {
 	g := entity.Gear{WeaponCond: 1}
-	var main, ranged *database.CharInventoryEntry
+	var main, off, ranged *database.CharInventoryEntry
 	armed := false
 	for i := range items {
 		it := &items[i]
@@ -1175,6 +1175,9 @@ func wornGear(items []database.CharInventoryEntry) entity.Gear {
 			armed = armed || handWeapon(&it.Pattern)
 		case 15:
 			armed = armed || handWeapon(&it.Pattern)
+			if handWeapon(&it.Pattern) {
+				off = it
+			}
 		case equipRanged:
 			ranged = it
 			armed = true
@@ -1190,6 +1193,16 @@ func wornGear(items []database.CharInventoryEntry) entity.Gear {
 			g.WeaponCond = float64(w.RemainHP) / float64(w.Pattern.MaxHP)
 		}
 		g.WeaponTwoHanded = w.EquipLoc == 16 || w.Pattern.EquipSlot == wearTwoHand
+		// its proc, and the off hand's (entity/weaponproc.go)
+		if wp, ok := entity.WeaponProcOf(w.Pattern.PatternID, w.Pattern.ItemName, w.Pattern.ItemDesc); ok {
+			g.MainProc = &wp
+		}
+	}
+	if off != nil {
+		g.OffArmed = true
+		if wp, ok := entity.WeaponProcOf(off.Pattern.PatternID, off.Pattern.ItemName, off.Pattern.ItemDesc); ok {
+			g.OffProc = &wp
+		}
 	}
 	g.BareHands = !armed
 	return g

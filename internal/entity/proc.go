@@ -110,6 +110,10 @@ func (w *World) playerProcsLocked(sess *session.Session, p *Player, npc *NPC, no
 	}
 	w.procHealsLocked(p, npc, false, now)        // its offensive proc heals (workbook.go)
 	w.procSpellsLocked(p, sess, npc, false, now) // and spell procs (workbookmore.go)
+	// and the weapon's own (weaponproc.go)
+	if !npc.Dead && w.weaponProcLocked(sess, p, npc, now) {
+		return true
+	}
 	return npc.Dead
 }
 

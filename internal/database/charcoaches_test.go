@@ -58,3 +58,58 @@ func TestCoachLedgersAreKept(t *testing.T) {
 		}
 	}
 }
+
+// Every ledger at once (a coachman's offer, handlers/coachledger.go) signs in
+// one go each town not yet signed, under its own source, and reports how many
+// it signed; a town signed before keeps its row (source and time), and a
+// second time signs none. The control: another character's are untouched.
+func TestEveryCoachLedgerAtOnce(t *testing.T) {
+	db, err := NewSQLite(t.TempDir() + "/coaches.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	s := NewSQLiteCharacterStore(db)
+	first := time.Date(2026, 10, 30, 1, 30, 0, 0, time.UTC)
+	s.SignCoachLedger(7, "Freeport", first)
+	s.SignCoachLedger(9, "Neriak", first)
+	at := time.Date(2026, 11, 6, 3, 0, 0, 0, time.UTC)
+	towns := []string{"Freeport", "Highpass Hold", "Neriak", "Qeynos"}
+	if n, err := s.SignCoachLedgers(7, towns, CoachLedgersAll, at); err != nil || n != 3 {
+		t.Fatalf("signed %d (%v), want the 3 not signed", n, err)
+	}
+	rows := map[string][2]string{}
+	r, err := db.Query(`SELECT town, source, signed FROM charcoaches WHERE serverid = 7`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for r.Next() {
+		var town, source, when string
+		r.Scan(&town, &source, &when)
+		rows[town] = [2]string{source, when}
+	}
+	r.Close()
+	want := map[string][2]string{
+		"Freeport":      {"talk", "2026-10-30T01:30:00Z"},
+		"Highpass Hold": {CoachLedgersAll, "2026-11-06T03:00:00Z"},
+		"Neriak":        {CoachLedgersAll, "2026-11-06T03:00:00Z"},
+		"Qeynos":        {CoachLedgersAll, "2026-11-06T03:00:00Z"},
+	}
+	if len(rows) != len(want) {
+		t.Fatalf("rows %v, want %v", rows, want)
+	}
+	for town, w := range want {
+		if rows[town] != w {
+			t.Errorf("%s: %v, want %v", town, rows[town], w)
+		}
+	}
+	if n, err := s.SignCoachLedgers(7, towns, CoachLedgersAll, at.Add(time.Hour)); err != nil || n != 0 {
+		t.Errorf("a second time signed %d (%v), want none", n, err)
+	}
+	if got, _ := s.CoachTowns(9); len(got) != 1 || !got["Neriak"] {
+		t.Errorf("the control: character 9's are %v", got)
+	}
+	if SecretLikeName(CoachLedgersAll) {
+		t.Errorf("%q reads like a secret", CoachLedgersAll)
+	}
+}

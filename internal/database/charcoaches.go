@@ -12,9 +12,10 @@ import (
 // towns his coach runs to (entity/coachnetwork.go) whose ledgers the
 // character has signed; a GM's offers every coach town. town is the name the
 // coach menus list it by (entity/coachtowns.go: Freeport, Klik'Anon, Hazinak
-// (Evil)); source talk (signed in the game) or gm (the GM panel's grant);
-// signed when, RFC 3339 in UTC (empty for a grant that left it out). No row, no
-// town: a character made before the ledgers signs them as it talks.
+// (Evil)); source talk (signed in the game), coachman-all (every ledger at
+// once, at a coachman's offer: SignCoachLedgers) or gm (the GM panel's
+// grant); signed when, RFC 3339 in UTC (empty for a grant that left it out).
+// No row, no town: a character made before the ledgers signs them as it talks.
 const charCoachesSchema = `
 	CREATE TABLE IF NOT EXISTS charcoaches (
 		serverid INTEGER NOT NULL,
@@ -60,4 +61,37 @@ func (s *SQLiteCharacterStore) SignCoachLedger(serverID uint32, town string, at 
 	}
 	n, err := res.RowsAffected()
 	return n == 1, err
+}
+
+// CoachLedgersAll is the source of the rows a coachman's offer to sign every
+// ledger at once writes (handlers/coachledger.go).
+const CoachLedgersAll = "coachman-all"
+
+// SignCoachLedgers signs, in one transaction, each of the towns' ledgers the
+// character had not, at, under source; a town it had keeps its row as it
+// was. It returns how many it signed.
+func (s *SQLiteCharacterStore) SignCoachLedgers(serverID uint32, towns []string, source string, at time.Time) (int, error) {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+	stamp := at.UTC().Format(time.RFC3339)
+	n := 0
+	for _, town := range towns {
+		res, err := tx.Exec(`INSERT INTO charcoaches (serverid, town, source, signed) VALUES (?, ?, ?, ?)
+			ON CONFLICT (serverid, town) DO NOTHING`, serverID, town, source, stamp)
+		if err != nil {
+			return 0, err
+		}
+		if k, err := res.RowsAffected(); err != nil {
+			return 0, err
+		} else if k == 1 {
+			n++
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+	return n, nil
 }

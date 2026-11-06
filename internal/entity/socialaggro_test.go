@@ -103,14 +103,14 @@ func TestAnNPCWithNoRowIsOfTheFactionsItsKillLowers(t *testing.T) {
 
 // A creature noticing a player on its own (aggro.go) calls no one: jib's
 // "the other won't assist unless they see you hit them". The friend stands 25
-// off the creature and 50 off the player: out of its own notice, in the call's
+// off the creature and 45 off the player: out of its own notice, in the call's
 // radius.
 func TestACreaturesOwnNoticeCallsNoOne(t *testing.T) {
 	f := newSocialFix(t)
 	f.w.SetSocialRules(map[string]SocialRule{"Gnoll Pup": {Social: true, Faction: "Blackburrow Gnolls"}})
 	// level 32: light blue to the level 40, so it notices on sight
-	a := f.npc(200, "Gnoll Pup", 32, bearBody, 1025, 1000)
-	b := f.npc(201, "Gnoll Pup", 32, bearBody, 1050, 1000)
+	a := f.npc(200, "Gnoll Pup", 32, bearBody, 1020, 1000)
+	b := f.npc(201, "Gnoll Pup", 32, bearBody, 1045, 1000)
 	c := f.npc(202, "Gnoll Pup", 32, bearBody, 1070, 1000)
 	f.look()
 	if !f.attacks(a) {

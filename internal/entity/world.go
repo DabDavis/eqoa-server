@@ -699,7 +699,7 @@ func NPCFromRecord(rec *database.NPCRecord, class int, ranged map[uint32]byte) *
 		SpawnZ:          posZ,
 		SpawnFacing:     facing,
 		RespawnTime:     DefaultRespawnAfter,
-		AggroRadius:     30.0,
+		AggroRadius:     DefaultAggroRadius,
 		LeashRadius:     DefaultLeash,
 		RoamRadius:      DefaultRoamRadius,
 

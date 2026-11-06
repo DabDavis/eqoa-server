@@ -49,7 +49,7 @@ func newAggroFix(t *testing.T, level int) *aggroFix {
 func (f *aggroFix) npc(id EntityID, name string, level int, body uint32, x, z float32) *NPC {
 	n := &NPC{ServerID: id, Name: name, Level: level, ModelID: int64(body), HP: 500, MaxHP: 500,
 		X: x, Y: 10, Z: z, SpawnX: x, SpawnY: 10, SpawnZ: z, Faction: FactionNeutral,
-		AggroRadius: 30, LeashRadius: DefaultLeash}
+		AggroRadius: DefaultAggroRadius, LeashRadius: DefaultLeash}
 	f.w.NPCs[id] = n
 	f.w.SpatialIndex.Insert(id, x, z)
 	return n
@@ -414,7 +414,7 @@ func TestWhoLooksAndWhoIsSeen(t *testing.T) {
 // chase) and swings once in reach.
 func TestTheFightAggroStartsIsTheChases(t *testing.T) {
 	f := newAggroFix(t, 20)
-	bear := f.npc(2001, "Brown Bear", 20, bearBody, 1025, 1000)
+	bear := f.npc(2001, "Brown Bear", 20, bearBody, 1020, 1000)
 	bear.OffMod, bear.WeaponDamage = NPCOffMod(20), NPCWeaponDamage(20)
 	f.look()
 	if !f.attacks(bear) {
@@ -490,5 +490,24 @@ func TestLowWildlifeIsNeutral(t *testing.T) {
 	f.look()
 	if !f.attacks(rat) {
 		t.Error("a GM's rule for the rat did not set it on the player")
+	}
+}
+
+// Petition 1123: "Lower the hostile mob agro radius by a blanket 30%": a creature
+// as the loader makes it notices a player at 21, 30 less 30%: 20 off it attacks,
+// 22 off it does not, where 22 was inside the old 30.
+func TestTheBlanketAggroRadiusIsThirtyPercentLess(t *testing.T) {
+	if DefaultAggroRadius != 21 {
+		t.Fatalf("DefaultAggroRadius %v, want 30 less 30%%", DefaultAggroRadius)
+	}
+	f := newAggroFix(t, 40)
+	near := f.npc(2001, "Brown Bear", 30, bearBody, 1020, 1000)
+	far := f.npc(2002, "Brown Bear", 30, bearBody, 1022, 1000)
+	f.look()
+	if !f.attacks(near) {
+		t.Error("the bear 20 off did not attack")
+	}
+	if f.attacks(far) {
+		t.Error("the bear 22 off attacked: inside the old 30, outside the new 21")
 	}
 }

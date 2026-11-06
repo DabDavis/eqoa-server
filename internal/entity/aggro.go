@@ -72,8 +72,8 @@ import (
 //     such NPCs hold a human yeoman at Freeport's gate (0x800, the big
 //     creature's reach) and players' pets. With no race models (an empty
 //     charactermodel) nothing attacks but by a GM's rule;
-//   - the radius: the creature's AggroRadius, 30 (the loader's own, under the
-//     38.9 measured), a GM's per name;
+//   - the radius: the creature's AggroRadius, 21 (DefaultAggroRadius), a GM's
+//     per name;
 //   - no line of sight, and no social pull on sight: the NPCs of a creature's
 //     own come only when a player attacks it (socialaggro.go);
 //   - an NPC of no faction attacks by the rules above alone: until 2026-10-29
@@ -87,9 +87,11 @@ import (
 // or on its way home after a fight, looks for no one.
 
 // DefaultAggroRadius is how near a creature notices a player it attacks on
-// sight when nothing else says: the loader's own AggroRadius, under the 38.9 a
-// red-faced creature stood off without attacking (the file's doc).
-const DefaultAggroRadius float32 = 30
+// sight when nothing else says: every NPC's AggroRadius from the loader. It was
+// 30, under the 38.9 a red-faced creature stood off without attacking (the
+// file's doc); 30% off that (petition 1123, the GM Jibrish: "Lower the hostile
+// mob agro radius by a blanket 30%. It is far too long right now.").
+const DefaultAggroRadius float32 = 21
 
 // aggroScanTicks: the creatures near each player look for it every this many
 // ticks (half a second at the world's 100 ms).

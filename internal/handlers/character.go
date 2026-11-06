@@ -524,6 +524,9 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 			record = again
 		}
 	}
+	// a character with no Genie's Lamp gets one, before its items are read
+	// (genie.go)
+	h.giveGenieLamp(uint32(record.ServerID))
 
 	log.Printf("SelectedChar: selected '%s' (level %d race=%d class=%d)", record.CharName, record.Level, record.Race, record.TClass)
 

@@ -42,7 +42,7 @@ import (
 // SnapshotVersion names the sanitiser's rules: the panel's audit line and the
 // snapshot's own snapshot_info table say which made a file. Raise it with
 // every change to what is taken out.
-const SnapshotVersion = 8
+const SnapshotVersion = 9
 
 // SnapshotInfoTable is the table a snapshot carries saying what it is: the
 // sanitiser's version, when it was made and by whom, and what was taken out.
@@ -155,6 +155,7 @@ var snapshotRules = map[string]snapshotRule{
 	"eqoaemu_spell_import_log":    {allow: []string{"key"}, why: "tools/import_eqoaemu_spells.py's log"},
 	"eqoaemu_spell_import_meta":   {allow: []string{"key"}, why: "tools/import_eqoaemu_spells.py's facts"},
 	"fishing_seed":                {allow: []string{"key"}, why: "tools/seed_fishing.py's log"},
+	"genie_lamp_log":              {allow: []string{"rowkey"}, why: "tools/seed_genie_lamp.py's log"},
 	"grocer_stock":                {allow: []string{"key"}, why: "tools/stock_grocers.py's log"},
 	"heirloom_epics_log":          {allow: []string{"rowkey"}, why: "tools/heirloom_epics.py's log"},
 	"merchant_stock":              {allow: []string{"key"}, why: "tools/stock_merchants.py's log"},

@@ -1479,7 +1479,7 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 	for _, e := range cs.spell.Def.Effects {
 		switch e.Kind {
 		case EffectHP:
-			if n := spellAmount(e, caster); n < 0 {
+			if n := debuffScaled(e, npc, spellAmount(e, caster), now); n < 0 {
 				killed := w.spellHitLocked(caster, casterSess, npc, -n)
 				// a life tap's heal (lifetap.go): what landed, after the
 				// con's cut (balance.go)

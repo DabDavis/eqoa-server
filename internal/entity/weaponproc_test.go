@@ -16,6 +16,7 @@ func TestWeaponProcsReadFromTheirWords(t *testing.T) {
 	}{
 		{"Ice shard occasionally shoot off from this weapon. Procs a 100 point DD Spell.", WeaponProc{Kind: ProcHit, Damage: 100, Resist: StatCR}},
 		{"A magical long sword enchanted with the power of living thorns. Procs 75-100", WeaponProc{Kind: ProcHit, Damage: 75, DamageTo: 100, Resist: StatAR}},
+		{"A broad cleaver of a ship's make, heavy enough to split a keel. Procs 150 slashing damage.", WeaponProc{Kind: ProcHit, Damage: 150, Resist: StatSlash}},
 		{"The blade of this longsword is covered in one large sheath of ice. Procs 150 Ice Damage.", WeaponProc{Kind: ProcHit, Damage: 150, Resist: StatCR}},
 		{"An ancient and powerful sword. ... Proc a 25 point lifetap.", WeaponProc{Kind: ProcTap, Damage: 25, Resist: StatAR}},
 		{"The creation of such a wand is a macabre ritual. Procs a 70 point Disease DoT.", WeaponProc{Kind: ProcDoT, Damage: 70, Resist: StatDR}},

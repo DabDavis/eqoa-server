@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
@@ -112,11 +113,18 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 		refuse(refusal)
 		return
 	}
-	if err := h.takeOne(sess, player, idx, row); err != nil {
-		log.Printf("Potion: %s, %q: taking one: %v", player.Name, row.Pattern.ItemName, err)
-		return
+	if row.Charges > 0 {
+		if err := h.spendCharge(sess, player, idx, row); err != nil {
+			log.Printf("Potion: %s, %q: a charge: %v", player.Name, row.Pattern.ItemName, err)
+			return
+		}
+	} else {
+		if err := h.takeOne(sess, player, idx, row); err != nil {
+			log.Printf("Potion: %s, %q: taking one: %v", player.Name, row.Pattern.ItemName, err)
+			return
+		}
+		queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(idx, 0, 1))
 	}
-	queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(idx, 0, 1))
 	if reagent != "" {
 		// the stack the potion came off is one less now, if it is one of them
 		// (no potion is its own reagent: Envar's gems take another item)
@@ -135,6 +143,33 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 	for _, it := range pe.Summons() {
 		h.summonItem(sess, player.CharServerID, it.Name, it.Count, row.Pattern.ItemName)
 	}
+}
+
+// spendCharge takes one of the item's charges (itemeffect.charges, the record's
+// remaincharge), telling the client with 0x003E {u8 list index, u8 1}: CLIENT's
+// Msg003E counts its copy down (VIItemList::UseCharge) and takes the item at 0, so
+// the last one takes the record here too.
+func (h *EquipHandler) spendCharge(sess *session.Session, player *entity.Player, idx int, row *database.CharInventoryEntry) error {
+	var err error
+	if row.Charges <= 1 {
+		err = h.takeOne(sess, player, idx, row)
+	} else {
+		err = h.inventoryStore.SetItemCharges(player.CharServerID, row.ItemID, row.Charges-1)
+	}
+	if err != nil {
+		return err
+	}
+	queueReliable(sess, protocol.OpcodeInteractItem, useChargePayload(idx))
+	return nil
+}
+
+// useChargePayload is 0x003E to the client: a charge used on the item at the list
+// index (Msg003E's second byte; 0 would take the item whole).
+func useChargePayload(index int) []byte {
+	return build(protocol.OpcodeInteractItem, 8, func(w *buffer.Writer) {
+		w.WriteByte(byte(index))
+		w.WriteByte(1)
+	})
 }
 
 // LoadPotions gives the World every item's use (at the start).

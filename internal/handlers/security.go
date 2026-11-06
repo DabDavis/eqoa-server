@@ -59,6 +59,13 @@ func (sm *SecurityMiddleware) registerDefaults() {
 		RequireWorld: true,
 	}
 
+	// The quick-chat menu's changes go to the database (hotkeys.go): a change
+	// is a few messages (a branch dropped, one for each set under it), so a
+	// cap a minute and no least interval.
+	for _, op := range []protocol.GameOpcode{protocol.OpcodeHotkeyChoice, protocol.OpcodeHotkeySet, protocol.OpcodeHotkeyDrop} {
+		sm.policies[op] = &OpcodePolicy{MaxPerMin: 300, RequireWorld: true}
+	}
+
 	// Emotes are shown to every player who can see the sender (0x0775).
 	for _, op := range []protocol.GameOpcode{protocol.OpcodeEmoteWave, protocol.OpcodeEmoteBow, protocol.OpcodeEmotePoint, protocol.OpcodeEmoteCheer} {
 		sm.policies[op] = &OpcodePolicy{MinInterval: time.Second, RequireWorld: true}

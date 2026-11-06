@@ -2,7 +2,9 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
+	"log"
 )
 
 // shop.go — what the merchant, bank and blacksmith windows read and write:
@@ -95,6 +97,9 @@ func (s *InventoryStore) GetCharItem(serverID uint32, itemID int) (CharInventory
 // AddCharItem gives a character a new item row at the end of the list at
 // location (0 the inventory, 1 the bank), unequipped, and returns its itemid.
 func (s *InventoryStore) AddCharItem(serverID uint32, patternID, stack, remainHP, charges, location int) (int, error) {
+	if charges == 0 {
+		charges = s.ItemCharges(patternID) // a new one holds them all
+	}
 	res, err := s.db.Exec(`
 		INSERT INTO charinventory (serverid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber)
 		VALUES (?, ?, ?, ?, ?, -1, ?,
@@ -111,6 +116,26 @@ func (s *InventoryStore) AddCharItem(serverID uint32, patternID, stack, remainHP
 func (s *InventoryStore) SetItemStack(serverID uint32, itemID, stack int) error {
 	return s.execOne(`UPDATE charinventory SET stackleft = ? WHERE itemid = ? AND serverid = ?`,
 		stack, itemID, serverID)
+}
+
+// ItemCharges is how many uses a new one of the item holds (itemeffect.charges),
+// 0 for an item without them or one that stacks: a stack takes uses off itself.
+func (s *InventoryStore) ItemCharges(patternID int) int {
+	var n int
+	if err := s.db.QueryRow(`SELECT e.charges FROM itemeffect e JOIN itempattern p ON p.patternid = e.patternid
+		WHERE e.patternid = ? AND p.maxstack < 2`, patternID).Scan(&n); err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			log.Printf("Items: record %d's charges: %v", patternID, err)
+		}
+		return 0
+	}
+	return n
+}
+
+// SetItemCharges sets a row's charges left (a use).
+func (s *InventoryStore) SetItemCharges(serverID uint32, itemID, charges int) error {
+	return s.execOne(`UPDATE charinventory SET remaincharge = ? WHERE itemid = ? AND serverid = ?`,
+		charges, itemID, serverID)
 }
 
 // SetItemRemainHP sets a row's condition (a repair).

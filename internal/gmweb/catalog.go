@@ -338,7 +338,10 @@ var catalog = map[string]tableNote{
 	},
 	"hotkeys": {
 		Label: "Hotkeys", Group: "Players",
-		Help: "Characters' quick-menu hotkeys (the L2 d-pad).",
+		Help: "Characters' own quick-chat menus (the L2 d-pad), one row a set; a character with no rows has the server's " +
+			"defaults, and its first change writes them all. direction is the set's id (0 the root; the low two bits its depth, " +
+			"a 2-bit choice for each level above). Each of N, W, E, S has a label (its button) and a message (\"|n\" a command, " +
+			"else said).",
 		Cols: map[string]colNote{"serverid": {Label: "Character", Ref: "characters"}},
 	},
 	"weaponhotbar": {
@@ -1193,7 +1196,8 @@ var catalog = map[string]tableNote{
 			"line's words, its first word on whom: Self (drunk) or Target (thrown at the creature targeted, within 20). " +
 			"name is the effect's name on the effects list (empty: the item's), icon its icon there (an ability's icon, " +
 			"spellpattern.icon). breaks: attack (ended by its bearer's attack, harmful cast or throw), damage (by a hit), " +
-			"both as attack,damage. wear: the percent chance each six-second tick that it wears off. area: a thrown " +
+			"both as attack,damage. wear: the percent chance each six-second tick that it wears off. charges: how many uses one " +
+			"holds (an item of maxstack 1; 0 takes one off the stack each use). area: a thrown " +
 			"one's splash round its target. A thrown potion worn as a thrown weapon (wear 17, attack type 10) is each " +
 			"auto-attack's throw. Spells give potions by their words (\"Summon Watery Draught\", \"x3\"), the item by name.",
 		Live:   "At once: read at every use. Which items are thrown in an auto-attack is read at the server's start.",

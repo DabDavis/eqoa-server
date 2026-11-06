@@ -210,6 +210,10 @@ func (h *CharacterHandler) ListCharacters() {
 // RegisterHandlers registers character handlers with the registry.
 func (h *CharacterHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeCreateCharacter, h.HandleCreateCharacter)
+	// the L2 menu's quick chat, kept for each character (hotkeys.go)
+	r.Register(protocol.OpcodeHotkeyChoice, h.HandleHotkeyChoice)
+	r.Register(protocol.OpcodeHotkeySet, h.HandleHotkeySet)
+	r.Register(protocol.OpcodeHotkeyDrop, h.HandleHotkeyDrop)
 	r.Register(protocol.OpcodeSelectedChar, h.HandleSelectedChar)
 	r.Register(protocol.OpcodeRandomName, h.HandleRandomName)
 	r.Register(protocol.OpcodeCharacterInWorld, h.HandleCharacterInWorld)
@@ -1680,8 +1684,8 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 	writer.WriteFloat32(0.0)
 	writer.WriteFloat32(0.0)
 
-	// === Hotkeys section ===
-	writeDefaultHotkeys(writer)
+	// === Hotkeys section (the character's own: hotkeys.go) ===
+	writeHotkeys(writer, h.hotkeysOf(player.CharServerID))
 
 	// Two int32s after hotkeys: VIClient m_p2BB60, then m_p2BB0C, the quest
 	// journal's token, which 0x007C/0x007D set and the player's delete sends
@@ -2296,18 +2300,19 @@ func (h *CharacterHandler) SendPlayerSpeed(sess *session.Session, speed float32)
 	log.Printf("Sent PlayerSpeed (%.1f) to %s", speed, sess.RemoteAddr())
 }
 
-// hotkey represents a single directional hotkey entry with 4 slots (N/W/E/S).
+// hotkey represents a single quick-chat set with 4 slots (N/W/E/S), each its
+// text (what it sends) and its title (what its button shows).
 type hotkey struct {
-	dirCode      int64
-	nLabel, nMsg string
-	wLabel, wMsg string
-	eLabel, eMsg string
-	sLabel, sMsg string
+	dirCode       int64
+	nText, nTitle string
+	wText, wTitle string
+	eText, eTitle string
+	sText, sTitle string
 }
 
 // defaultHotkeys are the 25 default hotkey entries from the eqoa.live reference server.
-// Labels starting with "|" followed by a number are client command codes.
-// Labels of " " (single space) indicate submenu navigation nodes.
+// A text starting with "|" followed by a number is a client command code.
+// A text of " " (single space) marks a submenu navigation node.
 // %4 = target name, %2 = class name, %3 = level.
 var defaultHotkeys = []hotkey{
 	{0, " ", "Responses", " ", "Options", " ", "Group", " ", "Communicate"},                                                                                                                                                // Main Menu
@@ -2335,35 +2340,4 @@ var defaultHotkeys = []hotkey{
 	{30, "North", "North", "West", "West", "East", "East", "South", "South"},                                                                                                                                               // SW
 	{179, "Good", "Good", "Bad", "Bad", "How's it?", "How's it?", "Okay", "Okay"},                                                                                                                                          // NSE
 	{243, "Sorry, busy", "Sorry, busy", "Quit", "Quit", "Long break", "Long break", "Keyboard", "Keyboard"},                                                                                                                // NSS
-}
-
-// writeDefaultHotkeys writes the 25 default hotkey entries to the MemoryDump.
-// Wire format (from eqoa.live pcap): count(zigzag) + foreach: direction(zigzag) +
-// 4x(byte(slotID) + WriteStringUnicode(label) + WriteStringUnicode(message))
-func writeDefaultHotkeys(writer *buffer.Writer) {
-	writer.Write7BitEncodedInt64(int64(len(defaultHotkeys)))
-
-	for _, hk := range defaultHotkeys {
-		writer.Write7BitEncodedInt64(hk.dirCode)
-
-		// N slot (0)
-		writer.WriteByte(0)
-		writer.WriteStringUnicode(hk.nLabel)
-		writer.WriteStringUnicode(hk.nMsg)
-
-		// W slot (2)
-		writer.WriteByte(2)
-		writer.WriteStringUnicode(hk.wLabel)
-		writer.WriteStringUnicode(hk.wMsg)
-
-		// E slot (4)
-		writer.WriteByte(4)
-		writer.WriteStringUnicode(hk.eLabel)
-		writer.WriteStringUnicode(hk.eMsg)
-
-		// S slot (6)
-		writer.WriteByte(6)
-		writer.WriteStringUnicode(hk.sLabel)
-		writer.WriteStringUnicode(hk.sMsg)
-	}
 }

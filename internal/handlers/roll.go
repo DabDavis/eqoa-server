@@ -26,7 +26,9 @@ import (
 	"math/rand/v2"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -38,6 +40,39 @@ const rollMost = 1_000_000_000
 // rollRGB is a roll's line colour (0x0A7B): gold, apart from says (white),
 // shouts (green) and the server's red.
 var rollRGB = [3]uint8{0xFF, 0xD7, 0x40}
+
+// The Rolling Dice (petition 1104, Koolade: "rolling dice should be in the
+// first/magic column and be able to be preppared to the hotbar. when doing so and
+// targeting yourself, it rolls in orange text in the say chat channel for public
+// rollings for all nearby players to see, outside of the normal group only roll
+// feature"): an item of the usable gem type, whose Use rolls 0 to 99 as the L2
+// menu's does, to everyone in say range, in orange, never spent; any target will do.
+const (
+	RollingDiceName = "Rolling Dice"
+	diceEvery       = 2 * time.Second // a pair of dice is not a way to fill a room's chat
+)
+
+var diceRGB = [3]uint8{0xFF, 0x8C, 0x00}
+
+// IsRollingDice is whether an item record is the dice: worn nowhere and so named.
+func IsRollingDice(p *database.ItemPatternRecord) bool {
+	return p != nil && p.EquipSlot == -1 && strings.EqualFold(strings.TrimSpace(p.ItemName), RollingDiceName)
+}
+
+// RollTheDice is the dice's Use (equip.go), at most one every diceEvery a player.
+func (h *ChatHandler) RollTheDice(sess *session.Session, player *entity.Player, now time.Time) {
+	h.diceMu.Lock()
+	if h.diceAt == nil {
+		h.diceAt = map[uint32]time.Time{}
+	}
+	if last, ok := h.diceAt[player.CharServerID]; ok && now.Sub(last) < diceEvery {
+		h.diceMu.Unlock()
+		return
+	}
+	h.diceAt[player.CharServerID] = now
+	h.diceMu.Unlock()
+	h.rollIn(sess, player, 0, 99, diceRGB)
+}
 
 // rollDice is a whole number in [0, n): math/rand/v2's IntN (a test sets it).
 var rollDice = rand.IntN
@@ -96,12 +131,17 @@ func (h *ChatHandler) roll(sess *session.Session, player *entity.Player, args []
 		SendErrorMessage(sess, fmt.Sprintf("Roll: /roll, /roll <most> or /roll <least> <most>, whole numbers up to %d.", rollMost))
 		return
 	}
+	h.rollIn(sess, player, lo, hi, rollRGB)
+}
+
+// rollIn rolls lo to hi and tells everyone in say range, the roller too, in rgb.
+func (h *ChatHandler) rollIn(sess *session.Session, player *entity.Player, lo, hi int, rgb [3]uint8) {
 	n := lo + rollDice(hi-lo+1)
 	line := fmt.Sprintf("%s rolls %d (%d to %d).", player.Name, n, lo, hi)
 	hear := h.inSayRange(sess, player)
 	for _, l := range hear {
 		msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeColoredChat)
-		msg.SetData(coloredChatPayload(lineFor(l.p, line), rollRGB[0], rollRGB[1], rollRGB[2]))
+		msg.SetData(coloredChatPayload(lineFor(l.p, line), rgb[0], rgb[1], rgb[2]))
 		l.s.Queue().AddWithSequence(msg)
 	}
 	log.Printf("Roll: %q to %d players", line, len(hear))

@@ -101,7 +101,9 @@ const (
 	OpcodeBlackSmithMenu      GameOpcode = 0x0061 // Interact with Blacksmith / Open Repair Window
 	OpcodeRequestRepair       GameOpcode = 0x0062 // Repair Item
 	OpcodeCloseBlacksmithMenu GameOpcode = 0x0063 // "You are too far from the blacksmith"
-	OpcodeHotkeyMenu          GameOpcode = 0x006C // Hotkey Menu (server)
+	OpcodeHotkeySet           GameOpcode = 0x006A // a quick-chat set made (client: Send006A)
+	OpcodeHotkeyDrop          GameOpcode = 0x006B // a quick-chat set taken away (client: Send006B)
+	OpcodeHotkeyChoice        GameOpcode = 0x006C // a quick-chat set's choice changed (client: Send006C)
 
 	// 0x007X - Quests, Pets, Groups
 	OpcodeAssistTarget GameOpcode = 0x007B // out, Msg007B: u32 entity id to target (and ask 0x0010 about); -1 shows word 838. In: Assist Leader (DoAction 0x0B090000), a u32, the sender's target
@@ -688,6 +690,12 @@ func (op GameOpcode) String() string {
 		return "ColoredChat"
 	case OpcodeClientMessage:
 		return "ClientMessage"
+	case OpcodeHotkeyChoice:
+		return "HotkeyChoice"
+	case OpcodeHotkeySet:
+		return "HotkeySet"
+	case OpcodeHotkeyDrop:
+		return "HotkeyDrop"
 	case OpcodeTarget:
 		return "Target"
 	case OpcodeTargetInformation:

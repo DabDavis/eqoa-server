@@ -380,6 +380,9 @@ func (h *NPCWindowHandler) buy(sess *session.Session, id uint32, index, count in
 // files it under.
 func (h *NPCWindowHandler) giveItem(player *entity.Player, l *invList, rec database.CharInventoryEntry, n, location int) (*database.CharInventoryEntry, uint32, error) {
 	p := &rec.Pattern
+	if rec.Charges == 0 {
+		rec.Charges = h.inv.ItemCharges(p.PatternID) // a new one holds them all
+	}
 	out := wireRecord(rec)
 	out.StackLeft = n
 	if i := l.stackOnto(p.PatternID, p.MaxStack); i >= 0 {

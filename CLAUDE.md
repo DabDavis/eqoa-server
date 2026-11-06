@@ -780,6 +780,26 @@ slot's press is the same 0x003E as the menu's Use. Its Use puts **the boards' Sp
 by the holder's own hostile act), so after a fight it is used again; one effect whatever gave it (a board's talk renews
 a fang's hour and the fang a board's). The dead are given nothing.
 
+### The L2 menu's quick chat is kept (`handlers/hotkeys.go`, `database/hotkeys.go`)
+
+Petition 1003, Waldorf: "L2 changes to hotkeys don't save after logging out"; the user, 2026-11-06: "build the hotkey
+saving". CLIENT and vanilla tell the server each change, which nothing read, so every MemoryDump sent the 25 default sets:
+**0x006C** {zz set, zz slot, wide text, wide title} a choice, **0x006A** {zz set, 4 x the same} a set made, **0x006B** {zz
+set} a set taken away. Table `hotkeys`, a row a set (`direction` the set's id, 0-255, a path: `VITextSet::MakeId`; slots
+N, W, E, S are 0-3; `label` the button's words, `message` what it sends, "|n" a command), written at once; a character
+with no rows gets the defaults, and its first change writes them all. Words are cut to what CLIENT's record keeps (127 and
+63 wide characters). A snapshot clears the table (a player's own lines).
+
+### Items with charges, and the Rolling Dice
+
+**Charges** (`itemeffect.charges`, petition 1088, the alchemists' Reconstructive: 4; the user: "do what koolade says"): how
+many uses one of an item holds, for an item that does not stack. A new one holds them all (`AddCharItem`, `giveItem`), the
+row's `remaincharge` what is left. Each use takes one and tells the client 0x003E {u8 list index, u8 1} (CLIENT's Msg003E:
+`UseCharge`, the item gone at 0), and the last takes the row; a stack still takes one off itself with 0x003C.
+**The Rolling Dice** (`handlers/roll.go`, petition 1104): an item of the usable gem type (the first column, the HUD's gem
+slot) named `Rolling Dice`, whose Use with any target rolls 0 to 99 as the L2 menu's roll does, to everyone in say range, in
+orange, never spent, at most one every 2 s a player.
+
 ### Groups: any member invites (`entity/group.go`, `handlers/group.go`)
 
 The user, 2026-11-06: "lets allow any group member to invite to group". `GroupInvite` takes a 0x0625 from any
@@ -1093,6 +1113,7 @@ and on its own https host the session is a `__Host-` cookie no other host can se
   | `workboard`, `workboard_overview` | every row deleted | what people and agents wrote each other (a note can hold a password or a token); the default overview is seeded again on open |
   | `petitions` | every row deleted | a player's own words to the staff and the staff's answers, with the account they came from |
   | `chartransfers` | every row deleted | a player's own words about a character on another server, the GMs' answers, with the account they came from |
+  | `hotkeys` | every row deleted | the quick-chat lines a player typed; a server sends the defaults for a character with no rows |
   | `sqlite_stat3`, `sqlite_stat4` | every row deleted | samples of the indexes' keys |
   | `snapshot_info` (added) | the sanitiser's version, when, by whom, what it took out | so a copy says what it is |
   | every other table | whole | the game: characters, items, NPCs, quests, spells, balance, templates, the tools' logs (their `key`/`rowkey` columns allowed by name) |

@@ -176,6 +176,9 @@ func ResumeDump(sess *session.Session, dead bool) bool {
 		h.queueMemoryDump(sess, &snap)
 	}
 	h.SendPlayerSpeed(sess, gw.PlayerSpeed(sess, entity.RunSpeed))
+	// its client may swing on through the restart with no 0x000F: the hands'
+	// swing for that (entity/attack.go pressUnsentLocked)
+	handsChanged(gw, h.inventoryStore, sess, p)
 	if n := gw.SendTakenOver(sess, time.Now()); n > 0 {
 		log.Printf("Keep: '%s' told its %d lockouts", p.Name, n)
 	}

@@ -178,6 +178,8 @@ type Player struct {
 	// AutoAttack is the 0x40's byte 36, CLIENT's m_autoAttack: the attack
 	// button held (or toggled on). attack.go reads it at every swing.
 	AutoAttack bool
+	// buttonUpAt is when it last went up (attack.go pressUnsentLocked)
+	buttonUpAt time.Time
 
 	// The fight a 0x000F engaged (attack.go): the NPC, the object id the
 	// player named it by, when the next swing is due and what it swings,

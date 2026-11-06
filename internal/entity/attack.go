@@ -50,6 +50,19 @@ import (
 // 2026-10-30: "the animation and damage don't sync well for auto attacks
 // especially on eqoaclassic", whose creatures chase and step about; a press
 // a little out of reach, the client swinging 2 s later, was enough).
+//
+// A press with the timer still running sends nothing: ToggleAutoAttack only
+// sets m_autoAttack, and AutoAttackTick swings at the target when the timer
+// runs out, on and on, with no 0x000F at all. With the fight already on that
+// is the round waiting for the button; with none on, the next target after a
+// kill or a change of target within a swing's delay, it was a client swinging
+// for nothing until its player let the button go long enough for the timer to
+// run out (petition 1112: "switching targets or un con'ing target results in
+// combat breaking. you have to go into menus unequip weapon and reequip it.
+// then damage resumes"; a level 60 ranger's timer is 6 s, and the menus are
+// what let it run out). So the button up (0x40 byte 36, which CLIENT clears on
+// every change of target and sets only with a press) on the target it has named
+// (0x0010) is a press too, at the timer's end: pressUnsentLocked.
 
 // Swing kinds, CLIENT's GetSwing (0x00CBDEF8 [A]); VISwing::Effect
 // (0x00CBE0A8 [A]) names a spell effect for each and VISwing::Delay
@@ -289,6 +302,12 @@ func (w *World) EngageAttack(sess *session.Session, objectID uint32, swing Swing
 	if p == nil || p.IsDead() {
 		return false
 	}
+	return w.engageLocked(sess, p, objectID, swing, now)
+}
+
+// engageLocked is a press on the object named, a 0x000F's or one that sent
+// none (pressUnsentLocked): the player engages it if it may be fought.
+func (w *World) engageLocked(sess *session.Session, p *Player, objectID uint32, swing Swing, now time.Time) bool {
 	ent, found := w.findEntityByObjectIDLocked(sess, objectID)
 	if !found {
 		return false
@@ -320,14 +339,60 @@ func (w *World) EngageAttack(sess *session.Session, objectID uint32, swing Swing
 
 // StopAttackOnRetarget ends the player's engagement when a 0x0010 names any
 // other target: CLIENT's every target change (SetTarget, SelectTarget,
-// CycleTarget) turns auto-attack off.
+// CycleTarget) turns auto-attack off, which its next 0x40 says and the button's
+// copy here says now, so a press cannot be read off the old target's button
+// (pressUnsentLocked).
 func (w *World) StopAttackOnRetarget(sess *session.Session, objectID uint32) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	if p := w.sessionPlayerLocked(sess); p != nil && p.AttackTarget != 0 && p.AttackObjectID != objectID {
+	p := w.sessionPlayerLocked(sess)
+	if p == nil {
+		return
+	}
+	if p.TargetObjectID != objectID {
+		p.AutoAttack = false
+	}
+	if p.AttackTarget != 0 && p.AttackObjectID != objectID {
 		p.disengage()
 	}
 }
+
+// unsentPressWait is how long the button may be up, its timer run out as the
+// server follows it, before the press is taken as one that sent no 0x000F: a
+// press with the timer run out sends its 0x000F ahead of the 0x40 that shows the
+// button, and only a timer the server lost sight of (a restart's) leaves none to
+// come.
+const unsentPressWait = 500 * time.Millisecond
+
+// pressUnsentLocked is a press CLIENT sent no 0x000F for (the file's doc): with
+// no fight on and the button up on the target the client named, the player
+// engages it when the client's own swing comes, its round on that swing's beat,
+// with the hands' swing (HandsChanged). The button let go by then is a tap and
+// starts nothing, as AutoAttackTick's own test has it. It reports whether a
+// fight began. Must be called with the lock held.
+func (w *World) pressUnsentLocked(p *Player, now time.Time) bool {
+	if !p.AutoAttack || p.TargetObjectID == 0 || p.TargetObjectID == noTargetObject || p.Swing.Delay <= 0 || p.IsDead() {
+		return false
+	}
+	due := p.swingTimer
+	if now.Before(due) || (!p.buttonUpAt.Before(due) && now.Sub(p.buttonUpAt) < unsentPressWait) {
+		return false // the client has not swung yet, or its 0x000F is on the way
+	}
+	sess := w.findSessionByEntityIDLocked(p.ServerID)
+	if sess == nil || !w.engageLocked(sess, p, p.TargetObjectID, p.Swing, now) {
+		return false
+	}
+	start := now
+	if now.Sub(due) <= buttonLate {
+		start = due // the client's swing's beat, the tick a little after it
+	}
+	p.NextSwing, p.swingTimer, p.ButtonReadAt = start, start, start
+	log.Printf("Combat: %s's press sent no 0x000F: its rounds from its swing timer", p.Name)
+	return true
+}
+
+// noTargetObject is the object id a 0x0010 names no target by.
+const noTargetObject uint32 = 0xFFFFFFFF
 
 // pressed is a 0x000F: CLIENT's swing timer from the press (ToggleAutoAttack:
 // m_p071E8 = now), the first round the press's, its hits on the press's
@@ -379,7 +444,11 @@ func (w *World) SwingOutOfReach(sess *session.Session, now time.Time) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
-	if p == nil || p.AttackTarget == 0 {
+	if p == nil {
+		return
+	}
+	if p.AttackTarget == 0 { // the timer goes on with no fight, a press's that sent nothing (pressUnsentLocked)
+		p.swingTimer = now.Add(outOfReachRetry)
 		return
 	}
 	if !p.RoundStart.IsZero() && p.RoundHits == 0 {
@@ -414,6 +483,7 @@ func (p *Player) roundStart(now time.Time) (time.Time, bool) {
 }
 
 func (p *Player) disengage() {
+	p.newRound() // the hands it holds now, for a press that sends no 0x000F
 	p.AttackTarget = 0
 	p.AttackObjectID = 0
 	p.NextSwing = time.Time{}
@@ -433,12 +503,17 @@ func (p *Player) disengage() {
 // 2026-11-01 the swing was the engagement's for the whole fight (the next
 // 0x000F's: one comes only with the attack button pressed again), so a
 // player who took up a bow fought on with its blades' reach and rounds. Out
-// of a fight there is nothing to do: the next 0x000F's swing is the hands'.
+// of a fight it is what a press that sends no 0x000F swings with
+// (pressUnsentLocked); the next 0x000F brings the hands' own.
 func (w *World) HandsChanged(sess *session.Session, swing Swing) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
-	if p == nil || p.AttackTarget == 0 {
+	if p == nil {
+		return
+	}
+	if p.AttackTarget == 0 {
+		p.Swing, p.swingNew = swing, false
 		return
 	}
 	if swing == p.Swing { // the swing it makes now (armour changed, or the hands back): nothing waits
@@ -492,7 +567,7 @@ const firstRound = 250 * time.Millisecond
 // held.
 func (w *World) attackSystem(now time.Time) {
 	for _, p := range w.Players {
-		if p.AttackTarget == 0 {
+		if p.AttackTarget == 0 && !w.pressUnsentLocked(p, now) {
 			continue
 		}
 		if w.duelRoundLocked(p, now) { // a duel's melee (duel.go)

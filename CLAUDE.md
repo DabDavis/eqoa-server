@@ -761,6 +761,19 @@ the bank's moves name its own target, so **the window is the player's, not an en
 `windowNPC`'s fallback after a real NPC in reach): while it stays within `GenieReach` (15) of where the genie stood, in
 its world, alive, a request at least every `GenieWindowIdle` (5 minutes); the forge's close (0x0063) ends it at once.
 
+### The Heirloom Fang of the Wolf: speed from a quick slot (`handlers/wolffang.go`, `tools/seed_wolf_fang.py`)
+
+The user, 2026-11-06: "lets add a speed heir loom item like the lamp they save it to the item toolbar". **The fang**
+("Heirloom Fang of the Wolf", record 715010 by `tools/seed_wolf_fang.py [--list] [--apply|--undo]`, which also puts it
+in every `startitems` combo; the Forger Wolf Fang's icon) is kept as the lamp is: NO TRADE, worth 0, never spent, and a
+character with none gets one at its login (`giveWolfFang`, the lamp's `giveKeptItem`: the pack, else the bank). It is
+CLIENT's GEM type (procanim 7: `IsUsable`, the item menu's Use), which the HUD's third quick slot takes (Msg000A: a type
+7 on slot 2, the live client's on 2 or 3), so the two potion slots (type 2) stay the potions' and the lamp's; a quick
+slot's press is the same 0x003E as the menu's Use. Its Use puts **the boards' Spirit of the Wolf** on its holder
+(`World.GiveWolf`, `entity/boardwolf.go`: the movement buff's run speed for an hour of play, in place of one on it, ended
+by the holder's own hostile act), so after a fight it is used again; one effect whatever gave it (a board's talk renews
+a fang's hour and the fang a board's). The dead are given nothing.
+
 ### Groups: any member invites (`entity/group.go`, `handlers/group.go`)
 
 The user, 2026-11-06: "lets allow any group member to invite to group". `GroupInvite` takes a 0x0625 from any

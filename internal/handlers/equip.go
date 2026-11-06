@@ -481,6 +481,11 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 			h.genie.Summon(sess, player)
 			return nil
 		}
+		// the Heirloom Fang of the Wolf, never spent (wolffang.go)
+		if IsWolfFang(&row.Pattern) {
+			h.useWolfFang(sess)
+			return nil
+		}
 		if c, ok := consumableOf(&row.Pattern); ok {
 			h.consume(sess, player, idx, row, c)
 			return nil

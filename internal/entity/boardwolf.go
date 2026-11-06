@@ -35,6 +35,15 @@ const (
 // for its whole hour, in place of one on it. It reports whether the player
 // was given it (false: no living player) and whether one was on already.
 func (w *World) GiveBoardWolf(sess *session.Session, now time.Time) (given, renewed bool) {
+	return w.GiveWolf(sess, now, "the boards'")
+}
+
+// GiveWolf is GiveBoardWolf from any source, from naming it in the log ("the
+// boards'"; the Heirloom Fang of the Wolf's, handlers/wolffang.go: the user,
+// 2026-11-06, "lets add a speed heir loom item like the lamp they save it to
+// the item toolbar"). It is the one effect whatever gave it: a board's talk
+// renews a fang's hour and the fang a board's, and a hostile act ends either.
+func (w *World) GiveWolf(sess *session.Session, now time.Time, from string) (given, renewed bool) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
@@ -44,7 +53,7 @@ func (w *World) GiveBoardWolf(sess *session.Session, now time.Time) (given, rene
 	renewed = p.hasEffect(BoardWolfEffectID)
 	w.addEffectLocked(p, &ActiveEffect{SpellID: BoardWolfEffectID, Name: BoardWolfName, Icon: BoardWolfIcon,
 		Caster: p.ServerID, Until: now.Add(BoardWolfLength), Speed: true}, now)
-	log.Printf("Board: %s has the boards' %s for %v (renewed %v)", p.Name, BoardWolfName, BoardWolfLength, renewed)
+	log.Printf("Board: %s has %s %s for %v (renewed %v)", p.Name, from, BoardWolfName, BoardWolfLength, renewed)
 	return true, renewed
 }
 

@@ -42,7 +42,7 @@ import (
 // SnapshotVersion names the sanitiser's rules: the panel's audit line and the
 // snapshot's own snapshot_info table say which made a file. Raise it with
 // every change to what is taken out.
-const SnapshotVersion = 9
+const SnapshotVersion = 10
 
 // SnapshotInfoTable is the table a snapshot carries saying what it is: the
 // sanitiser's version, when it was made and by whom, and what was taken out.
@@ -178,6 +178,7 @@ var snapshotRules = map[string]snapshotRule{
 	"tradeskill_seed":             {allow: []string{"key"}, why: "tools/seed_tradeskills.py's log"},
 	"town_wildlife_seed_meta":     {allow: []string{"key"}, why: "tools/seed_town_wildlife.py's facts, a town's"},
 	"wildlife_seed_meta":          {allow: []string{"key"}, why: "tools/seed_wildlife.py's facts"},
+	"wolf_fang_log":               {allow: []string{"rowkey"}, why: "tools/seed_wolf_fang.py's log"},
 }
 
 // renamePlayerAccounts gives every player's account (acctlevel 0 or less) the

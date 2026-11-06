@@ -408,6 +408,40 @@ func TestThePetsStance(t *testing.T) {
 	}
 }
 
+// Petition 1132, Jibmage: "When a pets stance is set to aggressive if any players in
+// the players group take damage, the pet should attack the mob hitting them." The
+// controls: a defensive pet keeps to its owner, and a stranger's fight is not the pet's.
+func TestAnAggressivePetDefendsItsGroup(t *testing.T) {
+	for _, c := range []struct {
+		stance  petStance
+		grouped bool
+		want    bool
+	}{
+		{petAggressive, true, true},
+		{petAggressive, false, false},
+		{petDefensive, true, false},
+	} {
+		r := newPetRig(t)
+		r.summon(t, fireElemental(), 0)
+		ps := r.w.pets[r.p.ServerID]
+		ps.stance = c.stance
+		mate := &Player{ServerID: 1500, Name: "Mate", Level: 45, HP: 900, MaxHP: 900, X: r.p.X + 6, Y: r.p.Y, Z: r.p.Z, World: r.p.World}
+		r.w.Players[mate.ServerID] = mate
+		r.w.SpatialIndex.Insert(mate.ServerID, mate.X, mate.Z)
+		if c.grouped {
+			r.p.GroupID, mate.GroupID = 9, 9
+			r.w.groups = map[uint32]*Group{9: {ID: 9, Members: []EntityID{r.p.ServerID, mate.ServerID}}}
+		}
+		r.enemy.X = r.p.X + 5
+		r.enemy.CurrentEnemy = mate.ServerID
+		r.w.wakeNPCLocked(r.enemy) // a fight begun by hand (npcsets.go)
+		r.tick(10 * time.Second)
+		if got := ps.target == r.enemy.ServerID; got != c.want {
+			t.Errorf("stance %d, grouped %v: pet fights %v, want %v", c.stance, c.grouped, got, c.want)
+		}
+	}
+}
+
 // A pet is on the players' side: no auto-attack and no harm cast at it; a
 // pet spell lands on it whatever the target; with no pet a pet spell is
 // refused with CLIENT's own words.

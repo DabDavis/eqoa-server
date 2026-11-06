@@ -490,6 +490,14 @@ const (
 	// session for the next petition filed within a minute and puts it in that
 	// petition's server view, for the GMs alone.
 	OpcodeBugReportNote GameOpcode = 0x7E0F
+	// OpcodeMemberInvites is not retail: any member of a group may invite
+	// into it (the user, 2026-11-06), where CLIENT lets only the leader
+	// (InviteEntity, InviteToGroup: word 640). A u32 after the opcode, 1, from
+	// the server once the player is in the world (handlers/group.go); a
+	// client that has it invites as any member, and sends no answer. A PS2
+	// ignores it and keeps the leader's rule, and a client of a server that
+	// never offers it does too.
+	OpcodeMemberInvites GameOpcode = 0x7E17
 
 	// Voice chat (internal/voice, entity/voice.go): non-retail opcodes in a
 	// block of their own; a PS2 ignores them. Strings are a u16 byte length
@@ -763,6 +771,8 @@ func (op GameOpcode) String() string {
 		return "BugReportOffer"
 	case OpcodeBugReportNote:
 		return "BugReportNote"
+	case OpcodeMemberInvites:
+		return "MemberInvites"
 	case OpcodeNoCollideList:
 		return "NoCollideList"
 	case OpcodeFactionPage:

@@ -29,6 +29,21 @@ func (h *GroupHandler) RegisterHandlers(r *Registry) {
 	log.Printf("Group: registered handlers")
 }
 
+// buildMemberInvitesOffer is protocol.OpcodeMemberInvites from the server:
+// a u32, 1.
+func buildMemberInvitesOffer() []byte {
+	return build(protocol.OpcodeMemberInvites, 6, func(w *buffer.Writer) {
+		w.WriteUint32(1)
+	})
+}
+
+// SendMemberInvitesOffer tells the session's client that any member of a
+// group invites into it here (entity's GroupInvite); vanilla then drops
+// CLIENT's leader-only rule, a PS2 ignores it.
+func SendMemberInvitesOffer(sess *session.Session) {
+	queueReliable(sess, protocol.OpcodeMemberInvites, buildMemberInvitesOffer())
+}
+
 // u32 reads the id each of these opcodes starts with.
 func groupID(msg *protocol.Message) (uint32, *buffer.Reader, bool) {
 	data := msg.Data()

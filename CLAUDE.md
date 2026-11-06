@@ -629,6 +629,14 @@ report's section 2) are outside this repository. A PS2 ignores 0x07F5, 0x0840 an
 - **Auction stacks**: lots with a quantity and prices per item, multi-unit proxy bidding, shares; the auction
   house's bullet under Current Status.
 
+### Groups: any member invites (`entity/group.go`, `handlers/group.go`)
+
+The user, 2026-11-06: "lets allow any group member to invite to group". `GroupInvite` takes a 0x0625 from any
+member and the invitee joins the inviter's group, its leader unchanged (until then only the leader's was taken).
+CLIENT refuses a member's invite itself (`InviteEntity`, `InviteToGroup`: word 640), so a PS2's member never sends
+one; vanilla drops that rule where the server offers it: non-retail **0x7E17** (`OpcodeMemberInvites`, a u32 1,
+sent with the other offers at world entry, no answer), so on Sandstorm's server vanilla keeps the leader's rule.
+
 ### Data Flow (World Entry)
 
 1. `HandleSelectedChar` → `loginSpawn(record)` → `gw.CreatePlayer(sess, record)` — creates Player struct

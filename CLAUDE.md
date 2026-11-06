@@ -684,9 +684,13 @@ make a level 1's blade deal 561). The World's level up (`OnLevelUp`: awardXP, `S
 gear at once; the item windows show the new figures at the next login (the user's choice). The chestguard heals as the
 Breastplate of the Anointed (`wornShields`: "heirloom chestguard"). NO TRADE, worth 0. `TestRealHeirloomsGrowWithTheirWearer`
 (`EQOA_REAL_DB`, a copy with the seed applied) holds every class's pieces to never getting worse as the level rises.
-**An Armor Dyer** (any NPC so named) asks what to dye (all the armour, one slot, or every dye off) and the colour (20
-named), and dyes it at once for nothing: `database.SetCharDye` (audited as #dye's, revertible in the panel) and
-`World.SetDyes`; boxes under mark 0x56000000. Dyes show only in clients of the live game's look (vanilla).
+**An Armor Dyer** (any NPC so named) asks what to dye (all the armour; one piece of armour; the robe, shield or a
+weapon; or every dye off), then a family of colours and a colour of it (`database.DyeFamilies`: six families, 35
+colours and "No dye"; the user, 2026-11-06: "lets add more armor dye colors"), every question a box of six answers at
+most, CLIENT's room (`maxDialogOptions`: until then its twelve choices and twenty-one colours were cut to their first
+six), and dyes it at once for nothing: `database.SetCharDye` (audited as #dye's, revertible in the panel) and
+`World.SetDyes`; boxes under mark 0x56000000. A GM's `#dye` takes every colour's name too (a name of two words run
+together: `skyblue`). Dyes show only in clients of the live game's look (vanilla).
 
 ### Groups: any member invites (`entity/group.go`, `handlers/group.go`)
 

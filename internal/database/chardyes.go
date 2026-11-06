@@ -86,12 +86,51 @@ func RGBA(c [4]byte) uint32 {
 	return uint32(c[0])<<24 | uint32(c[1])<<16 | uint32(c[2])<<8 | uint32(c[3])
 }
 
-// dyeNames are colours a GM may name.
-var dyeNames = map[string]uint32{
-	"white": 0xFFFFFFFF, "black": 0x101010FF, "grey": 0x808080FF, "gray": 0x808080FF, "red": 0xD10000FF,
-	"green": 0x008000FF, "blue": 0x0000C0FF, "yellow": 0xF0F000FF, "orange": 0xFF8000FF, "purple": 0x400080FF,
-	"brown": 0x966432FF, "pink": 0xFF5BADFF, "teal": 0x00C8B4FF, "gold": 0xFAAF32FF,
+// DyeColour is a named colour of the Armor Dyers' (handlers/dyer.go) and a
+// GM's #dye: its name and its RGBA.
+type DyeColour struct {
+	Label string
+	RGBA  uint32
 }
+
+// DyeFamily is a family of colours as the dyers offer them: a box of six at
+// most (CLIENT's room for a question's answers).
+type DyeFamily struct {
+	Label   string
+	Colours []DyeColour
+}
+
+// DyeFamilies are the dyers' colours (the user, 2026-11-06: "lets add more
+// armor dye colors": 20 until then, of which the box showed six), the first
+// twenty as they were, a disc tint's where one was taken.
+var DyeFamilies = []DyeFamily{
+	{"Whites, greys and blacks", []DyeColour{{"White", 0xFFFFFFFF}, {"Silver", RGBA(DiscTints[10])}, {"Grey", 0x808080FF},
+		{"Charcoal", 0x404040FF}, {"Black", 0x101010FF}}},
+	{"Reds and pinks", []DyeColour{{"Red", 0xD10000FF}, {"Crimson", 0xA0001EFF}, {"Maroon", RGBA(DiscTints[13])},
+		{"Coral", 0xFF7F50FF}, {"Rose", 0xE0607EFF}, {"Pink", 0xFF5BADFF}}},
+	{"Oranges, golds and browns", []DyeColour{{"Orange", 0xFF8000FF}, {"Amber", 0xFFBF00FF}, {"Gold", 0xFAAF32FF},
+		{"Copper", 0xB87333FF}, {"Brown", 0x966432FF}, {"Tan", RGBA(DiscTints[11])}}},
+	{"Yellows and greens", []DyeColour{{"Yellow", 0xF0F000FF}, {"Lime", 0x80FF00FF}, {"Green", 0x008000FF},
+		{"Emerald", 0x00A86BFF}, {"Forest", 0x1F5F1FFF}, {"Olive", RGBA(DiscTints[7])}}},
+	{"Blues and teals", []DyeColour{{"Teal", 0x00C8B4FF}, {"Sky blue", RGBA(DiscTints[2])}, {"Ice blue", RGBA(DiscTints[9])},
+		{"Royal blue", 0x2050E0FF}, {"Blue", 0x0000C0FF}, {"Navy", RGBA(DiscTints[4])}}},
+	{"Purples", []DyeColour{{"Lavender", 0xB497E0FF}, {"Violet", 0x8A2BE2FF}, {"Magenta", 0xD000D0FF},
+		{"Plum", 0x7D3C6EFF}, {"Purple", 0x400080FF}, {"Indigo", 0x4B0082FF}}},
+}
+
+// dyeNames are colours a GM may name: every dyer's colour, lower case, a
+// name of two words also run together ("skyblue": #dye reads one word).
+var dyeNames = func() map[string]uint32 {
+	m := map[string]uint32{"gray": 0x808080FF}
+	for _, f := range DyeFamilies {
+		for _, c := range f.Colours {
+			n := strings.ToLower(c.Label)
+			m[n] = c.RGBA
+			m[strings.ReplaceAll(n, " ", "")] = c.RGBA
+		}
+	}
+	return m
+}()
 
 // ParseDyeColor reads a colour as a GM writes one: RRGGBB (opaque) or
 // RRGGBBAA in hex, with or without a leading # or 0x; tN, the disc tint N's

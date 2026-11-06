@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/netip"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/eqoa/server/internal/config"
@@ -42,6 +43,17 @@ type Listener struct {
 	cancel context.CancelFunc
 	wg     sync.WaitGroup
 
+	// A restart that keeps the sessions (keep.go): paused stops the read loop
+	// (reading says one runs) and the ticks without closing the socket,
+	// packets counts the packet goroutines still running, tickMu is held
+	// through each tick, and frozen drops every send once the sessions are
+	// written down.
+	paused  atomic.Bool
+	reading atomic.Bool
+	packets sync.WaitGroup
+	tickMu  sync.Mutex
+	frozen  atomic.Bool
+
 	// Packet buffer pool
 	bufferPool sync.Pool
 }
@@ -71,33 +83,40 @@ func NewListener(cfg *config.Config, sessionManager *session.Manager, handlers *
 	}
 }
 
-// Start begins listening for UDP packets.
+// Start begins listening for UDP packets: on the socket a restart handed
+// over (Adopt), else one bound to the game port.
 func (l *Listener) Start() error {
 	addr := &net.UDPAddr{
 		IP:   net.ParseIP(l.cfg.Server.BindAddress),
 		Port: l.cfg.Server.GamePort,
 	}
 
-	conn, err := net.ListenUDP("udp", addr)
-	if err != nil {
-		return err
-	}
+	if l.conn != nil {
+		l.addr, _ = l.conn.LocalAddr().(*net.UDPAddr)
+		log.Printf("UDP listener started on %s (the socket the last process held, kept open through the restart)", l.conn.LocalAddr())
+	} else {
+		conn, err := net.ListenUDP("udp", addr)
+		if err != nil {
+			return err
+		}
 
-	// Set socket buffer sizes
-	if err := conn.SetReadBuffer(ReadBufferSize); err != nil {
-		log.Printf("Warning: failed to set read buffer size: %v", err)
-	}
-	if err := conn.SetWriteBuffer(WriteBufferSize); err != nil {
-		log.Printf("Warning: failed to set write buffer size: %v", err)
-	}
+		// Set socket buffer sizes
+		if err := conn.SetReadBuffer(ReadBufferSize); err != nil {
+			log.Printf("Warning: failed to set read buffer size: %v", err)
+		}
+		if err := conn.SetWriteBuffer(WriteBufferSize); err != nil {
+			log.Printf("Warning: failed to set write buffer size: %v", err)
+		}
 
-	l.conn = conn
-	l.addr = addr
+		l.conn = conn
+		l.addr = addr
 
-	log.Printf("UDP listener started on %s:%d", l.cfg.Server.BindAddress, l.cfg.Server.GamePort)
+		log.Printf("UDP listener started on %s:%d", l.cfg.Server.BindAddress, l.cfg.Server.GamePort)
+	}
 
 	// Start read goroutine
 	l.wg.Add(1)
+	l.reading.Store(true)
 	go l.readLoop()
 
 	return nil
@@ -121,6 +140,12 @@ func (l *Listener) readLoop() {
 		case <-l.ctx.Done():
 			return
 		default:
+		}
+		// a restart that keeps the sessions (keep.go): nothing more is read
+		// here; what comes waits in the socket for the next process
+		if l.paused.Load() {
+			l.park()
+			continue
 		}
 
 		// Get buffer from pool
@@ -163,8 +188,10 @@ func (l *Listener) readLoop() {
 
 		// Process packet in a goroutine
 		l.wg.Add(1)
+		l.packets.Add(1)
 		go func(data []byte, addr *net.UDPAddr) {
 			defer l.wg.Done()
+			defer l.packets.Done()
 			l.handlePacket(data, addr)
 		}(packetData, remoteAddr)
 	}
@@ -309,9 +336,23 @@ func (l *Listener) handlePacket(data []byte, addr *net.UDPAddr) {
 		for _, msg := range packet.Body.Messages {
 			// Track reliable message sequence numbers for ACKing
 			if msg.Type.IsReliable() && msg.Sequence > 0 {
-				conn.SetLastReceivedMessageSeq(msg.Sequence)
+				copied := false
+				if sess.Resumed() {
+					// a session carried through a restart: the copies its
+					// client sent again while the server was away (one a
+					// second) are acknowledged, not handled twice
+					copied = !conn.TakeReliable(msg.Sequence)
+				} else {
+					conn.SetLastReceivedMessageSeq(msg.Sequence)
+				}
 				// Set flag to ACK the reliable message back to client
 				sess.Queue().SetBodyFlags(protocol.BodyFlagGuaranteedAck | protocol.BodyFlagFlushAck)
+				if copied {
+					if debuglog.Packets() {
+						log.Printf("handlePacket: reliable message %d from %s again, acknowledged, not handled", msg.Sequence, addr)
+					}
+					continue
+				}
 			}
 
 			// Handle ping messages - respond with ACK (already handled above, but continue)
@@ -381,8 +422,13 @@ func (l *Listener) flushSession(sess *session.Session) {
 	}
 }
 
-// SendTo sends a packet to a specific address.
+// SendTo sends a packet to a specific address. Nothing goes once a restart
+// that keeps the sessions has written them down (keep.go): the next process
+// numbers on from what was written.
 func (l *Listener) SendTo(data []byte, addr *net.UDPAddr) error {
+	if l.frozen.Load() {
+		return nil
+	}
 	_, err := l.conn.WriteToUDP(data, addr)
 	return err
 }
@@ -424,6 +470,11 @@ func (l *Listener) StartTickRoutine(interval time.Duration) func() {
 // tickAllSessions runs ECS systems and then ticks all active sessions; the
 // world's tick timer is told how long each part took (entity/ticktime.go).
 func (l *Listener) tickAllSessions() {
+	l.tickMu.Lock()
+	defer l.tickMu.Unlock()
+	if l.paused.Load() {
+		return // a restart that keeps the sessions (keep.go)
+	}
 	start := time.Now()
 	// Run ECS tick: process commands, AI, respawn, regen, state sync
 	if l.gameWorld != nil {
@@ -459,6 +510,12 @@ func (l *Listener) tickAllSessions() {
 				}
 			}
 			return true
+		}
+
+		// a session carried through a restart: its dump, once its client
+		// has reported where it stands (keep.go)
+		if due, dead := sess.TakeResumeDue(time.Now()); due {
+			l.resumeDump(sess, dead)
 		}
 
 		if sess.CharacterInWorld() {
@@ -878,6 +935,12 @@ func (l *Listener) processClientUpdate(sess *session.Session, msg *protocol.Mess
 			u.AutoAttack, u.HasAutoAttack = entity.ClientUpdateAutoAttack(decoded)
 			u.WalkFlags, u.HasWalkFlags = entity.ClientUpdateWalkFlags(decoded)
 			l.gameWorld.ApplyClientUpdate(player.ServerID, u)
+			// a session carried through a restart: this is where its client
+			// is, and its dump goes once the reports it sent while the
+			// server was away are in (keep.go)
+			if sess.ResumePending() {
+				sess.NoteResumeReport(time.Now(), resumeReportWait)
+			}
 		}
 	}
 	return true

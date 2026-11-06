@@ -111,7 +111,7 @@ func TestAnActionEndsTheInvisibilityAlone(t *testing.T) {
 	}
 	// a cast after: its invisibility ended already, nothing more ends
 	c.w.mu.Lock()
-	c.w.dispelOnCastLocked(c.p)
+	c.w.dispelOnCastLocked(c.p, true)
 	c.w.mu.Unlock()
 	if effectNamed(c.p.Effects, 9913) == nil || c.p.SpeedNow() <= run {
 		t.Errorf("a cast after the action took what stays")
@@ -159,7 +159,7 @@ func TestACastEndsOnlyItsMarkedParts(t *testing.T) {
 		{"kind":"illusion","sprite":"0x010C0B0A"},{"kind":"stat","stat":"str","amount":29},{"kind":"speed","dispel_on_cast":true}]}`)
 	c.land(t, wolf, 0xFFFFFFFF, 0)
 	c.w.mu.Lock()
-	c.w.dispelOnCastLocked(c.p)
+	c.w.dispelOnCastLocked(c.p, true)
 	c.w.mu.Unlock()
 	if m, _ := channelBody(c.p); effectNamed(c.p.Effects, 9917) == nil || c.p.SpeedNow() != run || m != testOgreMale ||
 		c.p.Mods.Str != 29 {
@@ -171,7 +171,7 @@ func TestACastEndsOnlyItsMarkedParts(t *testing.T) {
 		{"kind":"speed","dispel_on_cast":true},{"kind":"stat","stat":"agi","amount":10,"dispel_on_cast":true}]}`)
 	d.land(t, all, 0xFFFFFFFF, 0)
 	d.w.mu.Lock()
-	d.w.dispelOnCastLocked(d.p)
+	d.w.dispelOnCastLocked(d.p, true)
 	d.w.mu.Unlock()
 	if effectNamed(d.p.Effects, 9918) != nil {
 		t.Error("a wholly marked effect stayed through a cast")
@@ -188,7 +188,7 @@ func TestAPartTwoEndsShareIsTakenOffOnce(t *testing.T) {
 		{"kind":"stat","stat":"dex","amount":5,"dispel_on_contact":true},{"kind":"stat","stat":"agi","amount":7}]}`)
 	c.land(t, boon, 0xFFFFFFFF, 0)
 	c.w.mu.Lock()
-	c.w.dispelOnCastLocked(c.p)
+	c.w.dispelOnCastLocked(c.p, true)
 	c.w.mu.Unlock()
 	if c.p.Mods.Str != 0 || c.p.Mods.Dex != 5 || c.p.Mods.Agi != 7 {
 		t.Fatalf("after a cast: STR %+d DEX %+d AGI %+d; want 0, +5, +7", c.p.Mods.Str, c.p.Mods.Dex, c.p.Mods.Agi)
@@ -272,7 +272,7 @@ func TestAHidesSlowEndsWithTheHiding(t *testing.T) {
 		do  func(*caster)
 	}{
 		{"a hit", func(d *caster) { d.contactPlayer() }},
-		{"a cast", func(d *caster) { d.w.mu.Lock(); d.w.dispelOnCastLocked(d.p); d.w.mu.Unlock() }},
+		{"a cast", func(d *caster) { d.w.mu.Lock(); d.w.dispelOnCastLocked(d.p, true); d.w.mu.Unlock() }},
 	} {
 		d := bodyRig(t)
 		d.land(t, hide, 0xFFFFFFFF, 0)

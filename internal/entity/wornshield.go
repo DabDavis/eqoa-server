@@ -183,20 +183,26 @@ func (w *World) wornShieldsLocked(sess *session.Session, p *Player, npc *NPC) bo
 			log.Printf("Shield: %s's %q answers %s for %d", p.Name, s.Item, npc.Name, damage)
 			died = w.spellHitLocked(p, sess, npc, damage) || died
 		}
-		if p.IsDead() {
-			continue
-		}
-		if top := p.MaxHPNow(); n > 0 && p.HP < top {
-			p.HP = min(p.HP+n, top)
-			p.StatsDirty = true
-			w.tellAmountLocked(p, sess, p.ServerID, n)
-			log.Printf("Shield: %s's %q heals it for %d (%d/%d)", p.Name, s.Item, n, p.HP, top)
-		}
-		if top := p.MaxPowerNow(); power > 0 && p.Power < top {
-			p.Power = min(p.Power+power, top)
-			p.StatsDirty = true
-			log.Printf("Shield: %s's %q gives it %d power (%d/%d)", p.Name, s.Item, power, p.Power, top)
-		}
+		w.wornGiveLocked(p, sess, s, n, power)
 	}
 	return died
+}
+
+// wornGiveLocked is what a worn item gives its wearer at a hit: hit points, told as a
+// heal is, and power, each only when short of its most. Must be called with the lock held.
+func (w *World) wornGiveLocked(p *Player, sess *session.Session, s WornShield, n, power int) {
+	if p.IsDead() {
+		return
+	}
+	if top := p.MaxHPNow(); n > 0 && p.HP < top {
+		p.HP = min(p.HP+n, top)
+		p.StatsDirty = true
+		w.tellAmountLocked(p, sess, p.ServerID, n)
+		log.Printf("Shield: %s's %q heals it for %d (%d/%d)", p.Name, s.Item, n, p.HP, top)
+	}
+	if top := p.MaxPowerNow(); power > 0 && p.Power < top {
+		p.Power = min(p.Power+power, top)
+		p.StatsDirty = true
+		log.Printf("Shield: %s's %q gives it %d power (%d/%d)", p.Name, s.Item, power, p.Power, top)
+	}
 }

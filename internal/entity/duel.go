@@ -1035,10 +1035,15 @@ func (w *World) duelRoundLocked(p *Player, now time.Time) bool {
 		}
 		if t != nil {
 			n := playerMeleeHit(p, duelStandIn(t.Level), rand.Intn)
-			return w.duelHurtLocked(d, p, p.ServerID, t, n, now)
+			return w.duelHurtLocked(d, p, p.ServerID, t, n, now) ||
+				w.duelAnswerLocked(d, t, duelMark{t: p}, now) || // duelprocs.go
+				w.duelProcsLocked(d, p, duelMark{t: t}, now)
 		}
 		n := playerMeleeHit(p, duelStandIn(pet.Level), rand.Intn)
 		w.duelHurtPetLocked(d, p, pet, n, now)
+		if p.AttackTarget != 0 && !d.petOut[pet.Owner] {
+			w.duelProcsLocked(d, p, duelMark{pet: pet}, now)
+		}
 		return p.AttackTarget == 0
 	}
 	land := func() bool {

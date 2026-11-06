@@ -104,7 +104,11 @@ func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c
 		case database.EventSay:
 			q.tellLocked(c, sess, e.NPC, sayLines(e.Text)...)
 		case database.EventGive:
-			q.tellLocked(c, sess, "", q.giveItemsLocked(sess, p, database.ParseItemCounts(e.Items))...)
+			items := database.ParseItemCounts(e.Items)
+			if e.UnlessHeld {
+				items = q.notHeldLocked(p, items)
+			}
+			q.tellLocked(c, sess, "", q.giveItemsLocked(sess, p, items)...)
 		case database.EventSpawn:
 			q.spawnLocked(p, c, qu, spawnStep, e)
 		case database.EventAttack:
@@ -181,6 +185,25 @@ func (q *QuestEngine) giveItemsLocked(sess *session.Session, p *entity.Player, i
 		}
 	}
 	return lines
+}
+
+// notHeldLocked is items less what the player's inventory holds of each (a give event's
+// unless_held): the tradeskill tutorials give their kit each time they are taken, and giving one
+// up to take it again left one character 4 hammers and 4 recipes (board #204), while a used
+// emblem, sold by no merchant, must still come back.
+func (q *QuestEngine) notHeldLocked(p *entity.Player, items []database.ItemCount) []database.ItemCount {
+	have := map[int]int{}
+	for _, r := range q.heldItems(p) {
+		have[r.Pattern.PatternID] += r.StackLeft
+	}
+	var out []database.ItemCount
+	for _, it := range items {
+		if n := it.Count - have[it.PatternID]; n > 0 {
+			it.Count = n
+			out = append(out, it)
+		}
+	}
+	return out
 }
 
 // spawnLocked places a step's spawn and remembers it.

@@ -86,6 +86,7 @@ type World struct {
 	// goes its creature comes back, and the hook told which went.
 	corpseDecay  time.Duration
 	respawnAfter time.Duration
+	respawnRows  map[EntityID]time.Duration // a GM's by the npcs row (corpse.go, table npcrespawn)
 	onCorpseGone CorpseGoneFunc
 
 	// Creatures' wandering (roam.go): how far from its spawn one goes, those

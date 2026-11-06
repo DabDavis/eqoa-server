@@ -968,3 +968,68 @@ func TestDuelHoldAndSlow(t *testing.T) {
 		t.Fatal("no speed sent as the duel's hold came off")
 	}
 }
+
+// Petition 1135, Larrybird: "proc items dont work in duels, Bpoa or sbpb do not work in duels
+// tested both multi times". A worn item answers a duel hit as it answers a creature's: its damage at
+// the striker, halved as every duel hit is, its heal whole on its wearer. The control: no worn item,
+// nothing answers.
+func TestDuelWornItemsAnswerAHit(t *testing.T) {
+	for _, worn := range []bool{true, false} {
+		d := newDuelists(t)
+		duel := d.start(t)
+		if worn {
+			d.b.Gear.Shields = []WornShield{{Item: "seraphic planar chestplate", Damage: 30, Heal: 15}}
+		}
+		d.b.HP = d.b.MaxHP - 100
+		aHP, bHP := d.a.HP, d.b.HP
+		d.w.mu.Lock()
+		over := d.w.duelAnswerLocked(duel, d.b, duelMark{t: d.a}, d.at(time.Second))
+		d.w.mu.Unlock()
+		if over {
+			t.Fatal("the duel ended")
+		}
+		wantA, wantB := aHP, bHP
+		if worn {
+			wantA, wantB = aHP-15, bHP+15
+		}
+		if d.a.HP != wantA || d.b.HP != wantB {
+			t.Errorf("worn %v: the striker %d (want %d), the wearer %d (want %d)", worn, d.a.HP, wantA, d.b.HP, wantB)
+		}
+	}
+}
+
+// A weapon's proc runs in a duel, its damage halved. A restoring one gives its wielder its figure
+// whole. The control: a dice roll above the proc's chance does nothing.
+func TestDuelWeaponProc(t *testing.T) {
+	old := procIntn
+	t.Cleanup(func() { procIntn = old })
+	for _, c := range []struct {
+		kind      ProcKind
+		roll      int
+		wantB     int
+		wantAHeal int
+		desc      string
+	}{
+		{ProcHit, 0, 100, 0, "a hit"},
+		{ProcHit, 99, 0, 0, "no proc"},
+		{ProcTap, 0, 100, 100, "a tap"},
+		{ProcRestore, 0, 0, 200, "a restore"},
+	} {
+		procIntn = func(int) int { return c.roll }
+		d := newDuelists(t)
+		duel := d.start(t)
+		d.a.Gear.MainProc = &WeaponProc{Item: "Test Blade", Damage: 200, Kind: c.kind}
+		d.a.RoundHits = 1
+		d.a.HP = d.a.MaxHP - 500
+		aHP, bHP := d.a.HP, d.b.HP
+		d.w.mu.Lock()
+		d.w.duelProcsLocked(duel, d.a, duelMark{t: d.b}, d.at(time.Second))
+		d.w.mu.Unlock()
+		if bHP-d.b.HP != c.wantB {
+			t.Errorf("%s: the opponent took %d, want %d", c.desc, bHP-d.b.HP, c.wantB)
+		}
+		if d.a.HP-aHP != c.wantAHeal {
+			t.Errorf("%s: the wielder got %d, want %d", c.desc, d.a.HP-aHP, c.wantAHeal)
+		}
+	}
+}

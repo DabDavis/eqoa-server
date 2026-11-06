@@ -1,8 +1,11 @@
 package entity
 
 import (
+	"fmt"
 	"log"
 	"time"
+
+	"github.com/eqoa/server/internal/database"
 )
 
 // A creature's corpse and its return (F3 20261025-044229, the user's
@@ -42,7 +45,50 @@ func (w *World) SetCorpseTimes(decay, respawnAfter time.Duration) {
 		w.respawnAfter = respawnAfter
 	}
 	for _, npc := range w.NPCs {
-		npc.RespawnTime = w.respawnAfter
+		npc.RespawnTime = w.respawnTimeLocked(npc.ServerID)
+	}
+}
+
+// respawnTimeLocked is how long after its corpse goes the NPC comes back: the
+// world's figure, or a GM's for its row (npcrespawn). Must be called with the lock
+// held.
+func (w *World) respawnTimeLocked(id EntityID) time.Duration {
+	if d, ok := w.respawnRows[id]; ok {
+		return d
+	}
+	return w.respawnAfter
+}
+
+// LoadRespawnRules reads table npcrespawn into the world, at the start and at a
+// change on the GM panel; it reports the rows read.
+func (w *World) LoadRespawnRules(db *database.SQLiteDB) (int, error) {
+	rows, err := db.NPCRespawns()
+	if err != nil {
+		return 0, fmt.Errorf("npcrespawn: %w", err)
+	}
+	rules := make(map[EntityID]time.Duration, len(rows))
+	for id, s := range rows {
+		rules[EntityID(id)] = time.Duration(s * float64(time.Second))
+	}
+	w.SetRespawnRules(rules)
+	return len(rules), nil
+}
+
+// SetRespawnRules puts a GM's respawn times in force, an NPC whose row lost its rule back
+// on the world's figure. A corpse already gone waits the new time from when it went.
+func (w *World) SetRespawnRules(rules map[EntityID]time.Duration) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	for id := range w.respawnRows {
+		if npc := w.NPCs[id]; npc != nil {
+			npc.RespawnTime = w.respawnAfter
+		}
+	}
+	w.respawnRows = rules
+	for id, d := range rules {
+		if npc := w.NPCs[id]; npc != nil {
+			npc.RespawnTime = d
+		}
 	}
 }
 
@@ -64,7 +110,7 @@ func (w *World) OnCorpseGone(fn CorpseGoneFunc) {
 // respawn time and wander radius, its balance, its class template and
 // whether it stands out of the world. Must be called with the lock held.
 func (w *World) applyNPCSettingsLocked(npc *NPC) {
-	npc.RespawnTime = w.respawnAfter
+	npc.RespawnTime = w.respawnTimeLocked(npc.ServerID)
 	npc.RoamRadius = w.roamRadius
 	w.applyBalanceLocked(npc)  // its hit points (balance.go)
 	w.applyTemplateLocked(npc) // its name's class template (classtemplate.go)

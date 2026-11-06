@@ -35,6 +35,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveFactions(t.Name)
 	case "npcaggro":
 		return s.liveAggro()
+	case "npcrespawn":
+		return s.liveRespawn()
 	case "npcundead":
 		return s.liveUndead()
 	case "npccharm":
@@ -167,6 +169,18 @@ func (s *Server) liveAggro() string {
 		return "not applied to the world: " + err.Error()
 	}
 	return "at once: the next look round (half a second) and the next target box use it"
+}
+
+// liveRespawn reads the NPCs' respawn times again (entity/corpse.go; the change is
+// committed: the database is free).
+func (s *Server) liveRespawn() string {
+	if s.d.World == nil || s.d.DB == nil {
+		return "no world is running: at the next start"
+	}
+	if _, err := s.d.World.LoadRespawnRules(s.d.DB); err != nil {
+		return "not applied to the world: " + err.Error()
+	}
+	return "at once: the next time it comes back uses it"
 }
 
 // liveUndead reads the undead tags again (entity/undead.go; the change is

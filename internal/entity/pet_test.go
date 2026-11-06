@@ -442,6 +442,31 @@ func TestAnAggressivePetDefendsItsGroup(t *testing.T) {
 	}
 }
 
+// Petition 1134, Jibmage: "Pets on aggressive stance assist from too far away. It should be
+// approximately 30 meters." A fight 25 from its owner the pet goes to; one 35 away it leaves.
+func TestAPetAssistsWithin30(t *testing.T) {
+	for _, c := range []struct {
+		away float32
+		want bool
+	}{{25, true}, {35, false}} {
+		r := newPetRig(t)
+		r.summon(t, fireElemental(), 0)
+		ps := r.w.pets[r.p.ServerID]
+		ps.stance = petAggressive
+		r.w.SpatialIndex.Remove(r.enemy.ServerID, r.enemy.X, r.enemy.Z)
+		r.enemy.X, r.enemy.Z = r.p.X+c.away, r.p.Z
+		r.w.SpatialIndex.Insert(r.enemy.ServerID, r.enemy.X, r.enemy.Z)
+		r.enemy.CurrentEnemy = r.p.ServerID
+		r.w.wakeNPCLocked(r.enemy)
+		r.w.mu.Lock()
+		r.w.petChooseTargetLocked(ps, r.at(10*time.Second))
+		r.w.mu.Unlock()
+		if got := ps.target == r.enemy.ServerID; got != c.want {
+			t.Errorf("a fight %v away: the pet takes it %v, want %v", c.away, got, c.want)
+		}
+	}
+}
+
 // A pet is on the players' side: no auto-attack and no harm cast at it; a
 // pet spell lands on it whatever the target; with no pet a pet spell is
 // refused with CLIENT's own words.

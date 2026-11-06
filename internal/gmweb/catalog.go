@@ -680,6 +680,19 @@ var catalog = map[string]tableNote{
 			"source":     {Label: "Source", Help: "gm, or seed for tools/seed_npc_aggro.py's rows (its --undo deletes those)"},
 		},
 	},
+	"npcrespawn": {
+		Label: "Respawn times", Group: "World", Title: "npc_row", Sort: "npc_row",
+		Help: "How long one NPC takes to come back after its corpse goes, by its row in NPCs, where the world's one figure " +
+			"(60 s) is wrong for it. A row with no entry here, or seconds of 0, comes back at the world's figure.",
+		Live:   "At once: the next time it comes back uses it.",
+		Search: []string{"note"},
+		Cols: map[string]colNote{
+			"npc_row": {Label: "NPC row", Ref: "npcs", Help: "its id in NPCs"},
+			"seconds": {Label: "Seconds", Help: "after its corpse goes"},
+			"note":    {Label: "Note"},
+			"source":  {Label: "Source", Help: "gm, or the tool that wrote it"},
+		},
+	},
 	"npcundead": {
 		Label: "Undead creatures", Group: "World", Title: "name", Sort: "name",
 		Help: "Which creatures are undead, by NPC NAME (lower case, no trailing $): the spells for undead alone (a " +

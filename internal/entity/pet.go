@@ -87,7 +87,7 @@ const (
 	petLost        float32 = 100 // farther (a teleport), it is put beside its owner
 	petLeash       float32 = 60  // a target farther than this from its owner is let go
 	petReach       float32 = 4   // how near its target it fights from
-	petAssist      float32 = 40  // how far round its owner it looks for a fight
+	petAssist      float32 = 30  // how far round its owner it looks for a fight (petition 1134, Jibmage: "approximately 30 meters")
 	petRunSpeed    float32 = 8.833333
 	petCorpseTime          = 10 * time.Second
 	petBackOffHold         = 6 * time.Second // after a back off it takes no fight of its own

@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"log"
+	"math"
 	"regexp"
 	"strings"
 	"time"
@@ -231,6 +232,17 @@ func npcResistKindPct(npc *NPC, st Stat, now time.Time) int {
 	if st == StatAR {
 		return npcResistOffPct(npc, now)
 	}
+	off := npcResistDebuff(npc, st, now)
+	if off == 0 {
+		return 0
+	}
+	return int(ResistShare(off)*100 + 0.5)
+}
+
+// npcResistDebuff is how far a creature's resist of a kind is lowered now:
+// the largest debuff of it on the creature (debuffs of a kind do not add), 0
+// for none.
+func npcResistDebuff(npc *NPC, st Stat, now time.Time) int {
 	off := 0
 	for _, e := range npc.Effects {
 		if !now.Before(e.Until) {
@@ -257,10 +269,21 @@ func npcResistKindPct(npc *NPC, st Stat, now time.Time) int {
 		}
 		off = max(off, -v)
 	}
-	if off == 0 {
-		return 0
+	return off
+}
+
+// debuffScaled is a hit n (negative) of an effect that grows with its
+// target's debuff (SpellEffect.DebuffStat), as hard as the debuff on npc
+// makes it; any other effect's as it is.
+func debuffScaled(e SpellEffect, npc *NPC, n int, now time.Time) int {
+	if e.DebuffPct == 0 || e.DebuffStat == StatNone || npc == nil {
+		return n
 	}
-	return int(ResistShare(off)*100 + 0.5)
+	off := npcResistDebuff(npc, e.DebuffStat, now)
+	if off <= 0 {
+		return n
+	}
+	return int(math.Round(float64(n) * (1 + e.DebuffPct*float64(off)/100)))
 }
 
 // npcSpellResistPct is the chance, in percent, a creature resists a workbook

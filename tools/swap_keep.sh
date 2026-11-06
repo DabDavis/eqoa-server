@@ -79,7 +79,7 @@ if [ ! -f "$SAVED" ]; then
 	exit 3
 fi
 held=$(date +%s.%N)
-if ! sqlite3 "$DIR/eqoa.db" ".backup $DIR/eqoa.db.bak-$when-pre-swap"; then
+if ! sqlite3 -cmd ".timeout 10000" "$DIR/eqoa.db" ".backup $DIR/eqoa.db.bak-$when-pre-swap"; then
 	rm -f "$HOLD"
 	log "keep: the database could not be copied: nothing swapped (the server goes on with the same binary)"
 	exit 1

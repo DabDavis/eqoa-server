@@ -1381,10 +1381,14 @@ func (w *World) tellAmountLocked(caster *Player, casterSess *session.Session, ta
 }
 
 // addEffectLocked puts an effect on a player: a recast replaces its old one
-// and goes to the end of the list, as on Sandstorm.
+// and goes to the end of the list, as on Sandstorm. The run speed compared is
+// the one after the old one comes off, as that told the client it: taken before,
+// a recast of a run speed still on told the client the slower speed and never
+// the faster again (petition 1111: "SoW when cast on self does not seem to
+// work? my dual box character runs so far ahead").
 func (w *World) addEffectLocked(t *Player, ae *ActiveEffect, now time.Time) {
-	speed := t.SpeedNow()
 	w.removeEffectLocked(t, ae.SpellID)
+	speed := t.SpeedNow()
 	t.Effects = append(t.Effects, ae)
 	if ae.Name != "" && len(t.Buffs) < MaxEffects {
 		t.Buffs = append(t.Buffs, BuffSlot{Icon: ae.Icon, Name: ae.Name})

@@ -22,7 +22,9 @@ import (
 // told (effectsChangedLocked), and the body, a hold, a slow and the
 // invisibility read from what is left (Body, SpeedNow, Invisible); on a
 // creature, what is left read the same way. The parts are kept over a logout
-// (buffsave.go), so an ended part comes back on no one.
+// (buffsave.go), so an ended part comes back on no one. A run speed has ends
+// of its own on a player: only a harmful cast of those a cast makes (petition
+// 1067), and its bearer's own hit in place of a hit taken (petition 1109).
 
 // effectPart is what one lasting part of an effect puts on its bearer, what
 // ends it alone (Contact, Cast, Invisibility) and whether it has ended.
@@ -74,8 +76,12 @@ type effectPart struct {
 }
 
 // The ends a part may have alone. A beneficial cast ends no run speed
-// (dispelOnCastLocked, petition 1067), so it ends what a cast ends but that.
+// (dispelOnCastLocked, petition 1067), so it ends what a cast ends but that;
+// a hit taken by a player ends none either, its bearer's own hit ending what a
+// contact would (contactPlayerLocked, ownHitLocked: petition 1109).
 func partOnContact(p *effectPart) bool        { return p.Contact }
+func partOnPlayerHit(p *effectPart) bool      { return p.Contact && !p.Speed }
+func partOnOwnHit(p *effectPart) bool         { return p.Contact && p.Speed }
 func partOnCast(p *effectPart) bool           { return p.Cast }
 func partOnBeneficialCast(p *effectPart) bool { return p.Cast && !p.Speed }
 func partInvisible(p *effectPart) bool        { return p.Invisibility }
@@ -184,10 +190,12 @@ func partsOf(cs *castState, caster *Player, now time.Time, dur time.Duration) []
 		}
 	}
 	// a run speed a cast ends ends only at a harmful one (dispelOnCastLocked:
-	// petition 1067), so an effect with one keeps its parts to tell it from
-	// what a beneficial cast ends, though every part of it ends at a cast
-	// (Spirit Circle's lone speed, a haste beside a stat a cast ends)
-	if slices.ContainsFunc(out, func(p *effectPart) bool { return p.Speed && p.Cast }) {
+	// petition 1067) and one a hit ends only at its bearer's own hit
+	// (ownHitLocked: petition 1109), so an effect with one keeps its parts to
+	// tell it from what a beneficial cast or a hit ends, though every part of
+	// it ends at those (Spirit Circle's lone speed, a haste beside a stat a
+	// cast ends)
+	if slices.ContainsFunc(out, func(p *effectPart) bool { return p.Speed && (p.Cast || p.Contact) }) {
 		return out
 	}
 	return nil

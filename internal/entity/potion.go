@@ -417,6 +417,7 @@ func (w *World) throwLocked(sess *session.Session, p *Player, pe *PotionEffect, 
 	}
 	w.breakInvisLocked(p, "a throw")     // invis.go
 	w.breakBoardWolfLocked(p, "a throw") // boardwolf.go
+	w.ownHitLocked(p, "a throw")         // workbook.go: a run speed
 	w.breakPotionsLocked(p, func(pe *PotionEffect) bool { return pe.BreaksOnAttack }, "a throw")
 }
 

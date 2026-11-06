@@ -38,7 +38,9 @@ import (
 //     updateAggro). Either, the parts the workbook marks alone (the user,
 //     2026-11-01: "yes only end the marked part"): the rest of the effect
 //     stays and runs to its time (parts.go), one whose every lasting part is
-//     marked ending whole.
+//     marked ending whole. A run speed on a player ends at neither as such:
+//     only at a harmful cast (petition 1067), and at its bearer's own hit in
+//     place of a hit taken (petition 1109).
 //   - Mitigation (and the invulnerables): that share of each melee hit on a
 //     player is not taken, up to its most over the effect's time; the
 //     workbook says it "has no effect on spells".
@@ -376,11 +378,27 @@ func (w *World) dispelOnCastLocked(p *Player, harmful bool) {
 
 // contactPlayerLocked ends what lasts on a player that ends when it is hit
 // or harmed: the parts the workbook marks dispel_on_contact alone, when
-// something else of the effect lasts (parts.go), else the whole effect.
+// something else of the effect lasts (parts.go), else the whole effect. A run
+// speed so marked (Spirit of the Wolf's, Spirit Circle's, a song's or a wolf
+// form's) stays, to end at its bearer's own hit (ownHitLocked; petition 1109:
+// "Spirit of the wolf is dropped when hit, it should only drop when player
+// hits mob").
 func (w *World) contactPlayerLocked(p *Player) {
 	for _, e := range append([]*ActiveEffect(nil), p.Effects...) {
 		if e.Rules.DispelOnContact {
-			w.endOnPlayerLocked(p, e, partOnContact, "a hit")
+			w.endOnPlayerLocked(p, e, partOnPlayerHit, "a hit")
+		}
+	}
+}
+
+// ownHitLocked ends a run speed the workbook marks dispel_on_contact at its
+// bearer's own hit on a creature, a swing or a throw (why says which), as
+// contactPlayerLocked no longer does at a hit taken; a harmful cast ends it as
+// a cast (dispelOnCastLocked). What else of the effect lasts stays.
+func (w *World) ownHitLocked(p *Player, why string) {
+	for _, e := range append([]*ActiveEffect(nil), p.Effects...) {
+		if e.Rules.DispelOnContact && e.Speed {
+			w.endOnPlayerLocked(p, e, partOnOwnHit, why)
 		}
 	}
 }

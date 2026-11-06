@@ -48,8 +48,9 @@ func TestABeneficialCastKeepsARunSpeed(t *testing.T) {
 // What else a cast ends still ends at any: a beneficial cast takes a haste's
 // stat a cast ends and leaves its speed, the effect staying; a harmful cast
 // ends the rest of it. A wolf form's speed stays through a beneficial cast
-// with its form and stats, and a harmful one ends the speed alone. A hit
-// still ends a lone run speed whole.
+// with its form and stats, and a harmful one ends the speed alone. A hit taken
+// leaves a lone run speed, and its bearer's own hit ends it whole (petition
+// 1109).
 func TestABeneficialCastEndsAllButTheRunSpeed(t *testing.T) {
 	c := bodyRig(t)
 	run := c.p.SpeedNow()
@@ -90,7 +91,11 @@ func TestABeneficialCastEndsAllButTheRunSpeed(t *testing.T) {
 	f := bodyRig(t)
 	f.land(t, wbSpell(9930, 40, 0, "Test Wolf Ring", circleJSON), 0xFFFFFFFF, 0)
 	f.contactPlayer()
+	if effectNamed(f.p.Effects, 9930) == nil || f.p.SpeedNow() <= run {
+		t.Errorf("a lone run speed after a hit taken: on %v, speed %v; want it on, fast", effectNamed(f.p.Effects, 9930) != nil, f.p.SpeedNow())
+	}
+	f.ownHit()
 	if effectNamed(f.p.Effects, 9930) != nil || f.p.SpeedNow() != run {
-		t.Errorf("a lone run speed after a hit: on %v, speed %v; want it gone", effectNamed(f.p.Effects, 9930) != nil, f.p.SpeedNow())
+		t.Errorf("a lone run speed after its own hit: on %v, speed %v; want it gone", effectNamed(f.p.Effects, 9930) != nil, f.p.SpeedNow())
 	}
 }

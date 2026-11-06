@@ -548,3 +548,34 @@ func TestRepairCostIsTheClients(t *testing.T) {
 		}
 	}
 }
+
+// A worn item goes into the bank (the user, 2026-11-06: "lets allow equipped
+// to be banked, traded"): taken off first as the item menu's unequip does
+// (0x0040 its slot, then 0x003C off the inventory and 0x1251 onto the bank),
+// its row unworn and in the bank. The control is TestBankItemRefusals: with
+// no take-off (a handler wired without it) the worn sword is refused.
+func TestBankTakesAWornItemOff(t *testing.T) {
+	f := newShopFixture(t)
+	id := f.own(f.sword, 1, 100, 0)
+	if err := f.inv.SetEquipLoc(f.charSID, id, 14); err != nil {
+		t.Fatal(err)
+	}
+	f.loadLists()
+	f.h.takeOff = NewEquipHandler(nil, f.inv, nil, nil).TakeOff
+	f.send(protocol.OpcodeBankItem, func(w *buffer.Writer) {
+		w.WriteUint32(shopBankerID)
+		w.WriteByte(0)
+		w.WriteUint32(0)
+		w.Write7BitEncodedInt64(1)
+	})
+	msgs := f.sent()
+	mustOps(t, msgs, protocol.OpcodeUnequipItem, protocol.OpcodeRemoveInvItem, protocol.OpcodeAddBankItem)
+	if want := []byte{0x40, 0x00, 14}; !bytes.Equal(msgs[0], want) {
+		t.Errorf("0x0040 % X, want % X", msgs[0], want)
+	}
+	for _, r := range f.rows() {
+		if r.ItemID == id && (r.Location != 1 || r.EquipLoc != -1) {
+			t.Errorf("the sword: location %d, equip slot %d; want the bank, unworn", r.Location, r.EquipLoc)
+		}
+	}
+}

@@ -112,10 +112,10 @@ var wornShields = map[string]WornShield{
 	"coral tunic":               {Power: 25},
 	"fathomsteel guard":         {Power: 15},
 	"festertwig":                {Power: 15},
-	// the heirlooms' chest piece (handlers/heirloom.go; the user, 2026-11-06:
-	// "give it a healing effect per hit like the breastplate of the
-	// anointed"): the Anointed's heal, every class's
-	"heirloom chestguard": {Heal: 15, HealPct: 10, HealMax: 75, Scale: StatCha},
+	// (the heirlooms' chest piece healed as the Anointed from 2026-11-06 04:00
+	// to the next deploy: the user, "give it a healing effect per hit like the
+	// breastplate of the anointed", then "lets turn off the healing effect on
+	// hit from heirloom")
 }
 
 var wornShieldsByPattern = map[int]WornShield{

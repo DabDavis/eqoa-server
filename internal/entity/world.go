@@ -132,6 +132,8 @@ type World struct {
 
 	// Who hears every credited kill (questhooks.go: the quests)
 	onKill []KillFunc
+	// onLevelUp hears a player's level rise (questhooks.go)
+	onLevelUp []LevelUpFunc
 	// onInfection hears a were's bite that infects (wereinfect.go)
 	onInfection []InfectionFunc
 
@@ -924,6 +926,7 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 		sendExpDebt(sess, player.Debt)
 	}
 	statCap := StatCapBase(player.Level)
+	startLevel := player.Level
 	player.TotalXP += levelXP
 	player.XPInLevel += levelXP
 
@@ -950,6 +953,11 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 
 	if StatCapBase(player.Level) != statCap {
 		SendStatCap(sess, player.Level)
+	}
+	if player.Level != startLevel {
+		for _, fn := range w.onLevelUp {
+			fn(sess, player)
+		}
 	}
 	// each level left gives its training points (training.go)
 	if player.TopUpTrainingPoints() > 0 {

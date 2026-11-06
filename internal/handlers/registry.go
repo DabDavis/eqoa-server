@@ -323,6 +323,15 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 			house.Start()
 		}
 	}
+	// heirlooms (heirloom.go): each character's figures on its records, the
+	// worn gear refreshed at a level up
+	if charStore != nil {
+		heirlooms := NewHeirlooms(charStore.DB())
+		charHandler.heirlooms = heirlooms
+		heirlooms.Start(gameWorld, func(p *entity.Player) {
+			charHandler.applyEquipmentFromDB(p, p.CharServerID, false)
+		})
+	}
 	interactHandler.corpse = npcWindowHandler.OpenCorpse
 	// a waysender's fee, and the bind points spiritmasters give
 	interactHandler.spend = npcWindowHandler.spendTunar
@@ -491,6 +500,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	NewLiveLookHandler(charHandler).RegisterHandlers(r)
 	if charStore != nil && charStore.DB() != nil {
 		chatHandler.SetDyeStore(charStore.DB())
+		// the Armor Dyers (dyer.go) dye as #dye does
+		interactHandler.dyer = NewDyer(gameWorld, charStore.DB())
 		chatHandler.SetVampireStore(charStore.DB()) // #vampire (vampirecmd.go)
 	}
 	if charStore != nil && gameWorld != nil {

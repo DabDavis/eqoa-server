@@ -269,6 +269,9 @@ func (h *NPCWindowHandler) HandleMerchantOpen(sess *session.Session, msg *protoc
 	if len(catalog) > invListCap {
 		catalog = catalog[:invListCap]
 	}
+	for i := range catalog { // the buyer's own view: an heirloom's figures (heirloom.go)
+		h.inv.ViewPattern(player.CharServerID, &catalog[i].Pattern)
+	}
 	queueReliable(sess, protocol.OpcodeMerchantBox, merchantBoxPayload(id, catalog, merchantGreeting))
 	log.Printf("Merchant: %s opened %q (npc %d): %d items for sale", player.Name, npc.Name, npc.NPCID, len(catalog))
 	return nil
@@ -304,6 +307,7 @@ func (h *NPCWindowHandler) buy(sess *session.Session, id uint32, index, count in
 	}
 	item := catalog[index]
 	p := &item.Pattern
+	h.inv.ViewPattern(player.CharServerID, p) // the buyer's own view (heirloom.go)
 	price := merchantPrice(p.ItemCost)
 
 	// A stack goes out as one record of count; anything else one at a time.

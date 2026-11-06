@@ -1,0 +1,41 @@
+{
+ "set": "highwaymen",
+ "npcs": [
+  {
+   "name": "highwayman",
+   "role": "foe",
+   "body": [
+    "npc",
+    "highwayman"
+   ],
+   "place": [
+    "at",
+    0,
+    24543,
+    14648
+   ],
+   "count": 3,
+   "level": 5,
+   "note": "the hill with the druid stone north of Freeport (EQOA-Data's map: Highwayman (5) at 13222, 5096; the Freeport 1-20 guides' level 5 'The Highwaymen': out of the exit by the Blacksmith, north, off to the right); the other marker's five (13067, 5658) were already in the world (petition 1006: ants at the druid stones, no highwaymen)",
+   "water": "land"
+  },
+  {
+   "name": "highwayman",
+   "role": "foe",
+   "body": [
+    "npc",
+    "highwayman"
+   ],
+   "place": [
+    "at",
+    0,
+    24552,
+    14657
+   ],
+   "count": 2,
+   "level": 5,
+   "note": "the hill with the druid stone north of Freeport (EQOA-Data's map: Highwayman (5) at 13222, 5096; the Freeport 1-20 guides' level 5 'The Highwaymen': out of the exit by the Blacksmith, north, off to the right); the other marker's five (13067, 5658) were already in the world (petition 1006: ants at the druid stones, no highwaymen)",
+   "water": "land"
+  }
+ ]
+}

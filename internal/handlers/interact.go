@@ -36,6 +36,9 @@ type InteractHandler struct {
 	// (NPCWindowHandler.spendTunar); false when it cannot pay. Nil: free.
 	spend func(*session.Session, *entity.Player, int) bool
 
+	// dyer answers the Armor Dyers (dyer.go); nil: no dyer
+	dyer *Dyer
+
 	// dialogLines is npcdialog (database.NPCDialog): what a town's people and
 	// the guards say (entity/dialog.go). Nil: they say nothing.
 	dialogLines func() ([]database.NPCDialogLine, error)
@@ -275,6 +278,10 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 	if npc, ok := targetEntity.(*entity.NPC); ok && Quests().AdvisorTalk(sess, player, npc) {
 		return nil
 	}
+	// an Armor Dyer (dyer.go)
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.dyer.Talk(sess, player, npc) {
+		return nil
+	}
 
 	// A spiritmaster binds (spiritmaster.go), a waysender sends the player to
 	// another town (waysender.go).
@@ -467,6 +474,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// An advisor's cure (wereinfect.go); an old one does nothing.
 	if Quests().AdvisorAnswer(sess, player, targetObjectID, selectedOption, h.spend) {
+		return nil
+	}
+	// a dyer's question (dyer.go); an old one does nothing
+	if h.dyer.Answer(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// A duel's invitation or "Cancel duel?" (duel.go)

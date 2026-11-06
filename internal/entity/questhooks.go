@@ -49,6 +49,19 @@ func (w *World) OnKill(fn KillFunc) {
 	w.onKill = append(w.onKill, fn)
 }
 
+// LevelUpFunc hears a player's level rise (an award's: awardXP). It is
+// called with the World's lock held, so it must not call back into the World,
+// nor block (the heirlooms' refresh goes on its own goroutine:
+// handlers/heirloom.go).
+type LevelUpFunc func(sess *session.Session, p *Player)
+
+// OnLevelUp adds a hearer of every level up.
+func (w *World) OnLevelUp(fn LevelUpFunc) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.onLevelUp = append(w.onLevelUp, fn)
+}
+
 // creditKillLocked tells the kill's hearers. Must be called with the lock held.
 func (w *World) creditKillLocked(sess *session.Session, p *Player, npc *NPC) {
 	if len(w.onKill) == 0 || p == nil || npc == nil {

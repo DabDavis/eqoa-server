@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -18,6 +19,8 @@ import (
 type SQLiteDB struct {
 	*sql.DB
 	path string
+	// view is the characters' view of item records (heirlooms.go)
+	view atomic.Pointer[PatternView]
 }
 
 // BusyTimeoutDSN is the query a database is opened with: how long a
@@ -703,6 +706,9 @@ func (db *SQLiteDB) initSchema() error {
 		return err
 	}
 	if err := db.ensureCharDyes(); err != nil { // chardyes.go
+		return err
+	}
+	if err := db.ensureHeirlooms(); err != nil { // heirlooms.go: test gear that follows its wearer
 		return err
 	}
 	if err := db.ensureCharCoaches(); err != nil { // charcoaches.go: the stables' ledgers

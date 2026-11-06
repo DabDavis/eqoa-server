@@ -132,6 +132,9 @@ func swapBytes(val uint32) uint32 {
 
 // CharacterHandler handles character-related messages.
 type CharacterHandler struct {
+	// heirlooms is told each character's level as its gear is put on
+	// (heirloom.go); nil: no heirlooms
+	heirlooms      *Heirlooms
 	store          *database.SQLiteCharacterStore
 	sessionManager *session.Manager
 	gameWorld      *entity.World
@@ -1013,6 +1016,8 @@ func (h *CharacterHandler) HandleServerSelection(sess *session.Session, msg *pro
 // applyEquipmentFromDB loads the character's equipped items and sets visual
 // equipment bytes on the Player struct so the state channel reflects them.
 func (h *CharacterHandler) applyEquipmentFromDB(player *entity.Player, serverID uint32, fill bool) {
+	// the heirlooms' figures are the character's level's (heirloom.go)
+	h.heirlooms.Note(serverID, int(player.Class), int(player.Race), player.Level)
 	items, err := h.inventoryStore.GetCharacterItems(serverID)
 	if err != nil {
 		log.Printf("applyEquipment: failed to load items for serverID=%d: %v", serverID, err)

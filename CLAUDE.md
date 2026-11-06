@@ -629,6 +629,31 @@ report's section 2) are outside this repository. A PS2 ignores 0x07F5, 0x0840 an
 - **Auction stacks**: lots with a quantity and prices per item, multi-unit proxy bidding, shares; the auction
   house's bullet under Current Status.
 
+### Heirloom test gear and the Armor Dyers (`handlers/heirloom.go`, `handlers/dyer.go`, `tools/seed_heirlooms.py`)
+
+The user, 2026-11-06: "test armor vendors for starting cities armor that scales per level, similar to wow heirloom
+armor. it will be Best in Slot for each class", the heal "like the breastplate of the anointed", "the weapons that look
+like the lvl 60 epics", "full set of jewelry, belts", "next to the starting q npc, the cost is 0 tunar", then "a Armor
+dyer NPC nearby". `tools/seed_heirlooms.py [--list] [--apply|--undo]` writes, for each class, "Heirloom" records (ids
+714000+; helm, chestguard, bracers, gauntlets, greaves, boots, robe, earring, pendant, ring, bracelet, belt, a shield
+where the class wears one, and weapons in the look of the class's level 60 epics), table `heirlooms` (each record's
+class and role), and beside each of the 74 class first-quest givers an **Heirloom Outfitter** (npc_type 0x81,
+`npcitem` the set of every class the giver starts) and an **Armor Dyer**, halfway to the class's start spot, 2 to
+each side, in the nearest merchants' bodies; logged in `heirloom_seed_log`, `--undo` exact (a record a character
+holds is kept). NPCs are read at the start: apply it with the server stopped. **An heirloom's figures follow its
+wearer**: the record keeps its name, look, slot and class, and every character's view of it (`database.PatternView`,
+applied by `GetCharacterItems`/`GetCharItem` and by the merchant window for its buyer) carries the stats, resists, AC,
+HP, power, PoT/HoT and a weapon's damage of the best item of its role the class may wear at the wearer's level, by
+#template's measures (`templateScore`; a weapon's damage first); no NO RENT, broken (PoT or a resist past 500, damage
+past 1,000), prop, test or level-0 record is taken (the Froglok Test blade and the 74 items of no known level would
+make a level 1's blade deal 561). The World's level up (`OnLevelUp`: awardXP, `SetPlayerLevel`) refreshes the worn
+gear at once; the item windows show the new figures at the next login (the user's choice). The chestguard heals as the
+Breastplate of the Anointed (`wornShields`: "heirloom chestguard"). NO TRADE, worth 0. `TestRealHeirloomsGrowWithTheirWearer`
+(`EQOA_REAL_DB`, a copy with the seed applied) holds every class's pieces to never getting worse as the level rises.
+**An Armor Dyer** (any NPC so named) asks what to dye (all the armour, one slot, or every dye off) and the colour (20
+named), and dyes it at once for nothing: `database.SetCharDye` (audited as #dye's, revertible in the panel) and
+`World.SetDyes`; boxes under mark 0x56000000. Dyes show only in clients of the live game's look (vanilla).
+
 ### Groups: any member invites (`entity/group.go`, `handlers/group.go`)
 
 The user, 2026-11-06: "lets allow any group member to invite to group". `GroupInvite` takes a 0x0625 from any

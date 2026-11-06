@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -171,5 +172,34 @@ func TestTransferLife(t *testing.T) {
 	db.QueryRow(`SELECT COUNT(*) FROM gm_audit WHERE tbl = 'chartransfers'`).Scan(&n)
 	if n != 1 {
 		t.Fatalf("%d audit lines", n)
+	}
+}
+
+// An account may have a transfer open for every character it has, however
+// many (the user, 2026-11-06: "it is capped at 3, lets unlimit it"), one a
+// character still: the control, a second for the same character, is refused.
+func TestTransfersOpenForAnyNumberOfCharacters(t *testing.T) {
+	db := transferDB(t)
+	for i := 0; i < 6; i++ {
+		if _, err := db.Exec(`INSERT INTO characters (charName, accountid, serverid, modelid, tclass, race, humType, level, haircolor,
+			hairlength, hairstyle, faceoption, sex, world, x, y, z) VALUES (?, 3, ?, 1, 3, 5, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0)`,
+			fmt.Sprintf("Alt%c", 'a'+i), 20+i); err != nil {
+			t.Fatal(err)
+		}
+	}
+	now := time.Now()
+	for i := 0; i < 6; i++ {
+		tr, err := db.FileTransfer(Transfer{AccountID: 3, ServerID: uint32(20 + i), FromName: "Alt", FromLevel: 60}, now)
+		if err != nil {
+			t.Fatalf("transfer %d: %v", i+1, err)
+		}
+		if i%2 == 0 {
+			if _, _, err := db.ApproveTransfer(tr.ID, `{"character": "Alt"}`, "", GMEdit{Username: "gm"}, now); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	if _, err := db.FileTransfer(Transfer{AccountID: 3, ServerID: 20, FromName: "Alt", FromLevel: 60}, now); err != ErrTransferOpen {
+		t.Fatalf("a second for the same character: %v", err)
 	}
 }

@@ -12,9 +12,13 @@ import (
 )
 
 // dyer.go — the Armor Dyers (the user, 2026-11-06: "also add a Armor dyer NPC
-// nearby the hierloom npc also"). Talked to, a dyer asks what to dye (all the
-// armour, one slot, or every dye taken off) and then the colour, and dyes it
-// at once, for nothing: table chardyes (database.SetCharDye, a row edit with
+// nearby the hierloom npc also"; then "lets add more armor dye colors"). Talked
+// to, a dyer asks what to dye (all the armour, one piece of armour, the robe,
+// shield or a weapon, or every dye taken off), then a family of colours and a
+// colour of it (database.DyeFamilies: 35 and no dye), each question a box of
+// six answers at most, CLIENT's room for them (maxDialogOptions: until the
+// colours came, a list of twelve and one of twenty-one were cut to their first
+// six), and dyes it at once, for nothing: table chardyes (database.SetCharDye, a row edit with
 // its gm_audit line as #dye's, so the GM panel lists and reverts it) and the
 // character where it stands (World.SetDyes). Dyes are drawn by a client of
 // the live game's look (vanilla, entity/livelook.go); a PS2 never sees them,
@@ -22,8 +26,8 @@ import (
 // (tools/seed_heirlooms.py stands one beside each Heirloom Outfitter). Its
 // questions go under box mark 0x56000000 (beside the quests' 0x51, the
 // triggers' 0x52, the duels' 0x53, the rehabilitators' 0x54, the campfire
-// advisors' 0x55); CLIENT's answer box shows three answers a page, with More
-// and Back.
+// advisors' 0x55); CLIENT's answer box shows three of its six answers a page,
+// with More and Back.
 
 // dyerBoxMark marks a dyer's question's id.
 const dyerBoxMark = 0x56000000
@@ -37,45 +41,44 @@ func IsArmorDyer(name string) bool {
 	return n == "armor dyer" || n == "armour dyer"
 }
 
-// dyerSlot is an answer to what to dye: the slots it dyes (none: every dye
-// off).
-type dyerSlot struct {
+// dyerChoice is an answer to what to dye: the slots it dyes, or a further
+// question (sub), or neither: every dye off.
+type dyerChoice struct {
 	label string
 	slots []int
+	sub   []dyerChoice
 }
 
-var dyerSlots = []dyerSlot{
-	{"All my armor", []int{database.DyeChest, database.DyeBracer, database.DyeGloves, database.DyeLegs, database.DyeBoots,
-		database.DyeHelm, database.DyeRobe}},
-	{"Chest", []int{database.DyeChest}},
-	{"Bracers", []int{database.DyeBracer}},
-	{"Gloves", []int{database.DyeGloves}},
-	{"Legs", []int{database.DyeLegs}},
-	{"Boots", []int{database.DyeBoots}},
-	{"Helm", []int{database.DyeHelm}},
-	{"Robe", []int{database.DyeRobe}},
-	{"Shield", []int{database.DyeShield}},
-	{"Primary weapon", []int{database.DyePrimary}},
-	{"Secondary weapon", []int{database.DyeSecondary}},
-	{"Take every dye off", nil},
+func one(label string, slot int) dyerChoice { return dyerChoice{label: label, slots: []int{slot}} }
+
+var dyerChoices = []dyerChoice{
+	{label: "All my armor", slots: []int{database.DyeChest, database.DyeBracer, database.DyeGloves, database.DyeLegs,
+		database.DyeBoots, database.DyeHelm, database.DyeRobe}},
+	{label: "One piece of armor", sub: []dyerChoice{one("Chest", database.DyeChest), one("Bracers", database.DyeBracer),
+		one("Gloves", database.DyeGloves), one("Legs", database.DyeLegs), one("Boots", database.DyeBoots),
+		one("Helm", database.DyeHelm)}},
+	{label: "Robe, shield or weapons", sub: []dyerChoice{one("Robe", database.DyeRobe), one("Shield", database.DyeShield),
+		one("Primary weapon", database.DyePrimary), one("Secondary weapon", database.DyeSecondary)}},
+	{label: "Take every dye off"},
 }
 
-// dyerColour is a colour a dyer offers (0: the dye taken off).
-type dyerColour struct {
-	label string
-	rgba  uint32
+// dyerShades is a family's colours as the dyer offers them: the first
+// family's with "No dye" after them (the dye of what was chosen taken off).
+func dyerShades(family int) []database.DyeColour {
+	out := database.DyeFamilies[family].Colours
+	if family == 0 {
+		out = append(append([]database.DyeColour(nil), out...), database.DyeColour{Label: "No dye"})
+	}
+	return out
 }
 
-func tint(i int) uint32 { return database.RGBA(database.DiscTints[i]) }
-
-var dyerColours = []dyerColour{
-	{"White", 0xFFFFFFFF}, {"Black", 0x101010FF}, {"Grey", 0x808080FF}, {"Silver", tint(10)},
-	{"Red", 0xD10000FF}, {"Maroon", tint(13)}, {"Orange", 0xFF8000FF}, {"Gold", 0xFAAF32FF},
-	{"Yellow", 0xF0F000FF}, {"Green", 0x008000FF}, {"Olive", tint(7)}, {"Teal", 0x00C8B4FF},
-	{"Sky blue", tint(2)}, {"Ice blue", tint(9)}, {"Blue", 0x0000C0FF}, {"Navy", tint(4)},
-	{"Purple", 0x400080FF}, {"Pink", 0xFF5BADFF}, {"Brown", 0x966432FF}, {"Tan", tint(11)},
-	{"No dye", 0},
-}
+// The dyer's questions, in the order they come.
+const (
+	askWhat   = iota // dyerChoices
+	askWhich         // dyerChoices[parent].sub
+	askFamily        // database.DyeFamilies
+	askShade         // dyerShades(family)
+)
 
 // Dyer keeps each character's question in hand.
 type Dyer struct {
@@ -86,12 +89,16 @@ type Dyer struct {
 	asked map[uint32]dyerAsk
 }
 
-// dyerAsk is a question asked: its box, what it asks (the slots once chosen)
-// and who asked it.
+// dyerAsk is a question asked: its box, which question (askWhat...), what
+// was chosen before it (the choice its sub-question is of, the slots and
+// their name, the family) and who asked it.
 type dyerAsk struct {
 	id      uint32
+	stage   int
+	parent  int
 	slots   []int
-	colour  bool
+	what    string
+	family  int
 	speaker string
 }
 
@@ -127,12 +134,35 @@ func (d *Dyer) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) bo
 		return true
 	}
 	d.say(sess, speaker, "I dye armor any color you like, free of charge. Only those who see the live game's colors see a dye.")
-	answers := make([]string, len(dyerSlots))
-	for i, s := range dyerSlots {
-		answers[i] = s.label
-	}
-	d.ask(sess, p, dyerAsk{speaker: speaker}, "What shall I dye?", answers)
+	d.ask(sess, p, dyerAsk{speaker: speaker, stage: askWhat}, "What shall I dye?", choiceLabels(dyerChoices))
 	return true
+}
+
+func choiceLabels(cs []dyerChoice) []string {
+	out := make([]string, len(cs))
+	for i, c := range cs {
+		out[i] = c.label
+	}
+	return out
+}
+
+// chosen goes on from a choice of what to dye: its own question, every dye
+// off, or the colours' families. parent is its index in dyerChoices.
+func (d *Dyer) chosen(sess *session.Session, p *entity.Player, speaker string, c dyerChoice, parent int) {
+	switch {
+	case c.sub != nil:
+		d.ask(sess, p, dyerAsk{speaker: speaker, stage: askWhich, parent: parent}, "Which one?", choiceLabels(c.sub))
+	case c.slots == nil:
+		d.dye(sess, p, speaker, allDyeSlots(), 0, "Every dye is off.")
+	default:
+		what := strings.ToLower(c.label)
+		families := make([]string, len(database.DyeFamilies))
+		for i, f := range database.DyeFamilies {
+			families[i] = f.Label
+		}
+		d.ask(sess, p, dyerAsk{speaker: speaker, stage: askFamily, slots: c.slots, what: what},
+			fmt.Sprintf("Which colors for %s?", what), families)
+	}
 }
 
 // Answer is HandleDialogueOption's question for a dyer's box. It reports
@@ -153,32 +183,36 @@ func (d *Dyer) Answer(sess *session.Session, p *entity.Player, box uint32, optio
 	if !ok || a.id != box {
 		return true
 	}
-	if !a.colour {
-		if int(option) >= len(dyerSlots) {
-			return true
+	n := int(option)
+	switch a.stage {
+	case askWhat:
+		if n < len(dyerChoices) {
+			d.chosen(sess, p, a.speaker, dyerChoices[n], n)
 		}
-		s := dyerSlots[option]
-		if s.slots == nil {
-			d.dye(sess, p, a.speaker, allDyeSlots(), 0, "Every dye is off.")
-			return true
+	case askWhich:
+		if sub := dyerChoices[a.parent].sub; n < len(sub) {
+			d.chosen(sess, p, a.speaker, sub[n], a.parent)
 		}
-		answers := make([]string, len(dyerColours))
-		for i, c := range dyerColours {
-			answers[i] = c.label
+	case askFamily:
+		if n < len(database.DyeFamilies) {
+			shades := dyerShades(n)
+			answers := make([]string, len(shades))
+			for i, c := range shades {
+				answers[i] = c.Label
+			}
+			d.ask(sess, p, dyerAsk{speaker: a.speaker, stage: askShade, slots: a.slots, what: a.what, family: n},
+				fmt.Sprintf("Which color for %s?", a.what), answers)
 		}
-		d.ask(sess, p, dyerAsk{speaker: a.speaker, slots: s.slots, colour: true},
-			fmt.Sprintf("Which color for %s?", strings.ToLower(s.label)), answers)
-		return true
+	case askShade:
+		if shades := dyerShades(a.family); n < len(shades) {
+			c := shades[n]
+			done := fmt.Sprintf("There: %s.", strings.ToLower(c.Label))
+			if c.RGBA == 0 {
+				done = "The dye is off."
+			}
+			d.dye(sess, p, a.speaker, a.slots, c.RGBA, done)
+		}
 	}
-	if int(option) >= len(dyerColours) {
-		return true
-	}
-	c := dyerColours[option]
-	done := fmt.Sprintf("There: %s.", strings.ToLower(c.label))
-	if c.rgba == 0 {
-		done = "The dye is off."
-	}
-	d.dye(sess, p, a.speaker, a.slots, c.rgba, done)
 	return true
 }
 

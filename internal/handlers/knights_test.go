@@ -69,8 +69,9 @@ func TestAKnightHoldsAWeaponInItsPrimaryHandAlone(t *testing.T) {
 			t.Errorf("class %d barred %v, want %v", class, got, want)
 		}
 	}
-	// bait and a held item are no weapons: a knight's go where they always did
-	for _, c := range []struct{ wear, slot int }{{wearBait, 15}, {18, 19}} {
+	// bait and a held item are no weapons: a knight's go where anyone's do
+	// (a held item the off hand while it is free: heldSlot)
+	for _, c := range []struct{ wear, slot int }{{wearBait, 15}, {18, 20}} {
 		items := []database.CharInventoryEntry{row(9, 9, c.wear, -1, 0, "x")}
 		if plan, err := planInteractItem(items, newInvList(items), 0, int(ClassShadowKnight)); err != nil || plan.slot != c.slot {
 			t.Errorf("a knight's wear %d: slot %d (%v), want %d", c.wear, plan.slot, err, c.slot)

@@ -334,11 +334,27 @@ func (w *World) StopAttackOnRetarget(sess *session.Session, objectID uint32) {
 // clock and its button read a moment later (firstRound); a round in hand is
 // the timer's last swing's and goes.
 func (p *Player) pressed(now time.Time) {
+	start := now
+	if early := p.swingTimer.Add(-pressSlack); now.Before(early) {
+		// a press before the client's timer ran out, which CLIENT never
+		// sends (ToggleAutoAttack): its round waits for the timer, so a
+		// press cannot swing sooner than the weapon does (until 2026-11-06
+		// only the 0x000F's rate limit held that, at 2.5 s whatever the
+		// swing's delay: handlers/security.go)
+		start = early
+	}
 	p.RoundStart, p.RoundHits = time.Time{}, 0
-	p.NextSwing = now
+	p.NextSwing = start
+	p.swingTimer = start
 	p.ButtonReadAt = now.Add(firstRound)
 	p.roundWaits = false
 }
+
+// pressSlack is how much sooner than the server's copy of the client's swing
+// timer a press may start a round: the server begins a round when the press's
+// button is read (firstRound) and a 0x40 a slot old, so its copy runs a little
+// behind the client's own.
+const pressSlack = 500 * time.Millisecond
 
 // outOfReachRetry is how long CLIENT's AutoAttackTick waits after a due
 // swing at a target out of its reach before it looks again (its timer's
@@ -370,6 +386,7 @@ func (w *World) SwingOutOfReach(sess *session.Session, now time.Time) {
 		p.RoundStart = time.Time{}
 	}
 	p.NextSwing = now.Add(outOfReachRetry)
+	p.swingTimer = p.NextSwing
 	p.roundWaits = false
 }
 
@@ -497,6 +514,7 @@ func (w *World) attackSystem(now time.Time) {
 		p.newRound() // the hands it holds now (HandsChanged)
 		p.RoundStart, p.RoundHits = start, 0
 		p.NextSwing = p.RoundStart.Add(p.Swing.Delay)
+		p.swingTimer = p.NextSwing
 		w.playerRoundHitsLocked(p, npc, now)
 	}
 }

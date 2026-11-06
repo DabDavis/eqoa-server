@@ -43,13 +43,19 @@ func NewSecurityMiddleware() *SecurityMiddleware {
 }
 
 func (sm *SecurityMiddleware) registerDefaults() {
-	// Combat — prevent rapid-fire attacks. CLIENT sends 0x000F at most once
-	// per swing of its own (ToggleAutoAttack waits for m_p071E8), and the
-	// shortest swing is 3000 VITimer ticks, 3.05 s; the margin is for network
-	// jitter. A 0x000F only engages: the swings are the server's
-	// (entity/attack.go), so a dropped repeat costs nothing.
+	// Combat — a flood guard only. CLIENT sends 0x000F at most once per run
+	// of its own swing timer (ToggleAutoAttack waits for m_p071E8), which a
+	// swing goes its delay on (3000 VITimer ticks at the least, 3.05 s) but a
+	// due swing at a target out of its reach only 2000 (AutoAttackTick: 2.03
+	// s): presses 2 s apart are the game's own. Until 2026-11-06 this was 2.5
+	// s, and the press it dropped was lost: a new target's never engaged (the
+	// client swinging at it for nothing, the user's "players cant attack"; 59
+	// drops logged in a day, the log stopping at 5 a session). The server
+	// keeps the client's timer itself now (entity/attack.go pressed: a press
+	// starts no round before the timer, less pressSlack), so the swings are
+	// held to the weapon's delay, not to this.
 	sm.policies[protocol.OpcodeAttack] = &OpcodePolicy{
-		MinInterval:  2500 * time.Millisecond,
+		MinInterval:  time.Second,
 		RequireWorld: true,
 	}
 

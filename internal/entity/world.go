@@ -41,6 +41,7 @@ type World struct {
 	leaving     []func(*Player)                   // OnPlayerLeaving
 	entered     []func(*session.Session, *Player) // OnPlayerEntered
 	respawn     RespawnFunc                       // OnPlayerRespawn (respawn.go)
+	rezOffer    RezOfferFunc                      // OnRezOffer (resurrect.go)
 	announced   map[*Player]bool                  // guildAnnounceSystem: told its guild at login
 	// OnEntityEnter is called when a new entity enters a player's visibility range.
 	// Set by the handler layer to send FullEntityCreate (0x00B3) reliable opcodes.

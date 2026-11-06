@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"log"
+	"time"
 
 	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -51,4 +53,38 @@ func (h *CharacterHandler) respawnPlayer(sess *session.Session, p *entity.Player
 
 	log.Printf("Respawn: '%s' at %s (%.1f, %.1f, %.1f) world=%d (world changed: %v), %d/%d HP",
 		placed.Name, where, placed.X, placed.Y, placed.Z, placed.World, worldChanged, placed.HP, placed.MaxHP)
+}
+
+// handleRezAnswer is 0x00D4, the client's answer to CLIENT's resurrect prompt
+// (Msg00D3 with 1; its Yes SendD4On, its No SendD4Off): a Yes to a rez's
+// offer in its time brings the player back to where it died (entity's
+// TakeRezReturn: back to life there first when it lies dead), sent there as
+// a respawn is (a MemoryDump: the one thing that ends a death on the client).
+// petition 1051.
+func (h *CharacterHandler) handleRezAnswer(sess *session.Session, msg *protocol.Message) error {
+	gw := h.gameWorld
+	data := msg.Data()
+	if gw == nil || len(data) < 1 {
+		return nil
+	}
+	world, x, y, z, ok := gw.TakeRezReturn(sess, data[0] == 1, time.Now())
+	if !ok {
+		return nil
+	}
+	p := gw.SessionPlayer(sess)
+	if p == nil {
+		return nil
+	}
+	placed, worldChanged, ok := gw.PlaceRespawn(p.ServerID, x, y, z, world)
+	if !ok {
+		return nil
+	}
+	if worldChanged {
+		beginWorldLoad(sess, true)
+	}
+	gw.SyncSelfChannels(sess)
+	h.queueMemoryDump(sess, &placed)
+	log.Printf("Rez: '%s' back where it died (%.1f, %.1f, %.1f) world=%d, %d/%d HP", placed.Name, placed.X, placed.Y, placed.Z,
+		placed.World, placed.HP, placed.MaxHP)
+	return nil
 }

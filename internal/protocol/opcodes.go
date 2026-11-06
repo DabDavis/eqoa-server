@@ -134,6 +134,7 @@ const (
 
 	// 0x00DX - Damage, NPC Messages, Misc
 	OpcodeSummonPrompt     GameOpcode = 0x00D3 // Msg00D3: ReadString(name, 64) + u8 (0 summon, word 610; else resurrect, 611)
+	OpcodeSummonAnswer     GameOpcode = 0x00D4 // the prompt's answer (SendD4On / SendD4Off): u8 1 Yes, 0 No
 	OpcodeCancelPending    GameOpcode = 0x00D7 // Msg00D7: clears the merchant/loot request flags and closes the bank; shows nothing
 	OpcodeSwingOutOfReach  GameOpcode = 0x00D8 // client -> server, bare: AutoAttackTick swung at a target out of reach (retries in 2 s)
 	OpcodeExpDebt          GameOpcode = 0x00D9 // one raw u32 into the player record +0x2C (FrontiersForge: exp debt, unconfirmed)

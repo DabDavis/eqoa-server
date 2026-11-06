@@ -125,7 +125,8 @@ func TestAnHeirloomIsItsLevelsBest(t *testing.T) {
 		return f.held()
 	}
 	got := at(10)
-	if h := got[hlHelm]; val(h.AC) != 20 || val(h.Str) != 5 || val(h.Sta) != 0 || h.ItemName != "Heirloom Helm" || h.EquipSlot != 1 || h.Model != 4 {
+	// (STA 2: the class's stats at 10, heirloomStats; STR 5 the helm of 10's, higher)
+	if h := got[hlHelm]; val(h.AC) != 20 || val(h.Str) != 5 || val(h.Sta) != 2 || h.ItemName != "Heirloom Helm" || h.EquipSlot != 1 || h.Model != 4 {
 		t.Errorf("level 10's helm: AC %d STR %d STA %d, %q slot %d model %d", val(h.AC), val(h.Str), val(h.Sta), h.ItemName, h.EquipSlot, h.Model)
 	}
 	if b := got[hlBlade]; b.WeaponDamage != 100 || b.EquipSlot != 14 || b.AttackType != 1 {
@@ -135,10 +136,10 @@ func TestAnHeirloomIsItsLevelsBest(t *testing.T) {
 		t.Errorf("a plain helm changed: %+v", o)
 	}
 	got = at(20)
-	if h := got[hlHelm]; val(h.AC) != 40 || val(h.HPMAX) != 30 || val(h.Str) != 0 {
+	if h := got[hlHelm]; val(h.AC) != 40 || val(h.HPMAX) != 30 || val(h.Str) != 4 { // STR the class's 4 at 20
 		t.Errorf("level 20's helm: AC %d HP %d STR %d", val(h.AC), val(h.HPMAX), val(h.Str))
 	}
-	if b := got[hlBlade]; b.WeaponDamage != 200 || val(b.Dex) != 7 {
+	if b := got[hlBlade]; b.WeaponDamage != 200 || val(b.Dex) != 7 { // DEX the blade of 15's 7, over the class's 4
 		t.Errorf("level 20's blade: damage %d DEX %d", b.WeaponDamage, val(b.Dex))
 	}
 	// another class's heirloom takes its own class's best (the monk's helm)
@@ -188,12 +189,14 @@ func TestAnHeirloomFollowsALevelUp(t *testing.T) {
 }
 
 // The chest piece heals at each hit as the Breastplate of the Anointed.
-func TestTheHeirloomChestguardHealsAsTheAnointed(t *testing.T) {
-	a, okA := entity.WornShieldOf(0, "Breastplate of the Anointed")
-	c, okC := entity.WornShieldOf(714100, "Heirloom Chestguard")
-	c.Item, a.Item = "", ""
-	if !okA || !okC || c != a {
-		t.Errorf("the heirloom chestguard %+v (%v), the Anointed %+v (%v)", c, okC, a, okA)
+func TestTheHeirloomChestguardHealsNoMore(t *testing.T) {
+	// the user, 2026-11-06: "lets turn off the healing effect on hit from
+	// heirloom"; the control, the Anointed's own, still heals
+	if c, ok := entity.WornShieldOf(714001, "Heirloom Chestguard"); ok {
+		t.Errorf("the heirloom chestguard still answers a hit: %+v", c)
+	}
+	if a, ok := entity.WornShieldOf(0, "Breastplate of the Anointed"); !ok || a.Heal == 0 {
+		t.Errorf("the control: the Anointed's %+v (%v)", a, ok)
 	}
 }
 
@@ -236,9 +239,10 @@ func TestAnEpicHeirloomIsItsEpicFromItsLevel(t *testing.T) {
 	}
 	got = at(49)
 	e := got[714004]
-	if e.WeaponDamage != 561 || val(e.Dex) != 10 || val(e.Agi) != 5 || e.ItemName != "Heirloom Selo's Jeweled Rapier" ||
+	// (AGI 10: the class's at 49 over the rapier's 5; DEX the rapier's 10, the class's 10 too)
+	if e.WeaponDamage != 561 || val(e.Dex) != 10 || val(e.Agi) != 10 || e.ItemName != "Heirloom Selo's Jeweled Rapier" ||
 		e.EquipSlot != 14 || e.ClassUse != 1 {
-		t.Errorf("at 49: damage %d DEX %d AGI %d, %q slot %d class %d; want the rapier's 561, 10, 5 under its own name",
+		t.Errorf("at 49: damage %d DEX %d AGI %d, %q slot %d class %d; want the rapier's 561, 10, and AGI 10 under its own name",
 			e.WeaponDamage, val(e.Dex), val(e.Agi), e.ItemName, e.EquipSlot, e.ClassUse)
 	}
 	name, desc := e.ProcSource()
@@ -250,5 +254,41 @@ func TestAnEpicHeirloomIsItsEpicFromItsLevel(t *testing.T) {
 	}
 	if _, ok := entity.WeaponProcOf(hlBlade, got[hlBlade].ItemName, got[hlBlade].ItemDesc); ok {
 		t.Error("the plain heirloom blade procs")
+	}
+}
+
+// Every heirloom armour and jewellery piece carries its class's stats at its
+// wearer's level (the user, 2026-11-06: "all heirlooms should have stat
+// increases also not just ac, can have hp, pow, str, sta, and 2 good
+// secondary stats. for sk int and agi. for war dex and agi"): a warrior of 10's
+// helm the helm of 10's STR 5 kept (its best's, higher) and AC 20, with HP and
+// power 13, STA 2 and DEX and AGI 2 added; a level 60's 75, 75 and 12 each; an
+// alchemist's INT and WIS where a warrior's are DEX and AGI; the blade, a
+// weapon, its stats too.
+func TestHeirloomArmourCarriesItsClassesStats(t *testing.T) {
+	f := newHeirloomFixture(t)
+	f.h.Note(f.sid, 0, 0, 10)
+	got := f.held()
+	h := got[hlHelm]
+	if val(h.AC) != 20 || val(h.Str) != 5 || val(h.HPMAX) != 13 || val(h.POWMAX) != 13 || val(h.Sta) != 2 ||
+		val(h.Dex) != 2 || val(h.Agi) != 2 || val(h.Intelligence) != 0 {
+		t.Errorf("a warrior of 10's helm: AC %d STR %d HP %d POW %d STA %d DEX %d AGI %d INT %d", val(h.AC), val(h.Str),
+			val(h.HPMAX), val(h.POWMAX), val(h.Sta), val(h.Dex), val(h.Agi), val(h.Intelligence))
+	}
+	// a weapon too (the user: "let heirloom weapon get stats also and shields")
+	if b := got[hlBlade]; val(b.HPMAX) != 13 || val(b.Str) != 2 || val(b.Sta) != 2 || val(b.Agi) != 2 {
+		t.Errorf("the blade at 10: HP %d STR %d STA %d AGI %d; want 13, 2, 2, 2", val(b.HPMAX), val(b.Str), val(b.Sta), val(b.Agi))
+	}
+	var p database.ItemPatternRecord
+	heirloomStats(&p, 14, 60)
+	if val(p.HPMAX) != 75 || val(p.POWMAX) != 75 || val(p.Str) != 12 || val(p.Sta) != 12 || val(p.Intelligence) != 12 ||
+		val(p.Wis) != 12 || val(p.Dex) != 0 || val(p.Agi) != 0 {
+		t.Errorf("an alchemist of 60's piece: HP %d POW %d STR %d STA %d INT %d WIS %d DEX %d AGI %d", val(p.HPMAX), val(p.POWMAX),
+			val(p.Str), val(p.Sta), val(p.Intelligence), val(p.Wis), val(p.Dex), val(p.Agi))
+	}
+	var one database.ItemPatternRecord
+	heirloomStats(&one, 3, 1)
+	if val(one.HPMAX) != 1 || val(one.Str) != 1 || val(one.Intelligence) != 1 || val(one.Agi) != 1 {
+		t.Errorf("a shadow knight of 1's piece: HP %d STR %d INT %d AGI %d", val(one.HPMAX), val(one.Str), val(one.Intelligence), val(one.Agi))
 	}
 }

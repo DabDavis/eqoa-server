@@ -313,7 +313,7 @@ func (h *TradeHandler) offerLocked(t *trade, me, you *tradeSide, key uint32, n i
 		log.Printf("Trade: %s offers key %d: %v", me.player.Name, key, err)
 		return
 	}
-	if row.EquipLoc != -1 {
+	if row.EquipLoc != -1 && h.items.takeOff == nil {
 		log.Printf("Trade: %s offers %q while wearing it", me.player.Name, row.Pattern.ItemName)
 		return
 	}
@@ -394,7 +394,7 @@ func (h *TradeHandler) completeLocked(t *trade) {
 				return
 			}
 			row, err := h.items.inv.GetCharItem(s.player.CharServerID, rec.itemID)
-			if err != nil || row.EquipLoc != -1 {
+			if err != nil || row.EquipLoc != -1 && h.items.takeOff == nil {
 				h.refuseLocked(t)
 				return
 			}
@@ -408,6 +408,13 @@ func (h *TradeHandler) completeLocked(t *trade) {
 	for _, m := range moves {
 		toInv := sessionInvList(m.to.sess)
 		if toInv.wouldAdd(m.row.Pattern.PatternID, m.n, m.row.Pattern.MaxStack) < m.n {
+			h.refuseLocked(t)
+			return
+		}
+	}
+	// what is worn comes off first, once both sides can take it all
+	for i := range moves {
+		if m := &moves[i]; m.row.EquipLoc != -1 && !h.items.takeOff(m.from.sess, m.from.player, &m.row) {
 			h.refuseLocked(t)
 			return
 		}

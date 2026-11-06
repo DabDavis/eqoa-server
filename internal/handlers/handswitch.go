@@ -255,6 +255,35 @@ func (h *EquipHandler) applySwitch(sess *session.Session, sid uint32, items []da
 // wornChanged puts a change of the hands into the game: the look and the
 // gear (applyEquipmentFromDB) and a fight's swing (handsChanged). (The
 // ranged weapon put on is kept for the switches by applyPlan.)
+// TakeOff takes a worn item off as the item menu's unequip does (the row's
+// equip slot written -1, UnequipItem for its slot, the worn gear and look
+// again), so the bank or a trade can move it (the user, 2026-11-06: "at the
+// moment if you have an item equipped, you cannot bank or trade. lets allow
+// equipped to be banked, traded"; until then both refused a worn item, 21
+// times that day). A row not worn is left as it is. False when the database
+// refused.
+func (h *EquipHandler) TakeOff(sess *session.Session, player *entity.Player, row *database.CharInventoryEntry) bool {
+	if row == nil || row.EquipLoc < 0 {
+		return true
+	}
+	slot := row.EquipLoc
+	if h.inventoryStore == nil {
+		return false
+	}
+	if err := h.inventoryStore.SetEquipLoc(player.CharServerID, row.ItemID, -1); err != nil {
+		log.Printf("TakeOff: %s's %q from slot %d: %v", player.Name, row.Pattern.ItemName, slot, err)
+		return false
+	}
+	if handSlot(slot) {
+		h.hands.update(player.CharServerID, func(k *keptHands) { k.took = 0 })
+	}
+	log.Printf("TakeOff: %s's %q off slot %d", player.Name, row.Pattern.ItemName, slot)
+	sess.Queue().AddWithSequence(unequipItemMessage(slot))
+	row.EquipLoc = -1
+	h.wornChanged(sess, player, player.CharServerID)
+	return true
+}
+
 func (h *EquipHandler) wornChanged(sess *session.Session, player *entity.Player, sid uint32) {
 	if h.charHandler != nil {
 		h.charHandler.applyEquipmentFromDB(player, sid, false)

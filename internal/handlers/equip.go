@@ -47,6 +47,8 @@ type EquipHandler struct {
 
 	// genie is the lamps' genies (genie.go): a lamp's Use brings one
 	genie *Genie
+	// dice rolls the Rolling Dice (ChatHandler.RollTheDice, roll.go)
+	dice func(*session.Session, *entity.Player, time.Time)
 
 	fishing *FishingHandler // a fishing pole used from the HUD (fishing.go)
 	craft   *CraftHandler   // a recipe scroll used (craft.go)
@@ -484,6 +486,11 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 		// the Heirloom Fang of the Wolf, never spent (wolffang.go)
 		if IsWolfFang(&row.Pattern) {
 			h.useWolfFang(sess)
+			return nil
+		}
+		// the Rolling Dice, rolled for the room, never spent (roll.go)
+		if IsRollingDice(&row.Pattern) && h.dice != nil {
+			h.dice(sess, player, time.Now())
 			return nil
 		}
 		if c, ok := consumableOf(&row.Pattern); ok {

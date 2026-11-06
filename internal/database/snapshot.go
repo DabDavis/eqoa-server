@@ -42,7 +42,7 @@ import (
 // SnapshotVersion names the sanitiser's rules: the panel's audit line and the
 // snapshot's own snapshot_info table say which made a file. Raise it with
 // every change to what is taken out.
-const SnapshotVersion = 10
+const SnapshotVersion = 11
 
 // SnapshotInfoTable is the table a snapshot carries saying what it is: the
 // sanitiser's version, when it was made and by whom, and what was taken out.
@@ -130,9 +130,11 @@ var snapshotRules = map[string]snapshotRule{
 	SnapshotInfoTable: {allow: []string{"key"},
 		why: "the sanitiser's version, when the snapshot was made and by whom, what it took out"},
 
-	// Named like a secret, holding none: the game's own.
-	"hotkeys": {allow: []string{"hotkeyid"},
-		why: "a character's quick-chat keys (hotkeyid is the row's id)"},
+	// A player's own words, as petitions' (the quick-chat lines it typed, kept
+	// since 2026-11-06: handlers/hotkeys.go); a server sends the defaults for a
+	// character with no rows.
+	"hotkeys": {clear: true, allow: []string{"hotkeyid"},
+		why: "the quick-chat lines a player typed (hotkeyid is the row's id)"},
 
 	// Named like a secret, holding none: the content tools' provenance (their
 	// --undo, and what the real-data tests read). A key column is a row's key

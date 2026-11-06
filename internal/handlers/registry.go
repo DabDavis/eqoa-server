@@ -220,6 +220,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	}
 	combatHandler.SetInventoryStore(invStore)
 	equipHandler := NewEquipHandler(sessionMgr, invStore, spellStore, charHandler)
+	equipHandler.dice = chatHandler.RollTheDice
 	if gameWorld != nil {
 		equipHandler.SetGameWorld(gameWorld)
 	}

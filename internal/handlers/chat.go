@@ -47,6 +47,10 @@ type ChatHandler struct {
 	sessionManager *session.Manager
 	gameWorld      *entity.World
 
+	// diceAt is when each character last rolled the Rolling Dice (roll.go)
+	diceMu sync.Mutex
+	diceAt map[uint32]time.Time
+
 	mu    sync.Mutex
 	modes map[entity.EntityID]byte // each player's last 0x000E
 

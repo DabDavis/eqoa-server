@@ -74,7 +74,6 @@ const (
 	TransferMaxItems  = 4000 // the gear list, as typed
 	TransferMaxNotes  = 2000
 	TransferMaxAnswer = 2000
-	TransferMaxOpen   = 3 // waiting or approved, an account
 )
 
 // Transfer is one row of chartransfers.
@@ -168,13 +167,16 @@ func transferText(s string) string {
 var (
 	ErrTransferNotFound = errors.New("no such transfer")
 	ErrTransferOpen     = errors.New("this character has a transfer waiting already")
-	ErrTransferTooMany  = errors.New("your account has as many transfers waiting as it may")
 	ErrTransferDecided  = errors.New("a GM has decided this transfer already")
 )
 
 // FileTransfer files a player's request for one of the account's own
-// characters, waiting on a GM: refused while that character has one open, or
-// the account TransferMaxOpen. The character is checked to be the account's.
+// characters, waiting on a GM: refused while that character has one open
+// (waiting or approved). An account may have any number open, one a
+// character (the user, 2026-11-06: "it is capped at 3, lets unlimit it": a
+// player bringing several characters over hit three, an approved one counting
+// until its character's next login). The character is checked to be the
+// account's.
 func (db *SQLiteDB) FileTransfer(t Transfer, now time.Time) (Transfer, error) {
 	t.FromServer = strings.TrimSpace(transferText(t.FromServer))
 	t.FromName = strings.TrimSpace(transferText(t.FromName))
@@ -217,16 +219,13 @@ func (db *SQLiteDB) FileTransfer(t Transfer, now time.Time) (Transfer, error) {
 		return Transfer{}, err
 	}
 	t.CharName = name
-	var forChar, forAccount int
-	if err := tx.QueryRow(`SELECT COALESCE(SUM(serverid = ?), 0), COUNT(*) FROM chartransfers WHERE accountid = ? AND status IN (?, ?)`,
-		t.ServerID, t.AccountID, TransferWaiting, TransferApproved).Scan(&forChar, &forAccount); err != nil {
+	var forChar int
+	if err := tx.QueryRow(`SELECT COUNT(*) FROM chartransfers WHERE serverid = ? AND accountid = ? AND status IN (?, ?)`,
+		t.ServerID, t.AccountID, TransferWaiting, TransferApproved).Scan(&forChar); err != nil {
 		return Transfer{}, err
 	}
 	if forChar > 0 {
 		return Transfer{}, ErrTransferOpen
-	}
-	if forAccount >= TransferMaxOpen {
-		return Transfer{}, ErrTransferTooMany
 	}
 	if claims, err = knownClaims(tx, claims); err != nil {
 		return Transfer{}, err

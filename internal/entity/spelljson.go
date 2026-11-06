@@ -153,6 +153,16 @@ type effectJSON struct {
 	// Absolute is a "Statistic Absolute" row's figure: set, not changed by
 	// (the spells lane's key: its speed below 0 a root, its power set)
 	Absolute bool `json:"absolute"`
+	// DebuffScale is a hit that grows with what its target's resist of a
+	// kind is lowered by (SpellEffect.DebuffStat)
+	DebuffScale *debuffScaleJSON `json:"debuff_scale"`
+}
+
+// debuffScaleJSON is an effect's debuff_scale: {"stat": a resist's name, as
+// "resist" takes it, "pct": the percent more a point of its debuff adds}.
+type debuffScaleJSON struct {
+	Stat string  `json:"stat"`
+	Pct  float64 `json:"pct"`
 }
 
 type petJSON struct {
@@ -524,6 +534,11 @@ func effectOf(k EffectKind, e effectJSON) SpellEffect {
 	}
 	if st, ok := jsonStat(e.Resist); ok {
 		out.Resist = st
+	}
+	if ds := e.DebuffScale; ds != nil && ds.Pct != 0 {
+		if st, ok := jsonStat(ds.Stat); ok {
+			out.DebuffStat, out.DebuffPct = st, ds.Pct
+		}
 	}
 	return out
 }

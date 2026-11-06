@@ -8,23 +8,27 @@ import (
 
 // The rehabilitators (handlers/rehab.go; the user, 2026-10-30): Rehabilitator
 // Anja in Muniel's Tea Garden and Rehabilitator Frejo near Freeport undo what
-// a character chose. Each character has free resets ("1 free CM [reset] and
-// stat points [reset] per char. 2 free path respects per char"), then pays:
-// tunar for its masteries and stat points ("1mil for cms, 2mil for both"), a
-// Rose of Rehabilitation for a path ("Roses for paths"), which the
-// rehabilitators sell ("for 10 million tunar") and a class's level 60 epic
-// gives ("1 free path respec w/ 60 epic. Or rose as reward").
+// a character chose. Every reset is free, every time (the user, 2026-11-06:
+// "lets make rehab resets free from anja etc"). Until then each character had
+// free resets ("1 free CM [reset] and stat points [reset] per char. 2 free
+// path respects per char"), then paid: tunar for its masteries and stat
+// points ("1mil for cms, 2mil for both"), a Rose of Rehabilitation for a path
+// ("Roses for paths"), which the rehabilitators sold ("for 10 million tunar")
+// and a class's level 60 epic gives ("1 free path respec w/ 60 epic. Or rose
+// as reward").
 //
-// rehabsettings is the GMs' (the GM panel's "Rehabilitators' prices"): the
-// free resets every character has and the prices, a row a setting, read at
-// each talk to a rehabilitator. A setting with no row is its default here; a
-// new table is given every default. charresets is each character's count of a
-// kind of reset: the free ones it used, the ones it paid for, and any more a
-// GM gave it.
+// rehabsettings was the GMs' (the GM panel's "Rehabilitators' prices"): the
+// free resets every character had and the prices, a row a setting. Nothing
+// reads it since resets are free; it is kept, and still made at the start, so
+// its rows and their audit stay. charresets is each character's count of a
+// kind of reset: used is every reset it had since they are free (and the free
+// ones before), paid those it paid for before, bonus the free ones a GM gave
+// it then.
 
 // RoseOfRehabilitation is the Rose of Rehabilitation's item (itempattern),
-// made by tools/seed_rehabilitation.py (ROSE_ID there): it pays for a path
-// chosen again once the free path respecs are used.
+// made by tools/seed_rehabilitation.py (ROSE_ID there): it paid for a path
+// chosen again once the free path respecs were used; a path is free since
+// 2026-11-06, and a rose held is not asked for.
 const RoseOfRehabilitation = 709300
 
 // RoseOfRehabilitationName is its name, as the tool writes it.
@@ -73,22 +77,22 @@ type RehabSetting struct {
 
 // RehabSettingRows are the settings, in the panel's order, with their
 // defaults: the user's prices of 2026-10-30, and 1,000,000 for a stat point
-// reset alone, which the user did not price (the masteries' price, to be
-// confirmed).
+// reset alone, which the user did not price. None is read since every reset
+// is free (2026-11-06): each note says so, for the panel.
 var RehabSettingRows = []RehabSetting{
-	{"free_mastery", 1, "free Combat Mastery resets a character has",
+	{"free_mastery", 1, "not read: every reset is free since 2026-11-06 (was: free Combat Mastery resets a character has)",
 		func(s *RehabSettings, v int) { s.FreeMastery = v }},
-	{"free_training", 1, "free stat (training) point resets a character has",
+	{"free_training", 1, "not read: every reset is free since 2026-11-06 (was: free stat (training) point resets a character has)",
 		func(s *RehabSettings, v int) { s.FreeTraining = v }},
-	{"free_path", 2, "free path respecs a character has; past them a path costs a Rose of Rehabilitation",
+	{"free_path", 2, "not read: every reset is free since 2026-11-06 (was: free path respecs a character has; past them a path cost a Rose of Rehabilitation)",
 		func(s *RehabSettings, v int) { s.FreePath = v }},
-	{"price_mastery", 1_000_000, "tunar for a Combat Mastery reset once the free ones are used",
+	{"price_mastery", 1_000_000, "not read: every reset is free since 2026-11-06 (was: tunar for a Combat Mastery reset once the free ones were used)",
 		func(s *RehabSettings, v int) { s.PriceMastery = v }},
-	{"price_training", 1_000_000, "tunar for a stat point reset once the free ones are used (not priced by the user: the masteries' price, to confirm)",
+	{"price_training", 1_000_000, "not read: every reset is free since 2026-11-06 (was: tunar for a stat point reset once the free ones were used)",
 		func(s *RehabSettings, v int) { s.PriceTraining = v }},
-	{"price_both", 2_000_000, "tunar for masteries and stat points together, when neither has a free reset left",
+	{"price_both", 2_000_000, "not read: every reset is free since 2026-11-06 (was: tunar for masteries and stat points together, when neither had a free reset left)",
 		func(s *RehabSettings, v int) { s.PriceBoth = v }},
-	{"price_rose", 10_000_000, "tunar for a Rose of Rehabilitation at a rehabilitator",
+	{"price_rose", 10_000_000, "not read: the rehabilitators sell no rose since 2026-11-06 (was: tunar for a Rose of Rehabilitation at a rehabilitator)",
 		func(s *RehabSettings, v int) { s.PriceRose = v }},
 }
 

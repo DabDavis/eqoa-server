@@ -541,21 +541,23 @@ copies the database first. First used 2026-11-05 for a Sandstorm 60 (the user's 
 
 ### Rehabilitators: a character's resets, for every client (`handlers/rehab.go`, `rehabpaths.go`, `database/rehab.go`)
 
-The user, 2026-10-30: "1 free CM [reset] and stat points [reset] per char. 2 free path respects per char", "1mil for
-cms, 2mil for both", "Roses for paths", "1 free path respec w/ 60 epic. Or rose as reward". Talking to **Rehabilitator
-Anja** (Muniel's Tea Garden) or **Rehabilitator Frejo** (near Freeport; any NPC named "Rehabilitator ...") opens a menu of
-the quest boxes a PS2 reads (0x0046 lines, 0x0034 questions under box mark **0x54000000**, beside the quests' 0x51, the
-triggers' 0x52, the duels' 0x53): what the character has left, then three answers, a page of CLIENT's answer box
-(VIWndResponse shows three, then More, Back and its own Close, which answers 255): a reset, then which (its Combat
-Masteries, `#rst_mastr`'s work, `resetMasteries`; its stat points, `#rst_both`'s training half, `trainingBack`; both), a
-path chosen again, a Rose of Rehabilitation bought. Each is asked again with its terms and done only on them; nothing to
-undo or too little tunar is refused, nothing taken. Walked end to end in the headless vanilla client.
+The user, 2026-10-30: "Rehabilitator Anja in Muniels tea garden and another near freeport NPC, talk to them".
+Talking to **Rehabilitator Anja** (Muniel's Tea Garden) or **Rehabilitator Frejo** (near Freeport; any NPC named
+"Rehabilitator ...") opens a menu of the quest boxes a PS2 reads (0x0046 lines, 0x0034 questions under box mark
+**0x54000000**, beside the quests' 0x51, the triggers' 0x52, the duels' 0x53): the greeting, then two answers of a page of
+CLIENT's answer box (VIWndResponse shows three, then More, Back and its own Close, which answers 255): a reset, then which
+(its Combat Masteries, `#rst_mastr`'s work, `resetMasteries`; its stat points, `#rst_both`'s training half,
+`trainingBack`; both), and a path chosen again. Each is asked again ("Shall I begin?", "Shall I make the change?") and
+done only on the parts the character still has; nothing to undo is refused, nothing counted. Walked end to end in the
+headless vanilla client.
 
-- **Prices and free counts**: table `rehabsettings` (GM panel "Rehabilitators' prices", a row a setting, read at each
-  talk): free_mastery 1, free_training 1, free_path 2, price_mastery 1,000,000, price_training 1,000,000 (the user priced
-  only masteries and both: to confirm), price_both 2,000,000 (both when neither has a free reset left; with one free, the
-  other's price), price_rose 10,000,000. Each character's counts: `charresets` (GM panel "Character resets": used, paid,
-  bonus; free left = free + bonus - used).
+- **Every reset is free, every time** (the user, 2026-11-06: "lets make rehab resets free from anja etc"): no price, free
+  count or rose in any line. Until then a character had 1 free mastery reset, 1 free stat point reset and 2 free path
+  respecs, then paid 1,000,000 tunar a reset, 2,000,000 both, and a Rose of Rehabilitation a path, sold for 10,000,000
+  (the user, 2026-10-30: "1 free CM [reset] and stat points [reset] per char. 2 free path respects per char", "1mil for
+  cms, 2mil for both", "Roses for paths"). Table `rehabsettings` (GM panel "Rehabilitators' prices") is no longer read:
+  kept, with its rows and audit, its notes and help saying so. `charresets` (GM panel "Character resets") is a record:
+  every reset counted as `used` (the free ones before too), `paid` what was paid before, `bonus` what a GM gave then.
 - **A path, chosen again on the spot** (`rehabpaths.go`, by import key; the user's "choose again on the spot"): a pick
   of a city's level 20 class quest (`1-20/<city>/<class>/L20`, its two path scrolls; one that kept a single path asks
   nothing) or of a 30/40/49 group's class reward (`30,40,49/<group>/L<30|40|49>-<class>`, an ability, a weapon or both).
@@ -568,13 +570,15 @@ undo or too little tunar is refused, nothing taken. Walked end to end in the hea
   another quest the character keeps gives (the 60 epics offer the 49 paths' other abilities) or merchants sell as a
   scroll stays, and so does every spell of a book holding two options' that nothing else explains (a class grant:
   `#template`, grant_spell "all"). A pick from before picks were kept is read off the book and the pack (the option
-  holding the most; a tie is not offered). The free respec or the rose is used only when the change is done. **No pick
+  holding the most; a tie is not offered). The change is counted only when it is done. **No pick
   decides another level's options** in the quests: each level is changed by itself. `TestRealPathsChosenAgain` changes
   every real path step (138 on 2026-10-30's data).
 - **The Rose of Rehabilitation**: item 709300 (`database.RoseOfRehabilitation`), "rose of renewal"'s art (icon 759960290,
   a rose; Oceanic Rose's 1342617881 is a coil of rope), worth 10,000,000, NO TRADE, which merchants refuse (an epic's
   would be ten million tunar). Each class's 60 epic reward quest (`60/<archetype>/reward-<class>`, 23) gives one at its
-  last step: not repeatable, and no path change touches its row, so one a character an epic.
+  last step: not repeatable, and no path change touches its row, so one a character an epic. **Since paths are free
+  (2026-11-06) nothing asks for a rose and the rehabilitators sell none**: one held stays where it is, and the epics
+  still give theirs (quest data, not changed).
 - `tools/seed_rehabilitation.py [--apply|--undo] [--write-data tools/quests/data]` writes the rose, Frejo's NPC bit (his
   npc_type was 0: a creature), the epics' rewards, and a rose for each epic a character finished before, less the roses
   it holds, has used (charresets) or the tool gave it (logged in `rehab_seed`, exact undo, itempattern's AUTOINCREMENT

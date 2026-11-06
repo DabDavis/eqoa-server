@@ -268,7 +268,7 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 
-	// A rehabilitator's menu (rehab.go): resets, paths, roses.
+	// A rehabilitator's menu (rehab.go): resets and paths, free.
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.rehab.Talk(sess, player, npc) {
 		return nil
 	}

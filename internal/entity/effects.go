@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/eqoa/server/internal/session"
 )
@@ -85,4 +86,27 @@ func (w *World) PlayerEffects(sess *session.Session) []BuffSlot {
 		return append([]BuffSlot(nil), p.Buffs...)
 	}
 	return nil
+}
+
+// buffSlotsLocked is what the player's effects window shows: its own effects,
+// then its pet's (petition 1041, Eatma: "Pet buffs for necro aren't showing
+// up on buff display"), each pet effect that has a name and has not run out,
+// at most MaxEffects in all (the client keeps no more), its own first. The
+// pet's are read at each send of the channel (buffChannelSyncSystem, every 2
+// s), not kept in the player's slots. Must be called with the lock held.
+func (w *World) buffSlotsLocked(p *Player, now time.Time) []BuffSlot {
+	pet := w.petOfLocked(p)
+	if pet == nil || len(p.Buffs) >= MaxEffects {
+		return p.Buffs
+	}
+	slots := append([]BuffSlot(nil), p.Buffs...)
+	for _, e := range pet.Effects {
+		if len(slots) >= MaxEffects {
+			break
+		}
+		if e.Name != "" && now.Before(e.Until) {
+			slots = append(slots, BuffSlot{Icon: e.Icon, Name: e.Name})
+		}
+	}
+	return slots
 }

@@ -111,6 +111,8 @@ type Session struct {
 	// factionMessagesOff is the client's Faction Messages option off: 0x00C9's
 	// first byte 1 (sent at the world entry and when the option changes).
 	factionMessagesOff bool
+	// lootMessagesOff is the client's Loot Messages option off: 0x00CA's state
+	lootMessagesOff bool
 
 	// mailLiveForms is the client's answer to the mail form offer
 	// (OpcodeMailForm, handlers/mail.go): it sends SOE's live mail forms.
@@ -251,6 +253,21 @@ func (s *Session) SetFactionMessagesOff(off bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.factionMessagesOff = off
+}
+
+// SetLootMessagesOff records the client's Loot Messages option (0x00CA): off,
+// the server sends no line of what a corpse gave to this session.
+func (s *Session) SetLootMessagesOff(off bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.lootMessagesOff = off
+}
+
+// LootMessagesOff is whether the client asked for no loot lines.
+func (s *Session) LootMessagesOff() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.lootMessagesOff
 }
 
 // FactionMessagesOff is whether the client asked for no faction lines.

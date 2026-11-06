@@ -46,6 +46,7 @@ type Kept struct {
 	// what the client answered or was told (session.go)
 	DiscVersion        byte `json:"disc_version"`
 	FactionMessagesOff bool `json:"faction_messages_off,omitempty"`
+	LootMessagesOff    bool `json:"loot_messages_off,omitempty"`
 	MailLiveForms      bool `json:"mail_live_forms,omitempty"`
 	LiveLook           bool `json:"live_look,omitempty"`
 	LiveLookOffered    bool `json:"live_look_offered,omitempty"`
@@ -147,6 +148,7 @@ func (s *Session) Keep() Kept {
 		PlayerObjectID:     s.playerObjectID,
 		DiscVersion:        s.discVersion,
 		FactionMessagesOff: s.factionMessagesOff,
+		LootMessagesOff:    s.lootMessagesOff,
 		MailLiveForms:      s.mailLiveForms,
 		LiveLook:           s.liveLook,
 		LiveLookOffered:    s.liveLookOffered,
@@ -275,6 +277,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 	s.playerObjectID = k.PlayerObjectID
 	s.discVersion = k.DiscVersion
 	s.factionMessagesOff = k.FactionMessagesOff
+	s.lootMessagesOff = k.LootMessagesOff
 	s.mailLiveForms = k.MailLiveForms
 	s.liveLook = k.LiveLook
 	s.liveLookOffered = k.LiveLookOffered

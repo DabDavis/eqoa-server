@@ -47,10 +47,20 @@ func (h *FactionHandler) HandleFactionMessages(sess *session.Session, msg *proto
 	return nil
 }
 
-// HandleLootMessages handles the loot message toggle (0x00CA).
-// Client sends this on world entry: byte(state) + byte(0). state: 0=show, 1=hide.
+// HandleLootMessages is the client's Loot Messages option (0x00CA): byte(state)
+// + byte(changed), state 0 show, 1 hide, sent at the world entry (changed 0) and
+// when the option changes (1), as 0x00C9. The client filters no line itself: a
+// session that hides them is sent none (loot.go tellLooted, corpsecoins.go).
+// Until 2026-11-06 this only logged it, and no line of an item was ever sent
+// (petition 1119: "loot messeges arent working. toggled on n off, even reset
+// client.").
 func (h *FactionHandler) HandleLootMessages(sess *session.Session, msg *protocol.Message) error {
-	log.Printf("LootMessages from %s: %x", sess.RemoteAddr(), msg.Data())
+	data := msg.Data()
+	if len(data) < 1 {
+		return nil
+	}
+	sess.SetLootMessagesOff(data[0] != 0)
+	log.Printf("LootMessages from %s: %x (lines %s)", sess.RemoteAddr(), data, map[bool]string{false: "shown", true: "hidden"}[data[0] != 0])
 	return nil
 }
 

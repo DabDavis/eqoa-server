@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"sync"
@@ -349,6 +350,7 @@ func (h *NPCWindowHandler) HandleLootItem(sess *session.Session, msg *protocol.M
 			queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, k))
 			ls.tookLocked(id, c, char, i, took)
 			looted = append(looted, lootTake{rec.Pattern.PatternID, took})
+			tellLooted(sess, rec.Pattern.ItemName, took)
 			log.Printf("Loot: %s took %d %q", player.Name, took, rec.Pattern.ItemName)
 		}
 	}
@@ -389,6 +391,7 @@ func (h *NPCWindowHandler) HandleLootAll(sess *session.Session, msg *protocol.Me
 		if took > 0 {
 			ls.tookLocked(id, c, char, i, took)
 			looted = append(looted, lootTake{rec.Pattern.PatternID, took})
+			tellLooted(sess, rec.Pattern.ItemName, took)
 		}
 		if took != rec.StackLeft {
 			left = true
@@ -406,6 +409,23 @@ func (h *NPCWindowHandler) HandleLootAll(sess *session.Session, msg *protocol.Me
 	}
 	h.resendCorpse(sess, ls, c)
 	return nil
+}
+
+// tellLooted says what a corpse gave, unless the client's Loot Messages option
+// is off (faction.go). The words are ours, after the coins' Sandstorm line
+// (corpsecoins.go): no recording shows an item's.
+func tellLooted(sess *session.Session, item string, n int) {
+	if !sess.LootMessagesOff() {
+		SendClientMessage(sess, lootStackLine(n, item))
+	}
+}
+
+// lootStackLine is the line for n of an item.
+func lootStackLine(n int, item string) string {
+	if n > 1 {
+		return fmt.Sprintf("You receive %d %s from the corpse.", n, item)
+	}
+	return fmt.Sprintf("You receive %s from the corpse.", item)
 }
 
 // lootNoRoom is what a take the pack has no room for is answered: CLIENT's own

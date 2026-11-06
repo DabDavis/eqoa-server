@@ -48,6 +48,8 @@ func (h *NPCWindowHandler) giveCorpseCoins(sess *session.Session, npc *entity.NP
 	player.Tunar += n
 	h.saveTunar(player)
 	queueReliable(sess, protocol.OpcodePlayerTunar, tunarPayload(player.Tunar))
-	sess.Queue().AddWithSequence(buildClientMessage(fmt.Sprintf(corpseCoinLine, n)))
+	if !sess.LootMessagesOff() { // the client's Loot Messages option (faction.go)
+		sess.Queue().AddWithSequence(buildClientMessage(fmt.Sprintf(corpseCoinLine, n)))
+	}
 	log.Printf("Loot: %s took %d tunar from %q's corpse (%d now)", player.Name, n, npc.Name, player.Tunar)
 }

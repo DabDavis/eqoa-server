@@ -2013,7 +2013,7 @@ func writeItemPattern(w *buffer.Writer, e *database.CharInventoryEntry) {
 
 	// Stats: collect non-zero stats as index/value pairs
 	// Index mapping: 0=str 1=sta 2=agi 3=dex 4=wis 5=int 6=cha
-	//   8=HPMAX 10=POWMAX 12=PoT 13=HoT 14=AC
+	//   8=HPMAX 10=POWMAX 12=HoT 13=PoT 14=AC
 	//   22=PR 23=DR 24=FR 25=CR 26=LR 27=AR
 	stats := itemPatternStats(p)
 	w.Write7BitEncodedInt64(int64(len(stats)))
@@ -2029,7 +2029,12 @@ func writeItemPattern(w *buffer.Writer, e *database.CharInventoryEntry) {
 	}
 }
 
-// itemPatternStats builds a stat index→value map from an ItemPatternRecord's nullable columns.
+// itemPatternStats builds a stat index→value map from an ItemPatternRecord's nullable columns,
+// by CLIENT's stat ids (FindStatWord's table, decomp vikeyflash.cpp: 12 is
+// word 240 "HoT", 13 word 241 "PoT"). Until 2026-11-06 the HoT column went out
+// as 13 and the PoT column as 12, so every item's tooltip showed one for the
+// other (petition 1091, Koolade: the Flawless Rejuvenative Belt's HoT 25 read
+// "PoT 25"; claude-notes/fishing-server-20261028.md had seen the table).
 func itemPatternStats(p *database.ItemPatternRecord) map[int]int {
 	stats := make(map[int]int)
 	addStat := func(idx int, v *int) {
@@ -2046,8 +2051,8 @@ func itemPatternStats(p *database.ItemPatternRecord) map[int]int {
 	addStat(6, p.Cha)
 	addStat(8, p.HPMAX)
 	addStat(10, p.POWMAX)
-	addStat(12, p.PoT)
-	addStat(13, p.HoT)
+	addStat(12, p.HoT)
+	addStat(13, p.PoT)
 	addStat(14, p.AC)
 	addStat(22, p.PR)
 	addStat(23, p.DR)

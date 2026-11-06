@@ -85,11 +85,47 @@ const castNoRez = "%s has no experience to recover."
 type RezChance struct {
 	Debt  int
 	Until time.Time
+	// Placed and the place are where the death was (petition 1051): a rez in
+	// the chance's time offers its target the way back there, debt or none.
+	// Not kept over a logout (table charrez keeps the debt alone).
+	Placed  bool
+	World   uint8
+	X, Y, Z float32
 }
 
-// live reports whether the chance still counts at now.
+// live reports whether the chance still counts at now: a debt to give back
+// or a place to go back to.
 func (c RezChance) live(now time.Time) bool {
-	return c.Debt > 0 && now.Before(c.Until)
+	return (c.Debt > 0 || c.Placed) && now.Before(c.Until)
+}
+
+// returns reports whether a rez still offers the way back to the body.
+func (c RezChance) returns(now time.Time) bool {
+	return c.Placed && now.Before(c.Until)
+}
+
+// RezReturn is a rez's offer of the way back to where its target died,
+// waiting for the target's answer to CLIENT's prompt (0x00D3's resurrect
+// form; its Yes is 0x00D4 1) until Until.
+type RezReturn struct {
+	World   uint8
+	X, Y, Z float32
+	Until   time.Time
+}
+
+// RezOfferFor is how long a rez's offer waits for its answer (ours).
+const RezOfferFor = 2 * time.Minute
+
+// RezOfferFunc shows a player a rez's offer: CLIENT's prompt "<caster> wishes
+// to resurrect you" (handlers: SendSummonPrompt). It runs under the World's
+// lock and must not call back into the World.
+type RezOfferFunc func(sess *session.Session, caster string)
+
+// OnRezOffer sets the hook that shows a rez's offer.
+func (w *World) OnRezOffer(fn RezOfferFunc) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.rezOffer = fn
 }
 
 // reRezWord is a resurrection's word in a clause, whole: the lists'
@@ -142,11 +178,7 @@ func (d *SpellDef) Resurrects() int {
 // chance of a rez: the latest death's alone, none for a death that added
 // nothing (playerDiedLocked).
 func (p *Player) noteRezChance(debt int, now time.Time) {
-	if debt <= 0 {
-		p.Rez = RezChance{}
-		return
-	}
-	p.Rez = RezChance{Debt: debt, Until: now.Add(RezWindow)}
+	p.Rez = RezChance{Debt: max(debt, 0), Until: now.Add(RezWindow), Placed: true, World: p.World, X: p.X, Y: p.Y, Z: p.Z}
 }
 
 // rezAmount is what a rez of pct percent gives t back now: its share of the
@@ -168,7 +200,7 @@ func (w *World) rezStartLocked(targets []EntityID, d *SpellDef, now time.Time) (
 	name := ""
 	for _, id := range targets {
 		if t := w.Players[id]; t != nil {
-			if rezAmount(t, pct, now) > 0 {
+			if rezAmount(t, pct, now) > 0 || t.Rez.returns(now) {
 				return "", false
 			}
 			if name == "" {
@@ -193,7 +225,15 @@ func (w *World) rezLandLocked(cs *castState, caster *Player, casterSess *session
 		return
 	}
 	n := rezAmount(t, pct, now)
+	if t.Rez.returns(now) {
+		w.offerRezReturnLocked(caster, t, now) // the way back to the body, debt or none
+	}
 	if n <= 0 {
+		returned := t.Rez.returns(now)
+		t.Rez = RezChance{}
+		if returned {
+			return
+		}
 		log.Printf("Rez: %s's %q lands on %s with nothing to recover (chance %d, live %v; %d owed)",
 			caster.Name, cs.spell.Name, t.Name, t.Rez.Debt, t.Rez.live(now), t.Debt)
 		if casterSess != nil {
@@ -268,4 +308,47 @@ func (w *World) RezOf(id EntityID, now time.Time) (debt int, left time.Duration,
 		return 0, 0, true
 	}
 	return p.Rez.Debt, p.Rez.Until.Sub(now), true
+}
+
+// offerRezReturnLocked offers a rez's target the way back to where it died
+// (petition 1051, Jibheals: "Even if the character has no debt to clear, they
+// should still get the popup to get back to where they last died IF eligible
+// to rez"): CLIENT's resurrect prompt (OnRezOffer's hook), its answer waited
+// for RezOfferFor. Must be called with the lock held.
+func (w *World) offerRezReturnLocked(caster, t *Player, now time.Time) {
+	c := t.Rez
+	t.RezReturn = RezReturn{World: c.World, X: c.X, Y: c.Y, Z: c.Z, Until: now.Add(RezOfferFor)}
+	if w.rezOffer != nil {
+		if ts := w.findSessionByEntityIDLocked(t.ServerID); ts != nil {
+			w.rezOffer(ts, caster.Name)
+		}
+	}
+	log.Printf("Rez: %s offers %s the way back to (%.1f, %.1f, %.1f) world %d", caster.Name, t.Name, c.X, c.Y, c.Z, c.World)
+}
+
+// TakeRezReturn is the session's player's answer to a rez's offer: the offer
+// taken (on a No too), and on a Yes with one in its time the place it leads
+// back to, the player brought back to life there first when it lies dead
+// (hit points and power whole, as a respawn's). ok is false with no offer.
+func (w *World) TakeRezReturn(sess *session.Session, yes bool, now time.Time) (world uint8, x, y, z float32, ok bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil {
+		return 0, 0, 0, 0, false
+	}
+	r := p.RezReturn
+	p.RezReturn = RezReturn{}
+	if !yes || r.Until.IsZero() || !now.Before(r.Until) {
+		return 0, 0, 0, 0, false
+	}
+	if p.respawnPending() {
+		p.DiedAt = time.Time{}
+		p.HP, p.Power = p.MaxHP, p.MaxPower
+		p.Breath = BreathFull
+		p.DrowningCounter = 0
+		p.StatsDirty = true
+	}
+	log.Printf("Rez: %s goes back to (%.1f, %.1f, %.1f) world %d", p.Name, r.X, r.Y, r.Z, r.World)
+	return r.World, r.X, r.Y, r.Z, true
 }

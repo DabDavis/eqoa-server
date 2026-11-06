@@ -30,8 +30,13 @@ type Player struct {
 	// Robe is the worn robe's style and RobeWorn whether one is worn: style
 	// 0 is a robe (the first), so it cannot also mean none, and the zero
 	// Player wears none.
-	Robe          uint32
-	RobeWorn      bool
+	Robe     uint32
+	RobeWorn bool
+	// RobeTint is the worn robe's disc tint (the channel's byte 110) and
+	// RobeColor its own colour for the live game's look (0: its tint's), both
+	// off its record's colour (RobeLook)
+	RobeTint      byte
+	RobeColor     uint32
 	Primary       uint32
 	Secondary     uint32
 	Shield        uint32

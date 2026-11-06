@@ -196,8 +196,13 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 		buf[109] = 0xFF
 	}
 
-	// Offset 110: Sex (0=male, 1=female) — for face texture lookup
-	buf[110] = byte(p.Sex)
+	// Offset 110: the robe's tint (VICreatureEntity::ReadUpdate reads
+	// m_robeTint right after m_robe; the channel carries no sex, the face's
+	// comes from the body): its record's (RobeLook). Until 2026-11-06 this
+	// was the wearer's sex, which drew every woman's robe in tint 1, dark grey.
+	if p.RobeWorn {
+		buf[110] = p.RobeTint
+	}
 
 	// Offset 111: eqoa.live constant = 6 across ALL entities
 	buf[111] = 6
@@ -422,7 +427,8 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 	}
 	buf[109] = robeVal
 
-	// Offset 110: Sex (0=male default for NPCs)
+	// Offset 110: the robe's tint (m_robeTint): 0, white, as an NPC row
+	// carries none
 	buf[110] = 0
 
 	// Offset 111: eqoa.live constant = 6 across ALL entities

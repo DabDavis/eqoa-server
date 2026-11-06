@@ -1052,6 +1052,7 @@ func (h *CharacterHandler) applyEquipmentFromDB(player *entity.Player, serverID 
 func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 	player.Helm, player.Chest, player.Bracer, player.Legs, player.Boots, player.Gloves = 0, 0, 0, 0, 0, 0
 	player.Robe, player.RobeWorn, player.Primary, player.Secondary, player.Shield = 0, false, 0, 0, 0
+	player.RobeTint, player.RobeColor = 0, 0
 	player.PrimaryType, player.SecondaryType = 0, 0
 	worn := map[int]*database.CharInventoryEntry{}
 	for i := range items {
@@ -1076,8 +1077,9 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 			player.Boots = byte(model)
 		case 19: // Hands/Gloves
 			player.Gloves = byte(model)
-		case 2: // Robe: style 0 is a robe too
+		case 2: // Robe: style 0 is a robe too; its tint and colour its record's
 			player.Robe, player.RobeWorn = uint32(model), true
+			player.RobeTint, player.RobeColor = entity.RobeLook(item.Pattern.Color)
 		}
 	}
 	first := func(slots ...int) *database.CharInventoryEntry {
@@ -1104,7 +1106,8 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 // them): the robe, its tint, the three items and their attack types, the six
 // armour sets and their tints, from the same worn items as the channel's
 // look. Nothing worn is a robe of -1 and armour 0xFF, as Sandstorm's lists
-// have it; tints are not kept, 0. Until 2026-10-22 every entry was blank, so
+// have it; the robe's tint is its record's (entity.RobeLook), the armour's
+// tints are not kept, 0. Until 2026-10-22 every entry was blank, so
 // character select showed every character bare and empty-handed.
 func characterGear(items []database.CharInventoryEntry) []byte {
 	var p entity.Player
@@ -1115,6 +1118,7 @@ func characterGear(items []database.CharInventoryEntry) []byte {
 		robe = p.Robe
 	}
 	binary.LittleEndian.PutUint32(g[0:4], robe)
+	g[4] = p.RobeTint
 	binary.LittleEndian.PutUint32(g[5:9], p.Primary)
 	binary.LittleEndian.PutUint32(g[9:13], p.Secondary)
 	binary.LittleEndian.PutUint32(g[13:17], p.Shield)
@@ -2081,7 +2085,7 @@ func (h *CharacterHandler) initPlayerStateChannel(sess *session.Session, player 
 
 	objectID := sess.PlayerObjectID()
 	// in the client's look: the disc's, or the live game's (livelook.go)
-	stateData := entity.ForViewer(sess, entity.SerializePlayerUpdate(objectID, player), &player.Dyes)
+	stateData := entity.ForViewer(sess, entity.SerializePlayerUpdate(objectID, player), player.LookDyes())
 
 	channel0.SetActive(true)
 	entity.SetEntityState(channel0, stateData)

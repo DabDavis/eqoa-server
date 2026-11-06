@@ -72,6 +72,58 @@ func RobeTintRGBA(t byte) uint32 {
 	return database.RGBA(database.DiscTints[t])
 }
 
+// RobeLook is a robe's disc tint and its own colour off its record's colour
+// (itempattern.color; the user, 2026-11-05: "sky blue for spirit maker",
+// "spectral robe is black"): 0-14 is a disc tint, drawn in its own colour;
+// white (0xFFFFFFFF) the plain robe; anything else a colour (0xRRGGBBAA),
+// drawn so by a client of the live game's look, and on the disc's in the
+// tint nearest it (nearestTint). Until 2026-11-06 no robe's colour reached
+// anyone: the channel's byte 110 carried the wearer's sex.
+func RobeLook(color int64) (tint byte, rgba uint32) {
+	c := uint32(color)
+	switch {
+	case c < uint32(len(database.DiscTints)):
+		return byte(c), 0
+	case c == 0xFFFFFFFF:
+		return 0, 0
+	}
+	return nearestTint(c), c
+}
+
+// greyTints are the disc's neutral tints: white, dark grey and silver.
+var greyTints = map[int]bool{0: true, 1: true, 10: true}
+
+// nearestTint is the disc tint nearest a colour: of the greys (greyTints)
+// for a grey, so black is drawn dark grey and not navy, else of them all, by
+// the distance between the two in RGB.
+func nearestTint(c uint32) byte {
+	r, g, b := int(c>>24), int(c>>16&0xFF), int(c>>8&0xFF)
+	grey := max(r, g, b)-min(r, g, b) <= 24
+	best, bestD := 0, -1
+	for i, t := range database.DiscTints {
+		if grey && !greyTints[i] {
+			continue
+		}
+		dr, dg, db := r-int(t[0]), g-int(t[1]), b-int(t[2])
+		if d := dr*dr + dg*dg + db*db; bestD < 0 || d < bestD {
+			best, bestD = i, d
+		}
+	}
+	return byte(best)
+}
+
+// LookDyes is what the live game's look draws the player in: its dyes
+// (chardyes), and its worn robe's own colour where it has no dye for the
+// robe (RobeColor, handlers' wornLook).
+func (p *Player) LookDyes() *Dyes {
+	if p.RobeColor == 0 || p.Dyes[database.DyeRobe] != 0 {
+		return &p.Dyes
+	}
+	d := p.Dyes
+	d[database.DyeRobe] = p.RobeColor
+	return &d
+}
+
 func putRGBA(b []byte, c uint32) {
 	binary.BigEndian.PutUint32(b, c)
 }

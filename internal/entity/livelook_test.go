@@ -76,11 +76,13 @@ func dyedPlayer() *Player {
 // ReadUpdate reads, it is 201 bytes ending in the magic, every field the
 // disc's channel carries the same, the dyed slots their dyes and the undyed
 // their tint's colour (a player's armour tint 0, white; its robe tint, the
-// byte the disc's channel carries, Tints[1] for a woman), each held item
+// byte the disc's channel carries, its robe's record's: RobeLook, no longer
+// the wearer's sex, Tints[1] for every woman until 2026-11-06), each held item
 // white and every ArmorGroup variant 0. The control: the disc's reader finds
 // the disc's channel whole, 162 bytes.
 func TestLiveChannelIsTheLiveClients(t *testing.T) {
 	p := dyedPlayer()
+	p.RobeTint = 3 // the robe's record's tint (a woman: her sex was 1 here)
 	p.Dyes[database.DyeChest] = 0xD10000FF
 	p.Dyes[database.DyeBoots] = 0x5A5A78FF
 	p.Dyes[database.DyePrimary] = 0x0000FFFF
@@ -108,8 +110,8 @@ func TestLiveChannelIsTheLiveClients(t *testing.T) {
 	if l.itemCol != [3]uint32{0x0000FFFF, 0xFFFFFFFF, 0xFFFFFFFF} {
 		t.Fatalf("held items' colours %08x", l.itemCol)
 	}
-	if d.robeTint != 1 || l.robeCol != database.RGBA(database.DiscTints[1]) {
-		t.Fatalf("an undyed robe: the disc's tint %d, the live colour %08x (want the tint's, %08x)", d.robeTint, l.robeCol, database.RGBA(database.DiscTints[1]))
+	if d.robeTint != 3 || l.robeCol != database.RGBA(database.DiscTints[3]) {
+		t.Fatalf("an undyed robe: the disc's tint %d, the live colour %08x (want tint 3's, %08x)", d.robeTint, l.robeCol, database.RGBA(database.DiscTints[3]))
 	}
 	for i, tint := range d.tints {
 		if p.Dyes[i] == 0 && l.armorCol[i] != TintRGBA(tint) {

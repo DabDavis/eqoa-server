@@ -37,3 +37,25 @@ func TestStaleLobbyReapSparesALiveLoginFromTheSameIP(t *testing.T) {
 		t.Error("a session from another address was reaped")
 	}
 }
+
+// A player behind the relay choosing or making a character sends nothing for
+// up to CLIENT's keepalive (30 s): another browser player's login must not
+// reap it. The control: the same session silent past staleLobbyIdle is.
+func TestStaleLobbyReapSparesAClientBetweenKeepalives(t *testing.T) {
+	m := NewManager()
+	ip := net.IPv4(127, 0, 0, 1)
+	making := m.CreateSession(&net.UDPAddr{IP: ip, Port: 40001}, 0x1001, 1, 0x1111, 0xB991, false)
+	making.SetAccountID(42)
+	making.mu.Lock()
+	making.lastActivity = time.Now().Add(-29 * time.Second)
+	making.mu.Unlock()
+	if n := m.RemoveStaleGameSessions("127.0.0.1", 0x1004); n != 0 || making.PendingTermination() {
+		t.Fatalf("a client 29 s after its last packet (its keepalive comes at 30) was reaped (%d)", n)
+	}
+	making.mu.Lock()
+	making.lastActivity = time.Now().Add(-staleLobbyIdle - time.Second)
+	making.mu.Unlock()
+	if n := m.RemoveStaleGameSessions("127.0.0.1", 0x1004); n != 1 || !making.PendingTermination() {
+		t.Fatalf("the control: silent past staleLobbyIdle, it is kept (%d)", n)
+	}
+}

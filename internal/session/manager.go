@@ -326,9 +326,17 @@ func (m *Manager) ForEach(fn func(*Session) bool) {
 }
 
 // staleLobbyIdle is how long a same-IP pre-game session must have been silent
-// before a new login reaps it. A login in progress exchanges packets every
-// few hundred milliseconds; one abandoned by an earlier attempt goes quiet.
-const staleLobbyIdle = 10 * time.Second
+// before a new login reaps it: past CLIENT's keepalive, the system message 18
+// it sends once 30 s pass with nothing sent (connection.cpp 2014), so a
+// client still there, choosing or making a character, is never taken for one
+// an earlier attempt abandoned. It was 10 s until 2026-11-06, and every
+// browser player shares the relay's address: a player designing a character
+// for more than 10 s had its session reaped by the next browser login, and
+// its next packet made one with no account, so every creation was refused
+// ("no account on the session") and the page sat on the creation screen
+// (an elf cleric's, 03:08 UTC; 80 lobby sessions reaped on the relay's
+// address that day).
+const staleLobbyIdle = 40 * time.Second
 
 // RemoveStaleGameSessions flags stale pre-game sessions for termination.
 // Only removes lobby/auth sessions (not in-game) from the same IP to avoid

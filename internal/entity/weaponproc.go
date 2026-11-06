@@ -184,7 +184,9 @@ var procElements = []struct {
 	st Stat
 }{{regexp.MustCompile(`\bdisease`), StatDR}, {regexp.MustCompile(`\bpoison`), StatPR},
 	{regexp.MustCompile(`\bice\b`), StatCR}, {regexp.MustCompile(`\bfrost`), StatCR}, {regexp.MustCompile(`\bcold\b`), StatCR},
-	{regexp.MustCompile(`\bfire\b`), StatFR}, {regexp.MustCompile(`\bflame`), StatFR}, {regexp.MustCompile(`\blightning`), StatLR}}
+	{regexp.MustCompile(`\bfire\b`), StatFR}, {regexp.MustCompile(`\bflame`), StatFR}, {regexp.MustCompile(`\blightning`), StatLR},
+	// petition 1053, Hoofbite: Davoh's Dirk "on hit, deals 100 piercing damage"
+	{regexp.MustCompile(`\bpierc`), StatPierce}}
 
 // elementOf is the element a description's proc is of, by its words: AR
 // (arcane, the enchanter's procs' and the server's default) when it names

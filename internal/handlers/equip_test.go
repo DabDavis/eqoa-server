@@ -136,6 +136,53 @@ func TestEquipFishingBaitTools(t *testing.T) {
 	}
 }
 
+// An item held goes in the off hand (20), so a weapon in the primary hand
+// stays (petition 1019: Etmabattery's Wand of Entrancement and Mithril Eagle
+// Rod, each equipped taking the other off, 04:50 UTC 2026-11-06); with the
+// off hand full it takes 19 while the main hand is free (a second held item),
+// else the off hand's place again, never the weapon's.
+func TestEquipHeldLeavesThePrimaryWeapon(t *testing.T) {
+	for _, c := range []struct {
+		name  string
+		worn  []database.CharInventoryEntry
+		slot  int
+		taken []int // the worn items taken off, in order
+	}{
+		{"a primary wand", []database.CharInventoryEntry{row(1, 1, 12, 14, 0, "Wand of Entrancement")}, 20, nil},
+		{"empty hands", nil, 20, nil},
+		{"a held item in the off hand", []database.CharInventoryEntry{row(1, 1, 18, 20, 0, "Orb")}, 19, nil},
+		{"a weapon and a held item", []database.CharInventoryEntry{row(1, 1, 12, 14, 0, "Wand"), row(2, 2, 18, 20, 0, "Orb")}, 20, []int{2}},
+		{"a weapon and a shield", []database.CharInventoryEntry{row(1, 1, 12, 14, 0, "Sword"), row(2, 2, 13, 17, 0, "Shield")}, 20, []int{2}},
+		{"a shield alone", []database.CharInventoryEntry{row(2, 2, 13, 17, 0, "Shield")}, 19, nil},
+		{"two weapons", []database.CharInventoryEntry{row(1, 1, 14, 14, 0, "Dagger"), row(2, 2, 14, 15, 0, "Dirk")}, 20, []int{2}},
+		{"a two-hander", []database.CharInventoryEntry{row(1, 1, 15, 16, 0, "Staff")}, 20, []int{1}},
+	} {
+		items := append(append([]database.CharInventoryEntry(nil), c.worn...), row(9, 5226, 18, -1, 0, "Mithril Eagle Rod"))
+		plan, err := planInteractItem(items, newInvList(items), uint32(len(items)-1), int(ClassEnchanter))
+		if err != nil {
+			t.Fatalf("%s: %v", c.name, err)
+		}
+		var want []equipChange
+		for _, id := range c.taken {
+			want = append(want, equipChange{id, -1})
+		}
+		want = append(want, equipChange{9, c.slot})
+		if !plan.equip || plan.slot != c.slot || !reflect.DeepEqual(plan.changes, want) {
+			t.Errorf("%s: slot %d changes %v, want %d %v", c.name, plan.slot, plan.changes, c.slot, want)
+		}
+		if !fitsEquip(18, plan.slot) {
+			t.Errorf("%s: slot %d fails CLIENT's fit check", c.name, plan.slot)
+		}
+	}
+	// and the weapon after the held item keeps it: a primary takes 19's item
+	// off, never 20's
+	items := []database.CharInventoryEntry{row(9, 5226, 18, 20, 0, "Mithril Eagle Rod"), row(1, 1, 12, -1, 0, "Wand of Entrancement")}
+	plan, _ := planInteractItem(items, newInvList(items), 1, int(ClassEnchanter))
+	if plan.slot != 14 || !reflect.DeepEqual(plan.changes, []equipChange{{1, 14}}) {
+		t.Errorf("the wand after the rod: %+v", plan)
+	}
+}
+
 // A pair takes the free slot; a full pair displaces the first.
 func TestEquipPairs(t *testing.T) {
 	items := []database.CharInventoryEntry{

@@ -691,14 +691,14 @@ past 1,000), prop, test or level-0 record is taken (the Froglok Test blade and t
 make a level 1's blade deal 561). The World's level up (`OnLevelUp`: awardXP, `SetPlayerLevel`) refreshes the worn
 gear at once; the item windows show the new figures at the next login (the user's choice). The chestguard healed as the
 Breastplate of the Anointed until the user's "lets turn off the healing effect on hit from heirloom" (2026-11-06): no
-heirloom answers a hit now. **Every heirloom carries its class's stats** (`heirloomStats`, `heirloomSecondary`; the
-user: "all heirlooms should have stat increases also not just ac, can have hp, pow, str, sta, and 2 good secondary
-stats. for sk int and agi. for war dex and agi. etc.", then "let heirloom weapon get stats also and shields"): at
-least 1.25 HP and power a level and one STR, STA and of its two secondary stats per 5 levels (75, 75 and 12 at 60),
-a figure its best (or its epic) has higher kept, and an epic heirloom's damage never below its best's at the level
-(the user: "match the heirloom to the better damage or more", of Tmac's 759 bow over the heirloom bow's 754); the secondary stats warrior, ranger, monk, rogue DEX and AGI,
-shadow knight INT and AGI, paladin and shaman WIS and AGI, bard CHA and DEX, druid WIS and INT, cleric WIS and CHA,
-enchanter INT and CHA, magician, necromancer, wizard and alchemist INT and WIS (all but the user's two ours). NO
+heirloom answers a hit now. **Every heirloom carries the same stats** (`heirloomStats`; the user, 2026-11-06: "lets tone down the heirloom to +10
+all stats 40 hp", power 40 too, scaled up to it at 60): each piece, armour, jewellery, a shield or a weapon, 10 of
+every stat (STR, STA, AGI, DEX, WIS, INT, CHA) and 40 HP and power at level 60, its share below rounded up (5, 20, 20
+at 30; 1 of each at 1), whatever its best carries, for every class; an epic heirloom from its epic's level keeps the
+epic's own stats (the user's choice), and its damage is never below its best's at the level (the user: "match the
+heirloom to the better damage or more", of Tmac's 759 bow over the heirloom bow's 754). Before the tone-down a piece
+took its best's stats raised to its class's (HP and power 1.25 a level, STR, STA and two of its class's stats one
+per 5 levels: 75, 75 and 12 at 60, more where its best had more). NO
 TRADE, worth 0. `TestRealHeirloomsGrowWithTheirWearer`
 (`EQOA_REAL_DB`, a copy with the seed applied) holds every class's pieces to never getting worse as the level rises.
 **An Armor Dyer** (any NPC so named) asks what to dye (all the armour; one piece of armour; the robe, shield or a

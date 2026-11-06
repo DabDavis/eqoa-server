@@ -28,9 +28,11 @@ type InteractHandler struct {
 
 	// ledger keeps the stables' ledgers the coachmen sign (coachledger.go);
 	// isGM is whether a session's account is a GM's (ChatHandler.isGM), who
-	// is offered every coach town. Nil: the coach menus as before.
+	// is offered every coach town. Nil: the coach menus as before. every is
+	// each character's open offer to sign every ledger at once.
 	ledger coachLedger
 	isGM   func(*session.Session) bool
+	every  everyLedgerAsks
 
 	// spend takes a waysender's fee from the player, kept and shown
 	// (NPCWindowHandler.spendTunar); false when it cannot pay. Nil: free.
@@ -306,14 +308,10 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 			// only the worlds this client's table has (LoadableWorlds)
 			routes = h.gameWorld.GetWarpDestinations(npc.Name, LoadableWorlds(sess))
 		case entity.IsCoachman(npc.Name):
-			// the towns his coach runs to whose ledgers the player signed
-			// (coachledger.go), else why not
-			var none string
-			if routes, none = h.coachDests(sess, player, npc); len(routes) == 0 && none != "" {
-				forgetDialogs(player)
-				for _, part := range splitSay(none, questBoxChars) {
-					h.sendDialogueBox(sess, part)
-				}
+			// the towns his coach runs to whose ledgers the player signed,
+			// else why not, and his offer to sign every ledger at once
+			// (coachledger.go)
+			if h.coachMenu(sess, player, npc) {
 				return nil
 			}
 		}
@@ -432,6 +430,8 @@ func (h *InteractHandler) sendCoachPage(sess *session.Session, player *entity.Pl
 	greeting := "Greetings, traveler! Where would you like to go?"
 	if len(dests) > 0 && dests[0].Via != "" {
 		greeting = wayAskMany // a waysender's, as Sandstorm's dockmasters ask
+	} else if len(dests) == 1 && dests[0].Ledgers {
+		greeting = everyLedgerAlone // a coachman's offer alone (coachledger.go)
 	}
 	log.Printf("Coaching: page %d, showing %d dests (%d-%d of %d), options=%v", page, len(pageDests), start, end-1, total, options)
 	h.sendOptionBox(sess, greeting, options)
@@ -478,6 +478,11 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// a dyer's question (dyer.go); an old one does nothing
 	if h.dyer.Answer(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// a coachman's offer to sign every ledger at once (coachledger.go); an
+	// old one does nothing
+	if h.answerEveryLedger(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// A duel's invitation or "Cancel duel?" (duel.go)
@@ -597,6 +602,11 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 
 	dest := dests[destIdx]
 	player.PendingCoachDests = nil
+	if dest.Ledgers {
+		// no trip: a coachman's offer to sign every ledger (coachledger.go)
+		h.askEveryLedger(sess, player)
+		return nil
+	}
 	h.travel(sess, player, dest)
 	return nil
 }

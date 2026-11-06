@@ -101,6 +101,21 @@ func ofOp(msgs [][]byte, op protocol.GameOpcode) [][]byte {
 	return out
 }
 
+// countDown runs the countdown of a duel accepted at x out: the fight begins
+// at its end, and the tests' clock is moved on by the countdown, so a test's
+// times stand to the fight as they did before there was one (it began at x).
+func (d *duelists) countDown(t *testing.T, duel *Duel, x time.Duration) {
+	t.Helper()
+	if duel.Phase != duelCountdown {
+		t.Fatalf("accepted, phase %d; B was told %q", duel.Phase, duelLines(duelDrain(d.sb)))
+	}
+	d.tick(x + DuelCountdown)
+	if duel.Phase != duelOn {
+		t.Fatalf("counted down, phase %d; B was told %q", duel.Phase, duelLines(duelDrain(d.sb)))
+	}
+	d.t0 = d.t0.Add(DuelCountdown)
+}
+
 func (d *duelists) tick(x time.Duration) {
 	d.w.mu.Lock()
 	d.w.duelSystem(d.at(x))
@@ -108,7 +123,8 @@ func (d *duelists) tick(x time.Duration) {
 	d.w.runDuelPurse() // as Tick does after its lock
 }
 
-// start has Alpha challenge Beta (at its target) and Beta accept by the box.
+// start has Alpha challenge Beta (at its target) and Beta accept by the box,
+// and runs the countdown out (countDown).
 func (d *duelists) start(t *testing.T) *Duel {
 	t.Helper()
 	d.w.DuelChallenge(d.sa, d.aSeesB, "", 0, d.at(0))
@@ -117,9 +133,7 @@ func (d *duelists) start(t *testing.T) *Duel {
 		t.Fatalf("no invitation: A was told %q", duelLines(duelDrain(d.sa)))
 	}
 	d.w.DuelBoxAnswer(d.sb, DuelBoxID(duel.ID), 0, d.at(time.Second))
-	if duel.Phase != duelOn {
-		t.Fatalf("accepted, phase %d; B was told %q", duel.Phase, duelLines(duelDrain(d.sb)))
-	}
+	d.countDown(t, duel, time.Second)
 	duelDrain(d.sa)
 	duelDrain(d.sb)
 	duelDrain(d.sc)
@@ -259,19 +273,26 @@ func TestDuelCreatureViewToTheOpponentOnly(t *testing.T) {
 	duelDrain(d.sa)
 	duelDrain(d.sb)
 	d.w.DuelAnswer(d.sb, duel.ID, true, d.at(time.Second))
-	if got := duelLines(duelDrain(d.sa)); len(got) != 1 || got[0] != "The duel with Beta has begun." {
-		t.Fatalf("A was told %q", got)
-	}
-	if got := duelLines(duelDrain(d.sb)); len(got) != 1 || got[0] != "The duel with Alpha has begun." {
-		t.Fatalf("B was told %q", got)
-	}
-	if duel.X != 102 || duel.Z != 100 || duel.World != 0 {
-		t.Fatalf("the centre (%v, %v) world %d, want halfway (102, 100)", duel.X, duel.Z, duel.World)
-	}
 	byte142 := func(s *session.Session, id EntityID, obj uint32) byte {
 		d.w.mu.Lock()
 		defer d.w.mu.Unlock()
 		return d.w.serializeEntityForChannel(s, id, obj)[142]
+	}
+	// counting down: still players to each other
+	if a, b := byte142(d.sa, d.b.ServerID, d.aSeesB), byte142(d.sb, d.a.ServerID, d.bSeesA); a != 2 || b != 2 {
+		t.Errorf("in the countdown: %d and %d, want two players' 2", a, b)
+	}
+	duelDrain(d.sa)
+	duelDrain(d.sb)
+	d.countDown(t, duel, time.Second)
+	if got := duelLines(duelDrain(d.sa)); len(got) != 2 || got[0] != "START" || got[1] != "The duel with Beta has begun." {
+		t.Fatalf("A was told %q", got)
+	}
+	if got := duelLines(duelDrain(d.sb)); len(got) != 2 || got[0] != "START" || got[1] != "The duel with Alpha has begun." {
+		t.Fatalf("B was told %q", got)
+	}
+	if duel.X != 102 || duel.Z != 100 || duel.World != 0 {
+		t.Fatalf("the centre (%v, %v) world %d, want halfway (102, 100)", duel.X, duel.Z, duel.World)
 	}
 	if got := byte142(d.sa, d.b.ServerID, d.aSeesB); got != 0 {
 		t.Errorf("A sees B with byte 142 = %d, want a creature's 0", got)
@@ -624,11 +645,22 @@ func TestDuelLiveWindowMessages(t *testing.T) {
 		return append(append(append(op(7), on, on), le(foe)...), le(0xFFFFFFFF)...)
 	}
 	place := append(append(append(append(op(8), le(math.Float32bits(102))...), le(math.Float32bits(10))...), le(math.Float32bits(100))...), 0)
+	// both accepted: each window closes, and the countdown runs (lines only)
+	for _, s := range []*session.Session{d.sa, d.sb} {
+		got := duelDrain(s)
+		if m := ofOp(got, protocol.OpcodeDuel); len(m) != 1 || !bytes.Equal(m[0], accepts(1, 1)) {
+			t.Fatalf("at both accepts % X", m)
+		}
+		if l := duelLines(got); len(l) != 1 || l[0] != "Duel starts in 15 seconds." {
+			t.Fatalf("at both accepts told %q", l)
+		}
+	}
+	d.countDown(t, duel, 3*time.Second)
 	gotA := ofOp(duelDrain(d.sa), protocol.OpcodeDuel)
-	if len(gotA) != 3 || !bytes.Equal(gotA[0], accepts(1, 1)) || !bytes.Equal(gotA[1], state(1, d.aSeesB)) || !bytes.Equal(gotA[2], place) {
+	if len(gotA) != 2 || !bytes.Equal(gotA[0], state(1, d.aSeesB)) || !bytes.Equal(gotA[1], place) {
 		t.Fatalf("the challenger at the start % X", gotA)
 	}
-	if got := ofOp(duelDrain(d.sb), protocol.OpcodeDuel); len(got) != 3 || !bytes.Equal(got[0], accepts(1, 1)) || !bytes.Equal(got[1], state(1, d.bSeesA)) || !bytes.Equal(got[2], place) {
+	if got := ofOp(duelDrain(d.sb), protocol.OpcodeDuel); len(got) != 2 || !bytes.Equal(got[0], state(1, d.bSeesA)) || !bytes.Equal(got[1], place) {
 		t.Fatalf("the challenged at the start % X", got)
 	}
 	d.w.mu.Lock()
@@ -636,16 +668,16 @@ func TestDuelLiveWindowMessages(t *testing.T) {
 		t.Errorf("a live window sees its opponent with byte 142 = %d, want 2", b)
 	}
 	d.w.mu.Unlock()
-	d.tick(2 * time.Second)
+	d.tick(4 * time.Second)
 	if got := ofOp(duelDrain(d.sa), protocol.OpcodeDuel); len(got) != 0 {
 		t.Fatalf("sub 7 again with nothing changed: % X", got)
 	}
 	GetOrCreateVisibility(d.sa).ChannelObjectID[0] = 0x00018855 // B out of view and back
-	d.tick(3 * time.Second)
+	d.tick(5 * time.Second)
 	if got := ofOp(duelDrain(d.sa), protocol.OpcodeDuel); len(got) != 1 || !bytes.Equal(got[0], state(1, 0x00018855)) {
 		t.Fatalf("a new id for the opponent: % X", got)
 	}
-	d.w.DuelCancel(d.sb, d.at(4*time.Second))
+	d.w.DuelCancel(d.sb, d.at(6*time.Second))
 	off := append(append(append(op(7), 0, 0), le(0xFFFFFFFF)...), le(0xFFFFFFFF)...)
 	endA := duelDrain(d.sa)
 	if got := ofOp(endA, protocol.OpcodeDuel); len(got) != 1 || !bytes.Equal(got[0], off) {
@@ -783,9 +815,10 @@ func TestDuelWagerByChallenge(t *testing.T) {
 	d.w.DuelChallenge(d.sa, d.aSeesB, "", 200, d.at(10*time.Second))
 	duel = d.w.duels.of[d.a.ServerID]
 	d.w.DuelBoxAnswer(d.sb, DuelBoxID(duel.ID), 0, d.at(11*time.Second))
-	if duel.Phase != duelOn || d.a.Tunar != 800 || d.b.Tunar != 300 || len(ops) != 1 || !ops[0].Hold {
-		t.Fatalf("begun: phase %d, purses %d and %d, ops %+v", duel.Phase, d.a.Tunar, d.b.Tunar, ops)
+	if duel.Phase != duelCountdown || d.a.Tunar != 800 || d.b.Tunar != 300 || len(ops) != 1 || !ops[0].Hold {
+		t.Fatalf("accepted: phase %d, purses %d and %d, ops %+v", duel.Phase, d.a.Tunar, d.b.Tunar, ops)
 	}
+	d.countDown(t, duel, 11*time.Second)
 	d.w.mu.Lock()
 	d.w.duelHurtLocked(duel, d.b, d.b.ServerID, d.a, 1_000_000, d.at(12*time.Second))
 	d.w.mu.Unlock()
@@ -801,6 +834,7 @@ func TestDuelWagerByChallenge(t *testing.T) {
 	d.w.DuelChallenge(d.sa, 0, "Beta", 60, d.at(0))
 	duel = d.w.duels.of[d.a.ServerID]
 	d.w.DuelAnswer(d.sb, 0, true, d.at(time.Second))
+	d.countDown(t, duel, time.Second)
 	d.tick(time.Second + DuelMaxTime)
 	if d.a.Tunar != 100 || d.b.Tunar != 100 || len(ops) != 2 || ops[1].Moves[0].Tunar != 60 || ops[1].Moves[1].Tunar != 60 {
 		t.Fatalf("a draw: purses %d and %d, ops %+v", d.a.Tunar, d.b.Tunar, ops)
@@ -816,7 +850,9 @@ func TestDuelWagerByChallenge(t *testing.T) {
 	d.w.OnDuelPurse(func(op DuelPurseOp) { ops = append(ops, op) })
 	d.a.Tunar, d.b.Tunar, d.a.CharServerID, d.b.CharServerID = 100, 100, 71, 72
 	d.w.DuelChallenge(d.sa, 0, "Beta", 50, d.at(0))
+	duel = d.w.duels.of[d.a.ServerID]
 	d.w.DuelAnswer(d.sb, 0, true, d.at(time.Second))
+	d.countDown(t, duel, time.Second)
 	d.w.RemovePlayer(d.b.ServerID)
 	d.w.runDuelPurse()
 	if d.a.Tunar != 150 || len(ops) != 2 || ops[1].Moves[0].Tunar != 100 || ops[1].Moves[1].P != nil || ops[1].Moves[1].CharID != 72 || ops[1].Moves[1].Tunar != 0 {

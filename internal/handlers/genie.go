@@ -305,11 +305,15 @@ func (g *Genie) shopOf(class int) int {
 }
 
 // genieLampID is the lamp's record, 0 when there is none.
-func genieLampID(db *database.SQLiteDB) int {
+func genieLampID(db *database.SQLiteDB) int { return keptItemID(db, GenieLampName, "Genie") }
+
+// keptItemID is the record of an item every character keeps (the lamp, the
+// fang: wolffang.go), worn nowhere and so named, 0 when there is none.
+func keptItemID(db *database.SQLiteDB, name, tag string) int {
 	var id int
 	if err := db.QueryRow(`SELECT patternid FROM itempattern WHERE itemname = ? AND equipslot = -1 ORDER BY patternid LIMIT 1`,
-		GenieLampName).Scan(&id); err != nil && !errors.Is(err, sql.ErrNoRows) {
-		log.Printf("Genie: the lamp's record: %v", err)
+		name).Scan(&id); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Printf("%s: the record of %s: %v", tag, name, err)
 	}
 	return id
 }
@@ -322,15 +326,21 @@ func (h *CharacterHandler) giveGenieLamp(serverID uint32) {
 	if h.store == nil || h.inventoryStore == nil {
 		return
 	}
-	db := h.store.DB()
-	lamp := genieLampID(db)
-	if lamp == 0 {
+	h.giveKeptItem(serverID, genieLampID(h.store.DB()), "Genie", "lamp")
+}
+
+// giveKeptItem gives a character holding no item of record id one at its
+// login, as giveGenieLamp says (tag the log's word, noun the item's). Nothing
+// for record 0.
+func (h *CharacterHandler) giveKeptItem(serverID uint32, id int, tag, noun string) {
+	if id == 0 || h.store == nil || h.inventoryStore == nil {
 		return
 	}
+	db := h.store.DB()
 	var held, pack, bank int
 	if err := db.QueryRow(`SELECT COALESCE(SUM(patternid = ?), 0), COALESCE(SUM(location = 0), 0), COALESCE(SUM(location = 1), 0)
-		FROM charinventory WHERE serverid = ?`, lamp, serverID).Scan(&held, &pack, &bank); err != nil {
-		log.Printf("Genie: character %d's items: %v", serverID, err)
+		FROM charinventory WHERE serverid = ?`, id, serverID).Scan(&held, &pack, &bank); err != nil {
+		log.Printf("%s: character %d's items: %v", tag, serverID, err)
 		return
 	}
 	if held > 0 {
@@ -342,14 +352,14 @@ func (h *CharacterHandler) giveGenieLamp(serverID uint32) {
 	case bank < invListCap:
 		location = 1
 	default:
-		log.Printf("Genie: character %d's pack and bank are full: no lamp this login", serverID)
+		log.Printf("%s: character %d's pack and bank are full: no %s this login", tag, serverID, noun)
 		return
 	}
 	var hp int
-	_ = db.QueryRow(`SELECT maxhp FROM itempattern WHERE patternid = ?`, lamp).Scan(&hp)
-	if _, err := h.inventoryStore.AddCharItem(serverID, lamp, 1, hp, 0, location); err != nil {
-		log.Printf("Genie: character %d's lamp: %v", serverID, err)
+	_ = db.QueryRow(`SELECT maxhp FROM itempattern WHERE patternid = ?`, id).Scan(&hp)
+	if _, err := h.inventoryStore.AddCharItem(serverID, id, 1, hp, 0, location); err != nil {
+		log.Printf("%s: character %d's %s: %v", tag, serverID, noun, err)
 		return
 	}
-	log.Printf("Genie: character %d given its lamp (location %d)", serverID, location)
+	log.Printf("%s: character %d given its %s (location %d)", tag, serverID, noun, location)
 }

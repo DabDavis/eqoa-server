@@ -71,6 +71,18 @@ EPIC_LOOKS = {
     13: [("twohand", 15, "Heirloom Staff", 5390)],
     14: [("twohand", 15, "Heirloom Staff", 5392)],
 }
+# a weapon's model over its epic's (the record keeps the epic's other columns: its attack type): the shadow knight's
+# two-hander in the look of the Sword of Dreams and Sapphire's Sword, 0xB44E7A96 (the user, 2026-11-06, with a
+# picture of it: "this should be heirloom SK weapon for 2H"; a long blade, a gold guard with two prongs, a blue gem
+# and a blue crystal pommel)
+LOOK_MODEL = {(3, "twohand"): -1269925226}
+# the armour of these classes looks as their material does: its pieces' looks (model, colour, icon) are taken from
+# the best of the slot in that armour model alone (1 cloth, 2 leather, 3 chain, 4 plate, 7 scale in the records).
+# Without it the best piece by score was a cloth hat for every plate class's helm, and a robe-wearer's gloves and
+# boots for some (the user, 2026-11-06: "also make SK heirloom plate it is cloth at the moment"). Warriors (0) and
+# paladins (2) take the same helm: not changed until the user says so.
+ARMOUR_MODEL = {3: 4}
+ARMOUR_SLOTS = {1, 5, 7, 10, 11, 19}
 DESC = "Heirloom gear for testing: always the best of its kind your class can wear at your level."
 OUTFITTER, DYER = "Heirloom Outfitter", "Armor Dyer"
 SIDE, ALONG = 2.0, 0.5  # the vendors 2 units to each side of the giver's line to its start spot, halfway along
@@ -100,9 +112,12 @@ def rows_of(db, sql, *args):
 
 
 def best_look(db, cls, slot):
-    """The class's best item of the wear slot at 60 (#template's measure), for its look."""
+    """The class's best item of the wear slot at 60 (#template's measure), for its look; of its armour model alone
+    for an armour slot of a class in ARMOUR_MODEL."""
+    model = ARMOUR_MODEL.get(cls) if slot in ARMOUR_SLOTS else None
     items = rows_of(db, "SELECT * FROM itempattern WHERE (classuse & ?) != 0 AND levelreq <= 60 AND equipslot = ? "
-                        "AND patternid NOT IN (SELECT patternid FROM heirlooms)", 1 << cls, slot)
+                        "AND patternid NOT IN (SELECT patternid FROM heirlooms)" + (" AND model = ?" if model is not None else ""),
+                    1 << cls, slot, *([model] if model is not None else []))
     items = [r for r in items if not unfit(r)]
     items.sort(key=lambda r: (-score(r), -(r["levelreq"] or 0), r["patternid"]))
     return items[0] if items else None
@@ -188,6 +203,8 @@ def plan(db):
             for c in ("weaponproc", "fish"):
                 if c in r:
                     r[c] = 0
+            if (cls, role) in LOOK_MODEL:
+                r["model"] = LOOK_MODEL[(cls, role)]
             records.append(({c: r.get(c) for c in cols}, cls, role, donor["patternid"], donor["itemname"]))
             sets.setdefault(cls, []).append(nid)
             nid += 1

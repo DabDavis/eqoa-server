@@ -113,6 +113,28 @@ class SeedHeirlooms(unittest.TestCase):
         db.close()
         self.assertEqual(data(self.path), self.before, "undo puts every row back (the held record aside)")
 
+    def test_a_shadow_knights_armour_looks_plate_and_its_two_hander_the_sword_of_dreams(self):
+        db = sqlite3.connect(self.path)
+        add = lambda pid, name, slot, cls, model, ac, icon, dmg=0, typ=0: db.execute(
+            "INSERT INTO itempattern (patternid, itemname, equipslot, classuse, levelreq, rent, trade, itemcost, model, "
+            "itemicon, color, AC, weapondamage, attacktype) VALUES (?, ?, ?, ?, 60, 1, 0, 100, ?, ?, -1, ?, ?, ?)",
+            (pid, name, slot, cls, model, icon, ac, dmg, typ))
+        add(20, "black torn hat", 1, 1 | 8, 1, 300, 66)  # cloth, the best by score for both
+        add(21, "seralite helm", 1, 8, 4, 90, 78)  # plate, the shadow knight's
+        add(5381, "bone crusher", 15, 8, 1739852516, 0, 99, dmg=700, typ=2)
+        db.commit()
+        db.close()
+        self.tool("--apply")
+        db = sqlite3.connect(self.path)
+        look = lambda cls, name: db.execute(
+            "SELECT p.model, p.itemicon, p.attacktype, p.equipslot FROM itempattern p JOIN heirlooms h ON h.patternid = p.patternid "
+            "WHERE h.class = ? AND p.itemname = ?", (cls, name)).fetchone()
+        self.assertEqual(look(3, "Heirloom Helm")[:2], (4, 78), "the shadow knight's helm: a plate helm's look")
+        self.assertEqual(look(0, "Heirloom Helm")[:2], (1, 66), "the control: the warrior's helm by score alone (unchanged)")
+        self.assertEqual(look(3, "Heirloom Bonecrusher"), (-1269925226, 99, 2, 15),
+                         "the shadow knight's two-hander: the Sword of Dreams' model, bone crusher's icon and two-handed attack type")
+        db.close()
+
 
 if __name__ == "__main__":
     unittest.main()

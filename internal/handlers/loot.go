@@ -331,6 +331,16 @@ func (h *NPCWindowHandler) HandleLootItem(sess *session.Session, msg *protocol.M
 	rec := view[i]
 	count := min(int(n), rec.StackLeft)
 	took := inv.wouldAdd(rec.Pattern.PatternID, count, rec.Pattern.MaxStack)
+	if took == 0 {
+		// no room: said, and the window left as it is (resent, it closed
+		// and opened again and said nothing: petition 1030)
+		SendClientMessage(sess, lootNoRoom)
+		log.Printf("Loot: %s has no room for %q", player.Name, rec.Pattern.ItemName)
+		return nil
+	}
+	if took < count {
+		SendClientMessage(sess, lootNoRoom) // the rest of the stack stays
+	}
 	if took > 0 {
 		out, k, err := h.giveItem(player, inv, rec, took, 0)
 		if err != nil {
@@ -362,6 +372,7 @@ func (h *NPCWindowHandler) HandleLootAll(sess *session.Session, msg *protocol.Me
 	}
 	queueReliable(sess, protocol.OpcodeLootTakeAll, buildLootTakeAll())
 	id, char := ls.open[sess], player.CharServerID
+	left := false // a record or part of one stays for want of room
 	for i := 0; ; {
 		view := ls.viewLocked(id, c, char)
 		if i >= len(view) {
@@ -380,13 +391,28 @@ func (h *NPCWindowHandler) HandleLootAll(sess *session.Session, msg *protocol.Me
 			looted = append(looted, lootTake{rec.Pattern.PatternID, took})
 		}
 		if took != rec.StackLeft {
+			left = true
 			i++
 		}
 	}
 	log.Printf("Loot: %s took everything; %d records left", player.Name, len(ls.viewLocked(id, c, char)))
+	if left {
+		SendClientMessage(sess, lootNoRoom)
+	}
+	if len(looted) == 0 {
+		// nothing taken: Msg001A took nothing either (the same rule), so
+		// the window is as it was; resent, it only blinked
+		return nil
+	}
 	h.resendCorpse(sess, ls, c)
 	return nil
 }
+
+// lootNoRoom is what a take the pack has no room for is answered: CLIENT's own
+// word 823, the line it shows itself when an item will not go in its list
+// (StatWithItem, 0x00BCA2E8); its Msg001A takes what fits and says nothing,
+// and its LootOne only sends the 0x0019, so the server says it.
+const lootNoRoom = "You have no room in your inventory for that item."
 
 // openCorpse is the session's open corpse, its player and inventory list, or
 // nils (with the session's corpse forgotten).

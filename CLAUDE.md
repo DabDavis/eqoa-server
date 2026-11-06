@@ -797,8 +797,8 @@ many uses one of an item holds, for an item that does not stack. A new one holds
 row's `remaincharge` what is left. Each use takes one and tells the client 0x003E {u8 list index, u8 1} (CLIENT's Msg003E:
 `UseCharge`, the item gone at 0), and the last takes the row; a stack still takes one off itself with 0x003C.
 **The Rolling Dice** (`handlers/roll.go`, petition 1104): an item of the usable gem type (the first column, the HUD's gem
-slot) named `Rolling Dice`, whose Use with any target rolls 0 to 99 as the L2 menu's roll does, to everyone in say range, in
-orange, never spent, at most one every 2 s a player.
+slot) named `Rolling Dice`, whose Use with any target rolls 0 to 100 as the menu's roll and a plain `/roll` do (petition 1107,
+the GM Jibrish), to everyone in say range, in orange, never spent, at most one every 2 s a player.
 
 ### Groups: any member invites (`entity/group.go`, `handlers/group.go`)
 

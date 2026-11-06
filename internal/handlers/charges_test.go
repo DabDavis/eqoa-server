@@ -118,7 +118,7 @@ func TestAGivenItemHoldsItsCharges(t *testing.T) {
 	}
 }
 
-// Petition 1104: the Rolling Dice roll 0 to 99 for everyone in say range, in orange,
+// Petition 1104: the Rolling Dice roll 0 to 100 for everyone in say range, in orange,
 // the roller too and nobody past it, at most once in diceEvery a player; another
 // player's own dice go on regardless.
 func TestTheRollingDiceRollForTheRoom(t *testing.T) {
@@ -133,7 +133,7 @@ func TestTheRollingDiceRollForTheRoom(t *testing.T) {
 	c.h.RollTheDice(alice, pa, t0)
 	for _, s := range []*session.Session{alice, near} {
 		got := heard(t, s)
-		if len(got) != 1 || got[0].text != "Alice rolls 99 (0 to 99)." || got[0].rgb != diceRGB {
+		if len(got) != 1 || got[0].text != "Alice rolls 100 (0 to 100)." || got[0].rgb != diceRGB {
 			t.Errorf("in range heard %+v", got)
 		}
 		s.Queue().GetPending()
@@ -146,7 +146,7 @@ func TestTheRollingDiceRollForTheRoom(t *testing.T) {
 		t.Errorf("a second roll inside the wait: %+v", got)
 	}
 	c.h.RollTheDice(near, pn, t0.Add(time.Millisecond))
-	if got := heard(t, alice); len(got) != 1 || got[0].text != "Near rolls 99 (0 to 99)." {
+	if got := heard(t, alice); len(got) != 1 || got[0].text != "Near rolls 100 (0 to 100)." {
 		t.Errorf("another's dice: %+v", got)
 	}
 	alice.Queue().GetPending()

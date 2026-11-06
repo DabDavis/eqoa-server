@@ -7,7 +7,7 @@ package handlers
 // /t(ell) /time /tradelvl, and SOE's final live client adds none for it, so
 // the command and its line are this server's.
 //
-//	/roll           1 to 100
+//	/roll           0 to 100, as the menu's (below)
 //	/roll 20        1 to 20
 //	/roll 5 50      5 to 50 (either order)
 //
@@ -15,10 +15,13 @@ package handlers
 // player types #roll or #random, which go out as chat; vanilla forwards the
 // slash.
 //
-// The L2 menu's "Roll 0-99" (the dump's quick-chat set 91, its line "|23":
-// quick command 23, DoAction 0x0B0E0003) is no chat line: CLIENT sends the
-// bare opcode 0x00C8, rolled here 0 to 99 as the menu says (the user,
-// 2026-10-30: "the L2 menu roll is not working but the /roll is").
+// The menu's roll (Community > Group > Roll, and the L2 menu's, the dump's
+// quick-chat set 91, its line "|23": quick command 23, DoAction 0x0B0E0003) is
+// no chat line: CLIENT sends the bare opcode 0x00C8 (the user, 2026-10-30: "the
+// L2 menu roll is not working but the /roll is"). Both roll 0 to 100 (petition
+// 1107, the GM Jibrish, 2026-11-06: "/roll should work the same as
+// community/group/roll in the menu. Minimum roll 0, max roll 100"; until then
+// /roll was 1 to 100 and the menu's 0 to 99).
 
 import (
 	"fmt"
@@ -37,6 +40,12 @@ import (
 // rollMost is the largest number a roll takes.
 const rollMost = 1_000_000_000
 
+// A plain roll's numbers, /roll with none given and the menu's alike.
+const (
+	rollLeast     = 0
+	rollMostPlain = 100
+)
+
 // rollRGB is a roll's line colour (0x0A7B): gold, apart from says (white),
 // shouts (green) and the server's red.
 var rollRGB = [3]uint8{0xFF, 0xD7, 0x40}
@@ -45,7 +54,7 @@ var rollRGB = [3]uint8{0xFF, 0xD7, 0x40}
 // first/magic column and be able to be preppared to the hotbar. when doing so and
 // targeting yourself, it rolls in orange text in the say chat channel for public
 // rollings for all nearby players to see, outside of the normal group only roll
-// feature"): an item of the usable gem type, whose Use rolls 0 to 99 as the L2
+// feature"): an item of the usable gem type, whose Use rolls 0 to 100 as the
 // menu's does, to everyone in say range, in orange, never spent; any target will do.
 const (
 	RollingDiceName = "Rolling Dice"
@@ -71,7 +80,7 @@ func (h *ChatHandler) RollTheDice(sess *session.Session, player *entity.Player, 
 	}
 	h.diceAt[player.CharServerID] = now
 	h.diceMu.Unlock()
-	h.rollIn(sess, player, 0, 99, diceRGB)
+	h.rollIn(sess, player, rollLeast, rollMostPlain, diceRGB)
 }
 
 // rollDice is a whole number in [0, n): math/rand/v2's IntN (a test sets it).
@@ -86,7 +95,7 @@ func isRollWord(w string) bool {
 	return false
 }
 
-// rollRange is a roll's numbers: none 1 to 100, one n 1 to n, two in either
+// rollRange is a roll's numbers: none 0 to 100, one n 1 to n, two in either
 // order; whole numbers from 0 (1 for a lone most) to rollMost.
 func rollRange(args []string) (lo, hi int, ok bool) {
 	num := func(s string) (int, bool) {
@@ -95,7 +104,7 @@ func rollRange(args []string) (lo, hi int, ok bool) {
 	}
 	switch len(args) {
 	case 0:
-		return 1, 100, true
+		return rollLeast, rollMostPlain, true
 	case 1:
 		n, ok := num(args[0])
 		if !ok || n < 1 {
@@ -113,13 +122,13 @@ func rollRange(args []string) (lo, hi int, ok bool) {
 	return 0, 0, false
 }
 
-// HandleRollRequest is 0x00C8, the L2 menu's "Roll 0-99" (the file's doc).
+// HandleRollRequest is 0x00C8, the menu's roll (the file's doc).
 func (h *ChatHandler) HandleRollRequest(sess *session.Session, msg *protocol.Message) error {
 	if h.gameWorld == nil {
 		return nil
 	}
 	if player := h.gameWorld.SessionPlayer(sess); player != nil {
-		h.roll(sess, player, []string{"0", "99"})
+		h.roll(sess, player, nil)
 	}
 	return nil
 }

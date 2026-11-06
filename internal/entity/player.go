@@ -35,8 +35,13 @@ type Player struct {
 	// RobeTint is the worn robe's disc tint (the channel's byte 110) and
 	// RobeColor its own colour for the live game's look (0: its tint's), both
 	// off its record's colour (RobeLook)
-	RobeTint      byte
-	RobeColor     uint32
+	RobeTint  byte
+	RobeColor uint32
+	// ArmorColors are the worn armour's own colours for the live game's look,
+	// by dye slot (database.DyeChest ... DyeHelm), 0 none: a record's colour
+	// that is a colour (0xRRGGBBAA, not a disc tint's index or white), drawn
+	// where the slot has no dye, as a robe's is (ArmorColor, LookDyes)
+	ArmorColors   [6]uint32
 	Primary       uint32
 	Secondary     uint32
 	Shield        uint32

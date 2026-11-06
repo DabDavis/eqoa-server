@@ -113,15 +113,37 @@ func nearestTint(c uint32) byte {
 }
 
 // LookDyes is what the live game's look draws the player in: its dyes
-// (chardyes), and its worn robe's own colour where it has no dye for the
-// robe (RobeColor, handlers' wornLook).
+// (chardyes), and its worn robe's and armour's own colours where it has no
+// dye for the slot (RobeColor, ArmorColors: handlers' wornLook; the user,
+// 2026-11-06: "shirt of blackened links should be pitch black").
 func (p *Player) LookDyes() *Dyes {
-	if p.RobeColor == 0 || p.Dyes[database.DyeRobe] != 0 {
+	d := p.Dyes
+	changed := false
+	if p.RobeColor != 0 && d[database.DyeRobe] == 0 {
+		d[database.DyeRobe], changed = p.RobeColor, true
+	}
+	for i, c := range p.ArmorColors {
+		if c != 0 && d[i] == 0 {
+			d[i], changed = c, true
+		}
+	}
+	if !changed {
 		return &p.Dyes
 	}
-	d := p.Dyes
-	d[database.DyeRobe] = p.RobeColor
 	return &d
+}
+
+// ArmorColor is an armour piece's own colour for the live game's look off its
+// record's colour (itempattern.color): a colour (0xRRGGBBAA; black is
+// 0x000000FF) is drawn so; white, a disc tint's index (0-14, as RobeLook
+// reads one: the crafted sets carry their metal's there, which no client
+// draws on armour) or none is 0, nothing of its own.
+func ArmorColor(color int64) uint32 {
+	c := uint32(color)
+	if c < uint32(len(database.DiscTints)) || c == 0xFFFFFFFF {
+		return 0
+	}
+	return c
 }
 
 func putRGBA(b []byte, c uint32) {

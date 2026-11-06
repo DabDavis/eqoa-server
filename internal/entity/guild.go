@@ -2,16 +2,23 @@ package entity
 
 import (
 	"errors"
+	"log"
 	"sort"
 	"strings"
 	"unicode/utf16"
 
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
 
-// guild.go — guilds, held in memory while the server runs. A member is a
+// guild.go — guilds, held in memory while the server runs and kept in the
+// database (database/guilds.go: GuildStore, LoadGuilds; the user,
+// 2026-11-06: "did larrybirds guild not get saved", after a restart had
+// ended every guild): each change is written as it is made, off the lock
+// (writeGuilds, deferred before the lock is taken so it runs after the
+// unlock), and the guilds are read back at the start. A member is a
 // character, by its database id (Player.CharServerID): 0x0468/3's member id
 // is that id on Sandstorm too (Mcgregor's 25175 in pcaps/ps2_sandstorm.pcap,
 // the MemoryDump's serverID). The members' Players carry GuildID and
@@ -51,6 +58,89 @@ var (
 	ErrNoSuchMember = errors.New("no such member")
 )
 
+// GuildStore keeps the guilds: database.SQLiteDB.
+type GuildStore interface {
+	SaveGuild(database.GuildRow) error
+	DeleteGuild(id uint32) error
+}
+
+// SetGuildStore sets where every guild change is kept (at the start).
+func (w *World) SetGuildStore(s GuildStore) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.guildStore = s
+}
+
+// LoadGuilds puts the kept guilds in the world, before any player (a player
+// made after rejoins its own: rejoinGuildLocked). It returns how many.
+func (w *World) LoadGuilds(rows []database.GuildRow) int {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if w.guilds == nil {
+		w.guilds = make(map[uint32]*Guild)
+	}
+	for _, r := range rows {
+		g := &Guild{ID: r.ID, Name: r.Name, Charter: r.Charter, Members: make(map[uint32]*GuildMember, len(r.Members))}
+		for _, m := range r.Members {
+			g.Members[m.ID] = &GuildMember{ID: m.ID, Name: m.Name, Class: m.Class, Race: m.Race, Level: m.Level, Rank: m.Rank}
+		}
+		if w.leaderLocked(g) == nil { // a guild kept with no leader (its leader's character deleted): its highest
+			if h := highest(g); h != nil {
+				h.Rank = GuildRankLeader
+			}
+		}
+		w.guilds[g.ID] = g
+		w.nextGuildID = max(w.nextGuildID, g.ID)
+	}
+	return len(rows)
+}
+
+// guildWrite is one change to keep: a guild whole, or its end.
+type guildWrite struct {
+	store GuildStore
+	row   database.GuildRow
+	end   bool
+}
+
+// keepGuildLocked notes g as it is now to be written, or its end. Must be
+// called with the lock held.
+func (w *World) keepGuildLocked(writes *[]guildWrite, g *Guild, ended bool) {
+	if w.guildStore == nil || g == nil {
+		return
+	}
+	row := database.GuildRow{ID: g.ID, Name: g.Name, Charter: g.Charter}
+	if lead := w.leaderLocked(g); lead != nil {
+		row.Leader = lead.ID
+	} else if h := highest(g); h != nil {
+		row.Leader = h.ID
+	}
+	ids := make([]uint32, 0, len(g.Members))
+	for id := range g.Members {
+		ids = append(ids, id)
+	}
+	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
+	for _, id := range ids {
+		row.Members = append(row.Members, database.GuildMemberRow{ID: id, Rank: g.Members[id].Rank})
+	}
+	*writes = append(*writes, guildWrite{store: w.guildStore, row: row, end: ended})
+}
+
+// writeGuilds writes the changes noted, off the lock; a failure is logged
+// (the guild stays as it is in the world).
+func writeGuilds(writes *[]guildWrite) {
+	for _, wr := range *writes {
+		var err error
+		if wr.end {
+			err = wr.store.DeleteGuild(wr.row.ID)
+		} else {
+			err = wr.store.SaveGuild(wr.row)
+		}
+		if err != nil {
+			log.Printf("Guild: keeping %q (%d): %v", wr.row.Name, wr.row.ID, err)
+		}
+	}
+}
+
 // GuildMemberID is the id a character is a guild member by.
 func GuildMemberID(p *Player) uint32 {
 	if p.CharServerID != 0 {
@@ -79,6 +169,8 @@ func (w *World) guildOfLocked(p *Player) *Guild {
 
 // CreateGuild makes a guild named name with leader as its leader.
 func (w *World) CreateGuild(name string, leader *Player) (*Guild, error) {
+	var writes []guildWrite
+	defer writeGuilds(&writes)
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	name = strings.TrimSpace(name)
@@ -100,11 +192,14 @@ func (w *World) CreateGuild(name string, leader *Player) (*Guild, error) {
 	g := &Guild{ID: w.nextGuildID, Name: name, Members: map[uint32]*GuildMember{}}
 	w.guilds[g.ID] = g
 	w.joinLocked(g, leader, GuildRankLeader)
+	w.keepGuildLocked(&writes, g, false)
 	return g, nil
 }
 
 // JoinGuild adds p to g as a member.
 func (w *World) JoinGuild(g *Guild, p *Player) error {
+	var writes []guildWrite
+	defer writeGuilds(&writes)
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	if p.GuildID != 0 {
@@ -114,6 +209,7 @@ func (w *World) JoinGuild(g *Guild, p *Player) error {
 		return ErrNotInGuild
 	}
 	w.joinLocked(g, p, GuildRankMember)
+	w.keepGuildLocked(&writes, g, false)
 	return nil
 }
 
@@ -130,6 +226,8 @@ func (w *World) joinLocked(g *Guild, p *Player, rank int) {
 // out ends it. It returns the guild, whether it ended and who leads it now
 // (nil when unchanged or ended).
 func (w *World) LeaveGuild(p *Player) (*Guild, bool, *GuildMember, error) {
+	var writes []guildWrite
+	defer writeGuilds(&writes)
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	g := w.guildOfLocked(p)
@@ -137,12 +235,15 @@ func (w *World) LeaveGuild(p *Player) (*Guild, bool, *GuildMember, error) {
 		return nil, false, nil, ErrNotInGuild
 	}
 	ended, lead := w.removeLocked(g, GuildMemberID(p))
+	w.keepGuildLocked(&writes, g, ended)
 	return g, ended, lead, nil
 }
 
 // RemoveGuildMember takes the member id out of g: by actor, who must outrank
 // it. The removed member's Player, if online, is out of the guild too.
 func (w *World) RemoveGuildMember(actor *Player, id uint32) (*Guild, *GuildMember, error) {
+	var writes []guildWrite
+	defer writeGuilds(&writes)
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	g := w.guildOfLocked(actor)
@@ -156,7 +257,8 @@ func (w *World) RemoveGuildMember(actor *Player, id uint32) (*Guild, *GuildMembe
 	if a := g.Members[GuildMemberID(actor)]; a == nil || a.Rank <= m.Rank || m.ID == a.ID {
 		return g, m, ErrNotQualified
 	}
-	w.removeLocked(g, id)
+	ended, _ := w.removeLocked(g, id)
+	w.keepGuildLocked(&writes, g, ended)
 	return g, m, nil
 }
 
@@ -213,6 +315,8 @@ func highest(g *Guild) *GuildMember {
 // who must outrank both where the member is and where it would go. The
 // leader's rank is not given away here.
 func (w *World) SetGuildRank(actor *Player, id uint32, delta int) (*Guild, *GuildMember, error) {
+	var writes []guildWrite
+	defer writeGuilds(&writes)
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	g := w.guildOfLocked(actor)
@@ -237,12 +341,15 @@ func (w *World) SetGuildRank(actor *Player, id uint32, delta int) (*Guild, *Guil
 	if p := w.memberPlayerLocked(id); p != nil {
 		p.GuildRank = to
 	}
+	w.keepGuildLocked(&writes, g, false)
 	return g, m, nil
 }
 
 // SetCharter sets g's charter, the message 0x0468/1 carries: the leader's
 // to set (CLIENT's "Enter Guild Charter", word 1028, is the leader's menu).
 func (w *World) SetCharter(actor *Player, text string) (*Guild, error) {
+	var writes []guildWrite
+	defer writeGuilds(&writes)
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	g := w.guildOfLocked(actor)
@@ -258,12 +365,15 @@ func (w *World) SetCharter(actor *Player, text string) (*Guild, error) {
 			p.GuildMOTD = text
 		}
 	}
+	w.keepGuildLocked(&writes, g, false)
 	return g, nil
 }
 
 // DisbandGuild ends actor's guild, the leader's to do. It returns the
 // members' Players that were online, all now out of it.
 func (w *World) DisbandGuild(actor *Player) (*Guild, []*Player, error) {
+	var writes []guildWrite
+	defer writeGuilds(&writes)
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	g := w.guildOfLocked(actor)
@@ -281,6 +391,7 @@ func (w *World) DisbandGuild(actor *Player) (*Guild, []*Player, error) {
 		}
 	}
 	delete(w.guilds, g.ID)
+	w.keepGuildLocked(&writes, g, true)
 	return g, online, nil
 }
 

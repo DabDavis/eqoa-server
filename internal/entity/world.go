@@ -34,6 +34,7 @@ type World struct {
 
 	guilds      map[uint32]*Guild // guild.go
 	nextGuildID uint32
+	guildStore  GuildStore                        // guild.go: where every change is kept; nil: memory alone
 	voice       VoiceSettings                     // voice chat (voice.go); none: off
 	voiceIn     map[uint32]*Player                // the voice-on players, by voice id
 	leaving     []func(*Player)                   // OnPlayerLeaving

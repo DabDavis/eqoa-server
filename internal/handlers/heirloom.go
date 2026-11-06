@@ -321,7 +321,9 @@ func heirloomFigures(p, best *database.ItemPatternRecord) {
 	p.PR, p.DR, p.FR, p.CR, p.LR, p.AR = cp(best.PR), cp(best.DR), cp(best.FR), cp(best.CR), cp(best.LR), cp(best.AR)
 	if best.WeaponDamage > 0 {
 		p.WeaponDamage = best.WeaponDamage
-		p.Unk5 = best.Unk5 // a ranged weapon's reach
+		// a ranged weapon's reach: the best's, or the record's own when longer
+		// (the ranger's heirloom bows reach 55, the user's)
+		p.Unk5 = max(p.Unk5, best.Unk5)
 	}
 }
 

@@ -122,6 +122,18 @@ func (h *InteractHandler) signSay(sess *session.Session, player *entity.Player, 
 		if g, ok := h.gameWorld.GiveBoon(sess, BoardTown(npc.Name), time.Now()); ok {
 			SendClientMessage(sess, g.Line())
 		}
+		// and the boards' Spirit of the Wolf (entity/boardwolf.go)
+		if given, renewed := h.gameWorld.GiveBoardWolf(sess, time.Now()); given {
+			SendClientMessage(sess, boardWolfLine(renewed))
+		}
 	}
 	return true
+}
+
+// boardWolfLine is the player's line for the boards' Spirit of the Wolf (ours).
+func boardWolfLine(renewed bool) string {
+	if renewed {
+		return "The board renews your Spirit of the Wolf for an hour of play. A hostile act ends it."
+	}
+	return "The spirit of the wolf quickens your step for an hour of play. A hostile act ends it."
 }

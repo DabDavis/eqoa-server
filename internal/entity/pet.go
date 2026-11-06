@@ -705,6 +705,12 @@ func (w *World) petSystem(now time.Time) {
 			w.releaseCharmLocked(ps, sess, charmWornOff, true) // charm.go
 			continue
 		}
+		if h := pet.Charm; h != nil && charmFar(pet, h.world, pet.World, pet.X, pet.Z) {
+			// led past its grace on foot, its charm still running: let go
+			// there, and home at once (charm.go's leash)
+			w.releaseCharmLocked(ps, sess, charmTooFar, false)
+			continue
+		}
 		dt := float32(now.Sub(ps.last).Seconds())
 		ps.last = now
 		dt = min(max(dt, 0), 0.5)
@@ -717,7 +723,8 @@ func (w *World) petSystem(now time.Time) {
 				w.releaseCharmLocked(ps, sess, charmWornOff, false)
 				continue
 			}
-			// a teleport, a coach, another world: it comes along
+			// a teleport, another world, a summoned pet's coach: it comes
+			// along (a coach never takes a charmed one: CoachLeavesCharm)
 			oldX, oldZ := pet.X, pet.Z
 			pet.World = owner.World
 			pet.X, pet.Y, pet.Z = besideOwner(owner)

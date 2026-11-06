@@ -56,8 +56,10 @@ type NPCWindowHandler struct {
 	// find and playerOf are the World's FindEntityByObjectID and
 	// SessionPlayer, corpseLies and clearCorpse its CorpseLies and
 	// ClearCorpse (SetGameWorld); tests stand in for them.
-	find        func(*session.Session, uint32) (entity.Entity, bool)
-	playerOf    func(*session.Session) *entity.Player
+	find     func(*session.Session, uint32) (entity.Entity, bool)
+	playerOf func(*session.Session) *entity.Player
+	// groupOf is the sessions of a player's group but its own (tellGroupLooted)
+	groupOf     func(*entity.Player) []*session.Session
 	corpseLies  func(entity.EntityID) (time.Time, bool)
 	clearCorpse func(entity.EntityID, time.Time) bool
 	// guardsKill is the World's GuardsKill: a corpse the town guards made
@@ -96,6 +98,18 @@ func (h *NPCWindowHandler) SetGameWorld(gw *entity.World) {
 	h.gameWorld = gw
 	h.find = gw.FindEntityByObjectID
 	h.playerOf = gw.SessionPlayer
+	h.groupOf = func(p *entity.Player) []*session.Session {
+		var out []*session.Session
+		for _, m := range gw.GroupMembers(p) {
+			if m == p {
+				continue
+			}
+			if s := gw.FindSessionByEntityID(m.ServerID); s != nil {
+				out = append(out, s)
+			}
+		}
+		return out
+	}
 	h.corpseLies = gw.CorpseLies
 	h.clearCorpse = gw.ClearCorpse
 	h.guardsKill = gw.GuardsKill

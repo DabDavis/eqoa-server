@@ -300,32 +300,57 @@ func TestASecondDeathRetiresTheFirst(t *testing.T) {
 	}
 }
 
-// Below level 6 a death adds no debt and leaves no chance: a rez is refused.
-// And such a death is the latest: it takes an earlier death's chance with it
-// (a level 30 who died, then a GM's #setlevel 5 and a death).
-func TestNoRezBelowLevelSix(t *testing.T) {
+// Below level 6 a death adds no debt, and a rez still offers its target the
+// way back to where it died (petition 1051, Jibheals: "Even if the character
+// has no debt to clear, they should still get the popup to get back to where
+// they last died IF eligible to rez"): the cast lands, CLIENT's prompt goes
+// (the hook), a Yes in its time leads back to the body (the target back to
+// life when it still lies dead), a No or a late answer nowhere. The control: a
+// player who never died has nothing to offer, and is refused as ever.
+func TestARezOffersTheWayBackDebtOrNone(t *testing.T) {
 	r := newRezRig(t)
+	var offered []string
+	r.w.OnRezOffer(func(s *session.Session, caster string) { offered = append(offered, caster) })
 	r.b.Level = 5
 	r.die(r.b, r.sb, 0)
-	if r.b.Debt != 0 || r.b.Rez != (RezChance{}) {
+	if r.b.Debt != 0 || !r.b.Rez.returns(r.at(time.Second)) || r.b.Rez.X != 106 || r.b.Rez.Z != 100 {
 		t.Fatalf("a level 5 death: debt %d, chance %+v", r.b.Debt, r.b.Rez)
 	}
 	drain(r.sa)
-	began := r.w.StartCast(r.sa, revive(), rezB, r.at(2*time.Second))
-	refusedNoRez(t, began, drain(r.sa), "Bran has no experience to recover.", r.a, 800, 0)
+	if !r.cast(r.sa, revive(), rezB, 2*time.Second) {
+		t.Fatalf("the rez was refused: %q", linesOf(drain(r.sa)))
+	}
+	if len(offered) != 1 || offered[0] != "Gnolie" || r.b.RezReturn.Until.IsZero() || r.b.Rez != (RezChance{}) {
+		t.Fatalf("the offer: %q, return %+v, chance %+v", offered, r.b.RezReturn, r.b.Rez)
+	}
+	if !r.b.respawnPending() {
+		t.Fatal("not dead before the answer")
+	}
+	world, x, _, z, ok := r.w.TakeRezReturn(r.sb, true, r.at(10*time.Second))
+	if !ok || world != 0 || x != 106 || z != 100 || r.b.respawnPending() || r.b.HP != r.b.MaxHP {
+		t.Fatalf("the Yes: %v (%v, %v) world %d; dead %v, HP %d", ok, x, z, world, r.b.respawnPending(), r.b.HP)
+	}
+	if _, _, _, _, ok := r.w.TakeRezReturn(r.sb, true, r.at(11*time.Second)); ok {
+		t.Fatal("a second Yes led back again")
+	}
 
 	r2 := newRezRig(t)
-	r2.b.Level = 30
+	r2.w.OnRezOffer(func(*session.Session, string) {})
 	r2.die(r2.b, r2.sb, 0)
-	r2.respawn(15 * time.Second)
-	r2.b.Level = 5
-	r2.die(r2.b, r2.sb, time.Minute)
-	if r2.b.Debt != 738036 || r2.b.Rez != (RezChance{}) {
-		t.Fatalf("a level 5 death after a level 30 one: debt %d, chance %+v", r2.b.Debt, r2.b.Rez)
+	r2.cast(r2.sa, revive(), rezB, 2*time.Second)
+	if _, _, _, _, ok := r2.w.TakeRezReturn(r2.sb, false, r2.at(5*time.Second)); ok {
+		t.Fatal("a No led back")
 	}
-	drain(r2.sa)
-	began = r2.w.StartCast(r2.sa, revive(), rezB, r2.at(time.Minute+2*time.Second))
-	refusedNoRez(t, began, drain(r2.sa), "Bran has no experience to recover.", r2.a, 800, 0)
+	r2.die(r2.b, r2.sb, time.Minute)
+	r2.cast(r2.sa, revive(), rezB, time.Minute+2*time.Second)
+	if _, _, _, _, ok := r2.w.TakeRezReturn(r2.sb, true, r2.at(time.Minute+RezOfferFor+5*time.Second)); ok {
+		t.Fatal("a late Yes led back")
+	}
+
+	r3 := newRezRig(t)
+	drain(r3.sa)
+	began := r3.w.StartCast(r3.sa, revive(), rezB, r3.at(2*time.Second))
+	refusedNoRez(t, began, drain(r3.sa), "Bran has no experience to recover.", r3.a, 800, 0)
 }
 
 // Kept over a save and load, its time counted in the world only: Bran logs

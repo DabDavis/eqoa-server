@@ -63,6 +63,9 @@ type NPCWindowHandler struct {
 	// guardsKill is the World's GuardsKill: a corpse the town guards made
 	// is no one's to loot (entity/guards.go)
 	guardsKill func(entity.EntityID) bool
+	// takeOff is the EquipHandler's TakeOff: a worn item is taken off before
+	// the bank or a trade moves it (nil: a worn item is refused, as before)
+	takeOff func(*session.Session, *entity.Player, *database.CharInventoryEntry) bool
 
 	// loot is the corpses (loot.go), made on first use; coinRoll rolls a
 	// corpse's tunar (corpsecoins.go) and lootIntn its loot tables (loot.go's

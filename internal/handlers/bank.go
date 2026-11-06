@@ -126,7 +126,7 @@ func (h *NPCWindowHandler) bankItem(sess *session.Session, id uint32, fromBank b
 		log.Printf("BankItem: %s: %v", player.Name, err)
 		return false
 	}
-	if row.EquipLoc != -1 {
+	if row.EquipLoc != -1 && (h.takeOff == nil || !h.takeOff(sess, player, &row)) {
 		log.Printf("BankItem: %s tried to bank %q while wearing it", player.Name, row.Pattern.ItemName)
 		return false
 	}

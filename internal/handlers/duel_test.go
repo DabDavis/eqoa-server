@@ -76,8 +76,8 @@ func TestDuelChatCommands(t *testing.T) {
 		t.Fatalf("Bob was sent %d boxes", len(got))
 	}
 	c.send(sb, protocol.OpcodeClientSayChat, wide("/duel accept", 0xFFFFFFFF))
-	if _, on := c.gw.DuelOf(pa); !on {
-		t.Fatal("/duel accept did not begin it")
+	if id, on := c.gw.DuelOf(pa); id == 0 || on {
+		t.Fatalf("/duel accept did not begin the countdown: duel %d on %v", id, on)
 	}
 	sa.Queue().GetPending()
 	c.send(sa, protocol.OpcodeClientSayChat, wide("/duel cancel", 0xFFFFFFFF))
@@ -180,8 +180,8 @@ func TestHandleDuelRequest(t *testing.T) {
 	up(sb, 6, 7, 1) // an item: refused
 	up(sa, 8)
 	up(sb, 8)
-	if _, on := c.gw.DuelOf(pa); !on {
-		t.Fatal("both accepted the wager: no duel")
+	if id, on := c.gw.DuelOf(pa); id == 0 || on {
+		t.Fatalf("both accepted the wager: duel %d on %v, want its countdown", id, on)
 	}
 	if pa.Tunar != 60 || pb.Tunar != 100 {
 		t.Fatalf("the purses %d and %d, want 60 and 100", pa.Tunar, pb.Tunar)
@@ -260,7 +260,11 @@ func TestDuelPurseOnTheDatabase(t *testing.T) {
 	if told(sa) != 500 || told(sb) != 100 {
 		t.Fatalf("told %d and %d", told(sa), told(sb))
 	}
-	c.gw.DuelCancel(sa, time.Now()) // Alice surrenders: Bob takes 400
+	c.gw.Tick(time.Now().Add(entity.DuelCountdown + time.Second)) // the countdown out: the fight
+	if _, on := c.gw.DuelOf(pa); !on {
+		t.Fatal("the countdown ran out: no fight")
+	}
+	c.gw.DuelCancel(sa, time.Now().Add(entity.DuelCountdown+2*time.Second)) // Alice surrenders: Bob takes 400
 	if purse(pa) != 500 || purse(pb) != 500 || pb.Tunar != 500 {
 		t.Fatalf("paid: purses %d and %d, Bob %d", purse(pa), purse(pb), pb.Tunar)
 	}

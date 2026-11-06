@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 
@@ -26,8 +27,9 @@ import (
 // players as players, as the live client did (its own TargetInRange asks its
 // duel part).
 //
-// One duel at a time a player: asked (an invitation for DuelInviteTime) or
-// on. Its two fight with melee, harmful spells and their pets, every hit at
+// One duel at a time a player: asked (an invitation for DuelInviteTime),
+// counting down (DuelCountdown, said in chat as SOE's server said it: petition
+// 1063) or on. Its two fight with melee, harmful spells and their pets, every hit at
 // DuelDamageShare; nobody else can hurt them through it (a third player's
 // harm is refused as before), and heals and buffs land as ever. Nothing dies
 // of a duel: a hit the loser cannot take leaves it DuelLoserHP and ends the
@@ -46,6 +48,14 @@ const (
 	// invitation record starts its timer at 20000 ms (0x1502 sub 2's handler,
 	// live 0x012E4BA4) and its window counts the last ten seconds down.
 	DuelInviteTime = 20 * time.Second
+	// DuelCountdown is the time between the accept (both wagers' accepts in
+	// the live window) and the fight, told to the two in chat as SOE's server
+	// told it (petition 1063, jibheals: "Duel starts in 15 seconds.", every
+	// 5 seconds, then "3", "2", "1", "START"; the live client's words hold
+	// none of it, so its server sent them): no hit of the duel lands before
+	// it ends. Their dying, going or parting past DuelArenaRadius calls the
+	// duel off, its stakes back, as in the wager window.
+	DuelCountdown = 15 * time.Second
 	// DuelStartRange is how near the two must stand to challenge and to begin
 	// (ours: the live client checks no distance).
 	DuelStartRange float32 = 30
@@ -98,9 +108,10 @@ var (
 type duelPhase byte
 
 const (
-	duelAsked duelPhase = iota + 1 // an invitation, waiting for its answer
-	duelWager                      // the live wager window, both sides staking (both have it)
-	duelOn                         // the fight
+	duelAsked     duelPhase = iota + 1 // an invitation, waiting for its answer
+	duelWager                          // the live wager window, both sides staking (both have it)
+	duelOn                             // the fight
+	duelCountdown                      // accepted: the countdown to the fight (DuelCountdown)
 )
 
 // Duel is one duel between two players.
@@ -111,6 +122,8 @@ type Duel struct {
 	Phase   duelPhase
 	Expires time.Time // an invitation's end
 	Began   time.Time // the fight's start
+	Starts  time.Time // the countdown's end, when the fight begins
+	said    int       // the countdown's last second said (duelCountLocked)
 	World   uint8
 	// Stake is the tunar each side stakes, [0] the challenger's; Wager the
 	// challenge's own (both stake it: a client without the live window sets
@@ -432,7 +445,7 @@ func (w *World) DuelAnswer(sess *session.Session, id uint32, accept bool, now ti
 		w.duelSayLocked(a, why, duelRed)
 		return
 	}
-	w.startDuelLocked(d, a, p, now)
+	w.countdownDuelLocked(d, a, p, now)
 }
 
 // duelDeclineLocked is the challenged b declining d, the challenger a told:
@@ -478,6 +491,84 @@ func (w *World) duelGoneToChallengedLocked(b *Player, d *Duel, line string) {
 	w.duelSayLocked(b, line, duelOrange)
 }
 
+// countdownDuelLocked begins the countdown to the fight between the
+// challenger a and b (DuelCountdown): a challenger with the live window told
+// its invitation was taken at once (its client declines its own queue; one
+// that went through the wager window was told at its opening), both told the
+// first line. duelSystem says the rest and begins the fight.
+func (w *World) countdownDuelLocked(d *Duel, a, b *Player, now time.Time) {
+	d.Phase = duelCountdown
+	d.Starts = now.Add(DuelCountdown)
+	d.said = int(DuelCountdown / time.Second)
+	log.Printf("Duel %d: %s and %s count down from %d", d.ID, a.Name, b.Name, d.said)
+	if as := w.findSessionByEntityIDLocked(a.ServerID); as != nil && a.DuelWindow && !d.windowed {
+		w.sendDuelAcceptedLocked(as, d.ID) // the live client declines its own queue
+	}
+	w.duelCountLocked(d, d.said)
+}
+
+// duelCountMarks are the countdown's lines after its first, by the seconds
+// left: every 5 seconds, then the last three.
+var duelCountMarks = []int{10, 5, 3, 2, 1}
+
+// duelCountLocked tells the two the countdown's line for n seconds left: "Duel
+// starts in n seconds." from 5 up, the bare number below it, "START" at 0.
+func (w *World) duelCountLocked(d *Duel, n int) {
+	line := "START"
+	switch {
+	case n >= 5:
+		line = fmt.Sprintf("Duel starts in %d seconds.", n)
+	case n > 0:
+		line = strconv.Itoa(n)
+	}
+	for _, id := range []EntityID{d.A, d.B} {
+		w.duelSayLocked(w.duelistLocked(d, id), line, duelOrange)
+	}
+}
+
+// countDownLocked is a counting duel's turn of duelSystem: the next mark's
+// line once its second comes (only the latest of marks a stalled tick passed),
+// and at the end "START" and the fight.
+func (w *World) countDownLocked(d *Duel, a, b *Player, now time.Time) {
+	if !now.Before(d.Starts) {
+		w.duelCountLocked(d, 0)
+		w.startDuelLocked(d, a, b, now)
+		return
+	}
+	left := int(math.Ceil(d.Starts.Sub(now).Seconds()))
+	say := 0
+	for _, m := range duelCountMarks {
+		if m < d.said && left <= m {
+			say = m
+		}
+	}
+	if say != 0 {
+		d.said = say
+		w.duelCountLocked(d, say)
+	}
+}
+
+// callOffDuelLocked calls a duel off in its countdown: a live window's duel
+// state ended (as a wager window's call-off ends it), both told line, and the
+// stakes held at the accept given back, each its own.
+func (w *World) callOffDuelLocked(d *Duel, line string) {
+	w.duels.remove(d)
+	log.Printf("Duel %d: off in its countdown (%s)", d.ID, line)
+	for _, id := range []EntityID{d.A, d.B} {
+		p := w.duelistLocked(d, id)
+		if p == nil {
+			continue
+		}
+		if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
+			if p.DuelWindow {
+				w.sendDuelEndLocked(sess, d)
+			}
+			w.sendColoredLocked(sess, line, duelOrange)
+		}
+	}
+	w.settleStakesLocked(d, 0) // duelpurse.go: each its own stake back
+}
+
 // startDuelLocked begins the fight between the challenger a and b.
 func (w *World) startDuelLocked(d *Duel, a, b *Player, now time.Time) {
 	d.Phase = duelOn
@@ -498,9 +589,6 @@ func (w *World) startDuelLocked(d *Duel, a, b *Player, now time.Time) {
 			continue
 		}
 		if p.DuelWindow {
-			if p == a && !d.windowed {
-				w.sendDuelAcceptedLocked(sess, d.ID) // the live client declines its own queue
-			}
 			w.sendDuelStateLocked(sess, d, p)
 			w.sendDuelPlaceLocked(sess, d)
 		}
@@ -509,8 +597,8 @@ func (w *World) startDuelLocked(d *Duel, a, b *Player, now time.Time) {
 }
 
 // DuelCancel is sess's player's withdrawal or surrender: an invitation it
-// made is withdrawn, one it was sent declined, a wager window's duel called
-// off, and its fight forfeit.
+// made is withdrawn, one it was sent declined, a wager window's duel or a
+// countdown called off, and its fight forfeit.
 func (w *World) DuelCancel(sess *session.Session, now time.Time) {
 	defer w.runDuelPurse()
 	w.mu.Lock()
@@ -530,6 +618,10 @@ func (w *World) DuelCancel(sess *session.Session, now time.Time) {
 	}
 	if d.Phase == duelWager {
 		w.closeWagerLocked(d, fmt.Sprintf("%s has called off the duel.", p.Name))
+		return
+	}
+	if d.Phase == duelCountdown {
+		w.callOffDuelLocked(d, fmt.Sprintf("%s has called off the duel.", p.Name))
 		return
 	}
 	if d.B == p.ServerID {
@@ -659,7 +751,7 @@ func (w *World) clearDuelEffectsLocked(p *Player, foe EntityID) {
 }
 
 // duelLeavingLocked is p leaving the world (a logout, a new login): its
-// invitation lapses and its fight is forfeit.
+// invitation lapses, its countdown is called off and its fight is forfeit.
 func (w *World) duelLeavingLocked(p *Player) {
 	d := w.duels.of[p.ServerID]
 	if d == nil {
@@ -672,6 +764,10 @@ func (w *World) duelLeavingLocked(p *Player) {
 	}
 	if d.Phase == duelWager {
 		w.closeWagerLocked(d, fmt.Sprintf("%s has called off the duel.", p.Name))
+		return
+	}
+	if d.Phase == duelCountdown {
+		w.callOffDuelLocked(d, fmt.Sprintf("%s has called off the duel.", p.Name))
 		return
 	}
 	w.duels.remove(d)
@@ -709,6 +805,18 @@ func (w *World) duelSystem(now time.Time) {
 				w.closeWagerLocked(d, "The duel is off: the wager took too long.")
 			case a.IsDead() || b.IsDead() || a.World != b.World || dist3(a.X, a.Y, a.Z, b.X, b.Y, b.Z) > DuelArenaRadius:
 				w.closeWagerLocked(d, "The duel is off.")
+			}
+			continue
+		}
+		if d.Phase == duelCountdown {
+			switch {
+			case a == nil || b == nil:
+				w.callOffDuelLocked(d, "The duel is off: your opponent has gone.")
+			case a.IsDead() || a.respawnPending() || b.IsDead() || b.respawnPending() ||
+				a.World != b.World || dist3(a.X, a.Y, a.Z, b.X, b.Y, b.Z) > DuelArenaRadius:
+				w.callOffDuelLocked(d, "The duel is off.")
+			default:
+				w.countDownLocked(d, a, b, now)
 			}
 			continue
 		}

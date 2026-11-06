@@ -16,7 +16,11 @@ import (
 // levels (by #template's measure, a weapon's damage first), no figure is a
 // broken record's, and a level 60's chest piece and main weapon carry
 // figures. The control is the level 1 piece: as good as the level 60 one only
-// where nothing better exists.
+// where nothing better exists. An epic heirloom (tools/heirloom_epics.py) is
+// held to that below its epic's level and to its epic's own figures and
+// proc from it (the view's own path); what it gives up at that level to be
+// the epic (a level 49 epic against the best of 48) is logged, not failed:
+// the user's choice is the epic itself.
 func TestRealHeirloomsGrowWithTheirWearer(t *testing.T) {
 	path := os.Getenv("EQOA_REAL_DB")
 	if path == "" {
@@ -51,16 +55,35 @@ func TestRealHeirloomsGrowWithTheirWearer(t *testing.T) {
 			}
 			return [2]int{templateScore(p), 0}
 		}
+		var epic *database.ItemPatternRecord
+		if d.Epic != 0 {
+			if epic, err = items.GetItemPattern(d.Epic); err != nil || epic == nil {
+				t.Fatalf("%s (%d): its epic %d: %v", base.ItemName, id, d.Epic, err)
+			}
+		}
 		var prev [2]int
 		var row []string
 		for level := 1; level <= 60; level++ {
 			race, _ := firstRace(db, d.Class)
 			p := *base
-			if best, ok := h.bestOf(d.Class, race, level, d.Role); ok {
+			isEpic := epic != nil && level >= max(epic.LevelReq, 1)
+			if isEpic {
+				heirloomEpicFigures(&p, epic)
+			} else if best, ok := h.bestOf(d.Class, race, level, d.Role); ok {
 				heirloomFigures(&p, &best)
 			}
 			m := measure(&p)
-			if m[0] < prev[0] || (m[0] == prev[0] && m[1] < prev[1]) {
+			switch {
+			case isEpic && level == max(epic.LevelReq, 1):
+				if m[0] < prev[0] {
+					lines = append(lines, fmt.Sprintf("  %s at %d is its epic %s: %v, the best of %d was %v", base.ItemName, level,
+						epic.ItemName, m, level-1, prev))
+				}
+				if p.WeaponDamage != epic.WeaponDamage || p.ProcName != epic.ItemName {
+					t.Errorf("%s at %d: damage %d, proc %q; want its epic's %d, %q", base.ItemName, level, p.WeaponDamage,
+						p.ProcName, epic.WeaponDamage, epic.ItemName)
+				}
+			case m[0] < prev[0] || (m[0] == prev[0] && m[1] < prev[1]):
 				t.Errorf("%s (%d, class %d %s) got worse at %d: %v after %v", base.ItemName, id, d.Class, d.Role, level, m, prev)
 			}
 			prev = m

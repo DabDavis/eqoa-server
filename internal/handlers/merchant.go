@@ -77,6 +77,9 @@ type NPCWindowHandler struct {
 	// auction is the auction house (auction.go): 0x1205, and what it holds
 	// for a player filed as its bank opens
 	auction *AuctionHouse
+
+	// genie is the lamps' genies (genie.go): a window one opened is theirs
+	genie *Genie
 }
 
 // NewNPCWindowHandler creates the handler. inv may be nil (no database): the
@@ -126,10 +129,21 @@ func (h *NPCWindowHandler) windowNPC(sess *session.Session, id uint32, flag int,
 	}
 	ent, ok := h.find(sess, id)
 	if !ok {
+		if npc, ok := h.genie.windowNPC(sess, id, flag); ok {
+			return player, npc, true
+		}
 		log.Printf("%s: %s names object %d, which this session does not see", what, player.Name, id)
 		return nil, nil, false
 	}
 	npc, ok := ent.(*entity.NPC)
+	if !ok || npc.NPCType&0xFF&flag == 0 || !entity.InRange(player, npc, entity.InteractRange) {
+		// a window the player's genie opened (genie.go): its id, or for the
+		// bank any (CLIENT's target, whatever it is), while the window is
+		// the player's; a real one in reach goes first
+		if g, ok := h.genie.windowNPC(sess, id, flag); ok {
+			return player, g, true
+		}
+	}
 	if !ok || npc.NPCType&0xFF&flag == 0 {
 		log.Printf("%s: %s names %q (object %d), which is not one", what, player.Name, entity.EntityName(ent), id)
 		return nil, nil, false
@@ -260,8 +274,17 @@ func (h *NPCWindowHandler) HandleMerchantOpen(sess *session.Session, msg *protoc
 	if questsAtWindow(sess, player, npc) {
 		return nil
 	}
+	h.openMerchant(sess, player, npc, id, merchantGreeting)
+	return nil
+}
+
+// openMerchant sends npc's catalog (npcitem by its NPCID) as 0x00B7 under id,
+// which CLIENT hands back with each buy and sale: an NPC's own id, or a
+// genie's window (genie.go).
+func (h *NPCWindowHandler) openMerchant(sess *session.Session, player *entity.Player, npc *entity.NPC, id uint32, greeting string) {
 	var catalog []database.CharInventoryEntry
 	if h.inv != nil {
+		var err error
 		if catalog, err = h.inv.GetNPCItems(npc.NPCID); err != nil {
 			log.Printf("Merchant: catalog of %q (npc %d): %v", npc.Name, npc.NPCID, err)
 		}
@@ -272,9 +295,8 @@ func (h *NPCWindowHandler) HandleMerchantOpen(sess *session.Session, msg *protoc
 	for i := range catalog { // the buyer's own view: an heirloom's figures (heirloom.go)
 		h.inv.ViewPattern(player.CharServerID, &catalog[i].Pattern)
 	}
-	queueReliable(sess, protocol.OpcodeMerchantBox, merchantBoxPayload(id, catalog, merchantGreeting))
+	queueReliable(sess, protocol.OpcodeMerchantBox, merchantBoxPayload(id, catalog, greeting))
 	log.Printf("Merchant: %s opened %q (npc %d): %d items for sale", player.Name, npc.Name, npc.NPCID, len(catalog))
-	return nil
 }
 
 // HandleMerchantBuy is 0x004A: zigzag catalog index, zigzag count, u32 the

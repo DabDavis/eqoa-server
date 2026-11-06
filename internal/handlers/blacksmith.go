@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
@@ -107,7 +108,11 @@ func (h *NPCWindowHandler) HandleRepair(sess *session.Session, msg *protocol.Mes
 	return nil
 }
 
-// HandleBlacksmithClose is 0x0063: the client has closed the window itself.
+// HandleBlacksmithClose is 0x0063: the client has closed the window itself;
+// a genie's forge ends with it (genie.go).
 func (h *NPCWindowHandler) HandleBlacksmithClose(sess *session.Session, msg *protocol.Message) error {
+	if h.genie != nil && h.genie.gw != nil {
+		h.genie.gw.EndGenieWindow(sess, entity.GenieSmith)
+	}
 	return nil
 }

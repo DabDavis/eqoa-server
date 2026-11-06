@@ -66,6 +66,27 @@ type Consumable struct {
 	Also     int
 	Duration time.Duration
 	Rule     *FoodRule
+	// Ration is a plain ration's (handlers/consume.go): its HoT and PoT are
+	// its eater's, RationRestore's, in place of Amount and Also
+	Ration bool
+}
+
+// RationShare is the share of its eater's most health and power a ration
+// gives each regen tick: a tenth (ours; the user, 2026-11-06: "scale with
+// level, and doesnt take too long to restore"), so with the regen's own
+// fiftieth an empty bar is full within the meal's minute.
+const RationShare = 10
+
+// RationRestore is what a ration gives its eater a tick: a tenth of its most
+// health and of its most power with its effects (MaxHPNow, MaxPowerNow), at
+// least its level each; no power to one that has none (a warrior). Must be
+// called with the lock held.
+func RationRestore(p *Player) (hot, pot int) {
+	hot = max(p.MaxHPNow()/RationShare, p.Level, 1)
+	if most := p.MaxPowerNow(); most > 0 {
+		pot = max(most/RationShare, p.Level)
+	}
+	return hot, pot
 }
 
 // FoodRule is what ends a meal or a drink, as its item's foodeffect row
@@ -111,6 +132,9 @@ func (w *World) Consume(sess *session.Session, c Consumable, now time.Time) erro
 	d := c.Duration
 	if d <= 0 {
 		d = ConsumableDuration
+	}
+	if c.Ration {
+		c.Amount, c.Also = RationRestore(p)
 	}
 	ae := &ActiveEffect{SpellID: c.effectID(), Name: c.Name, Icon: c.Icon, Caster: p.ServerID, Until: now.Add(d)}
 	if c.Drink {

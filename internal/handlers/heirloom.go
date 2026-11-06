@@ -44,6 +44,17 @@ import (
 // heals its wearer at each creature hit as the Breastplate of the Anointed
 // (entity/wornshield.go, "heirloom chestguard"). The records are NO TRADE and
 // worth nothing (the user's choice).
+//
+// An heirloom weapon may BE an epic (heirlooms.epic; the user, 2026-11-06:
+// "the heirloom weapons for every class lets make their lvl 60 epics. also add
+// extra choices of weapons to choose from that are epic also. including some
+// level 50 epics also", then "also the bow heirloom needs to be epic also";
+// tools/heirloom_epics.py): from the epic's own level (60, or 49 for the path
+// quests' epics) the wearer's view is that epic's figures (heirloomEpicFigures:
+// its stats, damage and reach) and its proc (ItemPatternRecord.ProcName: a
+// weapon's proc is read by its name, entity/weaponproc.go); below it the best
+// of its role, as every heirloom. The epic record is read as the best are,
+// kept heirloomTTL.
 
 // heirloomRole is a role's wear slots and how its best is chosen.
 type heirloomRole struct {
@@ -96,6 +107,7 @@ type Heirlooms struct {
 	defs   map[int]database.HeirloomDef
 	defsAt time.Time
 	best   map[heirloomKey]heirloomPick
+	epics  map[int]heirloomPick // an epic heirloom's epic record, by its id
 	// known are the characters in the world, by serverid: class, race and
 	// level as the World last said them (login, level up); others are read
 	// off their rows
@@ -118,7 +130,7 @@ type heirloomWho struct{ class, race, level int }
 // NewHeirlooms makes the view over db's items.
 func NewHeirlooms(db *database.SQLiteDB) *Heirlooms {
 	return &Heirlooms{db: db, inv: database.NewInventoryStore(db), now: time.Now,
-		best: map[heirloomKey]heirloomPick{}, known: map[uint32]heirloomWho{}}
+		best: map[heirloomKey]heirloomPick{}, epics: map[int]heirloomPick{}, known: map[uint32]heirloomWho{}}
 }
 
 // Start sets the view on the database and hears the World's level ups:
@@ -166,9 +178,35 @@ func (h *Heirlooms) View(serverID uint32, p *database.ItemPatternRecord) {
 	if !ok {
 		return
 	}
+	if def.Epic != 0 {
+		if epic, ok := h.epicOf(def.Epic); ok && level >= max(epic.LevelReq, 1) {
+			heirloomEpicFigures(p, &epic)
+			return
+		}
+	}
 	if best, ok := h.bestOf(def.Class, race, level, def.Role); ok {
 		heirloomFigures(p, &best)
 	}
+}
+
+// epicOf is an epic heirloom's epic record, kept heirloomTTL.
+func (h *Heirlooms) epicOf(id int) (database.ItemPatternRecord, bool) {
+	h.mu.Lock()
+	e, cached := h.epics[id]
+	h.mu.Unlock()
+	if cached && h.now().Sub(e.at) <= heirloomTTL {
+		return e.p, e.ok
+	}
+	e = heirloomPick{at: h.now()}
+	if r, err := database.NewItemPatternStore(h.db).GetItemPattern(id); err != nil {
+		log.Printf("Heirlooms: the epic %d: %v", id, err)
+	} else if r != nil {
+		e.p, e.ok = *r, true
+	}
+	h.mu.Lock()
+	h.epics[id] = e
+	h.mu.Unlock()
+	return e.p, e.ok
 }
 
 // def is a record's row, the table read again past heirloomTTL.
@@ -285,4 +323,11 @@ func heirloomFigures(p, best *database.ItemPatternRecord) {
 		p.WeaponDamage = best.WeaponDamage
 		p.Unk5 = best.Unk5 // a ranged weapon's reach
 	}
+}
+
+// heirloomEpicFigures puts the epic's figures on p, as heirloomFigures puts a
+// best's, and its proc: p fights as the epic does.
+func heirloomEpicFigures(p, epic *database.ItemPatternRecord) {
+	heirloomFigures(p, epic)
+	p.ProcName, p.ProcDesc = epic.ItemName, epic.ItemDesc
 }

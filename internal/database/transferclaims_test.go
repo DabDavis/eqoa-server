@@ -34,6 +34,15 @@ func catalogQuests(t *testing.T, db *SQLiteDB) {
 		{53, "Duskrender's Trial", "Weres/wolfwere/L40-melee", "1, 4, 5, 6", "51", 1},
 		{60, "Razeal Has Won", "Weres/vampire/p1", "", "", 1},
 		{61, "Creed's Lessons", "Weres/vampire/L40", "", "60", 1},
+		// the werehunter's line, out of id order as the real one is, with
+		// each archetype's trials and ability quest
+		{101, "The WereHunter Trials", "Weres/werehunter/trials-melee", "1, 4, 5, 6", "107", 1},
+		{102, "The WereHunter Trials", "Weres/werehunter/trials-tank", "0, 2, 3", "107", 1},
+		{103, "Mistmoore", "Weres/werehunter/ability-melee", "1, 4, 5, 6", "105", 1},
+		{104, "Mistmoore", "Weres/werehunter/ability-tank", "0, 2, 3", "105", 1},
+		{105, "The Werehunter's Brand", "Weres/werehunter/brand", "", "106", 1},
+		{106, "Silver and Fur", "Weres/werehunter/p1", "", "", 1},
+		{107, "Elder Tchekof", "Weres/werehunter/tchekof", "", "105", 1},
 		{70, "The Manticores' Riddles", "Portal/plane-of-sky/portal-1", "", "", 1},
 		{71, "The Death Knights' Hearts", "Portal/plane-of-disease/flag-1", "", "", 1},
 		{80, "Not in the game", "Portal/plane-of-sky/portal-2", "", "", 0},
@@ -56,6 +65,7 @@ func catalogQuests(t *testing.T, db *SQLiteDB) {
 		{39, 1, ""},
 		{40, 1, `{"ask": "Which ability do you take?", "options": [{"answer": "Natureblade", "spells": "700623"}]}`},
 		{50, 1, ""}, {51, 1, ""}, {52, 1, ""}, {53, 1, ""}, {60, 1, ""}, {61, 1, ""}, {70, 1, ""}, {71, 1, ""}, {80, 1, ""},
+		{101, 1, ""}, {102, 1, ""}, {103, 1, ""}, {104, 1, ""}, {105, 1, ""}, {106, 1, ""}, {107, 1, ""},
 		{90, 5, two},
 	}
 	for _, st := range steps {
@@ -105,7 +115,11 @@ func TestTransferCatalog(t *testing.T) {
 			lines[l.Line] = append(lines[l.Line], q.Quest)
 		}
 	}
-	if !reflect.DeepEqual(lines, map[string][]int{"wolfwere": {50, 51, 53}, "vampire": {60, 61}}) || cat.Lines[0].Label != "Wolfwere" {
+	// the werehunter's in the order it is done, the ranger's own trials and
+	// ability quest alone (the user, 2026-11-06: "the werehunter doesnt show
+	// up for the transfer form")
+	if !reflect.DeepEqual(lines, map[string][]int{"wolfwere": {50, 51, 53}, "werehunter": {106, 105, 103, 107, 101},
+		"vampire": {60, 61}}) || cat.Lines[0].Label != "Wolfwere" || cat.Lines[1].Label != "Werehunter" {
 		t.Fatalf("lines %v %+v", lines, cat.Lines)
 	}
 	if len(cat.Flags) != 2 || cat.Flags[0].Label != "Plane of Disease" || cat.Flags[1].Label != "Plane of Sky" ||
@@ -114,8 +128,13 @@ func TestTransferCatalog(t *testing.T) {
 	}
 	// the warrior gets its own path and the tank 40
 	war, err := db.TransferCatalog(0)
-	if err != nil || len(war.Choices) != 1 || war.Choices[0].Quest != 90 || war.Lines[0].Quests[2].Quest != 52 {
+	if err != nil || len(war.Choices) != 1 || war.Choices[0].Quest != 90 || war.Lines[0].Quests[2].Quest != 52 ||
+		len(war.Lines[1].Quests) != 5 || war.Lines[1].Quests[2].Quest != 104 || war.Lines[1].Quests[4].Quest != 102 {
 		t.Fatalf("a warrior's: %+v %v", war, err)
+	}
+	// a werehunter's claim is filed as a line
+	if c, err := ParseTransferClaims(`{"line": "werehunter", "quests": [106, 105]}`); err != nil || c.Line != "werehunter" {
+		t.Fatalf("a werehunter's claim: %+v %v", c, err)
 	}
 	if _, err := db.TransferCatalog(15); err == nil {
 		t.Fatal("a class past the last")

@@ -53,6 +53,20 @@ type ItemPatternRecord struct {
 	AR           *int
 	WeaponProc   *int
 	Fish         *int
+	// ProcName and ProcDesc are the weapon whose proc the record carries
+	// when not its own: an heirloom from its epic's level (handlers/heirloom.go)
+	// carries its epic's (entity.WeaponProcOf reads a proc by a weapon's name,
+	// else its description). Never a column; empty: the record's own.
+	ProcName, ProcDesc string
+}
+
+// ProcSource is the name and description a weapon's proc is read by: the
+// weapon it carries the proc of (ProcName), else its own.
+func (p *ItemPatternRecord) ProcSource() (name, desc string) {
+	if p.ProcName != "" {
+		return p.ProcName, p.ProcDesc
+	}
+	return p.ItemName, p.ItemDesc
 }
 
 // ItemPatternStore queries the itempattern table.

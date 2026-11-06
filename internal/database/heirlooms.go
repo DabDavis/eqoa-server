@@ -12,12 +12,20 @@ import "fmt"
 // wearer's level, worked out as each character's view of the record is read
 // (PatternView). tools/seed_heirlooms.py writes the records, these rows and
 // the vendors who give them.
+//
+// A row's epic names the epic weapon the heirloom is (the user, 2026-11-06:
+// "the heirloom weapons for every class lets make their lvl 60 epics. also add
+// extra choices of weapons to choose from that are epic also. including some
+// level 50 epics also"): from that weapon's level its wearer's view is the
+// epic's own figures and proc, below it the best of its role as any heirloom
+// (tools/heirloom_epics.py writes them); 0 is none.
 
 // HeirloomsSchema is the table.
 const HeirloomsSchema = `CREATE TABLE IF NOT EXISTS heirlooms (
 	patternid INTEGER PRIMARY KEY,
 	class     INTEGER NOT NULL,
-	role      TEXT NOT NULL
+	role      TEXT NOT NULL,
+	epic      INTEGER NOT NULL DEFAULT 0
 )`
 
 // HeirloomDef is a record's row: whose heirloom it is and of what role.
@@ -25,6 +33,7 @@ type HeirloomDef struct {
 	PatternID int
 	Class     int
 	Role      string
+	Epic      int // the epic weapon it is from that weapon's level, 0 none
 }
 
 // ensureHeirlooms makes the table (initSchema).
@@ -32,12 +41,23 @@ func (db *SQLiteDB) ensureHeirlooms() error {
 	if _, err := db.Exec(HeirloomsSchema); err != nil {
 		return fmt.Errorf("heirlooms: %w", err)
 	}
+	// epic, to a table made before it (tools/seed_heirlooms.py's own makes
+	// none)
+	var n int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('heirlooms') WHERE name = 'epic'`).Scan(&n); err != nil {
+		return fmt.Errorf("heirlooms: %w", err)
+	}
+	if n == 0 {
+		if _, err := db.Exec(`ALTER TABLE heirlooms ADD COLUMN epic INTEGER NOT NULL DEFAULT 0`); err != nil {
+			return fmt.Errorf("heirlooms: its epic column: %w", err)
+		}
+	}
 	return nil
 }
 
 // Heirlooms is every row, by patternid.
 func (db *SQLiteDB) Heirlooms() (map[int]HeirloomDef, error) {
-	rows, err := db.Query(`SELECT patternid, class, role FROM heirlooms`)
+	rows, err := db.Query(`SELECT patternid, class, role, epic FROM heirlooms`)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +65,7 @@ func (db *SQLiteDB) Heirlooms() (map[int]HeirloomDef, error) {
 	out := map[int]HeirloomDef{}
 	for rows.Next() {
 		var d HeirloomDef
-		if err := rows.Scan(&d.PatternID, &d.Class, &d.Role); err != nil {
+		if err := rows.Scan(&d.PatternID, &d.Class, &d.Role, &d.Epic); err != nil {
 			return nil, err
 		}
 		out[d.PatternID] = d

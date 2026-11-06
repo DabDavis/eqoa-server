@@ -45,7 +45,14 @@ import (
 // infused butter, ..."), with no stat and no words for what eating one does.
 // An item of type 2 named a ration, cuisine or snacks (the ten: field, trail,
 // mine, tundra, plains, jungle, thicket rations, Gnomish Ration, travel
-// cuisine, toad snacks) is eaten as a meal: OURS, its level's HoT (1).
+// cuisine, toad snacks) is eaten as a meal: OURS. Its figures are its
+// eater's (the user, 2026-11-06: "lets increase players starting rations to
+// scale with level, and doesnt take too long to restore. Also start them
+// with 99"): a tenth of the eater's most health a tick as HoT and a tenth of
+// its most power as PoT (entity.RationRestore, worked out as it is eaten), so with the regen's own fiftieth a
+// ration takes an empty bar to full within its minute, at any level; a new
+// character starts with 99 (startitems, tools/fix_rations.py) and the
+// Heirloom Outfitters give more for nothing.
 //
 // An item with both a HoT and a PoT gives both (EQOAEmu's workbook's Blessed
 // Fish: the meal's slot, entity/consumable.go), and an item's foodeffect row
@@ -81,6 +88,13 @@ const (
 	consumeFighting = "You can't eat or drink that while you are fighting."
 	consumeTooLow   = scribeTooLow
 )
+
+// isRation is whether an item is a plain ration (the starting rations): of
+// CLIENT's usable type and named a ration, cuisine or snacks.
+func isRation(p *database.ItemPatternRecord) bool {
+	return p.EquipSlot == -1 && p.ProcAnim == usableType && rationName.MatchString(p.ItemName) &&
+		!mealDesc.MatchString(p.ItemDesc) && !drinkDesc.MatchString(p.ItemDesc)
+}
 
 // consumableOf is the meal or drink an item is, if it is one: worn nowhere,
 // and described as one.
@@ -125,6 +139,7 @@ func (h *EquipHandler) consume(sess *session.Session, player *entity.Player, idx
 	if h.eat == nil {
 		return
 	}
+	c.Ration = isRation(&row.Pattern)
 	if h.inventoryStore != nil {
 		switch fe, ok, err := h.inventoryStore.FoodEffect(row.Pattern.PatternID); {
 		case err != nil:

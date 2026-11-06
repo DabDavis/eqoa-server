@@ -108,7 +108,7 @@ const page = `<!DOCTYPE html>
           <legend>Path, line, flags and quests (optional)</legend>
           <p class="small">What the character had done there. Leave anything you are not sure of: a GM checks each.</p>
           <div id="choices"></div>
-          <label for="line">Were or vampire</label>
+          <label for="line">Were, werehunter or vampire</label>
           <select id="line"></select>
           <div id="lineQuests" class="checks"></div>
           <h3 id="flagsHead">Flags</h3>

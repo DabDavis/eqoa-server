@@ -191,8 +191,19 @@ func TestUseRationEatsOne(t *testing.T) {
 	f.loadList()
 	f.use(0)
 	if len(*got) != 1 || (*got)[0].Drink || (*got)[0].Amount != 1 || (*got)[0].Icon != consumableEffectIcon ||
-		(*got)[0].Name != "Food" || f.stackOf("Field Rations") != 19 {
-		t.Fatalf("eaten %+v, %d left; want one meal of 1 called Food (Sandstorm's word for a ration), 19 left", *got, f.stackOf("Field Rations"))
+		(*got)[0].Name != "Food" || !(*got)[0].Ration || f.stackOf("Field Rations") != 19 {
+		t.Fatalf("eaten %+v, %d left; want one ration called Food (Sandstorm's word for a ration), 19 left", *got, f.stackOf("Field Rations"))
+	}
+	// a grocer's meal is not a ration: its own figures
+	f.own(f.ware("hearty stew", mealText, -1, 1, 7, -1), 2)
+	f.loadList()
+	for i, r := range f.rowsOf() {
+		if r.Pattern.ItemName == "hearty stew" {
+			f.use(uint32(i))
+		}
+	}
+	if len(*got) != 2 || (*got)[1].Ration || (*got)[1].Amount != 7 {
+		t.Fatalf("a grocer's meal: %+v, want 7 of its own and no ration", *got)
 	}
 	for _, r := range []database.ItemPatternRecord{
 		{EquipSlot: -1, ProcAnim: 0, ItemName: "field rations", ItemDesc: "Simple field rations."},

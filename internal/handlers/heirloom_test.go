@@ -196,3 +196,59 @@ func TestTheHeirloomChestguardHealsAsTheAnointed(t *testing.T) {
 		t.Errorf("the heirloom chestguard %+v (%v), the Anointed %+v (%v)", c, okC, a, okA)
 	}
 }
+
+// An epic heirloom (heirlooms.epic; the user, 2026-11-06: "the heirloom
+// weapons for every class lets make their lvl 60 epics") is the best of its
+// role below its epic's level and the epic itself from it: the epic's damage
+// and stats, and its proc (read by the epic's name: Selo's Jeweled Rapier's
+// 140), its own name, slot and class kept. The controls: the plain heirloom
+// blade at the same level is still its level's best, and the epic's own
+// record (a bard's) is never a warrior's best.
+func TestAnEpicHeirloomIsItsEpicFromItsLevel(t *testing.T) {
+	f := newHeirloomFixture(t)
+	n := func(v int) *int { return &v }
+	items := database.NewItemPatternStore(f.db)
+	for _, r := range []database.ItemPatternRecord{
+		{PatternID: 900020, ItemName: "Selo's Jeweled Rapier", EquipSlot: 14, LevelReq: 49, WeaponDamage: 561, AttackType: 5,
+			Dex: n(10), Agi: n(5), ClassUse: 32, Rent: 1, RaceUse: 32767, MaxStack: 1},
+		{PatternID: 714004, ItemName: "Heirloom Selo's Jeweled Rapier", EquipSlot: 14, LevelReq: 1, AttackType: 5,
+			ClassUse: 1, Rent: 1, RaceUse: 32767, MaxStack: 1},
+	} {
+		if err := items.UpsertItemPattern(&r); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := f.db.Exec(`INSERT INTO heirlooms (patternid, class, role, epic) VALUES (714004, 0, 'main', 900020)`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.inv.AddCharItem(f.sid, 714004, 1, 100, 0, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.h = NewHeirlooms(f.db) // the table read anew
+	f.h.Start(nil, nil)
+	at := func(level int) map[int]database.ItemPatternRecord {
+		f.h.Note(f.sid, 0, 0, level)
+		return f.held()
+	}
+	got := at(20)
+	if e := got[714004]; e.WeaponDamage != 200 || val(e.Dex) != 7 || e.ProcName != "" {
+		t.Errorf("at 20: damage %d DEX %d proc %q; want the level's best blade's 200, 7 and none", e.WeaponDamage, val(e.Dex), e.ProcName)
+	}
+	got = at(49)
+	e := got[714004]
+	if e.WeaponDamage != 561 || val(e.Dex) != 10 || val(e.Agi) != 5 || e.ItemName != "Heirloom Selo's Jeweled Rapier" ||
+		e.EquipSlot != 14 || e.ClassUse != 1 {
+		t.Errorf("at 49: damage %d DEX %d AGI %d, %q slot %d class %d; want the rapier's 561, 10, 5 under its own name",
+			e.WeaponDamage, val(e.Dex), val(e.Agi), e.ItemName, e.EquipSlot, e.ClassUse)
+	}
+	name, desc := e.ProcSource()
+	if wp, ok := entity.WeaponProcOf(e.PatternID, name, desc); !ok || wp.Kind != entity.ProcHit || wp.Damage != 140 {
+		t.Errorf("at 49 its proc: %+v %v; want the rapier's 140 hit", wp, ok)
+	}
+	if b := got[hlBlade]; b.WeaponDamage != 200 || b.ProcName != "" {
+		t.Errorf("the plain heirloom blade at 49: damage %d proc %q; want the level's best, 200, none", b.WeaponDamage, b.ProcName)
+	}
+	if _, ok := entity.WeaponProcOf(hlBlade, got[hlBlade].ItemName, got[hlBlade].ItemDesc); ok {
+		t.Error("the plain heirloom blade procs")
+	}
+}

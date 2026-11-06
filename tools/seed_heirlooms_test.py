@@ -35,7 +35,7 @@ class SeedHeirlooms(unittest.TestCase):
         db.execute(f"CREATE TABLE itempattern ({ITEM_COLS})")
         db.execute("CREATE TABLE npcs (id INTEGER PRIMARY KEY AUTOINCREMENT, npc_name TEXT, zone INTEGER, x_coord REAL, "
                    "y_coord REAL, z_coord REAL, facing INTEGER, world INTEGER, hp INTEGER, hp_percent INTEGER, modelid INTEGER, "
-                   "size REAL, npc_level INTEGER, npc_type INTEGER)")
+                   "size REAL, npc_level INTEGER, npc_type INTEGER, npc_id INTEGER)")
         db.execute("CREATE TABLE npcitem (itemid INTEGER PRIMARY KEY AUTOINCREMENT, npcid INTEGER NOT NULL, stackleft INTEGER "
                    "NOT NULL DEFAULT 0, remainHP INTEGER NOT NULL DEFAULT 0, remaincharge INTEGER NOT NULL DEFAULT 0, patternid "
                    "INTEGER NOT NULL, equiploc INTEGER NOT NULL DEFAULT 0, location INTEGER NOT NULL DEFAULT 1, listnumber "
@@ -55,8 +55,8 @@ class SeedHeirlooms(unittest.TestCase):
             item(100 + slot, f"thing {slot}", slot, 32767, 30, ac=5)
         db.execute("INSERT INTO npcs (npc_name, zone, x_coord, y_coord, z_coord, facing, world, hp, npc_level, npc_type) "
                    "VALUES ('Commander Nothard', 3, 25482.6, 61.4, 15547.0, 191, 0, 100, 15, 128)")
-        db.execute("INSERT INTO npcs (npc_name, zone, x_coord, y_coord, z_coord, facing, world, hp, modelid, npc_type) "
-                   "VALUES ('Merchant Janisar', 3, 25490, 61, 15560, 10, 0, 100, 777, 129)")
+        db.execute("INSERT INTO npcs (npc_name, zone, x_coord, y_coord, z_coord, facing, world, hp, modelid, npc_type, npc_id) "
+                   "VALUES ('Merchant Janisar', 3, 25490, 61, 15560, 10, 0, 100, 777, 129, 2)")
         db.execute("INSERT INTO quests VALUES (100001, 'Commander Nothard', 'EQOA-Data 1-20/freeport/warrior/L1 (tools/import_quests.py)')")
         db.execute("INSERT INTO defaultcharacter VALUES (0, 0, 25486.5, 61.4, 15547.0, 0)")
         db.commit()
@@ -91,8 +91,10 @@ class SeedHeirlooms(unittest.TestCase):
         self.assertAlmostEqual(math.hypot(dyer[0] - mid[0], dyer[1] - mid[1]), 2.0, places=1)
         self.assertEqual((outf[3], outf[4], outf[5], dyer[2]), (191, 0x81, 777, 0x80),
                          "the giver's facing; a merchant in the merchant's body; the dyer an NPC")
+        npc_id = db.execute("SELECT npc_id FROM npcs WHERE id = ?", (outf[0],)).fetchone()[0]
+        self.assertEqual(npc_id, outf[0], "the outfitter's NPCID (npc_id, its catalog's key) is its own, not the body donor's")
         stock = {r[0] for r in db.execute("SELECT p.itemname FROM npcitem n JOIN itempattern p ON p.patternid = n.patternid "
-                                          "WHERE n.npcid = ?", (outf[0],))}
+                                          "WHERE n.npcid = ?", (npc_id,))}
         self.assertEqual(len(stock), len(war), "the outfitter sells the warrior's set")
         db.close()
         again = self.tool("--apply", check=False)

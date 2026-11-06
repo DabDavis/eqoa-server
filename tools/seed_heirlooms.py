@@ -245,6 +245,10 @@ def apply(db, p):
                 cols = list(r)
                 cur = db.execute(f"INSERT INTO npcs ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
                                  [r[c] for c in cols])
+                # npc_id is the server's NPCID, the key of a merchant's catalog (npcitem.npcid): the row's own, never
+                # the body donor's (the outfitters showed their donors' spells, 2026-11-06)
+                if "npc_id" in ncols:
+                    db.execute("UPDATE npcs SET npc_id = id WHERE id = ?", (cur.lastrowid,))
                 log("npcs", cur.lastrowid, f"{name} beside {v['giver']}")
                 if name == OUTFITTER:
                     for i, pid in enumerate(v["stock"]):

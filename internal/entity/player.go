@@ -329,6 +329,11 @@ type CoachDest struct {
 	Fee      int
 	MinLevel int
 	Via      string
+
+	// Ledgers marks an entry of a coachman's menu that is no trip: his offer
+	// to sign the player into every stable's ledger at once (handlers/
+	// coachledger.go), which asks Yes or No when picked.
+	Ledgers bool
 }
 
 // SparPick is a sparring dummy's menu as far as the player has gone: the

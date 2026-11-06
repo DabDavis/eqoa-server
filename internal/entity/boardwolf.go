@@ -24,10 +24,13 @@ import (
 const BoardWolfEffectID = -1004
 
 // BoardWolfName and BoardWolfIcon are its slot on the effects channel: Spirit
-// of the Wolf's name and icon (spellpattern 452's).
+// of the Wolf's name and the plain boot, the ranger's SoW's (901140) and
+// Sprint's (petition 1066: a speed buff shows the plain boot; spellpattern
+// 452's 0x9CDB7CC9 is the boot tied down by a chain every snare and root
+// wears).
 const (
 	BoardWolfName          = "Spirit of the Wolf"
-	BoardWolfIcon   uint32 = 0x9CDB7CC9
+	BoardWolfIcon   uint32 = 0x260ECB59
 	BoardWolfLength        = time.Hour
 )
 

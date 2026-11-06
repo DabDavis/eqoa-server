@@ -41,6 +41,28 @@ func TestWornGearCarriesItemShields(t *testing.T) {
 	}
 }
 
+// A worn robe's record colour is its tint on the channel and in the
+// character list (the gear's byte 4), and its colour for the live look; a
+// robe carried does nothing.
+func TestAWornRobesColour(t *testing.T) {
+	robe := database.CharInventoryEntry{EquipLoc: 2, Pattern: database.ItemPatternRecord{EquipSlot: 2, ItemName: "Spirit Maker's Robe",
+		Color: 0x00B4FFFF}}
+	p := &entity.Player{}
+	wornLook(p, []database.CharInventoryEntry{robe})
+	if !p.RobeWorn || p.RobeTint != 2 || p.RobeColor != 0x00B4FFFF {
+		t.Errorf("the sky blue robe worn: worn %v, tint %d, colour %08X", p.RobeWorn, p.RobeTint, p.RobeColor)
+	}
+	if g := characterGear([]database.CharInventoryEntry{robe}); g[4] != 2 {
+		t.Errorf("the list's robe tint: %d, want 2", g[4])
+	}
+	carried := robe
+	carried.EquipLoc = -1
+	wornLook(p, []database.CharInventoryEntry{carried})
+	if p.RobeWorn || p.RobeTint != 0 || p.RobeColor != 0 {
+		t.Errorf("a robe carried: worn %v, tint %d, colour %08X", p.RobeWorn, p.RobeTint, p.RobeColor)
+	}
+}
+
 // The look is the worn items' alone: a weapon taken off leaves the hand, and
 // one worn again goes in the hand its equip slot names, the second hand's
 // weapon there whatever came first. The control: filling without clearing,

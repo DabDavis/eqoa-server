@@ -295,7 +295,7 @@ func (w *World) serializeEntityForChannel(sess *session.Session, id EntityID, ob
 	}
 	var dyes *Dyes
 	if p != nil {
-		dyes = &p.Dyes
+		dyes = p.LookDyes()
 	}
 	return ForViewer(sess, buf, dyes)
 }

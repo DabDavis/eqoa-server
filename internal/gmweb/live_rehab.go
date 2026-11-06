@@ -8,12 +8,12 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// The rehabilitators in the panel (handlers/rehab.go): their prices and the
-// free resets every character has (table rehabsettings, a row a setting) and
-// each character's counts (charresets, a row a kind), so a GM sees and sets
-// them as any row is changed, audited and revertible. The game reads both at
-// each talk to a rehabilitator, so a change needs nothing done to the running
-// world.
+// The rehabilitators in the panel (handlers/rehab.go): their old prices and
+// free resets (table rehabsettings, a row a setting), which nothing reads
+// since every reset is free (2026-11-06), and each character's counts
+// (charresets, a row a kind), a record of its resets; a GM sees and edits
+// them as any row, audited and revertible, and nothing needs doing to the
+// running world.
 
 // rehabSettingHelp is rehabsettings.setting's help: every setting, its
 // default and what it is.

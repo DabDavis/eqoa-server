@@ -18,9 +18,8 @@ import (
 // The rehabilitators (the user, 2026-10-30): "Rehabilitator Anja in Muniels
 // tea garden and another near freeport NPC, talk to them". Talked to, one
 // opens a menu of the quest boxes a PS2 reads (a 0x0046 box a line, a 0x0034
-// question with its answers; rehabBoxMark marks their ids) that says what the
-// character has left and offers, three answers as CLIENT's VIWndResponse
-// shows a page (its own Close answers 255, nothing):
+// question with its answers; rehabBoxMark marks their ids), answers as
+// CLIENT's VIWndResponse shows a page (its own Close answers 255, nothing):
 //
 //   - a reset, then which: its Combat Masteries, as #rst_mastr
 //     (classmastery.go: every rank taken, its points back, 0x1402 sub-op 6 a
@@ -31,19 +30,19 @@ import (
 //     that step's other options, changed on the spot: the old option's spells
 //     out of the book and its items taken back, the new one's spells taught
 //     and its items given, the pick kept, no quest done again (the user,
-//     2026-10-30: "choose again on the spot");
-//   - a Rose of Rehabilitation bought.
+//     2026-10-30: "choose again on the spot").
 //
 // Each is asked again before it is done, and refused when the character has
-// nothing of it, cannot pay, or (a path) wears what the path gave or has no
-// room for what the new pick gives (the quests' rule, questroom.go). A
-// character's first resets are free (database.RehabSettings: 1 mastery
-// reset, 1 stat point reset, 2 path respecs); then a reset costs tunar
-// ("1mil for cms, 2mil for both") and a path a Rose of Rehabilitation ("Roses
-// for paths"), sold here ("for 10 million tunar") and given by a class's
-// level 60 epic ("1 free path respec w/ 60 epic. Or rose as reward"). The
-// prices and free counts are the GMs' (table rehabsettings), the counts each
-// character's (charresets). The words are ours.
+// nothing of it, or (a path) wears what the path gave or has no room for what
+// the new pick gives (the quests' rule, questroom.go). Every reset is free,
+// every time, at every rehabilitator (the user, 2026-11-06: "lets make rehab
+// resets free from anja etc"). Until then a character had 1 free mastery
+// reset, 1 free stat point reset and 2 free path respecs, then paid tunar
+// ("1mil for cms, 2mil for both") and a Rose of Rehabilitation a path ("Roses
+// for paths"), sold here for 10,000,000 and given by a class's level 60 epic;
+// the GMs' prices and free counts (table rehabsettings) are not read any
+// more, and a rose a character holds is not asked for. Each reset is still
+// counted, for the record (charresets, as used). The words are ours.
 
 // rehabBoxMark marks a rehabilitator's question's id (0x0034's u32, echoed by
 // 0x0035), beside the quests' 0x51, the triggers' 0x52 and the duels' 0x53.
@@ -80,14 +79,10 @@ const (
 	rehabChangeYes   = "Yes, change it."
 	rehabBookFull    = "Your spell book has no room for %s."
 	rehabKnowsAll    = "You know every ability this path offers already: none leaves your book."
-	rehabRoseIs      = "A Rose of Rehabilitation lets me change one more of your paths once your free path respecs are spent. It is yours alone: it cannot be traded."
-	rehabRoseYes     = "Yes, buy a rose."
-	rehabRoseKeep    = "Keep it close. When you would choose a path again, bring it to me."
-	rehabNoRoses     = "I have no roses to give just now."
 	rehabTrouble     = "Forgive me, my thoughts are elsewhere. Come back in a little while."
-	rehabPackFull    = "Your pack is full. Make room for the rose, then come back."
 	rehabWorn        = "Take off %s first: what a path gave goes back with it."
 	rehabDone        = "It is done."
+	rehabAskChange   = "Shall I make the change?"
 )
 
 // The menus' answers, and what a confirmation does.
@@ -96,7 +91,6 @@ const (
 	rehabTraining
 	rehabBoth
 	rehabPath
-	rehabRose
 	rehabResets // the menu's reset: which is asked
 )
 
@@ -108,13 +102,10 @@ const (
 	rehabStageConfirm            // yes or no to what ask says
 )
 
-// rehabTerms is what a reset costs a character now: the free resets it uses,
-// the tunar, the rose. Two asks agree only on equal terms.
+// rehabTerms is what a reset does to a character as it stands: the parts it
+// resets. Two asks agree only on equal terms.
 type rehabTerms struct {
-	mastery, training         bool // the parts done (a path: neither)
-	freeMastery, freeTraining bool // a free reset of each part used
-	freePath, rose            bool // a path: a free respec, else a rose
-	tunar                     int
+	mastery, training bool
 }
 
 // rehabBox is the question a rehabilitator asked a character last.
@@ -128,14 +119,11 @@ type rehabBox struct {
 	what    int        // a confirmation: what it does
 	terms   rehabTerms // and on what terms it was asked
 	swap    *pathSwap  // a path's change, as it was asked
-	then    int        // a rose bought for a path: the paths asked next
 }
 
-// rehabRows is what a rehabilitator keeps: the settings and each character's
-// counts (database.SQLiteDB), and which spells merchants sell as scrolls.
+// rehabRows is what a rehabilitator keeps: each character's counts
+// (database.SQLiteDB), and which spells merchants sell as scrolls.
 type rehabRows interface {
-	RehabSettings() (database.RehabSettings, error)
-	CharResets(serverID uint32) (map[string]database.CharReset, error)
 	CountReset(serverID uint32, kind string, free bool, at time.Time) error
 	MerchantScrollNames(icon int) ([]string, error)
 }
@@ -174,21 +162,16 @@ func NewRehab(db *database.SQLiteDB, gw *entity.World, inv *database.InventorySt
 
 // --- talking and answering ---
 
-// Talk is a rehabilitator talked to: what the character has left, and the
-// menu. It reports whether the NPC was one.
+// Talk is a rehabilitator talked to: the greeting and the menu. It reports
+// whether the NPC was one.
 func (r *Rehab) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) bool {
 	if r == nil || p == nil || npc == nil || npc.Dead || !IsRehabilitator(npc.Name) {
 		return false
 	}
 	forgetDialogs(p)
 	speaker := strings.TrimSpace(npc.Name)
-	set, left, ok := r.standing(p)
-	if !ok {
-		r.say(sess, speaker, rehabTrouble)
-		return true
-	}
-	r.say(sess, speaker, fmt.Sprintf(rehabGreeting, p.Name), r.leftLine(p, set, left))
-	r.menu(sess, p, speaker, set, left)
+	r.say(sess, speaker, fmt.Sprintf(rehabGreeting, p.Name))
+	r.menu(sess, p, speaker)
 	log.Printf("Rehab: %s talked to %s", p.Name, speaker)
 	return true
 }
@@ -246,8 +229,6 @@ func (r *Rehab) picked(sess *session.Session, p *entity.Player, speaker string, 
 		r.askReset(sess, p, speaker, what)
 	case rehabPath:
 		r.askPaths(sess, p, speaker)
-	case rehabRose:
-		r.askRose(sess, p, speaker)
 	}
 }
 
@@ -259,109 +240,24 @@ func (r *Rehab) confirmed(sess *session.Session, p *entity.Player, b *rehabBox) 
 		r.doReset(sess, p, b)
 	case rehabPath:
 		r.doSwap(sess, p, b)
-	case rehabRose:
-		if r.doRose(sess, p, b.speaker, b.terms) && b.then == rehabPath {
-			r.askPaths(sess, p, b.speaker)
-		}
 	}
 }
 
 // --- the menu ---
 
-// standing is the settings and the free resets the character has left, by
-// kind; false when they cannot be read.
-func (r *Rehab) standing(p *entity.Player) (database.RehabSettings, map[string]int, bool) {
-	set, err := r.rows.RehabSettings()
-	if err != nil {
-		log.Printf("Rehab: the settings: %v", err)
-		return set, nil, false
-	}
-	counts, err := r.rows.CharResets(p.CharServerID)
-	if err != nil {
-		log.Printf("Rehab: %s's resets: %v", p.Name, err)
-		return set, nil, false
-	}
-	left := map[string]int{}
-	for _, k := range database.ResetKinds {
-		left[k] = counts[k].Left(set.Free(k))
-	}
-	return set, left, true
-}
-
-// leftLine says what the character has left: its free resets and its roses.
-func (r *Rehab) leftLine(p *entity.Player, set database.RehabSettings, left map[string]int) string {
-	var free []string
-	if n := left[database.ResetMastery]; n > 0 {
-		free = append(free, countWord(n, "free Combat Mastery reset", "free Combat Mastery resets"))
-	}
-	if n := left[database.ResetTraining]; n > 0 {
-		free = append(free, countWord(n, "free stat point reset", "free stat point resets"))
-	}
-	if n := left[database.ResetPath]; n > 0 {
-		free = append(free, countWord(n, "free path respec", "free path respecs"))
-	}
-	have := "no free resets"
-	if len(free) > 0 {
-		have = joinAnd(free)
-	}
-	roses := "no Rose of Rehabilitation"
-	if n := r.rosesHeld(p); n > 0 {
-		roses = countWord(n, "Rose of Rehabilitation", "Roses of Rehabilitation")
-	}
-	return fmt.Sprintf("You have %s left, and hold %s.", have, roses)
-}
-
-// menu asks what to undo: a reset, a path (free while one is left, else a
-// rose), a rose bought: three answers, a page of CLIENT's.
-func (r *Rehab) menu(sess *session.Session, p *entity.Player, speaker string, set database.RehabSettings, left map[string]int) {
-	path := "a Rose of Rehabilitation"
-	if left[database.ResetPath] > 0 {
-		path = "free"
-	}
-	labels := []string{
-		"Reset my masteries or stat points",
-		"Choose a path again (" + path + ")",
-		"Buy a Rose of Rehabilitation (" + tunarText(set.PriceRose) + ")",
-	}
+// menu asks what to undo: a reset or a path, two answers of a page of
+// CLIENT's.
+func (r *Rehab) menu(sess *session.Session, p *entity.Player, speaker string) {
+	labels := []string{"Reset my masteries or stat points", "Choose a path again"}
 	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageMenu,
-		options: []int{rehabResets, rehabPath, rehabRose}}, rehabAskMenu, labels)
+		options: []int{rehabResets, rehabPath}}, rehabAskMenu, labels)
 }
 
-// resetMenu asks which reset: the masteries, the stat points or both, each
-// with its price or "free".
+// resetMenu asks which reset: the masteries, the stat points or both.
 func (r *Rehab) resetMenu(sess *session.Session, p *entity.Player, speaker string) {
-	set, left, ok := r.standing(p)
-	if !ok {
-		r.say(sess, speaker, rehabTrouble)
-		return
-	}
-	labels := []string{
-		"My Combat Masteries (" + priceWord(resetTerms(set, left, true, false).tunar) + ")",
-		"My stat points (" + priceWord(resetTerms(set, left, false, true).tunar) + ")",
-		"Both (" + priceWord(resetTerms(set, left, true, true).tunar) + ")",
-	}
+	labels := []string{"My Combat Masteries", "My stat points", "Both"}
 	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageMenu,
 		options: []int{rehabMastery, rehabTraining, rehabBoth}}, rehabAskResets, labels)
-}
-
-// resetTerms is what a reset of the parts named costs now: each part's free
-// reset while it has one left; then its price, or, both parts paid, the price
-// of both.
-func resetTerms(set database.RehabSettings, left map[string]int, mastery, training bool) rehabTerms {
-	t := rehabTerms{mastery: mastery, training: training,
-		freeMastery: mastery && left[database.ResetMastery] > 0, freeTraining: training && left[database.ResetTraining] > 0}
-	switch {
-	case mastery && training && !t.freeMastery && !t.freeTraining:
-		t.tunar = set.PriceBoth
-	default:
-		if mastery && !t.freeMastery {
-			t.tunar += set.PriceMastery
-		}
-		if training && !t.freeTraining {
-			t.tunar += set.PriceTraining
-		}
-	}
-	return t
 }
 
 // --- masteries and stat points ---
@@ -381,41 +277,33 @@ func (r *Rehab) resetParts(sess *session.Session, p *entity.Player) (mastery, tr
 }
 
 // resetPlan is a reset asked for (rehabMastery, rehabTraining, rehabBoth)
-// as the character stands: what is done, on what terms, or why nothing.
+// as the character stands: the parts done, or why nothing.
 func (r *Rehab) resetPlan(sess *session.Session, p *entity.Player, what int) (rehabTerms, string) {
-	set, left, ok := r.standing(p)
-	if !ok {
-		return rehabTerms{}, rehabTrouble
-	}
 	hasM, hasT := r.resetParts(sess, p)
 	switch what {
 	case rehabMastery:
 		if !hasM {
 			return rehabTerms{}, rehabNoMastery
 		}
-		return resetTerms(set, left, true, false), ""
+		return rehabTerms{mastery: true}, ""
 	case rehabTraining:
 		if !hasT {
 			return rehabTerms{}, rehabNoTraining
 		}
-		return resetTerms(set, left, false, true), ""
+		return rehabTerms{training: true}, ""
 	}
 	if !hasM && !hasT {
 		return rehabTerms{}, rehabNothing
 	}
-	return resetTerms(set, left, hasM, hasT), ""
+	return rehabTerms{mastery: hasM, training: hasT}, ""
 }
 
 // askReset asks to reset the masteries, the stat points or both: what it
-// does and what it costs, or why it cannot be done.
+// does, or why it cannot be done.
 func (r *Rehab) askReset(sess *session.Session, p *entity.Player, speaker string, what int) {
 	t, no := r.resetPlan(sess, p, what)
 	if no != "" {
 		r.say(sess, speaker, no)
-		return
-	}
-	if t.tunar > p.Tunar {
-		r.say(sess, speaker, fmt.Sprintf("That costs %s, and you carry %s.", tunarText(t.tunar), tunarText(p.Tunar)))
 		return
 	}
 	var is string
@@ -435,31 +323,11 @@ func (r *Rehab) askReset(sess *session.Session, p *entity.Player, speaker string
 	}
 	r.say(sess, speaker, is)
 	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageConfirm, what: what, terms: t},
-		rehabAskBegin+" "+termsLine(t), []string{rehabYes, rehabNotNow})
+		rehabAskBegin, []string{rehabYes, rehabNotNow})
 }
 
-// termsLine says what a reset costs, after the question.
-func termsLine(t rehabTerms) string {
-	var free []string
-	if t.freeMastery {
-		free = append(free, "your free mastery reset")
-	}
-	if t.freeTraining {
-		free = append(free, "your free stat point reset")
-	}
-	switch {
-	case t.tunar > 0 && len(free) > 0:
-		return fmt.Sprintf("It costs %s and %s.", tunarText(t.tunar), joinAnd(free))
-	case t.tunar > 0:
-		return fmt.Sprintf("It costs %s.", tunarText(t.tunar))
-	}
-	return "It uses " + joinAnd(free) + "."
-}
-
-// doReset carries out a reset asked and agreed: the tunar taken, the
-// masteries and the stat points reset, then each part done counted (free or
-// paid) and what a part not done would have cost given back (all of it when
-// nothing was there to reset).
+// doReset carries out a reset asked and agreed: the masteries and the stat
+// points reset, then each part done counted.
 func (r *Rehab) doReset(sess *session.Session, p *entity.Player, b *rehabBox) {
 	t, no := r.resetPlan(sess, p, b.what)
 	if no != "" {
@@ -467,11 +335,7 @@ func (r *Rehab) doReset(sess *session.Session, p *entity.Player, b *rehabBox) {
 		return
 	}
 	if t != b.terms {
-		r.askReset(sess, p, b.speaker, b.what) // the terms moved: asked again
-		return
-	}
-	if !r.pay(sess, p, t.tunar) {
-		r.say(sess, b.speaker, fmt.Sprintf("That costs %s, and you carry %s.", tunarText(t.tunar), tunarText(p.Tunar)))
+		r.askReset(sess, p, b.speaker, b.what) // the parts moved: asked again
 		return
 	}
 	var lines []string
@@ -503,40 +367,21 @@ func (r *Rehab) doReset(sess *session.Session, p *entity.Player, b *rehabBox) {
 			lines = append(lines, fmt.Sprintf("%d training points are yours to spend again.", tr.Refund()))
 		}
 	}
-	final := rehabTerms{}
-	if set, left, ok := r.standing(p); ok && (didM || didT) {
-		final = resetTerms(set, left, didM, didT)
-	}
-	r.refund(sess, p, t.tunar-final.tunar)
 	if !didM && !didT {
 		r.say(sess, b.speaker, rehabNothing)
 		return
 	}
 	if didM {
-		r.count(p, database.ResetMastery, final.freeMastery)
+		r.count(p, database.ResetMastery)
 	}
 	if didT {
-		r.count(p, database.ResetTraining, final.freeTraining)
+		r.count(p, database.ResetTraining)
 	}
 	if trouble {
 		lines = append(lines, "Something went wrong keeping it: tell a GM.")
 	}
 	r.say(sess, b.speaker, rehabDone+" "+strings.Join(lines, " "))
-	if paid := min(t.tunar, final.tunar); paid > 0 {
-		r.say(sess, "", fmt.Sprintf("You paid %s.", tunarText(paid)))
-	}
-	var free []string
-	if final.freeMastery {
-		free = append(free, "your free mastery reset")
-	}
-	if final.freeTraining {
-		free = append(free, "your free stat point reset")
-	}
-	if len(free) > 0 {
-		r.say(sess, "", "That was "+joinAnd(free)+".")
-	}
-	log.Printf("Rehab: %s reset (masteries %v, stat points %v), %d tunar, free %v/%v", p.Name, didM, didT,
-		min(t.tunar, final.tunar), final.freeMastery, final.freeTraining)
+	log.Printf("Rehab: %s reset (masteries %v, stat points %v), free", p.Name, didM, didT)
 }
 
 // --- paths ---
@@ -566,8 +411,7 @@ func (pk pathPick) label() string {
 
 // pathSwap is a pick changed for another option of its step on the spot: what
 // leaves the book and what enters it, the items taken back and given (an item
-// both options give stays), what stops it (worn, no room) or went missing, and
-// its terms.
+// both options give stays), and what stops it (worn, no room) or went missing.
 type pathSwap struct {
 	pick    pathPick
 	to      int
@@ -578,7 +422,6 @@ type pathSwap struct {
 	worn    []string // the old option's, worn: taken off first
 	short   string   // the new items the pack has no room for
 	granted bool     // the book holds two options' spells nothing else explains: none leaves it
-	terms   rehabTerms
 }
 
 // optionSpells is the spells an option teaches, by id and by name (spellKey):
@@ -698,21 +541,11 @@ func (r *Rehab) inferPick(opts []database.StepOption, book map[int]string, owned
 }
 
 // askPaths asks which path to choose again: the character's picks, a step
-// each (CLIENT pages them three at a time; its Close is "none"), when it has
-// a free respec or a rose; else the rose offered.
+// each (CLIENT pages them three at a time; its Close is "none").
 func (r *Rehab) askPaths(sess *session.Session, p *entity.Player, speaker string) {
 	picks := r.pickedPaths(p)
 	if len(picks) == 0 {
 		r.say(sess, speaker, rehabNoPath)
-		return
-	}
-	set, left, ok := r.standing(p)
-	if !ok {
-		r.say(sess, speaker, rehabTrouble)
-		return
-	}
-	if left[database.ResetPath] == 0 && r.rosesHeld(p) == 0 {
-		r.offerRose(sess, p, speaker, set)
 		return
 	}
 	if len(picks) > maxDialogOptions {
@@ -723,20 +556,6 @@ func (r *Rehab) askPaths(sess *session.Session, p *entity.Player, speaker string
 		labels[i] = pk.label()
 	}
 	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStagePaths, picks: picks}, rehabAskPath, labels)
-}
-
-// offerRose is a path asked for with no free respec and no rose: a rose
-// offered, when the character can pay for one.
-func (r *Rehab) offerRose(sess *session.Session, p *entity.Player, speaker string, set database.RehabSettings) {
-	if p.Tunar < set.PriceRose {
-		r.say(sess, speaker, fmt.Sprintf("Your free path respecs are spent. For each path more I need a Rose of Rehabilitation: "+
-			"I sell them for %s, and you carry %s.", tunarText(set.PriceRose), tunarText(p.Tunar)))
-		return
-	}
-	r.say(sess, speaker, fmt.Sprintf("Your free path respecs are spent. For each path more I need a Rose of Rehabilitation, "+
-		"and I sell them for %s.", tunarText(set.PriceRose)))
-	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageConfirm, what: rehabRose, terms: rehabTerms{tunar: set.PriceRose},
-		then: rehabPath}, "Will you buy one?", []string{rehabRoseYes, rehabNotNow})
 }
 
 // askNewPick asks what to take instead of a pick: its step's other options.
@@ -764,9 +583,9 @@ func (r *Rehab) askNewPick(sess *session.Session, p *entity.Player, speaker stri
 // spells out of the book (not one another quest it keeps gives, nor one
 // merchants sell as a scroll, nor one the new option teaches too) and its
 // items back, the new option's spells into the book and its items given (an
-// item both give stays where it is), the pack tried for the new items once the
-// old ones and a rose are taken (the quests' rule: questroom.go), and the terms
-// (a free respec, else a rose). Why it cannot be planned, when it cannot.
+// item both give stays where it is), and the pack tried for the new items once
+// the old ones are taken (the quests' rule: questroom.go). Why it cannot be
+// planned, when it cannot.
 func (r *Rehab) planSwap(sess *session.Session, p *entity.Player, pk pathPick, to int) (*pathSwap, string) {
 	var cur *pathPick
 	for _, x := range r.pickedPaths(p) {
@@ -921,23 +740,7 @@ func (r *Rehab) planSwap(sess *session.Session, p *entity.Player, pk pathPick, t
 		}
 	}
 
-	// the terms: a free respec, else a rose
-	set, left, ok := r.standing(p)
-	if !ok {
-		return nil, rehabTrouble
-	}
-	switch {
-	case left[database.ResetPath] > 0:
-		u.terms = rehabTerms{freePath: true}
-	case r.rosesHeld(p) > 0:
-		u.terms = rehabTerms{rose: true}
-		takeFromPack(database.RoseOfRehabilitation, 1)
-	default:
-		return nil, fmt.Sprintf("Your free path respecs are spent. For each path more I need a Rose of Rehabilitation, "+
-			"and I sell them for %s.", tunarText(set.PriceRose))
-	}
-
-	// the pack, for the new items once the old ones and the rose are taken
+	// the pack, for the new items once the old ones are taken
 	if l := sessionInvList(sess); l != nil && len(u.give) > 0 {
 		u.short = packShort(l, takes, u.give, func(id int) (database.ItemPatternRecord, bool) {
 			pat, ok, err := r.inv.ItemPatternByID(id)
@@ -974,8 +777,8 @@ func (r *Rehab) swapLines(u *pathSwap) []string {
 	return lines
 }
 
-// askSwap asks to change a pick for option to: what changes and on what
-// terms, or why it cannot.
+// askSwap asks to change a pick for option to: what changes, or why it
+// cannot.
 func (r *Rehab) askSwap(sess *session.Session, p *entity.Player, speaker string, pk pathPick, to int) {
 	u, no := r.planSwap(sess, p, pk, to)
 	switch {
@@ -990,23 +793,17 @@ func (r *Rehab) askSwap(sess *session.Session, p *entity.Player, speaker string,
 		return
 	}
 	r.say(sess, speaker, r.swapLines(u)...)
-	question := "Shall I make the change, for a Rose of Rehabilitation?"
-	if u.terms.freePath {
-		if _, left, ok := r.standing(p); ok {
-			question = fmt.Sprintf("Shall I make the change? This is a free path respec (%d left after).", left[database.ResetPath]-1)
-		}
-	}
-	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageConfirm, what: rehabPath, terms: u.terms, swap: u},
-		question, []string{rehabChangeYes, rehabNotNow})
+	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageConfirm, what: rehabPath, swap: u},
+		rehabAskChange, []string{rehabChangeYes, rehabNotNow})
 }
 
 // doSwap carries out a change asked and agreed, on the spot: planned again
-// (asked again when the pick or the terms moved), refused before anything
-// moves when an old item is worn or the pack has no room, then the rose taken
-// (a free respec is counted at the end), the old spells out of the book
-// (0x00B8) and its items back, the new spells in (0x00B3) and its items given,
-// the pick kept with the quest's row. The quest rows stay as they are: nothing
-// is done again and no experience is given. A line says what changed.
+// (asked again when the pick moved), refused before anything moves when an
+// old item is worn or the pack has no room, then the old spells out of the
+// book (0x00B8) and its items back, the new spells in (0x00B3) and its items
+// given, the pick kept with the quest's row, the change counted. The quest
+// rows stay as they are: nothing is done again and no experience is given. A
+// line says what changed.
 func (r *Rehab) doSwap(sess *session.Session, p *entity.Player, b *rehabBox) {
 	if b.swap == nil {
 		return
@@ -1022,12 +819,8 @@ func (r *Rehab) doSwap(sess *session.Session, p *entity.Player, b *rehabBox) {
 	case u.short != "":
 		r.say(sess, b.speaker, fmt.Sprintf(questPackFull, u.short))
 		return
-	case u.terms != b.terms || u.pick.option != b.swap.pick.option:
-		r.askSwap(sess, p, b.speaker, u.pick, u.to) // the pick or the terms moved: asked again
-		return
-	}
-	if u.terms.rose && r.takeItems(sess, p, database.RoseOfRehabilitation, 1) == 0 {
-		r.say(sess, b.speaker, "Bring me a Rose of Rehabilitation first.")
+	case u.pick.option != b.swap.pick.option:
+		r.askSwap(sess, p, b.speaker, u.pick, u.to) // the pick moved: asked again
 		return
 	}
 	var gone []string
@@ -1058,7 +851,7 @@ func (r *Rehab) doSwap(sess *session.Session, p *entity.Player, b *rehabBox) {
 		}
 	}
 	r.quests().setPick(p.CharServerID, u.pick.pq.quest.ID, u.pick.step, u.to)
-	r.count(p, database.ResetPath, u.terms.freePath)
+	r.count(p, database.ResetPath)
 
 	opts := u.pick.options()
 	var what []string
@@ -1075,141 +868,17 @@ func (r *Rehab) doSwap(sess *session.Session, p *entity.Player, b *rehabBox) {
 	if len(what) > 0 {
 		r.say(sess, "", strings.Join(what, " "))
 	}
-	if u.terms.rose {
-		r.say(sess, "", "You gave up a Rose of Rehabilitation.")
-	} else if _, left, ok := r.standing(p); ok {
-		r.say(sess, "", fmt.Sprintf("That was a free path respec: %d left.", left[database.ResetPath]))
-	}
-	log.Printf("Rehab: %s changed %q step %d from %q to %q (out %v, in %v, back %v, given %v, missing %v, rose %v, inferred %v)",
+	log.Printf("Rehab: %s changed %q step %d from %q to %q (out %v, in %v, back %v, given %v, missing %v, inferred %v), free",
 		p.Name, u.pick.pq.quest.Name, u.pick.step, opts[u.pick.option].Answer, opts[u.to].Answer, gone, spellNames(u.in),
-		back, given, u.missing, u.terms.rose, u.pick.inferred)
+		back, given, u.missing, u.pick.inferred)
 }
 
-// --- the rose ---
+// --- the counts and the items ---
 
-// askRose asks to buy a Rose of Rehabilitation, or says why not.
-func (r *Rehab) askRose(sess *session.Session, p *entity.Player, speaker string) {
-	set, _, ok := r.standing(p)
-	if !ok {
-		r.say(sess, speaker, rehabTrouble)
-		return
-	}
-	if no := r.roseRefusal(sess, p, set.PriceRose); no != "" {
-		r.say(sess, speaker, no)
-		return
-	}
-	r.say(sess, speaker, rehabRoseIs)
-	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageConfirm, what: rehabRose, terms: rehabTerms{tunar: set.PriceRose}},
-		fmt.Sprintf("Will you buy one for %s?", tunarText(set.PriceRose)), []string{rehabRoseYes, rehabNotNow})
-}
-
-// roseRefusal is why the character cannot buy a rose for price now: too
-// little tunar, a full pack, no rose to give; "" when it can.
-func (r *Rehab) roseRefusal(sess *session.Session, p *entity.Player, price int) string {
-	pat, ok, err := r.inv.ItemPatternByID(database.RoseOfRehabilitation)
-	if err != nil || !ok {
-		return rehabNoRoses
-	}
-	if p.Tunar < price {
-		return fmt.Sprintf("A Rose of Rehabilitation costs %s, and you carry %s.", tunarText(price), tunarText(p.Tunar))
-	}
-	if l := sessionInvList(sess); l == nil || l.wouldAdd(pat.PatternID, 1, pat.MaxStack) == 0 {
-		return rehabPackFull
-	}
-	return ""
-}
-
-// doRose sells a rose asked for and agreed: at the price asked (asked again
-// when it moved), the tunar taken, the rose given, the tunar given back when
-// it could not be. It reports a sale.
-func (r *Rehab) doRose(sess *session.Session, p *entity.Player, speaker string, asked rehabTerms) bool {
-	set, _, ok := r.standing(p)
-	if !ok {
-		r.say(sess, speaker, rehabTrouble)
-		return false
-	}
-	if set.PriceRose != asked.tunar {
-		r.askRose(sess, p, speaker)
-		return false
-	}
-	if no := r.roseRefusal(sess, p, set.PriceRose); no != "" {
-		r.say(sess, speaker, no)
-		return false
-	}
-	if !r.pay(sess, p, set.PriceRose) {
-		r.say(sess, speaker, fmt.Sprintf("A Rose of Rehabilitation costs %s, and you carry %s.", tunarText(set.PriceRose), tunarText(p.Tunar)))
-		return false
-	}
-	if !r.giveRose(sess, p) {
-		r.refund(sess, p, set.PriceRose)
-		r.say(sess, speaker, rehabPackFull)
-		return false
-	}
-	r.say(sess, "", fmt.Sprintf("You paid %s.", tunarText(set.PriceRose)), "You have received "+database.RoseOfRehabilitationName+".")
-	r.say(sess, speaker, rehabRoseKeep)
-	log.Printf("Rehab: %s bought a Rose of Rehabilitation for %d", p.Name, set.PriceRose)
-	return true
-}
-
-// giveRose puts a rose in the character's pack, as a quest gives an item;
-// false when it could not.
-func (r *Rehab) giveRose(sess *session.Session, p *entity.Player) bool {
-	pat, ok, err := r.inv.ItemPatternByID(database.RoseOfRehabilitation)
-	if err != nil || !ok {
-		return false
-	}
-	n, err := GiveItemNow(sess, r.gw, r.inv, pat, 1)
-	if err != nil {
-		log.Printf("Rehab: a rose for %s: %v", p.Name, err)
-	}
-	return n == 1
-}
-
-// rosesHeld is how many roses the character holds, its pack's and its
-// bank's.
-func (r *Rehab) rosesHeld(p *entity.Player) int {
-	rows, err := r.inv.GetCharacterItems(p.CharServerID)
-	if err != nil {
-		return 0
-	}
-	n := 0
-	for _, row := range rows {
-		if row.Pattern.PatternID == database.RoseOfRehabilitation && !(row.Location == 0 && row.EquipLoc >= 0) {
-			n += row.StackLeft
-		}
-	}
-	return n
-}
-
-// --- the purse and the items ---
-
-// pay takes n tunar from the purse (nothing for 0), kept and shown; false
-// when it holds less.
-func (r *Rehab) pay(sess *session.Session, p *entity.Player, n int) bool {
-	if n <= 0 {
-		return true
-	}
-	left, ok := r.gw.TakeTunar(p.CharServerID, n)
-	if !ok {
-		return false
-	}
-	if err := r.inv.SetPurse(p.CharServerID, left); err != nil {
-		log.Printf("Rehab: %s's purse not kept: %v", p.Name, err)
-	}
-	queueReliable(sess, protocol.OpcodePlayerTunar, tunarPayload(left))
-	return true
-}
-
-// refund gives back n tunar pay took.
-func (r *Rehab) refund(sess *session.Session, p *entity.Player, n int) {
-	if n > 0 {
-		r.pay(sess, p, -n)
-	}
-}
-
-// count counts a reset the character had, free or paid.
-func (r *Rehab) count(p *entity.Player, kind string, free bool) {
-	if err := r.rows.CountReset(p.CharServerID, kind, free, r.now()); err != nil {
+// count counts a reset the character had: every one is free (counted as
+// used), and the paid column keeps what was paid before they were.
+func (r *Rehab) count(p *entity.Player, kind string) {
+	if err := r.rows.CountReset(p.CharServerID, kind, true, r.now()); err != nil {
 		log.Printf("Rehab: %s's %s reset not counted: %v", p.Name, kind, err)
 	}
 }
@@ -1365,19 +1034,6 @@ func tunarText(n int) string {
 		b.WriteRune(c)
 	}
 	return b.String() + " tunar"
-}
-
-// priceWord is a price in a menu's answer: "free", or its tunar.
-func priceWord(n int) string {
-	if n <= 0 {
-		return "free"
-	}
-	return tunarText(n)
-}
-
-// countWord is "1 thing" or "2 things".
-func countWord(n int, one, many string) string {
-	return strconv.Itoa(n) + " " + plural(n, one, many)
 }
 
 // plural is one for 1, else many.

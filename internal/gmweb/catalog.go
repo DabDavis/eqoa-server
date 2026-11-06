@@ -306,12 +306,11 @@ var catalog = map[string]tableNote{
 		Label: "Character resets", Group: "Players", Sort: "serverid",
 		Help: "Each character's resets at a rehabilitator (handlers/rehab.go: Rehabilitator Anja in Muniel's Tea Garden, " +
 			"Rehabilitator Frejo near Freeport), a row a kind: mastery (its Combat Masteries unlearned, their points back), " +
-			"training (its stat points back) and path (a level 20, 30, 40 or 49 path's pick chosen again). used is the free ones it " +
-			"used, paid those it paid for (tunar for masteries and stat points, a Rose of Rehabilitation for a path), bonus free " +
-			"ones a GM gave it besides everyone's (Rehabilitators' prices: free_mastery, free_training, free_path). It has " +
-			"free + bonus - used left. A kind with no row has every free one: delete the row, lower used or raise bonus to " +
-			"give a character a free reset back.",
-		Live: "At once: the character's next talk to a rehabilitator reads it.",
+			"training (its stat points back) and path (a level 20, 30, 40 or 49 path's pick chosen again). Every reset is free, " +
+			"every time, since 2026-11-06: used counts each it had (and the free ones before), paid those it paid for before " +
+			"(tunar for masteries and stat points, a Rose of Rehabilitation for a path), bonus free ones a GM gave it then. A " +
+			"record: nothing here decides a reset any more.",
+		Live: "Nothing to apply: the rehabilitators only count here.",
 		Show: []string{"serverid", "kind", "used", "paid", "bonus", "updated"},
 		Cols: map[string]colNote{
 			"serverid": {Label: "Character", Ref: "characters"},
@@ -857,13 +856,12 @@ var catalog = map[string]tableNote{
 	},
 	"rehabsettings": {
 		Label: "Rehabilitators' prices", Group: "World", Title: "setting", Sort: "setting",
-		Help: "What the rehabilitators ask (handlers/rehab.go; the user, 2026-10-30): the free resets every character has " +
-			"(free_mastery, free_training, free_path) and then the prices in tunar (price_mastery, price_training, price_both: " +
-			"masteries and stat points together when neither has a free one left), and the Rose of Rehabilitation's " +
-			"(price_rose): past the free path respecs a path costs a rose, which the rehabilitators sell and a class's level " +
-			"60 epic gives. Each character's counts are Character resets. A setting deleted is its default until the next " +
-			"start puts its row back.",
-		Live:   "At once: the next talk to a rehabilitator reads it.",
+		Help: "NOT READ since 2026-11-06 (the user: every reset at a rehabilitator is free, every time; handlers/rehab.go). " +
+			"Until then: the free resets every character had (free_mastery, free_training, free_path) and then the prices in " +
+			"tunar (price_mastery, price_training, price_both: masteries and stat points together when neither had a free one " +
+			"left), and the Rose of Rehabilitation's (price_rose): past the free path respecs a path cost a rose, which the " +
+			"rehabilitators sold and a class's level 60 epic gives. Kept for the record and its audit; a change here does nothing.",
+		Live:   "Nothing: the game does not read it.",
 		Search: []string{"setting", "note"},
 		Cols: map[string]colNote{
 			"setting": {Label: "Setting", Help: rehabSettingHelp()},

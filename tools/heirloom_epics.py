@@ -132,7 +132,10 @@ KEEP_LOOK = {714057: "Heirloom Sword of Dreams"}
 # (the user: "lets give heirloom bow an epic ranger bow look that is on disc and make range 55"; ITEM.ESF's 200
 # models hold five bows, none glowing: the Bow of the Elder Elves' 0x361DAC84, pale wood and a red grip, and the
 # Quicksilver's 0xDEBA8F46, silver bands, are the two of note)
-LOOK_FROM_NAME = {714028: "Bow of the Elder Elves"}
+# every heirloom of an epic whose look is another record's, by its name: the ranger's bow (above), and the Ethereal
+# Hammer the glowing hammer (ITEM.ESF 0xB2116A98, the Holyglow Hammer's, with its icon; the user: "the cleric 49 epic
+# and heirloom hammer should be a glowy hammer and the icon also"; the cleric 49 epics' records took it live)
+LOOK_BY_KEY = {"quicksilver": "Bow of the Elder Elves", "ethereal": "Holyglow Hammer"}
 # new heirlooms of a look and no epic (the best of their kind at every level): the ranger's second bow, the
 # Quicksilver's look ("if you find other epic looking bows also add those as another heirloom bow")
 PLAIN = {1: [("ranged", 16, "Heirloom Longbow", 5359)]}
@@ -150,6 +153,14 @@ DESC_PLAIN = "Heirloom gear for testing: always the best of its kind your class 
 def desc_of(epic_name, level):
     return (f"Heirloom gear for testing: always the best of its kind your class can wield at your level, and from "
             f"level {level} the {epic_name} itself.")
+
+
+def look_of(db, name):
+    """The look (model, icon, colour) of the record of that name."""
+    lk = (rows_of(db, "SELECT model, itemicon, color FROM itempattern WHERE itemname = ? LIMIT 1", name) or [None])[0]
+    if lk is None:
+        raise SystemExit(f"no record named {name!r} for a look")
+    return lk
 
 
 def rows_of(db, sql, *args):
@@ -195,11 +206,8 @@ def plan(db):
                 raise SystemExit(f"{pid} is a {h['role']}, {key} a {role}")
             s = {"itemname": KEEP_LOOK.get(pid, name), "itemdesc": desc_of(e["itemname"], e["levelreq"]),
                  "attacktype": e["attacktype"]}
-            if pid in LOOK_FROM_NAME:
-                lk = (rows_of(db, "SELECT model, itemicon, color FROM itempattern WHERE itemname = ? LIMIT 1",
-                              LOOK_FROM_NAME[pid]) or [None])[0]
-                if lk is None:
-                    raise SystemExit(f"no record named {LOOK_FROM_NAME[pid]!r} for {pid}'s look")
+            if key in LOOK_BY_KEY:
+                lk = look_of(db, LOOK_BY_KEY[key])
                 s.update(model=lk["model"], itemicon=lk["itemicon"], color=lk["color"])
             elif pid not in KEEP_LOOK:
                 s.update(model=e["model"], itemicon=e["itemicon"], color=e["color"])
@@ -224,6 +232,9 @@ def plan(db):
                     r[c] = 0
             if role == "ranged":
                 r["unk5"] = RANGE
+            if key in LOOK_BY_KEY:
+                lk = look_of(db, LOOK_BY_KEY[key])
+                r.update(model=lk["model"], itemicon=lk["itemicon"], color=lk["color"])
             made.append(dict(rec={c: r.get(c) for c in cols}, cls=cls, role=role, epic=eid,
                              note=f"{CLASSES[cls]} {name} ({e['itemname']} {eid} from {e['levelreq']})"))
             nid += 1

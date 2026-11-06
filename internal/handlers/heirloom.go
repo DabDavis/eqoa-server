@@ -178,14 +178,81 @@ func (h *Heirlooms) View(serverID uint32, p *database.ItemPatternRecord) {
 	if !ok {
 		return
 	}
+	epicNow := false
 	if def.Epic != 0 {
 		if epic, ok := h.epicOf(def.Epic); ok && level >= max(epic.LevelReq, 1) {
 			heirloomEpicFigures(p, &epic)
-			return
+			epicNow = true
 		}
 	}
-	if best, ok := h.bestOf(def.Class, race, level, def.Role); ok {
-		heirloomFigures(p, &best)
+	if !epicNow {
+		if best, ok := h.bestOf(def.Class, race, level, def.Role); ok {
+			heirloomFigures(p, &best)
+		}
+	}
+	// every heirloom, weapons and shields too (the user: "let heirloom weapon
+	// get stats also and shields"), an epic's own figure kept where higher
+	heirloomStats(p, def.Class, level)
+}
+
+// heirloomSecondary are each class's two good secondary stats on its
+// heirlooms, by class (the user, 2026-11-06: "all heirlooms should
+// have stat increases also not just ac, can have hp, pow, str, sta, and 2
+// good secondary stats. for sk int and agi. for war dex and agi. etc."; the
+// rest ours, each class's casting stat where it has one and AGI or DEX for a
+// fighter, CHA for the bard's and enchanter's charms).
+var heirloomSecondary = [15][2]entity.Stat{
+	{entity.StatDex, entity.StatAgi}, // warrior
+	{entity.StatDex, entity.StatAgi}, // ranger
+	{entity.StatWis, entity.StatAgi}, // paladin
+	{entity.StatInt, entity.StatAgi}, // shadow knight
+	{entity.StatDex, entity.StatAgi}, // monk
+	{entity.StatCha, entity.StatDex}, // bard
+	{entity.StatDex, entity.StatAgi}, // rogue
+	{entity.StatWis, entity.StatInt}, // druid
+	{entity.StatWis, entity.StatAgi}, // shaman
+	{entity.StatWis, entity.StatCha}, // cleric
+	{entity.StatInt, entity.StatWis}, // magician
+	{entity.StatInt, entity.StatWis}, // necromancer
+	{entity.StatInt, entity.StatCha}, // enchanter
+	{entity.StatInt, entity.StatWis}, // wizard
+	{entity.StatInt, entity.StatWis}, // alchemist
+}
+
+// heirloomStats gives an heirloom (armour, jewellery, a shield, a weapon) at
+// least its class's stats at its wearer's level (heirloomSecondary): hit points and
+// power 1.25 a level, STR, STA and the two secondary stats one per 5 levels
+// (at least 1), so a level 60's piece carries 75 HP, 75 power and 12 of each;
+// a figure its level's best already has higher stays (ours).
+func heirloomStats(p *database.ItemPatternRecord, class, level int) {
+	lv := max(level, 1)
+	pool, stat := (5*lv+2)/4, max(1, (lv+2)/5)
+	atLeast := func(v **int, n int) {
+		if *v == nil || **v < n {
+			x := n
+			*v = &x
+		}
+	}
+	atLeast(&p.HPMAX, pool)
+	atLeast(&p.POWMAX, pool)
+	atLeast(&p.Str, stat)
+	atLeast(&p.Sta, stat)
+	if class < 0 || class >= len(heirloomSecondary) {
+		return
+	}
+	for _, s := range heirloomSecondary[class] {
+		switch s {
+		case entity.StatAgi:
+			atLeast(&p.Agi, stat)
+		case entity.StatDex:
+			atLeast(&p.Dex, stat)
+		case entity.StatWis:
+			atLeast(&p.Wis, stat)
+		case entity.StatInt:
+			atLeast(&p.Intelligence, stat)
+		case entity.StatCha:
+			atLeast(&p.Cha, stat)
+		}
 	}
 }
 

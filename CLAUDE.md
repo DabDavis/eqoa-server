@@ -685,7 +685,14 @@ past 1,000), prop, test or level-0 record is taken (the Froglok Test blade and t
 make a level 1's blade deal 561). The World's level up (`OnLevelUp`: awardXP, `SetPlayerLevel`) refreshes the worn
 gear at once; the item windows show the new figures at the next login (the user's choice). The chestguard healed as the
 Breastplate of the Anointed until the user's "lets turn off the healing effect on hit from heirloom" (2026-11-06): no
-heirloom answers a hit now. NO TRADE, worth 0. `TestRealHeirloomsGrowWithTheirWearer`
+heirloom answers a hit now. **Every heirloom carries its class's stats** (`heirloomStats`, `heirloomSecondary`; the
+user: "all heirlooms should have stat increases also not just ac, can have hp, pow, str, sta, and 2 good secondary
+stats. for sk int and agi. for war dex and agi. etc.", then "let heirloom weapon get stats also and shields"): at
+least 1.25 HP and power a level and one STR, STA and of its two secondary stats per 5 levels (75, 75 and 12 at 60),
+a figure its best (or its epic) has higher kept; the secondary stats warrior, ranger, monk, rogue DEX and AGI,
+shadow knight INT and AGI, paladin and shaman WIS and AGI, bard CHA and DEX, druid WIS and INT, cleric WIS and CHA,
+enchanter INT and CHA, magician, necromancer, wizard and alchemist INT and WIS (all but the user's two ours). NO
+TRADE, worth 0. `TestRealHeirloomsGrowWithTheirWearer`
 (`EQOA_REAL_DB`, a copy with the seed applied) holds every class's pieces to never getting worse as the level rises.
 **An Armor Dyer** (any NPC so named) asks what to dye (all the armour; one piece of armour; the robe, shield or a
 weapon; or every dye off), then a family of colours and a colour of it (`database.DyeFamilies`: six families, 35

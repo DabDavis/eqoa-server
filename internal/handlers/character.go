@@ -573,7 +573,26 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	// Here the character has no Player in the world (one that has is taken
 	// over above): it is built from its row, which its last session's end, or
 	// the takeover that last had it (saveTakenOver), saved.
+	h.enterFromRecord(sess, record)
 
+	// NOT sent: WorldEntry (0x002E). Sandstorm never sends it — zero
+	// occurrences across all three PS2 captures. Its promoted session goes
+	// straight from Camera1 + Time into the MemoryDump fragments.
+
+	// Send memory dump reading all data from player struct (single source of truth)
+	h.SendMemoryDump(sess)
+
+	return nil
+}
+
+// enterFromRecord builds the character's Player from its row, as a login
+// does: where it starts (loginSpawn), the training points its level is due,
+// the Player in the world (CreatePlayer), then what its last session kept:
+// its spell effects, standings, mastery points, a rez's share, the masteries
+// it bought, its bind point, whether it is a vampire, its worn items and dyes,
+// its hit points and power. HandleSelectedChar's login and a session carried
+// through a restart (keep.go) build it the same way. nil with no World.
+func (h *CharacterHandler) enterFromRecord(sess *session.Session, record *database.CharacterRecord) *entity.Player {
 	// Where the session starts (loginSpawn): where the character logged out,
 	// or beside Archivist Vaal. Decided here, before CreatePlayer reads it.
 	loginSpawn(h.gameWorld, record)
@@ -674,15 +693,7 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 			}
 		}
 	}
-
-	// NOT sent: WorldEntry (0x002E). Sandstorm never sends it — zero
-	// occurrences across all three PS2 captures. Its promoted session goes
-	// straight from Camera1 + Time into the MemoryDump fragments.
-
-	// Send memory dump reading all data from player struct (single source of truth)
-	h.SendMemoryDump(sess)
-
-	return nil
+	return player
 }
 
 // HandleRandomName handles random name generation requests (opcode 0x12).

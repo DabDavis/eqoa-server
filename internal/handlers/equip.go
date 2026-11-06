@@ -121,6 +121,45 @@ const (
 	equipSecondary = 15
 )
 
+// An item held (wear 18: an orb, a rod, a totem, a wand of no attack) goes
+// in one of two places, and Msg003F's table (equipDisplaces) says what each
+// takes off: 19 the primary hand (14), 20 the off hand's second weapon (15)
+// and shield (17); both the two-hander (16) and the ranged weapon (18).
+const (
+	wearHeld      = 18
+	equipTwoHand  = 16
+	equipShield   = 17
+	equipHeldMain = 19
+	equipHeldOff  = 20
+)
+
+// heldSlot is where an item held goes (petition 1019, Etmabattery's: "Eagle
+// Rod is being equipped as if it is a primary ... I can't equip my primary
+// and held at the same time"). The first free slot of 19 and 20, CLIENT's
+// own EquipSlotFor (0x00BDCEA0) too, is 19 whenever no held item is worn, and
+// 19 takes the primary hand off while a primary weapon takes 19's item off
+// (12 → 14 empties 16, 18, 19): a weapon and a held item could never be worn
+// together, though Sandstorm's players held a mace or a staff with a wand
+// beside it (claude-notes/held-items-channel-20261022.md: the weapon item 0,
+// the wand item 1, which is 20), and with an item in 19 GetSwing gives a
+// caster no swing at all (entity.GetSwing: swingNone). So: the off hand when
+// it is free (nothing in 15, 17 or 20), else 19 when the main hand is
+// (nothing in 14, 16 or 19: a second held item), else the off hand again
+// when the main hand holds a weapon, the held item taking the second
+// weapon's, the shield's or the held item's place there rather than the
+// weapon's; else 19. Ours: no record says how SOE's server chose.
+func heldSlot(worn map[int]bool) int {
+	switch {
+	case !worn[equipSecondary] && !worn[equipShield] && !worn[equipHeldOff]:
+		return equipHeldOff
+	case !worn[equipPrimary] && !worn[equipTwoHand] && !worn[equipHeldMain]:
+		return equipHeldMain
+	case worn[equipPrimary] || worn[equipTwoHand]:
+		return equipHeldOff
+	}
+	return equipHeldMain
+}
+
 // offHandWeaponBarred is whether a class holds a weapon in its primary hand
 // alone, its secondary hand a shield's (the user, 2026-10-30: "for player
 // Shadowknights they should not be able to equip a weapon in their
@@ -313,7 +352,7 @@ func planInteractItem(items []database.CharInventoryEntry, list *invList, key ui
 	}
 
 	// Not equipped -> equip, into the first free slot of the pair, else the
-	// first.
+	// first; an item held by the hands it leaves alone (heldSlot).
 	worn := map[int]bool{}
 	for _, e := range inv {
 		if e.EquipLoc >= 0 {
@@ -326,6 +365,9 @@ func planInteractItem(items []database.CharInventoryEntry, list *invList, key ui
 			chosen = s
 			break
 		}
+	}
+	if wear == wearHeld {
+		chosen = heldSlot(worn)
 	}
 	into := planEquipInto(inv, idx, found, chosen)
 	into.key = key

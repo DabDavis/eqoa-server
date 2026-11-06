@@ -533,6 +533,41 @@ func (w *World) playerRoundHitsLocked(p *Player, npc *NPC, now time.Time) bool {
 	return false
 }
 
+// A bow's shot (the user, 2026-11-06: "at level 35 bow damage should double,
+// because 2 arrows are shot for one hit", then "tmac should hit 2000 on level
+// 50 training dummy with bow"): every ranged swing's roll (CLIENT's Range1-4,
+// GetSwing's kinds 8-11) is rangedShare times the melee roll on the bow, and
+// Range4, the swing from level 35, looses two arrows for its one hit, each its
+// own roll. rangedShare is fitted to the user's figure: a level 60 elf ranger
+// in heirlooms (STR about 227, DEX 366) with the level 60 heirloom bow (the
+// Quicksilver longbow's 754) rolls 474 an arrow on a level 50 training dummy,
+// so 2.11 makes the shot about 2,000 (474 x 2.11 x 2); and a melee class's
+// round at 60 (Attack4, four hits in 6 s) lands about as much as the bow's
+// shot every 5 s. Ours: no record of the live game's bow damage exists.
+const (
+	swingRange1, swingRange4 = 8, 11
+	rangedShare              = 2.11
+)
+
+// playerShotHit is one landed player swing's damage before the balance: a
+// melee roll (playerMeleeHit), or a bow's shot of one arrow, or two at Range4,
+// each rangedShare times a roll.
+func playerShotHit(p *Player, npc *NPC, intn func(int) int) int {
+	kind := p.Swing.Kind
+	if kind < swingRange1 || kind > swingRange4 || p.Swing.Potion != 0 {
+		return playerMeleeHit(p, npc, intn)
+	}
+	arrows := 1
+	if kind == swingRange4 {
+		arrows = 2
+	}
+	hit := 0
+	for range arrows {
+		hit += int(math.Round(float64(playerMeleeHit(p, npc, intn)) * rangedShare))
+	}
+	return hit
+}
+
 // playerHitLocked is one landed player swing: Sandstorm's roll on the worn
 // weapon, STR, DEX and the target (offence.go), the damage figure to the
 // attacker (0x00DB, attacker → NPC, negative), the NPC's threat (so it
@@ -546,7 +581,7 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 	if attacker.Swing.Potion != 0 {
 		return w.thrownPotionHitLocked(sess, attacker, npc, objectID) // potion.go
 	}
-	damage := w.meleeDealtLocked(npc, attacker, playerMeleeHit(attacker, npc, meleeIntn), meleeIntn) // balance.go
+	damage := w.meleeDealtLocked(npc, attacker, playerShotHit(attacker, npc, meleeIntn), meleeIntn) // balance.go
 	if npc.Dummy != NotDummy {
 		// told, taken off nothing; the dummy fights back (dummy.go)
 		now := time.Now()

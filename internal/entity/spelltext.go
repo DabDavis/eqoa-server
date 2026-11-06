@@ -152,6 +152,14 @@ type SpellEffect struct {
 	// Cap is the most the effect does, its scale included ("max 250"); 0
 	// for no cap
 	Cap int
+	// DebuffStat and DebuffPct: a hit on a creature that grows by DebuffPct
+	// percent for every point its resist of DebuffStat is lowered by, the
+	// largest such debuff on it (npcResistDebuff): the rogue's Agony, each of
+	// its three hits half again as hard after Rakish Assault's 100 off pierce
+	// (petition 1036, Zaeire: "550ishx3 scaling to around 800ishx3 with
+	// rakish"; the spelleffect row's debuff_scale)
+	DebuffStat Stat
+	DebuffPct  float64
 	// Undead: a shield that answers undead attackers alone (dshield.go), or
 	// a proc that fires on undead creatures alone (proc.go, workbook.go)
 	Undead bool

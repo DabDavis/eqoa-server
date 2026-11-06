@@ -291,3 +291,63 @@ func TestALoginIsToldWhereTheBoonIs(t *testing.T) {
 		t.Errorf("with no boon given, a login was told: %q", m)
 	}
 }
+
+// Petition 1140, Jibmage: "For alll announcement boards that currently give boon and sow, when players
+// talk to them also give it a dialogue option so they can optionally get a 10 minute superior
+// invisibility cast on them". A board asks after its boon and Spirit of the Wolf; a yes makes the player
+// invisible, once for one asking; a no, or a road sign, gives nothing.
+func TestABoardOffersInvisibility(t *testing.T) {
+	spell := entity.SpellOfRow(&database.SpellPatternRecord{SpellID: BoardInvisSpellID, SpellName: "Superior Invisibility", AbilityLvl: 51, Scope: 1, CastTime: 3, Power: 434}, 0,
+		"Target, Invis, 10min", `{"v":1,"scope":"target","target_type":"Friendly","harmful":false,"duration_s":600,"min_level":30,"effects":[{"id":"0264","type":"Invisible","kind":"invis","dispel_on_cast":true,"dispel_on_contact":true}]}`, 0)
+	setup := func() (*talkWorld, uint32, uint32) {
+		tw := newTalkWorld(t, 25403, 15725)
+		tw.p.HP, tw.p.MaxHP, tw.p.Level = 100, 100, 5
+		tw.s.SetPlayerObjectID(4242)
+		tw.h.SetBoardInvis(func() (entity.CastSpell, bool) { return spell, true })
+		signRows(tw.h, database.SignText{NPCID: 462, Kind: database.SignKindBoard, Text: "Welcome to Freeport."},
+			database.SignText{NPCID: 702, Kind: database.SignKindRoad, Text: "North: Highpass Hold"})
+		board := tw.add(1, &entity.NPC{ServerID: 462, Name: "Freeport Announcements", ModelID: SignBody, SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
+		road := tw.add(2, &entity.NPC{ServerID: 702, Name: "signpost", ModelID: SignBody, SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
+		return tw, board, road
+	}
+	tw, board, road := setup()
+	tw.talk(road)
+	if m := questMsgs(tw.s); !slices.Equal(m, []string{"box:North: Highpass Hold"}) {
+		t.Errorf("a road sign asked: %q", m)
+	}
+	tw.talk(board)
+	m := questMsgs(tw.s)
+	id := boxID(m)
+	if id&0xFF000000 != boardBoxMark {
+		t.Fatalf("the board asked nothing: %q", m)
+	}
+	if tw.p.Invisible() {
+		t.Fatal("invisible before the answer")
+	}
+	tw.pick(id, 0)
+	if !tw.p.Invisible() {
+		t.Fatalf("the yes did not land: %d effects", len(tw.p.Effects))
+	}
+	var n int
+	for _, e := range tw.p.Effects {
+		if e.Invis {
+			n++
+		}
+	}
+	if n != 1 || tw.p.Power != 0 {
+		t.Errorf("%d invisibilities, %d power", n, tw.p.Power)
+	}
+	// the same box again gives nothing more
+	tw.p.Effects = nil
+	tw.pick(id, 0)
+	if tw.p.Invisible() {
+		t.Error("one asking gave twice")
+	}
+
+	tw2, board2, _ := setup()
+	tw2.talk(board2)
+	tw2.pick(boxID(questMsgs(tw2.s)), 1)
+	if tw2.p.Invisible() {
+		t.Error("the no made the player invisible")
+	}
+}

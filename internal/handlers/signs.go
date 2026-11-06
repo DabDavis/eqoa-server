@@ -126,6 +126,7 @@ func (h *InteractHandler) signSay(sess *session.Session, player *entity.Player, 
 		if given, renewed := h.gameWorld.GiveBoardWolf(sess, time.Now()); given {
 			SendClientMessage(sess, boardWolfLine(renewed))
 		}
+		h.askBoardInvis(sess, player) // and its offer (boardinvis.go)
 	}
 	return true
 }

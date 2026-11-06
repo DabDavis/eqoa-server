@@ -352,6 +352,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		interactHandler.SetDialogLines(charStore.DB().NPCDialog)
 		// what the signs and boards say (signs.go)
 		interactHandler.SetSignTexts(charStore.DB().SignTexts)
+		boardSpells := database.NewSpellbookStore(charStore.DB())
+		interactHandler.SetBoardInvis(func() (entity.CastSpell, bool) { return BoardInvisSpell(boardSpells) })
 	}
 
 	// Trading between players (trade.go): 0x0057 and 0x0056.

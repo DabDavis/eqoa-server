@@ -47,6 +47,12 @@ type InteractHandler struct {
 	// the guards say (entity/dialog.go). Nil: they say nothing.
 	dialogLines func() ([]database.NPCDialogLine, error)
 
+	// the boards' offer of Superior Invisibility (boardinvis.go)
+	boardMu    sync.Mutex
+	boardSeq   uint32
+	boardAsked map[uint32]uint32 // the box last asked, by the character's serverid
+	boardSpell func() (entity.CastSpell, bool)
+
 	// signTexts is signtext (database.SignTexts): what the signs and boards
 	// say (signs.go). Nil: a sign says world.npc_text's words for its name.
 	signTexts func() (map[int]database.SignText, error)
@@ -489,6 +495,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// a genie's (genie.go); an old one does nothing
 	if h.genie.Answer(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// a board's offer (boardinvis.go); an old one does nothing
+	if h.answerBoardInvis(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// a coachman's offer to sign every ledger at once (coachledger.go); an

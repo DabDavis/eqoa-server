@@ -356,11 +356,20 @@ func workbookResist(d *SpellDef) (Stat, bool) {
 
 // dispelOnCastLocked ends what lasts on a player that ends when it casts:
 // the parts the workbook marks dispel_on_cast alone, when something else of
-// the effect lasts (parts.go), else the whole effect.
-func (w *World) dispelOnCastLocked(p *Player) {
+// the effect lasts (parts.go), else the whole effect. A run speed so marked
+// (Spirit of the Wolf's, Spirit Circle's, a song's or a wolf form's) ends
+// only at a harmful cast (harmful: the cast's), never at a buff or another
+// beneficial spell (petition 1067: "SoW is being removed when casting buffs
+// and beneficial spells"), as the boards' Spirit of the Wolf ends only at a
+// hostile act (boardwolf.go); the rest of what a cast ends ends at any.
+func (w *World) dispelOnCastLocked(p *Player, harmful bool) {
+	match := partOnCast
+	if !harmful {
+		match = partOnBeneficialCast
+	}
 	for _, e := range append([]*ActiveEffect(nil), p.Effects...) {
 		if e.Rules.DispelOnCast {
-			w.endOnPlayerLocked(p, e, partOnCast, "a cast")
+			w.endOnPlayerLocked(p, e, match, "a cast")
 		}
 	}
 }

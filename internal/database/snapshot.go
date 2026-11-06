@@ -42,7 +42,7 @@ import (
 // SnapshotVersion names the sanitiser's rules: the panel's audit line and the
 // snapshot's own snapshot_info table say which made a file. Raise it with
 // every change to what is taken out.
-const SnapshotVersion = 10
+const SnapshotVersion = 11
 
 // SnapshotInfoTable is the table a snapshot carries saying what it is: the
 // sanitiser's version, when it was made and by whom, and what was taken out.
@@ -159,6 +159,7 @@ var snapshotRules = map[string]snapshotRule{
 	"grocer_stock":                {allow: []string{"key"}, why: "tools/stock_grocers.py's log"},
 	"heirloom_epics_log":          {allow: []string{"rowkey"}, why: "tools/heirloom_epics.py's log"},
 	"merchant_stock":              {allow: []string{"key"}, why: "tools/stock_merchants.py's log"},
+	"petition_fix_log":            {allow: []string{"rowkey"}, why: "the petition fixes' log, written on the live server (rowkey: the content row a fix changed; petition: a number, the petitions are cleared)"},
 	"pod_seed_meta":               {allow: []string{"key"}, why: "tools/seed_pod.py's facts"},
 	"pod_seed_rules":              {allow: []string{"keycol"}, why: "tools/seed_pod.py's log (keycol names a key column)"},
 	"potion_rules_log":            {allow: []string{"rowkey"}, why: "tools/fix_potion_rules.py's log"},

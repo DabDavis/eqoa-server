@@ -79,6 +79,16 @@ func main() {
 	// Initialize game world
 	gameWorld := entity.NewWorld()
 
+	// The guilds kept (database/guilds.go), read before any player (a kept
+	// session's resumes below rejoin theirs), and every change written as it
+	// is made: until 2026-11-06 guilds lived in memory alone.
+	if rows, err := db.LoadGuilds(); err != nil {
+		log.Printf("Guilds: %v (none read; changes are still kept)", err)
+	} else {
+		log.Printf("Guilds: %d kept", gameWorld.LoadGuilds(rows))
+	}
+	gameWorld.SetGuildStore(db)
+
 	// A creature's corpse, its return and its wander (entity/corpse.go,
 	// entity/roam.go), set before the NPCs are loaded so each takes them.
 	gameWorld.SetCorpseTimes(cfg.World.CorpseDecay, cfg.World.RespawnAfter)

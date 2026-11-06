@@ -1,0 +1,198 @@
+package handlers
+
+import (
+	"testing"
+
+	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/entity"
+)
+
+// heirloomFixture is a warrior (class 0, race 0) holding a helm and a blade
+// heirloom, among warriors' helms and blades of several levels, a conjured
+// helm, a broken one and an outsized weapon.
+type heirloomFixture struct {
+	t   *testing.T
+	db  *database.SQLiteDB
+	h   *Heirlooms
+	inv *database.InventoryStore
+	sid uint32
+}
+
+const (
+	hlHelm, hlBlade, hlOtherClass = 714001, 714002, 714003
+)
+
+func newHeirloomFixture(t *testing.T) *heirloomFixture {
+	t.Helper()
+	db, err := database.NewSQLite(t.TempDir() + "/heirloom.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	store := database.NewSQLiteCharacterStore(db)
+	rec := &database.CharacterRecord{CharName: "Heir", AccountID: 1, Level: 10}
+	if err := store.Create(rec); err != nil {
+		t.Fatal(err)
+	}
+	f := &heirloomFixture{t: t, db: db, inv: database.NewInventoryStore(db), sid: rec.ServerID}
+	n := func(v int) *int { return &v }
+	items := database.NewItemPatternStore(db)
+	put := func(r database.ItemPatternRecord) {
+		t.Helper()
+		if r.ClassUse == 0 {
+			r.ClassUse = 1 // a warrior's
+		}
+		switch r.Rent { // -1: NO RENT (rent 0, what a spell conjures); 0: unset, an ordinary item
+		case -1:
+			r.Rent = 0
+		case 0:
+			r.Rent = 1
+		}
+		r.RaceUse, r.MaxStack = 32767, 1
+		if err := items.UpsertItemPattern(&r); err != nil {
+			t.Fatal(err)
+		}
+	}
+	// helms: AC by level; the conjured one (NO RENT) and the broken one never count
+	put(database.ItemPatternRecord{PatternID: 900001, ItemName: "helm 5", EquipSlot: 1, LevelReq: 5, AC: n(10), Sta: n(2)})
+	put(database.ItemPatternRecord{PatternID: 900002, ItemName: "helm 10", EquipSlot: 1, LevelReq: 10, AC: n(20), Str: n(5)})
+	put(database.ItemPatternRecord{PatternID: 900003, ItemName: "helm 20", EquipSlot: 1, LevelReq: 20, AC: n(40), HPMAX: n(30)})
+	put(database.ItemPatternRecord{PatternID: 900004, ItemName: "conjured helm", EquipSlot: 1, LevelReq: 5, AC: n(500), Rent: -1})
+	put(database.ItemPatternRecord{PatternID: 900005, ItemName: "broken helm", EquipSlot: 1, LevelReq: 5, AC: n(30), PoT: n(987)})
+	put(database.ItemPatternRecord{PatternID: 900006, ItemName: "a monk's helm", EquipSlot: 1, LevelReq: 5, AC: n(90), ClassUse: 16})
+	put(database.ItemPatternRecord{PatternID: 900007, ItemName: "prop helm", EquipSlot: 1, LevelReq: 5, AC: n(534)})
+	put(database.ItemPatternRecord{PatternID: 900008, ItemName: "Froglok Test Helm", EquipSlot: 1, LevelReq: 1, AC: n(300)})
+	put(database.ItemPatternRecord{PatternID: 900009, ItemName: "a helm of no level", EquipSlot: 1, LevelReq: 0, AC: n(250)})
+	// one-handers by damage; the outsized one never counts
+	put(database.ItemPatternRecord{PatternID: 900011, ItemName: "blade 8", EquipSlot: 12, LevelReq: 8, WeaponDamage: 100, AttackType: 1})
+	put(database.ItemPatternRecord{PatternID: 900012, ItemName: "blade 15", EquipSlot: 14, LevelReq: 15, WeaponDamage: 200, AttackType: 1, Dex: n(7)})
+	put(database.ItemPatternRecord{PatternID: 900013, ItemName: "smasher", EquipSlot: 12, LevelReq: 9, WeaponDamage: 1276, AttackType: 3})
+	// the heirlooms: their own names, slots and looks, no figures of their own
+	put(database.ItemPatternRecord{PatternID: hlHelm, ItemName: "Heirloom Helm", EquipSlot: 1, LevelReq: 1, Model: 4})
+	put(database.ItemPatternRecord{PatternID: hlBlade, ItemName: "Heirloom Blade", EquipSlot: 14, LevelReq: 1, AttackType: 1})
+	put(database.ItemPatternRecord{PatternID: hlOtherClass, ItemName: "Heirloom Helm", EquipSlot: 1, LevelReq: 1, ClassUse: 16})
+	for _, r := range []struct {
+		id, class int
+		role      string
+	}{{hlHelm, 0, "head"}, {hlBlade, 0, "main"}, {hlOtherClass, 4, "head"}} {
+		if _, err := db.Exec(`INSERT INTO heirlooms (patternid, class, role) VALUES (?, ?, ?)`, r.id, r.class, r.role); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, id := range []int{hlHelm, hlBlade, hlOtherClass, 900002} {
+		if _, err := f.inv.AddCharItem(rec.ServerID, id, 1, 100, 0, 0); err != nil {
+			t.Fatal(err)
+		}
+	}
+	f.h = NewHeirlooms(db)
+	f.h.Start(nil, nil)
+	t.Cleanup(func() { db.SetPatternView(nil) })
+	return f
+}
+
+// held is the character's records as read (its own view), by patternid.
+func (f *heirloomFixture) held() map[int]database.ItemPatternRecord {
+	f.t.Helper()
+	items, err := f.inv.GetCharacterItems(f.sid)
+	if err != nil {
+		f.t.Fatal(err)
+	}
+	out := map[int]database.ItemPatternRecord{}
+	for _, e := range items {
+		out[e.Pattern.PatternID] = e.Pattern
+	}
+	return out
+}
+
+func val(v *int) int {
+	if v == nil {
+		return 0
+	}
+	return *v
+}
+
+// An heirloom's figures are the best of its role its class may wear at its
+// wearer's level: a warrior of 10 the helm of 10 and the blade of 8, of 20
+// the helm of 20 and the blade of 15 (not the conjured helm, the broken one,
+// the prop, the test helm, the helm of no known level, the monk's or the
+// outsized smasher); its own name, slot and look kept; the
+// same record read through GetCharItem the same; any other record as it is.
+// The control: with no view, the records' own (no) figures.
+func TestAnHeirloomIsItsLevelsBest(t *testing.T) {
+	f := newHeirloomFixture(t)
+	at := func(level int) map[int]database.ItemPatternRecord {
+		f.h.Note(f.sid, 0, 0, level)
+		return f.held()
+	}
+	got := at(10)
+	if h := got[hlHelm]; val(h.AC) != 20 || val(h.Str) != 5 || val(h.Sta) != 0 || h.ItemName != "Heirloom Helm" || h.EquipSlot != 1 || h.Model != 4 {
+		t.Errorf("level 10's helm: AC %d STR %d STA %d, %q slot %d model %d", val(h.AC), val(h.Str), val(h.Sta), h.ItemName, h.EquipSlot, h.Model)
+	}
+	if b := got[hlBlade]; b.WeaponDamage != 100 || b.EquipSlot != 14 || b.AttackType != 1 {
+		t.Errorf("level 10's blade: damage %d slot %d type %d", b.WeaponDamage, b.EquipSlot, b.AttackType)
+	}
+	if o := got[900002]; val(o.AC) != 20 || o.ItemName != "helm 10" {
+		t.Errorf("a plain helm changed: %+v", o)
+	}
+	got = at(20)
+	if h := got[hlHelm]; val(h.AC) != 40 || val(h.HPMAX) != 30 || val(h.Str) != 0 {
+		t.Errorf("level 20's helm: AC %d HP %d STR %d", val(h.AC), val(h.HPMAX), val(h.Str))
+	}
+	if b := got[hlBlade]; b.WeaponDamage != 200 || val(b.Dex) != 7 {
+		t.Errorf("level 20's blade: damage %d DEX %d", b.WeaponDamage, val(b.Dex))
+	}
+	// another class's heirloom takes its own class's best (the monk's helm)
+	if o := got[hlOtherClass]; val(o.AC) != 90 {
+		t.Errorf("the monk's heirloom on a warrior: AC %d, want the monk's helm's 90", val(o.AC))
+	}
+	items, err := f.inv.GetCharacterItems(f.sid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range items {
+		if e.Pattern.PatternID == hlHelm {
+			one, err := f.inv.GetCharItem(f.sid, e.ItemID)
+			if err != nil || val(one.Pattern.AC) != 40 {
+				t.Errorf("GetCharItem's helm at 20: AC %d (%v)", val(one.Pattern.AC), err)
+			}
+		}
+	}
+	f.db.SetPatternView(nil)
+	if h := f.held()[hlHelm]; val(h.AC) != 0 {
+		t.Errorf("the control: with no view the heirloom has AC %d", val(h.AC))
+	}
+}
+
+// Off the World's word a character's level is its row's (an offline
+// character); the World's level up is heard and the gear refreshed with the
+// player whose level rose.
+func TestAnHeirloomFollowsALevelUp(t *testing.T) {
+	f := newHeirloomFixture(t)
+	if h := f.held()[hlHelm]; val(h.AC) != 20 {
+		t.Fatalf("the row's level 10: AC %d", val(h.AC))
+	}
+	gw := entity.NewWorld()
+	refreshed := make(chan *entity.Player, 1)
+	f.h.Start(gw, func(p *entity.Player) { refreshed <- p })
+	p := &entity.Player{ServerID: 77, CharServerID: f.sid, Name: "Heir", Level: 10}
+	gw.Players[p.ServerID] = p
+	if !gw.SetPlayerLevel(f.sid, 20) {
+		t.Fatal("no player to set")
+	}
+	if got := <-refreshed; got != p {
+		t.Fatalf("refreshed %v", got)
+	}
+	if h := f.held()[hlHelm]; val(h.AC) != 40 {
+		t.Errorf("after the level up to 20: AC %d, want 40", val(h.AC))
+	}
+}
+
+// The chest piece heals at each hit as the Breastplate of the Anointed.
+func TestTheHeirloomChestguardHealsAsTheAnointed(t *testing.T) {
+	a, okA := entity.WornShieldOf(0, "Breastplate of the Anointed")
+	c, okC := entity.WornShieldOf(714100, "Heirloom Chestguard")
+	c.Item, a.Item = "", ""
+	if !okA || !okC || c != a {
+		t.Errorf("the heirloom chestguard %+v (%v), the Anointed %+v (%v)", c, okC, a, okA)
+	}
+}

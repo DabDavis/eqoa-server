@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/session"
 )
 
 // What the GM panel (internal/gmweb) does to the running world. A row of npcs
@@ -365,12 +366,22 @@ func (w *World) SetPlayerLevel(serverID uint32, level int) bool {
 	if p == nil {
 		return false
 	}
+	was := p.Level
 	p.Level = max(1, min(60, level))
 	p.XPInLevel = 0
 	p.TotalXP = TotalXP(p.Level, 0)
 	p.TopUpTrainingPoints()
 	p.RecalcStats(false)
 	p.StatsDirty = true
+	if p.Level != was { // the level's hearers (questhooks.go: the heirlooms' figures)
+		var sess *session.Session
+		if w.SessionManager != nil {
+			sess = w.findSessionByEntityIDLocked(p.ServerID)
+		}
+		for _, fn := range w.onLevelUp {
+			fn(sess, p)
+		}
+	}
 	return true
 }
 

@@ -86,6 +86,9 @@ func (s *InventoryStore) GetCharItem(serverID uint32, itemID int) (CharInventory
 	if err == sql.ErrNoRows {
 		return e, fmt.Errorf("character %d has no item %d", serverID, itemID)
 	}
+	if err == nil {
+		s.db.ViewPattern(serverID, &e.Pattern) // heirlooms.go: the character's own view
+	}
 	return e, err
 }
 

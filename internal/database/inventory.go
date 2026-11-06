@@ -67,7 +67,14 @@ func (s *InventoryStore) GetCharacterItems(serverID uint32) ([]CharInventoryEntr
 		}
 		items = append(items, e)
 	}
-	return items, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	rows.Close()
+	for i := range items {
+		s.db.ViewPattern(serverID, &items[i].Pattern) // heirlooms.go: the character's own view
+	}
+	return items, nil
 }
 
 // SetEquipLoc moves an item to an equipment slot, or to -1 to unequip it.

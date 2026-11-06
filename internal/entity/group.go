@@ -456,7 +456,7 @@ func (w *World) groupSyncSystem() {
 				r[4] = 1
 				hp := 0
 				if top := o.MaxHPNow(); top > 0 {
-					hp = o.HP * 255 / top
+					hp = int(healthBar(o.HP, top))
 				}
 				r[5] = byte(max(0, min(255, hp)))
 				r[6] = 0

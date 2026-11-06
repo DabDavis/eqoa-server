@@ -118,7 +118,7 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 
 	// Offset 27: HPBar (0-255 proportional)
 	if top := p.MaxHPNow(); top > 0 {
-		buf[27] = byte(min(p.HP, top) * 255 / top)
+		buf[27] = healthBar(p.HP, top)
 	} else {
 		buf[27] = 255
 	}
@@ -287,6 +287,22 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 	return buf
 }
 
+// healthBar is the channel's health byte (27, CLIENT's VIEntity m_p19): hp of top
+// as 0 to 255. CLIENT reads a 0 as no life in it: TargetInRange refuses such a
+// target, so AutoAttackTick plays no swing and sends its 0x00D8 (out of reach)
+// every 2 s, and the server's rounds, which go by that, never land. So what still
+// lives shows at least 1. Until 2026-11-06 the byte was rounded down, so a creature
+// with under one 255th of its hit points left could not be hit by anyone's melee:
+// 1 to 6 of a crab's 1613, under 118 of a 30,000 raid creature's (petition 1125, the
+// GM Jibrish: "These 2 crabs were not dying to combat damage. I had to /kill both
+// with a GM command"; a player's "mobs rnt dying", both crabs left on 1).
+func healthBar(hp, top int) byte {
+	if hp <= 0 || top <= 0 {
+		return 0
+	}
+	return byte(max(min(hp, top)*255/top, 1))
+}
+
 // SerializeNPCUpdate builds a 162-byte state channel buffer for an NPC.
 // Byte-for-byte identical output to the ECS SerializeNPCObjectUpdate.
 func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
@@ -328,7 +344,7 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 	// HP
 	buf[26] = 1
 	if n.MaxHP > 0 {
-		buf[27] = byte(n.HP * 255 / n.MaxHP)
+		buf[27] = healthBar(n.HP, n.MaxHP)
 	} else {
 		buf[27] = 255
 	}

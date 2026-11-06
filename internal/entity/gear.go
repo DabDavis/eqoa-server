@@ -12,8 +12,9 @@ type Gear struct {
 	Str, Sta, Agi, Dex, Wis, Int, Cha int
 	MaxHP, MaxPower                   int // stats 8 and 10
 	AC                                int // 14
-	// PoTItems and HoTItems are each worn item's PoT and HoT (12, 13), as
-	// ItemCredit counts them (regen.go), not summed
+	// PoTItems and HoTItems are each worn item's PoT and HoT (13, 12: CLIENT's
+	// stat ids, handlers' itemPatternStats), as ItemCredit counts them
+	// (regen.go), not summed
 	PoTItems, HoTItems     []int
 	PR, DR, FR, CR, LR, AR int // 22-27
 	// WeaponDamage is the swinging weapon's itempattern.weapondamage (the
@@ -63,13 +64,13 @@ func (g *Gear) Add(id, v int) {
 		g.MaxHP += v
 	case 10:
 		g.MaxPower += v
-	case 12:
-		if v > 0 {
-			g.PoTItems = append(g.PoTItems, v)
-		}
-	case 13:
+	case 12: // HoT (CLIENT's word 240)
 		if v > 0 {
 			g.HoTItems = append(g.HoTItems, v)
+		}
+	case 13: // PoT (word 241)
+		if v > 0 {
+			g.PoTItems = append(g.PoTItems, v)
 		}
 	case 14:
 		g.AC += v

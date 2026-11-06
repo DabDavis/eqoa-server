@@ -398,3 +398,74 @@ func wide16(s string) []byte {
 	}
 	return b
 }
+
+// Led on foot with its charm still running, a charmed creature goes no
+// farther than the zones next to the one it spawned in (the user,
+// 2026-11-06: "the maximum distance you can recharm without them returning
+// their spawn is 1 zone away. If charm duration persists you can run across
+// the world"): a zone off it follows on, charmed; past that it is let go and
+// is home at once, fighting no one, its master told.
+func TestACharmedCreatureIsLeashedToItsZones(t *testing.T) {
+	defer func(f func(int) int) { charmIntn = f }(charmIntn)
+	charmIntn = dice(99)
+	r, _, _ := charmRig(t)
+	crab := r.enemy
+	castCharm(t, r, captivation(), crabID, 0)
+	if crab.Owner == 0 {
+		t.Fatal("not charmed")
+	}
+	move := func(dx float32) {
+		r.w.mu.Lock()
+		crab.X = crab.SpawnX + dx
+		r.p.X = crab.X + 2
+		r.w.mu.Unlock()
+	}
+	move(charmZone) // the control: a zone off, inside its grace
+	r.tick(time.Minute)
+	if crab.Owner == 0 || crab.Charm == nil {
+		t.Fatal("let go a zone from home")
+	}
+	r.sent()
+	move(2*charmZone + 10)
+	r.tick(time.Minute + time.Second)
+	msgs := r.sent()
+	if crab.Owner != 0 || crab.Charm != nil || r.w.pets[r.p.ServerID] != nil {
+		t.Fatalf("still charmed two zones from home: %+v", *crab)
+	}
+	if crab.X != crab.SpawnX || crab.CurrentEnemy != 0 {
+		t.Fatalf("not home, or hostile: at %.0f (spawn %.0f), enemy %d", crab.X, crab.SpawnX, crab.CurrentEnemy)
+	}
+	told := false
+	for _, m := range msgs {
+		told = told || opOfMsg(m) == protocol.OpcodeClearPet
+	}
+	if !told {
+		t.Fatalf("its master was not told: %x", msgs)
+	}
+}
+
+// A coach takes no charmed creature: its charm breaks where it stands (inside
+// its grace: it stays, its own again and fighting no one, to be charmed again
+// there), its master told. The control: with no pet out, nothing.
+func TestACoachLeavesACharmedPetBehind(t *testing.T) {
+	defer func(f func(int) int) { charmIntn = f }(charmIntn)
+	charmIntn = dice(99)
+	r, _, _ := charmRig(t)
+	crab := r.enemy
+	if r.w.CoachLeavesCharm(r.sess) {
+		t.Fatal("a charm broken with no pet out")
+	}
+	castCharm(t, r, captivation(), crabID, 0)
+	x := crab.X
+	r.sent()
+	if !r.w.CoachLeavesCharm(r.sess) {
+		t.Fatal("no charm broken")
+	}
+	msgs := r.sent()
+	if crab.Owner != 0 || crab.Charm != nil || r.w.pets[r.p.ServerID] != nil || crab.X != x || crab.CurrentEnemy != 0 {
+		t.Fatalf("after the coach: %+v", *crab)
+	}
+	if len(msgs) == 0 || opOfMsg(msgs[0]) != protocol.OpcodeClearPet {
+		t.Fatalf("its master was not told: %x", msgs)
+	}
+}

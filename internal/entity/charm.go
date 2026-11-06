@@ -99,6 +99,14 @@ import (
 //     A zone is the world's 2000-unit square (CLIENT's zone-name grid, the
 //     ground files' zones). One that dies as a pet leaves a corpse no one
 //     may loot (OpenCorpse) and comes back itself.
+//   - the leash (the user, 2026-11-06: "the maximum distance you can recharm
+//     without them returning their spawn is 1 zone away. If charm duration
+//     persists you can run across the world"; "charm pets ... cannot
+//     coach"): a charmed creature led past its grace on foot, its charm
+//     still running, is let go there and goes home at once (petSystem); and a
+//     coach never takes one (CoachLeavesCharm: the charm breaks where it
+//     stands, within its grace, so it can be charmed again there). A
+//     waysender's trip is a teleport and keeps the grace.
 
 // charmHold is what a charm changed on a creature, to put back.
 type charmHold struct {
@@ -143,6 +151,10 @@ const (
 	charmTooHigh  = "Your target is too high a level to charm."
 	charmResisted = "Attempt resisted!" // Sandstorm's
 	charmWornOff  = "Your charm spell has worn off."
+	// charmTooFar is the line when a charmed creature is led past its grace
+	// (charmFar), and charmNoCoach when its master takes a coach.
+	charmTooFar  = "Your charm breaks: the creature will not be led so far from its home."
+	charmNoCoach = "Your charm breaks: a charmed creature will not ride a coach."
 )
 
 // charmIntn is the charm's dice (a test's own).
@@ -389,6 +401,25 @@ func (w *World) releaseCharmLocked(ps *petState, sess *session.Session, text str
 		w.updateAggro(npc, owner.ServerID, 1)
 	}
 	log.Printf("Charm: %s's %q goes free (hostile %v, sent home %v)", owner.Name, npc.Name, hostile, popped)
+}
+
+// CoachLeavesCharm breaks the charm on sess's charmed pet as its master takes
+// a coach (the file's doc: a charmed creature does not ride one), quietly:
+// it stays where it stands, its own again and fighting no one, and its master
+// is told. It reports whether there was one; a summoned pet comes along.
+func (w *World) CoachLeavesCharm(sess *session.Session) bool {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil {
+		return false
+	}
+	ps := w.pets[p.ServerID]
+	if ps == nil || ps.npc == nil || ps.npc.Charm == nil {
+		return false
+	}
+	w.releaseCharmLocked(ps, sess, charmNoCoach, false)
+	return true
 }
 
 // unCharmLocked puts back what a charm changed on the creature and returns

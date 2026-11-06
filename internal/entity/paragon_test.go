@@ -53,3 +53,20 @@ func TestADummysHitSetsOffSpiritShield(t *testing.T) {
 		t.Fatalf("the hit's 0x00DB: %v, want the hit, +52, +%d", amounts, dummyHeal)
 	}
 }
+
+// A description's proc of piercing damage is resisted by pierce (petition
+// 1053: Davoh's Dirk), and Toxxulia's Fang's disease damage over time is
+// read as one (1050). The control: a figure with no element is arcane's.
+func TestProcTextsOfTheRoguesBlades(t *testing.T) {
+	dirk, ok := WeaponProcFromText("A masterwork dirk. Once the property of Davoh. It holds a greater strength enchantment. Procs 100 piercing damage.")
+	if !ok || dirk.Kind != ProcHit || dirk.Damage != 100 || dirk.Resist != StatPierce {
+		t.Errorf("Davoh's Dirk: %+v %v", dirk, ok)
+	}
+	fang, ok := WeaponProcFromText("A flawless blade. It comes from the Toxxulia Forest. A health enchantment has been laid upon it. Procs a 100 point Disease DoT.")
+	if !ok || fang.Kind != ProcDoT || fang.Damage != 100 || fang.Resist != StatDR {
+		t.Errorf("Toxxulia's Fang: %+v %v", fang, ok)
+	}
+	if wp, ok := WeaponProcOf(1, "a blade", "Procs a 100 point DD Spell."); !ok || wp.Resist != StatAR {
+		t.Errorf("the control: %+v %v", wp, ok)
+	}
+}

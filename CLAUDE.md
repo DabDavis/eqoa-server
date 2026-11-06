@@ -738,6 +738,28 @@ both keep them; a member's name, class, race and level are its `characters` row'
 guilds. `tools/restore_guilds_from_log.py --since <time> <logs>` rebuilds lost guilds from the log's "Guild:" lines
 (replayed across the restarts after `--since`; the charter is not logged), into empty tables only (`--force`).
 
+### The Genie's Lamp: a bank, an heirloom shop and a forge anywhere (`handlers/genie.go`, `entity/genie.go`, `tools/seed_genie_lamp.py`)
+
+The user, 2026-11-06: "lets give players a heirloom shop and bank NPC(doesnt replace pet slot) make it a genie. the item
+is a lamp in their inventory, infinite uses. when the player prompts, choice for bank and choice to buy/sell at shop.
+genie disappears after the prompt is gone", then "also give third option to genie for blacksmith". The client's side is
+`claude-notes/genie-lamp-windows-20261106.md`. **The lamp** ("Genie's Lamp", record 715000 by `tools/seed_genie_lamp.py
+[--list] [--apply|--undo]`, which also puts it in every `startitems` combo; the Lantern of Ages' icon) is CLIENT's
+usable type, NO TRADE, worth 0, never spent; a character with none gets one at its login, before its items are read
+(`giveGenieLamp`: the pack, else the bank). Its Use (0x003E, equip.go) brings **the genie**: a Temporary NPC with the
+NPC bit alone (so CLIENT talks to it: InteractWithTarget asks a window of the merchant, bank and blacksmith flags
+instead), never a pet (`NPC.GenieOf`, not `Owner`), one a player, 2.5 in front of it facing it, in the magician's
+Djinn's body (793682180), its NPCID the shop's catalog. It asks at once (box mark **0x58000000**): My bank, Your wares,
+Mend my gear, Nothing, thank you; talked to it asks again, anyone else is told it is not theirs. Any answer sends it out
+of the world, and so does the box closed, but a box CLIENT declined itself within 1.5 s (a menu was up: `Msg0034`) leaves
+it standing `GenieWait` (2 minutes) to be talked to. The windows are CLIENT's own: the bank (0x124D), its wares (0x00B7
+under `GenieWindowID`, `0x7E000000 | its id`: an Heirloom Outfitter's catalog, the one selling the class's heirlooms
+with the fewest other classes, bought from and sold to as any merchant's) and the forge (0x0061 under that id: repairs at
+a blacksmith's price; heirlooms, worth 0, mend free). CLIENT says nothing when the bank or the merchant window closes and
+the bank's moves name its own target, so **the window is the player's, not an entity's** (`World.GenieWindowNPC`,
+`windowNPC`'s fallback after a real NPC in reach): while it stays within `GenieReach` (15) of where the genie stood, in
+its world, alive, a request at least every `GenieWindowIdle` (5 minutes); the forge's close (0x0063) ends it at once.
+
 ### Groups: any member invites (`entity/group.go`, `handlers/group.go`)
 
 The user, 2026-11-06: "lets allow any group member to invite to group". `GroupInvite` takes a 0x0625 from any

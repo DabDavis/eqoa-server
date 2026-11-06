@@ -13,6 +13,9 @@ type Player struct {
 	ServerID EntityID
 	Name     string
 
+	// genie is its lamp's genie and the window it opened (genie.go)
+	genie *genieState
+
 	// Spatial
 	X, Y, Z float32
 	Facing  float32

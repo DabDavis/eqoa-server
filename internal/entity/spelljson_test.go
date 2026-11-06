@@ -295,20 +295,26 @@ func TestWorkbookTicksTwiceAtTheLanding(t *testing.T) {
 	}
 }
 
-// What ends on a cast ends when its bearer begins one; what ends on contact
-// ends at a creature's hit; the rest stays (the control). (A hide is
-// invisibility, which any cast ends besides: invis.go.)
+// What ends on a cast ends when its bearer begins one, but a run speed, which
+// only a harmful cast ends (petition 1067); what ends on contact ends at a
+// creature's hit; the rest stays (the control). (A hide is invisibility,
+// which any cast ends besides: invis.go.) On the code before 1067 the skin's
+// cast ended the haste too.
 func TestWorkbookDispels(t *testing.T) {
 	noResist(t)
 	quick := wbSpell(931, 5, 0, "Test Haste", `{"v":1,"scope":"self","duration_s":600,"effects":[{"kind":"speed","amount":130,"dispel_on_cast":true}]}`)
+	focus := wbSpell(934, 5, 0, "Test Focus", `{"v":1,"scope":"self","duration_s":600,"effects":[{"kind":"stat","stat":"str","amount":5,"dispel_on_cast":true}]}`)
 	shade := wbSpell(932, 5, 0, "Test Shade", `{"v":1,"scope":"self","duration_s":600,"effects":[{"kind":"hide","dispel_on_contact":true}]}`)
 	skin := wbSpell(933, 5, 0, "Test Skin", `{"v":1,"scope":"self","duration_s":600,"effects":[{"kind":"stat","stat":"ac","amount":10}]}`)
 	c := newCaster(t)
 	c.castOn(t, quick, 0)
-	c.castOn(t, skin, 10*time.Second) // a cast ends the haste
+	c.castOn(t, focus, 5*time.Second)
+	// a cast ends the focus; the haste, a run speed, ends only at a harmful
+	// cast (petition 1067: TestABeneficialCastKeepsARunSpeed)
+	c.castOn(t, skin, 10*time.Second)
 	c.castOn(t, shade, 20*time.Second)
-	if got := c.effectNames(); len(got) != 2 || got[0] != skin.Name || got[1] != shade.Name {
-		t.Fatalf("after a cast: %v, want the skin and the shade", got)
+	if got := c.effectNames(); len(got) != 3 || got[0] != quick.Name || got[1] != skin.Name || got[2] != shade.Name {
+		t.Fatalf("after a cast: %v, want the haste, the skin and the shade", got)
 	}
 	if !c.p.Invisible() {
 		t.Error("hidden, the player is not unseen")
@@ -316,8 +322,8 @@ func TestWorkbookDispels(t *testing.T) {
 	c.w.mu.Lock()
 	c.w.npcAttackPlayer(c.npc, c.p.ServerID, c.at(30*time.Second))
 	c.w.mu.Unlock()
-	if got := c.effectNames(); len(got) != 1 || got[0] != skin.Name {
-		t.Errorf("after a hit: %v, want the skin alone", got)
+	if got := c.effectNames(); len(got) != 2 || got[0] != quick.Name || got[1] != skin.Name {
+		t.Errorf("after a hit: %v, want the haste and the skin (the shade ends at a hit, the haste has no such end)", got)
 	}
 }
 

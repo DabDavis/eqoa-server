@@ -49,6 +49,14 @@ CREATE TABLE IF NOT EXISTS gm_tokens (id INTEGER PRIMARY KEY AUTOINCREMENT, acco
 CREATE TABLE IF NOT EXISTS gm_oauth_clients (client_id TEXT PRIMARY KEY, name TEXT NOT NULL, redirect_uris TEXT NOT NULL,
 	created TEXT NOT NULL, last_used TEXT);`
 
+// petitionFixLogForTest is the petition fixes' log as the live server has it
+// (written there, by no code of this repository): its rowkey is named like a
+// secret, so a snapshot of a database holding it needs its rule.
+const petitionFixLogForTest = `
+CREATE TABLE petition_fix_log (seq INTEGER PRIMARY KEY AUTOINCREMENT, petition INTEGER NOT NULL, tbl TEXT NOT NULL,
+	rowkey INTEGER NOT NULL, col TEXT NOT NULL, before TEXT, after TEXT,
+	at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')), undone TEXT NOT NULL DEFAULT '');`
+
 // The values planted in every column that holds a secret or a person's
 // data: none may survive a snapshot (and each is in the source file: the
 // control, without which "not found" proves nothing).
@@ -139,10 +147,15 @@ func seededDB(t *testing.T) (*SQLiteDB, string) {
 	if _, _, err := db.SetWorkOverview(p["workboard.overview"], 1, who); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := db.FilePetition(Petition{ServerID: 1, CharName: "Hero", AccountID: 2, Text: p["petitions.text"]},
-		time.Date(2026, 10, 29, 10, 3, 0, 0, time.UTC)); err != nil {
+	pet, err := db.FilePetition(Petition{ServerID: 1, CharName: "Hero", AccountID: 2, Text: p["petitions.text"]},
+		time.Date(2026, 10, 29, 10, 3, 0, 0, time.UTC))
+	if err != nil {
 		t.Fatal(err)
 	}
+	exec(petitionFixLogForTest)
+	exec(`INSERT INTO petition_fix_log (petition, tbl, rowkey, col, before, after, at) VALUES
+		(?, 'itempattern', 10, 'weapondamage', '5', '7', '2026-10-29T10:04:00Z'),
+		(?, 'npcs', 501, '+row', NULL, '{"npc_name": "Merchant Shadehand"}', '2026-10-29T10:04:00Z')`, pet.ID, pet.ID)
 	return db, path
 }
 
@@ -218,7 +231,8 @@ func TestASnapshotTakesOutEverySecretAndKeepsTheGame(t *testing.T) {
 		}
 		return
 	}
-	for _, table := range []string{"characters", "npcs", "itempattern", "accountinfo", "spellfx_suggestions", "mapmark_suggestions"} {
+	for _, table := range []string{"characters", "npcs", "itempattern", "accountinfo", "spellfx_suggestions", "mapmark_suggestions",
+		"petition_fix_log"} {
 		if a, b := count(db, `SELECT COUNT(*) FROM `+table), count(snap, `SELECT COUNT(*) FROM `+table); a != b {
 			t.Errorf("%s: %d rows, %d in the snapshot", table, a, b)
 		}
@@ -230,6 +244,11 @@ func TestASnapshotTakesOutEverySecretAndKeepsTheGame(t *testing.T) {
 	}
 	if n := count(snap, `SELECT COUNT(*) FROM characters WHERE charName = 'Hero' AND accountid = 2 AND level = 10 AND tunar = 100`); n != 1 {
 		t.Error("the player's character is not as it was")
+	}
+	// the petition fixes' log is the game's: its rowkey is a row's id, kept
+	if n := count(snap, `SELECT COUNT(*) FROM petition_fix_log WHERE tbl = 'itempattern' AND rowkey = 10
+		AND col = 'weapondamage' AND before = '5' AND after = '7' AND petition > 0`); n != 1 {
+		t.Error("the petition fixes' log is not as it was")
 	}
 	var name string
 	snap.QueryRow(`SELECT username FROM accountinfo WHERE accountid = 2`).Scan(&name)

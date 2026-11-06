@@ -295,3 +295,44 @@ func TestConsumableGivesBoth(t *testing.T) {
 		t.Errorf("bread after the fish: HoT %d PoT %d, want 30, 12", p.HoTNow(), p.PoTNow())
 	}
 }
+
+// A ration's HoT and PoT are its eater's (the user, 2026-11-06: "scale with
+// level, and doesnt take too long to restore"): a tenth of its most health
+// and power a tick, whatever the ration's own figures, so with the regen's
+// own fiftieth an empty bar is full within the minute; at least its level
+// each, and no power for one with none. The control: a meal of the same
+// figures without the flag gives its own.
+func TestARationIsItsEatersTenth(t *testing.T) {
+	w, sess, p, now := newEater(t) // level 20, 1000 HP, 500 power
+	if err := w.Consume(sess, Consumable{Name: "Food", Amount: 1, Ration: true}, now); err != nil {
+		t.Fatal(err)
+	}
+	if p.HoTNow() != 20+100 || p.PoTNow() != 10+50 {
+		t.Fatalf("a ration at 1000 HP and 500 power: HoT %d PoT %d; want 120, 60", p.HoTNow(), p.PoTNow())
+	}
+	p.HP, p.Power = 0+1, 0
+	for i := 0; i < 9; i++ {
+		p.regenTick()
+	}
+	if p.HP != 1000 || p.Power != 500 {
+		t.Errorf("nine ticks from empty (54 s): %d HP, %d power; want both full", p.HP, p.Power)
+	}
+	// a level 5 warrior of 40 HP and no power: its level, no PoT
+	w2, sess2, low, _ := newEater(t)
+	low.Level, low.MaxHP, low.HP, low.MaxPower, low.Power = 5, 40, 10, 0, 0
+	if err := w2.Consume(sess2, Consumable{Name: "Food", Amount: 1, Ration: true}, now); err != nil {
+		t.Fatal(err)
+	}
+	// (its own PoT is the regen's least, 1: nothing of the ration's)
+	if hot, pot := RationRestore(low); hot != 5 || pot != 0 || low.HoTNow() != 1+5 || low.PoTNow() != 1 {
+		t.Errorf("a level 5 of 40 HP and no power: ration %d/%d, HoT %d PoT %d; want 5/0, 6, 1", hot, pot, low.HoTNow(), low.PoTNow())
+	}
+	// the control: the same figures as a meal
+	w3, sess3, q, _ := newEater(t)
+	if err := w3.Consume(sess3, Consumable{Name: "bread", Amount: 1}, now); err != nil {
+		t.Fatal(err)
+	}
+	if q.HoTNow() != 20+1 || q.PoTNow() != 10 {
+		t.Errorf("a meal of 1: HoT %d PoT %d; want 21, 10", q.HoTNow(), q.PoTNow())
+	}
+}

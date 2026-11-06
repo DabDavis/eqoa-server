@@ -1205,13 +1205,15 @@ func wornGear(items []database.CharInventoryEntry) entity.Gear {
 		}
 		g.WeaponTwoHanded = w.EquipLoc == 16 || w.Pattern.EquipSlot == wearTwoHand
 		// its proc, and the off hand's (entity/weaponproc.go)
-		if wp, ok := entity.WeaponProcOf(w.Pattern.PatternID, w.Pattern.ItemName, w.Pattern.ItemDesc); ok {
+		procName, procDesc := w.Pattern.ProcSource() // an heirloom's is its epic's from that level
+		if wp, ok := entity.WeaponProcOf(w.Pattern.PatternID, procName, procDesc); ok {
 			g.MainProc = &wp
 		}
 	}
 	if off != nil {
 		g.OffArmed = true
-		if wp, ok := entity.WeaponProcOf(off.Pattern.PatternID, off.Pattern.ItemName, off.Pattern.ItemDesc); ok {
+		procName, procDesc := off.Pattern.ProcSource()
+		if wp, ok := entity.WeaponProcOf(off.Pattern.PatternID, procName, procDesc); ok {
 			g.OffProc = &wp
 		}
 	}

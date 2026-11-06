@@ -47,9 +47,48 @@ const (
 )
 
 // TransferLines are the lines a character may say it was, and their labels.
+// The werehunter's is a line too (the user, 2026-11-06: "the werehunter doesnt
+// show up for the transfer form"; Larrybird's Heroic Were-Hunter, which needs
+// its brand, was missed for want of it): its quests are not a were line's
+// parts (p1, L40) but their own steps (reCatWerehunter), and the class's
+// trials and ability quest are only its archetype's (questForClass).
 var TransferLines = []struct{ Line, Label string }{
 	{"wolfwere", "Wolfwere"}, {"bearwere", "Bearwere"}, {"ratwere", "Ratwere"},
-	{"lionwere", "Lionwere"}, {"gatorwere", "Gatorwere"}, {"vampire", "Vampire"},
+	{"lionwere", "Lionwere"}, {"gatorwere", "Gatorwere"}, {"werehunter", "Werehunter"},
+	{"vampire", "Vampire"},
+}
+
+// werehunterOrder is the werehunter line's quests in the order they are done
+// (each needs the one before it: Silver and Fur, the Werehunter's Brand, the
+// Siloths hindered, the Siloth Shipment, Lord Phinnius hindered, the ability
+// quest, the Token, the Tails, the Ring, Elder Tchekof, the Trials); a step
+// it does not know goes last.
+func werehunterOrder(step string) int {
+	switch {
+	case step == "p1":
+		return 1
+	case step == "brand":
+		return 2
+	case step == "hinder":
+		return 3
+	case step == "p2":
+		return 4
+	case step == "trials-p1":
+		return 5
+	case strings.HasPrefix(step, "ability-"):
+		return 6
+	case step == "trials-insignia":
+		return 7
+	case step == "trials-set":
+		return 8
+	case step == "trials-ring":
+		return 9
+	case step == "tchekof":
+		return 10
+	case strings.HasPrefix(step, "trials-"):
+		return 11
+	}
+	return 100
 }
 
 func transferLine(line string) bool {
@@ -202,11 +241,13 @@ var TransferClassSlugs = []string{"warrior", "ranger", "paladin", "shadowknight"
 	"shaman", "cleric", "magician", "necromancer", "enchanter", "wizard", "alchemist"}
 
 var (
-	reCatL20   = regexp.MustCompile(`^1-20/[a-z0-9-]+/([a-z]+)/L20$`)
-	reCatPath  = regexp.MustCompile(`^30,40,49/[a-z0-9-]+/L(30|40|49)-([a-z]+)$`)
-	reCatEpic  = regexp.MustCompile(`^60/[a-z0-9-]+/reward-([a-z]+)$`)
-	reCatWere  = regexp.MustCompile(`^Weres/([a-z]+)/(p\d+|L\d+)(?:-[a-z]+)?$`)
-	reCatFlags = regexp.MustCompile(`^Portal/([a-z0-9-]+)/[a-z0-9-]+$`)
+	reCatL20  = regexp.MustCompile(`^1-20/[a-z0-9-]+/([a-z]+)/L20$`)
+	reCatPath = regexp.MustCompile(`^30,40,49/[a-z0-9-]+/L(30|40|49)-([a-z]+)$`)
+	reCatEpic = regexp.MustCompile(`^60/[a-z0-9-]+/reward-([a-z]+)$`)
+	reCatWere = regexp.MustCompile(`^Weres/([a-z]+)/(p\d+|L\d+)(?:-[a-z]+)?$`)
+	// the werehunter's steps: p1, brand, ..., trials-tank, ability-healer
+	reCatWerehunter = regexp.MustCompile(`^Weres/werehunter/([a-z0-9]+(?:-[a-z0-9]+)?)$`)
+	reCatFlags      = regexp.MustCompile(`^Portal/([a-z0-9-]+)/[a-z0-9-]+$`)
 )
 
 // QuestImportKey is a quest's import key off its source ("EQOA-Data
@@ -324,6 +365,9 @@ func (db *SQLiteDB) TransferCatalog(class int) (TransferCatalog, error) {
 			kind, level = "path", map[string]int{"30": 30, "40": 40, "49": 49}[m[1]]
 		} else if m := reCatEpic.FindStringSubmatch(key); m != nil && m[1] == slug {
 			kind, level = "epic", 60
+		} else if m := reCatWerehunter.FindStringSubmatch(key); m != nil {
+			lines["werehunter"] = append(lines["werehunter"], part{werehunterOrder(m[1]), CatalogQuest{q.ID, q.Name}})
+			continue
 		} else if m := reCatWere.FindStringSubmatch(key); m != nil && transferLine(m[1]) {
 			lines[m[1]] = append(lines[m[1]], part{partOrder(m[2]), CatalogQuest{q.ID, q.Name}})
 			continue
@@ -378,7 +422,12 @@ func (db *SQLiteDB) TransferCatalog(class int) (TransferCatalog, error) {
 		if len(ps) == 0 {
 			continue
 		}
-		sort.SliceStable(ps, func(i, j int) bool { return ps[i].order < ps[j].order })
+		sort.SliceStable(ps, func(i, j int) bool {
+			if ps[i].order != ps[j].order {
+				return ps[i].order < ps[j].order
+			}
+			return ps[i].q.Quest < ps[j].q.Quest
+		})
 		line := CatalogLine{Line: l.Line, Label: l.Label}
 		for _, p := range ps {
 			line.Quests = append(line.Quests, p.q)

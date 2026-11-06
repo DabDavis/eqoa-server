@@ -42,7 +42,7 @@ import (
 // SnapshotVersion names the sanitiser's rules: the panel's audit line and the
 // snapshot's own snapshot_info table say which made a file. Raise it with
 // every change to what is taken out.
-const SnapshotVersion = 7
+const SnapshotVersion = 8
 
 // SnapshotInfoTable is the table a snapshot carries saying what it is: the
 // sanitiser's version, when it was made and by whom, and what was taken out.
@@ -156,6 +156,7 @@ var snapshotRules = map[string]snapshotRule{
 	"eqoaemu_spell_import_meta":   {allow: []string{"key"}, why: "tools/import_eqoaemu_spells.py's facts"},
 	"fishing_seed":                {allow: []string{"key"}, why: "tools/seed_fishing.py's log"},
 	"grocer_stock":                {allow: []string{"key"}, why: "tools/stock_grocers.py's log"},
+	"heirloom_epics_log":          {allow: []string{"rowkey"}, why: "tools/heirloom_epics.py's log"},
 	"merchant_stock":              {allow: []string{"key"}, why: "tools/stock_merchants.py's log"},
 	"pod_seed_meta":               {allow: []string{"key"}, why: "tools/seed_pod.py's facts"},
 	"pod_seed_rules":              {allow: []string{"keycol"}, why: "tools/seed_pod.py's log (keycol names a key column)"},
@@ -165,6 +166,7 @@ var snapshotRules = map[string]snapshotRule{
 	"quest_import_meta":           {allow: []string{"key"}, why: "tools/import_quests.py's facts"},
 	"quest_import_quests":         {allow: []string{"key"}, why: "tools/import_quests.py's log (key: a guide's section)"},
 	"quest_npc_seed_meta":         {allow: []string{"key"}, why: "tools/seed_quest_npcs.py's facts"},
+	"rations_fix_log":             {allow: []string{"rowkey"}, why: "tools/fix_rations.py's log"},
 	"sandstorm_import_meta":       {allow: []string{"key"}, why: "tools/import_sandstorm_harvest.py's facts"},
 	"sandstorm_import_rows":       {allow: []string{"key"}, why: "tools/import_sandstorm_harvest.py's log"},
 	"spell_fill_log":              {allow: []string{"rowkey"}, why: "the spell fill's log"},

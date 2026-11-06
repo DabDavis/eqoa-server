@@ -765,6 +765,9 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 	case "#gotoplayer":
 		h.gotoPlayerCommand(sess, player, parts[1:])
 
+	case "#giveitem":
+		h.giveItemCommand(sess, player, parts[1:])
+
 	case "#summon":
 		h.summonCommand(sess, player, parts[1:])
 
@@ -1100,6 +1103,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "GM Commands (each also as /name):")
 		h.gmReply(sess, "  #goto <x> <y> <z> [world] | <town or NPC> - teleport (#teleport too)")
 		h.gmReply(sess, "  #gotoplayer <name> - go to an online player")
+		h.gmReply(sess, "  #giveitem <item id> <player> [count] - give an online player an item")
 		h.gmReply(sess, "  #summon <name> - bring an online player to you")
 		h.gmReply(sess, "  #spawn <name> - a copy of that NPC beside you; #despawn takes the target away")
 		h.gmReply(sess, "  #monstersearch <start of a name> - up to ten NPC names")

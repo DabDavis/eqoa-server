@@ -194,6 +194,11 @@ type Player struct {
 	// roundWaits: the next round waits for the button and the reach, and
 	// begins with the tick that sees both (attack.go)
 	roundWaits bool
+	// swingTimer is CLIENT's own swing timer as the server follows it
+	// (VIClient m_p071E8): when the client's next swing is due, a round's
+	// start and its delay, 2 s after a swing out of reach; kept over a
+	// disengage, as the client's is (attack.go pressed)
+	swingTimer time.Time
 
 	// The melee round in hand (attack.go): when it began and how many of its
 	// hits have come due.

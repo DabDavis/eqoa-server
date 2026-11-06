@@ -394,7 +394,10 @@ func TestAutoAttackPressAgainWithoutAnother0x000F(t *testing.T) {
 		t.Fatalf("%d hits after pressing again, want 4 (the first and three more)", n)
 	}
 
-	// another NPC: its own first round, from its 0x000F, read 0.25 s in
+	// another NPC: its own first round, from its 0x000F, read 0.25 s in; the
+	// press after the client's timer ran out (its round at 12 s, a 3 s swing:
+	// 15 s), as CLIENT sends one (ToggleAutoAttack), else it would wait for
+	// the timer (TestAPressWaitsForTheClientsSwingTimer)
 	other := &NPC{ServerID: 2003, Name: "Crab", Level: 15, HP: 100000, MaxHP: 100000, X: 101, Y: 10, Z: 101}
 	f.w.NPCs[other.ServerID] = other
 	vs := GetOrCreateVisibility(f.sess)
@@ -402,15 +405,15 @@ func TestAutoAttackPressAgainWithoutAnother0x000F(t *testing.T) {
 	vs.ChannelObjectID[1] = 0x0131_3012
 	f.p.AutoAttack = false
 	f.tick(12100 * time.Millisecond) // waiting again
-	f.w.EngageAttack(f.sess, 0x0131_3012, f.p.Swing, f.t0.Add(13*time.Second))
+	f.w.EngageAttack(f.sess, 0x0131_3012, f.p.Swing, f.t0.Add(15500*time.Millisecond))
 	if !f.p.Attacking() {
 		t.Error("a fresh 0x000F does not count as attacking before its button is read")
 	}
 	f.p.AutoAttack = true
-	f.tick(13250 * time.Millisecond)
-	f.tick(13499 * time.Millisecond)
+	f.tick(15750 * time.Millisecond)
+	f.tick(15999 * time.Millisecond)
 	before := len(f.damage(t))
-	f.tick(13500 * time.Millisecond)
+	f.tick(16000 * time.Millisecond)
 	if len(f.damage(t)) != before+1 || other.HP == other.MaxHP {
 		t.Error("the new fight's first hit did not come 0.5 s after its 0x000F")
 	}

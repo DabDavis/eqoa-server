@@ -1066,6 +1066,7 @@ func (w *World) duelRoundLocked(p *Player, now time.Time) bool {
 	p.newRound() // the hands it holds now (attack.go HandsChanged)
 	p.RoundStart, p.RoundHits = start, 0
 	p.NextSwing = p.RoundStart.Add(p.Swing.Delay)
+	p.swingTimer = p.NextSwing
 	land()
 	return true
 }

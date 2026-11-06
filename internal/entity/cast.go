@@ -748,7 +748,7 @@ func (w *World) castRefusalLocked(sess *session.Session, p *Player, spell *CastS
 		refusal = w.charmStartLocked(spell, targets) // charm.go
 	}
 	if refusal == "" && spell.Def.Resurrects() > 0 {
-		refusal, fizzle = w.rezStartLocked(targets, &spell.Def, now) // resurrect.go
+		refusal, fizzle = w.rezStartLocked(p, spell, targets, now) // resurrect.go
 	}
 	if refusal == "" {
 		refusal = w.gateStartLocked(sess, spell) // gates.go

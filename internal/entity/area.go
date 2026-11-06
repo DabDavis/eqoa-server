@@ -404,7 +404,17 @@ func (w *World) areaStartLocked(p *Player, cs *castState, now time.Time) {
 	var near []areaNear
 	centre := "caster"
 	// a group's by its record's scope or its line's word
-	if (cs.spell.Scope == 2 || d.Target == TargetGroup) && !d.Harmful {
+	if pct := d.Resurrects(); pct > 0 && (cs.spell.Scope == 2 || d.Target == TargetGroup) {
+		if w.rezNamesAnotherLocked(cs.targets, p) { // resurrect.go: that one's alone
+			return
+		}
+		near = w.rezGroupNearLocked(p, pct, r, now)
+		if len(near) > 0 && rezAmount(p, pct, now) <= 0 && !p.Rez.returns(now) {
+			cs.targets = nil // its caster has nothing to recover: the group's alone
+		} else {
+			cs.targets = []EntityID{p.ServerID}
+		}
+	} else if (cs.spell.Scope == 2 || d.Target == TargetGroup) && !d.Harmful {
 		cs.targets = []EntityID{p.ServerID}
 		near = w.groupNearLocked(p, r)
 	} else {
@@ -544,6 +554,7 @@ func (w *World) landOthersLocked(cs *castState, caster *Player, casterSess *sess
 	harmful := cs.spell.Def.Harmful
 	for _, id := range cs.others {
 		if t := w.Players[id]; t != nil {
+			w.rezLandLocked(share, caster, casterSess, t, now) // resurrect.go: on the dead too
 			if !harmful && !t.IsDead() {
 				w.landOnPlayerLocked(share, caster, casterSess, t, now)
 			}

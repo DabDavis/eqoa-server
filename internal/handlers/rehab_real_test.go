@@ -320,7 +320,7 @@ func TestRealPathsChosenAgain(t *testing.T) {
 			}
 			tw.talk(rehab)
 			m := questMsgs(tw.s)
-			if !choose(m, "Choose a path again (free)") {
+			if !choose(m, "Choose a path again") {
 				continue
 			}
 			if m = questMsgs(tw.s); !choose(m, fmt.Sprintf("Level %d: %s", level, opts[from].Answer)) {

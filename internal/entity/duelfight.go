@@ -217,7 +217,7 @@ func (w *World) duelPetLocked(ps *petState, dt float32, now time.Time) bool {
 		pet.LastCombatTime = now
 		n := petMeleeHit(pet, duelStandIn(level), rand.Intn)
 		if t := w.Players[target]; t != nil {
-			if w.duelHurtLocked(d, owner, pet.ServerID, t, n, now) {
+			if w.duelHurtLocked(d, owner, pet.ServerID, t, n, now) || w.duelAnswerLocked(d, t, duelMark{pet: pet}, now) { // duelprocs.go
 				return true
 			}
 			continue

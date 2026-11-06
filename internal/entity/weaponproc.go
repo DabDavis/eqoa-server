@@ -307,10 +307,7 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 	case ProcDoT:
 		w.broadcastCastLocked(p, npc.ServerID, 0, wp.FX)
 		log.Printf("Proc: %s's %q lays %d a tick on %s", p.Name, wp.Item, n, npc.Name)
-		cs := &castState{spell: CastSpell{SpellID: weaponProcSpellID(wp.pattern), Name: wp.Item, Level: p.Level, Scope: 1,
-			Def: SpellDef{Effects: []SpellEffect{{Kind: EffectHPTick, Amount: -n, AmountMax: -n}}, Duration: procDoTFor, Harmful: true}},
-			caster: p.ServerID, targets: []EntityID{npc.ServerID}}
-		w.landOnNPCLocked(cs, p, sess, npc, now)
+		w.landOnNPCLocked(weaponDoTCast(p, wp, npc.ServerID, n), p, sess, npc, now)
 		return npc.Dead
 	}
 	w.broadcastCastLocked(p, npc.ServerID, 0, wp.FX)
@@ -325,6 +322,13 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 		w.healLocked(p, sess, p, back)
 	}
 	return killed
+}
+
+// weaponDoTCast is a weapon proc's damage over time as a spell of p's at target, n a tick.
+func weaponDoTCast(p *Player, wp *WeaponProc, target EntityID, n int) *castState {
+	return &castState{spell: CastSpell{SpellID: weaponProcSpellID(wp.pattern), Name: wp.Item, Level: p.Level, Scope: 1,
+		Def: SpellDef{Effects: []SpellEffect{{Kind: EffectHPTick, Amount: -n, AmountMax: -n}}, Duration: procDoTFor, Harmful: true}},
+		caster: p.ServerID, targets: []EntityID{target}}
 }
 
 // weaponProcWords is the #stats line of the player's weapon procs, its

@@ -219,6 +219,41 @@ func TestTakingAQuestThatGivesNeedsRoom(t *testing.T) {
 	}
 }
 
+// A kit given with unless_held tops up what the player lacks (board #204: giving up a
+// tradeskill tutorial and taking it again left a character 4 hammers and 4 recipes, while an
+// emblem no merchant sells must still come back). The control: a give without it gives all.
+func TestAKitGivesOnlyWhatIsNotHeld(t *testing.T) {
+	for _, c := range []struct {
+		held       bool
+		wantAura   int
+		wantBone   int
+		unlessHeld bool
+	}{
+		{true, 1, 2, true},  // holds the aura and one bone: tops up the second bone
+		{false, 1, 2, true}, // holds neither: the whole kit
+		{true, 2, 3, false}, // the control
+	} {
+		f := newQuestFixture(t)
+		malsis := f.tw.add(1, &entity.NPC{ServerID: 701, Name: "Malsis", SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
+		ev := fmt.Sprintf(`[{"on":"accept","do":"give","items":"%d, %d*2"}]`, f.aura, f.bone)
+		if c.unlessHeld {
+			ev = fmt.Sprintf(`[{"on":"accept","do":"give","items":"%d, %d*2","unless_held":true}]`, f.aura, f.bone)
+		}
+		f.exec(`UPDATE quests SET events = ? WHERE questid = 10010`, ev)
+		f.qe.ReloadQuests()
+		if c.held {
+			f.own(f.aura, 1)
+			f.own(f.bone, 1)
+		}
+		f.tw.talk(malsis)
+		f.tw.pick(boxID(f.msgs()), 0)
+		f.msgs()
+		if a, b := f.held(f.aura), f.held(f.bone); a != c.wantAura || b != c.wantBone {
+			t.Errorf("%+v: holds %d auras and %d bones", c, a, b)
+		}
+	}
+}
+
 // A loot step's last item taken with no room for its reward: the step waits
 // at its count; room made, the next look round does it. The control is
 // TestALootStepCountsWhatIsTakenOnIt, whose last item does the step at once.

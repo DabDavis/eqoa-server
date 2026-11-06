@@ -93,12 +93,23 @@ func procSpellID(buff, i int) int { return -2_000_000 - buff*4 - i }
 // ones after one of its melee hits on it (defense false), the defensive ones
 // after the creature's hit on it. Must be called with the lock held.
 func (w *World) procSpellsLocked(p *Player, sess *session.Session, npc *NPC, defense bool, now time.Time) {
+	w.procSpellsOnLocked(p, sess, defense, now, func() bool { return !npc.Dead }, func() bool { return w.undeadLocked(npc) }, npc.Name, func(cs *castState) {
+		cs.targets = []EntityID{npc.ServerID}
+		w.landOnNPCLocked(cs, p, sess, npc, now)
+	})
+}
+
+// procSpellsOnLocked fires p's spell procs of the kind at what standing and undead ask about
+// (named name, for the log), land landing each: a creature (procSpellsLocked) or a duel's
+// (duelprocs.go). Must be called with the lock held.
+func (w *World) procSpellsOnLocked(p *Player, sess *session.Session, defense bool, now time.Time,
+	standing, undead func() bool, name string, land func(*castState)) {
 	for _, ae := range append([]*ActiveEffect(nil), p.Effects...) {
 		if !now.Before(ae.Until) {
 			continue
 		}
 		for i, ps := range ae.ProcSpells {
-			if ps.Defense != defense || npc.Dead || p.IsDead() || (ps.Undead && !w.undeadLocked(npc)) {
+			if ps.Defense != defense || !standing() || p.IsDead() || (ps.Undead && !undead()) {
 				continue
 			}
 			chance := ps.Chance
@@ -128,11 +139,10 @@ func (w *World) procSpellsLocked(p *Player, sess *session.Session, npc *NPC, def
 			if len(on) == 0 {
 				continue
 			}
-			log.Printf("Proc: %s's %q casts on %s", p.Name, ae.Name, npc.Name)
-			cs := &castState{spell: CastSpell{SpellID: procSpellID(ae.SpellID, i), Name: ae.Name, Icon: ae.Icon, Level: p.Level,
+			log.Printf("Proc: %s's %q casts on %s", p.Name, ae.Name, name)
+			land(&castState{spell: CastSpell{SpellID: procSpellID(ae.SpellID, i), Name: ae.Name, Icon: ae.Icon, Level: p.Level,
 				Scope: 1, Def: SpellDef{Effects: on, Duration: ps.Duration, Harmful: true, Workbook: true}},
-				caster: p.ServerID, targets: []EntityID{npc.ServerID}}
-			w.landOnNPCLocked(cs, p, sess, npc, now)
+				caster: p.ServerID})
 		}
 	}
 }

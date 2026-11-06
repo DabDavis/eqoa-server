@@ -242,19 +242,22 @@ var (
 // QuestEvent is one thing a quest or a step does at one of its times, kept as
 // a JSON array in the events column.
 type QuestEvent struct {
-	On      string  `json:"on"`                // when: accept or finish (a quest's), start or done (a step's)
-	Do      string  `json:"do"`                // what: popup, say, give, spawn, attack, visual, teleport, vampire
-	Text    string  `json:"text,omitempty"`    // popup, say: the words (%p the player's name)
-	Answer  string  `json:"answer,omitempty"`  // popup: its one answer ("OK" when none)
-	NPC     string  `json:"npc,omitempty"`     // say: who says it (nobody: no name before it); spawn: whom; attack: who (none: the step's target)
-	Items   string  `json:"items,omitempty"`   // give: patternid*count, comma separated
-	Hostile bool    `json:"hostile,omitempty"` // spawn: it may be attacked, and attacks the player
-	FX      string  `json:"fx,omitempty"`      // visual: its DictID (0x1DAEB5B6)
-	Seconds float64 `json:"seconds,omitempty"` // visual: its casting part (0 to 30)
-	World   int     `json:"world,omitempty"`   // teleport: the world
-	X       float32 `json:"x,omitempty"`       // teleport: the place
-	Y       float32 `json:"y,omitempty"`
-	Z       float32 `json:"z,omitempty"`
+	On     string `json:"on"`               // when: accept or finish (a quest's), start or done (a step's)
+	Do     string `json:"do"`               // what: popup, say, give, spawn, attack, visual, teleport, vampire
+	Text   string `json:"text,omitempty"`   // popup, say: the words (%p the player's name)
+	Answer string `json:"answer,omitempty"` // popup: its one answer ("OK" when none)
+	NPC    string `json:"npc,omitempty"`    // say: who says it (nobody: no name before it); spawn: whom; attack: who (none: the step's target)
+	Items  string `json:"items,omitempty"`  // give: patternid*count, comma separated
+	// UnlessHeld (give): only what the player's inventory lacks of them, so a quest's
+	// kit handed out again when the quest is taken again tops up what was used
+	UnlessHeld bool    `json:"unless_held,omitempty"`
+	Hostile    bool    `json:"hostile,omitempty"` // spawn: it may be attacked, and attacks the player
+	FX         string  `json:"fx,omitempty"`      // visual: its DictID (0x1DAEB5B6)
+	Seconds    float64 `json:"seconds,omitempty"` // visual: its casting part (0 to 30)
+	World      int     `json:"world,omitempty"`   // teleport: the world
+	X          float32 `json:"x,omitempty"`       // teleport: the place
+	Y          float32 `json:"y,omitempty"`
+	Z          float32 `json:"z,omitempty"`
 }
 
 // ParseQuestEvents reads an events column: a JSON array of QuestEvent, ""

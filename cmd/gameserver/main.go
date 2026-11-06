@@ -193,6 +193,10 @@ func main() {
 	if err := gameWorld.LoadFactions(db); err != nil {
 		log.Printf("WARNING: %v; every faction at its default, no kill changes one", err)
 	}
+	// A GM's respawn times by the npcs row (entity/corpse.go, table npcrespawn)
+	if _, err := gameWorld.LoadRespawnRules(db); err != nil {
+		log.Printf("WARNING: %v; every NPC comes back at the world's time", err)
+	}
 	// Creatures attacking a player on sight, and the GMs' rules by name
 	// (entity/aggro.go, table npcaggro)
 	if cfg.World.Aggro != nil && !*cfg.World.Aggro {

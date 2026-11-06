@@ -635,10 +635,16 @@ func SerializeStatUpdate(p *Player) []byte {
 // entries, and the channel changed every 2 s forever where a real server sends
 // only when an effect starts or ends.
 func SerializeBuffUpdate(p *Player) []byte {
-	n := min(len(p.Buffs), MaxEffects)
+	return SerializeBuffSlots(p.Buffs)
+}
+
+// SerializeBuffSlots is SerializeBuffUpdate of the slots given: the player's
+// own, and its pet's after them (buffSlotsLocked).
+func SerializeBuffSlots(slots []BuffSlot) []byte {
+	n := min(len(slots), MaxEffects)
 	buf := make([]byte, 4+n*EffectRecordSize)
 	binary.LittleEndian.PutUint32(buf, uint32(n))
-	for i, e := range p.Buffs[:n] {
+	for i, e := range slots[:n] {
 		r := buf[4+i*EffectRecordSize : 4+(i+1)*EffectRecordSize]
 		binary.LittleEndian.PutUint32(r, e.Icon)
 		name := utf16.Encode([]rune(e.Name))

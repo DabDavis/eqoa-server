@@ -325,5 +325,5 @@ func (w *World) DuelWagerAccept(sess *session.Session, on bool, now time.Time) {
 		return
 	}
 	w.sendAcceptsLocked(d) // both set: each window closes
-	w.startDuelLocked(d, a, b, now)
+	w.countdownDuelLocked(d, a, b, now)
 }

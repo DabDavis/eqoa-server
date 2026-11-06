@@ -110,7 +110,11 @@ type QuestEngine struct {
 	boxSeq uint32
 
 	kills chan entity.KillCredit
-	stop  chan struct{}
+	// infections are the weres' bites that infect (wereinfect.go), cures
+	// the cures the campfire's advisors offered, by character
+	infections chan entity.InfectionHit
+	cures      map[uint32]advisorBox
+	stop       chan struct{}
 	// wake is nudge's: the marks and trackers looked at now
 	wake chan struct{}
 
@@ -238,17 +242,19 @@ const (
 // NewQuestEngine reads the quests out of db. Start sets it running.
 func NewQuestEngine(db *database.SQLiteDB, gw *entity.World, sm *session.Manager, inv *database.InventoryStore, spells *database.SpellbookStore) (*QuestEngine, error) {
 	q := &QuestEngine{
-		store:  database.NewQuestStore(db),
-		inv:    inv,
-		items:  database.NewItemPatternStore(db),
-		spells: spells,
-		gw:     gw,
-		sm:     sm,
-		chars:  map[uint32]*questChar{},
-		kills:  make(chan entity.KillCredit, 256),
-		wake:   make(chan struct{}, 1),
-		stop:   make(chan struct{}),
-		roll:   rand.Float64,
+		store:      database.NewQuestStore(db),
+		inv:        inv,
+		items:      database.NewItemPatternStore(db),
+		spells:     spells,
+		gw:         gw,
+		sm:         sm,
+		chars:      map[uint32]*questChar{},
+		kills:      make(chan entity.KillCredit, 256),
+		infections: make(chan entity.InfectionHit, 64),
+		cures:      map[uint32]advisorBox{},
+		wake:       make(chan struct{}, 1),
+		stop:       make(chan struct{}),
+		roll:       rand.Float64,
 	}
 	if gw != nil {
 		q.playerOf = gw.SessionPlayer
@@ -268,6 +274,7 @@ func NewQuestEngine(db *database.SQLiteDB, gw *entity.World, sm *session.Manager
 func (q *QuestEngine) Start() {
 	if q.gw != nil {
 		q.gw.OnKill(q.heardKill)
+		q.gw.OnInfection(q.heardInfection) // wereinfect.go
 	}
 	go q.run()
 	questEngine.Store(q)
@@ -331,6 +338,8 @@ func (q *QuestEngine) run() {
 			return
 		case k := <-q.kills:
 			q.killed(k)
+		case h := <-q.infections:
+			q.infect(h) // wereinfect.go
 		case <-q.wake:
 			q.syncMarks(time.Now())
 			q.syncProgress()
@@ -1105,6 +1114,7 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 		// the giver's reply, said as written (Sandstorm's Norgam's has no
 		// name before it)
 		q.tellLocked(c, sess, "", sayLines(qu.Declined)...)
+		q.antidoteLocked(c, qu) // a were line's third quest: its antidote (wereinfect.go)
 		log.Printf("Quests: %s refused %q", p.Name, qu.Name)
 	case choiceNotYet:
 		if st := qu.Step(ch.step); st != nil {

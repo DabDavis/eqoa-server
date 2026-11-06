@@ -296,6 +296,7 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 		log.Printf("Combat: player %s has died!", sess.RemoteAddr())
 		return
 	}
+	w.wereBiteLocked(sess, player, npc)                // a were's bite may infect (wereinfect.go)
 	if w.playerShieldsLocked(sess, player, npc, now) { // its damage shield and defensive procs (dshield.go)
 		return
 	}

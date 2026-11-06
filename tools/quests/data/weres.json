@@ -253,7 +253,8 @@
    "minlevel": 30,
    "maxlevel": 60,
    "requires": [
-    "Weres/wolfwere/p2"
+    "Weres/wolfwere/p2",
+    "Weres/wolfwere/infection"
    ],
    "factions_required": [
     [
@@ -301,7 +302,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/Weres/wolfwere.json, The Hunt (github.com/Jadiction/EQOA-Data, MIT). Zaren is the server's row (level 44), not the player's level; the guide's Zaran. The antidote is the decline (it changes nothing). The faction with Werehunters of Tunaria (-1000) is ours: it keeps a lycan from the werehunters' brand, a second infection and the vampires' blood, as the guides say; a branded werehunter (+1000) is offered no infection. The form is the guide's table's Wolfwere (STR +45, STA +45, INT -16), as the other four lines' are their tables' (Bearwere, Ratwere, Lionwere, Gatorwere); the older record Werewolf Form changes no stat."
+   "notes": "From EQOA-Data Quests/Weres/wolfwere.json, The Hunt (github.com/Jadiction/EQOA-Data, MIT). Zaren is the server's row (level 44), not the player's level; the guide's Zaran. The antidote is the decline: it takes the fever away (handlers/wereinfect.go), and the quest needs the fever, caught from a were's bite (its marker, Weres/wolfwere/infection), beside the 1000. The faction with Werehunters of Tunaria (-1000) is ours: it keeps a lycan from the werehunters' brand, a second infection and the vampires' blood, as the guides say; a branded werehunter (+1000) is offered no infection. The form is the guide's table's Wolfwere (STR +45, STA +45, INT -16), as the other four lines' are their tables' (Bearwere, Ratwere, Lionwere, Gatorwere); the older record Werewolf Form changes no stat."
   },
   {
    "key": "Weres/wolfwere/p1",
@@ -717,7 +718,8 @@
    "minlevel": 30,
    "maxlevel": 60,
    "requires": [
-    "Weres/bearwere/p2"
+    "Weres/bearwere/p2",
+    "Weres/bearwere/infection"
    ],
    "factions_required": [
     [
@@ -1253,7 +1255,8 @@
    "minlevel": 30,
    "maxlevel": 60,
    "requires": [
-    "Weres/ratwere/p2"
+    "Weres/ratwere/p2",
+    "Weres/ratwere/infection"
    ],
    "factions_required": [
     [
@@ -2058,7 +2061,8 @@
    "minlevel": 30,
    "maxlevel": 60,
    "requires": [
-    "Weres/lionwere/p2"
+    "Weres/lionwere/p2",
+    "Weres/lionwere/infection"
    ],
    "factions_required": [
     [
@@ -2490,7 +2494,8 @@
    "minlevel": 30,
    "maxlevel": 60,
    "requires": [
-    "Weres/gatorwere/p2"
+    "Weres/gatorwere/p2",
+    "Weres/gatorwere/infection"
    ],
    "factions_required": [
     [
@@ -5114,6 +5119,76 @@
    ],
    "unresolved": [],
    "notes": "From EQOA-Data Quests/Weres/vampire.json, 6. Level 60 (github.com/Jadiction/EQOA-Data, MIT). Its abilities are tools/seed_vampires.py's, made from the guide's figures (entity/vampire.go)."
+  },
+  {
+   "key": "Weres/wolfwere/infection",
+   "name": "The Wolf's Fever",
+   "giver": "",
+   "hidden": true,
+   "classes": [],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "steps": [],
+   "unresolved": [],
+   "notes": "A marker the server finishes, never offered (hidden): finished, the character carries the wolf's fever, caught from a wolfwere's melee hit (handlers/wereinfect.go; the user, 2026-11-06: \"players must be melee attacked by the were animal to be infected\"). The line's third quest requires it beside its society's 1000; the Oasis campfire's advisors cure it for 25,000 tunar; declining the third quest (its giver's antidote) takes it away."
+  },
+  {
+   "key": "Weres/bearwere/infection",
+   "name": "The Bear's Fever",
+   "giver": "",
+   "hidden": true,
+   "classes": [],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "steps": [],
+   "unresolved": [],
+   "notes": "A marker the server finishes, never offered (hidden): finished, the character carries the bear's fever, caught from a bearwere's melee hit (handlers/wereinfect.go; the user, 2026-11-06: \"players must be melee attacked by the were animal to be infected\"). The line's third quest requires it beside its society's 1000; the Oasis campfire's advisors cure it for 25,000 tunar; declining the third quest (its giver's antidote) takes it away."
+  },
+  {
+   "key": "Weres/ratwere/infection",
+   "name": "The Rat's Fever",
+   "giver": "",
+   "hidden": true,
+   "classes": [],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "steps": [],
+   "unresolved": [],
+   "notes": "A marker the server finishes, never offered (hidden): finished, the character carries the rat's fever, caught from a ratwere's melee hit (handlers/wereinfect.go; the user, 2026-11-06: \"players must be melee attacked by the were animal to be infected\"). The line's third quest requires it beside its society's 1000; the Oasis campfire's advisors cure it for 25,000 tunar; declining the third quest (its giver's antidote) takes it away."
+  },
+  {
+   "key": "Weres/lionwere/infection",
+   "name": "The Lion's Fever",
+   "giver": "",
+   "hidden": true,
+   "classes": [],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "steps": [],
+   "unresolved": [],
+   "notes": "A marker the server finishes, never offered (hidden): finished, the character carries the lion's fever, caught from a lionwere's melee hit (handlers/wereinfect.go; the user, 2026-11-06: \"players must be melee attacked by the were animal to be infected\"). The line's third quest requires it beside its society's 1000; the Oasis campfire's advisors cure it for 25,000 tunar; declining the third quest (its giver's antidote) takes it away."
+  },
+  {
+   "key": "Weres/gatorwere/infection",
+   "name": "The Gator's Fever",
+   "giver": "",
+   "hidden": true,
+   "classes": [],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "steps": [],
+   "unresolved": [],
+   "notes": "A marker the server finishes, never offered (hidden): finished, the character carries the gator's fever, caught from a gatorwere's melee hit (handlers/wereinfect.go; the user, 2026-11-06: \"players must be melee attacked by the were animal to be infected\"). The line's third quest requires it beside its society's 1000; the Oasis campfire's advisors cure it for 25,000 tunar; declining the third quest (its giver's antidote) takes it away."
   }
  ],
  "items": [

@@ -270,6 +270,12 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 
+	// An advisor of the Oasis campfire: what the character carries, a
+	// fever's cure (wereinfect.go).
+	if npc, ok := targetEntity.(*entity.NPC); ok && Quests().AdvisorTalk(sess, player, npc) {
+		return nil
+	}
+
 	// A spiritmaster binds (spiritmaster.go), a waysender sends the player to
 	// another town (waysender.go).
 	if npc, ok := targetEntity.(*entity.NPC); ok && IsSpiritmaster(npc.Name) {
@@ -457,6 +463,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// A rehabilitator's question (rehab.go); an old one does nothing.
 	if h.rehab.Answer(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// An advisor's cure (wereinfect.go); an old one does nothing.
+	if Quests().AdvisorAnswer(sess, player, targetObjectID, selectedOption, h.spend) {
 		return nil
 	}
 	// A duel's invitation or "Cancel duel?" (duel.go)

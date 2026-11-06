@@ -132,6 +132,8 @@ type World struct {
 
 	// Who hears every credited kill (questhooks.go: the quests)
 	onKill []KillFunc
+	// onInfection hears a were's bite that infects (wereinfect.go)
+	onInfection []InfectionFunc
 
 	// Creatures attacking a player on sight (aggro.go)
 	aggro aggroState

@@ -73,10 +73,12 @@ type effectPart struct {
 	Ended        bool `json:",omitempty"`
 }
 
-// The ends a part may have alone.
-func partOnContact(p *effectPart) bool { return p.Contact }
-func partOnCast(p *effectPart) bool    { return p.Cast }
-func partInvisible(p *effectPart) bool { return p.Invisibility }
+// The ends a part may have alone. A beneficial cast ends no run speed
+// (dispelOnCastLocked, petition 1067), so it ends what a cast ends but that.
+func partOnContact(p *effectPart) bool        { return p.Contact }
+func partOnCast(p *effectPart) bool           { return p.Cast }
+func partOnBeneficialCast(p *effectPart) bool { return p.Cast && !p.Speed }
+func partInvisible(p *effectPart) bool        { return p.Invisibility }
 
 // partOf is what a's one part puts on, its marks e's.
 func partOf(a *ActiveEffect, e SpellEffect) *effectPart {
@@ -180,6 +182,13 @@ func partsOf(cs *castState, caster *Player, now time.Time, dur time.Duration) []
 		if ends && stays {
 			return out
 		}
+	}
+	// a run speed a cast ends ends only at a harmful one (dispelOnCastLocked:
+	// petition 1067), so an effect with one keeps its parts to tell it from
+	// what a beneficial cast ends, though every part of it ends at a cast
+	// (Spirit Circle's lone speed, a haste beside a stat a cast ends)
+	if slices.ContainsFunc(out, func(p *effectPart) bool { return p.Speed && p.Cast }) {
+		return out
 	}
 	return nil
 }

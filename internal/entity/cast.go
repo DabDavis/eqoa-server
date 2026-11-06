@@ -664,7 +664,7 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	if spell.Def.Harmful {
 		w.breakBoardWolfLocked(p, "a harmful spell") // boardwolf.go
 	}
-	w.dispelOnCastLocked(p) // workbook.go: what ends at a cast
+	w.dispelOnCastLocked(p, spell.Def.Harmful) // workbook.go: what ends at a cast (a run speed only at a harmful one)
 	lockout := spell.CastTime + spell.Recast + castLockoutExtra
 	p.Lockouts = append(p.Lockouts, castLockout{spellID: spell.SpellID, displayIndex: spell.DisplayIndex, until: now.Add(lockout)})
 	cs := &castState{spell: spell, caster: p.ServerID, targets: targets, ends: now.Add(spell.CastTime + castBusy), lands: now.Add(spell.CastTime + castLand),

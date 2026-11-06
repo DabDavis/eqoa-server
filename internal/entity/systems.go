@@ -570,7 +570,7 @@ func (w *World) buffChannelSyncSystem() {
 		}
 		player.StatsDirty = false
 
-		buffData := SerializeBuffUpdate(player)
+		buffData := SerializeBuffSlots(w.buffSlotsLocked(player, time.Now()))
 
 		conn := sess.Connection()
 		if conn != nil {

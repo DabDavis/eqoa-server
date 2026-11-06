@@ -150,6 +150,8 @@ func (w *World) RenamePlayer(id EntityID, name string) (string, bool) {
 // (a GM's Disband Guild: no rank needed), online or not. It returns the
 // guild and its members' Players that were online, all now out of it.
 func (w *World) DisbandGuildOfMember(name string) (*Guild, []*Player, error) {
+	var writes []guildWrite
+	defer writeGuilds(&writes)
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	var g *Guild
@@ -175,6 +177,7 @@ func (w *World) DisbandGuildOfMember(name string) (*Guild, []*Player, error) {
 		}
 	}
 	delete(w.guilds, g.ID)
+	w.keepGuildLocked(&writes, g, true)
 	return g, online, nil
 }
 

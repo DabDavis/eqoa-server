@@ -1073,6 +1073,7 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 	player.Helm, player.Chest, player.Bracer, player.Legs, player.Boots, player.Gloves = 0, 0, 0, 0, 0, 0
 	player.Robe, player.RobeWorn, player.Primary, player.Secondary, player.Shield = 0, false, 0, 0, 0
 	player.RobeTint, player.RobeColor = 0, 0
+	player.ArmorColors = [len(player.ArmorColors)]uint32{}
 	player.PrimaryType, player.SecondaryType = 0, 0
 	worn := map[int]*database.CharInventoryEntry{}
 	for i := range items {
@@ -1084,19 +1085,20 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 			worn[item.EquipLoc] = item
 		}
 		model := item.Pattern.Model
+		color := entity.ArmorColor(item.Pattern.Color)
 		switch item.Pattern.EquipSlot {
 		case 1: // Head
-			player.Helm = byte(model)
+			player.Helm, player.ArmorColors[database.DyeHelm] = byte(model), color
 		case 5: // Chest
-			player.Chest = byte(model)
+			player.Chest, player.ArmorColors[database.DyeChest] = byte(model), color
 		case 7: // Bracers
-			player.Bracer = byte(model)
+			player.Bracer, player.ArmorColors[database.DyeBracer] = byte(model), color
 		case 10: // Legs
-			player.Legs = byte(model)
+			player.Legs, player.ArmorColors[database.DyeLegs] = byte(model), color
 		case 11: // Feet
-			player.Boots = byte(model)
+			player.Boots, player.ArmorColors[database.DyeBoots] = byte(model), color
 		case 19: // Hands/Gloves
-			player.Gloves = byte(model)
+			player.Gloves, player.ArmorColors[database.DyeGloves] = byte(model), color
 		case 2: // Robe: style 0 is a robe too; its tint and colour its record's
 			player.Robe, player.RobeWorn = uint32(model), true
 			player.RobeTint, player.RobeColor = entity.RobeLook(item.Pattern.Color)

@@ -103,8 +103,11 @@ CASTER49 = ["crosier", "union"]
 # given), then every new choice, in the order the outfitter lists them
 PLAN = {
     0: ({714013: "contender"}, ["virtue", "challenger", "steelwind", "foereaver"]),
-    1: ({714027: "axe_innocence", 714028: "quicksilver"},
-        ["axe_purity", "blade_innocence", "blade_purity", "refrain", "harmony", "insurrection", "mayhem", "emerald", "fury"]),
+    # the ranger's: the Scimitar of Fury (the user, with its picture: "this is scimitar of fury, the ranger epic. lets
+    # make the ranger heirloom that. right now it is the rogue epic"), the axes and blades among its choices
+    1: ({714027: "fury", 714028: "quicksilver"},
+        ["axe_innocence", "axe_purity", "blade_innocence", "blade_purity", "refrain", "harmony", "insurrection", "mayhem",
+         "emerald"]),
     2: ({714042: "virtue"}, ["contender", "challenger", "judgement", "virtus"]),
     3: ({714056: "contender", 714057: "challenger"}, ["virtue", "beheader", "downfall"]),
     4: ({714071: "insurrection", 714072: "mountain"},
@@ -125,10 +128,23 @@ PLAN = {
 }
 # the converted records whose look stays their own: the shadow knight's two-hander, the Sword of Dreams' (the user's)
 KEEP_LOOK = {714057: "Heirloom Sword of Dreams"}
+# a converted record's look from another record (model, icon, colour): the ranger's bow, the disc's most ornate bow
+# (the user: "lets give heirloom bow an epic ranger bow look that is on disc and make range 55"; ITEM.ESF's 200
+# models hold five bows, none glowing: the Bow of the Elder Elves' 0x361DAC84, pale wood and a red grip, and the
+# Quicksilver's 0xDEBA8F46, silver bands, are the two of note)
+LOOK_FROM_NAME = {714028: "Bow of the Elder Elves"}
+# new heirlooms of a look and no epic (the best of their kind at every level): the ranger's second bow, the
+# Quicksilver's look ("if you find other epic looking bows also add those as another heirloom bow")
+PLAIN = {1: [("ranged", 16, "Heirloom Longbow", 5359)]}
+# a ranged heirloom's reach (itempattern.unk5), kept over its best's or epic's shorter (handlers/heirloom.go)
+RANGE = 55
 ROGUE_DAGGER = 714100
 
 WEAR = {"main": None, "twohand": 15, "ranged": 16}  # main: 14 for a dual wielder, else 12
 DUR = 80  # every heirloom's durability (the user: "lets make heirloom items 80 DUR")
+
+
+DESC_PLAIN = "Heirloom gear for testing: always the best of its kind your class can wear at your level."
 
 
 def desc_of(epic_name, level):
@@ -179,8 +195,16 @@ def plan(db):
                 raise SystemExit(f"{pid} is a {h['role']}, {key} a {role}")
             s = {"itemname": KEEP_LOOK.get(pid, name), "itemdesc": desc_of(e["itemname"], e["levelreq"]),
                  "attacktype": e["attacktype"]}
-            if pid not in KEEP_LOOK:
+            if pid in LOOK_FROM_NAME:
+                lk = (rows_of(db, "SELECT model, itemicon, color FROM itempattern WHERE itemname = ? LIMIT 1",
+                              LOOK_FROM_NAME[pid]) or [None])[0]
+                if lk is None:
+                    raise SystemExit(f"no record named {LOOK_FROM_NAME[pid]!r} for {pid}'s look")
+                s.update(model=lk["model"], itemicon=lk["itemicon"], color=lk["color"])
+            elif pid not in KEEP_LOOK:
                 s.update(model=e["model"], itemicon=e["itemicon"], color=e["color"])
+            if role == "ranged":
+                s["unk5"] = RANGE
             changes.append(dict(pid=pid, cls=cls, epic=eid, set=s, note=f"{CLASSES[cls]} {h['itemname']} -> {s['itemname']}"
                                                                          f" ({e['itemname']} {eid} from {e['levelreq']})"))
         for key in extra:
@@ -198,8 +222,28 @@ def plan(db):
             for c in ("weaponproc", "fish"):
                 if c in r:
                     r[c] = 0
+            if role == "ranged":
+                r["unk5"] = RANGE
             made.append(dict(rec={c: r.get(c) for c in cols}, cls=cls, role=role, epic=eid,
                              note=f"{CLASSES[cls]} {name} ({e['itemname']} {eid} from {e['levelreq']})"))
+            nid += 1
+        for role, slot, name, look_id in PLAIN.get(cls, []):
+            look = (rows_of(db, "SELECT * FROM itempattern WHERE patternid = ?", look_id) or [None])[0]
+            if look is None:
+                raise SystemExit(f"no record {look_id} for {name}'s look")
+            r = dict(look)
+            for c in ("str", "sta", "agi", "dex", "wis", "intelligence", "cha", "HPMAX", "POWMAX", "PoT", "HoT", "AC",
+                      "PR", "DR", "FR", "CR", "LR", "AR"):
+                if c in r:
+                    r[c] = None
+            r.update(patternid=nid, itemname=name, itemdesc=DESC_PLAIN, itemcost=0, trade=1, rent=1, levelreq=1,
+                     maxstack=1, classuse=1 << cls, raceuse=32767, lore=0, craft=0, equipslot=slot, weapondamage=0,
+                     duration=DUR, unk5=RANGE if role == "ranged" else r.get("unk5"))
+            for c in ("weaponproc", "fish"):
+                if c in r:
+                    r[c] = 0
+            made.append(dict(rec={c: r.get(c) for c in cols}, cls=cls, role=role, epic=0,
+                             note=f"{CLASSES[cls]} {name} (the look of {look['itemname']} {look_id}, the best at every level)"))
             nid += 1
     # the outfitters selling each class's set
     stock = {}

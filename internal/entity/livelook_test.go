@@ -307,3 +307,36 @@ func TestTheWorldSendsEachClientItsLook(t *testing.T) {
 		t.Fatal("the PS2's channel is not the disc's serializer's")
 	}
 }
+
+// A worn armour piece's own colour is its slot's in the live game's look
+// where the slot has no dye (the user, 2026-11-06: "shirt of blackened links
+// should be pitch black"): black (0x000000FF) as black, a dye over it kept;
+// a disc tint's index (the crafted sets' 0-14) and white are nothing of
+// their own. The control: no colours, the player's own dyes as they are.
+func TestArmorsOwnColourIsItsUndyedSlot(t *testing.T) {
+	for _, c := range []struct {
+		color int64
+		want  uint32
+	}{{0x000000FF, 0x000000FF}, {0x400080FF, 0x400080FF}, {13, 0}, {0, 0}, {0xFFFFFFFF, 0}, {-1, 0}} {
+		if got := ArmorColor(c.color); got != c.want {
+			t.Errorf("ArmorColor(%#x) = %#x, want %#x", c.color, got, c.want)
+		}
+	}
+	p := &Player{}
+	if d := p.LookDyes(); d != &p.Dyes {
+		t.Fatal("the control: no colours of its own, yet a copy")
+	}
+	p.ArmorColors[database.DyeChest] = 0x000000FF
+	p.ArmorColors[database.DyeHelm] = 0x400080FF
+	p.Dyes[database.DyeHelm] = 0xFF0000FF // dyed red: the dye wins
+	d := p.LookDyes()
+	if d[database.DyeChest] != 0x000000FF || d[database.DyeHelm] != 0xFF0000FF || d[database.DyeLegs] != 0 {
+		t.Fatalf("dyes %#x", *d)
+	}
+	if p.Dyes[database.DyeChest] != 0 {
+		t.Fatal("the player's own dyes changed")
+	}
+	if len(p.ArmorColors) != database.DyeHelm+1 {
+		t.Fatalf("%d armour colours for %d armour dye slots", len(p.ArmorColors), database.DyeHelm+1)
+	}
+}

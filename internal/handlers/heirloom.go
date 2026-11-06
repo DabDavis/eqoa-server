@@ -41,9 +41,9 @@ import (
 // inventory, the merchant's list for its buyer and every record sent carry
 // the wearer's; a level up refreshes the worn gear at once (World.OnLevelUp),
 // the item windows at the next login (the user's choice). The chest piece
-// heals its wearer at each creature hit as the Breastplate of the Anointed
-// (entity/wornshield.go, "heirloom chestguard"). The records are NO TRADE and
-// worth nothing (the user's choice).
+// healed as the Breastplate of the Anointed until the user's "lets turn off
+// the healing effect on hit from heirloom" (2026-11-06). The records are NO
+// TRADE and worth nothing (the user's choice).
 //
 // An heirloom weapon may BE an epic (heirlooms.epic; the user, 2026-11-06:
 // "the heirloom weapons for every class lets make their lvl 60 epics. also add

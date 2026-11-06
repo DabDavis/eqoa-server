@@ -188,12 +188,14 @@ func TestAnHeirloomFollowsALevelUp(t *testing.T) {
 }
 
 // The chest piece heals at each hit as the Breastplate of the Anointed.
-func TestTheHeirloomChestguardHealsAsTheAnointed(t *testing.T) {
-	a, okA := entity.WornShieldOf(0, "Breastplate of the Anointed")
-	c, okC := entity.WornShieldOf(714100, "Heirloom Chestguard")
-	c.Item, a.Item = "", ""
-	if !okA || !okC || c != a {
-		t.Errorf("the heirloom chestguard %+v (%v), the Anointed %+v (%v)", c, okC, a, okA)
+func TestTheHeirloomChestguardHealsNoMore(t *testing.T) {
+	// the user, 2026-11-06: "lets turn off the healing effect on hit from
+	// heirloom"; the control, the Anointed's own, still heals
+	if c, ok := entity.WornShieldOf(714001, "Heirloom Chestguard"); ok {
+		t.Errorf("the heirloom chestguard still answers a hit: %+v", c)
+	}
+	if a, ok := entity.WornShieldOf(0, "Breastplate of the Anointed"); !ok || a.Heal == 0 {
+		t.Errorf("the control: the Anointed's %+v (%v)", a, ok)
 	}
 }
 

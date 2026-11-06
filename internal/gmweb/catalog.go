@@ -292,13 +292,14 @@ var catalog = map[string]tableNote{
 			"town's coachman signs his. A coachman's menu offers only the towns his coach ran to in the live game " +
 			"(EQOA-Data's coach map, read both ways) whose ledgers the character has signed; with none he says so. " +
 			"A GM's account is offered every coach town, and so is anyone at a coachman of no town on the network " +
-			"(the Rathe's Coachman Dilga). A row here grants a town, deleting it takes the town away.",
+			"(the Rathe's Coachman Dilga). A coachman also offers anyone else to sign every ledger at once (Yes or No, " +
+			"with a word that it may break immersion). A row here grants a town, deleting it takes the town away.",
 		Live: "At once: the character's next talk to a coachman reads it.",
 		Show: []string{"serverid", "town", "source", "signed"},
 		Cols: map[string]colNote{
 			"serverid": {Label: "Character", Ref: "characters"},
 			"town":     {Label: "Town", Help: coachTownHelp()},
-			"source":   {Label: "Source", Help: "talk: signed in the game; gm: granted here"},
+			"source":   {Label: "Source", Help: "talk: signed in the game; coachman-all: every ledger at once, at a coachman's offer; gm: granted here"},
 			"signed":   {Label: "Signed", Format: "stamp", Help: "when, RFC 3339 in UTC (2026-10-30T01:30:00Z); empty for a grant"},
 		},
 	},

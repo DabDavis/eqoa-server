@@ -8,9 +8,10 @@ import (
 // A character's stable ledgers in the panel (charcoaches): a GM grants a town
 // as a row, audited, which the revert takes away again; a town spelled
 // otherwise than the coach menus spell it, one no coach menu lists, a source
-// the game does not write and a row of no character are refused. Deleting the
-// character takes its ledgers with it, each audited. The control: before the
-// grant the character has none.
+// the game does not write and a row of no character are refused, a row the
+// game writes (signed at a coachman, or every ledger at once at his offer)
+// taken. Deleting the character takes its ledgers with it, each audited. The
+// control: before the grant the character has none.
 func TestCoachLedgerRowsAreAuditedAndRevertible(t *testing.T) {
 	f := newFixture(t)
 	c := f.browser()
@@ -64,8 +65,11 @@ func TestCoachLedgerRowsAreAuditedAndRevertible(t *testing.T) {
 	}
 
 	c.op("insert_row", map[string]any{"table": "charcoaches", "values": map[string]any{"serverid": 7, "town": "Freeport", "source": "talk"}})
+	if code, out := c.op("insert_row", map[string]any{"table": "charcoaches", "values": map[string]any{"serverid": 7, "town": "Neriak", "source": "coachman-all"}}); code != 200 {
+		t.Errorf("a row every ledger at once writes: %d %v, want taken", code, out)
+	}
 	code, out = c.op("delete_row", map[string]any{"table": "characters", "key": map[string]any{"serverid": 7}, "dry_run": true})
-	if also, _ := out["alsoDeleted"].(map[string]any); code != 200 || also["charcoaches"] != float64(1) {
+	if also, _ := out["alsoDeleted"].(map[string]any); code != 200 || also["charcoaches"] != float64(2) {
 		t.Fatalf("deleting Hero would take %v (%d), want its ledger too", out["alsoDeleted"], code)
 	}
 	if code, out = c.op("delete_row", map[string]any{"table": "characters", "key": map[string]any{"serverid": 7}}); code != 200 {

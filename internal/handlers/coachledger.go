@@ -3,8 +3,10 @@ package handlers
 import (
 	"log"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/session"
 )
@@ -22,11 +24,24 @@ import (
 // and so is anyone at a coachman whose town is not on the network (the
 // Rathe's Coachman Dilga, the only coach of his world). Without a ledger
 // store (no database) the menus are as before.
+//
+// Every ledger at once (the user, 2026-11-06: "lets add option to Coachmen to
+// grant all coaches if they want, but may break immersion"): a coachman on
+// the network offers anyone who is not a GM and has not signed every coach
+// town's ledger (entity.CoachTownNames) one more entry, last in his menu, or
+// alone after his "My horses run to ..." when no town his coach runs to is
+// signed. Picked, he says what it does and asks Yes or No, the warning in the
+// question (the stables had a traveler sign each ledger at its own stable);
+// Yes signs every ledger not yet signed, source coachman-all, and opens his
+// menu again, No changes nothing. Only the signing is granted: a coach still
+// runs only to its neighbours. Its question goes under box mark 0x57000000,
+// beside the dyers' 0x56 (dyer.go names the others).
 
 // coachLedger keeps the ledgers (database.SQLiteCharacterStore).
 type coachLedger interface {
 	CoachTowns(serverID uint32) (map[string]bool, error)
 	SignCoachLedger(serverID uint32, town string, at time.Time) (bool, error)
+	SignCoachLedgers(serverID uint32, towns []string, source string, at time.Time) (int, error)
 }
 
 // ledgerSigned is what a coachman says as he signs a new name into his ledger
@@ -78,21 +93,24 @@ func (h *InteractHandler) signLedger(sess *session.Session, player *entity.Playe
 
 // coachDests is what the coachman's menu offers the player (dests), or, when
 // it offers nothing, what he says instead (none; "" for a coachman who has
-// nothing to say, as before: no other coach in his world).
-func (h *InteractHandler) coachDests(sess *session.Session, player *entity.Player, npc *entity.NPC) (dests []entity.CoachDest, none string) {
+// nothing to say, as before: no other coach in his world); every is whether
+// he offers to sign every ledger at once (the player has not, and is no GM).
+func (h *InteractHandler) coachDests(sess *session.Session, player *entity.Player, npc *entity.NPC) (dests []entity.CoachDest, none string, every bool) {
 	all := h.gameWorld.GetCoachDestinations(npc.Name, npc.World)
 	town, named := entity.CoachTown(npc)
 	runs, routed := entity.CoachMenu(town, named, all)
 	if !routed || h.ledger == nil {
-		return all, ""
+		return all, "", false
 	}
 	if h.isGM != nil && h.isGM(sess) {
 		log.Printf("Coach: %s offers GM %s every coach town (%d)", npc.Name, player.Name, len(all))
-		return all, ""
+		return all, "", false
 	}
 	signed, err := h.ledger.CoachTowns(player.CharServerID)
 	if err != nil {
 		log.Printf("Coach: reading %s's ledgers: %v", player.Name, err)
+	} else if player.CharServerID != 0 {
+		every = len(unsignedLedgers(signed)) > 0
 	}
 	var towns []string
 	seen := map[string]bool{}
@@ -105,10 +123,171 @@ func (h *InteractHandler) coachDests(sess *session.Session, player *entity.Playe
 			dests = append(dests, d)
 		}
 	}
-	log.Printf("Coach: %s (%s) offers %s %d of the %d towns his coach runs to %v", npc.Name, town, player.Name,
-		len(dests), len(towns), towns)
+	log.Printf("Coach: %s (%s) offers %s %d of the %d towns his coach runs to %v (every ledger at once: %v)", npc.Name,
+		town, player.Name, len(dests), len(towns), towns, every)
 	if len(dests) == 0 {
-		return nil, npc.Name + ": " + coachNone(towns)
+		return nil, npc.Name + ": " + coachNone(towns), every
 	}
-	return dests, ""
+	return dests, "", every
+}
+
+// coachMenu opens a coachman's menu (coachDests): the towns he offers, then
+// his offer to sign every ledger at once when he makes it; with no town, why
+// not first. It reports whether he said anything: a coachman with no other
+// coach in his world has nothing to say here.
+func (h *InteractHandler) coachMenu(sess *session.Session, player *entity.Player, npc *entity.NPC) bool {
+	dests, none, every := h.coachDests(sess, player, npc)
+	if len(dests) == 0 && none != "" {
+		forgetDialogs(player)
+		for _, part := range splitSay(none, questBoxChars) {
+			h.sendDialogueBox(sess, part)
+		}
+	}
+	if every {
+		dests = append(dests, entity.CoachDest{Name: everyLedgerOption, Ledgers: true})
+		h.every.offer(player.CharServerID, npc)
+	}
+	if len(dests) == 0 {
+		return none != ""
+	}
+	forgetDialogs(player)
+	player.PendingCoachDests = dests
+	player.CoachPage = 0
+	h.sendCoachPage(sess, player)
+	return true
+}
+
+// The words of the offer to sign every ledger at once. everyLedgerOption is
+// its entry in the menu, everyLedgerAlone the menu's question when it is the
+// only entry; everyLedgerTell what the coachman says it does when it is
+// picked; everyLedgerAsk the question (at most questAskChars), with the
+// warning, and its answers; everyLedgerDone his word once it is done.
+const (
+	everyLedgerOption = "Sign every stable's ledger"
+	everyLedgerAlone  = "Shall I sign you into every stable's ledger instead?"
+	everyLedgerTell   = "I can write your name in every stable's ledger at once. Then any coach will take you on to the towns its horses run to."
+	everyLedgerAsk    = "Sign every stable's ledger now? Travelers once signed each at its own stable, so this may break immersion."
+	everyLedgerYes    = "Yes, sign them all"
+	everyLedgerNo     = "No, I'll sign them as I travel"
+	everyLedgerDone   = "Your name is in every stable's ledger now."
+)
+
+// coachBoxMark marks a coachman's question's id (0x0034's u32, echoed by
+// 0x0035).
+const coachBoxMark = 0x57000000
+
+// IsCoachBox reports a box a coachman asked.
+func IsCoachBox(id uint32) bool { return id&0xFF000000 == coachBoxMark }
+
+// unsignedLedgers are the coach towns (entity.CoachTownNames) whose ledgers
+// are not in signed.
+func unsignedLedgers(signed map[string]bool) []string {
+	var out []string
+	for _, t := range entity.CoachTownNames() {
+		if !signed[t] {
+			out = append(out, t)
+		}
+	}
+	return out
+}
+
+// everyLedgerAsks keeps, by character (CharServerID), the coachman whose
+// menu last offered it every ledger at once, and the box of his question
+// once it is asked (0 before).
+type everyLedgerAsks struct {
+	mu   sync.Mutex
+	seq  uint32
+	open map[uint32]everyLedgerOffer
+}
+
+type everyLedgerOffer struct {
+	npc *entity.NPC
+	box uint32
+}
+
+// offer records that npc's menu offers the character every ledger.
+func (a *everyLedgerAsks) offer(charID uint32, npc *entity.NPC) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.open == nil || len(a.open) > 20000 {
+		a.open = map[uint32]everyLedgerOffer{}
+	}
+	a.open[charID] = everyLedgerOffer{npc: npc}
+}
+
+// ask gives the character's offer its question's box id, and is the
+// coachman who made it (nil: none was made).
+func (a *everyLedgerAsks) ask(charID uint32) (*entity.NPC, uint32) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	o, ok := a.open[charID]
+	if !ok {
+		return nil, 0
+	}
+	a.seq++
+	o.box = coachBoxMark | (a.seq & 0xFFFFFF)
+	a.open[charID] = o
+	return o.npc, o.box
+}
+
+// answered takes the character's question asked as box, and is its coachman
+// (nil: not the question it has open, an old box or none).
+func (a *everyLedgerAsks) answered(charID, box uint32) *entity.NPC {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	o, ok := a.open[charID]
+	if !ok || o.box == 0 || o.box != box {
+		return nil
+	}
+	delete(a.open, charID)
+	return o.npc
+}
+
+// askEveryLedger is the menu's every-ledger entry picked: the coachman says
+// what it does and asks Yes or No.
+func (h *InteractHandler) askEveryLedger(sess *session.Session, player *entity.Player) {
+	npc, box := h.every.ask(player.CharServerID)
+	if npc == nil {
+		return
+	}
+	for _, part := range splitSay(npc.Name+": "+everyLedgerTell, questBoxChars) {
+		h.sendDialogueBox(sess, part)
+	}
+	SendQuestPopupMulti(sess, box, clipRunes(everyLedgerAsk, questAskChars), []string{everyLedgerYes, everyLedgerNo})
+	log.Printf("Coach: %s asks %s whether to sign every stable's ledger", npc.Name, player.Name)
+}
+
+// answerEveryLedger is HandleDialogueOption's question for a coachman's box.
+// Yes signs every ledger the character had not (source coachman-all), says
+// so and opens his menu again while the player stands by him; No changes
+// nothing. It reports whether the box was a coachman's (an old one does
+// nothing).
+func (h *InteractHandler) answerEveryLedger(sess *session.Session, player *entity.Player, box uint32, option byte) bool {
+	if !IsCoachBox(box) {
+		return false
+	}
+	if option == 255 || player == nil {
+		return true // a close: the PS2 sends one before the real pick when two boxes were open
+	}
+	npc := h.every.answered(player.CharServerID, box)
+	if npc == nil || h.ledger == nil {
+		return true
+	}
+	if option != 0 {
+		log.Printf("Coach: %s chose not to sign every stable's ledger at %s's", player.Name, npc.Name)
+		return true
+	}
+	towns := entity.CoachTownNames()
+	n, err := h.ledger.SignCoachLedgers(player.CharServerID, towns, database.CoachLedgersAll, time.Now())
+	if err != nil {
+		log.Printf("Coach: signing %s into every stable's ledger at %s's: %v", player.Name, npc.Name, err)
+		h.sendDialogueBox(sess, npc.Name+": Something went wrong with the ledgers. Try again.")
+		return true
+	}
+	h.sendDialogueBox(sess, npc.Name+": "+everyLedgerDone)
+	log.Printf("Coach: %s signed every stable's ledger at %s's (%d of the %d towns new)", player.Name, npc.Name, n, len(towns))
+	if !npc.Dead && entity.InRange(player, npc, entity.InteractRange) {
+		h.coachMenu(sess, player, npc)
+	}
+	return true
 }

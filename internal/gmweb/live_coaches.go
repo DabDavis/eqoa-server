@@ -4,6 +4,7 @@ import (
 	"math"
 	"strings"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 )
 
@@ -20,7 +21,7 @@ func coachTownHelp() string {
 
 // checkCoachRow holds a charcoaches row to a character and a town a coach
 // menu lists (entity.CoachTownNames, spelled as they are), signed in the game
-// or granted.
+// (at a coachman, or every ledger at once at his offer) or granted.
 func checkCoachRow(row map[string]any) error {
 	id, ok := asFloat(row["serverid"])
 	if !ok || id != math.Trunc(id) || id <= 0 {
@@ -44,8 +45,9 @@ func checkCoachRow(row map[string]any) error {
 		return badRequest("town %q is no coach town: one of %s", town, strings.Join(names, ", "))
 	}
 	if v, ok := row["source"]; ok && v != nil {
-		if src, _ := v.(string); src != "talk" && src != "gm" {
-			return badRequest("source is talk (signed in the game) or gm (granted here)")
+		if src, _ := v.(string); src != "talk" && src != "gm" && src != database.CoachLedgersAll {
+			return badRequest("source is talk (signed in the game), %s (every ledger at once, at a coachman's offer) or gm (granted here)",
+				database.CoachLedgersAll)
 		}
 	}
 	return nil

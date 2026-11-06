@@ -20,6 +20,14 @@ func (c *caster) contactPlayer() {
 	c.w.contactPlayerLocked(c.p)
 }
 
+// ownHit is the rig's player's own swing at a creature as playerRoundHitsLocked
+// makes it: a run speed that ends at contact ends.
+func (c *caster) ownHit() {
+	c.w.mu.Lock()
+	defer c.w.mu.Unlock()
+	c.w.ownHitLocked(c.p, "a swing")
+}
+
 func effectNamed(es []*ActiveEffect, id int) *ActiveEffect {
 	for _, e := range es {
 		if e.SpellID == id {
@@ -39,16 +47,16 @@ func sentSpeed(msgs [][]byte) bool {
 	return false
 }
 
-// a wolf form's kind: a body, two stats, a speed the hit ends
+// a wolf form's kind: a body, two stats, a speed marked to end at contact
 const wolfJSON = `{"v":1,"scope":"self","target_type":"Self","duration_s":1800,"effects":[
 	{"kind":"illusion","sprite":"0x010C0B0A"},{"kind":"stat","stat":"str","amount":29},{"kind":"stat","stat":"agi","amount":29},
 	{"kind":"speed","dispel_on_contact":true}]}`
 
-// A hit ends a speed part alone: the run speed falls back (0x00F8 told), the
-// stats and the body stay, the effect stays on the effects list and runs to its
-// time, ending at no hit more. On the code before, the hit took the whole
-// effect, body and stats with it.
-func TestAHitEndsTheSpeedPartTheStatsAndFormStay(t *testing.T) {
+// A hit taken ends no speed part (petition 1109). Its bearer's own hit ends it
+// alone: the run speed falls back (0x00F8 told), the stats and the body stay,
+// the effect stays on the effects list and runs to its time, ending at no hit
+// more. Before 2026-11-01 a hit took the whole effect, body and stats with it.
+func TestAnOwnHitEndsTheSpeedPartTheStatsAndFormStay(t *testing.T) {
 	c := bodyRig(t)
 	wolf := wbSpell(9901, 30, 0, "Test Wolf Shape", wolfJSON)
 	run := c.p.SpeedNow()
@@ -56,10 +64,15 @@ func TestAHitEndsTheSpeedPartTheStatsAndFormStay(t *testing.T) {
 	if e := effectNamed(c.p.Effects, 9901); e == nil || !e.Speed || c.p.SpeedNow() <= run || c.p.Mods.Str != 29 {
 		t.Fatalf("landed: %+v, speed %v (run %v), STR %+d", e, c.p.SpeedNow(), run, c.p.Mods.Str)
 	}
+	c.sent()
 	c.contactPlayer()
+	if e := effectNamed(c.p.Effects, 9901); e == nil || !e.Speed || c.p.SpeedNow() <= run || sentSpeed(c.sent()) {
+		t.Fatalf("after a hit taken: %+v, speed %v (run %v); want it all on, nothing told", e, c.p.SpeedNow(), run)
+	}
+	c.ownHit()
 	e := effectNamed(c.p.Effects, 9901)
 	if e == nil {
-		t.Fatal("the hit ended the whole effect")
+		t.Fatal("its own hit ended the whole effect")
 	}
 	if told := sentSpeed(c.sent()); e.Speed || c.p.SpeedNow() != run || !told {
 		t.Errorf("the speed part: on %v, speed %v (want the run's %v), told %v", e.Speed, c.p.SpeedNow(), run, told)
@@ -68,6 +81,7 @@ func TestAHitEndsTheSpeedPartTheStatsAndFormStay(t *testing.T) {
 		t.Errorf("the rest: body %#x, STR %+d, AGI %+d, buffs %d; want the ogre's, +29, +29 and the effect shown",
 			m, c.p.Mods.Str, c.p.Mods.Agi, len(c.p.Buffs))
 	}
+	c.ownHit()
 	c.contactPlayer()
 	if effectNamed(c.p.Effects, 9901) == nil {
 		t.Error("a second hit ended what stays")
@@ -151,8 +165,8 @@ func TestTheInvisibleBodyEndsWithItsInvisiblePart(t *testing.T) {
 // instant hit ends whole too (Arcane Shock's snare).
 func TestAWhollyMarkedEffectEndsWhole(t *testing.T) {
 	c := bodyRig(t)
-	both := wbSpell(9906, 30, 0, "Test Haste Veil", `{"v":1,"scope":"self","target_type":"Self","duration_s":600,"effects":[
-		{"kind":"invis","dispel_on_contact":true},{"kind":"speed","dispel_on_contact":true}]}`)
+	both := wbSpell(9906, 30, 0, "Test Strong Veil", `{"v":1,"scope":"self","target_type":"Self","duration_s":600,"effects":[
+		{"kind":"invis","dispel_on_contact":true},{"kind":"stat","stat":"str","amount":10,"dispel_on_contact":true}]}`)
 	c.land(t, both, 0xFFFFFFFF, 0)
 	c.contactPlayer()
 	if effectNamed(c.p.Effects, 9906) != nil {
@@ -167,8 +181,9 @@ func TestAWhollyMarkedEffectEndsWhole(t *testing.T) {
 }
 
 // Kept over a logout: a mixed effect saved before any hit keeps its parts
-// and its split, so a hit after the login still ends the marked part alone;
-// a part a hit ended before the logout does not come back.
+// and its split, so a hit taken after the login still leaves its run speed and
+// its bearer's own hit ends that part alone; a part ended before the logout
+// does not come back.
 func TestContactPartsKeptOverALogout(t *testing.T) {
 	c := bodyRig(t)
 	wolf := wbSpell(9901, 30, 0, "Test Wolf Shape", wolfJSON)
@@ -184,9 +199,13 @@ func TestContactPartsKeptOverALogout(t *testing.T) {
 		t.Fatal("restored without its speed")
 	}
 	d.contactPlayer()
+	if d.p.SpeedNow() <= run {
+		t.Fatal("a hit taken after the login ended the run speed")
+	}
+	d.ownHit()
 	e := effectNamed(d.p.Effects, 9901)
 	if e == nil || e.Speed || d.p.Mods.Str != 29 {
-		t.Fatalf("a hit after the login: on %v, speed part %v, STR %+d; want the speed part alone gone", e != nil,
+		t.Fatalf("its own hit after the login: on %v, speed part %v, STR %+d; want the speed part alone gone", e != nil,
 			e != nil && e.Speed, d.p.Mods.Str)
 	}
 

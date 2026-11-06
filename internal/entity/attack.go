@@ -529,6 +529,7 @@ func (w *World) playerRoundHitsLocked(p *Player, npc *NPC, now time.Time) bool {
 			// the client swung: a round a 0x00D8 calls off ends nothing
 			w.breakInvisLocked(p, "a swing")     // invis.go
 			w.breakBoardWolfLocked(p, "a swing") // boardwolf.go
+			w.ownHitLocked(p, "a swing")         // workbook.go: a run speed
 		}
 		if !inReach(p, npc) {
 			continue // swung at a target that stepped away

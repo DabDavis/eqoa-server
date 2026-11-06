@@ -108,6 +108,7 @@ func (w *World) dummyHitLocked(sess *session.Session, npc *NPC, p *Player, now t
 			return true
 		}
 		w.playerShieldsLocked(sess, p, npc, now) // the player's shields: told, taken off nothing (dshield.go)
+		w.defenceProcsLocked(sess, p, npc, now)
 		return false
 	}
 	p.HP = max(p.HP-damage, 0)
@@ -121,6 +122,7 @@ func (w *World) dummyHitLocked(sess *session.Session, npc *NPC, p *Player, now t
 		return true
 	}
 	w.playerShieldsLocked(sess, p, npc, now) // the player's shields: told, taken off nothing (dshield.go)
+	w.defenceProcsLocked(sess, p, npc, now)  // before the dummy's own heal, so they are seen
 	if npc.Dummy == TrainingDummy {
 		p.HP = min(p.HP+dummyHeal, p.MaxHPNow())
 		w.sendDamageIndication(sess, npcObjectID, dummyHeal, sess.PlayerObjectID())

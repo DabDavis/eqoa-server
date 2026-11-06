@@ -185,9 +185,15 @@ func (h *Heirlooms) View(serverID uint32, p *database.ItemPatternRecord) {
 			epicNow = true
 		}
 	}
-	if !epicNow {
-		if best, ok := h.bestOf(def.Class, race, level, def.Role); ok {
+	if best, ok := h.bestOf(def.Class, race, level, def.Role); ok {
+		if !epicNow {
 			heirloomFigures(p, &best)
+		} else if best.WeaponDamage > p.WeaponDamage {
+			// an epic deals no less than the best of its kind at the level (the
+			// user, 2026-11-06: Tmac's Fistaglin's Bow, 759, out-shot the
+			// heirloom bow's Quicksilver, 754: "lets at least match it")
+			p.WeaponDamage = best.WeaponDamage
+			p.Unk5 = max(p.Unk5, best.Unk5)
 		}
 	}
 	// every heirloom, weapons and shields too (the user: "let heirloom weapon

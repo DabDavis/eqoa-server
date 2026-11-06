@@ -689,7 +689,8 @@ heirloom answers a hit now. **Every heirloom carries its class's stats** (`heirl
 user: "all heirlooms should have stat increases also not just ac, can have hp, pow, str, sta, and 2 good secondary
 stats. for sk int and agi. for war dex and agi. etc.", then "let heirloom weapon get stats also and shields"): at
 least 1.25 HP and power a level and one STR, STA and of its two secondary stats per 5 levels (75, 75 and 12 at 60),
-a figure its best (or its epic) has higher kept; the secondary stats warrior, ranger, monk, rogue DEX and AGI,
+a figure its best (or its epic) has higher kept, and an epic heirloom's damage never below its best's at the level
+(the user: "match the heirloom to the better damage or more", of Tmac's 759 bow over the heirloom bow's 754); the secondary stats warrior, ranger, monk, rogue DEX and AGI,
 shadow knight INT and AGI, paladin and shaman WIS and AGI, bard CHA and DEX, druid WIS and INT, cleric WIS and CHA,
 enchanter INT and CHA, magician, necromancer, wizard and alchemist INT and WIS (all but the user's two ours). NO
 TRADE, worth 0. `TestRealHeirloomsGrowWithTheirWearer`

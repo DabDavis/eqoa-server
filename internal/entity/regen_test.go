@@ -60,8 +60,10 @@ func TestRegenTicksEverySixSecondsInAFight(t *testing.T) {
 	}
 	b := SerializeStatUpdate(p)
 	at := func(o int) int { return int(int32(binary.LittleEndian.Uint32(b[o:]))) }
-	if at(48) != 127 || at(52) != 89 || at(164) != 82 || at(168) != 84 {
-		t.Errorf("stat channel PoT %d HoT %d, base %d %d; want 127 89, 82 84", at(48), at(52), at(164), at(168))
+	// CLIENT's stat 12 is HoT and 13 PoT (FindStatWord), the totals at 48 and
+	// 52 and the base at 164 and 168 (petition 1091)
+	if at(48) != 89 || at(52) != 127 || at(164) != 84 || at(168) != 82 {
+		t.Errorf("stat channel HoT %d PoT %d, base %d %d; want 89 127, 84 82", at(48), at(52), at(164), at(168))
 	}
 	// a new character's innate rate: at least 1
 	novice := &Player{Level: 1, HP: 10, MaxHP: 16, Power: 5, MaxPower: 41}

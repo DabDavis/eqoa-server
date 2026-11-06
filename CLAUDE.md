@@ -500,7 +500,7 @@ locations of their own): signed in with this server's account (the account serve
 limits, a banned account refused; a session cookie of its own, HttpOnly, SameSite=Strict, Secure behind https;
 every write JSON with an `X-EQOA-Transfer` header, so no other site's page can write), it names a character of the
 account and what it was there (server, name, class, level, mastery points, the gear one item a line, notes), one
-open a character, three an account (table `chartransfers`, cleared from snapshots). Online GMs are told in yellow.
+open a character and any number an account (three until 2026-11-06, the user: "lets unlimit it"; table `chartransfers`, cleared from snapshots). Online GMs are told in yellow.
 **A GM decides on the panel's Character transfers page** (ops `transfer_list`, `transfer_get`, `transfer_preview`,
 `transfer_approve`, `transfer_reject`, `transfer_undo`): each gear line matched to this server's records
 (`MatchItemLines`: the same words, apostrophes, hyphens and a final s aside; our records' 32-character cut; else the

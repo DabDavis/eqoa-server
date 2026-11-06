@@ -281,7 +281,7 @@ func (s *Server) ServeAPI(w http.ResponseWriter, r *http.Request, path string) {
 // what the player can put right, else a general one (and the log).
 func playerError(err error) string {
 	switch {
-	case errors.Is(err, database.ErrTransferOpen), errors.Is(err, database.ErrTransferTooMany),
+	case errors.Is(err, database.ErrTransferOpen),
 		errors.Is(err, database.ErrTransferDecided), errors.Is(err, database.ErrTransferNotFound):
 		return err.Error()
 	}

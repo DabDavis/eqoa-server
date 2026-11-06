@@ -799,23 +799,25 @@ func TestABackstabNeedsItsCasterBehind(t *testing.T) {
 	}
 }
 
-// A player below a spell's lowest level is not affected; one at it is (the
-// control).
+// Above level 50 a player below a spell's lowest level is not affected, and one at
+// it is (the control). Up to level 50 there is no lowest level (petition 1130, the GM
+// Jibrish: "All level 50 or below buffs should work on all players below level 50,
+// including level 1").
 func TestWorkbookLowestLevel(t *testing.T) {
 	c := newCaster(t)
-	buff := wbSpell(971, 30, 1, "Test Ward", `{"v":1,"scope":"target","target_type":"Friendly","min_level":20,"duration_s":600,
-		"effects":[{"kind":"stat","stat":"ac","amount":10}]}`)
 	for _, tc := range []struct {
-		level int
-		takes bool
-	}{{19, false}, {20, true}} {
+		spell, level int
+		takes        bool
+	}{{51, 19, false}, {51, 20, true}, {50, 19, true}, {50, 1, true}} {
+		buff := wbSpell(971, tc.spell, 1, "Test Ward", `{"v":1,"scope":"target","target_type":"Friendly","min_level":20,"duration_s":600,
+		"effects":[{"kind":"stat","stat":"ac","amount":10}]}`)
 		other := &Player{ServerID: 1002, Name: "Other", Level: tc.level, HP: 100, MaxHP: 100}
 		c.w.Players[other.ServerID] = other
 		c.w.mu.Lock()
 		c.w.landOnPlayerLocked(&castState{spell: buff, caster: c.p.ServerID}, c.p, c.sess, other, c.at(0))
 		c.w.mu.Unlock()
 		if got := len(other.Effects) == 1; got != tc.takes {
-			t.Errorf("level %d: takes %v, want %v", tc.level, got, tc.takes)
+			t.Errorf("a level %d spell on level %d: takes %v, want %v", tc.spell, tc.level, got, tc.takes)
 		}
 	}
 }

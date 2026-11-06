@@ -457,11 +457,18 @@ func mitigateLocked(p *Player, n int, now time.Time) int {
 	return n - off
 }
 
+// noLowestLevelUpTo is the highest spell level with no lowest level to receive it
+// (petition 1130, the GM Jibrish: "All level 50 or below buffs should work on all
+// players below level 50, including level 1"). The workbook's lowest levels hold for
+// the spells above it. A resurrection has none at any level ("Resurrect spells should
+// work on all levels, including level 60 res on level 1").
+const noLowestLevelUpTo = 50
+
 // tooLowLocked reports a player below the spell's lowest level to receive it,
 // telling its caster. Must be called with the lock held.
 func (w *World) tooLowLocked(caster *Player, casterSess *session.Session, t *Player, s *CastSpell) bool {
 	d := &s.Def
-	if d.MinLevel <= 0 || t.Level >= d.MinLevel || t == caster {
+	if d.MinLevel <= 0 || t.Level >= d.MinLevel || t == caster || s.Level <= noLowestLevelUpTo || d.Resurrects() > 0 {
 		return false
 	}
 	log.Printf("Cast: %s's %q does not take on %s: level %d, its lowest %d", caster.Name, s.Name, t.Name, t.Level, d.MinLevel)

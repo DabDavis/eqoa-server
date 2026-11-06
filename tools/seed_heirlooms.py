@@ -79,9 +79,9 @@ LOOK_MODEL = {(3, "twohand"): -1269925226}
 # the armour of these classes looks as their material does: its pieces' looks (model, colour, icon) are taken from
 # the best of the slot in that armour model alone (1 cloth, 2 leather, 3 chain, 4 plate, 7 scale in the records).
 # Without it the best piece by score was a cloth hat for every plate class's helm, and a robe-wearer's gloves and
-# boots for some (the user, 2026-11-06: "also make SK heirloom plate it is cloth at the moment"). Warriors (0) and
-# paladins (2) take the same helm: not changed until the user says so.
-ARMOUR_MODEL = {3: 4}
+# boots for some (the user, 2026-11-06: "also make SK heirloom plate it is cloth at the moment"; then, of the
+# warriors' and paladins' cloth helms, "yes fix").
+ARMOUR_MODEL = {0: 4, 2: 4, 3: 4}
 ARMOUR_SLOTS = {1, 5, 7, 10, 11, 19}
 DESC = "Heirloom gear for testing: always the best of its kind your class can wear at your level."
 OUTFITTER, DYER = "Heirloom Outfitter", "Armor Dyer"

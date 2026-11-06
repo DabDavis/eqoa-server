@@ -17,7 +17,7 @@ func TestThePetsBuffsShowAfterTheOwners(t *testing.T) {
 	}
 	pet := &NPC{ServerID: 900, Effects: []*ActiveEffect{
 		{Name: "Soul Mastery", Icon: 2, Until: now.Add(time.Minute)},
-		{Name: "", Icon: 3, Until: now.Add(time.Minute)},                // no name: no slot
+		{Name: "", Icon: 3, Until: now.Add(time.Minute)},                   // no name: no slot
 		{Name: "Mastery of Plague", Icon: 4, Until: now.Add(-time.Second)}, // run out
 	}}
 	w.pets = map[EntityID]*petState{p.ServerID: {owner: p, npc: pet}}

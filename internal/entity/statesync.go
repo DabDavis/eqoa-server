@@ -573,11 +573,13 @@ func SerializeStatUpdate(p *Player) []byte {
 	writeInt32(40, int32(p.MaxPowerNow()))
 
 	// Offsets 44-56: field_100 (always 100 on SOE retail), then stats 12
-	// and 13, PoT and HoT with the worn items' (regen.go; Sandstorm sends
-	// 0; they were the old OFF/DEF placeholders), then the AC
+	// and 13, HoT and PoT with the worn items' (regen.go; Sandstorm sends
+	// 0; they were the old OFF/DEF placeholders), then the AC. CLIENT names
+	// stat 12 HoT and 13 PoT (FindStatWord: words 240, 241); until
+	// 2026-11-06 PoT went in 12 and HoT in 13 (petition 1091)
 	writeInt32(44, 100)
-	writeInt32(48, int32(p.PoTNow()))
-	writeInt32(52, int32(p.HoTNow()))
+	writeInt32(48, int32(p.HoTNow()))
+	writeInt32(52, int32(p.PoTNow()))
 	writeInt32(56, int32(p.StatNow(StatAC))) // Rockskin's AC 150 came here on Sandstorm
 
 	// Resists (offsets 88-111), with spells'
@@ -604,10 +606,11 @@ func SerializeStatUpdate(p *Player) []byte {
 	writeInt32(148, int32(p.BaseMaxHP()))
 	writeInt32(152, 0)
 	writeInt32(156, int32(p.BaseMaxPower()))
-	// base PoT and HoT (stats 12, 13): a 50 of the maxima, the items' not
-	// in them (CLIENT's GetStatTotal adds worn items' onto the base half)
-	writeInt32(164, int32(p.PoTBase()))
-	writeInt32(168, int32(p.HoTBase()))
+	// base HoT and PoT (stats 12, 13): a 50 of the maxima, the items' not
+	// in them (CLIENT's GetStatTotal adds worn items' onto the base half,
+	// by the same ids: handlers' itemPatternStats)
+	writeInt32(164, int32(p.HoTBase()))
+	writeInt32(168, int32(p.PoTBase()))
 
 	// Base AC (offset 172): 0, as on Sandstorm; the AC is all the worn items'
 	// and the spells' (56). The client adds the worn items' to the base half

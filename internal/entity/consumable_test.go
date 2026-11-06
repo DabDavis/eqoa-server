@@ -57,8 +57,9 @@ func TestConsumeAddsToTheRegen(t *testing.T) {
 		t.Errorf("a tick: %d HP, %d power; want 530, 112", p.HP, p.Power)
 	}
 	b := SerializeStatUpdate(p)
-	if pot, hot := int32(binary.LittleEndian.Uint32(b[48:])), int32(binary.LittleEndian.Uint32(b[52:])); pot != 12 || hot != 30 {
-		t.Errorf("stat channel PoT %d HoT %d; want 12, 30", pot, hot)
+	// CLIENT's stat 12 (offset 48) is HoT, 13 (52) PoT (petition 1091)
+	if hot, pot := int32(binary.LittleEndian.Uint32(b[48:])), int32(binary.LittleEndian.Uint32(b[52:])); pot != 12 || hot != 30 {
+		t.Errorf("stat channel HoT %d PoT %d; want 30, 12", hot, pot)
 	}
 
 	// a better meal replaces the bread: its HoT alone, the drink kept

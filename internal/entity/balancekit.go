@@ -672,7 +672,7 @@ func simWeaponScore(p *database.ItemPatternRecord) int {
 func simItemStats(p *database.ItemPatternRecord) map[int]int {
 	out := map[int]int{}
 	for id, v := range map[int]*int{0: p.Str, 1: p.Sta, 2: p.Agi, 3: p.Dex, 4: p.Wis, 5: p.Intelligence, 6: p.Cha,
-		8: p.HPMAX, 10: p.POWMAX, 12: p.PoT, 13: p.HoT, 14: p.AC, 22: p.PR, 23: p.DR, 24: p.FR, 25: p.CR, 26: p.LR, 27: p.AR} {
+		8: p.HPMAX, 10: p.POWMAX, 12: p.HoT, 13: p.PoT, 14: p.AC, 22: p.PR, 23: p.DR, 24: p.FR, 25: p.CR, 26: p.LR, 27: p.AR} {
 		if v != nil && *v != 0 {
 			out[id] = *v
 		}

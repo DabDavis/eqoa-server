@@ -12,7 +12,8 @@ import (
 // Groups, as CLIENT keeps one (VIClient's m_group, m_inGroup, m_p2BD78) and
 // reads it off the wire (the decomp, modules/client/src/viclient.cpp):
 //
-//	0x0625 in   invite: u32 the target's id, string8 its name (InviteEntity)
+//	0x0625 in   invite: u32 the target's id, string8 its name (InviteEntity), from any
+//	            member here (GroupInvite)
 //	0x0622 in   accept: u32 the inviter's id (AcceptInvite)
 //	0x0624 in   decline: u32 the inviter's id, u8 1 declined / 2 already grouped
 //	0x0623 in   leave;  0x0626 in  remove a member (u32 id);  0x0627 in  disband
@@ -203,7 +204,13 @@ func (w *World) sendRosterLocked(g *Group, force bool) {
 }
 
 // GroupInvite is 0x0625 from inviter: the invitee gets 0x0773; the inviter
-// forms a group of one if it has none (the client already thinks so).
+// forms a group of one if it has none (the client already thinks so). Any
+// member invites into its group, not only the leader (the user, 2026-11-06:
+// "lets allow any group member to invite to group"): CLIENT refuses a member's
+// invite itself (InviteEntity and InviteToGroup: word 640), so a PS2's member
+// never sends one, and vanilla sends one where this server offers it
+// (protocol.OpcodeMemberInvites, handlers/group.go). The invitee joins the
+// inviter's group; the leader stays the leader.
 func (w *World) GroupInvite(sess *session.Session, targetID uint32) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -231,9 +238,6 @@ func (w *World) GroupInvite(sess *session.Session, targetID uint32) {
 		w.groups[g.ID] = g
 		inviter.GroupID = g.ID
 		log.Printf("Group: %s formed group %d", inviter.Name, g.ID)
-	}
-	if g.Members[0] != inviter.ServerID {
-		return // only the leader invites; the client checks first
 	}
 	if w.invites == nil {
 		w.invites = make(map[EntityID]map[EntityID]bool)

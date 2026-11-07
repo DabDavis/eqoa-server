@@ -1013,10 +1013,7 @@ func (e *TriggerEngine) teleportLocked(r *triggerRun, s database.TriggerStep) st
 			continue
 		}
 		if s.Max > 0 {
-			take := 1
-			if e.gw.PetOf(m.p) != 0 {
-				take = 2
-			}
+			take := teleportRoomTaken(e.gw.PetOf(m.p) != 0)
 			if take > room {
 				if t := strings.TrimSpace(s.Refuse); t != "" {
 					SendClientMessage(m.sess, triggerText(t, m.p.Name))
@@ -1039,6 +1036,14 @@ func (e *TriggerEngine) teleportLocked(r *triggerRun, s database.TriggerStep) st
 		line += fmt.Sprintf(" (%s whose game cannot load it stayed)", players(refused))
 	}
 	return line
+}
+
+// teleportRoomTaken is how much of a capped teleport one player takes: a pet is one more.
+func teleportRoomTaken(hasPet bool) int {
+	if hasPet {
+		return 2
+	}
+	return 1
 }
 
 // spawnLocked places the step's copies round its place (its own, or the

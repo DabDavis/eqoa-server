@@ -24,7 +24,9 @@ A set's file (JSON) holds whatever of these it needs:
   sql        [[statement, params]]: anything else, in the same transaction
   quests     "<file>": tools/quests/data/<file>, through import_quests.py's plan and write
 
---apply and --undo are one transaction each. Everything an apply changes is found by
+--save-plan <file> on a copy and --plan <file> on the live database write the same rows in one
+short transaction (a live server waits 5 s for a lock; a keep restart's hold is 12 s), each row
+checked still to be what the plan found. --apply and --undo are one transaction each. Everything an apply changes is found by
 comparing its tables before and after, and kept in guide_set_log, so --undo is exact:
 the rows' old values, the counters' too, and the log's table dropped with its last set.
 A quest's progress and a made item a character holds go with the undo (said).
@@ -68,21 +70,23 @@ def snapshot(db):
 
 
 def changes(before, after):
-    """Every row that differs, as (table, op, rowid, old row JSON); a table made by the set: op 'made'."""
+    """Every row that differs, as (table, op, rowid, old row JSON, new row JSON); a table made by the set: op 'made'."""
     out = []
     for t, (cols, rows) in after.items():
         if t not in before:
-            out.append((t, "made", 0, json.dumps({"cols": cols})))
+            out.append((t, "made", 0, "", json.dumps({"cols": cols})))
+            for rid, row in rows.items():
+                out.append((t, "added", rid, "", json.dumps(dict(zip(cols, row)))))
             continue
         old = before[t][1]
         for rid, row in rows.items():
             if rid not in old:
-                out.append((t, "added", rid, ""))
+                out.append((t, "added", rid, "", json.dumps(dict(zip(cols, row)))))
             elif old[rid] != row:
-                out.append((t, "changed", rid, json.dumps(dict(zip(cols, old[rid])))))
+                out.append((t, "changed", rid, json.dumps(dict(zip(cols, old[rid]))), json.dumps(dict(zip(cols, row)))))
         for rid, row in old.items():
             if rid not in rows:
-                out.append((t, "gone", rid, json.dumps(dict(zip(cols, row)))))
+                out.append((t, "gone", rid, json.dumps(dict(zip(cols, row))), ""))
     return out
 
 
@@ -220,10 +224,13 @@ def apply_triggers(db, spec, say):
                                                 t.get("x", 0), t.get("y", 0), t.get("z", 0), steps, t.get("notes", "")))
 
 
+NPCDEATH_DDL = """CREATE TABLE IF NOT EXISTS npcdeath (name TEXT NOT NULL, trigger TEXT NOT NULL, chance REAL NOT NULL DEFAULT 100,
+            note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm', PRIMARY KEY (name, trigger))"""
+
+
 def apply_deaths(db, spec, say):
     if spec.get("deaths"):
-        db.execute("""CREATE TABLE IF NOT EXISTS npcdeath (name TEXT NOT NULL, trigger TEXT NOT NULL, chance REAL NOT NULL DEFAULT 100,
-            note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm', PRIMARY KEY (name, trigger))""")
+        db.execute(NPCDEATH_DDL)
     for d in spec.get("deaths", []):
         db.execute("INSERT OR REPLACE INTO npcdeath (name, trigger, chance, note, source) VALUES (?,?,?,?,?)",
                    (key(d["name"]), d["trigger"], d.get("chance", 100), d.get("note", ""), f"guide gaps {spec['set']}"))
@@ -300,29 +307,88 @@ def run(db, spec, say):
             say(f"DRAFT {name}: {notes[-300:]}")
 
 
-def apply(db, spec, do_commit, say):
+def log_changes(db, name, ch):
+    db.execute(f"CREATE TABLE IF NOT EXISTS {LOG} (seq INTEGER PRIMARY KEY AUTOINCREMENT, setname TEXT NOT NULL, tbl TEXT NOT NULL, op TEXT NOT NULL, rid INTEGER NOT NULL, old TEXT NOT NULL)")
+    for t, op, rid, old, _ in ch:
+        db.execute(f"INSERT INTO {LOG} (setname, tbl, op, rid, old) VALUES (?,?,?,?,?)", (name, t, op, rid, old))
+
+
+def apply(db, spec, do_commit, say, plan_path=None):
     db.execute("BEGIN IMMEDIATE")
     try:
         if has(db, LOG) and db.execute(f"SELECT 1 FROM {LOG} WHERE setname = ?", (spec["set"],)).fetchone():
             raise SystemExit(f"set {spec['set']!r} is in: --undo it first")
         before = snapshot(db)
-        log_made = not has(db, LOG)
         run(db, spec, say)
         after = snapshot(db)
         ch = changes(before, after)
-        db.execute(f"CREATE TABLE IF NOT EXISTS {LOG} (seq INTEGER PRIMARY KEY AUTOINCREMENT, setname TEXT NOT NULL, tbl TEXT NOT NULL, op TEXT NOT NULL, rid INTEGER NOT NULL, old TEXT NOT NULL)")
-        for t, op, rid, old in ch:
-            db.execute(f"INSERT INTO {LOG} (setname, tbl, op, rid, old) VALUES (?,?,?,?,?)", (spec["set"], t, op, rid, old))
+        log_changes(db, spec["set"], ch)
         counts = {}
-        for t, op, _, _ in ch:
+        for t, op, _, _, _ in ch:
             counts[f"{t} {op}"] = counts.get(f"{t} {op}", 0) + 1
         say(json.dumps(counts, indent=0, sort_keys=True).replace("\n", " "))
-        if do_commit:
+        if plan_path:
+            json.dump({"set": spec["set"], "changes": ch}, open(plan_path, "w"))
+            say(f"plan written to {plan_path} ({len(ch)} rows); nothing written here")
+            db.execute("ROLLBACK")
+        elif do_commit:
             db.execute("COMMIT")
             say(f"applied {spec['set']}")
         else:
             db.execute("ROLLBACK")
             say("(a report: nothing written)")
+    except BaseException:
+        db.execute("ROLLBACK")
+        raise
+
+
+def apply_plan(db, path, say):
+    """A plan made on a copy (--save-plan), written in one short transaction: for a server with players on it, or a
+    keep restart's hold. Every row must still be what the plan found: anything else refuses, nothing written."""
+    p = json.load(open(path))
+    name, ch = p["set"], p["changes"]
+    db.execute("BEGIN IMMEDIATE")
+    try:
+        if has(db, LOG) and db.execute(f"SELECT 1 FROM {LOG} WHERE setname = ?", (name,)).fetchone():
+            raise SystemExit(f"set {name!r} is in: --undo it first")
+        for t, op, rid, old, new in ch:
+            if op == "made":
+                cols = json.loads(new)["cols"]
+                if not has(db, t):
+                    ddl = next(r[0] for r in [(NPCDEATH_DDL,)]) if t == "npcdeath" else None
+                    if not ddl:
+                        raise SystemExit(f"plan makes a table it cannot: {t}")
+                    db.execute(ddl)
+        for t, op, rid, old, new in ch:
+            if op in ("added", "made"):
+                continue
+            row = db.execute(f'SELECT * FROM "{t}" WHERE rowid = ?', (rid,)).fetchone()
+            cols = [r[1] for r in db.execute(f'PRAGMA table_info("{t}")')]
+            if t != "sqlite_sequence" and (row is None or dict(zip(cols, row)) != json.loads(old)):
+                raise SystemExit(f"{t} row {rid} has changed since the plan: plan again on a fresh copy")
+        # what goes first: an INSERT OR REPLACE leaves a key both gone and added
+        for t, op, rid, old, new in ch:
+            if op == "gone":
+                db.execute(f'DELETE FROM "{t}" WHERE rowid = ?', (rid,))
+        for t, op, rid, old, new in ch:
+            if op == "changed" and t != "sqlite_sequence":
+                vals = json.loads(new)
+                db.execute(f'UPDATE "{t}" SET ' + ",".join(f'"{c}" = ?' for c in vals) + " WHERE rowid = ?", list(vals.values()) + [rid])
+        for t, op, rid, old, new in ch:
+            if op == "added" and t != "sqlite_sequence":
+                vals = json.loads(new)
+                if db.execute(f'SELECT 1 FROM "{t}" WHERE rowid = ?', (rid,)).fetchone():
+                    raise SystemExit(f"{t} row {rid} is taken since the plan: plan again on a fresh copy")
+                db.execute(f'INSERT INTO "{t}" (rowid, ' + ",".join(f'"{c}"' for c in vals) + ") VALUES (?," + ",".join("?" * len(vals)) + ")", [rid] + list(vals.values()))
+        # the counters: as the plan left them, in its own table (a row sqlite keeps by name, not rowid)
+        for t, op, rid, old, new in ch:
+            if t == "sqlite_sequence" and op in ("added", "changed"):
+                v = json.loads(new)
+                if db.execute("UPDATE sqlite_sequence SET seq = max(seq, ?) WHERE name = ?", (v["seq"], v["name"])).rowcount == 0:
+                    db.execute("INSERT INTO sqlite_sequence (name, seq) VALUES (?, ?)", (v["name"], v["seq"]))
+        log_changes(db, name, ch)
+        db.execute("COMMIT")
+        say(f"applied {name} from its plan: {len(ch)} rows")
     except BaseException:
         db.execute("ROLLBACK")
         raise
@@ -358,6 +424,10 @@ def undo(db, name, say):
         for _, t, op, rid, old in rows:
             if op == "changed":
                 vals = json.loads(old)
+                if t == "sqlite_sequence" and has(db, vals["name"]):
+                    # never under what another's rows have taken since
+                    top = db.execute(f'SELECT max(rowid) FROM "{vals["name"]}"').fetchone()[0] or 0
+                    vals["seq"] = max(vals["seq"], top)
                 db.execute(f'UPDATE "{t}" SET ' + ",".join(f'"{c}" = ?' for c in vals) + " WHERE rowid = ?", list(vals.values()) + [rid])
             elif op == "gone":
                 vals = json.loads(old)
@@ -381,15 +451,20 @@ def main():
     ap.add_argument("--set", required=True)
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--undo", action="store_true")
+    ap.add_argument("--save-plan", help="on a copy of the database: the rows it would change, to a file; nothing written")
+    ap.add_argument("--plan", help="the rows of a --save-plan, written in one short transaction")
     a = ap.parse_args()
     db = sqlite3.connect(a.db, timeout=5, isolation_level=None)
     say = lambda m: print(m)
     if a.undo:
         undo(db, a.set, say)
         return
+    if a.plan:
+        apply_plan(db, a.plan, say)
+        return
     spec = json.load(open(os.path.join(HERE, "guidegaps", a.set + ".json")))
     spec["set"] = a.set
-    apply(db, spec, a.apply, say)
+    apply(db, spec, a.apply, say, a.save_plan)
 
 
 if __name__ == "__main__":

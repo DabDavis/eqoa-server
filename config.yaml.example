@@ -45,6 +45,10 @@ world:
   session_timeout_pre: 300s
   session_timeout_game: 2s
 
+  # Lets players flag themselves for PvP with /pvp (or /t pvp from a PS2): two
+  # flagged players can attack each other anywhere. Off unless set.
+  # pvp: true
+
   # What an NPC says when talked to, by name, in place of the debug box
   # (ServerID, HP, position...) every other NPC opens.
   npc_text:

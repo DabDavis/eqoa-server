@@ -39,6 +39,9 @@ type KeptPlayer struct {
 	Place        [3]float32    `json:"place"`
 	World        uint8         `json:"world"`
 	RaceLabels   bool          `json:"race_labels,omitempty"`
+	// PvP: its flag (pvp.go), and how long it must yet stay on
+	PvP       bool  `json:"pvp,omitempty"`
+	PvPHoldMS int64 `json:"pvp_hold_ms,omitempty"`
 }
 
 // KeptLockout is a spell's lockout and what is left of it.
@@ -84,6 +87,9 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 		Target: p.TargetObjectID, PowerBars: p.PowerBars, RaidRoster: p.RaidRoster, DuelWindow: p.DuelWindow, GM: p.GM, Flying: p.Flying,
 		Place: [3]float32{p.X, p.Y, p.Z}, World: p.World}
 	k.RaceLabels = p.RaceLabels
+	if p.pvp.on {
+		k.PvP, k.PvPHoldMS = true, max(0, p.pvp.hold.Sub(now).Milliseconds())
+	}
 	for _, l := range p.Lockouts {
 		if left := l.until.Sub(now); left > 0 {
 			k.Lockouts = append(k.Lockouts, KeptLockout{Spell: l.spellID, Index: l.displayIndex, LeftMS: left.Milliseconds()})
@@ -114,6 +120,9 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	p.RaidRoster, p.raidRosterSent = k.RaidRoster, ""
 	p.GM = k.GM
 	p.DuelWindow = k.DuelWindow
+	if k.PvP && w.pvpAllowed { // a server since turned off drops it
+		p.pvp = pvpFlag{on: true, hold: now.Add(time.Duration(k.PvPHoldMS) * time.Millisecond)}
+	}
 	w.restoreFlyingLocked(p, k)
 	return true
 }

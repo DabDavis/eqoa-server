@@ -121,6 +121,7 @@ func (h *TargetHandler) HandleTarget(sess *session.Session, msg *protocol.Messag
 			handsChanged(h.gameWorld, h.inventoryStore, sess, player)
 		}
 		h.gameWorld.SetTarget(player.ServerID, targetObjectID)
+		h.gameWorld.SetTargetToken(player.ServerID, token) // a face told unasked names it (pvp.go)
 	}
 
 	// Look up target entity by runtime objectID.
@@ -139,12 +140,7 @@ func (h *TargetHandler) HandleTarget(sess *session.Session, msg *protocol.Messag
 
 	switch t := targetEntity.(type) {
 	case *entity.Player:
-		info.name = t.Name
-		info.level = t.Level
-		info.race = entity.WireRace(t.Race)
-		info.class = t.Class
-		info.faceColor = 5 // player target — ally (blue face)
-		info.title, info.guild = h.gameWorld.TargetInfoLines(player, t)
+		info = playerTargetInfo(h.gameWorld, player, t, targetObjectID, token)
 	case *entity.NPC:
 		info.name = t.Name
 		info.level = t.Level
@@ -169,7 +165,7 @@ func (h *TargetHandler) HandleTarget(sess *session.Session, msg *protocol.Messag
 	}
 	info.conColor = calcConColor(senderLevel, info.level)
 
-	h.sendTargetInfo(sess, &info)
+	sendTargetInfo(sess, &info)
 
 	log.Printf("Target: sent info for '%s' level=%d race=%d class=%d conColor=%d objectID=%d",
 		info.name, info.level, info.race, info.class, info.conColor, info.objectID)
@@ -184,13 +180,23 @@ func calcConColor(observerLevel, targetLevel int) byte {
 	return entity.ConColor(observerLevel, targetLevel)
 }
 
+// playerTargetInfo is what a 0x0010 says of a player, to viewer: its face (the
+// red face flagged for PvP, whoever looks, a player's blue otherwise: entity/pvp.go),
+// title and guild.
+func playerTargetInfo(gw *entity.World, viewer, t *entity.Player, objectID, token uint32) targetInfo {
+	info := targetInfo{name: t.Name, level: t.Level, race: entity.WireRace(t.Race), class: t.Class, objectID: objectID, counter: token}
+	info.faceColor = gw.PlayerFace(t)
+	info.title, info.guild = gw.TargetInfoLines(viewer, t)
+	return info
+}
+
 // sendTargetInfo answers a 0x0010 request (buildClassicTargetInfo): face,
 // con, a byte retail always sends as 1, the two 64-unit wide lines (a
 // player's title and guild, empty for anything else), and the request's
 // token. Retail's replies stop at 261 bytes, before the token, which leaves
 // a PS2 comparing whatever its stack held; with the token they are 265 and
 // the colours apply every time.
-func (h *TargetHandler) sendTargetInfo(sess *session.Session, info *targetInfo) {
+func sendTargetInfo(sess *session.Session, info *targetInfo) {
 	queueReliable(sess, protocol.OpcodeClassicTargetInfo,
 		buildClassicTargetInfo(info.counter, info.faceColor, info.conColor, 0x01, info.title, info.guild))
 	log.Printf("TargetPacket: face=%d con=%d targetID=%d token=%d",

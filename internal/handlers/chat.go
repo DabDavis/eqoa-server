@@ -201,6 +201,13 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		return nil
 	}
 
+	// /pvp (or #pvp; a PS2's is "/t pvp", below): the PvP flag, everyone's, where
+	// world.pvp allows it (pvp.go)
+	if word, _, _ := strings.Cut(message, " "); strings.EqualFold(word, "/pvp") || strings.EqualFold(word, "#pvp") {
+		pvpCommand(h.gameWorld, sess, time.Now())
+		return nil
+	}
+
 	// /lfg (or #lfg) on|off: the live group search's registration (lfg.go),
 	// everyone's. The live client sends 0x0801 for its own /lfg; vanilla
 	// forwards the line; a PS2 keeps an unknown /command to itself, so its
@@ -240,6 +247,11 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		// type a # (entity/raidflag.go), and a tell with no text is no tell
 		if body == "" && strings.EqualFold(name, "raid") {
 			h.gameWorld.RaidCall(sess)
+			return nil
+		}
+		// the PvP flag the same way (pvp.go)
+		if body == "" && strings.EqualFold(name, "pvp") {
+			pvpCommand(h.gameWorld, sess, time.Now())
 			return nil
 		}
 		if wager, ok := duelTell(body); ok {

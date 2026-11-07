@@ -437,7 +437,8 @@ func (w *World) areaStartLocked(p *Player, cs *castState, now time.Time) {
 		if d.Harmful {
 			var own []EntityID
 			for _, id := range cs.targets {
-				if _, player := w.Players[id]; !player {
+				t := w.Players[id]
+				if t == nil || (pvpAreaAtTarget && p.pvpFoe(t)) { // pvp.go
 					own = append(own, id)
 				}
 			}

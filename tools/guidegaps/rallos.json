@@ -621,6 +621,7 @@
   {
    "name": "rallos zek",
    "class": 0,
+   "taken": 200,
    "hp": 500000,
    "level": 70,
    "melee": 1550,
@@ -644,6 +645,7 @@
   {
    "name": "rallos zek the warlord",
    "class": 0,
+   "taken": 200,
    "hp": 500000,
    "level": 70,
    "melee": 1550,
@@ -671,6 +673,7 @@
   {
    "name": "rallos zek unbound",
    "class": 3,
+   "taken": 200,
    "hp": 500000,
    "level": 70,
    "melee": 2535,

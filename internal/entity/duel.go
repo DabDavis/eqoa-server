@@ -1075,7 +1075,7 @@ func (w *World) duelRoundLocked(p *Player, now time.Time) bool {
 			return false
 		}
 		if t != nil {
-			n := pvpMeleeRoll(p, t)
+			n := playerMeleeHit(p, duelStandIn(t.Level), rand.Intn)
 			return w.duelHurtLocked(d, p, p.ServerID, t, n, now) ||
 				w.duelAnswerLocked(d, t, duelMark{t: p}, now) || // duelprocs.go
 				w.duelProcsLocked(d, p, duelMark{t: t}, now)

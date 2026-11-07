@@ -3,7 +3,6 @@ package entity
 import (
 	"fmt"
 	"log"
-	"math/rand"
 	"time"
 
 	"github.com/eqoa/server/internal/session"
@@ -222,7 +221,7 @@ func (w *World) pvpEngageLocked(p *Player, ent Entity, objectID uint32, swing Sw
 		return false
 	}
 	if !p.pvpFoe(t) {
-		if why := pvpRefusal(p, t); why != "" && now.Sub(p.pvp.said) >= pvpSayEvery {
+		if why := pvpRefusal(p, t); why != "" && now.Sub(p.pvp.said) >= pvpSayEvery && w.duels.of[p.ServerID] == nil {
 			p.pvp.said = now
 			if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
 				w.sendColoredLocked(sess, why, castRefusalRGB)
@@ -395,7 +394,11 @@ func (w *World) SetTargetToken(id EntityID, token uint32) {
 func (w *World) pvpPetLocked(ps *petState, dt float32, now time.Time) bool {
 	owner, pet := ps.owner, ps.npc
 	if !owner.pvp.on || pet.Charm != nil || !pet.petFights() {
-		ps.pvpTarget = 0
+		if ps.pvpTarget != 0 {
+			ps.pvpTarget = 0
+			pet.endRound()
+			pet.stopMoving()
+		}
 		return false
 	}
 	t := w.Players[ps.pvpTarget]
@@ -441,9 +444,4 @@ func (w *World) pvpPetCommandLocked(ps *petState, target Entity) bool {
 	ps.pvpTarget, ps.target = t.ServerID, 0
 	ps.heldUntil = time.Time{}
 	return true
-}
-
-// pvpMeleeRoll is a player's one roll on a foe: as a duel's, the creature line on the foe's level.
-func pvpMeleeRoll(p, t *Player) int {
-	return playerMeleeHit(p, duelStandIn(t.Level), rand.Intn)
 }

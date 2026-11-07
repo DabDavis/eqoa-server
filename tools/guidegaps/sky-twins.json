@@ -879,7 +879,8 @@
     },
     {
      "do": "clock",
-     "seconds": 1800
+     "seconds": 1800,
+     "empty": 300
     },
     {
      "do": "broadcast",
@@ -962,7 +963,8 @@
     },
     {
      "do": "clock",
-     "seconds": 1800
+     "seconds": 1800,
+     "empty": 300
     },
     {
      "do": "broadcast",
@@ -1045,7 +1047,8 @@
     },
     {
      "do": "clock",
-     "seconds": 1800
+     "seconds": 1800,
+     "empty": 300
     },
     {
      "do": "broadcast",
@@ -1128,7 +1131,8 @@
     },
     {
      "do": "clock",
-     "seconds": 1800
+     "seconds": 1800,
+     "empty": 300
     },
     {
      "do": "broadcast",
@@ -1211,7 +1215,8 @@
     },
     {
      "do": "clock",
-     "seconds": 1800
+     "seconds": 1800,
+     "empty": 300
     },
     {
      "do": "broadcast",
@@ -1294,7 +1299,8 @@
     },
     {
      "do": "clock",
-     "seconds": 1800
+     "seconds": 1800,
+     "empty": 300
     },
     {
      "do": "broadcast",

@@ -1361,7 +1361,7 @@ func (h *CharacterHandler) HandleDelCharacter(sess *session.Session, msg *protoc
 	return nil
 }
 
-// SendNameTaken sends a name taken response (opcode 0x2F) and resends character list.
+// SendNameTaken sends a name taken response (opcode 0x2F).
 func (h *CharacterHandler) SendNameTaken(sess *session.Session) {
 	h.sendCreateRefusal(sess, protocol.OpcodeNameTaken)
 }
@@ -1369,8 +1369,11 @@ func (h *CharacterHandler) SendNameTaken(sess *session.Session) {
 // sendCreateRefusal answers a 0x002B the client must drop: the select page
 // shows a word for each (decomp viclient.cpp) -- 0x002F 829 "Failed: name
 // already taken", 0x0065 828 "Failed: invalid name", 0x002E 269 "Character
-// create failed" -- and removes the entry CreateCharacter added. The list
-// follows, to keep the client on the select screen.
+// create failed" -- and removes the entry CreateCharacter added, its select
+// screen up and answering (ShowText). No list follows: CharacterList resets
+// creation's form (VIWndCharCreateBlank::Reset), and with one a taken name cost
+// the race, class, stats and look already chosen. Without one the pages are as
+// they were left when the player opens them again, as CLIENT means them to be.
 func (h *CharacterHandler) sendCreateRefusal(sess *session.Session, op protocol.GameOpcode) {
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, op)
 	writer := buffer.NewWriter(msg.Span())
@@ -1378,7 +1381,6 @@ func (h *CharacterHandler) sendCreateRefusal(sess *session.Session, op protocol.
 	msg.SetSize(writer.Position())
 	sess.Queue().AddWithSequence(msg)
 	log.Printf("Sent %s to %s", op, sess.RemoteAddr())
-	h.SendCharacterSelectEQOA(sess)
 }
 
 // lookInRange is what the client's pages can make of a look (decomp

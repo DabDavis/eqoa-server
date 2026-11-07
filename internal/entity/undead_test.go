@@ -169,3 +169,41 @@ func TestTheUndeadCharmTakesOnlyUndead(t *testing.T) {
 		t.Errorf("the enchanter's charm did not take Rotting Flesh")
 	}
 }
+
+// The Turn Undead mastery as the workbook has it once its second share is an
+// area (ticket 1193, Dock: "undead CM aoe spells do not AOE and only hit single
+// target"): the target takes both shares, as every storm's does, the undead
+// beside it the second, and a living creature beside it nothing. The control is
+// the record as it stood, scope "target": both shares on the target alone.
+func TestTheTurnUndeadMasteryReachesTheUndeadRoundItsTarget(t *testing.T) {
+	const line = "Target undead, Decrease Hitpoints by 1368 ; Increase 60% based on WIS aoe Decrease Hitpoints by 712 ; Increase 60% based on WIS"
+	record := func(scope string) string {
+		return `{"v":1,"scope":"` + scope + `","target_type":"Enemy","harmful":true,"stack":0,"level":60,"min_level":1,"radius":15,` +
+			`"req_equipment":"Any","sheet_type":"Dmg/Heal","effects":[` +
+			`{"id":"0158","type":"Dmg/Heal","kind":"hp","amount":-1368,"scale":"wis","scale_pct":60,"resist":"ar"},` +
+			`{"id":"0158","type":"Dmg/Heal","kind":"hp2","amount":-712,"scale":"wis","scale_pct":60,"resist":"ar"}]}`
+	}
+	spell := func(scope string) CastSpell {
+		s := spellOf(701101, 1, "Annihilate Undead", line)
+		s.Def = SpellDefFrom(s.Name, line, "", record(scope))
+		s.Area = ReadSpellArea(s.Name, line, s.Def)
+		return s
+	}
+	layout := func() (*areaRig, *NPC, *NPC, *NPC) {
+		r := newAreaRig(t)
+		return r, r.creature(2001, "a decaying skeleton", 1020, 1000),
+			r.creature(2002, "a decaying skeleton", 1025, 1000), r.creature(2003, "Deathfist Pawn", 1024, 1002)
+	}
+
+	r, target, bones, orc := layout()
+	r.cast(t, spell("target_aoe"), target.ServerID)
+	if got, want := hits(target, bones, orc), []int{1368 + 60 + 712 + 60, 712 + 60, 0}; !equalInts(got, want) {
+		t.Errorf("lost %v, want %v (the target, the skeleton beside it, the orc)", got, want)
+	}
+
+	r, target, bones, orc = layout()
+	r.cast(t, spell("target"), target.ServerID)
+	if got, want := hits(target, bones, orc), []int{1368 + 60 + 712 + 60, 0, 0}; !equalInts(got, want) {
+		t.Errorf("the record as it stood: lost %v, want %v (both shares on the target alone)", got, want)
+	}
+}

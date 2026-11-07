@@ -106,6 +106,7 @@ func (w *World) raidChangedLocked(g *Group) {
 // show a raid group's newcomer, so the group is told by name, and the newcomer of a
 // group already raiding is told what it joined. Must be called with the lock held.
 func (w *World) raidJoinedLocked(g *Group, p *Player, sess *session.Session) {
+	p.raidReminder = false // it has just been told
 	if g.isRaid() {
 		w.groupSayLocked(g, fmt.Sprintf("%s joined the raid group (%d members).", p.Name, len(g.Members)), p)
 	}

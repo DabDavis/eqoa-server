@@ -841,6 +841,16 @@ func TestAReplacedLoginStaysInTheRaidGroup(t *testing.T) {
 		t.Errorf("a takeover heard %q", lines)
 	}
 
+	// out by its leader before it heard, and invited back: told once, by the join's line
+	r.w.GroupBoot(r.sess[0], r.w.IDSeenBy(r.sess[0], r.p[4]))
+	r.p[4].raidReminder = true
+	r.sess[4] = ns
+	r.join(0, 4)
+	r.sync()
+	if lines := r.heard(4); hasLine(lines, raidStillLine) || !hasLine(lines, raidNowLine) {
+		t.Errorf("back in, it heard %q", lines)
+	}
+
 	r = newRaidRig(t, 5, 30)
 	r.form(5)
 	r.w.RemovePlayerBySession(r.sess[2])

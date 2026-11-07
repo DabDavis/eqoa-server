@@ -61,6 +61,8 @@ const classTemplatesSchema = `
 		special_first  REAL NOT NULL DEFAULT 0,
 		special_jitter REAL NOT NULL DEFAULT 0,
 		special_from   INTEGER NOT NULL DEFAULT 0,
+		shield_damage  INTEGER NOT NULL DEFAULT 0,
+		shield_resist  TEXT NOT NULL DEFAULT '',
 		abilities      TEXT NOT NULL DEFAULT '[]',
 		note           TEXT NOT NULL DEFAULT '',
 		source         TEXT NOT NULL DEFAULT 'gm'
@@ -239,8 +241,13 @@ type ClassTemplate struct {
 	SpecialEvery, SpecialFirst, SpecialJitter float64
 	// SpecialFrom is the level a creature specials from (0: any), its own
 	SpecialFrom int
-	Abilities   []TemplateAbility
-	Note        string
+	// ShieldDamage is its damage shield: what each melee hit that lands on it
+	// costs the attacker (0: none, entity/creatureshield.go), cut by the resist
+	// ShieldResist names (FR, CR, LR, AR, PR or DR; empty: none)
+	ShieldDamage int
+	ShieldResist string
+	Abilities    []TemplateAbility
+	Note         string
 }
 
 // TemplateKey is a template's name as classtemplates and npctemplate key it:
@@ -407,9 +414,28 @@ func knownKind(k string) bool {
 	return false
 }
 
+// MaxTemplateHPPct is the most of its level's hit points a template gives: a
+// raid boss's million (petitions 1144, 1153: 6,615% at level 63) with room over.
+// MaxTemplateShield is the most its damage shield answers a melee hit with.
+const (
+	MaxTemplateHPPct  = 100000
+	MaxTemplateShield = 100000
+)
+
+// shieldResistKnown is whether a template's shield_resist names a resist.
+func shieldResistKnown(s string) bool {
+	switch strings.ToUpper(strings.TrimSpace(s)) {
+	case "", "FR", "CR", "LR", "AR", "PR", "DR":
+		return true
+	}
+	return false
+}
+
 // CheckClassTemplate is what a template must be for an NPC to fight by it: a
-// name, a class of the fifteen (or -1), its percents within a tenth to ten
-// times (a melee taken from 1%), a special's chance 0-100 and, when it comes
+// name, a class of the fifteen (or -1), its hit points within a tenth to
+// MaxTemplateHPPct, its melee percents within a tenth to ten times (a melee
+// taken from 1%), a damage shield within bounds and a resist it knows, a
+// special's chance 0-100 and, when it comes
 // at all, a damage above 0 a level and at most 200, and abilities
 // CheckTemplateAbilities takes.
 func CheckClassTemplate(t ClassTemplate) error {
@@ -418,8 +444,12 @@ func CheckClassTemplate(t ClassTemplate) error {
 		return fmt.Errorf("no name")
 	case t.Class < -1 || t.Class > 14:
 		return fmt.Errorf("class %d: -1 (the NPC's own) or 0 (Warrior) to 14 (Alchemist)", t.Class)
-	case t.HPPct < 10 || t.HPPct > 1000:
-		return fmt.Errorf("hp_pct %d: 10 to 1000 percent of its level's hit points", t.HPPct)
+	case t.HPPct < 10 || t.HPPct > MaxTemplateHPPct:
+		return fmt.Errorf("hp_pct %d: 10 to %d percent of its level's hit points", t.HPPct, MaxTemplateHPPct)
+	case t.ShieldDamage < 0 || t.ShieldDamage > MaxTemplateShield:
+		return fmt.Errorf("shield_damage %d: 0 to %d a melee hit", t.ShieldDamage, MaxTemplateShield)
+	case !shieldResistKnown(t.ShieldResist):
+		return fmt.Errorf("shield_resist %q: FR, CR, LR, AR, PR, DR or none", t.ShieldResist)
 	case t.TakenPct < 1 || t.TakenPct > 1000:
 		return fmt.Errorf("taken_pct %d: 1 to 1000 percent of a melee hit on it", t.TakenPct)
 	case t.MeleePct < 10 || t.MeleePct > 1000:
@@ -496,6 +526,8 @@ var classTemplateColumns = []struct{ col, decl string }{
 	{"special_first", "REAL NOT NULL DEFAULT 0"},
 	{"special_jitter", "REAL NOT NULL DEFAULT 0"},
 	{"special_from", "INTEGER NOT NULL DEFAULT 0"},
+	{"shield_damage", "INTEGER NOT NULL DEFAULT 0"},
+	{"shield_resist", "TEXT NOT NULL DEFAULT ''"},
 }
 
 // ensureClassTemplates makes tables classtemplates and npctemplate
@@ -544,7 +576,7 @@ func (db *SQLiteDB) ensureClassTemplates() error {
 // JSON) is left out and named in bad.
 func (db *SQLiteDB) ClassTemplates() (templates map[string]ClassTemplate, bad []string, err error) {
 	rows, err := db.Query(`SELECT name, class, hp_pct, taken_pct, melee_pct, special, special_chance, special_damage,
-		special_fx, special_every, special_first, special_jitter, special_from, abilities, note FROM classtemplates
+		special_fx, special_every, special_first, special_jitter, special_from, shield_damage, shield_resist, abilities, note FROM classtemplates
 		WHERE name IS NOT NULL`)
 	if err != nil {
 		return nil, nil, err
@@ -556,7 +588,7 @@ func (db *SQLiteDB) ClassTemplates() (templates map[string]ClassTemplate, bad []
 		var fx int64
 		var abilities sql.NullString
 		if err := rows.Scan(&t.Name, &t.Class, &t.HPPct, &t.TakenPct, &t.MeleePct, &t.Special, &t.SpecialChance,
-			&t.SpecialDamage, &fx, &t.SpecialEvery, &t.SpecialFirst, &t.SpecialJitter, &t.SpecialFrom, &abilities, &t.Note); err != nil {
+			&t.SpecialDamage, &fx, &t.SpecialEvery, &t.SpecialFirst, &t.SpecialJitter, &t.SpecialFrom, &t.ShieldDamage, &t.ShieldResist, &abilities, &t.Note); err != nil {
 			return nil, nil, err
 		}
 		t.Name = TemplateKey(t.Name)

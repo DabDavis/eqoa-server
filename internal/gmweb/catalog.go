@@ -1018,7 +1018,9 @@ var catalog = map[string]tableNote{
 		Cols: map[string]colNote{
 			"name":           {Label: "Template (key)", Help: "lower case; NPC class templates names it"},
 			"class":          {Label: "Class", Enum: "templateclass", Help: "the class it fights as: its swing and its spells; -1 the NPC's own"},
-			"hp_pct":         {Label: "Hit points %", Help: "of its level's (10-1000)", Section: "Stat profile"},
+			"hp_pct":         {Label: "Hit points %", Help: "of its level's (10-100000; a raid boss's million is about 6,600 at level 63)", Section: "Stat profile"},
+			"shield_damage":  {Label: "Damage shield", Help: "what each melee hit that lands on it costs the attacker, a player or a pet (0 none; 0-100000); a bow's shot is not answered", Section: "Stat profile"},
+			"shield_resist":  {Label: "Shield resist", Help: "the resist that cuts it: FR, CR, LR, AR, PR or DR; empty none", Section: "Stat profile"},
 			"taken_pct":      {Label: "Melee taken %", Help: "of a player's or a pet's melee hit on it that lands (1-1000): its armour", Section: "Stat profile"},
 			"melee_pct":      {Label: "Its melee %", Help: "of its own melee hits (10-1000)", Section: "Stat profile"},
 			"special":        {Label: "Special", Help: "its special melee's name (Kick); empty none", Section: "Special melee"},

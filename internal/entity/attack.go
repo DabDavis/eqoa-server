@@ -736,6 +736,10 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 		w.factionKillLocked(sess, attacker, npc)
 		return true
 	}
-	// a proc's damage after the hit (proc.go)
-	return w.playerProcsLocked(sess, attacker, npc, attacker.LastCombatTime)
+	// a proc's damage after the hit (proc.go), then the creature's damage
+	// shield's answer, which may end the fight the other way (creatureshield.go)
+	if w.playerProcsLocked(sess, attacker, npc, attacker.LastCombatTime) {
+		return true
+	}
+	return w.creatureShieldLocked(sess, attacker, npc, attacker.LastCombatTime)
 }

@@ -387,6 +387,22 @@ func readRaidRoster(t *testing.T, msgs [][]byte) (rows []raidRow, total int, sen
 	return rows, total, sent
 }
 
+// A roster's record is 9 bytes and a name of 23 at most, as a name is everywhere else
+// a client is told one; a short name whole is the control.
+func TestARaidRosterRecordCutsALongName(t *testing.T) {
+	r := newRaidRig(t, 2, 30)
+	r.p[1].Name = strings.Repeat("x", 40)
+	r.w.mu.Lock()
+	long, short := r.w.raidRosterRecord(r.sess[0], r.p[1]), r.w.raidRosterRecord(r.sess[0], r.p[0])
+	r.w.mu.Unlock()
+	if long[4] != 23 || len(long) != 9+23 {
+		t.Errorf("a long name: length byte %d, %d bytes", long[4], len(long))
+	}
+	if short[4] != 3 || string(short[5:8]) != "Ann" || len(short) != 9+3 {
+		t.Errorf("a short name: %q", short)
+	}
+}
+
 func (r *raidRig) rosterPass() {
 	r.w.mu.Lock()
 	defer r.w.mu.Unlock()

@@ -175,20 +175,27 @@ func TestAFollowingCreatureWalksWithItsVelocity(t *testing.T) {
 	}
 }
 
-// A creature turns to its enemy as it moves round it in reach, and stands.
-// The control: until 2026-10-25 a fighting creature kept the facing it had.
+// A creature turns to its enemy as it moves round it in reach, at its rate
+// (npcTurnRate), and stands. The control: until 2026-10-25 a fighting creature
+// kept the facing it had.
 func TestAFightTurnsTheCreatureToItsEnemy(t *testing.T) {
 	c := newCaster(t)
 	c.npc.Level, c.npc.HP, c.npc.MaxHP = 10, 500, 500
 	c.p.HP, c.p.MaxHP = 5000, 5000 // at (100, 100), the crab at (102, 100)
 	c.npc.CurrentEnemy = c.p.ServerID
 	c.npc.Threats = map[EntityID]int64{c.p.ServerID: 10}
-	c.chaseTick(0)
+	d := time.Duration(0)
+	second := func() {
+		for end := d + time.Second; d < end; d += 100 * time.Millisecond {
+			c.chaseTick(d)
+		}
+	}
+	second()
 	if !near(c.npc.Facing, 3*math.Pi/2) {
 		t.Errorf("facing %.3f, want 3pi/2 (toward -x)", c.npc.Facing)
 	}
 	c.p.X, c.p.Z = 102, 103
-	c.chaseTick(100 * time.Millisecond)
+	second()
 	if !near(c.npc.Facing, 0) || c.npc.X != 102 || c.npc.Z != 100 || c.npc.moving() {
 		t.Errorf("facing %.3f at (%.2f, %.2f), want 0 where it stood", c.npc.Facing, c.npc.X, c.npc.Z)
 	}

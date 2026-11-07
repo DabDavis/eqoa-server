@@ -273,14 +273,20 @@ rule is there.
 ## Sharing back
 
 Running a server from this code, or a fork of it? Fixes and improvements sent back here help
-every other server too: a pull request, or an issue saying what you changed, is welcome. Credit
-is appreciated, not required: the MIT licence asks only that its notice stays with the code.
+every other server too: a pull request, or an issue saying what you changed, is welcome.
 Contributions are taken under the same licence.
 
 ## License
 
-MIT (`LICENSE`), for this repository's own work: the server, its tools and its notes. It
-grants no rights in *EverQuest Online Adventures* itself; the game, its binaries and its
-data belong to their owners. No disc file or game binary is distributed here; the open
+GNU Affero General Public License, version 3 or (at your option) any later version
+(`LICENSE`), for this repository's own work: the server, its tools and its notes. If you run
+a changed copy for players, it has to offer them its source (the licence's section 13), and
+if you hand out a changed copy, its source goes with it.
+
+Commits up to `a4ce54a` (2026-11-07) were released under the MIT licence and stay available
+under it at those commits; `NOTICE` keeps its notice for the code they hold.
+
+The licence grants no rights in *EverQuest Online Adventures* itself; the game, its binaries and
+its data belong to their owners. No disc file or game binary is distributed here; the open
 database holds the names, numbers and texts of the game's content as fan projects have
 recorded them, and grants no rights in those either.

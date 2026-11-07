@@ -843,12 +843,12 @@ func (op GameOpcode) String() string {
 		return "RaidRosterAnswer"
 	case OpcodeRaidRoster:
 		return "RaidRoster"
-	case OpcodeFly:
-		return "Fly"
 	case OpcodeCombatRecord:
 		return "CombatRecord"
 	case OpcodeCombatRecordData:
 		return "CombatRecordData"
+	case OpcodeFly:
+		return "Fly"
 	case OpcodeNoCollideList:
 		return "NoCollideList"
 	case OpcodeFactionPage:

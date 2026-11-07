@@ -92,6 +92,9 @@ func (w *World) RaceSizeSummary() string {
 }
 
 func raceName(race int) string {
+	if d, ok := customRace(race); ok {
+		return d.Name
+	}
 	if race >= 0 && race < len(raceNames) {
 		return raceNames[race]
 	}

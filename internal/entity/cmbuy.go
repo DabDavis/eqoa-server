@@ -388,12 +388,15 @@ func (w *World) masterClassLocked(p *Player) string {
 // title, which CLIENT's info window shows in place of its class
 // (VIWndGame::DrawTargetInfo), its Master Class (F3 20261026-135950: a
 // Spellbinder is shown as one, not as an Enchanter), and its guild, shown
-// under its name.
-func (w *World) TargetInfoLines(p *Player) (title, guild string) {
+// under its name. A client told a race of racedefs passes as another (race.go)
+// shows the other's word on its race line, so the title says the real one, "Hill
+// Giant Titan", to any viewer but one whose client asked for race labels
+// (racelabels.go): its race line says it, and the title stays "Titan".
+func (w *World) TargetInfoLines(viewer, p *Player) (title, guild string) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	title = w.masterClassLocked(p)
-	if p.Race == RaceHillGiant { // CLIENT is told an Ogre (race.go): the title says it
+	if IsCustomRace(p.Race) && (viewer == nil || !viewer.RaceLabels) {
 		title = strings.TrimSpace(RaceName(p.Race) + " " + title)
 	}
 	return title, p.GuildName

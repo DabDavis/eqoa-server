@@ -221,6 +221,12 @@ type Player struct {
 	powerBarsSent string
 	powerBarsDue  bool
 
+	// RaceLabels: the player's client shows a race of racedefs' own words and
+	// asked for them (racelabels.go, opcode 0x7E1C); raceLabelsSent is the list
+	// it was last sent, so only a change goes out ("" unknown, after a restart).
+	RaceLabels     bool
+	raceLabelsSent string
+
 	// DuelWindow: the player's client has the live game's duel window and
 	// answered the duel offer (duel.go, opcode 0x7E09): its duels go by
 	// 0x1501/0x1502, not boxes, and its opponent stays a player to it

@@ -711,6 +711,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureRaceSize(); err != nil { // racesize.go
 		return err
 	}
+	if err := db.ensureRaceDefs(); err != nil { // racedefs.go: the races the game does not have
+		return err
+	}
 	if err := db.ensureCharDyes(); err != nil { // chardyes.go
 		return err
 	}

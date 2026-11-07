@@ -308,7 +308,9 @@ func (h *Heirlooms) bestOf(class, race, level int, role string) (database.ItemPa
 	if cached && h.now().Sub(b.at) <= heirloomTTL {
 		return b.p, b.ok
 	}
-	items, err := h.inv.WearablePatterns(class, race, key.level, r.wear)
+	// an item's mask is asked about the race the character passes as (race.go):
+	// no item's mask has a race of racedefs' bit
+	items, err := h.inv.WearablePatterns(class, entity.WireRace(race), key.level, r.wear)
 	if err != nil {
 		log.Printf("Heirlooms: the items of %s for class %d at %d: %v", role, class, key.level, err)
 		return database.ItemPatternRecord{}, false

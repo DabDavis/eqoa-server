@@ -8,7 +8,7 @@
    "classes": [],
    "races": [],
    "minlevel": 50,
-   "maxlevel": 100,
+   "maxlevel": 60,
    "requires": [],
    "repeatable": true,
    "offer": "The light hums. It wants a chain's shards, all of them, from one hand.\nFeed it the Sun's Shards, the 4 yellow ones? All near you go too.",
@@ -64,7 +64,7 @@
    "classes": [],
    "races": [],
    "minlevel": 50,
-   "maxlevel": 100,
+   "maxlevel": 60,
    "requires": [
     "Portal/plane-of-sky/light-sun"
    ],
@@ -107,7 +107,7 @@
    "classes": [],
    "races": [],
    "minlevel": 50,
-   "maxlevel": 100,
+   "maxlevel": 60,
    "requires": [],
    "repeatable": true,
    "offer": "The light hums. It wants a chain's shards, all of them, from one hand.\nFeed it the Rain's Shards, the 5 blue ones? All near you go too.",
@@ -167,7 +167,7 @@
    "classes": [],
    "races": [],
    "minlevel": 50,
-   "maxlevel": 100,
+   "maxlevel": 60,
    "requires": [
     "Portal/plane-of-sky/light-rain"
    ],
@@ -211,7 +211,7 @@
    "classes": [],
    "races": [],
    "minlevel": 50,
-   "maxlevel": 100,
+   "maxlevel": 60,
    "requires": [],
    "repeatable": true,
    "offer": "The light hums. It wants a chain's shards, all of them, from one hand.\nFeed it the Night's Shards, the 5 black ones? All near you go too.",
@@ -271,7 +271,7 @@
    "classes": [],
    "races": [],
    "minlevel": 50,
-   "maxlevel": 100,
+   "maxlevel": 60,
    "requires": [
     "Portal/plane-of-sky/light-night"
    ],
@@ -315,7 +315,7 @@
    "classes": [],
    "races": [],
    "minlevel": 50,
-   "maxlevel": 100,
+   "maxlevel": 60,
    "requires": [],
    "repeatable": true,
    "offer": "The light hums. It wants a chain's shards, all of them, from one hand.\nFeed it the Snow's Shards, the 3 white ones? All near you go too.",
@@ -367,7 +367,7 @@
    "classes": [],
    "races": [],
    "minlevel": 50,
-   "maxlevel": 100,
+   "maxlevel": 60,
    "requires": [
     "Portal/plane-of-sky/light-snow"
    ],
@@ -409,7 +409,7 @@
    "classes": [],
    "races": [],
    "minlevel": 50,
-   "maxlevel": 100,
+   "maxlevel": 60,
    "requires": [],
    "repeatable": true,
    "offer": "The light hums. It wants a chain's shards, all of them, from one hand.\nFeed it the Desolation's Shards, the 4 red ones? All near you go too.",
@@ -465,7 +465,7 @@
    "classes": [],
    "races": [],
    "minlevel": 50,
-   "maxlevel": 100,
+   "maxlevel": 60,
    "requires": [
     "Portal/plane-of-sky/light-deso"
    ],
@@ -508,7 +508,7 @@
    "classes": [],
    "races": [],
    "minlevel": 50,
-   "maxlevel": 100,
+   "maxlevel": 60,
    "requires": [
     "Portal/plane-of-sky/night"
    ],
@@ -550,7 +550,7 @@
    "classes": [],
    "races": [],
    "minlevel": 50,
-   "maxlevel": 100,
+   "maxlevel": 60,
    "requires": [],
    "repeatable": true,
    "offer": "The essence turns slowly. Five lights would wake it, one from each construct.\nWill you feed it the multicoloured lights? All near you go too.",
@@ -610,7 +610,7 @@
    "classes": [],
    "races": [],
    "minlevel": 50,
-   "maxlevel": 100,
+   "maxlevel": 60,
    "requires": [],
    "repeatable": true,
    "offer": "A scale of the twins? Oh, let me see it. I pay for a look, and the Storyteller wants the tale.\nWill you show me?",

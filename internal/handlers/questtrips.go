@@ -75,7 +75,7 @@ func (q *QuestEngine) TripBarred(p *entity.Player, npc, to string) (quest string
 	}
 	name := strings.TrimSpace(gate[0].Name)
 	for _, qu := range gate {
-		if (len(qu.Classes) == 0 || containsInt(qu.Classes, p.Class)) && (len(qu.Races) == 0 || containsInt(qu.Races, p.Race)) {
+		if (len(qu.Classes) == 0 || containsInt(qu.Classes, p.Class)) && (len(qu.Races) == 0 || containsInt(qu.Races, entity.WireRace(p.Race))) {
 			name = strings.TrimSpace(qu.Name)
 			break
 		}

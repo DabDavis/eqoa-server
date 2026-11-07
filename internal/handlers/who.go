@@ -115,7 +115,7 @@ func whoListResponse(token int64, players []whoEntry) *protocol.Message {
 	writer.Write7BitEncodedInt64(token)
 	writer.Write7BitEncodedInt64(int64(len(players)))
 	for _, p := range players {
-		writer.WriteByte(byte(p.Race))
+		writer.WriteByte(byte(entity.WireRace(p.Race)))
 		writer.WriteByte(byte(p.Class))
 		writer.WriteByte(byte(p.Level))
 		writer.WriteStringUTF8(p.Name)

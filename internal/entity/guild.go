@@ -606,7 +606,7 @@ func BuildGuildMember(m GuildMember, online bool) []byte {
 		w.Write7BitEncodedInt64(int64(m.ID))
 		writeStr8(w, m.Name, 24)
 		w.Write7BitEncodedInt64(int64(m.Class))
-		w.Write7BitEncodedInt64(int64(m.Race))
+		w.Write7BitEncodedInt64(int64(WireRace(m.Race)))
 		w.Write7BitEncodedInt64(int64(m.Level))
 		w.Write7BitEncodedInt64(int64(m.Rank))
 		var on byte

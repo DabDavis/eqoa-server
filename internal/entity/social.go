@@ -139,7 +139,7 @@ func writeBuddy(b *buffer.Writer, id EntityID, i buddyInfo, online bool) {
 	b.Write7BitEncodedInt64(int64(id))
 	writeName8(b, i.Name)
 	b.Write7BitEncodedInt64(int64(i.Class))
-	b.Write7BitEncodedInt64(int64(i.Race))
+	b.Write7BitEncodedInt64(int64(WireRace(i.Race)))
 	b.Write7BitEncodedInt64(int64(i.Level))
 	if online {
 		b.WriteByte(1)

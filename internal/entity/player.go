@@ -246,6 +246,13 @@ type Player struct {
 	RaceLabels     bool
 	raceLabelsSent string
 
+	// RecordWindow: the player's client has a combat record window and answered
+	// the offer (combatrecord.go, opcode 0x7E20): its record is sent to it when it
+	// changes. record is what its target window shows of it (TargetInfoLines),
+	// read at the login and after each count.
+	RecordWindow bool
+	record       RecordSummary
+
 	// Voice: the player's client has voice chat on (voice.go, opcode
 	// 0x7E10); VoiceID is its voice id in the forwarding server while it is
 	// (never 0), the rest its voice's state

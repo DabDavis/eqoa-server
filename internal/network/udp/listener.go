@@ -707,6 +707,9 @@ func (l *Listener) SaveAll() {
 	if l.gameWorld == nil || l.charStore == nil {
 		return
 	}
+	// the combat records' last counts (entity/combatrecord.go): written every tick,
+	// and here for a kill in the tick before a restart or a shutdown
+	l.gameWorld.FlushCombatRecords()
 	var inWorld []*session.Session
 	l.sessionManager.ForEach(func(sess *session.Session) bool {
 		if sess.CharacterInWorld() {

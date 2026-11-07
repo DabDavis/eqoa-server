@@ -539,6 +539,24 @@ const (
 	// but what the server may send it: only #fly turns flight on.
 	OpcodeFly GameOpcode = 0x7E1B
 
+	// OpcodeCombatRecord is not retail: a character's combat record, its PvP and its
+	// duels (entity/combatrecord.go, handlers/combatrecord.go), for a client with a
+	// window of it: a u32 after the opcode, both ways, as OpcodeRaceLabels. The server
+	// offers it (1) once the player is in the world; a client that shows it answers 1
+	// (0 to stop) and from then is sent its record (OpcodeCombatRecordData) whenever a
+	// count changes it. A PS2 ignores the offer, and a client of a server that never
+	// makes it shows nothing of it.
+	OpcodeCombatRecord GameOpcode = 0x7E20
+
+	// OpcodeCombatRecordData is the record. From a client that answered
+	// OpcodeCombatRecord, a u32 (1): send it now (its window opening). From the
+	// server, in answer and on a change: a u8 version (1), the character's name, a u8
+	// count of rows, then each row: a u8 style (0 a heading, 1 a label and its value),
+	// its label and its value, every string a u8 byte count and UTF-8. The rows are
+	// the server's words and figures as they stand when sent ("2 hours ago"), drawn
+	// as they come.
+	OpcodeCombatRecordData GameOpcode = 0x7E21
+
 	// Voice chat (internal/voice, entity/voice.go): non-retail opcodes in a
 	// block of their own; a PS2 ignores them. Strings are a u16 byte length
 	// and UTF-8.
@@ -827,6 +845,10 @@ func (op GameOpcode) String() string {
 		return "RaidRoster"
 	case OpcodeFly:
 		return "Fly"
+	case OpcodeCombatRecord:
+		return "CombatRecord"
+	case OpcodeCombatRecordData:
+		return "CombatRecordData"
 	case OpcodeNoCollideList:
 		return "NoCollideList"
 	case OpcodeFactionPage:

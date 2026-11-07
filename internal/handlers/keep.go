@@ -223,6 +223,7 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 		return nil, fmt.Errorf("character %d: no player made", record.ServerID)
 	}
 	h.gameWorld.RestoreKeptPlayer(sess, kp, now)
+	resumeRecord(player.CharServerID) // its target window's record lines (combatrecord.go)
 	if kp.RaceLabels {
 		// its client keeps its list; a data step in the hold may have changed it
 		h.gameWorld.RefreshRaceLabels(h.store.DB())

@@ -137,11 +137,12 @@ func (w *World) playerProcsLocked(sess *session.Session, p *Player, npc *NPC, no
 		log.Printf("Proc: %s's proc resisted by %s", p.Name, npc.Name)
 	}
 	for _, h := range hits {
-		log.Printf("Proc: %s's %q hits %s for %d", p.Name, h.ae.Name, npc.Name, h.n)
+		n := -creatureResists(h.ae.Rules.Resist, npc, -h.n, now)
+		log.Printf("Proc: %s's %q hits %s for %d", p.Name, h.ae.Name, npc.Name, n)
 		// seen as a damage shield's answer is (petition 1156: "does not proc",
 		// when all it showed was one more figure among the swings')
 		w.broadcastCastLocked(p, npc.ServerID, 0, fxShieldHit)
-		killed := w.spellHitLocked(p, sess, npc, h.n)
+		killed := w.spellHitLocked(p, sess, npc, n)
 		w.procTapLocked(p, sess, h.ae, npc)
 		if killed {
 			return true

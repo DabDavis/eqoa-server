@@ -68,6 +68,8 @@ const classTemplatesSchema = `
 		proc_name      TEXT NOT NULL DEFAULT '',
 		proc_resist    TEXT NOT NULL DEFAULT '',
 		resist_fail    REAL NOT NULL DEFAULT 0,
+		resist_kind    TEXT NOT NULL DEFAULT '',
+		resist_pct     INTEGER NOT NULL DEFAULT 0,
 		abilities      TEXT NOT NULL DEFAULT '[]',
 		note           TEXT NOT NULL DEFAULT '',
 		source         TEXT NOT NULL DEFAULT 'gm'
@@ -269,6 +271,11 @@ type ClassTemplate struct {
 	// spells, at any figure of it: this percent altogether, twice this in part
 	// (entity/resist.go). 0: the game's own, only at the cap.
 	ResistFail float64
+	// ResistKind is the resist it is strong in (FR, CR, LR, AR, PR or DR; empty:
+	// none) and ResistPct the percent of spell damage of that kind it does not take
+	// (entity/enchanter.go). 0: all of it.
+	ResistKind string
+	ResistPct  int
 	Abilities  []TemplateAbility
 	Note       string
 }
@@ -447,7 +454,7 @@ func knownKind(k string) bool {
 const (
 	MaxTemplateHPPct  = 100000
 	MaxTemplateShield = 100000
-	// MaxTemplateResistFail is the most of a template's resist_fail: 3 times it must stay well under all of them
+	// MaxTemplateResistFail is the most of a template's resist_fail: three times it stays under all of them
 	MaxTemplateResistFail = 30
 )
 
@@ -489,6 +496,12 @@ func CheckClassTemplate(t ClassTemplate) error {
 		return fmt.Errorf("proc_resist %q: FR, CR, LR, AR, PR, DR or none", t.ProcResist)
 	case math.IsNaN(t.ResistFail) || t.ResistFail < 0 || t.ResistFail > MaxTemplateResistFail:
 		return fmt.Errorf("resist_fail %v: 0 to %d percent", t.ResistFail, MaxTemplateResistFail)
+	case !shieldResistKnown(t.ResistKind):
+		return fmt.Errorf("resist_kind %q: FR, CR, LR, AR, PR, DR or none", t.ResistKind)
+	case t.ResistPct < 0 || t.ResistPct > 100:
+		return fmt.Errorf("resist_pct %d: 0 to 100 percent of spell damage of its kind", t.ResistPct)
+	case t.ResistPct > 0 && strings.TrimSpace(t.ResistKind) == "":
+		return fmt.Errorf("a resist_pct of %d needs a resist_kind", t.ResistPct)
 	case t.TakenPct < 1 || t.TakenPct > 1000:
 		return fmt.Errorf("taken_pct %d: 1 to 1000 percent of a melee hit on it", t.TakenPct)
 	case t.MeleePct < 10 || t.MeleePct > 1000:
@@ -572,6 +585,8 @@ var classTemplateColumns = []struct{ col, decl string }{
 	{"proc_name", "TEXT NOT NULL DEFAULT ''"},
 	{"proc_resist", "TEXT NOT NULL DEFAULT ''"},
 	{"resist_fail", "REAL NOT NULL DEFAULT 0"},
+	{"resist_kind", "TEXT NOT NULL DEFAULT ''"},
+	{"resist_pct", "INTEGER NOT NULL DEFAULT 0"},
 }
 
 // ensureClassTemplates makes tables classtemplates and npctemplate
@@ -620,7 +635,7 @@ func (db *SQLiteDB) ensureClassTemplates() error {
 // JSON) is left out and named in bad.
 func (db *SQLiteDB) ClassTemplates() (templates map[string]ClassTemplate, bad []string, err error) {
 	rows, err := db.Query(`SELECT name, class, hp_pct, taken_pct, melee_pct, special, special_chance, special_damage,
-		special_fx, special_every, special_first, special_jitter, special_from, shield_damage, shield_resist, proc_chance, proc_damage, proc_name, proc_resist, resist_fail, abilities, note FROM classtemplates
+		special_fx, special_every, special_first, special_jitter, special_from, shield_damage, shield_resist, proc_chance, proc_damage, proc_name, proc_resist, resist_fail, resist_kind, resist_pct, abilities, note FROM classtemplates
 		WHERE name IS NOT NULL`)
 	if err != nil {
 		return nil, nil, err
@@ -632,7 +647,7 @@ func (db *SQLiteDB) ClassTemplates() (templates map[string]ClassTemplate, bad []
 		var fx int64
 		var abilities sql.NullString
 		if err := rows.Scan(&t.Name, &t.Class, &t.HPPct, &t.TakenPct, &t.MeleePct, &t.Special, &t.SpecialChance,
-			&t.SpecialDamage, &fx, &t.SpecialEvery, &t.SpecialFirst, &t.SpecialJitter, &t.SpecialFrom, &t.ShieldDamage, &t.ShieldResist, &t.ProcChance, &t.ProcDamage, &t.ProcName, &t.ProcResist, &t.ResistFail, &abilities, &t.Note); err != nil {
+			&t.SpecialDamage, &fx, &t.SpecialEvery, &t.SpecialFirst, &t.SpecialJitter, &t.SpecialFrom, &t.ShieldDamage, &t.ShieldResist, &t.ProcChance, &t.ProcDamage, &t.ProcName, &t.ProcResist, &t.ResistFail, &t.ResistKind, &t.ResistPct, &abilities, &t.Note); err != nil {
 			return nil, nil, err
 		}
 		t.Name = TemplateKey(t.Name)

@@ -133,3 +133,114 @@ func TestAnArcaneDebuffLandsHarder(t *testing.T) {
 		t.Errorf("an arcane tick with the debuff on: %d, want 10%% over %d", got, rotBefore)
 	}
 }
+
+// A template's resist_kind (petition 1178, Jibrish): spell damage of that kind comes to what resist_pct leaves, through
+// a hit, a tick, a proc and a damage shield; another kind's and a creature of no template's come whole; a debuff of the
+// kind takes some off, and something always lands.
+func TestACreatureStrongInAResist(t *testing.T) {
+	now := time.Unix(1_800_000_000, 0)
+	tm := &ClassTemplate{}
+	tm.ResistKind, tm.ResistPct = "FR", 75
+	npc := &NPC{ServerID: 9, Level: 54, tmpl: tm}
+	if got := creatureResists(StatFR, npc, -1000, now); got != -250 {
+		t.Errorf("fire at 75%%: %d, want -250", got)
+	}
+	if got := creatureResists(StatCR, npc, -1000, now); got != -1000 {
+		t.Errorf("cold: %d", got)
+	}
+	if got := creatureResists(StatNone, npc, -1000, now); got != -1000 {
+		t.Errorf("no resist: %d", got)
+	}
+	if got := creatureResists(StatFR, &NPC{}, -1000, now); got != -1000 {
+		t.Errorf("no template: %d", got)
+	}
+	if got := creatureResists(StatFR, nil, -1000, now); got != -1000 {
+		t.Errorf("no creature: %d", got)
+	}
+	if got := creatureResists(StatFR, npc, 500, now); got != 500 {
+		t.Errorf("not a hit: %d", got)
+	}
+	npc.Effects = []*ActiveEffect{{SpellID: 1, Until: now.Add(time.Minute), Mods: StatMods{FR: -105}}}
+	if got := creatureResists(StatFR, npc, -1000, now); got != -500 {
+		t.Errorf("with 105 FR off it, 25 points of the 75: %d, want -500", got)
+	}
+	npc.Effects = nil
+	tm.ResistPct = 100
+	if got := creatureResists(StatFR, npc, -1000, now); got != -1 {
+		t.Errorf("at 100%%: %d, want 1 landing", got)
+	}
+	tm.ResistPct = 75
+
+	r, _, _ := charmRig(t)
+	defer func(f func(int) int) { procIntn = f }(procIntn)
+	procIntn = func(int) int { return 99 }
+	crab := r.enemy
+	crab.HP, crab.MaxHP = 5000000, 5000000
+	spell := func(id int, kind, resist string, duration int) CastSpell {
+		return wbSpell(id, 20, 1, "Test "+kind, fmt.Sprintf(`{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"duration_s":%d,"stack":0,"level":20,"min_level":1,"req_equipment":"Any",
+			"effects":[{"id":"0001","type":"Dmg/Heal","kind":"%s","amount":-10000,"resist":"%s"}]}`, duration, kind, resist))
+	}
+	took := func(s CastSpell, ticks bool) int {
+		before := crab.HP
+		r.w.mu.Lock()
+		defer r.w.mu.Unlock()
+		r.w.landOnNPCLocked(&castState{spell: s, caster: r.p.ServerID, targets: []EntityID{crab.ServerID}}, r.p, r.sess, crab, r.at(time.Second))
+		if ticks {
+			for _, e := range crab.Effects {
+				if e.SpellID == s.SpellID {
+					e.NextTick = r.at(2 * time.Second)
+					r.w.tickNPCEffectLocked(crab, e, r.at(2*time.Second))
+					e.Until = r.at(0)
+				}
+			}
+		}
+		return before - crab.HP
+	}
+	flame, frost, burn := spell(9311, "hp", "fr", 0), spell(9312, "hp", "cr", 0), spell(9313, "hp_tick", "fr", 60)
+	flameWhole, frostWhole, burnWhole := took(flame, false), took(frost, false), took(burn, true)
+	crab.tmpl = tm
+	near := func(got, want int) bool { return got >= want-2 && got <= want+2 }
+	if got := took(flame, false); !near(got, flameWhole/4) {
+		t.Errorf("a fire hit on it: %d, want a quarter of %d", got, flameWhole)
+	}
+	if got := took(frost, false); got != frostWhole {
+		t.Errorf("a cold hit on it: %d, want %d", got, frostWhole)
+	}
+	if got := took(burn, true); !near(got, burnWhole/4) {
+		t.Errorf("a fire tick on it: %d, want a quarter of %d", got, burnWhole)
+	}
+
+	// a fire proc and a fire damage shield
+	proc := &ActiveEffect{SpellID: 2, Name: "Flame", Until: r.at(time.Hour), Proc: 4000, ProcMax: 4000, Rules: EffectRules{Resist: StatFR}}
+	shield := &ActiveEffect{SpellID: 3, Name: "Embers", Until: r.at(time.Hour), Shield: &Shield{Min: 4000, Max: 4000}, Rules: EffectRules{Resist: StatFR}}
+	r.p.Effects = []*ActiveEffect{proc, shield}
+	r.p.Int = 2000 // its proc always fires
+	procIntn = func(n int) int {
+		if n == 100 {
+			return 0
+		}
+		return 0
+	}
+	resistless := func(f func() bool) int {
+		before := crab.HP
+		r.w.mu.Lock()
+		f()
+		r.w.mu.Unlock()
+		return before - crab.HP
+	}
+	crab.Level = r.p.Level // nothing resisted: 0 at or under the bearer's level less one
+	crab.Level -= 2
+	shieldTook := resistless(func() bool { return r.w.playerShieldsLocked(r.sess, r.p, crab, r.at(time.Minute)) })
+	crab.tmpl = nil
+	shieldWhole := resistless(func() bool { return r.w.playerShieldsLocked(r.sess, r.p, crab, r.at(time.Minute)) })
+	if shieldTook <= 0 || !near(shieldTook, shieldWhole/4) {
+		t.Errorf("a fire damage shield on it: %d, want a quarter of %d", shieldTook, shieldWhole)
+	}
+	crab.tmpl = tm
+	procTook := resistless(func() bool { return r.w.playerProcsLocked(r.sess, r.p, crab, r.at(time.Minute)) })
+	crab.tmpl = nil
+	procWhole := resistless(func() bool { return r.w.playerProcsLocked(r.sess, r.p, crab, r.at(time.Minute)) })
+	if procTook <= 0 || !near(procTook, procWhole/4) {
+		t.Errorf("a fire proc on it: %d, want a quarter of %d", procTook, procWhole)
+	}
+}

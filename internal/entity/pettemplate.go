@@ -559,7 +559,7 @@ func (w *World) petSplashLocked(ps *petState, t *NPC, c *petCast, a *templateAbi
 			continue
 		}
 		log.Printf("Pet: %s's %q splashes %q on %s for %d before the balance", ps.owner.Name, pet.Name, c.spell.Name, o.Name, n)
-		w.petDamageLocked(ps, o, n, now)
+		w.petDamageLocked(ps, o, -creatureResists(c.spell.resist, o, -n, now), now)
 	}
 }
 
@@ -685,7 +685,7 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 		pet.LastCombatTime = now
 		log.Printf("Pet: %s's %q lands %q on %s for %d before the balance", ps.owner.Name, pet.Name, c.spell.Name, t.Name, hit)
 		w.petSplashLocked(ps, t, c, a, now) // an area spell's others (before the target's hit, which may kill it)
-		w.petDamageLocked(ps, t, hit, now)
+		w.petDamageLocked(ps, t, -creatureResists(c.spell.resist, t, -hit, now), now)
 		if drained > 0 && pet.HP < pet.MaxHP {
 			n := min(drained, pet.MaxHP-pet.HP)
 			pet.HP += n

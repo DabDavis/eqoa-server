@@ -42,7 +42,11 @@ import (
 //     the stat channel carries it); neither draws a creature on (no
 //     healAggroLocked: a spell's heal sets every red creature near on its
 //     caster, which at every hit taken would pull every one in reach into a
-//     tank's fight);
+//     tank's fight), and only the Breastplate of the Anointed's is hate, on
+//     the creature whose hit called it, its figure whether the wearer was
+//     short of health or not (petition 1215, the GM Jibrish: "breastplate of
+//     the annointed is generating agro. It should be": a cleric in it holding
+//     a level 4 wizard's area spells, whose damage had been all the hate);
 //   - a heal by a stat's percent (the Anointed's 15 + 10% of CHA, at most 75)
 //     takes the stat as the client shows it (StatNow: within its cap, 400 at
 //     level 46 and up, more with the cap masteries); one in a line (the
@@ -74,6 +78,8 @@ type WornShield struct {
 	Line               bool
 	DamageMax, HealMax int
 	HealPct            int
+	// Hate: its heal's figure is hate on the creature whose hit called it
+	Hate bool
 }
 
 // wornShields are the items that do so, by their record's name in any case
@@ -85,7 +91,7 @@ type WornShield struct {
 // record shares (the named Mithril Breastplate, 2251, and the crafted
 // "mithril breastplate", 703150, a smith's, of no proc).
 var wornShields = map[string]WornShield{
-	"breastplate of the anointed": {Heal: 15, HealPct: 10, HealMax: 75, Scale: StatCha},
+	"breastplate of the anointed": {Heal: 15, HealPct: 10, HealMax: 75, Scale: StatCha, Hate: true},
 	"splendor":                    {Damage: 30, Heal: 15},
 	"crown of the jaguar":         {Damage: 30, Heal: 15},
 	"nightshade gloves":           {Damage: 30, Heal: 15},
@@ -182,6 +188,9 @@ func (w *World) wornShieldsLocked(sess *session.Session, p *Player, npc *NPC) bo
 			w.broadcastCastLocked(p, npc.ServerID, 0, fxShieldHit)
 			log.Printf("Shield: %s's %q answers %s for %d", p.Name, s.Item, npc.Name, damage)
 			died = w.spellHitLocked(p, sess, npc, damage) || died
+		}
+		if s.Hate && n > 0 && !npc.Dead {
+			w.addThreatLocked(npc, p.ServerID, n)
 		}
 		w.wornGiveLocked(p, sess, s, n, power)
 	}

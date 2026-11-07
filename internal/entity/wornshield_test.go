@@ -256,3 +256,46 @@ func TestTheSheetsShields(t *testing.T) {
 		t.Errorf("the positronian shield on a skeleton: hit %d, want 200", hp-crab.HP)
 	}
 }
+
+// The Anointed's heal is hate on the creature that hit its wearer, at full
+// health too, as much as it would heal, and a wizard's lesser damage does not
+// turn the creature away; the control, Worldbreaker's heal, is no hate.
+func TestTheAnointedHoldsHate(t *testing.T) {
+	r := newProcRig(t)
+	r.friend.Cha = 700
+	for name, hates := range map[string]bool{"Breastplate of the Anointed": true, "worldbreaker chestguard": false} {
+		s, ok := WornShieldOf(0, name)
+		if !ok {
+			t.Fatal(name)
+		}
+		r.friend.Gear.Shields = []WornShield{s}
+		r.friend.HP = r.friend.MaxHPNow()
+		_, heal, _ := s.forWearer(r.friend, procIntn)
+		want := int64(0)
+		if hates {
+			want = int64(heal)
+		}
+		if heal <= 0 {
+			t.Fatalf("%s heals %d", name, heal)
+		}
+		r.npc.Threats = nil
+		r.w.mu.Lock()
+		r.w.wornShieldsLocked(r.fsess, r.friend, r.npc)
+		r.w.mu.Unlock()
+		if got := r.npc.Threats[r.friend.ServerID]; got != want {
+			t.Errorf("%s: hate %d, want %d", name, got, want)
+		}
+	}
+	s, _ := WornShieldOf(0, "Breastplate of the Anointed")
+	r.friend.Gear.Shields = []WornShield{s}
+	r.npc.Threats = nil
+	r.w.mu.Lock()
+	r.w.addThreatLocked(r.npc, r.p.ServerID, 56) // the wizard's area spell
+	for range 2 {
+		r.w.wornShieldsLocked(r.fsess, r.friend, r.npc)
+	}
+	r.w.mu.Unlock()
+	if r.npc.CurrentEnemy != r.friend.ServerID {
+		t.Errorf("its enemy is %d, not the wearer %d", r.npc.CurrentEnemy, r.friend.ServerID)
+	}
+}

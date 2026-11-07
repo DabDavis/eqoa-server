@@ -318,3 +318,32 @@ func TestALevel100CharacterFights(t *testing.T) {
 		t.Errorf("a player's cap: %d", got)
 	}
 }
+
+// A creature that came down off a higher floor in its fight goes home at the height it left: a place can have two floors,
+// and Lord Nagafen stood under his island in the lava. The control: one whose fight stayed level is where it was.
+func TestACreatureComesHomeAtItsHeight(t *testing.T) {
+	c := newCaster(t)
+	home := func(y, fromY float32) float32 {
+		t.Helper()
+		npc := c.npc
+		npc.Dead, npc.CurrentEnemy = false, 0
+		npc.X, npc.Y, npc.Z = 110, y, 100
+		npc.chase = chaseState{fromX: 102, fromY: fromY, fromZ: 100, returning: true, last: c.at(0)}
+		c.w.returning = []*NPC{npc}
+		for d := 100 * time.Millisecond; d < 10*time.Second && len(c.w.returning) > 0; d += 100 * time.Millisecond {
+			c.w.mu.Lock()
+			c.w.homeSystem(c.at(d))
+			c.w.mu.Unlock()
+		}
+		if len(c.w.returning) != 0 || npc.X != 102 || npc.Z != 100 {
+			t.Fatalf("not home: (%.2f, %.2f), %d on their way", npc.X, npc.Z, len(c.w.returning))
+		}
+		return npc.Y
+	}
+	if got := home(-44.2, -28); got != -28 {
+		t.Errorf("came home at %.2f from the lower floor, want the -28 it left", got)
+	}
+	if got := home(10, 10); got != 10 {
+		t.Errorf("a level fight came home at %.2f", got)
+	}
+}

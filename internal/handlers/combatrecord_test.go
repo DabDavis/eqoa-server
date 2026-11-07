@@ -273,10 +273,12 @@ func TestRecordWrittenAndShown(t *testing.T) {
 		t.Fatalf("the targeter's window: %q", guild)
 	}
 
-	// a client's ask: its record now
+	// a client's ask: its record now, a second at once not read again
 	sb.Queue().GetPending()
-	if err := w.r.Handle(sb, incoming(protocol.OpcodeCombatRecordData, []byte{1, 0, 0, 0})); err != nil {
-		t.Fatal(err)
+	for range 2 {
+		if err := w.r.Handle(sb, incoming(protocol.OpcodeCombatRecordData, []byte{1, 0, 0, 0})); err != nil {
+			t.Fatal(err)
+		}
 	}
 	if data := queued(sb, protocol.OpcodeCombatRecordData); len(data) != 1 {
 		t.Fatalf("asked: %d sent", len(data))

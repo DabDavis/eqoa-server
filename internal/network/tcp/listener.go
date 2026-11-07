@@ -581,7 +581,10 @@ func (s *AuthServer) handleLoginVia(payload []byte, ip net.IP, relayed bool) []b
 	// Record that this username completed a login, so the UDP handshake can
 	// require one. Without this the password check below is decorative.
 	if s.tickets != nil {
-		s.tickets.Grant(username, accountID)
+		// authenticate decrypted this same field to get here
+		if password, err := decryptPassword(payload[40:72]); err == nil {
+			s.tickets.Grant(username, accountID, password)
+		}
 	}
 
 	// Build response (168 bytes) — matches eqoa.live byte-for-byte
@@ -750,18 +753,18 @@ func (s *AuthServer) CheckUDPPassword(username, password string, from *net.UDPAd
 			return accountID, "password"
 		}
 		s.limiter.Succeed(addr, username)
-		return s.udpLoginStands(username, accountID, ip)
+		return s.udpLoginStands(username, password, accountID, ip)
 	}
 	accountID, ok, _ := s.checkPassword(username, password, false)
 	if !ok {
 		return accountID, "password"
 	}
-	return s.udpLoginStands(username, accountID, ip)
+	return s.udpLoginStands(username, password, accountID, ip)
 }
 
 // udpLoginStands is CheckUDPPassword after the password: the address rule,
 // then the ticket.
-func (s *AuthServer) udpLoginStands(username string, accountID int, ip net.IP) (int, string) {
+func (s *AuthServer) udpLoginStands(username, password string, accountID int, ip net.IP) (int, string) {
 	if s.liveLogin != nil {
 		checkIP := ip
 		if ip != nil && s.exemptIP(ip) {
@@ -777,7 +780,7 @@ func (s *AuthServer) udpLoginStands(username string, accountID int, ip net.IP) (
 		}
 	}
 	if s.tickets != nil {
-		s.tickets.Grant(username, accountID)
+		s.tickets.Grant(username, accountID, password)
 	}
 	log.Printf("Auth: UDP login for '%s' (ID: %d) from %v by its token's password", username, accountID, ip)
 	return accountID, ""

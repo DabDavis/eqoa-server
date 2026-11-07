@@ -84,6 +84,9 @@ type EffectRules struct {
 	// harmful spell's (a cure's words go by them)
 	Resist Stat `json:",omitempty"`
 	Harm   bool `json:",omitempty"`
+	// NoCure: no cure takes it off, a spell's or a potion's (a template's
+	// debuff: classtemplate.go)
+	NoCure bool `json:",omitempty"`
 	// Twice: its first tick lands twice (the workbook's)
 	Twice bool `json:",omitempty"`
 	// a proc that heals its bearer (ProcHealDef: when hit), with its scale
@@ -490,7 +493,7 @@ func (w *World) cureLocked(cs *castState, t *Player) int {
 		if most := cs.spell.Def.CureMax; most > 0 && n >= most {
 			break // a cure of so many (CureMax)
 		}
-		if ae.SpellID == cs.spell.SpellID {
+		if ae.SpellID == cs.spell.SpellID || ae.Rules.NoCure {
 			continue
 		}
 		for _, words := range cs.spell.Def.Removes {
@@ -580,6 +583,9 @@ func (w *World) procHealsLocked(p *Player, npc *NPC, defense bool, now time.Time
 		r := ae.Rules
 		if r.ProcHeal <= 0 || r.ProcHealDef != defense || !now.Before(ae.Until) {
 			continue
+		}
+		if !defense && ae.Proc > 0 {
+			continue // its heal comes with its hit, one proc (procTapLocked)
 		}
 		if r.ProcHealUndead && (npc == nil || !w.undeadLocked(npc)) {
 			continue

@@ -77,7 +77,10 @@ import (
 // pact's price), its 0x00DB to the player and a line saying it, a death; a
 // tap's drained share back on the NPC; a heal's figure on itself. What a
 // spell would leave lasting on a player (a damage tick, a stat, a hold) is not
-// put on: no player effect has an NPC's source yet.
+// put on, but for a debuff's (petition 1170, Lord Nagafen's: "a single target
+// ability that cant be cured and lasts 2 minutes"): the stats its named spell
+// takes, on the player it fights, for the spell's time; no_cure keeps every cure
+// off it. It hits for nothing, and waits while what it fights is a pet.
 //
 // The numbers of jib's five are ours, the row's notes say which; the kick's
 // are Sandstorm's crab's. No recording has a creature casting.
@@ -440,6 +443,10 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 				}
 				if ok {
 					a.pinned = templateSpellOf(ts)
+					if ra.Kind == database.AbilityDebuff && !debuffStats(a.pinned) {
+						t.problems = append(t.problems, fmt.Sprintf("ability %d: %q takes no stat for any time (it casts nothing)", i+1, ts.Pattern.SpellName))
+						a.pinned = nil
+					}
 				} else {
 					t.problems = append(t.problems, fmt.Sprintf("ability %d: %s (it casts nothing)", i+1, pinWords(ra)))
 				}
@@ -615,6 +622,9 @@ func (w *World) templateTurnLocked(npc *NPC, target EntityID, now time.Time) boo
 		if a.Kind == database.AbilityHeal && npc.HP*100 >= npc.MaxHP*a.BelowOr() {
 			continue // whole enough: it waits, due
 		}
+		if a.Kind == database.AbilityDebuff && w.Players[target] == nil {
+			continue // a pet: it waits, due
+		}
 		f.next[i] = now.Add(a.every)
 		if c := a.ChanceOr(); c < 100 && templateIntn(100) >= c {
 			continue
@@ -633,6 +643,8 @@ type npcCast struct {
 	spell  *CastSpell
 	pct    int
 	heal   bool
+	debuff bool // what lasts of its spell, no hit (templateDebuffLocked)
+	noCure bool // a debuff's: no cure takes it off
 	target EntityID
 	others []EntityID
 	lands  time.Time
@@ -652,6 +664,7 @@ func (w *World) templateCastLocked(npc *NPC, i int, target EntityID, now time.Ti
 		return false
 	}
 	c := &npcCast{npc: npc, tmpl: t, spell: spell, pct: a.DamageOr(), target: target,
+		debuff: a.Kind == database.AbilityDebuff, noCure: a.NoCure,
 		lands: now.Add(spell.CastTime + castLand)}
 	if a.Kind == database.AbilityHeal {
 		c.heal, c.target = true, npc.ServerID
@@ -766,6 +779,10 @@ func (w *World) templateSystem(now time.Time) {
 			w.templateHealLocked(c)
 			continue
 		}
+		if c.debuff {
+			w.templateDebuffLocked(c, now)
+			continue
+		}
 		w.templateHitLocked(c, c.target, c.spell.Def.Effects, now)
 		share := c.spell.Def.Effects
 		if e := c.spell.Area.Effects; e != nil {
@@ -817,7 +834,7 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 		if resist == StatNone {
 			resist = StatAR
 		}
-		share, how := RollResist(p.StatNow(resist))
+		share, how := c.tmpl.rollResist(p.StatNow(resist))
 		taken := max(int(math.Round(float64(hit)*(1-share))), 1)
 		drained = int(math.Round(float64(drained) * (1 - share)))
 		p.HP = max(p.HP-taken, 0)
@@ -859,6 +876,47 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 		npc.HP = min(npc.HP+drained, npc.MaxHP)
 		w.tellNPCHealLocked(sess, npc, drained)
 	}
+}
+
+// debuffStats reports whether a spell can be a debuff's: it lasts and takes a
+// stat, which is all a debuff puts on.
+func debuffStats(s *CastSpell) bool {
+	if s.Def.Duration <= 0 {
+		return false
+	}
+	for _, e := range s.Def.Effects {
+		if e.Kind == EffectStat && !e.Set && e.Amount < 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// templateDebuffLocked lands a templated NPC's debuff on the player it fights:
+// the stats its spell takes, for the spell's time; a recast starts it again. Must
+// be called with the lock held.
+func (w *World) templateDebuffLocked(c *npcCast, now time.Time) {
+	npc := c.npc
+	p := w.Players[c.target]
+	if p == nil || p.IsDead() || p.respawnPending() || p.World != npc.World {
+		return
+	}
+	d := &c.spell.Def
+	ae := &ActiveEffect{SpellID: c.spell.SpellID, Name: c.spell.Name, Icon: c.spell.Icon, Caster: npc.ServerID, Until: now.Add(d.Duration)}
+	ae.Rules = rulesOf(d)
+	ae.Rules.NoCure = c.noCure
+	for _, e := range d.Effects {
+		if e.Kind == EffectStat && !e.Set {
+			ae.Mods.add(e.Stat, e.Amount)
+		}
+	}
+	p.LastCombatTime = now
+	w.breakInvisLocked(p, "a hit") // invis.go: every invisibility, whatever gave it
+	w.addEffectLocked(p, ae, now)
+	if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
+		w.sendChatToSession(sess, fmt.Sprintf("%s's %s takes hold of you.", npc.Name, c.spell.Name))
+	}
+	log.Printf("Template: %s's %q lands on %s for %v", npc.Name, c.spell.Name, p.Name, d.Duration)
 }
 
 // templateHealLocked lands a templated NPC's heal on itself: its figure at

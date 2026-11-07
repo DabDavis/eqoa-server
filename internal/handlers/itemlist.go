@@ -225,6 +225,26 @@ func (l *invList) wouldAdd(patternID, qty, maxStack int) int {
 	return 1
 }
 
+// loreLine is said when a Lore item cannot come: one is held already.
+const loreLine = "You can hold only one %s."
+
+// loreRoom is wouldAdd's room for an item under its Lore flag (itempattern.lore:
+// the user, 2026-11-07, Dasher: "reconstruction should be Lore, so only one
+// possessible at a time"): none while the list holds one, else at most one.
+// Every way an item comes to a character asks it (a summon, a quest's reward or a
+// GM's give through GiveItemNow, loot, a merchant, a buyback, a trade, a craft);
+// a move between its own bank and pack does not. Before it the flag was only
+// shown.
+func (l *invList) loreRoom(p *database.ItemPatternRecord, room int) int {
+	if p == nil || p.Lore == 0 || room <= 0 {
+		return room
+	}
+	if l.held(p.PatternID) > 0 {
+		return 0
+	}
+	return 1
+}
+
 // stackOnto is the list index of the record a stackable item would join
 // (AddItem's first record of the same item), or -1 for a new record.
 func (l *invList) stackOnto(patternID, maxStack int) int {

@@ -331,7 +331,13 @@ func (h *NPCWindowHandler) HandleLootItem(sess *session.Session, msg *protocol.M
 	}
 	rec := view[i]
 	count := min(int(n), rec.StackLeft)
-	took := inv.wouldAdd(rec.Pattern.PatternID, count, rec.Pattern.MaxStack)
+	room := inv.wouldAdd(rec.Pattern.PatternID, count, rec.Pattern.MaxStack)
+	took := inv.loreRoom(&rec.Pattern, room)
+	if took == 0 && room > 0 { // a Lore item held already (itemlist.go)
+		SendClientMessage(sess, fmt.Sprintf(loreLine, rec.Pattern.ItemName))
+		log.Printf("Loot: %s holds a %q already (Lore)", player.Name, rec.Pattern.ItemName)
+		return nil
+	}
 	if took == 0 {
 		// no room: said, and the window left as it is (resent, it closed
 		// and opened again and said nothing: petition 1030)
@@ -382,7 +388,7 @@ func (h *NPCWindowHandler) HandleLootAll(sess *session.Session, msg *protocol.Me
 			break
 		}
 		rec := view[i]
-		took := inv.wouldAdd(rec.Pattern.PatternID, rec.StackLeft, rec.Pattern.MaxStack)
+		took := inv.loreRoom(&rec.Pattern, inv.wouldAdd(rec.Pattern.PatternID, rec.StackLeft, rec.Pattern.MaxStack))
 		if took > 0 {
 			if _, _, err := h.giveItem(player, inv, rec, took, 0); err != nil {
 				log.Printf("Loot: %s: %v", player.Name, err)

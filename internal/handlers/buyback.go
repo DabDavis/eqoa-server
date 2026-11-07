@@ -285,7 +285,7 @@ func (h *NPCWindowHandler) buyBack(sess *session.Session, player *entity.Player,
 		SendColoredChat(sess, buyBackNoTunar, scribeRefusalRGB[0], scribeRefusalRGB[1], scribeRefusalRGB[2])
 		return false
 	}
-	if inv.wouldAdd(p.PatternID, n, p.MaxStack) != n { // all of it or none, what AddItem would drop included
+	if inv.loreRoom(p, inv.wouldAdd(p.PatternID, n, p.MaxStack)) != n { // all of it or none, what AddItem would drop included
 		log.Printf("BuyBack: %s has no room for %d %q", player.Name, n, p.ItemName)
 		SendColoredChat(sess, buyBackNoRoom, scribeRefusalRGB[0], scribeRefusalRGB[1], scribeRefusalRGB[2])
 		return false

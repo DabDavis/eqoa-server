@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/eqoa/server/internal/database"
@@ -149,8 +150,12 @@ func GiveItemNow(sess *session.Session, gw *entity.World, inv *database.Inventor
 	}
 	given := 0
 	for r := 0; r < records; r++ {
-		took := l.wouldAdd(pattern.PatternID, qty, pattern.MaxStack)
+		room := l.wouldAdd(pattern.PatternID, qty, pattern.MaxStack)
+		took := l.loreRoom(&pattern, room)
 		if took == 0 {
+			if room > 0 { // one held already (itemlist.go)
+				SendClientMessage(sess, fmt.Sprintf(loreLine, pattern.ItemName))
+			}
 			break // the list is full, or the stack is
 		}
 		rec := database.CharInventoryEntry{StackLeft: took, RemainHP: pattern.MaxHP, Pattern: pattern}

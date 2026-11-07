@@ -23,13 +23,18 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/session"
 )
 
 // keepChars is the character handler RegisterDefaultHandlers made, which a
-// resume builds characters and sends dumps through.
-var keepChars atomic.Pointer[CharacterHandler]
+// resume builds characters and sends dumps through; keepWindows its NPC window
+// handler, which holds what the corpses hold.
+var (
+	keepChars   atomic.Pointer[CharacterHandler]
+	keepWindows atomic.Pointer[NPCWindowHandler]
+)
 
 // KeptExtras is what a restart carries of the handlers' own state for a
 // session.
@@ -100,6 +105,87 @@ func (q *QuestEngine) keptFlags(p *entity.Player) (marks, progress bool) {
 	defer q.mu.Unlock()
 	c := q.namedLocked(p.CharServerID, p.Name)
 	return c.marksOn, c.progressOn
+}
+
+// KeptCorpse is what a corpse holds as a restart carries it, for the creature the
+// World carries dead (entity.KeptNPC). A corpse no one has opened has nothing to
+// keep: its contents are rolled when it first is, in whichever process. One that
+// has been must be kept, even with nothing left on it: forgotten, its next opener
+// would roll it all again, coins too (they went to the first opener: a corpse
+// here holds none). A loot step's drops lie on it from the kill, opened or not.
+// Who has its window open is not kept: a client's next take on it is answered by
+// closing the window (openCorpse), and it opens the corpse again.
+type KeptCorpse struct {
+	ID     uint32                                   `json:"id"`
+	Died   time.Time                                `json:"died"`
+	Opened bool                                     `json:"opened,omitempty"`
+	Items  []database.CharInventoryEntry            `json:"items,omitempty"`
+	Drops  map[uint32][]database.CharInventoryEntry `json:"drops,omitempty"`
+}
+
+// KeepCorpses is what the corpses that lie now hold (KeptCorpse).
+func KeepCorpses() []KeptCorpse {
+	h := keepWindows.Load()
+	if h == nil || h.corpseLies == nil {
+		return nil
+	}
+	ls := h.loots()
+	ls.mu.Lock()
+	defer ls.mu.Unlock()
+	ids := make(map[entity.EntityID]bool, len(ls.corpses)+len(ls.drops))
+	for id := range ls.corpses {
+		ids[id] = true
+	}
+	for id := range ls.drops {
+		ids[id] = true
+	}
+	var out []KeptCorpse
+	for id := range ids {
+		died, lies := h.corpseLies(id)
+		if !lies {
+			continue
+		}
+		k := KeptCorpse{ID: uint32(id), Died: died}
+		if c := ls.corpses[id]; c != nil && c.died.Equal(died) {
+			k.Opened, k.Items = true, c.items
+		}
+		if d := ls.drops[id]; d != nil && d.died.Equal(died) {
+			k.Drops = d.items
+		}
+		if k.Opened || len(k.Drops) > 0 {
+			out = append(out, k)
+		}
+	}
+	return out
+}
+
+// RestoreCorpses puts back what the corpses hold, once the World has its dead
+// again, and reports how many it did: one whose creature does not lie dead of the
+// same death (its row gone, or a data step made it another) is passed over.
+func RestoreCorpses(kept []KeptCorpse) int {
+	h := keepWindows.Load()
+	if h == nil || h.corpseLies == nil {
+		return 0
+	}
+	ls := h.loots()
+	ls.mu.Lock()
+	defer ls.mu.Unlock()
+	n := 0
+	for _, k := range kept {
+		id := entity.EntityID(k.ID)
+		died, lies := h.corpseLies(id)
+		if !lies || !died.Equal(k.Died) {
+			continue
+		}
+		if k.Opened {
+			ls.corpses[id] = &corpse{died: died, items: k.Items}
+		}
+		if len(k.Drops) > 0 {
+			ls.drops[id] = &questDrops{died: died, items: k.Drops}
+		}
+		n++
+	}
+	return n
 }
 
 // ResumeCharacter builds the character of a session carried through a restart

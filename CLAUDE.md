@@ -53,7 +53,8 @@ own channel and XOR bases, the character's target, lockouts and asked-for offers
 item lists, which entity is on each of its client's slots under which id, the groups), stop sending, and re-exec
 itself (the same PID: systemd sees no restart) with the game's UDP socket open across the exec, so no client is
 answered "port unreachable" (CLIENT ends a route at once on that) and its datagrams wait in the socket. The new
-image takes the socket (`EQOA_KEEP_FD`), loads as always and, before it reads a datagram, puts each session back:
+image takes the socket (`EQOA_KEEP_FD`), loads as always and, before it reads a datagram, gives the creatures what
+was kept of them and puts each session back:
 the character built from its row as a login builds it (`enterFromRecord`), each entity kept on its slot under its
 id (an NPC by its row and name, a player by its character; anything else taken away), the groups formed again;
 once the client has reported where it stands (or 2 s) it is sent a MemoryDump there, as a respawn is (one dead
@@ -65,6 +66,21 @@ format, under 60 s old. A failed exec leaves the server running. **The first swa
 cold one** (an older binary ignores SIGUSR2: `swap_keep.sh` then exits 3 and swaps nothing). Measured with
 eqoa-rust-headless against a private server through a real re-exec: 40 ms from the signal to the exec, the
 session back about a second later, the client never left the world.
+
+**The creatures come through as they were** (the user, 2026-11-07: "when we restart lets leave mobs and npcs where
+they were"; `entity/keepnpc.go`, `KeptCorpse` in `handlers/keep.go`, the file's `npcs` and `corpses`, the same format 1:
+a file without them, and a rollback's reading of one with them, are fine): only an NPC of a row that differs from what
+its row makes is written. Its place and facing, standing (a wanderer's next leg, a path's nearest leg are taken from
+there); its hit points (the same share when a data step changed its maximum); its death's times, so it stays dead
+until they come due and its corpse lies out its decay; what an opened corpse holds (never rolled twice) and a loot
+step's drops. A fight ends and the creature runs back to where it began, hurt as it was. Effects on it end. A charmed
+creature, dead or alive, is as its row makes it (free, whole, on its spawn), a pet or a GM's or quest's spawn is
+gone, a dummy and a spawn-only original are not carried. A row a data step changed wins (`RestoreNPCs`): one gone is
+skipped, one whose spawn or world moved stands on the new one (dead stays dead, its corpse there), and one with both a
+new spawn and another name is another creature. **A new system holding an NPC's state decides here what a restart
+does with it.** Only this path keeps them: a cold start (swap when empty, a crash, the GM panel's restart, `#servdown`)
+loads the rows alone, as does the first restart out of a binary from before it. At worst (every wanderer on a real
+world off its spawn, 42,962 creatures): 5.7 MB, about 0.15 s more before the exec and 0.22 s after.
 `tools/swap_keep.sh` runs the staging's `before.sh` in the hold (`keep.hold`/`keep.saved` beside the database,
 at most 12 s: `EQOA_BEFORE_MAX`), and a staging with a file named `cold` in it is refused (a long data step: swap
 it the old way). The cold paths below still work and still end every session.

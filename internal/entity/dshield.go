@@ -330,9 +330,10 @@ func shieldDefault(name string, level int, caster *Player) (int, int) {
 // shieldHit is one answer to a creature's hit: its damage, the effect it is
 // of, and whether a defensive proc made it.
 type shieldHit struct {
-	n    int
-	name string
-	proc bool
+	n      int
+	name   string
+	proc   bool
+	resist Stat // the effect's (a creature strong in it: creatureResists)
 }
 
 // shieldAnswers is what the bearer's effects answer one creature's melee hit
@@ -358,7 +359,7 @@ func shieldAnswers(effects []*ActiveEffect, bearerLevel, attackerLevel, resistOf
 		return lo
 	}
 	if best != nil {
-		hits = append(hits, shieldHit{n: roll(best.Shield.Min, best.Shield.Max), name: best.Name})
+		hits = append(hits, shieldHit{n: roll(best.Shield.Min, best.Shield.Max), name: best.Name, resist: best.Rules.Resist})
 	}
 	for _, ae := range effects {
 		if ae.Shield == nil || ae.Shield.ProcMax <= 0 || !on(ae) {
@@ -371,7 +372,7 @@ func shieldAnswers(effects []*ActiveEffect, bearerLevel, attackerLevel, resistOf
 			resisted++
 			continue
 		}
-		hits = append(hits, shieldHit{n: roll(ae.Shield.ProcMin, ae.Shield.ProcMax), name: ae.Name, proc: true})
+		hits = append(hits, shieldHit{n: roll(ae.Shield.ProcMin, ae.Shield.ProcMax), name: ae.Name, proc: true, resist: ae.Rules.Resist})
 	}
 	return hits, resisted
 }
@@ -395,8 +396,9 @@ func (w *World) playerShieldsLocked(sess *session.Session, p *Player, npc *NPC, 
 		}
 		for _, h := range hits {
 			w.broadcastCastLocked(p, npc.ServerID, 0, fxShieldHit)
-			log.Printf("Shield: %s's %q answers %s for %d (proc %v)", p.Name, h.name, npc.Name, h.n, h.proc)
-			if w.spellHitLocked(p, sess, npc, h.n) {
+			n := -creatureResists(h.resist, npc, -h.n, now)
+			log.Printf("Shield: %s's %q answers %s for %d (proc %v)", p.Name, h.name, npc.Name, n, h.proc)
+			if w.spellHitLocked(p, sess, npc, n) {
 				died = true
 				break
 			}

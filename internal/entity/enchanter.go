@@ -201,6 +201,23 @@ func npcArcaneOff(npc *NPC, now time.Time) int {
 // Punishment's 125 and a tenth of 300 INT is 10% more).
 const arcaneDebuffPer = 15
 
+// creatureResists is a hit n (negative) or a tick of a spell of that resist on a
+// creature strong in that resist, its template's resist_kind (petition 1178,
+// Jibrish, of the lava centipede: "very resistant to FR. Not immune, but very strong
+// to it"): it does not take resist_pct percent of it, less what a debuff of that kind
+// on it takes off (npcResistKindPct), and at least 1 lands. Any other as it is. Its
+// chance to resist a spell whole is another matter: that goes by the levels.
+func creatureResists(resist Stat, npc *NPC, n int, now time.Time) int {
+	if npc == nil || npc.tmpl == nil || n >= 0 || resist == StatNone || npc.tmpl.ResistPct <= 0 || shieldResistStat(npc.tmpl.ResistKind) != resist {
+		return n
+	}
+	pct := npc.tmpl.ResistPct - npcResistKindPct(npc, resist, now)
+	if pct <= 0 {
+		return n
+	}
+	return min(int(math.Round(float64(n)*float64(100-pct)/100)), -1)
+}
+
 // arcaneDebuffed is a hit n (negative) or a tick of a spell of that resist on a
 // creature, as hard as its arcane debuff makes it (petition 1176, Jibrish: "It
 // should have a noticeable impact on resists for AR, and even increase AR

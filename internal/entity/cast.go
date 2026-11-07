@@ -1486,7 +1486,7 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 	for _, e := range cs.spell.Def.Effects {
 		switch e.Kind {
 		case EffectHP:
-			if n := arcaneDebuffed(e.Resist, npc, debuffScaled(e, npc, spellAmount(e, caster), now), now); n < 0 {
+			if n := creatureResists(e.Resist, npc, arcaneDebuffed(e.Resist, npc, debuffScaled(e, npc, spellAmount(e, caster), now), now), now); n < 0 {
 				killed := w.spellHitLocked(caster, casterSess, npc, -n)
 				// a life tap's heal (lifetap.go): what landed, after the
 				// con's cut (balance.go)
@@ -1596,7 +1596,7 @@ func (w *World) tickNPCEffectLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 	for ; times > 0; times-- {
 		if caster := w.Players[ae.Caster]; caster != nil && !npc.Dead {
 			sess := w.findSessionByEntityIDLocked(caster.ServerID)
-			hit := -arcaneDebuffed(ae.Rules.Resist, npc, ae.HPTick, now)
+			hit := -creatureResists(ae.Rules.Resist, npc, arcaneDebuffed(ae.Rules.Resist, npc, ae.HPTick, now), now)
 			died := w.spellHitLocked(caster, sess, npc, hit)
 			// a drain over time: each tick's figure to the caster (or its
 			// group), whole, as a tap's is though it killed (lifetap.go)

@@ -445,3 +445,63 @@ func TestAQuestOnlyTripWaitsForItsQuest(t *testing.T) {
 		t.Errorf("Yes: to (%.1f, %.1f) world %d (%v), tunar %d; want (24500, 3330) world 0 for 10000", x, z, world, moved, f.tw.p.Tunar)
 	}
 }
+
+// The Plane of Sky's way back to the third isle of rain (the armourers' hut): any
+// essence of rain, for a player the chain has brought there and no one else.
+func TestTheWayBackToTheHutWaitsForTheChain(t *testing.T) {
+	f := newQuestFixture(t)
+	for _, q := range []struct {
+		id             int
+		name, requires string
+	}{{101, "The Key of Rain", ""}, {102, "Sterie Glitterlight", "101"}, {103, "The Necrologist of Rain", "102"}} {
+		f.exec(`INSERT INTO quests (questid, name, enabled, giver, requires) VALUES (?, ?, 1, 'Nobody Here', ?)`, q.id, q.name, q.requires)
+		f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (?, 1, 'talk', 'Kellina', 'x')`, q.id)
+	}
+	f.exec(`INSERT INTO questunlocks VALUES (102, 'essence of rain', 'Rain 3')`)
+	f.exec(`INSERT INTO questunlocks VALUES (103, 'essence of rain', 'Rain 1')`)
+	if err := f.qe.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	essence := f.tw.add(1, &entity.NPC{ServerID: 119510, Name: "essence of rain", SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
+	const shut = "You may not travel to Rain 1 until you have finished The Necrologist of Rain."
+	refused := func(when string) {
+		t.Helper()
+		f.tw.talk(essence)
+		if got := dialogueBoxes(f.tw.s); !slices.Equal(got, []string{shut}) {
+			t.Fatalf("%s: %q", when, got)
+		}
+		if _, _, _, moved := teleported(f.tw.s); moved {
+			t.Fatalf("%s: it moved the player", when)
+		}
+	}
+	done := func(id int) {
+		t.Helper()
+		if _, err := f.qe.SetCharacterQuest(f.sid, id, QuestComplete, 0); err != nil {
+			t.Fatal(err)
+		}
+	}
+	refused("none of the chain")
+	done(101)
+	refused("the first quest alone")
+
+	done(102)
+	f.tw.talk(essence)
+	if got := optionBox(t, f.tw.s); !slices.Equal(got, []string{"Yes", "No"}) {
+		t.Fatalf("the second quest done, the essence asked %q", got)
+	}
+	f.tw.pick(essence, 0)
+	x, z, world, moved := teleported(f.tw.s)
+	if !moved || world != 4 || x != 4614.2 || z != 4936.5 {
+		t.Errorf("Yes: to (%.1f, %.1f) world %d (%v); want the hut (4614.2, 4936.5) in world 4", x, z, world, moved)
+	}
+	// again, whenever it likes: the quest done is all it asks, nothing is spent
+	if dests, _, locked := wayDests(f.tw.h.gameWorld, f.tw.s, "essence of rain", f.tw.p); len(dests) != 1 || dests[0].Name != "Rain 3" || locked.place != "Rain 1" {
+		t.Errorf("after the trip: %+v, locked %+v", dests, locked)
+	}
+
+	done(103)
+	dests, _, locked := wayDests(f.tw.h.gameWorld, f.tw.s, "essence of rain", f.tw.p)
+	if len(dests) != 2 || dests[0].Name != "Rain 1" || dests[1].Name != "Rain 3" || locked.place != "" {
+		t.Errorf("the whole chain done: %+v, locked %+v", dests, locked)
+	}
+}

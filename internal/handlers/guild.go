@@ -117,7 +117,7 @@ func (h *GuildHandler) HandleGuildCommand(sess *session.Session, msg *protocol.M
 	}
 	switch sub {
 	case guildCmdCreate:
-		h.create(sess, p, r.str16(guildNameMaxUnits))
+		h.create(sess, p, consoleLine(r.str16(guildNameMaxUnits), guildNameMaxUnits))
 	case guildCmdDisband:
 		h.disband(sess, p)
 	case guildCmdLeave:
@@ -140,9 +140,9 @@ func (h *GuildHandler) HandleGuildCommand(sess *session.Session, msg *protocol.M
 		inviter := r.u32()
 		h.refuse(sess, p, inviter, r.u8())
 	case guildCmdCharter:
-		h.charter(sess, p, r.str16(guildCharterMaxUnits))
+		h.charter(sess, p, consoleBlock(r.str16(guildCharterMaxUnits), guildCharterMaxUnits))
 	case guildCmdChat:
-		text := r.str16(1023)
+		text := consoleLine(r.str16(1023), chatLineMost)
 		if r.err || text == "" {
 			return nil
 		}

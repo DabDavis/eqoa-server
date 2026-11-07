@@ -331,7 +331,7 @@ func (h *MailHandler) handleRequest(sess *session.Session, msg *protocol.Message
 			gramReply(sess, 1, func(w *buffer.Writer) { w.WriteByte(0) })
 			return nil
 		}
-		out := h.deliver(me.Name, req.to, req.subject, req.text)
+		out := h.deliver(me.Name, req.to, consoleLine(req.subject, gramSubjectMost), consoleBlock(req.text, gramTextMost))
 		gramReply(sess, 1, func(w *buffer.Writer) {
 			if disc {
 				w.WriteByte(out.discStatus())

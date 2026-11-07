@@ -52,7 +52,7 @@ func (w *World) creatureShieldLocked(sess *session.Session, p *Player, npc *NPC,
 	}
 	taken, words := t.ShieldDamage, ""
 	if st := shieldResistStat(t.ShieldResist); st != StatNone {
-		share, how := RollResist(p.StatNow(st))
+		share, how := t.rollResist(p.StatNow(st))
 		taken = max(int(math.Round(float64(taken)*(1-share))), 1)
 		words = " (" + resistWords(share, how) + ")"
 	}
@@ -123,7 +123,7 @@ func (w *World) creatureProcLocked(sess *session.Session, p *Player, npc *NPC, n
 	}
 	taken, words := t.ProcDamage, ""
 	if st := shieldResistStat(t.ProcResist); st != StatNone {
-		share, how := RollResist(p.StatNow(st))
+		share, how := t.rollResist(p.StatNow(st))
 		taken = max(int(math.Round(float64(taken)*(1-share))), 1)
 		words = " (" + resistWords(share, how) + ")"
 	}

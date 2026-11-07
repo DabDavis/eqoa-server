@@ -52,3 +52,47 @@ func TestTheGatesBetweenTunariaAndTheRathe(t *testing.T) {
 func dist2(ax, az, bx, bz float32) float32 {
 	return (ax-bx)*(ax-bx) + (az-bz)*(az-bz)
 }
+
+// The Archons' towers: two portals at the back of each tower's ground floor,
+// one up to its Archon and one up to its Primeval (ticket 1196).
+func TestTheArchonTowersPortals(t *testing.T) {
+	for _, c := range []struct {
+		name                string
+		x, z, toX, toY, toZ float32
+	}{
+		{"Portal to Archon Aereth", 4692, 2512, 4702, 110.5, 2492},
+		{"Earth Primeval Portal", 4708, 2512, 4700, 84, 2496},
+		{"Portal to Archon Vetash", 4708, 2330, 4700, 106.5, 2357},
+		{"Fire Primeval Portal", 4692, 2330, 4700, 85, 2361},
+	} {
+		tw := newTalkWorld(t, c.x, c.z)
+		tw.p.World, tw.p.Y = 1, 66
+		portal := tw.add(3, &entity.NPC{ServerID: 703, Name: c.name, World: 1, NPCType: 384, SpawnX: c.x, SpawnY: 66, SpawnZ: c.z})
+		tw.talk(portal)
+		if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Yes", "No"}) {
+			t.Fatalf("%s asks %q", c.name, got)
+		}
+		tw.pick(portal, 0)
+		x, z, world, moved := teleported(tw.s)
+		if !moved || world != 1 || dist2(x, z, c.toX, c.toZ) > 1 {
+			t.Errorf("%s sent the player to (%.1f, %.1f) world %d (%v), want (%.1f, %.1f) in the Rathe", c.name, x, z, world, moved, c.toX, c.toZ)
+		}
+	}
+}
+
+// The Dead Hills' mausoleum portal is a travel NPC now, as Zizclank beside it is
+// (ticket 1197): it answers, and takes a player of level 50 to the Plane of
+// Disease's Portal to the Dead Hills. The control: below 50, it does not offer.
+func TestTheMausoleumPortalTalks(t *testing.T) {
+	if !IsWaysender("Mausoleum Portal") {
+		t.Fatal("the portal is not a travel NPC")
+	}
+	r := wayRoutes["Mausoleum Portal"]
+	if len(r) != 1 || r[0].To != "the Plane of Disease" || r[0].Arrive != "Portal to the Dead Hills" || r[0].MinLevel != 50 {
+		t.Errorf("its route is %+v", r)
+	}
+	z := wayRoutes["Necrologist Zizclank"]
+	if len(z) != 1 || z[0].To != r[0].To || z[0].Arrive != r[0].Arrive || z[0].MinLevel != r[0].MinLevel {
+		t.Errorf("Zizclank's route %+v and the portal's %+v differ", z, r)
+	}
+}

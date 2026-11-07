@@ -80,6 +80,11 @@ func (db *SQLiteDB) Heirlooms() (map[int]HeirloomDef, error) {
 // query through a transaction the caller holds.
 type PatternView func(serverID uint32, p *ItemPatternRecord)
 
+// Heirlooms is every heirloom row, by patternid (SQLiteDB.Heirlooms).
+func (s *InventoryStore) Heirlooms() (map[int]HeirloomDef, error) {
+	return s.db.Heirlooms()
+}
+
 // SetPatternView sets the view every store over this database applies; nil
 // takes it away.
 func (db *SQLiteDB) SetPatternView(v PatternView) {

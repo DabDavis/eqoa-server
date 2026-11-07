@@ -39,6 +39,8 @@ type actor struct {
 	AccountID int
 	Username  string
 	Level     int
+	// Role is what the account is to the panel: roleAdmin, roleGM, roleTester.
+	Role string
 	// Admin is Level >= gm.admin_level AND an authenticator: the session
 	// signed in with its code (or enrolled it), the token was made by such a
 	// sign-in, and the account has it still. An admin's tools are the whole
@@ -55,6 +57,10 @@ type actor struct {
 
 	sess *gmSession // a browser session's, else nil
 }
+
+// tester is whether the actor is a tester: below a GM, on the testers' allowlist
+// (tester.go).
+func (a *actor) tester() bool { return a.Role == roleTester }
 
 // may is whether the actor's credential and level allow work of that scope.
 func (a *actor) may(scope string) bool {
@@ -308,7 +314,8 @@ func (s *Server) accountByName(name string) (accountState, error) {
 	return a, err
 }
 
-// isGM is whether an account may use the panel now: its level, and not banned.
+// isGM is whether an account is a GM now: its level, and not banned. (A tester
+// uses the panel too: panelRole, tester.go, is who may sign in.)
 func (s *Server) isGM(a accountState) bool {
 	return a.Level >= s.cfg.MinLevel && a.Status >= 0
 }
@@ -363,9 +370,13 @@ func (s *Server) authenticate(r *http.Request) (*actor, error) {
 		}
 	}
 	acc, err := s.accountByID(sess.AccountID)
-	if err != nil || !s.isGM(acc) {
+	role := ""
+	if err == nil {
+		role = s.panelRole(acc)
+	}
+	if role == "" {
 		s.sessions.end(sess.Token)
-		return nil, &authError{http.StatusUnauthorized, "this account is no longer a GM"}
+		return nil, &authError{http.StatusUnauthorized, "this account no longer has the panel"}
 	}
 	if !s.sessRate.allow(fmt.Sprint(acc.ID)) {
 		return nil, &authError{http.StatusTooManyRequests, "too many requests from this account; slow down"}
@@ -378,7 +389,7 @@ func (s *Server) authenticate(r *http.Request) (*actor, error) {
 	mfa := sess.MFA
 	s.sessions.mu.Unlock()
 	a := &actor{
-		AccountID: acc.ID, Username: acc.Username, Level: acc.Level,
+		AccountID: acc.ID, Username: acc.Username, Level: acc.Level, Role: role,
 		Admin: acc.Level >= s.cfg.AdminLevel && mfa && on, Scope: scopeWrite, Via: "web", IP: ip, sess: sess,
 	}
 	if a.Admin {

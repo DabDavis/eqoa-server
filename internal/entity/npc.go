@@ -216,7 +216,8 @@ type NPC struct {
 	healing   bool
 
 	// GMHeld keeps it from coming back after its death: a GM's Kill
-	// Spawner (gmchannel.go), until Unkill Spawner or a restart.
+	// Spawner (gmchannel.go), until Unkill Spawner or a cold restart (one
+	// that keeps the sessions keeps it too: keepnpc.go).
 	GMHeld bool
 
 	// tmpl is the class template it fights by (classtemplate.go), nil for

@@ -74,8 +74,9 @@ import (
 //     charactermodel) nothing attacks but by a GM's rule;
 //   - the radius: the creature's AggroRadius, 21 (DefaultAggroRadius), a GM's
 //     per name;
-//   - no line of sight, and no social pull on sight: the NPCs of a creature's
-//     own come only when a player attacks it (socialaggro.go);
+//   - a line of sight to the player (sight.go), so no one is noticed through a
+//     wall, a floor or a ceiling; and no social pull on sight: the NPCs of a
+//     creature's own come only when a player attacks it (socialaggro.go);
 //   - an NPC of no faction attacks by the rules above alone: until 2026-10-29
 //     every character started with one gnome's capture (Qeynos -2000,
 //     faction.go), so standings would have set Qeynos's guards on every
@@ -376,8 +377,9 @@ func (w *World) healAggroLocked(p *Player) {
 }
 
 // drawNearLocked sets on p the free creatures within their aggro radius of it
-// that show it the red face: on sight (onSight), all but those green to it (a
-// GM trigger's spawn whatever its colour); as it heals itself, every one.
+// and in sight of it (sight.go) that show it the red face: on sight (onSight),
+// all but those green to it (a GM trigger's spawn whatever its colour); as it
+// heals itself, every one.
 // Must be called with the lock held.
 func (w *World) drawNearLocked(p *Player, now time.Time, onSight bool) {
 	reach := max(w.aggro.reach, DefaultAggroRadius)
@@ -392,7 +394,7 @@ func (w *World) drawNearLocked(p *Player, now time.Time, onSight bool) {
 		r := w.aggroRadiusLocked(npc)
 		dx, dy, dz := p.X-npc.X, p.Y-npc.Y, p.Z-npc.Z
 		d2 := dx*dx + dy*dy + dz*dz
-		if d2 > r*r {
+		if d2 > r*r || !w.inSightLocked(npc.World, npc.X, npc.Y, npc.Z, p.X, p.Y, p.Z) {
 			continue
 		}
 		// a hit's own entry, but no one else told: the NPCs of its own come

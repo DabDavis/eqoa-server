@@ -14,7 +14,8 @@ package entity
 // describing the entity it shows (an NPC's id is its row's, a player's its
 // character's, the same in the new process), or take it away. Groups are
 // formed again among the characters that came back. A fight, a cast on its
-// way, a pet, a duel, a trade and an invitation end.
+// way, a pet, a duel, a trade and an invitation end. The creatures come through
+// by keepnpc.go.
 
 import (
 	"fmt"

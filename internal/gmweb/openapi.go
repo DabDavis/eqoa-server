@@ -9,7 +9,8 @@ import (
 // client that takes OpenAPI: each operation is POST /api/op/<name> with its
 // arguments as the JSON body, called with a GM's API token as a Bearer token.
 // ?core=1 gives the shorter list (the Core operations), for a client with
-// room for fewer.
+// room for fewer; ?role=tester, or a tester's own credential, what a tester may
+// call (a custom GPT imports the address, with no credential).
 
 // openAPIDescMax is how long an operation's description may be: ChatGPT's
 // actions refuse longer ones.
@@ -18,9 +19,13 @@ const openAPIDescMax = 300
 func (s *Server) handleOpenAPI(w http.ResponseWriter, r *http.Request) {
 	base := s.publicBase(r)
 	core := r.URL.Query().Get("core") == "1"
+	tester := r.URL.Query().Get("role") == roleTester
+	if a, err := s.authenticate(r); err == nil && a.tester() {
+		tester = true
+	}
 	paths := map[string]any{}
 	for _, op := range s.opList {
-		if core && !op.Core {
+		if (core && !op.Core) || (tester && !testerMayCall(op)) {
 			continue
 		}
 		desc := op.Description
@@ -61,14 +66,19 @@ func (s *Server) handleOpenAPI(w http.ResponseWriter, r *http.Request) {
 			},
 		}
 	}
+	about := "Game-master tools for an EverQuest Online Adventures private server: its accounts, " +
+		"characters, NPCs, items and spells, and the running world. Call guide first. Every change is audited " +
+		"under the GM whose token is used and can be reverted (revert_change)."
+	if tester {
+		about = "A tester's tools on an EverQuest Online Adventures private server: its item and spell records, nothing " +
+			"else. Call guide first. Every change is audited under the tester whose token is used and can be reverted (revert_change)."
+	}
 	doc := map[string]any{
 		"openapi": "3.1.0",
 		"info": map[string]any{
-			"title":   "EQOA GM API",
-			"version": s.build,
-			"description": "Game-master tools for an EverQuest Online Adventures private server: its accounts, " +
-				"characters, NPCs, items and spells, and the running world. Call guide first. Every change is audited " +
-				"under the GM whose token is used and can be reverted (revert_change).",
+			"title":       "EQOA GM API",
+			"version":     s.build,
+			"description": about,
 		},
 		"servers": []any{map[string]any{"url": base}},
 		"paths":   paths,
@@ -86,6 +96,10 @@ func (s *Server) handleOpenAPI(w http.ResponseWriter, r *http.Request) {
 
 // handleGuide is the guide as text, for a person or an agent that reads URLs.
 func (s *Server) handleGuide(w http.ResponseWriter, r *http.Request) {
+	text := s.guideFor(r)
+	if a, err := s.authenticate(r); err == nil && a.tester() {
+		text = s.testerGuide(r)
+	}
 	w.Header().Set("Content-Type", "text/markdown; charset=utf-8")
-	w.Write([]byte(s.guideFor(r)))
+	w.Write([]byte(text))
 }

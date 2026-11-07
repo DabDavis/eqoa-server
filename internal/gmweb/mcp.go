@@ -182,11 +182,15 @@ func (s *Server) mcpCall(a *actor, r *http.Request, m rpcMessage) (any, *rpcErro
 				version = v
 			}
 		}
+		instructions := mcpInstructions
+		if a.tester() {
+			instructions = mcpTesterInstructions
+		}
 		return map[string]any{
 			"protocolVersion": version,
 			"capabilities":    map[string]any{"tools": map[string]any{"listChanged": false}},
 			"serverInfo":      map[string]any{"name": "eqoa-gm", "title": "EQOA GM panel", "version": s.build},
-			"instructions":    mcpInstructions,
+			"instructions":    instructions,
 		}, nil
 	case "ping":
 		return map[string]any{}, nil
@@ -237,7 +241,7 @@ func (s *Server) mcpCall(a *actor, r *http.Request, m rpcMessage) (any, *rpcErro
 func (s *Server) mcpTools(a *actor) []map[string]any {
 	var out []map[string]any
 	for _, op := range s.opList {
-		if !a.may(op.Scope) {
+		if !a.may(op.Scope) || (a.tester() && !testerMayCall(op)) {
 			continue
 		}
 		out = append(out, map[string]any{

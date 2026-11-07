@@ -409,7 +409,7 @@ func (w *World) throwLocked(sess *session.Session, p *Player, pe *PotionEffect, 
 			if o == nil || o == npc || o.Dead || o.World != npc.World || o.Owner != 0 || o.NPCType&0x80 != 0 || o.hiddenAt(now) {
 				continue
 			}
-			if dist3(o.X, o.Y, o.Z, npc.X, npc.Y, npc.Z) > pe.Area {
+			if dist3(o.X, o.Y, o.Z, npc.X, npc.Y, npc.Z) > pe.Area || !w.inSightLocked(npc.World, npc.X, npc.Y, npc.Z, o.X, o.Y, o.Z) {
 				continue
 			}
 			w.landOnNPCLocked(cs, p, sess, o, now)

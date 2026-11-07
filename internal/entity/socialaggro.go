@@ -37,8 +37,9 @@ import (
 // townsfolk.
 //
 // Chosen, as no capture holds a creature helping another:
-//   - "sight" is a radius in the same world: the server holds no walls, only
-//     the terrain's height, so a guard behind a house sees a hit too;
+//   - "sight" is a radius in the same world and a line of sight (sight.go) to
+//     the one attacked or its attacker, so a guard behind a house, or on the
+//     floor above, sees no hit;
 //   - the radius: 30 unless its row says, the range of 176 of the server's 402
 //     spells (spellpattern.range's 0x41F0, 30.0) and AggroRadius's own;
 //   - a helper already fighting, on its way home after a fight, dead, hidden,
@@ -153,6 +154,16 @@ func (w *World) helperLocked(helper, victim *NPC, now time.Time) bool {
 	return dx*dx+dy*dy+dz*dz <= radius*radius
 }
 
+// helperSeesLocked reports a helper with a line of sight (sight.go) to the one
+// attacked or to its attacker. Must be called with the lock held.
+func (w *World) helperSeesLocked(helper, victim *NPC, enemy EntityID) bool {
+	if w.inSightLocked(helper.World, helper.X, helper.Y, helper.Z, victim.X, victim.Y, victim.Z) {
+		return true
+	}
+	p := w.Players[enemy]
+	return p != nil && p.World == helper.World && w.inSightLocked(helper.World, helper.X, helper.Y, helper.Z, p.X, p.Y, p.Z)
+}
+
 // socialAssistLocked is a hit on victim by attackerID seen by the social NPCs
 // of its faction near it: each free one joins the fight (the file's doc). Must
 // be called with the lock held.
@@ -167,7 +178,7 @@ func (w *World) socialAssistLocked(victim *NPC, attackerID EntityID) {
 	now := time.Now()
 	for _, id := range w.SpatialIndex.QueryRadius(victim.X, victim.Z, w.npcSocial.reach) {
 		helper, ok := w.NPCs[id]
-		if !ok || !w.helperLocked(helper, victim, now) {
+		if !ok || !w.helperLocked(helper, victim, now) || !w.helperSeesLocked(helper, victim, enemy) {
 			continue
 		}
 		w.addThreatLocked(helper, enemy, 1)

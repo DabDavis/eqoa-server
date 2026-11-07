@@ -1,6 +1,9 @@
 package entity
 
-import "testing"
+import (
+	"slices"
+	"testing"
+)
 
 // The Freeport <-> guk route is not written down anywhere as a route: it is
 // DERIVED from which warp NPCs exist, the same way coach routes are. That makes
@@ -491,5 +494,18 @@ func TestAPairedGatekeeperIsOfferedByItsPartnerAlone(t *testing.T) {
 	}
 	if !has("") {
 		t.Error("a GM's own list lacks Gerntar Mines")
+	}
+	w.NPCs[5] = &NPC{ServerID: 5, Name: "Gatekeeper Threm", World: 0, SpawnX: 12565.1, SpawnZ: 29562.8}
+	names := func(asking string) (out []string) {
+		for _, d := range w.GetWarpDestinations(asking, nil) {
+			out = append(out, d.Name)
+		}
+		return out
+	}
+	if n := names("Gatekeeper Wavar"); !slices.Contains(n, "Oggok Gate") || slices.Contains(n, "Gerntar Mines") {
+		t.Errorf("Wavar offers %q", n)
+	}
+	if n := names("Gatekeeper Kuggin"); slices.Contains(n, "Oggok Gate") || !slices.Contains(n, "Gerntar Mines") {
+		t.Errorf("Kuggin offers %q", n)
 	}
 }

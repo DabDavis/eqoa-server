@@ -21,7 +21,7 @@ export async function render(box) {
       return;
     }
     mount(body,
-      s.totp.required ? h('p', { class: 'notice warn' }, 'This server asks every GM for one: until it is on, the panel does nothing else.') : h('p', null, 'Off. Turning it on protects this account if its password is ever seen.'),
+      s.totp.required ? h('p', { class: 'notice warn' }, 'This server asks every GM and tester for one: until it is on, the panel does nothing else.') : h('p', null, 'Off. Turning it on protects this account if its password is ever seen.'),
       s.user.adminNeedsTOTP ? h('p', { class: 'notice warn' }, 'You are an admin: an admin\'s tools (SQL, settings, backups, restart, account levels) need a sign-in with a code, so they wait for this.') : null,
       button('Set it up', { class: 'primary', onclick: async () => {
         try {

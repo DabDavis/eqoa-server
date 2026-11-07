@@ -27,6 +27,7 @@ export async function render(box, [id]) {
         !above && !self ? button(banned ? 'Lift ban' : 'Ban', { class: banned ? '' : 'danger', onclick: async () => { if (await ban(row, !banned)) location.reload(); } }) : null,
         !above ? button('Set password', { icon: 'lock', onclick: () => setPassword(row) }) : null,
         isAdmin() && !self && !above ? button('GM level', { onclick: () => setLevel(row) }) : null,
+        isAdmin() && !self && row.acctlevel < state.session.levels.gm ? button('Tester', { title: 'Give or take the tester role: this panel\'s items and spells, nothing in the game', onclick: () => setTester(row) }) : null,
         !above && !self ? button('Kick sessions', { onclick: async () => {
           try { const out = await op('kick_player', { account: row.accountid, reason: '' }); toast(`${out.sessions} session(s) ejected`, 'ok'); } catch (e) { toast(e.message, 'error'); }
         } }) : null,
@@ -40,6 +41,7 @@ export async function render(box, [id]) {
           h('div', { class: 'row' },
             r.banned ? h('span', { class: 'badge danger' }, 'Banned') : h('span', { class: 'badge ok' }, 'Active'),
             r.isGM ? h('span', { class: 'badge accent' }, `GM level ${row.acctlevel}`) : h('span', { class: 'badge' }, 'Player'),
+            r.tester ? h('span', { class: 'badge ok' }, 'Tester') : null,
             r.authenticator ? h('span', { class: 'badge info' }, 'Authenticator') : null),
           h('dl', { class: 'kv' }, h('dt', null, 'Last address'), h('dd', null, row.ipaddress || '—'), h('dt', null, 'Email'), h('dd', null, row.email || '—')))),
         card(`Characters (${r.characters.length})`, r.characters.length
@@ -79,6 +81,22 @@ async function setPassword(row) {
   try {
     await op('set_account_password', { account: row.accountid, password: v.password });
     toast('Password set', 'ok');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function setTester(row) {
+  const now = (await op('fetch', { id: 'account:' + row.accountid })).record.tester;
+  const v = await formBox({
+    title: (now ? 'Take the tester role from ' : 'Make a tester of ') + row.username, submitLabel: now ? 'Take it away' : 'Make a tester',
+    intro: now ? 'Their panel sessions end and their tokens are revoked at once.'
+      : 'They stay a player in the game, sign in here with their game password and an authenticator, and read and change the item and spell records, nothing else.',
+    fields: [{ name: 'note', label: 'Why (kept in the audit log)' }],
+  });
+  if (!v) return;
+  try {
+    const out = await op('set_account_tester', { account: row.accountid, tester: !now, note: v.note });
+    toast(now ? 'No longer a tester' : 'A tester now', 'ok', out.change?.live || '');
+    location.reload();
   } catch (e) { toast(e.message, 'error'); }
 }
 

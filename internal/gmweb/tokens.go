@@ -88,6 +88,17 @@ func (c *tokenCache) touch(id int64, ip string) {
 
 // issueToken makes a token and keeps its hash. ttl 0: it never expires.
 func (s *Server) issueToken(accountID int, name, kind, scope, client string, ttl time.Duration, parent int64) (string, int64, error) {
+	if scope == scopeAdmin {
+		// every way to a token comes here: whatever a route checked, the admin
+		// scope is never written for an account below an admin (a tester)
+		acc, err := s.accountByID(accountID)
+		if err != nil {
+			return "", 0, err
+		}
+		if acc.Level < s.cfg.AdminLevel {
+			return "", 0, errors.New("the admin scope is an admin's")
+		}
+	}
 	value := newTokenValue(tokenPrefixes[kind])
 	var expires any
 	if ttl > 0 {
@@ -150,8 +161,16 @@ func (s *Server) tokenActor(value, ip string) (*actor, error) {
 		return nil, &authError{http.StatusUnauthorized, err.Error()}
 	}
 	acc, err := s.accountByID(t.AccountID)
-	if err != nil || !s.isGM(acc) {
-		return nil, &authError{http.StatusUnauthorized, "the token's account is no longer a GM"}
+	role := ""
+	if err == nil {
+		role = s.panelRole(acc)
+	}
+	if role == "" {
+		return nil, &authError{http.StatusUnauthorized, "the token's account no longer has the panel"}
+	}
+	if role == roleTester && t.Scope == scopeAdmin {
+		// a GM's old token on an account that came down to a tester
+		return nil, &authError{http.StatusUnauthorized, "a tester holds no admin-scope token: make a new one"}
 	}
 	on, err := s.totpEnabled(acc.ID)
 	if err != nil {
@@ -172,7 +191,7 @@ func (s *Server) tokenActor(value, ip string) (*actor, error) {
 	// an admin-scoped token was made by a sign-in with an authenticator, and
 	// is an admin's only while the account keeps one
 	return &actor{
-		AccountID: acc.ID, Username: acc.Username, Level: acc.Level,
+		AccountID: acc.ID, Username: acc.Username, Level: acc.Level, Role: role,
 		Admin: acc.Level >= s.cfg.AdminLevel && on, Scope: t.Scope, Via: via, IP: ip, TokenID: t.ID,
 	}, nil
 }

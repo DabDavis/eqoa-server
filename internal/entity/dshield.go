@@ -369,7 +369,9 @@ func shieldAnswers(effects []*ActiveEffect, bearerLevel, attackerLevel, resistOf
 			continue
 		}
 		if intn(100) < procResistPct(bearerLevel, attackerLevel)-resistOff {
+			// resisted, it does the least it can (workbook.go's leastHarm)
 			resisted++
+			hits = append(hits, shieldHit{n: ae.Shield.ProcMin, name: ae.Name, proc: true, resist: ae.Rules.Resist})
 			continue
 		}
 		hits = append(hits, shieldHit{n: roll(ae.Shield.ProcMin, ae.Shield.ProcMax), name: ae.Name, proc: true, resist: ae.Rules.Resist})

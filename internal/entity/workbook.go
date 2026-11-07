@@ -218,6 +218,28 @@ func (d *SpellDef) lulls() bool {
 // whole (EverQuest's words: no recording of EQOA's exists).
 const spellResisted = "Your target resisted the %s spell."
 
+// spellResistedLeast is the caster's line when its target resisted a spell whose hit
+// still lands at its least (leastHarm).
+const spellResistedLeast = "Your target resisted the %s spell: it does the least it can."
+
+// leastHarm is a damage effect (a hit or a tick on hit points) at the least it does: the
+// figure of its range nearest nothing, no caster's stat or level added. A creature's
+// resist never takes all of a spell's or a proc's damage (the user, 2026-11-07: "in eqoa
+// mobs cant 100% negate a spell or attack with resists, it will hit for minimum damage
+// that it can only"); what is no damage (a debuff, a lull, a hate) it still resists whole.
+func leastHarm(e SpellEffect) (SpellEffect, bool) {
+	if (e.Kind != EffectHP && e.Kind != EffectHPTick) || e.Amount >= 0 {
+		return e, false
+	}
+	lo := e.Amount
+	if e.AmountMax < 0 && e.AmountMax > lo {
+		lo = e.AmountMax
+	}
+	e.Amount, e.AmountMax = lo, lo
+	e.Scale, e.ScalePct, e.LevelPct = StatNone, 0, 0
+	return e, true
+}
+
 // resistible reports whether an effect is one a creature's resist turns:
 // harm with a resist basis, not a charm's (its own roll) nor a hold's or a
 // slow's (the con's, root.go).
@@ -313,7 +335,7 @@ func (w *World) resistLocked(cs *castState, caster *Player, casterSess *session.
 		return cs, true
 	}
 	rolled := map[string]bool{} // an EffectID's roll: resisted or not
-	harm, kept := 0, 0
+	harm, kept, least := 0, 0, 0
 	var effects []SpellEffect
 	for _, e := range d.Effects {
 		if !resistible(e) {
@@ -333,14 +355,21 @@ func (w *World) resistLocked(cs *castState, caster *Player, casterSess *session.
 		if !resisted {
 			effects = append(effects, e)
 			kept++
+		} else if l, ok := leastHarm(e); ok {
+			effects = append(effects, l)
+			least++
 		}
 	}
 	if harm == 0 || kept == harm {
 		return cs, true
 	}
-	log.Printf("Cast: %s resists %d of %s's %q's %d harmful effects", npc.Name, harm-kept, caster.Name, cs.spell.Name, harm)
+	log.Printf("Cast: %s resists %d of %s's %q's %d harmful effects (%d of them land at their least)", npc.Name, harm-kept, caster.Name, cs.spell.Name, harm, least)
 	if kept == 0 && casterSess != nil {
-		w.sendColoredLocked(casterSess, fmt.Sprintf(spellResisted, cs.spell.Name), castRefusalRGB)
+		line := spellResisted
+		if least > 0 {
+			line = spellResistedLeast
+		}
+		w.sendColoredLocked(casterSess, fmt.Sprintf(line, cs.spell.Name), castRefusalRGB)
 	}
 	if len(effects) == 0 {
 		return cs, false

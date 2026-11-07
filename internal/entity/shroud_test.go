@@ -102,8 +102,8 @@ func TestALifeStealProcsAsOne(t *testing.T) {
 	if d, h := hit(99); d != 0 || h != 0 {
 		t.Errorf("a miss: dealt %d, healed %d, want neither", d, h)
 	}
-	if d, h := hit(0, 0); d != 0 || h != 0 {
-		t.Errorf("a resisted proc: dealt %d, healed %d, want neither", d, h)
+	if d, h := hit(0, 0); d != 100 || h != 100 {
+		t.Errorf("a resisted proc: dealt %d, healed %d, want its least (100) and its heal", d, h)
 	}
 	steal.Rules = EffectRules{}
 	if d, h := hit(0, 99); d != 100 || h != 0 {

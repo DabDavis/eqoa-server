@@ -323,12 +323,17 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 	if procIntn(100) >= wp.chancePct(p.StatNow(StatInt)) {
 		return false
 	}
-	if wp.Kind != ProcRestore && npc.Dummy == NotDummy && procIntn(100) < npcSpellResistPct(p.Level, npc, wp.Resist, now) {
+	// resisted, a proc that hurts does the least it can (workbook.go's leastHarm); one that
+	// only calms does nothing
+	resisted := wp.Kind != ProcRestore && npc.Dummy == NotDummy && procIntn(100) < npcSpellResistPct(p.Level, npc, wp.Resist, now)
+	if resisted && wp.Kind == ProcCalm {
 		log.Printf("Proc: %s's %q resisted by %s", p.Name, wp.Item, npc.Name)
 		return false
 	}
 	n := wp.Damage
-	if wp.DamageTo > wp.Damage {
+	if resisted {
+		log.Printf("Proc: %s's %q resisted by %s: the least it does, %d", p.Name, wp.Item, npc.Name, n)
+	} else if wp.DamageTo > wp.Damage {
 		n += procIntn(wp.DamageTo - wp.Damage + 1)
 	}
 	switch wp.Kind {

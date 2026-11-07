@@ -100,7 +100,10 @@ func procRollsOf(effects []*ActiveEffect, stat func(Stat) int, bearerLevel, targ
 			continue
 		}
 		if intn(100) < procResistPct(bearerLevel, targetLevel)-resistOff {
+			// resisted, it does the least it can (workbook.go's leastHarm): its range's
+			// low end, no bearer's stat
 			resisted++
+			hits = append(hits, procRoll{n: capAmount(ae.Proc, ae.ProcCap), ae: ae})
 			continue
 		}
 		n := ae.Proc

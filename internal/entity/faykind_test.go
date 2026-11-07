@@ -97,7 +97,7 @@ func TestFaykindDoesNotBeginAgain(t *testing.T) {
 // In the form a hit procs at 30%, not by INT, from 400 to 800, and no more
 // than 800 in all in a round: the second proc is cut to what is left, the third
 // does not happen, and a new round begins again. The controls: a roll of 30 does
-// not proc, and a resisted one takes nothing from the round.
+// not proc, and a resisted one does its least, 400, which counts against the round.
 func TestFaykindFormProcsUpToEightHundredARound(t *testing.T) {
 	r := faykindRig(t)
 	r.giveForm(t)
@@ -120,14 +120,12 @@ func TestFaykindFormProcsUpToEightHundredARound(t *testing.T) {
 	if f := hit(30, 99, 0); len(f) != 0 {
 		t.Errorf("a roll of 30 procs %v", f)
 	}
-	if f := hit(29, 0); len(f) != 0 {
-		t.Errorf("a resisted one procs %v", f)
+	// resisted: the least it does, 400, which counts against the round
+	if f := hit(29, 0); len(f) != 1 || f[0] != -400 {
+		t.Errorf("a resisted one procs %v, want its least, 400", f)
 	}
-	if f := hit(29, 99, 200); len(f) != 1 || f[0] != -600 {
-		t.Errorf("first proc %v, want 600", f)
-	}
-	if f := hit(0, 99, 400); len(f) != 1 || f[0] != -200 {
-		t.Errorf("second proc %v, want the 200 left of 800", f)
+	if f := hit(29, 99, 200); len(f) != 1 || f[0] != -400 {
+		t.Errorf("second proc %v, want the 400 left of 800", f)
 	}
 	if f := hit(0, 99, 400); len(f) != 0 {
 		t.Errorf("third proc %v, want none", f)

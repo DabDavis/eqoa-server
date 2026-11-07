@@ -278,6 +278,13 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 		buf[154] = 1
 	}
 
+	// Offset 157: CLIENT's m_p299, whose bit 0 is ApplyLook's name colour 2,
+	// NameColors[2], green: a player flagged for PvP (pvp.go). Zero on every
+	// entity in every capture.
+	if p.pvp.on {
+		buf[157] = 1
+	}
+
 	// Offset 158-161: End signature "tsrq" (eqoa.live byte order)
 	buf[158] = 't'
 	buf[159] = 's'

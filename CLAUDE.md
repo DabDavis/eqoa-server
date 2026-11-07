@@ -489,6 +489,46 @@ it (nor its words), so:
   opponent as a player (its own TargetInRange asks its duel part: sub 7 names the opponent and its pet). A PS2
   ignores both offers. S2's player search runs 0x1502 up and 0x1500/0x1501 down: no clash.
 
+### The PvP flag: a server's own switch (`entity/pvp.go`, `handlers/pvp.go`, `world.pvp`)
+
+The user, 2026-11-07: "for heirloom server lets add a /pvp command to allow players to be attackable. players types /pvp for 1min
+cant take off flag until no pvp attacks for 1min. players with the flag on and be attacked by other players and attack other
+players. for now in any area.", then "for pvp on players add an inidicator next to their name like the red face icon". `world.pvp:
+true` turns it on; off (the default), `/pvp` says "PvP is not available on this server." and nothing else changes: no flag can go up,
+so every channel byte and refusal is as it was.
+
+- **The flag**: `/pvp`, `#pvp`, or `/t pvp` (a PS2 keeps an unknown /command to itself; a tell with no text is no tell), `/pvp on` and
+  `/pvp off` going one way only. On at once;
+  off only when `PvPHoldTime` (60 s) has passed since it went on and since the player's last PvP attack, given or taken (a press or a
+  swing on a foe, a cast begun at one, any hit landing, a pet's, a shield's, a damage tick), else it says how long is left. It ends at a
+  logout (it is in no row), and comes through a takeover (the same Player) and a keep restart (`KeptPlayer.PvP`, `PvPHoldMS`: what is left
+  of its minute), told again in a line. A server since turned off drops it at the restart.
+- **Foes** (`Player.pvpFoe`): two flagged players, alive, in one world and not in one group, anywhere, towns too. One press or cast at a
+  player who is no foe is told why in red (at most every 5 s for a press), where a world without the flag says nothing or "Target is
+  friendly."
+- **The fight is a duel's code**: a PvP fight is a `Duel` in no table (`pvpFightLocked`, `pvp` true), made for the moment, so melee
+  (`duelRoundLocked`), spells (`duelLandLocked`), procs and worn shields (`duelprocs.go`) and damage over time are what a duel's are,
+  every hit at `PvPDamageShare` (a duel's half), with its hits ending what a hit ends and each round's own hostile-act rules. A creature
+  never hears of it: no threat, no faction, no guard. A duel between two flagged players stays a duel; a third flagged player may hit a
+  flagged duelist, and a death so ends the duel as a creature's would.
+- **A death** (`pvpDeathLocked`, the one place): the victim dies as of anything and returns to its bind after the usual 15 s, with no
+  experience debt (`pvpDeathDebt`), nothing lost, no corpse (a player has none) and no experience for the killer; the flag stays on.
+  A flagged player falls where it dies for everyone (channel byte 58 is CLIENT's dying state while it lies dead; any other player's death
+  stands there until it goes home, as before: its own client lays down only its own body and a dead client reports nothing), and at its
+  return every client that has it on a slot makes it anew under a new id (`pvpRiseLocked`: CLIENT never stands a sprite it laid down).
+- **Area spells spare players** (`pvpAreaAtTarget` false): one aimed at a foe is refused in a line, and what lands on creatures never
+  counts a player. Charms, undead-only and animal or summoned-only spells are refused at a foe too.
+- **A flagged owner's pet** goes for a foe when told (0x0041 8), an aggressive one for what its owner swings at or what struck it, a
+  defensive one for what struck its owner (`pvpPetLocked`, `duelPetRoundLocked`), every hit its owner's. It stays a pet to everyone: no
+  player can target it (byte 142 3); a damage shield's answer leaves it a hit point and it yields for 15 s.
+- **What every client shows, with no client change** (`entity/pvp.go`'s doc has the reads off the decomp): the target window's face is 0x0010's
+  disposition, 0 (the red face, icon 115) for a flagged player whoever looks, 5 (blue) otherwise, sent unasked to everyone targeting that
+  player when the flag changes (`TargetersOf`: CLIENT asks only at a target change, and `Msg0010` wants only the token); the name over the
+  head is channel byte 157 bit 0 (`m_p299`, ApplyLook's colour 2, green), for every viewer; and to a viewer who may hit it a foe's channel byte
+  142 is 4 (`pvpFoeByte`): TargetInRange refuses a target of 2 or 3, and ApplyLook draws anything under 2 in the NPCs' gold, so 4 alone is
+  both swingable and green. To a flagged viewer a foe is otherwise as a duel opponent is to a box client: □ talks (nothing to say) where a
+  player's info window would open, and Trade and the target's Invite refuse it (word 1015); the Who list's Invite and `/raid` still work.
+
 ### Mail, resets, one Master Class, petitions: SOE's live client's, for every client
 
 The user, 2026-10-29: SOE's later features, read out of the live CLIENT in the Corsten state, built on
@@ -1797,6 +1837,7 @@ patch:
   news: "..."               # the news box after Play EQOA, on the way to the list (the login's process); unset: "Welcome to Spire."
 world:
   heirlooms: false          # no kept item at a login; unset: given
+  pvp: true                 # /pvp flags a player (entity/pvp.go); unset: not available
 auth:
   shared_db: "/srv/one/eqoa.db"   # another shard's accounts, a copy here; every sign-in by the token's password
   shared_refresh: 10s

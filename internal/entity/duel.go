@@ -150,6 +150,26 @@ type Duel struct {
 	// (the pets' stances: pet.go)
 	struck    map[EntityID]bool
 	petStruck map[EntityID]bool
+
+	// pvp: not a duel but two flagged players' fight, made for the moment and
+	// in no table (pvp.go): its hits are PvPDamageShare's and its end a death
+	pvp bool
+}
+
+// tag is the fight in a log line.
+func (d *Duel) tag() string {
+	if d.pvp {
+		return "PvP"
+	}
+	return fmt.Sprintf("Duel %d", d.ID)
+}
+
+// hit is what n of damage lands as in this fight, never under 1.
+func (d *Duel) hit(n int) int {
+	if d.pvp {
+		return max(1, int(math.Round(float64(n)*PvPDamageShare)))
+	}
+	return duelHalf(n)
 }
 
 // other is the opponent of id in the duel.
@@ -898,8 +918,12 @@ func duelHalf(n int) int {
 // a hit t cannot take leaves it DuelLoserHP and ends the duel. It reports
 // the end.
 func (w *World) duelHurtLocked(d *Duel, attacker *Player, src EntityID, t *Player, n int, now time.Time) bool {
-	dmg := duelHalf(n)
+	dmg := d.hit(n)
 	attacker.LastCombatTime, t.LastCombatTime = now, now
+	if d.pvp {
+		pvpAttackedLocked(attacker, t, now) // pvp.go: both flags held from now
+		w.contactPlayerLocked(t)            // workbook.go: what ends at a hit, as a creature's
+	}
 	if as := w.findSessionByEntityIDLocked(attacker.ServerID); as != nil {
 		if tid := w.objectIDSeenByLocked(as, t.ServerID); tid != 0 {
 			w.sendDamageIndication(as, as.PlayerObjectID(), -dmg, tid)
@@ -915,8 +939,12 @@ func (w *World) duelHurtLocked(d *Duel, attacker *Player, src EntityID, t *Playe
 	t.StatsDirty = true
 	if dmg < t.HP {
 		t.HP -= dmg
-		log.Printf("Duel %d: %s hits %s for %d (%d before the halving; HP %d/%d)", d.ID, attacker.Name, t.Name, dmg, n, t.HP, t.MaxHPNow())
+		log.Printf("%s: %s hits %s for %d (%d before the halving; HP %d/%d)", d.tag(), attacker.Name, t.Name, dmg, n, t.HP, t.MaxHPNow())
 		return false
+	}
+	if d.pvp {
+		w.pvpDeathLocked(attacker, t, now) // pvp.go: a real death, at no cost
+		return true
 	}
 	t.HP = min(t.HP, DuelLoserHP)
 	log.Printf("Duel %d: %s's %d leaves %s at %d", d.ID, attacker.Name, dmg, t.Name, t.HP)
@@ -929,7 +957,7 @@ func (w *World) duelHurtLocked(d *Duel, attacker *Player, src EntityID, t *Playe
 // at one hit point, out of the duel (its owner told), as nothing dies of a
 // duel.
 func (w *World) duelHurtPetLocked(d *Duel, attacker *Player, pet *NPC, n int, now time.Time) {
-	dmg := duelHalf(n)
+	dmg := d.hit(n)
 	attacker.LastCombatTime = now
 	if as := w.findSessionByEntityIDLocked(attacker.ServerID); as != nil {
 		if tid := w.objectIDSeenByLocked(as, pet.ServerID); tid != 0 {
@@ -949,9 +977,16 @@ func (w *World) duelHurtPetLocked(d *Duel, attacker *Player, pet *NPC, n int, no
 	pet.stopMoving()
 	if ps := w.pets[pet.Owner]; ps != nil {
 		ps.target = 0
+		if d.pvp {
+			ps.pvpTarget, ps.heldUntil = 0, now.Add(pvpPetYields)
+		}
 	}
-	log.Printf("Duel %d: %s's pet %q yields", d.ID, w.nameOfLocked(pet.Owner), pet.Name)
-	w.duelSayLocked(w.Players[pet.Owner], "Your pet yields and leaves the duel.", duelOrange)
+	log.Printf("%s: %s's pet %q yields", d.tag(), w.nameOfLocked(pet.Owner), pet.Name)
+	if d.pvp {
+		w.duelSayLocked(w.Players[pet.Owner], "Your pet yields.", duelOrange)
+	} else {
+		w.duelSayLocked(w.Players[pet.Owner], "Your pet yields and leaves the duel.", duelOrange)
+	}
 	if attacker.AttackTarget == pet.ServerID {
 		attacker.disengage()
 	}
@@ -976,7 +1011,7 @@ func duelStandIn(level int) *NPC {
 // whether it took the press.
 func (w *World) duelEngageLocked(p *Player, ent Entity, objectID uint32, swing Swing, now time.Time) bool {
 	if ent == nil || !w.duelFoeLocked(p, ent.GetEntityID()) {
-		return false
+		return w.pvpEngageLocked(p, ent, objectID, swing, now) // two flagged players (pvp.go)
 	}
 	id := ent.GetEntityID()
 	p.Swing, p.swingNew = swing, false
@@ -1014,7 +1049,13 @@ func (w *World) duelRoundLocked(p *Player, now time.Time) bool {
 		return false // a creature's fight: attack.go's
 	}
 	d := w.duelOnLocked(p.ServerID)
-	if d == nil || !w.duelFoeLocked(p, target) || p.IsDead() || (pet != nil && pet.Dead) {
+	if d == nil || !w.duelFoeLocked(p, target) {
+		d = nil
+		if t != nil {
+			d = w.pvpFightLocked(p, t) // two flagged players (pvp.go)
+		}
+	}
+	if d == nil || p.IsDead() || (pet != nil && pet.Dead) {
 		p.disengage()
 		return true
 	}
@@ -1052,6 +1093,11 @@ func (w *World) duelRoundLocked(p *Player, now time.Time) bool {
 			p.RoundHits++
 			if p.RoundHits == 1 {
 				w.breakInvisLocked(p, "a swing")
+				if d.pvp {
+					p.pvp.hold = now.Add(PvPHoldTime)    // a swing given, landed or not (pvp.go)
+					w.breakBoardWolfLocked(p, "a swing") // boardwolf.go
+					w.ownHitLocked(p, "a swing")         // workbook.go: a run speed
+				}
 			}
 			if hit() {
 				p.disengage()

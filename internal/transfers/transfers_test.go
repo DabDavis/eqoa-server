@@ -167,6 +167,12 @@ func TestTransferRoutes(t *testing.T) {
 	if code, out, _ := c.do("POST", "/api/transfer/submit", form, false); code != 400 || !strings.Contains(out["error"].(string), "waiting already") {
 		t.Fatalf("a second for the same character: %d %v", code, out)
 	}
+	// a form on a character of another class is refused, saying which (forms #47 and #60
+	// went on a rogue and a warrior for a cleric and a monk)
+	wrong := map[string]any{"serverid": 7, "from_server": "Sandstorm", "from_name": "Sontosegara", "from_class": "Monk", "from_level": 60}
+	if code, out, _ := c.do("POST", "/api/transfer/submit", wrong, false); code != 400 || !strings.Contains(out["error"].(string), "Hero here is a Shadow Knight and the form says Monk") {
+		t.Fatalf("a monk's form on a shadow knight: %d %v", code, out)
+	}
 	other := map[string]any{"serverid": 8, "from_name": "Else", "from_level": 10}
 	if code, out, _ := c.do("POST", "/api/transfer/submit", other, false); code != 400 || !strings.Contains(out["error"].(string), "not one of your characters") {
 		t.Fatalf("another account's character: %d %v", code, out)

@@ -3,16 +3,19 @@
 package udp
 
 import (
+	"encoding/json"
 	"errors"
 	"net"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 	"testing"
 	"time"
 
 	"github.com/eqoa/server/internal/config"
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/session"
 )
@@ -201,5 +204,198 @@ func TestASnapshotIsReadOnlyFresh(t *testing.T) {
 		if _, err := os.Stat(p); !os.IsNotExist(err) {
 			t.Errorf("%s was left to be read again", name)
 		}
+	}
+}
+
+// keepNPCWorld is a new process's world: its NPCs as their rows make them.
+func keepNPCWorld(t *testing.T) *entity.World {
+	t.Helper()
+	w := entity.NewWorld()
+	for _, n := range []*entity.NPC{
+		{ServerID: 201, Name: "Lord Keeper", Level: 50, HP: 5000, MaxHP: 5000, X: 2000, Y: 10, Z: 2000, SpawnX: 2000, SpawnY: 10, SpawnZ: 2000, RespawnTime: time.Hour},
+		{ServerID: 202, Name: "Lady Keeper", Level: 50, HP: 5000, MaxHP: 5000, X: 2100, Y: 10, Z: 2000, SpawnX: 2100, SpawnY: 10, SpawnZ: 2000, RespawnTime: time.Hour},
+		{ServerID: 203, Name: "a beetle", Level: 5, HP: 50, MaxHP: 50, X: 2200, Y: 10, Z: 2000, SpawnX: 2200, SpawnY: 10, SpawnZ: 2000, RespawnTime: time.Hour},
+	} {
+		w.NPCs[n.ServerID] = n
+		w.SpatialIndex.Insert(n.ServerID, n.X, n.Z)
+	}
+	return w
+}
+
+// The creatures go through a restart in the file with the sessions: one away from
+// its spawn at 40%, one dead, the third untouched and not written. The next image
+// has them as they were before it reads a datagram.
+func TestTheCreaturesGoAcrossTheExec(t *testing.T) {
+	cfg := config.DefaultConfig()
+	server, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer server.Close()
+	old := keepNPCWorld(t)
+	l := NewListener(cfg, session.NewManager(), nil, old)
+	l.Adopt(server)
+	if err := l.Start(); err != nil {
+		t.Fatal(err)
+	}
+	defer l.Stop()
+	boss, lady := old.NPCs[201], old.NPCs[202]
+	boss.X, boss.Z, boss.Facing, boss.HP = 2030, 1990, 1.5, 2000
+	old.SpatialIndex.Update(201, 2000, 2000, 2030, 1990)
+	old.KillNPCNow(202)
+	died := lady.DeathTime
+
+	file := filepath.Join(t.TempDir(), "keep-sessions.json")
+	execed := make(chan struct{})
+	go l.KeepRestart(KeepOptions{File: file, Exe: "/bin/true", Exec: func(string, []string, []string) error {
+		close(execed)
+		select {}
+	}})
+	select {
+	case <-execed:
+	case <-time.After(5 * time.Second):
+		t.Fatal("no exec")
+	}
+	snap, err := ReadSnapshot(file, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(snap.NPCs) != 2 {
+		t.Fatalf("written %+v, want the two that differ from their rows", snap.NPCs)
+	}
+
+	now := keepNPCWorld(t)
+	l2 := NewListener(cfg, session.NewManager(), nil, now)
+	if resumed, told := l2.ResumeKept(snap, time.Now()); resumed != 0 || told != 0 {
+		t.Fatalf("resumed %d, told %d", resumed, told)
+	}
+	got := now.NPCs[201]
+	if got.X != 2030 || got.Z != 1990 || got.Y != 10 || got.Facing != 1.5 || got.HP != 2000 || got.Dead {
+		t.Fatalf("the one that moved: at (%v, %v, %v) facing %v, %d hit points, dead %v", got.X, got.Y, got.Z, got.Facing, got.HP, got.Dead)
+	}
+	if corpse := now.NPCs[202]; !corpse.Dead || !corpse.DeathTime.Equal(died) || corpse.HP != 0 {
+		t.Fatalf("the dead one: dead %v, died %v want %v", corpse.Dead, corpse.DeathTime, died)
+	}
+	if untouched := now.NPCs[203]; untouched.Dead || untouched.HP != 50 {
+		t.Fatalf("the third: %+v", untouched)
+	}
+}
+
+// A file from a binary before the creatures were kept has no such section: the sessions
+// come back and every creature is as its row makes it. It is read in the same format (the
+// first swap into this build reads one, and a rollback out of it reads this build's with
+// the section left aside). No file at all is the same world.
+func TestAnOldFileWithoutTheCreaturesStillWorks(t *testing.T) {
+	file := filepath.Join(t.TempDir(), "keep-sessions.json")
+	old := `{"version":1,"pid":` + strconv.Itoa(os.Getpid()) + `,"written":"` + time.Now().UTC().Format(time.RFC3339Nano) +
+		`","sessions":[{"session":{"addr":"203.0.113.9:6301","instance":7,"session":7,"client_ep":7,"server_ep":2,"state":0,` +
+		`"has_instance":true,"server_init":true,"in_world":false,"in_game":false,"char_list_sent":true,"account":110,"char":0,"object":0,` +
+		`"disc_version":0,"conn":{"rx_packet":3,"rx_message":2,"rx_seen":0,"tx_packet":5,"tx_message":4,"acked":4,"slots":0,"view":0,` +
+		`"objects":null,"stat":{"next":0},"buff":{"next":0},"group":{"next":0},"client":{"seq":0}}}}]}`
+	if err := os.WriteFile(file, []byte(old), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	snap, err := ReadSnapshot(file, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if snap.NPCs != nil || snap.Corpses != nil {
+		t.Fatalf("a section out of nothing: %+v %+v", snap.NPCs, snap.Corpses)
+	}
+	w := keepNPCWorld(t)
+	sm := session.NewManager()
+	l := NewListener(config.DefaultConfig(), sm, nil, w)
+	if resumed, told := l.ResumeKept(snap, time.Now()); resumed != 1 || told != 0 {
+		t.Fatalf("resumed %d, told %d", resumed, told)
+	}
+	for id, npc := range w.NPCs {
+		if npc.Dead || npc.HP != npc.MaxHP || npc.X != npc.SpawnX {
+			t.Fatalf("%d: %+v", id, npc)
+		}
+	}
+	// and with no file at all there is nothing to resume from: the world stays its rows'
+	if _, err := ReadSnapshot(file+".not-there", time.Now()); err == nil {
+		t.Fatal("no file, no error")
+	}
+}
+
+// The file an older binary reads back: the sections it does not know are left aside
+// (encoding/json), and the format's number has not moved, or a rollback would lose
+// every session.
+func TestTheFormatIsTheOneOlderBinariesRead(t *testing.T) {
+	if KeepVersion != 1 {
+		t.Fatalf("format %d: a binary from before these sections reads only 1", KeepVersion)
+	}
+	b, err := json.Marshal(&Snapshot{Version: KeepVersion, PID: 1, NPCs: []entity.KeptNPC{{ID: 7, Name: "x"}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var older struct {
+		Version  int             `json:"version"`
+		PID      int             `json:"pid"`
+		Sessions []KeptSession   `json:"sessions"`
+		Groups   json.RawMessage `json:"groups"`
+	}
+	if err := json.Unmarshal(b, &older); err != nil || older.Version != 1 {
+		t.Fatalf("%v, version %d", err, older.Version)
+	}
+}
+
+// A creature walking as the restart comes is told standing to every client before
+// anything is written (World.StandNPCs): a client carries it on along its last
+// velocity for as long as the channels are quiet, and it would be dragged back.
+func TestTheClientsAreToldTheCreaturesStandBeforeTheFreeze(t *testing.T) {
+	cfg := config.DefaultConfig()
+	server, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer server.Close()
+	client, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+	w := keepNPCWorld(t)
+	sm := session.NewManager()
+	w.SessionManager = sm
+	l := NewListener(cfg, sm, nil, w)
+	l.Adopt(server)
+	if err := l.Start(); err != nil {
+		t.Fatal(err)
+	}
+	defer l.Stop()
+	sess := sm.CreateSession(client.LocalAddr().(*net.UDPAddr), 0x2EC7D061, 0x2EC7D061, 0x1234, 0xFFFE, false)
+	sess.SetAccountID(110)
+	sess.SetInGame(true)
+	sess.SetCharacterInWorld(true)
+	sess.SetSendFunc(func(b []byte) error { return l.SendTo(b, client.LocalAddr().(*net.UDPAddr)) })
+	p := w.CreatePlayer(sess, &database.CharacterRecord{ServerID: 61, CharName: "Viewer", AccountID: 110, Level: 60, X: 2000, Y: 10, Z: 2010})
+	if p == nil {
+		t.Fatal("no player")
+	}
+	walker := w.NPCs[201]
+	walker.VelX, walker.VelZ, walker.Loco = 3, 4, entity.LocoWalk
+	vs := entity.GetOrCreateVisibility(sess)
+	vs.ChannelEntity[0], vs.ChannelObjectID[0] = walker.ServerID, 100001
+	if n := w.StandNPCs(); n != 1 {
+		t.Fatalf("%d stood", n)
+	}
+	channel := sess.Connection().GetServerObject(1)
+	if !channel.IsActive() && channel.DescribesNoEntity() {
+		t.Fatal("its channel was not written")
+	}
+	before := sess.Keep().Conn.Objects[1].Next
+	l.standCreatures()
+	if walker.VelX != 0 || walker.VelZ != 0 || walker.Loco != entity.LocoStand {
+		t.Fatalf("walking on: %v %v loco %d", walker.VelX, walker.VelZ, walker.Loco)
+	}
+	if after := sess.Keep().Conn.Objects[1].Next; after == before {
+		t.Fatalf("its channel went nowhere: next %d", after)
+	}
+	client.SetReadDeadline(time.Now().Add(2 * time.Second))
+	buf := make([]byte, 2048)
+	if n, _, err := client.ReadFromUDP(buf); err != nil || n == 0 {
+		t.Fatalf("nothing reached the client: %d bytes, %v", n, err)
 	}
 }

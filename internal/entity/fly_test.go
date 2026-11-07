@@ -205,6 +205,30 @@ func TestALogoutInFlightSavesWhereItStood(t *testing.T) {
 	}
 }
 
+// A new login that takes the character over from a client it lost is not
+// flying, as a new login from its row is not: its client starts with none, and
+// would be held to no check on its way down from a place in the air with the
+// server thinking it flew. The control: the rest of it goes on (its hit points).
+func TestATakeoverEndsTheFlight(t *testing.T) {
+	f := newTakeoverFixture(t)
+	f.w.setFlyingLocked(f.p, true, f.now)
+	hp := f.p.HP
+	f.p.Y = 300
+	got, _ := f.w.TakeOverPlayer(f.new, 61)
+	if got != f.p || f.p.HP != hp {
+		t.Fatalf("not taken over as it stands: %v, %d", got == f.p, f.p.HP)
+	}
+	if f.p.Flying {
+		t.Error("a new login's character still flying")
+	}
+	if !f.p.flyingNow(time.Now()) {
+		t.Error("no grace on its way down: it is judged at once, in the air")
+	}
+	if on, ok := f.w.Flying(f.new); on || !ok {
+		t.Errorf("Flying: %v, %v", on, ok)
+	}
+}
+
 // A creature's reach goes by the map (chaseLocked), so one under a flyer would
 // stand there and hit it 40 up. It stands there and hits nothing, its round's
 // hits lost; come down into its reach, it fights. The control: the same place

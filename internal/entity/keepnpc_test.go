@@ -568,6 +568,26 @@ func TestTheCreaturesComeThroughARestartAsTheyWere(t *testing.T) {
 				}
 				return nil
 			}},
+		{name: "a new row: as it makes it, the kept one beside it as it was", id: keepBoss,
+			step: `INSERT INTO npcs (id, npc_name, world, x_coord, y_coord, z_coord, facing, modelid, size, npc_level, npc_type, race)
+				VALUES (150, 'a newcomer', 0, 2205, 10, 2001, 0, 12345, 1.0, 9, 0, '0')`,
+			want: NPCsRestored{Back: 1, Hurt: 1},
+			old: func(t *testing.T, w *World, npc *NPC, now time.Time) {
+				hurt(w, npc, npc.MaxHP/3)
+			},
+			check: func(w *World, npc *NPC, now time.Time) error {
+				if npc.HP != npc.MaxHP/3 {
+					return fmt.Errorf("the kept one: %d of %d hit points", npc.HP, npc.MaxHP)
+				}
+				if w.NPCs[150] != nil {
+					if n := w.NPCs[150]; n.Dead || n.HP != n.MaxHP || n.X != 2205 || n.Level != 9 {
+						return fmt.Errorf("the new one: %+v", n)
+					}
+				} else {
+					return fmt.Errorf("the new one is not in the world")
+				}
+				return nil
+			}},
 		{name: "a row made a dummy by a data step: not used", id: keepBoss,
 			step:   `UPDATE npcs SET npc_name = 'Training Dummy Lv50' WHERE id = 103`,
 			asARow: true, want: NPCsRestored{NotKept: 1},

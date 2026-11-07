@@ -57,10 +57,12 @@ package entity
 // A data step in the swap's hold (tools/swap_keep.sh's before.sh) runs after the
 // file is written, so each entry says what its row was, and the row as it is now
 // wins (RestoreNPCs): a row gone leaves the entry unused, a spawn point or world
-// changed puts the creature on the new one, and an id with both a new spawn and
-// another name is another creature, made by its row alone. A new row is not in
-// the file. Its name or level changed on the same spawn is the same creature,
-// the same share of its hit points: a typo's fix does not raise a raid boss.
+// changed puts the creature on the new one with nothing of its way about, its hit
+// points and any death kept (a boss's spawn fixed right after it died does not raise
+// it: its corpse lies on the new spot), and an id with both a new spawn and another
+// name is another creature, made by its row alone. A new row is not in the file. Its
+// name or level changed on the same spawn is the same creature, the same share of
+// its hit points: a typo's fix does not raise a raid boss.
 //
 // Only a restart that keeps the sessions writes this. A cold start (the swap
 // when empty, a crash, the GM panel's restart, #servdown) loads the rows alone,

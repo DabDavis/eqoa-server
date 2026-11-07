@@ -57,6 +57,13 @@ world:
   # start_level: 50
   # start_all_spells: true
 
+  # Character creation past the game's own (entity/creation.go): the froglok
+  # and every race of table racedefs (a client that can, vanilla, is told them
+  # and offers them), and every class for every race. Unset: the game's races
+  # and classes.
+  # open_races: true
+  # all_classes: true
+
   # The most NPCs and players (the player's own among them) a client that
   # keeps more than the game's 24 may have in view, and the farthest they are
   # looked for: eqoa-rust-client-vanilla's Options > Extended > NPC/PC Display

@@ -17,7 +17,7 @@ import (
 // it), and its book (classspells, each spell as the cast handler builds it).
 
 // simWear is the wear slots an outfit is looked for in, by the equip slot
-// each fills (templateGear's: handlers/template.go).
+// each fills (by handlers/template.go's scores).
 var simWear = []struct{ wear, equip, count int }{
 	{1, 0, 1},   // head
 	{19, 1, 1},  // hands

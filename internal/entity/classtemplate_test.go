@@ -1148,3 +1148,21 @@ func TestACreatureTurnsAtItsRate(t *testing.T) {
 		t.Errorf("over north: %.4f", got)
 	}
 }
+
+// A spell whose line says it cannot be resisted is not cut by any resist, the
+// Earth Primeval's nuke (ticket 1196; the guide: "huge unresistable nuke"). The
+// control: the same spell without the word is.
+func TestATemplatesUnresistableSpell(t *testing.T) {
+	for _, c := range []struct {
+		line string
+		want bool
+	}{
+		{"Target, Decrease Hitpoints by 11000, Unresistable", true},
+		{"Target, Decrease Hitpoints by 11000", false},
+	} {
+		s := templateSpellOf(database.TemplateSpell{Pattern: database.SpellPatternRecord{SpellName: "Primeval Crush"}, Line: c.line})
+		if s.unresistable != c.want {
+			t.Errorf("%q: unresistable %v, want %v", c.line, s.unresistable, c.want)
+		}
+	}
+}

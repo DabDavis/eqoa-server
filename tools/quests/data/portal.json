@@ -1806,6 +1806,12 @@
    "requires": [
     "Portal/plane-of-sky/rain-1"
    ],
+   "unlocks": [
+    {
+     "npc": "essence of rain",
+     "to": "Rain 3"
+    }
+   ],
    "factions_required": [
     [
      "Denizens of the Plane of Sky",

@@ -340,3 +340,27 @@ func TestArmorsOwnColourIsItsUndyedSlot(t *testing.T) {
 		t.Fatalf("%d armour colours for %d armour dye slots", len(p.ArmorColors), database.DyeHelm+1)
 	}
 }
+
+// A PS2 has no colours of its own: a worn piece's goes out as the disc tint
+// nearest it, on the slot's own byte of the channel (99-104: chest, bracer,
+// gloves, legs, boots, helm), and a piece with none as 0, white.
+func TestArmorsOwnColourIsAPS2sNearestTint(t *testing.T) {
+	p := &Player{Name: "Tinted"}
+	p.ArmorColors[database.DyeChest] = 0x00C832FF // the disc's green, 5
+	p.ArmorColors[database.DyeLegs] = 0x8B0000FF  // dark red: burgundy, 13
+	p.ArmorColors[database.DyeHelm] = 0x101010FF  // black: of the greys, dark grey, 1
+	b := SerializePlayerUpdate(1, p)
+	for i, want := range []byte{5, 0, 0, 13, 0, 1} {
+		if got := b[99+i]; got != want {
+			t.Errorf("byte %d: tint %d, want %d", 99+i, got, want)
+		}
+	}
+	// and a client of the live game's look is sent the colour itself, not the tint's
+	live := LiveChannel(b, p.LookDyes())
+	if got := binary.BigEndian.Uint32(live[111+5*database.DyeLegs:]); got != 0x8B0000FF {
+		t.Errorf("the live look's legs: %08X, want the piece's own", got)
+	}
+	if got := binary.BigEndian.Uint32(live[111+5*database.DyeBracer:]); got != 0xFFFFFFFF {
+		t.Errorf("the live look's bracers: %08X, want white", got)
+	}
+}

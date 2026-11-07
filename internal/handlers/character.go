@@ -1187,9 +1187,10 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 // them): the robe, its tint, the three items and their attack types, the six
 // armour sets and their tints, from the same worn items as the channel's
 // look. Nothing worn is a robe of -1 and armour 0xFF, as Sandstorm's lists
-// have it; the robe's tint is its record's (entity.RobeLook), the armour's
-// tints are not kept, 0. Until 2026-10-22 every entry was blank, so
-// character select showed every character bare and empty-handed.
+// have it; the robe's tint is its record's (entity.RobeLook), an armour
+// slot's the tint nearest the worn piece's own colour, else 0 (entity.ArmorTint).
+// Until 2026-10-22 every entry was blank, so character select showed every
+// character bare and empty-handed.
 func characterGear(items []database.CharInventoryEntry) []byte {
 	var p entity.Player
 	wornLook(&p, items)
@@ -1209,6 +1210,7 @@ func characterGear(items []database.CharInventoryEntry) []byte {
 		if set != 0 {
 			g[20+i] = set
 		}
+		g[26+i] = entity.ArmorTint(p.ArmorColors[i])
 	}
 	return g
 }

@@ -613,7 +613,7 @@ func (q *QuestEngine) LoggedIn(serverID uint32) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	if c := q.chars[serverID]; c != nil {
-		c.windowOffered, c.windowNotYet = nil, nil
+		c.windowOffered, c.windowNotYet, c.declined = nil, nil, nil
 	}
 }
 

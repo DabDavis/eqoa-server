@@ -515,6 +515,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		// the lamps' genies (genie.go): the bank, an outfitter's wares, the forge
 		genie := NewGenie(gameWorld, charStore.DB(), npcWindowHandler)
 		interactHandler.genie, equipHandler.genie = genie, genie
+		genie.rehab = interactHandler.rehab         // its fourth answer (genie.go)
 		chatHandler.SetVampireStore(charStore.DB()) // #vampire (vampirecmd.go)
 	}
 	if charStore != nil && gameWorld != nil {

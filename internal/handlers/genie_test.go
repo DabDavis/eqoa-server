@@ -132,7 +132,7 @@ func (f *genieFixture) summon() uint32 {
 	msgs := questMsgs(f.sess)
 	id := boxID(msgs)
 	if !IsGenieBox(id) || !hasMsg(msgs, "box:Genie: Your wish is my command, master.") ||
-		!strings.Contains(strings.Join(msgs, "\n"), ":What do you wish?|My bank|Your wares|Mend my gear|Nothing, thank you") {
+		!strings.Contains(strings.Join(msgs, "\n"), ":What do you wish?|My bank|Your wares|Mend my gear|Rehabilitation|Nothing, thank you") {
 		f.t.Fatalf("the genie's coming: %q", msgs)
 	}
 	return id
@@ -439,4 +439,60 @@ func TestUsingTheLampBringsTheGenie(t *testing.T) {
 	if n != 1 || f.stackOf(GenieLampName) != 1 {
 		t.Fatalf("the lamp used: %d genies, %d lamps left", n, f.stackOf(GenieLampName))
 	}
+}
+
+// The genie offers a rehabilitator's menu (the user, 2026-11-07): the answer sends it away and asks what to undo under
+// the rehabilitators' mark, in its name, and the menu's answers go on with no genie by. With no rehabilitators (a server
+// with no character store) it only says farewell.
+func TestTheGenieOffersRehabilitation(t *testing.T) {
+	f := newGenieFixture(t)
+	box := f.summon()
+	if f.g.rehab != nil {
+		t.Fatal("a fixture's genie has rehabilitators of its own")
+	}
+	msgs := f.answer(box, genieRehab)
+	if f.genieNPC() != nil || len(msgs) == 0 || opOf(msgs[0]) == protocol.OpcodeQuestPopupMulti {
+		t.Fatalf("no rehabilitators: sent %s, genie %v", ops(msgs), f.genieNPC())
+	}
+
+	f.g.rehab = NewRehab(f.db, f.w, f.inv, database.NewSpellbookStore(f.db), nil, database.NewSQLiteCharacterStore(f.db))
+	box = f.summon()
+	msgs = f.answer(box, genieRehab)
+	if f.genieNPC() != nil {
+		t.Fatal("the genie stayed")
+	}
+	var id uint32
+	for _, m := range msgs {
+		if opOf(m) == protocol.OpcodeQuestPopupMulti {
+			r := buffer.NewReader(m[2:])
+			id, _ = r.ReadUint32()
+		}
+	}
+	if !IsRehabBox(id) {
+		t.Fatalf("sent %s, box %08X: not a rehabilitator's", ops(msgs), id)
+	}
+	if !strings.Contains(string(joinBytes(msgs)), "G\x00e\x00n\x00i\x00e") {
+		t.Error("it does not speak as the genie")
+	}
+	// the menu's first answer goes on, the genie gone: the resets' menu
+	f.sess.Queue().GetPending()
+	f.g.rehab.Answer(f.sess, f.p, id, 0)
+	var next uint32
+	for _, m := range f.sess.Queue().GetPending() {
+		if d := m.Data(); opOf(d) == protocol.OpcodeQuestPopupMulti {
+			r := buffer.NewReader(d[2:])
+			next, _ = r.ReadUint32()
+		}
+	}
+	if !IsRehabBox(next) || next == id {
+		t.Errorf("after the menu's first answer: box %08X", next)
+	}
+}
+
+func joinBytes(msgs [][]byte) []byte {
+	var out []byte
+	for _, m := range msgs {
+		out = append(out, m...)
+	}
+	return out
 }

@@ -176,6 +176,18 @@ func (r *Rehab) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) b
 	return true
 }
 
+// Offer is the greeting and the menu in another's name, with no rehabilitator by:
+// a Genie's Lamp's genie's (genie.go).
+func (r *Rehab) Offer(sess *session.Session, p *entity.Player, speaker string) {
+	if r == nil || p == nil {
+		return
+	}
+	forgetDialogs(p)
+	r.say(sess, speaker, fmt.Sprintf(rehabGreeting, p.Name))
+	r.menu(sess, p, speaker)
+	log.Printf("Rehab: %s asked %s", p.Name, speaker)
+}
+
 // Answer is HandleDialogueOption's question for a rehabilitator's box: the
 // answer carried out. It reports whether the box was a rehabilitator's (an
 // old one does nothing).

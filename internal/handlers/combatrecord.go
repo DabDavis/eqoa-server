@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 	"unicode/utf8"
@@ -49,7 +50,16 @@ type CombatRecordHandler struct {
 	world *entity.World
 	db    recordStore
 	now   func() time.Time
+
+	// asked is when each character's client last had its ask answered
+	// (recordAskEvery)
+	askMu sync.Mutex
+	asked map[uint32]time.Time
 }
+
+// recordAskEvery is how often a client's ask (0x7E21) is answered: a window opens
+// once a press, and nothing a client sends faster reads the database again.
+const recordAskEvery = 500 * time.Millisecond
 
 // records is the handler a server runs, for /record (chat.go) and a keep restart's
 // characters (keep.go); nil without a database.
@@ -57,7 +67,7 @@ var records atomic.Pointer[CombatRecordHandler]
 
 // NewCombatRecordHandler creates the combat record's handler.
 func NewCombatRecordHandler(w *entity.World, db recordStore) *CombatRecordHandler {
-	return &CombatRecordHandler{world: w, db: db, now: time.Now}
+	return &CombatRecordHandler{world: w, db: db, now: time.Now, asked: map[uint32]time.Time{}}
 }
 
 // RegisterHandlers registers the record's opcodes, and has the world's counts written
@@ -175,6 +185,15 @@ func (h *CombatRecordHandler) HandleAsk(sess *session.Session, msg *protocol.Mes
 	if p == nil {
 		return nil
 	}
+	now := h.now()
+	h.askMu.Lock()
+	last, seen := h.asked[p.CharServerID]
+	if seen && now.Sub(last) >= 0 && now.Sub(last) < recordAskEvery {
+		h.askMu.Unlock()
+		return nil
+	}
+	h.asked[p.CharServerID] = now
+	h.askMu.Unlock()
 	r, ok := h.readSummary(p.CharServerID)
 	if !ok {
 		return nil

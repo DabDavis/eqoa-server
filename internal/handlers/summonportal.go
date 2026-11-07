@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -205,14 +204,14 @@ func (g *Portal) nextBox(kind uint32) uint32 {
 	return portalBoxMark | kind | (g.seq & (portalCallBit - 1))
 }
 
-// tell is a white line to a session, if there is one.
+// portalTell is a white line to a session, if there is one.
 func portalTell(sess *session.Session, line string) {
 	if sess != nil {
 		SendClientMessage(sess, line)
 	}
 }
 
-// refuse is a red line to a session, if there is one.
+// portalRefuse is a red line to a session, if there is one.
 func portalRefuse(sess *session.Session, line string) {
 	if sess != nil {
 		SendErrorMessage(sess, line)
@@ -226,9 +225,6 @@ func (g *Portal) Open(sess *session.Session, p *entity.Player) {
 		return
 	}
 	if _, err := g.gw.OpenPortal(sess, g.now()); err != nil {
-		if !errors.Is(err, entity.ErrPortalNoPlayer) {
-			log.Printf("Portal: %s's item: %v", p.Name, err)
-		}
 		return
 	}
 	SendClientMessage(sess, portalOpened)

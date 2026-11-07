@@ -790,7 +790,10 @@ func TestAWandererTakesItsNextLegFromWhereItStands(t *testing.T) {
 	now = pathRun(old, now, time.Minute, func(time.Time) {
 		walked = walked || wolf.roam.walking
 	})
-	for !wolf.roam.walking { // mid-leg, moving
+	for i := 0; !wolf.roam.walking; i++ { // mid-leg, moving
+		if i > 6000 {
+			t.Fatal("it never walked")
+		}
 		now = pathRun(old, now, 100*time.Millisecond, nil)
 	}
 	now = pathRun(old, now, 500*time.Millisecond, nil)
@@ -852,7 +855,10 @@ func TestAPathWalkerCarriesOnFromWhereItStood(t *testing.T) {
 		npc := old.NPCs[keepBoss]
 		p := old.paths.byNPC[keepBoss]
 		now := pathRun(old, time.Now(), 20*time.Second, nil) // to the path, and along it
-		for onPath(p, npc.X, npc.Z) > 0.01 || !npc.moving() {
+		for i := 0; onPath(p, npc.X, npc.Z) > 0.01 || !npc.moving(); i++ {
+			if i > 6000 {
+				t.Fatalf("not walking its path: at (%v, %v)", npc.X, npc.Z)
+			}
 			now = pathRun(old, now, 100*time.Millisecond, nil)
 		}
 		next, x, z := npc.path.next, npc.X, npc.Z

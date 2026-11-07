@@ -40,6 +40,10 @@ package entity
 // What does not come back: the spells on it (their casters' ids are gone), its
 // enemy and threats, a template fight's clocks, a pickpocket's mark.
 //
+// A client sees each where the file has it from the first update on: its slots go on
+// describing the same creatures under the same ids (keep.go's RestoreView), and every
+// client is told the creatures stand before the world freezes (StandNPCs).
+//
 // Not written at all, and so as their rows make them, as every restart had them:
 //
 //   - a charmed creature (Owner, Charm), dead or alive: its own again, whole, on

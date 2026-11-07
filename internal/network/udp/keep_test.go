@@ -241,6 +241,7 @@ func TestTheCreaturesGoAcrossTheExec(t *testing.T) {
 	defer l.Stop()
 	boss, lady := old.NPCs[201], old.NPCs[202]
 	boss.X, boss.Z, boss.Facing, boss.HP = 2030, 1990, 1.5, 2000
+	boss.VelX, boss.Loco = 5, entity.LocoWalk // walking when the restart comes
 	old.SpatialIndex.Update(201, 2000, 2000, 2030, 1990)
 	old.KillNPCNow(202)
 	died := lady.DeathTime
@@ -255,6 +256,9 @@ func TestTheCreaturesGoAcrossTheExec(t *testing.T) {
 	case <-execed:
 	case <-time.After(5 * time.Second):
 		t.Fatal("no exec")
+	}
+	if boss.VelX != 0 || boss.Loco != entity.LocoStand {
+		t.Fatalf("still walking as it froze: velocity %v, loco %d", boss.VelX, boss.Loco)
 	}
 	snap, err := ReadSnapshot(file, time.Now())
 	if err != nil {

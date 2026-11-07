@@ -73,7 +73,8 @@ a file without them, and a rollback's reading of one with them, are fine): only 
 its row makes is written. Its place and facing, standing (a wanderer's next leg, a path's nearest leg are taken from
 there); its hit points (the same share when a data step changed its maximum); its death's times, so it stays dead
 until they come due and its corpse lies out its decay; what an opened corpse holds (never rolled twice) and a loot
-step's drops. A fight ends and the creature runs back to where it began, hurt as it was. Effects on it end. A charmed
+step's drops. Every client is told they stand before the world freezes (`StandNPCs`: it would carry a walker on along its
+velocity all through the hold and drag it back). A fight ends and the creature runs back to where it began, hurt as it was. Effects on it end. A charmed
 creature, dead or alive, is as its row makes it (free, whole, on its spawn), a pet or a GM's or quest's spawn is
 gone, a dummy and a spawn-only original are not carried. A row a data step changed wins (`RestoreNPCs`): one gone is
 skipped, one whose spawn or world moved stands on the new one (dead stays dead, its corpse there), and one with both a

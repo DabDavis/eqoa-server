@@ -280,11 +280,18 @@ func (w *World) returningHas(npc *NPC) bool {
 	return false
 }
 
-// atHomeLocked is an NPC back where its fight began: standing, a creature
-// that does not wander facing as it was spawned.
+// atHomeLocked is an NPC back where its fight began: standing, at the height it
+// stood at there, a creature that does not wander facing as it was spawned. A place
+// can have two floors, and one that came home by the lower stayed on it (Lord
+// Nagafen, off his island's edge in a chase, came back to stand under it in the lava:
+// the user, 2026-11-07, "nagafen is standing on the lava not island after killing
+// raid").
 func (w *World) atHomeLocked(npc *NPC) {
 	npc.chase.returning = false
 	npc.stopMoving()
+	if distXZ(npc.X, npc.Z, npc.chase.fromX, npc.chase.fromZ) < 0.5 {
+		npc.Y = npc.chase.fromY
+	}
 	if !w.wanders(npc) && distXZ(npc.X, npc.Z, npc.SpawnX, npc.SpawnZ) < 0.5 {
 		npc.Facing = npc.SpawnFacing
 	}
@@ -313,6 +320,9 @@ func (w *World) homeSystem(now time.Time) {
 		}
 		speed := NPCRunSpeed
 		speed *= npc.snareFactor(now) // a snare's slow (workbook.go)
+		// the ground is asked from the height it left at or its own, the higher: below a
+		// floor it left, it would walk home underneath it
+		npc.Y = max(npc.Y, npc.chase.fromY)
 		if w.stepNPCToward(npc, npc.chase.fromX, npc.chase.fromZ, speed, dt) {
 			w.atHomeLocked(npc)
 			continue

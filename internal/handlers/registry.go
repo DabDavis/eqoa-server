@@ -444,6 +444,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	if gameWorld != nil && charStore != nil {
 		transferDB := charStore.DB()
 		gameWorld.OnPlayerEntered(func(sess *session.Session, p *entity.Player) { tellTransfers(transferDB, sess, p) })
+		gameWorld.OnPlayerEntered(tellVanished) // norent.go
 	}
 
 	// Register the spell book's requests (0x0033, 0x003A, 0x00FE), and the

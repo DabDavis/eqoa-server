@@ -314,6 +314,9 @@ type Player struct {
 	Mods     StatMods
 	// artReady is when the combat arts' global cooldown is over (balance.go)
 	artReady time.Time
+	// potionReady is when each item with a cooldown may be used again, by
+	// item (potion.go: itemeffect.cooldown), from the login's database row on
+	potionReady map[int]time.Time
 	// recoveryAnswered is when a cast into its own recovery was last
 	// answered (cast.go recoveryAnswerLocked)
 	recoveryAnswered time.Time

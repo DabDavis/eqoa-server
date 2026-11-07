@@ -745,6 +745,16 @@ func (h *CharacterHandler) enterFromRecord(sess *session.Session, record *databa
 			}
 		}
 	}
+	// and its items' cooldowns still running (itemeffect.cooldown; a
+	// takeover's Player keeps its own)
+	if player != nil && h.inventoryStore != nil && h.gameWorld != nil {
+		if ready, err := h.inventoryStore.PotionCooldowns(int(record.ServerID), time.Now()); err != nil {
+			log.Printf("SelectedChar: '%s' item cooldowns: %v", record.CharName, err)
+		} else if len(ready) > 0 {
+			h.gameWorld.SetPotionCooldowns(sess, ready)
+			log.Printf("SelectedChar: '%s' has %d item cooldowns running", record.CharName, len(ready))
+		}
+	}
 	return player
 }
 

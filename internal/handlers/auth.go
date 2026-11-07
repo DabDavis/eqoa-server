@@ -93,9 +93,11 @@ func (h *AuthHandler) resolveAccount(username string, ticketID int) (*database.A
 }
 
 // authorizeUsername reports whether a username seen in the UDP handshake may
-// sign in, and its account ID: a recent TCP login's ticket, else the password
-// its token carries (loginTail), checked as the auth port checks one
-// (SetPasswordChecker). A refusal is told to the client as CLIENT shows one,
+// sign in, and its account ID. Always by the password its token carries
+// (loginTail): a recent login's ticket with that same password answers at once,
+// else it is checked as the auth port checks one (SetPasswordChecker). A ticket
+// never answers without the password, or a username alone would do for ttl after
+// the account's real login. A refusal is told to the client as CLIENT shows one,
 // Disconnect(3) "Bad Login/Password" (its server list then offers STATION's
 // login), or 8 "You have logged in from another location." for another
 // account playing from the address; it used to be told nothing, and the
@@ -104,18 +106,21 @@ func (h *AuthHandler) authorizeUsername(sess *session.Session, stage, username s
 	if h.loginTickets == nil {
 		return 0, true // check disabled
 	}
-	if accountID, ok := h.loginTickets.Valid(username); ok {
-		return accountID, true
+	pw, hasPassword := auth.PasswordFromUDPToken(token)
+	if hasPassword {
+		if accountID, ok := h.loginTickets.ValidFor(username, pw); ok {
+			return accountID, true
+		}
 	}
-	why, op := "no completed TCP login and no password in its token", protocol.OpcodeBadLoginPassword
-	if pw, ok := auth.PasswordFromUDPToken(token); ok && h.passwords != nil {
+	why, op := "no password in its token", protocol.OpcodeBadLoginPassword
+	if hasPassword && h.passwords != nil {
 		accountID, refusal := h.passwords.CheckUDPPassword(username, pw, sess.RemoteAddr())
 		if refusal == "" {
 			log.Printf("%s: '%s' (ID %d) signed in by its token's password: no login ticket "+
 				"(a restart since its Station login, or the login older than auth.ticket_ttl)", stage, username, accountID)
 			return accountID, true
 		}
-		why = "no completed TCP login, and its token's password refused (" + refusal + ")"
+		why = "its token's password refused (" + refusal + ")"
 		if refusal == "address" {
 			op = protocol.OpcodeForceDisconnect
 		}

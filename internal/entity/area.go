@@ -52,10 +52,10 @@ import (
 //
 // Who is in it is chosen as the cast begins, as its target is, for the cast's
 // 0x00B1 names them; each takes its share at the landing if it is still
-// there, alive, in sight of the centre (sight.go: a rock, a tree's trunk, a
-// wall and a floor all stop an area spell) and, a creature, one anyone may
-// attack (cast.go tests no range at the landing for the target either). A
-// group's spell needs no sight: it finds its own:
+// there, alive, with nothing between it and the caster or the centre (sight.go:
+// a rock, a tree's trunk, a wall and a floor all stop an area spell) and, a
+// creature, one anyone may attack (cast.go tests no range at the landing for the
+// target either). A group's spell needs no sight: it finds its own:
 //
 //   - a harmful spell's are creatures: never a player, nor a pet or a charmed
 //     creature, nor an NPC with the NPC bit (0x80: no one may attack it), nor
@@ -480,37 +480,38 @@ func (w *World) areaCentreLocked(caster *Player, cs *castState) (x, y, z float32
 	return caster.X, caster.Y, caster.Z
 }
 
+// areaPlaceLocked is where a cast's area stands now (sight.go). Must be called
+// with the lock held.
+func (w *World) areaPlaceLocked(caster *Player, cs *castState) areaPlace {
+	x, y, z := w.areaCentreLocked(caster, cs)
+	return areaPlace{world: caster.World, caster: [3]float32{caster.X, caster.Y, caster.Z}, centre: [3]float32{x, y, z},
+		onOther: cs.spell.Area.Centre == AreaOnTarget && len(cs.targets) > 0}
+}
+
 // areaOfGroup reports a helping spell of a group's, whose others are the
 // caster's group wherever they stand in its radius (the file's doc).
 func (cs *castState) areaOfGroup() bool {
 	return !cs.spell.Def.Harmful && (cs.spell.Scope == 2 || cs.spell.Def.Target == TargetGroup)
 }
 
-// areaSparedLocked reports one at (x, y, z) out of sight of the cast's area as
-// it lands: a group's spell spares no one. Must be called with the lock held.
-func (w *World) areaSparedLocked(caster *Player, cs *castState, x, y, z float32) bool {
-	if cs.areaOfGroup() {
-		return false
-	}
-	cx, cy, cz := w.areaCentreLocked(caster, cs)
-	return !w.inSightLocked(caster.World, cx, cy, cz, x, y, z)
-}
-
-// areaOwnSparedLocked reports a harmful area round its caster sparing its own
-// target, a creature, out of the caster's sight as it lands. An area round its
-// target has that target at its centre. Must be called with the lock held.
+// areaOwnSparedLocked reports a harmful area sparing its own target, a creature,
+// with something between it and the caster as it lands (sight.go). Must be
+// called with the lock held.
 func (w *World) areaOwnSparedLocked(caster *Player, cs *castState, npc *NPC) bool {
 	a := &cs.spell.Area
-	return a.Centre == AreaOnCaster && cs.spell.Def.Harmful && npc.World == caster.World &&
-		!w.inSightLocked(caster.World, caster.X, caster.Y, caster.Z, npc.X, npc.Y, npc.Z)
+	return a.Centre != AreaNone && cs.spell.Def.Harmful && npc.World == caster.World &&
+		!w.clearLineLocked(caster.World, caster.X, caster.Y, caster.Z, npc.X, npc.Y, npc.Z)
 }
 
 // areaCreaturesLocked is the creatures a harmful area's others may be (the
-// file's doc) within r of (cx, cy, cz) and in sight of it, the cast's own
-// targets left out. Must be called with the lock held.
+// file's doc) within r of (cx, cy, cz) that it reaches (sight.go), the cast's
+// own targets left out. Must be called with the lock held.
 func (w *World) areaCreaturesLocked(p *Player, cs *castState, cx, cy, cz, r float32, now time.Time) []areaNear {
 	undead := cs.spell.Def.undeadOnly()
+	place := w.areaPlaceLocked(p, cs)
 	var out []areaNear
+	var seen areaLog
+	defer func() { seen.write("begins", p.Name, cs.spell.Name, place) }()
 	for _, id := range w.SpatialIndex.QueryRadius(cx, cz, r) {
 		npc := w.NPCs[id]
 		if npc == nil || areaHas(cs.targets, id) || npc.Dead || npc.Owner != 0 || npc.NPCType&0x80 != 0 ||
@@ -520,17 +521,22 @@ func (w *World) areaCreaturesLocked(p *Player, cs *castState, cx, cy, cz, r floa
 		if w.apartLocked(p, npc) || undead && !w.undeadLocked(npc) { // water.go, undead.go
 			continue
 		}
-		if dd := dist3(npc.X, npc.Y, npc.Z, cx, cy, cz); dd <= r && w.inSightLocked(p.World, cx, cy, cz, npc.X, npc.Y, npc.Z) {
-			out = append(out, areaNear{id, dd})
+		if dd := dist3(npc.X, npc.Y, npc.Z, cx, cy, cz); dd <= r {
+			reached := w.reachesLocked(place, npc.X, npc.Y, npc.Z)
+			seen.note(reached, npc.Name, npc.X, npc.Y, npc.Z)
+			if reached {
+				out = append(out, areaNear{id, dd})
+			}
 		}
 	}
 	return out
 }
 
 // areaFriendsLocked is the players and players' pets a helping area's others
-// may be within r of (cx, cy, cz) and in sight of it, the cast's own targets
-// left out. Must be called with the lock held.
+// may be within r of (cx, cy, cz) that it reaches (sight.go), the cast's own
+// targets left out. Must be called with the lock held.
 func (w *World) areaFriendsLocked(p *Player, cs *castState, cx, cy, cz, r float32) []areaNear {
+	place := w.areaPlaceLocked(p, cs)
 	var out []areaNear
 	for _, id := range w.SpatialIndex.QueryRadius(cx, cz, r) {
 		if areaHas(cs.targets, id) {
@@ -538,14 +544,14 @@ func (w *World) areaFriendsLocked(p *Player, cs *castState, cx, cy, cz, r float3
 		}
 		if t := w.Players[id]; t != nil {
 			if !t.IsDead() && t.World == p.World {
-				if dd := dist3(t.X, t.Y, t.Z, cx, cy, cz); dd <= r && w.inSightLocked(p.World, cx, cy, cz, t.X, t.Y, t.Z) {
+				if dd := dist3(t.X, t.Y, t.Z, cx, cy, cz); dd <= r && w.reachesLocked(place, t.X, t.Y, t.Z) {
 					out = append(out, areaNear{id, dd})
 				}
 			}
 			continue
 		}
 		if pet := w.NPCs[id]; pet != nil && pet.Owner != 0 && w.Players[pet.Owner] != nil && !pet.Dead && pet.World == p.World {
-			if dd := dist3(pet.X, pet.Y, pet.Z, cx, cy, cz); dd <= r && w.inSightLocked(p.World, cx, cy, cz, pet.X, pet.Y, pet.Z) {
+			if dd := dist3(pet.X, pet.Y, pet.Z, cx, cy, cz); dd <= r && w.reachesLocked(place, pet.X, pet.Y, pet.Z) {
 				out = append(out, areaNear{id, dd})
 			}
 		}
@@ -589,8 +595,8 @@ func areaHas(ids []EntityID, id EntityID) bool {
 
 // landOthersLocked lands an area spell on its others, each its share, after
 // its own targets (cast.go's landLocked). Each must still be there to take it:
-// alive, in sight of the area (sight.go), and a creature one anyone may still
-// attack (not charmed since). Must be called with the lock held.
+// alive, reached by the area as it lands (sight.go), and a creature one anyone
+// may still attack (not charmed since). Must be called with the lock held.
 func (w *World) landOthersLocked(cs *castState, caster *Player, casterSess *session.Session, now time.Time) {
 	if len(cs.others) == 0 || caster.IsDead() {
 		return
@@ -602,9 +608,23 @@ func (w *World) landOthersLocked(cs *castState, caster *Player, casterSess *sess
 		share = &c
 	}
 	harmful := cs.spell.Def.Harmful
+	group := cs.areaOfGroup()
+	place := w.areaPlaceLocked(caster, cs)
+	var seen areaLog
+	if !group {
+		defer func() { seen.write("lands", caster.Name, cs.spell.Name, place) }()
+	}
+	spared := func(name string, x, y, z float32) bool {
+		if group {
+			return false
+		}
+		reached := w.reachesLocked(place, x, y, z)
+		seen.note(reached, name, x, y, z)
+		return !reached
+	}
 	for _, id := range cs.others {
 		if t := w.Players[id]; t != nil {
-			if w.areaSparedLocked(caster, cs, t.X, t.Y, t.Z) {
+			if spared(t.Name, t.X, t.Y, t.Z) {
 				continue
 			}
 			w.rezLandLocked(share, caster, casterSess, t, now) // resurrect.go: on the dead too
@@ -614,7 +634,7 @@ func (w *World) landOthersLocked(cs *castState, caster *Player, casterSess *sess
 			continue
 		}
 		npc := w.NPCs[id]
-		if npc == nil || npc.Dead || w.areaSparedLocked(caster, cs, npc.X, npc.Y, npc.Z) {
+		if npc == nil || npc.Dead || spared(npc.Name, npc.X, npc.Y, npc.Z) {
 			continue
 		}
 		switch {

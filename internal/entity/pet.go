@@ -1513,3 +1513,41 @@ func sendNoCollideAdd(sess *session.Session, name string, id uint32) {
 func sendNoCollideRemove(sess *session.Session, id uint32) {
 	sendGroupMsg(sess, protocol.OpcodeNoCollideRemove, func(b *buffer.Writer) { b.WriteUint32(id) })
 }
+
+// ItemSummon is what a summoning item's use came to (SummonByItem).
+type ItemSummon int
+
+const (
+	ItemSummonNone ItemSummon = iota // no player, a dead one, or no body for the pet
+	ItemSummoned
+	ItemPetOut     // the item's own pet is out already
+	ItemPetResting // not before notBefore
+)
+
+// SummonByItem brings a summoning spell's pet as an item's use, with no cast
+// (handlers/guenhwyvar.go): as the spell's landing does (summonPetLocked), a
+// pet of another kind replaced. The item's own pet out, or the time before
+// notBefore, brings nothing.
+func (w *World) SummonByItem(sess *session.Session, spell CastSpell, now, notBefore time.Time) ItemSummon {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil || p.IsDead() || p.respawnPending() {
+		return ItemSummonNone
+	}
+	name := petSpellName(spell.Name)
+	if s := w.templates.sheets[spell.SpellID]; s != nil && s.Name != "" {
+		name = s.Name
+	}
+	if old := w.pets[p.ServerID]; old != nil && old.npc != nil && !old.npc.Dead && petName(old.npc.Name) == petName(name) {
+		return ItemPetOut
+	}
+	if now.Before(notBefore) {
+		return ItemPetResting
+	}
+	w.summonPetLocked(&castState{spell: spell, caster: p.ServerID}, p, sess, now)
+	if ps := w.pets[p.ServerID]; ps == nil || ps.npc == nil || petName(ps.npc.Name) != petName(name) {
+		return ItemSummonNone
+	}
+	return ItemSummoned
+}

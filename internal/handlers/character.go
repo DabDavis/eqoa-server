@@ -1478,7 +1478,7 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 		writer.Write7BitEncodedInt64(int64(c.ServerID))
 		writer.Write7BitEncodedInt64(int64(int32(c.ModelID)))
 		writer.Write7BitEncodedInt64(int64(c.TClass))
-		writer.Write7BitEncodedInt64(int64(c.Race))
+		writer.Write7BitEncodedInt64(int64(entity.WireRace(c.Race)))
 		writer.Write7BitEncodedInt64(int64(c.Level))
 
 		// Appearance fields - zigzag
@@ -1961,7 +1961,7 @@ func writeDumpRecordBank(writer *buffer.Writer, player *entity.Player, bankTunar
 	writer.WriteInt32(int32(len(player.Name)))
 	writer.WriteStringUTF8Raw(player.Name)
 	writer.Write7BitEncodedInt64(int64(player.Class))
-	writer.Write7BitEncodedInt64(int64(player.Race))
+	writer.Write7BitEncodedInt64(int64(entity.WireRace(player.Race)))
 	writer.Write7BitEncodedInt64(int64(player.Level))
 	writer.Write7BitEncodedInt64(int64(player.XPInLevel))
 	writer.Write7BitEncodedInt64(int64(player.Debt))

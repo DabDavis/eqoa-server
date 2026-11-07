@@ -165,14 +165,36 @@ func TestAWallStopsAPlayersArea(t *testing.T) {
 		t.Errorf("the 0x00B1 names %d others, want the one", b1[10])
 	}
 
-	// the caster behind the wall from its target: the area goes off round it
+	// something between the caster and one in its target's plain sight: the
+	// user's, a boss's area round its target, one behind a rock from the boss
 	r = newAreaRig(t)
 	target = r.creature(2001, "Deathfist Pawn", 1020, 1000)
-	beside = r.creature(2002, "Deathfist Pawn", 1014, 1000)
+	inPlain := r.creature(2002, "Deathfist Pawn", 1020, 1006)
+	hidden := r.creature(2003, "Deathfist Pawn", 1014, 1000)
+	r.w.SetGround(sightGround{{1010, -90000, 998, 1011, 90000, 1002}})
+	r.cast(t, fireStorm(), target.ServerID)
+	if got, want := hits(inPlain, hidden), []int{36, 0}; !equalInts(got, want) {
+		t.Errorf("lost %v, want %v (one in sight of both, one hidden from the caster and in sight of its target)", got, want)
+	}
+
+	// its own target behind a wall from its caster: nothing reaches it
+	r = newAreaRig(t)
+	target = r.creature(2001, "Deathfist Pawn", 1020, 1000)
 	r.w.SetGround(sightGround{wallAt(1005)})
 	r.cast(t, fireStorm(), target.ServerID)
-	if got, want := hits(target, beside), []int{82, 36}; !equalInts(got, want) {
-		t.Errorf("behind a wall from its caster, lost %v, want %v", got, want)
+	if got := hits(target); got[0] != 0 {
+		t.Errorf("its target behind a wall from its caster lost %d", got[0])
+	}
+
+	// a low rock, under the head's line and over the waist's, shelters from an
+	// area, though a creature would see over it (TestACreatureNoticesOnlyWhatItCanSee)
+	r = newAreaRig(t)
+	target = r.creature(2001, "Deathfist Pawn", 1020, 1000)
+	low := r.creature(2002, "Deathfist Pawn", 1027, 1000)
+	r.w.SetGround(sightGround{{1024, 0, 900, 1024.5, 11, 1100}})
+	r.cast(t, fireStorm(), target.ServerID)
+	if got := hits(low); got[0] != 0 {
+		t.Errorf("behind a low rock it lost %d", got[0])
 	}
 }
 
@@ -218,22 +240,27 @@ func TestAnAreaLooksAgainAsItLands(t *testing.T) {
 	}
 }
 
-// A group's spell is no area here: it finds its members behind a wall.
+// A group's spell is no area here: it finds its members behind a wall. The
+// control: a helping area's others stop at it.
 func TestAGroupSpellFindsItsOwnBehindAWall(t *testing.T) {
-	r := newAreaRig(t)
-	friend := r.player(1002, "Ally", 1010, 1000)
-	r.w.groups = map[uint32]*Group{7: {ID: 7, Members: []EntityID{r.p.ServerID, friend.ServerID}}}
-	r.p.GroupID, friend.GroupID = 7, 7
-	r.w.SetGround(sightGround{wallAt(1005)})
-	cs := &castState{spell: CastSpell{Scope: 2, Area: SpellArea{Centre: AreaOnCaster, Radius: 30}}, caster: r.p.ServerID}
-	r.w.mu.Lock()
-	defer r.w.mu.Unlock()
-	if r.w.areaSparedLocked(r.p, cs, friend.X, friend.Y, friend.Z) {
-		t.Error("a group's spell spared a member behind a wall")
+	land := func(scope int) int {
+		r := newAreaRig(t)
+		friend := r.player(1002, "Ally", 1010, 1000)
+		r.w.groups = map[uint32]*Group{7: {ID: 7, Members: []EntityID{r.p.ServerID, friend.ServerID}}}
+		r.p.GroupID, friend.GroupID = 7, 7
+		r.w.SetGround(sightGround{wallAt(1005)})
+		cs := &castState{spell: CastSpell{Scope: scope, Name: "Test Heal", Area: SpellArea{Centre: AreaOnCaster, Radius: 30},
+			Def: SpellDef{Effects: []SpellEffect{{Kind: EffectHP, Amount: 100}}}}, caster: r.p.ServerID, others: []EntityID{friend.ServerID}}
+		r.w.mu.Lock()
+		defer r.w.mu.Unlock()
+		r.w.landOthersLocked(cs, r.p, r.sess, r.t0)
+		return friend.HP - 500
 	}
-	cs.spell.Scope = 0
-	if !r.w.areaSparedLocked(r.p, cs, friend.X, friend.Y, friend.Z) {
-		t.Error("the control: an area that helps stops at the wall")
+	if got := land(2); got <= 0 {
+		t.Errorf("a group's spell healed its member behind a wall by %d", got)
+	}
+	if got := land(0); got != 0 {
+		t.Errorf("an area that helps healed one behind a wall by %d", got)
 	}
 }
 
@@ -280,24 +307,44 @@ func TestAWallStopsACreaturesArea(t *testing.T) {
 		t.Errorf("behind the wall in time: %q, HP %d", got, behind.HP)
 	}
 
-	// a caster's area: its own target too
+	// hidden from the boss, in plain sight of whoever it is hitting: the user's
+	r = newTemplateRig(t)
+	r.assign("gnoll mage", "wizard")
+	mage = r.npc("Gnoll Mage")
+	target, _ = r.player("Target", 1001.5, 100)
+	behind, bs = r.player("Behind", 1000, 106)
+	r.w.SetGround(sightGround{{999, -100, 102, 1000.8, 900, 103}})
+	r.fight(mage, target.ServerID)
+	drain(bs)
+	for d := time.Duration(0); d <= 6*time.Second; d += 100 * time.Millisecond {
+		r.tick(d)
+	}
+	if got := linesOf(drain(bs)); len(got) != 0 || behind.HP != behind.MaxHP {
+		t.Errorf("hidden from the boss and in sight of its target: %q, HP %d", got, behind.HP)
+	}
+
+	// its own target behind a wall from it, for either kind of area; a spell of
+	// no area asks nothing, and with nothing between them nothing is spared
 	r = newTemplateRig(t)
 	mage = r.npc("Gnoll Mage")
 	target, _ = r.player("Target", 1001.5, 100)
 	r.w.SetGround(sightGround{wallAt(1000.5)})
-	c := &npcCast{npc: mage, target: target.ServerID, spell: &CastSpell{Area: SpellArea{Centre: AreaOnCaster, Radius: 30}}}
 	r.w.mu.Lock()
 	defer r.w.mu.Unlock()
-	if !r.w.templateSparedLocked(c, target.ServerID) {
-		t.Errorf("a caster's area did not spare its target behind a wall (the mage at x %.1f, its target at %.1f)", mage.X, target.X)
+	isSpared := func(centre AreaCentre) bool {
+		sp := &CastSpell{Area: SpellArea{Centre: centre, Radius: 30}}
+		var seen areaLog
+		return r.w.templateSparedLocked(&npcCast{npc: mage, target: target.ServerID, spell: sp}, r.w.templateAreaPlaceLocked(mage, sp, target.ServerID), target.ServerID, &seen)
 	}
-	c.spell = &CastSpell{Area: SpellArea{Centre: AreaOnTarget, Radius: 30}}
-	if r.w.templateSparedLocked(c, target.ServerID) {
-		t.Error("an area round its target spared its target")
+	if !isSpared(AreaOnCaster) || !isSpared(AreaOnTarget) {
+		t.Errorf("its target behind a wall: spared %v round the caster, %v round the target", isSpared(AreaOnCaster), isSpared(AreaOnTarget))
 	}
-	c.spell = &CastSpell{}
-	if r.w.templateSparedLocked(c, target.ServerID) {
+	if isSpared(AreaNone) {
 		t.Error("a spell of no area spared its target")
+	}
+	r.w.ground = sightGround{}
+	if isSpared(AreaOnCaster) || isSpared(AreaOnTarget) {
+		t.Error("with nothing between them its target was spared")
 	}
 }
 

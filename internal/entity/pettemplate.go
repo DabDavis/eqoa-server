@@ -502,8 +502,8 @@ func (w *World) petCastSystemLocked(now time.Time) {
 
 // petAreaFoesLocked is the creatures round t a pet's area spell lands on
 // besides t: those the pet may fight, not hidden, within the area's radius of
-// t and in sight of it (sight.go), nearest first, the area's cap with t
-// counted. Must be called with the lock held.
+// t that it reaches (sight.go), nearest first, the area's cap with t counted.
+// Must be called with the lock held.
 func (w *World) petAreaFoesLocked(pet, t *NPC, area SpellArea, now time.Time) []*NPC {
 	if area.Centre == AreaNone || w.SpatialIndex == nil {
 		return nil
@@ -513,6 +513,7 @@ func (w *World) petAreaFoesLocked(pet, t *NPC, area SpellArea, now time.Time) []
 	if area.Centre == AreaOnCaster {
 		cx, cy, cz = pet.X, pet.Y, pet.Z // a caster's area: round the pet (a charmed crawler's)
 	}
+	place := areaPlace{world: pet.World, caster: [3]float32{pet.X, pet.Y, pet.Z}, centre: [3]float32{cx, cy, cz}, onOther: area.Centre != AreaOnCaster}
 	type near struct {
 		npc *NPC
 		d   float32
@@ -523,7 +524,7 @@ func (w *World) petAreaFoesLocked(pet, t *NPC, area SpellArea, now time.Time) []
 		if o == nil || o == t || !petMayFight(pet, o) || o.hiddenAt(now) {
 			continue
 		}
-		if d := dist3(o.X, o.Y, o.Z, cx, cy, cz); d <= r && w.inSightLocked(pet.World, cx, cy, cz, o.X, o.Y, o.Z) {
+		if d := dist3(o.X, o.Y, o.Z, cx, cy, cz); d <= r && w.reachesLocked(place, o.X, o.Y, o.Z) {
 			out = append(out, near{o, d})
 		}
 	}

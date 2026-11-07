@@ -226,7 +226,7 @@ func (h *SupportHandler) tellGMs(from *session.Session, p database.Petition, cat
 	if h.sessions == nil || h.access == nil || h.gameWorld == nil {
 		return
 	}
-	short := strings.Join(strings.Fields(text), " ")
+	short := strings.Join(strings.Fields(consoleLine(text, len(text))), " ")
 	if r := []rune(short); len(r) > 100 {
 		short = string(r[:100]) + "..."
 	}

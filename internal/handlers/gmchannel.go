@@ -427,7 +427,7 @@ func (h *ChatHandler) gmCommand(sess *session.Session, gm *entity.Player, req gm
 			h.gmReply(sess, h.whereIs(t))
 		}
 	case gmSubBroadcast:
-		text := strings.TrimSpace(req.Text)
+		text := strings.TrimSpace(consoleLine(req.Text, chatLineMost))
 		if text == "" {
 			return
 		}

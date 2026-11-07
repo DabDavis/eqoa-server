@@ -217,8 +217,9 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 	// Offset 111: eqoa.live constant = 6 across ALL entities
 	buf[111] = 6
 
-	// Offset 116-139: Name (24 bytes null-padded, Java Entity.java offset 116)
-	nameBytes := []byte(p.Name)
+	// Offset 116-139: Name (24 bytes null-padded, Java Entity.java offset 116), a GM's
+	// with its tag (ShownName)
+	nameBytes := []byte(p.ShownName())
 	for i := 0; i < len(nameBytes) && i < 24; i++ {
 		buf[116+i] = nameBytes[i]
 	}
@@ -692,4 +693,19 @@ func SerializeBuffSlots(slots []BuffSlot) []byte {
 		}
 	}
 	return buf
+}
+
+// GMTag goes before a GM's name where every client draws it, over its head and
+// in a target's window (the user, 2026-11-07: "also in games GMs need an
+// identifier next to their name like [GM]"): a GM is an account of acctlevel 1
+// or more (Player.GM, read at its login). Its name stays its own everywhere
+// else: chat, tells, a group's and a guild's lists.
+const GMTag = "[GM] "
+
+// ShownName is the name the entity channel carries: a GM's with GMTag.
+func (p *Player) ShownName() string {
+	if p.GM {
+		return GMTag + p.Name
+	}
+	return p.Name
 }

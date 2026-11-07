@@ -100,6 +100,9 @@ type RaceCharacter struct {
 	Race    int
 	Sex     int
 	ModelID int64
+	// GM: its account's acctlevel is 1 or more, so its name is drawn with a tag
+	// (entity.GMTag)
+	GM bool
 }
 
 // CharactersOfRaces is every character of those races, offline ones too, by race
@@ -117,7 +120,8 @@ func (db *SQLiteDB) CharactersOfRaces(races []int) ([]RaceCharacter, error) {
 		in = append(in, '?')
 		args[i] = r
 	}
-	rows, err := db.Query(`SELECT charName, race, sex, modelid FROM characters WHERE race IN (`+string(in)+`) ORDER BY race, charName`, args...)
+	rows, err := db.Query(`SELECT c.charName, c.race, c.sex, c.modelid, COALESCE(a.acctlevel, 0) >= 1 FROM characters c
+		LEFT JOIN accountinfo a ON a.accountid = c.accountid WHERE c.race IN (`+string(in)+`) ORDER BY c.race, c.charName`, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +129,7 @@ func (db *SQLiteDB) CharactersOfRaces(races []int) ([]RaceCharacter, error) {
 	var out []RaceCharacter
 	for rows.Next() {
 		var c RaceCharacter
-		if err := rows.Scan(&c.Name, &c.Race, &c.Sex, &c.ModelID); err != nil {
+		if err := rows.Scan(&c.Name, &c.Race, &c.Sex, &c.ModelID, &c.GM); err != nil {
 			return nil, err
 		}
 		out = append(out, c)

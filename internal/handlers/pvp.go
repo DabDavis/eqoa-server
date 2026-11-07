@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"log"
+	"strings"
 	"time"
 
 	"github.com/eqoa/server/internal/entity"
@@ -9,15 +10,23 @@ import (
 )
 
 // pvpCommand is /pvp from any client (entity/pvp.go has the rules): the flag turned over
-// when it may be, and, when it was, its new face told to everyone targeting that player.
+// when it may be (rest "on" or "off": that way only), and, when it was, its new face told to
+// everyone targeting that player.
 //
 // CLIENT reads a target's face only from a 0x0010, and asks for one only when its target
 // changes. Msg0010 takes any reply whose token matches the one it holds, so a reply nobody
 // asked for sets the face of the target that client has now: the same reply a re-target
 // would get (playerTargetInfo), under its own token. A client that changed its target as this
 // went out has the reply to its own request right behind it, which sets it right.
-func pvpCommand(gw *entity.World, sess *session.Session, now time.Time) {
-	p := gw.PvPCommand(sess, now)
+func pvpCommand(gw *entity.World, sess *session.Session, rest string, now time.Time) {
+	want := entity.PvPToggle
+	switch strings.ToLower(strings.TrimSpace(rest)) {
+	case "on":
+		want = entity.PvPWantOn
+	case "off":
+		want = entity.PvPWantOff
+	}
+	p := gw.PvPAsk(sess, want, now)
 	if p == nil {
 		return
 	}

@@ -203,8 +203,8 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 
 	// /pvp (or #pvp; a PS2's is "/t pvp", below): the PvP flag, everyone's, where
 	// world.pvp allows it (pvp.go)
-	if word, _, _ := strings.Cut(message, " "); strings.EqualFold(word, "/pvp") || strings.EqualFold(word, "#pvp") {
-		pvpCommand(h.gameWorld, sess, time.Now())
+	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/pvp") || strings.EqualFold(word, "#pvp") {
+		pvpCommand(h.gameWorld, sess, rest, time.Now())
 		return nil
 	}
 
@@ -251,7 +251,7 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		}
 		// the PvP flag the same way (pvp.go)
 		if body == "" && strings.EqualFold(name, "pvp") {
-			pvpCommand(h.gameWorld, sess, time.Now())
+			pvpCommand(h.gameWorld, sess, "", time.Now())
 			return nil
 		}
 		if wager, ok := duelTell(body); ok {

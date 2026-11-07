@@ -99,7 +99,7 @@ func (w *World) duelProcsLocked(d *Duel, p *Player, m duelMark, now time.Time) b
 	if resisted > 0 {
 		log.Printf("Duel %d: %s's proc resisted by %s", d.ID, p.Name, m.name())
 	}
-	for _, h := range hits {
+	for _, h := range p.procsOfRound(hits) {
 		log.Printf("Duel %d: %s's proc hits %s for %d", d.ID, p.Name, m.name(), h.n)
 		over := w.duelHurtMarkLocked(d, p, m, h.n, now)
 		w.procTapLocked(p, sess, h.ae, nil)
@@ -144,7 +144,11 @@ func (w *World) duelWeaponProcLocked(d *Duel, p *Player, sess *session.Session, 
 	if wp.Only != "" && !strings.Contains(strings.ToLower(m.name()), wp.Only) {
 		return false
 	}
-	if procIntn(100) >= procChancePct(p.StatNow(StatInt)) {
+	if wp.Kind == ProcForm {
+		w.formProcLocked(sess, p, wp, now)
+		return false
+	}
+	if procIntn(100) >= wp.chancePct(p.StatNow(StatInt)) {
 		return false
 	}
 	n := wp.Damage

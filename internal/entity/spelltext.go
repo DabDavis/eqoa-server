@@ -191,6 +191,9 @@ type SpellEffect struct {
 // SpellDef is a spell's line, read: whom it lands on, what it does, how
 // long what lasts lasts, and whether it is cast at an enemy.
 type SpellDef struct {
+	// ProcChance and ProcRound are its proc's own chance and its most a round
+	// (EffectRules, weaponproc.go's forms), 0 for the rule of every proc
+	ProcChance, ProcRound int
 	// ShareRadius is how far a group's share reaches the caster's group
 	// (ShareGroup: the workbook's radius of the spell), 0 its range
 	ShareRadius float32

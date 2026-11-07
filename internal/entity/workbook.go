@@ -102,11 +102,17 @@ type EffectRules struct {
 	// Disguise: the factions do not attack the bearer on sight
 	// (workbookmore.go)
 	Disguise bool `json:",omitempty"`
+	// ProcChance is its proc's chance a hit in percent, 0 by its bearer's INT
+	// (proc.go); ProcRound the most its proc does in one of its bearer's
+	// rounds, 0 no limit (procsOfRound). A form's (weaponproc.go).
+	ProcChance int `json:",omitempty"`
+	ProcRound  int `json:",omitempty"`
 }
 
 // rulesOf is a cast's rules for what lasts of it.
 func rulesOf(d *SpellDef) EffectRules {
-	r := EffectRules{DispelOnCast: d.DispelOnCast, DispelOnContact: d.DispelOnContact, Harm: d.Harmful, Twice: d.Workbook, Stance: d.Stance}
+	r := EffectRules{DispelOnCast: d.DispelOnCast, DispelOnContact: d.DispelOnContact, Harm: d.Harmful, Twice: d.Workbook, Stance: d.Stance,
+		ProcChance: d.ProcChance, ProcRound: d.ProcRound}
 	for _, e := range d.Effects {
 		if e.Resist != StatNone {
 			r.Resist = e.Resist

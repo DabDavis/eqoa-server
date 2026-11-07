@@ -92,7 +92,11 @@ func procRollsOf(effects []*ActiveEffect, stat func(Stat) int, bearerLevel, targ
 		if ae.Proc <= 0 || !now.Before(ae.Until) || (ae.ProcUndead && !undead()) {
 			continue
 		}
-		if intn(100) >= procChancePct(intel) {
+		chance := ae.Rules.ProcChance // its own (a form's: weaponproc.go), else by INT
+		if chance <= 0 {
+			chance = procChancePct(intel)
+		}
+		if intn(100) >= chance {
 			continue
 		}
 		if intn(100) < procResistPct(bearerLevel, targetLevel)-resistOff {
@@ -109,6 +113,28 @@ func procRollsOf(effects []*ActiveEffect, stat func(Stat) int, bearerLevel, targ
 		hits = append(hits, procRoll{n: capAmount(n, ae.ProcCap), ae: ae})
 	}
 	return hits, resisted
+}
+
+// procsOfRound holds a hit's procs to what is left of the most their effects
+// may do in the bearer's round (EffectRules.ProcRound: "up to 800 per round",
+// weaponproc.go): each is cut to what is left, and one with nothing left does
+// not happen. A round is RoundStart's (rounds.go), whatever its number of hits.
+func (p *Player) procsOfRound(hits []procRoll) []procRoll {
+	out := hits[:0]
+	for _, h := range hits {
+		if most := h.ae.Rules.ProcRound; most > 0 {
+			if !p.procRound.Equal(p.RoundStart) {
+				p.procRound, p.procRoundDone = p.RoundStart, 0
+			}
+			h.n = min(h.n, most-p.procRoundDone)
+			if h.n <= 0 {
+				continue
+			}
+			p.procRoundDone += h.n
+		}
+		out = append(out, h)
+	}
+	return out
 }
 
 // procTapLocked heals the player by the heal of the effect whose proc just hit: a life steal is one
@@ -136,7 +162,7 @@ func (w *World) playerProcsLocked(sess *session.Session, p *Player, npc *NPC, no
 	if resisted > 0 {
 		log.Printf("Proc: %s's proc resisted by %s", p.Name, npc.Name)
 	}
-	for _, h := range hits {
+	for _, h := range p.procsOfRound(hits) {
 		n := -creatureResists(h.ae.Rules.Resist, npc, -h.n, now)
 		log.Printf("Proc: %s's %q hits %s for %d", p.Name, h.ae.Name, npc.Name, n)
 		// seen as a damage shield's answer is (petition 1156: "does not proc",

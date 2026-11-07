@@ -1,0 +1,1891 @@
+{
+ "npcs": [
+  {
+   "name": "Construct of Radiance",
+   "world": 4,
+   "x": 5105.0,
+   "y": 236.8,
+   "z": 5745.0,
+   "facing": 0,
+   "level": 66,
+   "type": 0,
+   "body": "8A416241",
+   "size": 4.0,
+   "spawnonly": true,
+   "template": "construct of radiance",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 40
+   },
+   "loot_region": "plane of sky",
+   "note": "A chain's construct, spawned by the Astral Light (guide gaps sky-twins)."
+  },
+  {
+   "name": "Construct of Storms",
+   "world": 4,
+   "x": 5105.0,
+   "y": 236.8,
+   "z": 5745.0,
+   "facing": 0,
+   "level": 66,
+   "type": 0,
+   "body": "E7155303",
+   "size": 4.0,
+   "spawnonly": true,
+   "template": "construct of storms",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 40
+   },
+   "loot_region": "plane of sky",
+   "note": "A chain's construct, spawned by the Astral Light (guide gaps sky-twins)."
+  },
+  {
+   "name": "Construct of Shadows",
+   "world": 4,
+   "x": 5105.0,
+   "y": 236.8,
+   "z": 5745.0,
+   "facing": 0,
+   "level": 66,
+   "type": 0,
+   "body": "D8C9F053",
+   "size": 3.0,
+   "spawnonly": true,
+   "template": "construct of shadows",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 40
+   },
+   "loot_region": "plane of sky",
+   "note": "A chain's construct, spawned by the Astral Light (guide gaps sky-twins)."
+  },
+  {
+   "name": "Construct of Frost",
+   "world": 4,
+   "x": 5105.0,
+   "y": 236.8,
+   "z": 5745.0,
+   "facing": 0,
+   "level": 66,
+   "type": 0,
+   "body": "B6203820",
+   "size": 4.0,
+   "spawnonly": true,
+   "template": "construct of frost",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 40
+   },
+   "loot_region": "plane of sky",
+   "note": "A chain's construct, spawned by the Astral Light (guide gaps sky-twins)."
+  },
+  {
+   "name": "Construct of Sorrows",
+   "world": 4,
+   "x": 5105.0,
+   "y": 236.8,
+   "z": 5745.0,
+   "facing": 0,
+   "level": 66,
+   "type": 0,
+   "body": "6E5E0E2A",
+   "size": 4.0,
+   "spawnonly": true,
+   "template": "construct of sorrows",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 40
+   },
+   "loot_region": "plane of sky",
+   "note": "A chain's construct, spawned by the Astral Light (guide gaps sky-twins)."
+  },
+  {
+   "name": "Talon's Veeshan",
+   "world": 4,
+   "x": 5105.0,
+   "y": 236.8,
+   "z": 5748.0,
+   "level": 70,
+   "type": 0,
+   "body": "28E4DDC6",
+   "size": 2.25,
+   "spawnonly": true,
+   "template": "talon's veeshan",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 60
+   },
+   "loot_region": "plane of sky",
+   "note": "Veeshan's twins (guide gaps sky-twins); 'Talon's aggro range is long'."
+  },
+  {
+   "name": "Veeshan's Bulwark",
+   "world": 4,
+   "x": 5105.0,
+   "y": 236.5,
+   "z": 5768.0,
+   "level": 70,
+   "type": 0,
+   "body": "062D8347",
+   "size": 2.25,
+   "spawnonly": true,
+   "template": "veeshan's bulwark",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 40
+   },
+   "loot_region": "plane of sky",
+   "note": "Veeshan's twins (guide gaps sky-twins)."
+  },
+  {
+   "name": "Granavik",
+   "world": 4,
+   "x": 4318.0,
+   "y": -69.0,
+   "z": 4700.0,
+   "level": 62,
+   "type": 0,
+   "body": "CFC478EE",
+   "size": 1.5,
+   "spawnonly": true,
+   "template": "sky chain boss",
+   "charm": 0,
+   "loot_region": "plane of sky",
+   "note": "Granavik the bugbeast, behind Ghizilanve's pillar, on her death (guide gaps sky-twins)."
+  },
+  {
+   "name": "wind wall",
+   "world": 4,
+   "x": 5135.0,
+   "y": 233.0,
+   "z": 5664.0,
+   "level": 1,
+   "type": 128,
+   "body": "6F412342",
+   "size": 1.0,
+   "note": "Keeps the isle the Astral Light's: the stepping stones' last bridge (guide gaps sky-twins)."
+  },
+  {
+   "name": "Astral Light",
+   "world": 4,
+   "x": 5140.0,
+   "y": 250.1,
+   "z": 5455.0,
+   "facing": 192,
+   "level": 70,
+   "type": 128,
+   "body": "8143DC70",
+   "size": 1.0,
+   "note": "The main isle's east edge ('Head east towards the edge ... con the Astral Light'; it cons red)."
+  },
+  {
+   "name": "Astral Light",
+   "world": 4,
+   "x": 5103.9,
+   "y": 236.0,
+   "z": 5778.9,
+   "facing": 128,
+   "level": 70,
+   "type": 128,
+   "body": "8143DC70",
+   "size": 1.0,
+   "note": "The isle's, on the disc's portal pad: talk to spawn what the raid came for."
+  },
+  {
+   "name": "astral essence",
+   "world": 4,
+   "x": 5125.0,
+   "y": 250.1,
+   "z": 5470.0,
+   "facing": 192,
+   "level": 60,
+   "type": 128,
+   "body": "8143DC70",
+   "size": 1.0,
+   "note": "'a new astral essence that has just appeared on the main island'; the Isle of Wonder's stands too, the same quest at either."
+  }
+ ],
+ "items": [
+  {
+   "name": "Shard of Dawn",
+   "like": "Topaz",
+   "description": "The Brightstar Princess carried it. One of the 4 yellow shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of Beaming",
+   "like": "Topaz",
+   "description": "Imerzan carried it. One of the 4 yellow shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of Glimmers",
+   "like": "Topaz",
+   "description": "The Torrential Wind carried it. One of the 4 yellow shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of Noon",
+   "like": "Topaz",
+   "description": "Randarin the Relentless carried it. One of the 4 yellow shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Radiant Construct Shard",
+   "like": "Fire Opal",
+   "description": "What was left of the Construct of Radiance. One of the five multicoloured lights the astral essence wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of Drizzle",
+   "like": "Sapphire",
+   "description": "Artiokanis carried it. One of the 5 blue shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of Mists",
+   "like": "Sapphire",
+   "description": "Kaglanor carried it. One of the 5 blue shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of Torrents",
+   "like": "Sapphire",
+   "description": "Granavik the bugbeast carried it. One of the 5 blue shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of Squalls",
+   "like": "Sapphire",
+   "description": "The Spirit of Narciliisisin carried it. One of the 5 blue shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of Deluge",
+   "like": "Sapphire",
+   "description": "Chimareon the Tyrant carried it. One of the 5 blue shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Storm Construct Shard",
+   "like": "Sapphire",
+   "description": "What was left of the Construct of Storms. One of the five multicoloured lights the astral essence wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of Dusk",
+   "like": "Onyx",
+   "description": "The Ancient Jester carried it. One of the 5 black shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of Gloom",
+   "like": "Onyx",
+   "description": "The Iron Knight carried it. One of the 5 black shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of Shade",
+   "like": "Onyx",
+   "description": "The Night Maiden gave it for her life. One of the 5 black shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of Twilight",
+   "like": "Onyx",
+   "description": "The Dark Baroness carried it. One of the 5 black shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of Midnight",
+   "like": "Onyx",
+   "description": "King Ruthra carried it. One of the 5 black shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shadow Construct Shard",
+   "like": "Black Pearl",
+   "description": "What was left of the Construct of Shadows. One of the five multicoloured lights the astral essence wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of Shivers",
+   "like": "Diamond",
+   "description": "The Whirlwind carried it. One of the 3 white shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of Glaciers",
+   "like": "Diamond",
+   "description": "The Glacial Champion carried it. One of the 3 white shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of Icy Depths",
+   "like": "Diamond",
+   "description": "Enraged Aeyinar carried it. One of the 3 white shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Frost Construct Shard",
+   "like": "Pearl",
+   "description": "What was left of the Construct of Frost. One of the five multicoloured lights the astral essence wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of Isolation",
+   "like": "Ruby",
+   "description": "The Erych Arbiter carried it. One of the 4 red shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of Dissolution",
+   "like": "Ruby",
+   "description": "The Warlord of Narcillian carried it. One of the 4 red shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of the Wasteland",
+   "like": "Ruby",
+   "description": "The Harpy Queen carried it. One of the 4 red shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Shard of Ruin",
+   "like": "Ruby",
+   "description": "The Quintessence of Veeshan carried it. One of the 4 red shards the Astral Light wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Sorrow Construct Shard",
+   "like": "Star Ruby",
+   "description": "What was left of the Construct of Sorrows. One of the five multicoloured lights the astral essence wants.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Veeshan's Scale",
+   "like": "Pearl",
+   "description": "A scale of Veeshan's own twins. Wibble Gninogin pays well to see it, and the Storyteller wants the tale.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Gem of the Sky",
+   "like": "Eye of the Sphynx",
+   "description": "From Talon's Veeshan. It knows the way to the Plane of Sky.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  }
+ ],
+ "spells": [
+  {
+   "id": 905000,
+   "name": "Radiant Burst",
+   "line": "Target, aoe Decrease Hitpoints by 1500, Radius 30",
+   "fx": 1338050560,
+   "effects": {
+    "v": 1,
+    "scope": "target_aoe",
+    "target_type": "Enemy",
+    "harmful": true,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "radius": 30,
+    "req_equipment": "Any",
+    "sheet_type": "Dmg/Heal",
+    "effects": [
+     {
+      "type": "Dmg/Heal",
+      "kind": "hp2",
+      "amount": -1500,
+      "resist": "fr"
+     }
+    ]
+   }
+  },
+  {
+   "id": 905001,
+   "name": "Storm Surge",
+   "line": "Target, aoe Decrease Hitpoints by 1500, Radius 30",
+   "fx": 2972655019,
+   "effects": {
+    "v": 1,
+    "scope": "target_aoe",
+    "target_type": "Enemy",
+    "harmful": true,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "radius": 30,
+    "req_equipment": "Any",
+    "sheet_type": "Dmg/Heal",
+    "effects": [
+     {
+      "type": "Dmg/Heal",
+      "kind": "hp2",
+      "amount": -1500,
+      "resist": "lr"
+     }
+    ]
+   }
+  },
+  {
+   "id": 905002,
+   "name": "Shadow Burst",
+   "line": "Target, aoe Decrease Hitpoints by 1500, Radius 30",
+   "fx": 2972655019,
+   "effects": {
+    "v": 1,
+    "scope": "target_aoe",
+    "target_type": "Enemy",
+    "harmful": true,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "radius": 30,
+    "req_equipment": "Any",
+    "sheet_type": "Dmg/Heal",
+    "effects": [
+     {
+      "type": "Dmg/Heal",
+      "kind": "hp2",
+      "amount": -1500,
+      "resist": "ar"
+     }
+    ]
+   }
+  },
+  {
+   "id": 905003,
+   "name": "Frost Burst",
+   "line": "Target, aoe Decrease Hitpoints by 1500, Radius 30",
+   "fx": 2972655019,
+   "effects": {
+    "v": 1,
+    "scope": "target_aoe",
+    "target_type": "Enemy",
+    "harmful": true,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "radius": 30,
+    "req_equipment": "Any",
+    "sheet_type": "Dmg/Heal",
+    "effects": [
+     {
+      "type": "Dmg/Heal",
+      "kind": "hp2",
+      "amount": -1500,
+      "resist": "cr"
+     }
+    ]
+   }
+  },
+  {
+   "id": 905004,
+   "name": "Sorrowful Wail",
+   "line": "Target, aoe Decrease Hitpoints by 1500, Radius 30",
+   "fx": 2972655019,
+   "effects": {
+    "v": 1,
+    "scope": "target_aoe",
+    "target_type": "Enemy",
+    "harmful": true,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "radius": 30,
+    "req_equipment": "Any",
+    "sheet_type": "Dmg/Heal",
+    "effects": [
+     {
+      "type": "Dmg/Heal",
+      "kind": "hp2",
+      "amount": -1500,
+      "resist": "dr"
+     }
+    ]
+   }
+  },
+  {
+   "id": 905005,
+   "name": "Talon's Breath",
+   "line": "Target, aoe Decrease Hitpoints by 3500, Radius 40",
+   "fx": 1338050560,
+   "effects": {
+    "v": 1,
+    "scope": "target_aoe",
+    "target_type": "Enemy",
+    "harmful": true,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "radius": 40,
+    "req_equipment": "Any",
+    "sheet_type": "Dmg/Heal",
+    "effects": [
+     {
+      "type": "Dmg/Heal",
+      "kind": "hp2",
+      "amount": -3500,
+      "resist": "fr"
+     }
+    ]
+   }
+  },
+  {
+   "id": 905006,
+   "name": "Bulwark's Breath",
+   "line": "Target, aoe Decrease Hitpoints by 2000, Radius 40",
+   "fx": 2972655019,
+   "effects": {
+    "v": 1,
+    "scope": "target_aoe",
+    "target_type": "Enemy",
+    "harmful": true,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "radius": 40,
+    "req_equipment": "Any",
+    "sheet_type": "Dmg/Heal",
+    "effects": [
+     {
+      "type": "Dmg/Heal",
+      "kind": "hp2",
+      "amount": -2000,
+      "resist": "cr"
+     }
+    ]
+   }
+  },
+  {
+   "id": 905007,
+   "name": "Talon's Searing",
+   "line": "Target, Decrease FR by 180, Decrease STA by 100, Decrease AGI by 100, 120s",
+   "fx": 1338050560,
+   "effects": {
+    "v": 1,
+    "scope": "target",
+    "target_type": "Enemy",
+    "harmful": true,
+    "duration_s": 120,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "req_equipment": "Any",
+    "sheet_type": "Statistic Change",
+    "effects": [
+     {
+      "type": "Statistic Change",
+      "kind": "stat",
+      "stat": "fr",
+      "amount": -180,
+      "resist": "fr"
+     },
+     {
+      "type": "Statistic Change",
+      "kind": "stat",
+      "stat": "sta",
+      "amount": -100,
+      "resist": "fr"
+     },
+     {
+      "type": "Statistic Change",
+      "kind": "stat",
+      "stat": "agi",
+      "amount": -100,
+      "resist": "fr"
+     }
+    ]
+   }
+  },
+  {
+   "id": 905008,
+   "name": "Bulwark's Chill",
+   "line": "Target, Decrease CR by 180, Decrease STA by 100, Decrease AGI by 100, 120s",
+   "fx": 2972655019,
+   "effects": {
+    "v": 1,
+    "scope": "target",
+    "target_type": "Enemy",
+    "harmful": true,
+    "duration_s": 120,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "req_equipment": "Any",
+    "sheet_type": "Statistic Change",
+    "effects": [
+     {
+      "type": "Statistic Change",
+      "kind": "stat",
+      "stat": "cr",
+      "amount": -180,
+      "resist": "cr"
+     },
+     {
+      "type": "Statistic Change",
+      "kind": "stat",
+      "stat": "sta",
+      "amount": -100,
+      "resist": "cr"
+     },
+     {
+      "type": "Statistic Change",
+      "kind": "stat",
+      "stat": "agi",
+      "amount": -100,
+      "resist": "cr"
+     }
+    ]
+   }
+  }
+ ],
+ "templates": [
+  {
+   "name": "construct of radiance",
+   "class": 0,
+   "hp": 200000,
+   "level": 66,
+   "melee": 200,
+   "crit": 1000,
+   "abilities": [
+    {
+     "kind": "aoe",
+     "spell_id": 905000,
+     "every": 20,
+     "first": 15
+    }
+   ],
+   "note": "The guide: 'CS did this with 2 groups very easily', 'there is an AoE to beware of'. 200k HP, a 1,500 area of its chain's element every 20 s, a 1,000 crit: ours, below QoV's 700k."
+  },
+  {
+   "name": "construct of storms",
+   "class": 0,
+   "hp": 200000,
+   "level": 66,
+   "melee": 200,
+   "crit": 1000,
+   "abilities": [
+    {
+     "kind": "aoe",
+     "spell_id": 905001,
+     "every": 20,
+     "first": 15
+    }
+   ],
+   "note": "The guide: 'CS did this with 2 groups very easily', 'there is an AoE to beware of'. 200k HP, a 1,500 area of its chain's element every 20 s, a 1,000 crit: ours, below QoV's 700k."
+  },
+  {
+   "name": "construct of shadows",
+   "class": 0,
+   "hp": 200000,
+   "level": 66,
+   "melee": 200,
+   "crit": 1000,
+   "abilities": [
+    {
+     "kind": "aoe",
+     "spell_id": 905002,
+     "every": 20,
+     "first": 15
+    }
+   ],
+   "note": "The guide: 'CS did this with 2 groups very easily', 'there is an AoE to beware of'. 200k HP, a 1,500 area of its chain's element every 20 s, a 1,000 crit: ours, below QoV's 700k."
+  },
+  {
+   "name": "construct of frost",
+   "class": 0,
+   "hp": 200000,
+   "level": 66,
+   "melee": 200,
+   "crit": 1000,
+   "abilities": [
+    {
+     "kind": "aoe",
+     "spell_id": 905003,
+     "every": 20,
+     "first": 15
+    }
+   ],
+   "note": "The guide: 'CS did this with 2 groups very easily', 'there is an AoE to beware of'. 200k HP, a 1,500 area of its chain's element every 20 s, a 1,000 crit: ours, below QoV's 700k."
+  },
+  {
+   "name": "construct of sorrows",
+   "class": 0,
+   "hp": 200000,
+   "level": 66,
+   "melee": 200,
+   "crit": 1000,
+   "abilities": [
+    {
+     "kind": "aoe",
+     "spell_id": 905004,
+     "every": 20,
+     "first": 15
+    }
+   ],
+   "note": "The guide: 'CS did this with 2 groups very easily', 'there is an AoE to beware of'. 200k HP, a 1,500 area of its chain's element every 20 s, a 1,000 crit: ours, below QoV's 700k."
+  },
+  {
+   "name": "talon's veeshan",
+   "class": 0,
+   "hp": 300000,
+   "level": 70,
+   "melee": 1760,
+   "crit": 3500,
+   "abilities": [
+    {
+     "kind": "aoe",
+     "spell_id": 905005,
+     "every": 20,
+     "first": 15
+    },
+    {
+     "kind": "debuff",
+     "spell_id": 905007,
+     "every": 60,
+     "first": 5
+    }
+   ],
+   "note": "Guide: very little HP, swings 2500s on a 6850 AC Defender, FR AoE 3500 with about a 180 FR debuff, stats too. 300k HP and the crit ours."
+  },
+  {
+   "name": "veeshan's bulwark",
+   "class": 0,
+   "hp": 1000000,
+   "level": 70,
+   "taken": 60,
+   "melee": 740,
+   "crit": 1500,
+   "abilities": [
+    {
+     "kind": "aoe",
+     "spell_id": 905006,
+     "every": 20,
+     "first": 15
+    },
+    {
+     "kind": "debuff",
+     "spell_id": 905008,
+     "every": 60,
+     "first": 5
+    }
+   ],
+   "note": "Guide: extremely high defense, swings 900-1200 on a 6850 AC Defender, CR AoE 2000 with about a 180 CR debuff, stats too; 'a little harder than Norox and QoV'. 1M HP as the PoD bosses, taken 60 for the defense, ours."
+  },
+  {
+   "name": "sky chain boss",
+   "class": 0,
+   "hp": 100000,
+   "level": 64,
+   "melee": 120,
+   "crit": 700,
+   "note": "Granavik: 'with one group he took about 10-15 minutes to kill'. 100k HP, ours."
+  }
+ ],
+ "triggers": [
+  {
+   "slot": 101,
+   "name": "Construct of Radiance",
+   "scope": "near",
+   "radius": 40,
+   "world": -1,
+   "steps": [
+    {
+     "do": "lock",
+     "lock": "sky isle"
+    },
+    {
+     "do": "teleport",
+     "world": 4,
+     "x": 5125.0,
+     "y": 236.2,
+     "z": 5700.0,
+     "max": 16,
+     "refuse": "The light has taken all it can: sixteen, a pet counting as one."
+    },
+    {
+     "do": "place",
+     "world": 4,
+     "x": 5105.0,
+     "y": 236.8,
+     "z": 5745.0,
+     "radius": 140
+    },
+    {
+     "do": "clock",
+     "seconds": 1800
+    },
+    {
+     "do": "broadcast",
+     "text": "You stand on an isle of the Plane of Sky you have not seen before. Speak with the Astral Light when you are ready. It holds you here thirty minutes."
+    },
+    {
+     "do": "awaittalk",
+     "npc": "Astral Light",
+     "text": "The light gathers itself, and something answers."
+    },
+    {
+     "do": "spawn",
+     "npc": "Construct of Radiance",
+     "hostile": true,
+     "spread": 1.0,
+     "minutes": 30,
+     "world": 4,
+     "x": 5105.0,
+     "y": 236.8,
+     "z": 5745.0
+    },
+    {
+     "do": "awaitdead"
+    },
+    {
+     "do": "broadcast",
+     "text": "The isle fades. Five minutes and it will send you back."
+    },
+    {
+     "do": "wait",
+     "seconds": 300
+    },
+    {
+     "do": "end"
+    },
+    {
+     "do": "despawn"
+    },
+    {
+     "do": "broadcast",
+     "text": "The Astral Light sends you back."
+    },
+    {
+     "do": "teleport",
+     "world": 4,
+     "x": 5125.0,
+     "y": 250.1,
+     "z": 5445.0
+    }
+   ],
+   "notes": "The chain's shards at the Astral Light: up to 16 to the isle, 30 minutes, the construct on a talk there, 5 minutes after its death back."
+  },
+  {
+   "slot": 102,
+   "name": "Construct of Storms",
+   "scope": "near",
+   "radius": 40,
+   "world": -1,
+   "steps": [
+    {
+     "do": "lock",
+     "lock": "sky isle"
+    },
+    {
+     "do": "teleport",
+     "world": 4,
+     "x": 5125.0,
+     "y": 236.2,
+     "z": 5700.0,
+     "max": 16,
+     "refuse": "The light has taken all it can: sixteen, a pet counting as one."
+    },
+    {
+     "do": "place",
+     "world": 4,
+     "x": 5105.0,
+     "y": 236.8,
+     "z": 5745.0,
+     "radius": 140
+    },
+    {
+     "do": "clock",
+     "seconds": 1800
+    },
+    {
+     "do": "broadcast",
+     "text": "You stand on an isle of the Plane of Sky you have not seen before. Speak with the Astral Light when you are ready. It holds you here thirty minutes."
+    },
+    {
+     "do": "awaittalk",
+     "npc": "Astral Light",
+     "text": "The light gathers itself, and something answers."
+    },
+    {
+     "do": "spawn",
+     "npc": "Construct of Storms",
+     "hostile": true,
+     "spread": 1.0,
+     "minutes": 30,
+     "world": 4,
+     "x": 5105.0,
+     "y": 236.8,
+     "z": 5745.0
+    },
+    {
+     "do": "awaitdead"
+    },
+    {
+     "do": "broadcast",
+     "text": "The isle fades. Five minutes and it will send you back."
+    },
+    {
+     "do": "wait",
+     "seconds": 300
+    },
+    {
+     "do": "end"
+    },
+    {
+     "do": "despawn"
+    },
+    {
+     "do": "broadcast",
+     "text": "The Astral Light sends you back."
+    },
+    {
+     "do": "teleport",
+     "world": 4,
+     "x": 5125.0,
+     "y": 250.1,
+     "z": 5445.0
+    }
+   ],
+   "notes": "The chain's shards at the Astral Light: up to 16 to the isle, 30 minutes, the construct on a talk there, 5 minutes after its death back."
+  },
+  {
+   "slot": 103,
+   "name": "Construct of Shadows",
+   "scope": "near",
+   "radius": 40,
+   "world": -1,
+   "steps": [
+    {
+     "do": "lock",
+     "lock": "sky isle"
+    },
+    {
+     "do": "teleport",
+     "world": 4,
+     "x": 5125.0,
+     "y": 236.2,
+     "z": 5700.0,
+     "max": 16,
+     "refuse": "The light has taken all it can: sixteen, a pet counting as one."
+    },
+    {
+     "do": "place",
+     "world": 4,
+     "x": 5105.0,
+     "y": 236.8,
+     "z": 5745.0,
+     "radius": 140
+    },
+    {
+     "do": "clock",
+     "seconds": 1800
+    },
+    {
+     "do": "broadcast",
+     "text": "You stand on an isle of the Plane of Sky you have not seen before. Speak with the Astral Light when you are ready. It holds you here thirty minutes."
+    },
+    {
+     "do": "awaittalk",
+     "npc": "Astral Light",
+     "text": "The light gathers itself, and something answers."
+    },
+    {
+     "do": "spawn",
+     "npc": "Construct of Shadows",
+     "hostile": true,
+     "spread": 1.0,
+     "minutes": 30,
+     "world": 4,
+     "x": 5105.0,
+     "y": 236.8,
+     "z": 5745.0
+    },
+    {
+     "do": "awaitdead"
+    },
+    {
+     "do": "broadcast",
+     "text": "The isle fades. Five minutes and it will send you back."
+    },
+    {
+     "do": "wait",
+     "seconds": 300
+    },
+    {
+     "do": "end"
+    },
+    {
+     "do": "despawn"
+    },
+    {
+     "do": "broadcast",
+     "text": "The Astral Light sends you back."
+    },
+    {
+     "do": "teleport",
+     "world": 4,
+     "x": 5125.0,
+     "y": 250.1,
+     "z": 5445.0
+    }
+   ],
+   "notes": "The chain's shards at the Astral Light: up to 16 to the isle, 30 minutes, the construct on a talk there, 5 minutes after its death back."
+  },
+  {
+   "slot": 104,
+   "name": "Construct of Frost",
+   "scope": "near",
+   "radius": 40,
+   "world": -1,
+   "steps": [
+    {
+     "do": "lock",
+     "lock": "sky isle"
+    },
+    {
+     "do": "teleport",
+     "world": 4,
+     "x": 5125.0,
+     "y": 236.2,
+     "z": 5700.0,
+     "max": 16,
+     "refuse": "The light has taken all it can: sixteen, a pet counting as one."
+    },
+    {
+     "do": "place",
+     "world": 4,
+     "x": 5105.0,
+     "y": 236.8,
+     "z": 5745.0,
+     "radius": 140
+    },
+    {
+     "do": "clock",
+     "seconds": 1800
+    },
+    {
+     "do": "broadcast",
+     "text": "You stand on an isle of the Plane of Sky you have not seen before. Speak with the Astral Light when you are ready. It holds you here thirty minutes."
+    },
+    {
+     "do": "awaittalk",
+     "npc": "Astral Light",
+     "text": "The light gathers itself, and something answers."
+    },
+    {
+     "do": "spawn",
+     "npc": "Construct of Frost",
+     "hostile": true,
+     "spread": 1.0,
+     "minutes": 30,
+     "world": 4,
+     "x": 5105.0,
+     "y": 236.8,
+     "z": 5745.0
+    },
+    {
+     "do": "awaitdead"
+    },
+    {
+     "do": "broadcast",
+     "text": "The isle fades. Five minutes and it will send you back."
+    },
+    {
+     "do": "wait",
+     "seconds": 300
+    },
+    {
+     "do": "end"
+    },
+    {
+     "do": "despawn"
+    },
+    {
+     "do": "broadcast",
+     "text": "The Astral Light sends you back."
+    },
+    {
+     "do": "teleport",
+     "world": 4,
+     "x": 5125.0,
+     "y": 250.1,
+     "z": 5445.0
+    }
+   ],
+   "notes": "The chain's shards at the Astral Light: up to 16 to the isle, 30 minutes, the construct on a talk there, 5 minutes after its death back."
+  },
+  {
+   "slot": 105,
+   "name": "Construct of Sorrows",
+   "scope": "near",
+   "radius": 40,
+   "world": -1,
+   "steps": [
+    {
+     "do": "lock",
+     "lock": "sky isle"
+    },
+    {
+     "do": "teleport",
+     "world": 4,
+     "x": 5125.0,
+     "y": 236.2,
+     "z": 5700.0,
+     "max": 16,
+     "refuse": "The light has taken all it can: sixteen, a pet counting as one."
+    },
+    {
+     "do": "place",
+     "world": 4,
+     "x": 5105.0,
+     "y": 236.8,
+     "z": 5745.0,
+     "radius": 140
+    },
+    {
+     "do": "clock",
+     "seconds": 1800
+    },
+    {
+     "do": "broadcast",
+     "text": "You stand on an isle of the Plane of Sky you have not seen before. Speak with the Astral Light when you are ready. It holds you here thirty minutes."
+    },
+    {
+     "do": "awaittalk",
+     "npc": "Astral Light",
+     "text": "The light gathers itself, and something answers."
+    },
+    {
+     "do": "spawn",
+     "npc": "Construct of Sorrows",
+     "hostile": true,
+     "spread": 1.0,
+     "minutes": 30,
+     "world": 4,
+     "x": 5105.0,
+     "y": 236.8,
+     "z": 5745.0
+    },
+    {
+     "do": "awaitdead"
+    },
+    {
+     "do": "broadcast",
+     "text": "The isle fades. Five minutes and it will send you back."
+    },
+    {
+     "do": "wait",
+     "seconds": 300
+    },
+    {
+     "do": "end"
+    },
+    {
+     "do": "despawn"
+    },
+    {
+     "do": "broadcast",
+     "text": "The Astral Light sends you back."
+    },
+    {
+     "do": "teleport",
+     "world": 4,
+     "x": 5125.0,
+     "y": 250.1,
+     "z": 5445.0
+    }
+   ],
+   "notes": "The chain's shards at the Astral Light: up to 16 to the isle, 30 minutes, the construct on a talk there, 5 minutes after its death back."
+  },
+  {
+   "slot": 106,
+   "name": "Veeshan's Twins",
+   "scope": "near",
+   "radius": 40,
+   "world": -1,
+   "steps": [
+    {
+     "do": "lock",
+     "lock": "sky isle"
+    },
+    {
+     "do": "teleport",
+     "world": 4,
+     "x": 5125.0,
+     "y": 236.2,
+     "z": 5700.0,
+     "max": 16,
+     "refuse": "The light has taken all it can: sixteen, a pet counting as one."
+    },
+    {
+     "do": "place",
+     "world": 4,
+     "x": 5105.0,
+     "y": 236.8,
+     "z": 5745.0,
+     "radius": 140
+    },
+    {
+     "do": "clock",
+     "seconds": 1800
+    },
+    {
+     "do": "broadcast",
+     "text": "You stand on an isle of the Plane of Sky you have not seen before. Speak with the Astral Light when you are ready. It holds you here thirty minutes."
+    },
+    {
+     "do": "awaittalk",
+     "npc": "Astral Light",
+     "text": "The light gathers itself, and something answers."
+    },
+    {
+     "do": "spawn",
+     "npc": "Talon's Veeshan",
+     "hostile": true,
+     "spread": 1.0,
+     "minutes": 30,
+     "world": 4,
+     "x": 5105.0,
+     "y": 236.8,
+     "z": 5748.0
+    },
+    {
+     "do": "spawn",
+     "npc": "Veeshan's Bulwark",
+     "hostile": true,
+     "spread": 1.0,
+     "minutes": 30,
+     "world": 4,
+     "x": 5105.0,
+     "y": 236.5,
+     "z": 5768.0
+    },
+    {
+     "do": "awaitdead",
+     "any": true
+    },
+    {
+     "do": "broadcast",
+     "text": "The isle fades. Five minutes and it will send you back."
+    },
+    {
+     "do": "wait",
+     "seconds": 300
+    },
+    {
+     "do": "end"
+    },
+    {
+     "do": "despawn"
+    },
+    {
+     "do": "broadcast",
+     "text": "The Astral Light sends you back."
+    },
+    {
+     "do": "teleport",
+     "world": 4,
+     "x": 5125.0,
+     "y": 250.1,
+     "z": 5445.0
+    }
+   ],
+   "notes": "Five construct shards at the astral essence: up to 16 to the isle, the 30-minute clock from the port, the twins on a talk with the Astral Light there, gone 5 minutes after either dies."
+  },
+  {
+   "slot": 107,
+   "name": "Granavik",
+   "scope": "near",
+   "radius": 60,
+   "world": 4,
+   "x": 4318.0,
+   "y": -69.0,
+   "z": 4700.0,
+   "steps": [
+    {
+     "do": "lock",
+     "lock": "granavik"
+    },
+    {
+     "do": "spawn",
+     "npc": "Granavik",
+     "hostile": true,
+     "spread": 1.0,
+     "minutes": 30
+    }
+   ],
+   "notes": "Rain 3: 'Behind the pillar you'll see Granavik the bugbeast has now spawned'."
+  }
+ ],
+ "deaths": [
+  {
+   "name": "Ghizilanve",
+   "trigger": "Granavik",
+   "chance": 100,
+   "note": "Rain 3: he comes when she falls."
+  }
+ ],
+ "loot": [
+  {
+   "table": "sky shard shard of dawn",
+   "items": [
+    "Shard of Dawn"
+   ],
+   "npcs": [
+    [
+     "brightstar princess",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shard of beaming",
+   "items": [
+    "Shard of Beaming"
+   ],
+   "npcs": [
+    [
+     "Imerzan",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shard of glimmers",
+   "items": [
+    "Shard of Glimmers"
+   ],
+   "npcs": [
+    [
+     "torrential wind",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shard of noon",
+   "items": [
+    "Shard of Noon"
+   ],
+   "npcs": [
+    [
+     "Randarin the Relentless",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard radiant construct shard",
+   "items": [
+    "Radiant Construct Shard"
+   ],
+   "npcs": [
+    [
+     "Construct of Radiance",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shard of drizzle",
+   "items": [
+    "Shard of Drizzle"
+   ],
+   "npcs": [
+    [
+     "Artiokanis",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shard of mists",
+   "items": [
+    "Shard of Mists"
+   ],
+   "npcs": [
+    [
+     "Kaglanor",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shard of torrents",
+   "items": [
+    "Shard of Torrents"
+   ],
+   "npcs": [
+    [
+     "Granavik",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shard of squalls",
+   "items": [
+    "Shard of Squalls"
+   ],
+   "npcs": [
+    [
+     "Spirit of Narciliisisin",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shard of deluge",
+   "items": [
+    "Shard of Deluge"
+   ],
+   "npcs": [
+    [
+     "Chimareon the Tyrant",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard storm construct shard",
+   "items": [
+    "Storm Construct Shard"
+   ],
+   "npcs": [
+    [
+     "Construct of Storms",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shard of dusk",
+   "items": [
+    "Shard of Dusk"
+   ],
+   "npcs": [
+    [
+     "Ancient Jester",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shard of gloom",
+   "items": [
+    "Shard of Gloom"
+   ],
+   "npcs": [
+    [
+     "iron knight",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shard of twilight",
+   "items": [
+    "Shard of Twilight"
+   ],
+   "npcs": [
+    [
+     "dark baroness",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shard of midnight",
+   "items": [
+    "Shard of Midnight"
+   ],
+   "npcs": [
+    [
+     "King Ruthra",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shadow construct shard",
+   "items": [
+    "Shadow Construct Shard"
+   ],
+   "npcs": [
+    [
+     "Construct of Shadows",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shard of shivers",
+   "items": [
+    "Shard of Shivers"
+   ],
+   "npcs": [
+    [
+     "Whirlwind",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shard of glaciers",
+   "items": [
+    "Shard of Glaciers"
+   ],
+   "npcs": [
+    [
+     "glacial champion",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shard of icy depths",
+   "items": [
+    "Shard of Icy Depths"
+   ],
+   "npcs": [
+    [
+     "Enraged Aeyinar",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard frost construct shard",
+   "items": [
+    "Frost Construct Shard"
+   ],
+   "npcs": [
+    [
+     "Construct of Frost",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shard of isolation",
+   "items": [
+    "Shard of Isolation"
+   ],
+   "npcs": [
+    [
+     "Erych Arbiter",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shard of dissolution",
+   "items": [
+    "Shard of Dissolution"
+   ],
+   "npcs": [
+    [
+     "warlord of Narcillian",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shard of the wasteland",
+   "items": [
+    "Shard of the Wasteland"
+   ],
+   "npcs": [
+    [
+     "elite harpy queen",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard shard of ruin",
+   "items": [
+    "Shard of Ruin"
+   ],
+   "npcs": [
+    [
+     "Quintessence of Veeshan",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky shard sorrow construct shard",
+   "items": [
+    "Sorrow Construct Shard"
+   ],
+   "npcs": [
+    [
+     "Construct of Sorrows",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky twin scales bulwark",
+   "items": [
+    "Veeshan's Scale"
+   ],
+   "npcs": [
+    [
+     "Veeshan's Bulwark",
+     100,
+     4
+    ]
+   ]
+  },
+  {
+   "table": "sky twin scales talon",
+   "items": [
+    "Veeshan's Scale"
+   ],
+   "npcs": [
+    [
+     "Talon's Veeshan",
+     100,
+     2
+    ]
+   ]
+  },
+  {
+   "table": "sky twin gem",
+   "items": [
+    "Gem of the Sky"
+   ],
+   "npcs": [
+    [
+     "Talon's Veeshan",
+     25,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "sky twins",
+   "items": [
+    "sublime belt",
+    "Sublime Gloves",
+    "Sublime Armguard",
+    "aeriform shroud",
+    "pneumatic tunic",
+    "Pneumatic Gloves",
+    "Pneumatic Staff",
+    "transcendental wall",
+    "seraphic planar robe",
+    "seraphic planar shroud",
+    "seraphic planar chestplate",
+    "Seraphic Planar Bow",
+    "Seraphic Planar Greaves",
+    "Seraphic Planar Bracers",
+    "Seraphic Planar Boots",
+    "sandals of power",
+    "falchion of light",
+    "robe of divergence",
+    "ring of speed",
+    "dagger of clarity",
+    "Mace of Clarity",
+    "smasher of clarity",
+    "Sword of Clarity",
+    "Sword of the Knight",
+    "Quilliam's sword of slayers"
+   ],
+   "npcs": [
+    [
+     "Talon's Veeshan",
+     100,
+     3
+    ],
+    [
+     "Veeshan's Bulwark",
+     100,
+     3
+    ]
+   ]
+  },
+  {
+   "table": "sky constructs",
+   "items": [
+    "sublime belt",
+    "Sublime Gloves",
+    "Sublime Armguard",
+    "aeriform shroud",
+    "pneumatic tunic",
+    "Pneumatic Gloves",
+    "Pneumatic Staff",
+    "transcendental wall",
+    "seraphic planar robe",
+    "seraphic planar shroud",
+    "seraphic planar chestplate",
+    "Seraphic Planar Bow",
+    "Seraphic Planar Greaves",
+    "Seraphic Planar Bracers",
+    "Seraphic Planar Boots",
+    "sandals of power",
+    "falchion of light",
+    "robe of divergence",
+    "ring of speed",
+    "dagger of clarity",
+    "Mace of Clarity",
+    "smasher of clarity",
+    "Sword of Clarity",
+    "Sword of the Knight",
+    "Quilliam's sword of slayers"
+   ],
+   "npcs": [
+    [
+     "Construct of Radiance",
+     50,
+     1
+    ],
+    [
+     "Construct of Storms",
+     50,
+     1
+    ],
+    [
+     "Construct of Shadows",
+     50,
+     1
+    ],
+    [
+     "Construct of Frost",
+     50,
+     1
+    ],
+    [
+     "Construct of Sorrows",
+     50,
+     1
+    ]
+   ]
+  }
+ ],
+ "quests": "sky-twins.json",
+ "step_events": [
+  {
+   "quest": "Portal/plane-of-sky/night",
+   "step": 13,
+   "target": "Night Maiden",
+   "events": [
+    {
+     "on": "done",
+     "do": "give",
+     "items": [
+      [
+       "Shard of Shade",
+       1
+      ]
+     ],
+     "unless_held": true
+    }
+   ]
+  }
+ ],
+ "dialog": [
+  {
+   "name": "Astral Light",
+   "line": "The light hums. It wants a chain's shards, all of them, from one hand."
+  },
+  {
+   "name": "astral essence",
+   "line": "The essence turns slowly. Five lights would wake it, one from each construct."
+  }
+ ]
+}

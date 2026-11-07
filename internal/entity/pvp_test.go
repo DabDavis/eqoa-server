@@ -653,3 +653,56 @@ func TestPvPAndADuel(t *testing.T) {
 		t.Fatal("a duelist dead: the duel goes on")
 	}
 }
+
+// A flagged player killed falls for everyone (byte 58 CLIENT's dying state, seen only while it lies
+// dead), and at its return every client that had it on a slot makes it anew under a new id; an
+// unflagged player's death is as it was.
+func TestPvPDeathIsSeen(t *testing.T) {
+	d := newPvP(t)
+	d.flag(t, d.sa, 0)
+	d.flag(t, d.sb, 0)
+	view := func(s *session.Session, p *Player, obj uint32) []byte {
+		return d.w.serializeEntityForChannel(s, p.ServerID, obj)
+	}
+	d.w.mu.Lock()
+	defer d.w.mu.Unlock()
+	if b := view(d.sa, d.b, d.aSeesB); b[58] == pvpDyingState {
+		t.Fatalf("alive, byte 58 is %d", b[58])
+	}
+	d.b.HP = 3
+	now := d.at(time.Second)
+	d.w.duelHurtLocked(d.w.pvpFightLocked(d.a, d.b), d.a, d.a.ServerID, d.b, 5000, now)
+	if !d.b.IsDead() {
+		t.Fatal("not dead")
+	}
+	for _, c := range []struct {
+		s   *session.Session
+		obj uint32
+	}{{d.sa, d.aSeesB}, {d.sc, d.cSeesB}} {
+		if b := view(c.s, d.b, c.obj); b[58] != pvpDyingState || b[142] != 2 {
+			t.Errorf("dead: bytes 58, 142 %d, %d", b[58], b[142])
+		}
+	}
+	// the control: a player with no flag, dead, is as any dead player was
+	d.c.HP, d.c.DiedAt = 0, now
+	if b := view(d.sa, d.c, aSeesC); b[58] == pvpDyingState {
+		t.Errorf("an unflagged player's death changed byte 58: %d", b[58])
+	}
+	d.c.HP, d.c.DiedAt = 100, time.Time{}
+
+	due := d.w.playerRespawnSystem(now.Add(PlayerRespawnDelay))
+	if len(due) != 1 || d.b.HP != d.b.MaxHP {
+		t.Fatalf("respawn: %d due, HP %d", len(due), d.b.HP)
+	}
+	for _, s := range []*session.Session{d.sa, d.sc} {
+		for i, id := range GetOrCreateVisibility(s).ChannelEntity {
+			if id == d.b.ServerID {
+				t.Errorf("slot %d still holds it after its return", i)
+			}
+		}
+	}
+	// and only its slots: the other it sees stays
+	if GetOrCreateVisibility(d.sc).ChannelEntity[0] != d.a.ServerID {
+		t.Error("another's slot was taken")
+	}
+}

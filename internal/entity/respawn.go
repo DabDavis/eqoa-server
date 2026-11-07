@@ -131,6 +131,7 @@ func (w *World) playerRespawnSystem(now time.Time) []respawnDue {
 			continue
 		}
 		p.DiedAt = time.Time{}
+		w.pvpRiseLocked(p) // pvp.go: each client that saw it fall makes it anew
 		p.HP = p.MaxHP
 		p.Power = p.MaxPower
 		p.Breath = BreathFull

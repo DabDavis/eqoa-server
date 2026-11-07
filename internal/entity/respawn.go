@@ -69,6 +69,12 @@ func (p *Player) respawnPending() bool {
 // however many more hits or drowning ticks the corpse would have taken. sess
 // may be nil (no client to tell). Must be called with the lock held.
 func (w *World) playerDiedLocked(sess *session.Session, p *Player, now time.Time) {
+	w.playerDownLocked(sess, p, now, DeathDebt(p.Level))
+}
+
+// playerDownLocked is playerDiedLocked with the death's experience debt given:
+// deathdebt.go's for any death but a PvP one (pvp.go).
+func (w *World) playerDownLocked(sess *session.Session, p *Player, now time.Time, debt int) {
 	if p.respawnPending() {
 		return
 	}
@@ -78,7 +84,6 @@ func (w *World) playerDiedLocked(sess *session.Session, p *Player, now time.Time
 	p.disengage()
 	w.clearSpellsLocked(p)
 	w.dropAggroLocked(p.ServerID)
-	debt := DeathDebt(p.Level)
 	p.Debt += debt
 	p.noteRezChance(debt, now) // resurrect.go: what a rez may give back of it
 	if sess != nil {
@@ -126,6 +131,7 @@ func (w *World) playerRespawnSystem(now time.Time) []respawnDue {
 			continue
 		}
 		p.DiedAt = time.Time{}
+		w.pvpRiseLocked(p) // pvp.go: each client that saw it fall makes it anew
 		p.HP = p.MaxHP
 		p.Power = p.MaxPower
 		p.Breath = BreathFull

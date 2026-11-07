@@ -49,18 +49,21 @@ func (w *World) duelLandLocked(cs *castState, caster *Player, casterSess *sessio
 	if !cs.spell.duel {
 		return false
 	}
-	d := w.duelOnLocked(caster.ServerID)
-	if d == nil || d.other(caster.ServerID) != t.ServerID || t.IsDead() {
-		log.Printf("Duel: %s's %q on %s lands on nothing: no duel between them", caster.Name, cs.spell.Name, t.Name)
+	d := w.fightBetweenLocked(caster, t) // their duel, or two flagged players' fight (pvp.go)
+	if d == nil || t.IsDead() {
+		log.Printf("Duel: %s's %q on %s lands on nothing: no fight between them", caster.Name, cs.spell.Name, t.Name)
 		return true
 	}
 	caster.LastCombatTime = now
+	if d.pvp {
+		pvpAttackedLocked(caster, t, now) // pvp.go: both flags held from now
+	}
 	for _, e := range cs.spell.Def.Effects {
 		switch e.Kind {
 		case EffectHP:
 			if n := spellAmount(e, caster); n < 0 {
 				if e.Drain != DrainNone {
-					w.drainLocked(cs, caster, casterSess, e, duelHalf(-n), now)
+					w.drainLocked(cs, caster, casterSess, e, d.hit(-n), now)
 				}
 				if w.duelHurtLocked(d, caster, caster.ServerID, t, -n, now) {
 					return true // the duel is over: nothing more of it lands
@@ -68,7 +71,7 @@ func (w *World) duelLandLocked(cs *castState, caster *Player, casterSess *sessio
 			}
 		case EffectPower:
 			if n := spellAmount(e, caster); n < 0 {
-				take := min(duelHalf(-n), t.Power)
+				take := min(d.hit(-n), t.Power)
 				t.Power -= take
 				t.StatsDirty = true
 				if e.Drain != DrainNone {
@@ -86,7 +89,7 @@ func (w *World) duelLandLocked(cs *castState, caster *Player, casterSess *sessio
 		w.addEffectLocked(t, ae, now)
 	}
 	d.struck[t.ServerID] = true
-	log.Printf("Duel %d: %s's %q lands on %s (%d/%d HP)", d.ID, caster.Name, cs.spell.Name, t.Name, t.HP, t.MaxHPNow())
+	log.Printf("%s: %s's %q lands on %s (%d/%d HP)", d.tag(), caster.Name, cs.spell.Name, t.Name, t.HP, t.MaxHPNow())
 	return true
 }
 
@@ -125,9 +128,12 @@ func (w *World) duelTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	if ae.duelFoe == 0 || ae.HPTick >= 0 {
 		return
 	}
-	d := w.duelOnLocked(t.ServerID)
 	caster := w.Players[ae.duelFoe]
-	if d == nil || caster == nil || d.other(t.ServerID) != ae.duelFoe {
+	if caster == nil {
+		return
+	}
+	d := w.fightBetweenLocked(caster, t)
+	if d == nil {
 		return
 	}
 	w.duelHurtLocked(d, caster, caster.ServerID, t, -ae.HPTick, now)
@@ -175,6 +181,13 @@ func (w *World) duelPetLocked(ps *petState, dt float32, now time.Time) bool {
 		target = foe
 		d.petTarget[owner.ServerID] = foe
 	}
+	return w.duelPetRoundLocked(ps, d, target, dt, now)
+}
+
+// duelPetRoundLocked is a pet's turn at its target in a duel or a PvP fight: its way there, and
+// its rounds, every hit duel damage. false when its target is gone or past its leash.
+func (w *World) duelPetRoundLocked(ps *petState, d *Duel, target EntityID, dt float32, now time.Time) bool {
+	owner, pet := ps.owner, ps.npc
 	var tx, ty, tz float32
 	level := 0
 	if t := w.Players[target]; t != nil {
@@ -225,7 +238,7 @@ func (w *World) duelPetLocked(ps *petState, dt float32, now time.Time) bool {
 		if tp := w.NPCs[target]; tp != nil {
 			w.duelHurtPetLocked(d, owner, tp, n, now)
 			if d.petOut[tp.Owner] {
-				d.petTarget[owner.ServerID] = foe
+				d.petTarget[owner.ServerID] = d.other(owner.ServerID)
 				pet.endRound()
 				return true
 			}

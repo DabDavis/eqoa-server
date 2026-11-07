@@ -122,6 +122,9 @@ type World struct {
 	duels     duelTable
 	duelPurse duelPurse
 
+	// pvpAllowed is world.pvp: whether players may flag themselves (pvp.go)
+	pvpAllowed bool
+
 	// The life taps a necromancer's pets cast, by level (pettap.go)
 	petTaps []PetTap
 
@@ -434,6 +437,7 @@ func (w *World) leavingLocked(p *Player) []func(*Player) {
 	w.dropPortalLocked(p) // its portal too (summonportal.go)
 	w.voiceGoneLocked(p)
 	w.duelLeavingLocked(p) // its invitation lapses, its duel is forfeit (duel.go)
+	w.pvpLeavingLocked(p)  // what it put on foes goes (pvp.go)
 	fns := make([]func(*Player), len(w.leaving))
 	copy(fns, w.leaving)
 	return fns

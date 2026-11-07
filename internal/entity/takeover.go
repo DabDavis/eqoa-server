@@ -224,5 +224,8 @@ func (w *World) SendTakenOver(sess *session.Session, now time.Time) int {
 			n++
 		}
 	}
+	if p.pvp.on { // the new client has no word of it (pvp.go)
+		w.sendChatToSession(sess, pvpLineStill)
+	}
 	return n
 }

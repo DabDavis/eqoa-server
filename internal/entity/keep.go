@@ -32,11 +32,11 @@ type KeptPlayer struct {
 	Target       uint32        `json:"target,omitempty"`
 	Lockouts     []KeptLockout `json:"lockouts,omitempty"`
 	PowerBars    bool          `json:"power_bars,omitempty"`
-	RaceLabels   bool          `json:"race_labels,omitempty"`
 	DuelWindow   bool          `json:"duel_window,omitempty"`
 	GM           bool          `json:"gm,omitempty"`
 	Place        [3]float32    `json:"place"`
 	World        uint8         `json:"world"`
+	RaceLabels   bool          `json:"race_labels,omitempty"`
 }
 
 // KeptLockout is a spell's lockout and what is left of it.
@@ -79,8 +79,9 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 		return KeptPlayer{}, false
 	}
 	k := KeptPlayer{CharServerID: p.CharServerID, Name: p.Name, Dead: p.IsDead() || p.respawnPending(),
-		Target: p.TargetObjectID, PowerBars: p.PowerBars, RaceLabels: p.RaceLabels, DuelWindow: p.DuelWindow, GM: p.GM,
+		Target: p.TargetObjectID, PowerBars: p.PowerBars, DuelWindow: p.DuelWindow, GM: p.GM,
 		Place: [3]float32{p.X, p.Y, p.Z}, World: p.World}
+	k.RaceLabels = p.RaceLabels
 	for _, l := range p.Lockouts {
 		if left := l.until.Sub(now); left > 0 {
 			k.Lockouts = append(k.Lockouts, KeptLockout{Spell: l.spellID, Index: l.displayIndex, LeftMS: left.Milliseconds()})
@@ -106,8 +107,8 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 		p.Lockouts = append(p.Lockouts, castLockout{spellID: l.Spell, displayIndex: l.Index,
 			until: now.Add(time.Duration(l.LeftMS) * time.Millisecond)})
 	}
-	p.PowerBars, p.powerBarsSent, p.powerBarsDue = k.PowerBars, "", k.PowerBars
 	p.RaceLabels, p.raceLabelsSent = k.RaceLabels, "" // the client keeps its list; a data step may have changed it
+	p.PowerBars, p.powerBarsSent, p.powerBarsDue = k.PowerBars, "", k.PowerBars
 	p.GM = k.GM
 	p.DuelWindow = k.DuelWindow
 	return true

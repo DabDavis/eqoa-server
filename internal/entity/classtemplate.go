@@ -372,6 +372,7 @@ func templateSpellOf(ts database.TemplateSpell) *CastSpell {
 	if st, ok := workbookResist(&s.Def); ok { // the workbook's resist basis (workbook.go)
 		s.resist = st
 	}
+	s.unresistable = strings.Contains(strings.ToLower(ts.Line), "unresistable")
 	return &s
 }
 
@@ -891,6 +892,9 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 			resist = StatAR
 		}
 		share, how := c.tmpl.rollResist(p.StatNow(resist))
+		if c.spell.unresistable {
+			share, how = 0, ResistFailed
+		}
 		taken := max(int(math.Round(float64(hit)*(1-share))), 1)
 		drained = int(math.Round(float64(drained) * (1 - share)))
 		p.HP = max(p.HP-taken, 0)

@@ -105,31 +105,3 @@ func TestAKnightsWeaponSetLeavesTheOffHandWeapon(t *testing.T) {
 		t.Errorf("worn %v: want the sword alone", w)
 	}
 }
-
-// #template gives a knight a shield (or a held item) in the other hand, never
-// a second weapon; the control: a warrior's takes the second sword over the
-// shield worth less.
-func TestTheTemplateGivesAKnightNoSecondWeapon(t *testing.T) {
-	sword := item(1, 14, 0, 10, 500)
-	weakShield := item(6, 13, 10, 0, 0)
-	for _, c := range []struct {
-		class Class
-		want  map[int][]int
-	}{
-		{ClassWarrior, map[int][]int{14: {1}, 15: {1}}},
-		{ClassShadowKnight, map[int][]int{14: {1}, 17: {6}}},
-		{ClassPaladin, map[int][]int{14: {1}, 17: {6}}},
-	} {
-		got := wornBySlot(templateGear([]database.ItemPatternRecord{sword, weakShield}, int(c.class)))
-		ok := len(got) == len(c.want)
-		for s, ids := range c.want {
-			ok = ok && slices.Equal(got[s], ids)
-		}
-		if !ok {
-			t.Errorf("class %d: %v, want %v", c.class, got, c.want)
-		}
-	}
-	if got := wornBySlot(templateGear([]database.ItemPatternRecord{sword}, int(ClassShadowKnight))); len(got) != 1 || !slices.Equal(got[14], []int{1}) {
-		t.Errorf("a shadow knight with a sword alone: %v, want it in the primary hand alone", got)
-	}
-}

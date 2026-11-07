@@ -161,6 +161,7 @@ func (w *World) handedOverLocked(p *Player) {
 	delete(w.announced, p) // guildAnnounceSystem tells the new client its guild
 	if g := w.groups[p.GroupID]; g != nil && p.GroupID != 0 {
 		delete(g.lastRoster, p.ServerID) // and its group's roster
+		p.raidReminder = g.isRaid()      // and that it is a raid group (raid.go)
 	}
 	if ps := w.petStateLocked(p); ps != nil {
 		ps.told = 0 // and its pet (0x007E), as after any dump

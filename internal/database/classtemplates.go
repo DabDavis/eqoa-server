@@ -63,6 +63,10 @@ const classTemplatesSchema = `
 		special_from   INTEGER NOT NULL DEFAULT 0,
 		shield_damage  INTEGER NOT NULL DEFAULT 0,
 		shield_resist  TEXT NOT NULL DEFAULT '',
+		proc_chance    INTEGER NOT NULL DEFAULT 0,
+		proc_damage    INTEGER NOT NULL DEFAULT 0,
+		proc_name      TEXT NOT NULL DEFAULT '',
+		proc_resist    TEXT NOT NULL DEFAULT '',
 		abilities      TEXT NOT NULL DEFAULT '[]',
 		note           TEXT NOT NULL DEFAULT '',
 		source         TEXT NOT NULL DEFAULT 'gm'
@@ -246,8 +250,16 @@ type ClassTemplate struct {
 	// ShieldResist names (FR, CR, LR, AR, PR or DR; empty: none)
 	ShieldDamage int
 	ShieldResist string
-	Abilities    []TemplateAbility
-	Note         string
+	// ProcChance is its melee proc: the percent of its melee hits that land that
+	// also deal ProcDamage (a fixed figure, not by level), cut by the resist
+	// ProcResist names (as ShieldResist; empty: none), told by ProcName
+	// (entity/creatureshield.go). 0: none.
+	ProcChance int
+	ProcDamage int
+	ProcName   string
+	ProcResist string
+	Abilities  []TemplateAbility
+	Note       string
 }
 
 // TemplateKey is a template's name as classtemplates and npctemplate key it:
@@ -450,6 +462,14 @@ func CheckClassTemplate(t ClassTemplate) error {
 		return fmt.Errorf("shield_damage %d: 0 to %d a melee hit", t.ShieldDamage, MaxTemplateShield)
 	case !shieldResistKnown(t.ShieldResist):
 		return fmt.Errorf("shield_resist %q: FR, CR, LR, AR, PR, DR or none", t.ShieldResist)
+	case t.ProcChance < 0 || t.ProcChance > 100:
+		return fmt.Errorf("proc_chance %d: 0 to 100 percent of its melee hits", t.ProcChance)
+	case t.ProcDamage < 0 || t.ProcDamage > MaxTemplateShield:
+		return fmt.Errorf("proc_damage %d: 0 to %d", t.ProcDamage, MaxTemplateShield)
+	case t.ProcChance > 0 && t.ProcDamage == 0:
+		return fmt.Errorf("a proc on %d%% of its hits needs a proc_damage above 0", t.ProcChance)
+	case !shieldResistKnown(t.ProcResist):
+		return fmt.Errorf("proc_resist %q: FR, CR, LR, AR, PR, DR or none", t.ProcResist)
 	case t.TakenPct < 1 || t.TakenPct > 1000:
 		return fmt.Errorf("taken_pct %d: 1 to 1000 percent of a melee hit on it", t.TakenPct)
 	case t.MeleePct < 10 || t.MeleePct > 1000:
@@ -528,6 +548,10 @@ var classTemplateColumns = []struct{ col, decl string }{
 	{"special_from", "INTEGER NOT NULL DEFAULT 0"},
 	{"shield_damage", "INTEGER NOT NULL DEFAULT 0"},
 	{"shield_resist", "TEXT NOT NULL DEFAULT ''"},
+	{"proc_chance", "INTEGER NOT NULL DEFAULT 0"},
+	{"proc_damage", "INTEGER NOT NULL DEFAULT 0"},
+	{"proc_name", "TEXT NOT NULL DEFAULT ''"},
+	{"proc_resist", "TEXT NOT NULL DEFAULT ''"},
 }
 
 // ensureClassTemplates makes tables classtemplates and npctemplate
@@ -576,7 +600,7 @@ func (db *SQLiteDB) ensureClassTemplates() error {
 // JSON) is left out and named in bad.
 func (db *SQLiteDB) ClassTemplates() (templates map[string]ClassTemplate, bad []string, err error) {
 	rows, err := db.Query(`SELECT name, class, hp_pct, taken_pct, melee_pct, special, special_chance, special_damage,
-		special_fx, special_every, special_first, special_jitter, special_from, shield_damage, shield_resist, abilities, note FROM classtemplates
+		special_fx, special_every, special_first, special_jitter, special_from, shield_damage, shield_resist, proc_chance, proc_damage, proc_name, proc_resist, abilities, note FROM classtemplates
 		WHERE name IS NOT NULL`)
 	if err != nil {
 		return nil, nil, err
@@ -588,7 +612,7 @@ func (db *SQLiteDB) ClassTemplates() (templates map[string]ClassTemplate, bad []
 		var fx int64
 		var abilities sql.NullString
 		if err := rows.Scan(&t.Name, &t.Class, &t.HPPct, &t.TakenPct, &t.MeleePct, &t.Special, &t.SpecialChance,
-			&t.SpecialDamage, &fx, &t.SpecialEvery, &t.SpecialFirst, &t.SpecialJitter, &t.SpecialFrom, &t.ShieldDamage, &t.ShieldResist, &abilities, &t.Note); err != nil {
+			&t.SpecialDamage, &fx, &t.SpecialEvery, &t.SpecialFirst, &t.SpecialJitter, &t.SpecialFrom, &t.ShieldDamage, &t.ShieldResist, &t.ProcChance, &t.ProcDamage, &t.ProcName, &t.ProcResist, &abilities, &t.Note); err != nil {
 			return nil, nil, err
 		}
 		t.Name = TemplateKey(t.Name)

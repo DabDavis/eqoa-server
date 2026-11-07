@@ -35,8 +35,15 @@ func corpseCoins(npc *entity.NPC, roll func(int) int) int {
 	return npc.Level + roll(npc.Level+1)
 }
 
-// giveCorpseCoins puts n tunar in the opener's purse: kept, the purse sent
-// (0x0052) and the line said, as Sandstorm's.
+// corpseSplitLine is a group member's line for its share of the coins of a
+// corpse another member opened (ours, after EverQuest's "as your split").
+const corpseSplitLine = "You receive %d tunar as your split."
+
+// giveCorpseCoins puts n tunar in the opener's purse, kept, the purse sent
+// (0x0052) and the line said, as Sandstorm's; with its group about it, shared
+// (petition 1228: "During live, the entire group shared a portion of it"):
+// each member who would share the kill (entity.CoinSharers) an equal part,
+// the odd coins the opener's, each told in its own line.
 func (h *NPCWindowHandler) giveCorpseCoins(sess *session.Session, npc *entity.NPC, n int) {
 	if n <= 0 || h.playerOf == nil {
 		return
@@ -45,6 +52,21 @@ func (h *NPCWindowHandler) giveCorpseCoins(sess *session.Session, npc *entity.NP
 	if player == nil {
 		return
 	}
+	var sharers []*entity.Player
+	var sessions []*session.Session
+	if h.gameWorld != nil {
+		sharers, sessions = h.gameWorld.CoinSharers(player, npc)
+	}
+	each := n
+	if len(sharers) > 1 {
+		each = n / len(sharers)
+		for i, m := range sharers[1:] {
+			if each > 0 {
+				h.giveCoinSplit(sessions[i+1], m, npc, each)
+			}
+		}
+		n -= each * (len(sharers) - 1)
+	}
 	player.Tunar += n
 	h.saveTunar(player)
 	queueReliable(sess, protocol.OpcodePlayerTunar, tunarPayload(player.Tunar))
@@ -52,4 +74,26 @@ func (h *NPCWindowHandler) giveCorpseCoins(sess *session.Session, npc *entity.NP
 		sess.Queue().AddWithSequence(buildClientMessage(fmt.Sprintf(corpseCoinLine, n)))
 	}
 	log.Printf("Loot: %s took %d tunar from %q's corpse (%d now)", player.Name, n, npc.Name, player.Tunar)
+}
+
+// giveCoinSplit is a member's share of a corpse's coins another opened: its
+// purse paid under the World's lock (it is another session's player), kept,
+// sent and said.
+func (h *NPCWindowHandler) giveCoinSplit(ms *session.Session, m *entity.Player, npc *entity.NPC, n int) {
+	purse, ok := h.gameWorld.TakeTunar(m.CharServerID, -n)
+	if !ok {
+		return
+	}
+	if h.inv != nil {
+		if err := h.inv.SetPurse(m.CharServerID, purse); err != nil {
+			log.Printf("tunar: saving %s's purse %d: %v", m.Name, purse, err)
+		}
+	}
+	if ms != nil {
+		queueReliable(ms, protocol.OpcodePlayerTunar, tunarPayload(purse))
+		if !ms.LootMessagesOff() {
+			ms.Queue().AddWithSequence(buildClientMessage(fmt.Sprintf(corpseSplitLine, n)))
+		}
+	}
+	log.Printf("Loot: %s took a split of %d tunar from %q's corpse (%d now)", m.Name, n, npc.Name, purse)
 }

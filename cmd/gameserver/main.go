@@ -346,6 +346,10 @@ func main() {
 	if !onList {
 		log.Printf("WARNING: the server list does not name this server's game port %d", cfg.Server.GamePort)
 	}
+	gameWorld.SetPvP(cfg.World.PvP) // entity/pvp.go
+	if cfg.World.PvP {
+		log.Printf("PvP: players may flag themselves (world.pvp)")
+	}
 	handlers.SetHeirloomsGiven(cfg.World.Heirlooms == nil || *cfg.World.Heirlooms)
 	if cfg.World.Heirlooms != nil && !*cfg.World.Heirlooms {
 		log.Printf("Heirlooms: none given at a login (world.heirlooms: false)")

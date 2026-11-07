@@ -115,6 +115,8 @@ type petState struct {
 	noCollide bool      // its non-collide entry is on the owner's list
 	heldUntil time.Time // a back off's: no fight of its own until then
 	last      time.Time // its last step
+	// pvpTarget is the flagged player it goes for, 0 none (pvp.go)
+	pvpTarget EntityID
 	// taunts is whether it taunts every petTauntEvery rounds (an
 	// enchanter's summoned pet), and rounds how many it has begun on its
 	// target
@@ -632,13 +634,13 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 		}
 		w.dismissPetLocked(ps, sess, "Your pet has been dismissed.")
 	case petCmdBackOff:
-		ps.target = 0
+		ps.target, ps.pvpTarget = 0, 0
 		ps.heldUntil = now.Add(petBackOffHold)
 		pet.endRound()
 		w.sendChatToSession(sess, "Your pet backs off.")
 	case petCmdAttack:
 		ent, ok := w.findEntityByObjectIDLocked(sess, target)
-		if ok && w.duelPetCommandLocked(ps, ent) { // its owner's duel opponent (duelfight.go)
+		if ok && (w.duelPetCommandLocked(ps, ent) || w.pvpPetCommandLocked(ps, ent)) { // its owner's duel opponent (duelfight.go), or a foe (pvp.go)
 			w.sendChatToSession(sess, "Your pet attacks "+entityNameLocked(ent)+".")
 			return
 		}
@@ -734,7 +736,7 @@ func (w *World) petSystem(now time.Time) {
 			w.SpatialIndex.Update(pet.ServerID, oldX, oldZ, pet.X, pet.Z)
 		}
 		w.petChooseTargetLocked(ps, now)
-		if w.duelPetLocked(ps, dt, now) { // its owner's duel (duelfight.go)
+		if w.duelPetLocked(ps, dt, now) || w.pvpPetLocked(ps, dt, now) { // its owner's duel (duelfight.go), or a foe (pvp.go)
 			if sess != nil {
 				w.announcePetLocked(ps, sess)
 			}

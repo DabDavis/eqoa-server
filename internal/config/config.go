@@ -286,6 +286,10 @@ type WorldConfig struct {
 	// (internal/ground's Ground.keep).
 	GroundZones int `yaml:"ground_zones"`
 
+	// PvP lets players flag themselves for PvP with /pvp (entity/pvp.go); unset
+	// or false, /pvp says it is not available and nothing else changes.
+	PvP bool `yaml:"pvp"`
+
 	// Heirlooms false gives no character the kept items at its login: the
 	// Genie's Lamp, the Heirloom Fang of the Wolf and the Summoning Portal
 	// (handlers/genie.go, wolffang.go, summonportal.go). Unset: given, to a

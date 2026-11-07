@@ -232,6 +232,11 @@ type Player struct {
 	// 0x1501/0x1502, not boxes, and its opponent stays a player to it
 	DuelWindow bool
 
+	// pvp: its PvP flag and what goes with it (pvp.go); targetToken its last
+	// 0x0010's token, for a target's face told unasked
+	pvp         pvpFlag
+	targetToken uint32
+
 	// RaceLabels: the player's client shows a race of racedefs' own words and
 	// asked for them (racelabels.go, opcode 0x7E1C); raceLabelsSent is the list
 	// it was last sent, so only a change goes out ("" unknown, after a restart).

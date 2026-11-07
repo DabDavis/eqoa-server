@@ -663,7 +663,8 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	if isArt(&spell) {
 		p.artReady = now.Add(w.balance.ArtCooldown(p.Level))
 	}
-	w.breakInvisLocked(p, "a spell cast") // invis.go
+	w.pvpCastBegunLocked(p, &spell, targets, now) // pvp.go: an attack given
+	w.breakInvisLocked(p, "a spell cast")         // invis.go
 	if spell.Def.Harmful {
 		w.breakBoardWolfLocked(p, "a harmful spell") // boardwolf.go
 	}
@@ -940,6 +941,9 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 		return nil, castNoTarget
 	}
 	if ids, why, ok := w.duelSpellTargetLocked(p, spell, ent); ok { // a duel's (duelfight.go)
+		return ids, why
+	}
+	if ids, why, ok := w.pvpSpellTargetLocked(p, spell, ent); ok { // two flagged players' (pvp.go)
 		return ids, why
 	}
 	switch t := ent.(type) {

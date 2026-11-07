@@ -284,3 +284,37 @@ func TestTheWanderLeavesTheChaseAlone(t *testing.T) {
 		t.Errorf("still %.2f from its enemy after 4 s", gap)
 	}
 }
+
+// A GM's character of level 100 fights as any other, with nothing out of its tables: a creature's swings, and its own
+// roll on the creature (entity.MaxGMLevel).
+func TestALevel100CharacterFights(t *testing.T) {
+	c := newCaster(t)
+	c.p.GM = true
+	c.w.SetPlayerLevel(c.p.CharServerID, 100)
+	c.p.Level = 100
+	c.p.HP, c.p.MaxHP = 500000, 500000
+	c.npc.Level, c.npc.HP, c.npc.MaxHP = 70, 50000, 50000
+	c.npc.CurrentEnemy = c.p.ServerID
+	c.npc.Threats = map[EntityID]int64{c.p.ServerID: 10}
+	for d := time.Duration(0); d < 10*time.Second; d += 100 * time.Millisecond {
+		c.chaseTick(d)
+	}
+	if c.p.HP >= 500000 {
+		t.Errorf("no swing landed: %d", c.p.HP)
+	}
+	c.w.mu.Lock()
+	_, _, high := playerMeleeRoll(c.p, c.npc)
+	c.p.Level = 60
+	_, _, at60 := playerMeleeRoll(c.p, c.npc)
+	c.p.Level = 100
+	c.w.mu.Unlock()
+	if high < at60 {
+		t.Errorf("its roll on the creature: top %d at 100, %d at 60", high, at60)
+	}
+	if got := LevelCap(true); got != 100 {
+		t.Errorf("a GM's cap: %d", got)
+	}
+	if got := LevelCap(false); got != 60 {
+		t.Errorf("a player's cap: %d", got)
+	}
+}

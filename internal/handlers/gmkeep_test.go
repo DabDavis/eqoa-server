@@ -184,3 +184,42 @@ func TestOnlyACharactersOwnAccountMayUseIt(t *testing.T) {
 		t.Fatal("the control: the owner's session did not enter the world")
 	}
 }
+
+// A GM's character goes to level 100 (the user, 2026-11-07), for its hit points and power alone: the training points,
+// the experience and the heirlooms stop at 60. Anyone else stops at 60.
+func TestAGMsCharacterGoesToLevel100(t *testing.T) {
+	c, gs, gp, _, _ := gmWorld(t)
+	store, _ := gmRows(t, c)
+	gp.GM = true
+	c.say(gs, "#setlevel 60")
+	hp60, power60, tp60, xp60 := gp.MaxHP, gp.MaxPowerNow(), gp.TotalTP, gp.TotalXP
+	if gp.Level != 60 {
+		t.Fatalf("#setlevel 60: %d", gp.Level)
+	}
+	c.say(gs, "#setlevel 100")
+	row, err := store.GetByServerID(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gp.Level != 100 || row.Level != 100 {
+		t.Fatalf("#setlevel 100: the game %d, the row %d", gp.Level, row.Level)
+	}
+	if d := sentOp(gs, protocol.OpcodeGrantXP); len(d) < 3 {
+		t.Errorf("the level's message: %x", d)
+	}
+	if gp.MaxHP <= hp60 || gp.MaxPowerNow() <= power60 {
+		t.Errorf("at 100: %d HP and %d power, at 60 %d and %d", gp.MaxHP, gp.MaxPowerNow(), hp60, power60)
+	}
+	if gp.TotalTP != tp60 || gp.TotalXP != xp60 {
+		t.Errorf("at 100: %d training points and %d experience, at 60 %d and %d: nothing past the stats", gp.TotalTP, gp.TotalXP, tp60, xp60)
+	}
+	c.say(gs, "#setlevel 250")
+	if gp.Level != 100 {
+		t.Errorf("#setlevel 250: %d, want 100", gp.Level)
+	}
+	gp.GM = false
+	c.say(gs, "#setlevel 100")
+	if gp.Level != 60 {
+		t.Errorf("#setlevel 100, not a GM's: %d, want 60", gp.Level)
+	}
+}

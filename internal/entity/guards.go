@@ -209,17 +209,17 @@ func (w *World) guardWatchSystem(now time.Time) {
 	if w.TickCount%aggroScanTicks != 0 || w.npcSocial.gen == 0 || len(w.playerModels) == 0 || w.SpatialIndex == nil {
 		return
 	}
-	// a guard takes on what fights a player before it: with no player in the
-	// world nothing does, and an empty server's turn is this loop alone
-	if len(w.Players) == 0 {
-		return
-	}
 	w.syncNPCSetsLocked()
 	if w.sets.guardGen != w.npcSocial.gen {
 		w.refillGuardsLocked() // the social rules changed
 	}
 	if npcSetsCheck {
 		w.checkGuardSetLocked()
+	}
+	// a guard takes on what fights a player before it: with no player in the
+	// world nothing does, and this loop was most of an empty server's turn
+	if len(w.Players) == 0 {
+		return
 	}
 	for id, g := range w.sets.guard.m {
 		if g = w.setMember(w.sets.guard.m, id, g); g == nil {

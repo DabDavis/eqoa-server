@@ -297,9 +297,9 @@
   {
    "name": "Razeal Moloch",
    "world": 5,
-   "x": 4825.0,
-   "y": 148.2,
-   "z": 7105.0,
+   "x": 4930.0,
+   "y": 147.7,
+   "z": 7140.0,
    "facing": 0,
    "level": 68,
    "type": 128,
@@ -308,7 +308,7 @@
    "template": "razeal moloch",
    "charm": 0,
    "class": 0,
-   "note": "The Unnamed Champion, on the castle left of the port-in (the guide: roaming atop it; he stands here). A talk starts the summoning; he is fought only as his isle's copy (hostile).",
+   "note": "The Unnamed Champion, at the foot of the castle left of the port-in (the guide: roaming atop it; no way up found that a client can walk, so he stands here). A talk starts the summoning; he is fought only as his isle's copy (hostile).",
    "loot_region": "secrets",
    "look": {
     "robe_style": "255",
@@ -574,9 +574,9 @@
     {
      "do": "place",
      "world": 5,
-     "x": 4825.0,
-     "y": 148.2,
-     "z": 7105.0,
+     "x": 4930.0,
+     "y": 147.7,
+     "z": 7140.0,
      "radius": 40
     },
     {
@@ -856,9 +856,9 @@
     {
      "do": "place",
      "world": 5,
-     "x": 4825.0,
-     "y": 148.2,
-     "z": 7105.0,
+     "x": 4930.0,
+     "y": 147.7,
+     "z": 7140.0,
      "radius": 40
     },
     {

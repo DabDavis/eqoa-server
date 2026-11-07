@@ -2,6 +2,7 @@ package entity
 
 import (
 	"log"
+	"math"
 	"time"
 )
 
@@ -117,6 +118,55 @@ func (n *NPC) chaseStepDT(now time.Time) float32 {
 	return dt
 }
 
+// npcTurnRate is how fast a creature turns to the enemy in its reach, in radians
+// a second, and npcTurnReach the reach that rate is for (petition 1177, Jibrish:
+// "Mobs need to turn when in combat SLIGHTLY slower ... Rogue need to be able to
+// run around them in circles and get off backstabs ... Needs a very subtle delay
+// just enough for a rogue flipping around them on the sides"). Ours: a rogue at the
+// walk's run of 8.83, circling at 3, goes round at 169 degrees a second, so it gains
+// 34 degrees a second on the creature's 135 and is behind in under 3 s; at 11.48 in
+// about 1. A larger creature's reach is circled wider, so it turns the slower for it.
+const (
+	npcTurnRate          = 135 * math.Pi / 180
+	npcTurnReach float32 = 4.5
+)
+
+// turnedInFight is a creature's facing after dt of its fight with an enemy d off,
+// wanting to face want: at once past its reach (a chase runs the way it faces), else
+// by no more than its rate.
+func turnedInFight(npc *NPC, want, d, reach, dt float32) float32 {
+	if d > reach {
+		return want
+	}
+	most := npcTurnRate * dt
+	if reach > npcTurnReach {
+		most *= npcTurnReach / reach
+	}
+	return turnToward(npc.Facing, want, most)
+}
+
+// turnToward is a heading turned the short way toward want, by no more than most
+// radians.
+func turnToward(from, want, most float32) float32 {
+	d := math.Mod(float64(want-from), 2*math.Pi)
+	if d > math.Pi {
+		d -= 2 * math.Pi
+	} else if d < -math.Pi {
+		d += 2 * math.Pi
+	}
+	if math.Abs(d) <= float64(most) {
+		return want
+	}
+	if d < 0 {
+		most = -most
+	}
+	h := math.Mod(float64(from+most), 2*math.Pi)
+	if h < 0 {
+		h += 2 * math.Pi
+	}
+	return float32(h)
+}
+
 // chaseLocked is a fighting NPC's movement this tick toward its enemy at
 // (x, z), moving at (vx, vz) a second as its last word says (a player's
 // 0x40): it reports whether the enemy is in reach (fight on), and gives up
@@ -141,7 +191,7 @@ func (w *World) chaseLocked(npc *NPC, x, z, vx, vz float32, now time.Time) (inRe
 	}
 	reach, stop := npcReach(npc), npcStop(npc)
 	if d > 0 {
-		npc.Facing = headingTo(x-npc.X, z-npc.Z)
+		npc.Facing = turnedInFight(npc, headingTo(x-npc.X, z-npc.Z), d, reach, dt)
 	}
 	// its pace: the speed its enemy moves away at (a player's velocity, out
 	// of its last 0x40) and a closing on what is left to stop (chaseGain a

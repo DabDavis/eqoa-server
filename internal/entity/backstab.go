@@ -10,14 +10,19 @@ import "math"
 // than a quarter turn from its facing, as seen from the creature (ours). A
 // creature faces what it swings at or casts on (faceLocked) and what it
 // chases (chase.go), so a rogue behind a creature another holds may
-// backstab, and one the creature fights may not.
+// backstab; and one the creature fights may too, by outrunning its turn
+// (npcTurnRate, chase.go).
 
 // castNotBehind is a backstab's refusal from in front.
 const castNotBehind = "You must be behind your target to do that."
 
 // faceLocked turns a creature to face an entity by its id, a player or a
-// creature; nothing when it stands where it stands or is not found.
+// creature; nothing when it stands where it stands or is not found, or for one
+// in a chase's fight, which turns at its own rate each tick (chase.go).
 func (w *World) faceLocked(npc *NPC, target EntityID) {
+	if npc.chase.on {
+		return
+	}
 	var x, z float32
 	switch {
 	case w.Players[target] != nil:

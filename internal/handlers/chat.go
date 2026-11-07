@@ -243,6 +243,13 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		return nil
 	}
 
+	// /record [name] (or #record; a PS2's is "/t record [name]", below): a combat
+	// record, its own or any character's, everyone's (combatrecord.go)
+	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/record") || strings.EqualFold(word, "#record") {
+		recordCommand(h.gameWorld, sess, player, rest)
+		return nil
+	}
+
 	// GM commands start with #
 	if strings.HasPrefix(message, "#") {
 		h.handleGMCommand(sess, player, message)
@@ -264,6 +271,12 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		// the PvP flag the same way (pvp.go)
 		if body == "" && strings.EqualFold(name, "pvp") {
 			pvpCommand(h.gameWorld, sess, "", time.Now())
+			return nil
+		}
+		// and the combat record: "/t record" its own, "/t record <name>" a
+		// character's (combatrecord.go); more than a name is a tell
+		if strings.EqualFold(name, "record") && !strings.ContainsAny(strings.TrimSpace(body), " \t") {
+			recordCommand(h.gameWorld, sess, player, body)
 			return nil
 		}
 		if wager, ok := duelTell(body); ok {

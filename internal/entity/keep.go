@@ -39,6 +39,8 @@ type KeptPlayer struct {
 	Place        [3]float32    `json:"place"`
 	World        uint8         `json:"world"`
 	RaceLabels   bool          `json:"race_labels,omitempty"`
+	// RecordWindow: its client has the combat record window (combatrecord.go)
+	RecordWindow bool `json:"record_window,omitempty"`
 	// PvP: its flag (pvp.go), and how long it must yet stay on
 	PvP       bool  `json:"pvp,omitempty"`
 	PvPHoldMS int64 `json:"pvp_hold_ms,omitempty"`
@@ -87,6 +89,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 		Target: p.TargetObjectID, PowerBars: p.PowerBars, RaidRoster: p.RaidRoster, DuelWindow: p.DuelWindow, GM: p.GM, Flying: p.Flying,
 		Place: [3]float32{p.X, p.Y, p.Z}, World: p.World}
 	k.RaceLabels = p.RaceLabels
+	k.RecordWindow = p.RecordWindow
 	if p.pvp.on {
 		k.PvP, k.PvPHoldMS = true, max(0, p.pvp.hold.Sub(now).Milliseconds())
 	}
@@ -120,6 +123,8 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	p.RaidRoster, p.raidRosterSent = k.RaidRoster, ""
 	p.GM = k.GM
 	p.DuelWindow = k.DuelWindow
+	// its record's summary is read again (handlers/keep.go)
+	p.RecordWindow = k.RecordWindow
 	if k.PvP && w.pvpAllowed { // a server since turned off drops it
 		p.pvp = pvpFlag{on: true, hold: now.Add(time.Duration(k.PvPHoldMS) * time.Millisecond)}
 	}

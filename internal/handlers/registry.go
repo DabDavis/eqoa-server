@@ -519,6 +519,11 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	} else {
 		NewRaceLabelsHandler(gameWorld, nil).RegisterHandlers(r)
 	}
+	// Each character's combat record, PvP and duels (combatrecord.go): its counts
+	// written, /record, the target window's lines, and a window's 0x7E20/0x7E21
+	if charStore != nil && charStore.DB() != nil {
+		NewCombatRecordHandler(gameWorld, charStore.DB()).RegisterHandlers(r)
+	}
 	NewQuestMarkersHandler(gameWorld).RegisterHandlers(r)
 	NewQuestProgressHandler(gameWorld).RegisterHandlers(r)
 	NewVoiceHandler(gameWorld).RegisterHandlers(r)

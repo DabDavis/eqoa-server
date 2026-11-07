@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/entity"
 )
 
 // A real server's Plane of Sky armour (EQOA_REAL_DB names its database, a copy
@@ -152,5 +153,65 @@ func TestRealSkyArmourGivesEachClassItsOwn(t *testing.T) {
 				t.Errorf("class %d offered %q at another role's giver %s", c, next.Name, giver)
 			}
 		}
+	}
+}
+
+// The way back to the hut on a real server: the trip is the chain's second
+// quest's to open, so the same people the chain brings there have it, and
+// nobody has finished that quest without its first.
+func TestRealTheWayBackToTheHut(t *testing.T) {
+	src := os.Getenv("EQOA_REAL_DB")
+	if src == "" {
+		t.Skip("EQOA_REAL_DB names a server database")
+	}
+	w := newQuestWalker(t, src)
+	defer w.db.Close()
+	id := func(key string) int {
+		var n int
+		if err := w.db.QueryRow(`SELECT questid FROM quest_import_quests WHERE key = ?`, key).Scan(&n); err != nil {
+			t.Fatalf("%s: %v", key, err)
+		}
+		return n
+	}
+	first, second := id("Portal/plane-of-sky/rain-1"), id("Portal/plane-of-sky/rain-2")
+	var rows, odd int
+	w.db.QueryRow(`SELECT count(*) FROM questunlocks WHERE npc = 'essence of rain' AND dest = 'Rain 3'`).Scan(&rows)
+	if rows == 0 {
+		t.Skip("the way back is not applied here")
+	}
+	if rows != 1 {
+		t.Errorf("%d quests unlock the way back", rows)
+	}
+	w.db.QueryRow(`SELECT count(*) FROM questunlocks WHERE questid = ? AND npc = 'essence of rain' AND dest = 'Rain 3'`, second).Scan(&rows)
+	if rows != 1 {
+		t.Errorf("the chain's second quest does not unlock the way back")
+	}
+	w.db.QueryRow(`SELECT count(*) FROM charquests a WHERE a.questid = ? AND a.done > 0 AND NOT EXISTS
+		(SELECT 1 FROM charquests b WHERE b.serverid = a.serverid AND b.questid = ? AND b.done > 0)`, second, first).Scan(&odd)
+	if odd != 0 {
+		t.Errorf("%d characters finished the second quest without the first", odd)
+	}
+	p := &entity.Player{CharServerID: 99999901, Name: "Walkerofrain"}
+	barred := func(to string) bool {
+		_, no := w.qe.TripBarred(p, "essence of rain", to)
+		return no
+	}
+	if !barred("Rain 3") || !barred("Rain 1") {
+		t.Errorf("none of the chain: Rain 3 barred %v, Rain 1 barred %v", barred("Rain 3"), barred("Rain 1"))
+	}
+	if _, err := w.qe.SetCharacterQuest(p.CharServerID, first, QuestComplete, 0); err != nil {
+		t.Fatal(err)
+	}
+	if !barred("Rain 3") {
+		t.Errorf("the first quest alone opens the way back")
+	}
+	if _, err := w.qe.SetCharacterQuest(p.CharServerID, second, QuestComplete, 0); err != nil {
+		t.Fatal(err)
+	}
+	if barred("Rain 3") {
+		t.Errorf("both quests done: the way back is still shut")
+	}
+	if !barred("Rain 1") {
+		t.Errorf("the second quest opened the chain's own key to Rain 1")
 	}
 }

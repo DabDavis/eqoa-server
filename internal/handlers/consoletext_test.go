@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 )
 
@@ -128,6 +129,24 @@ func TestChatRelaysHoldToAConsole(t *testing.T) {
 		if got := lastText(); got != "" {
 			t.Errorf("%s: a line of nothing a console can type came as %q", ch.name, got)
 		}
+	}
+}
+
+// A GM's Snoop is a copy of one player's line to another.
+func TestASnoopHoldsToAConsole(t *testing.T) {
+	c := newChatWorld(t)
+	as, pa := c.join(1, "Ann", 25000, 16000, 0)
+	gs, pg := c.join(2, "Gil", 25010, 16000, 0)
+	c.h.gm.snoops = map[entity.EntityID]map[entity.EntityID]bool{pa.ServerID: {pg.ServerID: true}}
+	c.say(as, "a |+|+ b\u00e9")
+	var got string
+	for _, l := range heard(t, gs) {
+		if strings.Contains(l.text, "Snoop:") {
+			got = l.text
+		}
+	}
+	if !strings.HasSuffix(got, "a ++ b") {
+		t.Errorf("the GM saw %q", got)
 	}
 }
 

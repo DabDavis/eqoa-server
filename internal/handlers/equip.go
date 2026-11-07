@@ -47,6 +47,9 @@ type EquipHandler struct {
 
 	// genie is the lamps' genies (genie.go): a lamp's Use brings one
 	genie *Genie
+	// portal is the Summoning Portals' talk (summonportal.go): the item's Use
+	// opens one
+	portal *Portal
 	// dice rolls the Rolling Dice (ChatHandler.RollTheDice, roll.go)
 	dice func(*session.Session, *entity.Player, time.Time)
 
@@ -486,6 +489,11 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 		// the Heirloom Fang of the Wolf, never spent (wolffang.go)
 		if IsWolfFang(&row.Pattern) {
 			h.useWolfFang(sess)
+			return nil
+		}
+		// the Summoning Portal, never spent (summonportal.go)
+		if IsSummoningPortal(&row.Pattern) {
+			h.portal.Open(sess, player)
 			return nil
 		}
 		// the Rolling Dice, rolled for the room, never spent (roll.go)

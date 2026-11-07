@@ -180,6 +180,9 @@ type NPC struct {
 	// GenieOf is the player whose lamp brought it (genie.go): never a pet
 	// (Owner 0), 0 for any other NPC.
 	GenieOf EntityID
+	// PortalOf is the player whose item opened it (summonportal.go): never a
+	// pet (Owner 0), 0 for any other NPC.
+	PortalOf EntityID
 
 	// CorpseDecay is how long its corpse lies when not the world's
 	// (`world.corpse_decay`, corpse.go): a pet's (pet.go); 0 the world's.

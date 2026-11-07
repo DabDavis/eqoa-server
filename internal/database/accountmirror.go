@@ -129,46 +129,62 @@ func (m *AccountMirror) open() (*sql.DB, error) {
 	return src, nil
 }
 
-// columns is accountinfo's columns both databases have, the key first, those a
-// Pull leaves alone left out.
-func (m *AccountMirror) columns(src *sql.DB) ([]string, error) {
+// accountCols is what a Pull copies: accountinfo's columns both databases have,
+// the key first, those a Pull leaves alone left out; and how each is read. A date
+// comes as its text: the driver would make a time of a DATETIME column, and write
+// it back in another spelling.
+type accountCols struct {
+	names, reads []string
+}
+
+// columns is accountCols for these two databases.
+func (m *AccountMirror) columns(src *sql.DB) (accountCols, error) {
+	var out accountCols
 	of := func(q interface {
 		Query(string, ...any) (*sql.Rows, error)
-	}) (map[string]bool, []string, error) {
-		rows, err := q.Query(`SELECT name FROM pragma_table_info('accountinfo')`)
+	}) (map[string]string, []string, error) {
+		rows, err := q.Query(`SELECT name, type FROM pragma_table_info('accountinfo')`)
 		if err != nil {
 			return nil, nil, err
 		}
 		defer rows.Close()
-		set, list := map[string]bool{}, []string(nil)
+		set, list := map[string]string{}, []string(nil)
 		for rows.Next() {
-			var n string
-			if err := rows.Scan(&n); err != nil {
+			var n, t string
+			if err := rows.Scan(&n, &t); err != nil {
 				return nil, nil, err
 			}
-			set[n] = true
+			set[n] = t
 			list = append(list, n)
 		}
 		return set, list, rows.Err()
 	}
 	there, _, err := of(src)
 	if err != nil {
-		return nil, err
+		return out, err
 	}
-	if !there["accountid"] || !there["username"] {
-		return nil, errors.New("it has no accountinfo table")
+	if _, ok := there["accountid"]; !ok {
+		return out, errors.New("it has no accountinfo table")
 	}
-	_, here, err := of(m.db.DB)
+	types, here, err := of(m.db.DB)
 	if err != nil {
-		return nil, err
+		return out, err
 	}
-	cols := []string{"accountid"}
-	for _, c := range here {
-		if c != "accountid" && there[c] && !mirrorSkip[c] {
-			cols = append(cols, c)
+	add := func(c string) {
+		out.names = append(out.names, c)
+		if t := strings.ToUpper(types[c]); strings.Contains(t, "DATE") || strings.Contains(t, "TIME") {
+			out.reads = append(out.reads, "CAST("+c+" AS TEXT)")
+		} else {
+			out.reads = append(out.reads, c)
 		}
 	}
-	return cols, nil
+	add("accountid")
+	for _, c := range here {
+		if _, both := there[c]; c != "accountid" && both && !mirrorSkip[c] {
+			add(c)
+		}
+	}
+	return out, nil
 }
 
 // accountRow is a row's columns, and how it compares.
@@ -185,16 +201,16 @@ func (r accountRow) id() int64 {
 
 func readAccountRows(q interface {
 	Query(string, ...any) (*sql.Rows, error)
-}, cols []string, where string, args ...any) ([]accountRow, error) {
-	rows, err := q.Query(`SELECT `+strings.Join(cols, ", ")+` FROM accountinfo `+where, args...)
+}, cols accountCols, where string, args ...any) ([]accountRow, error) {
+	rows, err := q.Query(`SELECT `+strings.Join(cols.reads, ", ")+` FROM accountinfo `+where, args...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	var out []accountRow
 	for rows.Next() {
-		r := make(accountRow, len(cols))
-		ptr := make([]any, len(cols))
+		r := make(accountRow, len(cols.reads))
+		ptr := make([]any, len(cols.reads))
 		for i := range r {
 			ptr[i] = &r[i]
 		}
@@ -213,11 +229,11 @@ func readAccountRows(q interface {
 
 // writeAccount puts a row in the copy: REPLACE for a new row, with lastlogin
 // kept for one already there (REPLACE would clear it).
-func writeAccount(tx *sql.Tx, cols []string, r accountRow) error {
+func writeAccount(tx *sql.Tx, cols accountCols, r accountRow) error {
 	var kept any
-	_ = tx.QueryRow(`SELECT lastlogin FROM accountinfo WHERE accountid = ?`, r.id()).Scan(&kept)
-	marks := strings.TrimSuffix(strings.Repeat("?, ", len(cols)), ", ")
-	if _, err := tx.Exec(`INSERT OR REPLACE INTO accountinfo (`+strings.Join(cols, ", ")+`) VALUES (`+marks+`)`, r...); err != nil {
+	_ = tx.QueryRow(`SELECT CAST(lastlogin AS TEXT) FROM accountinfo WHERE accountid = ?`, r.id()).Scan(&kept)
+	marks := strings.TrimSuffix(strings.Repeat("?, ", len(cols.names)), ", ")
+	if _, err := tx.Exec(`INSERT OR REPLACE INTO accountinfo (`+strings.Join(cols.names, ", ")+`) VALUES (`+marks+`)`, r...); err != nil {
 		return err
 	}
 	if kept != nil {

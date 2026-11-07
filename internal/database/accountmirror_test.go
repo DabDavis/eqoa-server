@@ -66,6 +66,17 @@ func TestTheMirrorFollowsTheOwner(t *testing.T) {
 	if a := accountOf(t, shard, "jib"); a.ID != jib.ID || a.AccessLevel != 2 {
 		t.Errorf("jib's copy: %+v", a)
 	}
+	// a date is copied as the text it is, not in the driver's spelling of a time
+	var dateThere, dateHere string
+	if err := owner.QueryRow(`SELECT CAST(acctcreation AS TEXT) FROM accountinfo WHERE accountid = ?`, dab.ID).Scan(&dateThere); err != nil {
+		t.Fatal(err)
+	}
+	if err := shard.QueryRow(`SELECT CAST(acctcreation AS TEXT) FROM accountinfo WHERE accountid = ?`, dab.ID).Scan(&dateHere); err != nil {
+		t.Fatal(err)
+	}
+	if dateThere != dateHere {
+		t.Errorf("acctcreation copied from %q to %q", dateThere, dateHere)
+	}
 
 	// nothing changed: nothing written
 	m.force()

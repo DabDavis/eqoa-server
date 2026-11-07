@@ -133,7 +133,7 @@ func newLFGWorld(t *testing.T) *lfgWorld {
 		c.gw.GroupAccept(s, c.gw.IDSeenBy(s, w.pg))
 		full = append(full, p)
 	}
-	if len(c.gw.GroupMembers(w.pg)) != entity.MaxGroupSize {
+	if len(c.gw.GroupMembers(w.pg)) != entity.GroupWindowSize {
 		t.Fatalf("Gus's group: %d", len(c.gw.GroupMembers(w.pg)))
 	}
 	for _, s := range []*session.Session{w.bob, w.cara, w.erin, w.fay, w.gus} {

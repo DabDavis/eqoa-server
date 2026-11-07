@@ -854,6 +854,45 @@ CLIENT refuses a member's invite itself (`InviteEntity`, `InviteToGroup`: word 6
 one; vanilla drops that rule where the server offers it: non-retail **0x7E17** (`OpcodeMemberInvites`, a u32 1,
 sent with the other offers at world entry, no answer), so on Sandstorm's server vanilla keeps the leader's rule.
 
+### Raid groups: past four only by a raid flag (`entity/raid.go`, `entity/raidflag.go`, `entity/raidroster.go`, `entity/group.go`)
+
+The user, 2026-11-07: "lets remove group member cap, but if over 4 it is a raid group, with 80% xp cut", then "we should refractor it to
+an aoe 60 m flag to have raid group invite, show names and hp in a way to accomodate". Up to four a group is as it was; with five or more it
+is a raid group, with no cap, and **a kill gives each member a fifth** (`RaidXPPct`, in `awardKillXPLocked`, where every kill's experience
+comes through: melee, spells, pets): on the whole award, before a boon's, a debt's and the masteries' shares (`awardXP`), by the group's size
+whoever of it is near. A quest's experience (`AwardXP`) is not cut. Back at four the cut ends.
+**The flag is the one way past four, so no one takes the cut by accident.** An invite at four is refused with a line naming it (`raidFullLine`;
+a yes to an invite that came before the group filled, 0x069A 4 and the same line to both). A group past four from before stays as it is until
+it shrinks. `/raid` (`#raid`; `/t raid` with no text from a PS2, whose CLIENT keeps an unknown /command unless it has an S2, as eqoaclassic serves
+none: a tell is the one thing it forwards) from a leader asks every player within `RaidFlagRadius` (60, one constant) in its world in no group, no line of sight,
+in the same box as an invite (0x0773, "<leader>'s raid", cut to 23 bytes as CLIENT's name[24] is), each yes joining whatever the size, while its
+leader leads. The leader is told who was asked (`raidAskedLine`). Another `/raid` asks whoever has come since: no one with a box still up, no one
+who said no within a minute (`raidAskAgain`). A GM hidden from players is not asked. Someone in no group gets a box first ("The raid flag"), and its
+yes makes it a group of one and raises the flag: a client knows it is in a group only from its own Invite or Accept (`m_inGroup`, which no message
+sets) and `Msg0772` returns without it, so a caller the server simply made a leader would show no group and could not leave it. A member's `/raid` is refused.
+**Unless it asks for more no client is told of more than four** (`GroupWindowSize`, `shownMembersLocked`, both the 0x0772 roster and the 0x40 records):
+CLIENT's `m_group[4]` is followed at once by its count `m_p2BE4C`, and `Msg0772` reads the count with no bound, so a fifth id lands
+on the count and the loop runs on through memory (shown in the tracer: `claude-notes/raid-groups-20261107.md`); vanilla stops at
+four and misreads the names after. A member's client holds the leader (member 0 is how CLIENT knows who leads), itself and the
+earliest of the others, in the order they joined, so a newcomer moves no one's window and a window moves only when one of its own
+leaves; up to four that is everyone in the same order as before. To a client a raid group is a group of four: its other members are
+ordinary players it may target (so the leader's Boot Member, which goes by target, reaches them), not on its bars, its group Tab, its
+Follow or its power bars. Everything else reads the whole group: group chat, what is looted (anyone may loot a corpse: there are no
+loot rights or round robin), quest kills, pets defending a member, scope 2 spells, gates, and a group's area (`SpellArea.mostOfGroup`:
+no `AreaMaxTargets` for a group's, a GM's row's cap still holds; the 0x00B1 still names seven, `areaShown`, the rest land unnamed; a group's spell needs no line of sight, `areaOfGroup`).
+**The whole roster** goes to a client that asks (`raidroster.go`): 0x7E18 offers it once the player is in the world, as mana bars' 0x7E01, 0x7E19 {1} asks,
+{0} stops, and 0x7E1A (`protocol/opcodes.go` has the format) sends every member's id as that client knows it, name, class, level, HP and power of
+255, on a change and at most once a second (`raidRosterSystem`, the whole set compared), in as many messages as it takes, then 0 members once when
+the raid ends. The window of four goes on underneath. Vanilla's Raid List (Extended > UI, on by default) draws it. The 0x7E19 is kept over a keep restart,
+and a takeover's new client asks again.
+The group search lists only groups of three or fewer, as one of four is full.
+**Told**: everyone when it becomes one and when it stops (`raidChangedLocked`, also from `groupSyncSystem`, so a restart that brought
+fewer back says so; a client with the roster is not told what bars hold, `raidLineFor`), the newcomer of a raid group what it joined, the rest who came and who went by name and how many are left (their
+windows may never show them). The lines are in a PS2's own characters. **A keep restart** forms the group again whole (`KeepGroups`,
+`RestoreGroups`), the same rosters, no one told. **A replaced login or a takeover** stays in the group on the server, as in any group,
+but its new client shows no group and cannot leave it (`Msg0772` returns unless `InGroup`, which only an invite or an accept sets), so it
+is told once it is in the world that it is still in a raid group and that logging out leaves it. **A logout** leaves the group.
+
 ### Data Flow (World Entry)
 
 1. `HandleSelectedChar` → `loginSpawn(record)` → `gw.CreatePlayer(sess, record)` — creates Player struct

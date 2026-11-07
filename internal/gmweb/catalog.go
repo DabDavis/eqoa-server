@@ -1335,7 +1335,7 @@ var catalog = map[string]tableNote{
 			"one lands on creatures only (never a player or a pet, nor across the water's edge; a spell for undead alone, " +
 			"undead alone), a group's on the caster's group and their pets. centre: as its line reads, round its target, " +
 			"round its caster, or not an area spell at all; radius how far (0: its line's, else 15 round a target and 10 " +
-			"round a harmful spell's caster); maxtargets the most it lands on, its own target among them (0: 8; the cast's " +
+			"round a harmful spell's caster); maxtargets the most it lands on, its own target among them (0: 8, a group's all of it; the cast's " +
 			"visual names 7 others at most, all the client holds).",
 		Live:   "At once: read at every cast.",
 		Search: []string{"note"},
@@ -1343,7 +1343,7 @@ var catalog = map[string]tableNote{
 			"spellid":    {Label: "Spell", Ref: "spellpattern"},
 			"centre":     {Label: "Centre", Enum: "areacentre", Help: "as its line reads, round its target, round its caster, or not an area spell"},
 			"radius":     {Label: "Radius", Help: "how far round its centre; 0: its line's, else its kind's (15, or 10 round a harmful spell's caster)"},
-			"maxtargets": {Label: "Most targets", Help: "the most it lands on, its own target among them; 0: 8"},
+			"maxtargets": {Label: "Most targets", Help: "the most it lands on, its own target among them; 0: 8, a group's all of it"},
 			"note":       {Label: "Note", Help: "why"},
 		},
 	},

@@ -382,4 +382,13 @@ func TestNewsIsPlainText(t *testing.T) {
 	if strings.ContainsAny(body, "<>") {
 		t.Fatalf("the news carries markup STATION would show as written: %q", body)
 	}
+	if body != "Welcome to Spire." {
+		t.Errorf("no patch.news: %q", body)
+	}
+	s.cfg.Patch.News = "Two servers now.\nYours is the first."
+	w = httptest.NewRecorder()
+	s.handleRequest(w, httptest.NewRequest("GET", "/patch/web/eqoa/motd/news.html", nil))
+	if got := w.Body.String(); got != s.cfg.Patch.News || w.Header().Get("Content-Length") != itoa(len(got)) {
+		t.Errorf("patch.news: %q (Content-Length %s)", got, w.Header().Get("Content-Length"))
+	}
 }

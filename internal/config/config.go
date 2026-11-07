@@ -341,6 +341,11 @@ type PatchConfig struct {
 	// is unloaded by the time our payload exists, so the stager speaks a
 	// datagram protocol of our own instead. 0 disables it.
 	WorldsUDPPort int `yaml:"worlds_udp_port"`
+
+	// News is what STATION's news box says before the server list, plain text
+	// ('\n' breaks a line); unset: "Welcome to Spire.". What every client reads
+	// on its way to the list, so the place to say the list has changed.
+	News string `yaml:"news"`
 }
 
 // AuthConfig holds authentication settings.

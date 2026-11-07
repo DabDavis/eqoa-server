@@ -740,7 +740,8 @@ func (w *World) endDuelLocked(d *Duel, loser EntityID, how duelEnd, now time.Tim
 	}
 	log.Printf("Duel %d: %s (%d s)", d.ID, line, int(now.Sub(d.Began).Seconds()))
 	w.duelAnnounceLocked(d, line)
-	w.settleStakesLocked(d, loser) // duelpurse.go
+	w.recordDuelLocked(d, loser, how, now) // combatrecord.go: before the stakes are paid
+	w.settleStakesLocked(d, loser)         // duelpurse.go
 }
 
 // duelAnnounceLocked says a duel's end to its two and to every player in its

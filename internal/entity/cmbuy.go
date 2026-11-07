@@ -391,7 +391,9 @@ func (w *World) masterClassLocked(p *Player) string {
 // under its name. A client told a race of racedefs passes as another (race.go)
 // shows the other's word on its race line, so the title says the real one, "Hill
 // Giant Titan", to any viewer but one whose client asked for race labels
-// (racelabels.go): its race line says it, and the title stays "Titan".
+// (racelabels.go): its race line says it, and the title stays "Titan". Under the
+// guild come the player's combat record's lines, "PvP 12-3" and "Duels 5-2", once
+// it has any (combatrecord.go, withRecord).
 func (w *World) TargetInfoLines(viewer, p *Player) (title, guild string) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
@@ -399,7 +401,7 @@ func (w *World) TargetInfoLines(viewer, p *Player) (title, guild string) {
 	if HasRaceLabel(p.Race) && (viewer == nil || !viewer.RaceLabels) {
 		title = strings.TrimSpace(RaceName(p.Race) + " " + title)
 	}
-	return title, p.GuildName
+	return title, withRecord(p.GuildName, p.record.Lines())
 }
 
 // CMEntry is one rank as the window lists it.

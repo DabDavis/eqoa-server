@@ -125,6 +125,9 @@ type World struct {
 	// pvpAllowed is world.pvp: whether players may flag themselves (pvp.go)
 	pvpAllowed bool
 
+	// The combat records' counts waiting to be written (combatrecord.go)
+	records combatRecords
+
 	// The life taps a necromancer's pets cast, by level (pettap.go)
 	petTaps []PetTap
 

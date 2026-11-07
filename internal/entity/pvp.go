@@ -103,6 +103,7 @@ type pvpFlag struct {
 	said     time.Time // the last press refused with a line (pvpSayEvery)
 	struckBy EntityID  // the last foe that hit it, for its pet's stance
 	struckAt time.Time
+	hurt     []pvpHurt // who hurt it lately, for its death's assists (combatrecord.go)
 }
 
 // SetPvP is world.pvp: whether players may flag themselves at all.
@@ -241,6 +242,7 @@ func pvpAttackedLocked(attacker, t *Player, now time.Time) {
 	attacker.pvp.hold = now.Add(PvPHoldTime)
 	t.pvp.hold = now.Add(PvPHoldTime)
 	t.pvp.struckBy, t.pvp.struckAt = attacker.ServerID, now
+	t.noteHurt(attacker, now) // combatrecord.go: an assist, should t die
 }
 
 // pvpEngageLocked is EngageAttack's PvP half: a 0x000F at a foe engages it as a creature is
@@ -341,6 +343,9 @@ func (w *World) pvpCastBegunLocked(p *Player, spell *CastSpell, targets []Entity
 // experience debt (pvpDeathDebt), no item or tunar lost, no corpse (a player has none) and no
 // experience for the killer. Must be called with the lock held.
 func (w *World) pvpDeathLocked(killer, t *Player, now time.Time) {
+	if !t.respawnPending() {
+		w.recordKillLocked(killer, t, now) // combatrecord.go: counted once a death
+	}
 	sess := w.findSessionByEntityIDLocked(t.ServerID)
 	w.playerDownLocked(sess, t, now, pvpDeathDebt)
 	if killer.AttackTarget == t.ServerID {

@@ -278,6 +278,10 @@ var wayRoutes = map[string][]wayRoute{
 	// Mark of the Majestic's, the passage to its isle
 	"essence of rain": {
 		{To: "Rain 1", At: &wayPlace{World: 4, X: 4228.2, Y: 233.8, Z: 5695.7}, QuestOnly: true},
+		// the third isle's lower hut, its armourers' (a set is six hand-ins):
+		// no guide's trip, only the chain's second quest, which brings a
+		// player there in the first place and needs the first, opens it
+		{To: "Rain 3", At: &wayPlace{World: 4, X: 4614.2, Y: 112.97, Z: 4936.5}, QuestOnly: true},
 	},
 	"essence of sun": {
 		{To: "Sun 1", At: &wayPlace{World: 4, X: 5607, Y: 235.1, Z: 5360.3}, QuestOnly: true},

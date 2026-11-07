@@ -151,7 +151,7 @@ func init() {
 }
 
 // levelShields are the shields whose damage goes with their bearer's level,
-// its least and most above it, when the line names none: Shroud of Hate's
+// its least and most above it, when the line names none or scales by level: Shroud of Hate's
 // 52-53 on Sandstorm's level 50 (the level ours).
 var levelShields = map[string][2]int{
 	"shroud of hate": {2, 3},
@@ -298,10 +298,14 @@ func (s *Shield) with(e SpellEffect, cs *castState, caster *Player) *Shield {
 		out = *s
 	}
 	lo, hi := e.Amount, max(e.AmountMax, e.Amount)
-	if lo <= 0 && e.Kind == EffectShield {
-		lo, hi = shieldDefault(cs.spell.Name, cs.spell.Level, caster)
-	}
 	bonus := procBonus(e, caster)
+	if _, byLevel := levelShields[strings.ToLower(strings.TrimSpace(cs.spell.Name))]; e.Kind == EffectShield && (lo <= 0 || byLevel && e.LevelPct != 0 && caster != nil) {
+		// a shield measured by its bearer's level goes by that when its record
+		// scales by level too (Shroud of Hate's "by 1"); a GM's own figure, with
+		// no share of the level, stands
+		lo, hi = shieldDefault(cs.spell.Name, cs.spell.Level, caster)
+		bonus = 0
+	}
 	lo, hi = capAmount(lo+bonus, e.Cap), capAmount(hi+bonus, e.Cap)
 	if e.Kind == EffectDefProc {
 		out.ProcMin, out.ProcMax = lo, hi

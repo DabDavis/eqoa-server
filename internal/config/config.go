@@ -351,6 +351,11 @@ type AuthConfig struct {
 	// RelayAddrs are the source addresses the relay reaches this server from
 	// (default: loopback and server.server_ip).
 	RelayAddrs []string `yaml:"relay_addrs"`
+
+	// BrowserCharacters is the most of an account's characters in the game
+	// through the web relay at once (0: no limit). A native client is not
+	// counted. It needs relay_lookup, which says relayed players are named.
+	BrowserCharacters int `yaml:"browser_characters"`
 }
 
 // AccountSeed is a pre-registered account.

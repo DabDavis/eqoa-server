@@ -414,6 +414,21 @@ func (m *Manager) LiveLogin(accountID int, ip net.IP, ipOf func(*net.UDPAddr) ne
 	return hit
 }
 
+// LiveFrom counts the account's live sessions (as LiveLogin counts one) whose
+// source from takes, except except's.
+func (m *Manager) LiveFrom(accountID int, from func(*net.UDPAddr) bool, except *Session) int {
+	now := time.Now()
+	n := 0
+	m.sessions.Range(func(_, value interface{}) bool {
+		sess := value.(*Session)
+		if sess != except && sess.AccountID() == accountID && holdsLogin(sess, now) && sess.RemoteAddr() != nil && from(sess.RemoteAddr()) {
+			n++
+		}
+		return true
+	})
+	return n
+}
+
 // LiveCharacter reports whether the character (by serverID) is in the game
 // in a session other than except, live as LiveLogin counts one (LiveHolder).
 func (m *Manager) LiveCharacter(charServerID uint32, except *Session) bool {

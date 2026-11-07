@@ -265,7 +265,7 @@ Every `#` command (`internal/handlers/chat.go`, `devcmds.go`) needs an account w
 `acctlevel` is 1 or more, read on each command (a database change counts without a new
 login); anyone else is answered `Unrecognized command "#x".` and nothing is said aloud.
 `#hddsetup` stays everyone's (a PS2 player's hard-disk setup, also the Freeport NPC's), and so do
-`#bug`/`/bug` (a bug report on the spot, below), `#lfg`, `#fish` and `#roll`.
+`#bug`/`/bug` (a bug report on the spot, below), `#lfg`, `#fish`, `#roll` and `#record` (a combat record, below).
 A GM may also spell any of them `/name`: eqoa-rs forwards a `/command` it does not know (as
 Sandstorm's S2 does), a retail PS2 keeps an unknown one to itself. The dev console of F3
 20261021-003556: `#goto x y z [world] | <town or NPC>` (`#teleport` too), `#gotoplayer`,
@@ -528,6 +528,39 @@ so every channel byte and refusal is as it was.
   142 is 4 (`pvpFoeByte`): TargetInRange refuses a target of 2 or 3, and ApplyLook draws anything under 2 in the NPCs' gold, so 4 alone is
   both swingable and green. To a flagged viewer a foe is otherwise as a duel opponent is to a box client: □ talks (nothing to say) where a
   player's info window would open, and Trade and the target's Invite refuse it (word 1015); the Who list's Invite and `/raid` still work.
+
+### The combat record: PvP and duels, lifetime (`entity/combatrecord.go`, `handlers/combatrecord.go`, table `charrecord`)
+
+The user, 2026-11-07: "lets add a combat record for pvp and duels to the menu for players, has lifetime kills, deaths, etc.". A row a
+character from its first count, only counted up, one transaction an event (`database/combatrecord.go`), so it outlives logouts, keep
+restarts and swaps; nothing before its first deploy is in it, and each shard counts in its own database (duels on both, PvP where
+`world.pvp` is on). Player data: empty on a new shard's copy.
+
+- **What counts, two places only**: a PvP death (`pvpDeathLocked`, once a death): the killer's kill (its pet's, shield's and damage
+  ticks' are its own, as their hits are), the victim's death, and an **assist** for every other player whose PvP attack landed on the
+  victim in the `AssistWindow` (30 s) before it (everything `pvpAttackedLocked` hears: a hit, a harmful spell, a tick); the **kill
+  streak** is kills since the last PvP death; the best streak, the highest-level kill (the first of a level stays), the last kill and
+  last death (who, level, when) are kept. A death to anything but a player counts nothing. A duel's fight ending (`endDuelLocked`):
+  the winner's win and the tunar it took (the loser's stake), the loser's loss and its stake; a surrender is a loss and a surrender, a
+  flight, a logout or a death to something else a loss (what the server announces as forfeits); a draw counts for both. A duel called
+  off before its fight, or cut by a restart (its stakes go back), counts nothing.
+- **Written after the world lock** as the duel purse is: queued (`queueRecordLocked`), run by `Tick` after its lock
+  (`runCombatRecords`) and by `SaveAll` before a restart or shutdown (`FlushCombatRecords`); each write then reads the record of every
+  character it names, puts its summary on its player in the world, sends it to a client with the window, and tells everyone targeting
+  that player its target window again (`retellTargeters`, as a PvP flag's face is told).
+- **`/record`** (its own) and **`/record <name>`** (any character's, in the world or not, any case), `#record`, and from a PS2 (which keeps
+  an unknown /command to itself and cannot type a #) **`/t record [name]`** (more than a name after it is a tell): at most five lines of
+  48 characters for a typical record, a PS2 chat row each (417 pixels; a twelve-letter name moves a part to a line of its own), a part
+  with nothing in it left out (`recordLines`).
+- **The target window** (CLIENT's info window on a player, `DrawTargetInfo`): 0x0010's guild line carries the record under the guild,
+  `"PvP 12-3"` (kills-deaths) and `"Duels 5-2"` (won-lost, `-1` more for draws), a line each once there is any (`withRecord`): CLIENT
+  prints the guild line whole into its text and counts the text's lines to size the window, and in its font `"PvP 12-3, Duels 5-2"` is
+  180 pixels of the 155 it wraps at. A line that would push the guild line past its 63 units is left out. Every viewer, every client.
+- **A window of its own** (vanilla's Character > Combat Record): non-retail **0x7E20** (a u32 both ways, as 0x7E1C) offered at the world
+  entry by a server that keeps records; a client that answers 1 (`Player.RecordWindow`, kept over a keep restart) asks with **0x7E21**
+  (a u32 1) as its window opens and is sent the record then and on every change: a u8 version 1, the name, a u8 count of rows, each a u8
+  style (0 heading, 1 label and value) and two strings (u8 byte count, UTF-8), the server's words ("2 hours ago") as they stand when sent
+  (`recordRows`). A PS2 ignores the offer.
 
 ### Mail, resets, one Master Class, petitions: SOE's live client's, for every client
 

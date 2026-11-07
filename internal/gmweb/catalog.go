@@ -316,6 +316,42 @@ var catalog = map[string]tableNote{
 			"signed":   {Label: "Signed", Format: "stamp", Help: "when, RFC 3339 in UTC (2026-10-30T01:30:00Z); empty for a grant"},
 		},
 	},
+	"charrecord": {
+		Label: "Combat records", Group: "Players", Sort: "serverid",
+		Help: "Each character's combat record, lifetime, a row each from its first count (entity/combatrecord.go): PvP " +
+			"kills, deaths and assists (each player whose attack landed on the one killed in the 30 s before, the killer " +
+			"aside), the kill streak (kills since its last PvP death) and the best, the highest-level player it killed, its " +
+			"last kill and last death; duels won, lost (any end naming it the loser: defeated, surrendered, fled, logged " +
+			"out), of those surrendered, drawn, and the tunar its wagers won and lost. Players see it with /record " +
+			"(/t record on a PS2), under the guild in a target window, and in vanilla's Character > Combat Record. " +
+			"Counted from this table's first deploy; each shard its own.",
+		Live:   "At once for /record and the window; a target window's lines at the character's next login.",
+		Show:   []string{"serverid", "pvp_kills", "pvp_deaths", "pvp_assists", "best_streak", "duel_wins", "duel_losses", "updated"},
+		Search: []string{"best_kill", "last_kill", "last_death"},
+		Cols: map[string]colNote{
+			"serverid":         {Label: "Character", Ref: "characters"},
+			"pvp_kills":        {Label: "PvP kills"},
+			"pvp_deaths":       {Label: "PvP deaths"},
+			"pvp_assists":      {Label: "Assists", Help: "kills it helped: its attack landed in the 30 s before, another's the killing blow"},
+			"streak":           {Label: "Kill streak", Help: "kills since its last PvP death"},
+			"best_streak":      {Label: "Best streak"},
+			"best_kill":        {Label: "Best kill", Help: "the highest-level player it killed (the first of a level stays)"},
+			"best_kill_level":  {Label: "Best kill's level"},
+			"last_kill":        {Label: "Last kill"},
+			"last_kill_level":  {Label: "Last kill's level"},
+			"last_kill_at":     {Label: "Last kill at", Format: "stamp", Help: "RFC 3339 in UTC"},
+			"last_death":       {Label: "Last killed by"},
+			"last_death_level": {Label: "Killer's level"},
+			"last_death_at":    {Label: "Last death at", Format: "stamp", Help: "RFC 3339 in UTC"},
+			"duel_wins":        {Label: "Duels won"},
+			"duel_losses":      {Label: "Duels lost", Help: "surrenders, flights and logouts in a duel among them"},
+			"duel_surrenders":  {Label: "Duels surrendered"},
+			"duel_draws":       {Label: "Duels drawn"},
+			"wager_won":        {Label: "Tunar won", Help: "the losers' stakes it took"},
+			"wager_lost":       {Label: "Tunar lost", Help: "its own stakes, lost"},
+			"updated":          {Label: "Updated", Format: "stamp", ReadOnly: true, Help: "its last count, RFC 3339 in UTC"},
+		},
+	},
 	"charresets": {
 		Label: "Character resets", Group: "Players", Sort: "serverid",
 		Help: "Each character's resets at a rehabilitator (handlers/rehab.go: Rehabilitator Anja in Muniel's Tea Garden, " +

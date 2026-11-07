@@ -106,6 +106,23 @@ func TestRecordPvPKillAndAssists(t *testing.T) {
 	if _, _, assists := fighterIDs(ops[0]); len(assists) != 0 {
 		t.Fatalf("assists %v: the third hit 31 s before, the killer its own", assists)
 	}
+	// the same with no hit at the death (a death a hit did not note): the window is the
+	// death's own test, not only the hits'
+	d = newPvP(t)
+	r = newRecorded(d)
+	d.flag(t, d.sa, 0)
+	d.flag(t, d.sb, 0)
+	d.flag(t, d.sc, 0)
+	d.pvpHit(t, d.c, d.b, 20, 0)
+	d.pvpHit(t, d.a, d.b, 20, 10*time.Second)
+	d.w.mu.Lock()
+	d.w.pvpDeathLocked(d.a, d.b, d.at(31*time.Second))
+	d.w.mu.Unlock()
+	if ops = r.take(); len(ops) != 1 {
+		t.Fatalf("counted %+v", ops)
+	} else if _, _, assists := fighterIDs(ops[0]); len(assists) != 0 {
+		t.Fatalf("assists %v at a death with no hit", assists)
+	}
 
 	// a death of no player's doing (a creature's, a fall's)
 	d = newPvP(t)

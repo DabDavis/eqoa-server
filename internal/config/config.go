@@ -342,9 +342,9 @@ type PatchConfig struct {
 	// datagram protocol of our own instead. 0 disables it.
 	WorldsUDPPort int `yaml:"worlds_udp_port"`
 
-	// News is what STATION's news box says before the server list, plain text
-	// ('\n' breaks a line); unset: "Welcome to Spire.". What every client reads
-	// on its way to the list, so the place to say the list has changed.
+	// News is what STATION's news box says after Play EQOA, on the way to the
+	// server list, plain text ('\n' breaks a line); unset: "Welcome to Spire.".
+	// Every client reads it there, so it is the place to say the list has changed.
 	News string `yaml:"news"`
 }
 

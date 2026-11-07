@@ -366,7 +366,7 @@ func (m *AccountMirror) PullOne(username string) error {
 		_, err := m.db.Exec(`DELETE FROM accountinfo WHERE LOWER(username) = LOWER(?)`, username)
 		return err
 	}
-	if len(here) == len(there) && len(here) == 1 && there[0].same(here[0]) {
+	if len(here) == 1 && len(there) == 1 && there[0].same(here[0]) {
 		return nil
 	}
 	tx, err := m.db.Begin()

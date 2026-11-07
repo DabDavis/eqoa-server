@@ -61,6 +61,7 @@ func potionFromRow(r database.ItemEffectRow, itemName string) entity.PotionEffec
 	pe := entity.NewPotionEffect(r.PatternID, itemName, r.Line, r.Name, r.Icon, r.Breaks, r.Wear, r.Area)
 	pe.SetBody(r.Body)              // the body it shows (entity/illusion.go)
 	pe.SetTargetShare(r.TargetLine) // a thrown one's target's own share
+	pe.Cooldown = time.Duration(r.Cooldown * float64(time.Second))
 	return pe
 }
 
@@ -102,7 +103,8 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 			return
 		}
 	}
-	refusal, err := h.gameWorld.UsePotion(sess, pe, target, time.Now())
+	used := time.Now()
+	refusal, err := h.gameWorld.UsePotion(sess, pe, target, used)
 	switch {
 	case errors.Is(err, entity.ErrPotionNoPlayer):
 		return
@@ -112,6 +114,11 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 	case refusal != "":
 		refuse(refusal)
 		return
+	}
+	if pe.Cooldown > 0 { // kept over a logout and a restart (database/potioncooldown.go)
+		if err := h.inventoryStore.SetPotionCooldown(int(player.CharServerID), row.Pattern.PatternID, used.Add(pe.Cooldown)); err != nil {
+			log.Printf("Potion: %s, %q: keeping its cooldown: %v", player.Name, row.Pattern.ItemName, err)
+		}
 	}
 	if row.Charges > 0 {
 		if err := h.spendCharge(sess, player, idx, row); err != nil {

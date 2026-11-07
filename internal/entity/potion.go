@@ -120,6 +120,10 @@ type PotionEffect struct {
 	// TargetShare is what a thrown one's target alone takes beside its line
 	// (its row's target_line, SetTargetShare)
 	TargetShare []SpellEffect
+	// Cooldown is how long one who used it waits to use it again (its row's
+	// cooldown; 0 none): the user, 2026-11-07, Reconstructive on the Heirloom
+	// server, 15 minutes
+	Cooldown time.Duration
 }
 
 // reDispel is a cure's words in a line ("Dispel Effect x3"): spelltext.go
@@ -292,6 +296,54 @@ func (w *World) OnPotionThrown(fn ThrownPotionFunc) {
 // ours, the game has no word for it.
 const PotionTooWeak = "You are too weak to drink that."
 
+// potionCoolingLine refuses an item used again within its cooldown (ours): its
+// name and the minutes and seconds left.
+const potionCoolingLine = "You can use %s again in %d:%02d."
+
+// potionCoolingLocked is the refusal of p's use of pe within its cooldown, ""
+// when it may be used. Must be called with the lock held.
+func (w *World) potionCoolingLocked(p *Player, pe *PotionEffect, now time.Time) string {
+	if pe.Cooldown <= 0 {
+		return ""
+	}
+	t, ok := p.potionReady[pe.PatternID]
+	if !ok || !now.Before(t) {
+		return ""
+	}
+	left := t.Sub(now)
+	secs := int((left + time.Second - 1) / time.Second) // up, so "0:00" is never said
+	return fmt.Sprintf(potionCoolingLine, pe.ItemName, secs/60, secs%60)
+}
+
+// potionUsedLocked starts pe's cooldown for p at a use. Must be called with
+// the lock held.
+func (w *World) potionUsedLocked(p *Player, pe *PotionEffect, now time.Time) {
+	if pe.Cooldown <= 0 {
+		return
+	}
+	if p.potionReady == nil {
+		p.potionReady = map[int]time.Time{}
+	}
+	p.potionReady[pe.PatternID] = now.Add(pe.Cooldown)
+}
+
+// SetPotionCooldowns gives the player sess plays its items' cooldowns as its
+// database row keeps them (handlers/character.go, at the login).
+func (w *World) SetPotionCooldowns(sess *session.Session, ready map[int]time.Time) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil || len(ready) == 0 {
+		return
+	}
+	if p.potionReady == nil {
+		p.potionReady = map[int]time.Time{}
+	}
+	for pid, t := range ready {
+		p.potionReady[pid] = t
+	}
+}
+
 // ErrPotionNoPlayer is UsePotion with no living player.
 var ErrPotionNoPlayer = errors.New("no living player")
 
@@ -315,6 +367,9 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 		return "", nil, ErrPotionNoPlayer
 	}
 	w.potions.note(pe)
+	if refusal := w.potionCoolingLocked(p, &pe, now); refusal != "" {
+		return refusal, nil, nil
+	}
 	spell := pe.castSpell()
 	if pe.Thrown() {
 		targets, refusal := w.castTargetsLocked(sess, p, &spell, targetObjectID)
@@ -329,6 +384,7 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 		// only in an auto-attack
 		w.broadcastCastLocked(p, npc.ServerID, 0, spell.visual())
 		w.throwLocked(sess, p, &pe, npc, now)
+		w.potionUsedLocked(p, &pe, now)
 		log.Printf("Potion: %s throws %q at %s", p.Name, pe.ItemName, npc.Name)
 		return "", nil, nil
 	}
@@ -378,6 +434,7 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 	}
 	cs := &castState{spell: spell, caster: p.ServerID, targets: []EntityID{p.ServerID}}
 	w.landOnPlayerLocked(cs, p, sess, p, now)
+	w.potionUsedLocked(p, &pe, now)
 	log.Printf("Potion: %s drinks %q (%d health)", p.Name, pe.ItemName, cost)
 	if travel != nil {
 		// the tick hands it to the travel hook (runTravels), as a gate's

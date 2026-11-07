@@ -33,7 +33,11 @@ import (
 //   - charges: how many uses one of the item holds (2026-11-06, petition 1088,
 //     the alchemists' Reconstructive: 4), for an item that does not stack (its
 //     maxstack 1): each use takes a charge, the last the item (0x003E, CLIENT's
-//     Msg003E); 0: each use takes one off its stack.
+//     Msg003E); 0: each use takes one off its stack;
+//   - cooldown: the seconds before one who used it may use it again
+//     (2026-11-07, the user: "lets make recons 10 min cooldown for heirloom
+//     server", "make it 15mins"), kept per character in potioncooldowns so a
+//     logout or a restart does not end it; 0 none.
 const itemEffectSchema = `
 	CREATE TABLE IF NOT EXISTS itemeffect (
 		patternid   INTEGER PRIMARY KEY,
@@ -46,7 +50,8 @@ const itemEffectSchema = `
 		source      TEXT NOT NULL DEFAULT 'gm',
 		body        INTEGER NOT NULL DEFAULT 0,
 		target_line TEXT NOT NULL DEFAULT '',
-		charges     INTEGER NOT NULL DEFAULT 0
+		charges     INTEGER NOT NULL DEFAULT 0,
+		cooldown    REAL NOT NULL DEFAULT 0
 	);`
 
 // itemEffectAdded are the columns itemeffect gained after it was made, which
@@ -55,6 +60,7 @@ var itemEffectAdded = []struct{ col, decl string }{
 	{"body", "INTEGER NOT NULL DEFAULT 0"},
 	{"target_line", "TEXT NOT NULL DEFAULT ''"},
 	{"charges", "INTEGER NOT NULL DEFAULT 0"},
+	{"cooldown", "REAL NOT NULL DEFAULT 0"},
 }
 
 // ensureItemEffects makes table itemeffect (initSchema), and gives one made
@@ -90,16 +96,17 @@ type ItemEffectRow struct {
 	Body       uint32
 	TargetLine string
 	Charges    int
+	Cooldown   float64 // seconds
 }
 
 const itemEffectSelect = `SELECT e.patternid, COALESCE(p.itemname, ''), e.line, e.name, e.icon, e.breaks, e.wear, e.area,
-	e.body, e.target_line, e.charges
+	e.body, e.target_line, e.charges, e.cooldown
 	FROM itemeffect e LEFT JOIN itempattern p ON p.patternid = e.patternid`
 
 func scanItemEffect(sc interface{ Scan(...any) error }) (ItemEffectRow, error) {
 	var r ItemEffectRow
 	var icon, body int64
-	err := sc.Scan(&r.PatternID, &r.ItemName, &r.Line, &r.Name, &icon, &r.Breaks, &r.Wear, &r.Area, &body, &r.TargetLine, &r.Charges)
+	err := sc.Scan(&r.PatternID, &r.ItemName, &r.Line, &r.Name, &icon, &r.Breaks, &r.Wear, &r.Area, &body, &r.TargetLine, &r.Charges, &r.Cooldown)
 	r.Icon, r.Body = uint32(icon), uint32(body)
 	return r, err
 }

@@ -195,6 +195,9 @@ type questChar struct {
 	// packTold is when a kill, loot or reach step waiting for room in the
 	// pack last said so, by quest and step (questroom.go)
 	packTold map[[2]int]time.Time
+	// declined is the quests it said no to since its login, not offered
+	// again until its giver has none other to offer (offerAtLocked)
+	declined map[int]bool
 }
 
 // say is a text with %p the player's name (left as it is while the name is
@@ -622,10 +625,21 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 	c := q.namedLocked(p.CharServerID, p.Name)
 	c.box = nil
 	look := q.lookAt(sess)
-	if q.stepAtLocked(sess, p, c, look, npc.Name, npc.ServerID) {
+	// what the player can do here now comes first: a step it holds the items
+	// for, whichever quest's it is, then a hand-in it holds the items for
+	// (several quests at one giver: the Plane of Sky's armourers, a quest a
+	// piece, are asked for whichever piece the player has the parts of)
+	if q.stepAtLocked(sess, p, c, look, npc.Name, npc.ServerID, true) {
 		return true
 	}
-	if qu := q.nextOfferLocked(look, p, c, npc.Name, nil); qu != nil {
+	if qu := q.readyHandInLocked(look, p, c, npc.Name); qu != nil {
+		q.offerLocked(sess, p, c, qu)
+		return true
+	}
+	if q.stepAtLocked(sess, p, c, look, npc.Name, npc.ServerID, false) {
+		return true
+	}
+	if qu := q.offerAtLocked(look, p, c, npc.Name); qu != nil {
 		q.offerLocked(sess, p, c, qu)
 		return true
 	}
@@ -643,13 +657,18 @@ func (q *QuestEngine) TalkStep(sess *session.Session, p *entity.Player, name str
 	defer q.mu.Unlock()
 	c := q.namedLocked(p.CharServerID, p.Name)
 	c.box = nil
-	return q.stepAtLocked(sess, p, c, q.lookAt(sess), name, spawn)
+	look := q.lookAt(sess)
+	return q.stepAtLocked(sess, p, c, look, name, spawn, true) || q.stepAtLocked(sess, p, c, look, name, spawn, false)
 }
 
 // stepAtLocked does the first of the player's quest steps at the NPC called
 // name (spawn, its spawn), or says why its giver will not deal with the
-// player; it reports whether either was said.
-func (q *QuestEngine) stepAtLocked(sess *session.Session, p *entity.Player, c *questChar, look *factionLook, name string, spawn entity.EntityID) bool {
+// player; it reports whether either was said. With ready it does only a step
+// that can be done now (a show or give step's items and tunar held) and says
+// nothing else: so a step waiting on its items does not stand in the way of
+// another quest's at the same NPC (until 2026-11-07 the first in the journal
+// answered, whatever the player held).
+func (q *QuestEngine) stepAtLocked(sess *session.Session, p *entity.Player, c *questChar, look *factionLook, name string, spawn entity.EntityID, ready bool) bool {
 	wontDeal := ""
 	for _, cq := range c.active() {
 		qu := q.cat.byID[cq.QuestID]
@@ -668,10 +687,13 @@ func (q *QuestEngine) stepAtLocked(sess *session.Session, p *entity.Player, c *q
 			}
 			continue
 		}
+		if ready && (st.Kind == database.StepGive || st.Kind == database.StepShow) && q.lackingLocked(p, st) != "" {
+			continue
+		}
 		q.atNPCLocked(sess, p, c, qu, cq, st, false, -1)
 		return true
 	}
-	if wontDeal != "" {
+	if wontDeal != "" && !ready {
 		q.tellLocked(c, sess, "", wontDeal)
 		log.Printf("Quests: %s: %s", p.Name, wontDeal)
 		return true
@@ -701,6 +723,39 @@ func (q *QuestEngine) nextOfferLocked(look *factionLook, p *entity.Player, c *qu
 		}
 	}
 	return again
+}
+
+// readyHandInLocked is the first quest of this giver the player may take and
+// has not just declined whose first step hands the giver items the player
+// holds now, or nil: offered before anything else the giver would say, so a
+// giver of several such quests (a quest a piece of armour, each repeatable)
+// is asked for the one the player has the parts of, in any order, again for a
+// replacement. Items only: a key bought for tunar is an ordinary offer.
+func (q *QuestEngine) readyHandInLocked(look *factionLook, p *entity.Player, c *questChar, giver string) *database.Quest {
+	for _, qu := range q.cat.givers[foldName(giver)] {
+		st := qu.First()
+		if c.declined[qu.ID] || st == nil || st.Kind != database.StepGive || len(st.Items) == 0 || foldName(st.Target) != foldName(giver) {
+			continue
+		}
+		if q.mayTakeLocked(look, p, c, qu) == "" && q.lackingLocked(p, st) == "" {
+			return qu
+		}
+	}
+	return nil
+}
+
+// offerAtLocked is the quest a giver talked to offers the player, or nil: the
+// next it has (nextOfferLocked) that the player has not just said no to, so a
+// no moves on to its next quest; with none other left, round again.
+func (q *QuestEngine) offerAtLocked(look *factionLook, p *entity.Player, c *questChar, giver string) *database.Quest {
+	qu := q.nextOfferLocked(look, p, c, giver, c.declined)
+	if qu == nil && len(c.declined) > 0 {
+		for _, g := range q.cat.givers[foldName(giver)] {
+			delete(c.declined, g.ID)
+		}
+		qu = q.nextOfferLocked(look, p, c, giver, nil)
+	}
+	return qu
 }
 
 // stepNPC is whether a step names this NPC: a talk, show or give step by its
@@ -1114,6 +1169,10 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 		// the giver's reply, said as written (Sandstorm's Norgam's has no
 		// name before it)
 		q.tellLocked(c, sess, "", sayLines(qu.Declined)...)
+		if c.declined == nil {
+			c.declined = map[int]bool{}
+		}
+		c.declined[qu.ID] = true
 		q.antidoteLocked(c, qu) // a were line's third quest: its antidote (wereinfect.go)
 		log.Printf("Quests: %s refused %q", p.Name, qu.Name)
 	case choiceNotYet:

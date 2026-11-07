@@ -1,0 +1,1649 @@
+{
+ "city": "plane-of-sky-armor",
+ "quests": [
+  {
+   "key": "PlaneOfSkyArmor/tank/helm",
+   "name": "Armour of the Sky: Helm",
+   "giver": "Stark Goldencrest",
+   "classes": [
+    0,
+    2,
+    3
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "You stand in front, so you want a helm that will hold. Bring me a Talisman of the Rhino, a totem of dreams and a phosphoric globe, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Stark Goldencrest",
+     "items": [
+      {
+       "item": "Talisman of the Rhino",
+       "count": 1
+      },
+      {
+       "item": "totem of dreams",
+       "count": 1
+      },
+      {
+       "item": "phosphoric globe",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Stark Goldencrest a Talisman of the Rhino, a totem of dreams and a phosphoric globe for a helm.",
+     "reminder": "I need all of it: a Talisman of the Rhino, a totem of dreams and a phosphoric globe.",
+     "says": "There. Let it take the blows meant for you.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Helm of the Warlord"
+        ]
+       },
+       "2": {
+        "items": [
+         "helm of the Valiant"
+        ]
+       },
+       "3": {
+        "items": [
+         "helm of the reaver"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/tank/tunic",
+   "name": "Armour of the Sky: Breastplate",
+   "giver": "Stark Goldencrest",
+   "classes": [
+    0,
+    2,
+    3
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "You stand in front, so you want a breastplate that will hold. Bring me a Talisman of the Rhino, the Ring of Veeshan and silver coins, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "The ring comes off the Quintessence of Veeshan alone; the rest drop all over the Plane of Sky.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Stark Goldencrest",
+     "items": [
+      {
+       "item": "Talisman of the Rhino",
+       "count": 1
+      },
+      {
+       "item": "Ring of Veeshan",
+       "count": 1
+      },
+      {
+       "item": "silver coins",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Stark Goldencrest a Talisman of the Rhino, the Ring of Veeshan and silver coins for a breastplate.",
+     "reminder": "I need all of it: a Talisman of the Rhino, the Ring of Veeshan and silver coins.",
+     "says": "There. Let it take the blows meant for you.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Breastplate of the Warlord"
+        ]
+       },
+       "2": {
+        "items": [
+         "Breastplate of the Valiant"
+        ]
+       },
+       "3": {
+        "items": [
+         "breastplate of the reaver"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/tank/bracers",
+   "name": "Armour of the Sky: Bracers",
+   "giver": "Stark Goldencrest",
+   "classes": [
+    0,
+    2,
+    3
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "You stand in front, so you want bracers that will hold. Bring me a Talisman of the Rhino, a vial of rain drops and a planar axe, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Stark Goldencrest",
+     "items": [
+      {
+       "item": "Talisman of the Rhino",
+       "count": 1
+      },
+      {
+       "item": "vial of rain drops",
+       "count": 1
+      },
+      {
+       "item": "planar axe",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Stark Goldencrest a Talisman of the Rhino, a vial of rain drops and a planar axe for bracers.",
+     "reminder": "I need all of it: a Talisman of the Rhino, a vial of rain drops and a planar axe.",
+     "says": "There. Let it take the blows meant for you.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Bracers of the Warlord"
+        ]
+       },
+       "2": {
+        "items": [
+         "Bracers of the Valiant"
+        ]
+       },
+       "3": {
+        "items": [
+         "bracers of the reaver"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/tank/gloves",
+   "name": "Armour of the Sky: Gloves",
+   "giver": "Stark Goldencrest",
+   "classes": [
+    0,
+    2,
+    3
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "You stand in front, so you want gloves that will hold. Bring me a Talisman of the Rhino, gold coins and a stone chalice, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Stark Goldencrest",
+     "items": [
+      {
+       "item": "Talisman of the Rhino",
+       "count": 1
+      },
+      {
+       "item": "gold coins",
+       "count": 1
+      },
+      {
+       "item": "stone chalice",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Stark Goldencrest a Talisman of the Rhino, gold coins and a stone chalice for gloves.",
+     "reminder": "I need all of it: a Talisman of the Rhino, gold coins and a stone chalice.",
+     "says": "There. Let it take the blows meant for you.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Gauntlets of the Warlord"
+        ]
+       },
+       "2": {
+        "items": [
+         "Gloves of the Valiant"
+        ]
+       },
+       "3": {
+        "items": [
+         "guantlets of the reaver"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/tank/legs",
+   "name": "Armour of the Sky: Greaves",
+   "giver": "Stark Goldencrest",
+   "classes": [
+    0,
+    2,
+    3
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "You stand in front, so you want greaves that will hold. Bring me a Talisman of the Rhino, a Djinn statuette and a mithril ring of air, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Stark Goldencrest",
+     "items": [
+      {
+       "item": "Talisman of the Rhino",
+       "count": 1
+      },
+      {
+       "item": "Djinn statuette",
+       "count": 1
+      },
+      {
+       "item": "mithril ring of air",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Stark Goldencrest a Talisman of the Rhino, a Djinn statuette and a mithril ring of air for greaves.",
+     "reminder": "I need all of it: a Talisman of the Rhino, a Djinn statuette and a mithril ring of air.",
+     "says": "There. Let it take the blows meant for you.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Greaves of the Warlord"
+        ]
+       },
+       "2": {
+        "items": [
+         "Greaves of the Valiant"
+        ]
+       },
+       "3": {
+        "items": [
+         "greaves of the reaver"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/tank/boots",
+   "name": "Armour of the Sky: Boots",
+   "giver": "Stark Goldencrest",
+   "classes": [
+    0,
+    2,
+    3
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "You stand in front, so you want boots that will hold. Bring me a Talisman of the Rhino, a granite ring and an Efreet statuette, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Stark Goldencrest",
+     "items": [
+      {
+       "item": "Talisman of the Rhino",
+       "count": 1
+      },
+      {
+       "item": "granite ring",
+       "count": 1
+      },
+      {
+       "item": "Efreet statuette",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Stark Goldencrest a Talisman of the Rhino, a granite ring and an Efreet statuette for boots.",
+     "reminder": "I need all of it: a Talisman of the Rhino, a granite ring and an Efreet statuette.",
+     "says": "There. Let it take the blows meant for you.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Boots of the Warlord"
+        ]
+       },
+       "2": {
+        "items": [
+         "Boots of the Valiant"
+        ]
+       },
+       "3": {
+        "items": [
+         "boots of the reaver"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/healer/helm",
+   "name": "Armour of the Sky: Helm",
+   "giver": "Verna Goldencrest",
+   "classes": [
+    9,
+    7,
+    8
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "Those who mend others should not break themselves. You want a helm. Bring me a Talisman of the Panther, a totem of dreams and a phosphoric globe, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Verna Goldencrest",
+     "items": [
+      {
+       "item": "Talisman of the Panther",
+       "count": 1
+      },
+      {
+       "item": "totem of dreams",
+       "count": 1
+      },
+      {
+       "item": "phosphoric globe",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Verna Goldencrest a Talisman of the Panther, a totem of dreams and a phosphoric globe for a helm.",
+     "reminder": "I need all of it: a Talisman of the Panther, a totem of dreams and a phosphoric globe.",
+     "says": "There. Mend others in it, and live.",
+     "rewards": {
+      "byclass": {
+       "9": {
+        "items": [
+         "Helm of the Faithful"
+        ]
+       },
+       "7": {
+        "items": [
+         "Helm of the Howler"
+        ]
+       },
+       "8": {
+        "items": [
+         "Helm of the Mystic"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/healer/tunic",
+   "name": "Armour of the Sky: Tunic",
+   "giver": "Verna Goldencrest",
+   "classes": [
+    9,
+    7,
+    8
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "Those who mend others should not break themselves. You want a tunic. Bring me a Talisman of the Panther, the Ring of Veeshan and silver coins, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "The ring comes off the Quintessence of Veeshan alone; the rest drop all over the Plane of Sky.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Verna Goldencrest",
+     "items": [
+      {
+       "item": "Talisman of the Panther",
+       "count": 1
+      },
+      {
+       "item": "Ring of Veeshan",
+       "count": 1
+      },
+      {
+       "item": "silver coins",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Verna Goldencrest a Talisman of the Panther, the Ring of Veeshan and silver coins for a tunic.",
+     "reminder": "I need all of it: a Talisman of the Panther, the Ring of Veeshan and silver coins.",
+     "says": "There. Mend others in it, and live.",
+     "rewards": {
+      "byclass": {
+       "9": {
+        "items": [
+         "Breastplate of the Faithful"
+        ]
+       },
+       "7": {
+        "items": [
+         "tunic of the Howler"
+        ]
+       },
+       "8": {
+        "items": [
+         "Tunic of the Mystic"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/healer/bracers",
+   "name": "Armour of the Sky: Bracers",
+   "giver": "Verna Goldencrest",
+   "classes": [
+    9,
+    7,
+    8
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "Those who mend others should not break themselves. You want bracers. Bring me a Talisman of the Panther, a vial of rain drops and a planar axe, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Verna Goldencrest",
+     "items": [
+      {
+       "item": "Talisman of the Panther",
+       "count": 1
+      },
+      {
+       "item": "vial of rain drops",
+       "count": 1
+      },
+      {
+       "item": "planar axe",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Verna Goldencrest a Talisman of the Panther, a vial of rain drops and a planar axe for bracers.",
+     "reminder": "I need all of it: a Talisman of the Panther, a vial of rain drops and a planar axe.",
+     "says": "There. Mend others in it, and live.",
+     "rewards": {
+      "byclass": {
+       "9": {
+        "items": [
+         "Bracers of the Faithful"
+        ]
+       },
+       "7": {
+        "items": [
+         "Bracers of the Howler"
+        ]
+       },
+       "8": {
+        "items": [
+         "Braccers of the Mystic"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/healer/gloves",
+   "name": "Armour of the Sky: Gloves",
+   "giver": "Verna Goldencrest",
+   "classes": [
+    9,
+    7,
+    8
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "Those who mend others should not break themselves. You want gloves. Bring me a Talisman of the Panther, gold coins and a stone chalice, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Verna Goldencrest",
+     "items": [
+      {
+       "item": "Talisman of the Panther",
+       "count": 1
+      },
+      {
+       "item": "gold coins",
+       "count": 1
+      },
+      {
+       "item": "stone chalice",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Verna Goldencrest a Talisman of the Panther, gold coins and a stone chalice for gloves.",
+     "reminder": "I need all of it: a Talisman of the Panther, gold coins and a stone chalice.",
+     "says": "There. Mend others in it, and live.",
+     "rewards": {
+      "byclass": {
+       "9": {
+        "items": [
+         "Gauntlets of the Faithful"
+        ]
+       },
+       "7": {
+        "items": [
+         "gloves of the Howler"
+        ]
+       },
+       "8": {
+        "items": [
+         "Gloves of the Mystic"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/healer/legs",
+   "name": "Armour of the Sky: Leggings",
+   "giver": "Verna Goldencrest",
+   "classes": [
+    9,
+    7,
+    8
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "Those who mend others should not break themselves. You want leggings. Bring me a Talisman of the Panther, a Djinn statuette and a mithril ring of air, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Verna Goldencrest",
+     "items": [
+      {
+       "item": "Talisman of the Panther",
+       "count": 1
+      },
+      {
+       "item": "Djinn statuette",
+       "count": 1
+      },
+      {
+       "item": "mithril ring of air",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Verna Goldencrest a Talisman of the Panther, a Djinn statuette and a mithril ring of air for leggings.",
+     "reminder": "I need all of it: a Talisman of the Panther, a Djinn statuette and a mithril ring of air.",
+     "says": "There. Mend others in it, and live.",
+     "rewards": {
+      "byclass": {
+       "9": {
+        "items": [
+         "Leggings of the Faithful"
+        ]
+       },
+       "7": {
+        "items": [
+         "leggings of the Howler"
+        ]
+       },
+       "8": {
+        "items": [
+         "Leggings of the Mystic"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/healer/boots",
+   "name": "Armour of the Sky: Boots",
+   "giver": "Verna Goldencrest",
+   "classes": [
+    9,
+    7,
+    8
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "Those who mend others should not break themselves. You want boots. Bring me a Talisman of the Panther, a granite ring and an Efreet statuette, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Verna Goldencrest",
+     "items": [
+      {
+       "item": "Talisman of the Panther",
+       "count": 1
+      },
+      {
+       "item": "granite ring",
+       "count": 1
+      },
+      {
+       "item": "Efreet statuette",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Verna Goldencrest a Talisman of the Panther, a granite ring and an Efreet statuette for boots.",
+     "reminder": "I need all of it: a Talisman of the Panther, a granite ring and an Efreet statuette.",
+     "says": "There. Mend others in it, and live.",
+     "rewards": {
+      "byclass": {
+       "9": {
+        "items": [
+         "Boots of the Faithful"
+        ]
+       },
+       "7": {
+        "items": [
+         "Boots of the Howler"
+        ]
+       },
+       "8": {
+        "items": [
+         "Boots of the Mystic"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/melee/helm",
+   "name": "Armour of the Sky: Helm",
+   "giver": "Toi Razorbeak",
+   "classes": [
+    1,
+    6,
+    4,
+    5
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "You fight quick and close, and you want a helm. Bring me a Talisman of the Phoenix, a totem of dreams and a phosphoric globe, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Toi Razorbeak",
+     "items": [
+      {
+       "item": "Talisman of the Phoenix",
+       "count": 1
+      },
+      {
+       "item": "totem of dreams",
+       "count": 1
+      },
+      {
+       "item": "phosphoric globe",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Toi Razorbeak a Talisman of the Phoenix, a totem of dreams and a phosphoric globe for a helm.",
+     "reminder": "I need all of it: a Talisman of the Phoenix, a totem of dreams and a phosphoric globe.",
+     "says": "There. Go quickly.",
+     "rewards": {
+      "byclass": {
+       "1": {
+        "items": [
+         "Helm of the Archer"
+        ]
+       },
+       "6": {
+        "items": [
+         "Helm of the Assassin"
+        ]
+       },
+       "4": {
+        "items": [
+         "headband of the Silent Fist"
+        ]
+       },
+       "5": {
+        "items": [
+         "Helm of the Traveler"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/melee/tunic",
+   "name": "Armour of the Sky: Tunic",
+   "giver": "Toi Razorbeak",
+   "classes": [
+    1,
+    6,
+    4,
+    5
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "You fight quick and close, and you want a tunic, or a robe if you are a monk. Bring me a Talisman of the Phoenix, the Ring of Veeshan and silver coins, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "The ring comes off the Quintessence of Veeshan alone; the rest drop all over the Plane of Sky.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Toi Razorbeak",
+     "items": [
+      {
+       "item": "Talisman of the Phoenix",
+       "count": 1
+      },
+      {
+       "item": "Ring of Veeshan",
+       "count": 1
+      },
+      {
+       "item": "silver coins",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Toi Razorbeak a Talisman of the Phoenix, the Ring of Veeshan and silver coins for a tunic.",
+     "reminder": "I need all of it: a Talisman of the Phoenix, the Ring of Veeshan and silver coins.",
+     "says": "There. Go quickly.",
+     "rewards": {
+      "byclass": {
+       "1": {
+        "items": [
+         "Chainmail of the Archer"
+        ]
+       },
+       "6": {
+        "items": [
+         "Tunic of the Assassin"
+        ]
+       },
+       "4": {
+        "items": [
+         "robe of the Silent Fist"
+        ]
+       },
+       "5": {
+        "items": [
+         "Tunic of the Traveler"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/melee/bracers",
+   "name": "Armour of the Sky: Bracers",
+   "giver": "Toi Razorbeak",
+   "classes": [
+    1,
+    6,
+    4,
+    5
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "You fight quick and close, and you want bracers. Bring me a Talisman of the Phoenix, a vial of rain drops and a planar axe, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Toi Razorbeak",
+     "items": [
+      {
+       "item": "Talisman of the Phoenix",
+       "count": 1
+      },
+      {
+       "item": "vial of rain drops",
+       "count": 1
+      },
+      {
+       "item": "planar axe",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Toi Razorbeak a Talisman of the Phoenix, a vial of rain drops and a planar axe for bracers.",
+     "reminder": "I need all of it: a Talisman of the Phoenix, a vial of rain drops and a planar axe.",
+     "says": "There. Go quickly.",
+     "rewards": {
+      "byclass": {
+       "1": {
+        "items": [
+         "Bracers of the Archer"
+        ]
+       },
+       "6": {
+        "items": [
+         "Bracers of the Assassin"
+        ]
+       },
+       "4": {
+        "items": [
+         "armbands of the Silent Fist"
+        ]
+       },
+       "5": {
+        "items": [
+         "bracers of the Traveler"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/melee/gloves",
+   "name": "Armour of the Sky: Gloves",
+   "giver": "Toi Razorbeak",
+   "classes": [
+    1,
+    6,
+    4,
+    5
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "You fight quick and close, and you want gloves. Bring me a Talisman of the Phoenix, gold coins and a stone chalice, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Toi Razorbeak",
+     "items": [
+      {
+       "item": "Talisman of the Phoenix",
+       "count": 1
+      },
+      {
+       "item": "gold coins",
+       "count": 1
+      },
+      {
+       "item": "stone chalice",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Toi Razorbeak a Talisman of the Phoenix, gold coins and a stone chalice for gloves.",
+     "reminder": "I need all of it: a Talisman of the Phoenix, gold coins and a stone chalice.",
+     "says": "There. Go quickly.",
+     "rewards": {
+      "byclass": {
+       "1": {
+        "items": [
+         "Gloves of the Archer"
+        ]
+       },
+       "6": {
+        "items": [
+         "Gloves of the Assassin"
+        ]
+       },
+       "4": {
+        "items": [
+         "fistwraps of the Silent Fist"
+        ]
+       },
+       "5": {
+        "items": [
+         "Gloves of the Traveler"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/melee/legs",
+   "name": "Armour of the Sky: Leggings",
+   "giver": "Toi Razorbeak",
+   "classes": [
+    1,
+    6,
+    4,
+    5
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "You fight quick and close, and you want leggings. Bring me a Talisman of the Phoenix, a Djinn statuette and a mithril ring of air, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Toi Razorbeak",
+     "items": [
+      {
+       "item": "Talisman of the Phoenix",
+       "count": 1
+      },
+      {
+       "item": "Djinn statuette",
+       "count": 1
+      },
+      {
+       "item": "mithril ring of air",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Toi Razorbeak a Talisman of the Phoenix, a Djinn statuette and a mithril ring of air for leggings.",
+     "reminder": "I need all of it: a Talisman of the Phoenix, a Djinn statuette and a mithril ring of air.",
+     "says": "There. Go quickly.",
+     "rewards": {
+      "byclass": {
+       "1": {
+        "items": [
+         "Leggings of the Archer"
+        ]
+       },
+       "6": {
+        "items": [
+         "Leggings of the Assasin"
+        ]
+       },
+       "4": {
+        "items": [
+         "legwraps of the Silent Fist"
+        ]
+       },
+       "5": {
+        "items": [
+         "leggings of the Traveler"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/melee/boots",
+   "name": "Armour of the Sky: Boots",
+   "giver": "Toi Razorbeak",
+   "classes": [
+    1,
+    6,
+    4,
+    5
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "You fight quick and close, and you want boots. Bring me a Talisman of the Phoenix, a granite ring and an Efreet statuette, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Toi Razorbeak",
+     "items": [
+      {
+       "item": "Talisman of the Phoenix",
+       "count": 1
+      },
+      {
+       "item": "granite ring",
+       "count": 1
+      },
+      {
+       "item": "Efreet statuette",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Toi Razorbeak a Talisman of the Phoenix, a granite ring and an Efreet statuette for boots.",
+     "reminder": "I need all of it: a Talisman of the Phoenix, a granite ring and an Efreet statuette.",
+     "says": "There. Go quickly.",
+     "rewards": {
+      "byclass": {
+       "1": {
+        "items": [
+         "boots of the archer"
+        ]
+       },
+       "6": {
+        "items": [
+         "Boots of the Assassin"
+        ]
+       },
+       "4": {
+        "items": [
+         "footwraps of the Silent Fist"
+        ]
+       },
+       "5": {
+        "items": [
+         "boots of the Traveler"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/caster/helm",
+   "name": "Armour of the Sky: Helm",
+   "giver": "Singe Burnfeathers",
+   "classes": [
+    13,
+    10,
+    11,
+    12,
+    14
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "Fire and wind will find you first. You want a helm to turn them. Bring me a Talisman of the Owl, a totem of dreams and a phosphoric globe, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Singe Burnfeathers",
+     "items": [
+      {
+       "item": "Talisman of the Owl",
+       "count": 1
+      },
+      {
+       "item": "totem of dreams",
+       "count": 1
+      },
+      {
+       "item": "phosphoric globe",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Singe Burnfeathers a Talisman of the Owl, a totem of dreams and a phosphoric globe for a helm.",
+     "reminder": "I need all of it: a Talisman of the Owl, a totem of dreams and a phosphoric globe.",
+     "says": "There. The wind will not touch you now.",
+     "rewards": {
+      "byclass": {
+       "13": {
+        "items": [
+         "cap of the Channeler"
+        ]
+       },
+       "10": {
+        "items": [
+         "cap of the Creator"
+        ]
+       },
+       "11": {
+        "items": [
+         "Cap of the Decrepit"
+        ]
+       },
+       "12": {
+        "items": [
+         "cap of the Charmed"
+        ]
+       },
+       "14": {
+        "items": [
+         "Helm of the Chemist"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/caster/tunic",
+   "name": "Armour of the Sky: Tunic",
+   "giver": "Singe Burnfeathers",
+   "classes": [
+    13,
+    10,
+    11,
+    12,
+    14
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "Fire and wind will find you first. You want a tunic to turn them. Bring me a Talisman of the Owl, the Ring of Veeshan and silver coins, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "The ring comes off the Quintessence of Veeshan alone; the rest drop all over the Plane of Sky.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Singe Burnfeathers",
+     "items": [
+      {
+       "item": "Talisman of the Owl",
+       "count": 1
+      },
+      {
+       "item": "Ring of Veeshan",
+       "count": 1
+      },
+      {
+       "item": "silver coins",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Singe Burnfeathers a Talisman of the Owl, the Ring of Veeshan and silver coins for a tunic.",
+     "reminder": "I need all of it: a Talisman of the Owl, the Ring of Veeshan and silver coins.",
+     "says": "There. The wind will not touch you now.",
+     "rewards": {
+      "byclass": {
+       "13": {
+        "items": [
+         "Tunic of the Channeler"
+        ]
+       },
+       "10": {
+        "items": [
+         "Tunic of the Creator"
+        ]
+       },
+       "11": {
+        "items": [
+         "Tunic of the decrepit"
+        ]
+       },
+       "12": {
+        "items": [
+         "tunic of the Charmed"
+        ]
+       },
+       "14": {
+        "items": [
+         "Tunic of the Chemist"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/caster/bracers",
+   "name": "Armour of the Sky: Bracers",
+   "giver": "Singe Burnfeathers",
+   "classes": [
+    13,
+    10,
+    11,
+    12,
+    14
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "Fire and wind will find you first. You want bracers to turn them. Bring me a Talisman of the Owl, a vial of rain drops and a planar axe, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Singe Burnfeathers",
+     "items": [
+      {
+       "item": "Talisman of the Owl",
+       "count": 1
+      },
+      {
+       "item": "vial of rain drops",
+       "count": 1
+      },
+      {
+       "item": "planar axe",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Singe Burnfeathers a Talisman of the Owl, a vial of rain drops and a planar axe for bracers.",
+     "reminder": "I need all of it: a Talisman of the Owl, a vial of rain drops and a planar axe.",
+     "says": "There. The wind will not touch you now.",
+     "rewards": {
+      "byclass": {
+       "13": {
+        "items": [
+         "Bracers of the Channeler"
+        ]
+       },
+       "10": {
+        "items": [
+         "Bracers of the Creator"
+        ]
+       },
+       "11": {
+        "items": [
+         "Bracers of the Decrepit"
+        ]
+       },
+       "12": {
+        "items": [
+         "bracer of the Charmed"
+        ]
+       },
+       "14": {
+        "items": [
+         "Bracers of the Chemist"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/caster/gloves",
+   "name": "Armour of the Sky: Gloves",
+   "giver": "Singe Burnfeathers",
+   "classes": [
+    13,
+    10,
+    11,
+    12,
+    14
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "Fire and wind will find you first. You want gloves to turn them. Bring me a Talisman of the Owl, gold coins and a stone chalice, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Singe Burnfeathers",
+     "items": [
+      {
+       "item": "Talisman of the Owl",
+       "count": 1
+      },
+      {
+       "item": "gold coins",
+       "count": 1
+      },
+      {
+       "item": "stone chalice",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Singe Burnfeathers a Talisman of the Owl, gold coins and a stone chalice for gloves.",
+     "reminder": "I need all of it: a Talisman of the Owl, gold coins and a stone chalice.",
+     "says": "There. The wind will not touch you now.",
+     "rewards": {
+      "byclass": {
+       "13": {
+        "items": [
+         "gloves of the Channeler"
+        ]
+       },
+       "10": {
+        "items": [
+         "gloves of the Creator"
+        ]
+       },
+       "11": {
+        "items": [
+         "Gloves of the Decrepit"
+        ]
+       },
+       "12": {
+        "items": [
+         "gloves of the Charmed"
+        ]
+       },
+       "14": {
+        "items": [
+         "Gloves of the Chemist"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/caster/legs",
+   "name": "Armour of the Sky: Leggings",
+   "giver": "Singe Burnfeathers",
+   "classes": [
+    13,
+    10,
+    11,
+    12,
+    14
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "Fire and wind will find you first. You want leggings to turn them. Bring me a Talisman of the Owl, a Djinn statuette and a mithril ring of air, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Singe Burnfeathers",
+     "items": [
+      {
+       "item": "Talisman of the Owl",
+       "count": 1
+      },
+      {
+       "item": "Djinn statuette",
+       "count": 1
+      },
+      {
+       "item": "mithril ring of air",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Singe Burnfeathers a Talisman of the Owl, a Djinn statuette and a mithril ring of air for leggings.",
+     "reminder": "I need all of it: a Talisman of the Owl, a Djinn statuette and a mithril ring of air.",
+     "says": "There. The wind will not touch you now.",
+     "rewards": {
+      "byclass": {
+       "13": {
+        "items": [
+         "leggings of the Channeler"
+        ]
+       },
+       "10": {
+        "items": [
+         "leggings of the Creator"
+        ]
+       },
+       "11": {
+        "items": [
+         "leggings of the Decrepit"
+        ]
+       },
+       "12": {
+        "items": [
+         "leggings of the Charmed"
+        ]
+       },
+       "14": {
+        "items": [
+         "Leggings of the Chemist"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  },
+  {
+   "key": "PlaneOfSkyArmor/caster/boots",
+   "name": "Armour of the Sky: Boots",
+   "giver": "Singe Burnfeathers",
+   "classes": [
+    13,
+    10,
+    11,
+    12,
+    14
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "repeatable": true,
+   "requires": [],
+   "offer": "Fire and wind will find you first. You want boots to turn them. Bring me a Talisman of the Owl, a granite ring and an Efreet statuette, and I will make it.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not that piece.",
+   "declined": "Talk to me again and I will name another.",
+   "started": "They drop all over the Plane of Sky, off almost anything.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Singe Burnfeathers",
+     "items": [
+      {
+       "item": "Talisman of the Owl",
+       "count": 1
+      },
+      {
+       "item": "granite ring",
+       "count": 1
+      },
+      {
+       "item": "Efreet statuette",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Singe Burnfeathers a Talisman of the Owl, a granite ring and an Efreet statuette for boots.",
+     "reminder": "I need all of it: a Talisman of the Owl, a granite ring and an Efreet statuette.",
+     "says": "There. The wind will not touch you now.",
+     "rewards": {
+      "byclass": {
+       "13": {
+        "items": [
+         "sandals of the Channeler"
+        ]
+       },
+       "10": {
+        "items": [
+         "slippers of the Creator"
+        ]
+       },
+       "11": {
+        "items": [
+         "Slippers of the Decrepit"
+        ]
+       },
+       "12": {
+        "items": [
+         "slippers of the Charmed"
+        ]
+       },
+       "14": {
+        "items": [
+         "Boots of the Chemist"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "EQoA forum t290 (recipes, sets) and EQOA-Data Quests/Portal/plane-of-sky.json (the givers, level, where the parts drop). A quest a piece so the journal holds its recipe, repeatable for a replacement; the giver offers whichever piece the player holds the parts of (handlers/quests.go readyHandInLocked). No experience: the guide gives none."
+  }
+ ]
+}

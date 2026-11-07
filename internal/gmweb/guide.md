@@ -256,7 +256,7 @@ beside it):
   among them, the nearest first): `Target, Decrease Hitpoints by 210 aoe Decrease Hitpoints by 90` (the target takes
   210, every creature within 15 of it 90; also `Aoe by 8`, `aoe 390`, `AE 856`), a bare `AOE` at the end (the whole
   spell on all: the shouts, round the caster, within 10), `PB AE` or `around the caster` (round the caster), a group's
-  `Radius 15` / `15rad` (the caster's group within it, and their pets). A harmful one lands on creatures only: never a
+  `Radius 15` / `15rad` (the caster's group within it and their pets, all of them however many a raid group holds). A harmful one lands on creatures only: never a
   player, a pet or charmed creature, an NPC with the NPC bit, one across the water's edge, nor (for undead alone)
   anything living; each hit is the caster's (hate, the faction's helpers, the kill). The cast's visual names up to seven
   others. To change one without its line, `insert_row` into `spellarea` (`{spellid, centre, radius, maxtargets,

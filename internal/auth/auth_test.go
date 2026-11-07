@@ -95,7 +95,7 @@ func TestTicketGrantAndValidate(t *testing.T) {
 		t.Fatal("unknown username has a valid ticket")
 	}
 
-	s.Grant("alice", 42)
+	s.Grant("alice", 42, "pw")
 	id, ok := s.Valid("alice")
 	if !ok {
 		t.Fatal("granted ticket is not valid")
@@ -109,7 +109,7 @@ func TestTicketGrantAndValidate(t *testing.T) {
 // too, or a client that logs in as "Alice" and then sends "alice" is refused.
 func TestTicketMatchingIsCaseInsensitive(t *testing.T) {
 	s := NewTicketStore(time.Minute)
-	s.Grant("Alice", 7)
+	s.Grant("Alice", 7, "pw")
 
 	for _, name := range []string{"alice", "ALICE", "Alice", " alice "} {
 		if _, ok := s.Valid(name); !ok {
@@ -124,7 +124,7 @@ func TestTicketExpires(t *testing.T) {
 	now := time.Unix(1_700_000_000, 0)
 	s.now = func() time.Time { return now }
 
-	s.Grant("bob", 1)
+	s.Grant("bob", 1, "pw")
 	if _, ok := s.Valid("bob"); !ok {
 		t.Fatal("ticket invalid immediately after being granted")
 	}
@@ -142,7 +142,7 @@ func TestTicketExpires(t *testing.T) {
 
 func TestTicketRevoke(t *testing.T) {
 	s := NewTicketStore(time.Minute)
-	s.Grant("carol", 3)
+	s.Grant("carol", 3, "pw")
 	s.Revoke("carol")
 	if _, ok := s.Valid("carol"); ok {
 		t.Fatal("revoked ticket still valid")
@@ -151,7 +151,7 @@ func TestTicketRevoke(t *testing.T) {
 
 func TestEmptyUsernameNeverHoldsATicket(t *testing.T) {
 	s := NewTicketStore(time.Minute)
-	s.Grant("", 1)
+	s.Grant("", 1, "pw")
 	if _, ok := s.Valid(""); ok {
 		t.Fatal("empty username holds a ticket")
 	}
@@ -165,7 +165,7 @@ func TestTicketStoreIsConcurrencySafe(t *testing.T) {
 		go func() {
 			defer func() { done <- struct{}{} }()
 			for j := 0; j < 200; j++ {
-				s.Grant("user", 1)
+				s.Grant("user", 1, "pw")
 				s.Valid("user")
 				s.Revoke("other")
 			}
@@ -173,5 +173,27 @@ func TestTicketStoreIsConcurrencySafe(t *testing.T) {
 	}
 	for i := 0; i < 8; i++ {
 		<-done
+	}
+}
+
+// A ticket answers only to the password that earned it, whoever asks: a ticket
+// that answered to the username let anyone sign in within ttl of a real login.
+func TestATicketAnswersOnlyToItsPassword(t *testing.T) {
+	s := NewTicketStore(time.Minute)
+	s.Grant("Alice", 42, "right")
+	if id, ok := s.ValidFor("alice", "right"); !ok || id != 42 {
+		t.Errorf("the password that earned it: account %d, %v", id, ok)
+	}
+	for _, wrong := range []string{"wrong", "", "Right", "right "} {
+		if id, ok := s.ValidFor("alice", wrong); ok {
+			t.Errorf("password %q answered, account %d", wrong, id)
+		}
+	}
+	if _, ok := s.ValidFor("bob", "right"); ok {
+		t.Error("another name answered to the password")
+	}
+	s.Revoke("alice")
+	if _, ok := s.ValidFor("alice", "right"); ok {
+		t.Error("a revoked ticket answered")
 	}
 }

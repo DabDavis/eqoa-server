@@ -173,6 +173,17 @@ func (w *World) placeClarityLocked(caster *Player, casterSess *session.Session, 
 // take off its chance to resist, in percent (see the file's comment): the
 // strongest one's.
 func npcResistOffPct(npc *NPC, now time.Time) int {
+	off := npcArcaneOff(npc, now)
+	if off == 0 {
+		return 0
+	}
+	return int(math.Round(ResistShare(off) * 100))
+}
+
+// npcArcaneOff is how far a creature's arcane resist is lowered now: the
+// strongest debuff of it on the creature (debuffs of a kind do not add), 0 for
+// none.
+func npcArcaneOff(npc *NPC, now time.Time) int {
 	if npc == nil {
 		return 0
 	}
@@ -182,8 +193,26 @@ func npcResistOffPct(npc *NPC, now time.Time) int {
 			off = max(off, -e.Mods.AR)
 		}
 	}
-	if off == 0 {
-		return 0
+	return off
+}
+
+// arcaneDebuffPer is how many points of a creature's arcane debuff make one
+// percent more arcane damage on it (arcaneDebuffed; ours: Paralytic
+// Punishment's 125 and a tenth of 300 INT is 10% more).
+const arcaneDebuffPer = 15
+
+// arcaneDebuffed is a hit n (negative) or a tick of a spell of that resist on a
+// creature, as hard as its arcane debuff makes it (petition 1176, Jibrish: "It
+// should have a noticeable impact on resists for AR, and even increase AR
+// damage a bit from the resist debuff"): arcane's alone, the debuff's other
+// half being the resist it takes off (npcResistOffPct). Any other as it is.
+func arcaneDebuffed(resist Stat, npc *NPC, n int, now time.Time) int {
+	if resist != StatAR || n >= 0 {
+		return n
 	}
-	return int(math.Round(ResistShare(off) * 100))
+	pct := npcArcaneOff(npc, now) / arcaneDebuffPer
+	if pct <= 0 {
+		return n
+	}
+	return int(math.Round(float64(n) * (1 + float64(pct)/100)))
 }

@@ -101,6 +101,13 @@ func (w *World) PlayerNear(world uint8, x, z, reach float32) bool {
 	return false
 }
 
+// CountNear is how many living NPCs of that name stand within reach of (x, z) in world.
+func (w *World) CountNear(name string, world uint8, x, z, reach float32) int {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return len(w.npcsNearLocked(name, world, x, z, reach))
+}
+
 // MakeAttackable clears a copy's NPC bit, and no more: it does not attack on sight.
 func (w *World) MakeAttackable(id EntityID) {
 	w.mu.Lock()

@@ -681,6 +681,7 @@ func NPCFromRecord(rec *database.NPCRecord, class int, ranged map[uint32]byte) *
 		SecondaryType:   secondaryType,
 		Shield:          rec.Shield,
 		Torso:           rec.Torso,
+		Tint:            rec.Tint,
 		Forearm:         rec.Forearm,
 		NPCGloves:       rec.Gloves,
 		NPCLegs:         rec.Legs,

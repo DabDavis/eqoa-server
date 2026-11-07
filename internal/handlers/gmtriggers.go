@@ -1050,6 +1050,12 @@ func (e *TriggerEngine) spawnLocked(r *triggerRun, s database.TriggerStep) strin
 		world, cx, cy, cz = uint8(*s.World), s.X, s.Y, s.Z
 	}
 	n := max(s.Count, 1)
+	if s.Max > 0 {
+		n = min(n, s.Max-e.gw.CountNear(strings.TrimSpace(s.NPC), world, cx, cz, 300))
+		if n <= 0 {
+			return fmt.Sprintf("%s: %d stand near already", s.NPC, s.Max)
+		}
+	}
 	spread := s.Spread
 	if spread <= 0 {
 		spread = database.TriggerDefaultSpread

@@ -421,12 +421,14 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 	//
 	// 0 is $Tints[0] = white/no-tint, which is what the working client ends up
 	// holding anyway, so this is retail-equivalent AND safe under S2.
-	buf[99] = 0
-	buf[100] = 0
-	buf[101] = 0
-	buf[102] = 0
-	buf[103] = 0
-	buf[104] = 0
+	// and a row's tint (npcs.unk_o) within that table: a boss's plate
+	tint := byte(0)
+	if n.Tint > 0 && n.Tint <= 14 {
+		tint = byte(n.Tint)
+	}
+	for i := 99; i <= 104; i++ {
+		buf[i] = tint
+	}
 
 	// Hair/Face at Java offsets 105-108
 	buf[105] = byte(n.HairColor)

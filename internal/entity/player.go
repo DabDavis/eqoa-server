@@ -308,6 +308,11 @@ type Player struct {
 	GMFormSize float32
 	Frozen     bool
 
+	// Flying: a GM's #fly is on (fly.go), until #fly off or the next login.
+	// flyGrace: its last few reports on the way down from it (fly.go).
+	Flying   bool
+	flyGrace time.Time
+
 	// Vampire: the sun burns it by day (vampire.go; table charvampire, read
 	// at its login, set by #vampire and the GM panel where it stands). GM:
 	// its account was a GM's at its login (acctlevel 1 or more), which

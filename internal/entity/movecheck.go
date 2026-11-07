@@ -263,7 +263,8 @@ type judgement struct {
 func (w *World) judgeMoveLocked(p *Player, u *ClientUpdate, now time.Time) (take bool, at *[3]float32) {
 	mode := MoveCheck()
 	st := &p.mv
-	if mode == MoveCheckOff {
+	if mode == MoveCheckOff || p.flyingNow(now) {
+		// off, or a GM in the air by its own #fly (fly.go): nothing to judge
 		st.init = false
 		return true, nil
 	}
@@ -655,7 +656,7 @@ func (w *World) silentAirSystem(now time.Time) {
 	}
 	for _, p := range w.Players {
 		st := &p.mv
-		if !st.init || !st.judged || !st.air || st.pending || p.HP <= 0 || now.Sub(st.at) < mcSilentAir {
+		if !st.init || !st.judged || !st.air || st.pending || p.HP <= 0 || now.Sub(st.at) < mcSilentAir || p.flyingNow(now) {
 			continue
 		}
 		if st.x != p.X || st.y != p.Y || st.z != p.Z || st.world != p.World {

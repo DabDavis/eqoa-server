@@ -251,8 +251,8 @@ const ResumeLine = "The server was updated. You stayed in the world."
 // ResumeDump sends a resumed session's client its MemoryDump where its
 // character stands now (respawned home if it was dead when the restart came),
 // with what the dump leaves out: the run speed its effects give, its lockouts
-// and, for a GM's client, the GM channel; and the line that says what
-// happened. It reports whether the session has a character.
+// and, for a GM's client, the GM channel and its flight; and the line that says
+// what happened. It reports whether the session has a character.
 func ResumeDump(sess *session.Session, dead bool) bool {
 	h := keepChars.Load()
 	if h == nil || h.gameWorld == nil {
@@ -283,6 +283,11 @@ func ResumeDump(sess *session.Session, dead bool) bool {
 	}
 	if h.gmChannel != nil {
 		h.gmChannel(sess)
+	}
+	// and a GM in the air is still in the air: the dump stood it where it is
+	// and said nothing of flight (fly.go)
+	if on, _ := gw.Flying(sess); on {
+		SendFlying(sess, true)
 	}
 	SendClientMessage(sess, ResumeLine)
 	return true

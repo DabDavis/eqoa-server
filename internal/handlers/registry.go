@@ -418,6 +418,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// (0x0801, the disc's 0x0B01; lfg.go, entity/lfg.go)
 	NewLFGHandler(gameWorld).RegisterHandlers(r)
 
+	// A GM's flight: a client's word that it flies (fly.go)
+	NewFlyHandler().RegisterHandlers(r)
+
 	// Register the buddy and ignore lists (entity/social.go)
 	NewSocialHandler(gameWorld).RegisterHandlers(r)
 

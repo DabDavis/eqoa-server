@@ -1,0 +1,156 @@
+{
+ "city": "hunt-and-gather",
+ "quests": [
+  {
+   "key": "HuntAndGather/lilara-and-skerg/lilara",
+   "name": "Lilara's Lost Kitty",
+   "giver": "Lilara",
+   "classes": [],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 20,
+   "requires": [],
+   "repeatable": true,
+   "offer": "My kitty! She ran off over the hill, east of here. Oh, she's so small and helpless.\nWill you find her?",
+   "accept": "I will find your kitty.",
+   "decline": "Not now.",
+   "declined": "Oh, my poor kitty.",
+   "started": "Over the hill, to the east. Hurry!",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 21110.0,
+     "y": 54.1,
+     "z": 6790.0,
+     "radius": 25,
+     "journal": "Look for Lilara's kitty over the hill east of her.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "That is no kitty: it is a bear! And two wolves have set on it."
+      },
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "Kitty"
+      },
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "kitty's wolf",
+       "hostile": true
+      },
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "kitty's wolf",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "kitty's wolf",
+     "count": 2,
+     "journal": "Save the kitty: kill the two wolves.",
+     "events": [
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "Kitty"
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Kitty",
+     "journal": "See to the kitty.",
+     "says": "The bear purrs, of all things, and lumbers off home."
+    },
+    {
+     "kind": "talk",
+     "target": "Lilara",
+     "journal": "Tell Lilara her kitty is on her way home.",
+     "says": "She came home! You found my kitty! Here, for your trouble.",
+     "rewards": {
+      "xp": 100000,
+      "tunar": 200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/lilara-and-skerg.json (github.com/Jadiction/EQOA-Data, MIT). Low levels only: 5 to 20, ours (the guide gives no figures). 100k experience and 200 tunar are the guide's; repeatable. The guide's Cara Village is CLIENT's Kara Village."
+  },
+  {
+   "key": "HuntAndGather/lilara-and-skerg/skerg",
+   "name": "A Pretty Necklace",
+   "giver": "Skerg",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Skerg wants pretty necklace. Pretty! You go Dead Hills. Skerg needs two zombie sinew, two rusty needle.\nYou bring?",
+   "accept": "I will bring them.",
+   "decline": "Not now.",
+   "declined": "Skerg sad.",
+   "started": "Dead Hills. Zombie, spider. Go.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "derelict zombie",
+     "items": [
+      {
+       "item": "zombie sinew",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Kill zombies in the Dead Hills for two zombie sinews."
+    },
+    {
+     "kind": "loot",
+     "target": "Dead Hills spider",
+     "items": [
+      {
+       "item": "rusty needle",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Kill spiders in the Dead Hills for two rusty needles."
+    },
+    {
+     "kind": "give",
+     "target": "Skerg",
+     "items": [
+      {
+       "item": "zombie sinew",
+       "count": 2
+      },
+      {
+       "item": "rusty needle",
+       "count": 2
+      }
+     ],
+     "journal": "Bring Skerg two zombie sinews and two rusty needles on the road north of Freeport.",
+     "says": "Pretty! Skerg make. You take one. Skerg make more.",
+     "reminder": "Two sinew. Two needle.",
+     "rewards": {
+      "items": [
+       "pretty necklace"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/lilara-and-skerg.json (github.com/Jadiction/EQOA-Data, MIT). High levels only: from 50, ours. The drops' chance is ours; the guide's necklace is a low-value stackable."
+  }
+ ],
+ "items": []
+}

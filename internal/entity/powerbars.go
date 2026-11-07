@@ -54,7 +54,7 @@ func powerOf255(p *Player) (byte, bool) {
 }
 
 // powerBarsLocked is the set me's client's bars show: each other group
-// member (as the roster names it, groupSyncSystem), the target and the
+// member its roster holds (as it names it, groupSyncSystem), the target and the
 // target's target (as the entity channels name it, putChannelTargetLocked),
 // the players among them, each once. Must be called with the lock held.
 func (w *World) powerBarsLocked(sess *session.Session, me *Player) []powerBar {
@@ -74,8 +74,8 @@ func (w *World) powerBarsLocked(sess *session.Session, me *Player) []powerBar {
 		}
 	}
 	if g := w.groups[me.GroupID]; me.GroupID != 0 && g != nil {
-		for _, mid := range g.Members {
-			if m := w.Players[mid]; m != nil && m != me {
+		for _, m := range w.shownMembersLocked(g, me) {
+			if m != me {
 				add(w.idSeenByLocked(sess, m), m)
 			}
 		}

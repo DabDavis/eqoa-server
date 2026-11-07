@@ -133,9 +133,10 @@ func (w *World) killSharersLocked(killer *Player, npc *NPC) []*Player {
 }
 
 // awardKillXPLocked gives a player's kill of npc its experience: each sharer
-// its GroupExp, through awardXP (the masteries' share, the lines, 0x0020).
-// killerSess is the killer's session when the caller has it. Must be called
-// with the lock held.
+// its GroupExp, a raid group's its cut share (raid.go), through awardXP (a
+// boon's, the debt's and the masteries' shares of that, the lines, 0x0020). Every
+// kill's experience comes through here. killerSess is the killer's session when
+// the caller has it. Must be called with the lock held.
 func (w *World) awardKillXPLocked(killerSess *session.Session, killer *Player, npc *NPC) {
 	if killer == nil || npc == nil {
 		return
@@ -149,8 +150,12 @@ func (w *World) awardKillXPLocked(killerSess *session.Session, killer *Player, n
 	for i, m := range sharers {
 		levels[i] = m.Level
 	}
+	raid := w.inRaidLocked(killer)
 	for _, m := range sharers {
 		xp := groupExp(npc.Level, m.Level, levels)
+		if raid {
+			xp = raidShare(xp)
+		}
 		if xp <= 0 {
 			continue
 		}

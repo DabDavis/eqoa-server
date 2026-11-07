@@ -32,16 +32,23 @@ import (
 // for itself, the visibility channel's object id for another. A member out of
 // sight has none, so it is given a stand-in (groupFarID) and the roster is sent
 // again whenever the ids a receiver knows change.
+//
+// A group has no cap; past GroupWindowSize it is a raid group and each member's
+// client is told of GroupWindowSize of them alone (raid.go).
 
-// MaxGroupSize is m_group's length.
-const MaxGroupSize = 4
+// GroupWindowSize is m_group's length, the most members a client is ever told
+// of: Msg0772 reads a roster's count with no bound, and a fifth member's id
+// lands on the count itself (raid.go).
+const GroupWindowSize = 4
 
-// Group is one group: its members, the leader first.
+// Group is one group: its members in the order they joined, the leader first.
 type Group struct {
 	ID      uint32
 	Members []EntityID
 	// lastRoster is the roster each member was last sent, by member.
 	lastRoster map[EntityID]string
+	// raid is what its members were last told it is (raidChangedLocked)
+	raid bool
 }
 
 // GroupMembers is p's group's members (the leader first), or none.
@@ -165,8 +172,9 @@ func (w *World) sendGroupRemoved(p *Player, sub byte) {
 	sendGroupMsg(w.sessionOfLocked(p), protocol.OpcodeRemoveGroupMember, func(b *buffer.Writer) { b.WriteByte(sub) })
 }
 
-// sendRosterLocked sends each member the roster in its own ids, when it
-// changed since the last one it was sent (or always, with force).
+// sendRosterLocked sends each member the roster its client holds
+// (shownMembersLocked) in its own ids, when it changed since the last one it was
+// sent (or always, with force).
 func (w *World) sendRosterLocked(g *Group, force bool) {
 	for _, mid := range g.Members {
 		m := w.Players[mid]
@@ -176,11 +184,9 @@ func (w *World) sendRosterLocked(g *Group, force bool) {
 		}
 		var ids []uint32
 		var names []string
-		for _, oid := range g.Members {
-			if o := w.Players[oid]; o != nil {
-				ids = append(ids, w.idSeenByLocked(sess, o))
-				names = append(names, o.Name)
-			}
+		for _, o := range w.shownMembersLocked(g, m) {
+			ids = append(ids, w.idSeenByLocked(sess, o))
+			names = append(names, o.Name)
 		}
 		key := ""
 		for k := range ids {
@@ -264,7 +270,8 @@ func (w *World) takeInviteLocked(p, inviter *Player) bool {
 	return true
 }
 
-// GroupAccept is 0x0622: into the inviter's group, and the roster to all.
+// GroupAccept is 0x0622: into the inviter's group, whatever its size, and the
+// roster to all; past GroupWindowSize it is a raid group (raid.go).
 func (w *World) GroupAccept(sess *session.Session, inviterID uint32) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -282,14 +289,11 @@ func (w *World) GroupAccept(sess *session.Session, inviterID uint32) {
 		w.sendGroupRemoved(p, 3)
 		return
 	}
-	if len(g.Members) >= MaxGroupSize {
-		w.sendGroupRemoved(p, 4)
-		return
-	}
 	g.Members = append(g.Members, p.ServerID)
 	p.GroupID = g.ID
 	log.Printf("Group: %s joined %s's group %d (%d members)", p.Name, inviter.Name, g.ID, len(g.Members))
 	w.sendRosterLocked(g, true)
+	w.raidJoinedLocked(g, p, sess)
 }
 
 // GroupDecline is 0x0624: the inviter told why (558 or 628).
@@ -331,6 +335,7 @@ func (w *World) rejoinGroupLocked(p *Player) {
 			if id == p.ServerID {
 				p.GroupID = g.ID
 				delete(g.lastRoster, p.ServerID)
+				p.raidReminder = g.isRaid()
 				return
 			}
 		}
@@ -354,11 +359,12 @@ func (w *World) leaveGroupLocked(p *Player) {
 	}
 	delete(g.lastRoster, p.ServerID)
 	log.Printf("Group: %s left group %d (%d left)", p.Name, g.ID, len(g.Members))
+	w.raidLeftLocked(g, p.Name)
 	w.shrinkLocked(g)
 }
 
 // shrinkLocked dissolves a group of one (2: disbanded) or sends the rest
-// the roster.
+// the roster, and says when that ended a raid group.
 func (w *World) shrinkLocked(g *Group) {
 	if len(g.Members) <= 1 {
 		for _, id := range g.Members {
@@ -371,6 +377,7 @@ func (w *World) shrinkLocked(g *Group) {
 		return
 	}
 	w.sendRosterLocked(g, true)
+	w.raidChangedLocked(g)
 }
 
 // GroupBoot is 0x0626 from the leader: the member is ejected (1).
@@ -395,6 +402,7 @@ func (w *World) GroupBoot(sess *session.Session, memberID uint32) {
 	m.GroupID = 0
 	delete(g.lastRoster, m.ServerID)
 	w.sendGroupRemoved(m, 1)
+	w.raidLeftLocked(g, m.Name)
 	w.shrinkLocked(g)
 }
 
@@ -428,6 +436,7 @@ func (w *World) groupSyncSystem() {
 		return
 	}
 	for _, g := range w.groups {
+		w.raidChangedLocked(g)
 		w.sendRosterLocked(g, false)
 		for _, mid := range g.Members {
 			m := w.Players[mid]
@@ -435,6 +444,7 @@ func (w *World) groupSyncSystem() {
 			if m == nil || sess == nil {
 				continue
 			}
+			w.raidRemindLocked(g, m, sess)
 			conn := sess.Connection()
 			if conn == nil {
 				continue
@@ -443,11 +453,10 @@ func (w *World) groupSyncSystem() {
 			if ch == nil {
 				continue
 			}
-			data := make([]byte, 13*(MaxGroupSize-1))
+			data := make([]byte, 13*(GroupWindowSize-1))
 			k := 0
-			for _, oid := range g.Members {
-				o := w.Players[oid]
-				if o == nil || o == m || k == MaxGroupSize-1 {
+			for _, o := range w.shownMembersLocked(g, m) {
+				if o == m || k == GroupWindowSize-1 {
 					continue
 				}
 				r := data[k*13:]

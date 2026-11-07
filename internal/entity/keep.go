@@ -200,9 +200,10 @@ func (w *World) KeepGroups() []KeptGroup {
 }
 
 // RestoreGroups forms the kept groups again among the characters in the
-// world, leader first as they were; a group left with fewer than two is not
-// formed. Each member's client is sent its roster by the group system (no
-// roster sent yet). It returns how many groups were formed.
+// world, leader first as they were, any number of them; a group left with fewer
+// than two is not formed. Each member's client is sent its roster by the group
+// system (no roster sent yet), and a raid group's members are told nothing unless
+// it stopped being one (raidChangedLocked). It returns how many groups were formed.
 func (w *World) RestoreGroups(groups []KeptGroup) (int, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -216,7 +217,7 @@ func (w *World) RestoreGroups(groups []KeptGroup) (int, error) {
 			errs = append(errs, fmt.Sprintf("group %d: its id is taken", k.ID))
 			continue
 		}
-		g := &Group{ID: k.ID, lastRoster: map[EntityID]string{}}
+		g := &Group{ID: k.ID, lastRoster: map[EntityID]string{}, raid: len(k.Members) > GroupWindowSize}
 		for _, c := range k.Members {
 			if p := w.playerByCharacterLocked(c); p != nil && p.GroupID == 0 {
 				g.Members = append(g.Members, p.ServerID)

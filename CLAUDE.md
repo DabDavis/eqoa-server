@@ -558,7 +558,7 @@ restarts and swaps; nothing before its first deploy is in it, and each shard cou
   180 pixels of the 155 it wraps at. A line that would push the guild line past its 63 units is left out. Every viewer, every client.
 - **A window of its own** (vanilla's Character > Combat Record): non-retail **0x7E20** (a u32 both ways, as 0x7E1C) offered at the world
   entry by a server that keeps records; a client that answers 1 (`Player.RecordWindow`, kept over a keep restart) asks with **0x7E21**
-  (a u32 1) as its window opens and is sent the record then and on every change: a u8 version 1, the name, a u8 count of rows, each a u8
+  (a u32 1; answered at most every half second) as its window opens and is sent the record then and on every change: a u8 version 1, the name, a u8 count of rows, each a u8
   style (0 heading, 1 label and value) and two strings (u8 byte count, UTF-8), the server's words ("2 hours ago") as they stand when sent
   (`recordRows`). A PS2 ignores the offer.
 

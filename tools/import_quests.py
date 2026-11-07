@@ -68,7 +68,7 @@ CLASSES = {
 KINDS = ("talk", "show", "give", "kill", "loot", "reach")
 NPC_KINDS = ("talk", "show", "give")
 QUEST_WHENS, STEP_WHENS = ("accept", "finish"), ("start", "done")
-DOS = ("popup", "say", "give", "spawn", "attack", "visual", "teleport", "vampire")
+DOS = ("popup", "say", "give", "spawn", "attack", "visual", "teleport", "vampire", "trigger", "dostep")
 
 # The quest tables as internal/database/quests.go makes them, and the columns
 # it adds to an older one.
@@ -396,6 +396,14 @@ def plan(db, files, routes=False):
                         for k in ("world", "x", "y", "z"):
                             if k in e:
                                 ev[k] = e[k]
+                    elif do == "trigger":
+                        # a GM trigger by its name (handlers/gmtriggers.go), written before the import
+                        ev["trigger"] = (e.get("trigger") or "").strip()
+                        if e.get("text"):
+                            ev["text"] = e["text"]
+                        if not has_table(db, "gmtriggers") or not db.execute(
+                                "SELECT 1 FROM gmtriggers WHERE lower(trim(name)) = lower(?)", (ev["trigger"],)).fetchone():
+                            miss.append(f"trigger {ev['trigger']!r} ({where})")
                     out.append(ev)
                 return out
 

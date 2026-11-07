@@ -162,5 +162,6 @@ func playerMeleeHit(p *Player, npc *NPC, intn func(int) int) int {
 	hit := low + intn(high-low+1)
 	// as its class template takes it (classtemplate.go), and the creature's
 	// melee resist debuff of the weapon's kind (workbookmore.go)
-	return npc.meleeTaken(meleeDebuffed(p, npc, max(hit, floor)+max(p.Mods.Melee, 0), time.Now()))
+	n := meleeDebuffed(p, npc, max(hit, floor)+max(p.Mods.Melee, 0), time.Now())
+	return npc.meleeTaken(npc.kindTakenOf(meleeKindOf(p.heldType()), n))
 }

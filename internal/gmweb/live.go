@@ -29,6 +29,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return "the next character made uses it"
 	case "accountinfo":
 		return s.liveAccount(a, action, before, after)
+	case testerTable:
+		return s.liveTester(before, after)
 	case "characters":
 		return s.liveCharacter(a, action, before, after)
 	case "factions", "factionhits", "factionstart", "npcfaction":
@@ -405,7 +407,18 @@ func (s *Server) liveAccount(a *actor, action string, before, after map[string]a
 		// nothing of the panel's works for it any more
 		s.sessions.endAccount(int(id), "")
 		n := s.revokeAccountTokens(int(id))
-		return fmt.Sprintf("no longer a GM: its panel sessions ended and %d token(s) were revoked", n)
+		msg := fmt.Sprintf("no longer a GM: its panel sessions ended and %d token(s) were revoked", n)
+		if s.testerFlag(int(id)) {
+			msg += "; it is a tester still (set_account_tester takes that away)"
+		}
+		return msg
+	}
+	if action == "update" && level(before) < s.cfg.MinLevel && level(after) >= s.cfg.MinLevel && s.testerFlag(int(id)) {
+		// what it made as a tester was made for the items and spells: no token
+		// of that kind goes on acting as a GM
+		s.sessions.endAccount(int(id), "")
+		n := s.revokeAccountTokens(int(id))
+		return fmt.Sprintf("a GM now, no longer a tester's limits: its panel sessions ended and its %d tester token(s) were revoked", n)
 	}
 	return ""
 }

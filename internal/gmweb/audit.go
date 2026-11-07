@@ -28,6 +28,8 @@ type auditEntry struct {
 	After      map[string]any `json:"after,omitempty"`
 	Detail     string         `json:"detail,omitempty"`
 	RevertedBy int64          `json:"revertedBy,omitempty"`
+	// NoRevert: this reader's revert would be refused (tester.go).
+	NoRevert bool `json:"noRevert,omitempty"`
 }
 
 func jsonOrNil(v map[string]any) any {
@@ -84,6 +86,8 @@ type auditFilter struct {
 	// show, their statements do not, and a search never matches them (SQL
 	// can carry a password hash).
 	hideSQL bool
+	// tables keeps the log to these tables (a tester's); empty: every line.
+	tables []string
 }
 
 func scanAudit(rs *sql.Rows) ([]auditEntry, error) {
@@ -134,6 +138,12 @@ func (s *Server) auditList(f auditFilter) ([]auditEntry, int64, error) {
 	if f.Key != "" {
 		parts = append(parts, "rowkey = ?")
 		args = append(args, f.Key)
+	}
+	if len(f.tables) > 0 {
+		parts = append(parts, "tbl IN (?"+strings.Repeat(", ?", len(f.tables)-1)+")")
+		for _, t := range f.tables {
+			args = append(args, t)
+		}
 	}
 	if f.Search != "" {
 		clause := "(detail LIKE ? ESCAPE '\\' OR before LIKE ? ESCAPE '\\' OR after LIKE ? ESCAPE '\\')"

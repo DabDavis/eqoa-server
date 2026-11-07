@@ -11,3 +11,8 @@ export function go(path) {
 export function isAdmin() {
   return !!state.session?.user?.admin;
 }
+
+// a tester: the item and spell records, and only the pages of them (tester.go)
+export function isTester() {
+  return state.session?.user?.role === 'tester';
+}

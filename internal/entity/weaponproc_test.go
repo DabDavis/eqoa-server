@@ -130,12 +130,15 @@ func TestAWeaponProcLands(t *testing.T) {
 	if len(f) != 2 || f[1] != -140 || hp-r.npc.HP != -f[0]+140 {
 		t.Errorf("figures %v, the creature lost %d", f, hp-r.npc.HP)
 	}
-	for name, roll := range map[string][]int{"over the chance": {99, 99}, "resisted": {0, 0}} {
-		procIntn = dice(roll...)
-		r.hit()
-		if f := figures(r.fsess); len(f) != 1 {
-			t.Errorf("%s: figures %v", name, f)
-		}
+	procIntn = dice(99, 99) // over the chance
+	r.hit()
+	if f := figures(r.fsess); len(f) != 1 {
+		t.Errorf("over the chance: figures %v", f)
+	}
+	procIntn = dice(0, 0) // resisted: the least it does, never nothing
+	r.hit()
+	if f := figures(r.fsess); len(f) != 2 || f[1] != -140 {
+		t.Errorf("resisted: figures %v, want the melee and 140", f)
 	}
 	r.friend.Gear.MainProc = nil
 	procIntn = dice(0, 99)

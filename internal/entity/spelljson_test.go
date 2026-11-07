@@ -173,7 +173,7 @@ func TestWorkbookResists(t *testing.T) {
 		landed  bool
 		dummy   bool
 		message bool
-	}{{0, false, false, true}, {34, false, false, true}, {35, true, false, false}, {0, true, true, false}} {
+	}{{0, true, false, true}, {34, true, false, true}, {35, true, false, false}, {0, true, true, false}} {
 		c := newCaster(t)
 		c.npc.Level, c.npc.HP, c.npc.MaxHP = 33, 1000, 1000
 		if tc.dummy {
@@ -198,6 +198,10 @@ func TestWorkbookResists(t *testing.T) {
 		}
 		if landed != tc.landed || told != tc.message {
 			t.Errorf("roll %d (dummy %v): landed %v, told %v; want %v, %v", tc.roll, tc.dummy, landed, told, tc.landed, tc.message)
+		}
+		// resisted, it lands at its least: the bolt's 12, never nothing (the user, 2026-11-07)
+		if tc.message && !tc.dummy && 1000-c.npc.HP != 12 {
+			t.Errorf("roll %d: a resisted bolt took %d, want its least, 12", tc.roll, 1000-c.npc.HP)
 		}
 		if !tc.landed && c.npc.CurrentEnemy != c.p.ServerID {
 			t.Errorf("roll %d: resisted, the creature is not angered (%d)", tc.roll, c.npc.CurrentEnemy)

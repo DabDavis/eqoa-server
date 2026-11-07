@@ -346,7 +346,7 @@ func TestADefensiveProcsChance(t *testing.T) {
 		{"the chance's last", []int{defProcChancePct - 1, 99}, 50},
 		{"at the chance", []int{defProcChancePct, 99}, 0},
 		{"over it", []int{99, 99}, 0},
-		{"resisted (5% at its level)", []int{0, 4}, 0},
+		{"resisted (5% at its level): the least it does", []int{0, 4}, 50},
 		{"the resist's first miss", []int{0, 5}, 50},
 	} {
 		hits, resisted := shieldAnswers(effects, 20, 20, 0, notUndead, now, dice(c.rolls...))
@@ -354,7 +354,7 @@ func TestADefensiveProcsChance(t *testing.T) {
 		if len(hits) == 1 {
 			got = hits[0].n
 		}
-		if got != c.want || len(hits) > 1 || (c.why == "resisted (5% at its level)") != (resisted == 1) {
+		if got != c.want || len(hits) > 1 || strings.HasPrefix(c.why, "resisted") != (resisted == 1) {
 			t.Errorf("%s: %+v, %d resisted", c.why, hits, resisted)
 		}
 	}

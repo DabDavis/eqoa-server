@@ -169,14 +169,17 @@ func TestChaoticFluxLandsOnAFriendAndProcs(t *testing.T) {
 	if f := figures(r.fsess); len(f) != 1 || f[0] != -64 {
 		t.Errorf("the friend was told %v, want [-64]", f)
 	}
-	for name, roll := range map[string][]int{"over the chance": {99, 99}, "resisted": {0, 0}} {
-		procIntn = dice(roll...)
+	for name, c := range map[string]struct {
+		roll []int
+		took int
+	}{"over the chance": {[]int{99, 99}, 0}, "resisted: the least it does": {[]int{0, 0}, 64}} {
+		procIntn = dice(c.roll...)
 		hp = r.npc.HP
 		r.w.mu.Lock()
 		r.w.playerProcsLocked(r.fsess, r.friend, r.npc, r.at(21*time.Second))
 		r.w.mu.Unlock()
-		if r.npc.HP != hp {
-			t.Errorf("%s: it took %d", name, hp-r.npc.HP)
+		if hp-r.npc.HP != c.took {
+			t.Errorf("%s: it took %d, want %d", name, hp-r.npc.HP, c.took)
 		}
 	}
 	// over at its end

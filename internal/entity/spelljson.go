@@ -217,6 +217,26 @@ func invisibleSprite(v uint32) bool { return v == 0x435EF663 || v == 0x63F65E43 
 // written; the lane resolves byte order").
 func spriteBody(v uint32) uint32 { return bits.ReverseBytes32(v) }
 
+// readEnemyBody reads an illusion on a spell for an enemy: the body goes on the
+// creature it hits, for what lasts of it, and the spell keeps its target, as a
+// thrown potion's does (potion.go readBody). readEffectJSON's illusion is for a
+// friend's body and would turn the spell on its caster. It reports whether e was one
+// (Transmutive Mix Potion, petition 1181, is the first such record).
+func (d *SpellDef) readEnemyBody(e effectJSON, targetType string) bool {
+	if !strings.Contains(targetType, "enemy") || !strings.EqualFold(strings.TrimSpace(e.Kind), "illusion") {
+		return false
+	}
+	v, _ := strconv.ParseUint(strings.TrimPrefix(strings.ToLower(strings.TrimSpace(e.Sprite)), "0x"), 16, 32)
+	if v == 0 || invisibleSprite(uint32(v)) {
+		return false
+	}
+	if !d.hasIllusion() {
+		d.Effects = append(d.Effects, SpellEffect{Kind: EffectIllusion, ID: e.ID})
+	}
+	d.FormModel = spriteBody(uint32(v))
+	return true
+}
+
 // ParseSpellJSON reads a spell's workbook effects (the file's doc). name and
 // desc are its record's, which say what an illusion is.
 func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
@@ -271,6 +291,9 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 	for _, e := range s.Effects {
 		if d.Duration <= 0 && e.DurationS > 0 {
 			d.Duration = seconds(e.DurationS)
+		}
+		if d.readEnemyBody(e, tt) {
+			continue
 		}
 		n := len(d.Effects)
 		d.readEffectJSON(name, desc, e, scope == "target_aoe", &area)

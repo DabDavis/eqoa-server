@@ -127,6 +127,7 @@ func (w *World) procSpellsOnLocked(p *Player, sess *session.Session, defense boo
 					on = append(on, e)
 				}
 			}
+			var lasts []SpellEffect
 			for _, e := range own { // its share for its bearer
 				switch n := spellAmount(e, p); e.Kind {
 				case EffectHP:
@@ -134,7 +135,17 @@ func (w *World) procSpellsOnLocked(p *Player, sess *session.Session, defense boo
 				case EffectPower:
 					p.Power = min(max(p.Power+n, 0), p.MaxPowerNow())
 					p.StatsDirty = true
+				case EffectHPTick, EffectPowerTick:
+					e.Self = false // on its bearer as a spell's own target
+					lasts = append(lasts, e)
 				}
+			}
+			// a heal over time set off by a hit (Fervor's, Tribal Ward's "waits to
+			// work till target is hit"): its own effect, under the proc's id, so
+			// another hit renews it and never adds a second
+			if len(lasts) > 0 {
+				w.landOnPlayerLocked(&castState{spell: CastSpell{SpellID: procSpellID(ae.SpellID, i), Name: ae.Name, Icon: ae.Icon, Level: p.Level,
+					Def: SpellDef{Effects: lasts, Duration: ps.Duration, Workbook: true}}, caster: p.ServerID}, p, sess, p, now)
 			}
 			if len(on) == 0 {
 				continue

@@ -243,3 +243,61 @@ func TestWorkbookTargetKinds(t *testing.T) {
 		}
 	}
 }
+
+// A hit on the bearer sets off a heal over time on it (petition 1195, Fervor; the
+// shaman's Tribal Ward is written the same way): its own effect, renewed by the
+// next hit and never a second, ticking its figure; the same spell's damage shield
+// answers the hit as ever. The control: with no hit, no heal.
+func TestAHitSetsOffAHealOverTime(t *testing.T) {
+	buff := wbSpell(700032, 4, 0, "Fervor", `{"v":1,"scope":"self","target_type":"Self","harmful":false,"duration_s":300,"stack":2,"level":4,"min_level":1,"req_equipment":"Any","sheet_type":"Defensive Proc","effects":[{"id":"04C8","type":"Defensive Proc","kind":"def_proc","procs":[{"id":"0D50","type":"Dmg/Heal","kind":"hp_tick","amount":1,"scale":"cha","scale_pct":15,"level_pct":125,"on":"defense","scope":"self","target_type":"Self","duration_s":18},{"id":"0D51","type":"Dmg/Heal","kind":"hp","amount":-10,"resist":"ar","on":"defense","scope":"target","target_type":"Enemy"}]}]}`)
+	if len(buff.Def.ProcSpells) != 1 || !buff.Def.ProcSpells[0].Defense || buff.Def.ProcSpells[0].Chance != 100 || buff.Def.ProcSpells[0].Duration != 18*time.Second {
+		t.Fatalf("its proc: %+v", buff.Def.ProcSpells)
+	}
+	c := newCaster(t)
+	c.p.Level, c.p.Cha = 60, 300
+	c.p.MaxHP, c.p.HP = 5000, 1000
+	c.castOn(t, buff, 0)
+	heals := func() []*ActiveEffect {
+		var out []*ActiveEffect
+		for _, e := range c.p.Effects {
+			if e.SpellID == procSpellID(700032, 0) {
+				out = append(out, e)
+			}
+		}
+		return out
+	}
+	var shield *Shield
+	for _, e := range c.p.Effects {
+		if e.SpellID == 700032 {
+			shield = e.Shield
+		}
+	}
+	if shield == nil || shield.Min != 10 {
+		t.Errorf("its damage shield: %+v", shield)
+	}
+	if len(heals()) != 0 {
+		t.Fatal("a heal before any hit")
+	}
+	hit := func(at time.Duration) {
+		c.w.mu.Lock()
+		defer c.w.mu.Unlock()
+		c.w.procSpellsLocked(c.p, c.sess, c.npc, true, c.at(at))
+	}
+	hit(10 * time.Second)
+	got := heals()
+	if len(got) != 1 {
+		t.Fatalf("after a hit %d heals", len(got))
+	}
+	if want := 1 + 300*15/100 + 60*125/100; got[0].HPTick != want {
+		t.Errorf("it ticks %d, want %d (at 60 with 300 CHA)", got[0].HPTick, want)
+	}
+	first := got[0].Until
+	hit(15 * time.Second)
+	got = heals()
+	if len(got) != 1 || !got[0].Until.After(first) {
+		t.Errorf("after a second hit %d heals, until %v (was %v)", len(got), got[0].Until, first)
+	}
+	if got[0].Name != "Fervor" {
+		t.Errorf("it is named %q", got[0].Name)
+	}
+}

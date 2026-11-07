@@ -3,6 +3,7 @@ package gmweb
 import (
 	"strings"
 
+	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/handlers"
 )
 
@@ -46,8 +47,19 @@ func numbered(labels ...string) []EnumValue {
 	return out
 }
 
-// enums are the enumerations columns name; "world" is filled from the
-// handlers' own table at each read.
+// raceEnum is the races by number: the game's ten, the froglok our S2 adds, and
+// the races of table racedefs (entity/race.go) as they stand at this read.
+func raceEnum() []EnumValue {
+	out := numbered("Human", "Elf", "Dark Elf", "Gnome", "Dwarf", "Troll", "Barbarian",
+		"Halfling", "Erudite", "Ogre", "Froglok")
+	for _, d := range entity.RaceDefs() {
+		out = append(out, EnumValue{d.ID, d.Name})
+	}
+	return out
+}
+
+// enums are the enumerations columns name; "world" and the races past the game's
+// are filled at each read.
 func enums() map[string][]EnumValue {
 	worlds := handlers.WorldNames()
 	w := make([]EnumValue, len(worlds))
@@ -55,14 +67,14 @@ func enums() map[string][]EnumValue {
 		w[i] = EnumValue{i, n}
 	}
 	return map[string][]EnumValue{
-		// verified on the wire (root CLAUDE.md, "Race/Class IDs"); 10 is the
-		// froglok our S2 adds
-		"race": numbered("Human", "Elf", "Dark Elf", "Gnome", "Dwarf", "Troll", "Barbarian",
-			"Halfling", "Erudite", "Ogre", "Froglok"),
+		// verified on the wire (root CLAUDE.md, "Race/Class IDs"); raceEnum
+		"race": raceEnum(),
 		"class": numbered("Warrior", "Ranger", "Paladin", "Shadow Knight", "Monk", "Bard", "Rogue",
 			"Druid", "Shaman", "Cleric", "Magician", "Necromancer", "Enchanter", "Wizard", "Alchemist"),
-		"sex":   numbered("Male", "Female"),
-		"world": w,
+		// racedefs.wire_race (entity/race.go): a race every client has
+		"wirerace": raceEnum()[:10],
+		"sex":      numbered("Male", "Female"),
+		"world":    w,
 		// handlers/equip.go: charinventory.equiploc, CLIENT's equip slots
 		"equiploc": append([]EnumValue{{-1, "Not worn"}}, numbered("Head", "Hands", "Left ear", "Right ear",
 			"Neck", "Chest", "Right bracelet", "Left bracelet", "Bracers", "Left ring", "Right ring", "Belt",
@@ -79,7 +91,7 @@ func enums() map[string][]EnumValue {
 		// spellarea.centre (entity/area.go)
 		"areacentre": {{0, "As its line reads"}, {1, "Round its target"}, {2, "Round its caster"}, {-1, "Not an area spell"}},
 		// factionstart (entity/faction.go): -1 any
-		"raceany":  append([]EnumValue{{-1, "Any race"}}, numbered("Human", "Elf", "Dark Elf", "Gnome", "Dwarf", "Troll", "Barbarian", "Halfling", "Erudite", "Ogre", "Froglok")...),
+		"raceany":  append([]EnumValue{{-1, "Any race"}}, raceEnum()...),
 		"classany": append([]EnumValue{{-1, "Any class"}}, numbered("Warrior", "Ranger", "Paladin", "Shadow Knight", "Monk", "Bard", "Rogue", "Druid", "Shaman", "Cleric", "Magician", "Necromancer", "Enchanter", "Wizard", "Alchemist")...),
 		"humtype":  {{-1, "Any city"}, {0, "Not a human"}, {1, "East (Freeport)"}, {2, "West (Qeynos, Surefall Glade)"}},
 		// npcfaction.world (entity/faction.go)
@@ -124,7 +136,7 @@ func flagSets() map[string][]FlagBit {
 		},
 		"classmask":  classes,  // itempattern.classuse: 32767 = every class
 		"racemask":   races,    // itempattern.raceuse: 1023 = every race
-		"racemask11": allRaces, // cmcatalog.races: 2047 = every race, the froglok too
+		"racemask11": allRaces, // cmcatalog.races: 2047 = every race, the froglok too; a custom race's bit besides
 	}
 }
 
@@ -1637,6 +1649,35 @@ var catalog = map[string]tableNote{
 			"size":   {Label: "Size", Help: "0.25 to 4; 1.0 the race's own body, 0.9 a tenth smaller"},
 			"note":   {Label: "Note", Help: "why"},
 			"source": {Label: "Source", Help: "gm, or seed for the row the table was made with"},
+		},
+	},
+	"racedefs": {
+		Label: "Custom races", Group: "New characters", Title: "name", Sort: "id",
+		Help: "A race this server has and the game does not, a row a race. On every wire site it passes as the game's race it " +
+			"names (wire_race), so its items, camera and tables are that race's on every client; it is its own race for its stats " +
+			"(the bonuses, 60 and the class's as any race's), its masteries (cmcatalog.races, its own bit) and standings " +
+			"(factionstart), and clients that can (vanilla) show its name and short name for its characters. Only a GM makes a " +
+			"character of one: set the character's race, and its modelid to the row's body. Keep a custom race's body OUT of " +
+			"charactermodel: an NPC wearing a body in that table is a townsperson, so creatures of that body would stop attacking.",
+		Live:   "At once for names, wire races and the masteries offered; its characters' stats at their next login. Deleting a race whose characters remain sends their number to the clients as it is, with no camera or items: move them first.",
+		Show:   []string{"id", "name", "short_name", "wire_race", "body_male", "body_female", "note"},
+		Search: []string{"name", "short_name", "note", "source"},
+		Cols: map[string]colNote{
+			"id":          {Label: "Race", Help: "characters.race: 11 to 30 (0 to 10 are the game's and the froglok's); its bit in cmcatalog.races is 1 << id"},
+			"name":        {Label: "Name", Section: "Identity", Help: "what clients that can, the target box's title and GMs' lines show"},
+			"short_name":  {Label: "Short name", Section: "Identity", Help: "the who list's, guild roster's and such columns' word, like OGR; empty: its first letters"},
+			"wire_race":   {Label: "Passes as", Enum: "wirerace", Section: "Identity", Help: "the game's race every client is told: its camera and items"},
+			"bonus_str":   {Label: "STR bonus", Section: "Stats"},
+			"bonus_sta":   {Label: "STA bonus", Section: "Stats"},
+			"bonus_agi":   {Label: "AGI bonus", Section: "Stats"},
+			"bonus_dex":   {Label: "DEX bonus", Section: "Stats"},
+			"bonus_wis":   {Label: "WIS bonus", Section: "Stats"},
+			"bonus_int":   {Label: "INT bonus", Section: "Stats"},
+			"bonus_cha":   {Label: "CHA bonus", Section: "Stats"},
+			"body_male":   {Label: "Male body", Format: hex32, Section: "Look", Help: "CHAR.ESF DictID; NOT in charactermodel"},
+			"body_female": {Label: "Female body", Format: hex32, Section: "Look", Help: "CHAR.ESF DictID; NOT in charactermodel"},
+			"note":        {Label: "Note", Help: "why"},
+			"source":      {Label: "Source", Help: "gm, or seed for the row made with the table"},
 		},
 	},
 	"guilds": {

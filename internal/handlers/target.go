@@ -144,7 +144,7 @@ func (h *TargetHandler) HandleTarget(sess *session.Session, msg *protocol.Messag
 		info.race = entity.WireRace(t.Race)
 		info.class = t.Class
 		info.faceColor = 5 // player target — ally (blue face)
-		info.title, info.guild = h.gameWorld.TargetInfoLines(t)
+		info.title, info.guild = h.gameWorld.TargetInfoLines(player, t)
 	case *entity.NPC:
 		info.name = t.Name
 		info.level = t.Level

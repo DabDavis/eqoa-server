@@ -131,7 +131,7 @@ beside it):
 - **Race**: 0 Human, 1 Elf, 2 Dark Elf, 3 Gnome, 4 Dwarf, 5 Troll, 6 Barbarian, 7 Halfling, 8 Erudite, 9 Ogre
   (10 Froglok). **Class**: 0 Warrior, 1 Ranger, 2 Paladin, 3 Shadow Knight, 4 Monk, 5 Bard, 6 Rogue, 7 Druid,
   8 Shaman, 9 Cleric, 10 Magician, 11 Necromancer, 12 Enchanter, 13 Wizard, 14 Alchemist.
-  `npcs.race` is TEXT ('0'..'10').
+  `npcs.race` is TEXT ('0'..'10'). A race past 10 on a character is a row of `racedefs`, which says what it passes as on the wire.
 - **Worlds** (`world` columns): 0 Tunaria (the main continent; Freeport is around x 25300, z 15700),
   1 Rathe, 2 Odus, 3 Lavastorm, 4 Plane of Sky, 5 Secrets, 7 Secrets 2; 8-29 are worlds streamed off a
   PS2 hard disk. Coordinates: x and z are the ground plane, y is height. A height at or under -1000 is a fall.

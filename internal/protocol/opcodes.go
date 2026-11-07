@@ -502,6 +502,19 @@ const (
 	// never offers it does too.
 	OpcodeMemberInvites GameOpcode = 0x7E17
 
+	// OpcodeRaceLabels is a race of racedefs' own words for a client that shows
+	// them (entity/racelabels.go, handlers/racelabels.go): a u32 after the
+	// opcode, both ways, as OpcodePowerBars: the server offers it (1) once the
+	// player is in the world; a client that can answers 1 to have them and 0 to
+	// stop. A PS2 ignores the offer and keeps the wire race's word.
+	OpcodeRaceLabels GameOpcode = 0x7E1C
+
+	// OpcodeRaceLabelsData is the list, server to a client that asked: a u8 count
+	// of races, then each race's name and short name, a u16 count of its
+	// characters and each one's name (a string is a u8 byte count and UTF-8).
+	// Each one is the whole list: a name it leaves out reads as its wire race.
+	OpcodeRaceLabelsData GameOpcode = 0x7E1D
+
 	// Voice chat (internal/voice, entity/voice.go): non-retail opcodes in a
 	// block of their own; a PS2 ignores them. Strings are a u16 byte length
 	// and UTF-8.

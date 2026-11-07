@@ -855,6 +855,10 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// leader-only rule, a PS2 ignores the offer
 	SendMemberInvitesOffer(sess)
 
+	// Offer the race labels (racelabels.go): vanilla shows a race the game does
+	// not have by its own words, a PS2 ignores the offer
+	SendRaceLabelsOffer(sess)
+
 	// The four weapon sets (gearsets.go): SOE's live client reads them, a PS2
 	// skips them
 	if h.gearSets != nil {

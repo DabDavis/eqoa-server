@@ -263,7 +263,8 @@ type judgement struct {
 func (w *World) judgeMoveLocked(p *Player, u *ClientUpdate, now time.Time) (take bool, at *[3]float32) {
 	mode := MoveCheck()
 	st := &p.mv
-	if mode == MoveCheckOff {
+	if mode == MoveCheckOff || p.flyingNow(now) {
+		// off, or a GM in the air by its own #fly (fly.go): nothing to judge
 		st.init = false
 		return true, nil
 	}

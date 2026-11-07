@@ -528,6 +528,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// The live game's look (0x7E0C; livelook.go): the answer to its offer,
 	// and #dye's table (dye.go)
 	NewLiveLookHandler(charHandler).RegisterHandlers(r)
+	// what creation takes past the game's, to a client that can show it (creation.go)
+	NewCreationHandler().RegisterHandlers(r)
 	if charStore != nil && charStore.DB() != nil {
 		chatHandler.SetDyeStore(charStore.DB())
 		// the Armor Dyers (dyer.go) dye as #dye does

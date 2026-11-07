@@ -50,7 +50,7 @@ func (h *RaceLabelsHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeRaceLabels, h.HandleRaceLabels)
 	if h.world != nil {
 		h.world.OnPlayerEntered(func(_ *session.Session, p *entity.Player) {
-			if entity.IsCustomRace(p.Race) {
+			if entity.HasRaceLabel(p.Race) {
 				h.world.RefreshRaceLabels(h.db)
 			}
 		})

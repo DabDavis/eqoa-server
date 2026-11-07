@@ -23,8 +23,9 @@ import (
 // standings (factionstart) and its name in what the server writes itself (a GM's
 // lines, the target box's title, the race labels a client that asks is sent:
 // racelabels.go). Its body is the character's own model id, as an illusion's is;
-// the row's two say which it should be. Only a GM's hand makes a character of one:
-// character creation offers the races CLIENT has (handlers' checkNewChar).
+// the row's two say which it should be. Character creation takes one where the
+// server opens it (world.open_races: creation.go, which a client that can is told
+// of before the world); elsewhere only a GM's hand makes a character of one.
 //
 // A race with no row is what it always was: the retail races' tables are below
 // and in stats.go, and any other number goes on the wire as it is.
@@ -45,6 +46,13 @@ type RaceDef struct {
 	Wire  int    // the race of CLIENT's it passes as
 	Bonus [7]int // STR STA AGI DEX WIS INT CHA
 	Body  [2]int64
+	// Desc is the create page's text, ClassMask the classes creation offers it
+	// when every class is not open to every race (0: its wire race's, the game's
+	// masks), City the human city a race passing as a human starts in (1 east,
+	// 2 west; 0 none): creation.go.
+	Desc      string
+	ClassMask int
+	City      int
 }
 
 // raceDefs is the table as last read: the free functions below read it from
@@ -78,7 +86,23 @@ func raceDefOf(r database.RaceDefRow) RaceDef {
 	if len(short) > raceLabelMax {
 		short = short[:raceLabelMax]
 	}
-	return RaceDef{ID: r.ID, Name: r.Name, Short: short, Wire: r.WireRace, Bonus: r.Bonus, Body: [2]int64{r.BodyMale, r.BodyFemale}}
+	return RaceDef{ID: r.ID, Name: r.Name, Short: short, Wire: r.WireRace, Bonus: r.Bonus, Body: [2]int64{r.BodyMale, r.BodyFemale},
+		Desc: r.Desc, ClassMask: r.ClassMask, City: r.City}
+}
+
+// CheckRaceDefCreation is why a row's creation columns cannot be, "" when they
+// can: a class mask of the game's fifteen classes (0 its wire race's), and a
+// city of the humans' (1 east, 2 west) only for a race passing as a human.
+func CheckRaceDefCreation(wire, classMask, city int) string {
+	switch {
+	case classMask < 0 || classMask > allClassesMask:
+		return fmt.Sprintf("class_mask is the classes' bits, 0 to %d (0: the wire race's)", allClassesMask)
+	case city < 0 || city > 2:
+		return "city is 0, or for a race passing as a human 1 (Freeport) or 2 (Qeynos)"
+	case city != 0 && wire != 0:
+		return "city is a human's: 0 for a race passing as any other"
+	}
+	return ""
 }
 
 // SetRaceDefs makes these rows the races, leaving out with a line each one the

@@ -99,7 +99,7 @@ func (w *World) RefreshRaceLabels(db *database.SQLiteDB) int {
 	if db == nil || w.SessionManager == nil {
 		return 0
 	}
-	defs := RaceDefs()
+	defs := labelledRaces()
 	ids := make([]int, len(defs))
 	for i, d := range defs {
 		ids[i] = d.ID

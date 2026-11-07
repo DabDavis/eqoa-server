@@ -145,6 +145,9 @@ func (s *ItemPatternStore) Count() (int, error) {
 	return count, err
 }
 
+// allGameRaces is the game's own races: 0 to 9, a mask of all of them 1023.
+const allGameRaces = 10
+
 // WearablePatterns is every item of the wear slots given that a character of
 // class and race may wear at level, as CLIENT's VIPlayer::CanUse judges it:
 // its class's bit in classuse (1 << class), its race's in raceuse (1 <<
@@ -158,6 +161,14 @@ func (s *InventoryStore) WearablePatterns(class, race, level int, wear []int) ([
 	for _, w := range wear {
 		args = append(args, w)
 	}
+	// a race past the game's ten (the froglok's 10) is in a mask naming all ten,
+	// the data's "every race" (1023), as handlers.raceUseForWire tells clients:
+	// else the froglok's heirlooms and template came from the few items whose
+	// mask has its bit
+	races := `(raceuse & ?) != 0`
+	if race >= allGameRaces {
+		races = `((raceuse & ?) != 0 OR (raceuse & 1023) = 1023)`
+	}
 	rows, err := s.db.Query(`
 		SELECT patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3,
 			trade, rent, unk4, attacktype, weapondamage, unk5,
@@ -167,7 +178,7 @@ func (s *InventoryStore) WearablePatterns(class, race, level int, wear []int) ([
 			HPMAX, POWMAX, PoT, HoT, AC, PR, DR, FR, CR, LR, AR,
 			weaponproc, fish
 		FROM itempattern
-		WHERE (classuse & ?) != 0 AND (raceuse & ?) != 0 AND levelreq <= ? AND equipslot IN (`+in+`)
+		WHERE (classuse & ?) != 0 AND `+races+` AND levelreq <= ? AND equipslot IN (`+in+`)
 		ORDER BY patternid`, args...)
 	if err != nil {
 		return nil, err

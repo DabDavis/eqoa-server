@@ -457,6 +457,10 @@ func (h *CharacterHandler) getModelID(race Race, gender Gender) int64 {
 			return model
 		}
 	}
+	// a race of racedefs wears its row's body (entity/creation.go)
+	if body := entity.CreationBody(int(race), int(gender)); body != 0 {
+		return body
+	}
 	return 1893243078 // Default: male human model (0x70D898C6)
 }
 
@@ -1400,11 +1404,13 @@ func lookInRange(face, hairStyle, hairLength, hairColor int64) bool {
 // (decomp viwndcharcreate*.cpp): race 0-9 and the froglok's 10, class 0-14,
 // sex 0-1, face, hair style and length 0-3, hair colour 0-7, city 0-2, and
 // the stats as points spent over the race's and class's bonuses, none below
-// zero and 20 in all. "" means acceptable.
+// zero and 20 in all; a race of racedefs only where creation takes it
+// (entity.CheckCreation: world.open_races, its classes unless world.all_classes).
+// "" means acceptable.
 func checkNewChar(race, class, sex, hairColor, hairLength, hairStyle, face, city int64, stats []int32) string {
 	in := func(v, lo, hi int64) bool { return v >= lo && v <= hi }
 	switch {
-	case !in(race, 0, 10):
+	case !in(race, 0, entity.LastCustomRace):
 		return fmt.Sprintf("race %d", race)
 	case !in(class, 0, 14):
 		return fmt.Sprintf("class %d", class)
@@ -1414,6 +1420,9 @@ func checkNewChar(race, class, sex, hairColor, hairLength, hairStyle, face, city
 		return fmt.Sprintf("look face %d hair %d/%d/%d", face, hairStyle, hairLength, hairColor)
 	case !in(city, 0, 2):
 		return fmt.Sprintf("city %d", city)
+	}
+	if why := entity.CheckCreation(int(race), int(class), int(city)); why != "" {
+		return why
 	}
 	total := int32(0)
 	for _, v := range stats {
@@ -1517,8 +1526,10 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 	log.Printf("CharacterList hex dump: %x", msg.Span()[:writer.Position()])
 
 	// The live look's offer, after the list, so a PS2's list keeps the
-	// sequence number it always had (livelook.go)
+	// sequence number it always had (livelook.go); then creation's, where it
+	// takes races or classes past the game's (creation.go)
 	SendLiveLookOffer(sess)
+	SendCreationOffer(sess)
 }
 
 // worldPaths maps a world index to the esfPath the client loads it from.

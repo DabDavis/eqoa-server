@@ -396,7 +396,7 @@ func (w *World) TargetInfoLines(viewer, p *Player) (title, guild string) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	title = w.masterClassLocked(p)
-	if IsCustomRace(p.Race) && (viewer == nil || !viewer.RaceLabels) {
+	if HasRaceLabel(p.Race) && (viewer == nil || !viewer.RaceLabels) {
 		title = strings.TrimSpace(RaceName(p.Race) + " " + title)
 	}
 	return title, p.GuildName

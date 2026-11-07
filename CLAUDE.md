@@ -859,7 +859,8 @@ the window up replaces the list with no sound and no return to the menu. A sale'
 ahead of the answer (0x003B, 0x003C, 0x00D7) that clears CLIENT's request-pending flag, so no request is made off the old list.
 `merchantWindow` (on the session, not kept over a restart) is the list as last sent, and a request's index is read against it: wares and
 lines as the client holds them, each line by its entry. After a restart a ware's index still works and a line's is refused until the window
-opens again. A window closed inside a sale's round trip opens again on the list; one more press closes it.
+opens again. A window closed inside a sale's round trip opens again on the list; one more press closes it. Walked end to end, sale and Destroy,
+in headless vanilla and on the retail disc's CLIENT in PCSX2.
 
 ### Items with charges, and the Rolling Dice
 

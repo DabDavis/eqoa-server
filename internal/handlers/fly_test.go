@@ -107,6 +107,9 @@ func TestFlyIsAGMsToggle(t *testing.T) {
 // control: once it has said so, the same GM flies.
 func TestFlyOnAClientThatCannot(t *testing.T) {
 	c, gs, gp, _, _ := gmWorld(t)
+	if SendFlying(gs, true) || len(flyMessages(gs)) != 0 {
+		t.Fatalf("SendFlying told a client that cannot fly: %v", flyMessages(gs))
+	}
 	for _, spelled := range []string{"#fly", "#fly on", "#fly off", "/fly"} {
 		gs.Queue().GetPending()
 		c.say(gs, spelled)
@@ -155,8 +158,8 @@ func TestTheFlyMessage(t *testing.T) {
 // says.
 func TestAFlyingGMStaysFlyingThroughARestart(t *testing.T) {
 	const stoodY, flewY = float32(54.1), float32(300.5)
+	db := keepDB(t)
 	for _, flying := range []bool{true, false} {
-		db := keepDB(t)
 		_, gw, sm := keepProcess(t, db)
 		k := session.Kept{Addr: "203.0.113.7:5007", InstanceID: 7, SessionID: 500000007, ClientEndpoint: 7, ServerEndpoint: 1,
 			State: session.StateInGame, HasInstance: true, DidServerInitiate: true, CharacterInWorld: true, InGame: true,

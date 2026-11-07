@@ -88,8 +88,9 @@ import (
 // from it. No spell has a negative id, and food and drink's are -1001/-1002.
 const potionEffectBase = -1_000_000
 
-// PotionRange is how far a potion is thrown: ours, no record gives one.
-const PotionRange = 20
+// PotionRange is how far a potion is thrown (the user, 2026-11-07: "alc pots range should be
+// 30 max"); a thrown potion's swing goes by its record's range, 30 too (potion_range_20261107.py).
+const PotionRange = 30
 
 // PotionEffectID is the id of the effect an item's potion puts on.
 func PotionEffectID(patternID int) int { return potionEffectBase - patternID }

@@ -90,10 +90,16 @@ func (d *SpellDef) hasProc() bool {
 // procBonus is what a proc's scale adds from its caster (0 for a line
 // without one: the Chaotic lines carry no mod).
 func procBonus(e SpellEffect, caster *Player) int {
-	if e.Scale == StatNone || e.ScalePct == 0 || caster == nil {
+	if caster == nil {
 		return 0
 	}
-	return caster.StatNow(e.Scale) * e.ScalePct / 100
+	// the workbook's level scaling, as spellAmount has it (petition 1155,
+	// Larrybird: Shroud of Hate, 1 and the level's whole share, answered for 1)
+	bonus := caster.Level * e.LevelPct / 100
+	if e.Scale != StatNone && e.ScalePct != 0 {
+		bonus += caster.StatNow(e.Scale) * e.ScalePct / 100
+	}
+	return bonus
 }
 
 // groupProcPetsLocked adds to a group spell's targets each member's pet in

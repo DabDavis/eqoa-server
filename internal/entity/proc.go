@@ -104,6 +104,9 @@ func (w *World) playerProcsLocked(sess *session.Session, p *Player, npc *NPC, no
 	}
 	for _, n := range hits {
 		log.Printf("Proc: %s's proc hits %s for %d", p.Name, npc.Name, n)
+		// seen as a damage shield's answer is (petition 1156: "does not proc",
+		// when all it showed was one more figure among the swings')
+		w.broadcastCastLocked(p, npc.ServerID, 0, fxShieldHit)
 		if w.spellHitLocked(p, sess, npc, n) {
 			return true
 		}

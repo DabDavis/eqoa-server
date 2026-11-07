@@ -126,7 +126,7 @@ func (w *World) sendDuelIDLocked(sess *session.Session, id uint32) {
 // "Level:").
 func (w *World) sendDuelInviteLocked(sess *session.Session, id uint32, from *Player, title string) {
 	queueDuel(sess, BuildDuel(duelSubInvite, id, func(wr *buffer.Writer) {
-		wr.WriteByte(byte(from.Race))
+		wr.WriteByte(byte(WireRace(from.Race)))
 		wr.WriteByte(byte(from.Class))
 		wr.WriteByte(byte(from.Level))
 		duelString8(wr, from.Name, 24)

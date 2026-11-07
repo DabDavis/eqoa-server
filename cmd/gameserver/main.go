@@ -56,6 +56,20 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
+	// How much memory the process holds beyond what it uses (config's words),
+	// before the load makes any of it
+	if cfg.Server.GCPercent > 0 {
+		debug.SetGCPercent(cfg.Server.GCPercent)
+		log.Printf("Memory: the heap may grow %d%% past what is live before a collection", cfg.Server.GCPercent)
+	}
+	if cfg.Server.NoHugePages {
+		if err := disableHugePages(); err != nil {
+			log.Printf("Memory: transparent huge pages stay as they are: %v", err)
+		} else {
+			log.Printf("Memory: no transparent huge pages")
+		}
+	}
+
 	// Initialize SQLite database
 	db, err := database.NewSQLite(cfg.Server.DBPath)
 	if err != nil {

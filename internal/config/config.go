@@ -170,6 +170,19 @@ type ServerConfig struct {
 	ReadTimeout  time.Duration `yaml:"read_timeout"`
 	WriteTimeout time.Duration `yaml:"write_timeout"`
 
+	// GCPercent is the garbage collector's GOGC: how far the heap may grow past
+	// what is live before a collection (unset or 0: Go's own, 100, the variable
+	// GOGC saying otherwise). A server's live heap is nearly all its NPCs, there
+	// from its start: at 100 it holds about as much again of nothing, at 25 a
+	// quarter, for a collection every 30 s rather than 2 minutes with six players.
+	GCPercent int `yaml:"gc_percent"`
+
+	// NoHugePages keeps the kernel from backing this process with transparent
+	// huge pages (prctl PR_SET_THP_DISABLE, Linux). With THP on "always", as
+	// Debian ships it, khugepaged fills every 2 MB stretch the heap has touched
+	// any of, undoing what the runtime gives back: 60 MB of an idle server of 150.
+	NoHugePages bool `yaml:"no_huge_pages"`
+
 	// PacketLog writes the packet path's debug lines: every packet received
 	// and sent, its DRDP and state channel work (internal/debuglog). Off by
 	// default: about 100 lines a second a player. cmd/movereplay reads the

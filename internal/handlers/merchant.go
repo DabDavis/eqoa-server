@@ -20,8 +20,9 @@ import (
 // npcs.npc_type): 0x004C for a merchant (1), 0x124D for a banker (2), 0x0061
 // for a blacksmith (8), and 0x0004 (InteractHandler) for anything else. Each
 // request carries the NPC's id, and so does every request made from the
-// window, so the server keeps no window state: it checks the NPC again each
-// time — that it exists, carries the flag, and is within InteractRange.
+// window, so the server keeps no window state but a merchant's list as last sent
+// (buyback.go): it checks the NPC again each time — that it exists, carries the
+// flag, and is within InteractRange.
 //
 // The client holds a request-pending flag per window (+0x1B304 merchant,
 // VIBankControl +0x78C8 bank) and sends nothing more until a reply clears it.

@@ -836,6 +836,31 @@ N, W, E, S are 0-3; `label` the button's words, `message` what it sends, "|n" a 
 with no rows gets the defaults, and its first change writes them all. Words are cut to what CLIENT's record keeps (127 and
 63 wide characters). A snapshot clears the table (a player's own lines).
 
+### Merchants sell back what you got rid of (`handlers/buyback.go`, `database/buyback.go`)
+
+The user, 2026-11-07, after a player destroyed an item by accident: "lets give it back and add a buy back to merchants for last
+5 items". Table `charbuyback` (GM panel "Merchant buy-backs"): a character's last five (`BuyBackKept`), an action a row, a sixth pushing
+out the oldest, made by a sale (`sell`, price what it paid) and the item menu's Destroy (`destroy`, price what `sell` would have paid
+at the time, `merchantWouldPay`: nothing for a Rose, which merchants refuse) and nothing else: the bank, a trade, a corpse, the auction
+and quests take items their own ways. **No Rent never goes in** (rent 0, what a spell conjures, or a row of `norentvanish`, what vanishes
+at a logout), and an entry whose record has gone or has since become No Rent drops quietly when next read; NO TRADE and heirlooms go
+in like anything else. **No client change**: any merchant's 0x00B7 (a genie's too) lists them AFTER its wares as records of their own, so a
+ware's index means what it always did and a request past the wares is a line. What CLIENT does with it is at the top of `buyback.go`, read
+off the decomp: `VIItemList::Read` checks nothing against its 40, so wares first and lines only where there is room (the newest kept; the
+greeting says so); `VIWndList::Scroll` wraps, so the newest goes last, one press of Up from the first row, and the greeting says that too; a
+row shows only the icon, so a line says what it is in the panels when selected: its name "Buy back: 15 Seralite Ore" (at most 63
+characters, a longer name reaches CLIENT empty), its description "You sold these 15 for 570 tunar; the same brings them all back." and the
+condition when worn; its value is the whole price and its stack 1, so VIWndQuantity shows that price and is the confirmation, and a
+stack comes back whole whatever count is sent. Bought back it goes into the pack as it went (condition and charges exact: `TakeBuyBack`, one
+transaction with the entry and the purse, so a copy of the request finds nothing and a crash loses nothing), by `AddItem`'s own rule, all
+of it or none (no room or too little tunar: said in red, nothing moved).
+**The list goes again in place** (`refreshMerchant`): `VIClient::MerchantOpen` opens the window only from the game's mode 0, so a 0x00B7 with
+the window up replaces the list with no sound and no return to the menu. A sale's line shows and a bought line goes at once; it is queued
+ahead of the answer (0x003B, 0x003C, 0x00D7) that clears CLIENT's request-pending flag, so no request is made off the old list.
+`merchantWindow` (on the session, not kept over a restart) is the list as last sent, and a request's index is read against it: wares and
+lines as the client holds them, each line by its entry. After a restart a ware's index still works and a line's is refused until the window
+opens again. A window closed inside a sale's round trip opens again on the list; one more press closes it.
+
 ### Items with charges, and the Rolling Dice
 
 **Charges** (`itemeffect.charges`, petition 1088, the alchemists' Reconstructive: 4; the user: "do what koolade says"): how

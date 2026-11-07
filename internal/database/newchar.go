@@ -83,19 +83,33 @@ const raceFroglok = 10
 // spots: Sandstorm's new characters stand exactly on them (F3 pass 17: a new
 // Freeport warrior on the human-east warrior's row, a new Surefall ranger on
 // its row), each a few steps from the class's first quest giver. A class the
-// table lacks takes a row of its race; a human of no city the east's; false
+// table lacks takes a row of its race, a human's of its own city first (a class
+// its race never had, now that every class may be open to every race:
+// entity/creation.go); a human of no city the east's. A race of racedefs takes
+// its own rows, else its wire race's (and a human-passing race's city), and its
+// city is its wire race's: it passes as that race, whose quests it can do. False
 // when the race has no row at all (the record keeps the origin, and the login
 // spawn takes it).
 func (s *SQLiteCharacterStore) startPlace(c *CharacterRecord) (string, bool) {
 	race, hum := c.Race, c.HumType
+	home := race // whose city it starts in (HomeCity)
 	if race == raceFroglok {
-		race, hum = 0, 1
+		race, hum, home = 0, 1, 0
+	}
+	if race > raceFroglok {
+		if wire, city, ok := s.db.raceDefHome(race); ok {
+			home = wire
+			var own int
+			if err := s.db.QueryRow(`SELECT COUNT(*) FROM defaultcharacter WHERE race = ?`, race).Scan(&own); err == nil && own == 0 {
+				race, hum = wire, city
+			}
+		}
 	}
 	var x, y, z, facing float64
 	var world, rowHum, rowClass int
 	err := s.db.QueryRow(`SELECT x, y, COALESCE(z, 0), facing, COALESCE(world, 0), humType, tclass
 		FROM defaultcharacter WHERE race = ?
-		ORDER BY tclass = ? DESC, humType = ? DESC, humType, tclass LIMIT 1`, race, c.TClass, hum).
+		ORDER BY humType = ? DESC, tclass = ? DESC, humType, tclass LIMIT 1`, race, hum, c.TClass).
 		Scan(&x, &y, &z, &facing, &world, &rowHum, &rowClass)
 	if err != nil {
 		if err != sql.ErrNoRows {
@@ -105,7 +119,23 @@ func (s *SQLiteCharacterStore) startPlace(c *CharacterRecord) (string, bool) {
 	}
 	c.X, c.Y, c.Z = float32(x), float32(y), float32(z)
 	c.Facing, c.World = float32(facing), world
-	return HomeCity(race, rowHum, rowClass), true
+	return HomeCity(home, rowHum, rowClass), true
+}
+
+// raceDefHome is a race of racedefs' wire race and city (a human's: 1 east, 2
+// west; 0 for a race passing as any other): where it starts when it has no
+// start rows of its own. False when the race has no row.
+func (db *SQLiteDB) raceDefHome(race int) (wire, city int, ok bool) {
+	if err := db.QueryRow(`SELECT wire_race, city FROM racedefs WHERE id = ?`, race).Scan(&wire, &city); err != nil {
+		if err != sql.ErrNoRows {
+			log.Printf("racedefs: race %d's home: %v", race, err)
+		}
+		return 0, 0, false
+	}
+	if wire != 0 {
+		city = 0
+	}
+	return wire, city, true
 }
 
 // HomeCity names the city a race (with its human city, humType) and class

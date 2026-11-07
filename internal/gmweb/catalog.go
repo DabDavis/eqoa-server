@@ -1689,12 +1689,14 @@ var catalog = map[string]tableNote{
 		Help: "A race this server has and the game does not, a row a race. On every wire site it passes as the game's race it " +
 			"names (wire_race), so its items, camera and tables are that race's on every client; it is its own race for its stats " +
 			"(the bonuses, 60 and the class's as any race's), its masteries (cmcatalog.races, its own bit) and standings " +
-			"(factionstart), and clients that can (vanilla) show its name and short name for its characters. Only a GM makes a " +
-			"character of one: set the character's race, and its modelid to the row's body. Keep a custom race's body OUT of " +
+			"(factionstart), and clients that can (vanilla) show its name and short name for its characters. Where world.open_races " +
+			"is on, vanilla's create pages offer it (its description, classes and city below; every class with world.all_classes) " +
+			"and it starts on its own defaultcharacter rows, else its wire race's; elsewhere only a GM makes a character of one: " +
+			"set the character's race, and its modelid to the row's body. Keep a custom race's body OUT of " +
 			"charactermodel: an NPC wearing a body in that table is a townsperson, so creatures of that body would stop attacking.",
 		Live:   "At once for names, wire races and the masteries offered; its characters' stats at their next login. Deleting a race whose characters remain sends their number to the clients as it is, with no camera or items: move them first.",
 		Show:   []string{"id", "name", "short_name", "wire_race", "body_male", "body_female", "note"},
-		Search: []string{"name", "short_name", "note", "source"},
+		Search: []string{"name", "short_name", "note", "source", "description"},
 		Cols: map[string]colNote{
 			"id":          {Label: "Race", Help: "characters.race: 11 to 30 (0 to 10 are the game's and the froglok's); its bit in cmcatalog.races is 1 << id"},
 			"name":        {Label: "Name", Section: "Identity", Help: "what clients that can, the target box's title and GMs' lines show"},
@@ -1711,6 +1713,9 @@ var catalog = map[string]tableNote{
 			"body_female": {Label: "Female body", Format: hex32, Section: "Look", Help: "CHAR.ESF DictID; NOT in charactermodel"},
 			"note":        {Label: "Note", Help: "why"},
 			"source":      {Label: "Source", Help: "gm, or seed for the row made with the table"},
+			"description": {Label: "Description", Section: "Creation", Help: "the create page's text for the race (world.open_races: a client that can offers the race at creation)"},
+			"class_mask":  {Label: "Classes", Section: "Creation", Help: "the classes creation offers it when every class is not open to every race (world.all_classes off): bit N class N, WAR 1 ... ALC 16384; 0 its wire race's"},
+			"city":        {Label: "Human city", Section: "Creation", Help: "for a race passing as a human, the city it starts in where it has no start rows of its own: 1 Freeport (east), 2 Qeynos (west); 0 for any other"},
 		},
 	},
 	"guilds": {

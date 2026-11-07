@@ -831,6 +831,28 @@ least its level each; no power for one with none), so an empty bar is full withi
 99 and are worth 0 tunar; every `startitems` ration row is 99; each outfitter sells the rations of the races who start
 beside it (`defaultcharacter` within 60), Field Rations where none does, the buyer picking how many.
 
+### Races and classes past the game's at creation (`entity/creation.go`, `handlers/creation.go`)
+
+The user, 2026-11-07: "lets add to the char sel for heirloom server other races like kerran, froglok, hill giant, goblin,
+aviak, Lizardman. also lets open all classes to all races on the heirloom server", then "add kappa to playable chars also".
+**`world.open_races`** makes the froglok (race 10, a human of the east's) and every row of `racedefs` creatable, and
+**`world.all_classes`** every class for every race; both off unless set (the Live Server keeps the game's: `checkNewChar`
+then refuses a racedefs race, and takes races 0-10 with any class 0-14 as it always did, the clients' pages holding them
+to the game's masks). On, after a session's first character list (behind the live look's offer, so a PS2's list keeps its
+sequence number) the server offers it (0x7E1E, a u32 1); vanilla answers 1 and is sent the races (0x7E1F: id, the game's
+race whose stage, cameras, music and city its pages take, a human's city, bonuses, classes, bodies, name, short name,
+description), which its create pages list; a PS2 ignores the offer and creates from the disc's pages. A racedefs race is
+made in its row's body by sex (`entity.CreationBody`), with its classes (`racedefs.class_mask`, 0 its wire race's) unless
+every class is open, on its own `defaultcharacter` rows, else its wire race's (and `racedefs.city` for a human-passing
+race), its city named by its wire race's (it passes as that race, whose city's quests are the ones it can do); its starting
+items its own `startitems` rows, else its wire race's. A combo with no start items (a class its race never had) carries its
+race's items but their weapon, and its class's weapon; a human of a class its city lacks starts in its own city. The
+froglok has race labels and its race on the title line while creation offers it. The account page takes the same races
+(`tcp.AccountServer.SetExtraRaces`). The races' rows are data: the Heirloom server's are a data script's (Kerran 12 as a
+western human, Goblin 13 as a dark elf, Aviak 14 as a barbarian, Lizardman 15 as a human of the east, Kappa 16 as a
+halfling; the hill giant's 11 as before), each wire race a race of the body's height (the camera every client frames it
+with is its wire race's) whose city fits it.
+
 ### Guilds are kept (`entity/guild.go`, `database/guilds.go`)
 
 Until 2026-11-06 guilds lived in the server's memory alone, so every restart ended every guild (the 04:47 UTC one
@@ -1838,6 +1860,8 @@ patch:
 world:
   heirlooms: false          # no kept item at a login; unset: given
   pvp: true                 # /pvp flags a player (entity/pvp.go); unset: not available
+  open_races: true          # creation takes the froglok and racedefs' races (vanilla is told them); unset: the game's
+  all_classes: true         # every class for every race at creation; unset: each race's own
 auth:
   shared_db: "/srv/one/eqoa.db"   # another shard's accounts, a copy here; every sign-in by the token's password
   shared_refresh: 10s

@@ -297,6 +297,16 @@ type WorldConfig struct {
 	// Heirloom Outfitters and the start rows are data: a server without them
 	// has none in its database as well.
 	Heirlooms *bool `yaml:"heirlooms"`
+
+	// OpenRaces offers at character creation, beside the game's own, the
+	// froglok (race 10) and every race of table racedefs (entity/creation.go):
+	// a client that can show them (vanilla) is told them before the world
+	// (protocol.OpcodeCreationOffer), and the server takes them. AllClasses
+	// offers every class to every race. Unset, both off: the game's races and
+	// classes, as before, and a racedefs race is refused at creation. A PS2
+	// creates as ever: its pages are the disc's.
+	OpenRaces  bool `yaml:"open_races"`
+	AllClasses bool `yaml:"all_classes"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

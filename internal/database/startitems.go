@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 )
@@ -40,7 +41,11 @@ type StartItem struct {
 }
 
 // StartItems is what a new character of the race, class and humType carries
-// (a froglok an eastern human's, as it starts where one does: startPlace).
+// (a froglok an eastern human's, as it starts where one does: startPlace). A
+// combo the table lacks (a class its race never had, now that every class may
+// be open to every race: entity/creation.go; a race of racedefs with no rows of
+// its own, which carries its wire race's) carries its race's items but their
+// weapon, and the weapon its class carries most (startItemsFallback).
 func (db *SQLiteDB) StartItems(race, class, humType int) ([]StartItem, error) {
 	if race == raceFroglok {
 		race, humType = 0, 1
@@ -48,6 +53,16 @@ func (db *SQLiteDB) StartItems(race, class, humType int) ([]StartItem, error) {
 	if race != 0 {
 		humType = 0 // only a human's city counts
 	}
+	out, err := db.StartItemsOf(race, class, humType)
+	if err != nil || len(out) > 0 {
+		return out, err
+	}
+	return db.startItemsFallback(race, class, humType)
+}
+
+// StartItemsOf is startitems' rows for one combo, as they are: none for a
+// combo the table lacks (what the balance tools' start kits read).
+func (db *SQLiteDB) StartItemsOf(race, class, humType int) ([]StartItem, error) {
 	rows, err := db.Query(`SELECT patternid, count FROM startitems WHERE race = ? AND class = ? AND humtype = ? ORDER BY id`,
 		race, class, humType)
 	if err != nil {
@@ -63,6 +78,62 @@ func (db *SQLiteDB) StartItems(race, class, humType int) ([]StartItem, error) {
 		out = append(out, it)
 	}
 	return out, rows.Err()
+}
+
+// startItemsFallback is a combo with no rows: what the race carries in its
+// first combo with rows (a human's of its own city first), a weapon (an item of
+// an attack type) left out, then the weapon most combos of the class carry (a
+// monk none). A race of racedefs with no rows of its own takes its wire race's.
+// Nothing at all for a race with no rows anywhere.
+func (db *SQLiteDB) startItemsFallback(race, class, humType int) ([]StartItem, error) {
+	var n int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM startitems WHERE race = ?`, race).Scan(&n); err != nil {
+		return nil, err
+	}
+	if n == 0 && race > raceFroglok {
+		wire, city, ok := db.raceDefHome(race)
+		if !ok {
+			return nil, nil
+		}
+		return db.StartItems(wire, class, city)
+	}
+	var from, fromHum int
+	err := db.QueryRow(`SELECT class, humtype FROM startitems WHERE race = ?
+		ORDER BY humtype = ? DESC, humtype, class LIMIT 1`, race, humType).Scan(&from, &fromHum)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	rows, err := db.Query(`SELECT s.patternid, s.count FROM startitems s JOIN itempattern p ON p.patternid = s.patternid
+		WHERE s.race = ? AND s.class = ? AND s.humtype = ? AND p.attacktype = 0 ORDER BY s.id`, race, from, fromHum)
+	if err != nil {
+		return nil, err
+	}
+	var out []StartItem
+	for rows.Next() {
+		var it StartItem
+		if err := rows.Scan(&it.PatternID, &it.Count); err != nil {
+			rows.Close()
+			return nil, err
+		}
+		out = append(out, it)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	var weapon int
+	switch err := db.QueryRow(`SELECT s.patternid FROM startitems s JOIN itempattern p ON p.patternid = s.patternid
+		WHERE s.class = ? AND p.attacktype != 0 GROUP BY s.patternid ORDER BY COUNT(*) DESC, s.patternid LIMIT 1`, class).Scan(&weapon); err {
+	case nil:
+		out = append(out, StartItem{PatternID: weapon, Count: 1})
+	case sql.ErrNoRows:
+	default:
+		return nil, err
+	}
+	return out, nil
 }
 
 // giveStartItems puts a new character's starting items in its inventory,

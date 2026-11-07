@@ -510,7 +510,7 @@ func SimStartKitFromDB(db *database.SQLiteDB, class, race, level int) (SimPlayer
 // has the class (by race).
 func simStartItems(db *database.SQLiteDB, class, race int) ([]database.StartItem, error) {
 	for _, h := range []int{1, 2, 0} {
-		items, err := db.StartItems(race, class, h)
+		items, err := db.StartItemsOf(race, class, h)
 		if err != nil || len(items) > 0 {
 			return items, err
 		}
@@ -521,7 +521,7 @@ func simStartItems(db *database.SQLiteDB, class, race int) ([]database.StartItem
 		return nil, nil // no row anywhere: nothing carried
 	}
 	for _, h := range []int{1, 2, 0} {
-		items, err := db.StartItems(other, class, h)
+		items, err := db.StartItemsOf(other, class, h)
 		if err != nil || len(items) > 0 {
 			return items, err
 		}

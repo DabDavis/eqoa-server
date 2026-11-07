@@ -340,3 +340,129 @@ func TestQuestDoStepOffersOnlyWhatIsHeld(t *testing.T) {
 		t.Fatalf("the offer: %s", m)
 	}
 }
+
+// A pet takes a place in a capped teleport ("it only ports 16 ppl and pets count as 1").
+func TestTeleportCapCountsAPet(t *testing.T) {
+	if teleportRoomTaken(false) != 1 || teleportRoomTaken(true) != 2 {
+		t.Fatalf("alone %d, with a pet %d", teleportRoomTaken(false), teleportRoomTaken(true))
+	}
+}
+
+// A spawn may be open to attack and still leave people alone until it is roused (a pet
+// let off by its trainer's death). The control: a plain spawn keeps its row's NPC bit.
+func TestTriggerAttackableSpawnAndItsRousing(t *testing.T) {
+	w := newTrigWorld(t)
+	w.set(20, "Pet", "near", 50, `[{"do":"spawn","npc":"Orc Pawn","attackable":true,"minutes":10},
+		{"do":"wait","seconds":30},{"do":"rouse","npc":"Orc Pawn"},{"do":"wait","seconds":30}]`)
+	if _, err := w.fire(20); err != nil {
+		t.Fatal(err)
+	}
+	s := w.spawned()
+	if len(s) != 1 {
+		t.Fatalf("%d spawns, want 1", len(s))
+	}
+	if s[0].NPCType&0x80 != 0 || s[0].EventAggro {
+		t.Fatalf("attackable: NPC type %#x, attacks on sight %v; want no NPC bit, leaving people alone", s[0].NPCType, s[0].EventAggro)
+	}
+	w.at(31 * time.Second)
+	if !s[0].EventAggro || s[0].NPCType&0x80 != 0 {
+		t.Fatalf("roused: NPC type %#x, attacks on sight %v", s[0].NPCType, s[0].EventAggro)
+	}
+
+	w.set(21, "Plain", "near", 50, `[{"do":"spawn","npc":"Orc Pawn","minutes":10}]`)
+	before := map[entity.EntityID]bool{s[0].ServerID: true}
+	if _, err := w.fire(21); err != nil {
+		t.Fatal(err)
+	}
+	for _, n := range w.spawned() {
+		if !before[n.ServerID] && (n.NPCType&0x80 == 0 || n.EventAggro) {
+			t.Fatalf("a plain spawn: NPC type %#x, attacks on sight %v", n.NPCType, n.EventAggro)
+		}
+	}
+}
+
+// A clock with an empty ends the run once no one has stood at its place that long (a
+// raid wiped or gone), so its lock does not hold out the clock's whole time. The control:
+// with someone there it runs on.
+func TestTriggerClockEndsWhenItsPlaceStandsEmpty(t *testing.T) {
+	w := newTrigWorld(t)
+	w.set(20, "Isle", "near", 50, `[{"do":"lock","lock":"isle"},{"do":"clock","seconds":600,"empty":30},{"do":"spawn","npc":"Orc Pawn","minutes":60},
+		{"do":"awaittalk","npc":"Somebody"},{"do":"end"},{"do":"despawn"}]`)
+	if _, err := w.fire(20); err != nil {
+		t.Fatal(err)
+	}
+	w.at(40 * time.Second)
+	if n := len(w.spawned()); n != 1 || !w.e.Running()[20] {
+		t.Fatalf("someone stands there: %d spawns, running %v", n, w.e.Running()[20])
+	}
+	w.gw.UpdatePosition(w.gp.ServerID, 25900, 50, 15000, 0)
+	w.gw.UpdatePosition(w.gw.SessionPlayer(w.ps).ServerID, 25900, 50, 15000, 0)
+	w.at(50 * time.Second) // 10 s since the last one left
+	if n := len(w.spawned()); n != 1 || !w.e.BusyNamed("isle") {
+		t.Fatalf("not yet its empty: %d spawns, busy %v", n, w.e.BusyNamed("isle"))
+	}
+	w.at(71 * time.Second)
+	w.at(72 * time.Second)
+	if n := len(w.spawned()); n != 0 {
+		t.Fatalf("%d spawns left after its empty", n)
+	}
+	if w.e.Running()[20] || w.e.BusyNamed("isle") {
+		t.Fatal("the run and its lock should be over")
+	}
+}
+
+// A spawn's max is how many of the name may stand near at once, whatever fires it: what
+// multiplies on death stops at it. Dead ones do not count.
+func TestTriggerSpawnMaxHoldsTheNumber(t *testing.T) {
+	w := newTrigWorld(t)
+	w.set(20, "Multiply", "near", 50, `[{"do":"spawn","npc":"Orc Pawn","count":2,"spread":5,"minutes":10,"max":3}]`)
+	for i, want := range []int{2, 3, 3} {
+		if _, err := w.fire(20); err != nil {
+			t.Fatal(err)
+		}
+		if n := len(w.spawned()); n != want {
+			t.Fatalf("firing %d: %d stand, want %d", i, n, want)
+		}
+	}
+	w.kill(w.spawned()[0])
+	if _, err := w.fire(20); err != nil {
+		t.Fatal(err)
+	}
+	if n := len(w.spawned()); n != 3 {
+		t.Fatalf("one dead and fired: %d stand, want 3", n)
+	}
+}
+
+// A repeatable quest done at a shop's window is offered there again in the same session
+// (a second set of shards from Wibble): the window's once a session is for what has not
+// been done. The control: declined, the next request opens the shop.
+func TestAFinishedRepeatableIsOfferedAgainAtTheWindow(t *testing.T) {
+	f := newQuestFixture(t)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, repeatable, offer, accept, decline, declined)
+		VALUES (72, 'A set of shards', 1, 'Wibble', 1, 'Shards?', 'Yes.', 'No.', 'As you like.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, items, journal, reminder, says, events)
+		VALUES (72, 1, 'talk', 'Wibble', '', 'Buy them.', '', 'Here.', '[{"on":"start","do":"dostep"}]')`)
+	f.qe.Reload()
+	shop := &entity.NPC{Name: "Wibble", ServerID: 901, NPCType: 0x81}
+	if !f.qe.AtWindow(f.tw.s, f.tw.p, shop) {
+		t.Fatal("not offered at the window")
+	}
+	m := f.msgs()
+	f.qe.Answer(f.tw.s, f.tw.p, boxID(m), 1) // declined
+	f.msgs()
+	if f.qe.AtWindow(f.tw.s, f.tw.p, shop) {
+		t.Fatalf("a refused quest was offered again in the session: %v", f.msgs())
+	}
+	f.qe.LoggedIn(f.sid) // a new session
+	if !f.qe.AtWindow(f.tw.s, f.tw.p, shop) {
+		t.Fatal("not offered in a new session")
+	}
+	m = f.msgs()
+	f.qe.Answer(f.tw.s, f.tw.p, boxID(m), 0)
+	if m = f.msgs(); !strings.Contains(strings.Join(m, "|"), "You have finished a quest!") {
+		t.Fatalf("not finished: %v", m)
+	}
+	if !f.qe.AtWindow(f.tw.s, f.tw.p, shop) {
+		t.Fatal("not offered again once finished")
+	}
+}

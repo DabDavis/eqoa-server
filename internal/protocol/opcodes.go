@@ -530,6 +530,15 @@ const (
 	// Each one is the whole list: a name it leaves out reads as its wire race.
 	OpcodeRaceLabelsData GameOpcode = 0x7E1D
 
+	// OpcodeFly is not retail: a GM's flight (#fly, handlers/fly.go), a u32
+	// after the opcode, both ways, and never to a client that has not said it
+	// flies. From a client: 1, it flies (vanilla says so with its answer to the
+	// GM channel's OpcodeGMTriggers offer, so a session of a PS2's, which has no
+	// such answer, never has this opcode sent to it, not even as an offer). From
+	// the server: 1 flight is on, 0 it is off. A client's own word sets nothing
+	// but what the server may send it: only #fly turns flight on.
+	OpcodeFly GameOpcode = 0x7E1B
+
 	// Voice chat (internal/voice, entity/voice.go): non-retail opcodes in a
 	// block of their own; a PS2 ignores them. Strings are a u16 byte length
 	// and UTF-8.
@@ -816,6 +825,8 @@ func (op GameOpcode) String() string {
 		return "RaidRosterAnswer"
 	case OpcodeRaidRoster:
 		return "RaidRoster"
+	case OpcodeFly:
+		return "Fly"
 	case OpcodeNoCollideList:
 		return "NoCollideList"
 	case OpcodeFactionPage:

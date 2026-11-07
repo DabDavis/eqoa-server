@@ -141,8 +141,8 @@ func (w *World) TakeOverPlayer(sess *session.Session, charServerID uint32) (*Pla
 // things by (each session numbers the world its own way: its target), the
 // attack button it held and the swing it drove (its NPCs' fights with it go
 // on), its velocity (the dump stands it still), the menus and questions open
-// on that client, and what that client asked for (power bars, voice, the
-// profanity filter off: on at every login), so the new client asks again. Its
+// on that client, its flight, and what that client asked for (power bars, voice,
+// the profanity filter off: on at every login), so the new client asks again. Its
 // guild, its group's roster and its pet are told to the new session as at a
 // login. Must be called with the lock held.
 func (w *World) handedOverLocked(p *Player) {
@@ -159,6 +159,7 @@ func (w *World) handedOverLocked(p *Player) {
 	p.PowerBars, p.powerBarsSent, p.powerBarsDue = false, "", false
 	p.RaidRoster, p.raidRosterSent = false, ""
 	delete(w.invites, p.ServerID) // the new client has no box up
+	w.setFlyingLocked(p, false, time.Now()) // a new login: its client is not flying (fly.go)
 	w.voiceGoneLocked(p)
 	p.StatsDirty = true
 	delete(w.announced, p) // guildAnnounceSystem tells the new client its guild

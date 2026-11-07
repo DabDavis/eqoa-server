@@ -53,6 +53,7 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	s.SetCharacterInWorld(true)
 	s.SetLiveLook(true)
 	s.SetBugReports(true)
+	s.SetFlyClient(true)
 	s.SetDiscVersion(0x12)
 	conn := s.Connection()
 	conn.SetEntitySlots(204)
@@ -79,7 +80,7 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 		t.Fatalf("ids: object %d session %d account %d char %d", r.PlayerObjectID(), r.SessionID(), r.AccountID(), r.CharacterServerID())
 	}
 	if !r.DidServerInitiate() || !r.HasInstance() || r.NeedsNewInstance() || !r.InGame() || !r.CharacterInWorld() ||
-		r.State() != session.StateInGame || !r.LiveLook() || !r.BugReports() || r.DiscVersion() != 0x12 {
+		r.State() != session.StateInGame || !r.LiveLook() || !r.BugReports() || !r.FlyClient() || r.DiscVersion() != 0x12 {
 		t.Fatal("flags not kept")
 	}
 	rc := r.Connection()

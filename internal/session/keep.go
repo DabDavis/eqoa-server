@@ -51,6 +51,7 @@ type Kept struct {
 	LiveLook           bool `json:"live_look,omitempty"`
 	LiveLookOffered    bool `json:"live_look_offered,omitempty"`
 	BugReports         bool `json:"bug_reports,omitempty"`
+	FlyClient          bool `json:"fly_client,omitempty"`
 	ReportNotice       bool `json:"report_notice,omitempty"`
 	BoonNotice         bool `json:"boon_notice,omitempty"`
 	WorldLoadPending   bool `json:"world_load_pending,omitempty"`
@@ -153,6 +154,7 @@ func (s *Session) Keep() Kept {
 		LiveLook:           s.liveLook,
 		LiveLookOffered:    s.liveLookOffered,
 		BugReports:         s.bugReports,
+		FlyClient:          s.flyClient,
 		ReportNotice:       s.reportNotice,
 		BoonNotice:         s.boonNotice,
 		WorldLoadPending:   s.worldLoadPending,
@@ -282,6 +284,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 	s.liveLook = k.LiveLook
 	s.liveLookOffered = k.LiveLookOffered
 	s.bugReports = k.BugReports
+	s.flyClient = k.FlyClient
 	s.reportNotice = k.ReportNotice
 	s.boonNotice = k.BoonNotice
 	s.worldLoadPending = k.WorldLoadPending

@@ -201,6 +201,7 @@ func (w *World) aiSystem(now time.Time) {
 			w.giveUpLocked(npc)
 			continue
 		}
+		in = in && !flownOutOfReach(npc, enemy) // its reach is across the ground (fly.go)
 
 		if npc.RoundTarget != enemy.ServerID {
 			npc.endRound()
@@ -468,7 +469,7 @@ func (w *World) breathSystem(now time.Time) {
 			p.Underwater = under
 		} else if p.HasWalkFlags {
 			p.Underwater = UnderLiquid(p.WalkFlags)
-			if known && under != p.Underwater && MoveCheck() == MoveCheckLog && w.TickCount-p.mv.breathLogged > 600 {
+			if known && under != p.Underwater && MoveCheck() == MoveCheckLog && !p.Flying && w.TickCount-p.mv.breathLogged > 600 {
 				p.mv.breathLogged = w.TickCount
 				log.Printf("MOVECHECK breath: %s at (%.1f, %.1f, %.1f) world %d says under a liquid: %v; the water there says %v (flags %#x)",
 					p.Name, p.X, p.Y, p.Z, p.World, p.Underwater, under, p.WalkFlags)

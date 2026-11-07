@@ -1090,6 +1090,9 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 	case "#aggro":
 		// #aggro [on|off]: whether creatures attack you on sight (aggrocmd.go)
 		h.aggroCommand(sess, parts[1:])
+	case "#fly":
+		// #fly [on|off]: a GM's flight, alone it turns over (fly.go)
+		h.flyCommand(sess, parts[1:])
 	case "#movecheck":
 		// #movecheck [off|log|enforce]: the server's view of players' own
 		// moves (movecheckcmd.go, entity/movecheck.go)
@@ -1175,6 +1178,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #banktunar [name] <amount> - added to a bank (negative takes away; no name: your target, else you)")
 		h.gmReply(sess, "  #servdown - restart the server, everyone saved (an admin's; say it twice)")
 		h.gmReply(sess, "  #aggro [on|off] - whether creatures attack you on sight (off until #aggro on)")
+		h.gmReply(sess, "  #fly [on|off] - fly where you look at your run speed, no gravity (alone: on, or off again; until you log out)")
 		h.gmReply(sess, "  #movecheck [off|log|enforce] - the check of players' own moves, and who it moved back")
 		h.gmReply(sess, "  #ticks - how long the server's ticks took over the last minute, system by system")
 		h.gmReply(sess, "  #packetlog [on|off] - every packet's own lines in the server's log (off by default)")

@@ -427,7 +427,7 @@ func (h *ChatHandler) gmCommand(sess *session.Session, gm *entity.Player, req gm
 			h.gmReply(sess, h.whereIs(t))
 		}
 	case gmSubBroadcast:
-		text := strings.TrimSpace(req.Text)
+		text := strings.TrimSpace(consoleLine(req.Text, chatLineMost))
 		if text == "" {
 			return
 		}
@@ -945,7 +945,7 @@ func (h *ChatHandler) gmChatGate(sess *session.Session, p *entity.Player, kind, 
 	h.gm.mu.Unlock()
 	for _, id := range snoopers {
 		if s := h.gameWorld.FindSessionByEntityID(id); s != nil {
-			h.gmReply(s, fmt.Sprintf("Snoop: %s (%s): %s", p.Name, kind, text))
+			h.gmReply(s, fmt.Sprintf("Snoop: %s (%s): %s", p.Name, kind, consoleLine(text, chatLineMost)))
 		}
 	}
 	if silenced {

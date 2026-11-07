@@ -61,11 +61,20 @@ func (r *raidRig) record(i, level int) *database.CharacterRecord {
 	return &database.CharacterRecord{ServerID: raidID(i), CharName: raidNames[i], AccountID: 7 + i, Level: level, X: 1000, Y: 10, Z: 1000}
 }
 
-// join is member i asked by member by, and accepting.
+// join is member i asked by member by, and accepting: by an invite up to four,
+// past that by its leader's raid flag, asking that one alone.
 func (r *raidRig) join(by, i int) {
 	r.t.Helper()
-	r.w.GroupInvite(r.sess[by], r.w.IDSeenBy(r.sess[by], r.p[i]))
-	r.w.GroupAccept(r.sess[i], r.w.IDSeenBy(r.sess[i], r.p[by]))
+	if g := r.w.groups[r.p[by].GroupID]; g != nil && len(g.Members) >= GroupWindowSize {
+		leader := r.w.Players[g.Members[0]]
+		r.w.mu.Lock()
+		r.w.raidAskLocked(r.p[i], leader, r.sess[i])
+		r.w.mu.Unlock()
+		r.w.GroupAccept(r.sess[i], r.w.IDSeenBy(r.sess[i], leader))
+	} else {
+		r.w.GroupInvite(r.sess[by], r.w.IDSeenBy(r.sess[by], r.p[i]))
+		r.w.GroupAccept(r.sess[i], r.w.IDSeenBy(r.sess[i], r.p[by]))
+	}
 	if r.p[i].GroupID == 0 || r.p[i].GroupID != r.p[by].GroupID {
 		r.t.Fatalf("%s is in group %d after %s's invite (%d)", r.p[i].Name, r.p[i].GroupID, r.p[by].Name, r.p[by].GroupID)
 	}
@@ -531,7 +540,7 @@ func TestARaidGroupsWindowsHoldStill(t *testing.T) {
 		_, before[i] = r.lastRoster(i)
 	}
 	r.join(0, 6)
-	r.join(1, 7) // any member's invite, as vanilla sends one
+	r.join(1, 7)
 	for i := range before {
 		if _, names := r.lastRoster(i); fmt.Sprint(names) != fmt.Sprint(before[i]) {
 			t.Errorf("%s's window went from %v to %v with newcomers", r.p[i].Name, before[i], names)
@@ -595,9 +604,9 @@ func TestARaidGroupsRostersFollowWhatTheClientSees(t *testing.T) {
 	}
 }
 
-// Nothing refuses a joiner: never 0x069A 4 ("the group is full"), by the leader's
-// invite or a member's, however many there are.
-func TestNoGroupIsFull(t *testing.T) {
+// A raid flag's yes refuses no one: never 0x069A 4 ("the group is full"), however
+// many there are.
+func TestAFlagsYesJoinsHoweverMany(t *testing.T) {
 	r := newRaidRig(t, 12, 30)
 	r.form(4)
 	r.drainAll()

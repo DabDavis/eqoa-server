@@ -854,6 +854,9 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// Any member invites into its group here (group.go): vanilla drops the
 	// leader-only rule, a PS2 ignores the offer
 	SendMemberInvitesOffer(sess)
+	// and the whole of a raid group (entity/raidroster.go): a client that shows it
+	// asks, a PS2 ignores it
+	SendRaidRosterOffer(sess)
 
 	// The four weapon sets (gearsets.go): SOE's live client reads them, a PS2
 	// skips them

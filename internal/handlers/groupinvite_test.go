@@ -3,13 +3,15 @@ package handlers
 import (
 	"bytes"
 	"testing"
+
+	"github.com/eqoa/server/internal/entity"
 )
 
 // Any member of a group invites into it (the user, 2026-11-06: "lets allow
 // any group member to invite to group"): Bren, a member of Alda's group,
 // invites Cael, Cael accepts, and the three are one group with Alda still its
-// leader. A group of four takes a fifth, whoever invites: it is a raid group
-// then (entity/raid.go, raid_test.go).
+// leader. A group of four takes no fifth by an invite, whoever invites, and the
+// inviter is told what does (entity/raidflag.go, raid_test.go).
 func TestAnyMemberInvites(t *testing.T) {
 	c := newChatWorld(t)
 	sa, pa := c.join(1, "Alda", 100, 100, 0)
@@ -33,18 +35,18 @@ func TestAnyMemberInvites(t *testing.T) {
 		t.Fatalf("Cael is in group %d, Alda's is %d", pc.GroupID, pa.GroupID)
 	}
 
-	// the fourth by Cael, then a fifth by Bren
+	// the fourth by Cael, then a fifth by Bren: refused, the group full
 	sd, pd := c.join(4, "Dirn", 106, 100, 0)
 	se, pe := c.join(5, "Esk", 108, 100, 0)
 	c.gw.GroupInvite(sc, c.gw.IDSeenBy(sc, pd))
 	c.gw.GroupAccept(sd, c.gw.IDSeenBy(sd, pc))
 	c.gw.GroupInvite(sb, c.gw.IDSeenBy(sb, pe))
 	c.gw.GroupAccept(se, c.gw.IDSeenBy(se, pb))
-	if got := names(); len(got) != 5 || got[0] != "Alda" || got[3] != "Dirn" || got[4] != "Esk" {
-		t.Errorf("after Cael's and Bren's invites: %v, want Alda, Bren, Cael, Dirn, Esk", got)
+	if got := names(); len(got) != entity.GroupWindowSize || got[0] != "Alda" || got[3] != "Dirn" {
+		t.Errorf("after Cael's and Bren's invites: %v, want Alda, Bren, Cael, Dirn", got)
 	}
-	if pe.GroupID != pa.GroupID {
-		t.Errorf("Esk is in group %d, Alda's is %d", pe.GroupID, pa.GroupID)
+	if pe.GroupID != 0 {
+		t.Errorf("Esk joined a full group (%d)", pe.GroupID)
 	}
 }
 

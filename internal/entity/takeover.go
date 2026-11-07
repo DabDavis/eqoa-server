@@ -156,6 +156,8 @@ func (w *World) handedOverLocked(p *Player) {
 	p.PendingSpar = SparPick{}
 	p.ProfanityFilterOff = false
 	p.PowerBars, p.powerBarsSent, p.powerBarsDue = false, "", false
+	p.RaidRoster, p.raidRosterSent = false, ""
+	delete(w.invites, p.ServerID) // the new client has no box up
 	w.voiceGoneLocked(p)
 	p.StatsDirty = true
 	delete(w.announced, p) // guildAnnounceSystem tells the new client its guild

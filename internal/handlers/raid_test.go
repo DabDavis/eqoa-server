@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/binary"
 	"strings"
 	"testing"
@@ -10,9 +11,10 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// A raid group through the opcodes a client sends (entity/raid.go; entity/raid_test.go
-// has the rules): six invited and accepted, what each is sent, its chat and its loot
-// lines. The control in each is a player beside them in no group.
+// A raid group through the opcodes a client sends and its /raid (entity/raid.go,
+// raidflag.go, raidroster.go; entity's tests have the rules): six in by invites and a
+// flag, what each is sent, its chat and its loot lines. The control in each is a
+// player beside them who answers nothing.
 
 type raidGroupRig struct {
 	c    *chatWorld
@@ -26,8 +28,8 @@ func u32Msg(op protocol.GameOpcode, v uint32) *protocol.Message {
 	return groupMsg(op, u32b(v))
 }
 
-// newRaidGroup is six players, the first inviting each of the rest, each accepting,
-// through the handlers.
+// newRaidGroup is the players: the first invites the next three and raises a raid
+// flag for the rest, each accepting, through the handlers.
 func newRaidGroup(t *testing.T, names ...string) *raidGroupRig {
 	t.Helper()
 	r := &raidGroupRig{c: newChatWorld(t)}
@@ -39,8 +41,12 @@ func newRaidGroup(t *testing.T, names ...string) *raidGroupRig {
 	}
 	r.out, _ = r.c.join(90, "Bystander", 25001, 16001, 0)
 	for i := 1; i < len(r.p); i++ {
-		if err := r.h.handleInvite(r.sess[0], groupMsg(protocol.OpcodeGroupInvite, u32b(r.c.gw.IDSeenBy(r.sess[0], r.p[i])), str8b(r.p[i].Name))); err != nil {
-			t.Fatal(err)
+		if i < entity.GroupWindowSize {
+			if err := r.h.handleInvite(r.sess[0], groupMsg(protocol.OpcodeGroupInvite, u32b(r.c.gw.IDSeenBy(r.sess[0], r.p[i])), str8b(r.p[i].Name))); err != nil {
+				t.Fatal(err)
+			}
+		} else if i == entity.GroupWindowSize {
+			r.c.say(r.sess[0], "/raid")
 		}
 		if err := r.h.handleAccept(r.sess[i], u32Msg(protocol.OpcodeAcceptGroupInvite, r.c.gw.IDSeenBy(r.sess[i], r.p[0]))); err != nil {
 			t.Fatal(err)
@@ -76,8 +82,9 @@ func rostersSent(t *testing.T, s *session.Session) (out [][]string) {
 	return out
 }
 
-// Six through the opcodes: nobody refused, one group, its leader first; no client is
-// sent more than four, ever, in any roster on the way there; a bystander nothing.
+// Six through the opcodes and a flag: nobody refused, one group, its leader first; no
+// client is sent more than four, ever, in any roster on the way there; a bystander
+// nothing.
 func TestSixInvitedThroughTheOpcodes(t *testing.T) {
 	names := []string{"Alda", "Bren", "Cael", "Dirn", "Esk", "Fenn"}
 	r := newRaidGroup(t, names...)
@@ -148,5 +155,61 @@ func TestARaidGroupHearsWhatIsLooted(t *testing.T) {
 	}
 	if got := heard(t, r.out); len(got) != 0 {
 		t.Errorf("a bystander heard %+v", got)
+	}
+}
+
+// The flag by each spelling: /raid and #raid, in any case, and a PS2's /t raid, which is
+// all it can send (entity/raidflag.go). The controls: a tell to someone is a tell, a line
+// that only begins so is said.
+func TestTheRaidFlagsSpellings(t *testing.T) {
+	for _, tc := range []struct {
+		line string
+		flag bool
+	}{
+		{"/raid", true}, {"/RAID", true}, {"#raid", true}, {"/raid now", true},
+		{"/t raid", true}, {"/tell raid", true}, {"/T RAID", true},
+		{"/t raid hello", false}, {"/t Bren hi", false}, {"/raids", false}, {"raid", false},
+	} {
+		t.Run(tc.line, func(t *testing.T) {
+			r := newRaidGroup(t, "Alda", "Bren")
+			sb := r.sess[1]
+			out := r.out
+			out.Queue().GetPending()
+			r.sess[0].Queue().GetPending()
+			sb.Queue().GetPending()
+			r.c.say(r.sess[0], tc.line)
+			asked := false
+			for _, m := range out.Queue().GetPending() {
+				if protocol.GameOpcode(binary.LittleEndian.Uint16(m.Data())) == protocol.OpcodeGroupInviteReceived {
+					asked = true
+				}
+			}
+			if asked != tc.flag {
+				t.Errorf("the bystander asked: %v, want %v", asked, tc.flag)
+			}
+		})
+	}
+}
+
+// The offer is 0x7E18 with a u32 1; 0x7E19 is the client's answer, on and off.
+func TestTheRaidRosterOfferAndAnswer(t *testing.T) {
+	r := newRaidGroup(t, "Alda", "Bren")
+	r.sess[0].Queue().GetPending()
+	SendRaidRosterOffer(r.sess[0])
+	msgs := r.sess[0].Queue().GetPending()
+	if len(msgs) != 1 || !bytes.Equal(msgs[0].Data(), []byte{0x18, 0x7E, 1, 0, 0, 0}) {
+		t.Fatalf("the offer: %v", msgs)
+	}
+	if err := r.h.handleRaidRosterAnswer(r.sess[0], u32Msg(protocol.OpcodeRaidRosterAnswer, 1)); err != nil {
+		t.Fatal(err)
+	}
+	if !r.p[0].RaidRoster {
+		t.Error("answered 1: not on")
+	}
+	if err := r.h.handleRaidRosterAnswer(r.sess[0], u32Msg(protocol.OpcodeRaidRosterAnswer, 0)); err != nil {
+		t.Fatal(err)
+	}
+	if r.p[0].RaidRoster {
+		t.Error("answered 0: still on")
 	}
 }

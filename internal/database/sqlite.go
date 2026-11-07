@@ -726,6 +726,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharVampire(); err != nil { // vampire.go: who the sun burns
 		return err
 	}
+	if err := db.ensureCharBuyBack(); err != nil { // buyback.go: what merchants sell back
+		return err
+	}
 
 	log.Printf("SQLite schema initialized")
 	return nil
@@ -1031,6 +1034,10 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 	}
 	// nor be a vampire (vampire.go)
 	if _, err := s.db.Exec(`DELETE FROM charvampire WHERE serverid = ?`, serverID); err != nil {
+		return err
+	}
+	// and have nothing to buy back (buyback.go)
+	if _, err := s.db.Exec(`DELETE FROM charbuyback WHERE serverid = ?`, serverID); err != nil {
 		return err
 	}
 	// and its tradeskills and recipe book (craft.go), for the same reason

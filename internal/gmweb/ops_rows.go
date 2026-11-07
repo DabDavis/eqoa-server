@@ -469,7 +469,7 @@ func (s *Server) deleteCharacter(a *actor, id int64, dry bool) (any, error) {
 	}
 	deps := []struct{ table, col string }{
 		{"charinventory", "serverid"}, {"spells", "serverid"}, {"charbuffs", "serverid"}, {"charfactions", "serverid"}, {"hotkeys", "serverid"},
-		{"weaponhotbar", "serverid"}, {"quickslots", "serverid"}, {"gearsets", "serverid"},
+		{"weaponhotbar", "serverid"}, {"quickslots", "serverid"}, {"gearsets", "serverid"}, {"charbuyback", "serverid"},
 		{"charquests", "serverid"}, {"charcoaches", "serverid"}, {"charresets", "serverid"}, {"guild_members", "player_id"},
 	}
 	plan := map[string]int64{}

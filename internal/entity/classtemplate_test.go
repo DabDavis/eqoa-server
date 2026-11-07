@@ -1035,3 +1035,116 @@ func TestATemplatesDebuffForms(t *testing.T) {
 		}
 	}
 }
+
+// A creature fighting an enemy in its reach turns to it at its rate (petition 1177, Jibrish): a rogue that jumps
+// behind stays behind for a moment, one circling it gets behind it and one standing before it does not, a swing does
+// not snap it round, a larger creature turns the slower, and past its reach it faces the way it chases at once.
+func TestACreatureTurnsAtItsRate(t *testing.T) {
+	r := newTemplateRig(t)
+	guard := r.npc("Gnoll Guard")
+	p, _ := r.player("Hero", guard.X, guard.Z+3)
+	const step = 100 * time.Millisecond
+	at := time.Duration(0)
+	run := func(d time.Duration, each func()) {
+		for end := at + d; at < end; at += step {
+			if each != nil {
+				each()
+			}
+			r.tick(at)
+		}
+	}
+	reset := func() {
+		guard.Facing = 0
+		guard.X, guard.Z = guard.SpawnX, guard.SpawnZ
+		p.X, p.Z = guard.X, guard.Z+3
+		r.fight(guard, p.ServerID)
+		guard.endRound()
+		guard.chase = chaseState{}
+		run(step*3, nil)
+	}
+	reset()
+	if behind(guard, p.X, p.Z) {
+		t.Fatal("behind it at the start")
+	}
+	// jumps behind: 13.5 degrees a tick, about 13 ticks to come round
+	p.X, p.Z = guard.X, guard.Z-3
+	run(step*2, nil)
+	if !behind(guard, p.X, p.Z) {
+		t.Errorf("two ticks after jumping behind, the creature faces it: %.2f", guard.Facing)
+	}
+	run(step*20, nil)
+	if behind(guard, p.X, p.Z) || math.Abs(float64(guard.Facing)-math.Pi) > 0.05 {
+		t.Errorf("after two seconds it should face the player: %.2f", guard.Facing)
+	}
+
+	// standing before it, for as long as it likes: never behind
+	reset()
+	for i := 0; i < 40; i++ {
+		run(step, nil)
+		if behind(guard, p.X, p.Z) {
+			t.Fatalf("behind it standing still before it, tick %d", i)
+		}
+	}
+
+	// circling at 3 at the walk's run: behind within three seconds
+	circle := func(speed float64, within time.Duration) time.Duration {
+		t.Helper()
+		reset()
+		a, start := 0.0, at
+		const radius = 3.0
+		var when time.Duration
+		run(within, func() {
+			a += speed / radius * step.Seconds()
+			p.X = guard.X + float32(radius*math.Sin(a))
+			p.Z = guard.Z + float32(radius*math.Cos(a))
+			if when == 0 && behind(guard, p.X, p.Z) {
+				when = at - start
+			}
+		})
+		if when == 0 {
+			t.Errorf("circling at %.2f: never behind in %v", speed, within)
+		}
+		return when
+	}
+	slow, fast := circle(8.83, 4*time.Second), circle(11.48, 3*time.Second)
+	if fast >= slow {
+		t.Errorf("behind after %v at 8.83, %v at 11.48: the faster should be sooner", slow, fast)
+	}
+	t.Logf("behind after %v at the walk's run, %v at 11.48", slow, fast)
+
+	// a swing does not snap it round in its fight
+	reset()
+	p.X, p.Z = guard.X, guard.Z-3
+	before := guard.Facing
+	r.w.mu.Lock()
+	r.w.broadcastNPCSwingLocked(guard, p.ServerID, 0, 0)
+	r.w.mu.Unlock()
+	if guard.Facing != before {
+		t.Errorf("a swing turned it from %.2f to %.2f", before, guard.Facing)
+	}
+
+	// past its reach it faces the way it chases at once
+	p.X, p.Z = guard.X+15, guard.Z
+	run(step*2, nil)
+	if d := math.Abs(float64(guard.Facing - headingTo(p.X-guard.X, p.Z-guard.Z))); d > 0.01 {
+		t.Errorf("chasing, it is %.2f off its enemy", d)
+	}
+
+	// a larger creature's reach is circled wider: it turns the slower for it
+	if got, want := turnedInFight(&NPC{}, 3, 2, 4.5, 0.1), float32(npcTurnRate*0.1); math.Abs(float64(got-want)) > 1e-5 {
+		t.Errorf("at the common reach: %.4f, want %.4f", got, want)
+	}
+	if got, want := turnedInFight(&NPC{}, 3, 2, 9, 0.1), float32(npcTurnRate*0.05); math.Abs(float64(got-want)) > 1e-5 {
+		t.Errorf("at twice the reach: %.4f, want %.4f", got, want)
+	}
+	if got := turnedInFight(&NPC{}, 3, 20, 9, 0.1); got != 3 {
+		t.Errorf("past its reach: %.4f, want it at once", got)
+	}
+	// the short way round, over north
+	if got := turnToward(0.1, 2*math.Pi-0.1, 0.05); math.Abs(float64(got)-0.05) > 1e-5 {
+		t.Errorf("the short way: %.4f", got)
+	}
+	if got := turnToward(0.02, 2*math.Pi-0.1, 0.05); math.Abs(float64(got)-(2*math.Pi-0.03)) > 1e-5 {
+		t.Errorf("over north: %.4f", got)
+	}
+}

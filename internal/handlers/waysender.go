@@ -173,6 +173,28 @@ var wayRoutes = map[string][]wayRoute{
 		{To: "Oggok Gate", At: &wayPlace{World: 0, X: 12571, Y: 60, Z: 29520.8}},
 	},
 
+	// The Archons' towers in Geomancer's Citadel (ticket 1196, Larrybird: "each
+	// side fire and earth should have two different portals each one to the
+	// archon and the other too the primael boss"). The guide (Misc/archon-aereth-
+	// archon-vetash-and-primeval-elements): "The Fire Primeval is located in the
+	// north tower, the Earth Primeval is located in the south tower. In both
+	// cases, use the left portal if you wish to port up. The right portal takes
+	// you to the archon." The portals stand at the back of each tower's ground
+	// floor, each trip landing at the far side of its room from what waits there:
+	// an Archon on the top floor, a Primeval on the middle one.
+	"Portal to Archon Aereth": {
+		{To: "Archon Aereth", At: &wayPlace{World: 1, X: 4702, Y: 110.5, Z: 2492}},
+	},
+	"Earth Primeval Portal": {
+		{To: "the Earth Primeval", At: &wayPlace{World: 1, X: 4700, Y: 84, Z: 2496}},
+	},
+	"Portal to Archon Vetash": {
+		{To: "Archon Vetash", At: &wayPlace{World: 1, X: 4700, Y: 106.5, Z: 2357}},
+	},
+	"Fire Primeval Portal": {
+		{To: "the Fire Primeval", At: &wayPlace{World: 1, X: 4700, Y: 85, Z: 2361}},
+	},
+
 	// The Plane of Disease (F3 pass 17, "unable to travel to PoD"), the
 	// Secrets world's "Last Home" (world 5): "Log the quest by speaking to
 	// Necrologist Zizclank and his assistant Necroloigst Xeptip. Then you want
@@ -182,6 +204,12 @@ var wayRoutes = map[string][]wayRoute{
 	// players arrive at, which sends them back. tools/seed_pod.py places
 	// these NPCs.
 	"Necrologist Zizclank": {
+		{To: "the Plane of Disease", Arrive: "Portal to the Dead Hills", MinLevel: 50},
+	},
+	"Mausoleum Portal": {
+		// The portal itself (ticket 1197): the guide's flag lets a player "port
+		// there anytime", and this talked only on The Last House's own first step.
+		// The same trip as Zizclank's, opened by the same quest (questunlocks).
 		{To: "the Plane of Disease", Arrive: "Portal to the Dead Hills", MinLevel: 50},
 	},
 	"Portal to the Dead Hills": {

@@ -112,7 +112,11 @@
     {
      "npc": "Necrologist Zizclank",
      "to": "the Plane of Disease"
-    }
+    },
+     {
+      "npc": "Mausoleum Portal",
+      "to": "the Plane of Disease"
+     }
    ],
    "offer": "Beyond the mausoleum's portal lies the Last House, where plague is tended like a garden. Find your way through it to its far portal, and the Plane of Disease will be open to you.",
    "accept": "I will go through.",

@@ -57,9 +57,9 @@ func queuedOps(s *session.Session) []protocol.GameOpcode {
 // A username with no ticket signs in by the password its token carries (a
 // client back at the server list after a restart, its Station login gone);
 // a refusal is told to the client as CLIENT shows one, where it was told
-// nothing and waited on "Connecting..." for good. The controls: a ticket
-// signs in with no token and without asking, and a token alone is not enough
-// with no checker.
+// nothing and waited on "Connecting..." for good. The controls: a ticket and
+// its password sign in without asking, and a token alone is not enough with no
+// checker.
 func TestAUsernameWithNoTicketSignsInByItsToken(t *testing.T) {
 	user, tok := loginTail(loginTailOf("dave", madeUpToken))
 	if user != "dave" || !bytes.Equal(tok, madeUpToken) {
@@ -80,11 +80,31 @@ func TestAUsernameWithNoTicketSignsInByItsToken(t *testing.T) {
 
 	chk := &fakePasswords{id: 7}
 	h.SetPasswordChecker(chk)
-	h.loginTickets.Grant("erin", 9)
+	h.loginTickets.Grant("erin", 9, "made-up pass")
 	s = testSession()
-	if id, ok := h.authorizeUsername(s, "Authenticate", "erin", nil); !ok || id != 9 || len(chk.asked) != 0 {
-		t.Errorf("the control: a ticket signed in as %d (%v), asked %v", id, ok, chk.asked)
+	if id, ok := h.authorizeUsername(s, "Authenticate", "erin", madeUpToken); !ok || id != 9 || len(chk.asked) != 0 {
+		t.Errorf("the control: a ticket and its password signed in as %d (%v), asked %v", id, ok, chk.asked)
 	}
+	// A ticket does not stand in for the password: with none, or another, the
+	// client gets what any client gets. It used to be enough to name the account
+	// within auth.ticket_ttl of its real login.
+	s = testSession()
+	if _, ok := h.authorizeUsername(s, "Authenticate", "erin", nil); ok || len(chk.asked) != 0 {
+		t.Errorf("a ticket and no token signed in, asked %v", chk.asked)
+	}
+	if got := queuedOps(s); !slices.Equal(got, []protocol.GameOpcode{protocol.OpcodeBadLoginPassword}) {
+		t.Errorf("a ticket and no token told the client %v", got)
+	}
+	h.loginTickets.Grant("erin", 9, "the real one")
+	chk.refusal = "password"
+	s = testSession()
+	if _, ok := h.authorizeUsername(s, "Authenticate", "erin", madeUpToken); ok || !slices.Equal(chk.asked, []string{"erin/made-up pass"}) {
+		t.Errorf("a ticket and a wrong password signed in, asked %v", chk.asked)
+	}
+	if got := queuedOps(s); !slices.Equal(got, []protocol.GameOpcode{protocol.OpcodeBadLoginPassword}) {
+		t.Errorf("a ticket and a wrong password told the client %v", got)
+	}
+	chk.refusal, chk.asked = "", nil
 
 	s = testSession()
 	id, ok := h.authorizeUsername(s, "Authenticate", "dave", madeUpToken)

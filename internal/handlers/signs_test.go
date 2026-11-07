@@ -351,3 +351,89 @@ func TestABoardOffersInvisibility(t *testing.T) {
 		t.Error("the no made the player invisible")
 	}
 }
+
+// Petition 1218, the GM Jibrish: a board, and a town's other signs, offer one who has a
+// place to go back to the way there, once; no experience comes back and the debt stands
+// for a cleric's rez. A road's sign and one with no place offer nothing of it.
+func TestBoardsAndTownSignsOfferTheWayBack(t *testing.T) {
+	spell := entity.SpellOfRow(&database.SpellPatternRecord{SpellID: BoardInvisSpellID, SpellName: "Superior Invisibility", Power: 0},
+		0, "Target, Invis, 10min", `{"v":1,"scope":"target","target_type":"Friendly","harmful":false,"duration_s":600,"min_level":1,"effects":[{"id":"01D7","type":"Invisibility","kind":"invis"}]}`, 0)
+	tw := newTalkWorld(t, 25403, 15725)
+	tw.p.HP, tw.p.MaxHP, tw.p.Level = 100, 100, 5
+	tw.s.SetPlayerObjectID(4242)
+	tw.h.SetBoardInvis(func() (entity.CastSpell, bool) { return spell, true })
+	signRows(tw.h, database.SignText{NPCID: 462, Kind: database.SignKindBoard, Text: "Welcome to Freeport."},
+		database.SignText{NPCID: 702, Kind: database.SignKindRoad, Text: "North: Highpass Hold"},
+		database.SignText{NPCID: 703, Kind: database.SignKindBuilding, Text: "The Seafarer's Roost"})
+	board := tw.add(1, &entity.NPC{ServerID: 462, Name: "Freeport Announcements", ModelID: SignBody, SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5, X: 25403.5, Y: 54.1, Z: 15725.5})
+	road := tw.add(2, &entity.NPC{ServerID: 702, Name: "signpost", ModelID: SignBody, SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5, X: 25403.5, Y: 54.1, Z: 15725.5})
+	house := tw.add(3, &entity.NPC{ServerID: 703, Name: "signpost", ModelID: SignBody, SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5, X: 25403.5, Y: 54.1, Z: 15725.5})
+	died := func() {
+		tw.p.Debt = 700
+		tw.p.Rez = entity.RezChance{Debt: 500, Until: time.Now().Add(10 * time.Minute), Placed: true, X: 1000, Y: 60, Z: 2000}
+		tw.p.X, tw.p.Y, tw.p.Z = 25403, 54, 15725
+	}
+	gone := func() bool { return tw.p.X == 1000 && tw.p.Y == 60 && tw.p.Z == 2000 }
+
+	// no place: a building's sign asks nothing, a board as it always did, its second answer no
+	tw.talk(house)
+	if m := questMsgs(tw.s); boxID(m) != 0 {
+		t.Errorf("a sign with no place asked: %q", m)
+	}
+	tw.talk(board)
+	id := boxID(questMsgs(tw.s))
+	tw.pick(id, 1)
+	if gone() || tw.p.Invisible() {
+		t.Errorf("no place, a no: at %.0f, invisible %v", tw.p.X, tw.p.Invisible())
+	}
+
+	// a place: a road's sign still asks nothing
+	died()
+	tw.talk(road)
+	if m := questMsgs(tw.s); boxID(m) != 0 {
+		t.Errorf("a road sign asked: %q", m)
+	}
+	// the board: the way back is its second answer; the debt stands, the place is spent
+	tw.talk(board)
+	id = boxID(questMsgs(tw.s))
+	tw.pick(id, 1)
+	if !gone() || tw.p.Invisible() {
+		t.Errorf("the board's way back: at (%.0f, %.0f, %.0f), invisible %v", tw.p.X, tw.p.Y, tw.p.Z, tw.p.Invisible())
+	}
+	if tw.p.Debt != 700 || tw.p.Rez.Debt != 500 || tw.p.Rez.Placed {
+		t.Errorf("after it: debt %d, a rez's chance %+v", tw.p.Debt, tw.p.Rez)
+	}
+	// one trip: the same box does nothing, and a new talk offers no way back
+	tw.p.X, tw.p.Y, tw.p.Z = 25403, 54, 15725
+	tw.pick(id, 1)
+	if gone() {
+		t.Error("one asking took it twice")
+	}
+	tw.talk(house)
+	if m := questMsgs(tw.s); boxID(m) != 0 {
+		t.Errorf("a spent place asked: %q", m)
+	}
+	// the board's invisibility is still its first answer beside the way back
+	died()
+	tw.talk(board)
+	id = boxID(questMsgs(tw.s))
+	tw.pick(id, 0)
+	if gone() || !tw.p.Invisible() {
+		t.Errorf("the first answer: at %.0f, invisible %v", tw.p.X, tw.p.Invisible())
+	}
+	// a building's sign: its first answer the way back, its second no
+	tw.p.Effects = nil
+	died()
+	tw.talk(house)
+	id = boxID(questMsgs(tw.s))
+	tw.pick(id, 1)
+	if gone() {
+		t.Error("the sign's no took it")
+	}
+	tw.talk(house)
+	id = boxID(questMsgs(tw.s))
+	tw.pick(id, 0)
+	if !gone() || tw.p.Invisible() {
+		t.Errorf("the sign's yes: at %.0f, invisible %v", tw.p.X, tw.p.Invisible())
+	}
+}

@@ -204,10 +204,17 @@ func (w *World) wornGiveLocked(p *Player, sess *session.Session, s WornShield, n
 		return
 	}
 	if top := p.MaxHPNow(); n > 0 && p.HP < top {
+		before := p.HP
 		p.HP = min(p.HP+n, top)
 		p.StatsDirty = true
 		w.tellAmountLocked(p, sess, p.ServerID, n)
 		log.Printf("Shield: %s's %q heals it for %d (%d/%d)", p.Name, s.Item, n, p.HP, top)
+		// a worn heal is its wearer's hate as any heal is its healer's (the user, 2026-11-07:
+		// "heals should generate hate of the caster of heals or if proc like bpoa the wearer
+		// generates"; aggro.go); the Anointed's is its own, whole (wornShieldsLocked)
+		if !s.Hate {
+			w.healHateLocked(p, p, p.HP-before)
+		}
 	}
 	if top := p.MaxPowerNow(); power > 0 && p.Power < top {
 		p.Power = min(p.Power+power, top)

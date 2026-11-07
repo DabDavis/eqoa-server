@@ -437,6 +437,7 @@ func (s *Server) liveCharacter(a *actor, action string, before, after map[string
 	changed := func(col string) bool { return !sameValue(before[col], after[col]) }
 	if changed("level") {
 		lvl, _ := asFloat(after["level"])
+		lvl = min(lvl, float64(entity.LevelCap(s.characterOfGM(int64(id)))))
 		if s.d.World.SetPlayerLevel(uint32(id), int(lvl)) && sess != nil {
 			handlers.SendLevel(sess, int(lvl))
 		}

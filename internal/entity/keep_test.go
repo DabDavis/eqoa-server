@@ -189,7 +189,7 @@ func TestKeptPlayerTargetLockoutsOffers(t *testing.T) {
 	old.p.TargetObjectID = 100001
 	old.p.Lockouts = []castLockout{{spellID: 900, displayIndex: 4, until: now.Add(40 * time.Second)},
 		{spellID: 901, displayIndex: 5, until: now.Add(-time.Second)}}
-	old.p.PowerBars, old.p.DuelWindow = true, true
+	old.p.PowerBars, old.p.DuelWindow, old.p.GM = true, true, true
 	kp, ok := old.w.KeepPlayer(old.sess, now)
 	if !ok || kp.Target != 100001 || len(kp.Lockouts) != 1 || kp.Lockouts[0].LeftMS < 39000 || !kp.PowerBars || !kp.DuelWindow || kp.Dead {
 		t.Fatalf("kept %+v", kp)
@@ -198,6 +198,9 @@ func TestKeptPlayerTargetLockoutsOffers(t *testing.T) {
 	later := now.Add(5 * time.Second)
 	if !r.w.RestoreKeptPlayer(sess, kp, later) {
 		t.Fatal("no player")
+	}
+	if !r.p.GM {
+		t.Error("a GM kept over the restart is no GM")
 	}
 	if r.p.TargetObjectID != 100001 || !r.p.PowerBars || !r.p.powerBarsDue || !r.p.DuelWindow {
 		t.Fatalf("target %d power bars %v due %v duel %v", r.p.TargetObjectID, r.p.PowerBars, r.p.powerBarsDue, r.p.DuelWindow)

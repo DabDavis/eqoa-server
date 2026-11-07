@@ -9,6 +9,10 @@
 # game's socket open, and the new process puts every session back. Players see the server stand still for a
 # few seconds and a dump where they stand.
 #
+# Everyone in the world is warned a minute before all of that (the user, 2026-11-07: "lets make the running
+# reboot have a 1 minute warning before it happens"): SIGUSR1, and $EQOA_KEEP_WARN seconds (60; 0 no warning and
+# no wait). No wait with nobody in the world, nor from a binary that does not answer it (one from before this).
+#
 # Staging is swap_when_empty.sh's: $SWAP/pending/{gameserver,sha256} and an optional before.sh. A staging
 # with a file named `cold` in it is refused here (its data step is long, or it needs the server stopped): swap
 # it the old way. A server that does not answer the signal within 10 s (a binary from before this, on which
@@ -62,6 +66,34 @@ db_back() {
 		log "keep: THE DATABASE COULD NOT BE PUT BACK from $DIR/eqoa.db.bak-$when-pre-swap"
 	fi
 }
+
+# warn tells everyone in the world and waits, by what the server says it did.
+warn() {
+	local told start
+	WARN=${EQOA_KEEP_WARN:-60}
+	[ "$WARN" -gt 0 ] || return 0
+	start=$(wc -l < "$GAME_LOG")
+	kill -USR1 "$pid"
+	told=""
+	for _ in $(seq 1 30); do
+		told=$(tail -n "+$((start + 1))" "$GAME_LOG" | sed -n 's/.*Keep: the warning told to \([0-9]*\) players.*/\1/p' | tail -n 1)
+		[ -n "$told" ] && break
+		sleep 0.1
+	done
+	if [ -z "$told" ]; then
+		log "keep: the server did not answer the warning (a binary from before it?): no wait"
+	elif [ "$told" = "0" ]; then
+		log "keep: nobody in the world to warn: no wait"
+	else
+		log "keep: $told players warned, the restart in ${WARN} s"
+		sleep "$WARN"
+	fi
+	if ! kill -0 "$pid" 2>/dev/null; then
+		log "keep: the server went during the warning: nothing swapped"
+		exit 1
+	fi
+}
+warn
 
 rm -f "$SAVED"
 touch "$HOLD"

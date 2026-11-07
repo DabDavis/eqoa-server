@@ -311,6 +311,12 @@ func (l *Listener) KeepRestart(o KeepOptions) error {
 	return undo(fmt.Errorf("exec %s: %w", o.Exe, err))
 }
 
+// WarnKeepRestart says text to every player in the world, a restart's warning
+// (tools/swap_keep.sh's SIGUSR1), and reports how many it told.
+func (l *Listener) WarnKeepRestart(text string) int {
+	return l.tellInWorld(text)
+}
+
 // tellInWorld says text to every player in the world and sends it at once.
 func (l *Listener) tellInWorld(text string) int {
 	var told []*session.Session

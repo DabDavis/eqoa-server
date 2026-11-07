@@ -58,6 +58,14 @@ import (
 //     (ours: no figure is known), and a buff's visual on the wielder;
 //   - a proc for a kind of creature alone (Gorereaver's goblins) fires on a
 //     creature whose name names it, and not otherwise.
+//   - a form (the Staff of Faykind's; the user, 2026-11-07: "lets add staff
+//     of faykind. it procs a pixie form, that lasts 10 min, the pixie form can
+//     proc up to 800 per round, the proc percentage was around 30% for the
+//     transform and the damage proc"): its wielder shown in a body for its
+//     time (an illusion, illusion.go, kept over a logout and ended as any is),
+//     unresisted, not begun again while it lasts. The damage is the form's own
+//     proc (proc.go: ActiveEffect.Proc, its chance and its most a round in
+//     EffectRules), so it goes with the form and not with the weapon.
 // Not read: what no source gives a figure or an effect for (the Staff of
 // infectious Dread's "Infectious Dread", which no spell here is, the
 // "...of Toxicity" set's reek of poison, the Sword of Virtue's bare "proc 5"
@@ -72,6 +80,7 @@ const (
 	ProcDoT                     // damage every six seconds for a while
 	ProcCalm                    // the creature's hate for the wielder halved
 	ProcRestore                 // hit points and power back to the wielder and its group near
+	ProcForm                    // the wielder shown in a body for a while, the body's own proc beside it
 )
 
 // procRestoreReach is how far from the wielder a group member a restoring
@@ -91,7 +100,26 @@ type WeaponProc struct {
 	Resist   Stat          // the element the creature resists it by (AR when none is said)
 	Only     string        // the creatures it fires on alone, by a word of their name ("goblin")
 	FX       uint32        // its visual
-	pattern  int           // the record, for a DoT's effect id
+	pattern  int           // the record, for a DoT's or a form's effect id
+	// Chance is its chance a hit in percent, 0 for proc.go's rule by INT; a
+	// form's own proc has the same chance.
+	Chance int
+	// Form, Body and Icon are a form's name on the effects list, its body and
+	// its icon; Duration its time. Damage to DamageTo are its own proc's, and
+	// RoundMost the most that proc does in one of its bearer's rounds.
+	Form      string
+	Body      uint32
+	Icon      uint32
+	RoundMost int
+}
+
+// chancePct is the chance, in percent, that a hit of a bearer of that INT procs
+// it.
+func (wp *WeaponProc) chancePct(intel int) int {
+	if wp.Chance > 0 {
+		return wp.Chance
+	}
+	return procChancePct(intel)
 }
 
 // procDoTFor is how long a weapon's damage over time lasts (ours).
@@ -125,6 +153,11 @@ var weaponProcsByName = map[string]WeaponProc{
 	"bonesaw":               {Kind: ProcTap, Damage: 25},
 	"flamberge of wounding": {Kind: ProcDoT, Damage: 50},
 	"neuronite dirk":        {Kind: ProcHit, Damage: 75},
+	// the file's doc. The body is the pixies' of the disc (CHAR.ESF 0x94BA77CD,
+	// the NPCs "pixie" and "pixie nettle"), the icon Faerie Form's. "Up to 800"
+	// gives the top alone; half of it as the low end is ours
+	"staff of faykind": {Kind: ProcForm, Chance: 30, Form: "Pixie Form", Body: 0x94BA77CD, Icon: 0xDE1BC5EC,
+		Duration: 10 * time.Minute, Damage: 400, DamageTo: 800, RoundMost: 800},
 }
 
 // procSpellsByName are the spells a description names its proc by ("Procs:
@@ -219,7 +252,7 @@ func WeaponProcOf(patternID int, itemName, desc string) (WeaponProc, bool) {
 		switch wp.Kind {
 		case ProcTap:
 			wp.FX = fxProcLifeTap
-		case ProcCalm, ProcRestore:
+		case ProcCalm, ProcRestore, ProcForm:
 			wp.FX = fxBuff
 		default:
 			wp.FX = fxDamage
@@ -245,6 +278,8 @@ func (wp WeaponProc) String() string {
 		s = "its hate halved"
 	case ProcRestore:
 		s = fmt.Sprintf("%s hit points and %d power to its wielder and group", figure, wp.Power)
+	case ProcForm:
+		s = fmt.Sprintf("%s for %.0f min, which procs %s at %d%% a hit, at most %d a round", wp.Form, wp.Duration.Minutes(), figure, wp.Chance, wp.RoundMost)
 	default:
 		s = figure
 	}
@@ -281,7 +316,11 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 	if wp.Only != "" && !strings.Contains(strings.ToLower(npc.Name), wp.Only) {
 		return false
 	}
-	if procIntn(100) >= procChancePct(p.StatNow(StatInt)) {
+	if wp.Kind == ProcForm {
+		w.formProcLocked(sess, p, wp, now)
+		return false
+	}
+	if procIntn(100) >= wp.chancePct(p.StatNow(StatInt)) {
 		return false
 	}
 	if wp.Kind != ProcRestore && npc.Dummy == NotDummy && procIntn(100) < npcSpellResistPct(p.Level, npc, wp.Resist, now) {
@@ -324,6 +363,22 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 	return killed
 }
 
+// formProcLocked gives the wielder the weapon's form, if it procs and the form
+// is not on it already (the file's doc). Must be called with the lock held.
+func (w *World) formProcLocked(sess *session.Session, p *Player, wp *WeaponProc, now time.Time) {
+	id := weaponProcSpellID(wp.pattern)
+	if p.hasEffect(id) || procIntn(100) >= wp.chancePct(p.StatNow(StatInt)) {
+		return
+	}
+	cs := &castState{spell: CastSpell{SpellID: id, Name: wp.Form, Icon: wp.Icon, Level: p.Level, Def: SpellDef{Target: TargetSelf,
+		Duration: wp.Duration, FormKind: FormSelf, FormModel: wp.Body, ProcChance: wp.Chance, ProcRound: wp.RoundMost,
+		Effects: []SpellEffect{{Kind: EffectIllusion}, {Kind: EffectProc, Amount: wp.Damage, AmountMax: wp.DamageTo}}}},
+		caster: p.ServerID, targets: []EntityID{p.ServerID}}
+	w.broadcastCastLocked(p, p.ServerID, 0, wp.FX)
+	log.Printf("Proc: %s's %q gives it %s", p.Name, wp.Item, wp.Form)
+	w.landOnPlayerLocked(cs, p, sess, p, now)
+}
+
 // weaponDoTCast is a weapon proc's damage over time as a spell of p's at target, n a tick.
 func weaponDoTCast(p *Player, wp *WeaponProc, target EntityID, n int) *castState {
 	return &castState{spell: CastSpell{SpellID: weaponProcSpellID(wp.pattern), Name: wp.Item, Level: p.Level, Scope: 1,
@@ -346,7 +401,7 @@ func weaponProcWords(p *Player) string {
 		return ""
 	}
 	return fmt.Sprintf("Weapon procs: %s; %d%% a hit of its hand (INT %d)", strings.Join(parts, "; "),
-		procChancePct(p.StatNow(StatInt)), p.StatNow(StatInt))
+		procChancePct(p.StatNow(StatInt)), p.StatNow(StatInt)) // a form's own chance is in its words
 }
 
 // restoreProcLocked lands a restoring proc: n hit points and wp.Power power to

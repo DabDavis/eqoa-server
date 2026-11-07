@@ -207,7 +207,10 @@ type Player struct {
 	// The melee round in hand (attack.go): when it began and how many of its
 	// hits have come due.
 	RoundStart time.Time
-	RoundHits  int
+	// what a limited proc has done in the round of procRound (procsOfRound)
+	procRound     time.Time
+	procRoundDone int
+	RoundHits     int
 
 	// ProfanityFilterOff: the player turned the profanity filter off
 	// (handlers/profanity.go, opcode 0x0045); it is on at every login.

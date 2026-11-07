@@ -75,6 +75,8 @@ type ChatHandler struct {
 	vampires vampireStore // #vampire's (vampirecmd.go)
 
 	support *SupportHandler // /bug's (bugreport.go)
+
+	portal *Portal // the name typed for a Summoning Portal (summonportal.go)
 }
 
 // NewChatHandler creates a new chat handler.
@@ -118,6 +120,7 @@ func (h *ChatHandler) HandleChangeChatMode(sess *session.Session, msg *protocol.
 	h.mu.Lock()
 	h.modes[player.ServerID] = mode
 	h.mu.Unlock()
+	h.portal.ModeChanged(player) // a line right after it is a /command's (summonportal.go)
 	log.Printf("ChangeChatMode: %s mode=%d", player.Name, mode)
 	return nil
 }
@@ -257,6 +260,12 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		return nil
 	}
 
+	// the name a Summoning Portal is waiting for (summonportal.go): every
+	// command above has had its turn, and no one hears it
+	if h.portal.TakeName(sess, player, message) {
+		return nil
+	}
+
 	if !h.gmChatGate(sess, player, chatModeName(h.chatMode(player)), message) {
 		return nil // a GM's Silence (gmchannel.go)
 	}
@@ -295,6 +304,10 @@ func (h *ChatHandler) HandleShoutChat(sess *session.Session, msg *protocol.Messa
 	player := h.gameWorld.SessionPlayer(sess)
 	if player == nil {
 		log.Printf("ShoutChat: sender has no player entity, playerObjectID=%d", sess.PlayerObjectID())
+		return nil
+	}
+	// a typed line in shout mode comes here, a portal's name too (summonportal.go)
+	if h.portal.TakeName(sess, player, message) {
 		return nil
 	}
 	if !h.gmChatGate(sess, player, "shout", message) {

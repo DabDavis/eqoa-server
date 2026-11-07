@@ -33,9 +33,9 @@ func (s *Server) registerRowOps() {
 			if err := c.decode(&q); err != nil {
 				return nil, err
 			}
-			t, err := c.s.table(q.Table)
+			t, err := c.table(q.Table)
 			if err != nil {
-				return nil, notFound("%v", err)
+				return nil, err
 			}
 			rows, total, err := c.s.queryRows(t, q)
 			if err != nil {
@@ -63,9 +63,9 @@ func (s *Server) registerRowOps() {
 			if err := c.decode(&req); err != nil {
 				return nil, err
 			}
-			t, err := c.s.table(req.Table)
+			t, err := c.table(req.Table)
 			if err != nil {
-				return nil, notFound("%v", err)
+				return nil, err
 			}
 			return c.s.countRows(t, req.Query, req.GroupBy)
 		},
@@ -82,9 +82,9 @@ func (s *Server) registerRowOps() {
 			if err := c.decode(&req); err != nil {
 				return nil, err
 			}
-			t, err := c.s.table(req.Table)
+			t, err := c.table(req.Table)
 			if err != nil {
-				return nil, notFound("%v", err)
+				return nil, err
 			}
 			row, err := getRow(c.s.d.DB, t, req.Key)
 			if err != nil {
@@ -112,9 +112,9 @@ func (s *Server) registerRowOps() {
 			if err := c.decode(&req); err != nil {
 				return nil, err
 			}
-			t, err := c.s.table(req.Table)
+			t, err := c.table(req.Table)
 			if err != nil {
-				return nil, notFound("%v", err)
+				return nil, err
 			}
 			if t.Name == "characters" {
 				return nil, badRequest("characters are made in the game or on the account page; create_account makes accounts")
@@ -143,9 +143,9 @@ func (s *Server) registerRowOps() {
 			if err := c.decode(&req); err != nil {
 				return nil, err
 			}
-			t, err := c.s.table(req.Table)
+			t, err := c.table(req.Table)
 			if err != nil {
-				return nil, notFound("%v", err)
+				return nil, err
 			}
 			if t.Name == "accountinfo" || t.Name == "characters" {
 				return nil, badRequest("%s rows are not copied", t.Name)
@@ -200,9 +200,9 @@ func (s *Server) registerRowOps() {
 			if err := c.decode(&req); err != nil {
 				return nil, err
 			}
-			t, err := c.s.table(req.Table)
+			t, err := c.table(req.Table)
 			if err != nil {
-				return nil, notFound("%v", err)
+				return nil, err
 			}
 			return c.s.updateRow(c.a, t, req.Key, req.Values, req.Expect, writeOpts{Dry: req.DryRun})
 		},
@@ -223,9 +223,9 @@ func (s *Server) registerRowOps() {
 			if err := c.decode(&req); err != nil {
 				return nil, err
 			}
-			t, err := c.s.table(req.Table)
+			t, err := c.table(req.Table)
 			if err != nil {
-				return nil, notFound("%v", err)
+				return nil, err
 			}
 			if t.Name == "characters" {
 				id, ok := asFloat(req.Key["serverid"])
@@ -306,9 +306,9 @@ func (s *Server) registerRowOps() {
 			if err := c.decode(&req); err != nil {
 				return nil, err
 			}
-			t, err := c.s.table(req.Table)
+			t, err := c.table(req.Table)
 			if err != nil {
-				return nil, notFound("%v", err)
+				return nil, err
 			}
 			names, err := c.s.lookupNames(t, req.Keys)
 			if err != nil {

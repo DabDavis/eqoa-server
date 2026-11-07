@@ -150,6 +150,7 @@ var catalog = map[string]tableNote{
 	"accountinfo": {
 		Label: "Accounts", Group: "Players", Title: "username", Sort: "accountid",
 		Help: "Game accounts. acctlevel 1+ is a GM (in-game # commands and this panel); acctstatus < 0 is banned. " +
+			"A player with a Testers row is a tester (this panel's items and spells; set_account_tester). " +
 			"Passwords are bcrypt hashes and are set with the account tools, never written here.",
 		Live:   "A ban (acctstatus below 0) ejects the account's sessions at once. Levels and passwords have their own tools.",
 		Show:   []string{"accountid", "username", "acctlevel", "acctstatus", "lastlogin", "ipaddress", "acctcreation"},
@@ -1791,7 +1792,20 @@ var catalog = map[string]tableNote{
 		Cols: map[string]colNote{"hash": {Secret: true}, "accountid": {Ref: "accountinfo"}},
 	},
 	"gm_oauth_clients": {Label: "OAuth clients", Group: "Panel", Write: writeAdmin},
-	"gm_totp":          {Hidden: true},
+	"gm_testers": {
+		Label: "Testers", Group: "Panel", Sort: "accountid", Write: writeAdmin,
+		Help: "Who is a tester, a row an account (tester.go): a player in the game (acctlevel 0, no GM commands) who signs in to " +
+			"this panel with its game password and an authenticator and reads and changes the item and spell records, nothing " +
+			"else. A row on a GM's account does nothing while it is a GM. set_account_tester is the tool; an account's page has its button.",
+		Live: "At once: read on every request. A row taken away ends the account's panel sessions and revokes its tokens.",
+		Cols: map[string]colNote{
+			"accountid":  {Label: "Account", Ref: "accountinfo", ReadOnly: true},
+			"granted_by": {Label: "Given by"},
+			"granted_at": {Label: "Given at"},
+			"note":       {Label: "Note", Help: "why"},
+		},
+	},
+	"gm_totp": {Hidden: true},
 	// the salt the community suggestions' senders are hashed with: with it an
 	// IPv4 sender's hash can be walked back to the address, so no page shows it
 	"spellfx_meta": {Hidden: true},

@@ -99,7 +99,7 @@ func (s *Server) checkCredentials(ip, username, password, code string) (acc acco
 	default:
 		return refuse("wrong password")
 	}
-	if !s.isGM(acc) {
+	if s.panelRole(acc) == "" {
 		return refuse(fmt.Sprintf("acctlevel %d, status %d", acc.Level, acc.Status))
 	}
 	on, err := s.totpEnabled(acc.ID)
@@ -164,7 +164,7 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	s.setSessionCookie(w, sess.Token, int(sessionMaxAge.Seconds()))
 	a := &actor{AccountID: acc.ID, Username: acc.Username, Level: acc.Level, Via: "web", IP: ip}
 	s.audit(a, "login", "", nil, nil, nil, "signed in to the panel")
-	log.Printf("GM panel: %s (acctlevel %d) signed in from %s", acc.Username, acc.Level, ip)
+	log.Printf("GM panel: %s (acctlevel %d, %s) signed in from %s", acc.Username, acc.Level, s.panelRole(acc), ip)
 	writeJSON(w, http.StatusOK, s.sessionInfo(acc.ID, sess, acc.Level >= s.cfg.AdminLevel && mfa))
 }
 
@@ -208,11 +208,13 @@ func (s *Server) handleSession(w http.ResponseWriter, r *http.Request) {
 func (s *Server) sessionInfo(accountID int, sess *gmSession, admin bool) map[string]any {
 	acc, _ := s.accountByID(accountID)
 	totp, _ := s.totpEnabled(accountID)
+	role := s.panelRole(acc)
 	out := map[string]any{
 		"user": map[string]any{
 			"accountid": acc.ID,
 			"username":  acc.Username,
 			"level":     acc.Level,
+			"role":      role,
 			"admin":     admin,
 			// an admin's level, waiting for an authenticator's sign-in
 			"adminNeedsTOTP": acc.Level >= s.cfg.AdminLevel && !admin,
@@ -225,8 +227,11 @@ func (s *Server) sessionInfo(accountID int, sess *gmSession, admin bool) map[str
 		"server": map[string]any{
 			"build":   s.build,
 			"started": stamp(s.started),
-			"restart": s.d.Restart != nil,
+			"restart": s.d.Restart != nil && role != roleTester,
 		},
+	}
+	if role == roleTester {
+		out["tester"] = map[string]any{"tables": testerTableList}
 	}
 	// the spell-visual preview the Spell visuals page frames (gm.preview_url)
 	if s.preview != nil {

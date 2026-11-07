@@ -1078,6 +1078,26 @@ and on its own https host the session is a `__Host-` cookie no other host can se
   change of any origin, a revert included, passes `guardLevel`. Sign-in attempts are counted
   per address (IPv6 by /64) and per name BEFORE the password is checked, in bounded maps, with
   at most four bcrypts at once (`session.go`, `auth.go`).
+- **Testers** (`tester.go`, `guide_tester.md`, table `gm_testers`; the user, 2026-11-07: "lets add a lower than GM
+  level role where players can change items, spells. name it tester"): a player's account with a row in `gm_testers`,
+  acctlevel 0, so no GM command and no GM channel in the game (nothing outside the panel reads the table). It signs in
+  by every route with a GM's authenticator rule and reads and changes the item and spell records, nothing else.
+  `run()` holds anyone below a GM to `testerOps`, an allowlist by name, and an operation's table to `testerTableList`
+  (`itempattern`, `itemeffect`, `foodeffect`, `spellpattern`, `spelleffect`, `spellarea`), so **a new operation or a
+  new table is refused until someone names it there** (`TestTheTestersAllowlistIsTheOneMeant` is the list word for
+  word); `mayWrite` and `opCtx.table` hold the same tables behind the gate. Left out on purpose: whatever hands an item
+  or a spell to a character (`classspells` too: grants, transfers and NPC templates read it), `spellgates` (places),
+  bulk changes, `play_visual` (seen by everyone near), and deleting a whole item or spell record (characters hold it:
+  `testerRecords`; a revert that would do so is refused too unless the tester added it). A tester's text holds no `|`
+  (a run of them kills a PS2 that opens it, `claude-notes/ps2-textbox-bar-crash-20261107.md`, and item text reaches every
+  client) and at most 4000 bytes (`testerWrites`). The page keeps to
+  `TESTER_PAGES` (`app.js`) and shows no button that would be refused; `list_tables`, `search`, `fetch`, `server_status`,
+  `guide`, `api/ops`, MCP's tools and instructions and OpenAPI (`?role=tester`, or a tester's credential) show only what
+  it can use; `audit_log` its tables alone, anyone else's lines without who, from where or why. `set_account_tester`
+  (an admin's, audited, revertible; an account's page has its button) gives and takes the role; the row is read on every
+  request, and taking it away also ends its sessions and revokes its tokens (`liveTester`). The admin scope never goes on
+  a tester's token (`issueToken`), and a tester made a GM loses what it made as a tester. A row on a GM's account does
+  nothing while it is a GM (a level says first, so a GM's way in never reads the table).
 - **One registry of operations** (`ops*.go`): name, AI-readable description, JSON Schema,
   scope (read/write/admin), handler. The page calls `api/op/<name>`; MCP (`mcp.go`, JSON-RPC
   over plain HTTP POST, no stream) lists them as tools; `api/openapi.json` (`?core=1`, a
@@ -1133,6 +1153,7 @@ and on its own https host the session is a `__Host-` cookie no other host can se
   | `accountinfo` | only the game's columns kept (`accountid`, `username`, `acctstatus`, `acctlevel`, `acctcreation`, `result`, `subtime`, `partime`, `subfeatures`, `gamefeatures`); every other blanked, one added later too: `pwhash`, `email`, `ipaddress`, `lastlogin`, `firstname`, `midinitial`, `lastname`, `unknown1`, `unknown2`, `countryAB`, `zip`, `birthday`, `birthyear`, `birthmon`, `sex` | the password's bcrypt hash; the address and e-mail, the Station account's personal fields, when a person last played. A server on the copy adopts the first password given (`auth.allow_auto_register`), or seed one (`auth.accounts`) |
   | `accountinfo.username` | a player's (acctlevel 0) becomes `account-<id>`; a GM's is kept | a login name is often a person's e-mail or name, and half a credential; the board and the panel name GMs |
   | `gm_tokens`, `gm_totp`, `gm_oauth_clients` | every row deleted | API/OAuth/refresh token hashes and the address each was last used from; authenticator secrets; the OAuth clients and where they return to |
+  | `gm_testers` | every row deleted | who may sign in to the panel as a tester, and who gave it them |
   | `gm_audit` | every row deleted | sign-ins with their addresses, tokens made, admin SQL (anything, a password hash included), accounts' rows before and after |
   | `spellfx_meta`, `mapmark_meta` | every row deleted | the salts the community senders' addresses are hashed with (with one an IPv4 hash walks back); a server makes new ones |
   | `spellfx_suggestions.addr_hash`, `mapmark_suggestions.sender_hash` | each value replaced by an HMAC under a key thrown away | one sender's rows still group; nothing links them to the live hashes |

@@ -10,7 +10,12 @@ import { go, isAdmin } from '../lib/nav.js';
 import { auditLine } from './audit.js';
 
 export function canWrite(meta) {
-  return meta.write === 'gm' || (meta.write === 'admin' && isAdmin());
+  return meta.write === 'gm' || meta.write === 'tester' || (meta.write === 'admin' && isAdmin());
+}
+
+// a tester's table may refuse a delete (a whole item or spell record)
+export function canDelete(meta) {
+  return canWrite(meta) && meta.delete !== false;
 }
 
 // keyPath is a row's key as a route segment: the value for a one-column key,
@@ -94,7 +99,7 @@ export async function recordPage(box, { table, keySeg, base, crumbs, title, sub,
         go(base + '/' + keyPath(meta, out.change.key));
       } catch (e) { toast(e.message, 'error'); }
     } }) : null,
-    canWrite(meta) ? button('Delete', { icon: 'trash', class: 'danger', onclick: () => form.remove() }) : null,
+    canDelete(meta) ? button('Delete', { icon: 'trash', class: 'danger', onclick: () => form.remove() }) : null,
   ].filter(Boolean);
   const t = typeof title === 'function' ? title(row, meta) : title || (meta.title ? String(row[meta.title] ?? '') : '') || meta.label + ' ' + Object.values(key).join(', ');
   const s = typeof sub === 'function' ? sub(row, meta) : sub;

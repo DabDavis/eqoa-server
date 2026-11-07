@@ -407,7 +407,7 @@ func (h *TradeHandler) completeLocked(t *trade) {
 	}
 	for _, m := range moves {
 		toInv := sessionInvList(m.to.sess)
-		if toInv.wouldAdd(m.row.Pattern.PatternID, m.n, m.row.Pattern.MaxStack) < m.n {
+		if toInv.loreRoom(&m.row.Pattern, toInv.wouldAdd(m.row.Pattern.PatternID, m.n, m.row.Pattern.MaxStack)) < m.n {
 			h.refuseLocked(t)
 			return
 		}

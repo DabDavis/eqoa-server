@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -365,8 +366,12 @@ func (h *NPCWindowHandler) buy(sess *session.Session, id uint32, index, count in
 	}
 	bought := 0
 	for ; bought < records; bought++ {
-		took := inv.wouldAdd(p.PatternID, qty, p.MaxStack)
+		room := inv.wouldAdd(p.PatternID, qty, p.MaxStack)
+		took := inv.loreRoom(p, room)
 		if took == 0 {
+			if room > 0 { // a Lore item held already (itemlist.go)
+				SendClientMessage(sess, fmt.Sprintf(loreLine, p.ItemName))
+			}
 			break // the list is full, or the stack is
 		}
 		cost := price * took

@@ -163,7 +163,10 @@ func craftRoom(l *invList, takes []craftTake, p *database.ItemPatternRecord, n i
 		}
 	}
 	if p.MaxStack >= 2 {
-		return sim.wouldAdd(p.PatternID, n, p.MaxStack) == n
+		return sim.loreRoom(p, sim.wouldAdd(p.PatternID, n, p.MaxStack)) == n
+	}
+	if p.Lore != 0 && (n > 1 || sim.held(p.PatternID) > 0) { // one at most (itemlist.go's loreRoom)
+		return false
 	}
 	for i := 0; i < n; i++ {
 		if _, took := sim.add(0, p.PatternID, 1, p.MaxStack); took != 1 {
@@ -248,7 +251,7 @@ func (h *CraftHandler) giveCraft(charID uint32, l *invList, p database.ItemPatte
 	}
 	var given []craftGiven
 	for i := 0; i < records; i++ {
-		took := l.wouldAdd(p.PatternID, qty, p.MaxStack)
+		took := l.loreRoom(&p, l.wouldAdd(p.PatternID, qty, p.MaxStack))
 		if took == 0 {
 			log.Printf("Craft: no room for %q after all", p.ItemName)
 			break

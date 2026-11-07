@@ -961,6 +961,21 @@ func (s *SQLiteCharacterStore) Update(c *CharacterRecord) error {
 	return err
 }
 
+// SetLook stores a character's face and hair, and nothing else of the row:
+// what character select's Customize Character hands the server with the
+// character it plays (0x002A, handlers/character.go keepSelectedLook).
+func (s *SQLiteCharacterStore) SetLook(serverID uint32, face, hairStyle, hairLength, hairColor int) error {
+	res, err := s.db.Exec(`UPDATE characters SET faceoption = ?, hairstyle = ?, hairlength = ?, haircolor = ? WHERE serverid = ?`,
+		face, hairStyle, hairLength, hairColor, serverID)
+	if err != nil {
+		return err
+	}
+	if n, err := res.RowsAffected(); err == nil && n != 1 {
+		return ErrCharacterNotFound
+	}
+	return nil
+}
+
 // SetProgress stores a character's level and its kept total experience
 // (totalXP: entity.TotalXP), and nothing else of the row: what a GM's level
 // change writes at once, without the place the logout save keeps.

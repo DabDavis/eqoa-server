@@ -1740,9 +1740,11 @@ and the collision. Long form, with what was measured: `claude-notes/shards-20261
   new bake decodes until the tool runs again; a rename, so a running server keeps what it mapped): read-only, the same page
   cache for every process, nothing on the heap, 0.4 µs a zone against 6 ms. Where zones cost each process up to 652 MB of heap
   they now cost one copy of evictable page cache. `<world>.env` is mapped as it stands. The NPCs are one array (no size-class
-  rounding) with each name once. Past that a process holds its live heap (85 MB, 64 of it NPCs) and what the runtime keeps round
-  it: `gc_percent: 25` (GOGC) and `no_huge_pages: true` (`PR_SET_THP_DISABLE`: with THP "always", khugepaged fills back what the
-  runtime returned). An empty shard's tick does next to nothing (`guardWatchSystem` looks at nothing with no player in the world).
+  rounding) with each name once. Past that a process holds its live heap (78 MB after a collection, 61 of it the NPC array, 1,048 bytes each) and what the runtime
+  keeps round it: `gc_percent: 25` (GOGC) and `no_huge_pages: true` (`PR_SET_THP_DISABLE`: with THP "always", khugepaged fills back what the
+  runtime returned). An empty shard's tick does next to nothing (`guardWatchSystem` looks at nothing with no player in the world). Measured
+  idle: 139 MB RSS, 102 of it its own, 0.5% of a desktop core (214 and 192 before these; 873 and 850 with every zone read); a player about
+  2.7 MB of its own and the file pages of where it walks.
 - **Keep restarts and swaps are per shard**: both scripts take `EQOA_UNIT`, `EQOA_DIR`, `EQOA_SWAP_DIR`, `EQOA_GAME_PORT` and
   `EQOA_AUTH_PORT`, the last any TCP port the shard listens on (a shard with no login: its panel's). The swap's hold stops the
   mirror (`AccountMirror.Hold`): nothing writes the database while a script may put it back.

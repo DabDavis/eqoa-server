@@ -5,6 +5,8 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"net"
+	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -26,16 +28,14 @@ type raceRig struct {
 	next  int
 }
 
-func newRaceRig(t *testing.T) *raceRig {
+func newRaceRig(t *testing.T, db *database.SQLiteDB) *raceRig {
 	t.Helper()
-	db, err := database.NewSQLite(t.TempDir() + "/races.db")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { db.Close() })
-	if _, err := db.Exec(`INSERT INTO racedefs (id, name, short_name, wire_race, bonus_str, bonus_sta, bonus_agi, bonus_dex, body_male, body_female)
-		VALUES (11, 'Hill Giant', 'HGT', 9, 25, 20, -5, -5, -5117396, -5117396)`); err != nil {
-		t.Fatal(err)
+	for _, q := range []string{`DELETE FROM characters`, `DELETE FROM racedefs`,
+		`INSERT INTO racedefs (id, name, short_name, wire_race, bonus_str, bonus_sta, bonus_agi, bonus_dex, body_male, body_female)
+		VALUES (11, 'Hill Giant', 'HGT', 9, 25, 20, -5, -5, -5117396, -5117396)`} {
+		if _, err := db.Exec(q); err != nil {
+			t.Fatal(err)
+		}
 	}
 	if err := entity.LoadRaceDefs(db); err != nil {
 		t.Fatal(err)
@@ -48,6 +48,28 @@ func newRaceRig(t *testing.T) *raceRig {
 	r.h.RegisterHandlers(NewRegistry())
 	r.character("Lagerbottoms", 11)
 	return r
+}
+
+// TestRaceLabels runs each case on its own world and rows over one database, as
+// the schema takes a while to make.
+func TestRaceLabels(t *testing.T) {
+	db, err := database.NewSQLite(t.TempDir() + "/races.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	for _, c := range []struct {
+		name string
+		run  func(*testing.T, *raceRig)
+	}{
+		{"go to a client that asked", raceLabelsGoToAClientThatAsked},
+		{"none to send", raceLabelsNoneToSend},
+		{"a login of such a character reaches clients in the world", aLoginOfSuchACharacterReachesClientsInTheWorld},
+		{"format", raceLabelsFormat},
+		{"through a restart", raceLabelsThroughARestart},
+	} {
+		t.Run(c.name, func(t *testing.T) { c.run(t, newRaceRig(t, db)) })
+	}
 }
 
 // character makes a character's row.
@@ -82,9 +104,8 @@ func (r *raceRig) answer(sess *session.Session, data ...byte) {
 	}
 }
 
-// raceLists takes every OpcodeRaceLabelsData queued for sess's client, their
-// bodies, leaving nothing behind to count twice; any other non-retail opcode is
-// a failure of the caller's to look at.
+// raceLists is every OpcodeRaceLabelsData queued for sess's client so far: their
+// bodies.
 func raceLists(sess *session.Session) [][]byte {
 	var out [][]byte
 	for _, m := range sess.Queue().PeekPending() {
@@ -133,8 +154,7 @@ func TestRaceLabelsOfferedAtWorldEntry(t *testing.T) {
 // A client that answers is sent the list at once, by the race's row; a client
 // that never answers (a PS2, an older vanilla) is sent nothing, whatever happens;
 // asking again after stopping sends it again; a short answer changes nothing.
-func TestRaceLabelsGoToAClientThatAsked(t *testing.T) {
-	r := newRaceRig(t)
+func raceLabelsGoToAClientThatAsked(t *testing.T, r *raceRig) {
 	asks, p := r.client("Asker", 3)
 	ps2, _ := r.client("Consoleman", 3)
 	r.answer(asks, 1, 0, 0)
@@ -178,8 +198,7 @@ func TestRaceLabelsGoToAClientThatAsked(t *testing.T) {
 
 // A server with no such character sends an asking client nothing: it holds the
 // empty list already.
-func TestRaceLabelsNoneToSend(t *testing.T) {
-	r := newRaceRig(t)
+func raceLabelsNoneToSend(t *testing.T, r *raceRig) {
 	if _, err := r.db.Exec(`DELETE FROM characters`); err != nil {
 		t.Fatal(err)
 	}
@@ -194,8 +213,7 @@ func TestRaceLabelsNoneToSend(t *testing.T) {
 // their list lacks it, and only them. An ordinary character's login asks nothing
 // of the database and sends nothing (the control: the same login's hook with a
 // list that would change).
-func TestALoginOfSuchACharacterReachesClientsInTheWorld(t *testing.T) {
-	r := newRaceRig(t)
+func aLoginOfSuchACharacterReachesClientsInTheWorld(t *testing.T, r *raceRig) {
 	asks, _ := r.client("Asker", 3)
 	never, _ := r.client("Consoleman", 3)
 	r.answer(asks, 1, 0, 0, 0)
@@ -230,8 +248,7 @@ func TestALoginOfSuchACharacterReachesClientsInTheWorld(t *testing.T) {
 // The list as bytes: a race's words from its row, each race its names, a race with
 // no character left out, a second race needing nothing but its row. Past a
 // message's own span it goes whole, in a message of its own size.
-func TestRaceLabelsFormat(t *testing.T) {
-	r := newRaceRig(t)
+func raceLabelsFormat(t *testing.T, r *raceRig) {
 	if _, err := r.db.Exec(`INSERT INTO racedefs (id, name, short_name, wire_race) VALUES (12, 'Stone Giant', 'SGT', 5), (13, 'Ash Giant', '', 2)`); err != nil {
 		t.Fatal(err)
 	}
@@ -248,17 +265,34 @@ func TestRaceLabelsFormat(t *testing.T) {
 		t.Fatalf("got %x\nwant %x", got, want)
 	}
 
-	long := "Lagerbottoms"
-	names := []string{long}
+	// a list past a message's own span comes whole, in fragments, as the who list
+	var rows []string
+	names := []string{"Lagerbottoms"}
 	for i := 0; i < 400; i++ {
-		name := "Giant" + string(rune('A'+i%26)) + string(rune('a'+i/26))
-		r.character(name, 11)
+		name := "Giant" + string(rune('a'+i/26)) + string(rune('a'+i%26))
+		rows = append(rows, "('"+name+"', 1, -5117396, 9, 11, 0, 60, 0, 0, 0, 0, 0)")
 		names = append(names, name)
 	}
-	r.w.RefreshRaceLabels(r.db)
-	got := raceLists(asks)
-	if len(got) != 2 || len(got[1]) < 2046 {
-		t.Fatalf("the long list: %d lists, the last %d bytes", len(got), len(got[len(got)-1]))
+	sort.Strings(names)
+	if _, err := r.db.Exec(`INSERT INTO characters (charName, accountid, modelid, tclass, race, humType, level, haircolor, hairlength, hairstyle, faceoption, sex) VALUES ` + strings.Join(rows, ",")); err != nil {
+		t.Fatal(err)
+	}
+	before := len(asks.Queue().PeekPending())
+	if n := r.w.RefreshRaceLabels(r.db); n != 1 {
+		t.Fatalf("the long list went to %d clients", n)
+	}
+	pending := asks.Queue().PeekPending()[before:]
+	if len(pending) < 2 {
+		t.Fatalf("the long list in %d messages", len(pending))
+	}
+	var whole []byte
+	for _, m := range pending {
+		whole = append(whole, m.Data()...)
+	}
+	wantLong := append([]byte{0x1D, 0x7E, 2}, wantList("Hill Giant", "HGT", names...)[1:]...)
+	wantLong = append(wantLong, wantList("Stone Giant", "SGT", "Boulder")[1:]...)
+	if !bytes.Equal(whole, wantLong) {
+		t.Fatalf("the long list, its fragments put together: %d bytes, want %d", len(whole), len(wantLong))
 	}
 }
 
@@ -266,8 +300,7 @@ func TestRaceLabelsFormat(t *testing.T) {
 // is shown with it: the flag is kept, and the first look after sends the list again
 // whatever it was, as a data step in the hold may have changed it. A client that
 // never asked stays so.
-func TestRaceLabelsThroughARestart(t *testing.T) {
-	r := newRaceRig(t)
+func raceLabelsThroughARestart(t *testing.T, r *raceRig) {
 	asks, p := r.client("Asker", 3)
 	never, _ := r.client("Consoleman", 3)
 	r.answer(asks, 1, 0, 0, 0)

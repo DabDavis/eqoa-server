@@ -271,3 +271,20 @@ func TestARobeOfStyleZeroIsWorn(t *testing.T) {
 		t.Error("the control: the rule before must send the style-0 robe as none")
 	}
 }
+
+// The character list carries the same tints a PS2 reads off the channel: the
+// nearest disc tint for a worn piece with a colour of its own, in the list's
+// armour order after the six sets, and white for one without.
+func TestTheCharacterListCarriesArmoursTints(t *testing.T) {
+	item := func(slot, loc int, color int64) database.CharInventoryEntry {
+		var e database.CharInventoryEntry
+		e.EquipLoc, e.Pattern.EquipSlot, e.Pattern.Model, e.Pattern.Color = loc, slot, 4, color
+		return e
+	}
+	g := characterGear([]database.CharInventoryEntry{item(5, 5, 0x00C832FF), item(1, 0, 0xFFFFFFFF), item(10, 12, 13)})
+	for i, want := range []byte{5, 0, 0, 0, 0, 0} { // chest bracer gloves legs boots helm
+		if g[26+i] != want {
+			t.Errorf("tint %d: %d, want %d", i, g[26+i], want)
+		}
+	}
+}

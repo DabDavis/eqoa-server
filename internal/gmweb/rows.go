@@ -564,6 +564,11 @@ func keyText(key map[string]any) string {
 
 // mayWrite says whether the actor may change the table's rows.
 func mayWrite(a *actor, t *Table) error {
+	// every row write comes here, whichever operation made it: a revert, a
+	// bulk change, an operation's own
+	if a.tester() && !isTesterTable(t.Name) {
+		return notTesters("table " + strconv.Quote(t.Name))
+	}
 	switch t.Write {
 	case writeNone:
 		return fmt.Errorf("%s is not changed through the editor", t.Name)

@@ -2,6 +2,8 @@ import { h, mount, pageHead, button, toast, empty, confirmBox, debounce } from '
 import { op } from '../lib/api.js';
 import { ago, when } from '../lib/fmt.js';
 import { showChange } from '../lib/form.js';
+import { isTester } from '../lib/nav.js';
+import { tables } from '../lib/meta.js';
 
 const ACTION_BADGE = { insert: 'ok', update: 'info', delete: 'danger', live: 'accent', settings: 'warn', sql: 'warn', account: 'warn', security: 'warn' };
 
@@ -33,7 +35,7 @@ export function auditLine(e, compact = false) {
     h('span', { class: 'faint small', title: when(e.at) }, ago(e.at)));
   const box = h('div', { class: 'audit-entry' }, line);
   if (compact) return box;
-  const canRevert = !!e.table && ['insert', 'update', 'delete'].includes(e.action) && !e.revertedBy;
+  const canRevert = !!e.table && ['insert', 'update', 'delete'].includes(e.action) && !e.revertedBy && !e.noRevert;
   line.appendChild(h('span', { class: 'actions' },
     e.before || e.after ? button('Show', { class: 'small ghost', onclick: () => showChange({ ...e, live: '' }, `Entry ${e.id}: ${e.action} by ${e.username}`) }) : null,
     canRevert ? button('Revert', { class: 'small', icon: 'undo', onclick: async () => {
@@ -60,9 +62,14 @@ export function auditLine(e, compact = false) {
 
 export async function render(box) {
   const list = h('div', { class: 'card' });
+  // a tester's log is the changes to their own tables: by table and action, no
+  // one else's name to filter by and no text to search (tester.go)
+  const tester = isTester();
   const user = h('input', { type: 'search', placeholder: 'GM' });
-  const table = h('input', { type: 'search', placeholder: 'table' });
-  const action = h('select', null, ...['', 'insert', 'update', 'delete', 'live', 'account', 'settings', 'sql', 'token', 'security', 'login', 'backup', 'snapshot', 'server']
+  const table = tester
+    ? h('select', { 'aria-label': 'Table' }, h('option', { value: '' }, 'any table'), ...(await tables()).map((t) => h('option', { value: t.name }, t.label)))
+    : h('input', { type: 'search', placeholder: 'table' });
+  const action = h('select', null, ...(tester ? ['', 'insert', 'update', 'delete'] : ['', 'insert', 'update', 'delete', 'live', 'account', 'settings', 'sql', 'token', 'security', 'login', 'backup', 'snapshot', 'server'])
     .map((a) => h('option', { value: a }, a || 'any action')));
   const text = h('input', { type: 'search', placeholder: 'text in the entry' });
   let offset = 0;
@@ -72,11 +79,13 @@ export async function render(box) {
   const reload = debounce(() => { offset = 0; load(); }, 250);
   [user, table, text].forEach((el) => el.addEventListener('input', reload));
   action.addEventListener('change', reload);
-  mount(box, pageHead('Audit log', 'Every change made through the panel or by an AI agent, who made it and through what. A row change can be reverted.'),
-    h('div', { class: 'card' }, h('div', { class: 'grid-tools' }, user, table, action, text, h('span', { class: 'grow' }), count, newer, more)), list);
+  mount(box, tester
+    ? pageHead('Audit log', 'Every change to the item and spell tables: your own whole, and of anyone else\'s what changed and when. A row change can be reverted.')
+    : pageHead('Audit log', 'Every change made through the panel or by an AI agent, who made it and through what. A row change can be reverted.'),
+    h('div', { class: 'card' }, h('div', { class: 'grid-tools' }, tester ? null : user, table, action, tester ? null : text, h('span', { class: 'grow' }), count, newer, more)), list);
   async function load() {
     try {
-      const out = await op('audit_log', { username: user.value.trim(), table: table.value.trim(), action: action.value, search: text.value.trim(), limit: 50, offset });
+      const out = await op('audit_log', { username: tester ? '' : user.value.trim(), table: table.value.trim(), action: action.value, search: tester ? '' : text.value.trim(), limit: 50, offset });
       count.textContent = out.total ? `${offset + 1}–${Math.min(offset + 50, out.total)} of ${out.total}` : '';
       more.disabled = offset + 50 >= out.total;
       newer.disabled = offset === 0;

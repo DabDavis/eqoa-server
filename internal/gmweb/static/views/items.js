@@ -2,6 +2,7 @@ import { h, card, button, toast, empty, formBox } from '../lib/dom.js';
 import { op } from '../lib/api.js';
 import { listPage, recordPage, canWrite } from './tablepage.js';
 import { itemPanel } from './disc.js';
+import { isTester } from '../lib/nav.js';
 
 export async function render(box, [id]) {
   if (id === undefined) {
@@ -14,8 +15,9 @@ export async function render(box, [id]) {
     sub: (row) => `Item ${row.patternid}`,
     newDefaults: { itemcost: 0, unk1: 0, itemicon: 0, unk2: 0, equipslot: 0, unk3: 0, trade: 1, rent: 0, unk4: 0, attacktype: 0, weapondamage: 0, unk5: 0,
       levelreq: 1, maxstack: 1, maxhp: 0, duration: 0, classuse: 32767, raceuse: 1023, procanim: 0, lore: 0, unk6: 0, craft: 0, itemname: '', itemdesc: '', model: 0, color: 0 },
-    actions: (row, meta) => [canWrite(meta) ? button('Give to a character', { icon: 'send', onclick: () => give(row) }) : null].filter(Boolean),
+    actions: (row, meta) => [canWrite(meta) && !isTester() ? button('Give to a character', { icon: 'send', onclick: () => give(row) }) : null].filter(Boolean),
     side: async (row) => {
+      if (isTester()) return h('div', { class: 'stack' }, await itemPanel(row)); // who sells or holds it is not a tester's
       const out = await op('fetch', { id: 'item:' + row.patternid });
       const r = out.record;
       return h('div', { class: 'stack' },

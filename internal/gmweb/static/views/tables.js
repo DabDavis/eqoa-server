@@ -1,16 +1,16 @@
 import { h, mount, pageHead, button } from '../lib/dom.js';
 import { tables } from '../lib/meta.js';
-import { go } from '../lib/nav.js';
+import { go, isTester } from '../lib/nav.js';
 import { listPage, recordPage } from './tablepage.js';
 
 // a table's own actions on a row's page: a spell effect's visual played in
 // the game (the spell's, as it stands now), or chosen on the disc's list
 const rowActions = {
   spelleffect: (row) => [
-    button('Play in game', { icon: 'play', title: 'The spell\'s visual, from your character in the game onto its target',
+    isTester() ? null : button('Play in game', { icon: 'play', title: 'The spell\'s visual, from your character in the game onto its target',
       onclick: async () => (await import('./visuals.js')).playInGame({ spell: row.spellid }) }),
     button('Choose on the disc…', { icon: 'disc', onclick: () => go('visuals/' + row.spellid) }),
-  ],
+  ].filter(Boolean),
 };
 
 export async function render(box, params) {
@@ -31,8 +31,10 @@ export async function render(box, params) {
     if (!groups.has(t.group)) groups.set(t.group, []);
     groups.get(t.group).push(t);
   }
-  const who = { gm: 'GMs edit', admin: 'admins edit', none: 'read-only' };
-  mount(box, pageHead('All tables', 'Every table of the database, editable as the catalog allows. The purpose-built pages (NPCs, Items...) are the same tables with more around them.'),
+  const who = { gm: 'GMs edit', admin: 'admins edit', none: 'read-only', tester: 'you edit' };
+  mount(box, isTester()
+    ? pageHead('Item and spell tables', 'The tables a tester reads and changes. The Items and Spells pages are the same tables with more around them.')
+    : pageHead('All tables', 'Every table of the database, editable as the catalog allows. The purpose-built pages (NPCs, Items...) are the same tables with more around them.'),
     ...[...groups].map(([g, ts]) => h('section', { class: 'card' },
       h('div', { class: 'card-head' }, h('h2', null, g)),
       h('div', { class: 'card-body tight' }, h('table', { class: 'plain' },

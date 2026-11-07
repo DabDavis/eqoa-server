@@ -8,7 +8,8 @@ import (
 
 // The panel's own tables, in the game's database: the audit log (its
 // statement the database package's: a GM command in the game writes it too),
-// the GMs' authenticators, their API and OAuth tokens and the OAuth clients.
+// the GMs' authenticators, their API and OAuth tokens, the OAuth clients and
+// who is a tester (tester.go).
 // Times are TEXT in RFC 3339 (UTC), which every reader of the file can sort
 // and parse.
 const panelSchema = database.GMAuditSchema + `
@@ -44,7 +45,7 @@ CREATE TABLE IF NOT EXISTS gm_oauth_clients (
 	created       TEXT NOT NULL,
 	last_used     TEXT
 );
-`
+` + testersSchema
 
 func (s *Server) initSchema() error {
 	_, err := s.d.DB.Exec(panelSchema)

@@ -93,6 +93,7 @@ beside it):
 | Table | What it is | Key |
 |---|---|---|
 | `accountinfo` | game accounts; `acctlevel` 0 player, 1+ GM (2+ admin); `acctstatus` < 0 banned | `accountid` |
+| `gm_testers` | who is a tester, a row an account: a player in the game who signs in to this panel and reads and changes the item and spell records, nothing else; `set_account_tester` gives and takes it (an admin's) | `accountid` |
 | `characters` | player characters; `serverid` is the character's id everywhere | `serverid` |
 | `charinventory` | a character's items: `patternid` (the item), `stackleft`, `remainHP` (condition), `equiploc` (-1 not worn), `location` 0 inventory / 1 bank | `itemid` |
 | `spells` | a character's spell book: `spellid`, `addedorder` (place in the book, < 252) | `id` |

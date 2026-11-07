@@ -79,12 +79,12 @@ creature, dead or alive, is as its row makes it (free, whole, on its spawn), a p
 gone, a dummy and a spawn-only original are not carried. A row a data step changed wins (`RestoreNPCs`): one gone is
 skipped, one whose spawn or world moved stands on the new one (dead stays dead, its corpse there), and one with both a
 new spawn and another name is another creature. **A new system holding an NPC's state decides here what a restart
-does with it.** Only this path keeps them: a cold start (swap when empty, a crash, the GM panel's restart, `#servdown`)
+does with it.** Only this path keeps them: a cold start (a `cold` staging, a crash, the GM panel's restart, `#servdown`)
 loads the rows alone, as does the first restart out of a binary from before it. At worst (every wanderer on a real
 world off its spawn, 42,962 creatures): 5.7 MB, about 0.15 s more before the exec and 0.22 s after.
 `tools/swap_keep.sh` runs the staging's `before.sh` in the hold (`keep.hold`/`keep.saved` beside the database,
-at most 12 s: `EQOA_BEFORE_MAX`), and a staging with a file named `cold` in it is refused (a long data step: swap
-it the old way). The cold paths below still work and still end every session.
+at most 12 s: `EQOA_BEFORE_MAX`) and its `after.sh` once the new server is up, and a staging with a file named `cold`
+in it is refused (a long data step: swap it the old way). The cold paths below still work and still end every session.
 `tools/swap_when_empty.sh` (cron, every minute) swaps a staged binary in only once
 no one is connected: no UDP flow to the game port in the kernel's connection table, no Station login
 open, no `UDP received` line in the log's last two minutes (with the packet log off, one an address
@@ -95,7 +95,10 @@ balance and the templates are read then; on its failure the database and the old
 an optional `after.sh` for a data step that needs the new code running; it backs up the binary and
 database, rolls back a binary that does not listen (and the database after a `before.sh`), and logs to
 `$SWAP/swap.log`. The user's choice of 2026-10-29: "swap when
-empty". An urgent fix (a crash, the game unplayable) still restarts at once.
+empty". An urgent fix (a crash, the game unplayable) still restarts at once. It swaps through `swap_keep.sh` (2026-11-07:
+"yes make empty-server restarts keep creatures too"), with no warning, so creatures stay as they were and `before.sh` runs
+with the server held, at most 12 s; a staging with a file named `cold` in it, or a server that does not answer the signal,
+swaps cold as above, sending every creature home whole.
 
 ### The work board: read it before working on eqoaclassic
 

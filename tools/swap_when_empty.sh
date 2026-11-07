@@ -22,11 +22,18 @@
 #   - no Station login open on the auth port;
 #   - no "UDP received" line in the last $QUIET seconds of the game server's log;
 #   - for $QUIET seconds on end (the first empty check starts the clock).
-# Then: the binary and the database are copied (*.bak-<when>-pre-swap, the last three kept),
+# Then it swaps through swap_keep.sh, beside this script (the user, 2026-11-07: "yes make empty-server restarts
+# keep creatures too"): with no one in the world nothing is warned or waited for, and every creature stays as it
+# was (entity/keepnpc.go), a boss killed a minute ago dead until its time. Its rules are swap_keep.sh's: before.sh
+# at most $EQOA_BEFORE_MAX seconds (12; the server waits 20), run with the server held rather than stopped.
+# A staging with a file named `cold` in it (a long data step), or a server that does not answer the signal (a
+# binary from before keeping sessions), swaps the old way:
+# the binary and the database are copied (*.bak-<when>-pre-swap, the last three kept),
 # the service is stopped, before.sh run, the binary moved in, the service started; if it does not
 # listen within a minute the old binary goes back (and the database, when a before.sh ran) and is
-# started, and the staging is moved to failed-<when>.
-# A swap done moves the staging to done-<when>. Everything is said in $SWAP/swap.log.
+# started, and the staging is moved to failed-<when>. A cold start sends every creature home whole.
+# A swap done moves the staging to done-<when> (done-keep-<when> through the keep path). Everything is said in
+# $SWAP/swap.log.
 #
 #   * * * * * EQOA_UNIT=eqoa-game /path/to/swap_when_empty.sh >> $HOME/eqoa-swap/swap.log 2>&1
 set -uo pipefail
@@ -104,6 +111,19 @@ if [ "$want" != "$got" ]; then
 	mv "$PENDING" "$SWAP/failed-$when"
 	rm -f "$STATE"
 	exit 1
+fi
+# through the keep path, creatures and all (the file's doc); it takes the lock itself and says what it does in
+# swap.log, which is where cron sends this script's output too
+if [ ! -e "$PENDING/cold" ]; then
+	log "empty since $(date -u -d "@$since" '+%H:%M:%S'): swapping in ${got:0:16}, the creatures kept"
+	exec 9>&-
+	EQOA_KEEP_WARN=0 "$(dirname "$0")/swap_keep.sh" > /dev/null
+	code=$?
+	rm -f "$STATE"
+	[ "$code" = 3 ] || exit "$code"
+	exec 9>"$SWAP/.lock"
+	flock -n 9 || exit 0
+	log "the running server does not keep (a binary from before it?): the old way"
 fi
 cp -p "$DIR/gameserver" "$DIR/gameserver.bak-$when-pre-swap"
 if ! sqlite3 "$DIR/eqoa.db" ".backup $DIR/eqoa.db.bak-$when-pre-swap"; then

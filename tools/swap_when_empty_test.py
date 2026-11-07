@@ -9,6 +9,9 @@ binary whose sha256 file disagrees is refused; one that does not listen is
 taken back out. A staged before.sh runs with the server stopped and before the
 new binary starts; one that fails leaves the old binary running on the
 database as it was, and so does a new binary that does not listen after one.
+Those are a staging marked cold. One not marked goes through swap_keep.sh, with
+no warning: the server signalled and never stopped, before.sh in the hold,
+after.sh once it is up; a server that does not answer swaps the old way.
 No game data.
 
     python3 tools/swap_when_empty_test.py
@@ -36,12 +39,45 @@ FAKE_SUDO = textwrap.dedent("""\
         start)
             # the "binary" says whether it starts: one holding "broken" does not listen
             grep -q broken "$EQOA_DIR/gameserver" && exit 0
-            python3 -c "import socket, time; s = socket.socket(); s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1); s.bind(('127.0.0.1', $EQOA_AUTH_PORT)); s.listen(); time.sleep(600)" </dev/null >/dev/null 2>&1 9>&- &
+            python3 "$FAKE_DIR/server.py" </dev/null >/dev/null 2>&1 9>&- &
             echo $! > "$FAKE_DIR/server.pid"; sleep 0.5;;
         esac
         exit 0
     fi
     exec "$@"
+    """)
+
+FAKE_SYSTEMCTL = textwrap.dedent("""\
+    #!/bin/bash
+    # swap_keep.sh's own call: the service's process
+    [ "$1" = "show" ] && cat "$FAKE_DIR/server.pid"
+    exit 0
+    """)
+
+# The service: it listens; with FAKE_KEEPS it answers SIGUSR2 as the game server's keep does (keep.saved, the wait for
+# keep.hold to go, the "exec": a broken binary is gone, a good one says what it put back), and without it it ignores it.
+FAKE_SERVER = textwrap.dedent("""\
+    import os, signal, socket, time
+    d, fake = os.environ["EQOA_DIR"], os.environ["FAKE_DIR"]
+    s = socket.socket()
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind(("127.0.0.1", int(os.environ["EQOA_AUTH_PORT"])))
+    s.listen()
+    def usr2(*_):
+        open(fake + "/usr2", "w").close()
+        hold = d + "/keep.hold"
+        if os.path.exists(hold):
+            open(d + "/keep.saved", "w").close()
+            start = time.time()
+            while os.path.exists(hold) and time.time() - start < 20:
+                time.sleep(0.05)
+        if "broken" in open(d + "/gameserver").read():
+            os._exit(0)
+        with open(d + "/gameserver.log", "a") as f:
+            f.write("2020/01/01 00:00:01 Keep: no sessions resumed\\n")
+    signal.signal(signal.SIGUSR2, usr2 if os.environ.get("FAKE_KEEPS") else signal.SIG_IGN)
+    while True:
+        time.sleep(0.1)
     """)
 
 TABLE_EMPTY = "ipv4     2 tcp      6 431999 ESTABLISHED src=10.0.0.2 dst=10.0.0.1 sport=50000 dport=22 [ASSURED]\n"
@@ -65,6 +101,12 @@ class SwapWhenEmpty(unittest.TestCase):
         with open(f"{self.bin}/sudo", "w") as f:
             f.write(FAKE_SUDO)
         os.chmod(f"{self.bin}/sudo", 0o755)
+        with open(f"{self.bin}/systemctl", "w") as f:
+            f.write(FAKE_SYSTEMCTL)
+        os.chmod(f"{self.bin}/systemctl", 0o755)
+        with open(f"{t}/server.py", "w") as f:
+            f.write(FAKE_SERVER)
+        # the script and swap_keep.sh beside it, so the keep path is the real one
         with open(f"{self.dir}/gameserver", "w") as f:
             f.write("old binary\n")
         db = sqlite3.connect(f"{self.dir}/eqoa.db")
@@ -92,9 +134,12 @@ class SwapWhenEmpty(unittest.TestCase):
         with open(self.table, "w") as f:
             f.write(text)
 
-    def stage(self, content, sha=None):
+    def stage(self, content, sha=None, cold=True):
         p = f"{self.swap}/pending"
         os.makedirs(p, exist_ok=True)
+        if cold:
+            with open(f"{p}/cold", "w") as f:
+                f.write("a test of the old way\n")
         with open(f"{p}/gameserver", "w") as f:
             f.write(content)
         if sha is None:
@@ -223,6 +268,88 @@ class SwapWhenEmpty(unittest.TestCase):
         self.assertIn("the old binary is back and listening", out)
         self.assertEqual(self.binary(), "old binary\n")
         self.assertTrue(self.listening())
+
+
+    # ---- through the keep path (the user, 2026-11-07: "yes make empty-server restarts keep creatures too")
+
+    def keeping(self, keeps=True):
+        """The service again, answering SIGUSR2 or not; the swap's clock started."""
+        self.run_sudo("systemctl", "stop")
+        if keeps:
+            self.env["FAKE_KEEPS"] = "1"
+        self.run_sudo("systemctl", "start")
+        self.pid = open(f"{self.tmp.name}/server.pid").read().strip()
+
+    def alive(self):
+        return os.path.exists(f"/proc/{self.pid}")
+
+    def swap_empty(self):
+        self.run_script()  # the clock
+        time.sleep(1.1)
+        return self.run_script()
+
+    def test_empty_goes_through_keep(self):
+        self.keeping()
+        self.stage("new binary\n", cold=False)
+        start = time.time()
+        code, out = self.swap_empty()
+        self.assertEqual(code, 0, out)
+        self.assertEqual(self.binary(), "new binary\n")
+        self.assertTrue(os.path.exists(f"{self.tmp.name}/usr2"), "the server was never signalled")
+        self.assertTrue(self.alive() and self.listening(), "the server was stopped")
+        self.assertEqual(open(f"{self.tmp.name}/server.pid").read().strip(), self.pid, "the service was restarted")
+        self.assertLess(time.time() - start, 30, "it waited as a warning does")
+        names = os.listdir(self.swap)
+        self.assertFalse(os.path.exists(f"{self.swap}/pending"))
+        self.assertTrue(any(n.startswith("done-keep-") for n in names), names)
+        self.assertFalse(os.path.exists(f"{self.swap}/empty-since"))
+        self.assertIn("the creatures kept", out)
+
+    def test_keep_runs_before_in_the_hold_and_after_once_up(self):
+        self.keeping()
+        self.stage("new binary\n", cold=False)
+        with open(f"{self.swap}/pending/before.sh", "w") as f:
+            f.write(f"#!/bin/bash\ntest -f {self.dir}/keep.saved && touch {self.tmp.name}/before-held\ngrep -q old {self.dir}/gameserver && touch {self.tmp.name}/before-old\n")
+        with open(f"{self.swap}/pending/after.sh", "w") as f:
+            f.write(f"#!/bin/bash\ngrep -q new {self.dir}/gameserver && touch {self.tmp.name}/after-new\n")
+        os.chmod(f"{self.swap}/pending/before.sh", 0o755)
+        os.chmod(f"{self.swap}/pending/after.sh", 0o755)
+        code, out = self.swap_empty()
+        self.assertEqual(code, 0, out)
+        for mark in ("before-held", "before-old", "after-new"):
+            self.assertTrue(os.path.exists(f"{self.tmp.name}/{mark}"), mark)
+
+    def test_keep_a_failed_before_keeps_the_old_binary(self):
+        self.keeping()
+        self.stage("new binary\n", cold=False)
+        with open(f"{self.swap}/pending/before.sh", "w") as f:
+            f.write("#!/bin/bash\nexit 1\n")
+        os.chmod(f"{self.swap}/pending/before.sh", 0o755)
+        code, out = self.swap_empty()
+        self.assertEqual(code, 1, out)
+        self.assertEqual(self.binary(), "old binary\n")
+        self.assertTrue(self.alive() and self.listening())
+        self.assertTrue(any(n.startswith("failed-keep-") for n in os.listdir(self.swap)))
+
+    def test_a_server_that_does_not_keep_swaps_the_old_way(self):
+        self.keeping(keeps=False)
+        self.stage("new binary\n", cold=False)
+        code, out = self.swap_empty()
+        self.assertEqual(code, 0, out)
+        self.assertEqual(self.binary(), "new binary\n")
+        self.assertFalse(self.alive(), "the old process should have been stopped")
+        self.assertTrue(self.listening())
+        self.assertTrue(any(n.startswith("done-") and not n.startswith("done-keep-") for n in os.listdir(self.swap)))
+        self.assertIn("the old way", out)
+
+    def test_a_cold_staging_stays_cold(self):
+        self.keeping()
+        self.stage("new binary\n", cold=True)
+        code, out = self.swap_empty()
+        self.assertEqual(code, 0, out)
+        self.assertEqual(self.binary(), "new binary\n")
+        self.assertFalse(os.path.exists(f"{self.tmp.name}/usr2"), "a cold staging was signalled")
+        self.assertFalse(self.alive(), "the old process should have been stopped")
 
 
 if __name__ == "__main__":

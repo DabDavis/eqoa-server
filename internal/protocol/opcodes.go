@@ -530,6 +530,27 @@ const (
 	// Each one is the whole list: a name it leaves out reads as its wire race.
 	OpcodeRaceLabelsData GameOpcode = 0x7E1D
 
+	// OpcodeCreationOffer is not retail: what character creation takes past
+	// the game's own races and classes (entity/creation.go, handlers/creation.go,
+	// world.open_races and world.all_classes), a u32 after the opcode, both ways,
+	// as OpcodeLiveLook: the server offers it (1) after a session's first
+	// character list, only while it takes something past the game's; a client
+	// whose create pages can show it answers 1 and is sent OpcodeCreationRaces
+	// at once (0 asks nothing). A PS2 ignores the offer and creates from the
+	// disc's pages; a client that never answers is never sent the races.
+	OpcodeCreationOffer GameOpcode = 0x7E1E
+
+	// OpcodeCreationRaces is the races creation takes past the game's own, to a
+	// client that answered OpcodeCreationOffer: u8 version (1), u8 flags (bit 0
+	// every class for every race), u8 races, then each: u8 id (characters.race),
+	// u8 like (the game's race whose stage place, cameras, music and starting
+	// city its create pages take), u8 city (a human's when like is 0: 1 east, 2
+	// west; else 0), 7 s8 bonuses (STR STA AGI DEX WIS INT CHA), u16 its classes
+	// (bit N class N), u32 male and u32 female body (CHAR.ESF DictIDs), then its
+	// name and short name (each a u8 byte count and UTF-8) and its description
+	// (a u16 byte count and UTF-8).
+	OpcodeCreationRaces GameOpcode = 0x7E1F
+
 	// OpcodeFly is not retail: a GM's flight (#fly, handlers/fly.go), a u32
 	// after the opcode, both ways, and never to a client that has not said it
 	// flies. From a client: 1, it flies (vanilla says so with its answer to the
@@ -827,6 +848,10 @@ func (op GameOpcode) String() string {
 		return "RaidRoster"
 	case OpcodeFly:
 		return "Fly"
+	case OpcodeCreationOffer:
+		return "CreationOffer"
+	case OpcodeCreationRaces:
+		return "CreationRaces"
 	case OpcodeNoCollideList:
 		return "NoCollideList"
 	case OpcodeFactionPage:

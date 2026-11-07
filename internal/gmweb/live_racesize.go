@@ -70,6 +70,24 @@ func checkRaceDefRow(row map[string]any) error {
 	if why := entity.CheckRaceDef(id, name, wire); why != "" {
 		return badRequest("%s", why)
 	}
+	// creation's columns (entity/creation.go), each where the change has it; the
+	// city against the wire race only when both are there
+	mask, city := 0, 0
+	for col, dst := range map[string]*int{"class_mask": &mask, "city": &city} {
+		if v, ok := row[col]; ok {
+			f, fok := asFloat(v)
+			if !fok || f != math.Trunc(f) {
+				return badRequest("%s is a whole number", col)
+			}
+			*dst = int(f)
+		}
+	}
+	if _, ok := row["wire_race"]; !ok {
+		wire = 0
+	}
+	if why := entity.CheckRaceDefCreation(wire, mask, city); why != "" {
+		return badRequest("%s", why)
+	}
 	return nil
 }
 

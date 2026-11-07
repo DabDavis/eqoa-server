@@ -13,6 +13,12 @@ import "fmt"
 // charactermodel: an NPC wearing a body in that table is a townsperson to the
 // aggro rule (entity.hostileNatureLocked), so every creature of the race's kind
 // would go friendly. The retail races' figures stay in their tables in code.
+//
+// description, class_mask and city are character creation's (entity/creation.go,
+// world.open_races): the race page's text; the classes it may be when every class
+// is not open to every race (0: its wire race's, as the game's masks have them);
+// and for a race passing as a human, the human city it starts in (1 the east's
+// Freeport, 2 the west's Qeynos), 0 for every other.
 const raceDefsSchema = `
 	CREATE TABLE IF NOT EXISTS racedefs (
 		id          INTEGER PRIMARY KEY,
@@ -29,8 +35,19 @@ const raceDefsSchema = `
 		body_male   INTEGER NOT NULL DEFAULT 0,
 		body_female INTEGER NOT NULL DEFAULT 0,
 		note        TEXT NOT NULL DEFAULT '',
-		source      TEXT NOT NULL DEFAULT 'gm'
+		source      TEXT NOT NULL DEFAULT 'gm',
+		description TEXT NOT NULL DEFAULT '',
+		class_mask  INTEGER NOT NULL DEFAULT 0,
+		city        INTEGER NOT NULL DEFAULT 0
 	);`
+
+// raceDefsAdded are the columns the table gained after it was first made, each
+// added to a table made without it, as it is declared above.
+var raceDefsAdded = []struct{ col, decl string }{
+	{"description", "TEXT NOT NULL DEFAULT ''"},
+	{"class_mask", "INTEGER NOT NULL DEFAULT 0"},
+	{"city", "INTEGER NOT NULL DEFAULT 0"},
+}
 
 // raceDefFromCode is the one race that was code before the table: the row a
 // database already holding a character of it is given when the table is made, so
@@ -54,6 +71,17 @@ func (db *SQLiteDB) ensureRaceDefs() error {
 	if _, err := db.Exec(raceDefsSchema); err != nil {
 		return fmt.Errorf("racedefs: %w", err)
 	}
+	for _, c := range raceDefsAdded {
+		var n int
+		if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('racedefs') WHERE name = ?`, c.col).Scan(&n); err != nil {
+			return fmt.Errorf("racedefs: %w", err)
+		}
+		if n == 0 {
+			if _, err := db.Exec(`ALTER TABLE racedefs ADD COLUMN ` + c.col + ` ` + c.decl); err != nil {
+				return fmt.Errorf("racedefs: column %s: %w", c.col, err)
+			}
+		}
+	}
 	if had == 0 {
 		if _, err := db.Exec(raceDefFromCode); err != nil {
 			return fmt.Errorf("racedefs: the first row: %w", err)
@@ -70,12 +98,18 @@ type RaceDefRow struct {
 	Bonus                [7]int // STR STA AGI DEX WIS INT CHA
 	BodyMale, BodyFemale int64
 	Note, Source         string
+	// Desc, ClassMask and City are creation's: the race page's text, the
+	// classes it may be (0: its wire race's) and a human-passing race's city.
+	Desc      string
+	ClassMask int
+	City      int
 }
 
 // RaceDefRows is every row of racedefs, by id.
 func (db *SQLiteDB) RaceDefRows() ([]RaceDefRow, error) {
 	rows, err := db.Query(`SELECT id, name, short_name, wire_race, bonus_str, bonus_sta, bonus_agi, bonus_dex,
-		bonus_wis, bonus_int, bonus_cha, body_male, body_female, note, source FROM racedefs ORDER BY id`)
+		bonus_wis, bonus_int, bonus_cha, body_male, body_female, note, source, description, class_mask, city
+		FROM racedefs ORDER BY id`)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +119,7 @@ func (db *SQLiteDB) RaceDefRows() ([]RaceDefRow, error) {
 		var r RaceDefRow
 		b := &r.Bonus
 		if err := rows.Scan(&r.ID, &r.Name, &r.ShortName, &r.WireRace, &b[0], &b[1], &b[2], &b[3], &b[4], &b[5], &b[6],
-			&r.BodyMale, &r.BodyFemale, &r.Note, &r.Source); err != nil {
+			&r.BodyMale, &r.BodyFemale, &r.Note, &r.Source, &r.Desc, &r.ClassMask, &r.City); err != nil {
 			return nil, err
 		}
 		out = append(out, r)

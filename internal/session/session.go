@@ -126,6 +126,9 @@ type Session struct {
 	// records (entity/livelook.go). liveLookOffered: the offer went out.
 	liveLook        bool
 	liveLookOffered bool
+	// creationOffered: the creation offer went out (protocol.OpcodeCreationOffer,
+	// handlers/creation.go), once a session as the live look's.
+	creationOffered bool
 
 	// clock is the game clock the session's client keeps, set by each 0x0013
 	// it was sent: its time of day (gameclock.go).
@@ -267,6 +270,16 @@ func (s *Session) OfferLiveLookOnce() bool {
 	defer s.mu.Unlock()
 	first := !s.liveLookOffered
 	s.liveLookOffered = true
+	return first
+}
+
+// OfferCreationOnce reports whether creation's offer is still to be made to
+// this session, and marks it made.
+func (s *Session) OfferCreationOnce() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	first := !s.creationOffered
+	s.creationOffered = true
 	return first
 }
 

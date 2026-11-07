@@ -35,6 +35,12 @@ type AccountServer struct {
 	sessions   map[string]*webSession
 	sessionsMu sync.RWMutex
 
+	// extraRaces, wired by main.go where creation takes races past the game's
+	// ten (entity/creation.go: world.open_races): whether the page may make a
+	// character of such a race and class, and the body it wears ("" taken; the
+	// reason not). Nil: the game's ten races alone, as before.
+	extraRaces func(race, class, sex int) (int64, string)
+
 	// TELEPORT, wired by main.go. The account pages can move a character, which
 	// is the game's business rather than the web server's, so the two things it
 	// cannot work out for itself are handed in.
@@ -1164,6 +1170,12 @@ func (s *AccountServer) SetNewCharacterRules(r database.NewCharacterRules) {
 	s.charStore.SetNewCharacterRules(r)
 }
 
+// SetExtraRaces lets the page make characters of races past the game's ten by
+// f's rule (main.go: handlers.NewCharRace).
+func (s *AccountServer) SetExtraRaces(f func(race, class, sex int) (int64, string)) {
+	s.extraRaces = f
+}
+
 // handleAPICreateCharacter creates a new character.
 func (s *AccountServer) handleAPICreateCharacter(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -1203,10 +1215,6 @@ func (s *AccountServer) handleAPICreateCharacter(w http.ResponseWriter, r *http.
 	}
 
 	// Validate race/class/gender
-	if req.Race < 0 || req.Race > 9 {
-		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid race"})
-		return
-	}
 	if req.Class < 0 || req.Class > 14 {
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid class"})
 		return
@@ -1214,6 +1222,19 @@ func (s *AccountServer) handleAPICreateCharacter(w http.ResponseWriter, r *http.
 	if req.Gender < 0 || req.Gender > 1 {
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid gender"})
 		return
+	}
+	// a race past the game's ten only where creation takes it, in its body
+	extraModel := int64(0)
+	if req.Race < 0 || req.Race > 9 {
+		why := "no such race"
+		if s.extraRaces != nil {
+			extraModel, why = s.extraRaces(req.Race, req.Class, req.Gender)
+		}
+		if why != "" {
+			log.Printf("AccountServer: race %d class %d refused: %s", req.Race, req.Class, why)
+			json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid race"})
+			return
+		}
 	}
 
 	// Check character limit (8 per account)
@@ -1242,6 +1263,10 @@ func (s *AccountServer) handleAPICreateCharacter(w http.ResponseWriter, r *http.
 		7: -1545912350, // Halfling male
 		8: 839650119,   // Erudite male
 		9: -2071956336, // Ogre male
+	}
+
+	if extraModel != 0 {
+		modelIDs[req.Race] = extraModel
 	}
 
 	record := &database.CharacterRecord{

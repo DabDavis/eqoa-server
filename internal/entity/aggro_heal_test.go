@@ -36,3 +36,24 @@ func TestAHealIsHateOnItsHealer(t *testing.T) {
 		t.Errorf("a creature fighting another: hate %d, want 0", got)
 	}
 }
+
+// The user, 2026-11-07: a worn item's heal is its wearer's hate, as a spell's is its
+// caster's: Worldbreaker's 25 on a wearer short of it is 12 on the creature fighting it.
+func TestAWornHealIsItsWearersHate(t *testing.T) {
+	r := newProcRig(t)
+	r.w.mu.Lock()
+	defer r.w.mu.Unlock()
+	r.w.SpatialIndex.Insert(r.npc.ServerID, r.npc.X, r.npc.Z)
+	s, ok := WornShieldOf(0, "worldbreaker chestguard")
+	if !ok {
+		t.Fatal("no Worldbreaker")
+	}
+	r.friend.Gear.Shields = []WornShield{s}
+	r.npc.Threats = map[EntityID]int64{r.friend.ServerID: 1000}
+	r.npc.CurrentEnemy = r.friend.ServerID
+	r.friend.HP = r.friend.MaxHPNow() - 100
+	r.w.wornShieldsLocked(r.fsess, r.friend, r.npc)
+	if got := r.npc.Threats[r.friend.ServerID]; got != 1012 {
+		t.Errorf("hate %d, want 1012", got)
+	}
+}

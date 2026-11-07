@@ -434,7 +434,7 @@ func (h *ChatHandler) setLevel(sess *session.Session, player *entity.Player, lev
 // setLevelFor is setLevel on player, whose session is sess, said to gm (the
 // GM's channel's Buff PC sets another player's).
 func (h *ChatHandler) setLevelFor(gm, sess *session.Session, player *entity.Player, level int) {
-	level = max(1, min(60, level))
+	level = max(1, min(entity.LevelCap(player.GM), level))
 	before := player.UnusedTP
 	h.gameWorld.SetPlayerLevel(player.CharServerID, level)
 	SendLevel(sess, level)

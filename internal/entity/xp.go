@@ -4,6 +4,21 @@ package entity
 // past it is mastery points (mastery.go splitXP).
 const MaxLevel = 60
 
+// MaxGMLevel is the highest level a GM may set a GM's character to (the user,
+// 2026-11-07: "let GM's max level be 100 for characters, no abilities or anything
+// extra just the stats"): its level's hit points and power, by the same formulas.
+// Experience, training points, heirlooms and a death's debt all stop at MaxLevel.
+const MaxGMLevel = 100
+
+// LevelCap is the highest level a character may be set to: its account's a GM's, or
+// not.
+func LevelCap(gm bool) int {
+	if gm {
+		return MaxGMLevel
+	}
+	return MaxLevel
+}
+
 // CharXPDict maps level -> XP required to advance past that level: CLIENT's
 // ExpForLevel(level+1) (killexp.go), what the HUD's experience bar divides by.
 // The C# table it was copied from (CharacterUtilities.CharXPDict) took the

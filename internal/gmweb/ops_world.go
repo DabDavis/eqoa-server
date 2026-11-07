@@ -45,6 +45,13 @@ func colourOf(name string) ([3]byte, error) {
 var colourSchema = str("the line's colour: yellow (default), white, green, red, cyan, orange, pink, or #rrggbb")
 
 // characterRef names a character by its serverid or its name.
+// characterOfGM reports whether a character's account is a GM's (entity.LevelCap).
+func (s *Server) characterOfGM(serverID int64) bool {
+	var level int
+	err := s.d.DB.QueryRow(`SELECT COALESCE(a.acctlevel, 0) FROM characters c JOIN accountinfo a ON a.accountid = c.accountid WHERE c.serverid = ?`, serverID).Scan(&level)
+	return err == nil && level >= 1
+}
+
 func (s *Server) characterRef(v any) (int64, string, error) {
 	switch x := v.(type) {
 	case json.Number:

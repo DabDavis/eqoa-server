@@ -9,6 +9,7 @@ import (
 
 	"github.com/eqoa/server/internal/auth"
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/handlers"
 )
 
@@ -46,8 +47,9 @@ func (s *Server) registerPlayerOps() {
 			}
 			vals := map[string]any{}
 			if req.Level != nil {
-				if *req.Level < 1 || *req.Level > 60 {
-					return nil, badRequest("level is 1 to 60")
+				most := entity.LevelCap(c.s.characterOfGM(id))
+				if *req.Level < 1 || *req.Level > most {
+					return nil, badRequest("level is 1 to %d", most)
 				}
 				vals["level"] = int64(*req.Level)
 			}

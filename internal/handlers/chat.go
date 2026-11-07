@@ -229,6 +229,13 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		return nil
 	}
 
+	// /who (or #who; a PS2's is "/t who", below): who is in the world, everyone's (the user,
+	// 2026-11-07: "lets allow anyone to use /who"). A GM's #who still says where each stands
+	if word, _, _ := strings.Cut(message, " "); (strings.EqualFold(word, "/who") || strings.EqualFold(word, "#who")) && !h.isGM(sess) {
+		h.whoList(sess)
+		return nil
+	}
+
 	// GM commands start with #
 	if strings.HasPrefix(message, "#") {
 		h.handleGMCommand(sess, player, message)
@@ -236,6 +243,11 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 	}
 
 	if name, body, isTell := parseTell(message); isTell {
+		// a PS2's /who: it keeps an unknown /command to itself and cannot type a #
+		if body == "" && strings.EqualFold(name, "who") {
+			h.whoList(sess)
+			return nil
+		}
 		// a PS2's raid flag: it sends /t on as typed and neither keeps /raid nor can
 		// type a # (entity/raidflag.go), and a tell with no text is no tell
 		if body == "" && strings.EqualFold(name, "raid") {
@@ -1267,4 +1279,22 @@ func sendTeleportGM(sess *session.Session, x, y, z, facing float32, world byte) 
 	writer.WriteUint32(0) // counter
 	msg.SetSize(writer.Position())
 	sess.Queue().AddWithSequence(msg)
+}
+
+// whoList tells sess who is in this server's world, by name, level and class, in name order,
+// and how many: anyone's /who. Where each stands is a GM's #who alone.
+func (h *ChatHandler) whoList(sess *session.Session) {
+	var lines []string
+	h.gameWorld.ForEachPlayer(func(p *entity.Player) {
+		lines = append(lines, fmt.Sprintf("%s: level %d %s", p.Name, p.Level, entity.ClassName(p.Class)))
+	})
+	sort.Slice(lines, func(i, j int) bool { return strings.ToLower(lines[i]) < strings.ToLower(lines[j]) })
+	for _, l := range lines {
+		sess.Queue().AddWithSequence(buildClientMessage(l))
+	}
+	n := "players are"
+	if len(lines) == 1 {
+		n = "player is"
+	}
+	sess.Queue().AddWithSequence(buildClientMessage(fmt.Sprintf("%d %s in the world.", len(lines), n)))
 }

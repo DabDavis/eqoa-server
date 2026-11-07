@@ -419,6 +419,27 @@ func TestTheCutComesBeforeTheAwardsShares(t *testing.T) {
 	}
 }
 
+// Every member near a raid group's kill is credited for its quests, as in any group.
+// The control: one away is not.
+func TestAQuestKillCreditsARaidGroup(t *testing.T) {
+	r := newRaidRig(t, 6, 30)
+	r.form(6)
+	r.p[5].X += KillShareRange + 50
+	var got []string
+	r.w.onKill = append(r.w.onKill, func(c KillCredit) {
+		for _, k := range c.Players {
+			got = append(got, k.Name)
+		}
+	})
+	npc := r.killable(30)
+	r.w.mu.Lock()
+	r.w.spellHitLocked(r.p[0], r.sess[0], npc, 500)
+	r.w.mu.Unlock()
+	if strings.Join(got, " ") != "Ann Bob Cal Dee Eve" {
+		t.Errorf("credited %v", got)
+	}
+}
+
 // With any number in a group, each client's roster is four at most, read as CLIENT
 // reads it: the leader first, the client's own character among them under its own
 // id. Up to four everyone is told of everyone in the order they joined, as ever; past

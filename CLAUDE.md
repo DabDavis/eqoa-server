@@ -834,6 +834,31 @@ CLIENT refuses a member's invite itself (`InviteEntity`, `InviteToGroup`: word 6
 one; vanilla drops that rule where the server offers it: non-retail **0x7E17** (`OpcodeMemberInvites`, a u32 1,
 sent with the other offers at world entry, no answer), so on Sandstorm's server vanilla keeps the leader's rule.
 
+### Raid groups: a group has no cap (`entity/raid.go`, `entity/group.go`)
+
+The user, 2026-11-07: "lets remove group member cap, but if over 4 it is a raid group, with 80% xp cut". Any number
+join a group (nothing answers 0x069A 4, "full", any more); up to four it is as it was; with five or more it is a raid group
+and **a kill gives each member a fifth** (`RaidXPPct`, in `awardKillXPLocked`, where every kill's experience comes through:
+melee, spells, pets): on the whole award, before a boon's, a debt's and the masteries' shares (`awardXP`), by the group's size
+whoever of it is near. A quest's experience (`AwardXP`) is not cut. Back at four the cut ends.
+**No client is told of more than four** (`GroupWindowSize`, `shownMembersLocked`, both the 0x0772 roster and the 0x40 records):
+CLIENT's `m_group[4]` is followed at once by its count `m_p2BE4C`, and `Msg0772` reads the count with no bound, so a fifth id lands
+on the count and the loop runs on through memory (shown in the tracer: `claude-notes/raid-groups-20261107.md`); vanilla stops at
+four and misreads the names after. A member's client holds the leader (member 0 is how CLIENT knows who leads), itself and the
+earliest of the others, in the order they joined, so a newcomer moves no one's window and a window moves only when one of its own
+leaves; up to four that is everyone in the same order as before. To a client a raid group is a group of four: its other members are
+ordinary players it may target (so the leader's Boot Member, which goes by target, reaches them), not on its bars, its group Tab, its
+Follow or its power bars. Everything else reads the whole group: group chat, what is looted (anyone may loot a corpse: there are no
+loot rights or round robin), quest kills, pets defending a member, scope 2 spells, gates, and a group's area (`SpellArea.mostOfGroup`:
+no `AreaMaxTargets` for a group's, a GM's row's cap still holds; the 0x00B1 still names seven, `areaShown`, the rest land unnamed).
+The group search lists only groups of three or fewer, as one of four was full and a joiner now makes it a raid group.
+**Told**: everyone when it becomes one and when it stops (`raidChangedLocked`, also from `groupSyncSystem`, so a restart that brought
+fewer back says so), the newcomer of a raid group what it joined, the rest who came and who went by name and how many are left (their
+windows may never show them). The lines are in a PS2's own characters. **A keep restart** forms the group again whole (`KeepGroups`,
+`RestoreGroups`), the same rosters, no one told. **A replaced login or a takeover** stays in the group on the server, as in any group,
+but its new client shows no group and cannot leave it (`Msg0772` returns unless `InGroup`, which only an invite or an accept sets), so it
+is told once it is in the world that it is still in a raid group and that logging out leaves it. **A logout** leaves the group.
+
 ### Data Flow (World Entry)
 
 1. `HandleSelectedChar` → `loginSpawn(record)` → `gw.CreatePlayer(sess, record)` — creates Player struct

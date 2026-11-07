@@ -13,8 +13,9 @@ import (
 // A group has no cap on the server. CLIENT holds four: VIClient's m_group[4] is
 // followed at once by its count, m_p2BE4C, and Msg0772 (decomp viclient.cpp) reads
 // the count with no bound and writes each member through it, so a fifth id lands on
-// the count and the loop runs on through VIClient to unmapped memory. Vanilla stops at
-// four but goes on reading names from where the fifth id starts, every name garbage.
+// the count and the loop runs on through memory, 3 bytes in every 52 (a tracer's call of
+// it never came back from one id, and took 9 M instructions from another). Vanilla stops
+// at four but reads the names from where the fifth id starts.
 // So each member's client is told of four at most (shownMembersLocked), in its own
 // roster and its own 0x40 records, and to any client a raid group looks like a group
 // of four: the leader (member 0 is how CLIENT knows who leads), the member itself,
@@ -73,11 +74,14 @@ func (w *World) shownMembersLocked(g *Group, m *Player) []*Player {
 	return out
 }
 
-// groupSayLocked tells every member of g a line. Must be called with the lock held.
-func (w *World) groupSayLocked(g *Group, line string) {
+// groupSayLocked tells every member of g a line, but except. Must be called with the
+// lock held.
+func (w *World) groupSayLocked(g *Group, line string, except *Player) {
 	for _, id := range g.Members {
-		if s := w.sessionOfLocked(w.Players[id]); s != nil {
-			w.sendChatToSession(s, line)
+		if o := w.Players[id]; o != except {
+			if s := w.sessionOfLocked(o); s != nil {
+				w.sendChatToSession(s, line)
+			}
 		}
 	}
 }
@@ -92,9 +96,9 @@ func (w *World) raidChangedLocked(g *Group) {
 	g.raid = now
 	log.Printf("Group: group %d, %d members, raid group %v", g.ID, len(g.Members), now)
 	if now {
-		w.groupSayLocked(g, raidNowLine)
+		w.groupSayLocked(g, raidNowLine, nil)
 	} else {
-		w.groupSayLocked(g, raidEndLine)
+		w.groupSayLocked(g, raidEndLine, nil)
 	}
 }
 
@@ -103,13 +107,7 @@ func (w *World) raidChangedLocked(g *Group) {
 // group already raiding is told what it joined. Must be called with the lock held.
 func (w *World) raidJoinedLocked(g *Group, p *Player, sess *session.Session) {
 	if g.isRaid() {
-		for _, id := range g.Members {
-			if o := w.Players[id]; o != nil && o != p {
-				if s := w.sessionOfLocked(o); s != nil {
-					w.sendChatToSession(s, fmt.Sprintf("%s joined the raid group (%d members).", p.Name, len(g.Members)))
-				}
-			}
-		}
+		w.groupSayLocked(g, fmt.Sprintf("%s joined the raid group (%d members).", p.Name, len(g.Members)), p)
 	}
 	if g.raid {
 		w.sendChatToSession(sess, raidJoinedLine)
@@ -121,7 +119,7 @@ func (w *World) raidJoinedLocked(g *Group, p *Player, sess *session.Session) {
 // whose windows may never have shown it. Must be called with the lock held.
 func (w *World) raidLeftLocked(g *Group, name string) {
 	if g.raid {
-		w.groupSayLocked(g, fmt.Sprintf("%s left the raid group (%d members).", name, len(g.Members)))
+		w.groupSayLocked(g, fmt.Sprintf("%s left the raid group (%d members).", name, len(g.Members)), nil)
 	}
 }
 

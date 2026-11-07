@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -40,6 +41,20 @@ type opCtx struct {
 	raw  json.RawMessage
 	r    *http.Request
 	args map[string]any
+}
+
+// table is a table the arguments name, for an actor who may name it: a tester
+// their own (tester.go), which the gate checked already, and this checks of
+// what the handler itself read.
+func (c *opCtx) table(name string) (*Table, error) {
+	t, err := c.s.table(name)
+	if err != nil {
+		return nil, notFound("%v", err)
+	}
+	if c.a.tester() && !isTesterTable(t.Name) {
+		return nil, notTesters("table " + strconv.Quote(t.Name))
+	}
+	return t, nil
 }
 
 // decode reads the arguments into v (numbers kept exact).
@@ -122,6 +137,7 @@ func (s *Server) registerOps() {
 	s.registerTriggerOps()  // ops_triggers.go
 	s.registerPetitionOps() // ops_petitions.go
 	s.registerTransferOps() // ops_transfers.go
+	s.registerTesterOps()   // tester.go
 }
 
 // run calls an operation as an actor, with the scope check, and logs a
@@ -132,7 +148,15 @@ func (s *Server) run(a *actor, name string, raw json.RawMessage, r *http.Request
 		return nil, notFound("no operation %q", name)
 	}
 	if a.mustEnrol {
-		return nil, forbidden("this server asks every GM for an authenticator: enrol one first (the panel's Security page)")
+		return nil, forbidden("this server asks every GM and tester for an authenticator: enrol one first (the panel's Security page)")
+	}
+	c := &opCtx{s: s, a: a, raw: raw, r: r}
+	// below a GM: only what the testers' allowlist names, whichever route asked
+	// and whatever else the actor says of itself
+	if a.tester() || a.Level < s.cfg.MinLevel {
+		if err := c.testerGate(op); err != nil {
+			return nil, err
+		}
 	}
 	if !a.may(op.Scope) {
 		switch op.Scope {
@@ -148,7 +172,6 @@ func (s *Server) run(a *actor, name string, raw json.RawMessage, r *http.Request
 			return nil, forbidden("%s changes things, and this credential is read-only", name)
 		}
 	}
-	c := &opCtx{s: s, a: a, raw: raw, r: r}
 	start := time.Now()
 	out, err := op.Handler(c)
 	if err != nil && errStatus(err) >= 500 {
@@ -196,6 +219,9 @@ func (s *Server) handleOpList(w http.ResponseWriter, r *http.Request) {
 	}
 	var out []map[string]any
 	for _, op := range s.opList {
+		if a.tester() && !testerMayCall(op) {
+			continue
+		}
 		out = append(out, map[string]any{
 			"name": op.Name, "title": op.Title, "description": op.Description,
 			"scope": op.Scope, "destructive": op.Destructive, "allowed": a.may(op.Scope),

@@ -17,10 +17,11 @@ package udp
 // session down (Snapshot: the connection's numbers and unacknowledged messages,
 // the character's extras, the client's entity slots, the groups), and stops
 // sending (frozen). The new process takes the socket (InheritedConn), loads
-// the world as always, and before it reads a datagram puts each session back
-// (ResumeKept): the character built from its row as a login builds it, the
-// slots and groups as they were. Once a client has reported where it stands it
-// is sent a MemoryDump there (ResumeDump), as a respawn is, which brings its
+// the world as always, and before it reads a datagram gives the creatures what
+// was kept of them (entity/keepnpc.go: their places, hit points and deaths) and
+// puts each session back (ResumeKept): the character built from its row as a
+// login builds it, the slots and groups as they were. Once a client has
+// reported where it stands it is sent a MemoryDump there (ResumeDump), as a respawn is, which brings its
 // copy of the character in line. CLIENT waits about 30 s for a silent server
 // (connection_set_failure(m_conn, 1000, 30000, 60000), viclient.cpp 1707); a
 // code-only restart takes ~5 s. Anything that cannot be put back is told the
@@ -75,6 +76,12 @@ type Snapshot struct {
 	Written  time.Time          `json:"written"`
 	Sessions []KeptSession      `json:"sessions"`
 	Groups   []entity.KeptGroup `json:"groups,omitempty"`
+	// NPCs are the creatures that differ from what their rows make of them, and
+	// Corpses what the opened corpses among them hold. A file with neither (one
+	// from a binary before them: the format did not change, so it and a binary
+	// rolled back to read each other's) leaves every NPC as its row makes it.
+	NPCs    []entity.KeptNPC      `json:"npcs,omitempty"`
+	Corpses []handlers.KeptCorpse `json:"corpses,omitempty"`
 }
 
 // KeptSession is one session in a Snapshot: its connection, and with a
@@ -178,6 +185,8 @@ func (l *Listener) Snapshot(now time.Time) *Snapshot {
 	})
 	if l.gameWorld != nil {
 		snap.Groups = l.gameWorld.KeepGroups()
+		snap.NPCs = l.gameWorld.KeepNPCs()
+		snap.Corpses = handlers.KeepCorpses()
 	}
 	return snap
 }
@@ -268,6 +277,7 @@ func (l *Listener) KeepRestart(o KeepOptions) error {
 		f.Close()
 		return err
 	}
+	l.standCreatures()
 	l.SaveAll()
 	snap := l.Snapshot(time.Now())
 	l.frozen.Store(true)
@@ -280,8 +290,12 @@ func (l *Listener) KeepRestart(o KeepOptions) error {
 			in++
 		}
 	}
-	log.Printf("Keep: %d sessions (%d in the world, %d groups) written to %s, %v after the signal",
-		len(snap.Sessions), in, len(snap.Groups), o.File, time.Since(start).Round(time.Millisecond))
+	size := int64(0)
+	if fi, err := os.Stat(o.File); err == nil {
+		size = fi.Size()
+	}
+	log.Printf("Keep: %d sessions (%d in the world, %d groups), %d NPCs off their rows' state and %d corpses opened written to %s (%d KB), %v after the signal",
+		len(snap.Sessions), in, len(snap.Groups), len(snap.NPCs), len(snap.Corpses), o.File, size/1024, time.Since(start).Round(time.Millisecond))
 	if o.Hold != "" {
 		if _, err := os.Stat(o.Hold); err == nil {
 			if o.Saved != "" {
@@ -309,6 +323,28 @@ func (l *Listener) KeepRestart(o KeepOptions) error {
 	err = o.Exec(o.Exe, o.Args, env)
 	os.Remove(o.File)
 	return undo(fmt.Errorf("exec %s: %w", o.Exe, err))
+}
+
+// standCreatures tells every client in the world, as the restart freezes it, that
+// the creatures stand where they stand (World.StandNPCs); two more rounds than one, as
+// a tick sends each client only so many channels and the others next tick (TickSession).
+func (l *Listener) standCreatures() {
+	if l.gameWorld == nil {
+		return
+	}
+	stood := l.gameWorld.StandNPCs()
+	rdp := NewRDPHandler(l)
+	told := 0
+	l.sessionManager.ForEach(func(sess *session.Session) bool {
+		if sess.CharacterInWorld() && !sess.PendingTermination() {
+			for i := 0; i < 3; i++ {
+				rdp.TickSession(sess)
+			}
+			told++
+		}
+		return true
+	})
+	log.Printf("Keep: %d NPCs were moving: %d clients told they stand", stood, told)
 }
 
 // WarnKeepRestart says text to every player in the world, a restart's warning
@@ -369,12 +405,13 @@ func (l *Listener) Adopt(c *net.UDPConn) {
 	l.conn = c
 }
 
-// ResumeKept puts the snapshot's sessions back, before the listener reads a
-// datagram or ticks: each session under its key with its connection as it
-// was; each character built from its row and given what was kept; then the
-// groups, each client's entity slots, and its dump due once it reports (at
-// once for one that was dead: it respawns). A session whose character cannot
-// be built is told the server went down (0x07C0) and goes once that is sent.
+// ResumeKept gives the creatures what was kept of them and puts the snapshot's
+// sessions back, before the listener reads a datagram or ticks: each session
+// under its key with its connection as it was; each character built from its
+// row and given what was kept; then the groups, each client's entity slots, and
+// its dump due once it reports (at once for one that was dead: it respawns). A
+// session whose character cannot be built is told the server went down (0x07C0)
+// and goes once that is sent.
 // It returns how many sessions were put back and how many were told.
 func (l *Listener) ResumeKept(snap *Snapshot, now time.Time) (resumed, told int) {
 	type back struct {
@@ -382,6 +419,14 @@ func (l *Listener) ResumeKept(snap *Snapshot, now time.Time) (resumed, told int)
 		ks   KeptSession
 	}
 	var in []back
+	// the creatures first: each client's slots go on describing them (RestoreView)
+	if l.gameWorld != nil && (len(snap.NPCs) > 0 || len(snap.Corpses) > 0) {
+		start := time.Now()
+		r := l.gameWorld.RestoreNPCs(snap.NPCs)
+		corpses := handlers.RestoreCorpses(snap.Corpses)
+		log.Printf("Keep: of %d NPCs written, %s; %d of %d opened corpses as they were; in %v",
+			len(snap.NPCs), r, corpses, len(snap.Corpses), time.Since(start).Round(time.Millisecond))
+	}
 	for _, ks := range snap.Sessions {
 		sess, err := l.sessionManager.Resume(ks.Session)
 		if err != nil {

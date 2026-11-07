@@ -49,9 +49,17 @@ func (s *Server) registerAdminOps() {
 				f.Key = keyText(req.Key)
 			}
 			f.hideSQL = !c.a.Admin
+			if c.a.tester() {
+				f.tables = testerTableList
+			}
 			list, total, err := c.s.auditList(f)
 			if err != nil {
 				return nil, err
+			}
+			if c.a.tester() {
+				for i := range list {
+					testerAuditEntry(c.a, &list[i])
+				}
 			}
 			return map[string]any{"entries": list, "total": total}, nil
 		},

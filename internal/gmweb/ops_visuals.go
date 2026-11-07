@@ -251,12 +251,15 @@ func (s *Server) setSpellVisual(a *actor, id int64, fx uint32, why string) (*cha
 	if _, gerr := getRow(s.d.DB, t, key); gerr == nil {
 		return s.updateRow(a, t, key, map[string]any{"fxdict": int64(fx)}, nil, writeOpts{})
 	}
-	who := a.Username
-	if who == "" {
-		who = fmt.Sprintf("of account %d", a.AccountID)
+	who := "GM " + a.Username
+	if a.Username == "" {
+		who = fmt.Sprintf("GM of account %d", a.AccountID)
+	}
+	if a.tester() {
+		who = "a tester" // the audit line has the name; other testers read this row
 	}
 	return s.insertRow(a, t, map[string]any{"spellid": id, "line": "", "fxdict": int64(fx),
-		"source": "visual set by GM " + who + why}, writeOpts{})
+		"source": "visual set by " + who + why}, writeOpts{})
 }
 
 // visualUses is visual_uses' answer. Every row is read before anything is

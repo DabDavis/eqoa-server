@@ -8,7 +8,7 @@
 
 import { h, mount, pageHead, button, toast, card, empty, formBox, debounce } from '../lib/dom.js';
 import { op } from '../lib/api.js';
-import { go, state } from '../lib/nav.js';
+import { go, state, isTester } from '../lib/nav.js';
 import { spellVisualsOnDisc, previewFiles } from './disc.js';
 
 const hex = (n) => '0x' + (Number(n) >>> 0).toString(16).toUpperCase().padStart(8, '0');
@@ -129,6 +129,8 @@ export async function render(box, [spellSeg]) {
   await loadUses();
 
   const preview = previewPane();
+  // playing one in the game is seen by everyone near: a GM's, not a tester's
+  const inGame = !isTester();
   const previewVisual = (v) => preview && preview.play(hex(v.id), (Number(secs.value) || 0) * 1000, null);
 
   // the typed playback: any DictID, with a cast time
@@ -195,8 +197,8 @@ export async function render(box, [spellSeg]) {
         h('td', { class: 'mono' }, hex(v.id)),
         h('td', { class: 'nowrap' },
           preview ? button('Preview', { class: 'small', title: 'Play it in the preview', onclick: () => (spell ? preview.play(hex(v.id), spell.castSeconds * 1000, spell) : previewVisual(v)) }) : null,
-          preview ? ' ' : null,
-          button(preview ? 'In game' : 'Play', { icon: 'play', class: 'small', title: 'Play it in the game, from your character onto its target', onclick: () => playInGame(spell ? { visual: hex(v.id), spell: spell.spellid } : { visual: hex(v.id), seconds: Number(secs.value) || 0 }) }),
+          preview && inGame ? ' ' : null,
+          inGame ? button(preview ? 'In game' : 'Play', { icon: 'play', class: 'small', title: 'Play it in the game, from your character onto its target', onclick: () => playInGame(spell ? { visual: hex(v.id), spell: spell.spellid } : { visual: hex(v.id), seconds: Number(secs.value) || 0 }) }) : null,
           ' ',
           spell
             ? button(current ? 'Its visual' : 'Use', { class: 'small' + (current ? '' : ' primary'), disabled: current, title: 'Give it to ' + spell.name, onclick: () => useFor(v, spell.spellid) })
@@ -216,19 +218,20 @@ export async function render(box, [spellSeg]) {
     h('p', null, spell.summary + '. ', h('a', { href: '#/spells/' + spell.spellid }, 'Back to the spell')),
     h('div', { class: 'row' },
       preview ? button('Preview its visual', { onclick: () => preview.play(spell.plays, spell.castSeconds * 1000, spell) }) : null,
-      button('Play its visual in game', { icon: 'play', onclick: () => playInGame({ spell: spell.spellid }) }),
+      inGame ? button('Play its visual in game', { icon: 'play', onclick: () => playInGame({ spell: spell.spellid }) }) : null,
       spell.own ? button('Back to its stand-in', { class: 'ghost', onclick: () => useFor({ id: 0 }, spell.spellid) }) : null),
-    h('p', { class: 'muted small' }, 'Play a visual on the list to see it in the game, then Use to give it to ' + spell.name + '.'))) : null;
+    h('p', { class: 'muted small' }, (inGame ? 'Play a visual on the list to see it in the game, then Use to give it to ' : 'Preview a visual on the list, then Use to give it to ') + spell.name + '.'))) : null;
 
   const cards = [
     forCard,
-    card('Play in game', h('div', { class: 'stack' },
+    !inGame ? null : card('Play in game', h('div', { class: 'stack' },
       h('p', { class: 'muted small' }, 'Log in to the game with this account\'s character and target something (nothing targeted: yourself). A visual plays from you onto your target, seen by everyone near; nothing is saved and nothing lands. The cast time is how long its casting part runs.'),
       h('div', { class: 'row' }, fx, h('span', { class: 'row' }, 'cast', secs, 's'), playTyped))),
     card('On your disc', h('div', { class: 'stack' }, h('div', { class: 'grid-tools' }, search, h('span', { class: 'grow' }), countLine), listBox)),
   ];
   mount(box,
-    pageHead('Spell visuals', 'Every visual on your disc: what a spell shows when cast (0x00B1\'s DictID). Play one in the game to see it, then give it to a spell.',
+    pageHead('Spell visuals', inGame ? 'Every visual on your disc: what a spell shows when cast (0x00B1\'s DictID). Play one in the game to see it, then give it to a spell.'
+      : 'Every visual on your disc: what a spell shows when cast (0x00B1\'s DictID). Preview one, then give it to a spell.',
       spell ? h('a', { href: '#/spells/' + spell.spellid }, spell.name) : null),
     // with a preview, the list beside it and the preview held in view while the list scrolls, so a
     // Preview pressed far down the list plays where it can be seen (the user, F3 pass 17)

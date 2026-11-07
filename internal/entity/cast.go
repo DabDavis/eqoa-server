@@ -1148,6 +1148,9 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 				w.landOnPetLocked(cs, caster, casterSess, npc, now)
 				continue
 			}
+			if w.areaOwnSparedLocked(caster, cs, npc) { // area.go: behind a rock from its caster
+				continue
+			}
 			w.landOnNPCLocked(cs, caster, casterSess, npc, now)
 		}
 	}

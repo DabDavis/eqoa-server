@@ -321,19 +321,27 @@ func (w *World) ClearNPCPath(id EntityID) bool {
 		return false
 	}
 	delete(w.paths.byNPC, id)
-	if npc := w.NPCs[id]; npc != nil && !npc.Dead {
+	if npc := w.NPCs[id]; npc != nil && !npc.Dead && !w.walkToSpawnLocked(npc) {
 		npc.path = pathState{}
-		npc.path.legFrom(npc)
-		if distXZ(npc.X, npc.Z, npc.SpawnX, npc.SpawnZ) > 0.5 {
-			if w.paths.home == nil {
-				w.paths.home = map[EntityID]bool{}
-			}
-			w.paths.home[id] = true
-		} else {
-			npc.stopMoving()
-			npc.Facing = npc.SpawnFacing
-		}
+		npc.stopMoving()
+		npc.Facing = npc.SpawnFacing
 	}
+	return true
+}
+
+// walkToSpawnLocked starts a creature walking back to its spawn point
+// (pathSystem), and reports it; one already there is left alone, false. Must be
+// called with the lock held.
+func (w *World) walkToSpawnLocked(npc *NPC) bool {
+	if distXZ(npc.X, npc.Z, npc.SpawnX, npc.SpawnZ) <= 0.5 {
+		return false
+	}
+	npc.path = pathState{}
+	npc.path.legFrom(npc)
+	if w.paths.home == nil {
+		w.paths.home = map[EntityID]bool{}
+	}
+	w.paths.home[npc.ServerID] = true
 	return true
 }
 

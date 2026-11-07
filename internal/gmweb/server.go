@@ -14,7 +14,9 @@
 // database is out at once. A person signs in with the account's password
 // (and an authenticator code once enrolled, totp.go) and holds a cookie; an AI
 // agent holds a bearer token, made in the panel (tokens.go) or through OAuth,
-// where the GM signs in on the panel's own page (oauth.go).
+// where the GM signs in on the panel's own page (oauth.go). A tester, a player
+// with a row in gm_testers (tester.go), signs in the same ways and is held at
+// run() to the item and spell records.
 //
 // EVERY CHANGE IS AUDITED (audit.go) with the row before and after, by whom
 // and through what, and a row change can be reverted from the log.

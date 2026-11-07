@@ -35,6 +35,12 @@ func newCorpseFixture(t *testing.T, items int) *corpseFixture {
 			t.Fatal(err)
 		}
 	}
+	f.hook()
+	return f
+}
+
+// hook stands the World's corpse hooks in on the handler.
+func (f *corpseFixture) hook() {
 	f.h.corpseLies = func(id entity.EntityID) (time.Time, bool) {
 		return f.npc.DeathTime, f.lies && id == f.npc.ServerID
 	}
@@ -46,7 +52,6 @@ func newCorpseFixture(t *testing.T, items int) *corpseFixture {
 		f.cleared = append(f.cleared, id)
 		return true
 	}
-	return f
 }
 
 // lootCount is a 0x0018's record count (its zigzag after the opcode).

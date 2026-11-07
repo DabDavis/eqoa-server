@@ -700,26 +700,52 @@ func (w *World) templateMayHitLocked(npc *NPC, target EntityID) bool {
 		(w.env == nil || w.npcInWaterLocked(pet) == w.npcInWaterLocked(npc))
 }
 
+// templateAreaCentreLocked is where a templated NPC's area spell lies now:
+// round its target, or itself for a caster's area. Must be called with the
+// lock held.
+func (w *World) templateAreaCentreLocked(npc *NPC, spell *CastSpell, target EntityID) (x, y, z float32) {
+	if spell.Area.Centre == AreaOnTarget {
+		if p := w.Players[target]; p != nil {
+			return p.X, p.Y, p.Z
+		}
+		if pet := w.NPCs[target]; pet != nil {
+			return pet.X, pet.Y, pet.Z
+		}
+	}
+	return npc.X, npc.Y, npc.Z
+}
+
+// templateSparedLocked reports one out of sight (sight.go) of a templated NPC's
+// area spell as it lands, its own target among them for a caster's area: a
+// spell of no area and one round its target spare no target of theirs, and one
+// gone is the landing's to pass over. Must be called with the lock held.
+func (w *World) templateSparedLocked(c *npcCast, id EntityID) bool {
+	if c.spell.Area.Centre == AreaNone || c.spell.Area.Centre == AreaOnTarget && id == c.target {
+		return false
+	}
+	cx, cy, cz := w.templateAreaCentreLocked(c.npc, c.spell, c.target)
+	if p := w.Players[id]; p != nil {
+		return !w.inSightLocked(c.npc.World, cx, cy, cz, p.X, p.Y, p.Z)
+	}
+	if pet := w.NPCs[id]; pet != nil {
+		return !w.inSightLocked(c.npc.World, cx, cy, cz, pet.X, pet.Y, pet.Z)
+	}
+	return false
+}
+
 // templateAreaLocked is a templated NPC's area spell's others as its cast
 // begins, as a player's are chosen (area.go): round its target (or itself,
-// a caster's area), within its radius, the nearest first, its cap with the
-// target counted; the players a creature may notice (aggro.go: not hidden, not
-// a GM who turned aggro off, not loading a world), not across the water's
-// edge from it, and players' pets.
+// a caster's area), within its radius and in sight of it (sight.go), the
+// nearest first, its cap with the target counted; the players a creature may
+// notice (aggro.go: not hidden, not a GM who turned aggro off, not loading a
+// world), not across the water's edge from it, and players' pets.
 func (w *World) templateAreaLocked(npc *NPC, spell *CastSpell, target EntityID) []EntityID {
 	if w.SpatialIndex == nil {
 		return nil
 	}
 	a := &spell.Area
 	r := a.radiusFor(true)
-	cx, cy, cz := npc.X, npc.Y, npc.Z
-	if a.Centre == AreaOnTarget {
-		if p := w.Players[target]; p != nil {
-			cx, cy, cz = p.X, p.Y, p.Z
-		} else if pet := w.NPCs[target]; pet != nil {
-			cx, cy, cz = pet.X, pet.Y, pet.Z
-		}
-	}
+	cx, cy, cz := w.templateAreaCentreLocked(npc, spell, target)
 	var near []areaNear
 	for _, id := range w.SpatialIndex.QueryRadius(cx, cz, r) {
 		if id == target {
@@ -727,14 +753,14 @@ func (w *World) templateAreaLocked(npc *NPC, spell *CastSpell, target EntityID) 
 		}
 		if p := w.Players[id]; p != nil {
 			if p.World == npc.World && w.noticeableLocked(p) && !w.apartLocked(p, npc) {
-				if d := dist3(p.X, p.Y, p.Z, cx, cy, cz); d <= r {
+				if d := dist3(p.X, p.Y, p.Z, cx, cy, cz); d <= r && w.inSightLocked(npc.World, cx, cy, cz, p.X, p.Y, p.Z) {
 					near = append(near, areaNear{id, d})
 				}
 			}
 			continue
 		}
 		if pet := w.NPCs[id]; pet != nil && pet.Owner != 0 && !pet.Dead && pet.World == npc.World {
-			if d := dist3(pet.X, pet.Y, pet.Z, cx, cy, cz); d <= r {
+			if d := dist3(pet.X, pet.Y, pet.Z, cx, cy, cz); d <= r && w.inSightLocked(npc.World, cx, cy, cz, pet.X, pet.Y, pet.Z) {
 				near = append(near, areaNear{id, d})
 			}
 		}
@@ -783,7 +809,9 @@ func (w *World) templateSystem(now time.Time) {
 			w.templateDebuffLocked(c, now)
 			continue
 		}
-		w.templateHitLocked(c, c.target, c.spell.Def.Effects, now)
+		if !w.templateSparedLocked(c, c.target) {
+			w.templateHitLocked(c, c.target, c.spell.Def.Effects, now)
+		}
 		share := c.spell.Def.Effects
 		if e := c.spell.Area.Effects; e != nil {
 			share = e
@@ -792,7 +820,9 @@ func (w *World) templateSystem(now time.Time) {
 			if npc.Dead {
 				break
 			}
-			w.templateHitLocked(c, id, share, now)
+			if !w.templateSparedLocked(c, id) {
+				w.templateHitLocked(c, id, share, now)
+			}
 		}
 	}
 }

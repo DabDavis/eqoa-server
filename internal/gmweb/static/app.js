@@ -3,7 +3,7 @@
 
 import { h, mount, icon, toast, debounce, store } from './lib/dom.js';
 import { api, op, setCSRF, onUnauthorized } from './lib/api.js';
-import { state, go } from './lib/nav.js';
+import { state, go, isTester } from './lib/nav.js';
 
 const NAV = [
   ['Overview', [
@@ -45,6 +45,10 @@ const NAV = [
     ['disc', 'Game disc', 'disc'],
   ]],
 ];
+
+// The pages a tester has: the rest are all operations a tester is refused
+// (tester.go), so they are not offered.
+const TESTER_PAGES = new Set(['items', 'spells', 'visuals', 'tables', 'audit', 'ai', 'security', 'disc']);
 
 const VIEWS = {
   dashboard: () => import('./views/dashboard.js'),
@@ -97,7 +101,7 @@ function showLogin(message) {
   const msg = h('p', { class: 'err', role: 'alert' }, message || '');
   const submit = h('button', { type: 'submit', class: 'primary' }, 'Sign in');
   const form = h('form', { class: 'stack' },
-    h('label', null, 'GM account', user), h('label', null, 'Password', pass), codeRow, msg, submit);
+    h('label', null, 'Account', user), h('label', null, 'Password', pass), codeRow, msg, submit);
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     submit.disabled = true;
@@ -120,8 +124,8 @@ function showLogin(message) {
   });
   mount(app, h('div', { class: 'login' }, h('div', { class: 'login-card' },
     h('div', { class: 'brand' }, h('span', { class: 'brand-mark' }, 'GM'), h('div', null, 'EQOA GM panel', h('small', null, 'Sign in with your game account'))),
-    h('h1', null, 'Game masters only'),
-    h('p', { class: 'muted' }, 'Accounts with GM access sign in with their game password. Everything you change is logged under your name.'),
+    h('h1', null, 'Game masters and testers'),
+    h('p', { class: 'muted' }, 'Accounts given the panel sign in with their game password. Everything you change is logged under your name.'),
     form)));
   setTimeout(() => user.focus(), 0);
 }
@@ -138,15 +142,17 @@ function start(session) {
   app.className = '';
   nav = h('nav', { class: 'nav', 'aria-label': 'Sections' });
   for (const [group, items] of NAV) {
+    const shown = items.filter(([id, , , need]) => (need !== 'admin' || session.user.admin) && (!isTester() || TESTER_PAGES.has(id)));
+    if (!shown.length) continue;
     nav.appendChild(h('div', { class: 'nav-group' }, group));
-    for (const [id, label, ic, need] of items) {
-      if (need === 'admin' && !session.user.admin) continue;
-      nav.appendChild(h('a', { href: '#/' + id, dataset: { page: id } }, icon(ic), label));
+    for (const [id, label, ic] of shown) {
+      nav.appendChild(h('a', { href: '#/' + id, dataset: { page: id } }, icon(ic), isTester() && id === 'tables' ? 'Item and spell tables' : label));
     }
   }
   main = h('main', { id: 'main', tabindex: '-1' });
   const menuBtn = h('button', { class: 'ghost icon menu-btn', type: 'button', 'aria-label': 'Menu', onclick: () => shell.classList.toggle('nav-open') }, icon('menu'));
-  const lvl = session.user.admin ? h('span', { class: 'badge accent' }, 'Admin') : h('span', { class: 'badge info' }, 'GM');
+  const lvl = isTester() ? h('span', { class: 'badge ok' }, 'Tester')
+    : session.user.admin ? h('span', { class: 'badge accent' }, 'Admin') : h('span', { class: 'badge info' }, 'GM');
   const themeBtn = h('button', { class: 'ghost icon', type: 'button', title: 'Light or dark', 'aria-label': 'Theme', onclick: () => {
     const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
     store('theme', cur === 'light' ? 'dark' : 'light');
@@ -168,7 +174,7 @@ function start(session) {
   waitingBadge();
   if (session.totp?.required && !session.totp.enabled) {
     location.hash = '#/security';
-    toast('This server asks every GM for an authenticator: enrol one to go on.', 'warn');
+    toast('This server asks every GM and tester for an authenticator: enrol one to go on.', 'warn');
   }
   route();
 }
@@ -200,7 +206,8 @@ let current = null;
 async function route() {
   if (!state.session) return;
   const parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
-  const page = VIEWS[parts[0]] ? parts[0] : 'dashboard';
+  const home = isTester() ? 'items' : 'dashboard';
+  const page = VIEWS[parts[0]] && (!isTester() || TESTER_PAGES.has(parts[0])) ? parts[0] : home;
   for (const a of nav.querySelectorAll('a')) a.classList.toggle('on', a.dataset.page === page);
   shell.classList.remove('nav-open');
   if (current?.leave) current.leave();
@@ -209,7 +216,7 @@ async function route() {
   main.scrollTop = 0;
   try {
     const mod = await VIEWS[page]();
-    current = (await mod.render(box, parts.slice(1), state)) || null;
+    current = (await mod.render(box, page === parts[0] ? parts.slice(1) : [], state)) || null;
   } catch (e) {
     console.error(e);
     mount(box, h('div', { class: 'notice danger' }, 'This page failed: ' + e.message));
@@ -219,7 +226,7 @@ async function route() {
 // ---- search across everything
 
 function globalSearch() {
-  const input = h('input', { type: 'search', placeholder: 'Search accounts, characters, NPCs, items, spells…', 'aria-label': 'Search everything', autocomplete: 'off' });
+  const input = h('input', { type: 'search', placeholder: isTester() ? 'Search items and spells…' : 'Search accounts, characters, NPCs, items, spells…', 'aria-label': 'Search everything', autocomplete: 'off' });
   const pop = h('div', { class: 'search-pop hidden', role: 'listbox' });
   let results = [], sel = -1;
   const KIND = { account: 'accounts', character: 'characters', npc: 'npcs', item: 'items', spell: 'spells' };

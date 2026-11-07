@@ -8,6 +8,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
+	"github.com/eqoa/server/internal/session"
 )
 
 // #template's choices (template.go) against made-up items, and the whole
@@ -311,4 +312,44 @@ func book(t *testing.T, db *database.SQLiteDB, sid uint32) []int {
 		out = append(out, id)
 	}
 	return out
+}
+
+// A GM's #template <player> is that player's (the user, 2026-11-07), who is told: in any case of the name, with the
+// GM reading what it came to. No name is the GM's own, no such player is said, and a player can't do it to anyone.
+func TestAGMTemplatesAPlayer(t *testing.T) {
+	c, gs, _, ps, _ := gmWorld(t)
+	chatText := func(s *session.Session) string {
+		var all []string
+		for _, h := range heard(t, s) {
+			all = append(all, h.text)
+		}
+		return strings.Join(all, "|")
+	}
+	var got []*session.Session
+	c.h.SetTemplate(func(s *session.Session) ([]string, error) {
+		got = append(got, s)
+		return []string{"Template: the line"}, nil
+	})
+	c.say(gs, "#template player")
+	if len(got) != 1 || got[0] != ps {
+		t.Fatalf("#template player: %d calls, on the player's session %v", len(got), len(got) == 1 && got[0] == ps)
+	}
+	if text := chatText(ps); !strings.Contains(text, "A GM gave your character the template") {
+		t.Errorf("the player's told: %q", text)
+	}
+	if text := chatText(gs); !strings.Contains(text, "Template: the line") {
+		t.Errorf("the GM's told: %q", text)
+	}
+	c.say(gs, "#template")
+	if len(got) != 2 || got[1] != gs {
+		t.Fatalf("#template alone: %d calls", len(got))
+	}
+	c.say(gs, "#template Nobody")
+	if len(got) != 2 {
+		t.Errorf("#template Nobody ran: %d calls", len(got))
+	}
+	c.say(ps, "#template Gm")
+	if len(got) != 2 {
+		t.Errorf("a player's #template ran: %d calls", len(got))
+	}
 }

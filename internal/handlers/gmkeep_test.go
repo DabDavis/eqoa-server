@@ -188,9 +188,8 @@ func TestOnlyACharactersOwnAccountMayUseIt(t *testing.T) {
 // A GM's character goes to level 100 (the user, 2026-11-07), for its hit points and power alone: the training points,
 // the experience and the heirlooms stop at 60. Anyone else stops at 60.
 func TestAGMsCharacterGoesToLevel100(t *testing.T) {
-	c, gs, gp, _, _ := gmWorld(t)
+	c, gs, gp, ps, pp := gmWorld(t)
 	store, _ := gmRows(t, c)
-	gp.GM = true
 	c.say(gs, "#setlevel 60")
 	hp60, power60, tp60, xp60 := gp.MaxHP, gp.MaxPowerNow(), gp.TotalTP, gp.TotalXP
 	if gp.Level != 60 {
@@ -217,9 +216,9 @@ func TestAGMsCharacterGoesToLevel100(t *testing.T) {
 	if gp.Level != 100 {
 		t.Errorf("#setlevel 250: %d, want 100", gp.Level)
 	}
-	gp.GM = false
-	c.say(gs, "#setlevel 100")
-	if gp.Level != 60 {
-		t.Errorf("#setlevel 100, not a GM's: %d, want 60", gp.Level)
+	// the Buff PC of a GM's channel on a player: not a GM's, so 60
+	c.h.setLevelFor(gs, ps, pp, 100)
+	if pp.Level != 60 {
+		t.Errorf("a player set to 100: %d, want 60", pp.Level)
 	}
 }

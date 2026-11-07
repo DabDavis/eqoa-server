@@ -1050,8 +1050,8 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.factionCommand(sess, parts[1:])
 	case "#template":
 		// level 60, every class spell, 1,000,000 tunar, the best gear worn
-		// (template.go)
-		h.templateCommand(sess)
+		// (template.go); #template <player>: theirs
+		h.templateCommand(sess, parts[1:])
 	case "#grantcm":
 		// #grantcm <amount>: mastery points, never past 1500 in all
 		// (mastery.go)
@@ -1149,7 +1149,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #setlevel <lvl> - set level")
 		h.gmReply(sess, "  #hp <cur> [max] - set HP")
 		h.gmReply(sess, "  #tunar <amt> - set gold")
-		h.gmReply(sess, "  #template - level 60, every spell of your class, 1,000,000 tunar, the best gear you may wear")
+		h.gmReply(sess, "  #template [player] - level 60, every spell of your class, 1,000,000 tunar, the best gear you may wear")
 		h.gmReply(sess, "  #effect [<icon hex> [name] | clear] - list, add or clear the effects channel's slots (the spells behind them go on)")
 		h.gmReply(sess, "  #clearbuffs - every buff on you ended now, as its time running out ends it (#nukebuffs too)")
 		h.gmReply(sess, "  #faction <faction> [standing] - your standing with a faction, or set it")

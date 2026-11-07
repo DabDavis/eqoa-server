@@ -434,7 +434,7 @@ func (h *ChatHandler) setLevel(sess *session.Session, player *entity.Player, lev
 // setLevelFor is setLevel on player, whose session is sess, said to gm (the
 // GM's channel's Buff PC sets another player's).
 func (h *ChatHandler) setLevelFor(gm, sess *session.Session, player *entity.Player, level int) {
-	level = max(1, min(entity.LevelCap(player.GM), level))
+	level = max(1, min(entity.LevelCap(h.isGM(sess)), level)) // the account's, read now
 	before := player.UnusedTP
 	h.gameWorld.SetPlayerLevel(player.CharServerID, level)
 	SendLevel(sess, level)
@@ -482,17 +482,30 @@ func (h *ChatHandler) setTunar(sess *session.Session, player *entity.Player, amo
 	h.gmReply(sess, fmt.Sprintf("Tunar set to %d", amount))
 }
 
-// templateCommand is #template (template.go): the GM's own character at 60,
-// its class's spells, 1,000,000 tunar and the best gear it may wear.
-func (h *ChatHandler) templateCommand(sess *session.Session) {
+// templateCommand is #template (template.go): a character at 60, its class's
+// spells, 1,000,000 tunar and the best gear it may wear. The GM's own, or (the
+// user, 2026-11-07: "let gms /template a player") the player it names, in the world
+// now, who is told. The GM reads what it came to.
+func (h *ChatHandler) templateCommand(gm *session.Session, args []string) {
 	if h.template == nil {
-		h.gmReply(sess, "Template: this server keeps no characters")
+		h.gmReply(gm, "Template: this server keeps no characters")
 		return
+	}
+	sess := gm
+	if len(args) > 0 {
+		_, ts, ok := h.gmNamed(gm, args[0], "Template")
+		if !ok {
+			return
+		}
+		sess = ts
 	}
 	lines, err := h.template(sess)
 	if err != nil {
-		h.gmReply(sess, "Template: "+err.Error())
+		h.gmReply(gm, "Template: "+err.Error())
 		return
+	}
+	if sess != gm {
+		SendColoredChat(sess, "A GM gave your character the template: level 60, your class's spells, 1,000,000 tunar, the best gear you may wear, and mastery points.", 255, 255, 0)
 	}
 	// and the mastery points, to the most a character holds, spent and
 	// unspent (the user: "let template also give 1500 CM points to the GM")
@@ -506,7 +519,7 @@ func (h *ChatHandler) templateCommand(sess *session.Session) {
 		}
 	}
 	for _, l := range lines {
-		h.gmReply(sess, l)
+		h.gmReply(gm, l)
 	}
 }
 

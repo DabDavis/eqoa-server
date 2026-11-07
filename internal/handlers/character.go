@@ -547,6 +547,9 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	h.giveWolfFang(uint32(record.ServerID))
 	h.giveSummoningPortal(uint32(record.ServerID))
 
+	// the look it plays in, before anything reads the character
+	h.keepSelectedLook(record, data)
+
 	log.Printf("SelectedChar: selected '%s' (level %d race=%d class=%d)", record.CharName, record.Level, record.Race, record.TClass)
 
 	// Promote to a master session HERE, not when the character list was sent.
@@ -580,6 +583,7 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	// elsewhere (0x07A4); the account's other windows play on.
 	if h.gameWorld != nil {
 		if player, took := h.gameWorld.TakeOverPlayer(sess, uint32(record.ServerID)); player != nil {
+			h.gameWorld.SetPlayerLook(uint32(record.ServerID), record.FaceOption, record.HairStyle, record.HairLength, record.HairColor)
 			h.placeTakenOver(player, record)
 			log.Printf("SelectedChar: '%s' (serverID=%d) TAKEN OVER by %s as it stands: %s",
 				record.CharName, charID, sess.RemoteAddr(), took)
@@ -605,6 +609,36 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	h.SendMemoryDump(sess)
 
 	return nil
+}
+
+// keepSelectedLook keeps the look a 0x002A carries after its character's id:
+// the record's face, hair style, hair length and hair colour as the select
+// screen holds them, four raw ints (VIClient::SelectCharacter). Customize
+// Character's Accept changes them there (SetCharLook, Frontiers' only) and this
+// message is the only time a server hears of it. This server read the id alone
+// until 2026-11-07, so a look chosen there lasted until the world was entered
+// (players: "hair color, style, etc. is not saving"). A look the creation pages
+// could not make is left unkept; so is the look of a message with none.
+func (h *CharacterHandler) keepSelectedLook(record *database.CharacterRecord, data []byte) {
+	if len(data) < 20 {
+		return
+	}
+	look := func(at int) int64 { return int64(int32(binary.LittleEndian.Uint32(data[at:]))) }
+	face, style, length, color := look(4), look(8), look(12), look(16)
+	if face == int64(record.FaceOption) && style == int64(record.HairStyle) && length == int64(record.HairLength) && color == int64(record.HairColor) {
+		return
+	}
+	if !lookInRange(face, style, length, color) {
+		log.Printf("SelectedChar: '%s' sent an impossible look, face %d hair %d/%d/%d: not kept", record.CharName, face, style, length, color)
+		return
+	}
+	if err := h.store.SetLook(uint32(record.ServerID), int(face), int(style), int(length), int(color)); err != nil {
+		log.Printf("SelectedChar: '%s' look not kept: %v", record.CharName, err)
+		return
+	}
+	log.Printf("SelectedChar: '%s' restyled: face %d -> %d, hair style %d -> %d, length %d -> %d, colour %d -> %d",
+		record.CharName, record.FaceOption, face, record.HairStyle, style, record.HairLength, length, record.HairColor, color)
+	record.FaceOption, record.HairStyle, record.HairLength, record.HairColor = int(face), int(style), int(length), int(color)
 }
 
 // enterFromRecord builds the character's Player from its row, as a login
@@ -1327,7 +1361,7 @@ func (h *CharacterHandler) HandleDelCharacter(sess *session.Session, msg *protoc
 	return nil
 }
 
-// SendNameTaken sends a name taken response (opcode 0x2F) and resends character list.
+// SendNameTaken sends a name taken response (opcode 0x2F).
 func (h *CharacterHandler) SendNameTaken(sess *session.Session) {
 	h.sendCreateRefusal(sess, protocol.OpcodeNameTaken)
 }
@@ -1335,8 +1369,11 @@ func (h *CharacterHandler) SendNameTaken(sess *session.Session) {
 // sendCreateRefusal answers a 0x002B the client must drop: the select page
 // shows a word for each (decomp viclient.cpp) -- 0x002F 829 "Failed: name
 // already taken", 0x0065 828 "Failed: invalid name", 0x002E 269 "Character
-// create failed" -- and removes the entry CreateCharacter added. The list
-// follows, to keep the client on the select screen.
+// create failed" -- and removes the entry CreateCharacter added, its select
+// screen up and answering (ShowText). No list follows: CharacterList resets
+// creation's form (VIWndCharCreateBlank::Reset), and with one a taken name cost
+// the race, class, stats and look already chosen. Without one the pages are as
+// they were left when the player opens them again, as CLIENT means them to be.
 func (h *CharacterHandler) sendCreateRefusal(sess *session.Session, op protocol.GameOpcode) {
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, op)
 	writer := buffer.NewWriter(msg.Span())
@@ -1344,7 +1381,14 @@ func (h *CharacterHandler) sendCreateRefusal(sess *session.Session, op protocol.
 	msg.SetSize(writer.Position())
 	sess.Queue().AddWithSequence(msg)
 	log.Printf("Sent %s to %s", op, sess.RemoteAddr())
-	h.SendCharacterSelectEQOA(sess)
+}
+
+// lookInRange is what the client's pages can make of a look (decomp
+// viwndcharcreatemisc.cpp, viwndcharcustfrontiers.cpp): face, hair style and
+// length 0-3, hair colour 0-7.
+func lookInRange(face, hairStyle, hairLength, hairColor int64) bool {
+	in := func(v, hi int64) bool { return v >= 0 && v <= hi }
+	return in(face, 3) && in(hairStyle, 3) && in(hairLength, 3) && in(hairColor, 7)
 }
 
 // checkNewChar bounds a creation form to what the client's pages can produce
@@ -1361,7 +1405,7 @@ func checkNewChar(race, class, sex, hairColor, hairLength, hairStyle, face, city
 		return fmt.Sprintf("class %d", class)
 	case !in(sex, 0, 1):
 		return fmt.Sprintf("sex %d", sex)
-	case !in(face, 0, 3) || !in(hairStyle, 0, 3) || !in(hairLength, 0, 3) || !in(hairColor, 0, 7):
+	case !lookInRange(face, hairStyle, hairLength, hairColor):
 		return fmt.Sprintf("look face %d hair %d/%d/%d", face, hairStyle, hairLength, hairColor)
 	case !in(city, 0, 2):
 		return fmt.Sprintf("city %d", city)

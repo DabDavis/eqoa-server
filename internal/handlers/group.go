@@ -26,6 +26,7 @@ func (h *GroupHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeLeaveGroup, h.handleLeave)
 	r.Register(protocol.OpcodeBootGroupMember, h.handleBoot)
 	r.Register(protocol.OpcodeDisbandGroup, h.handleDisband)
+	r.Register(protocol.OpcodeRaidRosterAnswer, h.handleRaidRosterAnswer)
 	log.Printf("Group: registered handlers")
 }
 
@@ -44,6 +45,15 @@ func SendMemberInvitesOffer(sess *session.Session) {
 	queueReliable(sess, protocol.OpcodeMemberInvites, buildMemberInvitesOffer())
 }
 
+// SendRaidRosterOffer offers the session's client the whole of a raid group
+// (protocol.OpcodeRaidRoster, entity/raidroster.go): a u32, 1. A client that can show
+// it answers 0x7E19; a PS2 ignores it and keeps its window of four.
+func SendRaidRosterOffer(sess *session.Session) {
+	queueReliable(sess, protocol.OpcodeRaidRosterOffer, build(protocol.OpcodeRaidRosterOffer, 6, func(w *buffer.Writer) {
+		w.WriteUint32(1)
+	}))
+}
+
 // u32 reads the id each of these opcodes starts with.
 func groupID(msg *protocol.Message) (uint32, *buffer.Reader, bool) {
 	data := msg.Data()
@@ -53,6 +63,22 @@ func groupID(msg *protocol.Message) (uint32, *buffer.Reader, bool) {
 	r := buffer.NewReader(data)
 	id, err := r.ReadUint32()
 	return id, r, err == nil
+}
+
+// handleRaidRosterAnswer makes a client's answer to the offer its player's: a u32,
+// nonzero to be sent the roster, 0 to stop. Nothing is answered.
+func (h *GroupHandler) handleRaidRosterAnswer(sess *session.Session, msg *protocol.Message) error {
+	id, _, ok := groupID(msg)
+	if !ok || h.gameWorld == nil {
+		log.Printf("RaidRoster: short answer from %s", sess.RemoteAddr())
+		return nil
+	}
+	if !h.gameWorld.SetRaidRoster(sess, id != 0) {
+		log.Printf("RaidRoster: %s has no player in the world", sess.RemoteAddr())
+		return nil
+	}
+	log.Printf("RaidRoster: %s %s", sess.RemoteAddr(), map[bool]string{true: "shows it", false: "stopped"}[id != 0])
+	return nil
 }
 
 func (h *GroupHandler) handleInvite(sess *session.Session, msg *protocol.Message) error {

@@ -138,8 +138,8 @@ func (w *World) LFGSearch(sess *session.Session, q LFGQuery) []LFGRow {
 			if p.GroupID != 0 && g != nil {
 				continue
 			}
-		case 1: // groups for a player: their leaders, with room
-			if p.GroupID == 0 || g == nil || len(g.Members) == 0 || g.Members[0] != p.ServerID || len(g.Members) >= MaxGroupSize {
+		case 1: // groups for a player: their leaders, with room (one more and a group of four is a raid group: raid.go)
+			if p.GroupID == 0 || g == nil || len(g.Members) == 0 || g.Members[0] != p.ServerID || len(g.Members) >= GroupWindowSize {
 				continue
 			}
 		default:

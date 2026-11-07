@@ -188,6 +188,17 @@ func (a SpellArea) most() int {
 	return AreaMaxTargets
 }
 
+// mostOfGroup is the most a group's area lands on when n of its group and their
+// pets are in it: a GM's row's cap, else all of them. AreaMaxTargets never held a
+// group of four and its pets back, and a raid group's others past the seven a
+// 0x00B1 names (areaSeenLocked) take the spell unnamed.
+func (a SpellArea) mostOfGroup(n int) int {
+	if a.Max > 0 {
+		return a.Max
+	}
+	return n
+}
+
 var (
 	// reAreaWord is the area word, where the target's share ends: "aoe",
 	// "ae" (Thunderous Fury's "AE 856"), a GM's "PB AE"; not "group/aoe" or
@@ -405,12 +416,14 @@ func (w *World) areaStartLocked(p *Player, cs *castState, now time.Time) {
 	r := a.radiusFor(d.Harmful)
 	var near []areaNear
 	centre := "caster"
+	most := a.most()
 	// a group's by its record's scope or its line's word
 	if pct := d.Resurrects(); pct > 0 && (cs.spell.Scope == 2 || d.Target == TargetGroup) {
 		if w.rezNamesAnotherLocked(cs.targets, p) { // resurrect.go: that one's alone
 			return
 		}
 		near = w.rezGroupNearLocked(p, pct, r, now)
+		most = a.mostOfGroup(len(near) + 1)
 		if len(near) > 0 && rezAmount(p, pct, now) <= 0 && !p.Rez.returns(now) {
 			cs.targets = nil // its caster has nothing to recover: the group's alone
 		} else {
@@ -419,6 +432,7 @@ func (w *World) areaStartLocked(p *Player, cs *castState, now time.Time) {
 	} else if (cs.spell.Scope == 2 || d.Target == TargetGroup) && !d.Harmful {
 		cs.targets = []EntityID{p.ServerID}
 		near = w.groupNearLocked(p, r)
+		most = a.mostOfGroup(len(near) + 1)
 	} else {
 		if d.Harmful {
 			var own []EntityID
@@ -441,7 +455,7 @@ func (w *World) areaStartLocked(p *Player, cs *castState, now time.Time) {
 	}
 	sort.SliceStable(near, func(i, j int) bool { return near[i].dist < near[j].dist })
 	found := len(near)
-	if room := max(a.most()-len(cs.targets), 0); len(near) > room {
+	if room := max(most-len(cs.targets), 0); len(near) > room {
 		near = near[:room]
 	}
 	cs.others = make([]EntityID, 0, len(near))
@@ -449,7 +463,7 @@ func (w *World) areaStartLocked(p *Player, cs *castState, now time.Time) {
 		cs.others = append(cs.others, n.id)
 	}
 	log.Printf("Cast: %s's %q is an area spell (%s) round its %s within %.0f: %d more of %d found, %d at most in all",
-		p.Name, cs.spell.Name, a.Why, centre, r, len(cs.others), found, a.most())
+		p.Name, cs.spell.Name, a.Why, centre, r, len(cs.others), found, most)
 }
 
 // areaCentreLocked is where a cast's area lies now: on its first target for an

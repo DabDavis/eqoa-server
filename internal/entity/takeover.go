@@ -156,11 +156,14 @@ func (w *World) handedOverLocked(p *Player) {
 	p.PendingSpar = SparPick{}
 	p.ProfanityFilterOff = false
 	p.PowerBars, p.powerBarsSent, p.powerBarsDue = false, "", false
+	p.RaidRoster, p.raidRosterSent = false, ""
+	delete(w.invites, p.ServerID) // the new client has no box up
 	w.voiceGoneLocked(p)
 	p.StatsDirty = true
 	delete(w.announced, p) // guildAnnounceSystem tells the new client its guild
 	if g := w.groups[p.GroupID]; g != nil && p.GroupID != 0 {
 		delete(g.lastRoster, p.ServerID) // and its group's roster
+		p.raidReminder = g.isRaid()      // and that it is a raid group (raid.go)
 	}
 	if ps := w.petStateLocked(p); ps != nil {
 		ps.told = 0 // and its pet (0x007E), as after any dump

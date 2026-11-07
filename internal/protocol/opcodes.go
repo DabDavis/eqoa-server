@@ -501,6 +501,21 @@ const (
 	// ignores it and keeps the leader's rule, and a client of a server that
 	// never offers it does too.
 	OpcodeMemberInvites GameOpcode = 0x7E17
+	// OpcodeRaidRosterOffer is not retail: the whole of a raid group for a client
+	// that can show it, where CLIENT holds four (entity/raid.go). A u32 after the
+	// opcode, 1, from the server once the player is in the world (handlers/group.go).
+	// A PS2 ignores it and keeps its window of four.
+	OpcodeRaidRosterOffer GameOpcode = 0x7E18
+	// OpcodeRaidRosterAnswer is a client's answer to the offer: a u32, 1 to be sent
+	// the roster, 0 to stop.
+	OpcodeRaidRosterAnswer GameOpcode = 0x7E19
+	// OpcodeRaidRoster is the roster, to a client that asked, on a change and at most
+	// once a second: u16 members in all, u16 this message's first, u8 how many it
+	// holds, then each: u32 the id the client knows it by, u8 and the bytes of its
+	// name, u8 class, u8 level, u8 HP of 255, u8 power of 255. In the order they
+	// joined, the leader first, the client's own character among them. 0 members:
+	// its group is no raid group (now). entity/raidroster.go.
+	OpcodeRaidRoster GameOpcode = 0x7E1A
 
 	// Voice chat (internal/voice, entity/voice.go): non-retail opcodes in a
 	// block of their own; a PS2 ignores them. Strings are a u16 byte length
@@ -782,6 +797,12 @@ func (op GameOpcode) String() string {
 		return "BugReportNote"
 	case OpcodeMemberInvites:
 		return "MemberInvites"
+	case OpcodeRaidRosterOffer:
+		return "RaidRosterOffer"
+	case OpcodeRaidRosterAnswer:
+		return "RaidRosterAnswer"
+	case OpcodeRaidRoster:
+		return "RaidRoster"
 	case OpcodeNoCollideList:
 		return "NoCollideList"
 	case OpcodeFactionPage:

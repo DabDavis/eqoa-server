@@ -194,6 +194,13 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		return nil
 	}
 
+	// /raid (or #raid; a PS2's is "/t raid", below): a group's raid flag,
+	// everyone's (entity/raidflag.go)
+	if word, _, _ := strings.Cut(message, " "); strings.EqualFold(word, "/raid") || strings.EqualFold(word, "#raid") {
+		h.gameWorld.RaidCall(sess)
+		return nil
+	}
+
 	// /lfg (or #lfg) on|off: the live group search's registration (lfg.go),
 	// everyone's. The live client sends 0x0801 for its own /lfg; vanilla
 	// forwards the line; a PS2 keeps an unknown /command to itself, so its
@@ -229,6 +236,12 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 	}
 
 	if name, body, isTell := parseTell(message); isTell {
+		// a PS2's raid flag: it sends /t on as typed and neither keeps /raid nor can
+		// type a # (entity/raidflag.go), and a tell with no text is no tell
+		if body == "" && strings.EqualFold(name, "raid") {
+			h.gameWorld.RaidCall(sess)
+			return nil
+		}
 		if wager, ok := duelTell(body); ok {
 			// Sandstorm's challenge, "whisper "duel" to another player"
 			// (duel.go): the challenge, not a tell

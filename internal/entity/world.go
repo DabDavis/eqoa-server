@@ -51,7 +51,7 @@ type World struct {
 	// Groups (group.go)
 	groups      map[uint32]*Group
 	nextGroupID uint32
-	invites     map[EntityID]map[EntityID]bool // invitee -> inviters
+	invites     map[EntityID]map[EntityID]groupAsk // invitee -> inviters
 
 	// Buddy and ignore lists (social.go), in memory only
 	social socialLists

@@ -15,6 +15,7 @@
 /testclient
 /testlogin
 /workboard
+/groundmap
 
 # Databases and their backups (accounts, characters, captured NPC data)
 *.db

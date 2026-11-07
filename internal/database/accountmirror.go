@@ -366,7 +366,7 @@ func (m *AccountMirror) PullOne(username string) error {
 		_, err := m.db.Exec(`DELETE FROM accountinfo WHERE LOWER(username) = LOWER(?)`, username)
 		return err
 	}
-	if len(here) == 1 && there[0].same(here[0]) {
+	if len(here) == len(there) && len(here) == 1 && there[0].same(here[0]) {
 		return nil
 	}
 	tx, err := m.db.Begin()
@@ -374,8 +374,10 @@ func (m *AccountMirror) PullOne(username string) error {
 		return err
 	}
 	defer tx.Rollback()
-	if err := writeAccount(tx, cols, there[0]); err != nil {
-		return err
+	for _, r := range there { // two accounts may differ by case alone
+		if err := writeAccount(tx, cols, r); err != nil {
+			return err
+		}
 	}
 	return tx.Commit()
 }

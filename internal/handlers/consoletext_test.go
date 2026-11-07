@@ -42,12 +42,14 @@ func TestConsoleText(t *testing.T) {
 		t.Errorf("a block's line end: %q", got)
 	}
 	for in, want := range map[string]string{
-		"|+|t||x|":        "+tx",
-		"a\r\nb\nc\rd\te": "a b c d e",
-		"a#b$c&d<e>f[g]h": "abcdefgh",
-		"é中\U0001F600":    "",
-		"||||":            "",
-		"a\x00b\x07c":     "abc",
+		"|+|t||x|":               "+tx",
+		"a\r\nb\nc\rd\te":        "a b c d e",
+		"a$b&c<d>e[f]g":          "abcdefg",
+		"Hail Maeyni Do`Traelix": "Hail Maeyni Do`Traelix",
+		"Hail Zombie #22":        "Hail Zombie #22",
+		"é中\U0001F600":           "",
+		"||||":                   "",
+		"a\x00b\x07c":            "abc",
 	} {
 		if got := consoleLine(in, chatLineMost); got != want {
 			t.Errorf("%q: %q, want %q", in, got, want)
@@ -70,7 +72,7 @@ func TestConsoleText(t *testing.T) {
 			kept.WriteRune(c)
 		}
 	}
-	if want := ` !"%'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~`; kept.String() != want {
+	if want := " !\"#%'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ_`abcdefghijklmnopqrstuvwxyz~"; kept.String() != want {
 		t.Errorf("a console's keys:\n %s\nwant\n %s", kept.String(), want)
 	}
 }

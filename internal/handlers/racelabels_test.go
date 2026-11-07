@@ -324,7 +324,8 @@ func raceLabelsThroughARestart(t *testing.T, r *raceRig) {
 }
 
 // The heirlooms' best is of the items the race its character passes as may wear:
-// no item's mask has a race of racedefs' bit, so a Hill Giant's took nothing.
+// the masks of every race of the game's (1023) have no custom race's bit, so a Hill
+// Giant's passed them all over.
 func TestAnHeirloomOfACustomRaceIsItsLevelsBest(t *testing.T) {
 	f := newHeirloomFixture(t)
 	if _, err := f.db.Exec(`INSERT INTO racedefs (id, name, wire_race) VALUES (11, 'Hill Giant', 9)`); err != nil {
@@ -334,7 +335,7 @@ func TestAnHeirloomOfACustomRaceIsItsLevelsBest(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { entity.SetRaceDefs(nil) })
-	// the mask of every race but the wire's: its own bit would not help it, the control
+	// every item's mask the game's every race, as most of the live records are
 	if _, err := f.db.Exec(`UPDATE itempattern SET raceuse = 1023`); err != nil {
 		t.Fatal(err)
 	}

@@ -36,9 +36,10 @@ func refusedFull(msgs [][]byte) bool {
 
 // A flag asks every player within 60 in its world in no group, in the box a group
 // invite shows, named as its leader's raid, and the leader hears whom. Controls: past
-// 60, up in the air past it, another world, another group, a client still loading.
+// 60, up in the air past it, another world, another group, a client still loading, a
+// GM hidden from players (named in no one's line, and asked once it is not).
 func TestARaidFlagAsksThoseInReach(t *testing.T) {
-	r := newRaidRig(t, 9, 30)
+	r := newRaidRig(t, 10, 30)
 	r.join(0, 1) // Bob: in the leader's group
 	r.join(2, 3) // Cal and Dee: a group of their own
 	r.drainAll()
@@ -47,8 +48,9 @@ func TestARaidFlagAsksThoseInReach(t *testing.T) {
 	r.w.UpdatePosition(r.p[6].ServerID, 1000+10, 10+70, 1000, 0) // Gus, overhead past it
 	r.p[7].World = 2                                             // Hal, in another world
 	r.sess[8].SetCharacterInWorld(false)                         // Ivy, loading
+	r.p[9].GMHidden = true
 	r.w.RaidCall(r.sess[0])
-	for i, want := range map[int][]string{1: nil, 2: nil, 3: nil, 4: {"Ann's raid"}, 5: nil, 6: nil, 7: nil, 8: nil} {
+	for i, want := range map[int][]string{1: nil, 2: nil, 3: nil, 4: {"Ann's raid"}, 5: nil, 6: nil, 7: nil, 8: nil, 9: nil} {
 		msgs := drain(r.sess[i])
 		if got := boxesIn(msgs); fmt.Sprint(got) != fmt.Sprint(want) {
 			t.Errorf("%s's boxes %q, want %q", r.p[i].Name, got, want)
@@ -59,6 +61,11 @@ func TestARaidFlagAsksThoseInReach(t *testing.T) {
 	}
 	if got := r.heard(0); !hasLine(got, "Raid flag: asked Eve.") {
 		t.Errorf("the leader heard %q", got)
+	}
+	r.p[9].GMHidden = false
+	r.w.RaidCall(r.sess[0])
+	if got := boxesIn(drain(r.sess[9])); fmt.Sprint(got) != "[Ann's raid]" {
+		t.Errorf("the GM seen again: boxes %q", got)
 	}
 	if b := raidAskedLine(nil, 2); b != "Raid flag: no one new within 60 in no group. 2 still to answer." {
 		t.Errorf("no one: %q", b)
@@ -367,6 +374,33 @@ func (r *raidRig) rosterPass() {
 	defer r.w.mu.Unlock()
 	r.w.TickCount += raidRosterTicks - r.w.TickCount%raidRosterTicks
 	r.w.raidRosterSystem()
+}
+
+// A client that shows the whole roster is not told what bars hold; one with its window
+// of four is, when the group becomes a raid group and when it joins one.
+func TestARaidGroupsLineFitsWhatItsClientShows(t *testing.T) {
+	r := newRaidRig(t, 7, 30)
+	r.form(4)
+	r.w.SetRaidRoster(r.sess[1], true)
+	r.w.SetRaidRoster(r.sess[5], true)
+	r.drainAll()
+	r.join(0, 4)
+	if got := r.heard(1); !hasLine(got, raidNowWords) || hasLine(got, raidNowLine) {
+		t.Errorf("a client with the roster heard %q", got)
+	}
+	if got := r.heard(2); !hasLine(got, raidNowLine) {
+		t.Errorf("a client with its window heard %q", got)
+	}
+	r.drainAll()
+	r.join(0, 5)
+	if got := r.heard(5); !hasLine(got, raidJoinedWords) || hasLine(got, raidJoinedLine) {
+		t.Errorf("a newcomer with the roster heard %q", got)
+	}
+	r.drainAll()
+	r.join(0, 6)
+	if got := r.heard(6); !hasLine(got, raidJoinedLine) {
+		t.Errorf("a newcomer with its window heard %q", got)
+	}
 }
 
 // A client that asked gets the whole raid group, each member's id as it knows it, name,

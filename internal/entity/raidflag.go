@@ -20,9 +20,10 @@ import (
 // was asked. Another /raid asks whoever has come into reach since: no one with a box
 // still unanswered, no one who said no in the last raidAskAgain (ours).
 //
-// On a retail PS2 /raid never reaches a server: ChatLine answers an unknown /command
-// itself (word 826) and neither of its keyboards has a #. It does send /t on as typed,
-// so "/t raid" is the flag there, on every client (a tell with no text is no tell).
+// On a PS2 with no S2 /raid never reaches a server: ChatLine answers an unknown /command
+// itself (word 826) and neither of its keyboards has a #; an S2 sends it on. Either way
+// it sends /t on as typed, so "/t raid" is the flag there, on every client (a tell with
+// no text is no tell). Both shown in the tracer.
 //
 // A caller in no group is asked first, in the same box. A client knows it is in a
 // group only from its own Invite or Accept (m_inGroup, which no message sets), and
@@ -112,13 +113,14 @@ func (w *World) raidAskedLocked(t, leader *Player, now time.Time) (waiting, refu
 }
 
 // raidFlagLocked raises leader's flag: everyone it reaches in no group, in the box
-// (the file's doc), and a line to the leader. Must be called with the lock held.
+// (the file's doc), and a line to the leader; a GM hidden from players is not one of
+// them. Must be called with the lock held.
 func (w *World) raidFlagLocked(sess *session.Session, leader *Player, now time.Time) {
 	var asked []string
 	waiting := 0
 	for _, id := range w.SpatialIndex.QueryRadius(leader.X, leader.Z, RaidFlagRadius) {
 		t := w.Players[id]
-		if t == nil || t == leader || t.GroupID != 0 || t.World != leader.World ||
+		if t == nil || t == leader || t.GroupID != 0 || t.World != leader.World || t.GMHidden ||
 			dist3(t.X, t.Y, t.Z, leader.X, leader.Y, leader.Z) > RaidFlagRadius {
 			continue
 		}

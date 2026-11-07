@@ -37,11 +37,14 @@ const RaidXPPct = 20
 // The lines a raid group's members are told. Ours, in a PS2's own characters
 // (`%` is safe: Msg0A7A hands the wide string to AddText, no format).
 var (
-	raidNowLine    = fmt.Sprintf("Your group is now a raid group: %d%% less XP from kills. Bars show %d others at most.", 100-RaidXPPct, GroupWindowSize-1)
-	raidJoinedLine = fmt.Sprintf("You joined a raid group: %d%% less XP from kills. Bars show %d others at most.", 100-RaidXPPct, GroupWindowSize-1)
-	raidEndLine    = "Your group is no longer a raid group: the XP cut ends."
-	raidFullLine   = fmt.Sprintf("This group is full at %d. Its leader's /raid (on a PS2, /t raid) asks everyone within %d to a raid group: %d%% less XP from kills.", GroupWindowSize, int(RaidFlagRadius), 100-RaidXPPct)
-	raidStillLine  = fmt.Sprintf("You are still in a raid group: %d%% less XP from kills. Logging out leaves it.", 100-RaidXPPct)
+	raidNowWords    = fmt.Sprintf("Your group is now a raid group: %d%% less XP from kills.", 100-RaidXPPct)
+	raidJoinedWords = fmt.Sprintf("You joined a raid group: %d%% less XP from kills.", 100-RaidXPPct)
+	raidBarsWords   = fmt.Sprintf(" Bars show %d others at most.", GroupWindowSize-1)
+	raidNowLine     = raidNowWords + raidBarsWords
+	raidJoinedLine  = raidJoinedWords + raidBarsWords
+	raidEndLine     = "Your group is no longer a raid group: the XP cut ends."
+	raidFullLine    = fmt.Sprintf("This group is full at %d. Its leader's /raid (on a PS2, /t raid) asks everyone within %d to a raid group: %d%% less XP from kills.", GroupWindowSize, int(RaidFlagRadius), 100-RaidXPPct)
+	raidStillLine   = fmt.Sprintf("You are still in a raid group: %d%% less XP from kills. Logging out leaves it.", 100-RaidXPPct)
 )
 
 // isRaid is whether g is a raid group.
@@ -88,6 +91,15 @@ func (w *World) groupSayLocked(g *Group, line string, except *Player) {
 	}
 }
 
+// raidLineFor is words for p's client, with what its bars hold unless it asked for
+// the whole roster (raidroster.go).
+func raidLineFor(p *Player, words string) string {
+	if p.RaidRoster {
+		return words
+	}
+	return words + raidBarsWords
+}
+
 // raidChangedLocked tells g's members when it has become a raid group or stopped
 // being one. Must be called with the lock held.
 func (w *World) raidChangedLocked(g *Group) {
@@ -98,7 +110,13 @@ func (w *World) raidChangedLocked(g *Group) {
 	g.raid = now
 	log.Printf("Group: group %d, %d members, raid group %v", g.ID, len(g.Members), now)
 	if now {
-		w.groupSayLocked(g, raidNowLine, nil)
+		for _, id := range g.Members {
+			if o := w.Players[id]; o != nil {
+				if s := w.sessionOfLocked(o); s != nil {
+					w.sendChatToSession(s, raidLineFor(o, raidNowWords))
+				}
+			}
+		}
 	} else {
 		w.groupSayLocked(g, raidEndLine, nil)
 	}
@@ -113,7 +131,7 @@ func (w *World) raidJoinedLocked(g *Group, p *Player, sess *session.Session) {
 		w.groupSayLocked(g, fmt.Sprintf("%s joined the raid group (%d members).", p.Name, len(g.Members)), p)
 	}
 	if g.raid {
-		w.sendChatToSession(sess, raidJoinedLine)
+		w.sendChatToSession(sess, raidLineFor(p, raidJoinedWords))
 	}
 	w.raidChangedLocked(g)
 }

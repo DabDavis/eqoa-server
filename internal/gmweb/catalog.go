@@ -447,6 +447,7 @@ var catalog = map[string]tableNote{
 			"secondary_weapon": {Label: "Secondary", Format: hex32, Section: "Gear"},
 			"shield":           {Label: "Shield", Format: hex32, Section: "Gear"},
 			"torso":            {Section: "Gear", Help: "armour set index"},
+			"unk_o":            {Label: "Armour tint", Section: "Gear", Help: "0 none, 1-14 the disc's tints on its armour (13 burgundy, 1 dark gray, 8 red, 6 gold)"},
 			"forearm":          {Section: "Gear"},
 			"gloves":           {Section: "Gear"},
 			"legs":             {Section: "Gear"},

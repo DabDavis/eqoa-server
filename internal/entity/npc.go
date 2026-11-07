@@ -36,6 +36,7 @@ type NPC struct {
 	SecondaryType   byte
 	Shield          int
 	Torso           int
+	Tint            int // its armour's tint (npcs.unk_o): the channel's 99-104, $Tints' 0-14
 	Forearm         int
 	NPCGloves       int
 	NPCLegs         int

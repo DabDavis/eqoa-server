@@ -97,6 +97,9 @@ def item_id(db, name):
     return r[0]
 
 
+STATS = ("str", "sta", "agi", "wis", "dex", "cha", "intelligence", "HPMAX", "POWMAX", "PoT", "HoT", "AC", "PR", "DR", "FR", "CR", "LR", "AR", "weapondamage")
+
+
 def apply_items(db, spec, say):
     cols = [r[1] for r in db.execute("PRAGMA table_info(itempattern)")]
     for it in spec.get("items", []):
@@ -111,6 +114,10 @@ def apply_items(db, spec, say):
         row["itemname"], row["itemdesc"] = it["name"], it.get("description", row["itemdesc"])
         if it.get("notrade"):
             row["trade"] = 1
+        if "stats" in it:  # its figures alone, none of the copied record's
+            for c in STATS:
+                row[c] = 0
+            row.update(it["stats"])
         for k, v in it.items():
             if k in row:
                 row[k] = v

@@ -20,8 +20,8 @@ package udp
 // the world as always, and before it reads a datagram gives the creatures what
 // was kept of them (entity/keepnpc.go: their places, hit points and deaths) and
 // puts each session back (ResumeKept): the character built from its row as a
-// login builds it, the slots and groups as they were. Once a client has reported where it stands it
-// is sent a MemoryDump there (ResumeDump), as a respawn is, which brings its
+// login builds it, the slots and groups as they were. Once a client has
+// reported where it stands it is sent a MemoryDump there (ResumeDump), as a respawn is, which brings its
 // copy of the character in line. CLIENT waits about 30 s for a silent server
 // (connection_set_failure(m_conn, 1000, 30000, 60000), viclient.cpp 1707); a
 // code-only restart takes ~5 s. Anything that cannot be put back is told the
@@ -406,8 +406,8 @@ func (l *Listener) Adopt(c *net.UDPConn) {
 // under its key with its connection as it was; each character built from its
 // row and given what was kept; then the groups, each client's entity slots, and
 // its dump due once it reports (at once for one that was dead: it respawns). A
-// session whose character cannot
-// be built is told the server went down (0x07C0) and goes once that is sent.
+// session whose character cannot be built is told the server went down (0x07C0)
+// and goes once that is sent.
 // It returns how many sessions were put back and how many were told.
 func (l *Listener) ResumeKept(snap *Snapshot, now time.Time) (resumed, told int) {
 	type back struct {

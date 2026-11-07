@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"net"
 	"testing"
 	"time"
 
@@ -244,5 +245,42 @@ func TestNoWindowsNoCorpses(t *testing.T) {
 	}
 	if n := RestoreCorpses([]KeptCorpse{{ID: 1, Opened: true}}); n != 0 {
 		t.Fatalf("%d back", n)
+	}
+}
+
+// A client with a corpse's window open as the restart comes has it closed as it is
+// resumed: its dump tells it it holds no corpse, and the window would say "Empty". The
+// control: one with no window open is sent nothing.
+func TestAWindowOpenOnACorpseClosesAtTheResume(t *testing.T) {
+	f := newCorpseFixture(t, 2)
+	f.h.OpenCorpse(f.sess, f.npc)
+	f.sent()
+	prev := keepWindows.Swap(f.h)
+	t.Cleanup(func() { keepWindows.Store(prev) })
+	if ex := KeepExtras(f.sess, f.player); !ex.LootOpen {
+		t.Fatal("its window not noted")
+	}
+	if ex := KeepExtras(testSession(), f.player); ex.LootOpen {
+		t.Fatal("another session's window noted")
+	}
+
+	db := keepDB(t)
+	_, _, sm := keepProcess(t, db)
+	resume := func(open bool, port int) map[protocol.GameOpcode]int {
+		sess := sm.CreateSession(&net.UDPAddr{IP: net.IPv4(203, 0, 113, 8), Port: port}, 7, 7, 7, 1, true)
+		sess.SetAccountID(3)
+		sess.SetCharacterServerID(7)
+		sess.SetPlayerObjectID(500000007)
+		sess.SetState(session.StateInGame)
+		if _, err := ResumeCharacter(sess, KeptExtras{LootOpen: open}, entity.KeptPlayer{CharServerID: 7, Name: "Hero"}, time.Now()); err != nil {
+			t.Fatal(err)
+		}
+		return queuedOpcodes(sess)
+	}
+	if n := resume(true, 5008)[protocol.OpcodeClientCloseLoot]; n != 1 {
+		t.Fatalf("window open: %d closes queued", n)
+	}
+	if n := resume(false, 5009)[protocol.OpcodeClientCloseLoot]; n != 0 {
+		t.Fatalf("no window: %d closes queued", n)
 	}
 }

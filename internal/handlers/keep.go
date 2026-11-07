@@ -25,6 +25,7 @@ import (
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -44,6 +45,8 @@ type KeptExtras struct {
 	AuctionForm   bool      `json:"auction_form,omitempty"`
 	QuestMarks    bool      `json:"quest_marks,omitempty"`
 	QuestProgress bool      `json:"quest_progress,omitempty"`
+	// LootOpen: its client has a corpse's window open (ResumeCharacter closes it)
+	LootOpen bool `json:"loot_open,omitempty"`
 }
 
 // KeptList is an item list's copy (itemlist.go's invList).
@@ -96,6 +99,12 @@ func KeepExtras(sess *session.Session, p *entity.Player) KeptExtras {
 	if q := Quests(); q != nil && p != nil {
 		k.QuestMarks, k.QuestProgress = q.keptFlags(p)
 	}
+	if h := keepWindows.Load(); h != nil {
+		ls := h.loots()
+		ls.mu.Lock()
+		_, k.LootOpen = ls.open[sess]
+		ls.mu.Unlock()
+	}
 	return k
 }
 
@@ -113,8 +122,9 @@ func (q *QuestEngine) keptFlags(p *entity.Player) (marks, progress bool) {
 // has been must be kept, even with nothing left on it: forgotten, its next opener
 // would roll it all again, coins too (they went to the first opener: a corpse
 // here holds none). A loot step's drops lie on it from the kill, opened or not.
-// Who has its window open is not kept: a client's next take on it is answered by
-// closing the window (openCorpse), and it opens the corpse again.
+// A window open on one is closed at the resume: the dump tells its client it holds
+// no corpse (CLIENT's HaveCorpse, Msg000D) and the window would stand there saying
+// "Empty" over a corpse that is not; the client opens it again.
 type KeptCorpse struct {
 	ID     uint32                                   `json:"id"`
 	Died   time.Time                                `json:"died"`
@@ -228,6 +238,9 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 		if ex.QuestProgress {
 			q.SetProgress(sess, player, true)
 		}
+	}
+	if ex.LootOpen {
+		queueReliable(sess, protocol.OpcodeClientCloseLoot, closeLootPayload())
 	}
 	return player, nil
 }

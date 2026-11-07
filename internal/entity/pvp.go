@@ -80,12 +80,14 @@ var pvpAreaAtTarget = false
 // The lines. A PS2 draws them from its own characters, and they wrap.
 const (
 	pvpOffServer = "PvP is not available on this server."
-	pvpLineOn    = "You are now flagged for PvP. Other flagged players can attack you, and you them. It stays on for at least a minute, and until a minute after your last fight with a player."
+	pvpLineOn    = "You are now flagged for PvP. Other flagged players can attack you, and you them, anywhere."
+	pvpLineOnHow = "/pvp (on a PS2, /t pvp) takes it off, once a minute has passed since it went on and since your last attack, given or taken."
 	pvpLineOff   = "You are no longer flagged for PvP."
-	pvpLineStays = "Your PvP flag stays on for %d more seconds."
+	pvpLineStays = "Your PvP flag stays on for %d more %s."
 	pvpLineDead  = "You cannot do that now."
 	pvpLineStill = "Your PvP flag is still on."
 	pvpLineArea  = "Area spells do not reach players."
+	pvpLineNot   = "You are not flagged for PvP, so you cannot attack %s. /pvp (on a PS2, /t pvp) flags you."
 )
 
 // pvpFlag is a player's flag; its zero value is off.
@@ -141,10 +143,15 @@ func (w *World) PvPCommand(sess *session.Session, now time.Time) *Player {
 		p.pvp = pvpFlag{on: true, hold: now.Add(PvPHoldTime)}
 		log.Printf("PvP: %s puts up the flag", p.Name)
 		w.sendChatToSession(sess, pvpLineOn)
+		w.sendChatToSession(sess, pvpLineOnHow)
 		return p
 	}
 	if left := p.pvp.hold.Sub(now); left > 0 {
-		w.sendChatToSession(sess, fmt.Sprintf(pvpLineStays, int(left.Seconds()+0.999)))
+		n, word := int(left.Seconds()+0.999), "seconds"
+		if n == 1 {
+			word = "second"
+		}
+		w.sendChatToSession(sess, fmt.Sprintf(pvpLineStays, n, word))
 		return nil
 	}
 	w.pvpOffLocked(p)
@@ -244,7 +251,7 @@ func pvpRefusal(p, t *Player) string {
 	case p.IsDead() || t.IsDead():
 		return ""
 	case !p.pvp.on:
-		return fmt.Sprintf("You are not flagged for PvP, so you cannot attack %s. Type /pvp to flag yourself.", t.Name)
+		return fmt.Sprintf(pvpLineNot, t.Name)
 	case !t.pvp.on:
 		return fmt.Sprintf("%s is not flagged for PvP.", t.Name)
 	case p.GroupID != 0 && p.GroupID == t.GroupID:
@@ -268,10 +275,16 @@ func (w *World) pvpSpellTargetLocked(p *Player, spell *CastSpell, target Entity)
 		}
 		return nil, "", false
 	}
-	if d.Charms() {
+	switch {
+	case d.Charms():
 		return nil, castFriendly, true
-	}
-	if spell.Area.Centre != AreaNone && !pvpAreaAtTarget {
+	case d.undeadOnly():
+		return nil, castNotUndead, true
+	case d.TargetKind == "animal":
+		return nil, castNotAnimal, true
+	case d.TargetKind == "summoned":
+		return nil, castNotSummoned, true
+	case spell.Area.Centre != AreaNone && !pvpAreaAtTarget:
 		return nil, pvpLineArea, true
 	}
 	if outOfRange(p, t.X, t.Y, t.Z, spell.Range) {

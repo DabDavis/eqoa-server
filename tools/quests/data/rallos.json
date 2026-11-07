@@ -1,0 +1,137 @@
+{
+ "city": "portal",
+ "quests": [
+  {
+   "key": "Portal/zaoran-plateau/catapult",
+   "name": "The Catapult",
+   "giver": "catapult",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "An old catapult, its fuse dry, aimed at nothing. The guards on the bridge would surely come running.\nLight the fuse?",
+   "accept": "Light the fuse.",
+   "decline": "Leave it alone.",
+   "declined": "You leave it alone.",
+   "started": "The fuse catches.",
+   "events": [
+    {
+     "on": "accept",
+     "do": "trigger",
+     "trigger": "Catapult Fuse"
+    }
+   ],
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 5,
+     "x": 5525.0,
+     "y": 147.7,
+     "z": 6800.0,
+     "radius": 120,
+     "journal": "The fuse is lit. Get over the bridge while the guards are off it."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Rallos Zek (github.com/Jadiction/EQOA-Data, MIT). Steps 1 and 2. The guide's popup on approaching the bridge is a sign at the bridge's foot (no way to open a box for a passer-by). The guards run to the fire for 75 s (ours) and go back."
+  },
+  {
+   "key": "Portal/zaoran-plateau/rallos",
+   "name": "The Mark of Rallos",
+   "giver": "Signpost of Zek",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The post knows the Mark on you. The portal beyond it wakes for the Mark, and the Mark goes through last.\nPress the Mark to the post?",
+   "accept": "Press the Mark to the post.",
+   "decline": "Not yet.",
+   "declined": "The post waits.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Signpost of Zek",
+     "items": [
+      {
+       "item": "Mark of Rallos",
+       "count": 1
+      }
+     ],
+     "journal": "Press the Mark of Rallos to the signpost by the portal in the back corner.",
+     "says": "The portal wakes.",
+     "reminder": "The post wants the Mark of Rallos.",
+     "events": [
+      {
+       "on": "start",
+       "do": "dostep"
+      },
+      {
+       "on": "done",
+       "do": "trigger",
+       "trigger": "Rallos Zek",
+       "text": "The portal will not wake: another raid fights him."
+      },
+      {
+       "on": "done",
+       "do": "trigger",
+       "trigger": "Rallos Portal",
+       "text": "The portal will not wake: another raid fights him."
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Portal of Rallos",
+     "items": [
+      {
+       "item": "Mark of Rallos",
+       "count": 1
+      }
+     ],
+     "journal": "When your raid has gone through the portal, go last: it takes the Mark and closes behind you.",
+     "waiting": "It takes the Mark, and closes behind you.",
+     "choose": "Are you the last?",
+     "choices": [
+      {
+       "answer": "Yes, I am the last.",
+       "says": "The portal takes the Mark, and closes."
+      },
+      {
+       "answer": "No, there are more to come.",
+       "says": "The portal holds a little longer. Come back when you are the last.",
+       "stay": true
+      }
+     ],
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 5,
+       "x": 4356.4,
+       "y": 183.0,
+       "z": 6720.0
+      },
+      {
+       "on": "done",
+       "do": "trigger",
+       "trigger": "Rallos Portal Closes"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Rallos Zek Unbound",
+     "count": 1,
+     "journal": "Have at him. All three of his forms, and good luck."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Rallos Zek (github.com/Jadiction/EQOA-Data, MIT). Steps 6 and 7. The guide gives no reward but the fight and its loot (the forum's ZP Loot Table). A raid at a time: its lock 'rallos zek' holds until he falls, 2 h pass or the isle stands empty 10 minutes."
+  }
+ ],
+ "items": []
+}

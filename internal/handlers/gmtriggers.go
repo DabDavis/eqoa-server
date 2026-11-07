@@ -37,6 +37,15 @@ import (
 // panel's Stop, a stop step of another trigger. A trigger fired while it runs
 // runs again beside it.
 //
+// A trigger is also how the guides' raid encounters run (the user, 2026-11-07:
+// the Plane of Sky's constructs and twins, Rallos Zek, the Unnamed Champion): a
+// quest's trigger event (questevents.go) and a creature's death (table npcdeath)
+// fire one by its name, at its own place or where the creature fell, and its steps
+// wait on what the raid does: awaittalk for a player at an NPC (Talk, before the
+// quests), awaitdead for its spawns, a clock for the whole of it, a place moved
+// when the raid is moved, a lock so one raid at a time has the place. The firing
+// player is not told the GMs' lines. A restart ends a run, as it ends a pet.
+//
 // Vanilla shows each line's name (not retail: protocol.OpcodeGMTriggers): a
 // GM's client is offered the names with the GM channel, and one that answers
 // 1 is sent the whole set (OpcodeGMTriggersData) then and whenever a trigger
@@ -78,6 +87,10 @@ type TriggerEngine struct {
 	now  func() time.Time
 	rand func() float64
 	stop chan struct{}
+
+	// deaths is table npcdeath; kills what the World heard, for the worker
+	deaths map[string][]database.NPCDeathTrigger
+	kills  chan entity.KillCredit
 }
 
 // triggerRun is one firing of a trigger.
@@ -94,6 +107,29 @@ type triggerRun struct {
 	start   time.Time
 	spawns  []triggerSpawn
 	stopped bool // ended by a stop: a tick in hand passes it by
+	quiet   bool // fired by a quest or a death: no GM to tell its steps
+
+	// lock is its trigger's (database.TriggerLockName); reach its own, once a
+	// place step set one (0: the trigger's)
+	lock  string
+	reach float32
+	// await is the step it waits on (awaittalk, awaitdead), until at when it
+	// has a time (zero: none); deadline its clock's end (zero: none); died the
+	// names of its spawns that died during this wait, and dead where its last did
+	await    *database.TriggerStep
+	deadline time.Time
+	// emptyAfter is the clock's empty (0: none), lastNear when a player was last within
+	// its reach
+	emptyAfter time.Duration
+	lastNear   time.Time
+	died       []string
+	dead       *triggerPlaceAt
+}
+
+// triggerPlaceAt is a place in a world.
+type triggerPlaceAt struct {
+	world   uint8
+	x, y, z float32
 }
 
 // triggerSpawn is an NPC a run's spawn step placed.
@@ -110,6 +146,11 @@ type TriggerFirer struct {
 	Name   string
 	Sess   *session.Session
 	Player *entity.Player
+	// Quiet is a firing no GM made: nobody is told its steps' lines
+	Quiet bool
+	// At is the place of a trigger with none of its own, where no GM stands (a
+	// death's)
+	At *triggerPlaceAt
 }
 
 // TriggerRunInfo is a run as the GM panel lists it.
@@ -141,6 +182,7 @@ func NewTriggerEngine(db *database.SQLiteDB, gw *entity.World, sm *session.Manag
 		now:   time.Now,
 		rand:  rand.Float64,
 		stop:  make(chan struct{}),
+		kills: make(chan entity.KillCredit, 256),
 	}
 	if db != nil {
 		e.items = database.NewItemPatternStore(db)
@@ -153,6 +195,9 @@ func NewTriggerEngine(db *database.SQLiteDB, gw *entity.World, sm *session.Manag
 
 // Start looks at the runs once a second and makes this the running engine.
 func (e *TriggerEngine) Start() {
+	if e.gw != nil {
+		e.gw.OnKill(e.heardKill)
+	}
 	go func() {
 		t := time.NewTicker(triggerTick)
 		defer t.Stop()
@@ -160,6 +205,8 @@ func (e *TriggerEngine) Start() {
 			select {
 			case <-e.stop:
 				return
+			case k := <-e.kills:
+				e.Killed(k)
 			case <-t.C:
 				e.Tick()
 			}
@@ -188,11 +235,115 @@ func (e *TriggerEngine) Reload() error {
 	if err != nil {
 		return err
 	}
+	deaths, err := e.db.NPCDeathTriggers()
+	if err != nil {
+		return err
+	}
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	e.cat = all
+	e.deaths = deaths
 	e.syncNamesLocked()
 	return nil
+}
+
+// heardKill takes a kill from the World (its lock held: never wait here).
+func (e *TriggerEngine) heardKill(k entity.KillCredit) {
+	select {
+	case e.kills <- k:
+	default:
+		log.Printf("Triggers: a kill of %q was not heard (the queue is full)", k.NPCName)
+	}
+}
+
+// Killed fires what a creature's death fires (table npcdeath) where it fell.
+func (e *TriggerEngine) Killed(k entity.KillCredit) {
+	e.mu.Lock()
+	rows := e.deaths[database.NPCClassKey(k.NPCName)]
+	e.mu.Unlock()
+	if len(rows) == 0 {
+		return
+	}
+	world, x, y, z, ok := e.gw.NPCSpot(k.NPCID)
+	if !ok {
+		return
+	}
+	for _, r := range rows {
+		if r.Chance < 100 && e.rand()*100 >= r.Chance {
+			continue
+		}
+		if _, err := e.FireNamed(r.Trigger, TriggerFirer{Name: k.NPCName + "'s death", Quiet: true,
+			At: &triggerPlaceAt{world: world, x: x, y: y, z: z}}); err != nil && !errors.Is(err, ErrTriggerBusy) {
+			log.Printf("Triggers: %q's death fires %q: %v", k.NPCName, r.Trigger, err)
+		}
+	}
+}
+
+// bySlotNamed is the slot of the trigger called name (any case), the first by
+// slot, false for none.
+func (e *TriggerEngine) slotNamed(name string) (int, bool) {
+	all, err := e.db.GMTriggers()
+	if err != nil {
+		log.Printf("Triggers: %v", err)
+		return 0, false
+	}
+	name = strings.TrimSpace(name)
+	for _, t := range all {
+		if strings.EqualFold(strings.TrimSpace(t.Name), name) {
+			return t.Slot, true
+		}
+	}
+	return 0, false
+}
+
+// FireNamed is Fire for the trigger called name (a quest's event, npcdeath's rows).
+func (e *TriggerEngine) FireNamed(name string, by TriggerFirer) ([]string, error) {
+	if e == nil || e.db == nil || e.gw == nil {
+		return nil, ErrTriggerNone
+	}
+	slot, ok := e.slotNamed(name)
+	if !ok {
+		return nil, fmt.Errorf("%w: %q", ErrTriggerNone, name)
+	}
+	return e.Fire(slot, by)
+}
+
+// BusyNamed reports the trigger called name kept from firing by its lock: a run
+// of the same lock lives. What is handed in for a firing asks first
+// (questevents.go).
+func (e *TriggerEngine) BusyNamed(name string) bool {
+	if e == nil || e.db == nil {
+		return false
+	}
+	slot, ok := e.slotNamed(name)
+	if !ok {
+		return false
+	}
+	t, ok, err := e.db.GMTriggerBySlot(slot)
+	if err != nil || !ok {
+		return false
+	}
+	steps, err := database.ParseTriggerSteps(t.Steps)
+	if err != nil {
+		return false
+	}
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return e.lockHeldLocked(database.TriggerLockName(steps))
+}
+
+// lockHeldLocked is whether a run of that lock lives ("": no lock, never). Must
+// be called with e.mu held.
+func (e *TriggerEngine) lockHeldLocked(lock string) bool {
+	if lock == "" {
+		return false
+	}
+	for _, r := range e.runs {
+		if r.lock == lock {
+			return true
+		}
+	}
+	return false
 }
 
 // List is every trigger as last read.
@@ -208,6 +359,7 @@ var (
 	ErrTriggerOff     = errors.New("the trigger is off")
 	ErrTriggerBroken  = errors.New("the trigger cannot run as written")
 	ErrTriggerNoPlace = errors.New("the trigger has no place")
+	ErrTriggerBusy    = errors.New("a run of the trigger's lock lives")
 )
 
 // Fire runs the trigger in slot as by: its steps until a wait (Tick goes on
@@ -231,7 +383,7 @@ func (e *TriggerEngine) Fire(slot int, by TriggerFirer) ([]string, error) {
 		return []string{fmt.Sprintf("%s cannot run: %s", t.Title(), probs[0])}, ErrTriggerBroken
 	}
 	steps, _ := database.ParseTriggerSteps(t.Steps)
-	r := &triggerRun{trig: t, steps: steps, by: strings.TrimSpace(by.Name)}
+	r := &triggerRun{trig: t, steps: steps, by: strings.TrimSpace(by.Name), quiet: by.Quiet, lock: database.TriggerLockName(steps)}
 	if by.Player != nil {
 		r.gmChar = by.Player.CharServerID
 		if r.by == "" {
@@ -240,6 +392,8 @@ func (e *TriggerEngine) Fire(slot int, by TriggerFirer) ([]string, error) {
 	}
 	if t.Fixed() {
 		r.world, r.x, r.y, r.z = uint8(t.World), t.X, t.Y, t.Z
+	} else if by.At != nil {
+		r.world, r.x, r.y, r.z = by.At.world, by.At.x, by.At.y, by.At.z
 	} else {
 		world, x, y, z, _, ok := e.gw.PlayerSpot(by.Player)
 		if by.Player == nil || !ok {
@@ -250,6 +404,9 @@ func (e *TriggerEngine) Fire(slot int, by TriggerFirer) ([]string, error) {
 
 	e.mu.Lock()
 	defer e.mu.Unlock()
+	if e.lockHeldLocked(r.lock) {
+		return []string{fmt.Sprintf("%s waits: a run of its lock %q lives", t.Title(), r.lock)}, ErrTriggerBusy
+	}
 	if all, err := e.db.GMTriggers(); err == nil {
 		e.cat = all
 	}
@@ -346,19 +503,17 @@ func (e *TriggerEngine) Tick() {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	now := e.now()
-	for _, r := range append([]*triggerRun(nil), e.runs...) {
-		if !r.stopped && r.next < len(r.steps) && !now.Before(r.at) {
-			lines := e.advanceLocked(r)
-			e.tellGMLocked(r, lines)
-		}
-	}
-	keep := e.runs[:0]
+	// its spawns first: a wait on one's death goes on in the same second
 	for _, r := range e.runs {
 		alive := r.spawns[:0]
 		for _, s := range r.spawns {
 			switch {
 			case !e.gw.NPCAlive(s.id):
 				// dead (its corpse goes as a GM's spawn's does) or gone
+				r.died = append(r.died, s.name)
+				if world, x, y, z, ok := e.gw.NPCSpot(s.id); ok {
+					r.dead = &triggerPlaceAt{world: world, x: x, y: y, z: z}
+				}
 			case now.After(s.until):
 				e.gw.DespawnNPC(s.id)
 				log.Printf("Triggers: %s's %s (%d) stayed its time: taken away", r.trig.Title(), s.name, s.id)
@@ -367,6 +522,25 @@ func (e *TriggerEngine) Tick() {
 			}
 		}
 		r.spawns = alive
+	}
+	for _, r := range append([]*triggerRun(nil), e.runs...) {
+		if r.stopped {
+			continue
+		}
+		if !r.deadline.IsZero() && (!now.Before(r.deadline) || e.emptyLocked(r, now)) {
+			e.clockEndLocked(r)
+		}
+		if r.await != nil && !e.awaitOverLocked(r, now) {
+			continue
+		}
+		if r.next < len(r.steps) && !now.Before(r.at) {
+			r.await = nil
+			lines := e.advanceLocked(r)
+			e.tellGMLocked(r, lines)
+		}
+	}
+	keep := e.runs[:0]
+	for _, r := range e.runs {
 		if r.next >= len(r.steps) && len(r.spawns) == 0 {
 			log.Printf("Triggers: %s's run %d ended", r.trig.Title(), r.id)
 			continue
@@ -383,7 +557,7 @@ func (e *TriggerEngine) Tick() {
 // tellGMLocked says a run's lines to the GM who fired it, when it is in the
 // world.
 func (e *TriggerEngine) tellGMLocked(r *triggerRun, lines []string) {
-	if r.gmChar == 0 || len(lines) == 0 {
+	if r.gmChar == 0 || len(lines) == 0 || r.quiet {
 		return
 	}
 	sess := SessionOfCharacter(e.gw, e.sm, r.gmChar)
@@ -406,6 +580,14 @@ func (e *TriggerEngine) advanceLocked(r *triggerRun) []string {
 			r.at = e.now().Add(time.Duration(s.Seconds * float64(time.Second)))
 			if r.next < len(r.steps) {
 				lines = append(lines, fmt.Sprintf("waiting %s", seconds(s.Seconds)))
+			}
+			return lines
+		}
+		if s.Do == database.TriggerAwaitTalk || s.Do == database.TriggerAwaitDead {
+			step := s
+			r.await, r.died, r.at = &step, nil, time.Time{}
+			if s.Seconds > 0 {
+				r.at = e.now().Add(time.Duration(s.Seconds * float64(time.Second)))
 			}
 			return lines
 		}
@@ -451,6 +633,9 @@ func (e *TriggerEngine) audience(r *triggerRun) []triggerMember {
 		return true
 	})
 	reach := r.trig.Reach()
+	if r.reach > 0 {
+		reach = r.reach
+	}
 	var out []triggerMember
 	for _, sess := range sessions {
 		p := e.gw.SessionPlayer(sess)
@@ -541,8 +726,163 @@ func (e *TriggerEngine) stepLocked(r *triggerRun, s database.TriggerStep) string
 			return fmt.Sprintf("stopped %d other runs (%d spawns taken away)", runs, spawns)
 		}
 		return fmt.Sprintf("stopped %d runs of trigger %d (%d spawns taken away)", runs, s.Slot, spawns)
+	case database.TriggerPlace:
+		if s.Dead && r.dead != nil {
+			r.world, r.x, r.y, r.z = r.dead.world, r.dead.x, r.dead.y, r.dead.z
+		} else if s.World != nil {
+			r.world, r.x, r.y, r.z = uint8(*s.World), s.X, s.Y, s.Z
+		}
+		if s.Radius > 0 {
+			r.reach = s.Radius
+		}
+		return fmt.Sprintf("its place now (%.0f, %.0f) in %s", r.x, r.z, worldName(r.world))
+	case database.TriggerClock:
+		r.deadline = e.now().Add(time.Duration(s.Seconds * float64(time.Second)))
+		r.emptyAfter = time.Duration(s.Empty * float64(time.Second))
+		r.lastNear = e.now()
+		return "its clock set: " + seconds(s.Seconds)
+	case database.TriggerEnd:
+		r.deadline = time.Time{}
+		return ""
+	case database.TriggerWalk:
+		world := r.world
+		if s.World != nil {
+			world = uint8(*s.World)
+		}
+		return fmt.Sprintf("%d of %s set walking", e.gw.WalkNPCsTo(strings.TrimSpace(s.NPC), r.world, r.x, r.z, e.reachOf(r, s),
+			world, s.X, s.Y, s.Z), s.NPC)
+	case database.TriggerHome:
+		return fmt.Sprintf("%d of %s sent home", e.gw.SendNPCsHome(strings.TrimSpace(s.NPC), r.world, r.x, r.z, e.reachOf(r, s)), s.NPC)
+	case database.TriggerRouse:
+		n := 0
+		for _, sp := range r.spawns {
+			if strings.EqualFold(sp.name, strings.TrimSpace(s.NPC)) && e.gw.RouseNPC(sp.id) {
+				n++
+			}
+		}
+		return fmt.Sprintf("%d of %s roused", n, s.NPC)
+	case database.TriggerHide:
+		until := time.Time{}
+		if s.Minutes > 0 {
+			until = e.now().Add(time.Duration(s.Minutes * float64(time.Minute)))
+		}
+		return fmt.Sprintf("%d of %s out of view for %s", e.gw.HideNPCs(strings.TrimSpace(s.NPC), r.world, r.x, r.z, e.reachOf(r, s), until), s.NPC, seconds(s.Minutes*60))
 	}
 	return ""
+}
+
+// reachOf is how far from the run's place a step takes its NPCs: its radius, else
+// the run's reach. Must be called with e.mu held.
+func (e *TriggerEngine) reachOf(r *triggerRun, s database.TriggerStep) float32 {
+	switch {
+	case s.Radius > 0:
+		return s.Radius
+	case r.reach > 0:
+		return r.reach
+	}
+	return r.trig.Reach()
+}
+
+// emptyLocked is whether a run's place has stood empty as long as its clock allows
+// (a raid wiped, or gone): the clock's end at once, so the place's lock does not
+// hold for the rest of its time. Must be called with e.mu held.
+func (e *TriggerEngine) emptyLocked(r *triggerRun, now time.Time) bool {
+	if r.emptyAfter <= 0 {
+		return false
+	}
+	reach := r.trig.Reach()
+	if r.reach > 0 {
+		reach = r.reach
+	}
+	if e.gw.PlayerNear(r.world, r.x, r.z, reach) {
+		r.lastNear = now
+		return false
+	}
+	return now.Sub(r.lastNear) >= r.emptyAfter
+}
+
+// clockEndLocked is a run's clock run out: its spawns alive taken away, and it goes
+// on from its end step (past all of them when it has none). Must be called with
+// e.mu held.
+func (e *TriggerEngine) clockEndLocked(r *triggerRun) {
+	r.deadline, r.await, r.at = time.Time{}, nil, time.Time{}
+	e.despawnLocked(r, "")
+	next := len(r.steps)
+	for i := r.next; i < len(r.steps); i++ {
+		if r.steps[i].Do == database.TriggerEnd {
+			next = i
+			break
+		}
+	}
+	r.next = next
+	log.Printf("Triggers: %s's run %d: its clock ran out, on from step %d of %d", r.trig.Title(), r.id, next+1, len(r.steps))
+}
+
+// awaitOverLocked is whether what a run waits on is over: its time up, or for
+// awaitdead its spawns' deaths (those of its npc; any: one, else all of them gone).
+// A talk ends its wait in Talk. Must be called with e.mu held.
+func (e *TriggerEngine) awaitOverLocked(r *triggerRun, now time.Time) bool {
+	s := r.await
+	if s == nil {
+		return true
+	}
+	if !r.at.IsZero() && !now.Before(r.at) {
+		return true
+	}
+	if s.Do != database.TriggerAwaitDead {
+		return false
+	}
+	names := func(n string) bool {
+		return strings.TrimSpace(s.NPC) == "" || strings.EqualFold(n, strings.TrimSpace(s.NPC))
+	}
+	if s.Any {
+		for _, n := range r.died {
+			if names(n) {
+				return true
+			}
+		}
+		return false
+	}
+	for _, sp := range r.spawns {
+		if names(sp.name) {
+			return false
+		}
+	}
+	return true
+}
+
+// Talk is HandleInteract's question before the quests: a run waiting for a player
+// to talk to this NPC goes on, the step's words said to the talker; a class the
+// step does not take is told its refusal. It reports whether a run answered.
+func (e *TriggerEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) bool {
+	if e == nil || p == nil || npc == nil || npc.Dead {
+		return false
+	}
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	for _, r := range e.runs {
+		s := r.await
+		if r.stopped || s == nil || s.Do != database.TriggerAwaitTalk || !strings.EqualFold(strings.TrimSpace(s.NPC), strings.TrimSpace(npc.Name)) || npc.World != r.world {
+			continue
+		}
+		// one of the name elsewhere in the world (the main isle's Astral Light) is not this one
+		if reach := e.reachOf(r, *s); math.Hypot(float64(npc.X-r.x), float64(npc.Z-r.z)) > float64(reach) {
+			continue
+		}
+		if len(s.Classes) > 0 && !containsInt(s.Classes, p.Class) {
+			sayBoxes(sess, npc.Name, orText(triggerText(s.Refuse, p.Name), "Not you."))
+			return true
+		}
+		if t := strings.TrimSpace(s.Text); t != "" {
+			sayBoxes(sess, npc.Name, triggerText(t, p.Name))
+		}
+		log.Printf("Triggers: %s talked to %s: %s's run %d goes on", p.Name, npc.Name, r.trig.Title(), r.id)
+		r.await, r.at = nil, time.Time{}
+		e.tellGMLocked(r, e.advanceLocked(r))
+		e.syncNamesLocked()
+		return true
+	}
+	return false
 }
 
 // triggerText is a step's words for a player: %p its name.
@@ -650,14 +990,37 @@ func (e *TriggerEngine) teleportLocked(r *triggerRun, s database.TriggerStep) st
 	if _, err := ValidateTeleport(s.X, s.Y, s.Z, world); err != nil {
 		return "teleport refused: " + err.Error()
 	}
-	n, refused := 0, 0
-	for _, m := range e.audience(r) {
+	who := e.audience(r)
+	if s.Max > 0 {
+		// the firer first, then the nearest; each with a pet counts it too
+		// ("it only ports 16 ppl and pets count as 1")
+		dist := func(m triggerMember) float64 {
+			_, x, _, z, _, _ := e.gw.PlayerSpot(m.p)
+			if r.gmChar != 0 && m.p.CharServerID == r.gmChar {
+				return -1
+			}
+			return math.Hypot(float64(x-r.x), float64(z-r.z))
+		}
+		sort.SliceStable(who, func(i, j int) bool { return dist(who[i]) < dist(who[j]) })
+	}
+	n, refused, room := 0, 0, s.Max
+	for _, m := range who {
 		if m.dead {
 			continue
 		}
 		if !CanLoadWorld(m.sess, world) {
 			refused++
 			continue
+		}
+		if s.Max > 0 {
+			take := teleportRoomTaken(e.gw.PetOf(m.p) != 0)
+			if take > room {
+				if t := strings.TrimSpace(s.Refuse); t != "" {
+					SendClientMessage(m.sess, triggerText(t, m.p.Name))
+				}
+				continue
+			}
+			room -= take
 		}
 		facing, counter, changed, ok := e.gw.BeginWarp(m.p.ServerID, world)
 		if !ok {
@@ -675,6 +1038,14 @@ func (e *TriggerEngine) teleportLocked(r *triggerRun, s database.TriggerStep) st
 	return line
 }
 
+// teleportRoomTaken is how much of a capped teleport one player takes: a pet is one more.
+func teleportRoomTaken(hasPet bool) int {
+	if hasPet {
+		return 2
+	}
+	return 1
+}
+
 // spawnLocked places the step's copies round its place (its own, or the
 // run's): spread apart on a ring, each facing the middle, for their stay.
 // Must be called with e.mu held.
@@ -684,6 +1055,12 @@ func (e *TriggerEngine) spawnLocked(r *triggerRun, s database.TriggerStep) strin
 		world, cx, cy, cz = uint8(*s.World), s.X, s.Y, s.Z
 	}
 	n := max(s.Count, 1)
+	if s.Max > 0 {
+		n = min(n, s.Max-e.gw.CountNear(strings.TrimSpace(s.NPC), world, cx, cz, 300))
+		if n <= 0 {
+			return fmt.Sprintf("%s: %d stand near already", s.NPC, s.Max)
+		}
+	}
 	spread := s.Spread
 	if spread <= 0 {
 		spread = database.TriggerDefaultSpread
@@ -706,6 +1083,9 @@ func (e *TriggerEngine) spawnLocked(r *triggerRun, s database.TriggerStep) strin
 		id, sp, ok := e.gw.SpawnEventNPC(name, world, cx, cy, cz, x, z, s.Hostile)
 		if !ok {
 			return fmt.Sprintf("no NPC named %q to spawn", name)
+		}
+		if s.Attackable {
+			e.gw.MakeAttackable(id)
 		}
 		spelled = sp
 		r.spawns = append(r.spawns, triggerSpawn{id: id, name: sp, until: until})

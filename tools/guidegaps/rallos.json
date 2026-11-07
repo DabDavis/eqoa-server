@@ -1,0 +1,1963 @@
+{
+ "items": [
+  {
+   "name": "Mark of Rallos",
+   "like": "Eye of the Sphynx",
+   "description": "Rallos Zek's own mark. His portal knows it.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Chosen's Staff",
+   "like": "dagger of clarity",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 32767,
+   "stats": {
+    "HPMAX": 100,
+    "agi": 15,
+    "dex": 15,
+    "wis": 15,
+    "CR": 40,
+    "attacktype": 3,
+    "equipslot": 12,
+    "model": 495410893,
+    "itemicon": -1010960774,
+    "weapondamage": 780
+   },
+   "description": "Procs 150 Ice Damage."
+  },
+  {
+   "name": "Chosen's Wand",
+   "like": "Keeper's Focus",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 32640,
+   "stats": {
+    "POWMAX": 150,
+    "cha": 20,
+    "intelligence": 20,
+    "dex": 20,
+    "CR": 40,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Chosen's Rapier",
+   "like": "dagger of clarity",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 127,
+   "stats": {
+    "HPMAX": 100,
+    "str": 15,
+    "dex": 15,
+    "agi": 15,
+    "CR": 40,
+    "weapondamage": 780
+   },
+   "description": "Procs 150 Ice Damage."
+  },
+  {
+   "name": "Chosen's Baton",
+   "like": "mace of clarity",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 32767,
+   "stats": {
+    "POWMAX": 150,
+    "sta": 15,
+    "wis": 15,
+    "cha": 15,
+    "CR": 40,
+    "weapondamage": 780
+   },
+   "description": "Procs 150 Ice Damage."
+  },
+  {
+   "name": "Chosen's Zwiehander",
+   "like": "Quilliam's sword of slayers",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 127,
+   "stats": {
+    "HPMAX": 200,
+    "str": 15,
+    "sta": 15,
+    "cha": 10,
+    "wis": 10,
+    "intelligence": 10,
+    "CR": 40,
+    "weapondamage": 905
+   },
+   "description": "Procs 150 Ice Damage."
+  },
+  {
+   "name": "Keeper's Mace",
+   "like": "mace of clarity",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 1023,
+   "stats": {
+    "POWMAX": 200,
+    "LR": 40,
+    "weapondamage": 780
+   },
+   "description": "Procs 150 Lightning Damage."
+  },
+  {
+   "name": "Keeper's Sai",
+   "like": "dagger of clarity",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 127,
+   "stats": {
+    "HPMAX": 175,
+    "LR": 40,
+    "weapondamage": 780
+   },
+   "description": "Procs 150 Lightning Damage."
+  },
+  {
+   "name": "Keeper's Greataxe",
+   "like": "Quilliam's sword of slayers",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 127,
+   "stats": {
+    "HPMAX": 300,
+    "LR": 40,
+    "weapondamage": 905
+   },
+   "description": "Procs 150 Lightning Damage."
+  },
+  {
+   "name": "Prophet's Focus",
+   "like": "Keeper's Focus",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 32767,
+   "stats": {
+    "POWMAX": 275,
+    "PoT": 25,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Warmonger's Greatsword",
+   "like": "Quilliam's sword of slayers",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 127,
+   "stats": {
+    "HPMAX": 200,
+    "str": 25,
+    "sta": 20,
+    "agi": 15,
+    "FR": 40,
+    "weapondamage": 905
+   },
+   "description": "Procs 150 Fire Damage."
+  },
+  {
+   "name": "Warmonger's Longsword",
+   "like": "Sword of Clarity",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 127,
+   "stats": {
+    "HPMAX": 100,
+    "agi": 25,
+    "dex": 15,
+    "str": 5,
+    "FR": 40,
+    "weapondamage": 780
+   },
+   "description": "Procs 150 Fire Damage."
+  },
+  {
+   "name": "Warmonger's Totem",
+   "like": "Keeper's Focus",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 32640,
+   "stats": {
+    "POWMAX": 200,
+    "intelligence": 25,
+    "dex": 15,
+    "agi": 10,
+    "FR": 40,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Warmonger's Club",
+   "like": "mace of clarity",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 1023,
+   "stats": {
+    "POWMAX": 150,
+    "wis": 25,
+    "cha": 15,
+    "dex": 5,
+    "FR": 40,
+    "weapondamage": 780
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Warmonger's Staff",
+   "like": "mace of clarity",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 32767,
+   "stats": {
+    "HPMAX": 100,
+    "dex": 25,
+    "sta": 15,
+    "intelligence": 5,
+    "FR": 40,
+    "model": 495410893,
+    "itemicon": -1010960774,
+    "weapondamage": 780
+   },
+   "description": "Procs 150 Fire Damage."
+  },
+  {
+   "name": "Sapphyra's Sword",
+   "like": "Sword of Clarity",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 13,
+   "stats": {
+    "HPMAX": 200,
+    "str": 25,
+    "sta": 25,
+    "FR": 50,
+    "AC": 150,
+    "weapondamage": 967
+   },
+   "description": "Procs 150 Ice Damage."
+  },
+  {
+   "name": "Victor's Blade",
+   "like": "Sword of Clarity",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 111,
+   "stats": {
+    "str": 50,
+    "HPMAX": 100,
+    "FR": 30,
+    "AC": 75,
+    "weapondamage": 725
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Earring of Capacity",
+   "like": "Battleborn Earring",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 31744,
+   "stats": {
+    "POWMAX": 225,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Ring of Determination",
+   "like": "Transcendent Ring",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 32767,
+   "stats": {
+    "str": 75,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Sash of the Destroyer",
+   "like": "sublime belt",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 32767,
+   "stats": {
+    "HPMAX": 225,
+    "AC": 15,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Warlord's Legplates",
+   "like": "Legplates of the Bastion",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 525,
+   "stats": {
+    "HPMAX": 70,
+    "POWMAX": 70,
+    "str": 10,
+    "sta": 10,
+    "intelligence": 10,
+    "cha": 10,
+    "wis": 10,
+    "DR": 40,
+    "AC": 328,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Greaves of Maneuvering",
+   "like": "Greaves of the Void",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 370,
+   "stats": {
+    "HPMAX": 70,
+    "POWMAX": 70,
+    "wis": 15,
+    "agi": 15,
+    "sta": 10,
+    "dex": 10,
+    "DR": 40,
+    "AC": 249,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Campaigner Legs",
+   "like": "Leggings of Obliteration",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 16528,
+   "stats": {
+    "HPMAX": 140,
+    "dex": 15,
+    "sta": 15,
+    "wis": 15,
+    "AC": 164,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Warmage's Leggings",
+   "like": "Leggings of Obliteration",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 15360,
+   "stats": {
+    "HPMAX": 70,
+    "POWMAX": 70,
+    "sta": 10,
+    "cha": 10,
+    "wis": 10,
+    "agi": 10,
+    "dex": 10,
+    "DR": 40,
+    "AC": 82,
+    "model": 1,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Subversive Leggings",
+   "like": "Leggings of Obliteration",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 15360,
+   "stats": {
+    "POWMAX": 150,
+    "intelligence": 50,
+    "LR": 40,
+    "AC": 82,
+    "model": 1,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Breastplate of Doubt",
+   "like": "Mail of Maneuvering",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 1024,
+   "stats": {
+    "HPMAX": 80,
+    "POWMAX": 60,
+    "cha": -50,
+    "intelligence": 50,
+    "AC": 450,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Tunic of Divinity",
+   "like": "Campaigner's Tunic",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 16528,
+   "stats": {
+    "HPMAX": 165,
+    "wis": 30,
+    "dex": 15,
+    "CR": 40,
+    "AC": 261,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Mail of the Seeker",
+   "like": "Mail of Maneuvering",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 370,
+   "stats": {
+    "HPMAX": 165,
+    "dex": 30,
+    "wis": 15,
+    "PR": 40,
+    "AC": 392,
+    "model": 7,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Tunic of Obliteration",
+   "like": "Campaigner's Tunic",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 16528,
+   "stats": {
+    "HPMAX": 150,
+    "dex": 50,
+    "AR": 40,
+    "AC": 261,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Chestplate of the Bastion",
+   "like": "Mail of Maneuvering",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 525,
+   "stats": {
+    "HPMAX": 165,
+    "str": 30,
+    "sta": 15,
+    "CR": 40,
+    "AC": 516,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Warlord's Chestguard",
+   "like": "Mail of Maneuvering",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 525,
+   "stats": {
+    "HPMAX": 165,
+    "str": 15,
+    "sta": 15,
+    "agi": 15,
+    "FR": 40,
+    "AC": 516,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Eliminator's Chestplate",
+   "like": "Mail of Maneuvering",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 525,
+   "stats": {
+    "HPMAX": 150,
+    "sta": 50,
+    "LR": 50,
+    "AC": 512,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Warmage's Tunic",
+   "like": "pneumatic tunic",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 15360,
+   "stats": {
+    "POWMAX": 165,
+    "dex": 15,
+    "intelligence": 15,
+    "sta": 15,
+    "FR": 40,
+    "AC": 131,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Subversive Tunic",
+   "like": "pneumatic tunic",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 31744,
+   "stats": {
+    "HPMAX": 150,
+    "dex": 50,
+    "AR": 40,
+    "AC": 131,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Righteous Tunic",
+   "like": "pneumatic tunic",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 15360,
+   "stats": {
+    "POWMAX": 165,
+    "dex": 15,
+    "intelligence": 30,
+    "CR": 40,
+    "AC": 131,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  },
+  {
+   "name": "Mail of the Void",
+   "like": "Mail of Maneuvering",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 370,
+   "stats": {
+    "HPMAX": 165,
+    "str": 50,
+    "LR": 40,
+    "AC": 249,
+    "model": 7,
+    "weapondamage": 0
+   },
+   "description": "From Rallos Zek's own hoard."
+  }
+ ],
+ "templates": [
+  {
+   "name": "akessan guard",
+   "class": 0,
+   "hp": 60000,
+   "level": 64,
+   "melee": 400,
+   "crit": 800,
+   "note": "The bridges' guards: a raid goes round them, not through. Ours."
+  },
+  {
+   "name": "zek initiate",
+   "class": 0,
+   "hp": 20000,
+   "level": 60,
+   "melee": 150,
+   "note": "Ours: a raid's trash, the spawn cycle's fodder."
+  },
+  {
+   "name": "zek captain",
+   "class": 0,
+   "hp": 60000,
+   "level": 62,
+   "melee": 250,
+   "crit": 600,
+   "note": "Ours."
+  },
+  {
+   "name": "zek commander",
+   "class": 0,
+   "hp": 120000,
+   "level": 64,
+   "melee": 350,
+   "crit": 800,
+   "note": "Ours: he drops the Mark."
+  },
+  {
+   "name": "zek trainer",
+   "class": 0,
+   "hp": 80000,
+   "level": 62,
+   "melee": 250,
+   "note": "Ours."
+  },
+  {
+   "name": "mograthar",
+   "class": 0,
+   "hp": 60000,
+   "level": 65,
+   "melee": 400,
+   "crit": 800,
+   "note": "'it dies in 1-2 mins easy as pie': 60k, ours."
+  },
+  {
+   "name": "rallos zek",
+   "class": 0,
+   "taken": 200,
+   "hp": 500000,
+   "level": 70,
+   "melee": 1550,
+   "crit": 2500,
+   "resist_kind": "FR,CR,LR,PR,DR",
+   "resist_pct": 75,
+   "abilities": [
+    {
+     "kind": "meleekind",
+     "melee_kind": "slash",
+     "taken_pct": 50
+    },
+    {
+     "kind": "meleekind",
+     "melee_kind": "pierce",
+     "taken_pct": 125
+    }
+   ],
+   "note": "Guide: quads 2200 a hit on the MT, resists slash by over 50%, nukes close to nothing but arcane; 500k of a 1.5M gauntlet, ours."
+  },
+  {
+   "name": "rallos zek the warlord",
+   "class": 0,
+   "taken": 200,
+   "hp": 500000,
+   "level": 70,
+   "melee": 1550,
+   "crit": 2500,
+   "resist_kind": "FR,CR,LR,PR,DR",
+   "resist_pct": 75,
+   "abilities": [
+    {
+     "kind": "meleekind",
+     "melee_kind": "slash",
+     "taken_pct": 50
+    },
+    {
+     "kind": "meleekind",
+     "melee_kind": "pierce",
+     "taken_pct": 125
+    },
+    {
+     "kind": "healshield",
+     "below": 50
+    }
+   ],
+   "note": "The second form: his heal shield goes active at half life (below 50% of this form: the gauntlet's middle): melee and pets heal him, arts and arcane do not."
+  },
+  {
+   "name": "rallos zek unbound",
+   "class": 3,
+   "taken": 200,
+   "hp": 500000,
+   "level": 70,
+   "melee": 2535,
+   "crit": 2500,
+   "resist_kind": "FR,CR,LR,PR,DR",
+   "resist_pct": 75,
+   "abilities": [
+    {
+     "kind": "meleekind",
+     "melee_kind": "slash",
+     "taken_pct": 50
+    },
+    {
+     "kind": "meleekind",
+     "melee_kind": "pierce",
+     "taken_pct": 125
+    },
+    {
+     "kind": "healshield",
+     "below": 100
+    }
+   ],
+   "note": "The third form: a double (a shadow knight's Attack3) for 3600ish, the heal shield up throughout."
+  }
+ ],
+ "npcs": [
+  {
+   "name": "catapult",
+   "world": 5,
+   "x": 5525.0,
+   "y": 147.7,
+   "z": 6800.0,
+   "facing": 0,
+   "level": 5,
+   "type": 128,
+   "body": "15BDF1BD",
+   "size": 2.5,
+   "note": "Green con behind you at the first Akessan bridge. No catapult is on the disc: the spiderbot's body, a machine at least."
+  },
+  {
+   "name": "Akessan Bridge",
+   "world": 5,
+   "x": 5518.0,
+   "y": 150.0,
+   "z": 6775.0,
+   "facing": 0,
+   "level": 1,
+   "type": 128,
+   "body": "6A82352C",
+   "size": 1.0,
+   "sign": "The guards on the bridge will not let you pass. You must find some way to distract them."
+  },
+  {
+   "name": "Akessan bridge guard",
+   "world": 5,
+   "x": 5525.0,
+   "y": 146.5,
+   "z": 6738.0,
+   "facing": 0,
+   "level": 64,
+   "type": 0,
+   "body": "320C0B47",
+   "size": 1.25,
+   "template": "akessan guard",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 4,
+    "forearm": 4,
+    "gloves": 4,
+    "legs": 4,
+    "feet": 4,
+    "head": 4,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Akessan bridge guard",
+   "world": 5,
+   "x": 5525.0,
+   "y": 146.5,
+   "z": 6744.0,
+   "facing": 0,
+   "level": 64,
+   "type": 0,
+   "body": "320C0B47",
+   "size": 1.25,
+   "template": "akessan guard",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 4,
+    "forearm": 4,
+    "gloves": 4,
+    "legs": 4,
+    "feet": 4,
+    "head": 4,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Akessan bridge guard",
+   "world": 5,
+   "x": 5525.0,
+   "y": 146.5,
+   "z": 6750.0,
+   "facing": 0,
+   "level": 64,
+   "type": 0,
+   "body": "320C0B47",
+   "size": 1.25,
+   "template": "akessan guard",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 4,
+    "forearm": 4,
+    "gloves": 4,
+    "legs": 4,
+    "feet": 4,
+    "head": 4,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Akessan bridge guard",
+   "world": 5,
+   "x": 5525.0,
+   "y": 146.5,
+   "z": 6756.0,
+   "facing": 0,
+   "level": 64,
+   "type": 0,
+   "body": "320C0B47",
+   "size": 1.25,
+   "template": "akessan guard",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 4,
+    "forearm": 4,
+    "gloves": 4,
+    "legs": 4,
+    "feet": 4,
+    "head": 4,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Zek bridge guard",
+   "world": 5,
+   "x": 5775.0,
+   "y": 146.5,
+   "z": 6578.0,
+   "facing": 0,
+   "level": 64,
+   "type": 0,
+   "body": "84807490",
+   "size": 1.25,
+   "template": "akessan guard",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 4,
+    "forearm": 4,
+    "gloves": 4,
+    "legs": 4,
+    "feet": 4,
+    "head": 4,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Zek bridge guard",
+   "world": 5,
+   "x": 5775.0,
+   "y": 146.5,
+   "z": 6586.0,
+   "facing": 0,
+   "level": 64,
+   "type": 0,
+   "body": "84807490",
+   "size": 1.25,
+   "template": "akessan guard",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 4,
+    "forearm": 4,
+    "gloves": 4,
+    "legs": 4,
+    "feet": 4,
+    "head": 4,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Zek bridge guard",
+   "world": 5,
+   "x": 5775.0,
+   "y": 146.5,
+   "z": 6594.0,
+   "facing": 0,
+   "level": 64,
+   "type": 0,
+   "body": "84807490",
+   "size": 1.25,
+   "template": "akessan guard",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 4,
+    "forearm": 4,
+    "gloves": 4,
+    "legs": 4,
+    "feet": 4,
+    "head": 4,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Zek bridge guard",
+   "world": 5,
+   "x": 5775.0,
+   "y": 146.5,
+   "z": 6602.0,
+   "facing": 0,
+   "level": 64,
+   "type": 0,
+   "body": "84807490",
+   "size": 1.25,
+   "template": "akessan guard",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 4,
+    "forearm": 4,
+    "gloves": 4,
+    "legs": 4,
+    "feet": 4,
+    "head": 4,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Zek initiate",
+   "world": 5,
+   "x": 5560.0,
+   "y": 147.7,
+   "z": 6690.0,
+   "facing": 0,
+   "level": 60,
+   "type": 0,
+   "body": "84807490",
+   "size": 1.1,
+   "template": "zek initiate",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 2,
+    "forearm": 2,
+    "gloves": 2,
+    "legs": 2,
+    "feet": 2,
+    "head": 2,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Zek initiate",
+   "world": 5,
+   "x": 5520.0,
+   "y": 147.7,
+   "z": 6660.0,
+   "facing": 0,
+   "level": 60,
+   "type": 0,
+   "body": "84807490",
+   "size": 1.1,
+   "template": "zek initiate",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 2,
+    "forearm": 2,
+    "gloves": 2,
+    "legs": 2,
+    "feet": 2,
+    "head": 2,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Zek initiate",
+   "world": 5,
+   "x": 5600.0,
+   "y": 147.7,
+   "z": 6640.0,
+   "facing": 0,
+   "level": 60,
+   "type": 0,
+   "body": "84807490",
+   "size": 1.1,
+   "template": "zek initiate",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 2,
+    "forearm": 2,
+    "gloves": 2,
+    "legs": 2,
+    "feet": 2,
+    "head": 2,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Zek initiate",
+   "world": 5,
+   "x": 5560.0,
+   "y": 147.7,
+   "z": 6620.0,
+   "facing": 0,
+   "level": 60,
+   "type": 0,
+   "body": "84807490",
+   "size": 1.1,
+   "template": "zek initiate",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 2,
+    "forearm": 2,
+    "gloves": 2,
+    "legs": 2,
+    "feet": 2,
+    "head": 2,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Zek initiate",
+   "world": 5,
+   "x": 5530.0,
+   "y": 147.7,
+   "z": 6600.0,
+   "facing": 0,
+   "level": 60,
+   "type": 0,
+   "body": "84807490",
+   "size": 1.1,
+   "template": "zek initiate",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 2,
+    "forearm": 2,
+    "gloves": 2,
+    "legs": 2,
+    "feet": 2,
+    "head": 2,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Zek initiate",
+   "world": 5,
+   "x": 5620.0,
+   "y": 147.7,
+   "z": 6700.0,
+   "facing": 0,
+   "level": 60,
+   "type": 0,
+   "body": "84807490",
+   "size": 1.1,
+   "template": "zek initiate",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 2,
+    "forearm": 2,
+    "gloves": 2,
+    "legs": 2,
+    "feet": 2,
+    "head": 2,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Zek initiate",
+   "world": 5,
+   "x": 5570.0,
+   "y": 147.7,
+   "z": 6655.0,
+   "facing": 0,
+   "level": 60,
+   "type": 0,
+   "body": "84807490",
+   "size": 1.1,
+   "template": "zek initiate",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 2,
+    "forearm": 2,
+    "gloves": 2,
+    "legs": 2,
+    "feet": 2,
+    "head": 2,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Zek initiate",
+   "world": 5,
+   "x": 5610.0,
+   "y": 147.7,
+   "z": 6680.0,
+   "facing": 0,
+   "level": 60,
+   "type": 0,
+   "body": "84807490",
+   "size": 1.1,
+   "template": "zek initiate",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 2,
+    "forearm": 2,
+    "gloves": 2,
+    "legs": 2,
+    "feet": 2,
+    "head": 2,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Zek initiate",
+   "world": 5,
+   "x": 5760.0,
+   "y": 147.7,
+   "z": 6680.0,
+   "facing": 0,
+   "level": 60,
+   "type": 0,
+   "body": "84807490",
+   "size": 1.1,
+   "template": "zek initiate",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 2,
+    "forearm": 2,
+    "gloves": 2,
+    "legs": 2,
+    "feet": 2,
+    "head": 2,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Zek initiate",
+   "world": 5,
+   "x": 5800.0,
+   "y": 147.7,
+   "z": 6640.0,
+   "facing": 0,
+   "level": 60,
+   "type": 0,
+   "body": "84807490",
+   "size": 1.1,
+   "template": "zek initiate",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 2,
+    "forearm": 2,
+    "gloves": 2,
+    "legs": 2,
+    "feet": 2,
+    "head": 2,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Zek initiate",
+   "world": 5,
+   "x": 5740.0,
+   "y": 147.7,
+   "z": 6650.0,
+   "facing": 0,
+   "level": 60,
+   "type": 0,
+   "body": "84807490",
+   "size": 1.1,
+   "template": "zek initiate",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 2,
+    "forearm": 2,
+    "gloves": 2,
+    "legs": 2,
+    "feet": 2,
+    "head": 2,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Zek initiate",
+   "world": 5,
+   "x": 5810.0,
+   "y": 147.7,
+   "z": 6680.0,
+   "facing": 0,
+   "level": 60,
+   "type": 0,
+   "body": "84807490",
+   "size": 1.1,
+   "template": "zek initiate",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 2,
+    "forearm": 2,
+    "gloves": 2,
+    "legs": 2,
+    "feet": 2,
+    "head": 2,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Zek captain",
+   "world": 5,
+   "x": 5560.0,
+   "y": 147.7,
+   "z": 6655.0,
+   "facing": 0,
+   "level": 62,
+   "type": 0,
+   "body": "84807490",
+   "size": 1.5,
+   "template": "zek captain",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 4,
+    "forearm": 4,
+    "gloves": 4,
+    "legs": 4,
+    "feet": 4,
+    "head": 4,
+    "robe_style": "255"
+   },
+   "spawnonly": true
+  },
+  {
+   "name": "Zek commander",
+   "world": 5,
+   "x": 5560.0,
+   "y": 147.7,
+   "z": 6655.0,
+   "facing": 0,
+   "level": 64,
+   "type": 0,
+   "body": "84807490",
+   "size": 1.75,
+   "template": "zek commander",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 4,
+    "forearm": 4,
+    "gloves": 4,
+    "legs": 4,
+    "feet": 4,
+    "head": 4,
+    "robe_style": "255"
+   },
+   "spawnonly": true
+  },
+  {
+   "name": "Zek trainer",
+   "world": 5,
+   "x": 5780.0,
+   "y": 147.7,
+   "z": 6665.0,
+   "facing": 0,
+   "level": 62,
+   "type": 0,
+   "body": "84807490",
+   "size": 1.25,
+   "template": "zek trainer",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "look": {
+    "torso": 4,
+    "forearm": 4,
+    "gloves": 4,
+    "legs": 4,
+    "feet": 4,
+    "head": 4,
+    "robe_style": "255"
+   }
+  },
+  {
+   "name": "Mograthar",
+   "world": 5,
+   "x": 5786.0,
+   "y": 147.9,
+   "z": 6672.0,
+   "facing": 0,
+   "level": 65,
+   "type": 128,
+   "body": "C5CBF4CF",
+   "size": 2.5,
+   "template": "mograthar",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 0
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "note": "The Zek Trainer's unattackable pet (the guide's 'Mograthar? spelling', a giant minotaur-looking pet)."
+  },
+  {
+   "name": "Signpost of Zek",
+   "world": 5,
+   "x": 5722.0,
+   "y": 147.7,
+   "z": 6412.0,
+   "facing": 192,
+   "level": 1,
+   "type": 128,
+   "body": "C4B6331E",
+   "size": 0.5,
+   "note": "The guide's signpost; a sign's own body gives no quest, so a marked stone."
+  },
+  {
+   "name": "Portal of Rallos",
+   "world": 5,
+   "x": 5716.2,
+   "y": 148.6,
+   "z": 6403.8,
+   "facing": 0,
+   "level": 60,
+   "type": 384,
+   "body": "77F94B63",
+   "size": 1.0,
+   "spawnonly": true,
+   "note": "On the disc's pad in the back corner; stands while the Mark's run has spawned it."
+  },
+  {
+   "name": "Rallos Zek",
+   "world": 5,
+   "x": 4280.0,
+   "y": 183.0,
+   "z": 6700.0,
+   "facing": 192,
+   "level": 70,
+   "type": 0,
+   "body": "84807490",
+   "size": 5.0,
+   "spawnonly": true,
+   "template": "rallos zek",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 40
+   },
+   "class": 0,
+   "loot_region": "secrets",
+   "look": {
+    "torso": 4,
+    "forearm": 4,
+    "gloves": 4,
+    "legs": 4,
+    "feet": 4,
+    "head": 4,
+    "unk_o": 13,
+    "primary_weapon": 1205436896,
+    "robe_style": "255"
+   },
+   "note": "The user's word: a giant ogre in plate; the picture's dark red."
+  },
+  {
+   "name": "Rallos Zek the Warlord",
+   "world": 5,
+   "x": 4280.0,
+   "y": 183.0,
+   "z": 6700.0,
+   "facing": 192,
+   "level": 70,
+   "type": 0,
+   "body": "84807490",
+   "size": 5.0,
+   "spawnonly": true,
+   "template": "rallos zek the warlord",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 40
+   },
+   "class": 0,
+   "loot_region": "secrets",
+   "look": {
+    "torso": 4,
+    "forearm": 4,
+    "gloves": 4,
+    "legs": 4,
+    "feet": 4,
+    "head": 4,
+    "unk_o": 13,
+    "primary_weapon": 1205436896,
+    "robe_style": "255"
+   },
+   "note": "His second form."
+  },
+  {
+   "name": "Rallos Zek Unbound",
+   "world": 5,
+   "x": 4280.0,
+   "y": 183.0,
+   "z": 6700.0,
+   "facing": 192,
+   "level": 70,
+   "type": 0,
+   "body": "84807490",
+   "size": 5.5,
+   "spawnonly": true,
+   "template": "rallos zek unbound",
+   "charm": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 40
+   },
+   "class": 3,
+   "loot_region": "secrets",
+   "look": {
+    "torso": 4,
+    "forearm": 4,
+    "gloves": 4,
+    "legs": 4,
+    "feet": 4,
+    "head": 4,
+    "unk_o": 13,
+    "primary_weapon": 1113698091,
+    "robe_style": "255"
+   },
+   "note": "His third form: the two-hander, the double hit."
+  }
+ ],
+ "triggers": [
+  {
+   "slot": 110,
+   "name": "Catapult Fuse",
+   "scope": "near",
+   "radius": 120,
+   "world": 5,
+   "x": 5525.0,
+   "y": 147.7,
+   "z": 6775.0,
+   "steps": [
+    {
+     "do": "lock",
+     "lock": "catapult fuse"
+    },
+    {
+     "do": "broadcast",
+     "text": "The catapult goes up in flames! The guards on the bridge scurry over to it."
+    },
+    {
+     "do": "walk",
+     "npc": "Akessan bridge guard",
+     "x": 5525.0,
+     "y": 147.7,
+     "z": 6806.0,
+     "radius": 60
+    },
+    {
+     "do": "wait",
+     "seconds": 75
+    },
+    {
+     "do": "home",
+     "npc": "Akessan bridge guard",
+     "radius": 300
+    },
+    {
+     "do": "wait",
+     "seconds": 30
+    }
+   ],
+   "notes": "Rallos Zek's first bridge: the fuse draws its guards off for 75 s."
+  },
+  {
+   "slot": 111,
+   "name": "Zek Captain",
+   "scope": "near",
+   "radius": 60,
+   "world": -1,
+   "steps": [
+    {
+     "do": "lock",
+     "lock": "zek captain"
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek captain",
+     "hostile": true,
+     "spread": 1.0,
+     "minutes": 30
+    },
+    {
+     "do": "awaitdead"
+    },
+    {
+     "do": "place",
+     "dead": true
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek commander",
+     "hostile": true,
+     "spread": 1.0,
+     "minutes": 30
+    },
+    {
+     "do": "awaitdead"
+    }
+   ],
+   "notes": "'Kill these until a Captain spawns. Kill the Captain and a Commander will spawn.' Fired by an initiate's death (npcdeath)."
+  },
+  {
+   "slot": 112,
+   "name": "Mograthar Unleashed",
+   "scope": "near",
+   "radius": 300,
+   "world": -1,
+   "steps": [
+    {
+     "do": "lock",
+     "lock": "mograthar"
+    },
+    {
+     "do": "hide",
+     "npc": "Mograthar",
+     "radius": 40,
+     "minutes": 6
+    },
+    {
+     "do": "spawn",
+     "npc": "Mograthar",
+     "hostile": true,
+     "spread": 2.0,
+     "minutes": 6
+    },
+    {
+     "do": "wait",
+     "seconds": 30
+    },
+    {
+     "do": "broadcast",
+     "text": "Mograthar breaks and runs for the next bridge, and its guards go after him!"
+    },
+    {
+     "do": "walk",
+     "npc": "Mograthar",
+     "x": 5775.0,
+     "y": 147.7,
+     "z": 6500.0,
+     "radius": 120
+    },
+    {
+     "do": "walk",
+     "npc": "Zek bridge guard",
+     "x": 5775.0,
+     "y": 147.7,
+     "z": 6505.0,
+     "radius": 200
+    },
+    {
+     "do": "wait",
+     "seconds": 75
+    },
+    {
+     "do": "home",
+     "npc": "Zek bridge guard",
+     "radius": 400
+    },
+    {
+     "do": "despawn",
+     "npc": "Mograthar"
+    }
+   ],
+   "notes": "The Trainer dead, his pet may be hit, and at some point runs across the next bridge with its guards behind him. Fired by the Trainer's death."
+  },
+  {
+   "slot": 113,
+   "name": "Rallos Portal",
+   "scope": "near",
+   "radius": 100,
+   "world": 5,
+   "x": 5716.2,
+   "y": 148.6,
+   "z": 6403.8,
+   "steps": [
+    {
+     "do": "lock",
+     "lock": "rallos portal"
+    },
+    {
+     "do": "spawn",
+     "npc": "Portal of Rallos",
+     "spread": 0.1,
+     "minutes": 15
+    },
+    {
+     "do": "broadcast",
+     "text": "The portal wakes in the back corner. Through it first, all of you; the one who bears the Mark goes last."
+    }
+   ],
+   "notes": "The signpost, the Mark: the portal stands until the Mark goes through, or 15 minutes."
+  },
+  {
+   "slot": 114,
+   "name": "Rallos Portal Closes",
+   "scope": "near",
+   "radius": 100,
+   "world": 5,
+   "x": 5716.2,
+   "y": 148.6,
+   "z": 6403.8,
+   "steps": [
+    {
+     "do": "stop",
+     "slot": 113
+    }
+   ],
+   "notes": "The Mark's bearer has gone through."
+  },
+  {
+   "slot": 115,
+   "name": "Rallos Zek",
+   "scope": "near",
+   "radius": 220,
+   "world": 5,
+   "x": 4280.0,
+   "y": 183.0,
+   "z": 6700.0,
+   "steps": [
+    {
+     "do": "lock",
+     "lock": "rallos zek"
+    },
+    {
+     "do": "clock",
+     "seconds": 7200,
+     "empty": 600
+    },
+    {
+     "do": "spawn",
+     "npc": "Rallos Zek",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120
+    },
+    {
+     "do": "spawn",
+     "npc": "Mograthar",
+     "attackable": true,
+     "spread": 14.0,
+     "minutes": 120
+    },
+    {
+     "do": "awaitdead",
+     "npc": "Rallos Zek"
+    },
+    {
+     "do": "rouse",
+     "npc": "Mograthar"
+    },
+    {
+     "do": "broadcast",
+     "text": "Rallos Zek rises again, and his pet turns on you!"
+    },
+    {
+     "do": "place",
+     "dead": true
+    },
+    {
+     "do": "spawn",
+     "npc": "Rallos Zek the Warlord",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120
+    },
+    {
+     "do": "awaitdead",
+     "npc": "Rallos Zek the Warlord"
+    },
+    {
+     "do": "broadcast",
+     "text": "Rallos Zek rises once more, unbound."
+    },
+    {
+     "do": "place",
+     "dead": true
+    },
+    {
+     "do": "spawn",
+     "npc": "Rallos Zek Unbound",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120
+    },
+    {
+     "do": "awaitdead",
+     "npc": "Rallos Zek Unbound"
+    },
+    {
+     "do": "broadcast",
+     "text": "Rallos Zek has fallen. The isle will not hold you long."
+    },
+    {
+     "do": "wait",
+     "seconds": 300
+    },
+    {
+     "do": "end"
+    },
+    {
+     "do": "despawn"
+    },
+    {
+     "do": "teleport",
+     "world": 5,
+     "x": 4899.0,
+     "y": 148.0,
+     "z": 7049.0
+    }
+   ],
+   "notes": "The gauntlet: three forms, each at the last one's death spot; the pet passive until the first falls. Ends at 2 h, or 10 minutes with no one on the isle (a wipe), so the next raid is not kept out."
+  }
+ ],
+ "deaths": [
+  {
+   "name": "Zek initiate",
+   "trigger": "Zek Captain",
+   "chance": 15,
+   "note": "'Kill these until a Captain spawns': 15% a kill, ours."
+  },
+  {
+   "name": "Zek trainer",
+   "trigger": "Mograthar Unleashed",
+   "chance": 100,
+   "note": "'Kill the Trainer - this will then make the pet attackable.'"
+  }
+ ],
+ "loot": [
+  {
+   "table": "mark of rallos",
+   "items": [
+    "Mark of Rallos"
+   ],
+   "npcs": [
+    [
+     "Zek commander",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "rallos zek",
+   "items": [
+    "Chosen's Staff",
+    "Chosen's Wand",
+    "Chosen's Rapier",
+    "Chosen's Baton",
+    "Chosen's Zwiehander",
+    "Keeper's Mace",
+    "Keeper's Sai",
+    "Keeper's Greataxe",
+    "Prophet's Focus",
+    "Warmonger's Greatsword",
+    "Warmonger's Longsword",
+    "Warmonger's Totem",
+    "Warmonger's Club",
+    "Warmonger's Staff",
+    "Sapphyra's Sword",
+    "Victor's Blade",
+    "Earring of Capacity",
+    "Ring of Determination",
+    "Sash of the Destroyer",
+    "Warlord's Legplates",
+    "Greaves of Maneuvering",
+    "Campaigner Legs",
+    "Warmage's Leggings",
+    "Subversive Leggings",
+    "Breastplate of Doubt",
+    "Tunic of Divinity",
+    "Mail of the Seeker",
+    "Tunic of Obliteration",
+    "Chestplate of the Bastion",
+    "Warlord's Chestguard",
+    "Eliminator's Chestplate",
+    "Warmage's Tunic",
+    "Subversive Tunic",
+    "Righteous Tunic",
+    "Mail of the Void",
+    "Keeper's Focus",
+    "Oggi's Smasher",
+    "Battleborn Earring",
+    "War Mage's Earring",
+    "Glowing Cerulean Choker",
+    "Lead Plated Choker",
+    "Reconstructive Earring",
+    "Eliminator's Legplates",
+    "Legplates of the Bastion",
+    "Leggings of Obliteration",
+    "Greaves of the Void",
+    "Greaves of the Seeker",
+    "Campaigner's Tunic",
+    "Mail of Maneuvering"
+   ],
+   "npcs": [
+    [
+     "Rallos Zek Unbound",
+     100,
+     4
+    ]
+   ]
+  }
+ ],
+ "quests": "rallos.json",
+ "dialog": [
+  {
+   "name": "Signpost of Zek",
+   "line": "Old words on an old post: only the Mark of Rallos wakes what stands beyond."
+  },
+  {
+   "name": "catapult",
+   "line": "The catapult's fuse is spent. It will be dry again in a while."
+  }
+ ]
+}

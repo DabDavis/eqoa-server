@@ -1,0 +1,947 @@
+{
+ "items": [
+  {
+   "name": "bolash blood vial",
+   "like": "Elem Kabar Resilan",
+   "description": "Blood of a bolash bat of Zaoran Plateau.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Torgias's Scroll",
+   "like": "letter from sigmor",
+   "description": "Old symbols. Torgias Bullow could not read them all; Salin may.",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0
+  },
+  {
+   "name": "Pendant of Razeal",
+   "like": "Trueshot Pendant",
+   "notrade": true,
+   "levelreq": 55,
+   "classuse": 32767,
+   "stats": {
+    "HPMAX": 200,
+    "DR": 6,
+    "CR": 6,
+    "AR": 6,
+    "LR": 6,
+    "FR": 6,
+    "PR": 6,
+    "HoT": -10,
+    "PoT": 10,
+    "AC": 70,
+    "weapondamage": 0
+   },
+   "description": "From the Unnamed Champion."
+  },
+  {
+   "name": "Earring of Sharpened Intellect",
+   "like": "Battleborn Earring",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 32767,
+   "stats": {
+    "intelligence": 75,
+    "weapondamage": 0
+   },
+   "description": "From the Unnamed Champion."
+  },
+  {
+   "name": "Feardo's Helm",
+   "like": "helm of holy light",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 525,
+   "stats": {
+    "str": 10,
+    "sta": 10,
+    "agi": 5,
+    "dex": 5,
+    "cha": 5,
+    "wis": 15,
+    "AC": 120,
+    "HPMAX": 115,
+    "PR": 40,
+    "weapondamage": 0
+   },
+   "description": "From the Unnamed Champion."
+  },
+  {
+   "name": "Gloves of the Conflicted",
+   "like": "Pneumatic Gloves",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 17296,
+   "stats": {
+    "agi": 5,
+    "sta": 5,
+    "cha": 5,
+    "dex": 15,
+    "wis": 15,
+    "HPMAX": 75,
+    "POWMAX": 75,
+    "LR": 30,
+    "AC": 120,
+    "weapondamage": 0
+   },
+   "description": "From the Unnamed Champion."
+  },
+  {
+   "name": "Ring of Sagacity",
+   "like": "Transcendent Ring",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 32767,
+   "stats": {
+    "wis": 75,
+    "weapondamage": 0
+   },
+   "description": "From the Unnamed Champion."
+  },
+  {
+   "name": "Robe of Potential",
+   "like": "aeriform shroud",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 32656,
+   "stats": {
+    "dex": 30,
+    "PoT": 25,
+    "POWMAX": 50,
+    "weapondamage": 0
+   },
+   "description": "From the Unnamed Champion."
+  },
+  {
+   "name": "Spiked Brass Ring",
+   "like": "Transcendent Ring",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 32767,
+   "stats": {
+    "str": 75,
+    "weapondamage": 0
+   },
+   "description": "From the Unnamed Champion."
+  },
+  {
+   "name": "Victor's Slippers",
+   "like": "Seraphic Planar Boots",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 31744,
+   "stats": {
+    "HPMAX": 155,
+    "AC": 42,
+    "FR": 30,
+    "intelligence": 30,
+    "dex": 15,
+    "model": 1,
+    "weapondamage": 0
+   },
+   "description": "From the Unnamed Champion."
+  }
+ ],
+ "spells": [
+  {
+   "id": 905020,
+   "name": "Razeal's Embrace",
+   "line": "Target, aoe Decrease Hitpoints by 900, Radius 30",
+   "fx": 2972655021,
+   "effects": {
+    "v": 1,
+    "scope": "target_aoe",
+    "target_type": "Enemy",
+    "harmful": true,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "radius": 30,
+    "req_equipment": "Any",
+    "sheet_type": "Dmg/Heal",
+    "effects": [
+     {
+      "type": "Dmg/Heal",
+      "kind": "hp2",
+      "amount": -900,
+      "resist": "ar"
+     }
+    ]
+   }
+  },
+  {
+   "id": 905021,
+   "name": "Razeal's Wrath",
+   "line": "Target, Decrease Hitpoints by 2000",
+   "fx": 3883934939,
+   "effects": {
+    "v": 1,
+    "scope": "target",
+    "target_type": "Enemy",
+    "harmful": true,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "req_equipment": "Any",
+    "sheet_type": "Dmg/Heal",
+    "effects": [
+     {
+      "type": "Dmg/Heal",
+      "kind": "hp",
+      "amount": -1000,
+      "resist": "ar"
+     },
+     {
+      "type": "Dmg/Heal",
+      "kind": "hp",
+      "amount": -1000,
+      "resist": "fr"
+     }
+    ]
+   }
+  },
+  {
+   "id": 905022,
+   "name": "Razeal's Weakening",
+   "line": "Target, Decrease STA by 40, Decrease AGI by 40, 60s",
+   "fx": 2972655019,
+   "effects": {
+    "v": 1,
+    "scope": "target",
+    "target_type": "Enemy",
+    "harmful": true,
+    "duration_s": 60,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "req_equipment": "Any",
+    "sheet_type": "Statistic Change",
+    "effects": [
+     {
+      "type": "Statistic Change",
+      "kind": "stat",
+      "stat": "sta",
+      "amount": -40,
+      "resist": "ar"
+     },
+     {
+      "type": "Statistic Change",
+      "kind": "stat",
+      "stat": "agi",
+      "amount": -40,
+      "resist": "ar"
+     }
+    ]
+   }
+  }
+ ],
+ "templates": [
+  {
+   "name": "razeal moloch",
+   "class": 0,
+   "hp": 400000,
+   "level": 68,
+   "melee": 1450,
+   "crit": 2600,
+   "abilities": [
+    {
+     "kind": "aoe",
+     "spell_id": 905020,
+     "every": 25,
+     "first": 20
+    },
+    {
+     "kind": "nuke",
+     "spell_id": 905021,
+     "every": 15,
+     "first": 8
+    },
+    {
+     "kind": "debuff",
+     "spell_id": 905022,
+     "every": 60,
+     "first": 12
+    }
+   ],
+   "note": "Guide: quads 1500-2600 a hit, a 900 AoE life tap (a 900 AR area here, no heal), a 2000 cast in two tiers (AR + FR), a minor STA and AGI debuff; 'Tankable with 14 toons': 400k, ours. His root is not modelled: a creature's root does not land on a player."
+  },
+  {
+   "name": "mist of razeal",
+   "class": 0,
+   "hp": 6000,
+   "level": 60,
+   "melee": 100,
+   "note": "'they are not so bad'."
+  },
+  {
+   "name": "spawning mist",
+   "class": 0,
+   "hp": 6000,
+   "level": 60,
+   "melee": 120,
+   "note": "Multiply on death until Razeal falls (max 30 alive, ours)."
+  },
+  {
+   "name": "death mist",
+   "class": 0,
+   "hp": 300000,
+   "level": 75,
+   "melee": 3000,
+   "note": "'The death mists are to clear the island after raid is over': a raid should leave."
+  }
+ ],
+ "npcs": [
+  {
+   "name": "Razeal Moloch",
+   "world": 5,
+   "x": 4931.0,
+   "y": 193.9,
+   "z": 6981.0,
+   "facing": 0,
+   "level": 68,
+   "type": 128,
+   "body": "1BBB898C",
+   "size": 1.75,
+   "template": "razeal moloch",
+   "charm": 0,
+   "class": 0,
+   "note": "The Unnamed Champion, atop the castle by the port-in, up its ramps (the guide: roaming atop it; he stands). A talk starts the summoning; he is fought only as his isle's copy (hostile).",
+   "loot_region": "secrets",
+   "look": {
+    "robe_style": "255",
+    "torso": 8,
+    "forearm": 8,
+    "gloves": 8,
+    "legs": 8,
+    "feet": 8,
+    "head": 0,
+    "unk_o": 1
+   }
+  },
+  {
+   "name": "Mist of Razeal",
+   "world": 5,
+   "x": 5335.0,
+   "y": 336.3,
+   "z": 7495.0,
+   "level": 60,
+   "type": 0,
+   "body": "48141E7D",
+   "size": 1.2,
+   "spawnonly": true,
+   "template": "mist of razeal",
+   "undead": true,
+   "charm": 0,
+   "note": "Up before the fight; they do not multiply."
+  },
+  {
+   "name": "Spawning Mist",
+   "world": 5,
+   "x": 5335.0,
+   "y": 336.3,
+   "z": 7495.0,
+   "level": 60,
+   "type": 0,
+   "body": "48141E7D",
+   "size": 1.2,
+   "spawnonly": true,
+   "template": "spawning mist",
+   "undead": true,
+   "charm": 0,
+   "note": "Come with him; two more from each until he falls."
+  },
+  {
+   "name": "Death Mist",
+   "world": 5,
+   "x": 5335.0,
+   "y": 336.3,
+   "z": 7495.0,
+   "level": 75,
+   "type": 0,
+   "body": "EC5A63A3",
+   "size": 2.5,
+   "spawnonly": true,
+   "template": "death mist",
+   "undead": true,
+   "charm": 0,
+   "note": "Clear the isle when the raid's time is up, or he has fallen."
+  },
+  {
+   "name": "Summoning Post",
+   "world": 5,
+   "x": 5000.0,
+   "y": 147.7,
+   "z": 6832.0,
+   "level": 1,
+   "type": 128,
+   "body": "C4B6331E",
+   "size": 0.6,
+   "spawnonly": true,
+   "note": "'a post spawns in the center'."
+  },
+  {
+   "name": "Razeal Raid Teleporter",
+   "world": 5,
+   "x": 5000.0,
+   "y": 147.7,
+   "z": 6840.0,
+   "level": 60,
+   "type": 384,
+   "body": "77F94B63",
+   "size": 1.0,
+   "spawnonly": true,
+   "note": "The guide's teleporter, a portal here."
+  },
+  {
+   "name": "bolash bat",
+   "world": 5,
+   "x": 5060.0,
+   "y": 151.86,
+   "z": 6760.0,
+   "level": 58,
+   "type": 0,
+   "body": "C4EE5A08",
+   "size": 1.5,
+   "roam": 1,
+   "charm": 1,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 20
+   },
+   "note": "'The blood vial can be found by farming Bolash Bats in zp' (Freeport's level 1 Bolash Bats are another creature)."
+  },
+  {
+   "name": "bolash bat",
+   "world": 5,
+   "x": 5040.0,
+   "y": 156.14,
+   "z": 6745.0,
+   "level": 58,
+   "type": 0,
+   "body": "C4EE5A08",
+   "size": 1.5,
+   "roam": 1,
+   "charm": 1,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 20
+   },
+   "note": "'The blood vial can be found by farming Bolash Bats in zp' (Freeport's level 1 Bolash Bats are another creature)."
+  },
+  {
+   "name": "bolash bat",
+   "world": 5,
+   "x": 5080.0,
+   "y": 152.48,
+   "z": 6745.0,
+   "level": 58,
+   "type": 0,
+   "body": "C4EE5A08",
+   "size": 1.5,
+   "roam": 1,
+   "charm": 1,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 20
+   },
+   "note": "'The blood vial can be found by farming Bolash Bats in zp' (Freeport's level 1 Bolash Bats are another creature)."
+  },
+  {
+   "name": "bolash bat",
+   "world": 5,
+   "x": 5040.0,
+   "y": 148.28,
+   "z": 6780.0,
+   "level": 58,
+   "type": 0,
+   "body": "C4EE5A08",
+   "size": 1.5,
+   "roam": 1,
+   "charm": 1,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 20
+   },
+   "note": "'The blood vial can be found by farming Bolash Bats in zp' (Freeport's level 1 Bolash Bats are another creature)."
+  },
+  {
+   "name": "bolash bat",
+   "world": 5,
+   "x": 5085.0,
+   "y": 149.33,
+   "z": 6780.0,
+   "level": 58,
+   "type": 0,
+   "body": "C4EE5A08",
+   "size": 1.5,
+   "roam": 1,
+   "charm": 1,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 20
+   },
+   "note": "'The blood vial can be found by farming Bolash Bats in zp' (Freeport's level 1 Bolash Bats are another creature)."
+  },
+  {
+   "name": "bolash bat",
+   "world": 5,
+   "x": 5100.0,
+   "y": 152.42,
+   "z": 6760.0,
+   "level": 58,
+   "type": 0,
+   "body": "C4EE5A08",
+   "size": 1.5,
+   "roam": 1,
+   "charm": 1,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 20
+   },
+   "note": "'The blood vial can be found by farming Bolash Bats in zp' (Freeport's level 1 Bolash Bats are another creature)."
+  },
+  {
+   "name": "Grave of the Tank",
+   "world": 5,
+   "x": 4975.0,
+   "y": 147.7,
+   "z": 6780.0,
+   "facing": 0,
+   "level": 1,
+   "type": 128,
+   "body": "C4B6331E",
+   "size": 0.6,
+   "spawnonly": true
+  },
+  {
+   "name": "Grave of the Healer",
+   "world": 5,
+   "x": 5025.0,
+   "y": 147.7,
+   "z": 6820.0,
+   "facing": 0,
+   "level": 1,
+   "type": 128,
+   "body": "C4B6331E",
+   "size": 0.6,
+   "spawnonly": true
+  },
+  {
+   "name": "Grave of the Caster",
+   "world": 5,
+   "x": 4975.0,
+   "y": 147.7,
+   "z": 6820.0,
+   "facing": 0,
+   "level": 1,
+   "type": 128,
+   "body": "C4B6331E",
+   "size": 0.6,
+   "spawnonly": true
+  },
+  {
+   "name": "Grave of the Melee",
+   "world": 5,
+   "x": 5025.0,
+   "y": 147.7,
+   "z": 6780.0,
+   "facing": 0,
+   "level": 1,
+   "type": 128,
+   "body": "C4B6331E",
+   "size": 0.6,
+   "spawnonly": true
+  }
+ ],
+ "triggers": [
+  {
+   "slot": 120,
+   "name": "Razeal Moloch",
+   "scope": "near",
+   "radius": 150,
+   "world": 5,
+   "x": 5000.0,
+   "y": 147.7,
+   "z": 6800.0,
+   "steps": [
+    {
+     "do": "lock",
+     "lock": "razeal"
+    },
+    {
+     "do": "place",
+     "world": 5,
+     "x": 4931.0,
+     "y": 193.9,
+     "z": 6981.0,
+     "radius": 40
+    },
+    {
+     "do": "hide",
+     "npc": "Razeal Moloch",
+     "minutes": 90
+    },
+    {
+     "do": "place",
+     "world": 5,
+     "x": 5000.0,
+     "y": 147.7,
+     "z": 6800.0,
+     "radius": 150
+    },
+    {
+     "do": "clock",
+     "seconds": 3600,
+     "empty": 900
+    },
+    {
+     "do": "spawn",
+     "npc": "Grave of the Tank",
+     "spread": 0.1,
+     "world": 5,
+     "x": 4975.0,
+     "y": 147.7,
+     "z": 6780.0,
+     "minutes": 60
+    },
+    {
+     "do": "awaittalk",
+     "npc": "Grave of the Tank",
+     "classes": [
+      0,
+      2,
+      3
+     ],
+     "text": "The tank's grave is heard. Another stirs across the way.",
+     "refuse": "A tank must speak here: a warrior, a paladin, a shadow knight."
+    },
+    {
+     "do": "despawn",
+     "npc": "Grave of the Tank"
+    },
+    {
+     "do": "spawn",
+     "npc": "Grave of the Healer",
+     "spread": 0.1,
+     "world": 5,
+     "x": 5025.0,
+     "y": 147.7,
+     "z": 6820.0,
+     "minutes": 60
+    },
+    {
+     "do": "awaittalk",
+     "npc": "Grave of the Healer",
+     "classes": [
+      7,
+      8,
+      9
+     ],
+     "text": "The healer's grave is heard. Another stirs.",
+     "refuse": "A healer must speak here: a druid, a shaman, a cleric."
+    },
+    {
+     "do": "despawn",
+     "npc": "Grave of the Healer"
+    },
+    {
+     "do": "spawn",
+     "npc": "Grave of the Caster",
+     "spread": 0.1,
+     "world": 5,
+     "x": 4975.0,
+     "y": 147.7,
+     "z": 6820.0,
+     "minutes": 60
+    },
+    {
+     "do": "awaittalk",
+     "npc": "Grave of the Caster",
+     "classes": [
+      10,
+      11,
+      12,
+      13,
+      14
+     ],
+     "text": "The caster's grave is heard. One more stirs.",
+     "refuse": "A caster must speak here: a magician, a necromancer, an enchanter, a wizard, an alchemist."
+    },
+    {
+     "do": "despawn",
+     "npc": "Grave of the Caster"
+    },
+    {
+     "do": "spawn",
+     "npc": "Grave of the Melee",
+     "spread": 0.1,
+     "world": 5,
+     "x": 5025.0,
+     "y": 147.7,
+     "z": 6780.0,
+     "minutes": 60
+    },
+    {
+     "do": "awaittalk",
+     "npc": "Grave of the Melee",
+     "classes": [
+      1,
+      4,
+      5,
+      6
+     ],
+     "text": "The melee's grave is heard. A post rises among them.",
+     "refuse": "A melee must speak here: a ranger, a monk, a bard, a rogue."
+    },
+    {
+     "do": "despawn",
+     "npc": "Grave of the Melee"
+    },
+    {
+     "do": "spawn",
+     "npc": "Summoning Post",
+     "spread": 0.1,
+     "world": 5,
+     "x": 5000.0,
+     "y": 147.7,
+     "z": 6832.0,
+     "minutes": 60
+    },
+    {
+     "do": "awaittalk",
+     "npc": "Summoning Post",
+     "text": "The post calls him to his isle, and a way opens beside it. Port up."
+    },
+    {
+     "do": "despawn",
+     "npc": "Summoning Post"
+    },
+    {
+     "do": "spawn",
+     "npc": "Razeal Raid Teleporter",
+     "spread": 0.1,
+     "world": 5,
+     "x": 5000.0,
+     "y": 147.7,
+     "z": 6842.0,
+     "minutes": 20
+    },
+    {
+     "do": "place",
+     "world": 5,
+     "x": 5335.0,
+     "y": 336.3,
+     "z": 7495.0,
+     "radius": 260
+    },
+    {
+     "do": "clock",
+     "seconds": 1200,
+     "empty": 300
+    },
+    {
+     "do": "spawn",
+     "npc": "Mist of Razeal",
+     "hostile": true,
+     "count": 8,
+     "spread": 45.0,
+     "minutes": 20
+    },
+    {
+     "do": "spawn",
+     "npc": "Razeal Moloch",
+     "attackable": false,
+     "spread": 0.5,
+     "minutes": 20
+    },
+    {
+     "do": "awaittalk",
+     "npc": "Razeal Moloch",
+     "text": "You should not have come."
+    },
+    {
+     "do": "broadcast",
+     "text": "Razeal Moloch's eyes open. Run, whoever woke him."
+    },
+    {
+     "do": "wait",
+     "seconds": 8
+    },
+    {
+     "do": "despawn",
+     "npc": "Razeal Moloch"
+    },
+    {
+     "do": "spawn",
+     "npc": "Razeal Moloch",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 20
+    },
+    {
+     "do": "spawn",
+     "npc": "Spawning Mist",
+     "hostile": true,
+     "count": 6,
+     "spread": 12.0,
+     "minutes": 20
+    },
+    {
+     "do": "awaitdead",
+     "npc": "Razeal Moloch"
+    },
+    {
+     "do": "broadcast",
+     "text": "Razeal Moloch falls. The mists gather. Be quick about his corpse."
+    },
+    {
+     "do": "despawn",
+     "npc": "Spawning Mist"
+    },
+    {
+     "do": "stop",
+     "slot": 121
+    },
+    {
+     "do": "wait",
+     "seconds": 180
+    },
+    {
+     "do": "end"
+    },
+    {
+     "do": "place",
+     "world": 5,
+     "x": 5335.0,
+     "y": 336.3,
+     "z": 7495.0,
+     "radius": 260
+    },
+    {
+     "do": "despawn"
+    },
+    {
+     "do": "stop",
+     "slot": 121
+    },
+    {
+     "do": "spawn",
+     "npc": "Death Mist",
+     "hostile": true,
+     "count": 8,
+     "spread": 70.0,
+     "minutes": 3
+    },
+    {
+     "do": "broadcast",
+     "text": "Death mists roll over the isle."
+    },
+    {
+     "do": "wait",
+     "seconds": 120
+    },
+    {
+     "do": "despawn"
+    },
+    {
+     "do": "teleport",
+     "world": 5,
+     "x": 4899.0,
+     "y": 148.0,
+     "z": 7049.0
+    },
+    {
+     "do": "place",
+     "world": 5,
+     "x": 4931.0,
+     "y": 193.9,
+     "z": 6981.0,
+     "radius": 40
+    },
+    {
+     "do": "hide",
+     "npc": "Razeal Moloch",
+     "minutes": 0
+    }
+   ],
+   "notes": "The Unnamed Champion: he vanishes, four graves in turn by archetype, a post, the teleporter; on his isle 20 minutes; the mists; death mists to clear it. Ends with no one on the isle 5 minutes."
+  },
+  {
+   "slot": 121,
+   "name": "Spawning Mist Multiplies",
+   "scope": "near",
+   "radius": 200,
+   "world": -1,
+   "steps": [
+    {
+     "do": "spawn",
+     "npc": "Spawning Mist",
+     "hostile": true,
+     "count": 2,
+     "spread": 6.0,
+     "minutes": 10,
+     "max": 30
+    }
+   ],
+   "notes": "'they will multiply on death until you kill Razeal or the party is overwhelmed': two more of each, at most 30 alive."
+  }
+ ],
+ "deaths": [
+  {
+   "name": "Spawning Mist",
+   "trigger": "Spawning Mist Multiplies",
+   "chance": 100,
+   "note": "They multiply on death."
+  }
+ ],
+ "loot": [
+  {
+   "table": "razeal moloch",
+   "items": [
+    "Pendant of Razeal",
+    "Earring of Sharpened Intellect",
+    "Feardo's Helm",
+    "Gloves of the Conflicted",
+    "Ring of Sagacity",
+    "Robe of Potential",
+    "Spiked Brass Ring",
+    "Victor's Slippers",
+    "Battleborn Earring",
+    "Chosen's Handwraps",
+    "Influencer's Necklace",
+    "War Mage's Earring",
+    "Trueshot Pendant"
+   ],
+   "npcs": [
+    [
+     "Razeal Moloch",
+     100,
+     3
+    ]
+   ]
+  },
+  {
+   "table": "bolash blood",
+   "items": [
+    "bolash blood vial"
+   ],
+   "npcs": [
+    [
+     "bolash bat",
+     35,
+     1
+    ]
+   ]
+  }
+ ],
+ "quests": "razeal.json",
+ "dialog": [
+  {
+   "name": "Razeal Moloch",
+   "line": "He looks through you."
+  }
+ ]
+}

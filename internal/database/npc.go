@@ -31,6 +31,7 @@ type NPCRecord struct {
 	Legs            int
 	Feet            int
 	Head            int
+	Tint            int // unk_o: its armour's tint, $Tints' index 0-14 (0 none)
 	HairColor       int
 	HairLength      int
 	HairStyle       int
@@ -62,7 +63,7 @@ const npcColumns = `id, COALESCE(npc_name,''), COALESCE(zone,0), COALESCE(unk_a,
 	COALESCE(legs,0), COALESCE(feet,0), COALESCE(head,0),
 	COALESCE(hair_color,0), COALESCE(hair_length,0), COALESCE(hair_style,0), COALESCE(face,0),
 	COALESCE(robe_style,''), COALESCE(race,''),
-	COALESCE(npc_level,1), COALESCE(npc_type,0), COALESCE(npc_id,0)`
+	COALESCE(npc_level,1), COALESCE(npc_type,0), COALESCE(npc_id,0), COALESCE(unk_o,0)`
 
 // scanNPC scans one row of npcColumns.
 func scanNPC(scan func(...any) error) (*NPCRecord, error) {
@@ -77,7 +78,7 @@ func scanNPC(scan func(...any) error) (*NPCRecord, error) {
 		&n.Legs, &n.Feet, &n.Head,
 		&n.HairColor, &n.HairLength, &n.HairStyle, &n.Face,
 		&n.RobeStyle, &n.Race,
-		&n.NPCLevel, &n.NPCType, &n.NPCID,
+		&n.NPCLevel, &n.NPCType, &n.NPCID, &n.Tint,
 	)
 	if err != nil {
 		return nil, err

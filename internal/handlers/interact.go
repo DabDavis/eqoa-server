@@ -284,6 +284,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		h.signLedger(sess, player, npc)
 	}
 
+	// A trigger's run waiting for someone to talk to this NPC (gmtriggers.go).
+	if npc, ok := targetEntity.(*entity.NPC); ok && Triggers().Talk(sess, player, npc) {
+		return nil
+	}
+
 	// A quest's step at this NPC, or a quest it offers (quests.go), before
 	// the NPC's own business.
 	if npc, ok := targetEntity.(*entity.NPC); ok && Quests().Talk(sess, player, npc) {

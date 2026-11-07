@@ -39,7 +39,7 @@ import routes as travel  # noqa: E402
 KINDS = {'talk', 'show', 'give', 'kill', 'loot', 'reach'}
 EVENT_ON = {'accept', 'finish', 'start', 'done'}
 # database.QuestEventActions; 'attack' (an NPC near the player turns on it: the step's target unless named) since 2026-11-01
-EVENT_DO = {'popup', 'say', 'give', 'spawn', 'attack', 'visual', 'teleport', 'vampire'}
+EVENT_DO = {'popup', 'say', 'give', 'spawn', 'attack', 'visual', 'teleport', 'vampire', 'trigger', 'dostep'}
 BOX, ANSWER, LINE = 218, 63, 127
 TEXT = ('offer', 'accept', 'decline', 'declined', 'started')
 FACTION_MIN, FACTION_MAX = -2000, 2000   # entity/faction.go
@@ -62,10 +62,20 @@ class Names:
         self.faction = None
         if db.execute("SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'factions'").fetchone()[0]:
             self.faction = {fold(n) for (n,) in db.execute('SELECT name FROM factions')}
+        # what a GM trigger spawns open to attack (a boss whose row only talks)
+        self.spawned_foe = set()
+        if db.execute("SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'gmtriggers'").fetchone()[0]:
+            for (steps,) in db.execute('SELECT steps FROM gmtriggers'):
+                try:
+                    for s in json.loads(steps or '[]'):
+                        if s.get('do') == 'spawn' and (s.get('hostile') or s.get('attackable')):
+                            self.spawned_foe.add(fold(s.get('npc')))
+                except (ValueError, AttributeError):
+                    pass
         db.close()
 
     def attackable(self, name):
-        return any(t & 0x80 == 0 for t in self.npc.get(fold(name), []))
+        return any(t & 0x80 == 0 for t in self.npc.get(fold(name), [])) or fold(name) in self.spawned_foe
 
 
 class Check:
@@ -121,6 +131,8 @@ class Check:
             items += self.items_of(where, ev.get('items', []))
         if do == 'popup':
             self.paragraphs(where, 'popup', ev.get('text'), BOX)
+        if do == 'trigger' and not (ev.get('trigger') or '').strip():
+            self.err(where, 'trigger event without trigger')
 
     def quest(self, fname, q, file_items):
         key = q.get('key', '?')

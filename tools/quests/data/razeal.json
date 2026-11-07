@@ -1,0 +1,137 @@
+{
+ "city": "portal",
+ "quests": [
+  {
+   "key": "Portal/zaoran-plateau/razeal-1",
+   "name": "The Unnamed Champion",
+   "giver": "Lerod Damonus",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/zaoran-plateau/garlic",
+    "Portal/zaoran-plateau/broken-blade"
+   ],
+   "offer": "An unnamed champion has driven everyone off the plateau. To name him we need blood, resilan and garlic together.\nWill you bring them?",
+   "accept": "I will bring them.",
+   "decline": "Not now.",
+   "declined": "The plateau will wait, for now.",
+   "started": "A vial of bolash blood from the bats on the plateau, the Elem Kabar Resilan, and your garlic trinket.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Lerod Damonus",
+     "items": [
+      {
+       "item": "bolash blood vial",
+       "count": 1
+      },
+      {
+       "item": "Elem Kabar Resilan",
+       "count": 1
+      },
+      {
+       "item": "Garlic Trinket",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Lerod Damonus a blood vial from the bolash bats of Zaoran Plateau, the Elem Kabar Resilan and your garlic trinket.",
+     "says": "Good. Salin in Highbourne knows what they are for. Go to him.",
+     "reminder": "The blood vial, the resilan and the trinket, all three."
+    },
+    {
+     "kind": "talk",
+     "target": "Salin",
+     "journal": "Speak with Salin in Highbourne.",
+     "says": "There is a scroll. Torgias in Murnf has it. Bring it here."
+    },
+    {
+     "kind": "talk",
+     "target": "Torgias Bullow",
+     "journal": "Get the scroll from Torgias Bullow in Murnf.",
+     "says": "This? Take it. Nobody here can read it.",
+     "rewards": {
+      "items": [
+       "Torgias's Scroll"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Salin",
+     "items": [
+      {
+       "item": "Torgias's Scroll",
+       "count": 1
+      },
+      {
+       "item": "bolash blood vial",
+       "count": 1
+      },
+      {
+       "item": "Elem Kabar Resilan",
+       "count": 1
+      },
+      {
+       "item": "Garlic Trinket",
+       "count": 1
+      }
+     ],
+     "journal": "Take the scroll back to Salin in Highbourne, with the vial, the resilan and the trinket.",
+     "says": "I can read it, but for one symbol. The Council may know it. I keep the vial, the resilan and your trinket: they are what it asks for.",
+     "reminder": "The scroll, and the other three."
+    },
+    {
+     "kind": "talk",
+     "target": "Lerod Damonus",
+     "journal": "Take the last symbol to the Council of Watchmen in Dshinn's Redoubt.",
+     "says": "Razeal. Razeal Moloch. He walks the castle by the plateau's port-in. Summon him, and destroy him."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## The Unnamed Champion (Razeal Moloch) (github.com/Jadiction/EQOA-Data, MIT). The guide's 'Council member' is Lerod Damonus (ours: it names none); its 'Salin in Highbourne' and 'Torgias in Murnf' are the game's Salin and Torgias Bullow. No reward but what he drops."
+  },
+  {
+   "key": "Portal/zaoran-plateau/razeal-2",
+   "name": "Destroy Razeal",
+   "giver": "Razeal Moloch",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/zaoran-plateau/razeal-1"
+   ],
+   "repeatable": true,
+   "offer": "He looks through you. Something near the Wailing Ghost has begun to stir.\nDo you name him?",
+   "accept": "I name you, Razeal Moloch.",
+   "decline": "Say nothing.",
+   "declined": "He turns away.",
+   "started": "He is gone, and a gravestone rises by the Wailing Ghost.",
+   "events": [
+    {
+     "on": "accept",
+     "do": "popup",
+     "text": "He is gone. Four graves will call him, near the Wailing Ghost: a tank, a healer, a caster and a melee must speak, one at each, in turn. Then a post, and a way to his isle. Twenty minutes, once you stand there."
+    },
+    {
+     "on": "accept",
+     "do": "trigger",
+     "trigger": "Razeal Moloch"
+    }
+   ],
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Razeal Moloch",
+     "count": 1,
+     "journal": "Teleport your group to Razeal and destroy him!"
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## The Unnamed Champion (Razeal Moloch) (github.com/Jadiction/EQOA-Data, MIT). Steps 3 to 5. Repeatable, as the guide's 'each time you want to kill, you just need to walk up to Razeal'. The guide's teleporter is a portal by the post; the zp armour gems he drops wait on the ZP armour, not built."
+  }
+ ],
+ "items": []
+}

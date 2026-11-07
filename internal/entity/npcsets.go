@@ -131,6 +131,11 @@ func (w *World) dropNPCLocked(npc *NPC) {
 	delete(w.sets.corpse.m, id)
 	delete(w.sets.regen.m, id)
 	delete(w.sets.guard.m, id)
+	if npc.Temporary {
+		// a trigger's walk (gmtriggers.go): the id may be another copy's next
+		delete(w.paths.byNPC, id)
+		delete(w.paths.home, id)
+	}
 	if known {
 		w.sets.n = len(w.NPCs)
 	}

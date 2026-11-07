@@ -447,6 +447,7 @@ var catalog = map[string]tableNote{
 			"secondary_weapon": {Label: "Secondary", Format: hex32, Section: "Gear"},
 			"shield":           {Label: "Shield", Format: hex32, Section: "Gear"},
 			"torso":            {Section: "Gear", Help: "armour set index"},
+			"unk_o":            {Label: "Armour tint", Section: "Gear", Help: "0 none, 1-14 the disc's tints on its armour (13 burgundy, 1 dark gray, 8 red, 6 gold)"},
 			"forearm":          {Section: "Gear"},
 			"gloves":           {Section: "Gear"},
 			"legs":             {Section: "Gear"},
@@ -760,6 +761,21 @@ var catalog = map[string]tableNote{
 			"template":   {Label: "Charm template", Help: "a Class templates name it fights by while charmed; empty: as itself"},
 			"note":       {Label: "Note", Help: "why"},
 			"source":     {Label: "Source", Help: "gm, or seed for tools/seed_npc_charm.py's rows (its --undo deletes those)"},
+		},
+	},
+	"npcdeath": {
+		Label: "NPC deaths fire triggers", Group: "World", Title: "name", Sort: "name",
+		Help: "A creature's death fires a GM trigger where it fell (handlers/gmtriggers.go), by the creature's NAME (any case) and the " +
+			"trigger's name: a guide's spawn cycle, \"Kill the Captain and a Commander will spawn\". chance is percent a kill. Only a kill a " +
+			"player is credited with counts, and a trigger whose lock a run holds does not fire again.",
+		Live:   "At once.",
+		Search: []string{"name", "trigger", "note", "source"},
+		Cols: map[string]colNote{
+			"name":    {Label: "NPC name", Help: "any case"},
+			"trigger": {Label: "Trigger", Help: "the name of a row of gmtriggers"},
+			"chance":  {Label: "Chance", Help: "percent a kill"},
+			"note":    {Label: "Note"},
+			"source":  {Label: "Source", ReadOnly: true},
 		},
 	},
 	"npcspawnonly": {

@@ -102,12 +102,20 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 		if err != nil {
 			log.Printf("Loot: %q (npc %d): %v", npc.Name, npc.NPCID, err)
 		}
+		// equipment only within lootLevelReach of the opener's level
+		level, cut := h.openerLevel(sess), 0
+		items, cut = fitItems(items, level)
 		// and what its loot tables roll at this death (loottables, npcloot),
 		// then the tables every creature's corpse rolls (npcloot's "*")
 		for _, name := range lootNames(npc) {
 			if rolls, err := h.inv.NPCLootRolls(name, npc.Level); err != nil {
 				log.Printf("Loot: %q's loot tables (%q): %v", npc.Name, name, err)
 			} else if len(rolls) > 0 {
+				for i := range rolls {
+					var n int
+					rolls[i].Choices, n = fitChoices(rolls[i].Choices, level)
+					cut += n
+				}
 				got := rollLoot(rolls, h.lootIntn)
 				items = append(items, got...)
 				log.Printf("Loot: %q (level %d) rolled %d of %q's tables' items", npc.Name, npc.Level, len(got), name)
@@ -119,10 +127,19 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 			if rolls, err := h.inv.CategoryRolls(npc.Name, npc.Level); err != nil {
 				log.Printf("Loot: %q's loot categories: %v", npc.Name, err)
 			} else if len(rolls) > 0 {
+				for i := range rolls {
+					var n int
+					rolls[i].Choices, n = fitChoices(rolls[i].Choices, level)
+					cut += n
+				}
 				got := rollCategories(rolls, h.lootFloat, h.lootIntn)
 				items = append(items, got...)
 				log.Printf("Loot: %q (level %d) rolled %d items of its categories", npc.Name, npc.Level, len(got))
 			}
+		}
+		if cut > 0 {
+			log.Printf("Loot: %q rolled for a level %d opener: %d pieces of equipment outside %d-%d left out",
+				npc.Name, level, cut, level-lootLevelReach, level+lootLevelReach)
 		}
 		for i := range items {
 			items[i] = catalogRecord(items[i])
@@ -152,6 +169,65 @@ func lootNames(npc *entity.NPC) []string {
 		return []string{npc.Name}
 	}
 	return []string{npc.Name, lootEveryCreature}
+}
+
+// lootLevelReach is how far from its opener's level a piece of equipment a
+// corpse rolls may be (the user, 2026-11-07: "equipment drops from mobs for
+// players should be within the players level range, with in 10 levels
+// higher/lower"). A corpse is rolled when it is first opened (OpenCorpse), so
+// by that player's level. Equipment is what is worn in the gear's slots, 1 to
+// lootGearSlots (armour, jewellery, weapons, bows, held items, gloves) but a
+// thrown potion; the fishing pole, bait, the Book of Power and the tradeskill
+// tools (slots 20-25) are not, nor is anything else (potions, materials,
+// quest items). An item with no level of its own (10 droppable pieces) is not
+// judged.
+const lootLevelReach = 10
+
+// lootGearSlots is the last equip slot of the gear (19, the gloves).
+const lootGearSlots = 19
+
+// lootFits reports an item a level's opener may find on a corpse (level 0:
+// no opener known, anything).
+func lootFits(p *database.ItemPatternRecord, level int) bool {
+	if level <= 0 || p.EquipSlot < 1 || p.EquipSlot > lootGearSlots || p.AttackType == 10 || p.LevelReq <= 0 {
+		return true
+	}
+	return p.LevelReq >= level-lootLevelReach && p.LevelReq <= level+lootLevelReach
+}
+
+// fitChoices is a roll's choices a level's opener may find, and how many it
+// left out: a roll then lands only on these, by their weights.
+func fitChoices(cs []database.LootChoice, level int) ([]database.LootChoice, int) {
+	out := make([]database.LootChoice, 0, len(cs))
+	for _, c := range cs {
+		if lootFits(&c.Item.Pattern, level) {
+			out = append(out, c)
+		}
+	}
+	return out, len(cs) - len(out)
+}
+
+// fitItems is a creature's own items a level's opener may find, and how many
+// it left out.
+func fitItems(items []database.CharInventoryEntry, level int) ([]database.CharInventoryEntry, int) {
+	out := items[:0:0]
+	for _, it := range items {
+		if lootFits(&it.Pattern, level) {
+			out = append(out, it)
+		}
+	}
+	return out, len(items) - len(out)
+}
+
+// openerLevel is the level of the player sess plays, or 0.
+func (h *NPCWindowHandler) openerLevel(sess *session.Session) int {
+	if h.playerOf == nil {
+		return 0
+	}
+	if p := h.playerOf(sess); p != nil {
+		return p.Level
+	}
+	return 0
 }
 
 // rollLoot is what a creature's loot tables give its corpse at a death: each

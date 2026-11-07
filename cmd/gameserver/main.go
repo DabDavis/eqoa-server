@@ -721,8 +721,17 @@ func main() {
 	if keepSignal != nil {
 		signal.Notify(sigChan, keepSignal)
 	}
+	if keepWarnSignal != nil {
+		signal.Notify(sigChan, keepWarnSignal)
+	}
 
 	for sig := range sigChan {
+		if keepWarnSignal != nil && sig == keepWarnSignal {
+			// the swap script's warning, a minute before its SIGUSR2; the line
+			// below is what it reads to know who was told
+			log.Printf("Keep: the warning told to %d players", udpListener.WarnKeepRestart(keepWarning))
+			continue
+		}
 		if keepSignal == nil || sig != keepSignal {
 			break
 		}
@@ -749,6 +758,11 @@ func main() {
 
 	log.Println("Server stopped")
 }
+
+// keepWarning is what every player in the world is told a minute before a
+// restart that keeps the sessions (the user, 2026-11-07: "lets make the running
+// reboot have a 1 minute warning before it happens"; tools/swap_keep.sh).
+const keepWarning = "The server restarts for an update in 1 minute. You stay in the world, but fights, pets and casts end."
 
 // keepNotice is what every player in the world is told as a restart that
 // keeps the sessions begins (handlers.ResumeLine once it is over).

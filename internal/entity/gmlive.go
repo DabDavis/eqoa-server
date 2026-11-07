@@ -367,7 +367,7 @@ func (w *World) SetPlayerLevel(serverID uint32, level int) bool {
 		return false
 	}
 	was := p.Level
-	p.Level = max(1, min(LevelCap(p.GM), level))
+	p.Level = max(1, min(MaxGMLevel, level)) // its caller's to hold it to LevelCap
 	p.XPInLevel = 0
 	p.TotalXP = TotalXP(p.Level, 0)
 	p.TopUpTrainingPoints()

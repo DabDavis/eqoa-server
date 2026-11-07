@@ -97,10 +97,10 @@ func (w *World) duelProcsLocked(d *Duel, p *Player, m duelMark, now time.Time) b
 	sess := w.findSessionByEntityIDLocked(p.ServerID)
 	hits, resisted := procRollsOf(p.Effects, p.StatNow, p.Level, m.level(), 0, func() bool { return false }, now, procIntn)
 	if resisted > 0 {
-		log.Printf("%s: %s's proc resisted by %s", d.tag(), p.Name, m.name())
+		log.Printf("Duel %d: %s's proc resisted by %s", d.ID, p.Name, m.name())
 	}
 	for _, h := range hits {
-		log.Printf("%s: %s's proc hits %s for %d", d.tag(), p.Name, m.name(), h.n)
+		log.Printf("Duel %d: %s's proc hits %s for %d", d.ID, p.Name, m.name(), h.n)
 		over := w.duelHurtMarkLocked(d, p, m, h.n, now)
 		w.procTapLocked(p, sess, h.ae, nil)
 		if over {

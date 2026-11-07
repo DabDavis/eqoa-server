@@ -15,7 +15,8 @@ import (
 // #template (also /template): a GM's own character made a level-60 one of its
 // class and race at once, for testing (jib's ask, F3 pass 13, 2026-10-25):
 // level 60 with no experience into it, every spell of its class in the book
-// (classspells, as world.start_all_spells gives a new character), 1,000,000
+// (classspells, a mastery's, an epic's and a master class's too: all but a were's),
+// 1,000,000
 // tunar in the purse, and in each slot the best item of this server's own
 // table (itempattern) its class and race may wear at 60, worn.
 //
@@ -361,7 +362,7 @@ func (h *CharacterHandler) ApplyTemplate(sess *session.Session) ([]string, error
 	if err := h.inventoryStore.SetPurse(sid, templateTunar); err != nil {
 		return nil, fmt.Errorf("the tunar: %w", err)
 	}
-	added, err := h.store.GrantClassSpells(sid, snap.Class)
+	added, err := h.store.GrantEveryClassSpell(sid, snap.Class)
 	if err != nil {
 		return nil, fmt.Errorf("the spells: %w", err)
 	}

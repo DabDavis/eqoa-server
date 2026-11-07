@@ -353,3 +353,34 @@ func TestAGMTemplatesAPlayer(t *testing.T) {
 		t.Errorf("a player's #template ran: %d calls", len(got))
 	}
 }
+
+// The template's book holds all of a class's spells: a mastery's, an epic's and a master class's too, where a new
+// character's holds none of them; a were's stays out.
+func TestTemplateGrantsEverySpell(t *testing.T) {
+	f := newGearFixture(t)
+	spell := func(id int, name, desc, source string) {
+		t.Helper()
+		if _, err := f.db.Exec(`INSERT INTO spellpattern (spellid, abilitylvl, unk2, unk3, range, casttime, power, iconColor, icon, scope, recast, eqprequire, spellname, spelldesc)
+			VALUES (?, 4, 0, 0, 16880, 2, 15, 1, 2, 1, 1, -1, ?, ?)`, id, name, desc); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := f.db.Exec(`INSERT INTO classspells (class, spellid, source) VALUES (12, ?, ?)`, id, source); err != nil {
+			t.Fatal(err)
+		}
+	}
+	spell(10, "Plain", "", "eqoa-data")
+	spell(11, "Of A Mastery", "", "eqoa-data cm")
+	spell(12, "Of An Epic", "", "eqoa-data epic")
+	spell(13, "Of A Master", "", "eqoa-data master Faithful")
+	store := database.NewSQLiteCharacterStore(f.db)
+	n, err := store.GrantClassSpells(f.sid, 12)
+	if err != nil || n != 1 {
+		t.Fatalf("a class grant: %d, %v; want the plain one", n, err)
+	}
+	if n, err = store.GrantEveryClassSpell(f.sid, 12); err != nil || n != 3 {
+		t.Fatalf("every spell: %d more, %v; want 3", n, err)
+	}
+	if n, err = store.GrantEveryClassSpell(f.sid, 12); err != nil || n != 0 {
+		t.Fatalf("again: %d more, %v; want none", n, err)
+	}
+}

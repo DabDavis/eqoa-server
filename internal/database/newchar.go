@@ -194,6 +194,18 @@ func (s *SQLiteCharacterStore) grantSpells(serverID uint32, spells []int) (int, 
 // is not got by level: neither is ever given this way. It returns how many
 // went in.
 func (s *SQLiteCharacterStore) GrantClassSpells(serverID uint32, class int) (int, error) {
+	return s.grantClassSpells(serverID, class, false)
+}
+
+// GrantEveryClassSpell is GrantClassSpells with what no level gives as well: a
+// mastery's, an epic's, a master class's (the user, 2026-11-07: "template on a player
+// should grant all spells also"). A were's stays out: that is a line of its own,
+// which a form or a bite gives.
+func (s *SQLiteCharacterStore) GrantEveryClassSpell(serverID uint32, class int) (int, error) {
+	return s.grantClassSpells(serverID, class, true)
+}
+
+func (s *SQLiteCharacterStore) grantClassSpells(serverID uint32, class int, every bool) (int, error) {
 	rows, err := s.db.Query(`SELECT c.spellid, p.spellname, COALESCE(p.spelldesc, ''), COALESCE(c.source, '') FROM classspells c
 		JOIN spellpattern p ON p.spellid = c.spellid
 		WHERE c.class = ? AND c.spellid NOT IN (SELECT spellid FROM spells WHERE serverid = ?)
@@ -209,7 +221,7 @@ func (s *SQLiteCharacterStore) GrantClassSpells(serverID uint32, class int) (int
 			rows.Close()
 			return 0, err
 		}
-		if !IsWereAbility(name, desc) && Granted(source) {
+		if !IsWereAbility(name, desc) && (every || Granted(source)) {
 			ids = append(ids, id)
 		}
 	}

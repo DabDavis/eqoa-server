@@ -70,6 +70,23 @@ func procResistPct(bearerLevel, targetLevel int) int {
 // off: Smite Undead's, the workbook's "Enemy - Undead").
 func procRolls(effects []*ActiveEffect, stat func(Stat) int, bearerLevel, targetLevel, resistOff int, undead func() bool,
 	now time.Time, intn func(int) int) (hits []int, resisted int) {
+	rolls, resisted := procRollsOf(effects, stat, bearerLevel, targetLevel, resistOff, undead, now, intn)
+	for _, r := range rolls {
+		hits = append(hits, r.n)
+	}
+	return hits, resisted
+}
+
+// procRoll is one proc a hit made: its damage and the effect that made it, whose own heal
+// goes with it (procTapLocked).
+type procRoll struct {
+	n  int
+	ae *ActiveEffect
+}
+
+// procRollsOf is procRolls with each proc's effect.
+func procRollsOf(effects []*ActiveEffect, stat func(Stat) int, bearerLevel, targetLevel, resistOff int, undead func() bool,
+	now time.Time, intn func(int) int) (hits []procRoll, resisted int) {
 	intel := stat(StatInt)
 	for _, ae := range effects {
 		if ae.Proc <= 0 || !now.Before(ae.Until) || (ae.ProcUndead && !undead()) {
@@ -89,25 +106,44 @@ func procRolls(effects []*ActiveEffect, stat func(Stat) int, bearerLevel, target
 		if ae.ProcScale != StatNone && ae.ProcScalePct != 0 {
 			n += stat(ae.ProcScale) * ae.ProcScalePct / 100
 		}
-		hits = append(hits, capAmount(n, ae.ProcCap))
+		hits = append(hits, procRoll{n: capAmount(n, ae.ProcCap), ae: ae})
 	}
 	return hits, resisted
+}
+
+// procTapLocked heals the player by the heal of the effect whose proc just hit: a life steal is one
+// proc, its damage and its heal together (Veil of Death, Shroud of Death and their + forms give both as
+// offensive procs). Until 2026-11-07 they rolled apart, so a proc's damage and its heal came on different
+// hits, and at full health the heal showed nothing: petition 1156, "does not proc".
+func (w *World) procTapLocked(p *Player, sess *session.Session, ae *ActiveEffect, npc *NPC) {
+	r := ae.Rules
+	if r.ProcHeal <= 0 || r.ProcHealDef || (r.ProcHealUndead && (npc == nil || !w.undeadLocked(npc))) {
+		return
+	}
+	n := r.ProcHeal
+	if r.ProcHealScale != StatNone && r.ProcHealScalePct != 0 {
+		n += p.StatNow(r.ProcHealScale) * r.ProcHealScalePct / 100
+	}
+	log.Printf("Proc: %s's %q heals it for %d", p.Name, ae.Name, n)
+	w.healLocked(p, sess, p, n)
 }
 
 // playerProcsLocked runs a player's procs after one of its melee hits on a
 // creature still standing. It reports a kill.
 func (w *World) playerProcsLocked(sess *session.Session, p *Player, npc *NPC, now time.Time) bool {
 	undead := func() bool { return w.undeadLocked(npc) }
-	hits, resisted := procRolls(p.Effects, p.StatNow, p.Level, npc.Level, npcResistOffPct(npc, now), undead, now, procIntn)
+	hits, resisted := procRollsOf(p.Effects, p.StatNow, p.Level, npc.Level, npcResistOffPct(npc, now), undead, now, procIntn)
 	if resisted > 0 {
 		log.Printf("Proc: %s's proc resisted by %s", p.Name, npc.Name)
 	}
-	for _, n := range hits {
-		log.Printf("Proc: %s's proc hits %s for %d", p.Name, npc.Name, n)
+	for _, h := range hits {
+		log.Printf("Proc: %s's %q hits %s for %d", p.Name, h.ae.Name, npc.Name, h.n)
 		// seen as a damage shield's answer is (petition 1156: "does not proc",
 		// when all it showed was one more figure among the swings')
 		w.broadcastCastLocked(p, npc.ServerID, 0, fxShieldHit)
-		if w.spellHitLocked(p, sess, npc, n) {
+		killed := w.spellHitLocked(p, sess, npc, h.n)
+		w.procTapLocked(p, sess, h.ae, npc)
+		if killed {
 			return true
 		}
 	}

@@ -547,9 +547,38 @@ func TestBuyBackPrice(t *testing.T) {
 	f.loadLists()
 	f.player.Tunar = 0
 	f.sellItem(0, 1)
-	f.open()
+	if line := f.open().rows[1]; line.item.value != 0 || !strings.HasPrefix(line.item.desc, "You sold this for nothing; it comes back for nothing.") {
+		t.Errorf("the line worth nothing: %+v", line)
+	}
 	if msgs := f.buyItem(1, 1); len(msgs) != 3 || readAdded(t, msgs[1]).item.name != "Heirloom" || f.player.Tunar != 0 {
 		t.Errorf("worth nothing, with nothing: %s, purse %d", ops(msgs), f.player.Tunar)
+	}
+}
+
+// What a line's description begins with says what happens in each case; "nothing brings it back" read
+// as if it could not come back, on a PS2's screen.
+func TestBuyBackWords(t *testing.T) {
+	for _, c := range []struct {
+		how          string
+		n, price, hp int
+		want         string
+	}{
+		{database.BuyBackSold, 1, 75, 100, "You sold this for 75 tunar; the same brings it back."},
+		{database.BuyBackSold, 15, 570, 100, "You sold these 15 for 570 tunar; the same brings them all back."},
+		{database.BuyBackSold, 1, 0, 100, "You sold this for nothing; it comes back for nothing."},
+		{database.BuyBackSold, 3, 0, 100, "You sold these 3 for nothing; they all come back for nothing."},
+		{database.BuyBackDestroyed, 1, 75, 100, "You destroyed this; 75 tunar brings it back."},
+		{database.BuyBackDestroyed, 7, 266, 100, "You destroyed these 7; 266 tunar brings them all back."},
+		{database.BuyBackDestroyed, 1, 0, 100, "You destroyed this; it comes back for nothing."},
+		{database.BuyBackDestroyed, 2, 0, 100, "You destroyed these 2; they all come back for nothing."},
+		{database.BuyBackSold, 1, 75, 25, "You sold this for 75 tunar; the same brings it back. Condition 25 of 100."},
+		{database.BuyBackDestroyed, 1, 0, 0, "You destroyed this; it comes back for nothing. Condition 0 of 100."},
+	} {
+		e := database.BuyBackEntry{How: c.how, Price: c.price}
+		e.Item.StackLeft, e.Item.RemainHP, e.Item.Pattern.MaxHP = c.n, c.hp, 100
+		if got := buyBackWords(&e); got != c.want {
+			t.Errorf("%q, want %q", got, c.want)
+		}
 	}
 }
 
@@ -605,6 +634,37 @@ func TestBuyBackNoRoom(t *testing.T) {
 	if len(f.rows()) != invListCap || f.player.Tunar != 900 {
 		t.Errorf("with room: %d rows, %d tunar", len(f.rows()), f.player.Tunar)
 	}
+}
+
+// A full pack still takes a stack that joins a record it holds (AddItem's rule, a ware's too), and
+// no more than the stack's most: the control refuses what would pass it.
+func TestBuyBackStackJoinsAFullPack(t *testing.T) {
+	f := newBackFixture(t)
+	f.own(f.bait, 15, 100, 0)
+	for i := 1; i < invListCap; i++ {
+		f.own(f.sword, 1, 100, 0)
+	}
+	f.loadLists()
+	f.player.Tunar = 10000
+	f.sellItem(0, 5) // 10 left
+	f.open()
+	msgs := f.buyItem(0, 1)
+	mustOps(t, msgs, protocol.OpcodeMerchantBox, protocol.OpcodeAddInvItem, protocol.OpcodePlayerTunar)
+	if got := readAdded(t, msgs[1]); got.qty != 5 || got.key != 0 {
+		t.Errorf("0x003B: %+v", got)
+	}
+	if rows := f.rows(); len(rows) != invListCap || rows[0].StackLeft != 15 {
+		t.Fatalf("%d rows, the stack %d", len(rows), rows[0].StackLeft)
+	}
+	f.player.Tunar = 10000
+	f.sellItem(0, 5)
+	f.aged()
+	f.open()
+	if _, err := f.db.Exec(`UPDATE charinventory SET stackleft = 16 WHERE itemid = ?`, f.rows()[0].ItemID); err != nil {
+		t.Fatal(err)
+	}
+	f.loadLists()
+	mustOps(t, f.buyItem(0, 1), protocol.OpcodeColoredChat, protocol.OpcodeCancelPending)
 }
 
 // Too little tunar by one: refused and said; with exactly the price it comes and the purse is empty.

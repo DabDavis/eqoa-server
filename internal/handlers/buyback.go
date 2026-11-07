@@ -23,9 +23,10 @@ import (
 //     more than 40 overruns the client's memory. The wares come first, and a line goes in only where
 //     there is room, which nearly every merchant has for all five.
 //   - A request names a record by its place in the list, so lines AFTER the wares leave every ware's
-//     index what it always was, and the list opens on the wares, as a player used to them expects
-//     with five lines always there once they have sold five things. VIWndList::Scroll wraps, so Up from
-//     the first row is the last row: the newest line goes last, one press away, and the greeting says so.
+//     index what it always was, and the list still opens on the wares (anyone who has sold five things
+//     has five lines at every merchant from then on, and six rows show at a time). VIWndList::Scroll
+//     wraps, so Up from the first row is the last row: the newest line goes last, one press away, and
+//     the greeting says so.
 //   - A record is the client's by value: nothing keys a list's item by its id, so what a line's record
 //     says is that line's alone. 0x003B then files the real record. A row shows only the icon; the name
 //     and description show in the panels when it is selected, and that is where a line says what it is.
@@ -130,21 +131,20 @@ func buyBackRecord(e *database.BuyBackEntry) database.CharInventoryEntry {
 
 // buyBackWords is what a line's description begins with.
 func buyBackWords(e *database.BuyBackEntry) string {
-	n := e.Item.StackLeft
-	this, it := "this", "it"
-	if n > 1 {
-		this, it = fmt.Sprintf("these %d", n), "them all"
+	this, it, comes := "this", "it", "it comes"
+	if n := e.Item.StackLeft; n > 1 {
+		this, it, comes = fmt.Sprintf("these %d", n), "them all", "they all come"
 	}
 	var s string
 	switch {
 	case e.How == database.BuyBackSold && e.Price > 0:
 		s = fmt.Sprintf("You sold %s for %d tunar; the same brings %s back.", this, e.Price, it)
 	case e.How == database.BuyBackSold:
-		s = fmt.Sprintf("You sold %s for nothing; nothing brings %s back.", this, it)
+		s = fmt.Sprintf("You sold %s for nothing; %s back for nothing.", this, comes)
 	case e.Price > 0:
 		s = fmt.Sprintf("You destroyed %s; %d tunar brings %s back.", this, e.Price, it)
 	default:
-		s = fmt.Sprintf("You destroyed %s; nothing brings %s back.", this, it)
+		s = fmt.Sprintf("You destroyed %s; %s back for nothing.", this, comes)
 	}
 	if max := e.Item.Pattern.MaxHP; max > 0 && e.Item.RemainHP < max {
 		s += fmt.Sprintf(" Condition %d of %d.", e.Item.RemainHP, max)

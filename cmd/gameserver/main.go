@@ -137,6 +137,17 @@ func main() {
 		log.Printf("Entity world: %v (no race past the game's)", err)
 	}
 	log.Printf("Entity world: custom races: %s", entity.RaceDefSummary())
+	// what character creation takes past the game's own (entity/creation.go):
+	// the froglok and the custom races, every class for every race
+	creation := entity.CreationRules{Races: cfg.World.OpenRaces, AllClasses: cfg.World.AllClasses}
+	entity.SetCreationRules(creation)
+	if creation.On() {
+		names := []string{}
+		for _, r := range entity.CreationRaces() {
+			names = append(names, r.Name)
+		}
+		log.Printf("Character creation: races past the game's: %v; every class for every race: %v", names, creation.AllClasses)
+	}
 	// and each race's players' body size, on every client (entity/racesize.go,
 	// table racesize: gnomes 0.9)
 	if _, err := gameWorld.LoadRaceSizes(db); err != nil {
@@ -601,6 +612,10 @@ func main() {
 	if cfg.Server.AccountPort != 0 {
 		accountServer = tcp.NewAccountServer(db, cfg.Server.AccountPort, cfg.Auth.BCryptCost)
 		accountServer.SetNewCharacterRules(newRules)
+		// races past the game's, where creation takes them (entity/creation.go)
+		if creation.On() {
+			accountServer.SetExtraRaces(handlers.NewCharRace)
+		}
 
 		// The account pages can move a character on the logged-in account. Where the
 		// destinations ARE depends on where their defining NPCs spawned, and moving a

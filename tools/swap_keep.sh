@@ -13,7 +13,8 @@
 # reboot have a 1 minute warning before it happens"): SIGUSR1, and $EQOA_KEEP_WARN seconds (60; 0 no warning and
 # no wait). No wait with nobody in the world, nor from a binary that does not answer it (one from before this).
 #
-# Staging is swap_when_empty.sh's: $SWAP/pending/{gameserver,sha256} and an optional before.sh. A staging
+# Staging is swap_when_empty.sh's: $SWAP/pending/{gameserver,sha256}, an optional before.sh and an optional
+# after.sh, run once the new server is up (a data step that needs the new code; it makes its own backup). A staging
 # with a file named `cold` in it is refused here (its data step is long, or it needs the server stopped): swap
 # it the old way. A server that does not answer the signal within 10 s (a binary from before this, on which
 # SIGUSR2 does nothing) is left as it was, and nothing is swapped (exit 3): the first swap INTO a binary that
@@ -146,6 +147,13 @@ for _ in $(seq 1 120); do
 done
 if [ "$ok" = yes ] && listening; then
 	tail -n +"$from" "$GAME_LOG" | grep -a "Keep: " | tail -4 | while IFS= read -r l; do log "  $l"; done
+	if [ -x "$PENDING/after.sh" ]; then
+		if (cd "$PENDING" && ./after.sh) > "$SWAP/after-$when.log" 2>&1; then
+			log "keep: after.sh done (after-$when.log)"
+		else
+			log "keep: after.sh FAILED (after-$when.log; the new binary stays)"
+		fi
+	fi
 	mv "$PENDING" "$SWAP/done-keep-$when"
 	for pat in "gameserver.bak-*-pre-swap" "eqoa.db.bak-*-pre-swap"; do
 		ls -1t "$DIR"/$pat 2>/dev/null | tail -n +4 | xargs -r rm -f

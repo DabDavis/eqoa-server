@@ -75,6 +75,8 @@ type GuildHandler struct {
 	// chatGate is a guild line's check (a GM's Silence and Snoop,
 	// gmchannel.go): false keeps it from the guild.
 	chatGate func(sess *session.Session, p *entity.Player, kind, text string) bool
+
+	portal *Portal // the name typed for a Summoning Portal (summonportal.go)
 }
 
 type guildInvite struct {
@@ -144,6 +146,10 @@ func (h *GuildHandler) HandleGuildCommand(sess *session.Session, msg *protocol.M
 	case guildCmdChat:
 		text := r.str16(1023)
 		if r.err || text == "" {
+			return nil
+		}
+		// a typed line in guild mode comes here, a portal's name too (summonportal.go)
+		if h.portal.TakeName(sess, p, text) {
 			return nil
 		}
 		// Recv0468/5 prints the line alone, so the speaker goes into it;

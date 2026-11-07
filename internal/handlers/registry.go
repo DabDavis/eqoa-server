@@ -519,6 +519,12 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	if charStore != nil && gameWorld != nil {
 		StartDuelPurse(gameWorld, charStore.DB())
 	}
+	if gameWorld != nil {
+		// the Summoning Portals (summonportal.go): the item, the talk, the name typed
+		portal := NewPortal(gameWorld)
+		interactHandler.portal, equipHandler.portal, chatHandler.portal, guildHandler.portal = portal, portal, portal, portal
+		portal.Start()
+	}
 
 	// Register server handlers
 	serverHandler.RegisterHandlers(r)

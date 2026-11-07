@@ -285,8 +285,8 @@ func TestACallerInNoGroupIsAskedFirst(t *testing.T) {
 	}
 }
 
-// What a leader asked goes with it: its boxes answer "not invited" once it has left, and
-// a new leader's flag asks them anew. A login that replaces a session or takes one over
+// What a leader asked goes with it: its boxes answer "not invited" once it has left,
+// whatever group it leads next, and a new leader's flag asks them anew. A login that replaces a session or takes one over
 // has no box up, so it can be asked.
 func TestAFlagsBoxesGoWithTheirLeader(t *testing.T) {
 	r := newRaidRig(t, 4, 30)
@@ -311,6 +311,24 @@ func TestAFlagsBoxesGoWithTheirLeader(t *testing.T) {
 	r.w.RaidCall(r.sess[1]) // Bob leads now
 	if got := boxesIn(drain(r.sess[3])); len(got) != 1 || got[0] != "Bob's raid" {
 		t.Errorf("the new leader's box: %q", got)
+	}
+
+	// its old box is no way into its next group, and its next flag asks anew
+	n := newRaidRig(t, 4, 30)
+	n.join(0, 1)
+	n.drainAll()
+	n.w.RaidCall(n.sess[0]) // asks Cal and Dee
+	n.w.GroupLeave(n.sess[0])
+	n.join(0, 1) // a new group of Ann's
+	n.drainAll()
+	n.w.GroupAccept(n.sess[2], n.w.IDSeenBy(n.sess[2], n.p[0]))
+	if n.p[2].GroupID != 0 {
+		t.Error("an old box joined its leader's next group")
+	}
+	n.drainAll()
+	n.w.RaidCall(n.sess[0])
+	if got := boxesIn(drain(n.sess[3])); fmt.Sprint(got) != "[Ann's raid]" {
+		t.Errorf("its next flag's box: %q", got)
 	}
 
 	// a replaced login
@@ -407,7 +425,8 @@ func TestARaidGroupsLineFitsWhatItsClientShows(t *testing.T) {
 // class, level, HP and power; a client that did not, a PS2's, nothing and its window of
 // four. In a group of four, nothing. On a change alone, at most once a second: the
 // system looks every ten ticks and at no other. Back at four, 0 members once. Off, no
-// more. A keep restart keeps the asking; a takeover's new client asks again.
+// more; on again, all of it. A keep restart keeps the asking; a takeover's new client
+// asks again.
 func TestTheRaidRosterGoesToWhoAsks(t *testing.T) {
 	r := newRaidRig(t, 6, 30)
 	r.form(4)
@@ -513,6 +532,18 @@ func TestTheRaidRosterGoesToWhoAsks(t *testing.T) {
 	}
 	if rows, _, sent := readRaidRoster(t, drain(r.sess[0])); sent != 1 || len(rows) != 6 {
 		t.Errorf("the other that asked: %d messages, %d rows", sent, len(rows))
+	}
+	// on again: the whole of it, nothing changed, for a client that turned it off forgot it
+	r.w.SetRaidRoster(r.sess[5], true)
+	r.rosterPass()
+	if rows, _, sent := readRaidRoster(t, drain(r.sess[5])); sent != 1 || len(rows) != 6 {
+		t.Errorf("on again: %d messages, %d rows", sent, len(rows))
+	}
+	r.w.SetRaidRoster(r.sess[5], false)
+	r.w.SetRaidRoster(r.sess[5], true)
+	r.rosterPass()
+	if rows, _, sent := readRaidRoster(t, drain(r.sess[5])); sent != 1 || len(rows) != 6 {
+		t.Errorf("off and on: %d messages, %d rows", sent, len(rows))
 	}
 	// a takeover's new client has not asked
 	r.p[0].CharServerID = 777

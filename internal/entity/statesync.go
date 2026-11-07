@@ -182,6 +182,16 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 
 	// === Java eqoa.live offsets from byte 99 onwards ===
 
+	// Offset 99-104: the worn armour's tints (chest, bracer, gloves, legs, boots,
+	// helm), which a PS2 draws the slot in (SetArmorSlot): the disc tint nearest
+	// a piece's own colour (ArmorColor), else 0, white. A client of the live
+	// game's look is sent the colour itself (LookDyes). Only a piece with a
+	// colour of its own: the crafted sets' 0-14 in itempattern.color stay
+	// undrawn on armour, as they have always been.
+	for i, c := range p.ArmorColors {
+		buf[99+i] = ArmorTint(c)
+	}
+
 	// Offset 105-108: Hair/Face (Java Entity.java)
 	buf[105] = byte(p.HairColor)
 	buf[106] = byte(p.HairLength)

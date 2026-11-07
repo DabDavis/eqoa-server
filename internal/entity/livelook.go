@@ -146,6 +146,16 @@ func ArmorColor(color int64) uint32 {
 	return c
 }
 
+// ArmorTint is the disc tint a PS2 draws an armour piece of that colour
+// (ArmorColor's: 0, none) in: the nearest of the fifteen (nearestTint), 0 white
+// for none.
+func ArmorTint(c uint32) byte {
+	if c == 0 {
+		return 0
+	}
+	return nearestTint(c)
+}
+
 func putRGBA(b []byte, c uint32) {
 	binary.BigEndian.PutUint32(b, c)
 }

@@ -108,7 +108,7 @@ func checkClassTemplateRow(row map[string]any) error {
 	}
 	t := database.ClassTemplate{Name: fmt.Sprint(name), Class: -1, HPPct: 100, TakenPct: 100, MeleePct: 100}
 	ints := map[string]*int{"class": &t.Class, "hp_pct": &t.HPPct, "taken_pct": &t.TakenPct, "melee_pct": &t.MeleePct,
-		"special_chance": &t.SpecialChance, "special_from": &t.SpecialFrom}
+		"special_chance": &t.SpecialChance, "special_from": &t.SpecialFrom, "shield_damage": &t.ShieldDamage}
 	for col, dst := range ints {
 		v, ok := row[col]
 		if !ok || v == nil {
@@ -140,6 +140,9 @@ func checkClassTemplateRow(row map[string]any) error {
 	}
 	if v, ok := row["special"]; ok && v != nil {
 		t.Special = strings.TrimSpace(fmt.Sprint(v))
+	}
+	if v, ok := row["shield_resist"]; ok && v != nil {
+		t.ShieldResist = strings.TrimSpace(fmt.Sprint(v))
 	}
 	if v, ok := row["abilities"]; ok && v != nil {
 		list, err := database.ParseTemplateAbilities(fmt.Sprint(v))

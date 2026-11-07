@@ -1060,7 +1060,10 @@ func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
 	if w.petDamageLocked(ps, t, n, now) {
 		return true
 	}
-	return w.petProcsLocked(ps, t, now)
+	if w.petProcsLocked(ps, t, now) {
+		return true
+	}
+	return w.creatureShieldOnPetLocked(ps, t, now) // creatureshield.go
 }
 
 // petDamageLocked is n of the pet's damage on its target, its owner's: the

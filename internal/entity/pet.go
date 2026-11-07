@@ -896,9 +896,12 @@ func (w *World) deckUnderLocked(world uint8, x, y, z float32) (float32, bool) {
 
 // petChooseTargetLocked lets go of a target that is gone, dead or too far
 // from the owner, and gives a pet without one what its stance takes on:
-// the nearest creature fighting it (neutral, defensive, aggressive), its
-// owner (defensive, aggressive) or a player of its owner's group (aggressive),
-// or what its owner fights (aggressive).
+// the nearest creature fighting it (neutral, defensive, aggressive), or
+// fighting or fought by its owner's group (defensive, aggressive: its owner,
+// another player of the group or another's pet; the user, 2026-11-07: "group
+// members pets should attack if on defensive or offensive if a group
+// member(or their pets) attacks or is attacked"), or what its owner fights
+// or has hurt (aggressive).
 func (w *World) petChooseTargetLocked(ps *petState, now time.Time) {
 	owner, pet := ps.owner, ps.npc
 	if ps.target != 0 {
@@ -927,12 +930,13 @@ func (w *World) petChooseTargetLocked(ps *petState, now time.Time) {
 			continue
 		}
 		mine := npc.CurrentEnemy == pet.ServerID
-		if ps.stance != petNeutral {
-			mine = mine || npc.CurrentEnemy == owner.ServerID
+		if ps.stance != petNeutral { // defensive or aggressive: the group's fights
+			mine = mine || npc.CurrentEnemy == owner.ServerID || fightsGroupMate(w, owner, npc) ||
+				groupMateAttacks(w, owner, npc) || groupPetsFight(w, ps, npc)
 		}
 		if ps.stance == petAggressive {
 			_, hurt := npc.Threats[owner.ServerID]
-			mine = mine || hurt || fightsGroupMate(w, owner, npc) || groupPetsFight(w, ps, npc)
+			mine = mine || hurt
 		}
 		if !mine {
 			continue
@@ -948,9 +952,9 @@ func (w *World) petChooseTargetLocked(ps *petState, now time.Time) {
 
 // fightsGroupMate reports a creature fighting a player of the owner's group
 // (petition 1132, Jibmage: "When a pets stance is set to aggressive if any players
-// in the players group take damage, the pet should attack the mob hitting them"). The
-// creature must be within petAssist of the owner, as any the pet looks for. Must be
-// called with the lock held.
+// in the players group take damage, the pet should attack the mob hitting them"; a
+// defensive pet's too since 2026-11-07). The creature must be within petAssist of
+// the owner, as any the pet looks for. Must be called with the lock held.
 func fightsGroupMate(w *World, owner *Player, npc *NPC) bool {
 	if owner.GroupID == 0 {
 		return false
@@ -962,8 +966,8 @@ func fightsGroupMate(w *World, owner *Player, npc *NPC) bool {
 // groupPetsFight reports a creature fighting another pet of the owner's group, or one
 // such a pet fights (petition 1227, Waldorf: "pets should attack when other pets in the
 // group attack/get hit. Pets in a group should be treated the same way as players in the
-// group"): an aggressive pet's, as fightsGroupMate is for the group's players. Must be
-// called with the lock held.
+// group"): an aggressive or defensive pet's, as fightsGroupMate is for the group's
+// players. Must be called with the lock held.
 func groupPetsFight(w *World, ps *petState, npc *NPC) bool {
 	owner := ps.owner
 	if owner.GroupID == 0 {
@@ -979,6 +983,33 @@ func groupPetsFight(w *World, ps *petState, npc *NPC) bool {
 			continue
 		}
 		if npc.CurrentEnemy == mate.npc.ServerID || mate.target == npc.ServerID {
+			return true
+		}
+	}
+	return false
+}
+
+// groupMateAttacks reports a creature another living player of the owner's group
+// attacks: its auto-attack's target, or one it has hurt (on the creature's threat
+// list: a hit, a harmful spell, a heal's hate in that fight). A defensive or
+// aggressive pet joins it (the user, 2026-11-07). Must be called with the lock held.
+func groupMateAttacks(w *World, owner *Player, npc *NPC) bool {
+	if owner.GroupID == 0 {
+		return false
+	}
+	g := w.groups[owner.GroupID]
+	if g == nil {
+		return false
+	}
+	for _, id := range g.Members {
+		m := w.Players[id]
+		if m == nil || m == owner || m.IsDead() {
+			continue
+		}
+		if m.Attacking() && m.AttackTarget == npc.ServerID {
+			return true
+		}
+		if _, hurt := npc.Threats[m.ServerID]; hurt {
 			return true
 		}
 	}

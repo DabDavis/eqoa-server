@@ -409,8 +409,9 @@ func TestThePetsStance(t *testing.T) {
 }
 
 // Petition 1132, Jibmage: "When a pets stance is set to aggressive if any players in
-// the players group take damage, the pet should attack the mob hitting them." The
-// controls: a defensive pet keeps to its owner, and a stranger's fight is not the pet's.
+// the players group take damage, the pet should attack the mob hitting them"; a
+// defensive pet too since 2026-11-07 (the user). The controls: a neutral pet keeps to
+// itself, and a stranger's fight is not the pet's.
 func TestAnAggressivePetDefendsItsGroup(t *testing.T) {
 	for _, c := range []struct {
 		stance  petStance
@@ -419,7 +420,8 @@ func TestAnAggressivePetDefendsItsGroup(t *testing.T) {
 	}{
 		{petAggressive, true, true},
 		{petAggressive, false, false},
-		{petDefensive, true, false},
+		{petDefensive, true, true},
+		{petNeutral, true, false},
 	} {
 		r := newPetRig(t)
 		r.summon(t, fireElemental(), 0)
@@ -442,22 +444,40 @@ func TestAnAggressivePetDefendsItsGroup(t *testing.T) {
 	}
 }
 
-// Petition 1227, Waldorf: "pets should attack when other pets in the group attack/get hit.
-// Pets in a group should be treated the same way as players in the group." An aggressive pet
-// takes on a creature fighting a group mate's pet, and one a group mate's pet fights; the
-// controls: a defensive pet keeps to its owner, and a stranger's pet is not the pet's.
-func TestAnAggressivePetFightsWithItsGroupsPets(t *testing.T) {
+// A defensive or aggressive pet takes its group's fights (petition 1227, Waldorf; the user,
+// 2026-11-07: "group members pets should attack if on defensive or offensive if a group
+// member(or their pets) attacks or is attacked"): a creature fighting another member's pet
+// or player, or one that pet or player fights; a neutral pet does not, nor one out of the
+// group.
+func TestAPetTakesItsGroupsFights(t *testing.T) {
+	const (
+		matePetHit     = iota // the crab fights the mate's pet
+		matePetAttacks        // the mate's pet fights the crab
+		mateHit               // the crab fights the mate
+		mateAttacks           // the mate auto-attacks the crab
+		mateHurt              // the mate has hurt the crab (its threat list)
+	)
 	for _, c := range []struct {
 		stance  petStance
 		grouped bool
-		hit     bool // the crab fights the mate's pet; else the mate's pet fights the crab
+		trigger int
 		want    bool
 	}{
-		{petAggressive, true, true, true},
-		{petAggressive, true, false, true},
-		{petAggressive, false, true, false},
-		{petAggressive, false, false, false},
-		{petDefensive, true, true, false},
+		{petAggressive, true, matePetHit, true},
+		{petAggressive, true, matePetAttacks, true},
+		{petAggressive, true, mateHit, true},
+		{petAggressive, true, mateAttacks, true},
+		{petAggressive, true, mateHurt, true},
+		{petDefensive, true, matePetHit, true},
+		{petDefensive, true, matePetAttacks, true},
+		{petDefensive, true, mateHit, true},
+		{petDefensive, true, mateAttacks, true},
+		{petDefensive, true, mateHurt, true},
+		{petNeutral, true, matePetHit, false},
+		{petNeutral, true, mateAttacks, false},
+		{petAggressive, false, matePetHit, false},
+		{petDefensive, false, mateAttacks, false},
+		{petDefensive, false, mateHit, false},
 	} {
 		r := newPetRig(t)
 		r.summon(t, fireElemental(), 0)
@@ -474,17 +494,29 @@ func TestAnAggressivePetFightsWithItsGroupsPets(t *testing.T) {
 			r.w.groups = map[uint32]*Group{9: {ID: 9, Members: []EntityID{r.p.ServerID, mate.ServerID}}}
 		}
 		r.enemy.X = r.p.X + 5
-		if c.hit {
+		switch c.trigger {
+		case matePetHit:
 			r.enemy.CurrentEnemy = matePet.ServerID
 			r.w.wakeNPCLocked(r.enemy)
-		} else {
+		case matePetAttacks:
 			r.w.pets[mate.ServerID].target = r.enemy.ServerID
+		case mateHit:
+			r.enemy.CurrentEnemy = mate.ServerID
+			r.w.wakeNPCLocked(r.enemy)
+		case mateAttacks:
+			mate.AttackTarget = r.enemy.ServerID
+			mate.AutoAttack = true
+		case mateHurt:
+			if r.enemy.Threats == nil {
+				r.enemy.Threats = map[EntityID]int64{}
+			}
+			r.enemy.Threats[mate.ServerID] = 50
 		}
 		r.w.mu.Lock()
 		r.w.petChooseTargetLocked(ps, r.at(10*time.Second))
 		r.w.mu.Unlock()
 		if got := ps.target == r.enemy.ServerID; got != c.want {
-			t.Errorf("stance %d, grouped %v, the mate's pet hit %v: pet fights %v, want %v", c.stance, c.grouped, c.hit, got, c.want)
+			t.Errorf("stance %d, grouped %v, trigger %d: pet fights %v, want %v", c.stance, c.grouped, c.trigger, got, c.want)
 		}
 	}
 }

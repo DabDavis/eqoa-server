@@ -142,6 +142,7 @@ cmd/gameserver/      UDP game (port 10070) + TCP auth (port 9735) + HTTP patch (
 cmd/wsrelay/         WebSocket relay for browser clients (wsrelay.py's protocol, host:port allow-list)
 cmd/workboard/       the work board from a shell on the box, as dab's sessions
 cmd/charmigrate/     a character moved in from another server by a GM's plan, from a shell
+cmd/groundmap/       the collision's maps: one copy in the page cache for every server on a machine (below, "Shards")
 internal/network/    RDP protocol, packet assembly
 internal/protocol/   Opcodes, message types, RLE encoding
 internal/session/    Session management, state channels, XOR delta
@@ -1702,6 +1703,52 @@ TURN secret lives only in the live `config.yaml`.
 
 **Effects channel (0x43) is as long as its count**: a u32 count and a 132-byte record an effect (icon DictID, name as a wide string of at most 31 characters), 4 bytes when there is none, as CLIENT's `Channel43` reads it and every value in the captures is (136 to 796 bytes). It is the one state channel that changes length (`StateUpdateData.SetSizedData`; DRDP XORs over the shorter of a message and its reference). `#effect <icon hex> [name]` / `#effect clear` sets them by hand: nothing else puts an effect on yet.
 
+## Shards: several game servers behind one login
+
+The user, 2026-11-07: "lets add another shard, and rename the current to Heirloom Test Server, the new Live Server", "the
+live server has no heirloom items", "a shard if we do it right shouldnt use much more resources". A shard is a process of
+its own: its own database, characters, guilds, mail, log, panel, keep restart. What they share is the list, the accounts
+and the collision. Long form, with what was measured: `claude-notes/shards-20261107.md`.
+
+- **The list** (`shards` in config, `handlers.ShardList`, 0x07B3): every process carries the same, so whichever a client asks
+  shows the same; none in config is this server alone as "Marr's Fist" on its game port. CLIENT's window (`VIWndServerSelect`,
+  `VIShardInfo`) sorts by name, keeps a name of 31 characters, and picks the home shard game.opt names, else the first
+  `recommended`, marking that one Recommended. A client asks for the list at one address (`eqahosts.txt`: 10070); each entry's
+  own address is where it connects (its 64-bit id: endpoint 0xB991, port, IP), and every entry's endpoint is the game
+  server's, so a shard differs from another by its address alone.
+- **One process owns the accounts**: the Station login, the account pages, the transfers form, the patcher. A shard beside it
+  has `server.auth_port`, `patch_port`, `account_port` and `patch.worlds_udp_port` 0, no such listener, and `auth.shared_db`
+  naming the owner's database. Its own `accountinfo` is a copy (`database.AccountMirror`): pulled at its start, every
+  `auth.shared_refresh` (10 s; not even opened while the file's size and time stand still), and for one name at each sign-in;
+  the file opened read-only per pull, closed again, nothing written back; everything on the shard goes on reading its own
+  table. So a GM's level, a ban, a new password or a new account count on the shard within seconds and at the next sign-in at
+  once, and with the owner down the shard signs its players in by the copy. A pull that would take away more than a tenth of
+  the accounts (at least five) leaves them and says so.
+- **A shard signs in by the token alone**: the owner's login tickets are in the owner's memory, so `authorizeUsername` finds none
+  and every handshake is `CheckUDPPassword` on the password its token carries, and nothing is granted (`NewAuthServer` with no
+  ticket store). A PS2's and vanilla's handshake both carry it (STATION's AES of the password: `auth/udptoken.go`). A
+  client that never logged in is told 0x0729 and its session has no account; a ticket's weakness (it names a username alone,
+  for 15 minutes) does not exist here.
+- **A shard's panel** (`gmweb/shard.go`): its own sign-in by the same accounts, its own authenticators, tokens and audit; what
+  would change an account is refused and says where to go (`AccountsShared`), and a server with no account pages neither offers
+  nor lists transfers (`NoTransfers`). `gm_testers` is the owner's matter: a shard's is empty.
+- **`world.heirlooms: false`** gives no kept item at a login (`giveKeptItems`). The rest of having no heirlooms is the database:
+  no records, no Outfitters, no start rows.
+- **What it costs** (`ground/mapfile.go`, `server.gc_percent`, `server.no_huge_pages`): measured on a copy of eqoaclassic's data,
+  61,139 NPCs. The collision is **mapped** when `cmd/groundmap <ground folder>` has written `<file>.map` beside each ground and walls
+  file (646 MB of files for all six worlds, 15 s; written from the decode and valid only while its source's CRC-32C matches, so a
+  new bake decodes until the tool runs again; a rename, so a running server keeps what it mapped): read-only, the same page
+  cache for every process, nothing on the heap, 0.4 µs a zone against 6 ms. Where zones cost each process up to 652 MB of heap
+  they now cost one copy of evictable page cache. `<world>.env` is mapped as it stands. The NPCs are one array (no size-class
+  rounding) with each name once. Past that a process holds its live heap (85 MB, 64 of it NPCs) and what the runtime keeps round
+  it: `gc_percent: 25` (GOGC) and `no_huge_pages: true` (`PR_SET_THP_DISABLE`: with THP "always", khugepaged fills back what the
+  runtime returned). An empty shard's tick does next to nothing (`guardWatchSystem` looks at nothing with no player in the world).
+- **Keep restarts and swaps are per shard**: both scripts take `EQOA_UNIT`, `EQOA_DIR`, `EQOA_SWAP_DIR`, `EQOA_GAME_PORT` and
+  `EQOA_AUTH_PORT`, the last any TCP port the shard listens on (a shard with no login: its panel's). The swap's hold stops the
+  mirror (`AccountMirror.Hold`): nothing writes the database while a script may put it back.
+- **Content is per database**: a data tool, a panel edit or a petition's fix reaches the one shard it ran on. Run a tool twice,
+  `--db` each, for it to reach both.
+
 ## Configuration
 
 ```yaml
@@ -1715,6 +1762,26 @@ server:
 ```
 
 `server_ip` used by: `internal/handlers/server.go` (server list), `internal/network/tcp/patchserver.go` (patch XML).
+
+A shard's own (above, "Shards"; a key left out is its default, a port of 0 no such listener):
+
+```yaml
+server:
+  gc_percent: 25            # GOGC; unset: Go's 100
+  no_huge_pages: true       # PR_SET_THP_DISABLE
+world:
+  heirlooms: false          # no kept item at a login; unset: given
+auth:
+  shared_db: "/srv/one/eqoa.db"   # another shard's accounts, a copy here; every sign-in by the token's password
+  shared_refresh: 10s
+shards:                     # the server list, the same in every process
+  - name: "First Shard"     # 31 characters at most
+    port: 10070
+  - name: "Second Shard"
+    port: 10071
+    recommended: true
+    # ip: "203.0.113.11"    # unset: server.server_ip
+```
 
 Voice (internal/voice; off unless enabled; the firewall opens UDP and TCP on `port`, and with TURN
 on `turn.port` too, plus UDP on its relay ports):

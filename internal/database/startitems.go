@@ -53,15 +53,16 @@ func (db *SQLiteDB) StartItems(race, class, humType int) ([]StartItem, error) {
 	if race != 0 {
 		humType = 0 // only a human's city counts
 	}
-	out, err := db.startItemsOf(race, class, humType)
+	out, err := db.StartItemsOf(race, class, humType)
 	if err != nil || len(out) > 0 {
 		return out, err
 	}
 	return db.startItemsFallback(race, class, humType)
 }
 
-// startItemsOf is startitems' rows for one combo, as they are.
-func (db *SQLiteDB) startItemsOf(race, class, humType int) ([]StartItem, error) {
+// StartItemsOf is startitems' rows for one combo, as they are: none for a
+// combo the table lacks (what the balance tools' start kits read).
+func (db *SQLiteDB) StartItemsOf(race, class, humType int) ([]StartItem, error) {
 	rows, err := db.Query(`SELECT patternid, count FROM startitems WHERE race = ? AND class = ? AND humtype = ? ORDER BY id`,
 		race, class, humType)
 	if err != nil {

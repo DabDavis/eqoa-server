@@ -222,3 +222,28 @@ func TestLiveHolderAndReplaceSession(t *testing.T) {
 		t.Fatal("a lobby session was told, or kept")
 	}
 }
+
+// LiveFrom counts an account's sessions in the game by their source, leaving out one session and anyone else's.
+func TestLiveFrom(t *testing.T) {
+	m := NewManager()
+	relay := net.IPv4(192, 0, 2, 9)
+	from := func(a *net.UDPAddr) bool { return a.IP.Equal(relay) }
+	mk := func(ip net.IP, port int, account int, in bool) *Session {
+		s := m.CreateSession(&net.UDPAddr{IP: ip, Port: port}, uint32(port), 1, 0x1111, 0xB991, true)
+		s.SetAccountID(account)
+		s.UpdateActivity()
+		s.SetInGame(in)
+		return s
+	}
+	a := mk(relay, 40001, 8, true)
+	mk(relay, 40002, 8, true)
+	mk(relay, 40003, 8, false)                   // in the lobby
+	mk(net.IPv4(203, 0, 113, 7), 40004, 8, true) // a native client
+	mk(relay, 40005, 9, true)                    // another account
+	if got := m.LiveFrom(8, from, nil); got != 2 {
+		t.Errorf("account 8 through the relay: %d, want 2", got)
+	}
+	if got := m.LiveFrom(8, from, a); got != 1 {
+		t.Errorf("leaving one out: %d, want 1", got)
+	}
+}

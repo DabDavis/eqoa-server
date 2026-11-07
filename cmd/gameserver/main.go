@@ -446,6 +446,11 @@ func main() {
 		}
 		authHandler.SetRelay(addrs, tcp.RelayLookup(cfg.Auth.RelayLookup))
 		log.Printf("Auth: relayed players (from %v) named by %s", names, cfg.Auth.RelayLookup)
+		if most := cfg.Auth.BrowserCharacters; most > 0 {
+			authHandler.SetBrowserLimit(most, func(id int, from func(*net.UDPAddr) bool) int { return sessionMgr.LiveFrom(id, from, nil) })
+			handlers.SetBrowserLimit(most, authHandler.Relayed)
+			log.Printf("Auth: at most %d of an account's characters in the game in a browser", most)
+		}
 	}
 	// One limit on guessing a password for every place one is checked: the
 	// game's login here, the account pages and the GM panel (handed below).

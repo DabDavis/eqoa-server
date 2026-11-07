@@ -211,6 +211,12 @@ type AuthServer struct {
 	// clientIP, when set, gives the client address behind a source: a
 	// relayed browser player's page address (SetRelay); nil when unknown.
 	clientIP func(ip net.IP, port int) net.IP
+	// relays are the web relay's source addresses (SetRelay), and browserMost
+	// the most of an account's characters in the game through it, browserLive
+	// counting them (SetBrowserLimit).
+	relays      []net.IP
+	browserMost int
+	browserLive func(accountID int, from func(*net.UDPAddr) bool) int
 
 	// autoRegister is auth.allow_auto_register, which the GM panel turns
 	// over while the server runs (SetAllowAutoRegister).
@@ -298,6 +304,7 @@ func (s *AuthServer) AllowAutoRegister() bool {
 // browser player shares. A relayed source the relay cannot name is unknown,
 // and the address rule passes it.
 func (s *AuthServer) SetRelay(addrs []net.IP, lookup func(port int) (net.IP, bool)) {
+	s.relays = addrs
 	s.clientIP = func(ip net.IP, port int) net.IP {
 		for _, a := range addrs {
 			if a.Equal(ip) {
@@ -332,6 +339,24 @@ func RelayLookup(base string) func(port int) (net.IP, bool) {
 		ip := net.ParseIP(strings.TrimSpace(string(b)))
 		return ip, ip != nil
 	}
+}
+
+// SetBrowserLimit refuses a login through the web relay (SetRelay's addresses) to
+// an account with most characters in the game through it already (the user,
+// 2026-11-07: "lets make browser limit up to 4 characters per account"). A client
+// that does not come through the relay is not counted or refused.
+func (s *AuthServer) SetBrowserLimit(most int, live func(accountID int, from func(*net.UDPAddr) bool) int) {
+	s.browserMost, s.browserLive = most, live
+}
+
+// Relayed reports whether a source is the web relay's.
+func (s *AuthServer) Relayed(ip net.IP) bool {
+	for _, a := range s.relays {
+		if a.Equal(ip) {
+			return true
+		}
+	}
+	return false
 }
 
 // SetOneLogin turns on one login at a time: an account already in the game,
@@ -420,13 +445,15 @@ func (s *AuthServer) HandleConnection(conn net.Conn) {
 		switch opcode {
 		case MsgLoginRequest:
 			var ip net.IP
+			relayed := false
 			if a, ok := conn.RemoteAddr().(*net.TCPAddr); ok {
 				ip = a.IP
+				relayed = s.Relayed(a.IP)
 				if s.clientIP != nil {
 					ip = s.clientIP(a.IP, a.Port)
 				}
 			}
-			response = s.handleLoginFrom(payload, ip)
+			response = s.handleLoginVia(payload, ip, relayed)
 		case MsgSubmitAcctCreate:
 			response = s.handleCreateAccount(payload)
 		case MsgChangePassword:
@@ -463,6 +490,12 @@ func (s *AuthServer) handleLogin(payload []byte) []byte {
 // handleLoginFrom is handleLogin for a connection from ip (nil: unknown, and
 // the address rule is not applied).
 func (s *AuthServer) handleLoginFrom(payload []byte, ip net.IP) []byte {
+	return s.handleLoginVia(payload, ip, false)
+}
+
+// handleLoginVia is handleLoginFrom, relayed saying the connection came through the
+// web relay.
+func (s *AuthServer) handleLoginVia(payload []byte, ip net.IP, relayed bool) []byte {
 	if len(payload) < 72 {
 		log.Printf("Auth: login payload too short (%d bytes)", len(payload))
 		return nil
@@ -532,6 +565,16 @@ func (s *AuthServer) handleLoginFrom(payload []byte, ip net.IP) []byte {
 		case "address":
 			log.Printf("Auth: refused '%s' (ID: %d) from %s: that address already has a session in the game", username, accountID, ip)
 			return s.buildLoginRefusedResponse(uint32(accountID), alreadyPlayingHere)
+		}
+	}
+
+	// A browser's characters (SetBrowserLimit): checked after the password, as
+	// one login is.
+	if relayed && s.browserLive != nil && s.browserMost > 0 {
+		from := func(a *net.UDPAddr) bool { return s.Relayed(a.IP) }
+		if s.browserLive(accountID, from) >= s.browserMost {
+			log.Printf("Auth: refused '%s' (ID: %d) from %s: %d characters in the game in a browser already", username, accountID, ip, s.browserMost)
+			return s.buildLoginRefusedResponse(uint32(accountID), fmt.Sprintf(browserFull, s.browserMost))
 		}
 	}
 
@@ -763,6 +806,7 @@ func (s *AuthServer) buildLoginFailResponse(accountID uint32) []byte {
 const (
 	alreadyLoggedIn    = "You are already logged in."
 	alreadyPlayingHere = "Someone is already playing from your address."
+	browserFull        = "This account has %d characters in a browser already."
 	tooManyLogins      = "Too many failed logins. Try again in %d minutes."
 	serverBusy         = "The server is busy. Try again in a moment."
 )

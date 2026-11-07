@@ -521,6 +521,15 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 		}
 	}
 
+	// A browser's characters (browserlimit.go): for a window that came past the
+	// login's count while the others were still choosing
+	if browserFull(h.sessionManager, sess, uint32(record.ServerID)) {
+		log.Printf("SelectedChar: REFUSED '%s' (serverID=%d) from %s: account %d has %d characters in a browser", record.CharName, charID, sess.RemoteAddr(), sess.AccountID(), browserLimit.most)
+		SendCharSelectNotice(sess, protocol.OpcodeCharSelectAreaUnavailable)
+		sess.Queue().SetBodyFlags(protocol.BodyFlagGuaranteedAck)
+		return nil
+	}
+
 	// A GM's approved character transfer applies now, before this login reads
 	// the character (transfers.go): no logout save can write over it here.
 	if h.applyTransfer(uint32(record.ServerID)) {

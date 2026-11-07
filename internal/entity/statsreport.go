@@ -20,7 +20,7 @@ import (
 // placeholders no roll reads.
 
 var (
-	raceNames  = []string{"Human", "Elf", "Dark Elf", "Gnome", "Dwarf", "Troll", "Barbarian", "Halfling", "Erudite", "Ogre", "Froglok", "Hill Giant"}
+	raceNames  = []string{"Human", "Elf", "Dark Elf", "Gnome", "Dwarf", "Troll", "Barbarian", "Halfling", "Erudite", "Ogre", "Froglok"} // and racedefs' (RaceName)
 	classNames = []string{"Warrior", "Ranger", "Paladin", "Shadow Knight", "Monk", "Bard", "Rogue", "Druid",
 		"Shaman", "Cleric", "Magician", "Necromancer", "Enchanter", "Wizard", "Alchemist"}
 	archNames = [...]string{archTank: "tank", archMelee: "melee", archPriest: "priest", archCaster: "caster"}
@@ -60,7 +60,7 @@ func (w *World) playerStatsLocked(p *Player, now time.Time) []string {
 	a := archetypeOf(p.Class)
 	_, size := p.Body() // what every client is sent (racesize.go, an illusion's)
 	out := []string{fmt.Sprintf("%s: level %d %s %s (defends as a %s), HP %d/%d, power %d/%d, size %.2f",
-		p.Name, p.Level, nameIn(raceNames, p.Race), nameIn(classNames, p.Class), archNames[a],
+		p.Name, p.Level, RaceName(p.Race), nameIn(classNames, p.Class), archNames[a],
 		p.HP, p.MaxHPNow(), p.Power, p.MaxPowerNow(), size)}
 
 	c := &p.CMEffects

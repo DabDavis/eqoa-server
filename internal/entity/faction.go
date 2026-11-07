@@ -808,7 +808,7 @@ func (w *World) StartThreatLines(spots []database.StartSpot) []string {
 			}
 		}
 		out = append(out, fmt.Sprintf("WARNING: a new %s %s (home %d) is attacked on sight at its start by %d NPCs: %s",
-			nameIn(raceNames, k.race), nameIn(classNames, k.class), k.hum, len(l), strings.Join(what, ", ")))
+			RaceName(k.race), nameIn(classNames, k.class), k.hum, len(l), strings.Join(what, ", ")))
 	}
 	return out
 }

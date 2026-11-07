@@ -500,6 +500,12 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// Register others' power (0x7E01; powerbars.go): a client that draws
 	// power bars under its group's, its target's and their target's health
 	NewPowerBarsHandler(gameWorld).RegisterHandlers(r)
+	// A race the game does not have, by its own words (0x7E1C; racelabels.go)
+	if charStore != nil {
+		NewRaceLabelsHandler(gameWorld, charStore.DB()).RegisterHandlers(r)
+	} else {
+		NewRaceLabelsHandler(gameWorld, nil).RegisterHandlers(r)
+	}
 	NewQuestMarkersHandler(gameWorld).RegisterHandlers(r)
 	NewQuestProgressHandler(gameWorld).RegisterHandlers(r)
 	NewVoiceHandler(gameWorld).RegisterHandlers(r)

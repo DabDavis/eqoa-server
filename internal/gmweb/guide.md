@@ -107,6 +107,7 @@ beside it):
 | `classtemplates` | NPC class templates, a row each (jib's five seeded: `tank`, `melee`, `wizard`, `necromancer`, `shadowknight`): the `class` it fights as (-1 its own), `hp_pct` / `taken_pct` / `melee_pct` (its hit points, the share of melee on it that lands, its own melee, % of its level's), a kick (`special`, `special_chance` % of rounds, `special_damage` a level), `abilities` (a JSON list: what it casts and when) | `name` |
 | `npctemplate` | which NPCs fight by a class template, by NPC NAME (lower case): `template` a `classtemplates` name; empty until a GM fills it | `name` |
 | `racesize` | how big a race's PLAYERS are drawn on every client: `size` 1.0 the race's own body, 0.9 a tenth smaller (gnomes, jib's ask); a race with no row is 1.0; applied at once to everyone in the world; NPCs keep their own `npcs.size` | `race` |
+| `racedefs` | a race this server has and the game does not, a row a race (`id` 11 to 30): `name` and `short_name` as clients that can show them, `wire_race` the game's race it passes as on every client (its camera, its items), its seven `bonus_*`, its two bodies (`body_male`, `body_female`, kept out of `charactermodel`, which would make its creatures townsfolk); only a GM makes a character of one: set the character's `race` and `modelid`; applied at once but for a character's stats, which go at its next login |
 | `npcmove` | how the creatures of a name move, by NPC NAME (lower case): `roam` -1 as its kind (the default: wildlife wanders, the rest stands), 0 stands it until pulled, 1 wanders whatever it is, `radius` its own wander radius (0: the server's), `water` land / both / water (empty: by where it spawned) | `name` |
 | `itempattern` | every item that exists; `trade` 1 is NO TRADE | `patternid` |
 | `itemeffect` | what using an item does (the alchemists' potions): `line` in spell words, `Self` drunk or `Target` thrown; `name`/`icon` on the effects list; `breaks` attack/damage; `wear` % a tick; `area` a thrown one's splash | `patternid` |
@@ -131,7 +132,7 @@ beside it):
 - **Race**: 0 Human, 1 Elf, 2 Dark Elf, 3 Gnome, 4 Dwarf, 5 Troll, 6 Barbarian, 7 Halfling, 8 Erudite, 9 Ogre
   (10 Froglok). **Class**: 0 Warrior, 1 Ranger, 2 Paladin, 3 Shadow Knight, 4 Monk, 5 Bard, 6 Rogue, 7 Druid,
   8 Shaman, 9 Cleric, 10 Magician, 11 Necromancer, 12 Enchanter, 13 Wizard, 14 Alchemist.
-  `npcs.race` is TEXT ('0'..'10').
+  `npcs.race` is TEXT ('0'..'10'). A race past 10 on a character is a row of `racedefs`, which says what it passes as on the wire.
 - **Worlds** (`world` columns): 0 Tunaria (the main continent; Freeport is around x 25300, z 15700),
   1 Rathe, 2 Odus, 3 Lavastorm, 4 Plane of Sky, 5 Secrets, 7 Secrets 2; 8-29 are worlds streamed off a
   PS2 hard disk. Coordinates: x and z are the ground plane, y is height. A height at or under -1000 is a fall.

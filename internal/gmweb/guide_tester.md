@@ -43,7 +43,8 @@ and of anyone else's what changed and when.
 
 - **Race**: 0 Human, 1 Elf, 2 Dark Elf, 3 Gnome, 4 Dwarf, 5 Troll, 6 Barbarian, 7 Halfling, 8 Erudite, 9 Ogre
   (10 Froglok). **Class**: 0 Warrior, 1 Ranger, 2 Paladin, 3 Shadow Knight, 4 Monk, 5 Bard, 6 Rogue, 7 Druid,
-  8 Shaman, 9 Cleric, 10 Magician, 11 Necromancer, 12 Enchanter, 13 Wizard, 14 Alchemist.
+  8 Shaman, 9 Cleric, 10 Magician, 11 Necromancer, 12 Enchanter, 13 Wizard, 14 Alchemist. A race past 10 on a
+  character is a row of `racedefs`, which says what it passes as on the wire.
 - **`itempattern.classuse` / `raceuse` are bit sets**: bit (1 << class) / (1 << race). 32767 = every class,
   1023 = every race. `equipslot` is where it is worn (`describe_table` lists the values).
 - **Ids that are asset ids** (`itemicon`, `model`, `icon`, `fxdict`, colours) are 32-bit values, shown in hex

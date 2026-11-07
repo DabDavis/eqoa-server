@@ -13,7 +13,8 @@ package entity
 //     for a swimmer (breath runs down only under real water, as anyone's) and it
 //     is not standing unless it touches a floor. A logout saves where it last
 //     stood (SavePlace), so no login begins in mid-air, and flight ends there: a
-//     new login is a new Player;
+//     new login is a new Player, or takes the live one over without its flight
+//     (handedOverLocked);
 //   - a creature's floor and a pet's are their own (groundNPCLocked,
 //     petStepLocked: the terrain under the owner's height at the highest), but a
 //     creature's reach is measured across the ground (chaseLocked), which would

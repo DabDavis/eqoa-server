@@ -336,9 +336,12 @@ func (b *Balance) PetSpecialHits(level int) float64 {
 }
 
 // isArt is whether a spell is a combat art for the global cooldown: an
-// ability with no cast time cast at a creature (a Kick, a Bash, a strike).
+// ability with no cast time cast at a creature (a Kick, a Bash, a strike). One
+// paid for with an item is held by its stack instead (petition 1036, Zaeire: "the
+// recast should be instant on agony but there is quite the delay between each
+// dagger thrown"; Agony and its Rogue's Daggers are the only such today).
 func isArt(s *CastSpell) bool {
-	return s.CastTime <= 0 && s.Def.Harmful
+	return s.CastTime <= 0 && s.Def.Harmful && s.Def.Reagent == ""
 }
 
 // Con is the con table at a level difference (the NPC's less its foe's), as

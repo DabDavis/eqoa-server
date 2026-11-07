@@ -110,3 +110,18 @@ func TestALifeStealProcsAsOne(t *testing.T) {
 		t.Errorf("a proc with no heal: dealt %d, healed %d", d, h)
 	}
 }
+
+// An instant strike is held to the arts' cooldown; one paid for with an item is not (petition 1036, Agony).
+func TestAnArtPaidForWithAnItemIsNotHeld(t *testing.T) {
+	strike := &CastSpell{CastTime: 0, Def: SpellDef{Harmful: true}}
+	if !isArt(strike) {
+		t.Error("an instant harmful spell is an art")
+	}
+	agony := &CastSpell{CastTime: 0, Def: SpellDef{Harmful: true, Reagent: "Rogue's Dagger", ReagentCount: 1}}
+	if isArt(agony) {
+		t.Error("Agony is held to the arts' cooldown")
+	}
+	if isArt(&CastSpell{CastTime: 3, Def: SpellDef{Harmful: true}}) {
+		t.Error("a spell with a cast time is an art")
+	}
+}

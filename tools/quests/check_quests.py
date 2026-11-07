@@ -62,10 +62,20 @@ class Names:
         self.faction = None
         if db.execute("SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'factions'").fetchone()[0]:
             self.faction = {fold(n) for (n,) in db.execute('SELECT name FROM factions')}
+        # what a GM trigger spawns open to attack (a boss whose row only talks)
+        self.spawned_foe = set()
+        if db.execute("SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'gmtriggers'").fetchone()[0]:
+            for (steps,) in db.execute('SELECT steps FROM gmtriggers'):
+                try:
+                    for s in json.loads(steps or '[]'):
+                        if s.get('do') == 'spawn' and (s.get('hostile') or s.get('attackable')):
+                            self.spawned_foe.add(fold(s.get('npc')))
+                except (ValueError, AttributeError):
+                    pass
         db.close()
 
     def attackable(self, name):
-        return any(t & 0x80 == 0 for t in self.npc.get(fold(name), []))
+        return any(t & 0x80 == 0 for t in self.npc.get(fold(name), [])) or fold(name) in self.spawned_foe
 
 
 class Check:

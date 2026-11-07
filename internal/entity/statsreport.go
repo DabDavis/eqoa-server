@@ -20,7 +20,7 @@ import (
 // placeholders no roll reads.
 
 var (
-	raceNames  = []string{"Human", "Elf", "Dark Elf", "Gnome", "Dwarf", "Troll", "Barbarian", "Halfling", "Erudite", "Ogre", "Froglok"}
+	raceNames  = []string{"Human", "Elf", "Dark Elf", "Gnome", "Dwarf", "Troll", "Barbarian", "Halfling", "Erudite", "Ogre", "Froglok", "Hill Giant"}
 	classNames = []string{"Warrior", "Ranger", "Paladin", "Shadow Knight", "Monk", "Bard", "Rogue", "Druid",
 		"Shaman", "Cleric", "Magician", "Necromancer", "Enchanter", "Wizard", "Alchemist"}
 	archNames = [...]string{archTank: "tank", archMelee: "melee", archPriest: "priest", archCaster: "caster"}

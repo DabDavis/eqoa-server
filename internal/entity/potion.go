@@ -404,12 +404,13 @@ func (w *World) throwLocked(sess *session.Session, p *Player, pe *PotionEffect, 
 	}
 	w.landOnNPCLocked(target, p, sess, npc, now)
 	if pe.Area > 0 {
+		place := areaPlace{world: npc.World, caster: [3]float32{p.X, p.Y, p.Z}, centre: [3]float32{npc.X, npc.Y, npc.Z}, onOther: true}
 		for _, id := range w.SpatialIndex.QueryRadius(npc.X, npc.Z, pe.Area) {
 			o := w.NPCs[id]
 			if o == nil || o == npc || o.Dead || o.World != npc.World || o.Owner != 0 || o.NPCType&0x80 != 0 || o.hiddenAt(now) {
 				continue
 			}
-			if dist3(o.X, o.Y, o.Z, npc.X, npc.Y, npc.Z) > pe.Area || !w.inSightLocked(npc.World, npc.X, npc.Y, npc.Z, o.X, o.Y, o.Z) {
+			if dist3(o.X, o.Y, o.Z, npc.X, npc.Y, npc.Z) > pe.Area || !w.reachesLocked(place, o.X, o.Y, o.Z) {
 				continue
 			}
 			w.landOnNPCLocked(cs, p, sess, o, now)

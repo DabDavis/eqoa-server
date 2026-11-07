@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
@@ -50,6 +51,9 @@ type EquipHandler struct {
 	// portal is the Summoning Portals' talk (summonportal.go): the item's Use
 	// opens one
 	portal *Portal
+	// stoneUsed is when each character last called Guenhwyvar (guenhwyvar.go)
+	stoneMu   sync.Mutex
+	stoneUsed map[uint32]time.Time
 	// dice rolls the Rolling Dice (ChatHandler.RollTheDice, roll.go)
 	dice func(*session.Session, *entity.Player, time.Time)
 
@@ -496,6 +500,11 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 			h.portal.Open(sess, player)
 			return nil
 		}
+		// the Stone of Guenhwyvar, never spent (guenhwyvar.go)
+		if IsGuenhwyvarStone(&row.Pattern) {
+			h.useGuenhwyvarStone(sess, player)
+			return nil
+		}
 		// the Rolling Dice, rolled for the room, never spent (roll.go)
 		if IsRollingDice(&row.Pattern) && h.dice != nil {
 			h.dice(sess, player, time.Now())
@@ -555,7 +564,7 @@ func cannotWear(player *entity.Player, p *database.ItemPatternRecord) string {
 	switch {
 	case p.ClassUse != 0 && p.ClassUse&(1<<uint(player.Class)) == 0:
 		return scribeWrongClass
-	case p.RaceUse != 0 && raceUseForWire(p.RaceUse)&(1<<uint(player.Race)) == 0:
+	case p.RaceUse != 0 && raceUseForWire(p.RaceUse)&(1<<uint(entity.WireRace(player.Race))) == 0:
 		return scribeWrongRace
 	case player.Level < p.LevelReq:
 		return scribeTooLow

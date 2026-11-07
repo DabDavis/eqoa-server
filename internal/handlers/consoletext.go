@@ -25,13 +25,15 @@ const (
 	gramTextMost    = 511
 )
 
-// consoleTypable is whether a PS2's own keyboard can type c.
+// consoleTypable is whether a PS2's own line can hold c: what its keyboard
+// types, and the backquote and # of a creature's name (Maeyni Do`Traelix, Zombie
+// #22), which its Hail puts in a line with no key pressed. Both draw with a width.
 func consoleTypable(c rune) bool {
 	switch {
 	case c >= 'a' && c <= 'z', c >= 'A' && c <= 'Z', c >= '0' && c <= '9':
 		return true
 	}
-	return c < 0x80 && strings.ContainsRune(" !\"%'()*+,-./:;=?@_~", c)
+	return c < 0x80 && strings.ContainsRune(" !\"#%'()*+,-./:;=?@_`~", c)
 }
 
 // consoleLine is s as one line of at most most characters: a line end or a tab a

@@ -1211,6 +1211,15 @@ var warpLocationNames = map[string]string{
 	// This label is the whole of what a player sees, so rename it here when the
 	// world gets a name of its own. See sql/world22_harbormaster.sql.
 	"Harbormaster Deuces": "World 22 (authored, HDD)",
+	// Gerntar Mines' gatekeeper (EQOA-Data's map: "Gatekeeper Furyfoot to SP",
+	// "Gatekeeper Kuggin to GM"): handlers' wayRoutes send him to Kuggin.
+	"Gatekeeper Furyfoot": "Gerntar Mines",
+}
+
+// warpOfferedBy is a warp NPC only one other offers, for a route that is a pair
+// and no part of the network (a GM's own list, with no one asking, has it too).
+var warpOfferedBy = map[string]string{
+	"Gatekeeper Furyfoot": "Gatekeeper Kuggin",
 }
 
 // IsWarpNPC returns true if the NPC name indicates a cross-world travel NPC.
@@ -1236,6 +1245,9 @@ func (w *World) GetWarpDestinations(excludeName string, loadable func(world uint
 	var dests []CoachDest
 	for _, npc := range w.NPCs {
 		if !IsWarpNPC(npc.Name) || npc.Name == excludeName {
+			continue
+		}
+		if by, only := warpOfferedBy[npc.Name]; only && excludeName != "" && excludeName != by {
 			continue
 		}
 		if loadable != nil && !loadable(npc.World) {

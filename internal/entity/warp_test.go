@@ -466,3 +466,30 @@ func TestTravelOffersOnlyLoadableWorlds(t *testing.T) {
 		}
 	}
 }
+
+// Gerntar Mines' gatekeeper is a pair with Kuggin, no part of the network: Kuggin
+// offers him by his town's name, no one else does, and a GM's own list has him.
+func TestAPairedGatekeeperIsOfferedByItsPartnerAlone(t *testing.T) {
+	w := NewWorld()
+	w.NPCs[1] = &NPC{ServerID: 1, Name: "Harbormaster Thand", World: 0, SpawnX: 25377.7, SpawnZ: 15741.5}
+	w.NPCs[2] = &NPC{ServerID: 2, Name: "Gatekeeper Kuggin", World: 1, SpawnX: 9617.25, SpawnZ: 5705.45}
+	w.NPCs[3] = &NPC{ServerID: 3, Name: "Gatekeeper Wavar", World: 1, SpawnX: 9733.84, SpawnZ: 9754.24}
+	w.NPCs[4] = &NPC{ServerID: 4, Name: "Gatekeeper Furyfoot", World: 0, SpawnX: 13041.5, SpawnZ: 27506}
+	has := func(asking string) bool {
+		for _, d := range w.GetWarpDestinations(asking, nil) {
+			if d.Name == "Gerntar Mines" {
+				return true
+			}
+		}
+		return false
+	}
+	if !has("Gatekeeper Kuggin") {
+		t.Error("Kuggin does not offer Gerntar Mines")
+	}
+	if has("Harbormaster Thand") || has("Gatekeeper Wavar") {
+		t.Error("another warp NPC offers Gerntar Mines")
+	}
+	if !has("") {
+		t.Error("a GM's own list lacks Gerntar Mines")
+	}
+}

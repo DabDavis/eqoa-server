@@ -510,6 +510,9 @@ func parseTell(line string) (name, text string, ok bool) {
 	}
 	rest = strings.TrimLeft(rest, " ")
 	name, text, _ = strings.Cut(rest, " ")
+	if strings.EqualFold(name, strings.TrimSpace(entity.GMTag)) { // a GM's name as it is drawn
+		name, text, _ = strings.Cut(strings.TrimLeft(text, " "), " ")
+	}
 	return name, strings.TrimLeft(text, " "), true
 }
 
@@ -1286,7 +1289,7 @@ func sendTeleportGM(sess *session.Session, x, y, z, facing float32, world byte) 
 func (h *ChatHandler) whoList(sess *session.Session) {
 	var lines []string
 	h.gameWorld.ForEachPlayer(func(p *entity.Player) {
-		lines = append(lines, fmt.Sprintf("%s: level %d %s", p.Name, p.Level, entity.ClassName(p.Class)))
+		lines = append(lines, fmt.Sprintf("%s: level %d %s", p.ShownName(), p.Level, entity.ClassName(p.Class)))
 	})
 	sort.Slice(lines, func(i, j int) bool { return strings.ToLower(lines[i]) < strings.ToLower(lines[j]) })
 	for _, l := range lines {

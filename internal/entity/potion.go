@@ -565,7 +565,7 @@ func (w *World) curePlayerLocked(p *Player, n int) {
 		if n <= 0 {
 			return
 		}
-		if ae.HPTick < 0 || ae.Root || ae.Snare || ae.Mods.harmful() {
+		if !ae.Rules.NoCure && (ae.HPTick < 0 || ae.Root || ae.Snare || ae.Mods.harmful()) {
 			w.removeEffectLocked(p, ae.SpellID)
 			log.Printf("Potion: %q cured off %s", ae.Name, p.Name)
 			n--

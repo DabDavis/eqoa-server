@@ -63,6 +63,11 @@ const classTemplatesSchema = `
 		special_from   INTEGER NOT NULL DEFAULT 0,
 		shield_damage  INTEGER NOT NULL DEFAULT 0,
 		shield_resist  TEXT NOT NULL DEFAULT '',
+		proc_chance    INTEGER NOT NULL DEFAULT 0,
+		proc_damage    INTEGER NOT NULL DEFAULT 0,
+		proc_name      TEXT NOT NULL DEFAULT '',
+		proc_resist    TEXT NOT NULL DEFAULT '',
+		resist_fail    REAL NOT NULL DEFAULT 0,
 		abilities      TEXT NOT NULL DEFAULT '[]',
 		note           TEXT NOT NULL DEFAULT '',
 		source         TEXT NOT NULL DEFAULT 'gm'
@@ -92,10 +97,13 @@ const (
 	// AbilityRoot is a pet's root at what it fights, and round it for an
 	// area spell (the workbook's Djinni Vizier's Air Root: entity/pettemplate.go)
 	AbilityRoot = "root"
+	// AbilityDebuff is an NPC's lasting harm on the player it fights: the stats
+	// its named spell takes, for the spell's time (entity/classtemplate.go).
+	AbilityDebuff = "debuff"
 )
 
 // AbilityKinds are the kinds, in the order the help lists them.
-var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot}
+var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot, AbilityDebuff}
 
 // Who a pet's heal or buff lands on (TemplateAbility.Target); either is a
 // heal's alone: its owner or itself, whichever is the lower share of its hit
@@ -189,6 +197,9 @@ type TemplateAbility struct {
 	// (the balance's pet damage not taken), at least 1. Empty: one of its
 	// melee hits at damage_pct.
 	Hits [][3]float64 `json:"hits,omitempty"`
+	// NoCure is a debuff no cure takes off, a spell's or a potion's: it ends
+	// with its time or its bearer's death.
+	NoCure bool `json:"no_cure,omitempty"`
 }
 
 // TargetOr is who a pet's heal or buff lands on: its own, else the pet
@@ -246,8 +257,20 @@ type ClassTemplate struct {
 	// ShieldResist names (FR, CR, LR, AR, PR or DR; empty: none)
 	ShieldDamage int
 	ShieldResist string
-	Abilities    []TemplateAbility
-	Note         string
+	// ProcChance is its melee proc: the percent of its melee hits that land that
+	// also deal ProcDamage (a fixed figure, not by level), cut by the resist
+	// ProcResist names (as ShieldResist; empty: none), told by ProcName
+	// (entity/creatureshield.go). 0: none.
+	ProcChance int
+	ProcDamage int
+	ProcName   string
+	ProcResist string
+	// ResistFail is how often a resist fails against its proc, shield and
+	// spells, at any figure of it: this percent altogether, twice this in part
+	// (entity/resist.go). 0: the game's own, only at the cap.
+	ResistFail float64
+	Abilities  []TemplateAbility
+	Note       string
 }
 
 // TemplateKey is a template's name as classtemplates and npctemplate key it:
@@ -359,6 +382,10 @@ func checkPetAbility(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: spell_id %d: a spell's id (0 none)", n, a.SpellID)
 	case a.SpellID != 0 && a.Spell != "":
 		return fmt.Errorf("ability %d: a spell pinned by name and by id", n)
+	case a.Kind == AbilityDebuff && a.SpellID == 0 && a.Spell == "":
+		return fmt.Errorf("ability %d: a debuff names its spell (spell or spell_id)", n)
+	case a.NoCure && a.Kind != AbilityDebuff:
+		return fmt.Errorf("ability %d: no_cure is a debuff's", n)
 	case a.SpellsOf != nil && (*a.SpellsOf < 0 || *a.SpellsOf > 14):
 		return fmt.Errorf("ability %d: spells_of %d: 0 (Warrior) to 14 (Alchemist)", n, *a.SpellsOf)
 	case a.Stat != "" && !oneOf(a.Stat, AbilityStats):
@@ -420,6 +447,8 @@ func knownKind(k string) bool {
 const (
 	MaxTemplateHPPct  = 100000
 	MaxTemplateShield = 100000
+	// MaxTemplateResistFail is the most of a template's resist_fail: 3 times it must stay well under all of them
+	MaxTemplateResistFail = 30
 )
 
 // shieldResistKnown is whether a template's shield_resist names a resist.
@@ -450,6 +479,16 @@ func CheckClassTemplate(t ClassTemplate) error {
 		return fmt.Errorf("shield_damage %d: 0 to %d a melee hit", t.ShieldDamage, MaxTemplateShield)
 	case !shieldResistKnown(t.ShieldResist):
 		return fmt.Errorf("shield_resist %q: FR, CR, LR, AR, PR, DR or none", t.ShieldResist)
+	case t.ProcChance < 0 || t.ProcChance > 100:
+		return fmt.Errorf("proc_chance %d: 0 to 100 percent of its melee hits", t.ProcChance)
+	case t.ProcDamage < 0 || t.ProcDamage > MaxTemplateShield:
+		return fmt.Errorf("proc_damage %d: 0 to %d", t.ProcDamage, MaxTemplateShield)
+	case t.ProcChance > 0 && t.ProcDamage == 0:
+		return fmt.Errorf("a proc on %d%% of its hits needs a proc_damage above 0", t.ProcChance)
+	case !shieldResistKnown(t.ProcResist):
+		return fmt.Errorf("proc_resist %q: FR, CR, LR, AR, PR, DR or none", t.ProcResist)
+	case math.IsNaN(t.ResistFail) || t.ResistFail < 0 || t.ResistFail > MaxTemplateResistFail:
+		return fmt.Errorf("resist_fail %v: 0 to %d percent", t.ResistFail, MaxTemplateResistFail)
 	case t.TakenPct < 1 || t.TakenPct > 1000:
 		return fmt.Errorf("taken_pct %d: 1 to 1000 percent of a melee hit on it", t.TakenPct)
 	case t.MeleePct < 10 || t.MeleePct > 1000:
@@ -528,6 +567,11 @@ var classTemplateColumns = []struct{ col, decl string }{
 	{"special_from", "INTEGER NOT NULL DEFAULT 0"},
 	{"shield_damage", "INTEGER NOT NULL DEFAULT 0"},
 	{"shield_resist", "TEXT NOT NULL DEFAULT ''"},
+	{"proc_chance", "INTEGER NOT NULL DEFAULT 0"},
+	{"proc_damage", "INTEGER NOT NULL DEFAULT 0"},
+	{"proc_name", "TEXT NOT NULL DEFAULT ''"},
+	{"proc_resist", "TEXT NOT NULL DEFAULT ''"},
+	{"resist_fail", "REAL NOT NULL DEFAULT 0"},
 }
 
 // ensureClassTemplates makes tables classtemplates and npctemplate
@@ -576,7 +620,7 @@ func (db *SQLiteDB) ensureClassTemplates() error {
 // JSON) is left out and named in bad.
 func (db *SQLiteDB) ClassTemplates() (templates map[string]ClassTemplate, bad []string, err error) {
 	rows, err := db.Query(`SELECT name, class, hp_pct, taken_pct, melee_pct, special, special_chance, special_damage,
-		special_fx, special_every, special_first, special_jitter, special_from, shield_damage, shield_resist, abilities, note FROM classtemplates
+		special_fx, special_every, special_first, special_jitter, special_from, shield_damage, shield_resist, proc_chance, proc_damage, proc_name, proc_resist, resist_fail, abilities, note FROM classtemplates
 		WHERE name IS NOT NULL`)
 	if err != nil {
 		return nil, nil, err
@@ -588,7 +632,7 @@ func (db *SQLiteDB) ClassTemplates() (templates map[string]ClassTemplate, bad []
 		var fx int64
 		var abilities sql.NullString
 		if err := rows.Scan(&t.Name, &t.Class, &t.HPPct, &t.TakenPct, &t.MeleePct, &t.Special, &t.SpecialChance,
-			&t.SpecialDamage, &fx, &t.SpecialEvery, &t.SpecialFirst, &t.SpecialJitter, &t.SpecialFrom, &t.ShieldDamage, &t.ShieldResist, &abilities, &t.Note); err != nil {
+			&t.SpecialDamage, &fx, &t.SpecialEvery, &t.SpecialFirst, &t.SpecialJitter, &t.SpecialFrom, &t.ShieldDamage, &t.ShieldResist, &t.ProcChance, &t.ProcDamage, &t.ProcName, &t.ProcResist, &t.ResistFail, &abilities, &t.Note); err != nil {
 			return nil, nil, err
 		}
 		t.Name = TemplateKey(t.Name)

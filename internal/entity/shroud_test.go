@@ -65,3 +65,63 @@ func TestAProcIsSeen(t *testing.T) {
 		t.Errorf("a proc: %d flashes, want 1", n)
 	}
 }
+
+// Veil of Death's and Shroud of Death's proc is a life steal: one roll, its damage and its heal on the same hit,
+// not two rolls that met by chance (petition 1156; Arcana's log: heal, then a hit 15 s on). The controls: a roll
+// that misses does neither, a resisted one does neither, and a proc with no heal only hits.
+func TestALifeStealProcsAsOne(t *testing.T) {
+	r := newTemplateRig(t)
+	guard := r.npc("Gnoll Guard")
+	guard.HP, guard.MaxHP = 1_000_000, 1_000_000
+	p, sess := r.player("Hero", guard.X+1, guard.Z)
+	defer func(f func(int) int) { procIntn = f }(procIntn)
+	until := time.Now().Add(time.Hour)
+	steal := &ActiveEffect{Name: "Shroud of Death +", Proc: 100, ProcMax: 100, Until: until, Rules: EffectRules{ProcHeal: 100}}
+	p.Effects = []*ActiveEffect{steal}
+	hit := func(dice ...int) (dealt, healed int) {
+		i := 0
+		procIntn = func(n int) int {
+			d := dice[i%len(dice)]
+			i++
+			return d
+		}
+		p.HP, guard.HP = 1000, 1_000_000
+		top := p.MaxHPNow()
+		if top < 3000 {
+			p.MaxHP = 5000
+		}
+		r.w.mu.Lock()
+		r.w.playerProcsLocked(sess, p, guard, time.Now())
+		r.w.mu.Unlock()
+		return 1_000_000 - guard.HP, p.HP - 1000
+	}
+	guard.Level = p.Level
+	if d, h := hit(0, 99); d != 100 || h != 100 {
+		t.Errorf("a proc: dealt %d, healed %d, want 100 and 100 on the same hit", d, h)
+	}
+	if d, h := hit(99); d != 0 || h != 0 {
+		t.Errorf("a miss: dealt %d, healed %d, want neither", d, h)
+	}
+	if d, h := hit(0, 0); d != 0 || h != 0 {
+		t.Errorf("a resisted proc: dealt %d, healed %d, want neither", d, h)
+	}
+	steal.Rules = EffectRules{}
+	if d, h := hit(0, 99); d != 100 || h != 0 {
+		t.Errorf("a proc with no heal: dealt %d, healed %d", d, h)
+	}
+}
+
+// An instant strike is held to the arts' cooldown; one paid for with an item is not (petition 1036, Agony).
+func TestAnArtPaidForWithAnItemIsNotHeld(t *testing.T) {
+	strike := &CastSpell{CastTime: 0, Def: SpellDef{Harmful: true}}
+	if !isArt(strike) {
+		t.Error("an instant harmful spell is an art")
+	}
+	agony := &CastSpell{CastTime: 0, Def: SpellDef{Harmful: true, Reagent: "Rogue's Dagger", ReagentCount: 1}}
+	if isArt(agony) {
+		t.Error("Agony is held to the arts' cooldown")
+	}
+	if isArt(&CastSpell{CastTime: 3, Def: SpellDef{Harmful: true}}) {
+		t.Error("a spell with a cast time is an art")
+	}
+}

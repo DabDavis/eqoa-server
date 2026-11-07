@@ -95,13 +95,15 @@ func (w *World) duelAnswerLocked(d *Duel, t *Player, m duelMark, now time.Time) 
 // duel over, or the pet hit out of it.
 func (w *World) duelProcsLocked(d *Duel, p *Player, m duelMark, now time.Time) bool {
 	sess := w.findSessionByEntityIDLocked(p.ServerID)
-	hits, resisted := procRolls(p.Effects, p.StatNow, p.Level, m.level(), 0, func() bool { return false }, now, procIntn)
+	hits, resisted := procRollsOf(p.Effects, p.StatNow, p.Level, m.level(), 0, func() bool { return false }, now, procIntn)
 	if resisted > 0 {
 		log.Printf("Duel %d: %s's proc resisted by %s", d.ID, p.Name, m.name())
 	}
-	for _, n := range hits {
-		log.Printf("Duel %d: %s's proc hits %s for %d", d.ID, p.Name, m.name(), n)
-		if w.duelHurtMarkLocked(d, p, m, n, now) {
+	for _, h := range hits {
+		log.Printf("Duel %d: %s's proc hits %s for %d", d.ID, p.Name, m.name(), h.n)
+		over := w.duelHurtMarkLocked(d, p, m, h.n, now)
+		w.procTapLocked(p, sess, h.ae, nil)
+		if over {
 			return true
 		}
 	}

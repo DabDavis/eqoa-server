@@ -1361,9 +1361,11 @@ func (w *World) healLocked(caster *Player, casterSess *session.Session, t *Playe
 	if t.HP >= top {
 		return
 	}
+	before := t.HP
 	t.HP = min(t.HP+n, top)
 	t.StatsDirty = true
 	w.tellAmountLocked(caster, casterSess, t.ServerID, n)
+	w.healHateLocked(caster, t, t.HP-before) // aggro.go
 	if t.ServerID == caster.ServerID {
 		w.healAggroLocked(caster) // a creature it is green to comes now (aggro.go)
 	}

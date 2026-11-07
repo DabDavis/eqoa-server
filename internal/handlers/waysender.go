@@ -141,6 +141,25 @@ var wayRoutes = map[string][]wayRoute{
 		{To: "Stone of Morathals", Arrive: "Dockmaster Bibbin"},
 	},
 
+	// Between Tunaria and the Rathe (the user, 2026-11-07: "Gatekeeper Furryfoot
+	// needs to send the player to rathe", "also door in the cyclops wall"; a
+	// player: "can we get gatekeeper to oggok area?", "door in cyclops wall also
+	// ports there"). EQOA-Data's map marks "Gatekeeper Furyfoot to SP" at Gerntar
+	// Mines and "Gatekeeper Kuggin to GM" in the Rathe; "Door to Urglunt's Gate"
+	// in the wall of Tunaria's cyclops and "Door to Urglunt's Wall" in the Rathe's.
+	// Kuggin takes Furyfoot's trip back from his own list (entity's warpOfferedBy).
+	// A door stands in its wall: each lands four units out on the open side of the
+	// other, read off the collision (south of Tunaria's, north of the Rathe's).
+	"Gatekeeper Furyfoot": {
+		{To: "the Rathe", Arrive: "Gatekeeper Kuggin"},
+	},
+	"Door to Urglunt's Gate": {
+		{To: "Urglunt's Gate", At: &wayPlace{World: 1, X: 9053.8, Y: 52.6, Z: 2110.1}},
+	},
+	"Door to Urglunt's Wall": {
+		{To: "Urglunt's Wall", At: &wayPlace{World: 0, X: 11419.9, Y: 80.1, Z: 21404}},
+	},
+
 	// The Plane of Disease (F3 pass 17, "unable to travel to PoD"), the
 	// Secrets world's "Last Home" (world 5): "Log the quest by speaking to
 	// Necrologist Zizclank and his assistant Necroloigst Xeptip. Then you want

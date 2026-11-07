@@ -656,7 +656,7 @@ func (w *World) silentAirSystem(now time.Time) {
 	}
 	for _, p := range w.Players {
 		st := &p.mv
-		if !st.init || !st.judged || !st.air || st.pending || p.HP <= 0 || now.Sub(st.at) < mcSilentAir || p.flyingNow(now) {
+		if !st.init || !st.judged || !st.air || st.pending || p.HP <= 0 || now.Sub(st.at) < mcSilentAir {
 			continue
 		}
 		if st.x != p.X || st.y != p.Y || st.z != p.Z || st.world != p.World {

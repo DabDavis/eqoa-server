@@ -131,14 +131,16 @@ func TestFlyOffRestoresTheCheck(t *testing.T) {
 }
 
 // Silent in the air is no fault of a flyer's: hovering sends nothing, and the
-// check in enforce mode puts down anyone else who does that. The control is
-// TestMoveCheckSilentInTheAir.
+// check in enforce mode puts down anyone else who does that (the control is
+// TestMoveCheckSilentInTheAir, which this is but for the #fly). It took off in a
+// fall, its last report judged in the air, and has said nothing since.
 func TestAFlyerHoversSilently(t *testing.T) {
 	r := newMCRig(t, MoveCheckEnforce, 205, 10, 5)
 	r.report(211, 9.9, 5, 100) // off the platform's edge
+	if !r.p.mv.air {
+		t.Fatal("the check does not have it in the air")
+	}
 	r.w.setFlyingLocked(r.p, true, r.now)
-	r.report(211, 30, 5, 100)
-	r.p.mv.init, r.p.mv.judged, r.p.mv.air = true, true, true // as the check last left it
 	for i := 0; i < 50; i++ {
 		r.now = r.now.Add(100 * time.Millisecond)
 		r.w.mu.Lock()
@@ -146,7 +148,7 @@ func TestAFlyerHoversSilently(t *testing.T) {
 		r.w.silentAirSystem(r.now)
 		r.w.mu.Unlock()
 	}
-	if r.p.Y != 30 {
+	if r.p.Y != 9.9 {
 		t.Errorf("hovering, moved to y %.2f", r.p.Y)
 	}
 }

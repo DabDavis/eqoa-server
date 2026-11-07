@@ -42,6 +42,8 @@ type InteractHandler struct {
 	dyer *Dyer
 	// genie is the lamps' genies (genie.go)
 	genie *Genie
+	// portal is the Summoning Portals' talk (summonportal.go)
+	portal *Portal
 
 	// dialogLines is npcdialog (database.NPCDialog): what a town's people and
 	// the guards say (entity/dialog.go). Nil: they say nothing.
@@ -219,6 +221,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 
 	// A lamp's genie (genie.go): its master's wishes, no one else's.
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.genie.Talk(sess, player, npc) {
+		return nil
+	}
+
+	// A Summoning Portal (summonportal.go): anyone may call through it.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.portal.Talk(sess, player, npc) {
 		return nil
 	}
 
@@ -495,6 +502,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// a genie's (genie.go); an old one does nothing
 	if h.genie.Answer(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// a Summoning Portal's (summonportal.go); an old one does nothing
+	if h.portal.Answer(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// a board's offer (boardinvis.go); an old one does nothing

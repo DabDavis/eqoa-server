@@ -532,9 +532,11 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	// (norent.go)
 	h.vanishNoRent(uint32(record.ServerID))
 	// a character with no Genie's Lamp gets one, before its items are read
-	// (genie.go), and one with no Heirloom Fang of the Wolf that (wolffang.go)
+	// (genie.go), one with no Heirloom Fang of the Wolf that (wolffang.go), and
+	// one with no Summoning Portal that (summonportal.go)
 	h.giveGenieLamp(uint32(record.ServerID))
 	h.giveWolfFang(uint32(record.ServerID))
+	h.giveSummoningPortal(uint32(record.ServerID))
 
 	log.Printf("SelectedChar: selected '%s' (level %d race=%d class=%d)", record.CharName, record.Level, record.Race, record.TClass)
 

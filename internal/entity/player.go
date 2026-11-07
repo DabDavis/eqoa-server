@@ -15,6 +15,8 @@ type Player struct {
 
 	// genie is its lamp's genie and the window it opened (genie.go)
 	genie *genieState
+	// portal is the NPC of the portal it opened, 0 for none (summonportal.go)
+	portal EntityID
 
 	// Spatial
 	X, Y, Z float32

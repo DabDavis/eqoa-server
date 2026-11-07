@@ -780,6 +780,32 @@ slot's press is the same 0x003E as the menu's Use. Its Use puts **the boards' Sp
 by the holder's own hostile act), so after a fight it is used again; one effect whatever gave it (a board's talk renews
 a fang's hour and the fang a board's). The dead are given nothing.
 
+### The Summoning Portal: call any player to you (`handlers/summonportal.go`, `entity/summonportal.go`)
+
+The user, 2026-11-07: "lets add heirloom item like the genie lamp, fang of SoW, it is summoning portal infinite charges to
+cast on anyone, it spawns portal NPC, players talks to it, just type name of player to summon(doesnt have to be in group so
+different from Call of the Hero)". **The item** ("Summoning Portal", record 715020, written with its `startitems` rows by a
+data step with `gm_audit` lines and no log table) is kept as the lamp and the fang are: NO TRADE, worth 0, never spent, and a
+character with none gets one at its login (`giveSummoningPortal`, the lamp's `giveKeptItem`). It is CLIENT's gem type
+(procanim 7, the fang's quick slot on the disc's layout, either gem slot on the live one); its Use from the item menu or a
+quick slot (0x003E) opens **the portal**: a Temporary NPC with the NPC bit alone, never a pet (`NPC.PortalOf`, not `Owner`), one
+a player, 3 in front of it facing it, in the dark portal's body (npcs.modelid 2012826467, Fuming Portal's and 22 others'), which
+leaves after `PortalLasts` (3 minutes) or when its owner uses the item again (a new one comes), changes world or leaves. **Anyone
+may talk to it**: a box (mark **0x5A000000**) says to type the player's name; CLIENT has no text field a server can open and its
+box holds the keys, so its one answer closes it and the player's next plain line within `PortalNameWait` (1 minute) is the name,
+taken on all three of a typed line's opcodes (`TakeName`: 0x000B in say, group and whisper, 0x0C01 in shout, 0x0578 in guild) and
+shown to no one. A line beginning / or # stays a command, and so does a line right after a 0x000E (`ModeChanged`: /g, /s, /gu and
+/say reach the server as the mode, the bare text and the mode back). The box closed by hand, walking `PortalReach` (30) off or the
+portal leaving ends the wait, and the next line is chat. The name matches without case among the players in the world, in any
+world and any group. Refused in red to the caller: no such player, the caller itself, a dead target, a world the target's game
+cannot load (`CanLoadWorld`), a target already holding a call, a second call within `PortalCallEvery` (5 s). Otherwise **while
+`PortalAsksFirst`** (the one rule to turn; false summons straight away) the target is asked ("<caller> calls you through a summoning
+portal. Go?", Yes, No) for `PortalCallWait` (1 minute); a yes sends it as a Call of the Hero's (`World.PortalBring`: a travel, the
+tick's `runTravels`, `travelPlayer`: the world loaded when it changes), round where the portal's owner stood when it opened, and
+the caller is told each end (answered, declined, no answer, left, closed). A box CLIENT declines itself because a menu is up
+(Msg0034, a 255 within `portalDeclinedWithin`) is no answer: the target is told in a line who calls and the box goes out again
+every 3 s until it shows. Not kept over a restart, as a genie is not.
+
 ### The L2 menu's quick chat is kept (`handlers/hotkeys.go`, `database/hotkeys.go`)
 
 Petition 1003, Waldorf: "L2 changes to hotkeys don't save after logging out"; the user, 2026-11-06: "build the hotkey

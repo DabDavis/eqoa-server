@@ -2,10 +2,13 @@ package handlers
 
 import (
 	"encoding/binary"
+	"fmt"
 	"log"
 	"net"
+	"unicode/utf16"
 
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/config"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
@@ -31,13 +34,65 @@ type ServerHandler struct {
 // 0x00BFC208: ReadSigned), so the byte 2 this server used to send with two
 // entries reached a PS2 as ONE. One entry with a zigzag count is the same byte
 // and the same first entry, without the second one a PS2 never read.
+//
+// Config's shards replace it (ShardList, Registry.SetServers).
 func NewServerHandler(serverIP string) *ServerHandler {
 	ip := net.ParseIP(serverIP)
 	return &ServerHandler{
 		servers: []ServerInfo{
-			{Name: "Marr's Fist", Recommended: 1, EndpointID: 0xB991, Port: 10070, IP: ip, Language: 0},
+			{Name: DefaultShardName, Recommended: 1, EndpointID: GameServerEndpoint, Port: 10070, IP: ip, Language: 0},
 		},
 	}
+}
+
+// DefaultShardName is the one shard's name when config names none.
+const DefaultShardName = "Marr's Fist"
+
+// maxShardName is the most characters CLIENT keeps of a shard's name
+// (VIElem_BFC798::m_name, 32 wide with its terminator; ReadString cuts there).
+const maxShardName = 31
+
+// ShardList is config's shards as the list's entries, with what is wrong with
+// any of them; none configured, this server alone under the default name.
+// Every entry's endpoint is the game server's (CLIENT connects to it whole,
+// ConnectShard; HandleAuthenticate tells a game connection by it), so a shard
+// differs from another by its address alone.
+func ShardList(shards []config.ShardConfig, serverIP string, gamePort int) ([]ServerInfo, []error) {
+	if len(shards) == 0 {
+		shards = []config.ShardConfig{{Name: DefaultShardName, Port: gamePort, Recommended: true}}
+	}
+	var out []ServerInfo
+	var bad []error
+	seen := map[string]bool{}
+	for _, c := range shards {
+		ipText := c.IP
+		if ipText == "" {
+			ipText = serverIP
+		}
+		ip := net.ParseIP(ipText)
+		switch {
+		case c.Name == "" || len(utf16.Encode([]rune(c.Name))) > maxShardName:
+			bad = append(bad, fmt.Errorf("shard %q: a name is 1 to %d characters", c.Name, maxShardName))
+			continue
+		case seen[c.Name]:
+			// the window finds its selection and the home shard by name
+			bad = append(bad, fmt.Errorf("shard %q: two shards of one name", c.Name))
+			continue
+		case c.Port <= 0 || c.Port > 65535:
+			bad = append(bad, fmt.Errorf("shard %q: port %d", c.Name, c.Port))
+			continue
+		case ip == nil || ip.To4() == nil:
+			bad = append(bad, fmt.Errorf("shard %q: address %q is not IPv4 (DRDP's are four bytes)", c.Name, ipText))
+			continue
+		}
+		seen[c.Name] = true
+		info := ServerInfo{Name: c.Name, EndpointID: GameServerEndpoint, Port: uint16(c.Port), IP: ip}
+		if c.Recommended {
+			info.Recommended = 1
+		}
+		out = append(out, info)
+	}
+	return out, bad
 }
 
 // RegisterHandlers registers server handlers with the registry.
@@ -65,9 +120,10 @@ func (h *ServerHandler) SendServerList(sess *session.Session) {
 	for _, srv := range h.servers {
 		// Server name: WriteString(Encoding.Unicode, name)
 		// C# writes int32 LE char count, then UTF-16LE bytes (no null terminator)
-		writer.WriteUint32(uint32(len(srv.Name)))
-		for _, r := range srv.Name {
-			writer.WriteUint16(uint16(r))
+		name := utf16.Encode([]rune(srv.Name))
+		writer.WriteUint32(uint32(len(name)))
+		for _, u := range name {
+			writer.WriteUint16(u)
 		}
 
 		// Recommended (1 byte)

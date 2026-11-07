@@ -136,8 +136,10 @@ func (s *Server) registerOps() {
 	s.registerMapMarkOps()
 	s.registerTriggerOps()  // ops_triggers.go
 	s.registerPetitionOps() // ops_petitions.go
-	s.registerTransferOps() // ops_transfers.go
-	s.registerTesterOps()   // tester.go
+	if !s.d.NoTransfers {
+		s.registerTransferOps() // ops_transfers.go
+	}
+	s.registerTesterOps() // tester.go
 }
 
 // run calls an operation as an actor, with the scope check, and logs a

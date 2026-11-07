@@ -610,8 +610,22 @@ func (w *World) LoadNPCs(npcStore *database.NPCStore) {
 
 	count := 0
 	hands := map[byte]int{} // the held items' attack types, both hands
-	for _, rec := range npcs {
-		npc := NPCFromRecord(rec, classes[database.NPCClassKey(rec.NPCName)], w.rangedModels)
+	// one array of them, as they stay for the server's life: an NPC alone is
+	// rounded up to its size class, 104 bytes each over 61,139 of them
+	slab := make([]NPC, len(npcs))
+	// and each spelling once: a name is shared by a kind's every creature
+	spellings := map[string]string{}
+	once := func(s string) string {
+		if t, ok := spellings[s]; ok {
+			return t
+		}
+		spellings[s] = s
+		return s
+	}
+	for i, rec := range npcs {
+		rec.NPCName, rec.RobeStyle, rec.Race = once(rec.NPCName), once(rec.RobeStyle), once(rec.Race)
+		npc := &slab[i]
+		npc.fromRecord(rec, classes[database.NPCClassKey(rec.NPCName)], w.rangedModels)
 		w.applyNPCSettingsLocked(npc)
 		w.putNPCLocked(npc)
 		w.SpatialIndex.Insert(npc.ServerID, npc.X, npc.Z)
@@ -636,6 +650,13 @@ func (w *World) LoadNPCs(npcStore *database.NPCStore) {
 // panel's edits (gmlive.go) both build through it, so an NPC edited live is
 // the NPC the next restart would load.
 func NPCFromRecord(rec *database.NPCRecord, class int, ranged map[uint32]byte) *NPC {
+	n := new(NPC)
+	n.fromRecord(rec, class, ranged)
+	return n
+}
+
+// fromRecord makes n the NPC a row of npcs spawns (NPCFromRecord).
+func (n *NPC) fromRecord(rec *database.NPCRecord, class int, ranged map[uint32]byte) {
 	posX := float32(rec.XCoord)
 	posY := float32(rec.YCoord)
 	posZ := float32(rec.ZCoord)
@@ -663,7 +684,7 @@ func NPCFromRecord(rec *database.NPCRecord, class int, ranged map[uint32]byte) *
 
 	primaryType, secondaryType := npcHandTypes(rec.NPCName, uint32(rec.PrimaryWeapon), uint32(rec.SecondaryWeapon), ranged)
 	dummy := DummyKindOf(rec.NPCName)
-	n := &NPC{
+	*n = NPC{
 		ServerID:        EntityID(rec.ID),
 		Name:            rec.NPCName,
 		X:               posX,
@@ -718,7 +739,6 @@ func NPCFromRecord(rec *database.NPCRecord, class int, ranged map[uint32]byte) *
 		// it quads at any level (sparring.go)
 		n.SwingFixed, n.SwingKind = true, sparSwing
 	}
-	return n
 }
 
 // FindEntityByObjectID resolves a runtime objectID to an Entity.

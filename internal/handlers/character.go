@@ -540,12 +540,8 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	// the No Rent items that vanish at logout go, before its items are read
 	// (norent.go)
 	h.vanishNoRent(uint32(record.ServerID))
-	// a character with no Genie's Lamp gets one, before its items are read
-	// (genie.go), one with no Heirloom Fang of the Wolf that (wolffang.go), and
-	// one with no Summoning Portal that (summonportal.go)
-	h.giveGenieLamp(uint32(record.ServerID))
-	h.giveWolfFang(uint32(record.ServerID))
-	h.giveSummoningPortal(uint32(record.ServerID))
+	// the kept items a character holds none of, before its items are read
+	h.giveKeptItems(uint32(record.ServerID))
 
 	// the look it plays in, before anything reads the character
 	h.keepSelectedLook(record, data)

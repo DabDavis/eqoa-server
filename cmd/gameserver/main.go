@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 	"syscall"
 	"time"
@@ -161,6 +162,11 @@ func main() {
 			kept = fmt.Sprintf("at most %d kept (world.ground_zones)", cfg.World.GroundZones)
 		}
 		log.Printf("Creatures: the ground of %d worlds (%d zones), read a zone at a time, %s; what stands on it (walls) in %d worlds, %d placements", nw, nz, kept, ww, wp)
+		if m, n := g.Mapped(); m == n {
+			log.Printf("Creatures: the collision is mapped (%d files), one copy for every server on this machine", n)
+		} else {
+			log.Printf("Creatures: %d of %d collision files are mapped; the rest are decoded onto the heap a zone at a time (cmd/groundmap writes their maps)", m, n)
+		}
 	} else {
 		log.Printf("Creatures: no ground (%v): they keep their heights as they move", err)
 	}
@@ -308,6 +314,29 @@ func main() {
 	handlerRegistry := handlers.NewRegistry()
 	handlers.RegisterDefaultHandlers(handlerRegistry, charStore, accountStore, sessionMgr, cfg.Server.ServerIP, gameWorld, inventoryStore, spellbookStore)
 
+	// The server list every client is sent, and the kept items at a login
+	// (world.heirlooms): a shard's two differences of code from another.
+	shards, badShards := handlers.ShardList(cfg.Shards, cfg.Server.ServerIP, cfg.Server.GamePort)
+	for _, e := range badShards {
+		log.Printf("WARNING: %v; left out of the server list", e)
+	}
+	if len(shards) == 0 {
+		shards, _ = handlers.ShardList(nil, cfg.Server.ServerIP, cfg.Server.GamePort)
+	}
+	handlerRegistry.SetServers(shards)
+	onList := false
+	for _, sh := range shards {
+		log.Printf("Server list: %q on %s:%d (recommended: %v)", sh.Name, sh.IP, sh.Port, sh.Recommended != 0)
+		onList = onList || int(sh.Port) == cfg.Server.GamePort
+	}
+	if !onList {
+		log.Printf("WARNING: the server list does not name this server's game port %d", cfg.Server.GamePort)
+	}
+	handlers.SetHeirloomsGiven(cfg.World.Heirlooms == nil || *cfg.World.Heirlooms)
+	if cfg.World.Heirlooms != nil && !*cfg.World.Heirlooms {
+		log.Printf("Heirlooms: none given at a login (world.heirlooms: false)")
+	}
+
 	// Create UDP handler registry and register handlers.
 	// Fallback to handlerRegistry for opcodes not explicitly bridged.
 	udpHandlers := udp.NewHandlerRegistry()
@@ -422,16 +451,27 @@ func main() {
 	// Tickets link the two halves of the handshake: the TCP auth server grants
 	// one when a password checks out, and the UDP handlers require one. Without
 	// that link the UDP path would still accept any username on its own.
+	//
+	// A shard whose accounts are another's (auth.shared_db): its players logged
+	// in at the other process, whose tickets are not here, so every handshake
+	// signs in by the password its token carries, whatever
+	// auth.require_tcp_login says, and a sign-in leaves no ticket behind (a
+	// ticket names a username alone).
+	sharedAccounts := cfg.Auth.SharedDB != ""
 	loginTickets := auth.NewTicketStore(cfg.Auth.TicketTTL)
-	if cfg.Auth.RequireTCPLogin {
+	if cfg.Auth.RequireTCPLogin || sharedAccounts {
 		handlerRegistry.SetLoginTickets(loginTickets)
 	} else {
 		log.Printf("WARNING: auth.require_tcp_login is off — the UDP handshake will " +
 			"accept any username without a login. Do not expose this server.")
 	}
 
-	// Initialize and start auth server (TCP port 9735)
-	authHandler := tcp.NewAuthServer(cfg, accountStore, loginTickets)
+	// Initialize the auth server (TCP port 9735), started below if it has a port
+	authGrants := loginTickets
+	if sharedAccounts {
+		authGrants = nil
+	}
+	authHandler := tcp.NewAuthServer(cfg, accountStore, authGrants)
 	// The operators' addresses and the server's own (the web relay's source,
 	// every browser player's when the relay cannot name the page): one login
 	// at a time does not apply to them by address, nor does the login limit.
@@ -466,31 +506,49 @@ func main() {
 	}
 	log.Printf("Auth: at most %d failed logins an account and %d an address every %v (addresses %v not counted)",
 		auth.FailsPerName, auth.FailsPerAddr, auth.FailWindow, exempt)
-	if cfg.Auth.RequireTCPLogin {
+	if cfg.Auth.RequireTCPLogin || sharedAccounts {
 		// a client back at the server list with no ticket (a restart since its
 		// Station login, or the login older than auth.ticket_ttl) signs in by
 		// the password its handshake token carries, checked as a login is
 		handlerRegistry.SetPasswordChecker(authHandler)
 	}
-	authListener := tcp.NewListener(cfg, authHandler)
-	if err := authListener.Start(); err != nil {
-		log.Fatalf("Failed to start auth server: %v", err)
+	// The accounts of another shard's database, copied into this one's table
+	// (database/accountmirror.go), which everything here goes on reading
+	var mirror *database.AccountMirror
+	if sharedAccounts {
+		mirror = database.NewAccountMirror(db, cfg.Auth.SharedDB)
+		if ch, gone, n, err := mirror.Pull(); err != nil {
+			log.Printf("WARNING: the shared accounts (%s): %v; signing in by the copy here until they can be read", cfg.Auth.SharedDB, err)
+		} else {
+			log.Printf("Accounts: %d kept in %s, %d changed and %d gone since this copy; a client signs in here by its token's password", n, cfg.Auth.SharedDB, ch, gone)
+		}
+		authHandler.SetAccountRefresh(mirror.PullOne)
+		stopMirror := mirror.Run(cfg.Auth.SharedRefresh)
+		defer stopMirror()
 	}
-	defer authListener.Stop()
+	if cfg.Server.AuthPort != 0 {
+		authListener := tcp.NewListener(cfg, authHandler)
+		if err := authListener.Start(); err != nil {
+			log.Fatalf("Failed to start auth server: %v", err)
+		}
+		defer authListener.Stop()
+	}
 
 	// Initialize and start patch server
-	patchServer := tcp.NewPatchServer(cfg)
-	if err := patchServer.Start(); err != nil {
-		log.Fatalf("Failed to start patch server: %v", err)
-	}
-	defer patchServer.Stop()
+	if cfg.Server.PatchPort != 0 {
+		patchServer := tcp.NewPatchServer(cfg)
+		if err := patchServer.Start(); err != nil {
+			log.Fatalf("Failed to start patch server: %v", err)
+		}
+		defer patchServer.Stop()
 
-	// The Freeport technician talks to the SD payload with control strings the
-	// payload's display hook is meant to swallow. Between the two SD passes there
-	// is no payload to swallow them and the client draws them as question marks,
-	// so the technician asks the patch server whether this console is in that
-	// window and explains instead. The patcher is the only thing that knows.
-	handlers.ConsoleMidSDRefresh = patchServer.ConsoleMidSDRefresh
+		// The Freeport technician talks to the SD payload with control strings the
+		// payload's display hook is meant to swallow. Between the two SD passes there
+		// is no payload to swallow them and the client draws them as question marks,
+		// so the technician asks the patch server whether this console is in that
+		// window and explains instead. The patcher is the only thing that knows.
+		handlers.ConsoleMidSDRefresh = patchServer.ConsoleMidSDRefresh
+	}
 
 	// World ESF delivery to the in-game HDD stager. Separate from the patch
 	// server's HTTP route because the consumer is different: by the time our SD
@@ -521,71 +579,74 @@ func main() {
 	}
 
 	// Initialize and start account registration server
-	accountServer := tcp.NewAccountServer(db, cfg.Server.AccountPort, cfg.Auth.BCryptCost)
-	accountServer.SetNewCharacterRules(newRules)
+	var accountServer *tcp.AccountServer
+	if cfg.Server.AccountPort != 0 {
+		accountServer = tcp.NewAccountServer(db, cfg.Server.AccountPort, cfg.Auth.BCryptCost)
+		accountServer.SetNewCharacterRules(newRules)
 
-	// The account pages can move a character on the logged-in account. Where the
-	// destinations ARE depends on where their defining NPCs spawned, and moving a
-	// character who is logged in has to happen in the world rather than in the
-	// database, so both answers come from the game side rather than being
-	// duplicated over there.
-	accountServer.Destinations = func() []tcp.TeleportDest {
-		// The same list Harbormaster Thand offers, plus Freeport itself — a
-		// Harbormaster omits its own stop because a player standing at one
-		// cannot usefully travel to it, which does not apply to a web page.
-		src := handlers.WarpDestinations(gameWorld)
-		out := make([]tcp.TeleportDest, 0, len(src))
-		for _, d := range src {
-			out = append(out, tcp.TeleportDest{Name: d.Name, Label: d.Label, World: d.World})
+		// The account pages can move a character on the logged-in account. Where the
+		// destinations ARE depends on where their defining NPCs spawned, and moving a
+		// character who is logged in has to happen in the world rather than in the
+		// database, so both answers come from the game side rather than being
+		// duplicated over there.
+		accountServer.Destinations = func() []tcp.TeleportDest {
+			// The same list Harbormaster Thand offers, plus Freeport itself — a
+			// Harbormaster omits its own stop because a player standing at one
+			// cannot usefully travel to it, which does not apply to a web page.
+			src := handlers.WarpDestinations(gameWorld)
+			out := make([]tcp.TeleportDest, 0, len(src))
+			for _, d := range src {
+				out = append(out, tcp.TeleportDest{Name: d.Name, Label: d.Label, World: d.World})
+			}
+			return out
 		}
-		return out
-	}
-	accountServer.WorldNames = handlers.WorldNames
-	accountServer.ResolveDest = func(name string) (float32, float32, float32, byte, string, bool) {
-		return handlers.ResolveTeleDest(gameWorld, name)
-	}
-	accountServer.ValidatePlace = handlers.ValidateTeleport
-	accountServer.TeleportLive = func(serverID uint32, x, y, z float32, world byte) bool {
-		return handlers.TeleportOnlineCharacter(gameWorld, sessionMgr,
-			entity.EntityID(serverID), x, y, z, world)
-	}
-	accountServer.SendOnly = handlers.IsSendOnlyWorld
-	accountServer.CanLoad = func(serverID uint32, world byte) error {
-		sess := handlers.SessionOfCharacter(gameWorld, sessionMgr, serverID)
-		if handlers.CanLoadWorld(sess, world) {
-			return nil
+		accountServer.WorldNames = handlers.WorldNames
+		accountServer.ResolveDest = func(name string) (float32, float32, float32, byte, string, bool) {
+			return handlers.ResolveTeleDest(gameWorld, name)
 		}
-		if sess == nil {
-			return fmt.Errorf("a login starts only in the six worlds every game has, not in world %d", world)
+		accountServer.ValidatePlace = handlers.ValidateTeleport
+		accountServer.TeleportLive = func(serverID uint32, x, y, z float32, world byte) bool {
+			return handlers.TeleportOnlineCharacter(gameWorld, sessionMgr,
+				entity.EntityID(serverID), x, y, z, world)
 		}
-		return fmt.Errorf("this character's game cannot load world %d", world)
-	}
-	accountServer.EndSessions = sessionMgr.EndAccount
-	accountServer.Limiter = loginLimiter
-	// the community spell-visual page's list and form (internal/spellfx):
-	// anyone may suggest a spell's visual; GMs accept one in the panel
-	accountServer.SpellFX = spellfx.New(db)
-	// the community map marks every vanilla map draws, and their suggestions
-	accountServer.MapMarks = mapmarks.New(db)
-	// the character transfer page (internal/transfers): a player asks, a GM
-	// decides in the panel, the next login applies it (handlers/transfers.go)
-	charTransfers := transfers.New(db, accountServer.CheckLogin)
-	charTransfers.Tell = func(t database.Transfer) {
-		handlers.TellGMs(sessionMgr, accountStore, nil, fmt.Sprintf("[Transfer] #%d: %s (level %d %s, %s) for %s, on the GM panel's Character transfers",
-			t.ID, t.FromName, t.FromLevel, t.FromClass, t.FromServer, t.CharName))
-	}
-	accountServer.Transfers = charTransfers
-	// the voice demo's way in (internal/voice/demo.go), for clients on a
-	// server that offers no voice
-	if voiceSrv != nil && cfg.Voice.Demo.Enabled {
-		accountServer.VoiceDemo = voice.NewDemo(voiceSrv, voice.DemoConfig{MaxSessions: cfg.Voice.Demo.MaxSessions, TTL: cfg.Voice.CredentialTTL})
-		log.Printf("Voice: the demo on the account server's /api/voice/demo")
-	}
+		accountServer.SendOnly = handlers.IsSendOnlyWorld
+		accountServer.CanLoad = func(serverID uint32, world byte) error {
+			sess := handlers.SessionOfCharacter(gameWorld, sessionMgr, serverID)
+			if handlers.CanLoadWorld(sess, world) {
+				return nil
+			}
+			if sess == nil {
+				return fmt.Errorf("a login starts only in the six worlds every game has, not in world %d", world)
+			}
+			return fmt.Errorf("this character's game cannot load world %d", world)
+		}
+		accountServer.EndSessions = sessionMgr.EndAccount
+		accountServer.Limiter = loginLimiter
+		// the community spell-visual page's list and form (internal/spellfx):
+		// anyone may suggest a spell's visual; GMs accept one in the panel
+		accountServer.SpellFX = spellfx.New(db)
+		// the community map marks every vanilla map draws, and their suggestions
+		accountServer.MapMarks = mapmarks.New(db)
+		// the character transfer page (internal/transfers): a player asks, a GM
+		// decides in the panel, the next login applies it (handlers/transfers.go)
+		charTransfers := transfers.New(db, accountServer.CheckLogin)
+		charTransfers.Tell = func(t database.Transfer) {
+			handlers.TellGMs(sessionMgr, accountStore, nil, fmt.Sprintf("[Transfer] #%d: %s (level %d %s, %s) for %s, on the GM panel's Character transfers",
+				t.ID, t.FromName, t.FromLevel, t.FromClass, t.FromServer, t.CharName))
+		}
+		accountServer.Transfers = charTransfers
+		// the voice demo's way in (internal/voice/demo.go), for clients on a
+		// server that offers no voice
+		if voiceSrv != nil && cfg.Voice.Demo.Enabled {
+			accountServer.VoiceDemo = voice.NewDemo(voiceSrv, voice.DemoConfig{MaxSessions: cfg.Voice.Demo.MaxSessions, TTL: cfg.Voice.CredentialTTL})
+			log.Printf("Voice: the demo on the account server's /api/voice/demo")
+		}
 
-	if err := accountServer.Start(); err != nil {
-		log.Fatalf("Failed to start account server: %v", err)
+		if err := accountServer.Start(); err != nil {
+			log.Fatalf("Failed to start account server: %v", err)
+		}
+		defer accountServer.Stop()
 	}
-	defer accountServer.Stop()
 
 	// Wire session manager into world for systems
 	gameWorld.SessionManager = sessionMgr
@@ -625,12 +686,18 @@ func main() {
 			Characters: charStore, Accounts: accountStore, NPCs: npcStore,
 			ApplyNewCharacterRules: func(r database.NewCharacterRules) {
 				charStore.SetNewCharacterRules(r)
-				accountServer.SetNewCharacterRules(r)
+				if accountServer != nil {
+					accountServer.SetNewCharacterRules(r)
+				}
 			},
 			SetAutoRegister: authHandler.SetAllowAutoRegister,
 			AutoRegister:    authHandler.AllowAutoRegister,
 			Limiter:         loginLimiter,
 			Restart:         restart,
+			// a shard whose accounts are another's: changed there alone. No
+			// account pages here, so no transfer form feeding the panel's page.
+			AccountsShared: sharedAccounts,
+			NoTransfers:    accountServer == nil,
 		})
 		if err != nil {
 			log.Fatalf("GM panel: %v", err)
@@ -674,10 +741,21 @@ func main() {
 	stopTick := udpListener.StartTickRoutine(cfg.World.TickRate)
 	defer stopTick()
 
-	log.Printf("Auth server ready on port %d", cfg.Server.AuthPort)
+	// What the load made and let go back to the machine now, rather than as the
+	// runtime's scavenger gets to it: it keeps all of it while the heap could
+	// double, and an idle server's heap never does.
+	debug.FreeOSMemory()
+
+	if cfg.Server.AuthPort != 0 {
+		log.Printf("Auth server ready on port %d", cfg.Server.AuthPort)
+	}
 	log.Printf("Game server ready on port %d", cfg.Server.GamePort)
-	log.Printf("Patch server ready on port %d", cfg.Server.PatchPort)
-	log.Printf("Account registration server ready on port %d", cfg.Server.AccountPort)
+	if cfg.Server.PatchPort != 0 {
+		log.Printf("Patch server ready on port %d", cfg.Server.PatchPort)
+	}
+	if accountServer != nil {
+		log.Printf("Account registration server ready on port %d", cfg.Server.AccountPort)
+	}
 	// Which of the client's own world slots this server can actually supply.
 	// Printed because a missing world ESF otherwise surfaces three layers away,
 	// as a console that fails to open a file nobody said was absent.
@@ -751,7 +829,11 @@ func main() {
 			voiceSrv.Close()
 			voiceSrv = nil
 		}
+		// nothing of this process writes the database once it is held: a swap
+		// may put the file back from its copy
+		mirror.Hold(true)
 		err := udpListener.KeepRestart(keepOptions(cfg))
+		mirror.Hold(false)
 		log.Printf("Keep: the restart did not happen: %v; the server goes on", err)
 	}
 	log.Println("Shutdown signal received, stopping server...")

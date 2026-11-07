@@ -225,6 +225,10 @@ func (s *Server) readSchema() (map[string]*Table, error) {
 			t.cols[t.Columns[i].Name] = &t.Columns[i]
 		}
 		applyCatalog(t)
+		if e.name == "accountinfo" && s.d.AccountsShared {
+			t.Write = writeNone // a copy (shard.go)
+			t.Help = sharedAccountsWord + ". " + t.Help
+		}
 		out[e.name] = t
 	}
 	return out, nil

@@ -25,6 +25,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"unsafe"
 )
 
 const (
@@ -207,14 +208,83 @@ func OpenEnv(dir string) (*Env, error) {
 		if err != nil {
 			continue
 		}
-		w, err := ReadEnv(f)
-		f.Close()
-		if err != nil {
-			return nil, fmt.Errorf("%d.env: %w", n, err)
+		w := mapEnv(f) // read-only, one copy however many servers map it
+		if w == nil {
+			_, _ = f.Seek(0, io.SeekStart)
+			if w, err = ReadEnv(f); err != nil {
+				f.Close()
+				return nil, fmt.Errorf("%d.env: %w", n, err)
+			}
 		}
+		f.Close()
 		e.worlds[n] = w
 	}
 	return e, nil
+}
+
+// mapEnv is a world's environment file as ReadEnv makes it, its trees' arrays
+// over a read-only mapping of the file (mapfile.go: the file's arrays are the
+// structs' own layout, and they are only read). Nil when the file cannot be
+// mapped or is not plainly one, for ReadEnv to say why; the mapping is kept for
+// the server's life.
+func mapEnv(f *os.File) *WorldEnv {
+	if !nativeLittleEndian() {
+		return nil
+	}
+	data, err := mmapFile(f)
+	if err != nil || data == nil {
+		return nil
+	}
+	at := 8
+	u32 := func() (uint32, bool) {
+		if at+4 > len(data) {
+			return 0, false
+		}
+		v := binary.LittleEndian.Uint32(data[at:])
+		at += 4
+		return v, true
+	}
+	tree := func(t *EnvTree) bool {
+		nodes, ok1 := u32()
+		leaves, ok2 := u32()
+		if !ok1 || !ok2 || nodes > 1<<24 || leaves > 1<<24 {
+			return false
+		}
+		size := int(nodes)*int(unsafe.Sizeof(EnvNode{})) + int(leaves)*4
+		if at+size > len(data) {
+			return false
+		}
+		t.Nodes = sliceOf[EnvNode](data[at:], int(nodes))
+		at += int(nodes) * int(unsafe.Sizeof(EnvNode{}))
+		t.Leaves = sliceOf[uint32](data[at:], int(leaves))
+		at += int(leaves) * 4
+		return true
+	}
+	w := &WorldEnv{}
+	bad := func() *WorldEnv {
+		munmapFile(data)
+		return nil
+	}
+	if len(data) < 8 || string(data[:4]) != envMagic || binary.LittleEndian.Uint32(data[4:]) != envVersion {
+		return bad()
+	}
+	if !tree(&w.Tree) {
+		return bad()
+	}
+	zones, ok := u32()
+	if !ok || zones > 1<<16 {
+		return bad()
+	}
+	w.Zones = make([]EnvTree, zones)
+	for i := range w.Zones {
+		if !tree(&w.Zones[i]) {
+			return bad()
+		}
+	}
+	if at != len(data) {
+		return bad()
+	}
+	return w
 }
 
 // Worlds is how many worlds have their environment.

@@ -16,6 +16,30 @@ type Config struct {
 	Auth   AuthConfig   `yaml:"auth"`
 	GM     GMConfig     `yaml:"gm"`
 	Voice  VoiceConfig  `yaml:"voice"`
+
+	// Shards is the server list every client is sent (0x07B3): each entry a
+	// game server of its own, and CLIENT lets its player pick (the user,
+	// 2026-11-07: "lets add another shard"). Unset: this server alone, as
+	// "Marr's Fist", on server.game_port. Every process of a set of shards
+	// carries the same list, so whichever a client asks shows the same.
+	Shards []ShardConfig `yaml:"shards"`
+}
+
+// ShardConfig is a line of the server list.
+type ShardConfig struct {
+	// Name is what the list shows: 31 characters at most (CLIENT's m_name
+	// holds 32 with its terminator). The list is shown sorted by name.
+	Name string `yaml:"name"`
+
+	// Port is the shard's game port (UDP), reached at IP.
+	Port int `yaml:"port"`
+
+	// Recommended makes it the one a client with no home shard in the list
+	// starts on, marked Recommended (VIShardInfo::FirstValid).
+	Recommended bool `yaml:"recommended"`
+
+	// IP is its public address; unset: server.server_ip.
+	IP string `yaml:"ip"`
 }
 
 // VoiceConfig is voice chat (internal/voice): a forwarding server inside
@@ -123,6 +147,10 @@ type GMConfig struct {
 
 // ServerConfig holds network server settings.
 type ServerConfig struct {
+	// GamePort is the game's UDP port. AuthPort (the Station login, TCP),
+	// PatchPort (the patcher's HTTP) and AccountPort (the account pages):
+	// 0 starts no such listener, for a shard another process logs its players
+	// in for (auth.shared_db). A key left out is its default, not 0.
 	GamePort    int `yaml:"game_port"`
 	AuthPort    int `yaml:"auth_port"`
 	PatchPort   int `yaml:"patch_port"`
@@ -244,6 +272,14 @@ type WorldConfig struct {
 	// over more zones than it holds make the server read zones over and over
 	// (internal/ground's Ground.keep).
 	GroundZones int `yaml:"ground_zones"`
+
+	// Heirlooms false gives no character the kept items at its login: the
+	// Genie's Lamp, the Heirloom Fang of the Wolf and the Summoning Portal
+	// (handlers/genie.go, wolffang.go, summonportal.go). Unset: given, to a
+	// character holding none, while their records exist. The records, the
+	// Heirloom Outfitters and the start rows are data: a server without them
+	// has none in its database as well.
+	Heirlooms *bool `yaml:"heirlooms"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.
@@ -356,6 +392,16 @@ type AuthConfig struct {
 	// through the web relay at once (0: no limit). A native client is not
 	// counted. It needs relay_lookup, which says relayed players are named.
 	BrowserCharacters int `yaml:"browser_characters"`
+
+	// SharedDB is another shard's database, whose accountinfo is the accounts
+	// of this one too (database.AccountMirror): this server's own table is a
+	// copy of it, refreshed as a player signs in and every SharedRefresh
+	// (unset or 0: 10 s), never written back. With it set a client signs in
+	// here by the password its handshake's token carries, every time: no
+	// login ticket comes from another process, and none is made here. Read
+	// only; empty on the shard that owns the accounts.
+	SharedDB      string        `yaml:"shared_db"`
+	SharedRefresh time.Duration `yaml:"shared_refresh"`
 }
 
 // AccountSeed is a pre-registered account.

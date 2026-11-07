@@ -59,8 +59,8 @@ func TestAnArcaneDebuffRaisesArcaneDamage(t *testing.T) {
 	if got := arcaneDebuffed(StatAR, nil, -1000, now); got != -1000 {
 		t.Errorf("no creature: %d", got)
 	}
-	if got := npcSpellResistPct(60, npc, StatAR, now); got != 35 {
-		t.Errorf("a level 70's resist of a level 60's arcane spell: %d%%, want 35", got)
+	if got := npcSpellResistPct(60, npc, StatAR, now); got != 15 {
+		t.Errorf("a level 70's resist of a level 60's arcane spell: %d%%, want 15", got)
 	}
 	npc.Effects = []*ActiveEffect{
 		{SpellID: 1, Until: now.Add(time.Minute), Mods: StatMods{AR: -155}},  // Paralytic Punishment at 300 INT

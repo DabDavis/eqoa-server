@@ -29,16 +29,21 @@ import (
 //   - the chance a hit procs: 3%, and one more for each 20 INT the bearer
 //     has, at most 25% (INT 100: 8%; 300: 18%); a pet, which has no INT, as
 //     three a level;
-//   - a creature's arcane resist: 5% against a bearer of its own level, 3
-//     more for each level it is above the bearer, 3 fewer for each below,
-//     from none to 75%; all or nothing.
+//   - a creature's resist (a proc's arcane, and every spell's, workbook.go):
+//     5% against a bearer of its own level, 1 more for each of the first 10
+//     levels it is above the bearer and 5 more for each level past them, 1
+//     fewer for each level below, from none to 75% (the user, 2026-11-07:
+//     "shouldnt be resist much unless huge level difference"; until then 3 a
+//     level either way). What a resist leaves is the hit at its least.
 
 const (
 	procBasePct  = 3
 	procIntPer   = 20
 	procMostPct  = 25
 	resistAtPar  = 5
-	resistPerLvl = 3
+	resistPerLvl = 1  // each of the first resistNear levels above
+	resistNear   = 10 // the levels a resist grows slowly over
+	resistFarLvl = 5  // each level past resistNear
 	resistMost   = 75
 	petIntPerLvl = 3
 )
@@ -55,7 +60,12 @@ func procChancePct(intel int) int {
 // procResistPct is the chance, in percent, that a creature of targetLevel
 // resists the proc of a bearer of bearerLevel (all of it).
 func procResistPct(bearerLevel, targetLevel int) int {
-	return min(max(resistAtPar+resistPerLvl*(targetLevel-bearerLevel), 0), resistMost)
+	d := targetLevel - bearerLevel
+	pct := resistAtPar + resistPerLvl*d
+	if d > resistNear {
+		pct = resistAtPar + resistPerLvl*resistNear + resistFarLvl*(d-resistNear)
+	}
+	return min(max(pct, 0), resistMost)
 }
 
 // procRolls is the damage of each proc a hit makes among the effects, of a

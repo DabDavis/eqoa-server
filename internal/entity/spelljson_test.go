@@ -162,7 +162,7 @@ func TestWorkbookLevelScaling(t *testing.T) {
 }
 
 // A creature resists a harmful workbook effect by its resist basis, wholly,
-// at the proc's chance (35% for one ten levels above the caster): resisted,
+// at the proc's chance (15% for one ten levels above the caster): resisted,
 // the caster is told and the creature is angered; the control, the roll
 // against it, lands. A dummy never resists, nor does a line's spell.
 func TestWorkbookResists(t *testing.T) {
@@ -173,7 +173,7 @@ func TestWorkbookResists(t *testing.T) {
 		landed  bool
 		dummy   bool
 		message bool
-	}{{0, true, false, true}, {34, true, false, true}, {35, true, false, false}, {0, true, true, false}} {
+	}{{0, true, false, true}, {14, true, false, true}, {15, true, false, false}, {0, true, true, false}} {
 		c := newCaster(t)
 		c.npc.Level, c.npc.HP, c.npc.MaxHP = 33, 1000, 1000
 		if tc.dummy {
@@ -207,8 +207,8 @@ func TestWorkbookResists(t *testing.T) {
 			t.Errorf("roll %d: resisted, the creature is not angered (%d)", tc.roll, c.npc.CurrentEnemy)
 		}
 	}
-	if got := npcSpellResistPct(23, &NPC{Level: 33}, StatFR, time.Now()); got != 35 {
-		t.Errorf("ten above: %d%%, want 35", got)
+	if got := npcSpellResistPct(23, &NPC{Level: 33}, StatFR, time.Now()); got != 15 {
+		t.Errorf("ten above: %d%%, want 15", got)
 	}
 	// a fire resist debuff of the cap's on it takes 75 points off
 	debuffed := &NPC{Level: 60, Effects: []*ActiveEffect{{Until: time.Now().Add(time.Minute), Mods: StatMods{FR: -ResistCap}}}}

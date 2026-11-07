@@ -81,7 +81,9 @@ func TestProcChanceAndResist(t *testing.T) {
 			t.Errorf("INT %d: %d%%, want %d%%", intel, got, want)
 		}
 	}
-	for _, c := range []struct{ bearer, target, want int }{{20, 20, 5}, {20, 25, 20}, {20, 18, 0}, {10, 60, 75}} {
+	// 1 a level for the first ten above, 5 a level past them (the user: "shouldnt be resist much unless huge level difference")
+	for _, c := range []struct{ bearer, target, want int }{{20, 20, 5}, {20, 25, 10}, {20, 18, 3}, {20, 14, 0}, {20, 30, 15},
+		{20, 31, 20}, {20, 35, 40}, {8, 17, 14}, {10, 60, 75}} {
 		if got := procResistPct(c.bearer, c.target); got != c.want {
 			t.Errorf("a %d on a %d: %d%%, want %d%%", c.bearer, c.target, got, c.want)
 		}

@@ -20,6 +20,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -240,6 +241,19 @@ func (s *Server) ServeAPI(w http.ResponseWriter, r *http.Request, path string) {
 		claims := strings.TrimSpace(string(req.Claims))
 		if claims == "null" {
 			claims = ""
+		}
+		// the character must be the form's class: the page's list used to start on the
+		// account's first character, and forms #47 and #60 went on a rogue and a warrior
+		// already moved, for a cleric and a monk the account had made
+		var name string
+		var class int
+		if err := s.DB.QueryRow(`SELECT charName, tclass FROM characters WHERE serverid = ? AND accountid = ?`,
+			req.ServerID, ss.accountID).Scan(&name, &class); err == nil && req.FromClass != "" {
+			if have := entity.ClassName(class); !strings.EqualFold(strings.TrimSpace(req.FromClass), have) {
+				refuse(w, http.StatusBadRequest, fmt.Sprintf("%s here is a %s and the form says %s: choose your character of that class, or make one in the game first",
+					name, have, strings.TrimSpace(req.FromClass)))
+				return
+			}
 		}
 		t, err := s.DB.FileTransfer(database.Transfer{AccountID: ss.accountID, ServerID: req.ServerID, FromServer: req.FromServer,
 			FromName: req.FromName, FromClass: req.FromClass, FromLevel: req.FromLevel, FromMasteries: req.FromMasteries,

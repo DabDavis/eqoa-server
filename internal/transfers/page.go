@@ -253,12 +253,21 @@ const page = `<!DOCTYPE html>
     $('signedIn').classList.remove('hidden');
     $('acct').textContent = state.account;
     var sel = $('char');
+    var was = sel.value;
     sel.textContent = '';
+    if ((state.characters || []).length > 1) {
+      // no character until the player says which: starting on the first one, forms went on the wrong character
+      var none = el('option', null, 'Choose the character this is for');
+      none.value = '';
+      sel.appendChild(none);
+    }
     (state.characters || []).forEach(function (c) {
       var o = el('option', null, c.name + ' - level ' + c.level + ' ' + c.race + ' ' + c.class);
       o.value = c.serverid;
       sel.appendChild(o);
     });
+    sel.value = was;
+    if (sel.selectedIndex < 0) sel.selectedIndex = 0;
     $('noChars').hidden = (state.characters || []).length > 0;
     $('send').disabled = (state.characters || []).length === 0;
     if (!catalog) loadCatalog();

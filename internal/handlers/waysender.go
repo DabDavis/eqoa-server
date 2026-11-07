@@ -292,6 +292,18 @@ var wayRoutes = map[string][]wayRoute{
 	"Mark of the Majestic": {
 		{To: "Snow 1", At: &wayPlace{World: 4, X: 5670.8, Y: 552.9, Z: 6358.8}, QuestOnly: true},
 	},
+	// A raid's portals (tools/guidegaps/): each stands only while a trigger's run has
+	// spawned it, so no quest gate. "There's Rallos", through the portal the Mark of
+	// Rallos wakes (zaoran-plateau): the raid first; the isle's own pad.
+	"Portal of Rallos": {
+		{To: "Rallos Zek", At: &wayPlace{World: 5, X: 4356.4, Y: 183.0, Z: 6720}, MinLevel: 60},
+	},
+	// "you recieve Razeal Raid Teleporter. Port up and own." (zaoran-plateau): the isle
+	// whose south side the raid sets up on
+	"Razeal Raid Teleporter": {
+		{To: "Razeal's isle", At: &wayPlace{World: 5, X: 5334.7, Y: 336.3, Z: 7590}, MinLevel: 60},
+	},
+
 	// The vampires' coffins (entity/vampire.go): EQOA-Data's vampire guide's
 	// Sanctuary "allows porting between connected coffin locations", nine of
 	// them: Freeport (SE), Guardian Forest (C), Vastly Deep (C), Solusek's Eye

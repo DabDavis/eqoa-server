@@ -208,7 +208,7 @@ const arcaneDebuffPer = 15
 // on it takes off (npcResistKindPct), and at least 1 lands. Any other as it is. Its
 // chance to resist a spell whole is another matter: that goes by the levels.
 func creatureResists(resist Stat, npc *NPC, n int, now time.Time) int {
-	if npc == nil || npc.tmpl == nil || n >= 0 || resist == StatNone || npc.tmpl.ResistPct <= 0 || shieldResistStat(npc.tmpl.ResistKind) != resist {
+	if npc == nil || npc.tmpl == nil || n >= 0 || resist == StatNone || npc.tmpl.ResistPct <= 0 || !resistKindHas(npc.tmpl.ResistKind, resist) {
 		return n
 	}
 	pct := npc.tmpl.ResistPct - npcResistKindPct(npc, resist, now)
@@ -216,6 +216,17 @@ func creatureResists(resist Stat, npc *NPC, n int, now time.Time) int {
 		return n
 	}
 	return min(int(math.Round(float64(n)*float64(100-pct)/100)), -1)
+}
+
+// resistKindHas is whether a template's resist_kind names that resist: one, or several
+// with commas (the guide's Rallos Zek: every nuke but arcane does "close to nothing").
+func resistKindHas(kinds string, resist Stat) bool {
+	for _, k := range strings.Split(kinds, ",") {
+		if shieldResistStat(k) == resist {
+			return true
+		}
+	}
+	return false
 }
 
 // arcaneDebuffed is a hit n (negative) or a tick of a spell of that resist on a

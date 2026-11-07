@@ -1,5 +1,12 @@
 package entity
 
+import (
+	"math"
+	"sort"
+	"strings"
+	"time"
+)
+
 // What a GM's trigger needs of the world (handlers/gmtriggers.go): copies of
 // an NPC placed round a point on the ground, hostile ones attacking any
 // player on sight, and where a player stands.
@@ -52,4 +59,137 @@ func (w *World) PlayerSpot(p *Player) (world uint8, x, y, z float32, dead, ok bo
 		return 0, 0, 0, 0, false, false
 	}
 	return p.World, p.X, p.Y, p.Z, p.IsDead(), true
+}
+
+// NPCSpot is where an NPC stands, its corpse too: false for one gone.
+func (w *World) NPCSpot(id EntityID) (world uint8, x, y, z float32, ok bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	npc := w.NPCs[id]
+	if npc == nil {
+		return 0, 0, 0, 0, false
+	}
+	return npc.World, npc.X, npc.Y, npc.Z, true
+}
+
+// npcsNearLocked is the living NPCs named name (any case) within reach of (x, z) in
+// world: what a trigger's walk, home and hide take, the spawn-only originals not
+// among them. Must be called with the lock held.
+func (w *World) npcsNearLocked(name string, world uint8, x, z, reach float32) []*NPC {
+	var out []*NPC
+	for _, n := range w.NPCs {
+		if n.Dead || n.SpawnOnly || n.World != world || !strings.EqualFold(strings.TrimSpace(n.Name), name) {
+			continue
+		}
+		if distXZ(n.X, n.Z, x, z) <= reach {
+			out = append(out, n)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ServerID < out[j].ServerID })
+	return out
+}
+
+// PlayerNear reports a living player within reach of (x, z) in world.
+func (w *World) PlayerNear(world uint8, x, z, reach float32) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	for _, p := range w.Players {
+		if p.World == world && !p.IsDead() && distXZ(p.X, p.Z, x, z) <= reach {
+			return true
+		}
+	}
+	return false
+}
+
+// CountNear is how many living NPCs of that name stand within reach of (x, z) in world.
+func (w *World) CountNear(name string, world uint8, x, z, reach float32) int {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return len(w.npcsNearLocked(name, world, x, z, reach))
+}
+
+// MakeAttackable clears a copy's NPC bit, and no more: it does not attack on sight.
+func (w *World) MakeAttackable(id EntityID) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if c := w.NPCs[id]; c != nil {
+		c.NPCType &^= 0x80
+	}
+}
+
+// RouseNPC has a run's copy attack any player on sight (EventAggro). False for one gone.
+func (w *World) RouseNPC(id EntityID) bool {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	c := w.NPCs[id]
+	if c == nil || c.Dead {
+		return false
+	}
+	c.NPCType &^= 0x80
+	c.EventAggro = true
+	return true
+}
+
+// WalkNPCsTo sets the NPCs of that name within reach of (x, z) running to a place
+// (a guide's "the guards scurry over"), a step apart so they do not stand in each
+// other: a path walked once, until SendNPCsHome. A fight takes them off it as it
+// takes anyone off a path. It says how many went.
+func (w *World) WalkNPCsTo(name string, world uint8, x, z, reach float32, toWorld uint8, tx, ty, tz float32) int {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	now := time.Now()
+	var npcs []*NPC
+	for _, n := range w.npcsNearLocked(name, world, x, z, reach) {
+		if !n.hiddenAt(now) {
+			npcs = append(npcs, n)
+		}
+	}
+	for i, n := range npcs {
+		// it goes whatever it fought: "at some point it will run across the next bridge"
+		n.Threats, n.CurrentEnemy, n.EventAggro = nil, 0, false
+		a := float64(i) * 2 * math.Pi / float64(max(len(npcs), 1))
+		px, pz := tx, tz
+		if len(npcs) > 1 {
+			px += float32(3 * math.Sin(a))
+			pz += float32(3 * math.Cos(a))
+		}
+		w.setPathLocked(n.ServerID, &NPCPath{World: toWorld, Mode: PathOnce, Run: true, Points: []PathPoint{{X: px, Y: ty, Z: pz, Pause: -1}}})
+		w.wakeNPCLocked(n)
+	}
+	return len(npcs)
+}
+
+// SendNPCsHome takes the path WalkNPCsTo gave the NPCs of that name within reach of
+// (x, z): each walks back to its spawn. Reach is from the place they left, so
+// wherever they are now they are looked for across the world when it is wide
+// enough. It says how many went.
+func (w *World) SendNPCsHome(name string, world uint8, x, z, reach float32) int {
+	w.mu.Lock()
+	var ids []EntityID
+	for _, n := range w.npcsNearLocked(name, world, x, z, reach) {
+		if w.paths.byNPC[n.ServerID] != nil {
+			ids = append(ids, n.ServerID)
+		}
+	}
+	w.mu.Unlock()
+	for _, id := range ids {
+		w.ClearNPCPath(id)
+	}
+	return len(ids)
+}
+
+// HideNPCs keeps the NPCs of that name within reach of (x, z) out of every view until
+// then (zero: back in view at once), as the panel's refresh hold does (hiddenAt): a
+// guide's "he disappears". It says how many.
+func (w *World) HideNPCs(name string, world uint8, x, z, reach float32, until time.Time) int {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	npcs := w.npcsNearLocked(name, world, x, z, reach)
+	for _, n := range npcs {
+		n.HiddenUntil = until
+		if !until.IsZero() {
+			w.respawnNPCLocked(n)
+		}
+	}
+	return len(npcs)
 }

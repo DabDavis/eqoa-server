@@ -340,6 +340,27 @@ index, flags on/running, name of at most 32 bytes) at once and whenever a trigge
 starts or ends; a PS2 ignores the offer and shows eight TRIGGERs. Firing and stopping from the panel
 are logged (`gm_audit` action `live`); a saved trigger is a row change, revertible.
 
+**A raid's encounter runs on the triggers** (the user, 2026-11-07: "lets build them all"; the Plane of Sky's
+constructs and twins, Rallos Zek, Razeal Moloch, each a set of `tools/seed_guide_gaps.py`'s `tools/guidegaps/<set>.json`,
+`--apply`/`--undo`, or `--save-plan` on a copy and `--plan` live, one short transaction; the JSON and the quest
+files' `notes` say what is the guide's and what is ours). More steps: lock (while the run lives no trigger of the
+lock fires, and a quest's hand-in that would fire one takes nothing and says why: `TriggerEngine.BusyNamed`,
+`QuestEngine.atNPCLocked`), place (the run's place and reach moved, or to where its last spawn died), clock (its seconds;
+at the end the run goes on from its end step; `empty` ends it sooner when no player has stood at its place that long), end,
+awaittalk (the rest waits for a player of `classes` to talk to the named NPC within the run's reach; `refuse` said to any
+other; `TriggerEngine.Talk`, before the quests), awaitdead (the run's spawns, or `any`: the first death; `seconds` gives up),
+walk and home (the named NPCs run to a place, dropping their fights, and back), hide (out of view for `minutes`, 0 back),
+rouse (the run's spawn attacks on sight). A spawn's `attackable` clears the NPC bit without attacking on sight, its `max`
+caps how many stand near; a teleport's `max` takes the firer, then the nearest, a pet counting as one, `refuse` said to the
+rest. **Quests and deaths fire triggers**: a quest's `trigger` event (with `text` for a held lock), its `dostep` event (the
+step done on the answer that takes it: a hand-in at once, offered only to one who holds it), and table `npcdeath` (name,
+trigger, chance; GM panel "NPC deaths fire triggers"): a creature's death fires it where it fell, quietly (`Quiet`, no GM
+lines). A refused quest stands aside for a giver's next one for two minutes (`offerRotates`), and a repeatable finished is
+offered again at a shop's window. **In a template** (`classtemplates`): an ability of kind `healshield` (`below`: under that
+share of its hit points a melee hit on it heals it and 1 lands; arts and spells land as ever), and of kind `meleekind` (`melee_kind`, `taken_pct`: of
+each attack type's melee); `melee_pct` reaches 5000; a resist's kind may be a comma list. `npcs.unk_o` 1-14 is an NPC's
+armour tint (`$Tints`, bytes 99-104 of its channel).
+
 **The XP camps are `#tele` shortcuts** (`handlers/camps.go`, written by `tools/gen_camp_teles.py`;
 the user's "add popular xp camps to the gm tele port like /tele dfc (deathfist citadel) /tele
 hexbones"): EQOA-Data's XP-camp guide (its map's 69 camps with a note, `Map/zones.json`) placed

@@ -229,6 +229,8 @@ const (
 	EventVisual   = "visual"   // a spell visual played on the player
 	EventTeleport = "teleport" // the player moved to a place
 	EventVampire  = "vampire"  // the player made a vampire (charvampire, entity/vampire.go): the bats' infection
+	EventTrigger  = "trigger"  // a GM trigger (table gmtriggers) fired by its name, the player its firer
+	EventDoStep   = "dostep"   // the step to do now tried at once, its NPC being the one just talked to
 )
 
 // QuestEventWhens are the times a quest's own events may name, StepEventWhens
@@ -236,18 +238,30 @@ const (
 var (
 	QuestEventWhens   = []string{EventAccept, EventFinish}
 	StepEventWhens    = []string{EventStart, EventDone}
-	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventAttack, EventVisual, EventTeleport, EventVampire}
+	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventAttack, EventVisual, EventTeleport, EventVampire, EventTrigger, EventDoStep}
 )
+
+// DoesStep reports a step tried at once when it starts (EventDoStep).
+func DoesStep(st *QuestStep) bool {
+	for _, e := range EventsOn(st.Events, EventStart) {
+		if e.Do == EventDoStep {
+			return true
+		}
+	}
+	return false
+}
 
 // QuestEvent is one thing a quest or a step does at one of its times, kept as
 // a JSON array in the events column.
 type QuestEvent struct {
 	On     string `json:"on"`               // when: accept or finish (a quest's), start or done (a step's)
 	Do     string `json:"do"`               // what: popup, say, give, spawn, attack, visual, teleport, vampire
-	Text   string `json:"text,omitempty"`   // popup, say: the words (%p the player's name)
+	Text   string `json:"text,omitempty"`   // popup, say: the words (%p the player's name); trigger: said when its lock is held
 	Answer string `json:"answer,omitempty"` // popup: its one answer ("OK" when none)
 	NPC    string `json:"npc,omitempty"`    // say: who says it (nobody: no name before it); spawn: whom; attack: who (none: the step's target)
-	Items  string `json:"items,omitempty"`  // give: patternid*count, comma separated
+	// Trigger (trigger): the name of the row of gmtriggers it fires
+	Trigger string `json:"trigger,omitempty"`
+	Items   string `json:"items,omitempty"` // give: patternid*count, comma separated
 	// UnlessHeld (give): only what the player's inventory lacks of them, so a quest's
 	// kit handed out again when the quest is taken again tops up what was used
 	UnlessHeld bool    `json:"unless_held,omitempty"`
@@ -338,6 +352,14 @@ func EventProblems(s string, step bool) []string {
 				add(i, "teleport's place is 0, 0")
 			}
 		case EventVampire:
+		case EventTrigger:
+			if strings.TrimSpace(e.Trigger) == "" {
+				add(i, "trigger names no trigger")
+			}
+		case EventDoStep:
+			if !step || e.On != EventStart {
+				add(i, "a dostep is a step's, on its start: the step tried at once")
+			}
 		default:
 			add(i, "do %q is not one of %s", e.Do, strings.Join(QuestEventActions, ", "))
 		}

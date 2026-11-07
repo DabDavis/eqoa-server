@@ -28,7 +28,14 @@ const triggerStepsHelp = `the steps in order, each {"do", ...}: broadcast {text}
 	`stay alive, 30, at most 240), hostile (they may be attacked and attack any player on sight, in a town too), ` +
 	`world/x/y/z (a place of their own; none: the trigger's)} copies of that NPC, as it is named in the game; ` +
 	`despawn {npc} this run's spawns alive (of that name; none: all) taken away; stop {slot} the runs of that ` +
-	`trigger ended (0: every other run); wait {seconds} the rest put off (at most 3600). text may hold %p, each ` +
+	`trigger ended (0: every other run); wait {seconds} the rest put off (at most 3600). A raid's script (a quest's trigger event or a ` +
+	`creature's death, table npcdeath, fires one by its name): lock {lock} no trigger of that lock fires while this run lives; place {world, x, y, z, or ` +
+	`dead: where its last spawn died; radius} the run's place from now on; clock {seconds, empty} the time it has, at its end its spawns go and it goes on ` +
+	`from its end step, empty the seconds with nobody in reach that end it too; end; awaittalk {npc, classes, text, refuse, seconds} the rest waits for a ` +
+	`player to talk to that NPC in reach of the place; awaitdead {npc, any, seconds} for its spawns (of that name; none: all) to be dead, any: for one to die; ` +
+	`walk {npc, x, y, z, radius} those NPCs near the place run there; home {npc, radius} and back; hide {npc, radius, minutes} out of every view (0: back); ` +
+	`rouse {npc} the run's spawns of that name attack on sight; teleport also takes max (how many, the nearest first, a pet counting as one) and refuse ` +
+	`(said to those left); spawn also takes attackable (it may be attacked, and does not attack on sight). text may hold %p, each ` +
 	`player's name. The players a step reaches are looked at as it runs`
 
 func (s *Server) registerTriggerOps() {

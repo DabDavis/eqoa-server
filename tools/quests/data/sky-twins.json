@@ -1,0 +1,669 @@
+{
+ "city": "portal",
+ "quests": [
+  {
+   "key": "Portal/plane-of-sky/light-sun",
+   "name": "Astral Light: The Sun's Shards",
+   "giver": "Astral Light",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The light hums. It wants a chain's shards, all of them, from one hand.\nFeed it the Sun's Shards, the 4 yellow ones? All near you go too.",
+   "accept": "Feed it the yellow shards.",
+   "decline": "Not these.",
+   "declined": "The light dims, and waits.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Astral Light",
+     "items": [
+      {
+       "item": "Shard of Dawn",
+       "count": 1
+      },
+      {
+       "item": "Shard of Beaming",
+       "count": 1
+      },
+      {
+       "item": "Shard of Glimmers",
+       "count": 1
+      },
+      {
+       "item": "Shard of Noon",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Astral Light all 4 yellow shards, and those who will fight beside you.",
+     "says": "The light flares. The plane falls away beneath you.",
+     "reminder": "The light wants all 4 yellow shards, from one hand.",
+     "events": [
+      {
+       "on": "start",
+       "do": "dostep"
+      },
+      {
+       "on": "done",
+       "do": "trigger",
+       "trigger": "Construct of Radiance",
+       "text": "The light is held: others stand on its isle. Come back when they are done."
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Talon & Bulwark and the chains' All About Shards (github.com/Jadiction/EQOA-Data, MIT). Turning in the yellow shards flags the player to buy them again from Wibble (the note from Crimz). Sends up to 16 (a pet counting one) within 40 of the Light; one raid at a time on the isle (the lock 'sky isle' is ours)."
+  },
+  {
+   "key": "Portal/plane-of-sky/wibble-sun",
+   "name": "Wibble's Sun's Shards",
+   "giver": "Wibble Gninogin",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/light-sun"
+   ],
+   "repeatable": true,
+   "offer": "You have fed the light. I found more of the Sun's Shards, every one.\nFive thousand tunar for the 4 yellow shards?",
+   "accept": "I will buy them.",
+   "decline": "Not now.",
+   "declined": "As you like. They will keep.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Wibble Gninogin",
+     "tunar": 5000,
+     "journal": "Pay Wibble Gninogin 5,000 tunar for the 4 yellow shards.",
+     "says": "Mind them. They bite.",
+     "reminder": "Five thousand, friend.",
+     "rewards": {
+      "items": [
+       "Shard of Dawn",
+       "Shard of Beaming",
+       "Shard of Glimmers",
+       "Shard of Noon"
+      ]
+     },
+     "events": [
+      {
+       "on": "start",
+       "do": "dostep"
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Talon & Bulwark and the chains' All About Shards (github.com/Jadiction/EQOA-Data, MIT). 5,000 tunar for the whole set (the guide's 'more shards ... for 5k'), to anyone who has turned that chain's shards in; repeatable."
+  },
+  {
+   "key": "Portal/plane-of-sky/light-rain",
+   "name": "Astral Light: The Rain's Shards",
+   "giver": "Astral Light",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The light hums. It wants a chain's shards, all of them, from one hand.\nFeed it the Rain's Shards, the 5 blue ones? All near you go too.",
+   "accept": "Feed it the blue shards.",
+   "decline": "Not these.",
+   "declined": "The light dims, and waits.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Astral Light",
+     "items": [
+      {
+       "item": "Shard of Drizzle",
+       "count": 1
+      },
+      {
+       "item": "Shard of Mists",
+       "count": 1
+      },
+      {
+       "item": "Shard of Torrents",
+       "count": 1
+      },
+      {
+       "item": "Shard of Squalls",
+       "count": 1
+      },
+      {
+       "item": "Shard of Deluge",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Astral Light all 5 blue shards, and those who will fight beside you.",
+     "says": "The light flares. The plane falls away beneath you.",
+     "reminder": "The light wants all 5 blue shards, from one hand.",
+     "events": [
+      {
+       "on": "start",
+       "do": "dostep"
+      },
+      {
+       "on": "done",
+       "do": "trigger",
+       "trigger": "Construct of Storms",
+       "text": "The light is held: others stand on its isle. Come back when they are done."
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Talon & Bulwark and the chains' All About Shards (github.com/Jadiction/EQOA-Data, MIT). Turning in the blue shards flags the player to buy them again from Wibble (the note from Crimz). Sends up to 16 (a pet counting one) within 40 of the Light; one raid at a time on the isle (the lock 'sky isle' is ours)."
+  },
+  {
+   "key": "Portal/plane-of-sky/wibble-rain",
+   "name": "Wibble's Rain's Shards",
+   "giver": "Wibble Gninogin",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/light-rain"
+   ],
+   "repeatable": true,
+   "offer": "You have fed the light. I found more of the Rain's Shards, every one.\nFive thousand tunar for the 5 blue shards?",
+   "accept": "I will buy them.",
+   "decline": "Not now.",
+   "declined": "As you like. They will keep.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Wibble Gninogin",
+     "tunar": 5000,
+     "journal": "Pay Wibble Gninogin 5,000 tunar for the 5 blue shards.",
+     "says": "Mind them. They bite.",
+     "reminder": "Five thousand, friend.",
+     "rewards": {
+      "items": [
+       "Shard of Drizzle",
+       "Shard of Mists",
+       "Shard of Torrents",
+       "Shard of Squalls",
+       "Shard of Deluge"
+      ]
+     },
+     "events": [
+      {
+       "on": "start",
+       "do": "dostep"
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Talon & Bulwark and the chains' All About Shards (github.com/Jadiction/EQOA-Data, MIT). 5,000 tunar for the whole set (the guide's 'more shards ... for 5k'), to anyone who has turned that chain's shards in; repeatable."
+  },
+  {
+   "key": "Portal/plane-of-sky/light-night",
+   "name": "Astral Light: The Night's Shards",
+   "giver": "Astral Light",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The light hums. It wants a chain's shards, all of them, from one hand.\nFeed it the Night's Shards, the 5 black ones? All near you go too.",
+   "accept": "Feed it the black shards.",
+   "decline": "Not these.",
+   "declined": "The light dims, and waits.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Astral Light",
+     "items": [
+      {
+       "item": "Shard of Dusk",
+       "count": 1
+      },
+      {
+       "item": "Shard of Gloom",
+       "count": 1
+      },
+      {
+       "item": "Shard of Shade",
+       "count": 1
+      },
+      {
+       "item": "Shard of Twilight",
+       "count": 1
+      },
+      {
+       "item": "Shard of Midnight",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Astral Light all 5 black shards, and those who will fight beside you.",
+     "says": "The light flares. The plane falls away beneath you.",
+     "reminder": "The light wants all 5 black shards, from one hand.",
+     "events": [
+      {
+       "on": "start",
+       "do": "dostep"
+      },
+      {
+       "on": "done",
+       "do": "trigger",
+       "trigger": "Construct of Shadows",
+       "text": "The light is held: others stand on its isle. Come back when they are done."
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Talon & Bulwark and the chains' All About Shards (github.com/Jadiction/EQOA-Data, MIT). Turning in the black shards flags the player to buy them again from Wibble (the note from Crimz). Sends up to 16 (a pet counting one) within 40 of the Light; one raid at a time on the isle (the lock 'sky isle' is ours)."
+  },
+  {
+   "key": "Portal/plane-of-sky/wibble-night",
+   "name": "Wibble's Night's Shards",
+   "giver": "Wibble Gninogin",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/light-night"
+   ],
+   "repeatable": true,
+   "offer": "You have fed the light. I found more of the Night's Shards, every one.\nFive thousand tunar for the 5 black shards?",
+   "accept": "I will buy them.",
+   "decline": "Not now.",
+   "declined": "As you like. They will keep.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Wibble Gninogin",
+     "tunar": 5000,
+     "journal": "Pay Wibble Gninogin 5,000 tunar for the 5 black shards.",
+     "says": "Mind them. They bite.",
+     "reminder": "Five thousand, friend.",
+     "rewards": {
+      "items": [
+       "Shard of Dusk",
+       "Shard of Gloom",
+       "Shard of Shade",
+       "Shard of Twilight",
+       "Shard of Midnight"
+      ]
+     },
+     "events": [
+      {
+       "on": "start",
+       "do": "dostep"
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Talon & Bulwark and the chains' All About Shards (github.com/Jadiction/EQOA-Data, MIT). 5,000 tunar for the whole set (the guide's 'more shards ... for 5k'), to anyone who has turned that chain's shards in; repeatable."
+  },
+  {
+   "key": "Portal/plane-of-sky/light-snow",
+   "name": "Astral Light: The Snow's Shards",
+   "giver": "Astral Light",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The light hums. It wants a chain's shards, all of them, from one hand.\nFeed it the Snow's Shards, the 3 white ones? All near you go too.",
+   "accept": "Feed it the white shards.",
+   "decline": "Not these.",
+   "declined": "The light dims, and waits.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Astral Light",
+     "items": [
+      {
+       "item": "Shard of Shivers",
+       "count": 1
+      },
+      {
+       "item": "Shard of Glaciers",
+       "count": 1
+      },
+      {
+       "item": "Shard of Icy Depths",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Astral Light all 3 white shards, and those who will fight beside you.",
+     "says": "The light flares. The plane falls away beneath you.",
+     "reminder": "The light wants all 3 white shards, from one hand.",
+     "events": [
+      {
+       "on": "start",
+       "do": "dostep"
+      },
+      {
+       "on": "done",
+       "do": "trigger",
+       "trigger": "Construct of Frost",
+       "text": "The light is held: others stand on its isle. Come back when they are done."
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Talon & Bulwark and the chains' All About Shards (github.com/Jadiction/EQOA-Data, MIT). Turning in the white shards flags the player to buy them again from Wibble (the note from Crimz). Sends up to 16 (a pet counting one) within 40 of the Light; one raid at a time on the isle (the lock 'sky isle' is ours)."
+  },
+  {
+   "key": "Portal/plane-of-sky/wibble-snow",
+   "name": "Wibble's Snow's Shards",
+   "giver": "Wibble Gninogin",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/light-snow"
+   ],
+   "repeatable": true,
+   "offer": "You have fed the light. I found more of the Snow's Shards, every one.\nFive thousand tunar for the 3 white shards?",
+   "accept": "I will buy them.",
+   "decline": "Not now.",
+   "declined": "As you like. They will keep.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Wibble Gninogin",
+     "tunar": 5000,
+     "journal": "Pay Wibble Gninogin 5,000 tunar for the 3 white shards.",
+     "says": "Mind them. They bite.",
+     "reminder": "Five thousand, friend.",
+     "rewards": {
+      "items": [
+       "Shard of Shivers",
+       "Shard of Glaciers",
+       "Shard of Icy Depths"
+      ]
+     },
+     "events": [
+      {
+       "on": "start",
+       "do": "dostep"
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Talon & Bulwark and the chains' All About Shards (github.com/Jadiction/EQOA-Data, MIT). 5,000 tunar for the whole set (the guide's 'more shards ... for 5k'), to anyone who has turned that chain's shards in; repeatable."
+  },
+  {
+   "key": "Portal/plane-of-sky/light-deso",
+   "name": "Astral Light: The Desolation's Shards",
+   "giver": "Astral Light",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The light hums. It wants a chain's shards, all of them, from one hand.\nFeed it the Desolation's Shards, the 4 red ones? All near you go too.",
+   "accept": "Feed it the red shards.",
+   "decline": "Not these.",
+   "declined": "The light dims, and waits.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Astral Light",
+     "items": [
+      {
+       "item": "Shard of Isolation",
+       "count": 1
+      },
+      {
+       "item": "Shard of Dissolution",
+       "count": 1
+      },
+      {
+       "item": "Shard of the Wasteland",
+       "count": 1
+      },
+      {
+       "item": "Shard of Ruin",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Astral Light all 4 red shards, and those who will fight beside you.",
+     "says": "The light flares. The plane falls away beneath you.",
+     "reminder": "The light wants all 4 red shards, from one hand.",
+     "events": [
+      {
+       "on": "start",
+       "do": "dostep"
+      },
+      {
+       "on": "done",
+       "do": "trigger",
+       "trigger": "Construct of Sorrows",
+       "text": "The light is held: others stand on its isle. Come back when they are done."
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Talon & Bulwark and the chains' All About Shards (github.com/Jadiction/EQOA-Data, MIT). Turning in the red shards flags the player to buy them again from Wibble (the note from Crimz). Sends up to 16 (a pet counting one) within 40 of the Light; one raid at a time on the isle (the lock 'sky isle' is ours)."
+  },
+  {
+   "key": "Portal/plane-of-sky/wibble-deso",
+   "name": "Wibble's Desolation's Shards",
+   "giver": "Wibble Gninogin",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/light-deso"
+   ],
+   "repeatable": true,
+   "offer": "You have fed the light. I found more of the Desolation's Shards, every one.\nFive thousand tunar for the 4 red shards?",
+   "accept": "I will buy them.",
+   "decline": "Not now.",
+   "declined": "As you like. They will keep.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Wibble Gninogin",
+     "tunar": 5000,
+     "journal": "Pay Wibble Gninogin 5,000 tunar for the 4 red shards.",
+     "says": "Mind them. They bite.",
+     "reminder": "Five thousand, friend.",
+     "rewards": {
+      "items": [
+       "Shard of Isolation",
+       "Shard of Dissolution",
+       "Shard of the Wasteland",
+       "Shard of Ruin"
+      ]
+     },
+     "events": [
+      {
+       "on": "start",
+       "do": "dostep"
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Talon & Bulwark and the chains' All About Shards (github.com/Jadiction/EQOA-Data, MIT). 5,000 tunar for the whole set (the guide's 'more shards ... for 5k'), to anyone who has turned that chain's shards in; repeatable."
+  },
+  {
+   "key": "Portal/plane-of-sky/maiden",
+   "name": "The Maiden's Shard",
+   "giver": "Night Maiden",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/night"
+   ],
+   "repeatable": true,
+   "offer": "They come for me again. The bishops, Millian and Lancel.\nSave me once more, and what I carry is yours.",
+   "accept": "I will save you.",
+   "decline": "Not now.",
+   "declined": "Then they will have me.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Arch Bishop Millian",
+     "journal": "Kill Arch Bishop Millian in his tower."
+    },
+    {
+     "kind": "kill",
+     "target": "Arch Bishop Lancel",
+     "journal": "Kill Arch Bishop Lancel in his tower."
+    },
+    {
+     "kind": "talk",
+     "target": "Night Maiden",
+     "journal": "Speak with the Night Maiden.",
+     "says": "I am safe again. Take this.",
+     "rewards": {
+      "items": [
+       "Shard of Shade"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Talon & Bulwark and the chains' All About Shards (github.com/Jadiction/EQOA-Data, MIT). Night 3: the guide's shard is hers, for speaking with her. The chain's own step gives it the first time (its done event, added by tools/guidegaps/sky-twins.json); this is the way to it again, the two bishops the guide says to kill."
+  },
+  {
+   "key": "Portal/plane-of-sky/twins",
+   "name": "The Multicoloured Lights",
+   "giver": "astral essence",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The essence turns slowly. Five lights would wake it, one from each construct.\nWill you feed it the multicoloured lights? All near you go too.",
+   "accept": "Feed it the multicoloured lights.",
+   "decline": "Not yet.",
+   "declined": "The essence turns on.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "astral essence",
+     "items": [
+      {
+       "item": "Radiant Construct Shard",
+       "count": 1
+      },
+      {
+       "item": "Storm Construct Shard",
+       "count": 1
+      },
+      {
+       "item": "Shadow Construct Shard",
+       "count": 1
+      },
+      {
+       "item": "Frost Construct Shard",
+       "count": 1
+      },
+      {
+       "item": "Sorrow Construct Shard",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the astral essence the five construct shards, and those who will fight beside you.",
+     "says": "The lights go in, and the essence opens. Thirty minutes.",
+     "reminder": "It wants a shard from each of the five constructs, from one hand.",
+     "events": [
+      {
+       "on": "start",
+       "do": "dostep"
+      },
+      {
+       "on": "done",
+       "do": "trigger",
+       "trigger": "Veeshan's Twins",
+       "text": "The essence is held: others stand on its isle. Come back when they are done."
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Talon & Bulwark and the chains' All About Shards (github.com/Jadiction/EQOA-Data, MIT). The five construct shards at the astral essence (CS's notes), at the main isle's or the Isle of Wonder's: up to 16 within 40 of the player go."
+  },
+  {
+   "key": "Portal/plane-of-sky/scale",
+   "name": "The Scale of Veeshan",
+   "giver": "Wibble Gninogin",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "A scale of the twins? Oh, let me see it. I pay for a look, and the Storyteller wants the tale.\nWill you show me?",
+   "accept": "I will show you.",
+   "decline": "Not now.",
+   "declined": "Another time.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Wibble Gninogin",
+     "items": [
+      {
+       "item": "Veeshan's Scale",
+       "count": 1
+      }
+     ],
+     "journal": "Show Veeshan's Scale to Wibble Gninogin on the main isle.",
+     "says": "Beautiful. Beautiful! Now take it to the Storyteller, in Baga Village.",
+     "reminder": "Bring me a scale of the twins.",
+     "rewards": {
+      "xp": 100000000
+     },
+     "events": [
+      {
+       "on": "start",
+       "do": "dostep"
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "The Storyteller",
+     "items": [
+      {
+       "item": "Veeshan's Scale",
+       "count": 1
+      }
+     ],
+     "journal": "Take Veeshan's Scale to The Storyteller in Baga Village.",
+     "says": "So that is what you found up there. Tell me all of it.",
+     "rewards": {
+      "factions": [
+       [
+        "The Storyteller",
+        50
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Talon & Bulwark and the chains' All About Shards (github.com/Jadiction/EQOA-Data, MIT). RIP's note: Wibble first (100 million experience), then The Storyteller, 50 faction. Offered at Wibble's window once a session, as a merchant's quests are."
+  }
+ ],
+ "items": []
+}

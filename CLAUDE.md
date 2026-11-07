@@ -6,7 +6,7 @@ See [root CLAUDE.md](../CLAUDE.md) for project overview, research notes, ISO rev
 
 ## This repository is PUBLIC
 
-[github.com/DabDavis/eqoa-server](https://github.com/DabDavis/eqoa-server), MIT. Its history
+[github.com/DabDavis/eqoa-server](https://github.com/DabDavis/eqoa-server), AGPL-3.0-or-later (MIT up to `a4ce54a`: `NOTICE`). Its history
 starts at the 2026-10-16 import; the March 2026 private repository's history is the local
 branch `private-main` and `../backups/go-eqoa-server-private-repo-20261016.bundle`.
 

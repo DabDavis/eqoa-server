@@ -540,6 +540,10 @@ func TestAPortalNameLeavesCommandsAlone(t *testing.T) {
 	}
 	r.drain()
 
+	r.say(r.anna, "   ") // no name in it: said, as it was
+	r.want("Cora", r.msgs(r.cora), "chat:Anna:    ")
+	r.drain()
+
 	r.say(r.anna, "/nosuchword")
 	r.want("Anna", r.msgs(r.anna), `red:Unrecognized command "/nosuchword".`)
 	r.say(r.anna, "#goto freeport")
@@ -612,6 +616,15 @@ func TestAPortalNameInShoutAndGuildMode(t *testing.T) {
 	r.mode(r.anna, ChatModeShout)
 	r.now = r.now.Add(5 * time.Second)
 	r.ask(r.anna, n)
+	// a # line or a / line on these opcodes is no name: it goes as it went
+	// before there was a portal (a # command typed in shout mode is shouted)
+	shout("#roll")
+	r.want("Cora, a # line in shout mode", r.msgs(r.cora), "colour:Anna shouts: #roll")
+	r.drain()
+	shout("/odd")
+	r.want("Cora, a / line in shout mode", r.msgs(r.cora), "colour:Anna shouts: /odd")
+	r.want("Bert", r.msgs(r.bert), "colour:Anna shouts: /odd")
+	r.drain()
 	shout("Bert")
 	r.want("Cora", r.msgs(r.cora))
 	r.want("Anna", r.msgs(r.anna), "chat:You call Bert through the portal.")

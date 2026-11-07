@@ -1149,6 +1149,7 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 				continue
 			}
 			if w.areaOwnSparedLocked(caster, cs, npc) { // area.go: behind a rock from its caster
+				log.Printf("LoS: %s's %q spares its target %s at (%.1f, %.1f, %.1f), from (%.1f, %.1f, %.1f)", caster.Name, cs.spell.Name, npc.Name, npc.X, npc.Y, npc.Z, caster.X, caster.Y, caster.Z)
 				continue
 			}
 			w.landOnNPCLocked(cs, caster, casterSess, npc, now)

@@ -1,6 +1,9 @@
 package entity
 
-import "testing"
+import (
+	"slices"
+	"testing"
+)
 
 // The Freeport <-> guk route is not written down anywhere as a route: it is
 // DERIVED from which warp NPCs exist, the same way coach routes are. That makes
@@ -464,5 +467,45 @@ func TestTravelOffersOnlyLoadableWorlds(t *testing.T) {
 		if d.Name == "Guk" || d.Name == "Odus (control)" {
 			t.Errorf("a stale label is still offered: %q (world %d)", d.Name, d.World)
 		}
+	}
+}
+
+// Gerntar Mines' gatekeeper is a pair with Kuggin, no part of the network: Kuggin
+// offers him by his town's name, no one else does, and a GM's own list has him.
+func TestAPairedGatekeeperIsOfferedByItsPartnerAlone(t *testing.T) {
+	w := NewWorld()
+	w.NPCs[1] = &NPC{ServerID: 1, Name: "Harbormaster Thand", World: 0, SpawnX: 25377.7, SpawnZ: 15741.5}
+	w.NPCs[2] = &NPC{ServerID: 2, Name: "Gatekeeper Kuggin", World: 1, SpawnX: 9617.25, SpawnZ: 5705.45}
+	w.NPCs[3] = &NPC{ServerID: 3, Name: "Gatekeeper Wavar", World: 1, SpawnX: 9733.84, SpawnZ: 9754.24}
+	w.NPCs[4] = &NPC{ServerID: 4, Name: "Gatekeeper Furyfoot", World: 0, SpawnX: 13041.5, SpawnZ: 27506}
+	has := func(asking string) bool {
+		for _, d := range w.GetWarpDestinations(asking, nil) {
+			if d.Name == "Gerntar Mines" {
+				return true
+			}
+		}
+		return false
+	}
+	if !has("Gatekeeper Kuggin") {
+		t.Error("Kuggin does not offer Gerntar Mines")
+	}
+	if has("Harbormaster Thand") || has("Gatekeeper Wavar") {
+		t.Error("another warp NPC offers Gerntar Mines")
+	}
+	if !has("") {
+		t.Error("a GM's own list lacks Gerntar Mines")
+	}
+	w.NPCs[5] = &NPC{ServerID: 5, Name: "Gatekeeper Threm", World: 0, SpawnX: 12565.1, SpawnZ: 29562.8}
+	names := func(asking string) (out []string) {
+		for _, d := range w.GetWarpDestinations(asking, nil) {
+			out = append(out, d.Name)
+		}
+		return out
+	}
+	if n := names("Gatekeeper Wavar"); !slices.Contains(n, "Oggok Gate") || slices.Contains(n, "Gerntar Mines") {
+		t.Errorf("Wavar offers %q", n)
+	}
+	if n := names("Gatekeeper Kuggin"); slices.Contains(n, "Oggok Gate") || !slices.Contains(n, "Gerntar Mines") {
+		t.Errorf("Kuggin offers %q", n)
 	}
 }

@@ -812,7 +812,7 @@ func (q *QuestEngine) mayTakeAtLocked(look *factionLook, p *entity.Player, c *qu
 		return fmt.Sprintf("it ends at level %d", qu.MaxLevel)
 	case len(qu.Classes) > 0 && !containsInt(qu.Classes, p.Class):
 		return "not for that class"
-	case len(qu.Races) > 0 && !containsInt(qu.Races, p.Race):
+	case len(qu.Races) > 0 && !containsInt(qu.Races, entity.WireRace(p.Race)):
 		return "not for that race"
 	}
 	if g, unmet := database.UnmetRequire(qu.Required(), c.hasFinished); unmet {

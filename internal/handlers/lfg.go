@@ -180,7 +180,7 @@ func lfgResultsPayload(rows []entity.LFGRow) []byte {
 			writeString8(w, row.Name, 24)
 			w.WriteByte(byte(min(max(row.Level, 0), 255)))
 			w.Write7BitEncodedInt64(int64(row.Class))
-			w.Write7BitEncodedInt64(int64(row.Race))
+			w.Write7BitEncodedInt64(int64(entity.WireRace(row.Race)))
 			w.WriteFloat32(row.X)
 			w.WriteFloat32(row.Y)
 			w.WriteFloat32(row.Z)

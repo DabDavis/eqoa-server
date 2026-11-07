@@ -154,7 +154,7 @@ func (h *EquipHandler) scribe(sess *session.Session, player *entity.Player, idx 
 	case p.ClassUse&(1<<uint(player.Class)) == 0:
 		refuse(scribeWrongClass)
 		return
-	case raceUseForWire(p.RaceUse)&(1<<uint(player.Race)) == 0:
+	case raceUseForWire(p.RaceUse)&(1<<uint(entity.WireRace(player.Race))) == 0:
 		refuse(scribeWrongRace)
 		return
 	case player.Level < p.LevelReq:

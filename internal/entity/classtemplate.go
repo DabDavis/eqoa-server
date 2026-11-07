@@ -102,6 +102,11 @@ var templateIntn = rand.Intn
 type ClassTemplate struct {
 	database.ClassTemplate
 	abilities []templateAbility
+	// healBelow is its heal shield's share of hit points (0 none), kindTaken
+	// the share of a player's melee of a kind of weapon that lands (100 when
+	// not named): AbilityHealShield, AbilityMeleeKind
+	healBelow int
+	kindTaken map[Stat]int
 	// problems is what of it the world cannot use, for the log and the panel
 	problems []string
 }
@@ -201,10 +206,36 @@ func (n *NPC) meleeOut(hit int) int {
 // meleeTaken is a player's or a pet's melee hit on the NPC as its template
 // takes it (taken_pct), at least 1.
 func (n *NPC) meleeTaken(hit int) int {
-	if n.tmpl == nil || n.tmpl.TakenPct == 100 {
+	if n.tmpl == nil {
+		return hit
+	}
+	if n.healShieldUp() {
+		n.HP = min(n.MaxHP, n.HP+hit) // and 1 lands, as every hit does
+		return 1
+	}
+	if n.tmpl.TakenPct == 100 {
 		return hit
 	}
 	return max(1, int(math.Round(float64(hit)*float64(n.tmpl.TakenPct)/100)))
+}
+
+// healShieldUp is whether a melee hit on it heals it now: its template's heal
+// shield, below its share of hit points.
+func (n *NPC) healShieldUp() bool {
+	return n.tmpl != nil && n.tmpl.healBelow > 0 && !n.Dead && n.HP*100 < n.MaxHP*n.tmpl.healBelow
+}
+
+// kindTakenOf is a player's melee hit of a kind of weapon as its template takes it
+// (AbilityMeleeKind), at least 1.
+func (n *NPC) kindTakenOf(kind Stat, hit int) int {
+	if n.tmpl == nil || n.tmpl.kindTaken == nil {
+		return hit
+	}
+	pct, ok := n.tmpl.kindTaken[kind]
+	if !ok {
+		return hit
+	}
+	return max(1, hit*pct/100)
 }
 
 // classTemplates is the world's templates by name (database.TemplateKey) and
@@ -431,6 +462,17 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 			from := classes
 			if ra.SpellsOf != nil {
 				from = []int{*ra.SpellsOf} // a pet's from another class's lines (pettemplate.go)
+			}
+			switch ra.Kind {
+			case database.AbilityHealShield:
+				t.healBelow = ra.Below
+				continue
+			case database.AbilityMeleeKind:
+				if t.kindTaken == nil {
+					t.kindTaken = map[Stat]int{}
+				}
+				t.kindTaken[map[string]Stat{"slash": StatSlash, "pierce": StatPierce, "blunt": StatBlunt}[ra.MeleeKind]] = ra.TakenPct
+				continue
 			}
 			if ra.Spell == "" && ra.SpellID == 0 && (ra.Kind == database.AbilityTaunt || ra.Kind == database.AbilityHeal && ra.HealPct > 0) {
 				t.abilities = append(t.abilities, a) // a taunt and a heal of its share cast no spell

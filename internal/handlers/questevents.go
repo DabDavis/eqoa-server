@@ -52,6 +52,11 @@ import (
 //     entity/vampire.go): the vampire quest's bats, whose blood changes
 //     whoever kills enough of them. Nothing is said: the guide's player
 //     learns of it from the sun, or from Grindal.
+//   - trigger: a GM trigger (gmtriggers.go, by its name) fired with the player as
+//     its firer: the guides' raid encounters. A step that fires one of a lock
+//     already held is not done, nothing handed in (triggerBusyLocked).
+//   - dostep: the step just started tried at once: a repeatable hand-in at its
+//     giver is done on the answer that takes it, with no second talk.
 //
 // A loot step (kind loot) is a kill step whose kills drop its item: each kill
 // of its creature credited to a player on the step, while the player has
@@ -124,10 +129,32 @@ func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c
 			q.teleportLocked(sess, p, qu, e)
 		case database.EventVampire:
 			q.vampireLocked(p, qu)
+		case database.EventTrigger:
+			if _, err := Triggers().FireNamed(e.Trigger, TriggerFirer{Name: p.Name, Sess: sess, Player: p, Quiet: true}); err != nil {
+				log.Printf("Quests: %q step %d fires %q: %v", qu.Name, step, e.Trigger, err)
+			}
+		case database.EventDoStep:
+			if cq := c.quests[qu.ID]; cq != nil && cq.Active() {
+				if st := qu.Step(cq.Step); st != nil && database.AtNPC(st.Kind) {
+					q.atNPCLocked(sess, p, c, qu, cq, st, false, -1)
+				}
+			}
 		default:
 			log.Printf("Quests: %q step %d: no event %q", qu.Name, step, e.Do)
 		}
 	}
+}
+
+// triggerBusyLocked is what is said when a step's doing would fire a trigger whose
+// lock is held (its event's text), "" when it may be done: nothing is handed in for
+// a firing that would not happen.
+func (q *QuestEngine) triggerBusyLocked(st *database.QuestStep) string {
+	for _, e := range database.EventsOn(st.Events, database.EventDone) {
+		if e.Do == database.EventTrigger && Triggers().BusyNamed(e.Trigger) {
+			return orText(e.Text, "Others are there already. Come back when they are done.")
+		}
+	}
+	return ""
 }
 
 // vampireLocked is a vampire event: the player's character made a vampire,

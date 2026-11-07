@@ -79,11 +79,25 @@ const (
 	TriggerDespawn   = "despawn"   // this run's spawns taken away (of one NPC's name)
 	TriggerStop      = "stop"      // another trigger's runs ended (slot 0: every other)
 	TriggerWait      = "wait"      // the rest put off
+	// A run that is a place's whole event (the guides' raid encounters, fired by a
+	// quest's event or a creature's death: npcdeath): what its players and creatures
+	// must do before it goes on, and how long they have.
+	TriggerLock      = "lock"      // while this run lives no trigger of the same lock fires
+	TriggerPlace     = "place"     // the run's place moved: world/x/y/z, or dead: where its last spawn died; radius its reach
+	TriggerClock     = "clock"     // the time the run has (seconds): at its end it goes on from its end step
+	TriggerEnd       = "end"       // where a clock's end goes on from
+	TriggerAwaitTalk = "awaittalk" // the rest waits for a player to talk to npc
+	TriggerAwaitDead = "awaitdead" // the rest waits for the run's spawns (of npc; none: all) to be dead, or any: for one to die
+	TriggerWalk      = "walk"      // the NPCs named npc near the place walk (run) to x/y/z
+	TriggerHome      = "home"      // and walk back to their spawns
+	TriggerHide      = "hide"      // the NPCs named npc near the place out of every view for minutes (0: back)
+	TriggerRouse     = "rouse"     // the run's spawns named npc attack on sight from now on
 )
 
 // TriggerActions is every action, in the order the panel offers them.
 var TriggerActions = []string{TriggerBroadcast, TriggerPopup, TriggerSay, TriggerGive, TriggerVisual,
-	TriggerTeleport, TriggerSpawn, TriggerDespawn, TriggerStop, TriggerWait}
+	TriggerTeleport, TriggerSpawn, TriggerDespawn, TriggerStop, TriggerWait,
+	TriggerLock, TriggerPlace, TriggerClock, TriggerEnd, TriggerAwaitTalk, TriggerAwaitDead, TriggerWalk, TriggerHome, TriggerHide, TriggerRouse}
 
 // TriggerStep is one step of a trigger, kept in the steps column's array.
 type TriggerStep struct {
@@ -102,7 +116,18 @@ type TriggerStep struct {
 	X       float32 `json:"x,omitempty"`
 	Y       float32 `json:"y,omitempty"`
 	Z       float32 `json:"z,omitempty"`
-	Slot    int     `json:"slot,omitempty"` // stop: the trigger whose runs end (0: every other)
+	Slot    int     `json:"slot,omitempty"`    // stop: the trigger whose runs end (0: every other)
+	Lock    string  `json:"lock,omitempty"`    // lock: its name
+	Radius  float32 `json:"radius,omitempty"`  // place: the run's reach from now on; walk, home, hide: how far from the place (0: its reach)
+	Dead    bool    `json:"dead,omitempty"`    // place: where the run's last spawn died (where it fell back on world/x/y/z)
+	Max     int     `json:"max,omitempty"`     // teleport: how many it takes at most, the nearest first, a pet counting as one (0: all)
+	Any     bool    `json:"any,omitempty"`     // awaitdead: the first death, not the last
+	Classes []int   `json:"classes,omitempty"` // awaittalk: the classes (WAR=0..ALC=14) it answers (none: any)
+	Refuse  string  `json:"refuse,omitempty"`  // awaittalk: said to another class; teleport: said to those it cannot take
+	// Attackable (spawn): it may be attacked, and does not attack on sight (until a rouse)
+	Attackable bool `json:"attackable,omitempty"`
+	// Empty (clock): its seconds with no player within the run's reach end the clock at once
+	Empty float64 `json:"empty,omitempty"`
 }
 
 // GMTrigger is one row of gmtriggers.
@@ -155,6 +180,9 @@ func (t GMTrigger) MenuName() string {
 func (db *SQLiteDB) ensureGMTriggers() error {
 	if _, err := db.Exec(gmTriggersSchema); err != nil {
 		return fmt.Errorf("gmtriggers: %w", err)
+	}
+	if _, err := db.Exec(npcDeathSchema); err != nil {
+		return fmt.Errorf("npcdeath: %w", err)
 	}
 	return nil
 }
@@ -323,9 +351,93 @@ func StepProblems(steps []TriggerStep) []string {
 			if s.Seconds <= 0 || s.Seconds > TriggerMaxWait {
 				add(i, "wait %.1f s: more than 0, at most %d", s.Seconds, TriggerMaxWait)
 			}
+		case TriggerLock:
+			if strings.TrimSpace(s.Lock) == "" {
+				add(i, "lock names no lock")
+			}
+		case TriggerPlace:
+			if s.World == nil && !s.Dead && s.Radius <= 0 {
+				add(i, "place names no place (world, x, y, z; dead; radius)")
+			}
+			if s.World != nil && (*s.World < 0 || *s.World > 29) {
+				add(i, "place's world %d: 0 to 29", *s.World)
+			}
+		case TriggerClock:
+			if s.Seconds <= 0 || s.Seconds > TriggerMaxMinutes*60 {
+				add(i, "clock %.1f s: more than 0, at most %d", s.Seconds, TriggerMaxMinutes*60)
+			}
+		case TriggerEnd:
+		case TriggerAwaitTalk, TriggerWalk, TriggerHome, TriggerHide, TriggerRouse:
+			if strings.TrimSpace(s.NPC) == "" {
+				add(i, "%s names no NPC", s.Do)
+			}
+			if s.Do == TriggerWalk && s.X == 0 && s.Z == 0 {
+				add(i, "walk's place is 0, 0")
+			}
+		case TriggerAwaitDead:
+		}
+		switch s.Do {
+		case TriggerAwaitTalk, TriggerAwaitDead:
+			if s.Seconds < 0 || s.Seconds > TriggerMaxMinutes*60 {
+				add(i, "%s's %.1f s: 0 (for good, or the clock's) to %d", s.Do, s.Seconds, TriggerMaxMinutes*60)
+			}
+		case TriggerBroadcast, TriggerPopup, TriggerSay, TriggerGive, TriggerVisual, TriggerTeleport, TriggerSpawn,
+			TriggerDespawn, TriggerStop, TriggerWait, TriggerLock, TriggerPlace, TriggerClock, TriggerEnd,
+			TriggerWalk, TriggerHome, TriggerHide, TriggerRouse:
 		default:
 			add(i, "do %q is not one of %s", s.Do, strings.Join(TriggerActions, ", "))
 		}
 	}
 	return out
+}
+
+// npcdeath: a creature's death fires a trigger where it fell (handlers/gmtriggers.go),
+// as the guides' spawn cycles have it ("Kill the Captain and a Commander will spawn"):
+// a row a name (as npcclass keys one) and a trigger, by the trigger's name, chance a kill
+// in percent. Only a kill a player is credited with counts, and a trigger of a lock
+// already running does not fire again.
+const npcDeathSchema = `
+	CREATE TABLE IF NOT EXISTS npcdeath (
+		name    TEXT NOT NULL,
+		trigger TEXT NOT NULL,
+		chance  REAL NOT NULL DEFAULT 100,
+		note    TEXT NOT NULL DEFAULT '',
+		source  TEXT NOT NULL DEFAULT 'gm',
+		PRIMARY KEY (name, trigger)
+	);`
+
+// NPCDeathTrigger is one row of npcdeath.
+type NPCDeathTrigger struct {
+	Trigger string
+	Chance  float64
+}
+
+// NPCDeathTriggers is table npcdeath by name (NPCClassKey).
+func (db *SQLiteDB) NPCDeathTriggers() (map[string][]NPCDeathTrigger, error) {
+	rows, err := db.Query(`SELECT name, trigger, chance FROM npcdeath ORDER BY name, trigger`)
+	if err != nil {
+		return nil, fmt.Errorf("npcdeath: %w", err)
+	}
+	defer rows.Close()
+	out := map[string][]NPCDeathTrigger{}
+	for rows.Next() {
+		var name string
+		var t NPCDeathTrigger
+		if err := rows.Scan(&name, &t.Trigger, &t.Chance); err != nil {
+			return nil, fmt.Errorf("npcdeath: %w", err)
+		}
+		k := NPCClassKey(name)
+		out[k] = append(out[k], t)
+	}
+	return out, rows.Err()
+}
+
+// TriggerLockName is the lock of a trigger's steps, its first lock step's, or "".
+func TriggerLockName(steps []TriggerStep) string {
+	for _, s := range steps {
+		if s.Do == TriggerLock {
+			return strings.ToLower(strings.TrimSpace(s.Lock))
+		}
+	}
+	return ""
 }

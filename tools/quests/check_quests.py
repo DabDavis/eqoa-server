@@ -39,7 +39,7 @@ import routes as travel  # noqa: E402
 KINDS = {'talk', 'show', 'give', 'kill', 'loot', 'reach'}
 EVENT_ON = {'accept', 'finish', 'start', 'done'}
 # database.QuestEventActions; 'attack' (an NPC near the player turns on it: the step's target unless named) since 2026-11-01
-EVENT_DO = {'popup', 'say', 'give', 'spawn', 'attack', 'visual', 'teleport', 'vampire'}
+EVENT_DO = {'popup', 'say', 'give', 'spawn', 'attack', 'visual', 'teleport', 'vampire', 'trigger', 'dostep'}
 BOX, ANSWER, LINE = 218, 63, 127
 TEXT = ('offer', 'accept', 'decline', 'declined', 'started')
 FACTION_MIN, FACTION_MAX = -2000, 2000   # entity/faction.go
@@ -121,6 +121,8 @@ class Check:
             items += self.items_of(where, ev.get('items', []))
         if do == 'popup':
             self.paragraphs(where, 'popup', ev.get('text'), BOX)
+        if do == 'trigger' and not (ev.get('trigger') or '').strip():
+            self.err(where, 'trigger event without trigger')
 
     def quest(self, fname, q, file_items):
         key = q.get('key', '?')

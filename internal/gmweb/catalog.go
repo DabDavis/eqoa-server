@@ -762,6 +762,21 @@ var catalog = map[string]tableNote{
 			"source":     {Label: "Source", Help: "gm, or seed for tools/seed_npc_charm.py's rows (its --undo deletes those)"},
 		},
 	},
+	"npcdeath": {
+		Label: "NPC deaths fire triggers", Group: "World", Title: "name", Sort: "name",
+		Help: "A creature's death fires a GM trigger where it fell (handlers/gmtriggers.go), by the creature's NAME (any case) and the " +
+			"trigger's name: a guide's spawn cycle, \"Kill the Captain and a Commander will spawn\". chance is percent a kill. Only a kill a " +
+			"player is credited with counts, and a trigger whose lock a run holds does not fire again.",
+		Live:   "At once.",
+		Search: []string{"name", "trigger", "note", "source"},
+		Cols: map[string]colNote{
+			"name":    {Label: "NPC name", Help: "any case"},
+			"trigger": {Label: "Trigger", Help: "the name of a row of gmtriggers"},
+			"chance":  {Label: "Chance", Help: "percent a kill"},
+			"note":    {Label: "Note"},
+			"source":  {Label: "Source", ReadOnly: true},
+		},
+	},
 	"npcspawnonly": {
 		Label: "NPC spawn only", Group: "World", Title: "name", Sort: "name",
 		Help: "NPCs that stand in no one's world, by NPC NAME (any case; entity/spawnonly.go): every NPC of the name is " +

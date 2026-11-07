@@ -102,10 +102,20 @@ const (
 	// AbilityDebuff is an NPC's lasting harm on the player it fights: the stats
 	// its named spell takes, for the spell's time (entity/classtemplate.go).
 	AbilityDebuff = "debuff"
+	// AbilityHealShield casts nothing: while its hit points are below its share
+	// (Below; 100 always), a melee hit on it heals it and 1 lands, a player's or a
+	// pet's alike; an art is a spell and lands as ever (the guide's Rallos Zek: "heal
+	// shield", rogues' arts still "doing significant damage")
+	AbilityHealShield = "healshield"
+	// AbilityMeleeKind casts nothing: the share (TakenPct) of a player's melee of a
+	// kind of weapon (MeleeKind: slash, pierce, blunt) that lands (the same: "he
+	// resists slash pretty good by over 50%")
+	AbilityMeleeKind = "meleekind"
 )
 
 // AbilityKinds are the kinds, in the order the help lists them.
-var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot, AbilityDebuff}
+var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot, AbilityDebuff,
+	AbilityHealShield, AbilityMeleeKind}
 
 // Who a pet's heal or buff lands on (TemplateAbility.Target); either is a
 // heal's alone: its owner or itself, whichever is the lower share of its hit
@@ -202,6 +212,9 @@ type TemplateAbility struct {
 	// NoCure is a debuff no cure takes off, a spell's or a potion's: it ends
 	// with its time or its bearer's death.
 	NoCure bool `json:"no_cure,omitempty"`
+	// MeleeKind and TakenPct: AbilityMeleeKind's.
+	MeleeKind string `json:"melee_kind,omitempty"`
+	TakenPct  int    `json:"taken_pct,omitempty"`
 }
 
 // TargetOr is who a pet's heal or buff lands on: its own, else the pet
@@ -343,6 +356,21 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 	finite := func(v float64) bool { return !math.IsNaN(v) && !math.IsInf(v, 0) }
 	for i, a := range list {
 		n := i + 1
+		if a.Kind == AbilityHealShield {
+			if a.Below < 1 || a.Below > 100 {
+				return fmt.Errorf("ability %d: a heal shield's below %d: 1 to 100 percent of its hit points", n, a.Below)
+			}
+			continue
+		}
+		if a.Kind == AbilityMeleeKind {
+			switch {
+			case a.MeleeKind != "slash" && a.MeleeKind != "pierce" && a.MeleeKind != "blunt":
+				return fmt.Errorf("ability %d: melee_kind %q: slash, pierce or blunt", n, a.MeleeKind)
+			case a.TakenPct < 1 || a.TakenPct > 1000:
+				return fmt.Errorf("ability %d: taken_pct %d: 1 to 1000 percent", n, a.TakenPct)
+			}
+			continue
+		}
 		switch {
 		case !knownKind(a.Kind):
 			return fmt.Errorf("ability %d: kind %q: one of %s", n, a.Kind, strings.Join(AbilityKinds, ", "))
@@ -452,8 +480,11 @@ func knownKind(k string) bool {
 // raid boss's million (petitions 1144, 1153: 6,615% at level 63) with room over.
 // MaxTemplateShield is the most its damage shield answers a melee hit with.
 const (
-	MaxTemplateHPPct  = 100000
-	MaxTemplateShield = 100000
+	MaxTemplateHPPct = 100000
+	// MaxTemplateMeleePct is the most of its roll a template's melee hits are: a
+	// raid boss's 2,500 on a tank of 6,850 AC is 18 times a level 70's floor
+	MaxTemplateMeleePct = 5000
+	MaxTemplateShield   = 100000
 	// MaxTemplateResistFail is the most of a template's resist_fail: three times it stays under all of them
 	MaxTemplateResistFail = 30
 )
@@ -467,9 +498,19 @@ func shieldResistKnown(s string) bool {
 	return false
 }
 
+// resistKindsKnown is whether a resist_kind is known: one, or several with commas.
+func resistKindsKnown(s string) bool {
+	for _, k := range strings.Split(s, ",") {
+		if !shieldResistKnown(k) {
+			return false
+		}
+	}
+	return true
+}
+
 // CheckClassTemplate is what a template must be for an NPC to fight by it: a
 // name, a class of the fifteen (or -1), its hit points within a tenth to
-// MaxTemplateHPPct, its melee percents within a tenth to ten times (a melee
+// MaxTemplateHPPct, its melee percents within a tenth to MaxTemplateMeleePct (a melee
 // taken from 1%), a damage shield within bounds and a resist it knows, a
 // special's chance 0-100 and, when it comes
 // at all, a damage above 0 a level and at most 200, and abilities
@@ -496,16 +537,16 @@ func CheckClassTemplate(t ClassTemplate) error {
 		return fmt.Errorf("proc_resist %q: FR, CR, LR, AR, PR, DR or none", t.ProcResist)
 	case math.IsNaN(t.ResistFail) || t.ResistFail < 0 || t.ResistFail > MaxTemplateResistFail:
 		return fmt.Errorf("resist_fail %v: 0 to %d percent", t.ResistFail, MaxTemplateResistFail)
-	case !shieldResistKnown(t.ResistKind):
-		return fmt.Errorf("resist_kind %q: FR, CR, LR, AR, PR, DR or none", t.ResistKind)
+	case !resistKindsKnown(t.ResistKind):
+		return fmt.Errorf("resist_kind %q: FR, CR, LR, AR, PR, DR, several with commas, or none", t.ResistKind)
 	case t.ResistPct < 0 || t.ResistPct > 100:
 		return fmt.Errorf("resist_pct %d: 0 to 100 percent of spell damage of its kind", t.ResistPct)
 	case t.ResistPct > 0 && strings.TrimSpace(t.ResistKind) == "":
 		return fmt.Errorf("a resist_pct of %d needs a resist_kind", t.ResistPct)
 	case t.TakenPct < 1 || t.TakenPct > 1000:
 		return fmt.Errorf("taken_pct %d: 1 to 1000 percent of a melee hit on it", t.TakenPct)
-	case t.MeleePct < 10 || t.MeleePct > 1000:
-		return fmt.Errorf("melee_pct %d: 10 to 1000 percent of its melee hits", t.MeleePct)
+	case t.MeleePct < 10 || t.MeleePct > MaxTemplateMeleePct:
+		return fmt.Errorf("melee_pct %d: 10 to %d percent of its roll", t.MeleePct, MaxTemplateMeleePct)
 	case t.SpecialChance < 0 || t.SpecialChance > 100:
 		return fmt.Errorf("special_chance %d: 0 to 100 percent of its rounds", t.SpecialChance)
 	case math.IsNaN(t.SpecialDamage) || t.SpecialDamage < 0 || t.SpecialDamage > 200:

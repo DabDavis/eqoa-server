@@ -189,6 +189,10 @@ type questChar struct {
 	// windowNotYet is the quests a shop NPC's window has said "not yet" for
 	// this session (quests_notyet.go), as windowOffered
 	windowNotYet map[int]bool
+	// declined is when it last refused each quest: a giver with another to offer
+	// offers that one next (Talk), so five shards' worth of repeatable quests at
+	// one light can each be reached
+	declined map[int]time.Time
 	// notYetLast is the questnotyet line said to it last (its id), not said
 	// twice running when its city has another
 	notYetLast int
@@ -625,11 +629,33 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 	if q.stepAtLocked(sess, p, c, look, npc.Name, npc.ServerID) {
 		return true
 	}
-	if qu := q.nextOfferLocked(look, p, c, npc.Name, nil); qu != nil {
+	qu := q.nextOfferLocked(look, p, c, npc.Name, c.justDeclined())
+	if qu == nil {
+		qu = q.nextOfferLocked(look, p, c, npc.Name, nil)
+		c.declined = nil
+	}
+	if qu != nil {
 		q.offerLocked(sess, p, c, qu)
 		return true
 	}
 	return false
+}
+
+// offerRotates is how long a refused quest stands aside for a giver's next.
+const offerRotates = 2 * time.Minute
+
+// justDeclined is the quests refused within offerRotates.
+func (c *questChar) justDeclined() map[int]bool {
+	var out map[int]bool
+	for id, at := range c.declined {
+		if time.Since(at) < offerRotates {
+			if out == nil {
+				out = map[int]bool{}
+			}
+			out[id] = true
+		}
+	}
+	return out
 }
 
 // TalkStep is Talk without the offers: a quest step done at the NPC called
@@ -829,6 +855,13 @@ func (q *QuestEngine) mayTakeAtLocked(look *factionLook, p *entity.Player, c *qu
 			return "finished"
 		}
 	}
+	// a hand-in done on the answer (a dostep on its first step) is offered only to
+	// one who holds it: else the answer would leave the player a quest it cannot do
+	if st := qu.First(); (st.Kind == database.StepGive || st.Kind == database.StepShow) && database.DoesStep(st) {
+		if lack := q.lackingLocked(p, st); lack != "" {
+			return "it lacks " + lack
+		}
+	}
 	// last: the only test that asks the World
 	if r, v, unmet := unmetFaction(look, qu); unmet {
 		return fmt.Sprintf("its standing with %s is %d, not %s", r.Faction, v, database.FormatFactionReqs([]database.FactionReq{r}))
@@ -987,6 +1020,10 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 		q.tellLocked(c, sess, "", line)
 		return
 	}
+	if line := q.triggerBusyLocked(st); line != "" {
+		q.tellLocked(c, sess, st.Target, line)
+		return
+	}
 	if st.Kind == database.StepGive || st.Kind == database.StepShow {
 		if lack := q.lackingLocked(p, st); lack != "" {
 			log.Printf("Quests: %s at %q step %d still lacks %s", p.Name, qu.Name, st.Step, lack)
@@ -1109,11 +1146,16 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 			q.askStageLocked(sess, c, qu, ch.step+1)
 			return true
 		}
+		c.declined = nil
 		q.startLocked(sess, p, c, qu, 0, false)
 	case choiceDecline:
 		// the giver's reply, said as written (Sandstorm's Norgam's has no
 		// name before it)
 		q.tellLocked(c, sess, "", sayLines(qu.Declined)...)
+		if c.declined == nil {
+			c.declined = map[int]time.Time{}
+		}
+		c.declined[qu.ID] = time.Now()
 		q.antidoteLocked(c, qu) // a were line's third quest: its antidote (wereinfect.go)
 		log.Printf("Quests: %s refused %q", p.Name, qu.Name)
 	case choiceNotYet:
@@ -1288,6 +1330,9 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 	if next == nil {
 		cq.Step, cq.Count = 0, 0
 		cq.Done++
+		if qu.Repeatable {
+			c.forgetOffer(qu.ID) // a shop's window offers it again
+		}
 		q.dropLineLocked(sess, c, idx)
 		lines = append(lines, questFinished)
 		log.Printf("Quests: %s finished %q", who, qu.Name)

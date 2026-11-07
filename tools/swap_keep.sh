@@ -103,7 +103,10 @@ log "keep: the new binary is in place after $(awk -v a="$held" -v b="$(date +%s.
 # the new process says what it put back; a binary that never gets that far is rolled back as a cold swap is
 ok=no
 for _ in $(seq 1 120); do
-	if tail -n +"$from" "$GAME_LOG" | grep -q "Keep: .* sessions resumed\|Keep: no sessions resumed"; then
+	# not grep -q: it stops at the match, and under pipefail the tail it leaves with more than a pipe's
+	# worth of log to write dies of SIGPIPE, so the pipeline fails and a server that came up is rolled
+	# back (2026-11-07: 92 KB of dumps followed the line within the second; every player booted)
+	if tail -n +"$from" "$GAME_LOG" | grep -a "Keep: .* sessions resumed\|Keep: no sessions resumed" > /dev/null; then
 		ok=yes
 		break
 	fi

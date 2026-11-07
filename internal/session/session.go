@@ -80,6 +80,9 @@ type Session struct {
 	// bankList is the same for the client's bank list (VIBankControl+8),
 	// which keeps keys of its own.
 	bankList interface{}
+	// merchantWindow is the handlers package's note of the list it last sent
+	// the client as 0x00B7 (handlers/buyback.go).
+	merchantWindow interface{}
 
 	// Send callback - set by UDP listener
 	sendFunc func([]byte) error
@@ -715,6 +718,20 @@ func (s *Session) InventoryList() interface{} {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.inventoryList
+}
+
+// SetMerchantWindow stores the note of the merchant list last sent.
+func (s *Session) SetMerchantWindow(v interface{}) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.merchantWindow = v
+}
+
+// MerchantWindow returns the note of the merchant list last sent.
+func (s *Session) MerchantWindow() interface{} {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.merchantWindow
 }
 
 // SetBankList stores the copy of the client's bank list.

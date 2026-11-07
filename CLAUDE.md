@@ -492,6 +492,9 @@ so every channel byte and refusal is as it was.
   flagged duelist, and a death so ends the duel as a creature's would.
 - **A death** (`pvpDeathLocked`, the one place): the victim dies as of anything and returns to its bind after the usual 15 s, with no
   experience debt (`pvpDeathDebt`), nothing lost, no corpse (a player has none) and no experience for the killer; the flag stays on.
+  A flagged player falls where it dies for everyone (channel byte 58 is CLIENT's dying state while it lies dead; any other player's death
+  stands there until it goes home, as before: its own client lays down only its own body and a dead client reports nothing), and at its
+  return every client that has it on a slot makes it anew under a new id (`pvpRiseLocked`: CLIENT never stands a sprite it laid down).
 - **Area spells spare players** (`pvpAreaAtTarget` false): one aimed at a foe is refused in a line, and what lands on creatures never
   counts a player. Charms, undead-only and animal or summoned-only spells are refused at a foe too.
 - **A flagged owner's pet** goes for a foe when told (0x0041 8), an aggressive one for what its owner swings at or what struck it, a

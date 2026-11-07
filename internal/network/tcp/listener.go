@@ -736,11 +736,6 @@ func (s *AuthServer) CheckUDPPassword(username, password string, from *net.UDPAd
 	if s.store == nil {
 		return 0, "password"
 	}
-	if s.refreshAccount != nil {
-		if err := s.refreshAccount(username); err != nil {
-			log.Printf("Auth: UDP login for '%s': the shared account: %v (the copy here is used)", username, err)
-		}
-	}
 	var ip net.IP
 	if from != nil {
 		ip = from.IP
@@ -762,6 +757,7 @@ func (s *AuthServer) CheckUDPPassword(username, password string, from *net.UDPAd
 			log.Printf("Auth: UDP login for '%s' from %v refused: no free password check", username, ip)
 			return 0, "password"
 		}
+		s.accountUpToDate(username)
 		accountID, ok, _ := s.checkPassword(username, password, false)
 		release()
 		if !ok {
@@ -770,11 +766,23 @@ func (s *AuthServer) CheckUDPPassword(username, password string, from *net.UDPAd
 		s.limiter.Succeed(addr, username)
 		return s.udpLoginStands(username, accountID, ip)
 	}
+	s.accountUpToDate(username)
 	accountID, ok, _ := s.checkPassword(username, password, false)
 	if !ok {
 		return accountID, "password"
 	}
 	return s.udpLoginStands(username, accountID, ip)
+}
+
+// accountUpToDate is SetAccountRefresh's refresh, for a sign-in the guessing limit
+// has let through (a refused one reads no one's database).
+func (s *AuthServer) accountUpToDate(username string) {
+	if s.refreshAccount == nil {
+		return
+	}
+	if err := s.refreshAccount(username); err != nil {
+		log.Printf("Auth: UDP login for '%s': the shared account: %v (the copy here is used)", username, err)
+	}
 }
 
 // udpLoginStands is CheckUDPPassword after the password: the address rule,

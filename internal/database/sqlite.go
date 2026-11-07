@@ -693,6 +693,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCraft(); err != nil { // craft.go
 		return err
 	}
+	if err := db.ensureNoRentVanish(); err != nil { // norent.go
+		return err
+	}
 	if err := db.ensureClassTemplates(); err != nil { // classtemplates.go
 		return err
 	}

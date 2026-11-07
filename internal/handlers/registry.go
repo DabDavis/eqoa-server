@@ -43,6 +43,16 @@ func (r *Registry) SetLoginTickets(t *auth.TicketStore) {
 	}
 }
 
+// SetServers makes the server list clients are sent (ShardList). See
+// ServerHandler.SetServers.
+func (r *Registry) SetServers(servers []ServerInfo) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.authHandler != nil && r.authHandler.serverHandler != nil {
+		r.authHandler.serverHandler.SetServers(servers)
+	}
+}
+
 // NewRegistry creates a new handler registry.
 func NewRegistry() *Registry {
 	return &Registry{

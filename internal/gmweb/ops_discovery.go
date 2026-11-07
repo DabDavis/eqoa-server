@@ -151,6 +151,12 @@ func (s *Server) status(a *actor) map[string]any {
 		"counts":        counts,
 		"worlds":        enums()["world"][:8],
 	}
+	if name := s.shardName(); name != "" {
+		out["shard"] = name
+	}
+	if s.d.AccountsShared {
+		out["accounts"] = sharedAccountsWord
+	}
 	if s.d.World != nil {
 		out["playersOnline"] = s.d.World.PlayerCount()
 		out["npcsInWorld"] = s.d.World.NPCCount()

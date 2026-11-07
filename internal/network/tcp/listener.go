@@ -226,6 +226,19 @@ type AuthServer struct {
 	// limitExempt are the addresses it does not count by address.
 	limiter     *auth.Limiter
 	limitExempt []netip.Prefix
+
+	// refreshAccount, when set, brings a username's account up to date before
+	// a handshake's password is checked (SetAccountRefresh).
+	refreshAccount func(username string) error
+}
+
+// SetAccountRefresh has CheckUDPPassword bring the account up to date first
+// (database.AccountMirror's PullOne, on a shard whose accounts are another's):
+// one made, renamed, banned or given a new password since the copy here. An
+// error leaves the copy as it stands (logged): the other database may be
+// locked for a moment, and a player's sign-in does not wait on it.
+func (s *AuthServer) SetAccountRefresh(f func(username string) error) {
+	s.refreshAccount = f
 }
 
 // SetLimiter counts every login against l (the server's one limiter, which
@@ -722,6 +735,11 @@ const UDPRefusedAddress = "address"
 func (s *AuthServer) CheckUDPPassword(username, password string, from *net.UDPAddr) (int, string) {
 	if s.store == nil {
 		return 0, "password"
+	}
+	if s.refreshAccount != nil {
+		if err := s.refreshAccount(username); err != nil {
+			log.Printf("Auth: UDP login for '%s': the shared account: %v (the copy here is used)", username, err)
+		}
 	}
 	var ip net.IP
 	if from != nil {

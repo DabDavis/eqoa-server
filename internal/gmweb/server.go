@@ -77,6 +77,13 @@ type Deps struct {
 	// game's login and the account pages, so guesses spread over them all add
 	// up (nil: the panel keeps its own).
 	Limiter *auth.Limiter
+	// AccountsShared: this server's accounts are a copy of another shard's
+	// (auth.shared_db, database.AccountMirror), so nothing here changes one:
+	// what would is refused, saying where to go (shard.go).
+	AccountsShared bool
+	// NoTransfers: this server takes no character transfers (it has no account
+	// pages for the form): the panel neither offers nor lists them.
+	NoTransfers bool
 }
 
 // Server is the GM panel's HTTP server.
@@ -189,6 +196,7 @@ func New(d Deps) (*Server, error) {
 	s.snap = newSnapshotStore()
 	s.clearSnapshotDir() // a link dies with the server that made it: so does its file
 	s.registerOps()
+	s.holdSharedAccounts()
 	return s, nil
 }
 

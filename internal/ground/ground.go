@@ -35,6 +35,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"os"
 	"path/filepath"
@@ -218,6 +219,7 @@ type world struct {
 	entries []entry
 	loaded  map[int]*zoneGrid
 	index   *zoneIndex // its zones by place (zoneindex.go), made at its first query
+	m       *mapFile   // its map (mapfile.go), nil: its zones are decoded
 }
 
 // Ground is the worlds' ground, a file each, their zones loaded as asked;
@@ -259,6 +261,12 @@ func Open(dir string) (*Ground, error) {
 			g.Close()
 			return nil, fmt.Errorf("%d.ground: %w", n, err)
 		}
+		// a map that cannot be used is the decode as ever (mapfile.go)
+		path := filepath.Join(dir, fmt.Sprintf("%d.ground", n))
+		if w.m, err = openMap(path, f, mapKindZones, [2]uint32{uint32(len(w.entries)), 0}, len(w.entries)*mapZoneArrays); err != nil {
+			log.Printf("Ground: %v; its zones are decoded", err)
+			w.m = nil
+		}
 		g.worlds[uint8(n)] = w
 	}
 	if len(g.worlds) == 0 {
@@ -275,9 +283,35 @@ func Open(dir string) (*Ground, error) {
 			g.Close()
 			return nil, fmt.Errorf("%d.walls: %w", n, err)
 		}
+		path := filepath.Join(dir, fmt.Sprintf("%d.walls", n))
+		pairs := len(w.bufs)*mapBufArrays + len(w.zones)*mapWallArrays
+		if w.m, err = openMap(path, f, mapKindWalls, [2]uint32{uint32(len(w.bufs)), uint32(len(w.zones))}, pairs); err != nil {
+			log.Printf("Ground: %v; its zones are decoded", err)
+			w.m = nil
+		}
 		g.walls[uint8(n)] = w
 	}
 	return g, nil
+}
+
+// Mapped is how many of the ground and walls files are read through their maps
+// (mapfile.go), and how many there are.
+func (g *Ground) Mapped() (mapped, files int) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	for _, w := range g.worlds {
+		files++
+		if w.m != nil {
+			mapped++
+		}
+	}
+	for _, w := range g.walls {
+		files++
+		if w.m != nil {
+			mapped++
+		}
+	}
+	return
 }
 
 // Walls is how many worlds have a walls file, and the placements in them.
@@ -319,9 +353,11 @@ func (g *Ground) Close() {
 	defer g.mu.Unlock()
 	for _, w := range g.worlds {
 		w.f.Close()
+		w.m.close()
 	}
 	for _, w := range g.walls {
 		w.f.Close()
+		w.m.close()
 	}
 	g.worlds, g.walls = nil, nil
 }
@@ -361,14 +397,16 @@ func readTable(f *os.File) (*world, error) {
 // load reads zone i of w and grids its floors (a triangle that faces up
 // more than it faces sideways: a wall is no floor) and its walls.
 func (w *world) load(i int) (*zoneGrid, error) {
+	if w.m != nil {
+		return w.mappedZone(i), nil
+	}
 	e := w.entries[i]
 	buf := make([]byte, int(e.strips)*2+int(e.verts)*6)
 	if _, err := w.f.ReadAt(buf, e.offset); err != nil {
 		return nil, err
 	}
-	z := &zoneGrid{verts: make([]Vertex, 0, e.verts), minX: e.minX, minZ: e.minZ}
-	z.floors = triGrid{side: cell, nx: int32((e.maxX-e.minX)/cell) + 1, nz: int32((e.maxZ-e.minZ)/cell) + 1}
-	z.wallGrid = triGrid{side: wallCell, nx: int32((e.maxX-e.minX)/wallCell) + 1, nz: int32((e.maxZ-e.minZ)/wallCell) + 1}
+	z := w.emptyZone(e)
+	z.verts = make([]Vertex, 0, e.verts)
 	p := 0
 	for s := uint32(0); s < e.strips; s++ {
 		n := int(binary.LittleEndian.Uint16(buf[p:]))
@@ -399,6 +437,15 @@ func (w *world) load(i int) (*zoneGrid, error) {
 	z.fill(&z.floors, len(z.tris), z.tri)
 	z.fill(&z.wallGrid, len(z.walls), z.wall)
 	return z, nil
+}
+
+// emptyZone is a zone's grid with its sizes and none of its arrays.
+func (w *world) emptyZone(e entry) *zoneGrid {
+	return &zoneGrid{
+		minX: e.minX, minZ: e.minZ,
+		floors:   triGrid{side: cell, nx: int32((e.maxX-e.minX)/cell) + 1, nz: int32((e.maxZ-e.minZ)/cell) + 1},
+		wallGrid: triGrid{side: wallCell, nx: int32((e.maxX-e.minX)/wallCell) + 1, nz: int32((e.maxZ-e.minZ)/wallCell) + 1},
+	}
 }
 
 // fill grids n triangles of the zone (each counted in every cell its bounds

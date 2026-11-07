@@ -228,6 +228,10 @@ func (s *Server) sessionInfo(accountID int, sess *gmSession, admin bool) map[str
 			"build":   s.build,
 			"started": stamp(s.started),
 			"restart": s.d.Restart != nil && role != roleTester,
+			// which of several (shard.go): the page says it, and what it leaves out
+			"shard":          s.shardName(),
+			"accountsShared": s.d.AccountsShared,
+			"noTransfers":    s.d.NoTransfers,
 		},
 	}
 	if role == roleTester {

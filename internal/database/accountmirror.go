@@ -1,0 +1,365 @@
+package database
+
+import (
+	"database/sql"
+	"errors"
+	"fmt"
+	"log"
+	"net/url"
+	"os"
+	"strings"
+	"sync"
+	"time"
+)
+
+// AccountMirror keeps this database's accountinfo a copy of another shard's
+// (the user, 2026-11-07: "lets add another shard"; one login works on both).
+// One process owns the accounts, with the login port and the account pages; a
+// shard beside it has auth.shared_db naming that process's database, and
+// everything here goes on reading its own table as ever: a sign-in, a GM
+// command's level, the panel's joins, characters.accountid. Only a Pull writes
+// the copy, keyed by accountid, every column but lastlogin (each shard's own).
+//
+// Why a copy rather than that file at each read: the shard goes on working
+// with the other process down or its database locked, nothing on this side ever
+// holds a lock on it for longer than one SELECT, and no query had to learn about
+// two databases. Why not one store of accounts beside both: accountinfo is
+// joined and edited by the panel, audited and reverted, in one database.
+//
+// The other file is opened read-only and closed again at each Pull: no lock or
+// page of it is kept, and a file put back under its name (a swap's rollback, a
+// restored backup) is simply the file read next. The database keeps its
+// rollback journal, so a read waits out a commit (busy_timeout) and a commit
+// waits out a read; each read here is a whole-table SELECT of a small table. A
+// read that finds a hot journal (the owner died mid-commit) fails, and the copy
+// stands until the owner has started and put it right.
+type AccountMirror struct {
+	db   *SQLiteDB
+	path string
+
+	mu   sync.Mutex
+	held bool
+	// the file's size and time at the last Pull that read it whole, and when
+	// that was: a file that has not changed is not opened (mirrorMaxQuiet)
+	lastSize int64
+	lastTime time.Time
+	lastPull time.Time
+	now      func() time.Time
+}
+
+const (
+	// mirrorDefaultEvery is how often a Pull runs when auth.shared_refresh is unset.
+	mirrorDefaultEvery = 10 * time.Second
+	// mirrorMaxQuiet is the longest a Pull trusts an unchanged file's size and
+	// time, in case a change fell within the clock's step.
+	mirrorMaxQuiet = time.Minute
+	// mirrorMostGone is the most accounts one Pull may take away, as a tenth of
+	// the copy, but never fewer than this: a file put back by mistake, or a
+	// path naming another database, must not empty the accounts.
+	mirrorMostGone = 5
+)
+
+// mirrorSkip are the columns a Pull leaves alone: lastlogin is each shard's.
+var mirrorSkip = map[string]bool{"lastlogin": true}
+
+// NewAccountMirror mirrors the accounts of the database at path into db.
+func NewAccountMirror(db *SQLiteDB, path string) *AccountMirror {
+	return &AccountMirror{db: db, path: path, now: time.Now}
+}
+
+// Hold stops every Pull until Hold(false): nothing of this process writes the
+// database while a restart holds it (a swap may put the file back from a copy).
+// A nil mirror holds nothing.
+func (m *AccountMirror) Hold(on bool) {
+	if m == nil {
+		return
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.held = on
+	m.lastTime = time.Time{}
+}
+
+// Run pulls every so often until the returned function is called.
+func (m *AccountMirror) Run(every time.Duration) (stop func()) {
+	if every <= 0 {
+		every = mirrorDefaultEvery
+	}
+	done := make(chan struct{})
+	var once sync.Once
+	go func() {
+		t := time.NewTicker(every)
+		defer t.Stop()
+		failing := false
+		for {
+			select {
+			case <-done:
+				return
+			case <-t.C:
+			}
+			ch, gone, _, err := m.Pull()
+			switch {
+			case err != nil && !failing:
+				failing = true
+				log.Printf("Accounts: the shared accounts cannot be read (%v): the copy here stands", err)
+			case err == nil && failing:
+				failing = false
+				log.Printf("Accounts: the shared accounts can be read again")
+			}
+			if ch > 0 || gone > 0 {
+				log.Printf("Accounts: %d changed and %d gone in the shared accounts, copied", ch, gone)
+			}
+		}
+	}()
+	return func() { once.Do(func() { close(done) }) }
+}
+
+// open is the other database, read-only.
+func (m *AccountMirror) open() (*sql.DB, error) {
+	if _, err := os.Stat(m.path); err != nil {
+		return nil, err
+	}
+	u := url.URL{Scheme: "file", Opaque: (&url.URL{Path: m.path}).EscapedPath()}
+	dsn := u.String() + "?mode=ro&_pragma=busy_timeout(2000)&_pragma=query_only(1)"
+	src, err := sql.Open("sqlite", dsn)
+	if err != nil {
+		return nil, err
+	}
+	src.SetMaxOpenConns(1)
+	return src, nil
+}
+
+// columns is accountinfo's columns both databases have, the key first, those a
+// Pull leaves alone left out.
+func (m *AccountMirror) columns(src *sql.DB) ([]string, error) {
+	of := func(q interface {
+		Query(string, ...any) (*sql.Rows, error)
+	}) (map[string]bool, []string, error) {
+		rows, err := q.Query(`SELECT name FROM pragma_table_info('accountinfo')`)
+		if err != nil {
+			return nil, nil, err
+		}
+		defer rows.Close()
+		set, list := map[string]bool{}, []string(nil)
+		for rows.Next() {
+			var n string
+			if err := rows.Scan(&n); err != nil {
+				return nil, nil, err
+			}
+			set[n] = true
+			list = append(list, n)
+		}
+		return set, list, rows.Err()
+	}
+	there, _, err := of(src)
+	if err != nil {
+		return nil, err
+	}
+	if !there["accountid"] || !there["username"] {
+		return nil, errors.New("it has no accountinfo table")
+	}
+	_, here, err := of(m.db.DB)
+	if err != nil {
+		return nil, err
+	}
+	cols := []string{"accountid"}
+	for _, c := range here {
+		if c != "accountid" && there[c] && !mirrorSkip[c] {
+			cols = append(cols, c)
+		}
+	}
+	return cols, nil
+}
+
+// accountRow is a row's columns, and how it compares.
+type accountRow []any
+
+func (r accountRow) same(o accountRow) bool {
+	return fmt.Sprintf("%#v", []any(r)) == fmt.Sprintf("%#v", []any(o))
+}
+
+func (r accountRow) id() int64 {
+	id, _ := r[0].(int64)
+	return id
+}
+
+func readAccountRows(q interface {
+	Query(string, ...any) (*sql.Rows, error)
+}, cols []string, where string, args ...any) ([]accountRow, error) {
+	rows, err := q.Query(`SELECT `+strings.Join(cols, ", ")+` FROM accountinfo `+where, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []accountRow
+	for rows.Next() {
+		r := make(accountRow, len(cols))
+		ptr := make([]any, len(cols))
+		for i := range r {
+			ptr[i] = &r[i]
+		}
+		if err := rows.Scan(ptr...); err != nil {
+			return nil, err
+		}
+		for i, v := range r {
+			if b, ok := v.([]byte); ok { // the driver's buffer is its own until the next row
+				r[i] = append([]byte(nil), b...)
+			}
+		}
+		out = append(out, r)
+	}
+	return out, rows.Err()
+}
+
+// writeAccount puts a row in the copy: REPLACE for a new row, with lastlogin
+// kept for one already there (REPLACE would clear it).
+func writeAccount(tx *sql.Tx, cols []string, r accountRow) error {
+	var kept any
+	_ = tx.QueryRow(`SELECT lastlogin FROM accountinfo WHERE accountid = ?`, r.id()).Scan(&kept)
+	marks := strings.TrimSuffix(strings.Repeat("?, ", len(cols)), ", ")
+	if _, err := tx.Exec(`INSERT OR REPLACE INTO accountinfo (`+strings.Join(cols, ", ")+`) VALUES (`+marks+`)`, r...); err != nil {
+		return err
+	}
+	if kept != nil {
+		if _, err := tx.Exec(`UPDATE accountinfo SET lastlogin = ? WHERE accountid = ?`, kept, r.id()); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Pull brings the whole copy up to date: changed the rows written, gone those
+// taken away, total the accounts the other database holds. A file whose size
+// and time have not moved is not opened (for mirrorMaxQuiet), so two empty shards
+// do nothing here.
+func (m *AccountMirror) Pull() (changed, gone, total int, err error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.held {
+		return 0, 0, 0, nil
+	}
+	fi, err := os.Stat(m.path)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	now := m.now()
+	if fi.Size() == m.lastSize && fi.ModTime().Equal(m.lastTime) && now.Sub(m.lastPull) < mirrorMaxQuiet {
+		return 0, 0, 0, nil
+	}
+	src, err := m.open()
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	defer src.Close()
+	cols, err := m.columns(src)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	there, err := readAccountRows(src, cols, `ORDER BY accountid`)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	if len(there) == 0 {
+		return 0, 0, 0, errors.New("it holds no accounts")
+	}
+	here, err := readAccountRows(m.db.DB, cols, ``)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	byID := make(map[int64]accountRow, len(here))
+	for _, r := range here {
+		byID[r.id()] = r
+	}
+	tx, err := m.db.Begin()
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	defer tx.Rollback()
+	// those gone first: a name another account takes over must be free
+	seen := make(map[int64]bool, len(there))
+	for _, r := range there {
+		seen[r.id()] = true
+	}
+	var goneIDs []int64
+	for id := range byID {
+		if !seen[id] {
+			goneIDs = append(goneIDs, id)
+		}
+	}
+	if len(goneIDs) > max(mirrorMostGone, len(here)/10) {
+		log.Printf("Accounts: %d of %d accounts are not in %s: left as they are (a file put back? remove them by hand if not)", len(goneIDs), len(here), m.path)
+		goneIDs = nil
+	}
+	for _, id := range goneIDs {
+		if _, err := tx.Exec(`DELETE FROM accountinfo WHERE accountid = ?`, id); err != nil {
+			return 0, 0, 0, err
+		}
+		gone++
+	}
+	for _, r := range there {
+		if old, ok := byID[r.id()]; ok && r.same(old) {
+			continue
+		}
+		if err := writeAccount(tx, cols, r); err != nil {
+			return 0, 0, 0, err
+		}
+		changed++
+	}
+	if changed > 0 || gone > 0 {
+		if err := tx.Commit(); err != nil {
+			return 0, 0, 0, err
+		}
+	}
+	m.lastSize, m.lastTime, m.lastPull = fi.Size(), fi.ModTime(), now
+	return changed, gone, len(there), nil
+}
+
+// PullOne brings one username's account up to date, for a sign-in: one made
+// since the last Pull is here for it, one taken away is gone from here, and a
+// password or a ban is the one in force now.
+func (m *AccountMirror) PullOne(username string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.held {
+		return nil
+	}
+	src, err := m.open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+	cols, err := m.columns(src)
+	if err != nil {
+		return err
+	}
+	const byName = `WHERE LOWER(username) = LOWER(?)`
+	there, err := readAccountRows(src, cols, byName, username)
+	if err != nil {
+		return err
+	}
+	here, err := readAccountRows(m.db.DB, cols, byName, username)
+	if err != nil {
+		return err
+	}
+	if len(there) == 0 {
+		// no such account there. A whole table's absence is Pull's to judge;
+		// one name is not.
+		if len(here) == 0 {
+			return nil
+		}
+		_, err := m.db.Exec(`DELETE FROM accountinfo WHERE LOWER(username) = LOWER(?)`, username)
+		return err
+	}
+	if len(here) == 1 && there[0].same(here[0]) {
+		return nil
+	}
+	tx, err := m.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if err := writeAccount(tx, cols, there[0]); err != nil {
+		return err
+	}
+	return tx.Commit()
+}

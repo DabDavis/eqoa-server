@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/eqoa/server/internal/database"
@@ -328,6 +329,32 @@ func keptItemID(db *database.SQLiteDB, name, tag string) int {
 		log.Printf("%s: the record of %s: %v", tag, name, err)
 	}
 	return id
+}
+
+// heirloomsGiven is world.heirlooms: whether a login gives the kept items
+// (giveGenieLamp, giveWolfFang, giveSummoningPortal). On unless told, so a
+// server's characters keep what they were given.
+var heirloomsGiven = func() *atomic.Bool {
+	var b atomic.Bool
+	b.Store(true)
+	return &b
+}()
+
+// SetHeirloomsGiven turns the kept items' gift at a login on or off.
+func SetHeirloomsGiven(on bool) {
+	heirloomsGiven.Store(on)
+}
+
+// giveKeptItems is a login's gift, on a server that gives them: a character with
+// no Genie's Lamp gets one, one with no Heirloom Fang of the Wolf that
+// (wolffang.go), and one with no Summoning Portal that (summonportal.go).
+func (h *CharacterHandler) giveKeptItems(serverID uint32) {
+	if !heirloomsGiven.Load() {
+		return
+	}
+	h.giveGenieLamp(serverID)
+	h.giveWolfFang(serverID)
+	h.giveSummoningPortal(serverID)
 }
 
 // giveGenieLamp gives a character with no lamp one at its login, before its

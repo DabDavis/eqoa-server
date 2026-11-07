@@ -241,6 +241,7 @@ type wallWorld struct {
 	read   []*wallBuffer
 	loaded map[int]*wallZone
 	index  *zoneIndex // its zones by place (zoneindex.go), made at its first query
+	m      *mapFile   // its map (mapfile.go), nil: its zones and buffers are decoded
 }
 
 // wallBuffer is a buffer read: its vertices and its strips, each with its
@@ -328,6 +329,11 @@ func (w *wallWorld) buffer(i int32) (*wallBuffer, error) {
 	if b := w.read[i]; b != nil {
 		return b, nil
 	}
+	if w.m != nil {
+		b := w.mappedBuffer(i)
+		w.read[i] = b
+		return b, nil
+	}
 	e := w.bufs[i]
 	buf := make([]byte, int(e.strips)*2+int(e.verts)*12)
 	if _, err := w.f.ReadAt(buf, e.offset); err != nil {
@@ -359,14 +365,16 @@ func (w *wallWorld) buffer(i int32) (*wallBuffer, error) {
 
 // load reads zone i's placements of w and grids them.
 func (w *wallWorld) load(i int) (*wallZone, error) {
+	if w.m != nil {
+		return w.mappedZone(i), nil
+	}
 	e := w.zones[i]
 	buf := make([]byte, int(e.count)*placementSize)
 	if _, err := w.f.ReadAt(buf, e.offset); err != nil {
 		return nil, err
 	}
-	z := &wallZone{minX: e.lo.X, minZ: e.lo.Z, places: make([]placed, 0, e.count)}
-	z.nx = int32((e.hi.X-e.lo.X)/placeCell) + 1
-	z.nz = int32((e.hi.Z-e.lo.Z)/placeCell) + 1
+	z := wallZoneOf(e)
+	z.places = make([]placed, 0, e.count)
 	for k := 0; k < int(e.count); k++ {
 		q := buf[k*placementSize:]
 		bi := binary.LittleEndian.Uint32(q)
@@ -409,6 +417,15 @@ func (w *wallWorld) load(i int) (*wallZone, error) {
 		}
 	}
 	return z, nil
+}
+
+// wallZoneOf is a walls zone with its sizes and none of its arrays.
+func wallZoneOf(e wallEntry) *wallZone {
+	return &wallZone{
+		minX: e.lo.X, minZ: e.lo.Z,
+		nx: int32((e.hi.X-e.lo.X)/placeCell) + 1,
+		nz: int32((e.hi.Z-e.lo.Z)/placeCell) + 1,
+	}
 }
 
 // span is the cells a box meets, kept within the grid.

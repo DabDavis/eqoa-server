@@ -142,7 +142,8 @@ function start(session) {
   app.className = '';
   nav = h('nav', { class: 'nav', 'aria-label': 'Sections' });
   for (const [group, items] of NAV) {
-    const shown = items.filter(([id, , , need]) => (need !== 'admin' || session.user.admin) && (!isTester() || TESTER_PAGES.has(id)));
+    const shown = items.filter(([id, , , need]) => (need !== 'admin' || session.user.admin) && (!isTester() || TESTER_PAGES.has(id))
+      && !(id === 'transfers' && session.server.noTransfers));
     if (!shown.length) continue;
     nav.appendChild(h('div', { class: 'nav-group' }, group));
     for (const [id, label, ic] of shown) {
@@ -164,13 +165,14 @@ function start(session) {
   } }, icon('out'));
   shell = h('div', { class: 'shell' },
     h('aside', { class: 'side' },
-      h('div', { class: 'brand' }, h('span', { class: 'brand-mark' }, 'GM'), h('div', null, 'EQOA GM', h('small', null, 'build ' + session.server.build))),
+      h('div', { class: 'brand' }, h('span', { class: 'brand-mark' }, 'GM'), h('div', null, 'EQOA GM', h('small', null, (session.server.shard ? session.server.shard + ' · ' : '') + 'build ' + session.server.build))),
       nav,
       h('div', { class: 'side-foot' }, 'Changes are logged and revertible.')),
     h('header', { class: 'top' }, menuBtn, globalSearch(), h('span', { class: 'spacer' }),
       h('span', { class: 'who' }, lvl, h('strong', { class: 'name' }, session.user.username)), themeBtn, outBtn),
     main);
   mount(app, shell);
+  if (session.server.shard) document.title = 'EQOA GM: ' + session.server.shard;
   waitingBadge();
   if (session.totp?.required && !session.totp.enabled) {
     location.hash = '#/security';

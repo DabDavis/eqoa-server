@@ -352,6 +352,9 @@ func (h *ChatHandler) inSayRange(sess *session.Session, player *entity.Player) [
 // say is mode 0: "Name: text", white (0x0A7A, as Sandstorm says NPC lines
 // [C]), to every player within sayRadius in the sender's world.
 func (h *ChatHandler) say(sess *session.Session, player *entity.Player, message string) {
+	if message = consoleLine(message, chatLineMost); message == "" {
+		return
+	}
 	line := fmt.Sprintf("%s: %s", player.Name, message)
 	hear := h.inSayRange(sess, player)
 	for _, l := range hear {
@@ -363,6 +366,9 @@ func (h *ChatHandler) say(sess *session.Session, player *entity.Player, message 
 // shout is mode 3: "Name shouts: text" in (63, 255, 63), 0x0A7B, as Sandstorm
 // sends it [C], to every player in the world.
 func (h *ChatHandler) shout(sess *session.Session, player *entity.Player, message string) {
+	if message = consoleLine(message, chatLineMost); message == "" {
+		return
+	}
 	line := fmt.Sprintf("%s shouts: %s", player.Name, message)
 	n := 0
 	self := false
@@ -390,6 +396,9 @@ func (h *ChatHandler) shout(sess *session.Session, player *entity.Player, messag
 // to every member, the sender included, but a member who chose Hide Chat on
 // the Group menu (lfg.go). Not in a group: word 629.
 func (h *ChatHandler) groupChat(sess *session.Session, player *entity.Player, message string) {
+	if message = consoleLine(message, chatLineMost); message == "" {
+		return
+	}
 	members := h.gameWorld.GroupChatHearers(player)
 	if len(members) == 0 {
 		SendErrorMessage(sess, "You are not in a group.")
@@ -426,6 +435,9 @@ func RouteGuildChat(gw *entity.World, sess *session.Session, player *entity.Play
 	}
 	if player.GuildID == 0 {
 		SendErrorMessage(sess, "You are not in a guild.")
+		return
+	}
+	if message = consoleLine(message, chatLineMost); message == "" {
 		return
 	}
 	// the guild handler's line (0x0578 sub 12): CLIENT prints it as it is
@@ -481,6 +493,7 @@ func findPlayerByName(gw *entity.World, name string) *entity.Player {
 // nothing itself. An unknown or offline name is an error to the sender alone.
 // The texts are a choice [P]: no capture holds a tell.
 func (h *ChatHandler) tell(sess *session.Session, from *entity.Player, name, text string) {
+	text = consoleLine(text, chatLineMost)
 	if name == "" || text == "" {
 		SendErrorMessage(sess, "Tell Failed")
 		return
@@ -504,6 +517,9 @@ func (h *ChatHandler) tell(sess *session.Session, from *entity.Player, name, tex
 // are say, shout, group and guild): a 0x000B in it goes to the sender's
 // target alone, if that is a player, and never to the room [P].
 func (h *ChatHandler) whisper(sess *session.Session, from *entity.Player, target uint32, text string) {
+	if text = consoleLine(text, chatLineMost); text == "" {
+		return
+	}
 	var to *entity.Player
 	if target != 0xFFFFFFFF {
 		if e, ok := h.gameWorld.FindEntityByObjectID(sess, target); ok {

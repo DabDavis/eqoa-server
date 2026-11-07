@@ -180,3 +180,50 @@ func TestATakeoverWearsTheLookChosenAtSelect(t *testing.T) {
 		t.Errorf("the row's look %v, want %v", got, want)
 	}
 }
+
+// A refused 0x002B is answered with its refusal alone: a list after it makes
+// CLIENT reset creation's form (CharacterList), so a taken name cost every choice
+// the player had made. The control: a creation that goes through is answered
+// with the list.
+func TestARefusedCreationKeepsTheForm(t *testing.T) {
+	r := newTakeoverRig(t, annika())
+	create := func(s *session.Session, name string) {
+		t.Helper()
+		payload := build(protocol.OpcodeCreateCharacter, 128, func(w *buffer.Writer) {
+			w.WriteInt32(int32(len(name)))
+			w.WriteBytes([]byte(name))
+			for _, v := range []int64{1, 0, 0, 0, 1, 1, 1, 1, 1} { // a human warrior of Freeport
+				w.Write7BitEncodedInt64(v)
+			}
+			for i := 0; i < 7; i++ {
+				w.WriteInt32(0)
+			}
+		})[2:]
+		msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeCreateCharacter)
+		msg.SetData(payload)
+		if err := r.h.HandleCreateCharacter(s, msg); err != nil {
+			t.Fatal(err)
+		}
+	}
+	taken := r.window(7)
+	create(taken, "Annika")
+	if sentOp(taken, protocol.OpcodeNameTaken) == nil {
+		t.Fatal("no refusal for a taken name")
+	}
+	if sentOp(taken, protocol.OpcodeCharacterSelect) != nil {
+		t.Error("a list followed the refusal: it resets the client's form")
+	}
+	bad := r.window(7)
+	create(bad, "A1")
+	if sentOp(bad, protocol.OpcodeCreateCharBadName) == nil {
+		t.Fatal("no refusal for a bad name")
+	}
+	if sentOp(bad, protocol.OpcodeCharacterSelect) != nil {
+		t.Error("a list followed the refusal of a bad name")
+	}
+	made := r.window(7)
+	create(made, "Brunhilde")
+	if sentOp(made, protocol.OpcodeCharacterSelect) == nil {
+		t.Error("the control: no list after a character was made")
+	}
+}

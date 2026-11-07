@@ -442,6 +442,53 @@ func TestAnAggressivePetDefendsItsGroup(t *testing.T) {
 	}
 }
 
+// Petition 1227, Waldorf: "pets should attack when other pets in the group attack/get hit.
+// Pets in a group should be treated the same way as players in the group." An aggressive pet
+// takes on a creature fighting a group mate's pet, and one a group mate's pet fights; the
+// controls: a defensive pet keeps to its owner, and a stranger's pet is not the pet's.
+func TestAnAggressivePetFightsWithItsGroupsPets(t *testing.T) {
+	for _, c := range []struct {
+		stance  petStance
+		grouped bool
+		hit     bool // the crab fights the mate's pet; else the mate's pet fights the crab
+		want    bool
+	}{
+		{petAggressive, true, true, true},
+		{petAggressive, true, false, true},
+		{petAggressive, false, true, false},
+		{petAggressive, false, false, false},
+		{petDefensive, true, true, false},
+	} {
+		r := newPetRig(t)
+		r.summon(t, fireElemental(), 0)
+		ps := r.w.pets[r.p.ServerID]
+		ps.stance = c.stance
+		mate := &Player{ServerID: 1500, Name: "Mate", Level: 45, HP: 900, MaxHP: 900, X: r.p.X + 6, Y: r.p.Y, Z: r.p.Z, World: r.p.World}
+		r.w.Players[mate.ServerID] = mate
+		r.w.SpatialIndex.Insert(mate.ServerID, mate.X, mate.Z)
+		matePet := &NPC{ServerID: 1501, Name: "Mate's Pet", Level: 40, HP: 900, MaxHP: 900, Owner: mate.ServerID, X: r.p.X + 7, Y: r.p.Y, Z: r.p.Z, World: r.p.World}
+		r.w.NPCs[matePet.ServerID] = matePet
+		r.w.pets[mate.ServerID] = &petState{owner: mate, npc: matePet, stance: petAggressive}
+		if c.grouped {
+			r.p.GroupID, mate.GroupID = 9, 9
+			r.w.groups = map[uint32]*Group{9: {ID: 9, Members: []EntityID{r.p.ServerID, mate.ServerID}}}
+		}
+		r.enemy.X = r.p.X + 5
+		if c.hit {
+			r.enemy.CurrentEnemy = matePet.ServerID
+			r.w.wakeNPCLocked(r.enemy)
+		} else {
+			r.w.pets[mate.ServerID].target = r.enemy.ServerID
+		}
+		r.w.mu.Lock()
+		r.w.petChooseTargetLocked(ps, r.at(10*time.Second))
+		r.w.mu.Unlock()
+		if got := ps.target == r.enemy.ServerID; got != c.want {
+			t.Errorf("stance %d, grouped %v, the mate's pet hit %v: pet fights %v, want %v", c.stance, c.grouped, c.hit, got, c.want)
+		}
+	}
+}
+
 // Petition 1134, Jibmage: "Pets on aggressive stance assist from too far away. It should be
 // approximately 30 meters." A fight 25 from its owner the pet goes to; one 35 away it leaves.
 func TestAPetAssistsWithin30(t *testing.T) {

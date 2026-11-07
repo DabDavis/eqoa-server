@@ -932,7 +932,7 @@ func (w *World) petChooseTargetLocked(ps *petState, now time.Time) {
 		}
 		if ps.stance == petAggressive {
 			_, hurt := npc.Threats[owner.ServerID]
-			mine = mine || hurt || fightsGroupMate(w, owner, npc)
+			mine = mine || hurt || fightsGroupMate(w, owner, npc) || groupPetsFight(w, ps, npc)
 		}
 		if !mine {
 			continue
@@ -957,6 +957,32 @@ func fightsGroupMate(w *World, owner *Player, npc *NPC) bool {
 	}
 	m := w.Players[npc.CurrentEnemy]
 	return m != nil && m.GroupID == owner.GroupID
+}
+
+// groupPetsFight reports a creature fighting another pet of the owner's group, or one
+// such a pet fights (petition 1227, Waldorf: "pets should attack when other pets in the
+// group attack/get hit. Pets in a group should be treated the same way as players in the
+// group"): an aggressive pet's, as fightsGroupMate is for the group's players. Must be
+// called with the lock held.
+func groupPetsFight(w *World, ps *petState, npc *NPC) bool {
+	owner := ps.owner
+	if owner.GroupID == 0 {
+		return false
+	}
+	g := w.groups[owner.GroupID]
+	if g == nil {
+		return false
+	}
+	for _, id := range g.Members {
+		mate := w.pets[id]
+		if mate == nil || mate == ps || mate.npc == nil || mate.npc.Dead {
+			continue
+		}
+		if npc.CurrentEnemy == mate.npc.ServerID || mate.target == npc.ServerID {
+			return true
+		}
+	}
+	return false
 }
 
 // petFightLocked takes the pet to its target and fights it in rounds there.

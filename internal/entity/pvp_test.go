@@ -110,7 +110,7 @@ func TestPvPFlagTimes(t *testing.T) {
 	if p := d.w.PvPCommand(d.sa, d.at(0)); p != d.a || !d.a.PvPFlagged() {
 		t.Fatalf("/pvp gave %v, flagged %v", p, d.a.PvPFlagged())
 	}
-	if got := pvpChat(duelDrain(d.sa)); len(got) != 1 || got[0] != pvpLineOn {
+	if got := pvpChat(duelDrain(d.sa)); len(got) != 2 || got[0] != pvpLineOn || got[1] != pvpLineOnHow {
 		t.Fatalf("told %q", got)
 	}
 	if d.w.PvPCommand(d.sa, d.at(30*time.Second)) != nil || !d.a.PvPFlagged() {
@@ -122,7 +122,7 @@ func TestPvPFlagTimes(t *testing.T) {
 	if d.w.PvPCommand(d.sa, d.at(59*time.Second+500*time.Millisecond)) != nil {
 		t.Fatal("came off at 59.5 s")
 	}
-	if got := pvpChat(duelDrain(d.sa)); got[0] != "Your PvP flag stays on for 1 more seconds." {
+	if got := pvpChat(duelDrain(d.sa)); got[0] != "Your PvP flag stays on for 1 more second." {
 		t.Fatalf("told %q", got)
 	}
 	if p := d.w.PvPCommand(d.sa, d.at(60*time.Second)); p != d.a || d.a.PvPFlagged() {

@@ -148,7 +148,7 @@ func TestPvPFace(t *testing.T) {
 	// Bob has moved on to Cara: Alice's flag coming off tells Cara alone
 	sc.Queue().GetPending()
 	sb.Queue().GetPending()
-	pvpCommand(c.gw, sa, time.Now().Add(entity.PvPHoldTime+time.Second))
+	pvpCommand(c.gw, sa, "", time.Now().Add(entity.PvPHoldTime+time.Second))
 	if pa.PvPFlagged() {
 		t.Fatalf("the flag did not come off: %q", texts(heard(t, sa)))
 	}
@@ -157,5 +157,36 @@ func TestPvPFace(t *testing.T) {
 	}
 	if f, _, _, _ := pvpFaces(sb); len(f) != 0 {
 		t.Fatalf("Bob, on Cara now, was told %v", f)
+	}
+}
+
+// /pvp on and /pvp off go one way only: a player making sure it is off does not put it up.
+func TestPvPOnAndOff(t *testing.T) {
+	c := newChatWorld(t)
+	c.gw.SetPvP(true)
+	s, p := c.join(1, "Alice", 100, 100, 0)
+	c.say(s, "/pvp off")
+	if p.PvPFlagged() || !hasText(heard(t, s), "You are not flagged for PvP.") {
+		t.Fatalf("/pvp off with it off: flagged %v, told %q", p.PvPFlagged(), texts(heard(t, s)))
+	}
+	s.Queue().GetPending()
+	c.say(s, "/PvP ON")
+	if !p.PvPFlagged() {
+		t.Fatalf("/pvp on: told %q", texts(heard(t, s)))
+	}
+	s.Queue().GetPending()
+	later := time.Now().Add(entity.PvPHoldTime + time.Second)
+	pvpCommand(c.gw, s, "on", later)
+	if !p.PvPFlagged() || !hasText(heard(t, s), "You are already flagged for PvP.") {
+		t.Fatalf("/pvp on with it on: flagged %v, told %q", p.PvPFlagged(), texts(heard(t, s)))
+	}
+	s.Queue().GetPending()
+	c.say(s, "/pvp off")
+	if !p.PvPFlagged() || !hasText(heard(t, s), "stays on for") {
+		t.Fatalf("/pvp off inside its minute: flagged %v, told %q", p.PvPFlagged(), texts(heard(t, s)))
+	}
+	pvpCommand(c.gw, s, "off", later)
+	if p.PvPFlagged() {
+		t.Fatal("/pvp off after its minute: still flagged")
 	}
 }

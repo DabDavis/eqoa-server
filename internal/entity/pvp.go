@@ -83,6 +83,8 @@ const (
 	pvpLineOnHow = "/pvp (on a PS2, /t pvp) takes it off, a minute after it went on and after your last fight."
 	pvpLineOff   = "You are no longer flagged for PvP."
 	pvpLineStays = "Your PvP flag stays on for %d more %s."
+	pvpLineNotOn = "You are not flagged for PvP."
+	pvpLineIsOn  = "You are already flagged for PvP."
 	pvpLineDead  = "You cannot do that now."
 	pvpLineStill = "Your PvP flag is still on."
 	pvpLineArea  = "Area spells do not reach players."
@@ -120,10 +122,26 @@ func (p *Player) pvpFoe(q *Player) bool {
 	return p.GroupID == 0 || p.GroupID != q.GroupID
 }
 
+// PvPWant is what a /pvp asks for: the flag turned over, or (/pvp on, /pvp off) one way only, so
+// that a player making sure it is off does not put it up.
+type PvPWant int
+
+// What a /pvp asks for.
+const (
+	PvPToggle PvPWant = iota
+	PvPWantOn
+	PvPWantOff
+)
+
 // PvPCommand is /pvp from sess's player: the flag on, or off once its time allows, the player
 // told either way. It returns the player when the flag changed, for the handlers to tell those
 // targeting it (TargetersOf).
 func (w *World) PvPCommand(sess *session.Session, now time.Time) *Player {
+	return w.PvPAsk(sess, PvPToggle, now)
+}
+
+// PvPAsk is PvPCommand asking for one way, or the other way round (PvPToggle).
+func (w *World) PvPAsk(sess *session.Session, want PvPWant, now time.Time) *Player {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
@@ -136,6 +154,14 @@ func (w *World) PvPCommand(sess *session.Session, now time.Time) *Player {
 	}
 	if p.IsDead() || p.respawnPending() {
 		w.sendChatToSession(sess, pvpLineDead)
+		return nil
+	}
+	if want == PvPWantOff && !p.pvp.on {
+		w.sendChatToSession(sess, pvpLineNotOn)
+		return nil
+	}
+	if want == PvPWantOn && p.pvp.on {
+		w.sendChatToSession(sess, pvpLineIsOn)
 		return nil
 	}
 	if !p.pvp.on {

@@ -476,7 +476,8 @@ players. for now in any area.", then "for pvp on players add an inidicator next 
 true` turns it on; off (the default), `/pvp` says "PvP is not available on this server." and nothing else changes: no flag can go up,
 so every channel byte and refusal is as it was.
 
-- **The flag**: `/pvp`, `#pvp`, or `/t pvp` (a PS2 keeps an unknown /command to itself; a tell with no text is no tell). On at once;
+- **The flag**: `/pvp`, `#pvp`, or `/t pvp` (a PS2 keeps an unknown /command to itself; a tell with no text is no tell), `/pvp on` and
+  `/pvp off` going one way only. On at once;
   off only when `PvPHoldTime` (60 s) has passed since it went on and since the player's last PvP attack, given or taken (a press or a
   swing on a foe, a cast begun at one, any hit landing, a pet's, a shield's, a damage tick), else it says how long is left. It ends at a
   logout (it is in no row), and comes through a takeover (the same Player) and a keep restart (`KeptPlayer.PvP`, `PvPHoldMS`: what is left

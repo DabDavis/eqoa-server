@@ -79,8 +79,8 @@ var pvpAreaAtTarget = false
 // The lines. A PS2 draws them from its own characters, and they wrap.
 const (
 	pvpOffServer = "PvP is not available on this server."
-	pvpLineOn    = "You are now flagged for PvP. Other flagged players can attack you, and you them, anywhere."
-	pvpLineOnHow = "/pvp (on a PS2, /t pvp) takes it off, once a minute has passed since it went on and since your last attack, given or taken."
+	pvpLineOn    = "You are now flagged for PvP. Other flagged players can attack you, and you them."
+	pvpLineOnHow = "/pvp (on a PS2, /t pvp) takes it off, a minute after it went on and after your last fight."
 	pvpLineOff   = "You are no longer flagged for PvP."
 	pvpLineStays = "Your PvP flag stays on for %d more %s."
 	pvpLineDead  = "You cannot do that now."

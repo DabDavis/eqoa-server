@@ -1769,6 +1769,8 @@ A shard's own (above, "Shards"; a key left out is its default, a port of 0 no su
 server:
   gc_percent: 25            # GOGC; unset: Go's 100
   no_huge_pages: true       # PR_SET_THP_DISABLE
+patch:
+  news: "..."               # the news box after Play EQOA, on the way to the list (the login's process); unset: "Welcome to Spire."
 world:
   heirlooms: false          # no kept item at a login; unset: given
 auth:

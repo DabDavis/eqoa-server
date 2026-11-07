@@ -167,6 +167,11 @@ patch:
   # a host NAME; the payload has no resolver.
   worlds_udp_port: 7003
 
+  # What the news box says after Play EQOA, on the way to the server list,
+  # on every client: plain text, a tag would be shown as written; \n breaks a
+  # line. Unset: "Welcome to Spire."
+  # news: "Welcome to Spire."
+
 auth:
   # Cost factor for password hashing (bcrypt). 4-31; outside that it falls back
   # to 10. Higher is slower to crack and slower to log in.

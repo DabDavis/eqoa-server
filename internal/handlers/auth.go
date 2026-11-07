@@ -112,7 +112,7 @@ func (h *AuthHandler) authorizeUsername(sess *session.Session, stage, username s
 		accountID, refusal := h.passwords.CheckUDPPassword(username, pw, sess.RemoteAddr())
 		if refusal == "" {
 			log.Printf("%s: '%s' (ID %d) signed in by its token's password: no login ticket "+
-				"(a restart since its Station login, or the login older than auth.ticket_ttl)", stage, username, accountID)
+				"(a shard whose logins are another's, a restart since its Station login, or the login older than auth.ticket_ttl)", stage, username, accountID)
 			return accountID, true
 		}
 		why = "no completed TCP login, and its token's password refused (" + refusal + ")"

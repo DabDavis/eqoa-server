@@ -290,8 +290,12 @@ func (l *Listener) KeepRestart(o KeepOptions) error {
 			in++
 		}
 	}
-	log.Printf("Keep: %d sessions (%d in the world, %d groups), %d NPCs off their rows' state and %d corpses opened written to %s, %v after the signal",
-		len(snap.Sessions), in, len(snap.Groups), len(snap.NPCs), len(snap.Corpses), o.File, time.Since(start).Round(time.Millisecond))
+	size := int64(0)
+	if fi, err := os.Stat(o.File); err == nil {
+		size = fi.Size()
+	}
+	log.Printf("Keep: %d sessions (%d in the world, %d groups), %d NPCs off their rows' state and %d corpses opened written to %s (%d KB), %v after the signal",
+		len(snap.Sessions), in, len(snap.Groups), len(snap.NPCs), len(snap.Corpses), o.File, size/1024, time.Since(start).Round(time.Millisecond))
 	if o.Hold != "" {
 		if _, err := os.Stat(o.Hold); err == nil {
 			if o.Saved != "" {

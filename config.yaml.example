@@ -30,6 +30,13 @@ server:
   # a log written with them on.
   # packet_log: false
 
+  # What the process holds beyond what it uses. gc_percent is GOGC (unset: Go's
+  # 100, the heap floats to twice what is live; 25 costs next to nothing here, nearly
+  # all that is live being the NPCs). no_huge_pages stops the kernel's transparent
+  # huge pages, which on "always" fill back what the runtime gives up.
+  # gc_percent: 25
+  # no_huge_pages: true
+
 world:
   tick_rate: 100ms
 
@@ -247,3 +254,16 @@ gm:
   # frame it (nginx: Content-Security-Policy "frame-ancestors <public_url's
   # origin>" on that one file). Empty: no preview.
   # preview_url: "https://example.org/eqoa/play/fxview.html"
+
+# The server list, the same in every process (unset: this server alone, as
+# "Marr's Fist"). A name is 31 characters at most; the list shows sorted by name;
+# recommended is where a client with no home shard in the list starts. A shard
+# beside the one that owns the accounts: its auth_port, patch_port, account_port and
+# worlds_udp_port 0, auth.shared_db naming the owner's database (read only; a copy of
+# its accounts here), world.heirlooms false if it gives no kept items. CLAUDE.md, "Shards".
+# shards:
+#   - name: "First Shard"
+#     port: 10070
+#   - name: "Second Shard"
+#     port: 10071
+#     recommended: true

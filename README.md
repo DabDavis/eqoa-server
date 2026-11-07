@@ -82,6 +82,9 @@ go build -o modelbake ./cmd/modelbake && ./modelbake -iso frontiers.iso -out wor
   997 MB world file whole: run it on a machine with about 2 GB free and copy the folder over.
 - `worlds/models.txt`: each body's size, so a big creature is reached from farther away.
   Without it every creature is a man's size.
+- Optional, `go build -o groundmap ./cmd/groundmap && ./groundmap worlds/ground` (about 650 MB of
+  files, a few seconds, no disc): each server then maps the collision read-only instead of decoding
+  zones onto its heap, up to 650 MB less of it, and any servers on one machine share one copy.
 
 ### 4. Configure
 
@@ -252,6 +255,7 @@ their targets and the tunings so far are in `CLAUDE.md`.
 ```
 cmd/gameserver/      the server (game + auth + patch + account + GM panel)
 cmd/groundbake/      the ground, walls and water files, from your disc
+cmd/groundmap/       the collision's maps, one copy in memory however many servers (optional)
 cmd/modelbake/       the bodies' sizes, from your disc
 cmd/balancesim/      the fight simulator
 cmd/workboard/       the work board from a shell

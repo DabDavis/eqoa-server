@@ -581,6 +581,9 @@ func (w *World) procHealsLocked(p *Player, npc *NPC, defense bool, now time.Time
 		if r.ProcHeal <= 0 || r.ProcHealDef != defense || !now.Before(ae.Until) {
 			continue
 		}
+		if !defense && ae.Proc > 0 {
+			continue // its heal comes with its hit, one proc (procTapLocked)
+		}
 		if r.ProcHealUndead && (npc == nil || !w.undeadLocked(npc)) {
 			continue
 		}

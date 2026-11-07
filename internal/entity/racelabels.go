@@ -120,5 +120,8 @@ func (w *World) RefreshRaceLabels(db *database.SQLiteDB) int {
 		sent++
 		return true
 	})
+	if sent > 0 {
+		log.Printf("RaceLabels: %d characters' words, %d bytes, to %d clients", len(chars), len(body), sent)
+	}
 	return sent
 }

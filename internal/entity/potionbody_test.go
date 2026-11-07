@@ -2,7 +2,9 @@ package entity
 
 import (
 	"encoding/binary"
+	"fmt"
 	"math"
+	"math/bits"
 	"testing"
 	"time"
 
@@ -253,5 +255,33 @@ func TestABodyTheDiscLacksIsShownOnNoOne(t *testing.T) {
 	ctl.use(t, transmuter(), ctl.npcO, 0)
 	if m, _ := npcBody(ctl.npc); m != testRatBody {
 		t.Errorf("the control: the rat's body in the table, yet %#x", m)
+	}
+}
+
+// A harmful spell with a body (Transmutive Mix Potion, petition 1181) keeps its target and
+// puts the body on the creature it hits for what lasts of it, as the thrown potion does;
+// the caster shows no body of it.
+func TestAHarmfulSpellsBodyGoesOnItsTarget(t *testing.T) {
+	c := bodyRig(t)
+	text := fmt.Sprintf(`{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"duration_s":24,"stack":0,"level":60,"min_level":1,`+
+		`"effects":[{"kind":"stat","stat":"ac","amount":-300,"resist":"ar"},{"kind":"illusion","sprite":"%08X"}]}`, bits.ReverseBytes32(testRatBody))
+	sp := wbSpell(9, 1, 1, "Transmute", text)
+	sp.Range = 0x7F7F
+	if !c.w.StartCast(c.sess, sp, c.npcO, c.at(0)) {
+		t.Fatal("not begun")
+	}
+	c.tick(sp.CastTime + castLand)
+	if m, _ := npcBody(c.npc); m != testRatBody {
+		t.Fatalf("the creature shows %#x, want the rat's %#x", m, testRatBody)
+	}
+	if got := c.npc.effectMods().AC; got != -300 {
+		t.Errorf("the creature's AC off by %d", got)
+	}
+	if m, _ := channelBody(c.p); m != uint32(c.p.ModelID) {
+		t.Errorf("the caster shows %#x", m)
+	}
+	c.tick(30 * time.Second)
+	if m, _ := npcBody(c.npc); m != testFleshBody {
+		t.Errorf("after its 24 s the creature shows %#x, want its own %#x", m, testFleshBody)
 	}
 }

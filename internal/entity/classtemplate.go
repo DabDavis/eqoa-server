@@ -715,27 +715,39 @@ func (w *World) templateAreaCentreLocked(npc *NPC, spell *CastSpell, target Enti
 	return npc.X, npc.Y, npc.Z
 }
 
-// templateSparedLocked reports one out of sight (sight.go) of a templated NPC's
-// area spell as it lands, its own target among them for a caster's area: a
-// spell of no area and one round its target spare no target of theirs, and one
-// gone is the landing's to pass over. Must be called with the lock held.
-func (w *World) templateSparedLocked(c *npcCast, id EntityID) bool {
-	if c.spell.Area.Centre == AreaNone || c.spell.Area.Centre == AreaOnTarget && id == c.target {
+// templateAreaPlaceLocked is where a templated NPC's area spell stands now
+// (sight.go). Must be called with the lock held.
+func (w *World) templateAreaPlaceLocked(npc *NPC, spell *CastSpell, target EntityID) areaPlace {
+	x, y, z := w.templateAreaCentreLocked(npc, spell, target)
+	return areaPlace{world: npc.World, caster: [3]float32{npc.X, npc.Y, npc.Z}, centre: [3]float32{x, y, z}, onOther: spell.Area.Centre == AreaOnTarget}
+}
+
+// templateSparedLocked reports one a templated NPC's area spell does not reach
+// as it lands (sight.go), noting it either way: its own target among them, whose
+// line from the caster counts though it stands at the centre. A spell of no area
+// spares no one, and one gone is the landing's to pass over. Must be called with
+// the lock held.
+func (w *World) templateSparedLocked(c *npcCast, place areaPlace, id EntityID, seen *areaLog) bool {
+	if c.spell.Area.Centre == AreaNone {
 		return false
 	}
-	cx, cy, cz := w.templateAreaCentreLocked(c.npc, c.spell, c.target)
+	var name string
+	var x, y, z float32
 	if p := w.Players[id]; p != nil {
-		return !w.inSightLocked(c.npc.World, cx, cy, cz, p.X, p.Y, p.Z)
+		name, x, y, z = p.Name, p.X, p.Y, p.Z
+	} else if pet := w.NPCs[id]; pet != nil {
+		name, x, y, z = pet.Name, pet.X, pet.Y, pet.Z
+	} else {
+		return false
 	}
-	if pet := w.NPCs[id]; pet != nil {
-		return !w.inSightLocked(c.npc.World, cx, cy, cz, pet.X, pet.Y, pet.Z)
-	}
-	return false
+	reached := w.reachesLocked(place, x, y, z)
+	seen.note(reached, name, x, y, z)
+	return !reached
 }
 
 // templateAreaLocked is a templated NPC's area spell's others as its cast
 // begins, as a player's are chosen (area.go): round its target (or itself,
-// a caster's area), within its radius and in sight of it (sight.go), the
+// a caster's area), within its radius and reached by it (sight.go), the
 // nearest first, its cap with the target counted; the players a creature may
 // notice (aggro.go: not hidden, not a GM who turned aggro off, not loading a
 // world), not across the water's edge from it, and players' pets.
@@ -746,6 +758,9 @@ func (w *World) templateAreaLocked(npc *NPC, spell *CastSpell, target EntityID) 
 	a := &spell.Area
 	r := a.radiusFor(true)
 	cx, cy, cz := w.templateAreaCentreLocked(npc, spell, target)
+	place := w.templateAreaPlaceLocked(npc, spell, target)
+	var seen areaLog
+	defer func() { seen.write("begins", npc.Name, spell.Name, place) }()
 	var near []areaNear
 	for _, id := range w.SpatialIndex.QueryRadius(cx, cz, r) {
 		if id == target {
@@ -753,15 +768,23 @@ func (w *World) templateAreaLocked(npc *NPC, spell *CastSpell, target EntityID) 
 		}
 		if p := w.Players[id]; p != nil {
 			if p.World == npc.World && w.noticeableLocked(p) && !w.apartLocked(p, npc) {
-				if d := dist3(p.X, p.Y, p.Z, cx, cy, cz); d <= r && w.inSightLocked(npc.World, cx, cy, cz, p.X, p.Y, p.Z) {
-					near = append(near, areaNear{id, d})
+				if d := dist3(p.X, p.Y, p.Z, cx, cy, cz); d <= r {
+					reached := w.reachesLocked(place, p.X, p.Y, p.Z)
+					seen.note(reached, p.Name, p.X, p.Y, p.Z)
+					if reached {
+						near = append(near, areaNear{id, d})
+					}
 				}
 			}
 			continue
 		}
 		if pet := w.NPCs[id]; pet != nil && pet.Owner != 0 && !pet.Dead && pet.World == npc.World {
-			if d := dist3(pet.X, pet.Y, pet.Z, cx, cy, cz); d <= r && w.inSightLocked(npc.World, cx, cy, cz, pet.X, pet.Y, pet.Z) {
-				near = append(near, areaNear{id, d})
+			if d := dist3(pet.X, pet.Y, pet.Z, cx, cy, cz); d <= r {
+				reached := w.reachesLocked(place, pet.X, pet.Y, pet.Z)
+				seen.note(reached, pet.Name, pet.X, pet.Y, pet.Z)
+				if reached {
+					near = append(near, areaNear{id, d})
+				}
 			}
 		}
 	}
@@ -809,7 +832,9 @@ func (w *World) templateSystem(now time.Time) {
 			w.templateDebuffLocked(c, now)
 			continue
 		}
-		if !w.templateSparedLocked(c, c.target) {
+		place := w.templateAreaPlaceLocked(npc, c.spell, c.target)
+		var seen areaLog
+		if !w.templateSparedLocked(c, place, c.target, &seen) {
 			w.templateHitLocked(c, c.target, c.spell.Def.Effects, now)
 		}
 		share := c.spell.Def.Effects
@@ -820,10 +845,11 @@ func (w *World) templateSystem(now time.Time) {
 			if npc.Dead {
 				break
 			}
-			if !w.templateSparedLocked(c, id) {
+			if !w.templateSparedLocked(c, place, id, &seen) {
 				w.templateHitLocked(c, id, share, now)
 			}
 		}
+		seen.write("lands", npc.Name, c.spell.Name, place)
 	}
 }
 

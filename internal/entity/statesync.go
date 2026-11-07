@@ -226,7 +226,7 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 	buf[143] = 1
 
 	// Offset 144: Race (Java-shifted)
-	buf[144] = byte(p.Race)
+	buf[144] = byte(WireRace(p.Race))
 	// Offset 145: Class
 	buf[145] = byte(p.Class)
 

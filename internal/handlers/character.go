@@ -858,6 +858,10 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// not have by its own words, a PS2 ignores the offer
 	SendRaceLabelsOffer(sess)
 
+	// Offer the combat record's window (combatrecord.go): vanilla's Character >
+	// Combat Record asks for it, a PS2 ignores the offer
+	SendCombatRecordOffer(sess)
+
 	// The four weapon sets (gearsets.go): SOE's live client reads them, a PS2
 	// skips them
 	if h.gearSets != nil {

@@ -732,6 +732,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharBuyBack(); err != nil { // buyback.go: what merchants sell back
 		return err
 	}
+	if err := db.ensureCharRecord(); err != nil { // combatrecord.go: each character's PvP and duels
+		return err
+	}
 
 	log.Printf("SQLite schema initialized")
 	return nil
@@ -1041,6 +1044,10 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 	}
 	// and have nothing to buy back (buyback.go)
 	if _, err := s.db.Exec(`DELETE FROM charbuyback WHERE serverid = ?`, serverID); err != nil {
+		return err
+	}
+	// and its combat record (combatrecord.go)
+	if err := s.db.deleteCharRecord(serverID); err != nil {
 		return err
 	}
 	// and its tradeskills and recipe book (craft.go), for the same reason

@@ -1096,7 +1096,11 @@ func (s *PatchServer) handleRequest(w http.ResponseWriter, r *http.Request) {
 	// newlines skipped, then VIGUIDialog::SetText), so it is plain text: a
 	// tag would be shown as written. Lines break at '\n'.
 	if r.URL.Path == "/patch/web/eqoa/motd/news.html" {
-		body := []byte("Welcome to Spire.")
+		news := s.cfg.Patch.News
+		if news == "" {
+			news = "Welcome to Spire."
+		}
+		body := []byte(news)
 		w.Header().Set("Content-Type", "text/plain")
 		w.Header().Set("Content-Length", itoa(len(body)))
 		w.Header().Set("Connection", "close")

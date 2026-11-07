@@ -32,6 +32,7 @@ type KeptPlayer struct {
 	Target       uint32        `json:"target,omitempty"`
 	Lockouts     []KeptLockout `json:"lockouts,omitempty"`
 	PowerBars    bool          `json:"power_bars,omitempty"`
+	RaidRoster   bool          `json:"raid_roster,omitempty"`
 	DuelWindow   bool          `json:"duel_window,omitempty"`
 	GM           bool          `json:"gm,omitempty"`
 	Place        [3]float32    `json:"place"`
@@ -78,7 +79,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 		return KeptPlayer{}, false
 	}
 	k := KeptPlayer{CharServerID: p.CharServerID, Name: p.Name, Dead: p.IsDead() || p.respawnPending(),
-		Target: p.TargetObjectID, PowerBars: p.PowerBars, DuelWindow: p.DuelWindow, GM: p.GM,
+		Target: p.TargetObjectID, PowerBars: p.PowerBars, RaidRoster: p.RaidRoster, DuelWindow: p.DuelWindow, GM: p.GM,
 		Place: [3]float32{p.X, p.Y, p.Z}, World: p.World}
 	for _, l := range p.Lockouts {
 		if left := l.until.Sub(now); left > 0 {
@@ -106,6 +107,7 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 			until: now.Add(time.Duration(l.LeftMS) * time.Millisecond)})
 	}
 	p.PowerBars, p.powerBarsSent, p.powerBarsDue = k.PowerBars, "", k.PowerBars
+	p.RaidRoster, p.raidRosterSent = k.RaidRoster, ""
 	p.GM = k.GM
 	p.DuelWindow = k.DuelWindow
 	return true

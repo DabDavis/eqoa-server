@@ -3,6 +3,7 @@ package entity
 import (
 	"log"
 	"math"
+	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/protocol"
@@ -33,8 +34,9 @@ import (
 // sight has none, so it is given a stand-in (groupFarID) and the roster is sent
 // again whenever the ids a receiver knows change.
 //
-// A group has no cap; past GroupWindowSize it is a raid group and each member's
-// client is told of GroupWindowSize of them alone (raid.go).
+// An ordinary invite stops at GroupWindowSize; only a leader's raid flag asks past
+// it, and then it is a raid group and each member's client is told of
+// GroupWindowSize of them alone, unless it asks for them all (raid.go, raidflag.go).
 
 // GroupWindowSize is m_group's length, the most members a client is ever told
 // of: Msg0772 reads a roster's count with no bound, and a fifth member's id
@@ -216,7 +218,9 @@ func (w *World) sendRosterLocked(g *Group, force bool) {
 // invite itself (InviteEntity and InviteToGroup: word 640), so a PS2's member
 // never sends one, and vanilla sends one where this server offers it
 // (protocol.OpcodeMemberInvites, handlers/group.go). The invitee joins the
-// inviter's group; the leader stays the leader.
+// inviter's group; the leader stays the leader. A group of GroupWindowSize takes
+// no one by an invite: its leader's raid flag asks past it (raidflag.go), so no one
+// takes a raid group's cut by accident.
 func (w *World) GroupInvite(sess *session.Session, targetID uint32) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -235,43 +239,60 @@ func (w *World) GroupInvite(sess *session.Session, targetID uint32) {
 		return
 	}
 	g := w.groups[inviter.GroupID]
-	if g == nil {
-		if w.groups == nil {
-			w.groups = make(map[uint32]*Group)
-		}
-		w.nextGroupID++
-		g = &Group{ID: w.nextGroupID, Members: []EntityID{inviter.ServerID}, lastRoster: map[EntityID]string{}}
-		w.groups[g.ID] = g
-		inviter.GroupID = g.ID
-		log.Printf("Group: %s formed group %d", inviter.Name, g.ID)
+	if g != nil && len(g.Members) >= GroupWindowSize {
+		w.sendColoredLocked(sess, raidFullLine, castRefusalRGB)
+		return
 	}
+	if g == nil {
+		w.formGroupLocked(inviter)
+	}
+	w.askLocked(target, inviter, tsess, groupAsk{}, inviter.Name)
+	log.Printf("Group: %s invites %s", inviter.Name, target.Name)
+}
+
+// formGroupLocked makes leader a group of one. Must be called with the lock held.
+func (w *World) formGroupLocked(leader *Player) *Group {
+	if w.groups == nil {
+		w.groups = make(map[uint32]*Group)
+	}
+	w.nextGroupID++
+	g := &Group{ID: w.nextGroupID, Members: []EntityID{leader.ServerID}, lastRoster: map[EntityID]string{}}
+	w.groups[g.ID] = g
+	leader.GroupID = g.ID
+	log.Printf("Group: %s formed group %d", leader.Name, g.ID)
+	return g
+}
+
+// askLocked is target's invitation from inviter: kept as ask, and the box CLIENT
+// shows for it, under the words the box names it by. Must be called with the lock held.
+func (w *World) askLocked(target, inviter *Player, tsess *session.Session, ask groupAsk, words string) {
 	if w.invites == nil {
-		w.invites = make(map[EntityID]map[EntityID]bool)
+		w.invites = make(map[EntityID]map[EntityID]groupAsk)
 	}
 	if w.invites[target.ServerID] == nil {
-		w.invites[target.ServerID] = map[EntityID]bool{}
+		w.invites[target.ServerID] = map[EntityID]groupAsk{}
 	}
-	w.invites[target.ServerID][inviter.ServerID] = true
-	log.Printf("Group: %s invites %s", inviter.Name, target.Name)
+	w.invites[target.ServerID][inviter.ServerID] = ask
 	sendGroupMsg(tsess, protocol.OpcodeGroupInviteReceived, func(b *buffer.Writer) {
 		b.WriteUint32(w.idSeenByLocked(tsess, inviter))
 		b.WriteUint32(0)
-		writeName8(b, inviter.Name)
+		writeName8(b, words)
 	})
 }
 
-// takeInviteLocked removes and reports an invitation from inviter to p.
-func (w *World) takeInviteLocked(p, inviter *Player) bool {
-	set := w.invites[p.ServerID]
-	if set == nil || !set[inviter.ServerID] {
-		return false
+// takeInviteLocked removes and reports an invitation from inviter to p still
+// waiting on its answer.
+func (w *World) takeInviteLocked(p, inviter *Player) (groupAsk, bool) {
+	ask, ok := w.invites[p.ServerID][inviter.ServerID]
+	if !ok || !ask.declined.IsZero() {
+		return groupAsk{}, false
 	}
-	delete(set, inviter.ServerID)
-	return true
+	delete(w.invites[p.ServerID], inviter.ServerID)
+	return ask, true
 }
 
-// GroupAccept is 0x0622: into the inviter's group, whatever its size, and the
-// roster to all; past GroupWindowSize it is a raid group (raid.go).
+// GroupAccept is 0x0622: into the inviter's group and the roster to all. An
+// invite's stops at GroupWindowSize, a raid flag's does not (raid.go, raidflag.go).
 func (w *World) GroupAccept(sess *session.Session, inviterID uint32) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -280,13 +301,30 @@ func (w *World) GroupAccept(sess *session.Session, inviterID uint32) {
 	if p == nil {
 		return
 	}
-	if inviter == nil || !w.takeInviteLocked(p, inviter) || p.GroupID != 0 {
+	ask, asked := groupAsk{}, false
+	if inviter != nil {
+		ask, asked = w.takeInviteLocked(p, inviter)
+	}
+	if asked && inviter == p {
+		w.raidFlagOwnYesLocked(sess, p) // raidflag.go
+		return
+	}
+	if !asked || p.GroupID != 0 {
 		w.sendGroupRemoved(p, 3)
 		return
 	}
 	g := w.groups[inviter.GroupID]
 	if g == nil {
 		w.sendGroupRemoved(p, 3)
+		return
+	}
+	// a raid flag's yes counts while its leader still leads
+	if len(g.Members) >= GroupWindowSize && !(ask.raid && g.Members[0] == inviter.ServerID) {
+		w.sendGroupRemoved(p, 4)
+		w.sendColoredLocked(sess, raidFullLine, castRefusalRGB)
+		if is := w.sessionOfLocked(inviter); is != nil {
+			w.sendColoredLocked(is, raidFullLine, castRefusalRGB)
+		}
 		return
 	}
 	g.Members = append(g.Members, p.ServerID)
@@ -302,8 +340,20 @@ func (w *World) GroupDecline(sess *session.Session, inviterID uint32, why byte) 
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
 	inviter := w.playerSeenByLocked(sess, inviterID)
-	if p == nil || inviter == nil || !w.takeInviteLocked(p, inviter) {
+	if p == nil || inviter == nil {
 		return
+	}
+	ask, asked := w.takeInviteLocked(p, inviter)
+	if !asked {
+		return
+	}
+	if inviter == p {
+		w.raidFlagOwnNoLocked(sess, p, why) // raidflag.go
+		return
+	}
+	if ask.raid && why == 1 {
+		ask.declined = time.Now()
+		w.invites[p.ServerID][inviter.ServerID] = ask // raidflag.go: not asked again at once
 	}
 	sub := byte(1)
 	if why == 2 {
@@ -330,6 +380,7 @@ func (w *World) GroupLeave(sess *session.Session) {
 // found none (F3 pass 18, voice's two-client run). Its roster is sent again,
 // in the new session's ids. Called by CreatePlayer before p takes the map.
 func (w *World) rejoinGroupLocked(p *Player) {
+	delete(w.invites, p.ServerID) // the new client has no box up
 	for _, g := range w.groups {
 		for _, id := range g.Members {
 			if id == p.ServerID {
@@ -346,6 +397,9 @@ func (w *World) rejoinGroupLocked(p *Player) {
 // own); one left alone is told the group is disbanded.
 func (w *World) leaveGroupLocked(p *Player) {
 	delete(w.invites, p.ServerID)
+	for _, set := range w.invites {
+		delete(set, p.ServerID) // what it asked: its boxes answer "not invited" now
+	}
 	g := w.groups[p.GroupID]
 	p.GroupID = 0
 	if g == nil {

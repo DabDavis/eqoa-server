@@ -105,6 +105,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.groupSyncSystem()
 	t.mark(tsGroupSync)
 	w.powerSyncSystem()
+	w.raidRosterSystem()
 	t.mark(tsPowerSync)
 	w.voiceSyncSystem(now) // a voice-on client's peers and credentials (voice.go)
 	t.mark(tsVoiceSync)

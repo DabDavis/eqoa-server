@@ -8,9 +8,10 @@ import (
 )
 
 // raid.go — a group of more than four is a raid group (the user, 2026-11-07: "lets
-// remove group member cap, but if over 4 it is a raid group, with 80% xp cut").
+// remove group member cap, but if over 4 it is a raid group, with 80% xp cut"), and
+// only a leader's raid flag takes one past four (raidflag.go).
 //
-// A group has no cap on the server. CLIENT holds four: VIClient's m_group[4] is
+// A raid group has no cap on the server. CLIENT holds four: VIClient's m_group[4] is
 // followed at once by its count, m_p2BE4C, and Msg0772 (decomp viclient.cpp) reads
 // the count with no bound and writes each member through it, so a fifth id lands on
 // the count and the loop runs on through memory, 3 bytes in every 52 (a tracer's call of
@@ -39,6 +40,7 @@ var (
 	raidNowLine    = fmt.Sprintf("Your group is now a raid group: %d%% less XP from kills. Bars show %d others at most.", 100-RaidXPPct, GroupWindowSize-1)
 	raidJoinedLine = fmt.Sprintf("You joined a raid group: %d%% less XP from kills. Bars show %d others at most.", 100-RaidXPPct, GroupWindowSize-1)
 	raidEndLine    = "Your group is no longer a raid group: the XP cut ends."
+	raidFullLine   = fmt.Sprintf("This group is full at %d. Its leader's /raid (on a PS2, /t raid) asks everyone within %d to a raid group: %d%% less XP from kills.", GroupWindowSize, int(RaidFlagRadius), 100-RaidXPPct)
 	raidStillLine  = fmt.Sprintf("You are still in a raid group: %d%% less XP from kills. Logging out leaves it.", 100-RaidXPPct)
 )
 

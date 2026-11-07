@@ -221,6 +221,12 @@ type Player struct {
 	powerBarsSent string
 	powerBarsDue  bool
 
+	// RaidRoster: the player's client shows a whole raid group and asked for it
+	// (raidroster.go, opcodes 0x7E18-0x7E1A); raidRosterSent is what it was last
+	// sent, so only a change goes out.
+	RaidRoster     bool
+	raidRosterSent string
+
 	// DuelWindow: the player's client has the live game's duel window and
 	// answered the duel offer (duel.go, opcode 0x7E09): its duels go by
 	// 0x1501/0x1502, not boxes, and its opponent stays a player to it

@@ -66,6 +66,31 @@ func RollResist(resist int) (float64, ResistOutcome) {
 	return share, ResistHeld
 }
 
+// rollResist is RollResist against a creature of the template: a template's
+// resist_fail (Lord Nagafen's, petition 1170: "Resist failure sshould be slightly
+// higher") says how often it fails, at any figure of the resist, altogether and
+// twice as often in part; its part stays in the proportion a partial failure has
+// at the cap, so it never takes more than the resist would have. A resist of 0
+// has nothing to fail.
+func (t *ClassTemplate) rollResist(resist int) (float64, ResistOutcome) {
+	if t == nil || t.ResistFail <= 0 {
+		return RollResist(resist)
+	}
+	share := ResistShare(resist)
+	if share <= 0 {
+		return 0, ResistHeld
+	}
+	fail := t.ResistFail / 100
+	switch d := resistRand(); {
+	case d < fail:
+		return 0, ResistFailed
+	case d < 3*fail:
+		low, high := resistPartialLow/ResistCapShare, resistPartialHigh/ResistCapShare
+		return share * (low + resistRand()*(high-low)), ResistPartial
+	}
+	return share, ResistHeld
+}
+
 // resistWords says in the chat what a resist took.
 func resistWords(share float64, how ResistOutcome) string {
 	switch how {

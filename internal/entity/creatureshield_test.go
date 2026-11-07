@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"math"
 	"strings"
 	"testing"
 
@@ -160,6 +161,79 @@ func TestABossTemplatesBounds(t *testing.T) {
 		bad(&c)
 		if database.CheckClassTemplate(c) == nil {
 			t.Errorf("%s was taken", name)
+		}
+	}
+}
+
+// A template's resist_fail (petition 1170, Lord Nagafen's): a resist fails against the creature at any figure of
+// it, altogether that percent and in part twice that, its part below what the resist would have taken. A template
+// of none keeps the game's own, at the cap alone. A resist of 0 has nothing to fail.
+func TestACreaturesResistFailure(t *testing.T) {
+	defer func(f func() float64) { resistRand = f }(resistRand)
+	dice := func(d ...float64) {
+		resistRand = func() float64 {
+			v := d[0]
+			if len(d) > 1 {
+				d = d[1:]
+			}
+			return v
+		}
+	}
+	nagafen := &ClassTemplate{ClassTemplate: database.ClassTemplate{ResistFail: 4}}
+	plain := &ClassTemplate{}
+	held := ResistShare(215)
+	near := func(a, b float64) bool { return math.Abs(a-b) < 1e-9 }
+
+	dice(0)
+	if share, how := plain.rollResist(215); !near(share, held) || how != ResistHeld {
+		t.Errorf("no resist_fail, under the cap: %v %v, want it held", share, how)
+	}
+	if share, how := plain.rollResist(ResistCap); share != 0 || how != ResistFailed {
+		t.Errorf("no resist_fail, at the cap: %v %v, want the game's own failure", share, how)
+	}
+	var none *ClassTemplate
+	if share, how := none.rollResist(215); !near(share, held) || how != ResistHeld {
+		t.Errorf("no template: %v %v", share, how)
+	}
+
+	dice(0.0399)
+	if share, how := nagafen.rollResist(215); share != 0 || how != ResistFailed {
+		t.Errorf("under 4%%: %v %v, want it failed altogether", share, how)
+	}
+	dice(0.04, 0)
+	low, how := nagafen.rollResist(215)
+	dice(0.1199, 1)
+	high, how2 := nagafen.rollResist(215)
+	if how != ResistPartial || how2 != ResistPartial || !(low > 0 && low < high && high < held) {
+		t.Errorf("in part from 4%% to 12%%: %v %v and %v %v, each under the held %v", low, how, high, how2, held)
+	}
+	dice(0.04, 0)
+	if share, _ := nagafen.rollResist(ResistCap); !near(share, resistPartialLow) {
+		t.Errorf("a part at the cap: %v, want the game's %v", share, resistPartialLow)
+	}
+	dice(0.12)
+	if share, how := nagafen.rollResist(215); !near(share, held) || how != ResistHeld {
+		t.Errorf("past 12%%: %v %v, want it held", share, how)
+	}
+	dice(0)
+	if share, how := nagafen.rollResist(0); share != 0 || how != ResistHeld {
+		t.Errorf("no resist: %v %v, nothing to fail", share, how)
+	}
+	// Jibrish's figures: 3,000 before FR, "around 1 - 1.5k" at 215
+	dice(0.5)
+	if share, _ := nagafen.rollResist(215); int(math.Round(3000*(1-share))) != 1464 {
+		t.Errorf("3,000 at 215 FR: %v", 3000*(1-share))
+	}
+
+	ok := database.ClassTemplate{Name: "boss", Class: 0, HPPct: 100, TakenPct: 100, MeleePct: 100, ResistFail: 4}
+	if err := database.CheckClassTemplate(ok); err != nil {
+		t.Errorf("a resist_fail of 4: %v", err)
+	}
+	for _, bad := range []float64{-1, 31, math.NaN()} {
+		c := ok
+		c.ResistFail = bad
+		if database.CheckClassTemplate(c) == nil {
+			t.Errorf("a resist_fail of %v was taken", bad)
 		}
 	}
 }

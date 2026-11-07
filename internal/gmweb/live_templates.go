@@ -14,7 +14,7 @@ import (
 // the next fight by it uses its abilities.
 
 // classTemplateAbilitiesHelp is the abilities column's form, for the catalog.
-const classTemplateAbilitiesHelp = `a JSON list, each {"kind": nuke | aoe | lifetap | heal | taunt | buff | root (the last three a pet's; a root holds what the pet fights, and round it for an area spell), ` +
+const classTemplateAbilitiesHelp = `a JSON list, each {"kind": nuke | aoe | lifetap | heal | taunt | buff | root (those three a pet's; a root holds what the pet fights, and round it for an area spell) | debuff (a creature's: the stats the spell it names takes, on the player it fights, for the spell's time; "no_cure": true, no cure takes it off), ` +
 	`"every": seconds from one cast's start to the next (2-3600), "first": seconds into a fight before the first, ` +
 	`"chain": true to cast it as soon as the ability before it is cast (its clock then unused), ` +
 	`"chance": % of its due casts (100), "damage_pct": % of its spell's figures (100), ` +
@@ -128,6 +128,7 @@ func checkClassTemplateRow(row map[string]any) error {
 		{"special_every", "seconds from one timed special to the next (0 none)", &t.SpecialEvery},
 		{"special_first", "seconds into a fight for the first timed special", &t.SpecialFirst},
 		{"special_jitter", "seconds either way on each timed special", &t.SpecialJitter},
+		{"resist_fail", "the percent a resist fails against it altogether, twice this in part (0-30)", &t.ResistFail},
 	}
 	for _, c := range floats {
 		if v, ok := row[c.col]; ok && v != nil {

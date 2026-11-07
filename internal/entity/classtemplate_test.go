@@ -2,6 +2,7 @@ package entity
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"math"
 	"net"
@@ -842,5 +843,195 @@ func TestATimedSpecialCountsTimeAtItsEnemy(t *testing.T) {
 			t.Errorf("held off %v: crits at %v, want %v", held, crits, want)
 		}
 		delete(r.w.Players, p.ServerID)
+	}
+}
+
+// A template's debuff (petition 1170, Lord Nagafen's: "a single target ability that cant be cured and lasts 2
+// minutes, that he recasts every 2 minutes, that debuffs the tank for -100 agi and -115 FR"): it lands on the player
+// the creature fights as a cast does, hits for nothing, takes its stats for the spell's time, is started again by the
+// recast with one effect on, and no cure takes it off while another harm goes. It waits while a pet is what it fights.
+func TestATemplatesDebuff(t *testing.T) {
+	r := newTemplateRig(t)
+	const dread, plainHarm, nuke, shows = 7001, 7002, 7003, 7004
+	spell := func(id, cast int, name, line, effects string) {
+		t.Helper()
+		if _, err := r.db.Exec(`INSERT INTO spellpattern (spellid, abilitylvl, unk2, unk3, range, casttime, power, iconColor, icon, scope, recast,
+			eqprequire, spellname, spelldesc) VALUES (?, 60, 0, 0, 16880, ?, 0, 0, 5, 1, 0, 0, ?, '')`, id, cast, name); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := r.db.Exec(`INSERT INTO spelleffect (spellid, line, fxdict, source, effects) VALUES (?, ?, 99, 'test', ?)`, id, line, effects); err != nil {
+			t.Fatal(err)
+		}
+	}
+	spell(dread, 0, "Searing Dread", "Target, Decrease AGI by 100, Decrease FR by 115, 2min",
+		`{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"duration_s":120,"stack":0,"level":60,"min_level":1,"req_equipment":"Any","effects":[{"kind":"stat","stat":"agi","amount":-100,"resist":"fr"},{"kind":"stat","stat":"fr","amount":-115,"resist":"fr"}]}`)
+	spell(plainHarm, 0, "Plain Harm", "Target, Decrease STR by 10, 2min",
+		`{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"duration_s":120,"stack":0,"level":60,"min_level":1,"req_equipment":"Any","effects":[{"kind":"stat","stat":"str","amount":-10}]}`)
+	spell(nuke, 0, "Lava Breath", "Target, Decrease Hitpoints by 2000",
+		`{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"stack":0,"level":60,"min_level":1,"req_equipment":"Any","effects":[{"kind":"hp","amount":-2000,"resist":"fr"}]}`)
+	spell(shows, 0, "Only Hits", "Target, Decrease Hitpoints by 5", "")
+	if _, err := r.db.Exec(`INSERT INTO classtemplates (name, class, abilities) VALUES ('dragon', -1, ?)`,
+		fmt.Sprintf(`[{"kind":"debuff","spell_id":%d,"every":120,"first":1,"no_cure":true},{"kind":"nuke","spell_id":%d,"every":30,"first":20}]`, dread, nuke)); err != nil {
+		t.Fatal(err)
+	}
+	if got := r.assign("gnoll guard", "dragon"); got != 1 {
+		t.Fatalf("%d creatures of the template", got)
+	}
+	defer func(f func() float64) { resistRand = f }(resistRand)
+	resistRand = func() float64 { return 0.5 }
+	guard := r.npc("Gnoll Guard")
+	p, sess := r.player("Hero", guard.X+1, guard.Z)
+	p.HP, p.FireR, p.Agi = 100000, 215, 300
+	p.MaxHP = 100000
+	effectOf := func() *ActiveEffect {
+		for _, e := range p.Effects {
+			if e.SpellID == dread {
+				return e
+			}
+		}
+		return nil
+	}
+	r.fight(guard, p.ServerID)
+	r.tick(0)
+	if p.hasEffect(dread) {
+		t.Fatal("on before its first")
+	}
+	var lines []string
+	r.tick(1 * time.Second) // begins
+	r.tick(1*time.Second + castLand)
+	lines = linesOf(drain(sess))
+	if !p.hasEffect(dread) {
+		t.Fatalf("not on after its cast: %q", lines)
+	}
+	if got := strings.Join(lines, "|"); !strings.Contains(got, "Gnoll Guard's Searing Dread takes hold of you.") {
+		t.Errorf("its line: %q", got)
+	}
+	if got := strings.Join(lines, "|"); strings.Contains(got, "Searing Dread hits") {
+		t.Errorf("it hit: %q", got)
+	}
+	if p.StatNow(StatFR) != 100 || p.StatNow(StatAgi) != 200 {
+		t.Errorf("FR %d, AGI %d: want 100 and 200", p.StatNow(StatFR), p.StatNow(StatAgi))
+	}
+	if got := effectOf(); got == nil || !got.Rules.NoCure || !got.Until.Equal(r.at(1*time.Second+castLand+2*time.Minute)) {
+		t.Errorf("its effect: %+v", got)
+	}
+
+	// no cure takes it off; the plain harm beside it goes, which shows the cures do work
+	r.w.mu.Lock()
+	r.w.addEffectLocked(p, &ActiveEffect{SpellID: plainHarm, Name: "Plain Harm", Until: r.at(10 * time.Minute), Mods: StatMods{Str: -10}, Rules: EffectRules{Harm: true}}, r.at(2*time.Second))
+	cure := &castState{spell: CastSpell{SpellID: 9999, Def: SpellDef{Removes: []string{"harmful"}}}}
+	if n := r.w.cureLocked(cure, p); n != 1 {
+		t.Errorf("the cure took %d, want the plain harm alone", n)
+	}
+	if !p.hasEffect(dread) || p.hasEffect(plainHarm) {
+		t.Errorf("after a spell's cure: debuff %v, plain harm %v", p.hasEffect(dread), p.hasEffect(plainHarm))
+	}
+	r.w.addEffectLocked(p, &ActiveEffect{SpellID: plainHarm, Name: "Plain Harm", Until: r.at(10 * time.Minute), Mods: StatMods{Str: -10}, Rules: EffectRules{Harm: true}}, r.at(2*time.Second))
+	r.w.curePlayerLocked(p, 5)
+	if !p.hasEffect(dread) || p.hasEffect(plainHarm) {
+		t.Errorf("after a potion's cure: debuff %v, plain harm %v", p.hasEffect(dread), p.hasEffect(plainHarm))
+	}
+	r.w.mu.Unlock()
+
+	// the nuke at its first, 2,000 before the FR the debuff left (100: 3/4 x 100/315 of it taken)
+	drain(sess)
+	r.tick(20 * time.Second)
+	r.tick(20*time.Second + castLand)
+	want := fmt.Sprintf("Gnoll Guard's Lava Breath hits you for %d (", int(math.Round(2000*(1-ResistShare(100)))))
+	if got := strings.Join(linesOf(drain(sess)), "|"); !strings.Contains(got, want) {
+		t.Errorf("the nuke's line: %q, want %q", got, want)
+	}
+
+	// kept over a logout, the rule with it
+	kept := false
+	for _, row := range savedEffects(p, r.at(30*time.Second)) {
+		if row.SpellID == dread {
+			var sm savedMods
+			if err := json.Unmarshal([]byte(row.Mods), &sm); err != nil {
+				t.Fatal(err)
+			}
+			if sm.Rules == nil || !sm.Rules.NoCure || sm.StatMods.FR != -115 {
+				t.Errorf("as kept: %+v", sm)
+			}
+			kept = true
+		}
+	}
+	if !kept {
+		t.Error("not kept over a logout")
+	}
+
+	// the recast starts it again, one effect on
+	r.tick(121 * time.Second)
+	r.tick(121*time.Second + castLand)
+	n := 0
+	for _, e := range p.Effects {
+		if e.SpellID == dread {
+			n++
+		}
+	}
+	if got := effectOf(); n != 1 || got == nil || !got.Until.Equal(r.at(121*time.Second+castLand+2*time.Minute)) {
+		t.Errorf("after the recast: %d of it, %+v", n, got)
+	}
+
+	// a spell that takes no stat cannot be one
+	if _, err := r.db.Exec(`INSERT INTO classtemplates (name, class, abilities) VALUES ('nostat', -1, ?)`,
+		fmt.Sprintf(`[{"kind":"debuff","spell_id":%d,"every":120}]`, shows)); err != nil {
+		t.Fatal(err)
+	}
+	r.assign("gnoll brute", "nostat")
+	if got := r.w.ClassTemplateProblems(); !strings.Contains(strings.Join(got, "|"), "takes no stat") {
+		t.Errorf("its problem: %q", got)
+	}
+}
+
+// A debuff waits while a pet is what the creature fights, and a pet's own turn casts none.
+func TestATemplatesDebuffWaitsForAPlayer(t *testing.T) {
+	r := newTemplateRig(t)
+	if _, err := r.db.Exec(`INSERT INTO spellpattern (spellid, abilitylvl, unk2, unk3, range, casttime, power, iconColor, icon, scope, recast,
+		eqprequire, spellname, spelldesc) VALUES (7001, 60, 0, 0, 16880, 0, 0, 0, 5, 1, 0, 0, 'Searing Dread', '')`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.db.Exec(`INSERT INTO spelleffect (spellid, line, fxdict, source, effects) VALUES (7001, 'x', 99, 'test', ?)`,
+		`{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"duration_s":120,"stack":0,"level":60,"min_level":1,"req_equipment":"Any","effects":[{"kind":"stat","stat":"fr","amount":-115}]}`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.db.Exec(`INSERT INTO classtemplates (name, class, abilities) VALUES ('dragon', -1, '[{"kind":"debuff","spell_id":7001,"every":120,"first":0,"no_cure":true}]')`); err != nil {
+		t.Fatal(err)
+	}
+	r.assign("gnoll guard", "dragon")
+	guard := r.npc("Gnoll Guard")
+	pet := &NPC{ServerID: 3000, Name: "skeleton", Level: 20, HP: 3500, MaxHP: 3500, X: guard.X + 1, Y: guard.Y, Z: guard.Z, Owner: 77}
+	r.w.NPCs[pet.ServerID] = pet
+	r.w.SpatialIndex.Insert(pet.ServerID, pet.X, pet.Z)
+	p, _ := r.player("Hero", guard.X+1, guard.Z)
+	r.w.mu.Lock()
+	casting := r.w.templateTurnLocked(guard, pet.ServerID, r.at(0))
+	waiting := len(r.w.npcCasts)
+	casting2 := r.w.templateTurnLocked(guard, p.ServerID, r.at(time.Second))
+	r.w.mu.Unlock()
+	if casting || waiting != 0 {
+		t.Errorf("at a pet: casting %v, %d casts", casting, waiting)
+	}
+	if !casting2 {
+		t.Error("at a player, due since the pet: no cast")
+	}
+}
+
+// The debuff's forms: it names its spell, and no_cure is its alone.
+func TestATemplatesDebuffForms(t *testing.T) {
+	ok := database.ClassTemplate{Name: "boss", Class: 0, HPPct: 100, TakenPct: 100, MeleePct: 100,
+		Abilities: []database.TemplateAbility{{Kind: database.AbilityDebuff, SpellID: 5, Every: 120, NoCure: true}}}
+	if err := database.CheckClassTemplate(ok); err != nil {
+		t.Errorf("a debuff: %v", err)
+	}
+	for name, a := range map[string]database.TemplateAbility{
+		"a debuff of no spell": {Kind: database.AbilityDebuff, Every: 120},
+		"no_cure on a nuke":    {Kind: database.AbilityNuke, SpellID: 5, Every: 120, NoCure: true},
+	} {
+		c := ok
+		c.Abilities = []database.TemplateAbility{a}
+		if database.CheckClassTemplate(c) == nil {
+			t.Errorf("%s was taken", name)
+		}
 	}
 }

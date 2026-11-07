@@ -345,6 +345,23 @@ var catalog = map[string]tableNote{
 			"else said).",
 		Cols: map[string]colNote{"serverid": {Label: "Character", Ref: "characters"}},
 	},
+	"charbuyback": {
+		Label: "Merchant buy-backs", Group: "Players", Sort: "serverid",
+		Help: "What each character last sold to a merchant or destroyed, five at most, the oldest pushed out: any merchant " +
+			"sells each back after its wares, as it went, whole, for the price here. Bought back, a row is gone. No Rent items never get a row.",
+		Live: "A merchant's window reads them as it opens.",
+		Cols: map[string]colNote{
+			"id":        {Label: "Entry", ReadOnly: true},
+			"serverid":  {Label: "Character", Ref: "characters"},
+			"patternid": {Label: "Item", Ref: "itempattern"},
+			"stack":     {Label: "Stack"},
+			"remainhp":  {Label: "Condition"},
+			"charges":   {Label: "Charges"},
+			"price":     {Label: "Price", Help: "tunar for the whole row: what the merchant paid, or what one would have paid for a destroyed item"},
+			"how":       {Label: "How it went", Help: "sold or destroyed"},
+			"made":      {Label: "When", Format: "stamp", ReadOnly: true},
+		},
+	},
 	"weaponhotbar": {
 		Label: "Weapon hotbar (unused)", Group: "Players",
 		Help: "Return Home's schema, never read: the weapon sets are gearsets.",

@@ -20,8 +20,9 @@ import (
 // npcs.npc_type): 0x004C for a merchant (1), 0x124D for a banker (2), 0x0061
 // for a blacksmith (8), and 0x0004 (InteractHandler) for anything else. Each
 // request carries the NPC's id, and so does every request made from the
-// window, so the server keeps no window state: it checks the NPC again each
-// time — that it exists, carries the flag, and is within InteractRange.
+// window, so the server keeps no window state but a merchant's list as last sent
+// (buyback.go): it checks the NPC again each time — that it exists, carries the
+// flag, and is within InteractRange.
 //
 // The client holds a request-pending flag per window (+0x1B304 merchant,
 // VIBankControl +0x78C8 bank) and sends nothing more until a reply clears it.
@@ -185,17 +186,22 @@ func refuse(sess *session.Session) {
 // id (+0x1B300), the sell and buy rates (zigzag, +0x1B308 and +0x1B30C), the
 // catalog as a VIItemList (VIItemList::Read 0x00BBC8D0: zigzag count, u32 key
 // counter, the records), then the greeting (VIMemStream::ReadString16: u32
-// characters, UTF-16).
-func merchantBoxPayload(id uint32, catalog []database.CharInventoryEntry, greeting string) []byte {
-	return build(protocol.OpcodeMerchantBox, 64+1024*(len(catalog)+1), func(w *buffer.Writer) {
+// characters, UTF-16). lines are finished records (buyback.go) that follow the
+// catalog; the two may not pass the client's 40 together.
+func merchantBoxPayload(id uint32, catalog []database.CharInventoryEntry, greeting string, lines ...database.CharInventoryEntry) []byte {
+	n := len(catalog) + len(lines)
+	return build(protocol.OpcodeMerchantBox, 64+1024*(n+1), func(w *buffer.Writer) {
 		w.WriteUint32(id)
 		w.Write7BitEncodedInt64(merchantRate)
 		w.Write7BitEncodedInt64(merchantRate)
-		w.Write7BitEncodedInt64(int64(len(catalog)))
-		w.WriteUint32(uint32(len(catalog)))
+		w.Write7BitEncodedInt64(int64(n))
+		w.WriteUint32(uint32(n))
 		for i := range catalog {
 			rec := catalogRecord(catalog[i])
 			writeSingleItem(w, &rec, i)
+		}
+		for i := range lines {
+			writeSingleItem(w, &lines[i], len(catalog)+i)
 		}
 		w.WriteStringUnicode(greeting)
 	})
@@ -271,6 +277,16 @@ func sellPrice(value, cur, max int) int {
 	return r - int(float32(r)*itemWear(cur, max))
 }
 
+// merchantWouldPay is what a merchant would pay for one of a row, the price of
+// buying one back after a Destroy (buyback.go): sellPrice, and nothing for what
+// merchants do not buy.
+func merchantWouldPay(row *database.CharInventoryEntry) int {
+	if row.Pattern.PatternID == database.RoseOfRehabilitation {
+		return 0
+	}
+	return sellPrice(row.Pattern.ItemCost, row.RemainHP, row.Pattern.MaxHP)
+}
+
 // --- merchant requests ---
 
 // HandleMerchantOpen is 0x004C, u32 the merchant (InteractWithTarget's
@@ -295,25 +311,13 @@ func (h *NPCWindowHandler) HandleMerchantOpen(sess *session.Session, msg *protoc
 	return nil
 }
 
-// openMerchant sends npc's catalog (npcitem by its NPCID) as 0x00B7 under id,
-// which CLIENT hands back with each buy and sale: an NPC's own id, or a
-// genie's window (genie.go).
+// openMerchant sends npc's catalog (npcitem by its NPCID), then what the player
+// may buy back (buyback.go), as 0x00B7 under id, which CLIENT hands back with
+// each buy and sale: an NPC's own id, or a genie's window (genie.go).
 func (h *NPCWindowHandler) openMerchant(sess *session.Session, player *entity.Player, npc *entity.NPC, id uint32, greeting string) {
-	var catalog []database.CharInventoryEntry
-	if h.inv != nil {
-		var err error
-		if catalog, err = h.inv.GetNPCItems(npc.NPCID); err != nil {
-			log.Printf("Merchant: catalog of %q (npc %d): %v", npc.Name, npc.NPCID, err)
-		}
-	}
-	if len(catalog) > invListCap {
-		catalog = catalog[:invListCap]
-	}
-	for i := range catalog { // the buyer's own view: an heirloom's figures (heirloom.go)
-		h.inv.ViewPattern(player.CharServerID, &catalog[i].Pattern)
-	}
-	queueReliable(sess, protocol.OpcodeMerchantBox, merchantBoxPayload(id, catalog, greeting))
-	log.Printf("Merchant: %s opened %q (npc %d): %d items for sale", player.Name, npc.Name, npc.NPCID, len(catalog))
+	l := h.merchantList(player, npc)
+	h.sendMerchantList(sess, id, greeting, l, nil)
+	log.Printf("Merchant: %s opened %q (npc %d): %d items for sale, %d to buy back", player.Name, npc.Name, npc.NPCID, len(l.wares), len(l.lines))
 }
 
 // HandleMerchantBuy is 0x004A: zigzag catalog index, zigzag count, u32 the
@@ -338,6 +342,11 @@ func (h *NPCWindowHandler) buy(sess *session.Session, id uint32, index, count in
 	inv := sessionInvList(sess)
 	if !ok || h.inv == nil || inv == nil || count < 1 {
 		return false
+	}
+	// the list last sent: past its wares a line to buy back (buyback.go), of
+	// which the whole comes whatever the count
+	if w := sessionMerchantWindow(sess); w != nil && w.id == id && index >= w.wares {
+		return h.buyBack(sess, player, npc, inv, w, id, index)
 	}
 	catalog, err := h.inv.GetNPCItems(npc.NPCID)
 	if err != nil || index < 0 || index >= len(catalog) {
@@ -493,6 +502,8 @@ func (h *NPCWindowHandler) sell(sess *session.Session, id, key uint32, n int) bo
 	}
 	player.Tunar += paid
 	h.saveTunar(player)
+	keepBuyBack(h.inv, player, &row, n, paid, database.BuyBackSold)
+	h.refreshMerchant(sess, player, npc, id) // the line it makes, before the answer (buyback.go)
 	queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(i, 1, n))
 	queueReliable(sess, protocol.OpcodePlayerTunar, tunarPayload(player.Tunar))
 	log.Printf("MerchantSell: %s sold %d %q to %q for %d", player.Name, n, row.Pattern.ItemName, npc.Name, paid)

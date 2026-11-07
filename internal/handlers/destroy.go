@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
@@ -97,6 +98,7 @@ func (h *EquipHandler) destroy(sess *session.Session, key uint32, n int) bool {
 	}
 	l.took(idx, n)
 	queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(idx, 0, n))
+	keepBuyBack(h.inventoryStore, player, row, n, n*merchantWouldPay(row), database.BuyBackDestroyed) // buyback.go
 	if worn {
 		h.wornChanged(sess, player, sid)
 	}

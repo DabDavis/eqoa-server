@@ -77,7 +77,7 @@ func (w *World) PetitionView(sess *session.Session, now time.Time) (PetitionView
 	v := PetitionView{
 		Character: PetitionCharacter{
 			Name: p.Name, ServerID: p.CharServerID, Level: p.Level,
-			Class: nameIn(classNames, p.Class), Race: nameIn(raceNames, p.Race),
+			Class: nameIn(classNames, p.Class), Race: RaceName(p.Race),
 			World: p.World, X: p.X, Y: p.Y, Z: p.Z, Facing: p.Facing,
 			HP: p.HP, MaxHP: p.MaxHPNow(), Power: p.Power, MaxPower: p.MaxPowerNow(),
 			Dead: p.HP <= 0 || !p.DiedAt.IsZero(), Fighting: w.petitionNameLocked(p.AttackTarget),

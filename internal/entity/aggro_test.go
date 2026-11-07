@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -509,5 +510,27 @@ func TestTheBlanketAggroRadiusIsThirtyPercentLess(t *testing.T) {
 	}
 	if f.attacks(far) {
 		t.Error("the bear 22 off attacked: inside the old 30, outside the new 21")
+	}
+}
+
+// A custom race's body stays out of the players' models (charactermodel), which
+// make whoever wears one a townsperson: loading a race's row adds nothing there, so
+// a creature wearing that body still attacks; the control is a body in the models.
+func TestACustomRaceBodyLeavesItsCreaturesHostile(t *testing.T) {
+	const giantBody uint32 = 0xFFB1EA2C // -5117396, as characters.modelid holds it
+	f := newAggroFix(t, 20)
+	SetRaceDefs([]database.RaceDefRow{{ID: 11, Name: "Hill Giant", ShortName: "HGT", WireRace: raceOgre, BodyMale: -5117396, BodyFemale: -5117396}})
+	t.Cleanup(func() { SetRaceDefs(nil) })
+	giant := f.npc(2001, "hill giant", 20, giantBody, 1010, 1000)
+	guard := f.npc(2002, "Town Guard", 20, humanBody, 990, 1000)
+	f.look()
+	if !f.attacks(giant) {
+		t.Error("a hill giant creature, wearing the race's body, went friendly")
+	}
+	if f.attacks(guard) {
+		t.Error("the control: a body in the players' models attacked")
+	}
+	if f.w.playerModels[giantBody] {
+		t.Error("the race's body is in the players' models")
 	}
 }

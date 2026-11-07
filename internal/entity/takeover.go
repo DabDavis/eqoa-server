@@ -154,6 +154,7 @@ func (w *World) handedOverLocked(p *Player) {
 	p.PendingHDDMenu = 0
 	p.PendingBind = Bind{}
 	p.PendingSpar = SparPick{}
+	p.RaceLabels, p.raceLabelsSent = false, "" // the new client's answer says
 	p.ProfanityFilterOff = false
 	p.PowerBars, p.powerBarsSent, p.powerBarsDue = false, "", false
 	p.RaidRoster, p.raidRosterSent = false, ""

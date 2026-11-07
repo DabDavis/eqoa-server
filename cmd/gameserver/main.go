@@ -116,6 +116,12 @@ func main() {
 	} else {
 		gameWorld.SetRaceModels(models)
 	}
+	// the races the game does not have (entity/race.go, table racedefs): before
+	// anyone is put back in the world, whose race the wire asks about
+	if err := entity.LoadRaceDefs(db); err != nil {
+		log.Printf("Entity world: %v (no race past the game's)", err)
+	}
+	log.Printf("Entity world: custom races: %s", entity.RaceDefSummary())
 	// and each race's players' body size, on every client (entity/racesize.go,
 	// table racesize: gnomes 0.9)
 	if _, err := gameWorld.LoadRaceSizes(db); err != nil {

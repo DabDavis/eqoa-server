@@ -34,20 +34,20 @@ type baseStats struct {
 // raceBonus is each race's seven stat bonuses (STR STA AGI DEX WIS INT CHA),
 // gRaces' m_bonus in SUPPORT (decomp src/virace.cpp), on the network race
 // enum; every race's total 35. The froglok's (10) is the S2's, a copy of
-// Human's (re-tools/extend_s2_race.py).
+// Human's (re-tools/extend_s2_race.py). A race past these is a row of racedefs
+// (race.go), which has its own.
 var raceBonus = [...][7]int{
-	{5, 5, 5, 5, 5, 5, 5},     // 0 Human
-	{0, 0, 0, 10, 10, 5, 10},  // 1 Elf
-	{0, 5, 0, 10, 5, 15, 0},   // 2 Dark Elf
-	{0, 0, 10, 10, 0, 15, 0},  // 3 Gnome
-	{10, 10, 0, 5, 10, 0, 0},  // 4 Dwarf
-	{20, 15, 0, 0, 0, 0, 0},   // 5 Troll
-	{15, 10, 0, 5, 0, 5, 0},   // 6 Barbarian
-	{0, 10, 10, 15, 0, 0, 0},  // 7 Halfling
-	{0, 0, 0, 5, 10, 20, 0},   // 8 Erudite
-	{20, 15, 0, 0, 0, 0, 0},   // 9 Ogre
-	{5, 5, 5, 5, 5, 5, 5},     // 10 Froglok
-	{25, 20, -5, -5, 0, 0, 0}, // 11 Hill Giant (ours, race.go): the same 35, more of it in the arm
+	{5, 5, 5, 5, 5, 5, 5},    // 0 Human
+	{0, 0, 0, 10, 10, 5, 10}, // 1 Elf
+	{0, 5, 0, 10, 5, 15, 0},  // 2 Dark Elf
+	{0, 0, 10, 10, 0, 15, 0}, // 3 Gnome
+	{10, 10, 0, 5, 10, 0, 0}, // 4 Dwarf
+	{20, 15, 0, 0, 0, 0, 0},  // 5 Troll
+	{15, 10, 0, 5, 0, 5, 0},  // 6 Barbarian
+	{0, 10, 10, 15, 0, 0, 0}, // 7 Halfling
+	{0, 0, 0, 5, 10, 20, 0},  // 8 Erudite
+	{20, 15, 0, 0, 0, 0, 0},  // 9 Ogre
+	{5, 5, 5, 5, 5, 5, 5},    // 10 Froglok
 }
 
 // classBonus is each class's, VIClassDef's m_bonus (decomp src/viclass.cpp).
@@ -77,12 +77,16 @@ var classBonus = [...][7]int{
 // have exactly these (2026-10-21: seven race/class pairs, the points spent
 // aside), where Return Home's defaultcharacter table, this server's source
 // until then, has its Barbarian Shaman's row for the Barbarian Warrior and a
-// Troll Shaman of WIS 5. A race or class out of range takes no bonus.
+// Troll Shaman of WIS 5. A race or class out of range takes no bonus; a race of
+// racedefs takes its row's.
 func LookupBaseStats(race, class int) baseStats {
 	var v [7]int
+	def, custom := customRace(race)
 	for i := range v {
 		v[i] = 60
-		if race >= 0 && race < len(raceBonus) {
+		if custom {
+			v[i] += def.Bonus[i]
+		} else if race >= 0 && race < len(raceBonus) {
 			v[i] += raceBonus[race][i]
 		}
 		if class >= 0 && class < len(classBonus) {

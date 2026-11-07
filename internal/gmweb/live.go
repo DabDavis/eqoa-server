@@ -71,6 +71,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveSpellGates() // live_gates.go
 	case "racesize":
 		return s.liveRaceSizes() // live_racesize.go
+	case "racedefs":
+		return s.liveRaceDefs() // live_racesize.go
 	case "chardyes":
 		return s.liveDyes(before, after) // live_dyes.go
 	case "charvampire":
@@ -424,6 +426,7 @@ func (s *Server) liveAccount(a *actor, action string, before, after map[string]a
 }
 
 func (s *Server) liveCharacter(a *actor, action string, before, after map[string]any) string {
+	s.refreshRaceLabels(before, after) // live_racesize.go
 	row := after
 	if row == nil {
 		row = before

@@ -141,6 +141,11 @@ type Session struct {
 	reportNotice bool
 	boonNotice   bool
 
+	// flyClient: the client said it flies (protocol.OpcodeFly, handlers/fly.go),
+	// so #fly may send it the opcode. A client that never said (a PS2, an older
+	// build) is sent none.
+	flyClient bool
+
 	// resume is the MemoryDump a session carried through a restart is due,
 	// and resumed whether it was carried through one (keep.go)
 	resume  resumeDump
@@ -167,6 +172,21 @@ func (s *Session) BugReports() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.bugReports
+}
+
+// SetFlyClient records that the client said it flies.
+func (s *Session) SetFlyClient(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.flyClient = on
+}
+
+// FlyClient is whether the client said it flies: only then is it sent
+// protocol.OpcodeFly. A client that never said (a PS2) did not.
+func (s *Session) FlyClient() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.flyClient
 }
 
 // SetBugNote keeps the client's note for the next petition it files.

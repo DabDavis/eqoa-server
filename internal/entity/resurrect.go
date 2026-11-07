@@ -370,6 +370,36 @@ func (w *World) offerRezReturnLocked(caster, t *Player, now time.Time) {
 	log.Printf("Rez: %s offers %s the way back to (%.1f, %.1f, %.1f) world %d", caster.Name, t.Name, c.X, c.Y, c.Z, c.World)
 }
 
+// DeathPlaceLive reports whether the session's player, alive, may still go back
+// to where it last died: a rez's chance with its place left.
+func (w *World) DeathPlaceLive(sess *session.Session, now time.Time) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p := w.sessionPlayerLocked(sess)
+	return p != nil && !p.IsDead() && !p.respawnPending() && p.Rez.returns(now)
+}
+
+// TakeDeathPlace is the way back a town's board or sign gives (petition 1218,
+// the GM Jibrish: "a 0% XP resurrect that sends them back to the point they
+// died at", "so if you die and ... no clerics on you can still get back"; the
+// words handlers/boardinvis.go's): where the player died, one trip, the place
+// spent as a rez's offer spends it. No experience comes back and the debt is
+// as it was, so a cleric's rez in the chance's time still gives its share. ok
+// is false with no place, or the player dead.
+func (w *World) TakeDeathPlace(sess *session.Session, now time.Time) (world uint8, x, y, z float32, ok bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil || p.IsDead() || p.respawnPending() || !p.Rez.returns(now) {
+		return 0, 0, 0, 0, false
+	}
+	c := p.Rez
+	p.Rez.Placed = false
+	p.RezReturn = RezReturn{}
+	log.Printf("Rez: %s takes a board's way back to (%.1f, %.1f, %.1f) world %d (debt %d, no share given)", p.Name, c.X, c.Y, c.Z, c.World, p.Debt)
+	return c.World, c.X, c.Y, c.Z, true
+}
+
 // TakeRezReturn is the session's player's answer to a rez's offer: the offer
 // taken (on a No too), and on a Yes with one in its time the place it leads
 // back to, the player brought back to life there first when it lies dead

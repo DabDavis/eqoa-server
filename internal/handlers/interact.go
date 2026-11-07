@@ -53,6 +53,7 @@ type InteractHandler struct {
 	boardMu    sync.Mutex
 	boardSeq   uint32
 	boardAsked map[uint32]uint32 // the box last asked, by the character's serverid
+	boardBack  map[uint32]int    // that box's option of the way back, -1 none
 	boardSpell func() (entity.CastSpell, bool)
 
 	// signTexts is signtext (database.SignTexts): what the signs and boards

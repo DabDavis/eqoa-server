@@ -145,7 +145,7 @@ func (w *World) LFGSearch(sess *session.Session, q LFGQuery) []LFGRow {
 		default:
 			continue
 		}
-		if !lfgBit(q.Classes, p.Class) || !lfgBit(q.Races, p.Race) || p.Level < q.MinLevel || p.Level > q.MaxLevel {
+		if !lfgBit(q.Classes, p.Class) || !lfgBit(q.Races, WireRace(p.Race)) || p.Level < q.MinLevel || p.Level > q.MaxLevel {
 			continue
 		}
 		found = append(found, p)

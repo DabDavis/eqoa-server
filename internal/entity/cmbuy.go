@@ -327,7 +327,7 @@ func (w *World) CMSummary() string {
 // offered is whether the rank is listed for the player: enabled, and for its
 // class and race.
 func (r *CMRank) offered(p *Player) bool {
-	return r.Enabled && r.Classes&(1<<uint(p.Class)) != 0 && r.Races&(1<<uint(p.Race)) != 0
+	return r.Enabled && r.Classes&(1<<uint(p.Class)) != 0 && raceInMask(r.Races, p.Race)
 }
 
 // refreshCMLocked sums the player's ranks' effects again.
@@ -392,7 +392,11 @@ func (w *World) masterClassLocked(p *Player) string {
 func (w *World) TargetInfoLines(p *Player) (title, guild string) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
-	return w.masterClassLocked(p), p.GuildName
+	title = w.masterClassLocked(p)
+	if p.Race == RaceHillGiant { // CLIENT is told an Ogre (race.go): the title says it
+		title = strings.TrimSpace(RaceName(p.Race) + " " + title)
+	}
+	return title, p.GuildName
 }
 
 // CMEntry is one rank as the window lists it.

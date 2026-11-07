@@ -1214,12 +1214,16 @@ var warpLocationNames = map[string]string{
 	// Gerntar Mines' gatekeeper (EQOA-Data's map: "Gatekeeper Furyfoot to SP",
 	// "Gatekeeper Kuggin to GM"): handlers' wayRoutes send him to Kuggin.
 	"Gatekeeper Furyfoot": "Gerntar Mines",
+	// and the other pair ("Gatekeeper Warvar - Oggok Gate", beside "Door to Oggok
+	// Gate" in the Rathe): Threm stands at Tunaria's end of that road.
+	"Gatekeeper Threm": "Oggok Gate",
 }
 
 // warpOfferedBy is a warp NPC only one other offers, for a route that is a pair
 // and no part of the network (a GM's own list, with no one asking, has it too).
 var warpOfferedBy = map[string]string{
 	"Gatekeeper Furyfoot": "Gatekeeper Kuggin",
+	"Gatekeeper Threm":    "Gatekeeper Wavar",
 }
 
 // IsWarpNPC returns true if the NPC name indicates a cross-world travel NPC.

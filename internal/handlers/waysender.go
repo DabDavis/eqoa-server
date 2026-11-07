@@ -150,6 +150,10 @@ var wayRoutes = map[string][]wayRoute{
 	// Kuggin takes Furyfoot's trip back from his own list (entity's warpOfferedBy).
 	// A door stands in its wall: each lands four units out on the open side of the
 	// other, read off the collision (south of Tunaria's, north of the Rathe's).
+	// The same again by Oggok (the user: "yes add threm and the moggok door too"):
+	// Gatekeeper Threm and "Door to Moggok's Gate" at the south end of his road,
+	// Gatekeeper Wavar and "Door to Oggok Gate" in the Rathe; no sighting holds
+	// Tunaria's door, so it stands where the map's mark and the wall agree.
 	"Gatekeeper Furyfoot": {
 		{To: "the Rathe", Arrive: "Gatekeeper Kuggin"},
 	},
@@ -158,6 +162,15 @@ var wayRoutes = map[string][]wayRoute{
 	},
 	"Door to Urglunt's Wall": {
 		{To: "Urglunt's Wall", At: &wayPlace{World: 0, X: 11419.9, Y: 80.1, Z: 21404}},
+	},
+	"Gatekeeper Threm": {
+		{To: "the Rathe", Arrive: "Gatekeeper Wavar"},
+	},
+	"Door to Moggok's Gate": {
+		{To: "Moggok's Gate", At: &wayPlace{World: 1, X: 9825.9, Y: 57.3, Z: 9785}},
+	},
+	"Door to Oggok Gate": {
+		{To: "Oggok Gate", At: &wayPlace{World: 0, X: 12571, Y: 60, Z: 29520.8}},
 	},
 
 	// The Plane of Disease (F3 pass 17, "unable to travel to PoD"), the

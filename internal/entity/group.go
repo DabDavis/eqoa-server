@@ -318,8 +318,8 @@ func (w *World) GroupAccept(sess *session.Session, inviterID uint32) {
 		w.sendGroupRemoved(p, 3)
 		return
 	}
-	// a raid flag's yes counts while its leader still leads
-	if len(g.Members) >= GroupWindowSize && !(ask.raid && g.Members[0] == inviter.ServerID) {
+	// a raid flag's yes counts at any size; it goes with its leader (leaveGroupLocked)
+	if len(g.Members) >= GroupWindowSize && !ask.raid {
 		w.sendGroupRemoved(p, 4)
 		w.sendColoredLocked(sess, raidFullLine, castRefusalRGB)
 		if is := w.sessionOfLocked(inviter); is != nil {

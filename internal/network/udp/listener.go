@@ -19,8 +19,19 @@ import (
 )
 
 const (
-	// MaxPacketSize is the maximum UDP packet size.
+	// MaxPacketSize is the largest packet the server builds.
 	MaxPacketSize = 0x530
+
+	// MaxReceiveSize is the read buffer, past the largest packet a client
+	// builds: DRDP's route_flush fills a 1500-byte buffer (CLIENT's and
+	// vanilla's route.rs), and ReadFromUDP cuts a datagram at its buffer without
+	// a word. Reading into MaxPacketSize, a packet of 1329 to 1500 bytes lost its
+	// end and failed its CRC, and so did every copy the client sent again: a bug
+	// report long enough to go over it with its note was never filed, and the
+	// next message's acknowledgment told the client it had been, so Support said
+	// "Sending message" for good (jib, 2026-11-06; 54 "invalid packet CRC" lines
+	// in four seconds on Jibmage's connection at 23:33 UTC).
+	MaxReceiveSize = 2048
 	// ReadBufferSize is the UDP socket read buffer size.
 	ReadBufferSize = 1024 * 1024
 	// WriteBufferSize is the UDP socket write buffer size.
@@ -76,7 +87,7 @@ func NewListener(cfg *config.Config, sessionManager *session.Manager, handlers *
 		cancel:         cancel,
 		bufferPool: sync.Pool{
 			New: func() interface{} {
-				buf := make([]byte, MaxPacketSize)
+				buf := make([]byte, MaxReceiveSize)
 				return &buf
 			},
 		},

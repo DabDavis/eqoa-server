@@ -6,8 +6,8 @@
 # then copies the database (after the save: a rollback keeps everyone's places), runs the staging's
 # before.sh under `timeout` (the clients wait about 30 s for a silent server: a data step must be short),
 # moves the new binary into place and removes keep.hold; the server re-execs into the new binary with the
-# game's socket open, and the new process puts every session back. Players see the server stand still for a
-# few seconds and a dump where they stand.
+# game's socket open, and the new process puts every session back and every creature as it was (a row before.sh
+# changed wins: entity/keepnpc.go). Players see the server stand still for a few seconds and a dump where they stand.
 #
 # Everyone in the world is warned a minute before all of that (the user, 2026-11-07: "lets make the running
 # reboot have a 1 minute warning before it happens"): SIGUSR1, and $EQOA_KEEP_WARN seconds (60; 0 no warning and

@@ -19,5 +19,11 @@ func TestMain(m *testing.M) {
 	if petFixture.dir != "" {
 		os.RemoveAll(petFixture.dir)
 	}
+	if keepFixture.db != nil {
+		keepFixture.db.Close()
+	}
+	if keepFixture.dir != "" {
+		os.RemoveAll(keepFixture.dir)
+	}
 	os.Exit(code)
 }

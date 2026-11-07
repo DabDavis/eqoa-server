@@ -1,0 +1,172 @@
+{
+ "npcs": [
+  {
+   "name": "Lilara",
+   "world": 0,
+   "x": 21010.0,
+   "y": 54.1,
+   "z": 6780.0,
+   "facing": 64,
+   "level": 10,
+   "type": 128,
+   "body": "0D537335",
+   "size": 1.0,
+   "note": "The guide's Cara Village (C), CLIENT's Kara Village: by its people. She roams in the guide; she stands here."
+  },
+  {
+   "name": "Kitty",
+   "world": 0,
+   "x": 21110.0,
+   "y": 54.1,
+   "z": 6790.0,
+   "level": 5,
+   "type": 128,
+   "body": "1C9CE70B",
+   "size": 1.0,
+   "spawnonly": true,
+   "charm": 0,
+   "note": "Lilara's lost kitty, a bear."
+  },
+  {
+   "name": "kitty's wolf",
+   "world": 0,
+   "x": 21110.0,
+   "y": 54.1,
+   "z": 6790.0,
+   "level": 6,
+   "type": 0,
+   "body": "AE64AA61",
+   "size": 1.0,
+   "spawnonly": true,
+   "note": "Set on the kitty: two come."
+  },
+  {
+   "name": "Dead Hills spider",
+   "world": 1,
+   "x": 5072.0,
+   "y": 107.15,
+   "z": 7485.0,
+   "level": 54,
+   "type": 0,
+   "body": "CAB991F3",
+   "size": 1.25,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 20
+   },
+   "note": "'Kill zombies & spiders': no spider of the level is in the Dead Hills' data; beside the derelict zombies at (5100, 7500)."
+  },
+  {
+   "name": "Dead Hills spider",
+   "world": 1,
+   "x": 5082.0,
+   "y": 109.97,
+   "z": 7522.0,
+   "level": 54,
+   "type": 0,
+   "body": "CAB991F3",
+   "size": 1.25,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 20
+   },
+   "note": "'Kill zombies & spiders': no spider of the level is in the Dead Hills' data; beside the derelict zombies at (5100, 7500)."
+  },
+  {
+   "name": "Dead Hills spider",
+   "world": 1,
+   "x": 5135.0,
+   "y": 106.88,
+   "z": 7498.0,
+   "level": 54,
+   "type": 0,
+   "body": "CAB991F3",
+   "size": 1.25,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 20
+   },
+   "note": "'Kill zombies & spiders': no spider of the level is in the Dead Hills' data; beside the derelict zombies at (5100, 7500)."
+  },
+  {
+   "name": "Dead Hills spider",
+   "world": 1,
+   "x": 5127.0,
+   "y": 107.65,
+   "z": 7530.0,
+   "level": 54,
+   "type": 0,
+   "body": "CAB991F3",
+   "size": 1.25,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 20
+   },
+   "note": "'Kill zombies & spiders': no spider of the level is in the Dead Hills' data; beside the derelict zombies at (5100, 7500)."
+  },
+  {
+   "name": "Dead Hills spider",
+   "world": 1,
+   "x": 5095.0,
+   "y": 104.97,
+   "z": 7545.0,
+   "level": 54,
+   "type": 0,
+   "body": "CAB991F3",
+   "size": 1.25,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 20
+   },
+   "note": "'Kill zombies & spiders': no spider of the level is in the Dead Hills' data; beside the derelict zombies at (5100, 7500)."
+  },
+  {
+   "name": "Dead Hills spider",
+   "world": 1,
+   "x": 5118.0,
+   "y": 100.67,
+   "z": 7462.0,
+   "level": 54,
+   "type": 0,
+   "body": "CAB991F3",
+   "size": 1.25,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 20
+   },
+   "note": "'Kill zombies & spiders': no spider of the level is in the Dead Hills' data; beside the derelict zombies at (5100, 7500)."
+  }
+ ],
+ "items": [
+  {
+   "name": "zombie sinew",
+   "like": "Tomb Keeper's Sinew",
+   "description": "A sinew off a zombie of the Dead Hills.",
+   "notrade": true,
+   "maxstack": 20,
+   "itemcost": 0
+  },
+  {
+   "name": "rusty needle",
+   "like": "Tomb Keeper's Sinew",
+   "description": "A rusty needle out of a spider's nest in the Dead Hills.",
+   "notrade": true,
+   "maxstack": 20,
+   "itemcost": 0
+  },
+  {
+   "name": "pretty necklace",
+   "like": "Trueshot Pendant",
+   "description": "Sinew and rust, and somehow pretty.",
+   "maxstack": 20,
+   "itemcost": 50,
+   "levelreq": 1,
+   "classuse": 32767,
+   "stats": {
+    "weapondamage": 0
+   },
+   "trade": 0
+  }
+ ],
+ "quests": "oneoffs.json"
+}

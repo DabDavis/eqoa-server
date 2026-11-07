@@ -945,7 +945,7 @@ func (h *ChatHandler) gmChatGate(sess *session.Session, p *entity.Player, kind, 
 	h.gm.mu.Unlock()
 	for _, id := range snoopers {
 		if s := h.gameWorld.FindSessionByEntityID(id); s != nil {
-			h.gmReply(s, fmt.Sprintf("Snoop: %s (%s): %s", p.Name, kind, text))
+			h.gmReply(s, fmt.Sprintf("Snoop: %s (%s): %s", p.Name, kind, consoleLine(text, chatLineMost)))
 		}
 	}
 	if silenced {

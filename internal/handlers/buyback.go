@@ -200,7 +200,7 @@ func (h *NPCWindowHandler) waresFor(player *entity.Player, npc *entity.NPC) ([]d
 	if err != nil {
 		return nil, err
 	}
-	if heirloomShop(npc) { // the buyer's class's alone, before the client's 40
+	if classShop(npc) { // the buyer's class's alone, before the client's 40
 		wares = waresForClass(wares, int(player.Class))
 	}
 	if len(wares) > invListCap {
@@ -221,6 +221,19 @@ const heirloomOutfitterName = "Heirloom Outfitter"
 // class keeps within (37 at most).
 func heirloomShop(npc *entity.NPC) bool {
 	return npc != nil && (npc.Name == heirloomOutfitterName || npc.Name == entity.GenieName)
+}
+
+// SpellArchivistName is the Spell Archivists' name: a merchant whose stock is
+// every class's spell scrolls past the class vendors' level 49, its list the
+// buyer's class's alone (the Heirloom Test Server's; Destiny's petition 1273,
+// 2026-11-08: "55+ spell vendors not in game. this is issue for us wanting to
+// test various stuff").
+const SpellArchivistName = "Spell Archivist"
+
+// classShop reports a merchant whose list is the buyer's class's alone
+// (waresForClass): an heirloom shop, or a Spell Archivist.
+func classShop(npc *entity.NPC) bool {
+	return heirloomShop(npc) || (npc != nil && npc.Name == SpellArchivistName)
 }
 
 // waresForClass is the wares a class can use (classuse), in their order.

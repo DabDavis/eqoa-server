@@ -850,6 +850,10 @@ most, CLIENT's room (`maxDialogOptions`: until then its twelve choices and twent
 six), and dyes it at once for nothing: `database.SetCharDye` (audited as #dye's, revertible in the panel) and
 `World.SetDyes`; boxes under mark 0x56000000. A GM's `#dye` takes every colour's name too (a name of two words run
 together: `skyblue`). Dyes show only in clients of the live game's look (vanilla).
+**A Spell Archivist** (any NPC so named, `handlers/buyback.go` `classShop`; Destiny's petition 1273, 2026-11-08: "55+ spell
+vendors not in game. this is issue for us wanting to test variousy stuff") lists the buyer's class's wares alone, as an
+Heirloom Outfitter does: on the Heirloom Test Server one stands in Freeport selling every class's spells of level 50 and up
+(Sandstorm's class vendors end at 49), its scrolls made where none was (`~/charmigrate/spell_archivist_20261108.py`).
 **Dabrish** (`handlers/dabrish.go`, any NPC so named; the GM Jibrish's petition 1266, 2026-11-08: "When talked to Dabrish
 should let players set their level. They can pick in increments of 5. Level 5 to level 60. They can change their level
 at will. He should also have an option for CM's to set them between 0 and 1000 CM's, but it will just add cm's on their

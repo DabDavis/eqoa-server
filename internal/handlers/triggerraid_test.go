@@ -516,3 +516,53 @@ func TestTriggerSicSetsItsSpawnsOnAnNPC(t *testing.T) {
 		}
 	}
 }
+
+// An awaitdead's seconds are the longest it waits: its spawn dead within them,
+// the run goes on at the next tick, its despawn runs and the run ends, so the
+// trigger fires again (the user, 2026-11-08: "the triggers dont reset when the
+// NPC dies"; a death held the run, and its lock, until the seconds were out).
+// The control: with its spawn alive, the run waits out the seconds.
+func TestAnAwaitDeadGoesOnAtTheDeathNotItsSeconds(t *testing.T) {
+	w := newTrigWorld(t)
+	steps := `[{"do":"lock","lock":"pawn vs"},{"do":"spawn","npc":"Orc Pawn","attackable":true,"minutes":60},
+		{"do":"awaitdead","npc":"Orc Pawn","seconds":3600},{"do":"despawn","npc":"Orc Pawn"}]`
+	w.set(20, "Pawn", "near", 50, steps)
+	if _, err := w.fire(20); err != nil {
+		t.Fatal(err)
+	}
+	s := w.spawned()
+	if len(s) != 1 {
+		t.Fatalf("%d spawns, want 1", len(s))
+	}
+	w.at(5 * time.Second)
+	if !w.e.Running()[20] {
+		t.Fatal("over before its spawn died")
+	}
+	if !w.gw.KillNPCNow(s[0].ServerID) {
+		t.Fatal("the spawn would not die")
+	}
+	w.at(10 * time.Second)
+	w.at(11 * time.Second)
+	if w.e.Running()[20] || w.e.BusyNamed("pawn vs") {
+		t.Fatalf("its spawn dead at 5-10 s: running %v, its lock held %v; want both over", w.e.Running()[20], w.e.BusyNamed("pawn vs"))
+	}
+	if _, err := w.fire(20); err != nil {
+		t.Fatalf("fired again: %v", err)
+	}
+
+	// the control: a run whose spawn lives waits out its seconds
+	w.set(21, "Pawn2", "near", 50, strings.ReplaceAll(steps, "pawn vs", "pawn vs 2"))
+	if _, err := w.fire(21); err != nil {
+		t.Fatal(err)
+	}
+	w.at(20 * time.Second)
+	w.at(30 * time.Minute)
+	if !w.e.Running()[21] {
+		t.Fatal("the control ended with its spawn alive, before its seconds")
+	}
+	w.at(3700 * time.Second)
+	w.at(3701 * time.Second)
+	if w.e.Running()[21] {
+		t.Fatal("the control still runs past its seconds")
+	}
+}

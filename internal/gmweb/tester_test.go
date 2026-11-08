@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/eqoa/server/internal/auth"
+	"github.com/eqoa/server/internal/database"
 )
 
 // The tester role (tester.go): a player's account that signs in to the panel
@@ -1709,5 +1710,35 @@ const same = (a, b) => { if (JSON.stringify(a) !== JSON.stringify(b)) throw new 
 	f.db.QueryRow(`SELECT username FROM gm_audit WHERE tbl = 'itempattern' AND rowkey = '{"patternid":10}' ORDER BY id DESC LIMIT 1`).Scan(&who)
 	if who != "tess" {
 		t.Errorf("the audit line of the page's Save is %q's", who)
+	}
+}
+
+// A tester table made before the sub GMs (the user, 2026-11-08: "make his
+// account a sub gm new category above tester than can fly") is given its subgm
+// column at the panel's start, its rows kept and plain testers (0); a second
+// start changes nothing. The control: a table made new has the column already.
+func TestTheTesterTableGetsTheSubGMColumn(t *testing.T) {
+	db, err := database.NewSQLite(filepath.Join(t.TempDir(), "old.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	mustExec(t, db, `CREATE TABLE gm_testers (accountid INTEGER PRIMARY KEY, granted_by TEXT NOT NULL DEFAULT '',
+		granted_at TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '');
+		INSERT INTO gm_testers (accountid, note) VALUES (130, 'a tester')`)
+	for i := 0; i < 2; i++ {
+		if err := ensureSubGMColumn(db); err != nil {
+			t.Fatalf("start %d: %v", i+1, err)
+		}
+	}
+	var sub int
+	var note string
+	if err := db.QueryRow(`SELECT subgm, note FROM gm_testers WHERE accountid = 130`).Scan(&sub, &note); err != nil || sub != 0 || note != "a tester" {
+		t.Fatalf("the old row: subgm %d note %q (%v)", sub, note, err)
+	}
+	f := newFixture(t)
+	f.exec(`INSERT INTO gm_testers (accountid, subgm) VALUES (3, 1)`)
+	if !f.s.subGMFlag(3) || f.s.subGMFlag(2) {
+		t.Errorf("a new table's sub GM: %v; a GM with no row: %v", f.s.subGMFlag(3), f.s.subGMFlag(2))
 	}
 }

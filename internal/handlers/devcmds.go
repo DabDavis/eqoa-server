@@ -57,6 +57,34 @@ func (h *ChatHandler) SetTemplate(fn func(*session.Session) ([]string, error)) {
 }
 
 // isGM is whether sess's account has acctlevel 1 or more.
+// subGMs is an accessLevels that also knows the sub GMs (database's SubGM: a
+// tester's row marked subgm).
+type subGMs interface {
+	SubGM(accountID int) (bool, error)
+}
+
+// subGMCommands are the GM commands a sub GM may use (the user, 2026-11-08:
+// "make his account a sub gm new category above tester than can fly"): a sub
+// GM is a tester in the panel and in the game a player but for these.
+var subGMCommands = map[string]bool{"#fly": true}
+
+// isSubGM reports whether sess's account is a sub GM.
+func (h *ChatHandler) isSubGM(sess *session.Session) bool {
+	g, ok := h.access.(subGMs)
+	if !ok || sess == nil || sess.AccountID() == 0 {
+		return false
+	}
+	yes, err := g.SubGM(sess.AccountID())
+	return err == nil && yes
+}
+
+// granted reports whether sess's account may use the GM command cmd (spelled
+// "#fly") though it is no GM's: a sub GM's commands (subGMCommands), none of a
+// GM's others.
+func (h *ChatHandler) granted(sess *session.Session, cmd string) bool {
+	return subGMCommands[cmd] && h.isSubGM(sess)
+}
+
 func (h *ChatHandler) isGM(sess *session.Session) bool {
 	if h.access == nil || sess == nil || sess.AccountID() == 0 {
 		return false

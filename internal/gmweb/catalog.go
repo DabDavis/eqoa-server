@@ -1911,13 +1911,15 @@ var catalog = map[string]tableNote{
 		Label: "Testers", Group: "Panel", Sort: "accountid", Write: writeAdmin,
 		Help: "Who is a tester, a row an account (tester.go): a player in the game (acctlevel 0, no GM commands) who signs in to " +
 			"this panel with its game password and an authenticator and reads and changes the item and spell records, nothing " +
-			"else. A row on a GM's account does nothing while it is a GM. set_account_tester is the tool; an account's page has its button.",
+			"else. A row on a GM's account does nothing while it is a GM. set_account_tester is the tool; an account's page has its button. " +
+			"Sub GM 1 makes the tester a sub GM: the same panel, and in the game /fly (read at the account's next world entry).",
 		Live: "At once: read on every request. A row taken away ends the account's panel sessions and revokes its tokens.",
 		Cols: map[string]colNote{
 			"accountid":  {Label: "Account", Ref: "accountinfo", ReadOnly: true},
 			"granted_by": {Label: "Given by"},
 			"granted_at": {Label: "Given at"},
 			"note":       {Label: "Note", Help: "why"},
+			"subgm":      {Label: "Sub GM", Help: "1: a sub GM, above a tester: the tester's panel, and in the game /fly; 0: a tester"},
 		},
 	},
 	"gm_totp": {Hidden: true},

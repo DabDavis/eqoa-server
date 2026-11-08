@@ -2,6 +2,7 @@ package entity
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/eqoa/server/internal/database"
 )
@@ -279,7 +280,7 @@ func (w *World) legOKLocked(npc *NPC, x, z float32) bool {
 // What a failed check left in heights means nothing. Must be called with the
 // lock held.
 func (w *World) legCheckLocked(npc *NPC, x, z float32, heights *[]float32) bool {
-	return w.legLocked(npc, x, z, heights, true)
+	return w.legLocked(npc, x, z, heights, legWhole)
 }
 
 // legFloorsLocked is legCheckLocked's floor alone, for a leg of a creature
@@ -289,31 +290,57 @@ func (w *World) legCheckLocked(npc *NPC, x, z float32, heights *[]float32) bool 
 // is not as it was found, and is checked whole). Must be called with the
 // lock held.
 func (w *World) legFloorsLocked(npc *NPC, x, z float32, heights *[]float32) bool {
-	return w.spawnOnGroundLocked(npc) && w.legLocked(npc, x, z, heights, false)
+	return w.spawnOnGroundLocked(npc) && w.legLocked(npc, x, z, heights, legFloor)
 }
 
-// legLocked is the leg's check: its floor, and when whole the rest
-// (legCheckLocked). Must be called with the lock held.
-func (w *World) legLocked(npc *NPC, x, z float32, heights *[]float32, whole bool) bool {
-	return w.legFromLocked(npc, npc.X, npc.Y, npc.Z, x, z, heights, whole)
+// What a leg's check asks: its floor alone (legFloorsLocked); its floor at
+// every routeSample, no steeper than a wander leg's slope, and what is placed
+// across it (a chase's way, chaseroute.go: a running creature steps a unit a
+// tick, and a gap between two points legSample apart took it off a ledge; the
+// terrain's own steep faces are its slope's, most of a search's cost asked
+// again); or all of it, the floor, the walls, CLIENT's set-down and the water
+// (legCheckLocked).
+type legChecks int
+
+const (
+	legFloor legChecks = iota
+	legRoute
+	legWhole
+)
+
+// legLocked is the leg's check from where the creature stands: its floor, and
+// what more checks says (legCheckLocked). Must be called with the lock held.
+func (w *World) legLocked(npc *NPC, x, z float32, heights *[]float32, checks legChecks) bool {
+	return w.legFromLocked(npc, npc.X, npc.Y, npc.Z, x, z, heights, checks)
 }
 
 // legFromLocked is legLocked's check of the leg from (fx, fy, fz) rather than
 // where the creature stands, as that creature would walk it: a chase's route
 // round a ledge is planned so (chaseroute.go). Must be called with the lock
 // held.
-func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]float32, whole bool) bool {
+func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]float32, checks legChecks) bool {
 	d := distXZ(fx, fz, x, z)
 	n := int(d/legSample) + 1
+	drop, rise := legDrop, float32(math.MaxFloat32) // a rise past the ground's step finds no floor
+	if checks == legRoute {
+		// every routeSample, its slope no steeper than a wander leg's (legDrop in
+		// legSample, up or down) between any two
+		n = int(d/routeSample) + 1
+		drop = legDrop * (d / float32(n)) / legSample
+		rise = drop
+	}
 	onGround := w.spawnOnGroundLocked(npc)
 	keeps := keepsToBoth
-	if w.env != nil && whole {
+	if w.env != nil && checks == legWhole {
 		keeps = w.keepsToLocked(npc)
 	}
 	y := fy
 	var walls Walls
-	var placed Placed
-	if whole { // else the floor alone
+	var placed, placedWalls Placed
+	switch checks { // else the floor alone
+	case legRoute:
+		placedWalls, _ = w.ground.(Placed)
+	case legWhole:
 		walls, _ = w.ground.(Walls)
 		placed, _ = w.ground.(Placed)
 	}
@@ -336,8 +363,8 @@ func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]flo
 		sx, sz := fx+(x-fx)*t, fz+(z-fz)*t
 		if onGround {
 			f, ok := w.ground.Floor(npc.World, sx, y, sz)
-			if !ok || f < y-legDrop {
-				return false // no floor, or a fall
+			if !ok || f < y-drop || f > y+rise {
+				return false // no floor, a fall, or a climb up a face
 			}
 			y = f
 			if heights != nil {
@@ -346,6 +373,9 @@ func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]flo
 		}
 		if walls != nil && walls.Wall(npc.World, px, py+knee, pz, sx, y+knee, sz) {
 			return false // a wall in the way
+		}
+		if placedWalls != nil && placedWalls.Placed(npc.World, px, py+knee, pz, sx, y+knee, sz) {
+			return false // a house's wall, a fence, a trunk in the way
 		}
 		if placed != nil {
 			// set down on its own floor here and halfway from the last point

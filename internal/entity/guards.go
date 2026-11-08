@@ -272,7 +272,7 @@ func (w *World) npcFoeLocked(npc *NPC) *NPC {
 // (aiSystem): the chase and the leash (chase.go), then its rounds
 // (rounds.go): its swing to everyone who sees it, then its hits.
 func (w *World) npcFightNPCLocked(npc, foe *NPC, now time.Time) {
-	in, giveUp := w.chaseLocked(npc, foe.X, foe.Z, foe.VelX, foe.VelZ, now)
+	in, giveUp := w.chaseLocked(npc, foe.X, foe.Y, foe.Z, foe.VelX, foe.VelZ, now)
 	if giveUp {
 		w.giveUpLocked(npc)
 		return

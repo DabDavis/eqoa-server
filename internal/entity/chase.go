@@ -87,6 +87,7 @@ type chaseState struct {
 	fromZ        float32
 	last         time.Time
 	returning    bool
+	route        chaseRoute // its way round, while it has one (chaseroute.go)
 }
 
 // npcReach is how near an NPC must be to hit: CLIENT's melee reach, the
@@ -168,11 +169,12 @@ func turnToward(from, want, most float32) float32 {
 }
 
 // chaseLocked is a fighting NPC's movement this tick toward its enemy at
-// (x, z), moving at (vx, vz) a second as its last word says (a player's
+// (x, y, z), moving at (vx, vz) a second as its last word says (a player's
 // 0x40): it reports whether the enemy is in reach (fight on), and gives up
-// (giveUp) when the leash or the distance says so. Must be called with the
-// lock held.
-func (w *World) chaseLocked(npc *NPC, x, z, vx, vz float32, now time.Time) (inReach, giveUp bool) {
+// (giveUp) when the leash or the distance says so. Its way is straight while
+// the ground lets it run so, else round (chaseroute.go). Must be called with
+// the lock held.
+func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (inReach, giveUp bool) {
 	if !npc.chase.on {
 		npc.chase = chaseState{on: true, fromX: npc.X, fromY: npc.Y, fromZ: npc.Z}
 	}
@@ -190,6 +192,21 @@ func (w *World) chaseLocked(npc *NPC, x, z, vx, vz float32, now time.Time) (inRe
 		return false, true
 	}
 	reach, stop := npcReach(npc), npcStop(npc)
+	// its enemy over or under it, on another floor within its reach across the
+	// ground (a ledge): no fight from there, but its way round to it at its run,
+	// where the ground has one (chaseroute.go)
+	if d <= reach+routeLook && absf(y-npc.Y) > routeLevel && !npc.rooted(now) && dt > 0 {
+		run := NPCRunSpeed * npc.snareFactor(now)
+		routing, hold := w.routeWayLocked(npc, &npc.chase.route, x, y, z, d, run*dt, true, now)
+		if routing {
+			w.followRouteLocked(npc, &npc.chase.route, run, dt)
+			return false, false
+		}
+		if hold {
+			npc.stopMoving()
+			return false, false
+		}
+	}
 	if d > 0 {
 		npc.Facing = turnedInFight(npc, headingTo(x-npc.X, z-npc.Z), d, reach, dt)
 	}
@@ -226,10 +243,32 @@ func (w *World) chaseLocked(npc *NPC, x, z, vx, vz float32, now time.Time) (inRe
 		}
 		return d <= reach, false
 	}
-	oldX, oldZ := npc.X, npc.Z
+	// the way: straight while the ground lets it run so, else round what stands
+	// between, at its run (chaseroute.go)
+	routing, hold := w.routeWayLocked(npc, &npc.chase.route, x, y, z, d, step, false, now)
+	if routing {
+		w.followRouteLocked(npc, &npc.chase.route, speed, dt)
+		return false, false
+	}
+	if hold {
+		if npc.moving() {
+			npc.stopMoving()
+		}
+		return d <= reach && absf(y-npc.Y) <= routeLevel, false
+	}
+	oldX, oldY, oldZ, oldSwim := npc.X, npc.Y, npc.Z, npc.swimming
+	guarded := w.routesFor(npc) && !now.Before(npc.chase.route.failedUntil)
 	npc.X += ux * step
 	npc.Z += uz * step
 	w.groundNPCLocked(npc)
+	if guarded && (npc.Y < oldY-legDrop || npc.Y > oldY+routeClimb) {
+		// off an edge the look ahead stepped over (or into the water below it):
+		// not taken, and the way searched at the next step (chaseroute.go)
+		npc.X, npc.Y, npc.Z, npc.swimming = oldX, oldY, oldZ, oldSwim
+		npc.chase.route.edge = true
+		npc.stopMoving()
+		return d <= reach && absf(y-npc.Y) <= routeLevel, false
+	}
 	if w.SpatialIndex != nil {
 		w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.X, npc.Z)
 	}
@@ -260,6 +299,7 @@ func (w *World) goHomeLocked(npc *NPC) {
 		return
 	}
 	npc.chase.on = false
+	npc.chase.route = chaseRoute{} // the fight's way round: home is found anew
 	if distXZ(npc.X, npc.Z, npc.chase.fromX, npc.chase.fromZ) < 0.5 {
 		w.atHomeLocked(npc)
 		return
@@ -320,6 +360,20 @@ func (w *World) homeSystem(now time.Time) {
 		}
 		speed := NPCRunSpeed
 		speed *= npc.snareFactor(now) // a snare's slow (workbook.go)
+		// round what stands between, where the straight way home is not one it
+		// can run (chaseroute.go: off a ledge it was led down, up the ramp)
+		home := distXZ(npc.X, npc.Z, npc.chase.fromX, npc.chase.fromZ)
+		routing, hold := w.routeWayLocked(npc, &npc.chase.route, npc.chase.fromX, npc.chase.fromY, npc.chase.fromZ, home, speed*dt,
+			home <= routeLook && absf(npc.chase.fromY-npc.Y) > routeLevel, now)
+		if routing || hold {
+			if routing {
+				w.followRouteLocked(npc, &npc.chase.route, speed, dt)
+			} else {
+				npc.stopMoving()
+			}
+			kept = append(kept, npc)
+			continue
+		}
 		// the ground is asked from the height it left at or its own, the higher: below a
 		// floor it left, it would walk home underneath it
 		npc.Y = max(npc.Y, npc.chase.fromY)

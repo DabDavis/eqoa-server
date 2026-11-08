@@ -177,7 +177,7 @@ func TestACreatureOfTheWaterStopsAtItsEdge(t *testing.T) {
 		for i := 0; i < 60; i++ {
 			now = now.Add(100 * time.Millisecond)
 			shark.chase.last = now.Add(-100 * time.Millisecond)
-			w.chaseLocked(shark, p.X, p.Z, 0, 0, now)
+			w.chaseLocked(shark, p.X, p.Y, p.Z, 0, 0, now)
 		}
 		return shark
 	}

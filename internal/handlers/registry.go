@@ -355,6 +355,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	interactHandler.spend = npcWindowHandler.spendTunar
 	// the coachmen's GMs, offered every coach town (coachledger.go)
 	interactHandler.isGM = chatHandler.isGM
+	interactHandler.dabrishLevel, interactHandler.dabrishMastery = chatHandler.applyLevel, chatHandler.giveMastery // dabrish.go
 	if charStore != nil {
 		interactHandler.binds = charStore
 		// the stables' ledgers (coachledger.go)

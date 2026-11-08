@@ -15,8 +15,10 @@
 // (and an authenticator code once enrolled, totp.go) and holds a cookie; an AI
 // agent holds a bearer token, made in the panel (tokens.go) or through OAuth,
 // where the GM signs in on the panel's own page (oauth.go). A tester, a player
-// with a row in gm_testers (tester.go), signs in the same ways and is held at
-// run() to the item and spell records.
+// with a row in gm_testers (tester.go), and a storyteller, one with a row in
+// gm_storytellers (storyteller.go), sign in the same ways and are held at run()
+// to their roles' tables (roles.go): the item and spell records, NPC dialog and
+// the quests' words.
 //
 // EVERY CHANGE IS AUDITED (audit.go) with the row before and after, by whom
 // and through what, and a row change can be reverted from the log.

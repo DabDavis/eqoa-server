@@ -129,6 +129,15 @@ type Session struct {
 	// creationOffered: the creation offer went out (protocol.OpcodeCreationOffer,
 	// handlers/creation.go), once a session as the live look's.
 	creationOffered bool
+	// raceOptionsOffered: the race options' offer went out
+	// (protocol.OpcodeRaceOptions, handlers/raceoptions.go), once a session.
+	// raceLooks: the client answered it, so it is sent each race's options
+	// (raceCatalogueSent: once) and the looks the characters chose, whenever
+	// they differ from raceLooksSent, the list it was last sent.
+	raceOptionsOffered bool
+	raceLooks          bool
+	raceCatalogueSent  bool
+	raceLooksSent      string
 
 	// clock is the game clock the session's client keeps, set by each 0x0013
 	// it was sent: its time of day (gameclock.go).
@@ -271,6 +280,59 @@ func (s *Session) OfferLiveLookOnce() bool {
 	first := !s.liveLookOffered
 	s.liveLookOffered = true
 	return first
+}
+
+// OfferRaceOptionsOnce reports whether the race options' offer is still to be
+// made to this session, and marks it made.
+func (s *Session) OfferRaceOptionsOnce() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	first := !s.raceOptionsOffered
+	s.raceOptionsOffered = true
+	return first
+}
+
+// SetRaceLooks records the client's answer to the race options' offer: on, it
+// is sent the options and the looks; off, nothing more.
+func (s *Session) SetRaceLooks(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.raceLooks = on
+	if !on {
+		s.raceLooksSent = ""
+	}
+}
+
+// RaceLooks is whether the client asked for the races' options and looks. A
+// client that never answered (a PS2) did not.
+func (s *Session) RaceLooks() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.raceLooks
+}
+
+// TakeRaceCatalogue is true the first time it is asked of a session that asked
+// for the races' options: their list goes out once a session.
+func (s *Session) TakeRaceCatalogue() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if !s.raceLooks || s.raceCatalogueSent {
+		return false
+	}
+	s.raceCatalogueSent = true
+	return true
+}
+
+// TakeRaceLooks reports whether body, a list of the looks, is to go to this
+// session (it asked, and was last sent another), and records it as sent.
+func (s *Session) TakeRaceLooks(body string) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if !s.raceLooks || s.raceLooksSent == body {
+		return false
+	}
+	s.raceLooksSent = body
+	return true
 }
 
 // OfferCreationOnce reports whether creation's offer is still to be made to

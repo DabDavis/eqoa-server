@@ -334,6 +334,25 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 		return nil
 	}
 
+	// a custom race's own options, chosen on a page of a client that was
+	// offered them (raceoptions.go): its body, and the looks its parts take
+	rest, _ := reader.ReadBytes(reader.Remaining())
+	choices, present, ok := raceOptionsBlock(rest)
+	var chosenBody int64
+	var looks []database.CharLook
+	if present {
+		var err error
+		if ok {
+			chosenBody, looks, err = entity.ResolveOptions(int(race), int(gender), choices)
+		}
+		if !ok || err != nil {
+			log.Printf("CreateCharacter: refused '%s': its race options (%d bytes): %v", name, len(rest), err)
+			h.sendCreateRefusal(sess, protocol.OpcodeCreateCharFailed)
+			return nil
+		}
+		log.Printf("CreateCharacter: '%s' chose %v: body %#x, %d looks", name, choices, uint32(chosenBody), len(looks))
+	}
+
 	// Create character record for database
 	accountID := sess.AccountID()
 	if accountID == 0 {
@@ -380,6 +399,10 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 		TotalTP:      20,
 	}
 
+	if chosenBody != 0 {
+		record.ModelID = chosenBody
+	}
+
 	// Save to database, at the start level, in the home city (a froglok in
 	// a human of the east's) and with its class's first abilities or, when
 	// the server gives them, all its class's spells (database/newchar.go):
@@ -403,6 +426,13 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 	log.Printf("*** CHARACTER CREATED: '%s' (ServerID=%d, Level %d Race=%d Class=%d, %d spells; the message asked level %d) - Total chars: %d ***",
 		name, record.ServerID, record.Level, record.Race, record.TClass, spells, level, count)
 
+	// the look it chose (charlook.go), told the clients that show looks
+	if len(looks) > 0 && h.store.DB() != nil {
+		if err := h.store.DB().SetCharLooks(uint32(record.ServerID), looks); err != nil {
+			log.Printf("CreateCharacter: '%s' made, its look not: %v", name, err)
+		}
+	}
+
 	// Don't create entity here — player entities are created when entering the world
 	// (CreatePlayer in HandleSelectedChar). Creating them at character creation would
 	// leave ghost entities in the spatial index that consume NPC render slots.
@@ -410,6 +440,9 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 	// Send updated character list
 	sess.Queue().SetBodyFlags(protocol.BodyFlagGuaranteedAck)
 	h.SendCharacterSelectEQOA(sess)
+	if len(looks) > 0 {
+		h.gameWorld.RefreshRaceLooks(h.store.DB())
+	}
 
 	return nil
 }
@@ -1398,6 +1431,7 @@ func (h *CharacterHandler) HandleDelCharacter(sess *session.Session, msg *protoc
 		return nil
 	}
 
+	looked := h.store.DB() != nil && h.store.DB().HasCharLook(serverID)
 	if err := h.store.Delete(serverID); err != nil {
 		log.Printf("DelCharacter: failed to delete serverID=%d: %v", serverID, err)
 	} else {
@@ -1405,6 +1439,9 @@ func (h *CharacterHandler) HandleDelCharacter(sess *session.Session, msg *protoc
 	}
 
 	h.SendCharacterSelectEQOA(sess)
+	if looked { // its look leaves the clients' lists (raceoptions.go)
+		h.gameWorld.RefreshRaceLooks(h.store.DB())
+	}
 	return nil
 }
 
@@ -1583,6 +1620,8 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 	// takes races or classes past the game's (creation.go)
 	SendLiveLookOffer(sess)
 	SendCreationOffer(sess)
+	// and the race options', every session's once (raceoptions.go)
+	SendRaceOptionsOffer(sess)
 }
 
 // worldPaths maps a world index to the esfPath the client loads it from.

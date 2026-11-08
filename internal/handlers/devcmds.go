@@ -450,17 +450,95 @@ func (h *ChatHandler) nearbyCommand(sess *session.Session, player *entity.Player
 	}
 }
 
-// setLevel is #setlevel: the level where the game holds it (its stats and the
-// stat channel), told to the client (0x0020, as the GM panel tells it), and
-// kept with no experience into it. It was the live Player's alone, so a level
-// set was gone at the next login (Jibrish 60 in the game and 1 in the
-// database, F3 pass 13).
-func (h *ChatHandler) setLevel(sess *session.Session, player *entity.Player, level int) {
-	h.setLevelFor(sess, sess, player, level)
+// setLevelCommand is #setlevel [name] <level> (Jibrish, petition 1265:
+// "/setlevel Nuke 60 should set the character nuke to 60 if im targeting them,
+// but not add or remove spells or change anything beyond level"): the
+// character a name names, in the world or not, else the GM's target player,
+// else the GM (gmCharacter, as #banktunar's), the name and the level in either
+// order. Only the level changes, as setLevelFor sets it: no spell, item, tunar
+// or mastery (#template is the command that gives those).
+func (h *ChatHandler) setLevelCommand(sess *session.Session, gm *entity.Player, args []string) {
+	name, level := "", ""
+	switch len(args) {
+	case 0:
+	case 1:
+		level = args[0]
+		if _, err := strconv.Atoi(level); err != nil {
+			name, level = args[0], ""
+		}
+	default:
+		name, level = args[0], args[1]
+		if _, err := strconv.Atoi(name); err == nil {
+			if _, err := strconv.Atoi(level); err != nil {
+				name, level = level, name // #setlevel 60 Nuke
+			}
+		}
+	}
+	s, ok := h.gmCharacter(sess, gm, name, "Set level")
+	if !ok {
+		return
+	}
+	n, err := strconv.Atoi(level)
+	if err != nil {
+		switch {
+		case s.p != nil:
+			h.gmReply(sess, fmt.Sprintf("%s is level %d", s.name, s.p.Level))
+		case h.resets != nil:
+			if rec, err := h.resets.GetByServerID(s.serverID); err == nil && rec != nil {
+				h.gmReply(sess, fmt.Sprintf("%s is level %d (not in the world)", s.name, rec.Level))
+			}
+		}
+		h.gmReply(sess, "Usage: #setlevel [name] <level> - the level alone; no name: your target player, else you")
+		return
+	}
+	if s.sess == nil {
+		h.setRowLevel(sess, gm, s, n)
+		return
+	}
+	if s.p != gm {
+		log.Printf("GM: %s sets %s's level to %d", gm.Name, s.name, n)
+	}
+	h.setLevelFor(sess, s.sess, s.p, n)
 }
 
-// setLevelFor is setLevel on player, whose session is sess, said to gm (the
-// GM's channel's Buff PC sets another player's).
+// setRowLevel is #setlevel for a character out of the world: its row's level
+// with no experience into it, under the cap its account's has (a GM's 100),
+// read by its next login, which gives the training points the level is due
+// (character.go's enterFromRecord).
+func (h *ChatHandler) setRowLevel(sess *session.Session, gm *entity.Player, s gmSubject, level int) {
+	if h.progress == nil || h.resets == nil {
+		h.gmReply(sess, "Set level: this server keeps no characters")
+		return
+	}
+	rec, err := h.resets.GetByServerID(s.serverID)
+	if err != nil || rec == nil {
+		h.gmReply(sess, fmt.Sprintf("Set level: no row for %s (%v)", s.name, err))
+		return
+	}
+	isGM := false
+	if h.access != nil {
+		l, err := h.access.AccessLevel(rec.AccountID)
+		isGM = err == nil && l >= 1
+	}
+	level = max(1, min(entity.LevelCap(isGM), level))
+	if err := h.progress.SetProgress(s.serverID, level, entity.TotalXP(level, 0)); err != nil {
+		log.Printf("GM: #setlevel %d for '%s' (not in the world) not kept: %v", level, s.name, err)
+		h.gmReply(sess, fmt.Sprintf("%s's level not set: %v", s.name, err))
+		return
+	}
+	log.Printf("GM: %s sets %s's level to %d (not in the world)", gm.Name, s.name, level)
+	h.gmReply(sess, fmt.Sprintf("%s's level set to %d (not in the world: from its next login)", s.name, level))
+}
+
+// setLevelFor is #setlevel on player, whose session is sess, said to gm (the
+// GM's own, another player's, or the GM's channel's Buff PC): the level where
+// the game holds it, told to the client (0x0020 and the stat cap, as the GM
+// panel tells it), and kept with no experience into it. What the level itself
+// gives goes with it (its stats, the training points it is due, the
+// heirlooms' figures); nothing else changes. The level was the live Player's
+// alone once, so a level set was gone at the next login (Jibrish 60 in the
+// game and 1 in the database, F3 pass 13). A player whose level a GM set is
+// told.
 func (h *ChatHandler) setLevelFor(gm, sess *session.Session, player *entity.Player, level int) {
 	level = max(1, min(entity.LevelCap(h.isGM(sess)), level)) // the account's, read now
 	before := player.UnusedTP
@@ -489,6 +567,9 @@ func (h *ChatHandler) setLevelFor(gm, sess *session.Session, player *entity.Play
 		}
 	}
 	h.gmReply(gm, fmt.Sprintf("%s set to %d", said, level))
+	if gm != sess {
+		SendColoredChat(sess, fmt.Sprintf("A GM set your level to %d.", level), 255, 255, 0)
+	}
 }
 
 // setTunar is #tunar: the purse where the game holds it, told to the client

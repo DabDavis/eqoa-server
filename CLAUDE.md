@@ -280,6 +280,11 @@ worn; all of it written, then a MemoryDump where it stands. `#setlevel` and `#tu
 the row too, and a character's level and the experience into it (`totalXP`: every level
 below plus this one's, `entity.TotalXP`) are kept by the logout save, the shutdown's and a
 replacing login's: until then a level gained or set was gone at the next login.
+`#setlevel [name] <level>` (`setLevelCommand`; Jibrish, petition 1265: "/setlevel Nuke 60 should set the character nuke
+to 60 if im targeting them, but not add or remove spells or change anything beyond level") is anyone's: a name (either
+order), else the GM's target player, else the GM (`gmCharacter`, as `#banktunar`'s); a character out of the world on
+its row, for its next login. The level alone, with what the level itself gives (stats, the stat cap, the training
+points it is due, the heirlooms' figures): no spell, item, tunar or mastery. The player is told.
 
 **A GM's flight** (`handlers/fly.go`, `entity/fly.go`; the user, 2026-11-07: "lets add a gm fly command its like
 swimming you can look up/down to go in that direction, but running, standing like normal and its a on/off toggle"):

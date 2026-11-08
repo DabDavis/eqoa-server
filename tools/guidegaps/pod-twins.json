@@ -1,0 +1,53 @@
+{
+ "notes": "The Plane of Disease's twins, Uzrathixius and Poxathixius, as eqoa.forumotion.com's threads have them (the user, 2026-11-08: 'lets expedite these first', 'the uzra and pox aoe should be PR and every 20 secs', 'lets make uzra and pox scaled 2.5x bigger'): Bertoxxulous's pets, behind the Closed Portal Noroxus's blood opens for 15 minutes and that stays shut 45 minutes to 3 hours after; up about every two days; farmed for the Plane of Disease's spells, which they, Bertoxxulous and Noroxus drop (the Drop Spells thread). Their breath's figure (2,000, as Veeshan's Bulwark's, a million hit points too) and the drop chances are ours.",
+ "items": [
+  {"name": "Hymn of Nife", "like": "Briarshield", "description": "This scroll will allow you to learn Hymn of Nife.", "classuse": 32},
+  {"name": "Stormlord's Touch", "like": "Briarshield", "description": "This scroll will allow you to learn Stormlord's Touch.", "classuse": 4096},
+  {"name": "Lightning Storm", "like": "Briarshield", "description": "This scroll will allow you to learn Lightning Storm.", "classuse": 1024},
+  {"name": "Largesse of Plague", "like": "Briarshield", "description": "This scroll will allow you to learn Largesse of Plague.", "classuse": 2048},
+  {"name": "Rodcet's Touch", "like": "Briarshield", "description": "This scroll will allow you to learn Rodcet's Touch.", "classuse": 4},
+  {"name": "Lightning Arrow", "like": "Briarshield", "description": "This scroll will allow you to learn Lightning Arrow.", "classuse": 2},
+  {"name": "Virulent Blade", "like": "Briarshield", "description": "This scroll will allow you to learn Virulent Blade.", "classuse": 64},
+  {"name": "Hand of Bertoxxulous", "like": "Briarshield", "description": "This scroll will allow you to learn Hand of Bertoxxulous.", "classuse": 8},
+  {"name": "Barbiedolls of Karana", "like": "Briarshield", "description": "This scroll will allow you to learn Barbiedolls of Karana.", "classuse": 256}
+ ],
+ "spells": [
+  {"id": 905023, "name": "Pestilent Breath", "line": "Target, aoe Decrease Hitpoints by 2000, Radius 40", "fx": 1658985755,
+   "effects": {"v": 1, "scope": "target_aoe", "target_type": "Enemy", "harmful": true, "stack": 0, "level": 60, "min_level": 1, "radius": 40, "req_equipment": "Any", "sheet_type": "Dmg/Heal",
+               "effects": [{"type": "Dmg/Heal", "kind": "hp2", "amount": -2000, "resist": "pr"}]}}
+ ],
+ "templates": [
+  {"name": "pod twins", "class": 0, "hp_pct": 6615, "level": 65, "crit": 481,
+   "abilities": [{"kind": "aoe", "spell_id": 905023, "every": 20, "first": 15}],
+   "note": "The pod boss's (a million hit points, its crit) and the twins' breath: poison, resisted by PR, every 20 seconds (the user, 2026-11-08: 'the uzra and pox aoe should be PR and every 20 secs')."}
+ ],
+ "npcs": [
+  {"name": "Open Bloody Portal", "world": 5, "x": 5243.0, "y": -25.081, "z": 3175.0, "facing": 128, "level": 60, "type": 384, "body": "77F94B63", "size": 1.0, "spawnonly": true,
+   "note": "The Bloody Portal opened: stood beside it 15 minutes by the trigger Bloody Portal Opens (handlers/waysender.go sends from it to the Portal of the Twins)."}
+ ],
+ "triggers": [
+  {"slot": 122, "name": "Bloody Portal Opens", "scope": "near", "radius": 100, "world": 5, "x": 5243.0, "y": -25.1, "z": 3175.0,
+   "steps": [
+    {"do": "lock", "lock": "bloody portal"},
+    {"do": "spawn", "npc": "Open Bloody Portal", "spread": 0.1, "minutes": 15},
+    {"do": "broadcast", "text": "The Bloody Portal drinks the blood of Noroxus and tears open. It closes in fifteen minutes."},
+    {"do": "wait", "seconds": 840},
+    {"do": "broadcast", "text": "The Bloody Portal shudders: in a minute it closes."},
+    {"do": "wait", "seconds": 60},
+    {"do": "broadcast", "text": "The Bloody Portal closes. It will not drink again for a while."},
+    {"do": "wait", "seconds": 2700, "upto": 10800}
+   ],
+   "notes": "The twins' thread: open about 15 minutes, then shut 45 minutes to 3 hours (a random wait). One raid's blood opens it for all near."}
+ ],
+ "loot": [
+  {"table": "pod spells", "items": ["Hymn of Nife", "Purifying Winds of Nife", "Briarshield", "Stormlord's Touch", "Lightning Storm", "Mending of Nife", "Largesse of Plague",
+                                    "Rodcet's Touch", "Lightning Arrow", "Virulent Blade", "Hand of Bertoxxulous", "Barbiedolls of Karana", "Acidic Storm", "Immortal Skin", "Lightning Column"],
+   "npcs": [["Uzrathixius", 50, 1], ["Poxathixius", 50, 1], ["Bertoxxulous", 25, 1], ["Noroxus", 25, 1]]}
+ ],
+ "sql": [
+  ["UPDATE npctemplate SET template = 'pod twins', note = 'boss, level 65: the twins'' breath (pod-twins)', source = 'pod-twins' WHERE name IN ('uzrathixius', 'poxathixius')", []],
+  ["UPDATE npcs SET size = 4.5 WHERE id IN (122074, 122075) AND npc_name IN ('Uzrathixius', 'Poxathixius')", []],
+  ["INSERT OR REPLACE INTO npcrespawn (npc_row, seconds, note, source) VALUES (122074, 172800, 'Poxathixius: about every two days (the twins'' thread)', 'pod-twins'), (122075, 172800, 'Uzrathixius: about every two days (the twins'' thread)', 'pod-twins')", []]
+ ],
+ "quests": "pod-twins.json"
+}

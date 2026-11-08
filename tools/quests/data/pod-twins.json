@@ -1,0 +1,37 @@
+{
+ "city": "portal",
+ "quests": [
+  {
+   "key": "Portal/plane-of-disease/bloody-portal",
+   "name": "The Bloody Portal",
+   "giver": "Bloody Portal",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": ["Portal/plane-of-disease/noroxus-2"],
+   "repeatable": true,
+   "offer": "The portal is closed, its face dark and clotted. It stirs at the smell of Noroxus's blood.\nShow it the blood? It stays open a quarter of an hour: bring the raid first.",
+   "accept": "Show it the blood of Noroxus.",
+   "decline": "Not yet.",
+   "declined": "The portal settles, closed.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Bloody Portal",
+     "items": [{"item": "blood of Noroxus", "count": 1}],
+     "journal": "Show the blood of Noroxus to the Bloody Portal, the raid beside you.",
+     "says": "The portal drinks a drop of the blood and tears open.",
+     "reminder": "The portal answers only the blood of Noroxus.",
+     "events": [
+      {"on": "start", "do": "dostep"},
+      {"on": "done", "do": "trigger", "trigger": "Bloody Portal Opens", "text": "The portal has drunk already and will not open again yet. It wakes in an hour or three."}
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "The user, 2026-11-08, sending eqoa.forumotion.com's Uzrathixius and Poxathixius thread: 'Go around the circle past Honcho Ulgurglch to the Closed Portal. Open it only when the raid is assembled, since it stays open about 15 minutes. It respawns randomly every 45 minutes to 3 hours.' The blood (Blood of Noroxus, the quest before) is shown, not taken: it opens the portal every time."
+  }
+ ],
+ "items": []
+}

@@ -41,6 +41,9 @@ type Gear struct {
 	// hand, which makes every second hit of a round
 	MainProc, OffProc *WeaponProc
 	OffArmed          bool
+	// Armor is the kind of armour on the chest (a robe: cloth), for a race shown in another body
+	// by it (armorbody.go)
+	Armor ArmorKind
 }
 
 // Add puts one worn item's stats, by stat id, into the sums.
@@ -152,5 +155,6 @@ func (w *World) SetGear(id EntityID, g Gear, fill bool) {
 	if p, ok := w.Players[id]; ok {
 		p.Gear = g
 		p.RecalcStats(fill)
+		p.ArmorBody = w.armorBodyLocked(p) // armorbody.go
 	}
 }

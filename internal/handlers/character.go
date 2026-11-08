@@ -1245,10 +1245,17 @@ func characterGear(items []database.CharInventoryEntry) []byte {
 // hands are bare with no weapon in 14, 15 or 16 (a shield, an item held,
 // bait and a fishing pole are none) and nothing in 18, where a monk's melee
 // rolls on its hand to hand (entity/offence.go).
+// The equip slots of a robe and of a chest piece (itempattern.equipslot), for the armour on the
+// chest (wornGear).
+const (
+	wearRobe  = 2
+	wearChest = 5
+)
+
 func wornGear(items []database.CharInventoryEntry) entity.Gear {
 	g := entity.Gear{WeaponCond: 1}
 	var main, off, ranged *database.CharInventoryEntry
-	armed := false
+	armed, robe := false, false
 	for i := range items {
 		it := &items[i]
 		if it.EquipLoc < 0 || it.Location != 0 {
@@ -1260,6 +1267,14 @@ func wornGear(items []database.CharInventoryEntry) entity.Gear {
 		// what it does when its wearer is hit (entity/wornshield.go)
 		if s, ok := entity.WornShieldOf(it.Pattern.PatternID, it.Pattern.ItemName); ok {
 			g.Shields = append(g.Shields, s)
+		}
+		// the armour on the chest, for a race shown in another body by it (entity/armorbody.go):
+		// the chest piece's material, a robe over it cloth
+		switch it.Pattern.EquipSlot {
+		case wearRobe:
+			robe = true
+		case wearChest:
+			g.Armor = entity.ArmorKindOf(it.Pattern.Model)
 		}
 		switch it.EquipLoc {
 		case 14, 16:
@@ -1299,6 +1314,9 @@ func wornGear(items []database.CharInventoryEntry) entity.Gear {
 		}
 	}
 	g.BareHands = !armed
+	if robe {
+		g.Armor = entity.ArmorCloth
+	}
 	return g
 }
 

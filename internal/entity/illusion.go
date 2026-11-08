@@ -163,6 +163,9 @@ func (p *Player) Body() (model uint32, size float32) {
 			return e.Form, p.Size
 		}
 	}
+	if p.ArmorBody != 0 { // its race's body for its armour (armorbody.go)
+		return p.ArmorBody, p.Size
+	}
 	return uint32(p.ModelID), p.Size
 }
 

@@ -618,6 +618,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharRez(); err != nil { // resurrect.go
 		return err
 	}
+	if err := db.ensureRaceArmorBody(); err != nil { // racearmorbody.go
+		return err
+	}
 	if err := db.ensureNPCUndead(); err != nil {
 		return err
 	}

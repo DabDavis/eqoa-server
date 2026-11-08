@@ -1076,6 +1076,9 @@ func (w *World) duelRoundLocked(p *Player, now time.Time) bool {
 			return false
 		}
 		if t != nil {
+			if p.Swing.Potion != 0 { // a worn thrown potion: its own harm, not the melee's (potion.go)
+				return w.thrownPotionAtFoeLocked(p, t, now)
+			}
 			n := playerMeleeHit(p, duelStandIn(t.Level), rand.Intn)
 			return w.duelHurtLocked(d, p, p.ServerID, t, n, now) ||
 				w.duelAnswerLocked(d, t, duelMark{t: p}, now) || // duelprocs.go

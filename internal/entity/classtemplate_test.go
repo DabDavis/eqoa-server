@@ -1320,3 +1320,88 @@ func TestAnNPCSetOnAnotherFightsAndIsFoughtBack(t *testing.T) {
 		t.Error("SetNPCOn found a Nobody Here")
 	}
 }
+
+// A template's debuff whose spell has a damage tick puts a damage over time on
+// the player it fights (the GM Jibrish's petition 1259: the Ebony Recluse's
+// "poison dot that lasts 30 seconds ... that ticks for 300"): the effect lands
+// with its tick, each tick takes the figure less the player's resist to its
+// element (its tick's resist, poison) and says it, every six seconds; a
+// tick whose creature is dead does nothing. The control: a stat debuff (the test
+// above) puts no tick on.
+func TestATemplatesDebuffCanPoison(t *testing.T) {
+	r := newTemplateRig(t)
+	const venom = 7101
+	if _, err := r.db.Exec(`INSERT INTO spellpattern (spellid, abilitylvl, unk2, unk3, range, casttime, power, iconColor, icon, scope, recast,
+		eqprequire, spellname, spelldesc) VALUES (?, 50, 0, 0, 16880, 0, 0, 0, 5, 1, 0, 0, 'Recluse Venom', '')`, venom); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.db.Exec(`INSERT INTO spelleffect (spellid, line, fxdict, source, effects) VALUES (?, 'Target, Decrease HP per tic by 300, 30sec', 99, 'test',
+		'{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"duration_s":30,"stack":0,"level":50,"min_level":1,"req_equipment":"Any","effects":[{"id":"F1","type":"Dmg/Heal","kind":"hp_tick","amount":-300,"resist":"pr"}]}')`, venom); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.db.Exec(`INSERT INTO classtemplates (name, class, abilities) VALUES ('venomous', -1, ?)`,
+		fmt.Sprintf(`[{"kind":"debuff","spell_id":%d,"every":30,"first":1}]`, venom)); err != nil {
+		t.Fatal(err)
+	}
+	if got := r.assign("gnoll guard", "venomous"); got != 1 {
+		t.Fatalf("%d creatures of the template", got)
+	}
+	defer func(f func() float64) { resistRand = f }(resistRand)
+	resistRand = func() float64 { return 0.5 }
+	guard := r.npc("Gnoll Guard")
+	p, sess := r.player("Hero", guard.X+1, guard.Z)
+	p.HP, p.MaxHP = 100000, 100000
+	r.fight(guard, p.ServerID)
+	effects := func(d time.Duration) {
+		r.w.mu.Lock()
+		r.w.effectSystem(r.at(d))
+		r.w.mu.Unlock()
+	}
+	r.tick(0)
+	r.tick(1 * time.Second)
+	hp0 := p.HP
+	r.tick(1*time.Second + castLand)
+	var ae *ActiveEffect
+	for _, e := range p.Effects {
+		if e.SpellID == venom {
+			ae = e
+		}
+	}
+	if ae == nil || ae.HPTick != -300 || ae.npcFoe != guard.ServerID || ae.npcResist != StatPR {
+		t.Fatalf("its effect: npcFoe %d (guard %d), npcResist %v (want %v), HPTick %d (lines %q)", ae.npcFoe, guard.ServerID, ae.npcResist, StatPR, ae.HPTick, linesOf(drain(sess)))
+	}
+	lines := linesOf(drain(sess)) // the first tick comes as it lands
+	start := 1*time.Second + castLand
+	for d := start; d <= start+31*time.Second; d += time.Second {
+		effects(d)
+	}
+	lines = append(lines, linesOf(drain(sess))...)
+	ticks := 0
+	for _, l := range lines {
+		if strings.Contains(l, "Gnoll Guard's Recluse Venom hits you for 300") {
+			ticks++
+		}
+	}
+	// a workbook record's first tick lands twice (EffectRules.Twice), then one every 6 s
+	melee := (hp0 - p.HP) - 300*ticks
+	if ticks != 6 || melee < 0 || melee > 300 {
+		t.Fatalf("%d ticks of 300 in its 30 s, %d taken: want 6 (its first twice as it lands, then every 6 s): %q", ticks, hp0-p.HP, lines)
+	}
+	if p.hasEffect(venom) {
+		t.Error("still on past its 30 s")
+	}
+
+	// a fresh one, then the creature dies: no tick lands after
+	r.w.mu.Lock()
+	r.w.addEffectLocked(p, &ActiveEffect{SpellID: venom, Name: "Recluse Venom", Caster: guard.ServerID, Until: r.at(10 * time.Minute),
+		NextTick: r.at(2 * time.Minute), HPTick: -300, npcFoe: guard.ServerID, npcResist: StatPR}, r.at(2*time.Minute))
+	guard.Dead = true
+	r.w.mu.Unlock()
+	before := p.HP
+	for d := 2 * time.Minute; d <= 2*time.Minute+20*time.Second; d += time.Second {
+		effects(d)
+	}
+	if p.HP != before {
+		t.Errorf("a dead creature's poison took %d", before-p.HP)
+	}
+}

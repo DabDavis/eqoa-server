@@ -993,6 +993,11 @@ func debuffStats(s *CastSpell) bool {
 		if e.Kind == EffectStat && !e.Set && e.Amount < 0 {
 			return true
 		}
+		// a damage over time (the GM Jibrish's petition 1259: the Ebony
+		// Recluse's "poison dot that lasts 30 seconds ... that ticks for 300")
+		if e.Kind == EffectHPTick && e.Amount < 0 {
+			return true
+		}
 	}
 	return false
 }
@@ -1010,9 +1015,36 @@ func (w *World) templateDebuffLocked(c *npcCast, now time.Time) {
 	ae := &ActiveEffect{SpellID: c.spell.SpellID, Name: c.spell.Name, Icon: c.spell.Icon, Caster: npc.ServerID, Until: now.Add(d.Duration)}
 	ae.Rules = rulesOf(d)
 	ae.Rules.NoCure = c.noCure
+	tickResist := StatNone
 	for _, e := range d.Effects {
 		if e.Kind == EffectStat && !e.Set {
 			ae.Mods.add(e.Stat, e.Amount)
+		}
+		// a damage tick, at the ability's percent: each tick hurts as the
+		// creature's spell does, at its element's resist (npcTickLocked)
+		if e.Kind == EffectHPTick && e.Amount < 0 {
+			ae.HPTick -= int(math.Round(float64(-capAmount(rollAmount(e), e.Cap)) * float64(c.pct) / 100))
+			if e.Resist >= StatFR && e.Resist <= StatAR {
+				tickResist = e.Resist
+			}
+		}
+	}
+	if ae.HPTick < 0 {
+		// its element: the tick's own resist, else the spell's, else its name's
+		// ("venom": poison), else arcane (a workbook record's resist basis looks
+		// at its instant damage alone, which a damage over time has none of)
+		ae.NextTick, ae.npcFoe, ae.npcResist = now, npc.ServerID, tickResist
+		if ae.npcResist == StatNone {
+			ae.npcResist = c.spell.resist
+		}
+		if ae.npcResist == StatNone {
+			ae.npcResist = templateResist(c.spell.Name, "")
+		}
+		if ae.npcResist == StatNone {
+			ae.npcResist = StatAR
+		}
+		if c.spell.unresistable {
+			ae.npcResist = StatNone
 		}
 	}
 	p.LastCombatTime = now
@@ -1022,6 +1054,43 @@ func (w *World) templateDebuffLocked(c *npcCast, now time.Time) {
 		w.sendChatToSession(sess, fmt.Sprintf("%s's %s takes hold of you.", npc.Name, c.spell.Name))
 	}
 	log.Printf("Template: %s's %q lands on %s for %v", npc.Name, c.spell.Name, p.Name, d.Duration)
+}
+
+// npcTickLocked is a tick of a creature's damage over time on t (runTickLocked):
+// the tick less t's resist share to its element, rolled on the creature's
+// template as its spell's hit is (templateHitLocked), at least 1, told in a
+// 0x00DB from the creature and a line, and a death at nothing. A tick whose
+// creature is dead or gone does nothing (what is left of it runs out). Must be
+// called with the lock held.
+func (w *World) npcTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
+	if ae.npcFoe == 0 || ae.HPTick >= 0 || t.IsDead() || t.respawnPending() {
+		return
+	}
+	npc := w.NPCs[ae.npcFoe]
+	if npc == nil || npc.Dead || npc.World != t.World {
+		return
+	}
+	share, how := 0.0, ResistFailed
+	if ae.npcResist != StatNone && npc.tmpl != nil {
+		share, how = npc.tmpl.rollResist(t.StatNow(ae.npcResist))
+	}
+	taken := max(int(math.Round(float64(-ae.HPTick)*(1-share))), 1)
+	t.HP = max(t.HP-taken, 0)
+	t.StatsDirty = true
+	t.LastCombatTime = now
+	w.breakInvisLocked(t, "a hit") // invis.go: every invisibility, whatever gave it
+	sess := w.findSessionByEntityIDLocked(t.ServerID)
+	if sess != nil {
+		if nid := w.objectIDForEntityLocked(sess, npc.ServerID); nid != 0 {
+			w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID())
+		}
+		w.sendChatToSession(sess, fmt.Sprintf("%s's %s hits you for %d (%s).", npc.Name, ae.Name, taken, resistWords(share, how)))
+	}
+	log.Printf("Template: %s's %q ticks on %s for %d of %d (resist %.0f%%; HP %d/%d)", npc.Name, ae.Name, t.Name, taken, -ae.HPTick,
+		share*100, t.HP, t.MaxHPNow())
+	if t.HP <= 0 {
+		w.playerDiedLocked(sess, t, now)
+	}
 }
 
 // templateHealLocked lands a templated NPC's heal on itself: its figure at

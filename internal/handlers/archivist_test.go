@@ -24,7 +24,7 @@ import (
 
 const (
 	archivistObject = 100001 // the id the client names him by
-	archivistShop   = 162588 // his npcs.npc_id, his catalog
+	archivistShop   = 4242   // his npcs.npc_id, his catalog
 	archivistWizard = 13
 )
 
@@ -416,7 +416,7 @@ func TestTheArchivistGrantsTheBasicSpells(t *testing.T) {
 		level      int
 		desc       string
 		wizSource  string // the wizard's classspells row ("" none)
-		otherClass int    // another class's row, of otherSource
+		otherClass int    // another class's row, other its source
 		other      string
 	}
 	for _, s := range []sp{

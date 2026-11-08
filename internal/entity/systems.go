@@ -269,7 +269,7 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	// Sandstorm's roll on the player's AC, AGI and archetype (defence.go),
 	// as its class template makes it (classtemplate.go), then the balance's
 	// (balance.go: its level's, its con's and the player's class's)
-	damage := w.npcHitPlayerLocked(npc, player, npc.meleeOut(npcMeleeRollFor(npc, player).hitOn(player, meleeIntn)))
+	damage := w.npcHitPlayerLocked(npc, player, npcMeleeOn(npc, player, meleeIntn))
 	damage = mitigateLocked(player, damage, now) // workbook.go: a mitigation's share off
 	player.HP -= damage
 	w.contactPlayerLocked(player)       // what ends at a hit (workbook.go)

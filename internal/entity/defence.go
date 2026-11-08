@@ -68,11 +68,76 @@ type meleeRoll struct {
 // hitOn is one hit of the roll on the player, intn the random source
 // (rand.Intn): never less than one.
 func (r meleeRoll) hitOn(p *Player, intn func(int) int) int {
-	a := archetypeOf(p.Class)
-	top := int(math.Round(r.Top - r.ACSlope*float64(p.StatNow(StatAC)) -
-		agiSlope[a]*float64(p.StatNow(StatAgi)) + archOffset[a]))
-	hit := top - r.Width + intn(r.Width+1)
+	hit := r.topOn(p) - r.Width + intn(r.Width+1)
 	return max(hit, r.Floor, 1)
+}
+
+// topOn is the roll's top on the player: its top less what the player's AC
+// and AGI take off, plus its archetype's offset, rounded.
+func (r meleeRoll) topOn(p *Player) int {
+	a := archetypeOf(p.Class)
+	return int(math.Round(r.Top - r.ACSlope*float64(p.StatNow(StatAC)) -
+		agiSlope[a]*float64(p.StatNow(StatAgi)) + archOffset[a]))
+}
+
+// softFloorLeast is the share of its floor a boosted creature's hit falls
+// toward as a player's defence piles up past where its roll lands under the
+// floor (softHit).
+const softFloorLeast = 0.5
+
+// softHit is one hit of the roll on the player as a creature whose class
+// template boosts its melee lands it (NPC.softFloor), unrounded (petition
+// 1289, jibrish, 2026-11-08, of Bertoxxulous, Cazic-Thule and the other raid
+// bosses: "Going from 2k to 3k ac made 0 change, exact minimum hits
+// everytime. Damage always needs to hit within a window with a little
+// randomness, and the scaling from 2k to 3k should work with diminishing
+// returns"). Until then such a tank's every roll fell under the floor, and
+// every hit was the floor times the template's melee_pct (1380% for
+// Bertoxxulous). Now a roll under the floor is not the floor: it lands
+// between the floor and softFloorLeast of it, the farther under the lower,
+//
+//	least + (floor - least) * width / (width + floor - roll)
+//
+// so each hit keeps its own figure, and AC past that point still takes off,
+// ever less (at AC 2000 and AGI 400 a level 66 creature's hits are 73-93% of
+// its floor, at AC 3000 68-80%). A roll at the floor or above is hitOn's.
+func (r meleeRoll) softHit(p *Player, intn func(int) int) float64 {
+	roll := r.topOn(p) - r.Width + intn(r.Width+1)
+	if roll >= r.Floor {
+		return float64(roll)
+	}
+	f, w := float64(r.Floor), float64(max(r.Width, 1))
+	least := f * softFloorLeast
+	return least + (f-least)*w/(w+f-float64(roll))
+}
+
+// softRangeOn is the least and the most softHit lands on the player,
+// rounded (#stats).
+func (r meleeRoll) softRangeOn(p *Player) (lo, hi int) {
+	low := func(int) int { return 0 }
+	high := func(n int) int { return n - 1 }
+	return max(int(math.Round(r.softHit(p, low))), 1), max(int(math.Round(r.softHit(p, high))), 1)
+}
+
+// softFloor says whether the NPC's melee on a player lands softHit's way: a
+// creature whose class template boosts its melee (melee_pct above 100: the
+// raid and dungeon bosses and theirs, whose floor times the boost was every
+// hit on a well armoured tank), never a training dummy, whose floors are
+// Sandstorm's, measured. Every other creature keeps Sandstorm's floor.
+func (n *NPC) softFloor() bool {
+	return n.Dummy == NotDummy && n.tmpl != nil && n.tmpl.MeleePct > 100
+}
+
+// npcMeleeOn is one melee hit of the NPC on the player as its class template
+// makes it (meleeOut), before the balance's: Sandstorm's roll, or softHit's
+// for a boosted creature, boosted before it is rounded so that a hit keeps
+// its own figure.
+func npcMeleeOn(npc *NPC, p *Player, intn func(int) int) int {
+	r := npcMeleeRollFor(npc, p)
+	if !npc.softFloor() {
+		return npc.meleeOut(r.hitOn(p, intn))
+	}
+	return max(1, int(math.Round(r.softHit(p, intn)*float64(npc.tmpl.MeleePct)/100)))
 }
 
 // creatureRoll is the roll of a creature of the level: the floor half the

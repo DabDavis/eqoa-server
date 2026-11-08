@@ -103,15 +103,34 @@ func scrollSpell(spells []database.SpellName, scroll string, level int) (databas
 // import split them (Camouflage, the druid's and the ranger's), and the class
 // tells them apart. has nil counts no class.
 func scrollSpellFor(spells []database.SpellName, scroll string, level int, has func(spellID int) bool) (database.SpellName, bool) {
-	for _, same := range []func(string) bool{
-		func(n string) bool { return exactKey(n) == exactKey(scroll) },
-		func(n string) bool { return spellKey(n) == spellKey(scroll) },
-	} {
+	return newSpellIndex(spells).scrollSpell(scroll, level, has)
+}
+
+// spellIndex is spell patterns by the two names a scroll may give its spell
+// (exactKey, then spellKey), each name's in the patterns' order: a reader of
+// many scrolls (the Spell Archivist's grant, archivist.go: 759 of them on the
+// Heirloom server's data) reads every name once, not once a scroll.
+type spellIndex struct {
+	spells       []database.SpellName
+	exact, loose map[string][]int // positions in spells
+}
+
+func newSpellIndex(spells []database.SpellName) *spellIndex {
+	x := &spellIndex{spells: spells, exact: make(map[string][]int, len(spells)), loose: make(map[string][]int, len(spells))}
+	for i, s := range spells {
+		e, l := exactKey(s.Name), spellKey(s.Name)
+		x.exact[e] = append(x.exact[e], i)
+		x.loose[l] = append(x.loose[l], i)
+	}
+	return x
+}
+
+// scrollSpell is scrollSpellFor's answer out of the index.
+func (x *spellIndex) scrollSpell(scroll string, level int, has func(spellID int) bool) (database.SpellName, bool) {
+	for _, same := range [][]int{x.exact[exactKey(scroll)], x.loose[spellKey(scroll)]} {
 		best, rank := -1, 0
-		for i, s := range spells {
-			if !same(s.Name) {
-				continue
-			}
+		for _, i := range same {
+			s := x.spells[i]
 			r := 1
 			if s.Level == level {
 				r++
@@ -124,10 +143,30 @@ func scrollSpellFor(spells []database.SpellName, scroll string, level int, has f
 			}
 		}
 		if best >= 0 {
-			return spells[best], true
+			return x.spells[best], true
 		}
 	}
 	return database.SpellName{}, false
+}
+
+// scrollRefusal is why a character of the class, race and level may not use a
+// scroll of these class and race masks and level, in VIPlayer::CanUse's order
+// (class, race, level), or "" when it may: the scribe's checks, and the Spell
+// Archivist's grant's (archivist.go).
+func scrollRefusal(classUse, raceUse, levelReq, class, race, level int) string {
+	switch {
+	case classUse&(1<<uint(class)) == 0:
+		return scribeWrongClass
+	case !entity.Creation().AllClasses && raceUseForWire(raceUse)&(1<<uint(entity.WireRace(race))) == 0:
+		// a scroll's races are the ones SOE let be its classes; with every class open to
+		// every race (world.all_classes) they no longer decide (petition 1237, Smolsk: "new
+		// race/classes need to be updated for spells": a gnome shadow knight was refused
+		// every shadow knight's scroll)
+		return scribeWrongRace
+	case level < levelReq:
+		return scribeTooLow
+	}
+	return ""
 }
 
 // nextDisplayIndex is where a new ability goes in the book: after the last
@@ -150,19 +189,8 @@ func (h *EquipHandler) scribe(sess *session.Session, player *entity.Player, idx 
 		log.Printf("Scribe: %s, %q: %s", player.Name, p.ItemName, text)
 		SendColoredChat(sess, text, scribeRefusalRGB[0], scribeRefusalRGB[1], scribeRefusalRGB[2])
 	}
-	switch {
-	case p.ClassUse&(1<<uint(player.Class)) == 0:
-		refuse(scribeWrongClass)
-		return
-	case !entity.Creation().AllClasses && raceUseForWire(p.RaceUse)&(1<<uint(entity.WireRace(player.Race))) == 0:
-		// a scroll's races are the ones SOE let be its classes; with every class open to
-		// every race (world.all_classes) they no longer decide (petition 1237, Smolsk: "new
-		// race/classes need to be updated for spells": a gnome shadow knight was refused
-		// every shadow knight's scroll)
-		refuse(scribeWrongRace)
-		return
-	case player.Level < p.LevelReq:
-		refuse(scribeTooLow)
+	if why := scrollRefusal(p.ClassUse, p.RaceUse, p.LevelReq, player.Class, player.Race, player.Level); why != "" {
+		refuse(why)
 		return
 	}
 	if h.spells == nil {

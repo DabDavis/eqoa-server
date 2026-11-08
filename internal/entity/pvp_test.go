@@ -764,3 +764,37 @@ func TestPvPDeathIsSeen(t *testing.T) {
 		t.Error("another's slot was taken")
 	}
 }
+
+// An alchemist's thrown potion at a PvP foe lands at the PvP share (petition 1248, the GM Jibrish:
+// "Alchemist potions are only hitting for one on pvp characters, they should be hitting for 50% of
+// their full damage like everything else"): thrown from the pack, its 200 lands as 100; worn and
+// thrown in a round, the same, one potion used. The control: at a player not flagged, refused.
+func TestPvPThrownPotionsLandAtTheShare(t *testing.T) {
+	d := newPvP(t)
+	d.flag(t, d.sb, 0)
+	flask := NewPotionEffect(9301, "Volatile Flask", "Target, Decrease Hitpoints by 200", "Volatile Flask", 0, "", 0, 0)
+	if !flask.Thrown() {
+		t.Fatalf("the flask is not thrown: %+v", flask.Def)
+	}
+	d.w.NotePotionEffect(flask)
+	now := d.at(time.Minute)
+	if why, err := d.w.UsePotion(d.sb, flask, d.bSeesA, now); err != nil || why == "" {
+		t.Fatalf("the control, A not flagged: %q %v", why, err)
+	}
+	d.flag(t, d.sa, time.Minute)
+	before := d.a.HP
+	if why, err := d.w.UsePotion(d.sb, flask, d.bSeesA, d.at(2*time.Minute)); err != nil || why != "" {
+		t.Fatalf("a throw at a foe: %q %v", why, err)
+	}
+	if taken := before - d.a.HP; taken != 100 {
+		t.Errorf("a throw at a foe took %d, want 200 halved", taken)
+	}
+	d.b.Swing.Potion, d.b.Swing.PotionLeft = 9301, 2
+	before = d.a.HP
+	d.w.mu.Lock()
+	d.w.thrownPotionAtFoeLocked(d.b, d.a, d.at(3*time.Minute))
+	d.w.mu.Unlock()
+	if taken := before - d.a.HP; taken != 100 || d.b.Swing.PotionLeft != 1 {
+		t.Errorf("a worn one thrown in a round took %d (want 100), %d left (want 1)", taken, d.b.Swing.PotionLeft)
+	}
+}

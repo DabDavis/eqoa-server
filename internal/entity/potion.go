@@ -376,6 +376,14 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 		if refusal != "" {
 			return refusal, nil, nil
 		}
+		// at a duel's or a PvP fight's foe (castTargetsLocked's duel and pvp halves)
+		if t := w.Players[targets[0]]; t != nil && spell.duel {
+			w.broadcastCastLocked(p, t.ServerID, 0, spell.visual())
+			w.throwAtFoeLocked(sess, p, &pe, t, now)
+			w.potionUsedLocked(p, &pe, now)
+			log.Printf("Potion: %s throws %q at %s", p.Name, pe.ItemName, t.Name)
+			return "", nil, nil
+		}
 		npc := w.NPCs[targets[0]]
 		if npc == nil {
 			return castNoTarget, nil, nil
@@ -478,6 +486,49 @@ func (w *World) throwLocked(sess *session.Session, p *Player, pe *PotionEffect, 
 	w.breakBoardWolfLocked(p, "a throw") // boardwolf.go
 	w.ownHitLocked(p, "a throw")         // workbook.go: a run speed
 	w.breakPotionsLocked(p, func(pe *PotionEffect) bool { return pe.BreaksOnAttack }, "a throw")
+}
+
+// throwAtFoeLocked lands a thrown potion on t, a duel's or a PvP fight's foe: its own share and
+// its line through the fight's landing (duelfight.go's duelLandLocked), each hit at the fight's
+// share, as a spell's harm on a foe lands (petition 1248, the GM Jibrish: "Alchemist potions are
+// only hitting for one on pvp characters, they should be hitting for 50% of their full damage like
+// everything else": a throw at a foe was refused, and a worn one thrown in a round was the melee's
+// 1). Its splash reaches creatures alone, as before. It reports whether the fight is over.
+func (w *World) throwAtFoeLocked(sess *session.Session, p *Player, pe *PotionEffect, t *Player, now time.Time) bool {
+	cs := &castState{spell: pe.castSpell(), caster: p.ServerID, targets: []EntityID{t.ServerID}}
+	if len(pe.TargetShare) > 0 {
+		cs.spell.Def.Effects = append(append([]SpellEffect(nil), pe.TargetShare...), cs.spell.Def.Effects...)
+	}
+	cs.spell.duel = true
+	w.duelLandLocked(cs, p, sess, t, now)
+	w.breakInvisLocked(p, "a throw")     // invis.go
+	w.breakBoardWolfLocked(p, "a throw") // boardwolf.go
+	w.ownHitLocked(p, "a throw")         // workbook.go: a run speed
+	w.breakPotionsLocked(p, func(pe *PotionEffect) bool { return pe.BreaksOnAttack }, "a throw")
+	return t.IsDead() || w.fightBetweenLocked(p, t) == nil
+}
+
+// thrownPotionAtFoeLocked is a duel round's throw of the potion worn as its thrown weapon at t: as
+// thrownPotionHitLocked's at a creature, the potion landed on the foe (throwAtFoeLocked). It
+// reports whether the fight ended.
+func (w *World) thrownPotionAtFoeLocked(p *Player, t *Player, now time.Time) bool {
+	pe := w.potions.byPattern[p.Swing.Potion]
+	if pe == nil || !pe.Thrown() {
+		p.disengage()
+		return true
+	}
+	sess := w.findSessionByEntityIDLocked(p.ServerID)
+	over := w.throwAtFoeLocked(sess, p, pe, t, now)
+	p.Swing.PotionLeft--
+	if fn := w.potions.onThrown; fn != nil && sess != nil {
+		go fn(sess, p.CharServerID, pe.PatternID)
+	}
+	if p.Swing.PotionLeft <= 0 {
+		log.Printf("Potion: %s threw the last %q", p.Name, pe.ItemName)
+		p.Swing.Potion = 0
+		return true
+	}
+	return over
 }
 
 // thrownPotionHitLocked is an auto-attack's throw of the potion worn as its

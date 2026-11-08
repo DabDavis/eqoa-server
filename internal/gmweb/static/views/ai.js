@@ -1,6 +1,6 @@
 import { h, mount, pageHead, button, toast, card, copyButton, confirmBox, formBox, empty } from '../lib/dom.js';
 import { api } from '../lib/api.js';
-import { isAdmin, isTester } from '../lib/nav.js';
+import { isAdmin, isLimited, isTester, isStoryteller, state } from '../lib/nav.js';
 import { ago, when } from '../lib/fmt.js';
 
 // Working with an AI agent: what to paste where for ChatGPT, Claude or any
@@ -8,24 +8,29 @@ import { ago, when } from '../lib/fmt.js';
 export async function render(box) {
   const base = location.origin + location.pathname.replace(/\/$/, '');
   const mcp = base + '/mcp';
-  // a tester's agent has a tester's tools, and a custom GPT imports them by address
-  const tester = isTester();
-  const acct = tester ? 'tester account' : 'GM account';
-  const openapi = base + '/api/openapi.json' + (tester ? '?role=tester' : '');
+  // an agent below a GM has its roles' tools (a tester's, a storyteller's), and
+  // a custom GPT imports them by address
+  const tester = isLimited();
+  const role = [isTester() ? 'tester' : null, isStoryteller() ? 'storyteller' : null].filter(Boolean);
+  const acct = tester ? (role.join(' and ') || 'panel') + ' account' : 'GM account';
+  const openapi = base + '/api/openapi.json' + (tester ? '?role=' + encodeURIComponent(state.session.user.role) : '');
+  const has = [isTester() ? 'the item and spell records' : null, isStoryteller() ? 'NPC dialog and the quests\' words' : null].filter(Boolean).join(', ');
+  const ask = isTester() ? '"what does Rusty Sword do?", "give Minor Healing a 5 second recast"'
+    : '"what does Guard Dahvel say?", "give quest 12\'s last step a closing line"';
   const tokens = h('div');
 
   const urlRow = (label, url) => h('div', { class: 'stack' }, h('strong', null, label), h('div', { class: 'secret-box' }, h('code', null, url), copyButton(url)));
   const codeBlock = (text) => h('div', { class: 'secret-box' }, h('pre', { class: 'json grow' }, text), copyButton(text));
 
   mount(box,
-    pageHead('AI agents', `An AI agent works here as you: it signs in with your ${acct} (or a token you make), uses the same tools as these pages, and everything it changes is in the audit log under your name, revertible.` + (tester ? ' A tester\'s agent has the item and spell records alone.' : '')),
+    pageHead('AI agents', `An AI agent works here as you: it signs in with your ${acct} (or a token you make), uses the same tools as these pages, and everything it changes is in the audit log under your name, revertible.` + (tester ? ` Your agent has ${has} alone.` : '')),
     h('div', { class: 'cols' },
       card('ChatGPT', h('div', { class: 'stack' },
         h('ol', { class: 'steps' },
           h('li', null, 'In ChatGPT: Settings → Apps & Connectors → Advanced settings: turn on Developer mode (on a Business, Enterprise or Edu workspace an admin may have to allow it).'),
           h('li', null, 'Settings → Apps & Connectors → Create: name it "EQOA GM", paste the MCP address below, authentication OAuth (leave the client ID and secret empty).'),
           h('li', null, `ChatGPT opens this server's sign-in: sign in with your ${acct} and choose what it may do.`),
-          h('li', null, tester ? 'In a chat: + → More → EQOA GM, then ask: "what does Rusty Sword do?", "give Minor Healing a 5 second recast"...' : 'In a chat: + → More → EQOA GM, then ask: "who is online?", "make Guard Dahvel level 35"...')),
+          h('li', null, tester ? `In a chat: + → More → EQOA GM, then ask: ${ask}...` : 'In a chat: + → More → EQOA GM, then ask: "who is online?", "make Guard Dahvel level 35"...')),
         h('p', { class: 'muted small' }, 'Some ChatGPT plans give a connector read-only (search and fetch) use; a custom GPT (below) can change things on those.'),
         urlRow('MCP address', mcp))),
       card('Claude', h('div', { class: 'stack' },
@@ -40,7 +45,7 @@ export async function render(box) {
       codeBlock(`codex mcp add eqoa-gm --url ${mcp}\ncodex mcp login eqoa-gm`),
       h('p', { class: 'muted small' }, 'The login opens this server\'s sign-in in your browser (on the same machine: the answer comes back to a port Codex opens on 127.0.0.1).'),
       h('strong', null, 'Or with a token (a terminal with no browser, or over SSH)'),
-      codeBlock(`read -rp '${tester ? 'Tester' : 'GM'} account: ' U; read -rsp 'Password: ' P; echo; read -rp 'Authenticator code: ' C\nexport EQOA_GM_TOKEN=$(curl -s ${base}/api/auth/token -H 'Content-Type: application/json' \\\n  -d "{\\"username\\":\\"$U\\",\\"password\\":\\"$P\\",\\"code\\":\\"$C\\",\\"name\\":\\"codex\\"}" | sed -nE 's/.*"token": *"([^"]+)".*/\\1/p'); unset P C\necho \${EQOA_GM_TOKEN:+signed in}`),
+      codeBlock(`read -rp '${tester ? (role[0] === 'storyteller' ? 'Storyteller' : 'Tester') : 'GM'} account: ' U; read -rsp 'Password: ' P; echo; read -rp 'Authenticator code: ' C\nexport EQOA_GM_TOKEN=$(curl -s ${base}/api/auth/token -H 'Content-Type: application/json' \\\n  -d "{\\"username\\":\\"$U\\",\\"password\\":\\"$P\\",\\"code\\":\\"$C\\",\\"name\\":\\"codex\\"}" | sed -nE 's/.*"token": *"([^"]+)".*/\\1/p'); unset P C\necho \${EQOA_GM_TOKEN:+signed in}`),
       h('p', { class: 'muted small' }, 'That signs in once (the password is not echoed or kept in the history; the code is the six digits your authenticator app shows) and holds a 30-day token in the variable, for this shell; "signed in" says it worked. Then in ~/.codex/config.toml:'),
       codeBlock(`[mcp_servers.eqoa-gm]\nurl = "${mcp}"\nbearer_token_env_var = "EQOA_GM_TOKEN"`),
       h('p', { class: 'muted small' }, 'The token is listed below and can be revoked there.'))),
@@ -54,7 +59,7 @@ export async function render(box) {
       h('p', { class: 'muted small' }, 'Any MCP client that takes a header can also use a token: Authorization: Bearer <token>, at the MCP address.'))),
     card('Your tokens and connected agents', tokens, button('New token', { icon: 'plus', class: 'small primary', onclick: () => newToken() })),
     card('What agents are told', h('p', null, 'An agent is told to read the guide first (', h('a', { href: 'api/guide', target: '_blank', rel: 'noopener' }, 'read it'),
-      tester ? '): what a tester may change, its conventions, what takes effect when, and to ask before changing many rows.'
+      tester ? `): what ${role.length ? 'a ' + role.join(' and a ') : 'this account'} may change, its conventions, what takes effect when, and to ask before changing many rows.`
         : '): how the data fits together, its conventions, what takes effect when, and to ask before deleting, banning, kicking or changing many rows.')));
 
   async function load() {
@@ -86,7 +91,7 @@ export async function render(box) {
       fields: [
         { name: 'name', label: 'What it is for', placeholder: 'ChatGPT custom GPT' },
         { name: 'scope', label: 'It may', type: 'select', value: 'write', options: [
-          { value: 'read', label: 'look only' }, { value: 'write', label: tester ? 'look and change the item and spell records' : 'look and change game data and players' },
+          { value: 'read', label: 'look only' }, { value: 'write', label: tester ? 'look and change ' + has : 'look and change game data and players' },
           ...(isAdmin() ? [{ value: 'admin', label: 'all that, and an admin\'s tools' }] : [])] },
         { name: 'days', label: 'Expires after', type: 'select', value: '90', options: [
           { value: '7', label: '7 days' }, { value: '30', label: '30 days' }, { value: '90', label: '90 days' }, { value: '365', label: 'a year' }] },

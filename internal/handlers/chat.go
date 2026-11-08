@@ -275,9 +275,11 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 			h.gameWorld.RaidCall(sess)
 			return nil
 		}
-		// the PvP flag the same way (pvp.go)
-		if body == "" && strings.EqualFold(name, "pvp") {
-			pvpCommand(h.gameWorld, sess, "", time.Now())
+		// the PvP flag the same way (pvp.go), and "/t pvp off" or "/t pvp on" for one way
+		// alone (Larrybird, 2026-11-08: a relog took his flag down and the "/pvp" he typed to
+		// take it off put it back up)
+		if b := strings.ToLower(strings.TrimSpace(body)); strings.EqualFold(name, "pvp") && (b == "" || b == "off" || b == "on") {
+			pvpCommand(h.gameWorld, sess, b, time.Now())
 			return nil
 		}
 		// and /stuck (entity/stuck.go)

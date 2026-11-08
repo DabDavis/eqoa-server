@@ -87,7 +87,7 @@ var pvpAreaAtTarget = true
 const (
 	pvpOffServer = "PvP is not available on this server."
 	pvpLineOn    = "You are now flagged for PvP. Other flagged players can attack you, and you them."
-	pvpLineOnHow = "/pvp (on a PS2, /t pvp) takes it off, a minute after it went on and after your last fight."
+	pvpLineOnHow = "/pvp off (on a PS2, /t pvp off) takes it off, a minute after it went on and after your last fight; logging out takes it off too."
 	pvpLineOff   = "You are no longer flagged for PvP."
 	pvpLineStays = "Your PvP flag stays on for %d more %s."
 	pvpLineNotOn = "You are not flagged for PvP."

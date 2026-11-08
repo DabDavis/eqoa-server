@@ -75,6 +75,32 @@ func TestPvPCommandWords(t *testing.T) {
 	}
 }
 
+// "/t pvp off" and "/t pvp on" (a PS2's "/pvp off" and "/pvp on") turn the flag one way alone:
+// off never puts it up, as "/pvp" alone did after a relog took it down (Larrybird, 2026-11-08),
+// and it takes it down once the flag's minute is over; on never takes it down.
+func TestPvPTellOffAndOnGoOneWay(t *testing.T) {
+	c := newChatWorld(t)
+	c.gw.SetPvP(true)
+	s, p := c.join(1, "Alice", 100, 100, 0)
+	c.say(s, "/t pvp off")
+	if p.PvPFlagged() || !hasText(heard(t, s), "You are not flagged for PvP.") {
+		t.Fatal("/t pvp off with no flag: it went up, or the line was not said")
+	}
+	c.say(s, "/t pvp on")
+	if !p.PvPFlagged() {
+		t.Fatal("/t pvp on: no flag")
+	}
+	s.Queue().GetPending()
+	c.say(s, "/t pvp on")
+	if !p.PvPFlagged() || !hasText(heard(t, s), "You are already flagged for PvP.") {
+		t.Fatal("a second /t pvp on took the flag down, or said nothing")
+	}
+	c.say(s, "/t pvp off")
+	if !p.PvPFlagged() {
+		t.Fatal("/t pvp off inside the flag's minute took it down")
+	}
+}
+
 // The face in the target window: red for a flagged player whoever looks, a player's blue otherwise;
 // and it changes at once on a flag's change for everyone already targeting that player, with no
 // re-target, its title, guild and token as a real reply's.

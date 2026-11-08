@@ -17,11 +17,12 @@ def dump(path):
 
 
 class SeedCapes(unittest.TestCase):
-    """tools/seed_capes.py on a made-up database: a cape a style (wear slot 28, the style in model, every class and
-    race, NO TRADE, worth 0), one Cape Tailor by the Heirloom Outfitters of each place (two outfitters 6 apart are one
-    place, a third far off another), beyond the first one away from its dyer, in a merchant's body neither it nor its
-    dyer wears, selling every cape under its own NPC id; a report writes nothing, a second apply is refused, an undo
-    puts every row back but a record a character holds. No game data."""
+    """tools/seed_capes.py on a made-up database: a cape a style (wear slot 28, the style in model, colour 0, every
+    class and race, NO TRADE, worth 0), one Cape Tailor by the Heirloom Outfitters of each place (two outfitters 6 apart
+    are one place, a third far off another), beyond the first one away from its dyer, in a merchant's body neither it
+    nor its dyer wears, selling every cape under its own NPC id; a report writes nothing, a second apply is refused, an
+    undo puts every row back but a record a character holds; --colours adds the style 2 cloaks in their colours, which
+    the default leaves out. No game data."""
 
     def setUp(self):
         fd, self.path = tempfile.mkstemp(suffix=".db", dir=os.environ.get("TMPDIR"))
@@ -74,13 +75,14 @@ class SeedCapes(unittest.TestCase):
 
     def test_seed_and_undo(self):
         out = self.tool().stdout
-        self.assertIn("6 capes from 717001 (wear slot 28), 2 tailors", out)
+        self.assertIn("5 capes at 717001-717005 (wear slot 28), 2 tailors", out)
+        self.assertIn("(--colours, off: also the Crimson Cloak", out, "the report names what --colours adds")
         self.assertEqual(dump(self.path), self.before, "a report writes nothing")
         self.tool("--apply")
         db = sqlite3.connect(self.path)
         capes = db.execute("SELECT patternid, equipslot, model, color, classuse, raceuse, trade, itemcost, levelreq, "
                            "maxstack, maxhp, str FROM itempattern WHERE patternid > 5000 ORDER BY patternid").fetchall()
-        self.assertEqual([c[0] for c in capes], list(range(717001, 717007)))
+        self.assertEqual([c[0] for c in capes], list(range(717001, 717006)), "five styles, no colours by default")
         for pid, slot, model, color, classes, races, trade, cost, level, stack, hp, stat in capes:
             self.assertEqual((slot, model, color), (28, pid - 717000, 0), "the cape's slot, its style, the art's colours")
             self.assertEqual((classes, races, trade, cost, level, stack, hp, stat), (0x7FFF, 32767, 1, 0, 1, 1, 0, None))
@@ -95,7 +97,7 @@ class SeedCapes(unittest.TestCase):
         self.assertEqual((round(far[4], 2), round(far[5], 2), far[7]), (898.0, 900.0, 666))
         for t in tailors:
             sold = [p for (p,) in db.execute("SELECT patternid FROM npcitem WHERE npcid = ? ORDER BY listnumber", (t[0],))]
-            self.assertEqual(sold, list(range(717001, 717007)), "every cape on every tailor")
+            self.assertEqual(sold, list(range(717001, 717006)), "every cape on every tailor")
         self.assertEqual(db.execute("SELECT COUNT(*) FROM npcitem WHERE npcid NOT IN (SELECT id FROM npcs WHERE "
                                     "npc_name = 'Cape Tailor')").fetchone()[0], 0, "the control: no one else sells them")
         db.execute("INSERT INTO charinventory (serverid, patternid, equiploc) VALUES (7, 717002, 22)")
@@ -110,6 +112,21 @@ class SeedCapes(unittest.TestCase):
         db.execute("DELETE FROM itempattern WHERE patternid = 717002")
         db.commit()
         db.close()
+        self.assertEqual(dump(self.path), self.before, "undo puts every row back")
+
+    def test_colours(self):
+        self.tool("--colours", "--apply")
+        db = sqlite3.connect(self.path)
+        got = db.execute("SELECT patternid, itemname, model, color FROM itempattern WHERE patternid > 717005 "
+                         "ORDER BY patternid").fetchall()
+        self.assertEqual(got, [(717020, "Crimson Cloak", 2, 0xB01818FF), (717021, "Forest Cloak", 2, 0x2E7D32FF),
+                               (717022, "Royal Cloak", 2, 0x283593FF), (717023, "Gilded Cloak", 2, 0xC9A227FF)])
+        self.assertEqual(db.execute("SELECT COUNT(*) FROM itempattern WHERE patternid BETWEEN 717001 AND 717005 "
+                                    "AND color = 0").fetchone()[0], 5, "the styles keep the art's own colours")
+        for (t,) in db.execute("SELECT id FROM npcs WHERE npc_name = 'Cape Tailor'").fetchall():
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM npcitem WHERE npcid = ?", (t,)).fetchone()[0], 9)
+        db.close()
+        self.tool("--undo")
         self.assertEqual(dump(self.path), self.before, "undo puts every row back")
 
 

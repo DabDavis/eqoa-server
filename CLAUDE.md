@@ -953,6 +953,44 @@ western human, Goblin 13 as a dark elf, Aviak 14 as a barbarian, Lizardman 15 as
 halfling; the hill giant's 11 as before), each wire race a race of the body's height (the camera every client frames it
 with is its wire race's) whose city fits it.
 
+### Capes: a Heirloom slot of our own (`entity/capes.go`, `handlers/capes.go`, `tools/seed_capes.py`, `world.capes`)
+
+The user, 2026-11-08: "lets add a new equip slot for heirloom server only. capes for all. there are many capes we can
+borrow from for various styles." **`world.capes`** (off unless set: the Heirloom Test Server sets it, the Live Server
+does not) makes a cape an item of **wear slot 28** worn in **equip slot 22**, neither of which CLIENT knows (its fit
+check and its slot names end at wear 27, its list's equip slots at 21): its record's `model` is the style a client
+draws (eqoa-rust-client-vanilla cuts each style out of a body on the disc) and its `color` a tint (0xRRGGBBAA, read as
+an armour piece's, `entity.ArmorColor`: 0, white or a disc tint index is the art's own colours). After a session's
+first character list (with the live look's and creation's offers, after them) the server offers capes (**0x7E24**, a
+u32 1); a client that draws capes answers 1, and from then the item records it is sent keep 28 and 22; it wears and
+takes off a cape with the game's own InteractItem (0x003E), answered EquipItem 0x003F {list index, 22} and UnequipItem
+0x0040 {22}, nothing displaced (`equipSlotsFor`: `itemSlotToEquipSlot` stays CLIENT's table, held to `fitsEquip` by its
+test); it is sent **0x7E26** (u8 count, then u32 ServerID, u8 style, u32 colour for each character of the list that
+wears one) after every character list and at once when its answer comes at character select; and in the world
+**0x7E25** (u8 count, then u32 the id that client knows the entity by, its own object id for its own character and its
+visibility slot's for another, u8 style, u32 colour), the whole set of the players in its view that wear one (never
+an NPC; an invisible player's left out of others' views, not its own), sent each tick it changes (`capesSyncSystem`,
+right after the visibility system) and again whatever it is after a MemoryDump and a world change
+(`VisibilityState.ResendCapes`). **Every other client** (a PS2, which ignores the offer as it ignores every 0x7E one, and
+every client of a server without capes) is sent a cape as a plain item, wear -1 and never worn (`wireWear`,
+`wireEquipLoc`: every item writer, `writeItem`, `writeSingleItem`, `writeItemPattern` and the builders over them, takes
+whether its client draws capes, so no record goes out without the choice made); it is never sent 0x003F or 0x0040
+naming slot 22 (`queueEquip`, `queueUnequip`); its InteractItem on a cape is refused in a red line; and a worn cape it
+holds as a plain item comes off in the database alone before the bank, a trade, a destroy or a sale moves it
+(`TakeOff`, the merchant's `sell`). Both session flags (`Capes`, `CapesOffered`) are kept over a keep restart, and the
+look (`Player.CapeStyle`, `CapeColor`) is `wornLook`'s, so it comes back with the character. #template never puts a
+cape on (it fills CLIENT's slots 0-21 alone). The GM panel names wear 28 and equip slot 22 "Cape".
+**The data**: `tools/seed_capes.py [--list] [--colours] [--apply|--undo]` (logged in `cape_seed_log`; `--undo` exact
+but a record a character holds, and the AUTOINCREMENT counters) writes five capes, ids 717001-717005 (the Azure
+Knight's Cape, the Nightborne Cloak, the Violet Mantle, the Dreadlord's Cape and the Dreadlord's Mantle: styles 1-5,
+`STYLES`), colour 0, no stats, level 1, every class and race, NO TRADE, worth 0, no wear; `--colours` (off unless
+asked) adds the Crimson, Forest, Royal and Gilded Cloaks, style 2 in a colour each (717020-717023). A **Cape Tailor** (a
+merchant, 0x81) by the Heirloom Outfitters of each place (outfitters within 20 of each other are one place: 63 tailors
+for 76 outfitters), 2 beyond the first one away from its dyer or a quarter turn round to a clear spot, sells them all;
+not the outfitters themselves, whose list is the buyer's class's and the client holds 40 (a ranger's and a rogue's are
+37 already). NPCs are read at the start: apply it in the restart that brings the code (a keep swap's `before.sh`).
+`TestRealCapeTailorsSellEveryCape` (`EQOA_REAL_DB`, a copy with the seed applied) holds the tailors to it.
+
 ### Guilds are kept (`entity/guild.go`, `database/guilds.go`)
 
 Until 2026-11-06 guilds lived in the server's memory alone, so every restart ended every guild (the 04:47 UTC one
@@ -1944,6 +1982,7 @@ world:
   pvp: true                 # /pvp flags a player (entity/pvp.go); unset: not available
   open_races: true          # creation takes the froglok and racedefs' races (vanilla is told them); unset: the game's
   all_classes: true         # every class for every race at creation; unset: each race's own
+  capes: true               # the cape slot, wear 28 in equip slot 22, for clients that draw capes (handlers/capes.go); unset: none
 auth:
   shared_db: "/srv/one/eqoa.db"   # another shard's accounts, a copy here; every sign-in by the token's password
   shared_refresh: 10s

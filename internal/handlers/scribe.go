@@ -103,15 +103,34 @@ func scrollSpell(spells []database.SpellName, scroll string, level int) (databas
 // import split them (Camouflage, the druid's and the ranger's), and the class
 // tells them apart. has nil counts no class.
 func scrollSpellFor(spells []database.SpellName, scroll string, level int, has func(spellID int) bool) (database.SpellName, bool) {
-	for _, same := range []func(string) bool{
-		func(n string) bool { return exactKey(n) == exactKey(scroll) },
-		func(n string) bool { return spellKey(n) == spellKey(scroll) },
-	} {
+	return newSpellIndex(spells).scrollSpell(scroll, level, has)
+}
+
+// spellIndex is spell patterns by the two names a scroll may give its spell
+// (exactKey, then spellKey), each name's in the patterns' order: a reader of
+// many scrolls (the Spell Archivist's grant, archivist.go: 759 of them on the
+// Heirloom server's data) reads every name once, not once a scroll.
+type spellIndex struct {
+	spells       []database.SpellName
+	exact, loose map[string][]int // positions in spells
+}
+
+func newSpellIndex(spells []database.SpellName) *spellIndex {
+	x := &spellIndex{spells: spells, exact: make(map[string][]int, len(spells)), loose: make(map[string][]int, len(spells))}
+	for i, s := range spells {
+		e, l := exactKey(s.Name), spellKey(s.Name)
+		x.exact[e] = append(x.exact[e], i)
+		x.loose[l] = append(x.loose[l], i)
+	}
+	return x
+}
+
+// scrollSpell is scrollSpellFor's answer out of the index.
+func (x *spellIndex) scrollSpell(scroll string, level int, has func(spellID int) bool) (database.SpellName, bool) {
+	for _, same := range [][]int{x.exact[exactKey(scroll)], x.loose[spellKey(scroll)]} {
 		best, rank := -1, 0
-		for i, s := range spells {
-			if !same(s.Name) {
-				continue
-			}
+		for _, i := range same {
+			s := x.spells[i]
 			r := 1
 			if s.Level == level {
 				r++
@@ -124,7 +143,7 @@ func scrollSpellFor(spells []database.SpellName, scroll string, level int, has f
 			}
 		}
 		if best >= 0 {
-			return spells[best], true
+			return x.spells[best], true
 		}
 	}
 	return database.SpellName{}, false

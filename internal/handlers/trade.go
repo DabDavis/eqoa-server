@@ -348,7 +348,7 @@ func (h *TradeHandler) offerLocked(t *trade, me, you *tradeSide, key uint32, n i
 	})
 	out := wireRecord(row)
 	out.StackLeft = n
-	h.send(you, sub, h.seen(you, me.player), func(w *buffer.Writer) { writeSingleItem(w, &out, int(key)) })
+	h.send(you, sub, h.seen(you, me.player), func(w *buffer.Writer) { writeSingleItem(w, &out, int(key), readsCapes(you.sess)) })
 	h.clearAcceptsLocked(t)
 	log.Printf("Trade: %s offers %d %q", me.player.Name, n, row.Pattern.ItemName)
 }
@@ -434,7 +434,7 @@ func (h *TradeHandler) completeLocked(t *trade) {
 			log.Printf("Trade: giving to %s: %v", m.to.player.Name, err)
 			continue
 		}
-		queueReliable(m.to.sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, key))
+		queueReliable(m.to.sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, key, readsCapes(m.to.sess)))
 		log.Printf("Trade: %d %q from %s to %s", m.n, m.row.Pattern.ItemName, m.from.player.Name, m.to.player.Name)
 	}
 	if t.a.money != 0 || t.b.money != 0 {

@@ -165,7 +165,7 @@ func GiveItemNow(sess *session.Session, gw *entity.World, inv *database.Inventor
 		if err != nil {
 			return given, err
 		}
-		queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, key))
+		queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, key, readsCapes(sess)))
 		given += took
 	}
 	log.Printf("GM: gave %s %d of %q", player.Name, given, pattern.ItemName)

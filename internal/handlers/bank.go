@@ -46,10 +46,11 @@ func bankTookPayload(index, n int) []byte {
 	})
 }
 
-// bankAddPayload is 0x1251: one record for the bank's list.
-func bankAddPayload(e *database.CharInventoryEntry, key uint32) []byte {
+// bankAddPayload is 0x1251: one record for the bank's list (capes: the
+// client draws capes, capes.go).
+func bankAddPayload(e *database.CharInventoryEntry, key uint32, capes bool) []byte {
 	return build(protocol.OpcodeAddBankItem, 1024, func(w *buffer.Writer) {
-		writeSingleItem(w, e, int(key))
+		writeSingleItem(w, e, int(key), capes)
 	})
 }
 
@@ -162,10 +163,10 @@ func (h *NPCWindowHandler) bankItem(sess *session.Session, id uint32, fromBank b
 	}
 	if fromBank {
 		queueReliable(sess, protocol.OpcodeRemoveBankItem, bankTookPayload(i, took))
-		queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, dstKey))
+		queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, dstKey, readsCapes(sess)))
 	} else {
 		queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(i, 0, took))
-		queueReliable(sess, protocol.OpcodeAddBankItem, bankAddPayload(out, dstKey))
+		queueReliable(sess, protocol.OpcodeAddBankItem, bankAddPayload(out, dstKey, readsCapes(sess)))
 	}
 	log.Printf("BankItem: %s moved %d %q %s", player.Name, took, p.ItemName,
 		map[bool]string{true: "out of the bank", false: "into the bank"}[fromBank])

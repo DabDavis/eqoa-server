@@ -186,10 +186,15 @@ func offHandWeaponBarred(class int) bool {
 
 // equipSlotsFor is the equip slots an item of wear w may go in on a character
 // of the class: itemSlotToEquipSlot's, a knight's weapon (offHandWeaponBarred)
-// the primary hand's alone, so it takes the place of what is there.
+// the primary hand's alone, so it takes the place of what is there. A cape
+// (capes.go) goes in the cape's slot, which is none of CLIENT's and so not in
+// the table; only a client that draws capes is let ask (HandleInteractItem).
 func equipSlotsFor(w, class int) []int {
 	if w == wearEitherHand && offHandWeaponBarred(class) {
 		return []int{equipPrimary}
+	}
+	if w == wearCape {
+		return []int{equipCape}
 	}
 	return itemSlotToEquipSlot[w]
 }
@@ -521,6 +526,16 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 		}
 	}
 
+	// A cape (capes.go) is worn, and taken off, only by a client that draws
+	// capes: any other was sent it as a plain item it cannot wear, and CLIENT
+	// has no slot for it.
+	if _, row, err := invItemByKey(items, sessionInvList(sess), key); err == nil && isCape(&row.Pattern) && !readsCapes(sess) {
+		log.Printf("InteractItem: serverID=%d asked to wear the cape %q from a client that does not draw capes (world.capes %v)",
+			serverID, row.Pattern.ItemName, entity.CapesOn())
+		SendColoredChat(sess, capeRefusal, scribeRefusalRGB[0], scribeRefusalRGB[1], scribeRefusalRGB[2])
+		return nil
+	}
+
 	plan, err := planInteractItem(items, sessionInvList(sess), key, player.Class)
 	if err != nil {
 		log.Printf("InteractItem: serverID=%d key=%d %q: %v", serverID, key, plan.name, err)
@@ -598,15 +613,17 @@ func (h *EquipHandler) applyPlan(sess *session.Session, serverID uint32, plan eq
 			return false
 		}
 	}
+	// (a client that does not draw capes is told nothing of the cape's slot:
+	// queueUnequip, queueEquip)
 	if plan.unequip >= 0 {
 		log.Printf("%s: serverID=%d UNEQUIP %q (key=%d) from slot %d",
 			who, serverID, plan.name, plan.key, plan.unequip)
-		sess.Queue().AddWithSequence(unequipItemMessage(plan.unequip))
+		queueUnequip(sess, plan.unequip)
 	}
 	if plan.equip {
 		log.Printf("%s: serverID=%d EQUIP %q (key=%d, list index %d) to slot %d, %d displaced",
 			who, serverID, plan.name, plan.key, plan.index, plan.slot, len(plan.changes)-1)
-		sess.Queue().AddWithSequence(equipItemMessage(plan.index, plan.slot))
+		queueEquip(sess, plan.index, plan.slot)
 		if plan.slot == equipRanged && len(plan.changes) > 0 {
 			// the ranged weapon it holds now, for the switch for an art (handswitch.go)
 			id := plan.changes[len(plan.changes)-1].itemID

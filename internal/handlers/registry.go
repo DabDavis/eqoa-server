@@ -540,6 +540,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	NewLiveLookHandler(charHandler).RegisterHandlers(r)
 	// what creation takes past the game's, to a client that can show it (creation.go)
 	NewCreationHandler().RegisterHandlers(r)
+	// the cape slot (0x7E24; capes.go): the answer to its offer, on a server with world.capes
+	NewCapesHandler(charHandler).RegisterHandlers(r)
 	if charStore != nil && charStore.DB() != nil {
 		chatHandler.SetDyeStore(charStore.DB())
 		// the Armor Dyers (dyer.go) dye as #dye does

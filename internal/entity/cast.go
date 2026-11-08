@@ -307,6 +307,13 @@ type ActiveEffect struct {
 	// player (SpeedNow), comes off at the duel's end and is never kept over
 	// a logout (buffsave.go)
 	duelFoe EntityID
+	// npcFoe is the creature whose damage over time it is on a player (a
+	// template's debuff whose spell has a damage tick: classtemplate.go), 0 for
+	// every other effect: each tick hurts as the creature's spell does
+	// (npcTickLocked), at its element's resist (npcResist); never kept over a
+	// logout (buffsave.go)
+	npcFoe    EntityID
+	npcResist Stat
 	// Line and Rank are a beneficial spell's line and its level on a player
 	// (buffline.go): only the best of a line counts; "" for none
 	Line string
@@ -1537,6 +1544,7 @@ func (w *World) tickEffectLocked(t *Player, ae *ActiveEffect, now time.Time) {
 func (w *World) runTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	if ae.HPTick < 0 {
 		w.duelTickLocked(t, ae, now) // a duel's damage over time (duelfight.go)
+		w.npcTickLocked(t, ae, now)  // a creature's (classtemplate.go)
 	}
 	if ae.HPTick > 0 {
 		// the caster may be gone (logged out, or the effect kept over a

@@ -295,14 +295,22 @@ func (w *World) legFloorsLocked(npc *NPC, x, z float32, heights *[]float32) bool
 // legLocked is the leg's check: its floor, and when whole the rest
 // (legCheckLocked). Must be called with the lock held.
 func (w *World) legLocked(npc *NPC, x, z float32, heights *[]float32, whole bool) bool {
-	d := distXZ(npc.X, npc.Z, x, z)
+	return w.legFromLocked(npc, npc.X, npc.Y, npc.Z, x, z, heights, whole)
+}
+
+// legFromLocked is legLocked's check of the leg from (fx, fy, fz) rather than
+// where the creature stands, as that creature would walk it: a chase's route
+// round a ledge is planned so (chaseroute.go). Must be called with the lock
+// held.
+func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]float32, whole bool) bool {
+	d := distXZ(fx, fz, x, z)
 	n := int(d/legSample) + 1
 	onGround := w.spawnOnGroundLocked(npc)
 	keeps := keepsToBoth
 	if w.env != nil && whole {
 		keeps = w.keepsToLocked(npc)
 	}
-	y := npc.Y
+	y := fy
 	var walls Walls
 	var placed Placed
 	if whole { // else the floor alone
@@ -313,10 +321,10 @@ func (w *World) legLocked(npc *NPC, x, z float32, heights *[]float32, whole bool
 		placed = nil // set down where it was sent: nothing of the ground's to keep it off
 	}
 	lift := max(npc.spawnLift, 0) // its own floor over the terrain (a house's over the street)
-	knee, px, py, pz := legKnee, npc.X, y, npc.Z
+	knee, px, py, pz := legKnee, fx, y, fz
 	if onGround {
 		knee += npc.spawnLift
-		if f, ok := w.ground.Floor(npc.World, npc.X, y, npc.Z); ok {
+		if f, ok := w.ground.Floor(npc.World, fx, y, fz); ok {
 			py = f
 		}
 		if heights != nil {
@@ -325,7 +333,7 @@ func (w *World) legLocked(npc *NPC, x, z float32, heights *[]float32, whole bool
 	}
 	for i := 1; i <= n; i++ {
 		t := float32(i) / float32(n)
-		sx, sz := npc.X+(x-npc.X)*t, npc.Z+(z-npc.Z)*t
+		sx, sz := fx+(x-fx)*t, fz+(z-fz)*t
 		if onGround {
 			f, ok := w.ground.Floor(npc.World, sx, y, sz)
 			if !ok || f < y-legDrop {
@@ -346,7 +354,7 @@ func (w *World) legLocked(npc *NPC, x, z float32, heights *[]float32, whole bool
 				return false
 			}
 			if i == n && d > 0 {
-				ox, oz := sx+(x-npc.X)/d*clearOvershoot, sz+(z-npc.Z)/d*clearOvershoot
+				ox, oz := sx+(x-fx)/d*clearOvershoot, sz+(z-fz)/d*clearOvershoot
 				if !clearLocked(placed, npc.World, ox, y, oz, y+lift) {
 					return false // where the client may carry it on to before it stops
 				}

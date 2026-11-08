@@ -127,15 +127,24 @@ func (d *Dyer) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) bo
 	if d == nil || p == nil || npc == nil || npc.Dead || !IsArmorDyer(npc.Name) {
 		return false
 	}
+	d.Offer(sess, p, strings.TrimSpace(npc.Name))
+	return true
+}
+
+// Offer is a dyer's questions under speaker's name: an Armor Dyer's, and the
+// genie's "Dye my armor" (genie.go; the user, 2026-11-08: "add an armor dyer
+// near dabrish too and on genie").
+func (d *Dyer) Offer(sess *session.Session, p *entity.Player, speaker string) {
+	if d == nil || p == nil {
+		return
+	}
 	forgetDialogs(p)
-	speaker := strings.TrimSpace(npc.Name)
 	if d.dyes == nil {
 		d.say(sess, speaker, "My vats are dry today.")
-		return true
+		return
 	}
 	d.say(sess, speaker, "I dye armor any color you like, free of charge. Only those who see the live game's colors see a dye.")
 	d.ask(sess, p, dyerAsk{speaker: speaker, stage: askWhat}, "What shall I dye?", choiceLabels(dyerChoices))
-	return true
 }
 
 func choiceLabels(cs []dyerChoice) []string {

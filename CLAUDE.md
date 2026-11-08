@@ -923,7 +923,9 @@ usable type, NO TRADE, worth 0, never spent; a character with none gets one at i
 NPC bit alone (so CLIENT talks to it: InteractWithTarget asks a window of the merchant, bank and blacksmith flags
 instead), never a pet (`NPC.GenieOf`, not `Owner`), one a player, 2.5 in front of it facing it, in the magician's
 Djinn's body (793682180), its NPCID the shop's catalog. It asks at once (box mark **0x58000000**): My bank, Your wares,
-Mend my gear, Nothing, thank you; talked to it asks again, anyone else is told it is not theirs. Any answer sends it out
+Mend my gear, Rehabilitation (2026-11-07: a rehabilitator's menu, `Rehab.Offer`), Dye my armor (2026-11-08, the user's
+"add an armor dyer near dabrish too and on genie": an Armor Dyer's questions, `Dyer.Offer`; six answers, CLIENT's box
+full), Nothing, thank you; talked to it asks again, anyone else is told it is not theirs. Any answer sends it out
 of the world, and so does the box closed, but a box CLIENT declined itself within 1.5 s (a menu was up: `Msg0034`) leaves
 it standing `GenieWait` (2 minutes) to be talked to. The windows are CLIENT's own: the bank (0x124D), its wares (0x00B7
 under `GenieWindowID`, `0x7E000000 | its id`: an Heirloom Outfitter's catalog, the one selling the class's heirlooms

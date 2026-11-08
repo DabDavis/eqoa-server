@@ -132,7 +132,7 @@ func (f *genieFixture) summon() uint32 {
 	msgs := questMsgs(f.sess)
 	id := boxID(msgs)
 	if !IsGenieBox(id) || !hasMsg(msgs, "box:Genie: Your wish is my command, master.") ||
-		!strings.Contains(strings.Join(msgs, "\n"), ":What do you wish?|My bank|Your wares|Mend my gear|Rehabilitation|Nothing, thank you") {
+		!strings.Contains(strings.Join(msgs, "\n"), ":What do you wish?|My bank|Your wares|Mend my gear|Rehabilitation|Dye my armor|Nothing, thank you") {
 		f.t.Fatalf("the genie's coming: %q", msgs)
 	}
 	return id
@@ -438,6 +438,55 @@ func TestUsingTheLampBringsTheGenie(t *testing.T) {
 	}
 	if n != 1 || f.stackOf(GenieLampName) != 1 {
 		t.Fatalf("the lamp used: %d genies, %d lamps left", n, f.stackOf(GenieLampName))
+	}
+}
+
+// The genie dyes armour (the user, 2026-11-08: "add an armor dyer near dabrish too and on genie"): the answer sends it
+// away and asks what to dye under the dyers' mark, in its name, and the dyer's next question follows with no genie by.
+// With no dyer (a server with no character store) it only says farewell.
+func TestTheGenieOffersDyeing(t *testing.T) {
+	f := newGenieFixture(t)
+	box := f.summon()
+	if f.g.dyer != nil {
+		t.Fatal("a fixture's genie has a dyer of its own")
+	}
+	msgs := f.answer(box, genieDye)
+	if f.genieNPC() != nil || len(msgs) == 0 || opOf(msgs[0]) == protocol.OpcodeQuestPopupMulti {
+		t.Fatalf("no dyer: sent %s, genie %v", ops(msgs), f.genieNPC())
+	}
+
+	f.g.dyer = NewDyer(f.w, f.db)
+	box = f.summon()
+	msgs = f.answer(box, genieDye)
+	if f.genieNPC() != nil {
+		t.Fatal("the genie stayed")
+	}
+	id := func(msgs [][]byte) uint32 {
+		var id uint32
+		for _, m := range msgs {
+			if opOf(m) == protocol.OpcodeQuestPopupMulti {
+				r := buffer.NewReader(m[2:])
+				id, _ = r.ReadUint32()
+			}
+		}
+		return id
+	}
+	first := id(msgs)
+	if !IsDyerBox(first) {
+		t.Fatalf("sent %s, box %08X: not a dyer's", ops(msgs), first)
+	}
+	if !strings.Contains(string(joinBytes(msgs)), "G\x00e\x00n\x00i\x00e") {
+		t.Error("it does not speak as the genie")
+	}
+	// "All my armor": the colours' families come next, the genie gone
+	f.sess.Queue().GetPending()
+	f.g.dyer.Answer(f.sess, f.p, first, 0)
+	var after [][]byte
+	for _, m := range f.sess.Queue().GetPending() {
+		after = append(after, m.Data())
+	}
+	if next := id(after); !IsDyerBox(next) || next == first {
+		t.Fatalf("after All my armor: box %08X", next)
 	}
 }
 

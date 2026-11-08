@@ -36,16 +36,16 @@ func TestFaykindIsTheUsersFigures(t *testing.T) {
 	if !ok {
 		t.Fatal("no proc")
 	}
-	if wp.Kind != ProcForm || wp.Chance != 30 || wp.Duration != 10*time.Minute || wp.DamageTo != 800 || wp.RoundMost != 800 || wp.FX != fxBuff {
+	if wp.Kind != ProcForm || wp.Chance != 30 || wp.Duration != 30*time.Second || wp.DamageTo != 800 || wp.RoundMost != 800 || wp.FX != fxBuff {
 		t.Errorf("%+v", wp)
 	}
-	if s := wp.String(); !strings.Contains(s, "Pixie Form for 10 min") || !strings.Contains(s, "400-800 at 30% a hit, at most 800 a round") {
+	if s := wp.String(); !strings.Contains(s, "Pixie Form for 30 s") || !strings.Contains(s, "400-800 at 30% a hit, at most 800 a round") {
 		t.Errorf("#stats says %q", s)
 	}
 }
 
 // 30% a hit, whatever the wielder's INT (the rule by INT stops at 25): 29 of
-// 100 lands it, 30 does not. It shows the pixies' body for ten minutes, its
+// 100 lands it, 30 does not. It shows the pixies' body for 30 seconds, its
 // name on the effects list, and no figure comes with it.
 func TestFaykindGivesTheFormAtThirtyPercent(t *testing.T) {
 	r := faykindRig(t)
@@ -69,7 +69,7 @@ func TestFaykindGivesTheFormAtThirtyPercent(t *testing.T) {
 		t.Fatalf("effects %d", len(r.friend.Effects))
 	}
 	e := r.friend.Effects[0]
-	if left := e.Until.Sub(before); left < 10*time.Minute-time.Second || left > 10*time.Minute+time.Second {
+	if left := e.Until.Sub(before); left < 30*time.Second-time.Second || left > 30*time.Second+time.Second {
 		t.Errorf("it lasts %v", left)
 	}
 	if e.Name != "Pixie Form" || e.Proc != 400 || e.ProcMax != 800 || e.Rules.ProcChance != 30 || e.Rules.ProcRound != 800 {
@@ -80,17 +80,28 @@ func TestFaykindGivesTheFormAtThirtyPercent(t *testing.T) {
 	}
 }
 
-// A form on is not begun again: the staff rolls no dice for it and its time
-// runs on.
-func TestFaykindDoesNotBeginAgain(t *testing.T) {
+// A form on lasts 30 s unless the staff procs again, which renews it to 30 s
+// from then (the user, 2026-11-08: "staff of faykind pixie form should only
+// last 30 secs unless it procs again"), the same effect with its round's tally.
+// The control: a roll over the chance leaves its time to run out.
+func TestFaykindRenewsOnlyWhenItProcsAgain(t *testing.T) {
 	r := faykindRig(t)
 	e := r.giveForm(t)
-	until := e.Until.Add(-time.Minute)
+	until := time.Now().Add(5 * time.Second)
 	e.Until = until
-	procIntn = dice(99, 99) // the form's own proc over its chance
+	procIntn = dice(99) // the form's own proc and the staff's over their chance
 	r.hit()
 	if len(r.friend.Effects) != 1 || !r.friend.Effects[0].Until.Equal(until) {
-		t.Errorf("effects %d, until moved %v", len(r.friend.Effects), r.friend.Effects[0].Until.Sub(until))
+		t.Fatalf("no proc: effects %d, its end moved %v", len(r.friend.Effects), r.friend.Effects[0].Until.Sub(until))
+	}
+	procIntn = dice(99, 0) // the form's own over its chance, the staff's under
+	before := time.Now()
+	r.hit()
+	if len(r.friend.Effects) != 1 || r.friend.Effects[0] != e {
+		t.Fatalf("a proc: effects %+v, want the same one", r.friend.Effects)
+	}
+	if left := e.Until.Sub(before); left < 29*time.Second || left > 31*time.Second {
+		t.Errorf("a proc renewed it to %v, want 30 s", left)
 	}
 }
 

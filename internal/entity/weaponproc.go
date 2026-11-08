@@ -63,7 +63,10 @@ import (
 //     proc up to 800 per round, the proc percentage was around 30% for the
 //     transform and the damage proc"): its wielder shown in a body for its
 //     time (an illusion, illusion.go, kept over a logout and ended as any is),
-//     unresisted, not begun again while it lasts. The damage is the form's own
+//     unresisted; 30 s, and while it lasts a proc renews it to 30 s from then,
+//     the form and its round's tally as they are (the user, 2026-11-08: "staff
+//     of faykind pixie form should only last 30 secs unless it procs again";
+//     it was ten minutes and never renewed). The damage is the form's own
 //     proc (proc.go: ActiveEffect.Proc, its chance and its most a round in
 //     EffectRules), so it goes with the form and not with the weapon.
 // Not read: what no source gives a figure or an effect for (the Staff of
@@ -157,7 +160,7 @@ var weaponProcsByName = map[string]WeaponProc{
 	// the NPCs "pixie" and "pixie nettle"), the icon Faerie Form's. "Up to 800"
 	// gives the top alone; half of it as the low end is ours
 	"staff of faykind": {Kind: ProcForm, Chance: 30, Form: "Pixie Form", Body: 0x94BA77CD, Icon: 0xDE1BC5EC,
-		Duration: 10 * time.Minute, Damage: 400, DamageTo: 800, RoundMost: 800},
+		Duration: 30 * time.Second, Damage: 400, DamageTo: 800, RoundMost: 800},
 }
 
 // procSpellsByName are the spells a description names its proc by ("Procs:
@@ -279,7 +282,11 @@ func (wp WeaponProc) String() string {
 	case ProcRestore:
 		s = fmt.Sprintf("%s hit points and %d power to its wielder and group", figure, wp.Power)
 	case ProcForm:
-		s = fmt.Sprintf("%s for %.0f min, which procs %s at %d%% a hit, at most %d a round", wp.Form, wp.Duration.Minutes(), figure, wp.Chance, wp.RoundMost)
+		long := fmt.Sprintf("%.0f min", wp.Duration.Minutes())
+		if wp.Duration < time.Minute {
+			long = fmt.Sprintf("%.0f s", wp.Duration.Seconds())
+		}
+		s = fmt.Sprintf("%s for %s, which procs %s at %d%% a hit, at most %d a round", wp.Form, long, figure, wp.Chance, wp.RoundMost)
 	default:
 		s = figure
 	}
@@ -372,8 +379,17 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 // is not on it already (the file's doc). Must be called with the lock held.
 func (w *World) formProcLocked(sess *session.Session, p *Player, wp *WeaponProc, now time.Time) {
 	id := weaponProcSpellID(wp.pattern)
-	if p.hasEffect(id) || procIntn(100) >= wp.chancePct(p.StatNow(StatInt)) {
+	if procIntn(100) >= wp.chancePct(p.StatNow(StatInt)) {
 		return
+	}
+	// the form on: the proc renews its time, nothing else (the file's doc)
+	for _, e := range p.Effects {
+		if e.SpellID == id && now.Before(e.Until) {
+			e.Until = now.Add(wp.Duration)
+			w.broadcastCastLocked(p, p.ServerID, 0, wp.FX)
+			log.Printf("Proc: %s's %q renews its %s for %v", p.Name, wp.Item, wp.Form, wp.Duration)
+			return
+		}
 	}
 	cs := &castState{spell: CastSpell{SpellID: id, Name: wp.Form, Icon: wp.Icon, Level: p.Level, Def: SpellDef{Target: TargetSelf,
 		Duration: wp.Duration, FormKind: FormSelf, FormModel: wp.Body, ProcChance: wp.Chance, ProcRound: wp.RoundMost,

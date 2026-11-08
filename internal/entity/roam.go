@@ -368,7 +368,8 @@ func (w *World) roamStepLocked(npc *NPC, now time.Time) {
 // lengths (roamLeg; at least roamMinStep, at most the radius) in any
 // direction from where it stands, ending within its radius of its spawn,
 // neither ending in a town nor passing through one unless its spawn is in
-// that town's ground (towns.go), and standable all along (legOKLocked), to
+// that town's ground (towns.go), nor in or through a camp's but its own
+// (campspawn.go), and standable all along (legOKLocked), to
 // one of its spots once it has them all (the file's comment); where it
 // stands when no such leg is found (it rests and tries again).
 func (w *World) roamPointLocked(npc *NPC) (x, z float32) {
@@ -394,6 +395,9 @@ func (w *World) roamPointLocked(npc *NPC) (x, z float32) {
 		}
 		if !townsfolk && w.legInTownLocked(npc.World, npc.X, npc.Z, x, z) {
 			continue
+		}
+		if w.legInCampLocked(npc, x, z) {
+			continue // a camp's ground (campspawn.go)
 		}
 		heights := npc.roam.heights[:0]
 		if !w.legCheckLocked(npc, x, z, &heights) {
@@ -453,6 +457,9 @@ func (w *World) spotLegLocked(npc *NPC, s *wanderSpots, from int, r float32, tow
 		x, z = s.x[j], s.z[j]
 		if !townsfolk && w.legInTownLocked(npc.World, npc.X, npc.Z, x, z) {
 			continue // the towns are found again as their people change
+		}
+		if w.legInCampLocked(npc, x, z) {
+			continue // a camp's ground, which a GM's /camp makes (campspawn.go)
 		}
 		heights := npc.roam.heights[:0]
 		walkable := from >= 0 && s.good[from]&(1<<j) != 0 && w.legFloorsLocked(npc, x, z, &heights)

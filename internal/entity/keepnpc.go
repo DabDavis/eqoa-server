@@ -185,7 +185,10 @@ func (w *World) keptNPCLocked(npc *NPC) (KeptNPC, bool) {
 		}
 		k.ToSpawn = w.paths.home[npc.ServerID] || away && k.Home == nil && w.strandedLocked(npc)
 	}
-	if !away && !k.Dead && k.MaxHP == 0 && k.Home == nil && k.PathDir == 0 && !k.ToSpawn {
+	// a camp's spawn standing as another of its kinds than its row's: its name
+	// says which (campspawn.go)
+	kind := w.campKindChangedLocked(npc)
+	if !away && !k.Dead && k.MaxHP == 0 && k.Home == nil && k.PathDir == 0 && !k.ToSpawn && !kind {
 		return KeptNPC{}, false
 	}
 	if !k.finite() {
@@ -240,6 +243,7 @@ type NPCsRestored struct {
 	Path     int // taking their paths up again where they stand
 	ToSpawn  int // walking back to their spawns
 	RowMoved int // on the new place of a row a data step moved
+	Kind     int // camps' spawns made again as the kinds they stood as (campspawn.go)
 
 	RowGone int // not used: the row is gone
 	NewNPC  int // not used: another creature on the id (a new spawn and another name)
@@ -247,8 +251,8 @@ type NPCsRestored struct {
 }
 
 func (r NPCsRestored) String() string {
-	return fmt.Sprintf("%d back (%d dead, %d hurt, %d where they stood, %d going back to where a fight began, %d taking up their paths, %d walking to their spawns, %d on a row's new place); not used: %d rows gone, %d other creatures on the id, %d of a kind not kept",
-		r.Back, r.Dead, r.Hurt, r.Placed, r.Fight, r.Path, r.ToSpawn, r.RowMoved, r.RowGone, r.NewNPC, r.NotKept)
+	return fmt.Sprintf("%d back (%d dead, %d hurt, %d where they stood, %d going back to where a fight began, %d taking up their paths, %d walking to their spawns, %d on a row's new place, %d camp spawns as the kinds they stood as); not used: %d rows gone, %d other creatures on the id, %d of a kind not kept",
+		r.Back, r.Dead, r.Hurt, r.Placed, r.Fight, r.Path, r.ToSpawn, r.RowMoved, r.Kind, r.RowGone, r.NewNPC, r.NotKept)
 }
 
 // RestoreNPCs gives the NPCs a restart's file names what was kept of them (the
@@ -274,6 +278,9 @@ func (w *World) RestoreNPCs(kept []KeptNPC) NPCsRestored {
 		if !onRow && !strings.EqualFold(k.Name, npc.Name) {
 			r.NewNPC++
 			continue
+		}
+		if w.campKeptKindLocked(npc, k.Name) {
+			r.Kind++ // a camp's spawn, as the kind it stood as (campspawn.go)
 		}
 		w.restoreNPCLocked(npc, k, onRow, &r)
 	}

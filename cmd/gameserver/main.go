@@ -222,6 +222,13 @@ func main() {
 			log.Printf("Creatures: %d walk the paths GMs gave them", n)
 		}
 	}
+	// The camps GMs made in the game (entity/campspawn.go, table campspawns;
+	// /camp): their spawns stand, pop one of their kinds each time they come
+	// back, and keep the wander out; read before a restart's file is
+	if _, err := gameWorld.LoadCampSpawns(db); err != nil {
+		log.Printf("WARNING: the camps: %v; their spawns are as their rows make them", err)
+	}
+	log.Printf("Creatures: %s", gameWorld.CampSummary())
 	decay, respawn := gameWorld.CorpseTimes()
 	log.Printf("Creatures: a corpse lies %v unless emptied, the creature back %v after it goes; wandering within %.0f of its spawn",
 		decay, respawn, gameWorld.RoamRadius())

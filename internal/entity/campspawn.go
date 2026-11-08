@@ -107,6 +107,9 @@ type campWant struct {
 // any other, the lowest id between two as near; never a GM's spawn or an id
 // of skip. Must be called with the lock held.
 func (w *World) nearestRowsLocked(wants []*campWant, skip func(EntityID) bool) {
+	if len(wants) == 0 {
+		return
+	}
 	byKey := map[string][]*campWant{}
 	for _, wt := range wants {
 		byKey[wt.key] = append(byKey[wt.key], wt)

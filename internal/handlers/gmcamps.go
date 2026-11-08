@@ -213,6 +213,10 @@ func (h *ChatHandler) campCommand(sess *session.Session, player *entity.Player, 
 		h.gmReply(sess, usage)
 		return
 	}
+	if len(given) > database.MaxCampKinds {
+		h.gmReply(sess, fmt.Sprintf("%d kinds: a camp pops at most %d.", len(given), database.MaxCampKinds))
+		return
+	}
 	marks, err := h.camps.db.GMMarks(sess.AccountID())
 	if err != nil {
 		h.gmReply(sess, "/camp: "+err.Error())
@@ -266,10 +270,6 @@ func (h *ChatHandler) campCommand(sess *session.Session, player *entity.Player, 
 			return
 		}
 		kinds = append(kinds, kind{name: rec.NPCName, from: int(id), rec: rec})
-	}
-	if len(kinds) > database.MaxCampKinds {
-		h.gmReply(sess, fmt.Sprintf("%d kinds: a camp pops at most %d.", len(kinds), database.MaxCampKinds))
-		return
 	}
 	plan := database.CampPlan{AccountID: sess.AccountID(), CharName: player.Name, World: world, Marks: marks}
 	for _, k := range kinds {

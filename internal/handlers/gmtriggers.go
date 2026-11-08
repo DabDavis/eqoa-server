@@ -530,8 +530,15 @@ func (e *TriggerEngine) Tick() {
 		if !r.deadline.IsZero() && (!now.Before(r.deadline) || e.emptyLocked(r, now)) {
 			e.clockEndLocked(r)
 		}
-		if r.await != nil && !e.awaitOverLocked(r, now) {
-			continue
+		if r.await != nil {
+			if !e.awaitOverLocked(r, now) {
+				continue
+			}
+			// over, by its death (a talk) or its seconds: its seconds were the
+			// longest it waits, not the least (the user, 2026-11-08: "the
+			// triggers dont reset when the NPC dies": a death within an
+			// awaitdead's 3600 s held the run, and its lock, the whole hour)
+			r.at = time.Time{}
 		}
 		if r.next < len(r.steps) && !now.Before(r.at) {
 			r.await = nil

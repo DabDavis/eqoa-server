@@ -1,6 +1,7 @@
 package session
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -92,6 +93,8 @@ type fragRun struct {
 type assembler struct {
 	kinds [rxKindsKept]rxKind
 	run   *fragRun
+	// said is what take has to log, for Assemble to log
+	said []string
 }
 
 // Assemble takes the client's reliable message m (0xFA, 0xFB or 0xF9, a copy
@@ -101,8 +104,15 @@ type assembler struct {
 // recorded; sure, it is decided on what is known.
 func (cd *ConnectionData) Assemble(m *protocol.Message, sure bool, now time.Time) (Assembly, *protocol.Message) {
 	cd.mu.Lock()
-	defer cd.mu.Unlock()
-	return cd.frags.take(m, sure, now, cd.who)
+	v, whole := cd.frags.take(m, sure, now)
+	said := cd.frags.said
+	cd.frags.said = nil
+	cd.mu.Unlock()
+	// logged with no lock held (the address is the session's, under its own)
+	for _, line := range said {
+		log.Printf("Fragments: %s's %s", cd.who(), line)
+	}
+	return v, whole
 }
 
 // who is the connection's client, for a log line.
@@ -134,23 +144,23 @@ func (a *assembler) prev(seq uint16) int {
 	return prevUnknown
 }
 
-// drop logs why the open run's message is dropped, if one is being put
+// drop says why the open run's message is dropped, if one is being put
 // together.
-func (a *assembler) drop(who func() string, why string) {
-	dropRun(a.run, who, why)
+func (a *assembler) drop(why string) {
+	a.dropRun(a.run, why)
 }
 
-func dropRun(r *fragRun, who func() string, why string) {
+func (a *assembler) dropRun(r *fragRun, why string) {
 	if r != nil && r.data != nil {
-		log.Printf("Fragments: %s's message 0x%04X (%d bytes in pieces %d-%d) dropped: %s",
-			who(), r.opcode, len(r.data), r.first, r.next-1, why)
+		a.said = append(a.said, fmt.Sprintf("message 0x%04X (%d bytes in pieces %d-%d) dropped: %s",
+			r.opcode, len(r.data), r.first, r.next-1, why))
 	}
 }
 
-func (a *assembler) take(m *protocol.Message, sure bool, now time.Time, who func() string) (Assembly, *protocol.Message) {
+func (a *assembler) take(m *protocol.Message, sure bool, now time.Time) (Assembly, *protocol.Message) {
 	seq := m.Sequence
 	if a.run != nil && now.Sub(a.run.at) > fragmentRunFor {
-		a.drop(who, "its last piece never came")
+		a.drop("its last piece never came")
 		a.run = nil
 	}
 	prev := a.prev(seq)
@@ -168,14 +178,14 @@ func (a *assembler) take(m *protocol.Message, sure bool, now time.Time, who func
 				return AssemblyDropped, nil
 			}
 			if len(r.data)+len(data) > FragmentedMost {
-				a.drop(who, "longer than the server takes")
+				a.drop("longer than the server takes")
 				r.data = nil
 				return AssemblyDropped, nil
 			}
 			r.data = append(r.data, data...)
 			return AssemblyHeld, nil
 		case prevWhole:
-			a.drop(who, "a piece of it never came")
+			a.drop("a piece of it never came")
 			r := &fragRun{first: seq, next: seq + 1, data: append([]byte(nil), data...), at: now}
 			if len(data) >= 2 {
 				r.opcode = uint16(data[0]) | uint16(data[1])<<8
@@ -186,9 +196,9 @@ func (a *assembler) take(m *protocol.Message, sure bool, now time.Time, who func
 		// the message before it was a piece of another, or is not known: a
 		// piece whose message's start is not here
 		if a.run == nil {
-			log.Printf("Fragments: %s's piece %d dropped: its message's start is not here", who(), seq)
+			a.said = append(a.said, fmt.Sprintf("piece %d dropped: its message's start is not here", seq))
 		}
-		a.drop(who, "a piece of it never came")
+		a.drop("a piece of it never came")
 		a.run = &fragRun{first: seq, next: seq + 1, at: now}
 		return AssemblyDropped, nil
 	}
@@ -204,7 +214,7 @@ func (a *assembler) take(m *protocol.Message, sure bool, now time.Time, who func
 		}
 		wire := m.Wire()
 		if len(r.data)+len(wire) > FragmentedMost {
-			dropRun(r, who, "longer than the server takes")
+			a.dropRun(r, "longer than the server takes")
 			return AssemblyDropped, nil
 		}
 		whole := append(r.data, wire...)
@@ -222,19 +232,19 @@ func (a *assembler) take(m *protocol.Message, sure bool, now time.Time, who func
 		return AssemblyWhole, out
 	case prevPiece:
 		// the last piece of a message whose pieces are not all here
-		a.drop(who, "a piece of it never came")
+		a.drop("a piece of it never came")
 		a.run = nil
 		return AssemblyDropped, nil
 	case prevUnknown:
 		if a.run != nil {
 			// pieces missing between the open run and this: its last piece
-			a.drop(who, "a piece of it never came")
+			a.drop("a piece of it never came")
 			a.run = nil
 			return AssemblyDropped, nil
 		}
 	default:
 		if a.run != nil {
-			a.drop(who, "its next piece never came")
+			a.drop("its next piece never came")
 			a.run = nil
 		}
 	}

@@ -667,7 +667,9 @@ Frontiers disc keeps working. Addresses below are Corsten's live CLIENT; word id
   cannot delete it), a player's delete keeps the row for the GMs (status `deleted`), 100 listed refuse a new
   one (status 2, as CLIENT refuses itself), and a ticket past the 8191 characters CLIENT keeps is sent by its
   end. Other statuses (`csFailed` and the rest) are ours; CLIENT shows any as "System is temporarily
-  unavailable. (Code: -n)".
+  unavailable. (Code: -n)". A request's or reply's text is 2,047 characters at most (`CSTextMost`, petition 1300;
+  a PS2's form holds 511, vanilla's as many as the bug report offer says): 4,103 bytes, a message in pieces (Key
+  Server Protocol Details).
 
 ### Bug reports: petitions with the server's own view (`handlers/bugreport.go`, `petitionview.go`)
 
@@ -677,7 +679,8 @@ in, one petition each: Support's request form on every client (Bug Report's topi
 Creature or NPC, Item, loot or merchant, Spell or ability, Combat, Other, Game client; Crash and Graphics hidden),
 `/bug <what happened>` or `#bug` (a PS2 keeps an unknown /command to itself; filed under the hidden topic Sent
 from chat), and vanilla's F3, which opens the form on Bug Report from a client that answered the offer
-(**0x7E0E**, not retail, a u32 both ways, sent with the other offers). Each is filed with **the server's view**
+(**0x7E0E**, not retail, a u32 both ways, sent with the other offers; the server's is followed by a second, the most
+characters of a petition's text it takes, `CSTextMost`, which vanilla's form then holds). Each is filed with **the server's view**
 (`petitions.server_view`, JSON, the GMs' alone, never sent to the player, left out of every list): the moment and
 the way it came, the build, the client (DiscVersion, the offers it answered) and its own note when it sent one
 (**0x7E0F**: u32 version 1, u32 byte count, UTF-8 "key: value" lines; vanilla's build, platform, graphics, frame
@@ -1768,6 +1771,18 @@ simulator's kits: `balancesim_real_test.go` is the check after it.
 **MemoryDump format** (Sandstorm differs from C#): No weapon hotbar section between inventory and bank. Bank items immediately follow inventory. 4 transition bytes between bank and spells. (That section is SOE's live client's four weapon sets, 4 × zigzag main, zigzag off, string name; the Frontiers disc never reads it, so the sets go as 0x0021 after world entry instead.)
 
 **Segment header size**: Placeholder varint written first, patched with actual body size after all messages written (`PatchSegmentHeaderSize`). Prevents body size mismatch when fragments exceed MTU.
+
+**A client's message in pieces is handled whole** (2026-11-08, petition 1300; `session/fragments.go`, `udp/turns.go`).
+DRDP's `connection_send_guaranteed` cuts a reliable message past 1,300 bytes into pieces under numbers of their own,
+0xFA but the last (0xFB, or 0xF9), only the first starting with the opcode; until then the server took every piece
+for a message of its own (the first cut short to its handler, the rest to whatever their first two bytes named). The
+parser reads a piece whole (`Message.Unsplit`, `Wire`), and `ConnectionData.Assemble` holds the pieces of a run that
+starts after a message known not to be a piece and hands on one message at its last piece. The server acknowledges
+the newest number it has seen (a lost message is never sent again), so a gap, a run past 16 KiB or one not finished
+in a minute drops the whole message, logged ("Fragments: ..."), and no piece reaches a handler. Packets are handled a
+goroutine each: where the message before one is not known yet, the listener waits for the packets read before it from
+that address (at most a second) and asks again; nothing else waits. A PS2 never sends one that long (its longest, a
+petition or a gram of 511 characters, is under 1,100 bytes); vanilla does for a long petition.
 
 **More than 24 NPCs and players in view, and farther, for a client that keeps them**
 (2026-10-24; `session/entityslots.go`, `handlers/entityslots.go`). CLIENT keeps 24 entity

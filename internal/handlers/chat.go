@@ -458,7 +458,10 @@ func (h *ChatHandler) shout(sess *session.Session, player *entity.Player, messag
 // groupChat is mode 2: 0x069E (the dispatcher [A]: a u32 CLIENT does not use,
 // a wide line in (.5, .5, 1)) with the C# reference's "Name tells the group:"
 // to every member, the sender included, but a member who chose Hide Chat on
-// the Group menu (lfg.go). Not in a group: word 629.
+// the Group menu (lfg.go). Not in a group: word 629. A raid's group (entity's
+// GroupIsRaid: a raid flag raised, or past four) hears "Name tells the raid:"
+// in raidChatRGB instead, a line in its colour (the user, 2026-11-08: "make it
+// say tells the raid instead of group and make text color orange").
 func (h *ChatHandler) groupChat(sess *session.Session, player *entity.Player, message string) {
 	if message = consoleLine(message, chatLineMost); message == "" {
 		return
@@ -468,15 +471,26 @@ func (h *ChatHandler) groupChat(sess *session.Session, player *entity.Player, me
 		SendErrorMessage(sess, "You are not in a group.")
 		return
 	}
+	raid := h.gameWorld.GroupIsRaid(player)
 	line := fmt.Sprintf("%s tells the group: %s", player.Name, message)
+	if raid {
+		line = fmt.Sprintf("%s tells the raid: %s", player.Name, message)
+	}
 	sessions := playerSessions(h.gameWorld)
 	for _, m := range members {
 		if s := sessions[m.ServerID]; s != nil {
-			SendGroupChat(s, uint32(player.ServerID), lineFor(m, line))
+			if raid {
+				SendColoredChat(s, lineFor(m, line), raidChatRGB[0], raidChatRGB[1], raidChatRGB[2])
+			} else {
+				SendGroupChat(s, uint32(player.ServerID), lineFor(m, line))
+			}
 		}
 	}
 	log.Printf("GroupChat: %q to %d members", line, len(members))
 }
+
+// raidChatRGB is a raid's chat: orange.
+var raidChatRGB = [3]byte{255, 140, 0}
 
 // guildChatLinePayload is 0x0468 sub 5, Recv0468 (0x00BF0D38 [A]): a u32 the
 // client does not use, then a wide line of at most 255 characters, drawn in

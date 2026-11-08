@@ -597,3 +597,52 @@ func TestAVeryLargeRaidRosterIsPaged(t *testing.T) {
 		t.Errorf("no records: % x", got)
 	}
 }
+
+// A box's yes counts though the asked one's view moved its inviter since (the user,
+// 2026-11-08: "dwarfrish tried to /raid after we all accepted and folks couldnt
+// join"): the box named the leader by its slot's id, a crowd moved the leader to
+// another slot before the yes, and the yes, naming the id the box carried, joins. The
+// control: a yes naming an id no box of its carried is not taken, and says so.
+func TestARaidYesCountsThoughTheViewMoved(t *testing.T) {
+	r := newRaidRig(t, 6, 30)
+	r.join(0, 1)
+	r.drainAll()
+	vs := GetOrCreateVisibility(r.sess[2])
+	vs.ChannelEntity = []EntityID{r.p[0].ServerID, r.p[5].ServerID}
+	vs.ChannelObjectID = []uint32{0x1000, 0x1001}
+	r.w.RaidCall(r.sess[0])
+	sent := r.w.IDSeenBy(r.sess[2], r.p[0])
+	if sent != 0x1000 {
+		t.Fatalf("the box named the leader %#x, want its slot's 0x1000", sent)
+	}
+	// the crowd: the leader on another slot, its old id now another's
+	vs.ChannelEntity = []EntityID{r.p[5].ServerID, r.p[0].ServerID}
+	vs.ChannelObjectID = []uint32{0x1000, 0x1002}
+	r.w.GroupAccept(r.sess[2], sent)
+	if r.p[2].GroupID == 0 || r.p[2].GroupID != r.p[0].GroupID {
+		t.Fatalf("the yes with the box's id did not join: group %d, the leader's %d", r.p[2].GroupID, r.p[0].GroupID)
+	}
+	// the control: an id no box carried
+	r.w.GroupAccept(r.sess[3], 0x4242)
+	if r.p[3].GroupID != 0 {
+		t.Error("the control: a yes to no box joined")
+	}
+}
+
+// A raid's group chat (GroupIsRaid): a flag raised makes the group a raid's,
+// whatever its size; the control, a group of three by invites, is not one.
+func TestAFlaggedGroupIsARaidsToItsChat(t *testing.T) {
+	r := newRaidRig(t, 4, 30)
+	r.join(0, 1)
+	r.join(0, 2)
+	if r.w.GroupIsRaid(r.p[0]) {
+		t.Fatal("the control: a group of three by invites is a raid's")
+	}
+	r.w.RaidCall(r.sess[0])
+	if !r.w.GroupIsRaid(r.p[0]) || !r.w.GroupIsRaid(r.p[1]) {
+		t.Error("a flag raised: the group is not a raid's to its chat")
+	}
+	if r.w.GroupIsRaid(r.p[3]) {
+		t.Error("one in no group is a raid's")
+	}
+}

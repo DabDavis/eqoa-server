@@ -50,6 +50,16 @@ var (
 // isRaid is whether g is a raid group.
 func (g *Group) isRaid() bool { return len(g.Members) > GroupWindowSize }
 
+// GroupIsRaid reports p's group a raid to its chat (the user, 2026-11-08: "make it
+// say tells the raid instead of group and make text color orange"): one whose leader
+// raised a raid flag, or past GroupWindowSize members.
+func (w *World) GroupIsRaid(p *Player) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	g := w.groups[p.GroupID]
+	return p.GroupID != 0 && g != nil && (g.flagged || g.isRaid())
+}
+
 // inRaidLocked is whether p is in a raid group. Must be called with the lock held.
 func (w *World) inRaidLocked(p *Player) bool {
 	g := w.groups[p.GroupID]

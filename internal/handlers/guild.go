@@ -82,6 +82,10 @@ type GuildHandler struct {
 type guildInvite struct {
 	inviter entity.EntityID
 	guild   uint32
+	// sent is the id the invitation named its inviter by, what the answer sends
+	// back though the invitee's view may since have moved the inviter
+	// (answerInviter)
+	sent uint32
 }
 
 // NewGuildHandler creates a guild handler.
@@ -260,21 +264,44 @@ func (h *GuildHandler) invite(sess *session.Session, p *entity.Player, name stri
 		queueReliable(sess, protocol.OpcodeGuildInviteStuff, buildGuildInviteResult(guildInviteInAGuild, invitee.Name))
 		return
 	}
+	// the inviter's id as the invitee's client knows it (ids are per session);
+	// what 9 or 10 sends back resolves through that same table, or is that id
+	is := h.gameWorld.FindSessionByEntityID(invitee.ServerID)
+	inv := guildInvite{inviter: p.ServerID, guild: g.ID}
+	if is != nil {
+		inv.sent = h.gameWorld.IDSeenBy(is, p)
+	}
 	h.mu.Lock()
-	h.invites[invitee.ServerID] = guildInvite{inviter: p.ServerID, guild: g.ID}
+	h.invites[invitee.ServerID] = inv
 	h.mu.Unlock()
 	log.Printf("Guild: %s invites %s to %q", p.Name, invitee.Name, g.Name)
-	// the inviter's id as the invitee's client knows it (ids are per session);
-	// what 9 or 10 sends back resolves through that same table
-	if is := h.gameWorld.FindSessionByEntityID(invitee.ServerID); is != nil {
-		queueReliable(is, protocol.OpcodeGuildInviteStuff, buildGuildInvitation(h.gameWorld.IDSeenBy(is, p), p.Name, g.Name))
+	if is != nil {
+		queueReliable(is, protocol.OpcodeGuildInviteStuff, buildGuildInvitation(inv.sent, p.Name, g.Name))
 	}
+}
+
+// answerInviter is whom an answer naming inviterID to invitation inv answers:
+// the player the id names now, else, when the id is the one the invitation was
+// sent with, its inviter (the invitee's view moved it meanwhile), or nil.
+func (h *GuildHandler) answerInviter(sess *session.Session, inv guildInvite, inviterID uint32) *entity.Player {
+	if inviter := h.gameWorld.PlayerSeenBy(sess, inviterID); inviter != nil && inviter.ServerID == inv.inviter {
+		return inviter
+	}
+	if inv.sent != 0 && inviterID == inv.sent {
+		return h.gameWorld.PlayerByEntity(inv.inviter)
+	}
+	return nil
 }
 
 func (h *GuildHandler) join(sess *session.Session, p *entity.Player, inviterID uint32) {
 	inv, ok := h.takeInvite(p.ServerID)
-	inviter := h.gameWorld.PlayerSeenBy(sess, inviterID)
-	if !ok || inviter == nil || inviter.ServerID != inv.inviter {
+	if !ok {
+		log.Printf("Guild: %s's yes to %#x: no invitation", p.Name, inviterID)
+		return
+	}
+	inviter := h.answerInviter(sess, inv, inviterID)
+	if inviter == nil {
+		log.Printf("Guild: %s's yes to %#x: its inviter is gone", p.Name, inviterID)
 		return
 	}
 	g := h.gameWorld.GuildByID(inv.guild)
@@ -293,17 +320,24 @@ func (h *GuildHandler) join(sess *session.Session, p *entity.Player, inviterID u
 
 func (h *GuildHandler) refuse(sess *session.Session, p *entity.Player, inviterID uint32, reason byte) {
 	inv, ok := h.takeInvite(p.ServerID)
-	inviter := h.gameWorld.PlayerSeenBy(sess, inviterID)
-	if !ok || inviter == nil || inviter.ServerID != inv.inviter {
+	if !ok {
+		return
+	}
+	inviter := h.answerInviter(sess, inv, inviterID)
+	if inviter == nil {
 		return
 	}
 	code := guildInviteDeclined
+	why := "declined"
 	switch reason {
 	case 2:
-		code = guildInviteBusy
+		// its client's own word: a window or the chat line was open (CLIENT's
+		// IsLootable, the game in mode 0, as vanilla's guild.rs has it)
+		code, why = guildInviteBusy, "busy (a window or the chat line open)"
 	case 4:
-		code = guildInviteInAGuild
+		code, why = guildInviteInAGuild, "in a guild"
 	}
+	log.Printf("Guild: %s refuses %s's invitation: %s", p.Name, inviter.Name, why)
 	h.sendRaw(inviter, protocol.OpcodeGuildInviteStuff, buildGuildInviteResult(code, p.Name))
 }
 

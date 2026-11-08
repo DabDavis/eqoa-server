@@ -106,8 +106,10 @@ func TestSixInvitedThroughTheOpcodes(t *testing.T) {
 	}
 }
 
-// Group chat reaches all six, those past each one's window too; a bystander in say
-// range hears none of it.
+// Group chat reaches all six, those past each one's window too, as the raid's: "tells
+// the raid", in orange (the user, 2026-11-08: "make it say tells the raid instead of
+// group and make text color orange"); a bystander in say range hears none of it. The
+// control (TestChatGroupModeReachesTheGroupOnly): a group of two tells the group.
 func TestARaidGroupsChatReachesEveryone(t *testing.T) {
 	r := newRaidGroup(t, "Alda", "Bren", "Cael", "Dirn", "Esk", "Fenn")
 	for _, s := range append(append([]*session.Session(nil), r.sess...), r.out) {
@@ -117,7 +119,7 @@ func TestARaidGroupsChatReachesEveryone(t *testing.T) {
 	r.c.say(r.sess[5], "pull now")
 	for i, s := range r.sess {
 		got := heard(t, s)
-		if len(got) != 1 || got[0].op != protocol.OpcodeGroupChat || got[0].text != "Fenn tells the group: pull now" {
+		if len(got) != 1 || got[0].op != protocol.OpcodeColoredChat || got[0].text != "Fenn tells the raid: pull now" || got[0].rgb != raidChatRGB {
 			t.Errorf("member %d heard %+v", i, got)
 		}
 	}

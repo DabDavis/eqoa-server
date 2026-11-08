@@ -291,3 +291,29 @@ func TestGuildJoinByTheInviteesIDAndChat(t *testing.T) {
 		t.Error("the speaker did not hear its own line")
 	}
 }
+
+// A yes to a guild's invitation counts though the invitee's view moved the inviter
+// since the invitation (the user, 2026-11-08: Larrybird's invitations in a crowd): it
+// names the inviter by the id the invitation carried, which now names no one, and
+// joins; and a refusal is logged with its reason. The control: an id the invitation
+// did not carry joins nothing (TestGuildJoinByTheInviteesIDAndChat).
+func TestGuildJoinThoughTheViewMoved(t *testing.T) {
+	f := newGroupFixture(t, "Ann", "Bob")
+	gh := NewGuildHandler(f.sm)
+	gh.SetGameWorld(f.world)
+	run := func(who string, m *protocol.Message) { gh.HandleGuildCommand(f.sess[who], m) }
+	run("Ann", guildCmd(guildCmdCreate, wideb("Zion")))
+	vs := entity.GetOrCreateVisibility(f.sess["Bob"])
+	vs.ChannelEntity = append(vs.ChannelEntity, f.p["Ann"].ServerID)
+	vs.ChannelObjectID = append(vs.ChannelObjectID, 0x2000)
+	run("Ann", guildCmd(guildCmdInvite, str8b("Bob"), wideb("Zion")))
+	id := invitedBy(t, lastOf(f.take("Bob"), protocol.OpcodeGuildInviteStuff))
+	if id != 0x2000 {
+		t.Fatalf("the invitation named Ann %#x, want her slot's 0x2000", id)
+	}
+	vs.ChannelObjectID[len(vs.ChannelObjectID)-1] = 0x2001 // the crowd: Ann on another id
+	run("Bob", guildCmd(guildCmdJoin, u32b(id)))
+	if f.world.GuildOf(f.p["Bob"]) == nil {
+		t.Fatal("a yes with the invitation's id did not join")
+	}
+}

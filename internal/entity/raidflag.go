@@ -50,6 +50,10 @@ const raidAskedNames = 12
 type groupAsk struct {
 	raid     bool
 	declined time.Time
+	// sent is the id the box named its inviter by: what the answer sends back,
+	// though the asked one's view may since have moved the inviter to another
+	// slot or out of it (answerInviterLocked)
+	sent uint32
 }
 
 // RaidCall is /raid from sess's player. The lines are the World's.
@@ -116,6 +120,9 @@ func (w *World) raidAskedLocked(t, leader *Player, now time.Time) (waiting, refu
 // (the file's doc), and a line to the leader; a GM hidden from players is not one of
 // them. Must be called with the lock held.
 func (w *World) raidFlagLocked(sess *session.Session, leader *Player, now time.Time) {
+	if g := w.groups[leader.GroupID]; leader.GroupID != 0 && g != nil {
+		g.flagged = true // a raid's group to its chat (raid.go's GroupIsRaid)
+	}
 	var asked []string
 	waiting := 0
 	for _, id := range w.SpatialIndex.QueryRadius(leader.X, leader.Z, RaidFlagRadius) {

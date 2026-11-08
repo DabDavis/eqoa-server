@@ -646,3 +646,64 @@ func TestAFlaggedGroupIsARaidsToItsChat(t *testing.T) {
 		t.Error("one in no group is a raid's")
 	}
 }
+
+// Every member of a raid group whose client asked is sent the whole roster when the
+// group passes four, those of the group before it as much as the one that made it
+// five (the user, 2026-11-08: "the raid ui doesnt show up for all players in raid, like
+// maybe the early group still sees the group UI"): Birdie's sequence, her own box,
+// three yeses, then a fifth by the flag.
+func TestTheEarlyGroupIsSentTheRaidRoster(t *testing.T) {
+	r := newRaidRig(t, 5, 30)
+	for i := range r.p {
+		if !r.w.SetRaidRoster(r.sess[i], true) {
+			t.Fatal("no player")
+		}
+	}
+	r.w.RaidCall(r.sess[0])                                // the box of her own
+	r.w.GroupAccept(r.sess[0], r.sess[0].PlayerObjectID()) // her yes: a group of one, the flag up
+	for _, i := range []int{1, 2, 3} {
+		r.w.GroupAccept(r.sess[i], r.w.IDSeenBy(r.sess[i], r.p[0]))
+	}
+	r.rosterPass()
+	r.drainAll()
+	if g := r.w.groups[r.p[0].GroupID]; g == nil || len(g.Members) != 4 {
+		t.Fatalf("the group of four: %+v", g)
+	}
+	r.w.RaidCall(r.sess[0])
+	r.w.GroupAccept(r.sess[4], r.w.IDSeenBy(r.sess[4], r.p[0]))
+	r.rosterPass()
+	for i := range r.p {
+		if _, total, sent := readRaidRoster(t, drain(r.sess[i])); sent == 0 || total != 5 {
+			t.Errorf("%s: %d messages, %d in all; want the five", r.p[i].Name, sent, total)
+		}
+	}
+}
+
+// A flagged group is sent its roster at any size, its first members at once (the user,
+// 2026-11-08: "the raid ui doesnt show up for all players in raid, like maybe the early
+// group still sees the group UI"). The control: a group of three by invites, no flag, is
+// sent none.
+func TestAFlaggedGroupsRosterGoesAtAnySize(t *testing.T) {
+	r := newRaidRig(t, 6, 30)
+	for i := range r.p {
+		r.w.SetRaidRoster(r.sess[i], true)
+	}
+	r.w.RaidCall(r.sess[0])
+	r.w.GroupAccept(r.sess[0], r.sess[0].PlayerObjectID())
+	r.w.GroupAccept(r.sess[1], r.w.IDSeenBy(r.sess[1], r.p[0]))
+	r.w.GroupAccept(r.sess[2], r.w.IDSeenBy(r.sess[2], r.p[0]))
+	r.join(3, 4)
+	r.join(3, 5)
+	r.drainAll()
+	r.rosterPass()
+	for _, i := range []int{0, 1, 2} {
+		if _, total, sent := readRaidRoster(t, drain(r.sess[i])); sent == 0 || total != 3 {
+			t.Errorf("%s, in a flagged group of three: %d messages, %d in all", r.p[i].Name, sent, total)
+		}
+	}
+	for _, i := range []int{3, 4, 5} {
+		if _, _, sent := readRaidRoster(t, drain(r.sess[i])); sent != 0 {
+			t.Errorf("the control: %s, in a group of three by invites, %d messages", r.p[i].Name, sent)
+		}
+	}
+}

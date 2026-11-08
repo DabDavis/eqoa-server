@@ -120,11 +120,13 @@ func EjectAccount(sm *session.Manager, accountID int) int {
 	return len(hit)
 }
 
-// SendLevel tells a client its player's level (0x0020, with no experience
-// into it), as a level set by a GM is: CLIENT plays its level-up sound for a
-// higher one. The level's stat cap goes with it (0x001C; entity/mastery.go).
-func SendLevel(sess *session.Session, level int) {
-	SendGrantXP(sess, level, 0)
+// SendLevel tells a client its player's level (0x0020) and the experience its
+// bar is drawn from (bar: entity.Player.BarXP, none into a level set, or the way
+// to the next mastery point at the cap or at 100%), as a level set by a GM is:
+// CLIENT plays its level-up sound for a higher one. The level's stat cap goes
+// with it (0x001C; entity/mastery.go).
+func SendLevel(sess *session.Session, level, bar int) {
+	SendGrantXP(sess, level, int64(bar))
 	entity.SendStatCap(sess, level)
 }
 

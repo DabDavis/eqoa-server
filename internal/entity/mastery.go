@@ -159,6 +159,56 @@ func (w *World) MasteryOf(id EntityID) (Mastery, bool) {
 	return p.Mastery, true
 }
 
+// BarXP is the experience the HUD's bar is drawn from, 0x0020's second figure
+// and the MemoryDump's: CLIENT draws exp / ExpForLevel(level+1), and the fifths
+// of it under it, and reads exp for nothing else. Below the level cap, with
+// some of the experience going to the level, it is the level's (XPInLevel). At
+// the cap, or with all of it going to the masteries (the window's 100%), it is
+// the way to the next mastery point, as the same share of the bar: the bar
+// fills as that point comes (the GM Jibrish's petition 1271, 2026-11-08: "When
+// on 100% CM xp commitment, or when level 60, the XP bar should show progress
+// toward your next CM ... Same fashion, yellow and pink and when yellow bars
+// fill you get your point"). Holding MasteryCap points it is empty: no point is
+// to come. Held under 2^31, the client's signed int.
+func (p *Player) BarXP() int {
+	if p.Level < MaxLevel && p.Mastery.Percent < 100 {
+		return p.XPInLevel
+	}
+	m := p.Mastery
+	if m.Points+m.Spent >= MasteryCap {
+		return 0
+	}
+	cost := CMPointXP(m.Points + m.Spent + 1)
+	if cost <= 0 {
+		return 0
+	}
+	need := int64(ExpForLevel(p.Level + 1))
+	return int(min(need*int64(max(0, min(m.XP, cost)))/int64(cost), math.MaxInt32))
+}
+
+// LevelBar is the session's player's level and the experience its HUD's bar
+// is drawn from (BarXP).
+func (w *World) LevelBar(sess *session.Session) (level, bar int, ok bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil {
+		return 0, 0, false
+	}
+	return p.Level, p.BarXP(), true
+}
+
+// CharacterBar is a character's (its serverid) HUD bar experience (BarXP), 0
+// for one not in the world.
+func (w *World) CharacterBar(serverID uint32) int {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	if p := w.playerByCharacterLocked(serverID); p != nil {
+		return p.BarXP()
+	}
+	return 0
+}
+
 // RestoreMastery puts a character's kept mastery points on its session's
 // player at the login.
 func (w *World) RestoreMastery(sess *session.Session, m Mastery) {

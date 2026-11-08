@@ -2029,7 +2029,7 @@ func writeDumpRecordBank(writer *buffer.Writer, player *entity.Player, bankTunar
 	writer.Write7BitEncodedInt64(int64(player.Class))
 	writer.Write7BitEncodedInt64(int64(entity.WireRace(player.Race)))
 	writer.Write7BitEncodedInt64(int64(player.Level))
-	writer.Write7BitEncodedInt64(int64(player.XPInLevel))
+	writer.Write7BitEncodedInt64(int64(player.BarXP())) // the HUD bar's: the level's, or the next mastery point's
 	writer.Write7BitEncodedInt64(int64(player.Debt))
 	writer.WriteByte(byte(player.Breath)) // Breath (255 = full)
 	writer.Write7BitEncodedInt64(int64(player.Tunar))

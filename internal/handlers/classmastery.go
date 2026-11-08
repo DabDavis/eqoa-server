@@ -548,6 +548,11 @@ func (h *ClassMasteryHandler) setShare(sess *session.Session, pct int) int {
 		}
 	}
 	log.Printf("ClassMastery: %s gives %d%% of experience to masteries", sess.RemoteAddr(), m.Percent)
+	// the bar now: at 100% (or the cap) the way to the next mastery point, else
+	// the level's (entity.Player.BarXP; petition 1271)
+	if level, bar, ok := h.gameWorld.LevelBar(sess); ok {
+		SendGrantXP(sess, level, int64(bar))
+	}
 	return m.Percent
 }
 

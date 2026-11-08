@@ -63,6 +63,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveCraftSkills(before, after) // live_craft.go
 	case "npcmove":
 		return s.liveMove()
+	case "campspawns":
+		return s.liveCamps()
 	case "balancelevel", "balancecon", "balanceclass", "balanceclasslevel":
 		return s.liveBalance() // live_balance.go
 	case "classtemplates", "npctemplate", "pettemplate", "petstats":
@@ -245,6 +247,18 @@ func checkSpawnOnlyRow(row map[string]any) error {
 		return badRequest("name is the NPC's name, as in NPCs (any case)")
 	}
 	return nil
+}
+
+// liveCamps reads the camps' spawns again (entity/campspawn.go; the change is
+// committed: the database is free).
+func (s *Server) liveCamps() string {
+	if s.d.World == nil || s.d.DB == nil {
+		return "no world is running: at the next start"
+	}
+	if _, err := s.d.World.LoadCampSpawns(s.d.DB); err != nil {
+		return "not applied to the world: " + err.Error()
+	}
+	return "at once: " + s.d.World.CampSummary() + "; each pops its kinds as they are now the next time it comes back"
 }
 
 // liveMove reads how the creatures of a name move again (entity/movement.go;

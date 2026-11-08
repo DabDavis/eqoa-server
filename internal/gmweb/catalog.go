@@ -516,6 +516,66 @@ var catalog = map[string]tableNote{
 			"points": {Label: "Waypoints", Format: "multiline", Help: `[{"x": 25000, "y": 50, "z": 15000}, {"x": 25040, "y": 51, "z": 15000, "pause": 5}]`},
 		},
 	},
+	"gmmarks": {
+		Label: "GM marks", Group: "World", Title: "note", Sort: "id",
+		Help: "The places GMs marked in the game with /mark (handlers/gmcamps.go): one row a mark, by account, in the order " +
+			"made (id), where the GM's character stood (world, x, y, z; facing in radians, the server's) with its note. /camp " +
+			"makes a static spawn at each of a GM's marks and /path walks the GM's target through them, both clearing them; " +
+			"/marks lists them, /marks undo drops the last, /marks clear all. A GM's petition carries its marks in its " +
+			"server view. They outlive a logout and a restart.",
+		Live:   "At once: the next /marks, /camp, /path or petition reads them.",
+		Show:   []string{"id", "accountid", "charname", "world", "x", "y", "z", "note", "at"},
+		Search: []string{"note", "charname"},
+		Cols: map[string]colNote{
+			"id":        {Label: "Mark", ReadOnly: true, Help: "its order among the account's: the lowest is mark 1"},
+			"accountid": {Label: "Account", Ref: "accountinfo"},
+			"world":     {Label: "World", Enum: "world"},
+			"x":         {Label: "x"},
+			"y":         {Label: "y (height)"},
+			"z":         {Label: "z"},
+			"facing":    {Label: "Facing", Help: "radians, as the server holds a character's"},
+			"note":      {Label: "Note"},
+			"charname":  {Label: "Character", Help: "the GM's character that stood there"},
+			"at":        {Label: "When", ReadOnly: true},
+		},
+	},
+	"gmcamps": {
+		Label: "GM camps", Group: "World", Title: "kinds", Sort: "id",
+		Help: "The camps GMs made in the game with /camp (handlers/gmcamps.go): one row a camp, its world, the kinds its " +
+			"spawns pop (NPC names), the marks it was made at (JSON; /camp undo gives them back to a GM holding none), " +
+			"when and by whom. Its spawns are rows of Camp spawns. /camp undo takes a GM's last camp away: its spawns' " +
+			"NPCs, their paths and rows, and this row. Deleting this row here leaves its spawns standing.",
+		Live:   "Nothing in the world reads it: Camp spawns and NPCs are the camp.",
+		Show:   []string{"id", "accountid", "charname", "world", "kinds", "at"},
+		Search: []string{"kinds", "charname"},
+		Cols: map[string]colNote{
+			"id":        {Label: "Camp", ReadOnly: true},
+			"accountid": {Label: "Account", Ref: "accountinfo"},
+			"charname":  {Label: "Character"},
+			"world":     {Label: "World", Enum: "world"},
+			"kinds":     {Label: "Kinds", Help: "the NPC names its spawns pop, \", \" between"},
+			"marks":     {Label: "Marks", Format: "multiline", Help: "the marks it was made at, a JSON list as gmmarks' rows"},
+			"at":        {Label: "When", ReadOnly: true},
+		},
+	},
+	"campspawns": {
+		Label: "Camp spawns", Group: "World", Title: "kinds", Sort: "npcid",
+		Help: "A camp's static spawns (entity/campspawn.go; a GM's /camp makes them): one row a spawn, by its NPC row, " +
+			"which is its spot (place, facing, world) and the kind it was made as. It stands on its spawn until pulled, " +
+			"whatever its kind (ahead of Creature movement's rules), goes home after a fight, and each time it comes " +
+			"back from a death pops one of its kinds at random: the kind it was made as from its own row, another from " +
+			"the NPC row of that name nearest it (not a camp's), as a row makes an NPC (its level, body, gear; its loot, " +
+			"class, template and faction by its name). No wandering creature walks within 30 of a camp's spawns but one " +
+			"that spawned that near. A GM's path walks it all the same.",
+		Live:   "At once: the next time each comes back pops one of its kinds as they are now; it stands at once.",
+		Show:   []string{"npcid", "camp", "kinds"},
+		Search: []string{"kinds"},
+		Cols: map[string]colNote{
+			"npcid": {Label: "NPC", Ref: "npcs", Help: "its row in NPCs: its spot and the kind it was made as"},
+			"camp":  {Label: "Camp", Ref: "gmcamps"},
+			"kinds": {Label: "Kinds", Help: "the NPC names it pops, \", \" between, one at random each time it comes back"},
+		},
+	},
 	"npcitem": {
 		Label: "Merchant stock", Group: "World", Sort: "npcid",
 		Help: "What a merchant sells: a row an item, by npcs.id; listnumber orders the window. A creature's rows are " +

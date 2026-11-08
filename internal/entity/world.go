@@ -112,6 +112,9 @@ type World struct {
 
 	// The paths GMs gave creatures, and those walking back from one (path.go)
 	paths pathTable
+	// The GMs' camps: their spawns, the rows their kinds are made from, their
+	// grounds the wander keeps out of (campspawn.go)
+	camps campTable
 
 	// Each player race's two bodies by race and sex (charactermodel), the
 	// bodies a race's illusion shows (illusion.go)

@@ -140,7 +140,9 @@ func TestPetitionsInThePanel(t *testing.T) {
 
 // The Petitions page in a real browser, when one is installed: signed in as a
 // GM, it lists a filed petition (its ticket, the player's words as text, not
-// markup), and its Answer button writes the answer into the ticket. A page
+// markup), and its Answer button writes the answer into the ticket; its
+// server view shows a GM's marks (/mark), each a link to its place on the
+// World map, the note as text. A page
 // that fails to load or to render shows nothing at all, which no other test
 // sees.
 func TestThePetitionsPageInABrowser(t *testing.T) {
@@ -161,7 +163,8 @@ func TestThePetitionsPageInABrowser(t *testing.T) {
 			`"client":{"disc":"0x12","f3":true,"note":"build: dev-x"},"character":{"name":"Hero","level":10,"class":"Warrior",` +
 			`"race":"Human","world":0,"x":25300,"y":54,"z":15700,"hp":10,"maxHP":100,"power":1,"maxPower":2,"tunar":1,` +
 			`"bankTunar":0,"effects":0},"stats":["Hero: level 10 Human Warrior"],` +
-			`"lines":[{"ago":-3.2,"kind":"red line","text":"<i>the docks crane</i> fell"}]}`}, time.Now()); err != nil {
+			`"lines":[{"ago":-3.2,"kind":"red line","text":"<i>the docks crane</i> fell"}],` +
+			`"marks":[{"n":1,"world":0,"x":15023.3,"y":16.8,"z":27282.1,"facing":1.57,"note":"<u>the rock</u>","char":"Hero","at":"2026-11-08T20:00:00Z"}]}`}, time.Now()); err != nil {
 		t.Fatal(err)
 	}
 	harness := `<!doctype html><meta charset="utf-8"><div id="out"></div><script type="module">
@@ -182,6 +185,8 @@ const wait = async (ok) => { for (let i = 0; i < 100 && !ok(); i++) await new Pr
     [...out.querySelectorAll('button')].find((b) => b.textContent.trim() === "Server's view").click();
     if (!(await wait(() => out.textContent.includes('the docks crane')))) throw new Error('the server view did not show: ' + out.textContent.slice(0, 600));
     if (!out.textContent.includes('build abc123') || !out.textContent.includes('vanilla with F3')) throw new Error('the view: ' + out.textContent.slice(0, 800));
+    const mark = [...out.querySelectorAll('a')].find((a) => a.textContent.trim() === 'Mark 1');
+    if (!mark || mark.getAttribute('href') !== '#/map/0/@15023,27282' || !out.textContent.includes('world 0 (15023.3, 16.8, 27282.1), facing 1.57')) throw new Error('the marks: ' + out.textContent.slice(0, 1200));
     out.dataset.done = '1';
   } catch (e) {
     out.dataset.failed = String(e);
@@ -222,6 +227,9 @@ const wait = async (ok) => { for (let i = 0; i < 100 && !ok(); i++) await new Pr
 	}
 	if strings.Contains(dom, "<i>the docks crane</i>") || !strings.Contains(dom, "&lt;i&gt;the docks crane&lt;/i&gt;") {
 		t.Errorf("the server view's lines are not shown as text:\n%.3000s", dom)
+	}
+	if strings.Contains(dom, "<u>the rock</u>") || !strings.Contains(dom, "&lt;u&gt;the rock&lt;/u&gt;") {
+		t.Errorf("a mark's note is not shown as text:\n%.3000s", dom)
 	}
 	p, _, _ := f.db.PetitionByID(1001)
 	if !strings.HasSuffix(p.Text, "\n\nGM: Fixed in the next build.") || !p.Unread || p.AnsweredBy != "gm" {

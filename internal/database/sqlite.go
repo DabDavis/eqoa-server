@@ -741,6 +741,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharRecord(); err != nil { // combatrecord.go: each character's PvP and duels
 		return err
 	}
+	if err := db.ensureCamps(); err != nil { // gmcamps.go: a GM's marks and camps from the game
+		return err
+	}
 
 	log.Printf("SQLite schema initialized")
 	return nil

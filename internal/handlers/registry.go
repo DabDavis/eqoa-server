@@ -454,6 +454,11 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	}
 	supportHandler.RegisterHandlers(r)
 	chatHandler.support = supportHandler // /bug (bugreport.go)
+	// /mark, /camp and /path, and a GM's marks in its petitions (gmcamps.go)
+	if charStore != nil {
+		chatHandler.SetCampStore(charStore.DB())
+		supportHandler.SetMarks(charStore.DB())
+	}
 	// a character transfer applied at the login is told once in the world
 	// (transfers.go)
 	if gameWorld != nil && charStore != nil {

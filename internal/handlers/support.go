@@ -117,6 +117,7 @@ type SupportHandler struct {
 	sessions *session.Manager // the GMs told of a new petition
 	access   accessLevels     // who is a GM (devcmds.go)
 	quests   *QuestEngine     // a petition's quests under way (petitionview.go)
+	marks    markReader       // a GM filer's marks (petitionview.go, gmcamps.go)
 	limit    reportLimiter
 }
 

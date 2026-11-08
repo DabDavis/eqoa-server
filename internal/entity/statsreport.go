@@ -162,6 +162,9 @@ func (w *World) npcStatsLocked(npc *NPC, viewer *Player, now time.Time) []string
 		swingName(npcSwingKind(npc)), length.Seconds(), delay.Seconds(), len(hits), max(top0-r.Width, r.Floor, 1), max(top0, r.Floor, 1), r.Floor))
 	if viewer != nil {
 		lo, hi := hitRangeOn(r, viewer)
+		if npc.softFloor() {
+			lo, hi = r.softRangeOn(viewer) // under its floor, a boosted creature's (defence.go)
+		}
 		floor, low, high := playerMeleeRoll(viewer, npc)
 		out = append(out, fmt.Sprintf("On %s: %d-%d a hit (AC x %.4f off its top); %s's melee on it %d-%d, never under %d (its defence %.1f)",
 			viewer.Name, lo, hi, r.ACSlope, viewer.Name, max(low, floor), max(high, floor), floor, targetDefence(npc)))

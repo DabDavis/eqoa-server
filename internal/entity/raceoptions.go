@@ -180,15 +180,15 @@ var (
 // colour (a cap, a bag, wings, a dress); tones shift a part's own colours, for
 // one of many (a giant's whole body, a creature's hide).
 var (
-	dyes = []OptionStep{{"Natural", 0, 0}, {"Crimson", Dye(352, 70, 95), 0}, {"Ember", Dye(18, 85, 105), 0},
-		{"Gold", Dye(45, 80, 115), 0}, {"Moss", Dye(95, 55, 95), 0}, {"Teal", Dye(175, 65, 100), 0},
-		{"Azure", Dye(212, 70, 105), 0}, {"Violet", Dye(275, 55, 100), 0}, {"Ivory", Dye(40, 25, 140), 0},
+	dyes = []OptionStep{{"Natural", 0, 0}, {"Crimson", Dye(352, 55, 95), 0}, {"Ember", Dye(20, 65, 105), 0},
+		{"Gold", Dye(45, 60, 112), 0}, {"Moss", Dye(95, 40, 95), 0}, {"Teal", Dye(175, 45, 100), 0},
+		{"Azure", Dye(212, 55, 105), 0}, {"Violet", Dye(275, 42, 100), 0}, {"Ivory", Dye(40, 20, 140), 0},
 		{"Charcoal", Dye(220, 8, 55), 0}}
-	tones = []OptionStep{{"Natural", 0, 0}, {"Pale", Tone(0, 70, 118), 0}, {"Dark", Tone(0, 105, 70), 0},
+	tones = []OptionStep{{"Natural", 0, 0}, {"Pale", Tone(0, 70, 118), 0}, {"Dark", Tone(0, 80, 70), 0},
 		{"Ashen", Tone(0, 25, 100), 0}, {"Ruddy", Tone(-12, 140, 95), 0}, {"Bronze", Tone(15, 125, 90), 0},
-		{"Frost", Tone(-150, 60, 112), 0}}
+		{"Frost", Dye(205, 30, 110), 0}}
 	barks = []OptionStep{{"Natural", 0, 0}, {"Umber", Dye(28, 45, 95), 0}, {"Ash", Dye(30, 6, 110), 0},
-		{"Moss", Dye(90, 40, 95), 0}, {"Plum", Dye(310, 30, 90), 0}, {"Ochre", Dye(42, 55, 110), 0},
+		{"Moss", Dye(90, 30, 95), 0}, {"Plum", Dye(310, 25, 90), 0}, {"Ochre", Dye(42, 55, 110), 0},
 		{"Char", Dye(20, 15, 55), 0}}
 )
 
@@ -290,14 +290,13 @@ var raceOptionRows = map[uint32][]OptionRow{
 			{"Deathfist", 0x37FD13F9, 1.02}, {"Deathfist (kilt)", 0x3198F5B1, 1.06}}}},
 	bodyKobold: {{Key: "body", Label: "Hide", Kind: KindBody, Male: []OptionStep{
 		{"Kobold", bodyKobold, 1}, {"Kobold (augur)", 0x6B9B7016, 0.9}, {"Patched", 0x597325B5, 1}, {"Pauldrons", 0x9CDF3C2D, 0.82}}}},
+	// the minotaur's black fur takes no colour worth the name (a dark grey at most): its hide and horns do
 	bodyMinotaur: {
-		{Key: "fur", Label: "Fur", Kind: KindColour, Parts: []OptionPart{
-			within(bodyMinotaur, []uint8{1}, [4]uint8{0, 0, 255, 107}, [4]uint8{0, 107, 178, 255}),
-			within(bodyMinotaur, []uint8{2}, [4]uint8{0, 102, 89, 255})}, Male: tones},
 		{Key: "hide", Label: "Hide", Kind: KindColour, Parts: []OptionPart{
-			within(bodyMinotaur, []uint8{1}, [4]uint8{178, 107, 255, 255}),
-			within(bodyMinotaur, []uint8{2}, [4]uint8{89, 0, 255, 255}, [4]uint8{0, 0, 89, 102})}, Male: tones},
-		{Key: "horns", Label: "Horns", Kind: KindColour, Parts: []OptionPart{whole(bodyMinotaur, 0)}, Male: dyes},
+			within(bodyMinotaur, []uint8{1}, [4]uint8{195, 105, 255, 250}),
+			within(bodyMinotaur, []uint8{2}, [4]uint8{90, 0, 255, 229}, [4]uint8{0, 0, 90, 110})}, Male: tones},
+		{Key: "horns", Label: "Horns", Kind: KindColour, Parts: []OptionPart{
+			within(bodyMinotaur, []uint8{2}, [4]uint8{190, 230, 255, 255})}, Male: dyes},
 	},
 	bodyRatman: {{Key: "body", Label: "Garb", Kind: KindBody, Male: []OptionStep{
 		{"Ratman", bodyRatman, 1}, {"Hooded", 0x0ECC836A, 1.18}, {"Hooded (pauldrons)", 0x133A79CA, 1}}}},

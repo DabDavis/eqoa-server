@@ -992,13 +992,9 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, fmt.Sprintf("Speed set to %.1f", speed))
 
 	case "#setlevel":
-		// #setlevel <level>
-		if len(parts) < 2 {
-			h.gmReply(sess, fmt.Sprintf("Level: %d. Usage: #setlevel <level>", player.Level))
-			return
-		}
-		level, _ := strconv.Atoi(parts[1])
-		h.setLevel(sess, player, level)
+		// #setlevel [name] <level>: the named character's, else the GM's
+		// target player's, else the GM's own (devcmds.go)
+		h.setLevelCommand(sess, player, parts[1:])
 
 	case "#hp":
 		// #hp <current> [max]
@@ -1230,7 +1226,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #guildhall - enter guild hall")
 		h.gmReply(sess, "  #hddsetup [check|create|format] - hard disk setup")
 		h.gmReply(sess, "  #speed <val> - set speed")
-		h.gmReply(sess, "  #setlevel <lvl> - set level")
+		h.gmReply(sess, "  #setlevel [name] <lvl> - set a level, nothing else (no name: your target player, else you)")
 		h.gmReply(sess, "  #hp <cur> [max] - set HP")
 		h.gmReply(sess, "  #tunar <amt> - set gold")
 		h.gmReply(sess, "  #template [player] - level 60, every spell of your class, 1,000,000 tunar, the best gear you may wear")

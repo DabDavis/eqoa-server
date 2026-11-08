@@ -1656,7 +1656,9 @@ var catalog = map[string]tableNote{
 		Help: "Which spells each class has: given to a new character when world.start_all_spells is on, by #template and by " +
 			"grant_spell's \"all\", and listed with their classes on the community spell-visual page. A row whose source is " +
 			"\"eqoa-data cm\" (a class mastery), \"eqoa-data epic\" (a level-60 epic), \"eqoa-data mca\" or \"eqoa-data master " +
-			"<name>\" (a master class's) is a spell no level gives: listed, never handed out by those grants.",
+			"<name>\" (a master class's) is a spell no level gives: listed, never handed out by those grants. The Spell " +
+			"Archivist's \"Grant basic spells\" gives a class the spells merchants sell as scrolls, and leaves out a spell " +
+			"of one of those sources: by the class's own row, or by any class's when it has none.",
 		Cols: map[string]colNote{
 			"class":   {Label: "Class", Enum: "class"},
 			"spellid": {Label: "Spell", Ref: "spellpattern"},

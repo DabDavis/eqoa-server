@@ -170,6 +170,9 @@ func (h *NPCWindowHandler) merchantList(player *entity.Player, npc *entity.NPC) 
 	if l.wares, err = h.inv.GetNPCItems(npc.NPCID); err != nil {
 		log.Printf("Merchant: catalog of %q (npc %d): %v", npc.Name, npc.NPCID, err)
 	}
+	if heirloomShop(npc) { // the buyer's class's alone, before the client's 40
+		l.wares = waresForClass(l.wares, int(player.Class))
+	}
 	if len(l.wares) > invListCap {
 		l.wares = l.wares[:invListCap]
 	}
@@ -190,6 +193,31 @@ func (h *NPCWindowHandler) merchantList(player *entity.Player, npc *entity.NPC) 
 		l.lines = append(l.lines, entries[i])
 	}
 	return l
+}
+
+// heirloomOutfitterName is the Heirloom Outfitters' name (genie.go's shop
+// query names them too).
+const heirloomOutfitterName = "Heirloom Outfitter"
+
+// heirloomShop reports a merchant whose stock is heirlooms: an Heirloom
+// Outfitter, or a genie selling one's (genie.go). Its list is the buyer's
+// class's alone (waresForClass): every outfitter stocks every class's set
+// (the user, 2026-11-08: a kappa enchanter found none near its start), and
+// the client's list holds 40, which one class's set with the items for every
+// class keeps within (37 at most).
+func heirloomShop(npc *entity.NPC) bool {
+	return npc != nil && (npc.Name == heirloomOutfitterName || npc.Name == entity.GenieName)
+}
+
+// waresForClass is the wares a class can use (classuse), in their order.
+func waresForClass(wares []database.CharInventoryEntry, class int) []database.CharInventoryEntry {
+	out := wares[:0:0]
+	for _, w := range wares {
+		if class >= 0 && w.Pattern.ClassUse&(1<<uint(class)) != 0 {
+			out = append(out, w)
+		}
+	}
+	return out
 }
 
 // greetingWith is a window's greeting with what is said of the lines.

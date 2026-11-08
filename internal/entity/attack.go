@@ -713,6 +713,7 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 		now := time.Now()
 		attacker.LastCombatTime = now
 		w.sendDamageIndication(sess, sess.PlayerObjectID(), -damage, objectID)
+		w.markHealPlayerLocked(sess, attacker, npc, now) // markheal.go
 		w.dummyEngagedLocked(npc, attacker, now)
 		w.playerProcsLocked(sess, attacker, npc, now)
 		return false
@@ -725,6 +726,7 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 	attacker.LastCombatTime = time.Now()
 
 	w.sendDamageIndication(sess, sess.PlayerObjectID(), -damage, objectID)
+	w.markHealPlayerLocked(sess, attacker, npc, attacker.LastCombatTime) // markheal.go: a mark on it heals the hitter
 	log.Printf("Combat: %s hit %s for %d damage (HP: %d/%d) %.2f off, reach %.2f", attacker.Name, npc.Name, damage, npc.HP, npc.MaxHP,
 		dist3(attacker.X, attacker.Y, attacker.Z, npc.X, npc.Y, npc.Z), attacker.Swing.Reach+npcReachExtra(npc))
 

@@ -71,6 +71,7 @@ const (
 	EffectPickpocket   // a rogue's hand in the creature's pockets
 	EffectSummonPlayer // the target brought to the caster (Call of the Hero)
 	EffectDisguise     // the factions do not attack the bearer on sight while it lasts
+	EffectMarkHeal     // a mark on a creature: each weapon hit landed on it heals its hitter Amount (markheal.go)
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales

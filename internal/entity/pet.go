@@ -1171,6 +1171,7 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 	}
 	t.HP = max(t.HP-n, 0)
 	tell()
+	w.markHealPetLocked(pet, t, now) // markheal.go: a mark on it heals the pet
 	w.updateAggro(t, pet.ServerID, n)
 	w.rootBreakLocked(t, w.balanceLevelOf(pet)) // root.go
 	log.Printf("Pet: %s's %q hit %s for %d (HP %d/%d)", owner.Name, pet.Name, t.Name, n, t.HP, t.MaxHP)

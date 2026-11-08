@@ -782,6 +782,13 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 		add(se)
 	case "breath":
 		add(SpellEffect{Kind: EffectBreath, ID: e.ID})
+	case "mark_heal":
+		// ours (markheal.go): a mark on a creature that heals whoever hits it
+		if n := round(e.Amount); n > 0 {
+			add(SpellEffect{Kind: EffectMarkHeal, Amount: n, AmountMax: n, ID: e.ID})
+		} else {
+			d.unsupported("a mark_heal of %v", e.Amount)
+		}
 	case "faction":
 		add(SpellEffect{Kind: EffectDisguise, ID: e.ID}) // workbookmore.go
 	case "pickpocket":

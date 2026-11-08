@@ -107,6 +107,9 @@ type EffectRules struct {
 	// rounds, 0 no limit (procsOfRound). A form's (weaponproc.go).
 	ProcChance int `json:",omitempty"`
 	ProcRound  int `json:",omitempty"`
+	// MarkHeal: a mark on a creature, each weapon hit landed on it healing its
+	// hitter this much (markheal.go: Mark of Faith)
+	MarkHeal int `json:",omitempty"`
 }
 
 // rulesOf is a cast's rules for what lasts of it.
@@ -143,6 +146,8 @@ func (ae *ActiveEffect) workbookLasting(e SpellEffect, d *SpellDef) bool {
 		ae.Invis, ae.Rules.Hide = true, true
 	case EffectDisguise:
 		ae.Rules.Disguise = true
+	case EffectMarkHeal:
+		ae.Rules.MarkHeal = max(ae.Rules.MarkHeal, e.Amount) // markheal.go
 	case EffectProcHeal:
 		ae.Rules.ProcHeal, ae.Rules.ProcHealDef = e.Amount, e.Defense
 		ae.Rules.ProcHealScale, ae.Rules.ProcHealScalePct, ae.Rules.ProcHealChance = e.Scale, e.ScalePct, e.Chance

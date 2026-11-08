@@ -75,6 +75,10 @@ type AccountServer struct {
 	SendOnly      func(world byte) bool
 	CanLoad       func(serverID uint32, world byte) error
 
+	// InWorld reports a character (its serverid) still in the game, in a
+	// window or left behind in the world (handlers.CharacterInWorld): the
+	// page never deletes one. Nil: no game world attached.
+	InWorld func(serverID uint32) bool
 	// EndSessions ends every session an account has in the game (each is
 	// told 0x07A4, "You have logged in from another location.") and returns
 	// how many: /api/logout, the browser's way past "You are already logged
@@ -1323,6 +1327,12 @@ func (s *AccountServer) handleAPIDeleteCharacter(w http.ResponseWriter, r *http.
 	}
 	if char.AccountID != sess.AccountID {
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Not your character"})
+		return
+	}
+	if s.InWorld != nil && s.InWorld(uint32(req.ID)) {
+		log.Printf("AccountServer: delete of '%s' (ServerID=%d) by account %d refused: still in the world", char.CharName, req.ID, sess.AccountID)
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false,
+			"error": char.CharName + " is still in the world. Log out of the game first, then delete it."})
 		return
 	}
 

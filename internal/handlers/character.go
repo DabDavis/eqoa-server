@@ -1388,6 +1388,15 @@ func (h *CharacterHandler) HandleDelCharacter(sess *session.Session, msg *protoc
 		h.SendCharacterSelectEQOA(sess)
 		return nil
 	}
+	// Never one still in the world (CharacterInWorld): told as select tells a
+	// character in use elsewhere (word 676), the list sent again with it in.
+	if CharacterInWorld(h.gameWorld, h.sessionManager, serverID, sess) {
+		log.Printf("DelCharacter: REFUSED '%s' (serverID=%d) from %s: still in the world; told so (0x%04X)",
+			record.CharName, serverID, sess.RemoteAddr(), uint16(protocol.OpcodeCharSelectAreaUnavailable))
+		SendCharSelectNotice(sess, protocol.OpcodeCharSelectAreaUnavailable)
+		h.SendCharacterSelectEQOA(sess)
+		return nil
+	}
 
 	if err := h.store.Delete(serverID); err != nil {
 		log.Printf("DelCharacter: failed to delete serverID=%d: %v", serverID, err)
@@ -1397,6 +1406,21 @@ func (h *CharacterHandler) HandleDelCharacter(sess *session.Session, msg *protoc
 
 	h.SendCharacterSelectEQOA(sess)
 	return nil
+}
+
+// CharacterInWorld reports whether a character (its serverid) is still in the
+// game: a live session other than except plays it (another window), or its
+// Player is still in the world (a client that dropped, a Quit in a fight:
+// entity/linkdead.go). Such a character is never deleted (the user,
+// 2026-11-08: "add the delete guard for characters in another window"):
+// Nuclear (399) was deleted that morning from a second window while the
+// first played it, its saves then wrote rows for a character that was gone,
+// and a keep restart could not put its session back.
+func CharacterInWorld(gw *entity.World, sm *session.Manager, serverID uint32, except *session.Session) bool {
+	if sm != nil && sm.LiveHolder(serverID, except) != nil {
+		return true
+	}
+	return gw != nil && gw.HasCharacter(serverID)
 }
 
 // SendNameTaken sends a name taken response (opcode 0x2F).

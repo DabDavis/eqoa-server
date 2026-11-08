@@ -24,8 +24,10 @@ import (
 //
 // A client message that long is vanilla's (a long petition; a PS2's longest,
 // a petition or a gram of 511 characters, is under 1,100 bytes), and a client
-// sends one piece a packet, about 360 ms apart (its 3,000 bytes a second,
-// bandwidth.cpp). The server takes each reliable message as its packet comes,
+// sends one 1,300-byte piece a packet (a short last piece may ride with the one
+// before), about 440 ms apart (its 3,000 bytes a second, bandwidth.cpp;
+// measured on a petition of 2,000 characters). The server takes each reliable
+// message as its packet comes,
 // a goroutine a packet, and acknowledges the newest number it has seen, so a
 // message lost before a later one arrived is never sent again. So the pieces
 // are put back together only when they are known to be one message: a run

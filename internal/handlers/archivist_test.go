@@ -6,6 +6,7 @@ import (
 	"net"
 	"strings"
 	"testing"
+	"time"
 	"unicode/utf16"
 
 	"github.com/eqoa/pkg/pkg/buffer"
@@ -54,7 +55,7 @@ func newArchivistFixture(t *testing.T, db *database.SQLiteDB) *archivistFixture 
 		}
 		t.Cleanup(func() { db.Close() })
 	}
-	rec := &database.CharacterRecord{CharName: "Scholar", AccountID: 1, Level: 30}
+	rec := &database.CharacterRecord{CharName: "Archivisttester", AccountID: 1, Level: 30}
 	if err := database.NewSQLiteCharacterStore(db).Create(rec); err != nil {
 		t.Fatal(err)
 	}
@@ -63,7 +64,7 @@ func newArchivistFixture(t *testing.T, db *database.SQLiteDB) *archivistFixture 
 	mgr := session.NewManager()
 	f.w.SessionManager = mgr
 	f.sess = mgr.CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 0, 12), Port: 7012}, 12, 1, 1, 2, true)
-	f.p = &entity.Player{ServerID: 1012, CharServerID: rec.ServerID, Name: "Scholar", X: 100, Y: 54, Z: 100, Level: 30,
+	f.p = &entity.Player{ServerID: 1012, CharServerID: rec.ServerID, Name: "Archivisttester", X: 100, Y: 54, Z: 100, Level: 30,
 		Class: archivistWizard, HP: 100, MaxHP: 100, Tunar: 1000}
 	f.w.Players[f.p.ServerID] = f.p
 	f.sess.SetECSEntity(f.p)
@@ -237,7 +238,10 @@ func archivistLike(got, want string) bool {
 		return false
 	}
 	rest := got[len(parts[0]):]
-	for _, p := range parts[1:] {
+	for k, p := range parts[1:] {
+		if p == "" && k == len(parts)-2 { // a "*" at the end
+			return !strings.Contains(rest, "|")
+		}
 		i := strings.Index(rest, p)
 		if i < 0 || strings.Contains(rest[:i], "|") {
 			return false
@@ -615,4 +619,33 @@ func TestTheArchivistsWordsFitTheirBoxes(t *testing.T) {
 		box&0xFF000000 == boardBoxMark || box&0xFF000000 == moogieBoxMark || box&0xFF000000 == dabrishBoxMark {
 		t.Errorf("box %08X is another's too", box)
 	}
+}
+
+// The merchants' scrolls are read again archiveTTL after he last read them, not
+// sooner: a scroll a merchant has sold since is granted then, as a genie's shop
+// is looked for again (genieShopTTL); the book is read afresh at every grant.
+func TestTheArchivistReadsTheMerchantsAgainAfterTenMinutes(t *testing.T) {
+	f := newArchivistFixture(t, nil)
+	clock := time.Unix(1_800_000_000, 0)
+	f.a.now = func() time.Time { return clock }
+	const wiz = 1 << archivistWizard
+	f.spell(101, "Fire Bolt", 5, "")
+	f.classSpell(archivistWizard, 101, "dump")
+	f.shop("Scroll Merchant", 0x81, 41, f.scroll("Fire Bolt", wiz, 5))
+	f.wantMsgs("the first grant", f.grant(), "add:101@0 flag 0", "box:*1 spell of your calling*")
+
+	f.spell(102, "Frost Bolt", 10, "")
+	f.classSpell(archivistWizard, 102, "dump")
+	if _, err := f.db.Exec(`INSERT INTO npcitem (npcid, stackleft, remainHP, patternid, listnumber) VALUES (41, 1, 0, ?, 1)`,
+		f.scroll("Frost Bolt", wiz, 10)); err != nil {
+		t.Fatal(err)
+	}
+	clock = clock.Add(archiveTTL)
+	f.wantMsgs("within ten minutes", f.grant(), "box:*holds every spell*")
+	if _, err := f.db.Exec(`DELETE FROM spells WHERE serverid = ? AND spellid = 101`, f.p.CharServerID); err != nil {
+		t.Fatal(err)
+	}
+	f.wantMsgs("the book read afresh", f.grant(), "add:101@0 flag 0", "box:*1 spell of your calling*")
+	clock = clock.Add(time.Second)
+	f.wantMsgs("past ten minutes", f.grant(), "add:102@1 flag 0", "box:*1 spell of your calling*")
 }

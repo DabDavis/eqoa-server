@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
@@ -112,15 +113,26 @@ func spellCount(n int) string {
 type Archivist struct {
 	spells  *database.SpellbookStore
 	windows *NPCWindowHandler
+	now     func() time.Time
 
 	mu    sync.Mutex
 	seq   uint32
 	asked map[uint32]archivistAsk // by the character's serverid
 
 	// book is held through a grant or a clear, so two cannot read a book
-	// before either writes it and write the same spells twice
-	book sync.Mutex
+	// before either writes it and write the same spells twice; and the archive
+	// with it, kept archiveTTL from when it was read (archiveAt)
+	book      sync.Mutex
+	archive   *spellArchive
+	archiveAt time.Time
 }
+
+// archiveTTL is how long the archive is kept before it is read again, as a
+// genie keeps its shop (genieShopTTL): finding the merchants reads every npcs
+// row (0.26 s on the Heirloom server's 61,245, on the one connection the
+// server's database has), and a GM's change to a merchant's stock, classspells
+// or the spells reaches a grant within it.
+const archiveTTL = 10 * time.Minute
 
 // archivistAsk is a question asked: its box, which question, and the id the
 // client named the Archivist by (its 0x004C), which his shop opens under.
@@ -134,7 +146,7 @@ type archivistAsk struct {
 // window handler, whose merchant requests to one he answers first
 // (HandleMerchantOpen).
 func NewArchivist(spells *database.SpellbookStore, windows *NPCWindowHandler) *Archivist {
-	a := &Archivist{spells: spells, windows: windows, asked: map[uint32]archivistAsk{}}
+	a := &Archivist{spells: spells, windows: windows, now: time.Now, asked: map[uint32]archivistAsk{}}
 	if windows != nil {
 		windows.archivist = a
 	}
@@ -243,7 +255,7 @@ func (a *Archivist) grant(sess *session.Session, id uint32) {
 		log.Printf("Archivist: %s's grant, %s: %v", p.Name, what, err)
 		a.say(sess, archivistTrouble)
 	}
-	arch, err := loadSpellArchive(a.spells)
+	arch, err := a.archived()
 	if err != nil {
 		trouble("the archive", err)
 		return
@@ -393,14 +405,28 @@ func lacking(book []database.CharSpellEntry, want []database.SpellName) []databa
 }
 
 // spellArchive is what the grant reads: every scroll a merchant sells, every
-// spell pattern (a scroll's spell is found among them by name), each spell's
-// description, and which classes have each spell and how (classspells'
-// sources).
+// spell pattern by name (a scroll's spell is found among them as the scribe
+// finds it), each spell's description, and which classes have each spell and
+// how (classspells' sources).
 type spellArchive struct {
 	scrolls []database.MerchantScroll
-	names   []database.SpellName
+	spells  *spellIndex
 	descs   map[int]string
 	sources map[int]map[int]string // spell -> class -> source
+}
+
+// archived is the archive, read again when it is older than archiveTTL.
+// Called with book held.
+func (a *Archivist) archived() (*spellArchive, error) {
+	if a.archive != nil && a.now().Sub(a.archiveAt) <= archiveTTL {
+		return a.archive, nil
+	}
+	arch, err := loadSpellArchive(a.spells)
+	if err != nil {
+		return nil, err
+	}
+	a.archive, a.archiveAt = arch, a.now()
+	return arch, nil
 }
 
 // loadSpellArchive reads the archive.
@@ -410,9 +436,11 @@ func loadSpellArchive(s *database.SpellbookStore) (*spellArchive, error) {
 	if a.scrolls, err = s.MerchantScrolls(scrollIcon); err != nil {
 		return nil, fmt.Errorf("the merchants' scrolls: %w", err)
 	}
-	if a.names, err = s.SpellNames(); err != nil {
+	names, err := s.SpellNames()
+	if err != nil {
 		return nil, fmt.Errorf("the spells: %w", err)
 	}
+	a.spells = newSpellIndex(names)
 	if a.descs, err = s.SpellDescriptions(); err != nil {
 		return nil, fmt.Errorf("the spells' descriptions: %w", err)
 	}
@@ -436,8 +464,8 @@ func loadSpellArchive(s *database.SpellbookStore) (*spellArchive, error) {
 //     the class's classspells row has as a mastery's, an epic's or a master
 //     class's (Granted), and, where the class has no row of it, a spell any
 //     class has so: merchants sell master classes' and masteries' scrolls
-//     too (Djinni Bolt, Summon Djinn, Silent Blade Burglar, Remove Mask,
-//     Freezing Strike, a mastery's Tranquility).
+//     too (the magician's Djinni Bolt and Summon Djinn, the rogue's Silent
+//     Blade Burglar and Remove Mask, the monk's Freezing Strike).
 //
 // It is not every classspells row a level gives, which #template grants: the
 // class quests give spells no merchant sells (Kick, Taunt, Rapid Strike,
@@ -451,7 +479,7 @@ func (a *spellArchive) basic(class, race, level int) []database.SpellName {
 		if scrollRefusal(sc.ClassUse, sc.RaceUse, sc.LevelReq, class, race, level) != "" {
 			continue
 		}
-		s, ok := scrollSpellFor(a.names, sc.Name, sc.LevelReq, has)
+		s, ok := a.spells.scrollSpell(sc.Name, sc.LevelReq, has)
 		if !ok || s.Level > level || seen[s.SpellID] {
 			continue
 		}

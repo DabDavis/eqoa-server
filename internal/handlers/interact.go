@@ -77,6 +77,10 @@ type InteractHandler struct {
 	// rehab is the rehabilitators (rehab.go): their menu, and its answers.
 	// Nil: a rehabilitator is any other NPC.
 	rehab *Rehab
+
+	// archivist answers the Spell Archivists' boxes (archivist.go), which a
+	// request for one's shop asks (merchant.go); nil: none is asked
+	archivist *Archivist
 }
 
 // SetDialogLines gives the handler npcdialog's reader (database.NPCDialog).
@@ -543,6 +547,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// Dabrish's (dabrish.go); an old one does nothing
 	if h.answerDabrish(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// a Spell Archivist's (archivist.go); an old one does nothing
+	if h.archivist.Answer(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// a coachman's offer to sign every ledger at once (coachledger.go); an

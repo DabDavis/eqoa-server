@@ -854,6 +854,22 @@ together: `skyblue`). Dyes show only in clients of the live game's look (vanilla
 vendors not in game. this is issue for us wanting to test variousy stuff") lists the buyer's class's wares alone, as an
 Heirloom Outfitter does: on the Heirloom Test Server one stands in Freeport selling every class's spells of level 50 and up
 (Sandstorm's class vendors end at 49), its scrolls made where none was (`~/charmigrate/spell_archivist_20261108.py`).
+**He asks first** (`handlers/archivist.go`; the GM Jibrish's petition 1279, 2026-11-08: "Grant basic spells ... all the spells
+of the player's class that are vendor bought, from level 1 to their current level (cap 60), not master class or mastery
+spells, only those missing", and a clear book keeping Return Home): a request for his shop (0x004C: CLIENT never talks to a
+merchant) is answered with his box (mark **0x5D000000**) and 0x00D7, as a shop's quest is offered. Browse your scrolls opens
+the shop under the id the client named. Grant basic spells gives every spell of the class a merchant (npc_type bit 0x01: a
+creature's npcitem rows are loot) sells as a scroll the character could scribe at its level capped at 60, as the scribe checks
+and picks the record (`scrollRefusal`, `scrollSpellFor`), but a were's and a master class's or mastery's (classspells' source:
+the class's row, else any class's), that the book lacks by record or exact name: at the next display indices below 252, 0x00B3
+each with the flag 0, one box saying how many. It is not #template's every classspells row: the class quests' rewards (Kick,
+Taunt, Spacious Mind) no merchant sells stay the quests'. Clear my spellbook asks Yes or No, then takes every row but Return
+Home's (any record so named, its bar slot kept) and sends 0x00B8 by display index, but for one sharing Return Home's index or
+past 251, which leaves the client's book at the next login (said). The merchants' scrolls, spells and classspells are read again
+every 10 minutes (`archiveTTL`, the genie's shop's reason: finding the merchants reads every npcs row).
+`TestRealArchivistBasicSpells` (`EQOA_REAL_DB`) holds each class's counts at levels 20, 49 and 60 on the Heirloom server's data
+of 2026-11-08 (at 60: WAR 39, RAN 41, PAL 38, SK 42, MNK 38, BRD 38, ROG 40, DRU 78, SHM 70, CLR 74, MAG 74, NEC 68, ENC 69,
+WIZ 93, ALC 76).
 **Dabrish** (`handlers/dabrish.go`, any NPC so named; the GM Jibrish's petition 1266, 2026-11-08: "When talked to Dabrish
 should let players set their level. They can pick in increments of 5. Level 5 to level 60. They can change their level
 at will. He should also have an option for CM's to set them between 0 and 1000 CM's, but it will just add cm's on their

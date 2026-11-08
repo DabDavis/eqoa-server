@@ -28,10 +28,15 @@ const (
 	moogieHealed   = "Mr. Moogie says, 'There you are, %s, whole again.'"
 )
 
-// moogieAsks is the boxes he has asked, by the character's serverid.
+// moogieAsks is the boxes he has asked, by the character's serverid: the box and which Mr. Moogie.
 type moogieAsks struct {
 	seq   uint32
-	asked map[uint32]uint32
+	asked map[uint32]moogieAsk
+}
+
+type moogieAsk struct {
+	box uint32
+	npc entity.EntityID
 }
 
 // moogieTalk is a talk to npc: his question when npc is Mr. Moogie, else false.
@@ -39,7 +44,7 @@ func (h *InteractHandler) moogieTalk(sess *session.Session, p *entity.Player, np
 	if npc == nil || !strings.EqualFold(npc.Name, entity.MoogieName) || h.gameWorld == nil {
 		return false
 	}
-	if why := h.gameWorld.MoogieBusy(sess); why != "" {
+	if why := h.gameWorld.MoogieBusy(sess, npc.ServerID); why != "" {
 		SendColoredChat(sess, why, 255, 63, 63)
 		return true
 	}
@@ -47,9 +52,9 @@ func (h *InteractHandler) moogieTalk(sess *session.Session, p *entity.Player, np
 	h.moogie.seq++
 	id := moogieBoxMark | (h.moogie.seq & 0xFFFFFF)
 	if h.moogie.asked == nil {
-		h.moogie.asked = map[uint32]uint32{}
+		h.moogie.asked = map[uint32]moogieAsk{}
 	}
-	h.moogie.asked[p.CharServerID] = id
+	h.moogie.asked[p.CharServerID] = moogieAsk{box: id, npc: npc.ServerID}
 	h.boardMu.Unlock()
 	SendQuestPopupMulti(sess, id, moogieQuestion, []string{moogieClearOpt, moogieHealOpt, moogieNoOpt})
 	return true
@@ -63,14 +68,14 @@ func (h *InteractHandler) answerMoogie(sess *session.Session, p *entity.Player, 
 	}
 	h.boardMu.Lock()
 	asked, ok := h.moogie.asked[p.CharServerID]
-	if ok && asked == box {
+	if ok && asked.box == box {
 		delete(h.moogie.asked, p.CharServerID)
 	}
 	h.boardMu.Unlock()
-	if !ok || asked != box || h.gameWorld == nil || option > 1 {
+	if !ok || asked.box != box || h.gameWorld == nil || option > 1 {
 		return true
 	}
-	if why := h.gameWorld.MoogieBusy(sess); why != "" {
+	if why := h.gameWorld.MoogieBusy(sess, asked.npc); why != "" {
 		SendColoredChat(sess, why, 255, 63, 63)
 		return true
 	}

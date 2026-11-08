@@ -108,7 +108,7 @@ func checkClassTemplateRow(row map[string]any) error {
 	}
 	t := database.ClassTemplate{Name: fmt.Sprint(name), Class: -1, HPPct: 100, TakenPct: 100, MeleePct: 100}
 	ints := map[string]*int{"class": &t.Class, "hp_pct": &t.HPPct, "taken_pct": &t.TakenPct, "melee_pct": &t.MeleePct,
-		"special_chance": &t.SpecialChance, "special_from": &t.SpecialFrom, "shield_damage": &t.ShieldDamage, "proc_chance": &t.ProcChance, "proc_damage": &t.ProcDamage, "resist_pct": &t.ResistPct}
+		"special_chance": &t.SpecialChance, "special_from": &t.SpecialFrom, "kick_damage": &t.KickDamage, "shield_damage": &t.ShieldDamage, "proc_chance": &t.ProcChance, "proc_damage": &t.ProcDamage, "resist_pct": &t.ResistPct}
 	for col, dst := range ints {
 		v, ok := row[col]
 		if !ok || v == nil {
@@ -128,6 +128,8 @@ func checkClassTemplateRow(row map[string]any) error {
 		{"special_every", "seconds from one timed special to the next (0 none)", &t.SpecialEvery},
 		{"special_first", "seconds into a fight for the first timed special", &t.SpecialFirst},
 		{"special_jitter", "seconds either way on each timed special", &t.SpecialJitter},
+		{"kick_every", "seconds from one kick to the next (0 none)", &t.KickEvery},
+		{"kick_first", "seconds into a fight for the first kick", &t.KickFirst},
 		{"resist_fail", "the percent a resist fails against it altogether, twice this in part (0-30)", &t.ResistFail},
 	}
 	for _, c := range floats {

@@ -70,6 +70,9 @@ const classTemplatesSchema = `
 		resist_fail    REAL NOT NULL DEFAULT 0,
 		resist_kind    TEXT NOT NULL DEFAULT '',
 		resist_pct     INTEGER NOT NULL DEFAULT 0,
+		kick_damage    INTEGER NOT NULL DEFAULT 0,
+		kick_every     REAL NOT NULL DEFAULT 0,
+		kick_first     REAL NOT NULL DEFAULT 0,
 		abilities      TEXT NOT NULL DEFAULT '[]',
 		note           TEXT NOT NULL DEFAULT '',
 		source         TEXT NOT NULL DEFAULT 'gm'
@@ -289,8 +292,13 @@ type ClassTemplate struct {
 	// (entity/enchanter.go). 0: all of it.
 	ResistKind string
 	ResistPct  int
-	Abilities  []TemplateAbility
-	Note       string
+	// KickDamage is a second timed melee beside the special: a Kick of this figure (fixed, not by
+	// level, through any armour) every KickEvery seconds at its enemy, the first KickFirst into
+	// the fight (0: none; the GM Jibrish's petition 1249: Mr. Moogie's "kick every 5 seconds for 4k")
+	KickDamage           int
+	KickEvery, KickFirst float64
+	Abilities            []TemplateAbility
+	Note                 string
 }
 
 // TemplateKey is a template's name as classtemplates and npctemplate key it:
@@ -557,6 +565,12 @@ func CheckClassTemplate(t ClassTemplate) error {
 		return fmt.Errorf("special_every %.1f: 0 (none) or 5 to 3600 seconds from one special to the next", t.SpecialEvery)
 	case math.IsNaN(t.SpecialFirst) || t.SpecialFirst < 0 || t.SpecialFirst > 3600:
 		return fmt.Errorf("special_first %.1f: 0 to 3600 seconds into a fight", t.SpecialFirst)
+	case t.KickDamage < 0 || t.KickDamage > 1000000:
+		return fmt.Errorf("kick_damage %d: 0 (none) to 1,000,000", t.KickDamage)
+	case math.IsNaN(t.KickEvery) || t.KickEvery < 0 || t.KickEvery > 3600 || (t.KickEvery > 0 && t.KickEvery < 1):
+		return fmt.Errorf("kick_every %.1f: 0 (none) or 1 to 3600 seconds from one kick to the next", t.KickEvery)
+	case math.IsNaN(t.KickFirst) || t.KickFirst < 0 || t.KickFirst > 3600:
+		return fmt.Errorf("kick_first %.1f: 0 to 3600 seconds into a fight", t.KickFirst)
 	case math.IsNaN(t.SpecialJitter) || t.SpecialJitter < 0 || (t.SpecialJitter > 0 && 2*t.SpecialJitter >= t.SpecialEvery):
 		return fmt.Errorf("special_jitter %.1f: 0 to under half of special_every (%.1f) seconds either way", t.SpecialJitter, t.SpecialEvery)
 	case t.SpecialEvery > 0 && t.SpecialDamage <= 0:
@@ -628,6 +642,9 @@ var classTemplateColumns = []struct{ col, decl string }{
 	{"resist_fail", "REAL NOT NULL DEFAULT 0"},
 	{"resist_kind", "TEXT NOT NULL DEFAULT ''"},
 	{"resist_pct", "INTEGER NOT NULL DEFAULT 0"},
+	{"kick_damage", "INTEGER NOT NULL DEFAULT 0"},
+	{"kick_every", "REAL NOT NULL DEFAULT 0"},
+	{"kick_first", "REAL NOT NULL DEFAULT 0"},
 }
 
 // ensureClassTemplates makes tables classtemplates and npctemplate
@@ -676,7 +693,7 @@ func (db *SQLiteDB) ensureClassTemplates() error {
 // JSON) is left out and named in bad.
 func (db *SQLiteDB) ClassTemplates() (templates map[string]ClassTemplate, bad []string, err error) {
 	rows, err := db.Query(`SELECT name, class, hp_pct, taken_pct, melee_pct, special, special_chance, special_damage,
-		special_fx, special_every, special_first, special_jitter, special_from, shield_damage, shield_resist, proc_chance, proc_damage, proc_name, proc_resist, resist_fail, resist_kind, resist_pct, abilities, note FROM classtemplates
+		special_fx, special_every, special_first, special_jitter, special_from, shield_damage, shield_resist, proc_chance, proc_damage, proc_name, proc_resist, resist_fail, resist_kind, resist_pct, kick_damage, kick_every, kick_first, abilities, note FROM classtemplates
 		WHERE name IS NOT NULL`)
 	if err != nil {
 		return nil, nil, err
@@ -688,7 +705,7 @@ func (db *SQLiteDB) ClassTemplates() (templates map[string]ClassTemplate, bad []
 		var fx int64
 		var abilities sql.NullString
 		if err := rows.Scan(&t.Name, &t.Class, &t.HPPct, &t.TakenPct, &t.MeleePct, &t.Special, &t.SpecialChance,
-			&t.SpecialDamage, &fx, &t.SpecialEvery, &t.SpecialFirst, &t.SpecialJitter, &t.SpecialFrom, &t.ShieldDamage, &t.ShieldResist, &t.ProcChance, &t.ProcDamage, &t.ProcName, &t.ProcResist, &t.ResistFail, &t.ResistKind, &t.ResistPct, &abilities, &t.Note); err != nil {
+			&t.SpecialDamage, &fx, &t.SpecialEvery, &t.SpecialFirst, &t.SpecialJitter, &t.SpecialFrom, &t.ShieldDamage, &t.ShieldResist, &t.ProcChance, &t.ProcDamage, &t.ProcName, &t.ProcResist, &t.ResistFail, &t.ResistKind, &t.ResistPct, &t.KickDamage, &t.KickEvery, &t.KickFirst, &abilities, &t.Note); err != nil {
 			return nil, nil, err
 		}
 		t.Name = TemplateKey(t.Name)

@@ -1166,3 +1166,48 @@ func TestATemplatesUnresistableSpell(t *testing.T) {
 		}
 	}
 }
+
+// A template's kick on its own clock beside the special (the GM Jibrish's petition 1249: Mr.
+// Moogie's "kick every 5 seconds for 4k"): its first kick_first into the fight, then one every
+// kick_every, each kick_damage, fixed and through any armour, with the special's visual. The
+// control fights beside it: the same template with no kick never kicks.
+func TestATemplatesKickComesOnItsClock(t *testing.T) {
+	r := newTemplateRig(t)
+	for _, q := range []string{
+		`INSERT INTO classtemplates (name, class, special, special_damage, kick_damage, kick_every, kick_first) VALUES ('kicker', 0, '', 0, 4000, 5, 5)`,
+		`INSERT INTO classtemplates (name, class, special, special_damage, kick_damage, kick_every, kick_first) VALUES ('plainwar', 0, '', 0, 0, 0, 0)`,
+	} {
+		if _, err := r.db.Exec(q); err != nil {
+			t.Fatalf("%s: %v", q, err)
+		}
+	}
+	r.assign("gnoll brute", "kicker")
+	r.assign("gnoll guard", "plainwar")
+	brute, guard := r.npc("Gnoll Brute"), r.npc("Gnoll Guard")
+	if brute.TemplateName() != "kicker" || guard.TemplateName() != "plainwar" {
+		t.Fatalf("templates %q, %q", brute.TemplateName(), guard.TemplateName())
+	}
+	p, sess := r.player("Hero", 2001.5, 100)
+	p.AC, p.HP, p.MaxHP = 3000, 1_000_000, 1_000_000
+	q, qsess := r.player("Control", 3001.5, 100)
+	q.HP, q.MaxHP = 1_000_000, 1_000_000
+	r.fight(brute, p.ServerID)
+	r.fight(guard, q.ServerID)
+	var at []time.Duration
+	for d := time.Duration(0); d <= 21*time.Second; d += 100 * time.Millisecond {
+		r.tick(d)
+		for _, f := range damageIndications(drain(sess)) {
+			if f[0] == int64(r.objectID(brute.ServerID)) && f[1] == -4000 {
+				at = append(at, d)
+			}
+		}
+		for _, f := range damageIndications(drain(qsess)) {
+			if f[1] == -4000 {
+				t.Errorf("the control kicked at %v", d)
+			}
+		}
+	}
+	if want := []time.Duration{5 * time.Second, 10 * time.Second, 15 * time.Second, 20 * time.Second}; fmt.Sprint(at) != fmt.Sprint(want) {
+		t.Errorf("kicks of 4,000 at %v, want %v", at, want)
+	}
+}

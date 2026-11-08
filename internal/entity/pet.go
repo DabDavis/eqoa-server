@@ -1324,27 +1324,27 @@ func (w *World) petEnemyLocked(npc *NPC) *NPC {
 
 // npcFightPetLocked is a creature's round on a pet, as on a player
 // (npcRoundLocked): its swing to everyone who sees it, then its hits; the
-// pet dies at 0 (petSystem takes it away). The leash is a player's, 10.
+// pet dies at 0 (petSystem takes it away). Out of its reach it runs at the
+// pet as at a player (chaseLocked), so a pet backed off to its owner brings
+// the creature along to the group (Threnody's petition 1280, 2026-11-08:
+// "pets are dropping agro when you use pet back off command to bring mob to
+// group": a pet more than 10 off was dropped at once); past its leash, or
+// with the pet in another world, it gives up and goes home as from a player.
 func (w *World) npcFightPetLocked(npc, pet *NPC, now time.Time) {
-	d := distXZ(npc.X, npc.Z, pet.X, pet.Z)
-	if d > 10 {
-		delete(npc.Threats, pet.ServerID)
-		w.retargetLocked(npc)
-		npc.endRound()
+	npc.chase.forRoute(pet.ServerID)
+	in, giveUp := w.chaseLocked(npc, pet.X, pet.Y, pet.Z, pet.VelX, pet.VelZ, now)
+	if giveUp || pet.World != npc.World {
+		w.giveUpLocked(npc)
 		return
 	}
-	// it stands to fight the pet, turned to it: the run of a chase it was in
-	// when the pet's hate passed the player's ends here. Kept, its channel
-	// ran on where it stood, and every client carried it along that velocity
-	// and put it back at each update (F3 20261031-061313, the user: "mobs
-	// are rubberbanding but is only visual, the pet is standing still
-	// attacking the mob in it's real position").
-	if npc.moving() {
-		npc.stopMoving()
+	if !in {
+		npc.loseDueHits(now) // closing in: no hit lands from out of reach
+		return
 	}
-	if d > 0 {
-		npc.Facing = headingTo(pet.X-npc.X, pet.Z-npc.Z)
-	}
+	// in reach its moving and turning are the chase's, as at a player: it
+	// closes in and then stands, its channel's run ended with its steps (the
+	// rubberbanding of F3 20261031-061313, a run kept while it stood, cannot
+	// come back: chaseLocked stops it when it stands)
 	if npc.RoundTarget != pet.ServerID {
 		npc.endRound()
 		npc.RoundTarget = pet.ServerID

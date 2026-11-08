@@ -22,9 +22,7 @@ const moogieBoxMark = 0x5B000000
 const (
 	// the GM Jibrish's petition 1258: "flavor text mentioning how he is the king of this jungle,
 	// and you need to prove your worth to him"
-	moogieQuestion = "Mr. Moogie looks you over from his sunning rock. 'I am king of this jungle, and nothing " +
-		"walks it without my leave. You have yet to prove your worth to me, little one. Still, I can clear " +
-		"your buffs or make you whole. What would you like?'"
+	moogieQuestion = "Mr. Moogie: 'I am king of this jungle, and you have yet to prove your worth to me. Still, I can clear your buffs or heal you.'" // a box's question: 127 at most (questAskChars)
 	moogieClearOpt = "Clear my buffs"
 	moogieHealOpt  = "Fully heal me"
 	moogieNoOpt    = "Nothing, thank you"

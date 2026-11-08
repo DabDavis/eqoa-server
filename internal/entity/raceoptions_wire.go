@@ -18,11 +18,12 @@ import (
 // raceOptionsVersion is both messages' first byte.
 const raceOptionsVersion = 1
 
-// optionRaces is every race with options, by id: the froglok and each racedefs
-// row whose own body has rows.
+// optionRaces is every race with options, by id: each racedefs row whose own
+// body has rows, and the froglok while creation offers it (a server that does
+// not has no froglok of its own to dress).
 func optionRaces() []int {
 	var out []int
-	if len(RaceOptions(raceFroglok)) > 0 {
+	if Creation().Races && len(RaceOptions(raceFroglok)) > 0 {
 		out = append(out, raceFroglok)
 	}
 	for _, d := range RaceDefs() {
@@ -65,6 +66,12 @@ func wireSteps(b []byte, steps []OptionStep) []byte {
 		b = binary.LittleEndian.AppendUint16(b, uint16(max(0, min(65535, int(math.Round(float64(s.Size)*1000))))))
 	}
 	return b
+}
+
+// HasRaceOptions reports whether any race here has options: a server with none
+// offers nothing, so its lists go as they always did.
+func HasRaceOptions() bool {
+	return len(optionRaces()) > 0
 }
 
 // EncodeRaceOptions is OpcodeRaceOptionsData's body: every race's options.

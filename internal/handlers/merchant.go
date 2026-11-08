@@ -321,6 +321,9 @@ func (h *NPCWindowHandler) openMerchant(sess *session.Session, player *entity.Pl
 	log.Printf("Merchant: %s opened %q (npc %d): %d items for sale, %d to buy back", player.Name, npc.Name, npc.NPCID, len(l.wares), len(l.lines))
 }
 
+// merchantNoRoom is a buy with no room for it in the pack: the game's word 823.
+const merchantNoRoom = "You have no room in your inventory for that item."
+
 // HandleMerchantBuy is 0x004A: zigzag catalog index, zigzag count, u32 the
 // merchant (MerchantRequest 0x00BCCA38 [V]). Sandstorm answers 0x003B with the
 // item, then 0x0052 with the purse.
@@ -369,10 +372,18 @@ func (h *NPCWindowHandler) buy(sess *session.Session, id uint32, index, count in
 		room := inv.wouldAdd(p.PatternID, qty, p.MaxStack)
 		took := inv.loreRoom(p, room)
 		if took == 0 {
-			if room > 0 { // a Lore item held already (itemlist.go)
+			switch {
+			case room > 0: // a Lore item held already (itemlist.go)
 				SendClientMessage(sess, fmt.Sprintf(loreLine, p.ItemName))
+				log.Printf("MerchantBuy: %s holds the Lore %q already", player.Name, p.ItemName)
+			case bought == 0:
+				// the list is full, or the stack is: said, where it was silent (the user,
+				// 2026-11-08: "cardile is having issues with buying staff of faykind and
+				// heirloom weapon from vendor": a pack of 40, nothing told)
+				SendClientMessage(sess, merchantNoRoom)
+				log.Printf("MerchantBuy: %s has no room for %q", player.Name, p.ItemName)
 			}
-			break // the list is full, or the stack is
+			break
 		}
 		cost := price * took
 		if cost > player.Tunar {

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/eqoa/pkg/pkg/buffer"
@@ -106,5 +107,45 @@ func TestABuyFromAnOutfitterIsTheRowItShowed(t *testing.T) {
 		if got := bought(c.shop, c.class, c.index); got != c.want {
 			t.Errorf("%s, class %d, row %d: bought %q, want %q", c.shop, c.class, c.index, got, c.want)
 		}
+	}
+}
+
+// A buy with the pack full says so, the game's word 823, and gives nothing (the user,
+// 2026-11-08: "cardile is having issues with buying staff of faykind and heirloom weapon
+// from vendor": 40 items held, and the refusal was silent). The control: with a place
+// free the same buy goes.
+func TestABuyWithAFullPackSaysSo(t *testing.T) {
+	f := newShopFixture(t)
+	staff := f.pattern("Staff of Everyone", 0, 1, 100, 14)
+	f.catalog(staff, 1, 100)
+	for i := 0; i < invListCap; i++ {
+		f.own(f.bait, 1, 100, 0)
+	}
+	f.loadLists()
+	buy := func() [][]byte {
+		f.send(protocol.OpcodeMerchantBuy, func(w *buffer.Writer) {
+			w.Write7BitEncodedInt64(0)
+			w.Write7BitEncodedInt64(1)
+			w.WriteUint32(shopMerchantID)
+		})
+		return f.sent()
+	}
+	msgs := buy()
+	said := false
+	for _, m := range msgs {
+		said = said || bytes.Contains(m, utf16le(merchantNoRoom))
+	}
+	if !said || len(f.rows()) != invListCap {
+		t.Fatalf("a full pack: said %v, %d items, want the line and %d", said, len(f.rows()), invListCap)
+	}
+	// the control: one place free
+	rows := f.rows()
+	if _, err := f.db.Exec(`DELETE FROM charinventory WHERE itemid = ?`, rows[0].ItemID); err != nil {
+		t.Fatal(err)
+	}
+	f.loadLists()
+	buy()
+	if n := len(f.rows()); n != invListCap {
+		t.Errorf("a place free: %d items after the buy, want %d", n, invListCap)
 	}
 }

@@ -75,11 +75,13 @@ const (
 	pvpPetYields = 15 * time.Second
 )
 
-// pvpAreaAtTarget says whether an area spell may be aimed at a foe: false, every area spell
-// spares players (the coordinator's default: "so an AoE can't drag bystanders in"), refused at
-// a foe as it is at any player; true, its target's share lands on the foe and its splash
-// spares players still (areaStartLocked).
-var pvpAreaAtTarget = false
+// pvpAreaAtTarget says whether an area spell may be aimed at a foe and splash its caster's foes:
+// true (the user, 2026-11-08: "neo cant use aoe in pvp, allow aoes to only hit players in pvp mode
+// when pvp"), its target's share lands on the foe and its splash on the caster's other foes in its
+// reach (areaFoesLocked), each at the PvP share, never on a player who is no foe (unflagged, or in
+// the caster's group); false (the coordinator's first default: "so an AoE can't drag bystanders
+// in"), refused at a foe as at any player, and its splash spares every player.
+var pvpAreaAtTarget = true
 
 // The lines. A PS2 draws them from its own characters, and they wrap.
 const (
@@ -324,6 +326,29 @@ func (w *World) pvpSpellTargetLocked(p *Player, spell *CastSpell, target Entity)
 	}
 	spell.duel = true
 	return []EntityID{t.ServerID}, "", true
+}
+
+// areaFoesLocked is the flagged players a harmful area spell of p's reaches beside its creatures
+// (pvpAreaAtTarget): p's foes (pvpFoe: both flagged, in one world, not in one group) within r of
+// (cx, cy, cz) and in its reach (sight.go), the cast's own targets left out; none when p is not
+// flagged, or for a spell no player takes (undead or animal alone, a charm). Must be called with
+// the lock held.
+func (w *World) areaFoesLocked(p *Player, cs *castState, cx, cy, cz, r float32) []areaNear {
+	d := &cs.spell.Def
+	if !pvpAreaAtTarget || !w.pvpAllowed || !p.pvp.on || d.undeadOnly() || d.TargetKind != "" || d.Charms() {
+		return nil
+	}
+	place := w.areaPlaceLocked(p, cs)
+	var out []areaNear
+	for id, t := range w.Players {
+		if areaHas(cs.targets, id) || !p.pvpFoe(t) {
+			continue
+		}
+		if dd := dist3(t.X, t.Y, t.Z, cx, cy, cz); dd <= r && w.reachesLocked(place, t.X, t.Y, t.Z) {
+			out = append(out, areaNear{id, dd})
+		}
+	}
+	return out
 }
 
 // pvpCastBegunLocked is a cast begun: one aimed at a foe holds its caster's flag from now.

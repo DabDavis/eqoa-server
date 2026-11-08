@@ -301,19 +301,77 @@ func TestPvPSpells(t *testing.T) {
 		t.Fatalf("flag off: effects %+v", d.a.Effects)
 	}
 
-	// an area spell, refused at a foe; a charm too
+	// an area spell at a foe lands on it at the PvP share (the user, 2026-11-08: "neo cant use aoe
+	// in pvp, allow aoes to only hit players in pvp mode when pvp"); Gamma beside it, not flagged,
+	// is untouched
 	d.flag(t, d.sa, 10*time.Minute)
-	storm := CastSpell{SpellID: 701, DisplayIndex: 5, Scope: 1, Name: "Storm", Range: 30, Def: ParseSpellText("Target, Decrease Hitpoints by 210 aoe Decrease Hitpoints by 90")}
-	storm.Area = ReadSpellArea(storm.Name, "Target, Decrease Hitpoints by 210 aoe Decrease Hitpoints by 90", storm.Def)
+	storm := pvpStorm(t)
+	duelDrain(d.sb)
+	cast := d.at(10 * time.Minute)
+	beforeA, beforeC := d.a.HP, d.c.HP
+	if !d.w.StartCast(d.sb, storm, d.bSeesA, cast) {
+		t.Fatalf("an area spell at a foe was refused: %q", duelLines(duelDrain(d.sb)))
+	}
+	d.w.mu.Lock()
+	d.w.castSystem(cast.Add(storm.CastTime + castLand))
+	d.w.mu.Unlock()
+	if taken := beforeA - d.a.HP; taken != 105 || d.c.HP != beforeC {
+		t.Fatalf("the storm at A took %d (want 210 halved), Gamma's HP %d (was %d)", taken, d.c.HP, beforeC)
+	}
+}
+
+// pvpStorm is an area spell: 210 on its target, 90 on the others round it.
+func pvpStorm(t *testing.T) CastSpell {
+	t.Helper()
+	const line = "Target, Decrease Hitpoints by 210 aoe Decrease Hitpoints by 90"
+	storm := CastSpell{SpellID: 701, DisplayIndex: 5, Scope: 1, Name: "Storm", Range: 30, Def: ParseSpellText(line)}
+	storm.Area = ReadSpellArea(storm.Name, line, storm.Def)
 	if storm.Area.Centre == AreaNone {
 		t.Fatalf("the test's storm reads as no area: %+v", storm.Area)
 	}
-	duelDrain(d.sb)
-	if d.w.StartCast(d.sb, storm, d.bSeesA, d.at(10*time.Minute)) {
-		t.Fatal("an area spell was cast at a foe")
+	return storm
+}
+
+// An area spell's splash reaches a flagged caster's foes at the PvP share, and no other player (the
+// user, 2026-11-08: "neo cant use aoe in pvp, allow aoes to only hit players in pvp mode when pvp"):
+// Beta's storm at a creature beside Alpha hits the creature and Alpha, its foe, for the splash's 90
+// halved; Gamma beside them, not flagged, takes nothing. The controls: grouped with Beta, Alpha is no
+// foe and is spared; with Beta not flagged, its splash spares Alpha.
+func TestPvPAreaSplashesFoesAlone(t *testing.T) {
+	run := func(flagB, grouped bool) (alpha, gamma, rat int) {
+		d := newPvP(t)
+		d.flag(t, d.sa, 0)
+		if flagB {
+			d.flag(t, d.sb, 0)
+		}
+		if grouped {
+			d.w.groups = map[uint32]*Group{9: {ID: 9, Members: []EntityID{d.a.ServerID, d.b.ServerID}}}
+			d.a.GroupID, d.b.GroupID = 9, 9
+		}
+		npc := &NPC{ServerID: 2002, Name: "rat", Level: 1, HP: 5000, MaxHP: 5000, X: 101, Y: 10, Z: 100}
+		d.w.NPCs[npc.ServerID] = npc
+		d.w.SpatialIndex.Insert(npc.ServerID, npc.X, npc.Z)
+		vs := GetOrCreateVisibility(d.sb)
+		vs.ChannelEntity[2], vs.ChannelObjectID[2] = npc.ServerID, 0x00018822
+		storm := pvpStorm(t)
+		a0, c0 := d.a.HP, d.c.HP
+		cast := d.at(2 * time.Minute)
+		if !d.w.StartCast(d.sb, storm, 0x00018822, cast) {
+			t.Fatalf("the storm at the rat was refused: %q", duelLines(duelDrain(d.sb)))
+		}
+		d.w.mu.Lock()
+		d.w.castSystem(cast.Add(storm.CastTime + castLand))
+		d.w.mu.Unlock()
+		return a0 - d.a.HP, c0 - d.c.HP, 5000 - npc.HP
 	}
-	if got := duelLines(duelDrain(d.sb)); len(got) != 1 || got[0] != pvpLineArea {
-		t.Fatalf("the refusal %q", got)
+	if a, c, r := run(true, false); a != 45 || c != 0 || r <= 0 {
+		t.Errorf("foes: Alpha took %d (want 90 halved), Gamma %d, the rat %d", a, c, r)
+	}
+	if a, c, _ := run(true, true); a != 0 || c != 0 {
+		t.Errorf("grouped: Alpha took %d, Gamma %d; want nothing", a, c)
+	}
+	if a, c, _ := run(false, false); a != 0 || c != 0 {
+		t.Errorf("Beta not flagged: Alpha took %d, Gamma %d; want nothing", a, c)
 	}
 }
 

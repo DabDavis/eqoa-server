@@ -405,8 +405,9 @@ type areaNear struct {
 // (cs.others, the nearest first, the cast's own targets counting to the cap),
 // for its 0x00B1 names them. A group's are its members and their pets within
 // its radius of the caster, the caster its own target; a harmful spell lands
-// on no player, so one cast round its caster with no target (a shout with no
-// target word) has none of its own. Must be called with the lock held.
+// on no player but a flagged caster's foes (pvp.go), so one cast round its
+// caster with no target (a shout with no target word) has none of its own.
+// Must be called with the lock held.
 func (w *World) areaStartLocked(p *Player, cs *castState, now time.Time) {
 	a := &cs.spell.Area
 	if a.Centre == AreaNone || w.SpatialIndex == nil {
@@ -450,6 +451,7 @@ func (w *World) areaStartLocked(p *Player, cs *castState, now time.Time) {
 		}
 		if d.Harmful {
 			near = w.areaCreaturesLocked(p, cs, cx, cy, cz, r, now)
+			near = append(near, w.areaFoesLocked(p, cs, cx, cy, cz, r)...) // pvp.go: a flagged caster's foes
 		} else {
 			near = w.areaFriendsLocked(p, cs, cx, cy, cz, r)
 		}
@@ -626,6 +628,16 @@ func (w *World) landOthersLocked(cs *castState, caster *Player, casterSess *sess
 	for _, id := range cs.others {
 		if t := w.Players[id]; t != nil {
 			if spared(t.Name, t.X, t.Y, t.Z) {
+				continue
+			}
+			if harmful {
+				// a flagged foe in the splash (pvp.go's areaFoesLocked): the PvP fight's, at its
+				// share, while they are foes still
+				if caster.pvpFoe(t) {
+					c := *share
+					c.spell.duel = true
+					w.duelLandLocked(&c, caster, casterSess, t, now)
+				}
 				continue
 			}
 			w.rezLandLocked(share, caster, casterSess, t, now) // resurrect.go: on the dead too

@@ -2014,6 +2014,13 @@ Two things follow from the protocol that are easy to get wrong:
   fighting it>, <group>, <pet>; from <n> sessions (<n> told)`. With `auth.one_login` on (the
   default; off on eqoaclassic) the Station login still refuses the account while the dropped session
   counts as live (`LiveWithin`), so there the wait is the login's, by that rule's design.
+- **A character still in the game is never deleted** (`handlers.CharacterInWorld`; the user, 2026-11-08: "add the
+  delete guard for characters in another window"): a live session other than the asker's plays it (`LiveHolder`), or
+  its Player is still in the world (a dropped client, a Quit in a fight: `World.HasCharacter`). The game's 0x002D is
+  answered with word 676's notice (0x07F0, as select refuses a character in use elsewhere) and the list again; the
+  account page's `/api/characters/delete` with the reason (`AccountServer.InWorld`, set in main). Until then a second
+  window deleted the character the first played (Nuclear, 399): its saves wrote rows for a character that was gone,
+  and a keep restart could not put its session back.
 - **A password is 31 characters at most** (`auth.MaxPasswordLen`): STATION sends it in a 32-byte
   field ending in a NUL (the TCP login's DES block, the UDP token, CreateAccount, ChangePassword),
   so the account page and the GM panel refuse a longer one, and the `station.pak` served lets a

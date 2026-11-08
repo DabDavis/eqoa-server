@@ -439,6 +439,15 @@ func (w *World) HealPlayer(serverID uint32) bool {
 	return true
 }
 
+// HasCharacter reports whether a character (its serverid) has a Player in
+// the world: played, or left behind by a client that dropped or quit in a
+// fight (linkdead.go) and not yet gone.
+func (w *World) HasCharacter(serverID uint32) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.playerByCharacterLocked(serverID) != nil
+}
+
 func (w *World) playerByCharacterLocked(serverID uint32) *Player {
 	for _, p := range w.Players {
 		if p.CharServerID == serverID {

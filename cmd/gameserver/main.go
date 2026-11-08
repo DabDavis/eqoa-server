@@ -630,6 +630,10 @@ func main() {
 			return fmt.Errorf("this character's game cannot load world %d", world)
 		}
 		accountServer.EndSessions = sessionMgr.EndAccount
+		// a character still in the game is never deleted (handlers.CharacterInWorld)
+		accountServer.InWorld = func(serverID uint32) bool {
+			return handlers.CharacterInWorld(gameWorld, sessionMgr, serverID, nil)
+		}
 		accountServer.Limiter = loginLimiter
 		// the community spell-visual page's list and form (internal/spellfx):
 		// anyone may suggest a spell's visual; GMs accept one in the panel

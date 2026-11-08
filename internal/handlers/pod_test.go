@@ -176,24 +176,32 @@ func TestFumingPortalSendsTheRaidToNoroxus(t *testing.T) {
 	}
 }
 
-// The Bloody Portal, the guide's Closed Portal on the ring's south-east arc,
-// sends a level 60 into the middle valley, in front of the Portal of the
-// Twins on its pad, and that portal sends anyone back in front of the Bloody
-// Portal (F3 pass 21: the Twins and Bertoxxulous moved there, as eqoa.live's
-// wiki map has them). The control: a level 59 is too weak for the valley.
+// The Open Bloody Portal, which the Bloody Portal (the guide's Closed Portal on
+// the ring's south-east arc) stands beside it for 15 minutes when shown
+// Noroxus's blood (tools/guidegaps/pod-twins.json), sends a level 60 into the
+// middle valley, in front of the Portal of the Twins on its pad, and that
+// portal sends anyone back in front of the Bloody Portal (F3 pass 21: the Twins
+// and Bertoxxulous moved there, as eqoa.live's wiki map has them). The
+// controls: a level 59 is too weak for the valley; the closed Bloody Portal
+// itself sends no one (the user, 2026-11-08, the twins' thread).
 func TestBloodyPortalSendsTheRaidToTheTwins(t *testing.T) {
 	tw := newTalkWorld(t, 5243, 3172)
 	tw.p.World, tw.p.Y, tw.p.Level = 5, -25.08, 59
+	if IsWaysender("Bloody Portal") {
+		t.Error("the closed Bloody Portal is a waysender: anyone walks through it, blood or not")
+	}
 	// facing bytes 128 both (tools/seed_pod.py): north, into the valley
-	bloody := tw.add(1, &entity.NPC{ServerID: 1, Name: "Bloody Portal", World: 5, SpawnX: 5243, SpawnY: -25.08, SpawnZ: 3175,
+	bloody := tw.add(1, &entity.NPC{ServerID: 1, Name: "Open Bloody Portal", World: 5, SpawnX: 5243, SpawnY: -25.08, SpawnZ: 3175,
 		SpawnFacing: math.Pi})
+	// the closed portal it stands beside, where the way back lands
+	tw.w.NPCs[4] = &entity.NPC{ServerID: 4, Name: "Bloody Portal", World: 5, SpawnX: 5243, SpawnY: -25.08, SpawnZ: 3175, SpawnFacing: math.Pi}
 	twins := &entity.NPC{ServerID: 2, Name: "Portal of the Twins", World: 5, SpawnX: 4872, SpawnY: -19.94, SpawnZ: 2987,
 		SpawnFacing: math.Pi}
 	tw.w.NPCs[2] = twins
 
 	tw.talk(bloody)
 	if box := boxSaid(tw.s); !strings.Contains(box, "too weak") || !strings.Contains(box, "the Twins' valley") {
-		t.Fatalf("a level 59 at the Bloody Portal was told %q, want too weak for the Twins' valley", box)
+		t.Fatalf("a level 59 at the Open Bloody Portal was told %q, want too weak for the Twins' valley", box)
 	}
 	tw.s.Queue().GetPending()
 	tw.pick(bloody, 0)
@@ -208,7 +216,7 @@ func TestBloodyPortalSendsTheRaidToTheTwins(t *testing.T) {
 	// in front of the Portal of the Twins: 3 north of the pad, into the valley
 	x, z, world, moved := teleported(tw.s)
 	if !moved || world != 5 || math.Abs(float64(x-4872)) > 0.01 || math.Abs(float64(z-(2987-bindReach))) > 0.01 {
-		t.Errorf("the Bloody Portal sent a level 60 to (%.1f, %.1f) world %d (%v), want (4872, %.0f), in front of the Portal of the Twins",
+		t.Errorf("the Open Bloody Portal sent a level 60 to (%.1f, %.1f) world %d (%v), want (4872, %.0f), in front of the Portal of the Twins",
 			x, z, world, moved, 2987-bindReach)
 	}
 
@@ -226,10 +234,14 @@ func TestBloodyPortalSendsTheRaidToTheTwins(t *testing.T) {
 
 // Every trip of the Plane of Disease's lands on an NPC that has a trip back
 // to where it began, so no portal strands a player; and an NPC is a waysender
-// by its trips (the control: a name with none is not).
+// by its trips (the control: a name with none is not). The Open Bloody Portal
+// stands for 15 minutes beside the closed Bloody Portal, so the way back lands
+// at the closed one, where it stood.
 func TestPoDTripsGoBothWays(t *testing.T) {
 	pod := []string{"Necrologist Zizclank", "Portal to the Dead Hills", "Whirling Portal", "Portal to the Lake",
-		"Bloody Portal", "Portal of the Twins", "Fuming Portal", "Portal to the Cauldron"}
+		"Open Bloody Portal", "Portal of the Twins", "Fuming Portal", "Portal to the Cauldron"}
+	at := map[string]string{"Open Bloody Portal": "Bloody Portal"}    // a spawned portal by the NPC it stands beside
+	opens := map[string]string{"Bloody Portal": "Open Bloody Portal"} // a closed portal by the one it opens
 	for _, from := range pod {
 		if !IsWaysender(from) {
 			t.Errorf("%s is not a waysender", from)
@@ -239,7 +251,14 @@ func TestPoDTripsGoBothWays(t *testing.T) {
 			t.Fatalf("%s has %d trips, want 1", from, len(routes))
 		}
 		back := wayRoutes[routes[0].Arrive]
-		if len(back) != 1 || back[0].Arrive != from {
+		if o, ok := opens[routes[0].Arrive]; ok && len(back) == 0 {
+			back = wayRoutes[o]
+		}
+		home := from
+		if a, ok := at[from]; ok {
+			home = a
+		}
+		if len(back) != 1 || back[0].Arrive != home && back[0].Arrive != from {
 			t.Errorf("%s lands on %s, whose trips %v do not lead back", from, routes[0].Arrive, back)
 		}
 	}

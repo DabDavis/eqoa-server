@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"math"
 	"strings"
@@ -502,5 +503,44 @@ func TestTriggerPopup(t *testing.T) {
 	id := uint32(box[0][0]) | uint32(box[0][1])<<8 | uint32(box[0][2])<<16 | uint32(box[0][3])<<24
 	if !IsTriggerBox(id) || IsTriggerBox(questBoxMark|1) || IsTriggerBox(700) {
 		t.Fatalf("id %#x", id)
+	}
+}
+
+// A wait with an upto waits a random time from its seconds to its upto (the
+// user, 2026-11-08, the Plane of Disease's Bloody Portal: shut "45 minutes to 3
+// hours"): at the rig's draw of a half, 45 minutes and half of the 135 more,
+// 112.5 minutes, the lock held until then; a wait past the longest a trigger
+// may wait, or an upto not past its seconds, is refused. The control: a wait
+// of seconds alone waits them.
+func TestTriggerWaitUpto(t *testing.T) {
+	w := newTrigWorld(t)
+	w.set(3, "Shut", "near", 0, `[{"do":"lock","lock":"bloody portal"},{"do":"wait","seconds":2700,"upto":10800},{"do":"broadcast","text":"open again"}]`)
+	lines, err := w.fire(3)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !hasLine(lines, "waiting 6750 s") && !hasLine(lines, "waiting 112.5 min") {
+		t.Fatalf("lines: %q", lines)
+	}
+	w.at(6749 * time.Second)
+	if !w.e.Running()[3] {
+		t.Fatal("ended before its random wait's end")
+	}
+	w.at(6751 * time.Second)
+	if w.e.Running()[3] {
+		t.Fatal("still running after its random wait's end")
+	}
+	for _, bad := range []string{`[{"do":"wait","seconds":2700,"upto":20000}]`, `[{"do":"wait","seconds":2700,"upto":2700}]`} {
+		var steps []database.TriggerStep
+		if err := json.Unmarshal([]byte(bad), &steps); err != nil {
+			t.Fatal(err)
+		}
+		if errs := database.StepProblems(steps); len(errs) == 0 {
+			t.Errorf("%s was not refused", bad)
+		}
+	}
+	w.set(4, "Plain", "near", 0, `[{"do":"wait","seconds":30},{"do":"broadcast","text":"done"}]`)
+	if lines, err := w.fire(4); err != nil || !hasLine(lines, "waiting 30 s") {
+		t.Errorf("the control: %q %v", lines, err)
 	}
 }

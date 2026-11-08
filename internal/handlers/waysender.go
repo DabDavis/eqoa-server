@@ -230,7 +230,13 @@ var wayRoutes = map[string][]wayRoute{
 	"Portal to the Lake": {
 		{To: "the lake", Arrive: "Whirling Portal"},
 	},
-	"Bloody Portal": {
+	// The Bloody Portal itself is closed (the guide's Closed Portal; the user,
+	// 2026-11-08, the twins' thread: "Open it only when the raid is assembled,
+	// since it stays open about 15 minutes. It respawns randomly every 45
+	// minutes to 3 hours"): Noroxus's blood shown to it (quest "The Bloody
+	// Portal") fires the trigger that stands the Open Bloody Portal beside it
+	// for 15 minutes, then keeps it shut (tools/guidegaps/pod-twins.json).
+	"Open Bloody Portal": {
 		{To: "the Twins' valley", Arrive: "Portal of the Twins", MinLevel: 60},
 	},
 	"Portal of the Twins": {

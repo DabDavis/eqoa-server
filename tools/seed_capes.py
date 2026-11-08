@@ -7,7 +7,9 @@ What it writes (a report by default; --apply writes, --undo takes back exactly w
   none of CLIENT's), its style in model (a client that draws capes draws style N as the cape it cuts out of the body
   STYLES names) and colour 0 (the art's own colours; a record's colour 0xRRGGBBAA tints it), no stats, level 1, every
   class and race, NO TRADE, worth 0 (the price and the sale), one to a stack, no wear (no hit points, so never
-  broken). A PS2 is sent one as a plain item it cannot wear.
+  broken). A PS2 is sent one as a plain item it cannot wear. With --colours (off unless asked), COLOURS too (ids
+  FIRST_ID + 20 on): the Nightborne Cloak's art (style 2, whose texture is a pale grey, so a tint reads true) in a
+  colour of its own each.
 - **The tailors**: a "Cape Tailor" (a merchant: npc_type 0x81, as the outfitters) beside the Heirloom Outfitters of
   each place (outfitters within CLUSTER of each other are one place: up to four class givers stand together, each with
   its outfitter and dyer), beside the first of them: PAST units beyond it on the line from its Armor Dyer (else along
@@ -23,7 +25,7 @@ NPCs are read at the server's start: apply it with the server stopped, or in a k
 (tools/swap_keep.sh), the capes code's binary starting after with world.capes on. The records alone are read at each
 request. Logged in cape_seed_log; --undo deletes every row it made (a record a character holds is kept, and said).
 
-    tools/seed_capes.py [--db eqoa.db] [--list] [--apply | --undo] [--first-id 717000]
+    tools/seed_capes.py [--db eqoa.db] [--list] [--colours] [--apply | --undo] [--first-id 717000]
 """
 
 import argparse
@@ -47,6 +49,7 @@ CLEAR = 1.2  # no NPC this close to a tailor's spot
 # The styles: (style, the record's name, the body its art is cut out of (CHAR.ESF DictID; the client's table, kept here
 # for the record), its icon (ITEMICON.ESF: the robes' icons, as the disc's cloaks have them), its description). The
 # style is itempattern.model, the number the client draws by: never renumber a row a character may hold, drop it.
+# Styles 4 and 5 are one body's cape, without and with its fur mantle over the shoulders.
 STYLES = [
     (1, "Azure Knight's Cape", 0xD1300BD3, 1188988948,
      "A long cape of blue silk that falls to the heels, as the knights of old wore it."),
@@ -54,13 +57,22 @@ STYLES = [
      "A sweeping black cloak with a high collar lined in red, for those who walk by night."),
     (3, "Violet Mantle", 0xD7540FDA, 1414103605,
      "A long mantle of violet cloth, pleated from the shoulders to the hem."),
-    (4, "Dreadlord's Cape", 0xDC3B3450, -1654522420,
-     "A heavy maroon cape under a collar of dark fur, as the lords of the Isle of Dread wear them."),
-    (5, "Tattered Crimson Cape", 0xADFABA74, 1414103605,
-     "A crimson cape torn ragged at the hem, as though dragged through a hundred battles."),
-    (6, "Crimson Cape", 0x6F72A157, 1414103605,
-     "A short crimson cape of fine pleated cloth."),
+    (4, "Dreadlord's Cape", 0xDC3B3450, 1414103605,
+     "A heavy maroon cape with a high, stiff collar, as the lords of the Isle of Dread wear them."),
+    (5, "Dreadlord's Mantle", 0xDC3B3450, -1654522420,
+     "The Dreadlord's maroon cape under a mantle of dark fur that rides the shoulders."),
 ]
+
+# The colours (--colours): (the record's name, its colour 0xRRGGBBAA, its icon, its description), each the art of
+# COLOUR_STYLE, at ids FIRST_ID + 20 on. The icons are the robes' nearest in colour (no robe icon is blue).
+COLOUR_STYLE = 2
+COLOURS = [
+    ("Crimson Cloak", 0xB01818FF, 1414103605, "A sweeping cloak with a high collar, dyed a deep crimson."),
+    ("Forest Cloak", 0x2E7D32FF, -1184067867, "A sweeping cloak with a high collar, dyed the green of the deep forest."),
+    ("Royal Cloak", 0x283593FF, 1188988948, "A sweeping cloak with a high collar, dyed a royal blue."),
+    ("Gilded Cloak", 0xC9A227FF, -1669429287, "A sweeping cloak with a high collar, dyed the gold of old coin."),
+]
+COLOUR_ID = 20  # the colours' ids: FIRST_ID + COLOUR_ID on
 
 
 def rows_of(db, sql, *args):
@@ -74,11 +86,11 @@ def ensure_tables(db):
                    rowid_made INTEGER NOT NULL, note TEXT NOT NULL DEFAULT '')""")
 
 
-def record(cols, first_id, style, name, icon, desc):
-    r = dict(patternid=first_id + style, itemcost=0, unk1=0, itemicon=icon, unk2=0, equipslot=WEAR_CAPE, unk3=0,
+def record(cols, pid, style, name, icon, desc, color=0):
+    r = dict(patternid=pid, itemcost=0, unk1=0, itemicon=icon, unk2=0, equipslot=WEAR_CAPE, unk3=0,
              trade=1, rent=1, unk4=0, attacktype=0, weapondamage=0, unk5=0, levelreq=1, maxstack=1, maxhp=0,
              duration=0, classuse=ALL_CLASSES, raceuse=ALL_RACES, procanim=0, lore=0, unk6=0, craft=0, itemname=name,
-             itemdesc=desc, model=style, color=0, weaponproc=0, fish=0)
+             itemdesc=desc, model=style, color=color, weaponproc=0, fish=0)
     return {c: r.get(c) for c in cols}  # the stats NULL
 
 
@@ -139,7 +151,7 @@ def body(db, o):
     return next((m for m in ms if m["modelid"] not in worn), next((m for m in ms if m["modelid"] != o["modelid"]), o))
 
 
-def plan(db, first_id):
+def plan(db, first_id, colours=False):
     ensure_tables(db)
     if db.execute(f"SELECT COUNT(*) FROM {LOG}").fetchone()[0]:
         raise SystemExit("the capes are in this database already: --undo first")
@@ -148,17 +160,22 @@ def plan(db, first_id):
     if taken:
         raise SystemExit(f"{taken} records already hold ids {first_id}-{first_id + 99}: --first-id another block")
     styles = [s[0] for s in STYLES]
-    if len(set(styles)) != len(styles) or not all(1 <= s <= 99 for s in styles):
-        raise SystemExit(f"the styles must be distinct and 1-99: {styles}")
+    if len(set(styles)) != len(styles) or not all(1 <= s < COLOUR_ID for s in styles):
+        raise SystemExit(f"the styles must be distinct and 1-{COLOUR_ID - 1}: {styles}")
     cols = [r[1] for r in db.execute("PRAGMA table_info(itempattern)")]
-    records = [(record(cols, first_id, style, name, icon, desc), dict_id) for style, name, dict_id, icon, desc in STYLES]
+    records = [(record(cols, first_id + style, style, name, icon, desc), dict_id)
+               for style, name, dict_id, icon, desc in STYLES]
+    if colours:
+        art = next(d for st, _, d, _, _ in STYLES if st == COLOUR_STYLE)
+        records += [(record(cols, first_id + COLOUR_ID + i, COLOUR_STYLE, name, icon, desc, color), art)
+                    for i, (name, color, icon, desc) in enumerate(COLOURS)]
     tailors, taken = [], []
     for group in places(rows_of(db, "SELECT * FROM npcs WHERE npc_name = ? ORDER BY id", OUTFITTER)):
         o = group[0]
         at = tailor_place(db, o, taken)
         taken.append((o["world"], at[0], at[2]))
         tailors.append(dict(outfitter=o, place=len(group), at=at, body=body(db, o)))
-    return dict(records=records, tailors=tailors, first_id=first_id)
+    return dict(records=records, tailors=tailors, first_id=first_id, colours=colours)
 
 
 def npc_row(cols, body, o, at):
@@ -170,12 +187,16 @@ def npc_row(cols, body, o, at):
 
 
 def report(p, full):
-    print(f"{len(p['records'])} capes from {p['first_id'] + 1} (wear slot {WEAR_CAPE}), "
+    print(f"{len(p['records'])} capes at {p['first_id'] + 1}-{p['records'][-1][0]['patternid']} (wear slot {WEAR_CAPE}), "
           f"{len(p['tailors'])} tailors, one by the {OUTFITTER}s of each place "
           f"({sum(t['place'] for t in p['tailors'])} outfitters)")
     for rec, dict_id in p["records"]:
-        print(f"  {rec['patternid']}: {rec['itemname']!r}, style {rec['model']} (the art of CHAR.ESF {dict_id:#010x}), "
-              f"icon {rec['itemicon']}")
+        tint = f", colour {rec['color']:08X}" if rec["color"] else ""
+        print(f"  {rec['patternid']}: {rec['itemname']!r}, style {rec['model']} (the art of CHAR.ESF {dict_id:#010x})"
+              f"{tint}, icon {rec['itemicon']}")
+    if not p["colours"]:
+        print(f"  (--colours, off: also the {', '.join(n for n, _, _, _ in COLOURS)}, the style {COLOUR_STYLE} art "
+              f"in a colour each, ids {p['first_id'] + COLOUR_ID}-{p['first_id'] + COLOUR_ID + len(COLOURS) - 1})")
     if full:
         for t in p["tailors"]:
             o = t["outfitter"]
@@ -252,6 +273,7 @@ def main():
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--undo", action="store_true")
     ap.add_argument("--first-id", type=int, default=FIRST_ID, help="the block of 100 ids the records take")
+    ap.add_argument("--colours", action="store_true", help=f"also the colour variants of style {COLOUR_STYLE} (COLOURS)")
     ap.add_argument("--no-backup", action="store_true")
     a = ap.parse_args()
     if not os.path.isfile(a.db):
@@ -263,7 +285,7 @@ def main():
     if a.undo:
         undo(db)
         return
-    p = plan(db, a.first_id)
+    p = plan(db, a.first_id, a.colours)
     report(p, a.list)
     if a.apply:
         apply(db, p)

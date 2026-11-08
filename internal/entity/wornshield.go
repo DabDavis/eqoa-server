@@ -50,9 +50,10 @@ import (
 //   - a heal by a stat's percent (the Anointed's 15 + 10% of CHA, at most 75)
 //     takes the stat as the client shows it (StatNow: within its cap, 400 at
 //     level 46 and up, more with the cap masteries); one in a line (the
-//     Seraphic Planar's, the user's choice: 75 at none of its INT to 225 at
-//     the wearer's INT cap, its damage the same) goes from its figure at none
-//     of the stat to its most at the cap.
+//     Seraphic Planar's, the user's choice: 75 at none of its INT to 120 at
+//     the wearer's INT cap, its damage the same; 225 until the user's "the
+//     damage/heal shield should scale to 120 damage", 2026-11-08) goes from
+//     its figure at none of the stat to its most at the cap.
 // The sheet's rows with no figure (Imperial Breastplate, Shield of the Isle,
 // Sandals of the Burning Sands), with no effect of these kinds (Tobrin's
 // Eyepatch's anti-aggro, the Desecrated breastplate's arcane resist debuff,
@@ -128,8 +129,10 @@ var wornShieldsByPattern = map[int]WornShield{
 	2251: {Power: 15}, // Mithril Breastplate
 }
 
-// seraphicPlanar is the Plane of Sky's shadow knight breastplate's.
-var seraphicPlanar = WornShield{Damage: 75, DamageMax: 225, Heal: 75, HealMax: 225, Scale: StatInt, Line: true}
+// seraphicPlanar is the Plane of Sky's shadow knight breastplate's (its
+// record "Seraphic Planar Breastplate" since 2026-11-08, the user's: "name is
+// supposed to be breast plate not chest piece").
+var seraphicPlanar = WornShield{Damage: 75, DamageMax: 120, Heal: 75, HealMax: 120, Scale: StatInt, Line: true}
 
 // WornShieldOf is the item's, by its record (patternid), else by its name;
 // false for an item that does nothing at a hit.

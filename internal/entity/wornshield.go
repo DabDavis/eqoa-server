@@ -201,7 +201,9 @@ func (w *World) wornShieldsLocked(sess *session.Session, p *Player, npc *NPC) bo
 }
 
 // wornGiveLocked is what a worn item gives its wearer at a hit: hit points, told as a
-// heal is, and power, each only when short of its most. Must be called with the lock held.
+// heal is, and power, each given only when short of its most; the hit points' figure is
+// told at the most too, as a proc's heal is (procHealLocked). Must be called with the lock
+// held.
 func (w *World) wornGiveLocked(p *Player, sess *session.Session, s WornShield, n, power int) {
 	if p.IsDead() {
 		return
@@ -218,6 +220,8 @@ func (w *World) wornGiveLocked(p *Player, sess *session.Session, s WornShield, n
 		if !s.Hate {
 			w.healHateLocked(p, p, p.HP-before)
 		}
+	} else if n > 0 {
+		w.tellAmountLocked(p, sess, p.ServerID, n) // full: the figure alone
 	}
 	if top := p.MaxPowerNow(); power > 0 && p.Power < top {
 		p.Power = min(p.Power+power, top)

@@ -363,7 +363,7 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 		if npc.Dummy != NotDummy {
 			back = n // a dummy is told the figure and takes nothing
 		}
-		w.healLocked(p, sess, p, back)
+		w.procHealLocked(p, sess, p, back)
 	}
 	return killed
 }
@@ -430,7 +430,7 @@ func (w *World) restoreProcLocked(sess *session.Session, p *Player, wp *WeaponPr
 		}
 	}
 	for _, t := range to {
-		w.healLocked(p, sess, t, n)
+		w.procHealLocked(p, sess, t, n)
 		if wp.Power > 0 && t.Power < t.MaxPowerNow() {
 			t.Power = min(t.Power+wp.Power, t.MaxPowerNow())
 			t.StatsDirty = true

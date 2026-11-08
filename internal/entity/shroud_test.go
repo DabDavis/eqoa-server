@@ -1,8 +1,11 @@
 package entity
 
 import (
+	"encoding/binary"
 	"testing"
 	"time"
+
+	"github.com/eqoa/server/internal/protocol"
 )
 
 // Petition 1155, Larrybird: Shroud of Hate "was procing for 1 dmg", every one of its 390
@@ -123,5 +126,89 @@ func TestAnArtPaidForWithAnItemIsNotHeld(t *testing.T) {
 	}
 	if isArt(&CastSpell{CastTime: 3, Def: SpellDef{Harmful: true}}) {
 		t.Error("a spell with a cast time is an art")
+	}
+}
+
+// figuresIn is every 0x00DB among msgs: (source, amount, target).
+func figuresIn(msgs [][]byte) [][3]int64 {
+	var out [][3]int64
+	for _, m := range msgs {
+		if len(m) < 2 || protocol.GameOpcode(binary.LittleEndian.Uint16(m)) != protocol.OpcodeDamageIndication {
+			continue
+		}
+		r := &vims{b: m[2:]}
+		out = append(out, [3]int64{int64(r.u32()), int64(r.signed()), int64(r.u32())})
+	}
+	return out
+}
+
+// A proc's heal is seen at full health too (the user, 2026-11-08: "the heal proc should
+// show green numbers for player": a healer kept Larrybird full, and his Shroud of Death's
+// heals showed nothing): a life steal's figure, a defensive heal proc's and a mark's, each
+// green (positive) over the player with nothing healed. The controls: a spell's heal on a
+// full player shows none, and a hurt player's life steal heals as before.
+func TestAProcsHealIsSeenAtFullHealth(t *testing.T) {
+	r := newTemplateRig(t)
+	guard := r.npc("Gnoll Guard")
+	guard.HP, guard.MaxHP = 1_000_000, 1_000_000
+	guard.Level = 1
+	p, sess := r.player("Hero", guard.X+1, guard.Z)
+	defer func(f func(int) int) { procIntn = f }(procIntn)
+	procIntn = func(n int) int { return 0 }
+	me := int64(sess.PlayerObjectID())
+	now := time.Now()
+	p.MaxHP = 5000
+	full := func() { p.HP = p.MaxHPNow(); drain(sess) }
+	healed := func(what string, amount int64) {
+		t.Helper()
+		figs := figuresIn(drain(sess))
+		found := false
+		for _, f := range figs {
+			found = found || f == [3]int64{me, amount, me}
+		}
+		if !found || p.HP != p.MaxHPNow() {
+			t.Errorf("%s at full health: figures %v, HP %d/%d; want (self, +%d, self) and nothing healed", what, figs, p.HP, p.MaxHPNow(), amount)
+		}
+	}
+
+	p.Effects = []*ActiveEffect{{Name: "Shroud of Death +", Proc: 100, ProcMax: 100, Until: now.Add(time.Hour), Rules: EffectRules{ProcHeal: 100}}}
+	full()
+	r.w.mu.Lock()
+	r.w.playerProcsLocked(sess, p, guard, now)
+	r.w.mu.Unlock()
+	healed("a life steal", 100)
+
+	p.Effects = []*ActiveEffect{{Name: "Spirit Shield", Until: now.Add(time.Hour), Rules: EffectRules{ProcHeal: 52, ProcHealDef: true}}}
+	full()
+	r.w.mu.Lock()
+	r.w.procHealsLocked(p, guard, true, now)
+	r.w.mu.Unlock()
+	healed("a defensive heal proc", 52)
+
+	p.Effects = nil
+	guard.Effects = []*ActiveEffect{{Name: "Mark of Faith", Until: now.Add(time.Minute), Rules: EffectRules{MarkHeal: 65}}}
+	full()
+	r.w.mu.Lock()
+	r.w.markHealPlayerLocked(sess, p, guard, now)
+	r.w.mu.Unlock()
+	healed("a mark", 65)
+	guard.Effects = nil
+
+	// the controls: a spell's heal on a full player, none; a hurt one's life steal, healed
+	full()
+	r.w.mu.Lock()
+	r.w.healLocked(p, sess, p, 300)
+	r.w.mu.Unlock()
+	if figs := figuresIn(drain(sess)); len(figs) != 0 {
+		t.Errorf("a spell's heal on a full player: %v", figs)
+	}
+	p.Effects = []*ActiveEffect{{Name: "Shroud of Death +", Proc: 100, ProcMax: 100, Until: now.Add(time.Hour), Rules: EffectRules{ProcHeal: 100}}}
+	p.HP = 1000
+	drain(sess)
+	r.w.mu.Lock()
+	r.w.playerProcsLocked(sess, p, guard, now)
+	r.w.mu.Unlock()
+	if figs := figuresIn(drain(sess)); p.HP != 1100 || len(figs) != 2 || figs[1] != [3]int64{me, 100, me} {
+		t.Errorf("a hurt player's life steal: HP %d, figures %v", p.HP, figs)
 	}
 }

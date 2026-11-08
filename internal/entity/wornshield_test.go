@@ -65,7 +65,9 @@ func TestWornShieldOf(t *testing.T) {
 // scaling"): the crab's hit on its wearer is answered as a damage shield's
 // (the wearer's 0x00B1 at the crab with the shields' visual, then its 30 as
 // the wearer's), and the wearer gets 15 back, told as a heal is. At full
-// hit points the heal is neither given nor told; the damage still is.
+// hit points the heal is not given but still told, green (the user,
+// 2026-11-08: "the heal proc should show green numbers for player"); the
+// damage is as ever.
 func TestSplendorHitsBackAndHeals(t *testing.T) {
 	c, crab := casterAndCrab(t)
 	s, _ := WornShieldOf(2256, "Splendor")
@@ -90,12 +92,12 @@ func TestSplendorHitsBackAndHeals(t *testing.T) {
 		t.Errorf("the crab after the answer: %d HP, want 1970", crab.HP)
 	}
 
-	// at full hit points: the damage, no heal
+	// at full hit points: the damage, and the heal's figure with nothing healed
 	c.p.HP = c.p.MaxHPNow()
 	c.w.mu.Lock()
 	c.w.playerShieldsLocked(c.sess, c.p, crab, c.at(2*time.Second))
 	c.w.mu.Unlock()
-	if got := c.sent(); !sameMsgs(got, [][]byte{castMsg(c.me, c.npcO, 0, fxShieldHit), damageMsg(t, c.me, -30, c.npcO)}) {
+	if got := c.sent(); !sameMsgs(got, [][]byte{castMsg(c.me, c.npcO, 0, fxShieldHit), damageMsg(t, c.me, -30, c.npcO), damageMsg(t, c.me, 15, c.me)}) {
 		t.Errorf("at full hit points sent\n% X", got)
 	}
 	if crab.HP != 1940 || c.p.HP != c.p.MaxHPNow() {

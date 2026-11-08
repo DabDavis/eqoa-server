@@ -55,10 +55,14 @@ func (w *World) raidRosterRecord(sess *session.Session, o *Player) []byte {
 }
 
 // raidRosterLocked is every member's record for sess's client, in the order they
-// joined; none when me's group is no raid group. Must be called with the lock held.
+// joined; none when me's group is no raid's: one whose leader raised a raid flag,
+// whatever its size, or past four (the user, 2026-11-08: "the raid ui doesnt show up
+// for all players in raid, like maybe the early group still sees the group UI": a
+// flagged group's first four saw their window of four until a fifth came). Must be
+// called with the lock held.
 func (w *World) raidRosterLocked(sess *session.Session, me *Player) [][]byte {
 	g := w.groups[me.GroupID]
-	if me.GroupID == 0 || g == nil || !g.isRaid() {
+	if me.GroupID == 0 || g == nil || !(g.flagged || g.isRaid()) {
 		return nil
 	}
 	out := make([][]byte, 0, len(g.Members))

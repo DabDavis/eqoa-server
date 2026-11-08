@@ -102,7 +102,7 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 		if err != nil {
 			log.Printf("Loot: %q (npc %d): %v", npc.Name, npc.NPCID, err)
 		}
-		// equipment only within lootLevelReach of the opener's level
+		// equipment no more than lootLevelReach above the opener's level
 		level, cut := h.openerLevel(sess), 0
 		items, cut = fitItems(items, level)
 		// and what its loot tables roll at this death (loottables, npcloot),
@@ -138,8 +138,8 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 			}
 		}
 		if cut > 0 {
-			log.Printf("Loot: %q rolled for a level %d opener: %d pieces of equipment outside %d-%d left out",
-				npc.Name, level, cut, level-lootLevelReach, level+lootLevelReach)
+			log.Printf("Loot: %q rolled for a level %d opener: %d pieces of equipment above level %d left out",
+				npc.Name, level, cut, level+lootLevelReach)
 		}
 		for i := range items {
 			items[i] = catalogRecord(items[i])
@@ -171,11 +171,14 @@ func lootNames(npc *entity.NPC) []string {
 	return []string{npc.Name, lootEveryCreature}
 }
 
-// lootLevelReach is how far from its opener's level a piece of equipment a
+// lootLevelReach is how far above its opener's level a piece of equipment a
 // corpse rolls may be (the user, 2026-11-07: "equipment drops from mobs for
 // players should be within the players level range, with in 10 levels
-// higher/lower"). A corpse is rolled when it is first opened (OpenCorpse), so
-// by that player's level. Equipment is what is worn in the gear's slots, 1 to
+// higher/lower"). Gear of any level below the opener's stays (jib, 2026-11-08,
+// of Cazic-Thule's Rubicite armour, levels 47-48, which no level 59 or 60 could
+// find: "level 60 players should absolutely be able to farm the gear", and the
+// choice of no lower bound anywhere). A corpse is rolled when it is first
+// opened (OpenCorpse), so by that player's level. Equipment is what is worn in the gear's slots, 1 to
 // lootGearSlots (armour, jewellery, weapons, bows, held items, gloves) but a
 // thrown potion; the fishing pole, bait, the Book of Power and the tradeskill
 // tools (slots 20-25) are not, nor is anything else (potions, materials,
@@ -192,11 +195,12 @@ func lootFits(p *database.ItemPatternRecord, level int) bool {
 	if level <= 0 || p.EquipSlot < 1 || p.EquipSlot > lootGearSlots || p.AttackType == 10 || p.LevelReq <= 0 {
 		return true
 	}
-	return p.LevelReq >= level-lootLevelReach && p.LevelReq <= level+lootLevelReach
+	return p.LevelReq <= level+lootLevelReach
 }
 
 // fitChoices is a roll's choices a level's opener may find, and how many it
-// left out: a roll then lands only on these, by their weights.
+// left out: a roll then lands only on these, by their weights (none left: the
+// table gives nothing).
 func fitChoices(cs []database.LootChoice, level int) ([]database.LootChoice, int) {
 	out := make([]database.LootChoice, 0, len(cs))
 	for _, c := range cs {

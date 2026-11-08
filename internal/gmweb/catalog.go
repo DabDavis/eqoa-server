@@ -1122,6 +1122,8 @@ var catalog = map[string]tableNote{
 			"kick_damage":    {Label: "Kick damage", Help: "a second timed melee beside the special: a Kick of this figure (fixed, not by level, through any armour; 0 none)", Section: "Special melee"},
 			"kick_every":     {Label: "Kick every s", Help: "seconds at its enemy from one kick to the next (1-3600; 0 none)", Section: "Special melee"},
 			"kick_first":     {Label: "First kick at s", Help: "seconds of a fight at its enemy before the first kick", Section: "Special melee"},
+			"fight_regen":    {Label: "Fight regen", Help: "hit points it heals each regeneration tick (6 s) while it fights (0 none; out of a fight its level's balance row heals it)", Section: "Stat profile"},
+			"run_speed":      {Label: "Run speed", Help: "units a second in a chase and on its way home (1-60; 0 the creatures' 9.9; a player runs 8.83, 11.48 under Spirit of the Wolf)", Section: "Stat profile"},
 			"special_from":   {Label: "Special from level", Help: "a creature below this level (its own, at each fight) has no special, timed or by chance (0 any; the roamer's 10)", Section: "Special melee"},
 			"abilities":      {Label: "Abilities", Format: "json", Help: classTemplateAbilitiesHelp},
 			"note":           {Label: "Note", Format: "multiline"},

@@ -1211,3 +1211,80 @@ func TestATemplatesKickComesOnItsClock(t *testing.T) {
 		t.Errorf("kicks of 4,000 at %v, want %v", at, want)
 	}
 }
+
+// A template's fight_regen heals it each regeneration tick (six seconds) while
+// it fights, to its maximum and no further (the GM Jibrish's petition 1254: Mr.
+// Moogie's "2000 HP per tick regeneration in combat"); the control, a template
+// without it, heals nothing in its fight, as every creature did.
+func TestATemplateHealsInItsFight(t *testing.T) {
+	r := newTemplateRig(t)
+	for _, q := range []string{
+		`INSERT INTO classtemplates (name, class, special, special_damage, fight_regen) VALUES ('mender', 0, '', 0, 2000)`,
+		`INSERT INTO classtemplates (name, class, special, special_damage, fight_regen) VALUES ('plainwar', 0, '', 0, 0)`,
+	} {
+		if _, err := r.db.Exec(q); err != nil {
+			t.Fatalf("%s: %v", q, err)
+		}
+	}
+	r.assign("gnoll brute", "mender")
+	r.assign("gnoll guard", "plainwar")
+	brute, guard := r.npc("Gnoll Brute"), r.npc("Gnoll Guard")
+	p, _ := r.player("Hero", 2001.5, 100)
+	q, _ := r.player("Control", 3001.5, 100)
+	for _, n := range []*NPC{brute, guard} {
+		n.MaxHP, n.HP = 100000, 95000
+	}
+	r.fight(brute, p.ServerID)
+	r.fight(guard, q.ServerID)
+	var got []int
+	for i := 1; i <= 4; i++ {
+		r.w.mu.Lock()
+		r.w.wakeNPCLocked(brute)
+		r.w.wakeNPCLocked(guard)
+		r.w.TickCount = uint64(i) * uint64(RegenInterval/(100*time.Millisecond))
+		r.w.npcRegenSystem(r.at(time.Duration(i) * RegenInterval))
+		r.w.mu.Unlock()
+		got = append(got, brute.HP)
+		if guard.HP != 95000 {
+			t.Fatalf("the control healed in its fight: %d", guard.HP)
+		}
+	}
+	if want := []int{97000, 99000, 100000, 100000}; fmt.Sprint(got) != fmt.Sprint(want) {
+		t.Errorf("hit points a tick %v, want %v", got, want)
+	}
+}
+
+// A template's run_speed is its pace in a chase (petition 1254: Mr. Moogie's
+// "double that of spirit of the wolf", 22.97 a second); the control, a
+// template without it, runs the creatures' 9.9.
+func TestATemplateRunsAtItsSpeed(t *testing.T) {
+	r := newTemplateRig(t)
+	for _, q := range []string{
+		`INSERT INTO classtemplates (name, class, special, special_damage, run_speed) VALUES ('sprinter', 0, '', 0, 22.966667)`,
+		`INSERT INTO classtemplates (name, class, special, special_damage, run_speed) VALUES ('plainwar', 0, '', 0, 0)`,
+	} {
+		if _, err := r.db.Exec(q); err != nil {
+			t.Fatalf("%s: %v", q, err)
+		}
+	}
+	r.assign("gnoll brute", "sprinter")
+	r.assign("gnoll guard", "plainwar")
+	brute, guard := r.npc("Gnoll Brute"), r.npc("Gnoll Guard")
+	p, _ := r.player("Hero", 2060, 100)
+	q, _ := r.player("Control", 3060, 100)
+	p.HP, p.MaxHP, q.HP, q.MaxHP = 1_000_000, 1_000_000, 1_000_000, 1_000_000
+	r.fight(brute, p.ServerID)
+	r.fight(guard, q.ServerID)
+	r.tick(0)
+	bx, gx := brute.X, guard.X
+	for d := 100 * time.Millisecond; d <= time.Second; d += 100 * time.Millisecond {
+		r.w.TickCount++
+		r.tick(d)
+	}
+	if run := brute.X - bx; run < 22 || run > 23.5 {
+		t.Errorf("the sprinter ran %.2f in a second, want 22.97", run)
+	}
+	if run := guard.X - gx; run < 9.5 || run > 10.3 {
+		t.Errorf("the control ran %.2f in a second, want 9.9", run)
+	}
+}

@@ -49,6 +49,15 @@ import (
 // NPCRunSpeed is a creature's pace in a chase and on its way home.
 const NPCRunSpeed float32 = 9.9
 
+// runSpeed is the NPC's pace in a chase and on its way home: its template's
+// run_speed, else NPCRunSpeed.
+func (n *NPC) runSpeed() float32 {
+	if n.tmpl != nil && n.tmpl.RunSpeed > 0 {
+		return float32(n.tmpl.RunSpeed)
+	}
+	return NPCRunSpeed
+}
+
 // npcStopShort is how far inside its reach a chasing creature stands: half
 // of Sandstorm's last step (a unit), whose stops fell between 3.5 and 4.5
 // off a still player.
@@ -196,7 +205,7 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 	// ground (a ledge): no fight from there, but its way round to it at its run,
 	// where the ground has one (chaseroute.go)
 	if d <= reach+routeLook && absf(y-npc.Y) > routeLevel && !npc.rooted(now) && dt > 0 {
-		run := NPCRunSpeed * npc.snareFactor(now)
+		run := npc.runSpeed() * npc.snareFactor(now)
 		routing, hold := w.routeWayLocked(npc, &npc.chase.route, x, y, z, d, run*dt, true, now)
 		if routing {
 			w.followRouteLocked(npc, &npc.chase.route, run, dt)
@@ -221,7 +230,7 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 	if d > 0 {
 		away = max((vx*(x-npc.X)+vz*(z-npc.Z))/d, 0)
 	}
-	speed := NPCRunSpeed
+	speed := npc.runSpeed()
 	speed *= npc.snareFactor(now) // a snare's slow (workbook.go)
 	pace := min(away+chaseGain*(d-stop), speed)
 	step := pace * dt
@@ -358,7 +367,7 @@ func (w *World) homeSystem(now time.Time) {
 			kept = append(kept, npc)
 			continue
 		}
-		speed := NPCRunSpeed
+		speed := npc.runSpeed()
 		speed *= npc.snareFactor(now) // a snare's slow (workbook.go)
 		// round what stands between, where the straight way home is not one it
 		// can run (chaseroute.go: off a ledge it was led down, up the ramp)

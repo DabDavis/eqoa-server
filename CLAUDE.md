@@ -393,6 +393,32 @@ a roamer still comes by. Without the ground files every camp lands on its anchor
 the GM panel's teleport list take them too. Run the tool again (it gofmts its output) after moving a
 camp's creatures.
 
+**A GM's marks become camps and paths** (`handlers/gmcamps.go`, `database/gmcamps.go`, `entity/campspawn.go`;
+the GM Jibrish setting up XP camps, 2026-11-08: "maybe a command to capture multiple points? so i can go HERE,
+HERE and HERE", "or at least static spawns"; petition 1293: Xrag's rock had four static spawns, each popping a
+child or a pariah of Xrag, and no roamer came there). `/mark [note]` keeps where the GM's character stands
+(world, x, y, z, facing) as its account's next mark ("Mark 3: (15023.3, 16.8, 27282.1) in world 0"; table
+`gmmarks`, by account, kept over a logout and a restart, at most 256); `/marks` lists them, `/marks undo` drops
+the last, `/marks clear` all. `/camp <creature>[, <creature>...]` (NPC names, at most 8; not a training dummy
+or a spawn-only name; the marks in one world) makes a static spawn at each mark: a row of npcs each, a whole
+copy of the row of one of the names (picked at random) nearest the first mark, not a camp's (its body, level
+and gear; its loot, class, template and faction by its name, as the content tools' copies), on the mark facing as
+the GM did, plus its `campspawns` row naming the kinds (table `gmcamps` a camp, with the marks it took), and the
+marks cleared. A camp's spawn **stands whatever its kind** (`movementLocked`'s camp case, by the row, ahead of
+`npcmove`'s rules by name; a path given it walks it all the same), goes home after a fight facing its row, and
+**each time it comes back from a death pops one of its kinds at random** (`respawnNPCLocked`), made from that
+kind's row as a row makes an NPC on its own row's spot (the kind it was made as from its own row, another from
+the nearest row of that name, read with the camps and kept up with a GM's edit of those rows and their classes),
+out of every view for `NPCRefreshHold` so every client makes it again; a keep restart carries the kind it stood
+as (`keepnpc.go`). **No wander leg ends within 30 of a camp's spawns or walks that near from outside** (roam.go's
+`legInCampLocked`), but for a creature that spawned that near. `/camp undo` takes the GM's last camp away (its
+spawns' NPCs, paths and rows) and gives its marks back when the GM holds none. `/path [loop|pingpong|once]
+[walk|run]` gives the GM's target, an NPC of a row, a path through the marks (`npcpaths`, as the panel's map
+does; the marks in its world), the marks cleared; `/path clear` takes it away. Every change is in the database
+and the world at once, each row with its `gm_audit` line in the change's transaction (the panel lists and reverts
+them; Camp spawns edited there are read again at once). **A GM's petition carries its marks** in its server view
+(`marks`), shown on the panel's petition page, each a link to its place on the World map.
+
 A place may also be named by the people standing there: a word of the names of NPCs that
 stand together in one world (`NamesakePlace`: `/goto guk` lands among Guk's "froglok guk ..."
 in Tunaria, on the one nearest their middle; guards along a road are listed instead). The

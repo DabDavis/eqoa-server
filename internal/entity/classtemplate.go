@@ -162,6 +162,9 @@ type templateFight struct {
 	// timedSeen, its last turn in reach (zero: its clock not begun)
 	timedLeft time.Duration
 	timedSeen time.Time
+	// kickLeft and kickSeen are its kick's clock (KickEvery), as timedLeft's
+	kickLeft time.Duration
+	kickSeen time.Time
 }
 
 // templateContactGap is the longest gap between two of a templated NPC's
@@ -1063,7 +1066,11 @@ func (w *World) tellNPCHealLocked(sess *session.Session, npc *NPC, n int) {
 // lost with its round. Must be called with the lock held.
 func (w *World) templateSpecialLocked(npc *NPC, target EntityID, now time.Time) {
 	t := npc.tmpl
-	if t == nil || t.SpecialDamage <= 0 || npc.Level < t.SpecialFrom {
+	if t == nil {
+		return
+	}
+	w.templateKickLocked(npc, target, now)
+	if t.SpecialDamage <= 0 || npc.Level < t.SpecialFrom {
 		return // a creature below its template's special_from fights with its melee alone
 	}
 	f := npc.fight()
@@ -1118,7 +1125,37 @@ func templateJitter(base, jitter float64) time.Duration {
 // lock held.
 func (w *World) templateSpecialHitLocked(npc *NPC, target EntityID, now time.Time) {
 	t := npc.tmpl
-	damage := max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1)
+	w.templateStrikeLocked(npc, target, now, max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1), specialName(t))
+}
+
+// templateKickLocked is its template's kick on its own clock (KickEvery): the first KickFirst
+// into the fight, then one every KickEvery, counted as the timed special's is (time at its enemy,
+// none while it casts), each KickDamage, fixed and through any armour. Must be called with the
+// lock held.
+func (w *World) templateKickLocked(npc *NPC, target EntityID, now time.Time) {
+	t := npc.tmpl
+	if t.KickDamage <= 0 || t.KickEvery <= 0 {
+		return
+	}
+	f := npc.fight()
+	switch gap := now.Sub(f.kickSeen); {
+	case f.kickSeen.IsZero():
+		f.kickLeft = templateJitter(t.KickFirst, 0)
+	case gap > 0 && gap <= templateContactGap:
+		f.kickLeft -= gap // at its enemy since its last turn
+	}
+	f.kickSeen = now
+	if f.kickLeft <= 0 && !now.Before(f.busy) {
+		f.kickLeft = templateJitter(t.KickEvery, 0)
+		w.templateStrikeLocked(npc, target, now, t.KickDamage, "Kick")
+	}
+}
+
+// templateStrikeLocked is a fixed hit of its template's (its special, its kick) on target: a
+// player's or a pet's, through any armour, with the special's visual; name says it in the log.
+// Must be called with the lock held.
+func (w *World) templateStrikeLocked(npc *NPC, target EntityID, now time.Time, damage int, name string) {
+	t := npc.tmpl
 	fx := t.SpecialFX
 	if fx == 0 {
 		fx = templateSpecialFX
@@ -1136,7 +1173,7 @@ func (w *World) templateSpecialHitLocked(npc *NPC, target EntityID, now time.Tim
 		if sess != nil {
 			w.sendDamageIndication(sess, w.objectIDForEntityLocked(sess, npc.ServerID), -damage, sess.PlayerObjectID())
 		}
-		log.Printf("Template: %s's %s hits %s for %d (HP %d/%d)", npc.Name, specialName(t), p.Name, damage, p.HP, p.MaxHPNow())
+		log.Printf("Template: %s's %s hits %s for %d (HP %d/%d)", npc.Name, name, p.Name, damage, p.HP, p.MaxHPNow())
 		if p.HP <= 0 {
 			w.playerDiedLocked(sess, p, now)
 			return
@@ -1154,7 +1191,7 @@ func (w *World) templateSpecialHitLocked(npc *NPC, target EntityID, now time.Tim
 	w.broadcastNPCSwingLocked(npc, target, 0, fx)
 	pet.HP = max(pet.HP-damage, 0)
 	pet.LastCombatTime = now
-	log.Printf("Template: %s's %s hits the pet %q for %d (HP %d/%d)", npc.Name, specialName(t), pet.Name, damage, pet.HP, pet.MaxHP)
+	log.Printf("Template: %s's %s hits the pet %q for %d (HP %d/%d)", npc.Name, name, pet.Name, damage, pet.HP, pet.MaxHP)
 	if pet.HP == 0 {
 		w.killNPC(pet)
 		w.dropAggroLocked(pet.ServerID)

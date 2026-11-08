@@ -20,10 +20,13 @@ const (
 	MoogieLinePvP  = "Mr. Moogie will not help you while you are flagged for PvP."
 	MoogieLineDuel = "Mr. Moogie will not help you while you are in a duel."
 	MoogieLineDead = "Mr. Moogie cannot help you now."
+	MoogieLineFoe  = "Mr. Moogie will not help you while you fight him."
 )
 
-// MoogieBusy is why sess's player may not have Mr. Moogie's help now ("" when it may).
-func (w *World) MoogieBusy(sess *session.Session) string {
+// MoogieBusy is why sess's player may not have Mr. Moogie's help now ("" when it may): he, moogie,
+// will not help one he fights (the GM Jibrish's petition 1251 made him attackable), one flagged for
+// PvP or one in a duel.
+func (w *World) MoogieBusy(sess *session.Session, moogie EntityID) string {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	p := w.sessionPlayerLocked(sess)
@@ -34,6 +37,11 @@ func (w *World) MoogieBusy(sess *session.Session) string {
 		return MoogieLinePvP
 	case w.duelOnLocked(p.ServerID) != nil:
 		return MoogieLineDuel
+	}
+	if npc := w.NPCs[moogie]; npc != nil {
+		if _, foe := npc.Threats[p.ServerID]; foe || npc.CurrentEnemy == p.ServerID {
+			return MoogieLineFoe
+		}
 	}
 	return ""
 }

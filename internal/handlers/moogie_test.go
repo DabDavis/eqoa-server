@@ -44,6 +44,14 @@ func TestMrMoogieClearsBuffsAndHeals(t *testing.T) {
 	if r.pa.HP != r.pa.MaxHPNow() || r.pa.Power != r.pa.MaxPowerNow() {
 		t.Errorf("healed: HP %d/%d, power %d/%d", r.pa.HP, r.pa.MaxHPNow(), r.pa.Power, r.pa.MaxPowerNow())
 	}
+	// fighting him: refused, no box
+	moogie.Threats = map[entity.EntityID]int64{r.pa.ServerID: 10}
+	r.drain()
+	r.talk(r.anna, moogie)
+	if got := r.msgs(r.anna); len(got) != 1 || got[0] != "colour:"+entity.MoogieLineFoe {
+		t.Errorf("fighting him: %q", got)
+	}
+	moogie.Threats = nil
 	// flagged for PvP: refused, no box
 	r.gw.SetPvP(true)
 	r.gw.PvPCommand(r.anna, r.now)

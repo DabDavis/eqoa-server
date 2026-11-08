@@ -97,6 +97,19 @@ type chaseState struct {
 	last         time.Time
 	returning    bool
 	route        chaseRoute // its way round, while it has one (chaseroute.go)
+	// goal is the enemy its way was made for: a new enemy gets a way of its
+	// own (forRoute), the chase's start kept for the leash
+	goal EntityID
+}
+
+// forRoute keeps the chase's way for the enemy id, dropping one made for
+// another (petition 1280: a creature turned from a player to a pet ran on
+// along its way to the player).
+func (c *chaseState) forRoute(id EntityID) {
+	if c.goal != id {
+		c.route = chaseRoute{}
+		c.goal = id
+	}
 }
 
 // npcReach is how near an NPC must be to hit: CLIENT's melee reach, the

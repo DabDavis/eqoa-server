@@ -164,7 +164,21 @@ func (w *World) procTapLocked(p *Player, sess *session.Session, ae *ActiveEffect
 		n += p.StatNow(r.ProcHealScale) * r.ProcHealScalePct / 100
 	}
 	log.Printf("Proc: %s's %q heals it for %d", p.Name, ae.Name, n)
-	w.healLocked(p, sess, p, n)
+	w.procHealLocked(p, sess, p, n)
+}
+
+// procHealLocked is a proc's heal of t (a life steal's, a heal proc's, a weapon's, a
+// spell proc's share for its bearer, a duel's): healLocked's, and when t is at its most
+// already the figure alone, green, so a proc's heal is always seen (the user, 2026-11-08:
+// "the heal proc should show green numbers for player": a healer kept Larrybird full, and
+// his Shroud of Death's heals showed nothing). A spell's heal on a full target still shows
+// none (healLocked). Must be called with the lock held.
+func (w *World) procHealLocked(caster *Player, casterSess *session.Session, t *Player, n int) {
+	if n > 0 && !t.IsDead() && t.HP >= t.MaxHPNow() {
+		w.tellAmountLocked(caster, casterSess, t.ServerID, n)
+		return
+	}
+	w.healLocked(caster, casterSess, t, n)
 }
 
 // playerProcsLocked runs a player's procs after one of its melee hits on a

@@ -131,7 +131,7 @@ func (w *World) procSpellsOnLocked(p *Player, sess *session.Session, defense boo
 			for _, e := range own { // its share for its bearer
 				switch n := spellAmount(e, p); e.Kind {
 				case EffectHP:
-					w.healLocked(p, sess, p, n)
+					w.procHealLocked(p, sess, p, n)
 				case EffectPower:
 					p.Power = min(max(p.Power+n, 0), p.MaxPowerNow())
 					p.StatsDirty = true

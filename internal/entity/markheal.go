@@ -39,6 +39,7 @@ func (w *World) markHealPlayerLocked(sess *session.Session, p *Player, npc *NPC,
 	}
 	top := p.MaxHPNow()
 	if p.HP >= top {
+		w.tellAmountLocked(p, sess, p.ServerID, n) // full: the figure alone, as a proc's heal (procHealLocked)
 		return
 	}
 	before := p.HP

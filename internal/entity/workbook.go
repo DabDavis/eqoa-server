@@ -642,6 +642,6 @@ func (w *World) procHealsLocked(p *Player, npc *NPC, defense bool, now time.Time
 			n += p.StatNow(r.ProcHealScale) * r.ProcHealScalePct / 100
 		}
 		log.Printf("Proc: %s's %q heals it for %d", p.Name, ae.Name, n)
-		w.healLocked(p, w.findSessionByEntityIDLocked(p.ServerID), p, n)
+		w.procHealLocked(p, w.findSessionByEntityIDLocked(p.ServerID), p, n)
 	}
 }

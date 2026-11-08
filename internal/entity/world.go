@@ -43,8 +43,6 @@ type World struct {
 	guildStore  GuildStore                        // guild.go: where every change is kept; nil: memory alone
 	genies      map[EntityID]EntityID             // the lamps' genies standing, by their owners (genie.go)
 	portals     map[EntityID]*portalState         // the Summoning Portals standing, by their NPCs (summonportal.go)
-	voice       VoiceSettings                     // voice chat (voice.go); none: off
-	voiceIn     map[uint32]*Player                // the voice-on players, by voice id
 	leaving     []func(*Player)                   // OnPlayerLeaving
 	entered     []func(*session.Session, *Player) // OnPlayerEntered
 	respawn     RespawnFunc                       // OnPlayerRespawn (respawn.go)
@@ -440,13 +438,12 @@ func (w *World) PlayerEntered(sess *session.Session) {
 	}
 }
 
-// leavingLocked forgets the player's guild announcement, takes it out of
-// the voice, and returns the departure hooks to run once the lock is let go.
+// leavingLocked forgets the player's guild announcement, its genie and its
+// portal, and returns the departure hooks to run once the lock is let go.
 func (w *World) leavingLocked(p *Player) []func(*Player) {
 	delete(w.announced, p)
-	w.dropGenieLocked(p)  // its genie goes with it (genie.go)
-	w.dropPortalLocked(p) // its portal too (summonportal.go)
-	w.voiceGoneLocked(p)
+	w.dropGenieLocked(p)   // its genie goes with it (genie.go)
+	w.dropPortalLocked(p)  // its portal too (summonportal.go)
 	w.duelLeavingLocked(p) // its invitation lapses, its duel is forfeit (duel.go)
 	w.pvpLeavingLocked(p)  // what it put on foes goes (pvp.go)
 	fns := make([]func(*Player), len(w.leaving))

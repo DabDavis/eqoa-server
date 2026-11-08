@@ -109,10 +109,10 @@ func profaneName(name string) bool {
 	return false
 }
 
-// ProfaneRoomName is whether a voice room's name is refused (the voice
-// lobby's, internal/voice): a word of it the chat would mask, or a root a
+// ProfaneLabel is whether a name players give a thing is refused (a community
+// map mark's: mapmarks.go): a word of it the chat would mask, or a root a
 // character's name may not carry anywhere in it.
-func ProfaneRoomName(name string) bool {
+func ProfaneLabel(name string) bool {
 	return profaneName(name) || maskProfanity(name) != name
 }
 

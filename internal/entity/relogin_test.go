@@ -42,7 +42,7 @@ func TestOldSessionTimeoutKeepsTheNewLogin(t *testing.T) {
 
 // A character in a group logs in again while its old session lives: the new
 // Player is in the group the old one was (the roster named it all along), so
-// the group's members, its chat and its voice find it. The controls: a
+// the group's members and its chat find it. The controls: a
 // character in no group comes back in none, and one who left first is not
 // put back.
 func TestALoginAgainKeepsTheGroup(t *testing.T) {

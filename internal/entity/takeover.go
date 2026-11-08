@@ -160,7 +160,6 @@ func (w *World) handedOverLocked(p *Player) {
 	p.RaidRoster, p.raidRosterSent = false, ""
 	delete(w.invites, p.ServerID)           // the new client has no box up
 	w.setFlyingLocked(p, false, time.Now()) // a new login: its client is not flying (fly.go)
-	w.voiceGoneLocked(p)
 	p.StatsDirty = true
 	delete(w.announced, p) // guildAnnounceSystem tells the new client its guild
 	if g := w.groups[p.GroupID]; g != nil && p.GroupID != 0 {

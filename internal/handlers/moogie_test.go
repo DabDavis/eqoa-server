@@ -62,3 +62,16 @@ func TestMrMoogieClearsBuffsAndHeals(t *testing.T) {
 	}
 	_ = time.Second
 }
+
+// Mr. Moogie's question fits a box's (questAskChars: a 0x0034's question is cut
+// at 127 characters; the user, 2026-11-08: "Mr. Moogie's text is cut off").
+func TestMrMoogiesQuestionFitsItsBox(t *testing.T) {
+	if n := len([]rune(moogieQuestion)); n > questAskChars {
+		t.Errorf("his question is %d characters, a box shows %d", n, questAskChars)
+	}
+	for _, o := range []string{moogieClearOpt, moogieHealOpt, moogieNoOpt} {
+		if n := len([]rune(o)); n > questAnswerChars {
+			t.Errorf("answer %q is %d characters, a box shows %d", o, n, questAnswerChars)
+		}
+	}
+}

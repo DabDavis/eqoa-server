@@ -39,7 +39,9 @@ type actor struct {
 	AccountID int
 	Username  string
 	Level     int
-	// Role is what the account is to the panel: roleAdmin, roleGM, roleTester.
+	// Role is what the account is to the panel: roleAdmin, roleGM, or below a
+	// GM the roles it holds (roleTester, roleStoryteller, or both:
+	// "tester+storyteller"; roles.go).
 	Role string
 	// Admin is Level >= gm.admin_level AND an authenticator: the session
 	// signed in with its code (or enrolled it), the token was made by such a
@@ -57,10 +59,6 @@ type actor struct {
 
 	sess *gmSession // a browser session's, else nil
 }
-
-// tester is whether the actor is a tester: below a GM, on the testers' allowlist
-// (tester.go).
-func (a *actor) tester() bool { return a.Role == roleTester }
 
 // may is whether the actor's credential and level allow work of that scope.
 func (a *actor) may(scope string) bool {
@@ -315,7 +313,8 @@ func (s *Server) accountByName(name string) (accountState, error) {
 }
 
 // isGM is whether an account is a GM now: its level, and not banned. (A tester
-// uses the panel too: panelRole, tester.go, is who may sign in.)
+// and a storyteller use the panel too: panelRole, roles.go, is who may sign
+// in.)
 func (s *Server) isGM(a accountState) bool {
 	return a.Level >= s.cfg.MinLevel && a.Status >= 0
 }

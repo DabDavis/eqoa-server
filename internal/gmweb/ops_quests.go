@@ -185,7 +185,20 @@ func (s *Server) registerQuestOps() {
 			if err := c.decode(&req); err != nil {
 				return nil, err
 			}
-			return c.s.questGet(req.Quest)
+			out, err := c.s.questGet(req.Quest)
+			if err != nil {
+				return nil, err
+			}
+			if c.a.limited() {
+				// a storyteller's (storyteller.go): who has it is the
+				// characters', their names and progress
+				m, ok := out.(map[string]any)
+				if !ok {
+					return nil, errors.New("a quest's answer is not a record")
+				}
+				delete(m, "characters")
+			}
+			return out, nil
 		},
 	})
 	s.addOp(&Op{

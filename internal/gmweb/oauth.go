@@ -338,7 +338,7 @@ var authorizePage = template.Must(template.New("authorize").Parse(`<!doctype htm
     <h1>Allow <strong>{{.Client}}</strong> to work as a GM?</h1>
     <p class="muted">It will act as the GM who signs in here, through the same tools as the panel. Everything it
     changes is logged under your name and can be reverted. A tester's account gives it the item and spell records
-    alone, whatever is chosen below, and never an admin's tools.</p>
+    alone, a storyteller's NPC dialog and the quests' words alone, whatever is chosen below, and never an admin's tools.</p>
     <p>After you sign in, you go back to <strong>{{.Return}}</strong>.</p>
     {{if not .Known}}<p class="notice warn">That is not ChatGPT, Claude or a program on this computer, and the name
     above is only what the application calls itself: anyone can register one. Go on only if you set this
@@ -347,7 +347,7 @@ var authorizePage = template.Must(template.New("authorize").Parse(`<!doctype htm
     <form method="post" action="{{.Base}}/oauth/authorize" class="stack">
       <input type="hidden" name="req" value="{{.Req}}">
       <input type="hidden" name="csrf" value="{{.CSRF}}">
-      <label>GM or tester account <input name="username" autocomplete="username" required value="{{.Username}}" autofocus></label>
+      <label>GM, tester or storyteller account <input name="username" autocomplete="username" required value="{{.Username}}" autofocus></label>
       <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
       {{if .CodeRequired}}<label>Authenticator code
         <input name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]*" maxlength="7" required></label>

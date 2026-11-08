@@ -5,7 +5,7 @@
 
 import { h, mount, card, button, toast, pageHead, empty, confirmBox, debounce, dialog } from '../lib/dom.js';
 import { op } from '../lib/api.js';
-import { go, state } from '../lib/nav.js';
+import { go, state, isLimited } from '../lib/nav.js';
 import { describe } from '../lib/meta.js';
 
 // Ids as the game numbers them (root CLAUDE.md, verified on the wire).
@@ -38,6 +38,13 @@ const DOS = {
 
 export async function render(box, parts) {
   const [seg, arg] = parts;
+  // below a GM the quests are a storyteller's (storyteller.go): the list, and
+  // a quest's words; a character's quests and the importer are a GM's
+  if (isLimited()) {
+    if (seg === 'f') return list(box, Object.fromEntries(new URLSearchParams(arg || '')));
+    if (seg === undefined || seg === '' || !/^\d+$/.test(seg)) return list(box, {});
+    return wordsEditor(box, Number(seg));
+  }
   if (seg === 'characters') return characters(box, arg);
   if (seg === 'import') return importer(box);
   if (seg === undefined || seg === '') return list(box, {});
@@ -107,13 +114,17 @@ async function list(box, params) {
   const actions = h('div', { class: 'row' });
   const lacks = h('div');
   const body = h('div');
+  const words = isLimited(); // a storyteller's: the quests' words alone
   mount(box,
-    pageHead('Quests', "What NPCs give. A quest's giver offers it when talked to; its steps are done by talking to an NPC, " +
-      'showing or handing one items, killing creatures, looting their drops and reaching places. A draft is offered to ' +
-      'no one; a ready one is a draft nothing keeps out now (every name it uses is on this server, every quest it ' +
-      'requires in the game or ready): put it in the game here.', null,
-    button('New quest', { class: 'primary', icon: 'plus', onclick: () => go('quests/new') })),
-    tabs('list'),
+    words
+      ? pageHead('Quests', "What NPCs give, and what they say. Open a quest to change its words: what its giver and its NPCs " +
+        "say, the player's answers and the journal's lines. Who gives it, to whom, its steps and its rewards are a GM's.")
+      : pageHead('Quests', "What NPCs give. A quest's giver offers it when talked to; its steps are done by talking to an NPC, " +
+        'showing or handing one items, killing creatures, looting their drops and reaching places. A draft is offered to ' +
+        'no one; a ready one is a draft nothing keeps out now (every name it uses is on this server, every quest it ' +
+        'requires in the game or ready): put it in the game here.', null,
+      button('New quest', { class: 'primary', icon: 'plus', onclick: () => go('quests/new') })),
+    words ? null : tabs('list'),
     card(null, h('div', { class: 'stack' },
       h('div', { class: 'row quest-tools' }, h('div', { class: 'grow' }, search), status, citySel, klass, level, giver),
       chips, summary, actions, lacks, body)));
@@ -143,7 +154,7 @@ async function list(box, params) {
       h('span', { class: 'muted' }, `${c['in the game']} in the game · ${c.ready} ready · ${c.draft} drafts not ready`),
       out.quests.length < out.total ? h('span', { class: 'muted small' }, `(the first ${out.quests.length} shown)`) : null);
     const filterArgs = () => { const a = { ...args }; delete a.limit; return a; };
-    mount(actions,
+    if (!words) mount(actions,
       c.ready ? button(`Put the ${c.ready} ready in the game`, { class: 'primary', onclick: () => setEnabled({ ...filterArgs(), status: 'ready' }, true) }) : null,
       c['in the game'] ? button(`Take the ${c['in the game']} in the game out`, { onclick: () => setEnabled({ ...filterArgs(), status: 'in the game' }, false) }) : null);
     mount(lacks, out.missing.length && !f.missing
@@ -589,6 +600,156 @@ function eventsEditor(obj, key, whens, worlds) {
     button('Add an event', { icon: 'plus', onclick: () => { list.push({ on: Object.keys(whens)[0], do: 'popup', text: '' }); keep(); draw(); } }));
   draw();
   return box;
+}
+
+// ---- a storyteller's quest (storyteller.go): its words alone
+
+// How CLIENT shows a quest's words (handlers/quests.go): a dialog box 217
+// characters, the NPC's name and ": " before its line; a question 127 (else it
+// is said, and "Will you help?" asks); an answer 63, six to a box; a journal
+// line 127.
+const BOX = 217, ASK = 127, ANSWER = 63, ANSWERS = 6, JOURNAL = 127;
+
+// how each word column is shown (handlers/quests.go): the NPC's lines, a box
+// each (said: as written, no name before them); the giver's offer, a
+// paragraph a question; the player's answers, a box of them (each: a line an
+// answer, a box its own; one: the whole text is one answer); a journal line
+const SHOWN = {
+  name: 'journal', offer: 'paragraphs', accept: 'each', decline: 'answer', declined: 'said', started: 'says',
+  journal: 'journal', answer: 'answers', waiting: 'says', notyet: 'answers', reminder: 'says', says: 'says',
+};
+
+// wordsHint is what the client does with a text otherwise than it is written:
+// a line in more than one box, a question said instead, an answer cut; ''
+// when it shows as written.
+export function wordsHint(text, shown, speaker) {
+  const len = (x) => [...x].length;
+  const all = String(text || '').trim();
+  const lines = all.split('\n').map((l) => l.trim()).filter(Boolean);
+  // a line said: the speaker's name and ": " before it, unless it begins with it
+  const said = (l) => len(l) + (speaker && !l.toLowerCase().startsWith(speaker.toLowerCase() + ':') ? len(speaker) + 2 : 0);
+  const boxes = () => {
+    const n = Math.max(0, ...lines.map(said));
+    return n > BOX ? `a line is ${n} characters${speaker ? ' with the name before it' : ''}: a box shows ${BOX}, so it goes in more than one` : '';
+  };
+  switch (shown) {
+    case 'journal':
+      return len(all) > JOURNAL ? `${len(all)} characters: a journal line shows ${JOURNAL}, the client cuts the rest` : '';
+    case 'answer':
+      return len(all) > ANSWER ? `${len(all)} characters: an answer shows ${ANSWER}, the client cuts the rest` : '';
+    case 'answers':
+    case 'each': {
+      const n = Math.max(0, ...lines.map(len));
+      if (n > ANSWER) return `an answer is ${n} characters: the client shows ${ANSWER} and cuts the rest`;
+      return shown === 'answers' && lines.length > ANSWERS ? `${lines.length} answers: a box shows ${ANSWERS}` : '';
+    }
+    case 'paragraphs': {
+      const paras = all.split(/\n\s*\n/).map((p) => p.split('\n').map((l) => l.trim()).filter(Boolean)).filter((p) => p.length);
+      const long = paras.map((p) => p[p.length - 1]).find((l) => len(l) > ASK);
+      if (long) return `a question (a paragraph's last line) is ${len(long)} characters: over ${ASK} it is said, and "Will you help?" asks`;
+      return boxes();
+    }
+    case 'says':
+    case 'said':
+      return boxes();
+  }
+  return '';
+}
+
+async function wordsEditor(box, id) {
+  let data, qMeta, sMeta;
+  try {
+    [data, qMeta, sMeta] = await Promise.all([op('quest_get', { quest: id }), describe('quests'), describe('queststeps')]);
+  } catch (e) {
+    mount(box, pageHead('Quest ' + id, null, h('a', { href: '#/quests' }, 'Quests')), h('p', { class: 'err' }, e.message));
+    return;
+  }
+  const q = { ...data.quest };
+  const steps = data.steps.map((st) => ({ ...st }));
+  const writable = (meta) => meta.writeColumns || [];
+  const col = (meta, name) => meta.columns.find((c) => c.name === name) || { name };
+  // a word's field: the catalog's label and help, and what the client does with it
+  const word = (meta, obj, name, speaker) => {
+    const c = col(meta, name);
+    const input = c.format === 'multiline' ? area(obj, name, name === 'notes' ? 8 : 3) : text(obj, name);
+    input.setAttribute('aria-label', c.label || name);
+    const note = h('span', { class: 'small err' });
+    const shown = SHOWN[name] || '';
+    const show = () => { note.textContent = wordsHint(obj[name], shown, shown === 'said' ? '' : speaker); };
+    input.addEventListener('input', show);
+    show();
+    return field(c.label || name, h('div', { class: 'stack' }, input, note), c.help, true);
+  };
+  const fixed = (label, value) => h('div', { class: 'field' }, h('label', null, label), h('div', { class: 'muted' }, value === '' || value === null || value === undefined ? '—' : String(value)));
+  const ids = (list, names) => String(list || '').split(/[^0-9]+/).filter(Boolean).map((i) => names[Number(i)] ?? i).join(', ') || 'any';
+
+  const stepCard = (st) => {
+    const at = AT_NPC.has(st.kind);
+    const speaker = at ? st.target : '';
+    const shows = (name) => writable(sMeta).includes(name) && (String(st[name] || '').trim() !== '' || ({
+      journal: true, says: true, answer: at, waiting: at, notyet: st.kind === 'show' || st.kind === 'give', reminder: st.kind === 'show' || st.kind === 'give',
+    })[name]);
+    return card(`Step ${st.step} · ${KINDS[st.kind] || st.kind}`, h('div', { class: 'fields' },
+      fixed(AT_NPC.has(st.kind) ? 'NPC' : 'Creature or place', st.kind === 'reach' ? `${st.world}: ${st.x}, ${st.z}` : st.target),
+      st.kind === 'kill' || st.kind === 'loot' ? fixed('How many', st.count) : null,
+      ...['journal', 'waiting', 'answer', 'notyet', 'reminder', 'says'].filter(shows).map((name) => word(sMeta, st, name, speaker))));
+  };
+
+  const problems = h('div');
+  const showProblems = (ps) => mount(problems, ps && ps.length
+    ? h('ul', { class: 'steps' }, ...ps.map((p) => h('li', { class: 'err' }, p)))
+    : h('p', { class: 'muted' }, 'Nothing found wrong.'));
+  showProblems(data.problems);
+
+  // Save: each row whose words changed, those words alone with what they were
+  // (update_row's expect: a row changed meanwhile is refused, nothing lost)
+  const baseQuest = data.quest;
+  const save = button('Save', { class: 'primary', icon: 'save', onclick: async () => {
+    const rows = [];
+    const diff = (meta, before, after, table, key) => {
+      const values = {}, expect = {};
+      for (const name of writable(meta)) {
+        if ((after[name] ?? '') !== (before[name] ?? '')) { values[name] = after[name] ?? ''; expect[name] = before[name] ?? ''; }
+      }
+      if (Object.keys(values).length) rows.push({ table, key, values, expect, before });
+    };
+    diff(qMeta, baseQuest, q, 'quests', { questid: id });
+    steps.forEach((st, i) => diff(sMeta, data.steps[i], st, 'queststeps', { questid: id, step: st.step }));
+    if (!rows.length) { toast('Nothing to save', 'ok'); return; }
+    let done = 0, live = '';
+    try {
+      for (const r of rows) {
+        const out = await op('update_row', { table: r.table, key: r.key, values: r.values, expect: r.expect });
+        Object.assign(r.before, r.values); // saved: the next Save sends it no more
+        done++;
+        live = out.live || live;
+      }
+    } catch (e) {
+      toast((done ? `${done} saved, then: ` : '') + e.message, 'error');
+      return;
+    }
+    toast(`Saved (${done} row change${done === 1 ? '' : 's'})`, 'ok', live);
+    wordsEditor(box, id);
+  } });
+
+  const status = data.status ? statusBadge(data.status) : null;
+  mount(box,
+    pageHead(q.name || 'Quest ' + id, `Quest ${id} · its words: what its giver and its NPCs say, the player's answers and the journal's lines. The rest is a GM's.`,
+      h('a', { href: '#/quests' }, 'Quests'), save),
+    h('div', { class: 'cols-2' },
+      h('div', { class: 'stack' },
+        card('What the giver says', h('div', { class: 'fields' },
+          ...['name', 'offer', 'accept', 'decline', 'declined', 'started'].filter((n) => writable(qMeta).includes(n)).map((n) => word(qMeta, q, n, q.giver)),
+          h('p', { class: 'muted small field wide' }, "An NPC's lines are shown with its name before them unless they begin with it; %p is the player's name. " +
+            'A line is a box; each paragraph of the offer ends in the question its line of the answers takes.'))),
+        ...steps.map(stepCard)),
+      h('div', { class: 'stack' },
+        card('The quest', h('div', { class: 'fields' },
+          fixed('Giver', q.giver), fixed('Levels', `${q.minlevel}–${q.maxlevel || 'any'}`),
+          fixed('Classes', ids(q.classes, CLASSES)), fixed('Races', ids(q.races, RACES)),
+          fixed('Quests first', q.requires), h('div', { class: 'field' }, h('label', null, 'Status'), status))),
+        card('Problems', problems),
+        writable(qMeta).includes('notes') ? card('Notes', h('div', { class: 'fields' }, word(qMeta, q, 'notes', ''))) : null)));
 }
 
 // ---- the editor

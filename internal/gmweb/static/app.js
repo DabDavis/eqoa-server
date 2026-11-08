@@ -3,7 +3,7 @@
 
 import { h, mount, icon, toast, debounce, store } from './lib/dom.js';
 import { api, op, setCSRF, onUnauthorized } from './lib/api.js';
-import { state, go, isTester } from './lib/nav.js';
+import { state, go, isTester, isStoryteller, isLimited } from './lib/nav.js';
 
 const NAV = [
   ['Overview', [
@@ -49,6 +49,23 @@ const NAV = [
 // The pages a tester has: the rest are all operations a tester is refused
 // (tester.go), so they are not offered.
 const TESTER_PAGES = new Set(['items', 'spells', 'visuals', 'tables', 'audit', 'ai', 'security', 'disc']);
+// The pages a storyteller has (storyteller.go): the quests' words, its tables
+// (NPC dialog among them), its log.
+const STORYTELLER_PAGES = new Set(['quests', 'tables', 'audit', 'ai', 'security']);
+
+// mayOpen is whether a page is the signed-in account's: a GM's every one;
+// below a GM those of its roles.
+function mayOpen(id) {
+  if (!isLimited()) return true;
+  return (isTester() && TESTER_PAGES.has(id)) || (isStoryteller() && STORYTELLER_PAGES.has(id));
+}
+
+// the label of the tables page, as a role below a GM sees it
+function tablesLabel() {
+  if (!isLimited()) return 'All tables';
+  if (isTester() && isStoryteller()) return 'Your tables';
+  return isTester() ? 'Item and spell tables' : 'Dialog and quest tables';
+}
 
 const VIEWS = {
   dashboard: () => import('./views/dashboard.js'),
@@ -124,7 +141,7 @@ function showLogin(message) {
   });
   mount(app, h('div', { class: 'login' }, h('div', { class: 'login-card' },
     h('div', { class: 'brand' }, h('span', { class: 'brand-mark' }, 'GM'), h('div', null, 'EQOA GM panel', h('small', null, 'Sign in with your game account'))),
-    h('h1', null, 'Game masters and testers'),
+    h('h1', null, 'Game masters, testers and storytellers'),
     h('p', { class: 'muted' }, 'Accounts given the panel sign in with their game password. Everything you change is logged under your name.'),
     form)));
   setTimeout(() => user.focus(), 0);
@@ -142,17 +159,17 @@ function start(session) {
   app.className = '';
   nav = h('nav', { class: 'nav', 'aria-label': 'Sections' });
   for (const [group, items] of NAV) {
-    const shown = items.filter(([id, , , need]) => (need !== 'admin' || session.user.admin) && (!isTester() || TESTER_PAGES.has(id))
+    const shown = items.filter(([id, , , need]) => (need !== 'admin' || session.user.admin) && mayOpen(id)
       && !(id === 'transfers' && session.server.noTransfers));
     if (!shown.length) continue;
     nav.appendChild(h('div', { class: 'nav-group' }, group));
     for (const [id, label, ic] of shown) {
-      nav.appendChild(h('a', { href: '#/' + id, dataset: { page: id } }, icon(ic), isTester() && id === 'tables' ? 'Item and spell tables' : label));
+      nav.appendChild(h('a', { href: '#/' + id, dataset: { page: id } }, icon(ic), id === 'tables' ? tablesLabel() : label));
     }
   }
   main = h('main', { id: 'main', tabindex: '-1' });
   const menuBtn = h('button', { class: 'ghost icon menu-btn', type: 'button', 'aria-label': 'Menu', onclick: () => shell.classList.toggle('nav-open') }, icon('menu'));
-  const lvl = isTester() ? h('span', { class: 'badge ok' }, 'Tester')
+  const lvl = isLimited() ? h('span', { class: 'badge ok' }, [isTester() ? 'Tester' : null, isStoryteller() ? 'Storyteller' : null].filter(Boolean).join(' · ') || 'No role')
     : session.user.admin ? h('span', { class: 'badge accent' }, 'Admin') : h('span', { class: 'badge info' }, 'GM');
   const themeBtn = h('button', { class: 'ghost icon', type: 'button', title: 'Light or dark', 'aria-label': 'Theme', onclick: () => {
     const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
@@ -168,7 +185,9 @@ function start(session) {
       h('div', { class: 'brand' }, h('span', { class: 'brand-mark' }, 'GM'), h('div', null, 'EQOA GM', h('small', null, (session.server.shard ? session.server.shard + ' · ' : '') + 'build ' + session.server.build))),
       nav,
       h('div', { class: 'side-foot' }, 'Changes are logged and revertible.')),
-    h('header', { class: 'top' }, menuBtn, globalSearch(), h('span', { class: 'spacer' }),
+    // search is a GM's and a tester's (the items and spells): a storyteller's
+    // gate refuses it
+    h('header', { class: 'top' }, menuBtn, !isLimited() || isTester() ? globalSearch() : null, h('span', { class: 'spacer' }),
       h('span', { class: 'who' }, lvl, h('strong', { class: 'name' }, session.user.username)), themeBtn, outBtn),
     main);
   mount(app, shell);
@@ -176,7 +195,7 @@ function start(session) {
   waitingBadge();
   if (session.totp?.required && !session.totp.enabled) {
     location.hash = '#/security';
-    toast('This server asks every GM and tester for an authenticator: enrol one to go on.', 'warn');
+    toast('This server asks every GM, tester and storyteller for an authenticator: enrol one to go on.', 'warn');
   }
   route();
 }
@@ -208,8 +227,8 @@ let current = null;
 async function route() {
   if (!state.session) return;
   const parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
-  const home = isTester() ? 'items' : 'dashboard';
-  const page = VIEWS[parts[0]] && (!isTester() || TESTER_PAGES.has(parts[0])) ? parts[0] : home;
+  const home = !isLimited() ? 'dashboard' : isTester() ? 'items' : isStoryteller() ? 'quests' : 'security';
+  const page = VIEWS[parts[0]] && mayOpen(parts[0]) ? parts[0] : home;
   for (const a of nav.querySelectorAll('a')) a.classList.toggle('on', a.dataset.page === page);
   shell.classList.remove('nav-open');
   if (current?.leave) current.leave();

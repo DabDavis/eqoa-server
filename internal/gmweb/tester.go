@@ -8,7 +8,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/eqoa/server/internal/database"
 )
@@ -26,13 +25,37 @@ import (
 // row writes are held to the same tables once more in mayWrite, and a named
 // table's reads in opCtx.table, so a handler reached some other way, or an
 // argument the gate read otherwise than the handler, is refused all the same.
+// It is one of the roles below a GM (roles.go): an account that is a
+// storyteller too (storyteller.go) is given what either gives.
 
-// The panel's roles, as a sign-in and server_status report them.
+// The panel's roles, as a sign-in and server_status report them (and
+// roleStoryteller, storyteller.go).
 const (
 	roleTester = "tester"
 	roleGM     = "gm"
 	roleAdmin  = "admin"
 )
+
+// testerGrant is the tester's role among those below a GM (roles.go).
+var testerGrant = &grant{
+	role:   roleTester,
+	ops:    testerOps,
+	tables: testerTableList,
+	writes: isTesterTable,
+	mayRevert: func(a *actor, e *auditEntry) bool {
+		return isTesterTable(e.Table) && !testerMayNotRevert(a, e)
+	},
+	access: func(t *Table) tableAccess {
+		return tableAccess{Write: roleTester, Insert: true, Delete: !testerRecords[t.Name]}
+	},
+	refuse: notTesters,
+	may:    "read and change the item and spell records",
+	counts: map[string]string{"items": "itempattern", "spells": "spellpattern"},
+	about: "A tester's tools on an EverQuest Online Adventures private server: its item and spell records, nothing " +
+		"else. Call guide first. Every change is audited under the tester whose token is used and can be reverted (revert_change).",
+	instructions: mcpTesterInstructions,
+	guide:        (*Server).testerGuide,
+}
 
 // testerTable is the table that holds who is a tester. A row is the role: read
 // on every request, so a row taken away counts at once.
@@ -138,26 +161,10 @@ var testerOps = map[string]func(c *opCtx) error{
 
 // testerMayCall is whether the allowlist names an operation. An admin's is
 // never a tester's, whatever the list says.
-func testerMayCall(op *Op) bool {
-	_, ok := testerOps[op.Name]
-	return ok && op.Scope != scopeAdmin
-}
-
-// testerGate is run()'s check of anyone below a GM. It reads the arguments
-// through c.decode, the decoder and the bytes every handler reads, so the two
-// cannot differ about which table was named.
-func (c *opCtx) testerGate(op *Op) error {
-	if !testerMayCall(op) {
-		return notTesters(op.Name)
-	}
-	if rule := testerOps[op.Name]; rule != nil {
-		return rule(c)
-	}
-	return nil
-}
+func testerMayCall(op *Op) bool { return testerGrant.mayCall(op) }
 
 func notTesters(what string) error {
-	return forbidden("%s is not a tester's: a tester reads and changes the item and spell records, nothing else", what)
+	return refusedAs(what, what+" is not a tester's: a tester reads and changes the item and spell records, nothing else")
 }
 
 func testerNamesTable(c *opCtx) error {
@@ -296,57 +303,18 @@ func testerMayNotRevert(a *actor, e *auditEntry) bool {
 	return e.Action == "insert" && testerRecords[e.Table] && e.AccountID != a.AccountID
 }
 
-// testerAuditEntry is a log line as a tester reads it: their own whole; of
-// anyone else's what changed and when, not who, from where, through what or why
-// (a GM's address, the name of their token, a petition's words).
-func testerAuditEntry(a *actor, e *auditEntry) {
-	e.NoRevert = testerMayNotRevert(a, e)
+// limitedAuditEntry is a log line as someone below a GM reads it (a tester, a
+// storyteller): their own whole; of anyone else's what changed and when, not
+// who, from where, through what or why (a GM's address, the name of their
+// token, a petition's words). A row change their revert would refuse is marked.
+func limitedAuditEntry(a *actor, e *auditEntry) {
+	if e.Table != "" && (e.Action == "insert" || e.Action == "update" || e.Action == "delete") {
+		e.NoRevert = !a.mayRevert(e)
+	}
 	if e.AccountID == a.AccountID {
 		return
 	}
 	e.AccountID, e.Username, e.Via, e.IP, e.Detail = 0, "staff", "", "", ""
-}
-
-// testerStatus is server_status for a tester: who they are and their tables,
-// none of the server's state (who is online, its settings, its accounts).
-func (s *Server) testerStatus(a *actor) map[string]any {
-	counts := map[string]int64{}
-	for name, t := range map[string]string{"items": "itempattern", "spells": "spellpattern"} {
-		var n int64
-		if err := s.d.DB.QueryRow(`SELECT COUNT(*) FROM ` + quoteIdent(t)).Scan(&n); err == nil {
-			counts[name] = n
-		}
-	}
-	return map[string]any{
-		"you": map[string]any{
-			"username": a.Username, "accountid": a.AccountID, "level": a.Level, "admin": false, "role": roleTester,
-			"subgm": s.subGMFlag(a.AccountID),
-			"scope": a.Scope, "via": a.Via,
-			"may": "read and change the item and spell records: " + strings.Join(testerTableList, ", ") + ". Nothing else.",
-		},
-		"tables":        testerTableList,
-		"build":         s.build,
-		"started":       stamp(s.started),
-		"uptimeSeconds": int64(time.Since(s.started).Seconds()),
-		"counts":        counts,
-	}
-}
-
-// panelRole is what an account is to the panel now, or "": banned or a player.
-// A level says first, so a GM's way in never reads the testers' table; a row
-// there does nothing for an account that is a GM.
-func (s *Server) panelRole(a accountState) string {
-	switch {
-	case a.Status < 0:
-		return ""
-	case a.Level >= s.cfg.AdminLevel:
-		return roleAdmin
-	case a.Level >= s.cfg.MinLevel:
-		return roleGM
-	case s.testerFlag(a.ID):
-		return roleTester
-	}
-	return ""
 }
 
 // testerFlag is whether the account has a row in gm_testers; on any error no.
@@ -372,7 +340,11 @@ func (s *Server) liveTester(before, after map[string]any) string {
 	}
 	ended := s.sessions.endAccount(int(id), "")
 	n := s.revokeAccountTokens(int(id))
-	return fmt.Sprintf("no longer a tester: %d panel session(s) ended and %d token(s) revoked", ended, n)
+	msg := fmt.Sprintf("no longer a tester: %d panel session(s) ended and %d token(s) revoked", ended, n)
+	if s.storytellerFlag(int(id)) {
+		msg += "; it is a storyteller still, and signs in again as one"
+	}
+	return msg
 }
 
 // testerTarget is why an account cannot be given the role, if it cannot.

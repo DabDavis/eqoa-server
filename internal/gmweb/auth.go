@@ -227,15 +227,18 @@ func (s *Server) sessionInfo(accountID int, sess *gmSession, admin bool) map[str
 		"server": map[string]any{
 			"build":   s.build,
 			"started": stamp(s.started),
-			"restart": s.d.Restart != nil && role != roleTester,
+			"restart": s.d.Restart != nil && !limitedRole(role),
 			// which of several (shard.go): the page says it, and what it leaves out
 			"shard":          s.shardName(),
 			"accountsShared": s.d.AccountsShared,
 			"noTransfers":    s.d.NoTransfers,
 		},
 	}
-	if role == roleTester {
-		out["tester"] = map[string]any{"tables": testerTableList}
+	// below a GM, each role's tables (roles.go): what the page offers
+	if limitedRole(role) {
+		for _, g := range grantsOf(role) {
+			out[g.role] = map[string]any{"tables": g.tables}
+		}
 	}
 	// the spell-visual preview the Spell visuals page frames (gm.preview_url)
 	if s.preview != nil {

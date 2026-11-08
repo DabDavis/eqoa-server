@@ -349,7 +349,7 @@ func (h *NPCWindowHandler) buy(sess *session.Session, id uint32, index, count in
 	if w := sessionMerchantWindow(sess); w != nil && w.id == id && index >= w.wares {
 		return h.buyBack(sess, player, npc, inv, w, id, index)
 	}
-	catalog, err := h.inv.GetNPCItems(npc.NPCID)
+	catalog, err := h.waresFor(player, npc) // the list it was sent (buyback.go)
 	if err != nil || index < 0 || index >= len(catalog) {
 		log.Printf("MerchantBuy: %s asked %q for item %d of %d (%v)", player.Name, npc.Name, index, len(catalog), err)
 		return false

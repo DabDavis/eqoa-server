@@ -24,6 +24,12 @@ type EntityEnterCallback func(sess *session.Session, objectID uint32, ent Entity
 // World is the game world state. All mutations go through methods that
 // acquire the mutex internally.
 type World struct {
+	// a tick's route searches (chaseroute.go): its tick, the points they
+	// tried, and the floors a leg found
+	routeTick    uint64
+	routeSpent   int
+	routeHeights []float32
+
 	mu             sync.RWMutex
 	Players        map[EntityID]*Player
 	NPCs           map[EntityID]*NPC

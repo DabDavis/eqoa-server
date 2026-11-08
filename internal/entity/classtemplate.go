@@ -319,10 +319,13 @@ func templateKindTakes(kind string, s *CastSpell) bool {
 	if d.Summons() || d.Charms() || d.FormKind != FormNone || d.undeadOnly() || d.hasProc() {
 		return false
 	}
-	var hits, drains, heals, price, roots bool
+	var hits, drains, heals, price, roots, powers bool
 	for _, e := range d.Effects {
 		if e.Kind == EffectRoot {
 			roots = true
+		}
+		if e.Kind == EffectPower && e.Amount < 0 && !e.Self {
+			powers = true // a mana tap (templatePowerFigure)
 		}
 		if e.Kind != EffectHP {
 			continue
@@ -349,7 +352,7 @@ func templateKindTakes(kind string, s *CastSpell) bool {
 	}
 	switch kind {
 	case database.AbilityNuke:
-		return d.Harmful && single && hits && !drains
+		return d.Harmful && single && (hits || powers) && !drains
 	case database.AbilityAoE:
 		return d.Harmful && area && hits && !drains
 	case database.AbilityLifetap:
@@ -916,6 +919,26 @@ func templateFigure(effects []SpellEffect, pct int) (hit, drained int) {
 	return hit, drained
 }
 
+// powerDrainCapShare is the share of a mana tap a resist at the cap takes:
+// the GM Jibrish's petition 1295, of the pariahs of Xrag's: "It should take
+// 1k mana as a baseline, but resist down to 200 mana with max AR". A spell's
+// damage keeps ResistCapShare (resist.go).
+const powerDrainCapShare = 0.8
+
+// templatePowerFigure is the power a templated NPC's spell takes from one it
+// hits, its abilities' share of its figures (pct), before a resist: its
+// effects that lower the target's power now (a mana tap).
+func templatePowerFigure(effects []SpellEffect, pct int) int {
+	n := 0
+	for _, e := range effects {
+		if e.Kind != EffectPower || e.Amount >= 0 || e.Self {
+			continue
+		}
+		n += int(math.Round(float64(-capAmount(rollAmount(e), e.Cap)) * float64(pct) / 100))
+	}
+	return n
+}
+
 // templateHitLocked lands a templated NPC's harmful spell on one it hits (its
 // target or one of its others): a player takes the figure less its resist's
 // share (resist.go), told it in a 0x00DB from the NPC and a line, and dies of
@@ -924,7 +947,8 @@ func templateFigure(effects []SpellEffect, pct int) (hit, drained int) {
 func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect, now time.Time) {
 	npc := c.npc
 	hit, drained := templateFigure(effects, c.pct)
-	if hit <= 0 {
+	power := templatePowerFigure(effects, c.pct)
+	if hit <= 0 && power <= 0 {
 		return
 	}
 	var sess *session.Session
@@ -940,36 +964,56 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 		if c.spell.unresistable {
 			share, how = 0, ResistFailed
 		}
-		taken := max(int(math.Round(float64(hit)*(1-share))), 1)
-		drained = int(math.Round(float64(drained) * (1 - share)))
-		p.HP = max(p.HP-taken, 0)
 		p.StatsDirty = true
 		p.LastCombatTime = now
 		w.breakInvisLocked(p, "a hit") // invis.go: every invisibility, whatever gave it
 		sess = w.findSessionByEntityIDLocked(p.ServerID)
-		if sess != nil {
-			if nid := w.objectIDForEntityLocked(sess, npc.ServerID); nid != 0 {
-				w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID())
+		if power > 0 {
+			// a mana tap: its resist takes up to powerDrainCapShare at the cap
+			ps := min(share*powerDrainCapShare/ResistCapShare, 1)
+			lost := min(max(int(math.Round(float64(power)*(1-ps))), 1), p.Power)
+			p.Power -= lost
+			if sess != nil {
+				w.sendChatToSession(sess, fmt.Sprintf("%s's %s drains %d of your power (%s).", npc.Name, c.spell.Name, lost, resistWords(ps, how)))
 			}
-			w.sendChatToSession(sess, fmt.Sprintf("%s's %s hits you for %d (%s).", npc.Name, c.spell.Name, taken, resistWords(share, how)))
+			log.Printf("Template: %s's %q drains %s's power by %d of %d (resist %.0f%%; power %d/%d)", npc.Name, c.spell.Name, p.Name, lost, power,
+				ps*100, p.Power, p.MaxPower)
 		}
-		log.Printf("Template: %s's %q hits %s for %d of %d (resist %.0f%%; HP %d/%d)", npc.Name, c.spell.Name, p.Name, taken, hit,
-			share*100, p.HP, p.MaxHPNow())
-		if p.HP <= 0 {
-			w.playerDiedLocked(sess, p, now)
+		if hit > 0 {
+			taken := max(int(math.Round(float64(hit)*(1-share))), 1)
+			drained = int(math.Round(float64(drained) * (1 - share)))
+			p.HP = max(p.HP-taken, 0)
+			if sess != nil {
+				if nid := w.objectIDForEntityLocked(sess, npc.ServerID); nid != 0 {
+					w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID())
+				}
+				w.sendChatToSession(sess, fmt.Sprintf("%s's %s hits you for %d (%s).", npc.Name, c.spell.Name, taken, resistWords(share, how)))
+			}
+			log.Printf("Template: %s's %q hits %s for %d of %d (resist %.0f%%; HP %d/%d)", npc.Name, c.spell.Name, p.Name, taken, hit,
+				share*100, p.HP, p.MaxHPNow())
+			if p.HP <= 0 {
+				w.playerDiedLocked(sess, p, now)
+			}
 		}
 	} else if pet := w.NPCs[id]; pet != nil && pet.Owner != 0 && !pet.Dead {
-		if share := pet.petResistShare(c.spell.resist); share > 0 {
-			// a workbook pet's resists (petstats.go); any other takes it whole
-			hit = max(int(math.Round(float64(hit)*(1-share))), 1)
-			drained = int(math.Round(float64(drained) * (1 - share)))
+		share := pet.petResistShare(c.spell.resist) // a workbook pet's resists (petstats.go); any other takes it whole
+		if power > 0 {
+			lost := min(int(math.Round(float64(power)*(1-min(share*powerDrainCapShare/ResistCapShare, 1)))), pet.Power)
+			pet.Power -= max(lost, 0)
+			log.Printf("Template: %s's %q drains the pet %q's power by %d (power %d/%d)", npc.Name, c.spell.Name, pet.Name, lost, pet.Power, pet.MaxPower)
 		}
-		pet.HP = max(pet.HP-hit, 0)
-		pet.LastCombatTime = now
-		log.Printf("Template: %s's %q hits the pet %q for %d (HP %d/%d)", npc.Name, c.spell.Name, pet.Name, hit, pet.HP, pet.MaxHP)
-		if pet.HP == 0 {
-			w.killNPC(pet)
-			w.dropAggroLocked(pet.ServerID)
+		if hit > 0 {
+			if share > 0 {
+				hit = max(int(math.Round(float64(hit)*(1-share))), 1)
+				drained = int(math.Round(float64(drained) * (1 - share)))
+			}
+			pet.HP = max(pet.HP-hit, 0)
+			pet.LastCombatTime = now
+			log.Printf("Template: %s's %q hits the pet %q for %d (HP %d/%d)", npc.Name, c.spell.Name, pet.Name, hit, pet.HP, pet.MaxHP)
+			if pet.HP == 0 {
+				w.killNPC(pet)
+				w.dropAggroLocked(pet.ServerID)
+			}
 		}
 		if owner := w.Players[pet.Owner]; owner != nil {
 			sess = w.findSessionByEntityIDLocked(owner.ServerID)

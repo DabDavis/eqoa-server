@@ -243,9 +243,14 @@ func (a *AuctionHouse) liveForm(sess *session.Session) bool {
 
 // lotView is how a client is shown lots: by the disc's form, or by the live
 // form, which reads every price as an item's.
-type lotView struct{ live bool }
+// lotView is how a session's client reads a lot: by the live form (live), and
+// whether it draws capes (capes: to one that does not, a cape lot's item is a
+// plain item, capes.go).
+type lotView struct{ live, capes bool }
 
-func (a *AuctionHouse) viewOf(sess *session.Session) lotView { return lotView{live: a.liveForm(sess)} }
+func (a *AuctionHouse) viewOf(sess *session.Session) lotView {
+	return lotView{live: a.liveForm(sess), capes: readsCapes(sess)}
+}
 
 // each is an amount of a lot as the client reads it: a stack a disc client
 // put up whole is priced as a whole, which the live form shows as each
@@ -290,7 +295,7 @@ func writeLot(w *buffer.Writer, l *database.AuctionLot, thin bool, v lotView) {
 			ClassUse: e.Pattern.ClassUse, RaceUse: e.Pattern.RaceUse, ItemName: e.Pattern.ItemName,
 		}
 	}
-	writeItemPattern(w, &e)
+	writeItemPattern(w, &e, v.capes)
 }
 
 // lotBytes is how much room a lot may take on the wire.
@@ -928,7 +933,7 @@ func (a *AuctionHouse) fileLocked(sess *session.Session, d database.AuctionDeliv
 	if took != d.Item.StackLeft {
 		log.Printf("Auction: lot %d's %d %q into a bank list that kept %d", d.Lot, d.Item.StackLeft, p.ItemName, took)
 	}
-	queueReliable(sess, protocol.OpcodeAddBankItem, bankAddPayload(&d.Item, key))
+	queueReliable(sess, protocol.OpcodeAddBankItem, bankAddPayload(&d.Item, key, readsCapes(sess)))
 }
 
 // tellLocked says a character's waiting lines to its session in the world,

@@ -374,6 +374,10 @@ func main() {
 	if cfg.World.PvP {
 		log.Printf("PvP: players may flag themselves (world.pvp)")
 	}
+	entity.SetCapes(cfg.World.Capes) // entity/capes.go
+	if cfg.World.Capes {
+		log.Printf("Capes: worn in equip slot 22 by a client that draws them (world.capes)")
+	}
 	handlers.SetHeirloomsGiven(cfg.World.Heirlooms == nil || *cfg.World.Heirlooms)
 	if cfg.World.Heirlooms != nil && !*cfg.World.Heirlooms {
 		log.Printf("Heirlooms: none given at a login (world.heirlooms: false)")

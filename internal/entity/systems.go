@@ -102,6 +102,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.guildAnnounceSystem()
 	t.mark(tsGuildAnnounce)
 	w.visibilitySystem()
+	w.capesSyncSystem() // the capes on this tick's slots, to the clients that draw them (capes.go)
 	t.mark(tsVisibility)
 	w.groupSyncSystem()
 	t.mark(tsGroupSync)

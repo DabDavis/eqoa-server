@@ -250,6 +250,15 @@ type WorldConfig struct {
 	// creates as ever: its pages are the disc's.
 	OpenRaces  bool `yaml:"open_races"`
 	AllClasses bool `yaml:"all_classes"`
+
+	// Capes is an equip slot of this server's own, a cape's (entity/capes.go,
+	// handlers/capes.go): items of wear slot 28 worn in equip slot 22, each
+	// drawn in its record's style (model) by a client that draws capes
+	// (vanilla), which is offered them after the first character list
+	// (protocol.OpcodeCapes) and told who in its view wears which. Every other
+	// client (a PS2) is sent a cape as a plain item, never worn. Unset or
+	// false: no offer, and no cape can be worn.
+	Capes bool `yaml:"capes"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

@@ -75,14 +75,16 @@ func enums() map[string][]EnumValue {
 		"wirerace": raceEnum()[:10],
 		"sex":      numbered("Male", "Female"),
 		"world":    w,
-		// handlers/equip.go: charinventory.equiploc, CLIENT's equip slots
+		// handlers/equip.go: charinventory.equiploc, CLIENT's equip slots, and
+		// the cape's of this server's own past them (handlers/capes.go)
 		"equiploc": append([]EnumValue{{-1, "Not worn"}}, numbered("Head", "Hands", "Left ear", "Right ear",
 			"Neck", "Chest", "Right bracelet", "Left bracelet", "Bracers", "Left ring", "Right ring", "Belt",
-			"Legs", "Feet", "Primary", "Secondary", "Two-handed", "Shield", "Ranged", "Held", "Held 2", "Robe")...),
-		// handlers/equip.go: itempattern.equipslot, the item's wear slot
+			"Legs", "Feet", "Primary", "Secondary", "Two-handed", "Shield", "Ranged", "Held", "Held 2", "Robe", "Cape")...),
+		// handlers/equip.go: itempattern.equipslot, the item's wear slot; 28 the
+		// cape's (handlers/capes.go)
 		"wearslot": numbered("None", "Head", "Robe", "Earring", "Neck", "Chest", "Forearm", "Both forearms",
 			"Ring", "Belt", "Legs", "Feet", "Primary", "Shield", "Secondary", "Two-handed", "Bow", "Thrown",
-			"Held", "Hands", "Fishing pole", "Bait", "Tool (1)", "Tool (2)", "Tool (3)", "Tool (4)", "Tool (5)", "Tool (6)"),
+			"Held", "Hands", "Fishing pole", "Bait", "Tool (1)", "Tool (2)", "Tool (3)", "Tool (4)", "Tool (5)", "Tool (6)", "Cape"),
 		"location":   {{0, "Inventory"}, {1, "Bank"}},
 		"acctstatus": {{1, "Active"}, {0, "Inactive"}, {-1, "Banned"}},
 		"bool":       {{0, "No"}, {1, "Yes"}},

@@ -55,6 +55,8 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	s.SetBugReports(true)
 	s.SetFlyClient(true)
 	s.SetDiscVersion(0x12)
+	s.OfferCapesOnce()
+	s.SetCapes(true)
 	conn := s.Connection()
 	conn.SetEntitySlots(204)
 	conn.SetViewDistance(1000)
@@ -82,6 +84,11 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	if !r.DidServerInitiate() || !r.HasInstance() || r.NeedsNewInstance() || !r.InGame() || !r.CharacterInWorld() ||
 		r.State() != session.StateInGame || !r.LiveLook() || !r.BugReports() || !r.FlyClient() || r.DiscVersion() != 0x12 {
 		t.Fatal("flags not kept")
+	}
+	// the capes (handlers/capes.go): the client still draws them, and is not
+	// offered them again
+	if !r.Capes() || !r.CapesOffered() || r.OfferCapesOnce() {
+		t.Fatalf("capes: drawn %v, offered %v", r.Capes(), r.CapesOffered())
 	}
 	rc := r.Connection()
 	if rc.EntitySlots() != 204 || rc.ViewDistance() != 1000 {
@@ -158,6 +165,11 @@ func TestAKeptChannelGoesOutWholeAndNew(t *testing.T) {
 		ch.UpdateBaseXor(seq)
 	}
 	r, _ := keptRoundTrip(t, s)
+	// the control for the capes kept above: a client that never drew them
+	// (a PS2's) comes back without them, and may still be offered them
+	if r.Capes() || r.CapesOffered() {
+		t.Fatalf("capes on a session that never answered: drawn %v, offered %v", r.Capes(), r.CapesOffered())
+	}
 	rch := r.Connection().GetClientStatUpdate()
 	data, seq, ref := rch.GenerateXORDelta()
 	if data == nil {

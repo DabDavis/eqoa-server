@@ -242,7 +242,7 @@ type craftGiven struct {
 // one record onto its first record or a new one, anything else a record
 // each, at full condition, in the database, the session's list and the
 // client's (0x003B). It returns the records sent.
-func (h *CraftHandler) giveCraft(charID uint32, l *invList, p database.ItemPatternRecord, n int, out *craftBatch) []craftGiven {
+func (h *CraftHandler) giveCraft(charID uint32, l *invList, p database.ItemPatternRecord, n int, out *craftBatch, capes bool) []craftGiven {
 	w := &NPCWindowHandler{inv: h.inv}
 	player := &entity.Player{CharServerID: charID}
 	qty, records := n, 1
@@ -262,7 +262,7 @@ func (h *CraftHandler) giveCraft(charID uint32, l *invList, p database.ItemPatte
 			log.Printf("Craft: giving %q: %v", p.ItemName, err)
 			break
 		}
-		out.add(protocol.OpcodeAddInvItem, addInvItemPayload(sent, key))
+		out.add(protocol.OpcodeAddInvItem, addInvItemPayload(sent, key, capes))
 		given = append(given, craftGiven{*sent, key})
 	}
 	return given

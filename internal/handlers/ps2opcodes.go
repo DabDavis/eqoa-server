@@ -541,8 +541,9 @@ const maxCorpseItems = 40
 // (0x00BBC8D0) into the corpse list, a zigzag count, the u32 key the next new
 // record gets, and the records, each exactly as the MemoryDump writes an
 // inventory row (writeSingleItem; its key is its position). CLIENT opens the
-// loot window, or answers 0x0016 at once when it cannot (LootNoWindow).
-func buildLoot(items []database.CharInventoryEntry) []byte {
+// loot window, or answers 0x0016 at once when it cannot (LootNoWindow). capes
+// is whether the client draws capes (readsCapes, capes.go).
+func buildLoot(items []database.CharInventoryEntry, capes bool) []byte {
 	if len(items) > maxCorpseItems {
 		items = items[:maxCorpseItems]
 	}
@@ -550,7 +551,7 @@ func buildLoot(items []database.CharInventoryEntry) []byte {
 		w.Write7BitEncodedInt64(int64(len(items)))
 		w.WriteUint32(uint32(len(items)))
 		for i := range items {
-			writeSingleItem(w, &items[i], i)
+			writeSingleItem(w, &items[i], i, capes)
 		}
 	})
 }
@@ -570,7 +571,7 @@ func buildLootOption(why byte) []byte {
 
 // SendLoot sends opcode 0x0018.
 func SendLoot(sess *session.Session, items []database.CharInventoryEntry) {
-	queueReliable(sess, protocol.OpcodeLoot, buildLoot(items))
+	queueReliable(sess, protocol.OpcodeLoot, buildLoot(items, readsCapes(sess)))
 }
 
 // buildLootTakeAll is opcode 0x001A — Msg001A (0x00BD98B0): no payload. Every

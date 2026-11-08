@@ -281,7 +281,7 @@ func (h *NPCWindowHandler) sendMerchantList(sess *session.Session, id uint32, gr
 		prev.mu.Unlock()
 	}
 	sess.SetMerchantWindow(w)
-	queueReliable(sess, protocol.OpcodeMerchantBox, merchantBoxPayload(id, l.wares, l.greetingWith(greeting), lines...))
+	queueReliable(sess, protocol.OpcodeMerchantBox, merchantBoxPayload(id, l.wares, l.greetingWith(greeting), readsCapes(sess), lines...))
 }
 
 // refreshMerchant sends the list again in place when the session's window is on this merchant and
@@ -364,7 +364,7 @@ func (h *NPCWindowHandler) buyBack(sess *session.Session, player *entity.Player,
 	rec.ItemID = itemID
 	w.serve(index, now)
 	h.refreshMerchant(sess, player, npc, id)
-	queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(&rec, key))
+	queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(&rec, key, readsCapes(sess)))
 	queueReliable(sess, protocol.OpcodePlayerTunar, tunarPayload(player.Tunar))
 	log.Printf("BuyBack: %s bought back %d of %q from %q for %d (entry %d, item %d, %s)",
 		player.Name, n, p.ItemName, npc.Name, e.Price, e.ID, itemID, e.How)

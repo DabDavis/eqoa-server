@@ -51,6 +51,9 @@ type Group struct {
 	lastRoster map[EntityID]string
 	// raid is what its members were last told it is (raidChangedLocked)
 	raid bool
+	// flagged: its leader raised a raid flag (raidflag.go): a raid's group,
+	// whatever its size, to its chat (GroupIsRaid)
+	flagged bool
 }
 
 // GroupMembers is p's group's members (the leader first), or none.
@@ -107,6 +110,13 @@ func (w *World) IDSeenBy(recv *session.Session, p *Player) uint32 {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	return w.idSeenByLocked(recv, p)
+}
+
+// PlayerByEntity is the player of that entity id in the world, or nil.
+func (w *World) PlayerByEntity(id EntityID) *Player {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.Players[id]
 }
 
 // PlayerSeenBy resolves an id the sender gave to a player (playerSeenByLocked).
@@ -272,12 +282,36 @@ func (w *World) askLocked(target, inviter *Player, tsess *session.Session, ask g
 	if w.invites[target.ServerID] == nil {
 		w.invites[target.ServerID] = map[EntityID]groupAsk{}
 	}
+	ask.sent = w.idSeenByLocked(tsess, inviter)
 	w.invites[target.ServerID][inviter.ServerID] = ask
 	sendGroupMsg(tsess, protocol.OpcodeGroupInviteReceived, func(b *buffer.Writer) {
-		b.WriteUint32(w.idSeenByLocked(tsess, inviter))
+		b.WriteUint32(ask.sent)
 		b.WriteUint32(0)
 		writeName8(b, words)
 	})
+}
+
+// answerInviterLocked is whom p's answer naming id answers: the player id names
+// now, when p has a box of that player's up; else the one whose box was sent
+// naming id (the user, 2026-11-08: "dwarfrish tried to /raid after we all
+// accepted and folks couldnt join": a raid's crowd moved the inviter to another
+// slot of the answerer's view between the box and the yes, and the yes was
+// dropped, the box left waiting). Must be called with the lock held.
+func (w *World) answerInviterLocked(sess *session.Session, p *Player, id uint32) *Player {
+	inviter := w.playerSeenByLocked(sess, id)
+	if inviter != nil {
+		if _, up := w.invites[p.ServerID][inviter.ServerID]; up {
+			return inviter
+		}
+	}
+	for from, ask := range w.invites[p.ServerID] {
+		if ask.sent == id && ask.declined.IsZero() {
+			if o := w.Players[from]; o != nil {
+				return o
+			}
+		}
+	}
+	return inviter
 }
 
 // takeInviteLocked removes and reports an invitation from inviter to p still
@@ -297,10 +331,10 @@ func (w *World) GroupAccept(sess *session.Session, inviterID uint32) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
-	inviter := w.playerSeenByLocked(sess, inviterID)
 	if p == nil {
 		return
 	}
+	inviter := w.answerInviterLocked(sess, p, inviterID)
 	ask, asked := groupAsk{}, false
 	if inviter != nil {
 		ask, asked = w.takeInviteLocked(p, inviter)
@@ -310,11 +344,17 @@ func (w *World) GroupAccept(sess *session.Session, inviterID uint32) {
 		return
 	}
 	if !asked || p.GroupID != 0 {
+		who := "no one"
+		if inviter != nil {
+			who = inviter.Name
+		}
+		log.Printf("Group: %s's yes to %#x (%s) not taken: invited %v, in group %d", p.Name, inviterID, who, asked, p.GroupID)
 		w.sendGroupRemoved(p, 3)
 		return
 	}
 	g := w.groups[inviter.GroupID]
 	if g == nil {
+		log.Printf("Group: %s's yes to %s not taken: %s is in no group now", p.Name, inviter.Name, inviter.Name)
 		w.sendGroupRemoved(p, 3)
 		return
 	}
@@ -339,8 +379,12 @@ func (w *World) GroupDecline(sess *session.Session, inviterID uint32, why byte) 
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
-	inviter := w.playerSeenByLocked(sess, inviterID)
-	if p == nil || inviter == nil {
+	if p == nil {
+		return
+	}
+	inviter := w.answerInviterLocked(sess, p, inviterID)
+	if inviter == nil {
+		log.Printf("Group: %s's no to %#x: no one", p.Name, inviterID)
 		return
 	}
 	ask, asked := w.takeInviteLocked(p, inviter)

@@ -765,6 +765,24 @@ func (e *TriggerEngine) stepLocked(r *triggerRun, s database.TriggerStep) string
 			}
 		}
 		return fmt.Sprintf("%d of %s roused", n, s.NPC)
+	case database.TriggerSic:
+		n, on := 0, ""
+		for _, sp := range r.spawns {
+			if strings.TrimSpace(s.NPC) != "" && !strings.EqualFold(sp.name, strings.TrimSpace(s.NPC)) {
+				continue
+			}
+			if name, ok := e.gw.SetNPCOn(sp.id, s.Target, e.reachOf(r, s)); ok {
+				n, on = n+1, name
+			}
+		}
+		who := strings.TrimSpace(s.NPC)
+		if who == "" {
+			who = "its spawns"
+		}
+		if n == 0 {
+			return fmt.Sprintf("none of %s has a %s within reach", who, strings.TrimSpace(s.Target))
+		}
+		return fmt.Sprintf("%d of %s set on %s", n, who, on)
 	case database.TriggerHide:
 		until := time.Time{}
 		if s.Minutes > 0 {

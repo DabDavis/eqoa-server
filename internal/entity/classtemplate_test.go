@@ -1288,3 +1288,35 @@ func TestATemplateRunsAtItsSpeed(t *testing.T) {
 		t.Errorf("the control ran %.2f in a second, want 9.9", run)
 	}
 }
+
+// SetNPCOn (a trigger's sic) starts a fight between two NPCs: the one set on the
+// other hits it, and the other fights back (guards.go's fight between NPCs). The
+// control: a third NPC beside them, set on no one, is in no fight.
+func TestAnNPCSetOnAnotherFightsAndIsFoughtBack(t *testing.T) {
+	r := newTemplateRig(t)
+	brute, guard, mage := r.npc("Gnoll Brute"), r.npc("Gnoll Guard"), r.npc("Gnoll Mage")
+	guard.X, guard.Z, guard.SpawnX, guard.SpawnZ = brute.X+3, brute.Z, brute.X+3, brute.Z
+	mage.X, mage.Z, mage.SpawnX, mage.SpawnZ = brute.X, brute.Z+3, brute.X, brute.Z+3
+	for _, n := range []*NPC{brute, guard, mage} {
+		n.HP, n.MaxHP = 100000, 100000
+	}
+	if name, ok := r.w.SetNPCOn(brute.ServerID, "gnoll guard", 30); !ok || name != "Gnoll Guard" {
+		t.Fatalf("SetNPCOn: %q %v", name, ok)
+	}
+	for d := time.Duration(0); d <= 20*time.Second; d += 100 * time.Millisecond {
+		r.w.TickCount++
+		r.tick(d)
+	}
+	if guard.HP >= guard.MaxHP || guard.CurrentEnemy != brute.ServerID {
+		t.Errorf("the guard: HP %d of %d, enemy %d; want hit, and fighting the brute %d", guard.HP, guard.MaxHP, guard.CurrentEnemy, brute.ServerID)
+	}
+	if brute.HP >= brute.MaxHP {
+		t.Errorf("the brute was never hit back: HP %d of %d", brute.HP, brute.MaxHP)
+	}
+	if mage.CurrentEnemy != 0 || mage.HP != mage.MaxHP {
+		t.Errorf("the control: enemy %d, HP %d of %d", mage.CurrentEnemy, mage.HP, mage.MaxHP)
+	}
+	if _, ok := r.w.SetNPCOn(brute.ServerID, "Nobody Here", 30); ok {
+		t.Error("SetNPCOn found a Nobody Here")
+	}
+}

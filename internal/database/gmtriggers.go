@@ -92,12 +92,13 @@ const (
 	TriggerHome      = "home"      // and walk back to their spawns
 	TriggerHide      = "hide"      // the NPCs named npc near the place out of every view for minutes (0: back)
 	TriggerRouse     = "rouse"     // the run's spawns named npc attack on sight from now on
+	TriggerSic       = "sic"       // the run's spawns named npc (none: all) attack the NPC named target nearest each
 )
 
 // TriggerActions is every action, in the order the panel offers them.
 var TriggerActions = []string{TriggerBroadcast, TriggerPopup, TriggerSay, TriggerGive, TriggerVisual,
 	TriggerTeleport, TriggerSpawn, TriggerDespawn, TriggerStop, TriggerWait,
-	TriggerLock, TriggerPlace, TriggerClock, TriggerEnd, TriggerAwaitTalk, TriggerAwaitDead, TriggerWalk, TriggerHome, TriggerHide, TriggerRouse}
+	TriggerLock, TriggerPlace, TriggerClock, TriggerEnd, TriggerAwaitTalk, TriggerAwaitDead, TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic}
 
 // TriggerStep is one step of a trigger, kept in the steps column's array.
 type TriggerStep struct {
@@ -127,6 +128,10 @@ type TriggerStep struct {
 	Refuse  string  `json:"refuse,omitempty"`  // awaittalk: said to another class; teleport: said to those it cannot take
 	// Attackable (spawn): it may be attacked, and does not attack on sight (until a rouse)
 	Attackable bool `json:"attackable,omitempty"`
+	// Target (sic): the NPC they attack, by its name in the game: of that name the one nearest
+	// each spawn within the step's radius (0: the run's reach), in its world (the user,
+	// 2026-11-08: "spawn nagafen attacking mr moogie")
+	Target string `json:"target,omitempty"`
 	// Empty (clock): its seconds with no player within the run's reach end the clock at once
 	Empty float64 `json:"empty,omitempty"`
 }
@@ -379,6 +384,10 @@ func StepProblems(steps []TriggerStep) []string {
 				add(i, "walk's place is 0, 0")
 			}
 		case TriggerAwaitDead:
+		case TriggerSic:
+			if strings.TrimSpace(s.Target) == "" {
+				add(i, "sic names no target")
+			}
 		}
 		switch s.Do {
 		case TriggerAwaitTalk, TriggerAwaitDead:
@@ -387,7 +396,7 @@ func StepProblems(steps []TriggerStep) []string {
 			}
 		case TriggerBroadcast, TriggerPopup, TriggerSay, TriggerGive, TriggerVisual, TriggerTeleport, TriggerSpawn,
 			TriggerDespawn, TriggerStop, TriggerWait, TriggerLock, TriggerPlace, TriggerClock, TriggerEnd,
-			TriggerWalk, TriggerHome, TriggerHide, TriggerRouse:
+			TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic:
 		default:
 			add(i, "do %q is not one of %s", s.Do, strings.Join(TriggerActions, ", "))
 		}

@@ -466,3 +466,53 @@ func TestAFinishedRepeatableIsOfferedAgainAtTheWindow(t *testing.T) {
 		t.Fatal("not offered again once finished")
 	}
 }
+
+// A sic sets the run's spawns on the NPC named its target nearest each (the user,
+// 2026-11-08: "spawn nagafen attacking mr moogie"): the spawn's enemy is the nearer
+// of two of that name in reach, a threat on it as a hit leaves. The controls: the
+// same spawn with no sic has no enemy, and a sic with none of the name in reach
+// sets nothing and says so.
+func TestTriggerSicSetsItsSpawnsOnAnNPC(t *testing.T) {
+	w := newTrigWorld(t)
+	gp := w.gp
+	near := &entity.NPC{ServerID: 701, Name: "Mr. Moogie", HP: 1000, MaxHP: 1000, Level: 50, X: gp.X + 6, Y: gp.Y, Z: gp.Z, World: gp.World}
+	far := &entity.NPC{ServerID: 702, Name: "Mr. Moogie", HP: 1000, MaxHP: 1000, Level: 50, X: gp.X + 20, Y: gp.Y, Z: gp.Z, World: gp.World}
+	w.gw.NPCs[near.ServerID], w.gw.NPCs[far.ServerID] = near, far
+	w.set(20, "Nagafen vs Moogie", "near", 50, `[{"do":"spawn","npc":"Orc Pawn","attackable":true,"minutes":10},
+		{"do":"sic","npc":"Orc Pawn","target":"Mr. Moogie","radius":30}]`)
+	lines, err := w.fire(20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := w.spawned()
+	if len(s) != 1 {
+		t.Fatalf("%d spawns, want 1", len(s))
+	}
+	if s[0].CurrentEnemy != near.ServerID || s[0].Threats[near.ServerID] <= 0 {
+		t.Fatalf("the spawn's enemy %d (threats %v), want the nearer Mr. Moogie %d; lines %q", s[0].CurrentEnemy, s[0].Threats, near.ServerID, lines)
+	}
+	if !strings.Contains(strings.Join(lines, "\n"), "1 of Orc Pawn set on Mr. Moogie") {
+		t.Errorf("the GM's lines %q", lines)
+	}
+
+	before := map[entity.EntityID]bool{s[0].ServerID: true}
+	w.set(21, "Plain", "near", 50, `[{"do":"spawn","npc":"Orc Pawn","attackable":true,"minutes":10}]`)
+	w.set(22, "Nobody", "near", 50, `[{"do":"spawn","npc":"Orc Pawn","attackable":true,"minutes":10},{"do":"sic","target":"Nobody Here"}]`)
+	for _, slot := range []int{21, 22} {
+		lines, err := w.fire(slot)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, n := range w.spawned() {
+			if !before[n.ServerID] {
+				before[n.ServerID] = true
+				if n.CurrentEnemy != 0 {
+					t.Errorf("slot %d: a spawn's enemy %d, want none", slot, n.CurrentEnemy)
+				}
+			}
+		}
+		if slot == 22 && !strings.Contains(strings.Join(lines, "\n"), "none of its spawns has a Nobody Here within reach") {
+			t.Errorf("slot 22's lines %q", lines)
+		}
+	}
+}

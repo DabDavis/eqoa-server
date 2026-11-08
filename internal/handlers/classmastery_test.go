@@ -9,6 +9,7 @@ import (
 	"testing"
 	"unicode/utf16"
 
+	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
@@ -817,6 +818,31 @@ func TestTheShareIsKept(t *testing.T) {
 	}
 	if p.Mastery.Percent == 150 {
 		t.Fatal("the control: 150 must not be kept")
+	}
+	// the bar follows the share (petition 1271): at 100% the way to the next
+	// mastery point, at 42% the level's again
+	p.Level, p.XPInLevel = 30, 777
+	p.Mastery.XP = entity.CMPointXP(p.Mastery.Points+p.Mastery.Spent+1) / 2
+	for _, c := range []struct{ share, want int }{{100, p.BarXP()}, {42, 777}} {
+		sess.Queue().GetPending()
+		req := make([]byte, 9)
+		req[0] = cmShare
+		binary.LittleEndian.PutUint32(req[5:], uint32(c.share))
+		msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeClassMastery)
+		msg.SetData(req)
+		if err := h.HandleClassMastery(sess, msg); err != nil {
+			t.Fatal(err)
+		}
+		d := sentOp(sess, protocol.OpcodeGrantXP)
+		if d == nil {
+			t.Fatalf("share %d: no 0x0020", c.share)
+		}
+		r := buffer.NewReader(d[2:])
+		level, _ := r.Read7BitEncodedInt64()
+		bar, _ := r.Read7BitEncodedInt64()
+		if level != 30 || int(bar) != c.want || (c.share == 100 && bar == 777) {
+			t.Errorf("share %d: 0x0020 level %d bar %d, want 30 and %d", c.share, level, bar, c.want)
+		}
 	}
 }
 

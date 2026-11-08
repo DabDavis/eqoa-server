@@ -1003,7 +1003,7 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 	if player.TopUpTrainingPoints() > 0 {
 		SendTrainingPoints(sess, player.UnusedTP)
 	}
-	w.sendGrantXP(sess, player.Level, player.XPInLevel)
+	w.sendGrantXP(sess, player.Level, player.BarXP()) // mastery.go: the level's, or the next mastery point's
 	// Sandstorm's words: "You receive N XP." for a kill and a quest alike
 	// (recorded by questrec16, claude-notes/quests-sandstorm-20261025.md),
 	// and for the masteries' share "You received N class mastery XP." alone

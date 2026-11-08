@@ -317,3 +317,39 @@ func TestTheGodsBlessingsGiveTheirResists(t *testing.T) {
 		t.Errorf("Marr Blessing 1 and 2, Ro Blessing 1: AR %d FR %d, want 15, 5", ar, fr)
 	}
 }
+
+// The HUD's bar (BarXP; the GM Jibrish's petition 1271): below the cap with
+// some experience going to the level, the level's; at 100%, or at the cap
+// whatever the share, the way to the next mastery point as the same share of
+// the level's bar (half a point's experience fills half of it); empty again as
+// a point is made, and empty holding MasteryCap points; a GM's level 100 stays
+// under the client's 2^31.
+func TestTheBarShowsTheWayToTheNextMasteryPoint(t *testing.T) {
+	p := &Player{Level: 30, XPInLevel: 12345}
+	p.Mastery = Mastery{Points: 10, Spent: 5, Percent: 50}
+	if got := p.BarXP(); got != 12345 {
+		t.Errorf("level 30 at 50%%: %d, want the level's 12345", got)
+	}
+	cost := CMPointXP(16)
+	half := func(level int) int { return int(int64(ExpForLevel(level+1)) * int64(cost/2) / int64(cost)) }
+	p.Mastery.Percent, p.Mastery.XP = 100, cost/2
+	if got, want := p.BarXP(), half(30); got != want || want == 0 {
+		t.Errorf("level 30 at 100%%, half a point: %d, want %d", got, want)
+	}
+	p.Level, p.Mastery.Percent = 60, 0
+	if got, want := p.BarXP(), half(60); got != want {
+		t.Errorf("level 60 at 0%%, half a point: %d, want %d", got, want)
+	}
+	p.Mastery.XP = 0
+	if got := p.BarXP(); got != 0 {
+		t.Errorf("a point just made: %d", got)
+	}
+	p.Mastery = Mastery{Points: MasteryCap, Percent: 100, XP: 999}
+	if got := p.BarXP(); got != 0 {
+		t.Errorf("holding the cap: %d", got)
+	}
+	p.Level, p.Mastery = 100, Mastery{Percent: 100, XP: CMPointXP(1) - 1}
+	if got := p.BarXP(); got <= 0 || got > math.MaxInt32 {
+		t.Errorf("a GM's level 100, a point all but made: %d", got)
+	}
+}

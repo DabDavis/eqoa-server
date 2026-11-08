@@ -16,7 +16,7 @@ import (
 //
 // After a session's first character list the server offers them (a u32, 1),
 // after the live look's and creation's offers, so a PS2's list keeps its sequence
-// number. A client that can answers 1 and is sent each race's options
+// number; a server where no race has options offers nothing. A client that can answers 1 and is sent each race's options
 // (OpcodeRaceOptionsData, once a session) and the looks the characters chose
 // (OpcodeRaceLooks), and from then on the looks again whenever they change: a
 // creation, a deletion, a GM's edit, a keep restart. A creation of such a client
@@ -32,9 +32,9 @@ func buildRaceOptionsOffer() []byte {
 }
 
 // SendRaceOptionsOffer offers the session's client the races' options, once a
-// session.
+// session, on a server where any race has some.
 func SendRaceOptionsOffer(sess *session.Session) {
-	if sess.OfferRaceOptionsOnce() {
+	if entity.HasRaceOptions() && sess.OfferRaceOptionsOnce() {
 		queueReliable(sess, protocol.OpcodeRaceOptions, buildRaceOptionsOffer())
 	}
 }

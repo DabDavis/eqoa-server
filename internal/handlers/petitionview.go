@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -20,7 +21,9 @@ import (
 // knows it (and its own note, when it sent one), the character, its target and
 // what it was shown around it (entity.PetitionView), its quests under way, and
 // the lines, boxes and damage figures it was shown in the last minutes
-// (session.Transcript), chat said to it among them.
+// (session.Transcript), chat said to it among them; and a GM's marks
+// (gmcamps.go), so whoever reads a GM's petition has the exact points it
+// stood at ("send to claude and its implemented").
 
 type serverView struct {
 	Filed  string     `json:"filed"`
@@ -30,7 +33,31 @@ type serverView struct {
 	entity.PetitionView
 	Quests []QuestState `json:"quests,omitempty"`
 	Lines  []viewLine   `json:"lines,omitempty"`
+	Marks  []viewMark   `json:"marks,omitempty"`
 }
+
+// viewMark is one of the filer's marks (/mark), numbered as /marks numbers
+// them: where it stood (facing in radians, the server's), its note and when.
+type viewMark struct {
+	N      int     `json:"n"`
+	World  int     `json:"world"`
+	X      float64 `json:"x"`
+	Y      float64 `json:"y"`
+	Z      float64 `json:"z"`
+	Facing float64 `json:"facing"`
+	Note   string  `json:"note,omitempty"`
+	Char   string  `json:"char,omitempty"`
+	At     string  `json:"at,omitempty"`
+}
+
+// markReader is where a filer's marks are read (database.SQLiteDB.GMMarks).
+type markReader interface {
+	GMMarks(accountID int) ([]database.GMMark, error)
+}
+
+// SetMarks gives a petition's view the filer's marks (gmcamps.go). Without
+// it the view carries none.
+func (h *SupportHandler) SetMarks(m markReader) { h.marks = m }
 
 type viewServer struct {
 	Build   string `json:"build"`
@@ -120,6 +147,16 @@ func (h *SupportHandler) serverView(sess *session.Session, me *entity.Player, vi
 		}
 	}
 	v.Lines = h.transcriptLines(sess, sess.Transcript(now), now)
+	if h.marks != nil && sess.AccountID() != 0 {
+		marks, err := h.marks.GMMarks(sess.AccountID())
+		if err != nil {
+			log.Printf("Support: %s's marks: %v", me.Name, err)
+		}
+		for i, m := range marks {
+			v.Marks = append(v.Marks, viewMark{N: i + 1, World: m.World, X: m.X, Y: m.Y, Z: m.Z, Facing: m.Facing,
+				Note: m.Note, Char: m.CharName, At: m.At})
+		}
+	}
 	b, err := json.Marshal(v)
 	if err != nil {
 		log.Printf("Support: %s's server view: %v", me.Name, err)

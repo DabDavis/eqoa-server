@@ -12,7 +12,8 @@
 // Close anyway. Both are in the Audit log, revertible. Server's view
 // (petition_get's server_view) is what the server held when it was filed:
 // the character, its place and target with #stats' lines, what it was shown
-// around it and in the last minutes, its quests, the client and its note.
+// around it and in the last minutes, its quests, the client and its note,
+// and a GM's marks (/mark), each a link to its place on the World map.
 
 import { h, mount, pageHead, button, toast, card, empty, confirmBox } from '../lib/dom.js';
 import { op } from '../lib/api.js';
@@ -71,6 +72,11 @@ export async function render(box) {
       t ? kv('Target', `${t.name} (${t.kind}${t.npcid ? ' ' + t.npcid : ''}${t.serverid ? ' char ' + t.serverid : ''}), level ${t.level}, HP ${t.hp}/${t.maxHP}, ${t.distance} away${t.dead ? ', dead' : ''}${t.fighting ? ', fighting ' + t.fighting : ''}${t.spawn ? `, spawn (${t.spawn.map(Math.round).join(', ')})` : ''}`) : kv('Target', 'none'),
       lines("The character's #stats", v.stats),
       t ? lines("The target's #stats", t.stats) : null,
+      v.marks?.length ? h('details', { open: true }, h('summary', { class: 'small' }, `The filer's marks, /mark (${v.marks.length})`),
+        h('div', { class: 'stack' }, ...v.marks.map((m) => h('div', { class: 'row small' },
+          h('a', { href: `#/map/${m.world}/@${Math.round(m.x)},${Math.round(m.z)}`, title: 'On the World map' }, `Mark ${m.n}`),
+          h('span', { class: 'mono' }, `world ${m.world} (${Number(m.x).toFixed(1)}, ${Number(m.y).toFixed(1)}, ${Number(m.z).toFixed(1)}), facing ${Number(m.facing || 0).toFixed(2)}`),
+          m.note ? h('span', null, m.note) : null)))) : null,
       v.quests?.length ? h('details', null, h('summary', { class: 'small' }, `Quests under way (${v.quests.length})`),
         h('pre', { class: 'json' }, v.quests.map((q) => `${q.name} (${q.questid}): step ${q.step} of ${q.steps}${q.kind ? ' ' + q.kind : ''}${q.need ? ` ${q.count}/${q.need}` : ''}${q.journal ? ' - ' + q.journal : ''}`).join('\n'))) : null,
       v.shown?.length ? h('details', null, h('summary', { class: 'small' }, `Shown around them (${v.shown.length})`),

@@ -76,6 +76,8 @@ type ChatHandler struct {
 
 	support *SupportHandler // /bug's (bugreport.go)
 
+	camps campTools // /mark's, /camp's and /path's (gmcamps.go)
+
 	portal *Portal // the name typed for a Summoning Portal (summonportal.go)
 }
 
@@ -1239,6 +1241,20 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// vampire, whom the sun burns by day, and what the sun does to it
 		// now (vampirecmd.go)
 		h.vampireCommand(sess, parts[1:])
+	case "#mark":
+		// #mark [note]: where the GM stands kept as its next mark (gmcamps.go)
+		h.markCommand(sess, player, strings.Join(parts[1:], " "))
+	case "#marks":
+		// #marks [undo|clear]: the GM's marks (gmcamps.go)
+		h.marksCommand(sess, parts[1:])
+	case "#camp":
+		// #camp <creature>[, <creature>...] | undo: a static spawn at each
+		// mark, popping one of the names each time (gmcamps.go)
+		h.campCommand(sess, player, parts[1:])
+	case "#path":
+		// #path [loop|pingpong|once] [walk|run] | clear: the target walks
+		// the marks (gmcamps.go)
+		h.pathCommand(sess, player, parts[1:])
 
 	case "#help":
 		h.gmReply(sess, "GM Commands (each also as /name):")
@@ -1287,6 +1303,9 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #npcinfo - the target's ids, model, size, level, spawn and gear")
 		h.gmReply(sess, "  #stats - HoT, PoT, stats and caps, the melee rolls, hate: the target's or your own")
 		h.gmReply(sess, "  #pos - show position")
+		h.gmReply(sess, "  #mark [note] - keep where you stand as your next mark (#marks lists them; #marks undo, #marks clear)")
+		h.gmReply(sess, "  #camp <creature>[, <creature>...] - a static spawn at each mark, popping one of them at random each time; #camp undo")
+		h.gmReply(sess, "  #path [loop|pingpong|once] [walk|run] - your target walks your marks; #path clear takes its path away")
 		h.gmReply(sess, "  #who - list players")
 
 	default:

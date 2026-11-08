@@ -233,7 +233,7 @@ const SpellArchivistName = "Spell Archivist"
 // classShop reports a merchant whose list is the buyer's class's alone
 // (waresForClass): an heirloom shop, or a Spell Archivist.
 func classShop(npc *entity.NPC) bool {
-	return heirloomShop(npc) || (npc != nil && npc.Name == SpellArchivistName)
+	return heirloomShop(npc) || isSpellArchivist(npc)
 }
 
 // waresForClass is the wares a class can use (classuse), in their order.

@@ -130,6 +130,26 @@ func scrollSpellFor(spells []database.SpellName, scroll string, level int, has f
 	return database.SpellName{}, false
 }
 
+// scrollRefusal is why a character of the class, race and level may not use a
+// scroll of these class and race masks and level, in VIPlayer::CanUse's order
+// (class, race, level), or "" when it may: the scribe's checks, and the Spell
+// Archivist's grant's (archivist.go).
+func scrollRefusal(classUse, raceUse, levelReq, class, race, level int) string {
+	switch {
+	case classUse&(1<<uint(class)) == 0:
+		return scribeWrongClass
+	case !entity.Creation().AllClasses && raceUseForWire(raceUse)&(1<<uint(entity.WireRace(race))) == 0:
+		// a scroll's races are the ones SOE let be its classes; with every class open to
+		// every race (world.all_classes) they no longer decide (petition 1237, Smolsk: "new
+		// race/classes need to be updated for spells": a gnome shadow knight was refused
+		// every shadow knight's scroll)
+		return scribeWrongRace
+	case level < levelReq:
+		return scribeTooLow
+	}
+	return ""
+}
+
 // nextDisplayIndex is where a new ability goes in the book: after the last
 // one shown (display indices from 252 up are not).
 func nextDisplayIndex(book []database.CharSpellEntry) int {
@@ -150,19 +170,8 @@ func (h *EquipHandler) scribe(sess *session.Session, player *entity.Player, idx 
 		log.Printf("Scribe: %s, %q: %s", player.Name, p.ItemName, text)
 		SendColoredChat(sess, text, scribeRefusalRGB[0], scribeRefusalRGB[1], scribeRefusalRGB[2])
 	}
-	switch {
-	case p.ClassUse&(1<<uint(player.Class)) == 0:
-		refuse(scribeWrongClass)
-		return
-	case !entity.Creation().AllClasses && raceUseForWire(p.RaceUse)&(1<<uint(entity.WireRace(player.Race))) == 0:
-		// a scroll's races are the ones SOE let be its classes; with every class open to
-		// every race (world.all_classes) they no longer decide (petition 1237, Smolsk: "new
-		// race/classes need to be updated for spells": a gnome shadow knight was refused
-		// every shadow knight's scroll)
-		refuse(scribeWrongRace)
-		return
-	case player.Level < p.LevelReq:
-		refuse(scribeTooLow)
+	if why := scrollRefusal(p.ClassUse, p.RaceUse, p.LevelReq, player.Class, player.Race, player.Level); why != "" {
+		refuse(why)
 		return
 	}
 	if h.spells == nil {

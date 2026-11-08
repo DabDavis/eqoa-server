@@ -546,6 +546,11 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		genie.dyer = interactHandler.dyer           // its fifth (genie.go)
 		chatHandler.SetVampireStore(charStore.DB()) // #vampire (vampirecmd.go)
 	}
+	// the Spell Archivists (archivist.go): a request for one's shop asks first,
+	// his shop, the class's basic spells or a clear book
+	if spellStore != nil {
+		interactHandler.archivist = NewArchivist(spellStore, npcWindowHandler)
+	}
 	if charStore != nil && gameWorld != nil {
 		StartDuelPurse(gameWorld, charStore.DB())
 	}

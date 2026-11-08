@@ -20,7 +20,11 @@ const moogieBoxMark = 0x5B000000
 
 // His question and its answers, in the box's order, and what he says.
 const (
-	moogieQuestion = "Mr. Moogie can clear your buffs or heal you fully. What would you like?"
+	// the GM Jibrish's petition 1258: "flavor text mentioning how he is the king of this jungle,
+	// and you need to prove your worth to him"
+	moogieQuestion = "Mr. Moogie looks you over from his sunning rock. 'I am king of this jungle, and nothing " +
+		"walks it without my leave. You have yet to prove your worth to me, little one. Still, I can clear " +
+		"your buffs or make you whole. What would you like?'"
 	moogieClearOpt = "Clear my buffs"
 	moogieHealOpt  = "Fully heal me"
 	moogieNoOpt    = "Nothing, thank you"

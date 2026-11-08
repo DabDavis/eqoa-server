@@ -130,6 +130,38 @@ func (w *World) RouseNPC(id EntityID) bool {
 	return true
 }
 
+// SetNPCOn sets the NPC id on the nearest living NPC named target within reach
+// of it, in its world (a trigger's sic: the user, 2026-11-08, "spawn nagafen
+// attacking mr moogie"): a threat on it, as a hit would leave, so it is its
+// enemy (aiSystem's fight with an NPC, guards.go); the target fights back at
+// its first hit, as any creature hit does. Never itself, a pet, a dummy, a
+// hidden one. It reports the target's name, or false when none is near.
+func (w *World) SetNPCOn(id EntityID, target string, reach float32) (string, bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	c := w.NPCs[id]
+	if c == nil || c.Dead {
+		return "", false
+	}
+	now := time.Now()
+	var best *NPC
+	var bestD float32
+	for _, n := range w.npcsNearLocked(strings.TrimSpace(target), c.World, c.X, c.Z, reach) {
+		if n == c || n.Owner != 0 || n.Dummy != NotDummy || n.hiddenAt(now) {
+			continue
+		}
+		if d := distXZ(c.X, c.Z, n.X, n.Z); best == nil || d < bestD {
+			best, bestD = n, d
+		}
+	}
+	if best == nil {
+		return "", false
+	}
+	w.addThreatLocked(c, best.ServerID, 1)
+	c.CurrentEnemy = best.ServerID
+	return best.Name, true
+}
+
 // WalkNPCsTo sets the NPCs of that name within reach of (x, z) running to a place
 // (a guide's "the guards scurry over"), a step apart so they do not stand in each
 // other: a path walked once, until SendNPCsHome. A fight takes them off it as it

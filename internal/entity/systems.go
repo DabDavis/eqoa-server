@@ -293,11 +293,15 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 		npc.Name, sess.RemoteAddr(), damage, player.HP, player.MaxHP,
 		dist3(npc.X, npc.Y, npc.Z, player.X, player.Y, player.Z), npcReach(npc))
 
-	// Check for player death
+	// Check for player death; a GM's #testmode keeps it standing at 1 HP, and
+	// the hit's proc and shields go on as for any hit (petition 1274: Lord
+	// Nagafen's proc never rolled on a GM held at 1 HP)
 	if player.HP <= 0 {
 		w.playerDiedLocked(sess, player, now)
-		log.Printf("Combat: player %s has died!", sess.RemoteAddr())
-		return
+		if player.IsDead() {
+			log.Printf("Combat: player %s has died!", sess.RemoteAddr())
+			return
+		}
 	}
 	w.wereBiteLocked(sess, player, npc)               // a were's bite may infect (wereinfect.go)
 	if w.creatureProcLocked(sess, player, npc, now) { // a template's melee proc (creatureshield.go)

@@ -142,7 +142,7 @@ func (w *World) creatureProcLocked(sess *session.Session, p *Player, npc *NPC, n
 		return false
 	}
 	w.playerDiedLocked(sess, p, now)
-	return true
+	return p.IsDead() // a GM's #testmode stands at 1 HP: the hit goes on
 }
 
 // creatureProcOnPetLocked is creatureProcLocked on a pet: a workbook pet's resists cut it (petstats.go), any

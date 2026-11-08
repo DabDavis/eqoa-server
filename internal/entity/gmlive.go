@@ -33,6 +33,7 @@ func (w *World) UpsertNPC(rec *database.NPCRecord, class int) (created bool, err
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.applyNPCSettingsLocked(fresh)
+	w.campRecordLocked(rec, class) // a camp's copy of the row (campspawn.go)
 	if _, taken := w.Players[fresh.ServerID]; taken {
 		return false, fmt.Errorf("entity id %d is a player's in the world now; the NPC comes at the next restart", fresh.ServerID)
 	}
@@ -203,6 +204,7 @@ func (w *World) TemporaryNPCs() []NPCState {
 func (w *World) SetNPCClass(key string, class int) int {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	w.campClassLocked(key, class) // the camps' copies of rows of the name (campspawn.go)
 	n := 0
 	for _, npc := range w.NPCs {
 		if database.NPCClassKey(npc.Name) != key {
@@ -244,6 +246,8 @@ func (w *World) ReloadNPCs(store *database.NPCStore) (loaded, removed int, err e
 	for _, rec := range recs {
 		fresh := NPCFromRecord(rec, classes[database.NPCClassKey(rec.NPCName)], w.rangedModels)
 		w.applyNPCSettingsLocked(fresh) // as LoadNPCs makes it: its balanced hit points, then its class template
+		// a camp's copy of the row (campspawn.go)
+		w.campRecordLocked(rec, classes[database.NPCClassKey(rec.NPCName)])
 		if _, taken := w.Players[fresh.ServerID]; taken {
 			continue
 		}

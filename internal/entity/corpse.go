@@ -216,6 +216,10 @@ func (w *World) respawnNPCLocked(npc *NPC) {
 	// one that died as a charmed pet comes back itself, in its own world
 	// (charm.go)
 	npc.World = w.unCharmLocked(npc)
+	if npc.Dead {
+		// a camp's spawn back from a death pops one of its kinds (campspawn.go)
+		w.campRekindLocked(npc, time.Now())
+	}
 	npc.X = npc.SpawnX
 	npc.Y = npc.SpawnY
 	npc.Z = npc.SpawnZ

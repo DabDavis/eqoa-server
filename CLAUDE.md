@@ -843,6 +843,15 @@ most, CLIENT's room (`maxDialogOptions`: until then its twelve choices and twent
 six), and dyes it at once for nothing: `database.SetCharDye` (audited as #dye's, revertible in the panel) and
 `World.SetDyes`; boxes under mark 0x56000000. A GM's `#dye` takes every colour's name too (a name of two words run
 together: `skyblue`). Dyes show only in clients of the live game's look (vanilla).
+**Dabrish** (`handlers/dabrish.go`, any NPC so named; the GM Jibrish's petition 1266, 2026-11-08: "When talked to Dabrish
+should let players set their level. They can pick in increments of 5. Level 5 to level 60. They can change their level
+at will. He should also have an option for CM's to set them between 0 and 1000 CM's, but it will just add cm's on their
+existing total up to 1000. It wont remove CM's.") asks for a range (levels 5 to 30 or 35 to 60, mastery points 100 to
+500 or 600 to 1000 in all), then the one: a level is set as `#setlevel` sets it, up or down, any time
+(`ChatHandler.applyLevel`, the level alone); a mastery total is made up to with unspent points, spent and unspent
+counted together, never taken down (`ChatHandler.giveMastery`). Boxes under mark 0x5C000000. He stands on the Heirloom
+Test Server alone, beside the Freeport Announcements board (`~/charmigrate/dabrish_20261108.py` on the box: the body
+of Scribe of Marr, a robed gnome).
 
 **The heirloom weapons are epics** (`tools/heirloom_epics.py [--list] [--apply|--undo]`, over the seed's records; the
 user, 2026-11-06: "the heirloom weapons for every class lets make their lvl 60 epics. also add extra choices of weapons

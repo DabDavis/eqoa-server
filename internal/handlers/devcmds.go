@@ -540,6 +540,26 @@ func (h *ChatHandler) setRowLevel(sess *session.Session, gm *entity.Player, s gm
 // game and 1 in the database, F3 pass 13). A player whose level a GM set is
 // told.
 func (h *ChatHandler) setLevelFor(gm, sess *session.Session, player *entity.Player, level int) {
+	said := "Level"
+	if gm != sess {
+		said = player.Name + "'s level"
+	}
+	level, err := h.applyLevel(sess, player, level)
+	if err != nil {
+		h.gmReply(gm, fmt.Sprintf("%s set to %d, but not kept: %v", said, level, err))
+		return
+	}
+	h.gmReply(gm, fmt.Sprintf("%s set to %d", said, level))
+	if gm != sess {
+		SendColoredChat(sess, fmt.Sprintf("A GM set your level to %d.", level), 255, 255, 0)
+	}
+}
+
+// applyLevel is setLevelFor's work, said to no one (Dabrish's too,
+// dabrish.go): player's level, under its account's cap, where the game holds
+// it, told to its client and kept. It returns the level it came to and a
+// failure to keep it.
+func (h *ChatHandler) applyLevel(sess *session.Session, player *entity.Player, level int) (int, error) {
 	level = max(1, min(entity.LevelCap(h.isGM(sess)), level)) // the account's, read now
 	before := player.UnusedTP
 	h.gameWorld.SetPlayerLevel(player.CharServerID, level)
@@ -551,25 +571,17 @@ func (h *ChatHandler) setLevelFor(gm, sess *session.Session, player *entity.Play
 			SetTrainingPoints(uint32, int, int) error
 		}); ok {
 			if err := tp.SetTrainingPoints(player.CharServerID, unused, total); err != nil {
-				log.Printf("GM: #setlevel %d for '%s': training points not kept: %v", level, player.Name, err)
+				log.Printf("Level %d for '%s': training points not kept: %v", level, player.Name, err)
 			}
 		}
 	}
-	said := "Level"
-	if gm != sess {
-		said = player.Name + "'s level"
-	}
 	if h.progress != nil {
 		if err := h.progress.SetProgress(player.CharServerID, level, entity.TotalXP(level, 0)); err != nil {
-			log.Printf("GM: #setlevel %d for '%s' not kept: %v", level, player.Name, err)
-			h.gmReply(gm, fmt.Sprintf("%s set to %d, but not kept: %v", said, level, err))
-			return
+			log.Printf("Level %d for '%s' not kept: %v", level, player.Name, err)
+			return level, err
 		}
 	}
-	h.gmReply(gm, fmt.Sprintf("%s set to %d", said, level))
-	if gm != sess {
-		SendColoredChat(sess, fmt.Sprintf("A GM set your level to %d.", level), 255, 255, 0)
-	}
+	return level, nil
 }
 
 // setTunar is #tunar: the purse where the game holds it, told to the client

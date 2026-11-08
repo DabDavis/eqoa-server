@@ -57,6 +57,13 @@ type InteractHandler struct {
 	boardSpell func() (entity.CastSpell, bool)
 	// Mr. Moogie's boxes (moogie.go), under boardMu
 	moogie moogieAsks
+	// Dabrish's boxes (dabrish.go), under boardMu, and his work: a level set
+	// as #setlevel sets it (ChatHandler.applyLevel) and mastery points given
+	// as #grantcm gives them (ChatHandler.giveMastery). Nil: his ledger is
+	// closed.
+	dabrish        dabrishAsks
+	dabrishLevel   func(*session.Session, *entity.Player, int) (int, error)
+	dabrishMastery func(*session.Session, int) (int, entity.Mastery, bool, error)
 
 	// signTexts is signtext (database.SignTexts): what the signs and boards
 	// say (signs.go). Nil: a sign says world.npc_text's words for its name.
@@ -234,6 +241,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 
 	// Mr. Moogie (moogie.go): buffs cleared or a full heal, out of PvP and duels.
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.moogieTalk(sess, player, npc) {
+		return nil
+	}
+
+	// Dabrish (dabrish.go): a level of the player's choosing, or mastery points.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.dabrishTalk(sess, player, npc) {
 		return nil
 	}
 
@@ -527,6 +539,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// Mr. Moogie's (moogie.go); an old one does nothing
 	if h.answerMoogie(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// Dabrish's (dabrish.go); an old one does nothing
+	if h.answerDabrish(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// a coachman's offer to sign every ledger at once (coachledger.go); an

@@ -87,6 +87,10 @@ type NPCWindowHandler struct {
 
 	// genie is the lamps' genies (genie.go): a window one opened is theirs
 	genie *Genie
+
+	// archivist is the Spell Archivists (archivist.go): a request for one's
+	// window is answered with his question; nil, his shop opens at once
+	archivist *Archivist
 }
 
 // NewNPCWindowHandler creates the handler. inv may be nil (no database): the
@@ -306,6 +310,13 @@ func (h *NPCWindowHandler) HandleMerchantOpen(sess *session.Session, msg *protoc
 	// a quest's step to do at it is done first (questevents.go: CLIENT
 	// never talks to an NPC with a window)
 	if questsAtWindow(sess, player, npc) {
+		return nil
+	}
+	// a Spell Archivist asks first (archivist.go): his shop, the class's basic
+	// spells or a clear book; the request cleared so his box shows, as a
+	// quest's is
+	if h.archivist.Ask(sess, player, npc, id) {
+		refuse(sess)
 		return nil
 	}
 	h.openMerchant(sess, player, npc, id, merchantGreeting)

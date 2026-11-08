@@ -1103,8 +1103,21 @@ func (w *World) petTauntLocked(ps *petState, t *NPC, now time.Time) bool {
 		n = grandAnimationTaunt
 	}
 	log.Printf("Pet: %s's %q taunts %s (round %d)", ps.owner.Name, pet.Name, t.Name, ps.rounds)
+	w.showPetTauntLocked(pet, t.ServerID)
 	pet.LastCombatTime = now
 	return w.petDamageLocked(ps, t, n, now)
+}
+
+// petTauntFX is the visual a pet's taunt shows on its target: the Taunt
+// spells' (spelleffect.fxdict of Taunt, Provoke and their kin). A taunt of
+// hate alone showed nothing at all (the user, 2026-11-08: "i am not seeing the
+// taunt fire though it may be").
+const petTauntFX uint32 = 3483244074
+
+// showPetTauntLocked shows everyone who sees the pet its taunt on target
+// (0x00B1, as a creature's spell). Must be called with the lock held.
+func (w *World) showPetTauntLocked(pet *NPC, target EntityID) {
+	w.broadcastNPCSwingLocked(pet, target, 0, petTauntFX)
 }
 
 // petHitLocked is one of the pet's hits on its target, then its procs

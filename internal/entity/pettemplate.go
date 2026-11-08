@@ -822,6 +822,7 @@ func petTauntFigure(hits [][3]float64, level int) (n int, ok bool) {
 func (w *World) petTemplateTauntLocked(ps *petState, a *templateAbility, t *NPC, now time.Time) bool {
 	pet := ps.npc
 	w.petTopHateLocked(pet, t)
+	w.showPetTauntLocked(pet, t.ServerID) // pet.go
 	pet.LastCombatTime = now
 	if n, ok := petTauntFigure(a.Hits, pet.Level); ok {
 		if n == 0 {

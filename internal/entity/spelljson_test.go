@@ -220,9 +220,10 @@ func TestWorkbookResists(t *testing.T) {
 	}
 }
 
-// Stack types: two buffs of one stack type sharing a stat are one line, the
-// higher level's taking the lower's place and a lower refused under it;
-// another stack type, or no stat shared, stacks (the control).
+// Stack types: two buffs of one stack type and the same stats are one line,
+// the higher level's taking the lower's place and a lower refused under it;
+// another stack type, or no stat shared, stacks (the control). (Nested stats,
+// the one's within the other's: TestNestedResistLines.)
 func TestWorkbookStackTypes(t *testing.T) {
 	noResist(t)
 	buff := func(id, level, stack int, stats string) CastSpell {
@@ -233,7 +234,7 @@ func TestWorkbookStackTypes(t *testing.T) {
 		js := `{"v":1,"scope":"self","stack":` + itoa(stack) + `,"level":` + itoa(level) + `,"duration_s":600,"effects":[` + strings.Join(parts, ",") + `]}`
 		return wbSpell(id, level, 0, "Test Buff "+itoa(id), js)
 	}
-	low, high := buff(911, 10, 2, "ac,str"), buff(912, 20, 2, "ac")
+	low, high := buff(911, 10, 2, "ac,str"), buff(912, 20, 2, "ac,str")
 	other, apart := buff(913, 5, 3, "ac"), buff(914, 5, 2, "dex")
 	none := buff(915, 1, 0, "ac")
 	c := newCaster(t)
@@ -952,5 +953,75 @@ func TestAOneTimeHealWithAMaxHPBuff(t *testing.T) {
 	c.castOn(t, sp, 60*time.Second) // recast: its place taken, healed once more
 	if len(c.p.Effects) != 1 || c.p.MaxHPNow() != 836 || c.p.HP != 800 {
 		t.Errorf("recast: %d effects, %d/%d HP; want 1, 800/836", len(c.p.Effects), c.p.HP, c.p.MaxHPNow())
+	}
+}
+
+// Nested lines (the user, 2026-11-08: "the stronger pr/dr over rides the weaker
+// resist buff, but keeps the rest of the resist buffs from the resist buff"): a
+// cleric's all-resist buff (+55 to all six) and its PR/DR buff (+65), one stack
+// type, are both on in either order, PR and DR at the stronger 65 once (not 120)
+// and the other four at 55; the PR/DR buff ending leaves the resist buff's 55
+// to all. A PR/DR buff under a resist buff stronger in both (+85) is refused,
+// its caster told; a resist buff stronger in both over a PR/DR buff takes it
+// off. The control: two buffs sharing a stat with neither within the other
+// (+STR +DEX, +STR +AGI) are one line, the higher rank taking the lower's place.
+func TestNestedResistLines(t *testing.T) {
+	noResist(t)
+	buff := func(id, level int, amount int, stats string) CastSpell {
+		var parts []string
+		for _, s := range strings.Split(stats, ",") {
+			parts = append(parts, `{"kind":"stat","stat":"`+s+`","amount":`+itoa(amount)+`}`)
+		}
+		js := `{"v":1,"scope":"self","stack":1,"level":` + itoa(level) + `,"duration_s":600,"effects":[` + strings.Join(parts, ",") + `]}`
+		return wbSpell(id, level, 0, "Test Ward "+itoa(id), js)
+	}
+	resist := buff(921, 49, 55, "fr,cr,lr,pr,dr,ar")
+	prdr := buff(922, 54, 65, "pr,dr")
+	bigResist := buff(923, 60, 85, "fr,cr,lr,pr,dr,ar")
+	want := func(c *caster, label string, fr, pr int, names ...string) {
+		t.Helper()
+		got := c.effectNames()
+		if strings.Join(got, ",") != strings.Join(names, ",") {
+			t.Errorf("%s: effects %v, want %v", label, got, names)
+		}
+		m := c.p.Mods
+		if m.FR != fr || m.CR != fr || m.LR != fr || m.AR != fr || m.PR != pr || m.DR != pr {
+			t.Errorf("%s: FR %d CR %d LR %d AR %d PR %d DR %d, want %d and %d", label, m.FR, m.CR, m.LR, m.AR, m.PR, m.DR, fr, pr)
+		}
+	}
+	c := newCaster(t)
+	c.castOn(t, resist, 0)
+	c.castOn(t, prdr, 10*time.Second)
+	want(c, "the resist buff, then the PR/DR buff", 55, 65, resist.Name, prdr.Name)
+	c.w.mu.Lock()
+	c.w.removeEffectLocked(c.p, prdr.SpellID)
+	c.w.mu.Unlock()
+	want(c, "the PR/DR buff ended", 55, 55, resist.Name)
+
+	c = newCaster(t)
+	c.castOn(t, prdr, 0)
+	c.castOn(t, resist, 10*time.Second)
+	want(c, "the PR/DR buff, then the resist buff", 55, 65, prdr.Name, resist.Name)
+
+	c = newCaster(t)
+	c.castOn(t, bigResist, 0)
+	c.castOn(t, prdr, 10*time.Second)
+	want(c, "a PR/DR buff under a stronger resist buff", 85, 85, bigResist.Name)
+	if red := redLines(c.sess); len(red) == 0 || !strings.Contains(red[len(red)-1], bigResist.Name+", which is stronger") {
+		t.Errorf("the caster was not told: %q", red)
+	}
+
+	c = newCaster(t)
+	c.castOn(t, prdr, 0)
+	c.castOn(t, bigResist, 10*time.Second)
+	want(c, "a stronger resist buff over a PR/DR buff", 85, 85, bigResist.Name)
+
+	// the control: sharing STR, neither within the other
+	strDex, strAgi := buff(924, 20, 30, "str,dex"), buff(925, 30, 30, "str,agi")
+	c = newCaster(t)
+	c.castOn(t, strDex, 0)
+	c.castOn(t, strAgi, 10*time.Second)
+	if got := c.effectNames(); len(got) != 1 || got[0] != strAgi.Name || c.p.Mods.Dex != 0 || c.p.Mods.Str != 30 {
+		t.Errorf("the control: effects %v, STR %d DEX %d; want the higher alone", got, c.p.Mods.Str, c.p.Mods.Dex)
 	}
 }

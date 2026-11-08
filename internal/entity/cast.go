@@ -413,6 +413,63 @@ func (m *StatMods) add(st Stat, n int) {
 	}
 }
 
+// get is m's change of st (StatRanged is Pierce's, as add has it).
+func (m StatMods) get(st Stat) int {
+	switch st {
+	case StatStr:
+		return m.Str
+	case StatSta:
+		return m.Sta
+	case StatAgi:
+		return m.Agi
+	case StatDex:
+		return m.Dex
+	case StatWis:
+		return m.Wis
+	case StatInt:
+		return m.Int
+	case StatCha:
+		return m.Cha
+	case StatAC:
+		return m.AC
+	case StatMaxHP:
+		return m.MaxHP
+	case StatMaxPower:
+		return m.MaxPower
+	case StatFR:
+		return m.FR
+	case StatCR:
+		return m.CR
+	case StatPR:
+		return m.PR
+	case StatDR:
+		return m.DR
+	case StatLR:
+		return m.LR
+	case StatAR:
+		return m.AR
+	case StatMelee:
+		return m.Melee
+	case StatHoT:
+		return m.HoT
+	case StatPoT:
+		return m.PoT
+	case StatPierce, StatRanged:
+		return m.Pierce
+	case StatBlunt:
+		return m.Blunt
+	case StatSlash:
+		return m.Slash
+	case StatHPFactor:
+		return m.HPFactor
+	case StatOffMod:
+		return m.OffMod
+	case StatDefMod:
+		return m.DefMod
+	}
+	return 0
+}
+
 // take takes o's changes back off m (an effect's parts that end apart:
 // parts.go's takeOff).
 func (m *StatMods) take(o StatMods) {
@@ -1435,11 +1492,8 @@ func (w *World) removeEffectLocked(t *Player, spellID int) bool {
 // points and power within the maximums they make, and tells the client of a
 // new run speed. speed is the run speed before the change.
 func (w *World) effectsChangedLocked(t *Player, speed float32) {
-	var m StatMods
-	for _, e := range t.Effects {
-		m.sum(e.Mods)
-	}
-	t.Mods = m
+	t.Mods = sumEffectMods(t.Effects) // buffline.go: a stat nested lines share counts once
+
 	t.HP = min(t.HP, t.MaxHPNow())
 	t.Power = min(t.Power, t.MaxPowerNow())
 	t.StatsDirty = true

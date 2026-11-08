@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"log"
+	"slices"
 	"sort"
 	"strings"
 
@@ -66,6 +67,20 @@ import (
 // shared stat's spell is one effect). A workbook spell with no stack type has
 // no line: nothing it stacks with is refused or taken off (a recast of the
 // same spell still replaces itself, addEffectLocked).
+
+// Nested lines (the user, 2026-11-08: "cleric resist buff and the pr/dr buff
+// should stack", then "the stronger pr/dr over rides the weaker resist buff,
+// but keeps the rest of the resist buffs from the resist buff"): two workbook
+// stack lines of one stack type and bearer, not the same stats, the one's all
+// within the other's (the cleric's PR/DR line, Endure Ailment to Consume
+// Affliction, within its all-resist line, Elemental Ward to Mega's Clutch
+// Ward; their group forms the same), are not one line. Both stay on, and each
+// stat they share counts the stronger of the two once (sumEffectMods), the
+// rest of each as it is. One that would add nothing (no stat of it stronger
+// than the other's) is refused, as a lower rank is; one that gives all the
+// other did, as strongly or more, takes it off, as a higher rank does. Two
+// lines that share a stat but neither holds the other (+STR +DEX against +STR
+// +AGI) are one line, as before; so are the same stats (a line's ranks).
 
 // BuffLine is a spell's line, "" for one that has none: no lasting part but
 // ticks, an illusion, a pet's summoning or a charm. (A spell that lands on a
@@ -147,6 +162,90 @@ func sameLine(a, b string) bool {
 	return false
 }
 
+// stackLineParts is a workbook stack line's stack type and bearer ("stack1
+// player") and its stats' keys; ok is false for any other line.
+func stackLineParts(line string) (family string, keys []string, ok bool) {
+	if !strings.HasPrefix(line, stackLinePrefix) {
+		return "", nil, false
+	}
+	f := strings.Fields(line)
+	if len(f) < 3 {
+		return "", nil, false
+	}
+	return f[0] + " " + f[1], f[2:], true
+}
+
+// nestedLines reports two lines nested (the doc above): workbook stack lines
+// of one stack type and bearer, not the same, the one's keys all among the
+// other's.
+func nestedLines(a, b string) bool {
+	fa, ka, oka := stackLineParts(a)
+	fb, kb, okb := stackLineParts(b)
+	if !oka || !okb || fa != fb || a == b {
+		return false
+	}
+	return keysWithin(ka, kb) || keysWithin(kb, ka)
+}
+
+// keysWithin reports every key of a among b's.
+func keysWithin(a, b []string) bool {
+	for _, k := range a {
+		if !slices.Contains(b, k) {
+			return false
+		}
+	}
+	return true
+}
+
+// covers reports whether a gives every stat b raises, as much or more: b would
+// add nothing to a.
+func covers(a, b StatMods) bool {
+	for st := Stat(1); int(st) < len(statLineNames)-1; st++ {
+		if st != StatRanged && b.get(st) > 0 && a.get(st) < b.get(st) {
+			return false
+		}
+	}
+	return true
+}
+
+// sumEffectMods is what a bearer's effects add to its stats: each one's, but a
+// stat nested lines share (nestedLines) counts its largest once.
+func sumEffectMods(effects []*ActiveEffect) StatMods {
+	var m StatMods
+	for _, e := range effects {
+		m.sum(e.Mods)
+	}
+	type shared struct {
+		family string
+		st     Stat
+	}
+	raised := map[shared][]int{}
+	for _, e := range effects {
+		fam, keys, ok := stackLineParts(e.Line)
+		if !ok {
+			continue
+		}
+		for st := Stat(1); int(st) < len(statLineNames)-1; st++ {
+			if v := e.Mods.get(st); st != StatRanged && v > 0 && slices.Contains(keys, "+"+statLineNames[st]) {
+				k := shared{fam, st}
+				raised[k] = append(raised[k], v)
+			}
+		}
+	}
+	for k, vs := range raised {
+		if len(vs) < 2 {
+			continue // one effect raises it: as it is
+		}
+		total, top := 0, 0
+		for _, v := range vs {
+			total += v
+			top = max(top, v)
+		}
+		m.add(k.st, top-total)
+	}
+	return m
+}
+
 // lineRank is a spell's rank on its line: the workbook's level for a spell
 // of a stack type, else its record's.
 func lineRank(s *CastSpell) int {
@@ -179,7 +278,14 @@ func (w *World) lineTakesLocked(caster *Player, casterSess *session.Session, t *
 		return true
 	}
 	for _, e := range t.Effects {
-		if !sameLine(e.Line, ae.Line) || e.SpellID == ae.SpellID || e.Rank <= ae.Rank {
+		if e.SpellID == ae.SpellID {
+			continue
+		}
+		if nestedLines(e.Line, ae.Line) {
+			if !covers(e.Mods, ae.Mods) {
+				continue // both on, each shared stat its stronger once (the doc above)
+			}
+		} else if !sameLine(e.Line, ae.Line) || e.Rank <= ae.Rank {
 			continue
 		}
 		log.Printf("Cast: %s's %q (rank %d) does not take on %s: %q (rank %d) is on, line %s",
@@ -205,7 +311,10 @@ func (w *World) shareTakesLocked(caster *Player, ae *ActiveEffect) bool {
 		return true
 	}
 	for _, e := range caster.Effects {
-		if sameLine(e.Line, ae.Line) && e.SpellID != ae.SpellID && e.Rank > ae.Rank {
+		if e.SpellID == ae.SpellID {
+			continue
+		}
+		if nested := nestedLines(e.Line, ae.Line); nested && covers(e.Mods, ae.Mods) || !nested && sameLine(e.Line, ae.Line) && e.Rank > ae.Rank {
 			log.Printf("Cast: %s's share of %q (rank %d) does not take: %q (rank %d) is on", caster.Name, ae.Name, ae.Rank, e.Name, e.Rank)
 			return false
 		}
@@ -222,7 +331,16 @@ func (w *World) dropLineLocked(t *Player, ae *ActiveEffect) {
 	}
 	var drop []int
 	for _, e := range t.Effects {
-		if sameLine(e.Line, ae.Line) && e.SpellID != ae.SpellID {
+		if e.SpellID == ae.SpellID {
+			continue
+		}
+		if nestedLines(e.Line, ae.Line) {
+			if covers(ae.Mods, e.Mods) {
+				drop = append(drop, e.SpellID) // it gives all the other did, as strongly or more
+			}
+			continue
+		}
+		if sameLine(e.Line, ae.Line) {
 			drop = append(drop, e.SpellID)
 		}
 	}

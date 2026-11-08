@@ -87,10 +87,25 @@ type Message struct {
 	Opcode   GameOpcode
 	Sequence uint16
 	XORByte  byte
+	// Unsplit says a message read off the wire keeps all its bytes in its
+	// data, no opcode taken off the front: a piece of a longer message (0xFA:
+	// only the first piece starts with the opcode, session/fragments.go), a
+	// system message (0xF9, which has none), or a reliable one too short to
+	// hold one (the last piece of a message one byte past 1,300 bytes).
+	Unsplit  bool
 	Created  time.Time
 	LastSent time.Time
 	data     []byte
 	size     int
+}
+
+// Wire is a message's bytes as they came: its opcode (little end first) and
+// its data, or its data alone when it is Unsplit.
+func (m *Message) Wire() []byte {
+	if m.Unsplit {
+		return m.Data()
+	}
+	return append([]byte{byte(m.Opcode), byte(m.Opcode >> 8)}, m.Data()...)
 }
 
 // messagePool is a pool of Message objects for reuse.
@@ -147,6 +162,7 @@ func (m *Message) Reset() {
 	m.Opcode = 0
 	m.Sequence = 0
 	m.XORByte = 0
+	m.Unsplit = false
 	m.Created = time.Time{}
 	m.LastSent = time.Time{}
 	m.size = 0

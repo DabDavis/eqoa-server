@@ -389,3 +389,78 @@ func TestAWallStopsAThrownSplash(t *testing.T) {
 		t.Errorf("the one hit at %d, the one beside it at %d, the one behind the wall at %d", c.npc.HP, beside.HP, behind.HP)
 	}
 }
+
+// A heal or a buff needs its caster to see the body (sight.go; petition 1243, Dock:
+// "healing allows LOS through obstructions. do not allow heals through obstructions or
+// buffs"): a heal on a friend behind a wall is refused before its power is spent, and
+// lands on one this side of it (the control); a group's buff leaves out the member behind
+// the wall; a friend who steps behind the wall during the cast is spared, its caster told.
+// The other controls: harm on a creature behind the same wall begins as before, and with
+// nothing in the way every member is reached.
+func TestAHealNeedsItsCasterToSeeItsTarget(t *testing.T) {
+	c := newCaster(t) // the caster at (100, 10, 100)
+	c.w.SetGround(sightGround{wallAt(105)})
+	behind := &Player{ServerID: 1002, Name: "Tank", HP: 100, MaxHP: 900, X: 110, Y: 10, Z: 100}
+	near := &Player{ServerID: 1004, Name: "Near", HP: 100, MaxHP: 900, X: 103, Y: 10, Z: 101}
+	c.w.Players[behind.ServerID], c.w.Players[near.ServerID] = behind, near
+	vs := GetOrCreateVisibility(c.sess)
+	vs.ChannelEntity[1], vs.ChannelObjectID[1] = behind.ServerID, 0x1424A1D2
+	vs.ChannelEntity[2], vs.ChannelObjectID[2] = near.ServerID, 0x1424A1D3
+	heal := CastSpell{SpellID: 9101, Name: "Minor Healing", Scope: 1, Range: 30, CastTime: time.Second, PowerCost: 10,
+		Def: ParseSpellNamed("Minor Healing", "Target, Increase Hitpoints by 50", "")}
+
+	power := c.p.Power
+	if c.w.StartCast(c.sess, heal, 0x1424A1D2, c.at(0)) {
+		t.Fatal("a heal on a friend behind a wall began")
+	}
+	if lines := redLines(c.sess); c.p.Power != power || !slices.Contains(lines, castNotSeen) {
+		t.Errorf("behind a wall: power %d (was %d), lines %q", c.p.Power, power, lines)
+	}
+	c.sent()
+
+	c.land(t, heal, 0x1424A1D3, time.Minute)
+	if near.HP != 150 {
+		t.Errorf("the control, this side of the wall: HP %d, want 150", near.HP)
+	}
+
+	// stepping behind the wall during the cast
+	if !c.w.StartCast(c.sess, heal, 0x1424A1D3, c.at(2*time.Minute)) {
+		t.Fatal("the second heal did not begin")
+	}
+	near.X = 110
+	c.tick(2*time.Minute + heal.CastTime + castLand)
+	if lines := redLines(c.sess); near.HP != 150 || !slices.Contains(lines, castNotSeen) {
+		t.Errorf("behind the wall as it lands: HP %d, lines %q", near.HP, lines)
+	}
+	c.sent()
+	near.X = 103
+
+	// a group's buff
+	c.w.groups = map[uint32]*Group{7: {ID: 7, Members: []EntityID{c.p.ServerID, behind.ServerID, near.ServerID}}}
+	c.p.GroupID, behind.GroupID, near.GroupID = 7, 7, 7
+	ward := CastSpell{SpellID: 9102, Name: "Group Ward", Scope: 2, Range: 30,
+		Def: ParseSpellNamed("Group Ward", "Group, Increase AC by 10, 5min", "")}
+	targets := func() ([]EntityID, string) {
+		c.w.mu.Lock()
+		defer c.w.mu.Unlock()
+		return c.w.castTargetsLocked(c.sess, c.p, &ward, 0)
+	}
+	ids, refusal := targets()
+	c.w.SetGround(nil)
+	all, _ := targets()
+	c.w.SetGround(sightGround{wallAt(105)})
+	if refusal != "" || !slices.Equal(ids, []EntityID{c.p.ServerID, near.ServerID}) {
+		t.Errorf("the group's buff reaches %v (%q); want the caster and the member in sight", ids, refusal)
+	}
+	if len(all) != 3 {
+		t.Errorf("the control, nothing in the way: %v", all)
+	}
+
+	// harm on a creature behind the wall begins as it did
+	c.npc.X = 110
+	nuke := CastSpell{SpellID: 9103, Name: "Nuke", Scope: 1, Range: 30, CastTime: time.Second,
+		Def: ParseSpellNamed("Nuke", "Target, Decrease Hitpoints by 10", "")}
+	if !c.w.StartCast(c.sess, nuke, c.npcO, c.at(3*time.Minute)) {
+		t.Errorf("harm on a creature behind a wall did not begin: %q", redLines(c.sess))
+	}
+}

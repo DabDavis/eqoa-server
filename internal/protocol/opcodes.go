@@ -578,6 +578,38 @@ const (
 	// as they come.
 	OpcodeCombatRecordData GameOpcode = 0x7E21
 
+	// OpcodeRaceOptions is not retail: a custom race's own character options
+	// (entity/raceoptions.go, handlers/raceoptions.go): a u32 after the opcode,
+	// both ways, as OpcodeRaceLabels. The server offers it (1) after a session's
+	// first character list; a client that can answers 1 (0 to stop) and is sent
+	// the options each race has (OpcodeRaceOptionsData, once a session) and the
+	// looks the characters chose (OpcodeRaceLooks, then whenever they change). A
+	// PS2 ignores the offer: a body chosen is the character's model on every
+	// client, and nothing else of a look reaches one.
+	OpcodeRaceOptions GameOpcode = 0x7E22
+
+	// OpcodeRaceOptionsData is each race's options, to a client that answered
+	// OpcodeRaceOptions: u8 version (1), u8 races, then each: u8 race (as
+	// characters.race holds it), u8 rows, then each row: its key and label, u8
+	// kind (1 a body, 2 a colour, 3 a texture), u8 parts, then each part: u32 the
+	// body it is of, u8 entries and each palette entry (u8), u8 rects and each
+	// rect's four u8 (u0, v0, u1, v1 in 255ths of the texture); then u8 steps for
+	// a male and each step: its name, u32 value (a body's or a texture's DictID,
+	// or a colour), u16 size (a body's scale against its race's own, 1000ths; 0
+	// for a colour or a texture); then u8 steps for a female (0: the male's) and
+	// each as the male's. Every string is a u8 byte count and UTF-8.
+	OpcodeRaceOptionsData GameOpcode = 0x7E23
+
+	// OpcodeRaceLooks is the looks the characters chose, to a client that
+	// answered OpcodeRaceOptions: u8 version (1), u16 characters, then each: its
+	// name (a u8 byte count and UTF-8; a GM's both with and without the tag its
+	// channel name carries), u32 the body the look is of (its own model: a look
+	// is drawn only on it, never under an illusion or another body), u8 parts,
+	// then each part: u8 kind (2 a colour, 3 a texture), u32 value, u8 entries and
+	// each palette entry, u8 rects and each rect's four u8. Each one is the whole
+	// list: a name it leaves out is drawn in its body's own colours.
+	OpcodeRaceLooks GameOpcode = 0x7E24
+
 	// 0x7E10-0x7E16 were voice chat's (offer, config, roster, signal, room,
 	// lobby, room state), removed with it on 2026-11-08: left unused, as a
 	// client from before then may still send them
@@ -835,6 +867,12 @@ func (op GameOpcode) String() string {
 		return "CreationOffer"
 	case OpcodeCreationRaces:
 		return "CreationRaces"
+	case OpcodeRaceOptions:
+		return "RaceOptions"
+	case OpcodeRaceOptionsData:
+		return "RaceOptionsData"
+	case OpcodeRaceLooks:
+		return "RaceLooks"
 	case OpcodeNoCollideList:
 		return "NoCollideList"
 	case OpcodeFactionPage:

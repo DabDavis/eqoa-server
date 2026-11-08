@@ -540,6 +540,13 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	NewLiveLookHandler(charHandler).RegisterHandlers(r)
 	// what creation takes past the game's, to a client that can show it (creation.go)
 	NewCreationHandler().RegisterHandlers(r)
+	// a custom race's own options and the looks chosen, to a client that can
+	// show them (0x7E22; raceoptions.go)
+	if charStore != nil {
+		NewRaceOptionsHandler(gameWorld, charStore.DB()).RegisterHandlers(r)
+	} else {
+		NewRaceOptionsHandler(gameWorld, nil).RegisterHandlers(r)
+	}
 	if charStore != nil && charStore.DB() != nil {
 		chatHandler.SetDyeStore(charStore.DB())
 		// the Armor Dyers (dyer.go) dye as #dye does

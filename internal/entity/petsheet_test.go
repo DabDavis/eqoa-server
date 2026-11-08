@@ -248,3 +248,15 @@ func TestPetStatsProblems(t *testing.T) {
 		t.Errorf("problems %q: want the bad type and the missing spell", r.w.ClassTemplateProblems())
 	}
 }
+
+// A row's own size is its pet's (petition 1283: the Ghilan Noble's body no NPC
+// wears came out at 1, a third of hers); 0 keeps its body's (the control).
+func TestAWorkbookPetsOwnSize(t *testing.T) {
+	for _, c := range []struct{ size, want float32 }{{3, 3}, {0, 1.25}} {
+		pet := &NPC{Size: 1.25}
+		applyPetSheet(pet, &petSheet{PetStats: database.PetStats{Size: c.size}})
+		if pet.Size != c.want {
+			t.Errorf("row size %v: the pet's %v, want %v", c.size, pet.Size, c.want)
+		}
+	}
+}

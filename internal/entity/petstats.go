@@ -216,6 +216,9 @@ func applyPetSheet(pet *NPC, s *petSheet) {
 	if s.Wpn1Dmg > 0 {
 		pet.WeaponDamage = s.Wpn1Dmg
 	}
+	if s.Size > 0 { // the row's own scale over its body's wearers' (petition 1283)
+		pet.Size = s.Size
+	}
 }
 
 // attackTypeEmptyHand is CLIENT's attack type of a hand that holds nothing.

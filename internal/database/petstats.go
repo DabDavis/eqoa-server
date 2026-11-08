@@ -49,6 +49,9 @@ import (
 //   - abilities, a JSON list of TemplateAbility as classtemplates has them,
 //     its spells pinned by spell_id: what it casts, in place of its pet
 //     template's abilities (keep_template 1: those as well);
+//   - size: its scale (0: its body's wearers', within a person's; Waldorf's
+//     petition 1283, 2026-11-08: "Ghilan Noble MCA for hydromancer is about a
+//     third of the size she should be", a body no NPC wears, so 1);
 //   - note; source eqoaemu (the tool's rows) or gm.
 const petStatsSchema = `
 	CREATE TABLE IF NOT EXISTS petstats (
@@ -96,6 +99,7 @@ const petStatsSchema = `
 		wpn2_type       TEXT NOT NULL DEFAULT '',
 		abilities       TEXT NOT NULL DEFAULT '[]',
 		keep_template   INTEGER NOT NULL DEFAULT 0,
+		size            REAL NOT NULL DEFAULT 0,
 		note            TEXT NOT NULL DEFAULT '',
 		source          TEXT NOT NULL DEFAULT 'gm'
 	);`
@@ -148,6 +152,7 @@ type PetStats struct {
 	Wpn2Type                     string
 	Abilities                    []TemplateAbility
 	KeepTemplate                 bool
+	Size                         float32 // its scale; 0 its body's wearers'
 	Note                         string
 }
 
@@ -224,10 +229,20 @@ func CheckPetStats(p PetStats) error {
 	return nil
 }
 
-// ensurePetStats makes petstats (initSchema), empty: the tool fills it.
+// ensurePetStats makes petstats (initSchema), empty: the tool fills it, and
+// adds size to a table made before it.
 func (db *SQLiteDB) ensurePetStats() error {
 	if _, err := db.Exec(petStatsSchema); err != nil {
 		return fmt.Errorf("petstats: %w", err)
+	}
+	has, err := hasColumn(db.DB, "petstats", "size")
+	if err != nil {
+		return fmt.Errorf("petstats: %w", err)
+	}
+	if !has {
+		if _, err := db.Exec(`ALTER TABLE petstats ADD COLUMN size REAL NOT NULL DEFAULT 0`); err != nil {
+			return fmt.Errorf("petstats: %w", err)
+		}
 	}
 	return nil
 }
@@ -235,7 +250,7 @@ func (db *SQLiteDB) ensurePetStats() error {
 const petStatsColumns = `spellid, sheet_pet_id, name, model, primary_model, secondary_model, level, type, element, stances,
 	ac, str, sta, agi, dex, wis, intelligence, cha, hp, power, hot, pot, ar, cr, lr, fr, pr, dr,
 	str_max, sta_max, agi_max, dex_max, wis_max, int_max, cha_max, hp_factor, off_mod, def_mod,
-	wpn1_dmg, wpn1_type, wpn2_dmg, wpn2_type, abilities, keep_template, note`
+	wpn1_dmg, wpn1_type, wpn2_dmg, wpn2_type, abilities, keep_template, size, note`
 
 // PetStatsRows is petstats' rows by summoning spell; bad says each row it
 // could not use and why (it is left out: its pets are as before).
@@ -251,11 +266,12 @@ func (db *SQLiteDB) PetStatsRows() (rows map[int]PetStats, bad []string, err err
 		var model, primary, secondary int64
 		var stances, abilities string
 		var keep int
+		var size float64
 		if err := q.Scan(&p.SpellID, &p.SheetPetID, &p.Name, &model, &primary, &secondary, &p.Level, &p.Type, &p.Element,
 			&stances, &p.AC, &p.Str, &p.Sta, &p.Agi, &p.Dex, &p.Wis, &p.Int, &p.Cha, &p.HP, &p.Power, &p.HoT, &p.PoT,
 			&p.AR, &p.CR, &p.LR, &p.FR, &p.PR, &p.DR, &p.StrMax, &p.StaMax, &p.AgiMax, &p.DexMax, &p.WisMax, &p.IntMax,
 			&p.ChaMax, &p.HPFactor, &p.OffMod, &p.DefMod, &p.Wpn1Dmg, &p.Wpn1Type, &p.Wpn2Dmg, &p.Wpn2Type, &abilities,
-			&keep, &p.Note); err != nil {
+			&keep, &size, &p.Note); err != nil {
 			return nil, nil, err
 		}
 		p.Model, p.PrimaryModel, p.SecondaryModel = uint32(model), uint32(primary), uint32(secondary)
@@ -264,6 +280,7 @@ func (db *SQLiteDB) PetStatsRows() (rows map[int]PetStats, bad []string, err err
 		p.Wpn1Type = strings.ToLower(strings.TrimSpace(p.Wpn1Type))
 		p.Wpn2Type = strings.ToLower(strings.TrimSpace(p.Wpn2Type))
 		p.KeepTemplate = keep != 0
+		p.Size = float32(size)
 		var perr error
 		if p.Stances, perr = ParsePetStances(stances); perr == nil {
 			if p.Abilities, perr = ParseTemplateAbilities(abilities); perr == nil {

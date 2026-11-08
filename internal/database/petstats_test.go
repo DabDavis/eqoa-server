@@ -19,10 +19,10 @@ func TestPetStatsRows(t *testing.T) {
 			eqprequire, spellname, spelldesc) VALUES (902100, 21, 0, 0, 16880, 1, 10, 0, 0, 1, 12, 0, 'Pet Strike', '')`,
 		`INSERT INTO spelleffect (spellid, line, fxdict, source) VALUES (902100, 'Target, Decrease Hitpoints by 84', 0, 'test')`,
 		`INSERT INTO petstats (spellid, sheet_pet_id, name, model, level, type, stances, ac, str, intelligence, hp, ar, dr,
-			cha_max, wpn1_dmg, wpn1_type, wpn2_dmg, wpn2_type, abilities, keep_template, source) VALUES
+			cha_max, wpn1_dmg, wpn1_type, wpn2_dmg, wpn2_type, abilities, keep_template, size, source) VALUES
 			(717, 'T001', ' Test Flame ', 3000000000, 38, 'Melee', 'Passive, Defensive', 1100, 55, 12, 2500, 20, 25,
 			400, 450, 'Slash', 400, 'pierce',
-			'[{"kind":"nuke","spell_id":902100,"every":6},{"kind":"heal","spell_id":902100,"target":"either","every":30}]', 1, 'eqoaemu')`,
+			'[{"kind":"nuke","spell_id":902100,"every":6},{"kind":"heal","spell_id":902100,"target":"either","every":30}]', 1, 3.0, 'eqoaemu')`,
 		`INSERT INTO petstats (spellid, name, type) VALUES (2, 'odd type', 'wizard')`,
 		`INSERT INTO petstats (spellid, name, stances) VALUES (3, 'odd stance', 'berserk')`,
 		`INSERT INTO petstats (spellid, name, wpn1_type) VALUES (4, 'odd weapon', 'axe')`,
@@ -43,7 +43,7 @@ func TestPetStatsRows(t *testing.T) {
 		t.Fatalf("rows %v: want 717 alone", rows)
 	}
 	if p.Name != "Test Flame" || p.Model != 3000000000 || p.Level != 38 || p.Type != PetTypeMelee || p.AC != 1100 ||
-		p.Str != 55 || p.Int != 12 || p.HP != 2500 || p.AR != 20 || p.DR != 25 || p.ChaMax != 400 || !p.KeepTemplate {
+		p.Str != 55 || p.Int != 12 || p.HP != 2500 || p.AR != 20 || p.DR != 25 || p.ChaMax != 400 || !p.KeepTemplate || p.Size != 3 {
 		t.Errorf("row read %+v", p)
 	}
 	if p.Wpn1Dmg != 450 || p.Wpn1Type != "slash" || p.Wpn2Dmg != 400 || p.Wpn2Type != "pierce" {

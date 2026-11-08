@@ -25,8 +25,8 @@ import (
 // rest to the codes the client shows, "System is temporarily unavailable.
 // (Code: -n)"), then the rest.
 //
-//	0 request  in: zigzag category, zigzag subcategory, wide text
-//	1 reply    in: zigzag id, wide text; the client asks for the text again
+//	0 request  in: zigzag category, zigzag subcategory, wide text (CSTextMost)
+//	1 reply    in: zigzag id, wide text (CSTextMost); the client asks for the text again
 //	2 inbox    out: status, u32 (unread by the client), zigzag count, each header
 //	3 open     in: zigzag id; out: status, wide text
 //	4 delete   in: zigzag id; out: status, zigzag id
@@ -66,6 +66,25 @@ const (
 // csShownMax is the most of a ticket's text CLIENT keeps (its message
 // buffer, 8192 wide characters with the end).
 const csShownMax = 8191
+
+// CSTextMost is the most UTF-16 units of one request's or reply's text this
+// server takes (sub-ops 0 and 1), and offers with bug reports
+// (buildBugReportOffer) for a client to let its form hold: vanilla's form, 2,048
+// with its end, where a PS2's (VIWndCSRequest's m_text) holds 512. A text that
+// long goes in pieces (a request is 9 bytes and two a character, one message
+// at most 1,300), which the listener puts back together
+// (session/fragments.go). A gram's text keeps readWide's 1,024.
+const CSTextMost = 2047
+
+// readCSText is a request's or reply's text: refused past CSTextMost.
+func readCSText(r *buffer.Reader) (string, bool) {
+	n, err := r.ReadUint32()
+	if err != nil || n > CSTextMost {
+		return "", false
+	}
+	s, err := r.ReadStringUnicode(int(n))
+	return s, err == nil
+}
 
 type csSub struct {
 	id     int64
@@ -293,7 +312,7 @@ func (h *SupportHandler) handleRequest(sess *session.Session, msg *protocol.Mess
 	case 0:
 		cat, err1 := r.Read7BitEncodedInt64()
 		subcat, err2 := r.Read7BitEncodedInt64()
-		text, ok := readWide(r)
+		text, ok := readCSText(r)
 		if err1 != nil || err2 != nil || !ok {
 			csReply(sess, 0, csBad, nil)
 			return nil
@@ -311,7 +330,7 @@ func (h *SupportHandler) handleRequest(sess *session.Session, msg *protocol.Mess
 		csReply(sess, 0, csOK, nil)
 	case 1:
 		id, err := r.Read7BitEncodedInt64()
-		text, ok := readWide(r)
+		text, ok := readCSText(r)
 		if err != nil || !ok {
 			csReply(sess, 1, csBad, nil)
 			return nil

@@ -351,6 +351,10 @@ type Player struct {
 	// VampireSun.GMs may spare.
 	Vampire bool
 	GM      bool
+	// ArmorBody is its race's body for the armour on its chest, 0 its own (armorbody.go)
+	ArmorBody uint32
+	// stuckNext is when /stuck may be used again (stuck.go)
+	stuckNext time.Time
 }
 
 // BuffSlot is one active effect as CLIENT's Channel43 reads it into

@@ -270,6 +270,13 @@ func main() {
 		log.Printf("WARNING: %v; undead by their names alone", err)
 	}
 	log.Printf("Creatures: %s", gameWorld.UndeadSummary())
+	// The bodies a race wears for the armour on its chest (entity/armorbody.go, table
+	// racearmorbody): the hill giant's in other giants' armoured bodies
+	if n, err := gameWorld.LoadRaceArmorBodies(db); err != nil {
+		log.Printf("WARNING: %v; every race in its own body", err)
+	} else {
+		log.Printf("Players: %d bodies by the armour on the chest (racearmorbody)", n)
+	}
 	// How the creatures of a name take a charm: uncharmable, a resist of
 	// their own, the template a charmed one fights by (entity/charm.go, table
 	// npccharm; its summary after the templates are read, below)

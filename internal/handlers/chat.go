@@ -243,6 +243,13 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		return nil
 	}
 
+	// /stuck (or #stuck; a PS2's is "/t stuck", below): home, as a gate sends its caster,
+	// everyone's (entity/stuck.go)
+	if word, _, _ := strings.Cut(message, " "); strings.EqualFold(word, "/stuck") || strings.EqualFold(word, "#stuck") {
+		stuckCommand(h.gameWorld, sess)
+		return nil
+	}
+
 	// /record [name] (or #record; a PS2's is "/t record [name]", below): a combat
 	// record, its own or any character's, everyone's (combatrecord.go)
 	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/record") || strings.EqualFold(word, "#record") {
@@ -271,6 +278,11 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		// the PvP flag the same way (pvp.go)
 		if body == "" && strings.EqualFold(name, "pvp") {
 			pvpCommand(h.gameWorld, sess, "", time.Now())
+			return nil
+		}
+		// and /stuck (entity/stuck.go)
+		if body == "" && strings.EqualFold(name, "stuck") {
+			stuckCommand(h.gameWorld, sess)
 			return nil
 		}
 		// and the combat record: "/t record" its own, "/t record <name>" a
@@ -1341,4 +1353,14 @@ func (h *ChatHandler) whoList(sess *session.Session) {
 		n = "player is"
 	}
 	sess.Queue().AddWithSequence(buildClientMessage(fmt.Sprintf("%d %s in the world.", len(lines), n)))
+}
+
+// stuckCommand is /stuck: its player home, or the line saying why not (entity/stuck.go).
+func stuckCommand(w *entity.World, sess *session.Session) {
+	if w == nil {
+		return
+	}
+	if why := w.Stuck(sess, time.Now()); why != "" {
+		SendErrorMessage(sess, why)
+	}
 }

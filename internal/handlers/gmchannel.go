@@ -318,10 +318,17 @@ func buildGMPrompt(name string) []byte {
 
 // SendGMChannel gives a GM's client the channel (0x0700 35, on) at its world
 // entry, and offers it the triggers' names (0x7E07, gmtriggers.go); anyone
-// else's is sent nothing. A client keeps the channel until its next login
-// (vanilla) or the console's next boot (a PS2), whichever comes.
+// else's is sent nothing, but a sub GM's (devcmds.go: it may #fly), whose
+// client is offered the names alone: vanilla says it flies in its answer
+// (fly.go), and the names themselves go to a GM alone (HandleGMTriggerNames). A
+// client keeps the channel until its next login (vanilla) or the console's next
+// boot (a PS2), whichever comes.
 func (h *ChatHandler) SendGMChannel(sess *session.Session) {
 	if !h.isGM(sess) {
+		if h.isSubGM(sess) {
+			queueReliable(sess, protocol.OpcodeGMTriggers, buildTriggerNamesOffer())
+			log.Printf("Fly: account %d (a sub GM) offered the flight", sess.AccountID())
+		}
 		return
 	}
 	// and the world knows its character is a GM's (a GM's vampire may be

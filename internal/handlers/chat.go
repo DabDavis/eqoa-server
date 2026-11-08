@@ -292,8 +292,9 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 	}
 
 	// A GM's /command spelling of a # command (devcmds.go), from a client
-	// that forwards the /commands it does not know.
-	if gm := slashGM(message); gm != "" && h.isGM(sess) {
+	// that forwards the /commands it does not know; and a sub GM's of its own
+	// (devcmds.go's granted: /fly).
+	if gm := slashGM(message); gm != "" && (h.isGM(sess) || h.granted(sess, strings.ToLower(strings.Fields(gm)[0]))) {
 		h.handleGMCommand(sess, player, gm)
 		return nil
 	}
@@ -828,14 +829,15 @@ func worldName(w byte) string {
 
 // handleGMCommand processes server-side GM commands (start with #): a GM's
 // alone (devcmds.go: accountinfo.acctlevel 1 or more), but #hddsetup, which
-// is everyone's.
+// is everyone's, and a sub GM's (devcmds.go's subGMCommands: #fly), those
+// alone for a sub GM.
 func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Player, message string) {
 	parts := strings.Fields(message)
 	if len(parts) == 0 {
 		return
 	}
 	cmd := strings.ToLower(parts[0])
-	if cmd != "#hddsetup" && !h.isGM(sess) {
+	if cmd != "#hddsetup" && !h.isGM(sess) && !h.granted(sess, cmd) {
 		SendErrorMessage(sess, fmt.Sprintf("Unrecognized command %q.", parts[0]))
 		return
 	}

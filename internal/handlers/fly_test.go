@@ -221,3 +221,86 @@ func TestAFlyingGMStaysFlyingThroughARestart(t *testing.T) {
 		}
 	}
 }
+
+// subs is levels with the sub GMs (a tester's row marked subgm).
+type subs struct {
+	levels
+	sub map[int]bool
+}
+
+func (g subs) SubGM(id int) (bool, error) { return g.sub[id], nil }
+
+// A sub GM (the user, 2026-11-08: "make his account a sub gm new category above
+// tester than can fly"): its world entry offers its client the flight (0x7E07),
+// never the GM channel (0x0700); /fly and #fly turn it over; no other GM command
+// (/goto, #pos) is its. The control: an account that is no sub GM is offered
+// nothing and its /fly is an unknown command.
+func TestASubGMFlies(t *testing.T) {
+	c := newChatWorld(t)
+	c.h.SetAccessLevels(subs{levels{1: 0, 2: 0}, map[int]bool{1: true}})
+	fs, fp := c.join(1, "Neo", 25000, 15000, 0)
+	fs.SetAccountID(1)
+	ps, pp := c.join(2, "Player", 25010, 15010, 0)
+	ps.SetAccountID(2)
+	ops := func(s *session.Session) (offer, channel int) {
+		for _, m := range s.Queue().PeekPending() {
+			d := m.Data()
+			if len(d) < 2 {
+				continue
+			}
+			switch protocol.GameOpcode(binary.LittleEndian.Uint16(d)) {
+			case protocol.OpcodeGMTriggers:
+				offer++
+			case protocol.OpcodeAdminCode:
+				channel++
+			}
+		}
+		return
+	}
+	fs.Queue().GetPending()
+	ps.Queue().GetPending()
+	c.h.SendGMChannel(fs)
+	c.h.SendGMChannel(ps)
+	if offer, channel := ops(fs); offer != 1 || channel != 0 {
+		t.Fatalf("the sub GM's world entry: %d offers, %d GM channels; want 1 and 0", offer, channel)
+	}
+	if offer, channel := ops(ps); offer != 0 || channel != 0 {
+		t.Fatalf("the control's world entry: %d offers, %d GM channels; want none", offer, channel)
+	}
+	fs.Queue().GetPending()
+	fs.SetFlyClient(true) // its answer to the offer
+	ps.SetFlyClient(true)
+
+	c.say(fs, "/fly")
+	if !fp.Flying {
+		t.Fatal("the sub GM's /fly did not turn it on")
+	}
+	if got := flyMessages(fs); len(got) != 1 || got[0] != 1 {
+		t.Fatalf("its client was told %v, want one 1", got)
+	}
+	saysFly(t, fs, flyOnLine)
+	fs.Queue().GetPending()
+	c.say(fs, "#fly off")
+	if fp.Flying {
+		t.Fatal("#fly off did not turn it off")
+	}
+	fs.Queue().GetPending()
+	for _, other := range []string{"/goto 1 2 3", "#pos"} {
+		c.say(fs, other)
+		if got := heard(t, fs); len(got) != 1 || !strings.HasPrefix(got[0].text, "Unrecognized command") {
+			t.Fatalf("the sub GM's %s, a GM's command: %+v", other, got)
+		}
+		if _, _, _, moved := teleported(fs); moved {
+			t.Fatalf("the sub GM's %s moved it", other)
+		}
+		fs.Queue().GetPending()
+	}
+
+	c.say(ps, "/fly")
+	if got := heard(t, ps); len(got) != 1 || !strings.HasPrefix(got[0].text, "Unrecognized command") {
+		t.Fatalf("the control's /fly: %+v", got)
+	}
+	if pp.Flying || len(flyMessages(ps)) != 0 {
+		t.Fatalf("the control flies: %v, %v", pp.Flying, flyMessages(ps))
+	}
+}

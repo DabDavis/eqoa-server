@@ -1322,7 +1322,9 @@ func (h *ChatHandler) HandleGMTriggerNames(sess *session.Session, msg *protocol.
 		return nil
 	}
 	if !h.isGM(sess) {
-		log.Printf("Triggers: account %d asked for the names, not a GM: dropped", sess.AccountID())
+		if !h.isSubGM(sess) { // a sub GM's answer to its offer (SendGMChannel), the names a GM's
+			log.Printf("Triggers: account %d asked for the names, not a GM: dropped", sess.AccountID())
+		}
 		return nil
 	}
 	on := binary.LittleEndian.Uint32(data[:4]) != 0

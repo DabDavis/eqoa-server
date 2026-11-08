@@ -48,8 +48,10 @@ CREATE TABLE IF NOT EXISTS gm_oauth_clients (
 ` + testersSchema
 
 func (s *Server) initSchema() error {
-	_, err := s.d.DB.Exec(panelSchema)
-	return err
+	if _, err := s.d.DB.Exec(panelSchema); err != nil {
+		return err
+	}
+	return ensureSubGMColumn(s.d.DB) // tester.go
 }
 
 // stamp is a time as the panel's tables keep it.

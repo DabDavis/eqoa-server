@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/eqoa/server/internal/database"
 )
 
 // A tester (the user, 2026-11-07: "lets add a lower than GM level role where
@@ -43,9 +45,51 @@ CREATE TABLE IF NOT EXISTS gm_testers (
 	accountid  INTEGER PRIMARY KEY,
 	granted_by TEXT NOT NULL DEFAULT '',
 	granted_at TEXT NOT NULL DEFAULT '',
-	note       TEXT NOT NULL DEFAULT ''
+	note       TEXT NOT NULL DEFAULT '',
+	subgm      INTEGER NOT NULL DEFAULT 0
 );
 `
+
+// A sub GM (the user, 2026-11-08: "make his account a sub gm new category above
+// tester than can fly") is a tester whose row says subgm: the tester's panel,
+// and in the game, a player still, the sub GM's commands (handlers/devcmds.go's
+// subGMCommands: #fly). An admin sets the column on the Testers table.
+// subGMColumn is the column a table made before them is given.
+const subGMColumn = `ALTER TABLE gm_testers ADD COLUMN subgm INTEGER NOT NULL DEFAULT 0`
+
+// ensureSubGMColumn gives a gm_testers made before the sub GMs its subgm
+// column.
+func ensureSubGMColumn(db *database.SQLiteDB) error {
+	rows, err := db.Query(`SELECT name FROM pragma_table_info('gm_testers')`)
+	if err != nil {
+		return err
+	}
+	has := false
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			rows.Close()
+			return err
+		}
+		has = has || name == "subgm"
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	if has {
+		return nil
+	}
+	_, err = db.Exec(subGMColumn)
+	return err
+}
+
+// subGMFlag is whether the account is a sub GM; on any error no.
+func (s *Server) subGMFlag(accountID int) bool {
+	var n int
+	err := s.d.DB.QueryRow(`SELECT COUNT(*) FROM gm_testers WHERE accountid = ? AND subgm != 0`, accountID).Scan(&n)
+	return err == nil && n > 0
+}
 
 // testerTableList is every table a tester reads and changes: what an item or a
 // spell IS. An item's record, what using it does (itemeffect) and how a meal
@@ -276,6 +320,7 @@ func (s *Server) testerStatus(a *actor) map[string]any {
 	return map[string]any{
 		"you": map[string]any{
 			"username": a.Username, "accountid": a.AccountID, "level": a.Level, "admin": false, "role": roleTester,
+			"subgm": s.subGMFlag(a.AccountID),
 			"scope": a.Scope, "via": a.Via,
 			"may": "read and change the item and spell records: " + strings.Join(testerTableList, ", ") + ". Nothing else.",
 		},

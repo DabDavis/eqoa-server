@@ -154,7 +154,11 @@ func (h *EquipHandler) scribe(sess *session.Session, player *entity.Player, idx 
 	case p.ClassUse&(1<<uint(player.Class)) == 0:
 		refuse(scribeWrongClass)
 		return
-	case raceUseForWire(p.RaceUse)&(1<<uint(entity.WireRace(player.Race))) == 0:
+	case !entity.Creation().AllClasses && raceUseForWire(p.RaceUse)&(1<<uint(entity.WireRace(player.Race))) == 0:
+		// a scroll's races are the ones SOE let be its classes; with every class open to
+		// every race (world.all_classes) they no longer decide (petition 1237, Smolsk: "new
+		// race/classes need to be updated for spells": a gnome shadow knight was refused
+		// every shadow knight's scroll)
 		refuse(scribeWrongRace)
 		return
 	case player.Level < p.LevelReq:

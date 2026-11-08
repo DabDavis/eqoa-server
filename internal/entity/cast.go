@@ -973,11 +973,16 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 		if outOfRange(p, pet.X, pet.Y, pet.Z, spell.Range) {
 			return nil, refuseOutOfRange(p, spell, pet.Name, pet.X, pet.Y, pet.Z, spell.Range)
 		}
+		if !w.helpSeenLocked(p, d, pet.World, pet.X, pet.Y, pet.Z, false) { // sight.go
+			return nil, castNotSeen
+		}
 		return []EntityID{pet.ServerID}, ""
 	case 2:
 		ids := []EntityID{p.ServerID}
 		for _, m := range w.groupMembersLocked(p) {
-			if m != p && !m.IsDead() && m.World == p.World && !outOfRange(p, m.X, m.Y, m.Z, spell.Range) {
+			// the members its caster can see (sight.go)
+			if m != p && !m.IsDead() && m.World == p.World && !outOfRange(p, m.X, m.Y, m.Z, spell.Range) &&
+				w.helpSeenLocked(p, d, m.World, m.X, m.Y, m.Z, false) {
 				ids = append(ids, m.ServerID)
 			}
 		}
@@ -1011,6 +1016,9 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 		if t != p && outOfRange(p, t.X, t.Y, t.Z, spell.Range) {
 			return nil, refuseOutOfRange(p, spell, t.Name, t.X, t.Y, t.Z, spell.Range)
 		}
+		if !w.helpSeenLocked(p, d, t.World, t.X, t.Y, t.Z, t == p) { // sight.go
+			return nil, castNotSeen
+		}
 		return []EntityID{t.ServerID}, ""
 	case *NPC:
 		if t.Dead {
@@ -1023,6 +1031,9 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 			}
 			if outOfRange(p, t.X, t.Y, t.Z, spell.Range) {
 				return nil, refuseOutOfRange(p, spell, t.Name, t.X, t.Y, t.Z, spell.Range)
+			}
+			if !w.helpSeenLocked(p, d, t.World, t.X, t.Y, t.Z, false) { // sight.go
+				return nil, castNotSeen
 			}
 			return []EntityID{t.ServerID}, ""
 		}
@@ -1195,7 +1206,8 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 				continue
 			}
 			w.rezLandLocked(cs, caster, casterSess, t, now) // resurrect.go: on the dead too
-			if !t.IsDead() {
+			// a heal or a buff spares a body out of its caster's sight (sight.go)
+			if !t.IsDead() && !w.helpHiddenLocked(cs, caster, casterSess, t.Name, t.World, t.X, t.Y, t.Z, t == caster) {
 				w.landOnPlayerLocked(cs, caster, casterSess, t, now)
 			}
 			continue
@@ -1209,7 +1221,9 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 				if w.duelLandPetLocked(cs, caster, npc, now) { // harm on a pet: a duel's (duelfight.go)
 					continue
 				}
-				w.landOnPetLocked(cs, caster, casterSess, npc, now)
+				if !w.helpHiddenLocked(cs, caster, casterSess, npc.Name, npc.World, npc.X, npc.Y, npc.Z, false) { // sight.go
+					w.landOnPetLocked(cs, caster, casterSess, npc, now)
+				}
 				continue
 			}
 			if w.areaOwnSparedLocked(caster, cs, npc) { // area.go: behind a rock from its caster

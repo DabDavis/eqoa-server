@@ -464,3 +464,36 @@ func TestScribeAsksForTheSpellsLevel(t *testing.T) {
 		t.Errorf("the control, a level 12 knight: book %+v, %d items left", b, len(f.rowsOf()))
 	}
 }
+
+// With every class open to every race (world.all_classes) a scroll's race list does
+// not refuse (petition 1237, Smolsk: "new race/classes need to be updated for spells":
+// a gnome shadow knight was told "This item can't be used by your race." at every
+// shadow knight's scroll): a halfling druid scribes a druid's scroll that lists no
+// halfling. The control: with the classes as SOE had them, the same scroll is refused
+// as before, and kept.
+func TestScribeTakesAnyRaceWhenEveryClassIsOpen(t *testing.T) {
+	was := entity.Creation()
+	defer entity.SetCreationRules(was)
+	for _, open := range []bool{false, true} {
+		entity.SetCreationRules(entity.CreationRules{Races: open, AllClasses: open})
+		f := newScribeFixture(t)
+		f.spell(1, "Wolf Form", 1)
+		id := f.item("Wolf Form", true, 1<<classDruid, 1, 1)
+		if _, err := f.db.Exec(`UPDATE itempattern SET raceuse = ? WHERE patternid = ?`, 1023&^(1<<raceHalfing), id); err != nil {
+			t.Fatal(err)
+		}
+		f.own(id, 1)
+		f.loadList()
+		msgs := f.use(0)
+		book, left := f.book(), len(f.rowsOf())
+		if open && (len(book) != 1 || left != 0) {
+			t.Errorf("every class open: book %+v, %d items left; want the spell scribed and the scroll taken", book, left)
+		}
+		if !open {
+			mustOps(t, msgs, protocol.OpcodeColoredChat)
+			if len(book) != 0 || left != 1 || !bytes.Contains(msgs[0], utf16le(scribeWrongRace)) {
+				t.Errorf("the control: book %+v, %d items left, sent % X; want the race refusal and the scroll kept", book, left, msgs)
+			}
+		}
+	}
+}

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"strings"
+
+	"github.com/eqoa/server/internal/session"
 )
 
 // sight.go — a line of sight between two bodies, off the game's collision
@@ -25,8 +27,17 @@ import (
 //     spell is no area here: it finds its members wherever they stand in its
 //     radius.
 //
-// Single-target spells, melee, a fight once it has begun and a town guard's
-// help stay as they were.
+//   - a heal or a buff (any spell that is not harmful) on another player or a
+//     pet: its caster must see the body, as it begins and again as it lands
+//     (petition 1243, Dock: "healing allows LOS through obstructions. do not
+//     allow heals through obstructions or buffs"). One aimed at a body out of
+//     sight is refused before its power is spent; a group's spell leaves out
+//     the members its caster cannot see; a body that gets behind something
+//     before it lands is spared. Either line clear is enough (a low wall hides
+//     no one from a healer). A resurrection is not held to it.
+//
+// Harmful single-target spells, melee, a fight once it has begun and a town
+// guard's help stay as they were.
 //
 // Two lines are drawn, at a man's head (a body is the walk's capsule, 2 tall)
 // and at his waist, the same heights at both ends. Either clear is enough for a
@@ -72,6 +83,37 @@ func (w *World) clearLineLocked(world uint8, x0, y0, z0, x1, y1, z1 float32) boo
 	}
 	return s.Sees(world, x0, y0+sightHead, z0, x1, y1+sightHead, z1) &&
 		s.Sees(world, x0, y0+sightWaist, z0, x1, y1+sightWaist, z1)
+}
+
+// castNotSeen refuses a heal or a buff on a body its caster cannot see (ours,
+// as EverQuest's; no recording has one).
+const castNotSeen = "You cannot see your target."
+
+// helpSeenLocked reports whether a helpful spell (not harmful, no resurrection)
+// from caster reaches a body at (x, y, z) in world: a line of sight between
+// them (inSightLocked); its caster always, and every body for a harmful spell
+// or a resurrection, which are not held to it here. Must be called with the
+// lock held.
+func (w *World) helpSeenLocked(caster *Player, d *SpellDef, world uint8, x, y, z float32, self bool) bool {
+	if self || d.Harmful || d.Resurrects() > 0 {
+		return true
+	}
+	return caster.World == world && w.inSightLocked(world, caster.X, caster.Y, caster.Z, x, y, z)
+}
+
+// helpHiddenLocked spares a body a helpful spell lands on out of its caster's
+// sight (helpSeenLocked), with a log and, when the body is the cast's one
+// target, castNotSeen to its caster. It reports the body spared. Must be called
+// with the lock held.
+func (w *World) helpHiddenLocked(cs *castState, caster *Player, casterSess *session.Session, name string, world uint8, x, y, z float32, self bool) bool {
+	if w.helpSeenLocked(caster, &cs.spell.Def, world, x, y, z, self) {
+		return false
+	}
+	log.Printf("LoS: %s's %q spares %s at (%.1f, %.1f, %.1f), out of sight from (%.1f, %.1f, %.1f)", caster.Name, cs.spell.Name, name, x, y, z, caster.X, caster.Y, caster.Z)
+	if casterSess != nil && len(cs.targets) == 1 {
+		w.sendColoredLocked(casterSess, castNotSeen, castRefusalRGB)
+	}
+	return true
 }
 
 // areaPlace is where an area spell stands: its caster's feet and its centre's.

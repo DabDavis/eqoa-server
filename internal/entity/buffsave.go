@@ -178,11 +178,7 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 		}
 		n++
 	}
-	var m StatMods
-	for _, e := range p.Effects {
-		m.sum(e.Mods)
-	}
-	p.Mods = m
+	p.Mods = sumEffectMods(p.Effects)                 // buffline.go: a stat nested lines share counts once
 	if top, ok := p.powerCap(); ok && p.Power > top { // powercap.go
 		p.Power = max(top, 0)
 	}

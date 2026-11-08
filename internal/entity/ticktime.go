@@ -53,7 +53,6 @@ const (
 	tsVisibility
 	tsGroupSync
 	tsPowerSync
-	tsVoiceSync
 	tsAfterLock // after the lock: duels' purses, respawns, gates, travels, hands back, corpses gone
 	tsCount
 )
@@ -62,7 +61,7 @@ var tickLapNames = [tsCount]string{
 	"lockwait", "aggro", "guards", "ai", "templates", "home", "attack", "pets", "duels", "casts",
 	"effects", "consumables", "potions", "corpses", "roam", "paths", "respawns", "regen",
 	"vampires", "npcregen", "breath", "silentair", "statesync", "entitychannels", "statchannels",
-	"buffchannels", "guildannounce", "visibility", "groupsync", "powersync", "voicesync", "afterlock",
+	"buffchannels", "guildannounce", "visibility", "groupsync", "powersync", "afterlock",
 }
 
 const (

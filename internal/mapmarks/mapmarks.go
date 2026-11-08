@@ -268,7 +268,7 @@ func CheckName(name string) (string, int, string) {
 		return "", http.StatusBadRequest, "A name is plain text."
 	case n < database.MapMarkMinName || n > database.MapMarkMaxName:
 		return "", http.StatusBadRequest, fmt.Sprintf("A name is %d to %d characters.", database.MapMarkMinName, database.MapMarkMaxName)
-	case handlers.ProfaneRoomName(name):
+	case handlers.ProfaneLabel(name):
 		return "", http.StatusForbidden, "That name is not allowed; try another."
 	}
 	return name, 0, ""

@@ -526,7 +526,6 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	}
 	NewQuestMarkersHandler(gameWorld).RegisterHandlers(r)
 	NewQuestProgressHandler(gameWorld).RegisterHandlers(r)
-	NewVoiceHandler(gameWorld).RegisterHandlers(r)
 	// Duels (duel.go): the live window's 0x1501 and its offer's answer, and
 	// their wagers held in duel_stakes (stakes a stopped server held go back)
 	NewDuelHandler(gameWorld).RegisterHandlers(r)

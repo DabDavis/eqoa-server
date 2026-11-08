@@ -543,6 +543,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		genie := NewGenie(gameWorld, charStore.DB(), npcWindowHandler)
 		interactHandler.genie, equipHandler.genie = genie, genie
 		genie.rehab = interactHandler.rehab         // its fourth answer (genie.go)
+		genie.dyer = interactHandler.dyer           // its fifth (genie.go)
 		chatHandler.SetVampireStore(charStore.DB()) // #vampire (vampirecmd.go)
 	}
 	if charStore != nil && gameWorld != nil {

@@ -20,7 +20,8 @@ import (
 // item is a lamp in their inventory, infinite uses. when the player prompts,
 // choice for bank and choice to buy/sell at shop. genie disappears after the
 // prompt is gone", then "also give third option to genie for blacksmith", then,
-// 2026-11-07, "lets add rehab to genie from lamp heirloom").
+// 2026-11-07, "lets add rehab to genie from lamp heirloom", then, 2026-11-08,
+// "add an armor dyer near dabrish too and on genie").
 //
 // The lamp is an item record of CLIENT's usable type named GenieLampName
 // (tools/seed_genie_lamp.py makes it and puts it among every combo's starting
@@ -33,7 +34,9 @@ import (
 // box CLIENT declines at once, because a menu was up when it came, does not:
 // the genie waits to be talked to, GenieWait). Rehabilitation is a rehabilitator's
 // menu under the genie's name (rehab.go), its boxes the same and owing nothing to
-// the genie, gone by then. The windows are CLIENT's own:
+// the genie, gone by then; "Dye my armor" is an Armor Dyer's questions so
+// (Dyer.Offer, dyer.go), the sixth answer filling CLIENT's box. The windows are
+// CLIENT's own:
 //   - the bank: 0x124D, empty (the dispatcher's case opens it from the game
 //     screen, which an answered box returns to: VIWndGame's 276, mode 0); its
 //     moves carry CLIENT's target, whatever it is (VIBankControl), so any id
@@ -71,10 +74,11 @@ const (
 	genieShop
 	genieSmith
 	genieRehab
+	genieDye
 	genieNothing
 )
 
-var genieAnswers = []string{"My bank", "Your wares", "Mend my gear", "Rehabilitation", "Nothing, thank you"}
+var genieAnswers = []string{"My bank", "Your wares", "Mend my gear", "Rehabilitation", "Dye my armor", "Nothing, thank you"}
 
 // The genie's words (ours).
 const (
@@ -108,6 +112,7 @@ type Genie struct {
 	asked map[uint32]genieAsk // by the character's serverid
 	shops map[int]genieShopAt // the shop's catalog by class
 	rehab *Rehab              // the rehabilitators' menu it offers (rehab.go)
+	dyer  *Dyer               // the Armor Dyers' questions it offers (dyer.go)
 }
 
 type genieAsk struct {
@@ -236,6 +241,13 @@ func (g *Genie) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 			return true
 		}
 		g.rehab.Offer(sess, p, entity.GenieName)
+	case genieDye:
+		g.gw.DismissGenie(sess)
+		if g.dyer == nil {
+			g.say(sess, genieFarewell)
+			return true
+		}
+		g.dyer.Offer(sess, p, entity.GenieName)
 	case 255:
 		if now.Sub(a.at) < genieDeclinedWithin {
 			// CLIENT's own: the box came while a menu was up; the genie

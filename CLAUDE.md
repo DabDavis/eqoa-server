@@ -285,6 +285,13 @@ to 60 if im targeting them, but not add or remove spells or change anything beyo
 order), else the GM's target player, else the GM (`gmCharacter`, as `#banktunar`'s); a character out of the world on
 its row, for its next login. The level alone, with what the level itself gives (stats, the stat cap, the training
 points it is due, the heirlooms' figures): no spell, item, tunar or mastery. The player is told.
+`#testmode` and `#tankprofile1`/`2`/`3` (`entity/gmchannel.go`; the GM Jibrish's petition 1272: "This makes it so the GM
+cannot die, but still takes full displayed damage. The idea being to spawn a raid boss, test its damage without needing
+healers", "Profile one sets AGI to 400 and AC to 1k. Profile 2 AC to 2k and profile 3 ac to 3k - make these commands a
+toggle") are toggles on the GM's own character, kept for the session only: test mode takes and shows every hit in full and
+turns a death into 1 HP left (`playerDownLocked`, `pvpDeathLocked`: no death, debt or kill counted); a tank profile is
+AGI 400 (all three, read as the petition's "and" carried) and AC 1000 x n whatever is worn or on, as defence and the stat
+channel read them (`StatNow`); the same profile again ends it, another replaces it.
 
 **A GM's flight** (`handlers/fly.go`, `entity/fly.go`; the user, 2026-11-07: "lets add a gm fly command its like
 swimming you can look up/down to go in that direction, but running, standing like normal and its a on/off toggle"):

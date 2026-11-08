@@ -25,6 +25,57 @@ func (w *World) ToggleGMHidden(id EntityID) (on, ok bool) {
 	return p.GMHidden, true
 }
 
+// ToggleGMTestMode is #testmode on the player (the GM Jibrish's petition 1272:
+// "This makes it so the GM cannot die, but still takes full displayed damage.
+// The idea being to spawn a raid boss, test its damage without needing
+// healers."): every hit is taken and shown in full, and a hit that would kill
+// leaves 1 HP instead (playerDownLocked, pvpDeathLocked). It reports whether
+// it is on now.
+func (w *World) ToggleGMTestMode(id EntityID) (on, ok bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.Players[id]
+	if p == nil {
+		return false, false
+	}
+	p.GMTestMode = !p.GMTestMode
+	return p.GMTestMode, true
+}
+
+// GMTankAgi is a #tankprofile's AGI, and GMTankAC its AC a profile.
+const (
+	GMTankAgi = 400
+	GMTankAC  = 1000
+)
+
+// SetTankProfile is #tankprofile1-3 on the player (petition 1272: "Profile one
+// sets AGI to 400 and AC to 1k. Profile 2 AC to 2k and profile 3 ac to 3k -
+// make these commands a toggle"): n 1-3 sets AGI 400 and AC 1000 x n, whatever
+// it wears and whatever is on it (StatNow); the same n again, or 0, turns it
+// off. It reports the profile now.
+func (w *World) SetTankProfile(id EntityID, n int) (now int, ok bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.Players[id]
+	if p == nil {
+		return 0, false
+	}
+	if n < 1 || n > 3 || p.GMTankProfile == n {
+		n = 0
+	}
+	p.GMTankProfile = n
+	p.StatsDirty = true
+	return n, true
+}
+
+// tankProfile is the AGI and AC a #tankprofile sets, ok false with none on.
+func (p *Player) tankProfile() (agi, ac int, ok bool) {
+	if p.GMTankProfile < 1 || p.GMTankProfile > 3 {
+		return 0, 0, false
+	}
+	return GMTankAgi, GMTankAC * p.GMTankProfile, true
+}
+
 // SetGMForm shows the player in another body (Change Sprite): model is the
 // DictID the channel carries, size its scale (0: the player's own). Model 0
 // is Revert Sprite: its own body, or an illusion's, again.

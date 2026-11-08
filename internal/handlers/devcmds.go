@@ -98,6 +98,7 @@ var gmCommands = map[string]bool{
 	"#goto": true, "#teleport": true, "#tele": true, "#gotoplayer": true,
 	"#summon": true, "#spawn": true, "#despawn": true, "#monstersearch": true,
 	"#nearby": true, "#world": true, "#speed": true, "#setlevel": true,
+	"#testmode": true, "#tankprofile1": true, "#tankprofile2": true, "#tankprofile3": true,
 	"#hp": true, "#tunar": true, "#kill": true, "#pos": true, "#who": true,
 	"#guildhall": true, "#effect": true, "#faction": true, "#template": true, "#help": true,
 	"#grantcm": true, "#npcinfo": true, "#fx": true, "#spellfx": true,

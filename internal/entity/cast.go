@@ -546,6 +546,9 @@ func (p *Player) StatNow(st Stat) int {
 	case StatSta:
 		return p.capStat(StatSta, p.Sta+m.Sta)
 	case StatAgi:
+		if agi, _, ok := p.tankProfile(); ok { // a GM's #tankprofile (gmchannel.go)
+			return agi
+		}
 		return p.capStat(StatAgi, p.Agi+m.Agi)
 	case StatDex:
 		return p.capStat(StatDex, p.Dex+m.Dex)
@@ -556,6 +559,9 @@ func (p *Player) StatNow(st Stat) int {
 	case StatCha:
 		return p.capStat(StatCha, p.Cha+m.Cha)
 	case StatAC:
+		if _, ac, ok := p.tankProfile(); ok { // a GM's #tankprofile (gmchannel.go)
+			return ac
+		}
 		return p.AC + m.AC
 	case StatMaxHP:
 		return p.MaxHPNow()

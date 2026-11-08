@@ -325,6 +325,13 @@ type Player struct {
 	GMForm     uint32
 	GMFormSize float32
 	Frozen     bool
+	// GMTestMode is a GM's #testmode: every hit taken and shown in full, and no
+	// death (a would-be death leaves 1 HP); GMTankProfile its #tankprofile1-3
+	// (0: none): AGI 400 and AC 1000 x the profile, whatever it wears
+	// (gmchannel.go; the GM Jibrish's petition 1272). Neither is kept past the
+	// session.
+	GMTestMode    bool
+	GMTankProfile int
 
 	// Flying: a GM's #fly is on (fly.go), until #fly off or the next login.
 	// flyGrace: its last few reports on the way down from it (fly.go).

@@ -67,3 +67,32 @@ func TestSetLevelTakesANameOrTheTarget(t *testing.T) {
 		t.Errorf("a player's #setlevel: the GM %d, the player %d", w.gp.Level, w.pp.Level)
 	}
 }
+
+// #testmode and #tankprofile1-3 (the GM Jibrish's petition 1272) toggle on a
+// GM, in either spelling, and say so; a player's are an unknown command and
+// change nothing.
+func TestTestModeAndTankProfilesToggle(t *testing.T) {
+	c, gs, gp, ps, pp := gmWorld(t)
+	c.say(gs, "/testmode")
+	if !gp.GMTestMode || !hasLine(gmReplies(t, gs), "Test mode on") {
+		t.Fatal("a GM's /testmode: not on")
+	}
+	c.say(gs, "#testmode")
+	if gp.GMTestMode {
+		t.Fatal("a second #testmode: still on")
+	}
+	c.say(gs, "/tankprofile2")
+	if gp.GMTankProfile != 2 || !hasLine(gmReplies(t, gs), "AGI 400 and AC 2000") {
+		t.Fatalf("/tankprofile2: profile %d", gp.GMTankProfile)
+	}
+	c.say(gs, "/tankprofile3")
+	c.say(gs, "/tankprofile3")
+	if gp.GMTankProfile != 0 {
+		t.Fatalf("/tankprofile3 twice: profile %d", gp.GMTankProfile)
+	}
+	c.say(ps, "/testmode")
+	c.say(ps, "/tankprofile1")
+	if pp.GMTestMode || pp.GMTankProfile != 0 {
+		t.Errorf("a player's: test mode %v, profile %d", pp.GMTestMode, pp.GMTankProfile)
+	}
+}

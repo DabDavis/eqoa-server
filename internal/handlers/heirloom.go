@@ -178,6 +178,7 @@ func (h *Heirlooms) View(serverID uint32, p *database.ItemPatternRecord) {
 	if !ok {
 		return
 	}
+	level = min(level, heirloomTopLevel) // its figures go no further (heirloomTopLevel)
 	epicNow := false
 	if def.Epic != 0 {
 		if epic, ok := h.epicOf(def.Epic); ok && level >= max(epic.LevelReq, 1) {
@@ -206,6 +207,7 @@ func (h *Heirlooms) View(serverID uint32, p *database.ItemPatternRecord) {
 
 // The heirlooms' stats (the user, 2026-11-06: "lets tone down the heirloom to
 // +10 all stats 40 hp", then his choices: power 40 too, scaled up to it at 60,
+// since 2026-11-08 at 49,
 // an epic keeping its own from its level): each piece, armour, jewellery, a
 // shield or a weapon, carries heirloomStatTop of every stat (STR, STA, AGI,
 // DEX, WIS, INT, CHA) and heirloomPoolTop hit points and power at
@@ -214,8 +216,13 @@ func (h *Heirlooms) View(serverID uint32, p *database.ItemPatternRecord) {
 // best's stats, hit points and power, raised to its class's (HP and power 1.25
 // a level, STR, STA and two of the class's stats one per 5 levels: 75, 75 and
 // 12 at 60).
+//
+// heirloomTopLevel is also where an heirloom stops (the user, 2026-11-08: "lets
+// caps heirloom scale to level 49 and not 60"; it was 60): from it on, a
+// wearer's heirloom is a level 49's, its best of its role, its stats and its
+// epic (a path quest's epic of 49, never a level 60's) those of 49 (View).
 const (
-	heirloomTopLevel = 60
+	heirloomTopLevel = 49
 	heirloomStatTop  = 10
 	heirloomPoolTop  = 40
 )
@@ -229,8 +236,8 @@ func heirloomShare(top, level int) int {
 
 // heirloomStats sets an heirloom's stats, hit points and power for its
 // wearer's level, in place of its best's: heirloomStatTop's share of each
-// stat and heirloomPoolTop's of hit points and power (10, 40 and 40 at 60; 5,
-// 20 and 20 at 30; 1, 1 and 1 at 1).
+// stat and heirloomPoolTop's of hit points and power (10, 40 and 40 at 49 and
+// on; 7, 25 and 25 at 30; 1, 1 and 1 at 1).
 func heirloomStats(p *database.ItemPatternRecord, level int) {
 	stat, pool := heirloomShare(heirloomStatTop, level), heirloomShare(heirloomPoolTop, level)
 	n := func(v int) *int { return &v }

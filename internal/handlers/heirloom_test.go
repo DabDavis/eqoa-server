@@ -125,9 +125,9 @@ func TestAnHeirloomIsItsLevelsBest(t *testing.T) {
 		return f.held()
 	}
 	got := at(10)
-	// (STR and STA 2: every stat's share at 10, heirloomStats, in place of the
+	// (STR and STA 3: every stat's share at 10, heirloomStats, in place of the
 	// helm of 10's STR 5)
-	if h := got[hlHelm]; val(h.AC) != 20 || val(h.Str) != 2 || val(h.Sta) != 2 || h.ItemName != "Heirloom Helm" || h.EquipSlot != 1 || h.Model != 4 {
+	if h := got[hlHelm]; val(h.AC) != 20 || val(h.Str) != 3 || val(h.Sta) != 3 || h.ItemName != "Heirloom Helm" || h.EquipSlot != 1 || h.Model != 4 {
 		t.Errorf("level 10's helm: AC %d STR %d STA %d, %q slot %d model %d", val(h.AC), val(h.Str), val(h.Sta), h.ItemName, h.EquipSlot, h.Model)
 	}
 	if b := got[hlBlade]; b.WeaponDamage != 100 || b.EquipSlot != 14 || b.AttackType != 1 {
@@ -137,10 +137,10 @@ func TestAnHeirloomIsItsLevelsBest(t *testing.T) {
 		t.Errorf("a plain helm changed: %+v", o)
 	}
 	got = at(20)
-	if h := got[hlHelm]; val(h.AC) != 40 || val(h.HPMAX) != 14 || val(h.Str) != 4 { // HP 14 and STR 4 at 20, not the helm's 30 HP
+	if h := got[hlHelm]; val(h.AC) != 40 || val(h.HPMAX) != 17 || val(h.Str) != 5 { // HP 17 and STR 5 at 20, not the helm's 30 HP
 		t.Errorf("level 20's helm: AC %d HP %d STR %d", val(h.AC), val(h.HPMAX), val(h.Str))
 	}
-	if b := got[hlBlade]; b.WeaponDamage != 200 || val(b.Dex) != 4 { // DEX 4 at 20, not the blade of 15's 7
+	if b := got[hlBlade]; b.WeaponDamage != 200 || val(b.Dex) != 5 { // DEX 5 at 20, not the blade of 15's 7
 		t.Errorf("level 20's blade: damage %d DEX %d", b.WeaponDamage, val(b.Dex))
 	}
 	// another class's heirloom takes its own class's best (the monk's helm)
@@ -235,8 +235,8 @@ func TestAnEpicHeirloomIsItsEpicFromItsLevel(t *testing.T) {
 		return f.held()
 	}
 	got := at(20)
-	if e := got[714004]; e.WeaponDamage != 200 || val(e.Dex) != 4 || e.ProcName != "" {
-		t.Errorf("at 20: damage %d DEX %d proc %q; want the level's best blade's 200, the share's 4 and none", e.WeaponDamage, val(e.Dex), e.ProcName)
+	if e := got[714004]; e.WeaponDamage != 200 || val(e.Dex) != 5 || e.ProcName != "" {
+		t.Errorf("at 20: damage %d DEX %d proc %q; want the level's best blade's 200, the share's 5 and none", e.WeaponDamage, val(e.Dex), e.ProcName)
 	}
 	got = at(49)
 	e := got[714004]
@@ -261,25 +261,26 @@ func TestAnEpicHeirloomIsItsEpicFromItsLevel(t *testing.T) {
 
 // Every heirloom carries the same stats at its wearer's level, whatever its
 // best carries (the user, 2026-11-06: "lets tone down the heirloom to +10 all
-// stats 40 hp", power 40 too, scaled up to it at 60): a warrior of 10's helm
-// AC 20 (the helm of 10's) with 2 of every stat (not the helm's STR 5) and 7
-// HP and power; the blade, a weapon, the same; a level 60's piece 10 of each
-// and 40 and 40, a level 65's no more, a level 1's 1 of each.
+// stats 40 hp", power 40 too, scaled up to it at 60, since 2026-11-08 at 49):
+// a warrior of 10's helm AC 20 (the helm of 10's) with 3 of every stat (not
+// the helm's STR 5) and 9 HP and power; the blade, a weapon, the same; a level
+// 49's piece 10 of each and 40 and 40, a level 60's and 65's no more, a level
+// 1's 1 of each.
 func TestEveryHeirloomCarriesTheSameStats(t *testing.T) {
 	f := newHeirloomFixture(t)
 	f.h.Note(f.sid, 0, 0, 10)
 	got := f.held()
 	h := got[hlHelm]
-	if val(h.AC) != 20 || val(h.Str) != 2 || val(h.HPMAX) != 7 || val(h.POWMAX) != 7 || val(h.Sta) != 2 ||
-		val(h.Dex) != 2 || val(h.Agi) != 2 || val(h.Intelligence) != 2 || val(h.Wis) != 2 || val(h.Cha) != 2 {
+	if val(h.AC) != 20 || val(h.Str) != 3 || val(h.HPMAX) != 9 || val(h.POWMAX) != 9 || val(h.Sta) != 3 ||
+		val(h.Dex) != 3 || val(h.Agi) != 3 || val(h.Intelligence) != 3 || val(h.Wis) != 3 || val(h.Cha) != 3 {
 		t.Errorf("a warrior of 10's helm: AC %d STR %d HP %d POW %d STA %d DEX %d AGI %d INT %d WIS %d CHA %d", val(h.AC), val(h.Str),
 			val(h.HPMAX), val(h.POWMAX), val(h.Sta), val(h.Dex), val(h.Agi), val(h.Intelligence), val(h.Wis), val(h.Cha))
 	}
 	// a weapon too (the user: "let heirloom weapon get stats also and shields")
-	if b := got[hlBlade]; val(b.HPMAX) != 7 || val(b.Str) != 2 || val(b.Sta) != 2 || val(b.Agi) != 2 || val(b.Cha) != 2 {
-		t.Errorf("the blade at 10: HP %d STR %d STA %d AGI %d CHA %d; want 7, 2, 2, 2, 2", val(b.HPMAX), val(b.Str), val(b.Sta), val(b.Agi), val(b.Cha))
+	if b := got[hlBlade]; val(b.HPMAX) != 9 || val(b.Str) != 3 || val(b.Sta) != 3 || val(b.Agi) != 3 || val(b.Cha) != 3 {
+		t.Errorf("the blade at 10: HP %d STR %d STA %d AGI %d CHA %d; want 9, 3, 3, 3, 3", val(b.HPMAX), val(b.Str), val(b.Sta), val(b.Agi), val(b.Cha))
 	}
-	for _, c := range []struct{ level, stat, pool int }{{60, 10, 40}, {65, 10, 40}, {30, 5, 20}, {49, 9, 33}, {1, 1, 1}} {
+	for _, c := range []struct{ level, stat, pool int }{{60, 10, 40}, {65, 10, 40}, {30, 7, 25}, {49, 10, 40}, {45, 10, 37}, {1, 1, 1}} {
 		big := func(v int) *int { return &v }
 		p := database.ItemPatternRecord{Str: big(25), Wis: big(30), HPMAX: big(150), POWMAX: big(200)} // a best's, cut
 		heirloomStats(&p, c.level)
@@ -334,5 +335,62 @@ func TestAnEpicHeirloomDealsAtLeastTheBest(t *testing.T) {
 	}
 	if e := at49(); e.WeaponDamage != 700 || val(e.Dex) < 10 || e.ProcName != "Selo's Jeweled Rapier" {
 		t.Errorf("with a 700 blade in reach: damage %d DEX %d proc %q; want 700 with the rapier's DEX and proc", e.WeaponDamage, val(e.Dex), e.ProcName)
+	}
+}
+
+// An heirloom stops at heirloomTopLevel (the user, 2026-11-08: "lets caps
+// heirloom scale to level 49 and not 60"): a warrior of 60's heirloom helm is
+// the best helm of 49 (the helm of 45's AC 200), not the helm of 55's 300, with
+// the heirlooms' 10 and 40; an epic heirloom of a level 60 epic is at 60 still
+// its level 49's best blade (200, no proc), not the epic's 900. The controls:
+// below the cap it follows its level as before (the helm of 20's at 20), and an
+// epic of 49 (a path quest's) is its epic from 49, at 60 too.
+func TestAnHeirloomStopsAt49(t *testing.T) {
+	f := newHeirloomFixture(t)
+	n := func(v int) *int { return &v }
+	items := database.NewItemPatternStore(f.db)
+	for _, r := range []database.ItemPatternRecord{
+		{PatternID: 900030, ItemName: "helm 45", EquipSlot: 1, LevelReq: 45, AC: n(200), ClassUse: 1},
+		{PatternID: 900031, ItemName: "helm 55", EquipSlot: 1, LevelReq: 55, AC: n(300), ClassUse: 1},
+		{PatternID: 900032, ItemName: "Blade of the Sixtieth", EquipSlot: 14, LevelReq: 60, WeaponDamage: 900, AttackType: 1, ClassUse: 32},
+		{PatternID: 900020, ItemName: "Selo's Jeweled Rapier", EquipSlot: 14, LevelReq: 49, WeaponDamage: 561, AttackType: 5,
+			Dex: n(10), Agi: n(5), ClassUse: 32},
+		{PatternID: 714005, ItemName: "Heirloom Blade of the Sixtieth", EquipSlot: 14, LevelReq: 1, AttackType: 1, ClassUse: 1},
+		{PatternID: 714004, ItemName: "Heirloom Selo's Jeweled Rapier", EquipSlot: 14, LevelReq: 1, AttackType: 5, ClassUse: 1},
+	} {
+		r.Rent, r.RaceUse, r.MaxStack = 1, 32767, 1
+		if err := items.UpsertItemPattern(&r); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := f.db.Exec(`INSERT INTO heirlooms (patternid, class, role, epic) VALUES (714005, 0, 'main', 900032), (714004, 0, 'main', 900020)`); err != nil {
+		t.Fatal(err)
+	}
+	for _, id := range []int{714005, 714004} {
+		if _, err := f.inv.AddCharItem(f.sid, id, 1, 100, 0, 0); err != nil {
+			t.Fatal(err)
+		}
+	}
+	f.h = NewHeirlooms(f.db) // the table read anew
+	f.h.Start(nil, nil)
+	at := func(level int) map[int]database.ItemPatternRecord {
+		f.h.Note(f.sid, 0, 0, level)
+		return f.held()
+	}
+	for _, level := range []int{49, 60} {
+		got := at(level)
+		if h := got[hlHelm]; val(h.AC) != 200 || val(h.Str) != 10 || val(h.HPMAX) != 40 {
+			t.Errorf("at %d the helm: AC %d STR %d HP %d; want the helm of 45's 200, 10 and 40", level, val(h.AC), val(h.Str), val(h.HPMAX))
+		}
+		if b := got[714005]; b.WeaponDamage != 200 || b.ProcName != "" || val(b.Str) != 10 {
+			t.Errorf("at %d the heirloom of a level 60 epic: damage %d proc %q STR %d; want its level 49's best blade's 200, none, 10",
+				level, b.WeaponDamage, b.ProcName, val(b.Str))
+		}
+		if r := got[714004]; r.WeaponDamage != 561 || val(r.Dex) != 10 {
+			t.Errorf("at %d the control, the epic of 49: damage %d DEX %d; want the rapier's 561 and 10", level, r.WeaponDamage, val(r.Dex))
+		}
+	}
+	if h := at(20)[hlHelm]; val(h.AC) != 40 {
+		t.Errorf("the control at 20: the helm's AC %d, want the helm of 20's 40", val(h.AC))
 	}
 }

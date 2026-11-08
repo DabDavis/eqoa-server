@@ -49,16 +49,20 @@ func (s *Server) registerAdminOps() {
 				f.Key = keyText(req.Key)
 			}
 			f.hideSQL = !c.a.Admin
-			if c.a.tester() {
-				f.tables = testerTableList
+			if c.a.limited() {
+				// below a GM: its roles' tables alone, others' lines without who
+				f.tables = c.a.readTables()
+				if len(f.tables) == 0 {
+					return nil, notOurs(nil, "the audit log")
+				}
 			}
 			list, total, err := c.s.auditList(f)
 			if err != nil {
 				return nil, err
 			}
-			if c.a.tester() {
+			if c.a.limited() {
 				for i := range list {
-					testerAuditEntry(c.a, &list[i])
+					limitedAuditEntry(c.a, &list[i])
 				}
 			}
 			return map[string]any{"entries": list, "total": total}, nil

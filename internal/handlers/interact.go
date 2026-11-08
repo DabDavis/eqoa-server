@@ -55,6 +55,8 @@ type InteractHandler struct {
 	boardAsked map[uint32]uint32 // the box last asked, by the character's serverid
 	boardBack  map[uint32]int    // that box's option of the way back, -1 none
 	boardSpell func() (entity.CastSpell, bool)
+	// Mr. Moogie's boxes (moogie.go), under boardMu
+	moogie moogieAsks
 
 	// signTexts is signtext (database.SignTexts): what the signs and boards
 	// say (signs.go). Nil: a sign says world.npc_text's words for its name.
@@ -227,6 +229,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 
 	// A Summoning Portal (summonportal.go): anyone may call through it.
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.portal.Talk(sess, player, npc) {
+		return nil
+	}
+
+	// Mr. Moogie (moogie.go): buffs cleared or a full heal, out of PvP and duels.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.moogieTalk(sess, player, npc) {
 		return nil
 	}
 
@@ -516,6 +523,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// a board's offer (boardinvis.go); an old one does nothing
 	if h.answerBoardInvis(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// Mr. Moogie's (moogie.go); an old one does nothing
+	if h.answerMoogie(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// a coachman's offer to sign every ledger at once (coachledger.go); an

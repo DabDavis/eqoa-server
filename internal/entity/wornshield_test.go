@@ -173,19 +173,20 @@ func TestAWornShieldAnswersBesideASpellShield(t *testing.T) {
 }
 
 // The Seraphic Planar (the user, 2026-11-05: "75 heal and damage. scales with
-// int higher, one of the very best in the game"): both 75 at no INT, 225 at
-// the wearer's INT cap (the user's choice: the Anointed's 3x) and in a line
-// between, past the cap the cap's; CHA moves nothing.
+// int higher, one of the very best in the game"): both 75 at no INT, 120 at
+// the wearer's INT cap (the user, 2026-11-08: "the damage/heal shield should
+// scale to 120 damage"; 225 before) and in a line between, past the cap the
+// cap's; CHA moves nothing. Its record is the Seraphic Planar Breastplate.
 func TestTheSeraphicPlanarScalesByInt(t *testing.T) {
 	c, crab := casterAndCrab(t)
-	s, _ := WornShieldOf(8527, "seraphic planar chestplate")
+	s, _ := WornShieldOf(8527, "Seraphic Planar Breastplate")
 	c.p.Gear.Shields = []WornShield{s}
 	capInt := c.p.StatCapOf(StatInt)
 	c.p.Cha = c.p.StatCapOf(StatCha)
 	crabHP := crab.HP
 	for _, k := range []struct {
 		intel, want int
-	}{{0, 75}, {capInt / 2, 150}, {capInt, 225}, {capInt + 50, 225}} {
+	}{{0, 75}, {capInt / 2, 97}, {capInt, 120}, {capInt + 50, 120}} {
 		c.p.Int, c.p.Mods.Int = k.intel, 0
 		c.p.HP = c.p.MaxHPNow() - 500
 		c.sent()

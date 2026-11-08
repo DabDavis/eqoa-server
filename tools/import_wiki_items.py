@@ -90,7 +90,7 @@ NAME_FIXES = {"frozen crudgel": "Frozen Cudgel"}
 # the wiki's other wording of an item of ours (wiki key -> our key)
 ALIASES = {"short sword of ykesha": "short sword of the ykesha", "robe of the dragonhoard": "robe from the dragonhoard",
            "gloves of the plaguebringer": "gloves of plaguebringer", "steel banded chest": "steel banded chestguard",
-           "seraphic planar breastplate": "seraphic planar chestplate", "q.staff of understanding": "quarterstaff of understanding",
+           "q.staff of understanding": "quarterstaff of understanding",
            "centaur smithing hammer": "centaur smithy hammer", "essence weaver ring": "essenceweave ring",
            "brgith mossy spear": "bright mossy spear", "dog breath leggings": "dog breath legs",
            "alpine walking staff": "alpine walking stick", "vambracers of toxicity": "bracers of toxicity",

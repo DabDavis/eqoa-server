@@ -190,7 +190,7 @@ func (h *ChatHandler) marksCommand(sess *session.Session, args []string) {
 			h.gmReply(sess, "/marks clear: "+err.Error())
 			return
 		}
-		h.gmReply(sess, fmt.Sprintf("%d marks cleared.", n))
+		h.gmReply(sess, fmt.Sprintf("%d %s cleared.", n, plural(n, "mark", "marks")))
 	default:
 		h.gmReply(sess, "Usage: /marks [undo | clear] - your marks, the last dropped, or all of them")
 	}
@@ -307,11 +307,12 @@ func (h *ChatHandler) campCommand(sess *session.Session, player *entity.Player, 
 	for i, k := range kinds {
 		names[i] = k.name
 	}
+	spawns := fmt.Sprintf("%d static %s", len(made.NPCIDs), plural(len(made.NPCIDs), "spawn", "spawns"))
 	if len(kinds) == 1 {
-		h.gmReply(sess, fmt.Sprintf("Camp %d made in world %d: %d static spawns of %s.", made.Camp, world, len(made.NPCIDs), names[0]))
+		h.gmReply(sess, fmt.Sprintf("Camp %d made in world %d: %s of %s.", made.Camp, world, spawns, names[0]))
 	} else {
-		h.gmReply(sess, fmt.Sprintf("Camp %d made in world %d: %d static spawns, each popping %s at random every time it comes back.",
-			made.Camp, world, len(made.NPCIDs), orList(names)))
+		h.gmReply(sess, fmt.Sprintf("Camp %d made in world %d: %s, %s %s at random every time it comes back.",
+			made.Camp, world, spawns, plural(len(made.NPCIDs), "popping", "each popping"), orList(names)))
 	}
 	for i, id := range made.NPCIDs {
 		k := kinds[picks[i]]
@@ -358,12 +359,14 @@ func (h *ChatHandler) campUndo(sess *session.Session, player *entity.Player) {
 	for i, id := range u.NPCIDs {
 		ids[i] = strconv.Itoa(id)
 	}
-	h.gmReply(sess, fmt.Sprintf("Camp %d (%s) taken away: its %d spawns are gone (NPCs %s).", u.Camp, u.Kinds, len(u.NPCIDs), strings.Join(ids, ", ")))
+	h.gmReply(sess, fmt.Sprintf("Camp %d (%s) taken away: its %d %s gone (NPCs %s).", u.Camp, u.Kinds, len(u.NPCIDs),
+		plural(len(u.NPCIDs), "spawn is", "spawns are"), strings.Join(ids, ", ")))
 	switch {
 	case u.MarksBack > 0:
-		h.gmReply(sess, fmt.Sprintf("Its %d marks are yours again: /camp makes it again, /marks clear drops them.", u.MarksBack))
+		h.gmReply(sess, fmt.Sprintf("Its %d %s yours again: /camp makes it again, /marks clear drops them.", u.MarksBack,
+			plural(u.MarksBack, "mark is", "marks are")))
 	case u.MarksHeld > 0:
-		h.gmReply(sess, fmt.Sprintf("You hold %d marks of your own: the camp's are not given back.", u.MarksHeld))
+		h.gmReply(sess, fmt.Sprintf("You hold %d %s of your own: the camp's are not given back.", u.MarksHeld, plural(u.MarksHeld, "mark", "marks")))
 	}
 	log.Printf("GM: %s took camp %d away (NPCs %v)", player.Name, u.Camp, u.NPCIDs)
 }

@@ -78,6 +78,12 @@ func (w *World) playerDownLocked(sess *session.Session, p *Player, now time.Time
 	if p.respawnPending() {
 		return
 	}
+	if p.GMTestMode { // a GM's #testmode (gmchannel.go): the hit was taken and shown, the death is not
+		p.HP = 1
+		p.StatsDirty = true
+		log.Printf("Death: %s would have died (GM test mode): 1 HP left", p.Name)
+		return
+	}
 	p.HP = 0
 	p.DiedAt = now
 	p.AutoAttack = false

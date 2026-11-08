@@ -991,6 +991,32 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		SendPlayerSpeed(sess, float32(speed))
 		h.gmReply(sess, fmt.Sprintf("Speed set to %.1f", speed))
 
+	case "#testmode":
+		// #testmode: a toggle: every hit taken and shown in full, never a death
+		// (1 HP left), to measure a raid boss's damage with no healer
+		// (entity/gmchannel.go; the GM Jibrish's petition 1272)
+		if on, ok := h.gameWorld.ToggleGMTestMode(player.ServerID); ok {
+			if on {
+				h.gmReply(sess, "Test mode on: you take every hit in full and cannot die (a killing hit leaves 1 HP). #testmode again to end it.")
+			} else {
+				h.gmReply(sess, "Test mode off: you can die again.")
+			}
+			log.Printf("GM: %s test mode %v", player.Name, on)
+		}
+
+	case "#tankprofile1", "#tankprofile2", "#tankprofile3":
+		// #tankprofile1-3: a toggle: AGI 400 and AC 1000, 2000 or 3000,
+		// whatever is worn (entity/gmchannel.go; petition 1272)
+		n := int(parts[0][len(parts[0])-1] - '0')
+		if now, ok := h.gameWorld.SetTankProfile(player.ServerID, n); ok {
+			if now == 0 {
+				h.gmReply(sess, "Tank profile off: your own AGI and AC again.")
+			} else {
+				h.gmReply(sess, fmt.Sprintf("Tank profile %d on: AGI %d and AC %d. %s again to end it.", now, entity.GMTankAgi, entity.GMTankAC*now, parts[0]))
+			}
+			log.Printf("GM: %s tank profile %d", player.Name, now)
+		}
+
 	case "#setlevel":
 		// #setlevel [name] <level>: the named character's, else the GM's
 		// target player's, else the GM's own (devcmds.go)
@@ -1227,6 +1253,8 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #hddsetup [check|create|format] - hard disk setup")
 		h.gmReply(sess, "  #speed <val> - set speed")
 		h.gmReply(sess, "  #setlevel [name] <lvl> - set a level, nothing else (no name: your target player, else you)")
+		h.gmReply(sess, "  #testmode - toggle: you take every hit in full and cannot die (1 HP left)")
+		h.gmReply(sess, "  #tankprofile1 / 2 / 3 - toggle: AGI 400 and AC 1000 / 2000 / 3000")
 		h.gmReply(sess, "  #hp <cur> [max] - set HP")
 		h.gmReply(sess, "  #tunar <amt> - set gold")
 		h.gmReply(sess, "  #template [player] - level 60, every spell of your class, 1,000,000 tunar, the best gear you may wear")

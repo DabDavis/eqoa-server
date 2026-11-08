@@ -368,6 +368,11 @@ func (w *World) pvpCastBegunLocked(p *Player, spell *CastSpell, targets []Entity
 // experience debt (pvpDeathDebt), no item or tunar lost, no corpse (a player has none) and no
 // experience for the killer. Must be called with the lock held.
 func (w *World) pvpDeathLocked(killer, t *Player, now time.Time) {
+	if t.GMTestMode { // a GM's #testmode (gmchannel.go): no death, no kill counted
+		t.HP = 1
+		t.StatsDirty = true
+		return
+	}
 	if !t.respawnPending() {
 		w.recordKillLocked(killer, t, now) // combatrecord.go: counted once a death
 	}

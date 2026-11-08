@@ -577,9 +577,13 @@ func (e *TriggerEngine) advanceLocked(r *triggerRun) []string {
 		s := r.steps[r.next]
 		r.next++
 		if s.Do == database.TriggerWait {
-			r.at = e.now().Add(time.Duration(s.Seconds * float64(time.Second)))
+			d := s.Seconds
+			if s.Upto > s.Seconds { // a random time from seconds to upto
+				d += e.rand() * (s.Upto - s.Seconds)
+			}
+			r.at = e.now().Add(time.Duration(d * float64(time.Second)))
 			if r.next < len(r.steps) {
-				lines = append(lines, fmt.Sprintf("waiting %s", seconds(s.Seconds)))
+				lines = append(lines, fmt.Sprintf("waiting %s", seconds(math.Round(d))))
 			}
 			return lines
 		}

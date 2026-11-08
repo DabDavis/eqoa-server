@@ -62,8 +62,8 @@ const (
 	TriggerMaxSpread     = 200
 	TriggerMaxMinutes    = 240
 	TriggerDefaultSpread = 5
-	TriggerDefaultStay   = 30 // minutes
-	TriggerMaxWait       = 3600
+	TriggerDefaultStay   = 30    // minutes
+	TriggerMaxWait       = 14400 // 4 h: a portal shut 45 minutes to 3 hours (the Plane of Disease's Bloody Portal)
 	TriggerMaxName       = 32
 )
 
@@ -108,6 +108,7 @@ type TriggerStep struct {
 	Items   string  `json:"items,omitempty"`   // give: patternid*count, comma separated
 	FX      string  `json:"fx,omitempty"`      // visual: its DictID (0x1DAEB5B6)
 	Seconds float64 `json:"seconds,omitempty"` // visual: its casting part (0 to 30); wait: how long
+	Upto    float64 `json:"upto,omitempty"`    // wait: the longest it may be, a random time from seconds to upto (0: seconds)
 	Count   int     `json:"count,omitempty"`   // spawn: how many (0: one)
 	Spread  float32 `json:"spread,omitempty"`  // spawn: how far round its place (0: TriggerDefaultSpread)
 	Minutes float64 `json:"minutes,omitempty"` // spawn: how long they stay alive (0: TriggerDefaultStay)
@@ -350,6 +351,9 @@ func StepProblems(steps []TriggerStep) []string {
 		case TriggerWait:
 			if s.Seconds <= 0 || s.Seconds > TriggerMaxWait {
 				add(i, "wait %.1f s: more than 0, at most %d", s.Seconds, TriggerMaxWait)
+			}
+			if s.Upto != 0 && (s.Upto <= s.Seconds || s.Upto > TriggerMaxWait) {
+				add(i, "wait's upto %.1f s: more than its %.1f, at most %d", s.Upto, s.Seconds, TriggerMaxWait)
 			}
 		case TriggerLock:
 			if strings.TrimSpace(s.Lock) == "" {

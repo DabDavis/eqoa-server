@@ -167,14 +167,8 @@ func (h *NPCWindowHandler) merchantList(player *entity.Player, npc *entity.NPC) 
 		return l
 	}
 	var err error
-	if l.wares, err = h.inv.GetNPCItems(npc.NPCID); err != nil {
+	if l.wares, err = h.waresFor(player, npc); err != nil {
 		log.Printf("Merchant: catalog of %q (npc %d): %v", npc.Name, npc.NPCID, err)
-	}
-	if heirloomShop(npc) { // the buyer's class's alone, before the client's 40
-		l.wares = waresForClass(l.wares, int(player.Class))
-	}
-	if len(l.wares) > invListCap {
-		l.wares = l.wares[:invListCap]
 	}
 	for i := range l.wares { // the buyer's own view: an heirloom's figures (heirloom.go)
 		h.inv.ViewPattern(player.CharServerID, &l.wares[i].Pattern)
@@ -193,6 +187,26 @@ func (h *NPCWindowHandler) merchantList(player *entity.Player, npc *entity.NPC) 
 		l.lines = append(l.lines, entries[i])
 	}
 	return l
+}
+
+// waresFor is npc's wares as player's list shows them, in its order: an
+// heirloom shop's the buyer's class's alone, and no more than the client's 40.
+// A buy's catalog index is into this list (merchant.go's buy), so the two may
+// never differ: until 2026-11-08 the buy indexed the whole catalog and gave
+// another class's item (the user: "im buying staff of faykind with Birdie but is
+// giving me wrong items": Heirloom Bracers twice).
+func (h *NPCWindowHandler) waresFor(player *entity.Player, npc *entity.NPC) ([]database.CharInventoryEntry, error) {
+	wares, err := h.inv.GetNPCItems(npc.NPCID)
+	if err != nil {
+		return nil, err
+	}
+	if heirloomShop(npc) { // the buyer's class's alone, before the client's 40
+		wares = waresForClass(wares, int(player.Class))
+	}
+	if len(wares) > invListCap {
+		wares = wares[:invListCap]
+	}
+	return wares, nil
 }
 
 // heirloomOutfitterName is the Heirloom Outfitters' name (genie.go's shop

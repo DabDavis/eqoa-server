@@ -9,8 +9,8 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// An Heirloom Outfitter, and a genie selling one's stock, lists the buyer's
-// class's wares alone (the user, 2026-11-08: a kappa enchanter found no
+// An Heirloom Outfitter, a genie selling one's stock and a Spell Archivist
+// (petition 1273) list the buyer's class's wares alone (the user, 2026-11-08: a kappa enchanter found no
 // heirlooms near its start, as every outfitter now stocks every class); the
 // control, any other merchant, lists all of them.
 func TestAnOutfittersListIsTheBuyersClasss(t *testing.T) {
@@ -44,6 +44,7 @@ func TestAnOutfittersListIsTheBuyersClasss(t *testing.T) {
 		{"Heirloom Outfitter", 0, []string{"Heirloom Helm (warrior)", "Staff of Everyone"}},
 		{"Heirloom Outfitter", 13, []string{"Heirloom Helm (wizard)", "Staff of Everyone"}},
 		{entity.GenieName, 13, []string{"Heirloom Helm (wizard)", "Staff of Everyone"}},
+		{SpellArchivistName, 0, []string{"Heirloom Helm (warrior)", "Staff of Everyone"}}, // petition 1273
 		{"Merchant", 0, []string{"Heirloom Helm (warrior)", "Heirloom Helm (wizard)", "Staff of Everyone"}},
 	} {
 		got := names(c.class, c.shop)
@@ -102,6 +103,7 @@ func TestABuyFromAnOutfitterIsTheRowItShowed(t *testing.T) {
 		{"Heirloom Outfitter", 13, 1, "Staff of Everyone"},
 		{"Heirloom Outfitter", 0, 1, "Staff of Everyone"},
 		{entity.GenieName, 13, 0, "Heirloom Helm (wizard)"},
+		{SpellArchivistName, 13, 0, "Heirloom Helm (wizard)"},
 		{"Merchant", 13, 0, "Heirloom Helm (warrior)"},
 	} {
 		if got := bought(c.shop, c.class, c.index); got != c.want {

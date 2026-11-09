@@ -362,6 +362,9 @@ func capEntries(rows []database.CharInventoryEntry, most int) []database.CharInv
 			out = append(out, rows[i])
 		}
 	}
+	// never past it, not even for worn rows (there are 23 equip slots, so only
+	// a broken table has more worn than a list holds)
+	out = out[:min(len(out), most)]
 	log.Printf("ItemLists: WARNING a dump's list cut from %d records to %d", len(rows), len(out))
 	return out
 }

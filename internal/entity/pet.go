@@ -141,6 +141,9 @@ type petState struct {
 	// abilities' clocks were last started on (pettemplate.go)
 	tmpl *petTemplate
 	foe  EntityID
+	// spell is the summoning spell that made it, 0 for a charmed one: what a
+	// restart summons it again by (keeppet.go)
+	spell int
 }
 
 // petOfLocked is the player's pet, alive, or nil.
@@ -440,7 +443,7 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 		w.pets = make(map[EntityID]*petState)
 	}
 	ps := &petState{owner: caster, npc: pet, stance: petSheetStance(sheet), last: now,
-		taunts: caster.Class == classEnchanter && pt == nil, kind: kind, hitScale: hitScale, tmpl: pt}
+		taunts: caster.Class == classEnchanter && pt == nil, kind: kind, hitScale: hitScale, tmpl: pt, spell: spell.SpellID}
 	w.pets[caster.ServerID] = ps
 	if sess != nil {
 		w.announcePetLocked(ps, sess)

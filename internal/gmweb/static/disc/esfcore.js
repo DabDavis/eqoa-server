@@ -156,6 +156,29 @@ export function surfaceByID(parsed, id) {
   return decodeSurface(parsed.dv, readSurfaceMeta(parsed.dv, n.body));
 }
 
+// surfaceAnyByID is the surface of a DictID even where another record of the
+// container registered the id first (CHARCUST.CSF's armour textures: the dict
+// keeps the first record carrying an id, and some of these ids are carried by
+// an earlier record of another type): the container's surfaces indexed once.
+export function surfaceAnyByID(parsed, id) {
+  const img = surfaceByID(parsed, id);
+  if (img) return img;
+  if (!parsed.surfaces) {
+    parsed.surfaces = new Map();
+    const st = [...parsed.roots];
+    while (st.length) {
+      const n = st.pop();
+      if (n.type === T.SURFACE && n.size >= 4) {
+        const sid = parsed.dv.getInt32(n.body, true);
+        if (!parsed.surfaces.has(sid)) parsed.surfaces.set(sid, n);
+      }
+      for (const c of n.children) st.push(c);
+    }
+  }
+  const n = parsed.surfaces.get(id);
+  return n ? decodeSurface(parsed.dv, readSurfaceMeta(parsed.dv, n.body)) : null;
+}
+
 // ---- materials and geometry
 
 export function readMaterial(dv, body, version) {
@@ -284,7 +307,27 @@ function stripIndices(count, base, out) {
 // texture and tint): a CSprite's body parts, a GroupSprite's members placed by
 // their (angles, scale, translation), or any record's own mesh. A hierarchical
 // sprite's parts come unposed (their bones are not read here).
-export function buildModel(parsed, node) {
+//
+// swaps dress a CSprite as VICSprite::ApplyLook does (vanilla's cust::apply_look
+// and play::dress): [{slot, tex, col}], a text slot (0 chest, 1 boots, 2 bracer,
+// 3 legs, 4 gloves, as Armor's columns) given a texture (0: its own) and a
+// colour; the CSprite's TSlot list (0x2930: slot, palette entry, layer) says
+// which palette entry a slot is, and every batch of that entry takes it.
+export function buildModel(parsed, node, swaps) {
+  let entrySwap = null;
+  if (swaps?.length && node.type === T.CSPRITE) {
+    const ts = child(node, 0x2930);
+    if (ts) {
+      const dv0 = parsed.dv;
+      const n = dv0.getInt32(ts.body, true);
+      const bySlot = new Map(swaps.map((w) => [w.slot, w]));
+      entrySwap = new Map();
+      for (let k = 0; k < n && k < 64; k++) {
+        const slot = dv0.getInt32(ts.body + 4 + k * 12, true), entry = dv0.getInt32(ts.body + 8 + k * 12, true);
+        if (bySlot.has(slot) && entry >= 0) entrySwap.set(entry, bySlot.get(slot));
+      }
+    }
+  }
   const dv = parsed.dv;
   const pos = [], uv = [], nrm = [], col = [];
   const batches = new Map();
@@ -321,7 +364,10 @@ export function buildModel(parsed, node) {
         nrm.push(nx, ny, nz);
         col.push(L.col[i * 3], L.col[i * 3 + 1], L.col[i * 3 + 2]);
       }
-      const layer = (mats[L.material] || [])[0] || { tex: 0, col: [255, 255, 255, 255], uvt: null };
+      let layer = (mats[L.material] || [])[0] || { tex: 0, col: [255, 255, 255, 255], uvt: null };
+      const sw = entrySwap?.get(L.material);
+      // a DictID as the dict keys them, signed
+      if (sw) layer = { tex: sw.tex ? sw.tex | 0 : layer.tex, col: sw.col || layer.col, uvt: layer.uvt };
       const key = `${layer.tex}|${layer.col.join(',')}`;
       let bt = batches.get(key);
       if (!bt) { bt = { tex: layer.tex, col: layer.col, uv: uvCoeffs(layer.uvt), idx: [] }; batches.set(key, bt); }

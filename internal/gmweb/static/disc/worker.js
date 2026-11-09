@@ -114,18 +114,25 @@ const ops = {
 
   // model: a character body (CHAR.ESF), an item (ITEM.ESF) or a helm
   // (CHARCUST.CSF) by DictID, as a mesh with its textures
-  async model({ id, kind }) {
+  // swaps dress a body (esfcore buildModel): their textures are CHARCUST.CSF's
+  async model({ id, kind, swaps }) {
     const parsed = await container(MODEL_FILES[kind] || 'DATA/CHAR.ESF');
     const node = parsed.dict.get(id | 0);
     if (!node) return { missing: true };
-    const mesh = esf.buildModel(parsed, node);
+    const mesh = esf.buildModel(parsed, node, swaps);
     if (!mesh) return { missing: true, type: node.type };
+    let cust = null;
+    if (swaps?.length) { try { cust = await container('DATA2/CHARCUST.CSF'); } catch { /* the body's own */ } }
     const textures = {};
     const transfer = [mesh.pos.buffer, mesh.uv.buffer, mesh.nrm.buffer, mesh.col.buffer];
+    // a swapped texture is CHARCUST.CSF's (the customisation tables name its
+    // surfaces; CHAR.ESF carries some of the same ids with other art)
+    const swapped = new Set((swaps || []).map((w) => w.tex | 0));
     for (const b of mesh.batches) {
       transfer.push(b.idx.buffer);
       if (b.tex && !(b.tex in textures)) {
-        const img = esf.surfaceByID(parsed, b.tex);
+        const img = swapped.has(b.tex | 0) && cust ? esf.surfaceAnyByID(cust, b.tex) || esf.surfaceByID(parsed, b.tex)
+          : esf.surfaceByID(parsed, b.tex);
         if (img) { textures[b.tex] = img; transfer.push(img.data.buffer); }
       }
     }
@@ -145,7 +152,7 @@ const ops = {
     const name = SURFACE_FILES[file];
     if (!name) throw new Error('no such picture file: ' + file);
     const parsed = await container(name);
-    const img = esf.surfaceByID(parsed, id | 0);
+    const img = file === 'CHARCUST' || file === 'CHARFACE' ? esf.surfaceAnyByID(parsed, id | 0) : esf.surfaceByID(parsed, id | 0);
     if (!img) return { missing: true };
     return { ...img, __transfer: [img.data.buffer] };
   },

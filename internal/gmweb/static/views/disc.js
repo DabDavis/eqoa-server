@@ -141,34 +141,42 @@ export async function previewFiles(names) {
 
 const modelCache = new Map();
 
-function model(id, kind) {
-  const key = kind + ':' + id;
+function model(id, kind, swaps) {
+  const key = kind + ':' + id + (swaps ? ':' + JSON.stringify(swaps) : '');
   if (!modelCache.has(key)) {
-    modelCache.set(key, call('model', { id, kind }));
+    modelCache.set(key, call('model', { id, kind, swaps }));
     modelCache.get(key).catch(() => modelCache.delete(key));
   }
   return modelCache.get(key);
 }
 
-function viewerCard(title, id, kind, note) {
-  return card(title, viewerBox(title, id, kind, note));
+function viewerCard(title, id, kind, note, opts) {
+  return card(title, viewerBox(title, id, kind, note, opts));
 }
 
-export function viewerBox(title, id, kind, note) {
+// viewerBox is a model on the turntable. opts.swaps dress a body (lib/look.js
+// npcSwaps); opts.watch(cb) hands cb {id, swaps} whenever the form changes
+// them, and the model is drawn again as it would look, the view kept.
+export function viewerBox(title, id, kind, note, opts = {}) {
   const canvas = h('canvas', { 'aria-label': title });
   const msg = h('div', { class: 'viewer-note' }, 'Loading…');
   const holder = h('div', { class: 'viewer' }, canvas, msg);
   const body = h('div', { class: 'stack' }, holder, note ? h('p', { class: 'faint small' }, note) : null);
-  (async () => {
+  let v = null, seq = 0;
+  const draw = async (mid, swaps, keep) => {
+    const my = ++seq;
     try {
-      const out = await model(id, kind);
+      const out = await model(mid, kind, swaps);
+      if (my !== seq) return;
       if (out.missing) { msg.textContent = 'This id is not a model on the disc.'; return; }
-      const v = new Viewer(canvas);
-      v.setModel(out);
-      msg.textContent = 'Drag to turn, wheel to zoom';
-      setTimeout(() => { msg.textContent = ''; }, 2500);
+      if (!v) v = new Viewer(canvas);
+      v.setModel(out, keep);
+      msg.textContent = keep ? '' : 'Drag to turn, wheel to zoom';
+      if (!keep) setTimeout(() => { if (msg.textContent.startsWith('Drag')) msg.textContent = ''; }, 2500);
     } catch (e) { msg.textContent = e.message; }
-  })();
+  };
+  draw(id, opts.swaps, false);
+  opts.watch?.(({ id: nid, swaps }) => { if (nid) draw(nid, swaps, true); });
   return body;
 }
 
@@ -177,12 +185,17 @@ function needDisc(title, what) {
     button('Game disc page', { class: 'small', onclick: () => { location.hash = '#/disc'; } })));
 }
 
-// modelPanel is an NPC's body, off CHAR.ESF.
-export async function modelPanel(npc) {
+// modelPanel is an NPC's body, off CHAR.ESF: dressed in its armour, robe and
+// tint as a PS2 dresses it when opts.swaps are given (and kept up with the
+// form by opts.watch), else as modelled.
+export async function modelPanel(npc, opts = {}) {
   await checkKept();
   if (!npc.modelid) return h('div');
   if (!discState().models) return needDisc('Model', 'this NPC\'s model');
-  return viewerCard('Model', npc.modelid, 'char', 'The body as modelled: worn armour, held items and race scaling are not drawn.');
+  const dressed = opts.swaps && discState().cust;
+  return viewerCard('Model', npc.modelid, 'char', dressed
+    ? 'Dressed in its armour sets, robe and tint as a PS2 dresses it, as the form has them now (save to keep them). Held items, the helm and race scaling are not drawn.'
+    : 'The body as modelled: worn armour, held items and race scaling are not drawn.', dressed ? opts : {});
 }
 
 // itemPanel is an item's icon and its model, off ITEMICON.ESF and ITEM.ESF.

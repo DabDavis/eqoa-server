@@ -102,8 +102,9 @@ func TestRealArchivistPathsAreTheQuests(t *testing.T) {
 // its first path written at once, then each path in turn, each change asked
 // and agreed, the book after each holding Return Home, the path's spells and
 // the common ones, nothing of another path; the enchanter's (the petition's
-// example) by name, its level 20 picks with them (petition 1361). Then a level
-// 35 enchanter: its 20's and 30's alone; a 20: its 20's; a 19: nothing.
+// example) by name, its level 20 picks with them (petition 1361) and the Boon
+// path's 49s (petition 1366: Fujiko's book too). Then a level 35 enchanter:
+// its 20's and 30's alone; a 20: its 20's; a 19: nothing.
 func TestRealArchivistChangesEveryClassesPaths(t *testing.T) {
 	db := realRehabDB(t)
 	f := &pathRig{archivistFixture: newArchivistFixture(t, db)}
@@ -171,12 +172,28 @@ func TestRealArchivistChangesEveryClassesPaths(t *testing.T) {
 	_, box = f.paths(enc...)
 	got := f.pick(box, 1)
 	f.wantMsgs("power for others", f.pick(boxID(got), 0), "remove:1", "remove:2", "remove:3", "remove:4", "remove:5",
-		"add:700207@1 flag 0", "add:700340@2 flag 0", "add:700468@3 flag 0", "box:*It is done: the path of Power Jet is yours now.*")
+		"add:700207@1 flag 0", "add:700340@2 flag 0", "add:700468@3 flag 0", "add:701032@4 flag 0", "add:701031@5 flag 0",
+		"box:*It is done: the path of Power Jet is yours now.*")
 	_, box = f.paths(enc...)
 	got = f.pick(box, 0)
-	f.wantMsgs("self power again", f.pick(boxID(got), 0), "remove:1", "remove:2", "remove:3",
+	f.wantMsgs("self power again", f.pick(boxID(got), 0), "remove:1", "remove:2", "remove:3", "remove:4", "remove:5",
 		"add:700215@1 flag 0", "add:700328@2 flag 0", "add:700462@3 flag 0", "add:700575@4 flag 0", "add:700618@5 flag 0",
 		"box:*It is done: the path of Expansive Mind*")
+
+	// petition 1366, on a database petfix166_20261109.py has made right (the
+	// level 49 reward offering the Boon path's Power Stream and Power Flux):
+	// Fujiko's book, his path of Power Jet as he wrote it her before them,
+	// Power Jet and Power Surge; at 60 the paths said to their 49s, and hers
+	// written in at once, what she lacks of it
+	reset(12, 60)
+	f.know(700340, 1, -1)
+	f.know(700468, 2, -1)
+	got, box = f.paths(enc...)
+	f.wantMsgs("Fujiko's paths", got,
+		"box:Spell Archivist: The path of Expansive Mind: Spacious Mind, Expansive Mind, Limitless Mind, Boundless Mind and Infinite Mind. The path of Power Jet: Power Boon, Power Jet, Power Surge, Power Stream and Power Flux.",
+		"box:Spell Archivist: Your book holds the path of Power Jet. "+archivistPathOne, "ask#*:"+archivistPathAsk+"|"+strings.Join(enc, "|"))
+	f.wantMsgs("Fujiko's path of Power Jet", f.pick(box, 1), "add:700207@3 flag 0", "add:701032@4 flag 0", "add:701031@5 flag 0",
+		"box:Spell Archivist: There: Power Boon, Power Stream and Power Flux written into your book. The path of Power Jet is yours.")
 
 	// petition 1361: from level 20, the level 20 picks alone; below it nothing
 	reset(12, 35)

@@ -224,10 +224,16 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 	}
 	h.gameWorld.RestoreKeptPlayer(sess, kp, now)
 	resumeRecord(player.CharServerID) // its target window's record lines (combatrecord.go)
+	if kp.Jumps && !h.gameWorld.JumpsAllowed() {
+		// offered the jump before a restart into a server without them (jump.go)
+		SendJumpsOff(sess)
+	}
 	if kp.RaceLabels {
 		// its client keeps its list; a data step in the hold may have changed it
 		h.gameWorld.RefreshRaceLabels(h.store.DB())
 	}
+	// and its race looks, the same (raceoptions.go)
+	h.gameWorld.RefreshRaceLooks(h.store.DB(), sess)
 	// the lists the client has, until its dump sends them anew
 	sess.SetInventoryList(ex.Inventory.list())
 	sess.SetBankList(ex.Bank.list())

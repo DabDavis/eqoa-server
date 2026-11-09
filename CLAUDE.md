@@ -474,6 +474,34 @@ players spread over the worlds made it read a zone (8 ms) for nearly every repor
 `world.ground_zones` (unset or 0: every zone once read, 652 MB at most for all six worlds, 2.4 MB a
 zone) is that cache's size, for the creatures' moves too.
 
+### A player's jump: vanilla's, on a server that turns it on (`entity/jump.go`, `handlers/jump.go`, `world.jump`)
+
+The user, 2026-11-09: "lets add jump to the game". EQOA has none (VIWalkControl gives a body on land no way up); the jump
+is eqoa-rust-client-vanilla's (`walker.rs`, `jump.rs`, as a GM's flight is): from a floor a start speed up (7.1 a second)
+and the floor its walk remembers lifted over the jump's top, then CLIENT's own fall and landing, the feet at most
+`JumpTop` (0.9, half the walk's body of 1.8) over the floor it left, 0.29 s up and 0.62 s in the air on flat ground, the
+fall's clip (gait 6) in the air and the landing's after. `world.jump: true` turns it on; unset, nothing is offered and
+every report is judged as before. **A PS2 is never sent the offer**: opcode **0x7E28** (`OpcodeJump`, a u32, both ways)
+goes, as the world entry's offers are answered, to a client that answered the bug report offer (0x7E0E, which every
+vanilla build since 2026-11-05 answers and a PS2 never does: `handleBugReportOffer` calls `OfferJump`); a client that
+jumps answers 1 (`World.SetJumpClient`, `Player.Jumps`; taken only with `world.jump`), kept over a keep restart
+(`KeptPlayer.Jumps`; into a server since without jumps, its client is sent 0 and stops) and cleared by a takeover (the
+new client answers for itself). For such a player the movement check (above) takes a jump's arc: a jump begins at a
+report in the air rising after a report standing (the last place taken held; vanilla jumps only once a report standing
+has gone out since it last landed or was moved, so each of its jumps starts from one), its floor the higher of the floor
+under that report and the floor under its first report in the air (a run up a step or a slope leaves a floor higher than
+its last report's); its reports may rise past `mcAirRise` while it rises, to `JumpTop` + 0.1 over its floor; once a
+report has come down from its highest by 0.1, a rise of more than 0.1 is "rose again in the air" (a double jump); it
+falls as any fall does (the fall rule from its floor: its top is within the rule's own tolerance) and ends at a report
+standing or swimming. A rise with no floor under its start, a rise past the top, a second rise, a hover at the top and a
+rise from a player held in place (no speed) stay faults, as do walls and speed. **What others see**: CLIENT stands every
+other creature on the floor within 1.5 of it at each update and each frame (`VICreatureEntity::Sync`, `ExtrapolateMove`,
+both through `ExtrapolateGround`), unless the channel gives it a walk of its own (byte 141, `m_p255`), which this server
+never does for a player: so a PS2 shows a jumper on the ground playing the fall for 0.6 s; vanilla, on a server that
+offered it jumps, draws a player whose gait is 6 at the height this server sends and stands it on a floor only once it
+comes down to one (`jump::aloft`). The 0x40's upward speed box stops at 3, so others extrapolate a jump's first rise
+slower than it goes, and its reports correct it.
+
 ### Duels: SOE's live game's, for every client (`entity/duel*.go`, `handlers/duel.go`)
 
 The user, 2026-10-29: "lets add dueling, the corsten had it in memory i believe", then "dueling damage
@@ -1040,6 +1068,44 @@ stats, level 1, every class and race, NO TRADE, worth 0, no wear, named "Heirloo
 all nine on the genie's list; it refuses a plan that would put any class's outfitter list past 40. The records and
 lists are read at each request: no restart for the data. `TestRealHeirloomCapes` (`EQOA_REAL_DB`, a copy with the seed
 applied) holds the lists to it.
+
+### A custom race's own customisation (`entity/raceoptions.go`, `handlers/raceoptions.go`, `database/charlook.go`)
+
+The user, 2026-11-08: "lets add char customization to the new races, if any other faces and hair add them, but if not add
+color swaps. like for fungusman the fungus man general color, can change head cap, fungus protrusion colors, alos the bag
+color, for example. for giants, cycle through ice giants, fire giants, hill giants, sand giants and colors,etc." A creature's
+body has none of the text slots the retail look's face, hair and armour rows dress, so each race's options are listed in
+code (`raceOptionRows`), keyed by the race's own male body (racedefs' `body_male`, the froglok's), read off the disc by sight
+(`claude-notes/race-options-20261108.md` has the table and the contact sheets): a row of **bodies** (other bodies of the same
+creature: the giants' kinds and their women, the goblins' tribes, the aviaks' birds, the kerrans' coats, the fungusmen's caps,
+...; each with its size against the race's own, so every kind stands as tall), of **colours** on parts of the body (the
+fungusman's skin, cap, growths and bag; wings, dresses, hide, horns, bark, leaves; a giant's whole tone), or of **textures**
+(the satyrs' faces and the satyrs' and brownie's hair: a player race's own, on a head that already wears one). A part is the
+triangles of some palette entries whose UV centre falls in a rectangle of the texture, and no triangle may be two rows'
+(`TestRaceOptionPartsNeverOverlap`: where the fungusman's skin and cap rects met, the back of its cap took the skin's colour
+in the world, whose rows went out by name, and the cap's on the appearance page, which lays them in row order); a
+character's parts go out in row order (`lookParts`). A colour is a mode and three bytes
+(`Dye`: hue, saturation, lightness over the part's own shading; `Tone`: the part's own colours shifted); a row's first step
+is the body as it is. Change a palette, a body or a rect there and restart: vanilla is told at the next login.
+- **Kept**: a body chosen is `characters.modelid`, which every client draws (a PS2 too), the entity channel's scale its size
+  against the race's own (`Player.Body`: `OptionBodySize`); a colour or a texture past a row's first step is a **`charlook`**
+  row (serverid, part = the row's key, kind 2/3, value), which only a client that asked is told. A character with no row and
+  its race's body is drawn as it always was (every character made before). Deleted with its character.
+- **Creation**: a client of the offer writes its choices after 0x002B's own fields (`'R'`, version 1, a count, each row's key
+  and step); `ResolveOptions` holds them to the race's rows (a row the race has not, a step past its row's, a row twice: the
+  creation is refused), the body row's step is the model, the rest charlook rows. Bytes after the fields that do not open with
+  the mark are none (a PS2's 0x002B never carries any).
+- **The wire** (`protocol/opcodes.go` has the formats): **0x7E22** offers (a u32, after the first character list, behind
+  creation's offer, once a session; only where a race has options: `HasRaceOptions`); a client that answers 1 is sent
+  **0x7E23** (every race's options, once a session; the froglok's only while creation offers it) and **0x7E24** (every
+  character's look, by name, a GM's under both names, each part resolved to the palette entries and rects of the character's
+  own body: drawn only on that body, never under an illusion or an armour body), and the looks again after a creation, a
+  deletion, a GM's edit of charlook, racedefs or a custom race's character, and a keep restart (the session flags are kept).
+  A PS2 ignores the offer.
+- **Armour**: `racearmorbody` rows are the race's own body's: a body the character chose (`ChosenBody`) is its look and is
+  kept in any armour (vanilla lays the armour on it as on any slotless body; a PS2 shows it bare, as the hill giant's own
+  body was before racearmorbody). The hill giant's female steps start with the female hill giant (racedefs' `body_female` is
+  the male's), so she is not turned into a male giant in armour.
 
 ### Guilds are kept (`entity/guild.go`, `database/guilds.go`)
 
@@ -2069,6 +2135,7 @@ patch:
 world:
   heirlooms: false          # no kept item at a login; unset: given
   pvp: true                 # /pvp flags a player (entity/pvp.go); unset: not available
+  jump: true                # a client that can (vanilla) jumps (entity/jump.go); unset: none
   open_races: true          # creation takes the froglok and racedefs' races (vanilla is told them); unset: the game's
   all_classes: true         # every class for every race at creation; unset: each race's own
   capes: true               # the cape slot, wear 28 in equip slot 22, for clients that draw capes (handlers/capes.go); unset: none

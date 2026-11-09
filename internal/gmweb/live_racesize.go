@@ -125,3 +125,26 @@ func (s *Server) refreshRaceLabels(before, after map[string]any) {
 		s.d.World.RefreshRaceLabels(s.d.DB)
 	}
 }
+
+// liveLooks tells the clients that show race looks the list as charlook holds it
+// now (the change is committed: the database is free).
+func (s *Server) liveLooks() string {
+	if s.d.World == nil || s.d.DB == nil {
+		return "no world is running: the clients are told at their next login"
+	}
+	n := s.d.World.RefreshRaceLooks(s.d.DB)
+	return fmt.Sprintf("at once: %d clients that show race looks sent the list again", n)
+}
+
+// refreshRaceLooks tells the clients that show race looks after a change to a
+// character that may have one (a custom race's, or one made one): its name and
+// body are the list's.
+func (s *Server) refreshRaceLooks(before, after map[string]any) {
+	custom := func(row map[string]any) bool {
+		f, ok := asFloat(row["race"])
+		return ok && (entity.IsCustomRace(int(f)) || int(f) == 10)
+	}
+	if s.d.World != nil && s.d.DB != nil && (custom(before) || custom(after)) {
+		s.d.World.RefreshRaceLooks(s.d.DB)
+	}
+}

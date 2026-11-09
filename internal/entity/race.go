@@ -134,7 +134,7 @@ func LoadRaceDefs(db *database.SQLiteDB) error {
 	}
 	for _, c := range chars {
 		d, _ := customRace(c.Race)
-		if body := d.Body[min(max(c.Sex, 0), 1)]; body != 0 && body != c.ModelID {
+		if body := d.Body[min(max(c.Sex, 0), 1)]; body != 0 && body != c.ModelID && !ChosenBody(c.Race, uint32(c.ModelID)) {
 			log.Printf("racedefs: %s (%s) wears %#x, the race's body is %#x", c.Name, d.Name, uint32(c.ModelID), uint32(body))
 		}
 	}

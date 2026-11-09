@@ -113,3 +113,42 @@ func TestASparringDummyKeepsItsFight(t *testing.T) {
 		t.Errorf("the control: its own player's pick: ok %v, level %d", ok, c.npc.Level)
 	}
 }
+
+// Petition 1324 (jibrish, 2026-11-09): "Add a second sparring dummy that hits
+// twice as hard as the previous one but is otherwise the same". A "Sparring
+// Dummy x2" is a sparring dummy whose every hit and strike is twice what the
+// plain one's is: against a player whose AC holds each hit to the dummy's
+// floor, a first round's four hits take twice the plain dummy's. The control:
+// "Sparring Dummy" at the same level and AC.
+func TestASparringDummyX2HitsTwiceAsHard(t *testing.T) {
+	for name, want := range map[string]int{"Sparring Dummy": 1, "Sparring Dummy x2": 2, " sparring dummy X3 ": 3, "Sparring Dummy x2a": 1, "Sparring Dummy x1": 1} {
+		if got := DummyHitsOf(name); got != want {
+			t.Errorf("DummyHitsOf(%q) = %d, want %d", name, got, want)
+		}
+	}
+	x2 := NPCFromRecord(&database.NPCRecord{ID: 1, NPCName: "Sparring Dummy x2", NPCLevel: 10, Size: 0.25}, 0, nil)
+	if x2.Dummy != SparringDummy || x2.DummyHits != 2 || SwingEffectName(npcSwingKind(x2)) != "Attack4" {
+		t.Fatalf("a Sparring Dummy x2: kind %d, hits x%d, swing %s", x2.Dummy, x2.DummyHits, SwingEffectName(npcSwingKind(x2)))
+	}
+	if got, want := x2.sparHits(sparStrikeDamage(60, 0, 0.5)), 1200; got != want {
+		t.Errorf("its level 60 strike: %d, want %d", got, want)
+	}
+	lost := func(name string) int {
+		c := newDummy(t, name, 10)
+		c.npc.SwingFixed, c.npc.SwingKind, c.npc.DummyHits = true, sparSwing, DummyHitsOf(name)
+		c.p.HP, c.p.MaxHP, c.p.AC = 100000, 100000, 100000 // every hit its floor
+		c.w.mu.Lock()
+		c.w.playerHitLocked(c.sess, c.p, c.npc, c.npcO)
+		c.w.mu.Unlock()
+		c.sent()
+		for d := time.Duration(0); d <= 2900*time.Millisecond; d += 100 * time.Millisecond {
+			c.dummyTick(d)
+		}
+		return 100000 - c.p.HP
+	}
+	plain, double := lost("Sparring Dummy"), lost("Sparring Dummy x2")
+	floor := npcMeleeRoll(&NPC{Level: 10}).Floor
+	if plain != 4*floor || double != 2*plain {
+		t.Errorf("a first round took %d (plain) and %d (x2); want 4 hits at the floor %d, and twice that", plain, double, floor)
+	}
+}

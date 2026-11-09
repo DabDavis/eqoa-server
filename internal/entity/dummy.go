@@ -3,6 +3,7 @@ package entity
 import (
 	"log"
 	"math/rand"
+	"regexp"
 	"strings"
 	"time"
 
@@ -59,6 +60,25 @@ func DummyKindOf(name string) DummyKind {
 	return NotDummy
 }
 
+// dummyHitsName reads a sparring dummy's "x2" off the end of its name.
+var dummyHitsName = regexp.MustCompile(`(?i)\bx([2-9])\s*$`)
+
+// DummyHitsOf is how many times as hard a sparring dummy of that name hits
+// (petition 1324, jibrish, 2026-11-09: "Add a second sparring dummy that hits
+// twice as hard as the previous one but is otherwise the same"): the digit of
+// a name ending "x2" to "x9", else 1.
+func DummyHitsOf(name string) int {
+	if m := dummyHitsName.FindStringSubmatch(strings.TrimSpace(name)); m != nil {
+		return int(m[1][0] - '0')
+	}
+	return 1
+}
+
+// sparHits is a sparring dummy's hit or strike as hard as it hits.
+func (n *NPC) sparHits(damage int) int {
+	return damage * max(n.DummyHits, 1)
+}
+
 // dummyHeal is what a Training Dummy gives back after each hit.
 const dummyHeal = 300
 
@@ -104,6 +124,7 @@ func (w *World) dummyFightLocked(npc *NPC, now time.Time) {
 func (w *World) dummyHitLocked(sess *session.Session, npc *NPC, p *Player, now time.Time) bool {
 	damage := npcMeleeRoll(npc).hitOn(p, rand.Intn)
 	if npc.Dummy == SparringDummy {
+		damage = npc.sparHits(damage) // "Sparring Dummy x2": twice as hard
 		if w.sparHitLocked(sess, npc, p, damage, "", now) {
 			return true
 		}

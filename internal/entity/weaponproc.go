@@ -39,7 +39,12 @@ import (
 // How often and how it lands is not recorded anywhere (Sandstorm's recordings
 // hold no weapon proc), so it is proc.go's rule for the enchanter's procs,
 // chosen there: each landed hit of the hand that holds the weapon procs at
-// 3% and one more for each 20 INT, at most 25%; the creature resists it all
+// 3% and one more for each 20 INT, at most 25%, unless its words give its own
+// chance ("Procs 2000 slashing damage, a 10% chance each hit.": "N% chance",
+// "N% a hit" or "per swing", from 1 to 100), which then holds at any INT
+// (petition 1360, Zaeire: "Katana of severing proc should be set to 2k with a
+// 10% chance to proc"; procChanceRe), as weaponProcsByName's Chance does; the
+// creature resists it all
 // or nothing at 5% against a wielder of its level, 3 more a level above (its
 // element's debuffs taken off: npcSpellResistPct); the damage as it is, no
 // mod (an epic quest guide: "weapon/spell procs and abilities hit full").
@@ -175,6 +180,10 @@ var (
 	procFigureRe = regexp.MustCompile(`(?i)\bprocs?\s+(?:a\s+|for\s+around\s+)?(\d+)(?:\s*-\s*(\d+))?`)
 	ddFigureRe   = regexp.MustCompile(`(?i)\b(\d+)\s+dd\b[^.]*\bproc`)
 	onlyOnRe     = regexp.MustCompile(`(?i)\bworks only on ([a-z]+?)s?\b`)
+	// procChanceRe is a proc's own chance in its words: "10% chance", "a 10%
+	// chance each hit", "10% a hit", "10% per swing" (never a scale's "30%
+	// based on DEX")
+	procChanceRe = regexp.MustCompile(`(?i)\b(\d{1,3})\s*%\s*(?:chance\b|(?:a|an|per|each)\s+(?:hit|swing)s?\b)`)
 )
 
 // WeaponProcFromText is the proc a weapon's description gives, false when it
@@ -209,6 +218,11 @@ func WeaponProcFromText(desc string) (WeaponProc, bool) {
 	wp.Resist = elementOf(lower)
 	if m := onlyOnRe.FindStringSubmatch(desc); m != nil {
 		wp.Only = strings.ToLower(m[1])
+	}
+	if m := procChanceRe.FindStringSubmatch(desc); m != nil {
+		if c, _ := strconv.Atoi(m[1]); c >= 1 && c <= 100 {
+			wp.Chance = c
+		}
 	}
 	return wp, true
 }
@@ -292,6 +306,9 @@ func (wp WeaponProc) String() string {
 		s = fmt.Sprintf("%s for %s, which procs %s at %d%% a hit, at most %d a round", wp.Form, long, figure, wp.Chance, wp.RoundMost)
 	default:
 		s = figure
+	}
+	if wp.Chance > 0 && wp.Kind != ProcForm { // its own chance (a form's is in its words)
+		s += fmt.Sprintf(" at %d%% a hit", wp.Chance)
 	}
 	if wp.Only != "" {
 		s += ", on " + wp.Only + "s alone"
@@ -411,21 +428,28 @@ func weaponDoTCast(p *Player, wp *WeaponProc, target EntityID, n int) *castState
 }
 
 // weaponProcWords is the #stats line of the player's weapon procs, its
-// chance a hit at its INT; "" with none.
+// chance a hit at its INT for those of no chance of their own (a proc's own
+// is in its words); "" with none.
 func weaponProcWords(p *Player) string {
 	g := &p.Gear
 	var parts []string
+	byINT := false
 	if g.MainProc != nil {
 		parts = append(parts, fmt.Sprintf("%s %s", g.MainProc.Item, g.MainProc))
+		byINT = byINT || g.MainProc.Chance <= 0
 	}
 	if g.OffProc != nil && g.OffArmed && !g.WeaponTwoHanded {
 		parts = append(parts, fmt.Sprintf("off hand %s %s", g.OffProc.Item, g.OffProc))
+		byINT = byINT || g.OffProc.Chance <= 0
 	}
 	if len(parts) == 0 {
 		return ""
 	}
+	if !byINT {
+		return "Weapon procs: " + strings.Join(parts, "; ")
+	}
 	return fmt.Sprintf("Weapon procs: %s; %d%% a hit of its hand (INT %d)", strings.Join(parts, "; "),
-		procChancePct(p.StatNow(StatInt)), p.StatNow(StatInt)) // a form's own chance is in its words
+		procChancePct(p.StatNow(StatInt)), p.StatNow(StatInt))
 }
 
 // restoreProcLocked lands a restoring proc: n hit points and wp.Power power to

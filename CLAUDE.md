@@ -953,6 +953,41 @@ western human, Goblin 13 as a dark elf, Aviak 14 as a barbarian, Lizardman 15 as
 halfling; the hill giant's 11 as before), each wire race a race of the body's height (the camera every client frames it
 with is its wire race's) whose city fits it.
 
+### A custom race's own customisation (`entity/raceoptions.go`, `handlers/raceoptions.go`, `database/charlook.go`)
+
+The user, 2026-11-08: "lets add char customization to the new races, if any other faces and hair add them, but if not add
+color swaps. like for fungusman the fungus man general color, can change head cap, fungus protrusion colors, alos the bag
+color, for example. for giants, cycle through ice giants, fire giants, hill giants, sand giants and colors,etc." A creature's
+body has none of the text slots the retail look's face, hair and armour rows dress, so each race's options are listed in
+code (`raceOptionRows`), keyed by the race's own male body (racedefs' `body_male`, the froglok's), read off the disc by sight
+(`claude-notes/race-options-20261108.md` has the table and the contact sheets): a row of **bodies** (other bodies of the same
+creature: the giants' kinds and their women, the goblins' tribes, the aviaks' birds, the kerrans' coats, the fungusmen's caps,
+...; each with its size against the race's own, so every kind stands as tall), of **colours** on parts of the body (the
+fungusman's skin, cap, growths and bag; wings, dresses, hide, horns, bark, leaves; a giant's whole tone), or of **textures**
+(the satyrs' faces and the satyrs' and brownie's hair: a player race's own, on a head that already wears one). A part is the
+triangles of some palette entries whose UV centre falls in a rectangle of the texture; a colour is a mode and three bytes
+(`Dye`: hue, saturation, lightness over the part's own shading; `Tone`: the part's own colours shifted); a row's first step
+is the body as it is. Change a palette, a body or a rect there and restart: vanilla is told at the next login.
+- **Kept**: a body chosen is `characters.modelid`, which every client draws (a PS2 too), the entity channel's scale its size
+  against the race's own (`Player.Body`: `OptionBodySize`); a colour or a texture past a row's first step is a **`charlook`**
+  row (serverid, part = the row's key, kind 2/3, value), which only a client that asked is told. A character with no row and
+  its race's body is drawn as it always was (every character made before). Deleted with its character.
+- **Creation**: a client of the offer writes its choices after 0x002B's own fields (`'R'`, version 1, a count, each row's key
+  and step); `ResolveOptions` holds them to the race's rows (a row the race has not, a step past its row's, a row twice: the
+  creation is refused), the body row's step is the model, the rest charlook rows. Bytes after the fields that do not open with
+  the mark are none (a PS2's 0x002B never carries any).
+- **The wire** (`protocol/opcodes.go` has the formats): **0x7E22** offers (a u32, after the first character list, behind
+  creation's offer, once a session; only where a race has options: `HasRaceOptions`); a client that answers 1 is sent
+  **0x7E23** (every race's options, once a session; the froglok's only while creation offers it) and **0x7E24** (every
+  character's look, by name, a GM's under both names, each part resolved to the palette entries and rects of the character's
+  own body: drawn only on that body, never under an illusion or an armour body), and the looks again after a creation, a
+  deletion, a GM's edit of charlook, racedefs or a custom race's character, and a keep restart (the session flags are kept).
+  A PS2 ignores the offer.
+- **Armour**: `racearmorbody` rows are the race's own body's: a body the character chose (`ChosenBody`) is its look and is
+  kept in any armour (vanilla lays the armour on it as on any slotless body; a PS2 shows it bare, as the hill giant's own
+  body was before racearmorbody). The hill giant's female steps start with the female hill giant (racedefs' `body_female` is
+  the male's), so she is not turned into a male giant in armour.
+
 ### Guilds are kept (`entity/guild.go`, `database/guilds.go`)
 
 Until 2026-11-06 guilds lived in the server's memory alone, so every restart ended every guild (the 04:47 UTC one

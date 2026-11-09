@@ -222,10 +222,10 @@ func TestTheArmorDyerDyesTheCape(t *testing.T) {
 
 	got := talk()
 	if !hasMsg(got, "box:Armor Dyer: I dye armor and capes*") ||
-		!strings.HasSuffix(got[len(got)-1], ":What shall I dye?|All my armor|One piece of armor|My cape|Robe, cape, shield or weapons|Take every dye off") {
+		!strings.HasSuffix(got[len(got)-1], ":What shall I dye?|All my armor|One piece of armor|My cape|Take every dye off|Robe, cape, shield or weapons") {
 		t.Fatalf("the dyer's question with capes: %q", got)
 	}
-	got = pick(got, 3)
+	got = pick(got, 4)
 	if !strings.Contains(got[len(got)-1], ":Which one?|Robe|Cape|Shield|Primary weapon|Secondary weapon") {
 		t.Fatalf("the robe's question: %q", got)
 	}
@@ -237,7 +237,7 @@ func TestTheArmorDyerDyesTheCape(t *testing.T) {
 	if navy := database.RGBA(database.DiscTints[4]); capeDye() != navy {
 		t.Fatalf("all my armor: the cape %08X, want navy", capeDye())
 	}
-	pick(talk(), 4) // Take every dye off
+	pick(talk(), 3) // Take every dye off
 	if capeDye() != 0 || tw.p.CapeTint() != 0x7020A0FF {
 		t.Fatalf("every dye off: the cape %08X, drawn %08X (want its record's)", capeDye(), tw.p.CapeTint())
 	}

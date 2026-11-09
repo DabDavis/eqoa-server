@@ -182,6 +182,45 @@ func TestTemplateAbilities(t *testing.T) {
 	}
 }
 
+// A strip's forms (petition 1368, Mr. Moogie's): on its clock with a name of
+// its own, with none (its lines say DefaultStripName), or pinning a spell for
+// its look; a name is a strip's alone, at most StripNameMost characters, and a
+// strip is named one way, not both. Written back, it reads the same.
+func TestTemplateStripAbilities(t *testing.T) {
+	for _, ok := range []string{
+		`[{"kind": "strip", "every": 30, "first": 30, "name": " Royal Decree "}]`,
+		`[{"kind": "strip", "every": 30}]`,
+		`[{"kind": "strip", "every": 30, "spell": "Searing Dread"}]`,
+		`[{"kind": "nuke", "every": 10}, {"kind": "strip", "chain": true, "chance": 50}]`,
+	} {
+		list, err := ParseTemplateAbilities(ok)
+		if err != nil {
+			t.Errorf("%s refused: %v", ok, err)
+			continue
+		}
+		again, err := ParseTemplateAbilities(TemplateAbilitiesJSON(list))
+		if err != nil || !reflect.DeepEqual(again, list) {
+			t.Errorf("%s written back: %v %v", ok, again, err)
+		}
+	}
+	if list, _ := ParseTemplateAbilities(`[{"kind": "strip", "every": 30, "name": " Royal Decree "}]`); len(list) != 1 || list[0].Name != "Royal Decree" {
+		t.Errorf("the name read: %+v", list)
+	}
+	for _, bad := range []string{
+		`[{"kind": "nuke", "every": 10, "name": "Royal Decree"}]`,
+		`[{"kind": "debuff", "every": 10, "spell_id": 5, "name": "Royal Decree"}]`,
+		`[{"kind": "strip", "every": 30, "name": "Royal Decree", "spell": "Searing Dread"}]`,
+		`[{"kind": "strip", "every": 30, "name": "Royal Decree", "spell_id": 7001}]`,
+		`[{"kind": "strip", "every": 30, "name": "` + strings.Repeat("x", StripNameMost+1) + `"}]`,
+		`[{"kind": "strip", "every": 1}]`,
+		`[{"kind": "strip", "every": 30, "no_cure": true}]`,
+	} {
+		if _, err := ParseTemplateAbilities(bad); err == nil {
+			t.Errorf("%s read, want refused", bad)
+		}
+	}
+}
+
 // A template's spells: its class's by level as classspells has them (a
 // mastery's left out), with their lines, visuals and spellarea rows; a spell
 // pinned by name is the record with a line first. The range's bits are the

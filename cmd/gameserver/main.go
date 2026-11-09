@@ -419,6 +419,7 @@ func main() {
 	// the Rock of Freeport (world.rock_of_freeport): its record made now when
 	// none is so named, given at a login, a cast to Freeport when used
 	handlers.SetRockOfFreeport(cfg.World.RockOfFreeport)
+	handlers.SetTeleporter(cfg.World.Teleporter) // handlers/teleporter.go
 	if cfg.World.RockOfFreeport {
 		if id, made, err := handlers.EnsureRockOfFreeport(db); err != nil {
 			log.Printf("WARNING: the Rock of Freeport's record: %v; none is given", err)

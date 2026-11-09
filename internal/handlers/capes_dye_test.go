@@ -79,7 +79,7 @@ func TestACapeDyedAloneGoesOutAtOnce(t *testing.T) {
 			t.Fatal("the dyer did not answer")
 		}
 		msgs := questMsgs(tw.s)
-		for _, n := range []byte{2, which, 1, 1} {
+		for _, n := range []byte{3, which, 1, 1} {
 			if !d.Answer(tw.s, tw.p, boxID(msgs), n) {
 				t.Fatalf("not the dyer's box: %q", msgs)
 			}
@@ -126,13 +126,13 @@ func TestACapeDyedAloneGoesOutAtOnce(t *testing.T) {
 	}
 }
 
-// "My cape", a dyer's fifth answer to "What shall I dye?" on a server with
-// capes (the owner, 2026-11-09, choosing it), goes straight to the colours and
+// "My cape", a dyer's third answer to "What shall I dye?" on a server with
+// capes (the owner, 2026-11-09: "up front"), goes straight to the colours and
 // dyes the cape alone: chardyes' cape slot and no other, and the next tick's
 // capes in view in the dye. CLIENT's answer box shows three answers a page, so
-// it is on the second page, under "Take every dye off"; the four before it keep
-// their places. The control: without capes the question is its four answers as
-// it was, and a fifth pick asks nothing.
+// it ends the first page, and the robe's question and "Take every dye off" are
+// on the second. The control: without capes the question is its four answers
+// as it was, and its third answer the robe's question, with no cape in it.
 func TestMyCapeGoesStraightToTheColours(t *testing.T) {
 	capesOn(t)
 	tw := newTalkWorld(t, 100, 100)
@@ -181,10 +181,10 @@ func TestMyCapeGoesStraightToTheColours(t *testing.T) {
 	}
 
 	got := talk()
-	if !strings.HasSuffix(last(got), ":What shall I dye?|All my armor|One piece of armor|Robe, cape, shield or weapons|Take every dye off|My cape") {
+	if !strings.HasSuffix(last(got), ":What shall I dye?|All my armor|One piece of armor|My cape|Robe, cape, shield or weapons|Take every dye off") {
 		t.Fatalf("the first question with capes: %q", got)
 	}
-	got = pick(got, 4)
+	got = pick(got, 2)
 	if !strings.HasSuffix(last(got), ":Which colors for my cape?|"+strings.Join(families, "|")) {
 		t.Fatalf("My cape: %q, want the colours' families at once", got)
 	}
@@ -214,7 +214,7 @@ func TestMyCapeGoesStraightToTheColours(t *testing.T) {
 	if !strings.HasSuffix(last(got), ":What shall I dye?|All my armor|One piece of armor|Robe, shield or weapons|Take every dye off") {
 		t.Fatalf("the control, no capes: %q, want the four answers as they were", got)
 	}
-	if after := pick(got, 4); len(after) != 0 {
-		t.Fatalf("the control: a fifth pick without capes asked %q", after)
+	if got = pick(got, 2); !strings.HasSuffix(last(got), ":Which one?|Robe|Shield|Primary weapon|Secondary weapon") {
+		t.Fatalf("the control: the third answer without capes asked %q, want the robe's question", got)
 	}
 }

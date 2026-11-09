@@ -24,7 +24,9 @@ package entity
 //     to a body with no floor and no liquid, damped by m_parm44 (0.8) a
 //     second, and nothing pushes it up (Walk and Run need a floor or a
 //     liquid; VIWalkControl has no jump). A body in the air that does not
-//     come down is held up by nothing;
+//     come down is held up by nothing. The one rise in the air taken is a
+//     jump's, from a player whose client jumps on a server with world.jump
+//     (jump.go): from a floor, to JumpTop over it, once;
 //   - on a floor it climbs no steeper than the walk lets it: the sweep's
 //     ball (0.6 round at 1.2 over the feet) stops at anything steeper, and
 //     a step up is at most what the ball clears;
@@ -189,6 +191,7 @@ type moveState struct {
 	airAt   time.Time // when it last stood or swam: the fall's start
 	airY    float32   // and at what height
 	airN    int       // reports taken in the air since
+	jump    jumpState // the jump it is in (jump.go), none
 
 	credit  float32 // the speed rule's distance in hand
 	fastest float32 // the fastest speed given lately
@@ -219,6 +222,7 @@ func (st *moveState) serverMoved(p *Player, now time.Time, ours bool) {
 	st.world, st.x, st.y, st.z, st.at = p.World, p.X, p.Y, p.Z, now
 	st.judged, st.air, st.wet = false, false, false
 	st.airAt, st.airY = now, p.Y
+	st.jump = jumpState{}
 	st.credit = 0
 	st.pending, st.pendWorld, st.pendX, st.pendY, st.pendZ = true, p.World, p.X, p.Y, p.Z
 	st.pendAt, st.pendFixAt, st.pendFix = now, now, ours
@@ -254,6 +258,7 @@ type judgement struct {
 	ahead             float32 // how far the report is past it
 	held, wet, judged bool    // the place stands, swims, and the server knows
 	credit, cost      float32
+	jump              jumpState // the jump it is a report of (jump.go), none
 }
 
 // judgeMoveLocked judges one report: whether its place is taken, or (too
@@ -287,6 +292,7 @@ func (w *World) judgeMoveLocked(p *Player, u *ClientUpdate, now time.Time) (take
 			st.x, st.y, st.z, st.at = u.X, u.Y, u.Z, now
 			st.judged, st.air, st.wet = judged, judged && !held && !wet, wet
 			st.airAt, st.airY, st.airN = now, u.Y, 0
+			st.jump = jumpState{}
 			st.credit = 0 // a move back of ours: nothing in hand
 			if !st.pendFix {
 				st.credit = st.speed(p, now)*mcSlack + mcBurst // the server's own move: a second's worth
@@ -399,8 +405,17 @@ func (w *World) judgeLocked(p *Player, st *moveState, u *ClientUpdate, now time.
 	}
 	if j.judged {
 		dry := !j.wet && !st.wet
+		if dry && !j.held {
+			// a jump's, from a client that jumps (jump.go)
+			var why string
+			if j.jump, why = w.judgeJumpLocked(p, st, u, dy); why != "" {
+				j.why = why
+				return j
+			}
+		}
+		rising := j.jump.on && !j.jump.down // a jump on its way up
 		switch {
-		case dy > mcAirRise && dry && !j.held:
+		case dy > mcAirRise && dry && !j.held && !rising:
 			j.why = fmt.Sprintf("rose %.2f in the air", dy)
 			return j
 		case dy > dh*mcRiseSlope+mcRiseStep && dry:
@@ -417,6 +432,9 @@ func (w *World) judgeLocked(p *Player, st *moveState, u *ClientUpdate, now time.
 				if t := now.Add(-300 * time.Millisecond); start.Before(t) {
 					start = t
 				}
+			}
+			if j.jump.on {
+				from = max(from, j.jump.floor) // a jump falls from the floor it left
 			}
 			// how long it has been in the air: a falling client reports
 			// at its cadence (its state changes every frame), so its
@@ -464,6 +482,7 @@ func (st *moveState) take(y float32, now time.Time, j judgement) {
 	st.credit = max(0, j.credit-j.cost)
 	if !j.judged {
 		st.judged, st.air, st.wet = false, false, false
+		st.jump = jumpState{}
 		return
 	}
 	switch {
@@ -476,6 +495,12 @@ func (st *moveState) take(y float32, now time.Time, j judgement) {
 		}
 	default:
 		st.airN++
+	}
+	// the jump it is in: none once it stands or swims (judgeLocked judges no
+	// jump there), its fall from the floor it left (jump.go)
+	st.jump = j.jump
+	if st.jump.on {
+		st.airY = max(st.airY, st.jump.floor)
 	}
 	st.judged, st.air, st.wet = true, !j.held && !j.wet, j.wet
 }
@@ -585,6 +610,7 @@ func (w *World) moveBackLocked(p *Player, now time.Time) {
 	}
 	p.VelX, p.VelY, p.VelZ = 0, 0, 0
 	st.bad = 0
+	st.jump = jumpState{}
 	st.pending, st.pendWorld, st.pendX, st.pendY, st.pendZ = true, st.world, st.x, st.y, st.z
 	st.pendAt, st.pendFixAt, st.pendFix = now, now, true
 	w.sendMoveBackLocked(p, st.world, st.x, st.y, st.z)

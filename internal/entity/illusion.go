@@ -167,7 +167,9 @@ func (p *Player) Body() (model uint32, size float32) {
 	if p.ArmorBody != 0 { // its race's body for its armour (armorbody.go)
 		return p.ArmorBody, p.Size
 	}
-	return uint32(p.ModelID), p.Size
+	// its own body, at its race's size; a body it chose of its race's options
+	// at that body's size against the race's own (raceoptions.go)
+	return uint32(p.ModelID), p.Size * OptionBodySize(p.Race, uint32(p.ModelID))
 }
 
 // endIllusionsLocked takes every illusion off a player but keep's (a spell

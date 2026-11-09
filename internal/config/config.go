@@ -233,6 +233,13 @@ type WorldConfig struct {
 	// or false, /pvp says it is not available and nothing else changes.
 	PvP bool `yaml:"pvp"`
 
+	// Jump lets players jump (entity/jump.go, handlers/jump.go): a client that
+	// can (vanilla) is offered it (protocol.OpcodeJump) and jumps about 0.9 up,
+	// and the movement check takes a jump's arc from it. Unset or false: nothing
+	// is offered, and every rise in the air is judged as before. A PS2 cannot
+	// jump and is never offered it.
+	Jump bool `yaml:"jump"`
+
 	// Heirlooms false gives no character the kept items at its login: the
 	// Genie's Lamp, the Heirloom Fang of the Wolf and the Summoning Portal
 	// (handlers/genie.go, wolffang.go, summonportal.go). Unset: given, to a

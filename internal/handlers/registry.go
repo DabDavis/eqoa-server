@@ -431,6 +431,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 
 	// A GM's flight: a client's word that it flies (fly.go)
 	NewFlyHandler().RegisterHandlers(r)
+	// A player's jump: a client's answer to the offer (jump.go, world.jump)
+	NewJumpHandler(gameWorld).RegisterHandlers(r)
 
 	// Register the buddy and ignore lists (entity/social.go)
 	NewSocialHandler(gameWorld).RegisterHandlers(r)
@@ -542,6 +544,13 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	NewCreationHandler().RegisterHandlers(r)
 	// the cape slot (0x7E25; capes.go): the answer to its offer, on a server with world.capes
 	NewCapesHandler(charHandler).RegisterHandlers(r)
+	// a custom race's own options and the looks chosen, to a client that can
+	// show them (0x7E22; raceoptions.go)
+	if charStore != nil {
+		NewRaceOptionsHandler(gameWorld, charStore.DB()).RegisterHandlers(r)
+	} else {
+		NewRaceOptionsHandler(gameWorld, nil).RegisterHandlers(r)
+	}
 	if charStore != nil && charStore.DB() != nil {
 		chatHandler.SetDyeStore(charStore.DB())
 		// the Armor Dyers (dyer.go) dye as #dye does

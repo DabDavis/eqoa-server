@@ -11,7 +11,9 @@ import (
 
 // The Spell Archivist's grant on a real server's data (EQOA_REAL_DB names its
 // database, a copy of which is opened), every class open to every race as the
-// Heirloom Test Server runs (world.all_classes): each class's basic spells at
+// Heirloom Test Server runs (world.all_classes), its merchants' part alone (no
+// quests run here; the quests' side spells of petition 1361 are
+// TestRealArchivistSideSpells'): each class's basic spells at
 // levels 20, 49 and 60 number what the petition's own checks counted at 60
 // (Jibrish's agent's Go code and a separate Python check, on the Heirloom
 // server's data of 2026-11-08) and what a Python reading of the same rule

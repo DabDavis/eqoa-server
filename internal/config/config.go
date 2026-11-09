@@ -252,9 +252,13 @@ type WorldConfig struct {
 	AllClasses bool `yaml:"all_classes"`
 
 	// ImportedTag shows "(Imported)" after the name of gear a character
-	// transfer brought in (its record a copy at 70%: database/imported.go;
+	// transfer brought in (its record a copy at world.imported_share: database/imported.go;
 	// handlers/importedtag.go). Unset, off: the copies show their bases' names.
 	ImportedTag bool `yaml:"imported_tag"`
+	// ImportedShare is the share of its record's stats, procs and worn hit
+	// effects that gear a transfer brought in keeps (0.85 = 85%), each copy
+	// made its base again at this share at the start. Unset: 0.85.
+	ImportedShare float64 `yaml:"imported_share"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

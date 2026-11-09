@@ -8,12 +8,13 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
 // imported.go — imported gear's own records: gear a character brought in
 // through a character transfer is a copy of its record at ImportedShare of
-// its stats (petition 1314, jibrish, 2026-11-09: "Any gear that was imported
+// its stats (85% since petition 1320, 70% before; petition 1314, jibrish, 2026-11-09: "Any gear that was imported
 // from the character transfer tool should be blanket reduced in stats by
 // 30%. The real world server drop equivelents should be the full thing. This
 // includes any special effects on the gear, like procs. Regular dropped items
@@ -38,8 +39,27 @@ import (
 // everything else is its base's. Its use effects (itemeffect) are copied with
 // each "by N" of their lines scaled the same way.
 
+// DefaultImportedShare is the share of its record's figures an imported copy
+// keeps, world.imported_share unset (petition 1320, jibrish, 2026-11-09: "The
+// -30% debuff on imported gear went a bit too hard, lets reduce that to -15%
+// and see how it goes"; 70% before it).
+const DefaultImportedShare = 0.85
+
+// importedShare is the share in force (SetImportedShare), a float64's bits.
+var importedShare atomic.Uint64
+
+func init() { importedShare.Store(math.Float64bits(DefaultImportedShare)) }
+
 // ImportedShare is the share of its record's figures an imported copy keeps.
-const ImportedShare = 0.7
+func ImportedShare() float64 { return math.Float64frombits(importedShare.Load()) }
+
+// SetImportedShare sets it (world.imported_share, at the start, before the
+// copies are made their bases again: SyncImportedCopies), held to 1%-100%,
+// and gives back the one before.
+func SetImportedShare(v float64) float64 {
+	v = min(max(v, 0.01), 1)
+	return math.Float64frombits(importedShare.Swap(math.Float64bits(v)))
+}
 
 // ImportedTag is what a client is shown after an imported copy's name.
 const ImportedTag = " (Imported)"
@@ -73,7 +93,7 @@ var importedScaled = map[string]bool{
 }
 
 // ImportedFigure is a figure as an imported copy has it.
-func ImportedFigure(v int) int { return int(math.Round(float64(v) * ImportedShare)) }
+func ImportedFigure(v int) int { return int(math.Round(float64(v) * ImportedShare())) }
 
 // IsImportedGear reports whether a record is gear an import's damper copies:
 // worn (a wear slot), not a stack, not an Heirloom.
@@ -181,7 +201,7 @@ func importedColumns(cols []string) (set, from string) {
 		q := `"` + c + `"`
 		s = append(s, q)
 		if importedScaled[strings.ToLower(c)] {
-			f = append(f, fmt.Sprintf("CASE WHEN %s IS NULL THEN NULL ELSE CAST(ROUND(%s * %g) AS INTEGER) END", q, q, ImportedShare))
+			f = append(f, fmt.Sprintf("CASE WHEN %s IS NULL THEN NULL ELSE CAST(ROUND(%s * %g) AS INTEGER) END", q, q, ImportedShare()))
 		} else {
 			f = append(f, q)
 		}

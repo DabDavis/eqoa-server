@@ -1,6 +1,10 @@
 package entity
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/eqoa/server/internal/database"
+)
 
 // Petition 1314: an import's copy keeps 70% of what its record's proc and
 // worn hit effect do, read as its base's are: an epic's proc by its name, a
@@ -8,6 +12,7 @@ import "testing"
 // controls: the same records not imported do it whole, and a proc's chance is
 // not damped.
 func TestAnImportedCopysProcAndWornEffectAreDamped(t *testing.T) {
+	defer database.SetImportedShare(database.SetImportedShare(0.7)) // the figures below are at 70%
 	defer SetImportedItems(nil)
 	SetImportedItems(map[int]int{990001: 1100, 990002: 1101, 990003: 2251, 990004: 3203})
 

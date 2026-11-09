@@ -1046,8 +1046,11 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 	if _, err := s.db.Exec(`DELETE FROM charvitals WHERE serverid = ?`, serverID); err != nil {
 		return err
 	}
-	// and its resets counted (rehab.go)
+	// and its resets counted and its templates (rehab.go, rehabtemplates.go)
 	if err := s.db.deleteCharResets(serverID); err != nil {
+		return err
+	}
+	if err := s.db.deleteRehabTemplates(serverID); err != nil {
 		return err
 	}
 	// nor be a vampire (vampire.go)

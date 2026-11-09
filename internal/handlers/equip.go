@@ -510,6 +510,11 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 			h.useGuenhwyvarStone(sess, player)
 			return nil
 		}
+		// the Rock of Freeport, never spent: a cast to Freeport (rockfreeport.go)
+		if IsRockOfFreeport(&row.Pattern) {
+			h.useRockOfFreeport(sess, player)
+			return nil
+		}
 		// the Rolling Dice, rolled for the room, never spent (roll.go)
 		if IsRollingDice(&row.Pattern) && h.dice != nil {
 			h.dice(sess, player, time.Now())

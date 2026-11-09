@@ -404,6 +404,16 @@ func main() {
 	if cfg.World.Heirlooms != nil && !*cfg.World.Heirlooms {
 		log.Printf("Heirlooms: none given at a login (world.heirlooms: false)")
 	}
+	// the Rock of Freeport (world.rock_of_freeport): its record made now when
+	// none is so named, given at a login, a cast to Freeport when used
+	handlers.SetRockOfFreeport(cfg.World.RockOfFreeport)
+	if cfg.World.RockOfFreeport {
+		if id, made, err := handlers.EnsureRockOfFreeport(db); err != nil {
+			log.Printf("WARNING: the Rock of Freeport's record: %v; none is given", err)
+		} else {
+			log.Printf("Rock of Freeport: record %d (made now: %v), given at a login to every character holding none (world.rock_of_freeport)", id, made)
+		}
+	}
 
 	// Create UDP handler registry and register handlers.
 	// Fallback to handlerRegistry for opcodes not explicitly bridged.

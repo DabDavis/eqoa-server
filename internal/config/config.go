@@ -275,6 +275,15 @@ type WorldConfig struct {
 	// effects that gear a transfer brought in keeps (0.85 = 85%), each copy
 	// made its base again at this share at the start. Unset: 0.85.
 	ImportedShare float64 `yaml:"imported_share"`
+
+	// RockOfFreeport gives every character the Rock of Freeport
+	// (handlers/rockfreeport.go): the server makes its record at its start
+	// when none is so named, a character holding none is given one in its pack
+	// at its login (told once in the world when the pack is full), and its Use
+	// is a 2 s cast in Return Home's visual that sends its user a few steps in
+	// front of Dabrish. Unset or false: none of it, and a stone held does
+	// nothing. The Heirloom Test Server sets it.
+	RockOfFreeport bool `yaml:"rock_of_freeport"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

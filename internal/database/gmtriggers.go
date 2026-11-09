@@ -176,10 +176,17 @@ func (t GMTrigger) Title() string {
 // MenuName is the name the TEST menu shows (vanilla, 0x7E08): the trigger's
 // name cut to TriggerMaxName bytes on a character's edge, else "Trigger n".
 func (t GMTrigger) MenuName() string {
-	n := strings.TrimSpace(t.Name)
-	if n == "" {
-		n = fmt.Sprintf("Trigger %d", t.Slot)
+	if n := t.ListName(); n != "" {
+		return n
 	}
+	return fmt.Sprintf("Trigger %d", t.Slot)
+}
+
+// ListName is the name vanilla's whole list carries (0x7E36, which carries the
+// slot beside it): the trigger's name cut to TriggerMaxName bytes on a
+// character's edge, "" when it has none.
+func (t GMTrigger) ListName() string {
+	n := strings.TrimSpace(t.Name)
 	for len(n) > TriggerMaxName {
 		r := []rune(n)
 		n = string(r[:len(r)-1])

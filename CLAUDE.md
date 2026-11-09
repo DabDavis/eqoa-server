@@ -358,8 +358,8 @@ and 101 (`/servdown`, nothing), run as the # commands of the same names (`handle
 `entity/gmtriggers.go`, the GM panel's Triggers page; the user's "lets build it as gm scripted
 events", 2026-10-28; `claude-notes/gm-trigger-0702-20261028.md`): TEST > Programming > TRIGGER is
 eight lines sending 0x0702 {100, line}, and no record says what SOE's server did with one, so line n
-fires the trigger in slot n+1 of table `gmtriggers` (a slot past 8: `#trigger <n|name>` or the
-panel alone; `#trigger` lists them, `#trigger stop [n]` ends runs). A firing is a run: its `steps`
+fires the trigger in slot n+1 of table `gmtriggers` (a slot past 8: `#trigger <n|name>`, the
+panel or vanilla's whole list alone; `#trigger` lists them, `#trigger stop [n]` ends runs). A firing is a run: its `steps`
 (a JSON list) in order at its place (`world` -1: where the firing GM stands; else world, x, y, z),
 each step that reaches players reaching those its `scope` takes as the step runs (`near` within
 `radius`, 0 being 100; `gm` the firing GM; `world`; `all`): broadcast (a line in the GMs' yellow),
@@ -374,7 +374,13 @@ run ends when its steps are done and none of its spawns lives, or when stopped (
 The firing GM is told each step's line. **Vanilla shows the names** (not retail, both GM-only):
 0x7E07 is offered with the GM channel and a client that answers 1 gets 0x7E08 (the menu's slots:
 index, flags on/running, name of at most 32 bytes) at once and whenever a trigger is saved or a run
-starts or ends; a PS2 ignores the offer and shows eight TRIGGERs. Firing and stopping from the panel
+starts or ends; a PS2 ignores the offer and shows eight TRIGGERs. **Vanilla lists every trigger** (the
+user, 2026-11-09: "can we add the triggers to client menu also in gm menus"): its answer is 2, and it is
+sent the whole table in 0x7E08's place at the same moments (0x7E36: a u16 count, then each row by slot, a
+u32 slot, the flags and its own name, none for an unnamed one), its TRIGGER menu a line a trigger that is
+on, and a line fires its own slot (0x7E37, a u32, a GM's alone as 0x0702 is), so a slot past 8 fires from
+the client too; a client that answers 1 (one from before) gets the eight lines' names as ever.
+Firing and stopping from the panel
 are logged (`gm_audit` action `live`); a saved trigger is a row change, revertible.
 
 **A GM travels by the map** (`handlers/maptravel.go`; the owner, 2026-11-09: "for gms the map lets add fast

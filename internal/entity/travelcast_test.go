@@ -141,3 +141,44 @@ func TestATravelCastOfTheDeadLandsNowhere(t *testing.T) {
 		}
 	}
 }
+
+// TravelBusy says ahead what StartCast would let go of a travel cast: busy
+// within the cast and while it is on its way after the cast's busy time, free
+// once it has landed, busy within a spell's cast and free after its busy time,
+// busy for the dead, and StartCast agrees each time. The control: casting
+// nothing, the druid is free.
+func TestTravelBusyIsStartCastsWaits(t *testing.T) {
+	c := newCaster(t)
+	if c.w.TravelBusy(c.sess, c.at(0)) {
+		t.Fatal("the control: busy casting nothing")
+	}
+	if !c.w.StartCast(c.sess, pebbleCast(pebbleSquare), 0xFFFFFFFF, c.at(0)) {
+		t.Fatal("not begun")
+	}
+	for _, d := range []time.Duration{time.Second, 2*time.Second + castBusy + 100*time.Millisecond} {
+		if !c.w.TravelBusy(c.sess, c.at(d)) || c.w.StartCast(c.sess, pebbleCast(pebbleSquare), 0xFFFFFFFF, c.at(d)) {
+			t.Errorf("at %v: free, or another begun", d)
+		}
+	}
+	landed := 2*time.Second + castLand
+	c.tick(landed)
+	if c.w.TravelBusy(c.sess, c.at(landed)) {
+		t.Error("busy after the landing")
+	}
+	// within a spell's cast the travel waits as any cast does, and after the
+	// spell's busy time it goes
+	if !c.w.StartCast(c.sess, minorHeal(), c.me, c.at(landed)) {
+		t.Fatal("the heal: not begun")
+	}
+	during, after := landed+time.Second, landed+2*time.Second+castBusy
+	if !c.w.TravelBusy(c.sess, c.at(during)) || c.w.StartCast(c.sess, pebbleCast(pebbleSquare), 0xFFFFFFFF, c.at(during)) {
+		t.Error("within the heal's cast: free, or begun")
+	}
+	if c.w.TravelBusy(c.sess, c.at(after)) || !c.w.StartCast(c.sess, pebbleCast(pebbleSquare), 0xFFFFFFFF, c.at(after)) {
+		t.Error("after the heal's busy time: busy, or not begun")
+	}
+	c.p.HP = 0
+	if !c.w.TravelBusy(c.sess, c.at(after+5*time.Second)) || c.w.StartCast(c.sess, pebbleCast(pebbleSquare), 0xFFFFFFFF, c.at(after+5*time.Second)) {
+		t.Error("the dead: free, or begun")
+	}
+}

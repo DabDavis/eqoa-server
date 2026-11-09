@@ -192,13 +192,16 @@ func (h *EquipHandler) returnHomeVisual() uint32 {
 // useRockOfFreeport is the stone's Use: with the switch off its line alone;
 // else the place in front of Dabrish, refused in red without one, and the
 // stone's cast, which sends the player there as it lands, said in a line. The
-// dead are told nothing, and a use StartCast lets go (within another cast, a
-// stone's trip on its way) is answered as a cast's is: not at all.
+// dead are told nothing, and a use StartCast would let go (within another
+// cast, a stone's trip on its way) is answered as a cast's is, not at all,
+// and asked first (TravelBusy), so a press held looks for no place: finding
+// Dabrish walks every NPC.
 func (h *EquipHandler) useRockOfFreeport(sess *session.Session, player *entity.Player) {
 	if h.gameWorld == nil || player == nil {
 		return
 	}
-	if snap, ok := h.gameWorld.PlayerSnapshot(player.ServerID); !ok || snap.IsDead() {
+	now := time.Now()
+	if h.gameWorld.TravelBusy(sess, now) {
 		return
 	}
 	if !rockOn.Load() {
@@ -211,7 +214,7 @@ func (h *EquipHandler) useRockOfFreeport(sess *session.Session, player *entity.P
 		SendErrorMessage(sess, rockNoPlace)
 		return
 	}
-	if h.gameWorld.StartCast(sess, rockCast(h.returnHomeVisual(), to), 0xFFFFFFFF, time.Now()) {
+	if h.gameWorld.StartCast(sess, rockCast(h.returnHomeVisual(), to), 0xFFFFFFFF, now) {
 		SendClientMessage(sess, rockCasting)
 	}
 }

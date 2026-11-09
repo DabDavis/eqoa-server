@@ -774,6 +774,24 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	return true
 }
 
+// TravelBusy reports whether a travel cast (CastSpell.Travel) the session's
+// player began now would be let go before its checks: dead or gone, within
+// another cast's time, or a travel of its own on its way. Its handler asks
+// first, so a quick slot pressed over and over looks for no place
+// (handlers/rockfreeport.go: Dabrish is found by a walk over every NPC).
+func (w *World) TravelBusy(sess *session.Session, now time.Time) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil || p.IsDead() {
+		return true
+	}
+	if p.Casting != nil && now.Before(p.Casting.ends) {
+		return true
+	}
+	return w.travelOnItsWayLocked(p)
+}
+
 // travelOnItsWayLocked reports a travel cast of the player's (CastSpell.Travel)
 // begun and not yet landed. Must be called with the lock held.
 func (w *World) travelOnItsWayLocked(p *Player) bool {

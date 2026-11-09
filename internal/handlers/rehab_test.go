@@ -248,8 +248,8 @@ func (f *rehabFixture) spendTraining(str, sta int) {
 		str, sta, str+sta, f.sid)
 }
 
-// The menu is the greeting and three answers: a reset (then which), a path
-// and the templates (rehabtemplates.go), with no price, free count or rose
+// The menu is the greeting and four answers: a reset (then which), a path, a
+// build saved and a saved build used (rehabtemplates.go), with no price, free count or rose
 // anywhere (the user, 2026-11-06: every reset free). The question is a
 // rehabilitator's box (0x54), which no other NPC answers; a Close (255) and an
 // old box do nothing.
@@ -260,7 +260,7 @@ func TestRehabilitatorsMenu(t *testing.T) {
 		t.Fatalf("the greeting: %q", m)
 	}
 	q, answers := asked(m)
-	want := []string{"Reset my masteries or stat points", "Choose a path again", "Save or use a template"}
+	want := []string{"Reset my masteries or stat points", "Choose a path again", "Save my current build", "Use a saved build"}
 	if q != rehabAskMenu || strings.Join(answers, "|") != strings.Join(want, "|") {
 		t.Fatalf("the menu: %q %q", q, answers)
 	}

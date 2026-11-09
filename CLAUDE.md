@@ -1166,7 +1166,8 @@ humans. like when humans are invis, but the wisp is inside the helm"): the Jal'R
 Odus beside it) choose their robed, channeler's or knight's body; the Wisp (31, a western human, Qeynos) is a human of its sex
 whose row `wisp` is laid always (`OptionRow.Always`: its charlook row is written at any step and with no options block, so
 every client that asked is told its Wisps by name; the value is the will o' wisp's body, no texture, so an older client lays
-nothing, and vanilla draws the body as its armour alone with the wisp in the helm). A PS2 shows a Wisp as a human in its
+nothing, and vanilla draws the body as its armour alone with the wisp in the helm). Rows go by a race's own male body, so
+another custom race made on HumanMale would be a Wisp too: give it its own key first. A PS2 shows a Wisp as a human in its
 armour: the invisible bit (byte 154) would hide its armour too (CLIENT's `SetSkinsVisible(0)` takes the body and all worn on
 it, leaving the held items, the helm and the name), and vanilla could not tell a Wisp's real invisibility from it. The rows,
 start spots, items and standings are `~/.cache/jalraeth1109/deploy/new_races_20261109.py` (exact `--undo`; run it with a

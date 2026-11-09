@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"testing"
 
@@ -18,7 +19,9 @@ import (
 // the petition's report). For every class: no side spell is a path's (the
 // level 20 picks and the 30/40/49 options, by record or name), a were's, a
 // mastery's, an epic's or a master class's; the merchants' grant is in the
-// combined grant whole; and the combined grant is ordered by level. By name,
+// combined grant whole but for what the masteries keep (masteryOwn, petition
+// 1381: on the live data, after petfix172); and the combined grant is ordered
+// by level. By name,
 // the quests' Kick, Taunt or Crawling Skin are granted, the level 20 picks
 // (Spacious Mind, Field Dress) are not (the path rule) and neither is anything
 // the merchants' grant leaves out (Tranquility, Djinni Bolt); and through his
@@ -39,7 +42,12 @@ func TestRealArchivistSideSpells(t *testing.T) {
 	}
 	names := [15]string{"WAR", "RAN", "PAL", "SK", "MNK", "BRD", "ROG", "DRU", "SHM", "CLR", "MAG", "NEC", "ENC", "WIZ", "ALC"}
 	// the side spells at 60 by the separate reading (names, one each)
-	want := [15]int{15, 14, 15, 17, 15, 16, 13, 17, 16, 14, 15, 16, 15, 17, 17}
+	// (petfix172, petition 1381: the bard's Anthem of Light once, every L13
+	// quest's; Astral Displacement the druid's, necromancer's and wizard's)
+	want := [15]int{15, 14, 15, 17, 15, 15, 13, 18, 16, 14, 15, 17, 15, 18, 17}
+	// what the masteries keep of the merchants' (masteryOwn, petition 1381)
+	masteries := map[int]string{1: "Forest's Relief", 3: "Paincleave", 9: "Brand of Pain", 11: "Gloom Covenant",
+		13: "Fiery Explode, Icy Annihilation, Icy Explode, Static Annihilation, Static Explode, Static Nova", 14: "Corroding Mixtures"}
 	for class := 0; class <= database.MaxClassID; class++ {
 		side := sideSpells(qe, arch, class, 60)
 		paths, _ := classPaths(qe, arch, class)
@@ -64,8 +72,13 @@ func TestRealArchivistSideSpells(t *testing.T) {
 		}
 		merchants := arch.basic(class, 0, 60)
 		all := basicSpells(qe, arch, class, 0, 60)
-		if got := spellsMinus(merchants, all); len(got) != 0 {
-			t.Errorf("%s: the merchants' %v are not in the combined grant", names[class], got)
+		var kept []string
+		for _, s := range spellsMinus(merchants, all) {
+			kept = append(kept, s.Name)
+		}
+		sort.Strings(kept)
+		if strings.Join(kept, ", ") != masteries[class] {
+			t.Errorf("%s: the merchants' %v are not in the combined grant, want the masteries' %q", names[class], kept, masteries[class])
 		}
 		var added []string
 		for _, s := range spellsMinus(all, merchants) {
@@ -85,11 +98,17 @@ func TestRealArchivistSideSpells(t *testing.T) {
 	// left out still
 	in := map[int][]string{
 		0:  {"Kick", "Taunt", "Rapid Strike", "Stomp", "Reckless Force", "Frantic Defense"},
+		5:  {"Anthem of Light"},
+		7:  {"Astral Displacement"},
+		11: {"Flesh Mastery", "Decay Mastery", "Death Mastery", "Drain Soul", "Astral Displacement"},
 		12: {"Crawling Skin", "Heavy Arms", "Alarming Visage", "Power Flow", "Ghastly Visage"},
-		13: {"Shock of Frost", "Nerius Portal", "Highpass Evacuation"},
+		13: {"Shock of Frost", "Nerius Portal", "Highpass Evacuation", "Astral Displacement"},
 	}
 	out := map[int][]string{
 		0:  {"Bellow", "Pillar of Might", "Roar", "Tranquility", "Dropkick"},
+		5:  {"Anthem of Light +"},
+		11: {"Flesh Mastery +", "Decay Mastery +", "Death Mastery +", "Gloom Covenant"},
+		13: {"Fiery Explode", "Static Nova"},
 		4:  {"Freezing Strike", "Stone Stance", "Stasis Strike"},
 		6:  {"Silent Blade Burglar", "Virulent Blade Assassin", "Remove Mask", "Avoidance", "Minor Wound"},
 		9:  {"Field Dress", "Disease Ward", "Elemental Ward", "First Aid"},

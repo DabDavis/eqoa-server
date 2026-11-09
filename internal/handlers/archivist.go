@@ -303,6 +303,18 @@ func (a *Archivist) grant(sess *session.Session, id uint32) {
 	}
 	level := min(p.Level, archivistLevelCap)
 	want := lacking(book, basicSpells(a.quests(), arch, p.Class, p.Race, p.Level))
+	if owned, err := a.spells.OwnedRanks(p.CharServerID); err != nil {
+		trouble("the masteries", err)
+		return
+	} else if taken := takenByOwned(arch, owned); len(taken) > 0 {
+		kept := make([]database.SpellName, 0, len(want))
+		for _, s := range want {
+			if !taken[s.SpellID] {
+				kept = append(kept, s)
+			}
+		}
+		want = kept
+	}
 	if len(want) == 0 {
 		a.say(sess, fmt.Sprintf(archivistHasAll, level))
 		return
@@ -445,6 +457,9 @@ type spellArchive struct {
 	scrollRecs map[int]database.MerchantScroll
 	descs      map[int]string
 	sources    map[int]map[int]string // spell -> class -> source
+	// the enabled mastery ranks: what buying each gives, which he leaves
+	// to them (masteryOwn, archivistmastery.go)
+	ranks []*entity.CMRank
 }
 
 // archived is the archive, read again when it is older than archiveTTL.
@@ -489,6 +504,15 @@ func loadSpellArchive(s *database.SpellbookStore) (*spellArchive, error) {
 	}
 	if a.sources, err = s.ClassSpellSources(); err != nil {
 		return nil, fmt.Errorf("classspells: %w", err)
+	}
+	ranks, err := s.MasteryRanks()
+	if err != nil {
+		return nil, fmt.Errorf("cmcatalog: %w", err)
+	}
+	for _, r := range ranks {
+		if r.Enabled {
+			a.ranks = append(a.ranks, entity.ParseCMRank(r))
+		}
 	}
 	return &a, nil
 }

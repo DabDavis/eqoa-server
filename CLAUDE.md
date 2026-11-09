@@ -403,7 +403,11 @@ awaittalk (the rest waits for a player of `classes` to talk to the named NPC wit
 other; `TriggerEngine.Talk`, before the quests), awaitdead (the run's spawns, or `any`: the first death; `seconds` gives up),
 walk and home (the named NPCs run to a place, dropping their fights, and back), hide (out of view for `minutes`, 0 back),
 rouse (the run's spawn attacks on sight), sic (the run's spawns of `npc`, none all, attack the NPC named `target` nearest
-each within `radius`, and it fights back: the GM triggers that set gods on Mr. Moogie; `World.SetNPCOn`). A fight between
+each within `radius`, and it fights back: the GM triggers that set gods on Mr. Moogie; `World.SetNPCOn`). Resummon (the user,
+2026-11-09: "cause tunare to resummon her pets"): from its step to the run's end, while a spawn of the run named `by` lives,
+the run's spawn named `npc` is called back `seconds` after its last one was first seen gone, beside the caller (within 3),
+with the step's `attackable`/`hostile`/`minutes`, set on `target` with its `radius` and `casts`, `text` in its players'
+chat (`resummonLocked`, each tick); the caller dead or gone, none comes. Trigger 141 keeps Tunare's two pets so. A fight between
 two NPCs is their melee alone, but a sic with `casts` (the user, 2026-11-09: Tunare, "a strong druid god", fights Mr. Moogie
 with a druid's spells) has its spawns fight the target by their whole class template, its casts held as with a player and
 its timed special after its rounds (`NPC.castsAt`, `npcFightNPCLocked`): its spells land on that NPC less its template's

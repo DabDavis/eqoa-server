@@ -65,7 +65,11 @@ restarts in four hours ended every pet, and a charmed creature came back free on
 attacked him on sight): a summoned pet is made again by its summoning spell beside its owner with its share of hit points
 and its stance, a charmed creature (by its row's id) is charmed to its master again where it stood, under its charm for
 the time that had left, no resist rolled; the client is told after its dump. The client's reliable messages are taken
-once each on a resumed session (`TakeReliable`: it resends what went unanswered through the freeze). A session
+once each on a resumed session (`TakeReliable`: it resends what went unanswered through the freeze). **Ours go again under
+their own numbers** (`restoredMessage` stamps each numbered, `Queued`, which PreparePacket reads to keep a number; petition 1378,
+`udp/keepnumbers_test.go`): from 2119f18 (05:20 UTC 2026-11-09) to that fix a restored message went out under the next new
+number, so a client that had not had it (one still queued at the restart) held every reliable message after it for good, chat,
+cons and windows, while the creatures moved on their state channels, until its player logged in again; one it had came twice. A session
 that cannot be put back is told the server went down (0x07C0). The snapshot is read only by the same PID, in its
 format, under 60 s old. A failed exec leaves the server running. **The first swap INTO a binary with this is a
 cold one** (an older binary ignores SIGUSR2: `swap_keep.sh` then exits 3 and swaps nothing). Measured with

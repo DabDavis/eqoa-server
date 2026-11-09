@@ -68,6 +68,10 @@ type Plan struct {
 	// Vampire makes the character a vampire (table charvampire, source
 	// "transfer"), unless it is one.
 	Vampire bool `json:"vampire,omitempty"`
+	// Imported gives the items' gear as its imported copies, at 70% of its
+	// records' stats (database.ImportedCopyTx; petition 1314): a transfer's,
+	// never a GM's grant (handlers/transfers.go decides it at the login).
+	Imported bool `json:"imported,omitempty"`
 }
 
 type Move struct {
@@ -194,6 +198,8 @@ type migration struct {
 	out    io.Writer
 	stamp  string
 	logged int
+	// imported is Plan.Imported
+	imported bool
 }
 
 func (m *migration) say(format string, a ...any) { fmt.Fprintf(m.out, format+"\n", a...) }
@@ -271,7 +277,7 @@ func firstNonEmpty(a, b string) string {
 func migrateTx(tx *sql.Tx, ch character, p Plan, apply, force bool, out io.Writer) (string, error) {
 	now := time.Now().UTC()
 	m := &migration{tx: tx, ch: ch, apply: apply, out: out, stamp: now.Format(time.RFC3339),
-		run: now.Format("20060102T150405Z") + "-" + strings.ToLower(ch.name)}
+		run: now.Format("20060102T150405Z") + "-" + strings.ToLower(ch.name), imported: p.Imported}
 	if apply {
 		// a run's id is its own: another in the same second gets -2, -3...
 		base := m.run
@@ -685,6 +691,16 @@ func (m *migration) giveItems(items []Item, made map[string]int, to string, forc
 		pattern := it.Pattern
 		if it.New != "" {
 			pattern = made[it.New]
+		}
+		if pattern > 0 && m.imported {
+			copyID, made, err := database.ImportedCopyTx(m.tx, pattern, "transfer run "+m.run, time.Now())
+			if err != nil {
+				return fmt.Errorf("item record %d's imported copy: %w", pattern, err)
+			}
+			if made {
+				m.say("  record %d's imported copy made: %d", pattern, copyID)
+			}
+			pattern = copyID
 		}
 		var name string
 		var maxHP int

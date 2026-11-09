@@ -250,6 +250,11 @@ type WorldConfig struct {
 	// creates as ever: its pages are the disc's.
 	OpenRaces  bool `yaml:"open_races"`
 	AllClasses bool `yaml:"all_classes"`
+
+	// ImportedTag shows "(Imported)" after the name of gear a character
+	// transfer brought in (its record a copy at 70%: database/imported.go;
+	// handlers/importedtag.go). Unset, off: the copies show their bases' names.
+	ImportedTag bool `yaml:"imported_tag"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

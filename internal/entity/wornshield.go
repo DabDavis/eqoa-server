@@ -137,12 +137,20 @@ var seraphicPlanar = WornShield{Damage: 75, DamageMax: 120, Heal: 75, HealMax: 1
 // WornShieldOf is the item's, by its record (patternid), else by its name;
 // false for an item that does nothing at a hit.
 func WornShieldOf(patternID int, itemName string) (WornShield, bool) {
-	s, ok := wornShieldsByPattern[patternID]
+	record := patternID
+	base, imported := ImportedBase(patternID) // an import's copy: its base's, damped (imported.go)
+	if imported {
+		record = base
+	}
+	s, ok := wornShieldsByPattern[record]
 	if !ok {
 		s, ok = wornShields[strings.ToLower(strings.TrimSpace(itemName))]
 	}
 	if ok {
 		s.Item = itemName
+		if imported {
+			s = s.imported()
+		}
 	}
 	return s, ok
 }

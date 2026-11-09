@@ -301,6 +301,15 @@ type WorldConfig struct {
 	// for nothing. Unset or false: it says its portals are closed. The
 	// Heirloom Test Server sets it.
 	Teleporter bool `yaml:"teleporter"`
+
+	// QuestMarksBelow is how many levels below the player's a quest's lowest
+	// level may be for its giver's "!" on a client's map
+	// (handlers/questmarks.go; a quest's name is marked once, at its nearest
+	// giver, whatever this is). Unset or 0: 10, so a level 60 is shown the
+	// quests for 50 and up (of the 150 or so it may take, three in five are for
+	// below 50); a number, that many; -1, every quest the player may take,
+	// however low.
+	QuestMarksBelow int `yaml:"quest_marks_below"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

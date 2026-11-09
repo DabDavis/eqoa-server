@@ -100,8 +100,14 @@ func (w *World) LoadRaceArmorBodies(db *database.SQLiteDB) (int, error) {
 	return w.SetRaceArmorBodies(rows), nil
 }
 
-// armorBodyLocked is p's body for the armour on its chest: its race's row, else 0 (its own). Must
-// be called with the lock held.
+// armorBodyLocked is p's body for the armour on its chest: its race's row, else 0 (its own). A body
+// the character chose of its race's options (a fire giant's, an ice giant's: raceoptions.go) is its
+// look and is kept in any armour, as no row was made for it (the rows are the race's own body's armour);
+// a client that lays armour on a body with no slots (vanilla) lays it on that one. Must be called
+// with the lock held.
 func (w *World) armorBodyLocked(p *Player) uint32 {
+	if ChosenBody(p.Race, uint32(p.ModelID)) {
+		return 0
+	}
 	return w.armorBodies[p.Race][p.Gear.Armor]
 }

@@ -76,40 +76,41 @@ func (r *creationRig) answer(s *session.Session, v uint32) {
 // Creation's offer comes once a session, after the first list and the live
 // look's, only while creation takes something past the game's; a client that
 // answers 1 is sent the races as they stand, 0 nothing; a PS2, which never
-// answers, is sent nothing more. The control: a server with neither switch offers
-// nothing, so its lists go as they always did.
+// answers, is sent nothing more. The race options' offer comes last, its races'
+// bodies having options (raceoptions_test.go has its own controls). The control:
+// a server with neither switch offers no creation, so its lists go as they did.
 func TestCreationOfferAfterTheFirstList(t *testing.T) {
 	r := newCreationRig(t, entity.CreationRules{})
 	off := r.session()
 	r.h.SendCharacterSelectEQOA(off)
-	if got := lookOpsQueued(off); len(got) != 2 || got[1] != protocol.OpcodeLiveLook {
-		t.Fatalf("switched off: %v, want the list and the live look's offer alone", got)
+	if got := lookOpsQueued(off); len(got) != 3 || got[1] != protocol.OpcodeLiveLook || got[2] != protocol.OpcodeRaceOptions {
+		t.Fatalf("switched off: %v, want the list, the live look's offer and the race options'", got)
 	}
 
 	r = newCreationRig(t, entity.CreationRules{Races: true, AllClasses: true})
 	ps2 := r.session()
 	r.h.SendCharacterSelectEQOA(ps2)
-	want := []protocol.GameOpcode{protocol.OpcodeCharacterSelect, protocol.OpcodeLiveLook, protocol.OpcodeCreationOffer}
-	if got := lookOpsQueued(ps2); len(got) != 3 || got[0] != want[0] || got[1] != want[1] || got[2] != want[2] {
+	want := []protocol.GameOpcode{protocol.OpcodeCharacterSelect, protocol.OpcodeLiveLook, protocol.OpcodeCreationOffer, protocol.OpcodeRaceOptions}
+	if got := lookOpsQueued(ps2); len(got) != 4 || got[0] != want[0] || got[1] != want[1] || got[2] != want[2] || got[3] != want[3] {
 		t.Fatalf("a first list: %v, want %v", got, want)
 	}
 	if d := sentOp(ps2, protocol.OpcodeCreationOffer); len(d) != 6 || binary.LittleEndian.Uint32(d[2:]) != 1 {
 		t.Fatalf("the offer: %x", d)
 	}
 	r.h.SendCharacterSelectEQOA(ps2)
-	if got := lookOpsQueued(ps2); len(got) != 4 || got[3] != protocol.OpcodeCharacterSelect {
+	if got := lookOpsQueued(ps2); len(got) != 5 || got[4] != protocol.OpcodeCharacterSelect {
 		t.Fatalf("a second list: %v, want no second offer", got)
 	}
 
 	van := r.session()
 	r.h.SendCharacterSelectEQOA(van)
 	r.answer(van, 0)
-	if got := lookOpsQueued(van); len(got) != 3 {
+	if got := lookOpsQueued(van); len(got) != 4 {
 		t.Fatalf("answered 0: %v", got)
 	}
 	r.answer(van, 1)
 	got := lookOpsQueued(van)
-	if len(got) != 4 || got[3] != protocol.OpcodeCreationRaces {
+	if len(got) != 5 || got[4] != protocol.OpcodeCreationRaces {
 		t.Fatalf("answered 1: %v", got)
 	}
 	body := sentOp(van, protocol.OpcodeCreationRaces)[2:]

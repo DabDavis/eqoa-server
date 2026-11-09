@@ -249,7 +249,7 @@ func TestClassicTargetInfoEndsWithTheToken(t *testing.T) {
 
 func TestLootIsAnItemList(t *testing.T) {
 	items := make([]database.CharInventoryEntry, maxCorpseItems+5)
-	r := open(t, buildLoot(items), protocol.OpcodeLoot)
+	r := open(t, buildLoot(items, false), protocol.OpcodeLoot)
 	if n, next := r.signed(), r.u32(); n != maxCorpseItems || next != maxCorpseItems {
 		t.Fatalf("count %d, next key %d; want %d each", n, next, maxCorpseItems)
 	}

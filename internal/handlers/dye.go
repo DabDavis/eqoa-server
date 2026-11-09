@@ -43,13 +43,13 @@ func (h *ChatHandler) dyeCommand(sess *session.Session, args []string) {
 	}
 	if len(args) == 0 {
 		h.gmReply(sess, fmt.Sprintf("%s's dyes (drawn by clients of the live game's look):", name))
-		for i, n := range database.DyeSlotNames {
-			h.gmReply(sess, fmt.Sprintf("  %-9s %s", n, database.FormatDye(cur[i])))
+		for _, i := range dyeSlotsHere() { // the cape's on a server with capes alone (dyer.go)
+			h.gmReply(sess, fmt.Sprintf("  %-9s %s", database.DyeSlotNames[i], database.FormatDye(cur[i])))
 		}
 		return
 	}
 	if len(args) != 2 {
-		h.gmReply(sess, "#dye [<slot|armor|all> <RRGGBB[AA] | tN | name | none>]: slots "+strings.Join(database.DyeSlotNames[:], " "))
+		h.gmReply(sess, "#dye [<slot|armor|all> <RRGGBB[AA] | tN | name | none>]: slots "+dyeSlotNamesHere())
 		return
 	}
 	var slots []int
@@ -57,13 +57,14 @@ func (h *ChatHandler) dyeCommand(sess *session.Session, args []string) {
 	case "armor", "armour":
 		slots = dyeArmorSlots
 	case "all":
-		for i := 0; i < database.DyeSlots; i++ {
-			slots = append(slots, i)
-		}
+		slots = dyeSlotsHere()
 	default:
 		slot, found := database.DyeSlotByName(w)
+		if found && slot == database.DyeCape && !entity.CapesOn() {
+			found = false // no cape is worn on a server without capes
+		}
 		if !found {
-			h.gmReply(sess, fmt.Sprintf("#dye: no slot %q; slots %s, armor or all", args[0], strings.Join(database.DyeSlotNames[:], " ")))
+			h.gmReply(sess, fmt.Sprintf("#dye: no slot %q; slots %s, armor or all", args[0], dyeSlotNamesHere()))
 			return
 		}
 		slots = []int{slot}

@@ -433,7 +433,7 @@ func (h *NPCWindowHandler) HandleLootItem(sess *session.Session, msg *protocol.M
 		if err != nil {
 			log.Printf("Loot: %s: %v", player.Name, err)
 		} else {
-			queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, k))
+			queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, k, readsCapes(sess)))
 			ls.tookLocked(id, c, char, i, took)
 			looted = append(looted, lootTake{rec.Pattern.PatternID, took})
 			tellLooted(sess, rec.Pattern.ItemName, took)

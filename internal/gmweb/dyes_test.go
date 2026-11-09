@@ -39,7 +39,7 @@ func TestDyeEditsAreLive(t *testing.T) {
 	if live, _ := out["live"].(string); !strings.Contains(live, "at once") || !strings.Contains(live, "Tinctoria") {
 		t.Errorf("live: %v", out["live"])
 	}
-	for _, bad := range []map[string]any{{"color": 0x40008000}, {"color": "purple"}, {"slot": 10}} {
+	for _, bad := range []map[string]any{{"color": 0x40008000}, {"color": "purple"}, {"slot": database.DyeSlots}} { // past the last slot, the cape's
 		if code, out := c.op("update_row", map[string]any{"table": "chardyes",
 			"key": map[string]any{"serverid": 41, "slot": database.DyeLegs}, "values": bad}); code != 400 {
 			t.Errorf("update %v: %d %v, want refused", bad, code, out)

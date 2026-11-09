@@ -45,8 +45,8 @@ const (
 	LiveGearSize = 71
 )
 
-// Dyes is a colour per dye slot (database.DyeChest ... DyeRobe),
-// 0xRRGGBBAA, 0 none.
+// Dyes is a colour per dye slot (database.DyeChest ... DyeRobe, and the
+// cape's, DyeCape: capes.go), 0xRRGGBBAA, 0 none.
 type Dyes [database.DyeSlots]uint32
 
 // undyedItem is a held item's colour with no dye: the live client makes

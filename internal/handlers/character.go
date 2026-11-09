@@ -1149,6 +1149,7 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 	player.RobeTint, player.RobeColor = 0, 0
 	player.ArmorColors = [len(player.ArmorColors)]uint32{}
 	player.PrimaryType, player.SecondaryType = 0, 0
+	player.CapeStyle, player.CapeColor = 0, 0
 	worn := map[int]*database.CharInventoryEntry{}
 	for i := range items {
 		item := &items[i]
@@ -1176,6 +1177,10 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 		case 2: // Robe: style 0 is a robe too; its tint and colour its record's
 			player.Robe, player.RobeWorn = uint32(model), true
 			player.RobeTint, player.RobeColor = entity.RobeLook(item.Pattern.Color)
+		case wearCape: // the cape slot (capes.go): drawn only by a client that draws capes
+			if item.EquipLoc == equipCape {
+				player.CapeStyle, player.CapeColor = capeLook(&item.Pattern)
+			}
 		}
 	}
 	first := func(slots ...int) *database.CharInventoryEntry {
@@ -1532,6 +1537,8 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 	// makes the PS2 see half the characters.
 	writer.Write7BitEncodedInt64(int64(len(records)))
 
+	var capes []listCape // the characters' capes, for a client that draws them (capes.go)
+	wantCapes := readsCapes(sess)
 	for _, c := range records {
 		// Name (int32 length prefix + UTF-8 string)
 		writer.WriteInt32(int32(len(c.CharName)))
@@ -1569,6 +1576,12 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 		// the live game's record to a client of its look, with the dyes
 		// (livelook.go); the disc's 32 bytes to every other
 		writer.WriteBytes(h.listGear(sess, uint32(c.ServerID), characterGear(items)))
+		// its cape, for a client that draws capes (capes.go), in its dye if it
+		// has one
+		if lc, ok := characterCape(uint32(c.ServerID), items); ok && wantCapes {
+			lc.color = h.capeDye(lc.serverID, lc.color)
+			capes = append(capes, lc)
+		}
 	}
 
 	msg.SetSize(writer.Position())
@@ -1583,6 +1596,10 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 	// takes races or classes past the game's (creation.go)
 	SendLiveLookOffer(sess)
 	SendCreationOffer(sess)
+	// then the capes': the offer once, and to a client that took it the
+	// list's capes after every list (capes.go)
+	SendCapesOffer(sess)
+	sendCapesList(sess, capes)
 }
 
 // worldPaths maps a world index to the esfPath the client loads it from.
@@ -1740,6 +1757,11 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 	if h.gameWorld != nil {
 		defer h.gameWorld.PetDumped(sess)
 	}
+	// and a scene of its own: a client that draws capes is told its view's
+	// capes again whatever it was told before (capes.go)
+	if readsCapes(sess) {
+		defer entity.GetOrCreateVisibility(sess).ResendCapes()
+	}
 	// The bank as one piece (bank.go's bankMu): its tunar, its list and the
 	// auction's lots and bids read and the dump queued with nothing of the
 	// bank's moving between, so a payment or an item the auction house files
@@ -1864,7 +1886,7 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 		if pos, ok := quick[invItems[i].ItemID]; ok {
 			q = int64(pos)
 		}
-		writeItem(writer, &invItems[i], i, q)
+		writeItem(writer, &invItems[i], i, q, readsCapes(sess))
 	}
 	log.Printf("SendMemoryDump: wrote %d inventory items", len(invItems))
 	// The client's inventory list as this dump leaves it (key = position,
@@ -1887,7 +1909,7 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 	writer.Write7BitEncodedInt64(int64(len(bankItems)))
 	writer.WriteUint32(uint32(len(bankItems)))
 	for i := range bankItems {
-		writeSingleItem(writer, &bankItems[i], i)
+		writeSingleItem(writer, &bankItems[i], i, readsCapes(sess))
 	}
 	log.Printf("SendMemoryDump: wrote %d bank items", len(bankItems))
 	// The bank list keeps keys of its own, numbered the same way.
@@ -2090,27 +2112,31 @@ func dumpQuickSlot(e *database.CharInventoryEntry) int64 {
 // never renumbers), so requests resolve keys through the session's invList
 // (itemlist.go), never by indexing. Sending charinventory.itemid here instead
 // made clicking one row act on another.
-func writeSingleItem(w *buffer.Writer, e *database.CharInventoryEntry, key int) {
-	writeItem(w, e, key, dumpQuickSlot(e))
+//
+// capes is whether the client draws capes (readsCapes): to one that does not, a
+// cape goes out as a plain item, never worn (capes.go's wireWear, wireEquipLoc).
+func writeSingleItem(w *buffer.Writer, e *database.CharInventoryEntry, key int, capes bool) {
+	writeItem(w, e, key, dumpQuickSlot(e), capes)
 }
 
 // writeItem is writeSingleItem with the record's quick slot given: only the
 // MemoryDump's inventory sends a prepared item's (gearsets.go); every other
 // record arrives on none.
-func writeItem(w *buffer.Writer, e *database.CharInventoryEntry, key int, quick int64) {
+func writeItem(w *buffer.Writer, e *database.CharInventoryEntry, key int, quick int64, capes bool) {
 	// Per-instance fields
 	w.Write7BitEncodedInt64(int64(e.StackLeft))
 	w.Write7BitEncodedInt64(int64(e.RemainHP))
 	w.Write7BitEncodedInt64(int64(e.Charges))
-	w.Write7BitEncodedInt64(int64(e.EquipLoc))
+	w.Write7BitEncodedInt64(int64(wireEquipLoc(e.EquipLoc, capes)))
 	w.Write7BitEncodedInt64(quick)
 	w.WriteUint32(uint32(key)) // key = container position (see doc comment)
-	writeItemPattern(w, e)
+	writeItemPattern(w, e, capes)
 }
 
 // writeItemPattern is the VIItem half of a record (0x00CBACE8): what an
-// auction lot carries after its own fields.
-func writeItemPattern(w *buffer.Writer, e *database.CharInventoryEntry) {
+// auction lot carries after its own fields. A cape's wear slot goes out as -1
+// to a client that does not draw capes (capes, wireWear).
+func writeItemPattern(w *buffer.Writer, e *database.CharInventoryEntry, capes bool) {
 	p := &e.Pattern
 
 	// Pattern fields
@@ -2119,7 +2145,7 @@ func writeItemPattern(w *buffer.Writer, e *database.CharInventoryEntry) {
 	w.Write7BitEncodedInt64(int64(p.Unk1))
 	w.Write7BitEncodedInt64(p.ItemIcon)
 	w.Write7BitEncodedInt64(int64(p.Unk2))
-	w.Write7BitEncodedInt64(int64(p.EquipSlot))
+	w.Write7BitEncodedInt64(int64(wireWear(p.EquipSlot, capes)))
 	w.Write7BitEncodedInt64(int64(p.Unk3))
 	w.Write7BitEncodedInt64(int64(p.Trade))
 	w.Write7BitEncodedInt64(int64(p.Rent))

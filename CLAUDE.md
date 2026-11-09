@@ -973,6 +973,54 @@ western human, Goblin 13 as a dark elf, Aviak 14 as a barbarian, Lizardman 15 as
 halfling; the hill giant's 11 as before), each wire race a race of the body's height (the camera every client frames it
 with is its wire race's) whose city fits it.
 
+### Capes: a Heirloom slot of our own (`entity/capes.go`, `handlers/capes.go`, `tools/seed_capes.py`, `world.capes`)
+
+The user, 2026-11-08: "lets add a new equip slot for heirloom server only. capes for all. there are many capes we can
+borrow from for various styles." **`world.capes`** (off unless set: the Heirloom Test Server sets it, the Live Server
+does not) makes a cape an item of **wear slot 28** worn in **equip slot 22**, neither of which CLIENT knows (its fit
+check and its slot names end at wear 27, its list's equip slots at 21): its record's `model` is the style a client
+draws (eqoa-rust-client-vanilla cuts each style out of a body on the disc) and its `color` a tint (0xRRGGBBAA, read as
+an armour piece's, `entity.ArmorColor`: 0, white or a disc tint index is the art's own colours). After a session's
+first character list (with the live look's and creation's offers, after them) the server offers capes (**0x7E25**, a
+u32 1); a client that draws capes answers 1, and from then the item records it is sent keep 28 and 22; it wears and
+takes off a cape with the game's own InteractItem (0x003E), answered EquipItem 0x003F {list index, 22} and UnequipItem
+0x0040 {22}, nothing displaced (`equipSlotsFor`: `itemSlotToEquipSlot` stays CLIENT's table, held to `fitsEquip` by its
+test); it is sent **0x7E27** (u8 count, then u32 ServerID, u8 style, u32 colour for each character of the list that
+wears one) after every character list and at once when its answer comes at character select; and in the world
+**0x7E26** (u8 count, then u32 the id that client knows the entity by, its own object id for its own character and its
+visibility slot's for another, u8 style, u32 colour), the whole set of the players in its view that wear one (never
+an NPC; an invisible player's left out of others' views, not its own), sent each tick it changes (`capesSyncSystem`,
+right after the visibility system) and again whatever it is after a MemoryDump and a world change
+(`VisibilityState.ResendCapes`). **Every other client** (a PS2, which ignores the offer as it ignores every 0x7E one, and
+every client of a server without capes) is sent a cape as a plain item, wear -1 and never worn (`wireWear`,
+`wireEquipLoc`: every item writer, `writeItem`, `writeSingleItem`, `writeItemPattern` and the builders over them, takes
+whether its client draws capes, so no record goes out without the choice made); it is never sent 0x003F or 0x0040
+naming slot 22 (`queueEquip`, `queueUnequip`); its InteractItem on a cape is refused in a red line; and a worn cape it
+holds as a plain item comes off in the database alone before the bank, a trade, a destroy or a sale moves it
+(`TakeOff`, the merchant's `sell`). Both session flags (`Capes`, `CapesOffered`) are kept over a keep restart, and the
+look (`Player.CapeStyle`, `CapeColor`) is `wornLook`'s, so it comes back with the character. #template never puts a
+cape on (it fills CLIENT's slots 0-21 alone). The GM panel names wear 28 and equip slot 22 "Cape".
+**Heirloom capes, sold and dyed** (the user, 2026-11-09: "add heirloom capes to the genie and heirloom vendors, also
+allow dying"). A shop lists a cape only to a client that draws capes (`waresFor`: a PS2's list is what it always was,
+and its buys index that list). Every Heirloom Outfitter sells two after its own stock (an outfitter's list is the
+buyer's class's and the client holds 40, wares and buy-back lines together; a ranger's and a rogue's are 37, so two
+leave each a buy-back line); the genie sells every cape: to a client that draws capes its "Your wares" asks "Heirloom
+gear" (its outfitter's list, as before) or "Heirloom capes" (the npcitem list `capeStock`, 717000, no NPC's), and to
+every other client opens the gear at once, as it always did (`Genie.sellsCapes`, `World.SetGenieCatalog`). An Armor
+Dyer dyes the cape on a server with capes: chardyes' slot 10 (`database.DyeCape`), "All my armor" takes it in, it is the
+second of "Robe, cape, shield or weapons", "Take every dye off" takes its dye off, and #dye names it; a cape goes out
+(0x7E26, 0x7E27) in its dye, else its record's colour (`Player.CapeTint`, `capeDye`), so vanilla draws a dye as it draws
+the record's colour. Without capes the dyer's questions, #dye's slots, "all" and listing are what they were.
+**The data**: `tools/seed_capes.py [--list] [--apply|--undo]` (logged in `cape_seed_log`; `--undo` exact but a record a
+character holds, and the AUTOINCREMENT counters) writes nine heirloom capes, ids 717001-717005 (the Heirloom Azure
+Knight's Cape, Nightborne Cloak, Violet Mantle, Dreadlord's Cape and Dreadlord's Mantle: styles 1-5, `STYLES`, colour 0)
+and 717020-717023 (the Heirloom Crimson, Forest, Royal and Gilded Cloaks: style 2 in a colour each, `COLOURS`), no
+stats, level 1, every class and race, NO TRADE, worth 0, no wear, named "Heirloom ..." (an import never damps one:
+`database.IsImportedGear`); the Azure Knight's Cape and the Nightborne Cloak on every outfitter (the rows' last column),
+all nine on the genie's list; it refuses a plan that would put any class's outfitter list past 40. The records and
+lists are read at each request: no restart for the data. `TestRealHeirloomCapes` (`EQOA_REAL_DB`, a copy with the seed
+applied) holds the lists to it.
+
 ### Guilds are kept (`entity/guild.go`, `database/guilds.go`)
 
 Until 2026-11-06 guilds lived in the server's memory alone, so every restart ended every guild (the 04:47 UTC one
@@ -2003,6 +2051,7 @@ world:
   pvp: true                 # /pvp flags a player (entity/pvp.go); unset: not available
   open_races: true          # creation takes the froglok and racedefs' races (vanilla is told them); unset: the game's
   all_classes: true         # every class for every race at creation; unset: each race's own
+  capes: true               # the cape slot, wear 28 in equip slot 22, for clients that draw capes (handlers/capes.go); unset: none
   imported_tag: true        # "(Imported)" after a transfer's damped gear (database/imported.go); unset: not shown
   imported_share: 0.85      # what a transfer's gear keeps of its record's stats and procs; unset: 0.85
 auth:

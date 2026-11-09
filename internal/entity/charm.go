@@ -314,6 +314,13 @@ func (w *World) charmLocked(caster *Player, sess *session.Session, npc *NPC, spe
 	if d := charmDuration(spell, caster.StatNow(StatCha)); d > 0 {
 		hold.until = now.Add(d)
 	}
+	w.holdCharmLocked(caster, sess, npc, hold, now)
+}
+
+// holdCharmLocked makes the creature the caster's pet under hold: a charm's
+// landing (charmLocked) or one a restart carried (keeppet.go). Must be called
+// with the lock held.
+func (w *World) holdCharmLocked(caster *Player, sess *session.Session, npc *NPC, hold *charmHold, now time.Time) {
 	npc.Charm = hold
 	npc.Owner = caster.ServerID
 	npc.NPCType = charmNPCType
@@ -345,7 +352,7 @@ func (w *World) charmLocked(caster *Player, sess *session.Session, npc *NPC, spe
 	if ps.tmpl != nil {
 		fights = "by template " + ps.tmpl.tmpl.Name
 	}
-	log.Printf("Charm: %s's %q takes %s (level %d, %d/%d HP, power %d), %s, %s", caster.Name, spell.Name, npc.Name, npc.Level,
+	log.Printf("Charm: %s's %q takes %s (level %d, %d/%d HP, power %d), %s, %s", caster.Name, hold.spell, npc.Name, npc.Level,
 		npc.HP, npc.MaxHP, npc.Power, lasts, fights)
 }
 

@@ -322,6 +322,22 @@ func writeCMNode(w *buffer.Writer, n entity.CMNode) {
 	}
 }
 
+// A run of Recv05/Recv06 (a reset, a template: one a rank) carries the known
+// flags in its last message alone (flagsLastOf). CLIENT's ReadFlags sets the flag
+// of each entry it is given and touches no other, so an empty list changes
+// nothing, and the last message's whole list leaves every flag as one each
+// would have. Each list is 8 bytes an entry, 2,016 of a message's 2,023 with
+// 252 masteries: Jibrish's 58-rank reset at 03:41:55 UTC 2026-11-09 was 116
+// fragments, which went out at a fragment a tick ahead of everything queued
+// after it (chat, a target's con), and is now 58 small messages and one of
+// 2 KB.
+func flagsLastOf(i, n int, list []entity.CMEntry) []entity.CMEntry {
+	if i == n-1 {
+		return list
+	}
+	return nil
+}
+
 // writeCMState is what Recv05 and Recv06 read after the points: the run
 // speed (raw; CLIENT sets it), the 29 stats and the 7 caps the masteries
 // give (zigzag), then the known flag of every rank listed (a raw count and
@@ -651,17 +667,18 @@ func (h *ClassMasteryHandler) resetMasteries(who *session.Session) cmReset {
 		}
 	}
 	list := h.gameWorld.CMList(who, h.cmKnowsOf(p))
-	for _, id := range res.Removed {
+	for i, id := range res.Removed {
 		if r := h.gameWorld.CMRankByID(id); r != nil {
 			gives, takes := r.BookChange()
 			h.takeAbilities(who, p, gives)
 			h.giveAbilities(who, p, takes)
 		}
+		flags := flagsLastOf(i, len(res.Removed), list)
 		queueReliable(who, protocol.OpcodeClassMasteryServer, cmBig(func(w *buffer.Writer) {
 			w.WriteByte(cmRespRemoved)
 			w.WriteUint32(0)
 			w.WriteUint32(uint32(id))
-			writeCMState(w, res.State, list)
+			writeCMState(w, res.State, flags)
 		}))
 	}
 	queueReliable(who, protocol.OpcodeClassMasteryServer, cmPoints(res.Mastery))

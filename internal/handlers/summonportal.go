@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"math"
 	"strings"
 	"sync"
 	"time"
@@ -55,6 +56,11 @@ import (
 // portalAskAgain until the call lapses, so the box shows once the menu is shut.
 // (Vanilla keeps one such box until its menu closes, sending no 255.)
 //
+// The box's second answer, "Take me to Freeport" (the user, 2026-11-09: "lets
+// add to summoning portal to port back to freeport, where dabrish is"), sends
+// whoever talks to the portal through it to a few steps in front of Dabrish,
+// wherever he stands (World.PortalSend: the same travel), no name awaited.
+//
 // Measured: CLIENT's boxes and chat routes, read off the decomp and vanilla (the
 // genie's note, claude-notes/genie-lamp-windows-20261106.md, has the boxes).
 // Ours, chosen: every word, every time below, the accept box (PortalAsksFirst,
@@ -106,8 +112,14 @@ const (
 
 	portalQuestion = "Who do you call? Choose below, then type the player's name in chat and press Enter."
 	portalWillType = "I will type the name"
-	portalListens  = "The portal listens: type the player's name and press Enter. Only the portal will hear it."
-	portalDeaf     = "The portal has stopped listening. Talk to it again."
+	// the portal's way home (the user, 2026-11-09: "lets add to summoning portal
+	// to port back to freeport, where dabrish is"): its second answer sends the
+	// player through it to Freeport, a few steps in front of Dabrish
+	portalToFreeport  = "Take me to Freeport"
+	portalToFreeportT = "You step through the summoning portal to Freeport."
+	portalNoFreeport  = "The portal cannot find Freeport."
+	portalListens     = "The portal listens: type the player's name and press Enter. Only the portal will hear it."
+	portalDeaf        = "The portal has stopped listening. Talk to it again."
 
 	portalNoSuch    = "No player named %q is online."
 	portalSelf      = "You cannot call yourself."
@@ -249,8 +261,37 @@ func (g *Portal) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) 
 	a.asked, a.until = now, now.Add(PortalNameWait)
 	box := a.box
 	g.mu.Unlock()
-	SendQuestPopupMulti(sess, box, portalQuestion, []string{portalWillType})
+	SendQuestPopupMulti(sess, box, portalQuestion, []string{portalWillType, portalToFreeport})
 	return true
+}
+
+// portalFreeportBy is the NPC the way home lands in front of, by name, and
+// portalFreeportOut how far in front.
+const (
+	portalFreeportBy  = "Dabrish"
+	portalFreeportOut = 3
+)
+
+// toFreeport is the name's box answered "Take me to Freeport": the player
+// through the portal to a few steps in front of Dabrish, wherever he stands.
+func (g *Portal) toFreeport(sess *session.Session, p *entity.Player, portal entity.EntityID) {
+	x, y, z, facing, world, ok := g.gw.NPCByName(portalFreeportBy)
+	if !ok {
+		portalRefuse(sess, portalNoFreeport)
+		return
+	}
+	to := entity.GateSpot{World: world, Y: y, Place: "Freeport, by " + portalFreeportBy,
+		X: x + portalFreeportOut*float32(math.Sin(float64(facing))), Z: z + portalFreeportOut*float32(math.Cos(float64(facing)))}
+	if _, err := ValidateTeleport(to.X, to.Y, to.Z, to.World); err != nil {
+		log.Printf("Portal: %s to Freeport: no place to land (%v)", p.Name, err)
+		portalRefuse(sess, portalNoFreeport)
+		return
+	}
+	if !g.gw.PortalSend(portal, p.ServerID, sess, to) {
+		portalRefuse(sess, portalYouDead)
+		return
+	}
+	portalTell(sess, portalToFreeportT)
 }
 
 // ModeChanged is a 0x000E: within portalOneLine the next line is a /command's.
@@ -408,6 +449,17 @@ func (g *Portal) answerName(sess *session.Session, p *entity.Player, box uint32,
 	if option == 255 && now.Sub(a.asked) >= portalDeclinedWithin {
 		delete(g.waits, p.ServerID)
 		g.mu.Unlock()
+		return
+	}
+	if option == 1 { // "Take me to Freeport": no name is awaited
+		delete(g.waits, p.ServerID)
+		portal := a.portal
+		g.mu.Unlock()
+		if !g.gw.PortalHears(portal, p.ServerID) {
+			portalRefuse(sess, portalClosed)
+			return
+		}
+		g.toFreeport(sess, p, portal)
 		return
 	}
 	a.until = now.Add(PortalNameWait)

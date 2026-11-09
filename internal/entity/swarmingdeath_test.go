@@ -288,7 +288,7 @@ func TestASwarmingDeathsDoTIsNeverStacked(t *testing.T) {
 		t.Errorf("the crab lost %d to the two landings' first ticks, want 300 each", lost)
 	}
 	r.w.mu.Lock()
-	r.w.dismissPetLocked(ps, r.sess, "")
+	r.w.dismissPetLocked(ps, r.sess, "", r.at(31*time.Second))
 	hp := crab.HP
 	r.w.effectSystem(r.at(36 * time.Second))
 	r.w.mu.Unlock()

@@ -171,7 +171,8 @@ const (
 // The giants' kinds, every one on the hill giant's skeleton and as tall (4.81).
 var (
 	giantsMale = []OptionStep{{"Hill giant", bodyHillGiant, 1}, {"Ice giant", 0x8117C627, 1}, {"Sand giant", 0xE617303B, 1},
-		{"Fire giant", 0x72A8FDBB, 1}, {"Fire giant (vest)", 0x7F2604DF, 1}, {"Cyclops", 0x05F59B65, 1}}
+		{"Fire giant", 0x72A8FDBB, 1}, {"Fire giant (vest)", 0x7F2604DF, 1}, {"Cyclops", 0x05F59B65, 1},
+		{"Fire giant (reaver)", 0x2D686972, 0.95}, {"Fire giant king", 0xBF6ADFDB, 0.91}}
 	giantsFemale = []OptionStep{{"Hill giant", 0xF34501CB, 1}, {"Ice giant", 0x286C6E9E, 1}, {"Sand giant", 0x8E2A6552, 1},
 		{"Cyclops", 0xE30827CC, 1}}
 )
@@ -197,6 +198,13 @@ var (
 var hairs = []OptionStep{{"Hair 1", 0x98F86489, 0}, {"Hair 2", 0x221E7298, 0}, {"Hair 3", 0x6DCEF2D0, 0},
 	{"Hair 4", 0xFEBCE4D5, 0}, {"Hair 5", 0xD499494B, 0}, {"Hair 6", 0x8931CEE6, 0}, {"Hair 7", 0x9F87C7AF, 0},
 	{"Hair 8", 0xDC79B7C3, 0}}
+
+// hairSteps are the eight hair textures after the body's own (Natural, 0): a
+// row of a race whose bodies wear different hair (an NPC's own strip, B5632329,
+// EF0C9AEB, 87BFA9B5, or one of the eight) on parts of the same name. Every one
+// is a 64x64 strip of hair with no layout of its own, so any of them lies on
+// any hair part as the body's own does.
+var hairSteps = append([]OptionStep{{"Natural", 0, 0}}, hairs...)
 
 // rotate is steps with the one of value first (a body's own texture is the row's
 // first step, its natural one).
@@ -258,23 +266,38 @@ var raceOptionRows = map[uint32][]OptionRow{
 		Male: []OptionStep{{"Tiger", bodyKerranM, 1}, {"Tiger (robed)", 0x4D9C53EF, 1}, {"White tiger", 0x77A7E7B8, 0.86},
 			{"Lion", 0x78FA8F20, 1}, {"Lion (clothed)", 0x0DDD4087, 1}, {"Maned lion", 0x5D40C8AB, 0.89}},
 		Female: []OptionStep{{"Tiger", bodyKerranF, 1}, {"Tiger (robed)", 0xB62092E4, 1}, {"Red tiger", 0xE700DE53, 0.82},
-			{"Lioness", 0x39FEAA5F, 1}, {"Lioness (robed)", 0x7654AC3C, 1}, {"Lioness (warrior)", 0xD8E0F980, 0.82}}}},
+			{"Lioness", 0x39FEAA5F, 1}, {"Lioness (robed)", 0x7654AC3C, 1}, {"Lioness (warrior)", 0xD8E0F980, 0.82}}},
+		{Key: "mane", Label: "Mane", Kind: KindTexture, Parts: []OptionPart{
+			whole(0x77A7E7B8, 2), whole(0x5D40C8AB, 1), whole(0xE700DE53, 3), whole(0xD8E0F980, 6)}, Male: hairSteps}},
 	bodyGoblin: {{Key: "body", Label: "Tribe", Kind: KindBody, Male: []OptionStep{
 		{"Grey goblin", bodyGoblin, 1}, {"Grey goblin (robed)", 0x581B6A80, 1}, {"Green goblin", 0x96371804, 1.4},
 		{"Green goblin (robed)", 0xBCDF0C04, 1.4}, {"Ice goblin", 0xE96179D4, 0.875}, {"Ice goblin (robed)", 0xA5F92F43, 0.875},
-		{"Fire goblin", 0x6C7C07ED, 1.17}, {"Fire goblin (robed)", 0xBE927B85, 1.17}, {"Fire goblin (shaman)", 0xCEF5874A, 1.17}}}},
+		{"Fire goblin", 0x6C7C07ED, 1.17}, {"Fire goblin (robed)", 0xBE927B85, 1.17}, {"Fire goblin (shaman)", 0xCEF5874A, 1.17},
+		{"Grey goblin (gladiator)", 0xEDB4E0AD, 1}, {"Grey goblin (purple robe)", 0x687E7645, 1}, {"Grey goblin (overseer)", 0x2ECBB95A, 0.93},
+		{"Grey goblin (skull mask)", 0xB656DFEA, 0.93}, {"Green goblin (bandit)", 0xEC0885EB, 1.4}, {"Green goblin (high priest)", 0x1F8E11D3, 1.4},
+		{"Green goblin (warlord)", 0x3AB96672, 1.27}, {"Green goblin (warmaster)", 0xF54C2142, 1.27}, {"Ice goblin (soothsayer)", 0x1245E56B, 0.875},
+		{"Ice goblin (wizard)", 0x27A4E554, 0.875}, {"Ice goblin (mystic)", 0x5937EA22, 0.82}, {"Ice goblin (chieftain)", 0x507C4A52, 0.82},
+		{"Fire goblin (poacher)", 0xEE1DDFBA, 1.17}, {"Brown goblin (inquisitor)", 0x1CCDF0EF, 1.08}, {"Brown goblin (king)", 0x2F34B867, 1.08}}},
+		{Key: "hair", Label: "Hair", Kind: KindTexture, Parts: []OptionPart{
+			whole(bodyGoblin, 7), whole(0x581B6A80, 7, 9), whole(0x96371804, 0), whole(0xBCDF0C04, 7), whole(0xE96179D4, 6),
+			whole(0xA5F92F43, 0), whole(0xEDB4E0AD, 1), whole(0x687E7645, 0, 4), whole(0xB656DFEA, 1), whole(0xEC0885EB, 0),
+			whole(0x1F8E11D3, 4), whole(0xF54C2142, 9), whole(0x1245E56B, 2), whole(0x27A4E554, 7), whole(0x507C4A52, 7)}, Male: hairSteps}},
 	bodyAviakM: {{Key: "body", Label: "Bird", Kind: KindBody,
 		Male: []OptionStep{{"Hawk", bodyAviakM, 1}, {"Hawk (robed)", 0x262C572A, 1}, {"Raven", 0xDC641055, 1},
 			{"Raven (robed)", 0x41EFF500, 1}, {"Vulture", 0x3C3DE6CA, 0.91}, {"Vulture (robed)", 0xC04CEC07, 0.91},
-			{"Owl", 0xB1EEB204, 0.91}, {"Owl (robed)", 0x8B332785, 0.91}},
+			{"Owl", 0xB1EEB204, 0.91}, {"Owl (robed)", 0x8B332785, 0.91}, {"Raven (gown)", 0x246B5FED, 1},
+			{"Raven (black)", 0x5585143C, 1}, {"Hawk (green robe)", 0xF83BD167, 1}},
 		Female: []OptionStep{{"Hawk", bodyAviakF, 1}, {"Hawk (robed)", 0x262C572A, 1}, {"Raven", 0xDC641055, 1},
 			{"Raven (robed)", 0x41EFF500, 1}, {"Vulture", 0x3C3DE6CA, 0.91}, {"Vulture (robed)", 0xC04CEC07, 0.91},
-			{"Owl", 0xB1EEB204, 0.91}, {"Owl (robed)", 0x8B332785, 0.91}}}},
+			{"Owl", 0xB1EEB204, 0.91}, {"Owl (robed)", 0x8B332785, 0.91}, {"Raven (gown)", 0x246B5FED, 1},
+			{"Raven (black)", 0x5585143C, 1}, {"Hawk (green robe)", 0xF83BD167, 1}}}},
 	bodyLizardman: {{Key: "body", Label: "Scales", Kind: KindBody, Male: []OptionStep{
-		{"Strapped", bodyLizardman, 1}, {"Pauldrons", 0xD45B9F1F, 1.09}, {"Bare", 0x2C1D8724, 1.09}, {"Robed", 0x7468EAE7, 1.09}}}},
+		{"Strapped", bodyLizardman, 1}, {"Pauldrons", 0xD45B9F1F, 1.09}, {"Bare", 0x2C1D8724, 1.09}, {"Robed", 0x7468EAE7, 1.09},
+		{"Robed (hierophant)", 0x16BB9E24, 1.1}, {"Grey", 0xEEBF6DA5, 1}}}},
 	bodyKappa: {{Key: "body", Label: "Shell", Kind: KindBody, Male: []OptionStep{
 		{"Brown shell", bodyKappa, 1}, {"Marked shell", 0xC3EC4F58, 0.91}, {"Banded shell", 0xF6747024, 1.05},
-		{"Straw hat", 0xF0FAB933, 0.83}}}},
+		{"Straw hat", 0xF0FAB933, 0.83}}},
+		{Key: "hair", Label: "Hair", Kind: KindTexture, Parts: []OptionPart{whole(0xC3EC4F58, 6), whole(0xF6747024, 5)}, Male: hairSteps}},
 	bodyBrownie: {
 		{Key: "body", Label: "Garb", Kind: KindBody, Male: []OptionStep{{"Brownie", bodyBrownie, 1}, {"Elder", 0x49468331, 1}}},
 		{Key: "hair", Label: "Hair", Kind: KindTexture, Parts: []OptionPart{whole(bodyBrownie, 1, 2)}, Male: hairs},
@@ -290,16 +313,29 @@ var raceOptionRows = map[uint32][]OptionRow{
 	bodyGnoll: {{Key: "body", Label: "Pelt", Kind: KindBody, Male: []OptionStep{
 		{"Black", bodyGnoll, 1}, {"Black (captain)", 0x223FD6BC, 0.91}, {"Blue-pawed", 0xF5F3A450, 1},
 		{"Black (robed)", 0x097BFC70, 1}, {"Black (elder)", 0xB7B21DFC, 0.91}, {"Black and tan", 0x4A9BAB9E, 1},
-		{"Black and tan (scout)", 0x17DA0FEB, 1}, {"Black and tan (robed)", 0x7492678E, 1}}}},
+		{"Black and tan (scout)", 0x17DA0FEB, 1}, {"Black and tan (robed)", 0x7492678E, 1},
+		{"Black (teal robe)", 0x585E5ED9, 1}, {"Black and tan (green robe)", 0x16BA0BD3, 1}, {"Black and tan (packlord)", 0x3C6D3677, 0.91},
+		{"Black and tan (armour)", 0xC2D7DD2F, 0.91}, {"Grey", 0x71F163CA, 1}, {"Grey (armour)", 0xC3B94FA5, 1},
+		{"Grey (red scarf)", 0x147AC3EE, 0.91}, {"Grey (robed)", 0x09E0AE7D, 1}, {"Grey (gown)", 0xB15628DA, 1},
+		{"Grey (red robe)", 0xCE06735E, 0.91}, {"Reanimated", 0x2EDA50DC, 1}, {"Reanimated (bones)", 0x6F55F237, 1},
+		{"Reanimated (robed)", 0x16E320F7, 1}}}},
 	bodyOrc: {{Key: "body", Label: "Clan", Kind: KindBody,
 		Male: []OptionStep{{"Orc", bodyOrc, 1}, {"Orc (long hair)", 0x84F47767, 0.92}, {"Orc (grey mail)", 0x656DD4C5, 1},
-			{"Deathfist", 0x37FD13F9, 1.02}, {"Deathfist (kilt)", 0x3198F5B1, 1.06}},
+			{"Deathfist", 0x37FD13F9, 1.02}, {"Deathfist (kilt)", 0x3198F5B1, 1.06}, {"Hatebone elder", 0xB2FBD7EF, 0.92},
+			{"Deathfist (fire weaver)", 0xB086ADA7, 0.92}},
 		Female: []OptionStep{{"Orc", 0x0A03EB92, 1.01}, {"Orc (grey mail)", 0xDA515962, 1.01}, {"Orc (brute)", bodyOrc, 1},
-			{"Deathfist", 0x37FD13F9, 1.02}, {"Deathfist (kilt)", 0x3198F5B1, 1.06}}}},
+			{"Deathfist", 0x37FD13F9, 1.02}, {"Deathfist (kilt)", 0x3198F5B1, 1.06}, {"Deathfist (healer)", 0x0205D208, 1.07},
+			{"Deathfist (slayer)", 0xC76F1FA8, 1.02}, {"Deathfist (chieftain)", 0xE144942F, 0.98}, {"Hatebone elder", 0xB2FBD7EF, 0.92},
+			{"Deathfist (fire weaver)", 0xB086ADA7, 0.92}}},
+		{Key: "hair", Label: "Hair", Kind: KindTexture, Parts: []OptionPart{
+			whole(0x84F47767, 1, 2, 3, 4, 5), whole(0x0A03EB92, 0, 1, 2, 3, 4), whole(0xDA515962, 0, 1, 2, 3, 4),
+			whole(0xB2FBD7EF, 1, 2, 3, 4, 5), whole(0x0205D208, 4), whole(0xC76F1FA8, 0, 1, 2, 3, 8),
+			whole(0xB086ADA7, 3, 5, 6, 7, 8), whole(0xE144942F, 3)}, Male: hairSteps}},
 	bodyKobold: {{Key: "body", Label: "Hide", Kind: KindBody, Male: []OptionStep{
 		{"Kobold", bodyKobold, 1}, {"Kobold (augur)", 0x6B9B7016, 0.9}, {"Patched", 0x597325B5, 1}, {"Pauldrons", 0x9CDF3C2D, 0.82}}}},
 	// the minotaur's black fur takes no colour worth the name (a dark grey at most): its hide and horns do
 	bodyMinotaur: {
+		{Key: "body", Label: "Minotaur", Kind: KindBody, Male: []OptionStep{{"Black", bodyMinotaur, 1}, {"Brown (elder)", 0x0AE71D02, 0.86}}},
 		{Key: "hide", Label: "Hide", Kind: KindColour, Parts: []OptionPart{
 			within(bodyMinotaur, []uint8{1}, [4]uint8{195, 105, 255, 250}),
 			within(bodyMinotaur, []uint8{2}, [4]uint8{90, 0, 255, 229}, [4]uint8{0, 0, 90, 110})}, Male: tones},
@@ -307,7 +343,8 @@ var raceOptionRows = map[uint32][]OptionRow{
 			within(bodyMinotaur, []uint8{2}, [4]uint8{190, 230, 255, 255})}, Male: dyes},
 	},
 	bodyRatman: {{Key: "body", Label: "Garb", Kind: KindBody, Male: []OptionStep{
-		{"Ratman", bodyRatman, 1}, {"Hooded", 0x0ECC836A, 1.18}, {"Hooded (pauldrons)", 0x133A79CA, 1}}}},
+		{"Ratman", bodyRatman, 1}, {"Hooded", 0x0ECC836A, 1.18}, {"Hooded (pauldrons)", 0x133A79CA, 1},
+		{"Trickster", 0x46BA26A9, 1.08}}}},
 	bodySatyrM: {
 		{Key: "body", Label: "Satyr", Kind: KindBody, Male: []OptionStep{{"Satyr", bodySatyrM, 1}},
 			Female: []OptionStep{{"Faun", bodySatyrF, 1}}},
@@ -318,11 +355,17 @@ var raceOptionRows = map[uint32][]OptionRow{
 			Male: hairs, Female: rotate(hairs, 0x221E7298)},
 	},
 	bodyDryad: {
+		{Key: "body", Label: "Spirit", Kind: KindBody, Male: []OptionStep{{"Dryad", bodyDryad, 1}, {"Erych guardian", 0x21F311BB, 1.38},
+			{"Haliai", 0xACE71E26, 1.5}, {"Erych arbiter", 0xB90ADDD2, 1.38}}},
+		{Key: "hair", Label: "Hair", Kind: KindTexture, Parts: []OptionPart{
+			whole(0x21F311BB, 0, 1, 6), whole(0xACE71E26, 1, 6), whole(0xB90ADDD2, 0, 1, 8, 9, 10)}, Male: hairSteps},
 		{Key: "bark", Label: "Bark", Kind: KindColour, Parts: []OptionPart{whole(bodyDryad, 0, 2, 3, 4)}, Male: barks},
 		{Key: "leaves", Label: "Leaves", Kind: KindColour, Parts: []OptionPart{whole(bodyDryad, 1, 7)}, Male: dyes},
 	},
 	bodySkeleton: {{Key: "body", Label: "Bones", Kind: KindBody, Male: []OptionStep{
-		{"Bone", bodySkeleton, 1}, {"Old bone", 0x45A8B064, 0.91}, {"Mossy", 0x198BAA64, 0.91}, {"Frost", 0x648DFC11, 1}}}},
+		{"Bone", bodySkeleton, 1}, {"Old bone", 0x45A8B064, 0.91}, {"Mossy", 0x198BAA64, 0.91}, {"Frost", 0x648DFC11, 1},
+		{"Great bone", 0x6AF98A82, 0.9}, {"Great old bone", 0x197F51C7, 0.82}, {"Great mossy", 0x90F16A6F, 0.82},
+		{"Great mossy (green)", 0x556EA369, 0.82}, {"Great frost", 0x7D9F41B2, 0.9}}}},
 	bodyFungus: {
 		{Key: "body", Label: "Fungus", Kind: KindBody, Male: []OptionStep{
 			{"Blue cap", bodyFungus, 1}, {"Red cap", bodyFungusRed, 1}, {"Pale cap", bodyFungusPale, 0.91}}},

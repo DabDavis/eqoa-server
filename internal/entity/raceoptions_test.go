@@ -31,7 +31,8 @@ func withOptionRaces(t *testing.T, rows ...database.RaceDefRow) {
 // can choose: a key and a label, at most 255 rows, steps and parts (each a
 // byte on the wire), a key once a race; a body row's steps bodies with a size,
 // none twice; a colour row's steps after the first a mode the client knows, its
-// first the body's own (0); a texture row's steps textures; a colour or texture
+// first the body's own (0); a texture row's steps textures, its first one the
+// body's own (its texture, or 0 where its bodies wear different ones); a colour or texture
 // row's parts each of a body the race can wear (its body rows', or its own),
 // with palette entries and rects whose corners are in order.
 func TestRaceOptionsAreOnesAClientCanShow(t *testing.T) {
@@ -77,7 +78,7 @@ func TestRaceOptionsAreOnesAClientCanShow(t *testing.T) {
 						where("the first colour %q is not the body's own", s.Name)
 					case r.Kind == KindColour && k > 0 && s.Value>>24 != ModeDye && s.Value>>24 != ModeTone:
 						where("colour %q: %#x", s.Name, s.Value)
-					case r.Kind == KindTexture && (s.Value == 0 || seen[s.Value]):
+					case r.Kind == KindTexture && (s.Value == 0 && k > 0 || seen[s.Value]):
 						where("texture step %q: %#x", s.Name, s.Value)
 					}
 					seen[s.Value] = true
@@ -170,7 +171,7 @@ func TestAChosenBodyKeepsItsLookAndSize(t *testing.T) {
 	}
 	own := &Player{ServerID: 1, Name: "Own", Race: 11, ModelID: -5117396, Size: 1.8}
 	ice := &Player{ServerID: 2, Name: "Frosty", Race: 11, ModelID: signed(0x8117C627), Size: 1.8}
-	gm := &Player{ServerID: 3, Name: "Odd", Race: 11, ModelID: signed(0xBF6ADFDB), Size: 1.8}
+	gm := &Player{ServerID: 3, Name: "Odd", Race: 11, ModelID: signed(0x87CE5F73), Size: 1.8} // a stone golem: no option's
 	for _, p := range []*Player{own, ice, gm} {
 		w.Players[p.ServerID] = p
 		w.SetGear(p.ServerID, Gear{Armor: ArmorCloth}, false)
@@ -197,7 +198,7 @@ func TestAChosenBodyKeepsItsLookAndSize(t *testing.T) {
 	if _, s := grey.Body(); s != 1 {
 		t.Errorf("its race's own: at %v", s)
 	}
-	if !ChosenBody(11, 0x8117C627) || ChosenBody(11, uint32(bodyHillGiant)) || ChosenBody(11, 0xBF6ADFDB) || ChosenBody(3, 0x8117C627) {
+	if !ChosenBody(11, 0x8117C627) || !ChosenBody(11, 0xBF6ADFDB) || ChosenBody(11, uint32(bodyHillGiant)) || ChosenBody(11, 0x87CE5F73) || ChosenBody(3, 0x8117C627) {
 		t.Error("ChosenBody")
 	}
 	// the control: a game race's character (a GM's form aside) wearing a body some race

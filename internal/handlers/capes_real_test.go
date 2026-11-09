@@ -1,24 +1,22 @@
 package handlers
 
 import (
-	"bytes"
 	"os"
 	"testing"
 
-	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
-	"github.com/eqoa/server/internal/protocol"
 )
 
 // On a real database with tools/seed_capes.py applied (EQOA_REAL_DB, a copy):
-// every Cape Tailor is a merchant whose catalog (npcitem under its own NPCID)
-// is every cape record, each of the cape's wear slot with a style, for every
-// class and race, NO TRADE and worth nothing, and its list is no class shop's,
-// so every class is offered all of them within the client's 40; a record goes
-// out to a PS2 as a plain item and to a client that draws capes as a cape. The
-// control: no other NPC sells a cape.
-func TestRealCapeTailorsSellEveryCape(t *testing.T) {
+// every cape is an heirloom (named so: an import never damps one) of the
+// cape's wear slot with a style, for every class and race, NO TRADE and worth
+// nothing; the genie's capes (capeStock) sell every one; every Heirloom
+// Outfitter sells the same capes after its own stock, and for every class its
+// list to a client that draws capes stays within the client's 40, while to a
+// PS2 it is what it was (no cape in it). The control: no other NPC sells a
+// cape.
+func TestRealHeirloomCapes(t *testing.T) {
 	path := os.Getenv("EQOA_REAL_DB")
 	if path == "" {
 		t.Skip("EQOA_REAL_DB unset")
@@ -28,11 +26,31 @@ func TestRealCapeTailorsSellEveryCape(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
-	var capes int
-	if err := db.QueryRow(`SELECT COUNT(*) FROM itempattern WHERE equipslot = ?`, wearCape).Scan(&capes); err != nil || capes == 0 {
-		t.Skipf("no capes in %s (%v): apply tools/seed_capes.py to a copy", path, err)
+	inv := database.NewInventoryStore(db)
+	all, err := inv.GetNPCItems(capeStock)
+	if err != nil {
+		t.Fatal(err)
 	}
-	// who sells a cape at all, by catalog key (npcitem.npcid), in one query
+	if len(all) == 0 {
+		t.Skipf("no capes in %s: apply tools/seed_capes.py to a copy", path)
+	}
+	capes := map[int]bool{}
+	for _, w := range all {
+		p := w.Pattern
+		style, _ := capeLook(&p)
+		if !isCape(&p) || style == 0 || p.ClassUse&0x7FFF != 0x7FFF || p.RaceUse == 0 || p.Trade != 1 || p.ItemCost != 0 ||
+			p.LevelReq > 1 || database.IsImportedGear(p.EquipSlot, p.MaxStack, p.ItemName) {
+			t.Errorf("%q (%d): wear %d, style %d, classes %#x, races %#x, trade %d, cost %d, level %d, damped by an import %v",
+				p.ItemName, p.PatternID, p.EquipSlot, style, p.ClassUse, p.RaceUse, p.Trade, p.ItemCost, p.LevelReq,
+				database.IsImportedGear(p.EquipSlot, p.MaxStack, p.ItemName))
+		}
+		capes[p.PatternID] = true
+	}
+	var n int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM itempattern WHERE equipslot = ?`, wearCape).Scan(&n); err != nil || n != len(capes) {
+		t.Errorf("%d cape records, the genie sells %d (%v)", n, len(capes), err)
+	}
+	// who sells a cape at all, by catalog key, in one query
 	sellers := map[int]int{}
 	rows, err := db.Query(`SELECT n.npcid, COUNT(*) FROM npcitem n JOIN itempattern p ON p.patternid = n.patternid
 		WHERE p.equipslot = ? GROUP BY n.npcid`, wearCape)
@@ -40,56 +58,79 @@ func TestRealCapeTailorsSellEveryCape(t *testing.T) {
 		t.Fatal(err)
 	}
 	for rows.Next() {
-		var id, n int
-		if err := rows.Scan(&id, &n); err != nil {
+		var id, k int
+		if err := rows.Scan(&id, &k); err != nil {
 			t.Fatal(err)
 		}
-		sellers[id] = n
+		sellers[id] = k
 	}
 	rows.Close()
 	npcs, err := database.NewNPCStore(db).GetAllNPCs()
 	if err != nil {
 		t.Fatal(err)
 	}
-	inv := database.NewInventoryStore(db)
-	tailors := 0
-	for _, n := range npcs {
-		if n.NPCName != "Cape Tailor" {
-			if sellers[n.NPCID] != 0 {
-				t.Errorf("%q (%d) sells %d capes", n.NPCName, n.ID, sellers[n.NPCID])
+	h := &NPCWindowHandler{inv: inv}
+	outfitters, onEach := 0, -1
+	for _, r := range npcs {
+		if r.NPCName != heirloomOutfitterName {
+			if sellers[r.NPCID] != 0 {
+				t.Errorf("%q (%d) sells %d capes", r.NPCName, r.ID, sellers[r.NPCID])
 			}
 			continue
 		}
-		tailors++
-		wares, err := inv.GetNPCItems(n.NPCID)
+		outfitters++
+		if onEach < 0 {
+			onEach = sellers[r.NPCID]
+		}
+		if sellers[r.NPCID] != onEach || onEach == 0 {
+			t.Errorf("outfitter %d sells %d capes, the first %d", r.ID, sellers[r.NPCID], onEach)
+		}
+		npc := &entity.NPC{Name: r.NPCName, NPCID: r.NPCID, NPCType: r.NPCType}
+		whole, err := inv.GetNPCItems(r.NPCID)
 		if err != nil {
 			t.Fatal(err)
 		}
-		sells := sellers[n.NPCID]
-		npc := &entity.NPC{Name: n.NPCName, NPCID: n.NPCID, NPCType: n.NPCType}
-		if n.NPCType&npcFlagMerchant == 0 || n.NPCID != n.ID || classShop(npc) {
-			t.Errorf("tailor %d: type %#x, NPCID %d, a class shop %v", n.ID, n.NPCType, n.NPCID, classShop(npc))
-		}
-		if sells != capes || len(wares) != capes || len(wares) > invListCap {
-			t.Errorf("tailor %d sells %d records, %d capes, of %d", n.ID, len(wares), sells, capes)
-		}
-		for _, w := range wares {
-			p := w.Pattern
-			style, _ := capeLook(&p)
-			if style == 0 || p.ClassUse&0x7FFF != 0x7FFF || p.RaceUse == 0 || p.Trade != 1 || p.ItemCost != 0 || p.LevelReq > 1 {
-				t.Errorf("%q (%d): style %d, classes %#x, races %#x, trade %d, cost %d, level %d",
-					p.ItemName, p.PatternID, style, p.ClassUse, p.RaceUse, p.Trade, p.ItemCost, p.LevelReq)
+		for class := 0; class < 15; class++ {
+			p := &entity.Player{Class: class}
+			// the shop's own reading for the first outfitter (they all stock alike), its pieces for the rest
+			list := func(capes bool) []database.CharInventoryEntry {
+				if outfitters == 1 {
+					got, err := h.waresFor(p, npc, capes)
+					if err != nil {
+						t.Fatal(err)
+					}
+					return got
+				}
+				w := whole
+				if !capes {
+					w = waresBut(w, isCape)
+				}
+				w = waresForClass(w, class)
+				return w[:min(len(w), invListCap)]
 			}
-			ps2 := build(protocol.OpcodeMerchantBox, 4096, func(b *buffer.Writer) { writeItemPattern(b, &w, false) })
-			plain := w
-			plain.Pattern.EquipSlot = -1
-			if want := build(protocol.OpcodeMerchantBox, 4096, func(b *buffer.Writer) { writeItemPattern(b, &plain, true) }); !bytes.Equal(ps2, want) {
-				t.Errorf("%q goes out to a PS2 as more than a plain item", p.ItemName)
+			drawn, ps2 := list(true), list(false)
+			mine := 0
+			for _, w := range waresForClass(whole, class) {
+				if !isCape(&w.Pattern) {
+					mine++
+				}
+			}
+			if len(drawn) != mine+onEach || len(drawn) > invListCap {
+				t.Errorf("outfitter %d, class %d: %d listed to a client that draws capes (%d of its own, %d capes; the client holds %d)",
+					r.ID, class, len(drawn), mine, onEach, invListCap)
+			}
+			if len(ps2) != mine {
+				t.Errorf("outfitter %d, class %d: %d listed to a PS2, want its %d", r.ID, class, len(ps2), mine)
+			}
+			for i, w := range drawn[mine:] {
+				if !isCape(&w.Pattern) {
+					t.Errorf("outfitter %d, class %d: line %d past its own stock is %q", r.ID, class, mine+i, w.Pattern.ItemName)
+				}
 			}
 		}
 	}
-	if tailors == 0 {
-		t.Fatal("no Cape Tailor in the database")
+	if outfitters == 0 {
+		t.Fatal("no Heirloom Outfitter in the database")
 	}
-	t.Logf("%d tailors, each selling the %d capes", tailors, capes)
+	t.Logf("%d capes on the genie's list, %d on each of %d outfitters", len(capes), onEach, outfitters)
 }

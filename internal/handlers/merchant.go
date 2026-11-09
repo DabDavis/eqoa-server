@@ -330,7 +330,7 @@ func (h *NPCWindowHandler) HandleMerchantOpen(sess *session.Session, msg *protoc
 // may buy back (buyback.go), as 0x00B7 under id, which CLIENT hands back with
 // each buy and sale: an NPC's own id, or a genie's window (genie.go).
 func (h *NPCWindowHandler) openMerchant(sess *session.Session, player *entity.Player, npc *entity.NPC, id uint32, greeting string) {
-	l := h.merchantList(player, npc)
+	l := h.merchantList(player, npc, readsCapes(sess))
 	h.sendMerchantList(sess, id, greeting, l, nil)
 	log.Printf("Merchant: %s opened %q (npc %d): %d items for sale, %d to buy back", player.Name, npc.Name, npc.NPCID, len(l.wares), len(l.lines))
 }
@@ -366,7 +366,7 @@ func (h *NPCWindowHandler) buy(sess *session.Session, id uint32, index, count in
 	if w := sessionMerchantWindow(sess); w != nil && w.id == id && index >= w.wares {
 		return h.buyBack(sess, player, npc, inv, w, id, index)
 	}
-	catalog, err := h.waresFor(player, npc) // the list it was sent (buyback.go)
+	catalog, err := h.waresFor(player, npc, readsCapes(sess)) // the list it was sent (buyback.go)
 	if err != nil || index < 0 || index >= len(catalog) {
 		log.Printf("MerchantBuy: %s asked %q for item %d of %d (%v)", player.Name, npc.Name, index, len(catalog), err)
 		return false

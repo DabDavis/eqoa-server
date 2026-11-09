@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"testing"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
@@ -150,5 +151,23 @@ func TestAFullViewsCapesGoOutWhole(t *testing.T) {
 	last := got[0][1+9*n:]
 	if id := binary.LittleEndian.Uint32(last); id != uint32(200000+n-1) || last[4] != uint8(1+(n-1)%6) {
 		t.Fatalf("the last entry: id %d style %d", id, last[4])
+	}
+}
+
+// A dyed cape goes out in its dye (CapeTint: chardyes' cape slot), over its
+// record's colour; its dye taken off, in the record's again.
+func TestADyedCapeGoesOutInItsDye(t *testing.T) {
+	aw := newCapeWorld(t)
+	aw.w.capesSyncSystem()
+	capeSets(aw.asker)
+	aw.b.Dyes[database.DyeCape] = 0x2050E0FF
+	aw.w.capesSyncSystem()
+	if got, want := capeSets(aw.asker), capesBody(askerSelf, 2, 0, aLeader, 5, 0x2050E0FF); len(got) != 1 || !bytes.Equal(got[0], want) {
+		t.Fatalf("the leader's cape dyed: %x, want %x", got, want)
+	}
+	aw.b.Dyes[database.DyeCape] = 0
+	aw.w.capesSyncSystem()
+	if got, want := capeSets(aw.asker), capesBody(askerSelf, 2, 0, aLeader, 5, 0xC01010FF); len(got) != 1 || !bytes.Equal(got[0], want) {
+		t.Fatalf("the dye off: %x, want %x (the record's colour)", got, want)
 	}
 }

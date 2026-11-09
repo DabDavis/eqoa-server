@@ -603,7 +603,8 @@ const (
 	// client that answered OpcodeCapes 1, in the world: a u8 count, then for
 	// each a u32 id (as that client knows the entity: its own object id for
 	// its own character, the visibility channel's for another), a u8 style
-	// (the cape record's model, never 0) and a u32 colour (0xRRGGBBAA, 0 the
+	// (the cape record's model, never 0) and a u32 colour (0xRRGGBBAA: the
+	// cape's dye, an Armor Dyer's or #dye's, else its record's colour; 0 the
 	// art's own), little-endian. Players only. Each one is the whole set: an
 	// id it leaves out wears no cape. Sent when the set changes, and again at
 	// each MemoryDump and world change.

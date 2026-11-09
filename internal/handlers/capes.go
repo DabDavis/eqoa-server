@@ -27,10 +27,17 @@ import (
 //     players in its view in the world (OpcodeCapesInView);
 //   - every other client (a PS2, which ignores the offer, and every client of a server without
 //     capes) is sent a cape as a plain item: wear -1, never worn (wireWear, wireEquipLoc). It is
-//     never sent 0x003F or 0x0040 naming slot 22 (queueEquip, queueUnequip), its InteractItem on a
-//     cape is refused (capeRefusal), and what takes a worn item off before moving it (the bank, a
-//     trade, a destroy, a sale) takes a worn cape off in the database alone, as the client never
-//     knew it was worn.
+//     never listed one by a shop (waresFor), never sent 0x003F or 0x0040 naming slot 22
+//     (queueEquip, queueUnequip), its InteractItem on a cape is refused (capeRefusal), and what
+//     takes a worn item off before moving it (the bank, a trade, a destroy, a sale) takes a worn
+//     cape off in the database alone, as the client never knew it was worn.
+//
+// The capes are heirlooms (the user, 2026-11-09: "add heirloom capes to the genie and heirloom
+// vendors, also allow dying"): every Heirloom Outfitter sells two after its own stock (its list is
+// the buyer's class's and the client holds 40, a ranger's and a rogue's 37 already), and the genie
+// all of them, its "Heirloom capes" (genie.go, capeStock). An Armor Dyer dyes a worn cape
+// (dyer.go: chardyes' DyeCape), and the colour a cape is sent in is its dye, else its record's
+// (entity.Player.CapeTint, capeDye).
 
 const (
 	// wearCape is a cape's wear slot: none of CLIENT's (its fit check's jump
@@ -39,6 +46,12 @@ const (
 	// equipCape is the equip slot a cape is worn in: past CLIENT's 0-21.
 	equipCape = 22
 )
+
+// capeStock is the npcitem list the genie's "Heirloom capes" sells (genie.go):
+// every heirloom cape, as tools/seed_capes.py writes it. It is no NPC's (an
+// NPC's list goes by its npc_id, its row's own id, 162,000-odd today), and no
+// outfitter carries more than the capes its 40 have room for.
+const capeStock = 717000
 
 // capeRefusal is the line a client that does not draw capes is answered with
 // when it asks to wear one (in the scribe refusals' red).
@@ -128,11 +141,30 @@ type listCape struct {
 }
 
 // characterCape is the cape a character wears among its items (wornLook's:
-// the record worn in the cape's slot), none when its style is 0.
+// the record worn in the cape's slot) in its record's colour, none when its
+// style is 0.
 func characterCape(serverID uint32, items []database.CharInventoryEntry) (listCape, bool) {
 	var p entity.Player
 	wornLook(&p, items)
 	return listCape{serverID, p.CapeStyle, p.CapeColor}, p.CapeStyle != 0
+}
+
+// capeDye is the colour a character's cape of record colour color is drawn
+// in: its dye (chardyes' cape slot, an Armor Dyer's or #dye's) where it has
+// one, as entity.Player.CapeTint has it in the world.
+func (h *CharacterHandler) capeDye(serverID, color uint32) uint32 {
+	if h.store == nil || h.store.DB() == nil {
+		return color
+	}
+	d, err := h.store.DB().CharDyes(serverID)
+	if err != nil {
+		log.Printf("Capes: character %d's dyes: %v", serverID, err)
+		return color
+	}
+	if c := d[database.DyeCape]; c != 0 {
+		return c
+	}
+	return color
 }
 
 // encodeCapesList is OpcodeCapesList's body: a u8 count, then each entry's
@@ -182,6 +214,7 @@ func (h *CharacterHandler) capesOfAccount(sess *session.Session) []listCape {
 			continue
 		}
 		if lc, ok := characterCape(uint32(c.ServerID), items); ok {
+			lc.color = h.capeDye(lc.serverID, lc.color)
 			out = append(out, lc)
 		}
 	}

@@ -961,13 +961,13 @@ does not) makes a cape an item of **wear slot 28** worn in **equip slot 22**, ne
 check and its slot names end at wear 27, its list's equip slots at 21): its record's `model` is the style a client
 draws (eqoa-rust-client-vanilla cuts each style out of a body on the disc) and its `color` a tint (0xRRGGBBAA, read as
 an armour piece's, `entity.ArmorColor`: 0, white or a disc tint index is the art's own colours). After a session's
-first character list (with the live look's and creation's offers, after them) the server offers capes (**0x7E24**, a
+first character list (with the live look's and creation's offers, after them) the server offers capes (**0x7E25**, a
 u32 1); a client that draws capes answers 1, and from then the item records it is sent keep 28 and 22; it wears and
 takes off a cape with the game's own InteractItem (0x003E), answered EquipItem 0x003F {list index, 22} and UnequipItem
 0x0040 {22}, nothing displaced (`equipSlotsFor`: `itemSlotToEquipSlot` stays CLIENT's table, held to `fitsEquip` by its
-test); it is sent **0x7E26** (u8 count, then u32 ServerID, u8 style, u32 colour for each character of the list that
+test); it is sent **0x7E27** (u8 count, then u32 ServerID, u8 style, u32 colour for each character of the list that
 wears one) after every character list and at once when its answer comes at character select; and in the world
-**0x7E25** (u8 count, then u32 the id that client knows the entity by, its own object id for its own character and its
+**0x7E26** (u8 count, then u32 the id that client knows the entity by, its own object id for its own character and its
 visibility slot's for another, u8 style, u32 colour), the whole set of the players in its view that wear one (never
 an NPC; an invisible player's left out of others' views, not its own), sent each tick it changes (`capesSyncSystem`,
 right after the visibility system) and again whatever it is after a MemoryDump and a world change

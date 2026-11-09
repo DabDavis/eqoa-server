@@ -1180,6 +1180,13 @@ a blacksmith's price; heirlooms, worth 0, mend free). CLIENT says nothing when t
 the bank's moves name its own target, so **the window is the player's, not an entity's** (`World.GenieWindowNPC`,
 `windowNPC`'s fallback after a real NPC in reach): while it stays within `GenieReach` (15) of where the genie stood, in
 its world, alive, a request at least every `GenieWindowIdle` (5 minutes); the forge's close (0x0063) ends it at once.
+**It never touches a pet** (petition 1351, Jibrish, a GM's rule: "All charm lines and pet lines need to be able to be out and
+not lose the pet while they summon the genie ... dual pets are allowed but only for that sort of thing. Dont make it so they can
+summon their spell pet and charm at the same time. Its only for the vendor stones."): a summoned or charmed pet stays out, its
+owner's, on its slot, with no 0x007F, through the genie's coming, every answer and window and its going, and the genie counts as
+no pet (not on `w.pets`: a charm, a summoning, a pet command and a pet's spell go as with no genie by). A genie beside a pet is the
+one pair allowed; a summoned and a charmed pet never are (a charm that takes hold sends the summoned pet away, Charm below).
+`genie_pet_test.go` in `entity` and `handlers` holds it.
 
 ### The Heirloom Fang of the Wolf: speed from a quick slot (`handlers/wolffang.go`, `tools/seed_wolf_fang.py`)
 

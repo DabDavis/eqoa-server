@@ -30,6 +30,18 @@ import (
 // m_target), so the server keeps the grant on the player, not on an entity
 // (GenieWindowNPC), until GenieWindowIdle passes without a request, the owner
 // is GenieReach from where the genie stood, changes world, dies or leaves.
+//
+// It never touches a pet (petition 1351, Jibrish, a GM's rule: "All charm
+// lines and pet lines need to be able to be out and not lose the pet while
+// they summon the genie in their inventory. This is an example where dual
+// pets are allowed but only for that sort of thing. Dont make it so they can
+// summon their spell pet and charm at the same time. Its only for the vendor
+// stones."): its coming, its windows and its going leave a summoned or
+// charmed pet out, its master's, on its slot, its bar never cleared (no
+// 0x007F), and it counts as no pet: not on w.pets, so a charm, a summoning, a
+// pet command and a pet's spell go as with no genie by. A genie and a pet are
+// the one pair of "pets" a player may have; a summoned and a charmed pet never
+// are (charm.go). Held by genie_pet_test.go here and in handlers.
 
 // The genie's constants (ours).
 const (

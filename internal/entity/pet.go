@@ -1128,8 +1128,8 @@ func (w *World) showPetTauntLocked(pet *NPC, target EntityID) {
 	w.broadcastNPCSwingLocked(pet, target, 0, petTauntFX)
 }
 
-// petHitLocked is one of the pet's hits on its target, then its procs
-// (proc.go). It reports a kill.
+// petHitLocked is one of the pet's hits on its target, then its template's
+// proc (pettemplate.go) and its effects' procs (proc.go). It reports a kill.
 func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
 	ps.npc.LastCombatTime = now
 	if ps.npc.Charm != nil {
@@ -1138,7 +1138,7 @@ func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
 		if w.petLandHitLocked(ps, t, ps.meleeOut(w.charmedHitLocked(ps.npc, t, meleeIntn)), now, false) {
 			return true
 		}
-		if w.petProcsLocked(ps, t, now) {
+		if w.petTemplateProcLocked(ps, t, now) || w.petProcsLocked(ps, t, now) {
 			return true
 		}
 		return w.creatureShieldOnPetLocked(ps, t, now)
@@ -1151,7 +1151,7 @@ func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
 	if w.petDamageLocked(ps, t, n, now) {
 		return true
 	}
-	if w.petProcsLocked(ps, t, now) {
+	if w.petTemplateProcLocked(ps, t, now) || w.petProcsLocked(ps, t, now) {
 		return true
 	}
 	return w.creatureShieldOnPetLocked(ps, t, now) // creatureshield.go
@@ -1221,8 +1221,12 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 	if owner.AttackTarget == t.ServerID {
 		owner.disengage()
 	}
-	ps.target = 0
-	pet.endRound()
+	if ps.target == t.ServerID {
+		// its fight over; a kill of another (its damage over time left on
+		// one it fought before, an area spell's others) leaves its fight on
+		ps.target = 0
+		pet.endRound()
+	}
 	return true
 }
 

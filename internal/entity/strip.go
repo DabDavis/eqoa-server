@@ -222,5 +222,5 @@ func stripStatsWords(a *templateAbility, when string) string {
 	if a.pinned == nil {
 		return fmt.Sprintf("strip nothing (%s) %s", pinWords(a.TemplateAbility), when)
 	}
-	return fmt.Sprintf("strip %s (%v cast) %s: every buff off what it fights, and a GM's #testmode", a.pinned.Name, a.pinned.CastTime, when)
+	return fmt.Sprintf("strip %s (%v cast) %s: every buff off what it fights, and a GM's #testmode", a.pinned.Name, a.castTime(a.pinned), when)
 }

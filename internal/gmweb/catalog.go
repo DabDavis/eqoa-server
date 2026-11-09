@@ -1238,7 +1238,7 @@ var catalog = map[string]tableNote{
 			"hp_pct":         {Label: "Hit points %", Help: "of its level's (10-100000; a raid boss's million is about 6,600 at level 63)", Section: "Stat profile"},
 			"shield_damage":  {Label: "Damage shield", Help: "what each melee hit that lands on it costs the attacker, a player or a pet (0 none; 0-100000); a bow's shot is not answered", Section: "Stat profile"},
 			"shield_resist":  {Label: "Shield resist", Help: "the resist that cuts it: FR, CR, LR, AR, PR or DR; empty none", Section: "Stat profile"},
-			"proc_chance":    {Label: "Melee proc %", Help: "of its melee hits that land, on a player or a pet, that also deal its proc (0-100; 0 none)", Section: "Melee proc"},
+			"proc_chance":    {Label: "Melee proc %", Help: "of its melee hits that land, on a player or a pet, that also deal its proc (0-100; 0 none); a pet's template (Pet class templates): the pet's own melee hits on a creature, cut by the creature's strong resist of its kind", Section: "Melee proc"},
 			"proc_damage":    {Label: "Proc damage", Help: "a fixed figure, not by level (0-100000), before the resist", Section: "Melee proc"},
 			"proc_name":      {Label: "Proc name", Help: "what the line to the one it hits calls it; empty \"proc\"", Section: "Melee proc"},
 			"proc_resist":    {Label: "Proc resist", Help: "the resist that cuts it: FR, CR, LR, AR, PR or DR; empty none", Section: "Melee proc"},

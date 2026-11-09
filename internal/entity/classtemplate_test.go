@@ -574,8 +574,9 @@ func TestCopiesAndPetsOfATemplatedCreature(t *testing.T) {
 
 // The kinds a template's abilities pick: a nuke is a harmful hit of one
 // target and no drain, an area spell a hit with an area, a tap a hit that
-// heals its caster, a heal a heal that is no pact; a summoning, a charm or a
-// spell for undead alone none of them.
+// heals its caster, a heal a heal that is no pact, a dot a damage over time of
+// one target with no hit or take of its own (petition 1388); a summoning, a
+// charm or a spell for undead alone none of them.
 func TestTheKindsOfAbility(t *testing.T) {
 	spell := func(name, line string) *CastSpell {
 		s := SpellOf(&database.SpellPatternRecord{SpellName: name, Scope: 1, CastTime: 2, Recast: 3, Range: 16880}, 0, line, 0)
@@ -594,6 +595,10 @@ func TestTheKindsOfAbility(t *testing.T) {
 		{"Summon Bones", "Summons a pet", ""},
 		{"Smite Undead", "Target undead, Decrease Hitpoints by 100", ""},
 		{"Root", "Target, Root, 36sec", "root"},
+		{"Toxxulian Blight", "Target, Decrease HP per tic by 193 ; Increase 15% based on DEX, 24sec", "dot"},
+		{"Swarming Plague", "Target, Decrease HP per tic by 300, 24sec", "dot"},
+		{"Infernal Bond", "Target, Decrease HP per tic by 240, give to self, 24sec", ""},
+		{"Agony", "Target, Decrease Hitpoints by 100, Decrease HP per tic by 50, 24sec", "nuke"},
 	} {
 		s := spell(c.name, c.line)
 		var kinds []string

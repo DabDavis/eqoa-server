@@ -478,7 +478,7 @@ func (r *Rehab) useLines(pl entity.RespecPlan, t database.RehabTemplate, speaker
 			pl.TPAfter+sum7(pl.TPTo), want))
 	}
 	if pl.TPCapped {
-		lines = append(lines, "A stat it would take past your level's cap stops at the cap.")
+		lines = append(lines, "A stat it would take past its maximum stops at the maximum.")
 	}
 	if len(pl.Skipped) > 0 {
 		lines = append(lines, packList(fmt.Sprintf("I cannot buy %d of its masteries:", len(pl.Skipped)),

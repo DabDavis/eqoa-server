@@ -44,8 +44,8 @@ const (
 	cmRespShare   = 0x01 // Recv01: token, share
 	cmRespDone    = 0x02 // Recv02: token (ends the wait, changes nothing)
 	cmRespPoints  = 0x03 // Recv03: unspent, spent (entity.SendMasteryPoints)
-	cmRespBought  = 0x05 // Recv05: token, id, unspent, spent, speed, 29 stats, 7 caps, the known flags
-	cmRespRemoved = 0x06 // Recv06: token, id, speed, 29 stats, 7 caps, the known flags
+	cmRespBought  = 0x05 // Recv05: token, id, unspent, spent, speed, 29 stats, 7 cap bonuses, the known flags
+	cmRespRemoved = 0x06 // Recv06: token, id, speed, 29 stats, 7 cap bonuses, the known flags
 	cmRespList    = 0x08 // Recv08: token, the list (VICMSkill a rank)
 	cmRespNode    = 0x09 // Recv09: token, one rank (VICMNode)
 )
@@ -339,9 +339,10 @@ func flagsLastOf(i, n int, list []entity.CMEntry) []entity.CMEntry {
 }
 
 // writeCMState is what Recv05 and Recv06 read after the points: the run
-// speed (raw; CLIENT sets it), the 29 stats and the 7 caps the masteries
-// give (zigzag), then the known flag of every rank listed (a raw count and
-// raw (id, flag) pairs: ReadFlags).
+// speed (raw; CLIENT sets it), the 29 stats the masteries give and the 7
+// m_bonus, each stat's cap less the highest (entity.Player.TrainerBonuses),
+// zigzag, then the known flag of every rank listed (a raw count and raw (id,
+// flag) pairs: ReadFlags).
 func writeCMState(w *buffer.Writer, st entity.CMState, list []entity.CMEntry) {
 	w.WriteUint32(math.Float32bits(st.Speed))
 	for _, v := range st.Stats {

@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
@@ -67,10 +68,26 @@ func (h *TrainingHandler) HandleUpdateTrainingPoints(sess *session.Session, msg 
 	}
 
 	base := [7]int{player.BaseStr, player.BaseSta, player.BaseAgi, player.BaseDex, player.BaseWis, player.BaseInt, player.BaseCha}
-	if why := trainRefusal(player.Level, base, adds, player.UnusedTP); why != "" {
+	if why := trainRefusal(adds, player.UnusedTP); why != "" {
 		// nothing spent: the trainer goes back to choosing with its points,
 		// where without an answer it waited (mode 4) until it was closed
 		log.Printf("TrainingPoints: %s refused: %s", player.Name, why)
+		SendTrainingPointsSpent(sess, 0)
+		return nil
+	}
+	// each stat's base up to its own cap, the masteries' raises in it
+	// (entity/mastery.go): the client is told the highest of them, so a
+	// stat of a lower one may be asked past it, and keeps those points
+	caps := player.StatCaps()
+	fit, held := entity.FitTraining(base, caps, adds)
+	if heldBack := heldLine(held, caps); heldBack != "" {
+		log.Printf("TrainingPoints: %s held back: %s", player.Name, heldBack)
+		SendErrorMessage(sess, heldBack)
+	}
+	adds = fit
+	strAdd, staAdd, agiAdd, dexAdd, wisAdd, intAdd, chaAdd = adds[0], adds[1], adds[2], adds[3], adds[4], adds[5], adds[6]
+	total = int(strAdd + staAdd + agiAdd + dexAdd + wisAdd + intAdd + chaAdd)
+	if total == 0 {
 		SendTrainingPointsSpent(sess, 0)
 		return nil
 	}
@@ -129,23 +146,22 @@ func (h *TrainingHandler) HandleUpdateTrainingPoints(sess *session.Session, msg 
 	return nil
 }
 
-// trainRefusal is why a training request is not paid, "" when it is, by
-// CLIENT's own trainer's rules (VIWndTrainer::Adjust, VIClient::TrainStats):
-// no stat lowered, something to spend, no more than the points left, and no
-// stat's base raised past the cap before masteries (GetP44Total(-1): m_p44
-// alone, GetBonus(-1) being 0; StatCapBase). A stat whose shown value is held
-// at its full cap by worn items still takes points into its base, as the
-// client lets it: they count once the items stop taking it past the cap.
-func trainRefusal(level int, base [7]int, adds [7]int64, unused int) string {
+// trainRefusal is why a training request is not paid at all, "" when it is,
+// by CLIENT's own trainer's rules (VIWndTrainer::Adjust, VIClient::TrainStats):
+// no stat lowered, something to spend, and no more than the points left. Where
+// a stat's base stops is its cap, raises and all (entity.FitTraining), as
+// CLIENT's trainer stops it at m_p44 (GetP44Total(-1)), which the client is
+// told is the highest of the seven (entity.Player.TrainerCap). A stat whose
+// shown value is held at its full cap by worn items still takes points into
+// its base, as the client lets it: they count once the items stop taking it
+// past the cap.
+func trainRefusal(adds [7]int64, unused int) string {
 	total := int64(0)
 	for i, a := range adds {
 		if a < 0 {
 			return fmt.Sprintf("stat %d lowered by %d", i, -a)
 		}
 		total += a
-		if a > 0 && int64(base[i])+a > int64(entity.StatCapBase(level)) {
-			return fmt.Sprintf("stat %d's base %d + %d past the cap %d", i, base[i], a, entity.StatCapBase(level))
-		}
 	}
 	switch {
 	case total <= 0:
@@ -155,3 +171,28 @@ func trainRefusal(level int, base [7]int, adds [7]int64, unused int) string {
 	}
 	return ""
 }
+
+// heldLine says which stats a training request asked past their caps
+// (held: the points each was held back by, entity.FitTraining) and that
+// those points stay unspent; "" when none was.
+func heldLine(held [7]int64, caps [7]int) string {
+	var parts []string
+	n := int64(0)
+	for i, v := range held {
+		if v > 0 {
+			parts = append(parts, fmt.Sprintf("%s %d", trainStatNames[i], caps[i]))
+			n += v
+		}
+	}
+	if n == 0 {
+		return ""
+	}
+	unspent := "training points stay"
+	if n == 1 {
+		unspent = "training point stays"
+	}
+	return fmt.Sprintf("A stat cannot be trained past its maximum (%s): %d %s unspent.", strings.Join(parts, ", "), n, unspent)
+}
+
+// trainStatNames are the trainer's seven stats, STR..CHA.
+var trainStatNames = [7]string{"STR", "STA", "AGI", "DEX", "WIS", "INT", "CHA"}

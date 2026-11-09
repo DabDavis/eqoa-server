@@ -351,8 +351,14 @@ func TestItemListsAPS2IsSentFortyAndTheRestIsKept(t *testing.T) {
 		t.Error("the unworn tail was sent")
 	}
 	n := keptNotes[f.sid]
-	if lines := keptLines(n); len(lines) != 2 || !strings.Contains(lines[0], "20 more of your items are kept") || !strings.Contains(lines[1], "10 more") {
+	if lines := keptLines(n); len(lines) != 2 || !strings.Contains(lines[0], "holds 40 items here, so 20 more of your items are kept") ||
+		!strings.Contains(lines[0], "a game client that holds 100") || !strings.Contains(lines[1], "10 more") {
 		t.Errorf("the login's lines: %q", lines)
+	}
+	// on a server that holds 40 itself, nowhere else to go
+	if lines := keptLines(keptNote{pack: 40, bank: 40, mostPack: 40, mostBank: 40, keptPack: 1}); len(lines) != 1 ||
+		!strings.Contains(lines[0], "1 more of your items is kept") || strings.Contains(lines[0], "client") {
+		t.Errorf("a server of 40's line: %q", lines)
 	}
 
 	// the control: a client that holds 100 of each, and a login: all of it

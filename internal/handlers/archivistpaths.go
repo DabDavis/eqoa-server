@@ -35,9 +35,10 @@ import (
 // levels (the enchanter's Spacious, Expansive, Limitless, Boundless and
 // Infinite Mind, its self power; Power Boon, Power Jet, Power Surge, Power
 // Stream and Power Flux, power for others), and
-// TestRealArchivistPathsAreTheQuests holds them to the quests. A path is a line: its spells of every level its holder has reached
-// (from the first any path gives, 20 on the live data, the levels capped at
-// 60), with the steps' own spells of those levels, which every path has. A
+// TestRealArchivistPathsAreTheQuests holds them to the quests. A path is a
+// line: its spells of every level its holder has reached (from the first any
+// path gives, 20 on the live data, the levels capped at 60), with the steps'
+// own spells of those levels, which every path has. A
 // spell a merchant sells the class as a scroll is no path's: the basic grant
 // gives it (the magician's Incinerating Aura, a 49 option too).
 //

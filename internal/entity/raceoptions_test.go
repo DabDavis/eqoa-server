@@ -430,3 +430,45 @@ func TestRaceLooksInRowOrder(t *testing.T) {
 		}
 	}
 }
+
+// The Jal'Raeth (30) choose their robed, channeler's or knight's body, the knight
+// at its size against the robed; the Wisp (31) is a human of its sex, and its wisp
+// is laid always: chosen or not, and with no block at all (a client that sends
+// none), a charlook row of the will o' wisp's body, told to a client on its own body
+// (the female's on hers). The control: a plain texture row's first step (the satyr's
+// hair) lays nothing.
+func TestTheJalRaethAndTheWisp(t *testing.T) {
+	withOptionRaces(t,
+		database.RaceDefRow{ID: 25, Name: "Satyr", WireRace: 1, BodyMale: signed(bodySatyrM), BodyFemale: signed(bodySatyrM)},
+		database.RaceDefRow{ID: 30, Name: "Jal'Raeth", WireRace: 8, BodyMale: signed(bodyJalRaeth), BodyFemale: signed(bodyJalRaeth)},
+		database.RaceDefRow{ID: 31, Name: "Wisp", WireRace: 0, BodyMale: signed(bodyHumanMale), BodyFemale: signed(bodyHumanFemale)})
+	body, looks, err := ResolveOptions(30, 0, []OptionChoice{{"body", 2}})
+	if err != nil || body != signed(bodyJalRaethKnight) || len(looks) != 0 {
+		t.Fatalf("a Jal'Raeth knight: %#x %v %v", uint32(body), looks, err)
+	}
+	if OptionBodySize(30, bodyJalRaethKnight) != 0.94 || !ChosenBody(30, bodyJalRaethChannel) || ChosenBody(30, bodyJalRaeth) {
+		t.Error("the knight's size, the channeler chosen, the robes the race's own")
+	}
+	for _, c := range [][]OptionChoice{nil, {{"wisp", 0}}, {{"body", 0}}} {
+		_, looks, err := ResolveOptions(31, 0, c)
+		if err != nil || len(looks) != 1 || looks[0] != (database.CharLook{Part: "wisp", Kind: database.LookTexture, Value: bodyWillOWisp}) {
+			t.Errorf("a Wisp choosing %v: %v %v", c, looks, err)
+		}
+	}
+	body, looks, err = ResolveOptions(31, 1, []OptionChoice{{"body", 0}, {"wisp", 0}})
+	if err != nil || body != signed(bodyHumanFemale) || len(looks) != 1 {
+		t.Fatalf("a female Wisp: %#x %v %v", uint32(body), looks, err)
+	}
+	b := EncodeRaceLooks([]database.LookCharacter{{Name: "Glim", Race: 31, Sex: 1, ModelID: signed(bodyHumanFemale), Looks: looks}})
+	want := append([]byte{raceOptionsVersion, 1, 0, 4}, "Glim"...)
+	want = binary.LittleEndian.AppendUint32(want, bodyHumanFemale)
+	want = append(want, 1, byte(KindTexture))
+	want = binary.LittleEndian.AppendUint32(want, bodyWillOWisp)
+	want = append(want, 1, 7, 0)
+	if string(b) != string(want) {
+		t.Errorf("the female Wisp's look\n got % x\nwant % x", b, want)
+	}
+	if _, looks, _ := ResolveOptions(25, 0, []OptionChoice{{"hair", 0}}); len(looks) != 0 {
+		t.Errorf("the control: the satyr's first hair laid %v", looks)
+	}
+}

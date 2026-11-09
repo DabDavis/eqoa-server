@@ -31,11 +31,29 @@ export function enumLabel(meta, col, v) {
   return e ? e.label : v;
 }
 
+// A bit set's bits as BigInt: JavaScript's bit operators stop at 32 bits (bit 31
+// is the sign), and a race's bit in cmcatalog.races reaches 2^52 (entity's
+// LastCustomRace).
+export function big(v) {
+  const n = Number(v);
+  return Number.isSafeInteger(n) ? BigInt(n) : 0n;
+}
+
+export function hasBit(v, bit) {
+  const b = big(bit);
+  return (big(v) & b) === b;
+}
+
+export function withBit(v, bit, on) {
+  const b = big(bit);
+  return Number(on ? big(v) | b : big(v) & ~b);
+}
+
 export function flagLabels(meta, col, v) {
   const bits = meta.flags?.[col.flags] || [];
-  const n = Number(v) || 0;
-  const on = bits.filter((b) => (n & b.bit) === b.bit).map((b) => b.label);
-  const known = bits.reduce((a, b) => a | b.bit, 0);
+  const n = big(v);
+  const on = bits.filter((b) => hasBit(n, b.bit)).map((b) => b.label);
+  const known = bits.reduce((a, b) => a | big(b.bit), 0n);
   const rest = n & ~known;
   if (rest) on.push('0x' + rest.toString(16));
   return on;

@@ -140,11 +140,19 @@ func sideSpells(qe *QuestEngine, arch *spellArchive, class, level int) []databas
 
 // basicSpells is the basic grant's spells for a character of the class and
 // race at the level: the merchants' (spellArchive.basic) and the quests' side
-// spells (sideSpells), in level, then name order, one a name.
+// spells (sideSpells), but those he leaves to the masteries (masteryOwn,
+// petition 1381), in level, then name order, one a name.
 func basicSpells(qe *QuestEngine, arch *spellArchive, class, race, level int) []database.SpellName {
 	all := append(arch.basic(class, race, level), sideSpells(qe, arch, class, level)...)
-	sortSpells(all)
-	return lacking(nil, all)
+	own := masteryOwn(qe, arch, class, race)
+	kept := make([]database.SpellName, 0, len(all))
+	for _, s := range all {
+		if !own[s.SpellID] {
+			kept = append(kept, s)
+		}
+	}
+	sortSpells(kept)
+	return lacking(nil, kept)
 }
 
 // sortSpells sorts spells by level, then name, then record.

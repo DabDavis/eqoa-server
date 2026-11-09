@@ -265,6 +265,24 @@ class LaterFields(unittest.TestCase):
         epic = [x for x in p["quests"] if x["key"] == "60/testmoor-epic/p1"][0]
         self.assertIn("item 'Golden Spear' (step 1 option 1)", epic["why"])
 
+    def test_a_spell_named_as_written_before_its_folded_twin(self):
+        # petition 1381: "Flesh Mastery" and its mastery's "Flesh Mastery +" fold to one name; the plain record is the
+        # name's, though the "+" is the lower one (Teachings of Morthalis 1 gives the "+" for the plain it needs)
+        db = sqlite3.connect(":memory:")
+        db.executescript(SCHEMA)
+        db.executemany("INSERT INTO spellpattern (spellid, spellname) VALUES (?, ?)",
+                       [(2282, "Flesh Mastery +"), (900913, "Flesh Mastery"), (900914, "Flesh Mastery")])
+        db.executemany("INSERT INTO classspells VALUES (?, ?, 'test')", [(11, 2282), (11, 900913), (0, 900914)])
+        n = iq.Names(db)
+        self.assertEqual(n.spell("Flesh Mastery", [11]), 900913, "the plain name, the class's own of it")
+        self.assertEqual(n.spell("flesh  mastery", [11]), 900913, "case and spaces aside")
+        self.assertEqual(n.spell("Flesh Mastery +", [11]), 2282, "the '+' as written")
+        self.assertEqual(n.spell("Flesh Mastery", [0]), 900914, "another class's own of the name")
+        self.assertEqual(n.spell("Flesh Mastery", [4]), 900913, "no class's own: the first as written")
+        # the control: a name no record is written as falls back to the folded rule, which took the lower "+"
+        self.assertEqual(n.spell("Flesh Mastery!", [11]), 2282)
+        db.close()
+
     def test_a_faction_this_database_lacks_makes_a_draft(self):
         iq.write(self.db, iq.plan(self.db, self.files, routes=ROUTES))
         q, _ = self.quest("Misc/testmoor-writ/p2")

@@ -340,7 +340,13 @@ func (w *World) CMSummary() string {
 // offered is whether the rank is listed for the player: enabled, and for its
 // class and race.
 func (r *CMRank) offered(p *Player) bool {
-	return r.Enabled && r.Classes&(1<<uint(p.Class)) != 0 && raceInMask(r.Races, p.Race)
+	return r.OfferedTo(p.Class, p.Race)
+}
+
+// OfferedTo is whether the rank is listed for a character of the class and
+// race: enabled, and for both (the Spell Archivist's, handlers/archivistmastery.go).
+func (r *CMRank) OfferedTo(class, race int) bool {
+	return r.Enabled && class >= 0 && r.Classes&(1<<uint(class)) != 0 && raceInMask(r.Races, race)
 }
 
 // refreshCMLocked sums the player's ranks' effects again.

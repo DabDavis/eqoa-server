@@ -72,6 +72,31 @@ func (s *SpellbookStore) ScrollRecords(icon int) (map[int]MerchantScroll, error)
 	return out, rows.Err()
 }
 
+// MasteryRanks is every row of cmcatalog (CMCatalog), for the Spell
+// Archivist: what a mastery's purchase gives, which he leaves to it.
+func (s *SpellbookStore) MasteryRanks() ([]CMRankRow, error) {
+	return s.db.CMCatalog()
+}
+
+// OwnedRanks is the mastery ranks a character bought (charcms), for the Spell
+// Archivist: what their purchases took out of its book he puts none back.
+func (s *SpellbookStore) OwnedRanks(serverID uint32) (map[int]bool, error) {
+	rows, err := s.db.Query(`SELECT cmid FROM charcms WHERE serverid = ?`, serverID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[int]bool{}
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		out[id] = true
+	}
+	return out, rows.Err()
+}
+
 // ClassSpellSources is every classspells row's source by spell, then class:
 // which classes have a spell, and how each gets it (GotBy, Granted).
 func (s *SpellbookStore) ClassSpellSources() (map[int]map[int]string, error) {

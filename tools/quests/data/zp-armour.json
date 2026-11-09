@@ -1,0 +1,2094 @@
+{
+ "city": "zp-armour",
+ "quests": [
+  {
+   "key": "ZP/armour/akessan/helm",
+   "name": "Akessan Armour: the Helm",
+   "giver": "Akessan Collector",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Would you like to craft the helm? Bring me a glowing black marble and a glowing lava ruby, and I will make the Akessan helm of your calling.",
+   "accept": "Craft it.",
+   "decline": "Not this piece.",
+   "declined": "As you wish. I will not stand here long.",
+   "started": "A glowing black marble and a glowing lava ruby.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Akessan Collector",
+     "items": [
+      {
+       "item": "glowing black marble",
+       "count": 1
+      },
+      {
+       "item": "glowing lava ruby",
+       "count": 1
+      }
+     ],
+     "journal": "Give Akessan Collector a glowing black marble and a glowing lava ruby for the Akessan helm.",
+     "says": "It is done. Wear it well.",
+     "reminder": "A glowing black marble and a glowing lava ruby.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Helm of the Transgressor"
+        ]
+       },
+       "1": {
+        "items": [
+         "Helm of the Nihilist"
+        ]
+       },
+       "2": {
+        "items": [
+         "Helm of the Fanatic"
+        ]
+       },
+       "3": {
+        "items": [
+         "Executioner's Helm"
+        ]
+       },
+       "4": {
+        "items": [
+         "Fervid Helm"
+        ]
+       },
+       "5": {
+        "items": [
+         "Helm of the Vilifier"
+        ]
+       },
+       "6": {
+        "items": [
+         "Helm of Discord"
+        ]
+       },
+       "7": {
+        "items": [
+         "Frenzied Helm"
+        ]
+       },
+       "8": {
+        "items": [
+         "Helm of Ferocity"
+        ]
+       },
+       "9": {
+        "items": [
+         "Helm of Chaos"
+        ]
+       },
+       "10": {
+        "items": [
+         "Helm of the Invoker"
+        ]
+       },
+       "11": {
+        "items": [
+         "Helm of Turmoil"
+        ]
+       },
+       "12": {
+        "items": [
+         "Helm of the Adversary"
+        ]
+       },
+       "13": {
+        "items": [
+         "Helm of Mayhem"
+        ]
+       },
+       "14": {
+        "items": [
+         "Helm of Disarray"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Cryptic Souls zpquestarmour (Graendael, Janlynn, Morynn; Raam's turn-in, Nov 2 2008) = forum t294: the Akessan set's helm takes a glowing black marble and a glowing lava ruby; 'Would you like to craft the ...?' piece by piece. Its giver comes from an Unmarked Headstone and stays a few minutes (guide gaps zp-armour). The words but the question are ours."
+  },
+  {
+   "key": "ZP/armour/akessan/chest",
+   "name": "Akessan Armour: the Breastplate",
+   "giver": "Akessan Collector",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Would you like to craft the breastplate? Bring me a glowing pristine emerald and a glowing black diamond, and I will make the Akessan breastplate of your calling.",
+   "accept": "Craft it.",
+   "decline": "Not this piece.",
+   "declined": "As you wish. I will not stand here long.",
+   "started": "A glowing pristine emerald and a glowing black diamond.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Akessan Collector",
+     "items": [
+      {
+       "item": "glowing pristine emerald",
+       "count": 1
+      },
+      {
+       "item": "glowing black diamond",
+       "count": 1
+      }
+     ],
+     "journal": "Give Akessan Collector a glowing pristine emerald and a glowing black diamond for the Akessan breastplate.",
+     "says": "It is done. Wear it well.",
+     "reminder": "A glowing pristine emerald and a glowing black diamond.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Chestplate of the Transgressor"
+        ]
+       },
+       "1": {
+        "items": [
+         "Tunic of the Nihilist"
+        ]
+       },
+       "2": {
+        "items": [
+         "Chestplate of the Fanatic"
+        ]
+       },
+       "3": {
+        "items": [
+         "Executioner's Chestplate"
+        ]
+       },
+       "4": {
+        "items": [
+         "Fervid Tunic"
+        ]
+       },
+       "5": {
+        "items": [
+         "Tunic of the Vilifier"
+        ]
+       },
+       "6": {
+        "items": [
+         "Tunic of Discord"
+        ]
+       },
+       "7": {
+        "items": [
+         "Frenzied Tunic"
+        ]
+       },
+       "8": {
+        "items": [
+         "Tunic of Ferocity"
+        ]
+       },
+       "9": {
+        "items": [
+         "Chestplate of Chaos"
+        ]
+       },
+       "10": {
+        "items": [
+         "Tunic of the Invoker"
+        ]
+       },
+       "11": {
+        "items": [
+         "Tunic of Turmoil"
+        ]
+       },
+       "12": {
+        "items": [
+         "Tunic of the Adversary"
+        ]
+       },
+       "13": {
+        "items": [
+         "Tunic of Mayhem"
+        ]
+       },
+       "14": {
+        "items": [
+         "Tunic of Disarray"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Cryptic Souls zpquestarmour (Graendael, Janlynn, Morynn; Raam's turn-in, Nov 2 2008) = forum t294: the Akessan set's breastplate takes a glowing pristine emerald and a glowing black diamond; 'Would you like to craft the ...?' piece by piece. Its giver comes from an Unmarked Headstone and stays a few minutes (guide gaps zp-armour). The words but the question are ours."
+  },
+  {
+   "key": "ZP/armour/akessan/bracers",
+   "name": "Akessan Armour: the Bracers",
+   "giver": "Akessan Collector",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Would you like to craft the bracers? Bring me a glowing flame opal and a glowing flawed emerald, and I will make the Akessan bracers of your calling.",
+   "accept": "Craft it.",
+   "decline": "Not this piece.",
+   "declined": "As you wish. I will not stand here long.",
+   "started": "A glowing flame opal and a glowing flawed emerald.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Akessan Collector",
+     "items": [
+      {
+       "item": "glowing flame opal",
+       "count": 1
+      },
+      {
+       "item": "glowing flawed emerald",
+       "count": 1
+      }
+     ],
+     "journal": "Give Akessan Collector a glowing flame opal and a glowing flawed emerald for the Akessan bracers.",
+     "says": "It is done. Wear it well.",
+     "reminder": "A glowing flame opal and a glowing flawed emerald.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Bracers of the Transgressor"
+        ]
+       },
+       "1": {
+        "items": [
+         "Bracers of the Nihilist"
+        ]
+       },
+       "2": {
+        "items": [
+         "Bracers of the Fanatic"
+        ]
+       },
+       "3": {
+        "items": [
+         "Executioner's Bracers"
+        ]
+       },
+       "4": {
+        "items": [
+         "Fervid Bracers"
+        ]
+       },
+       "5": {
+        "items": [
+         "Bracers of the Vilifier"
+        ]
+       },
+       "6": {
+        "items": [
+         "Bracers of Discord"
+        ]
+       },
+       "7": {
+        "items": [
+         "Frenzied Bracelet"
+        ]
+       },
+       "8": {
+        "items": [
+         "Bracelet of Ferocity"
+        ]
+       },
+       "9": {
+        "items": [
+         "Bracelet of Chaos"
+        ]
+       },
+       "10": {
+        "items": [
+         "Bracelet of the Invoker"
+        ]
+       },
+       "11": {
+        "items": [
+         "Bracelet of Turmoil"
+        ]
+       },
+       "12": {
+        "items": [
+         "Bracelet of the Adversary"
+        ]
+       },
+       "13": {
+        "items": [
+         "Bracelet of Mayhem"
+        ]
+       },
+       "14": {
+        "items": [
+         "Bracelet of Disarray"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Cryptic Souls zpquestarmour (Graendael, Janlynn, Morynn; Raam's turn-in, Nov 2 2008) = forum t294: the Akessan set's bracers takes a glowing flame opal and a glowing flawed emerald; 'Would you like to craft the ...?' piece by piece. Its giver comes from an Unmarked Headstone and stays a few minutes (guide gaps zp-armour). The words but the question are ours."
+  },
+  {
+   "key": "ZP/armour/akessan/gloves",
+   "name": "Akessan Armour: the Gloves",
+   "giver": "Akessan Collector",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Would you like to craft the gloves? Bring me a glowing peridot and a glowing onyx sapphire, and I will make the Akessan gloves of your calling.",
+   "accept": "Craft it.",
+   "decline": "Not this piece.",
+   "declined": "As you wish. I will not stand here long.",
+   "started": "A glowing peridot and a glowing onyx sapphire.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Akessan Collector",
+     "items": [
+      {
+       "item": "glowing peridot",
+       "count": 1
+      },
+      {
+       "item": "glowing onyx sapphire",
+       "count": 1
+      }
+     ],
+     "journal": "Give Akessan Collector a glowing peridot and a glowing onyx sapphire for the Akessan gloves.",
+     "says": "It is done. Wear it well.",
+     "reminder": "A glowing peridot and a glowing onyx sapphire.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Gloves of the Transgressor"
+        ]
+       },
+       "1": {
+        "items": [
+         "Gloves of the Nihilist"
+        ]
+       },
+       "2": {
+        "items": [
+         "Gloves of the Fanatic"
+        ]
+       },
+       "3": {
+        "items": [
+         "Executioner's Gloves"
+        ]
+       },
+       "4": {
+        "items": [
+         "Fervid Gloves"
+        ]
+       },
+       "5": {
+        "items": [
+         "Gloves of the Vilifier"
+        ]
+       },
+       "6": {
+        "items": [
+         "Gloves of Discord"
+        ]
+       },
+       "7": {
+        "items": [
+         "Frenzied Gloves"
+        ]
+       },
+       "8": {
+        "items": [
+         "Gloves of Ferocity"
+        ]
+       },
+       "9": {
+        "items": [
+         "Gloves of Chaos"
+        ]
+       },
+       "10": {
+        "items": [
+         "Gloves of the Invoker"
+        ]
+       },
+       "11": {
+        "items": [
+         "Gloves of Turmoil"
+        ]
+       },
+       "12": {
+        "items": [
+         "Gloves of the Adversary"
+        ]
+       },
+       "13": {
+        "items": [
+         "Gloves of Mayhem"
+        ]
+       },
+       "14": {
+        "items": [
+         "Gloves of Disarray"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Cryptic Souls zpquestarmour (Graendael, Janlynn, Morynn; Raam's turn-in, Nov 2 2008) = forum t294: the Akessan set's gloves takes a glowing peridot and a glowing onyx sapphire; 'Would you like to craft the ...?' piece by piece. Its giver comes from an Unmarked Headstone and stays a few minutes (guide gaps zp-armour). The words but the question are ours."
+  },
+  {
+   "key": "ZP/armour/akessan/legs",
+   "name": "Akessan Armour: the Leggings",
+   "giver": "Akessan Collector",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Would you like to craft the leggings? Bring me a glowing nephrite and a glowing flawless aquamarine, and I will make the Akessan leggings of your calling.",
+   "accept": "Craft it.",
+   "decline": "Not this piece.",
+   "declined": "As you wish. I will not stand here long.",
+   "started": "A glowing nephrite and a glowing flawless aquamarine.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Akessan Collector",
+     "items": [
+      {
+       "item": "glowing nephrite",
+       "count": 1
+      },
+      {
+       "item": "glowing flawless aquamarine",
+       "count": 1
+      }
+     ],
+     "journal": "Give Akessan Collector a glowing nephrite and a glowing flawless aquamarine for the Akessan leggings.",
+     "says": "It is done. Wear it well.",
+     "reminder": "A glowing nephrite and a glowing flawless aquamarine.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Leggings of the Transgressor"
+        ]
+       },
+       "1": {
+        "items": [
+         "Leggings of the Nihilist"
+        ]
+       },
+       "2": {
+        "items": [
+         "Leggings of the Fanatic"
+        ]
+       },
+       "3": {
+        "items": [
+         "Akessan Executioner's Leggings"
+        ]
+       },
+       "4": {
+        "items": [
+         "Fervid Leggings"
+        ]
+       },
+       "5": {
+        "items": [
+         "Leggings of the Vilifier"
+        ]
+       },
+       "6": {
+        "items": [
+         "Leggings of Discord"
+        ]
+       },
+       "7": {
+        "items": [
+         "Frenzied Leggings"
+        ]
+       },
+       "8": {
+        "items": [
+         "Leggings of Ferocity"
+        ]
+       },
+       "9": {
+        "items": [
+         "Leggings of Chaos"
+        ]
+       },
+       "10": {
+        "items": [
+         "Leggings of the Invoker"
+        ]
+       },
+       "11": {
+        "items": [
+         "Leggings of Turmoil"
+        ]
+       },
+       "12": {
+        "items": [
+         "Leggings of the Adversary"
+        ]
+       },
+       "13": {
+        "items": [
+         "Leggings of Mayhem"
+        ]
+       },
+       "14": {
+        "items": [
+         "Leggings of Disarray"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Cryptic Souls zpquestarmour (Graendael, Janlynn, Morynn; Raam's turn-in, Nov 2 2008) = forum t294: the Akessan set's leggings takes a glowing nephrite and a glowing flawless aquamarine; 'Would you like to craft the ...?' piece by piece. Its giver comes from an Unmarked Headstone and stays a few minutes (guide gaps zp-armour). The words but the question are ours."
+  },
+  {
+   "key": "ZP/armour/akessan/boots",
+   "name": "Akessan Armour: the Boots",
+   "giver": "Akessan Collector",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Would you like to craft the boots? Bring me a glowing jaundice gem and a glowing topaz, and I will make the Akessan boots of your calling.",
+   "accept": "Craft it.",
+   "decline": "Not this piece.",
+   "declined": "As you wish. I will not stand here long.",
+   "started": "A glowing jaundice gem and a glowing topaz.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Akessan Collector",
+     "items": [
+      {
+       "item": "glowing jaundice gem",
+       "count": 1
+      },
+      {
+       "item": "glowing topaz",
+       "count": 1
+      }
+     ],
+     "journal": "Give Akessan Collector a glowing jaundice gem and a glowing topaz for the Akessan boots.",
+     "says": "It is done. Wear it well.",
+     "reminder": "A glowing jaundice gem and a glowing topaz.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Boots of the Transgressor"
+        ]
+       },
+       "1": {
+        "items": [
+         "Boots of the Nihilist"
+        ]
+       },
+       "2": {
+        "items": [
+         "Boots of the Fanatic"
+        ]
+       },
+       "3": {
+        "items": [
+         "Executioner's Boots"
+        ]
+       },
+       "4": {
+        "items": [
+         "Fervid Boots"
+        ]
+       },
+       "5": {
+        "items": [
+         "Boots of the Vilifier"
+        ]
+       },
+       "6": {
+        "items": [
+         "Boots of Discord"
+        ]
+       },
+       "7": {
+        "items": [
+         "Frenzied Boots"
+        ]
+       },
+       "8": {
+        "items": [
+         "Boots of Ferocity"
+        ]
+       },
+       "9": {
+        "items": [
+         "Boots of Chaos"
+        ]
+       },
+       "10": {
+        "items": [
+         "Boots of the Invoker"
+        ]
+       },
+       "11": {
+        "items": [
+         "Boots of Turmoil"
+        ]
+       },
+       "12": {
+        "items": [
+         "Boots of the Adversary"
+        ]
+       },
+       "13": {
+        "items": [
+         "Boots of Mayhem"
+        ]
+       },
+       "14": {
+        "items": [
+         "Boots of Disarray"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Cryptic Souls zpquestarmour (Graendael, Janlynn, Morynn; Raam's turn-in, Nov 2 2008) = forum t294: the Akessan set's boots takes a glowing jaundice gem and a glowing topaz; 'Would you like to craft the ...?' piece by piece. Its giver comes from an Unmarked Headstone and stays a few minutes (guide gaps zp-armour). The words but the question are ours."
+  },
+  {
+   "key": "ZP/armour/honor/helm",
+   "name": "Honor Guard Armour: the Helm",
+   "giver": "Merkym",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Would you like to craft the helm? Bring me a glowing lava ruby and a glowing amethyst, and I will make the Honor Guard helm of your calling.",
+   "accept": "Craft it.",
+   "decline": "Not this piece.",
+   "declined": "As you wish. I will not stand here long.",
+   "started": "A glowing lava ruby and a glowing amethyst.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Merkym",
+     "items": [
+      {
+       "item": "glowing lava ruby",
+       "count": 1
+      },
+      {
+       "item": "glowing amethyst",
+       "count": 1
+      }
+     ],
+     "journal": "Give Merkym a glowing lava ruby and a glowing amethyst for the Honor Guard helm.",
+     "says": "It is done. Wear it well.",
+     "reminder": "A glowing lava ruby and a glowing amethyst.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Valiant Helm"
+        ]
+       },
+       "1": {
+        "items": [
+         "Brave Helm"
+        ]
+       },
+       "2": {
+        "items": [
+         "Intrepid Helm"
+        ]
+       },
+       "3": {
+        "items": [
+         "Helm of Valor"
+        ]
+       },
+       "4": {
+        "items": [
+         "Virtuous Helm"
+        ]
+       },
+       "5": {
+        "items": [
+         "Helm of the Benevolent"
+        ]
+       },
+       "6": {
+        "items": [
+         "Helm of the Paragon"
+        ]
+       },
+       "7": {
+        "items": [
+         "Noble Helm"
+        ]
+       },
+       "8": {
+        "items": [
+         "Exalted Helm"
+        ]
+       },
+       "9": {
+        "items": [
+         "Glorious Helm"
+        ]
+       },
+       "10": {
+        "items": [
+         "Majestic Helm"
+        ]
+       },
+       "11": {
+        "items": [
+         "Helm of Veneration"
+        ]
+       },
+       "12": {
+        "items": [
+         "Regal Helm"
+        ]
+       },
+       "13": {
+        "items": [
+         "Venerable Helm"
+        ]
+       },
+       "14": {
+        "items": [
+         "Quixotic Helm"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Cryptic Souls zpquestarmour (Graendael, Janlynn, Morynn; Raam's turn-in, Nov 2 2008) = forum t294: the Honor Guard set's helm takes a glowing lava ruby and a glowing amethyst; 'Would you like to craft the ...?' piece by piece. Its giver comes from an Unmarked Headstone and stays a few minutes (guide gaps zp-armour). The words but the question are ours."
+  },
+  {
+   "key": "ZP/armour/honor/chest",
+   "name": "Honor Guard Armour: the Breastplate",
+   "giver": "Merkym",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Would you like to craft the breastplate? Bring me a glowing pristine emerald and a glowing flawless diamond, and I will make the Honor Guard breastplate of your calling.",
+   "accept": "Craft it.",
+   "decline": "Not this piece.",
+   "declined": "As you wish. I will not stand here long.",
+   "started": "A glowing pristine emerald and a glowing flawless diamond.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Merkym",
+     "items": [
+      {
+       "item": "glowing pristine emerald",
+       "count": 1
+      },
+      {
+       "item": "glowing flawless diamond",
+       "count": 1
+      }
+     ],
+     "journal": "Give Merkym a glowing pristine emerald and a glowing flawless diamond for the Honor Guard breastplate.",
+     "says": "It is done. Wear it well.",
+     "reminder": "A glowing pristine emerald and a glowing flawless diamond.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Valiant Chestplate"
+        ]
+       },
+       "1": {
+        "items": [
+         "Brave Tunic"
+        ]
+       },
+       "2": {
+        "items": [
+         "Intrepid Chestplate"
+        ]
+       },
+       "3": {
+        "items": [
+         "Chestplate of Valor"
+        ]
+       },
+       "4": {
+        "items": [
+         "Virtuous Tunic"
+        ]
+       },
+       "5": {
+        "items": [
+         "Tunic of the Benevolent"
+        ]
+       },
+       "6": {
+        "items": [
+         "Tunic of the Paragon"
+        ]
+       },
+       "7": {
+        "items": [
+         "Noble Tunic"
+        ]
+       },
+       "8": {
+        "items": [
+         "Exalted Tunic"
+        ]
+       },
+       "9": {
+        "items": [
+         "Glorious Chestplate"
+        ]
+       },
+       "10": {
+        "items": [
+         "Majestic Tunic"
+        ]
+       },
+       "11": {
+        "items": [
+         "Tunic of Veneration"
+        ]
+       },
+       "12": {
+        "items": [
+         "Regal Tunic"
+        ]
+       },
+       "13": {
+        "items": [
+         "Venerable Tunic"
+        ]
+       },
+       "14": {
+        "items": [
+         "Quixotic Tunic"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Cryptic Souls zpquestarmour (Graendael, Janlynn, Morynn; Raam's turn-in, Nov 2 2008) = forum t294: the Honor Guard set's breastplate takes a glowing pristine emerald and a glowing flawless diamond; 'Would you like to craft the ...?' piece by piece. Its giver comes from an Unmarked Headstone and stays a few minutes (guide gaps zp-armour). The words but the question are ours."
+  },
+  {
+   "key": "ZP/armour/honor/bracers",
+   "name": "Honor Guard Armour: the Bracers",
+   "giver": "Merkym",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Would you like to craft the bracers? Bring me a glowing flame opal and a glowing garnet, and I will make the Honor Guard bracers of your calling.",
+   "accept": "Craft it.",
+   "decline": "Not this piece.",
+   "declined": "As you wish. I will not stand here long.",
+   "started": "A glowing flame opal and a glowing garnet.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Merkym",
+     "items": [
+      {
+       "item": "glowing flame opal",
+       "count": 1
+      },
+      {
+       "item": "glowing garnet",
+       "count": 1
+      }
+     ],
+     "journal": "Give Merkym a glowing flame opal and a glowing garnet for the Honor Guard bracers.",
+     "says": "It is done. Wear it well.",
+     "reminder": "A glowing flame opal and a glowing garnet.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Valiant Bracers"
+        ]
+       },
+       "1": {
+        "items": [
+         "Brave Bracers"
+        ]
+       },
+       "2": {
+        "items": [
+         "Intrepid Bracers"
+        ]
+       },
+       "3": {
+        "items": [
+         "Bracers of Valor"
+        ]
+       },
+       "4": {
+        "items": [
+         "Virtuous Bracers"
+        ]
+       },
+       "5": {
+        "items": [
+         "Bracers of the Benevolent"
+        ]
+       },
+       "6": {
+        "items": [
+         "Bracers of the Paragon"
+        ]
+       },
+       "7": {
+        "items": [
+         "Noble Bracelet"
+        ]
+       },
+       "8": {
+        "items": [
+         "Exalted Bracelet"
+        ]
+       },
+       "9": {
+        "items": [
+         "Glorious Bracelet"
+        ]
+       },
+       "10": {
+        "items": [
+         "Majestic Bracelet"
+        ]
+       },
+       "11": {
+        "items": [
+         "Bracelet of Veneration"
+        ]
+       },
+       "12": {
+        "items": [
+         "Regal Bracelet"
+        ]
+       },
+       "13": {
+        "items": [
+         "Venerable Bracelet"
+        ]
+       },
+       "14": {
+        "items": [
+         "Quixotic Bracelet"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Cryptic Souls zpquestarmour (Graendael, Janlynn, Morynn; Raam's turn-in, Nov 2 2008) = forum t294: the Honor Guard set's bracers takes a glowing flame opal and a glowing garnet; 'Would you like to craft the ...?' piece by piece. Its giver comes from an Unmarked Headstone and stays a few minutes (guide gaps zp-armour). The words but the question are ours."
+  },
+  {
+   "key": "ZP/armour/honor/gloves",
+   "name": "Honor Guard Armour: the Gloves",
+   "giver": "Merkym",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Would you like to craft the gloves? Bring me a glowing onyx sapphire and a glowing flame emerald, and I will make the Honor Guard gloves of your calling.",
+   "accept": "Craft it.",
+   "decline": "Not this piece.",
+   "declined": "As you wish. I will not stand here long.",
+   "started": "A glowing onyx sapphire and a glowing flame emerald.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Merkym",
+     "items": [
+      {
+       "item": "glowing onyx sapphire",
+       "count": 1
+      },
+      {
+       "item": "glowing flame emerald",
+       "count": 1
+      }
+     ],
+     "journal": "Give Merkym a glowing onyx sapphire and a glowing flame emerald for the Honor Guard gloves.",
+     "says": "It is done. Wear it well.",
+     "reminder": "A glowing onyx sapphire and a glowing flame emerald.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Valiant Gloves"
+        ]
+       },
+       "1": {
+        "items": [
+         "Brave Gloves"
+        ]
+       },
+       "2": {
+        "items": [
+         "Honor-Intrepid Gloves"
+        ]
+       },
+       "3": {
+        "items": [
+         "Gloves of Valor"
+        ]
+       },
+       "4": {
+        "items": [
+         "Virtuous Gloves"
+        ]
+       },
+       "5": {
+        "items": [
+         "Gloves of the Benevolent"
+        ]
+       },
+       "6": {
+        "items": [
+         "Gloves of the Paragon"
+        ]
+       },
+       "7": {
+        "items": [
+         "Noble Gloves"
+        ]
+       },
+       "8": {
+        "items": [
+         "Exalted Gloves"
+        ]
+       },
+       "9": {
+        "items": [
+         "Glorious Gloves"
+        ]
+       },
+       "10": {
+        "items": [
+         "Majestic Gloves"
+        ]
+       },
+       "11": {
+        "items": [
+         "Gloves of Veneration"
+        ]
+       },
+       "12": {
+        "items": [
+         "Regal Gloves"
+        ]
+       },
+       "13": {
+        "items": [
+         "Venerable Gloves"
+        ]
+       },
+       "14": {
+        "items": [
+         "Quixotic Gloves"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Cryptic Souls zpquestarmour (Graendael, Janlynn, Morynn; Raam's turn-in, Nov 2 2008) = forum t294: the Honor Guard set's gloves takes a glowing onyx sapphire and a glowing flame emerald; 'Would you like to craft the ...?' piece by piece. Its giver comes from an Unmarked Headstone and stays a few minutes (guide gaps zp-armour). The words but the question are ours."
+  },
+  {
+   "key": "ZP/armour/honor/legs",
+   "name": "Honor Guard Armour: the Leggings",
+   "giver": "Merkym",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Would you like to craft the leggings? Bring me a glowing nephrite and a glowing sea sapphire, and I will make the Honor Guard leggings of your calling.",
+   "accept": "Craft it.",
+   "decline": "Not this piece.",
+   "declined": "As you wish. I will not stand here long.",
+   "started": "A glowing nephrite and a glowing sea sapphire.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Merkym",
+     "items": [
+      {
+       "item": "glowing nephrite",
+       "count": 1
+      },
+      {
+       "item": "glowing sea sapphire",
+       "count": 1
+      }
+     ],
+     "journal": "Give Merkym a glowing nephrite and a glowing sea sapphire for the Honor Guard leggings.",
+     "says": "It is done. Wear it well.",
+     "reminder": "A glowing nephrite and a glowing sea sapphire.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Valiant Leggings"
+        ]
+       },
+       "1": {
+        "items": [
+         "Brave Leggings"
+        ]
+       },
+       "2": {
+        "items": [
+         "Intrepid Leggings"
+        ]
+       },
+       "3": {
+        "items": [
+         "Leggings of Valor"
+        ]
+       },
+       "4": {
+        "items": [
+         "Virtuous Leggings"
+        ]
+       },
+       "5": {
+        "items": [
+         "Leggings of the Benevolent"
+        ]
+       },
+       "6": {
+        "items": [
+         "Leggings of the Paragon"
+        ]
+       },
+       "7": {
+        "items": [
+         "Noble Leggings"
+        ]
+       },
+       "8": {
+        "items": [
+         "Exalted Leggings"
+        ]
+       },
+       "9": {
+        "items": [
+         "Glorious Leggings"
+        ]
+       },
+       "10": {
+        "items": [
+         "Majestic Leggings"
+        ]
+       },
+       "11": {
+        "items": [
+         "Leggings of Veneration"
+        ]
+       },
+       "12": {
+        "items": [
+         "Regal Leggings"
+        ]
+       },
+       "13": {
+        "items": [
+         "Venerable Leggings"
+        ]
+       },
+       "14": {
+        "items": [
+         "Quixotic Leggings"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Cryptic Souls zpquestarmour (Graendael, Janlynn, Morynn; Raam's turn-in, Nov 2 2008) = forum t294: the Honor Guard set's leggings takes a glowing nephrite and a glowing sea sapphire; 'Would you like to craft the ...?' piece by piece. Its giver comes from an Unmarked Headstone and stays a few minutes (guide gaps zp-armour). The words but the question are ours."
+  },
+  {
+   "key": "ZP/armour/honor/boots",
+   "name": "Honor Guard Armour: the Boots",
+   "giver": "Merkym",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Would you like to craft the boots? Bring me a glowing topaz and a glowing flawed carnelian, and I will make the Honor Guard boots of your calling.",
+   "accept": "Craft it.",
+   "decline": "Not this piece.",
+   "declined": "As you wish. I will not stand here long.",
+   "started": "A glowing topaz and a glowing flawed carnelian.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Merkym",
+     "items": [
+      {
+       "item": "glowing topaz",
+       "count": 1
+      },
+      {
+       "item": "glowing flawed carnelian",
+       "count": 1
+      }
+     ],
+     "journal": "Give Merkym a glowing topaz and a glowing flawed carnelian for the Honor Guard boots.",
+     "says": "It is done. Wear it well.",
+     "reminder": "A glowing topaz and a glowing flawed carnelian.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Valiant Boots"
+        ]
+       },
+       "1": {
+        "items": [
+         "Brave Boots"
+        ]
+       },
+       "2": {
+        "items": [
+         "Intrepid Boots"
+        ]
+       },
+       "3": {
+        "items": [
+         "Boots of Valor"
+        ]
+       },
+       "4": {
+        "items": [
+         "Virtuous Boots"
+        ]
+       },
+       "5": {
+        "items": [
+         "Boots of the Benevolent"
+        ]
+       },
+       "6": {
+        "items": [
+         "Boots of the Paragon"
+        ]
+       },
+       "7": {
+        "items": [
+         "Noble Boots"
+        ]
+       },
+       "8": {
+        "items": [
+         "Exalted Boots"
+        ]
+       },
+       "9": {
+        "items": [
+         "Glorious Boots"
+        ]
+       },
+       "10": {
+        "items": [
+         "Majestic Boots"
+        ]
+       },
+       "11": {
+        "items": [
+         "Boots of Veneration"
+        ]
+       },
+       "12": {
+        "items": [
+         "Regal Boots"
+        ]
+       },
+       "13": {
+        "items": [
+         "Venerable Boots"
+        ]
+       },
+       "14": {
+        "items": [
+         "Quixotic Boots"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Cryptic Souls zpquestarmour (Graendael, Janlynn, Morynn; Raam's turn-in, Nov 2 2008) = forum t294: the Honor Guard set's boots takes a glowing topaz and a glowing flawed carnelian; 'Would you like to craft the ...?' piece by piece. Its giver comes from an Unmarked Headstone and stays a few minutes (guide gaps zp-armour). The words but the question are ours."
+  },
+  {
+   "key": "ZP/armour/zek/helm",
+   "name": "Zek Armour: the Helm",
+   "giver": "Krognar",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Would you like to craft the helm? Bring me a glowing black marble and a glowing amethyst, and I will make the Zek helm of your calling.",
+   "accept": "Craft it.",
+   "decline": "Not this piece.",
+   "declined": "As you wish. I will not stand here long.",
+   "started": "A glowing black marble and a glowing amethyst.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Krognar",
+     "items": [
+      {
+       "item": "glowing black marble",
+       "count": 1
+      },
+      {
+       "item": "glowing amethyst",
+       "count": 1
+      }
+     ],
+     "journal": "Give Krognar a glowing black marble and a glowing amethyst for the Zek helm.",
+     "says": "It is done. Wear it well.",
+     "reminder": "A glowing black marble and a glowing amethyst.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Helm of Onslaught"
+        ]
+       },
+       "1": {
+        "items": [
+         "Helm of the Warhawk"
+        ]
+       },
+       "2": {
+        "items": [
+         "Helm of the Vanquisher"
+        ]
+       },
+       "3": {
+        "items": [
+         "Helm of the Legion"
+        ]
+       },
+       "4": {
+        "items": [
+         "Helm of the Zealot"
+        ]
+       },
+       "5": {
+        "items": [
+         "Helm of the Coda"
+        ]
+       },
+       "6": {
+        "items": [
+         "Helm of Havoc"
+        ]
+       },
+       "7": {
+        "items": [
+         "Helm of the Prophet"
+        ]
+       },
+       "8": {
+        "items": [
+         "Helm of the Isangoma"
+        ]
+       },
+       "9": {
+        "items": [
+         "Seraphic Helm"
+        ]
+       },
+       "10": {
+        "items": [
+         "Helm of the Magus"
+        ]
+       },
+       "11": {
+        "items": [
+         "Helm of Conflict"
+        ]
+       },
+       "12": {
+        "items": [
+         "Enthraller's Helm"
+        ]
+       },
+       "13": {
+        "items": [
+         "Helm of Strife"
+        ]
+       },
+       "14": {
+        "items": [
+         "Helm of the Dark Art"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Cryptic Souls zpquestarmour (Graendael, Janlynn, Morynn; Raam's turn-in, Nov 2 2008) = forum t294: the Zek set's helm takes a glowing black marble and a glowing amethyst; 'Would you like to craft the ...?' piece by piece. Its giver comes from an Unmarked Headstone and stays a few minutes (guide gaps zp-armour). The words but the question are ours."
+  },
+  {
+   "key": "ZP/armour/zek/chest",
+   "name": "Zek Armour: the Breastplate",
+   "giver": "Krognar",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Would you like to craft the breastplate? Bring me a glowing black diamond and a glowing flawless diamond, and I will make the Zek breastplate of your calling.",
+   "accept": "Craft it.",
+   "decline": "Not this piece.",
+   "declined": "As you wish. I will not stand here long.",
+   "started": "A glowing black diamond and a glowing flawless diamond.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Krognar",
+     "items": [
+      {
+       "item": "glowing black diamond",
+       "count": 1
+      },
+      {
+       "item": "glowing flawless diamond",
+       "count": 1
+      }
+     ],
+     "journal": "Give Krognar a glowing black diamond and a glowing flawless diamond for the Zek breastplate.",
+     "says": "It is done. Wear it well.",
+     "reminder": "A glowing black diamond and a glowing flawless diamond.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Chestplate of Onslaught"
+        ]
+       },
+       "1": {
+        "items": [
+         "Tunic of the Warhawk"
+        ]
+       },
+       "2": {
+        "items": [
+         "Chestplate of the Vanquisher"
+        ]
+       },
+       "3": {
+        "items": [
+         "Chestplate of the Legion"
+        ]
+       },
+       "4": {
+        "items": [
+         "Tunic of the Zealot"
+        ]
+       },
+       "5": {
+        "items": [
+         "Tunic of the Coda"
+        ]
+       },
+       "6": {
+        "items": [
+         "Tunic of Havoc"
+        ]
+       },
+       "7": {
+        "items": [
+         "Tunic of the Prophet"
+        ]
+       },
+       "8": {
+        "items": [
+         "Tunic of the Isangoma"
+        ]
+       },
+       "9": {
+        "items": [
+         "Seraphic Chestplate"
+        ]
+       },
+       "10": {
+        "items": [
+         "Tunic of the Magus"
+        ]
+       },
+       "11": {
+        "items": [
+         "Tunic of Conflict"
+        ]
+       },
+       "12": {
+        "items": [
+         "Enthraller's Tunic"
+        ]
+       },
+       "13": {
+        "items": [
+         "Tunic of Strife"
+        ]
+       },
+       "14": {
+        "items": [
+         "Tunic of the Dark Art"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Cryptic Souls zpquestarmour (Graendael, Janlynn, Morynn; Raam's turn-in, Nov 2 2008) = forum t294: the Zek set's breastplate takes a glowing black diamond and a glowing flawless diamond; 'Would you like to craft the ...?' piece by piece. Its giver comes from an Unmarked Headstone and stays a few minutes (guide gaps zp-armour). The words but the question are ours."
+  },
+  {
+   "key": "ZP/armour/zek/bracers",
+   "name": "Zek Armour: the Bracers",
+   "giver": "Krognar",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Would you like to craft the bracers? Bring me a glowing flawed emerald and a glowing garnet, and I will make the Zek bracers of your calling.",
+   "accept": "Craft it.",
+   "decline": "Not this piece.",
+   "declined": "As you wish. I will not stand here long.",
+   "started": "A glowing flawed emerald and a glowing garnet.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Krognar",
+     "items": [
+      {
+       "item": "glowing flawed emerald",
+       "count": 1
+      },
+      {
+       "item": "glowing garnet",
+       "count": 1
+      }
+     ],
+     "journal": "Give Krognar a glowing flawed emerald and a glowing garnet for the Zek bracers.",
+     "says": "It is done. Wear it well.",
+     "reminder": "A glowing flawed emerald and a glowing garnet.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Bracers of Onslaught"
+        ]
+       },
+       "1": {
+        "items": [
+         "Bracers of the Warhawk"
+        ]
+       },
+       "2": {
+        "items": [
+         "Bracers of the Vanquisher"
+        ]
+       },
+       "3": {
+        "items": [
+         "Bracers of the Legion"
+        ]
+       },
+       "4": {
+        "items": [
+         "Bracers of the Zealot"
+        ]
+       },
+       "5": {
+        "items": [
+         "Bracers of the Coda"
+        ]
+       },
+       "6": {
+        "items": [
+         "Bracers of Havoc"
+        ]
+       },
+       "7": {
+        "items": [
+         "Bracelet of the Prophet"
+        ]
+       },
+       "8": {
+        "items": [
+         "Bracelet of the Isangoma"
+        ]
+       },
+       "9": {
+        "items": [
+         "Seraphic Bracelet"
+        ]
+       },
+       "10": {
+        "items": [
+         "Bracelet of the Magus"
+        ]
+       },
+       "11": {
+        "items": [
+         "Bracelet of Conflict"
+        ]
+       },
+       "12": {
+        "items": [
+         "Enthraller's Bracelet"
+        ]
+       },
+       "13": {
+        "items": [
+         "Bracelet of Strife"
+        ]
+       },
+       "14": {
+        "items": [
+         "Bracelet of the Dark Art"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Cryptic Souls zpquestarmour (Graendael, Janlynn, Morynn; Raam's turn-in, Nov 2 2008) = forum t294: the Zek set's bracers takes a glowing flawed emerald and a glowing garnet; 'Would you like to craft the ...?' piece by piece. Its giver comes from an Unmarked Headstone and stays a few minutes (guide gaps zp-armour). The words but the question are ours."
+  },
+  {
+   "key": "ZP/armour/zek/gloves",
+   "name": "Zek Armour: the Gloves",
+   "giver": "Krognar",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Would you like to craft the gloves? Bring me a glowing peridot and a glowing flame emerald, and I will make the Zek gloves of your calling.",
+   "accept": "Craft it.",
+   "decline": "Not this piece.",
+   "declined": "As you wish. I will not stand here long.",
+   "started": "A glowing peridot and a glowing flame emerald.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Krognar",
+     "items": [
+      {
+       "item": "glowing peridot",
+       "count": 1
+      },
+      {
+       "item": "glowing flame emerald",
+       "count": 1
+      }
+     ],
+     "journal": "Give Krognar a glowing peridot and a glowing flame emerald for the Zek gloves.",
+     "says": "It is done. Wear it well.",
+     "reminder": "A glowing peridot and a glowing flame emerald.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Gloves of Onslaught"
+        ]
+       },
+       "1": {
+        "items": [
+         "Gloves of the Warhawk"
+        ]
+       },
+       "2": {
+        "items": [
+         "Gloves of the Vanquisher"
+        ]
+       },
+       "3": {
+        "items": [
+         "Gloves of the Legion"
+        ]
+       },
+       "4": {
+        "items": [
+         "Gloves of the Zealot"
+        ]
+       },
+       "5": {
+        "items": [
+         "Gloves of the Coda"
+        ]
+       },
+       "6": {
+        "items": [
+         "Gloves of Havoc"
+        ]
+       },
+       "7": {
+        "items": [
+         "Gloves of the Prophet"
+        ]
+       },
+       "8": {
+        "items": [
+         "Gloves of the Isangoma"
+        ]
+       },
+       "9": {
+        "items": [
+         "Seraphic Gloves"
+        ]
+       },
+       "10": {
+        "items": [
+         "Gloves of the Magus"
+        ]
+       },
+       "11": {
+        "items": [
+         "Gloves of Conflict"
+        ]
+       },
+       "12": {
+        "items": [
+         "Enthraller's Gloves"
+        ]
+       },
+       "13": {
+        "items": [
+         "Gloves of Strife"
+        ]
+       },
+       "14": {
+        "items": [
+         "Gloves of the Dark Art"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Cryptic Souls zpquestarmour (Graendael, Janlynn, Morynn; Raam's turn-in, Nov 2 2008) = forum t294: the Zek set's gloves takes a glowing peridot and a glowing flame emerald; 'Would you like to craft the ...?' piece by piece. Its giver comes from an Unmarked Headstone and stays a few minutes (guide gaps zp-armour). The words but the question are ours."
+  },
+  {
+   "key": "ZP/armour/zek/legs",
+   "name": "Zek Armour: the Leggings",
+   "giver": "Krognar",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Would you like to craft the leggings? Bring me a glowing flawless aquamarine and a glowing sea sapphire, and I will make the Zek leggings of your calling.",
+   "accept": "Craft it.",
+   "decline": "Not this piece.",
+   "declined": "As you wish. I will not stand here long.",
+   "started": "A glowing flawless aquamarine and a glowing sea sapphire.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Krognar",
+     "items": [
+      {
+       "item": "glowing flawless aquamarine",
+       "count": 1
+      },
+      {
+       "item": "glowing sea sapphire",
+       "count": 1
+      }
+     ],
+     "journal": "Give Krognar a glowing flawless aquamarine and a glowing sea sapphire for the Zek leggings.",
+     "says": "It is done. Wear it well.",
+     "reminder": "A glowing flawless aquamarine and a glowing sea sapphire.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Leggings of Onslaught"
+        ]
+       },
+       "1": {
+        "items": [
+         "Leggings of the Warhawk"
+        ]
+       },
+       "2": {
+        "items": [
+         "Leggings of the Vanquisher"
+        ]
+       },
+       "3": {
+        "items": [
+         "Leggings of the Legion"
+        ]
+       },
+       "4": {
+        "items": [
+         "Leggings of the Zealot"
+        ]
+       },
+       "5": {
+        "items": [
+         "Leggings of the Coda"
+        ]
+       },
+       "6": {
+        "items": [
+         "Leggings of Havoc"
+        ]
+       },
+       "7": {
+        "items": [
+         "Leggings of the Prophet"
+        ]
+       },
+       "8": {
+        "items": [
+         "Leggings of the Isangoma"
+        ]
+       },
+       "9": {
+        "items": [
+         "Seraphic Leggings"
+        ]
+       },
+       "10": {
+        "items": [
+         "Leggings of the Magus"
+        ]
+       },
+       "11": {
+        "items": [
+         "Leggings of Conflict"
+        ]
+       },
+       "12": {
+        "items": [
+         "Enthraller's Leggings"
+        ]
+       },
+       "13": {
+        "items": [
+         "Leggings of Strife"
+        ]
+       },
+       "14": {
+        "items": [
+         "Leggings of the Dark Art"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Cryptic Souls zpquestarmour (Graendael, Janlynn, Morynn; Raam's turn-in, Nov 2 2008) = forum t294: the Zek set's leggings takes a glowing flawless aquamarine and a glowing sea sapphire; 'Would you like to craft the ...?' piece by piece. Its giver comes from an Unmarked Headstone and stays a few minutes (guide gaps zp-armour). The words but the question are ours."
+  },
+  {
+   "key": "ZP/armour/zek/boots",
+   "name": "Zek Armour: the Boots",
+   "giver": "Krognar",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Would you like to craft the boots? Bring me a glowing jaundice gem and a glowing flawed carnelian, and I will make the Zek boots of your calling.",
+   "accept": "Craft it.",
+   "decline": "Not this piece.",
+   "declined": "As you wish. I will not stand here long.",
+   "started": "A glowing jaundice gem and a glowing flawed carnelian.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Krognar",
+     "items": [
+      {
+       "item": "glowing jaundice gem",
+       "count": 1
+      },
+      {
+       "item": "glowing flawed carnelian",
+       "count": 1
+      }
+     ],
+     "journal": "Give Krognar a glowing jaundice gem and a glowing flawed carnelian for the Zek boots.",
+     "says": "It is done. Wear it well.",
+     "reminder": "A glowing jaundice gem and a glowing flawed carnelian.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Boots of Onslaught"
+        ]
+       },
+       "1": {
+        "items": [
+         "Boots of the Warhawk"
+        ]
+       },
+       "2": {
+        "items": [
+         "Boots of the Vanquisher"
+        ]
+       },
+       "3": {
+        "items": [
+         "Boots of the Legion"
+        ]
+       },
+       "4": {
+        "items": [
+         "Boots of the Zealot"
+        ]
+       },
+       "5": {
+        "items": [
+         "Boots of the Coda"
+        ]
+       },
+       "6": {
+        "items": [
+         "Boots of Havoc"
+        ]
+       },
+       "7": {
+        "items": [
+         "Boots of the Prophet"
+        ]
+       },
+       "8": {
+        "items": [
+         "Boots of the Isangoma"
+        ]
+       },
+       "9": {
+        "items": [
+         "Seraphic Boots"
+        ]
+       },
+       "10": {
+        "items": [
+         "Boots of the Magus"
+        ]
+       },
+       "11": {
+        "items": [
+         "Boots of Conflict"
+        ]
+       },
+       "12": {
+        "items": [
+         "Enthraller's Boots"
+        ]
+       },
+       "13": {
+        "items": [
+         "Boots of Strife"
+        ]
+       },
+       "14": {
+        "items": [
+         "Boots of the Dark Art"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Cryptic Souls zpquestarmour (Graendael, Janlynn, Morynn; Raam's turn-in, Nov 2 2008) = forum t294: the Zek set's boots takes a glowing jaundice gem and a glowing flawed carnelian; 'Would you like to craft the ...?' piece by piece. Its giver comes from an Unmarked Headstone and stays a few minutes (guide gaps zp-armour). The words but the question are ours."
+  }
+ ],
+ "items": []
+}

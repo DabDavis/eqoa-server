@@ -474,6 +474,34 @@ players spread over the worlds made it read a zone (8 ms) for nearly every repor
 `world.ground_zones` (unset or 0: every zone once read, 652 MB at most for all six worlds, 2.4 MB a
 zone) is that cache's size, for the creatures' moves too.
 
+### A player's jump: vanilla's, on a server that turns it on (`entity/jump.go`, `handlers/jump.go`, `world.jump`)
+
+The user, 2026-11-09: "lets add jump to the game". EQOA has none (VIWalkControl gives a body on land no way up); the jump
+is eqoa-rust-client-vanilla's (`walker.rs`, `jump.rs`, as a GM's flight is): from a floor a start speed up (7.1 a second)
+and the floor its walk remembers lifted over the jump's top, then CLIENT's own fall and landing, the feet at most
+`JumpTop` (0.9, half the walk's body of 1.8) over the floor it left, 0.29 s up and 0.62 s in the air on flat ground, the
+fall's clip (gait 6) in the air and the landing's after. `world.jump: true` turns it on; unset, nothing is offered and
+every report is judged as before. **A PS2 is never sent the offer**: opcode **0x7E28** (`OpcodeJump`, a u32, both ways)
+goes, as the world entry's offers are answered, to a client that answered the bug report offer (0x7E0E, which every
+vanilla build since 2026-11-05 answers and a PS2 never does: `handleBugReportOffer` calls `OfferJump`); a client that
+jumps answers 1 (`World.SetJumpClient`, `Player.Jumps`; taken only with `world.jump`), kept over a keep restart
+(`KeptPlayer.Jumps`; into a server since without jumps, its client is sent 0 and stops) and cleared by a takeover (the
+new client answers for itself). For such a player the movement check (above) takes a jump's arc: a jump begins at a
+report in the air rising after a report standing (the last place taken held; vanilla jumps only once a report standing
+has gone out since it last landed or was moved, so each of its jumps starts from one), its floor the higher of the floor
+under that report and the floor under its first report in the air (a run up a step or a slope leaves a floor higher than
+its last report's); its reports may rise past `mcAirRise` while it rises, to `JumpTop` + 0.1 over its floor; once a
+report has come down from its highest by 0.1, a rise of more than 0.1 is "rose again in the air" (a double jump); it
+falls as any fall does (the fall rule from its floor: its top is within the rule's own tolerance) and ends at a report
+standing or swimming. A rise with no floor under its start, a rise past the top, a second rise, a hover at the top and a
+rise from a player held in place (no speed) stay faults, as do walls and speed. **What others see**: CLIENT stands every
+other creature on the floor within 1.5 of it at each update and each frame (`VICreatureEntity::Sync`, `ExtrapolateMove`,
+both through `ExtrapolateGround`), unless the channel gives it a walk of its own (byte 141, `m_p255`), which this server
+never does for a player: so a PS2 shows a jumper on the ground playing the fall for 0.6 s; vanilla, on a server that
+offered it jumps, draws a player whose gait is 6 at the height this server sends and stands it on a floor only once it
+comes down to one (`jump::aloft`). The 0x40's upward speed box stops at 3, so others extrapolate a jump's first rise
+slower than it goes, and its reports correct it.
+
 ### Duels: SOE's live game's, for every client (`entity/duel*.go`, `handlers/duel.go`)
 
 The user, 2026-10-29: "lets add dueling, the corsten had it in memory i believe", then "dueling damage
@@ -2087,6 +2115,7 @@ patch:
 world:
   heirlooms: false          # no kept item at a login; unset: given
   pvp: true                 # /pvp flags a player (entity/pvp.go); unset: not available
+  jump: true                # a client that can (vanilla) jumps (entity/jump.go); unset: none
   open_races: true          # creation takes the froglok and racedefs' races (vanilla is told them); unset: the game's
   all_classes: true         # every class for every race at creation; unset: each race's own
   capes: true               # the cape slot, wear 28 in equip slot 22, for clients that draw capes (handlers/capes.go); unset: none

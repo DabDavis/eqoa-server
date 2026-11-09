@@ -395,6 +395,11 @@ func main() {
 	if cfg.World.Capes {
 		log.Printf("Capes: worn in equip slot 22 by a client that draws them (world.capes)")
 	}
+	gameWorld.SetJumps(cfg.World.Jump) // entity/jump.go, handlers/jump.go
+	handlers.SetJumps(cfg.World.Jump)
+	if cfg.World.Jump {
+		log.Printf("Jump: a client that can jumps (world.jump)")
+	}
 	handlers.SetHeirloomsGiven(cfg.World.Heirlooms == nil || *cfg.World.Heirlooms)
 	if cfg.World.Heirlooms != nil && !*cfg.World.Heirlooms {
 		log.Printf("Heirlooms: none given at a login (world.heirlooms: false)")

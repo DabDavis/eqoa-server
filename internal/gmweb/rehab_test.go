@@ -122,3 +122,57 @@ func TestRehabSettingsAreAGMs(t *testing.T) {
 		t.Errorf("revert: %d %v, now %d", code, out, value("price_mastery"))
 	}
 }
+
+// A character's templates in the panel (rehabtemplates): described, a GM's
+// row for Hero written and audited; a slot past 2, a negative point and a cms
+// the game would not read whole are refused; deleting Hero takes its
+// templates with it. The control: before the change Hero has none.
+func TestRehabTemplateRowsAreAGMs(t *testing.T) {
+	f := newFixture(t)
+	c := f.browser()
+	c.login("gm")
+	count := func() int {
+		var n int
+		f.db.QueryRow(`SELECT COUNT(*) FROM rehabtemplates WHERE serverid = 7`).Scan(&n)
+		return n
+	}
+	if count() != 0 {
+		t.Fatal("the control: Hero has a template before any change")
+	}
+	code, out := c.op("describe_table", map[string]any{"table": "rehabtemplates"})
+	if code != 200 || out["label"] != "Rehabilitator templates" || out["group"] != "Players" ||
+		!strings.Contains(out["help"].(string), "never more than it spent") {
+		t.Fatalf("describe_table rehabtemplates: %d %v", code, out)
+	}
+	code, out = c.op("insert_row", map[string]any{"table": "rehabtemplates", "values": map[string]any{
+		"serverid": 7, "slot": 1, "level": 50, "tpstrength": 30, "cms": "1:10,2:15"}})
+	if code != 200 || count() != 1 {
+		t.Fatalf("a template: %d %v, %d rows", code, out, count())
+	}
+	for _, bad := range []map[string]any{
+		{"serverid": 7, "slot": 3},
+		{"serverid": 7, "slot": 0},
+		{"serverid": 7, "slot": 2, "tpstamina": -1},
+		{"serverid": 7, "slot": 2, "cms": "1:10,x"},
+		{"serverid": 7, "slot": 2, "cms": "1:10,1:12"},
+		{"serverid": 7, "slot": 2, "cms": "1:-5"},
+		{"slot": 2},
+	} {
+		if code, out := c.op("insert_row", map[string]any{"table": "rehabtemplates", "values": bad}); code != 400 {
+			t.Errorf("insert %v: %d %v, want refused", bad, code, out)
+		}
+	}
+	if count() != 1 {
+		t.Fatalf("after the refusals: %d rows", count())
+	}
+	code, out = c.op("delete_row", map[string]any{"table": "characters", "key": map[string]any{"serverid": 7}, "dry_run": true})
+	if also, _ := out["alsoDeleted"].(map[string]any); code != 200 || also["rehabtemplates"] != float64(1) {
+		t.Fatalf("deleting Hero would take %v (%d), want its template too", out["alsoDeleted"], code)
+	}
+	if code, out = c.op("delete_row", map[string]any{"table": "characters", "key": map[string]any{"serverid": 7}}); code != 200 {
+		t.Fatalf("delete Hero: %d %v", code, out)
+	}
+	if count() != 0 {
+		t.Errorf("Hero deleted, %d of its templates left", count())
+	}
+}

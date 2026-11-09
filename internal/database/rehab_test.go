@@ -61,7 +61,7 @@ func TestCharResetCounts(t *testing.T) {
 		t.Fatal(err)
 	}
 	all, err := db.CharResets(a.ServerID)
-	if err != nil || len(all) != 3 || all[ResetPath].Left(2) != 2 {
+	if _, ok := all[ResetTemplate]; err != nil || len(all) != 4 || !ok || all[ResetPath].Left(2) != 2 {
 		t.Fatalf("at first: %+v %v", all, err)
 	}
 	now := time.Date(2026, 10, 30, 4, 0, 0, 0, time.UTC)

@@ -281,8 +281,9 @@ func (h *CharacterHandler) fitItemLists(serverID uint32, pack, bank int, login b
 	for look := 0; look < 3; look++ {
 		rows, err := h.inventoryStore.ItemListRows(serverID)
 		if err != nil {
+			// no plan: the rows as they are, cut to the lists below
 			log.Printf("ItemLists: character %d's rows: %v", serverID, err)
-			break
+			rows = nil
 		}
 		plan := planItemLists(rows, pack, bank, login && look == 0)
 		note.keptPack, note.keptBank = plan.keptPack, plan.keptBank

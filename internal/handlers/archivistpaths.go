@@ -156,7 +156,7 @@ const (
 	archivistPathDone     = "It is done: the path of %s is yours now."
 	archivistPathMoved    = "Out of your book: %s."
 	archivistPathMovedIn  = "Out of your book: %s. Into it: %s."
-	archivistPathEnded    = "Ended with them: %s on you."
+	archivistPathEnded    = "The old path's effects on you have ended: %s."
 	archivistPathCasting  = "You are casting. Let your spell land, then ask me again."
 	archivistPathNoRoom   = "Your book has no room for %s."
 	archivistPathsChanged = "The paths have changed in my books since I spoke. Ask me again."
@@ -302,13 +302,7 @@ func classPaths(qe *QuestEngine, arch *spellArchive, class int) ([]classPath, []
 // spell's name (spellKey, as the rehabilitators' soldScrolls reads it): a
 // basic spell, the basic grant's.
 func (a *spellArchive) soldTo(class int, name string) bool {
-	k := spellKey(name)
-	for _, sc := range a.scrolls {
-		if sc.ClassUse&(1<<uint(class)) != 0 && spellKey(sc.Name) == k {
-			return true
-		}
-	}
-	return false
+	return a.sold[spellKey(name)]&(1<<uint(class)) != 0
 }
 
 // pathPlan is a path asked for, as the character stands: the path's and the

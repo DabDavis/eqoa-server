@@ -434,6 +434,7 @@ type spellArchive struct {
 	scrolls []database.MerchantScroll
 	spells  *spellIndex
 	names   map[int]database.SpellName // every spell pattern by id (the paths', archivistpaths.go)
+	sold    map[string]int             // the scrolls' class masks by their names' spellKey (soldTo)
 	descs   map[int]string
 	sources map[int]map[int]string // spell -> class -> source
 }
@@ -458,6 +459,10 @@ func loadSpellArchive(s *database.SpellbookStore) (*spellArchive, error) {
 	var err error
 	if a.scrolls, err = s.MerchantScrolls(scrollIcon); err != nil {
 		return nil, fmt.Errorf("the merchants' scrolls: %w", err)
+	}
+	a.sold = make(map[string]int, len(a.scrolls))
+	for _, sc := range a.scrolls {
+		a.sold[spellKey(sc.Name)] |= sc.ClassUse
 	}
 	names, err := s.SpellNames()
 	if err != nil {

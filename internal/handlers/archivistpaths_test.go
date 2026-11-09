@@ -360,7 +360,7 @@ func TestTheArchivistWaitsForACastAndKeepsItsLockout(t *testing.T) {
 	_, box = f.paths(encAnswers...)
 	f.pick(box, 1)
 	f.wantMsgs("the change landed", f.pick(boxID(f.lastAsk()), 0), "remove:2", "remove:3", "add:700340@2 flag 0", "add:700468@3 flag 0",
-		"box:*It is done*", "box:Spell Archivist: Ended with them: Expansive Mind on you.")
+		"box:*It is done*", "box:Spell Archivist: The old path's effects on you have ended: Expansive Mind.")
 	if got := f.effects(); got != "" {
 		t.Errorf("the effects after the change: %q, want none", got)
 	}

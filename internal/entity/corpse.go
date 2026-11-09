@@ -238,7 +238,8 @@ func (w *World) respawnNPCLocked(npc *NPC) {
 	npc.roam = roamState{}
 	npc.path = pathState{}
 	w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.SpawnX, npc.SpawnZ)
-	w.wakeNPCLocked(npc) // a new life: its last fight put away, its calm counted (npcsets.go)
+	w.wakeNPCLocked(npc)        // a new life: its last fight put away, its calm counted (npcsets.go)
+	w.companionsBackLocked(npc) // the pets that went with it, back with it (companion.go)
 }
 
 // runCorpsesGone tells the hook which corpses decayed, the lock let go.

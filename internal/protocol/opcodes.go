@@ -674,6 +674,28 @@ const (
 	// character that wears one a u32 its ServerID (as 0x002C carries it), a u8
 	// style and a u32 colour, as OpcodeCapesInView. The whole list each time.
 	OpcodeCapesList GameOpcode = 0x7E27
+
+	// OpcodePetEffects is not retail: the effects on the player's pet, for a
+	// client that draws them under its pet's bar (entity/peteffects.go,
+	// handlers/peteffects.go; the user, 2026-11-09: "put the buff icons under
+	// the pet name plate"). A u32 after the opcode, both ways, as
+	// OpcodePowerBars: the server offers it (1) once the player is in the
+	// world; a client that draws them answers 1 to have them and 0 to stop, at
+	// once and whenever that changes. A PS2 ignores the offer (CLIENT's
+	// dispatcher has no case above 0x1402 and no default) and never asks, so
+	// it is sent none: the pet's effects are on no PS2's screen, its own
+	// effects window (channel 0x43) the player's alone.
+	OpcodePetEffects GameOpcode = 0x7E32
+
+	// OpcodePetEffectsData is the pet's effects, server to a client that
+	// asked, whenever they change (one goes on, runs out, is cast again, the
+	// pet goes or another comes) and at once after the ask: a u8 count, then
+	// for each, in the order they went on, a u32 icon (a DictID, as channel
+	// 0x43's records carry it), a u32 its time left in milliseconds as the
+	// message is made, and a u8 byte count and the name in UTF-8 (at most 31
+	// characters, as channel 0x43's). Each one is the whole set; 0 effects:
+	// none, or no pet. At most 16 (entity.PetEffectsMost).
+	OpcodePetEffectsData GameOpcode = 0x7E33
 )
 
 // =============================================================================
@@ -936,6 +958,10 @@ func (op GameOpcode) String() string {
 		return "CapesInView"
 	case OpcodeCapesList:
 		return "CapesList"
+	case OpcodePetEffects:
+		return "PetEffects"
+	case OpcodePetEffectsData:
+		return "PetEffectsData"
 	case OpcodeRaceOptions:
 		return "RaceOptions"
 	case OpcodeRaceOptionsData:

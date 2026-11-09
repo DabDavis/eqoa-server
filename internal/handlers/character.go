@@ -887,6 +887,9 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// Offer others' power (powerbars.go): a client that draws power bars
 	// asks for it, a PS2 ignores it
 	SendPowerBarsOffer(sess)
+	// and the pet's effects (peteffects.go): a client that draws them under
+	// its pet's bar asks for them, a PS2 ignores it
+	SendPetEffectsOffer(sess)
 
 	// Offer quest marks for the map (questmarks.go): a client that draws them
 	// asks, a PS2 ignores it

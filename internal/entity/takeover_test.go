@@ -74,6 +74,7 @@ func newTakeoverFixture(t *testing.T) *takeoverFixture {
 	p.AttackTarget, p.AttackObjectID = f.npc.ServerID, 0x186A1
 	p.PowerBars, p.powerBarsSent = true, "x"
 	p.RaceLabels, p.raceLabelsSent = true, "x"
+	p.PetEffects, p.petEffectsSent = true, "x"
 	p.ProfanityFilterOff = true
 	p.PendingCoachDests = []CoachDest{{Name: "Highpass"}}
 	f.w.announced = map[*Player]bool{p: true, f.mate: true}
@@ -135,6 +136,9 @@ func TestTakeOverHandsTheLivePlayer(t *testing.T) {
 	// what it held of the old client
 	if p.RaceLabels || p.raceLabelsSent != "" {
 		t.Errorf("the old client's race labels stayed (%v %q): a PS2 taking over would be sent the list", p.RaceLabels, p.raceLabelsSent)
+	}
+	if p.PetEffects || p.petEffectsSent != "" {
+		t.Errorf("the old client's pet effects stayed (%v %q): a PS2 taking over would be sent them", p.PetEffects, p.petEffectsSent)
 	}
 	if p.TargetObjectID != 0 || p.AutoAttack || p.AttackTarget != 0 || p.AttackObjectID != 0 || p.PowerBars ||
 		p.powerBarsSent != "" || p.ProfanityFilterOff || p.PendingCoachDests != nil {

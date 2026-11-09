@@ -33,6 +33,7 @@ type KeptPlayer struct {
 	Target       uint32        `json:"target,omitempty"`
 	Lockouts     []KeptLockout `json:"lockouts,omitempty"`
 	PowerBars    bool          `json:"power_bars,omitempty"`
+	PetEffects   bool          `json:"pet_effects,omitempty"`
 	RaidRoster   bool          `json:"raid_roster,omitempty"`
 	DuelWindow   bool          `json:"duel_window,omitempty"`
 	GM           bool          `json:"gm,omitempty"`
@@ -92,7 +93,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 	}
 	k := KeptPlayer{CharServerID: p.CharServerID, Name: p.Name, Dead: p.IsDead() || p.respawnPending(),
 		Target: p.TargetObjectID, PowerBars: p.PowerBars, RaidRoster: p.RaidRoster, DuelWindow: p.DuelWindow, GM: p.GM, Flying: p.Flying,
-		Place: [3]float32{p.X, p.Y, p.Z}, World: p.World}
+		Place: [3]float32{p.X, p.Y, p.Z}, World: p.World, PetEffects: p.PetEffects}
 	k.RaceLabels = p.RaceLabels
 	k.RecordWindow = p.RecordWindow
 	k.Jumps = p.Jumps
@@ -127,6 +128,7 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	}
 	p.RaceLabels, p.raceLabelsSent = k.RaceLabels, "" // the client keeps its list; a data step may have changed it
 	p.PowerBars, p.powerBarsSent, p.powerBarsDue = k.PowerBars, "", k.PowerBars
+	p.PetEffects, p.petEffectsSent, p.petEffectsDue = k.PetEffects, "", k.PetEffects // its pet's set again once the pet is back
 	p.RaidRoster, p.raidRosterSent = k.RaidRoster, ""
 	p.GM = k.GM
 	p.DuelWindow = k.DuelWindow

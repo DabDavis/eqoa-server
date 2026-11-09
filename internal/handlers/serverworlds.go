@@ -71,16 +71,21 @@ func ServerWorldList() []worlds.Built {
 	return out
 }
 
-// LoadServerWorlds reads the built recipes in the worlds folder (worldN.json,
-// slots past the disc's to WorldCount) whose world file is there with the size
-// the recipe says, makes them the server's own worlds and names their slots
-// (worldNames), and says what it found. A recipe whose file is missing or of
-// another size is passed over, loudly: a client told to build it would build a
-// world the server does not have.
-func LoadServerWorlds(configured string) []worlds.Built {
+// LoadServerWorlds reads the built recipes in the worlds folder (worldN.json)
+// of the slots given (world.server_worlds; past the disc's, below WorldCount)
+// whose world file is there with the size the recipe says, makes them the
+// server's own worlds and names their slots (worldNames), and says what it
+// found. A recipe whose file is missing or of another size is passed over,
+// loudly: a client told to build it would build a world the server does not
+// have.
+func LoadServerWorlds(configured string, slots []int) []worlds.Built {
 	dir := worlds.Dir(configured)
 	var out []worlds.Built
-	for slot := discWorlds; slot < WorldCount; slot++ {
+	for _, slot := range slots {
+		if slot < discWorlds || slot >= WorldCount {
+			log.Printf("Server worlds: slot %d is not one past the disc's (6 to %d); not offered", slot, WorldCount-1)
+			continue
+		}
 		meta := filepath.Join(dir, worlds.BuiltName(slot))
 		if _, err := os.Stat(meta); err != nil {
 			continue

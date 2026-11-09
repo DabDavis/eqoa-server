@@ -250,6 +250,14 @@ type WorldConfig struct {
 	// creates as ever: its pages are the disc's.
 	OpenRaces  bool `yaml:"open_races"`
 	AllClasses bool `yaml:"all_classes"`
+
+	// ServerWorlds are the slots of the worlds of the disc's own zones this
+	// server offers (handlers/serverworlds.go): each built by cmd/worldbuild
+	// into the worlds folder (worldN.ESF and worldN.json), for clients that
+	// build it off their own disc (vanilla). Empty, none: two shards sharing a
+	// worlds folder offer what each lists (the Homelands, slot 10, on the
+	// Heirloom server alone).
+	ServerWorlds []int `yaml:"server_worlds"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

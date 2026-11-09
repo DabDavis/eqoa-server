@@ -1160,6 +1160,18 @@ texture is its tribe's skin, a skeleton's skull its bone's colour): the faces co
 whose texture is one of the 64x64 hair strips (the eight player hairs, the NPCs' black `B5632329`, auburn `EF0C9AEB` and
 white `87BFA9B5`) takes any of the eight (`hairSteps`, its first step Natural, 0: the body's own whatever it wears): the
 goblins', orcs', kappas' and the dryad's kin's hair, the kerrans' manes.
+**Races 30 and 31** (2026-11-09, the owner: "lets add jael raethe as a playable race, they are floating monk, alien type
+creatures", then "lets add a wisp also as a playable race, the armor will form like a human and also the weapons swing like
+humans. like when humans are invis, but the wisp is inside the helm"): the Jal'Raeth (30, an Erudite, Erudin: they live on
+Odus beside it) choose their robed, channeler's or knight's body; the Wisp (31, a western human, Qeynos) is a human of its sex
+whose row `wisp` is laid always (`OptionRow.Always`: its charlook row is written at any step and with no options block, so
+every client that asked is told its Wisps by name; the value is the will o' wisp's body, no texture, so an older client lays
+nothing, and vanilla draws the body as its armour alone with the wisp in the helm). A PS2 shows a Wisp as a human in its
+armour: the invisible bit (byte 154) would hide its armour too (CLIENT's `SetSkinsVisible(0)` takes the body and all worn on
+it, leaving the held items, the helm and the name), and vanilla could not tell a Wisp's real invisibility from it. The rows,
+start spots, items and standings are `~/.cache/jalraeth1109/deploy/new_races_20261109.py` (exact `--undo`; run it with a
+binary of `LastCustomRace` 52: an older one refuses race 31's row). **`LastCustomRace` is 52** (was 30): a race's bit in
+`cmcatalog.races` stays an integer a JSON number holds, and the GM panel tests flag bits with BigInt (`lib/fmt.js`).
 - **Kept**: a body chosen is `characters.modelid`, which every client draws (a PS2 too), the entity channel's scale its size
   against the race's own (`Player.Body`: `OptionBodySize`); a colour or a texture past a row's first step is a **`charlook`**
   row (serverid, part = the row's key, kind 2/3, value), which only a client that asked is told. A character with no row and

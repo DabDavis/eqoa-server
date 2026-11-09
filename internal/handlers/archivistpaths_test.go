@@ -307,7 +307,7 @@ func TestTheArchivistKeepsWhatTheQuestsGave(t *testing.T) {
 // book as it was. The control: at 30 the paths are offered, each its 30's.
 func TestTheArchivistOffersNoPathBelowThirty(t *testing.T) {
 	f := newPathRig(t, 29)
-	f.wantMsgs("at 29", f.pick(f.menu(), archivistPath), "box:Spell Archivist: "+archivistPathsTooLow)
+	f.wantMsgs("at 29", f.pick(f.menu(), archivistPath), "box:Spell Archivist: "+fmt.Sprintf(archivistPathsTooLow, 30))
 	f.wantBook("at 29", "1623@0/0", "6101@1/1")
 
 	f.p.Level = 30
@@ -315,7 +315,7 @@ func TestTheArchivistOffersNoPathBelowThirty(t *testing.T) {
 	f.wantMsgs("at 30", got, "box:Spell Archivist: The path of Expansive Mind: Expansive Mind. The path of Power Jet: Power Jet.", encAsked)
 	// a level lost between the question and the answer: nothing either
 	f.p.Level = 29
-	f.wantMsgs("29 again at the answer", f.pick(box, 0), "box:Spell Archivist: "+archivistPathsTooLow)
+	f.wantMsgs("29 again at the answer", f.pick(box, 0), "box:Spell Archivist: "+fmt.Sprintf(archivistPathsTooLow, 30))
 	f.wantBook("29 again", "1623@0/0", "6101@1/1")
 }
 
@@ -424,7 +424,7 @@ func TestTheArchivistsPathWordsFit(t *testing.T) {
 		}
 	}
 	long := "Gleaming Bastion, Hallowed Bastion, Sacred Bastion and Blessed Bastion"
-	for _, s := range []string{archivistPathsTooLow, archivistNoPaths, fmt.Sprintf(archivistPathHeld, "Moradhim Cocktail"),
+	for _, s := range []string{fmt.Sprintf(archivistPathsTooLow, 49), archivistNoPaths, fmt.Sprintf(archivistPathHeld, "Moradhim Cocktail"),
 		fmt.Sprintf(archivistPathsHeld, "Gleaming Bastion, Secure and Marble Barrier"), fmt.Sprintf(archivistPathHasAll, "Moradhim Cocktail"),
 		fmt.Sprintf(archivistPathGiven, long, "Gleaming Bastion"), archivistPathCasting, fmt.Sprintf(archivistPathNoRoom, long),
 		archivistPathsChanged, fmt.Sprintf(archivistPathEnded, "Expansive Mind, Limitless Mind, Boundless Mind and Infinite Mind")} {
@@ -459,4 +459,45 @@ func TestTheArchivistsPathIsTheOneOffered(t *testing.T) {
 	got, _ := f.paths("The path of Boundless Mind", archivistPathNeither)
 	f.wantMsgs("asked again", got, "box:Spell Archivist: The path of Boundless Mind: Boundless Mind and Infinite Mind.",
 		"ask#*:"+archivistPathAsk+"|The path of Boundless Mind|"+archivistPathNeither)
+}
+
+// Petition 1361: the level 20 class quest's pick is its path's first spell
+// (the path rule: archivistside.go), so "Grant path spells" gives it from
+// level 20: at 25 each path is its level 20 scroll's spell, read off the scroll
+// as the scribe reads it, the one picked written at once; at 45 a change takes
+// it out with the rest of its path and gives the other path's, its level 20
+// first. The controls: at 19 nothing is offered; a city's level 20 that kept
+// one path (its scroll handed over with no choice) makes no spell every
+// path's; "Grant basic spells" gives neither pick, only the merchants' scroll.
+func TestTheArchivistsPathsBeginAtTheLevel20Pick(t *testing.T) {
+	const spSpacious, spBoon = 700215, 700207
+	f := newPathRig(t, 25)
+	f.spell(spSpacious, "Spacious Mind", 20, "Self, Increase Maximum Power by 160, Power by 110, 20min")
+	f.spell(spBoon, "Power Boon", 20, "Target, Increase Power by 100")
+	spacious, boon := f.scroll("Spacious Mind", 1<<classEnc, 20), f.scroll("Power Boon", 1<<classEnc, 20)
+	f.quest(100100, "1-20/qeynos/enchanter/L20", choice(fmt.Sprintf("Spacious Mind=:%d", spacious), fmt.Sprintf("Power Boon=:%d", boon)))
+	f.sideQuest(100101, "1-20/fayspire/enchanter/L20", true, "12", 20, "", fmt.Sprintf("%d*1", spacious), "", "")
+	if msg := f.qe.ReloadQuests(); !strings.HasPrefix(msg, "at once") {
+		t.Fatalf("reload: %s", msg)
+	}
+
+	got, box := f.paths(encAnswers...)
+	f.wantMsgs("the paths at 25", got, "box:Spell Archivist: The path of Expansive Mind: Spacious Mind. The path of Power Jet: Power Boon.", encAsked)
+	f.wantMsgs("self power at 25", f.pick(box, 0), "add:700215@2 flag 0",
+		"box:Spell Archivist: There: Spacious Mind written into your book. The path of Expansive Mind is yours.")
+
+	f.p.Level = 45
+	_, box = f.paths(encAnswers...)
+	f.wantMsgs("power for others asked at 45", f.pick(box, 1),
+		"box:Spell Archivist: For the path of Power Jet, Spacious Mind leaves your book, and Power Boon, Power Jet and Power Surge enter it.",
+		swapAsked)
+	f.wantMsgs("power for others at 45", f.pick(boxID(f.lastAsk()), 0), "remove:2", "add:700207@2 flag 0", "add:700340@3 flag 0",
+		"add:700468@4 flag 0", "box:*It is done: the path of Power Jet is yours now.*")
+	f.wantBook("power for others at 45", "1623@0/0", "6101@1/1", bookRow(spBoon, 2), bookRow(spPowerJet, 3), bookRow(spPowerSurge, 4))
+
+	f.wantMsgs("the basic grant at 45", f.grant(), "add:6102@5 flag 0",
+		"box:Spell Archivist: "+fmt.Sprintf(archivistGranted, spellCount(1), 45))
+
+	f.p.Level = 19
+	f.wantMsgs("at 19", f.pick(f.menu(), archivistPath), "box:Spell Archivist: "+fmt.Sprintf(archivistPathsTooLow, 20))
 }

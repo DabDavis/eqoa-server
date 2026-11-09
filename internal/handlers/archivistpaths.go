@@ -26,15 +26,20 @@ import (
 // a class's reward is in one group or two, the same spells in each): a talk
 // step's choice of options, an ability (and a weapon, which the archivist
 // leaves to the quests), and at the cleric's 49 a step's own spell every pick
-// gets (First Aid). Nothing in the data says which options are one path: the
-// lines are archivistPathLines', an ability carried up the levels (the
-// enchanter's Expansive, Limitless, Boundless and Infinite Mind, its self
-// power; Power Jet and Power Surge, power for others), and
-// TestRealArchivistPathsAreTheQuests holds them to the quests. A path is a
-// line: its spells of every level its holder has reached (30 up, the levels
-// capped at 60), with the steps' own spells of those levels, which every path
-// has. A spell a merchant sells the class as a scroll is no path's: the basic
-// grant gives it (the magician's Incinerating Aura, a 49 option too).
+// gets (First Aid); and, since petition 1361, the level 20 class quest's
+// choice (1-20/<city>/<class>/L20, rehabpaths.go's reL20Key): a scroll of
+// each path's first spell (Spacious Mind, Power Boon), whose spell is read off
+// it as the scribe reads one, of every city whose quest asks the choice (one
+// that kept a single path asks none). Nothing in the data says which options
+// are one path: the lines are archivistPathLines', an ability carried up the
+// levels (the enchanter's Spacious, Expansive, Limitless, Boundless and
+// Infinite Mind, its self power; Power Boon, Power Jet and Power Surge, power
+// for others), and TestRealArchivistPathsAreTheQuests holds them to the
+// quests. A path is a line: its spells of every level its holder has reached
+// (from the first any path gives, 20 on the live data, the levels capped at
+// 60), with the steps' own spells of those levels, which every path has. A
+// spell a merchant sells the class as a scroll is no path's: the basic grant
+// gives it (the magician's Incinerating Aura, a 49 option too).
 //
 // "Grant path spells" says each path's spells to the player's level and
 // which the book holds, then asks which. The one picked is written in:
@@ -56,79 +61,79 @@ import (
 //     quests manually", a quest's spell kept beside the archivist's one path.
 //     Nor do the steps' own spells.
 //
-// Below level 30 he offers nothing. The boxes are the quests' (0x0046,
-// 0x0034), which a PS2 reads: no new message. The words are ours.
-
-// archivistPathsFrom is the first level a path gives a spell at.
-const archivistPathsFrom = 30
+// Below the first level a path gives a spell at (pathsFrom: the level 20
+// picks' on the live data, 30 before petition 1361) he offers nothing. The
+// boxes are the quests' (0x0046, 0x0034), which a PS2 reads: no new message.
+// The words are ours.
 
 // archivistPathLines are each class's paths by class id, each a line of
 // abilities by name across levels 30, 40 and 49, as the path reward quests'
-// options name them; a line's first is its name ("the path of Expansive
-// Mind"). The GM's table (petition 1325's report): an option's spell named in
-// no line is no path's, and the real data's test says so.
+// options name them, then the level 20 class quest's pick of the line (petition
+// 1361); a line's first is its name ("the path of Expansive Mind"), kept from
+// petition 1325's. The GM's table (the petitions' reports): an option's spell
+// named in no line is no path's, and the real data's test says so.
 var archivistPathLines = map[int][][]string{
 	0: { // warrior: a self hit point buff; a taunt with armour
-		{"Roar", "Howl", "Battlecry", "Warcry"},
-		{"Pillar of Strength", "Pillar of Force", "Pillar of Heroics", "Pillar of Deeds"},
+		{"Roar", "Howl", "Battlecry", "Warcry", "Bellow"},
+		{"Pillar of Strength", "Pillar of Force", "Pillar of Heroics", "Pillar of Deeds", "Pillar of Might"},
 	},
 	1: { // ranger: wisdom and power over time; a weapon proc
-		{"Raven Eye", "Hawk Eye", "Falcon Eye", "Eagle Eye"},
-		{"Windblade", "Shockblade", "Stormblade", "Natureblade"},
+		{"Raven Eye", "Hawk Eye", "Falcon Eye", "Eagle Eye", "Sparrow Eye"},
+		{"Windblade", "Shockblade", "Stormblade", "Natureblade", "Strikeblade"},
 	},
 	2: { // paladin: a taunt with armour; armour for another; a melee shield
-		{"Gleaming Bastion", "Hallowed Bastion", "Sacred Bastion", "Blessed Bastion"},
-		{"Secure", "Bolster", "Reinforce", "Bulwark"},
-		{"Marble Barrier", "Granite Barrier", "Iron Barrier", "Steel Barrier"},
+		{"Gleaming Bastion", "Hallowed Bastion", "Sacred Bastion", "Blessed Bastion", "Shining Bastion"},
+		{"Secure", "Bolster", "Reinforce", "Bulwark", "Fortify"},
+		{"Marble Barrier", "Granite Barrier", "Iron Barrier", "Steel Barrier", "Clay Barrier"},
 	},
 	3: { // shadowknight: a life drain; a taunt with armour
-		{"Bloodraven", "Bloodleech", "Bloodghoul", "Bloodwraith"},
-		{"Umbral Tower", "Grim Tower", "Cursed Tower", "Doom Tower"},
+		{"Bloodraven", "Bloodleech", "Bloodghoul", "Bloodwraith", "Bloodwasp"},
+		{"Umbral Tower", "Grim Tower", "Cursed Tower", "Doom Tower", "Shadow Tower"},
 	},
 	4: { // monk: a defensive stance; an offensive strike
-		{"Adamant Stance", "Iron Stance", "Diamond Stance", "Steel Stance"},
-		{"Deft Strike", "Balanced Strike", "Masterful Strike", "Facile Strike"},
+		{"Adamant Stance", "Iron Stance", "Diamond Stance", "Steel Stance", "Stone Stance"},
+		{"Deft Strike", "Balanced Strike", "Masterful Strike", "Facile Strike", "Stasis Strike"},
 	},
 	5: { // bard: the group's power; the group's stats
-		{"Power Twist", "Power Jig", "Power Groove", "Power Vibe"},
-		{"Flowing Combat", "Fluid Combat", "Decisive Combat", "Elegant Combat"},
+		{"Power Twist", "Power Jig", "Power Groove", "Power Vibe", "Power Dance"},
+		{"Flowing Combat", "Fluid Combat", "Decisive Combat", "Elegant Combat", "Sweeping Combat"},
 	},
 	6: { // rogue: hate lost; a direct strike
-		{"Evasion", "Evade", "Elude", "Escape"},
-		{"Lesser Wound", "Wound", "Grievous Wound", "Mortal Wound"},
+		{"Evasion", "Evade", "Elude", "Escape", "Avoidance"},
+		{"Lesser Wound", "Wound", "Grievous Wound", "Mortal Wound", "Minor Wound"},
 	},
 	7: { // druid: fire damage over time; the group's heal
-		{"Emberspark", "Inflame", "Emblaze", "Calefaction"},
-		{"Crawling Health", "Verdant Health", "Blooming Health", "Flowering Health"},
+		{"Emberspark", "Inflame", "Emblaze", "Calefaction", "Enkindle"},
+		{"Crawling Health", "Verdant Health", "Blooming Health", "Flowering Health", "Creeping Health"},
 	},
 	8: { // shaman: a debuff; a pet
-		{"Sickening Wind", "Wilting Wind", "Withering Wind"},
-		{"Spiritual Guard", "Spiritual Hunter", "Spiritual Warrior"},
+		{"Sickening Wind", "Wilting Wind", "Withering Wind", "Decaying Wind"},
+		{"Spiritual Guard", "Spiritual Hunter", "Spiritual Warrior", "Spiritual Guide"},
 	},
 	9: { // cleric: resists; a heal; the elements' resists (First Aid, the 49 step's own, every path's)
-		{"Poison Ward", "Flame Ward"},
-		{"Bind Wounds", "Quick Stitching"},
-		{"Elemental Guard", "Elemental Barrier", "Elemental Bulwark"},
+		{"Poison Ward", "Flame Ward", "Disease Ward"},
+		{"Bind Wounds", "Quick Stitching", "Field Dress"},
+		{"Elemental Guard", "Elemental Barrier", "Elemental Bulwark", "Elemental Ward"},
 	},
 	10: { // magician: the pet's mark; a conjured missile (the 49's Incinerating Aura is a merchant's scroll)
-		{"Burning Mark", "Earthen Mark", "Elemental Mark"},
-		{"Ice Shard", "Fiery Pebble", "Frost Orb"},
+		{"Burning Mark", "Earthen Mark", "Elemental Mark", "Frozen Mark"},
+		{"Ice Shard", "Fiery Pebble", "Frost Orb", "Lava Stone"},
 	},
 	11: { // necromancer: the group's hit points; the group's power
-		{"Blood Squall", "Blood Storm", "Blood Tempest", "Blood Vortex"},
-		{"Power Squall", "Power Storm", "Power Tempest", "Power Vortex"},
+		{"Blood Squall", "Blood Storm", "Blood Tempest", "Blood Vortex", "Blood Gale"},
+		{"Power Squall", "Power Storm", "Power Tempest", "Power Vortex", "Power Gale"},
 	},
 	12: { // enchanter: self power; power for others (the quests offer it nothing at 49)
-		{"Expansive Mind", "Limitless Mind", "Boundless Mind", "Infinite Mind"},
-		{"Power Jet", "Power Surge"},
+		{"Expansive Mind", "Limitless Mind", "Boundless Mind", "Infinite Mind", "Spacious Mind"},
+		{"Power Jet", "Power Surge", "Power Boon"},
 	},
 	13: { // wizard: a nuke that sheds hate; self power
-		{"Static Clash", "Freezing Clash", "Burning Clash", "Shocking Clash"},
-		{"Mental Surge", "Mental Boost", "Heightened Mind", "Towering Mind"},
+		{"Static Clash", "Freezing Clash", "Burning Clash", "Shocking Clash", "Blazing Clash"},
+		{"Mental Surge", "Mental Boost", "Heightened Mind", "Towering Mind", "Mental Focus"},
 	},
 	14: { // alchemist: a self buff; a conjured cocktail
-		{"Teacher's Knack", "Professor's Knack", "Dean's Knack", "Inventor's Knack"},
-		{"Moradhim Cocktail", "Neriak Cocktail", "Freeport Cocktail", "Qeynos Cocktail"},
+		{"Teacher's Knack", "Professor's Knack", "Dean's Knack", "Inventor's Knack", "Student's Knack"},
+		{"Moradhim Cocktail", "Neriak Cocktail", "Freeport Cocktail", "Qeynos Cocktail", "Klik'Anon Cocktail"},
 	},
 }
 
@@ -136,7 +141,7 @@ var archivistPathLines = map[int][][]string{
 // answer 63 and a box 217, his name included (the boxes are cut where they
 // end, between sentences).
 const (
-	archivistPathsTooLow  = "The path spells begin at level 30. Come back to me then."
+	archivistPathsTooLow  = "The path spells begin at level %d. Come back to me then."
 	archivistNoPaths      = "I keep no path of your calling."
 	archivistPathIs       = "The path of %s: %s."
 	archivistPathIsLater  = "The path of %s begins at level %d."
@@ -188,19 +193,22 @@ func (pa classPath) upTo(level int) []pathSpell {
 	return out
 }
 
-// pathReward is what a path reward quest gives at its level: its steps' own
-// spells and the class's (every pick's), and its options' spells.
+// pathReward is what a path quest gives at its level: a 30/40/49 reward
+// quest's steps' own spells and the class's (every pick's) and its options'
+// spells; a level 20 class quest's options' spells and items (its scrolls).
 type pathReward struct {
 	level        int
 	own, options []int
+	optionItems  []int
 }
 
 // reRewardKey is a path reward quest's import key (rehabpaths.go's
 // rePathKey): its level and its class's slug.
 var reRewardKey = regexp.MustCompile(`^30,40,49/group-[^/]+/L(30|40|49)-([a-z]+)$`)
 
-// pathRewards is every enabled path reward quest of the class (its slug
-// database.TransferClassSlugs'), in id order.
+// pathRewards is every enabled path quest of the class (its slug
+// database.TransferClassSlugs'): its 30/40/49 reward quests and its level 20
+// class quests that ask the choice, in id order.
 func (q *QuestEngine) pathRewards(class int) []pathReward {
 	if q == nil || class < 0 || class >= len(database.TransferClassSlugs) {
 		return nil
@@ -208,26 +216,46 @@ func (q *QuestEngine) pathRewards(class int) []pathReward {
 	slug := database.TransferClassSlugs[class]
 	q.mu.Lock()
 	defer q.mu.Unlock()
+	level := func(qu *database.Quest) int {
+		key := importKey(qu.Source)
+		if m := reRewardKey.FindStringSubmatch(key); m != nil && m[2] == slug {
+			n, _ := strconv.Atoi(m[1])
+			return n
+		}
+		if m := reL20Key.FindStringSubmatch(key); m != nil && m[1] == slug {
+			return 20
+		}
+		return 0
+	}
 	var qs []*database.Quest
 	for _, qu := range q.cat.all {
-		if m := reRewardKey.FindStringSubmatch(importKey(qu.Source)); qu.Enabled && m != nil && m[2] == slug {
+		if qu.Enabled && level(qu) > 0 {
 			qs = append(qs, qu)
 		}
 	}
 	sort.Slice(qs, func(i, j int) bool { return qs[i].ID < qs[j].ID })
 	var out []pathReward
 	for _, qu := range qs {
-		m := reRewardKey.FindStringSubmatch(importKey(qu.Source))
-		r := pathReward{}
-		r.level, _ = strconv.Atoi(m[1])
+		r := pathReward{level: level(qu)}
 		for i := range qu.Steps {
 			st := &qu.Steps[i]
-			r.own = append(r.own, st.RewardFor(class).Spells...)
+			if r.level != 20 {
+				r.own = append(r.own, st.RewardFor(class).Spells...)
+			}
 			for _, o := range st.Choices.Options {
-				if !o.Stay {
-					r.options = append(r.options, o.Reward.Spells...)
+				if o.Stay {
+					continue
+				}
+				r.options = append(r.options, o.Reward.Spells...)
+				if r.level == 20 {
+					for _, it := range o.Reward.Items {
+						r.optionItems = append(r.optionItems, it.PatternID)
+					}
 				}
 			}
+		}
+		if r.level == 20 && len(r.options)+len(r.optionItems) == 0 {
+			continue // a city's quest that kept a single path: no choice
 		}
 		out = append(out, r)
 	}
@@ -252,6 +280,7 @@ func classPaths(qe *QuestEngine, arch *spellArchive, class int) ([]classPath, []
 	got := make([][]pathSpell, len(lines))
 	var common []pathSpell
 	seen := map[int]bool{}
+	has := func(id int) bool { _, ok := arch.sources[id][class]; return ok }
 	for _, r := range qe.pathRewards(class) {
 		for _, id := range r.own {
 			if s, ok := arch.names[id]; ok && !seen[id] && !arch.soldTo(class, s.Name) {
@@ -259,7 +288,7 @@ func classPaths(qe *QuestEngine, arch *spellArchive, class int) ([]classPath, []
 				common = append(common, pathSpell{id: id, name: s.Name, level: r.level})
 			}
 		}
-		for _, id := range r.options {
+		for _, id := range arch.optionSpells(r, has) {
 			s, ok := arch.names[id]
 			if !ok || seen[id] || arch.soldTo(class, s.Name) {
 				continue
@@ -292,10 +321,31 @@ func classPaths(qe *QuestEngine, arch *spellArchive, class int) ([]classPath, []
 			}
 			return rank(spells[a]) < rank(spells[b])
 		})
-		paths = append(paths, classPath{name: spells[0].name, spells: spells})
+		name := spells[0].name // the line's first named, else its first given
+		for _, s := range spells {
+			if rank(s) == 0 {
+				name = s.name
+			}
+		}
+		paths = append(paths, classPath{name: name, spells: spells})
 	}
 	sort.SliceStable(common, func(a, b int) bool { return common[a].level < common[b].level })
 	return paths, common
+}
+
+// optionSpells is a path quest's options' spells: their own, then their
+// scrolls' (a level 20 pick's), each read as the scribe reads it for the class
+// (has: the class's classspells).
+func (a *spellArchive) optionSpells(r pathReward, has func(int) bool) []int {
+	out := append([]int(nil), r.options...)
+	for _, it := range r.optionItems {
+		if sc, ok := a.scrollRecs[it]; ok {
+			if s, ok := a.spells.scrollSpell(sc.Name, sc.LevelReq, has); ok {
+				out = append(out, s.SpellID)
+			}
+		}
+	}
+	return out
 }
 
 // soldTo is whether a merchant sells a character of the class a scroll of the
@@ -425,6 +475,20 @@ func planPath(book []database.CharSpellEntry, paths []classPath, common []pathSp
 	return u
 }
 
+// pathsFrom is the first level any of the paths gives a spell at (20, the
+// level 20 picks', on the live data).
+func pathsFrom(paths []classPath) int {
+	from := 0
+	for _, pa := range paths {
+		for _, s := range pa.spells {
+			if from == 0 || s.level < from {
+				from = s.level
+			}
+		}
+	}
+	return from
+}
+
 // sameIDs is whether two lists hold the same ids.
 func sameIDs(a, b []int) bool {
 	if len(a) != len(b) {
@@ -473,21 +537,21 @@ func (a *Archivist) paths(sess *session.Session, p *entity.Player) (*spellArchiv
 }
 
 // askPaths says each path's spells to the player's level and what the book
-// holds, and asks which path to write (the notes at the top); below level 30
-// he offers nothing.
+// holds, and asks which path to write (the notes at the top); below the first
+// level a path gives a spell at (pathsFrom) he offers nothing.
 func (a *Archivist) askPaths(sess *session.Session, id uint32) {
 	p, _, ok := a.here(sess, id)
 	if !ok {
-		return
-	}
-	if p.Level < archivistPathsFrom {
-		a.say(sess, archivistPathsTooLow)
 		return
 	}
 	a.book.Lock()
 	defer a.book.Unlock()
 	_, paths, common, ok := a.paths(sess, p)
 	if !ok {
+		return
+	}
+	if from := pathsFrom(paths); p.Level < from {
+		a.say(sess, fmt.Sprintf(archivistPathsTooLow, from))
 		return
 	}
 	book, err := a.spells.GetCharacterSpells(p.CharServerID)
@@ -555,10 +619,6 @@ func (a *Archivist) pickPath(sess *session.Session, id uint32, k int, name strin
 	if !ok {
 		return
 	}
-	if p.Level < archivistPathsFrom {
-		a.say(sess, archivistPathsTooLow)
-		return
-	}
 	a.book.Lock()
 	defer a.book.Unlock()
 	u, ok := a.plan(sess, p, k, name)
@@ -598,10 +658,6 @@ func (a *Archivist) swapPath(sess *session.Session, ask archivistAsk) {
 	if !ok {
 		return
 	}
-	if p.Level < archivistPathsFrom {
-		a.say(sess, archivistPathsTooLow)
-		return
-	}
 	a.book.Lock()
 	defer a.book.Unlock()
 	u, ok := a.plan(sess, p, ask.path, ask.pathName)
@@ -630,6 +686,10 @@ func (a *Archivist) swapPath(sess *session.Session, ask archivistAsk) {
 func (a *Archivist) plan(sess *session.Session, p *entity.Player, k int, name string) (*pathPlan, bool) {
 	_, paths, common, ok := a.paths(sess, p)
 	if !ok {
+		return nil, false
+	}
+	if from := pathsFrom(paths); p.Level < from {
+		a.say(sess, fmt.Sprintf(archivistPathsTooLow, from)) // a level lost since the question
 		return nil, false
 	}
 	if k < 0 || k >= len(paths) || paths[k].name != name {

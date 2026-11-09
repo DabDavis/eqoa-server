@@ -11,7 +11,9 @@ import (
 
 // The Spell Archivist's grant on a real server's data (EQOA_REAL_DB names its
 // database, a copy of which is opened), every class open to every race as the
-// Heirloom Test Server runs (world.all_classes): each class's basic spells at
+// Heirloom Test Server runs (world.all_classes), its merchants' part alone (no
+// quests run here; the quests' side spells of petition 1361 are
+// TestRealArchivistSideSpells'): each class's basic spells at
 // levels 20, 49 and 60 number what the petition's own checks counted at 60
 // (Jibrish's agent's Go code and a separate Python check, on the Heirloom
 // server's data of 2026-11-08) and what a Python reading of the same rule
@@ -101,13 +103,13 @@ func TestRealArchivistBasicSpells(t *testing.T) {
 			}
 		}
 	}
-	wantBox := fmt.Sprintf("box:Spell Archivist: There: %d spells of your calling written into your book, every one the merchants sell up to level 60 that you lacked.",
+	wantBox := fmt.Sprintf("box:Spell Archivist: There: %d spells of your calling written into your book, every one the merchants sell or its quests teach up to level 60 that you lacked.",
 		want[60][archivistWizard])
 	if adds != want[60][archivistWizard] || len(got) != adds+1 || got[len(got)-1] != wantBox {
 		t.Errorf("the wizard's grant: %d added, the last %q; want %d and %q", adds, got[len(got)-1], want[60][archivistWizard], wantBox)
 	}
 	f.wantMsgs("the wizard's second grant", f.grant(),
-		"box:Spell Archivist: Your book holds every spell of your calling the merchants sell up to level 60 already.")
+		"box:Spell Archivist: Your book holds every spell of your calling the merchants sell or its quests teach up to level 60 already.")
 	box := boxID(f.pick(f.menu(), archivistClear))
 	got = f.pick(box, 0)
 	if n := len(got); n != want[60][archivistWizard]+1 || got[n-1] != fmt.Sprintf("box:Spell Archivist: Your book is clear but for Return Home: %d spells gone.",

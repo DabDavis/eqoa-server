@@ -206,10 +206,23 @@ func effectLabel(e *ActiveEffect) string {
 
 // SendTakenOver tells sess's client, after the MemoryDump of a character it
 // took over, what the dump does not carry and the old client was shown: each
-// ability's lockout still running (0x00CD with what is left of it), so its
-// badge is on the new client's ability bar as it was on the old one's (the
-// server holds the lockout either way). It returns how many it sent.
+// ability's lockout still running (SendLockouts), so its badge is on the new
+// client's ability bar as it was on the old one's (the server holds the
+// lockout either way), and its PvP flag (SendPvPStill). It returns how many
+// lockouts it sent.
 func (w *World) SendTakenOver(sess *session.Session, now time.Time) int {
+	n := w.SendLockouts(sess, now)
+	w.SendPvPStill(sess)
+	return n
+}
+
+// SendLockouts tells sess's client each ability lockout of its player still
+// running, 0x00CD with what is left of it, after a MemoryDump: the dump builds
+// the client's ability bar anew with no lockout on, so until 2026-11-09 a
+// player who died with abilities locked out came back to them shown ready,
+// still refused (petition 1312, Hoofbite: "when you have buffs on cooldown,
+// when you die, they no longer are shaded out"). It returns how many it sent.
+func (w *World) SendLockouts(sess *session.Session, now time.Time) int {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	p := w.sessionPlayerLocked(sess)
@@ -223,8 +236,15 @@ func (w *World) SendTakenOver(sess *session.Session, now time.Time) int {
 			n++
 		}
 	}
-	if p.pvp.on { // the new client has no word of it (pvp.go)
+	return n
+}
+
+// SendPvPStill tells sess's client its player is flagged for PvP, when it
+// is: a new client has no word of it (pvp.go).
+func (w *World) SendPvPStill(sess *session.Session) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	if p := w.sessionPlayerLocked(sess); p != nil && p.pvp.on {
 		w.sendChatToSession(sess, pvpLineStill)
 	}
-	return n
 }

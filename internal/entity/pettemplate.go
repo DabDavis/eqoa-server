@@ -457,7 +457,8 @@ func (w *World) petTemplateSpecialLocked(ps *petState, t *NPC, now time.Time) bo
 	w.broadcastNPCSwingLocked(pet, t.ServerID, 0, fx)
 	pet.LastCombatTime = now
 	log.Printf("Pet: %s's %q (%s) lands its %s on %s for %d before the balance", ps.owner.Name, pet.Name, tm.Name, specialName(tm), t.Name, n)
-	return w.petDamageLocked(ps, t, n, now)
+	// a charmed creature's lands as a creature's does, fixed (classtemplate.go)
+	return w.petLandHitLocked(ps, t, n, now, pet.Charm == nil)
 }
 
 // petCastSystemLocked lands every templated pet's cast whose time has come,

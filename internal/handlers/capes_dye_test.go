@@ -79,7 +79,7 @@ func TestACapeDyedAloneGoesOutAtOnce(t *testing.T) {
 			t.Fatal("the dyer did not answer")
 		}
 		msgs := questMsgs(tw.s)
-		for _, n := range []byte{3, which, 1, 1} {
+		for _, n := range []byte{4, which, 1, 1} {
 			if !d.Answer(tw.s, tw.p, boxID(msgs), n) {
 				t.Fatalf("not the dyer's box: %q", msgs)
 			}
@@ -181,7 +181,7 @@ func TestMyCapeGoesStraightToTheColours(t *testing.T) {
 	}
 
 	got := talk()
-	if !strings.HasSuffix(last(got), ":What shall I dye?|All my armor|One piece of armor|My cape|Robe, cape, shield or weapons|Take every dye off") {
+	if !strings.HasSuffix(last(got), ":What shall I dye?|All my armor|One piece of armor|My cape|Take every dye off|Robe, cape, shield or weapons") {
 		t.Fatalf("the first question with capes: %q", got)
 	}
 	got = pick(got, 2)

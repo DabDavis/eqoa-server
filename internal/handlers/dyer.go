@@ -71,16 +71,18 @@ var dyerChoices = []dyerChoice{
 // armor", the second of the robe's question, and "My cape", the third answer,
 // straight to the colours (the owner's choice, 2026-11-09: until then the cape
 // alone was only under the robe's question; then "up front"). CLIENT's answer
-// box shows three answers a page, so "My cape" ends the first page and the
-// robe's question and "Take every dye off" are on the second, after More.
+// box shows three answers a page, so "My cape" ends the first page and
+// "Take every dye off" and the robe's question are on the second, after More,
+// in that order: More leaves the cursor on the second page's second line, and
+// a press there must not take every dye off at once.
 var dyerChoicesCapes = []dyerChoice{
 	{label: "All my armor", slots: []int{database.DyeChest, database.DyeBracer, database.DyeGloves, database.DyeLegs,
 		database.DyeBoots, database.DyeHelm, database.DyeRobe, database.DyeCape}},
 	dyerChoices[1],
 	one("My cape", database.DyeCape),
+	dyerChoices[3],
 	{label: "Robe, cape, shield or weapons", sub: []dyerChoice{one("Robe", database.DyeRobe), one("Cape", database.DyeCape),
 		one("Shield", database.DyeShield), one("Primary weapon", database.DyePrimary), one("Secondary weapon", database.DyeSecondary)}},
-	dyerChoices[3],
 }
 
 // dyerMenu is what a dyer asks on this server: dyerChoicesCapes where capes

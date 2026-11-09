@@ -1095,7 +1095,8 @@ leave each a buy-back line); the genie sells every cape: to a client that draws 
 gear" (its outfitter's list, as before) or "Heirloom capes" (the npcitem list `capeStock`, 717000, no NPC's), and to
 every other client opens the gear at once, as it always did (`Genie.sellsCapes`, `World.SetGenieCatalog`). An Armor
 Dyer dyes the cape on a server with capes: chardyes' slot 10 (`database.DyeCape`), "All my armor" takes it in, it is the
-second of "Robe, cape, shield or weapons", "Take every dye off" takes its dye off, and #dye names it; a cape goes out
+second of "Robe, cape, shield or weapons", "My cape" (the first question's fifth answer, on the answer box's second page
+after More) goes straight to the colours, "Take every dye off" takes its dye off, and #dye names it; a cape goes out
 (0x7E26, 0x7E27) in its dye, else its record's colour (`Player.CapeTint`, `capeDye`), so vanilla draws a dye as it draws
 the record's colour. Without capes the dyer's questions, #dye's slots, "all" and listing are what they were.
 **The data**: `tools/seed_capes.py [--list] [--apply|--undo]` (logged in `cape_seed_log`; `--undo` exact but a record a

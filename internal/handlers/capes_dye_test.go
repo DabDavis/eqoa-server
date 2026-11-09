@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/binary"
+	"strings"
 	"testing"
 	"time"
 
@@ -122,5 +123,98 @@ func TestACapeDyedAloneGoesOutAtOnce(t *testing.T) {
 	c.gw.Tick(time.Now())
 	if got, want := capeSetsSent(gs), oneCape(5555, 5, 0x2050E0FF); len(got) != 1 || !bytes.Equal(got[0], want) {
 		t.Fatalf("#dye cape: %x, want %x (the dye)", got, want)
+	}
+}
+
+// "My cape", a dyer's fifth answer to "What shall I dye?" on a server with
+// capes (the owner, 2026-11-09, choosing it), goes straight to the colours and
+// dyes the cape alone: chardyes' cape slot and no other, and the next tick's
+// capes in view in the dye. CLIENT's answer box shows three answers a page, so
+// it is on the second page, under "Take every dye off"; the four before it keep
+// their places. The control: without capes the question is its four answers as
+// it was, and a fifth pick asks nothing.
+func TestMyCapeGoesStraightToTheColours(t *testing.T) {
+	capesOn(t)
+	tw := newTalkWorld(t, 100, 100)
+	capeSession(tw.s)
+	tw.s.SetPlayerObjectID(4242)
+	db, err := database.NewSQLite(t.TempDir() + "/dyer.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	rec := &database.CharacterRecord{CharName: "Talker", AccountID: 1, Level: 10}
+	if err := database.NewSQLiteCharacterStore(db).Create(rec); err != nil {
+		t.Fatal(err)
+	}
+	tw.p.CharServerID = rec.ServerID
+	tw.p.CapeStyle = 2
+	d := NewDyer(tw.w, db)
+	dyer := &entity.NPC{ServerID: 3101, Name: "Armor Dyer", NPCType: 0x80}
+	talk := func() []string {
+		t.Helper()
+		if !d.Talk(tw.s, tw.p, dyer) {
+			t.Fatal("the dyer did not answer")
+		}
+		return questMsgs(tw.s)
+	}
+	pick := func(msgs []string, n byte) []string {
+		t.Helper()
+		if !d.Answer(tw.s, tw.p, boxID(msgs), n) {
+			t.Fatalf("not the dyer's box: %q", msgs)
+		}
+		return questMsgs(tw.s)
+	}
+	last := func(msgs []string) string {
+		if len(msgs) == 0 {
+			return ""
+		}
+		return msgs[len(msgs)-1]
+	}
+	var families []string
+	for _, f := range database.DyeFamilies {
+		families = append(families, f.Label)
+	}
+	tw.w.Tick(time.Now())
+	if got, want := capeSetsSent(tw.s), oneCape(4242, 2, 0); len(got) != 1 || !bytes.Equal(got[0], want) {
+		t.Fatalf("the first set: %x, want %x", got, want)
+	}
+
+	got := talk()
+	if !strings.HasSuffix(last(got), ":What shall I dye?|All my armor|One piece of armor|Robe, cape, shield or weapons|Take every dye off|My cape") {
+		t.Fatalf("the first question with capes: %q", got)
+	}
+	got = pick(got, 4)
+	if !strings.HasSuffix(last(got), ":Which colors for my cape?|"+strings.Join(families, "|")) {
+		t.Fatalf("My cape: %q, want the colours' families at once", got)
+	}
+	got = pick(got, 1) // Reds and pinks
+	if !strings.Contains(last(got), ":Which color for my cape?|") {
+		t.Fatalf("the family's colours: %q", got)
+	}
+	if got = pick(got, 1); !hasMsg(got, "box:Armor Dyer: There: crimson.") { // Crimson
+		t.Fatalf("the dyer's last word: %q", got)
+	}
+	dyes, err := db.CharDyes(rec.ServerID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for slot, c := range dyes {
+		if want := map[bool]uint32{true: 0xA0001EFF}[slot == database.DyeCape]; c != want {
+			t.Fatalf("My cape dyed %s %08X, want %08X", database.DyeSlotNames[slot], c, want)
+		}
+	}
+	tw.w.Tick(time.Now())
+	if got, want := capeSetsSent(tw.s), oneCape(4242, 2, 0xA0001EFF); len(got) != 1 || !bytes.Equal(got[0], want) {
+		t.Fatalf("My cape's dye: %x, want %x (crimson)", got, want)
+	}
+
+	entity.SetCapes(false)
+	got = talk()
+	if !strings.HasSuffix(last(got), ":What shall I dye?|All my armor|One piece of armor|Robe, shield or weapons|Take every dye off") {
+		t.Fatalf("the control, no capes: %q, want the four answers as they were", got)
+	}
+	if after := pick(got, 4); len(after) != 0 {
+		t.Fatalf("the control: a fifth pick without capes asked %q", after)
 	}
 }

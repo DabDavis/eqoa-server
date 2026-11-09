@@ -468,7 +468,7 @@ func (s *Server) deleteCharacter(a *actor, id int64, dry bool) (any, error) {
 		return nil, forbidden("that character's account is at or above your level")
 	}
 	deps := []struct{ table, col string }{
-		{"charinventory", "serverid"}, {"spells", "serverid"}, {"charbuffs", "serverid"}, {"charfactions", "serverid"}, {"hotkeys", "serverid"},
+		{"charinventory", "serverid"}, {"spells", "serverid"}, {"charbuffs", "serverid"}, {"charlockouts", "serverid"}, {"charfactions", "serverid"}, {"hotkeys", "serverid"},
 		{"weaponhotbar", "serverid"}, {"quickslots", "serverid"}, {"gearsets", "serverid"}, {"charbuyback", "serverid"},
 		{"charquests", "serverid"}, {"charcoaches", "serverid"}, {"charresets", "serverid"}, {"rehabtemplates", "serverid"},
 		{"charrecord", "serverid"},

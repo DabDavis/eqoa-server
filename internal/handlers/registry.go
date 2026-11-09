@@ -431,6 +431,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 
 	// A GM's flight: a client's word that it flies (fly.go)
 	NewFlyHandler().RegisterHandlers(r)
+	// A player's jump: a client's answer to the offer (jump.go, world.jump)
+	NewJumpHandler(gameWorld).RegisterHandlers(r)
 
 	// Register the buddy and ignore lists (entity/social.go)
 	NewSocialHandler(gameWorld).RegisterHandlers(r)

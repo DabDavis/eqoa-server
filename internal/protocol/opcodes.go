@@ -613,6 +613,16 @@ const (
 	// list: a name it leaves out is drawn in its body's own colours.
 	OpcodeRaceLooks GameOpcode = 0x7E24
 
+	// OpcodeJump is not retail: a player's jump (entity/jump.go,
+	// handlers/jump.go; world.jump), a u32 after the opcode, both ways. CLIENT's
+	// walk has no jump, so the server offers it (1) only to a client of its own:
+	// one that answered the bug report offer (OpcodeBugReportOffer), which a PS2
+	// never does, so a PS2 is never sent it. A client that jumps answers 1 (0: it
+	// does not), and the movement check takes a jump's arc from that player
+	// (movecheck.go). The server says 0 to a client it offered jumps to before a
+	// restart into a server without them. 0x7E29-0x7E2B are left for the jump.
+	OpcodeJump GameOpcode = 0x7E28
+
 	// 0x7E10-0x7E16 were voice chat's (offer, config, roster, signal, room,
 	// lobby, room state), removed with it on 2026-11-08: left unused, as a
 	// client from before then may still send them
@@ -898,6 +908,8 @@ func (op GameOpcode) String() string {
 		return "CombatRecordData"
 	case OpcodeFly:
 		return "Fly"
+	case OpcodeJump:
+		return "Jump"
 	case OpcodeCreationOffer:
 		return "CreationOffer"
 	case OpcodeCreationRaces:

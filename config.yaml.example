@@ -49,6 +49,12 @@ world:
   # flagged players can attack each other anywhere. Off unless set.
   # pvp: true
 
+  # Lets players jump (entity/jump.go): a client that can (vanilla, opcode
+  # 0x7E28) is offered it and jumps about 0.9 up, and the check of players' own
+  # moves takes a jump's arc from it. A PS2 cannot jump and is never offered it.
+  # Off unless set.
+  # jump: true
+
   # What an NPC says when talked to, by name, in place of the debug box
   # (ServerID, HP, position...) every other NPC opens.
   npc_text:

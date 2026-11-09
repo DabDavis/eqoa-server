@@ -112,6 +112,16 @@ func TestParseTemplateCMs(t *testing.T) {
 	if len(ParseTemplateCMs("")) != 0 {
 		t.Errorf("an empty column has ranks")
 	}
+	for _, good := range []string{"", " ", "6634:10", "1:0, 2:15,3:200"} {
+		if err := CheckTemplateCMs(good); err != nil {
+			t.Errorf("%q refused: %v", good, err)
+		}
+	}
+	for _, bad := range []string{"x", "1", "1:10,", "1:10,1:12", "0:5", "-2:5", "1:-5", "1:ten", ":5"} {
+		if CheckTemplateCMs(bad) == nil {
+			t.Errorf("%q passed", bad)
+		}
+	}
 }
 
 // A template used is kept in one transaction each: the tp columns moved by the

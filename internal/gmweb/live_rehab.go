@@ -82,3 +82,33 @@ func checkRehabSettingRow(row map[string]any) error {
 	}
 	return wholeAtLeast0(row, "value", database.MaxRehabValue)
 }
+
+// checkRehabTemplateRow holds a rehabtemplates row to a character, a slot the
+// rehabilitators offer (1 or 2), whole training points of 0 or more and a cms
+// column the game reads every entry of (database.CheckTemplateCMs: "id:cost",
+// comma separated), so a GM's typo is refused rather than a rank dropped.
+func checkRehabTemplateRow(row map[string]any) error {
+	id, ok := asFloat(row["serverid"])
+	if !ok || id != math.Trunc(id) || id <= 0 {
+		return badRequest("serverid is the character's (characters.serverid)")
+	}
+	slot, ok := asFloat(row["slot"])
+	if !ok || slot != math.Trunc(slot) || slot < 1 || slot > database.RehabTemplateSlots {
+		return badRequest("slot is 1 or %d", database.RehabTemplateSlots)
+	}
+	for _, col := range []string{"level", "tpstrength", "tpstamina", "tpagility", "tpdexterity", "tpwisdom", "tpintel", "tpcharisma"} {
+		if err := wholeAtLeast0(row, col, 100000); err != nil {
+			return err
+		}
+	}
+	if v, present := row["cms"]; present && v != nil {
+		s, ok := v.(string)
+		if !ok {
+			return badRequest("cms is text: cmcatalog id:cost, comma separated")
+		}
+		if err := database.CheckTemplateCMs(s); err != nil {
+			return badRequest("cms: %v", err)
+		}
+	}
+	return nil
+}

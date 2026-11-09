@@ -582,6 +582,9 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 
 	// the look it plays in, before anything reads the character
 	h.keepSelectedLook(record, data)
+	// the Rock of Freeport, on a server that gives it, before its items are
+	// read (rockfreeport.go)
+	h.giveRockOfFreeport(uint32(record.ServerID))
 
 	log.Printf("SelectedChar: selected '%s' (level %d race=%d class=%d)", record.CharName, record.Level, record.Race, record.TClass)
 

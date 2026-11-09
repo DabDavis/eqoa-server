@@ -1198,7 +1198,38 @@ portal. Go?", Yes, No) for `PortalCallWait` (1 minute); a yes sends it as a Call
 tick's `runTravels`, `travelPlayer`: the world loaded when it changes), round where the portal's owner stood when it opened, and
 the caller is told each end (answered, declined, no answer, left, closed). A box CLIENT declines itself because a menu is up
 (Msg0034, a 255 within `portalDeclinedWithin`) is no answer: the target is told in a line who calls and the box goes out again
-every 3 s until it shows. Not kept over a restart, as a genie is not.
+every 3 s until it shows. The box's second answer, "Take me to Freeport" (the user, 2026-11-09: "lets add to summoning portal to
+port back to freeport, where dabrish is"), sends whoever talks to the portal through it, no name awaited, to 3 in front of Dabrish
+by his facing, wherever he stands (`freeportSpot`, which the Rock of Freeport shares; `World.PortalSend`, the same travel). Not
+kept over a restart, as a genie is not.
+
+### The Rock of Freeport: a heirloom cast to Dabrish (`handlers/rockfreeport.go`, `world.rock_of_freeport`)
+
+The GM Jibrish's petition 1338, 2026-11-09: "Add a stone every character in game gets by default on the test server (heirloom).
+This stone is called "Rock of Freeport" and on use it teleports the caster in front of Dabrish in freeport. This is unlimited
+uses. The teleport should have a 2 second cast time, using return homes spell animation. infinite use". **`world.rock_of_freeport`**
+(off unless set: the Heirloom Test Server sets it, the Live Server does not) turns all of it on, and nothing else does (not
+`world.heirlooms`). **The record** is made by the server at its start when none named "Rock of Freeport" and worn nowhere exists
+(`EnsureRockOfFreeport`, `database.EnsureItemRecord`: at 715050, the kept items' next id after the Stone of Guenhwyvar's 715030
+and Drizzt's 715040-715042, else the first free one above it; never rewritten, so a GM's edit in the panel stands), so no data
+step runs on any shard and the Live database never gets one: the gem type (procanim 7: the item menu's Use and the HUD's gem quick
+slot, as the fang and the portal), NO TRADE, LORE, worth 0, a stack of one, level 1, every class and race, 80 DUR, on the blue rune
+stone Sandstorm's own travel stones wear (icon 414194432: its "Freeport Travel Stone" and "Zentar's Keep Travel Stone", and the
+Grobb Teleportation Rune). **The gift**: a character holding none anywhere (pack or bank) is given one in its pack at its login,
+before its items are read (`giveRockOfFreeport`, beside the kept items'), while the pack holds fewer than `invListCap` records; a
+full pack gets none and is told so once in the world, in yellow at its first 0x0014 (`tellRockOwed`, as `norent.go` tells), and the
+next login tries again (no bank fallback). A new character has its stone from its first login: no `startitems` row. **The Use**
+(0x003E) finds the place first, 3 in front of Dabrish by his facing wherever he stands (`freeportSpot`, the portal's, with
+`ValidateTeleport`), refused in red without one ("The Rock of Freeport cannot find Freeport."); then it is a cast of 2 s
+(`RockCastTime`) through the World's own casting (`entity.CastSpell.Travel`): `StartCast`'s waits and checks, what a cast ends
+(invisibility, a meal), and the caster's CastingCombat at itself for 2000 ms in **Return Home's visual** (its `spelleffect` row's
+fxdict, spell 1623: 0x8FB28233 on eqoaclassic, `ReturnHomeVisual` without a row) to everyone who sees it; no lockout and no 0x00CD
+(it is no ability of the book), no power. It lands as every cast lands, `castLand` (1.4 s) after its cast time, its caster alone
+handed to the travel hook as a gate's traveller (`travelPlayer`: the teleport, 0x00B2, the world loaded when it changes). As every
+cast here it goes on through a move or a hit (CLIENT has no cancel, and the server stops no cast for either), death ends it, a use
+within another cast's time is let go unanswered, and so is a second stone while the first is on its way (`travelOnItsWayLocked`),
+both asked before the place is looked for (`TravelBusy`: finding Dabrish walks every NPC, so a held quick slot must not). Never spent; a cast on its way ends at a keep restart, as any does. With the switch off a stone held only says "The Rock of
+Freeport is quiet here."
 
 ### The L2 menu's quick chat is kept (`handlers/hotkeys.go`, `database/hotkeys.go`)
 
@@ -2160,6 +2191,7 @@ world:
   capes: true               # the cape slot, wear 28 in equip slot 22, for clients that draw capes (handlers/capes.go); unset: none
   imported_tag: true        # "(Imported)" after a transfer's damped gear (database/imported.go); unset: not shown
   imported_share: 0.85      # what a transfer's gear keeps of its record's stats and procs; unset: 0.85
+  rock_of_freeport: true    # the Rock of Freeport: its record made at the start, given at a login, a 2 s cast to Dabrish (handlers/rockfreeport.go); unset: none
 auth:
   shared_db: "/srv/one/eqoa.db"   # another shard's accounts, a copy here; every sign-in by the token's password
   shared_refresh: 10s

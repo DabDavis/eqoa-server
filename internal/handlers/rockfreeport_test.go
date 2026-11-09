@@ -211,6 +211,10 @@ func TestTheRockOfFreeportCastsYouToDabrish(t *testing.T) {
 			t.Errorf("a 0x00CD % X: the stone is no ability", m)
 		}
 	}
+	// the quick slot pressed again during the cast: nothing, as a cast's
+	if again := r.use(r.key(r.rock), 1); len(again) != 0 {
+		t.Errorf("a press during the cast sent %s", ops(again))
+	}
 	want, err := freeportSpot(r.gw)
 	if err != nil {
 		t.Fatal(err)

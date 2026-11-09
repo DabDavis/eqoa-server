@@ -49,6 +49,13 @@ import (
 //   - the forge: 0x0061 with GenieWindowID as the blacksmith (m_p22B78, handed
 //     back with each repair), repairs at a blacksmith's price (blacksmith.go:
 //     the item's value by its wear; heirlooms, worth nothing, mend free).
+// On a server with capes (world.capes; capes.go) its wares are two shops to a
+// client that draws capes (the user, 2026-11-09: "add heirloom capes to the
+// genie and heirloom vendors"): "Your wares" asks again, "Heirloom gear" (the
+// outfitter's catalog as before) or "Heirloom capes" (every heirloom cape, the
+// npcitem list capeStock, which no outfitter's 40 has room for: a ranger's and
+// a rogue's lists hold 37 already). Every other client is shown the gear at
+// once, as it always was.
 // windowNPC takes a window request as the genie's while the player holds the
 // window (World.GenieWindowNPC: GenieReach from where the genie stood, in its
 // world, alive, used within GenieWindowIdle). CLIENT sends nothing when the
@@ -89,6 +96,19 @@ const (
 	genieNoWares    = "I have no wares for one of your calling."
 	genieShopGreets = "Heirlooms for you, master."
 	genieNoGenie    = "The lamp is cold. Try again in a moment."
+	// a client that draws capes: which of its wares (capes.go)
+	genieWaresQuestion = "Which wares, master?"
+	genieCapesGreets   = "Heirloom capes for you, master."
+)
+
+// genieWares are the answers to genieWaresQuestion, in its box's order.
+var genieWares = []string{"Heirloom gear", "Heirloom capes"}
+
+// The genie's questions: its first (genieAnswers), and which wares
+// (genieWares).
+const (
+	genieAskWhat = iota
+	genieAskWares
 )
 
 // IsGenieBox reports a box a genie asked.
@@ -116,8 +136,9 @@ type Genie struct {
 }
 
 type genieAsk struct {
-	id uint32
-	at time.Time
+	id    uint32
+	at    time.Time
+	stage int // genieAskWhat, genieAskWares
 }
 
 type genieShopAt struct {
@@ -146,12 +167,53 @@ func (g *Genie) say(sess *session.Session, line string) {
 }
 
 func (g *Genie) ask(sess *session.Session, p *entity.Player) {
+	g.askStage(sess, p, genieAskWhat, genieQuestion, genieAnswers)
+}
+
+// askStage asks the player one of the genie's questions.
+func (g *Genie) askStage(sess *session.Session, p *entity.Player, stage int, question string, answers []string) {
 	g.mu.Lock()
 	g.seq++
-	a := genieAsk{id: genieBoxMark | (g.seq & 0xFFFFFF), at: g.now()}
+	a := genieAsk{id: genieBoxMark | (g.seq & 0xFFFFFF), at: g.now(), stage: stage}
 	g.asked[p.CharServerID] = a
 	g.mu.Unlock()
-	SendQuestPopupMulti(sess, a.id, genieQuestion, genieAnswers)
+	SendQuestPopupMulti(sess, a.id, question, answers)
+}
+
+// sellsCapes is whether the genie offers its capes to sess's client: one that
+// draws capes (readsCapes), with capes in the capes' list (capeStock).
+func (g *Genie) sellsCapes(sess *session.Session) bool {
+	if !readsCapes(sess) || g.windows == nil || g.windows.inv == nil {
+		return false
+	}
+	wares, err := g.windows.inv.GetNPCItems(capeStock)
+	if err != nil {
+		log.Printf("Genie: the capes' list: %v", err)
+	}
+	for _, w := range wares {
+		if isCape(&w.Pattern) {
+			return true
+		}
+	}
+	return false
+}
+
+// openShop opens the genie's shop on the npcitem list catalog, greeting with
+// greets; the genie leaves.
+func (g *Genie) openShop(sess *session.Session, p *entity.Player, catalog int, greets string, now time.Time) {
+	npc, id, ok := g.window(sess, entity.GenieShop, now)
+	if !ok {
+		return
+	}
+	if catalog != 0 {
+		g.gw.SetGenieCatalog(sess, catalog)
+	}
+	if npc.NPCID == 0 || g.windows == nil {
+		g.gw.DismissGenie(sess)
+		g.say(sess, genieNoWares)
+		return
+	}
+	g.windows.openMerchant(sess, p, npc, id, greets)
 }
 
 // Summon is the lamp used: the player's genie comes and asks.
@@ -208,6 +270,24 @@ func (g *Genie) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 		return true
 	}
 	now := g.now()
+	if a.stage == genieAskWares {
+		switch int(option) {
+		case 0: // Heirloom gear: the outfitter's catalog it was summoned with
+			g.openShop(sess, p, 0, genieShopGreets, now)
+		case 1: // Heirloom capes (capes.go)
+			g.openShop(sess, p, capeStock, genieCapesGreets, now)
+		case 255:
+			if now.Sub(a.at) < genieDeclinedWithin {
+				log.Printf("Genie: %s's client declined the box at once: the genie waits", p.Name)
+				return true
+			}
+			g.gw.DismissGenie(sess)
+		default:
+			g.gw.DismissGenie(sess)
+			g.say(sess, genieFarewell)
+		}
+		return true
+	}
 	switch int(option) {
 	case genieBank:
 		if !g.gw.GenieOpened(sess, entity.GenieBank, 0, now) {
@@ -219,16 +299,13 @@ func (g *Genie) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 		}
 		log.Printf("Genie: %s opened the bank", p.Name)
 	case genieShop:
-		npc, id, ok := g.window(sess, entity.GenieShop, now)
-		if !ok {
+		// a client that draws capes chooses its gear or its capes (capes.go);
+		// every other is shown the gear at once
+		if g.sellsCapes(sess) {
+			g.askStage(sess, p, genieAskWares, genieWaresQuestion, genieWares)
 			return true
 		}
-		if npc.NPCID == 0 || g.windows == nil {
-			g.gw.DismissGenie(sess)
-			g.say(sess, genieNoWares)
-			return true
-		}
-		g.windows.openMerchant(sess, p, npc, id, genieShopGreets)
+		g.openShop(sess, p, 0, genieShopGreets, now)
 	case genieSmith:
 		if _, id, ok := g.window(sess, entity.GenieSmith, now); ok {
 			queueReliable(sess, protocol.OpcodeBlackSmithMenu, blacksmithPayload(id))

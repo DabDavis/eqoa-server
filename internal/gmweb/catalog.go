@@ -75,14 +75,16 @@ func enums() map[string][]EnumValue {
 		"wirerace": raceEnum()[:10],
 		"sex":      numbered("Male", "Female"),
 		"world":    w,
-		// handlers/equip.go: charinventory.equiploc, CLIENT's equip slots
+		// handlers/equip.go: charinventory.equiploc, CLIENT's equip slots, and
+		// the cape's of this server's own past them (handlers/capes.go)
 		"equiploc": append([]EnumValue{{-1, "Not worn"}}, numbered("Head", "Hands", "Left ear", "Right ear",
 			"Neck", "Chest", "Right bracelet", "Left bracelet", "Bracers", "Left ring", "Right ring", "Belt",
-			"Legs", "Feet", "Primary", "Secondary", "Two-handed", "Shield", "Ranged", "Held", "Held 2", "Robe")...),
-		// handlers/equip.go: itempattern.equipslot, the item's wear slot
+			"Legs", "Feet", "Primary", "Secondary", "Two-handed", "Shield", "Ranged", "Held", "Held 2", "Robe", "Cape")...),
+		// handlers/equip.go: itempattern.equipslot, the item's wear slot; 28 the
+		// cape's (handlers/capes.go)
 		"wearslot": numbered("None", "Head", "Robe", "Earring", "Neck", "Chest", "Forearm", "Both forearms",
 			"Ring", "Belt", "Legs", "Feet", "Primary", "Shield", "Secondary", "Two-handed", "Bow", "Thrown",
-			"Held", "Hands", "Fishing pole", "Bait", "Tool (1)", "Tool (2)", "Tool (3)", "Tool (4)", "Tool (5)", "Tool (6)"),
+			"Held", "Hands", "Fishing pole", "Bait", "Tool (1)", "Tool (2)", "Tool (3)", "Tool (4)", "Tool (5)", "Tool (6)", "Cape"),
 		"location":   {{0, "Inventory"}, {1, "Bank"}},
 		"acctstatus": {{1, "Active"}, {0, "Inactive"}, {-1, "Banned"}},
 		"bool":       {{0, "No"}, {1, "Yes"}},
@@ -102,7 +104,7 @@ func enums() map[string][]EnumValue {
 		// craftrecipes.rarity: the book's Rarity column (C, UC, R, UR)
 		"craftrarity": numbered("Common", "Uncommon", "Rare", "Ultra Rare"),
 		// chardyes.slot (database/chardyes.go, entity/livelook.go)
-		"dyeslot": numbered("Chest", "Bracer", "Gloves", "Legs", "Boots", "Helm", "Primary", "Secondary", "Shield", "Robe"),
+		"dyeslot": numbered("Chest", "Bracer", "Gloves", "Legs", "Boots", "Helm", "Primary", "Secondary", "Shield", "Robe", "Cape"),
 		// classtemplates.class (entity/classtemplate.go): -1 the NPC's own
 		"templateclass": append([]EnumValue{{-1, "The NPC's own (NPC classes)"}}, numbered("Warrior", "Ranger", "Paladin", "Shadow Knight", "Monk", "Bard", "Rogue", "Druid", "Shaman", "Cleric", "Magician", "Necromancer", "Enchanter", "Wizard", "Alchemist")...),
 	}
@@ -273,7 +275,8 @@ var catalog = map[string]tableNote{
 			"(eqoa-rust-client-vanilla: the live game's state channel and character list, which carry a colour where the " +
 			"disc's carry a tint). A PS2 never sees one. Color is 0xRRGGBBAA, red in the high byte (0xD10000FF red, " +
 			"0xFFFFFFFF white); alpha 0 is refused. A slot with no row is undyed and looks as it always has. #dye in the " +
-			"game sets them too.",
+			"game sets them too. Slot 10 is the cape's (a server with world.capes): its colour is the cape's, drawn by a " +
+			"client that draws capes, over the cape record's own.",
 		Live:   "At once where the character stands (every client of the live look, from the next tick), else at its next login.",
 		Search: []string{"note", "source"},
 		Cols: map[string]colNote{

@@ -160,14 +160,14 @@ type merchantList struct {
 }
 
 // merchantList reads npc's catalog and the player's entries, as many as the client's list has room
-// for after the wares, the newest kept.
-func (h *NPCWindowHandler) merchantList(player *entity.Player, npc *entity.NPC) merchantList {
+// for after the wares, the newest kept. capes is whether the player's client draws capes (waresFor).
+func (h *NPCWindowHandler) merchantList(player *entity.Player, npc *entity.NPC, capes bool) merchantList {
 	var l merchantList
 	if h.inv == nil {
 		return l
 	}
 	var err error
-	if l.wares, err = h.waresFor(player, npc); err != nil {
+	if l.wares, err = h.waresFor(player, npc, capes); err != nil {
 		log.Printf("Merchant: catalog of %q (npc %d): %v", npc.Name, npc.NPCID, err)
 	}
 	for i := range l.wares { // the buyer's own view: an heirloom's figures (heirloom.go)
@@ -194,11 +194,16 @@ func (h *NPCWindowHandler) merchantList(player *entity.Player, npc *entity.NPC) 
 // A buy's catalog index is into this list (merchant.go's buy), so the two may
 // never differ: until 2026-11-08 the buy indexed the whole catalog and gave
 // another class's item (the user: "im buying staff of faykind with Birdie but is
-// giving me wrong items": Heirloom Bracers twice).
-func (h *NPCWindowHandler) waresFor(player *entity.Player, npc *entity.NPC) ([]database.CharInventoryEntry, error) {
+// giving me wrong items": Heirloom Bracers twice). A cape (capes.go) is listed
+// only to a client that draws capes (capes, readsCapes): every other one, a
+// PS2's, could not wear it, and is listed what it always was.
+func (h *NPCWindowHandler) waresFor(player *entity.Player, npc *entity.NPC, capes bool) ([]database.CharInventoryEntry, error) {
 	wares, err := h.inv.GetNPCItems(npc.NPCID)
 	if err != nil {
 		return nil, err
+	}
+	if !capes {
+		wares = waresBut(wares, isCape)
 	}
 	if classShop(npc) { // the buyer's class's alone, before the client's 40
 		wares = waresForClass(wares, int(player.Class))
@@ -234,6 +239,17 @@ const SpellArchivistName = "Spell Archivist"
 // (waresForClass): an heirloom shop, or a Spell Archivist.
 func classShop(npc *entity.NPC) bool {
 	return heirloomShop(npc) || isSpellArchivist(npc)
+}
+
+// waresBut is the wares but those of which drop is true, in their order.
+func waresBut(wares []database.CharInventoryEntry, drop func(*database.ItemPatternRecord) bool) []database.CharInventoryEntry {
+	out := wares[:0:0]
+	for _, w := range wares {
+		if !drop(&w.Pattern) {
+			out = append(out, w)
+		}
+	}
+	return out
 }
 
 // waresForClass is the wares a class can use (classuse), in their order.
@@ -281,7 +297,7 @@ func (h *NPCWindowHandler) sendMerchantList(sess *session.Session, id uint32, gr
 		prev.mu.Unlock()
 	}
 	sess.SetMerchantWindow(w)
-	queueReliable(sess, protocol.OpcodeMerchantBox, merchantBoxPayload(id, l.wares, l.greetingWith(greeting), lines...))
+	queueReliable(sess, protocol.OpcodeMerchantBox, merchantBoxPayload(id, l.wares, l.greetingWith(greeting), readsCapes(sess), lines...))
 }
 
 // refreshMerchant sends the list again in place when the session's window is on this merchant and
@@ -291,7 +307,7 @@ func (h *NPCWindowHandler) refreshMerchant(sess *session.Session, player *entity
 	if w == nil || w.id != id {
 		return
 	}
-	l := h.merchantList(player, npc)
+	l := h.merchantList(player, npc, readsCapes(sess))
 	same := w.wares == len(l.wares) && len(w.lines) == len(l.lines)
 	for i := 0; same && i < len(l.lines); i++ {
 		same = w.lines[i] == l.lines[i].ID
@@ -364,7 +380,7 @@ func (h *NPCWindowHandler) buyBack(sess *session.Session, player *entity.Player,
 	rec.ItemID = itemID
 	w.serve(index, now)
 	h.refreshMerchant(sess, player, npc, id)
-	queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(&rec, key))
+	queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(&rec, key, readsCapes(sess)))
 	queueReliable(sess, protocol.OpcodePlayerTunar, tunarPayload(player.Tunar))
 	log.Printf("BuyBack: %s bought back %d of %q from %q for %d (entry %d, item %d, %s)",
 		player.Name, n, p.ItemName, npc.Name, e.Price, e.ID, itemID, e.How)

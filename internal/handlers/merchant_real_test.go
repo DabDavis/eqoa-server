@@ -101,7 +101,7 @@ func TestRealMerchantsSellSomething(t *testing.T) {
 			}
 		}
 		// the window's message builds for it
-		if len(merchantBoxPayload(uint32(npc.ID), catalog[:min(len(catalog), invListCap)], merchantGreeting)) == 0 {
+		if len(merchantBoxPayload(uint32(npc.ID), catalog[:min(len(catalog), invListCap)], merchantGreeting, false)) == 0 {
 			t.Errorf("%s: an empty 0x00B7", npc.NPCName)
 		}
 	}

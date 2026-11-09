@@ -354,7 +354,7 @@ func TestCraftCreateMakesTheProduct(t *testing.T) {
 		t.Fatal(err)
 	}
 	made := database.CharInventoryEntry{StackLeft: 1, RemainHP: 50, EquipLoc: -1, Location: -1, Pattern: *plate}
-	mustBytes(t, "0x003B", got[4], addInvItemPayload(&made, 3))
+	mustBytes(t, "0x003B", got[4], addInvItemPayload(&made, 3, false))
 	if f.stack(f.ore) != 0 || f.stack(f.gem) != 1 || f.stack(f.plate) != 1 {
 		t.Fatalf("kept: ore %d, gems %d, plates %d; want 0, 1, 1", f.stack(f.ore), f.stack(f.gem), f.stack(f.plate))
 	}

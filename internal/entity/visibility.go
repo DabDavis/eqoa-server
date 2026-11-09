@@ -5,6 +5,7 @@ import (
 	"github.com/eqoa/server/internal/debuglog"
 	"log"
 	"sort"
+	"sync/atomic"
 	"time"
 
 	"github.com/eqoa/server/internal/session"
@@ -29,6 +30,12 @@ type VisibilityState struct {
 	ChannelEntity   []EntityID // Entity in each slot
 	ChannelObjectID []uint32   // ObjectID assigned to each slot's entity
 	nextObjectID    uint32     // Counter for assigning stable object IDs
+
+	// capesSent is the last set of capes in view sent to the client
+	// (capes.go: OpcodeCapesInView's body), touched under the world lock;
+	// capesDue sends the next one whatever it is (ResendCapes).
+	capesSent string
+	capesDue  atomic.Bool
 }
 
 // GetOrCreateVisibility retrieves or creates a VisibilityState from a session.

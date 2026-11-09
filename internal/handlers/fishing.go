@@ -228,12 +228,12 @@ func fishSend(sess *session.Session, sub byte, more func(w *buffer.Writer)) {
 // catchPayload is 0x0F02 7: the catch as VIItemList::Read reads it (the
 // zigzag count, the list's counter, then each record), each record keyed by
 // its place in the list.
-func catchPayload(catch []database.CharInventoryEntry) []byte {
+func catchPayload(catch []database.CharInventoryEntry, capes bool) []byte {
 	return fishPayload(fishLoot, func(w *buffer.Writer) {
 		w.Write7BitEncodedInt64(int64(len(catch)))
 		w.WriteUint32(uint32(len(catch)))
 		for i := range catch {
-			writeSingleItem(w, &catch[i], i)
+			writeSingleItem(w, &catch[i], i, capes)
 		}
 	})
 }
@@ -539,7 +539,7 @@ func (h *FishingHandler) bite(sess *session.Session, id int, quality uint32) {
 	for i := range catch {
 		st.keys[i] = uint32(i)
 	}
-	queueReliable(sess, OpcodeFishing, catchPayload(catch))
+	queueReliable(sess, OpcodeFishing, catchPayload(catch, readsCapes(sess)))
 	names := make([]string, len(catch))
 	for i := range catch {
 		names[i] = fmt.Sprintf("%d %q", catch[i].StackLeft, catch[i].Pattern.ItemName)

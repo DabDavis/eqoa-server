@@ -129,6 +129,12 @@ type Session struct {
 	// creationOffered: the creation offer went out (protocol.OpcodeCreationOffer,
 	// handlers/creation.go), once a session as the live look's.
 	creationOffered bool
+	// capes: the client answered the cape offer 1 (protocol.OpcodeCapes,
+	// handlers/capes.go): it draws capes, so it is sent a cape's wear slot and
+	// a worn one's equip slot, may wear one, and is told who wears which.
+	// capesOffered: the offer went out, once a session as the live look's.
+	capes        bool
+	capesOffered bool
 
 	// clock is the game clock the session's client keeps, set by each 0x0013
 	// it was sent: its time of day (gameclock.go).
@@ -280,6 +286,39 @@ func (s *Session) OfferCreationOnce() bool {
 	defer s.mu.Unlock()
 	first := !s.creationOffered
 	s.creationOffered = true
+	return first
+}
+
+// SetCapes records the client's answer to the cape offer: it draws capes.
+func (s *Session) SetCapes(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.capes = on
+}
+
+// Capes is whether the client said it draws capes. A client that never
+// answered (a PS2) did not.
+func (s *Session) Capes() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.capes
+}
+
+// CapesOffered is whether the cape offer went out on this session: only then
+// is a client's answer taken.
+func (s *Session) CapesOffered() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.capesOffered
+}
+
+// OfferCapesOnce reports whether the cape offer is still to be made to this
+// session, and marks it made.
+func (s *Session) OfferCapesOnce() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	first := !s.capesOffered
+	s.capesOffered = true
 	return first
 }
 

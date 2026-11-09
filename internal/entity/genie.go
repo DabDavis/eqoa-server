@@ -121,6 +121,21 @@ func (w *World) SummonGenie(sess *session.Session, catalog int, now time.Time) (
 	return g.ServerID, nil
 }
 
+// SetGenieCatalog makes the npcitem list the session's genie's shop sells
+// catalog (handlers/genie.go: its capes', where it was summoned with its
+// class's outfitter's): the genie's record's NPCID, which its window's
+// requests are served from. False when the player has no genie.
+func (w *World) SetGenieCatalog(sess *session.Session, catalog int) bool {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil || p.genie == nil || p.genie.rec == nil {
+		return false
+	}
+	p.genie.rec.NPCID = catalog
+	return true
+}
+
 // GenieOf reports whether npc is a genie and whether the session's player is
 // the one it serves.
 func (w *World) GenieOf(sess *session.Session, npc *NPC) (genie, mine bool) {

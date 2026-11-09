@@ -310,7 +310,7 @@ func craftExpFailedPayload(op byte, took [][2]uint32) []byte {
 // broken, x2C (the recipe, which a 12/7's Yes sends back in sub-op 5), what
 // it took, and the item made, which the client files in its copy of the list
 // (AddItem: its key is the client's own).
-func craftExpMadePayload(op byte, r craftReport, recipe int, took [][2]uint32, item *database.CharInventoryEntry, key uint32) []byte {
+func craftExpMadePayload(op byte, r craftReport, recipe int, took [][2]uint32, item *database.CharInventoryEntry, key uint32, capes bool) []byte {
 	return craftReply(craftRepExperiment, func(w *buffer.Writer) {
 		w.WriteByte(op)
 		w.WriteUint32(craftToken)
@@ -318,7 +318,7 @@ func craftExpMadePayload(op byte, r craftReport, recipe int, took [][2]uint32, i
 		w.WriteUint32(0) // reagentBroke
 		w.WriteUint32(uint32(recipe))
 		writeCraftTook(w, took)
-		writeSingleItem(w, item, int(key))
+		writeSingleItem(w, item, int(key), capes)
 	})
 }
 
@@ -828,7 +828,7 @@ func (h *CraftHandler) attempt(c *craftCtx, a *craftAttempt, discovery bool, out
 		return outcome, taken, nil, 0
 	}
 	taken := h.takeCraft(c.char(), c.l, a.held, a.all, out)
-	given := h.giveCraft(c.char(), c.l, a.product, rec.Yield, out)
+	given := h.giveCraft(c.char(), c.l, a.product, rec.Yield, out, readsCapes(c.sess))
 	gain := a.skill.addXP(craftGain(rec.XP, rec.Level, a.skill.level, discovery))
 	if err := h.db.SetCharCraftSkill(c.char(), rec.Skill, a.skill.row()); err != nil {
 		log.Printf("Craft: %s's %s: %v", c.view.Name, craftSkillName(rec.Skill), err)
@@ -984,7 +984,7 @@ func (h *CraftHandler) combine(c *craftCtx, r *buffer.Reader) craftAnswer {
 			c.st.discovery = rec.ID
 			c.st.found[rec.ID] = true
 		}
-		out.reply = craftExpMadePayload(op, craftReport{rec.Skill, a.skill, gain}, rec.ID, took, &given[0].rec, given[0].key)
+		out.reply = craftExpMadePayload(op, craftReport{rec.Skill, a.skill, gain}, rec.ID, took, &given[0].rec, given[0].key, readsCapes(c.sess))
 	}
 	return out
 }

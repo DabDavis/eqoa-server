@@ -234,10 +234,10 @@ func TestDumpCarriesTheQuickSlot(t *testing.T) {
 		}
 		return v
 	}
-	if got := field(func(w *buffer.Writer) { writeItem(w, e, 0, 2) }); got != 2 {
+	if got := field(func(w *buffer.Writer) { writeItem(w, e, 0, 2, false) }); got != 2 {
 		t.Errorf("the dump's record: quick slot %d, want 2", got)
 	}
-	if got := field(func(w *buffer.Writer) { writeSingleItem(w, e, 0) }); got != -1 {
+	if got := field(func(w *buffer.Writer) { writeSingleItem(w, e, 0, false) }); got != -1 {
 		t.Errorf("any other record: quick slot %d, want -1", got)
 	}
 }

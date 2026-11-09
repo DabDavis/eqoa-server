@@ -29,7 +29,215 @@
       "from": "TUNARIA.ESF",
       "zone": 115,
       "race": 14,
-      "note": "Aviak: the aviaks' savannah village: 173 aviaks of the game, a grocer and guards among them (Aviak Village, cell 4,10)"
+      "note": "Aviak: the aviaks' savannah village: 173 aviaks of the game, a grocer and guards among them (Aviak Village, cell 4,10)",
+      "home": {
+        "flavor": "Aviaks are watchful bird folk of the savannah aeries in the Homelands, whose fledglings fly north to fight beside the barbarians of Halas.",
+        "start": {
+          "x": 9207.5,
+          "y": 84.2,
+          "z": 21486.6,
+          "toward": [
+            9213.9,
+            21489.6
+          ]
+        },
+        "mainland": {
+          "place": "Halas",
+          "world": 0,
+          "x": 13059.3,
+          "y": 54.4,
+          "z": 4289.6,
+          "facing": 1.28
+        },
+        "npcs": [
+          {
+            "name": "Elder Kraawk",
+            "like": 103515,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              9213.9,
+              84.1,
+              21489.6
+            ],
+            "toward": [
+              9207.5,
+              21486.6
+            ],
+            "note": "the starter quests' giver, in the high priest's robes"
+          },
+          {
+            "name": "Grocer Skreel",
+            "like": 103490,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              9351.3,
+              84.1,
+              21484.4
+            ],
+            "facing": 178,
+            "stock": "Merchant McAllistar",
+            "note": "the Roost's grocer, a Halas merchant's food"
+          },
+          {
+            "name": "Spiritmaster Kreeal",
+            "like": 103490,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              9145.5,
+              84.1,
+              21590.4
+            ],
+            "toward": [
+              9104.5,
+              21436.5
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Windwhistle",
+            "like": 103532,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              9170.9,
+              84.1,
+              21636.7
+            ],
+            "toward": [
+              9104.5,
+              21436.5
+            ],
+            "note": "sends a fledgling who has done the starter quests to Halas (the quest The Long Flight)"
+          },
+          {
+            "name": "Roost sentinel",
+            "like": 103364,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              9131.1,
+              111.5,
+              20154.1
+            ],
+            "facing": 3
+          },
+          {
+            "name": "Roost sentinel",
+            "like": 103364,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              9114.6,
+              104.0,
+              20169.7
+            ],
+            "facing": 56
+          },
+          {
+            "name": "Roost sentinel",
+            "like": 103377,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              9029.3,
+              77.1,
+              20724.4
+            ],
+            "facing": 27
+          },
+          {
+            "name": "Roost sentinel",
+            "like": 103364,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              9064.5,
+              84.1,
+              21418.1
+            ],
+            "facing": 24
+          },
+          {
+            "name": "scrub rat",
+            "body": "0x9E004757",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              9346.5,
+              63.6,
+              21097.6
+            ],
+            "note": "the starter quest's rats, at the grave rats' spots south of the nests"
+          },
+          {
+            "name": "scrub rat",
+            "body": "0x9E004757",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              8952.0,
+              77.9,
+              21029.0
+            ]
+          },
+          {
+            "name": "scrub rat",
+            "body": "0x9E004757",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              8876.2,
+              59.2,
+              20850.6
+            ]
+          },
+          {
+            "name": "scrub rat",
+            "body": "0x9E004757",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              8884.3,
+              73.0,
+              21193.6
+            ]
+          },
+          {
+            "name": "scrub rat",
+            "body": "0x9E004757",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              8701.1,
+              65.0,
+              21202.4
+            ]
+          },
+          {
+            "name": "scrub rat",
+            "body": "0x9E004757",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              8723.1,
+              54.1,
+              20753.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "scrub rat"
+        ]
+      }
     },
     {
       "name": "Cazic-Thule",

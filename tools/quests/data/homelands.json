@@ -1,0 +1,123 @@
+{
+  "city": "homelands",
+  "quests": [
+    {
+      "key": "homelands/aviak/welcome",
+      "name": "A Fledgling's Welcome",
+      "giver": "Elder Kraawk",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Another fledgling, fresh from the egg! Before you take wing, every young one of the Roost greets our grocer, Skreel, by the market nests. She will see you do not fly hungry.",
+      "accept": "I will greet her.",
+      "decline": "Not now.",
+      "declined": "The Roost will wait for you, little one.",
+      "started": "Go on, then. Skreel keeps the nests to the east.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Skreel",
+          "journal": "Greet Grocer Skreel by the Roost's market nests.",
+          "says": "The elder sent you? Then take this for the road, fledgling.",
+          "rewards": {
+            "items": [
+              "dried beef"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Kraawk",
+          "journal": "Return to Elder Kraawk.",
+          "says": "Good. Now you know where to find your food, and Skreel knows your face.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-08): the aviaks' first, at their home zone, Aviak Village of the disc."
+    },
+    {
+      "key": "homelands/aviak/rats",
+      "name": "Rats Among the Seed",
+      "giver": "Grocer Skreel",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/welcome"
+      ],
+      "offer": "Scrub rats have been at the seed stores again. Thin them out for me: five of them, out on the grass south of the nests.",
+      "accept": "I will hunt them.",
+      "decline": "Not now.",
+      "declined": "Then the rats eat well tonight.",
+      "started": "Five of them. Mind their teeth.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "scrub rat",
+          "count": 5,
+          "journal": "Kill five scrub rats on the grass south of the Roost."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Skreel",
+          "journal": "Tell Grocer Skreel the rats are dealt with.",
+          "says": "Five fewer thieves at the seed. Thank you, fledgling!",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the aviaks' second starter quest; the rats are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/aviak/flight",
+      "name": "The Long Flight",
+      "giver": "Gatekeeper Windwhistle",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/welcome",
+        "homelands/aviak/rats"
+      ],
+      "repeatable": true,
+      "offer": "The winds are fair for the north, fledgling. The barbarians of Halas fight the giants beside us, and they will train you as their own. When you are ready, I will send you to them. Shall I?",
+      "accept": "Send me north.",
+      "decline": "Not yet.",
+      "declined": "The winds will wait for you.",
+      "started": "Fly well, and do not forget the Roost!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Windwhistle",
+          "journal": "Tell Gatekeeper Windwhistle when you are ready to fly to Halas.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Halas, the aviak's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a fledgling back in the Roost is sent again; no reward, so none is had twice."
+    }
+  ],
+  "items": []
+}

@@ -435,7 +435,7 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 	if cost > 0 {
 		p.HP -= cost
 		p.StatsDirty = true
-		w.tellAmountLocked(p, sess, p.ServerID, -cost)
+		w.tellAmountLocked(p, sess, p.ServerID, -cost, 0) // its price on the drinker: untagged (numbertags.go)
 	}
 	if pe.Cures > 0 {
 		w.curePlayerLocked(p, pe.Cures)

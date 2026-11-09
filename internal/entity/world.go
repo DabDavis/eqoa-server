@@ -1086,8 +1086,11 @@ func (w *World) sendGrantXP(sess *session.Session, level, xpInLevel int) {
 
 // sendDamageIndication sends a visual damage/heal pop-up (0x00DB).
 // Wire format: opcode(2) + uint32(sourceObjectID) + 7BitEncodedInt64(amount) + uint32(targetObjectID)
-// Negative amount = damage, positive = healing.
-func (w *World) sendDamageIndication(sess *session.Session, sourceObjectID uint32, amount int, targetObjectID uint32) {
+// Negative amount = damage, positive = healing. kind is what made it when the
+// session's player or its pet did (numbertags.go), 0 for any other figure: a
+// session that asked for its figures' tags (NumberTags) is sent it as one
+// byte more, any other the retail body alone.
+func (w *World) sendDamageIndication(sess *session.Session, sourceObjectID uint32, amount int, targetObjectID uint32, kind numberKind) {
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeDamageIndication)
 	writer := buffer.NewWriter(msg.Span())
 
@@ -1095,6 +1098,9 @@ func (w *World) sendDamageIndication(sess *session.Session, sourceObjectID uint3
 	writer.WriteUint32(sourceObjectID)
 	writer.Write7BitEncodedInt64(int64(amount))
 	writer.WriteUint32(targetObjectID)
+	if kind.tagged() && sess.NumberTags() {
+		writer.WriteByte(byte(kind))
+	}
 
 	msg.SetSize(writer.Position())
 	sess.Queue().AddWithSequence(msg)

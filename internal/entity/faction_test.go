@@ -180,7 +180,7 @@ func TestEveryKillChangesFactions(t *testing.T) {
 	c.npc.Name, c.npc.HP = "Guard Dahvel", 1
 	c.w.SetFactionHits(guardHits)
 	c.w.mu.Lock()
-	c.w.spellHitLocked(c.p, c.sess, c.npc, 5)
+	c.w.spellHitLocked(c.p, c.sess, c.npc, 5, numberSpell)
 	c.w.mu.Unlock()
 	if c.p.Factions["Citizens of Freeport"] != -24 {
 		t.Errorf("a spell's kill: %v", c.p.Factions)

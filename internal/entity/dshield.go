@@ -336,6 +336,15 @@ type shieldHit struct {
 	resist Stat // the effect's (a creature strong in it: creatureResists)
 }
 
+// kind is what the answer is told as (numbertags.go): a defensive proc's, or
+// a damage shield's.
+func (h shieldHit) kind() numberKind {
+	if h.proc {
+		return numberProc
+	}
+	return numberShield
+}
+
 // shieldAnswers is what the bearer's effects answer one creature's melee hit
 // with (see the file's comment): the strongest damage shield on, and each
 // defensive proc on at its chance, less the ones the creature resists.
@@ -400,7 +409,7 @@ func (w *World) playerShieldsLocked(sess *session.Session, p *Player, npc *NPC, 
 			w.broadcastCastLocked(p, npc.ServerID, 0, fxShieldHit)
 			n := -creatureResists(h.resist, npc, -h.n, now)
 			log.Printf("Shield: %s's %q answers %s for %d (proc %v)", p.Name, h.name, npc.Name, n, h.proc)
-			if w.spellHitLocked(p, sess, npc, n) {
+			if w.spellHitLocked(p, sess, npc, n, h.kind()) {
 				died = true
 				break
 			}
@@ -428,7 +437,7 @@ func (w *World) petShieldsLocked(pet, npc *NPC, now time.Time) bool {
 	for _, h := range hits {
 		w.broadcastNPCSwingLocked(pet, npc.ServerID, 0, fxShieldHit)
 		log.Printf("Shield: the pet %q's %q answers %s for %d (proc %v)", pet.Name, h.name, npc.Name, h.n, h.proc)
-		if w.petDamageLocked(ps, npc, h.n, now) {
+		if w.petDamageLocked(ps, npc, h.n, now, h.kind()) {
 			return true
 		}
 	}

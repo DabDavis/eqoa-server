@@ -62,7 +62,7 @@ func (w *World) creatureShieldLocked(sess *session.Session, p *Player, npc *NPC,
 	p.LastCombatTime = now
 	if sess != nil {
 		if nid := w.objectIDForEntityLocked(sess, npc.ServerID); nid != 0 {
-			w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID())
+			w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID(), 0) // the creature's on the player: untagged
 		}
 		w.sendChatToSession(sess, fmt.Sprintf("%s's damage shield hits you for %d%s.", npc.Name, taken, words))
 	}
@@ -147,7 +147,7 @@ func (w *World) creatureProcHitLocked(sess *session.Session, p *Player, npc *NPC
 	p.LastCombatTime = now
 	if sess != nil {
 		if nid := w.objectIDForEntityLocked(sess, npc.ServerID); nid != 0 {
-			w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID())
+			w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID(), 0) // the creature's on the player: untagged
 		}
 		w.sendChatToSession(sess, fmt.Sprintf("%s's %s hits you for %d%s.", npc.Name, name, taken, words))
 	}

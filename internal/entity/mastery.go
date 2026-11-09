@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"slices"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/protocol"
@@ -34,6 +35,20 @@ import (
 // plus the caps its character's masteries raise (CMEffects' STR MAX..CHA MAX),
 // nothing more. Until then every character counted the general ones its level
 // allowed as held (550 at 60 for all).
+//
+// A raised cap holds the training too (petition 1375, Beef: "stat maxes dont
+// work, not extending maximums"; a player's claim is taken as given): a stat's
+// base takes training points up to its cap, raises and all. SOE's game did
+// not: Corsten's state holds m_p44 400 beside m_bonus [150 150 45 220 25 25
+// 25] (his masteries' raises), and CLIENT's trainer stops a base at m_p44
+// alone, so a raise reached only items, spells and the masteries' own stats.
+// Until 2026-11-09 this server did the same: a level 60 trained to 400 and
+// bought Brawn 1-5 and could train no further, the window refusing the point.
+// CLIENT has one m_p44 for the seven stats, so the client is told the highest
+// cap as m_p44 (TrainerCap) and each stat's cap less it as m_bonus
+// (TrainerBonuses): GetP44Total(stat), the trainer's "Current", is the stat's
+// own cap, and GetP44Total(-1), where the trainer stops a base, the highest.
+// The server holds each stat's base to its own (FitTraining).
 
 // MasteryCap is the most mastery points a character holds, spent and
 // unspent together (F3 20261025-165747).
@@ -70,6 +85,51 @@ func (p *Player) StatCapOf(st Stat) int {
 // capStat is v within the stat's cap.
 func (p *Player) capStat(st Stat, v int) int {
 	return min(v, p.StatCapOf(st))
+}
+
+// StatCaps are the seven stats' caps, STR..CHA (StatCapOf).
+func (p *Player) StatCaps() [7]int {
+	var c [7]int
+	for i := range c {
+		c[i] = p.StatCapOf(StatStr + Stat(i))
+	}
+	return c
+}
+
+// TrainerCap is the m_p44 the client is told (the MemoryDump's player record,
+// 0x001C): the highest of the seven stats' caps, which CLIENT's trainer stops
+// a base at (GetP44Total(-1); the file's doc). A character holding no
+// mastery that raises a cap is told the level's, as SOE's server told it.
+func (p *Player) TrainerCap() int {
+	c := p.StatCaps()
+	return slices.Max(c[:])
+}
+
+// TrainerBonuses are the seven m_bonus the client is told (the dump's mastery
+// block, a purchase's and a removal's replies): each stat's cap less
+// TrainerCap, 0 or below, so that m_p44 + m_bonus[stat] (GetP44Total(stat):
+// what the trainer holds a stat's "Current" to) is the stat's own cap.
+func (p *Player) TrainerBonuses() [7]int {
+	c := p.StatCaps()
+	top := slices.Max(c[:])
+	for i := range c {
+		c[i] -= top
+	}
+	return c
+}
+
+// FitTraining is what a request to the trainer may take (adds, STR..CHA) of
+// the stats' bases with those caps: each stat's points held where its base
+// would pass its cap (never below none), and how many points each was held
+// back by. The cap is the stat's own, raises and all (the file's doc); a base
+// already at it, or past it (a mastery that raised it removed), takes none.
+func FitTraining(base, caps [7]int, adds [7]int64) (fit, held [7]int64) {
+	for i, a := range adds {
+		room := max(int64(caps[i])-int64(base[i]), 0)
+		fit[i] = max(min(a, room), 0)
+		held[i] = max(a, 0) - fit[i]
+	}
+	return fit, held
 }
 
 // Mastery is a character's class mastery points: unspent, spent, the share
@@ -260,15 +320,26 @@ func SendMasteryPoints(sess *session.Session, m Mastery) {
 	sess.Queue().AddWithSequence(msg)
 }
 
-// SendStatCap is 0x001C: the stat cap before masteries (VIPlayer's m_p44),
-// raw, for a level that changed it.
-func SendStatCap(sess *session.Session, level int) {
+// SendStatCap is 0x001C: VIPlayer's m_p44, raw: the player's TrainerCap, for
+// a level or a mastery that changed it.
+func SendStatCap(sess *session.Session, trainerCap int) {
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodePlayerP44)
 	w := buffer.NewWriter(msg.Span())
 	w.WriteUint16(uint16(protocol.OpcodePlayerP44))
-	w.WriteUint32(uint32(StatCapBase(level)))
+	w.WriteUint32(uint32(trainerCap))
 	msg.SetSize(w.Position())
 	sess.Queue().AddWithSequence(msg)
+}
+
+// CharacterTrainerCap is a character's (its serverid) TrainerCap, the level's
+// cap for one not in the world.
+func (w *World) CharacterTrainerCap(serverID uint32, level int) int {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	if p := w.playerByCharacterLocked(serverID); p != nil {
+		return p.TrainerCap()
+	}
+	return StatCapBase(level)
 }
 
 // masteryLine is what a GM is told of a character's points.

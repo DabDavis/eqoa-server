@@ -29,6 +29,11 @@ import (
 //     rank that costs more now than it did (a GM raised its price) is bought
 //     after every other, and left out when it would take what is spent past
 //     what the template spent, as is one the points left cannot pay for.
+//   - Then the rest of the training, as a raised cap holds it (mastery.go,
+//     petition 1375): a stat the level's cap held takes more of what the
+//     template asks, up to its cap with the ranks bought, out of the points
+//     left (fitTraining again). Never less than the first pass gave, so no rank
+//     bought on it loses a stat it needed.
 
 // CMTemplateRank is a rank a template keeps or a plan buys: its id and what it
 // cost (when the template was saved; now, in a plan).
@@ -56,13 +61,14 @@ const (
 // RespecPlan is what a template comes to on a character as it stands.
 type RespecPlan struct {
 	// TPFrom is what each stat had taken (the row's tp columns), TPWant what
-	// the template asks of each held under the level's cap, TPTo what each
-	// takes; TPBefore and TPAfter the unspent points before and after, TPTotal
-	// every point given (never below the unspent ones)
+	// the template asks of each held under its cap (the level's, raised by
+	// the ranks bought), TPTo what each takes; TPBefore and TPAfter the unspent
+	// points before and after, TPTotal every point given (never below the
+	// unspent ones)
 	TPFrom, TPWant, TPTo       [7]int
 	TPBefore, TPAfter, TPTotal int
 	// TPShort: fewer points than it asks, each stat its share; TPCapped: a
-	// stat held at the level's cap
+	// stat held at its cap
 	TPShort, TPCapped bool
 	// Held is the ranks the character holds now, Returned what they cost
 	// (given back); Bought the template's ranks bought, in the order bought,
@@ -146,7 +152,8 @@ func (w *World) planRespecLocked(p *Player, from, saved [7]int, ranks []CMTempla
 		avail += max(from[i], 0)
 		base[i] = max(base[i]-max(from[i], 0), floor[i])
 	}
-	limit := StatCapBase(p.Level)
+	born := base                  // before it is trained again
+	limit := StatCapBase(p.Level) // each stat's cap, every rank given back
 	for i, v := range saved {
 		v = max(v, 0)
 		if room := max(limit-base[i], 0); v > room {
@@ -292,6 +299,7 @@ func (w *World) planRespecLocked(p *Player, from, saved [7]int, ranks []CMTempla
 		skip(id, why[id])
 	}
 	pl.After = s.Mastery
+	trainRaised(&pl, s, born, saved)
 
 	for id := range p.CMs {
 		if _, ok := s.CMs[id]; ok {
@@ -308,6 +316,34 @@ func (w *World) planRespecLocked(p *Player, from, saved [7]int, ranks []CMTempla
 		}
 	}
 	return pl, s
+}
+
+// trainRaised is the plan's training after its ranks are bought (the file's
+// doc): on s (the scratch player, born its base as born, saved what the
+// template asks) each stat's ask held under its cap now, what the first pass
+// gave short of it taken out of the points left, each stat its share when
+// they are too few. A stat never takes less than the first pass gave it (a
+// cap a rank lowers holds the stat, not its base).
+func trainRaised(pl *RespecPlan, s *Player, born, saved [7]int) {
+	caps := s.StatCaps()
+	var more [7]int
+	pl.TPCapped = false
+	for i, v := range saved {
+		v = max(v, 0)
+		if room := max(caps[i]-born[i], 0); v > room {
+			v, pl.TPCapped = room, true
+		}
+		pl.TPWant[i] = max(v, pl.TPTo[i])
+		more[i] = pl.TPWant[i] - pl.TPTo[i]
+	}
+	got, short := fitTraining(more, pl.TPAfter)
+	sb := [7]*int{&s.BaseStr, &s.BaseSta, &s.BaseAgi, &s.BaseDex, &s.BaseWis, &s.BaseInt, &s.BaseCha}
+	for i, v := range got {
+		*sb[i] += v
+		pl.TPTo[i] += v
+		pl.TPAfter -= v
+	}
+	pl.TPShort = pl.TPShort || short
 }
 
 // PlanRespec is what a template would do to the session's player

@@ -398,9 +398,11 @@ func TestRehabTemplateSpendsOnlyWhatItSpent(t *testing.T) {
 	}
 	if len(replies) > 0 {
 		st := replies[0].state
-		if st.stats[0] != 23 || st.stats[1] != 6 || st.bonuses[0] != 85 {
-			t.Errorf("the window's state: STR %d STA %d STR cap %d (Brawn 1+2 and Destroyer 1: 23, 15+20+50; Endurance: 6)",
-				st.stats[0], st.stats[1], st.bonuses[0])
+		// STR's cap raised 85 is the highest: m_bonus 0 for it, each other
+		// stat's cap less it (entity.Player.TrainerBonuses)
+		if st.stats[0] != 23 || st.stats[1] != 6 || st.stats[7] != 85 || st.bonuses != [7]int{0, -85, -85, -85, -85, -85, -85} {
+			t.Errorf("the window's state: STR %d STA %d STR cap %d, bonuses %v (Brawn 1+2 and Destroyer 1: 23, 15+20+50; Endurance: 6)",
+				st.stats[0], st.stats[1], st.stats[7], st.bonuses)
 		}
 	}
 	if u, _ := f.counts(database.ResetTemplate); u != 1 {

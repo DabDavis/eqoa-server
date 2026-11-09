@@ -982,7 +982,7 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 		player.Debt = max(0, player.Debt-shares.Debt)
 		sendExpDebt(sess, player.Debt)
 	}
-	statCap := StatCapBase(player.Level)
+	statCap := player.TrainerCap()
 	startLevel := player.Level
 	player.TotalXP += levelXP
 	player.XPInLevel += levelXP
@@ -1008,8 +1008,8 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 		}
 	}
 
-	if StatCapBase(player.Level) != statCap {
-		SendStatCap(sess, player.Level)
+	if t := player.TrainerCap(); t != statCap {
+		SendStatCap(sess, t)
 	}
 	if player.Level != startLevel {
 		for _, fn := range w.onLevelUp {

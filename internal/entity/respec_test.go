@@ -139,3 +139,41 @@ func TestPlanRespecGivesBackFirst(t *testing.T) {
 		t.Errorf("the control changes: %+v", pl)
 	}
 }
+
+// A template whose ranks raise a cap (petition 1375: a raised cap holds the
+// training too, mastery.go): the training first stops at the level's cap (the
+// ranks are given back), the ranks are bought, then the stat takes the rest of
+// what the template asks up to its cap with them, out of the points left. The
+// controls: the same template with no rank raising STR stops at 400, and a
+// stat no rank raises (STA) stops there too.
+func TestPlanRespecTrainsPastTheOldCapWithItsRanks(t *testing.T) {
+	w := NewWorld()
+	all, races := 32767, 2047
+	w.SetCMCatalog([]database.CMRankRow{
+		{ID: 1, Classes: all, Races: races, Name: "Brawn 1", Cost: 10, Level: 10, MinStats: "STR:100", Effects: "STR:1,STRMax:15", Enabled: true},
+		{ID: 2, Classes: all, Races: races, Name: "Brawn 2", Parent: 1, Cost: 15, Level: 20, Effects: "STR:2,STRMax:20", Enabled: true},
+		{ID: 3, Classes: all, Races: races, Name: "Other", Cost: 10, Level: 1, Enabled: true},
+	})
+	bs := LookupBaseStats(0, 0)
+	// trained STR to 435 and STA to 400 under Brawn 1 and 2 (STR's cap 435)
+	from := [7]int{435 - bs.Str, 400 - bs.Sta}
+	p := &Player{Level: 60, CMs: map[int]int{1: 10, 2: 15}, Mastery: Mastery{Points: 0, Spent: 25}, UnusedTP: 30, TotalTP: 500}
+	p.BaseStr, p.BaseSta, p.BaseAgi, p.BaseDex, p.BaseWis, p.BaseInt, p.BaseCha = 435, 400, bs.Agi, bs.Dex, bs.Wis, bs.Int, bs.Cha
+	saved := [7]int{from[0], from[1] + 10} // its template asks STA 10 past 400
+	pl, s := w.planRespecLocked(p, from, saved, []CMTemplateRank{{ID: 1, Cost: 10}, {ID: 2, Cost: 15}}, CMKnows{})
+	if len(pl.Bought) != 2 || s.StatCapOf(StatStr) != 435 {
+		t.Fatalf("bought %v (skipped %v), STR's cap %d", pl.Bought, pl.Skipped, s.StatCapOf(StatStr))
+	}
+	if s.BaseStr != 435 || s.BaseSta != 400 || pl.TPTo != [7]int{from[0], from[1]} || pl.TPAfter != 30 || !pl.TPCapped || pl.TPShort {
+		t.Errorf("the training: STR %d STA %d, %v of %v asked, %d unspent, capped %v short %v; want 435, 400, its own, 30, capped (STA)",
+			s.BaseStr, s.BaseSta, pl.TPTo, pl.TPWant, pl.TPAfter, pl.TPCapped, pl.TPShort)
+	}
+
+	// the control: its ranks raise nothing of STR's
+	plain := &Player{Level: 60, CMs: map[int]int{3: 10}, Mastery: Mastery{Spent: 10}, UnusedTP: 30, TotalTP: 500}
+	plain.BaseStr, plain.BaseSta, plain.BaseAgi, plain.BaseDex, plain.BaseWis, plain.BaseInt, plain.BaseCha = 435, 400, bs.Agi, bs.Dex, bs.Wis, bs.Int, bs.Cha
+	pl, s = w.planRespecLocked(plain, from, saved, []CMTemplateRank{{ID: 3, Cost: 10}}, CMKnows{})
+	if s.BaseStr != 400 || s.BaseSta != 400 || pl.TPAfter != 30+35 || !pl.TPCapped {
+		t.Errorf("the control: STR %d STA %d, %d unspent, capped %v; want 400, 400, 65, capped", s.BaseStr, s.BaseSta, pl.TPAfter, pl.TPCapped)
+	}
+}

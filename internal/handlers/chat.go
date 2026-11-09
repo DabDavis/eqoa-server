@@ -1195,6 +1195,10 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// #ticks: how long the world's ticks took over the last minute
 		// (tickscmd.go, entity/ticktime.go)
 		h.ticksCommand(sess)
+	case "#net":
+		// #net [name]: the reliable stream to the players' clients: what
+		// waits for an acknowledgement, resends, round trips (netcmd.go)
+		h.netCommand(sess, parts[1:])
 	case "#packetlog":
 		// #packetlog [on|off]: every packet's own lines in the log
 		// (packetlogcmd.go, internal/debuglog)
@@ -1291,6 +1295,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #fly [on|off] - fly where you look at your run speed, no gravity (alone: on, or off again; until you log out)")
 		h.gmReply(sess, "  #movecheck [off|log|enforce] - the check of players' own moves, and who it moved back")
 		h.gmReply(sess, "  #ticks - how long the server's ticks took over the last minute, system by system")
+		h.gmReply(sess, "  #net [name] - what each client has not acknowledged and how long, resends and round trips (a name: that one's, and its client's own counters)")
 		h.gmReply(sess, "  #packetlog [on|off] - every packet's own lines in the server's log (off by default)")
 		h.gmReply(sess, "  #fx <visual> [seconds] | <spell> - play a spell visual (0x1DAEB5B6) on your target, nothing saved")
 		h.gmReply(sess, "  #spellfx <spell> [<visual> | 0] - a spell's visual, or give it one (0: its stand-in)")

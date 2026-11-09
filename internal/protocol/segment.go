@@ -115,9 +115,12 @@ const (
 	BodyFlagFlushAck SegmentBodyFlags = 0x01
 	// BodyFlagGuaranteedAck indicates guaranteed delivery ack present.
 	BodyFlagGuaranteedAck SegmentBodyFlags = 0x02
-	// BodyFlagUnknownPacked is an unknown flag.
-	BodyFlagUnknownPacked SegmentBodyFlags = 0x04
-	// BodyFlagGuaranteedAckMask indicates ack mask present.
+	// BodyFlagFlushAckMask: the flush ack's mask follows it (CLIENT's
+	// m_uiRxMask: bit i set, the client had our packet FlushAck-1-i).
+	BodyFlagFlushAckMask SegmentBodyFlags = 0x04
+	// BodyFlagGuaranteedAckMask: the guaranteed ack's mask follows it
+	// (connection_get_ack_mask: bit i set, the client holds our reliable
+	// message GuaranteedAck+2+i, out of order).
 	BodyFlagGuaranteedAckMask SegmentBodyFlags = 0x08
 	// BodyFlagClientUpdateAck indicates client state update acks present.
 	BodyFlagClientUpdateAck SegmentBodyFlags = 0x10
@@ -141,10 +144,10 @@ type SegmentBody struct {
 	ArrivalPositive    bool
 	ArrivalNumber      uint16
 	FlushAck           uint16
-	UnknownPacked      int64
+	FlushAckMask       uint64
 	GuaranteedAckMaybe bool
 	GuaranteedAck      uint16
-	GuaranteedAckMask  int64
+	GuaranteedAckMask  uint64
 	StateAcks          []StateAck
 	Messages           []*Message
 }
@@ -191,9 +194,10 @@ func (b *SegmentBody) Read(reader *buffer.Reader, data []byte, header *SegmentHe
 			return err
 		}
 
-		// Read unknown packed value if present
-		if b.Flags&BodyFlagUnknownPacked != 0 {
-			b.UnknownPacked, err = reader.Read7BitEncodedInt64()
+		// The flush ack's mask: a plain 7-bit varint (CLIENT's
+		// buffer_append_packed_uns64), not zigzag
+		if b.Flags&BodyFlagFlushAckMask != 0 {
+			b.FlushAckMask, err = reader.Read7BitEncodedUInt64()
 			if err != nil {
 				return err
 			}
@@ -209,7 +213,7 @@ func (b *SegmentBody) Read(reader *buffer.Reader, data []byte, header *SegmentHe
 
 		// Read guaranteed ack mask if present
 		if b.Flags&BodyFlagGuaranteedAckMask != 0 {
-			b.GuaranteedAckMask, err = reader.Read7BitEncodedInt64()
+			b.GuaranteedAckMask, err = reader.Read7BitEncodedUInt64()
 			if err != nil {
 				return err
 			}
@@ -392,7 +396,7 @@ func (b *SegmentBody) Reset() {
 	b.ArrivalPositive = false
 	b.ArrivalNumber = 0
 	b.FlushAck = 0
-	b.UnknownPacked = 0
+	b.FlushAckMask = 0
 	b.GuaranteedAckMaybe = false
 	b.GuaranteedAck = 0
 	b.GuaranteedAckMask = 0

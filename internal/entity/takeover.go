@@ -120,6 +120,7 @@ func (w *World) TakeOverPlayer(sess *session.Session, charServerID uint32) (*Pla
 		}
 	}
 	sess.SetCharacterServerID(charServerID)
+	sess.SetCharacterName(p.Name)
 	sess.SetECSEntity(p)
 	w.handedOverLocked(p)
 	t := w.takeoverOfLocked(p, now)

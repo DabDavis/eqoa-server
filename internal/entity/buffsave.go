@@ -85,6 +85,9 @@ type savedMods struct {
 	// effect's own fields and marked so here, so a login brings it back on
 	// no one; a row kept before reads as none (it ends whole, as then)
 	Parts []*effectPart `json:",omitempty"`
+	// whose its ticks' figures are (numbertags.go): a proc's, a pet's, a
+	// gift's; none, a spell of its caster's (a row kept before reads so)
+	Figures castFigures `json:",omitempty"`
 }
 
 func savedEffects(p *Player, now time.Time) []database.BuffRow {
@@ -100,7 +103,7 @@ func savedEffects(p *Player, now time.Time) []database.BuffRow {
 		}
 		sm := savedMods{StatMods: e.Mods, Proc: e.Proc, ProcMax: e.ProcMax, ProcScale: e.ProcScale, ProcScalePct: e.ProcScalePct,
 			ProcCap: e.ProcCap, ProcUndead: e.ProcUndead, Form: e.Form, FormSize: e.FormSize, Ticks: e.Ticks, Shield: e.Shield, Line: e.Line, Rank: e.Rank,
-			Food: e.Food, Parts: e.parts}
+			Food: e.Food, Parts: e.parts, Figures: e.figures}
 		if e.PowerCapped {
 			top := e.PowerCap
 			sm.PowerCap = &top
@@ -168,6 +171,7 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 			}
 			ae.ProcSpells = sm.ProcSpells
 			ae.parts = sm.Parts
+			ae.figures = sm.Figures
 			if sm.PowerCap != nil {
 				ae.PowerCap, ae.PowerCapped = *sm.PowerCap, true
 			}

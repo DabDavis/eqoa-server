@@ -165,12 +165,12 @@ func (w *World) petTapLocked(ps *petState, t *NPC, now time.Time) bool {
 	}
 	w.broadcastNPCSwingLocked(pet, t.ServerID, 0, tap.FX)
 	log.Printf("Pet: %s's %q casts %s on %s for %d", ps.owner.Name, pet.Name, tap.Name, t.Name, n)
-	killed := w.petDamageLocked(ps, t, n, now)
+	killed := w.petDamageLocked(ps, t, n, now, numberSpell)
 	if pet.HP < pet.MaxHP {
 		pet.HP = min(pet.HP+n, pet.MaxHP)
 		if sess := w.findSessionByEntityIDLocked(ps.owner.ServerID); sess != nil {
 			if id := w.objectIDForEntityLocked(sess, pet.ServerID); id != 0 {
-				w.sendDamageIndication(sess, sess.PlayerObjectID(), n, id)
+				w.sendDamageIndication(sess, sess.PlayerObjectID(), n, id, numberHeal.byPet()) // the tap's take, its pet's heal
 			}
 		}
 	}

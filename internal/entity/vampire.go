@@ -196,7 +196,7 @@ func (w *World) sunBurnLocked(sess *session.Session, p *Player, n int, now time.
 	p.HP = max(0, p.HP-n)
 	p.StatsDirty = true
 	if sess != nil {
-		w.sendDamageIndication(sess, sunSource, -n, sess.PlayerObjectID())
+		w.sendDamageIndication(sess, sunSource, -n, sess.PlayerObjectID(), 0) // the sun's on the player: untagged (numbertags.go)
 	}
 	log.Printf("Sun: %s, a vampire in daylight, took %d (HP %d/%d)", p.Name, n, p.HP, p.MaxHPNow())
 	if p.HP <= 0 {

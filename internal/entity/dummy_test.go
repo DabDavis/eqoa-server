@@ -140,7 +140,7 @@ func TestDummyFightsOnePlayer(t *testing.T) {
 func TestDummySpellHit(t *testing.T) {
 	c := newDummy(t, "Training Dummy Lv45", 45)
 	c.w.mu.Lock()
-	killed := c.w.spellHitLocked(c.p, c.sess, c.npc, 5000)
+	killed := c.w.spellHitLocked(c.p, c.sess, c.npc, 5000, numberSpell)
 	c.w.mu.Unlock()
 	if killed || c.npc.HP != 4000 || c.npc.DummyTarget != c.p.ServerID {
 		t.Errorf("killed %v, HP %d, target %d", killed, c.npc.HP, c.npc.DummyTarget)

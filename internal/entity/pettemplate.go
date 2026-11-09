@@ -294,12 +294,13 @@ func (w *World) petShareHealLocked(ps *petState, a *templateAbility, now time.Ti
 	log.Printf("Pet: %s's %q heals itself %d%% for %d (HP %d/%d)", ps.owner.Name, pet.Name, a.HealPct, n, pet.HP, pet.MaxHP)
 }
 
-// tellPetHealLocked tells the owner of a heal on its pet: a 0x00DB from the
-// owner over the pet, as a tap's heal is told (pettap.go).
+// tellPetHealLocked tells the owner of a heal the pet made on itself: a 0x00DB
+// from the owner over the pet, as a tap's heal is told (pettap.go), its pet's
+// heal (numbertags.go).
 func (w *World) tellPetHealLocked(ps *petState, n int) {
 	if sess := w.findSessionByEntityIDLocked(ps.owner.ServerID); sess != nil {
 		if id := w.objectIDForEntityLocked(sess, ps.npc.ServerID); id != 0 {
-			w.sendDamageIndication(sess, sess.PlayerObjectID(), n, id)
+			w.sendDamageIndication(sess, sess.PlayerObjectID(), n, id, numberHeal.byPet())
 		}
 	}
 }
@@ -486,7 +487,7 @@ func (w *World) petTemplateSpecialLocked(ps *petState, t *NPC, now time.Time) bo
 	pet.LastCombatTime = now
 	log.Printf("Pet: %s's %q (%s) lands its %s on %s for %d before the balance", ps.owner.Name, pet.Name, tm.Name, specialName(tm), t.Name, n)
 	// a charmed creature's lands as a creature's does, fixed (classtemplate.go)
-	return w.petLandHitLocked(ps, t, n, now, pet.Charm == nil)
+	return w.petLandHitLocked(ps, t, n, now, pet.Charm == nil, numberSpell)
 }
 
 // petCastSystemLocked lands every templated pet's cast whose time has come,
@@ -593,7 +594,7 @@ func (w *World) petSplashLocked(ps *petState, t *NPC, c *petCast, a *templateAbi
 			continue
 		}
 		log.Printf("Pet: %s's %q splashes %q on %s for %d before the balance", ps.owner.Name, pet.Name, c.spell.Name, o.Name, n)
-		w.petDamageLocked(ps, o, -creatureResists(c.spell.resist, o, -n, now), now)
+		w.petDamageLocked(ps, o, -creatureResists(c.spell.resist, o, -n, now), now, numberSpell) // an area's: a spell's
 	}
 }
 
@@ -797,7 +798,7 @@ func (w *World) petTickLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 	defer func() { ae.ticking = false }()
 	ps.npc.LastCombatTime = now
 	log.Printf("Pet: %s's %q's %q ticks on %s for %d before the balance", ps.owner.Name, ps.npc.Name, ae.Name, npc.Name, n)
-	w.petDamageLocked(ps, npc, n, now)
+	w.petDamageLocked(ps, npc, n, now, numberDoT)
 }
 
 // petTemplateProcLocked rolls the pet's template's melee proc after one of its
@@ -819,7 +820,7 @@ func (w *World) petTemplateProcLocked(ps *petState, t *NPC, now time.Time) bool 
 	n := -creatureResists(shieldResistStat(tm.ProcResist), t, -tm.ProcDamage, now)
 	w.broadcastNPCSwingLocked(ps.npc, t.ServerID, 0, fxShieldHit)
 	log.Printf("Pet: %s's %q's %s hits %s for %d before the balance", ps.owner.Name, ps.npc.Name, procName(tm), t.Name, n)
-	return w.petDamageLocked(ps, t, n, now)
+	return w.petDamageLocked(ps, t, n, now, numberProc)
 }
 
 // petLandLocked lands a pet's cast: a harmful spell's figure (its hits
@@ -860,7 +861,7 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 			drained = int(math.Round(float64(w.petDealtLocked(pet, t, taken)) * float64(drained) / float64(hit)))
 		}
 		w.petSplashLocked(ps, t, c, a, now) // an area spell's others (before the target's hit, which may kill it)
-		w.petDamageLocked(ps, t, taken, now)
+		w.petDamageLocked(ps, t, taken, now, numberSpell)
 		if drained > 0 && pet.HP < pet.MaxHP {
 			n := min(drained, pet.MaxHP-pet.HP)
 			pet.HP += n
@@ -898,7 +899,7 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 			o.StatsDirty = true
 			if sess := w.findSessionByEntityIDLocked(o.ServerID); sess != nil {
 				if id := w.objectIDForEntityLocked(sess, pet.ServerID); id != 0 {
-					w.sendDamageIndication(sess, id, n, sess.PlayerObjectID())
+					w.sendDamageIndication(sess, id, n, sess.PlayerObjectID(), numberHeal.byPet()) // its pet's heal on it (numbertags.go)
 				}
 			}
 			log.Printf("Pet: %s's %q heals its owner with %q for %d (HP %d/%d)", o.Name, pet.Name, c.spell.Name, n, o.HP, o.MaxHPNow())
@@ -922,6 +923,7 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 			return
 		}
 		cs := &castState{spell: *c.spell, caster: o.ServerID, targets: []EntityID{o.ServerID}}
+		cs.spell.figures = figuresPet // what it heals now and at its ticks the pet's (numbertags.go)
 		w.landOnPlayerLocked(cs, o, w.findSessionByEntityIDLocked(o.ServerID), o, now)
 		log.Printf("Pet: %s's %q buffs its owner with %q", o.Name, pet.Name, c.spell.Name)
 	}
@@ -1011,7 +1013,7 @@ func (w *World) petTemplateTauntLocked(ps *petState, a *templateAbility, t *NPC,
 			return false
 		}
 		log.Printf("Pet: %s's %q taunts %s for %d", ps.owner.Name, pet.Name, t.Name, n)
-		return w.petLandHitLocked(ps, t, n, now, false)
+		return w.petLandHitLocked(ps, t, n, now, false, numberSpell)
 	}
 	n := float64(petMeleeHit(pet, t, meleeIntn))
 	if ps.hitScale > 0 {
@@ -1019,7 +1021,7 @@ func (w *World) petTemplateTauntLocked(ps *petState, a *templateAbility, t *NPC,
 	}
 	m := ps.meleeOut(int(math.Round(n * float64(a.DamageOr()) / 100)))
 	log.Printf("Pet: %s's %q taunts %s (a melee hit of %d)", ps.owner.Name, pet.Name, t.Name, m)
-	return w.petDamageLocked(ps, t, m, now)
+	return w.petDamageLocked(ps, t, m, now, numberSpell) // a taunt's: an ability's
 }
 
 // petTopHateLocked puts the pet at the top of t's hate, and makes it what t

@@ -202,7 +202,7 @@ func (w *World) petRotationTapLocked(ps *petState, t *NPC, now time.Time) bool {
 		n += petTapIntn(tap.Hit.AmountMax - tap.Hit.Amount + 1)
 	}
 	log.Printf("Pet: %s's %q (%s) casts %s on %s for %d", ps.owner.Name, pet.Name, ps.kind, tap.Name, t.Name, n)
-	killed := w.petDamageLocked(ps, t, n, now)
+	killed := w.petDamageLocked(ps, t, n, now, numberSpell)
 	if pet.HP < pet.MaxHP {
 		pet.HP = min(pet.HP+n, pet.MaxHP)
 	}
@@ -244,7 +244,7 @@ func (w *World) petSpecialDueLocked(ps *petState, t *NPC, now time.Time) bool {
 	}
 	ps.npc.LastCombatTime = now
 	log.Printf("Pet: %s's %q (%s) lands its instant on %s for %d before the balance", ps.owner.Name, ps.npc.Name, ps.kind, t.Name, n)
-	return w.petDamageLocked(ps, t, n, now)
+	return w.petDamageLocked(ps, t, n, now, numberSpell)
 }
 
 // petSpecialHitLocked is a spectre's instant before the balance's pet damage

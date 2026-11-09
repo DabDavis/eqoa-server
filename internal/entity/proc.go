@@ -175,10 +175,10 @@ func (w *World) procTapLocked(p *Player, sess *session.Session, ae *ActiveEffect
 // none (healLocked). Must be called with the lock held.
 func (w *World) procHealLocked(caster *Player, casterSess *session.Session, t *Player, n int) {
 	if n > 0 && !t.IsDead() && t.HP >= t.MaxHPNow() {
-		w.tellAmountLocked(caster, casterSess, t.ServerID, n)
+		w.tellAmountLocked(caster, casterSess, t.ServerID, n, numberProc)
 		return
 	}
-	w.healLocked(caster, casterSess, t, n)
+	w.healLocked(caster, casterSess, t, n, numberProc)
 }
 
 // playerProcsLocked runs a player's procs after one of its melee hits on a
@@ -195,7 +195,7 @@ func (w *World) playerProcsLocked(sess *session.Session, p *Player, npc *NPC, no
 		// seen as a damage shield's answer is (petition 1156: "does not proc",
 		// when all it showed was one more figure among the swings')
 		w.broadcastCastLocked(p, npc.ServerID, 0, fxShieldHit)
-		killed := w.spellHitLocked(p, sess, npc, n)
+		killed := w.spellHitLocked(p, sess, npc, n, numberProc)
 		w.procTapLocked(p, sess, h.ae, npc)
 		if killed {
 			return true
@@ -224,7 +224,7 @@ func (w *World) petProcsLocked(ps *petState, t *NPC, now time.Time) bool {
 	}
 	for _, n := range hits {
 		log.Printf("Proc: the pet %q's proc hits %s for %d", pet.Name, t.Name, n)
-		if w.petDamageLocked(ps, t, n, now) {
+		if w.petDamageLocked(ps, t, n, now, numberProc) {
 			return true
 		}
 	}

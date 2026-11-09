@@ -1156,7 +1156,7 @@ func (w *World) petTauntLocked(ps *petState, t *NPC, now time.Time) bool {
 	log.Printf("Pet: %s's %q taunts %s (round %d)", ps.owner.Name, pet.Name, t.Name, ps.rounds)
 	w.showPetTauntLocked(pet, t.ServerID)
 	pet.LastCombatTime = now
-	return w.petDamageLocked(ps, t, n, now)
+	return w.petDamageLocked(ps, t, n, now, numberSpell) // an ability's hit (numbertags.go)
 }
 
 // petTauntFX is the visual a pet's taunt shows on its target: the Taunt
@@ -1178,7 +1178,7 @@ func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
 	if ps.npc.Charm != nil {
 		// a charmed creature hits at its own strength, as a creature hits a
 		// creature (charmedHitLocked), its charm template's melee_pct on it
-		if w.petLandHitLocked(ps, t, ps.meleeOut(w.charmedHitLocked(ps.npc, t, meleeIntn)), now, false) {
+		if w.petLandHitLocked(ps, t, ps.meleeOut(w.charmedHitLocked(ps.npc, t, meleeIntn)), now, false, numberMelee) {
 			return true
 		}
 		if w.petTemplateProcLocked(ps, t, now) || w.petProcsLocked(ps, t, now) {
@@ -1191,7 +1191,7 @@ func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
 		n = int(math.Round(float64(n) * ps.hitScale)) // a recorded kind's (petrotation.go)
 	}
 	n = ps.meleeOut(n) // its template's melee_pct (pettemplate.go)
-	if w.petDamageLocked(ps, t, n, now) {
+	if w.petDamageLocked(ps, t, n, now, numberMelee) {
 		return true
 	}
 	if w.petTemplateProcLocked(ps, t, now) || w.petProcsLocked(ps, t, now) {
@@ -1217,15 +1217,16 @@ func (w *World) charmedHitLocked(pet, t *NPC, intn func(int) int) int {
 }
 
 // petDamageLocked is n of the pet's damage on its target, its owner's: the
-// figure to the owner as the owner's (0x00DB), the target's hate for the
-// pet, and on a kill the owner's XP and faction hits. It reports a kill.
-func (w *World) petDamageLocked(ps *petState, t *NPC, n int, now time.Time) bool {
-	return w.petLandHitLocked(ps, t, n, now, true)
+// figure to the owner as the owner's (0x00DB, what made it kind, told as its
+// pet's: numbertags.go), the target's hate for the pet, and on a kill the
+// owner's XP and faction hits. It reports a kill.
+func (w *World) petDamageLocked(ps *petState, t *NPC, n int, now time.Time, kind numberKind) bool {
+	return w.petLandHitLocked(ps, t, n, now, true, kind)
 }
 
 // petLandHitLocked is petDamageLocked, balanced or landing as it is (a
 // templated pet's taunt of a fixed figure: pettemplate.go).
-func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, balanced bool) bool {
+func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, balanced bool, kind numberKind) bool {
 	owner, pet := ps.owner, ps.npc
 	sess := w.findSessionByEntityIDLocked(owner.ServerID)
 	tell := func() {
@@ -1235,7 +1236,7 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 			return
 		}
 		if tid := w.objectIDForEntityLocked(sess, t.ServerID); tid != 0 {
-			w.sendDamageIndication(sess, sess.PlayerObjectID(), -n, tid)
+			w.sendDamageIndication(sess, sess.PlayerObjectID(), -n, tid, kind.byPet())
 		}
 	}
 	if t.Dummy != NotDummy {
@@ -1502,13 +1503,13 @@ func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *sessi
 			switch n := spellAmount(e, caster); {
 			case n > 0 && pet.HP < pet.MaxHP:
 				pet.HP = min(pet.HP+n, pet.MaxHP)
-				w.tellAmountLocked(caster, casterSess, pet.ServerID, n)
+				w.tellAmountLocked(caster, casterSess, pet.ServerID, n, cs.spell.healKind())
 			case n < 0 && !e.Self && !pet.Dead:
 				// its owner's blast on it (the alchemist's Destroy
 				// Contraption, -20000: until 2026-11-01 a friendly spell's
 				// hit on a pet was dropped and the contraption stood)
 				pet.HP = max(pet.HP+n, 0)
-				w.tellAmountLocked(caster, casterSess, pet.ServerID, n)
+				w.tellAmountLocked(caster, casterSess, pet.ServerID, n, cs.spell.hitKind())
 				if pet.HP == 0 {
 					log.Printf("Cast: %s's %q destroys the pet %q", caster.Name, cs.spell.Name, pet.Name)
 					w.killNPC(pet)

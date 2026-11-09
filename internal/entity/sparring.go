@@ -125,7 +125,7 @@ func (w *World) sparHitLocked(sess *session.Session, npc *NPC, p *Player, damage
 	if line != "" {
 		w.sendChatToSession(sess, line)
 	}
-	w.sendDamageIndication(sess, npcObjectID, -damage, sess.PlayerObjectID())
+	w.sendDamageIndication(sess, npcObjectID, -damage, sess.PlayerObjectID(), 0) // the dummy's on the player: untagged
 	if p.HP-damage >= 1 {
 		p.HP -= damage
 		return false

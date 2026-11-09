@@ -198,7 +198,7 @@ func (w *World) wornShieldsLocked(sess *session.Session, p *Player, npc *NPC) bo
 		if damage > 0 && !npc.Dead && (!s.Undead || w.undeadLocked(npc)) {
 			w.broadcastCastLocked(p, npc.ServerID, 0, fxShieldHit)
 			log.Printf("Shield: %s's %q answers %s for %d", p.Name, s.Item, npc.Name, damage)
-			died = w.spellHitLocked(p, sess, npc, damage) || died
+			died = w.spellHitLocked(p, sess, npc, damage, numberProc) || died // a worn item's answer: a proc's (numbertags.go)
 		}
 		if s.Hate && n > 0 && !npc.Dead {
 			w.addThreatLocked(npc, p.ServerID, n)
@@ -220,7 +220,7 @@ func (w *World) wornGiveLocked(p *Player, sess *session.Session, s WornShield, n
 		before := p.HP
 		p.HP = min(p.HP+n, top)
 		p.StatsDirty = true
-		w.tellAmountLocked(p, sess, p.ServerID, n)
+		w.tellAmountLocked(p, sess, p.ServerID, n, numberProc) // a worn item's heal at a hit: a proc's
 		log.Printf("Shield: %s's %q heals it for %d (%d/%d)", p.Name, s.Item, n, p.HP, top)
 		// a worn heal is its wearer's hate as any heal is its healer's (the user, 2026-11-07:
 		// "heals should generate hate of the caster of heals or if proc like bpoa the wearer
@@ -229,7 +229,7 @@ func (w *World) wornGiveLocked(p *Player, sess *session.Session, s WornShield, n
 			w.healHateLocked(p, p, p.HP-before)
 		}
 	} else if n > 0 {
-		w.tellAmountLocked(p, sess, p.ServerID, n) // full: the figure alone
+		w.tellAmountLocked(p, sess, p.ServerID, n, numberProc) // full: the figure alone
 	}
 	if top := p.MaxPowerNow(); power > 0 && p.Power < top {
 		p.Power = min(p.Power+power, top)

@@ -1879,8 +1879,27 @@ and on its own https host the session is a `__Host-` cookie no other host can se
   few KB, 0x8200 → 0x8210), and the spell visuals (DATA2/SPELLFX.CSF, a CSF inflated with
   `DecompressionStream`: 238 0xC200 records, each its DictID in 0xC210 and three event lists in
   0xC220; the only file on the disc with any, and every `fxdict` eqoaclassic recorded is one).
-  CHAR/ITEM/ITEMICON.ESF and SPELLFX.CSF are kept in OPFS and zone pictures in IndexedDB, so
+  CHAR/ITEM/ITEMICON.ESF, UI.CSF and SPELLFX.CSF are kept in OPFS and zone pictures in IndexedDB, so
   later visits need no disc. The server ships and stores no game data.
+- **Look columns: pictures, hex and colours** (`looks.go`, `static/lib/look.js`; the user, 2026-11-09: "lets make
+  the gm panel easier for players to change items, models, icons, etc. like hex and icons and model pictures, rgb
+  sliders"): a catalog column's `Look` says what its number IS, measured off the code that reads it (`char` a CHAR.ESF
+  body, `item` an ITEM.ESF model, `itemicon`, `uiicon`/`uiback` a spell icon's front and back: `spellpattern.iconColor`
+  is CLIENT's m_iconBack, a UI.CSF gem, no colour; `itemlook` an item's model by its wear slot: armour set, robe style,
+  cape style or ITEM.ESF model; `itemcolor` a tint 0-14, plain 0xFFFFFFFF or 0xRRGGBBAA; `rgba` a dye; `racelook`
+  charlook's HSL or texture; `armor:<slot>`, `tint`, `robe`, `hair` palette entries; `visual`), and `Store` how a
+  32-bit one is kept (`int32` or `uint32`, per column, by its readers: an item's icon signed, since the item record
+  zigzags it and CLIENT's ReadSigned gathers 32 bits, and `ScrollArt` is matched exactly; a visual unsigned, as
+  `SetSpellVisual` writes it and the suggestions are matched). `describe_table` carries both and `palettes` (the disc
+  tints by name, the dyers' colours); `look_names` (read; a tester's and a storyteller's off their own tables) is what
+  wears each id. The page draws each as what it is: the picture off the GM's disc (the worker's `catalog`, `surface`
+  and `thumb` ops: models drawn small across their thinnest side, kept in IndexedDB as `thumb|2|...`), hex and
+  decimal both taken and the column's form written, what uses it, and Choose... (a grid of every one on the disc);
+  RGBA sliders, hex and the palettes for a colour, with the tint a PS2 draws an item's in; armour sets, robes and hair
+  as their CHARCUST.CSF textures and helms (VICSpriteCust's DictIDs, as vanilla's `cust.rs` has them). An item icon
+  shows its top-left 114x44 (VIWndList::DrawIcon), a spell's icon its back with its front's 22x22 at (13, 6) (the spell
+  book's). Lists show icons, bodies and swatches. A new look kind needs its case in `look.js`
+  (`TestLookColumnsAreTheOnesMeasured` checks); `TestTheLookFieldsWriteTheColumnsForm` drives the fields in a browser.
 - **Spell visuals** (`ops_visuals.go`, `views/visuals.js`; F3 pass 16): the page lists the disc's
   visuals with the spells using each; `play_visual` plays one (or a spell's) in the game from the
   GM's OWN character, logged in with the same account, onto its target (refused when it is not

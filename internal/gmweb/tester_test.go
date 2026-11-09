@@ -329,7 +329,7 @@ func TestNothingInTheGameReadsTheTesters(t *testing.T) {
 func TestTheTestersAllowlistIsTheOneMeant(t *testing.T) {
 	f := newFixture(t)
 	want := []string{"audit_log", "clone_row", "count_rows", "delete_row", "describe_table", "fetch", "get_row", "guide", "insert_row",
-		"list_tables", "lookup", "query_rows", "revert_change", "search", "server_status", "set_spell_visual", "spell_visual", "update_row", "visual_uses"}
+		"list_tables", "look_names", "lookup", "query_rows", "revert_change", "search", "server_status", "set_spell_visual", "spell_visual", "update_row", "visual_uses"}
 	var got []string
 	for name := range testerOps {
 		got = append(got, name)

@@ -75,7 +75,7 @@ func (cd *ConnectionData) TakeReliableOnce(seq uint16, sum uint64, now time.Time
 	}
 	cd.rxTaken[cd.rxNext] = reliableTaken{seq: seq, sum: sum, at: now}
 	cd.rxNext = (cd.rxNext + 1) % reliableTakenKept
-	if seq > cd.lastReceivedMessageSeq {
+	if SeqAfter(seq, cd.lastReceivedMessageSeq) {
 		cd.lastReceivedMessageSeq = seq
 	}
 	return true

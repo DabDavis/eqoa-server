@@ -226,8 +226,9 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 	}
 
 	// Tag this session with the character's serverID for future dedup lookups
-	if sess != nil {
+	if sess != nil && record != nil {
 		sess.SetCharacterServerID(uint32(record.ServerID))
+		sess.SetCharacterName(record.CharName)
 	}
 
 	w.mu.Lock()

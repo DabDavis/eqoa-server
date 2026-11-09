@@ -66,7 +66,14 @@ type ConnectionData struct {
 
 	// Round-robin offset for state update generation (ensures all channels get served)
 	stateUpdateOffset int
+
+	// net is the reliable stream as measured: round trips, acks, resends
+	// (netstats.go)
+	net NetStats
 }
+
+// Net is the session's reliable stream as measured (netstats.go).
+func (cd *ConnectionData) Net() *NetStats { return &cd.net }
 
 // RefnumOffsetMax is how far back a state message may name its reference:
 // connection.cpp's REFNUM_OFFSET_MAX. CLIENT refuses the WHOLE segment that
@@ -143,6 +150,13 @@ type sentValue struct {
 // may pass 65535.
 func seqBefore(a, b uint16) bool {
 	return int16(a-b) < 0
+}
+
+// SeqAfter reports whether a comes after b, as seqBefore orders them: every
+// packet, message and acknowledgement number of a connection is compared so
+// (connection.cpp's uns16_gt), since a long session passes 65535.
+func SeqAfter(a, b uint16) bool {
+	return int16(a-b) > 0
 }
 
 // ClientStateData tracks client input state.
@@ -249,7 +263,7 @@ func (cd *ConnectionData) IncrementReceivedMessageSeq() uint16 {
 func (cd *ConnectionData) SetLastReceivedMessageSeq(seq uint16) {
 	cd.mu.Lock()
 	defer cd.mu.Unlock()
-	if seq > cd.lastReceivedMessageSeq {
+	if SeqAfter(seq, cd.lastReceivedMessageSeq) {
 		cd.lastReceivedMessageSeq = seq
 	}
 }
@@ -289,7 +303,7 @@ func (cd *ConnectionData) ClientLastReceivedMessage() uint16 {
 func (cd *ConnectionData) SetClientLastReceivedMessage(seq uint16) {
 	cd.mu.Lock()
 	defer cd.mu.Unlock()
-	if seq > cd.clientLastReceivedMessage {
+	if SeqAfter(seq, cd.clientLastReceivedMessage) {
 		cd.clientLastReceivedMessage = seq
 	}
 }
@@ -308,6 +322,7 @@ func (cd *ConnectionData) ResetForMasterSession() {
 	cd.rxSeen = 0
 	cd.rxTaken, cd.rxNext = [reliableTakenKept]reliableTaken{}, 0
 	cd.frags = assembler{}
+	cd.net.Restart()
 }
 
 // ProcessPacket processes an incoming packet's sequence data.

@@ -2384,7 +2384,9 @@ client that draws them (eqoa-rust-client-vanilla's Quest Markers) answers 1 (0 t
 then on the quest engine (every second, on its own goroutine) sends **0x7E04**
 (`OpcodeQuestMarkersData`) when the set changed: a u8 count, then each mark's u8 kind (1 a quest
 the player may take from that NPC: `mayTakeLocked`, so its classes, races, levels and required
-quests; 2 a talk, show or give step of the player's to do at that NPC; 3 a kill or loot step's
+quests; 2 a talk, show or give step of the player's to do at that NPC, or a reach step's place,
+its journal line for the NPC's name and none for its line (petition 1404, 2026-11-09: Totem of the Plains'
+cave in Snowfist had no mark; all 240 reach steps have a spot); 3 a kill or loot step's
 creature), u8 world, f32 x and z (the NPC's spawn; a name's two nearest), the NPC's name and a u8
 count of quests, each its name, u8 lowest and highest levels, a line (the start of the giver's
 offer, or the step's journal line) and a detail (the quest's rewards in all, or what the step needs:

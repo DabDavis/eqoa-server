@@ -175,10 +175,11 @@ func boxOf(t *testing.T, msgs [][]byte) uint32 {
 }
 
 // An Armor Dyer on a server with capes dyes the cape (dyer.go): "Robe, cape,
-// shield or weapons" names it second, "All my armor" takes it in, "Take every
-// dye off" takes its dye off; its dye is chardyes' cape slot and the colour
-// the character's cape is drawn in (CapeTint), over the record's own. The
-// control: without capes the dyer's "All my armor" leaves the cape's slot alone.
+// shield or weapons" names it second, "My cape" is the first question's fifth
+// answer, "All my armor" takes it in, "Take every dye off" takes its dye off;
+// its dye is chardyes' cape slot and the colour the character's cape is drawn
+// in (CapeTint), over the record's own. The control: without capes the dyer's
+// "All my armor" leaves the cape's slot alone.
 func TestTheArmorDyerDyesTheCape(t *testing.T) {
 	capesOn(t)
 	tw := newTalkWorld(t, 100, 100)
@@ -221,7 +222,7 @@ func TestTheArmorDyerDyesTheCape(t *testing.T) {
 
 	got := talk()
 	if !hasMsg(got, "box:Armor Dyer: I dye armor and capes*") ||
-		!strings.Contains(got[len(got)-1], ":What shall I dye?|All my armor|One piece of armor|Robe, cape, shield or weapons|Take every dye off") {
+		!strings.HasSuffix(got[len(got)-1], ":What shall I dye?|All my armor|One piece of armor|Robe, cape, shield or weapons|Take every dye off|My cape") {
 		t.Fatalf("the dyer's question with capes: %q", got)
 	}
 	got = pick(got, 2)

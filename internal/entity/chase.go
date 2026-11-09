@@ -311,6 +311,7 @@ func (w *World) giveUpLocked(npc *NPC) {
 	npc.CurrentEnemy = 0
 	npc.endRound()
 	w.goHomeLocked(npc)
+	w.companionsHomeLocked(npc) // its pets home with it (companion.go)
 }
 
 // goHomeLocked starts an NPC that was fighting back to where the fight

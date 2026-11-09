@@ -416,7 +416,10 @@ const (
 	// its TEST menu (handlers/gmtriggers.go), a u32 after the opcode, both
 	// ways. The server offers it (1) to a GM's client right after the GM
 	// channel's 0x0700 {35, n}; a client that shows the names answers 1 to
-	// have them and 0 to stop. A PS2 ignores the offer.
+	// have the menu's eight lines' (OpcodeGMTriggersData), 2 to have every
+	// trigger in their place (OpcodeGMTriggerList, the menu a line a trigger),
+	// and 0 to stop; another value is taken as 1, as a server from before the
+	// list took any but 0. A PS2 ignores the offer.
 	OpcodeGMTriggers GameOpcode = 0x7E07
 
 	// OpcodeGMTriggersData is the names, server to a client that asked: a u8
@@ -709,6 +712,25 @@ const (
 	// characters, as channel 0x43's). Each one is the whole set; 0 effects:
 	// none, or no pet. At most 16 (entity.PetEffectsMost).
 	OpcodePetEffectsData GameOpcode = 0x7E33
+
+	// OpcodeGMTriggerList is every GM trigger, server to a client that
+	// answered OpcodeGMTriggers 2 (handlers/gmtriggers.go; the user, 2026-11-09:
+	// "can we add the triggers to client menu also in gm menus"), in place of
+	// OpcodeGMTriggersData: a u16 count, then each row of gmtriggers by slot: a
+	// u32 slot, u8 flags (bit 0 on, bit 1 running now) and its name (a u8 byte
+	// count and UTF-8, at most 32 bytes; 0 for a trigger with none), little-
+	// endian. Each one is the whole table, off triggers too. Sent after the
+	// client's 2 and whenever a trigger is saved, deleted, starts or ends. A
+	// client fires a line by its slot with OpcodeGMTriggerFire.
+	OpcodeGMTriggerList GameOpcode = 0x7E36
+
+	// OpcodeGMTriggerFire is a GM's firing of a trigger by its slot, client to
+	// server: a u32 slot, little-endian. The server fires it as 0x0702 and
+	// #trigger <n> do, for a GM alone (anyone else's is logged and dropped),
+	// and tells the GM what it did. A client sends it only for a line of
+	// OpcodeGMTriggerList's; 0x0702's byte reaches slots 1 to 256 and no
+	// further.
+	OpcodeGMTriggerFire GameOpcode = 0x7E37
 )
 
 // =============================================================================
@@ -1007,6 +1029,10 @@ func (op GameOpcode) String() string {
 		return "GMTriggers"
 	case OpcodeGMTriggersData:
 		return "GMTriggersData"
+	case OpcodeGMTriggerList:
+		return "GMTriggerList"
+	case OpcodeGMTriggerFire:
+		return "GMTriggerFire"
 	case OpcodeMapTravel:
 		return "MapTravel"
 	case OpcodeMapTravelTo:

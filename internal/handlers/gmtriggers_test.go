@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -442,6 +443,173 @@ func TestEncodeTriggerNames(t *testing.T) {
 		"07" + "02" + "09" + hex.EncodeToString([]byte("Trigger 8"))
 	if got := hex.EncodeToString(body); got != want {
 		t.Fatalf("%s\nwant %s", got, want)
+	}
+}
+
+// listSent is the bodies of the 0x7E36s and of the 0x7E08s queued for s, as
+// hex, and forgets everything s was sent.
+func listSent(s *session.Session) (list, menu []string) {
+	for _, b := range sentAll(s, protocol.OpcodeGMTriggerList) {
+		list = append(list, hex.EncodeToString(b))
+	}
+	for _, b := range sentAll(s, protocol.OpcodeGMTriggersData) {
+		menu = append(menu, hex.EncodeToString(b))
+	}
+	s.Queue().GetPending()
+	return list, menu
+}
+
+// listRow is one trigger of a 0x7E36 body, as hex: its u32 slot, flags and
+// name (a byte count and the bytes).
+func listRow(slot uint32, flags byte, name string) string {
+	b := binary.LittleEndian.AppendUint32(nil, slot)
+	b = append(b, flags, byte(len(name)))
+	return hex.EncodeToString(append(b, name...))
+}
+
+// listOf is a whole 0x7E36 body: a u16 count, then the rows.
+func listOf(rows ...string) string {
+	return hex.EncodeToString(binary.LittleEndian.AppendUint16(nil, uint16(len(rows)))) + strings.Join(rows, "")
+}
+
+// The whole list for vanilla's TEST menu: a GM's 2 is answered with every
+// trigger by slot (past the menu's eight, past a byte's reach, an off one and
+// an unnamed one too) at once, again when one starts or ends or the table
+// changes, never the same list twice, and no eight lines' names beside it; 0
+// stops it. The controls: a player's 2 is dropped, and a GM's 1 (a client from
+// before the list) is sent the eight lines' names alone, as before, and
+// nothing when a slot past them changes.
+func TestTriggerList(t *testing.T) {
+	w := newTrigWorld(t)
+	w.set(2, "Orcs", "gm", 0, `[{"do":"broadcast","text":"x"}]`)
+	w.set(7, "", "gm", 0, `[{"do":"broadcast","text":"x"}]`)
+	w.setAt(9, "Not in the eight", "gm", 0, -1, 0, 0, 0, `[{"do":"broadcast","text":"x"}]`, false)
+	w.set(140, "Marr Twins vs Mr. Moogie", "gm", 0, `[{"do":"spawn","npc":"Orc Pawn","minutes":1}]`)
+	w.set(300, "Past a byte", "gm", 0, `[{"do":"broadcast","text":"x"}]`)
+	ask := func(s *session.Session, h string) {
+		t.Helper()
+		if err := w.h.HandleGMTriggerNames(s, incoming(protocol.OpcodeGMTriggers, unhex(t, h))); err != nil {
+			t.Fatal(err)
+		}
+	}
+	rows := func(marr byte, more ...string) string {
+		r := []string{listRow(2, 1, "Orcs"), listRow(7, 1, ""), listRow(9, 0, "Not in the eight"),
+			listRow(140, marr, "Marr Twins vs Mr. Moogie")}
+		return listOf(append(append(r, more...), listRow(300, 1, "Past a byte"))...)
+	}
+	w.clear()
+	ask(w.ps, "02000000")
+	if list, menu := listSent(w.ps); len(list)+len(menu) != 0 {
+		t.Fatalf("a player's ask: %q %q", list, menu)
+	}
+	ask(w.gs, "02000000")
+	if list, menu := listSent(w.gs); len(list) != 1 || list[0] != rows(1) || len(menu) != 0 {
+		t.Fatalf("the GM's list: %q (names %q), want %s", list, menu, rows(1))
+	}
+	w.e.Tick()
+	if list, _ := listSent(w.gs); len(list) != 0 {
+		t.Fatalf("the same list again: %q", list)
+	}
+	if _, err := w.fire(140); err != nil {
+		t.Fatal(err)
+	}
+	if list, _ := listSent(w.gs); len(list) != 1 || list[0] != rows(3) {
+		t.Fatalf("140 running: %q, want %s", list, rows(3))
+	}
+	w.at(2 * time.Minute)
+	w.at(2*time.Minute + time.Second)
+	if list, _ := listSent(w.gs); len(list) != 1 || list[0] != rows(1) {
+		t.Fatalf("140 ended: %q, want %s", list, rows(1))
+	}
+	// a trigger made (the panel's save reads the table again, as set does)
+	w.set(141, "Tunare vs Mr. Moogie", "gm", 0, `[{"do":"broadcast","text":"x"}]`)
+	added := rows(1, listRow(141, 1, "Tunare vs Mr. Moogie"))
+	if list, _ := listSent(w.gs); len(list) != 1 || list[0] != added {
+		t.Fatalf("a trigger added: %q, want %s", list, added)
+	}
+	// the control: a client from before the list answers 1
+	ask(w.gs, "01000000")
+	eight := "02" + "01" + "01" + "04" + hex.EncodeToString([]byte("Orcs")) + "06" + "01" + "09" + hex.EncodeToString([]byte("Trigger 7"))
+	if list, menu := listSent(w.gs); len(list) != 0 || len(menu) != 1 || menu[0] != eight {
+		t.Fatalf("an old client: list %q, names %q, want %s", list, menu, eight)
+	}
+	w.set(142, "Later", "gm", 0, `[{"do":"broadcast","text":"x"}]`)
+	if list, menu := listSent(w.gs); len(list)+len(menu) != 0 {
+		t.Fatalf("an old client, a slot past eight made: list %q, names %q", list, menu)
+	}
+	ask(w.gs, "02000000")
+	listSent(w.gs)
+	ask(w.gs, "00000000")
+	w.set(143, "After 0", "gm", 0, `[{"do":"broadcast","text":"x"}]`)
+	if list, menu := listSent(w.gs); len(list)+len(menu) != 0 {
+		t.Fatalf("after 0: list %q, names %q", list, menu)
+	}
+}
+
+// encodeTriggerList: every trigger in the table's order under a u16 count; a
+// name cut at 32 bytes on a character's edge and trimmed, a trigger with no
+// name sent with none (its slot names it), an off one's bit 0 clear, a running
+// one's bit 1; a slot below 1, or one no u32 carries, left out. No triggers:
+// a count of 0.
+func TestEncodeTriggerList(t *testing.T) {
+	long := strings.Repeat("é", 20) // 40 bytes
+	body := encodeTriggerList([]database.GMTrigger{
+		{Slot: 0, Name: "Nowhere", Enabled: true},
+		{Slot: 1, Name: long, Enabled: true},
+		{Slot: 8},
+		{Slot: 142, Name: " Tunare vs Mr. Moogie ", Enabled: true},
+		{Slot: 1 << 32, Name: "Too far", Enabled: true},
+	}, map[int]bool{8: true, 142: true})
+	want := listOf(listRow(1, 1, strings.Repeat("é", 16)), listRow(8, 2, ""), listRow(142, 3, "Tunare vs Mr. Moogie"))
+	if got := hex.EncodeToString(body); got != want {
+		t.Fatalf("%s\nwant %s", got, want)
+	}
+	if got := hex.EncodeToString(encodeTriggerList(nil, nil)); got != "0000" {
+		t.Fatalf("no triggers: %s", got)
+	}
+}
+
+// A line of the whole list fires its own slot (0x7E37, a u32): the GM's 140
+// runs trigger 140 and the GM is told, and 300 (past 0x0702's byte) runs
+// too. The controls: a player's 140 fires nothing (no line said, no run), nor
+// a message cut short; an empty slot says so.
+func TestTriggerFireBySlot(t *testing.T) {
+	w := newTrigWorld(t)
+	w.set(140, "Marr Twins vs Mr. Moogie", "near", 0, `[{"do":"broadcast","text":"the twins come"}]`)
+	w.set(300, "Past a byte", "near", 0, `[{"do":"broadcast","text":"three hundred"}]`)
+	fire := func(s *session.Session, h string) {
+		t.Helper()
+		if err := w.h.HandleGMTriggerFire(s, incoming(protocol.OpcodeGMTriggerFire, unhex(t, h))); err != nil {
+			t.Fatal(err)
+		}
+	}
+	w.clear()
+	fire(w.ps, "8c000000")
+	if got := yellow(t, w.ps); len(got) != 0 || len(w.e.Runs()) != 0 {
+		t.Fatalf("a player's 140: %q, runs %+v", got, w.e.Runs())
+	}
+	fire(w.gs, "8c00")
+	if got := yellow(t, w.ps); len(got) != 0 || len(w.e.Runs()) != 0 {
+		t.Fatalf("cut short: %q, runs %+v", got, w.e.Runs())
+	}
+	fire(w.gs, "8c000000")
+	if got := yellow(t, w.ps); len(got) != 1 || got[0] != "the twins come" {
+		t.Fatalf("the GM's 140: %q", got)
+	}
+	if got := gmReplies(t, w.gs); !hasLine(got, "Trigger 140 (Marr Twins vs Mr. Moogie) fired") {
+		t.Fatalf("the GM told: %q", got)
+	}
+	if runs := w.e.Runs(); len(runs) != 1 || runs[0].Slot != 140 {
+		t.Fatalf("runs: %+v", runs)
+	}
+	w.clear()
+	fire(w.gs, "2c010000")
+	if got := yellow(t, w.ps); len(got) != 1 || got[0] != "three hundred" {
+		t.Fatalf("the GM's 300: %q", got)
+	}
+	fire(w.gs, "07000000")
+	if got := gmReplies(t, w.gs); !hasLine(got, "Trigger 7: none set") {
+		t.Fatalf("an empty slot: %q", got)
 	}
 }
 

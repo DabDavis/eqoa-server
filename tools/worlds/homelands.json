@@ -1,0 +1,140 @@
+{
+  "world": 10,
+  "name": "the Homelands",
+  "note": "A zone of the disc for each race of racedefs past the game's, where it stands on the disc (no two in one cell of the grid). Built by cmd/worldbuild from the operator's disc; the content (start, people, quests) is tools/seed_race_homes.py's.",
+  "zones": [
+    {
+      "name": "West Plateau",
+      "from": "ODUS.ESF",
+      "zone": 8,
+      "race": 11,
+      "note": "Hill Giant: the hill giants' plateau: 73 hill giants of the game stand in it (West Plateau, cell 3,1)"
+    },
+    {
+      "name": "Kerra Isle",
+      "from": "ODUS.ESF",
+      "zone": 19,
+      "race": 12,
+      "note": "Kerran: the kerrans' island, its village and sentries (Kerra Isle, cell 2,3)"
+    },
+    {
+      "name": "Moss Mouth Cavern",
+      "from": "TUNARIA.ESF",
+      "zone": 68,
+      "race": 13,
+      "note": "Goblin: a goblin cavern town: 87 goblins of the game, a blacksmith among them (Moss Mouth Cavern, cell 9,6)"
+    },
+    {
+      "name": "Aviak Village",
+      "from": "TUNARIA.ESF",
+      "zone": 115,
+      "race": 14,
+      "note": "Aviak: the aviaks' savannah village: 173 aviaks of the game, a grocer and guards among them (Aviak Village, cell 4,10)"
+    },
+    {
+      "name": "Cazic-Thule",
+      "from": "TUNARIA.ESF",
+      "zone": 160,
+      "race": 15,
+      "note": "Lizardman: the Tae Ew lizardmen's temple in the swamp (Cazic-Thule, cell 7,15)"
+    },
+    {
+      "name": "Sylhilthis' Dwell",
+      "from": "ODUS.ESF",
+      "zone": 7,
+      "race": 16,
+      "note": "Kappa: the kappa town of Odus: 179 kappa of the game, guards and a blacksmith (Sylhilthis' Dwell, cell 2,1)"
+    },
+    {
+      "name": "Mayfly Glade",
+      "from": "TUNARIA.ESF",
+      "zone": 103,
+      "race": 17,
+      "note": "Brownie: a glade (the brownies' own Salisearaneen stands in the Warrens' cell) (Mayfly Glade, cell 5,9)"
+    },
+    {
+      "name": "Misty Thicket",
+      "from": "TUNARIA.ESF",
+      "zone": 54,
+      "race": 18,
+      "note": "Pixie: the bixies' thicket (Misty Thicket, cell 8,5)"
+    },
+    {
+      "name": "Twisted Tower",
+      "from": "TUNARIA.ESF",
+      "zone": 49,
+      "race": 19,
+      "note": "Fairy: a faerie town: a blacksmith, druids and wizards of the game (Twisted Tower, cell 3,5)"
+    },
+    {
+      "name": "Blackburrow",
+      "from": "TUNARIA.ESF",
+      "zone": 65,
+      "race": 20,
+      "note": "Gnoll: the gnolls' burrow: 124 gnolls of the game (Blackburrow, cell 6,6)"
+    },
+    {
+      "name": "Thedruk",
+      "from": "TUNARIA.ESF",
+      "zone": 42,
+      "race": 21,
+      "note": "Orc: the Hatebone orcs' camp: 93 orcs of the game, a prophet among them (Thedruk, cell 9,4)"
+    },
+    {
+      "name": "The Warrens",
+      "from": "ODUS.ESF",
+      "zone": 27,
+      "race": 22,
+      "note": "Kobold: the kobolds' tunnels: 114 of clan Kolbok (The Warrens, cell 4,4)"
+    },
+    {
+      "name": "Gerntar Mines",
+      "from": "TUNARIA.ESF",
+      "zone": 143,
+      "race": 23,
+      "note": "Minotaur: the Rustel minotaurs' mines: 41 minotaurs of the game (Gerntar Mines, cell 6,13)"
+    },
+    {
+      "name": "The Vastly Deep",
+      "from": "ODUS.ESF",
+      "zone": 22,
+      "race": 24,
+      "note": "Ratman: the ratmen's coast caves (The Vastly Deep, cell 5,3)"
+    },
+    {
+      "name": "East Toxxulia",
+      "from": "ODUS.ESF",
+      "zone": 14,
+      "race": 25,
+      "note": "Satyr: the satyrs' woods: 155 acolyte satyrs of the game (East Toxxulia, cell 3,2)"
+    },
+    {
+      "name": "West Toxxulia",
+      "from": "ODUS.ESF",
+      "zone": 13,
+      "race": 26,
+      "note": "Dryad: the forest dryads' woods (West Toxxulia, cell 2,2)"
+    },
+    {
+      "name": "Tomb of Kings",
+      "from": "TUNARIA.ESF",
+      "zone": 82,
+      "race": 27,
+      "note": "Skeleton: a crypt of the old kings (Tomb of Kings, cell 10,7)"
+    },
+    {
+      "name": "Guk",
+      "from": "TUNARIA.ESF",
+      "zone": 157,
+      "race": 28,
+      "note": "Fungusman: the fungal folk's caverns (Guk's) (Guk, cell 12,14)"
+    },
+    {
+      "name": "South Barren Coast",
+      "from": "ODUS.ESF",
+      "zone": 28,
+      "race": 29,
+      "note": "Gargoyle: the gargoyles' crags: 91 gargoyles of the game (South Barren Coast, cell 5,4)"
+    }
+  ]
+}

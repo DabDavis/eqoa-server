@@ -11,7 +11,8 @@ package entity
 // What is written (KeepNPCs) is only what differs from what the row makes: an
 // NPC of a row that has left its spawn or its spawn's facing, is short of its
 // hit points, is dead, was fighting or going home after a fight, has taken up its
-// path, or is walking back to its spawn. What comes back (RestoreNPCs, once
+// path, is walking back to its spawn, or has an ability's cooldown running
+// (abilitytimes.go). What comes back (RestoreNPCs, once
 // everything the rows, the balance and the templates give is loaded, before a
 // datagram is read or a tick runs):
 //
@@ -33,6 +34,8 @@ package entity
 //   - a fight's end: the threats and the round are gone, as they always were, and
 //     one that was fighting or on its way home runs back to where the fight began
 //     (Home; chase.go's goHomeLocked), its hit points as they were.
+//   - its template abilities' cooldowns, each to its time (abilitytimes.go: Mr.
+//     Moogie's Lay Hands is once an hour, a restart or no), dead or alive.
 //   - one walking back to its spawn with its path taken away goes on doing so,
 //     and so does one with nothing to bring it back: left away from its spawn by
 //     a charm's end, say, standing or past its wander's reach of it (ToSpawn).
@@ -111,6 +114,9 @@ type KeptNPC struct {
 	// Surface is the water's top over one swimming there (water.go), 0 for none:
 	// finding it again would read the world's files during the restart.
 	Surface float32 `json:"surface,omitempty"`
+	// Cooldowns are its template abilities' cooldowns still running, by ability
+	// (abilitytimes.go: an hour is an hour, petition 1394), alive or dead.
+	Cooldowns map[string]time.Time `json:"cooldowns,omitempty"`
 }
 
 // StandNPCs stops every creature where it stands, its channel on each client's
@@ -146,22 +152,24 @@ func (w *World) KeepNPCs() []KeptNPC {
 	w.mu.Lock() // not RLock: wanders may note what it finds on the NPC
 	defer w.mu.Unlock()
 	var out []KeptNPC
+	now := time.Now()
 	for _, npc := range w.NPCs {
-		if k, ok := w.keptNPCLocked(npc); ok {
+		if k, ok := w.keptNPCLocked(npc, now); ok {
 			out = append(out, k)
 		}
 	}
 	return out
 }
 
-// keptNPCLocked is npc as a restart carries it, false when it carries nothing of
-// it. Must be called with the lock held.
-func (w *World) keptNPCLocked(npc *NPC) (KeptNPC, bool) {
+// keptNPCLocked is npc as a restart carries it at now, false when it carries
+// nothing of it. Must be called with the lock held.
+func (w *World) keptNPCLocked(npc *NPC, now time.Time) (KeptNPC, bool) {
 	if keepsNoNPC(npc) {
 		return KeptNPC{}, false
 	}
 	k := KeptNPC{ID: uint32(npc.ServerID), Name: npc.Name, World: npc.World,
-		Spawn: [4]float32{npc.SpawnX, npc.SpawnY, npc.SpawnZ, npc.SpawnFacing}}
+		Spawn:     [4]float32{npc.SpawnX, npc.SpawnY, npc.SpawnZ, npc.SpawnFacing},
+		Cooldowns: npc.pendingCooldowns(now)}
 	away := npc.X != npc.SpawnX || npc.Y != npc.SpawnY || npc.Z != npc.SpawnZ || npc.Facing != npc.SpawnFacing
 	if away {
 		k.Place = &[4]float32{npc.X, npc.Y, npc.Z, npc.Facing}
@@ -193,7 +201,7 @@ func (w *World) keptNPCLocked(npc *NPC) (KeptNPC, bool) {
 	// a camp's spawn standing as another of its kinds than its row's: its name
 	// says which (campspawn.go)
 	kind := w.campKindChangedLocked(npc)
-	if !away && !k.Dead && k.MaxHP == 0 && k.Home == nil && k.PathDir == 0 && !k.ToSpawn && !kind {
+	if !away && !k.Dead && k.MaxHP == 0 && k.Home == nil && k.PathDir == 0 && !k.ToSpawn && !kind && len(k.Cooldowns) == 0 {
 		return KeptNPC{}, false
 	}
 	if !k.finite() {
@@ -249,6 +257,7 @@ type NPCsRestored struct {
 	ToSpawn  int // walking back to their spawns
 	RowMoved int // on the new place of a row a data step moved
 	Kind     int // camps' spawns made again as the kinds they stood as (campspawn.go)
+	Cooldown int // with an ability's cooldown running on (abilitytimes.go)
 
 	RowGone int // not used: the row is gone
 	NewNPC  int // not used: another creature on the id (a new spawn and another name)
@@ -256,8 +265,8 @@ type NPCsRestored struct {
 }
 
 func (r NPCsRestored) String() string {
-	return fmt.Sprintf("%d back (%d dead, %d hurt, %d where they stood, %d going back to where a fight began, %d taking up their paths, %d walking to their spawns, %d on a row's new place, %d camp spawns as the kinds they stood as); not used: %d rows gone, %d other creatures on the id, %d of a kind not kept",
-		r.Back, r.Dead, r.Hurt, r.Placed, r.Fight, r.Path, r.ToSpawn, r.RowMoved, r.Kind, r.RowGone, r.NewNPC, r.NotKept)
+	return fmt.Sprintf("%d back (%d dead, %d hurt, %d where they stood, %d going back to where a fight began, %d taking up their paths, %d walking to their spawns, %d on a row's new place, %d camp spawns as the kinds they stood as, %d with a cooldown running); not used: %d rows gone, %d other creatures on the id, %d of a kind not kept",
+		r.Back, r.Dead, r.Hurt, r.Placed, r.Fight, r.Path, r.ToSpawn, r.RowMoved, r.Kind, r.Cooldown, r.RowGone, r.NewNPC, r.NotKept)
 }
 
 // RestoreNPCs gives the NPCs a restart's file names what was kept of them (the
@@ -297,6 +306,13 @@ func (w *World) RestoreNPCs(kept []KeptNPC) NPCsRestored {
 // with the lock held.
 func (w *World) restoreNPCLocked(npc *NPC, k *KeptNPC, onRow bool, r *NPCsRestored) {
 	r.Back++
+	if len(k.Cooldowns) > 0 {
+		npc.abilityReady = make(map[string]time.Time, len(k.Cooldowns)) // its cooldowns run on (abilitytimes.go)
+		for key, until := range k.Cooldowns {
+			npc.abilityReady[key] = until
+		}
+		r.Cooldown++
+	}
 	switch {
 	case !onRow:
 		r.RowMoved++

@@ -236,6 +236,11 @@ type NPC struct {
 	tmpl   *ClassTemplate
 	tbase  templateBase
 	tfight *templateFight
+	// abilityReady is when each of its template's abilities with a cooldown
+	// may be cast again, by abilityKey (abilitytimes.go): on the creature, not
+	// its fight, so a fight's end and its death leave it; a restart that keeps
+	// the sessions carries it (keepnpc.go). nil for none.
+	abilityReady map[string]time.Time
 
 	// sheet is a workbook pet's petstats row (petstats.go), nil for every
 	// other NPC

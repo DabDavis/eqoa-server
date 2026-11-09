@@ -422,7 +422,13 @@ buffs, including immunity to damage / god mode": on its clock at what it fights,
 (buffs, damage shields, heals over time, mitigations and invulnerabilities, speeds, forms, meals; a buff's price with it), the harmful, a price
 that gives nothing and the Boon left on, and a GM's `#testmode` turned off, logged; told in a line; `name` what its lines call it, `Dispel` for
 none, or a pinned spell's name, cast time and visual, nothing else of it; an older binary reads a template with one as unreadable, so the
-template's data goes in with the code); `melee_pct` reaches 5000; a resist's kind may be a comma list. `npcs.unk_o` 1-14 is an NPC's
+template's data goes in with the code); and on a creature's ability (`entity/abilitytimes.go`, petition 1394, Mr. Moogie's Lay
+Hands: "1 hour cool down complete heal at 50% health ... After Lh he also gets a proc buff on melee attacks"): `heal_pct` on a heal (that
+share of its most hit points, 100 whole; a pinned spell its look), `cooldown` (seconds from one cast to the next kept on the creature, not
+its fight: a fight's end, its death, its respawn and a keep restart, `KeptNPC.Cooldowns`, leave it running; a cold start or a GM's edit of
+its row begins it again), `say` (its line in /say as it lands, "Name: text" within a say's reach), and `proc_chance`/`proc_damage`/
+`proc_name` (a melee proc its landing gives it for the rest of that fight, fixed and unresisted, gone with the fight; no client shows a
+creature's buffs, `#stats` says it); an older binary refuses those fields too; `melee_pct` reaches 5000; a resist's kind may be a comma list. `npcs.unk_o` 1-14 is an NPC's
 armour tint (`$Tints`, bytes 99-104 of its channel).
 
 **Zaoran Plateau rebuilt** (the user, 2026-11-08: "hunt down and rebuild zaoran plateau - the bosses, quests and rare

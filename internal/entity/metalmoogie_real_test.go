@@ -106,7 +106,7 @@ func TestRealMetalMoogie(t *testing.T) {
 	} else {
 		t.Logf("%d hit points; on the 2,000 AC 400 AGI level 60 warrior %.1f a hit (%d-%d), four a round", c.MaxHP, mean, lo, hi)
 	}
-	t.Logf("%s", w.templateLineLocked(c))
+	t.Logf("%s", w.templateLineLocked(c, time.Now()))
 
 	var line2 string
 	var fx int64

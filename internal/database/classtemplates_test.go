@@ -259,6 +259,46 @@ func TestTemplateDoTAndCast(t *testing.T) {
 	}
 }
 
+// A creature's ability fields (petition 1394, Mr. Moogie's Lay Hands): a heal of
+// its share with a cooldown across fights, a line in /say and the proc its
+// landing gives, trimmed and written back the same; each held to its bounds, a
+// proc whole or not at all, a name a strip's or a share heal's.
+func TestTemplateAbilityCooldownSayAndProc(t *testing.T) {
+	list, err := ParseTemplateAbilities(`[{"kind":"heal","spell_id":700046,"heal_pct":100,"below":50,"every":3600,"cooldown":3600,` +
+		`"say":" Thats an hour cool down, you'll pay for that ","proc_chance":25,"proc_damage":1500,"proc_name":" Royal Fury "}]`)
+	if err != nil || len(list) != 1 {
+		t.Fatalf("%v %v", list, err)
+	}
+	a := list[0]
+	if a.Cooldown != 3600 || a.Say != "Thats an hour cool down, you'll pay for that" || a.ProcChance != 25 || a.ProcDamage != 1500 ||
+		a.ProcName != "Royal Fury" || a.HealPct != 100 {
+		t.Errorf("read: %+v", a)
+	}
+	if again, err := ParseTemplateAbilities(TemplateAbilitiesJSON(list)); err != nil || !reflect.DeepEqual(again, list) {
+		t.Errorf("written back: %v %v", again, err)
+	}
+	if _, err := ParseTemplateAbilities(`[{"kind":"heal","heal_pct":100,"every":30,"name":"Lay Hands"}]`); err != nil {
+		t.Errorf("a share heal named: %v", err)
+	}
+	for _, bad := range []string{
+		`[{"kind":"heal","heal_pct":100,"every":30,"cooldown":-1}]`,
+		`[{"kind":"heal","heal_pct":100,"every":30,"cooldown":86401}]`,
+		`[{"kind":"heal","heal_pct":100,"every":30,"say":"` + strings.Repeat("x", SayMost+1) + `"}]`,
+		`[{"kind":"heal","heal_pct":100,"every":30,"say":"a | b"}]`,
+		`[{"kind":"heal","heal_pct":100,"every":30,"proc_chance":25}]`,
+		`[{"kind":"heal","heal_pct":100,"every":30,"proc_damage":1500}]`,
+		`[{"kind":"heal","heal_pct":100,"every":30,"proc_chance":101,"proc_damage":1500}]`,
+		`[{"kind":"heal","heal_pct":100,"every":30,"proc_chance":25,"proc_damage":100001}]`,
+		`[{"kind":"heal","heal_pct":100,"every":30,"proc_name":"Royal Fury"}]`,
+		`[{"kind":"heal","every":30,"name":"Lay Hands"}]`,
+		`[{"kind":"heal","heal_pct":100,"every":30,"name":"Lay Hands","spell_id":700046}]`,
+	} {
+		if _, err := ParseTemplateAbilities(bad); err == nil {
+			t.Errorf("%s read, want refused", bad)
+		}
+	}
+}
+
 // A template's spells: its class's by level as classspells has them (a
 // mastery's left out), with their lines, visuals and spellarea rows; a spell
 // pinned by name is the record with a line first. The range's bits are the

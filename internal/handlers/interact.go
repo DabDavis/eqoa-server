@@ -81,6 +81,9 @@ type InteractHandler struct {
 	// archivist answers the Spell Archivists' boxes (archivist.go), which a
 	// request for one's shop asks (merchant.go); nil: none is asked
 	archivist *Archivist
+
+	// tele is the Teleporter's boxes and what it offers (teleporter.go)
+	tele Teleporter
 }
 
 // SetDialogLines gives the handler npcdialog's reader (database.NPCDialog).
@@ -250,6 +253,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 
 	// Dabrish (dabrish.go): a level of the player's choosing, or mastery points.
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.dabrishTalk(sess, player, npc) {
+		return nil
+	}
+
+	// The Teleporter (teleporter.go): every raid and every camp.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.teleporterTalk(sess, player, npc) {
 		return nil
 	}
 
@@ -547,6 +555,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// Dabrish's (dabrish.go); an old one does nothing
 	if h.answerDabrish(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// the Teleporter's (teleporter.go); an old one does nothing
+	if h.answerTeleporter(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// a Spell Archivist's (archivist.go); an old one does nothing

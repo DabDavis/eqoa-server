@@ -78,6 +78,10 @@ type OptionRow struct {
 	Parts      []OptionPart
 	Male       []OptionStep
 	Female     []OptionStep
+	// Always is a texture row whose step is laid even at its first: the Wisp's
+	// wisp (a body's sprite, not a texture), which every Wisp wears, so its
+	// charlook row is written at any step and every client that asked is told.
+	Always bool
 }
 
 // Steps is the row's steps for sex (1 female).
@@ -166,6 +170,23 @@ const (
 
 	bodyFungusRed  = 0x5874ACFC
 	bodyFungusPale = 0xE8B0ADC8
+
+	// the Jal'Raeth (2026-11-09, the owner: "floating monk, alien type creatures"):
+	// the commoners' and nobles' robed body, the channelers' bare-chested one, the
+	// knights' and champions' armoured one; one 42-node skeleton, all three floating
+	// cross-legged
+	bodyJalRaeth        = 0xF51BAB09
+	bodyJalRaethChannel = 0x4B24FF7E
+	bodyJalRaethKnight  = 0x491F6347
+
+	// the Wisp (2026-11-09, the owner: "the armor will form like a human and also the
+	// weapons swing like humans. like when humans are invis, but the wisp is inside the
+	// helm"): a human's body, which a client that can draws as its armour alone, and the
+	// will o' wisp's (the world's wisps, orbs of light and roaming spirits wear it) in
+	// the helm
+	bodyHumanMale   = 0x70D898C6
+	bodyHumanFemale = 0x0D537335
+	bodyWillOWisp   = 0x8143DC70
 )
 
 // The giants' kinds, every one on the hill giant's skeleton and as tall (4.81).
@@ -386,6 +407,19 @@ var raceOptionRows = map[uint32][]OptionRow{
 			within(bodyFungusPale, []uint8{0}, fungusGrowths...)}, Male: dyes},
 		{Key: "bag", Label: "Bag", Kind: KindColour, Parts: []OptionPart{whole(bodyFungus, 2)}, Male: dyes},
 	},
+	bodyJalRaeth: {{Key: "body", Label: "Garb", Kind: KindBody, Male: []OptionStep{
+		{"Robes", bodyJalRaeth, 1}, {"Channeler", bodyJalRaethChannel, 1}, {"Knight", bodyJalRaethKnight, 0.94}}}},
+	// the Wisp: a human's body for its sex (one step: not shown, the female's her
+	// own), and the wisp laid on it always (a part of a head entry, which is only
+	// where it is said to be: a client that draws wisps puts the wisp's body at the
+	// helm's node, and one that does not lays nothing, the value being no texture)
+	bodyHumanMale: {
+		{Key: "body", Label: "Body", Kind: KindBody, Male: []OptionStep{{"Human", bodyHumanMale, 1}},
+			Female: []OptionStep{{"Human", bodyHumanFemale, 1}}},
+		{Key: "wisp", Label: "Wisp", Kind: KindTexture, Always: true,
+			Parts: []OptionPart{whole(bodyHumanMale, 2), whole(bodyHumanFemale, 7)},
+			Male:  []OptionStep{{"Will o' wisp", bodyWillOWisp, 0}}},
+	},
 	bodyGargoyle: {{Key: "body", Label: "Stone", Kind: KindBody, Male: []OptionStep{
 		{"Granite", bodyGargoyle, 1}, {"Moss", 0x4E2A945C, 1.25}, {"Ice", 0xAEC5D9F6, 0.83}, {"Obsidian", 0x001355C8, 1.99},
 		{"Shadow", 0x6D959FD9, 1.54}, {"Fire", 0x9304BAB5, 1.33}}}},
@@ -516,9 +550,16 @@ func ResolveOptions(race, sex int, choices []OptionChoice) (body int64, looks []
 		case KindBody:
 			body = int64(int32(step.Value))
 		case KindColour, KindTexture:
-			if c.Step > 0 {
+			if c.Step > 0 || row.Always {
 				looks = append(looks, database.CharLook{Part: row.Key, Kind: int(row.Kind), Value: step.Value})
 			}
+		}
+	}
+	// a row laid always and not chosen (a client that sends no block, an older
+	// one): its first step
+	for _, r := range rows {
+		if r.Always && !seen[r.Key] && len(r.Steps(sex)) > 0 {
+			looks = append(looks, database.CharLook{Part: r.Key, Kind: int(r.Kind), Value: r.Steps(sex)[0].Value})
 		}
 	}
 	return body, looks, nil

@@ -155,6 +155,10 @@ type Session struct {
 	raceLooks          bool
 	raceCatalogueSent  bool
 	raceLooksSent      string
+	// creationAsked: the client answered creation's offer 1
+	// (protocol.OpcodeCreationOffer, handlers/creation.go), so a login's world
+	// entry sends it creation's races again (handlers/raceoptions.go)
+	creationAsked bool
 
 	// clock is the game clock the session's client keeps, set by each 0x0013
 	// it was sent: its time of day (gameclock.go).
@@ -360,6 +364,30 @@ func (s *Session) TakeRaceCatalogue() bool {
 	}
 	s.raceCatalogueSent = true
 	return true
+}
+
+// RaceDataAgain forgets that the races' options and the looks went out, so the
+// next SendRaceOptions and RefreshRaceLooks send them again: a login's world
+// entry, as they went on the lobby's connection (handlers/raceoptions.go).
+func (s *Session) RaceDataAgain() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.raceCatalogueSent = false
+	s.raceLooksSent = ""
+}
+
+// SetCreationAsked records that the client answered creation's offer 1.
+func (s *Session) SetCreationAsked() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.creationAsked = true
+}
+
+// CreationAsked is whether the client answered creation's offer 1.
+func (s *Session) CreationAsked() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.creationAsked
 }
 
 // TakeRaceLooks reports whether body, a list of the looks, is to go to this

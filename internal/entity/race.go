@@ -31,11 +31,15 @@ import (
 // and in stats.go, and any other number goes on the wire as it is.
 
 // FirstCustomRace and LastCustomRace bound a racedefs row's id: past CLIENT's ten
-// and the froglok, and no further than a race's bit in a mask the GM panel's page
-// can hold (JavaScript's bit operators stop at 32 bits).
+// and the froglok, and no further than a race's bit in a mask (cmcatalog.races)
+// stays an integer a JSON number holds exactly (2^52 is the last bit below 2^53:
+// the GM panel's page reads masks as JavaScript numbers and tests their bits with
+// BigInt, lib/fmt.js and lib/form.js; its bit operators stop at 32 bits, which held
+// the races to 30 until 2026-11-09). A race's id goes on the wire in a byte
+// (0x7E1D, 0x7E1F, 0x7E23) and is never the channel's race (WireRace's).
 const (
 	FirstCustomRace = 11
-	LastCustomRace  = 30
+	LastCustomRace  = 52
 )
 
 // RaceDef is a racedefs row as the game reads it.

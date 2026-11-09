@@ -49,6 +49,29 @@ func (s *SpellbookStore) MerchantScrolls(icon int) ([]MerchantScroll, error) {
 	return out, rows.Err()
 }
 
+// ScrollRecords is every spell scroll's record by patternid, sold or not: an
+// item record with the scroll art (icon, stored signed or not) worn nowhere,
+// as MerchantScrolls reads one. A quest hands over scrolls no merchant sells
+// (a class quest's reward; handlers/archivistside.go reads its spell off it).
+func (s *SpellbookStore) ScrollRecords(icon int) (map[int]MerchantScroll, error) {
+	signed := int64(int32(icon))
+	rows, err := s.db.Query(`SELECT patternid, itemname, levelreq, classuse, raceuse FROM itempattern
+		WHERE itemicon IN (?, ?) AND equipslot = -1`, signed, int64(uint32(signed)))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[int]MerchantScroll{}
+	for rows.Next() {
+		var m MerchantScroll
+		if err := rows.Scan(&m.PatternID, &m.Name, &m.LevelReq, &m.ClassUse, &m.RaceUse); err != nil {
+			return nil, err
+		}
+		out[m.PatternID] = m
+	}
+	return out, rows.Err()
+}
+
 // ClassSpellSources is every classspells row's source by spell, then class:
 // which classes have a spell, and how each gets it (GotBy, Granted).
 func (s *SpellbookStore) ClassSpellSources() (map[int]map[int]string, error) {

@@ -14,7 +14,8 @@ import (
 // reward quests, class by class, and every class's paths written and changed
 // through his boxes. Skipped without a database.
 //
-// For each class: every spell its 30, 40 and 49 reward quests' options give
+// For each class: every spell its 30, 40 and 49 reward quests' options give,
+// and its level 20 class quests' picks (their scrolls' spells; petition 1361),
 // is in exactly one path, or sold to the class by a merchant (a basic spell);
 // every step's own spell is every path's or sold; each line's every name is
 // a spell those quests give; no spell is in two paths; the paths number the
@@ -56,9 +57,10 @@ func TestRealArchivistPathsAreTheQuests(t *testing.T) {
 		}
 		rewards := qe.pathRewards(class)
 		levels := map[int]bool{}
+		has := func(id int) bool { _, ok := arch.sources[id][class]; return ok }
 		for _, r := range rewards {
 			levels[r.level] = true
-			for _, id := range r.options {
+			for _, id := range arch.optionSpells(r, has) {
 				name := arch.names[id].Name
 				if _, ok := where[id]; !ok && !arch.soldTo(class, name) {
 					t.Errorf("%s: the level %d option %q (%d) is in no path and no merchant sells it", slug, r.level, name, id)
@@ -70,7 +72,7 @@ func TestRealArchivistPathsAreTheQuests(t *testing.T) {
 				}
 			}
 		}
-		if len(rewards) == 0 || !levels[30] || !levels[40] || !levels[49] {
+		if len(rewards) == 0 || !levels[20] || !levels[30] || !levels[40] || !levels[49] {
 			t.Errorf("%s: %d reward quests, levels %v", slug, len(rewards), levels)
 		}
 		for _, line := range lines {
@@ -100,7 +102,8 @@ func TestRealArchivistPathsAreTheQuests(t *testing.T) {
 // its first path written at once, then each path in turn, each change asked
 // and agreed, the book after each holding Return Home, the path's spells and
 // the common ones, nothing of another path; the enchanter's (the petition's
-// example) by name. Then a level 35 enchanter: its 30's alone.
+// example) by name, its level 20 picks with them (petition 1361). Then a level
+// 35 enchanter: its 20's and 30's alone; a 20: its 20's; a 19: nothing.
 func TestRealArchivistChangesEveryClassesPaths(t *testing.T) {
 	db := realRehabDB(t)
 	f := &pathRig{archivistFixture: newArchivistFixture(t, db)}
@@ -162,19 +165,29 @@ func TestRealArchivistChangesEveryClassesPaths(t *testing.T) {
 	reset(12, 60)
 	enc := []string{"The path of Expansive Mind", "The path of Power Jet", archivistPathNeither}
 	_, box := f.paths(enc...)
-	f.wantMsgs("self power", f.pick(box, 0), "add:700328@1 flag 0", "add:700462@2 flag 0", "add:700575@3 flag 0", "add:700618@4 flag 0",
-		"box:Spell Archivist: There: Expansive Mind, Limitless Mind, Boundless Mind and Infinite Mind written into your book. The path of Expansive Mind is yours.")
+	f.wantMsgs("self power", f.pick(box, 0), "add:700215@1 flag 0", "add:700328@2 flag 0", "add:700462@3 flag 0", "add:700575@4 flag 0",
+		"add:700618@5 flag 0",
+		"box:Spell Archivist: There: Spacious Mind, Expansive Mind, Limitless Mind, Boundless Mind and Infinite Mind written into your book. The path of Expansive Mind is yours.")
 	_, box = f.paths(enc...)
 	got := f.pick(box, 1)
-	f.wantMsgs("power for others", f.pick(boxID(got), 0), "remove:1", "remove:2", "remove:3", "remove:4",
-		"add:700340@1 flag 0", "add:700468@2 flag 0", "box:*It is done: the path of Power Jet is yours now.*")
+	f.wantMsgs("power for others", f.pick(boxID(got), 0), "remove:1", "remove:2", "remove:3", "remove:4", "remove:5",
+		"add:700207@1 flag 0", "add:700340@2 flag 0", "add:700468@3 flag 0", "box:*It is done: the path of Power Jet is yours now.*")
 	_, box = f.paths(enc...)
 	got = f.pick(box, 0)
-	f.wantMsgs("self power again", f.pick(boxID(got), 0), "remove:1", "remove:2",
-		"add:700328@1 flag 0", "add:700462@2 flag 0", "add:700575@3 flag 0", "add:700618@4 flag 0", "box:*It is done: the path of Expansive Mind*")
+	f.wantMsgs("self power again", f.pick(boxID(got), 0), "remove:1", "remove:2", "remove:3",
+		"add:700215@1 flag 0", "add:700328@2 flag 0", "add:700462@3 flag 0", "add:700575@4 flag 0", "add:700618@5 flag 0",
+		"box:*It is done: the path of Expansive Mind*")
 
+	// petition 1361: from level 20, the level 20 picks alone; below it nothing
 	reset(12, 35)
 	got, _ = f.paths(enc...)
 	f.wantMsgs("a level 35 enchanter's paths", got,
-		"box:Spell Archivist: The path of Expansive Mind: Expansive Mind. The path of Power Jet: Power Jet.", "ask#*:"+archivistPathAsk+"|"+strings.Join(enc, "|"))
+		"box:Spell Archivist: The path of Expansive Mind: Spacious Mind and Expansive Mind. The path of Power Jet: Power Boon and Power Jet.",
+		"ask#*:"+archivistPathAsk+"|"+strings.Join(enc, "|"))
+	reset(12, 20)
+	got, _ = f.paths(enc...)
+	f.wantMsgs("a level 20 enchanter's paths", got,
+		"box:Spell Archivist: The path of Expansive Mind: Spacious Mind. The path of Power Jet: Power Boon.", "ask#*:"+archivistPathAsk+"|"+strings.Join(enc, "|"))
+	reset(12, 19)
+	f.wantMsgs("a level 19 enchanter", f.pick(f.menu(), archivistPath), "box:Spell Archivist: "+fmt.Sprintf(archivistPathsTooLow, 20))
 }

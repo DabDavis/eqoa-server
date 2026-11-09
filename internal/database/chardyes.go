@@ -112,6 +112,21 @@ func RGBA(c [4]byte) uint32 {
 	return uint32(c[0])<<24 | uint32(c[1])<<16 | uint32(c[2])<<8 | uint32(c[3])
 }
 
+// WhiteDye is the dyers' White, as chardyes holds it.
+const WhiteDye = 0xFFFFFFFF
+
+// WhiteDyeWire is a White dye as the live look sends it (entity.LiveChannel,
+// LiveGear; the user, 2026-11-08: "increase the whiteness of the white dye
+// option", "we want only the people selecting white ... leave everything else
+// alone"). A client multiplies a slot's texture by its colour, so white leaves
+// the armour's own browns and greys as they are, exactly as an undyed slot's
+// tint 0 (white too) does: no colour can be whiter. So a slot dyed White goes
+// out a blue step off white, which eqoa-rust-client-vanilla draws bleached
+// (its render::WHITE_DYE: the texture's own colour taken out and lifted toward
+// white), and every other colour, white undyed included, as ever; a client
+// that does not know it draws white (254 of 255 blue).
+const WhiteDyeWire = 0xFFFFFEFF
+
 // DyeColour is a named colour of the Armor Dyers' (handlers/dyer.go) and a
 // GM's #dye: its name and its RGBA.
 type DyeColour struct {
@@ -130,7 +145,7 @@ type DyeFamily struct {
 // armor dye colors": 20 until then, of which the box showed six), the first
 // twenty as they were, a disc tint's where one was taken.
 var DyeFamilies = []DyeFamily{
-	{"Whites, greys and blacks", []DyeColour{{"White", 0xFFFFFFFF}, {"Silver", RGBA(DiscTints[10])}, {"Grey", 0x808080FF},
+	{"Whites, greys and blacks", []DyeColour{{"White", WhiteDye}, {"Silver", RGBA(DiscTints[10])}, {"Grey", 0x808080FF},
 		{"Charcoal", 0x404040FF}, {"Black", 0x101010FF}}},
 	{"Reds and pinks", []DyeColour{{"Red", 0xD10000FF}, {"Crimson", 0xA0001EFF}, {"Maroon", RGBA(DiscTints[13])},
 		{"Coral", 0xFF7F50FF}, {"Rose", 0xE0607EFF}, {"Pink", 0xFF5BADFF}}},

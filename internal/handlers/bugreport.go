@@ -105,10 +105,15 @@ func (l *reportLimiter) allow(account int, now time.Time) bool {
 	return true
 }
 
-// buildBugReportOffer is OpcodeBugReportOffer from the server: a u32, 1.
+// buildBugReportOffer is OpcodeBugReportOffer from the server: a u32, 1, then
+// a u32, the most characters of a request's or reply's text it takes
+// (CSTextMost). A client of before the second reads the first alone, and a
+// client keeps its form at a PS2's 511 for a server that sends no second (one
+// from before it put a long message's pieces back together).
 func buildBugReportOffer() []byte {
-	return build(protocol.OpcodeBugReportOffer, 6, func(w *buffer.Writer) {
+	return build(protocol.OpcodeBugReportOffer, 10, func(w *buffer.Writer) {
 		w.WriteUint32(1)
+		w.WriteUint32(CSTextMost)
 	})
 }
 

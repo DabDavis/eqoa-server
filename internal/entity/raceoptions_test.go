@@ -31,7 +31,8 @@ func withOptionRaces(t *testing.T, rows ...database.RaceDefRow) {
 // can choose: a key and a label, at most 255 rows, steps and parts (each a
 // byte on the wire), a key once a race; a body row's steps bodies with a size,
 // none twice; a colour row's steps after the first a mode the client knows, its
-// first the body's own (0); a texture row's steps textures; a colour or texture
+// first the body's own (0); a texture row's steps textures, its first one the
+// body's own (its texture, or 0 where its bodies wear different ones); a colour or texture
 // row's parts each of a body the race can wear (its body rows', or its own),
 // with palette entries and rects whose corners are in order.
 func TestRaceOptionsAreOnesAClientCanShow(t *testing.T) {
@@ -77,7 +78,7 @@ func TestRaceOptionsAreOnesAClientCanShow(t *testing.T) {
 						where("the first colour %q is not the body's own", s.Name)
 					case r.Kind == KindColour && k > 0 && s.Value>>24 != ModeDye && s.Value>>24 != ModeTone:
 						where("colour %q: %#x", s.Name, s.Value)
-					case r.Kind == KindTexture && (s.Value == 0 || seen[s.Value]):
+					case r.Kind == KindTexture && (s.Value == 0 && k > 0 || seen[s.Value]):
 						where("texture step %q: %#x", s.Name, s.Value)
 					}
 					seen[s.Value] = true
@@ -103,6 +104,63 @@ func TestRaceOptionsAreOnesAClientCanShow(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+// A body row's steps keep their numbers: a creation sends a step's number, and a
+// session kept over a restart is not sent the list again, so a new body goes after
+// the steps a client may hold (each race's body steps of 2026-11-08, build49, as
+// they stand). The rest of a row is free to grow.
+func TestRaceOptionStepsKeepTheirNumbers(t *testing.T) {
+	was := map[uint32][2][]uint32{
+		bodyFroglok:   {{0x141BFE0C, 0x429A04AB, 0x063C5D97, 0x0F239012, 0x6F17325E, 0x1663EC1C}},
+		bodyHillGiant: {{0xFFB1EA2C, 0x8117C627, 0xE617303B, 0x72A8FDBB, 0x7F2604DF, 0x05F59B65}, {0xF34501CB, 0x286C6E9E, 0x8E2A6552, 0xE30827CC}},
+		bodyKerranM:   {{0x22176258, 0x4D9C53EF, 0x77A7E7B8, 0x78FA8F20, 0x0DDD4087, 0x5D40C8AB}, {0xB749BF57, 0xB62092E4, 0xE700DE53, 0x39FEAA5F, 0x7654AC3C, 0xD8E0F980}},
+		bodyGoblin:    {{0x6C1308E0, 0x581B6A80, 0x96371804, 0xBCDF0C04, 0xE96179D4, 0xA5F92F43, 0x6C7C07ED, 0xBE927B85, 0xCEF5874A}},
+		bodyAviakM:    {{0x3151DF13, 0x262C572A, 0xDC641055, 0x41EFF500, 0x3C3DE6CA, 0xC04CEC07, 0xB1EEB204, 0x8B332785}, {0x8EFD12EA, 0x262C572A, 0xDC641055, 0x41EFF500, 0x3C3DE6CA, 0xC04CEC07, 0xB1EEB204, 0x8B332785}},
+		bodyLizardman: {{0x911220E2, 0xD45B9F1F, 0x2C1D8724, 0x7468EAE7}},
+		bodyKappa:     {{0x31A15F17, 0xC3EC4F58, 0xF6747024, 0xF0FAB933}},
+		bodyBrownie:   {{0x4376EB52, 0x49468331}},
+		bodyGnoll:     {{0xCF415561, 0x223FD6BC, 0xF5F3A450, 0x097BFC70, 0xB7B21DFC, 0x4A9BAB9E, 0x17DA0FEB, 0x7492678E}},
+		bodyOrc:       {{0x8214A32D, 0x84F47767, 0x656DD4C5, 0x37FD13F9, 0x3198F5B1}, {0x0A03EB92, 0xDA515962, 0x8214A32D, 0x37FD13F9, 0x3198F5B1}},
+		bodyKobold:    {{0xCFC478EE, 0x6B9B7016, 0x597325B5, 0x9CDF3C2D}},
+		bodyRatman:    {{0xBADC25C9, 0x0ECC836A, 0x133A79CA}},
+		bodySatyrM:    {{0xBE10226F}, {0x097ADB18}},
+		bodySkeleton:  {{0x6AF98A81, 0x45A8B064, 0x198BAA64, 0x648DFC11}},
+		bodyFungus:    {{0x4A4D88FB, 0x5874ACFC, 0xE8B0ADC8}},
+		bodyGargoyle:  {{0xB4D2D132, 0x4E2A945C, 0xAEC5D9F6, 0x001355C8, 0x6D959FD9, 0x9304BAB5}},
+	}
+	for own, lists := range was {
+		var row *OptionRow
+		for i := range raceOptionRows[own] {
+			if raceOptionRows[own][i].Kind == KindBody {
+				row = &raceOptionRows[own][i]
+			}
+		}
+		if row == nil {
+			t.Errorf("%08X: no body row", own)
+			continue
+		}
+		for sex, want := range lists {
+			got := row.Male
+			if sex == 1 {
+				if want == nil {
+					continue
+				}
+				got = row.Female
+			}
+			for k, v := range want {
+				if k >= len(got) || got[k].Value != v {
+					t.Errorf("%08X sex %d step %d: want %08X", own, sex, k, v)
+					break
+				}
+			}
+		}
+	}
+	// the control: a body put first moves every number after it
+	moved := append([]OptionStep{{"New", 0x12345678, 1}}, raceOptionRows[bodyGoblin][0].Male...)
+	if moved[1].Value == was[bodyGoblin][0][1] {
+		t.Fatal("the control")
 	}
 }
 
@@ -170,7 +228,7 @@ func TestAChosenBodyKeepsItsLookAndSize(t *testing.T) {
 	}
 	own := &Player{ServerID: 1, Name: "Own", Race: 11, ModelID: -5117396, Size: 1.8}
 	ice := &Player{ServerID: 2, Name: "Frosty", Race: 11, ModelID: signed(0x8117C627), Size: 1.8}
-	gm := &Player{ServerID: 3, Name: "Odd", Race: 11, ModelID: signed(0xBF6ADFDB), Size: 1.8}
+	gm := &Player{ServerID: 3, Name: "Odd", Race: 11, ModelID: signed(0x87CE5F73), Size: 1.8} // a stone golem: no option's
 	for _, p := range []*Player{own, ice, gm} {
 		w.Players[p.ServerID] = p
 		w.SetGear(p.ServerID, Gear{Armor: ArmorCloth}, false)
@@ -197,7 +255,7 @@ func TestAChosenBodyKeepsItsLookAndSize(t *testing.T) {
 	if _, s := grey.Body(); s != 1 {
 		t.Errorf("its race's own: at %v", s)
 	}
-	if !ChosenBody(11, 0x8117C627) || ChosenBody(11, uint32(bodyHillGiant)) || ChosenBody(11, 0xBF6ADFDB) || ChosenBody(3, 0x8117C627) {
+	if !ChosenBody(11, 0x8117C627) || !ChosenBody(11, 0xBF6ADFDB) || ChosenBody(11, uint32(bodyHillGiant)) || ChosenBody(11, 0x87CE5F73) || ChosenBody(3, 0x8117C627) {
 		t.Error("ChosenBody")
 	}
 	// the control: a game race's character (a GM's form aside) wearing a body some race

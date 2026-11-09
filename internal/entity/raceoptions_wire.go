@@ -114,17 +114,22 @@ func EncodeRaceOptions() []byte {
 // lookParts is what a character's charlook rows lay on its body: for each row
 // its race's options have a colour or texture row of, that row's parts of the
 // body, each with the row's kind and the look's value; a row of another key, of
-// another kind or with no part of the body lays nothing.
+// another kind or with no part of the body lays nothing. In the options' row
+// order, as the appearance page lays a look (vanilla's look_of_steps), whatever
+// order the rows were kept in: a client lays the parts in the order sent.
 func lookParts(race int, body uint32, looks []database.CharLook) (kinds []OptionKind, values []uint32, parts []OptionPart) {
-	rows := RaceOptions(race)
-	for _, l := range looks {
-		for _, r := range rows {
-			if r.Key != l.Part || int(r.Kind) != l.Kind || r.Kind == KindBody {
+	for _, r := range RaceOptions(race) {
+		if r.Kind == KindBody {
+			continue
+		}
+		for _, l := range looks {
+			if r.Key != l.Part || int(r.Kind) != l.Kind {
 				continue
 			}
 			for _, p := range r.PartsOf(body) {
 				kinds, values, parts = append(kinds, r.Kind), append(values, l.Value), append(parts, p)
 			}
+			break
 		}
 	}
 	return kinds, values, parts

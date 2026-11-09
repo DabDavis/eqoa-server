@@ -43,7 +43,13 @@ func TestRealRaceOptions(t *testing.T) {
 		t.Error("the froglok: no options")
 	}
 	if out := os.Getenv("EQOA_RACEOPTIONS_OUT"); out != "" {
+		// as a server that offers its races sends it (the froglok's rows too)
+		was := Creation()
+		offering := was
+		offering.Races = true
+		SetCreationRules(offering)
 		body := EncodeRaceOptions()
+		SetCreationRules(was)
 		if err := os.WriteFile(out, body, 0o644); err != nil {
 			t.Fatal(err)
 		}

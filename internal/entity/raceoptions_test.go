@@ -306,3 +306,69 @@ func TestRaceLooksOnTheWire(t *testing.T) {
 		t.Fatalf("none: %v", b)
 	}
 }
+
+// No triangle is two rows' (a colour and a texture laid on it would depend on
+// the order they were laid in): on each body, two rows' parts that name one
+// palette entry hold rects whose insides meet nowhere, and a part that is a
+// whole entry shares it with no other row's. The check's own control: two rects
+// that meet inside are caught, two that only touch are not.
+func TestRaceOptionPartsNeverOverlap(t *testing.T) {
+	meet := func(a, b [4]uint8) bool { return a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3] }
+	if !meet([4]uint8{26, 0, 184, 209}, [4]uint8{115, 115, 255, 255}) || meet([4]uint8{0, 0, 115, 255}, [4]uint8{115, 115, 255, 255}) {
+		t.Fatal("the check")
+	}
+	clash := func(p, q OptionPart) bool {
+		for _, e := range p.Entries {
+			for _, f := range q.Entries {
+				if e != f {
+					continue
+				}
+				if len(p.Rects) == 0 || len(q.Rects) == 0 {
+					return true
+				}
+				for _, a := range p.Rects {
+					for _, b := range q.Rects {
+						if meet(a, b) {
+							return true
+						}
+					}
+				}
+			}
+		}
+		return false
+	}
+	for own, rows := range raceOptionRows {
+		for i, r := range rows {
+			for _, s := range rows[i+1:] {
+				for _, p := range r.Parts {
+					for _, q := range s.Parts {
+						if p.Body == q.Body && clash(p, q) {
+							t.Errorf("race body %08X: %s and %s meet on body %08X: %v %v", own, r.Key, s.Key, p.Body, p, q)
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+// A character's parts go out in its race's row order, as the appearance page
+// lays them, whatever order its charlook rows came in (the database's is by
+// part, "cap" before "skin"): the skin's two parts, then the cap's two.
+func TestRaceLooksInRowOrder(t *testing.T) {
+	withOptionRaces(t)
+	gold, ash := dyes[3].Value, barks[2].Value
+	looks := []database.CharLook{{Part: "cap", Kind: database.LookColour, Value: gold}, {Part: "skin", Kind: database.LookColour, Value: ash}}
+	want := []uint32{ash, ash, gold, gold}
+	for _, order := range [][]database.CharLook{looks, {looks[1], looks[0]}} {
+		_, values, parts := lookParts(28, bodyFungus, order)
+		if len(values) != len(want) || parts[0].Entries[0] != 1 || parts[2].Rects[0] != [4]uint8{115, 115, 255, 255} {
+			t.Fatalf("values %x parts %v", values, parts)
+		}
+		for i := range want {
+			if values[i] != want[i] {
+				t.Fatalf("values %x, want %x", values, want)
+			}
+		}
+	}
+}

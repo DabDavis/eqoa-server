@@ -292,12 +292,14 @@ func (h *ChatHandler) SetGMStores(inv *database.InventoryStore, names nameStore)
 	h.gm.inv, h.gm.names = inv, names
 }
 
-// RegisterGMChannel registers 0x0701 and 0x0702, and the triggers' names'
-// answer (0x7E07, gmtriggers.go).
+// RegisterGMChannel registers 0x0701 and 0x0702, the triggers' names'
+// answer (0x7E07, gmtriggers.go) and a GM's map travel (0x7E35,
+// maptravel.go).
 func (h *ChatHandler) RegisterGMChannel(r *Registry) {
 	r.Register(protocol.OpcodeGMCommand, h.HandleGMCommand)
 	r.Register(protocol.OpcodeGMTrigger, h.HandleGMTrigger)
 	r.Register(protocol.OpcodeGMTriggers, h.HandleGMTriggerNames)
+	r.Register(protocol.OpcodeMapTravelTo, h.HandleMapTravelTo)
 }
 
 // buildGMEnabled is 0x0700 {35, zigzag n}.
@@ -317,8 +319,9 @@ func buildGMPrompt(name string) []byte {
 }
 
 // SendGMChannel gives a GM's client the channel (0x0700 35, on) at its world
-// entry, and offers it the triggers' names (0x7E07, gmtriggers.go); anyone
-// else's is sent nothing, but a sub GM's (devcmds.go: it may #fly), whose
+// entry, and offers it the triggers' names (0x7E07, gmtriggers.go) and travel
+// by its map (0x7E34, maptravel.go); anyone else's is sent nothing, but a sub
+// GM's (devcmds.go: it may #fly), whose
 // client is offered the names alone: vanilla says it flies in its answer
 // (fly.go), and the names themselves go to a GM alone (HandleGMTriggerNames). A
 // client keeps the channel until its next login (vanilla) or the console's next
@@ -338,6 +341,7 @@ func (h *ChatHandler) SendGMChannel(sess *session.Session) {
 	}
 	queueReliable(sess, protocol.OpcodeAdminCode, buildGMEnabled(1))
 	queueReliable(sess, protocol.OpcodeGMTriggers, buildTriggerNamesOffer())
+	queueReliable(sess, protocol.OpcodeMapTravel, buildMapTravelOffer())
 	log.Printf("GM channel: sent to account %d", sess.AccountID())
 }
 

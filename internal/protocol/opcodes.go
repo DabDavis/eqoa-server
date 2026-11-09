@@ -639,6 +639,19 @@ const (
 	// never told holds 40 of each. (0x7E2B is left unused, the item lists'.)
 	OpcodeItemListsInForce GameOpcode = 0x7E2A
 
+	// OpcodeMapTravel is not retail: a GM's travel to a spot of the map
+	// (handlers/maptravel.go), offered at a GM's world entry with the GM's
+	// channel (SendGMChannel): a u32 after the opcode, 1. A client that has a
+	// map (vanilla) lets the GM ask for a spot of it then (OpcodeMapTravelTo); a
+	// PS2 ignores the offer (CLIENT's dispatcher has no default case), and no
+	// one else is offered it.
+	OpcodeMapTravel GameOpcode = 0x7E34
+	// OpcodeMapTravelTo is a GM's ask, client to server: u32 world (the
+	// MemoryDump's world index), f32 x, f32 z, little-endian. The server moves
+	// a GM's character there as #goto x y z does, on the ground's floor, and
+	// refuses anyone else's (logged, nothing said, nothing moved).
+	OpcodeMapTravelTo GameOpcode = 0x7E35
+
 	// 0x7E10-0x7E16 were voice chat's (offer, config, roster, signal, room,
 	// lobby, room state), removed with it on 2026-11-08: left unused, as a
 	// client from before then may still send them
@@ -968,6 +981,10 @@ func (op GameOpcode) String() string {
 		return "GMTriggers"
 	case OpcodeGMTriggersData:
 		return "GMTriggersData"
+	case OpcodeMapTravel:
+		return "MapTravel"
+	case OpcodeMapTravelTo:
+		return "MapTravelTo"
 	default:
 		return "Unknown"
 	}

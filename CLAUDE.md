@@ -370,6 +370,15 @@ index, flags on/running, name of at most 32 bytes) at once and whenever a trigge
 starts or ends; a PS2 ignores the offer and shows eight TRIGGERs. Firing and stopping from the panel
 are logged (`gm_audit` action `live`); a saved trigger is a row change, revertible.
 
+**A GM travels by the map** (`handlers/maptravel.go`; the owner, 2026-11-09: "for gms the map lets add fast
+travel to where they click on the map"). Beside 0x7E07 the GM channel offers opcode **0x7E34**
+(`OpcodeMapTravel`, a u32 1; a GM's client alone, a PS2 ignores it); vanilla's map then takes a Ctrl+click (Cmd on a
+Mac) and sends **0x7E35** (`OpcodeMapTravelTo`: u32 world, f32 x, f32 z). `HandleMapTravelTo` checks `isGM` on every
+ask (acctlevel 1+, as every GM command): anyone else's is logged and dropped, nothing said or moved. A GM's goes where
+#goto x y z goes (`teleportTo`), the height the ground's (`World.GroundFloor` from 100,000 down: the highest terrain
+there, never a roof or a tree; the client's walk takes a placed floor over it from there); a spot with no ground
+known, past every world's edge (1e6) or in no world is told in a [GM] line and moves no one.
+
 **A raid's encounter runs on the triggers** (the user, 2026-11-07: "lets build them all"; the Plane of Sky's
 constructs and twins, Rallos Zek, Razeal Moloch, each a set of `tools/seed_guide_gaps.py`'s `tools/guidegaps/<set>.json`,
 `--apply`/`--undo`, or `--save-plan` on a copy and `--plan` live, one short transaction; the JSON and the quest
@@ -2304,7 +2313,15 @@ items and tunar, kills or drops done of those needed), each text a u8 byte count
 to 140; at most 40 marks, 4 quests a mark and 6,000 bytes, the steps' first, then the player's world,
 nearest first. The words are made when the quests are read (`Reload`: items and spells named then,
 never per tick) and the spawns read from the World at most every 30 s. A session that never asks
-(every PS2) is sent nothing.
+(every PS2) is sent nothing. **A "!" is a quest's name once** (2026-11-09, the owner: "the quest
+exclamation mark is showing every quest step, not just quest starters so they are everywhere"; no mark
+was of the wrong kind: Armorcrafting and Jewelcrafting are one quest copied at twelve smiths and twelve
+jewelers, a level 60 may take ~150 quests (three in five for below level 50), and vanilla's minimap pinned every quest
+mark on its rim): of the quests of a name the player may take, only the nearest giver's is marked, none
+while one of that name is under way or finished (a finished repeatable one aside); only quests whose
+lowest level is at most **`world.quest_marks_below`** below the player's (unset or 0: 10; -1 any: a
+level 60 with nothing done goes from 40 "!" to 27 in Tunaria, 2 of them in Freeport, all for 50 and up);
+and a giver where a step of the player's is to be done shows that step's "?" alone.
 
 **The quest tracker for a client's HUD** (F3 pass 18; `handlers/questprogress.go`; the user's "add
 quest progress hud item similar to WoW ... if quest says obtain 3 bat eyes, have 0/3"). Beside

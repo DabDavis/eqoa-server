@@ -412,6 +412,12 @@ func main() {
 	if cfg.World.Jump {
 		log.Printf("Jump: a client that can jumps (world.jump)")
 	}
+	handlers.SetQuestMarksBelow(cfg.World.QuestMarksBelow) // handlers/questmarks.go
+	if n := handlers.QuestMarksBelow(); n < 0 {
+		log.Printf("Quest marks: every quest a player may take (world.quest_marks_below)")
+	} else {
+		log.Printf("Quest marks: quests down to %d levels below the player's (world.quest_marks_below)", n)
+	}
 	handlers.SetHeirloomsGiven(cfg.World.Heirlooms == nil || *cfg.World.Heirlooms)
 	if cfg.World.Heirlooms != nil && !*cfg.World.Heirlooms {
 		log.Printf("Heirlooms: none given at a login (world.heirlooms: false)")

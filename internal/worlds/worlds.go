@@ -38,6 +38,12 @@ func Name(slot int) string {
 	return fmt.Sprintf("world%d.ESF", slot)
 }
 
+// BuiltName is the built recipe beside a composed world (cmd/worldbuild):
+// worldN.json, what the server tells a client that can build it.
+func BuiltName(slot int) string {
+	return fmt.Sprintf("world%d.json", slot)
+}
+
 // Available reports which of slots [lo, count) this server actually holds an
 // ESF for, as slot -> filename.
 //

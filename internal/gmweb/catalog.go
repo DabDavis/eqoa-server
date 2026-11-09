@@ -380,7 +380,8 @@ var catalog = map[string]tableNote{
 		Label: "Character resets", Group: "Players", Sort: "serverid",
 		Help: "Each character's resets at a rehabilitator (handlers/rehab.go: Rehabilitator Anja in Muniel's Tea Garden, " +
 			"Rehabilitator Frejo near Freeport), a row a kind: mastery (its Combat Masteries unlearned, their points back), " +
-			"training (its stat points back) and path (a level 20, 30, 40 or 49 path's pick chosen again). Every reset is free, " +
+			"training (its stat points back), path (a level 20, 30, 40 or 49 path's pick chosen again) and template (a template " +
+			"used: rehabtemplates). Every reset is free, " +
 			"every time, since 2026-11-06: used counts each it had (and the free ones before), paid those it paid for before " +
 			"(tunar for masteries and stat points, a Rose of Rehabilitation for a path), bonus free ones a GM gave it then. A " +
 			"record: nothing here decides a reset any more.",
@@ -388,11 +389,38 @@ var catalog = map[string]tableNote{
 		Show: []string{"serverid", "kind", "used", "paid", "bonus", "updated"},
 		Cols: map[string]colNote{
 			"serverid": {Label: "Character", Ref: "characters"},
-			"kind":     {Label: "Kind", Help: "mastery, training or path"},
+			"kind":     {Label: "Kind", Help: "mastery, training, path or template (a template used: rehabtemplates)"},
 			"used":     {Label: "Free used", Help: "the free resets of this kind it has used"},
 			"paid":     {Label: "Paid for", Help: "the resets of this kind it paid for: tunar, or a rose for a path"},
 			"bonus":    {Label: "Free given", Help: "free resets of this kind a GM gave it, besides everyone's"},
 			"updated":  {Label: "Updated", Format: "stamp", ReadOnly: true, Help: "its last reset at a rehabilitator, RFC 3339 in UTC"},
+		},
+	},
+	"rehabtemplates": {
+		Label: "Rehabilitator templates", Group: "Players", Sort: "serverid",
+		Help: "Each character's two templates at a rehabilitator (handlers/rehabtemplates.go; petition 1322), a row a slot: " +
+			"how its training points and Combat Masteries were spent when it saved them. Using one (Rehabilitator Anja, " +
+			"Rehabilitator Frejo, a Genie's Lamp) gives every training point and mastery back and spends them again as the slot " +
+			"keeps them, never more than it spent: points earned since stay unspent, and a rank the character no longer meets, " +
+			"one no longer in the catalog and one dearer now past what the slot spent are left out, each said. Free; counted " +
+			"in charresets as kind template.",
+		Live: "Read at each use: a change here counts the next time the character asks a rehabilitator.",
+		Show: []string{"serverid", "slot", "level", "tpstrength", "tpstamina", "tpagility", "tpdexterity", "tpwisdom",
+			"tpintel", "tpcharisma", "cms", "saved"},
+		Cols: map[string]colNote{
+			"serverid":    {Label: "Character", Ref: "characters"},
+			"slot":        {Label: "Slot", Help: "1 or 2"},
+			"level":       {Label: "Level saved at", Help: "the character's level when it saved this (shown, not checked)"},
+			"tpstrength":  {Label: "STR points", Help: "training points STR had taken (characters.tpstrength: the create screen's and the trainer's)"},
+			"tpstamina":   {Label: "STA points"},
+			"tpagility":   {Label: "AGI points"},
+			"tpdexterity": {Label: "DEX points"},
+			"tpwisdom":    {Label: "WIS points"},
+			"tpintel":     {Label: "INT points"},
+			"tpcharisma":  {Label: "CHA points"},
+			"cms": {Label: "Masteries", Help: "the ranks it held, cmcatalog id:cost in the order bought, comma separated " +
+				"(\"6634:10,6635:15\"); bought again in this order, at what each costs now"},
+			"saved": {Label: "Saved", Format: "stamp", ReadOnly: true, Help: "RFC 3339 in UTC"},
 		},
 	},
 	"charbuffs": {

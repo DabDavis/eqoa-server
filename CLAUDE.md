@@ -827,17 +827,18 @@ level, mastery points, the class's spells, item records put right or made, items
 id its own); `-wait <gameserver.log>` applies only once the character's session has been cleaned up, `-backup`
 copies the database first. First used 2026-11-05 for a Sandstorm 60 (the user's "lets do a manual migration").
 
-### Rehabilitators: a character's resets, for every client (`handlers/rehab.go`, `rehabpaths.go`, `database/rehab.go`)
+### Rehabilitators: a character's resets, for every client (`handlers/rehab.go`, `rehabpaths.go`, `rehabtemplates.go`, `database/rehab.go`)
 
 The user, 2026-10-30: "Rehabilitator Anja in Muniels tea garden and another near freeport NPC, talk to them".
 Talking to **Rehabilitator Anja** (Muniel's Tea Garden) or **Rehabilitator Frejo** (near Freeport; any NPC named
 "Rehabilitator ...") opens a menu of the quest boxes a PS2 reads (0x0046 lines, 0x0034 questions under box mark
-**0x54000000**, beside the quests' 0x51, the triggers' 0x52, the duels' 0x53): the greeting, then two answers of a page of
-CLIENT's answer box (VIWndResponse shows three, then More, Back and its own Close, which answers 255): a reset, then which
-(its Combat Masteries, `#rst_mastr`'s work, `resetMasteries`; its stat points, `#rst_both`'s training half,
-`trainingBack`; both), and a path chosen again. Each is asked again ("Shall I begin?", "Shall I make the change?") and
-done only on the parts the character still has; nothing to undo is refused, nothing counted. Walked end to end in the
-headless vanilla client.
+**0x54000000**, beside the quests' 0x51, the triggers' 0x52, the duels' 0x53): the greeting, then "What would you have of
+me?" with three answers, a page of CLIENT's answer box (VIWndResponse shows three, then More, Back and its own Close, which
+answers 255): a reset, then which (its Combat Masteries, `#rst_mastr`'s work, `resetMasteries`; its stat points,
+`#rst_both`'s training half, `trainingBack`; both), a path chosen again, and a template saved or used (below). Each is
+asked again ("Shall I begin?", "Shall I make the change?", "Shall I remember it?") and done only on the terms it was
+asked on (the parts the character still has; anything changed asks again); nothing to undo is refused, nothing counted.
+Walked end to end in the headless vanilla client.
 
 - **Every reset is free, every time** (the user, 2026-11-06: "lets make rehab resets free from anja etc"): no price, free
   count or rose in any line. Until then a character had 1 free mastery reset, 1 free stat point reset and 2 free path
@@ -861,6 +862,25 @@ headless vanilla client.
   holding the most; a tie is not offered). The change is counted only when it is done. **No pick
   decides another level's options** in the quests: each level is changed by itself. `TestRealPathsChosenAgain` changes
   every real path step (138 on 2026-10-30's data).
+- **Two templates a character** (petition 1322, jibrish: "save 2 different rehab state and CM templates ... If they come
+  back with 705 cm's and pick that template, it still only spends the 500 and just unassigns the other points for them to
+  spend as they wish"; `rehabtemplates.go`, `entity/respec.go`, `database/rehabtemplates.go`): "Save or use a template"
+  says what each slot holds, then save or use, then which slot (each answer what it holds: "Slot 1: 7 masteries (500
+  points), 70 training points"). **Save** says what it keeps and what the slot held, and keeps the training points each
+  stat has taken (the row's tp columns) and the ranks held with what each cost, in the order bought (`charcms.bought`), in
+  `rehabtemplates` (a row a slot, `cms` "id:cost,..."; the GM panel's "Rehabilitator templates", checked, and deleted with
+  the character). **Use** says what goes back, what is spent again and stays unspent and what it cannot buy and why, then
+  gives every training point and mastery back and spends them again as the slot keeps them, never more than it spent,
+  free, counted as a `template` reset; planned and done in one lock (`World.PlanRespec` / `ApplyRespec`): the training
+  first (each stat what the slot asks, held under the level's cap; with fewer points each its share, `fitTraining`), then
+  the ranks at today's catalog cost, in the slot's order, in passes until one buys nothing, each as the window buys it
+  (`cmBlockLocked` on a scratch player with the base the training made and the book as the ranks before leave it); a rank
+  dearer now is bought last and left out past what the slot spent; one no longer met, no longer offered or that the
+  points left cannot pay is left out, each said. What the character holds past the slot stays unspent. The client is told
+  the change alone: a rank no longer held as a removal (Recv06, its abilities out and those it replaced back), one held
+  anew as a purchase (Recv05, the points after), then Recv03; a rank held before and after keeps its abilities' places in
+  the book and on the bars; 0x001D and the stat channel as a trainer's. Paths stay apart (quests' picks, above). Each
+  shard its own table. `TestRehabTemplate*`.
 - **The Rose of Rehabilitation**: item 709300 (`database.RoseOfRehabilitation`), "rose of renewal"'s art (icon 759960290,
   a rose; Oceanic Rose's 1342617881 is a coil of rope), worth 10,000,000, NO TRADE, which merchants refuse (an epic's
   would be ten million tunar). Each class's 60 epic reward quest (`60/<archetype>/reward-<class>`, 23) gives one at its

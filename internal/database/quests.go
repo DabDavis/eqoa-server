@@ -272,6 +272,11 @@ type QuestEvent struct {
 	X          float32 `json:"x,omitempty"`       // teleport: the place
 	Y          float32 `json:"y,omitempty"`
 	Z          float32 `json:"z,omitempty"`
+	// Bind (teleport): the player bound where it lands, as a spiritmaster binds
+	// (NPC: who bound it, for the log; none: the quest's giver), so Return Home
+	// and a death take it there: a homeland's gatekeeper sends a new player
+	// to its city for good
+	Bind bool `json:"bind,omitempty"`
 }
 
 // ParseQuestEvents reads an events column: a JSON array of QuestEvent, ""

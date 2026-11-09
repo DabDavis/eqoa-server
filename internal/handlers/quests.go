@@ -131,6 +131,10 @@ type QuestEngine struct {
 	// says questNotStrong
 	notYetLines func() ([]database.QuestNotYetLine, error)
 
+	// binds keeps the bind points a teleport event's bind sets
+	// (questevents.go); nil keeps none (tests)
+	binds bindStore
+
 	// playerOf and sessionOf find a session's player and a character's
 	// in-world session (tests stand in for them)
 	playerOf  func(*session.Session) *entity.Player
@@ -265,6 +269,7 @@ func NewQuestEngine(db *database.SQLiteDB, gw *entity.World, sm *session.Manager
 	}
 	if db != nil {
 		q.notYetLines = db.QuestNotYet
+		q.binds = database.NewSQLiteCharacterStore(db)
 	}
 	if err := q.Reload(); err != nil {
 		return nil, err

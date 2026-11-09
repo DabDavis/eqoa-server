@@ -218,8 +218,9 @@ func (w *World) petTemplateTurnLocked(ps *petState, t *NPC, now time.Time) bool 
 	}
 	for i := range abilities {
 		a := &abilities[i]
-		if a.Chain || now.Before(f.next[i]) || ps.npc.Level < a.From || petShareHeal(a) || a.Kind == database.AbilityDebuff {
-			continue // a debuff is a creature's, on a player
+		if a.Chain || now.Before(f.next[i]) || ps.npc.Level < a.From || petShareHeal(a) || a.Kind == database.AbilityDebuff ||
+			a.Kind == database.AbilityStrip {
+			continue // a debuff and a strip are a creature's, at a player (a strip at a pet too)
 		}
 		if petAtFoe(a.Kind) && t == nil {
 			continue

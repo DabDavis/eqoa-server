@@ -80,7 +80,10 @@ import (
 // put on, but for a debuff's (petition 1170, Lord Nagafen's: "a single target
 // ability that cant be cured and lasts 2 minutes"): the stats its named spell
 // takes, on the player it fights, for the spell's time; no_cure keeps every cure
-// off it. It hits for nothing, and waits while what it fights is a pet.
+// off it. It hits for nothing, and waits while what it fights is a pet. A strip
+// (petition 1368, Mr. Moogie's) casts no spell of a book: at its landing every
+// beneficial effect on what it fights, a player or a pet, ends, and a GM's
+// #testmode, the god mode, goes off (strip.go).
 //
 // The numbers of jib's five are ours, the row's notes say which; the kick's
 // are Sandstorm's crab's. No recording has a creature casting.
@@ -485,6 +488,11 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 				t.abilities = append(t.abilities, a) // a taunt and a heal of its share cast no spell
 				continue
 			}
+			if ra.Spell == "" && ra.SpellID == 0 && ra.Kind == database.AbilityStrip {
+				a.pinned = stripSpell(ra) // strip.go: a cast of its own name, no book's spell
+				t.abilities = append(t.abilities, a)
+				continue
+			}
 			if ra.Spell != "" || ra.SpellID != 0 {
 				ts, ok, err := pinnedTemplateSpell(db, ra) // by name, or by id (petstats.go)
 				if err != nil {
@@ -694,6 +702,7 @@ type npcCast struct {
 	heal   bool
 	debuff bool // what lasts of its spell, no hit (templateDebuffLocked)
 	noCure bool // a debuff's: no cure takes it off
+	strip  bool // every beneficial effect off its target, nothing of its spell (strip.go)
 	target EntityID
 	others []EntityID
 	lands  time.Time
@@ -713,7 +722,7 @@ func (w *World) templateCastLocked(npc *NPC, i int, target EntityID, now time.Ti
 		return false
 	}
 	c := &npcCast{npc: npc, tmpl: t, spell: spell, pct: a.DamageOr(), target: target,
-		debuff: a.Kind == database.AbilityDebuff, noCure: a.NoCure,
+		debuff: a.Kind == database.AbilityDebuff, noCure: a.NoCure, strip: a.Kind == database.AbilityStrip,
 		lands: now.Add(spell.CastTime + castLand)}
 	if a.Kind == database.AbilityHeal {
 		c.heal, c.target = true, npc.ServerID
@@ -721,7 +730,7 @@ func (w *World) templateCastLocked(npc *NPC, i int, target EntityID, now time.Ti
 		if !w.templateMayHitLocked(npc, target) {
 			return false
 		}
-		if spell.Area.Centre != AreaNone {
+		if spell.Area.Centre != AreaNone && !c.strip { // a strip is its target's alone, whatever its spell's area
 			c.others = w.templateAreaLocked(npc, spell, target)
 		}
 	}
@@ -879,6 +888,10 @@ func (w *World) templateSystem(now time.Time) {
 		}
 		if c.debuff {
 			w.templateDebuffLocked(c, now)
+			continue
+		}
+		if c.strip {
+			w.templateStripLocked(c, now) // strip.go
 			continue
 		}
 		place := w.templateAreaPlaceLocked(npc, c.spell, c.target)
@@ -1059,6 +1072,7 @@ func (w *World) templateDebuffLocked(c *npcCast, now time.Time) {
 	ae := &ActiveEffect{SpellID: c.spell.SpellID, Name: c.spell.Name, Icon: c.spell.Icon, Caster: npc.ServerID, Until: now.Add(d.Duration)}
 	ae.Rules = rulesOf(d)
 	ae.Rules.NoCure = c.noCure
+	ae.Rules.Harm = true // a creature's debuff is harm whatever its record reads: a strip leaves it on (strip.go)
 	tickResist := StatNone
 	for _, e := range d.Effects {
 		if e.Kind == EffectStat && !e.Set {
@@ -1374,13 +1388,17 @@ func (w *World) templateLineLocked(npc *NPC) string {
 	}
 	for i := range t.abilities {
 		a := &t.abilities[i]
-		what := "nothing at its level"
-		if s := a.spellFor(npc.Class, npc.Level); s != nil {
-			what = fmt.Sprintf("%s (level %d, %v cast)", s.Name, s.Level, s.CastTime)
-		}
 		when := fmt.Sprintf("every %v", a.every)
 		if a.Chain {
 			when = "chained"
+		}
+		if a.Kind == database.AbilityStrip {
+			parts = append(parts, stripStatsWords(a, when)) // strip.go
+			continue
+		}
+		what := "nothing at its level"
+		if s := a.spellFor(npc.Class, npc.Level); s != nil {
+			what = fmt.Sprintf("%s (level %d, %v cast)", s.Name, s.Level, s.CastTime)
 		}
 		parts = append(parts, fmt.Sprintf("%s %s %s at %d%%", a.Kind, what, when, a.DamageOr()))
 	}

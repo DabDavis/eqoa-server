@@ -14,7 +14,8 @@ import (
 // the next fight by it uses its abilities.
 
 // classTemplateAbilitiesHelp is the abilities column's form, for the catalog.
-const classTemplateAbilitiesHelp = `a JSON list, each {"kind": nuke | aoe | lifetap | heal | taunt | buff | root (those three a pet's; a root holds what the pet fights, and round it for an area spell) | debuff (a creature's: the stats the spell it names takes, on the player it fights, for the spell's time; "no_cure": true, no cure takes it off), ` +
+const classTemplateAbilitiesHelp = `a JSON list, each {"kind": nuke | aoe | lifetap | heal | taunt | buff | root (those three a pet's; a root holds what the pet fights, and round it for an area spell) | debuff (a creature's: the stats the spell it names takes, on the player it fights, for the spell's time; "no_cure": true, no cure takes it off) | ` +
+	`strip (a creature's: every beneficial effect on what it fights ends, buffs, damage shields, heals over time, invulnerabilities, the harmful and the Boon left on, and a GM's #testmode goes off; "name": what its lines call it (Dispel), or "spell" / "spell_id": a spell whose name, cast time and visual it takes, nothing else of it), ` +
 	`"every": seconds from one cast's start to the next (2-3600), "first": seconds into a fight before the first, ` +
 	`"chain": true to cast it as soon as the ability before it is cast (its clock then unused), ` +
 	`"chance": % of its due casts (100), "damage_pct": % of its spell's figures (100), ` +

@@ -130,11 +130,14 @@ type CMRank struct {
 	// quests ("101346|101353|101360": a werebeast's rank, any were's form;
 	// the user, 2026-11-01: "lets add weres and werehunters back"), each id
 	// apart a group of its own as before
-	QuestGroups   [][]int
-	Effects       [CMSlots]int
-	Adds, Removes []CMAbility
-	Description   string
-	Enabled       bool
+	QuestGroups [][]int
+	Effects     [CMSlots]int
+	// NoWereIllusion keeps its owner in its own body under a were form
+	// (effects "NoWereIllusion:1", no slot of the window's: wereownbody.go)
+	NoWereIllusion bool
+	Adds, Removes  []CMAbility
+	Description    string
+	Enabled        bool
 }
 
 // BookChange is what buying the rank does to the spell book: the abilities
@@ -213,6 +216,9 @@ func ParseCMRank(r database.CMRankRow) *CMRank {
 	for k, v := range parseStatList(r.Effects) {
 		if s, ok := cmStatSlots[k]; ok {
 			c.Effects[s] += v
+		}
+		if k == cmNoWereIllusion && v > 0 {
+			c.NoWereIllusion = true
 		}
 	}
 	c.Requires = parseAbilities(r.Requires, r.RequireSpells)
@@ -333,17 +339,20 @@ func (r *CMRank) offered(p *Player) bool {
 // refreshCMLocked sums the player's ranks' effects again.
 func (p *Player) refreshCMLocked(cat *cmCatalog) {
 	var s [CMSlots]int
+	ownBody := false
 	if cat != nil {
 		for id := range p.CMs {
 			if r := cat.byID[id]; r != nil {
 				for i, v := range r.Effects {
 					s[i] += v
 				}
+				ownBody = ownBody || r.NoWereIllusion
 			}
 		}
 	}
 	p.CMEffects = s
 	p.MoveRateBonus = s[cmSlotMoveRate]
+	p.WereOwnBody = ownBody
 }
 
 // RestoreCMs puts the ranks a character bought on its session's player at

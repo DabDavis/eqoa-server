@@ -269,21 +269,16 @@ func (b *SegmentBody) Read(reader *buffer.Reader, data []byte, header *SegmentHe
 
 		mt := MessageType(msgType)
 
-		// Handle reliable messages
+		// Handle reliable messages. A whole one starts with its opcode. A
+		// piece of a longer one (0xFA, connection_send_guaranteed's 1,300
+		// bytes) keeps its bytes whole: only the first piece starts with the
+		// opcode, and the last piece (0xFB) may be a single byte, which an
+		// opcode read off it would run past (session/fragments.go puts the
+		// pieces back together).
 		if mt == MessageTypeReliable || mt == MessageTypePing || mt == MessageTypeSegmentReliable {
 			seqNum, err := reader.ReadUint16()
 			if err != nil {
 				return err
-			}
-
-			var opcode GameOpcode
-			if mt != MessageTypePing {
-				op, err := reader.ReadUint16()
-				if err != nil {
-					return err
-				}
-				opcode = GameOpcode(op)
-				size -= 2 // Remove opcode from data size
 			}
 
 			// Read message data
@@ -294,9 +289,14 @@ func (b *SegmentBody) Read(reader *buffer.Reader, data []byte, header *SegmentHe
 
 			msg := GetMessage()
 			msg.Type = mt
-			msg.Opcode = opcode
 			msg.Sequence = seqNum
-			msg.SetData(msgData)
+			if mt == MessageTypeReliable && len(msgData) >= 2 {
+				msg.Opcode = GameOpcode(uint16(msgData[0]) | uint16(msgData[1])<<8)
+				msg.SetData(msgData[2:])
+			} else {
+				msg.Unsplit = true
+				msg.SetData(msgData)
+			}
 			b.Messages = append(b.Messages, msg)
 			continue
 		}

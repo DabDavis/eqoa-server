@@ -251,6 +251,11 @@ type WorldConfig struct {
 	OpenRaces  bool `yaml:"open_races"`
 	AllClasses bool `yaml:"all_classes"`
 
+	// ImportedTag shows "(Imported)" after the name of gear a character
+	// transfer brought in (its record a copy at 70%: database/imported.go;
+	// handlers/importedtag.go). Unset, off: the copies show their bases' names.
+	ImportedTag bool `yaml:"imported_tag"`
+
 	// ServerWorlds are the slots of the worlds of the disc's own zones this
 	// server offers (handlers/serverworlds.go): each built by cmd/worldbuild
 	// into the worlds folder (worldN.ESF and worldN.json), for clients that

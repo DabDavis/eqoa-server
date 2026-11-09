@@ -37,6 +37,9 @@ type ConnectionData struct {
 	// (TakeReliableOnce); rxNext the next entry to write over
 	rxTaken [reliableTakenKept]reliableTaken
 	rxNext  int
+	// frags puts back together a message the client sent in pieces
+	// (fragments.go: Assemble)
+	frags assembler
 
 	// Sequence tracking - outgoing
 	lastSentPacketSeq  uint16
@@ -304,6 +307,7 @@ func (cd *ConnectionData) ResetForMasterSession() {
 	cd.lastReceivedMessageSeq = 0
 	cd.rxSeen = 0
 	cd.rxTaken, cd.rxNext = [reliableTakenKept]reliableTaken{}, 0
+	cd.frags = assembler{}
 }
 
 // ProcessPacket processes an incoming packet's sequence data.

@@ -7,48 +7,63 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// A copy of a reliable message the client sent again (the same number and
-// contents) is not taken a second time; the same number with other contents
-// is (another numbering space's, as a lobby's resend after a promotion), as
-// is a copy past reliableTakenFor, and everything after the master session's
-// reset (petition 1032: a shout handled 24 times off one stalled link).
-func TestTakeReliableOnce(t *testing.T) {
+// The client's reliable messages are taken once each by number, in a window
+// past the ack (rxwindow.go): a copy (every packet of a stalled link's burst,
+// petition 1032's shout handled 24 times) is not taken again, however late;
+// one past a hole is taken and goes in the ack's mask, the ack staying at the
+// hole (the server acknowledged the newest taken until 2026-11-09, and CLIENT
+// retired the one lost on its way unseen); the hole filled takes the ack past
+// all of them; one beyond the 64 the mask can name waits for the client's
+// next try. After the master session's reset a new connection's first is
+// new. The control of the mask: in order, none.
+func TestTakeReliableOnceByTheWindow(t *testing.T) {
 	cd := session.NewConnectionData(nil, 1, 2)
 	now := time.Date(2026, 11, 6, 3, 26, 51, 0, time.UTC)
 	shout := session.ReliableSum(0xFB, 0x0BB8, []byte("agh the 2 beheaders are sick "))
-	other := session.ReliableSum(0xFB, 0x002A, []byte{1, 2, 3})
 	for _, st := range []struct {
-		seq  uint16
-		sum  uint64
-		at   time.Duration
-		want bool
+		seq       uint16
+		at        time.Duration
+		want      bool
+		ack       uint16
+		mask      uint64
+		reasonFor string
 	}{
-		{0, shout, 0, true},  // 0 is never a copy
-		{0, shout, 0, true},  // nor recorded
-		{86, shout, 0, true}, // the shout
-		{86, shout, 10 * time.Millisecond, false},
-		{86, shout, 20 * time.Millisecond, false}, // every packet of the burst
-		{86, other, 30 * time.Millisecond, true},  // the number again, other contents
-		{87, shout, 40 * time.Millisecond, true},  // the same words said again
-		{86, shout, 31 * time.Second, true},       // a resend that late is a new try
+		{1, 0, true, 1, 0, "the first"},
+		{1, 10 * time.Millisecond, false, 1, 0, "a copy"},
+		{2, 20 * time.Millisecond, true, 2, 0, "in order: no mask"},
+		{4, 30 * time.Millisecond, true, 2, 0b1, "past a hole (3): the ack at the hole, 4 in the mask"},
+		{6, 40 * time.Millisecond, true, 2, 0b101, "6 too"},
+		{4, 50 * time.Millisecond, false, 2, 0b101, "a copy of one in the mask"},
+		{3, 60 * time.Millisecond, true, 4, 0b1, "the hole filled: the ack past 4, 6 still in the mask"},
+		{5, 70 * time.Millisecond, true, 6, 0, "and the next: the ack past 6"},
+		{2, 31 * time.Second, false, 6, 0, "a copy that late is still a copy"},
+		{6 + 66, 32 * time.Second, false, 6, 0, "beyond the window: not now"},
+		{7, 33 * time.Second, true, 7, 0, "the next"},
 	} {
-		if got := cd.TakeReliableOnce(st.seq, st.sum, now.Add(st.at)); got != st.want {
-			t.Errorf("seq %d at +%v: %v, want %v", st.seq, st.at, got, st.want)
+		if got := cd.TakeReliableOnce(st.seq, shout, now.Add(st.at)); got != st.want {
+			t.Fatalf("seq %d (%s): %v, want %v", st.seq, st.reasonFor, got, st.want)
+		}
+		r := cd.NextPacketReport()
+		if r.Ack != st.ack || r.Mask != st.mask {
+			t.Fatalf("seq %d (%s): ack %d mask %b, want %d %b", st.seq, st.reasonFor, r.Ack, r.Mask, st.ack, st.mask)
 		}
 	}
-	if cd.LastReceivedMessageSeq() != 87 {
-		t.Errorf("last received %d, want 87 (the acknowledgment's)", cd.LastReceivedMessageSeq())
-	}
 	cd.ResetForMasterSession()
-	if !cd.TakeReliableOnce(87, shout, now.Add(32*time.Second)) || cd.LastReceivedMessageSeq() != 87 {
-		t.Errorf("after the reset: a copy, or last %d", cd.LastReceivedMessageSeq())
+	if !cd.TakeReliableOnce(1, shout, now.Add(40*time.Second)) || cd.LastReceivedMessageSeq() != 1 {
+		t.Fatalf("after the reset: the new connection's first a copy, or last %d", cd.LastReceivedMessageSeq())
 	}
-	// the window holds its last reliableTakenKept: a client's unacknowledged
-	// window is far smaller, so the oldest falling out is no copy anyone sends
-	for seq := uint16(100); seq < 100+300; seq++ {
-		cd.TakeReliableOnce(seq, shout, now.Add(33*time.Second))
+	// past 65535
+	cd = session.NewConnectionData(nil, 1, 2)
+	cd.SetLastReceivedMessageSeq(65534)
+	for _, seq := range []uint16{65535, 1, 0} {
+		if !cd.TakeReliableOnce(seq, shout, now) {
+			t.Fatalf("seq %d past 65534 not new", seq)
+		}
 	}
-	if cd.TakeReliableOnce(399, shout, now.Add(34*time.Second)) || !cd.TakeReliableOnce(100, shout, now.Add(34*time.Second)) {
-		t.Errorf("the window: the newest not a copy, or the oldest still kept")
+	if r := cd.NextPacketReport(); r.Ack != 1 || r.Mask != 0 {
+		t.Fatalf("past 65535: ack %d mask %b, want 1 and none", r.Ack, r.Mask)
+	}
+	if cd.TakeReliableOnce(65535, shout, now) {
+		t.Fatal("a copy of 65535 taken after the wrap")
 	}
 }

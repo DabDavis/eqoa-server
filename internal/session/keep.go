@@ -87,6 +87,9 @@ type KeptConn struct {
 	RxPacket  uint16 `json:"rx_packet"`
 	RxMessage uint16 `json:"rx_message"`
 	RxSeen    uint64 `json:"rx_seen"`
+	// RxWin is the client's messages taken past RxMessage (rxwindow.go);
+	// absent from an older binary's file, which acknowledged the newest taken
+	RxWin     uint64 `json:"rx_win,omitempty"`
 	TxPacket  uint16 `json:"tx_packet"`
 	TxMessage uint16 `json:"tx_message"`
 	Acked     uint16 `json:"acked"`
@@ -194,7 +197,8 @@ func (cd *ConnectionData) keep() KeptConn {
 	k := KeptConn{
 		RxPacket:  cd.lastReceivedPacketSeq,
 		RxMessage: cd.lastReceivedMessageSeq,
-		RxSeen:    cd.rxSeen,
+		RxSeen:    ^uint64(0),
+		RxWin:     cd.rxWin,
 		TxPacket:  cd.lastSentPacketSeq,
 		TxMessage: cd.lastSentMessageSeq,
 		Acked:     cd.clientLastReceivedMessage,
@@ -336,7 +340,7 @@ func (cd *ConnectionData) restore(k KeptConn) {
 	// everything at or below the newest message the old process took counts
 	// as taken: it acknowledged them all (its acks are cumulative), and a copy
 	// of one the client sends again now is one handled already
-	cd.rxSeen = ^uint64(0)
+	cd.rxWin = k.RxWin
 	cd.lastSentPacketSeq = k.TxPacket
 	cd.lastSentMessageSeq = k.TxMessage
 	cd.clientLastReceivedMessage = k.Acked
@@ -455,32 +459,9 @@ func unixOfTimer(t int64) int64 {
 // below the newest that was never taken is new. Sequence numbers compare as
 // connection.cpp's do (the signed 16-bit difference). 0 is never recorded.
 func (cd *ConnectionData) TakeReliable(seq uint16) bool {
-	if seq == 0 {
-		return true
-	}
 	cd.mu.Lock()
 	defer cd.mu.Unlock()
-	d := int16(seq - cd.lastReceivedMessageSeq)
-	if d > 0 {
-		if d >= 64 {
-			cd.rxSeen = 0
-		} else {
-			cd.rxSeen <<= uint(d)
-		}
-		cd.rxSeen |= 1
-		cd.lastReceivedMessageSeq = seq
-		return true
-	}
-	back := uint(-int32(d))
-	if back >= 64 {
-		return false
-	}
-	bit := uint64(1) << back
-	if cd.rxSeen&bit != 0 {
-		return false
-	}
-	cd.rxSeen |= bit
-	return true
+	return cd.takeLocked(seq)
 }
 
 // resumeDump is when a resumed session's client is sent the MemoryDump that

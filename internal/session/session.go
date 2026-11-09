@@ -981,6 +981,13 @@ func (s *Session) ResetTimeout() {
 	}
 }
 
+// SetLastActivity sets when the client was last heard from (a test's silence).
+func (s *Session) SetLastActivity(t time.Time) {
+	s.mu.Lock()
+	s.lastActivity = t
+	s.mu.Unlock()
+}
+
 // LastActivity is when the client last sent a real packet (UpdateActivity).
 func (s *Session) LastActivity() time.Time {
 	s.mu.RLock()

@@ -1,6 +1,9 @@
 package database
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // What the Spell Archivist's grant reads and his grant and clear write
 // (handlers/archivist.go; the GM Jibrish's petition 1279, 2026-11-08: "Grant
@@ -141,6 +144,45 @@ func (s *SpellbookStore) RemoveSpells(serverID uint32, ids []int) (int, error) {
 			return 0, err
 		}
 		gone += int(n)
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+	return gone, nil
+}
+
+// SwapSpells is a path change (handlers/archivistpaths.go; petition 1325):
+// every row of each spell of out taken out of a character's book and the
+// spells of in put in at display indices order, order+1 and on, as AddSpells
+// puts them, in one transaction: none of it or all. The in spells must fit
+// below 252 (the book shows no display index past it), else nothing is done.
+// It returns how many rows went.
+func (s *SpellbookStore) SwapSpells(serverID uint32, out, in []int, order int) (int, error) {
+	if order+len(in) > 252 {
+		return 0, fmt.Errorf("%d spells from display index %d: the book ends at 252", len(in), order)
+	}
+	tx, err := s.db.Begin()
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+	gone := 0
+	for _, id := range out {
+		res, err := tx.Exec(`DELETE FROM spells WHERE serverid = ? AND spellid = ?`, serverID, id)
+		if err != nil {
+			return 0, err
+		}
+		n, err := res.RowsAffected()
+		if err != nil {
+			return 0, err
+		}
+		gone += int(n)
+	}
+	for i, id := range in {
+		if _, err := tx.Exec(`INSERT INTO spells (serverid, spellid, addedorder, onHotBar, whereonBar, unk1, showhide)
+			VALUES (?, ?, ?, 0, -1, 0, -1)`, serverID, id, order+i); err != nil {
+			return 0, err
+		}
 	}
 	if err := tx.Commit(); err != nil {
 		return 0, err

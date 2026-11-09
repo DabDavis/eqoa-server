@@ -221,7 +221,8 @@ func (w *World) SendTakenOver(sess *session.Session, now time.Time) int {
 // the client's ability bar anew with no lockout on, so until 2026-11-09 a
 // player who died with abilities locked out came back to them shown ready,
 // still refused (petition 1312, Hoofbite: "when you have buffs on cooldown,
-// when you die, they no longer are shaded out"). It returns how many it sent.
+// when you die, they no longer are shaded out"). It returns how many it sent;
+// a lockout of a spell that left the book (no index, bookchange.go) is not.
 func (w *World) SendLockouts(sess *session.Session, now time.Time) int {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
@@ -231,7 +232,7 @@ func (w *World) SendLockouts(sess *session.Session, now time.Time) int {
 	}
 	n := 0
 	for _, l := range p.Lockouts {
-		if left := l.until.Sub(now); left > 0 {
+		if left := l.until.Sub(now); left > 0 && l.displayIndex >= 0 {
 			sendCooldown(sess, l.displayIndex, left)
 			n++
 		}

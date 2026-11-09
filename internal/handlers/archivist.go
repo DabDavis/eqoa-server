@@ -35,6 +35,9 @@ import (
 //     client is sent 0x00B3 for each with the flag 0, so word 721 ("You have
 //     gained a new ability.") is not said dozens of times, and one box says
 //     how many;
+//   - Grant path spells: one path of the class's at a time, the spells its
+//     path reward quests give at 30, 40 and 49 (archivistpaths.go: petition
+//     1325), another path's taken out for it;
 //   - Clear my spellbook: every spell and ability out of the book but Return
 //     Home (any record so named; its bar slot stays), asked Yes or No first.
 //     The client's book loses each at once by 0x00B8, which erases the FIRST
@@ -68,22 +71,25 @@ const archivistLevelCap = 60
 const (
 	archivistBrowse = iota
 	archivistGrant
+	archivistPath
 	archivistClear
 	archivistNothing
 )
 
-var archivistAnswers = []string{"Browse your scrolls", "Grant basic spells", "Clear my spellbook", "Nothing, thank you"}
+var archivistAnswers = []string{"Browse your scrolls", "Grant basic spells", "Grant path spells", "Clear my spellbook", "Nothing, thank you"}
 
 // The questions he asks.
 const (
 	archivistAskMenu  = iota // archivistAnswers
 	archivistAskClear        // Yes or No to clearing the book
+	archivistAskPath         // which path (archivistpaths.go)
+	archivistAskSwap         // Yes or No to a path's change
 )
 
 // What he says (ours). A question shows 127 characters (questAskChars), an
 // answer 63 and a box 217 (questBoxChars), his name included.
 const (
-	archivistQuestion       = SpellArchivistName + ": 'The scrolls of your calling are in my keeping. I can also write their spells into your book, or clear it.'"
+	archivistQuestion       = SpellArchivistName + ": 'Your calling's scrolls and paths are in my keeping. I can write their spells into your book, or clear it.'"
 	archivistClearIs        = "I take every spell and ability out of your book but Return Home, those your quests and masteries gave too. Only what the merchants sell can I grant you again."
 	archivistClearAsk       = SpellArchivistName + ": 'Shall I clear your book?'"
 	archivistClearYes       = "Yes, clear it"
@@ -114,6 +120,9 @@ type Archivist struct {
 	spells  *database.SpellbookStore
 	windows *NPCWindowHandler
 	now     func() time.Time
+	// quests is the running quests (Quests): the paths' reward quests and the
+	// quests a character did (archivistpaths.go)
+	quests func() *QuestEngine
 
 	mu    sync.Mutex
 	seq   uint32
@@ -135,18 +144,23 @@ type Archivist struct {
 const archiveTTL = 10 * time.Minute
 
 // archivistAsk is a question asked: its box, which question, and the id the
-// client named the Archivist by (its 0x004C), which his shop opens under.
+// client named the Archivist by (its 0x004C), which his shop opens under; a
+// path's: the paths offered, by answer (archivistAskPath), and the path and
+// the change as they were asked (archivistAskSwap: the spells out and in).
 type archivistAsk struct {
-	id    uint32
-	stage int
-	npc   uint32
+	id      uint32
+	stage   int
+	npc     uint32
+	paths   []int
+	path    int
+	out, in []int
 }
 
 // NewArchivist makes the Spell Archivists over the spell book store and the
 // window handler, whose merchant requests to one he answers first
 // (HandleMerchantOpen).
 func NewArchivist(spells *database.SpellbookStore, windows *NPCWindowHandler) *Archivist {
-	a := &Archivist{spells: spells, windows: windows, now: time.Now, asked: map[uint32]archivistAsk{}}
+	a := &Archivist{spells: spells, windows: windows, now: time.Now, quests: Quests, asked: map[uint32]archivistAsk{}}
 	if windows != nil {
 		windows.archivist = a
 	}
@@ -160,12 +174,17 @@ func (a *Archivist) say(sess *session.Session, line string) {
 }
 
 func (a *Archivist) ask(sess *session.Session, p *entity.Player, stage int, npc uint32, question string, answers []string) {
+	a.askWith(sess, p, archivistAsk{stage: stage, npc: npc}, question, answers)
+}
+
+// askWith asks a question kept as ask (its box id made here).
+func (a *Archivist) askWith(sess *session.Session, p *entity.Player, ask archivistAsk, question string, answers []string) {
 	a.mu.Lock()
 	a.seq++
-	id := archivistBoxMark | (a.seq & 0xFFFFFF)
-	a.asked[p.CharServerID] = archivistAsk{id: id, stage: stage, npc: npc}
+	ask.id = archivistBoxMark | (a.seq & 0xFFFFFF)
+	a.asked[p.CharServerID] = ask
 	a.mu.Unlock()
-	SendQuestPopupMulti(sess, id, clipRunes(question, questAskChars), answers)
+	SendQuestPopupMulti(sess, ask.id, clipRunes(question, questAskChars), answers)
 }
 
 // Ask is a merchant request (HandleMerchantOpen; id the object the client
@@ -210,12 +229,24 @@ func (a *Archivist) Answer(sess *session.Session, p *entity.Player, box uint32, 
 			a.browse(sess, ask.npc)
 		case archivistGrant:
 			a.grant(sess, ask.npc)
+		case archivistPath:
+			a.askPaths(sess, ask.npc)
 		case archivistClear:
 			a.askClear(sess, ask.npc)
 		}
 	case archivistAskClear:
 		if n == 0 {
 			a.clear(sess, ask.npc)
+		} else {
+			a.say(sess, archivistKept)
+		}
+	case archivistAskPath:
+		if n < len(ask.paths) {
+			a.pickPath(sess, ask.npc, ask.paths[n])
+		}
+	case archivistAskSwap:
+		if n == 0 {
+			a.swapPath(sess, ask)
 		} else {
 			a.say(sess, archivistKept)
 		}
@@ -347,11 +378,11 @@ func (a *Archivist) clear(sess *session.Session, id uint32) {
 		return
 	}
 	var ids []int
-	named := map[int]string{}
+	seen := map[int]bool{}
 	for _, e := range gone {
-		if _, ok := named[e.Pattern.SpellID]; !ok {
+		if !seen[e.Pattern.SpellID] {
+			seen[e.Pattern.SpellID] = true
 			ids = append(ids, e.Pattern.SpellID)
-			named[e.Pattern.SpellID] = e.Pattern.SpellName
 		}
 	}
 	rows, err := a.spells.RemoveSpells(p.CharServerID, ids)
@@ -360,18 +391,9 @@ func (a *Archivist) clear(sess *session.Session, id uint32) {
 		a.say(sess, archivistTrouble)
 		return
 	}
-	// one 0x00B8 a row: two rows of one index are two abilities, and the
-	// second finds nothing when they were one spell
-	var later []string
-	told := map[int]bool{}
-	for _, e := range gone {
-		if e.AddedOrder < 252 && !home[e.AddedOrder] {
-			SendAbilityRemove(sess, e.AddedOrder)
-		} else if !told[e.Pattern.SpellID] {
-			told[e.Pattern.SpellID] = true
-			later = append(later, named[e.Pattern.SpellID])
-		}
-	}
+	// one 0x00B8 a row (takeRows, archivistpaths.go), none at an index
+	// Return Home holds
+	later := takeRows(sess, gone, home)
 	log.Printf("Archivist: %s cleared %d spells (%d rows) from the book, %d of them gone from the client at the next login",
 		p.Name, len(ids), rows, len(later))
 	a.say(sess, fmt.Sprintf(archivistCleared, spellCount(len(ids))))
@@ -411,6 +433,7 @@ func lacking(book []database.CharSpellEntry, want []database.SpellName) []databa
 type spellArchive struct {
 	scrolls []database.MerchantScroll
 	spells  *spellIndex
+	names   map[int]database.SpellName // every spell pattern by id (the paths', archivistpaths.go)
 	descs   map[int]string
 	sources map[int]map[int]string // spell -> class -> source
 }
@@ -441,6 +464,10 @@ func loadSpellArchive(s *database.SpellbookStore) (*spellArchive, error) {
 		return nil, fmt.Errorf("the spells: %w", err)
 	}
 	a.spells = newSpellIndex(names)
+	a.names = make(map[int]database.SpellName, len(names))
+	for _, n := range names {
+		a.names[n.SpellID] = n
+	}
 	if a.descs, err = s.SpellDescriptions(); err != nil {
 		return nil, fmt.Errorf("the spells' descriptions: %w", err)
 	}

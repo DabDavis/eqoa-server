@@ -131,6 +131,8 @@ type World struct {
 
 	// pvpAllowed is world.pvp: whether players may flag themselves (pvp.go)
 	pvpAllowed bool
+	// jumpsAllowed is world.jump: whether players may jump (jump.go)
+	jumpsAllowed bool
 
 	// The combat records' counts waiting to be written (combatrecord.go)
 	records combatRecords

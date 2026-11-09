@@ -347,6 +347,11 @@ type Player struct {
 	Flying   bool
 	flyGrace time.Time
 
+	// Jumps: the player's client jumps and answered the jump offer (jump.go,
+	// opcode 0x7E28, world.jump): the movement check takes a jump's arc from it.
+	// A new client's answer says again (a takeover clears it).
+	Jumps bool
+
 	// Vampire: the sun burns it by day (vampire.go; table charvampire, read
 	// at its login, set by #vampire and the GM panel where it stands). GM:
 	// its account was a GM's at its login (acctlevel 1 or more), which

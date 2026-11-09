@@ -144,6 +144,14 @@ func TestResolveOptions(t *testing.T) {
 	if _, _, err := ResolveOptions(3, 0, []OptionChoice{{"body", 0}}); err == nil {
 		t.Error("a gnome's choice: no error")
 	}
+	if _, _, err := ResolveOptions(raceFroglok, 0, []OptionChoice{{"body", 3}}); err == nil {
+		t.Error("a froglok's choice while creation does not offer the froglok: no error")
+	}
+	SetCreationRules(CreationRules{Races: true})
+	if body, _, err := ResolveOptions(raceFroglok, 0, []OptionChoice{{"body", 3}}); err != nil || uint32(body) != 0x0F239012 {
+		t.Errorf("a ghoul froglok while creation offers it: %#x %v", uint32(body), err)
+	}
+	SetCreationRules(CreationRules{})
 	if body, looks, err := ResolveOptions(28, 0, nil); body != 0 || looks != nil || err != nil {
 		t.Errorf("no choice: %v %v %v", body, looks, err)
 	}

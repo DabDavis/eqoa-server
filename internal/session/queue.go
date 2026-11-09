@@ -213,14 +213,25 @@ func (q *MessageQueue) RemoveReliables() {
 
 	clientAck := q.session.Connection().ClientLastReceivedMessage()
 
-	// Remove messages that have been acknowledged
+	// Remove messages that have been acknowledged. They are NOT handed back
+	// to the message pool: one may still sit in q.pending (a resend put back
+	// when its packet was full) or in a packet being built on another
+	// goroutine (PreparePacket holds what it drained outside the lock), and a
+	// pooled message is reused at once, for any session (the tick builds
+	// dozens a session): its sequence number, type and bytes overwritten
+	// under the reference, a packet of one client carrying another's
+	// message, or a reliable message given a fresh number nobody would
+	// resend. The garbage collector takes them.
 	newReliable := q.reliable[:0]
 	for _, msg := range q.reliable {
 		if msg.Sequence > clientAck {
 			newReliable = append(newReliable, msg)
 		} else {
-			protocol.PutMessage(msg)
+			msg.Acked = true
 		}
+	}
+	for i := len(newReliable); i < len(q.reliable); i++ {
+		q.reliable[i] = nil
 	}
 	q.reliable = newReliable
 }
@@ -375,12 +386,17 @@ func (q *MessageQueue) Clear() {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
-	// Return messages to pool
+	// Return the unreliable to the pool, which only q.pending holds. A
+	// reliable one may be in both lists (queued, not yet sent): put back
+	// twice, the pool would hand the same message to two owners. Those the
+	// garbage collector takes (RemoveReliables).
 	for _, msg := range q.pending {
-		protocol.PutMessage(msg)
+		if !msg.Type.IsReliable() {
+			protocol.PutMessage(msg)
+		}
 	}
 	for _, msg := range q.reliable {
-		protocol.PutMessage(msg)
+		msg.Acked = true // never sent from a stale reference
 	}
 
 	q.pending = q.pending[:0]

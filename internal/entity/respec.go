@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/eqoa/server/internal/session"
@@ -25,8 +26,9 @@ import (
 //     the window buys it (cmBlockLocked's rules, the abilities in the book as the
 //     ranks before it leave them). One the character cannot buy any more is left
 //     out with the purchase's own words. The template's total is a ceiling: a
-//     rank that would take what is spent past what the template spent is left
-//     out (a GM raised its cost), as is one the points left cannot pay for.
+//     rank that costs more now than it did (a GM raised its price) is bought
+//     after every other, and left out when it would take what is spent past
+//     what the template spent, as is one the points left cannot pay for.
 
 // CMTemplateRank is a rank a template keeps or a plan buys: its id and what it
 // cost (when the template was saved; now, in a plan).
@@ -44,9 +46,11 @@ type CMSkip struct {
 const (
 	CMSkipGone      = "That mastery is no longer offered."
 	CMSkipNotYours  = "That mastery is not offered to you."
-	CMSkipCostlier  = "It costs more now than when the template was saved."
 	CMSkipNoPoints  = "Too few mastery points are left for it."
 	CMSkipNoCatalog = "No mastery can be bought here."
+	// a rank past the template's spending: one dearer now, and another
+	CMSkipDearer = "It costs %d now, not %d: past the %d points the template spent."
+	CMSkipPast   = "That would spend more than the %d points the template spent."
 )
 
 // RespecPlan is what a template comes to on a character as it stands.
@@ -192,8 +196,12 @@ func (w *World) planRespecLocked(p *Player, from, saved [7]int, ranks []CMTempla
 	}
 	kk := CMKnows{Book: book, Quests: k.Quests, QuestNames: k.QuestNames}
 	budget := 0
+	was := map[int]int{} // what each cost when saved
 	for _, t := range ranks {
 		budget += max(t.Cost, 0)
+		if _, ok := was[t.ID]; !ok {
+			was[t.ID] = max(t.Cost, 0)
+		}
 	}
 	why := map[int]string{}
 	name := func(id int) string {
@@ -219,54 +227,65 @@ func (w *World) planRespecLocked(p *Player, from, saved [7]int, ranks []CMTempla
 		}
 		pending = nil
 	}
-	for len(pending) > 0 {
-		var next []int
-		bought := false
-		for _, id := range pending {
-			r := w.cms.byID[id]
-			switch {
-			case r == nil || !r.Enabled:
-				skip(id, CMSkipGone)
-				continue
-			case !r.offered(s):
-				skip(id, CMSkipNotYours)
-				continue
-			}
-			if b := w.cmBlockLocked(s, r, kk); b != "" {
-				why[id] = b // a later pass may meet it
-				next = append(next, id)
-				continue
-			}
-			if pl.Paid+r.Cost > budget {
-				skip(id, CMSkipCostlier)
-				continue
-			}
-			if s.Mastery.Points < r.Cost {
-				skip(id, CMSkipNoPoints)
-				continue
-			}
-			s.Mastery.Points -= r.Cost
-			s.Mastery.Spent += r.Cost
-			s.CMs[id] = r.Cost
-			pl.Paid += r.Cost
-			pl.Bought = append(pl.Bought, CMTemplateRank{ID: id, Cost: r.Cost})
-			s.refreshCMLocked(w.cms)
-			gives, takes := r.BookChange()
-			for _, a := range gives {
-				if a.SpellID > 0 {
-					book[a.SpellID] = true
+	// first the ranks at what they cost when saved (or less), which never pass
+	// what the template spent; then those dearer now, while it holds
+	for _, dearToo := range []bool{false, true} {
+		for len(pending) > 0 {
+			var next []int
+			bought := false
+			for _, id := range pending {
+				r := w.cms.byID[id]
+				switch {
+				case r == nil || !r.Enabled:
+					skip(id, CMSkipGone)
+					continue
+				case !r.offered(s):
+					skip(id, CMSkipNotYours)
+					continue
+				case !dearToo && r.Cost > was[id]:
+					next = append(next, id)
+					continue
 				}
-			}
-			for _, a := range takes {
-				if a.SpellID > 0 {
-					delete(book, a.SpellID)
+				if b := w.cmBlockLocked(s, r, kk); b != "" {
+					why[id] = b // a later pass may meet it
+					next = append(next, id)
+					continue
 				}
+				if pl.Paid+r.Cost > budget {
+					if r.Cost > was[id] {
+						skip(id, fmt.Sprintf(CMSkipDearer, r.Cost, was[id], budget))
+					} else {
+						skip(id, fmt.Sprintf(CMSkipPast, budget))
+					}
+					continue
+				}
+				if s.Mastery.Points < r.Cost {
+					skip(id, CMSkipNoPoints)
+					continue
+				}
+				s.Mastery.Points -= r.Cost
+				s.Mastery.Spent += r.Cost
+				s.CMs[id] = r.Cost
+				pl.Paid += r.Cost
+				pl.Bought = append(pl.Bought, CMTemplateRank{ID: id, Cost: r.Cost})
+				s.refreshCMLocked(w.cms)
+				gives, takes := r.BookChange()
+				for _, a := range gives {
+					if a.SpellID > 0 {
+						book[a.SpellID] = true
+					}
+				}
+				for _, a := range takes {
+					if a.SpellID > 0 {
+						delete(book, a.SpellID)
+					}
+				}
+				bought = true
 			}
-			bought = true
-		}
-		pending = next
-		if !bought {
-			break
+			pending = next
+			if !bought {
+				break
+			}
 		}
 	}
 	for _, id := range pending {

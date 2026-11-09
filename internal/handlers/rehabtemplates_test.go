@@ -830,3 +830,62 @@ func TestRehabTemplateLongestLinesFitWhole(t *testing.T) {
 		t.Errorf("at the longer name: %q", m)
 	}
 }
+
+// withCost is tplCatalog with ranks' costs changed (a GM's edit).
+func withCost(costs map[int]int) []database.CMRankRow {
+	cat := tplCatalog()
+	for i := range cat {
+		if c, ok := costs[cat[i].ID]; ok {
+			cat[i].Cost = c
+		}
+	}
+	return cat
+}
+
+// Never more than the template spent, though the character holds 705: a GM
+// raised Endurance 3 from 55 to 80 after the save, so it is bought after the
+// rest and left out, in its own words, and Destroyer 1 (the same price) is
+// bought; 445 spent, 260 left. Endurance 1 raised to 150 instead: bought last,
+// with Endurance 2 after it, and Endurance 3 (its own price unchanged) is what
+// would pass the 500. The control: Endurance 3 cheaper (30) is bought, for less.
+func TestRehabTemplateNeverSpendsMoreThanItSpent(t *testing.T) {
+	f := newTplFixture(t)
+	f.spendAll()
+	f.saveTo(1)
+	f.resetBoth()
+	f.gain(5, 0)
+	p := f.tw.p
+
+	f.tw.w.SetCMCatalog(withCost(map[int]int{52: 80}))
+	m := f.askUse(1)
+	if !rehabSays(m, "I cannot buy 1 of its masteries: Endurance 3 (it costs 80 now, not 55: past the 500 points the template spent).") {
+		t.Fatalf("the question: %q", m)
+	}
+	f.pick(0)
+	if got := ownedNow(p); got != "1:10,2:15,10:20,20:200,50:100,51:100" || p.Mastery.Spent != 445 || p.Mastery.Points != 260 {
+		t.Errorf("Endurance 3 dearer: %q %+v", got, p.Mastery)
+	}
+
+	f.resetBoth()
+	f.tw.w.SetCMCatalog(withCost(map[int]int{50: 150}))
+	m = f.askUse(1)
+	if !rehabSays(m, "Endurance 3 (that would spend more than the 500 points the template spent)") {
+		t.Fatalf("Endurance 1 dearer, the question: %q", m)
+	}
+	f.pick(0)
+	if got := ownedNow(p); got != "1:10,2:15,10:20,20:200,50:150,51:100" || p.Mastery.Spent != 495 {
+		t.Errorf("Endurance 1 dearer: %q %+v", got, p.Mastery)
+	}
+
+	// the control
+	f.resetBoth()
+	f.tw.w.SetCMCatalog(withCost(map[int]int{52: 30}))
+	m = f.askUse(1)
+	if rehabSays(m, "I cannot buy") {
+		t.Errorf("the control: %q", m)
+	}
+	f.pick(0)
+	if got := ownedNow(p); got != "1:10,2:15,10:20,20:200,50:100,51:100,52:30" || p.Mastery.Spent != 475 || p.Mastery.Points != 230 {
+		t.Errorf("the control: %q %+v", got, p.Mastery)
+	}
+}

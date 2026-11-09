@@ -161,6 +161,12 @@ type SpellEffect struct {
 	// rakish"; the spelleffect row's debuff_scale)
 	DebuffStat Stat
 	DebuffPct  float64
+	// HateOff is the percent of a hit's damage that makes no hate on the
+	// creature it lands on (the workbook JSON's hate_pct, 100 less it): 0, all
+	// of it is hate, as every hit's is; 100, none (Vylinnuza's Merciless
+	// Blizzard and Inferno, petition 1372). The hit still angers it: a fight
+	// begun, its kind called, a lull ended (cast.go's spellHitHateLocked)
+	HateOff int
 	// Undead: a shield that answers undead attackers alone (dshield.go), or
 	// a proc that fires on undead creatures alone (proc.go, workbook.go)
 	Undead bool

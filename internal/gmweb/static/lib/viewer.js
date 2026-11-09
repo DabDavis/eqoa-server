@@ -87,8 +87,9 @@ export class Viewer {
     this.ro.observe(canvas);
   }
 
-  setModel({ mesh, textures }) {
+  setModel({ mesh, textures }, keepView = false) {
     const gl = this.gl;
+    const had = !!this.model;
     this.dispose(false);
     const vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
@@ -125,7 +126,7 @@ export class Viewer {
       return { ib, count: b.idx.length, tex: texs.get(b.tex) || null, col: b.col, uv: b.uv };
     });
     this.model = { vao, bufs, texs, batches, bbox: mesh.bbox };
-    this.frame();
+    if (!(keepView && had)) this.frame();
     this.draw();
   }
 

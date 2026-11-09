@@ -85,7 +85,7 @@ export async function recordPage(box, { table, keySeg, base, crumbs, title, sub,
   const belowBox = h('div', { class: 'stack' });
   const historyBox = h('div');
   const refreshSide = async () => {
-    if (side) mount(sideBox, await side(form.row, meta, refreshSide));
+    if (side) mount(sideBox, await side(form.row, meta, refreshSide, form));
     if (below) mount(belowBox, await below(form.row, meta, refreshSide));
     loadHistory();
   };

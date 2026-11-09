@@ -516,10 +516,14 @@ function idField(col, value, ctx, kind, opts = {}) {
     ctx.form.discHinted = true;
     noDiscHint(kind).then((x) => { if (x) mount(hint, x); });
   } else if (!ctx.form) noDiscHint(kind).then((x) => { if (x) mount(hint, x); });
+  // a visual is seen played on the Spell visuals page (its preview, or in the
+  // game), a spell's own there for that spell; a new tab keeps this form
+  const spell = ctx.form?.row?.spellid;
+  const preview = kind === 'visual' ? h('a', { class: 'small', href: '#/visuals' + (spell !== undefined && ctx.meta?.name === 'spelleffect' ? '/' + spell : ''), target: '_blank', rel: 'noopener' }, 'See it played') : null;
   const control = h('div', { class: 'look look-id' },
     h('div', { class: 'with' }, picBox, input,
       ctx.locked ? null : button('Choose…', { class: 'small', onclick: choose })),
-    extra, hint);
+    extra, preview, hint);
   return { input, control, wide: 'pair' };
 }
 
@@ -627,9 +631,12 @@ function colourField(col, value, ctx, item) {
       sliders.forEach((s, i) => { if (document.activeElement !== s.n) s.n.value = String(c[i]); s.r.value = String(c[i]); });
       if (document.activeElement !== hexBox) { hexBox.value = hexRGBA(u); hexBox.classList.remove('bad'); }
       native.value = '#' + hexRGBA(u).slice(0, 6).toLowerCase();
-      const near = tints.length ? nearestTint(u, tints) : null;
+      // an item's colour: a PS2 draws the nearest tint (entity's nearestTint);
+      // a dye (chardyes) a PS2 never sees
+      const near = item && tints.length ? nearestTint(u, tints) : null;
       caption.textContent = (ok ? hex8(u) + (col.store ? ' = ' + stored(col, u) + ' stored' : '') : 'empty: choose a colour') +
-        (near !== null && ok ? ` · on a PS2: drawn as tint ${near} (${tints[near].label})` : '');
+        (near !== null && ok ? ` · on a PS2: drawn as tint ${near} (${tints[near].label})` : '') +
+        (!item && ok ? ' · drawn by a client of the live game\'s look; a PS2 never sees a dye' : '');
     }
   };
   if (tabs) {
@@ -849,6 +856,34 @@ function raceLookField(col, value, ctx) {
   sibling(ctx, 'kind', (el) => { kindEl = el; el.addEventListener('input', render); el.addEventListener('change', render); mode = ''; render(); });
   render();
   return { input, control: h('div', { class: 'look' }, box), wide: true };
+}
+
+// ---- dressing a body as a PS2 does (VICSprite::ApplyLook: SetRobe, then
+// SetArmorSlot for the five worn slots; vanilla's cust::apply_look): the swaps
+// the disc worker's model op takes
+
+// npcSwaps is an NPC row's look (its columns' values, as the form holds
+// them) as text slot swaps: a robe on the chest and legs in tint 0, each
+// armour set's texture (retail's sets 0-8; 9 and past are none) in the row's
+// tint (unk_o, 0-14), a bare slot its own texture in that tint.
+export function npcSwaps(v, tints) {
+  const col = (i) => rgbaOf(parseInt((tints[i] || tints[0] || { rgba: 'FFFFFFFF' }).rgba, 16) >>> 0);
+  const out = [], robed = new Set();
+  const robe = String(v.robe_style ?? '').trim() === '' ? -1 : Number(v.robe_style);
+  if (Number.isInteger(robe) && robe >= 0 && robe < 255) {
+    const r = robe < ROBE.length ? robe : 0;
+    for (const [slot, half] of [[0, 0], [3, 1]]) { out.push({ slot, tex: ROBE[r][half] | 0, col: col(0) }); robed.add(slot); }
+  }
+  let tint = Number(v.unk_o) || 0;
+  if (tint < 0 || tint > 14) tint = 0;
+  const sets = { chest: v.torso, boots: v.feet, bracer: v.forearm, legs: v.legs, gloves: v.gloves };
+  for (const [name, slot] of Object.entries(ARMOR_SLOT)) {
+    if (robed.has(slot)) continue;
+    let set = Number(sets[name]) || 0;
+    if (set < 0 || set >= ARMOR.length) set = 0;
+    out.push({ slot, tex: set ? ARMOR[set][slot] | 0 : 0, col: col(tint) });
+  }
+  return out;
 }
 
 // ---- a list's cells

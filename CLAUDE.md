@@ -65,7 +65,11 @@ restarts in four hours ended every pet, and a charmed creature came back free on
 attacked him on sight): a summoned pet is made again by its summoning spell beside its owner with its share of hit points
 and its stance, a charmed creature (by its row's id) is charmed to its master again where it stood, under its charm for
 the time that had left, no resist rolled; the client is told after its dump. The client's reliable messages are taken
-once each on a resumed session (`TakeReliable`: it resends what went unanswered through the freeze). A session
+once each on a resumed session (`TakeReliable`: it resends what went unanswered through the freeze). **Ours go again under
+their own numbers** (`restoredMessage` stamps each numbered, `Queued`, which PreparePacket reads to keep a number; petition 1378,
+`udp/keepnumbers_test.go`): from 2119f18 (05:20 UTC 2026-11-09) to that fix a restored message went out under the next new
+number, so a client that had not had it (one still queued at the restart) held every reliable message after it for good, chat,
+cons and windows, while the creatures moved on their state channels, until its player logged in again; one it had came twice. A session
 that cannot be put back is told the server went down (0x07C0). The snapshot is read only by the same PID, in its
 format, under 60 s old. A failed exec leaves the server running. **The first swap INTO a binary with this is a
 cold one** (an older binary ignores SIGUSR2: `swap_keep.sh` then exits 3 and swaps nothing). Measured with
@@ -221,7 +225,10 @@ messages wait; every number is compared across 65535. **After the promotion only
 instance until in sync, and its numbers taken as the promoted connection's made the client refuse every promoted packet (a login
 that never reached the world). A session resending gets one `Net:` line every 10 s (address, character, unacked span and age, the
 client's ack, round trip, packets it missed), `Promoted:` lines name the lobby's late packets, `#net` shows it in the game. A client
-silent 5 s in the world is sent no state channels until heard from; a session silent 3 minutes before the world ends.
+silent 5 s in the world is sent no state channels until heard from; a session silent 3 minutes before the world ends. **One past
+character select silent `InGameSilentEnd` (60 s) ends** (`udp.silentInWorldOver`, its character saved and out of the world; a dead
+one after its respawn, a replaced one by its own grace): CLIENT sends its 0x40 ten times a second and a keepalive after 30 s, and
+gives up itself on 60 s unanswered; a PS2 reading a world off the disc is silent about 22 s. It stood its 50 pings (~500 s).
 
 **The packet log is off unless asked for** (`internal/debuglog`; the user's choice of 2026-11-04): the packet
 path's own debug lines (every packet received and sent with its hex, DRDP, the state channels, the visibility

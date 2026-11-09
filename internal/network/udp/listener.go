@@ -581,7 +581,12 @@ func (l *Listener) tickAllSessions() {
 			rdp.TickSession(sess)
 		} else if sess.InGame() {
 			// Session B (MemoryDump session) has messages queued before CharacterInWorld.
-			// Just send pending packets without full timeout/ping/state-update logic.
+			// Just send pending packets without full timeout/ping/state-update logic,
+			// but a client gone before its 0x0014 ends as one in the world does.
+			if l.silentInWorldOver(sess, time.Since(sess.LastActivity())) {
+				toRemove = append(toRemove, sess)
+				return true
+			}
 			if data := rdp.PreparePacket(sess); data != nil {
 				if err := rdp.SendPacket(sess, data); err != nil {
 					log.Printf("Failed to send initial packet to %s: %v", sess.RemoteAddr(), err)

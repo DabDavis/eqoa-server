@@ -196,8 +196,8 @@ func TestOurAckSaysTheHoleAndTheMask(t *testing.T) {
 // is heard from again (its dropped session lingers its 50 pings and was sent
 // the world every tick, to a relay port long closed); a session silent
 // PreGameSilentEnd before the world ends (it lived 10 pings of 300 s). The
-// controls: heard from, it gets them again; a silent session in the world is
-// not ended by this.
+// controls: heard from, it gets them again; a session in the world silent a
+// few seconds is not ended (one silent InGameSilentEnd is: silentend_test.go).
 func TestASilentClientIsSentNoWorldAndASilentLobbyEnds(t *testing.T) {
 	r, sess, cli := slotsTick(t, 24)
 	if got := tick(t, r, sess, cli); len(got) == 0 || len(got[0]) == 0 {
@@ -210,7 +210,7 @@ func TestASilentClientIsSentNoWorldAndASilentLobbyEnds(t *testing.T) {
 		}
 	}
 	if sess.PendingTermination() {
-		t.Fatal("a silent session in the world ended (its pings decide that)")
+		t.Fatal("a session in the world silent a few seconds ended")
 	}
 	sess.UpdateActivity()
 	for slot := 1; slot < 24; slot++ { // the world moves on

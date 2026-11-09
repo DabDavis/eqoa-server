@@ -41,3 +41,35 @@ func TestATeleportThatBinds(t *testing.T) {
 		t.Fatalf("kept %v %+v %v", ok, row, err)
 	}
 }
+
+// A teleport to "mainland" sends the player to its race's spot on the disc's
+// worlds, its start row for its class (MainlandPlace): a homeland's gatekeeper
+// sends each class to its own guild. The control: a race with no row moves no
+// one, and says so.
+func TestATeleportToTheMainland(t *testing.T) {
+	f := newQuestFixture(t)
+	f.exec(`INSERT INTO defaultcharacter (tclass, race, humType, level, tunar, bankTunar, unusedTP, totalTP, x, y, z, facing, world)
+		VALUES (10, 0, 0, 1, 0, 0, 0, 0, 25290, 54.1, 15553, 0, 0), (0, 0, 0, 1, 0, 0, 0, 0, 25487, 61.4, 15547, 0, 0)`)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, events) VALUES (93, 'Out', 1, 'Gatekeeper Skyhame',
+		'[{"on":"accept","do":"teleport","to":"mainland","bind":true}]')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (93, 1, 'talk', 'Malsis', 'Talk.')`)
+	f.qe.Reload()
+	if _, err := f.qe.SetCharacterQuest(f.sid, 93, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.want(f.msgs(), fmt.Sprintf("op:%04X", uint16(protocol.OpcodeTeleport)))
+	if f.tw.p.X != 25290 || f.tw.p.Z != 15553 {
+		t.Fatalf("a magician sent to %.0f, %.0f, not its guild's row", f.tw.p.X, f.tw.p.Z)
+	}
+	if b, bound := f.tw.w.BindOf(f.tw.p.ServerID); !bound || b.X != 25290 {
+		t.Fatalf("bound %v at %+v", bound, b)
+	}
+	f.tw.p.Race = 5 // no row
+	if _, err := f.qe.SetCharacterQuest(f.sid, 93, QuestReset, 0); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.qe.SetCharacterQuest(f.sid, 93, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.not(f.msgs(), fmt.Sprintf("op:%04X", uint16(protocol.OpcodeTeleport)))
+}

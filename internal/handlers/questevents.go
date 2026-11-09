@@ -46,9 +46,11 @@ import (
 //   - visual: a spell visual (a SPELLFX.CSF DictID) played from the player on
 //     itself, as a cast's 0x00B1 begins one for everyone who sees it.
 //   - teleport: the player warped as a travel NPC warps it (a world its
-//     client cannot load is refused); with bind, bound where it lands as a
-//     spiritmaster binds (a homeland's gatekeeper: Return Home and a death
-//     take the player to its new city, not back to the homeland).
+//     client cannot load is refused); to "mainland", to its race's spot on the
+//     disc's worlds (its wire race's start row for its class: where it would
+//     have started before its race had a homeland); with bind, bound where it
+//     lands as a spiritmaster binds (a homeland's gatekeeper: Return Home and
+//     a death take the player to its new city, not back to the homeland).
 //   - vampire: the player made a vampire (database.QuestStore.MarkVampire, a
 //     charvampire row of source quest, and in force where it stands:
 //     entity/vampire.go): the vampire quest's bats, whose blood changes
@@ -429,6 +431,14 @@ func (q *QuestEngine) respawnLost() {
 
 // teleportLocked warps the player as a travel NPC does.
 func (q *QuestEngine) teleportLocked(sess *session.Session, p *entity.Player, qu *database.Quest, e database.QuestEvent) {
+	if strings.EqualFold(strings.TrimSpace(e.To), database.TeleportMainland) {
+		at := &database.CharacterRecord{Race: p.Race, TClass: p.Class, HumType: p.HumType}
+		if q.places == nil || !q.places.MainlandPlace(at) {
+			log.Printf("Quests: %q: %s (race %d, class %d) has no spot on the disc's worlds", qu.Name, p.Name, p.Race, p.Class)
+			return
+		}
+		e.World, e.X, e.Y, e.Z = at.World, at.X, at.Y, at.Z
+	}
 	if q.gw == nil || e.World < 0 || e.World > 255 {
 		return
 	}

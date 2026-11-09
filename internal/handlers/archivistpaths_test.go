@@ -439,3 +439,24 @@ func TestTheArchivistsPathWordsFit(t *testing.T) {
 		t.Errorf("%d answers, a box holds %d", len(archivistAnswers), maxDialogOptions)
 	}
 }
+
+// A GM's edit of the quests between his question and its answer (the level
+// 30 and 40 rewards taken out of the game): the answer does nothing but say
+// so, the book as it was, though its index still names a path. The control:
+// asked again, the paths as they are now, the self power line named by its
+// first spell left.
+func TestTheArchivistsPathIsTheOneOffered(t *testing.T) {
+	f := newPathRig(t, 49)
+	_, box := f.paths(encAnswers...)
+	if _, err := f.db.Exec(`UPDATE quests SET enabled = 0 WHERE questid IN (?, ?, ?, ?)`, qEnc30, qEnc40, qEnc30Evil, qEnc40Evil); err != nil {
+		t.Fatal(err)
+	}
+	if msg := f.qe.ReloadQuests(); !strings.HasPrefix(msg, "at once") {
+		t.Fatalf("reload: %s", msg)
+	}
+	f.wantMsgs("the old question", f.pick(box, 0), "box:Spell Archivist: "+archivistPathsChanged)
+	f.wantBook("the old question", "1623@0/0", "6101@1/1")
+	got, _ := f.paths("The path of Boundless Mind", archivistPathNeither)
+	f.wantMsgs("asked again", got, "box:Spell Archivist: The path of Boundless Mind: Boundless Mind and Infinite Mind.",
+		"ask#*:"+archivistPathAsk+"|The path of Boundless Mind|"+archivistPathNeither)
+}

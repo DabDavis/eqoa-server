@@ -147,7 +147,8 @@ func (w *World) illusionBodyLocked(form string, sex int) (model uint32, size flo
 
 // Body is the model and scale the player is shown with: the newest
 // illusion's (its body, at the creature's size or the player's own), else
-// its own.
+// its own. A were form on a player who keeps its own body (wereownbody.go)
+// shows none.
 func (p *Player) Body() (model uint32, size float32) {
 	if p.GMForm != 0 { // a GM's Change Sprite (gmchannel.go)
 		if p.GMFormSize > 0 {
@@ -156,7 +157,7 @@ func (p *Player) Body() (model uint32, size float32) {
 		return p.GMForm, p.Size
 	}
 	for i := len(p.Effects) - 1; i >= 0; i-- {
-		if e := p.Effects[i]; e.Form != 0 {
+		if e := p.Effects[i]; p.shownForm(e) {
 			if e.FormSize > 0 {
 				return e.Form, e.FormSize
 			}

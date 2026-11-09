@@ -113,6 +113,33 @@ func ParseTemplateCMs(s string) []OwnedCM {
 	return out
 }
 
+// CheckTemplateCMs is why a cms column is not one the game reads every entry
+// of, nil when it is: comma-separated "id:cost", a positive id once each and a
+// cost of 0 or more (an empty column is no rank). ParseTemplateCMs skips what
+// does not read; a GM's edit is refused instead (gmweb), so no rank is lost.
+func CheckTemplateCMs(s string) error {
+	if strings.TrimSpace(s) == "" {
+		return nil
+	}
+	seen := map[int]bool{}
+	for _, f := range strings.Split(s, ",") {
+		id, cost, ok := strings.Cut(strings.TrimSpace(f), ":")
+		n, err := strconv.Atoi(strings.TrimSpace(id))
+		if !ok || err != nil || n <= 0 {
+			return fmt.Errorf("%q is not id:cost (cmcatalog's id, what it cost)", strings.TrimSpace(f))
+		}
+		c, err := strconv.Atoi(strings.TrimSpace(cost))
+		if err != nil || c < 0 {
+			return fmt.Errorf("%q: the cost is a whole number of 0 or more", strings.TrimSpace(f))
+		}
+		if seen[n] {
+			return fmt.Errorf("rank %d is in it twice", n)
+		}
+		seen[n] = true
+	}
+	return nil
+}
+
 // RehabTemplates is a character's templates by slot; a slot with no row is
 // not in the map (nor one outside 1..RehabTemplateSlots).
 func (db *SQLiteDB) RehabTemplates(serverID uint32) (map[int]RehabTemplate, error) {

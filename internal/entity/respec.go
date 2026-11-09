@@ -196,11 +196,11 @@ func (w *World) planRespecLocked(p *Player, from, saved [7]int, ranks []CMTempla
 	}
 	kk := CMKnows{Book: book, Quests: k.Quests, QuestNames: k.QuestNames}
 	budget := 0
-	was := map[int]int{} // what each cost when saved
+	was := map[int]int{} // what each cost when saved (an id twice: its first)
 	for _, t := range ranks {
-		budget += max(t.Cost, 0)
-		if _, ok := was[t.ID]; !ok {
+		if _, ok := was[t.ID]; !ok && t.ID > 0 {
 			was[t.ID] = max(t.Cost, 0)
+			budget += was[t.ID]
 		}
 	}
 	why := map[int]string{}

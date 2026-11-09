@@ -657,6 +657,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCMCatalog(); err != nil {
 		return err
 	}
+	if _, err := db.Exec(ImportedSchema); err != nil { // imported gear's copies (imported.go)
+		return fmt.Errorf("itemimported: %w", err)
+	}
 	if err := db.ensureSpellArea(); err != nil {
 		return err
 	}

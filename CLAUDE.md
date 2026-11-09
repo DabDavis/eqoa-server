@@ -737,6 +737,22 @@ the GM's word and, when the plan made records for items this server lacks, their
 correct stats, icon and model (`ApproximatedNotice`, `database.ApproximatedItems`); lines of at most 200 characters. The page
 says the same on its front and under an approved or applied transfer.
 
+**Imported gear is damped** (petition 1314, jibrish: "Any gear that was imported from the character transfer tool should be
+blanket reduced in stats by 30% ... includes any special effects on the gear, like procs. Regular dropped items in game should
+remain unchanged"; the user's yes, 2026-11-09): a transfer's gear (`Plan.Imported`: set at the login for any transfer but a GM's
+grant, `from_server` "GM grant", and on every plan the panel builds) is given as its record's **imported copy**
+(`database.ImportedCopyTx`: an itempattern row of its own, ids 990001-999999, made once a record, listed in `itemimported`
+with its `base`): its stats, AC, resists, HP/power maximums and ticks and a weapon's damage at 70%, rounded half away from
+zero, everything else its base's, its use effects (`itemeffect`) with each "by N" scaled. The record the drops and merchants
+use stays whole. A copy goes wherever the item goes (trade, bank, auction, buyback). What a record's figures do not hold is
+scaled where it is read, for a copy (`entity.ImportedBase`): a weapon's proc (by its name or description) and a worn item's
+hit effect. **A copy follows its base**: at every start `SyncImportedCopies` makes each copy its base again at 70% (a fixed
+look or figure on the base reaches its copies at the next restart: fix the base, never a copy). Gear is what is worn, not a
+stack, not an Heirloom (`IsImportedGear`). **"(Imported)" after a copy's name** is put on as a record is sent
+(`handlers/importedtag.go`), only with `world.imported_tag: true` (the user: "only temporary for testing purposes"; off: no
+record changes). The gear transfers gave before this (charmigrate_log's items still held) was moved onto copies by
+`cmd/importdamper` (ledgered in `importdamper_log`; `-undo` exact; `-skip-run` for a run that was a give, not an import).
+
 `cmd/charmigrate` runs the same engine from a shell by a GM's plan (a JSON file kept outside this repository):
 level, mastery points, the class's spells, item records put right or made, items into the bank, the pack or
 `auto`, rows the character holds moved; one transaction logged in `charmigrate_log`, `-undo <run>` exact (a run's
@@ -1986,6 +2002,7 @@ world:
   pvp: true                 # /pvp flags a player (entity/pvp.go); unset: not available
   open_races: true          # creation takes the froglok and racedefs' races (vanilla is told them); unset: the game's
   all_classes: true         # every class for every race at creation; unset: each race's own
+  imported_tag: true        # "(Imported)" after a transfer's damped gear (database/imported.go); unset: not shown
 auth:
   shared_db: "/srv/one/eqoa.db"   # another shard's accounts, a copy here; every sign-in by the token's password
   shared_refresh: 10s

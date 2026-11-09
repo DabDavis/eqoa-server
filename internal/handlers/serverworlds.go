@@ -163,11 +163,12 @@ func encodeServerWorlds(list []worlds.Built) []byte {
 			b = binary.LittleEndian.AppendUint32(b, uint32(p.Size))
 			b = binary.LittleEndian.AppendUint32(b, p.CRC)
 			b = append(b, byte(p.Col), byte(p.Row))
-			name := ""
+			name, race := "", 0
 			if i < len(w.Zones) {
-				name = w.Zones[i].Name
+				name, race = w.Zones[i].Name, w.Zones[i].Race
 			}
 			str(name)
+			b = append(b, byte(race))
 		}
 	}
 	return b

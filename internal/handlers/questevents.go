@@ -438,6 +438,11 @@ func (q *QuestEngine) teleportLocked(sess *session.Session, p *entity.Player, qu
 			return
 		}
 		e.World, e.X, e.Y, e.Z = at.World, at.X, at.Y, at.Z
+	} else if e.X == 0 && e.Z == 0 {
+		// no place at all (a to this server does not know, a row cut short):
+		// the world's corner is no place to stand, nor to bind
+		log.Printf("Quests: %q: a teleport to 0, 0 (to %q) refused", qu.Name, e.To)
+		return
 	}
 	if q.gw == nil || e.World < 0 || e.World > 255 {
 		return

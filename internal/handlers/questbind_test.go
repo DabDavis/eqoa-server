@@ -44,8 +44,8 @@ func TestATeleportThatBinds(t *testing.T) {
 
 // A teleport to "mainland" sends the player to its race's spot on the disc's
 // worlds, its start row for its class (MainlandPlace): a homeland's gatekeeper
-// sends each class to its own guild. The control: a race with no row moves no
-// one, and says so.
+// sends each class to its own guild. The controls: a to it does not know moves
+// no one (never to the world's corner, 0, 0), nor does a race with no row.
 func TestATeleportToTheMainland(t *testing.T) {
 	f := newQuestFixture(t)
 	f.exec(`INSERT INTO defaultcharacter (tclass, race, humType, level, tunar, bankTunar, unusedTP, totalTP, x, y, z, facing, world)
@@ -64,6 +64,17 @@ func TestATeleportToTheMainland(t *testing.T) {
 	if b, bound := f.tw.w.BindOf(f.tw.p.ServerID); !bound || b.X != 25290 {
 		t.Fatalf("bound %v at %+v", bound, b)
 	}
+	f.exec(`UPDATE quests SET events = '[{"on":"accept","do":"teleport","to":"elsewhere"}]' WHERE questid = 93`)
+	f.qe.Reload()
+	if _, err := f.qe.SetCharacterQuest(f.sid, 93, QuestReset, 0); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.qe.SetCharacterQuest(f.sid, 93, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.not(f.msgs(), fmt.Sprintf("op:%04X", uint16(protocol.OpcodeTeleport)))
+	f.exec(`UPDATE quests SET events = '[{"on":"accept","do":"teleport","to":"mainland","bind":true}]' WHERE questid = 93`)
+	f.qe.Reload()
 	f.tw.p.Race = 5 // no row
 	if _, err := f.qe.SetCharacterQuest(f.sid, 93, QuestReset, 0); err != nil {
 		t.Fatal(err)

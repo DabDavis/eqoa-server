@@ -1197,6 +1197,49 @@ lines as the client holds them, each line by its entry. After a restart a ware's
 opens again. A window closed inside a sale's round trip opens again on the list; one more press closes it. Walked end to end, sale and Destroy,
 in headless vanilla and on the retail disc's CLIENT in PCSX2.
 
+### A pack and a bank past CLIENT's 40 (`handlers/itemlists.go`, `entity/itemslots.go`, `database/itemlists.go`)
+
+The server owner, 2026-11-09: "lets increase inventory and bank space to 100" (`world.pack_slots`, `world.bank_slots`;
+unset or 40 is CLIENT's 40 and nothing is offered; at most 255, a record's list index going in a byte). CLIENT holds
+40 records a list and no more: `VIItemList` is `ItemCount`, `m_p04` and `VINetItem ItemInternal[40]` (decomp `game.h`),
+one class for the pack (VIClient+0xC428, worn items among its records), the bank (VIBankControl+8), the corpse, the
+merchant and the trade's copy; every `AddItem` is called with 40 and keeps nothing past it, and `VIItemList::Read`
+(`vibankcontrol.cpp`, the MemoryDump's two lists in `Msg000D`) writes as many records as the count says into those 40
+with no check, so a 41st overruns the VIClient fields after the list. So **a PS2 is never sent more than 40 in a list**:
+- **The offer**, non-retail **0x7E29** after a session's first character list (with the capes'), once, only on a server
+  that holds more: u32 1, u32 the pack's, u32 the bank's. Vanilla answers at once with u32 1 and what it holds of each
+  (or u32 0 to hold 40 again); the server takes each between 40 and its own (`listCaps`). A PS2 ignores the offer (no
+  default case), and every client that never answers holds 40. **0x7E2A** tells a client that answered the sizes of the
+  MemoryDump that follows, before every dump (a login, a respawn, a keep restart's, `#template`'s); a PS2 is never sent
+  it. (0x7E2B is the item lists' and unused.)
+- **Every room is the client's**: the session's copy of each list (`invList.cap`, made by the dump as its client's) is
+  what `add`, `wouldAdd` and `roomFor` fill to, so loot, purchases, buy-backs, trades (now all of a side's offers fitted
+  together: one at a time, four into one free place desynced the taker), the bank's moves, quests' rewards and their
+  waits, crafts, catches and the GM's gives are its own; the auction files into a holder's bank as its online client's
+  holds (`database.SetBankSlotsOf`; out of the world CLIENT's 40, and what waits is filed at the login); a transfer
+  fills the pack to its login's client's and checks the bank against it (`charmove` `Plan.PackSlots`/`BankSlots`, set at
+  the login; `cmd/charmigrate -pack -bank`, 40 unless said: the bank's old made-up 60 could overrun a PS2); `#template`
+  and the login's kept items (the lamp, the fang, the portal) count the client's room. A merchant's 0x00B7 list (wares
+  and buy-back lines), a corpse's and a trade's offers stay CLIENT's 40 (`merchantListCap`, `maxCorpseItems`).
+- **A character with more than its client holds** (filled in vanilla, logging in on a PS2; or on a server that lowered
+  its sizes; or given past them by the GM panel's offline give) is sent every worn row and then the rest in the order
+  the pack was arranged in (`planItemLists`, `heldOf`), up to its client's sizes, and **the rest is kept**: moved to
+  charinventory location **2** (kept from the pack) or **3** (kept from the bank), every other column as it was (stack,
+  condition, charges, quick slot), the newly kept after any kept before. Nothing in the game reads them there:
+  `GetCharacterItems` and `GetCharItem` read locations 0 and 1 alone and every row change (`SetItemStack`, charges,
+  condition, `DeleteCharItem`, `MoveCharItem`, `SetEquipLoc`) refuses a kept row, so no request, sale, cast, potion,
+  quest, trade or gear set reaches what the client was never sent. A Lore item kept is one held (`invList.kept`), and
+  `#template` counts kept heirlooms. **A login with room brings them back**, the first kept first, at the end of the
+  list; a respawn's, a restart's or `#template`'s dump keeps and never brings back (what a player freed in a session is
+  theirs until the next login). The player is told once in the world (`tellKept`, yellow): how many are kept and that
+  they come back at a login with room (or on a client that holds the server's sizes), or how many came back. The dump
+  itself caps each list at the client's size whatever the rows say (`capEntries`, logged loudly), so no race can send a
+  PS2 a 41st. The GM panel's location column names 2 and 3. Nothing is lost or made twice: a kept row is the same row.
+  Before this a dump sent every row: the live copy of 2026-11-08 has a character with 41 pack records, which a PS2 login
+  overran.
+- The keep restart carries the sizes (the session's answer, each list's cap and its kept items). The dump's buffer is
+  sized by its records (a record is at most ~900 bytes).
+
 ### Items with charges, and the Rolling Dice
 
 **Charges** (`itemeffect.charges`, petition 1088, the alchemists' Reconstructive: 4; the user: "do what koolade says"): how

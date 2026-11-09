@@ -338,6 +338,7 @@ func (h *CharacterHandler) fitItemLists(serverID uint32, pack, bank int, login b
 	}
 	if login && (note.keptPack > 0 || note.keptBank > 0 || note.backPack > 0 || note.backBank > 0) {
 		note.pack, note.bank = pack, bank
+		note.mostPack, note.mostBank = entity.ItemSlots()
 		keptNotesMu.Lock()
 		keptNotes[serverID] = note
 		keptNotesMu.Unlock()
@@ -369,6 +370,7 @@ func capEntries(rows []database.CharInventoryEntry, most int) []database.CharInv
 // until its player is in the world to be told (tellKept).
 type keptNote struct {
 	pack, bank         int // the lists' sizes
+	mostPack, mostBank int // this server's, for a client that holds them
 	keptPack, keptBank int // kept after it
 	newPack, newBank   int // kept by it
 	backPack, backBank int // brought back by it
@@ -415,11 +417,20 @@ func keptLines(n keptNote) []string {
 		}
 		return fmt.Sprintf("%d more of your items are", k)
 	}
+	// where the server holds more than this client (a PS2's 40), where to go
+	elsewhere := func(here, most int) string {
+		if most > here {
+			return fmt.Sprintf(", or on a game client that holds %d", most)
+		}
+		return ""
+	}
 	if n.keptPack > 0 {
-		out = append(out, fmt.Sprintf("Your pack holds %d items in this game, so %s kept safe for you; they come back when you log in with a game that has room for them.", n.pack, more(n.keptPack)))
+		out = append(out, fmt.Sprintf("Your pack holds %d items here, so %s kept safe for you; they come back when you log in with room for them%s.",
+			n.pack, more(n.keptPack), elsewhere(n.pack, n.mostPack)))
 	}
 	if n.keptBank > 0 {
-		out = append(out, fmt.Sprintf("Your bank holds %d items in this game, so %s kept safe for you; they come back when you log in with a game that has room for them.", n.bank, more(n.keptBank)))
+		out = append(out, fmt.Sprintf("Your bank holds %d items here, so %s kept safe for you; they come back when you log in with room for them%s.",
+			n.bank, more(n.keptBank), elsewhere(n.bank, n.mostBank)))
 	}
 	return out
 }

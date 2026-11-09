@@ -237,6 +237,15 @@ type Player struct {
 	RaidRoster     bool
 	raidRosterSent string
 
+	// PetEffects: the player's client draws its pet's effects under the pet's
+	// bar and asked for them (peteffects.go, opcodes 0x7E32 and 0x7E33);
+	// petEffectsSent is what made the set it was last sent (each effect's
+	// icon, name and end, not its time left), so only a change goes out, and
+	// petEffectsDue sends the next one whatever it is (just asked).
+	PetEffects     bool
+	petEffectsSent string
+	petEffectsDue  bool
+
 	// DuelWindow: the player's client has the live game's duel window and
 	// answered the duel offer (duel.go, opcode 0x7E09): its duels go by
 	// 0x1501/0x1502, not boxes, and its opponent stays a player to it

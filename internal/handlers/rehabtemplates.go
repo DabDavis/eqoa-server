@@ -365,14 +365,16 @@ func (r *Rehab) useInputs(p *entity.Player) ([7]int, entity.CMKnows, error) {
 	return from, r.cm.cmKnowsOf(p), nil
 }
 
-// useTerms is what using a template does, for asking again when it changed.
+// useTerms is what using a template does, for asking again when it changed:
+// the points, not the experience toward the next one or its share (a group's
+// kill moves them).
 func useTerms(pl entity.RespecPlan, t database.RehabTemplate) string {
 	var skipped []int
 	for _, s := range pl.Skipped {
 		skipped = append(skipped, s.ID)
 	}
-	return fmt.Sprintf("%d|%s|%v|%v|%d|%v|%v|%v|%v|%v", t.Slot, t.Saved, pl.TPFrom, pl.TPTo, pl.TPBefore,
-		pl.Bought, skipped, pl.Removed, pl.Before, pl.After)
+	return fmt.Sprintf("%d|%s|%v|%v|%d|%v|%v|%v|%d/%d|%d/%d", t.Slot, t.Saved, pl.TPFrom, pl.TPTo, pl.TPBefore,
+		pl.Bought, skipped, pl.Removed, pl.Before.Points, pl.Before.Spent, pl.After.Points, pl.After.Spent)
 }
 
 // skippedItems says the ranks not bought and why, the first few: "Brawn 2

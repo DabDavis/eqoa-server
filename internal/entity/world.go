@@ -752,8 +752,9 @@ func (n *NPC) fromRecord(rec *database.NPCRecord, class int, ranged map[uint32]b
 		Class: class,
 	}
 	if dummy == SparringDummy {
-		// it quads at any level (sparring.go)
+		// it quads at any level (sparring.go), as hard as its name says
 		n.SwingFixed, n.SwingKind = true, sparSwing
+		n.DummyHits = DummyHitsOf(rec.NPCName)
 	}
 }
 

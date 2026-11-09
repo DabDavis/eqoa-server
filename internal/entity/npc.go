@@ -165,6 +165,10 @@ type NPC struct {
 	// player it fights.
 	Dummy       DummyKind
 	DummyTarget EntityID
+	// DummyHits is how many times as hard a sparring dummy hits, its hits and
+	// its element's strike, by its name ("Sparring Dummy x2": DummyHitsOf); 1
+	// for every other
+	DummyHits int
 
 	// HiddenUntil keeps it out of every view until then (gmlive.go): an NPC
 	// the GM panel changed leaves each client's channels and comes back as

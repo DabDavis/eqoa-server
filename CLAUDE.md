@@ -1097,6 +1097,27 @@ down; `EffectRules.Grow`, kept over a logout) scales `Player.Body`'s size, the s
 the effects' shares multiplied, between 0.1 and 4. His figures are data (`~/.cache/metalmoogie1109/metalmoogie_20261109.py`:
 level 60 on the disc's mechanical rat at 7.5 (twice Mr. Moogie as drawn), a template of 347% hit points, melee 750%, a 750 kick every 6 s, Clockwork Siphon
 every 30 s, Static Discharge at 25%); `TestRealMetalMoogie` (`EQOA_REAL_DB`) holds a database it was applied to to them.
+**Buffer** (`handlers/buffer.go`, `entity/buffer.go`, any NPC so named; the GM Jibrish's petition 1390, 2026-11-09: "Add a
+vendor close but north of the announcement board in FP named "Buffer". When spoken to, buffer gives you avatar, order, pure
+heart, the cleric + all resists buffs and a stackable GM AC that is +500ac buff. They last for 5 hours. It casts it after 1
+second."): a talk is no question. He begins his cast at the speaker at once (his line, and each spell's 0x00B1 from him at it,
+1 s, its own visual, to all who see him; he does not turn) and `bufferSystem` lands them a second later as `LandOnSelf` lands a
+board's gift, each for **5 hours of play** (`BufferLasts`: the cast's `Def.Duration` alone; the records keep their 30 minutes for
+anyone else's cast), its icon on the effects channel, under every rule of its line (`buffline.go`), kept over a logout, ended
+by a death, a strip or Mr. Moogie's clear, then his line naming what took. His spells are their records by id, each checked by
+its name (`BufferSpells`): Avatar 700675 (the shaman's 51, the only one of the name), Order 700805 (the cleric's 60 single-target
++650 AC and max HP), Pure Heart 901847 (the 60 mastery's +1200 max HP and power, its PB AE on the speaker alone here), Mega's
+Clutch Ward 701184 (the top of the cleric's all-resist line, +85 to all six) and **GM Armor 905120** (`BufferGMArmorID`, ours:
+"Target, Increase AC by 500", on a workbook stack type of its own, its id, so no other buff is on its line: no AC buff takes it
+off, it takes none off). A share of a caster's WIS is the speaker's (as a self cast). The speaker alone (no group, no pet); a
+second talk renews each in its old one's place at its whole five hours, never leaving the hit points or power lower than before
+(each old one comes off before its new one goes on, holding them under that moment's lower maximum; so Avatar, which heals as
+it lands, goes on last, after every other maximum is back); a talk while his cast is on its way is let go; the dead, a PvP flag and a
+duel are refused in red (Mr. Moogie's rule: Avatar heals as it lands); a speaker dead, gone or past 30 of him at the landing gets
+nothing. Not kept over a restart. His row and the GM Armor's record are data (`~/.cache/buffer1109/buffer_20261109.py`: 5 north,
+-z as the maps and the compass have it, and 1 west of the Freeport Announcements board, between the Feastmaster and the Harvest
+Scarecrow, on the plaza's flat stone, facing as Dabrish does, in Waysender Abodai's look, level 60, npc_type 128, `npcmove`
+stands, `npcaggro` never; a quiet skip where no Dabrish stands). `TestBuffer*`, `TestRealBufferSpells` (`EQOA_REAL_DB`).
 
 **The heirloom weapons are epics** (`tools/heirloom_epics.py [--list] [--apply|--undo]`, over the seed's records; the
 user, 2026-11-06: "the heirloom weapons for every class lets make their lvl 60 epics. also add extra choices of weapons

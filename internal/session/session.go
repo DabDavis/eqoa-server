@@ -160,7 +160,11 @@ type Session struct {
 	// petition filed, and bugNoteAt when it came. reportNotice: the line on
 	// how to report a bug went out. boonNotice: the line on where the towns'
 	// boon is went out (handlers/boon.go).
-	bugReports   bool
+	bugReports bool
+	// ackMasks: the client answered the bug report offer (any answer: a PS2
+	// never does), so our acks carry their mask (network/udp/rdp.go); never
+	// cleared, as CLIENT refuses a mask taken back (SetAckMasks)
+	ackMasks     bool
 	bugNote      string
 	bugNoteAt    time.Time
 	reportNotice bool
@@ -189,6 +193,24 @@ func (s *Session) SetBugReports(on bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.bugReports = on
+}
+
+// SetAckMasks marks the session's client as one of ours (it answered the bug
+// report offer, whatever it answered): our acks of its messages carry their
+// mask from now on. Once set it stays, through a restart too: a mask stopped
+// while its bits are out would read to CLIENT as acks taken back ("some of
+// the previously acked packets have become un-acked"), every segment refused.
+func (s *Session) SetAckMasks() {
+	s.mu.Lock()
+	s.ackMasks = true
+	s.mu.Unlock()
+}
+
+// AckMasks is whether our acks to the client carry their mask (SetAckMasks).
+func (s *Session) AckMasks() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.ackMasks
 }
 
 // BugReports is whether the client said it reports bugs from a key of its own

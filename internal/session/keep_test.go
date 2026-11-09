@@ -325,11 +325,15 @@ func TestTheReceiveWindowComesThroughARestart(t *testing.T) {
 	for _, seq := range []uint16{1, 2, 4, 6} {
 		conn.TakeReliable(seq)
 	}
+	s.SetAckMasks() // our acks carry their mask: kept too (CLIENT refuses one taken back)
 	k := s.Keep()
 	if k.Conn.RxMessage != 6 || k.Conn.RxAck == nil || *k.Conn.RxAck != 2 {
 		t.Fatalf("the file: RxMessage %d (want 6, the newest taken), RxAck %v (want 2)", k.Conn.RxMessage, k.Conn.RxAck)
 	}
 	r, _ := keptRoundTrip(t, s)
+	if !r.AckMasks() {
+		t.Fatal("the ack masks did not come through the restart")
+	}
 	rep := r.Connection().NextPacketReport()
 	if rep.Ack != 2 || rep.Mask != 0b101 {
 		t.Fatalf("after the restart: ack %d mask %b, want 2 and 101 (4 and 6)", rep.Ack, rep.Mask)

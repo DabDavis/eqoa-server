@@ -146,18 +146,33 @@ func TestTheWindowAndTheBurst(t *testing.T) {
 
 // Our packets acknowledge the client's messages as CLIENT reads an ack: the
 // newest taken with every one before it, and those past it in the ack's mask
-// (body flag 0x08, a plain varint after the guaranteed ack).
+// (body flag 0x08, a plain varint after the guaranteed ack), the mask to a
+// client that answered the bug report offer (0x7E0E: every vanilla). The
+// control: a client that never answered it (a PS2) gets the same ack, no mask.
 func TestOurAckSaysTheHoleAndTheMask(t *testing.T) {
 	// a lobby session: its header is the one ParsePacket reads (a promoted
 	// one's carries the SessionID as the client reads its src)
+	ps2 := session.NewSession(nil, 8, 8, 1, 2, false)
+	for _, seq := range []uint16{1, 2, 4, 5} {
+		ps2.Connection().TakeReliable(seq)
+	}
+	ps2.Queue().SetBodyFlags(protocol.BodyFlagGuaranteedAck)
+	pkt, err := ParsePacket(NewRDPHandler(nil).PreparePacket(ps2))
+	if err != nil {
+		t.Fatalf("our packet does not parse: %v", err)
+	}
+	if b := pkt.Body; b.Flags&protocol.BodyFlagGuaranteedAckMask != 0 || b.GuaranteedAck != 2 {
+		t.Fatalf("a client that never answered the offer: flags 0x%X ack %d, want no mask and 2 (the hole at 3)", b.Flags, b.GuaranteedAck)
+	}
+
 	sess := session.NewSession(nil, 9, 9, 1, 2, false)
+	sess.SetAckMasks()
 	conn := sess.Connection()
 	for _, seq := range []uint16{1, 2, 4, 5} {
 		conn.TakeReliable(seq)
 	}
 	sess.Queue().SetBodyFlags(protocol.BodyFlagGuaranteedAck)
-	data := NewRDPHandler(nil).PreparePacket(sess)
-	pkt, err := ParsePacket(data)
+	pkt, err = ParsePacket(NewRDPHandler(nil).PreparePacket(sess))
 	if err != nil {
 		t.Fatalf("our packet does not parse: %v", err)
 	}

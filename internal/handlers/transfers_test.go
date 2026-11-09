@@ -75,9 +75,11 @@ func TestTransferAppliesAtTheLogin(t *testing.T) {
 	}
 	var level, items int
 	db.QueryRow(`SELECT level FROM characters WHERE serverid = 7`).Scan(&level)
-	db.QueryRow(`SELECT COUNT(*) FROM charinventory WHERE serverid = 7 AND location = 0 AND patternid = 6089`).Scan(&items)
+	// a player's transfer gives its gear as imported copies (petition 1314)
+	db.QueryRow(`SELECT COUNT(*) FROM charinventory i JOIN itemimported m ON m.patternid = i.patternid
+		WHERE i.serverid = 7 AND i.location = 0 AND m.base = 6089`).Scan(&items)
 	if level != 60 || items != 1 {
-		t.Fatalf("level %d, %d in the pack", level, items)
+		t.Fatalf("level %d, %d imported copies of the Tower of Woe in the pack", level, items)
 	}
 	got, _, _ := db.TransferByID(hero.ID)
 	if got.Status != database.TransferApplied || got.Run == "" {

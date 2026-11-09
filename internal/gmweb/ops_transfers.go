@@ -171,6 +171,9 @@ func buildTransferPlan(t database.Transfer, a transferPlanArgs) (charmove.Plan, 
 		p.Quests = append(p.Quests, charmove.QuestDone{Quest: q.Quest, Picks: strings.TrimSpace(q.Picks)})
 	}
 	p.Vampire = a.Vampire
+	// a player's transfer: its gear comes in as imported copies, at 70%
+	// (database/imported.go; petition 1314), as the login applies it
+	p.Imported = true
 	return p, p.Check()
 }
 

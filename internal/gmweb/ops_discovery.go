@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -25,8 +26,8 @@ func (s *Server) registerDiscoveryOps() {
 			"characters, NPCs, items, spells, merchants), its conventions (ids, worlds, flags, model DictIDs) and how to " +
 			"make common changes safely. Returns markdown.",
 		Handler: func(c *opCtx) (any, error) {
-			if c.a.tester() {
-				return map[string]any{"guide": c.s.testerGuide(c.r)}, nil
+			if c.a.limited() {
+				return map[string]any{"guide": c.s.roleGuide(c.a, c.r)}, nil
 			}
 			return map[string]any{"guide": c.s.guideFor(c.r)}, nil
 		},
@@ -36,8 +37,8 @@ func (s *Server) registerDiscoveryOps() {
 		Description: "The server now: who you are signed in as and what you may do, players online, NPCs in the " +
 			"world, how many accounts, characters, NPC rows, items and spells there are, the build and uptime.",
 		Handler: func(c *opCtx) (any, error) {
-			if c.a.tester() {
-				return c.s.testerStatus(c.a), nil
+			if c.a.limited() {
+				return c.s.limitedStatus(c.a), nil
 			}
 			return c.s.status(c.a), nil
 		},
@@ -45,7 +46,8 @@ func (s *Server) registerDiscoveryOps() {
 	s.addOp(&Op{
 		Name: "list_tables", Title: "List tables", Scope: scopeRead, Core: true,
 		Description: "Every table of the server's database, grouped, with its row count, what it is for, what an edit " +
-			"to it does in the running game, and who may change it (gm, admin, or none). For a tester: its own tables, each write \"tester\".",
+			"to it does in the running game, and who may change it (gm, admin, or none). For a tester or a storyteller: its " +
+			"own tables, each write its role (\"none\": one it reads alone), writeColumns the only columns it changes when not all.",
 		Handler: func(c *opCtx) (any, error) {
 			ts, err := c.s.tableList()
 			if err != nil {
@@ -54,16 +56,22 @@ func (s *Server) registerDiscoveryOps() {
 			var out []map[string]any
 			for _, t := range ts {
 				write := t.Write
-				if c.a.tester() {
-					if !isTesterTable(t.Name) {
+				var only []string
+				if c.a.limited() {
+					if !c.a.readsTable(t.Name) {
 						continue
 					}
-					write = roleTester
+					acc := c.a.access(t)
+					write, only = acc.Write, acc.Only
 				}
-				out = append(out, map[string]any{
+				entry := map[string]any{
 					"name": t.Name, "label": t.Label, "group": t.Group, "rows": t.Count,
 					"key": t.Key, "help": t.Help, "live": t.Live, "write": write,
-				})
+				}
+				if only != nil {
+					entry["writeColumns"] = only
+				}
+				out = append(out, entry)
 			}
 			return map[string]any{"tables": out}, nil
 		},
@@ -83,9 +91,23 @@ func (s *Server) registerDiscoveryOps() {
 				return nil, err
 			}
 			out := c.s.describe(t)
-			if c.a.tester() {
-				// what the page's buttons go by
-				out["write"], out["delete"] = roleTester, !testerRecords[t.Name]
+			if c.a.limited() {
+				// what the page's buttons and fields go by: the role's
+				// writes, the rows it adds and takes away, the columns it
+				// may not change shown read-only
+				acc := c.a.access(t)
+				out["write"], out["insert"], out["delete"] = acc.Write, acc.Insert, acc.Delete
+				if acc.Write == writeNone || acc.Only != nil {
+					cols, _ := out["columns"].([]Column)
+					for i := range cols {
+						if acc.Write == writeNone || !slices.Contains(acc.Only, cols[i].Name) {
+							cols[i].ReadOnly = true
+						}
+					}
+				}
+				if acc.Only != nil {
+					out["writeColumns"] = acc.Only
+				}
 			}
 			return out, nil
 		},
@@ -230,7 +252,8 @@ func (s *Server) search(c *opCtx, q string, kinds []string, limit int) (any, err
 		want[k] = true
 	}
 	all := len(want) == 0
-	if c.a.tester() {
+	if c.a.limited() {
+		// a tester's alone below a GM (a storyteller's gate refuses search):
 		// the gate refused any other kind asked for
 		if all {
 			want = map[string]bool{"item": true, "spell": true}
@@ -267,15 +290,19 @@ func (s *Server) search(c *opCtx, q string, kinds []string, limit int) (any, err
 		return rs.Err()
 	}
 	err := query("account", `SELECT accountid, username, COALESCE(acctlevel, 0), COALESCE(acctstatus, 0),
-		EXISTS (SELECT 1 FROM gm_testers t WHERE t.accountid = accountinfo.accountid) FROM accountinfo
+		EXISTS (SELECT 1 FROM gm_testers t WHERE t.accountid = accountinfo.accountid),
+		EXISTS (SELECT 1 FROM gm_storytellers s WHERE s.accountid = accountinfo.accountid) FROM accountinfo
 		WHERE username LIKE ? ESCAPE '\' OR accountid = ? ORDER BY accountid LIMIT ?`, []any{like, idOr(isID, id), limit},
 		func(scan func(...any) error) (searchResult, error) {
-			var aid, lvl, st, tester int64
+			var aid, lvl, st, tester, storyteller int64
 			var name string
-			err := scan(&aid, &name, &lvl, &st, &tester)
+			err := scan(&aid, &name, &lvl, &st, &tester, &storyteller)
 			sub := "player"
 			if tester != 0 {
-				sub = "player, tester"
+				sub += ", tester"
+			}
+			if storyteller != 0 {
+				sub += ", storyteller"
 			}
 			if lvl >= int64(s.cfg.MinLevel) {
 				sub = fmt.Sprintf("GM (level %d)", lvl)
@@ -387,8 +414,8 @@ func (s *Server) fetch(c *opCtx, ref string) (any, error) {
 	if err != nil {
 		return nil, badRequest("%q is not a number", idText)
 	}
-	if c.a.tester() && kind != "item" && kind != "spell" {
-		return nil, notTesters("fetching a " + strconv.Quote(kind))
+	if c.a.limited() && kind != "item" && kind != "spell" {
+		return nil, notOurs(c.a.grants(), "fetching a "+strconv.Quote(kind))
 	}
 	var rec map[string]any
 	var title string
@@ -409,7 +436,7 @@ func (s *Server) fetch(c *opCtx, ref string) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	if c.a.tester() {
+	if c.a.limited() {
 		// the record alone: who sells it, and how many hold or know it, are
 		// NPCs' and characters'
 		delete(rec, "soldBy")
@@ -487,6 +514,7 @@ func (s *Server) accountOverview(id int64) (map[string]any, error) {
 	tot, _ := s.totpEnabled(int(id))
 	return map[string]any{
 		"title": acc["username"], "account": acc, "characters": chars, "tester": s.testerFlag(int(id)),
+		"storyteller":   s.storytellerFlag(int(id)),
 		"isGM":          func() bool { l, _ := asFloat(acc["acctlevel"]); return int(l) >= s.cfg.MinLevel }(),
 		"banned":        func() bool { st, _ := asFloat(acc["acctstatus"]); return st < 0 }(),
 		"authenticator": tot,

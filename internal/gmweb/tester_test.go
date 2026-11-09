@@ -379,7 +379,7 @@ func TestTheTestersAllowlistIsTheOneMeant(t *testing.T) {
 		t.Error("an admin's operation on the list is a tester's")
 	}
 	c := &opCtx{s: f.s, a: &actor{AccountID: 5, Username: "tess", Role: roleTester, Scope: scopeWrite}, raw: json.RawMessage(`{"sql":"SELECT 1"}`)}
-	if err := c.testerGate(f.s.ops["sql_query"]); err == nil {
+	if err := c.roleGate(f.s.ops["sql_query"]); err == nil {
 		t.Error("the gate let an admin's operation through")
 	}
 }
@@ -556,7 +556,7 @@ func TestTheGateAndTheRowEditorEachHoldATester(t *testing.T) {
 		}
 		raw := json.RawMessage(`{"table":"npcs","key":{"id":500},"values":{"npc_level":1},"keys":[500],"filters":[{"column":"id","value":500}]}`)
 		c := &opCtx{s: f.s, a: a, raw: raw}
-		if err := c.testerGate(op); err == nil || errStatus(err) != 403 {
+		if err := c.roleGate(op); err == nil || errStatus(err) != 403 {
 			t.Errorf("the gate alone, %s: %v", op.Name, err)
 		}
 		if op.Name == "audit_log" {
@@ -588,7 +588,7 @@ func TestTheGateAndTheRowEditorEachHoldATester(t *testing.T) {
 		{"give_item", `{"character":"tessHero","item":10}`},
 	} {
 		c := &opCtx{s: f.s, a: a, raw: json.RawMessage(tc.raw)}
-		if err := c.testerGate(f.s.ops[tc.name]); err == nil || errStatus(err) != 403 {
+		if err := c.roleGate(f.s.ops[tc.name]); err == nil || errStatus(err) != 403 {
 			t.Errorf("the gate alone, %s %s: %v", tc.name, tc.raw, err)
 		}
 	}
@@ -603,7 +603,7 @@ func TestTheGateAndTheRowEditorEachHoldATester(t *testing.T) {
 		{"guide", `{}`},
 	} {
 		c := &opCtx{s: f.s, a: a, raw: json.RawMessage(tc.raw)}
-		if err := c.testerGate(f.s.ops[tc.name]); err != nil {
+		if err := c.roleGate(f.s.ops[tc.name]); err != nil {
 			t.Errorf("the gate alone, %s %s: %v", tc.name, tc.raw, err)
 		}
 	}

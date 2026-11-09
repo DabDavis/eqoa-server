@@ -180,11 +180,13 @@ const returnHome = 1623
 // ALC Unstable Mixture. Not measured, ours: SHA Minor Healing (the other
 // two priests'), BRD Nimble Strike (the melee classes' strike), MAG Burst of
 // Frost and NEC Disease Cloud (their first attack spell, as the alchemist's
-// Unstable Mixture is), WIZ Minor Fire Storm (first in a level 6 wizard's
-// book).
+// Unstable Mixture is), WIZ Static Bolt, the wizard's level 1 single target
+// bolt (petition 1307, 2026-11-08: "im pretty sure wizards start with single
+// target spell"; until then Minor Fire Storm, an area spell, first in a level
+// 6 wizard's book).
 var startingAbilities = [15]int{
 	0: 1517, 1: 1096, 2: 1006, 3: 1420, 4: 785, 5: 142, 6: 1213, 7: 457,
-	8: 457, 9: 457, 10: 631, 11: 875, 12: 231, 13: 1624, 14: 4,
+	8: 457, 9: 457, 10: 631, 11: 875, 12: 231, 13: 1628, 14: 4,
 }
 
 // StartingAbilities are a fresh character's abilities: its class's first

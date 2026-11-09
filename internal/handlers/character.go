@@ -2162,7 +2162,7 @@ func writeItemPattern(w *buffer.Writer, e *database.CharInventoryEntry, capes bo
 	w.Write7BitEncodedInt64(int64(p.Craft))
 
 	// Item name + description (WriteStringUnicode = int32 charCount + UTF-16LE)
-	w.WriteStringUnicode(p.ItemName)
+	w.WriteStringUnicode(itemNameShown(p))
 	w.WriteStringUnicode(p.ItemDesc)
 
 	// Stats: collect non-zero stats as index/value pairs

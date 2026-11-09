@@ -42,7 +42,7 @@ import (
 // SnapshotVersion names the sanitiser's rules: the panel's audit line and the
 // snapshot's own snapshot_info table say which made a file. Raise it with
 // every change to what is taken out.
-const SnapshotVersion = 13
+const SnapshotVersion = 14
 
 // SnapshotInfoTable is the table a snapshot carries saying what it is: the
 // sanitiser's version, when it was made and by whom, and what was taken out.
@@ -102,6 +102,8 @@ var snapshotRules = map[string]snapshotRule{
 		why: "the OAuth clients registered and the addresses they return to"},
 	"gm_testers": {clear: true,
 		why: "who may sign in to the panel as a tester, and who gave it them; a copy on a GM's machine has no panel users to know"},
+	"gm_storytellers": {clear: true,
+		why: "who may sign in to the panel as a storyteller, and who gave it them, as gm_testers"},
 	"gm_audit": {clear: true, scan: []string{"ip"},
 		why: "who did what from which address: sign-ins, tokens made, admin SQL (which can carry anything, " +
 			"a password hash included) and rows before and after, accounts' among them"},

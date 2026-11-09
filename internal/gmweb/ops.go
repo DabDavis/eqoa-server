@@ -43,16 +43,16 @@ type opCtx struct {
 	args map[string]any
 }
 
-// table is a table the arguments name, for an actor who may name it: a tester
-// their own (tester.go), which the gate checked already, and this checks of
-// what the handler itself read.
+// table is a table the arguments name, for an actor who may name it: someone
+// below a GM the tables of its roles (roles.go), which the gate checked
+// already, and this checks of what the handler itself read.
 func (c *opCtx) table(name string) (*Table, error) {
 	t, err := c.s.table(name)
 	if err != nil {
 		return nil, notFound("%v", err)
 	}
-	if c.a.tester() && !isTesterTable(t.Name) {
-		return nil, notTesters("table " + strconv.Quote(t.Name))
+	if c.a.limited() && !c.a.readsTable(t.Name) {
+		return nil, notOurs(c.a.grants(), "table "+strconv.Quote(t.Name))
 	}
 	return t, nil
 }
@@ -139,7 +139,8 @@ func (s *Server) registerOps() {
 	if !s.d.NoTransfers {
 		s.registerTransferOps() // ops_transfers.go
 	}
-	s.registerTesterOps() // tester.go
+	s.registerTesterOps()      // tester.go
+	s.registerStorytellerOps() // storyteller.go
 }
 
 // run calls an operation as an actor, with the scope check, and logs a
@@ -150,13 +151,13 @@ func (s *Server) run(a *actor, name string, raw json.RawMessage, r *http.Request
 		return nil, notFound("no operation %q", name)
 	}
 	if a.mustEnrol {
-		return nil, forbidden("this server asks every GM and tester for an authenticator: enrol one first (the panel's Security page)")
+		return nil, forbidden("this server asks every GM, tester and storyteller for an authenticator: enrol one first (the panel's Security page)")
 	}
 	c := &opCtx{s: s, a: a, raw: raw, r: r}
-	// below a GM: only what the testers' allowlist names, whichever route asked
-	// and whatever else the actor says of itself
-	if a.tester() || a.Level < s.cfg.MinLevel {
-		if err := c.testerGate(op); err != nil {
+	// below a GM: only what its roles' allowlists name (roles.go), whichever
+	// route asked and whatever else the actor says of itself
+	if a.limited() || a.Level < s.cfg.MinLevel {
+		if err := c.roleGate(op); err != nil {
 			return nil, err
 		}
 	}
@@ -221,7 +222,7 @@ func (s *Server) handleOpList(w http.ResponseWriter, r *http.Request) {
 	}
 	var out []map[string]any
 	for _, op := range s.opList {
-		if a.tester() && !testerMayCall(op) {
+		if !a.mayCall(op) {
 			continue
 		}
 		out = append(out, map[string]any{

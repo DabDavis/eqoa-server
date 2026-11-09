@@ -10,12 +10,17 @@ import { go, isAdmin } from '../lib/nav.js';
 import { auditLine } from './audit.js';
 
 export function canWrite(meta) {
-  return meta.write === 'gm' || meta.write === 'tester' || (meta.write === 'admin' && isAdmin());
+  return meta.write === 'gm' || meta.write === 'tester' || meta.write === 'storyteller' || (meta.write === 'admin' && isAdmin());
 }
 
-// a tester's table may refuse a delete (a whole item or spell record)
+// a tester's table may refuse a delete (a whole item or spell record), a
+// storyteller's a delete and a new row (a quest or a step: its words alone)
 export function canDelete(meta) {
   return canWrite(meta) && meta.delete !== false;
+}
+
+export function canInsert(meta) {
+  return canWrite(meta) && meta.insert !== false;
 }
 
 // keyPath is a row's key as a route segment: the value for a one-column key,
@@ -42,7 +47,7 @@ export async function listPage(box, { table, title, sub, base, filters = [], col
     onOpen: (row) => go(base + '/' + keyPath(meta, row.__key)),
     tools: [
       ...tools,
-      allowNew && canWrite(meta) ? button('New', { icon: 'plus', class: 'small primary', onclick: () => go(base + '/new') }) : null,
+      allowNew && canInsert(meta) ? button('New', { icon: 'plus', class: 'small primary', onclick: () => go(base + '/new') }) : null,
     ],
   });
   mount(box, pageHead(title || meta.label, sub ?? meta.help, crumbs), grid.el);
@@ -92,7 +97,7 @@ export async function recordPage(box, { table, keySeg, base, crumbs, title, sub,
   };
   const acts = [
     ...(actions ? actions(row, meta, refreshSide) : []),
-    canWrite(meta) && table !== 'accountinfo' && table !== 'characters' ? button('Copy', { icon: 'copy', onclick: async () => {
+    canInsert(meta) && table !== 'accountinfo' && table !== 'characters' ? button('Copy', { icon: 'copy', onclick: async () => {
       try {
         const out = await op('clone_row', { table, key: row.__key, changes: {} });
         toast('Copied', 'ok', out.change.live || '');

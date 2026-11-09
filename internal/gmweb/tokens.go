@@ -90,7 +90,8 @@ func (c *tokenCache) touch(id int64, ip string) {
 func (s *Server) issueToken(accountID int, name, kind, scope, client string, ttl time.Duration, parent int64) (string, int64, error) {
 	if scope == scopeAdmin {
 		// every way to a token comes here: whatever a route checked, the admin
-		// scope is never written for an account below an admin (a tester)
+		// scope is never written for an account below an admin (a tester, a
+		// storyteller)
 		acc, err := s.accountByID(accountID)
 		if err != nil {
 			return "", 0, err
@@ -168,9 +169,10 @@ func (s *Server) tokenActor(value, ip string) (*actor, error) {
 	if role == "" {
 		return nil, &authError{http.StatusUnauthorized, "the token's account no longer has the panel"}
 	}
-	if role == roleTester && t.Scope == scopeAdmin {
-		// a GM's old token on an account that came down to a tester
-		return nil, &authError{http.StatusUnauthorized, "a tester holds no admin-scope token: make a new one"}
+	if limitedRole(role) && t.Scope == scopeAdmin {
+		// a GM's old token on an account that came down to a tester or a
+		// storyteller
+		return nil, &authError{http.StatusUnauthorized, "an account below a GM holds no admin-scope token: make a new one"}
 	}
 	on, err := s.totpEnabled(acc.ID)
 	if err != nil {

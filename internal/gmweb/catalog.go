@@ -164,7 +164,8 @@ var catalog = map[string]tableNote{
 	"accountinfo": {
 		Label: "Accounts", Group: "Players", Title: "username", Sort: "accountid",
 		Help: "Game accounts. acctlevel 1+ is a GM (in-game # commands and this panel); acctstatus < 0 is banned. " +
-			"A player with a Testers row is a tester (this panel's items and spells; set_account_tester). " +
+			"A player with a Testers row is a tester (this panel's items and spells; set_account_tester), with a Storytellers " +
+			"row a storyteller (NPC dialog and the quests' words; set_account_storyteller). " +
 			"Passwords are bcrypt hashes and are set with the account tools, never written here.",
 		Live:   "A ban (acctstatus below 0) ejects the account's sessions at once. Levels and passwords have their own tools.",
 		Show:   []string{"accountid", "username", "acctlevel", "acctstatus", "lastlogin", "ipaddress", "acctcreation"},
@@ -925,7 +926,7 @@ var catalog = map[string]tableNote{
 			"sex":          {Label: "Speaker's sex", Help: "male or female, the speaker's by its body; empty any"},
 			"speaker_race": {Label: "Speaker's race", Enum: "race", Help: "a people's own voice: only a speaker of this race (by its body) says it; -1 any"},
 			"away":         {Label: "Away", Help: "1: a race's line said only by a guest, away from its own towns"},
-			"line":         {Label: "Line", Help: "%p name, %r race, %c class, %t town, %n speaker"},
+			"line":         {Label: "Line", Help: "%p name, %r race, %c class, %t town, %n speaker; said after the speaker's name and \": \", a box shows 217 characters (a longer line goes in several)"},
 			"weight":       {Label: "Weight", Help: "how often against the others that fit"},
 			"source":       {Label: "Source", Help: "gm, or ours for tools/seed_town_dialog.py's rows"},
 		},
@@ -1990,6 +1991,21 @@ var catalog = map[string]tableNote{
 			"granted_at": {Label: "Given at"},
 			"note":       {Label: "Note", Help: "why"},
 			"subgm":      {Label: "Sub GM", Help: "1: a sub GM, above a tester: the tester's panel, and in the game /fly; 0: a tester"},
+		},
+	},
+	"gm_storytellers": {
+		Label: "Storytellers", Group: "Panel", Sort: "accountid", Write: writeAdmin,
+		Help: "Who is a storyteller, a row an account (storyteller.go): a player in the game (acctlevel 0, no GM commands) who " +
+			"signs in to this panel with its game password and an authenticator and writes what NPCs say: NPC dialog whole, and the " +
+			"quests' words alone (a quest's name, offer, answers, replies and notes; a step's journal line, answers and NPC's words), " +
+			"reading the quests, their steps and the NPCs besides; nothing else. An account with a Testers row too is both. A row on " +
+			"a GM's account does nothing while it is a GM. set_account_storyteller is the tool; an account's page has its button.",
+		Live: "At once: read on every request. A row taken away ends the account's panel sessions and revokes its tokens.",
+		Cols: map[string]colNote{
+			"accountid":  {Label: "Account", Ref: "accountinfo", ReadOnly: true},
+			"granted_by": {Label: "Given by"},
+			"granted_at": {Label: "Given at"},
+			"note":       {Label: "Note", Help: "why"},
 		},
 	},
 	"gm_totp": {Hidden: true},

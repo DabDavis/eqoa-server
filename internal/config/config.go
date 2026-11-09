@@ -259,6 +259,11 @@ type WorldConfig struct {
 	// client (a PS2) is sent a cape as a plain item, never worn. Unset or
 	// false: no offer, and no cape can be worn.
 	Capes bool `yaml:"capes"`
+
+	// ImportedTag shows "(Imported)" after the name of gear a character
+	// transfer brought in (its record a copy at 70%: database/imported.go;
+	// handlers/importedtag.go). Unset, off: the copies show their bases' names.
+	ImportedTag bool `yaml:"imported_tag"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

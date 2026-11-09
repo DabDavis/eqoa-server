@@ -33,9 +33,9 @@ import (
 // that kept a single path asks none). Nothing in the data says which options
 // are one path: the lines are archivistPathLines', an ability carried up the
 // levels (the enchanter's Spacious, Expansive, Limitless, Boundless and
-// Infinite Mind, its self power; Power Boon, Power Jet and Power Surge, power
-// for others), and TestRealArchivistPathsAreTheQuests holds them to the
-// quests. A path is a line: its spells of every level its holder has reached
+// Infinite Mind, its self power; Power Boon, Power Jet, Power Surge, Power
+// Stream and Power Flux, power for others), and
+// TestRealArchivistPathsAreTheQuests holds them to the quests. A path is a line: its spells of every level its holder has reached
 // (from the first any path gives, 20 on the live data, the levels capped at
 // 60), with the steps' own spells of those levels, which every path has. A
 // spell a merchant sells the class as a scroll is no path's: the basic grant
@@ -123,9 +123,14 @@ var archivistPathLines = map[int][][]string{
 		{"Blood Squall", "Blood Storm", "Blood Tempest", "Blood Vortex", "Blood Gale"},
 		{"Power Squall", "Power Storm", "Power Tempest", "Power Vortex", "Power Gale"},
 	},
-	12: { // enchanter: self power; power for others (the quests offer it nothing at 49)
+	12: { // enchanter: self power, the Mind path; power for others, the Boon path
 		{"Expansive Mind", "Limitless Mind", "Boundless Mind", "Infinite Mind", "Spacious Mind"},
-		{"Power Jet", "Power Surge", "Power Boon"},
+		// its 49s the level 49 reward's options since petition 1366 (Fujiko: "Didnt
+		// receive 49 Boon spell (pwr to target)"): the import gave the level only
+		// the Mind path's two, EQOA-Data's list calling these a mastery's (CM),
+		// where EQOAEmu's workbook has them scrolls from a quest as Boundless and
+		// Infinite Mind are, and EQOA-Data's own 60 epic names the Boon path
+		{"Power Jet", "Power Surge", "Power Stream", "Power Flux", "Power Boon"},
 	},
 	13: { // wizard: a nuke that sheds hate; self power
 		{"Static Clash", "Freezing Clash", "Burning Clash", "Shocking Clash", "Blazing Clash"},

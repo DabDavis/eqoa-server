@@ -303,6 +303,116 @@ func TestTheArchivistKeepsWhatTheQuestsGave(t *testing.T) {
 	g.wantBook("power for others, the 40 pick not kept", "1623@0/0", "6101@1/1", bookRow(spLimitless, 2), bookRow(spPowerSurge, 3), bookRow(spPowerJet, 4))
 }
 
+// The Boon path's 49s, Power Stream and Power Flux (petition 1366).
+const (
+	spPowerFlux   = 701031
+	spPowerStream = 701032
+)
+
+// fortyNine1366 makes the rig's level 49 reward as petfix166 makes it: an
+// ability of four (the Mind path's two and the Boon path's, in the import's
+// order, by name), then a weapon at a second step.
+func (f *pathRig) fortyNine1366() {
+	f.t.Helper()
+	f.spell(spPowerFlux, "Power Flux", 49, "Target, Increase Power by 500")
+	f.spell(spPowerStream, "Power Stream", 49, "Target, Increase Power by 400")
+	if _, err := f.db.Exec(`DELETE FROM queststeps WHERE questid = ?`, qEnc49); err != nil {
+		f.t.Fatal(err)
+	}
+	abilities := fmt.Sprintf(`{"ask":"Which ability do you take?","options":[`+
+		`{"answer":"Boundless Mind","says":"Then it is yours.","spells":"%d"},{"answer":"Infinite Mind","says":"Then it is yours.","spells":"%d"},`+
+		`{"answer":"Power Flux","says":"Then it is yours.","spells":"%d"},{"answer":"Power Stream","says":"Then it is yours.","spells":"%d"}]}`,
+		spBoundless, spInfinite, spPowerFlux, spPowerStream)
+	weapons := fmt.Sprintf(`{"ask":"Which weapon do you take?","options":[`+
+		`{"answer":"The Glory of Elddar","says":"It is yours.","items":"%d"},{"answer":"The Mithril Eagle Rod","says":"It is yours.","items":"%d"}]}`,
+		itBeheader, itWand)
+	for i, st := range []string{abilities, weapons} {
+		if _, err := f.db.Exec(`INSERT INTO queststeps (questid, step, kind, target, journal, choices) VALUES (?, ?, 'talk', 'Trillon Zeber', 'Talk.', ?)`,
+			qEnc49, i+1, st); err != nil {
+			f.t.Fatal(err)
+		}
+	}
+	if err := f.qe.Reload(); err != nil {
+		f.t.Fatal(err)
+	}
+}
+
+// Petition 1366 (Fujiko: "Didnt receive 49 Boon spell (pwr to target) upon
+// speaking with Archivist"): with the level 49 reward offering the Boon path's
+// two, he says the path of Power Jet to its 49s, and an enchanter whose book
+// holds Power Jet and Power Surge alone (what he wrote her before) is given
+// Power Stream and Power Flux at once, nothing coming out; a change to self
+// power takes all four out and puts the Mind path's in, and back. A quest's 49
+// pick in the two steps' form ("1:1, 2:1": Infinite Mind, then a weapon) stays
+// through the path of Power Jet. The controls: the old one-step reward stops
+// the path at 40 (TestTheArchivistGivesAPathsSpells); the same pick as it was
+// before petfix166 carried it over ("1:3", the old four's Infinite Mind and
+// the rod) reads as Power Stream's, so Infinite Mind would come out; and the
+// line without the two names leaves them out of the path, the data as now.
+func TestTheArchivistWritesTheBoonPathsFortyNines(t *testing.T) {
+	f := newPathRig(t, 60)
+	f.fortyNine1366()
+	f.know(spPowerJet, 2, -1)
+	f.know(spPowerSurge, 3, -1)
+	got, box := f.paths(encAnswers...)
+	f.wantMsgs("the paths at 60", got,
+		"box:Spell Archivist: The path of Expansive Mind: Expansive Mind, Limitless Mind, Boundless Mind and Infinite Mind. The path of Power Jet: Power Jet, Power Surge, Power Stream and Power Flux.",
+		"box:Spell Archivist: Your book holds the path of Power Jet. "+archivistPathOne, encAsked)
+	f.wantMsgs("the path of Power Jet to its 49s", f.pick(box, 1), "add:701032@4 flag 0", "add:701031@5 flag 0",
+		"box:Spell Archivist: There: Power Stream and Power Flux written into your book. The path of Power Jet is yours.")
+	boon := []string{"1623@0/0", "6101@1/1", bookRow(spPowerJet, 2), bookRow(spPowerSurge, 3), bookRow(spPowerStream, 4), bookRow(spPowerFlux, 5)}
+	f.wantBook("the path of Power Jet to its 49s", boon...)
+	_, box = f.paths(encAnswers...)
+	f.wantMsgs("the same path again", f.pick(box, 1), "box:Spell Archivist: Your book holds the path of Power Jet to your level already.")
+
+	_, box = f.paths(encAnswers...)
+	f.wantMsgs("self power asked", f.pick(box, 0),
+		"box:Spell Archivist: For the path of Expansive Mind, Power Jet, Power Surge, Power Stream and Power Flux leave your book, and Expansive Mind, Limitless Mind, Boundless Mind and Infinite Mind enter it.",
+		swapAsked)
+	f.wantMsgs("self power", f.pick(boxID(f.lastAsk()), 0), "remove:2", "remove:3", "remove:4", "remove:5",
+		"add:700328@2 flag 0", "add:700462@3 flag 0", "add:700575@4 flag 0", "add:700618@5 flag 0", "box:*")
+	f.wantBook("self power", "1623@0/0", "6101@1/1", bookRow(spExpansive, 2), bookRow(spLimitless, 3), bookRow(spBoundless, 4), bookRow(spInfinite, 5))
+	_, box = f.paths(encAnswers...)
+	f.pick(box, 1)
+	f.wantMsgs("power for others again", f.pick(boxID(f.lastAsk()), 0), "remove:2", "remove:3", "remove:4", "remove:5",
+		"add:700340@2 flag 0", "add:700468@3 flag 0", "add:701032@4 flag 0", "add:701031@5 flag 0", "box:*")
+	f.wantBook("power for others again", boon...)
+
+	// a quest's 49 pick, kept in the two steps' form, stays beside the path
+	g := newPathRig(t, 60)
+	g.fortyNine1366()
+	g.done(qEnc49, "1:1, 2:1")
+	g.know(spInfinite, 2, -1)
+	_, box = g.paths(encAnswers...)
+	g.wantMsgs("the path of Power Jet beside the quest's Infinite Mind", g.pick(box, 1),
+		"add:700340@3 flag 0", "add:700468@4 flag 0", "add:701032@5 flag 0", "add:701031@6 flag 0", "box:*")
+	g.wantBook("beside the quest's Infinite Mind", "1623@0/0", "6101@1/1", bookRow(spInfinite, 2), bookRow(spPowerJet, 3),
+		bookRow(spPowerSurge, 4), bookRow(spPowerStream, 5), bookRow(spPowerFlux, 6))
+
+	// the control: that pick as the old one step kept it reads, under the new
+	// options, as Power Stream's, and Infinite Mind is no quest's
+	h := newPathRig(t, 60)
+	h.fortyNine1366()
+	h.done(qEnc49, "1:3")
+	h.know(spInfinite, 2, -1)
+	_, box = h.paths(encAnswers...)
+	h.wantMsgs("the old pick unmapped", h.pick(box, 1),
+		"box:Spell Archivist: For the path of Power Jet, Infinite Mind leaves your book, and Power Jet, Power Surge, Power Stream and Power Flux enter it.",
+		swapAsked)
+
+	// the control: the line without the two names, the options in no line
+	saved := archivistPathLines[classEnc]
+	t.Cleanup(func() { archivistPathLines[classEnc] = saved })
+	archivistPathLines[classEnc] = [][]string{saved[0], {"Power Jet", "Power Surge", "Power Boon"}}
+	k := newPathRig(t, 60)
+	k.fortyNine1366()
+	got, _ = k.paths(encAnswers...)
+	k.wantMsgs("the line without its 49s", got,
+		"box:Spell Archivist: The path of Expansive Mind: Expansive Mind, Limitless Mind, Boundless Mind and Infinite Mind. The path of Power Jet: Power Jet and Power Surge.",
+		encAsked)
+	archivistPathLines[classEnc] = saved
+}
+
 // Below level 30 he offers no path: one box saying when, no question, the
 // book as it was. The control: at 30 the paths are offered, each its 30's.
 func TestTheArchivistOffersNoPathBelowThirty(t *testing.T) {

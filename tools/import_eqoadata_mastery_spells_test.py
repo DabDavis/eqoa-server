@@ -143,6 +143,37 @@ class MasteryImportTest(unittest.TestCase):
         im.undo(self.db, False)
         self.assertEqual("\n".join(self.db.iterdump()), before)
 
+    def test_boon_path_49s_are_a_quests(self):
+        # petition 1366: the list calls the enchanter's Power Stream and Power Flux at 49 "CM"; the
+        # loader takes them as a quest's (HOW_FIXES), the 60 epic's Power Flux left as the list has it
+        enc = os.path.join(self.tmp.name, "enc")
+        per = {f: [] for f in ie.CLASS_FILES}
+        per["enchanter"] = [
+            {"level": 49, "abilities": [ability("Power Stream", "Target, Increase Power by 400", "CM"),
+                                        ability("Power Flux", "Target, Increase Power by 500", "CM"),
+                                        ability("Empathic Lucidity", "Group, Increase Power per tic by 23, 15min",
+                                                "CM")]},
+            {"level": 60, "abilities": [ability("Power Flux", "Level 60 Epic Broken path.", "60 Epic")]},
+        ]
+        d = os.path.join(enc, "Information", "databases", "spells")
+        os.makedirs(d)
+        for f, lv in per.items():
+            with open(os.path.join(d, f + ".json"), "w") as fh:
+                json.dump({"title": f, "list": lv}, fh)
+        got = {(e["level"], e["name"]): e["how"] for e in ie.load_lists(enc)}
+        self.assertEqual(got, {(49, "Power Stream"): "Quest", (49, "Power Flux"): "Quest",
+                               (49, "Empathic Lucidity"): "CM", (60, "Power Flux"): "60 Epic"})
+        # records held with the class's plain rows (the server's since petfix166): no retag, no link;
+        # the control, Empathic Lucidity on a plain row too, is retagged a mastery's
+        for sid, lvl, name in ((701032, 49, "Power Stream"), (701031, 49, "Power Flux"), (701023, 49, "Empathic Lucidity")):
+            self.db.execute("INSERT INTO spellpattern VALUES (?, ?, 0, 0, 16880, 1, 250, 486870879, 1, 1, 24, -1, ?, '')",
+                            (sid, lvl, name))
+            self.db.execute("INSERT INTO classspells VALUES (12, ?, 'eqoa-data')", (sid,))
+        p = im.plan(self.db, ie.load_lists(enc), retag=True)
+        self.assertEqual([(c, s, o, n) for c, s, o, n, _ in p["retags"]], [(12, 701023, "eqoa-data", "eqoa-data cm")])
+        self.assertEqual([(c, s) for c, s, _, _ in p["links"]], [])
+        self.assertEqual(p["spells"], [])
+
     def test_undo_refused_while_held(self):
         p = im.plan(self.db, self.lists)
         im.apply(self.db, p)

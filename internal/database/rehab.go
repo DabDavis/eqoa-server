@@ -39,10 +39,13 @@ const (
 	ResetMastery  = "mastery"  // every Combat Mastery unlearned, its points back
 	ResetTraining = "training" // every training point back, the stats as born
 	ResetPath     = "path"     // a path chosen again: a quest's pick changed for another of its options
+	// a template used (rehabtemplates.go): every training point and mastery
+	// given back and spent again as a slot keeps them
+	ResetTemplate = "template"
 )
 
 // ResetKinds is every kind, in the menu's order.
-var ResetKinds = []string{ResetMastery, ResetTraining, ResetPath}
+var ResetKinds = []string{ResetMastery, ResetTraining, ResetPath, ResetTemplate}
 
 // RehabSettings is rehabsettings read: the free resets a character has and
 // what a rehabilitator asks, in tunar.
@@ -134,12 +137,16 @@ CREATE TABLE IF NOT EXISTS charresets (
 	PRIMARY KEY (serverid, kind)
 );`
 
-// ensureRehab makes the two tables, a new rehabsettings with every default
-// (initSchema). A setting a GM deleted comes back at its default at the next
-// start, as the game reads it meanwhile.
+// ensureRehab makes the two tables, a new rehabsettings with every default,
+// and the templates' (rehabtemplates.go; initSchema). A setting a GM deleted
+// comes back at its default at the next start, as the game reads it
+// meanwhile.
 func (db *SQLiteDB) ensureRehab() error {
 	if _, err := db.Exec(rehabSchema); err != nil {
 		return fmt.Errorf("rehabilitators: %w", err)
+	}
+	if err := db.ensureRehabTemplates(); err != nil {
+		return err
 	}
 	for _, r := range RehabSettingRows {
 		if _, err := db.Exec(`INSERT INTO rehabsettings (setting, value, note) VALUES (?, ?, ?)

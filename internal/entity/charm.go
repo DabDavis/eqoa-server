@@ -52,7 +52,7 @@ import (
 //     off, charmPetLeaves), so there is never a spell pet and a charmed one at
 //     once (petition 1351, Jibrish: "Dont make it so they can summon their
 //     spell pet and charm at the same time"); a charm resisted leaves it
-//     there; at a
+//     there. Refused too at a
 //     creature of a name npccharm makes uncharmable, "Your target cannot be
 //     charmed." (ours: the live game showed a pop-up whose words no record
 //     keeps; the Charmable Mobs page: Were-Hunter NPCs, raging rhinos, the

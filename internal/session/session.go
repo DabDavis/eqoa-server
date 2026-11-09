@@ -62,9 +62,12 @@ type Session struct {
 	inGameTimeout  time.Duration // Timeout for in-game sessions (default 60s)
 
 	// Account/character info
-	accountID      int
-	charServerID   uint32      // Character's database server_id (for dedup on reconnect)
-	charName       string      // its name, for the log's lines (SetCharacterName)
+	accountID    int
+	charServerID uint32 // Character's database server_id (for dedup on reconnect)
+	charName     string // its name, for the log's lines (SetCharacterName)
+	// lobbyLate counts the lobby connection's packets that came after the
+	// promotion (NoteLobbyLate)
+	lobbyLate      int32
 	character      interface{} // Will be *entity.Character when implemented
 	playerObjectID uint32      // Unique ID for this player in the game world (assigned on enter world)
 
@@ -810,6 +813,12 @@ func (s *Session) CharacterName() string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.charName
+}
+
+// NoteLobbyLate counts one more of the lobby connection's packets come to
+// this promoted session (PromotedOwn), and says how many so far.
+func (s *Session) NoteLobbyLate() int {
+	return int(atomic.AddInt32(&s.lobbyLate, 1))
 }
 
 // Label names the session in a log line: its address and its character's

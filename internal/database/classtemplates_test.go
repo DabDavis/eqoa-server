@@ -221,6 +221,44 @@ func TestTemplateStripAbilities(t *testing.T) {
 	}
 }
 
+// A pet's damage over time and an ability's own cast (petition 1388, the
+// Swarming Deaths' "300 a tick dot (.5 second cast)"): a dot on its clock,
+// pinned or by element, its cast a half second; written back it reads the
+// same. A cast below 0 or past a minute, or one that is not a number, is
+// refused; an element is a harmful spell's, a dot's among them.
+func TestTemplateDoTAndCast(t *testing.T) {
+	for _, ok := range []string{
+		`[{"kind": "dot", "spell_id": 905100, "every": 24, "first": 1, "cast": 0.5}]`,
+		`[{"kind": "dot", "every": 24, "element": "disease"}]`,
+		`[{"kind": "nuke", "every": 50, "cast": 2.25}, {"kind": "dot", "chain": true}]`,
+	} {
+		list, err := ParseTemplateAbilities(ok)
+		if err != nil {
+			t.Errorf("%s refused: %v", ok, err)
+			continue
+		}
+		again, err := ParseTemplateAbilities(TemplateAbilitiesJSON(list))
+		if err != nil || !reflect.DeepEqual(again, list) {
+			t.Errorf("%s written back: %v %v", ok, again, err)
+		}
+	}
+	if list, _ := ParseTemplateAbilities(`[{"kind": " DOT ", "every": 24, "cast": 0.5}]`); len(list) != 1 || list[0].Kind != AbilityDoT ||
+		list[0].Cast != 0.5 {
+		t.Errorf("read: %+v", list)
+	}
+	for _, bad := range []string{
+		`[{"kind": "dot", "every": 24, "cast": -0.5}]`,
+		`[{"kind": "dot", "every": 24, "cast": 61}]`,
+		`[{"kind": "dot", "every": 24, "cast": "half"}]`,
+		`[{"kind": "dot", "every": 1}]`,
+		`[{"kind": "heal", "every": 10, "element": "disease"}]`,
+	} {
+		if _, err := ParseTemplateAbilities(bad); err == nil {
+			t.Errorf("%s read, want refused", bad)
+		}
+	}
+}
+
 // A template's spells: its class's by level as classspells has them (a
 // mastery's left out), with their lines, visuals and spellarea rows; a spell
 // pinned by name is the record with a line first. The range's bits are the

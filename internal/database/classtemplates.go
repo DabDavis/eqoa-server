@@ -91,9 +91,9 @@ const npcTemplateSchema = `
 // The kinds of ability a template's NPC casts, each picked from its class's
 // spells (entity/classtemplate.go): a hit on one target, a hit on an area, a
 // hit that heals its caster, a heal on itself. A pet of a template
-// (pettemplate, entity/pettemplate.go) casts them too, and two kinds of its
-// own: a damaging taunt at what it fights, and a buff on itself (or its
-// owner).
+// (pettemplate, entity/pettemplate.go) casts them too, and kinds of its own: a
+// damaging taunt at what it fights, a buff on itself (or its owner), a root
+// and a damage over time on what it fights.
 const (
 	AbilityNuke    = "nuke"
 	AbilityAoE     = "aoe"
@@ -126,11 +126,18 @@ const (
 	// kind of weapon (MeleeKind: slash, pierce, blunt) that lands (the same: "he
 	// resists slash pretty good by over 50%")
 	AbilityMeleeKind = "meleekind"
+	// AbilityDoT is a pet's damage over time on what it fights, kept up: cast
+	// again as the one on its target runs out, so the new one lands as the old
+	// ends, never two of its owner's on one creature (entity/pettemplate.go; the
+	// GM Jibrish's petition 1388: the Swarming Deaths' "300 a tick dot (.5
+	// second cast) it keeps up that lasts for 24 seconds"). A creature's damage
+	// over time on a player is its debuff's.
+	AbilityDoT = "dot"
 )
 
 // AbilityKinds are the kinds, in the order the help lists them.
 var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot, AbilityDebuff,
-	AbilityStrip, AbilityHealShield, AbilityMeleeKind}
+	AbilityStrip, AbilityHealShield, AbilityMeleeKind, AbilityDoT}
 
 // DefaultStripName is what a strip's lines call it when it has no name and
 // pins no spell (ours), and StripNameMost the most characters of a name.
@@ -193,6 +200,10 @@ type TemplateAbility struct {
 	// MaxCast leaves out the spells whose own cast time is longer, in
 	// seconds (0: any): the wizard's Phoenix Glory, 15 s.
 	MaxCast float64 `json:"max_cast,omitempty"`
+	// Cast is the seconds its spell takes to cast, in place of the record's
+	// own whole seconds (0: the record's): the Swarming Deaths' half-second
+	// damage over time (petition 1388).
+	Cast float64 `json:"cast,omitempty"`
 	// Below is a heal's: cast when the NPC's hit points are below this
 	// percent of its maximum (0: 50).
 	Below int `json:"below,omitempty"`
@@ -300,7 +311,8 @@ type ClassTemplate struct {
 	// ProcChance is its melee proc: the percent of its melee hits that land that
 	// also deal ProcDamage (a fixed figure, not by level), cut by the resist
 	// ProcResist names (as ShieldResist; empty: none), told by ProcName
-	// (entity/creatureshield.go). 0: none.
+	// (entity/creatureshield.go). 0: none. A pet's template: the pet's own melee
+	// hits on a creature (entity/pettemplate.go, petition 1388).
 	ProcChance int
 	ProcDamage int
 	ProcName   string
@@ -416,7 +428,7 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 			return fmt.Errorf("ability %d: kind %q: one of %s", n, a.Kind, strings.Join(AbilityKinds, ", "))
 		case a.Chain && i == 0:
 			return fmt.Errorf("ability 1 chains, and nothing is before it")
-		case !finite(a.Every) || !finite(a.First) || !finite(a.MaxRecast) || !finite(a.MaxCast):
+		case !finite(a.Every) || !finite(a.First) || !finite(a.MaxRecast) || !finite(a.MaxCast) || !finite(a.Cast):
 			return fmt.Errorf("ability %d: a number that is not one", n)
 		case !a.Chain && (a.Every < 2 || a.Every > 3600):
 			return fmt.Errorf("ability %d: every %.1f: 2 to 3600 seconds from one cast's start to the next (or chain)", n, a.Every)
@@ -430,6 +442,8 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 			return fmt.Errorf("ability %d: max_recast %.1f: 0 (any) to 86400 seconds", n, a.MaxRecast)
 		case a.MaxCast < 0 || a.MaxCast > 60:
 			return fmt.Errorf("ability %d: max_cast %.1f: 0 (any) to 60 seconds", n, a.MaxCast)
+		case a.Cast < 0 || a.Cast > 60:
+			return fmt.Errorf("ability %d: cast %.2f: 0 (its spell's own) to 60 seconds", n, a.Cast)
 		case a.Below < 0 || a.Below > 100:
 			return fmt.Errorf("ability %d: below %d: 0 (50) to 100 percent", n, a.Below)
 		case a.From < 0 || a.From > 100:
@@ -477,7 +491,7 @@ func checkPetAbility(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: a buff needs the stat its spell raises (or a spell)", n)
 	case a.Element != "" && !oneOf(a.Element, AbilityElements):
 		return fmt.Errorf("ability %d: element %q: one of %s", n, a.Element, strings.Join(AbilityElements, ", "))
-	case a.Element != "" && a.Kind != AbilityNuke && a.Kind != AbilityAoE && a.Kind != AbilityLifetap:
+	case a.Element != "" && a.Kind != AbilityNuke && a.Kind != AbilityAoE && a.Kind != AbilityLifetap && a.Kind != AbilityDoT:
 		return fmt.Errorf("ability %d: an element is a harmful spell's", n)
 	case a.HealPct < 0 || a.HealPct > 100:
 		return fmt.Errorf("ability %d: heal_pct %d: 0 (its spell's figure) to 100 percent", n, a.HealPct)

@@ -895,7 +895,11 @@ colours and "No dye"; the user, 2026-11-06: "lets add more armor dye colors"), e
 most, CLIENT's room (`maxDialogOptions`: until then its twelve choices and twenty-one colours were cut to their first
 six), and dyes it at once for nothing: `database.SetCharDye` (audited as #dye's, revertible in the panel) and
 `World.SetDyes`; boxes under mark 0x56000000. A GM's `#dye` takes every colour's name too (a name of two words run
-together: `skyblue`). Dyes show only in clients of the live game's look (vanilla).
+together: `skyblue`). Dyes show only in clients of the live game's look (vanilla). **White is sent bleached**
+(`database.WhiteDyeWire`, `entity.dyeOr`; the user, 2026-11-08: "increase the whiteness of the white dye option", "only
+the people selecting white"): a client multiplies a slot's texture by its colour, so white (0xFFFFFFFF, an undyed slot's
+tint 0 too) is the armour's own art; a slot dyed White goes out as 0xFFFFFEFF, which eqoa-rust-client-vanilla draws
+bleached (its `render::WHITE_DYE`), and every other colour as ever. chardyes keeps White as 0xFFFFFFFF.
 **A Spell Archivist** (any NPC so named, `handlers/buyback.go` `classShop`; Destiny's petition 1273, 2026-11-08: "55+ spell
 vendors not in game. this is issue for us wanting to test variousy stuff") lists the buyer's class's wares alone, as an
 Heirloom Outfitter does: on the Heirloom Test Server one stands in Freeport selling every class's spells of level 50 and up

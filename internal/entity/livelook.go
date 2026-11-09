@@ -160,8 +160,14 @@ func putRGBA(b []byte, c uint32) {
 	binary.BigEndian.PutUint32(b, c)
 }
 
+// dyeOr is a slot's colour as the live look sends it: its dye, a White dye
+// as database.WhiteDyeWire (drawn bleached, where white is the texture as it
+// is), else the undyed colour.
 func dyeOr(d *Dyes, slot int, undyed uint32) uint32 {
 	if d != nil && d[slot] != 0 {
+		if d[slot] == database.WhiteDye {
+			return database.WhiteDyeWire
+		}
 		return d[slot]
 	}
 	return undyed

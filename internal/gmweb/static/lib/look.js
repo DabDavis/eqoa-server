@@ -159,9 +159,10 @@ function namesText(u) {
 
 // ---- pictures
 
-// draws only once a canvas is on screen (a picker's grid, a list's cells)
+// draws only once a canvas is on screen (a picker's grid, a list's cells);
+// a canvas taken off the page unseen is let go at the next sweep
 let seen = null;
-const pending = new WeakMap();
+const pending = new Map();
 function lazy(el, fn) {
   if (!('IntersectionObserver' in window)) { fn(); return; }
   if (!seen) {
@@ -175,9 +176,18 @@ function lazy(el, fn) {
       }
     }, { rootMargin: '200px' });
   }
+  // swept after the render that made it (its canvases are on the page by then)
+  if (pending.size > 800 && !sweeping) {
+    sweeping = true;
+    setTimeout(() => {
+      sweeping = false;
+      for (const old of pending.keys()) if (!old.isConnected) { seen.unobserve(old); pending.delete(old); }
+    }, 2000);
+  }
   pending.set(el, fn);
   seen.observe(el);
 }
+let sweeping = false;
 
 // fit draws a picture (or its part crop, [x, y, w, h]) into a canvas of
 // w x h CSS pixels, keeping its shape

@@ -701,6 +701,13 @@ func TestCapEntries(t *testing.T) {
 	if got := capEntries(rows[:40], 40); len(got) != 40 || got[39].ItemID != 39 {
 		t.Error("a list within its size was cut")
 	}
+	// a broken table with more worn rows than the list holds: still never past it
+	for i := range rows {
+		rows[i].EquipLoc = 1
+	}
+	if got := capEntries(rows, 40); len(got) != 40 {
+		t.Errorf("45 worn rows cut to %d", len(got))
+	}
 }
 
 // A restart carries a list's size and what is kept beside it; a file from

@@ -152,6 +152,13 @@ func seqBefore(a, b uint16) bool {
 	return int16(a-b) < 0
 }
 
+// SeqAfter reports whether a comes after b, as seqBefore orders them: every
+// packet, message and acknowledgement number of a connection is compared so
+// (connection.cpp's uns16_gt), since a long session passes 65535.
+func SeqAfter(a, b uint16) bool {
+	return int16(a-b) > 0
+}
+
 // ClientStateData tracks client input state.
 type ClientStateData struct {
 	mu     sync.Mutex
@@ -256,7 +263,7 @@ func (cd *ConnectionData) IncrementReceivedMessageSeq() uint16 {
 func (cd *ConnectionData) SetLastReceivedMessageSeq(seq uint16) {
 	cd.mu.Lock()
 	defer cd.mu.Unlock()
-	if seq > cd.lastReceivedMessageSeq {
+	if SeqAfter(seq, cd.lastReceivedMessageSeq) {
 		cd.lastReceivedMessageSeq = seq
 	}
 }
@@ -296,7 +303,7 @@ func (cd *ConnectionData) ClientLastReceivedMessage() uint16 {
 func (cd *ConnectionData) SetClientLastReceivedMessage(seq uint16) {
 	cd.mu.Lock()
 	defer cd.mu.Unlock()
-	if seq > cd.clientLastReceivedMessage {
+	if SeqAfter(seq, cd.clientLastReceivedMessage) {
 		cd.clientLastReceivedMessage = seq
 	}
 }

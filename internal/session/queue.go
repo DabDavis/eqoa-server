@@ -224,7 +224,7 @@ func (q *MessageQueue) RemoveReliables() {
 	// resend. The garbage collector takes them.
 	newReliable := q.reliable[:0]
 	for _, msg := range q.reliable {
-		if msg.Sequence > clientAck {
+		if SeqAfter(msg.Sequence, clientAck) {
 			newReliable = append(newReliable, msg)
 		} else {
 			msg.Acked = true

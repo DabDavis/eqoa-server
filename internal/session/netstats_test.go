@@ -177,3 +177,26 @@ func TestAnAckedMessageIsNotPooledUnderAQueuedCopy(t *testing.T) {
 		t.Fatalf("the queued copy changed: %d pending, seq %d", q.PendingCount(), m.Sequence)
 	}
 }
+
+// Our message numbers pass 65535 after 65,535 reliable messages: the
+// client's ack of 65535 retires 65534 and 65535 and keeps 0 and 1 (a plain >
+// retired every message numbered after the wrap at the next ack, unsent).
+func TestRemoveReliablesPasses65535(t *testing.T) {
+	s := netSession(t)
+	q := s.Queue()
+	for _, seq := range []uint16{65534, 65535, 0, 1} {
+		q.reliable = append(q.reliable, &protocol.Message{Type: protocol.MessageTypeReliable, Sequence: seq})
+	}
+	for _, a := range []uint16{20000, 40000, 60000, 65535} { // a long session's acks
+		s.Connection().SetClientLastReceivedMessage(a)
+	}
+	q.RemoveReliables()
+	if len(q.reliable) != 2 || q.reliable[0].Sequence != 0 || q.reliable[1].Sequence != 1 {
+		t.Fatalf("after the ack of 65535: %d left", len(q.reliable))
+	}
+	s.Connection().SetClientLastReceivedMessage(0)
+	q.RemoveReliables()
+	if len(q.reliable) != 1 || q.reliable[0].Sequence != 1 {
+		t.Fatalf("after the ack of 0: %d left", len(q.reliable))
+	}
+}

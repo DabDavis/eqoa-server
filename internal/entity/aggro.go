@@ -267,6 +267,9 @@ func (w *World) threatensLocked(npc *NPC, p *Player) bool {
 	if npc.Dead || npc.Owner != 0 || npc.Dummy != NotDummy {
 		return false
 	}
+	if npc.challenge != nil {
+		return npc.challenge.player == p.ServerID // its challenger alone (metalmoogie.go)
+	}
 	if npc.EventAggro {
 		return true
 	}

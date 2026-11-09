@@ -110,6 +110,14 @@ type EffectRules struct {
 	// MarkHeal: a mark on a creature, each weapon hit landed on it healing its
 	// hitter this much (markheal.go: Mark of Faith)
 	MarkHeal int `json:",omitempty"`
+	// Grow is how many percent bigger (smaller, negative) it shows its bearer
+	// (EffectSize: Player.Body)
+	Grow int `json:",omitempty"`
+	// Kept: it ends only at its time or its bearer's death: a strip, Mr.
+	// Moogie's "Clear my buffs" and a cure leave it on, as they leave the towns'
+	// Boon (Mr. Moogie's Duelist's Favor, metalmoogie.go); a GM's #clearbuffs
+	// ends it
+	Kept bool `json:",omitempty"`
 }
 
 // rulesOf is a cast's rules for what lasts of it.

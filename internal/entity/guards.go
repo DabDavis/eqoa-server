@@ -168,7 +168,7 @@ func (w *World) guardFreeLocked(g *NPC, now time.Time) bool {
 // with the lock held.
 func (w *World) guardsPreyLocked(g, c *NPC, now time.Time) bool {
 	if c == g || c.Dead || c.Owner != 0 || c.Charm != nil || c.Dummy != NotDummy || c.NPCType&0x80 != 0 ||
-		c.World != g.World || c.SpawnOnly || c.QuestSpawn || c.hiddenAt(now) {
+		c.World != g.World || c.SpawnOnly || c.QuestSpawn || c.challenge != nil || c.hiddenAt(now) {
 		return false
 	}
 	body := uint32(c.ModelID)

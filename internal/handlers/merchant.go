@@ -67,6 +67,9 @@ type NPCWindowHandler struct {
 	// guardsKill is the World's GuardsKill: a corpse the town guards made
 	// is no one's to loot (entity/guards.go)
 	guardsKill func(entity.EntityID) bool
+	// duelLoot is the World's ChallengeLooter: a Metal Moogie's corpse is his
+	// challenger's alone to loot (entity/metalmoogie.go)
+	duelLoot func(*session.Session, *entity.NPC) (duel, mine bool, line string)
 	// takeOff is the EquipHandler's TakeOff: a worn item is taken off before
 	// the bank or a trade moves it (nil: a worn item is refused, as before)
 	takeOff func(*session.Session, *entity.Player, *database.CharInventoryEntry) bool
@@ -119,6 +122,7 @@ func (h *NPCWindowHandler) SetGameWorld(gw *entity.World) {
 	h.corpseLies = gw.CorpseLies
 	h.clearCorpse = gw.ClearCorpse
 	h.guardsKill = gw.GuardsKill
+	h.duelLoot = gw.ChallengeLooter // a Metal Moogie's corpse is his challenger's (entity/metalmoogie.go)
 	gw.OnCorpseGone(h.CorpsesGone)
 }
 

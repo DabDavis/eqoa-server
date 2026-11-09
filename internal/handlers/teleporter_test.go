@@ -395,3 +395,57 @@ func TestTeleporterWordsFit(t *testing.T) {
 		}
 	}
 }
+
+// A grouped player's trip takes the group (petition 1408: "should take the
+// group at same time to same spot"): a member by the Teleporter goes at once
+// to the picker's very landing, facing as the picker does, told who took them;
+// a member away from it, and a dead one, stay where they are. A camp's landing
+// is worked out from its creatures, and still one for both.
+func TestTeleporterTakesTheGroup(t *testing.T) {
+	r, _, tp := teleRig(t)
+	r.gw.GroupInvite(r.anna, r.gw.IDSeenBy(r.anna, r.pc))
+	r.gw.GroupAccept(r.cora, r.gw.IDSeenBy(r.cora, r.pa))
+	r.gw.GroupInvite(r.anna, r.gw.IDSeenBy(r.anna, r.pb))
+	r.gw.GroupAccept(r.bert, r.gw.IDSeenBy(r.bert, r.pa))
+	if n := len(r.gw.GroupMembers(r.pa)); n != 3 {
+		t.Fatalf("the group: %d members", n)
+	}
+	got := pickPath(t, r, tp, "Raids", "Tunaria and the Isle of Dread", "Lady Vox, Permafrost (60)")
+	if !hasMsg(got, "teleport") || r.pa.X != 4860 || r.pa.Z != 4765 {
+		t.Fatalf("Anna's trip: %q at (%.1f, %.1f)", got, r.pa.X, r.pa.Z)
+	}
+	cora := r.msgs(r.cora)
+	if !hasMsg(cora, "chat:Teleporter: Anna takes the group to Lady Vox, Permafrost (60).") || !hasMsg(cora, "teleport") {
+		t.Errorf("Cora was not taken along: %q", cora)
+	}
+	if r.pc.World != r.pa.World || r.pc.X != r.pa.X || r.pc.Y != r.pa.Y || r.pc.Z != r.pa.Z || r.pc.Facing != r.pa.Facing {
+		t.Errorf("Cora at world %d (%.2f, %.2f, %.2f) facing %.3f, Anna at world %d (%.2f, %.2f, %.2f) facing %.3f",
+			r.pc.World, r.pc.X, r.pc.Y, r.pc.Z, r.pc.Facing, r.pa.World, r.pa.X, r.pa.Y, r.pa.Z, r.pa.Facing)
+	}
+	if bert := r.msgs(r.bert); hasMsg(bert, "teleport") || r.pb.X != 20000 || r.pb.Z != 20000 {
+		t.Errorf("Bert, far from the Teleporter, was moved: %q at (%.1f, %.1f)", bert, r.pb.X, r.pb.Z)
+	}
+
+	// both back by the Teleporter: a camp, the same spot for both
+	for _, p := range []*entity.Player{r.pa, r.pc} {
+		r.gw.UpdatePosition(p.ServerID, 5000, 50, 5000, 0)
+		p.World = 0
+	}
+	r.drain()
+	pickPath(t, r, tp, "Camps, levels 1-25", "Levels 20-25", "Frost bat, ice bat (20-22)")
+	if math.Hypot(float64(r.pa.X-9000), float64(r.pa.Z-9000)) > 20 || r.pc.X != r.pa.X || r.pc.Z != r.pa.Z {
+		t.Errorf("the GM's camp: Anna at (%.1f, %.1f), Cora at (%.1f, %.1f)", r.pa.X, r.pa.Z, r.pc.X, r.pc.Z)
+	}
+
+	// a dead member stays
+	for _, p := range []*entity.Player{r.pa, r.pc} {
+		r.gw.UpdatePosition(p.ServerID, 5000, 50, 5000, 0)
+		p.World = 0
+	}
+	r.pc.HP = 0
+	r.drain()
+	pickPath(t, r, tp, "Raids", "Tunaria and the Isle of Dread", "Lady Vox, Permafrost (60)")
+	if cora := r.msgs(r.cora); hasMsg(cora, "teleport") || r.pc.X != 5000 || r.pc.Z != 5000 {
+		t.Errorf("dead Cora was moved: %q at (%.1f, %.1f)", cora, r.pc.X, r.pc.Z)
+	}
+}

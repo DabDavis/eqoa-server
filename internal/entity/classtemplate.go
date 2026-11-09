@@ -730,7 +730,10 @@ func (w *World) templateCastLocked(npc *NPC, i int, target EntityID, now time.Ti
 		if !w.templateMayHitLocked(npc, target) {
 			return false
 		}
-		if spell.Area.Centre != AreaNone && !c.strip { // a strip is its target's alone, whatever its spell's area
+		// a strip is its target's alone, whatever its spell's area; and round an
+		// NPC a trigger set it on, an area spell takes it alone: the players and
+		// pets near (a raid fighting beside it) are no one's foes
+		if spell.Area.Centre != AreaNone && !c.strip && w.castFoeLocked(npc, target) == nil {
 			c.others = w.templateAreaLocked(npc, spell, target)
 		}
 	}
@@ -748,14 +751,47 @@ func (w *World) templateCastLocked(npc *NPC, i int, target EntityID, now time.Ti
 
 // templateMayHitLocked reports whether the NPC's harmful spell may be cast at
 // target: a living player in its world (not across the water's edge from it,
-// water.go), or a living pet of a player's there.
+// water.go), or a living pet of a player's there, or the NPC a trigger set it
+// on with casts (castsAt, SetNPCOn).
 func (w *World) templateMayHitLocked(npc *NPC, target EntityID) bool {
 	if p := w.Players[target]; p != nil {
 		return !p.IsDead() && !p.respawnPending() && p.World == npc.World && !w.apartLocked(p, npc)
 	}
-	pet := w.NPCs[target]
-	return pet != nil && pet.Owner != 0 && !pet.Dead && pet.World == npc.World &&
-		(w.env == nil || w.npcInWaterLocked(pet) == w.npcInWaterLocked(npc))
+	n := w.NPCs[target]
+	return n != nil && (n.Owner != 0 || npc.castsAt == target) && !n.Dead && n.World == npc.World &&
+		(w.env == nil || w.npcInWaterLocked(n) == w.npcInWaterLocked(npc))
+}
+
+// castFoeLocked is the NPC a templated NPC's cast or special at target lands on
+// when target is the NPC a trigger set it on with casts (castsAt: no pet, alive),
+// nil otherwise. Must be called with the lock held.
+func (w *World) castFoeLocked(npc *NPC, target EntityID) *NPC {
+	if npc.castsAt == 0 || target != npc.castsAt {
+		return nil
+	}
+	foe := w.NPCs[target]
+	if foe == nil || foe.Owner != 0 || foe.Dead || foe.World != npc.World {
+		return nil
+	}
+	return foe
+}
+
+// castFoeHitLocked lands n of a templated NPC's cast or special on the NPC a
+// trigger set it on (castFoeLocked): its hit points, its hate for the caster,
+// and its death, as an NPC's melee hit on it does (npcHitNPCLocked). Must be
+// called with the lock held.
+func (w *World) castFoeHitLocked(npc, foe *NPC, n int, what string, now time.Time) {
+	foe.HP = max(foe.HP-n, 0)
+	npc.LastCombat = now
+	w.addThreatLocked(foe, npc.ServerID, n)
+	log.Printf("Template: %s's %s hits %s for %d (HP %d/%d)", npc.Name, what, foe.Name, n, foe.HP, foe.MaxHP)
+	if foe.HP > 0 {
+		return
+	}
+	foe.Effects = nil
+	w.killNPC(foe)
+	w.dropAggroLocked(foe.ServerID)
+	log.Printf("Combat: %s killed by %s", foe.Name, npc.Name)
 }
 
 // templateAreaCentreLocked is where a templated NPC's area spell lies now:
@@ -1008,6 +1044,17 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 				w.playerDiedLocked(sess, p, now)
 			}
 		}
+	} else if foe := w.castFoeLocked(npc, id); foe != nil {
+		// the NPC a trigger set it on with casts: its hit less the foe's template's
+		// resist of the spell's element (creatureResists, as a player's spell on it)
+		if hit <= 0 {
+			return
+		}
+		taken := -creatureResists(c.spell.resist, foe, -hit, now)
+		if taken < hit {
+			drained = int(math.Round(float64(drained) * float64(taken) / float64(hit)))
+		}
+		w.castFoeHitLocked(npc, foe, taken, fmt.Sprintf("%q", c.spell.Name), now)
 	} else if pet := w.NPCs[id]; pet != nil && pet.Owner != 0 && !pet.Dead {
 		share := pet.petResistShare(c.spell.resist) // a workbook pet's resists (petstats.go); any other takes it whole
 		if power > 0 {
@@ -1286,6 +1333,12 @@ func (w *World) templateStrikeLocked(npc *NPC, target EntityID, now time.Time, d
 	fx := t.SpecialFX
 	if fx == 0 {
 		fx = templateSpecialFX
+	}
+	if foe := w.castFoeLocked(npc, target); foe != nil {
+		// the NPC a trigger set it on with casts (SetNPCOn): through any armour too
+		w.broadcastNPCSwingLocked(npc, target, 0, fx)
+		w.castFoeHitLocked(npc, foe, damage, name, now)
+		return
 	}
 	if p := w.Players[target]; p != nil {
 		if p.IsDead() || w.apartLocked(p, npc) {

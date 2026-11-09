@@ -270,7 +270,10 @@ func (w *World) npcFoeLocked(npc *NPC) *NPC {
 
 // npcFightNPCLocked is npc's fight with foe this tick, as with a player
 // (aiSystem): the chase and the leash (chase.go), then its rounds
-// (rounds.go): its swing to everyone who sees it, then its hits.
+// (rounds.go): its swing to everyone who sees it, then its hits. A trigger's
+// spawn set on foe with casts (SetNPCOn) fights it by its whole class
+// template, its casts held as with a player and its special after its round
+// (classtemplate.go); any other NPC by its melee alone.
 func (w *World) npcFightNPCLocked(npc, foe *NPC, now time.Time) {
 	in, giveUp := w.chaseLocked(npc, foe.X, foe.Y, foe.Z, foe.VelX, foe.VelZ, now)
 	if giveUp {
@@ -285,6 +288,16 @@ func (w *World) npcFightNPCLocked(npc, foe *NPC, now time.Time) {
 		npc.loseDueHits(now) // closing in: no hit lands from out of reach
 		return
 	}
+	byTemplate := npc.tmpl != nil && npc.castsAt == foe.ServerID
+	if byTemplate && w.templateTurnLocked(npc, foe.ServerID, now) {
+		npc.loseDueHits(now) // casting: no swing meanwhile (classtemplate.go)
+		return
+	}
+	defer func() {
+		if byTemplate && !npc.Dead && !foe.Dead && npc.CurrentEnemy == foe.ServerID {
+			w.templateSpecialLocked(npc, foe.ServerID, now) // its special (classtemplate.go)
+		}
+	}()
 	length, delay, fx, hits := npcRound(npc)
 	if npc.RoundStart.IsZero() || !now.Before(npc.RoundStart.Add(length)) {
 		next := npc.RoundStart.Add(length)

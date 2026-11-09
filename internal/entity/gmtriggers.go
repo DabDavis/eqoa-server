@@ -135,8 +135,12 @@ func (w *World) RouseNPC(id EntityID) bool {
 // attacking mr moogie"): a threat on it, as a hit would leave, so it is its
 // enemy (aiSystem's fight with an NPC, guards.go); the target fights back at
 // its first hit, as any creature hit does. Never itself, a pet, a dummy, a
-// hidden one. It reports the target's name, or false when none is near.
-func (w *World) SetNPCOn(id EntityID, target string, reach float32) (string, bool) {
+// hidden one. With casts it fights that NPC by its whole class template, its
+// casts and specials as well as its melee (the user, 2026-11-09: Tunare, "a
+// strong druid god", fights Mr. Moogie with a druid's spells; castsAt,
+// classtemplate.go); the target's own fighting back is its melee alone, as
+// before. It reports the target's name, or false when none is near.
+func (w *World) SetNPCOn(id EntityID, target string, reach float32, casts bool) (string, bool) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	c := w.NPCs[id]
@@ -159,6 +163,10 @@ func (w *World) SetNPCOn(id EntityID, target string, reach float32) (string, boo
 	}
 	w.addThreatLocked(c, best.ServerID, 1)
 	c.CurrentEnemy = best.ServerID
+	c.castsAt = 0
+	if casts {
+		c.castsAt = best.ServerID
+	}
 	return best.Name, true
 }
 

@@ -151,7 +151,8 @@ var locoStates = [256]bool{0: true, 1: true, 2: true, 3: true, 4: true, 5: true,
 // ApplyClientUpdate puts one 0x40 on the player, under one lock so the state
 // sync never sees the position without its velocity. Its place is judged
 // first (movecheck.go): a place the judge does not take leaves the player
-// where it was, standing still.
+// where it was, standing still. A place taken in a teleport orb sends the
+// player on (orbs.go).
 func (w *World) ApplyClientUpdate(id EntityID, u ClientUpdate) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -164,6 +165,7 @@ func (w *World) ApplyClientUpdate(id EntityID, u ClientUpdate) {
 	if now.IsZero() {
 		now = time.Now()
 	}
+	before := [3]float32{p.X, p.Y, p.Z}
 	take, at := w.judgeMoveLocked(p, &u, now)
 	if take {
 		x, y, z := u.X, u.Y, u.Z
@@ -214,4 +216,6 @@ func (w *World) ApplyClientUpdate(id EntityID, u ClientUpdate) {
 		}
 		p.AutoAttack = u.AutoAttack
 	}
+	// a teleport orb the report brings it into (orbs.go)
+	w.orbStepLocked(p, before, now)
 }

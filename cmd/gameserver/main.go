@@ -353,6 +353,12 @@ func main() {
 		log.Printf("WARNING: %v; every teleport spell is refused", err)
 	}
 	log.Printf("Spells: %s", gameWorld.SpellGatesSummary())
+	// The teleport orbs (entity/orbs.go, table orbs): with none, a pad sends
+	// no one (Highbourne's towers' starts stay in their towers)
+	if _, err := gameWorld.LoadOrbs(db); err != nil {
+		log.Printf("WARNING: %v; no teleport orb sends anyone", err)
+	}
+	log.Printf("World: %s", gameWorld.OrbsSummary())
 
 	log.Printf("Entity world: %d players, %d NPCs", gameWorld.PlayerCount(), gameWorld.NPCCount())
 

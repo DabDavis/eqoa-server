@@ -19,7 +19,8 @@ const gateLeftBehind = "Your game cannot load %s: you stay behind."
 // else the login spawn); a group lands round its caster's spot
 // (entity.GateRingSpot). A player whose game cannot load the place stays,
 // told in red; its pet comes along with it, or stays, as through any
-// teleport (entity/pet.go).
+// teleport (entity/pet.go). A traveller with a facing (a teleport orb's,
+// entity/orbs.go) lands turned to it.
 func (h *CharacterHandler) travelPlayer(t entity.GateTravel) {
 	gw := h.gameWorld
 	if gw == nil || t.Sess == nil || t.P == nil {
@@ -46,7 +47,13 @@ func (h *CharacterHandler) travelPlayer(t entity.GateTravel) {
 	}
 	// the world and the place set under the lock, standing still, as a
 	// respawn's are (the same move)
-	placed, worldChanged, ok := gw.PlaceRespawn(t.P.ServerID, to.X, to.Y, to.Z, to.World)
+	place := gw.PlaceRespawn
+	if t.HasFacing {
+		place = func(id entity.EntityID, x, y, z float32, world uint8) (entity.Player, bool, bool) {
+			return gw.PlaceFacing(id, x, y, z, world, t.Facing)
+		}
+	}
+	placed, worldChanged, ok := place(t.P.ServerID, to.X, to.Y, to.Z, to.World)
 	if !ok {
 		return
 	}

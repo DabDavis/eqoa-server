@@ -130,14 +130,17 @@ type GateSpot struct {
 // GateTravel is one player a gate sends, for the travel hook: to To, or to
 // the home (Return Home's place) of the player Home names, an evacuation's
 // caster (0 for none); Ring is its place round that spot (0 the spot itself,
-// its caster's), Spell the gate's name.
+// its caster's), Spell the gate's name (an orb's, orbs.go). With HasFacing it
+// lands facing Facing (a 0x40's heading), else as it faced.
 type GateTravel struct {
-	Sess  *session.Session
-	P     *Player
-	To    GateSpot
-	Home  EntityID
-	Ring  int
-	Spell string
+	Sess      *session.Session
+	P         *Player
+	To        GateSpot
+	Home      EntityID
+	Ring      int
+	Spell     string
+	Facing    float32
+	HasFacing bool
 }
 
 // TravelFunc lands a player a gate sends (handlers' teleport, Return Home's

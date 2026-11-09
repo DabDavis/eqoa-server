@@ -38,6 +38,13 @@ const (
 	// that stops acknowledging is sent no more than this until it does.
 	SendWindow = 48
 
+	// SendWindowBytes is how many bytes of reliable messages may be out
+	// unacknowledged at once: a slow line (a phone's, a relay's TCP stream
+	// behind one) holds no more than this queued, so a message sent behind
+	// a burst waits seconds less, and the timeout measured on it stays near
+	// the line's. 16 KB in a 150 ms round trip is over 100 KB a second.
+	SendWindowBytes = 16 * 1024
+
 	// BurstPackets is how many packets more a tick may send while reliable
 	// messages wait within the window (a MemoryDump's 24 fragments, a
 	// mastery list's 10): one packet a tick carries one fragment, ten a
@@ -372,6 +379,7 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 	// are those past the window (SendWindow beyond the client's ack).
 	clientAck, _ := conn.ClientAck()
 	windowEnd := clientAck + SendWindow
+	inFlight := queue.InFlightBytes()
 	var deferred []*protocol.Message
 	for idx, msg := range pending {
 		var seq uint16
@@ -380,10 +388,15 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 			// when its packet was full): nothing to send
 			continue
 		}
-		if msg.Type.IsReliable() && session.SeqAfter(msg.Sequence, windowEnd) {
-			// past the window: it waits for the client's ack to move
+		if msg.Type.IsReliable() && (session.SeqAfter(msg.Sequence, windowEnd) ||
+			!session.Sent(msg) && inFlight > 0 && inFlight+msg.Size()+8 > SendWindowBytes) {
+			// past the window, or the bytes out already enough: it waits
+			// for the client's ack to move
 			deferred = append(deferred, msg)
 			continue
+		}
+		if msg.Type.IsReliable() && !session.Sent(msg) {
+			inFlight += msg.Size() + 8
 		}
 		if msg.Type.IsReliable() {
 			// The number AddWithSequence gave it (Queued marks one given):
@@ -511,7 +524,7 @@ func (r *RDPHandler) TickSession(sess *session.Session) {
 	// they wait within the client's window (BurstPackets)
 	for p := 0; p < BurstPackets; p++ {
 		ack, _ := sess.Connection().ClientAck()
-		if !sess.Queue().Sendable(ack, SendWindow) {
+		if !sess.Queue().Sendable(ack, SendWindow, SendWindowBytes) {
 			break
 		}
 		r.sendPrepared(sess)

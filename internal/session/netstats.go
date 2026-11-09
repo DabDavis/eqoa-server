@@ -58,6 +58,8 @@ type NetStats struct {
 	ack     uint16
 	ackAt   time.Time
 	ackSeen bool
+	// movedAt is when the ack last went up (a first word of 0 is no move)
+	movedAt time.Time
 
 	// resends, all told, and by ten seconds over the last minute
 	resent, resentPkts int64
@@ -75,7 +77,7 @@ func (st *NetStats) Restart() {
 	st.mu.Lock()
 	st.sentAt = [1024]time.Time{}
 	st.flushAck, st.flushMask, st.haveMask = 0, 0, false
-	st.ack, st.ackAt, st.ackSeen = 0, time.Time{}, false
+	st.ack, st.ackAt, st.ackSeen, st.movedAt = 0, time.Time{}, false, time.Time{}
 	st.mu.Unlock()
 }
 
@@ -137,9 +139,24 @@ func (st *NetStats) sampleLocked(seq uint16, now time.Time) {
 func (st *NetStats) NoteAck(ack uint16, now time.Time) {
 	st.mu.Lock()
 	if !st.ackSeen || int16(ack-st.ack) > 0 {
+		if st.ackSeen || ack != 0 {
+			st.movedAt = now
+		}
 		st.ack, st.ackAt, st.ackSeen = ack, now, true
 	}
 	st.mu.Unlock()
+}
+
+// AckMovedWithin reports whether the client's acknowledgement of our
+// reliable messages moved within d of now: the link is delivering, and what
+// waits unacknowledged is on its way, not lost (TakeResends holds its
+// resends: a queued link, a relay's TCP stream behind a slow line, sent
+// every message in flight again each timeout, and its acks crept further
+// behind).
+func (st *NetStats) AckMovedWithin(now time.Time, d time.Duration) bool {
+	st.mu.Lock()
+	defer st.mu.Unlock()
+	return !st.movedAt.IsZero() && now.Sub(st.movedAt) < d
 }
 
 // NoteResent notes a packet carrying msgs messages sent again.

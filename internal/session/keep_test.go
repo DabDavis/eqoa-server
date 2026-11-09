@@ -312,3 +312,38 @@ func TestTakeReliable(t *testing.T) {
 		t.Fatalf("past 65535: a copy of 65535 taken, or the newest is %d", cd.LastReceivedMessageSeq())
 	}
 }
+
+// The receive window comes through a restart whole (RxAck, RxWin), and the
+// file's RxMessage stays the newest taken, what a binary from before the
+// window acknowledged and reads back: given the window's ack it would say
+// less than the client was told, with no mask, which CLIENT refuses whole. An
+// older binary's file (no RxAck) is taken as acknowledged to its RxMessage.
+func TestTheReceiveWindowComesThroughARestart(t *testing.T) {
+	m := session.NewManager()
+	s := m.CreateSession(&net.UDPAddr{IP: net.IPv4(198, 51, 100, 7), Port: 40123}, 5, 5, 2, 3, true)
+	conn := s.Connection()
+	for _, seq := range []uint16{1, 2, 4, 6} {
+		conn.TakeReliable(seq)
+	}
+	k := s.Keep()
+	if k.Conn.RxMessage != 6 || k.Conn.RxAck == nil || *k.Conn.RxAck != 2 {
+		t.Fatalf("the file: RxMessage %d (want 6, the newest taken), RxAck %v (want 2)", k.Conn.RxMessage, k.Conn.RxAck)
+	}
+	r, _ := keptRoundTrip(t, s)
+	rep := r.Connection().NextPacketReport()
+	if rep.Ack != 2 || rep.Mask != 0b101 {
+		t.Fatalf("after the restart: ack %d mask %b, want 2 and 101 (4 and 6)", rep.Ack, rep.Mask)
+	}
+	if r.Connection().TakeReliable(4) || !r.Connection().TakeReliable(3) {
+		t.Fatal("after the restart: 4 taken again, or 3 not taken")
+	}
+	// an older binary's file: acknowledged to RxMessage, no window
+	k.Conn.RxAck, k.Conn.RxWin = nil, 0
+	old, err := session.NewManager().Resume(k)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rep := old.Connection().NextPacketReport(); rep.Ack != 6 || rep.Mask != 0 {
+		t.Fatalf("an older binary's file: ack %d mask %b, want 6 and none", rep.Ack, rep.Mask)
+	}
+}

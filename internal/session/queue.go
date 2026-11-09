@@ -284,6 +284,9 @@ func (q *MessageQueue) HasRetransmits(delay time.Duration) bool {
 	}
 	inPending := q.pendingReliablesLocked()
 	now := time.Now()
+	if q.ackMovingLocked(now, delay) {
+		return false
+	}
 	for _, msg := range q.reliable {
 		if inPending[msg] {
 			continue
@@ -293,6 +296,40 @@ func (q *MessageQueue) HasRetransmits(delay time.Duration) bool {
 		}
 	}
 	return false
+}
+
+// ackMovingLocked reports whether the client's ack moved within delay: its
+// acks are coming, so nothing waiting is lost yet (a lost message holds the
+// ack where it is: the ack cannot pass it). Caller holds q.mu.
+func (q *MessageQueue) ackMovingLocked(now time.Time, delay time.Duration) bool {
+	if q.session == nil || q.session.Connection() == nil {
+		return false
+	}
+	return q.session.Connection().Net().AckMovedWithin(now, delay)
+}
+
+// InFlightBytes is how many bytes of reliable messages went out and wait
+// for their acknowledgement (PreparePacket keeps them under SendWindowBytes).
+func (q *MessageQueue) InFlightBytes() int {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	return q.inFlightLocked()
+}
+
+func (q *MessageQueue) inFlightLocked() int {
+	n := 0
+	for _, msg := range q.reliable {
+		if !msg.Acked && Sent(msg) {
+			n += msg.Size() + 8
+		}
+	}
+	return n
+}
+
+// Sent reports whether a reliable message went out at least once: its last
+// send is past its queueing (AddWithSequence stamps both alike).
+func Sent(msg *protocol.Message) bool {
+	return msg.Tries > 0 || msg.LastSent.After(msg.Queued)
 }
 
 // TakeRetransmits returns up to max unacknowledged reliable messages whose
@@ -322,6 +359,9 @@ func (q *MessageQueue) TakeResends(delay time.Duration, max, budget int) []*prot
 	}
 	inPending := q.pendingReliablesLocked()
 	now := time.Now()
+	if q.ackMovingLocked(now, delay) {
+		return nil
+	}
 
 	var out []*protocol.Message
 	used := 0
@@ -364,10 +404,14 @@ func (q *MessageQueue) pendingReliablesLocked() map[*protocol.Message]bool {
 }
 
 // Sendable reports whether a reliable message waits in the queue that may go
-// now: not acknowledged, and within window of the client's ack.
-func (q *MessageQueue) Sendable(ack uint16, window uint16) bool {
+// now: not acknowledged, within window of the client's ack, and with fewer
+// than windowBytes in flight (0: no bound).
+func (q *MessageQueue) Sendable(ack uint16, window uint16, windowBytes int) bool {
 	q.mu.Lock()
 	defer q.mu.Unlock()
+	if windowBytes > 0 && q.inFlightLocked() >= windowBytes {
+		return false
+	}
 	for _, msg := range q.pending {
 		if msg.Type.IsReliable() && !msg.Acked && !SeqAfter(msg.Sequence, ack+window) {
 			return true

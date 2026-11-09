@@ -116,7 +116,7 @@ func TestTheWindowAndTheBurst(t *testing.T) {
 	// as TickSession: the packet, then the burst's
 	for i := 0; i < 1+BurstPackets*4; i++ {
 		ack, _ := sess.Connection().ClientAck()
-		if i > 0 && !sess.Queue().Sendable(ack, SendWindow) {
+		if i > 0 && !sess.Queue().Sendable(ack, SendWindow, 0) {
 			break
 		}
 		if r.PreparePacket(sess) == nil {
@@ -134,7 +134,7 @@ func TestTheWindowAndTheBurst(t *testing.T) {
 	sess.Queue().RemoveReliables()
 	for i := 0; i < 20; i++ {
 		ack, _ := sess.Connection().ClientAck()
-		if !sess.Queue().Sendable(ack, SendWindow) {
+		if !sess.Queue().Sendable(ack, SendWindow, 0) {
 			break
 		}
 		r.PreparePacket(sess)
@@ -219,5 +219,50 @@ func TestASilentClientIsSentNoWorldAndASilentLobbyEnds(t *testing.T) {
 	r.TickSession(lobby)
 	if !lobby.PendingTermination() {
 		t.Fatalf("a lobby session silent past %v lives on", PreGameSilentEnd)
+	}
+}
+
+// No more than SendWindowBytes of reliable messages are out unacknowledged:
+// a slow line holds no more than that queued, and a message behind a burst
+// waits that much less. And while the client's ack keeps moving nothing is
+// resent: what waits is on its way (a lost message holds the ack where it
+// is). The controls: the ack moving lets the next ones go; a stuck ack lets
+// the resends go after the timeout.
+func TestBytesInFlightAndResendsWhileAcksMove(t *testing.T) {
+	sess := session.NewSession(nil, 9, 9, 1, 2, true)
+	frags := queueN(sess, 20, 1156)
+	r := NewRDPHandler(nil)
+	for i := 0; i < 30; i++ {
+		r.PreparePacket(sess)
+	}
+	n := sent(frags)
+	if inFlight := sess.Queue().InFlightBytes(); inFlight > SendWindowBytes || n < 10 || n >= 20 {
+		t.Fatalf("%d of 20 fragments out, %d bytes in flight: want under %d bytes and most of them", n, inFlight, SendWindowBytes)
+	}
+	// acknowledged: the rest go
+	conn := sess.Connection()
+	conn.SetClientAck(uint16(n), 0)
+	conn.Net().NoteAck(uint16(n), time.Now())
+	sess.Queue().RemoveReliables()
+	for i := 0; i < 30; i++ {
+		r.PreparePacket(sess)
+	}
+	if got := sent(frags); got != 20 {
+		t.Fatalf("after the ack of %d: %d sent, want 20", n, got)
+	}
+
+	// due for a resend, but the ack moved just now: held
+	q := sess.Queue()
+	for _, m := range q.GetUnacknowledged() {
+		m.LastSent = time.Now().Add(-time.Second)
+	}
+	if got := q.TakeResends(300*time.Millisecond, 16, 0); len(got) != 0 {
+		t.Fatalf("%d resent while the ack moves", len(got))
+	}
+	// the ack stuck past the timeout: they go
+	conn.Net().NoteAck(uint16(n), time.Now()) // the same ack: not a move
+	time.Sleep(310 * time.Millisecond)
+	if got := q.TakeResends(300*time.Millisecond, 16, 0); len(got) == 0 {
+		t.Fatal("nothing resent with the ack stuck past the timeout")
 	}
 }

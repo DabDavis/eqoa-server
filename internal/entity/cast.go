@@ -1633,7 +1633,7 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 		switch e.Kind {
 		case EffectHP:
 			if n := creatureResists(e.Resist, npc, arcaneDebuffed(e.Resist, npc, debuffScaled(e, npc, spellAmount(e, caster), now), now), now); n < 0 {
-				killed := w.spellHitLocked(caster, casterSess, npc, -n)
+				killed := w.spellHitHateLocked(caster, casterSess, npc, -n, e.HateOff)
 				// a life tap's heal (lifetap.go): what landed, after the
 				// con's cut (balance.go)
 				w.drainLocked(cs, caster, casterSess, e, w.dealtLocked(npc, caster, -n), now)
@@ -1693,6 +1693,14 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 // caster, the hate, and on a kill the XP and the faction hits. It reports
 // the kill.
 func (w *World) spellHitLocked(caster *Player, casterSess *session.Session, npc *NPC, n int) bool {
+	return w.spellHitHateLocked(caster, casterSess, npc, n, 0)
+}
+
+// spellHitHateLocked is spellHitLocked with hateOff percent of the damage
+// dealt making no hate (SpellEffect.HateOff): the rest is the hate, and the
+// hit angers the creature all the same (updateAggro's contact, its kind
+// called, its companion), so a hit of no hate still makes a fight.
+func (w *World) spellHitHateLocked(caster *Player, casterSess *session.Session, npc *NPC, n, hateOff int) bool {
 	if npc.Dummy != NotDummy {
 		// told, taken off nothing (dummy.go)
 		w.tellAmountLocked(caster, casterSess, npc.ServerID, -n)
@@ -1702,7 +1710,7 @@ func (w *World) spellHitLocked(caster *Player, casterSess *session.Session, npc 
 	n = w.dealtLocked(npc, caster, n) // balance.go
 	npc.HP = max(npc.HP-n, 0)
 	w.tellAmountLocked(caster, casterSess, npc.ServerID, -n)
-	w.updateAggro(npc, caster.ServerID, n)
+	w.updateAggro(npc, caster.ServerID, n-n*hateOff/100)
 	w.rootBreakLocked(npc, caster.Level) // root.go
 	log.Printf("Cast: %s's spell hit %s for %d (HP %d/%d)", caster.Name, npc.Name, n, npc.HP, npc.MaxHP)
 	if npc.HP > 0 {

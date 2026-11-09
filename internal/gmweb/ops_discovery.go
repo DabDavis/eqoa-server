@@ -79,7 +79,10 @@ func (s *Server) registerDiscoveryOps() {
 	s.addOp(&Op{
 		Name: "describe_table", Title: "Describe a table", Scope: scopeRead, Core: true,
 		Description: "One table's columns: type, key, what each means, the enumerations (race, class, world...) and " +
-			"bit flags (npc_type...) a column takes, and which table a column refers to. Read it before writing to a table.",
+			"bit flags (npc_type...) a column takes, and which table a column refers to. A column's look says what its " +
+			"number shows (a CHAR.ESF body, an item model or icon, a UI icon, a colour, a tint index: look_names lists " +
+			"what wears each id) and store whether a 32-bit id is kept signed (int32) or unsigned (uint32); palettes " +
+			"are the disc tints and the dyers' colours. Read it before writing to a table.",
 		Input: obj(map[string]any{"table": str("the table, as list_tables names it")}, "table"),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct{ Table string }
@@ -214,11 +217,16 @@ func (s *Server) describe(t *Table) map[string]any {
 			cols = append(cols, c)
 		}
 	}
-	return map[string]any{
+	out := map[string]any{
 		"name": t.Name, "label": t.Label, "group": t.Group, "help": t.Help, "live": t.Live,
 		"key": t.Key, "rowid": t.RowID, "title": t.Title, "rows": t.Count, "write": t.Write,
 		"columns": cols, "enums": usedEnums, "flags": usedFlags, "show": t.Show, "search": t.Search,
 	}
+	// the palettes its look columns draw (looks.go): the disc tints, the dyers' colours
+	if p := lookPalettes(t); p != nil {
+		out["palettes"] = p
+	}
+	return out
 }
 
 // searchResult is one thing search found.

@@ -9,7 +9,7 @@ import { Viewer } from '../lib/viewer.js';
 
 let worker = null, seq = 0;
 const waiting = new Map();
-const st = { open: false, label: '', kept: [], checked: false };
+const st = { open: false, label: '', kept: [], sizes: {}, checked: false };
 
 function call(op, args, transfer) {
   if (!worker) {
@@ -35,6 +35,7 @@ async function checkKept() {
   try {
     const s = await call('status');
     st.kept = s.kept;
+    st.sizes = s.sizes || {};
     st.open = s.open;
     st.label = s.label;
   } catch { /* no storage */ }
@@ -42,17 +43,27 @@ async function checkKept() {
 }
 
 export function discState() {
-  return { loaded: st.open, label: st.label, models: st.open || st.kept.includes('DATA/CHAR.ESF'), icons: st.open || st.kept.includes('DATA/ITEMICON.ESF'), items: st.open || st.kept.includes('DATA/ITEM.ESF'), visuals: st.open || st.kept.includes('DATA2/SPELLFX.CSF') };
+  const has = (f) => st.open || st.kept.includes(f);
+  return { loaded: st.open, label: st.label, models: has('DATA/CHAR.ESF'), icons: has('DATA/ITEMICON.ESF'), items: has('DATA/ITEM.ESF'), visuals: has('DATA2/SPELLFX.CSF'),
+    ui: has('DATA2/UI.CSF'), cust: has('DATA2/CHARCUST.CSF'), faces: has('DATA2/CHARFACE.CSF') };
+}
+
+// discReady is discState once the kept files are known.
+export async function discReady() {
+  await checkKept();
+  return discState();
 }
 
 async function openDisc(file) {
   toast('Reading ' + file.name + '…', 'info', 'It stays on this computer.');
   const out = await call('open', { file });
   visualsOnce = null;
+  forgetLooks();
   st.open = true;
   st.label = out.label;
   st.kept = out.kept;
   st.checked = true;
+  try { st.sizes = (await call('status')).sizes || {}; } catch { /* kept sizes unknown */ }
   return out;
 }
 
@@ -78,6 +89,7 @@ export async function render(box) {
       h('dt', null, 'This visit'), h('dd', null, s.loaded ? h('span', { class: 'badge ok' }, 'loaded: ' + st.label) : h('span', { class: 'badge' }, 'not loaded')),
       h('dt', null, 'Models'), h('dd', null, s.models ? 'available (character bodies and items)' : 'need the disc once'),
       h('dt', null, 'Item icons'), h('dd', null, s.icons ? 'available' : 'need the disc once'),
+      h('dt', null, 'Spell icons, armour'), h('dd', null, s.ui && s.cust ? 'available (the pickers show them)' : 'need the disc once'),
       h('dt', null, 'Spell visuals'), h('dd', null, s.visuals ? 'available (Spell visuals lists them)' : 'need the disc once'),
       h('dt', null, 'World map'), h('dd', null, s.loaded ? 'terrain is drawn zone by zone and kept' : 'zones drawn before are shown; new ones need the disc')));
   };
@@ -90,11 +102,12 @@ export async function render(box) {
         h('div', { class: 'row' }, pick, input),
         statusBox)),
       card('What is kept', h('div', { class: 'stack' },
-        h('p', null, 'So the models, the spell visuals and their preview work on your next visit without the disc, seven files are kept in this site\'s private storage in your browser (about 160 MB): CHAR.ESF, ITEM.ESF, ITEMICON.ESF, SPELLFX.CSF, FX.CSF, CHARCUST.CSF and CHARFACE.CSF. Map zones are kept as pictures once drawn.'),
+        h('p', null, 'So the models, the icons, the spell visuals and their preview work on your next visit without the disc, eight files are kept in this site\'s private storage in your browser (about 160 MB): CHAR.ESF, ITEM.ESF, ITEMICON.ESF, UI.CSF, SPELLFX.CSF, FX.CSF, CHARCUST.CSF and CHARFACE.CSF. Map zones and the pickers\' model pictures are kept as pictures once drawn.'),
         button('Forget them', { class: 'danger', onclick: async () => {
           if (!(await confirmBox({ title: 'Forget the kept files?', message: 'The models need the disc again next time, and the map is drawn again.', confirmLabel: 'Forget', danger: true }))) return;
           await call('forget');
           visualsOnce = null;
+          forgetLooks();
           await clearTiles();
           st.kept = []; st.open = false;
           draw();
@@ -141,7 +154,7 @@ function viewerCard(title, id, kind, note) {
   return card(title, viewerBox(title, id, kind, note));
 }
 
-function viewerBox(title, id, kind, note) {
+export function viewerBox(title, id, kind, note) {
   const canvas = h('canvas', { 'aria-label': title });
   const msg = h('div', { class: 'viewer-note' }, 'Loading…');
   const holder = h('div', { class: 'viewer' }, canvas, msg);
@@ -179,7 +192,7 @@ export async function itemPanel(item) {
   if (!s.icons && !s.items) return needDisc('Look', 'this item\'s icon and model');
   const parts = [];
   if (item.itemicon && s.icons) {
-    const c = h('canvas', { class: 'icon-cell big', width: 1, height: 1 });
+    const c = h('canvas', { class: 'icon-cell plate', width: 1, height: 1 }); // a 128x64 plate, at its own shape
     parts.push(h('div', { class: 'row' }, c, h('span', { class: 'muted small' }, 'Its icon, as the inventory shows it')));
     iconInto(c, item.itemicon);
   }
@@ -194,10 +207,91 @@ export async function iconInto(canvas, id) {
     if (!iconCache.has(id)) iconCache.set(id, call('icon', { id }));
     const img = await iconCache.get(id);
     if (img.missing) return;
-    canvas.width = img.w;
-    canvas.height = img.h;
+    // the part the inventory shows: VIWndList::DrawIcon blits its top-left 114x44
+    canvas.width = Math.min(114, img.w);
+    canvas.height = Math.min(44, img.h);
     canvas.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(img.data), img.w, img.h), 0, 0);
   } catch { /* no disc */ }
+}
+
+// ---- the pickers' pictures (lib/look.js): what is on the disc for a kind of
+// look, any surface of the picture files, and models drawn small (kept in
+// IndexedDB beside the map's zones, so a picker fills at once next time)
+
+const catalogs = new Map(), surfaces = new Map(), thumbs = new Map();
+
+function forgetLooks() {
+  catalogs.clear();
+  surfaces.clear();
+  thumbs.clear();
+}
+
+// lookCatalog is every id on the disc of a kind ('itemicon', 'ui', 'char',
+// 'item'): [{id, w, h, type}], ids unsigned.
+export async function lookCatalog(kind) {
+  await checkKept();
+  if (!catalogs.has(kind)) {
+    const p = call('catalog', { kind }).then((o) => o.ids);
+    catalogs.set(kind, p);
+    p.catch(() => catalogs.delete(kind));
+  }
+  return catalogs.get(kind);
+}
+
+// surfaceBitmap is a picture of a picture file ('ITEMICON', 'UI',
+// 'CHARCUST', 'CHARFACE', 'CHAR') by DictID as an ImageBitmap, or null; its
+// box is the part of it that is not clear ([x0, y0, x1, y1]).
+export function surfaceBitmap(file, id) {
+  const key = file + ':' + (Number(id) >>> 0);
+  if (!surfaces.has(key)) {
+    const p = (async () => {
+      await checkKept();
+      const img = await call('surface', { file, id: Number(id) | 0 });
+      if (!img || img.missing) return null;
+      const px = new Uint8ClampedArray(img.data);
+      let x0 = img.w, y0 = img.h, x1 = 0, y1 = 0;
+      for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) {
+        if (px[(y * img.w + x) * 4 + 3] === 0) continue;
+        if (x < x0) x0 = x;
+        if (y < y0) y0 = y;
+        if (x >= x1) x1 = x + 1;
+        if (y >= y1) y1 = y + 1;
+      }
+      const bmp = await createImageBitmap(new ImageData(px, img.w, img.h));
+      bmp.box = x1 > x0 ? [x0, y0, x1, y1] : [0, 0, img.w, img.h];
+      return bmp;
+    })();
+    surfaces.set(key, p);
+    p.catch(() => surfaces.delete(key));
+  }
+  return surfaces.get(key).catch(() => null);
+}
+
+const THUMB_FILE = { char: 'DATA/CHAR.ESF', item: 'DATA/ITEM.ESF', helm: 'DATA2/CHARCUST.CSF' };
+
+// modelThumb is a model ('char' a body, 'item' a held item, 'helm' a helm)
+// drawn small, as an ImageBitmap, or null: kept from before, else drawn by
+// the worker one at a time and kept.
+export function modelThumb(kind, id) {
+  const key = kind + ':' + (Number(id) >>> 0);
+  if (!thumbs.has(key)) {
+    const p = (async () => {
+      await checkKept();
+      const size = st.sizes[THUMB_FILE[kind]] || 0;
+      const ikey = `thumb|2|${kind}|${size}|${Number(id) >>> 0}`;
+      const kept = await tileGet(ikey);
+      if (kept?.missing) return null;
+      if (kept?.blob) return createImageBitmap(kept.blob);
+      if (!discState().models && kind !== 'helm') return null;
+      const out = await call('thumb', { kind, id: Number(id) | 0, size: 128 });
+      if (!out || out.missing) { if (size) tilePut(ikey, { missing: true }); return null; }
+      if (out.blob && size) tilePut(ikey, { blob: out.blob });
+      return out.bitmap;
+    })();
+    thumbs.set(key, p);
+    p.catch(() => thumbs.delete(key));
+  }
+  return thumbs.get(key).catch(() => null);
 }
 
 // ---- the stables' horseshoe, for the map's coaches

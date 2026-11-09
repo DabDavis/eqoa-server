@@ -31,6 +31,14 @@ type Column struct {
 	Section  string `json:"section,omitempty"`
 	Secret   bool   `json:"secret,omitempty"`
 	ReadOnly bool   `json:"readonly,omitempty"`
+	// Look is what a column's number shows (looks.go): a picture off the
+	// GM's disc, a colour, a palette index; the page draws a picker for it.
+	Look string `json:"look,omitempty"`
+	// Store is how a 32-bit id or colour is kept: int32 (signed, as most
+	// DictIDs are and a zigzag field needs) or uint32 (0xRRGGBBAA colours and
+	// the columns the server itself writes unsigned). The game takes the low
+	// 32 bits of either; the page writes the column's own form.
+	Store string `json:"store,omitempty"`
 }
 
 // Table is one table.

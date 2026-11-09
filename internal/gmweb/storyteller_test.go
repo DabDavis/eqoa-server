@@ -272,7 +272,7 @@ func TestNothingInTheGameReadsTheStorytellers(t *testing.T) {
 func TestTheStorytellersAllowlistIsTheOneMeant(t *testing.T) {
 	f := newFixture(t)
 	want := []string{"audit_log", "clone_row", "count_rows", "delete_row", "describe_table", "get_row", "guide", "insert_row",
-		"list_tables", "lookup", "query_rows", "quest_get", "quest_list", "revert_change", "server_status", "update_row"}
+		"list_tables", "look_names", "lookup", "query_rows", "quest_get", "quest_list", "revert_change", "server_status", "update_row"}
 	var got []string
 	for name := range storytellerOps {
 		got = append(got, name)

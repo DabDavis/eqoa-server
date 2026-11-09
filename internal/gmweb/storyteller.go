@@ -139,6 +139,7 @@ var storytellerOps = map[string]func(c *opCtx) error{
 	"count_rows":     storytellerNamesTable,
 	"get_row":        storytellerNamesTable,
 	"lookup":         storytellerNamesTable,
+	"look_names":     nil, // what wears each body and model, off a storyteller's own tables alone (looks.go)
 	"quest_list":     nil, // every quest; who has one only as counts
 	"quest_get":      nil, // one quest whole, but who has it (its handler leaves that out)
 	"audit_log":      storytellerAudit,

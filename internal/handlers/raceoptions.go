@@ -73,6 +73,28 @@ func (h *RaceOptionsHandler) HandleRaceOptions(sess *session.Session, msg *proto
 	return nil
 }
 
+// resendPregameExtras sends a client that asked for them at character select
+// creation's races, the races' options and the looks again, at a login's world
+// entry (SendMemoryDump). They went out on the lobby's connection after its
+// answers, and a client that selects its character before they have all come
+// loses the rest with that connection (it closes it at the promotion), its
+// world then drawing no race's look, option body or held items: vanilla's
+// `eqoa play` selects a second after its list, and on a loaded box a Wisp
+// showed as a plain human (2026-11-09). A PS2 asked for none and is sent none.
+func (h *CharacterHandler) resendPregameExtras(sess *session.Session) {
+	if sess.CreationAsked() {
+		SendCreationRaces(sess)
+	}
+	if !sess.RaceLooks() {
+		return
+	}
+	sess.RaceDataAgain()
+	entity.SendRaceOptions(sess)
+	if h.gameWorld != nil && h.store != nil && h.store.DB() != nil {
+		h.gameWorld.RefreshRaceLooks(h.store.DB(), sess)
+	}
+}
+
 // raceOptionsMark opens the choices a client of the race options writes after
 // 0x002B's own fields: 'R', then a u8 version (1), a u8 count and each choice,
 // its row's key (a u8 byte count and UTF-8) and a u8 step.

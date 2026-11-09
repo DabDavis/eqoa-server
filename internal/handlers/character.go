@@ -1800,6 +1800,10 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 	h.SendNoCollideList(sess)
 	h.SendBuddyList(sess)
 
+	// what the client asked for at character select, again on this connection
+	// (raceoptions.go)
+	h.resendPregameExtras(sess)
+
 	// Initialize state channel 0 from Player struct
 	h.initPlayerStateChannel(sess, player)
 

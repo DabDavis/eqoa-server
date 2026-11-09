@@ -1300,7 +1300,7 @@ func TestAnNPCSetOnAnotherFightsAndIsFoughtBack(t *testing.T) {
 	for _, n := range []*NPC{brute, guard, mage} {
 		n.HP, n.MaxHP = 100000, 100000
 	}
-	if name, ok := r.w.SetNPCOn(brute.ServerID, "gnoll guard", 30); !ok || name != "Gnoll Guard" {
+	if name, ok := r.w.SetNPCOn(brute.ServerID, "gnoll guard", 30, false); !ok || name != "Gnoll Guard" {
 		t.Fatalf("SetNPCOn: %q %v", name, ok)
 	}
 	for d := time.Duration(0); d <= 20*time.Second; d += 100 * time.Millisecond {
@@ -1316,7 +1316,7 @@ func TestAnNPCSetOnAnotherFightsAndIsFoughtBack(t *testing.T) {
 	if mage.CurrentEnemy != 0 || mage.HP != mage.MaxHP {
 		t.Errorf("the control: enemy %d, HP %d of %d", mage.CurrentEnemy, mage.HP, mage.MaxHP)
 	}
-	if _, ok := r.w.SetNPCOn(brute.ServerID, "Nobody Here", 30); ok {
+	if _, ok := r.w.SetNPCOn(brute.ServerID, "Nobody Here", 30, false); ok {
 		t.Error("SetNPCOn found a Nobody Here")
 	}
 }

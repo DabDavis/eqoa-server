@@ -132,6 +132,11 @@ type TriggerStep struct {
 	// each spawn within the step's radius (0: the run's reach), in its world (the user,
 	// 2026-11-08: "spawn nagafen attacking mr moogie")
 	Target string `json:"target,omitempty"`
+	// Casts (sic): they fight the target by their whole class template, its casts and
+	// specials too (entity.SetNPCOn; the user, 2026-11-09: Tunare, "a strong druid god",
+	// fights Mr. Moogie with a druid's spells); without it a fight between two NPCs is their
+	// melee alone
+	Casts bool `json:"casts,omitempty"`
 	// Empty (clock): its seconds with no player within the run's reach end the clock at once
 	Empty float64 `json:"empty,omitempty"`
 }

@@ -11540,55 +11540,70 @@
     {
      "kind": "talk",
      "target": "Trillon Zeber",
-     "journal": "Choose your level 49 path reward from Trillon Zeber.",
+     "journal": "Choose your level 49 path ability from Trillon Zeber.",
      "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
-     "choose": "Which do you take?",
+     "choose": "Which ability do you take?",
      "choices": [
       {
-       "answer": "Boundless Mind and the Mithril Eagle Rod",
+       "answer": "Boundless Mind",
        "says": "Then it is yours.",
        "rewards": {
         "spells": [
          "Boundless Mind"
-        ],
-        "items": [
-         "Mithril Eagle Rod"
         ]
        }
       },
       {
-       "answer": "Boundless Mind and the Glory of Elddar",
+       "answer": "Infinite Mind",
        "says": "Then it is yours.",
        "rewards": {
         "spells": [
-         "Boundless Mind"
-        ],
+         "Infinite Mind"
+        ]
+       }
+      },
+      {
+       "answer": "Power Flux",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Flux"
+        ]
+       }
+      },
+      {
+       "answer": "Power Stream",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Stream"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Trillon Zeber",
+     "journal": "Choose your level 49 weapon from Trillon Zeber.",
+     "says": "And your weapon?",
+     "choose": "Which weapon do you take?",
+     "choices": [
+      {
+       "answer": "The Glory of Elddar",
+       "says": "It is yours.",
+       "rewards": {
         "items": [
          "Glory of Elddar"
         ]
        }
       },
       {
-       "answer": "Infinite Mind and the Mithril Eagle Rod",
-       "says": "Then it is yours.",
+       "answer": "The Mithril Eagle Rod",
+       "says": "It is yours.",
        "rewards": {
-        "spells": [
-         "Infinite Mind"
-        ],
         "items": [
          "Mithril Eagle Rod"
-        ]
-       }
-      },
-      {
-       "answer": "Infinite Mind and the Glory of Elddar",
-       "says": "Then it is yours.",
-       "rewards": {
-        "spells": [
-         "Infinite Mind"
-        ],
-        "items": [
-         "Glory of Elddar"
         ]
        }
       }
@@ -11596,7 +11611,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The enchanter's choice of the level's reward, from Trillon Zeber once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The enchanter's choice of the level's reward, from Trillon Zeber once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level). The Boon path's two (Power Stream, Power Flux) are the level's abilities too, the choice an ability then a weapon as the classes of four abilities have it: EQOA-Data's enchanter list calls them CM, where EQOAEmu's workbook has them scrolls from a quest as Boundless and Infinite Mind are, and EQOA-Data's own 60 epic names the Boon path (petition 1366, 2026-11-09)."
   },
   {
    "key": "30,40,49/group-3-good/L30-ranger",
@@ -13039,53 +13054,68 @@
     {
      "kind": "talk",
      "target": "Gribble Greencog",
-     "journal": "Choose your level 49 path reward from Gribble Greencog.",
+     "journal": "Choose your level 49 path ability from Gribble Greencog.",
      "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
-     "choose": "Which do you take?",
+     "choose": "Which ability do you take?",
      "choices": [
       {
-       "answer": "Boundless Mind and the Glory of Elddar",
+       "answer": "Boundless Mind",
        "says": "Then it is yours.",
        "rewards": {
         "spells": [
          "Boundless Mind"
-        ],
+        ]
+       }
+      },
+      {
+       "answer": "Infinite Mind",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Infinite Mind"
+        ]
+       }
+      },
+      {
+       "answer": "Power Flux",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Flux"
+        ]
+       }
+      },
+      {
+       "answer": "Power Stream",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Stream"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Gribble Greencog",
+     "journal": "Choose your level 49 weapon from Gribble Greencog.",
+     "says": "And your weapon?",
+     "choose": "Which weapon do you take?",
+     "choices": [
+      {
+       "answer": "The Glory of Elddar",
+       "says": "It is yours.",
+       "rewards": {
         "items": [
          "Glory of Elddar"
         ]
        }
       },
       {
-       "answer": "Boundless Mind and the Mithril Eagle Rod",
-       "says": "Then it is yours.",
+       "answer": "The Mithril Eagle Rod",
+       "says": "It is yours.",
        "rewards": {
-        "spells": [
-         "Boundless Mind"
-        ],
-        "items": [
-         "Mithril Eagle Rod"
-        ]
-       }
-      },
-      {
-       "answer": "Infinite Mind and the Glory of Elddar",
-       "says": "Then it is yours.",
-       "rewards": {
-        "spells": [
-         "Infinite Mind"
-        ],
-        "items": [
-         "Glory of Elddar"
-        ]
-       }
-      },
-      {
-       "answer": "Infinite Mind and the Mithril Eagle Rod",
-       "says": "Then it is yours.",
-       "rewards": {
-        "spells": [
-         "Infinite Mind"
-        ],
         "items": [
          "Mithril Eagle Rod"
         ]
@@ -13095,7 +13125,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The enchanter's choice of the level's reward, from Gribble Greencog once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The enchanter's choice of the level's reward, from Gribble Greencog once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level). The Boon path's two (Power Stream, Power Flux) are the level's abilities too, the choice an ability then a weapon as the classes of four abilities have it: EQOA-Data's enchanter list calls them CM, where EQOAEmu's workbook has them scrolls from a quest as Boundless and Infinite Mind are, and EQOA-Data's own 60 epic names the Boon path (petition 1366, 2026-11-09)."
   },
   {
    "key": "30,40,49/group-5-evil/L30-warrior",

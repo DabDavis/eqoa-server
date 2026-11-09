@@ -569,7 +569,7 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 
 	// A GM's approved character transfer applies now, before this login reads
 	// the character (transfers.go): no logout save can write over it here.
-	if h.applyTransfer(uint32(record.ServerID)) {
+	if h.applyTransfer(uint32(record.ServerID), sessionListSizes(sess)) {
 		if again, err := h.store.GetByServerID(charID); err == nil {
 			record = again
 		}
@@ -577,8 +577,9 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	// the No Rent items that vanish at logout go, before its items are read
 	// (norent.go)
 	h.vanishNoRent(uint32(record.ServerID))
-	// the kept items a character holds none of, before its items are read
-	h.giveKeptItems(uint32(record.ServerID))
+	// the kept items a character holds none of, before its items are read, in
+	// the room its client's lists have (itemlists.go)
+	h.giveKeptItems(uint32(record.ServerID), sessionListSizes(sess))
 
 	// the look it plays in, before anything reads the character
 	h.keepSelectedLook(record, data)
@@ -1637,6 +1638,10 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 	// list's capes after every list (capes.go)
 	SendCapesOffer(sess)
 	sendCapesList(sess, capes)
+	// and the larger pack and bank's, once, where this server holds more than
+	// CLIENT's 40 (itemlists.go): answered before a character is chosen, so
+	// the world's first dump is sent at the client's sizes
+	SendItemListsOffer(sess)
 	// and the race options', every session's once (raceoptions.go)
 	SendRaceOptionsOffer(sess)
 }
@@ -1760,7 +1765,9 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 	// forgotten (quests' AtWindow), which a respawn's dump does not do
 	Quests().LoggedIn(player.CharServerID)
 
-	h.queueMemoryDump(sess, player)
+	// a login's: the rows kept for the character come back where its client
+	// has room (itemlists.go)
+	h.queueMemoryDumpAt(sess, player, true)
 
 	// Send ignore list and buddy list after memory dump (matches eqoa.live)
 	h.SendNoCollideList(sess)
@@ -1791,6 +1798,13 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 // it after Camera1 and Time (SendMemoryDump); a respawn sends it alone
 // (respawnPlayer), as Sandstorm does.
 func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity.Player) {
+	h.queueMemoryDumpAt(sess, player, false)
+}
+
+// queueMemoryDumpAt is queueMemoryDump; login (SendMemoryDump's) also brings
+// back the rows kept for the character where its client has room
+// (itemlists.go), which no other dump does.
+func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *entity.Player, login bool) {
 	// The dump clears CLIENT's pet (m_petId, its name): told again after it
 	// (entity/pet.go)
 	if h.gameWorld != nil {
@@ -1815,11 +1829,20 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 			bankTunar = live.BankTunar
 		}
 	}
+	// The lists, as many records as the client holds (itemlists.go): a
+	// character with more keeps the rest, and a login's brings kept ones back
+	// where there is room. Read before the buffer is made, which their size
+	// sets.
+	packCap, bankCap := listCaps(sess)
+	invItems, bankItems, keptPack := h.fitItemLists(player.CharServerID, packCap, bankCap, login)
+
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeMemoryDump)
 	// MemoryDump can be 30KB+ with items/spells/hotkeys; write to a large
 	// buffer then SetData (the Writer drops what does not fit, silently: the
-	// auction's lists put up to ~5 KB more in it)
-	dumpBuf := make([]byte, 131072)
+	// auction's lists put up to ~5 KB more in it, and a record is at most
+	// about 900 bytes: a 64-character name and a 256-character description in
+	// UTF-16, its fields and stats)
+	dumpBuf := make([]byte, 131072+1024*(len(invItems)+len(bankItems)))
 	writer := buffer.NewWriter(dumpBuf)
 
 	// Write opcode in data
@@ -1889,23 +1912,7 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 		writeWideString(writer, line, 256)
 	}
 
-	// === Inventory + Bank sections ===
-	// Load items from database (charinventory joined with itempattern)
-	var invItems, bankItems []database.CharInventoryEntry
-	if h.inventoryStore != nil {
-		allItems, err := h.inventoryStore.GetCharacterItems(player.CharServerID)
-		if err != nil {
-			log.Printf("SendMemoryDump: inventory query error: %v", err)
-		} else {
-			for i := range allItems {
-				if allItems[i].Location == 1 {
-					bankItems = append(bankItems, allItems[i])
-				} else {
-					invItems = append(invItems, allItems[i])
-				}
-			}
-		}
-	}
+	// === Inventory + Bank sections === (read above: fitItemLists)
 
 	// The items prepared on the HUD's quick slots (gearsets.go)
 	quick := map[int]int{}
@@ -1931,7 +1938,9 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 	// The client's inventory list as this dump leaves it (key = position,
 	// counter = count): InteractItem's key resolves through it, and its reply
 	// carries the position in THIS list.
-	sess.SetInventoryList(newInvList(invItems))
+	packList := newInvListCap(invItems, packCap)
+	packList.kept = keptPack // a Lore item kept for it is one held (itemlist.go's loreRoom)
+	sess.SetInventoryList(packList)
 	// Dump the list the client will index into, so any disagreement about
 	// order shows up here.
 	for i := range invItems {
@@ -1952,7 +1961,7 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 	}
 	log.Printf("SendMemoryDump: wrote %d bank items", len(bankItems))
 	// The bank list keeps keys of its own, numbered the same way.
-	sess.SetBankList(newInvList(bankItems))
+	sess.SetBankList(newInvListCap(bankItems, bankCap))
 
 	var spells []database.CharSpellEntry
 	if h.spellbookStore != nil {
@@ -1982,6 +1991,12 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 			log.Printf("SendMemoryDump: debug wrote %d payload bytes to %s", len(dumpData)-2, path)
 		}
 	}
+	if writer.Remaining() < 256 {
+		log.Printf("SendMemoryDump: WARNING '%s''s dump filled its %d-byte buffer (%d left): it may be cut short", player.Name, writer.Length(), writer.Remaining())
+	}
+	// the sizes of its lists, first, to a client that holds more than CLIENT's
+	// (itemlists.go)
+	sendItemListsInForce(sess, packCap, bankCap)
 	msg.SetData(dumpData)
 	sess.Queue().AddWithSequence(msg)
 

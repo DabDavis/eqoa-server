@@ -159,7 +159,19 @@ func (a *AuctionHouse) SetGameWorld(gw *entity.World) {
 	if gw != nil {
 		a.isLive = gw.IsLivePlayer
 		gw.OnPlayerEntered(a.playerEntered)
+		database.SetBankSlotsOf(a.bankSlotsOf)
 	}
+}
+
+// bankSlotsOf is how many records holder's bank holds as its client keeps it,
+// while it is in the world (itemlists.go: CLIENT's 40, or more for a client
+// that holds more); 0 out of it (database.BankSlotsOf: then CLIENT's, and what
+// waits is filed at its login, as its client's list holds).
+func (a *AuctionHouse) bankSlotsOf(holder uint32) int {
+	if s, _ := a.live(holder); s != nil {
+		return bankCapOf(s)
+	}
+	return 0
 }
 
 // auctionHouse is the process's running house (Auctions), as Quests is

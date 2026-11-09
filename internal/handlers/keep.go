@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sort"
 	"sync/atomic"
 	"time"
 
@@ -49,10 +50,14 @@ type KeptExtras struct {
 	LootOpen bool `json:"loot_open,omitempty"`
 }
 
-// KeptList is an item list's copy (itemlist.go's invList).
+// KeptList is an item list's copy (itemlist.go's invList); Cap the records
+// the client's list holds (0, or a file from before it: CLIENT's 40).
 type KeptList struct {
 	Recs []KeptListRec `json:"recs"`
 	Next uint32        `json:"next"`
+	Cap  int           `json:"cap,omitempty"`
+	// Kept: the items of the rows kept beside the list (invList.kept)
+	Kept []int `json:"kept,omitempty"`
 }
 
 // KeptListRec is one of a KeptList's records.
@@ -69,10 +74,14 @@ func keptList(l *invList) *KeptList {
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	k := &KeptList{Next: l.next, Recs: make([]KeptListRec, 0, len(l.recs))}
+	k := &KeptList{Next: l.next, Recs: make([]KeptListRec, 0, len(l.recs)), Cap: l.cap}
 	for _, r := range l.recs {
 		k.Recs = append(k.Recs, KeptListRec{Key: r.key, Item: r.itemID, Pattern: r.patternID, Qty: r.qty})
 	}
+	for id := range l.kept {
+		k.Kept = append(k.Kept, id)
+	}
+	sort.Ints(k.Kept)
 	return k
 }
 
@@ -80,9 +89,15 @@ func (k *KeptList) list() *invList {
 	if k == nil {
 		return nil
 	}
-	l := &invList{next: k.Next, recs: make([]invRec, 0, len(k.Recs))}
+	l := &invList{next: k.Next, recs: make([]invRec, 0, len(k.Recs)), cap: k.Cap}
 	for _, r := range k.Recs {
 		l.recs = append(l.recs, invRec{key: r.Key, itemID: r.Item, patternID: r.Pattern, qty: r.Qty})
+	}
+	if len(k.Kept) > 0 {
+		l.kept = make(map[int]bool, len(k.Kept))
+		for _, id := range k.Kept {
+			l.kept[id] = true
+		}
 	}
 	return l
 }

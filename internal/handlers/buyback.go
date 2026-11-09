@@ -179,7 +179,7 @@ func (h *NPCWindowHandler) merchantList(player *entity.Player, npc *entity.NPC, 
 		return l
 	}
 	l.held = len(entries)
-	room := invListCap - len(l.wares)
+	room := merchantListCap - len(l.wares)
 	if len(entries) > room {
 		entries = entries[:room]
 	}
@@ -208,8 +208,8 @@ func (h *NPCWindowHandler) waresFor(player *entity.Player, npc *entity.NPC, cape
 	if classShop(npc) { // the buyer's class's alone, before the client's 40
 		wares = waresForClass(wares, int(player.Class))
 	}
-	if len(wares) > invListCap {
-		wares = wares[:invListCap]
+	if len(wares) > merchantListCap {
+		wares = wares[:merchantListCap]
 	}
 	return wares, nil
 }

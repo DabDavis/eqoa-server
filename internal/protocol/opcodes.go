@@ -620,8 +620,24 @@ const (
 	// never does, so a PS2 is never sent it. A client that jumps answers 1 (0: it
 	// does not), and the movement check takes a jump's arc from that player
 	// (movecheck.go). The server says 0 to a client it offered jumps to before a
-	// restart into a server without them. 0x7E29-0x7E2B are left for the jump.
+	// restart into a server without them.
 	OpcodeJump GameOpcode = 0x7E28
+
+	// OpcodeItemLists is not retail: a pack and a bank that hold more than
+	// CLIENT's 40 records each (world.pack_slots, world.bank_slots;
+	// entity/itemslots.go, handlers/itemlists.go). The server offers them after
+	// a session's first character list, once, only while it holds more: a u32
+	// 1, then u32 the pack's records and u32 the bank's, little-endian. A
+	// client that holds more answers 1 and the records it holds of each (u32,
+	// u32), or 0 to stop; the server takes each between 40 and its own. A PS2
+	// ignores the offer (CLIENT's dispatcher has no default case) and holds 40.
+	OpcodeItemLists GameOpcode = 0x7E29
+	// OpcodeItemListsInForce is the sizes in force, server to a client that
+	// answered OpcodeItemLists: u32 the pack's records, u32 the bank's, sent
+	// before every MemoryDump (a login, a respawn, a restart's), whose lists
+	// hold that many at most and which every add after it fills to. A client
+	// never told holds 40 of each. (0x7E2B is left unused, the item lists'.)
+	OpcodeItemListsInForce GameOpcode = 0x7E2A
 
 	// 0x7E10-0x7E16 were voice chat's (offer, config, roster, signal, room,
 	// lobby, room state), removed with it on 2026-11-08: left unused, as a

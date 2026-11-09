@@ -64,13 +64,13 @@ func TestTransferAppliesAtTheLogin(t *testing.T) {
 	if p := gw.CreatePlayer(sess, &database.CharacterRecord{ServerID: 9, CharName: "Idle"}); p == nil {
 		t.Fatal("CreatePlayer")
 	}
-	if h.applyTransfer(9) {
+	if h.applyTransfer(9, clientLists) {
 		t.Fatal("applied to a character in the world")
 	}
-	if !h.applyTransfer(7) {
+	if !h.applyTransfer(7, clientLists) {
 		t.Fatal("not applied")
 	}
-	if h.applyTransfer(7) || h.applyTransfer(8) {
+	if h.applyTransfer(7, clientLists) || h.applyTransfer(8, clientLists) {
 		t.Fatal("applied twice, or for a character with none")
 	}
 	var level, items int

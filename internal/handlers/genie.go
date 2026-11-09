@@ -436,31 +436,34 @@ func SetHeirloomsGiven(on bool) {
 
 // giveKeptItems is a login's gift, on a server that gives them: a character with
 // no Genie's Lamp gets one, one with no Heirloom Fang of the Wolf that
-// (wolffang.go), and one with no Summoning Portal that (summonportal.go).
-func (h *CharacterHandler) giveKeptItems(serverID uint32) {
+// (wolffang.go), and one with no Summoning Portal that (summonportal.go). room
+// is the records its client's pack and bank hold (itemlists.go's listCaps).
+func (h *CharacterHandler) giveKeptItems(serverID uint32, room listSizes) {
 	if !heirloomsGiven.Load() {
 		return
 	}
-	h.giveGenieLamp(serverID)
-	h.giveWolfFang(serverID)
-	h.giveSummoningPortal(serverID)
+	h.giveGenieLamp(serverID, room)
+	h.giveWolfFang(serverID, room)
+	h.giveSummoningPortal(serverID, room)
 }
 
 // giveGenieLamp gives a character with no lamp one at its login, before its
-// items are read: in the pack while it holds fewer than invListCap records
-// (worn ones among them), else the bank, else none (the next login tries
-// again). Nothing when there is no lamp record.
-func (h *CharacterHandler) giveGenieLamp(serverID uint32) {
+// items are read: in the pack while it holds fewer records than its client's
+// pack holds (room: worn ones among them), else the bank while it holds fewer
+// than its client's bank, else none (the next login tries again). Nothing when
+// there is no lamp record. A lamp kept for the character (itemlists.go) is one
+// held: none is made twice.
+func (h *CharacterHandler) giveGenieLamp(serverID uint32, room listSizes) {
 	if h.store == nil || h.inventoryStore == nil {
 		return
 	}
-	h.giveKeptItem(serverID, genieLampID(h.store.DB()), "Genie", "lamp")
+	h.giveKeptItem(serverID, genieLampID(h.store.DB()), "Genie", "lamp", room)
 }
 
 // giveKeptItem gives a character holding no item of record id one at its
 // login, as giveGenieLamp says (tag the log's word, noun the item's). Nothing
 // for record 0.
-func (h *CharacterHandler) giveKeptItem(serverID uint32, id int, tag, noun string) {
+func (h *CharacterHandler) giveKeptItem(serverID uint32, id int, tag, noun string, room listSizes) {
 	if id == 0 || h.store == nil || h.inventoryStore == nil {
 		return
 	}
@@ -476,8 +479,8 @@ func (h *CharacterHandler) giveKeptItem(serverID uint32, id int, tag, noun strin
 	}
 	location := 0
 	switch {
-	case pack < invListCap:
-	case bank < invListCap:
+	case pack < room.packOf():
+	case bank < room.bankOf():
 		location = 1
 	default:
 		log.Printf("%s: character %d's pack and bank are full: no %s this login", tag, serverID, noun)

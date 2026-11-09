@@ -395,6 +395,12 @@ func main() {
 	if cfg.World.Capes {
 		log.Printf("Capes: worn in equip slot 22 by a client that draws them (world.capes)")
 	}
+	entity.SetItemSlots(cfg.World.PackSlots, cfg.World.BankSlots) // entity/itemslots.go, handlers/itemlists.go
+	if entity.ItemSlotsOffered() {
+		pack, bank := entity.ItemSlots()
+		log.Printf("Item lists: the pack holds %d and the bank %d for a client that holds them; a PS2 holds %d of each (world.pack_slots, world.bank_slots)",
+			pack, bank, entity.ClientItemSlots)
+	}
 	gameWorld.SetJumps(cfg.World.Jump) // entity/jump.go, handlers/jump.go
 	handlers.SetJumps(cfg.World.Jump)
 	if cfg.World.Jump {

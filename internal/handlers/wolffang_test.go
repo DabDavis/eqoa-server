@@ -47,7 +47,7 @@ func TestALoginGivesTheFang(t *testing.T) {
 		}
 		return n
 	}
-	h.giveWolfFang(rec.ServerID)
+	h.giveWolfFang(rec.ServerID, clientLists)
 	if count(WolfFangName) != 0 {
 		t.Fatal("a fang with no record")
 	}
@@ -58,8 +58,8 @@ func TestALoginGivesTheFang(t *testing.T) {
 		t.Fatal(err)
 	}
 	for range 2 {
-		h.giveGenieLamp(rec.ServerID)
-		h.giveWolfFang(rec.ServerID)
+		h.giveGenieLamp(rec.ServerID, clientLists)
+		h.giveWolfFang(rec.ServerID, clientLists)
 	}
 	if count(WolfFangName) != 1 || count(GenieLampName) != 1 {
 		t.Fatalf("fangs %d, lamps %d in the pack; want one each", count(WolfFangName), count(GenieLampName))

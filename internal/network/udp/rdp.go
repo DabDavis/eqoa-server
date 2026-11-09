@@ -345,10 +345,15 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 
 	// The packet's number and what it acknowledges, read at once
 	// (session.NextPacketReport); the guaranteed ack's mask when the
-	// client's messages came out of order
+	// client's messages came out of order, to a client that answered the
+	// bug report offer (0x7E0E, any answer: every vanilla, never a PS2;
+	// Session.AckMasks). A PS2's CLIENT
+	// reads the mask as its own DRDP writes it, but no PS2 has been shown
+	// one; it keeps the plain ack, the newest taken with every one before it
+	// (its only cost a resend of what it sent past a hole).
 	report := conn.NextPacketReport()
 	includeAcks := bodyFlags&protocol.BodyFlagGuaranteedAck != 0
-	if includeAcks && report.Mask != 0 {
+	if includeAcks && report.Mask != 0 && sess.AckMasks() {
 		bodyFlags |= protocol.BodyFlagGuaranteedAckMask
 	}
 

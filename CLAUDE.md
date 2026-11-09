@@ -2387,6 +2387,26 @@ the whole set each time, an empty one as the pet goes. A change is an effect on,
 end moved), or the pet gone; the time left counting down is none. A session that never asks (every PS2,
 a vanilla build from before it) is sent nothing.
 
+**What made each figure, for a client that colours its numbers** (2026-11-09; `entity/numbertags.go`,
+`handlers/numbertags.go`, `claude-notes/number-colors-20261109.md`; a player's ask "to see/change colors of
+damage/procs/healing for player/pets similar to the way SS does", and the user: "we can add the number colors
+to extended menu"). CLIENT colours a 0x00DB by its sign and by who made it, and a pet's hit reaches its owner as
+the owner's own, so the server tags them. Beside 0x7E32 it offers opcode **0x7E38** (`OpcodeNumberTagsOffer`, a
+u8 1, the layout; not retail, ignored by a PS2). A client that colours them (vanilla's Extended > Number Colors)
+answers **0x7E39** (`OpcodeNumberTagsAnswer`, a u8: 1 while a row is not Default, 0 to stop; kept on the
+session, through a keep restart, never past a takeover's new session), and from a 1 on each 0x00DB it is sent of
+a figure its player or its player's pet made carries **one byte after the retail body**: low 7 bits 1 a swing, 2 a
+spell or ability (an area's too, a thrown potion, a pet's taunt or special), 3 a damage over time's tick, 4 a
+damage shield, 5 a proc (whatever a proc does: its hit, its heal, its ticks; a worn item's and a mark's at a hit),
+6 a heal (a tap's or drain's take, a pet's on itself or its owner), 7 a heal over time's tick; bit 7 the pet's.
+Every other figure goes as before: on the player by another (a creature's, a heal received, the sun, drowning,
+a spell's or a potion's price), a gift landed as the player's own cast (Buffer's, a town board's, Mr. Moogie's:
+`figuresGift`), a heal over time whose caster is gone, and every one to a session that never answered.
+**Every helper on the way to 0x00DB takes the kind** (`sendDamageIndication`, `tellAmountLocked`,
+`healLocked`, `spellHit*`, `petDamageLocked`, `petLandHitLocked`, `duelHurt*`), so a new call site must say
+what it is (0 for untagged); a cast carries whose its figures are (`CastSpell.figures`) into what lasts of it
+(`ActiveEffect.figures`, kept over a logout by buffsave). `numbertags_test.go` holds each path to its kind.
+
 **Quest marks for a client's map** (F3 pass 18; `handlers/questmarks.go`, `entity/questspots.go`;
 the user's "add quest markers for givers to the map too", "only if eligible for the class/level").
 Beside 0x7E01 the server offers opcode **0x7E03** (`OpcodeQuestMarkers`, a u32 1; not retail). A

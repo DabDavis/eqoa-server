@@ -1037,14 +1037,16 @@ func (w *World) PetTemplateSummary() string {
 }
 
 // petOnly is whether an ability is a pet's alone: a taunt, a buff, a root, a damage
-// over time, a heal on its owner or of its own share (an NPC of the template casts
-// none; a creature's damage over time is its debuff's).
+// over time, a heal on its owner (an NPC of the template casts none; a creature's
+// damage over time is its debuff's). A heal of its own share is a creature's too
+// since petition 1394 (abilitytimes.go: Mr. Moogie's Lay Hands), cast as its other
+// abilities are; a pet's comes by size (petSharePickLocked).
 func petOnly(a *templateAbility) bool {
 	switch {
 	case a.Kind == database.AbilityTaunt, a.Kind == database.AbilityBuff, a.Kind == database.AbilityRoot, a.Kind == database.AbilityDoT:
 		return true
-	case a.Kind == database.AbilityHeal && (a.HealPct > 0 || a.TargetOr() == database.AbilityOnOwner):
-		return true
+	case a.Kind == database.AbilityHeal && a.TargetOr() == database.AbilityOnOwner:
+		return true // a creature's heal of its share is its own now (abilitytimes.go: petition 1394)
 	}
 	return false
 }

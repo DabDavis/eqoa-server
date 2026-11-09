@@ -642,7 +642,56 @@ func (h *InteractHandler) answerTeleporter(sess *session.Session, p *entity.Play
 	}
 	log.Printf("Teleporter: %s to %s", p.Name, kid.label)
 	h.travel(sess, p, dest)
+	h.teleGroup(p, asked.npc, dest, kid.label)
 	return true
+}
+
+// teleGroupWords is what a member the trip takes along is told (the
+// picker's name, the trip's answer).
+const teleGroupWords = "Teleporter: %s takes the group to %s."
+
+// teleGroup takes p's group along on p's trip (petition 1408, Waldorf: "should
+// take the group at same time to same spot. I went to Xrags and took each of
+// my 4 group members to different parts of the place"): every member standing
+// by the Teleporter, as near as a box is answered from, alive, whose client
+// loads the trip's world, goes at once to p's landing, facing as p does. A
+// camp's landing is worked out from where its creatures stand at the moment,
+// so a trip a member took on their own landed apart. A member away from the
+// Teleporter stays where they are. Each is moved as a GM trigger's teleport
+// moves players (BeginWarp under the World's lock), not by travel, which is
+// for the session's own player.
+func (h *InteractHandler) teleGroup(p *entity.Player, npc entity.EntityID, dest entity.CoachDest, label string) {
+	gw := h.gameWorld
+	w, x, _, z, here := gw.NPCSpot(npc)
+	if !here {
+		return
+	}
+	for _, m := range gw.GroupMembers(p) {
+		if m.ServerID == p.ServerID {
+			continue
+		}
+		mw, mx, _, mz, dead, ok := gw.PlayerSpot(m)
+		if !ok || dead || mw != w || (mx-x)*(mx-x)+(mz-z)*(mz-z) > teleReach*teleReach {
+			continue
+		}
+		ms := gw.FindSessionByEntityID(m.ServerID)
+		if ms == nil || !ms.CharacterInWorld() || ms.PendingTermination() {
+			continue
+		}
+		if !CanLoadWorld(ms, dest.World) {
+			log.Printf("Teleporter: %s stays: their client cannot load world %d (%s's trip to %s)", m.Name, dest.World, p.Name, label)
+			continue
+		}
+		_, counter, changed, ok := gw.BeginWarp(m.ServerID, dest.World)
+		if !ok {
+			continue
+		}
+		SendClientMessage(ms, fmt.Sprintf(teleGroupWords, p.Name, label))
+		sendTeleportWarp(ms, dest.World, dest.X, dest.Y, dest.Z, dest.Facing, counter)
+		beginWorldLoad(ms, changed)
+		gw.UpdatePosition(m.ServerID, dest.X, dest.Y, dest.Z, dest.Facing)
+		log.Printf("Teleporter: %s goes with %s to %s", m.Name, p.Name, label)
+	}
 }
 
 // heading is CLIENT's heading from (x, z) toward (tx, tz) (VIVect3::HPR: the

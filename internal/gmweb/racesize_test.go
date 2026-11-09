@@ -122,7 +122,7 @@ func TestCustomRacesInThePanel(t *testing.T) {
 	}
 	for _, bad := range []map[string]any{
 		{"id": 9, "name": "Second Ogre", "wire_race": 9},
-		{"id": 31, "name": "Too Far", "wire_race": 9},
+		{"id": entity.LastCustomRace + 1, "name": "Too Far", "wire_race": 9},
 		{"id": 12, "name": "", "wire_race": 9},
 		{"id": 12, "name": "No Client Has", "wire_race": 10},
 		{"id": 12, "name": "Itself", "wire_race": 12},

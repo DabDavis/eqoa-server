@@ -173,12 +173,13 @@ func TestRealArchivistChangesEveryClassesPaths(t *testing.T) {
 	got := f.pick(box, 1)
 	f.wantMsgs("power for others", f.pick(boxID(got), 0), "remove:1", "remove:2", "remove:3", "remove:4", "remove:5",
 		"add:700207@1 flag 0", "add:700340@2 flag 0", "add:700468@3 flag 0", "add:701032@4 flag 0", "add:701031@5 flag 0",
-		"box:*It is done: the path of Power Jet is yours now.*")
+		"box:*It is done: the path of Power Jet is yours now.*", // past a box's 217 with the 49s: cut between sentences
+		"box:Into it: Power Boon, Power Jet, Power Surge, Power Stream, Power Flux.")
 	_, box = f.paths(enc...)
 	got = f.pick(box, 0)
 	f.wantMsgs("self power again", f.pick(boxID(got), 0), "remove:1", "remove:2", "remove:3", "remove:4", "remove:5",
 		"add:700215@1 flag 0", "add:700328@2 flag 0", "add:700462@3 flag 0", "add:700575@4 flag 0", "add:700618@5 flag 0",
-		"box:*It is done: the path of Expansive Mind*")
+		"box:*It is done: the path of Expansive Mind*", "box:Into it: Spacious Mind, Expansive Mind, Limitless Mind, Boundless Mind, Infinite Mind.")
 
 	// petition 1366, on a database petfix166_20261109.py has made right (the
 	// level 49 reward offering the Boon path's Power Stream and Power Flux):

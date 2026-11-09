@@ -143,6 +143,13 @@ func (w *World) broadcastNPCSwingLocked(npc *NPC, target EntityID, ms, fx uint32
 	// a creature faces what it swings at or casts on, so a rogue behind it
 	// while it fights another may backstab (backstab.go)
 	w.faceLocked(npc, target)
+	w.broadcastNPCCastLocked(npc, target, ms, fx, others...)
+}
+
+// broadcastNPCCastLocked is broadcastNPCSwingLocked's 0x00B1 with the NPC
+// left facing as it stands (Buffer's casts, buffer.go: a town's NPC keeps
+// facing its plaza).
+func (w *World) broadcastNPCCastLocked(npc *NPC, target EntityID, ms, fx uint32, others ...EntityID) {
 	if w.SessionManager == nil {
 		return
 	}

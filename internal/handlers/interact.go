@@ -44,6 +44,8 @@ type InteractHandler struct {
 	genie *Genie
 	// portal is the Summoning Portals' talk (summonportal.go)
 	portal *Portal
+	// buffer is Buffer's talk (buffer.go); nil: an NPC named Buffer has nothing to say
+	buffer *Buffer
 
 	// dialogLines is npcdialog (database.NPCDialog): what a town's people and
 	// the guards say (entity/dialog.go). Nil: they say nothing.
@@ -266,6 +268,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 
 	// The Teleporter (teleporter.go): every raid and every camp.
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.teleporterTalk(sess, player, npc) {
+		return nil
+	}
+
+	// Buffer (buffer.go): his five buffs, five hours each, a second after the talk.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.buffer.Talk(sess, player, npc) {
 		return nil
 	}
 

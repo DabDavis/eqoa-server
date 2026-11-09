@@ -45,6 +45,7 @@ type World struct {
 	portals     map[EntityID]*portalState         // the Summoning Portals standing, by their NPCs (summonportal.go)
 	metal       *metalDuel                        // the Metal Moogie standing and his duel (metalmoogie.go), nil none
 	metalTold   map[EntityID]time.Time            // when each player was last told he is another's (metalmoogie.go)
+	buffers     []*bufferCast                     // Buffer's casts on their way to landing (buffer.go)
 	leaving     []func(*Player)                   // OnPlayerLeaving
 	entered     []func(*session.Session, *Player) // OnPlayerEntered
 	respawn     RespawnFunc                       // OnPlayerRespawn (respawn.go)

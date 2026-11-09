@@ -24,6 +24,10 @@ const classTemplateAbilitiesHelp = `a JSON list, each {"kind": nuke | aoe | life
 	`"cast": the seconds its spell takes to cast in place of the record's whole seconds (0 the record's: 0.5 a half second), ` +
 	`"line": words its spell's name must hold, "spell": a spell's name to cast whatever the level, ` +
 	`"below": a heal's % of hit points under which it casts (50), "from": the NPC level from which it casts it (0 any); ` +
+	`a creature's: "heal_pct" on a heal: that % of its most hit points (100 whole) in place of its spell's figure, its spell (or "name") its look, ` +
+	`"cooldown": the least seconds from one cast to the next across its fights, its deaths and a restart that keeps the sessions (0 none), ` +
+	`"say": its line in /say as it lands, "proc_chance" / "proc_damage" / "proc_name": a melee proc its landing gives it for the rest of that fight ` +
+	`(that % of its melee hits that land do that much more, fixed); ` +
 	`a pet's (Pet class templates): "target": self | owner (where its heal or buff lands: itself, the default, or its owner), "spells_of": the class ` +
 	`0-14 whose spells it picks, "stat": the stat a buff raises (ac str sta agi dex wis int cha hp power), "element": a ` +
 	`harmful spell's (fire cold lightning poison disease arcane), "heal_pct": a heal of that % of its most hit points (cast ` +

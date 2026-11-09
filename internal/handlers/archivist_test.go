@@ -34,6 +34,7 @@ type archivistFixture struct {
 	spells  *database.SpellbookStore
 	inv     *database.InventoryStore
 	w       *entity.World
+	mgr     *session.Manager
 	sess    *session.Session
 	p       *entity.Player
 	windows *NPCWindowHandler
@@ -62,7 +63,7 @@ func newArchivistFixture(t *testing.T, db *database.SQLiteDB) *archivistFixture 
 	f := &archivistFixture{t: t, db: db, spells: database.NewSpellbookStore(db), inv: database.NewInventoryStore(db)}
 	f.w = entity.NewWorld()
 	mgr := session.NewManager()
-	f.w.SessionManager = mgr
+	f.w.SessionManager, f.mgr = mgr, mgr
 	f.sess = mgr.CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 0, 12), Port: 7012}, 12, 1, 1, 2, true)
 	f.p = &entity.Player{ServerID: 1012, CharServerID: rec.ServerID, Name: "Archivisttester", X: 100, Y: 54, Z: 100, Level: 30,
 		Class: archivistWizard, HP: 100, MaxHP: 100, Tunar: 1000}
@@ -214,7 +215,7 @@ func (f *archivistFixture) pick(box uint32, option byte) []string {
 func (f *archivistFixture) menu() uint32 {
 	f.t.Helper()
 	got := f.open(archivistObject)
-	want := "ask#*:" + archivistQuestion + "|Browse your scrolls|Grant basic spells|Clear my spellbook|Nothing, thank you"
+	want := "ask#*:" + archivistQuestion + "|Browse your scrolls|Grant basic spells|Grant path spells|Clear my spellbook|Nothing, thank you"
 	if len(got) != 2 || !archivistLike(got[0], want) || got[1] != "op:00D7" {
 		f.f("his question: %q, want %q and 0x00D7", got, want)
 	}
@@ -252,7 +253,8 @@ func archivistLike(got, want string) bool {
 }
 
 // archivistMsgs is what the session was sent and took: "box:", "ask#id:text|a|b",
-// "add:id@index flag N" (0x00B3), "remove:index" (0x00B8), "shop:id N" (0x00B7:
+// "add:id@index flag N" (0x00B3), "remove:index" (0x00B8), "lockout:index" (0x00CD
+// with a lockout left, "lockout:index over" with none), "shop:id N" (0x00B7:
 // the merchant and how many records), "red:"/"yellow:"/"colour:" lines, "item"
 // (0x003B) and "op:XXXX" for the rest.
 func archivistMsgs(s *session.Session) []string {
@@ -295,6 +297,14 @@ func archivistMsgs(s *session.Session) []string {
 			r.ReadUint32()
 			index, _ := r.Read7BitEncodedInt64()
 			out = append(out, fmt.Sprintf("remove:%d", index))
+		case protocol.OpcodeCooldownTimer:
+			index, _ := r.ReadByte()
+			r.ReadUint32()
+			if ms, _ := r.Read7BitEncodedInt64(); ms > 0 {
+				out = append(out, fmt.Sprintf("lockout:%d", index))
+			} else {
+				out = append(out, fmt.Sprintf("lockout:%d over", index))
+			}
 		case protocol.OpcodeMerchantBox:
 			id, _ := r.ReadUint32()
 			r.Read7BitEncodedInt64()

@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"sync/atomic"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
@@ -31,6 +32,16 @@ func SetCapes(on bool) { capesOn.Store(on) }
 // CapesOn reports whether this server has the cape slot (world.capes).
 func CapesOn() bool { return capesOn.Load() }
 
+// CapeTint is the colour the player's cape is drawn in: its dye where it has
+// one (an Armor Dyer's, #dye's: chardyes' cape slot, database.DyeCape), else
+// its record's own colour (CapeColor, 0 the art's own).
+func (p *Player) CapeTint() uint32 {
+	if c := p.Dyes[database.DyeCape]; c != 0 {
+		return c
+	}
+	return p.CapeColor
+}
+
 // capeWorn is one entry of OpcodeCapesInView: the id the client knows the
 // wearer by, the style and the colour.
 type capeWorn struct {
@@ -56,7 +67,7 @@ func (vs *VisibilityState) ResendCapes() {
 func (w *World) capesInViewLocked(sess *session.Session, me *Player) []capeWorn {
 	var out []capeWorn
 	if me.CapeStyle != 0 {
-		out = append(out, capeWorn{sess.PlayerObjectID(), me.CapeStyle, me.CapeColor})
+		out = append(out, capeWorn{sess.PlayerObjectID(), me.CapeStyle, me.CapeTint()})
 	}
 	vs, _ := sess.VisibilityState().(*VisibilityState)
 	if vs == nil {
@@ -70,7 +81,7 @@ func (w *World) capesInViewLocked(sess *session.Session, me *Player) []capeWorn 
 		if p == nil || p.CapeStyle == 0 || p.Invisible() {
 			continue
 		}
-		out = append(out, capeWorn{vs.ChannelObjectID[i], p.CapeStyle, p.CapeColor})
+		out = append(out, capeWorn{vs.ChannelObjectID[i], p.CapeStyle, p.CapeTint()})
 	}
 	return out
 }

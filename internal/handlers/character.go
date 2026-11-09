@@ -1537,7 +1537,8 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 	// makes the PS2 see half the characters.
 	writer.Write7BitEncodedInt64(int64(len(records)))
 
-	var capes []listCape // the characters' capes (capes.go)
+	var capes []listCape // the characters' capes, for a client that draws them (capes.go)
+	wantCapes := readsCapes(sess)
 	for _, c := range records {
 		// Name (int32 length prefix + UTF-8 string)
 		writer.WriteInt32(int32(len(c.CharName)))
@@ -1575,8 +1576,10 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 		// the live game's record to a client of its look, with the dyes
 		// (livelook.go); the disc's 32 bytes to every other
 		writer.WriteBytes(h.listGear(sess, uint32(c.ServerID), characterGear(items)))
-		// its cape, for a client that draws capes (capes.go)
-		if lc, ok := characterCape(uint32(c.ServerID), items); ok {
+		// its cape, for a client that draws capes (capes.go), in its dye if it
+		// has one
+		if lc, ok := characterCape(uint32(c.ServerID), items); ok && wantCapes {
+			lc.color = h.capeDye(lc.serverID, lc.color)
 			capes = append(capes, lc)
 		}
 	}

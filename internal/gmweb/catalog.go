@@ -104,7 +104,7 @@ func enums() map[string][]EnumValue {
 		// craftrecipes.rarity: the book's Rarity column (C, UC, R, UR)
 		"craftrarity": numbered("Common", "Uncommon", "Rare", "Ultra Rare"),
 		// chardyes.slot (database/chardyes.go, entity/livelook.go)
-		"dyeslot": numbered("Chest", "Bracer", "Gloves", "Legs", "Boots", "Helm", "Primary", "Secondary", "Shield", "Robe"),
+		"dyeslot": numbered("Chest", "Bracer", "Gloves", "Legs", "Boots", "Helm", "Primary", "Secondary", "Shield", "Robe", "Cape"),
 		// classtemplates.class (entity/classtemplate.go): -1 the NPC's own
 		"templateclass": append([]EnumValue{{-1, "The NPC's own (NPC classes)"}}, numbered("Warrior", "Ranger", "Paladin", "Shadow Knight", "Monk", "Bard", "Rogue", "Druid", "Shaman", "Cleric", "Magician", "Necromancer", "Enchanter", "Wizard", "Alchemist")...),
 	}

@@ -999,16 +999,26 @@ holds as a plain item comes off in the database alone before the bank, a trade, 
 (`TakeOff`, the merchant's `sell`). Both session flags (`Capes`, `CapesOffered`) are kept over a keep restart, and the
 look (`Player.CapeStyle`, `CapeColor`) is `wornLook`'s, so it comes back with the character. #template never puts a
 cape on (it fills CLIENT's slots 0-21 alone). The GM panel names wear 28 and equip slot 22 "Cape".
-**The data**: `tools/seed_capes.py [--list] [--colours] [--apply|--undo]` (logged in `cape_seed_log`; `--undo` exact
-but a record a character holds, and the AUTOINCREMENT counters) writes five capes, ids 717001-717005 (the Azure
-Knight's Cape, the Nightborne Cloak, the Violet Mantle, the Dreadlord's Cape and the Dreadlord's Mantle: styles 1-5,
-`STYLES`), colour 0, no stats, level 1, every class and race, NO TRADE, worth 0, no wear; `--colours` (off unless
-asked) adds the Crimson, Forest, Royal and Gilded Cloaks, style 2 in a colour each (717020-717023). A **Cape Tailor** (a
-merchant, 0x81) by the Heirloom Outfitters of each place (outfitters within 20 of each other are one place: 63 tailors
-for 76 outfitters), 2 beyond the first one away from its dyer or a quarter turn round to a clear spot, sells them all;
-not the outfitters themselves, whose list is the buyer's class's and the client holds 40 (a ranger's and a rogue's are
-37 already). NPCs are read at the start: apply it in the restart that brings the code (a keep swap's `before.sh`).
-`TestRealCapeTailorsSellEveryCape` (`EQOA_REAL_DB`, a copy with the seed applied) holds the tailors to it.
+**Heirloom capes, sold and dyed** (the user, 2026-11-09: "add heirloom capes to the genie and heirloom vendors, also
+allow dying"). A shop lists a cape only to a client that draws capes (`waresFor`: a PS2's list is what it always was,
+and its buys index that list). Every Heirloom Outfitter sells two after its own stock (an outfitter's list is the
+buyer's class's and the client holds 40, wares and buy-back lines together; a ranger's and a rogue's are 37, so two
+leave each a buy-back line); the genie sells every cape: to a client that draws capes its "Your wares" asks "Heirloom
+gear" (its outfitter's list, as before) or "Heirloom capes" (the npcitem list `capeStock`, 717000, no NPC's), and to
+every other client opens the gear at once, as it always did (`Genie.sellsCapes`, `World.SetGenieCatalog`). An Armor
+Dyer dyes the cape on a server with capes: chardyes' slot 10 (`database.DyeCape`), "All my armor" takes it in, it is the
+second of "Robe, cape, shield or weapons", "Take every dye off" takes its dye off, and #dye names it; a cape goes out
+(0x7E26, 0x7E27) in its dye, else its record's colour (`Player.CapeTint`, `capeDye`), so vanilla draws a dye as it draws
+the record's colour. Without capes the dyer's questions, #dye's slots, "all" and listing are what they were.
+**The data**: `tools/seed_capes.py [--list] [--apply|--undo]` (logged in `cape_seed_log`; `--undo` exact but a record a
+character holds, and the AUTOINCREMENT counters) writes nine heirloom capes, ids 717001-717005 (the Heirloom Azure
+Knight's Cape, Nightborne Cloak, Violet Mantle, Dreadlord's Cape and Dreadlord's Mantle: styles 1-5, `STYLES`, colour 0)
+and 717020-717023 (the Heirloom Crimson, Forest, Royal and Gilded Cloaks: style 2 in a colour each, `COLOURS`), no
+stats, level 1, every class and race, NO TRADE, worth 0, no wear, named "Heirloom ..." (an import never damps one:
+`database.IsImportedGear`); the Azure Knight's Cape and the Nightborne Cloak on every outfitter (the rows' last column),
+all nine on the genie's list; it refuses a plan that would put any class's outfitter list past 40. The records and
+lists are read at each request: no restart for the data. `TestRealHeirloomCapes` (`EQOA_REAL_DB`, a copy with the seed
+applied) holds the lists to it.
 
 ### Guilds are kept (`entity/guild.go`, `database/guilds.go`)
 

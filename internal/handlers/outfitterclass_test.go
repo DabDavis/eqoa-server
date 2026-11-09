@@ -31,7 +31,7 @@ func TestAnOutfittersListIsTheBuyersClasss(t *testing.T) {
 		npc.Name = shop
 		f.player.Class = class
 		var out []string
-		for _, w := range f.h.merchantList(f.player, npc).wares {
+		for _, w := range f.h.merchantList(f.player, npc, false).wares {
 			out = append(out, w.Pattern.ItemName)
 		}
 		return out

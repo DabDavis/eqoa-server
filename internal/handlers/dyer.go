@@ -27,7 +27,11 @@ import (
 // questions go under box mark 0x56000000 (beside the quests' 0x51, the
 // triggers' 0x52, the duels' 0x53, the rehabilitators' 0x54, the campfire
 // advisors' 0x55); CLIENT's answer box shows three of its six answers a page,
-// with More and Back.
+// with More and Back. On a server with capes (world.capes; capes.go) a dyer
+// dyes the cape as well (the user, 2026-11-09: "also allow dying"): "All my
+// armor" takes it in, and it is the second of "Robe, cape, shield or weapons";
+// its dye (chardyes' DyeCape) is the colour the clients that draw capes are
+// sent it in. Without capes the questions are what they always were.
 
 // dyerBoxMark marks a dyer's question's id.
 const dyerBoxMark = 0x56000000
@@ -60,6 +64,26 @@ var dyerChoices = []dyerChoice{
 	{label: "Robe, shield or weapons", sub: []dyerChoice{one("Robe", database.DyeRobe), one("Shield", database.DyeShield),
 		one("Primary weapon", database.DyePrimary), one("Secondary weapon", database.DyeSecondary)}},
 	{label: "Take every dye off"},
+}
+
+// dyerChoicesCapes are dyerChoices on a server with capes: the cape in "All my
+// armor", and the second of the robe's question.
+var dyerChoicesCapes = []dyerChoice{
+	{label: "All my armor", slots: []int{database.DyeChest, database.DyeBracer, database.DyeGloves, database.DyeLegs,
+		database.DyeBoots, database.DyeHelm, database.DyeRobe, database.DyeCape}},
+	dyerChoices[1],
+	{label: "Robe, cape, shield or weapons", sub: []dyerChoice{one("Robe", database.DyeRobe), one("Cape", database.DyeCape),
+		one("Shield", database.DyeShield), one("Primary weapon", database.DyePrimary), one("Secondary weapon", database.DyeSecondary)}},
+	dyerChoices[3],
+}
+
+// dyerMenu is what a dyer asks on this server: dyerChoicesCapes where capes
+// are worn (world.capes), else dyerChoices.
+func dyerMenu() []dyerChoice {
+	if entity.CapesOn() {
+		return dyerChoicesCapes
+	}
+	return dyerChoices
 }
 
 // dyerShades is a family's colours as the dyer offers them: the first
@@ -143,8 +167,12 @@ func (d *Dyer) Offer(sess *session.Session, p *entity.Player, speaker string) {
 		d.say(sess, speaker, "My vats are dry today.")
 		return
 	}
-	d.say(sess, speaker, "I dye armor any color you like, free of charge. Only those who see the live game's colors see a dye.")
-	d.ask(sess, p, dyerAsk{speaker: speaker, stage: askWhat}, "What shall I dye?", choiceLabels(dyerChoices))
+	greeting := "I dye armor any color you like, free of charge. Only those who see the live game's colors see a dye."
+	if entity.CapesOn() {
+		greeting = "I dye armor and capes any color you like, free of charge. Only those who see the live game's colors see a dye."
+	}
+	d.say(sess, speaker, greeting)
+	d.ask(sess, p, dyerAsk{speaker: speaker, stage: askWhat}, "What shall I dye?", choiceLabels(dyerMenu()))
 }
 
 func choiceLabels(cs []dyerChoice) []string {
@@ -195,11 +223,11 @@ func (d *Dyer) Answer(sess *session.Session, p *entity.Player, box uint32, optio
 	n := int(option)
 	switch a.stage {
 	case askWhat:
-		if n < len(dyerChoices) {
-			d.chosen(sess, p, a.speaker, dyerChoices[n], n)
+		if menu := dyerMenu(); n < len(menu) {
+			d.chosen(sess, p, a.speaker, menu[n], n)
 		}
 	case askWhich:
-		if sub := dyerChoices[a.parent].sub; n < len(sub) {
+		if sub := dyerMenu()[a.parent].sub; n < len(sub) {
 			d.chosen(sess, p, a.speaker, sub[n], a.parent)
 		}
 	case askFamily:
@@ -226,11 +254,29 @@ func (d *Dyer) Answer(sess *session.Session, p *entity.Player, box uint32, optio
 }
 
 func allDyeSlots() []int {
-	out := make([]int, database.DyeSlots)
-	for i := range out {
-		out[i] = i
+	return dyeSlotsHere()
+}
+
+// dyeSlotsHere is the dye slots this server has: every one, but the cape's on
+// a server without capes (world.capes), where a cape is never worn, so a dyer's
+// "Take every dye off" and #dye's "all" and its listing are what they were.
+func dyeSlotsHere() []int {
+	out := make([]int, 0, database.DyeSlots)
+	for i := 0; i < database.DyeSlots; i++ {
+		if i != database.DyeCape || entity.CapesOn() {
+			out = append(out, i)
+		}
 	}
 	return out
+}
+
+// dyeSlotNamesHere is dyeSlotsHere's words, #dye's help.
+func dyeSlotNamesHere() string {
+	var names []string
+	for _, s := range dyeSlotsHere() {
+		names = append(names, database.DyeSlotNames[s])
+	}
+	return strings.Join(names, " ")
 }
 
 // dye writes the slots' colour and puts the dyes on the character.

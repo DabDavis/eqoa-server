@@ -143,3 +143,37 @@ func TestNetLineNamesTheSessionAndIsRateLimited(t *testing.T) {
 		t.Fatalf("resends of the last minute: %d in %d packets, want 12 in 3", r.ResentMinute, r.ResentPktsMin)
 	}
 }
+
+// An acknowledged reliable message is not handed back to the message pool:
+// a resend of it can still sit in the queue (put back when its packet was
+// full), and the pool hands a message out again at once, to any session, its
+// number, type and bytes written over under that reference. It is marked
+// acknowledged instead, so the queued copy is not sent. The control: a
+// message the pool hands out is a fresh one.
+func TestAnAckedMessageIsNotPooledUnderAQueuedCopy(t *testing.T) {
+	s := netSession(t)
+	q := s.Queue()
+	m := queued(s, protocol.OpcodeServerReady) // seq 1, from the pool
+	q.GetPending()
+	// resent, and put back when its packet was full
+	m.LastSent = time.Now().Add(-time.Second)
+	again := q.TakeRetransmits(100*time.Millisecond, 4)
+	if len(again) != 1 || again[0] != m {
+		t.Fatalf("resend: %v", again)
+	}
+	q.RequeueBatch(again)
+
+	s.Connection().SetClientLastReceivedMessage(1)
+	q.RemoveReliables()
+	if !m.Acked {
+		t.Fatal("the acknowledged message is not marked so")
+	}
+	for i := 0; i < 64; i++ {
+		if got := protocol.GetMessage(); got == m {
+			t.Fatalf("the pool handed out the acknowledged message still queued (after %d gets)", i)
+		}
+	}
+	if q.PendingCount() != 1 || q.PeekPending()[0] != m || m.Sequence != 1 {
+		t.Fatalf("the queued copy changed: %d pending, seq %d", q.PendingCount(), m.Sequence)
+	}
+}

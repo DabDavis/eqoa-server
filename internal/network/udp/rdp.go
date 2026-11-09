@@ -336,6 +336,11 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 	// Reliable messages that don't fit are re-queued for the next tick.
 	for idx, msg := range pending {
 		var seq uint16
+		if msg.Type.IsReliable() && msg.Acked {
+			// acknowledged since it was queued again (a resend put back
+			// when its packet was full): nothing to send
+			continue
+		}
 		if msg.Type.IsReliable() {
 			// Use existing sequence if already assigned (from AddWithSequence)
 			// Otherwise assign a new one

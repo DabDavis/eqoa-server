@@ -1667,6 +1667,7 @@ case *entity.NPC:
 | `statChannelSyncSystem` | Every 20 ticks | Serialize stats to channel 0x42 |
 | `visibilitySystem` | Every 5 ticks | Assign nearby entities to channels 1-23, or the slots (and distance) the client asked for |
 | `powerSyncSystem` | Every 5 ticks | Others' power (0x7E02) to a client that asked with 0x7E01: its group's members, its target and its target's target, players only, when the set changed (`powerbars.go`) |
+| `petEffectsSystem` | Every 5 ticks | **The pet's effects** (0x7E33) to a client that asked with 0x7E32 (vanilla's row under the pet's bar, Extended > UI's Pet Effects; the user, 2026-11-09: "jibcro is showing pets buffs as if on him, put the buff icons under the pet name plate"): each effect on the player's pet with a name that has not run out (its own buffs, its owner's, its drain's share), its icon, time left and name, in the order they went on, when the set changed and at once after the ask; an empty set as the pet goes (`peteffects.go`). A PS2 never asks and is sent none. **The player's own effects window (0x43) is its own effects alone**: from petition 1041 (2026-11-06, Eatma: "Pet buffs for necro aren't showing up on buff display") until this, `buffChannelSyncSystem` sent the pet's after them, so every client, a PS2's too, showed them as the player's own |
 
 ### The game's balance (`entity/balance.go`, tables `balance*`)
 
@@ -2361,6 +2362,20 @@ client knows the player and a u8 power of 255, the whole set each time: each oth
 member (the roster's id, `groupFarID`'s stand-in out of sight), the target and the target's
 target (the ids the entity channel's bytes 59-62 carry). Players only: an NPC has no power.
 A session that never asks (every PS2, a vanilla build from before it) is sent nothing.
+
+**The pet's effects for a client's row under the pet's bar** (2026-11-09; `entity/peteffects.go`,
+`handlers/peteffects.go`; the user: "jibcro is showing pets buffs as if on him, put the buff icons
+under the pet name plate"). CLIENT shows a pet's effects nowhere, and its effects window (channel
+0x43) is the player's own effects alone again (petition 1041 had put the pet's after them, on every
+client). Beside 0x7E01 the server offers opcode **0x7E32** (`OpcodePetEffects`, a u32 1; not retail,
+ignored by a PS2). A client that draws them (eqoa-rust-client-vanilla's Pet Effects) answers 1 (0 to
+stop; kept over a keep restart, forgotten at a takeover), and from then on `petEffectsSystem` (every 5
+ticks) sends **0x7E33** (`OpcodePetEffectsData`) when the set changed and at once after the ask: a u8
+count, then each effect's u32 icon (a DictID, as 0x43's), u32 milliseconds left as the message is made
+and its name (a u8 byte count and UTF-8, at most 31 characters), in the order they went on, at most 16;
+the whole set each time, an empty one as the pet goes. A change is an effect on, off or cast again (its
+end moved), or the pet gone; the time left counting down is none. A session that never asks (every PS2,
+a vanilla build from before it) is sent nothing.
 
 **Quest marks for a client's map** (F3 pass 18; `handlers/questmarks.go`, `entity/questspots.go`;
 the user's "add quest markers for givers to the map too", "only if eligible for the class/level").

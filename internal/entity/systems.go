@@ -110,6 +110,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	t.mark(tsGroupSync)
 	w.powerSyncSystem()
 	w.raidRosterSystem()
+	w.petEffectsSystem(now) // the pet's effects, to the clients that draw them (peteffects.go)
 	t.mark(tsPowerSync)
 	w.tickSeenLocked()
 	return due, gates, gone
@@ -593,7 +594,10 @@ func (w *World) buffChannelSyncSystem() {
 		}
 		player.StatsDirty = false
 
-		buffData := SerializeBuffSlots(w.buffSlotsLocked(player, time.Now()))
+		// the player's own effects alone: its pet's are not on it, and a
+		// client that draws them under the pet's bar has them by 0x7E33
+		// (peteffects.go)
+		buffData := SerializeBuffUpdate(player)
 
 		conn := sess.Connection()
 		if conn != nil {

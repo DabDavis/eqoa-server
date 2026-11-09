@@ -673,13 +673,16 @@ func SerializeStatUpdate(p *Player) []byte {
 // given TickCount/20, which climbs and wraps: the client was told of up to 255
 // entries, and the channel changed every 2 s forever where a real server sends
 // only when an effect starts or ends.
+//
+// The effects are the player's own alone (p.Buffs). From 2026-11-06 to
+// 2026-11-09 its pet's were sent after them (petition 1041, Eatma: "Pet buffs
+// for necro aren't showing up on buff display"), and every client, a PS2's
+// too, showed them as the player's own (the user: "jibcro is showing pets
+// buffs as if on him, put the buff icons under the pet name plate"): a
+// client that draws them under the pet's bar is sent them by OpcodePetEffects
+// (peteffects.go).
 func SerializeBuffUpdate(p *Player) []byte {
-	return SerializeBuffSlots(p.Buffs)
-}
-
-// SerializeBuffSlots is SerializeBuffUpdate of the slots given: the player's
-// own, and its pet's after them (buffSlotsLocked).
-func SerializeBuffSlots(slots []BuffSlot) []byte {
+	slots := p.Buffs
 	n := min(len(slots), MaxEffects)
 	buf := make([]byte, 4+n*EffectRecordSize)
 	binary.LittleEndian.PutUint32(buf, uint32(n))

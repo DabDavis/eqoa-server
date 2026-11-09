@@ -1132,6 +1132,16 @@ in the world, whose rows went out by name, and the cap's on the appearance page,
 character's parts go out in row order (`lookParts`). A colour is a mode and three bytes
 (`Dye`: hue, saturation, lightness over the part's own shading; `Tone`: the part's own colours shifted); a row's first step
 is the body as it is. Change a palette, a body or a rect there and restart: vanilla is told at the next login.
+**Every body of each creature on the disc** is offered (the user, 2026-11-09: "lets add all the unique models to the races
+that have them as a customization option in char creation, like their faces, etc."; `claude-notes/race-options-all-20261109.md`
+has the survey: named NPCs' bodies, unused ones, what was left out and why): a body works if it has its own idle, walk, run,
+death, an attack and a cast (every one offered does; a body brings its own animations); exact copies (the same mesh,
+textures and clips under another id) are left out. **Steps are appended, never reordered** (a step's number is what a
+creation sends, and a keep restart does not resend the list). No creature body has face art that swaps (a goblin's head
+texture is its tribe's skin, a skeleton's skull its bone's colour): the faces come with the bodies. **Hair** does: a part
+whose texture is one of the 64x64 hair strips (the eight player hairs, the NPCs' black `B5632329`, auburn `EF0C9AEB` and
+white `87BFA9B5`) takes any of the eight (`hairSteps`, its first step Natural, 0: the body's own whatever it wears): the
+goblins', orcs', kappas' and the dryad's kin's hair, the kerrans' manes.
 - **Kept**: a body chosen is `characters.modelid`, which every client draws (a PS2 too), the entity channel's scale its size
   against the race's own (`Player.Body`: `OptionBodySize`); a colour or a texture past a row's first step is a **`charlook`**
   row (serverid, part = the row's key, kind 2/3, value), which only a client that asked is told. A character with no row and

@@ -3,6 +3,7 @@
 
 import { h } from './dom.js';
 import { lookupName } from './meta.js';
+import { lookCell } from './look.js';
 
 export function hex32(v) {
   if (v === null || v === undefined || v === '') return '';
@@ -78,6 +79,11 @@ export function duration(sec) {
 export function cell(meta, col, v) {
   if (v === null || v === undefined) return h('span', { class: 'faint' }, '—');
   if (col.enum) return String(enumLabel(meta, col, v));
+  // a look column: its picture or colour beside the number (lib/look.js)
+  if (col.look) {
+    const lc = lookCell(meta, col, v);
+    if (lc) return lc;
+  }
   if (col.flags) {
     const labels = flagLabels(meta, col, v);
     return labels.length ? labels.join(', ') : h('span', { class: 'faint' }, '0');

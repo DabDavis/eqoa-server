@@ -443,28 +443,40 @@ func (c *ClientStateData) restore(k KeptClient) {
 // resend at once (the client may have had none of them since the restart
 // began), the pending ones queued as they were. A message in both lists is one
 // message in both queues, as AddWithSequence puts it.
+//
+// Each keeps its number. Every reliable message here took one at its queueing
+// (AddWithSequence), and PreparePacket keeps a number only on a message whose
+// Queued stamp says it has one: since 2119f18 (2026-11-09 05:20 UTC, which
+// made 0 a number like any other), a restored message had no stamp, so it went
+// out under the next new number, and its own was sent no more. The client,
+// holding every message past one it never had, took nothing reliable again,
+// not a chat line, a target's con or a window, while the creatures moved on
+// their state channels, until its player logged in again; one it had came
+// twice. 0 is a number like any other here too.
 func (q *MessageQueue) restore(unacked, pending []KeptMessage) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
+	now := time.Now()
 	bySeq := make(map[uint16]*protocol.Message, len(unacked))
 	for _, k := range unacked {
-		m := restoredMessage(k)
+		m := restoredMessage(k, now)
 		q.reliable = append(q.reliable, m)
-		if k.Seq != 0 {
-			bySeq[k.Seq] = m
-		}
+		bySeq[k.Seq] = m
 	}
 	for _, k := range pending {
-		if m, ok := bySeq[k.Seq]; ok && k.Seq != 0 {
-			q.pending = append(q.pending, m)
-			continue
+		m, ok := bySeq[k.Seq]
+		if !ok {
+			m = restoredMessage(k, now)
 		}
-		q.pending = append(q.pending, restoredMessage(k))
+		m.LastSent = m.Queued // queued, never sent, as AddWithSequence leaves one
+		q.pending = append(q.pending, m)
 	}
 }
 
-func restoredMessage(k KeptMessage) *protocol.Message {
-	m := &protocol.Message{Type: protocol.MessageType(k.Type), Opcode: protocol.GameOpcode(k.Opcode), Sequence: k.Seq, Created: time.Now()}
+// restoredMessage is a kept message as the queue holds one: numbered (Queued
+// set, at the restore) and never sent since (LastSent zero: due at once).
+func restoredMessage(k KeptMessage, now time.Time) *protocol.Message {
+	m := &protocol.Message{Type: protocol.MessageType(k.Type), Opcode: protocol.GameOpcode(k.Opcode), Sequence: k.Seq, Created: now, Queued: now}
 	m.SetData(k.Data)
 	return m
 }

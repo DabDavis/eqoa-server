@@ -7,6 +7,7 @@ import (
 	"math"
 	"sort"
 	"strings"
+	"sync/atomic"
 	"time"
 	"unicode/utf8"
 
@@ -27,9 +28,16 @@ import (
 //   - a giver with a quest the player may take now (mayTakeLocked: enabled,
 //     its levels, its classes and races, the quests it requires finished,
 //     neither under way nor finished): kind 1, "!", each such quest with its
-//     levels, the start of the giver's offer and its rewards;
+//     levels, the start of the giver's offer and its rewards. A quest's name
+//     is marked once, at its nearest giver (one quest is given in each city:
+//     Armorcrafting by twelve smiths), and not at all while a quest of that
+//     name is under way or finished (one finished that may be done again
+//     aside); and only while its lowest level is near the player's
+//     (SetQuestMarksBelow: a level 60 may take some 150 quests, three in
+//     five of them for below level 50);
 //   - the NPC of a step the player has to do there (talk, show, give): kind
-//     2, "?", with the step's journal line and what it needs;
+//     2, "?", with the step's journal line and what it needs; a giver it is
+//     at shows no "!" besides;
 //   - a kill or loot step's creatures: kind 3, "?" too, at the nearest of
 //     their spawns (of every name the step counts), with the kills or drops
 //     done of those needed.
@@ -57,6 +65,39 @@ const (
 	maxMarksBytes  = 6000
 	markSpotsEvery = 30 * time.Second
 )
+
+// markBelowDefault is how far below the player's level a quest's lowest level
+// may be for its "!" while world.quest_marks_below is unset.
+const markBelowDefault = 10
+
+// questMarksBelow is world.quest_marks_below (SetQuestMarksBelow).
+var questMarksBelow atomic.Int64
+
+// SetQuestMarksBelow is world.quest_marks_below: how many levels below the
+// player's a quest's lowest level may be for its giver's "!" (a quest with
+// none is a level 1 quest). Unset or 0, markBelowDefault; below 0, any: every
+// quest the player may take is marked, however far below its level.
+func SetQuestMarksBelow(n int) { questMarksBelow.Store(int64(n)) }
+
+// QuestMarksBelow is the levels SetQuestMarksBelow set (markBelowDefault for
+// unset), or -1 for any.
+func QuestMarksBelow() int {
+	switch n := int(questMarksBelow.Load()); {
+	case n < 0:
+		return -1
+	case n == 0:
+		return markBelowDefault
+	default:
+		return n
+	}
+}
+
+// markLevelNear is whether a quest of lowest level min is near enough a
+// player of level level for its "!" (SetQuestMarksBelow).
+func markLevelNear(level, min int) bool {
+	n := QuestMarksBelow()
+	return n < 0 || max(min, 1) >= level-n
+}
 
 // questMark is one mark.
 type questMark struct {
@@ -280,9 +321,18 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 	}
 	byKey := map[string]*questMark{}
 	var marks []*questMark
+	// the spots a step's mark is at: a giver there shows its "?" alone
+	stepAt := map[string]bool{}
 	add := func(kind byte, names []string, pinned int, mq markQuest) {
 		for _, s := range near(names, pinned) {
-			k := fmt.Sprintf("%d %d %.0f %.0f", kind, s.World, s.X, s.Z)
+			spot := fmt.Sprintf("%d %.0f %.0f", s.World, s.X, s.Z)
+			if kind == markTake && stepAt[spot] {
+				continue
+			}
+			if kind == markStep {
+				stepAt[spot] = true
+			}
+			k := fmt.Sprintf("%d %s", kind, spot)
 			m := byKey[k]
 			if m == nil {
 				m = &questMark{kind: kind, world: s.World, x: s.X, z: s.Z, npc: strings.TrimSpace(s.Name), dist: dist(s)}
@@ -317,17 +367,65 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 			add(markHunt, st.Targets(), st.NPCID, mq)
 		}
 	}
+	// the quests to take, a name once: the names under way or finished (one
+	// that may be done again aside) marked by none, and each other name by the
+	// nearest of its givers (one in the player's world before one in another,
+	// before one standing nowhere)
+	taken := map[string]bool{}
+	for _, cq := range c.quests {
+		if qu := q.cat.byID[cq.QuestID]; qu != nil && (cq.Active() || cq.Done > 0 && !qu.Repeatable) {
+			taken[foldName(qu.Name)] = true
+		}
+	}
+	giverDist := func(giver string) float32 {
+		best := float32(math.MaxFloat32)
+		for _, s := range spots[foldName(giver)] {
+			if d := dist(s); d >= 0 && d < best {
+				best = d
+			} else if d < 0 && best == math.MaxFloat32 {
+				best = math.MaxFloat32 / 2
+			}
+		}
+		return best
+	}
 	givers := make([]string, 0, len(q.cat.givers))
 	for g := range q.cat.givers {
 		givers = append(givers, g)
 	}
 	sort.Strings(givers)
+	type takeAt struct {
+		qu   *database.Quest
+		dist float32
+	}
+	byName := map[string]takeAt{}
+	for _, g := range givers {
+		d := float32(-1)
+		for _, qu := range q.cat.givers[g] {
+			k := foldName(qu.Name)
+			if taken[k] || !markLevelNear(p.Level, qu.MinLevel) {
+				continue
+			}
+			if d < 0 {
+				d = giverDist(qu.Giver)
+			}
+			if b, seen := byName[k]; seen && b.dist <= d {
+				continue
+			}
+			if q.mayTakeLocked(look, p, c, qu) == "" {
+				byName[k] = takeAt{qu, d}
+			}
+		}
+	}
+	chosen := map[int]bool{}
+	for _, b := range byName {
+		chosen[b.qu.ID] = true
+	}
 	for _, g := range givers {
 		// in the order the giver offers them (nextOfferLocked): the ones never
 		// finished first, a finished repeatable one after
 		var takes []*database.Quest
 		for _, qu := range q.cat.givers[g] {
-			if q.mayTakeLocked(look, p, c, qu) == "" {
+			if chosen[qu.ID] {
 				takes = append(takes, qu)
 			}
 		}

@@ -1863,6 +1863,13 @@ reached through a TLS proxy on a host name of its own (`gm.<domain>` → `127.0.
 `gm.public_url` set to that address (the OAuth issuer, the cookie's path and `Secure`). Its own
 host matters: a page of any other path on the same origin could read the session's CSRF token,
 and on its own https host the session is a `__Host-` cookie no other host can set.
+**A browser session outlives a restart** (the user, 2026-11-10: "the gm panel is closing the session too
+soon. testers are trying to update and it boots them": every keep restart emptied the sessions' map, so a
+tester signed in again after each): table `gm_sessions` keeps each by its token's SHA-256 (never the token),
+with its account, CSRF token, address, times and authenticator sign-in; a cookie the map lacks is looked up
+there (`sessionStore.loadLocked`), its last use written at most once a minute, idle past `gm.session_idle`
+(2 h) or older than 24 h deleted; signing out, an account's sessions ended and an authenticator removed
+reach the rows. An enrolment begun before a restart starts again (its secret is not kept).
 
 - **Who**: `acctlevel >= gm.min_level` (1) signs in with the game password (bcrypt) and a
   TOTP code once enrolled (`totp.go`); `gm.admin_level` (2) adds raw SQL, settings, backups,

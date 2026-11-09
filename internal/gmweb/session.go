@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -86,18 +87,74 @@ type gmSession struct {
 	// one since.
 	MFA bool
 
-	// totpSecret is an authenticator being enrolled, not yet confirmed
+	// totpSecret is an authenticator being enrolled, not yet confirmed (not kept over
+	// a restart: an enrolment begun before one starts again)
 	totpSecret string
+	// saved is when Seen was last written to gm_sessions
+	saved time.Time
 }
 
+// sessionStore is the browser sessions: in memory, and kept in table gm_sessions
+// (the token by its hash, as gm_tokens keeps a token) so a server restart, a keep
+// restart's re-exec included, does not sign everyone out (the user, 2026-11-10: "the
+// gm panel is closing the session too soon. testers are trying to update and it boots
+// them": every restart had emptied the map). A session's last use is written at most
+// once a minute.
 type sessionStore struct {
 	mu   sync.Mutex
 	idle time.Duration
 	m    map[string]*gmSession
+	db   *sql.DB // nil: memory alone
 }
 
-func newSessionStore(idle time.Duration) *sessionStore {
-	return &sessionStore{idle: idle, m: map[string]*gmSession{}}
+// sessionSeenEvery is how often a busy session's last use is written to gm_sessions.
+const sessionSeenEvery = time.Minute
+
+func newSessionStore(idle time.Duration, db *sql.DB) *sessionStore {
+	return &sessionStore{idle: idle, m: map[string]*gmSession{}, db: db}
+}
+
+// dbExec runs a statement on gm_sessions, a failure logged: a session kept only in
+// memory still works until a restart.
+func (st *sessionStore) dbExec(query string, args ...any) int64 {
+	if st.db == nil {
+		return 0
+	}
+	res, err := st.db.Exec(query, args...)
+	if err != nil {
+		log.Printf("GM panel: sessions: %v", err)
+		return 0
+	}
+	n, _ := res.RowsAffected()
+	return n
+}
+
+// loadLocked is a session gm_sessions keeps for the token, put in memory; nil when it
+// has none or it has run out (and is then deleted). Must be called with st.mu held.
+func (st *sessionStore) loadLocked(token string, now time.Time) *gmSession {
+	if st.db == nil {
+		return nil
+	}
+	var (
+		s             gmSession
+		created, seen string
+		mfa           int
+	)
+	err := st.db.QueryRow(`SELECT accountid, username, csrf, ip, created, seen, mfa FROM gm_sessions WHERE hash = ?`, hashToken(token)).
+		Scan(&s.AccountID, &s.Username, &s.CSRF, &s.IP, &created, &seen, &mfa)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			log.Printf("GM panel: sessions: %v", err)
+		}
+		return nil
+	}
+	s.Token, s.Created, s.Seen, s.MFA, s.saved = token, parseStamp(created), parseStamp(seen), mfa != 0, parseStamp(seen)
+	if s.Created.IsZero() || now.Sub(s.Seen) > st.idle || now.Sub(s.Created) > sessionMaxAge {
+		st.dbExec(`DELETE FROM gm_sessions WHERE hash = ?`, hashToken(token))
+		return nil
+	}
+	st.m[token] = &s
+	return &s
 }
 
 func randomHex(n int) string {
@@ -118,6 +175,9 @@ func (st *sessionStore) create(accountID int, username, ip string, mfa bool) *gm
 	defer st.mu.Unlock()
 	st.pruneLocked(now)
 	st.m[s.Token] = s
+	s.saved = now
+	st.dbExec(`INSERT OR REPLACE INTO gm_sessions (hash, accountid, username, csrf, ip, created, seen, mfa) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		hashToken(s.Token), accountID, username, s.CSRF, ip, stamp(now), stamp(now), boolInt(mfa))
 	return s
 }
 
@@ -128,16 +188,24 @@ func (st *sessionStore) get(token string) *gmSession {
 	}
 	st.mu.Lock()
 	defer st.mu.Unlock()
+	now := time.Now()
 	s := st.m[token]
 	if s == nil {
-		return nil
+		// a session from before a restart: as gm_sessions keeps it
+		if s = st.loadLocked(token, now); s == nil {
+			return nil
+		}
 	}
-	now := time.Now()
 	if now.Sub(s.Seen) > st.idle || now.Sub(s.Created) > sessionMaxAge {
 		delete(st.m, token)
+		st.dbExec(`DELETE FROM gm_sessions WHERE hash = ?`, hashToken(token))
 		return nil
 	}
 	s.Seen = now
+	if now.Sub(s.saved) >= sessionSeenEvery {
+		s.saved = now
+		st.dbExec(`UPDATE gm_sessions SET seen = ? WHERE hash = ?`, stamp(now), hashToken(token))
+	}
 	return s
 }
 
@@ -145,6 +213,17 @@ func (st *sessionStore) end(token string) {
 	st.mu.Lock()
 	delete(st.m, token)
 	st.mu.Unlock()
+	st.dbExec(`DELETE FROM gm_sessions WHERE hash = ?`, hashToken(token))
+}
+
+// setMFA marks a session signed in with an authenticator (it has just enrolled one), in
+// memory and in gm_sessions.
+func (st *sessionStore) setMFA(s *gmSession) {
+	st.mu.Lock()
+	s.totpSecret = ""
+	s.MFA = true
+	st.mu.Unlock()
+	st.dbExec(`UPDATE gm_sessions SET mfa = 1 WHERE hash = ?`, hashToken(s.Token))
 }
 
 // endAccount ends every browser session of an account (its password changed,
@@ -157,6 +236,14 @@ func (st *sessionStore) endAccount(accountID int, keep string) int {
 		if s.AccountID == accountID && tok != keep {
 			delete(st.m, tok)
 			n++
+		}
+	}
+	// and those kept from before a restart that nobody has used since
+	if st.db != nil {
+		if keep == "" {
+			n = max(n, int(st.dbExec(`DELETE FROM gm_sessions WHERE accountid = ?`, accountID)))
+		} else {
+			n = max(n, int(st.dbExec(`DELETE FROM gm_sessions WHERE accountid = ? AND hash != ?`, accountID, hashToken(keep))))
 		}
 	}
 	return n
@@ -172,6 +259,7 @@ func (st *sessionStore) clearMFA(accountID int) {
 			s.MFA = false
 		}
 	}
+	st.dbExec(`UPDATE gm_sessions SET mfa = 0 WHERE accountid = ?`, accountID)
 }
 
 func (st *sessionStore) pruneLocked(now time.Time) {
@@ -180,6 +268,8 @@ func (st *sessionStore) pruneLocked(now time.Time) {
 			delete(st.m, tok)
 		}
 	}
+	// stamps are RFC 3339 in UTC, so they sort as text
+	st.dbExec(`DELETE FROM gm_sessions WHERE seen < ? OR created < ?`, stamp(now.Add(-st.idle)), stamp(now.Add(-sessionMaxAge)))
 }
 
 // bucketLimiter is a token bucket per key (an address, an account): burst

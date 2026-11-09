@@ -387,8 +387,13 @@ step done on the answer that takes it: a hand-in at once, offered only to one wh
 trigger, chance; GM panel "NPC deaths fire triggers"): a creature's death fires it where it fell, quietly (`Quiet`, no GM
 lines). A refused quest stands aside for a giver's next one for two minutes (`offerRotates`), and a repeatable finished is
 offered again at a shop's window. **In a template** (`classtemplates`): an ability of kind `healshield` (`below`: under that
-share of its hit points a melee hit on it heals it and 1 lands; arts and spells land as ever), and of kind `meleekind` (`melee_kind`, `taken_pct`: of
-each attack type's melee); `melee_pct` reaches 5000; a resist's kind may be a comma list. `npcs.unk_o` 1-14 is an NPC's
+share of its hit points a melee hit on it heals it and 1 lands; arts and spells land as ever), of kind `meleekind` (`melee_kind`, `taken_pct`: of
+each attack type's melee), and of kind `strip` (`entity/strip.go`, petition 1368, Mr. Moogie's "caster debuff ... that strips any and all
+buffs, including immunity to damage / god mode": on its clock at what it fights, a player or a pet, every beneficial effect ends as at its time
+(buffs, damage shields, heals over time, mitigations and invulnerabilities, speeds, forms, meals; a buff's price with it), the harmful, a price
+that gives nothing and the Boon left on, and a GM's `#testmode` turned off, logged; told in a line; `name` what its lines call it, `Dispel` for
+none, or a pinned spell's name, cast time and visual, nothing else of it; an older binary reads a template with one as unreadable, so the
+template's data goes in with the code); `melee_pct` reaches 5000; a resist's kind may be a comma list. `npcs.unk_o` 1-14 is an NPC's
 armour tint (`$Tints`, bytes 99-104 of its channel).
 
 **Zaoran Plateau rebuilt** (the user, 2026-11-08: "hunt down and rebuild zaoran plateau - the bosses, quests and rare

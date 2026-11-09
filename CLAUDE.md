@@ -1162,7 +1162,7 @@ white `87BFA9B5`) takes any of the eight (`hairSteps`, its first step Natural, 0
 goblins', orcs', kappas' and the dryad's kin's hair, the kerrans' manes.
 **Races 30 and 31** (2026-11-09, the owner: "lets add jael raethe as a playable race, they are floating monk, alien type
 creatures", then "lets add a wisp also as a playable race, the armor will form like a human and also the weapons swing like
-humans. like when humans are invis, but the wisp is inside the helm"): the Jal'Raeth (30, an Erudite, Erudin: they live on
+humans. like when humans are invis, but the wisp is inside the helm"): the Jal'Raeth (30, an Erudite, Highbourne: they live on
 Odus beside it) choose their robed, channeler's or knight's body; the Wisp (31, a western human, Qeynos) is a human of its sex
 whose row `wisp` is laid always (`OptionRow.Always`: its charlook row is written at any step and with no options block, so
 every client that asked is told its Wisps by name; the value is the will o' wisp's body, no texture, so an older client lays

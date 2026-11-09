@@ -896,3 +896,26 @@ func TestRehabTemplateNeverSpendsMoreThanItSpent(t *testing.T) {
 		t.Errorf("the control: %q %+v", got, p.Mastery)
 	}
 }
+
+// A reason is said lower-cased by its first letter, a letter past ASCII too.
+func TestRehabTemplateSkippedWords(t *testing.T) {
+	got := skippedItems([]entity.CMSkip{{ID: 1, Name: "Brawn 2", Why: "You must have Brawn 1 first."},
+		{ID: 2, Name: "Élan 1", Why: "Élan needs a calm mind."}, {ID: 3, Why: entity.CMSkipGone}, {ID: 4, Name: "Hearty 1"}})
+	want := []string{"Brawn 2 (you must have Brawn 1 first)", "Élan 1 (élan needs a calm mind)", "a mastery no longer offered", "Hearty 1"}
+	if strings.Join(got, "|") != strings.Join(want, "|") {
+		t.Errorf("%q", got)
+	}
+	var many []entity.CMSkip
+	for i := 0; i < 9; i++ {
+		many = append(many, entity.CMSkip{ID: i + 1, Name: fmt.Sprintf("R%d", i+1), Why: "No."})
+	}
+	if got := skippedItems(many); len(got) != 7 || got[6] != "and 3 more" {
+		t.Errorf("nine: %q", got)
+	}
+	if got := packList("Head:", []string{"a", "b"}, 100); strings.Join(got, "|") != "Head: a; b." {
+		t.Errorf("packed: %q", got)
+	}
+	if got := packList("Head:", []string{"aaaa", "bbbb", "cccc"}, 12); strings.Join(got, "|") != "Head: aaaa.|bbbb; cccc." {
+		t.Errorf("packed short: %q", got)
+	}
+}

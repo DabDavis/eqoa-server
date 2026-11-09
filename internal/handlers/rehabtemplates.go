@@ -5,6 +5,7 @@ import (
 	"log"
 	"sort"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/eqoa/pkg/pkg/buffer"
@@ -396,7 +397,8 @@ func skippedItems(sk []entity.CMSkip) []string {
 		case why == "":
 			parts = append(parts, s.Name)
 		default:
-			parts = append(parts, fmt.Sprintf("%s (%s)", s.Name, strings.ToLower(why[:1])+why[1:]))
+			first, size := utf8.DecodeRuneInString(why)
+			parts = append(parts, fmt.Sprintf("%s (%s)", s.Name, string(unicode.ToLower(first))+why[size:]))
 		}
 	}
 	return parts

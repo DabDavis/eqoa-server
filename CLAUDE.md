@@ -1283,6 +1283,36 @@ both asked before the place is looked for (`TravelBusy`: finding Dabrish walks e
 spent; a cast on its way ends at a keep restart, as any does. With the switch off a stone held only says "The Rock of Freeport is
 quiet here."
 
+### The Teleporter: every raid's way in and every XP camp (`handlers/teleporter.go`, `world.teleporter`, `tools/place_teleporter.py`)
+
+The owner, 2026-11-09: "lets add a portal npc named Teleporter. has destinations of all raids and camps", "put it next to
+dabrish". **`world.teleporter`** (off unless set; the Heirloom Test Server sets it) turns it on; off, an NPC named Teleporter says
+"My portals are closed on this server." Any NPC of the name is it (talked to before quests, as Dabrish). Talked to, it asks a box
+at a time (mark 0x5E000000; at most `maxDialogOptions` answers a box, which CLIENT shows three a page with its own More/Back) and
+sends the player on as a waysender's list does (`travel`: "Teleporter: Very well.", the counted warp, the world loaded), for
+nothing, at any level and whatever quest a raid's own way in asks first. The first box is **Raids** and the camps by levels
+("Camps, levels 1-25", ...). **Raids** (`teleRaids`, four places: Tunaria and the Isle of Dread; Odus, Lavastorm and the Plane
+of Sky; the Plane of Disease; Zaoran Plateau) are EQOA-Data's map's raid mobs, petition 1240's raid bosses and the scripted raids
+(`tools/guidegaps/`): Lady Vox, Siliskor, Skahyir, Cazic-Thule's Estate, Megaladon, Toxxulia, Lord Nagafen, the Quintessence of
+Veeshan, Veeshan's twins, Noroxus, Bertoxxulous and the twins, Queen Qy'tha, Rallos Zek, Razeal Moloch, Tallon Zek and Vallon Zek.
+Kratas (open sea, no dry ground within 450), the Archons (neither source's raid) and Mr. Moogie's GM triggers (13 from the
+Teleporter) are not offered. A raid is offered where a row of one of its bosses stands within 2,500 of its landing in its world
+(kept out of the world till its event, or dead, counts), named with their levels as the rows have them, and lands at its way in:
+the game's own trip's spot (`arrive`: the Nagafen Teleport Arrive, the Portal of the Twins, the Portal to the Lake, ZP1, through
+`World.ArrivalLanding` as a waysender's) or a place measured off the box's ground files (`at`: on dry ground the boss's walk
+reaches, out of its notice, clear of creatures by 40; the quests' own landings for Tallon's and Vallon's), facing the boss (or the
+pad Rallos Zek's portal wakes on). **Camps** are `#tele`'s (`campDests`, named by `teleCampNames`) whose anchor stands, and the GMs'
+own `/camp`s (`World.GMCampSpots`, named by their kinds and levels) but one within 300 of a `#tele` camp's anchor (petition 1293's
+statics on Xrag's rock are the xrag camp); sorted by the levels their creatures start at and folded into boxes of six
+(`levelFold`/`levelParts`: as even as they come, cut where the levels change where they can), landing where `#tele` lands
+(`World.CampLanding`: beside the camp out of its creatures' notice), facing it. Only worlds the client loads are offered
+(`CanLoadWorld`); a box is answered only within 30 of the Teleporter ("Come back to me to go"); what it offers is read again every
+minute, so a GM's new camp shows within one. **`tools/place_teleporter.py [--apply|--undo]`** stands it on Dabrish's line, 8 to the
+side his Armor Dyer stands on (4: the Teleporter beyond it), facing as he does, in Waysender Ilganis's look (the Erudite body in a
+robe, a staff), level 60, talked to only, with `npcmove` stands and `npcaggro` never, refusing a spot within 3.5 of another NPC,
+6 of the Summoning Portal's landing or 10 of Mr. Moogie; gm_audit rows, `--undo` exact. NPCs are read at the start: a keep
+restart's `before.sh`. `TestTeleporter*`, `TestLevelFoldShapes`, `TestRealTeleporterLandings` (`EQOA_GROUND_DIR`, `EQOA_REAL_DB`).
+
 ### Teleport orbs: a step onto a pad sends the player to its pair (`entity/orbs.go`, table `orbs`, `tools/seed_orbs.py`)
 
 The user, 2026-11-09: "the erudite starts that are in towers the orb wont teleport them yet to the main highbourne".

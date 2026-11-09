@@ -400,6 +400,7 @@ func (w *World) drawNearLocked(p *Player, now time.Time, onSight bool) {
 		// a hit's own entry, but no one else told: the NPCs of its own come
 		// only to a player's attack (socialaggro.go)
 		w.addThreatLocked(npc, p.ServerID, 1)
+		w.companionJoinLocked(npc, p.ServerID) // its pet, or its owner, with it (companion.go)
 		why := "attacks"
 		if !onSight {
 			why = "is drawn by the self-heal of"

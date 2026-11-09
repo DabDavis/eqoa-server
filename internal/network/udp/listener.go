@@ -333,6 +333,16 @@ func (l *Listener) handlePacket(data []byte, addr *net.UDPAddr, turn *packetTurn
 		})
 	}
 
+	// After the promotion only the promoted connection's own segments are
+	// this session's (session.PromotedOwn): the client's lobby connection,
+	// on the same instance, still sends a few (its acks of our last lobby
+	// messages, its reset), and nothing of them may reach the promoted
+	// connection's numbers or handlers.
+	if !session.PromotedOwn(sess, packet.NamesSoftwareEndpoint()) {
+		noteLobbyAfterPromotion(sess, packet)
+		return
+	}
+
 	// Update session activity
 	sess.UpdateActivity()
 
@@ -441,6 +451,22 @@ func (l *Listener) handlePacket(data []byte, addr *net.UDPAddr, turn *packetTurn
 
 	// Flush any queued messages immediately
 	l.flushSession(sess)
+}
+
+// noteLobbyAfterPromotion logs a lobby connection's packet that came to its
+// promoted session, the first few of a session and then one in 50.
+func noteLobbyAfterPromotion(sess *session.Session, packet *Packet) {
+	n := sess.NoteLobbyLate()
+	if n > 3 && n%50 != 0 {
+		return
+	}
+	var arrival, flushAck, gAck uint16
+	msgs := 0
+	if b := packet.Body; b != nil {
+		arrival, flushAck, gAck, msgs = b.ArrivalNumber, b.FlushAck, b.GuaranteedAck, len(b.Messages)
+	}
+	log.Printf("Promoted: %s's lobby connection sent packet %d after the promotion (its arrival %d, acks %d/%d, %d messages, header 0x%X): not the promoted connection's, left alone (%d so far)",
+		sess.Label(), n, arrival, flushAck, gAck, msgs, uint32(packet.Header.Flags), n)
 }
 
 // flushSession sends any queued messages for a session.

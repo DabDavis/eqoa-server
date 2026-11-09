@@ -1127,6 +1127,17 @@ func (w *World) showPetTauntLocked(pet *NPC, target EntityID) {
 // (proc.go). It reports a kill.
 func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
 	ps.npc.LastCombatTime = now
+	if ps.npc.Charm != nil {
+		// a charmed creature hits at its own strength, as a creature hits a
+		// creature (charmedHitLocked), its charm template's melee_pct on it
+		if w.petLandHitLocked(ps, t, ps.meleeOut(w.charmedHitLocked(ps.npc, t, meleeIntn)), now, false) {
+			return true
+		}
+		if w.petProcsLocked(ps, t, now) {
+			return true
+		}
+		return w.creatureShieldOnPetLocked(ps, t, now)
+	}
 	n := petMeleeHit(ps.npc, t, meleeIntn)
 	if ps.hitScale > 0 && ps.hitScale != 1 {
 		n = int(math.Round(float64(n) * ps.hitScale)) // a recorded kind's (petrotation.go)
@@ -1139,6 +1150,22 @@ func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
 		return true
 	}
 	return w.creatureShieldOnPetLocked(ps, t, now) // creatureshield.go
+}
+
+// charmedHitLocked is a charmed creature's melee hit on a creature at its own
+// strength ("they can stay mob strength", the user, 2026-11-02), as a creature
+// hits a creature (guards.go's npcHitNPCLocked): a roll of its level, with
+// what its effects add to its STR and DEX (its master's buffs), on a tank of
+// the foe's level (npcHitOnPet's AC ten a level and AGI its level, with what
+// the foe's own effects add), its level's damage share and its con's on the
+// foe (npcHitLocked), as the foe's template takes it. Not the foe's con on
+// it: a creature's hit takes none.
+func (w *World) charmedHitLocked(pet, t *NPC, intn func(int) int) int {
+	r := creatureRoll(pet.Level).withMods(pet.effectMods())
+	m := t.creatureMods()
+	top := int(math.Round(r.Top - r.ACSlope*float64(10*t.Level+m.AC) - agiSlope[archTank]*float64(t.Level+m.Agi)))
+	hit := top - r.Width + intn(r.Width+1)
+	return t.meleeTaken(w.npcHitLocked(pet, t.Level, max(hit, r.Floor, 1)))
 }
 
 // petDamageLocked is n of the pet's damage on its target, its owner's: the

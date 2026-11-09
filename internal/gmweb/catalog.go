@@ -1696,6 +1696,35 @@ var catalog = map[string]tableNote{
 			"source": {Label: "Source", Help: "gm, or seed for tools/seed_spell_gates.py's rows (its --undo deletes those no GM changed)"},
 		},
 	},
+	"orbs": {
+		Label: "Teleport orbs", Group: "World", Title: "name", Sort: "id",
+		Help: "The teleport orbs (entity/orbs.go): a place a player steps into to be sent to another, as the live game's " +
+			"pads did (Highbourne's three guild towers, whose magicians, enchanters and wizards start where no walk leads " +
+			"down, and the hall's three pads that lead back up). A player whose feet come within radius of x/z (0: 1.5) and " +
+			"from 1 under y to 2.5 over it is sent to to_x/to_y/to_z in to_world, turned to to_facing (radians, as a 0x40's " +
+			"heading: 0 faces +z, 1.57 +x), when it steps in: one already standing in it (it arrived there, or a login or a " +
+			"GM put it there) steps off and back on first, and for 3 seconds after a trip no orb sends it again. Put the " +
+			"destination beside the orb it pairs with, never inside it (a row that sends to a spot inside itself is refused). " +
+			"Rows of source seed are tools/seed_orbs.py's: the disc's pads, read off its zone actors, paired by their banners.",
+		Live:   "At once: the next step into the orb uses it.",
+		Show:   []string{"id", "name", "world", "x", "y", "z", "to_world", "to_x", "to_y", "to_z", "source"},
+		Search: []string{"name", "note", "source"},
+		Cols: map[string]colNote{
+			"name":      {Label: "Name", Help: "the orb as a GM reads it (the log names it)"},
+			"world":     {Label: "World", Enum: "world", Section: "Where it stands"},
+			"x":         {Label: "X", Section: "Where it stands"},
+			"y":         {Label: "Y (height)", Section: "Where it stands", Help: "its floor"},
+			"z":         {Label: "Z", Section: "Where it stands"},
+			"radius":    {Label: "Radius", Section: "Where it stands", Help: "how near x/z a player's feet must come; 0 the default, 1.5"},
+			"to_world":  {Label: "World", Enum: "world", Section: "Where it sends"},
+			"to_x":      {Label: "X", Section: "Where it sends"},
+			"to_y":      {Label: "Y (height)", Section: "Where it sends", Help: "the floor there"},
+			"to_z":      {Label: "Z", Section: "Where it sends"},
+			"to_facing": {Label: "Facing", Section: "Where it sends", Help: "radians: 0 faces +z, 1.57 +x, 3.14 -z, -1.57 -x"},
+			"note":      {Label: "Note", Format: "multiline", Help: "where it came from"},
+			"source":    {Label: "Source", Help: "gm, or seed for tools/seed_orbs.py's rows (its --undo deletes those no GM changed)"},
+		},
+	},
 	"spellfx_suggestions": {
 		Label: "Community visual suggestions", Group: "Items & spells", Title: "spellid", Sort: "id", Write: writeAdmin,
 		Help: "What players suggest a spell's visual is, sent from the public spell-visual page with no sign-in " +

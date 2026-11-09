@@ -79,6 +79,8 @@ type World struct {
 	// The spells that send players to a named place, table spellgates, and
 	// those on their way (gates.go)
 	gates gateState
+	// The teleport orbs, table orbs (orbs.go)
+	orbs orbState
 	// regenAt is when the last regen tick fell (regenSystem): the regular
 	// tick a heal over time's ticks after its first keep to (hot.go)
 	regenAt time.Time

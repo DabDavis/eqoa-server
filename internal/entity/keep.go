@@ -14,8 +14,9 @@ package entity
 // describing the entity it shows (an NPC's id is its row's, a player's its
 // character's, the same in the new process), or take it away. Groups are
 // formed again among the characters that came back. A fight, a cast on its
-// way, a pet, a duel, a trade and an invitation end. The creatures come through
-// by keepnpc.go.
+// way, a duel, a trade and an invitation end. A pet comes through with its
+// owner (KeptPet, keeppet.go: petition 1363). The creatures come through by
+// keepnpc.go.
 
 import (
 	"fmt"
@@ -46,6 +47,8 @@ type KeptPlayer struct {
 	PvPHoldMS int64 `json:"pvp_hold_ms,omitempty"`
 	// Jumps: its client jumps (jump.go)
 	Jumps bool `json:"jumps,omitempty"`
+	// Pet: its pet, summoned or charmed (keeppet.go), nil none
+	Pet *KeptPet `json:"pet,omitempty"`
 }
 
 // KeptLockout is a spell's lockout and what is left of it.
@@ -101,6 +104,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 			k.Lockouts = append(k.Lockouts, KeptLockout{Spell: l.spellID, Index: l.displayIndex, LeftMS: left.Milliseconds()})
 		}
 	}
+	k.Pet = w.keptPetLocked(p, now) // keeppet.go
 	return k, true
 }
 

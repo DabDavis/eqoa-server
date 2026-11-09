@@ -122,13 +122,14 @@ func redLine(s string) []byte {
 }
 
 // F3 20261029-082049 (jib: "Charm line should not be castable while you
-// currently have a pet"): with a pet out, summoned or charmed, a charm is not
-// cast at all, whatever is targeted (a creature it could take, an undead, no
-// one): the one red line, as Sandstorm refuses a cast, and no 0x00B1 (the
-// 600 ms fizzle it showed, which looked cast), no lockout, no power, no hate.
-// The controls: with no pet the same charm is cast (its 0x00B1 goes out); with
-// the pet out a spell that is no charm is cast; the pet dismissed, the charm
-// is cast again.
+// currently have a pet"): with a charmed creature out a charm is not cast at
+// all, whatever is targeted (a creature it could take, an undead, no one): the
+// one red line, as Sandstorm refuses a cast, and no 0x00B1 (the 600 ms fizzle
+// it showed, which looked cast), no lockout, no power, no hate. A summoned pet
+// out is no refusal since petition 1348: it goes when the charm takes hold
+// (charm_summoned_test.go). The controls: with no pet the same charm is cast
+// (its 0x00B1 goes out); with the summoned pet out it is cast too, and a spell
+// that is no charm; the charmed one let go, the charm is cast again.
 func TestACharmIsNotCastWithAPetOut(t *testing.T) {
 	defer func(f func(int) int) { charmIntn = f }(charmIntn)
 	charmIntn = dice(99)
@@ -150,39 +151,42 @@ func TestACharmIsNotCastWithAPetOut(t *testing.T) {
 		t.Fatalf("the control, no pet: began %v, sent %x", began, msgs)
 	}
 
-	// a summoned pet
-	r, _, fleshID := charmRig(t)
-	pet, _ := r.summon(t, fireElemental(), time.Minute)
-	refused(t, r, captivation(), crabID, 2*time.Minute, "a summoned pet, at the crab")
-	refused(t, r, enticement(), fleshID, 3*time.Minute, "a summoned pet, at an undead")
-	refused(t, r, captivation(), 0xFFFFFFFF, 4*time.Minute, "a summoned pet, at no one")
-	if len(r.enemy.Threats) != 0 || r.enemy.Owner != 0 {
-		t.Errorf("the crab was touched: threats %v, owner %d", r.enemy.Threats, r.enemy.Owner)
+	// the control: a summoned pet out, the charm is cast (petition 1348), and
+	// so is a spell that is no charm
+	r, _, _ := charmRig(t)
+	r.summon(t, fireElemental(), time.Minute)
+	if began, msgs := castCharm(t, r, captivation(), crabID, 2*time.Minute); !began || !castsAt(msgs) {
+		t.Errorf("the control, a summoned pet out: began %v, sent %x", began, msgs)
 	}
-	// the control: the pet out, a spell that is no charm is cast
 	nuke := CastSpell{SpellID: 610, DisplayIndex: 9, Level: 20, Scope: 1, Name: "Fiery Burst", CastTime: 2 * time.Second,
 		Recast: time.Second, PowerCost: 10, Range: 30, Def: ParseSpellText("Target, Decrease Hitpoints by 26")}
-	if began, msgs := castCharm(t, r, nuke, crabID, 5*time.Minute); !began || !castsAt(msgs) {
-		t.Errorf("the control, a nuke with the pet out: began %v, sent %x", began, msgs)
-	}
-	// the control: the pet dismissed, the charm is cast
-	r.w.PetCommand(r.sess, petCmdDismiss, 0, r.at(6*time.Minute))
-	if r.w.petOfLocked(r.p) != nil {
-		t.Fatalf("the pet %q stayed", pet.Name)
-	}
-	r.enemy.Threats, r.enemy.CurrentEnemy = nil, 0
-	if began, msgs := castCharm(t, r, captivation(), crabID, 7*time.Minute); !began || !castsAt(msgs) {
-		t.Errorf("the control, the pet dismissed: began %v, sent %x", began, msgs)
-	}
 
-	// a charmed pet: the crab taken, a second charm at the Rotting Flesh
+	// a charmed pet: the crab taken, a second charm at the Rotting Flesh, at
+	// the crab itself and at no one
 	r2, flesh, fleshID2 := charmRig(t)
 	if began, _ := castCharm(t, r2, captivation(), crabID, 0); !began || r2.w.petOfLocked(r2.p) != r2.enemy {
 		t.Fatalf("the crab was not charmed: began %v", began)
 	}
 	refused(t, r2, enticement(), fleshID2, time.Minute, "a charmed pet, at an undead")
+	refused(t, r2, captivation(), crabID, 2*time.Minute, "a charmed pet, at itself")
+	refused(t, r2, captivation(), 0xFFFFFFFF, 3*time.Minute, "a charmed pet, at no one")
 	if flesh.Owner != 0 || len(flesh.Threats) != 0 {
 		t.Errorf("the Rotting Flesh was touched: owner %d, threats %v", flesh.Owner, flesh.Threats)
+	}
+	// the control: the charmed pet out, a spell that is no charm is cast
+	r2.p.Power = r2.p.MaxPower
+	if began, msgs := castCharm(t, r2, nuke, fleshID2, 4*time.Minute); !began || !castsAt(msgs) {
+		t.Errorf("the control, a nuke with the charmed pet out: began %v, sent %x", began, msgs)
+	}
+	// the control: the charmed one let go, the charm is cast again
+	r2.w.PetCommand(r2.sess, petCmdDismiss, 0, r2.at(5*time.Minute))
+	if r2.w.petOfLocked(r2.p) != nil {
+		t.Fatal("the charmed crab stayed")
+	}
+	flesh.Threats, flesh.CurrentEnemy = nil, 0
+	r2.p.Power = r2.p.MaxPower
+	if began, msgs := castCharm(t, r2, enticement(), fleshID2, 6*time.Minute); !began || !castsAt(msgs) {
+		t.Errorf("the control, the charmed pet let go: began %v, sent %x", began, msgs)
 	}
 }
 

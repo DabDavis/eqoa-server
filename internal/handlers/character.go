@@ -644,6 +644,14 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 
 	// Send memory dump reading all data from player struct (single source of truth)
 	h.SendMemoryDump(sess)
+	// and each ability still locked out from its last session, after the
+	// dump that built the client's ability bar with none on (as a takeover's,
+	// a respawn's and a kept session's are told: entity/takeover.go)
+	if h.gameWorld != nil {
+		if n := h.gameWorld.SendLockouts(sess, time.Now()); n > 0 {
+			log.Printf("SelectedChar: '%s' told its %d lockouts", record.CharName, n)
+		}
+	}
 
 	return nil
 }
@@ -681,10 +689,12 @@ func (h *CharacterHandler) keepSelectedLook(record *database.CharacterRecord, da
 // enterFromRecord builds the character's Player from its row, as a login
 // does: where it starts (loginSpawn), the training points its level is due,
 // the Player in the world (CreatePlayer), then what its last session kept:
-// its spell effects, standings, mastery points, a rez's share, the masteries
-// it bought, its bind point, whether it is a vampire, its worn items and dyes,
-// its hit points and power. HandleSelectedChar's login and a session carried
-// through a restart (keep.go) build it the same way. nil with no World.
+// its spell effects, its abilities' lockouts, standings, mastery points, a
+// rez's share, the masteries it bought, its bind point, whether it is a
+// vampire, its worn items and dyes, its hit points and power. HandleSelectedChar's
+// login and a session carried through a restart (keep.go) build it the same
+// way (the kept session's lockouts are then its own: RestoreKeptPlayer). nil
+// with no World.
 func (h *CharacterHandler) enterFromRecord(sess *session.Session, record *database.CharacterRecord) *entity.Player {
 	// Where the session starts (loginSpawn): where the character logged out,
 	// or beside Archivist Vaal. Decided here, before CreatePlayer reads it.
@@ -717,6 +727,10 @@ func (h *CharacterHandler) enterFromRecord(sess *session.Session, record *databa
 		} else if n := h.gameWorld.RestoreEffects(sess, rows, time.Now()); n > 0 {
 			log.Printf("SelectedChar: '%s' keeps %d spell effects from its last session", record.CharName, n)
 		}
+		// and its abilities still locked out, the time it was away counted
+		// (entity/lockoutsave.go): a logout made every recast ready until
+		// 2026-11-09
+		h.restoreLockouts(sess, record)
 		// and its standings with the factions (entity/faction.go)
 		if m, err := h.store.LoadFactions(record.ServerID); err != nil {
 			log.Printf("SelectedChar: '%s' standings: %v", record.CharName, err)
@@ -1036,12 +1050,18 @@ func (h *CharacterHandler) saveTakenOver(p *entity.Player, record *database.Char
 			log.Printf("SelectedChar: could not save '%s' taken over's level: %v", record.CharName, err)
 		}
 	}
-	// its spell effects, standings, mastery points and chance of a rez
-	// (entity/buffsave.go, faction.go, mastery.go, resurrect.go)
+	// its spell effects, lockouts, standings, mastery points and chance of a
+	// rez (entity/buffsave.go, lockoutsave.go, faction.go, mastery.go,
+	// resurrect.go)
 	now := time.Now()
 	if rows, ok := gw.SavedEffects(id, now); ok {
 		if err := h.store.SaveBuffs(record.ServerID, rows); err != nil {
 			log.Printf("SelectedChar: could not keep '%s' taken over's %d effects: %v", record.CharName, len(rows), err)
+		}
+	}
+	if rows, ok := gw.SavedLockouts(id, now); ok {
+		if err := h.store.SaveLockouts(record.ServerID, rows); err != nil {
+			log.Printf("SelectedChar: could not keep '%s' taken over's %d lockouts: %v", record.CharName, len(rows), err)
 		}
 	}
 	if m, ok := gw.SavedFactions(id); ok {

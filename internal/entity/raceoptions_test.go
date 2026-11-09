@@ -200,6 +200,14 @@ func TestAChosenBodyKeepsItsLookAndSize(t *testing.T) {
 	if !ChosenBody(11, 0x8117C627) || ChosenBody(11, uint32(bodyHillGiant)) || ChosenBody(11, 0xBF6ADFDB) || ChosenBody(3, 0x8117C627) {
 		t.Error("ChosenBody")
 	}
+	// the control: a game race's character (a GM's form aside) wearing a body some race
+	// offers is drawn at its own size, and its race's armour rows (none) are as before
+	ogre := &Player{ServerID: 6, Name: "Plainogre", Race: 9, ModelID: signed(0x96371804), Size: 1.2}
+	w.Players[6] = ogre
+	w.SetGear(6, Gear{Armor: ArmorPlate}, false)
+	if b, s := ogre.Body(); b != 0x96371804 || s != 1.2 {
+		t.Errorf("an ogre in a green goblin's body: %#x at %v, want its own size", b, s)
+	}
 }
 
 // The options a client is told: the races with options by id (the froglok only

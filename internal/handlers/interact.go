@@ -55,8 +55,10 @@ type InteractHandler struct {
 	boardAsked map[uint32]uint32 // the box last asked, by the character's serverid
 	boardBack  map[uint32]int    // that box's option of the way back, -1 none
 	boardSpell func() (entity.CastSpell, bool)
-	// Mr. Moogie's boxes (moogie.go), under boardMu
+	// Mr. Moogie's boxes (moogie.go), under boardMu, and his favor's turn-in (metalmoogie.go; nil:
+	// none offered)
 	moogie moogieAsks
+	favor  *MoogieFavor
 	// Dabrish's boxes (dabrish.go), under boardMu, and his work: a level set
 	// as #setlevel sets it (ChatHandler.applyLevel) and mastery points given
 	// as #grantcm gives them (ChatHandler.giveMastery). Nil: his ledger is
@@ -246,8 +248,14 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 
-	// Mr. Moogie (moogie.go): buffs cleared or a full heal, out of PvP and duels.
+	// Mr. Moogie (moogie.go): buffs cleared or a full heal, out of PvP and duels; his metal twin's
+	// duel and his favor (metalmoogie.go).
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.moogieTalk(sess, player, npc) {
+		return nil
+	}
+
+	// A Metal Moogie (metalmoogie.go): another's duel, said in a line.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.metalTalk(sess, npc) {
 		return nil
 	}
 

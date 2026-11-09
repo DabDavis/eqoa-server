@@ -43,6 +43,8 @@ type World struct {
 	guildStore  GuildStore                        // guild.go: where every change is kept; nil: memory alone
 	genies      map[EntityID]EntityID             // the lamps' genies standing, by their owners (genie.go)
 	portals     map[EntityID]*portalState         // the Summoning Portals standing, by their NPCs (summonportal.go)
+	metal       *metalDuel                        // the Metal Moogie standing and his duel (metalmoogie.go), nil none
+	metalTold   map[EntityID]time.Time            // when each player was last told he is another's (metalmoogie.go)
 	leaving     []func(*Player)                   // OnPlayerLeaving
 	entered     []func(*session.Session, *Player) // OnPlayerEntered
 	respawn     RespawnFunc                       // OnPlayerRespawn (respawn.go)
@@ -456,10 +458,11 @@ func (w *World) PlayerEntered(sess *session.Session) {
 // portal, and returns the departure hooks to run once the lock is let go.
 func (w *World) leavingLocked(p *Player) []func(*Player) {
 	delete(w.announced, p)
-	w.dropGenieLocked(p)   // its genie goes with it (genie.go)
-	w.dropPortalLocked(p)  // its portal too (summonportal.go)
-	w.duelLeavingLocked(p) // its invitation lapses, its duel is forfeit (duel.go)
-	w.pvpLeavingLocked(p)  // what it put on foes goes (pvp.go)
+	w.dropGenieLocked(p)    // its genie goes with it (genie.go)
+	w.dropPortalLocked(p)   // its portal too (summonportal.go)
+	w.duelLeavingLocked(p)  // its invitation lapses, its duel is forfeit (duel.go)
+	w.metalLeavingLocked(p) // its Metal Moogie leaves (metalmoogie.go)
+	w.pvpLeavingLocked(p)   // what it put on foes goes (pvp.go)
 	fns := make([]func(*Player), len(w.leaving))
 	copy(fns, w.leaving)
 	return fns
@@ -931,6 +934,9 @@ func (w *World) updateAggro(npc *NPC, attackerID EntityID, damage int) {
 	}
 	contactNPCLocked(npc) // a lull ends at a hit or a hostile act (workbook.go)
 	w.addThreatLocked(npc, attackerID, damage)
+	if npc.challenge != nil {
+		return // a duel: no one comes to a Metal Moogie's help (metalmoogie.go)
+	}
 	w.socialAssistLocked(npc, attackerID)
 	w.companionJoinLocked(npc, attackerID) // its pet, or its owner, with it (companion.go)
 }
@@ -939,8 +945,8 @@ func (w *World) updateAggro(npc *NPC, attackerID EntityID, damage int) {
 // begun or kept up, and no one else told of it. Must be called with the lock
 // held.
 func (w *World) addThreatLocked(npc *NPC, attackerID EntityID, damage int) {
-	if npc.Dummy != NotDummy {
-		return
+	if npc.Dummy != NotDummy || challengeBars(npc, attackerID) {
+		return // a dummy's one player (dummy.go), a Metal Moogie's challenger (metalmoogie.go)
 	}
 	w.wakeNPCLocked(npc)                  // a fight, and its regeneration's count after it (npcsets.go)
 	npc.calmTicks, npc.healing = 0, false // in a fight: no regeneration after it for a while (npcregen.go)

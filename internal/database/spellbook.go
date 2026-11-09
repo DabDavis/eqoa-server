@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 )
 
@@ -121,6 +122,21 @@ func (s *SpellbookStore) SpellNames() ([]SpellName, error) {
 		out = append(out, n)
 	}
 	return out, rows.Err()
+}
+
+// SpellIDByName is the id of the spell pattern of that name (any case, trimmed; the lowest id of
+// several), ok false for none: a record the server's code goes by its name (Mr. Moogie's Duelist's
+// Favor, handlers/metalmoogie.go).
+func (s *SpellbookStore) SpellIDByName(name string) (id int, ok bool, err error) {
+	err = s.db.QueryRow(`SELECT spellid FROM spellpattern WHERE lower(trim(spellname)) = lower(trim(?)) ORDER BY spellid LIMIT 1`,
+		name).Scan(&id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, false, nil
+	}
+	if err != nil {
+		return 0, false, err
+	}
+	return id, true, nil
 }
 
 // ClassSpellIDs is the spells a class has (classspells), by id: which of

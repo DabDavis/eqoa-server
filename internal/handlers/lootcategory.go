@@ -12,7 +12,7 @@ import (
 // for the tables every creature rolls). A kill that gives no experience rolls
 // them all the same (the user: "the no XP rule ignore though for the loot").
 func rollsCategories(npc *entity.NPC) bool {
-	return npc.Owner == 0 && npc.Charm == nil && npc.Dummy == entity.NotDummy
+	return npc.Owner == 0 && npc.Charm == nil && npc.Dummy == entity.NotDummy && !npc.DuelSpawn() // a duel's gives its tribute alone
 }
 
 // rollCategories is what a creature's loot categories give its corpse at a

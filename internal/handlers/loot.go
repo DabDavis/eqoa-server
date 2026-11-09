@@ -93,6 +93,15 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 		queueReliable(sess, protocol.OpcodeLootOptions, buildLootOption(lootNotLootable))
 		return true
 	}
+	// a Metal Moogie's is his challenger's alone (the GM Jibrish's petition 1379: "If they defeat
+	// it they can loot a single "Moogie Tribute""; entity/metalmoogie.go)
+	if h.duelLoot != nil {
+		if duel, mine, line := h.duelLoot(sess, npc); duel && !mine {
+			SendColoredChat(sess, line, 255, 63, 63)
+			queueReliable(sess, protocol.OpcodeLootOptions, buildLootOption(lootNotLootable))
+			return true
+		}
+	}
 	ls := h.loots()
 	ls.mu.Lock()
 	defer ls.mu.Unlock()
@@ -165,7 +174,7 @@ const lootEveryCreature = "*"
 // own, then every creature's, which a pet's, a charmed creature's (whose
 // corpse is no one's: OpenCorpse) and a training dummy's do not roll.
 func lootNames(npc *entity.NPC) []string {
-	if npc.Owner != 0 || npc.Charm != nil || npc.Dummy != entity.NotDummy {
+	if npc.Owner != 0 || npc.Charm != nil || npc.Dummy != entity.NotDummy || npc.DuelSpawn() {
 		return []string{npc.Name}
 	}
 	return []string{npc.Name, lootEveryCreature}

@@ -128,6 +128,16 @@ type triggerRun struct {
 	lastNear   time.Time
 	died       []string
 	dead       *triggerPlaceAt
+	// resummons are its resummon steps from the step on: each keeps one of its spawns
+	// called back while its caller lives (resummonLocked)
+	resummons []*triggerResummon
+}
+
+// triggerResummon is one resummon step a run keeps: the step, and when its NPC's last
+// spawn was first seen gone (zero: one stands, or none has come yet).
+type triggerResummon struct {
+	step database.TriggerStep
+	fell time.Time
 }
 
 // triggerPlaceAt is a place in a world.
@@ -531,6 +541,7 @@ func (e *TriggerEngine) Tick() {
 		if r.stopped {
 			continue
 		}
+		e.resummonLocked(r, now)
 		if !r.deadline.IsZero() && (!now.Before(r.deadline) || e.emptyLocked(r, now)) {
 			e.clockEndLocked(r)
 		}
@@ -776,6 +787,9 @@ func (e *TriggerEngine) stepLocked(r *triggerRun, s database.TriggerStep) string
 			}
 		}
 		return fmt.Sprintf("%d of %s roused", n, s.NPC)
+	case database.TriggerResummon:
+		r.resummons = append(r.resummons, &triggerResummon{step: s})
+		return fmt.Sprintf("%s calls %s back %s after it falls", strings.TrimSpace(s.By), strings.TrimSpace(s.NPC), seconds(s.Seconds))
 	case database.TriggerSic:
 		n, on := 0, ""
 		for _, sp := range r.spawns {
@@ -1129,6 +1143,55 @@ func (e *TriggerEngine) spawnLocked(r *triggerRun, s database.TriggerStep) strin
 		how = " hostile"
 	}
 	return fmt.Sprintf("spawned %d%s %s within %.0f of (%.0f, %.0f) for %s", placed, how, spelled, spread, cx, cz, seconds(stay*60))
+}
+
+// resummonLocked calls back each of the run's resummoned NPCs that has no spawn
+// standing (the user, 2026-11-09: "cause tunare to resummon her pets"): while one of
+// the run's spawns named by lives, the step's seconds after the NPC's last spawn was
+// first seen gone, one more beside the caller (within 3), with the step's attackable,
+// hostile and minutes, set on its target with its radius and casts, its text said to
+// the run's players. The caller dead or gone, nothing comes (and the wait starts
+// again when one does). Must be called with e.mu held.
+func (e *TriggerEngine) resummonLocked(r *triggerRun, now time.Time) {
+	for _, rs := range r.resummons {
+		name, by := strings.TrimSpace(rs.step.NPC), strings.TrimSpace(rs.step.By)
+		var caller entity.EntityID
+		standing := false
+		for _, sp := range r.spawns {
+			switch {
+			case strings.EqualFold(sp.name, name):
+				standing = true
+			case caller == 0 && strings.EqualFold(sp.name, by) && e.gw.NPCAlive(sp.id):
+				caller = sp.id
+			}
+		}
+		if standing || caller == 0 {
+			rs.fell = time.Time{}
+			continue
+		}
+		if rs.fell.IsZero() {
+			rs.fell = now
+		}
+		if now.Sub(rs.fell) < time.Duration(rs.step.Seconds*float64(time.Second)) {
+			continue
+		}
+		world, x, y, z, ok := e.gw.NPCSpot(caller)
+		if !ok {
+			continue
+		}
+		w := int(world)
+		line := e.spawnLocked(r, database.TriggerStep{Do: database.TriggerSpawn, NPC: name, Spread: 3, World: &w, X: x, Y: y, Z: z,
+			Minutes: rs.step.Minutes, Hostile: rs.step.Hostile, Attackable: rs.step.Attackable})
+		if strings.TrimSpace(rs.step.Target) != "" {
+			line += "; " + e.stepLocked(r, database.TriggerStep{Do: database.TriggerSic, NPC: name, Target: rs.step.Target,
+				Radius: rs.step.Radius, Casts: rs.step.Casts})
+		}
+		if strings.TrimSpace(rs.step.Text) != "" {
+			e.stepLocked(r, database.TriggerStep{Do: database.TriggerBroadcast, Text: rs.step.Text})
+		}
+		rs.fell = time.Time{}
+		log.Printf("Triggers: %s's %s calls %s back: %s", r.trig.Title(), by, name, line)
+	}
 }
 
 // despawnLocked takes away the run's live spawns (those named npc; none:

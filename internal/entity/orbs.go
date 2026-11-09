@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
@@ -103,12 +104,17 @@ func (w *World) LoadOrbs(db *database.SQLiteDB) (int, error) {
 func (w *World) OrbsSummary() string {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
-	var worlds []string
-	for wn, os := range w.orbs.byWorld {
-		worlds = append(worlds, fmt.Sprintf("world %d: %d", wn, len(os)))
+	var nums []int
+	for wn := range w.orbs.byWorld {
+		nums = append(nums, int(wn))
 	}
-	if len(worlds) == 0 {
+	if len(nums) == 0 {
 		return "orbs: none in table orbs"
+	}
+	sort.Ints(nums)
+	worlds := make([]string, len(nums))
+	for i, wn := range nums {
+		worlds[i] = fmt.Sprintf("world %d: %d", wn, len(w.orbs.byWorld[uint8(wn)]))
 	}
 	return fmt.Sprintf("orbs: %d in table orbs (%s)", w.orbs.n, strings.Join(worlds, ", "))
 }

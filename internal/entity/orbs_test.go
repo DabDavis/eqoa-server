@@ -295,8 +295,8 @@ func TestOrbRowsAreChecked(t *testing.T) {
 		t.Error("1.6 across from the middle of an orb of the default radius is in it")
 	}
 	w := NewWorld()
-	w.SetOrbs([]database.Orb{orbA, orbB, {ID: 9, World: 2, X: 1, Z: 1, ToWorld: 2, ToX: 9, ToZ: 9}})
-	if got := w.OrbsSummary(); got == "" || w.orbs.n != 3 || len(w.orbs.byWorld[0]) != 2 || len(w.orbs.byWorld[2]) != 1 {
+	w.SetOrbs([]database.Orb{{ID: 9, World: 2, X: 1, Z: 1, ToWorld: 2, ToX: 9, ToZ: 9}, orbA, orbB})
+	if got := w.OrbsSummary(); got != "orbs: 3 in table orbs (world 0: 2, world 2: 1)" {
 		t.Errorf("orbs by world: %q", got)
 	}
 }

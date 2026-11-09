@@ -1168,6 +1168,19 @@ both keep them; a member's name, class, race and level are its `characters` row'
 guilds. `tools/restore_guilds_from_log.py --since <time> <logs>` rebuilds lost guilds from the log's "Guild:" lines
 (replayed across the restarts after `--since`; the charter is not logged), into empty tables only (`--force`).
 
+### Creatures with pets fight as one (`entity/companion.go`)
+
+The owner, 2026-11-09: "the mobs that have pets dont protect them or attack they are treated as not pets". Nothing in
+the data ties a pet to an NPC owner (no table, no template summons, `npcsocial` helps by name and faction); the rows the
+captures and dumps made put a caster's pet beside it, named as pets are (229 rows of 23 names, Companion Spirit 172; 196
+within 10 of a creature that is no pet, half within 1.7). So the pairs are read off the spawns (`linkCompanionsLocked`, again
+when the NPCs change in number): a name ending in pet, minion, familiar, thrall or Companion Spirit, or naming its owner
+("Goran's pet", "Servant of Vorin", within 30), takes the nearest creature within 4 of its spawn that is no pet, has no NPC
+bit and is of a row. A hostile act on either or either's aggro on sight brings the other against the same foe (a player's
+pet's act sends it at the pet's owner, as social help does); the owner giving up takes its pets home; its death takes them at
+once with no corpse and its return brings them back. Never a player's pet or a charmed creature; town guards' social assist
+is unchanged.
+
 ### The Genie's Lamp: a bank, an heirloom shop and a forge anywhere (`handlers/genie.go`, `entity/genie.go`, `tools/seed_genie_lamp.py`)
 
 The user, 2026-11-06: "lets give players a heirloom shop and bank NPC(doesnt replace pet slot) make it a genie. the item

@@ -175,6 +175,12 @@ type World struct {
 	cms *cmCatalog
 	// NPCs coming to the help of their own (socialaggro.go)
 	npcSocial npcSocialState
+	// companions are the creatures' own pets by owner, companionOf each pet's
+	// owner, read off the NPCs when companionsAt (their number then) changes
+	// (companion.go)
+	companions   map[EntityID][]EntityID
+	companionOf  map[EntityID]EntityID
+	companionsAt int
 	// Every item's use, and the hooks that give and take potions (potion.go)
 	potions potionTable
 	// Where the water is (water.go), and how the creatures of a name move,
@@ -912,6 +918,7 @@ func (w *World) killNPC(npc *NPC) {
 	w.wakeNPCLocked(npc) // a corpse, and its fight to put away (npcsets.go)
 
 	log.Printf("Combat: NPC '%s' killed (entity ID=%d)", npc.Name, npc.ServerID)
+	w.companionsDieLocked(npc, npc.DeathTime) // its own pets go with it (companion.go)
 }
 
 // updateAggro adds or updates threat on an NPC: a hit or another hostile act
@@ -925,6 +932,7 @@ func (w *World) updateAggro(npc *NPC, attackerID EntityID, damage int) {
 	contactNPCLocked(npc) // a lull ends at a hit or a hostile act (workbook.go)
 	w.addThreatLocked(npc, attackerID, damage)
 	w.socialAssistLocked(npc, attackerID)
+	w.companionJoinLocked(npc, attackerID) // its pet, or its owner, with it (companion.go)
 }
 
 // addThreatLocked is threat on an NPC and its enemy the highest: a fight

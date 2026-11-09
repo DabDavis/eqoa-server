@@ -118,7 +118,7 @@ func TestAWorkbookPetIsItsRow(t *testing.T) {
 		t.Fatal(err)
 	}
 	r.w.mu.Lock()
-	r.w.dismissPetLocked(ps, r.sess, "")
+	r.w.dismissPetLocked(ps, r.sess, "", r.at(20*time.Second))
 	r.w.mu.Unlock()
 	r.p.Power = r.p.MaxPower
 	pet, _ = r.summon(t, fireElemental(), 20*time.Second)

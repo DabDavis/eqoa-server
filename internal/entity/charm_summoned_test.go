@@ -60,8 +60,8 @@ func TestACharmTakesThePlaceOfASummonedPet(t *testing.T) {
 	if got := r.w.petOfLocked(r.p); got != crab || crab.Owner != r.p.ServerID || crab.Charm == nil {
 		t.Fatalf("the crab is not the pet: pet %v, owner %d", got, crab.Owner)
 	}
-	if _, ok := r.w.NPCs[pet.ServerID]; ok || len(r.w.pets) != 1 {
-		t.Errorf("the summoned pet is still in the world (%v), pets %d", ok, len(r.w.pets))
+	if !pet.Dead || len(r.w.pets) != 1 {
+		t.Errorf("the summoned pet does not lie dead as it goes (dead %v: petition 1398), pets %d", pet.Dead, len(r.w.pets))
 	}
 	clear, set := opIndex(msgs, protocol.OpcodeClearPet), opIndex(msgs, protocol.OpcodeSetPet)
 	off, on := opIndex(msgs, protocol.OpcodeNoCollideRemove), opIndex(msgs, protocol.OpcodeNoCollideAdd)

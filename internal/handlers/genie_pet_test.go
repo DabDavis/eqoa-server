@@ -83,7 +83,8 @@ func TestTheGeniesAnswersKeepThePet(t *testing.T) {
 		t.Error("the genie outlived its wait")
 	}
 
-	// the control: a second summoning sends 0x007F, and the first pet goes
+	// the control: a second summoning sends 0x007F, and the first pet goes, lying
+	// dead where it stood until its death has played (petition 1398)
 	f.sess.Queue().GetPending()
 	if got := f.w.SummonByItem(f.sess, entity.CastSpell{SpellID: 718, Level: 30, Name: "Fire Elemental Two",
 		Def: entity.ParseSpellText("Summons a Fire Elemental to aid you")}, f.now, time.Time{}); got != entity.ItemSummoned {
@@ -93,7 +94,8 @@ func TestTheGeniesAnswersKeepThePet(t *testing.T) {
 	for _, q := range f.sess.Queue().GetPending() {
 		cleared = cleared || opOf(q.Data()) == protocol.OpcodeClearPet
 	}
-	if !cleared || f.w.PetOf(f.p) == pet || f.w.NPCs[pet] != nil {
-		t.Errorf("the control: 0x007F sent %v, the first pet still out %v", cleared, f.w.NPCs[pet] != nil)
+	if first := f.w.NPCs[pet]; !cleared || f.w.PetOf(f.p) == pet || first == nil || !first.Dead {
+		t.Errorf("the control: 0x007F sent %v, the first pet still out %v, lying dead %v", cleared, f.w.PetOf(f.p) == pet,
+			first != nil && first.Dead)
 	}
 }

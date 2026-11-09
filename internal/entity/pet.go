@@ -398,7 +398,7 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 		return
 	}
 	if old := w.pets[caster.ServerID]; old != nil {
-		w.dismissPetLocked(old, sess, "")
+		w.dismissPetLocked(old, sess, "", now)
 	}
 	level := petLevel(spell.Level, caster.Level)
 	if spell.Def.PetLevel > 0 {
@@ -563,10 +563,11 @@ func (w *World) pinPetLocked(p *Player, cands []entityDist) []entityDist {
 }
 
 // dismissPetLocked takes the pet away: off every fight, out of the world
-// (a dead one's corpse lies its time), and its owner told (0x007F, its
-// non-collide entry off, text when there is any). sess is the owner's, or
+// (a dead one's corpse lies its time; a living one dies where it stands and
+// goes once its death has played: petDiesLocked), and its owner told (0x007F,
+// its non-collide entry off, text when there is any). sess is the owner's, or
 // nil when it has none to tell. Must be called with the lock held.
-func (w *World) dismissPetLocked(ps *petState, sess *session.Session, text string) {
+func (w *World) dismissPetLocked(ps *petState, sess *session.Session, text string, now time.Time) {
 	if ps.npc.Charm != nil {
 		// a charmed creature is let go, not taken away (charm.go)
 		w.releaseCharmLocked(ps, sess, text, false)
@@ -578,7 +579,7 @@ func (w *World) dismissPetLocked(ps *petState, sess *session.Session, text strin
 	}
 	w.dropAggroLocked(pet.ServerID)
 	if !pet.Dead {
-		w.removeNPCLocked(pet)
+		w.petDiesLocked(pet, now) // seen dying, then gone (petition 1398)
 	}
 	if sess != nil {
 		sendClearPet(sess)
@@ -590,6 +591,32 @@ func (w *World) dismissPetLocked(ps *petState, sess *session.Session, text strin
 		}
 	}
 	log.Printf("Pet: %s's %q goes", ps.owner.Name, pet.Name)
+}
+
+// petDismissedLies is how long the body of a pet that went alive lies dead
+// before it goes: the longest death of CHAR.ESF's 536 bodies (play list slot
+// 14) runs 4.0 s (the median 1.3 s; the Swarming Death's 1.0 s, a Fire
+// Elemental's 1.5 s), and a second more for the channel to take the death to
+// every client. A pet killed in a fight lies petCorpseTime, as before.
+const petDismissedLies = 5 * time.Second
+
+// petDiesLocked lays a pet that goes alive (dismissed, replaced by a new
+// summoning, its owner gone or dead, a charm taking its place) down dead where
+// it stands, as a killed creature's channel shows its death (byte 58 Die, 26 a
+// corpse, health 0: serializeEntityDiscLocked), so CLIENT (UpdateCreatures'
+// SetDeath) and vanilla play its death on everyone's screen; its body goes once
+// that has played (petDismissedLies), as a Temporary NPC's corpse goes
+// (corpseSystem). Until petition 1398 (Contintious: "whenever you dismiss a
+// pet or recast a pet, the pet should show dying it currently just vanishes")
+// it was taken out of the world at once. No one's kill: no experience, no
+// faction, nothing on its corpse and no one to loot it (handlers/loot.go: a
+// pet's). Must be called with the lock held.
+func (w *World) petDiesLocked(pet *NPC, now time.Time) {
+	pet.HP = 0
+	w.killNPC(pet)
+	pet.DeathTime = now // the tick's, as its corpse's time is counted by
+	pet.CorpseDecay = petDismissedLies
+	log.Printf("Pet: %q dies as it goes (its body for %v)", pet.Name, petDismissedLies)
 }
 
 // PetDumped is a MemoryDump sent to the session: it cleared the client's pet,
@@ -635,7 +662,7 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 			w.releaseCharmLocked(ps, sess, "Your pet has been dismissed.", true)
 			return
 		}
-		w.dismissPetLocked(ps, sess, "Your pet has been dismissed.")
+		w.dismissPetLocked(ps, sess, "Your pet has been dismissed.", now)
 	case petCmdBackOff:
 		ps.target, ps.pvpTarget = 0, 0
 		ps.heldUntil = now.Add(petBackOffHold)
@@ -652,8 +679,12 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 			w.sendChatToSession(sess, fmt.Sprintf(MetalLinePet, npc.challenge.name)) // another's duel (metalmoogie.go)
 			return
 		}
-		if !ok || !isNPC || !pet.petFights() || !petMayFight(pet, npc) || distXZ(p.X, p.Z, npc.X, npc.Z) > petLeash {
-			w.sendChatToSession(sess, "Your pet cannot attack that.")
+		if !ok || !isNPC || !pet.petFights() || !petMayFight(pet, npc) {
+			w.sendChatToSession(sess, petCannotAttack)
+			return
+		}
+		if distXZ(p.X, p.Z, npc.X, npc.Z) > petLeash {
+			w.sendChatToSession(sess, petTargetTooFar) // one it could fight, too far off (petition 1399)
 			return
 		}
 		ps.target = npc.ServerID
@@ -661,6 +692,18 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 		w.sendChatToSession(sess, "Your pet attacks "+npc.Name+".")
 	}
 }
+
+// The attack command's refusals: a target the pet may not fight at all (none,
+// a player, an unattackable creature, another's pet or duel, a pet that fights
+// nothing), and one it may but too far from its owner to go for (petLeash). The
+// magician Waldorf's petition 1399 had the second say the first's line ("Should
+// read "Target is out of range." Or something like that"). Ours: CLIENT has no
+// line for a pet's (its word 723 "Out of range." is a ranged weapon's, and
+// Sandstorm's red "Out of range." a cast's, castOutOfRange), nor does a recording.
+const (
+	petCannotAttack = "Your pet cannot attack that."
+	petTargetTooFar = "Your target is too far away."
+)
 
 // petStanceRefused is the line for a stance a workbook pet does not take.
 var petStanceRefused = map[petStance]string{
@@ -699,16 +742,16 @@ func (w *World) petSystem(now time.Time) {
 		owner, pet := ps.owner, ps.npc
 		if w.Players[id] != owner {
 			// logged out, or logged in again as a new player: nobody to tell
-			w.dismissPetLocked(ps, nil, "")
+			w.dismissPetLocked(ps, nil, "", now)
 			continue
 		}
 		sess := w.findSessionByEntityIDLocked(id)
 		if pet.Dead {
-			w.dismissPetLocked(ps, sess, "Your pet has died.")
+			w.dismissPetLocked(ps, sess, "Your pet has died.", now)
 			continue
 		}
 		if owner.IsDead() || owner.respawnPending() {
-			w.dismissPetLocked(ps, sess, "")
+			w.dismissPetLocked(ps, sess, "", now)
 			continue
 		}
 		if h := pet.Charm; h != nil && !h.until.IsZero() && !now.Before(h.until) {

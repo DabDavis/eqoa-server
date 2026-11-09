@@ -393,8 +393,13 @@ func TestCMBuyAndItsRefusals(t *testing.T) {
 	if id != 1 || unspent != 590 || spent != 10 {
 		t.Errorf("Recv05 id %d, points %d/%d: want 1, 590/10", id, unspent, spent)
 	}
-	if st.stats[0] != 1 || st.stats[7] != 15 || st.bonuses[0] != 15 {
-		t.Errorf("the masteries' stats: STR %d, STR cap %d, bonus %d", st.stats[0], st.stats[7], st.bonuses[0])
+	// the caps as the trainer reads them (entity/mastery.go): 0x001C's m_p44
+	// the highest (STR's 415), each m_bonus its stat's cap less that
+	if st.stats[0] != 1 || st.stats[7] != 15 || st.bonuses != [7]int{0, -15, -15, -15, -15, -15, -15} {
+		t.Errorf("the masteries' stats: STR %d, STR cap %d, bonuses %v", st.stats[0], st.stats[7], st.bonuses)
+	}
+	if p44 := c.statCapTold(); p44 != 415 {
+		t.Errorf("0x001C after Brawn 1: %d, want 415", p44)
 	}
 	if !st.flags[2] {
 		t.Error("Brawn 2 should be known once Brawn 1 is owned (STR 131 of 125)")

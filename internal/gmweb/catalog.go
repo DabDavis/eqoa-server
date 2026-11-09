@@ -1373,8 +1373,9 @@ var catalog = map[string]tableNote{
 			"(require_spells), its parent, the other masteries' ranks it needs (require_ranks) and the quests it needs " +
 			"finished (require_quests: the stat-boost quests open the stat-boost lines, tools/gate_stat_masteries.py) are " +
 			"there; the cost is then taken from its unspent points. effects is " +
-			"what it gives, in EQOA-Data's names: STR..CHA, STRMax..CHAMax (the stat caps: a character's cap is the " +
-			"level's, 400 from 46 and 350 below, plus what its masteries raise), HP, Pow, HoT, PoT, AC, Off Mod and " +
+			"what it gives, in EQOA-Data's names: STR..CHA, STRMax..CHAMax (the stat caps: a character's cap, which its " +
+			"training stops at too, is the level's, 400 from 46 and 350 below, plus what its masteries raise), HP, Pow, " +
+			"HoT, PoT, AC, Off Mod and " +
 			"Def Mod (shown), HP Factor (a level's HP each), FR CR LR AR PR DR, MovRate (20 a run, 100 Spirit of the " +
 			"Wolf). add_spells are given at the purchase, remove_spells taken out (gone at the next login); a name " +
 			"with no id shows and gives nothing. A removal gives nothing back (#cmreset does). Rows of source " +

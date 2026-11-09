@@ -225,7 +225,10 @@ messages wait; every number is compared across 65535. **After the promotion only
 instance until in sync, and its numbers taken as the promoted connection's made the client refuse every promoted packet (a login
 that never reached the world). A session resending gets one `Net:` line every 10 s (address, character, unacked span and age, the
 client's ack, round trip, packets it missed), `Promoted:` lines name the lobby's late packets, `#net` shows it in the game. A client
-silent 5 s in the world is sent no state channels until heard from; a session silent 3 minutes before the world ends.
+silent 5 s in the world is sent no state channels until heard from; a session silent 3 minutes before the world ends. **One past
+character select silent `InGameSilentEnd` (60 s) ends** (`udp.silentInWorldOver`, its character saved and out of the world; a dead
+one after its respawn, a replaced one by its own grace): CLIENT sends its 0x40 ten times a second and a keepalive after 30 s, and
+gives up itself on 60 s unanswered; a PS2 reading a world off the disc is silent about 22 s. It stood its 50 pings (~500 s).
 
 **The packet log is off unless asked for** (`internal/debuglog`; the user's choice of 2026-11-04): the packet
 path's own debug lines (every packet received and sent with its hex, DRDP, the state channels, the visibility

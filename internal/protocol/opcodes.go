@@ -594,7 +594,9 @@ const (
 	// name, u32 the built file's size and u32 its CRC-32, u8 zones, then each:
 	// the disc's world file it is on, u16 its index there, u32 its record's size
 	// and u32 its CRC-32 (header and body, as on the disc), u8 its cell's column
-	// and u8 row, and its name (every string a u8 byte count and UTF-8). From
+	// and u8 row, its name, and u8 the race whose home it is (racedefs' id, 0
+	// none: a client names it the race's starting place); every string a u8
+	// byte count and UTF-8. From
 	// the client: the worlds it holds now, built and checked (u8 count, then each
 	// slot); the server sends it into those alone (LoadableWorlds).
 	OpcodeServerWorldsData GameOpcode = 0x7E31

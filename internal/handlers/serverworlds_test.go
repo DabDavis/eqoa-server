@@ -39,7 +39,7 @@ func withServerWorlds(t *testing.T, built ...worlds.Built) {
 
 // The worlds' bytes, field by field: version, count, then the world (slot,
 // name, size, CRC, zones) and each zone (its file, index, record size and CRC,
-// cell, name).
+// cell, name, the race whose home it is).
 func TestServerWorldsFormat(t *testing.T) {
 	got := encodeServerWorlds([]worlds.Built{homelands()})
 	want := []byte{1, 1, 10, 13}
@@ -53,6 +53,7 @@ func TestServerWorldsFormat(t *testing.T) {
 	want = binary.LittleEndian.AppendUint32(want, 0x7257AE33)
 	want = append(want, 4, 10, 13)
 	want = append(want, "Aviak Village"...)
+	want = append(want, 14)
 	want = append(want, 8)
 	want = append(want, "ODUS.ESF"...)
 	want = append(want, 19, 0)
@@ -60,6 +61,7 @@ func TestServerWorldsFormat(t *testing.T) {
 	want = binary.LittleEndian.AppendUint32(want, 0x91047E6F)
 	want = append(want, 2, 3, 10)
 	want = append(want, "Kerra Isle"...)
+	want = append(want, 12)
 	if !bytes.Equal(got, want) {
 		t.Fatalf("\n got %x\nwant %x", got, want)
 	}

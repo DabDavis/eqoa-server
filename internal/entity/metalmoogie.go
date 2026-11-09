@@ -300,18 +300,8 @@ func (w *World) moogieSayLocked(d *metalDuel, text string) {
 	if m := w.NPCs[d.moogie]; m != nil {
 		world, x, z = m.World, m.X, m.Z
 	}
-	line := MoogieName + ": " + text
-	n := 0
-	for _, p := range w.Players {
-		if p.World != world || distXZ(p.X, p.Z, x, z) > MetalSayHeard {
-			continue
-		}
-		if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
-			w.sendChatToSession(sess, line)
-			n++
-		}
-	}
-	log.Printf("Metal Moogie: %q to %d players", line, n)
+	n := w.sayNearLocked(MoogieName, world, x, z, text) // abilitytimes.go
+	log.Printf("Metal Moogie: %q to %d players", MoogieName+": "+text, n)
 }
 
 // endMetalLocked ends the duel: Metal Moogie leaves the world unless he lies dead (his corpse lies its

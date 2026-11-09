@@ -170,7 +170,7 @@ func (w *World) npcStatsLocked(npc *NPC, viewer *Player, now time.Time) []string
 			viewer.Name, lo, hi, r.ACSlope, viewer.Name, max(low, floor), max(high, floor), floor, targetDefence(npc)))
 	}
 	if npc.tmpl != nil {
-		out = append(out, w.templateLineLocked(npc)) // classtemplate.go
+		out = append(out, w.templateLineLocked(npc, now)) // classtemplate.go
 	}
 	if line := metalWord(npc); line != "" {
 		out = append(out, line) // metalmoogie.go

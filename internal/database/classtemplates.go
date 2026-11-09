@@ -140,10 +140,16 @@ var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal
 	AbilityStrip, AbilityHealShield, AbilityMeleeKind, AbilityDoT}
 
 // DefaultStripName is what a strip's lines call it when it has no name and
-// pins no spell (ours), and StripNameMost the most characters of a name.
+// pins no spell (ours), and StripNameMost the most characters of a name;
+// DefaultShareHealName a creature's heal of its share's, DefaultFightProcName
+// the proc an ability's landing gives (ours both). SayMost is the most
+// characters of an ability's line in /say.
 const (
-	DefaultStripName = "Dispel"
-	StripNameMost    = 32
+	DefaultStripName     = "Dispel"
+	StripNameMost        = 32
+	DefaultShareHealName = "Heal"
+	DefaultFightProcName = "Fury"
+	SayMost              = 160
 )
 
 // Who a pet's heal or buff lands on (TemplateAbility.Target); either is a
@@ -249,8 +255,30 @@ type TemplateAbility struct {
 	MeleeKind string `json:"melee_kind,omitempty"`
 	TakenPct  int    `json:"taken_pct,omitempty"`
 	// Name is a strip's name in its lines (AbilityStrip; empty:
-	// DefaultStripName), for one that pins no spell.
+	// DefaultStripName), or a creature's heal of its share's (HealPct; empty:
+	// DefaultShareHealName), for one that pins no spell.
 	Name string `json:"name,omitempty"`
+
+	// The fields below are a creature's (entity/abilitytimes.go; the GM
+	// Jibrish's petition 1394: Mr. Moogie's "1 hour cool down complete heal at
+	// 50% health, and if he uses it he says ... After Lh he also gets a proc
+	// buff on melee attacks"); a pet's turn uses none of them.
+
+	// Cooldown is the least seconds from one cast of it to the next across its
+	// creature's fights: kept on the creature, not its fight, so a fight's end,
+	// its death and a restart that keeps the sessions leave it running (0:
+	// none, its clock alone: Every, begun again with each fight).
+	Cooldown float64 `json:"cooldown,omitempty"`
+	// Say is its creature's line in /say as it lands ("Name: text", heard as a
+	// say is).
+	Say string `json:"say,omitempty"`
+	// ProcChance and ProcDamage are a melee proc its landing gives its creature
+	// for the rest of that fight (its end or the creature's death takes it):
+	// ProcChance percent of its melee hits that land deal ProcDamage more,
+	// fixed, told by ProcName (DefaultFightProcName for none).
+	ProcChance int    `json:"proc_chance,omitempty"`
+	ProcDamage int    `json:"proc_damage,omitempty"`
+	ProcName   string `json:"proc_name,omitempty"`
 }
 
 // TargetOr is who a pet's heal or buff lands on: its own, else the pet
@@ -376,6 +404,8 @@ func ParseTemplateAbilities(text string) ([]TemplateAbility, error) {
 		list[i].Stat = strings.ToLower(strings.TrimSpace(list[i].Stat))
 		list[i].Element = strings.ToLower(strings.TrimSpace(list[i].Element))
 		list[i].Name = strings.TrimSpace(list[i].Name)
+		list[i].Say = strings.TrimSpace(list[i].Say)
+		list[i].ProcName = strings.TrimSpace(list[i].ProcName)
 	}
 	if err := CheckTemplateAbilities(list); err != nil {
 		return nil, err
@@ -452,14 +482,43 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 			return fmt.Errorf("ability %d: a spell or line of more than 64 characters", n)
 		case len(a.Name) > StripNameMost:
 			return fmt.Errorf("ability %d: a name of more than %d characters", n, StripNameMost)
-		case a.Name != "" && a.Kind != AbilityStrip:
-			return fmt.Errorf("ability %d: a name is a strip's (its spell names any other)", n)
+		case a.Name != "" && a.Kind != AbilityStrip && !(a.Kind == AbilityHeal && a.HealPct > 0):
+			return fmt.Errorf("ability %d: a name is a strip's or a heal of its share's (its spell names any other)", n)
 		case a.Name != "" && (a.Spell != "" || a.SpellID != 0):
-			return fmt.Errorf("ability %d: a strip is named by its name or by the spell it pins, not both", n)
+			return fmt.Errorf("ability %d: named by its name or by the spell it pins, not both", n)
+		}
+		if err := checkCreatureAbility(n, a); err != nil {
+			return err
 		}
 		if err := checkPetAbility(n, a); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// checkCreatureAbility holds a creature's fields of an ability (its cooldown, its
+// line in /say, the proc its landing gives) to their bounds.
+func checkCreatureAbility(n int, a TemplateAbility) error {
+	switch {
+	case math.IsNaN(a.Cooldown) || math.IsInf(a.Cooldown, 0):
+		return fmt.Errorf("ability %d: a cooldown that is not a number", n)
+	case a.Cooldown < 0 || a.Cooldown > 86400:
+		return fmt.Errorf("ability %d: cooldown %.1f: 0 (none) to 86400 seconds across fights", n, a.Cooldown)
+	case len(a.Say) > SayMost:
+		return fmt.Errorf("ability %d: a say of more than %d characters", n, SayMost)
+	case strings.ContainsAny(a.Say, "|\n\r"):
+		return fmt.Errorf("ability %d: a say with a | or a line break", n)
+	case a.ProcChance < 0 || a.ProcChance > 100:
+		return fmt.Errorf("ability %d: proc_chance %d: 0 to 100 percent of its melee hits", n, a.ProcChance)
+	case a.ProcDamage < 0 || a.ProcDamage > 100000:
+		return fmt.Errorf("ability %d: proc_damage %d: 0 to 100000", n, a.ProcDamage)
+	case (a.ProcChance > 0) != (a.ProcDamage > 0):
+		return fmt.Errorf("ability %d: a proc needs both its proc_chance and its proc_damage", n)
+	case a.ProcName != "" && a.ProcChance == 0:
+		return fmt.Errorf("ability %d: a proc_name with no proc", n)
+	case len(a.ProcName) > StripNameMost:
+		return fmt.Errorf("ability %d: a proc_name of more than %d characters", n, StripNameMost)
 	}
 	return nil
 }

@@ -275,7 +275,8 @@ var catalog = map[string]tableNote{
 			"(eqoa-rust-client-vanilla: the live game's state channel and character list, which carry a colour where the " +
 			"disc's carry a tint). A PS2 never sees one. Color is 0xRRGGBBAA, red in the high byte (0xD10000FF red, " +
 			"0xFFFFFFFF white); alpha 0 is refused. A slot with no row is undyed and looks as it always has. #dye in the " +
-			"game sets them too.",
+			"game sets them too. Slot 10 is the cape's (a server with world.capes): its colour is the cape's, drawn by a " +
+			"client that draws capes, over the cape record's own.",
 		Live:   "At once where the character stands (every client of the live look, from the next tick), else at its next login.",
 		Search: []string{"note", "source"},
 		Cols: map[string]colNote{

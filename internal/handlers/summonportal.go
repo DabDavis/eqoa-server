@@ -266,24 +266,35 @@ func (g *Portal) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) 
 }
 
 // portalFreeportBy is the NPC the way home lands in front of, by name, and
-// portalFreeportOut how far in front.
+// portalFreeportOut how far in front (freeportSpot: the Rock of Freeport's too).
 const (
 	portalFreeportBy  = "Dabrish"
 	portalFreeportOut = 3
 )
 
-// toFreeport is the name's box answered "Take me to Freeport": the player
-// through the portal to a few steps in front of Dabrish, wherever he stands.
-func (g *Portal) toFreeport(sess *session.Session, p *entity.Player, portal entity.EntityID) {
-	x, y, z, facing, world, ok := g.gw.NPCByName(portalFreeportBy)
+// freeportSpot is a few steps in front of Dabrish, wherever he stands, by his
+// facing: where the portal's "Take me to Freeport" lands, and the Rock of
+// Freeport (rockfreeport.go). An error when he is not in the world or that is
+// no place to stand (ValidateTeleport).
+func freeportSpot(gw *entity.World) (entity.GateSpot, error) {
+	x, y, z, facing, world, ok := gw.NPCByName(portalFreeportBy)
 	if !ok {
-		portalRefuse(sess, portalNoFreeport)
-		return
+		return entity.GateSpot{}, fmt.Errorf("no %s in the world", portalFreeportBy)
 	}
 	to := entity.GateSpot{World: world, Y: y, Place: "Freeport, by " + portalFreeportBy,
 		X: x + portalFreeportOut*float32(math.Sin(float64(facing))), Z: z + portalFreeportOut*float32(math.Cos(float64(facing)))}
 	if _, err := ValidateTeleport(to.X, to.Y, to.Z, to.World); err != nil {
-		log.Printf("Portal: %s to Freeport: no place to land (%v)", p.Name, err)
+		return entity.GateSpot{}, fmt.Errorf("no place to land: %w", err)
+	}
+	return to, nil
+}
+
+// toFreeport is the name's box answered "Take me to Freeport": the player
+// through the portal to a few steps in front of Dabrish, wherever he stands.
+func (g *Portal) toFreeport(sess *session.Session, p *entity.Player, portal entity.EntityID) {
+	to, err := freeportSpot(g.gw)
+	if err != nil {
+		log.Printf("Portal: %s to Freeport: %v", p.Name, err)
 		portalRefuse(sess, portalNoFreeport)
 		return
 	}

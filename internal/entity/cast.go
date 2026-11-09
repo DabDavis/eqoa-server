@@ -154,6 +154,13 @@ type CastSpell struct {
 	// bow borrowed for it (handsBackLocked; a cast at a creature gives back
 	// a switch's hands by its reach, marked or not)
 	HandsBack bool
+	// Travel is where an item's cast sends its caster as it lands (the Rock
+	// of Freeport, handlers/rockfreeport.go), nil for a spell: the caster
+	// alone, handed to the travel hook as a gate's traveller is (gates.go),
+	// and nothing else lands. It is no ability of the book, so it has no
+	// lockout and no 0x00CD; while one is on its way, begun and not landed,
+	// another is let go unanswered (StartCast).
+	Travel *GateSpot
 	// resist is the resist that cuts a templated NPC's spell's hit on a
 	// player, by its element (classtemplate.go); a player's spell has none
 	resist Stat
@@ -714,6 +721,10 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 		log.Printf("Cast: %s uses %q %v before the arts' cooldown ends: not answered", p.Name, spell.Name, p.artReady.Sub(now).Round(time.Millisecond))
 		return false
 	}
+	if spell.Travel != nil && w.travelOnItsWayLocked(p) {
+		log.Printf("Cast: %s uses %q while a travel of its own is on its way: not answered", p.Name, spell.Name)
+		return false
+	}
 	targets, refusal, fizzle := w.castRefusalLocked(sess, p, &spell, targetObjectID, now, true)
 	if refusal != "" {
 		log.Printf("Cast: %s casts %q on %#x: %s", p.Name, spell.Name, targetObjectID, refusal)
@@ -740,7 +751,9 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	}
 	w.dispelOnCastLocked(p, spell.Def.Harmful) // workbook.go: what ends at a cast (a run speed only at a harmful one)
 	lockout := spell.CastTime + spell.Recast + castLockoutExtra
-	p.Lockouts = append(p.Lockouts, castLockout{spellID: spell.SpellID, displayIndex: spell.DisplayIndex, until: now.Add(lockout)})
+	if spell.Travel == nil { // an item's travel is no ability: nothing to lock out
+		p.Lockouts = append(p.Lockouts, castLockout{spellID: spell.SpellID, displayIndex: spell.DisplayIndex, until: now.Add(lockout)})
+	}
 	cs := &castState{spell: spell, caster: p.ServerID, targets: targets, ends: now.Add(spell.CastTime + castBusy), lands: now.Add(spell.CastTime + castLand),
 		castEnds: now.Add(spell.CastTime)}
 	w.areaStartLocked(p, cs, now) // area.go: an area spell's others
@@ -748,7 +761,9 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	w.endFoodOnCastLocked(p) // consumable.go: a meal or drink a cast ends
 	w.casts = append(w.casts, cs)
 
-	sendCooldown(sess, spell.DisplayIndex, lockout)
+	if spell.Travel == nil {
+		sendCooldown(sess, spell.DisplayIndex, lockout)
+	}
 	target := p.ServerID
 	if len(targets) > 0 {
 		target = targets[0]
@@ -757,6 +772,35 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	log.Printf("Cast: %s begins %q (spell %d) on %#x: %v cast, %d power (%d left), lands in %v",
 		p.Name, spell.Name, spell.SpellID, targetObjectID, spell.CastTime, spell.PowerCost, p.Power, spell.CastTime+castLand)
 	return true
+}
+
+// TravelBusy reports whether a travel cast (CastSpell.Travel) the session's
+// player began now would be let go before its checks: dead or gone, within
+// another cast's time, or a travel of its own on its way. Its handler asks
+// first, so a quick slot pressed over and over looks for no place
+// (handlers/rockfreeport.go: Dabrish is found by a walk over every NPC).
+func (w *World) TravelBusy(sess *session.Session, now time.Time) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil || p.IsDead() {
+		return true
+	}
+	if p.Casting != nil && now.Before(p.Casting.ends) {
+		return true
+	}
+	return w.travelOnItsWayLocked(p)
+}
+
+// travelOnItsWayLocked reports a travel cast of the player's (CastSpell.Travel)
+// begun and not yet landed. Must be called with the lock held.
+func (w *World) travelOnItsWayLocked(p *Player) bool {
+	for _, cs := range w.casts {
+		if cs.caster == p.ServerID && cs.spell.Travel != nil {
+			return true
+		}
+	}
+	return false
 }
 
 // castWait is what StartCast does with a cast before its checks.
@@ -1189,6 +1233,13 @@ func (w *World) castSystem(now time.Time) []respawnDue {
 func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate bool) {
 	d := &cs.spell.Def
 	casterSess := w.findSessionByEntityIDLocked(caster.ServerID)
+	if to := cs.spell.Travel; to != nil { // an item's travel: its caster sent, nothing else lands
+		if casterSess != nil {
+			w.gates.due = append(w.gates.due, GateTravel{Sess: casterSess, P: caster, To: *to, Spell: cs.spell.Name})
+			log.Printf("Cast: %s's %q lands: to %s (%.1f, %.1f, %.1f) world %d", caster.Name, cs.spell.Name, to.Place, to.X, to.Y, to.Z, to.World)
+		}
+		return false
+	}
 	for _, e := range d.Effects {
 		if e.Kind == EffectGate {
 			gate = true

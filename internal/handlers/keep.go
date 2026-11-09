@@ -228,6 +228,8 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 		// its client keeps its list; a data step in the hold may have changed it
 		h.gameWorld.RefreshRaceLabels(h.store.DB())
 	}
+	// and its race looks, the same (raceoptions.go)
+	h.gameWorld.RefreshRaceLooks(h.store.DB(), sess)
 	// the lists the client has, until its dump sends them anew
 	sess.SetInventoryList(ex.Inventory.list())
 	sess.SetBankList(ex.Bank.list())

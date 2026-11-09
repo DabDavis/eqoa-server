@@ -235,6 +235,14 @@ func everyEntry(steps ...[]OptionStep) []OptionPart {
 	return out
 }
 
+// The red and pale fungusmen's parts: rects of their one texture, which the two
+// bodies lay out alike.
+var (
+	fungusSkin    = [][4]uint8{{31, 0, 184, 128}, {26, 0, 31, 51}, {0, 122, 115, 209}}
+	fungusCap     = [][4]uint8{{115, 128, 255, 255}, {184, 0, 255, 140}}
+	fungusGrowths = [][4]uint8{{0, 51, 31, 122}, {0, 209, 110, 255}}
+)
+
 // raceOptionRows are each race's rows, by its own male body. Measured by eye
 // with vanilla's eqoa dress on the bodies' own triangles and textures
 // (claude-notes/race-options-20261108.md has the shots).
@@ -318,18 +326,22 @@ var raceOptionRows = map[uint32][]OptionRow{
 	bodyFungus: {
 		{Key: "body", Label: "Fungus", Kind: KindBody, Male: []OptionStep{
 			{"Blue cap", bodyFungus, 1}, {"Red cap", bodyFungusRed, 1}, {"Pale cap", bodyFungusPale, 0.91}}},
+		// a triangle is one row's only (TestRaceOptionPartsNeverOverlap): on the red
+		// and pale bodies' one atlas the cap's top runs down to v 133 and the hands'
+		// skin up to 120 (the head's bone against the arms'), the hands' growths out to
+		// u 30, checked triangle by triangle against their bones
 		{Key: "skin", Label: "Skin", Kind: KindColour, Parts: []OptionPart{
-			within(bodyFungus, []uint8{1}, [4]uint8{0, 0, 184, 255}),
-			within(bodyFungusRed, []uint8{0}, [4]uint8{26, 0, 184, 209}, [4]uint8{0, 128, 26, 209}),
-			within(bodyFungusPale, []uint8{0}, [4]uint8{26, 0, 184, 209}, [4]uint8{0, 128, 26, 209})}, Male: barks},
+			within(bodyFungus, []uint8{1}, [4]uint8{0, 0, 184, 255}), within(bodyFungus, []uint8{0}, [4]uint8{115, 0, 255, 115}),
+			within(bodyFungusRed, []uint8{0}, fungusSkin...),
+			within(bodyFungusPale, []uint8{0}, fungusSkin...)}, Male: barks},
 		{Key: "cap", Label: "Cap", Kind: KindColour, Parts: []OptionPart{
 			within(bodyFungus, []uint8{0}, [4]uint8{115, 115, 255, 255}), within(bodyFungus, []uint8{1}, [4]uint8{184, 0, 255, 153}),
-			within(bodyFungusRed, []uint8{0}, [4]uint8{115, 115, 255, 255}, [4]uint8{184, 0, 255, 140}),
-			within(bodyFungusPale, []uint8{0}, [4]uint8{115, 115, 255, 255}, [4]uint8{184, 0, 255, 140})}, Male: dyes},
+			within(bodyFungusRed, []uint8{0}, fungusCap...),
+			within(bodyFungusPale, []uint8{0}, fungusCap...)}, Male: dyes},
 		{Key: "growths", Label: "Growths", Kind: KindColour, Parts: []OptionPart{
 			within(bodyFungus, []uint8{0}, [4]uint8{0, 0, 115, 255}),
-			within(bodyFungusRed, []uint8{0}, [4]uint8{0, 51, 26, 128}, [4]uint8{0, 209, 110, 255}),
-			within(bodyFungusPale, []uint8{0}, [4]uint8{0, 51, 26, 128}, [4]uint8{0, 209, 110, 255})}, Male: dyes},
+			within(bodyFungusRed, []uint8{0}, fungusGrowths...),
+			within(bodyFungusPale, []uint8{0}, fungusGrowths...)}, Male: dyes},
 		{Key: "bag", Label: "Bag", Kind: KindColour, Parts: []OptionPart{whole(bodyFungus, 2)}, Male: dyes},
 	},
 	bodyGargoyle: {{Key: "body", Label: "Stone", Kind: KindBody, Male: []OptionStep{

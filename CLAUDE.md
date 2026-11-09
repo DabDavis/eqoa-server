@@ -965,7 +965,10 @@ creature: the giants' kinds and their women, the goblins' tribes, the aviaks' bi
 ...; each with its size against the race's own, so every kind stands as tall), of **colours** on parts of the body (the
 fungusman's skin, cap, growths and bag; wings, dresses, hide, horns, bark, leaves; a giant's whole tone), or of **textures**
 (the satyrs' faces and the satyrs' and brownie's hair: a player race's own, on a head that already wears one). A part is the
-triangles of some palette entries whose UV centre falls in a rectangle of the texture; a colour is a mode and three bytes
+triangles of some palette entries whose UV centre falls in a rectangle of the texture, and no triangle may be two rows'
+(`TestRaceOptionPartsNeverOverlap`: where the fungusman's skin and cap rects met, the back of its cap took the skin's colour
+in the world, whose rows went out by name, and the cap's on the appearance page, which lays them in row order); a
+character's parts go out in row order (`lookParts`). A colour is a mode and three bytes
 (`Dye`: hue, saturation, lightness over the part's own shading; `Tone`: the part's own colours shifted); a row's first step
 is the body as it is. Change a palette, a body or a rect there and restart: vanilla is told at the next login.
 - **Kept**: a body chosen is `characters.modelid`, which every client draws (a PS2 too), the entity channel's scale its size

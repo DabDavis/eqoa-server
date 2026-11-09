@@ -53,6 +53,9 @@ type Kept struct {
 	CreationOffered    bool `json:"creation_offered,omitempty"`
 	Capes              bool `json:"capes,omitempty"`
 	CapesOffered       bool `json:"capes_offered,omitempty"`
+	ItemListsPack      int  `json:"item_lists_pack,omitempty"`
+	ItemListsBank      int  `json:"item_lists_bank,omitempty"`
+	ItemListsOffered   bool `json:"item_lists_offered,omitempty"`
 	RaceOptionsOffered bool `json:"race_options_offered,omitempty"`
 	RaceLooks          bool `json:"race_looks,omitempty"`
 	RaceCatalogueSent  bool `json:"race_catalogue_sent,omitempty"`
@@ -165,6 +168,9 @@ func (s *Session) Keep() Kept {
 		CreationOffered:    s.creationOffered,
 		Capes:              s.capes,
 		CapesOffered:       s.capesOffered,
+		ItemListsPack:      s.itemListsPack,
+		ItemListsBank:      s.itemListsBank,
+		ItemListsOffered:   s.itemListsOffered,
 		RaceOptionsOffered: s.raceOptionsOffered,
 		RaceLooks:          s.raceLooks,
 		RaceCatalogueSent:  s.raceCatalogueSent,
@@ -302,6 +308,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 	s.creationOffered = k.CreationOffered
 	s.capes = k.Capes
 	s.capesOffered = k.CapesOffered
+	s.itemListsPack, s.itemListsBank, s.itemListsOffered = k.ItemListsPack, k.ItemListsBank, k.ItemListsOffered
 	// the client keeps its lists; a data step in the hold may have changed the
 	// looks, so the next refresh sends them again (handlers/keep.go)
 	s.raceOptionsOffered, s.raceLooks, s.raceCatalogueSent, s.raceLooksSent = k.RaceOptionsOffered, k.RaceLooks, k.RaceCatalogueSent, ""

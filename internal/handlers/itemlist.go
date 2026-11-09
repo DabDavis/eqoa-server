@@ -4,12 +4,20 @@ import (
 	"sync"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/session"
 )
 
-// invListCap is the records a client item list holds (VIItemList's
-// ItemInternal[40]); AddItem is called with 40 at every site.
-const invListCap = 40
+// invListCap is the records CLIENT's item lists hold (VIItemList's
+// ItemInternal[40]; AddItem is called with 40 at every site): every list of a
+// client that has not said it holds more (itemlists.go), and the merchant's,
+// the corpse's and the trade's on every client.
+const invListCap = entity.ClientItemSlots
+
+// merchantListCap is the records a merchant's 0x00B7 list holds, its wares and
+// buy-back lines together (VIClient's m_merchant, a VIItemList of 40, on every
+// client: the larger pack and bank of itemlists.go are not the merchant's).
+const merchantListCap = entity.ClientItemSlots
 
 // invList is the server's copy of the client's inventory list
 // (VIClient+0xC428, a VIItemList): which record sits at each list index, the
@@ -28,6 +36,29 @@ type invList struct {
 	mu   sync.Mutex
 	recs []invRec // list order: recs[i] is the record at list index i
 	next uint32   // VIItemList's counter (+4)
+	// cap is the records the client's list holds (AddItem's capacity): 0 is
+	// CLIENT's invListCap; more for a client that took the item lists' offer
+	// (itemlists.go), as the dump that made the list told it.
+	cap int
+	// kept is the items of the rows kept for the character beside this list
+	// (the pack's keeping, itemlists.go), which its client was never sent: a
+	// Lore item there is one held (loreRoom), and nothing else reads them.
+	kept map[int]bool
+}
+
+// keptHas is whether a row kept beside the list is of the item.
+func (l *invList) keptHas(patternID int) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.kept[patternID]
+}
+
+// capacity is the records the list holds (cap, else CLIENT's 40).
+func (l *invList) capacity() int {
+	if l.cap <= 0 {
+		return invListCap
+	}
+	return l.cap
 }
 
 // invRec is one record of an invList.
@@ -39,9 +70,16 @@ type invRec struct {
 }
 
 // newInvList is the list SendMemoryDump describes: the inventory rows in the
-// order it writes them, each keyed by its position, the counter the count.
+// order it writes them, each keyed by its position, the counter the count, in
+// a list of CLIENT's 40 (newInvListCap: another).
 func newInvList(rows []database.CharInventoryEntry) *invList {
-	l := &invList{recs: make([]invRec, 0, len(rows)), next: uint32(len(rows))}
+	return newInvListCap(rows, 0)
+}
+
+// newInvListCap is newInvList for a list that holds cap records (0: CLIENT's
+// 40), as the dump that makes it tells its client (itemlists.go).
+func newInvListCap(rows []database.CharInventoryEntry, cap int) *invList {
+	l := &invList{recs: make([]invRec, 0, len(rows)), next: uint32(len(rows)), cap: cap}
 	for i := range rows {
 		l.recs = append(l.recs, invRec{
 			key:       uint32(i),
@@ -138,8 +176,9 @@ func (l *invList) at(i int) (invRec, bool) {
 // send: a stackable item (maxStack 2 or more) goes onto the FIRST record of the
 // same item, clamped at maxStack (what does not fit is dropped); anything else,
 // or a stackable item with no record yet, takes a new record at the end under
-// the counter, its quantity clamped (stackable) or 1. A full list takes
-// nothing. It returns the key the client filed it under and how many it took.
+// the counter, its quantity clamped (stackable) or 1. A full list (its
+// capacity: the client's) takes nothing. It returns the key the client filed it
+// under and how many it took.
 func (l *invList) add(itemID, patternID, qty, maxStack int) (key uint32, took int) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -158,7 +197,7 @@ func (l *invList) add(itemID, patternID, qty, maxStack int) (key uint32, took in
 			return l.recs[i].key, took
 		}
 	}
-	if len(l.recs) >= invListCap {
+	if len(l.recs) >= l.capacity() {
 		return 0, 0
 	}
 	took = 1
@@ -216,7 +255,7 @@ func (l *invList) wouldAdd(patternID, qty, maxStack int) int {
 			return qty
 		}
 	}
-	if len(l.recs) >= invListCap {
+	if len(l.recs) >= l.capacity() {
 		return 0
 	}
 	if maxStack >= 2 {
@@ -234,12 +273,13 @@ const loreLine = "You can hold only one %s."
 // Every way an item comes to a character asks it (a summon, a quest's reward or a
 // GM's give through GiveItemNow, loot, a merchant, a buyback, a trade, a craft);
 // a move between its own bank and pack does not. Before it the flag was only
-// shown.
+// shown. One kept for the character (a client that holds fewer records was
+// not sent it: itemlists.go) is held as well.
 func (l *invList) loreRoom(p *database.ItemPatternRecord, room int) int {
 	if p == nil || p.Lore == 0 || room <= 0 {
 		return room
 	}
-	if l.held(p.PatternID) > 0 {
+	if l.held(p.PatternID) > 0 || l.keptHas(p.PatternID) {
 		return 0
 	}
 	return 1
@@ -284,11 +324,13 @@ type invGive struct {
 // (0x00BBD130, AddItem(item, maxStack, 40) at every site): a stackable item
 // onto the FIRST record of its item, up to maxStack (what does not fit is
 // dropped by CLIENT, so it does not go in whole), else a new record while
-// fewer than invListCap are held (worn items are records of the same list),
-// one a record for an item that does not stack. None: everything fits.
+// fewer than the list's capacity are held (CLIENT's 40, or what the client
+// said it holds; worn items are records of the same list), one a record for an
+// item that does not stack. None: everything fits.
 func (l *invList) roomFor(takes []invTake, gives []invGive) []invGive {
 	l.mu.Lock()
 	recs := append([]invRec(nil), l.recs...)
+	most := l.capacity()
 	l.mu.Unlock()
 	for _, t := range takes {
 		for i := range recs {
@@ -317,14 +359,14 @@ func (l *invList) roomFor(takes []invTake, gives []invGive) []invGive {
 			switch {
 			case at >= 0 && recs[at].qty+g.n <= g.maxStack:
 				recs[at].qty += g.n
-			case at < 0 && len(recs) < invListCap && g.n <= g.maxStack:
+			case at < 0 && len(recs) < most && g.n <= g.maxStack:
 				recs = append(recs, invRec{patternID: g.patternID, qty: g.n})
 			default:
 				short = append(short, g)
 			}
 			continue
 		}
-		if len(recs)+g.n > invListCap {
+		if len(recs)+g.n > most {
 			short = append(short, g)
 			continue
 		}

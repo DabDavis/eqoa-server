@@ -258,6 +258,16 @@ type WorldConfig struct {
 	OpenRaces  bool `yaml:"open_races"`
 	AllClasses bool `yaml:"all_classes"`
 
+	// PackSlots and BankSlots are how many records the pack (worn items among
+	// them, as CLIENT counts its 40) and the bank hold for a client that holds
+	// more than CLIENT's 40 (vanilla), which is offered them after the first
+	// character list (protocol.OpcodeItemLists, handlers/itemlists.go). Unset or
+	// 40 or less: 40, nothing offered; at most 255. A PS2 always holds 40, and a
+	// character with more is sent its first 40, the rest kept for it
+	// (charinventory locations 2 and 3) until a client that holds them logs in.
+	PackSlots int `yaml:"pack_slots"`
+	BankSlots int `yaml:"bank_slots"`
+
 	// Capes is an equip slot of this server's own, a cape's (entity/capes.go,
 	// handlers/capes.go): items of wear slot 28 worn in equip slot 22, each
 	// drawn in its record's style (model) by a client that draws capes

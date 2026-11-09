@@ -284,7 +284,7 @@ func TestTheTemplateGivesOnlyTheHeirloomsACharacterLacks(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		_, given, worn, err := h.templateHeirlooms(f.sid, 3)
+		_, given, worn, err := h.templateHeirlooms(f.sid, 3, invListCap)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -312,7 +312,7 @@ func TestTheTemplateGivesOnlyTheHeirloomsACharacterLacks(t *testing.T) {
 		}
 
 		// again: nothing more
-		if _, given, _, err := h.templateHeirlooms(f.sid, 3); err != nil || given != 0 {
+		if _, given, _, err := h.templateHeirlooms(f.sid, 3, invListCap); err != nil || given != 0 {
 			t.Errorf("a second time: %d given, %v", given, err)
 		}
 	})
@@ -321,7 +321,7 @@ func TestTheTemplateGivesOnlyTheHeirloomsACharacterLacks(t *testing.T) {
 		h := &CharacterHandler{inventoryStore: f.inv}
 		heirloom(t, f.db, "H Shield", 13, 13, "shield", 1)
 		heirloom(t, f.db, "H Staff", 15, 13, "twohand", 1)
-		if _, _, _, err := h.templateHeirlooms(f.sid, 13); err != nil {
+		if _, _, _, err := h.templateHeirlooms(f.sid, 13, invListCap); err != nil {
 			t.Fatal(err)
 		}
 		g := inv(t, f)
@@ -339,7 +339,7 @@ func TestTheTemplateGivesOnlyTheHeirloomsACharacterLacks(t *testing.T) {
 				t.Fatal(err)
 			}
 		}
-		lines, given, _, err := h.templateHeirlooms(f.sid, 3)
+		lines, given, _, err := h.templateHeirlooms(f.sid, 3, invListCap)
 		if err != nil || given != 0 || len(lines) != 1 || !strings.Contains(lines[0], "No room for H Helm") {
 			t.Errorf("a full pack: %q, %d given, %v", lines, given, err)
 		}

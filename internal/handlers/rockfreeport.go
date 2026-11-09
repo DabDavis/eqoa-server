@@ -117,11 +117,11 @@ var (
 )
 
 // giveRockOfFreeport gives a character holding none the stone at its login,
-// before its items are read: in its pack while that holds fewer than
-// invListCap records (worn ones among them). A full pack is noted for a line
+// before its items are read: in its pack while that holds fewer records than
+// its client's pack holds (room, itemlists.go's listSizes: worn ones among them). A full pack is noted for a line
 // once it is in the world, and the next login tries again. Nothing with the
 // switch off or without the record.
-func (h *CharacterHandler) giveRockOfFreeport(serverID uint32) {
+func (h *CharacterHandler) giveRockOfFreeport(serverID uint32, room listSizes) {
 	if !rockOn.Load() || h.store == nil || h.inventoryStore == nil {
 		return
 	}
@@ -139,7 +139,7 @@ func (h *CharacterHandler) giveRockOfFreeport(serverID uint32) {
 	if held > 0 {
 		return
 	}
-	if pack >= invListCap {
+	if pack >= room.packOf() {
 		log.Printf("Rock: character %d's pack is full: no stone this login (told in the world)", serverID)
 		rockOwedMu.Lock()
 		rockOwed[serverID] = true

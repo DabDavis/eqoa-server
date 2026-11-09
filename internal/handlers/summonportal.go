@@ -588,9 +588,9 @@ func (g *Portal) inWorld(id entity.EntityID) *session.Session {
 
 // giveSummoningPortal gives a character with none one at its login, as
 // giveGenieLamp gives the lamp.
-func (h *CharacterHandler) giveSummoningPortal(serverID uint32) {
+func (h *CharacterHandler) giveSummoningPortal(serverID uint32, room listSizes) {
 	if h.store == nil || h.inventoryStore == nil {
 		return
 	}
-	h.giveKeptItem(serverID, keptItemID(h.store.DB(), SummoningPortalName, "Portal"), "Portal", "summoning portal")
+	h.giveKeptItem(serverID, keptItemID(h.store.DB(), SummoningPortalName, "Portal"), "Portal", "summoning portal", room)
 }

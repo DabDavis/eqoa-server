@@ -30,7 +30,11 @@ import (
 //     that step's other options, changed on the spot: the old option's spells
 //     out of the book and its items taken back, the new one's spells taught
 //     and its items given, the pick kept, no quest done again (the user,
-//     2026-10-30: "choose again on the spot").
+//     2026-10-30: "choose again on the spot");
+//   - a template saved or used (rehabtemplates.go; petition 1322): how the
+//     training points and masteries are spent now kept in one of two slots,
+//     or every one given back and spent again as a slot keeps them, never
+//     more than it spent.
 //
 // Each is asked again before it is done, and refused when the character has
 // nothing of it, or (a path) wears what the path gave or has no room for what
@@ -60,7 +64,7 @@ func IsRehabilitator(name string) bool {
 // What a rehabilitator says (ours).
 const (
 	rehabGreeting    = "Be welcome, %s. What a soul has learned it may set down, and I help it do so, that it may learn anew."
-	rehabAskMenu     = "What would you have me undo?"
+	rehabAskMenu     = "What would you have of me?"
 	rehabAskResets   = "Which shall I reset?"
 	rehabAsYouWish   = "As you wish."
 	rehabAskBegin    = "Shall I begin?"
@@ -91,7 +95,10 @@ const (
 	rehabTraining
 	rehabBoth
 	rehabPath
-	rehabResets // the menu's reset: which is asked
+	rehabResets    // the menu's reset: which is asked
+	rehabTemplates // the menu's templates: save or use is asked
+	rehabTplSave   // a template saved (rehabtemplates.go)
+	rehabTplUse    // a template used
 )
 
 // The questions a box asks.
@@ -100,6 +107,7 @@ const (
 	rehabStagePaths              // which path
 	rehabStageNewPick            // which other option of its step
 	rehabStageConfirm            // yes or no to what ask says
+	rehabStageSlot               // which template slot, to save (what rehabTplSave) or use
 )
 
 // rehabTerms is what a reset does to a character as it stands: the parts it
@@ -119,13 +127,17 @@ type rehabBox struct {
 	what    int        // a confirmation: what it does
 	terms   rehabTerms // and on what terms it was asked
 	swap    *pathSwap  // a path's change, as it was asked
+	slot    int        // a template's slot (rehabtemplates.go)
+	tpl     string     // and what saving or using it does, as it was asked
 }
 
-// rehabRows is what a rehabilitator keeps: each character's counts
-// (database.SQLiteDB), and which spells merchants sell as scrolls.
+// rehabRows is what a rehabilitator keeps: each character's counts and
+// templates (database.SQLiteDB), and which spells merchants sell as scrolls.
 type rehabRows interface {
 	CountReset(serverID uint32, kind string, free bool, at time.Time) error
 	MerchantScrollNames(icon int) ([]string, error)
+	RehabTemplates(serverID uint32) (map[int]database.RehabTemplate, error)
+	SaveRehabTemplate(serverID uint32, t database.RehabTemplate, at time.Time) error
 }
 
 // Rehab runs the rehabilitators.
@@ -136,6 +148,7 @@ type Rehab struct {
 	spells *database.SpellbookStore
 	cm     *ClassMasteryHandler
 	chars  resetStore          // the characters' rows: the training reset
+	tpl    templateStore       // and a template's use (rehabtemplates.go); nil: no templates
 	quests func() *QuestEngine // the running quests (Quests)
 	now    func() time.Time
 
@@ -150,6 +163,9 @@ func NewRehab(db *database.SQLiteDB, gw *entity.World, inv *database.InventorySt
 	cm *ClassMasteryHandler, chars resetStore) *Rehab {
 	r := &Rehab{rows: db, gw: gw, inv: inv, spells: spells, cm: cm, chars: chars, quests: Quests, now: time.Now,
 		boxes: map[uint32]*rehabBox{}}
+	if ts, ok := chars.(templateStore); ok {
+		r.tpl = ts
+	}
 	if gw != nil {
 		gw.OnPlayerLeaving(func(p *entity.Player) {
 			r.mu.Lock()
@@ -222,6 +238,10 @@ func (r *Rehab) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 		if i < len(b.options) && b.pick != nil {
 			r.askSwap(sess, p, b.speaker, *b.pick, b.options[i])
 		}
+	case rehabStageSlot:
+		if i < len(b.options) {
+			r.slotPicked(sess, p, b.speaker, b.what, b.options[i])
+		}
 	case rehabStageConfirm:
 		if i == 0 {
 			r.confirmed(sess, p, b)
@@ -241,6 +261,10 @@ func (r *Rehab) picked(sess *session.Session, p *entity.Player, speaker string, 
 		r.askReset(sess, p, speaker, what)
 	case rehabPath:
 		r.askPaths(sess, p, speaker)
+	case rehabTemplates:
+		r.templatesMenu(sess, p, speaker)
+	case rehabTplSave, rehabTplUse:
+		r.askSlot(sess, p, speaker, what)
 	}
 }
 
@@ -252,17 +276,24 @@ func (r *Rehab) confirmed(sess *session.Session, p *entity.Player, b *rehabBox) 
 		r.doReset(sess, p, b)
 	case rehabPath:
 		r.doSwap(sess, p, b)
+	case rehabTplSave:
+		r.doSave(sess, p, b)
+	case rehabTplUse:
+		r.doUse(sess, p, b)
 	}
 }
 
 // --- the menu ---
 
-// menu asks what to undo: a reset or a path, two answers of a page of
-// CLIENT's.
+// menu asks what to do: a reset, a path or, where templates are kept, a
+// template, three answers of a page of CLIENT's.
 func (r *Rehab) menu(sess *session.Session, p *entity.Player, speaker string) {
 	labels := []string{"Reset my masteries or stat points", "Choose a path again"}
-	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageMenu,
-		options: []int{rehabResets, rehabPath}}, rehabAskMenu, labels)
+	options := []int{rehabResets, rehabPath}
+	if r.templatesServed() {
+		labels, options = append(labels, rehabTemplatesAnswer), append(options, rehabTemplates)
+	}
+	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageMenu, options: options}, rehabAskMenu, labels)
 }
 
 // resetMenu asks which reset: the masteries, the stat points or both.

@@ -143,6 +143,16 @@ func (a *templateAbility) spellFor(class, level int) *CastSpell {
 	return best
 }
 
+// castTime is how long the ability's cast of s takes: its own cast (the
+// record's whole seconds cannot hold the Swarming Deaths' half second), else
+// the spell's.
+func (a *templateAbility) castTime(s *CastSpell) time.Duration {
+	if a.Cast > 0 {
+		return time.Duration(math.Round(a.Cast*1000)) * time.Millisecond
+	}
+	return s.CastTime
+}
+
 // templateBase is what a templated NPC was without its template: put back
 // when the template is taken away.
 type templateBase struct {
@@ -322,10 +332,14 @@ func templateKindTakes(kind string, s *CastSpell) bool {
 	if d.Summons() || d.Charms() || d.FormKind != FormNone || d.undeadOnly() || d.hasProc() {
 		return false
 	}
-	var hits, drains, heals, price, roots, powers bool
+	var hits, drains, heals, price, roots, powers, ticks, tickDrains bool
 	for _, e := range d.Effects {
 		if e.Kind == EffectRoot {
 			roots = true
+		}
+		if e.Kind == EffectHPTick && e.Amount < 0 && !e.Self {
+			ticks = true // a damage over time
+			tickDrains = tickDrains || e.Drain != DrainNone
 		}
 		if e.Kind == EffectPower && e.Amount < 0 && !e.Self {
 			powers = true // a mana tap (templatePowerFigure)
@@ -362,6 +376,10 @@ func templateKindTakes(kind string, s *CastSpell) bool {
 		return d.Harmful && single && drains
 	case database.AbilityRoot:
 		return d.Harmful && roots && !hits
+	case database.AbilityDoT:
+		// its ticks alone are what lands, no one's take (pettemplate.go's
+		// petDoTLocked): no instant hit, no drain
+		return d.Harmful && single && ticks && !hits && !drains && !tickDrains
 	case database.AbilityHeal:
 		// a heal is at once: a lasting spell that raises hit points is a
 		// buff (the cleric's Courage line), a heal over time a tick's
@@ -721,9 +739,10 @@ func (w *World) templateCastLocked(npc *NPC, i int, target EntityID, now time.Ti
 	if spell == nil {
 		return false
 	}
+	ct := a.castTime(spell)
 	c := &npcCast{npc: npc, tmpl: t, spell: spell, pct: a.DamageOr(), target: target,
 		debuff: a.Kind == database.AbilityDebuff, noCure: a.NoCure, strip: a.Kind == database.AbilityStrip,
-		lands: now.Add(spell.CastTime + castLand)}
+		lands: now.Add(ct + castLand)}
 	if a.Kind == database.AbilityHeal {
 		c.heal, c.target = true, npc.ServerID
 	} else {
@@ -739,13 +758,13 @@ func (w *World) templateCastLocked(npc *NPC, i int, target EntityID, now time.Ti
 	}
 	w.npcCasts = append(w.npcCasts, c)
 	f := npc.fight()
-	f.busy = now.Add(spell.CastTime + castBusy)
+	f.busy = now.Add(ct + castBusy)
 	if j := i + 1; j < len(t.abilities) && t.abilities[j].Chain {
 		f.chain = j + 1
 	}
-	w.broadcastNPCSwingLocked(npc, c.target, uint32(spell.CastTime/time.Millisecond), spell.visual(), c.others...)
+	w.broadcastNPCSwingLocked(npc, c.target, uint32(ct/time.Millisecond), spell.visual(), c.others...)
 	log.Printf("Template: %s (%s, level %d) begins %q (spell %d) on %s: %v cast, %d%% of its figures, %d others",
-		npc.Name, t.Name, npc.Level, spell.Name, spell.SpellID, w.entityNameLocked(c.target), spell.CastTime, c.pct, len(c.others))
+		npc.Name, t.Name, npc.Level, spell.Name, spell.SpellID, w.entityNameLocked(c.target), ct, c.pct, len(c.others))
 	return true
 }
 
@@ -1451,7 +1470,7 @@ func (w *World) templateLineLocked(npc *NPC) string {
 		}
 		what := "nothing at its level"
 		if s := a.spellFor(npc.Class, npc.Level); s != nil {
-			what = fmt.Sprintf("%s (level %d, %v cast)", s.Name, s.Level, s.CastTime)
+			what = fmt.Sprintf("%s (level %d, %v cast)", s.Name, s.Level, a.castTime(s))
 		}
 		parts = append(parts, fmt.Sprintf("%s %s %s at %d%%", a.Kind, what, when, a.DamageOr()))
 	}

@@ -321,6 +321,10 @@ type ActiveEffect struct {
 	// logout (buffsave.go)
 	npcFoe    EntityID
 	npcResist Stat
+	// pet is the pet whose damage over time it is on a creature (a pet
+	// template's AbilityDoT, pettemplate.go; Caster its owner), 0 for every
+	// other effect: each tick is one of the pet's hits (petTickLocked)
+	pet EntityID
 	// Line and Rank are a beneficial spell's line and its level on a player
 	// (buffline.go): only the best of a line counts; "" for none
 	Line string
@@ -1740,6 +1744,10 @@ func (w *World) spellHitHateLocked(caster *Player, casterSess *session.Session, 
 // tickNPCEffectLocked runs a damage tick on a creature when one is due.
 func (w *World) tickNPCEffectLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 	if ae.NextTick.IsZero() || now.Before(ae.NextTick) || ae.HPTick == 0 {
+		return
+	}
+	if ae.pet != 0 {
+		w.petTickLocked(npc, ae, now) // a pet's damage over time (pettemplate.go)
 		return
 	}
 	if ae.HPTick > 0 {

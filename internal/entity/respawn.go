@@ -78,6 +78,9 @@ func (w *World) playerDownLocked(sess *session.Session, p *Player, now time.Time
 	if p.respawnPending() {
 		return
 	}
+	if w.challengeDefeatLocked(sess, p, now) { // a duel with Metal Moogie lost: 1 HP left (metalmoogie.go)
+		return
+	}
 	if p.GMTestMode { // a GM's #testmode (gmchannel.go): the hit was taken and shown, the death is not
 		p.HP = 1
 		p.StatsDirty = true

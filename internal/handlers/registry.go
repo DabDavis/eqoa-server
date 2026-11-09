@@ -356,6 +356,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// the coachmen's GMs, offered every coach town (coachledger.go)
 	interactHandler.isGM = chatHandler.isGM
 	interactHandler.dabrishLevel, interactHandler.dabrishMastery = chatHandler.applyLevel, chatHandler.giveMastery // dabrish.go
+	interactHandler.favor = NewMoogieFavor(invStore, spellStore)                                                   // Mr. Moogie's favor (metalmoogie.go)
 	if charStore != nil {
 		interactHandler.binds = charStore
 		// the stables' ledgers (coachledger.go)

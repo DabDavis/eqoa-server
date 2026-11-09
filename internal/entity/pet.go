@@ -648,6 +648,10 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 			return
 		}
 		npc, isNPC := ent.(*NPC)
+		if ok && isNPC && challengeBars(npc, p.ServerID) {
+			w.sendChatToSession(sess, fmt.Sprintf(MetalLinePet, npc.challenge.name)) // another's duel (metalmoogie.go)
+			return
+		}
 		if !ok || !isNPC || !pet.petFights() || !petMayFight(pet, npc) || distXZ(p.X, p.Z, npc.X, npc.Z) > petLeash {
 			w.sendChatToSession(sess, "Your pet cannot attack that.")
 			return
@@ -676,7 +680,8 @@ var petStanceWords = map[petStance]string{
 // petMayFight is whether a pet may take on the creature: alive, in its world,
 // attackable (not npc flags 0x80, as CLIENT's own test) and nobody's pet.
 func petMayFight(pet, npc *NPC) bool {
-	return npc != nil && npc != pet && !npc.Dead && npc.World == pet.World && npc.NPCType&0x80 == 0 && npc.Owner == 0
+	return npc != nil && npc != pet && !npc.Dead && npc.World == pet.World && npc.NPCType&0x80 == 0 && npc.Owner == 0 &&
+		!challengeBars(npc, pet.Owner) // another's duel (metalmoogie.go)
 }
 
 func distXZ(ax, az, bx, bz float32) float32 {
@@ -1085,7 +1090,7 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 // (Grand Animation's grandAnimationTaunt). It reports a kill.
 func (w *World) petTauntLocked(ps *petState, t *NPC, now time.Time) bool {
 	pet := ps.npc
-	if t.Dummy == NotDummy {
+	if t.Dummy == NotDummy && t.challenge == nil { // a Metal Moogie keeps to his challenger (metalmoogie.go)
 		var top int64
 		for id, v := range t.Threats {
 			if id != pet.ServerID && v > top {

@@ -324,7 +324,8 @@ func (w *World) serializeEntityDiscLocked(sess *session.Session, id EntityID, ob
 			buf[26] = 3
 			buf[27] = 0
 		}
-		w.duelViewPetLocked(sess, npc, buf) // a duel opponent's pet as a creature (duel.go)
+		w.duelViewPetLocked(sess, npc, buf)   // a duel opponent's pet as a creature (duel.go)
+		w.challengeViewLocked(sess, npc, buf) // a Metal Moogie not one's own to fight (metalmoogie.go)
 		w.putChannelTargetLocked(sess, npc, buf)
 		return buf, nil
 	}

@@ -344,6 +344,10 @@ type Player struct {
 	// session.
 	GMTestMode    bool
 	GMTankProfile int
+	// metalSpared is when the duel Metal Moogie won stops holding the player at
+	// 1 HP (metalmoogie.go): what was on its way from him when it ended (a proc,
+	// a shield's answer) kills no one.
+	metalSpared time.Time
 
 	// Flying: a GM's #fly is on (fly.go), until #fly off or the next login.
 	// flyGrace: its last few reports on the way down from it (fly.go).

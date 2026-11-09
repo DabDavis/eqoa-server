@@ -91,6 +91,13 @@ func (w *World) SpawnNPCCopy(name string, x, y, z, facing float32, world uint8) 
 	if t == nil {
 		return 0, "", false
 	}
+	c := w.spawnCopyLocked(t, x, y, z, facing, world)
+	return c.ServerID, t.Name, true
+}
+
+// spawnCopyLocked is SpawnNPCCopy's copy of t, put in the world. Must be called
+// with the lock held.
+func (w *World) spawnCopyLocked(t *NPC, x, y, z, facing float32, world uint8) *NPC {
 	c := *t
 	c.ServerID = w.allocFreeIDLocked()
 	c.X, c.Y, c.Z, c.Facing = x, y, z, facing
@@ -116,10 +123,11 @@ func (w *World) SpawnNPCCopy(name string, x, y, z, facing float32, world uint8) 
 	c.Temporary = true
 	c.SpawnOnly, c.HiddenUntil = false, time.Time{} // in every view near it
 	c.endDummyFight()
-	c.tfight = nil // its template's fight is its own (classtemplate.go)
+	c.tfight = nil    // its template's fight is its own (classtemplate.go)
+	c.challenge = nil // a duel's is its own (metalmoogie.go)
 	w.putNPCLocked(&c)
 	w.SpatialIndex.Insert(c.ServerID, x, z)
-	return c.ServerID, t.Name, true
+	return &c
 }
 
 // DespawnNPC takes a GM's spawned NPC out of the world at once. An NPC with a

@@ -72,6 +72,10 @@ const (
 	EffectSummonPlayer // the target brought to the caster (Call of the Hero)
 	EffectDisguise     // the factions do not attack the bearer on sight while it lasts
 	EffectMarkHeal     // a mark on a creature: each weapon hit landed on it heals its hitter Amount (markheal.go)
+	// EffectSize shows the bearer Amount percent bigger (smaller, negative) while it lasts: its body's
+	// scale on the state channel, every client's to draw ("Increase Size by 50%": Mr. Moogie's Duelist's
+	// Favor, metalmoogie.go)
+	EffectSize
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -669,6 +673,10 @@ func (d *SpellDef) parsePart(part, verb string) string {
 		d.Effects = append(d.Effects, SpellEffect{Kind: EffectPowerCap, Amount: n, AmountMax: n})
 		return verb
 	}
+	if n, ok := sizePart(part); ok { // the body's scale ("Increase Size by 50%")
+		d.Effects = append(d.Effects, SpellEffect{Kind: EffectSize, Amount: n, AmountMax: n})
+		return verb
+	}
 	// the target's hate for the caster gone (Vampiric Gaze, vampire.go)
 	if part == "set aggro to 0" || part == "aggro to 0" {
 		d.Effects = append(d.Effects, SpellEffect{Kind: EffectForget})
@@ -800,4 +808,22 @@ func (d *SpellDef) parsePart(part, verb string) string {
 func atoi(s string) int {
 	n, _ := strconv.Atoi(s)
 	return n
+}
+
+// reSize is a clause that makes its bearer bigger or smaller: "increase size by 50%", "decrease
+// model size by 20 %" (lower case, as the line is read).
+var reSize = regexp.MustCompile(`^(increase|decrease|raise|lower)\s+(?:(?:character|model|body)\s+)?size\s+by\s+(\d+)\s*%?$`)
+
+// sizePart reads a size clause: the percent, signed (a decrease negative), at most 300 bigger and
+// 90 smaller.
+func sizePart(part string) (int, bool) {
+	m := reSize.FindStringSubmatch(part)
+	if m == nil {
+		return 0, false
+	}
+	n := min(atoi(m[2]), 300)
+	if m[1] == "decrease" || m[1] == "lower" {
+		n = -min(n, 90)
+	}
+	return n, true
 }

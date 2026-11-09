@@ -498,6 +498,10 @@ func (r *RDPHandler) TickSession(sess *session.Session) {
 		sess.SetPendingTermination(true)
 		return
 	}
+	// One in the world silent InGameSilentEnd: its client is gone (below).
+	if r.listener.silentInWorldOver(sess, silent) {
+		return
+	}
 
 	// Generate state updates if in world using XOR delta encoding
 	// Format: 162-byte state (isActive + ObjectID + ObjectUpdate), matching retail
@@ -558,6 +562,51 @@ const (
 	StateSilence     = 5 * time.Second
 	PreGameSilentEnd = 3 * time.Minute
 )
+
+// InGameSilentEnd is how long a client past character select may send
+// nothing before its session ends and its character leaves the world.
+//
+// Until 2026-11-09 only the ping rule ended one: 50 pings unanswered, one
+// every world.session_timeout_game, 10 s on eqoaclassic, so a closed tab, a
+// crashed or hung page or a dropped line left its character standing in the
+// world about 500 s (eqoaclassic that morning: Zaeire's client fell silent
+// at 08:10 and the character stood until 08:18:51, other players targeting
+// it, its session resending up to 240 messages every ten seconds to a relay
+// port long closed), and a login of the character in that time took it over
+// from a dead session. A client in the world is never that quiet: CLIENT
+// sends its 0x40 ten times a second (SendPosition; the page in a hidden tab
+// too, tick.js), and its DRDP sends a keepalive once 30 s pass with nothing
+// sent (connection_flush). The longest silence a live client has is a PS2
+// reading a world off the disc, about 22 s (claude-notes
+// streaming-radius-and-hdd-20260814.md), and CLIENT itself gives up on a
+// connection whose messages go 60 s unanswered (connection_set_failure's
+// 60000, vanilla's too). 60 s is twice the keepalive: a live client is never
+// cut, a gone one goes eight minutes sooner. The same as session.LiveWithin,
+// past which a session no longer holds its login.
+const InGameSilentEnd = 60 * time.Second
+
+// silentInWorldOver ends a session past character select whose client has
+// been silent InGameSilentEnd (and reports so), as a dropped client's end:
+// its character saved and taken out of the world at the tick's end. One whose
+// character is dead with its respawn to come waits for it, so it goes home to
+// its bind point first, as a Quit in a fight does (entity/linkdead.go).
+func (l *Listener) silentInWorldOver(sess *session.Session, silent time.Duration) bool {
+	if silent <= InGameSilentEnd || sess.PendingTermination() {
+		return false
+	}
+	if _, replaced := sess.ReplacedFor(); replaced {
+		return false // its own grace ends it (session.ReplacedGrace)
+	}
+	if !sess.InGame() && !sess.CharacterInWorld() {
+		return false
+	}
+	if l != nil && l.gameWorld != nil && l.gameWorld.RespawnPending(sess) {
+		return false
+	}
+	log.Printf("Session: %s silent %.0fs in the world: its client is gone, ended", sess.Label(), silent.Seconds())
+	sess.SetPendingTermination(true)
+	return true
+}
 
 // sendPrepared sends the packet PreparePacket builds, if there is one.
 func (r *RDPHandler) sendPrepared(sess *session.Session) {

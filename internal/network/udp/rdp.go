@@ -58,9 +58,15 @@ func (r *RDPHandler) ProcessIncoming(sess *session.Session, packet *Packet) {
 			sess.InstanceID(), body.Flags, body.ArrivalNumber, body.GuaranteedAck)
 	}
 
-	// Check for delayed/duplicate packets
-	if body.ArrivalNumber <= conn.LastReceivedPacketSeq() {
-		// Allow sequence number wraparound at 0
+	// Check for delayed/duplicate packets: at or before the newest taken,
+	// by the signed 16-bit difference, as connection.cpp compares arrival
+	// numbers. A plain <= stopped every packet of a client whose packet
+	// numbers passed 65535 (two to three hours at a page's 6-10 packets a
+	// second): its acks never taken again, all of our reliable messages
+	// resent until its own gave up on ours (eqoaclassic, 01:39:15 UTC
+	// 2026-11-09: arrival 0 to 458 against 65535).
+	if !session.SeqAfter(body.ArrivalNumber, conn.LastReceivedPacketSeq()) {
+		// A packet with no flush ack is a connection's first: always taken
 		if body.FlushAck != 0 {
 			log.Printf("ProcessIncoming: dropping delayed/duplicate packet (arrival=%d, lastRecv=%d)",
 				body.ArrivalNumber, conn.LastReceivedPacketSeq())
@@ -69,6 +75,13 @@ func (r *RDPHandler) ProcessIncoming(sess *session.Session, packet *Packet) {
 	}
 
 	conn.SetLastReceivedPacketSeq(body.ArrivalNumber)
+
+	// the round trip to the packet it names, and which of our last 64 it
+	// had (netstats.go)
+	if body.Flags&protocol.BodyFlagFlushAck != 0 {
+		conn.Net().NoteFlushAck(body.FlushAck, body.FlushAckMask,
+			body.Flags&protocol.BodyFlagFlushAckMask != 0, time.Now())
+	}
 
 	// Process guaranteed ack if present
 	if body.Flags&protocol.BodyFlagGuaranteedAck != 0 {
@@ -106,6 +119,7 @@ func (r *RDPHandler) processRDPReport(sess *session.Session, body *protocol.Segm
 
 	// Update client's last received message
 	conn.SetClientLastReceivedMessage(body.GuaranteedAck)
+	conn.Net().NoteAck(body.GuaranteedAck, time.Now())
 
 	// Check if we should trigger the ACK callback (e.g., send character list)
 	if debuglog.Packets() {
@@ -171,7 +185,7 @@ func mergeReliablesInSequenceOrder(pending, retrans []*protocol.Message) []*prot
 		}
 	}
 	sort.SliceStable(reliables, func(i, j int) bool {
-		return reliables[i].Sequence < reliables[j].Sequence
+		return session.SeqAfter(reliables[j].Sequence, reliables[i].Sequence)
 	})
 	for i, slot := range slots {
 		combined[slot] = reliables[i]
@@ -309,8 +323,9 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 
 	// Write RDP report
 	includeAcks := bodyFlags&protocol.BodyFlagGuaranteedAck != 0
+	packetSeq := conn.LastSentPacketSeq()
 	builder.WriteRDPReport(
-		conn.LastSentPacketSeq(),
+		packetSeq,
 		conn.LastReceivedPacketSeq(),
 		conn.LastReceivedMessageSeq(),
 		includeAcks,
@@ -327,10 +342,17 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 	// Reliable messages that don't fit are re-queued for the next tick.
 	for idx, msg := range pending {
 		var seq uint16
+		if msg.Type.IsReliable() && msg.Acked {
+			// acknowledged since it was queued again (a resend put back
+			// when its packet was full): nothing to send
+			continue
+		}
 		if msg.Type.IsReliable() {
-			// Use existing sequence if already assigned (from AddWithSequence)
-			// Otherwise assign a new one
-			if msg.Sequence != 0 {
+			// The number AddWithSequence gave it (Queued marks one given):
+			// 0 is a number like any other once the count passes 65535,
+			// and a message numbered again here is one the client waits
+			// for and no list resends.
+			if !msg.Queued.IsZero() {
 				seq = msg.Sequence
 			} else {
 				seq = conn.NextMessageSeq()
@@ -376,6 +398,7 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 
 	// Finalize packet with CRC
 	packet := builder.Finish()
+	conn.Net().NoteSent(packetSeq, len(packet), time.Now())
 	if debuglog.Packets() {
 		log.Printf("Outgoing packet hex (%d bytes): %x", len(packet), packet)
 	}

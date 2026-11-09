@@ -1,6 +1,7 @@
 package session
 
 import (
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -79,6 +80,7 @@ func (q *MessageQueue) AddWithSequence(msg *protocol.Message) uint16 {
 			seq := q.session.Connection().NextMessageSeq()
 			frag.Sequence = seq
 			frag.UpdateTime()
+			frag.Queued = frag.LastSent
 
 			q.pending = append(q.pending, frag)
 			q.reliable = append(q.reliable, frag)
@@ -92,6 +94,7 @@ func (q *MessageQueue) AddWithSequence(msg *protocol.Message) uint16 {
 		seq := q.session.Connection().NextMessageSeq()
 		msg.Sequence = seq
 		msg.UpdateTime()
+		msg.Queued = msg.LastSent
 
 		q.pending = append(q.pending, msg)
 		q.reliable = append(q.reliable, msg)
@@ -105,6 +108,7 @@ func (q *MessageQueue) AddWithSequence(msg *protocol.Message) uint16 {
 	seq := q.session.Connection().NextMessageSeq()
 	msg.Sequence = seq
 	msg.UpdateTime()
+	msg.Queued = msg.LastSent
 
 	q.pending = append(q.pending, msg)
 
@@ -209,14 +213,25 @@ func (q *MessageQueue) RemoveReliables() {
 
 	clientAck := q.session.Connection().ClientLastReceivedMessage()
 
-	// Remove messages that have been acknowledged
+	// Remove messages that have been acknowledged. They are NOT handed back
+	// to the message pool: one may still sit in q.pending (a resend put back
+	// when its packet was full) or in a packet being built on another
+	// goroutine (PreparePacket holds what it drained outside the lock), and a
+	// pooled message is reused at once, for any session (the tick builds
+	// dozens a session): its sequence number, type and bytes overwritten
+	// under the reference, a packet of one client carrying another's
+	// message, or a reliable message given a fresh number nobody would
+	// resend. The garbage collector takes them.
 	newReliable := q.reliable[:0]
 	for _, msg := range q.reliable {
-		if msg.Sequence > clientAck {
+		if SeqAfter(msg.Sequence, clientAck) {
 			newReliable = append(newReliable, msg)
 		} else {
-			protocol.PutMessage(msg)
+			msg.Acked = true
 		}
+	}
+	for i := len(newReliable); i < len(q.reliable); i++ {
+		q.reliable[i] = nil
 	}
 	q.reliable = newReliable
 }
@@ -279,10 +294,66 @@ func (q *MessageQueue) TakeRetransmits(delay time.Duration, max int) []*protocol
 		out = append(out, msg)
 	}
 	if len(out) > 0 {
-		log.Printf("Queue: retransmitting %d unacked reliable message(s), first seq=%d",
-			len(out), out[0].Sequence)
+		q.noteResentLocked(len(out), now)
 	}
 	return out
+}
+
+// noteResentLocked counts a packet's resends for the session's stats and,
+// every netLogEvery while it resends, writes its "Net:" line: who, how many
+// went again, and its stream as it stands (Report). It replaced a line a
+// packet with no session named ("Queue: retransmitting 4 unacked reliable
+// message(s), first seq=206"), 7,583 a minute on eqoaclassic at 03:54 UTC
+// 2026-11-09. Caller must hold q.mu.
+func (q *MessageQueue) noteResentLocked(msgs int, now time.Time) {
+	if q.session == nil || q.session.Connection() == nil {
+		return
+	}
+	st := q.session.Connection().Net()
+	st.NoteResent(msgs, now)
+	due, n, pkts, over := st.takeLogWindow(now)
+	if !due {
+		return
+	}
+	span := ""
+	if over > 0 {
+		span = fmt.Sprintf(" over %.0fs", over.Seconds())
+	}
+	log.Printf("Net: %s resent %d reliable message(s) in %d packet(s)%s; %s",
+		q.session.Label(), n, pkts, span, q.reportLocked(now))
+}
+
+// Report is the session's reliable stream now, for #net (handlers/netcmd.go).
+func (q *MessageQueue) Report(now time.Time) NetReport {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	return q.reportLocked(now)
+}
+
+// reportLocked is Report with q.mu held.
+func (q *MessageQueue) reportLocked(now time.Time) NetReport {
+	var r NetReport
+	inPending := q.pendingSeqs()
+	for _, msg := range q.reliable {
+		if inPending[msg.Sequence] && msg.LastSent.Equal(msg.Queued) {
+			continue // queued, never sent
+		}
+		if r.Unacked == 0 {
+			r.FirstSeq = msg.Sequence
+		}
+		r.LastSeq = msg.Sequence
+		r.Unacked++
+		if !msg.Queued.IsZero() {
+			if age := now.Sub(msg.Queued); age > r.Oldest {
+				r.Oldest = age
+			}
+		}
+	}
+	r.Pending = len(q.pending)
+	if q.session != nil && q.session.Connection() != nil {
+		q.session.Connection().Net().fill(&r, now)
+	}
+	return r
 }
 
 // pendingSeqs is the set of sequence numbers still awaiting their first send.
@@ -315,12 +386,17 @@ func (q *MessageQueue) Clear() {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
-	// Return messages to pool
+	// Return the unreliable to the pool, which only q.pending holds. A
+	// reliable one may be in both lists (queued, not yet sent): put back
+	// twice, the pool would hand the same message to two owners. Those the
+	// garbage collector takes (RemoveReliables).
 	for _, msg := range q.pending {
-		protocol.PutMessage(msg)
+		if !msg.Type.IsReliable() {
+			protocol.PutMessage(msg)
+		}
 	}
 	for _, msg := range q.reliable {
-		protocol.PutMessage(msg)
+		msg.Acked = true // never sent from a stale reference
 	}
 
 	q.pending = q.pending[:0]

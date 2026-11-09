@@ -62,8 +62,12 @@ type Session struct {
 	inGameTimeout  time.Duration // Timeout for in-game sessions (default 60s)
 
 	// Account/character info
-	accountID      int
-	charServerID   uint32      // Character's database server_id (for dedup on reconnect)
+	accountID    int
+	charServerID uint32 // Character's database server_id (for dedup on reconnect)
+	charName     string // its name, for the log's lines (SetCharacterName)
+	// lobbyLate counts the lobby connection's packets that came after the
+	// promotion (NoteLobbyLate)
+	lobbyLate      int32
 	character      interface{} // Will be *entity.Character when implemented
 	playerObjectID uint32      // Unique ID for this player in the game world (assigned on enter world)
 
@@ -835,6 +839,43 @@ func (s *Session) SetCharacterServerID(id uint32) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.charServerID = id
+}
+
+// SetCharacterName names the session's character, for the log's lines
+// (netstats.go's "Net:").
+func (s *Session) SetCharacterName(name string) {
+	s.mu.Lock()
+	s.charName = name
+	s.mu.Unlock()
+}
+
+// CharacterName is the session's character's name, "" before one is picked.
+func (s *Session) CharacterName() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.charName
+}
+
+// NoteLobbyLate counts one more of the lobby connection's packets come to
+// this promoted session (PromotedOwn), and says how many so far.
+func (s *Session) NoteLobbyLate() int {
+	return int(atomic.AddInt32(&s.lobbyLate, 1))
+}
+
+// Label names the session in a log line: its address and its character's
+// name when it has one.
+func (s *Session) Label() string {
+	if s == nil {
+		return "<none>"
+	}
+	addr := "?"
+	if a := s.RemoteAddr(); a != nil {
+		addr = a.String()
+	}
+	if n := s.CharacterName(); n != "" {
+		return addr + " '" + n + "'"
+	}
+	return addr
 }
 
 // PlayerObjectID returns the player's unique object ID in the game world.

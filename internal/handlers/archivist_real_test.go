@@ -101,13 +101,13 @@ func TestRealArchivistBasicSpells(t *testing.T) {
 			}
 		}
 	}
-	wantBox := fmt.Sprintf("box:Spell Archivist: There: %d spells of your calling written into your book, every one the merchants sell up to level 60 that you lacked.",
+	wantBox := fmt.Sprintf("box:Spell Archivist: There: %d spells of your calling written into your book, every one the merchants sell or its quests teach up to level 60 that you lacked.",
 		want[60][archivistWizard])
 	if adds != want[60][archivistWizard] || len(got) != adds+1 || got[len(got)-1] != wantBox {
 		t.Errorf("the wizard's grant: %d added, the last %q; want %d and %q", adds, got[len(got)-1], want[60][archivistWizard], wantBox)
 	}
 	f.wantMsgs("the wizard's second grant", f.grant(),
-		"box:Spell Archivist: Your book holds every spell of your calling the merchants sell up to level 60 already.")
+		"box:Spell Archivist: Your book holds every spell of your calling the merchants sell or its quests teach up to level 60 already.")
 	box := boxID(f.pick(f.menu(), archivistClear))
 	got = f.pick(box, 0)
 	if n := len(got); n != want[60][archivistWizard]+1 || got[n-1] != fmt.Sprintf("box:Spell Archivist: Your book is clear but for Return Home: %d spells gone.",

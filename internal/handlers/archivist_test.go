@@ -76,6 +76,7 @@ func newArchivistFixture(t *testing.T, db *database.SQLiteDB) *archivistFixture 
 	f.ih = NewInteractHandler(mgr)
 	f.ih.SetGameWorld(f.w)
 	f.a = NewArchivist(f.spells, f.windows)
+	f.a.quests = func() *QuestEngine { return nil } // no quests (another test's running engine is not this one's)
 	f.ih.archivist = f.a
 	f.npc = f.stand(SpellArchivistName, archivistShop, 0x81, archivistObject)
 	return f
@@ -491,20 +492,20 @@ func TestTheArchivistGrantsTheBasicSpells(t *testing.T) {
 
 	f.wantMsgs("the grant", f.grant(),
 		"add:101@4 flag 0", "add:102@5 flag 0", "add:115@6 flag 0", "add:120@7 flag 0", "add:113@8 flag 0",
-		"box:Spell Archivist: There: 5 spells of your calling written into your book, every one the merchants sell up to level 30 that you lacked.")
+		"box:Spell Archivist: There: 5 spells of your calling written into your book, every one the merchants sell or its quests teach up to level 30 that you lacked.")
 	want := []string{"1623@0/0", "117@1", "119@2", "121@3", "101@4", "102@5", "115@6", "120@7", "113@8"}
 	if got := f.book(); strings.Join(got, " ") != strings.Join(want, " ") {
 		t.Errorf("the book: %v, want %v", got, want)
 	}
 
 	f.wantMsgs("a second grant", f.grant(),
-		"box:Spell Archivist: Your book holds every spell of your calling the merchants sell up to level 30 already.")
+		"box:Spell Archivist: Your book holds every spell of your calling the merchants sell or its quests teach up to level 30 already.")
 
 	was := entity.Creation()
 	defer entity.SetCreationRules(was)
 	entity.SetCreationRules(entity.CreationRules{Races: true, AllClasses: true})
 	f.wantMsgs("every class open to every race", f.grant(), "add:107@9 flag 0",
-		"box:Spell Archivist: There: 1 spell of your calling written into your book, every one the merchants sell up to level 30 that you lacked.")
+		"box:Spell Archivist: There: 1 spell of your calling written into your book, every one the merchants sell or its quests teach up to level 30 that you lacked.")
 }
 
 // The grant stops at level 60 whatever the level (the petition's "cap 60"),
@@ -524,7 +525,7 @@ func TestTheArchivistGrantsUpToSixtyAndWhatFits(t *testing.T) {
 	f.shop("Scroll Merchant", 0x81, 41, sold...)
 	f.p.Level = 65
 	f.wantMsgs("a level 65's grant", f.grant(), "add:201@0 flag 0", "add:202@1 flag 0", "add:203@2 flag 0",
-		"box:Spell Archivist: There: 3 spells of your calling written into your book, every one the merchants sell up to level 60 that you lacked.")
+		"box:Spell Archivist: There: 3 spells of your calling written into your book, every one the merchants sell or its quests teach up to level 60 that you lacked.")
 
 	// a book to index 250: one fits, at 251
 	if _, err := f.db.Exec(`DELETE FROM spells WHERE serverid = ?`, f.p.CharServerID); err != nil {

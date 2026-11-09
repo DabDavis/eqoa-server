@@ -216,7 +216,7 @@ func (f *archivistFixture) pick(box uint32, option byte) []string {
 func (f *archivistFixture) menu() uint32 {
 	f.t.Helper()
 	got := f.open(archivistObject)
-	want := "ask#*:" + archivistQuestion + "|Browse your scrolls|Grant basic spells|Grant path spells|Clear my spellbook|Nothing, thank you"
+	want := "ask#*:" + archivistQuestion + "|Browse your scrolls|Grant basic spells|Grant path spells|Clear my spellbook|Unlock my masteries|Nothing, thank you"
 	if len(got) != 2 || !archivistLike(got[0], want) || got[1] != "op:00D7" {
 		f.f("his question: %q, want %q and 0x00D7", got, want)
 	}
@@ -619,7 +619,9 @@ func TestTheArchivistsWordsFitTheirBoxes(t *testing.T) {
 	}
 	for _, s := range []string{archivistClearIs, fmt.Sprintf(archivistGranted, spellCount(251), 60),
 		fmt.Sprintf(archivistGrantedSome, spellCount(251), 251), fmt.Sprintf(archivistHasAll, 60), archivistBookFull,
-		fmt.Sprintf(archivistCleared, spellCount(251)), archivistNothingToClear, archivistKept, archivistTrouble} {
+		fmt.Sprintf(archivistCleared, spellCount(251)), archivistNothingToClear, archivistKept, archivistTrouble,
+		fmt.Sprintf(archivistUnlocked, joinAnd(archivistUnlockLines)), fmt.Sprintf(archivistUnlockedAll, joinAnd(archivistUnlockLines)),
+		archivistUnlockNone} {
 		if n := len([]rune(SpellArchivistName + ": " + s)); n > questBoxChars {
 			t.Errorf("%q is %d characters with his name, a box shows %d", s, n, questBoxChars)
 		}

@@ -306,8 +306,12 @@ func (w *World) tellPetHealLocked(ps *petState, n int) {
 
 // petWantsLocked is whether a due ability is wanted now: a heal on its
 // owner or a spell's on itself below its share, a buff its target (itself,
-// or its owner) lacks; anything at a foe, yes.
+// or its owner) lacks; anything at a foe, yes, but a spell for undead alone
+// at a foe that is not undead (it waits, due, for one that is).
 func (w *World) petWantsLocked(ps *petState, a *templateAbility, now time.Time) bool {
+	if petAtFoe(a.Kind) && !w.petUndeadMayLocked(a.spellFor(petSpellClass(a, ps.npc), ps.npc.Level), w.NPCs[ps.target]) {
+		return false
+	}
 	switch a.Kind {
 	case database.AbilityHeal:
 		owner := func() bool {
@@ -341,6 +345,17 @@ func (w *World) petWantsLocked(ps *petState, a *templateAbility, now time.Time) 
 		return t != nil && s != nil && !w.petDoTUpLocked(ps, a, s, t, now)
 	}
 	return true
+}
+
+// petUndeadMayLocked is whether a pet's spell may go at t: any spell at
+// anything, but a spell for undead alone (a "Target undead" line, undead.go) at
+// an undead creature alone (its npcundead row, else its name: undeadLocked), as
+// a player's is refused at the living (the magician Waldorf's petition 1395:
+// the Ghilan Noble's "undead nuke against undead creatures"); so it is neither
+// cast at nor lands on the living, and an area of it spares them. No spell or
+// no target is the caller's to say. Must be called with the lock held.
+func (w *World) petUndeadMayLocked(s *CastSpell, t *NPC) bool {
+	return s == nil || t == nil || !s.Def.undeadOnly() || w.undeadLocked(t)
 }
 
 // buffOn is whether effects hold the buff's effect, or one of its line of a
@@ -393,8 +408,8 @@ func (w *World) petCastLocked(ps *petState, i int, t *NPC, now time.Time) bool {
 	c := &petCast{ps: ps, tmpl: ps.tmpl, a: a, spell: spell, lands: now.Add(ct + castLand)}
 	switch {
 	case petAtFoe(a.Kind):
-		if t == nil || t.Dead {
-			return false
+		if t == nil || t.Dead || !w.petUndeadMayLocked(spell, t) {
+			return false // a spell for undead alone not cast at the living (a chained one too)
 		}
 		c.target = t.ServerID
 	case a.TargetOr() == database.AbilityOnOwner:
@@ -554,7 +569,8 @@ func (w *World) petAreaFoesLocked(pet, t *NPC, area SpellArea, now time.Time) []
 }
 
 // petSplashLocked lands a pet's area nuke's figure on the others of its area
-// (petAreaFoesLocked), each as one of the pet's hits.
+// (petAreaFoesLocked), each as one of the pet's hits; a spell for undead alone
+// on its undead alone.
 func (w *World) petSplashLocked(ps *petState, t *NPC, c *petCast, a *templateAbility, now time.Time) {
 	area := c.spell.Area
 	if area.Centre == AreaNone {
@@ -566,6 +582,9 @@ func (w *World) petSplashLocked(ps *petState, t *NPC, c *petCast, a *templateAbi
 	}
 	pet := ps.npc
 	for _, o := range w.petAreaFoesLocked(pet, t, area, now) {
+		if !w.petUndeadMayLocked(c.spell, o) {
+			continue
+		}
 		n, _ := templateFigure(effects, a.DamageOr())
 		if pet.sheet != nil {
 			n, _ = sheetFigure(pet, effects, a.DamageOr(), false)
@@ -811,6 +830,9 @@ func (w *World) petTemplateProcLocked(ps *petState, t *NPC, now time.Time) bool 
 // owner's own cast on itself.
 func (w *World) petLandLocked(c *petCast, now time.Time) {
 	ps, pet, a := c.ps, c.ps.npc, c.a
+	if petAtFoe(a.Kind) && !w.petUndeadMayLocked(c.spell, w.NPCs[c.target]) {
+		return // for undead alone, and its target no longer is (a GM's tag in its cast)
+	}
 	switch a.Kind {
 	case database.AbilityNuke, database.AbilityAoE, database.AbilityLifetap:
 		t := w.NPCs[c.target]

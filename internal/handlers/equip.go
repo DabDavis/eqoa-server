@@ -28,9 +28,11 @@ import (
 //	uint8   interaction  UseItem's second argument: 0 from the item menu, 1 from
 //	                     the HUD's item quick slot, both a use or an equip toggle
 //
-// It is a TOGGLE: equipped -> unequip, not equipped -> equip. The server picks
-// the slot (the first free one a pair allows) and tells the client which,
-// in EquipItem (0x003F); the client then takes off what that displaces itself.
+// It is a TOGGLE: equipped -> unequip, not equipped -> equip. The request
+// names no hand (the item menu's Equip is UseItem(i, 0), its only one): the
+// server picks the slot (the first free one a pair allows, planInteractItem)
+// and tells the client which, in EquipItem (0x003F); the client then takes off
+// what that displaces itself.
 //
 // A spell scroll is not worn: the same request scribes it (scribe.go).
 type EquipHandler struct {
@@ -94,7 +96,8 @@ func (h *EquipHandler) RegisterHandlers(r *Registry) {
 // item's +0x14 on the client) to the equip slots (charinventory.equiploc) it may
 // be put in, in the order the server tries them: exactly the slots CLIENT's fit
 // check (fitsEquip) accepts. Two entries are a pair, and the server takes
-// whichever is free, else the first.
+// whichever is free, else the first (but a weapon either hand may hold, wear
+// 14, and an item held, 18: planInteractItem).
 var itemSlotToEquipSlot = map[int][]int{
 	1:  {0},      // Head        -> Head
 	2:  {21},     // Robe        -> Robe
@@ -170,6 +173,26 @@ func heldSlot(worn map[int]bool) int {
 		return equipHeldOff
 	}
 	return equipHeldMain
+}
+
+// eitherHandSlot is where a weapon either hand may hold (wear 14, which the
+// item window calls SECONDARY: word 340) goes on a class that may hold two:
+// the primary hand while nothing is in it, else the secondary, taking the
+// place of what is there. Until petition 1376 (Zaeire's, a rogue of 60 with a
+// dagger in each hand: "if you ... equip a different secondary weapon, its
+// replacing the primary ... rather than the default left hand (secondary)")
+// both hands full took the first of the pair, the primary. CLIENT's own
+// EquipSlotFor (0x00BDCEA0) gives the secondary hand whenever the primary
+// holds anything (FindEquipped(list, 14)), and its item window's stat preview
+// (StatWithItem: EquipItem on a copy of the list, into EquipSlotFor's hand)
+// showed a dual wielder the weapon so while this server put it in the other
+// hand. Its gate of a WAR, RAN, MNK, BRD or RGE of 20 and up is not this
+// server's: every class but the knights holds two here (offHandWeaponBarred).
+func eitherHandSlot(worn map[int]bool) int {
+	if worn[equipPrimary] {
+		return equipSecondary
+	}
+	return equipPrimary
 }
 
 // offHandWeaponBarred is whether a class holds a weapon in its primary hand
@@ -369,7 +392,9 @@ func planInteractItem(items []database.CharInventoryEntry, list *invList, key ui
 	}
 
 	// Not equipped -> equip, into the first free slot of the pair, else the
-	// first; an item held by the hands it leaves alone (heldSlot).
+	// first; an item held by the hands it leaves alone (heldSlot), a weapon
+	// either hand may hold the primary hand while it is free, else the
+	// secondary (eitherHandSlot).
 	worn := map[int]bool{}
 	for _, e := range inv {
 		if e.EquipLoc >= 0 {
@@ -383,8 +408,11 @@ func planInteractItem(items []database.CharInventoryEntry, list *invList, key ui
 			break
 		}
 	}
-	if wear == wearHeld {
+	switch {
+	case wear == wearHeld:
 		chosen = heldSlot(worn)
+	case wear == wearEitherHand && !offHandWeaponBarred(class):
+		chosen = eitherHandSlot(worn)
 	}
 	into := planEquipInto(inv, idx, found, chosen)
 	into.key = key

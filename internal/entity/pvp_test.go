@@ -2,6 +2,7 @@ package entity
 
 import (
 	"encoding/binary"
+	"math"
 	"net"
 	"strings"
 	"testing"
@@ -796,5 +797,37 @@ func TestPvPThrownPotionsLandAtTheShare(t *testing.T) {
 	d.w.mu.Unlock()
 	if taken := before - d.a.HP; taken != 100 || d.b.Swing.PotionLeft != 1 {
 		t.Errorf("a worn one thrown in a round took %d (want 100), %d left (want 1)", taken, d.b.Swing.PotionLeft)
+	}
+}
+
+// The user, 2026-11-09: "ranger bow only hitting for 90 in pvp mode on". A
+// bow's swing on a foe is its shot as on a creature (playerShotHit: two
+// arrows from Range4, each rangedShare times a roll), then the PvP share;
+// it was one melee roll on the bow, halved. The control is
+// TestPvPMeleeLandsAtTheDuelShare: a melee swing's hit as it was.
+func TestPvPBowShootsAsOnACreature(t *testing.T) {
+	d := newPvP(t)
+	d.flag(t, d.sa, 0)
+	d.flag(t, d.sb, 0)
+	d.a.Gear.WeaponDamage, d.a.Gear.WeaponCond = 400, 1
+	bow := Swing{Kind: swingRange4, Delay: 3200 * time.Millisecond, Reach: 30}
+	if !d.w.EngageAttack(d.sa, d.aSeesB, bow, d.at(time.Second)) {
+		t.Fatal("not engaged")
+	}
+	d.a.AutoAttack = true
+	floor, low, high := playerMeleeRoll(d.a, duelStandIn(d.b.Level))
+	arrow := func(roll int) int { return int(math.Round(float64(max(floor, roll)) * rangedShare)) }
+	lo, hi := duelHalf(2*arrow(low)), duelHalf(2*arrow(high))
+	d.b.HP, d.b.MaxHP = 1_000_000, 1_000_000
+	before := d.b.HP
+	d.attackFor(time.Second, 8*time.Second)
+	hits := ofOp(duelDrain(d.sa), protocol.OpcodeDamageIndication)
+	if len(hits) < 2 {
+		t.Fatalf("%d shots told", len(hits))
+	}
+	taken := before - d.b.HP
+	if taken < len(hits)*lo || taken > len(hits)*hi {
+		t.Fatalf("%d shots took %d, want each within the halved two-arrow shot %d..%d (a melee roll halved: %d..%d)",
+			len(hits), taken, lo, hi, duelHalf(max(floor, low)), duelHalf(max(floor, high)))
 	}
 }

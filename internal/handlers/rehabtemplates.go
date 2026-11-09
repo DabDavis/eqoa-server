@@ -5,6 +5,7 @@ import (
 	"log"
 	"sort"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
@@ -299,7 +300,7 @@ func (r *Rehab) askSave(sess *session.Session, p *entity.Player, speaker string,
 	old, had := tpls[slot]
 	lines := []string{"You have spent " + r.spendText(cur.TP, cur.CMs) + "."}
 	if had && !old.Empty() {
-		lines = append(lines, fmt.Sprintf("Slot %d holds %s now: it will hold this instead.", slot, r.spendText(old.TP, old.CMs)))
+		lines = append(lines, fmt.Sprintf("Slot %d holds %s now. It will hold this instead.", slot, r.spendText(old.TP, old.CMs)))
 	}
 	r.say(sess, speaker, lines...)
 	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageConfirm, what: rehabTplSave, slot: slot,
@@ -374,25 +375,66 @@ func useTerms(pl entity.RespecPlan, t database.RehabTemplate) string {
 		pl.Bought, skipped, pl.Removed, pl.Before, pl.After)
 }
 
-// skippedText says the ranks not bought and why, the first few: "Brawn 2
-// (you must have Brawn 1 first) and Godborn (too few mastery points are left
-// for it)".
-func skippedText(sk []entity.CMSkip) string {
+// skippedItems says the ranks not bought and why, the first few: "Brawn 2
+// (you must have Brawn 1 first)", "Godborn (too few mastery points are left
+// for it)"; one the catalog no longer has, which has no name, "a mastery no
+// longer offered".
+func skippedItems(sk []entity.CMSkip) []string {
 	const most = 6
 	var parts []string
 	for i, s := range sk {
 		if i == most {
-			parts = append(parts, fmt.Sprintf("%d more", len(sk)-most))
+			parts = append(parts, fmt.Sprintf("and %d more", len(sk)-most))
 			break
 		}
 		why := strings.TrimSuffix(strings.TrimSpace(s.Why), ".")
-		if why == "" {
+		switch {
+		case s.Name == "":
+			parts = append(parts, "a mastery no longer offered")
+		case why == "":
 			parts = append(parts, s.Name)
-			continue
+		default:
+			parts = append(parts, fmt.Sprintf("%s (%s)", s.Name, strings.ToLower(why[:1])+why[1:]))
 		}
-		parts = append(parts, fmt.Sprintf("%s (%s)", s.Name, strings.ToLower(why[:1])+why[1:]))
 	}
-	return joinAnd(parts)
+	return parts
+}
+
+// boxRoom is what a box holds of a line said by speaker (say puts "speaker:
+// " before it).
+func boxRoom(speaker string) int {
+	if speaker == "" {
+		return questBoxChars
+	}
+	return questBoxChars - utf8.RuneCountInString(speaker) - 2
+}
+
+// packList is head and its items as lines of at most room characters, the
+// items "; " apart, each line ended with a full stop and no item cut across
+// two: "head a; b." then "c; d." (a line past room only where one item alone
+// is, which say cuts).
+func packList(head string, items []string, room int) []string {
+	var lines []string
+	cur, n := head, 0
+	for _, it := range items {
+		sep := "; "
+		if n == 0 {
+			sep = " "
+			if cur == "" {
+				sep = ""
+			}
+		}
+		if n > 0 && utf8.RuneCountInString(cur+sep+it)+1 > room {
+			lines = append(lines, cur+".")
+			cur, n, sep = "", 0, ""
+		}
+		cur += sep + it
+		n++
+	}
+	if cur != "" {
+		lines = append(lines, cur+".")
+	}
+	return lines
 }
 
 // planSpent is what a plan spends, as a template's spending.
@@ -415,9 +457,10 @@ func leftText(pl entity.RespecPlan, tail string) string {
 		pl.After.Points+pl.After.Spent, pl.TPAfter, tpAll, tail)
 }
 
-// useLines say what using a template does: what goes back, what is spent
-// again, what stays, what is short and what cannot be bought.
-func (r *Rehab) useLines(pl entity.RespecPlan, t database.RehabTemplate) []string {
+// useLines say what using a template does, each sentence short of a box (say
+// cuts a line after a sentence): what goes back, what is spent again, what
+// stays, what is short and what cannot be bought.
+func (r *Rehab) useLines(pl entity.RespecPlan, t database.RehabTemplate, speaker string) []string {
 	held := database.RehabTemplate{TP: pl.TPFrom}
 	var lines []string
 	spend := r.spendText(planSpent(pl).TP, planSpent(pl).CMs)
@@ -430,7 +473,7 @@ func (r *Rehab) useLines(pl entity.RespecPlan, t database.RehabTemplate) []strin
 			back = append(back, fmt.Sprintf("%s (%s)", countOfThing(pl.Held, "mastery", "masteries"),
 				countOfThing(pl.Returned, "point", "points")))
 		}
-		lines = append(lines, fmt.Sprintf("I will give back the %s you have spent, then spend you as slot %d keeps you: %s.",
+		lines = append(lines, fmt.Sprintf("I will give back the %s you have spent. Then I will spend you as slot %d keeps you: %s.",
 			strings.Join(back, " and "), t.Slot, spend))
 	} else {
 		lines = append(lines, fmt.Sprintf("I will spend you as slot %d keeps you: %s.", t.Slot, spend))
@@ -448,7 +491,8 @@ func (r *Rehab) useLines(pl entity.RespecPlan, t database.RehabTemplate) []strin
 		lines = append(lines, "A stat it would take past your level's cap stops at the cap.")
 	}
 	if len(pl.Skipped) > 0 {
-		lines = append(lines, fmt.Sprintf("I cannot buy %d of its masteries: %s.", len(pl.Skipped), skippedText(pl.Skipped)))
+		lines = append(lines, packList(fmt.Sprintf("I cannot buy %d of its masteries:", len(pl.Skipped)),
+			skippedItems(pl.Skipped), boxRoom(speaker))...)
 	}
 	return lines
 }
@@ -503,7 +547,7 @@ func (r *Rehab) askUse(sess *session.Session, p *entity.Player, speaker string, 
 		r.say(sess, speaker, fmt.Sprintf(rehabAlreadySpent, slot))
 		return
 	}
-	r.say(sess, speaker, r.useLines(pl, t)...)
+	r.say(sess, speaker, r.useLines(pl, t, speaker)...)
 	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageConfirm, what: rehabTplUse, slot: slot,
 		tpl: useTerms(pl, t)}, rehabAskBegin, []string{rehabYes, rehabNotNow})
 }
@@ -563,7 +607,7 @@ func (r *Rehab) doUse(sess *session.Session, p *entity.Player, b *rehabBox) {
 	lines := []string{fmt.Sprintf("%s You have spent %s.", rehabDone, r.spendText(planSpent(pl).TP, planSpent(pl).CMs)),
 		leftText(pl, "are yours to spend")}
 	if len(pl.Skipped) > 0 {
-		lines = append(lines, "Not bought: "+skippedText(pl.Skipped)+".")
+		lines = append(lines, packList("Not bought:", skippedItems(pl.Skipped), boxRoom(b.speaker))...)
 	}
 	if trouble {
 		lines = append(lines, "Something went wrong keeping it: tell a GM.")

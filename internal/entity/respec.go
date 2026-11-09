@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/eqoa/server/internal/session"
@@ -33,7 +32,8 @@ import (
 // cost (when the template was saved; now, in a plan).
 type CMTemplateRank struct{ ID, Cost int }
 
-// CMSkip is a template's rank not bought, and why, in the purchase's words.
+// CMSkip is a template's rank not bought, and why, in the purchase's words;
+// Name is "" for a rank the catalog no longer has.
 type CMSkip struct {
 	ID   int
 	Name string
@@ -200,7 +200,7 @@ func (w *World) planRespecLocked(p *Player, from, saved [7]int, ranks []CMTempla
 		if r := w.cmRank(id); r != nil {
 			return r.Name
 		}
-		return fmt.Sprintf("mastery %d", id)
+		return ""
 	}
 	skip := func(id int, reason string) {
 		pl.Skipped = append(pl.Skipped, CMSkip{ID: id, Name: name(id), Why: reason})

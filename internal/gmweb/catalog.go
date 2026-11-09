@@ -85,7 +85,7 @@ func enums() map[string][]EnumValue {
 		"wearslot": numbered("None", "Head", "Robe", "Earring", "Neck", "Chest", "Forearm", "Both forearms",
 			"Ring", "Belt", "Legs", "Feet", "Primary", "Shield", "Secondary", "Two-handed", "Bow", "Thrown",
 			"Held", "Hands", "Fishing pole", "Bait", "Tool (1)", "Tool (2)", "Tool (3)", "Tool (4)", "Tool (5)", "Tool (6)", "Cape"),
-		"location":   {{0, "Inventory"}, {1, "Bank"}},
+		"location":   {{0, "Inventory"}, {1, "Bank"}, {2, "Kept from the inventory"}, {3, "Kept from the bank"}},
 		"acctstatus": {{1, "Active"}, {0, "Inactive"}, {-1, "Banned"}},
 		"bool":       {{0, "No"}, {1, "Yes"}},
 		// npcmove.roam (entity/movement.go)
@@ -230,7 +230,7 @@ var catalog = map[string]tableNote{
 	},
 	"charinventory": {
 		Label: "Character items", Group: "Players", Sort: "serverid",
-		Help: "Every item a character has: location 0 the inventory, 1 the bank; equiploc the slot it is worn in (-1 not worn).",
+		Help: "Every item a character has: location 0 the inventory, 1 the bank; equiploc the slot it is worn in (-1 not worn). Locations 2 and 3 are kept for the character: what its inventory and its bank held past what the client it logged in with holds (a PS2's 40), untouched, back at the end of the list at a login with room.",
 		Live: "A character in the world gets its items at its next login (eject it to apply now).",
 		Show: []string{"itemid", "serverid", "patternid", "stackleft", "remainHP", "equiploc", "location", "listnumber"},
 		Cols: map[string]colNote{

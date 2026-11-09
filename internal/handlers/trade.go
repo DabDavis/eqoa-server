@@ -405,9 +405,21 @@ func (h *TradeHandler) completeLocked(t *trade) {
 			return
 		}
 	}
+	gives := map[*tradeSide][]invGive{}
 	for _, m := range moves {
 		toInv := sessionInvList(m.to.sess)
 		if toInv.loreRoom(&m.row.Pattern, toInv.wouldAdd(m.row.Pattern.PatternID, m.n, m.row.Pattern.MaxStack)) < m.n {
+			h.refuseLocked(t)
+			return
+		}
+		gives[m.to] = append(gives[m.to], invGive{patternID: m.row.Pattern.PatternID, n: m.n, maxStack: m.row.Pattern.MaxStack})
+	}
+	// and all a side takes in, together, as its client files them, in the
+	// records its list holds (itemlists.go: CLIENT's 40 or a larger client's):
+	// each offer alone could fit where all four do not
+	for side, g := range gives {
+		if short := sessionInvList(side.sess).roomFor(nil, g); len(short) > 0 {
+			log.Printf("Trade: %s has no room for all %d offers", side.player.Name, len(g))
 			h.refuseLocked(t)
 			return
 		}

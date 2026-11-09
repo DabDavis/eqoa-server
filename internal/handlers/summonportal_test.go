@@ -999,7 +999,7 @@ func TestALoginGivesTheSummoningPortal(t *testing.T) {
 		}
 		return n
 	}
-	h.giveSummoningPortal(rec.ServerID)
+	h.giveSummoningPortal(rec.ServerID, clientLists)
 	if count() != 0 {
 		t.Fatal("an item with no record")
 	}
@@ -1008,8 +1008,8 @@ func TestALoginGivesTheSummoningPortal(t *testing.T) {
 		VALUES (0, 0, 0, 0, -1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 80, 32767, 32767, 7, 0, 0, 0, ?, '', 0, 0)`, SummoningPortalName); err != nil {
 		t.Fatal(err)
 	}
-	h.giveSummoningPortal(rec.ServerID)
-	h.giveSummoningPortal(rec.ServerID)
+	h.giveSummoningPortal(rec.ServerID, clientLists)
+	h.giveSummoningPortal(rec.ServerID, clientLists)
 	if count() != 1 {
 		t.Fatalf("%d items, want one", count())
 	}

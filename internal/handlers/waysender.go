@@ -415,10 +415,15 @@ func wayDests(gw *entity.World, sess *session.Session, waysender string, player 
 			}
 			continue
 		}
-		// in front of them, not inside them: a body is solid (a place: on it)
+		// in front of them, not inside them: a body is solid (a place: on it);
+		// on dry ground by them where in front is the sea (petition 1349: the
+		// dockmasters face the harbour from their piers' ends)
 		fx, fz, face := x, z, facing
 		if r.At == nil {
 			fx, fz, face = inFrontOf(x, z, facing)
+			if lx, ly, lz, lf, ok := gw.ArrivalLanding(world, x, y, z, facing, bindReach); ok {
+				fx, y, fz, face = lx, ly, lz, lf
+			}
 		}
 		dests = append(dests, entity.CoachDest{Name: r.To, X: fx, Y: y, Z: fz, Facing: face,
 			World: world, Fee: r.Fee, MinLevel: r.MinLevel, Via: waysender})

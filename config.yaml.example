@@ -70,7 +70,7 @@ world:
 
   # A cape slot of this server's own (entity/capes.go): items of wear slot 28
   # (tools/seed_capes.py makes them) worn in equip slot 22, drawn by a client
-  # that draws capes (vanilla, offered them with opcode 0x7E24); a PS2 is sent
+  # that draws capes (vanilla, offered them with opcode 0x7E25); a PS2 is sent
   # a cape as a plain item it cannot wear. Off unless set.
   # capes: true
 

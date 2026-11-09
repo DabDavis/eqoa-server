@@ -592,9 +592,9 @@ const (
 	// game's own messages (0x003E, 0x003F, 0x0040), and it is sent
 	// OpcodeCapesList with each character list and OpcodeCapesInView in the
 	// world. A PS2 ignores the offer (CLIENT's dispatcher has no default case)
-	// and is sent a cape as a plain item (wear -1), never worn. 0x7E22 and
-	// 0x7E23 are left free.
-	OpcodeCapes GameOpcode = 0x7E24
+	// and is sent a cape as a plain item (wear -1), never worn. (0x7E22-0x7E24
+	// are the race options'.)
+	OpcodeCapes GameOpcode = 0x7E25
 
 	// OpcodeCapesInView is the capes worn in a client's view, server to a
 	// client that answered OpcodeCapes 1, in the world: a u8 count, then for
@@ -604,14 +604,14 @@ const (
 	// art's own), little-endian. Players only. Each one is the whole set: an
 	// id it leaves out wears no cape. Sent when the set changes, and again at
 	// each MemoryDump and world change.
-	OpcodeCapesInView GameOpcode = 0x7E25
+	OpcodeCapesInView GameOpcode = 0x7E26
 
 	// OpcodeCapesList is the capes the characters of a list wear, server to a
 	// client that answered OpcodeCapes 1, after each character list (0x002C)
 	// and when its answer comes while it is choosing: a u8 count, then for each
 	// character that wears one a u32 its ServerID (as 0x002C carries it), a u8
 	// style and a u32 colour, as OpcodeCapesInView. The whole list each time.
-	OpcodeCapesList GameOpcode = 0x7E26
+	OpcodeCapesList GameOpcode = 0x7E27
 )
 
 // =============================================================================

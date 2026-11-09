@@ -40,6 +40,18 @@ func (cd *ConnectionData) takeLocked(seq uint16) bool {
 	return true
 }
 
+// newestTakenLocked is the newest of the client's messages taken: the ack,
+// or the furthest the window holds past it. Caller holds cd.mu.
+func (cd *ConnectionData) newestTakenLocked() uint16 {
+	n := cd.lastReceivedMessageSeq
+	for w, i := cd.rxWin, uint16(1); w != 0; w, i = w>>1, i+1 {
+		if w&1 != 0 {
+			n = cd.lastReceivedMessageSeq + i
+		}
+	}
+	return n
+}
+
 // AckReport is what one of our packets says of the connection's numbers.
 type AckReport struct {
 	Packet   uint16 // the packet's own number

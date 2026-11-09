@@ -87,12 +87,19 @@ type KeptConn struct {
 	RxPacket  uint16 `json:"rx_packet"`
 	RxMessage uint16 `json:"rx_message"`
 	RxSeen    uint64 `json:"rx_seen"`
-	// RxWin is the client's messages taken past RxMessage (rxwindow.go);
-	// absent from an older binary's file, which acknowledged the newest taken
-	RxWin     uint64 `json:"rx_win,omitempty"`
-	TxPacket  uint16 `json:"tx_packet"`
-	TxMessage uint16 `json:"tx_message"`
-	Acked     uint16 `json:"acked"`
+	// RxAck and RxWin are the receive window (rxwindow.go): the client's
+	// messages taken with every one before them, and those taken past it.
+	// RxMessage stays the newest taken, what a binary from before the window
+	// acknowledged and reads back: given the window's ack, it would
+	// acknowledge less than the client was told, with no mask, and CLIENT
+	// refuses every such segment ("some of the previously acked packets have
+	// become un-acked"). An older binary's file has neither: its RxMessage
+	// was acknowledged whole.
+	RxAck     *uint16 `json:"rx_ack,omitempty"`
+	RxWin     uint64  `json:"rx_win,omitempty"`
+	TxPacket  uint16  `json:"tx_packet"`
+	TxMessage uint16  `json:"tx_message"`
+	Acked     uint16  `json:"acked"`
 	// Fragments is a message the client was sending in pieces, the pieces
 	// taken so far (fragments.go)
 	Fragments *KeptFragments `json:"fragments,omitempty"`
@@ -194,9 +201,11 @@ func (s *Session) Keep() Kept {
 // reads it under the queue's lock).
 func (cd *ConnectionData) keep() KeptConn {
 	cd.mu.Lock()
+	ack := cd.lastReceivedMessageSeq
 	k := KeptConn{
 		RxPacket:  cd.lastReceivedPacketSeq,
-		RxMessage: cd.lastReceivedMessageSeq,
+		RxMessage: cd.newestTakenLocked(),
+		RxAck:     &ack,
 		RxSeen:    ^uint64(0),
 		RxWin:     cd.rxWin,
 		TxPacket:  cd.lastSentPacketSeq,
@@ -337,14 +346,20 @@ func (cd *ConnectionData) restore(k KeptConn) {
 	cd.mu.Lock()
 	cd.lastReceivedPacketSeq = k.RxPacket
 	cd.lastReceivedMessageSeq = k.RxMessage
+	if k.RxAck != nil {
+		cd.lastReceivedMessageSeq = *k.RxAck
+	}
 	// everything at or below the newest message the old process took counts
 	// as taken: it acknowledged them all (its acks are cumulative), and a copy
 	// of one the client sends again now is one handled already
-	cd.rxWin = k.RxWin
+	cd.rxWin = 0
+	if k.RxAck != nil {
+		cd.rxWin = k.RxWin
+	}
 	cd.lastSentPacketSeq = k.TxPacket
 	cd.lastSentMessageSeq = k.TxMessage
 	cd.clientLastReceivedMessage = k.Acked
-	cd.frags.restoreLocked(k.Fragments, k.RxMessage, time.Now())
+	cd.frags.restoreLocked(k.Fragments, cd.lastReceivedMessageSeq, time.Now())
 	cd.mu.Unlock()
 
 	cd.objMu.Lock()

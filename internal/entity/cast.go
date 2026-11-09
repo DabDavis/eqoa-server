@@ -1789,8 +1789,12 @@ func (w *World) runGates(due []respawnDue) {
 }
 
 // sendCooldown is 0x00CD: the ability's display index, stamp 0, the lockout
-// in ms (zigzag), 0 when it is over.
+// in ms (zigzag), 0 when it is over. A lockout of no index (-1: its spell
+// left the book, bookchange.go) is shown on nothing, and nothing is sent.
 func sendCooldown(sess *session.Session, displayIndex int, lockout time.Duration) {
+	if displayIndex < 0 {
+		return
+	}
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeCooldownTimer)
 	w := buffer.NewWriter(msg.Span())
 	w.WriteUint16(uint16(protocol.OpcodeCooldownTimer))

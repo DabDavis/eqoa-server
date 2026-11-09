@@ -301,7 +301,7 @@ func (w *World) charmLandLocked(cs *castState, caster *Player, sess *session.Ses
 			line = strings.TrimSpace(old.npc.Name) + charmPetLeaves
 			log.Printf("Charm: %s's %q takes the place of its %q", caster.Name, cs.spell.Name, old.npc.Name)
 		}
-		w.dismissPetLocked(old, tell, line)
+		w.dismissPetLocked(old, tell, line, now)
 	}
 	w.charmLocked(caster, sess, npc, &cs.spell, now)
 }

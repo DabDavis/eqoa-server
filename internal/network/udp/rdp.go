@@ -70,6 +70,13 @@ func (r *RDPHandler) ProcessIncoming(sess *session.Session, packet *Packet) {
 
 	conn.SetLastReceivedPacketSeq(body.ArrivalNumber)
 
+	// the round trip to the packet it names, and which of our last 64 it
+	// had (netstats.go)
+	if body.Flags&protocol.BodyFlagFlushAck != 0 {
+		conn.Net().NoteFlushAck(body.FlushAck, body.FlushAckMask,
+			body.Flags&protocol.BodyFlagFlushAckMask != 0, time.Now())
+	}
+
 	// Process guaranteed ack if present
 	if body.Flags&protocol.BodyFlagGuaranteedAck != 0 {
 		if debuglog.Packets() {
@@ -106,6 +113,7 @@ func (r *RDPHandler) processRDPReport(sess *session.Session, body *protocol.Segm
 
 	// Update client's last received message
 	conn.SetClientLastReceivedMessage(body.GuaranteedAck)
+	conn.Net().NoteAck(body.GuaranteedAck, time.Now())
 
 	// Check if we should trigger the ACK callback (e.g., send character list)
 	if debuglog.Packets() {
@@ -309,8 +317,9 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 
 	// Write RDP report
 	includeAcks := bodyFlags&protocol.BodyFlagGuaranteedAck != 0
+	packetSeq := conn.LastSentPacketSeq()
 	builder.WriteRDPReport(
-		conn.LastSentPacketSeq(),
+		packetSeq,
 		conn.LastReceivedPacketSeq(),
 		conn.LastReceivedMessageSeq(),
 		includeAcks,
@@ -376,6 +385,7 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 
 	// Finalize packet with CRC
 	packet := builder.Finish()
+	conn.Net().NoteSent(packetSeq, len(packet), time.Now())
 	if debuglog.Packets() {
 		log.Printf("Outgoing packet hex (%d bytes): %x", len(packet), packet)
 	}

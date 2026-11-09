@@ -66,7 +66,14 @@ type ConnectionData struct {
 
 	// Round-robin offset for state update generation (ensures all channels get served)
 	stateUpdateOffset int
+
+	// net is the reliable stream as measured: round trips, acks, resends
+	// (netstats.go)
+	net NetStats
 }
+
+// Net is the session's reliable stream as measured (netstats.go).
+func (cd *ConnectionData) Net() *NetStats { return &cd.net }
 
 // RefnumOffsetMax is how far back a state message may name its reference:
 // connection.cpp's REFNUM_OFFSET_MAX. CLIENT refuses the WHOLE segment that
@@ -308,6 +315,7 @@ func (cd *ConnectionData) ResetForMasterSession() {
 	cd.rxSeen = 0
 	cd.rxTaken, cd.rxNext = [reliableTakenKept]reliableTaken{}, 0
 	cd.frags = assembler{}
+	cd.net.Restart()
 }
 
 // ProcessPacket processes an incoming packet's sequence data.

@@ -616,6 +616,13 @@ func TestRehabTemplateAskedAgainWhenMoved(t *testing.T) {
 	f.saveTo(1)
 	f.resetBoth()
 
+	// experience toward the next mastery point is not a change of terms
+	f.askUse(1)
+	f.tw.p.Mastery.XP += 77
+	if m := f.pick(0); rehabSays(m, rehabTplMoved) || len(f.tw.p.CMs) != 7 {
+		t.Fatalf("mastery experience asked again: %q", m)
+	}
+	f.resetBoth()
 	f.askUse(1)
 	f.gain(1, 0)
 	m := f.pick(0)
@@ -626,7 +633,7 @@ func TestRehabTemplateAskedAgainWhenMoved(t *testing.T) {
 		t.Fatalf("the first yes spent: %v", f.tw.p.CMs)
 	}
 	f.pick(0)
-	if len(f.tw.p.CMs) != 7 || f.tw.p.Mastery.Points != 201 {
+	if len(f.tw.p.CMs) != 7 || f.tw.p.Mastery.Points != 201 || f.tw.p.Mastery.XP != 77 {
 		t.Errorf("the second yes: %v %+v", f.tw.p.CMs, f.tw.p.Mastery)
 	}
 

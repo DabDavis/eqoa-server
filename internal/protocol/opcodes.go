@@ -479,10 +479,13 @@ const (
 	// request form on Bug Report from a key of its own (vanilla's F3) and
 	// sends a note of its own side (OpcodeBugReportNote) with each petition
 	// it files, a u32 after the opcode, both ways. The server offers it (1)
-	// once the player is in the world (handlers/bugreport.go); a client that
-	// does answers 1, and the server's line on how to report a bug names its
-	// key. A PS2 ignores the offer, and a client of a server that never
-	// offers it shows no such key.
+	// once the player is in the world (handlers/bugreport.go), followed by a
+	// second u32: the most characters a request's or reply's text may have
+	// (handlers.CSTextMost, 2047; since 2026-11-08, when the server began to
+	// put a long message's pieces back together, session/fragments.go). A
+	// client that does answers 1 (a u32 alone), and the server's line on how
+	// to report a bug names its key. A PS2 ignores the offer, and a client of a
+	// server that never offers it shows no such key.
 	OpcodeBugReportOffer GameOpcode = 0x7E0E
 	// OpcodeBugReportNote is not retail: a client's note of its own side
 	// (its build, platform and graphics, frame rate, what it shows of itself

@@ -31,10 +31,10 @@ import (
 //     out of the book and its items taken back, the new one's spells taught
 //     and its items given, the pick kept, no quest done again (the user,
 //     2026-10-30: "choose again on the spot");
-//   - a template saved or used (rehabtemplates.go; petition 1322): how the
-//     training points and masteries are spent now kept in one of two slots,
-//     or every one given back and spent again as a slot keeps them, never
-//     more than it spent.
+//   - a build saved, or a saved build used (rehabtemplates.go; petitions 1322
+//     and 1344, two answers of the menu): how the training points and
+//     masteries are spent now kept in one of two slots, or every one given
+//     back and spent again as a slot keeps them, never more than it spent.
 //
 // Each is asked again before it is done, and refused when the character has
 // nothing of it, or (a path) wears what the path gave or has no room for what
@@ -95,10 +95,9 @@ const (
 	rehabTraining
 	rehabBoth
 	rehabPath
-	rehabResets    // the menu's reset: which is asked
-	rehabTemplates // the menu's templates: save or use is asked
-	rehabTplSave   // a template saved (rehabtemplates.go)
-	rehabTplUse    // a template used
+	rehabResets  // the menu's reset: which is asked
+	rehabTplSave // the menu's build saved: which slot is asked (rehabtemplates.go)
+	rehabTplUse  // the menu's saved build used: which slot is asked
 )
 
 // The questions a box asks.
@@ -261,8 +260,6 @@ func (r *Rehab) picked(sess *session.Session, p *entity.Player, speaker string, 
 		r.askReset(sess, p, speaker, what)
 	case rehabPath:
 		r.askPaths(sess, p, speaker)
-	case rehabTemplates:
-		r.templatesMenu(sess, p, speaker)
 	case rehabTplSave, rehabTplUse:
 		r.askSlot(sess, p, speaker, what)
 	}
@@ -285,13 +282,19 @@ func (r *Rehab) confirmed(sess *session.Session, p *entity.Player, b *rehabBox) 
 
 // --- the menu ---
 
-// menu asks what to do: a reset, a path or, where templates are kept, a
-// template, three answers of a page of CLIENT's.
+// menu asks what to do: a reset, a path and, where templates are kept, a
+// build saved and a saved build used (petition 1344, jibrish: "an explicit
+// option to save your current build into one of the two template slots ...
+// The other option should open up the option to choose one of your two saved
+// builds. The regular option to blanket respec etc. should stay as is"). CLIENT's
+// answer window shows three a page, then More (VIWndResponse::Build), so the
+// fourth is on its second page.
 func (r *Rehab) menu(sess *session.Session, p *entity.Player, speaker string) {
 	labels := []string{"Reset my masteries or stat points", "Choose a path again"}
 	options := []int{rehabResets, rehabPath}
 	if r.templatesServed() {
-		labels, options = append(labels, rehabTemplatesAnswer), append(options, rehabTemplates)
+		labels = append(labels, rehabSaveBuildAnswer, rehabUseBuildAnswer)
+		options = append(options, rehabTplSave, rehabTplUse)
 	}
 	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageMenu, options: options}, rehabAskMenu, labels)
 }

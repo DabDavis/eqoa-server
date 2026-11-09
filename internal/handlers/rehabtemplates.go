@@ -25,19 +25,24 @@ import (
 // cm's and pick that template, it still only spends the 500 and just
 // unassigns the other points for them to spend as they wish").
 //
-// The menu's third answer (rehab.go), in the same boxes a PS2 reads (0x0046
-// lines, 0x0034 questions under rehabBoxMark):
+// Two answers of the menu (rehab.go; petition 1344, jibrish: "an explicit
+// option to save your current build into one of the two template slots. So it
+// should be an option to save current build (TP and CM spend), and then pick a
+// slot, confirm. The other option should open up the option to choose one of
+// your two saved builds"), in the same boxes a PS2 reads (0x0046 lines, 0x0034
+// questions under rehabBoxMark), each slot question after a line saying what a
+// build is:
 //
-//   - what the two slots hold, then save or use;
-//   - save: which slot (each answer what it holds), what is kept and what it
-//     replaces, "Shall I remember it?": the training points each stat has taken
-//     (the row's tp columns) and the ranks held with what each cost, in the
-//     order bought, kept in table rehabtemplates (database/rehabtemplates.go);
-//   - use: which slot, what it gives back and spends again, what stays unspent,
-//     what it cannot buy and why, "Shall I begin?": every training point and
-//     mastery given back and spent again as the slot keeps them, never more
-//     than it spent (entity.World.ApplyRespec), free, counted as a "template"
-//     reset (charresets).
+//   - "Save my current build": which slot (each answer what it holds), what is
+//     kept and what it replaces, "Shall I remember it?": the training points
+//     each stat has taken (the row's tp columns) and the ranks held with what
+//     each cost, in the order bought, kept in table rehabtemplates
+//     (database/rehabtemplates.go);
+//   - "Use a saved build": which slot, what it gives back and spends again, what
+//     stays unspent, what it cannot buy and why, "Shall I begin?": every
+//     training point and mastery given back and spent again as the slot keeps
+//     them, never more than it spent (entity.World.ApplyRespec), free, counted
+//     as a "template" reset (charresets).
 //
 // A question is done only on the terms it was asked on: anything changed
 // meanwhile (a point earned, a rank bought, the slot saved again) asks it
@@ -61,13 +66,11 @@ type templateStore interface {
 // with the speaker's name (splitSay cuts a longer line after a sentence), a
 // question 127, an answer 63 (quests.go).
 const (
-	rehabTemplatesAnswer = "Save or use a template"
-	rehabTplAbout        = "I can remember how your training points and Combat Masteries are spent, in two templates, and spend you so again, free. What you hold past a template stays yours to spend."
-	rehabAskTemplates    = "Which shall it be?"
-	rehabTplSaveLabel    = "Save a template"
-	rehabTplUseLabel     = "Use a template"
+	rehabSaveBuildAnswer = "Save my current build"
+	rehabUseBuildAnswer  = "Use a saved build"
+	rehabTplAbout        = "I can remember two builds of yours, how your training points and Combat Masteries are spent, and spend you so again, free. What you hold past a build stays yours to spend."
 	rehabAskSaveSlot     = "Which slot shall hold it?"
-	rehabAskUseSlot      = "Which template shall I spend you by?"
+	rehabAskUseSlot      = "Which build shall I spend you by?"
 	rehabAskRemember     = "Shall I remember it?"
 	rehabRememberYes     = "Yes, remember it."
 	rehabNothingToKeep   = "You have spent no training points and hold no Combat Mastery: there is nothing for me to remember."
@@ -152,19 +155,6 @@ func slotLabel(slot int, t database.RehabTemplate, ok bool) string {
 	return fmt.Sprintf("Slot %d: %s", slot, strings.Join(parts, ", "))
 }
 
-// slotHolds is what a slot holds, said whole: its spending, the level and
-// the day it was kept.
-func (r *Rehab) slotHolds(slot int, t database.RehabTemplate, ok bool) string {
-	if !ok || t.Empty() {
-		return fmt.Sprintf("Slot %d holds nothing yet.", slot)
-	}
-	when := ""
-	if len(t.Saved) >= 10 {
-		when = " on " + t.Saved[:10]
-	}
-	return fmt.Sprintf("Slot %d holds %s, kept at level %d%s.", slot, r.spendText(t.TP, t.CMs), t.Level, when)
-}
-
 // --- the menu and the slots ---
 
 // templates is the character's templates by slot; false (said) when they
@@ -179,29 +169,24 @@ func (r *Rehab) templates(sess *session.Session, p *entity.Player, speaker strin
 	return tpls, true
 }
 
-// templatesMenu says what the slots hold and asks save or use.
-func (r *Rehab) templatesMenu(sess *session.Session, p *entity.Player, speaker string) {
-	if !r.templatesServed() {
-		return
-	}
-	tpls, ok := r.templates(sess, p, speaker)
-	if !ok {
-		return
-	}
-	lines := []string{rehabTplAbout}
-	for slot := 1; slot <= database.RehabTemplateSlots; slot++ {
-		t, has := tpls[slot]
-		lines = append(lines, r.slotHolds(slot, t, has))
-	}
-	r.say(sess, speaker, lines...)
-	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageMenu, options: []int{rehabTplSave, rehabTplUse}},
-		rehabAskTemplates, []string{rehabTplSaveLabel, rehabTplUseLabel})
-}
-
-// askSlot asks which slot to save in or use (what), each answer what it holds.
+// askSlot asks which slot to save the current build in or use (what), each
+// answer what it holds, after the line saying what a build is; refused first
+// when there is nothing to save (nothing spent) or to use (no build saved).
 func (r *Rehab) askSlot(sess *session.Session, p *entity.Player, speaker string, what int) {
 	if !r.templatesServed() {
 		return
+	}
+	if what == rehabTplSave {
+		cur, err := r.currentSpend(sess, p)
+		if err != nil {
+			log.Printf("Rehab: %s's spending: %v", p.Name, err)
+			r.say(sess, speaker, rehabTrouble)
+			return
+		}
+		if cur.Empty() {
+			r.say(sess, speaker, rehabNothingToKeep)
+			return
+		}
 	}
 	tpls, ok := r.templates(sess, p, speaker)
 	if !ok {
@@ -224,6 +209,7 @@ func (r *Rehab) askSlot(sess *session.Session, p *entity.Player, speaker string,
 		}
 		question = rehabAskUseSlot
 	}
+	r.say(sess, speaker, rehabTplAbout)
 	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageSlot, what: what, options: slots}, question, labels)
 }
 

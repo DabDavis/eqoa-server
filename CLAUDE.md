@@ -833,9 +833,10 @@ The user, 2026-10-30: "Rehabilitator Anja in Muniels tea garden and another near
 Talking to **Rehabilitator Anja** (Muniel's Tea Garden) or **Rehabilitator Frejo** (near Freeport; any NPC named
 "Rehabilitator ...") opens a menu of the quest boxes a PS2 reads (0x0046 lines, 0x0034 questions under box mark
 **0x54000000**, beside the quests' 0x51, the triggers' 0x52, the duels' 0x53): the greeting, then "What would you have of
-me?" with three answers, a page of CLIENT's answer box (VIWndResponse shows three, then More, Back and its own Close, which
-answers 255): a reset, then which (its Combat Masteries, `#rst_mastr`'s work, `resetMasteries`; its stat points,
-`#rst_both`'s training half, `trainingBack`; both), a path chosen again, and a template saved or used (below). Each is
+me?" with four answers (CLIENT's answer box, VIWndResponse, shows three a page, then More, Back and its own Close, which
+answers 255, so the fourth is on its second page): a reset, then which (its Combat Masteries, `#rst_mastr`'s work,
+`resetMasteries`; its stat points, `#rst_both`'s training half, `trainingBack`; both), a path chosen again, "Save my
+current build" and "Use a saved build" (below). Each is
 asked again ("Shall I begin?", "Shall I make the change?", "Shall I remember it?") and done only on the terms it was
 asked on (the parts the character still has; anything changed asks again); nothing to undo is refused, nothing counted.
 Walked end to end in the headless vanilla client.
@@ -862,11 +863,14 @@ Walked end to end in the headless vanilla client.
   holding the most; a tie is not offered). The change is counted only when it is done. **No pick
   decides another level's options** in the quests: each level is changed by itself. `TestRealPathsChosenAgain` changes
   every real path step (138 on 2026-10-30's data).
-- **Two templates a character** (petition 1322, jibrish: "save 2 different rehab state and CM templates ... If they come
+- **Two builds a character** (petition 1322, jibrish: "save 2 different rehab state and CM templates ... If they come
   back with 705 cm's and pick that template, it still only spends the 500 and just unassigns the other points for them to
-  spend as they wish"; `rehabtemplates.go`, `entity/respec.go`, `database/rehabtemplates.go`): "Save or use a template"
-  says what each slot holds, then save or use, then which slot (each answer what it holds: "Slot 1: 7 masteries (500
-  points), 70 training points"). **Save** says what it keeps and what the slot held, and keeps the training points each
+  spend as they wish"; `rehabtemplates.go`, `entity/respec.go`, `database/rehabtemplates.go`), straight from the first menu
+  (petition 1344: "an explicit option to save your current build into one of the two template slots ... The other option
+  should open up the option to choose one of your two saved builds"): "Save my current build" and "Use a saved build" each
+  say what a build is and ask which slot (each answer what it holds: "Slot 1: 7 masteries (500 points), 70 training
+  points"); nothing spent to save, or no build saved to use, is said at the answer, before any slot. **Save** says what it
+  keeps and what the slot held, and keeps the training points each
   stat has taken (the row's tp columns) and the ranks held with what each cost, in the order bought (`charcms.bought`), in
   `rehabtemplates` (a row a slot, `cms` "id:cost,..."; the GM panel's "Rehabilitator templates", checked, and deleted with
   the character). **Use** says what goes back, what is spent again and stays unspent and what it cannot buy and why, then

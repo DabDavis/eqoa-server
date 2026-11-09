@@ -122,18 +122,27 @@ func (f *tplFixture) spendAll() {
 	}
 }
 
-// templatesMenu talks to Anja and answers her menu's templates.
-func (f *tplFixture) templatesMenu() []string {
+// saveSlots talks to Anja and answers her menu's Save my current build: what
+// was sent (the slot question, after the line saying what a build is).
+func (f *tplFixture) saveSlots() []string {
 	f.t.Helper()
 	f.talk()
 	return f.pick(2)
 }
 
+// useSlots talks to Anja and answers her menu's Use a saved build.
+func (f *tplFixture) useSlots() []string {
+	f.t.Helper()
+	f.talk()
+	return f.pick(3)
+}
+
 // saveTo saves in slot, confirmed: the last messages.
 func (f *tplFixture) saveTo(slot int) []string {
 	f.t.Helper()
-	f.templatesMenu()
-	f.pick(0)
+	if q, _ := asked(f.saveSlots()); q != rehabAskSaveSlot {
+		f.t.Fatalf("saving asks %q (%q)", q, f.last)
+	}
 	m := f.pick(byte(slot - 1))
 	if q, _ := asked(m); q != rehabAskRemember {
 		f.t.Fatalf("saving in slot %d asks %q (%q)", slot, q, m)
@@ -144,8 +153,9 @@ func (f *tplFixture) saveTo(slot int) []string {
 // askUse asks to use slot: the question's messages, not answered.
 func (f *tplFixture) askUse(slot int) []string {
 	f.t.Helper()
-	f.templatesMenu()
-	f.pick(1)
+	if q, _ := asked(f.useSlots()); q != rehabAskUseSlot {
+		f.t.Fatalf("using asks %q (%q)", q, f.last)
+	}
 	return f.pick(byte(slot - 1))
 }
 
@@ -537,12 +547,10 @@ func TestRehabTemplateSlotOverwrite(t *testing.T) {
 	f.trainStats([7]int{50})
 	f.buy(1, 2)
 
-	f.templatesMenu()
-	if !rehabSays(f.last, "Slot 1 holds 30 training points (STR 30) and 1 mastery for 10 points, kept at level 60 on ") ||
-		!rehabSays(f.last, "Slot 2 holds 20 training points (STA 20) and 1 mastery for 100 points, kept at level 60 on ") {
-		t.Fatalf("the templates' menu: %q", f.last)
+	m := f.saveSlots()
+	if !rehabSays(m, "Rehabilitator Anja: "+rehabTplAbout) {
+		t.Fatalf("the slot question has no line of what a build is: %q", m)
 	}
-	m := f.pick(0)
 	if q, a := asked(m); q != rehabAskSaveSlot || strings.Join(a, "|") !=
 		"Slot 1: 1 mastery (10 points), 30 training points|Slot 2: 1 mastery (100 points), 20 training points" {
 		t.Fatalf("the slots: %q %q", q, a)
@@ -562,8 +570,7 @@ func TestRehabTemplateSlotOverwrite(t *testing.T) {
 	// Not now keeps the slot as it is
 	f.resetBoth()
 	f.trainStats([7]int{10})
-	f.templatesMenu()
-	f.pick(0)
+	f.saveSlots()
 	f.pick(1)
 	if m := f.pick(1); !rehabSays(m, rehabAsYouWish) {
 		t.Errorf("Not now: %q", m)
@@ -641,8 +648,7 @@ func TestRehabTemplateAskedAgainWhenMoved(t *testing.T) {
 	f.resetBoth()
 	f.trainStats([7]int{50})
 	f.buy(1)
-	f.templatesMenu()
-	f.pick(0)
+	f.saveSlots()
 	f.pick(1)
 	f.buy(2)
 	m = f.pick(0)
@@ -713,20 +719,14 @@ func TestRehabTemplateTellsTheChangeAlone(t *testing.T) {
 }
 
 // With nothing spent there is nothing to save, and with nothing saved nothing
-// to use: each said, nothing written. The control: a training point spent is
-// something to save.
+// to use: each said at the menu's answer, before any slot is asked, nothing
+// written. The control: a training point spent is something to save.
 func TestRehabTemplateNothingToSaveOrUse(t *testing.T) {
 	f := newTplFixture(t)
-	f.templatesMenu()
-	if !rehabSays(f.last, "Slot 1 holds nothing yet.") || !rehabSays(f.last, "Slot 2 holds nothing yet.") {
-		t.Fatalf("the menu: %q", f.last)
-	}
-	f.pick(0)
-	if m := f.pick(0); !rehabSays(m, rehabNothingToKeep) || boxID(m) != 0 {
+	if m := f.saveSlots(); !rehabSays(m, rehabNothingToKeep) || boxID(m) != 0 || rehabSays(m, rehabTplAbout) {
 		t.Errorf("nothing to save: %q", m)
 	}
-	f.templatesMenu()
-	if m := f.pick(1); !rehabSays(m, rehabNoTemplates) || boxID(m) != 0 {
+	if m := f.useSlots(); !rehabSays(m, rehabNoTemplates) || boxID(m) != 0 || rehabSays(m, rehabTplAbout) {
 		t.Errorf("nothing to use: %q", m)
 	}
 	if _, _, _, ok := f.slotRow(1); ok {
@@ -738,8 +738,9 @@ func TestRehabTemplateNothingToSaveOrUse(t *testing.T) {
 		t.Errorf("the control: %v %v %q", ok, tp, cms)
 	}
 	// an empty slot asked for
-	f.templatesMenu()
-	f.pick(1)
+	if q, a := asked(f.useSlots()); q != rehabAskUseSlot || strings.Join(a, "|") != "Slot 1: 1 training point|Slot 2: empty" {
+		t.Errorf("the builds: %q %q", q, a)
+	}
 	if m := f.pick(1); !rehabSays(m, "Slot 2 holds nothing yet: save a template in it first.") {
 		t.Errorf("an empty slot: %q", m)
 	}
@@ -749,7 +750,7 @@ func TestRehabTemplateNothingToSaveOrUse(t *testing.T) {
 // question 127, and a slot's answer at its longest (99 masteries for 1,500
 // points and 482 training points).
 func TestRehabTemplateWordsFitTheBoxes(t *testing.T) {
-	for _, q := range []string{rehabAskTemplates, rehabAskSaveSlot, rehabAskUseSlot, rehabAskRemember, rehabAskMenu} {
+	for _, q := range []string{rehabAskSaveSlot, rehabAskUseSlot, rehabAskRemember, rehabAskMenu} {
 		if utf8.RuneCountInString(q) > questAskChars {
 			t.Errorf("%q is past a question's %d", q, questAskChars)
 		}
@@ -758,7 +759,7 @@ func TestRehabTemplateWordsFitTheBoxes(t *testing.T) {
 	for i := 0; i < 99; i++ {
 		tpl.CMs = append(tpl.CMs, database.OwnedCM{ID: i + 1, Cost: 15})
 	}
-	for _, a := range []string{rehabTemplatesAnswer, rehabTplSaveLabel, rehabTplUseLabel, rehabRememberYes,
+	for _, a := range []string{rehabSaveBuildAnswer, rehabUseBuildAnswer, rehabRememberYes,
 		slotLabel(2, tpl, true), slotLabel(1, database.RehabTemplate{}, false)} {
 		if utf8.RuneCountInString(a) > questAnswerChars {
 			t.Errorf("%q is past an answer's %d", a, questAnswerChars)
@@ -804,10 +805,8 @@ func TestRehabTemplateLongestLinesFitWhole(t *testing.T) {
 	if err := f.db.SaveRehabTemplate(f.sid, tpl, f.r.now()); err != nil {
 		t.Fatal(err)
 	}
-	all := f.templatesMenu()
-	m := f.pick(1)
-	all = append(all, m...)
-	m = f.pick(0)
+	all := f.useSlots()
+	m := f.pick(0)
 	all = append(all, m...)
 	if !rehabSays(m, "I cannot buy 30 of its masteries:") || !rehabSays(m, "and 24 more.") {
 		t.Fatalf("the question: %q", m)
@@ -829,10 +828,10 @@ func TestRehabTemplateLongestLinesFitWhole(t *testing.T) {
 	f.resetBoth()
 	f.r.Offer(f.tw.s, f.tw.p, "Rehabilitator Anja of the Tea Garden of Muniel")
 	f.last = questMsgs(f.tw.s)
-	f.pick(2)
-	f.pick(1)
+	m = f.pick(3)
+	all = m
 	m = f.pick(0)
-	wholeBoxes(t, m)
+	wholeBoxes(t, append(all, m...))
 	if !rehabSays(m, "I cannot buy 30 of its masteries:") {
 		t.Errorf("at the longer name: %q", m)
 	}
@@ -917,5 +916,49 @@ func TestRehabTemplateSkippedWords(t *testing.T) {
 	}
 	if got := packList("Head:", []string{"aaaa", "bbbb", "cccc"}, 12); strings.Join(got, "|") != "Head: aaaa.|bbbb; cccc." {
 		t.Errorf("packed short: %q", got)
+	}
+}
+
+// The first menu is the resets', the paths' and the builds' answers, the
+// builds' straight to their slots (petition 1344): Reset my masteries or stat
+// points, Choose a path again, Save my current build, Use a saved build; a
+// Genie's Lamp's genie offers the same. Save asks the slot after the line
+// saying what a build is, and Use the same once a build is saved. The control:
+// a rehabilitator with no templates kept (no characters' store) offers the
+// first two alone.
+func TestRehabBuildAnswersInTheFirstMenu(t *testing.T) {
+	f := newTplFixture(t)
+	want := "Reset my masteries or stat points|Choose a path again|Save my current build|Use a saved build"
+	m := f.talk()
+	if q, a := asked(m); q != rehabAskMenu || strings.Join(a, "|") != want {
+		t.Fatalf("Anja's menu: %q %q", q, a)
+	}
+	f.r.Offer(f.tw.s, f.tw.p, entity.GenieName)
+	f.last = questMsgs(f.tw.s)
+	if q, a := asked(f.last); q != rehabAskMenu || strings.Join(a, "|") != want || !rehabSays(f.last, entity.GenieName+": Be welcome") {
+		t.Fatalf("the genie's menu: %q %q (%q)", q, a, f.last)
+	}
+	f.trainStats([7]int{30})
+	m = f.pick(2)
+	if q, a := asked(m); q != rehabAskSaveSlot || strings.Join(a, "|") != "Slot 1: empty|Slot 2: empty" ||
+		!rehabSays(m, entity.GenieName+": "+rehabTplAbout) {
+		t.Fatalf("save, at the genie: %q %q (%q)", q, a, m)
+	}
+	m = f.pick(0)
+	if q, _ := asked(m); q != rehabAskRemember || !rehabSays(m, "You have spent 30 training points (STR 30).") {
+		t.Fatalf("slot 1: %q (%q)", q, m)
+	}
+	f.pick(0)
+	m = f.useSlots()
+	if q, a := asked(m); q != rehabAskUseSlot || strings.Join(a, "|") != "Slot 1: 30 training points|Slot 2: empty" ||
+		!rehabSays(m, rehabTplAbout) {
+		t.Fatalf("use: %q %q (%q)", q, a, m)
+	}
+	// the control
+	plain := NewRehab(f.db, f.tw.w, f.inv, f.book, nil, f.store)
+	plain.quests = f.r.quests
+	plain.Offer(f.tw.s, f.tw.p, "Rehabilitator Anja")
+	if _, a := asked(questMsgs(f.tw.s)); strings.Join(a, "|") != "Reset my masteries or stat points|Choose a path again" {
+		t.Errorf("no templates kept, yet offered: %q", a)
 	}
 }

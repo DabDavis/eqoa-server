@@ -1187,7 +1187,9 @@ binary of `LastCustomRace` 52: an older one refuses race 31's row). **`LastCusto
   character's look, by name, a GM's under both names, each part resolved to the palette entries and rects of the character's
   own body: drawn only on that body, never under an illusion or an armour body), and the looks again after a creation, a
   deletion, a GM's edit of charlook, racedefs or a custom race's character, and a keep restart (the session flags are kept).
-  A PS2 ignores the offer.
+  A PS2 ignores the offer. **A login's world entry sends them again** with creation's races (`resendPregameExtras`, from
+  `SendMemoryDump`): they went on the lobby's connection, which the client closes at the promotion, so one that selected
+  before they all came had lost them (vanilla's `eqoa play` selects a second after its list: a Wisp drawn as a plain human).
 - **Armour**: `racearmorbody` rows are the race's own body's: a body the character chose (`ChosenBody`) is its look and is
   kept in any armour (vanilla lays the armour on it as on any slotless body; a PS2 shows it bare, as the hill giant's own
   body was before racearmorbody). The hill giant's female steps start with the female hill giant (racedefs' `body_female` is

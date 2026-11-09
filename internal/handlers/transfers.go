@@ -46,7 +46,7 @@ func (h *CharacterHandler) applyTransfer(serverID uint32) bool {
 		return false
 	}
 	plan.CharacterID = serverID
-	// a transfer's gear comes in as its imported copies, at 70%; a GM's grant
+	// a transfer's gear comes in as its imported copies, damped; a GM's grant
 	// as given (database/imported.go; petition 1314)
 	plan.Imported = plan.Imported || t.FromServer != database.GMGrantSource
 	var out strings.Builder

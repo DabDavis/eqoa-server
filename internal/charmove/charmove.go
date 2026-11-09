@@ -68,7 +68,7 @@ type Plan struct {
 	// Vampire makes the character a vampire (table charvampire, source
 	// "transfer"), unless it is one.
 	Vampire bool `json:"vampire,omitempty"`
-	// Imported gives the items' gear as its imported copies, at 70% of its
+	// Imported gives the items' gear as its imported copies, at ImportedShare of its
 	// records' stats (database.ImportedCopyTx; petition 1314): a transfer's,
 	// never a GM's grant (handlers/transfers.go decides it at the login).
 	Imported bool `json:"imported,omitempty"`

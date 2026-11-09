@@ -332,6 +332,9 @@ func main() {
 	log.Printf("Characters: %s", gameWorld.CMSummary())
 	// Imported gear's copies (database/imported.go): its procs and worn hit
 	// effects damped, and "(Imported)" after its name when world.imported_tag
+	if s := cfg.World.ImportedShare; s > 0 {
+		database.SetImportedShare(s)
+	}
 	if n, err := database.SyncImportedCopies(db.DB, time.Now()); err != nil {
 		log.Printf("WARNING: the imported copies not made their bases again: %v", err)
 	} else if n > 0 {
@@ -342,7 +345,7 @@ func main() {
 	} else {
 		entity.SetImportedItems(m)
 		handlers.SetImportedTag(cfg.World.ImportedTag)
-		log.Printf("Items: %d imported gear records (tag shown: %v)", len(m), cfg.World.ImportedTag)
+		log.Printf("Items: %d imported gear records at %.0f%% (tag shown: %v)", len(m), database.ImportedShare()*100, cfg.World.ImportedTag)
 	}
 	// Where the gates, portals, circles and evacuations send (entity/gates.go,
 	// table spellgates): with none, each is refused as it begins

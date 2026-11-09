@@ -181,17 +181,18 @@ func TestKeptGroupsFormAgain(t *testing.T) {
 }
 
 // What a login does not carry comes through: the target as the client knows
-// it, the lockouts with what is left of them, the power bars and duel window
-// the client asked for; and a dead character is said to be dead.
+// it, the lockouts with what is left of them, the power bars, the pet's effects
+// and duel window the client asked for; and a dead character is said to be
+// dead.
 func TestKeptPlayerTargetLockoutsOffers(t *testing.T) {
 	now := time.Now()
 	old := newKeepRig(t, "a gnoll pup", false)
 	old.p.TargetObjectID = 100001
 	old.p.Lockouts = []castLockout{{spellID: 900, displayIndex: 4, until: now.Add(40 * time.Second)},
 		{spellID: 901, displayIndex: 5, until: now.Add(-time.Second)}}
-	old.p.PowerBars, old.p.DuelWindow, old.p.GM = true, true, true
+	old.p.PowerBars, old.p.DuelWindow, old.p.GM, old.p.PetEffects = true, true, true, true
 	kp, ok := old.w.KeepPlayer(old.sess, now)
-	if !ok || kp.Target != 100001 || len(kp.Lockouts) != 1 || kp.Lockouts[0].LeftMS < 39000 || !kp.PowerBars || !kp.DuelWindow || kp.Dead {
+	if !ok || kp.Target != 100001 || len(kp.Lockouts) != 1 || kp.Lockouts[0].LeftMS < 39000 || !kp.PowerBars || !kp.DuelWindow || kp.Dead || !kp.PetEffects {
 		t.Fatalf("kept %+v", kp)
 	}
 	r, sess := through(t, old, "a gnoll pup")
@@ -204,6 +205,9 @@ func TestKeptPlayerTargetLockoutsOffers(t *testing.T) {
 	}
 	if r.p.TargetObjectID != 100001 || !r.p.PowerBars || !r.p.powerBarsDue || !r.p.DuelWindow {
 		t.Fatalf("target %d power bars %v due %v duel %v", r.p.TargetObjectID, r.p.PowerBars, r.p.powerBarsDue, r.p.DuelWindow)
+	}
+	if !r.p.PetEffects || !r.p.petEffectsDue {
+		t.Fatalf("pet effects %v due %v: its client asked before the restart", r.p.PetEffects, r.p.petEffectsDue)
 	}
 	if len(r.p.Lockouts) != 1 || r.p.Lockouts[0].spellID != 900 || r.p.Lockouts[0].until.Sub(later) < 39*time.Second {
 		t.Fatalf("lockouts %+v", r.p.Lockouts)

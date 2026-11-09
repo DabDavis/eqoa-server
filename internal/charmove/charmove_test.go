@@ -320,3 +320,38 @@ func TestAutoFillsThePackFirst(t *testing.T) {
 		t.Fatalf("the pack's last is %d, want the plan's first item", first)
 	}
 }
+
+// A plan applied for a client that holds more (Plan.PackSlots, BankSlots: a
+// transfer at a larger client's login, itemlists.go) fills the pack to its
+// size and checks the bank against its; the control is the same plan at
+// CLIENT's 40, which puts the rest in the bank and stops at a bank of 40.
+func TestAPlanFillsToItsClientsSizes(t *testing.T) {
+	fill := func(slots int) (pack, bank int, err error) {
+		db, _ := migrateDB(t)
+		for i := 0; i < 38; i++ { // the pack at 39 with the sword
+			if _, err := db.Exec(`INSERT INTO charinventory (serverid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber)
+				VALUES (126, 1, 200, 0, 1297, -1, 0, ?)`, i+1); err != nil {
+				t.Fatal(err)
+			}
+		}
+		p := Plan{Character: "Wanderer", To: "auto", Items: []Item{{Pattern: 1297, Count: 20}, {Pattern: 1297, Count: 20}, {Pattern: 1297, Count: 10}}, PackSlots: slots, BankSlots: slots}
+		err = migrateErr(Migrate(db, p, true, false, io.Discard))
+		db.QueryRow(`SELECT SUM(location = 0), SUM(location = 1) FROM charinventory WHERE serverid = 126`).Scan(&pack, &bank)
+		return pack, bank, err
+	}
+	if pack, bank, err := fill(100); err != nil || pack != 89 || bank != 0 {
+		t.Errorf("a client of 100: pack %d bank %d, %v", pack, bank, err)
+	}
+	if _, _, err := fill(0); err == nil || !strings.Contains(err.Error(), "would pass its 40") {
+		t.Errorf("CLIENT's 40: 49 into the bank went in: %v", err)
+	}
+	db, _ := migrateDB(t)
+	p := Plan{Character: "Wanderer", To: "pack", Items: []Item{{Pattern: 1297, Count: 20}, {Pattern: 1297, Count: 20}, {Pattern: 1297, Count: 20}}, PackSlots: 100}
+	if err := migrateErr(Migrate(db, p, true, false, io.Discard)); err != nil {
+		t.Errorf("60 into a pack of 100: %v", err)
+	}
+	p.PackSlots = 0
+	if err := migrateErr(Migrate(db, p, true, false, io.Discard)); err == nil || !strings.Contains(err.Error(), "pack holds") {
+		t.Errorf("60 more into CLIENT's pack: %v", err)
+	}
+}

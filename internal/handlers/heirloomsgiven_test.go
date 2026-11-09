@@ -35,13 +35,13 @@ func TestWorldHeirloomsOffGivesNothing(t *testing.T) {
 	}
 	t.Cleanup(func() { SetHeirloomsGiven(true) })
 	SetHeirloomsGiven(false)
-	h.giveKeptItems(rec.ServerID)
+	h.giveKeptItems(rec.ServerID, clientLists)
 	if n := held(); n != 0 {
 		t.Fatalf("world.heirlooms false: %d items given", n)
 	}
 	SetHeirloomsGiven(true)
-	h.giveKeptItems(rec.ServerID)
-	h.giveKeptItems(rec.ServerID)
+	h.giveKeptItems(rec.ServerID, clientLists)
+	h.giveKeptItems(rec.ServerID, clientLists)
 	if n := held(); n != 3 {
 		t.Fatalf("on: %d items held, want the three", n)
 	}

@@ -135,6 +135,13 @@ type Session struct {
 	// capesOffered: the offer went out, once a session as the live look's.
 	capes        bool
 	capesOffered bool
+	// itemListsPack, itemListsBank: the client's answer to the item lists'
+	// offer (protocol.OpcodeItemLists, handlers/itemlists.go), the records it
+	// holds of the pack and the bank; 0 for a client that never answered (a
+	// PS2), which holds CLIENT's 40. itemListsOffered: the offer went out, once
+	// a session as the capes'.
+	itemListsPack, itemListsBank int
+	itemListsOffered             bool
 	// raceOptionsOffered: the race options' offer went out
 	// (protocol.OpcodeRaceOptions, handlers/raceoptions.go), once a session.
 	// raceLooks: the client answered it, so it is sent each race's options
@@ -381,6 +388,40 @@ func (s *Session) OfferCapesOnce() bool {
 	defer s.mu.Unlock()
 	first := !s.capesOffered
 	s.capesOffered = true
+	return first
+}
+
+// SetItemLists records the client's answer to the item lists' offer: the
+// records it holds of the pack and the bank (0, 0: it stopped, CLIENT's 40).
+func (s *Session) SetItemLists(pack, bank int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.itemListsPack, s.itemListsBank = pack, bank
+}
+
+// ItemLists is what the client said it holds of the pack and the bank: 0, 0
+// for one that never answered (a PS2), which holds CLIENT's 40.
+func (s *Session) ItemLists() (pack, bank int) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.itemListsPack, s.itemListsBank
+}
+
+// ItemListsOffered is whether the item lists' offer went out on this session:
+// only then is a client's answer taken.
+func (s *Session) ItemListsOffered() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.itemListsOffered
+}
+
+// OfferItemListsOnce reports whether the item lists' offer is still to be made
+// to this session, and marks it made.
+func (s *Session) OfferItemListsOnce() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	first := !s.itemListsOffered
+	s.itemListsOffered = true
 	return first
 }
 

@@ -74,6 +74,14 @@ world:
   # open_races: true
   # all_classes: true
 
+  # How many records the pack (worn items among them, as CLIENT's 40 counts
+  # them) and the bank hold for a client that holds more (vanilla, offered them
+  # with opcode 0x7E29). Unset or 40: CLIENT's 40, nothing offered; at most 255.
+  # A PS2 always holds 40: a character with more is sent its first 40 (worn
+  # items always), the rest kept for it until a client that holds them logs in.
+  # pack_slots: 100
+  # bank_slots: 100
+
   # A cape slot of this server's own (entity/capes.go): items of wear slot 28
   # (tools/seed_capes.py makes them) worn in equip slot 22, drawn by a client
   # that draws capes (vanilla, offered them with opcode 0x7E25); a PS2 is sent

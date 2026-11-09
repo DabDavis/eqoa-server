@@ -28,7 +28,8 @@ import (
 // the character wears is never touched. So one with hands and a shield free takes
 // the main-hand heirloom and the shield and carries the two-hander, and a class with
 // no main-hand heirloom takes its two-hander and carries the shield. The client's
-// list holds 40 records (invListCap): what does not fit is not given, and is named.
+// list holds 40 records (invListCap), or what a larger client's holds (packCapOf,
+// itemlists.go): what does not fit is not given, and is named.
 //
 // It all reaches the client as a MemoryDump at the character's place, as a
 // respawn's does (respawn.go): the level, the experience, the purse, the
@@ -90,7 +91,7 @@ func byDamage(a, b database.ItemPatternRecord) int {
 
 // templateHeirlooms gives the character the class's heirlooms it lacks (the file's
 // doc): the answer's lines, how many were given and how many of them are worn.
-func (h *CharacterHandler) templateHeirlooms(sid uint32, class int) (lines []string, given, worn int, err error) {
+func (h *CharacterHandler) templateHeirlooms(sid uint32, class, packCap int) (lines []string, given, worn int, err error) {
 	defs, err := h.inventoryStore.Heirlooms()
 	if err != nil {
 		return nil, 0, 0, fmt.Errorf("the heirlooms: %w", err)
@@ -99,14 +100,25 @@ func (h *CharacterHandler) templateHeirlooms(sid uint32, class int) (lines []str
 	if err != nil {
 		return nil, 0, 0, fmt.Errorf("the inventory: %w", err)
 	}
-	held := map[string]bool{} // its pack and its bank
+	held := map[string]bool{} // its pack and its bank, and what is kept for it (itemlists.go)
 	for i := range items {
 		if d, ok := defs[items[i].Pattern.PatternID]; ok && d.Class == class {
 			held[d.Role] = true
 		}
 	}
+	keptPack, keptBank, err := h.inventoryStore.KeptPatterns(sid)
+	if err != nil {
+		return nil, 0, 0, fmt.Errorf("the items kept: %w", err)
+	}
+	for _, kept := range []map[int]bool{keptPack, keptBank} {
+		for id := range kept {
+			if d, ok := defs[id]; ok && d.Class == class {
+				held[d.Role] = true
+			}
+		}
+	}
 	inv := inventoryRows(items)
-	room := invListCap - len(inv)
+	room := max(packCap, invListCap) - len(inv)
 	taken := map[int]bool{}
 	for _, e := range inv {
 		if e.EquipLoc >= 0 {
@@ -189,7 +201,7 @@ func (h *CharacterHandler) ApplyTemplate(sess *session.Session) ([]string, error
 		return nil, errors.New("no character in the world")
 	}
 	sid := snap.CharServerID
-	lines, given, worn, err := h.templateHeirlooms(sid, snap.Class)
+	lines, given, worn, err := h.templateHeirlooms(sid, snap.Class, packCapOf(sess))
 	if err != nil {
 		return nil, err
 	}

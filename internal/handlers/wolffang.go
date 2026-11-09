@@ -35,11 +35,11 @@ func IsWolfFang(p *database.ItemPatternRecord) bool {
 
 // giveWolfFang gives a character with no fang one at its login, as
 // giveGenieLamp gives the lamp.
-func (h *CharacterHandler) giveWolfFang(serverID uint32) {
+func (h *CharacterHandler) giveWolfFang(serverID uint32, room listSizes) {
 	if h.store == nil || h.inventoryStore == nil {
 		return
 	}
-	h.giveKeptItem(serverID, keptItemID(h.store.DB(), WolfFangName, "Fang"), "Fang", "fang")
+	h.giveKeptItem(serverID, keptItemID(h.store.DB(), WolfFangName, "Fang"), "Fang", "fang", room)
 }
 
 // useWolfFang puts the boards' Spirit of the Wolf on the session's player and

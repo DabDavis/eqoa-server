@@ -2114,8 +2114,9 @@ func writeMemoryDumpTailWith(w *buffer.Writer, player *entity.Player, spells []d
 // writeDumpRecord is the player's record in the MemoryDump, VINetCharacter's
 // read (decomp vinetcharacter.cpp) up to the world index: the id, the name,
 // class, race, level, the experience into it, m_p2C, the breath, the purse,
-// the bank's tunar, the training points (m_p40) and m_p44, the stat cap
-// before masteries (entity/mastery.go; CLIENT's GetP44Total).
+// the bank's tunar, the training points (m_p40) and m_p44, where the trainer
+// stops a base: the highest stat cap (entity.Player.TrainerCap; CLIENT's
+// GetP44Total).
 func writeDumpRecord(writer *buffer.Writer, player *entity.Player) {
 	writeDumpRecordBank(writer, player, player.BankTunar)
 }
@@ -2134,7 +2135,7 @@ func writeDumpRecordBank(writer *buffer.Writer, player *entity.Player, bankTunar
 	writer.Write7BitEncodedInt64(int64(player.Tunar))
 	writer.Write7BitEncodedInt64(int64(bankTunar))
 	writer.Write7BitEncodedInt64(int64(player.UnusedTP))
-	writer.Write7BitEncodedInt64(int64(entity.StatCapBase(player.Level)))
+	writer.Write7BitEncodedInt64(int64(player.TrainerCap()))
 }
 
 // writeMasteryState is the dump's class mastery block, CLIENT's
@@ -2144,8 +2145,9 @@ func writeDumpRecordBank(writer *buffer.Writer, player *entity.Player, bankTunar
 // experience going to masteries (m_x08, the mastery points window's 0-100),
 // the run speed (raw; ReadState keeps it, only a buy's reply hands it to
 // SetSpeed), the 29 stats the masteries it bought add (the trainer shows a
-// stat as its base and training plus GetStat's) and the seven stat caps they
-// raise (m_bonus: GetP44Total's addend, the trainer's cap): entity/cmbuy.go.
+// stat as its base and training plus GetStat's) and the seven m_bonus,
+// GetP44Total's addend to m_p44 for a stat's cap: each stat's cap less the
+// highest (entity.Player.TrainerBonuses; entity/cmbuy.go, mastery.go).
 func writeMasteryState(w *buffer.Writer, player *entity.Player) {
 	m := player.Mastery
 	st := entity.CMStateOfPlayer(player)

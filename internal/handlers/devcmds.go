@@ -564,7 +564,7 @@ func (h *ChatHandler) applyLevel(sess *session.Session, player *entity.Player, l
 	level = max(1, min(entity.LevelCap(h.isGM(sess)), level)) // the account's, read now
 	before := player.UnusedTP
 	h.gameWorld.SetPlayerLevel(player.CharServerID, level)
-	SendLevel(sess, level, h.gameWorld.CharacterBar(player.CharServerID))
+	SendLevel(sess, level, h.gameWorld.CharacterBar(player.CharServerID), h.gameWorld.CharacterTrainerCap(player.CharServerID, level))
 	// the training points the level is due (entity/training.go)
 	if unused, total, ok := h.gameWorld.LiveTrainingPoints(player.ServerID); ok && unused != before {
 		entity.SendTrainingPoints(sess, unused)

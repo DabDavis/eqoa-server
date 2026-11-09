@@ -145,15 +145,18 @@ const archiveTTL = 10 * time.Minute
 
 // archivistAsk is a question asked: its box, which question, and the id the
 // client named the Archivist by (its 0x004C), which his shop opens under; a
-// path's: the paths offered, by answer (archivistAskPath), and the path and
-// the change as they were asked (archivistAskSwap: the spells out and in).
+// path's: the paths offered, by answer, with their names (archivistAskPath),
+// and the path and the change as they were asked (archivistAskSwap: its name,
+// the spells out and in). A path is done only while its index still names it.
 type archivistAsk struct {
-	id      uint32
-	stage   int
-	npc     uint32
-	paths   []int
-	path    int
-	out, in []int
+	id       uint32
+	stage    int
+	npc      uint32
+	paths    []int
+	names    []string
+	path     int
+	pathName string
+	out, in  []int
 }
 
 // NewArchivist makes the Spell Archivists over the spell book store and the
@@ -241,8 +244,8 @@ func (a *Archivist) Answer(sess *session.Session, p *entity.Player, box uint32, 
 			a.say(sess, archivistKept)
 		}
 	case archivistAskPath:
-		if n < len(ask.paths) {
-			a.pickPath(sess, ask.npc, ask.paths[n])
+		if n < len(ask.paths) && n < len(ask.names) {
+			a.pickPath(sess, ask.npc, ask.paths[n], ask.names[n])
 		}
 	case archivistAskSwap:
 		if n == 0 {

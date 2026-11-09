@@ -533,22 +533,24 @@ func (a *Archivist) askPaths(sess *session.Session, id uint32) {
 	}
 	answers := make([]string, 0, len(paths)+1)
 	offered := make([]int, 0, len(paths))
+	var names []string
 	for i, pa := range paths {
 		if len(answers) == maxDialogOptions-1 {
 			break // CLIENT's box holds six answers, Neither one of them
 		}
 		answers = append(answers, clipRunes(fmt.Sprintf(archivistPathAnswer, pa.name), questAnswerChars))
-		offered = append(offered, i)
+		offered, names = append(offered, i), append(names, pa.name)
 	}
 	answers = append(answers, archivistPathNeither)
-	a.askWith(sess, p, archivistAsk{stage: archivistAskPath, npc: id, paths: offered}, archivistPathAsk, answers)
+	a.askWith(sess, p, archivistAsk{stage: archivistAskPath, npc: id, paths: offered, names: names}, archivistPathAsk, answers)
 	log.Printf("Archivist: %s (class %d, level %d) asked which path: %d offered, the book holding %v", p.Name, p.Class, p.Level,
 		len(paths), held)
 }
 
-// pickPath is a path picked: written at once when nothing of another path
-// comes out of the book, else said and asked first (the notes at the top).
-func (a *Archivist) pickPath(sess *session.Session, id uint32, k int) {
+// pickPath is a path picked (its index and name as offered): written at once
+// when nothing of another path comes out of the book, else said and asked
+// first (the notes at the top).
+func (a *Archivist) pickPath(sess *session.Session, id uint32, k int, name string) {
 	p, _, ok := a.here(sess, id)
 	if !ok {
 		return
@@ -559,7 +561,7 @@ func (a *Archivist) pickPath(sess *session.Session, id uint32, k int) {
 	}
 	a.book.Lock()
 	defer a.book.Unlock()
-	u, ok := a.plan(sess, p, k)
+	u, ok := a.plan(sess, p, k, name)
 	if !ok {
 		return
 	}
@@ -584,7 +586,7 @@ func (a *Archivist) askSwapLocked(sess *session.Session, p *entity.Player, id ui
 			plural(len(u.kept), "it", "them")))
 	}
 	a.say(sess, strings.Join(lines, " "))
-	a.askWith(sess, p, archivistAsk{stage: archivistAskSwap, npc: id, path: u.path, out: u.outIDs(), in: u.inIDs()},
+	a.askWith(sess, p, archivistAsk{stage: archivistAskSwap, npc: id, path: u.path, pathName: u.name, out: u.outIDs(), in: u.inIDs()},
 		archivistPathAskSwap, []string{archivistPathYes, archivistPathNo})
 }
 
@@ -602,7 +604,7 @@ func (a *Archivist) swapPath(sess *session.Session, ask archivistAsk) {
 	}
 	a.book.Lock()
 	defer a.book.Unlock()
-	u, ok := a.plan(sess, p, ask.path)
+	u, ok := a.plan(sess, p, ask.path, ask.pathName)
 	if !ok {
 		return
 	}
@@ -621,14 +623,16 @@ func (a *Archivist) swapPath(sess *session.Session, ask archivistAsk) {
 	a.writePath(sess, p, u)
 }
 
-// plan is path k planned for the player as it stands, said when it cannot be
-// (false then). Called with book held.
-func (a *Archivist) plan(sess *session.Session, p *entity.Player, k int) (*pathPlan, bool) {
+// plan is path k, named so when it was offered, planned for the player as it
+// stands, said when it cannot be (false then): the paths changed since (a GM's
+// edit of the quests), the book holds it all, or it has no room. Called with
+// book held.
+func (a *Archivist) plan(sess *session.Session, p *entity.Player, k int, name string) (*pathPlan, bool) {
 	_, paths, common, ok := a.paths(sess, p)
 	if !ok {
 		return nil, false
 	}
-	if k < 0 || k >= len(paths) {
+	if k < 0 || k >= len(paths) || paths[k].name != name {
 		a.say(sess, archivistPathsChanged)
 		return nil, false
 	}

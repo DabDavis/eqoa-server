@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"strings"
 	"testing"
 	"time"
 )
@@ -224,5 +225,77 @@ func TestGorereaverHitsGoblins(t *testing.T) {
 	r.w.weaponProcLocked(r.fsess, r.friend, r.npc, time.Now())
 	if hp-r.npc.HP != 400 {
 		t.Errorf("a goblin lost %d, want 400", hp-r.npc.HP)
+	}
+}
+
+// katanaWords are the Katana of Severing's words with its proc (petition 1360,
+// Zaeire: "proc should be set to 2k with a 10% chance to proc").
+const katanaWords = "This katana severs heads with great efficiency. Procs 2000 slashing damage, a 10% chance each hit."
+
+// A proc's own chance in its words: "N% chance", "N% a hit", "per swing", from
+// 1 to 100. The controls: no chance in the words (INT's rule, Chance 0), a
+// scale's percent, 0% and past 100%.
+func TestAWeaponProcsOwnChance(t *testing.T) {
+	want := WeaponProc{Kind: ProcHit, Damage: 2000, Resist: StatSlash, Chance: 10}
+	if got, ok := WeaponProcFromText(katanaWords); !ok || got != want {
+		t.Errorf("the Katana: %#v %v, want %#v", got, ok, want)
+	}
+	for _, c := range []struct {
+		desc   string
+		chance int
+	}{
+		{"Procs 150 Ice Damage, 5% a hit.", 5},
+		{"Procs a 100 point DD Spell at 12% per swing.", 12},
+		{"Procs 150 Ice Damage. 100% chance.", 100},
+		{"Procs 150 Ice Damage.", 0},
+		{"Procs 154 slashing damage ; Increase 30% based on DEX.", 0},
+		{"Procs 150 Ice Damage, a 0% chance.", 0},
+		{"Procs 150 Ice Damage, a 150% chance.", 0},
+	} {
+		if got, ok := WeaponProcFromText(c.desc); !ok || got.Chance != c.chance {
+			t.Errorf("%q: %#v %v, want chance %d", c.desc, got, ok, c.chance)
+		}
+	}
+	if got, _ := WeaponProcOf(713079, "Katana of Severing", katanaWords); got.String() != "2000 at 10% a hit" {
+		t.Errorf("its words: %q", got.String())
+	}
+}
+
+// The Katana's 10% holds whatever its wielder's INT: a roll of 9 procs its
+// 2,000 and a roll of 10 does not, on a wielder whose INT gives the rule more
+// than 10; #stats says its chance and no INT's. The control: the same words
+// with no chance procs on that roll of 10, by the rule.
+func TestAWeaponProcsOwnChanceHoldsAtAnyINT(t *testing.T) {
+	defer func(f func(int) int) { procIntn = f }(procIntn)
+	r := weaponRig(t, "Katana of Severing", katanaWords)
+	r.friend.Int = 400
+	if c := procChancePct(r.friend.StatNow(StatInt)); c <= 10 {
+		t.Fatalf("the wielder's INT gives the rule %d%%, not past 10", c)
+	}
+	r.npc.HP, r.npc.MaxHP = 50000, 50000
+	procIntn = dice(9, 99)
+	r.hit()
+	if f := figures(r.fsess); len(f) != 2 || f[1] != -2000 {
+		t.Errorf("a roll of 9: figures %v, want the hit and -2000", f)
+	}
+	procIntn = dice(10, 99)
+	r.hit()
+	if f := figures(r.fsess); len(f) != 1 {
+		t.Errorf("a roll of 10: figures %v, want the hit alone", f)
+	}
+	if w := weaponProcWords(r.friend); w != "Weapon procs: Katana of Severing 2000 at 10% a hit" {
+		t.Errorf("#stats: %q", w)
+	}
+
+	c := weaponRig(t, "Katana of Severing", "This katana severs heads with great efficiency. Procs 2000 slashing damage.")
+	c.friend.Int = 400
+	c.npc.HP, c.npc.MaxHP = 50000, 50000
+	procIntn = dice(10, 99)
+	c.hit()
+	if f := figures(c.fsess); len(f) != 2 || f[1] != -2000 {
+		t.Errorf("the control, no chance in its words, a roll of 10: figures %v", f)
+	}
+	if w := weaponProcWords(c.friend); !strings.Contains(w, "a hit of its hand (INT ") {
+		t.Errorf("the control's #stats: %q", w)
 	}
 }

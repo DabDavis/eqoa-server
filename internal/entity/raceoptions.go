@@ -317,8 +317,7 @@ var raceOptionRows = map[uint32][]OptionRow{
 		{"Black (teal robe)", 0x585E5ED9, 1}, {"Black and tan (green robe)", 0x16BA0BD3, 1}, {"Black and tan (packlord)", 0x3C6D3677, 0.91},
 		{"Black and tan (armour)", 0xC2D7DD2F, 0.91}, {"Grey", 0x71F163CA, 1}, {"Grey (armour)", 0xC3B94FA5, 1},
 		{"Grey (red scarf)", 0x147AC3EE, 0.91}, {"Grey (robed)", 0x09E0AE7D, 1}, {"Grey (gown)", 0xB15628DA, 1},
-		{"Grey (red robe)", 0xCE06735E, 0.91}, {"Reanimated", 0x2EDA50DC, 1}, {"Reanimated (bones)", 0x6F55F237, 1},
-		{"Reanimated (robed)", 0x16E320F7, 1}}}},
+		{"Grey (red robe)", 0xCE06735E, 0.91}, {"Reanimated", 0x2EDA50DC, 1}, {"Reanimated (robed)", 0x16E320F7, 1}}}},
 	bodyOrc: {{Key: "body", Label: "Clan", Kind: KindBody,
 		Male: []OptionStep{{"Orc", bodyOrc, 1}, {"Orc (long hair)", 0x84F47767, 0.92}, {"Orc (grey mail)", 0x656DD4C5, 1},
 			{"Deathfist", 0x37FD13F9, 1.02}, {"Deathfist (kilt)", 0x3198F5B1, 1.06}, {"Hatebone elder", 0xB2FBD7EF, 0.92},
@@ -365,7 +364,7 @@ var raceOptionRows = map[uint32][]OptionRow{
 	bodySkeleton: {{Key: "body", Label: "Bones", Kind: KindBody, Male: []OptionStep{
 		{"Bone", bodySkeleton, 1}, {"Old bone", 0x45A8B064, 0.91}, {"Mossy", 0x198BAA64, 0.91}, {"Frost", 0x648DFC11, 1},
 		{"Great bone", 0x6AF98A82, 0.9}, {"Great old bone", 0x197F51C7, 0.82}, {"Great mossy", 0x90F16A6F, 0.82},
-		{"Great mossy (green)", 0x556EA369, 0.82}, {"Great frost", 0x7D9F41B2, 0.9}}}},
+		{"Great frost", 0x7D9F41B2, 0.9}}}},
 	bodyFungus: {
 		{Key: "body", Label: "Fungus", Kind: KindBody, Male: []OptionStep{
 			{"Blue cap", bodyFungus, 1}, {"Red cap", bodyFungusRed, 1}, {"Pale cap", bodyFungusPale, 0.91}}},

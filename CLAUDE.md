@@ -373,6 +373,45 @@ share of its hit points a melee hit on it heals it and 1 lands; arts and spells 
 each attack type's melee); `melee_pct` reaches 5000; a resist's kind may be a comma list. `npcs.unk_o` 1-14 is an NPC's
 armour tint (`$Tints`, bytes 99-104 of its channel).
 
+**Zaoran Plateau rebuilt** (the user, 2026-11-08: "hunt down and rebuild zaoran plateau - the bosses, quests and rare
+drops"; five sets beside Rallos's and Razeal's; the evidence is jibrish's `zp-research/`: the guide, Cryptic Souls'
+2007-2009 pages in the Wayback Machine, Ronson's 2010 copies on eqoa.forumotion.com (t301 "ZP Loot Table", t294 "ZP Quest
+Armor"), BlackPearl's board, the SOE boards' 2009 mirror and 64 raid videos of 2007-2012 (effective HP at 400 a raider a
+second, ours, times the share a L60 raid deals the boss's level); no Sandstorm data). **`tallon`**: the key's bearer reaching
+the way up (quest "Tallon Zek" step 4's `trigger` events) wakes the fortress for two hours: the Zek Sentry (a large red
+dragon on Lord Nagafen's body, spawn-only now; a 4,000 fire breath round it every 18 s; `run_speed` 1 so it is not pulled
+off its post), five Tallon's Rages on the first floor (a 30,000 death touch) that crumble with it, twelve Zek captains in
+the pillar room and ten hall guards (they help each other: `npcsocial` "Tallon's Fortress"), then thirteen golems at the
+ramps' feet. Tallon Zek's own row is moved to the deepest room (162.4, the guide's square room) and carries the NPC bit:
+talked to, he comes with six archers for thirty minutes (his bow shot 5,000 every 6 s, "no way known yet for a MT to
+survive his bow shots"; a 1,500 AoE every 30 s, "stay out of aoe"; 1.0M: pets took him in every filmed kill, 0.5-2.6M
+effective); a stay's end is no death (`awaitdead` `any`). The post by ramp 1 calls fifteen assassins (trigger "Fortress
+Post"); huge black widows stand in the hall and the dead ends. Loot, four rolls: the four archetype leggings, the 35-PoT
+earring, Lead Plated Choker, and Tallon's Bow, Left and Right Eye and the Potion of Amalgamation (made: names, levels and
+classes as his 2009 corpse showed them, figures ours; the eyes' charges and the potion's experience do nothing yet), and
+Zek's battleplans every kill. **`vallon`**: quest "Vallon Zek" step 4 fires a run in place of its ten-minute spawn: his own
+row hidden, a copy (1.0M: 2.1-2.9M effective in three filmed kills; 3,520 quads, the floor of 98 hits on a L60 warrior in
+2009 footage; 75% of every resist, a 600 AoE and a 300 AC debuff: "Nukes do close to nothing", "ZP gods all debuff AC") with
+three Guards of Vallon, each back 15 s after its death (trigger "Guards of Vallon" by `npcdeath`, `max` 3: "as soon as you
+kill them, another spawns"), for ninety minutes; his death says "You have won the battle, but not the war!" (filmed three
+times), then the isle is cleared and the raid sent to the plateau's port-in. The Rage of Zek ("quad for 150k", Kekoo's bug)
+is not built. Loot, three rolls of his twelve (Sapphyra's Sword, the four archetype breastplates, the chokers and earrings,
+Influencer's Necklace, the Deflection Bracelet and Vallon's Blade made) and one of the plateau's eleven ability scrolls
+("ZP Spells"; Rage of Zek on a 2009 corpse). **`zp-armour`**: the 18 glowing
+gems (two a piece) and the 45 class sets (15 classes × Akessan, Honor Guard, Zek): 250 records made from t294's figures,
+named by each set's label (ours, but the server's own names and Tunic of the Vilifier), six transfer stand-ins given the
+era's figures. Ten Unmarked Headstones (level 45) by Tallon's port-in: each death has 4% to raise Krognar, Merkym or the
+Akessan Collector for eight minutes (`npcdeath`, three triggers, a lock each), who craft the armour piece by piece: 18
+repeatable give quests (`tools/quests/data/zp-armour.json`), two gems for the piece of the turner's class (`byclass`).
+Razeal drops one gem a kill (one on every filmed corpse). **`zp-minions`** (after `zp-armour`): the plateau's 2008-2012 people: four Blood Thirsty Minion
+camps (taken 80%: "really high HP, high defense"), each death 5% to raise an officer where it fell (one within 300), who
+drops a gem; three undead stallions by the headstones; four Eyes of Zek (the Warmonger weapons); the Tier 1 list of 16
+(two robes and a collar made) and the Honor Guard Insignia. **`zp-records`** (dab's tables): Pendant of Razeal's record (a
+transfer's stand-in) given the guide's figures, Trueshot Pendant's AGI and Honor Guard Totem's CHA and WIS as the lists have
+them, and Chosen's Staff, Rapier, Baton and Victor's Blade secondary ("Raid weapons now secondary", SOE 2007-07-12).
+Every HP, hit, timer, count, chance and spot is ours where no figure exists; `internal/handlers/zp_raids_test.go` plays
+both raids from the JSON, and `TestRealGuideBosses` holds the three new bosses to their figures.
+
 **The XP camps are `#tele` shortcuts** (`handlers/camps.go`, written by `tools/gen_camp_teles.py`;
 the user's "add popular xp camps to the gm tele port like /tele dfc (deathfist citadel) /tele
 hexbones"): EQOA-Data's XP-camp guide (its map's 69 camps with a note, `Map/zones.json`) placed

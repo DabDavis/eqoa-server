@@ -294,6 +294,13 @@ type WorldConfig struct {
 	// front of Dabrish. Unset or false: none of it, and a stone held does
 	// nothing. The Heirloom Test Server sets it.
 	RockOfFreeport bool `yaml:"rock_of_freeport"`
+
+	// Teleporter turns on the Teleporter (handlers/teleporter.go): an NPC of
+	// that name (tools/place_teleporter.py stands one beside Dabrish) sends a
+	// player to every raid's way in and beside every XP camp, a box at a time,
+	// for nothing. Unset or false: it says its portals are closed. The
+	// Heirloom Test Server sets it.
+	Teleporter bool `yaml:"teleporter"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

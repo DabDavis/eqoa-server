@@ -886,6 +886,34 @@ export function npcSwaps(v, tints) {
   return out;
 }
 
+// itemDress is how an item's own row shows on a body: an armour piece its set
+// on its slot (a helm its sprite), a robe on the chest and legs, each in the
+// tint a PS2 draws the item's colour in (handlers wornLook: an armour piece
+// the tint nearest its own colour, none for a tint index or white; a robe its
+// tint index, else the nearest); null for any other wear slot.
+export function itemDress(v, tints) {
+  const wear = Number(v.equipslot), model = Number(v.model) || 0;
+  const c = u32(parseId(String(v.color ?? '0')));
+  const col = (i) => rgbaOf(parseInt((tints[i] || tints[0] || { rgba: 'FFFFFFFF' }).rgba, 16) >>> 0);
+  const nearest = (u) => (tints.length ? nearestTint(u, tints) : 0);
+  if (WEAR_ARMOR[wear]) {
+    const slot = WEAR_ARMOR[wear];
+    const tint = Number.isNaN(c) || c < 15 || c === 0xFFFFFFFF ? 0 : nearest(c);
+    if (slot === 'helm') return { helm: HELM[model >= 0 && model < HELM.length ? model : 0] || 0 };
+    const set = model >= 0 && model < ARMOR.length ? model : 0;
+    return { swaps: [{ slot: ARMOR_SLOT[slot], tex: set ? ARMOR[set][ARMOR_SLOT[slot]] | 0 : 0, col: col(tint) }] };
+  }
+  if (wear === WEAR_ROBE) {
+    const r = model >= 0 && model < ROBE.length ? model : 0;
+    const tint = Number.isNaN(c) ? 0 : c < 15 ? c : c === 0xFFFFFFFF ? 0 : nearest(c);
+    return { swaps: [0, 1].map((half) => ({ slot: half ? 3 : 0, tex: ROBE[r][half] | 0, col: col(tint) })) };
+  }
+  return null;
+}
+
+// the body an item is shown on: the human male's (charactermodel)
+export const SHOW_BODY = 0x70D898C6 | 0;
+
 // ---- a list's cells
 
 // lookCell is a grid cell for a look column's value: its picture or colour

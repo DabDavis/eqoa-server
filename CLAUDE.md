@@ -370,6 +370,15 @@ index, flags on/running, name of at most 32 bytes) at once and whenever a trigge
 starts or ends; a PS2 ignores the offer and shows eight TRIGGERs. Firing and stopping from the panel
 are logged (`gm_audit` action `live`); a saved trigger is a row change, revertible.
 
+**A GM travels by the map** (`handlers/maptravel.go`; the owner, 2026-11-09: "for gms the map lets add fast
+travel to where they click on the map"). Beside 0x7E07 the GM channel offers opcode **0x7E34**
+(`OpcodeMapTravel`, a u32 1; a GM's client alone, a PS2 ignores it); vanilla's map then takes a Ctrl+click (Cmd on a
+Mac) and sends **0x7E35** (`OpcodeMapTravelTo`: u32 world, f32 x, f32 z). `HandleMapTravelTo` checks `isGM` on every
+ask (acctlevel 1+, as every GM command): anyone else's is logged and dropped, nothing said or moved. A GM's goes where
+#goto x y z goes (`teleportTo`), the height the ground's (`World.GroundFloor` from 100,000 down: the highest terrain
+there, never a roof or a tree; the client's walk takes a placed floor over it from there); a spot with no ground
+known, past every world's edge (1e6) or in no world is told in a [GM] line and moves no one.
+
 **A raid's encounter runs on the triggers** (the user, 2026-11-07: "lets build them all"; the Plane of Sky's
 constructs and twins, Rallos Zek, Razeal Moloch, each a set of `tools/seed_guide_gaps.py`'s `tools/guidegaps/<set>.json`,
 `--apply`/`--undo`, or `--save-plan` on a copy and `--plan` live, one short transaction; the JSON and the quest

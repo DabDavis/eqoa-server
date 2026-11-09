@@ -208,6 +208,12 @@ func (b *PacketBuilder) WriteRDPReport(packetSeq, lastRecvPacket, lastRecvMsg ui
 	return nil
 }
 
+// WriteAckMask writes the guaranteed ack's mask (body flag 0x08): a plain
+// 7-bit varint, as CLIENT's buffer_append_packed_uns64 writes it.
+func (b *PacketBuilder) WriteAckMask(mask uint64) error {
+	return b.writer.Write7BitEncodedUInt64(mask)
+}
+
 // WriteStateAck writes a state channel acknowledgment.
 func (b *PacketBuilder) WriteStateAck(channel byte, seqNum uint16) error {
 	if err := b.writer.WriteByte(channel); err != nil {

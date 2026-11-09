@@ -361,21 +361,13 @@ func (l *Listener) handlePacket(data []byte, addr *net.UDPAddr, turn *packetTurn
 		conn := sess.Connection()
 		for _, msg := range packet.Body.Messages {
 			// Track reliable message sequence numbers for ACKing
-			if msg.Type.IsReliable() && msg.Sequence > 0 {
-				copied := false
-				if sess.Resumed() {
-					// a session carried through a restart: the copies its
-					// client sent again while the server was away (one a
-					// second) are acknowledged, not handled twice
-					copied = !conn.TakeReliable(msg.Sequence)
-				} else {
-					// any other: a copy the client sent again, its
-					// acknowledgment not yet seen (a stalled link sends
-					// one in every packet), by its number and contents
-					// (session/reliablecopies.go)
-					copied = !conn.TakeReliableOnce(msg.Sequence,
-						session.ReliableSum(byte(msg.Type), uint16(msg.Opcode), msg.Data()), time.Now())
-				}
+			if msg.Type.IsReliable() {
+				// a copy the client sent again, its acknowledgment not yet
+				// seen (a stalled link sends one in every packet; a session
+				// carried through a restart gets one a second of the time
+				// the server was away), or one beyond the window, is
+				// acknowledged, not handled (session/reliablecopies.go)
+				copied := !conn.TakeReliable(msg.Sequence)
 				// Set flag to ACK the reliable message back to client
 				sess.Queue().SetBodyFlags(protocol.BodyFlagGuaranteedAck | protocol.BodyFlagFlushAck)
 				if copied {

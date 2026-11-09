@@ -25,8 +25,31 @@ const (
 	RetransmitDelay = 600 * time.Millisecond
 
 	// MaxRetransmitsPerPacket caps how many unacked messages ride along in a
-	// single packet, so recovering from a gap cannot itself become a burst.
-	MaxRetransmitsPerPacket = 4
+	// single packet, and ResendBudget the bytes they take of it (the first
+	// whatever its size): a packet's resends leave room for what is new. Until
+	// 2026-11-09 it was four messages of any size, every RetransmitDelay, the
+	// oldest four always, so a stuck backlog went round four a tick forever.
+	MaxRetransmitsPerPacket = 16
+	ResendBudget            = 700
+
+	// SendWindow is how far past the client's acknowledgement a reliable
+	// message may go out: within the 64 its ack's mask can name (so every
+	// message in flight is one the client can say it holds), and a client
+	// that stops acknowledging is sent no more than this until it does.
+	SendWindow = 48
+
+	// SendWindowBytes is how many bytes of reliable messages may be out
+	// unacknowledged at once: a slow line (a phone's, a relay's TCP stream
+	// behind one) holds no more than this queued, so a message sent behind
+	// a burst waits seconds less, and the timeout measured on it stays near
+	// the line's. 16 KB in a 150 ms round trip is over 100 KB a second.
+	SendWindowBytes = 16 * 1024
+
+	// BurstPackets is how many packets more a tick may send while reliable
+	// messages wait within the window (a MemoryDump's 24 fragments, a
+	// mastery list's 10): one packet a tick carries one fragment, ten a
+	// second, and everything queued after a burst waited behind it.
+	BurstPackets = 3
 )
 
 // RDPHandler handles reliable delivery protocol operations.
@@ -117,8 +140,13 @@ func (r *RDPHandler) processRDPReport(sess *session.Session, body *protocol.Segm
 			body.GuaranteedAck, sess.RemoteAddr(), sess.InstanceID())
 	}
 
-	// Update client's last received message
-	conn.SetClientLastReceivedMessage(body.GuaranteedAck)
+	// The client's ack of our reliable messages, and its mask: those it
+	// holds past the ack (body flag 0x08)
+	var mask uint64
+	if body.Flags&protocol.BodyFlagGuaranteedAckMask != 0 {
+		mask = body.GuaranteedAckMask
+	}
+	conn.SetClientAck(body.GuaranteedAck, mask)
 	conn.Net().NoteAck(body.GuaranteedAck, time.Now())
 
 	// Check if we should trigger the ACK callback (e.g., send character list)
@@ -199,7 +227,9 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 
 	// Check if we need to send anything. A due retransmit counts as work even
 	// when nothing new is queued — otherwise a stalled transfer never recovers.
-	needRetransmit := queue.HasRetransmits(RetransmitDelay)
+	// The resend timeout: the client's round trip's (netstats.go's RTO)
+	rto := sess.Connection().Net().RTO()
+	needRetransmit := queue.HasRetransmits(rto)
 	if !queue.CheckQueue() && !needRetransmit {
 		flags := queue.GetBodyFlags()
 		// Send if we have ACK flags OR RdpMessage flag (for responding to new connections)
@@ -229,7 +259,7 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 	// sent, landing in the packet twice.
 	var retrans []*protocol.Message
 	if needRetransmit {
-		retrans = queue.TakeRetransmits(RetransmitDelay, MaxRetransmitsPerPacket)
+		retrans = queue.TakeResends(rto, MaxRetransmitsPerPacket, ResendBudget)
 	}
 
 	// Drain messages atomically to avoid races between queue peek and get.
@@ -313,6 +343,20 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 	// === Body starts here (body size = everything from here to end of messages) ===
 	bodyStartPos := builder.Position()
 
+	// The packet's number and what it acknowledges, read at once
+	// (session.NextPacketReport); the guaranteed ack's mask when the
+	// client's messages came out of order, to a client that answered the
+	// bug report offer (0x7E0E, any answer: every vanilla, never a PS2;
+	// Session.AckMasks). A PS2's CLIENT
+	// reads the mask as its own DRDP writes it, but no PS2 has been shown
+	// one; it keeps the plain ack, the newest taken with every one before it
+	// (its only cost a resend of what it sent past a hole).
+	report := conn.NextPacketReport()
+	includeAcks := bodyFlags&protocol.BodyFlagGuaranteedAck != 0
+	if includeAcks && report.Mask != 0 && sess.AckMasks() {
+		bodyFlags |= protocol.BodyFlagGuaranteedAckMask
+	}
+
 	// Write body flags
 	builder.WriteBodyFlags(bodyFlags)
 
@@ -322,14 +366,11 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 	}
 
 	// Write RDP report
-	includeAcks := bodyFlags&protocol.BodyFlagGuaranteedAck != 0
-	packetSeq := conn.LastSentPacketSeq()
-	builder.WriteRDPReport(
-		packetSeq,
-		conn.LastReceivedPacketSeq(),
-		conn.LastReceivedMessageSeq(),
-		includeAcks,
-	)
+	packetSeq := report.Packet
+	builder.WriteRDPReport(packetSeq, report.FlushAck, report.Ack, includeAcks)
+	if bodyFlags&protocol.BodyFlagGuaranteedAckMask != 0 {
+		builder.WriteAckMask(report.Mask)
+	}
 
 	// Write state channel acks if needed
 	if bodyFlags&protocol.BodyFlagClientUpdateAck != 0 {
@@ -339,13 +380,28 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 	}
 
 	// Write pending messages (stop if buffer overflows)
-	// Reliable messages that don't fit are re-queued for the next tick.
+	// Reliable messages that don't fit are re-queued for the next tick, as
+	// are those past the window (SendWindow beyond the client's ack).
+	clientAck, _ := conn.ClientAck()
+	windowEnd := clientAck + SendWindow
+	inFlight := queue.InFlightBytes()
+	var deferred []*protocol.Message
 	for idx, msg := range pending {
 		var seq uint16
 		if msg.Type.IsReliable() && msg.Acked {
 			// acknowledged since it was queued again (a resend put back
 			// when its packet was full): nothing to send
 			continue
+		}
+		if msg.Type.IsReliable() && (session.SeqAfter(msg.Sequence, windowEnd) ||
+			!session.Sent(msg) && inFlight > 0 && inFlight+msg.Size()+8 > SendWindowBytes) {
+			// past the window, or the bytes out already enough: it waits
+			// for the client's ack to move
+			deferred = append(deferred, msg)
+			continue
+		}
+		if msg.Type.IsReliable() && !session.Sent(msg) {
+			inFlight += msg.Size() + 8
 		}
 		if msg.Type.IsReliable() {
 			// The number AddWithSequence gave it (Queued marks one given):
@@ -363,11 +419,15 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 			seq = msg.Sequence
 		}
 		if err := builder.WriteMessage(msg, seq); err != nil {
-			log.Printf("PreparePacket: buffer full writing message type=0x%02X, stopping (remaining=%d)",
-				msg.Type, builder.Remaining())
-			// Re-queue reliable messages that didn't fit; drop unreliable ones
-			// Use RequeueBatch to preserve message order
-			var toRequeue []*protocol.Message
+			if debuglog.Packets() {
+				log.Printf("PreparePacket: buffer full writing message type=0x%02X, stopping (remaining=%d)",
+					msg.Type, builder.Remaining())
+			}
+			// Re-queue reliable messages that didn't fit (after those put
+			// off by the window, which came before them); drop unreliable
+			// ones. Use RequeueBatch to preserve message order
+			toRequeue := deferred
+			deferred = nil
 			for _, remaining := range pending[idx:] {
 				if remaining.Type.IsReliable() {
 					toRequeue = append(toRequeue, remaining)
@@ -390,6 +450,10 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 			// and gets resent before its ACK could possibly arrive.
 			msg.UpdateTime()
 		}
+	}
+
+	if len(deferred) > 0 {
+		queue.RequeueBatch(deferred)
 	}
 
 	// === Body ends here — patch segment header with actual body size ===
@@ -424,13 +488,30 @@ func (r *RDPHandler) TickSession(sess *session.Session) {
 		return
 	}
 
+	// A session silent before the world ends after PreGameSilentEnd: its
+	// client is gone (CLIENT keeps a connection alive with a keepalive every
+	// 30 s, connection_flush), where one lived on for 10 pings of
+	// world.session_timeout_pre (300 s on eqoaclassic: 50 minutes)
+	silent := time.Since(sess.LastActivity())
+	if !sess.InGame() && !sess.CharacterInWorld() && !sess.DidServerInitiate() && silent > PreGameSilentEnd {
+		log.Printf("Session: %s silent %.0fs before the world: ended", sess.Label(), silent.Seconds())
+		sess.SetPendingTermination(true)
+		return
+	}
+
 	// Generate state updates if in world using XOR delta encoding
 	// Format: 162-byte state (isActive + ObjectID + ObjectUpdate), matching retail
 	//
 	// Held while the client is loading a world after a teleport — retail sends
 	// nothing across that window either. Deferred, not dropped: the buffers keep
 	// being written and go out the moment the client reports in with 0x0049.
-	states := sess.CharacterInWorld() && !sess.StateChannelsHeld()
+	// Held too while the client has been silent StateSilence (a client in the
+	// world sends its 0x40 ten times a second, a page in the background too):
+	// a dropped client's session lingers its 50 pings with its character in
+	// the world, and was sent the world's changes every tick, to a relay port
+	// long closed (eqoaclassic's kernel counted ~9 such datagrams a second). A
+	// client heard from again gets them from its last acknowledged state on.
+	states := sess.CharacterInWorld() && !sess.StateChannelsHeld() && silent < StateSilence
 	var round entityRound
 	if states {
 		round = r.GenerateStateUpdates(sess)
@@ -444,6 +525,16 @@ func (r *RDPHandler) TickSession(sess *session.Session) {
 	// MaxStateUpdatesPerTick entity channels further round the round robin, so
 	// each of its channels is served as often as a PS2's are. A PS2's tick is
 	// the one packet above.
+	// A burst of reliable messages goes out in more packets this tick, while
+	// they wait within the client's window (BurstPackets)
+	for p := 0; p < BurstPackets; p++ {
+		ack, _ := sess.Connection().ClientAck()
+		if !sess.Queue().Sendable(ack, SendWindow, SendWindowBytes) {
+			break
+		}
+		r.sendPrepared(sess)
+	}
+
 	if states {
 		conn := sess.Connection()
 		more := false
@@ -459,6 +550,14 @@ func (r *RDPHandler) TickSession(sess *session.Session) {
 		}
 	}
 }
+
+// StateSilence is how long a client in the world may be silent before its
+// session's state channels wait for it (TickSession), and PreGameSilentEnd how
+// long one before the world may be before its session ends.
+const (
+	StateSilence     = 5 * time.Second
+	PreGameSilentEnd = 3 * time.Minute
+)
 
 // sendPrepared sends the packet PreparePacket builds, if there is one.
 func (r *RDPHandler) sendPrepared(sess *session.Session) {

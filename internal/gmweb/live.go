@@ -31,6 +31,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveAccount(a, action, before, after)
 	case testerTable:
 		return s.liveTester(before, after)
+	case storytellerTable:
+		return s.liveStoryteller(before, after)
 	case "characters":
 		return s.liveCharacter(a, action, before, after)
 	case "factions", "factionhits", "factionstart", "npcfaction":
@@ -424,17 +426,21 @@ func (s *Server) liveAccount(a *actor, action string, before, after map[string]a
 		s.sessions.endAccount(int(id), "")
 		n := s.revokeAccountTokens(int(id))
 		msg := fmt.Sprintf("no longer a GM: its panel sessions ended and %d token(s) were revoked", n)
-		if s.testerFlag(int(id)) {
-			msg += "; it is a tester still (set_account_tester takes that away)"
+		if roles := s.lowerRoles(int(id)); len(roles) > 0 {
+			who, ops := roleWords(roles)
+			msg += "; it is " + who + " still (" + ops + ")"
 		}
 		return msg
 	}
-	if action == "update" && level(before) < s.cfg.MinLevel && level(after) >= s.cfg.MinLevel && s.testerFlag(int(id)) {
-		// what it made as a tester was made for the items and spells: no token
-		// of that kind goes on acting as a GM
-		s.sessions.endAccount(int(id), "")
-		n := s.revokeAccountTokens(int(id))
-		return fmt.Sprintf("a GM now, no longer a tester's limits: its panel sessions ended and its %d tester token(s) were revoked", n)
+	if action == "update" && level(before) < s.cfg.MinLevel && level(after) >= s.cfg.MinLevel {
+		if roles := s.lowerRoles(int(id)); len(roles) > 0 {
+			// what it made as a tester or a storyteller was made for its
+			// tables: no token of that kind goes on acting as a GM
+			s.sessions.endAccount(int(id), "")
+			n := s.revokeAccountTokens(int(id))
+			who, _ := roleWords(roles)
+			return fmt.Sprintf("a GM now, no longer held as %s: its panel sessions ended and its %d token(s) from then were revoked", who, n)
+		}
 	}
 	return ""
 }

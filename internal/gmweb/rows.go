@@ -565,9 +565,10 @@ func keyText(key map[string]any) string {
 // mayWrite says whether the actor may change the table's rows.
 func mayWrite(a *actor, t *Table) error {
 	// every row write comes here, whichever operation made it: a revert, a
-	// bulk change, an operation's own
-	if a.tester() && !isTesterTable(t.Name) {
-		return notTesters("table " + strconv.Quote(t.Name))
+	// bulk change, an operation's own; below a GM a table of its roles', and
+	// the action and columns their rules allow (roleRow, at each writer)
+	if a.limited() && !a.writesTable(t.Name) {
+		return notOurs(a.grants(), "changing table "+strconv.Quote(t.Name))
 	}
 	switch t.Write {
 	case writeNone:
@@ -767,6 +768,9 @@ func (s *Server) insertRow(a *actor, t *Table, values map[string]any, o writeOpt
 	if t.Name == "accountinfo" {
 		return nil, errors.New("accounts are made with create_account (it hashes the password)")
 	}
+	if err := roleRow(a, t.Name, "insert", vals); err != nil {
+		return nil, err
+	}
 	if err := checkRow(t.Name, vals); err != nil {
 		return nil, err
 	}
@@ -890,6 +894,10 @@ func (s *Server) updateRow(a *actor, t *Table, key, values, base map[string]any,
 		ch.Action = "unchanged"
 		return ch, nil
 	}
+	// below a GM, what is written is what its roles allow (a revert's too)
+	if err := roleRow(a, t.Name, "update", set); err != nil {
+		return nil, err
+	}
 	if err := checkRow(t.Name, after); err != nil {
 		return nil, err
 	}
@@ -962,6 +970,9 @@ func (s *Server) deleteRow(a *actor, t *Table, key map[string]any, o writeOpts) 
 	}
 	if t.Name == "accountinfo" && !a.may(scopeAdmin) {
 		return nil, errors.New("deleting an account is an admin's (ban it instead)")
+	}
+	if err := roleRow(a, t.Name, "delete", nil); err != nil {
+		return nil, err
 	}
 	tx, err := s.d.DB.Begin()
 	if err != nil {

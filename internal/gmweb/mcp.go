@@ -183,8 +183,8 @@ func (s *Server) mcpCall(a *actor, r *http.Request, m rpcMessage) (any, *rpcErro
 			}
 		}
 		instructions := mcpInstructions
-		if a.tester() {
-			instructions = mcpTesterInstructions
+		if a.limited() {
+			instructions = roleInstructions(a.grants())
 		}
 		return map[string]any{
 			"protocolVersion": version,
@@ -241,7 +241,7 @@ func (s *Server) mcpCall(a *actor, r *http.Request, m rpcMessage) (any, *rpcErro
 func (s *Server) mcpTools(a *actor) []map[string]any {
 	var out []map[string]any
 	for _, op := range s.opList {
-		if !a.may(op.Scope) || (a.tester() && !testerMayCall(op)) {
+		if !a.may(op.Scope) || !a.mayCall(op) {
 			continue
 		}
 		out = append(out, map[string]any{

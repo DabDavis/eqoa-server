@@ -125,6 +125,9 @@ type Player struct {
 	// stats (cmbuy.go), which RecalcStats puts on its stats.
 	CMs       map[int]int
 	CMEffects [CMSlots]int
+	// WereOwnBody is whether a rank it owns keeps it in its own body under a
+	// were form (NoWereIllusion, wereownbody.go), summed with CMEffects
+	WereOwnBody bool
 
 	// Currency
 	Tunar, BankTunar int

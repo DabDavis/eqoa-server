@@ -87,6 +87,9 @@ type KeptConn struct {
 	TxPacket  uint16 `json:"tx_packet"`
 	TxMessage uint16 `json:"tx_message"`
 	Acked     uint16 `json:"acked"`
+	// Fragments is a message the client was sending in pieces, the pieces
+	// taken so far (fragments.go)
+	Fragments *KeptFragments `json:"fragments,omitempty"`
 
 	Slots   int           `json:"slots"`
 	View    int           `json:"view"`
@@ -189,6 +192,7 @@ func (cd *ConnectionData) keep() KeptConn {
 		TxPacket:  cd.lastSentPacketSeq,
 		TxMessage: cd.lastSentMessageSeq,
 		Acked:     cd.clientLastReceivedMessage,
+		Fragments: cd.frags.keepLocked(),
 	}
 	cd.mu.Unlock()
 	cd.objMu.RLock()
@@ -327,6 +331,7 @@ func (cd *ConnectionData) restore(k KeptConn) {
 	cd.lastSentPacketSeq = k.TxPacket
 	cd.lastSentMessageSeq = k.TxMessage
 	cd.clientLastReceivedMessage = k.Acked
+	cd.frags.restoreLocked(k.Fragments, k.RxMessage, time.Now())
 	cd.mu.Unlock()
 
 	cd.objMu.Lock()

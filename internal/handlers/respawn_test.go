@@ -176,3 +176,46 @@ func TestRespawnInTheSameWorldKeepsTheScene(t *testing.T) {
 		t.Error("a respawn in the same world cleared the scene")
 	}
 }
+
+// Petition 1312 (Hoofbite, 2026-11-09): "when you have buffs on cooldown,
+// when you die, they no longer are shaded out indicating that they are still
+// on CD". The respawn's dump builds the client's ability bar anew with none
+// locked out; each lockout still running is told after it (0x00CD: the
+// display index, stamp 0, what is left in ms), one over by then is not, and
+// none goes before the dump.
+func TestRespawnTellsTheLockoutsStillRunning(t *testing.T) {
+	f := newRespawnFixture(t, 0, 25100, 54, 15500)
+	f.w.RestoreKeptPlayer(f.sess, entity.KeptPlayer{Lockouts: []entity.KeptLockout{
+		{Spell: 901, Index: 6, LeftMS: 600_000},
+		{Spell: 902, Index: 7, LeftMS: -1_000}, // over before the respawn
+	}}, time.Now())
+	f.w.Tick(f.t0.Add(entity.PlayerRespawnDelay))
+
+	dumpAt := -1
+	type told struct {
+		index byte
+		ms    int64
+	}
+	var after []told
+	for i, d := range f.sent() {
+		switch opcode(d) {
+		case protocol.OpcodeMemoryDump:
+			dumpAt = i
+		case protocol.OpcodeCooldownTimer:
+			if dumpAt < 0 {
+				t.Fatalf("a lockout went before the dump: %x", d)
+			}
+			ms, err := buffer.NewReader(d[7:]).Read7BitEncodedInt64()
+			if err != nil {
+				t.Fatal(err)
+			}
+			after = append(after, told{d[2], ms})
+		}
+	}
+	if dumpAt < 0 {
+		t.Fatal("no MemoryDump queued")
+	}
+	if len(after) != 1 || after[0].index != 6 || after[0].ms > 600_000 || after[0].ms < 590_000 {
+		t.Fatalf("lockouts told after the dump: %+v; want ability 6 with about 600000 ms left", after)
+	}
+}

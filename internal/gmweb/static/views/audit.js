@@ -2,7 +2,7 @@ import { h, mount, pageHead, button, toast, empty, confirmBox, debounce } from '
 import { op } from '../lib/api.js';
 import { ago, when } from '../lib/fmt.js';
 import { showChange } from '../lib/form.js';
-import { isTester } from '../lib/nav.js';
+import { isLimited, isTester, isStoryteller } from '../lib/nav.js';
 import { tables } from '../lib/meta.js';
 
 const ACTION_BADGE = { insert: 'ok', update: 'info', delete: 'danger', live: 'accent', settings: 'warn', sql: 'warn', account: 'warn', security: 'warn' };
@@ -15,7 +15,9 @@ function changedKeys(e) {
 function rowLink(e) {
   if (!e.table || !e.key) return null;
   const vals = Object.values(e.key);
-  const pages = { npcs: 'npcs', itempattern: 'items', spellpattern: 'spells', characters: 'characters', accountinfo: 'accounts' };
+  // the purpose-built pages the reader has: below a GM its roles' own
+  const pages = !isLimited() ? { npcs: 'npcs', itempattern: 'items', spellpattern: 'spells', characters: 'characters', accountinfo: 'accounts' }
+    : { ...(isTester() ? { itempattern: 'items', spellpattern: 'spells' } : {}), ...(isStoryteller() ? { quests: 'quests' } : {}) };
   const href = pages[e.table] && vals.length === 1 ? `#/${pages[e.table]}/${vals[0]}`
     : `#/tables/${e.table}/${encodeURIComponent(vals.length === 1 ? String(vals[0]) : JSON.stringify(e.key))}`;
   return h('a', { href }, `${e.table} ${vals.join(', ')}`);
@@ -62,9 +64,10 @@ export function auditLine(e, compact = false) {
 
 export async function render(box) {
   const list = h('div', { class: 'card' });
-  // a tester's log is the changes to their own tables: by table and action, no
-  // one else's name to filter by and no text to search (tester.go)
-  const tester = isTester();
+  // below a GM the log is the changes to its own tables: by table and action,
+  // no one else's name to filter by and no text to search (tester.go,
+  // storyteller.go)
+  const tester = isLimited();
   const user = h('input', { type: 'search', placeholder: 'GM' });
   const table = tester
     ? h('select', { 'aria-label': 'Table' }, h('option', { value: '' }, 'any table'), ...(await tables()).map((t) => h('option', { value: t.name }, t.label)))
@@ -79,8 +82,10 @@ export async function render(box) {
   const reload = debounce(() => { offset = 0; load(); }, 250);
   [user, table, text].forEach((el) => el.addEventListener('input', reload));
   action.addEventListener('change', reload);
+  const whose = isTester() && isStoryteller() ? 'your tables' : isTester() ? 'the item and spell tables' : 'NPC dialog, the quests and the NPCs';
+  const undo = isStoryteller() ? 'A change you could make (a dialog line, a quest\'s words) can be reverted.' : 'A row change can be reverted.';
   mount(box, tester
-    ? pageHead('Audit log', 'Every change to the item and spell tables: your own whole, and of anyone else\'s what changed and when. A row change can be reverted.')
+    ? pageHead('Audit log', `Every change to ${whose}: your own whole, and of anyone else's what changed and when. ${undo}`)
     : pageHead('Audit log', 'Every change made through the panel or by an AI agent, who made it and through what. A row change can be reverted.'),
     h('div', { class: 'card' }, h('div', { class: 'grid-tools' }, tester ? null : user, table, action, tester ? null : text, h('span', { class: 'grow' }), count, newer, more)), list);
   async function load() {

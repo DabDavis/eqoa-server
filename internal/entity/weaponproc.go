@@ -262,6 +262,9 @@ func WeaponProcOf(patternID int, itemName, desc string) (WeaponProc, bool) {
 		}
 	}
 	wp.Item, wp.pattern = itemName, patternID
+	if IsImported(patternID) { // an import's copy: its damper (imported.go)
+		wp = wp.imported()
+	}
 	return wp, true
 }
 

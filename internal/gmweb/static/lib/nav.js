@@ -12,7 +12,24 @@ export function isAdmin() {
   return !!state.session?.user?.admin;
 }
 
-// a tester: the item and spell records, and only the pages of them (tester.go)
+// Below a GM, the roles the account holds (roles.go): a tester (the item and
+// spell records, tester.go), a storyteller (NPC dialog and the quests' words,
+// storyteller.go), or both ("tester+storyteller"), each with only the pages of
+// its own.
+export function roles() {
+  const r = state.session?.user?.role || '';
+  return r === 'gm' || r === 'admin' ? [] : r.split(/[+ ,]/).filter(Boolean);
+}
+
+export function isLimited() {
+  const r = state.session?.user?.role;
+  return !!state.session && r !== 'gm' && r !== 'admin';
+}
+
 export function isTester() {
-  return state.session?.user?.role === 'tester';
+  return roles().includes('tester');
+}
+
+export function isStoryteller() {
+  return roles().includes('storyteller');
 }

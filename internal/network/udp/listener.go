@@ -49,6 +49,7 @@ type Listener struct {
 	charStore      *database.SQLiteCharacterStore
 	tickInterval   time.Duration                // StartTickRoutine's, for the tick timer (entity/ticktime.go)
 	recvSeen       map[netip.AddrPort]*recvSeen // the read loop's own (noteReceived)
+	turns          map[netip.AddrPort]turnLast  // the read loop's own (nextTurn)
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -197,13 +198,16 @@ func (l *Listener) readLoop() {
 			l.noteReceived(n, remoteAddr, time.Now())
 		}
 
-		// Process packet in a goroutine
+		// Process packet in a goroutine, its place among its address's
+		// packets noted (turns.go)
+		turn := l.nextTurn(remoteAddr.AddrPort(), time.Now())
 		l.wg.Add(1)
 		l.packets.Add(1)
 		go func(data []byte, addr *net.UDPAddr) {
 			defer l.wg.Done()
 			defer l.packets.Done()
-			l.handlePacket(data, addr)
+			defer turn.finish()
+			l.handlePacket(data, addr, turn)
 		}(packetData, remoteAddr)
 	}
 }
@@ -250,8 +254,9 @@ func (l *Listener) noteReceived(n int, addr *net.UDPAddr, now time.Time) {
 	s.last, s.packets = now, 0
 }
 
-// handlePacket processes a received packet.
-func (l *Listener) handlePacket(data []byte, addr *net.UDPAddr) {
+// handlePacket processes a received packet; turn is its place among its
+// address's packets (nil: none read before it is waited for).
+func (l *Listener) handlePacket(data []byte, addr *net.UDPAddr, turn *packetTurn) {
 	// Parse the packet
 	packet, err := ParsePacket(data)
 	if err != nil {
@@ -368,6 +373,25 @@ func (l *Listener) handlePacket(data []byte, addr *net.UDPAddr) {
 						log.Printf("handlePacket: reliable message %d from %s again, acknowledged, not handled", msg.Sequence, addr)
 					}
 					continue
+				}
+			}
+
+			// A message the client sent in pieces is handled once its last
+			// piece is in, whole (session/fragments.go); a piece alone never.
+			if msg.Type.IsReliable() && conn != nil {
+				v, whole := conn.Assemble(msg, false, time.Now())
+				if v == session.AssemblyUnsure {
+					turn.waitEarlier()
+					v, whole = conn.Assemble(msg, true, time.Now())
+				}
+				switch v {
+				case session.AssemblyHeld, session.AssemblyDropped:
+					continue
+				case session.AssemblyWhole:
+					if debuglog.Packets() {
+						log.Printf("handlePacket: message 0x%04X from %s put back together, %d bytes", uint16(whole.Opcode), addr, len(whole.Data())+2)
+					}
+					msg = whole
 				}
 			}
 

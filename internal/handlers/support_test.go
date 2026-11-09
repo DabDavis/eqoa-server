@@ -87,7 +87,7 @@ func csWorld(t *testing.T) (*chatWorld, *SupportHandler, *database.SQLiteDB, *se
 func csSend(t *testing.T, h *SupportHandler, s *session.Session, sub byte, fields func(w *buffer.Writer)) [][]byte {
 	t.Helper()
 	s.Queue().GetPending()
-	buf := make([]byte, 4096)
+	buf := make([]byte, 16384)
 	w := buffer.NewWriter(buf)
 	w.WriteByte(sub)
 	if fields != nil {
@@ -295,5 +295,71 @@ func TestSupportWithNoTable(t *testing.T) {
 	}
 	if got := csSend(t, h, as, 6, nil); len(got) != 1 || got[0][1] != csOK {
 		t.Errorf("lists: % X", got)
+	}
+}
+
+// A request's or a reply's text of CSTextMost characters (vanilla's form,
+// which a server offers that many: buildBugReportOffer) is taken whole, the
+// text rules as ever (PetitionText: no control character); one more is refused
+// (1), as a text past readWide's 1,024 was before. The controls: a PS2's
+// longest, 511; and a gram's text keeps readWide's 1,024.
+func TestALongPetitionIsTakenWhole(t *testing.T) {
+	_, h, db, as, _ := csWorld(t)
+	text := func(n int) string {
+		b := []byte(strings.Repeat("The gate guard walks through the wall. ", n/39+1))[:n-1]
+		return string(b) + "\a"
+	}
+	request := func(body string) [][]byte {
+		return csSend(t, h, as, 0, func(w *buffer.Writer) {
+			w.Write7BitEncodedInt64(1)
+			w.Write7BitEncodedInt64(12)
+			writeWideString(w, body, 2*(CSTextMost+2))
+		})
+	}
+	long := text(CSTextMost)
+	if got := request(long); len(got) != 1 || !bytes.Equal(got[0], []byte{0, csOK}) {
+		t.Fatalf("a request of %d characters: % X", CSTextMost, got)
+	}
+	p, _, err := db.PetitionByID(1001)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "Your request (Bug Report / Quest) has been received:\n\n" + strings.TrimSpace(long[:len(long)-1])
+	if p.Text != want {
+		t.Fatalf("kept %d characters, want %d", len(p.Text), len(want))
+	}
+	if got := request(text(CSTextMost + 1)); len(got) != 1 || !bytes.Equal(got[0], []byte{0, csBad}) {
+		t.Fatalf("a request of %d characters: % X", CSTextMost+1, got)
+	}
+	if got := request(text(511)); len(got) != 1 || !bytes.Equal(got[0], []byte{0, csOK}) {
+		t.Fatalf("the control, a PS2's 511: % X", got)
+	}
+	reply := func(body string) [][]byte {
+		return csSend(t, h, as, 1, func(w *buffer.Writer) {
+			w.Write7BitEncodedInt64(1001)
+			writeWideString(w, body, 2*(CSTextMost+2))
+		})
+	}
+	if got := reply(long); len(got) != 1 || !bytes.Equal(got[0], []byte{1, csOK}) {
+		t.Fatalf("a reply of %d characters: % X", CSTextMost, got)
+	}
+	if p, _, _ = db.PetitionByID(1001); !strings.HasSuffix(p.Text, "\n\nAnn: "+strings.TrimSpace(long[:len(long)-1])) {
+		t.Fatalf("the reply is not kept whole: %d characters", len(p.Text))
+	}
+	if got := reply(text(CSTextMost + 1)); len(got) != 1 || !bytes.Equal(got[0], []byte{1, csBad}) {
+		t.Fatalf("a reply of %d characters: % X", CSTextMost+1, got)
+	}
+
+	// the control: a gram's text is read as before, 1,024 at most
+	for n, ok := range map[int]bool{1024: true, 1025: false} {
+		buf := make([]byte, 8192)
+		w := buffer.NewWriter(buf)
+		writeWideString(w, strings.Repeat("a", n), 2*(n+1))
+		if _, got := readWide(buffer.NewReader(buf[:w.Position()])); got != ok {
+			t.Errorf("readWide of %d: %v", n, got)
+		}
+		if _, got := readCSText(buffer.NewReader(buf[:w.Position()])); !got {
+			t.Errorf("readCSText of %d refused", n)
+		}
 	}
 }

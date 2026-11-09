@@ -6,11 +6,13 @@ package gmweb
 // (Deps.AccountsShared, auth.shared_db) is that its accountinfo is a copy
 // (database.AccountMirror, overwritten within seconds), so nothing here changes an
 // account: a level or a password set here would be gone at the next pull. Reading
-// them, joining on them and signing in by them go on as ever. Testers go with the
-// accounts: a tester is made on the owner's panel, for the owner's database.
+// them, joining on them and signing in by them go on as ever. Testers and
+// storytellers go with the accounts: one is made on the owner's panel, for the
+// owner's database.
 
 // sharedAccountOps are the operations a copy of the accounts refuses.
-var sharedAccountOps = []string{"create_account", "set_account_password", "ban_account", "set_account_level", "set_account_tester"}
+var sharedAccountOps = []string{"create_account", "set_account_password", "ban_account", "set_account_level", "set_account_tester",
+	"set_account_storyteller"}
 
 const sharedAccountsWord = "this shard's accounts are a copy of the main shard's: change them on that server's GM panel"
 

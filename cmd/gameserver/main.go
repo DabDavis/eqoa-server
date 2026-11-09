@@ -330,6 +330,20 @@ func main() {
 		log.Printf("WARNING: %v; no mastery can be bought", err)
 	}
 	log.Printf("Characters: %s", gameWorld.CMSummary())
+	// Imported gear's copies (database/imported.go): its procs and worn hit
+	// effects damped, and "(Imported)" after its name when world.imported_tag
+	if n, err := database.SyncImportedCopies(db.DB, time.Now()); err != nil {
+		log.Printf("WARNING: the imported copies not made their bases again: %v", err)
+	} else if n > 0 {
+		log.Printf("Items: %d imported copies made their bases again (a base changed)", n)
+	}
+	if m, err := database.ImportedMap(db.DB); err != nil {
+		log.Printf("WARNING: %v; no imported gear is known", err)
+	} else {
+		entity.SetImportedItems(m)
+		handlers.SetImportedTag(cfg.World.ImportedTag)
+		log.Printf("Items: %d imported gear records (tag shown: %v)", len(m), cfg.World.ImportedTag)
+	}
 	// Where the gates, portals, circles and evacuations send (entity/gates.go,
 	// table spellgates): with none, each is refused as it begins
 	if _, err := gameWorld.LoadSpellGates(db); err != nil {

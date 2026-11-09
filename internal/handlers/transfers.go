@@ -46,11 +46,21 @@ func (h *CharacterHandler) applyTransfer(serverID uint32) bool {
 		return false
 	}
 	plan.CharacterID = serverID
+	// a transfer's gear comes in as its imported copies, at 70%; a GM's grant
+	// as given (database/imported.go; petition 1314)
+	plan.Imported = plan.Imported || t.FromServer != database.GMGrantSource
 	var out strings.Builder
 	run, err := charmove.Migrate(db.DB, plan, true, false, &out)
 	if err != nil {
 		log.Printf("Transfers: transfer %d for '%s' NOT applied: %v", t.ID, t.CharName, err)
 		return false
+	}
+	if plan.Imported && len(plan.Items) > 0 {
+		if m, err := database.ImportedMap(db.DB); err != nil {
+			log.Printf("Transfers: the imported copies not read again: %v", err)
+		} else {
+			entity.SetImportedItems(m)
+		}
 	}
 	if err := db.MarkTransferApplied(t.ID, run, time.Now()); err != nil {
 		log.Printf("Transfers: transfer %d applied as run %s but not marked: %v", t.ID, run, err)

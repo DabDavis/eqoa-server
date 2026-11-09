@@ -776,6 +776,12 @@ func main() {
 	// Every slot listed is reachable on every boot: the SD's stager fetches
 	// whichever "hdd:" world the client opens, so dropping worldN.ESF in here
 	// is the whole of adding a world.
+	// The server's own worlds, built from the operator's disc by cmd/worldbuild
+	// (worldN.ESF and its built recipe, worldN.json): offered to a client that
+	// builds the same off its own disc (handlers/serverworlds.go)
+	for _, b := range handlers.LoadServerWorlds(cfg.Patch.WorldsDir) {
+		entity.SetComposedWorld(uint8(b.World), true)
+	}
 	if avail := worlds.Available(cfg.Patch.WorldsDir, 8, handlers.WorldCount); len(avail) > 0 {
 		for slot := 8; slot < handlers.WorldCount; slot++ {
 			if name, ok := avail[slot]; ok {

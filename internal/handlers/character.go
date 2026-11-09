@@ -584,7 +584,7 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	if h.gameWorld != nil {
 		if player, took := h.gameWorld.TakeOverPlayer(sess, uint32(record.ServerID)); player != nil {
 			h.gameWorld.SetPlayerLook(uint32(record.ServerID), record.FaceOption, record.HairStyle, record.HairLength, record.HairColor)
-			h.placeTakenOver(player, record)
+			h.placeTakenOver(sess, player, record)
 			log.Printf("SelectedChar: '%s' (serverID=%d) TAKEN OVER by %s as it stands: %s",
 				record.CharName, charID, sess.RemoteAddr(), took)
 			h.saveTakenOver(player, record)
@@ -651,7 +651,7 @@ func (h *CharacterHandler) keepSelectedLook(record *database.CharacterRecord, da
 func (h *CharacterHandler) enterFromRecord(sess *session.Session, record *database.CharacterRecord) *entity.Player {
 	// Where the session starts (loginSpawn): where the character logged out,
 	// or beside Archivist Vaal. Decided here, before CreatePlayer reads it.
-	loginSpawn(h.gameWorld, record)
+	loginSpawn(h.gameWorld, record, sess.HoldsServerWorld, h.mainland)
 
 	// The training points its level is due and it has not been given (a
 	// character made at a level, or one from before levels gave any;
@@ -924,11 +924,16 @@ const loginSpawnOffset = 8.0
 //
 // When the spawn is Vaal's the record is NOT saved back: this changes where a
 // session starts, not what the database holds.
-func loginSpawn(gw *entity.World, record *database.CharacterRecord) {
+//
+// A server's own world (serverworlds.go: a homeland) resumes too, for a
+// client that holds it (held); for one that does not (a PS2, a page), a
+// character there starts on its race's spot on the disc's worlds (mainland:
+// its wire race's city, as before the homelands), else beside Vaal.
+func loginSpawn(gw *entity.World, record *database.CharacterRecord, held func(world uint8) bool, mainland func(*database.CharacterRecord) bool) {
 	if record == nil {
 		return
 	}
-	why, resume := resumable(record)
+	why, resume := resumable(record, held)
 	if resume {
 		log.Printf("loginSpawn: '%s' resumes where it logged out (%.1f, %.1f, %.1f) world=%d",
 			record.CharName, record.X, record.Y, record.Z, record.World)
@@ -936,6 +941,17 @@ func loginSpawn(gw *entity.World, record *database.CharacterRecord) {
 	}
 	log.Printf("loginSpawn: '%s' does not resume at (%.1f, %.1f, %.1f) world=%d: %s",
 		record.CharName, record.X, record.Y, record.Z, record.World, why)
+	if _, server := ServerWorld(uint8(record.World)); server && record.World >= discWorlds && record.World < WorldCount && mainland != nil {
+		at := *record
+		if mainland(&at) {
+			if w, err := ValidateTeleport(at.X, at.Y, at.Z, byte(at.World)); err == nil && DiscWorld(w) {
+				log.Printf("loginSpawn: '%s' starts on its race's spot (%.1f, %.1f, %.1f) world=%d: its game does not hold %s",
+					record.CharName, at.X, at.Y, at.Z, at.World, serverWorldLabel(uint8(record.World)))
+				record.X, record.Y, record.Z, record.Facing, record.World = at.X, at.Y, at.Z, at.Facing, at.World
+				return
+			}
+		}
+	}
 	x, y, z, world, via, ok := ResolveTeleDest(gw, loginSpawnDest)
 	if !ok {
 		// Only reachable if the shortcut is renamed out from under this, which
@@ -1030,7 +1046,7 @@ func (h *CharacterHandler) saveTakenOver(p *entity.Player, record *database.Char
 // the window taking it over may lack the world the old one was in (a PS2's
 // S2 or hard-disk world, a page), and a client told to load a world it does
 // not have stays where it was.
-func (h *CharacterHandler) placeTakenOver(p *entity.Player, record *database.CharacterRecord) {
+func (h *CharacterHandler) placeTakenOver(sess *session.Session, p *entity.Player, record *database.CharacterRecord) {
 	gw := h.gameWorld
 	snap, ok := gw.PlayerSnapshot(p.ServerID)
 	if !ok {
@@ -1038,11 +1054,11 @@ func (h *CharacterHandler) placeTakenOver(p *entity.Player, record *database.Cha
 	}
 	at := *record
 	at.X, at.Y, at.Z, at.Facing, at.World = snap.X, snap.Y, snap.Z, snap.Facing, int(snap.World)
-	why, resume := resumable(&at)
+	why, resume := resumable(&at, sess.HoldsServerWorld)
 	if resume {
 		return
 	}
-	loginSpawn(gw, &at)
+	loginSpawn(gw, &at, sess.HoldsServerWorld, h.mainland)
 	if at.X == snap.X && at.Y == snap.Y && at.Z == snap.Z && at.World == int(snap.World) {
 		return
 	}
@@ -1052,19 +1068,35 @@ func (h *CharacterHandler) placeTakenOver(p *entity.Player, record *database.Cha
 	gw.BeginWarp(p.ServerID, byte(at.World))
 }
 
+// mainland puts a character on its race's spot on the disc's worlds, as a new
+// one stood before the homelands (database.MainlandPlace); false with no store
+// or no spot.
+func (h *CharacterHandler) mainland(c *database.CharacterRecord) bool {
+	if h.store == nil {
+		return false
+	}
+	return h.store.MainlandPlace(c)
+}
+
 // discWorlds is how many worlds CLIENT's gWorldInfo names on the Frontiers
 // disc (TUNARIA, RATHE, ODUS, LAVASTM, PLANESKY, SECRETS): the worlds every
 // client has, a retail PS2 and a page reading the player's own disc alike.
 const discWorlds = entity.DiscWorlds
 
 // resumable reports whether a login may start at the record's saved
-// position, and if not, why.
-func resumable(record *database.CharacterRecord) (string, bool) {
+// position, and if not, why. A world past the disc's resumes when it is a
+// server's own the session's client holds (held; nil: none).
+func resumable(record *database.CharacterRecord, held func(world uint8) bool) (string, bool) {
 	if record.X == 0 && record.Y == 0 && record.Z == 0 {
 		return "never saved", false
 	}
-	if record.World < 0 || record.World >= discWorlds {
+	if record.World < 0 || record.World >= WorldCount {
 		return fmt.Sprintf("world %d is not on every disc", record.World), false
+	}
+	if record.World >= discWorlds {
+		if _, server := ServerWorld(uint8(record.World)); !server || held == nil || !held(uint8(record.World)) {
+			return fmt.Sprintf("world %d is not on every disc", record.World), false
+		}
 	}
 	if _, err := ValidateTeleport(record.X, record.Y, record.Z, byte(record.World)); err != nil {
 		return err.Error(), false
@@ -1583,6 +1615,9 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 	// takes races or classes past the game's (creation.go)
 	SendLiveLookOffer(sess)
 	SendCreationOffer(sess)
+	// and the server's own worlds' (serverworlds.go), before a character is
+	// picked: a login into one goes by the client's answer
+	SendServerWorldsOffer(sess)
 }
 
 // worldPaths maps a world index to the esfPath the client loads it from.

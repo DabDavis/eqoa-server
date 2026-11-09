@@ -36,16 +36,35 @@ const s2Worlds = 8
 // on), or S2's eight for Sandstorm's live S2 (0x15, which has no hard-disk
 // loader after it). No session (an offline character, a list for no one in
 // particular) is the disc's six.
+//
+// And for any client, the server's own worlds it said it holds, built off its
+// own disc (serverworlds.go; eqoa-rust-client-vanilla).
 func LoadableWorlds(sess *session.Session) func(world uint8) bool {
 	if sess != nil {
 		switch sess.DiscVersion() {
 		case protocol.GameVersionSandstormS2:
 			return func(world uint8) bool { return int(world) < WorldCount }
 		case protocol.GameVersionSandstormS2Live:
+			if held := sess.ServerWorlds(); len(held) > 0 {
+				return func(world uint8) bool { return int(world) < s2Worlds || holds(held, world) }
+			}
 			return func(world uint8) bool { return int(world) < s2Worlds }
+		}
+		if held := sess.ServerWorlds(); len(held) > 0 {
+			return func(world uint8) bool { return DiscWorld(world) || holds(held, world) }
 		}
 	}
 	return DiscWorld
+}
+
+// holds is whether world is one of held.
+func holds(held []uint8, world uint8) bool {
+	for _, w := range held {
+		if w == world {
+			return true
+		}
+	}
+	return false
 }
 
 // CanLoadWorld reports whether sess's client can load world.

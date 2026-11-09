@@ -144,6 +144,7 @@ func flagSets() map[string][]FlagBit {
 
 type colNote struct {
 	Label, Help, Enum, Flags, Ref, Format, Section string
+	Look, Store                                    string // Column.Look, Column.Store
 	Secret, ReadOnly                               bool
 }
 
@@ -157,8 +158,16 @@ type tableNote struct {
 // hex32 marks the 32-bit identifiers the game reads as unsigned: ESF DictIDs
 // (models, icons, effects) and colours. The tables hold them both signed and
 // unsigned (the importers differ), and the game takes the low 32 bits of
-// either, so the page shows them as 0xXXXXXXXX and stores what is typed.
+// either, so the page shows them as 0xXXXXXXXX (and in decimal), takes either,
+// and writes the column's own form (colNote.Store: int32 or uint32), which a
+// column that a zigzag field or an exact SQL match reads needs (looks.go).
 const hex32 = "hex32"
+
+// The forms a hex32 column is kept in (Column.Store).
+const (
+	storeInt32  = "int32"
+	storeUint32 = "uint32"
+)
 
 var catalog = map[string]tableNote{
 	"accountinfo": {
@@ -194,16 +203,16 @@ var catalog = map[string]tableNote{
 			"serverid":     {Label: "Character", ReadOnly: true},
 			"charName":     {Label: "Name", Section: "Identity"},
 			"accountid":    {Label: "Account", Ref: "accountinfo", Section: "Identity"},
-			"modelid":      {Label: "Model", Format: hex32, Section: "Look", Help: "CHAR.ESF DictID of the body (race and sex decide it)"},
+			"modelid":      {Label: "Model", Format: hex32, Look: lookChar, Store: storeInt32, Section: "Look", Help: "CHAR.ESF DictID of the body (race and sex decide it)"},
 			"tclass":       {Label: "Class", Enum: "class", Section: "Identity"},
 			"race":         {Label: "Race", Enum: "race", Section: "Identity"},
 			"humType":      {Label: "Home city", Section: "Identity", Help: "the race's starting city: humans 1 or 2, others 0"},
 			"level":        {Label: "Level", Section: "Progress"},
 			"sex":          {Label: "Sex", Enum: "sex", Section: "Look"},
-			"haircolor":    {Section: "Look"},
-			"hairlength":   {Section: "Look"},
-			"hairstyle":    {Section: "Look"},
-			"faceoption":   {Section: "Look"},
+			"haircolor":    {Label: "Hair colour", Look: lookHair, Section: "Look", Help: "0-7: which of the disc's eight hair textures"},
+			"hairlength":   {Label: "Hair length", Section: "Look", Help: "0-3: which hair slots show (with the style)"},
+			"hairstyle":    {Label: "Hair style", Section: "Look", Help: "0-3"},
+			"faceoption":   {Label: "Face", Section: "Look", Help: "0-3: the race's four faces"},
 			"totalXP":      {Label: "Total XP", Section: "Progress"},
 			"debt":         {Label: "XP debt", Section: "Progress"},
 			"tunar":        {Label: "Tunar", Section: "Money"},
@@ -282,7 +291,7 @@ var catalog = map[string]tableNote{
 		Cols: map[string]colNote{
 			"serverid": {Label: "Character", Ref: "characters"},
 			"slot":     {Label: "Slot", Enum: "dyeslot"},
-			"color":    {Label: "Colour", Format: hex32, Help: "0xRRGGBBAA: 0xD10000FF red, 0x008000FF green, 0xFFFFFFFF white"},
+			"color":    {Label: "Colour", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA: 0xD10000FF red, 0x008000FF green, 0xFFFFFFFF white"},
 			"note":     {Label: "Note", Help: "why"},
 			"source":   {Label: "Source", Help: "gm"},
 		},
@@ -302,7 +311,7 @@ var catalog = map[string]tableNote{
 			"serverid": {Label: "Character", Ref: "characters"},
 			"part":     {Label: "Part", Help: "the race's option row's key: cap, growths, bag, skin, tone, wings, dress, hide, horns, bark, leaves, face, hair"},
 			"kind":     {Label: "Kind", Help: "2 a colour, 3 a texture"},
-			"value":    {Label: "Value", Format: hex32, Help: "a colour: 0x01HHSSLL a dye (hue, saturation, lightness 0x80 kept), 0x02HHSSLL a tone (hue turned, saturation and lightness scaled, 0x80 kept); a texture: its DictID"},
+			"value":    {Label: "Value", Format: hex32, Look: lookRaceLook, Store: storeInt32, Help: "a colour: 0x01HHSSLL a dye (hue, saturation, lightness 0x80 kept), 0x02HHSSLL a tone (hue turned, saturation and lightness scaled, 0x80 kept); a texture: its DictID"},
 			"note":     {Label: "Note", Help: "why"},
 			"source":   {Label: "Source", Help: "creation, or gm"},
 		},
@@ -431,7 +440,7 @@ var catalog = map[string]tableNote{
 		Cols: map[string]colNote{
 			"serverid": {Label: "Character", Ref: "characters"},
 			"spellid":  {Label: "Spell", Ref: "spellpattern"},
-			"icon":     {Format: hex32},
+			"icon":     {Label: "Icon", Format: hex32, Look: lookUIIcon, Store: storeUint32, Help: "a UI.CSF icon (spellpattern.icon)"},
 			"caster":   {Ref: "characters"},
 			"left_ms":  {Label: "Left (ms)"},
 			"mods":     {Format: "json"},
@@ -523,7 +532,7 @@ var catalog = map[string]tableNote{
 			"npc_type":         {Label: "Type", Flags: "npctype", Section: "Identity"},
 			"npc_id":           {Label: "NPC id", Section: "Identity", Help: "Sandstorm's id for the NPC (imports), not the row"},
 			"race":             {Label: "Race", Section: "Look", Help: "text: '0'..'10' as the race ids; scales the body"},
-			"modelid":          {Label: "Model", Format: hex32, Section: "Look", Help: "CHAR.ESF DictID of the body"},
+			"modelid":          {Label: "Model", Format: hex32, Look: lookChar, Store: storeUint32, Section: "Look", Help: "CHAR.ESF DictID of the body"},
 			"size":             {Label: "Size", Section: "Look", Help: "1.0 normal, sent as is (a gnome body is already gnome-sized)"},
 			"world":            {Label: "World", Enum: "world", Section: "Place"},
 			"zone":             {Label: "Zone", Section: "Place"},
@@ -531,21 +540,21 @@ var catalog = map[string]tableNote{
 			"y_coord":          {Label: "Y (height)", Section: "Place"},
 			"z_coord":          {Label: "Z", Section: "Place"},
 			"facing":           {Label: "Facing", Format: "angle256", Section: "Place", Help: "0-255 is a full turn"},
-			"primary_weapon":   {Label: "Primary", Format: hex32, Section: "Gear", Help: "ITEM.ESF model DictID, 0 none"},
-			"secondary_weapon": {Label: "Secondary", Format: hex32, Section: "Gear"},
-			"shield":           {Label: "Shield", Format: hex32, Section: "Gear"},
-			"torso":            {Section: "Gear", Help: "armour set index"},
-			"unk_o":            {Label: "Armour tint", Section: "Gear", Help: "0 none, 1-14 the disc's tints on its armour (13 burgundy, 1 dark gray, 8 red, 6 gold)"},
-			"forearm":          {Section: "Gear"},
-			"gloves":           {Section: "Gear"},
-			"legs":             {Section: "Gear"},
-			"feet":             {Section: "Gear"},
-			"head":             {Section: "Gear"},
-			"robe_style":       {Label: "Robe", Section: "Gear", Help: "text: '0'-'3' a robe, empty or '255' none"},
-			"hair_color":       {Section: "Look"},
-			"hair_length":      {Section: "Look"},
-			"hair_style":       {Section: "Look"},
-			"face":             {Section: "Look"},
+			"primary_weapon":   {Label: "Primary", Format: hex32, Look: lookItem, Store: storeInt32, Section: "Gear", Help: "ITEM.ESF model DictID, 0 none"},
+			"secondary_weapon": {Label: "Secondary", Format: hex32, Look: lookItem, Store: storeInt32, Section: "Gear", Help: "ITEM.ESF model DictID, 0 none"},
+			"shield":           {Label: "Shield", Format: hex32, Look: lookItem, Store: storeInt32, Section: "Gear", Help: "ITEM.ESF model DictID, 0 none"},
+			"torso":            {Label: "Chest", Look: lookArmorChest, Section: "Gear", Help: "armour set on the chest: 0 none, 1-8 the disc's sets"},
+			"unk_o":            {Label: "Armour tint", Look: lookTint, Section: "Gear", Help: "0 none, 1-14 the disc's tints on its armour (13 burgundy, 1 dark gray, 8 red, 6 gold)"},
+			"forearm":          {Label: "Forearms", Look: lookArmorBracer, Section: "Gear", Help: "armour set on the forearms (bracers)"},
+			"gloves":           {Label: "Hands", Look: lookArmorGloves, Section: "Gear", Help: "armour set on the hands"},
+			"legs":             {Label: "Legs", Look: lookArmorLegs, Section: "Gear", Help: "armour set on the legs"},
+			"feet":             {Label: "Feet", Look: lookArmorBoots, Section: "Gear", Help: "armour set on the feet"},
+			"head":             {Label: "Head", Look: lookArmorHelm, Section: "Gear", Help: "the helm of an armour set (0 none)"},
+			"robe_style":       {Label: "Robe", Look: lookRobe, Section: "Gear", Help: "text: '0'-'3' a robe, empty or '255' none"},
+			"hair_color":       {Label: "Hair colour", Look: lookHair, Section: "Look", Help: "0-7: which of the disc's eight hair textures"},
+			"hair_length":      {Label: "Hair length", Section: "Look", Help: "0-3"},
+			"hair_style":       {Label: "Hair style", Section: "Look", Help: "0-3"},
+			"face":             {Label: "Face", Section: "Look", Help: "0-3: the race's four faces"},
 			"hp":               {Section: "Other", Help: "not read: hit points come from the level"},
 			"hp_percent":       {Section: "Other"},
 			"dt_kill":          {Section: "Other"},
@@ -1227,7 +1236,7 @@ var catalog = map[string]tableNote{
 			"special":        {Label: "Special", Help: "its special melee's name (Kick); empty none", Section: "Special melee"},
 			"special_chance": {Label: "Special %", Help: "of its rounds it comes in, a second after the round's last hit (0-100)", Section: "Special melee"},
 			"special_damage": {Label: "Special damage", Help: "a level (0-200), fixed and through any armour: Sandstorm's crab's 251 at 34 is 7.4", Section: "Special melee"},
-			"special_fx":     {Label: "Special visual", Format: hex32, Help: "0x00B1's visual; 0 Sandstorm's creature special (0x66CD778E)", Section: "Special melee"},
+			"special_fx":     {Label: "Special visual", Format: hex32, Look: lookVisual, Store: storeUint32, Help: "0x00B1's visual; 0 Sandstorm's creature special (0x66CD778E)", Section: "Special melee"},
 			"special_every":  {Label: "Special every s", Help: "seconds at its enemy from one timed special to the next (5-3600; 0 none; time closing in, rooted away or casting is not counted), as well as special_chance's", Section: "Special melee"},
 			"special_first":  {Label: "First special at s", Help: "seconds of a fight at its enemy (its turns in reach) before the first timed one", Section: "Special melee"},
 			"special_jitter": {Label: "Special jitter s", Help: "seconds either way on each timed special, the first too (under half of special_every)", Section: "Special melee"},
@@ -1322,9 +1331,9 @@ var catalog = map[string]tableNote{
 		Cols: map[string]colNote{
 			"spellid":         {Label: "Summoning spell (key)", Help: "spellpattern's id"},
 			"sheet_pet_id":    {Label: "Workbook pet", Help: "the workbook's PetID, for tracing"},
-			"model":           {Label: "Body", Format: hex32, Help: "a CHAR.ESF CSprite's DictID; 0 the server's choice"},
-			"primary_model":   {Label: "Main hand", Format: hex32, Help: "an item's model; 0 none"},
-			"secondary_model": {Label: "Off hand", Format: hex32, Help: "an item's model; 0 none"},
+			"model":           {Label: "Body", Format: hex32, Look: lookChar, Store: storeUint32, Help: "a CHAR.ESF CSprite's DictID; 0 the server's choice"},
+			"primary_model":   {Label: "Main hand", Format: hex32, Look: lookItem, Store: storeUint32, Help: "an item's model; 0 none"},
+			"secondary_model": {Label: "Off hand", Format: hex32, Look: lookItem, Store: storeUint32, Help: "an item's model; 0 none"},
 			"level":           {Label: "Level", Help: "0: the spell's; never above the caster's"},
 			"type":            {Label: "Type", Help: "tank, melee, priest, caster or non-combat"},
 			"stances":         {Label: "Stances", Help: "passive, defensive, neutral, aggressive (empty: all four)"},
@@ -1428,12 +1437,12 @@ var catalog = map[string]tableNote{
 			"patternid": {Label: "Item", Ref: "itempattern"},
 			"line":      {Label: "What it does", Help: "spelleffect's words: Self, Decrease Hitpoints by 20, Increase Power per tic by 25, 18sec"},
 			"name":      {Label: "Effect name", Help: "on the effects list; empty: the item's name"},
-			"icon":      {Label: "Effect icon", Format: hex32, Help: "an ability's front icon (spellpattern.icon)"},
+			"icon":      {Label: "Effect icon", Format: hex32, Look: lookUIIcon, Store: storeUint32, Help: "an ability's front icon (spellpattern.icon)"},
 			"breaks":    {Label: "Ends on", Help: "attack, damage, or attack,damage"},
 			"wear":      {Label: "Wears off", Help: "percent a six-second tick"},
 			"area":      {Label: "Splash", Help: "a thrown one's: how far round its target creatures take it too"},
 			"source":    {Label: "Source", Help: "gm, or potions for tools/seed_potions.py's rows (its --undo deletes those)"},
-			"body": {Label: "Body", Format: hex32, Help: "a CHAR.ESF model (as an NPC's model) its drinker shows (a race's body " +
+			"body": {Label: "Body", Format: hex32, Look: lookChar, Store: storeUint32, Help: "a CHAR.ESF model (as an NPC's model) its drinker shows (a race's body " +
 				"of the drinker's own sex), or a thrown one's creature, while it lasts; 0 none but an illusion its effect name " +
 				"says (Illusion: Ogre)"},
 			"target_line": {Label: "Target's own", Help: "a thrown one's: what its target alone takes beside the line, in its " +
@@ -1446,16 +1455,16 @@ var catalog = map[string]tableNote{
 			"icon; equipslot where it is worn; classuse and raceuse who may (bit sets: 32767 every class, 1023 every race); " +
 			"weapondamage is the DMG the offence roll uses; stats and resists are what wearing it adds.",
 		Live:   "Merchants' windows show it at once; a player's own items take it at their next login.",
-		Show:   []string{"patternid", "itemname", "equipslot", "levelreq", "itemcost", "maxstack", "weapondamage", "AC"},
+		Show:   []string{"patternid", "itemicon", "itemname", "equipslot", "levelreq", "itemcost", "maxstack", "weapondamage", "AC"},
 		Search: []string{"itemname", "itemdesc"},
 		Cols: map[string]colNote{
 			"patternid":    {Label: "Item", ReadOnly: true},
 			"itemname":     {Label: "Name", Section: "Identity"},
 			"itemdesc":     {Label: "Description", Format: "multiline", Section: "Identity"},
 			"itemcost":     {Label: "Value (tunar)", Section: "Identity"},
-			"itemicon":     {Label: "Icon", Format: hex32, Section: "Look"},
-			"model":        {Label: "Model", Format: hex32, Section: "Look"},
-			"color":        {Label: "Colour", Format: hex32, Section: "Look"},
+			"itemicon":     {Label: "Icon", Format: hex32, Look: lookItemIcon, Store: storeInt32, Section: "Look", Help: "the ITEMICON.ESF picture the inventory shows"},
+			"model":        {Label: "Model", Format: hex32, Look: lookItemLook, Store: storeInt32, Section: "Look", Help: itemModelHelp},
+			"color":        {Label: "Colour", Format: hex32, Look: lookItemColor, Store: storeUint32, Section: "Look", Help: itemColorHelp},
 			"equipslot":    {Label: "Worn in", Enum: "wearslot", Section: "Use"},
 			"levelreq":     {Label: "Level required", Section: "Use"},
 			"classuse":     {Label: "Classes", Flags: "classmask", Section: "Use"},
@@ -1497,7 +1506,7 @@ var catalog = map[string]tableNote{
 		Help: "Every spell and ability, by spellid: level, range, cast and recast times (seconds: the server casts with CastTime × 1 s), power cost, icon. What a spell " +
 			"DOES is its spelleffect line.",
 		Live:   "Read at each cast and scribe; a player's spell book takes it at their next login.",
-		Show:   []string{"spellid", "spellname", "abilitylvl", "casttime", "recast", "power", "range"},
+		Show:   []string{"spellid", "icon", "spellname", "abilitylvl", "casttime", "recast", "power", "range"},
 		Search: []string{"spellname", "spelldesc"},
 		Cols: map[string]colNote{
 			"spellid":    {Label: "Spell", ReadOnly: true},
@@ -1507,8 +1516,8 @@ var catalog = map[string]tableNote{
 			"casttime":   {Label: "Cast time (s)"},
 			"recast":     {Label: "Recast (s)"},
 			"power":      {Label: "Power cost"},
-			"icon":       {Format: hex32},
-			"iconColor":  {Label: "Icon colour", Format: hex32},
+			"icon":       {Label: "Icon", Format: hex32, Look: lookUIIcon, Store: storeInt32, Help: "the icon's picture: a UI.CSF 32x32 surface (CLIENT's m_iconFront)"},
+			"iconColor":  {Label: "Icon back", Format: hex32, Look: lookUIBack, Store: storeInt32, Help: "the coloured gem the icon sits on: a UI.CSF 64x64 surface (CLIENT's m_iconBack, sent before the icon), not a colour"},
 		},
 	},
 	"spelleffect": {
@@ -1521,7 +1530,7 @@ var catalog = map[string]tableNote{
 		Cols: map[string]colNote{
 			"spellid": {Label: "Spell", Ref: "spellpattern"},
 			"line":    {Label: "What it does", Format: "multiline"},
-			"fxdict":  {Label: "Visual", Format: hex32},
+			"fxdict":  {Label: "Visual", Format: hex32, Look: lookVisual, Store: storeUint32, Help: "a SPELLFX.CSF visual (0x00B1's); 0 the server's stand-in of its kind"},
 			"effects": {Label: "Effects (JSON)", Format: "multiline", Help: "EQOAEmu's spell workbook's effects as JSON " +
 				"(entity/spelljson.go): when not empty, what the spell does, the line then only words; empty, the line is read."},
 		},
@@ -1737,7 +1746,7 @@ var catalog = map[string]tableNote{
 		Search: []string{"name", "note", "status"},
 		Cols: map[string]colNote{
 			"spellid":    {Label: "Spell", Ref: "spellpattern"},
-			"fxdict":     {Label: "Suggested visual", Format: hex32},
+			"fxdict":     {Label: "Suggested visual", Format: hex32, Look: lookVisual, Store: storeUint32},
 			"name":       {Label: "Sender's name", Help: "as typed (optional)"},
 			"note":       {Label: "Note", Format: "multiline", Help: "as typed (optional)"},
 			"addr_hash":  {Label: "Sender", Help: "a salted hash of the address; its first 8 characters name it on Community visuals"},
@@ -1849,7 +1858,7 @@ var catalog = map[string]tableNote{
 		Label: "Body models", Group: "New characters",
 		Help: "The body model (CHAR.ESF DictID) for each race and sex.",
 		Cols: map[string]colNote{
-			"modelid": {Label: "Model", Format: hex32},
+			"modelid": {Label: "Model", Format: hex32, Look: lookChar, Store: storeUint32},
 			"race":    {Label: "Race", Enum: "race"},
 			"sex":     {Label: "Sex", Enum: "sex"},
 		},
@@ -1894,8 +1903,8 @@ var catalog = map[string]tableNote{
 			"bonus_wis":   {Label: "WIS bonus", Section: "Stats"},
 			"bonus_int":   {Label: "INT bonus", Section: "Stats"},
 			"bonus_cha":   {Label: "CHA bonus", Section: "Stats"},
-			"body_male":   {Label: "Male body", Format: hex32, Section: "Look", Help: "CHAR.ESF DictID; NOT in charactermodel"},
-			"body_female": {Label: "Female body", Format: hex32, Section: "Look", Help: "CHAR.ESF DictID; NOT in charactermodel"},
+			"body_male":   {Label: "Male body", Format: hex32, Look: lookChar, Store: storeInt32, Section: "Look", Help: "CHAR.ESF DictID; NOT in charactermodel"},
+			"body_female": {Label: "Female body", Format: hex32, Look: lookChar, Store: storeInt32, Section: "Look", Help: "CHAR.ESF DictID; NOT in charactermodel"},
 			"note":        {Label: "Note", Help: "why"},
 			"source":      {Label: "Source", Help: "gm, or seed for the row made with the table"},
 			"description": {Label: "Description", Section: "Creation", Help: "the create page's text for the race (world.open_races: a client that can offers the race at creation)"},
@@ -2036,9 +2045,9 @@ var catalog = map[string]tableNote{
 		},
 	},
 	"npc_models_observed": {Label: "Observed NPC models", Group: "Imports", Write: writeAdmin,
-		Cols: map[string]colNote{"modelid": {Format: hex32}, "world": {Enum: "world"}}},
+		Cols: map[string]colNote{"modelid": {Format: hex32, Look: lookChar, Store: storeUint32}, "world": {Enum: "world"}}},
 	"npcs_ff_import": {Label: "FrontiersForge NPC import", Group: "Imports", Write: writeAdmin,
-		Cols: map[string]colNote{"modelid": {Format: hex32}, "world": {Enum: "world"}}},
+		Cols: map[string]colNote{"modelid": {Format: hex32, Look: lookChar, Store: storeUint32}, "world": {Enum: "world"}}},
 	"prh_import_ids":        {Label: "Return Home import: ids", Group: "Imports", Write: writeAdmin},
 	"prh_import_keyed":      {Label: "Return Home import: keyed", Group: "Imports", Write: writeAdmin},
 	"prh_import_meta":       {Label: "Return Home import: meta", Group: "Imports", Write: writeAdmin},
@@ -2127,6 +2136,7 @@ func applyCatalog(t *Table) {
 			continue
 		}
 		c.Label, c.Help, c.Enum, c.Flags, c.Ref, c.Format, c.Section = cn.Label, cn.Help, cn.Enum, cn.Flags, cn.Ref, cn.Format, cn.Section
+		c.Look, c.Store = cn.Look, cn.Store
 		c.Secret, c.ReadOnly = cn.Secret, cn.ReadOnly
 	}
 	// the default search: every text column

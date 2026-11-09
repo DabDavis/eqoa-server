@@ -1,10 +1,11 @@
-import { h, mount, card, button, toast, empty, formBox, dialog } from '../lib/dom.js';
+import { h, mount, card, button, toast, empty, formBox, dialog, debounce } from '../lib/dom.js';
 import { op } from '../lib/api.js';
 import { describe } from '../lib/meta.js';
 import { DataGrid } from '../lib/grid.js';
 import { go } from '../lib/nav.js';
 import { listPage, recordPage, relatedGrid, canWrite } from './tablepage.js';
 import { modelPanel } from './disc.js';
+import { npcSwaps, parseId, u32 } from '../lib/look.js';
 
 export async function render(box, [id, tab]) {
   if (id === undefined) {
@@ -42,7 +43,7 @@ export async function render(box, [id, tab]) {
       button('On the map', { icon: 'map', onclick: () => go(`map/${row.world}/${row.id}`) }),
       button('Path on the map', { title: 'Give it a path to walk, or change its path', onclick: () => go(`map/${row.world}/${row.id}/path`) }),
     ].filter(Boolean),
-    side: async (row, meta, refresh) => {
+    side: async (row, meta, refresh, form) => {
       const out = await op('fetch', { id: 'npc:' + row.id });
       const r = out.record;
       const live = r.live;
@@ -67,7 +68,7 @@ export async function render(box, [id, tab]) {
           : h('p', { class: 'muted' }, 'Not in the running world (the world has not loaded it, or its id is taken).')),
         r.spawnsOfThisName > 1 ? card('Same name', h('p', null, `${r.spawnsOfThisName} spawns are named ${row.npc_name}. `,
           h('a', { href: '#/npcs', onclick: (e) => { e.preventDefault(); showSameName(row.npc_name); } }, 'List them'))) : null,
-        await modelPanel(row));
+        await modelPanel(row, dressing(row, meta, form)));
     },
     below: async (row) => {
       if (!(row.npc_type & 1)) {
@@ -91,6 +92,27 @@ export async function render(box, [id, tab]) {
       return [h('h2', null, 'What it sells'), stock.el];
     },
   });
+}
+
+// dressing is the NPC's body as its look columns dress it (lib/look.js
+// npcSwaps), drawn again as the form's body, armour, tint or robe change.
+const LOOK_COLUMNS = ['modelid', 'torso', 'forearm', 'gloves', 'legs', 'feet', 'unk_o', 'robe_style'];
+function dressing(row, meta, form) {
+  const tints = meta.palettes?.tints || [];
+  return {
+    swaps: npcSwaps(row, tints),
+    watch: (cb) => {
+      if (!form) return;
+      const read = () => {
+        const v = { ...row };
+        for (const n of LOOK_COLUMNS) { const el = form.inputs.get(n); if (el) v[n] = el.value; }
+        const id = parseId(v.modelid);
+        return { id: Number.isNaN(id) ? 0 : u32(id) | 0, swaps: npcSwaps(v, tints) };
+      };
+      const go = debounce(() => cb(read()), 200);
+      for (const n of LOOK_COLUMNS) form.inputs.get(n)?.addEventListener('input', go);
+    },
+  };
 }
 
 async function moveToCharacter(row) {

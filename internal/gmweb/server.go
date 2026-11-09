@@ -127,6 +127,9 @@ type Server struct {
 
 	dummyOnce sync.Once
 	dummy     string
+
+	// looks is look_names' answers, a minute each (looks.go)
+	looks lookCache
 }
 
 // New builds the panel. It creates its own tables (gm_audit, gm_totp,

@@ -7,12 +7,18 @@ import { h, mount, button, toast, dialog, confirmBox, debounce } from './dom.js'
 import { op, ApiError } from './api.js';
 import { hex32 } from './fmt.js';
 import { lookupName, describe } from './meta.js';
+import { lookField, parseId, stored } from './look.js';
 
-// the value of an input as sent back, by column
+// the value of an input as sent back, by column: a 32-bit id or colour typed
+// in hex or decimal goes in the column's own form (its store: int32 or uint32)
 function readInput(col, el) {
   if (el.type === 'checkbox') return el.checked ? 1 : 0;
   const v = el.value.trim();
   if (v === '') return col.notnull ? (col.affinity === 'TEXT' ? '' : 0) : null;
+  if (col.store && (col.affinity === 'INTEGER' || col.affinity === 'NUMERIC')) {
+    const n = parseId(v);
+    return Number.isNaN(n) ? v : stored(col, n);
+  }
   if (col.format === 'hex32') return v;
   if (col.affinity === 'INTEGER' || col.affinity === 'REAL') return /^-?0x/i.test(v) ? v : Number(v);
   return el.value;
@@ -54,12 +60,17 @@ export class RecordForm {
     }
     const order = [...sections.keys()].sort((a, b) => (a === 'Key' ? -1 : b === 'Key' ? 1 : a === 'Other' ? 1 : b === 'Other' ? -1 : 0));
     const box = h('div', { class: 'form-sections' });
+    // a look field that reads another column of the row (an item's model by
+    // its wear slot) is handed its input once every field is made
+    this.after = [];
+    this.discHinted = false;
     for (const name of order) {
       const fields = h('div', { class: 'fields' });
       for (const c of sections.get(name)) fields.appendChild(this.field(c));
       box.appendChild(h('div', { class: 'form-section' }, sections.size > 1 ? h('h3', null, name) : null, fields));
     }
     mount(this.el, box, this.savebar);
+    for (const f of this.after.splice(0)) f();
     this.refresh();
   }
 
@@ -70,7 +81,13 @@ export class RecordForm {
     let input, extra = null;
     const hint = [];
     if (c.help) hint.push(c.help);
-    if (c.enum) {
+    // a look column (lib/look.js): a picture, a colour or a palette, and its picker
+    const lf = c.look && !c.enum ? lookField(c, v, { locked, meta: this.meta, form: this }) : null;
+    if (lf) {
+      input = lf.input;
+      if (lf.wide === 'pair') wrap.classList.add('pair');
+      else if (lf.wide) wrap.classList.add('wide');
+    } else if (c.enum) {
       const list = this.meta.enums?.[c.enum] || [];
       const opts = list.map((e) => h('option', { value: String(e.value) }, `${e.label} (${e.value})`));
       if (v !== null && v !== undefined && !list.some((e) => String(e.value) === String(v))) opts.unshift(h('option', { value: String(v) }, String(v)));
@@ -81,11 +98,19 @@ export class RecordForm {
       input = h('textarea', { class: c.format === 'json' ? 'code' : '' });
       input.value = v ?? '';
     } else if (c.format === 'hex32') {
+      // hex or decimal, either way round: shown in hex, its decimal beside
       input = h('input', { type: 'text', class: 'mono', spellcheck: 'false', autocomplete: 'off' });
       input.value = v === null || v === undefined ? '' : hex32(v);
-      const dec = h('span', { class: 'hint' });
-      const show = () => { const n = parseInt(input.value, 16); dec.textContent = Number.isFinite(n) && /^0x/i.test(input.value.trim()) ? '= ' + n : ''; };
+      const dec = h('span', { class: 'hint mono' });
+      const show = () => {
+        const n = parseId(input.value);
+        dec.textContent = input.value.trim() === '' ? '' : Number.isNaN(n) ? 'type 0x1A2B3C4D or a whole number' : '= ' + (c.store ? stored(c, n) + ' stored' : n);
+      };
       input.addEventListener('input', show);
+      input.addEventListener('blur', () => {
+        const n = parseId(input.value);
+        if (!Number.isNaN(n) && !/^-?0x/i.test(input.value.trim())) { input.value = hex32(n); show(); this.refresh(); }
+      });
       show();
       extra = dec;
     } else {
@@ -144,13 +169,15 @@ export class RecordForm {
     input.addEventListener('input', () => this.refresh());
     input.addEventListener('change', () => this.refresh());
 
-    const control = c.ref && !locked
+    const control = lf ? lf.control : c.ref && !locked
       ? h('div', { class: 'with' }, input, button('Pick', { class: 'small', onclick: async () => {
         const key = await pickRow(c.ref, c.label || c.name);
         if (key !== null) { input.value = String(key); input.dispatchEvent(new Event('input')); }
       } }))
       : input;
-    wrap.appendChild(h('label', null,
+    // a look field holds buttons and swatches: not a <label>, whose every
+    // click would go to its first button
+    wrap.appendChild(h(lf ? 'div' : 'label', { class: lf ? 'look-label' : null },
       h('span', null, c.label || c.name, c.label && c.label !== c.name ? h('span', { class: 'faint' }, ' · ' + c.name) : null),
       control, extra, flagBox, refLine,
       hint.length ? h('span', { class: 'hint' }, hint.join(' ')) : null));

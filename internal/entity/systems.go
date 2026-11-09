@@ -292,7 +292,7 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	// The hit's figure on the player (source=NPC, target=player); the
 	// round's swing (0x00B1) went out at its start, to everyone near
 	npcObjectID := w.objectIDForEntityLocked(sess, npc.ServerID)
-	w.sendDamageIndication(sess, npcObjectID, -damage, sess.PlayerObjectID())
+	w.sendDamageIndication(sess, npcObjectID, -damage, sess.PlayerObjectID(), 0) // the creature's on the player: untagged
 
 	log.Printf("Combat: NPC '%s' hit player %s for %d damage (HP: %d/%d) %.2f off, reach %.2f",
 		npc.Name, sess.RemoteAddr(), damage, player.HP, player.MaxHP,
@@ -515,7 +515,7 @@ func (w *World) breathSystem(now time.Time) {
 					}
 
 					playerObjectID := sess.PlayerObjectID()
-					w.sendDamageIndication(sess, playerObjectID, -damage, playerObjectID)
+					w.sendDamageIndication(sess, playerObjectID, -damage, playerObjectID, 0) // drowning: on the player, untagged
 					w.sendEntityAction(sess, playerObjectID, actionDrowning)
 
 					log.Printf("Drowning: %s took %d drowning damage (HP: %d/%d, breath: %d)",

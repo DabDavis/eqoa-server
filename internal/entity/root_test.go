@@ -50,7 +50,7 @@ func TestARootBreaksOnAHit(t *testing.T) {
 		}
 		c.w.mu.Lock()
 		for range 10 {
-			c.w.spellHitLocked(c.p, c.sess, c.npc, 10)
+			c.w.spellHitLocked(c.p, c.sess, c.npc, 10, numberSpell)
 		}
 		c.w.mu.Unlock()
 		if got := c.npc.rooted(c.at(6 * time.Second)); got != tc.held {

@@ -326,7 +326,7 @@ func TestDuelHitHalvedAndNoDeath(t *testing.T) {
 	d := newDuelists(t)
 	duel := d.start(t)
 	d.w.mu.Lock()
-	over := d.w.duelHurtLocked(duel, d.a, d.a.ServerID, d.b, 300, d.at(2*time.Second))
+	over := d.w.duelHurtLocked(duel, d.a, d.a.ServerID, d.b, 300, d.at(2*time.Second), numberMelee)
 	d.w.mu.Unlock()
 	if over || d.b.HP != 750 {
 		t.Fatalf("300 on Beta: over %v, HP %d, want 900 - 150", over, d.b.HP)
@@ -344,7 +344,7 @@ func TestDuelHitHalvedAndNoDeath(t *testing.T) {
 	sd.SetCharacterInWorld(true)
 
 	d.w.mu.Lock()
-	over = d.w.duelHurtLocked(duel, d.a, d.a.ServerID, d.b, 5000, d.at(3*time.Second))
+	over = d.w.duelHurtLocked(duel, d.a, d.a.ServerID, d.b, 5000, d.at(3*time.Second), numberMelee)
 	d.w.mu.Unlock()
 	if !over || d.b.HP != DuelLoserHP || d.b.IsDead() || d.b.DiedAt != (time.Time{}) || d.a.TotalXP != 0 {
 		t.Fatalf("the last hit: over %v, HP %d, dead %v, XP %d: the loser stays at %d", over, d.b.HP, d.b.IsDead(), d.a.TotalXP, DuelLoserHP)
@@ -750,7 +750,7 @@ func TestDuelPet(t *testing.T) {
 	if d.w.duelPetLocked(ps, 0.1, d.at(2*time.Second)) {
 		t.Fatal("a defensive pet joined before its owner was struck")
 	}
-	d.w.duelHurtLocked(duel, d.b, d.b.ServerID, d.a, 10, d.at(2*time.Second))
+	d.w.duelHurtLocked(duel, d.b, d.b.ServerID, d.a, 10, d.at(2*time.Second), numberMelee)
 	before := d.b.HP
 	for x := 2 * time.Second; x < 6*time.Second; x += 100 * time.Millisecond {
 		d.w.duelPetLocked(ps, 0.1, d.at(x))
@@ -762,12 +762,12 @@ func TestDuelPet(t *testing.T) {
 	if hit := before - d.b.HP; hit > duelHalf(int(math.Round(r.Top-targetDefence(duelStandIn(d.b.Level)))))*4 {
 		t.Fatalf("the pet took %d off, more than its halved roll allows", hit)
 	}
-	d.w.duelHurtPetLocked(duel, d.b, pet, 100, d.at(6*time.Second))
+	d.w.duelHurtPetLocked(duel, d.b, pet, 100, d.at(6*time.Second), numberMelee)
 	if pet.HP != 350 {
 		t.Fatalf("100 on the pet left %d, want 400 - 50", pet.HP)
 	}
 	duelDrain(d.sa)
-	d.w.duelHurtPetLocked(duel, d.b, pet, 5000, d.at(7*time.Second))
+	d.w.duelHurtPetLocked(duel, d.b, pet, 5000, d.at(7*time.Second), numberMelee)
 	if pet.HP != 1 || pet.Dead || !duel.petOut[d.a.ServerID] {
 		t.Fatalf("the pet's last hit: HP %d, dead %v, out %v", pet.HP, pet.Dead, duel.petOut[d.a.ServerID])
 	}
@@ -820,7 +820,7 @@ func TestDuelWagerByChallenge(t *testing.T) {
 	}
 	d.countDown(t, duel, 11*time.Second)
 	d.w.mu.Lock()
-	d.w.duelHurtLocked(duel, d.b, d.b.ServerID, d.a, 1_000_000, d.at(12*time.Second))
+	d.w.duelHurtLocked(duel, d.b, d.b.ServerID, d.a, 1_000_000, d.at(12*time.Second), numberMelee)
 	d.w.mu.Unlock()
 	d.w.runDuelPurse() // the tick's, after its lock
 	if d.a.Tunar != 800 || d.b.Tunar != 700 || len(ops) != 2 || ops[1].Hold || ops[1].Moves[0].Tunar != 0 || ops[1].Moves[1].Tunar != 400 {

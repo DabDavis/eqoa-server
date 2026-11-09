@@ -393,7 +393,7 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 	w.broadcastCastLocked(p, npc.ServerID, 0, wp.FX)
 	before := npc.HP
 	log.Printf("Proc: %s's %q hits %s for %d", p.Name, wp.Item, npc.Name, n)
-	killed := w.spellHitLocked(p, sess, npc, n)
+	killed := w.spellHitLocked(p, sess, npc, n, numberProc)
 	if wp.Kind == ProcTap && !p.IsDead() {
 		back := before - npc.HP
 		if npc.Dummy != NotDummy {
@@ -432,7 +432,8 @@ func (w *World) formProcLocked(sess *session.Session, p *Player, wp *WeaponProc,
 // weaponDoTCast is a weapon proc's damage over time as a spell of p's at target, n a tick.
 func weaponDoTCast(p *Player, wp *WeaponProc, target EntityID, n int) *castState {
 	return &castState{spell: CastSpell{SpellID: weaponProcSpellID(wp.pattern), Name: wp.Item, Level: p.Level, Scope: 1,
-		Def: SpellDef{Effects: []SpellEffect{{Kind: EffectHPTick, Amount: -n, AmountMax: -n}}, Duration: procDoTFor, Harmful: true}},
+		Def:     SpellDef{Effects: []SpellEffect{{Kind: EffectHPTick, Amount: -n, AmountMax: -n}}, Duration: procDoTFor, Harmful: true},
+		figures: figuresProc}, // its ticks a proc's (numbertags.go)
 		caster: p.ServerID, targets: []EntityID{target}}
 }
 

@@ -18,6 +18,7 @@ func (w *World) LandOnSelf(sess *session.Session, spell CastSpell, now time.Time
 		return false
 	}
 	w.broadcastCastLocked(p, p.ServerID, 0, spell.visual())
+	spell.figures = figuresGift // a gift, none of the player's: told untagged (numbertags.go)
 	w.landOnPlayerLocked(&castState{spell: spell, caster: p.ServerID, targets: []EntityID{p.ServerID}}, p, sess, p, now)
 	log.Printf("Cast: %s is given %q", p.Name, spell.Name)
 	return true

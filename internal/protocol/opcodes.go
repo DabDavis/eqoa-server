@@ -731,6 +731,28 @@ const (
 	// OpcodeGMTriggerList's; 0x0702's byte reaches slots 1 to 256 and no
 	// further.
 	OpcodeGMTriggerFire GameOpcode = 0x7E37
+
+	// OpcodeNumberTagsOffer is not retail: what made each figure, for a client
+	// that colours its numbers by it (entity/numbertags.go,
+	// handlers/numbertags.go; the user, 2026-11-09, of a player's ask to "see/
+	// change colors of damage/procs/healing for player/pets similar to the way
+	// SS does": "we can add the number colors to extended menu"). Server to
+	// client once the player is in the world: a u8, 1, the tag's layout below.
+	// A PS2 ignores it (CLIENT's dispatcher has no case above 0x1402 and no
+	// default) and never answers.
+	OpcodeNumberTagsOffer GameOpcode = 0x7E38
+
+	// OpcodeNumberTagsAnswer is a client's answer to OpcodeNumberTagsOffer,
+	// client to server, at once and whenever it changes: a u8, 1 to have its
+	// figures tagged, 0 to stop. From a 1 on, each 0x00DB the session is sent
+	// of a figure its player or its player's pet made carries one byte after
+	// the retail body (u32 attacker, zigzag amount, u32 defender): its low 7
+	// bits what made it (1 melee, 2 a spell or an ability, 3 a damage over
+	// time's tick, 4 a damage shield, 5 a proc, 6 a heal, 7 a heal over time's
+	// tick), bit 7 set when the player's pet made it. Every other 0x00DB (a
+	// figure on the player that another made, any to a session that never
+	// answered 1) is the retail body alone.
+	OpcodeNumberTagsAnswer GameOpcode = 0x7E39
 )
 
 // =============================================================================
@@ -1033,6 +1055,10 @@ func (op GameOpcode) String() string {
 		return "GMTriggerList"
 	case OpcodeGMTriggerFire:
 		return "GMTriggerFire"
+	case OpcodeNumberTagsOffer:
+		return "NumberTagsOffer"
+	case OpcodeNumberTagsAnswer:
+		return "NumberTagsAnswer"
 	case OpcodeMapTravel:
 		return "MapTravel"
 	case OpcodeMapTravelTo:

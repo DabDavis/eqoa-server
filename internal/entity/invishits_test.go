@@ -101,7 +101,7 @@ func TestAPotionOrAHitEndsInvisibility(t *testing.T) {
 	duel := ds.start(t)
 	ds.b.Effects = append(ds.b.Effects, &ActiveEffect{SpellID: 700013, Name: "Sneak", Invis: true, Until: ds.at(time.Minute)})
 	ds.w.mu.Lock()
-	ds.w.duelHurtLocked(duel, ds.a, ds.a.ServerID, ds.b, 300, ds.at(2*time.Second))
+	ds.w.duelHurtLocked(duel, ds.a, ds.a.ServerID, ds.b, 300, ds.at(2*time.Second), numberMelee)
 	ds.w.mu.Unlock()
 	if ds.b.Invisible() {
 		t.Error("a duel's hit left the duelist invisible")

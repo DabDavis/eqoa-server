@@ -136,7 +136,7 @@ func (w *World) dummyHitLocked(sess *session.Session, npc *NPC, p *Player, now t
 	p.LastCombatTime = now
 	w.breakInvisLocked(p, "a hit") // invis.go: every invisibility, whatever gave it
 	npcObjectID := w.objectIDForEntityLocked(sess, npc.ServerID)
-	w.sendDamageIndication(sess, npcObjectID, -damage, sess.PlayerObjectID())
+	w.sendDamageIndication(sess, npcObjectID, -damage, sess.PlayerObjectID(), 0) // the dummy's on the player: untagged
 	if p.HP <= 0 {
 		npc.endDummyFight()
 		w.playerDiedLocked(sess, p, now)
@@ -146,7 +146,7 @@ func (w *World) dummyHitLocked(sess *session.Session, npc *NPC, p *Player, now t
 	w.defenceProcsLocked(sess, p, npc, now)  // before the dummy's own heal, so they are seen
 	if npc.Dummy == TrainingDummy {
 		p.HP = min(p.HP+dummyHeal, p.MaxHPNow())
-		w.sendDamageIndication(sess, npcObjectID, dummyHeal, sess.PlayerObjectID())
+		w.sendDamageIndication(sess, npcObjectID, dummyHeal, sess.PlayerObjectID(), 0) // its heal of the player: untagged
 	}
 	return false
 }

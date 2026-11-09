@@ -1078,7 +1078,7 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 			p.HP = max(p.HP-taken, 0)
 			if sess != nil {
 				if nid := w.objectIDForEntityLocked(sess, npc.ServerID); nid != 0 {
-					w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID())
+					w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID(), 0) // the creature's on the player: untagged
 				}
 				w.sendChatToSession(sess, fmt.Sprintf("%s's %s hits you for %d (%s).", npc.Name, c.spell.Name, taken, resistWords(share, how)))
 			}
@@ -1231,7 +1231,7 @@ func (w *World) npcTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	sess := w.findSessionByEntityIDLocked(t.ServerID)
 	if sess != nil {
 		if nid := w.objectIDForEntityLocked(sess, npc.ServerID); nid != 0 {
-			w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID())
+			w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID(), 0) // the creature's on the player: untagged
 		}
 		w.sendChatToSession(sess, fmt.Sprintf("%s's %s hits you for %d (%s).", npc.Name, ae.Name, taken, resistWords(share, how)))
 	}
@@ -1278,7 +1278,7 @@ func (w *World) tellNPCHealLocked(sess *session.Session, npc *NPC, n int) {
 		return
 	}
 	if nid := w.objectIDForEntityLocked(sess, npc.ServerID); nid != 0 {
-		w.sendDamageIndication(sess, nid, n, nid)
+		w.sendDamageIndication(sess, nid, n, nid, 0) // the creature's on itself: untagged
 	}
 }
 
@@ -1401,7 +1401,7 @@ func (w *World) templateStrikeLocked(npc *NPC, target EntityID, now time.Time, d
 		w.breakInvisLocked(p, "a hit") // invis.go: every invisibility, whatever gave it
 		sess := w.findSessionByEntityIDLocked(p.ServerID)
 		if sess != nil {
-			w.sendDamageIndication(sess, w.objectIDForEntityLocked(sess, npc.ServerID), -damage, sess.PlayerObjectID())
+			w.sendDamageIndication(sess, w.objectIDForEntityLocked(sess, npc.ServerID), -damage, sess.PlayerObjectID(), 0) // the creature's on the player: untagged
 		}
 		log.Printf("Template: %s's %s hits %s for %d (HP %d/%d)", npc.Name, name, p.Name, damage, p.HP, p.MaxHPNow())
 		if p.HP <= 0 {

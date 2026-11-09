@@ -41,7 +41,7 @@ func (d *duelists) pvpHit(t *testing.T, from, to *Player, n int, x time.Duration
 	if f == nil {
 		t.Fatalf("%s and %s are no foes", from.Name, to.Name)
 	}
-	return d.w.duelHurtLocked(f, from, from.ServerID, to, n, d.at(x))
+	return d.w.duelHurtLocked(f, from, from.ServerID, to, n, d.at(x), numberMelee)
 }
 
 func fighterIDs(op RecordOp) (killer, victim uint32, assists []uint32) {
@@ -159,7 +159,7 @@ func TestRecordDuelEnds(t *testing.T) {
 	d.w.DuelBoxAnswer(d.sb, DuelBoxID(duel.ID), 0, d.at(time.Second))
 	d.countDown(t, duel, time.Second)
 	d.w.mu.Lock()
-	d.w.duelHurtLocked(duel, d.b, d.b.ServerID, d.a, 1_000_000, d.at(2*time.Second))
+	d.w.duelHurtLocked(duel, d.b, d.b.ServerID, d.a, 1_000_000, d.at(2*time.Second), numberMelee)
 	d.w.mu.Unlock()
 	e := duelOf(t, r.take()).Duel
 	if e.A.ServerID != 71 || e.B.ServerID != 72 || e.Loser != 71 || e.Surrendered || e.Wager != 200 {

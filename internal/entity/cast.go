@@ -171,6 +171,9 @@ type CastSpell struct {
 	// opponent's pet (duelSpellTargetLocked): its landing is the duel's
 	// alone (duelLandLocked)
 	duel bool
+	// figures is whose its figures are to a client that colours its numbers
+	// (numbertags.go): its caster's spell, or a proc's, a pet's, a gift's
+	figures castFigures
 }
 
 // SpellOf is an ability record as the World casts it: handlers' castSpell
@@ -338,6 +341,8 @@ type ActiveEffect struct {
 	parts []*effectPart
 	// ProcSpells are its procs that cast more than a hit (workbookmore.go)
 	ProcSpells []ProcSpell
+	// figures is whose its ticks' figures are (numbertags.go): its cast's
+	figures castFigures
 }
 
 // StatMods is what effects add to a player's stats (kept over a logout as
@@ -1377,6 +1382,7 @@ func lastingParts(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 		Until: now.Add(dur), NextTick: now, Ticks: d.Ticks}
 	ae.Rules = rulesOf(d) // workbook.go
 	ae.ProcSpells = d.ProcSpells
+	ae.figures = cs.spell.figures // its ticks told as its cast's figures (numbertags.go)
 	any := false
 	for _, e := range d.Effects {
 		if ae.workbookLasting(e, d) { // workbook.go: its own kinds
@@ -1460,7 +1466,7 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 				heals = append(heals, spellAmount(e, caster))
 				continue
 			}
-			w.healLocked(caster, casterSess, t, spellAmount(e, caster))
+			w.healLocked(caster, casterSess, t, spellAmount(e, caster), cs.spell.healKind())
 		case EffectPower:
 			if e.Set { // the workbook's power set to a figure (spelljson.go)
 				t.Power = min(max(e.Amount, 0), t.MaxPowerNow())
@@ -1497,14 +1503,15 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 		w.addEffectLocked(t, ae, now)
 	}
 	for _, n := range heals {
-		w.healLocked(caster, casterSess, t, n)
+		w.healLocked(caster, casterSess, t, n, cs.spell.healKind())
 	}
 	log.Printf("Cast: %s's %q lands on %s (%d/%d HP, %d effects)", caster.Name, cs.spell.Name, t.Name, t.HP, t.MaxHPNow(), len(t.Effects))
 }
 
 // healLocked restores n hit points to t; the amount is told (0x00DB, whole,
-// as Sandstorm tells it) only when t was short of its maximum.
-func (w *World) healLocked(caster *Player, casterSess *session.Session, t *Player, n int) {
+// as Sandstorm tells it, kind to the caster: tellAmountLocked) only when t was
+// short of its maximum.
+func (w *World) healLocked(caster *Player, casterSess *session.Session, t *Player, n int, kind numberKind) {
 	if n <= 0 {
 		return
 	}
@@ -1515,19 +1522,21 @@ func (w *World) healLocked(caster *Player, casterSess *session.Session, t *Playe
 	before := t.HP
 	t.HP = min(t.HP+n, top)
 	t.StatsDirty = true
-	w.tellAmountLocked(caster, casterSess, t.ServerID, n)
+	w.tellAmountLocked(caster, casterSess, t.ServerID, n, kind)
 	w.healHateLocked(caster, t, t.HP-before) // aggro.go
 	if t.ServerID == caster.ServerID {
 		w.healAggroLocked(caster) // a creature it is green to comes now (aggro.go)
 	}
 }
 
-// tellAmountLocked sends 0x00DB (caster, amount, target) to the caster and,
-// when the target is another player, to it.
-func (w *World) tellAmountLocked(caster *Player, casterSess *session.Session, target EntityID, amount int) {
+// tellAmountLocked sends 0x00DB (caster, amount, target) to the caster, told
+// as kind (what made it, numbertags.go: 0 for a figure none of the caster's
+// made), and, when the target is another player, to it as a figure another
+// made on it (untagged).
+func (w *World) tellAmountLocked(caster *Player, casterSess *session.Session, target EntityID, amount int, kind numberKind) {
 	if casterSess != nil {
 		if tid := w.objectIDSeenByLocked(casterSess, target); tid != 0 {
-			w.sendDamageIndication(casterSess, casterSess.PlayerObjectID(), amount, tid)
+			w.sendDamageIndication(casterSess, casterSess.PlayerObjectID(), amount, tid, kind)
 		}
 	}
 	if target == caster.ServerID {
@@ -1535,7 +1544,7 @@ func (w *World) tellAmountLocked(caster *Player, casterSess *session.Session, ta
 	}
 	if ts := w.findSessionByEntityIDLocked(target); ts != nil {
 		if cid := w.objectIDSeenByLocked(ts, caster.ServerID); cid != 0 {
-			w.sendDamageIndication(ts, cid, amount, ts.PlayerObjectID())
+			w.sendDamageIndication(ts, cid, amount, ts.PlayerObjectID(), 0)
 		}
 	}
 }
@@ -1618,12 +1627,14 @@ func (w *World) runTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	if ae.HPTick > 0 {
 		// the caster may be gone (logged out, or the effect kept over a
 		// logout): the figure is then the target's own, as Sandstorm's first
-		// tick after a login was
-		caster := w.Players[ae.Caster]
+		// tick after a login was, and none of its making (numbertags.go: a
+		// player's own effect has the player for its caster, there while it
+		// ticks)
+		caster, kind := w.Players[ae.Caster], ae.tickKind(true)
 		if caster == nil {
-			caster = t
+			caster, kind = t, 0
 		}
-		w.healLocked(caster, w.findSessionByEntityIDLocked(caster.ServerID), t, ae.HPTick)
+		w.healLocked(caster, w.findSessionByEntityIDLocked(caster.ServerID), t, ae.HPTick, kind)
 	}
 	if ae.PowerTick > 0 && t.Power < t.MaxPowerNow() {
 		t.Power = min(t.Power+ae.PowerTick, t.MaxPowerNow())
@@ -1648,7 +1659,7 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 		switch e.Kind {
 		case EffectHP:
 			if n := creatureResists(e.Resist, npc, arcaneDebuffed(e.Resist, npc, debuffScaled(e, npc, spellAmount(e, caster), now), now), now); n < 0 {
-				killed := w.spellHitHateLocked(caster, casterSess, npc, -n, e.HateOff)
+				killed := w.spellHitHateLocked(caster, casterSess, npc, -n, e.HateOff, cs.spell.hitKind())
 				// a life tap's heal (lifetap.go): what landed, after the
 				// con's cut (balance.go)
 				w.drainLocked(cs, caster, casterSess, e, w.dealtLocked(npc, caster, -n), now)
@@ -1705,26 +1716,26 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 }
 
 // spellHitLocked is a spell's damage on a creature: the figure to the
-// caster, the hate, and on a kill the XP and the faction hits. It reports
-// the kill.
-func (w *World) spellHitLocked(caster *Player, casterSess *session.Session, npc *NPC, n int) bool {
-	return w.spellHitHateLocked(caster, casterSess, npc, n, 0)
+// caster (told as kind: numbertags.go), the hate, and on a kill the XP and
+// the faction hits. It reports the kill.
+func (w *World) spellHitLocked(caster *Player, casterSess *session.Session, npc *NPC, n int, kind numberKind) bool {
+	return w.spellHitHateLocked(caster, casterSess, npc, n, 0, kind)
 }
 
 // spellHitHateLocked is spellHitLocked with hateOff percent of the damage
 // dealt making no hate (SpellEffect.HateOff): the rest is the hate, and the
 // hit angers the creature all the same (updateAggro's contact, its kind
 // called, its companion), so a hit of no hate still makes a fight.
-func (w *World) spellHitHateLocked(caster *Player, casterSess *session.Session, npc *NPC, n, hateOff int) bool {
+func (w *World) spellHitHateLocked(caster *Player, casterSess *session.Session, npc *NPC, n, hateOff int, kind numberKind) bool {
 	if npc.Dummy != NotDummy {
 		// told, taken off nothing (dummy.go)
-		w.tellAmountLocked(caster, casterSess, npc.ServerID, -n)
+		w.tellAmountLocked(caster, casterSess, npc.ServerID, -n, kind)
 		w.dummyEngagedLocked(npc, caster, time.Now())
 		return false
 	}
 	n = w.dealtLocked(npc, caster, n) // balance.go
 	npc.HP = max(npc.HP-n, 0)
-	w.tellAmountLocked(caster, casterSess, npc.ServerID, -n)
+	w.tellAmountLocked(caster, casterSess, npc.ServerID, -n, kind)
 	w.updateAggro(npc, caster.ServerID, n-n*hateOff/100)
 	w.rootBreakLocked(npc, caster.Level) // root.go
 	log.Printf("Cast: %s's spell hit %s for %d (HP %d/%d)", caster.Name, npc.Name, n, npc.HP, npc.MaxHP)
@@ -1770,12 +1781,12 @@ func (w *World) tickNPCEffectLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 		if caster := w.Players[ae.Caster]; caster != nil && !npc.Dead {
 			sess := w.findSessionByEntityIDLocked(caster.ServerID)
 			hit := -creatureResists(ae.Rules.Resist, npc, arcaneDebuffed(ae.Rules.Resist, npc, ae.HPTick, now), now)
-			died := w.spellHitLocked(caster, sess, npc, hit)
+			died := w.spellHitLocked(caster, sess, npc, hit, ae.tickKind(false))
 			// a drain over time: each tick's figure to the caster (or its
 			// group), whole, as a tap's is though it killed (lifetap.go)
 			if ae.TickDrain != DrainNone && !caster.IsDead() {
 				for _, p := range w.tickDrainersLocked(caster, ae) {
-					w.healLocked(caster, sess, p, hit)
+					w.healLocked(caster, sess, p, hit, ae.tickKind(true))
 				}
 			}
 			if died {

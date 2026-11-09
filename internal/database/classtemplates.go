@@ -107,6 +107,16 @@ const (
 	// AbilityDebuff is an NPC's lasting harm on the player it fights: the stats
 	// its named spell takes, for the spell's time (entity/classtemplate.go).
 	AbilityDebuff = "debuff"
+	// AbilityStrip is an NPC's cast that takes every beneficial effect off what
+	// it fights, a player or a pet (its buffs, damage shields, heals over time,
+	// invulnerabilities and mitigations, speeds, forms), the harmful left on,
+	// and a GM's #testmode (the server's god mode) off (entity/strip.go; the GM
+	// Jibrish's petition 1368: Mr. Moogie's "caster debuff on his target every
+	// 30 seconds that strips any and all buffs, including immunity to damage /
+	// god mode"). It casts no spell of a book: Name is what its lines call it
+	// (DefaultStripName for none), or it pins a spell (Spell or SpellID) whose
+	// name, cast time and visual it takes, nothing else of it.
+	AbilityStrip = "strip"
 	// AbilityHealShield casts nothing: while its hit points are below its share
 	// (Below; 100 always), a melee hit on it heals it and 1 lands, a player's or a
 	// pet's alike; an art is a spell and lands as ever (the guide's Rallos Zek: "heal
@@ -120,7 +130,14 @@ const (
 
 // AbilityKinds are the kinds, in the order the help lists them.
 var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot, AbilityDebuff,
-	AbilityHealShield, AbilityMeleeKind}
+	AbilityStrip, AbilityHealShield, AbilityMeleeKind}
+
+// DefaultStripName is what a strip's lines call it when it has no name and
+// pins no spell (ours), and StripNameMost the most characters of a name.
+const (
+	DefaultStripName = "Dispel"
+	StripNameMost    = 32
+)
 
 // Who a pet's heal or buff lands on (TemplateAbility.Target); either is a
 // heal's alone: its owner or itself, whichever is the lower share of its hit
@@ -220,6 +237,9 @@ type TemplateAbility struct {
 	// MeleeKind and TakenPct: AbilityMeleeKind's.
 	MeleeKind string `json:"melee_kind,omitempty"`
 	TakenPct  int    `json:"taken_pct,omitempty"`
+	// Name is a strip's name in its lines (AbilityStrip; empty:
+	// DefaultStripName), for one that pins no spell.
+	Name string `json:"name,omitempty"`
 }
 
 // TargetOr is who a pet's heal or buff lands on: its own, else the pet
@@ -343,6 +363,7 @@ func ParseTemplateAbilities(text string) ([]TemplateAbility, error) {
 		list[i].Target = strings.ToLower(strings.TrimSpace(list[i].Target))
 		list[i].Stat = strings.ToLower(strings.TrimSpace(list[i].Stat))
 		list[i].Element = strings.ToLower(strings.TrimSpace(list[i].Element))
+		list[i].Name = strings.TrimSpace(list[i].Name)
 	}
 	if err := CheckTemplateAbilities(list); err != nil {
 		return nil, err
@@ -415,6 +436,12 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 			return fmt.Errorf("ability %d: from %d: 0 (any) to 100", n, a.From)
 		case len(a.Spell) > 64 || len(a.Line) > 64:
 			return fmt.Errorf("ability %d: a spell or line of more than 64 characters", n)
+		case len(a.Name) > StripNameMost:
+			return fmt.Errorf("ability %d: a name of more than %d characters", n, StripNameMost)
+		case a.Name != "" && a.Kind != AbilityStrip:
+			return fmt.Errorf("ability %d: a name is a strip's (its spell names any other)", n)
+		case a.Name != "" && (a.Spell != "" || a.SpellID != 0):
+			return fmt.Errorf("ability %d: a strip is named by its name or by the spell it pins, not both", n)
 		}
 		if err := checkPetAbility(n, a); err != nil {
 			return err

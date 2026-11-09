@@ -653,22 +653,26 @@ func (h *ClassMasteryHandler) templateUsed(who *session.Session, p *entity.Playe
 		return
 	}
 	list := h.gameWorld.CMList(who, h.cmKnowsOf(p))
-	for _, id := range pl.Removed {
+	// the known flags in the run's last message alone (flagsLastOf)
+	n := len(pl.Removed) + len(pl.Added)
+	for i, id := range pl.Removed {
+		flags := flagsLastOf(i, n, list)
 		queueReliable(who, protocol.OpcodeClassMasteryServer, cmBig(func(w *buffer.Writer) {
 			w.WriteByte(cmRespRemoved)
 			w.WriteUint32(0)
 			w.WriteUint32(uint32(id))
-			writeCMState(w, st, list)
+			writeCMState(w, st, flags)
 		}))
 	}
-	for _, id := range pl.Added {
+	for i, id := range pl.Added {
+		flags := flagsLastOf(len(pl.Removed)+i, n, list)
 		queueReliable(who, protocol.OpcodeClassMasteryServer, cmBig(func(w *buffer.Writer) {
 			w.WriteByte(cmRespBought)
 			w.WriteUint32(0)
 			w.WriteUint32(uint32(id))
 			w.WriteUint32(uint32(pl.After.Points))
 			w.WriteUint32(uint32(pl.After.Spent))
-			writeCMState(w, st, list)
+			writeCMState(w, st, flags)
 		}))
 	}
 	queueReliable(who, protocol.OpcodeClassMasteryServer, cmPoints(pl.After))

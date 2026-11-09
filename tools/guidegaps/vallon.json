@@ -1,0 +1,373 @@
+{
+ "set": "vallon",
+ "notes": "Vallon Zek (EQOA-Data Quests/Portal/zaoran-plateau.json; zp-research).",
+ "items": [
+  {
+   "name": "Vallon's Blade",
+   "like": "Victor's Blade",
+   "notrade": true,
+   "lore": 1,
+   "levelreq": 66,
+   "classuse": 32767,
+   "description": "Vallon Zek's sword. (Seen on his corpse in 2009: Race ALL, Class ALL, Level 66, NO TRADE NO RENT LORE; its figures are Victor's Blade's, ours.)"
+  },
+  {
+   "name": "Deflection Bracelet",
+   "like": "Bracelet of Might",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 32767,
+   "duration": 50,
+   "stats": {
+    "AC": 165
+   },
+   "description": "A plain band that turns blows aside. From Vallon Zek's hoard."
+  }
+ ],
+ "spells": [
+  {
+   "id": 905044,
+   "name": "Vallon's Shout",
+   "line": "Target, aoe Decrease Hitpoints by 600, Radius 30",
+   "fx": 2972655019,
+   "effects": {
+    "v": 1,
+    "scope": "target_aoe",
+    "target_type": "Enemy",
+    "harmful": true,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "radius": 30,
+    "req_equipment": "Any",
+    "sheet_type": "Dmg/Heal",
+    "effects": [
+     {
+      "type": "Dmg/Heal",
+      "kind": "hp2",
+      "amount": -600,
+      "resist": "ar"
+     }
+    ]
+   }
+  },
+  {
+   "id": 905045,
+   "name": "Vallon's Rebuke",
+   "line": "Target, Decrease AC by 300, 60s",
+   "fx": 2972655019,
+   "effects": {
+    "v": 1,
+    "scope": "target",
+    "target_type": "Enemy",
+    "harmful": true,
+    "duration_s": 60,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "req_equipment": "Any",
+    "sheet_type": "Statistic Change",
+    "effects": [
+     {
+      "type": "Statistic Change",
+      "kind": "stat",
+      "stat": "ac",
+      "amount": -300,
+      "resist": "ar"
+     }
+    ]
+   }
+  }
+ ],
+ "templates": [
+  {
+   "name": "vallon zek",
+   "class": 0,
+   "hp": 1000000,
+   "level": 68,
+   "melee": 2558,
+   "crit": 2600,
+   "resist_kind": "FR,CR,LR,PR,DR,AR",
+   "resist_pct": 75,
+   "abilities": [
+    {
+     "kind": "aoe",
+     "spell_id": 905044,
+     "every": 25,
+     "first": 15
+    },
+    {
+     "kind": "debuff",
+     "spell_id": 905045,
+     "every": 45,
+     "first": 10
+    }
+   ],
+   "note": "'just another melee raid mob ... He quads hard, that is it'; 'Nukes do close to nothing on him, kinda like Rallos Zek. However, debuffs work'; 'he has a aoe nuke but it doesn't even do much damage' (Gonzales, CS 2009-04-10); 'ZP gods all debuff AC' (CS zpgods, the old gods). Videos 2009: 98 hits on a L60 warrior 2415-4531, a floor ~3520, 4 a round every 6.05 s (cv1CBnSk6bY, RDRs_99a1Ag): 3,520 here; effective HP 2.1-2.9M in three kills (400 DPS a raider, ours) at the share a L60 raid deals a L68 (45%): 1.0M. Level, resists, AoE ours."
+  },
+  {
+   "name": "guard of vallon",
+   "class": 0,
+   "hp": 20000,
+   "level": 63,
+   "melee": 250,
+   "note": "Vallon's friends: 'the roamers that spawn with him ... equivilent to about a Oasis Desert Pillager'; 'as soon as you kill them, another spawns in hits place' (Shorte, BlackPearl 2009-02-23); fewer after 2009-04-02 ('Vallon reduction of number of minions', SOE); 'Guard of Vallon', red con, 'they keep spawning' (videos 2009-02, 2010-02). Count and figures ours."
+  }
+ ],
+ "npcs": [
+  {
+   "name": "Guard of Vallon",
+   "world": 5,
+   "x": 4373.0,
+   "y": 253.5,
+   "z": 7113.0,
+   "level": 63,
+   "type": 0,
+   "like": "Zek trainer",
+   "size": 1.1,
+   "spawnonly": true,
+   "template": "guard of vallon",
+   "charm": 0,
+   "roam": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 40
+   },
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "note": "Spawned with Vallon Zek (guide gaps vallon)."
+  }
+ ],
+ "triggers": [
+  {
+   "slot": 132,
+   "name": "Vallon Zek",
+   "scope": "near",
+   "radius": 220,
+   "world": 5,
+   "x": 4372.0,
+   "y": 253.5,
+   "z": 7140.0,
+   "steps": [
+    {
+     "do": "lock",
+     "lock": "vallon zek"
+    },
+    {
+     "do": "clock",
+     "seconds": 5400,
+     "empty": 600
+    },
+    {
+     "do": "hide",
+     "npc": "Vallon Zek",
+     "radius": 60,
+     "minutes": 95.0
+    },
+    {
+     "do": "spawn",
+     "npc": "Vallon Zek",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 95.0,
+     "world": 5,
+     "x": 4373.0,
+     "y": 253.5,
+     "z": 7105.0
+    },
+    {
+     "do": "spawn",
+     "npc": "Guard of Vallon",
+     "hostile": true,
+     "count": 3,
+     "spread": 20.0,
+     "minutes": 95.0,
+     "world": 5,
+     "x": 4373.0,
+     "y": 253.5,
+     "z": 7105.0
+    },
+    {
+     "do": "broadcast",
+     "text": "Vallon Zek: You have found my training grounds. Let me show you how Zek trains! (Ninety minutes.)"
+    },
+    {
+     "do": "awaitdead",
+     "npc": "Vallon Zek",
+     "any": true
+    },
+    {
+     "do": "stop",
+     "slot": 133
+    },
+    {
+     "do": "despawn",
+     "npc": "Guard of Vallon"
+    },
+    {
+     "do": "broadcast",
+     "text": "Vallon Zek: You have won the battle, but not the war!"
+    },
+    {
+     "do": "broadcast",
+     "text": "Vallon Zek has fallen. His training grounds will not hold you long."
+    },
+    {
+     "do": "wait",
+     "seconds": 900
+    },
+    {
+     "do": "end"
+    },
+    {
+     "do": "stop",
+     "slot": 133
+    },
+    {
+     "do": "despawn"
+    },
+    {
+     "do": "hide",
+     "npc": "Vallon Zek",
+     "radius": 60,
+     "minutes": 0
+    },
+    {
+     "do": "teleport",
+     "world": 5,
+     "x": 4899.0,
+     "y": 148.0,
+     "z": 7049.0
+    }
+   ],
+   "notes": "Spoken to, Vallon 'respawns kos along with some friends' (CS 2009-04-10); 'you have 90 minutes from spawn time' (Monoxxide). Won, lost or timed out, the isle is cleared and the raid sent back to the plateau's port-in (ours: no record of how raids left). The Rage of Zek ('quad for 150k', 'AOE DT') was the bug Kekoo owned: not built."
+  },
+  {
+   "slot": 133,
+   "name": "Guards of Vallon",
+   "scope": "near",
+   "radius": 220,
+   "world": 5,
+   "x": 4372.0,
+   "y": 253.5,
+   "z": 7140.0,
+   "steps": [
+    {
+     "do": "wait",
+     "seconds": 15
+    },
+    {
+     "do": "spawn",
+     "npc": "Guard of Vallon",
+     "hostile": true,
+     "count": 1,
+     "max": 3,
+     "spread": 20.0,
+     "minutes": 30,
+     "world": 5,
+     "x": 4373.0,
+     "y": 253.5,
+     "z": 7105.0
+    },
+    {
+     "do": "awaitdead"
+    }
+   ],
+   "notes": "A guard's death (npcdeath) brings another in 15 s, three at most: 'as soon as you kill them, another spawns' (Shorte, 2009-02-23). Stopped when Vallon falls or his clock ends."
+  }
+ ],
+ "deaths": [
+  {
+   "name": "Guard of Vallon",
+   "trigger": "Guards of Vallon",
+   "chance": 100,
+   "note": "'as soon as you kill them, another spawns in hits place' (Shorte, BlackPearl 2009-02-23)."
+  }
+ ],
+ "loot": [
+  {
+   "table": "vallon zek",
+   "items": [
+    "Sapphyra's Sword",
+    "Campaigner's Tunic",
+    "Mail of Maneuvering",
+    "Warlord's Chestguard",
+    "Warmage's Tunic",
+    "Glowing Cerulean Choker",
+    "Lead Plated Choker",
+    "Earring of Overflowing Efficancy",
+    "Reconstructive Earring",
+    "Deflection Bracelet",
+    "Influencer's Necklace",
+    "Vallon's Blade"
+   ],
+   "npcs": [
+    [
+     "Vallon Zek",
+     100,
+     3
+    ]
+   ]
+  },
+  {
+   "table": "zp spells",
+   "items": [
+    "Rage of Zek",
+    "Fury of the Akessan",
+    "Warmonger's Assault",
+    "Divine Assault",
+    "Arcanic Assault",
+    "Fingers of Flame",
+    "Fingers of Frost",
+    "Fingers of Thunder",
+    "Divinity",
+    "Influence",
+    "Vibrance"
+   ],
+   "npcs": [
+    [
+     "Vallon Zek",
+     100,
+     1
+    ]
+   ]
+  }
+ ],
+ "sql": [
+  [
+   "UPDATE quests SET repeatable = 1 WHERE questid = (SELECT questid FROM quest_import_quests WHERE key = ?)",
+   [
+    "Portal/zaoran-plateau/vallon"
+   ]
+  ],
+  [
+   "UPDATE npcs SET npc_type = 128, npc_level = ? WHERE npc_name = 'Vallon Zek' AND world = 5",
+   [
+    68
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npctemplate (name, template, note, source) VALUES ('vallon zek', 'vallon zek', '', 'guide gaps vallon')",
+   []
+  ],
+  [
+   "INSERT OR REPLACE INTO npccharm (name, charmable, resist_pct, template, note, source) VALUES ('vallon zek', 0, 0, '', '', 'guide gaps vallon')",
+   []
+  ],
+  [
+   "INSERT OR REPLACE INTO npcaggro (npc_name, aggressive, radius, note, source) VALUES ('vallon zek', 1, 40, '', 'guide gaps vallon')",
+   []
+  ],
+  [
+   "INSERT OR REPLACE INTO lootcreature (npc_name, region, profile, source) VALUES ('vallon zek', 'secrets', 'boss', 'guide gaps vallon')",
+   []
+  ],
+  [
+   "UPDATE queststeps SET events = ? WHERE step = 4 AND questid = (SELECT questid FROM quest_import_quests WHERE key = ?)",
+   [
+    "[{\"on\":\"start\",\"do\":\"trigger\",\"trigger\":\"Vallon Zek\",\"text\":\"Vallon is training another raid already.\"}]",
+    "Portal/zaoran-plateau/vallon"
+   ]
+  ]
+ ]
+}

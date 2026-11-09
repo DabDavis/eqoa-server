@@ -1,0 +1,882 @@
+{
+ "set": "zp-minions",
+ "notes": "Zaoran Plateau's population of 2008-2012 (zp-research). Needs zp-armour first (its gem table).",
+ "items": [
+  {
+   "name": "Collar of Justice",
+   "like": "barbed collar",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 16498,
+   "stats": {
+    "HPMAX": 160,
+    "sta": 25,
+    "LR": 30,
+    "AC": 50
+   },
+   "description": "Taken from a turned Honor Guard. (Melee/Alc)"
+  },
+  {
+   "name": "Judicial Robe",
+   "like": "Sparkling Robes",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 896,
+   "stats": {
+    "cha": 30,
+    "POWMAX": 210
+   },
+   "description": "The robe of an Honor Guard's judge. (Healer)"
+  },
+  {
+   "name": "Robe of the Arcanist",
+   "like": "Sparkling Robes",
+   "notrade": true,
+   "levelreq": 60,
+   "classuse": 15360,
+   "stats": {
+    "POWMAX": 210,
+    "intelligence": 30
+   },
+   "description": "An arcanist's robe from Zaoran Plateau. (Caster)"
+  },
+  {
+   "name": "Honor Guard Insignia",
+   "like": "Rallosian insignia",
+   "notrade": false,
+   "trade": 0,
+   "lore": 0,
+   "maxstack": 20,
+   "levelreq": 1,
+   "description": "The insignia of an Honor Guard of Marr, taken from one turned to the Bolash."
+  }
+ ],
+ "spells": [
+  {
+   "id": 905046,
+   "name": "Gaze of Zek",
+   "line": "Target, Decrease Hitpoints by 800",
+   "fx": 3883934939,
+   "effects": {
+    "v": 1,
+    "scope": "target",
+    "target_type": "Enemy",
+    "harmful": true,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "req_equipment": "Any",
+    "sheet_type": "Dmg/Heal",
+    "effects": [
+     {
+      "type": "Dmg/Heal",
+      "kind": "hp",
+      "amount": -800,
+      "resist": "ar"
+     }
+    ]
+   }
+  }
+ ],
+ "templates": [
+  {
+   "name": "blood thirsty minion",
+   "class": 0,
+   "hp": 35000,
+   "level": 61,
+   "melee": 300,
+   "taken": 80,
+   "note": "'really high HP, high defense' (march, 2008-04-11); 'take abit to kill'. Figures ours."
+  },
+  {
+   "name": "blood thirsty officer",
+   "class": 0,
+   "hp": 90000,
+   "level": 63,
+   "melee": 330,
+   "crit": 1200,
+   "taken": 80,
+   "note": "A camp's officer; drops the plateau's armour gems. Figures ours."
+  },
+  {
+   "name": "undead stallion",
+   "class": 0,
+   "hp": 25000,
+   "level": 60,
+   "melee": 300,
+   "note": "Figures ours."
+  },
+  {
+   "name": "eye of zek",
+   "class": 13,
+   "hp": 30000,
+   "level": 61,
+   "melee": 150,
+   "abilities": [
+    {
+     "kind": "nuke",
+     "spell_id": 905046,
+     "every": 12,
+     "first": 3
+    }
+   ],
+   "note": "Figures ours."
+  }
+ ],
+ "npcs": [
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5150.0,
+   "y": 147.62,
+   "z": 7058.0,
+   "facing": 0,
+   "level": 60,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5142.0,
+   "y": 147.62,
+   "z": 7066.0,
+   "facing": 37,
+   "level": 61,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5158.0,
+   "y": 147.63,
+   "z": 7066.0,
+   "facing": 74,
+   "level": 62,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5142.0,
+   "y": 147.62,
+   "z": 7050.0,
+   "facing": 111,
+   "level": 60,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5158.0,
+   "y": 147.62,
+   "z": 7050.0,
+   "facing": 148,
+   "level": 61,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5330.0,
+   "y": 147.62,
+   "z": 6962.0,
+   "facing": 60,
+   "level": 60,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5322.0,
+   "y": 147.62,
+   "z": 6954.0,
+   "facing": 97,
+   "level": 61,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5338.0,
+   "y": 147.62,
+   "z": 6954.0,
+   "facing": 134,
+   "level": 62,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5322.0,
+   "y": 147.62,
+   "z": 6970.0,
+   "facing": 171,
+   "level": 60,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5338.0,
+   "y": 147.62,
+   "z": 6970.0,
+   "facing": 208,
+   "level": 61,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5110.0,
+   "y": 147.62,
+   "z": 6882.0,
+   "facing": 120,
+   "level": 60,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5102.0,
+   "y": 147.62,
+   "z": 6874.0,
+   "facing": 157,
+   "level": 61,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5118.0,
+   "y": 147.62,
+   "z": 6874.0,
+   "facing": 194,
+   "level": 62,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5102.0,
+   "y": 147.62,
+   "z": 6890.0,
+   "facing": 231,
+   "level": 60,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5118.0,
+   "y": 147.62,
+   "z": 6890.0,
+   "facing": 12,
+   "level": 61,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5418.0,
+   "y": 147.62,
+   "z": 7118.0,
+   "facing": 180,
+   "level": 60,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5426.0,
+   "y": 147.62,
+   "z": 7126.0,
+   "facing": 217,
+   "level": 61,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5426.0,
+   "y": 147.62,
+   "z": 7110.0,
+   "facing": 254,
+   "level": 62,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5410.0,
+   "y": 147.76,
+   "z": 7126.0,
+   "facing": 35,
+   "level": 60,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Minion",
+   "world": 5,
+   "x": 5410.0,
+   "y": 147.62,
+   "z": 7110.0,
+   "facing": 72,
+   "level": 61,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.0,
+   "template": "blood thirsty minion",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 15,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'really high HP, high defense, yellow, white, and red con mobs that look like last house slavers' (march, BlackPearl 2008-04-11); 'the new Blood Thirsty Minion camps' (CS zplootminions 2008); 'implying that all the previous Honor Guards have been turned into Bolash' (CS queststreezp). Camps, counts, spots and figures ours."
+  },
+  {
+   "name": "Blood Thirsty Officer",
+   "world": 5,
+   "x": 5150,
+   "y": 147.62,
+   "z": 7060,
+   "level": 63,
+   "type": 0,
+   "like": "Razeal Moloch",
+   "size": 1.25,
+   "spawnonly": true,
+   "template": "blood thirsty officer",
+   "charm": 0,
+   "roam": 0,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 25
+   },
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "note": "'farm Blood Thirsty Minions and eventually you'll get an officer (ph's at each camp). The Officers now drop ZP GEMS' (CS zplootminions 2008-10). Spawned where a minion fell (npcdeath)."
+  },
+  {
+   "name": "undead stallion",
+   "world": 5,
+   "x": 4830.0,
+   "y": 147.62,
+   "z": 7390.0,
+   "facing": 0,
+   "level": 60,
+   "type": 0,
+   "like": "nightmare wolf",
+   "size": 1.6,
+   "template": "undead stallion",
+   "charm": 0,
+   "undead": true,
+   "roam": 1,
+   "roam_radius": 20,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 20
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'Tier 1 ZP loot ... from the new Blood Thirsty Minion camps and Undead Stallions' (CS zplootminions 2008); the headstones are 'by the undead stallion' (Raam). No horse body is on this server's rows: a nightmare wolf's, ours; level and count ours."
+  },
+  {
+   "name": "undead stallion",
+   "world": 5,
+   "x": 4830.0,
+   "y": 147.62,
+   "z": 7374.0,
+   "facing": 80,
+   "level": 60,
+   "type": 0,
+   "like": "nightmare wolf",
+   "size": 1.6,
+   "template": "undead stallion",
+   "charm": 0,
+   "undead": true,
+   "roam": 1,
+   "roam_radius": 20,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 20
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'Tier 1 ZP loot ... from the new Blood Thirsty Minion camps and Undead Stallions' (CS zplootminions 2008); the headstones are 'by the undead stallion' (Raam). No horse body is on this server's rows: a nightmare wolf's, ours; level and count ours."
+  },
+  {
+   "name": "undead stallion",
+   "world": 5,
+   "x": 4818.0,
+   "y": 147.62,
+   "z": 7382.0,
+   "facing": 160,
+   "level": 60,
+   "type": 0,
+   "like": "nightmare wolf",
+   "size": 1.6,
+   "template": "undead stallion",
+   "charm": 0,
+   "undead": true,
+   "roam": 1,
+   "roam_radius": 20,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 20
+   },
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "'Tier 1 ZP loot ... from the new Blood Thirsty Minion camps and Undead Stallions' (CS zplootminions 2008); the headstones are 'by the undead stallion' (Raam). No horse body is on this server's rows: a nightmare wolf's, ours; level and count ours."
+  },
+  {
+   "name": "Eye of Zek",
+   "world": 5,
+   "x": 5250.0,
+   "y": 150.62,
+   "z": 7022.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "evil eye",
+   "size": 1.4,
+   "template": "eye of zek",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 40,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 30
+   },
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "note": "'the Eye's of Zek on main zp isle that drop warmonger weapons' (Wickedlyrics, CS rallos 2009-10). Body an evil eye's; count, level and figures ours."
+  },
+  {
+   "name": "Eye of Zek",
+   "world": 5,
+   "x": 5238.0,
+   "y": 150.62,
+   "z": 6994.0,
+   "facing": 64,
+   "level": 61,
+   "type": 0,
+   "like": "evil eye",
+   "size": 1.4,
+   "template": "eye of zek",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 40,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 30
+   },
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "note": "'the Eye's of Zek on main zp isle that drop warmonger weapons' (Wickedlyrics, CS rallos 2009-10). Body an evil eye's; count, level and figures ours."
+  },
+  {
+   "name": "Eye of Zek",
+   "world": 5,
+   "x": 5270.0,
+   "y": 150.63,
+   "z": 6998.0,
+   "facing": 128,
+   "level": 61,
+   "type": 0,
+   "like": "evil eye",
+   "size": 1.4,
+   "template": "eye of zek",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 40,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 30
+   },
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "note": "'the Eye's of Zek on main zp isle that drop warmonger weapons' (Wickedlyrics, CS rallos 2009-10). Body an evil eye's; count, level and figures ours."
+  },
+  {
+   "name": "Eye of Zek",
+   "world": 5,
+   "x": 5222.0,
+   "y": 150.63,
+   "z": 7034.0,
+   "facing": 192,
+   "level": 61,
+   "type": 0,
+   "like": "evil eye",
+   "size": 1.4,
+   "template": "eye of zek",
+   "charm": 0,
+   "roam": 1,
+   "roam_radius": 40,
+   "aggro": {
+    "aggressive": 1,
+    "radius": 30
+   },
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "note": "'the Eye's of Zek on main zp isle that drop warmonger weapons' (Wickedlyrics, CS rallos 2009-10). Body an evil eye's; count, level and figures ours."
+  }
+ ],
+ "triggers": [
+  {
+   "slot": 139,
+   "name": "Blood Thirsty Officer",
+   "scope": "near",
+   "radius": 80,
+   "world": -1,
+   "steps": [
+    {
+     "do": "spawn",
+     "npc": "Blood Thirsty Officer",
+     "hostile": true,
+     "count": 1,
+     "max": 1,
+     "spread": 4.0,
+     "minutes": 30
+    },
+    {
+     "do": "awaitdead"
+    }
+   ],
+   "notes": "A minion's death may raise its camp's officer where it fell (npcdeath, 5%, ours); one within 300 at a time; gone after 30 minutes unkilled (ours)."
+  }
+ ],
+ "deaths": [
+  {
+   "name": "Blood Thirsty Minion",
+   "trigger": "Blood Thirsty Officer",
+   "chance": 5,
+   "note": "'eventually you'll get an officer (ph's at each camp)' (CS 2008-10): 5% a minion, ours."
+  }
+ ],
+ "loot": [
+  {
+   "table": "zp tier 1",
+   "items": [
+    "Akessan Collective Totem",
+    "Bracers of Annihilation",
+    "Bracers of Devotion",
+    "Collar of Justice",
+    "Combat Medic's Necklace",
+    "Shield of the Diviner",
+    "Earring of Capacity",
+    "Earring of Fortitude",
+    "girdle of flowing power",
+    "Honor Guard Totem",
+    "Judicial Robe",
+    "Ring of Dimensions",
+    "Ring of Righteousness",
+    "Robe of the Arcanist",
+    "Sash of the Destroyer",
+    "girdle of the warmonger"
+   ],
+   "npcs": [
+    [
+     "Blood Thirsty Minion",
+     6,
+     1
+    ],
+    [
+     "undead stallion",
+     10,
+     1
+    ],
+    [
+     "Blood Thirsty Officer",
+     50,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "honor guard insignia",
+   "items": [
+    "Honor Guard Insignia"
+   ],
+   "npcs": [
+    [
+     "Blood Thirsty Minion",
+     15,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "eyes of zek",
+   "items": [
+    "Warmonger's Greatsword",
+    "Warmonger's Longsword",
+    "Warmonger's Totem",
+    "Warmonger's Club",
+    "Warmonger's Staff"
+   ],
+   "npcs": [
+    [
+     "Eye of Zek",
+     8,
+     1
+    ]
+   ]
+  }
+ ],
+ "sql": [
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES ('blood thirsty officer', 'zp armour gems', 100, 1, 'The Officers now drop ZP GEMS (CS 2008-10)', 'guide gaps zp-minions')",
+   []
+  ]
+ ]
+}

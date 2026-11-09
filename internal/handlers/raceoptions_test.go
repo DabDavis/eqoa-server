@@ -248,3 +248,63 @@ func TestRaceOptionsBlock(t *testing.T) {
 		t.Error("a byte past the block")
 	}
 }
+
+// What a client asked for at character select goes again at a login's world
+// entry (resendPregameExtras, from SendMemoryDump): creation's races, the races'
+// options and the looks, which went on the lobby's connection and were lost with
+// it when the client selected before they all came (a Wisp drawn as a plain
+// human). A client that answered the race options 0 is sent creation's races
+// alone; a PS2, which answered nothing, none of the three. The control: before
+// it the looks already sent were never sent again (TakeRaceLooks).
+func TestPregameExtrasAgainAtWorldEntry(t *testing.T) {
+	r := newCreationRig(t, entity.CreationRules{Races: true})
+	fungusRow(t, r)
+	opts := NewRaceOptionsHandler(r.h.gameWorld, r.db)
+	cre := NewCreationHandler()
+	answer := func(s *session.Session, op protocol.GameOpcode, v uint32) {
+		t.Helper()
+		m := protocol.NewMessage(protocol.MessageTypeReliable, op)
+		m.SetData(u32b(v))
+		var err error
+		if op == protocol.OpcodeRaceOptions {
+			err = opts.HandleRaceOptions(s, m)
+		} else {
+			err = cre.HandleCreationOffer(s, m)
+		}
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	since := func(s *session.Session, from int) map[protocol.GameOpcode]int {
+		n := map[protocol.GameOpcode]int{}
+		for _, op := range lookOpsQueued(s)[from:] {
+			n[op]++
+		}
+		return n
+	}
+	van, off, ps2 := r.session(), r.session(), r.session()
+	answer(van, protocol.OpcodeCreationOffer, 1)
+	answer(van, protocol.OpcodeRaceOptions, 1)
+	answer(off, protocol.OpcodeCreationOffer, 1)
+	answer(off, protocol.OpcodeRaceOptions, 0)
+	if !van.CreationAsked() || ps2.CreationAsked() {
+		t.Fatalf("asked: vanilla %v, a PS2 %v", van.CreationAsked(), ps2.CreationAsked())
+	}
+	// the control: the looks already sent do not go again by themselves
+	before := len(lookOpsQueued(van))
+	if r.h.gameWorld.RefreshRaceLooks(r.db, van) != 0 || len(lookOpsQueued(van)) != before {
+		t.Fatal("the control: the same looks sent again")
+	}
+	for _, c := range []struct {
+		name                     string
+		s                        *session.Session
+		creation, options, looks bool
+	}{{"vanilla", van, true, true, true}, {"options off", off, true, false, false}, {"a PS2", ps2, false, false, false}} {
+		before := len(lookOpsQueued(c.s))
+		r.h.resendPregameExtras(c.s)
+		got := since(c.s, before)
+		if (got[protocol.OpcodeCreationRaces] == 1) != c.creation || (got[protocol.OpcodeRaceOptionsData] >= 1) != c.options || (got[protocol.OpcodeRaceLooks] == 1) != c.looks {
+			t.Errorf("%s at world entry: %v, want creation %v, options %v, looks %v", c.name, got, c.creation, c.options, c.looks)
+		}
+	}
+}

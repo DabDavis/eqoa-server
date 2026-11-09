@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -205,5 +206,32 @@ func TestAnItemSummonsItsPet(t *testing.T) {
 	r.p.HP = 0
 	if got := r.w.SummonByItem(r.sess, spell, now.Add(2*time.Minute), time.Time{}); got != ItemSummonNone {
 		t.Errorf("a dead owner: %d", got)
+	}
+}
+
+// A race's id runs past 30 now (the Wisp is 31): every id up to LastCustomRace is
+// kept, the one past it is not (the control), and a race's bit in a mask works as
+// the eleven did, up to the last (2^52, an integer a JSON number holds exactly).
+func TestRaceIdsPast30(t *testing.T) {
+	if LastCustomRace < 31 || 1<<LastCustomRace > 1<<53 {
+		t.Fatalf("LastCustomRace %d", LastCustomRace)
+	}
+	row := func(id int) database.RaceDefRow {
+		r := hillGiantRow()
+		r.ID, r.Name = id, fmt.Sprintf("Race %d", id)
+		return r
+	}
+	withRaces(t, row(30), row(31), row(LastCustomRace), row(LastCustomRace+1))
+	got := CustomRaceIDs()
+	if len(got) != 3 || got[0] != 30 || got[1] != 31 || got[2] != LastCustomRace {
+		t.Fatalf("kept %v, want 30, 31 and %d (not %d)", got, LastCustomRace, LastCustomRace+1)
+	}
+	if WireRace(31) != 9 || RaceName(31) != "Race 31" || WireRace(LastCustomRace+1) != LastCustomRace+1 {
+		t.Errorf("31 passes as %d named %q; past the last %d", WireRace(31), RaceName(31), WireRace(LastCustomRace+1))
+	}
+	for _, id := range []int{31, LastCustomRace} {
+		if !raceInMask(1<<id, id) || raceInMask(1<<id, id-1) || !raceInMask(allRacesMask, id) {
+			t.Errorf("race %d in a mask", id)
+		}
 	}
 }

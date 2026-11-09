@@ -351,6 +351,10 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 			return nil
 		}
 		log.Printf("CreateCharacter: '%s' chose %v: body %#x, %d looks", name, choices, uint32(chosenBody), len(looks))
+	} else if _, always, err := entity.ResolveOptions(int(race), int(gender), nil); err == nil && len(always) > 0 {
+		// no block (a PS2, the account page, an older client): the rows laid
+		// always all the same (the Wisp's wisp)
+		looks = always
 	}
 
 	// Create character record for database
@@ -1795,6 +1799,10 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 	// Send ignore list and buddy list after memory dump (matches eqoa.live)
 	h.SendNoCollideList(sess)
 	h.SendBuddyList(sess)
+
+	// what the client asked for at character select, again on this connection
+	// (raceoptions.go)
+	h.resendPregameExtras(sess)
 
 	// Initialize state channel 0 from Player struct
 	h.initPlayerStateChannel(sess, player)

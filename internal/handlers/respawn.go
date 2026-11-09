@@ -50,9 +50,12 @@ func (h *CharacterHandler) respawnPlayer(sess *session.Session, p *entity.Player
 	}
 	gw.SyncSelfChannels(sess)
 	h.queueMemoryDump(sess, &placed)
+	// the dump shows every ability ready: those still locked out told again
+	// (petition 1312)
+	n := gw.SendLockouts(sess, time.Now())
 
-	log.Printf("Respawn: '%s' at %s (%.1f, %.1f, %.1f) world=%d (world changed: %v), %d/%d HP",
-		placed.Name, where, placed.X, placed.Y, placed.Z, placed.World, worldChanged, placed.HP, placed.MaxHP)
+	log.Printf("Respawn: '%s' at %s (%.1f, %.1f, %.1f) world=%d (world changed: %v), %d/%d HP, %d lockouts told",
+		placed.Name, where, placed.X, placed.Y, placed.Z, placed.World, worldChanged, placed.HP, placed.MaxHP, n)
 }
 
 // handleRezAnswer is 0x00D4, the client's answer to CLIENT's resurrect prompt
@@ -84,7 +87,8 @@ func (h *CharacterHandler) handleRezAnswer(sess *session.Session, msg *protocol.
 	}
 	gw.SyncSelfChannels(sess)
 	h.queueMemoryDump(sess, &placed)
-	log.Printf("Rez: '%s' back where it died (%.1f, %.1f, %.1f) world=%d, %d/%d HP", placed.Name, placed.X, placed.Y, placed.Z,
-		placed.World, placed.HP, placed.MaxHP)
+	n := gw.SendLockouts(sess, time.Now()) // as a respawn's (petition 1312)
+	log.Printf("Rez: '%s' back where it died (%.1f, %.1f, %.1f) world=%d, %d/%d HP, %d lockouts told", placed.Name, placed.X, placed.Y, placed.Z,
+		placed.World, placed.HP, placed.MaxHP, n)
 	return nil
 }

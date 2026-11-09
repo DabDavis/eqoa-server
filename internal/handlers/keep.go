@@ -283,7 +283,9 @@ func ResumeDump(sess *session.Session, dead bool) bool {
 	// its client may swing on through the restart with no 0x000F: the hands'
 	// swing for that (entity/attack.go pressUnsentLocked)
 	handsChanged(gw, h.inventoryStore, sess, p)
-	if n := gw.SendTakenOver(sess, time.Now()); n > 0 {
+	if dead {
+		gw.SendPvPStill(sess) // its lockouts went with the respawn's dump
+	} else if n := gw.SendTakenOver(sess, time.Now()); n > 0 {
 		log.Printf("Keep: '%s' told its %d lockouts", p.Name, n)
 	}
 	if h.gmChannel != nil {

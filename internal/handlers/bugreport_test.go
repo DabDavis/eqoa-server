@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/binary"
 	"encoding/json"
 	"strings"
@@ -260,5 +261,18 @@ func TestTranscriptReadsBack(t *testing.T) {
 	want := "red line: You cannot do that.|damage: you hit object 7 for 42"
 	if strings.Join(got, "|") != want {
 		t.Fatalf("got %q\nwant %q", strings.Join(got, "|"), want)
+	}
+}
+
+// The offer is a u32, 1, and then the most characters a petition's text may
+// have here: a client from before the second reads the first alone (vanilla's
+// "u32 != 0"), and one that reads the second may let its form hold that many.
+func TestTheOfferSaysHowLongAPetitionMayBe(t *testing.T) {
+	want := []byte{0x0E, 0x7E, 1, 0, 0, 0, 0xFF, 0x07, 0, 0}
+	if got := buildBugReportOffer(); !bytes.Equal(got, want) {
+		t.Fatalf("offer % X, want % X", got, want)
+	}
+	if CSTextMost != 2047 {
+		t.Fatalf("CSTextMost %d", CSTextMost)
 	}
 }

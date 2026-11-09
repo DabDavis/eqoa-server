@@ -682,7 +682,9 @@ Frontiers disc keeps working. Addresses below are Corsten's live CLIENT; word id
   cannot delete it), a player's delete keeps the row for the GMs (status `deleted`), 100 listed refuse a new
   one (status 2, as CLIENT refuses itself), and a ticket past the 8191 characters CLIENT keeps is sent by its
   end. Other statuses (`csFailed` and the rest) are ours; CLIENT shows any as "System is temporarily
-  unavailable. (Code: -n)".
+  unavailable. (Code: -n)". A request's or reply's text is 2,047 characters at most (`CSTextMost`, petition 1300;
+  a PS2's form holds 511, vanilla's as many as the bug report offer says): 4,103 bytes, a message in pieces (Key
+  Server Protocol Details).
 
 ### Bug reports: petitions with the server's own view (`handlers/bugreport.go`, `petitionview.go`)
 
@@ -692,7 +694,8 @@ in, one petition each: Support's request form on every client (Bug Report's topi
 Creature or NPC, Item, loot or merchant, Spell or ability, Combat, Other, Game client; Crash and Graphics hidden),
 `/bug <what happened>` or `#bug` (a PS2 keeps an unknown /command to itself; filed under the hidden topic Sent
 from chat), and vanilla's F3, which opens the form on Bug Report from a client that answered the offer
-(**0x7E0E**, not retail, a u32 both ways, sent with the other offers). Each is filed with **the server's view**
+(**0x7E0E**, not retail, a u32 both ways, sent with the other offers; the server's is followed by a second, the most
+characters of a petition's text it takes, `CSTextMost`, which vanilla's form then holds). Each is filed with **the server's view**
 (`petitions.server_view`, JSON, the GMs' alone, never sent to the player, left out of every list): the moment and
 the way it came, the build, the client (DiscVersion, the offers it answered) and its own note when it sent one
 (**0x7E0F**: u32 version 1, u32 byte count, UTF-8 "key: value" lines; vanilla's build, platform, graphics, frame
@@ -748,6 +751,22 @@ log out and in), else at its next world entry (`told_ready`); arrived, at the tr
 the GM's word and, when the plan made records for items this server lacks, their names and the ask to report each with its
 correct stats, icon and model (`ApproximatedNotice`, `database.ApproximatedItems`); lines of at most 200 characters. The page
 says the same on its front and under an approved or applied transfer.
+
+**Imported gear is damped** (petition 1314, jibrish: "Any gear that was imported from the character transfer tool should be
+blanket reduced in stats by 30% ... includes any special effects on the gear, like procs. Regular dropped items in game should
+remain unchanged"; the user's yes, 2026-11-09): a transfer's gear (`Plan.Imported`: set at the login for any transfer but a GM's
+grant, `from_server` "GM grant", and on every plan the panel builds) is given as its record's **imported copy**
+(`database.ImportedCopyTx`: an itempattern row of its own, ids 990001-999999, made once a record, listed in `itemimported`
+with its `base`): its stats, AC, resists, HP/power maximums and ticks and a weapon's damage at 70%, rounded half away from
+zero, everything else its base's, its use effects (`itemeffect`) with each "by N" scaled. The record the drops and merchants
+use stays whole. A copy goes wherever the item goes (trade, bank, auction, buyback). What a record's figures do not hold is
+scaled where it is read, for a copy (`entity.ImportedBase`): a weapon's proc (by its name or description) and a worn item's
+hit effect. **A copy follows its base**: at every start `SyncImportedCopies` makes each copy its base again at 70% (a fixed
+look or figure on the base reaches its copies at the next restart: fix the base, never a copy). Gear is what is worn, not a
+stack, not an Heirloom (`IsImportedGear`). **"(Imported)" after a copy's name** is put on as a record is sent
+(`handlers/importedtag.go`), only with `world.imported_tag: true` (the user: "only temporary for testing purposes"; off: no
+record changes). The gear transfers gave before this (charmigrate_log's items still held) was moved onto copies by
+`cmd/importdamper` (ledgered in `importdamper_log`; `-undo` exact; `-skip-run` for a run that was a give, not an import).
 
 `cmd/charmigrate` runs the same engine from a shell by a GM's plan (a JSON file kept outside this repository):
 level, mastery points, the class's spells, item records put right or made, items into the bank, the pack or
@@ -1811,6 +1830,18 @@ simulator's kits: `balancesim_real_test.go` is the check after it.
 
 **Segment header size**: Placeholder varint written first, patched with actual body size after all messages written (`PatchSegmentHeaderSize`). Prevents body size mismatch when fragments exceed MTU.
 
+**A client's message in pieces is handled whole** (2026-11-08, petition 1300; `session/fragments.go`, `udp/turns.go`).
+DRDP's `connection_send_guaranteed` cuts a reliable message past 1,300 bytes into pieces under numbers of their own,
+0xFA but the last (0xFB, or 0xF9), only the first starting with the opcode; until then the server took every piece
+for a message of its own (the first cut short to its handler, the rest to whatever their first two bytes named). The
+parser reads a piece whole (`Message.Unsplit`, `Wire`), and `ConnectionData.Assemble` holds the pieces of a run that
+starts after a message known not to be a piece and hands on one message at its last piece. The server acknowledges
+the newest number it has seen (a lost message is never sent again), so a gap, a run past 16 KiB or one not finished
+in a minute drops the whole message, logged ("Fragments: ..."), and no piece reaches a handler. Packets are handled a
+goroutine each: where the message before one is not known yet, the listener waits for the packets read before it from
+that address (at most a second) and asks again; nothing else waits. A PS2 never sends one that long (its longest, a
+petition or a gram of 511 characters, is under 1,100 bytes); vanilla does for a long petition.
+
 **More than 24 NPCs and players in view, and farther, for a client that keeps them**
 (2026-10-24; `session/entityslots.go`, `handlers/entityslots.go`). CLIENT keeps 24 entity
 slots, the state channels 0x00-0x17; DRDP has 248 (0x00-0xF7), and CLIENT reads 0x40
@@ -1986,6 +2017,7 @@ world:
   pvp: true                 # /pvp flags a player (entity/pvp.go); unset: not available
   open_races: true          # creation takes the froglok and racedefs' races (vanilla is told them); unset: the game's
   all_classes: true         # every class for every race at creation; unset: each race's own
+  imported_tag: true        # "(Imported)" after a transfer's damped gear (database/imported.go); unset: not shown
 auth:
   shared_db: "/srv/one/eqoa.db"   # another shard's accounts, a copy here; every sign-in by the token's password
   shared_refresh: 10s

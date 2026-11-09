@@ -205,10 +205,7 @@ func (s *Server) handleTOTP(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		s.sessions.mu.Lock()
-		a.sess.totpSecret = ""
-		a.sess.MFA = true // it has just given the authenticator's code
-		s.sessions.mu.Unlock()
+		s.sessions.setMFA(a.sess) // it has just given the authenticator's code
 		s.audit(a, "security", "", nil, nil, nil, "authenticator enrolled")
 		writeJSON(w, http.StatusOK, map[string]any{"enabled": true})
 	case "disable":

@@ -467,6 +467,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		transferDB := charStore.DB()
 		gameWorld.OnPlayerEntered(func(sess *session.Session, p *entity.Player) { tellTransfers(transferDB, sess, p) })
 		gameWorld.OnPlayerEntered(tellVanished) // norent.go
+		gameWorld.OnPlayerEntered(tellRockOwed) // rockfreeport.go: a login with no room for the stone
 	}
 
 	// Register the spell book's requests (0x0033, 0x003A, 0x00FE), and the

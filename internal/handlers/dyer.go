@@ -29,9 +29,10 @@ import (
 // advisors' 0x55); CLIENT's answer box shows three of its six answers a page,
 // with More and Back. On a server with capes (world.capes; capes.go) a dyer
 // dyes the cape as well (the user, 2026-11-09: "also allow dying"): "All my
-// armor" takes it in, and it is the second of "Robe, cape, shield or weapons";
-// its dye (chardyes' DyeCape) is the colour the clients that draw capes are
-// sent it in. Without capes the questions are what they always were.
+// armor" takes it in, it is the second of "Robe, cape, shield or weapons", and
+// "My cape", the first question's third answer, dyes it alone; its dye
+// (chardyes' DyeCape) is the colour the clients that draw capes are sent it in.
+// Without capes the questions are what they always were.
 
 // dyerBoxMark marks a dyer's question's id.
 const dyerBoxMark = 0x56000000
@@ -67,11 +68,16 @@ var dyerChoices = []dyerChoice{
 }
 
 // dyerChoicesCapes are dyerChoices on a server with capes: the cape in "All my
-// armor", and the second of the robe's question.
+// armor", the second of the robe's question, and "My cape", the third answer,
+// straight to the colours (the owner's choice, 2026-11-09: until then the cape
+// alone was only under the robe's question; then "up front"). CLIENT's answer
+// box shows three answers a page, so "My cape" ends the first page and the
+// robe's question and "Take every dye off" are on the second, after More.
 var dyerChoicesCapes = []dyerChoice{
 	{label: "All my armor", slots: []int{database.DyeChest, database.DyeBracer, database.DyeGloves, database.DyeLegs,
 		database.DyeBoots, database.DyeHelm, database.DyeRobe, database.DyeCape}},
 	dyerChoices[1],
+	one("My cape", database.DyeCape),
 	{label: "Robe, cape, shield or weapons", sub: []dyerChoice{one("Robe", database.DyeRobe), one("Cape", database.DyeCape),
 		one("Shield", database.DyeShield), one("Primary weapon", database.DyePrimary), one("Secondary weapon", database.DyeSecondary)}},
 	dyerChoices[3],

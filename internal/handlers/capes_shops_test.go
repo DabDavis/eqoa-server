@@ -175,10 +175,11 @@ func boxOf(t *testing.T, msgs [][]byte) uint32 {
 }
 
 // An Armor Dyer on a server with capes dyes the cape (dyer.go): "Robe, cape,
-// shield or weapons" names it second, "All my armor" takes it in, "Take every
-// dye off" takes its dye off; its dye is chardyes' cape slot and the colour
-// the character's cape is drawn in (CapeTint), over the record's own. The
-// control: without capes the dyer's "All my armor" leaves the cape's slot alone.
+// shield or weapons" names it second, "My cape" is the first question's third
+// answer, "All my armor" takes it in, "Take every dye off" takes its dye off;
+// its dye is chardyes' cape slot and the colour the character's cape is drawn
+// in (CapeTint), over the record's own. The control: without capes the dyer's
+// "All my armor" leaves the cape's slot alone.
 func TestTheArmorDyerDyesTheCape(t *testing.T) {
 	capesOn(t)
 	tw := newTalkWorld(t, 100, 100)
@@ -221,10 +222,10 @@ func TestTheArmorDyerDyesTheCape(t *testing.T) {
 
 	got := talk()
 	if !hasMsg(got, "box:Armor Dyer: I dye armor and capes*") ||
-		!strings.Contains(got[len(got)-1], ":What shall I dye?|All my armor|One piece of armor|Robe, cape, shield or weapons|Take every dye off") {
+		!strings.HasSuffix(got[len(got)-1], ":What shall I dye?|All my armor|One piece of armor|My cape|Robe, cape, shield or weapons|Take every dye off") {
 		t.Fatalf("the dyer's question with capes: %q", got)
 	}
-	got = pick(got, 2)
+	got = pick(got, 3)
 	if !strings.Contains(got[len(got)-1], ":Which one?|Robe|Cape|Shield|Primary weapon|Secondary weapon") {
 		t.Fatalf("the robe's question: %q", got)
 	}
@@ -236,7 +237,7 @@ func TestTheArmorDyerDyesTheCape(t *testing.T) {
 	if navy := database.RGBA(database.DiscTints[4]); capeDye() != navy {
 		t.Fatalf("all my armor: the cape %08X, want navy", capeDye())
 	}
-	pick(talk(), 3) // Take every dye off
+	pick(talk(), 4) // Take every dye off
 	if capeDye() != 0 || tw.p.CapeTint() != 0x7020A0FF {
 		t.Fatalf("every dye off: the cape %08X, drawn %08X (want its record's)", capeDye(), tw.p.CapeTint())
 	}

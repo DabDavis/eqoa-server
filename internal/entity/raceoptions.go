@@ -432,10 +432,14 @@ type OptionChoice struct {
 // ResolveOptions is what a new character of race and sex wears by its choices:
 // its body (0: none chosen, its race's own) and its looks (a charlook row a part
 // whose step is not the first). An error names a choice no client of the
-// server's own rows could make: a row the race has not, a step past its row's, a
-// row chosen twice.
+// server's own rows could make: a row the race has not (a race with none, the
+// froglok's while creation does not offer it), a step past its row's, a row
+// chosen twice.
 func ResolveOptions(race, sex int, choices []OptionChoice) (body int64, looks []database.CharLook, err error) {
 	rows := RaceOptions(race)
+	if race == raceFroglok && !Creation().Races {
+		rows = nil // the froglok's are offered only while creation offers the froglok (optionRaces)
+	}
 	seen := map[string]bool{}
 	for _, c := range choices {
 		var row *OptionRow

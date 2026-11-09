@@ -40,6 +40,10 @@ import (
 //   - hp_tick and power_tick tick twice at the landing (the legend: "HoT and
 //     PoT tick twice on first effect and every 6seconds after"), then as the
 //     server's ticks do;
+//   - hate_pct (ours, not the workbook's): the share of a hit's damage that
+//     is its hate on the creature, all of it when absent (petition 1372:
+//     Vylinnuza's Merciless Blizzard and Inferno, "little to no aggro
+//     generated", hate_pct 0);
 //   - dispel_on_cast, dispel_on_contact, cure, mitigation, invulnerable,
 //     lull, breath, hide and the lowest level that may receive it
 //     (workbook.go);
@@ -156,6 +160,9 @@ type effectJSON struct {
 	// DebuffScale is a hit that grows with what its target's resist of a
 	// kind is lowered by (SpellEffect.DebuffStat)
 	DebuffScale *debuffScaleJSON `json:"debuff_scale"`
+	// HatePct is the share of a hit's damage, in percent, that is its hate
+	// on the creature it lands on (SpellEffect.HateOff); absent, all of it
+	HatePct *float64 `json:"hate_pct"`
 }
 
 // debuffScaleJSON is an effect's debuff_scale: {"stat": a resist's name, as
@@ -562,6 +569,9 @@ func effectOf(k EffectKind, e effectJSON) SpellEffect {
 		if st, ok := jsonStat(ds.Stat); ok {
 			out.DebuffStat, out.DebuffPct = st, ds.Pct
 		}
+	}
+	if e.HatePct != nil {
+		out.HateOff = 100 - max(0, min(100, round(*e.HatePct))) // only a hit reads it (cast.go)
 	}
 	return out
 }

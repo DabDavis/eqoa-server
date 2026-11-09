@@ -183,12 +183,27 @@ func (w *World) runRespawns(due []respawnDue) {
 // heard of the respawn, and a dump built from that would put the player back
 // where it died. It also reports whether the respawn changed the world.
 func (w *World) PlaceRespawn(id EntityID, x, y, z float32, world uint8) (placed Player, worldChanged, ok bool) {
+	return w.place(id, x, y, z, world, nil)
+}
+
+// PlaceFacing is PlaceRespawn turning the player to facing too (an orb's
+// trip, orbs.go: it lands facing away from the orb it lands beside).
+func (w *World) PlaceFacing(id EntityID, x, y, z float32, world uint8, facing float32) (placed Player, worldChanged, ok bool) {
+	return w.place(id, x, y, z, world, &facing)
+}
+
+// place is PlaceRespawn's and PlaceFacing's move, facing nil to keep the
+// player's.
+func (w *World) place(id EntityID, x, y, z float32, world uint8, facing *float32) (placed Player, worldChanged, ok bool) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
 	p, found := w.Players[id]
 	if !found {
 		return Player{}, false, false
+	}
+	if facing != nil {
+		p.Facing = *facing
 	}
 	oldX, oldZ := p.X, p.Z
 	worldChanged = p.World != world

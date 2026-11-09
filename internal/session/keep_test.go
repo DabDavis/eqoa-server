@@ -282,7 +282,8 @@ func TestKeptClock(t *testing.T) {
 }
 
 // TakeReliable: new, a copy, out of order, the edge of the window, and past
-// 65535.
+// 65535 (a resumed session's copies are the window's, as any session's:
+// rxwindow.go).
 func TestTakeReliable(t *testing.T) {
 	cd := session.NewConnectionData(nil, 1, 2)
 	steps := []struct {
@@ -290,9 +291,10 @@ func TestTakeReliable(t *testing.T) {
 		want bool
 	}{
 		{1, true}, {1, false}, {3, true}, {2, true}, {2, false}, {3, false},
-		{70, true}, {6, false}, // 64 back: counted as taken
-		{7, true},            // 63 back, never taken
-		{0, true}, {0, true}, // 0 is never recorded
+		{68, false}, // 65 past the ack (3): beyond the window, not now
+		{67, true},  // 64 past it: the window's edge
+		{6, true},   // a hole below it, filled
+		{0, false},  // before the ack: a copy
 	}
 	for _, st := range steps {
 		if got := cd.TakeReliable(st.seq); got != st.want {
@@ -300,8 +302,9 @@ func TestTakeReliable(t *testing.T) {
 		}
 	}
 	cd = session.NewConnectionData(nil, 1, 2)
+	cd.SetLastReceivedMessageSeq(65533)
 	for _, seq := range []uint16{65534, 65535, 0, 1} {
-		if seq != 0 && !cd.TakeReliable(seq) {
+		if !cd.TakeReliable(seq) {
 			t.Fatalf("seq %d not new", seq)
 		}
 	}

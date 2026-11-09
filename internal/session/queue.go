@@ -211,7 +211,7 @@ func (q *MessageQueue) RemoveReliables() {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
-	clientAck := q.session.Connection().ClientLastReceivedMessage()
+	clientAck, clientMask := q.session.Connection().ClientAck()
 
 	// Remove messages that have been acknowledged. They are NOT handed back
 	// to the message pool: one may still sit in q.pending (a resend put back
@@ -224,10 +224,10 @@ func (q *MessageQueue) RemoveReliables() {
 	// resend. The garbage collector takes them.
 	newReliable := q.reliable[:0]
 	for _, msg := range q.reliable {
-		if SeqAfter(msg.Sequence, clientAck) {
-			newReliable = append(newReliable, msg)
-		} else {
+		if ClientHolds(msg.Sequence, clientAck, clientMask) {
 			msg.Acked = true
+		} else {
+			newReliable = append(newReliable, msg)
 		}
 	}
 	for i := len(newReliable); i < len(q.reliable); i++ {
@@ -236,9 +236,45 @@ func (q *MessageQueue) RemoveReliables() {
 	q.reliable = newReliable
 }
 
+// ClientHolds reports whether the client holds our reliable message seq by
+// its guaranteed ack and mask: at or before the ack, or a bit of the mask
+// (bit i the message ack+2+i, connection_get_ack_mask's), as CLIENT's own
+// connection_record_guaranteed_ack retires them.
+func ClientHolds(seq, ack uint16, mask uint64) bool {
+	d := int(int16(seq - ack))
+	if d <= 0 {
+		return true
+	}
+	if d >= 2 && d-2 < 64 {
+		return mask>>uint(d-2)&1 != 0
+	}
+	return false
+}
+
+// maxResendWait is the longest a message waits between resends, however
+// often it went: a client gone quiet costs a packet every few seconds, not
+// one every tick (eqoaclassic's dead sessions resent 4 messages each tick, 600
+// lines a minute a session, for as long as they lingered).
+const maxResendWait = 4 * time.Second
+
+// resendWait is how long msg waits after its last send before it goes again:
+// rto, twice as long for each time it already went again (four times at
+// most), never past maxResendWait (or rto, when that is longer).
+func resendWait(msg *protocol.Message, rto time.Duration) time.Duration {
+	n := msg.Tries
+	if n > 3 {
+		n = 3
+	}
+	w := rto << uint(n)
+	if limit := max(rto, maxResendWait); w > limit {
+		w = limit
+	}
+	return w
+}
+
 // HasRetransmits reports whether any unacknowledged reliable message has gone
-// unanswered for longer than delay. Non-mutating, so it is safe to use as a
-// "do we need to send a packet at all" check.
+// unanswered for longer than its wait (resendWait of delay). Non-mutating, so
+// it is safe to use as a "do we need to send a packet at all" check.
 func (q *MessageQueue) HasRetransmits(delay time.Duration) bool {
 	q.mu.Lock()
 	defer q.mu.Unlock()
@@ -246,21 +282,22 @@ func (q *MessageQueue) HasRetransmits(delay time.Duration) bool {
 	if len(q.reliable) == 0 {
 		return false
 	}
-	inPending := q.pendingSeqs()
+	inPending := q.pendingReliablesLocked()
 	now := time.Now()
 	for _, msg := range q.reliable {
-		if inPending[msg.Sequence] {
+		if inPending[msg] {
 			continue
 		}
-		if now.Sub(msg.LastSent) >= delay {
+		if now.Sub(msg.LastSent) >= resendWait(msg, delay) {
 			return true
 		}
 	}
 	return false
 }
 
-// TakeRetransmits returns up to max unacknowledged reliable messages that have
-// gone unanswered for longer than delay, marking each as sent again.
+// TakeRetransmits returns up to max unacknowledged reliable messages whose
+// wait has passed (resendWait of delay), oldest first, marking each as sent
+// again.
 //
 // Without this the server sent every reliable message exactly once. A single
 // lost packet stalled the connection permanently: the PS2 dropped one
@@ -269,34 +306,74 @@ func (q *MessageQueue) HasRetransmits(delay time.Duration) bool {
 // client could never assemble. The Go client never showed it because a
 // loopback UDP socket does not drop.
 func (q *MessageQueue) TakeRetransmits(delay time.Duration, max int) []*protocol.Message {
+	return q.TakeResends(delay, max, 0)
+}
+
+// TakeResends is TakeRetransmits with a budget of bytes (0: none): it takes
+// due messages, oldest first (the one the client waits on before any after
+// it), while they fit the budget, the first whatever its size, so a packet's
+// resends leave room for what is new.
+func (q *MessageQueue) TakeResends(delay time.Duration, max, budget int) []*protocol.Message {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
 	if len(q.reliable) == 0 || max <= 0 {
 		return nil
 	}
-	inPending := q.pendingSeqs()
+	inPending := q.pendingReliablesLocked()
 	now := time.Now()
 
 	var out []*protocol.Message
+	used := 0
 	for _, msg := range q.reliable {
 		if len(out) >= max {
 			break
 		}
-		// Still queued for its first send — not a retransmit.
-		if inPending[msg.Sequence] {
+		// Still queued (its first send, or a resend put back): not now
+		if inPending[msg] {
 			continue
 		}
-		if now.Sub(msg.LastSent) < delay {
+		if now.Sub(msg.LastSent) < resendWait(msg, delay) {
 			continue
+		}
+		size := msg.Size() + 8 // its type, size and number, the opcode
+		if budget > 0 && len(out) > 0 && used+size > budget {
+			break
 		}
 		msg.LastSent = now
+		msg.Tries++
 		out = append(out, msg)
+		used += size
 	}
 	if len(out) > 0 {
 		q.noteResentLocked(len(out), now)
 	}
 	return out
+}
+
+// pendingReliablesLocked is the set of reliable messages still in q.pending,
+// by message: by number it took a state message of the same number for one.
+func (q *MessageQueue) pendingReliablesLocked() map[*protocol.Message]bool {
+	set := make(map[*protocol.Message]bool, len(q.pending))
+	for _, msg := range q.pending {
+		if msg.Type.IsReliable() {
+			set[msg] = true
+		}
+	}
+	return set
+}
+
+// Sendable reports whether a reliable message waits in the queue that may go
+// now: not acknowledged, and within window of the client's ack.
+func (q *MessageQueue) Sendable(ack uint16, window uint16) bool {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	for _, msg := range q.pending {
+		if msg.Type.IsReliable() && !msg.Acked && !SeqAfter(msg.Sequence, ack+window) {
+			return true
+		}
+	}
+	return false
 }
 
 // noteResentLocked counts a packet's resends for the session's stats and,
@@ -333,9 +410,9 @@ func (q *MessageQueue) Report(now time.Time) NetReport {
 // reportLocked is Report with q.mu held.
 func (q *MessageQueue) reportLocked(now time.Time) NetReport {
 	var r NetReport
-	inPending := q.pendingSeqs()
+	inPending := q.pendingReliablesLocked()
 	for _, msg := range q.reliable {
-		if inPending[msg.Sequence] && msg.LastSent.Equal(msg.Queued) {
+		if inPending[msg] && msg.LastSent.Equal(msg.Queued) {
 			continue // queued, never sent
 		}
 		if r.Unacked == 0 {

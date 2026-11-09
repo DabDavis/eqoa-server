@@ -158,6 +158,35 @@ func (st *NetStats) NoteResent(msgs int, now time.Time) {
 	b.pkts++
 }
 
+// The resend timeout (RTO): CLIENT's own, the largest of its last sixteen
+// round trips and 100 ms more (connection_message_get_desired_flush_time:
+// time + m_usTimeout + 100), within minRTO and maxRTO; defaultRTO before a
+// round trip is measured (the server's fixed delay until 2026-11-09).
+const (
+	defaultRTO = 600 * time.Millisecond
+	minRTO     = 250 * time.Millisecond
+	maxRTO     = 3 * time.Second
+)
+
+// RTO is how long a reliable message waits for its acknowledgement before it
+// goes again (its first resend: TakeResends doubles it for each after).
+func (st *NetStats) RTO() time.Duration {
+	st.mu.Lock()
+	defer st.mu.Unlock()
+	if st.rttN == 0 {
+		return defaultRTO
+	}
+	_, _, most := st.rttLocked()
+	rto := most + 100*time.Millisecond
+	if rto < minRTO {
+		rto = minRTO
+	}
+	if rto > maxRTO {
+		rto = maxRTO
+	}
+	return rto
+}
+
 // RTT is the round trip: the smoothed, the least and the most of the last
 // sixteen (0s before a sample).
 func (st *NetStats) RTT() (smooth, least, most time.Duration) {

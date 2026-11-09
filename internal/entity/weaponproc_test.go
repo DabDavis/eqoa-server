@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -233,7 +234,7 @@ func TestGorereaverHitsGoblins(t *testing.T) {
 const katanaWords = "This katana severs heads with great efficiency. Procs 2000 slashing damage, a 10% chance each hit."
 
 // A proc's own chance in its words: "N% chance", "N% a hit", "per swing", from
-// 1 to 100. The controls: no chance in the words (INT's rule, Chance 0), a
+// 1 to 100. The controls: no chance in the words (DEX's rule, Chance 0), a
 // scale's percent, 0% and past 100%.
 func TestAWeaponProcsOwnChance(t *testing.T) {
 	want := WeaponProc{Kind: ProcHit, Damage: 2000, Resist: StatSlash, Chance: 10}
@@ -261,16 +262,16 @@ func TestAWeaponProcsOwnChance(t *testing.T) {
 	}
 }
 
-// The Katana's 10% holds whatever its wielder's INT: a roll of 9 procs its
-// 2,000 and a roll of 10 does not, on a wielder whose INT gives the rule more
-// than 10; #stats says its chance and no INT's. The control: the same words
+// The Katana's 10% holds whatever its wielder's DEX: a roll of 9 procs its
+// 2,000 and a roll of 10 does not, on a wielder whose DEX gives the rule more
+// than 10; #stats says its chance and no DEX's. The control: the same words
 // with no chance procs on that roll of 10, by the rule.
-func TestAWeaponProcsOwnChanceHoldsAtAnyINT(t *testing.T) {
+func TestAWeaponProcsOwnChanceHoldsAtAnyDEX(t *testing.T) {
 	defer func(f func(int) int) { procIntn = f }(procIntn)
 	r := weaponRig(t, "Katana of Severing", katanaWords)
-	r.friend.Int = 400
-	if c := procChancePct(r.friend.StatNow(StatInt)); c <= 10 {
-		t.Fatalf("the wielder's INT gives the rule %d%%, not past 10", c)
+	r.friend.Dex = 400
+	if c := weaponProcChancePct(r.friend.StatNow(StatDex)); c <= 10 {
+		t.Fatalf("the wielder's DEX gives the rule %d%%, not past 10", c)
 	}
 	r.npc.HP, r.npc.MaxHP = 50000, 50000
 	procIntn = dice(9, 99)
@@ -288,14 +289,63 @@ func TestAWeaponProcsOwnChanceHoldsAtAnyINT(t *testing.T) {
 	}
 
 	c := weaponRig(t, "Katana of Severing", "This katana severs heads with great efficiency. Procs 2000 slashing damage.")
-	c.friend.Int = 400
+	c.friend.Dex = 400
 	c.npc.HP, c.npc.MaxHP = 50000, 50000
 	procIntn = dice(10, 99)
 	c.hit()
 	if f := figures(c.fsess); len(f) != 2 || f[1] != -2000 {
 		t.Errorf("the control, no chance in its words, a roll of 10: figures %v", f)
 	}
-	if w := weaponProcWords(c.friend); !strings.Contains(w, "a hit of its hand (INT ") {
+	if w := weaponProcWords(c.friend); !strings.Contains(w, "a hit of its hand (DEX ") {
 		t.Errorf("the control's #stats: %q", w)
+	}
+}
+
+// Petition 1360 (Zaeire: "weapon proc chance scales off dex while ability proc
+// chance scales off int"): a weapon of no chance of its own procs by its
+// wielder's DEX, whatever its INT: a roll one under the DEX rule's chance
+// procs and a roll at it does not. The control: a wielder of low DEX and high
+// INT does not proc on a roll the INT rule would have taken.
+func TestAWeaponProcGoesByDEXNotINT(t *testing.T) {
+	defer func(f func(int) int) { procIntn = f }(procIntn)
+	if got := weaponProcChancePct(400); got != 23 {
+		t.Fatalf("DEX 400: %d%%, want 23", got)
+	}
+	if got := weaponProcChancePct(655); got != procMostPct {
+		t.Fatalf("DEX 655: %d%%, want the most, %d", got, procMostPct)
+	}
+	words := "This katana severs heads with great efficiency. Procs 2000 slashing damage."
+	r := weaponRig(t, "Katana of Severing", words)
+	r.friend.Dex, r.friend.Int = 400, 0
+	pct := weaponProcChancePct(r.friend.StatNow(StatDex))
+	if pct <= procChancePct(r.friend.StatNow(StatInt)) {
+		t.Fatalf("the rig: DEX's rule %d%% is not past INT's %d%%", pct, procChancePct(r.friend.StatNow(StatInt)))
+	}
+	r.npc.HP, r.npc.MaxHP = 50000, 50000
+	procIntn = dice(pct-1, 99)
+	r.hit()
+	if f := figures(r.fsess); len(f) != 2 || f[1] != -2000 {
+		t.Errorf("a roll of %d under DEX's %d%%: figures %v, want the hit and -2000", pct-1, pct, f)
+	}
+	procIntn = dice(pct, 99)
+	r.hit()
+	if f := figures(r.fsess); len(f) != 1 {
+		t.Errorf("a roll of %d at DEX's %d%%: figures %v, want the hit alone", pct, pct, f)
+	}
+	if w := weaponProcWords(r.friend); !strings.Contains(w, fmt.Sprintf("%d%% a hit of its hand (DEX %d)", pct, r.friend.StatNow(StatDex))) {
+		t.Errorf("#stats: %q", w)
+	}
+
+	c := weaponRig(t, "Katana of Severing", words)
+	c.friend.Dex, c.friend.Int = 0, 400
+	dexPct, intPct := weaponProcChancePct(c.friend.StatNow(StatDex)), procChancePct(c.friend.StatNow(StatInt))
+	if intPct <= dexPct {
+		t.Fatalf("the control: INT's rule %d%% is not past DEX's %d%%", intPct, dexPct)
+	}
+	c.npc.HP, c.npc.MaxHP = 50000, 50000
+	procIntn = dice(dexPct, 99) // under INT's chance, at DEX's
+	c.hit()
+	if f := figures(c.fsess); len(f) != 1 {
+		t.Errorf("the control, a roll of %d (INT's %d%%, DEX's %d%%): figures %v, want the hit alone", dexPct, intPct, dexPct, f)
 	}
 }

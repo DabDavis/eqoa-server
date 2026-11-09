@@ -154,6 +154,10 @@ type NPC struct {
 	// EventAggro is a GM trigger's hostile spawn (gmtriggers.go): it
 	// attacks any player on sight, in a town too, whatever their levels.
 	EventAggro bool
+	// castsAt is the NPC a trigger's sic set it on to fight by its whole class
+	// template (SetNPCOn's casts, classtemplate.go): its casts and specials land
+	// on that NPC too, where a fight between two NPCs is their melee alone. 0 none.
+	castsAt EntityID
 
 	// Its melee round (rounds.go): when it began, how many of its hits
 	// have landed, and at whom.

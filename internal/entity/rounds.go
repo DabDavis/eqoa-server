@@ -29,7 +29,8 @@ import (
 
 // npcSwingKind is the swing an NPC fights with: GetSwing for its class (a
 // warrior's when it has none we know) and level, a weapon in the primary
-// and a shield as it carries them.
+// and a shield as it carries them, and the ranged weapon of one that shoots
+// it (npcshoot.go).
 func npcSwingKind(npc *NPC) int {
 	if npc.SwingFixed {
 		return npc.SwingKind
@@ -37,6 +38,7 @@ func npcSwingKind(npc *NPC) int {
 	var worn [21]bool
 	worn[14] = npc.PrimaryWeapon != 0
 	worn[17] = npc.Shield != 0
+	worn[18] = npcShoots(npc)
 	class := npc.Class
 	if class < 0 || class > 14 {
 		class = 0
@@ -58,7 +60,11 @@ func npcRound(npc *NPC) (length, delay time.Duration, fx uint32, hits []time.Dur
 	if npc.SwingFixed && npc.SwingRound > 0 {
 		length = npc.SwingRound // a recorded pet's (petrotation.go)
 	}
-	return length, delay, HashResourceID(SwingEffectName(kind)), swingHits(kind)
+	hits = swingHits(kind)
+	if npcShoots(npc) {
+		hits = npcShotHits(kind) // an arrow a hit (npcshoot.go)
+	}
+	return length, delay, HashResourceID(SwingEffectName(kind)), hits
 }
 
 // swingHits is the times of a round's hits by swing kind, as Sandstorm's

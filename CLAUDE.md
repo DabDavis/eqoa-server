@@ -380,9 +380,22 @@ at the end the run goes on from its end step; `empty` ends it sooner when no pla
 awaittalk (the rest waits for a player of `classes` to talk to the named NPC within the run's reach; `refuse` said to any
 other; `TriggerEngine.Talk`, before the quests), awaitdead (the run's spawns, or `any`: the first death; `seconds` gives up),
 walk and home (the named NPCs run to a place, dropping their fights, and back), hide (out of view for `minutes`, 0 back),
-rouse (the run's spawn attacks on sight). A spawn's `attackable` clears the NPC bit without attacking on sight, its `max`
+rouse (the run's spawn attacks on sight), sic (the run's spawns of `npc`, none all, attack the NPC named `target` nearest
+each within `radius`, and it fights back: the GM triggers that set gods on Mr. Moogie; `World.SetNPCOn`). A fight between
+two NPCs is their melee alone, but a sic with `casts` (the user, 2026-11-09: Tunare, "a strong druid god", fights Mr. Moogie
+with a druid's spells) has its spawns fight the target by their whole class template, its casts held as with a player and
+its timed special after its rounds (`NPC.castsAt`, `npcFightNPCLocked`): its spells land on that NPC less its template's
+resists (`creatureResists`), a tap's share back on the caster, an area spell on that NPC alone (the players near, a raid
+fighting beside it, are no one's foes), a debuff waiting for a player; the target's own fighting back stays its melee (an
+older server reads the step without `casts`). A spawn's `attackable` clears the NPC bit without attacking on sight, its `max`
 caps how many stand near; a teleport's `max` takes the firer, then the nearest, a pet counting as one, `refuse` said to the
-rest. **Quests and deaths fire triggers**: a quest's `trigger` event (with `text` for a held lock), its `dostep` event (the
+rest. **A creature of a ranger's template shoots** (`entity/npcshoot.go`; the user, 2026-11-09, of Erollisi Marr: "let her
+use her bow"): one fighting by a template of class 1, a ranged weapon in its second hand (attack type 7, 9 or 10: `npchands.go`)
+and nothing in its first, swings GetSwing's ranged swing (Range1, Range2, Range4 by its level), whose SPELLFX effect plays the
+second hand's attack and looses its projectile, the bow's arrow (Range3 and Range4 two, each a hit of its own), and fights
+from 25 off (the catalog's bows' reach) where it sees its enemy, closing in only to there (`chaseLocked`); any other NPC's
+swing is a melee one whatever it holds (the Attack effects loose nothing: an archer drew its bow at arm's length), the 77
+rows holding a bow in their second hand on 2026-11-09 among them (none fights by a ranger's template). **Quests and deaths fire triggers**: a quest's `trigger` event (with `text` for a held lock), its `dostep` event (the
 step done on the answer that takes it: a hand-in at once, offered only to one who holds it), and table `npcdeath` (name,
 trigger, chance; GM panel "NPC deaths fire triggers"): a creature's death fires it where it fell, quietly (`Quiet`, no GM
 lines). A refused quest stands aside for a giver's next one for two minutes (`offerRotates`), and a repeatable finished is

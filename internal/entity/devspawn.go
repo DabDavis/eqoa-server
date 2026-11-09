@@ -105,6 +105,7 @@ func (w *World) SpawnNPCCopy(name string, x, y, z, facing float32, world uint8) 
 	c.spots = nil // its own, round its own spawn
 	c.Threats = nil
 	c.CurrentEnemy = 0
+	c.castsAt = 0 // a trigger's sic sets its own (gmtriggers.go)
 	c.LastCombat = time.Time{}
 	c.LastCombatTime = time.Time{}
 	// none of the original's spells: the copy shared their list, a body a

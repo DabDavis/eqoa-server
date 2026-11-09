@@ -437,6 +437,20 @@ var catalog = map[string]tableNote{
 			"mods":     {Format: "json"},
 		},
 	},
+	"charlockouts": {
+		Label: "Character lockouts", Group: "Players", Sort: "serverid",
+		Help: "Each ability still locked out when its character's session ended (a logout, a dropped client, a " +
+			"takeover, a shutdown or restart), a row a spell (entity/lockoutsave.go): the next login refuses the " +
+			"spell until then and shows its badge, so logging out ends no recast. The time logged out counts " +
+			"(a lockout is the cast time, the recast and 0.3 s from the cast's start); a row past its time is " +
+			"nothing. Deleting a row makes that ability ready at the character's next login.",
+		Live: "Read when the character next enters the world; one in the world writes its own over these at its logout.",
+		Cols: map[string]colNote{
+			"serverid": {Label: "Character", Ref: "characters"},
+			"spellid":  {Label: "Spell", Ref: "spellpattern"},
+			"until":    {Label: "Locked out until", Help: "Unix milliseconds (UTC)"},
+		},
+	},
 	"hotkeys": {
 		Label: "Hotkeys", Group: "Players",
 		Help: "Characters' own quick-chat menus (the L2 d-pad), one row a set; a character with no rows has the server's " +

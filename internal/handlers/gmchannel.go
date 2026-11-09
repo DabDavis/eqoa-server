@@ -293,12 +293,13 @@ func (h *ChatHandler) SetGMStores(inv *database.InventoryStore, names nameStore)
 }
 
 // RegisterGMChannel registers 0x0701 and 0x0702, the triggers' names'
-// answer (0x7E07, gmtriggers.go) and a GM's map travel (0x7E35,
-// maptravel.go).
+// answer (0x7E07, gmtriggers.go), a firing by slot (0x7E37, gmtriggers.go)
+// and a GM's map travel (0x7E35, maptravel.go).
 func (h *ChatHandler) RegisterGMChannel(r *Registry) {
 	r.Register(protocol.OpcodeGMCommand, h.HandleGMCommand)
 	r.Register(protocol.OpcodeGMTrigger, h.HandleGMTrigger)
 	r.Register(protocol.OpcodeGMTriggers, h.HandleGMTriggerNames)
+	r.Register(protocol.OpcodeGMTriggerFire, h.HandleGMTriggerFire)
 	r.Register(protocol.OpcodeMapTravelTo, h.HandleMapTravelTo)
 }
 

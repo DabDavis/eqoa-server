@@ -2182,7 +2182,10 @@ func writeItemPattern(w *buffer.Writer, e *database.CharInventoryEntry, capes bo
 	w.Write7BitEncodedInt64(int64(p.PatternID)) // ItemID on wire
 	w.Write7BitEncodedInt64(int64(p.ItemCost))
 	w.Write7BitEncodedInt64(int64(p.Unk1))
-	w.Write7BitEncodedInt64(p.ItemIcon)
+	// the icon as a signed 32-bit DictID, as writeAbilityRecord writes a spell's:
+	// CLIENT's ReadSigned gathers a zigzag into 32 bits, so an icon kept unsigned
+	// (the panel stored a typed 0x... as is until 2026-11-09) lost its top bit
+	w.Write7BitEncodedInt64(int64(int32(p.ItemIcon)))
 	w.Write7BitEncodedInt64(int64(p.Unk2))
 	w.Write7BitEncodedInt64(int64(wireWear(p.EquipSlot, capes)))
 	w.Write7BitEncodedInt64(int64(p.Unk3))

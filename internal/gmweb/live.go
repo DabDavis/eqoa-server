@@ -74,9 +74,15 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 	case "racesize":
 		return s.liveRaceSizes() // live_racesize.go
 	case "racedefs":
-		return s.liveRaceDefs() // live_racesize.go
+		msg := s.liveRaceDefs() // live_racesize.go
+		if s.d.World != nil && s.d.DB != nil {
+			s.d.World.RefreshRaceLooks(s.d.DB) // a race's body is its options' key (raceoptions.go)
+		}
+		return msg
 	case "chardyes":
 		return s.liveDyes(before, after) // live_dyes.go
+	case "charlook":
+		return s.liveLooks() // live_racesize.go
 	case "charvampire":
 		return s.liveVampire(before, after) // live_vampire.go
 	case "gmtriggers", "npcdeath":
@@ -441,6 +447,7 @@ func (s *Server) liveAccount(a *actor, action string, before, after map[string]a
 
 func (s *Server) liveCharacter(a *actor, action string, before, after map[string]any) string {
 	s.refreshRaceLabels(before, after) // live_racesize.go
+	s.refreshRaceLooks(before, after)  // live_racesize.go
 	row := after
 	if row == nil {
 		row = before

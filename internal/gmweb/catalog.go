@@ -283,6 +283,26 @@ var catalog = map[string]tableNote{
 			"source":   {Label: "Source", Help: "gm"},
 		},
 	},
+	"charlook": {
+		Label: "Race looks", Group: "Players", Sort: "serverid",
+		Help: "A part of a custom race's body as its character chose it at creation (entity/raceoptions.go: the race's options, " +
+			"the rows its create page shows): a colour on its fungus cap, its bag, its wings, a texture for its face or hair. " +
+			"Part is the option row's key (cap, growths, bag, skin, tone, wings, dress, hide, horns, bark, leaves, face, hair); " +
+			"kind 2 a colour, 3 a texture; value the colour (a mode in the high byte: 1 a dye, 2 a tone, then three bytes) or " +
+			"the texture's DictID, as creation wrote it from the race's steps. Drawn only by vanilla, which is told them, and " +
+			"only on the body the character wears as its own (characters.modelid: a body it chose is that, not a row here): " +
+			"under an illusion or an armour body it is that body. A PS2 never sees one. A part with no row is the body's own.",
+		Live:   "At once: every client that shows looks is sent the list again, and draws it from its next frame.",
+		Search: []string{"part", "note", "source"},
+		Cols: map[string]colNote{
+			"serverid": {Label: "Character", Ref: "characters"},
+			"part":     {Label: "Part", Help: "the race's option row's key: cap, growths, bag, skin, tone, wings, dress, hide, horns, bark, leaves, face, hair"},
+			"kind":     {Label: "Kind", Help: "2 a colour, 3 a texture"},
+			"value":    {Label: "Value", Format: hex32, Help: "a colour: 0x01HHSSLL a dye (hue, saturation, lightness 0x80 kept), 0x02HHSSLL a tone (hue turned, saturation and lightness scaled, 0x80 kept); a texture: its DictID"},
+			"note":     {Label: "Note", Help: "why"},
+			"source":   {Label: "Source", Help: "creation, or gm"},
+		},
+	},
 	"charvampire": {
 		Label: "Vampires", Group: "Players", Sort: "serverid",
 		Help: "The characters who are vampires, a row each: the sun takes world.vampire_sun_damage (50, Sandstorm's) " +

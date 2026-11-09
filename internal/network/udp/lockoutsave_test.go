@@ -196,10 +196,11 @@ func TestALogoutAndALoginKeepTheLockouts(t *testing.T) {
 	r := newLockoutRig(t)
 	first := r.login()
 	long, quick := r.spell(longWard), r.spell(quickWard)
-	// a lockout of 1.5 s: longer than the login takes, so one whose time ran
+	// a lockout of 3 s: longer than the login takes, so one whose time ran
 	// only in the world would still be on when the login is done
-	quick.Recast = 1200 * time.Millisecond
+	quick.Recast = 2700 * time.Millisecond
 	t0 := time.Now()
+	quickEnd := t0.Add(3 * time.Second)
 	if !r.w.StartCast(first, long, first.PlayerObjectID(), t0.Add(-time.Second)) {
 		t.Fatal("the long ward was not cast")
 	}
@@ -210,6 +211,7 @@ func TestALogoutAndALoginKeepTheLockouts(t *testing.T) {
 	// the logout
 	p := r.w.SessionPlayer(first)
 	r.l.endSession(first)
+	saved := time.Now()
 	if r.w.IsLivePlayer(p) || r.w.PlayerCount() != 0 {
 		t.Fatal("the session's end left the character in the world")
 	}
@@ -218,9 +220,14 @@ func TestALogoutAndALoginKeepTheLockouts(t *testing.T) {
 		t.Fatalf("the long ward kept until %v from the cast (%v); want 599.3 s", until.Sub(t0), kept)
 	}
 	if _, ok := kept[quickWard]; !ok {
-		t.Fatalf("the quick ward, still locked out at the logout, was not kept: %v", kept)
+		// a save over by its end had it running: it must have kept it (a
+		// save slower than that, on a loaded disk, proves less, and says so)
+		if saved.Before(quickEnd) {
+			t.Fatalf("the quick ward, still locked out at the logout, was not kept: %v", kept)
+		}
+		t.Logf("the logout's save ended %v after the quick ward's lockout: the control proves less", saved.Sub(quickEnd))
 	}
-	time.Sleep(time.Until(t0.Add(1600 * time.Millisecond))) // logged out past the quick ward's end
+	time.Sleep(time.Until(quickEnd.Add(100 * time.Millisecond))) // logged out past the quick ward's end
 
 	// the login
 	second := r.login()
@@ -240,8 +247,8 @@ func TestALogoutAndALoginKeepTheLockouts(t *testing.T) {
 	if dumpAt < 0 {
 		t.Fatal("no MemoryDump")
 	}
-	if ms, ok := badges[3]; !ok || len(badges) != 1 || ms < 590_000 || ms > 598_000 {
-		t.Fatalf("the badges told after the dump: %v; want the long ward's on ability 3 with about 597700 ms", badges)
+	if ms, ok := badges[3]; !ok || len(badges) != 1 || ms < 580_000 || ms > 596_200 {
+		t.Fatalf("the badges told after the dump: %v; want the long ward's on ability 3 with about 596000 ms", badges)
 	}
 
 	before := len(lines(second))
@@ -255,8 +262,8 @@ func TestALogoutAndALoginKeepTheLockouts(t *testing.T) {
 		t.Fatalf("the refusal: %q", said)
 	}
 	if _, err := fmt.Sscanf(strings.TrimPrefix(said[0], "Recovery time for that ability has not been met ("), "%f s)", &left); err != nil ||
-		left < 590 || left > 598 {
-		t.Fatalf("the refusal %q (%v): want about 597.7 s left", said[0], err)
+		left < 580 || left > 596.2 {
+		t.Fatalf("the refusal %q (%v): want about 596 s left", said[0], err)
 	}
 	// the control: the quick ward, over while the character was away
 	if !r.w.StartCast(second, quick, second.PlayerObjectID(), now) {

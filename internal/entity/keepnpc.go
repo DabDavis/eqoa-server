@@ -46,13 +46,18 @@ package entity
 //
 // Not written at all, and so as their rows make them, as every restart had them:
 //
-//   - a charmed creature (Owner, Charm), dead or alive: its own again, whole, on
-//     its spawn, in its own world and with its own flags, since the charm itself
-//     does not come through. A released one is an ordinary creature.
+//   - a charmed creature (Owner, Charm), dead or alive: its row makes it, whole,
+//     on its spawn, in its own world and with its own flags, and a living one
+//     whose master comes back is charmed to it again where it stood, with its
+//     share of hit points and its charm's time left (keeppet.go, petition 1363:
+//     left free on its spawn it attacked its master on sight). A released one
+//     is an ordinary creature.
 //   - a training dummy, which never dies and fights no one once its player is
 //     gone; a spawn-only original, which never leaves its spawn.
-//   - what no row made (Temporary): a player's pet, a GM's /spawn, a quest's or a
-//     trigger's copy, a genie, a portal. Nothing makes them again: they are gone.
+//   - what no row made (Temporary): a player's pet (made again by its spell
+//     beside its master who comes back: keeppet.go), a GM's /spawn, a quest's or
+//     a trigger's copy, a genie, a portal. Nothing makes the rest again: they
+//     are gone.
 //
 // A data step in the swap's hold (tools/swap_keep.sh's before.sh) runs after the
 // file is written, so each entry says what its row was, and the row as it is now

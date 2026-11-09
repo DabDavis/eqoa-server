@@ -223,6 +223,9 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 		return nil, fmt.Errorf("character %d: no player made", record.ServerID)
 	}
 	h.gameWorld.RestoreKeptPlayer(sess, kp, now)
+	if kp.Pet != nil {
+		h.restorePet(sess, *kp.Pet, now) // its pet, summoned or charmed (entity/keeppet.go)
+	}
 	resumeRecord(player.CharServerID) // its target window's record lines (combatrecord.go)
 	if kp.Jumps && !h.gameWorld.JumpsAllowed() {
 		// offered the jump before a restart into a server without them (jump.go)
@@ -304,4 +307,22 @@ func ResumeDump(sess *session.Session, dead bool) bool {
 	}
 	SendClientMessage(sess, ResumeLine)
 	return true
+}
+
+// restorePet gives the resumed player back the pet the restart carried
+// (entity/keeppet.go, petition 1363): a summoned one by its spell's record as
+// the database has it now, a charmed one by its creature.
+func (h *CharacterHandler) restorePet(sess *session.Session, k entity.KeptPet, now time.Time) {
+	var spell *entity.CastSpell
+	if k.Spell != 0 && h.spellbookStore != nil {
+		sp, err := h.spellbookStore.SpellPattern(k.Spell)
+		row, _, err2 := h.spellbookStore.SpellEffectRow(k.Spell)
+		if err == nil && err2 == nil && sp != nil {
+			s := castSpellRow(&database.CharSpellEntry{Pattern: *sp}, row)
+			spell = &s
+		} else {
+			log.Printf("Keep: the pet %q's spell %d: %v %v", k.Name, k.Spell, err, err2)
+		}
+	}
+	h.gameWorld.RestorePet(sess, k, spell, now)
 }

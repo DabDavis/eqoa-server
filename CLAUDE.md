@@ -59,7 +59,12 @@ the character built from its row as a login builds it (`enterFromRecord`), each 
 id (an NPC by its row and name, a player by its character; anything else taken away), the groups formed again;
 once the client has reported where it stands (or 2 s) it is sent a MemoryDump there, as a respawn is (one dead
 respawns), with its speed, lockouts and GM channel and "The server was updated. You stayed in the world." A
-fight, a cast on its way, a pet, a duel, a trade and an invitation end. The client's reliable messages are taken
+fight, a cast on its way, a duel, a trade and an invitation end. **A pet comes through with its owner** (`entity/keeppet.go`,
+petition 1363, Battaryhog: "if my mag or enc sets still to long the pets despawn, and the charmed ones attack": ten keep
+restarts in four hours ended every pet, and a charmed creature came back free on its spawn, where its master hunted, and
+attacked him on sight): a summoned pet is made again by its summoning spell beside its owner with its share of hit points
+and its stance, a charmed creature (by its row's id) is charmed to its master again where it stood, under its charm for
+the time that had left, no resist rolled; the client is told after its dump. The client's reliable messages are taken
 once each on a resumed session (`TakeReliable`: it resends what went unanswered through the freeze). A session
 that cannot be put back is told the server went down (0x07C0). The snapshot is read only by the same PID, in its
 format, under 60 s old. A failed exec leaves the server running. **The first swap INTO a binary with this is a
@@ -75,8 +80,8 @@ there); its hit points (the same share when a data step changed its maximum); it
 until they come due and its corpse lies out its decay; what an opened corpse holds (never rolled twice) and a loot
 step's drops. Every client is told they stand before the world freezes (`StandNPCs`: it would carry a walker on along its
 velocity all through the hold and drag it back). A fight ends and the creature runs back to where it began, hurt as it was. Effects on it end. A charmed
-creature, dead or alive, is as its row makes it (free, whole, on its spawn), a pet or a GM's or quest's spawn is
-gone, a dummy and a spawn-only original are not carried. A row a data step changed wins (`RestoreNPCs`): one gone is
+creature, dead or alive, is as its row makes it (free, whole, on its spawn) until its master's session puts it back
+(above), a summoned pet is made again by its spell, a GM's or quest's spawn is gone, a dummy and a spawn-only original are not carried. A row a data step changed wins (`RestoreNPCs`): one gone is
 skipped, one whose spawn or world moved stands on the new one (dead stays dead, its corpse there), and one with both a
 new spawn and another name is another creature. **A new system holding an NPC's state decides here what a restart
 does with it.** Only this path keeps them: a cold start (a `cold` staging, a crash, the GM panel's restart, `#servdown`)

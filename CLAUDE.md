@@ -1248,8 +1248,9 @@ fxdict, spell 1623: 0x8FB28233 on eqoaclassic, `ReturnHomeVisual` without a row)
 handed to the travel hook as a gate's traveller (`travelPlayer`: the teleport, 0x00B2, the world loaded when it changes). As every
 cast here it goes on through a move or a hit (CLIENT has no cancel, and the server stops no cast for either), death ends it, a use
 within another cast's time is let go unanswered, and so is a second stone while the first is on its way (`travelOnItsWayLocked`),
-both asked before the place is looked for (`TravelBusy`: finding Dabrish walks every NPC, so a held quick slot must not). Never spent; a cast on its way ends at a keep restart, as any does. With the switch off a stone held only says "The Rock of
-Freeport is quiet here."
+both asked before the place is looked for (`TravelBusy`: finding Dabrish walks every NPC, so a held quick slot must not). Never
+spent; a cast on its way ends at a keep restart, as any does. With the switch off a stone held only says "The Rock of Freeport is
+quiet here."
 
 ### The L2 menu's quick chat is kept (`handlers/hotkeys.go`, `database/hotkeys.go`)
 

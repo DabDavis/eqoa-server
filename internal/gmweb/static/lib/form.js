@@ -5,7 +5,7 @@
 
 import { h, mount, button, toast, dialog, confirmBox, debounce } from './dom.js';
 import { op, ApiError } from './api.js';
-import { hex32 } from './fmt.js';
+import { hex32, hasBit, withBit } from './fmt.js';
 import { lookupName, describe } from './meta.js';
 import { lookField, parseId, stored } from './look.js';
 
@@ -154,15 +154,13 @@ export class RecordForm {
       const boxes = bits.map((b) => {
         const box = h('input', { type: 'checkbox', disabled: locked });
         box.addEventListener('change', () => {
-          let n = Number(input.value) || 0;
-          n = box.checked ? n | b.bit : n & ~b.bit;
-          input.value = String(n);
+          input.value = String(withBit(input.value, b.bit, box.checked));
           this.refresh();
         });
         flagBox.appendChild(h('label', { title: b.help || '' }, box, b.label));
         return { b, box };
       });
-      const sync = () => { const n = Number(input.value) || 0; boxes.forEach(({ b, box }) => { box.checked = (n & b.bit) === b.bit; }); };
+      const sync = () => { boxes.forEach(({ b, box }) => { box.checked = hasBit(input.value, b.bit); }); };
       input.addEventListener('input', sync);
       sync();
     }

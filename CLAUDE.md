@@ -1178,6 +1178,19 @@ texture is its tribe's skin, a skeleton's skull its bone's colour): the faces co
 whose texture is one of the 64x64 hair strips (the eight player hairs, the NPCs' black `B5632329`, auburn `EF0C9AEB` and
 white `87BFA9B5`) takes any of the eight (`hairSteps`, its first step Natural, 0: the body's own whatever it wears): the
 goblins', orcs', kappas' and the dryad's kin's hair, the kerrans' manes.
+**Races 30 and 31** (2026-11-09, the owner: "lets add jael raethe as a playable race, they are floating monk, alien type
+creatures", then "lets add a wisp also as a playable race, the armor will form like a human and also the weapons swing like
+humans. like when humans are invis, but the wisp is inside the helm"): the Jal'Raeth (30, an Erudite, Highbourne: they live on
+Odus beside it) choose their robed, channeler's or knight's body; the Wisp (31, a western human, Qeynos) is a human of its sex
+whose row `wisp` is laid always (`OptionRow.Always`: its charlook row is written at any step and with no options block, so
+every client that asked is told its Wisps by name; the value is the will o' wisp's body, no texture, so an older client lays
+nothing, and vanilla draws the body as its armour alone with the wisp in the helm). Rows go by a race's own male body, so
+another custom race made on HumanMale would be a Wisp too: give it its own key first. A PS2 shows a Wisp as a human in its
+armour: the invisible bit (byte 154) would hide its armour too (CLIENT's `SetSkinsVisible(0)` takes the body and all worn on
+it, leaving the held items, the helm and the name), and vanilla could not tell a Wisp's real invisibility from it. The rows,
+start spots, items and standings are `~/.cache/jalraeth1109/deploy/new_races_20261109.py` (exact `--undo`; run it with a
+binary of `LastCustomRace` 52: an older one refuses race 31's row). **`LastCustomRace` is 52** (was 30): a race's bit in
+`cmcatalog.races` stays an integer a JSON number holds, and the GM panel tests flag bits with BigInt (`lib/fmt.js`).
 - **Kept**: a body chosen is `characters.modelid`, which every client draws (a PS2 too), the entity channel's scale its size
   against the race's own (`Player.Body`: `OptionBodySize`); a colour or a texture past a row's first step is a **`charlook`**
   row (serverid, part = the row's key, kind 2/3, value), which only a client that asked is told. A character with no row and
@@ -1192,7 +1205,9 @@ goblins', orcs', kappas' and the dryad's kin's hair, the kerrans' manes.
   character's look, by name, a GM's under both names, each part resolved to the palette entries and rects of the character's
   own body: drawn only on that body, never under an illusion or an armour body), and the looks again after a creation, a
   deletion, a GM's edit of charlook, racedefs or a custom race's character, and a keep restart (the session flags are kept).
-  A PS2 ignores the offer.
+  A PS2 ignores the offer. **A login's world entry sends them again** with creation's races (`resendPregameExtras`, from
+  `SendMemoryDump`): they went on the lobby's connection, which the client closes at the promotion, so one that selected
+  before they all came had lost them (vanilla's `eqoa play` selects a second after its list: a Wisp drawn as a plain human).
 - **Armour**: `racearmorbody` rows are the race's own body's: a body the character chose (`ChosenBody`) is its look and is
   kept in any armour (vanilla lays the armour on it as on any slotless body; a PS2 shows it bare, as the hill giant's own
   body was before racearmorbody). The hill giant's female steps start with the female hill giant (racedefs' `body_female` is

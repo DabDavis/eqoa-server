@@ -608,6 +608,7 @@ func (l *Listener) endSession(sess *session.Session) {
 		if l.charStore != nil {
 			l.savePlayerPosition(sess)
 			l.saveEffects(sess)
+			l.saveLockouts(sess) // lockoutsave.go
 			l.saveFactions(sess)
 			l.saveMastery(sess)
 			l.saveRez(sess) // rezsave.go
@@ -697,7 +698,7 @@ func (l *Listener) saveMastery(sess *session.Session) {
 }
 
 // SaveAll saves every player in the world as a logout would (position, spell
-// effects, standings and mastery points), for a shutdown: a restart is a logout for everyone
+// effects, lockouts, standings and mastery points), for a shutdown: a restart is a logout for everyone
 // in it, and before this one the state since each login was lost.
 // NoticeShutdown tells every client (each session is a game connected, in
 // the world or before it) that the server is going: 0x07C0, CLIENT's Disconnect(17), "The server has been shutdown by a
@@ -744,6 +745,7 @@ func (l *Listener) SaveAll() {
 	for _, sess := range inWorld {
 		l.savePlayerPosition(sess)
 		l.saveEffects(sess)
+		l.saveLockouts(sess) // lockoutsave.go
 		l.saveFactions(sess)
 		l.saveMastery(sess)
 		l.saveRez(sess) // rezsave.go

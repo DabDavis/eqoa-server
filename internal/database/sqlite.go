@@ -636,6 +636,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensurePotionCooldowns(); err != nil { // potioncooldown.go
 		return err
 	}
+	if err := db.ensureCharLockouts(); err != nil { // lockouts.go
+		return err
+	}
 	if err := db.ensureItemEffects(); err != nil {
 		return err
 	}
@@ -1073,6 +1076,10 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 	}
 	// and the look it chose (charlook.go)
 	if _, err := s.db.Exec(`DELETE FROM charlook WHERE serverid = ?`, serverID); err != nil {
+		return err
+	}
+	// and its abilities' lockouts (lockouts.go)
+	if _, err := s.db.Exec(`DELETE FROM charlockouts WHERE serverid = ?`, serverID); err != nil {
 		return err
 	}
 	// and its tradeskills and recipe book (craft.go), for the same reason

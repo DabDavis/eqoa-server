@@ -29,15 +29,17 @@ import (
 //     client named him by (each buy and sale hands it back), while he is in
 //     reach (windowNPC), as a genie's wares open (genie.go);
 //   - Grant basic spells: every spell of the player's class a merchant sells
-//     as a scroll (spellArchive.basic) that its book lacks, by its record or
-//     its exact name as the scribe tells a spell known (scribe.go), at the next
-//     display indices below 252, off the bar, as a scroll scribed goes in; the
-//     client is sent 0x00B3 for each with the flag 0, so word 721 ("You have
-//     gained a new ability.") is not said dozens of times, and one box says
-//     how many;
+//     as a scroll (spellArchive.basic) and, since petition 1361, every one its
+//     quests teach beside the paths (sideSpells, archivistside.go: the class
+//     quests' level 3 to 15 spells, the ability quests' 23 to 47, ...), that
+//     its book lacks, by its record or its exact name as the scribe tells a
+//     spell known (scribe.go), at the next display indices below 252, off the
+//     bar, as a scroll scribed goes in; nothing is taken out. The client is
+//     sent 0x00B3 for each with the flag 0, so word 721 ("You have gained a
+//     new ability.") is not said dozens of times, and one box says how many;
 //   - Grant path spells: one path of the class's at a time, the spells its
-//     path reward quests give at 30, 40 and 49 (archivistpaths.go: petition
-//     1325), another path's taken out for it;
+//     path quests give at 20, 30, 40 and 49 (archivistpaths.go: petitions
+//     1325 and 1361), another path's taken out for it;
 //   - Clear my spellbook: every spell and ability out of the book but Return
 //     Home (any record so named; its bar slot stays), asked Yes or No first.
 //     The client's book loses each at once by 0x00B8, which erases the FIRST
@@ -90,13 +92,13 @@ const (
 // answer 63 and a box 217 (questBoxChars), his name included.
 const (
 	archivistQuestion       = SpellArchivistName + ": 'Your calling's scrolls and paths are in my keeping. I can write their spells into your book, or clear it.'"
-	archivistClearIs        = "I take every spell and ability out of your book but Return Home, those your quests and masteries gave too. Only what the merchants sell can I grant you again."
+	archivistClearIs        = "I take every spell and ability out of your book but Return Home, those your quests and masteries gave too. What the merchants sell and your calling's quests teach I can grant again, and one path."
 	archivistClearAsk       = SpellArchivistName + ": 'Shall I clear your book?'"
 	archivistClearYes       = "Yes, clear it"
 	archivistClearNo        = "No"
-	archivistGranted        = "There: %s of your calling written into your book, every one the merchants sell up to level %d that you lacked."
+	archivistGranted        = "There: %s of your calling written into your book, every one the merchants sell or its quests teach up to level %d that you lacked."
 	archivistGrantedSome    = "There: %s written into your book, which has no room for %d more. Make room in it and ask again."
-	archivistHasAll         = "Your book holds every spell of your calling the merchants sell up to level %d already."
+	archivistHasAll         = "Your book holds every spell of your calling the merchants sell or its quests teach up to level %d already."
 	archivistBookFull       = "Your book has no room for another spell."
 	archivistCleared        = "Your book is clear but for Return Home: %s gone."
 	archivistNothingToClear = "Your book holds nothing but Return Home: there is nothing to clear."
@@ -300,7 +302,7 @@ func (a *Archivist) grant(sess *session.Session, id uint32) {
 		return
 	}
 	level := min(p.Level, archivistLevelCap)
-	want := lacking(book, arch.basic(p.Class, p.Race, p.Level))
+	want := lacking(book, basicSpells(a.quests(), arch, p.Class, p.Race, p.Level))
 	if len(want) == 0 {
 		a.say(sess, fmt.Sprintf(archivistHasAll, level))
 		return
@@ -438,8 +440,11 @@ type spellArchive struct {
 	spells  *spellIndex
 	names   map[int]database.SpellName // every spell pattern by id (the paths', archivistpaths.go)
 	sold    map[string]int             // the scrolls' class masks by their names' spellKey (soldTo)
-	descs   map[int]string
-	sources map[int]map[int]string // spell -> class -> source
+	// every scroll's record by patternid, sold or not: a quest's reward
+	// scroll is read off it (archivistside.go)
+	scrollRecs map[int]database.MerchantScroll
+	descs      map[int]string
+	sources    map[int]map[int]string // spell -> class -> source
 }
 
 // archived is the archive, read again when it is older than archiveTTL.
@@ -466,6 +471,9 @@ func loadSpellArchive(s *database.SpellbookStore) (*spellArchive, error) {
 	a.sold = make(map[string]int, len(a.scrolls))
 	for _, sc := range a.scrolls {
 		a.sold[spellKey(sc.Name)] |= sc.ClassUse
+	}
+	if a.scrollRecs, err = s.ScrollRecords(scrollIcon); err != nil {
+		return nil, fmt.Errorf("the scrolls: %w", err)
 	}
 	names, err := s.SpellNames()
 	if err != nil {

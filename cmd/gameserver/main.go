@@ -779,7 +779,7 @@ func main() {
 	// The server's own worlds, built from the operator's disc by cmd/worldbuild
 	// (worldN.ESF and its built recipe, worldN.json): offered to a client that
 	// builds the same off its own disc (handlers/serverworlds.go)
-	for _, b := range handlers.LoadServerWorlds(cfg.Patch.WorldsDir) {
+	for _, b := range handlers.LoadServerWorlds(cfg.Patch.WorldsDir, cfg.World.ServerWorlds) {
 		entity.SetComposedWorld(uint8(b.World), true)
 	}
 	if avail := worlds.Available(cfg.Patch.WorldsDir, 8, handlers.WorldCount); len(avail) > 0 {

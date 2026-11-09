@@ -148,16 +148,17 @@ func TestServerWorldsOfferAndWhatAClientHolds(t *testing.T) {
 	}
 }
 
-// A built world is offered only when its file is there with the size its
-// built recipe says: the slot is named for it then. The controls: no recipe,
-// a file of another size, a recipe naming another slot.
+// A built world is offered only when its slot is listed (world.server_worlds)
+// and its file is there with the size its built recipe says: the slot is named
+// for it then. The controls: no recipe, a file of another size, no slot listed,
+// a recipe naming another slot.
 func TestLoadServerWorlds(t *testing.T) {
 	dir := t.TempDir()
 	t.Cleanup(func() { SetServerWorlds(nil); worldNames[10] = "world10" })
 	b := homelands()
 	b.Size = 64
 	j, _ := json.Marshal(b)
-	if got := LoadServerWorlds(dir); len(got) != 0 {
+	if got := LoadServerWorlds(dir, []int{10}); len(got) != 0 {
 		t.Fatalf("an empty folder: %v", got)
 	}
 	if err := os.WriteFile(filepath.Join(dir, "world10.json"), j, 0o644); err != nil {
@@ -166,13 +167,16 @@ func TestLoadServerWorlds(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dir, "world10.ESF"), make([]byte, 63), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if got := LoadServerWorlds(dir); len(got) != 0 || worldName(10) != "world10" {
+	if got := LoadServerWorlds(dir, []int{10}); len(got) != 0 || worldName(10) != "world10" {
 		t.Fatalf("a file of another size: %v, %q", got, worldName(10))
 	}
 	if err := os.WriteFile(filepath.Join(dir, "world10.ESF"), make([]byte, 64), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	got := LoadServerWorlds(dir)
+	if got := LoadServerWorlds(dir, nil); len(got) != 0 {
+		t.Fatalf("no slot listed: %v", got)
+	}
+	got := LoadServerWorlds(dir, []int{10})
 	if len(got) != 1 || got[0].World != 10 || worldName(10) != "the Homelands" {
 		t.Fatalf("loaded %v, named %q", got, worldName(10))
 	}
@@ -184,7 +188,7 @@ func TestLoadServerWorlds(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dir, "world10.json"), j, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if got := LoadServerWorlds(dir); len(got) != 0 {
+	if got := LoadServerWorlds(dir, []int{10}); len(got) != 0 {
 		t.Fatalf("a recipe of another slot: %v", got)
 	}
 }

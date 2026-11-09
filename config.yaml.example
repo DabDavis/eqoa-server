@@ -67,6 +67,12 @@ world:
   # and classes.
   # open_races: true
   # all_classes: true
+  # The worlds of the disc's own zones this server offers to clients that build
+  # them off their own disc (vanilla): cmd/worldbuild writes worldN.ESF and
+  # worldN.json into the worlds folder from the operator's disc first
+  # (tools/worlds/homelands.json is the Homelands, slot 10), then groundbake
+  # -world 10=worlds/world10.ESF its ground. None unless listed.
+  # server_worlds: [10]
 
   # The most NPCs and players (the player's own among them) a client that
   # keeps more than the game's 24 may have in view, and the farthest they are

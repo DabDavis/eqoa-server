@@ -433,6 +433,21 @@ no session is the disc's six, and an offline character logs in only there): a cl
 to load a world its table lacks stayed where it was while the server filed it under that
 world. World 8 is labelled "World 8 (HDD)" (it was "Guk" while worlds came off the card).
 
+**Worlds of the disc's own zones** (`internal/worlds`, `cmd/worldbuild`, `handlers/serverworlds.go`; the owner,
+2026-11-08: "new world with a zone for each new race"; `claude-notes/race-homelands-20261108.md`): a recipe
+(`tools/worlds/homelands.json`, the Homelands, slot 10: a zone of the disc for each race of racedefs) names
+zones by disc file and index; `worldbuild -iso <disc> -recipe <json> -out worlds` copies each whole, where it
+stands on the disc (one zone a cell; its ResourceTable and ZoneStaticTable offsets moved), into `worldN.ESF`
+in retail's shape, with `worldN.json` (each zone's record CRC, the file's), and `groundbake -world N=path`
+bakes its ground. A shard lists the slots it offers (`world.server_worlds: [10]`); after a session's first
+character list it offers them (0x7E30) and a client that builds the same file off its own disc (vanilla,
+byte for byte, the CRCs checked) is sent the recipe (0x7E31) and says which it holds, which `LoadableWorlds`
+then takes for that session (kept through a keep restart). A login in such a world resumes there for a
+client that holds it, else on its race's mainland spot (`database.MainlandPlace`: its wire race's start row
+for its class). Nothing of the disc goes over the wire, and a PS2 never sees one. The homes' people, starts
+and flavour are `tools/seed_race_homes.py`'s (exact `--undo`), their quests `tools/quests/data/homelands.json`
+(a gatekeeper's `teleport` with `"to": "mainland"` and `"bind": true`: FORMAT.md).
+
 ### The server's own view of a player's moves (`entity/movecheck.go`, `#movecheck`)
 
 A client says where it is in its state channel (0x40), and until 2026-11-01 the server took every

@@ -778,7 +778,7 @@ func (e *TriggerEngine) stepLocked(r *triggerRun, s database.TriggerStep) string
 			if strings.TrimSpace(s.NPC) != "" && !strings.EqualFold(sp.name, strings.TrimSpace(s.NPC)) {
 				continue
 			}
-			if name, ok := e.gw.SetNPCOn(sp.id, s.Target, e.reachOf(r, s)); ok {
+			if name, ok := e.gw.SetNPCOn(sp.id, s.Target, e.reachOf(r, s), s.Casts); ok {
 				n, on = n+1, name
 			}
 		}

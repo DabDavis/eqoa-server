@@ -34,8 +34,9 @@ const triggerStepsHelp = `the steps in order, each {"do", ...}: broadcast {text}
 	`from its end step, empty the seconds with nobody in reach that end it too; end; awaittalk {npc, classes, text, refuse, seconds} the rest waits for a ` +
 	`player to talk to that NPC in reach of the place; awaitdead {npc, any, seconds} for its spawns (of that name; none: all) to be dead, any: for one to die; ` +
 	`walk {npc, x, y, z, radius} those NPCs near the place run there; home {npc, radius} and back; hide {npc, radius, minutes} out of every view (0: back); ` +
-	`rouse {npc} the run's spawns of that name attack on sight; sic {npc, target, radius} the run's spawns of that name (none: all) ` +
-	`attack the NPC named target nearest each within radius (0: the run's reach), and it fights back; teleport also takes max (how many, the nearest first, a pet counting as one) and refuse ` +
+	`rouse {npc} the run's spawns of that name attack on sight; sic {npc, target, radius, casts} the run's spawns of that name (none: all) ` +
+	`attack the NPC named target nearest each within radius (0: the run's reach), and it fights back; casts: they fight it by their whole class ` +
+	`template, its spells and specials as well as its melee (without it two NPCs fight by their melee alone); teleport also takes max (how many, the nearest first, a pet counting as one) and refuse ` +
 	`(said to those left); spawn also takes attackable (it may be attacked, and does not attack on sight). text may hold %p, each ` +
 	`player's name. The players a step reaches are looked at as it runs`
 

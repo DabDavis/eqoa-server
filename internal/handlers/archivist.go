@@ -75,10 +75,12 @@ const (
 	archivistGrant
 	archivistPath
 	archivistClear
+	archivistUnlock // petition 1391 (archivistunlock.go)
 	archivistNothing
 )
 
-var archivistAnswers = []string{"Browse your scrolls", "Grant basic spells", "Grant path spells", "Clear my spellbook", "Nothing, thank you"}
+var archivistAnswers = []string{"Browse your scrolls", "Grant basic spells", "Grant path spells", "Clear my spellbook", archivistUnlockAnswer,
+	"Nothing, thank you"}
 
 // The questions he asks.
 const (
@@ -238,6 +240,8 @@ func (a *Archivist) Answer(sess *session.Session, p *entity.Player, box uint32, 
 			a.askPaths(sess, ask.npc)
 		case archivistClear:
 			a.askClear(sess, ask.npc)
+		case archivistUnlock:
+			a.unlockMasteries(sess, ask.npc)
 		}
 	case archivistAskClear:
 		if n == 0 {

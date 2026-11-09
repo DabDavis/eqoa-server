@@ -240,6 +240,11 @@ type NPC struct {
 	// sheet is a workbook pet's petstats row (petstats.go), nil for every
 	// other NPC
 	sheet *petSheet
+
+	// challenge is the duel Mr. Moogie's challenge stood it in (metalmoogie.go):
+	// the one player it fights and the one alone who may hurt it, and whose its
+	// corpse's loot is; nil for every other NPC. Its corpse keeps it.
+	challenge *npcChallenge
 }
 
 // GetEntityID returns the NPC's entity ID.

@@ -151,8 +151,8 @@ func (w *World) SetNPCOn(id EntityID, target string, reach float32, casts bool) 
 	var best *NPC
 	var bestD float32
 	for _, n := range w.npcsNearLocked(strings.TrimSpace(target), c.World, c.X, c.Z, reach) {
-		if n == c || n.Owner != 0 || n.Dummy != NotDummy || n.hiddenAt(now) {
-			continue
+		if n == c || n.Owner != 0 || n.Dummy != NotDummy || n.hiddenAt(now) || n.challenge != nil {
+			continue // a Metal Moogie is his challenger's alone (metalmoogie.go)
 		}
 		if d := distXZ(c.X, c.Z, n.X, n.Z); best == nil || d < bestD {
 			best, bestD = n, d

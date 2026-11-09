@@ -323,6 +323,10 @@ func (w *World) engageLocked(sess *session.Session, p *Player, objectID uint32, 
 		// swinging at it, though the 0x000F still comes.
 		return false
 	}
+	if line := challengeRefusal(npc, p.ServerID); line != "" {
+		w.tellChallengeLocked(sess, p, line, now) // another's duel (metalmoogie.go)
+		return false
+	}
 	p.Swing, p.swingNew = swing, false
 	if p.AttackTarget == npc.ServerID && p.AttackObjectID == objectID {
 		p.pressed(now) // a press with the client's timer run out: its timer from the press

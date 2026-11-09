@@ -1100,6 +1100,12 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 		if t.NPCType&0x80 != 0 {
 			return nil, castFriendly // not attackable (CLIENT's own test, +0x25A & 0x80)
 		}
+		if line := challengeRefusal(t, p.ServerID); line != "" {
+			return nil, line // another's duel (metalmoogie.go)
+		}
+		if t.challenge != nil && d.Charms() {
+			return nil, MetalLineCharm
+		}
 		if reach := spell.Range + npcReachExtra(t); outOfRange(p, t.X, t.Y, t.Z, reach) {
 			return nil, refuseOutOfRange(p, spell, t.Name, t.X, t.Y, t.Z, reach)
 		}
@@ -1417,6 +1423,8 @@ func lastingParts(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 			if !ae.PowerCapped || e.Amount < ae.PowerCap {
 				ae.PowerCap, ae.PowerCapped = e.Amount, true
 			}
+		case EffectSize:
+			ae.Rules.Grow += e.Amount // the body's scale (Player.Body)
 		default:
 			continue
 		}
@@ -1623,6 +1631,9 @@ func (w *World) runTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 // what lasts (a damage tick; a hold, a slow or a stat change is kept, though
 // no creature moves or uses its stats yet).
 func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *session.Session, npc *NPC, now time.Time) {
+	if challengeBars(npc, caster.ServerID) {
+		return // another's duel: nothing of the spell lands (metalmoogie.go)
+	}
 	caster.LastCombatTime = now
 	cs, took := w.resistLocked(cs, caster, casterSess, npc, now) // workbook.go: its resists
 	if !took {

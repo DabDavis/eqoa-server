@@ -61,7 +61,7 @@ func stripSpell(a database.TemplateAbility) *CastSpell {
 // gave), or the towns' Boon.
 func beneficialEffect(ae *ActiveEffect) bool {
 	switch {
-	case ae.Rules.Harm || ae.duelFoe != 0 || ae.npcFoe != 0 || ae.SpellID == BoonEffectID:
+	case ae.Rules.Harm || ae.duelFoe != 0 || ae.npcFoe != 0 || ae.SpellID == BoonEffectID || ae.Rules.Kept:
 		return false
 	case ae.gives():
 		return true
@@ -77,7 +77,7 @@ func (ae *ActiveEffect) gives() bool {
 	r := &ae.Rules
 	return ae.Mods.gives() || ae.HPTick > 0 || ae.PowerTick > 0 || ae.Speed || ae.Invis || ae.Form != 0 ||
 		ae.Shield != nil || ae.Proc != 0 || ae.ProcMax != 0 || len(ae.ProcSpells) > 0 || ae.Food != nil ||
-		r.MitigatePct > 0 || r.Breath || r.Hide || r.ProcHeal != 0 || r.Disguise
+		r.MitigatePct > 0 || r.Breath || r.Hide || r.ProcHeal != 0 || r.Disguise || r.Grow > 0
 }
 
 // costs reports whether an effect costs its bearer anything: a stat taken, a tick that takes hit

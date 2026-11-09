@@ -147,9 +147,34 @@ func (w *World) illusionBodyLocked(form string, sex int) (model uint32, size flo
 
 // Body is the model and scale the player is shown with: the newest
 // illusion's (its body, at the creature's size or the player's own), else
-// its own. A were form on a player who keeps its own body (wereownbody.go)
-// shows none.
+// its own, as bigger or smaller as its effects make it (EffectSize: Mr.
+// Moogie's Duelist's Favor, half again as big). A were form on a player who
+// keeps its own body (wereownbody.go) shows none.
 func (p *Player) Body() (model uint32, size float32) {
+	model, size = p.ownBody()
+	return model, size * p.grown()
+}
+
+// GrowMost and GrowLeast bound what effects make a body's scale (Player.grown).
+const (
+	GrowMost  float32 = 4
+	GrowLeast float32 = 0.1
+)
+
+// grown is what the player's effects make its body's scale: each EffectSize's
+// share in turn (+50: half again), between GrowLeast and GrowMost; 1 with none.
+func (p *Player) grown() float32 {
+	g := float32(1)
+	for _, e := range p.Effects {
+		if e.Rules.Grow != 0 {
+			g *= 1 + float32(e.Rules.Grow)/100
+		}
+	}
+	return min(max(g, GrowLeast), GrowMost)
+}
+
+// ownBody is Body before what effects make its scale.
+func (p *Player) ownBody() (model uint32, size float32) {
 	if p.GMForm != 0 { // a GM's Change Sprite (gmchannel.go)
 		if p.GMFormSize > 0 {
 			return p.GMForm, p.GMFormSize

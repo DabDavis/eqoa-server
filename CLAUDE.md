@@ -1061,6 +1061,35 @@ existing total up to 1000. It wont remove CM's.") asks for a range (levels 5 to 
 counted together, never taken down (`ChatHandler.giveMastery`). Boxes under mark 0x5C000000. He stands on the Heirloom
 Test Server alone, beside the Freeport Announcements board (`~/charmigrate/dabrish_20261108.py` on the box: the body
 of Scribe of Marr, a robed gnome).
+**Mr. Moogie's challenge: Metal Moogie** (`entity/metalmoogie.go`, `handlers/metalmoogie.go`; the GM Jibrish's petitions 1379
+and 1380, by Jibcro: "add the reply option specifically to say "I'd like to prove my worth" ... It locks the player into a
+duel with metal moogie. No other players can hit it except the player who challenged, like a duel. If they defeat it they
+can loot a single "Moogie Tribute" which can be turned into to Mr. Moogie to receive a buff called Duelists Favor", "If Metal
+Moogie defeats the player in a duel, he should despawn and mr. moogie shout call the player pathetic in /say"). Mr. Moogie's
+box keeps his own answers and adds "I'd like to prove my worth" while a spawn-only NPC named Metal Moogie is on the server, and
+"I bring you a Moogie Tribute" to one holding the item (by its name) while the spell "Duelist's Favor" exists (by its name).
+The challenge copies the spawn-only original (as a trigger's spawn: Temporary, its class template's with it) at its own spot
+when that is within 60 of Mr. Moogie, else 25 off him toward the challenger, on the ground's floor; one stands at a time on the
+whole server (another's ask is refused naming whom he duels). The duel is the challenger's alone: anyone else's melee is not
+engaged, a harmful spell at him refused and an area spell passes him, another's pet will not attack him (each told in a red
+line, at most one in 4 s: `challengeBars`), hate from anyone but the challenger is none (`addThreatLocked`: a bystander's heal
+on the challenger too, though the heal lands, as in a duel), no guard, social helper or trigger's sic takes him on, he attacks
+no one on sight, a pet's taunt does not turn him, and he takes the challenger up again whenever he lets go (a feigned death);
+the challenger's own pet may hurt him. Every client but the challenger's is sent him with the NPC bit (byte 146 0x80, 143 0:
+CLIENT swings at no such creature; a click talks to him and is answered in a line). The challenger may not have Mr. Moogie's
+help while it lasts. It ends: at his death (his corpse lies its time, its one item his npcitem row, the challenger's alone to
+loot: `ChallengeLooter`; no experience, coins, loot table or category roll); at the challenger's defeat, the hit it could not
+take (`playerDownLocked`): a duel's loser, left at 1 HP (no death or debt, held there 1 s against what was on its way), he
+leaves the world at once and Mr. Moogie says "Pathetic, <name>! ..." in /say to every player within 200 of him; when the
+challenger leaves the world, goes to another, or goes past 60 of the arena's centre (halfway between where he rose and where
+it stood); after 15 minutes. A keep restart carries no Temporary NPC: a duel on then ends. The tribute handed in is taken out
+of the pack (0x003C) and lands the Duelist's Favor as a self cast (`World.GiveDuelistsFavor`), kept (`EffectRules.Kept`: Mr.
+Moogie's own "Clear my buffs" and a strip leave it on, as the Boon; `#clearbuffs`, its time and a death end it). **A spell line
+may make its bearer bigger or smaller**: "Increase Size by 50%" (`EffectSize`, "decrease" for smaller, at most 300 up and 90
+down; `EffectRules.Grow`, kept over a logout) scales `Player.Body`'s size, the state channel's bytes 36-39 every client draws,
+the effects' shares multiplied, between 0.1 and 4. His figures are data (`~/.cache/metalmoogie1109/metalmoogie_20261109.py`:
+level 60 on the disc's mechanical rat at 7.5 (twice Mr. Moogie as drawn), a template of 347% hit points, melee 750%, a 750 kick every 6 s, Clockwork Siphon
+every 30 s, Static Discharge at 25%); `TestRealMetalMoogie` (`EQOA_REAL_DB`) holds a database it was applied to to them.
 
 **The heirloom weapons are epics** (`tools/heirloom_epics.py [--list] [--apply|--undo]`, over the seed's records; the
 user, 2026-11-06: "the heirloom weapons for every class lets make their lvl 60 epics. also add extra choices of weapons

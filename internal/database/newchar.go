@@ -91,6 +91,30 @@ const raceFroglok = 10
 // when the race has no row at all (the record keeps the origin, and the login
 // spawn takes it).
 func (s *SQLiteCharacterStore) startPlace(c *CharacterRecord) (string, bool) {
+	return s.placeOf(c, true)
+}
+
+// MainlandPlace puts a character on its race's spot on the disc's worlds: a
+// race of racedefs on its wire race's row (and a human-passing race's city), as
+// startPlace put one before its own rows sent it to a homeland (a server's own
+// world, handlers/serverworlds.go), any other race on its own. For a login into
+// a homeland its client cannot load. False when there is no such row, or the
+// row is not on the disc's worlds.
+func (s *SQLiteCharacterStore) MainlandPlace(c *CharacterRecord) bool {
+	at := *c
+	if _, ok := s.placeOf(&at, false); !ok || at.World < 0 || at.World >= discWorldCount {
+		return false
+	}
+	c.X, c.Y, c.Z, c.Facing, c.World = at.X, at.Y, at.Z, at.Facing, at.World
+	return true
+}
+
+// discWorldCount is the disc's worlds (handlers' discWorlds).
+const discWorldCount = 6
+
+// placeOf is startPlace, a race of racedefs taking its own rows when own and
+// it has any, else its wire race's.
+func (s *SQLiteCharacterStore) placeOf(c *CharacterRecord, own bool) (string, bool) {
 	race, hum := c.Race, c.HumType
 	home := race // whose city it starts in (HomeCity)
 	if race == raceFroglok {
@@ -99,8 +123,8 @@ func (s *SQLiteCharacterStore) startPlace(c *CharacterRecord) (string, bool) {
 	if race > raceFroglok {
 		if wire, city, ok := s.db.raceDefHome(race); ok {
 			home = wire
-			var own int
-			if err := s.db.QueryRow(`SELECT COUNT(*) FROM defaultcharacter WHERE race = ?`, race).Scan(&own); err == nil && own == 0 {
+			var rows int
+			if err := s.db.QueryRow(`SELECT COUNT(*) FROM defaultcharacter WHERE race = ?`, race).Scan(&rows); err == nil && (rows == 0 || !own) {
 				race, hum = wire, city
 			}
 		}

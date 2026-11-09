@@ -129,6 +129,11 @@ type Session struct {
 	// creationOffered: the creation offer went out (protocol.OpcodeCreationOffer,
 	// handlers/creation.go), once a session as the live look's.
 	creationOffered bool
+	// serverWorldsOffered: the offer of the server's own worlds went out
+	// (protocol.OpcodeServerWorlds, handlers/serverworlds.go), once a session;
+	// serverWorlds: those the client said it holds, built off its own disc.
+	serverWorldsOffered bool
+	serverWorlds        []uint8
 
 	// clock is the game clock the session's client keeps, set by each 0x0013
 	// it was sent: its time of day (gameclock.go).
@@ -281,6 +286,43 @@ func (s *Session) OfferCreationOnce() bool {
 	first := !s.creationOffered
 	s.creationOffered = true
 	return first
+}
+
+// OfferServerWorldsOnce reports whether the offer of the server's own worlds
+// is still to be made to this session, and marks it made.
+func (s *Session) OfferServerWorldsOnce() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	first := !s.serverWorldsOffered
+	s.serverWorldsOffered = true
+	return first
+}
+
+// SetServerWorlds records the server's own worlds the client said it holds
+// (protocol.OpcodeServerWorldsData), replacing what it said before.
+func (s *Session) SetServerWorlds(ids []uint8) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.serverWorlds = append([]uint8(nil), ids...)
+}
+
+// HoldsServerWorld is whether the client said it holds the server's world.
+func (s *Session) HoldsServerWorld(world uint8) bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	for _, w := range s.serverWorlds {
+		if w == world {
+			return true
+		}
+	}
+	return false
+}
+
+// ServerWorlds are the server's own worlds the client said it holds.
+func (s *Session) ServerWorlds() []uint8 {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return append([]uint8(nil), s.serverWorlds...)
 }
 
 // SetFactionMessagesOff records the client's Faction Messages option (0x00C9):

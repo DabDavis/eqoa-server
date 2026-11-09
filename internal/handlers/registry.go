@@ -540,6 +540,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	NewLiveLookHandler(charHandler).RegisterHandlers(r)
 	// what creation takes past the game's, to a client that can show it (creation.go)
 	NewCreationHandler().RegisterHandlers(r)
+	NewServerWorldsHandler().RegisterHandlers(r)
 	if charStore != nil && charStore.DB() != nil {
 		chatHandler.SetDyeStore(charStore.DB())
 		// the Armor Dyers (dyer.go) dye as #dye does

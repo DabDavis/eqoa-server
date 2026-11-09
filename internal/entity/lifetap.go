@@ -229,7 +229,7 @@ func (w *World) landOnCasterLocked(cs *castState, caster *Player, sess *session.
 			if n < 0 {
 				w.payPriceLocked(cs, caster, sess, -n, now)
 			} else {
-				w.healLocked(caster, sess, caster, n)
+				w.healLocked(caster, sess, caster, n, cs.spell.healKind())
 			}
 		case EffectPower:
 			caster.Power = min(max(caster.Power+n, 0), caster.MaxPowerNow())
@@ -298,7 +298,7 @@ func (w *World) payPriceLocked(cs *castState, caster *Player, sess *session.Sess
 	}
 	caster.HP = max(caster.HP-taken, 0)
 	caster.StatsDirty = true
-	w.tellAmountLocked(caster, sess, caster.ServerID, -taken)
+	w.tellAmountLocked(caster, sess, caster.ServerID, -taken, 0) // a price on the caster: untagged (numbertags.go)
 	if caster.HP <= 0 {
 		w.playerDiedLocked(sess, caster, now)
 	}
@@ -344,7 +344,7 @@ func (w *World) drainLocked(cs *castState, caster *Player, sess *session.Session
 	switch e.Kind {
 	case EffectHP:
 		for _, p := range w.drainersLocked(cs, caster, e.Drain) {
-			w.healLocked(caster, sess, p, n)
+			w.healLocked(caster, sess, p, n, cs.spell.healKind()) // a tap's take: its heal (numbertags.go)
 		}
 		log.Printf("Cast: %s's %q takes %d hit points for %s", caster.Name, cs.spell.Name, n, drainName(e.Drain))
 	case EffectPower:

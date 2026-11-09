@@ -54,6 +54,7 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	s.SetLiveLook(true)
 	s.SetBugReports(true)
 	s.SetFlyClient(true)
+	s.SetNumberTags(true)
 	s.SetDiscVersion(0x12)
 	s.OfferCapesOnce()
 	s.SetCapes(true)
@@ -84,6 +85,10 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	if !r.DidServerInitiate() || !r.HasInstance() || r.NeedsNewInstance() || !r.InGame() || !r.CharacterInWorld() ||
 		r.State() != session.StateInGame || !r.LiveLook() || !r.BugReports() || !r.FlyClient() || r.DiscVersion() != 0x12 {
 		t.Fatal("flags not kept")
+	}
+	// its figures' tags (entity/numbertags.go): still asked for
+	if !r.NumberTags() {
+		t.Fatal("the number tags' answer not kept")
 	}
 	// the capes (handlers/capes.go): the client still draws them, and is not
 	// offered them again

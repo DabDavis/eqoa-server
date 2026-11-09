@@ -528,6 +528,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// The pet's effects (0x7E32; peteffects.go): a client that draws them
 	// under its pet's bar
 	NewPetEffectsHandler(gameWorld).RegisterHandlers(r)
+	// What made each figure (0x7E39; numbertags.go): a client that colours
+	// its numbers by it
+	NewNumberTagsHandler().RegisterHandlers(r)
 	// A race the game does not have, by its own words (0x7E1C; racelabels.go)
 	if charStore != nil {
 		NewRaceLabelsHandler(gameWorld, charStore.DB()).RegisterHandlers(r)

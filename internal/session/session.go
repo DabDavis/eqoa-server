@@ -186,6 +186,13 @@ type Session struct {
 	// build) is sent none.
 	flyClient bool
 
+	// numberTags: the client answered the number tags' offer 1
+	// (protocol.OpcodeNumberTagsAnswer, handlers/numbertags.go), so each 0x00DB
+	// it is sent of a figure its player or its player's pet made carries a byte
+	// more, what made it (entity/numbertags.go). A client that never answered
+	// (a PS2, an older build) is sent the retail body alone.
+	numberTags bool
+
 	// resume is the MemoryDump a session carried through a restart is due,
 	// and resumed whether it was carried through one (keep.go)
 	resume  resumeDump
@@ -245,6 +252,22 @@ func (s *Session) FlyClient() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.flyClient
+}
+
+// SetNumberTags records the client's answer to the number tags' offer: on, its
+// own and its pet's figures are told with what made them.
+func (s *Session) SetNumberTags(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.numberTags = on
+}
+
+// NumberTags is whether the client asked for its figures' tags
+// (SetNumberTags). A client that never answered (a PS2) did not.
+func (s *Session) NumberTags() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.numberTags
 }
 
 // SetBugNote keeps the client's note for the next petition it files.

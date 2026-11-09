@@ -51,13 +51,13 @@ func (m duelMark) name() string {
 	return m.pet.Name
 }
 
-// duelHurtMarkLocked lands n of from's duel damage on the mark; it reports the duel over, or
-// the pet out of it.
-func (w *World) duelHurtMarkLocked(d *Duel, from *Player, m duelMark, n int, now time.Time) bool {
+// duelHurtMarkLocked lands n of from's duel damage on the mark, told to from as kind
+// (numbertags.go); it reports the duel over, or the pet out of it.
+func (w *World) duelHurtMarkLocked(d *Duel, from *Player, m duelMark, n int, now time.Time, kind numberKind) bool {
 	if m.t != nil {
-		return w.duelHurtLocked(d, from, from.ServerID, m.t, n, now)
+		return w.duelHurtLocked(d, from, from.ServerID, m.t, n, now, kind)
 	}
-	w.duelHurtPetLocked(d, from, m.pet, n, now)
+	w.duelHurtPetLocked(d, from, m.pet, n, now, kind)
 	return d.petOut[m.pet.Owner]
 }
 
@@ -70,7 +70,7 @@ func (w *World) duelAnswerLocked(d *Duel, t *Player, m duelMark, now time.Time) 
 		for _, h := range hits {
 			w.broadcastCastLocked(t, m.id(), 0, fxShieldHit)
 			log.Printf("%s: %s's %q answers %s for %d (proc %v)", d.tag(), t.Name, h.name, m.name(), h.n, h.proc)
-			if w.duelHurtMarkLocked(d, t, m, h.n, now) {
+			if w.duelHurtMarkLocked(d, t, m, h.n, now, h.kind()) {
 				return true
 			}
 		}
@@ -80,7 +80,7 @@ func (w *World) duelAnswerLocked(d *Duel, t *Player, m duelMark, now time.Time) 
 		if damage > 0 && !s.Undead {
 			w.broadcastCastLocked(t, m.id(), 0, fxShieldHit)
 			log.Printf("%s: %s's %q answers %s for %d", d.tag(), t.Name, s.Item, m.name(), damage)
-			if w.duelHurtMarkLocked(d, t, m, damage, now) {
+			if w.duelHurtMarkLocked(d, t, m, damage, now, numberProc) { // a worn item's answer: a proc's
 				return true
 			}
 		}
@@ -101,7 +101,7 @@ func (w *World) duelProcsLocked(d *Duel, p *Player, m duelMark, now time.Time) b
 	}
 	for _, h := range p.procsOfRound(hits) {
 		log.Printf("Duel %d: %s's proc hits %s for %d", d.ID, p.Name, m.name(), h.n)
-		over := w.duelHurtMarkLocked(d, p, m, h.n, now)
+		over := w.duelHurtMarkLocked(d, p, m, h.n, now, numberProc)
 		w.procTapLocked(p, sess, h.ae, nil)
 		if over {
 			return true
@@ -180,7 +180,7 @@ func (w *World) duelWeaponProcLocked(d *Duel, p *Player, sess *session.Session, 
 	}
 	w.broadcastCastLocked(p, m.id(), 0, wp.FX)
 	log.Printf("%s: %s's %q hits %s for %d", d.tag(), p.Name, wp.Item, m.name(), n)
-	over := w.duelHurtMarkLocked(d, p, m, n, now)
+	over := w.duelHurtMarkLocked(d, p, m, n, now, numberProc)
 	if wp.Kind == ProcTap && !p.IsDead() {
 		w.procHealLocked(p, sess, p, d.hit(n))
 	}

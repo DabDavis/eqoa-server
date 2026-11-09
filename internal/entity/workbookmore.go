@@ -145,14 +145,14 @@ func (w *World) procSpellsOnLocked(p *Player, sess *session.Session, defense boo
 			// another hit renews it and never adds a second
 			if len(lasts) > 0 {
 				w.landOnPlayerLocked(&castState{spell: CastSpell{SpellID: procSpellID(ae.SpellID, i), Name: ae.Name, Icon: ae.Icon, Level: p.Level,
-					Def: SpellDef{Effects: lasts, Duration: ps.Duration, Workbook: true}}, caster: p.ServerID}, p, sess, p, now)
+					Def: SpellDef{Effects: lasts, Duration: ps.Duration, Workbook: true}, figures: figuresProc}, caster: p.ServerID}, p, sess, p, now)
 			}
 			if len(on) == 0 {
 				continue
 			}
 			log.Printf("Proc: %s's %q casts on %s", p.Name, ae.Name, name)
 			land(&castState{spell: CastSpell{SpellID: procSpellID(ae.SpellID, i), Name: ae.Name, Icon: ae.Icon, Level: p.Level,
-				Scope: 1, Def: SpellDef{Effects: on, Duration: ps.Duration, Harmful: true, Workbook: true}},
+				Scope: 1, Def: SpellDef{Effects: on, Duration: ps.Duration, Harmful: true, Workbook: true}, figures: figuresProc},
 				caster: p.ServerID})
 		}
 	}

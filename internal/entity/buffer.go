@@ -158,6 +158,7 @@ func (w *World) bufferLandLocked(c *bufferCast, now time.Time) {
 	took := make([]bool, len(c.spells))
 	for _, i := range order {
 		s := c.spells[i]
+		s.figures = figuresGift // his, not the speaker's: told untagged (numbertags.go)
 		w.landOnPlayerLocked(&castState{spell: s, caster: p.ServerID, targets: []EntityID{p.ServerID}}, p, sess, p, now)
 		if s.Def.Duration <= 0 {
 			took[i] = true // nothing of it lasts: what it does, it did

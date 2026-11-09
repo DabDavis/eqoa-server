@@ -394,6 +394,7 @@ func (w *World) GiveDuelistsFavor(sess *session.Session, spell CastSpell, now ti
 		return false
 	}
 	w.broadcastCastLocked(p, p.ServerID, 0, spell.visual())
+	spell.figures = figuresGift // Mr. Moogie's, none of the player's: told untagged (numbertags.go)
 	w.landOnPlayerLocked(&castState{spell: spell, caster: p.ServerID, targets: []EntityID{p.ServerID}}, p, sess, p, now)
 	for _, ae := range p.Effects {
 		if ae.SpellID == spell.SpellID {

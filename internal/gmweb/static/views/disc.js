@@ -198,8 +198,11 @@ export async function modelPanel(npc, opts = {}) {
     : 'The body as modelled: worn armour, held items and race scaling are not drawn.', dressed ? opts : {});
 }
 
-// itemPanel is an item's icon and its model, off ITEMICON.ESF and ITEM.ESF.
-export async function itemPanel(item) {
+// itemPanel is an item's icon and its look, off ITEMICON.ESF and ITEM.ESF: a
+// held item's model; an armour piece or a robe on a body, dressed as a PS2
+// dresses it (dress: lib/look.js itemDress, of the form's values when
+// watch(cb) hands them), a helm its sprite.
+export async function itemPanel(item, { dress, watch } = {}) {
   await checkKept();
   const s = discState();
   if (!s.icons && !s.items) return needDisc('Look', 'this item\'s icon and model');
@@ -210,7 +213,16 @@ export async function itemPanel(item) {
     iconInto(c, item.itemicon);
   }
   const box = h('div', { class: 'stack' }, ...parts);
-  if (item.model && s.items) box.appendChild(viewerBox('Model', item.model, 'item'));
+  const d = dress ? dress(item) : null;
+  if (d?.swaps && s.models && s.cust) {
+    box.appendChild(viewerBox('Worn', d.body, 'char', 'Worn on a body as a PS2 dresses it, as the form has it now; the rest of the body bare.', {
+      swaps: d.swaps, watch: watch ? (cb) => watch((v) => { const nd = dress(v); if (nd?.swaps) cb({ id: nd.body, swaps: nd.swaps }); }) : null,
+    }));
+  } else if (d?.helm && s.cust) {
+    box.appendChild(viewerBox('Helm', d.helm, 'helm', 'The helm of its set, as attached over the head.'));
+  } else if (item.model && s.items && !d) {
+    box.appendChild(viewerBox('Model', item.model, 'item'));
+  }
   return card('Look', box);
 }
 

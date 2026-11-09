@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/eqoa/server/internal/database"
 )
@@ -205,7 +207,7 @@ func (s *Server) registerLookOps() {
 			"items, and the NPCs holding them), itemicon (ITEMICON.ESF: the items showing each), uiicon (UI.CSF icons: " +
 			"spells, item effects), uiback (UI.CSF icon backs: spells), visual (SPELLFX visuals: spells, class " +
 			"templates' specials). An id is its 32 bits unsigned (hex beside it), whichever way a table keeps it. A role " +
-			"below a GM is answered from its own tables alone.",
+			"below a GM is answered from its own tables alone. An answer is kept a minute.",
 		Input: obj(map[string]any{"kind": strEnum("the kind of look (describe_table names a column's as look)", kinds...)}, "kind"),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct{ Kind string }
@@ -221,10 +223,51 @@ func (s *Server) registerLookOps() {
 	})
 }
 
+// lookCache keeps look_names' answers for lookCacheTTL: the NPCs' bodies are a
+// read of every npcs row (60,000: half a second on the game's one database
+// connection), and a page asks once a visit. A name a minute late is harmless.
+type lookCache struct {
+	mu sync.Mutex
+	m  map[string]lookCacheEntry
+}
+
+type lookCacheEntry struct {
+	at  time.Time
+	out any
+}
+
+const lookCacheTTL = time.Minute
+
 // lookNames is look_names' answer: each source read whole (one query each,
 // every row taken before the next: the database has one connection), the
-// counts and names per id put together after.
+// counts and names per id put together after; kept a minute for the tables
+// the asker reads.
 func (s *Server) lookNames(c *opCtx, srcs []lookSource) (any, error) {
+	var key strings.Builder
+	for _, src := range srcs {
+		if !c.a.limited() || c.a.readsTable(src.table) {
+			key.WriteString(src.table + "." + src.col + "|")
+		}
+	}
+	s.looks.mu.Lock()
+	if e, ok := s.looks.m[key.String()]; ok && time.Since(e.at) < lookCacheTTL {
+		s.looks.mu.Unlock()
+		return e.out, nil
+	}
+	s.looks.mu.Unlock()
+	out, err := s.readLookNames(c, srcs)
+	if err == nil {
+		s.looks.mu.Lock()
+		if s.looks.m == nil {
+			s.looks.m = map[string]lookCacheEntry{}
+		}
+		s.looks.m[key.String()] = lookCacheEntry{at: time.Now(), out: out}
+		s.looks.mu.Unlock()
+	}
+	return out, err
+}
+
+func (s *Server) readLookNames(c *opCtx, srcs []lookSource) (any, error) {
 	type tally struct {
 		rows  int
 		names map[string]int

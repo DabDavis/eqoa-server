@@ -38,6 +38,10 @@ import (
 //   - the NPC of a step the player has to do there (talk, show, give): kind
 //     2, "?", with the step's journal line and what it needs; a giver it is
 //     at shows no "!" besides;
+//   - a reach step's place (petition 1404: Totem of the Plains' cave in
+//     Snowfist had no mark): kind 2, "?", at the step's spot, its journal line
+//     for its name (it has no NPC; the line says where), as vanilla's own
+//     guide marks one;
 //   - a kill or loot step's creatures: kind 3, "?" too, at the nearest of
 //     their spawns (of every name the step counts), with the kills or drops
 //     done of those needed.
@@ -323,25 +327,28 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 	var marks []*questMark
 	// the spots a step's mark is at: a giver there shows its "?" alone
 	stepAt := map[string]bool{}
+	addAt := func(kind byte, s entity.NPCSpot, mq markQuest) {
+		spot := fmt.Sprintf("%d %.0f %.0f", s.World, s.X, s.Z)
+		if kind == markTake && stepAt[spot] {
+			return
+		}
+		if kind == markStep {
+			stepAt[spot] = true
+		}
+		k := fmt.Sprintf("%d %s", kind, spot)
+		m := byKey[k]
+		if m == nil {
+			m = &questMark{kind: kind, world: s.World, x: s.X, z: s.Z, npc: strings.TrimSpace(s.Name), dist: dist(s)}
+			byKey[k] = m
+			marks = append(marks, m)
+		}
+		if len(m.quests) < maxMarkQuests {
+			m.quests = append(m.quests, mq)
+		}
+	}
 	add := func(kind byte, names []string, pinned int, mq markQuest) {
 		for _, s := range near(names, pinned) {
-			spot := fmt.Sprintf("%d %.0f %.0f", s.World, s.X, s.Z)
-			if kind == markTake && stepAt[spot] {
-				continue
-			}
-			if kind == markStep {
-				stepAt[spot] = true
-			}
-			k := fmt.Sprintf("%d %s", kind, spot)
-			m := byKey[k]
-			if m == nil {
-				m = &questMark{kind: kind, world: s.World, x: s.X, z: s.Z, npc: strings.TrimSpace(s.Name), dist: dist(s)}
-				byKey[k] = m
-				marks = append(marks, m)
-			}
-			if len(m.quests) < maxMarkQuests {
-				m.quests = append(m.quests, mq)
-			}
+			addAt(kind, s, mq)
 		}
 	}
 	for _, cq := range c.active() {
@@ -365,6 +372,11 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 			_, need, _ := st.LootItem()
 			mq.detail = fmt.Sprintf("%s: %d of %d", q.texts[qu.ID].needs[st.Step], cq.Count, need)
 			add(markHunt, st.Targets(), st.NPCID, mq)
+		case st.Kind == database.StepReach && (st.X != 0 || st.Z != 0) && st.World >= 0 && st.World < 256:
+			// the place's name is the journal line, so the quest's own line
+			// would only say it again
+			mq.line = ""
+			addAt(markStep, entity.NPCSpot{World: uint8(st.World), X: st.X, Z: st.Z, Name: st.Journal}, mq)
 		}
 	}
 	// the quests to take, a name once: the names under way or finished (one

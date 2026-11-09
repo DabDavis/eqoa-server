@@ -326,3 +326,56 @@ func TestQuestMarksAStepOverAGiversQuest(t *testing.T) {
 		t.Fatalf("a step at Kellina: marks %q, want %q", got, want)
 	}
 }
+
+// A reach step the player has to do is a "?" at its spot (petition 1404:
+// Totem of the Plains' cave in Snowfist had none), its journal line for its
+// name and the quest's levels, its own line left out (the name says it). The
+// controls: the player at the spot, the step done (checkReach), its mark goes
+// and the next step's NPC has its "?"; a reach step of a quest not taken has
+// no mark.
+func TestQuestMarksAReachStepsPlace(t *testing.T) {
+	f := newQuestFixture(t)
+	f.tw.p.HP, f.tw.p.MaxHP = 100, 100 // a dead player stands nowhere
+	f.tw.add(2, &entity.NPC{ServerID: 702, Name: "Kellina", SpawnX: 25404, SpawnY: 54.1, SpawnZ: 15726})
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel, maxlevel) VALUES
+		(20041, 'Totem of the Hills', 1, 'Malsis', 1, 10), (20042, 'Not taken', 1, 'Malsis', 1, 10)`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, world, x, y, z, radius, journal) VALUES
+		(20041, 1, 'reach', '', 0, 25600, 47, 15900, 40, 'Enter the blue cave east of the camp.'),
+		(20041, 2, 'talk', 'Kellina', 0, 0, 0, 0, 15, 'Tell Kellina of the cave.'),
+		(20042, 1, 'reach', '', 0, 25700, 47, 15950, 40, 'A cave no one was sent to.')`)
+	f.reload()
+	if _, err := f.qe.SetCharacterQuest(f.sid, 20041, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.msgs()
+	f.qe.SetMarkers(f.tw.s, f.tw.p, true)
+	marks, _ := sentMarks(t, f.tw.s)
+	var steps []questMark
+	for _, m := range marks {
+		if m.kind != markTake {
+			steps = append(steps, m)
+		}
+	}
+	if len(steps) != 1 {
+		t.Fatalf("step marks %+v, want the reach step's one", steps)
+	}
+	m := steps[0]
+	if m.kind != markStep || m.world != 0 || m.x != 25600 || m.z != 15900 || m.npc != "Enter the blue cave east of the camp." || len(m.quests) != 1 {
+		t.Fatalf("the reach step's mark %+v", m)
+	}
+	if q := m.quests[0]; q.name != "Totem of the Hills" || q.min != 1 || q.max != 10 || q.line != "" || q.detail != "" {
+		t.Fatalf("its quest %+v", q)
+	}
+	f.qe.SetMarkers(f.tw.s, f.tw.p, false)
+
+	// at the cave: the step done, its mark gone, Kellina's "?" come
+	f.tw.p.X, f.tw.p.Z = 25605, 15895
+	f.qe.checkReach()
+	if s, _ := f.progress(20041); s != 2 {
+		t.Fatalf("at the cave: step %d, want 2", s)
+	}
+	f.msgs()
+	if got, want := strings.Join(f.takeMarksBy(), "|"), "?Kellina"; got != want {
+		t.Fatalf("the reach step done: marks %q, want %q", got, want)
+	}
+}

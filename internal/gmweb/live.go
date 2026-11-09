@@ -73,6 +73,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveTemplates(t.Name, before, after) // live_templates.go
 	case "spellgates":
 		return s.liveSpellGates() // live_gates.go
+	case "orbs":
+		return s.liveOrbs() // live_orbs.go
 	case "racesize":
 		return s.liveRaceSizes() // live_racesize.go
 	case "racedefs":

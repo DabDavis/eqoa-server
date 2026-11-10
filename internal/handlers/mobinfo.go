@@ -30,7 +30,8 @@ import (
 //   - to a client that answered OpcodeMobInfoOffer (vanilla) as OpcodeMobInfo,
 //     which it shows in that details box as a pet's, while □ is held;
 //   - to any other (a PS2, an older vanilla) as a dialogue box (0x0046, the
-//     case at 0x00BD1A4C: ShowDialog queues it, "\n" a line), the same lines.
+//     case at 0x00BD1A4C: ShowDialog queues it, "\n" a line, a '%' doubled
+//     for its text expander), the same lines.
 //
 // A monster is an NPC without the NPC bit (0x80: CLIENT's ToggleAutoAttack
 // refuses to attack a target that has it), alive (a corpse's talk is its
@@ -126,7 +127,10 @@ func showMobInfo(sess *session.Session, player *entity.Player, npc *entity.NPC, 
 		queueReliable(sess, protocol.OpcodeMobInfo, buildMobInfo(objectID, name, level))
 		how = "its details box"
 	} else {
-		SendDialogueBox(sess, 0, mobInfoLines(name, level))
+		// a '%' doubled, which CLIENT's text expander (VIClientText::Expand)
+		// shows as one (alone it would read the next character as a token: %p
+		// the player's name), as a sign's words are sent (signs.go)
+		SendDialogueBox(sess, 0, strings.ReplaceAll(mobInfoLines(name, level), "%", "%%"))
 	}
 	who := "?"
 	if player != nil {

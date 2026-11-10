@@ -168,7 +168,7 @@ func (w *World) raidInviteLocked(sess *session.Session, inviter *Player, g *Grou
 		return
 	}
 	g.flagged = true
-	w.raidAskLocked(t, inviter, ts)
+	w.raidBoxLocked(t, inviter, ts, fmt.Sprintf("%s invites you to %s's raid.", inviter.Name, w.raidNameLocked(inviter)))
 	w.raidLineLocked(sess, fmt.Sprintf("You invite %s to the raid.", t.Name))
 	log.Printf("Raid: %s invites %s to group %d", inviter.Name, t.Name, g.ID)
 }

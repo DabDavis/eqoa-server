@@ -201,6 +201,107 @@ func checkCasts(t *testing.T, f *swarmFight, name string, fx uint32, castMS uint
 
 const fight1450 = 112 * time.Second // the attack at 9.6 s, the clocks from 9.7
 
+// lastOf1450 is the fight's last turn, in ms of the rig's clock.
+const lastOf1450 = 9700 + int(fight1450/time.Millisecond)
+
+// checkLines holds the counts of the fight's log lines holding each text.
+func checkLines(t *testing.T, f *swarmFight, want map[string]int) {
+	t.Helper()
+	for line, n := range want {
+		if got := f.logged(line); got != n {
+			t.Errorf("%d lines %q, want %d", got, line, n)
+		}
+	}
+}
+
+// checkVizier1450 holds a Djinni Vizier's fight with the crab to its kit: its
+// size 1.3; its bolt, thunderclap and tempest at 1, 3 and 5 s into the fight
+// and every 12 s after, instant, landing 1000, 1300 and 3000 (the tempest's
+// 1700 and its area's 1300 both on its target). It gives back when the
+// tempest was cast.
+func checkVizier1450(t *testing.T, f *swarmFight, bolt, clap, tempest uint32) []int {
+	t.Helper()
+	if f.pet.Name != "Djinni Vizier" || f.pet.Size < 1.2999 || f.pet.Size > 1.3001 {
+		t.Errorf("the pet %q at %.3f: want the Djinni Vizier at 1.3", f.pet.Name, f.pet.Size)
+	}
+	bolts, claps, storms := steps(10700, 12000, lastOf1450), steps(12700, 12000, lastOf1450), steps(14700, 12000, lastOf1450)
+	checkCasts(t, f, "the bolt", bolt, 0, bolts)
+	checkCasts(t, f, "the thunderclap", clap, 0, claps)
+	checkCasts(t, f, "the tempest", tempest, 0, storms)
+	checkLines(t, f, map[string]int{
+		`lands "Vizier's Bolt" on Desert Crab for 1000 before`:        landedBy(bolts, 0, lastOf1450),
+		`lands "Vizier's Thunderclap" on Desert Crab for 1300 before`: landedBy(claps, 0, lastOf1450),
+		`lands "Vizier's Tempest" on Desert Crab for 3000 before`:     landedBy(storms, 0, lastOf1450),
+	})
+	return storms
+}
+
+// checkEfreeti1450 holds an Efreeti Lord's fight with a level 60 crab to its
+// kit: a quad (a warrior's Attack4) of 600 every hit, its inferno (a 1 s cast)
+// at 1 s into the fight and every 30 s after, landing 2000; nothing else hits.
+func checkEfreeti1450(t *testing.T, f *swarmFight, inferno uint32) {
+	t.Helper()
+	if f.pet.Name != "Efreeti Lord" || npcSwingKind(f.pet) != 5 {
+		t.Fatalf("the pet %q, swing %d: want the Efreeti Lord's quad (5)", f.pet.Name, npcSwingKind(f.pet))
+	}
+	infernos := steps(10700, 30000, lastOf1450)
+	checkCasts(t, f, "the inferno", inferno, 1000, infernos)
+	checkLines(t, f, map[string]int{`lands "Efreeti's Inferno" on Desert Crab for 2000 before`: landedBy(infernos, 1000, lastOf1450)})
+	melee, other := 0, map[int]int{}
+	for _, n := range hitsOn(f, "Efreeti Lord", "Desert Crab") {
+		switch n {
+		case 600:
+			melee++
+		case 2000:
+		default:
+			other[n]++
+		}
+	}
+	if melee < 60 || len(other) != 0 {
+		t.Errorf("%d melee hits of 600 in %v, others %v: want every one 600", melee, fight1450, other)
+	}
+}
+
+// checkBadi1450 holds a Badi Elder's fight with the crab (its own buff on it)
+// to its kit: a quad; its taunt at 1 s into the fight and every 15 s; with its
+// template's crit, a Critical Hit of 2000 at 3 s and every 30 s of its time at
+// its foe, seen as a creature's special (none without).
+func checkBadi1450(t *testing.T, r *petRig, f *swarmFight, crit bool) {
+	t.Helper()
+	ps := r.w.pets[r.p.ServerID]
+	if f.pet.Name != "Badi Elder" || npcSwingKind(f.pet) != 5 || ps == nil || ps.tmpl == nil {
+		t.Fatalf("the pet %q, swing %d: want the Badi Elder's quad (5) on its template", f.pet.Name, npcSwingKind(f.pet))
+	}
+	if tm := ps.tmpl.tmpl; crit != (tm.Special == "Critical Hit" && tm.SpecialEvery == 30 && tm.SpecialDamage > 33.33 &&
+		tm.SpecialFirst == 3) {
+		t.Errorf("its template %q: special %q every %.1f s, %.4f a level, first %.1f", tm.Name, tm.Special, tm.SpecialEvery,
+			tm.SpecialDamage, tm.SpecialFirst)
+	}
+	checkCasts(t, f, "the taunt", petTauntFX, 0, steps(10700, 15000, lastOf1450))
+	var crits []int
+	if crit {
+		crits = steps(12700, 30000, lastOf1450)
+	}
+	checkCasts(t, f, "the crit", templateSpecialFX, 0, crits)
+	checkLines(t, f, map[string]int{`lands its Critical Hit on Desert Crab for 2000 before the balance`: len(crits)})
+}
+
+// checkGhilan1450 holds a Ghilan Noble's fight with the crab (neither it nor its
+// owner hurt) to its kit: six abilities; its chill and its frost wave cast at
+// those times, 2 s casts, landing 1000 and 1300.
+func checkGhilan1450(t *testing.T, r *petRig, f *swarmFight, chill, frost uint32, chills, frosts []int) {
+	t.Helper()
+	if ps := r.w.pets[r.p.ServerID]; f.pet.Name != "Ghilan Noble" || ps == nil || len(ps.petAbilities()) != 6 {
+		t.Fatalf("the pet %q: want the Ghilan Noble with six abilities", f.pet.Name)
+	}
+	checkCasts(t, f, "the chill", chill, 2000, chills)
+	checkCasts(t, f, "the frost wave", frost, 2000, frosts)
+	checkLines(t, f, map[string]int{
+		`lands "Ghilan's Chill" on Desert Crab for 1000 before`:      landedBy(chills, 2000, lastOf1450),
+		`lands "Ghilan's Frost Wave" on Desert Crab for 1300 before`: landedBy(frosts, 2000, lastOf1450),
+	})
+}
+
 // The Djinni Vizier at 1.3, 30% over its body's 1: its three spells at 1, 3 and
 // 5 s into the fight (10.7, 12.7, 14.7) and every 12 s after, instant, its buff
 // once between them; the bolt lands 1000, the thunderclap 1300, the tempest 3000
@@ -220,19 +321,13 @@ func TestTheDjinniViziersKitIsPetition1450s(t *testing.T) {
 	if f.pet.sheet == nil || f.pet.Name != "Djinni Vizier" || f.pet.Size < 1.2999 || f.pet.Size > 1.3001 {
 		t.Fatalf("the pet: row %v, name %q, size %.3f: want the Djinni Vizier's row at 1.3", f.pet.sheet != nil, f.pet.Name, f.pet.Size)
 	}
-	last := 9700 + int(fight1450/time.Millisecond)
-	bolts, claps, storms := steps(10700, 12000, last), steps(12700, 12000, last), steps(14700, 12000, last)
-	checkCasts(t, f, "the bolt", fx1450Bolt, 0, bolts)
-	checkCasts(t, f, "the thunderclap", fx1450Clap, 0, claps)
-	checkCasts(t, f, "the tempest", fx1450Tempest, 0, storms)
+	last := lastOf1450
+	storms := checkVizier1450(t, f, fx1450Bolt, fx1450Clap, fx1450Tempest)
 	checkCasts(t, f, "Djinni's Grace", fx1450Grace, 3000, []int{16700})
 	for _, c := range []struct {
 		line string
 		n    int
 	}{
-		{`lands "Vizier's Bolt" on Desert Crab for 1000 before`, landedBy(bolts, 0, last)},
-		{`lands "Vizier's Thunderclap" on Desert Crab for 1300 before`, landedBy(claps, 0, last)},
-		{`lands "Vizier's Tempest" on Desert Crab for 3000 before`, landedBy(storms, 0, last)},
 		{`splashes "Vizier's Tempest" on ` + near.Name + ` for 1300 before`, landedBy(storms, 0, last)},
 		{`splashes "Vizier's Tempest" on ` + far.Name, 0},
 	} {
@@ -252,28 +347,10 @@ func TestTheEfreetiLordQuadsFor600AndBurnsFor2000(t *testing.T) {
 	r, _ := magePetRig(t, true)
 	r.enemy.Level = 60
 	f := swarmFightFor(t, r, summonEfreetiLord, 4540, fight1450)
-	if f.pet.Name != "Efreeti Lord" || npcSwingKind(f.pet) != 5 || f.pet.Size != 1.75 {
-		t.Fatalf("the pet %q: swing %d, size %.2f: want the Efreeti Lord's quad (5) at its 1.75", f.pet.Name, npcSwingKind(f.pet), f.pet.Size)
+	if f.pet.Size != 1.75 {
+		t.Errorf("its size %.2f, want its 1.75 (petition 1447)", f.pet.Size)
 	}
-	last := 9700 + int(fight1450/time.Millisecond)
-	infernos := steps(10700, 30000, last)
-	checkCasts(t, f, "the inferno", fx1450Inferno, 1000, infernos)
-	if n, want := f.logged(`lands "Efreeti's Inferno" on Desert Crab for 2000 before`), landedBy(infernos, 1000, last); n != want {
-		t.Errorf("%d infernos landed for 2000, want %d", n, want)
-	}
-	melee, other := 0, map[int]int{}
-	for _, n := range hitsOn(f, "Efreeti Lord", "Desert Crab") {
-		switch n {
-		case 600:
-			melee++
-		case 2000:
-		default:
-			other[n]++
-		}
-	}
-	if melee < 60 || len(other) != 0 {
-		t.Errorf("%d melee hits of 600 in %v, others %v: want every one 600", melee, fight1450, other)
-	}
+	checkEfreeti1450(t, f, fx1450Inferno)
 }
 
 // The Badi Elder (its own buff on it, as it keeps it up) taunts at 1 s into the
@@ -289,24 +366,7 @@ func TestTheBadiElderTauntsEvery15AndCritsEvery30(t *testing.T) {
 			f := swarmFightFor(t, r, summonBadiElder, 7070, fight1450, func(pet *NPC) {
 				pet.Effects = append(pet.Effects, &ActiveEffect{SpellID: 902157, Name: "Badi's Durability", Until: r.at(time.Hour)})
 			})
-			ps := r.w.pets[r.p.ServerID]
-			if f.pet.Name != "Badi Elder" || npcSwingKind(f.pet) != 5 || ps.tmpl == nil {
-				t.Fatalf("the pet %q: swing %d: want the Badi Elder's quad (5) on its template", f.pet.Name, npcSwingKind(f.pet))
-			}
-			if tm := ps.tmpl.tmpl; crit != (tm.SpecialEvery == 30 && tm.SpecialDamage > 33.33 && tm.SpecialFirst == 3) {
-				t.Errorf("its template %q: special every %.1f s, %.4f a level, first %.1f", tm.Name, tm.SpecialEvery, tm.SpecialDamage,
-					tm.SpecialFirst)
-			}
-			last := 9700 + int(fight1450/time.Millisecond)
-			checkCasts(t, f, "the taunt", petTauntFX, 0, steps(10700, 15000, last))
-			want := []int(nil)
-			if crit {
-				want = steps(12700, 30000, last)
-			}
-			checkCasts(t, f, "the crit", templateSpecialFX, 0, want)
-			if n := f.logged(`lands its Critical Hit on Desert Crab for 2000 before the balance`); n != len(want) {
-				t.Errorf("%d crits of 2000, want %d", n, len(want))
-			}
+			checkBadi1450(t, r, f, crit)
 			if at, _ := f.of(fx1450Durable); len(at) != 0 {
 				t.Errorf("its buff cast at %v, on it already", at)
 			}
@@ -399,24 +459,11 @@ func TestTheGhilanNoblesColdNukesAre3sApart(t *testing.T) {
 	r, _ := magePetRig(t, true)
 	r.p.Effects = append(r.p.Effects, &ActiveEffect{SpellID: 902167, Name: "Ghilan's Blessing", Until: r.at(time.Hour)})
 	f := swarmFightFor(t, r, summonGhilanNoble, 4650, fight1450)
-	if f.pet.Name != "Ghilan Noble" || len(r.w.pets[r.p.ServerID].petAbilities()) != 6 {
-		t.Fatalf("the pet %q: want the Ghilan Noble with six abilities", f.pet.Name)
-	}
-	last := 9700 + int(fight1450/time.Millisecond)
-	chills, frosts := steps(14700, 30000, last), steps(17700, 30000, last)
-	checkCasts(t, f, "the chill", fx1450Chill, 2000, chills)
-	checkCasts(t, f, "the frost wave", fx1450Frost, 2000, frosts)
-	for _, c := range []struct {
-		line string
-		n    int
-	}{
-		{`lands "Ghilan's Chill" on Desert Crab for 1000 before`, landedBy(chills, 2000, last)},
-		{`lands "Ghilan's Frost Wave" on Desert Crab for 1300 before`, landedBy(frosts, 2000, last)},
-		{`Purifying Tide`, 0},
-		{`heals`, 0},
-	} {
-		if n := f.logged(c.line); n != c.n {
-			t.Errorf("%d lines %q, want %d", n, c.line, c.n)
+	last := lastOf1450
+	checkGhilan1450(t, r, f, fx1450Chill, fx1450Frost, steps(14700, 30000, last), steps(17700, 30000, last))
+	for _, line := range []string{`Purifying Tide`, `heals`} {
+		if n := f.logged(line); n != 0 {
+			t.Errorf("%d lines %q, want none", n, line)
 		}
 	}
 	for _, fx := range []uint32{fx1450Hands, fx1450Mending, fx1450Blessing, fx1450Tide} {

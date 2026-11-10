@@ -15,7 +15,7 @@ func TestLoginSpawnOverridesTheSavedPosition(t *testing.T) {
 		CharName: "Stranded",
 		X:        13000, Y: 400, Z: 23000, World: 9,
 	}
-	loginSpawn(nil, rec)
+	loginSpawn(nil, rec, nil, nil)
 
 	if rec.World != 0 {
 		t.Errorf("world = %d, want 0 (Freeport is in Tunaria)", rec.World)
@@ -42,7 +42,7 @@ func TestLoginSpawnStandsOffTheAnchor(t *testing.T) {
 		t.Fatal("loginSpawnOffset is 0 — every player would spawn inside Vaal")
 	}
 	rec := &database.CharacterRecord{CharName: "Nudge"}
-	loginSpawn(nil, rec)
+	loginSpawn(nil, rec, nil, nil)
 	d := teleDests[loginSpawnDest]
 	if rec.X == d.X && rec.Z == d.Z {
 		t.Error("spawn is exactly on the anchor NPC's own point")
@@ -76,7 +76,7 @@ func TestLoginSpawnKeepsThePositionWhenTheDestIsGone(t *testing.T) {
 		CharName: "Untouched",
 		X:        111, Y: 222, Z: 333, World: 9,
 	}
-	loginSpawn(nil, rec)
+	loginSpawn(nil, rec, nil, nil)
 	if rec.X != 111 || rec.Y != 222 || rec.Z != 333 || rec.World != 9 {
 		t.Errorf("record was modified: (%.0f, %.0f, %.0f) world=%d",
 			rec.X, rec.Y, rec.Z, rec.World)
@@ -85,7 +85,7 @@ func TestLoginSpawnKeepsThePositionWhenTheDestIsGone(t *testing.T) {
 
 // A nil record is what a lookup failure upstream hands us; it must not panic.
 func TestLoginSpawnToleratesANilRecord(t *testing.T) {
-	loginSpawn(nil, nil)
+	loginSpawn(nil, nil, nil, nil)
 }
 
 // withoutLoginSpawnDest removes the spawn destination for one test. It reaches
@@ -108,7 +108,7 @@ func withoutLoginSpawnDest(t *testing.T) func() {
 func TestLoginSpawnResumesASavedPositionInADiscWorld(t *testing.T) {
 	for _, w := range []int{0, 3, discWorlds - 1} {
 		rec := &database.CharacterRecord{CharName: "Back", X: 17091.6, Y: 141.1, Z: 15220.2, World: w}
-		loginSpawn(nil, rec)
+		loginSpawn(nil, rec, nil, nil)
 		if rec.X != 17091.6 || rec.Y != 141.1 || rec.Z != 15220.2 || rec.World != w {
 			t.Errorf("world %d: moved to (%.1f, %.1f, %.1f) world=%d", w, rec.X, rec.Y, rec.Z, rec.World)
 		}
@@ -125,7 +125,7 @@ func TestLoginSpawnStartsAtVaalWhenTheSavedPositionCannotResume(t *testing.T) {
 		{CharName: "S2", X: 1000, Y: 60, Z: 1000, World: discWorlds},
 		{CharName: "Fell", X: 25000, Y: -1000, Z: 15000, World: 0},
 	} {
-		loginSpawn(nil, rec)
+		loginSpawn(nil, rec, nil, nil)
 		if rec.World != 0 || rec.X != vaal.X+loginSpawnOffset || rec.Z != vaal.Z+loginSpawnOffset {
 			t.Errorf("%s: at (%.1f, %.1f) world=%d, want beside Vaal", rec.CharName, rec.X, rec.Z, rec.World)
 		}

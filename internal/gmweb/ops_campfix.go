@@ -105,6 +105,11 @@ func (s *Server) campfixApply(a *actor, r database.CampfixReport, m handlers.Cam
 			vals["x_coord"], vals["y_coord"], vals["z_coord"] = p.X, p.Y, p.Z
 			base["x_coord"], base["y_coord"], base["z_coord"] = p.Was.X, p.Was.Y, p.Was.Z
 		}
+		for _, col := range p.Was.Null { // as read: NULL, not the 0 the plan read it as
+			if _, ok := base[col]; ok {
+				base[col] = nil
+			}
+		}
 		ch, err := s.updateRow(a, npcs, map[string]any{"id": p.Row}, vals, base, writeOpts{Detail: detail})
 		if err != nil {
 			return nil, err

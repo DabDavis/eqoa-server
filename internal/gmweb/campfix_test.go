@@ -601,3 +601,24 @@ const press = (root, label) => [...root.querySelectorAll('button')].find((b) => 
 		t.Errorf("the player's note is not shown as text")
 	}
 }
+
+// A row whose facing is NULL (read as 0) is turned all the same: the
+// approval's change expects the NULL it read, not a 0, so it is not refused as
+// changed meanwhile.
+func TestCampfixApproveTurnsARowOfNoFacing(t *testing.T) {
+	f := campfixFixture(t)
+	mustExec(t, f.db, `INSERT INTO npcs (id, npc_name, world, x_coord, y_coord, z_coord, facing, modelid, size, npc_level, npc_type, race)
+		VALUES (806, 'bandit', 0, 21100, 40, 12100, NULL, 4660, 1.0, 20, 0, '0')`)
+	f.world.LoadNPCs(database.NewNPCStore(f.db))
+	r := campfixFile(t, f, `[{"kind":"turn","typed":"bandit","name":"bandit","world":0,"x":21100.5,"y":40,"z":12100,"facing":1,`+
+		`"facing_byte":50,"row":806,"from_x":21100,"from_y":40,"from_z":12100,"from_facing":0,"level":20,"distance":0.5,"at":"2026-01-01T00:00:00Z"}]`)
+	gm := f.browser()
+	gm.login("gm")
+	if code, out := gm.op("campfix_approve", map[string]any{"id": r.ID, "marks": []int{1}}); code != 200 {
+		t.Fatalf("approve: %d %v", code, out)
+	}
+	var facing int
+	if err := f.db.QueryRow(`SELECT facing FROM npcs WHERE id = 806`).Scan(&facing); err != nil || facing != 50 {
+		t.Fatalf("facing %d (%v), want 50", facing, err)
+	}
+}

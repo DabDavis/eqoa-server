@@ -133,12 +133,14 @@ type CampfixPlan struct {
 	Was      *CampfixPlace `json:"was,omitempty"`
 }
 
-// CampfixPlace is a row's spawn and facing byte as read.
+// CampfixPlace is a row's spawn and facing byte as read, and which of those
+// columns hold NULL (read as 0).
 type CampfixPlace struct {
-	X      float64 `json:"x"`
-	Y      float64 `json:"y"`
-	Z      float64 `json:"z"`
-	Facing int     `json:"facing"`
+	X      float64  `json:"x"`
+	Y      float64  `json:"y"`
+	Z      float64  `json:"z"`
+	Facing int      `json:"facing"`
+	Null   []string `json:"null,omitempty"`
 }
 
 // CampfixReviewer reviews reports, reading each world's NPC rows and the
@@ -727,7 +729,7 @@ func (c *campfixReviewing) mark(i int, fl []CampfixFlagRecord) (CampfixMarkRevie
 			mr.Stale = why
 			break
 		}
-		was := &CampfixPlace{X: row.RawX, Y: row.RawY, Z: row.RawZ, Facing: row.FacingByte}
+		was := &CampfixPlace{X: row.RawX, Y: row.RawY, Z: row.RawZ, Facing: row.FacingByte, Null: row.RawNull}
 		switch m.Kind {
 		case campfixMove:
 			yg, words, floored := c.ground(mx, my, mz)

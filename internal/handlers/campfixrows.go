@@ -25,8 +25,10 @@ type campfixRowNPC struct {
 	FacingByte int
 	Type       int
 	// RawX, RawY and RawZ are the row's own coordinates, as the panel's row
-	// edit reads them back (a change's expected values)
+	// edit reads them back (a change's expected values), and RawNull the
+	// columns of its place and facing that hold NULL (read as 0)
 	RawX, RawY, RawZ float64
+	RawNull          []string
 }
 
 // campfixRows is a world's NPC rows a report may name, by id and by name
@@ -39,15 +41,26 @@ type campfixRows struct {
 }
 
 const campfixRowCols = `id, COALESCE(npc_name, ''), COALESCE(npc_level, 1), COALESCE(world, 0), COALESCE(x_coord, 0),
-	COALESCE(y_coord, 0), COALESCE(z_coord, 0), COALESCE(facing, 0), COALESCE(npc_type, 0)`
+	COALESCE(y_coord, 0), COALESCE(z_coord, 0), COALESCE(facing, 0), COALESCE(npc_type, 0),
+	x_coord IS NULL, y_coord IS NULL, z_coord IS NULL, facing IS NULL`
+
+// campfixPlaceCols are the npcs columns of a row's place and facing, in
+// campfixRowCols' NULL tests' order.
+var campfixPlaceCols = []string{"x_coord", "y_coord", "z_coord", "facing"}
 
 func scanCampfixRow(sc interface{ Scan(...any) error }) (campfixRowNPC, error) {
 	var r campfixRowNPC
 	var id int64
 	var world int
 	var x, y, z float64
-	if err := sc.Scan(&id, &r.Name, &r.Level, &world, &x, &y, &z, &r.FacingByte, &r.Type); err != nil {
+	var null [4]bool
+	if err := sc.Scan(&id, &r.Name, &r.Level, &world, &x, &y, &z, &r.FacingByte, &r.Type, &null[0], &null[1], &null[2], &null[3]); err != nil {
 		return r, err
+	}
+	for i, n := range null {
+		if n {
+			r.RawNull = append(r.RawNull, campfixPlaceCols[i])
+		}
 	}
 	r.ID, r.World = entity.EntityID(id), uint8(world)
 	r.X, r.Y, r.Z = float32(x), float32(y), float32(z)

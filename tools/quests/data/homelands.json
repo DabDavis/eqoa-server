@@ -821,6 +821,123 @@
       "notes": "Ours: the gatekeeper's port to Halas, the orc's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a orc back in Thedruk is sent again; no reward, so none is had twice."
     },
     {
+      "key": "homelands/minotaur/welcome",
+      "name": "Horns and Hunger",
+      "giver": "Elder Hornbrand",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Another calf for the herd! Stand up straight. Before you lower those horns at anyone, go and see Brassnose at the mine cart outside. He keeps the food, and he keeps it from fools.",
+      "accept": "I will see Brassnose.",
+      "decline": "Not now.",
+      "declined": "Then go hungry, calf, and learn the hard way.",
+      "started": "Brassnose is by the mine cart, just outside the mine.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Brassnose",
+          "journal": "See Grocer Brassnose by the mine cart outside the mine.",
+          "says": "Hornbrand sent you? Here, calf. Eat, and grow those horns.",
+          "rewards": {
+            "items": [
+              "multigrain loaf"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Hornbrand",
+          "journal": "Return to Elder Hornbrand.",
+          "says": "Good. A full belly and a hard head. That is all a minotaur needs to begin.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the minotaurs' first, at their home zone, Gerntar Mines of the disc."
+    },
+    {
+      "key": "homelands/minotaur/rats",
+      "name": "Rats in the Grain",
+      "giver": "Grocer Brassnose",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/minotaur/welcome"
+      ],
+      "offer": "Mine rats are in the grain again. They come up out of the grass east of the mine. Kill five of them, calf, and I will pay you. Trample them if you like.",
+      "accept": "I will kill them.",
+      "decline": "Not now.",
+      "declined": "Then the rats eat the grain, and the herd eats the rats.",
+      "started": "Five rats. They are small, so look down.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "mine rat",
+          "count": 5,
+          "journal": "Kill five mine rats in the grass east of the mine."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Brassnose",
+          "journal": "Tell Grocer Brassnose the rats are dead.",
+          "says": "Five rats! The grain is safe, for now. Here is your coin.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the minotaurs' second starter quest; the mine rats are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/minotaur/flight",
+      "name": "The Road to Grobb",
+      "giver": "Gatekeeper Stonehoof",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/minotaur/welcome",
+        "homelands/minotaur/rats"
+      ],
+      "repeatable": true,
+      "offer": "The trolls of Grobb do not care how big your horns are, only how hard you hit. They will take you in as one of their own. I can send you to them, and Grobb will be your home. Ready?",
+      "accept": "Send me to Grobb.",
+      "decline": "Not yet.",
+      "declined": "Grobb will still be there. So will the trolls.",
+      "started": "Hit hard, and keep your horns sharp!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Stonehoof",
+          "journal": "Tell Gatekeeper Stonehoof when you are ready to go to Grobb.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Grobb, the minotaur's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a minotaur back in Gerntar Mines is sent again; no reward, so none is had twice."
+    },
+    {
       "key": "homelands/aviak/welcome",
       "name": "A Fledgling's Welcome",
       "giver": "Elder Kraawk",

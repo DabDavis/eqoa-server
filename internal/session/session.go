@@ -25,6 +25,13 @@ const (
 type Session struct {
 	mu sync.RWMutex
 
+	// sendMu is held while a packet of this session is built
+	// (udp.RDPHandler.PreparePacket) and while the session is promoted
+	// (Manager.PromoteSessionToMaster): a packet is all the lobby
+	// connection's or all the promoted one's, never the promoted one's
+	// header over messages drained from the lobby's queue (LockSend).
+	sendMu sync.Mutex
+
 	// Network info
 	remoteAddr     *net.UDPAddr
 	instanceID     uint32
@@ -135,8 +142,13 @@ type Session struct {
 	creationOffered bool
 	// serverWorldsOffered: the offer of the server's own worlds went out
 	// (protocol.OpcodeServerWorlds, handlers/serverworlds.go), once a session;
-	// serverWorlds: those the client said it holds, built off its own disc.
+	// serverWorldsTaken: the client answered it 1 (it builds them), so it is
+	// told which of its characters a login needs them for
+	// (protocol.OpcodeServerWorldsChars) and its lists go out on the tick
+	// while it chooses; serverWorlds: those the client said it holds, built
+	// off its own disc.
 	serverWorldsOffered bool
+	serverWorldsTaken   bool
 	serverWorlds        []uint8
 
 	// capes: the client answered the cape offer 1 (protocol.OpcodeCapes,
@@ -539,6 +551,37 @@ func (s *Session) OfferServerWorldsOnce() bool {
 	first := !s.serverWorldsOffered
 	s.serverWorldsOffered = true
 	return first
+}
+
+// LockSend holds the session's packets still: until UnlockSend none is built
+// (udp.RDPHandler.PreparePacket takes it for each) and the session is not
+// promoted (Manager.PromoteSessionToMaster takes it). Packets are built on the
+// tick's goroutine and on each arriving packet's, a pick promotes on its own
+// packet's: without it a packet being built as the pick came could carry
+// messages drained from the lobby connection's queue under the promoted
+// connection's header and numbers, where the client files them under the
+// numbers of messages still to come (a MemoryDump's fragments) and drops
+// those when they come. Nothing that holds it takes it again.
+func (s *Session) LockSend() { s.sendMu.Lock() }
+
+// UnlockSend lets the session's packets go again (LockSend).
+func (s *Session) UnlockSend() { s.sendMu.Unlock() }
+
+// TakeServerWorlds records that the client took the offer of the server's
+// own worlds (it answered protocol.OpcodeServerWorlds 1: it builds them).
+func (s *Session) TakeServerWorlds() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.serverWorldsTaken = true
+}
+
+// ServerWorldsTaken is whether the client took the offer of the server's own
+// worlds. A client that never answered (a PS2, a page that cannot keep one)
+// did not.
+func (s *Session) ServerWorldsTaken() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.serverWorldsTaken
 }
 
 // SetServerWorlds records the server's own worlds the client said it holds

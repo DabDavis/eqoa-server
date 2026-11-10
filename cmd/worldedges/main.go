@@ -30,12 +30,15 @@
 // on it, the water) along every open edge as the movement check judges a
 // player's moves (entity/movecheck.go): from every floor of the terrain a
 // band's width inside the edge (not one under another sheet of it, nor under
-// anything placed), a step of a unit at a time in four directions, onto a
-// floor no more than a step's climb above (1:1 plus 0.13) and no steeper than
-// a walk stands on (one steeper is slid off, to the floor under it), else
-// falling to the next one down; swimming at the water's top or down to its
-// floor; never through the front of a face where the game's body is (its
-// middle, and a little under and over it). A way out is a step that reaches
+// anything placed, nor a cave's tip with no room for a head), a step at a
+// time to the next place of a unit's grid, eight ways, onto a floor no more
+// than a step's climb above (1:1 plus 0.13 a unit) or a little below, else
+// falling to the next one down: a body stands on anything (the walk drops
+// its ball onto whatever is under it), but up a floor steeper than a walk
+// climbs it does not go (the ball meets it and is turned along it: level, or
+// down); swimming at the water's top or down to its floor; never through the
+// front of a face where the game's body is (its middle, and a little under
+// and over it). A way out is a step that reaches
 // past the edge, or one with nothing under it (inside the cell: "in", a hole
 // in the zone's own ground); each is reported, and the command fails.
 // -leaks writes them down, -fix adds rocks over them, and -trace with -near
@@ -303,6 +306,10 @@ type palette struct {
 	// (none given: 0.5): the closer, the higher and steeper the saddle
 	// between two, which a walk would climb over.
 	Step float32 `json:"step,omitempty"`
+	// Around is how far round a rock's reach the floors it stands over are
+	// taken too: a hill just inside it as high as the saddle between two
+	// rocks lets a walk onto the saddle and over.
+	Around float32 `json:"around,omitempty"`
 }
 
 func readPalette(path string) (*palette, error) {
@@ -518,6 +525,22 @@ func place(g *ground.Ground, env *ground.Env, w uint8, e edge, t float32, p piec
 				}
 			}
 		}
+		// round it, the floors (and water) it must stand over too
+		for k := 0; k < 24 && pal.Around > 0; k++ {
+			sn, cs := math.Sincos(float64(k) * math.Pi / 12)
+			for _, r := range []float32{reach + pal.Around/2, reach + pal.Around} {
+				sx := min(max(x+r*float32(cs), e.x0+0.5), e.x0+cell-0.5)
+				sz := min(max(z+r*float32(sn), e.z0+0.5), e.z0+cell-0.5)
+				y, ok := floorAt(g, w, sx, sz)
+				if !ok {
+					continue
+				}
+				hi = max(hi, y)
+				if wt, ok := waterTop(env, w, sx, y, sz); ok {
+					top = max(top, wt)
+				}
+			}
+		}
 		if lo == math.MaxFloat32 {
 			lo, hi = 0, 0
 		}
@@ -698,10 +721,11 @@ func fill(g *ground.Ground, env *ground.Env, b worlds.Built, zi int, st stretch,
 // is stepped down to, and with none of those the body falls to the next
 // floor down; in water it swims anywhere in the column.
 const (
-	middle   = 1.2
-	climb    = 1.13
-	maxSlope = 1.15 // the steepest floor stood on (49 degrees)
-	stepOut  = 20   // how far past an edge the check looks
+	middle    = 1.2
+	climb     = 1.13
+	maxSlope  = 1.15 // the steepest floor climbed (49 degrees)
+	levelRise = 0.15 // a rise a unit along a steeper one, taken as level
+	stepOut   = 20   // how far past an edge the check looks
 )
 
 // meets reports whether a step from feet (x, y, z) to feet (nx, ny, nz)
@@ -857,8 +881,8 @@ func walkZone(g *ground.Ground, env *ground.Env, b worlds.Built, i int, band flo
 	}
 
 	// steepAt: whether the floor at (i, j) at height y slopes more than a
-	// walk stands on (the game's ball, 0.6 round at 1.2 over the feet, meets
-	// anything steeper and slides off it): the floors nearest y a step
+	// walk climbs (the game's ball, 0.6 round at 1.2 over the feet, meets
+	// anything steeper and is turned along it): the floors nearest y a step
 	// either way along x and z
 	steepAt := func(i, j int32, y float32) bool {
 		near := func(i, j int32) (float32, bool) {
@@ -904,35 +928,52 @@ func walkZone(g *ground.Ground, env *ground.Env, b worlds.Built, i int, band flo
 		}
 	}
 	tenth := func(y float32) int32 { return int32(math.Round(float64(y) * 10)) }
-	// the seeds: the band's inner side, every floor of the terrain there
-	for ii := int32(0); ii < n; ii++ {
-		for jj := int32(0); jj < n; jj++ {
-			x, z := at(ii, jj)
-			if !inBand(x, z) || past(x, z) || depth(x, z) < band-1 {
-				continue
+	// the seeds: every floor of the terrain on the band's inner side, where
+	// a player stands (on anything placed only once it has walked onto it: a
+	// rock's top a seed would stand on is no place a player gets to), not
+	// under anything placed (a seed on the ground inside a rock would walk
+	// out of it, through its back faces)
+	seedAt := func(ii, jj int32) bool {
+		c := colAt(ii, jj)
+		for _, s := range c.surfs {
+			if s.Placed {
+				return false
 			}
-			// a player stands on the terrain there (on anything placed only
-			// once it has walked onto it: a rock's top a seed would stand on
-			// is no place a player gets to)
-			// and not under anything placed there (a seed on the ground
-			// inside a rock would walk out of it, through its back faces)
-			c := colAt(ii, jj)
-			under := false
-			for _, s := range c.surfs {
-				if s.Placed {
-					under = true
+		}
+		any := false
+		for _, s := range c.surfs {
+			if s.Up && roomOver(c.surfs, s.Y) {
+				push(state{ii, jj, tenth(s.Y)})
+				any = true
+			}
+		}
+		if sy, ok := swimAt(c); ok {
+			push(state{ii, jj, tenth(sy)})
+			any = true
+		}
+		return any
+	}
+	// where rocks cover the band's inner side (a big one reaches 300 in),
+	// the first open floor further in, along the edge's normal, the band
+	// grown to take it in (else nothing would walk there, and the edge
+	// would pass for closed)
+	inner := band
+	for _, e := range edges {
+		for t := float32(0.5); t < cell; t++ {
+			for d := band; d < cell/2; d++ {
+				x, z := e.ax+e.ux*t-e.nx*d, e.az+e.uz*t-e.nz*d
+				if depth(x, z) < d-0.5 {
+					break // nearer another open edge: that edge's own
 				}
-			}
-			for _, s := range c.surfs {
-				if s.Up && !s.Placed && !under && roomOver(c.surfs, s.Y) {
-					push(state{ii, jj, tenth(s.Y)})
+				ii, jj := int32(math.Round(float64(x-x0-lo))), int32(math.Round(float64(z-z0-lo)))
+				if seedAt(ii, jj) {
+					inner = max(inner, d)
+					break
 				}
-			}
-			if sy, ok := swimAt(c); ok && !under {
-				push(state{ii, jj, tenth(sy)})
 			}
 		}
 	}
+	band = inner + 1
 	// the ways out, by place: (x, z) once each
 	outs := map[[2]int32]float32{}
 	traced := 0
@@ -968,10 +1009,19 @@ func walkZone(g *ground.Ground, env *ground.Env, b worlds.Built, i int, band flo
 			}
 		}
 	}
-	steps := [4][2]int32{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+	// eight ways: the game's walk goes any way, and along a steep face it is
+	// turned to the face's level line, which a step of four ways seldom
+	// follows (a body walked out of Tomb of Kings along a 62-degree flank
+	// that way, where four ways went nowhere)
+	steps := [8][2]int32{{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}}
 	for len(queue) > 0 {
-		s := queue[len(queue)-1]
-		queue = queue[:len(queue)-1]
+		// with -trace, the nearest first (the way shown is the shortest)
+		var s state
+		if trace {
+			s, queue = queue[0], queue[1:]
+		} else {
+			s, queue = queue[len(queue)-1], queue[:len(queue)-1]
+		}
 		cur = s
 		x, z := at(s.i, s.j)
 		y := float32(s.y) / 10
@@ -990,21 +1040,29 @@ func walkZone(g *ground.Ground, env *ground.Env, b worlds.Built, i int, band flo
 			if beyondShared(nx, nz) {
 				continue
 			}
-			// where the feet go: the floors at the step's end (one too steep
-			// to stand on is slid off: the next floor down)
+			// where the feet go: the floors at the step's end, up a step's
+			// climb (a unit's, for each unit of the step) or down a little;
+			// a body stands on anything (the walk drops a ball on the floor
+			// and slides on none), but where the floor is steeper than a
+			// walk climbs it is turned along it, so it goes level or down
+			// there, never up (a little, for a level line the grid's eight
+			// ways do not quite follow)
 			var to []float32
 			nc := colAt(ni, nj)
 			surfs := nc.surfs
+			span := float32(1)
+			if d[0] != 0 && d[1] != 0 {
+				span = math.Sqrt2
+			}
 			best, found := float32(0), false
 			for _, sf := range surfs {
-				if sf.Up && sf.Y <= y+climb && sf.Y >= y-0.6 && (!found || sf.Y > best) {
+				if sf.Up && sf.Y <= y+climb*span && sf.Y >= y-0.6 && (!found || sf.Y > best) {
 					best, found = sf.Y, true
 				}
 			}
-			slid := false
-			if found && steepAt(ni, nj, best) {
-				found, slid = false, true
-				y = min(y, best) // what is under it, from where it was met
+			refused := false
+			if found && best > y+levelRise*span && steepAt(ni, nj, best) {
+				found, refused = false, true
 			}
 			if found {
 				to = append(to, best)
@@ -1032,10 +1090,9 @@ func walkZone(g *ground.Ground, env *ground.Env, b worlds.Built, i int, band flo
 				}
 			}
 			if len(to) == 0 {
-				// a floor too steep with nothing under it is slid down, the
-				// way the slope goes (a step of its own, from here or the
-				// floor below), but for one past the edge: down into nothing
-				if slid && !past(nx, nz) {
+				// a steep floor up is no step at all (a hillside), not a
+				// step onto nothing
+				if refused {
 					continue
 				}
 				if inBand(nx, nz) || past(nx, nz) {

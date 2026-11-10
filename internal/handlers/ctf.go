@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -299,13 +301,18 @@ type arenaJSON struct {
 	SpeedBody dictID  `json:"speed_body"`
 	HealBody  dictID  `json:"heal_body"`
 	Teams     []struct {
-		Name  string    `json:"name"`
-		Short string    `json:"short"`
-		Flag  string    `json:"flag"`
-		Body  dictID    `json:"flag_body"`
-		Size  float32   `json:"flag_size"`
-		Stand arenaSpot `json:"stand"`
-		Camp  arenaSpot `json:"camp"`
+		Name  string `json:"name"`
+		Short string `json:"short"`
+		Flag  string `json:"flag"`
+		// Body is its banner's body and Size its scale; a body that is a zone's art the decoration copies in
+		// (its extras) is resident only in a world built with them, so Fallback (and FallbackSize) stands in
+		// where the built world holds no extra of Body (a composer without extras: the orbs of CHAR.ESF)
+		Body         dictID    `json:"flag_body"`
+		Size         float32   `json:"flag_size"`
+		Fallback     dictID    `json:"fallback_body"`
+		FallbackSize float32   `json:"fallback_size"`
+		Stand        arenaSpot `json:"stand"`
+		Camp         arenaSpot `json:"camp"`
 	} `json:"teams"`
 	PowerUps []struct {
 		Kind string    `json:"kind"`
@@ -315,8 +322,35 @@ type arenaJSON struct {
 	Field [][2]float32 `json:"field"`
 }
 
-// ReadArena is a built world's capture the flag arena (its recipe's "arena" block), checked.
-func ReadArena(b worlds.Built) (entity.CTFLayout, error) {
+// builtExtras is the sprites a built world's zones were given as extras (its built recipe's zones' "extras", raw:
+// a composer that places them writes them there), each resident in the world as its own art.
+func builtExtras(raw []byte) map[uint32]bool {
+	var j struct {
+		Zones []struct {
+			Extras []struct {
+				Sprite dictID `json:"sprite"`
+			} `json:"extras"`
+		} `json:"zones"`
+	}
+	out := map[uint32]bool{}
+	if json.Unmarshal(raw, &j) != nil {
+		return out
+	}
+	for _, z := range j.Zones {
+		for _, e := range z.Extras {
+			out[uint32(e.Sprite)] = true
+		}
+	}
+	return out
+}
+
+// ReadArena is a built world's capture the flag arena (its recipe's "arena" block), checked; raw is its built
+// recipe as written (worldN.json: which extras it was built with), nil for none.
+func ReadArena(b worlds.Built, raw ...[]byte) (entity.CTFLayout, error) {
+	resident := map[uint32]bool{}
+	if len(raw) > 0 {
+		resident = builtExtras(raw[0])
+	}
 	var lay entity.CTFLayout
 	if len(b.Arena) == 0 {
 		return lay, fmt.Errorf("world %d %q has no arena in its recipe", b.World, b.Name)
@@ -341,11 +375,15 @@ func ReadArena(b worlds.Built) (entity.CTFLayout, error) {
 		if t.Name == "" || t.Short == "" || t.Flag == "" {
 			return lay, fmt.Errorf("world %d's arena: team %d needs a name, a short name and a banner's name", b.World, i)
 		}
-		if t.Body == 0 && lay.FlagBody == 0 {
+		body, size := t.Body, t.Size
+		if t.Fallback != 0 && !resident[uint32(t.Body)] {
+			body, size = t.Fallback, t.FallbackSize // the banner's art is not in this build of the world
+		}
+		if body == 0 && lay.FlagBody == 0 {
 			return lay, fmt.Errorf("world %d's arena: team %d's banner has no body (flag_body)", b.World, i)
 		}
 		lay.Teams[i] = entity.CTFTeamLayout{Name: t.Name, Short: t.Short, Flag: t.Flag, Stand: t.Stand.spot(), Camp: t.Camp.spot(),
-			Body: uint32(t.Body), Size: t.Size}
+			Body: uint32(body), Size: size}
 		if t.Stand.X == 0 && t.Stand.Z == 0 || t.Camp.X == 0 && t.Camp.Z == 0 {
 			return lay, fmt.Errorf("world %d's arena: team %d's stand or camp is at 0, 0", b.World, i)
 		}
@@ -409,7 +447,7 @@ func CTFSettings(c config.CTFConfig) entity.CTFSettings {
 
 // SetupCTF turns world.ctf on at the start: its world must be one of the server's own built worlds with an arena
 // (LoadServerWorlds first). It says what it did, and reports whether the arena is on.
-func SetupCTF(gw *entity.World, c config.CTFConfig) bool {
+func SetupCTF(gw *entity.World, c config.CTFConfig, worldsDir string) bool {
 	set := CTFSettings(c)
 	if !c.Enabled {
 		gw.SetCTF(false, set, entity.CTFLayout{})
@@ -421,7 +459,8 @@ func SetupCTF(gw *entity.World, c config.CTFConfig) bool {
 		gw.SetCTF(false, set, entity.CTFLayout{})
 		return false
 	}
-	lay, err := ReadArena(b)
+	raw, _ := os.ReadFile(filepath.Join(worlds.Dir(worldsDir), worlds.BuiltName(int(set.World))))
+	lay, err := ReadArena(b, raw)
 	if err != nil {
 		log.Printf("WARNING: world.ctf: %v; the arena is closed", err)
 		gw.SetCTF(false, set, entity.CTFLayout{})
@@ -429,9 +468,9 @@ func SetupCTF(gw *entity.World, c config.CTFConfig) bool {
 	}
 	gw.SetCTF(true, set, lay)
 	ctfRulesLines = ctfRules(set, lay)
-	log.Printf("CTF: %s in world %d: %s against %s, teams of up to %d (start at %d a side), %d captures or %v, waves every %v, %d power-ups",
+	log.Printf("CTF: %s in world %d: %s against %s, teams of up to %d (start at %d a side), %d captures or %v, waves every %v, %d power-ups; the banners' bodies %08X at %.2f and %08X at %.2f",
 		lay.Name, set.World, lay.Teams[0].Short, lay.Teams[1].Short, set.TeamSize, set.MinPerTeam, set.ScoreLimit, set.TimeLimit,
-		set.WaveEvery, len(lay.PowerUps))
+		set.WaveEvery, len(lay.PowerUps), lay.Teams[0].Body, lay.Teams[0].Size, lay.Teams[1].Body, lay.Teams[1].Size)
 	return true
 }
 

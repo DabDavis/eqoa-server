@@ -19,8 +19,14 @@ import (
 // ctfFlagLevel is a banner's and a power-up's level: what a con of it says.
 const ctfFlagLevel = 1
 
-// ctfTrail is how far behind its carrier a carried banner goes.
-const ctfTrail float32 = 1.4
+// ctfTrail is how far from its carrier a carried banner goes: ctfTrailSide to its left and ctfTrailBack behind,
+// clear of the carrier's own camera, which follows a few steps straight behind it (a banner right behind its
+// carrier stood between the camera and the player on the rig).
+const (
+	ctfTrailSide float32 = 1.3
+	ctfTrailBack float32 = 0.4
+	ctfTrail     float32 = 1.4 // about that far in all
+)
 
 // CTFCarrierTag goes before a carrier's name where every client draws it (ShownName).
 const CTFCarrierTag = "[Banner] "
@@ -128,8 +134,10 @@ func (w *World) ctfFollowLocked(m *ctfMatch) {
 			f.npc = w.ctfBannerLocked(f.team, p.X, p.Y, p.Z, p.Facing)
 			npc = w.NPCs[f.npc]
 		}
+		// its front is CLIENT's heading (sin h, cos h), its right (cos h, -sin h)
 		h := float64(p.Facing)
-		x, z := p.X-ctfTrail*float32(math.Sin(h)), p.Z-ctfTrail*float32(math.Cos(h))
+		fx, fz := float32(math.Sin(h)), float32(math.Cos(h))
+		x, z := p.X-ctfTrailBack*fx-ctfTrailSide*fz, p.Z-ctfTrailBack*fz+ctfTrailSide*fx
 		y := p.Y
 		if gy, ok := w.groundFloorLocked(w.ctf.set.World, x, y+2, z); ok && y-gy < 4 && gy-y < 2 {
 			y = gy

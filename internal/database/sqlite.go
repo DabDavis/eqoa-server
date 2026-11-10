@@ -750,6 +750,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharSafeMode(); err != nil { // safemode.go: who /testinvis keeps out of the creatures' sight
 		return err
 	}
+	if err := db.ensureMercs(); err != nil { // mercs.go: the mercenaries hired and the familiars
+		return err
+	}
 	if err := db.ensureCharBuyBack(); err != nil { // buyback.go: what merchants sell back
 		return err
 	}
@@ -1070,6 +1073,10 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 	}
 	// nor be a vampire (vampire.go)
 	if _, err := s.db.Exec(`DELETE FROM charvampire WHERE serverid = ?`, serverID); err != nil {
+		return err
+	}
+	// nor have a mercenary hired (mercs.go)
+	if err := s.db.DeleteMerc(serverID); err != nil {
 		return err
 	}
 	// and have nothing to buy back (buyback.go)

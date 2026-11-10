@@ -50,6 +50,10 @@ type KeptPlayer struct {
 	Jumps bool `json:"jumps,omitempty"`
 	// Pet: its pet, summoned or charmed (keeppet.go), nil none
 	Pet *KeptPet `json:"pet,omitempty"`
+	// Merc and Familiar: its mercenary and its familiar (keepmerc.go), nil
+	// none
+	Merc     *KeptMerc     `json:"merc,omitempty"`
+	Familiar *KeptFamiliar `json:"familiar,omitempty"`
 }
 
 // KeptLockout is a spell's lockout and what is left of it.
@@ -106,6 +110,8 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 		}
 	}
 	k.Pet = w.keptPetLocked(p, now) // keeppet.go
+	k.Merc = w.keptMercLocked(p)    // keepmerc.go
+	k.Familiar = w.keptFamiliarLocked(p)
 	return k, true
 }
 

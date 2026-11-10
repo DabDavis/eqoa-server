@@ -136,6 +136,12 @@ func (ps *petState) meleeOut(n int) int {
 // petTakenLocked is a creature's melee hit on a pet as its template takes
 // it (taken_pct), at least 1.
 func (w *World) petTakenLocked(pet *NPC, n int) int {
+	if pet.isMerc() && balanced(pet) && n > 0 {
+		// a player's share of a creature's melee of its class and level
+		// (npcHitPlayerLocked's balanceclass and balanceclasslevel)
+		b := pet.merc.body
+		return max(1, pct(n, w.balance.MeleeTakenPctAt(b.Class, b.Level)))
+	}
 	ps := w.pets[pet.Owner]
 	if ps == nil || ps.npc != pet || ps.tmpl == nil || ps.tmpl.tmpl.TakenPct == 100 || n <= 0 {
 		return n

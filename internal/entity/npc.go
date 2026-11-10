@@ -250,7 +250,18 @@ type NPC struct {
 	// the one player it fights and the one alone who may hurt it, and whose its
 	// corpse's loot is; nil for every other NPC. Its corpse keeps it.
 	challenge *npcChallenge
+
+	// merc is a hired mercenary's (merc.go: Owner its hirer's), familiar a
+	// familiar's (familiar.go: never owned); nil for every other NPC
+	merc     *mercState
+	familiar *familiarState
 }
+
+// isMerc reports a hired mercenary.
+func (n *NPC) isMerc() bool { return n != nil && n.merc != nil }
+
+// isFamiliar reports a familiar (familiar.go).
+func (n *NPC) isFamiliar() bool { return n != nil && n.familiar != nil }
 
 // GetEntityID returns the NPC's entity ID.
 func (n *NPC) GetEntityID() EntityID {

@@ -29,6 +29,7 @@ func (w *World) Tick(now time.Time) {
 	w.runGates(gates)
 	w.runTravels()   // the spells that send players to a named place (gates.go)
 	w.runHandsBack() // the hands a switch took off for a cast, back after it (cast.go)
+	w.runMercNotes() // what became of the mercs, to the handlers (merc.go)
 	w.runCorpsesGone(gone)
 	w.ticks.mark(tsAfterLock)
 }
@@ -60,6 +61,8 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.attackSystem(now)
 	t.mark(tsAttack)
 	w.petSystem(now)
+	w.mercSystem(now)     // the mercenaries (merc.go)
+	w.familiarSystem(now) // the familiars (familiar.go)
 	t.mark(tsPets)
 	w.duelSystem(now)        // duels' invitations and ends (duel.go)
 	w.genieSystem(now)       // the lamps' genies and their windows (genie.go)

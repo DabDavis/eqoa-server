@@ -592,6 +592,14 @@ func (l *Listener) tickAllSessions() {
 					log.Printf("Failed to send initial packet to %s: %v", sess.RemoteAddr(), err)
 				}
 			}
+		} else if sess.ServerWorldsTaken() {
+			// At character select, a client of ours that took the server's
+			// worlds: what waits in its queue (their recipes, 62 fragments)
+			// goes out on the tick, not a fragment for each packet the client
+			// sends (SendWaiting). Every other session before the world, a
+			// PS2's among them, is sent a packet only in answer to one of its
+			// own, as ever.
+			rdp.SendWaiting(sess)
 		}
 		return true
 	})

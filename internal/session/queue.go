@@ -420,6 +420,29 @@ func (q *MessageQueue) Sendable(ack uint16, window uint16, windowBytes int) bool
 	return false
 }
 
+// NextFits reports whether a packet built now would carry a reliable message
+// that waits in the queue, by PreparePacket's own rule for each: not
+// acknowledged, within window of the client's ack, and, for one that never
+// went, either nothing in flight or room for it under windowBytes. Sendable is
+// the tick's looser test for a session it sends a packet to anyway; this one
+// is for a session sent a packet only when it would carry something (one at
+// character select: udp.RDPHandler.SendWaiting).
+func (q *MessageQueue) NextFits(ack uint16, window uint16, windowBytes int) bool {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	inFlight := q.inFlightLocked()
+	for _, msg := range q.pending {
+		if !msg.Type.IsReliable() || msg.Acked || SeqAfter(msg.Sequence, ack+window) {
+			continue
+		}
+		if !Sent(msg) && inFlight > 0 && inFlight+msg.Size()+8 > windowBytes {
+			continue
+		}
+		return true
+	}
+	return false
+}
+
 // noteResentLocked counts a packet's resends for the session's stats and,
 // every netLogEvery while it resends, writes its "Net:" line: who, how many
 // went again, and its stream as it stands (Report). It replaced a line a

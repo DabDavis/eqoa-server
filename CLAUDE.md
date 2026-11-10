@@ -920,8 +920,11 @@ default (`config.yaml.example`, `entity.DefaultCTFSettings`).
   as if out. Class pets go in, as the PvP fight's (`pvpPetLocked`); a group or raid across the teams stays the group it was.
 - **The end**: `score_limit` captures, or `time_limit` (the higher score wins, a tie is a draw), or a team empty 30 s (a
   forfeit). Everyone is told (the server too), each player its own count, and `end_hold` later all go back beside the herald
-  (one lying dead rises there). A login saved in the arena starts beside the herald (`arenaLogin`); a player in the arena's
-  world with no match there (a keep restart's: matches are not kept) is sent beside it after 5 s, a GM excepted.
+  (one lying dead rises there). A login saved in the arena starts beside the herald (`arenaLogin`), and so does a keep restart's
+  player out of a match (matches are not kept; its merc waiting outside comes back beside it): the server's own worlds and
+  capture the flag are set up before the kept sessions are put back (`cmd/gameserver`; until 2026-11-10 they came after,
+  and every player standing in the Homelands went to Freeport's login spot at each keep restart). A player in the arena's
+  world with no match there any other way is sent beside the herald after 5 s, a GM excepted.
 - **Every client sees it with no client change** (vanilla builds the world off its own disc through 0x7E30/0x7E31): the
   banners are NPCs, the tags and colours are the channel's. A banner's body is Highbourne's guild banner (the wizards' for
   Ember, the enchanters' for Dusk, at 0.17) where the built world holds that art among its zone's extras (the recipe's

@@ -492,8 +492,12 @@ func (h *NPCWindowHandler) HandleLootAll(sess *session.Session, msg *protocol.Me
 		queueReliable(sess, protocol.OpcodeClientCloseLoot, closeLootPayload())
 		return nil
 	}
-	queueReliable(sess, protocol.OpcodeLootTakeAll, buildLootTakeAll())
 	id, char := ls.open[sess], player.CharServerID
+	if loreStopsTakeAll(inv, ls.viewLocked(id, c, char)) {
+		looted = h.lootAllByOne(sess, ls, c, player, inv)
+		return nil
+	}
+	queueReliable(sess, protocol.OpcodeLootTakeAll, buildLootTakeAll())
 	left := false // a record or part of one stays for want of room
 	for i := 0; ; {
 		view := ls.viewLocked(id, c, char)
@@ -530,6 +534,78 @@ func (h *NPCWindowHandler) HandleLootAll(sess *session.Session, msg *protocol.Me
 	}
 	h.resendCorpse(sess, ls, c)
 	return nil
+}
+
+// loreStopsTakeAll is whether a take-all of these records would leave one on
+// the corpse under its Lore flag: one held already, or a second of the same on
+// the corpse. CLIENT's Msg001A knows no Lore (VIItemList::AddItem keeps every
+// record it has room for), so a 0x001A back would put the refused item in the
+// client's list, not the server's, and leave it on the corpse to be "taken"
+// again (petition 1498, Waldorf: "it still puts that item in your inventory
+// and also leaves it on the corpse").
+func loreStopsTakeAll(inv *invList, view []database.CharInventoryEntry) bool {
+	seen := map[int]bool{}
+	for i := range view {
+		p := &view[i].Pattern
+		if p.Lore == 0 {
+			continue
+		}
+		if seen[p.PatternID] || inv.loreHeld(p.PatternID) {
+			return true
+		}
+		seen[p.PatternID] = true
+	}
+	return false
+}
+
+// lootAllByOne is a take-all with no 0x001A back: each record the character may
+// take comes as a single take's does (0x0016), a Lore one held already stays
+// and is said once, and the window is sent again with what is left. Must be
+// called with the loot lock held; what was taken is returned for the quests.
+func (h *NPCWindowHandler) lootAllByOne(sess *session.Session, ls *lootState, c *corpse, player *entity.Player, inv *invList) []lootTake {
+	var looted []lootTake
+	id, char := ls.open[sess], player.CharServerID
+	left, said := false, map[int]bool{}
+	for i := 0; ; {
+		view := ls.viewLocked(id, c, char)
+		if i >= len(view) {
+			break
+		}
+		rec := view[i]
+		room := inv.wouldAdd(rec.Pattern.PatternID, rec.StackLeft, rec.Pattern.MaxStack)
+		took := inv.loreRoom(&rec.Pattern, room)
+		switch {
+		case took == 0 && room > 0:
+			if !said[rec.Pattern.PatternID] {
+				said[rec.Pattern.PatternID] = true
+				SendClientMessage(sess, fmt.Sprintf(loreLine, rec.Pattern.ItemName))
+			}
+		case took < rec.StackLeft:
+			left = true
+		}
+		if took > 0 {
+			out, k, err := h.giveItem(player, inv, rec, took, 0)
+			if err != nil {
+				log.Printf("Loot: %s: %v", player.Name, err)
+				took = 0
+			} else {
+				queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, k, readsCapes(sess)))
+				ls.tookLocked(id, c, char, i, took)
+				looted = append(looted, lootTake{rec.Pattern.PatternID, took})
+				tellLooted(sess, rec.Pattern.ItemName, took)
+				h.tellGroupLooted(player, rec.Pattern.ItemName, took)
+			}
+		}
+		if took != rec.StackLeft {
+			i++
+		}
+	}
+	log.Printf("Loot: %s took everything but a Lore item held; %d records left", player.Name, len(ls.viewLocked(id, c, char)))
+	if left {
+		SendClientMessage(sess, lootNoRoom)
+	}
+	h.resendCorpse(sess, ls, c)
+	return looted
 }
 
 // tellLooted says what a corpse gave, unless the client's Loot Messages option

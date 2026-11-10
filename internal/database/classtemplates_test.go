@@ -589,3 +589,65 @@ func TestTheMagiciansMasteryPetsHaveTheirOwn(t *testing.T) {
 		t.Errorf("the animation: %+v, want 100/100 and its taunt and four heals", a)
 	}
 }
+
+// The abilities of 2026-11-10 (the GM Jibrish's petitions 1437-1443, the owner's Tunare and Innoruuk): the
+// raid gods' lists read and written back the same; each new field refused where its kind takes none, a
+// passive kind's clock and cast fields refused, a summon's and an enrage's share of hit points needed.
+func TestTheRaidGodsAbilities(t *testing.T) {
+	for _, good := range []string{
+		`[{"kind":"strip","every":30,"first":30,"name":"Royal Decree"},` +
+			`{"kind":"heal","spell_id":700046,"heal_pct":100,"below":50,"every":900,"cooldown":900,"say":"Thats a fifteen minute cool down, you'll pay for that","proc_chance":100,"proc_damage":350,"proc_name":"Royal Fury"},` +
+			`{"kind":"lifetap","name":"Royal Siphon","fx":2943530132,"damage":4000,"every":30,"cooldown":30},{"kind":"hitheal","heal":150},` +
+			`{"kind":"prefer","foes":["Tunare"]},{"kind":"summon","below":25,"count":3,"npc":"Servant of Moogie","share":50,"say":"Servants!"},` +
+			`{"kind":"enrage","below":10,"grow":200,"every":3,"rampage":50}]`,
+		`[{"kind":"heal","heal_pct":100,"below":20,"every":1800,"cooldown":1800,"name":"Tunare's Renewal","fx":3266773242}]`,
+		`[{"kind":"nuke","name":"Gear Barrage","fx":3643621442,"damage":2000,"every":10,"out_of_reach":true,"range":100}]`,
+		`[{"kind":"dot","spell_id":905100,"every":24,"first":1,"cast":0.5},{"kind":"proc","spell_id":700794},` +
+			`{"kind":"veil","tap_pct":1,"resist":"ar","name":"Veil of Death"},{"kind":"proc","proc_chance":10,"proc_damage":99,"resist":"FR"}]`,
+		`[{"kind":"lifetap","spell":"Deathstrike","damage":4000,"every":30,"resist":"AR"}]`,
+	} {
+		list, err := ParseTemplateAbilities(good)
+		if err != nil {
+			t.Errorf("%s refused: %v", good, err)
+			continue
+		}
+		again, err := ParseTemplateAbilities(TemplateAbilitiesJSON(list))
+		if err != nil || !reflect.DeepEqual(again, list) {
+			t.Errorf("%s written back: %v %v", good, again, err)
+		}
+	}
+	if list, _ := ParseTemplateAbilities(`[{"kind":"veil","tap_pct":1,"resist":" ar "}]`); len(list) != 1 || list[0].Resist != "AR" {
+		t.Errorf("a resist's case: %+v", list)
+	}
+	for _, bad := range []string{
+		`[{"kind":"nuke","every":10,"heal":150}]`,                                      // a hit heal's figure on a nuke
+		`[{"kind":"hitheal","heal":0}]`,                                                // a hit heal of nothing
+		`[{"kind":"hitheal","heal":150,"every":10}]`,                                   // a clock on what casts nothing
+		`[{"kind":"summon","count":3,"npc":"Servant of Moogie"}]`,                      // a summon with no share of hit points
+		`[{"kind":"summon","below":25,"count":11,"npc":"Servant of Moogie"}]`,          // too many
+		`[{"kind":"summon","below":25,"count":3}]`,                                     // no one to call
+		`[{"kind":"enrage","below":10}]`,                                               // an enrage that does nothing
+		`[{"kind":"enrage","below":10,"grow":200,"every":1}]`,                          // pulls too often
+		`[{"kind":"prefer"}]`,                                                          // no foes
+		`[{"kind":"prefer","foes":[""]}]`,                                              // a foe of no name
+		`[{"kind":"proc"}]`,                                                            // a proc of nothing
+		`[{"kind":"proc","spell_id":7,"proc_chance":10,"proc_damage":5}]`,              // a spell's and its own figures
+		`[{"kind":"veil","tap_pct":0}]`,                                                // a veil of nothing
+		`[{"kind":"veil","tap_pct":1,"resist":"XR"}]`,                                  // a resist of none
+		`[{"kind":"heal","heal_pct":100,"every":60,"out_of_reach":true}]`,              // a heal from afar
+		`[{"kind":"nuke","every":10,"range":50}]`,                                      // a range with no gate
+		`[{"kind":"nuke","every":10,"damage":50,"damage_pct":200}]`,                    // a fixed figure and a percent
+		`[{"kind":"heal","every":10,"damage":50}]`,                                     // a fixed hit on a heal
+		`[{"kind":"nuke","spell":"Fire Bolt","every":10,"fx":7}]`,                      // a visual beside a spell's
+		`[{"kind":"nuke","every":10,"resist":"AR"}]`,                                   // a resist with no fixed figure
+		`[{"kind":"hitheal","heal":150},{"kind":"nuke","chain":true}]`,                 // a chain to what casts nothing
+		`[{"kind":"nuke","every":10,"count":3}]`,                                       // a summon's field on a nuke
+		`[{"kind":"enrage","below":10,"grow":200,"from":5}]`,                           // a level gate on a moment
+		`[{"kind":"veil","tap_pct":1,"say":"no"}]`,                                     // a say on a veil
+		`[{"kind":"summon","below":25,"count":3,"npc":"Servant of Moogie","share":-1}]`, // a share below none
+	} {
+		if _, err := ParseTemplateAbilities(bad); err == nil {
+			t.Errorf("%s read, want refused", bad)
+		}
+	}
+}

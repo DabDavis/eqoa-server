@@ -1317,6 +1317,12 @@ func (w *World) GetWarpDestinations(excludeName string, loadable func(world uint
 		if by, only := warpOfferedBy[npc.Name]; only && excludeName != "" && excludeName != by {
 			continue
 		}
+		// a homeland's gatekeeper (a world the server composed) flies its own
+		// people out by its quest, one way: no other warp NPC offers it (a
+		// GM's own list, with no one asking, has it)
+		if excludeName != "" && Composed(npc.World) {
+			continue
+		}
 		if loadable != nil && !loadable(npc.World) {
 			continue
 		}
@@ -1515,6 +1521,11 @@ func (w *World) WarpPoints(loadable func(world uint8) bool) []WarpPoint {
 	var out []WarpPoint
 	for _, npc := range w.NPCs {
 		if !IsWarpNPC(npc.Name) {
+			continue
+		}
+		// a homeland's gatekeeper is no route a player could ask a
+		// Harbormaster for (GetWarpDestinations)
+		if Composed(npc.World) {
 			continue
 		}
 		if loadable != nil && !loadable(npc.World) {

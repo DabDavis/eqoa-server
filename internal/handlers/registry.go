@@ -327,6 +327,11 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		})
 	}
 	npcWindowHandler.RegisterHandlers(r)
+	// The raid's windows and commands (raidcmds.go, raidloot.go): vanilla's rolls and
+	// menu, and the typed commands the chat hands over
+	raidHandler := NewRaidHandler(gameWorld, npcWindowHandler)
+	raidHandler.RegisterHandlers(r)
+	chatHandler.raid = raidHandler
 	// The auction house (auction.go, database/auction.go): 0x1205 on its
 	// tables, the sweep that closes lots at their time (at once at a start:
 	// what ended while the server was down), and a player's bank made right

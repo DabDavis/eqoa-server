@@ -98,7 +98,7 @@ func (ls *lootState) tookLocked(id entity.EntityID, c *corpse, serverID uint32, 
 // emptyLocked is whether nothing is left on the corpse for anyone: its own
 // items and every character's drops.
 func (ls *lootState) emptyLocked(id entity.EntityID, c *corpse) bool {
-	if len(c.items) > 0 {
+	if len(c.items) > 0 || c.raid != nil && len(c.raid.held) > 0 { // a raid's rolled and won items (raidloot.go)
 		return false
 	}
 	d := ls.drops[id]

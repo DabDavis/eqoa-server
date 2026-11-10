@@ -468,3 +468,10 @@ func (w *World) RaidLeaderOf(id uint32) uint32 {
 	}
 	return 0
 }
+
+// NPCByID is the NPC of that id in the world, or nil.
+func (w *World) NPCByID(id EntityID) *NPC {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.NPCs[id]
+}

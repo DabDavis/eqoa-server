@@ -55,6 +55,9 @@ type corpse struct {
 	died  time.Time // the death it is the loot of
 	items []database.CharInventoryEntry
 	tunar int // its coins until the first opener takes them (corpsecoins.go)
+	// raid is its raid's hold on it: rolls, winners, a master looter (raidloot.go);
+	// nil for every other corpse
+	raid *raidCorpse
 }
 
 // lootState is the corpses and who has which one open.
@@ -63,12 +66,18 @@ type lootState struct {
 	corpses map[entity.EntityID]*corpse
 	open    map[*session.Session]entity.EntityID
 	drops   map[entity.EntityID]*questDrops // loot steps' drops (questloot.go)
+	// rolls are a raid's need before greed rolls going on, by id, and nextRoll the
+	// last id given (raidloot.go)
+	rolls    map[int]*lootRoll
+	nextRoll int
+	// listed is the corpse each master looter was last listed, by character
+	listed map[uint32]entity.EntityID
 }
 
 func (h *NPCWindowHandler) loots() *lootState {
 	h.lootOnce.Do(func() {
 		h.loot = &lootState{corpses: map[entity.EntityID]*corpse{}, open: map[*session.Session]entity.EntityID{},
-			drops: map[entity.EntityID]*questDrops{}}
+			drops: map[entity.EntityID]*questDrops{}, rolls: map[int]*lootRoll{}}
 	})
 	return h.loot
 }
@@ -102,67 +111,80 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 			return true
 		}
 	}
+	var won []winTake
+	defer func() { tellWinsQuests(won) }() // after the lock: a raid's won items taken (raidloot.go)
 	ls := h.loots()
 	ls.mu.Lock()
 	defer ls.mu.Unlock()
+	h.takeRaidKillLocked(ls, npc, died) // a raid's kill, rolled at its death (raidloot.go)
 	c := ls.corpses[npc.ServerID]
 	if c == nil || !c.died.Equal(died) {
-		items, err := h.inv.GetNPCItems(npc.NPCID)
-		if err != nil {
-			log.Printf("Loot: %q (npc %d): %v", npc.Name, npc.NPCID, err)
-		}
-		// equipment no more than lootLevelReach above the opener's level
-		level, cut := h.openerLevel(sess), 0
-		items, cut = fitItems(items, level)
-		// and what its loot tables roll at this death (loottables, npcloot),
-		// then the tables every creature's corpse rolls (npcloot's "*")
-		for _, name := range lootNames(npc) {
-			if rolls, err := h.inv.NPCLootRolls(name, npc.Level); err != nil {
-				log.Printf("Loot: %q's loot tables (%q): %v", npc.Name, name, err)
-			} else if len(rolls) > 0 {
-				for i := range rolls {
-					var n int
-					rolls[i].Choices, n = fitChoices(rolls[i].Choices, level)
-					cut += n
-				}
-				got := rollLoot(rolls, h.lootIntn)
-				items = append(items, got...)
-				log.Printf("Loot: %q (level %d) rolled %d of %q's tables' items", npc.Name, npc.Level, len(got), name)
-			}
-		}
-		// and a roll a category (lootcategory.go), but for a pet's, a
-		// charmed creature's or a training dummy's corpse
-		if rollsCategories(npc) {
-			if rolls, err := h.inv.CategoryRolls(npc.Name, npc.Level); err != nil {
-				log.Printf("Loot: %q's loot categories: %v", npc.Name, err)
-			} else if len(rolls) > 0 {
-				for i := range rolls {
-					var n int
-					rolls[i].Choices, n = fitChoices(rolls[i].Choices, level)
-					cut += n
-				}
-				got := rollCategories(rolls, h.lootFloat, h.lootIntn)
-				items = append(items, got...)
-				log.Printf("Loot: %q (level %d) rolled %d items of its categories", npc.Name, npc.Level, len(got))
-			}
-		}
-		if cut > 0 {
-			log.Printf("Loot: %q rolled for a level %d opener: %d pieces of equipment above level %d left out",
-				npc.Name, level, cut, level+lootLevelReach)
-		}
-		for i := range items {
-			items[i] = catalogRecord(items[i])
-		}
-		c = &corpse{died: died, items: items, tunar: corpseCoins(npc, h.coinRoll)}
+		c = h.rollCorpse(npc, died, h.openerLevel(sess))
 		ls.corpses[npc.ServerID] = c
+	}
+	answered := false
+	if answered, won = h.raidOpenLocked(sess, ls, npc, c); answered { // its raid's rules first (raidloot.go)
+		return true
 	}
 	ls.open[sess] = npc.ServerID
 	h.giveCorpseCoins(sess, npc, c.tunar)
 	c.tunar = 0
 	view := ls.viewLocked(npc.ServerID, c, h.charOf(sess))
 	SendLoot(sess, view)
+	h.raidOpenedLocked(sess, ls, npc, c)
 	log.Printf("Loot: %s opened %q: %d items", sessName(h, sess), npc.Name, len(view))
 	return true
+}
+
+// rollCorpse is a corpse's loot at the death died, rolled for an opener of level (0:
+// anyone): its NPC's own items, its loot tables, its categories, and its coins.
+func (h *NPCWindowHandler) rollCorpse(npc *entity.NPC, died time.Time, level int) *corpse {
+	items, err := h.inv.GetNPCItems(npc.NPCID)
+	if err != nil {
+		log.Printf("Loot: %q (npc %d): %v", npc.Name, npc.NPCID, err)
+	}
+	// equipment no more than lootLevelReach above the opener's level
+	items, cut := fitItems(items, level)
+	// and what its loot tables roll at this death (loottables, npcloot),
+	// then the tables every creature's corpse rolls (npcloot's "*")
+	for _, name := range lootNames(npc) {
+		if rolls, err := h.inv.NPCLootRolls(name, npc.Level); err != nil {
+			log.Printf("Loot: %q's loot tables (%q): %v", npc.Name, name, err)
+		} else if len(rolls) > 0 {
+			for i := range rolls {
+				var n int
+				rolls[i].Choices, n = fitChoices(rolls[i].Choices, level)
+				cut += n
+			}
+			got := rollLoot(rolls, h.lootIntn)
+			items = append(items, got...)
+			log.Printf("Loot: %q (level %d) rolled %d of %q's tables' items", npc.Name, npc.Level, len(got), name)
+		}
+	}
+	// and a roll a category (lootcategory.go), but for a pet's, a
+	// charmed creature's or a training dummy's corpse
+	if rollsCategories(npc) {
+		if rolls, err := h.inv.CategoryRolls(npc.Name, npc.Level); err != nil {
+			log.Printf("Loot: %q's loot categories: %v", npc.Name, err)
+		} else if len(rolls) > 0 {
+			for i := range rolls {
+				var n int
+				rolls[i].Choices, n = fitChoices(rolls[i].Choices, level)
+				cut += n
+			}
+			got := rollCategories(rolls, h.lootFloat, h.lootIntn)
+			items = append(items, got...)
+			log.Printf("Loot: %q (level %d) rolled %d items of its categories", npc.Name, npc.Level, len(got))
+		}
+	}
+	if cut > 0 {
+		log.Printf("Loot: %q rolled for a level %d opener: %d pieces of equipment above level %d left out",
+			npc.Name, level, cut, level+lootLevelReach)
+	}
+	for i := range items {
+		items[i] = catalogRecord(items[i])
+	}
+	return &corpse{died: died, items: items, tunar: corpseCoins(npc, h.coinRoll)}
 }
 
 // lootEveryCreature is the npcloot name whose tables every creature's corpse
@@ -304,6 +326,7 @@ func (h *NPCWindowHandler) corpseGoneLocked(ls *lootState, id entity.EntityID) {
 			queueReliable(s, protocol.OpcodeClientCloseLoot, closeLootPayload())
 		}
 	}
+	h.raidCorpseGoneLocked(ls, id) // its rolls end with it (raidloot.go)
 	delete(ls.corpses, id)
 	delete(ls.drops, id)
 }
@@ -343,6 +366,7 @@ func (h *NPCWindowHandler) resendCorpse(sess *session.Session, ls *lootState, c 
 		return
 	}
 	SendLoot(sess, view)
+	h.masterListLocked(sess, c) // after every 0x0018 to its master looter (raidloot.go)
 }
 
 // HandleLootCorpse is 0x0015 {u32 id}: the attack button on a corpse

@@ -428,6 +428,212 @@
       }
     },
     {
+      "name": "Envar",
+      "from": "RATHE.ESF",
+      "zone": 15,
+      "race": 30,
+      "note": "Jal'Raeth: the Rathe's Envar, where the game's own Jal'Raeth stand: 29 of them, commoners, nobles, channelers, knights and champions, among the ruins (Envar, cell 2,4). Added 2026-11-10, after the plan: the race joined after it.",
+      "home": {
+        "flavor": "The Jal'Raeth are a silent folk who drift in meditation round the old temple of Envar in the Homelands; Highbourne's scholars take them in.",
+        "start": {
+          "x": 5390.0,
+          "y": 43.9,
+          "z": 9173.6,
+          "toward": [
+            5383.0,
+            9173.6
+          ]
+        },
+        "mainland": {
+          "place": "Highbourne",
+          "world": 0,
+          "x": 4727.4,
+          "y": 54.1,
+          "z": 21654.9,
+          "facing": 1.24
+        },
+        "npcs": [
+          {
+            "name": "Elder Ithrael",
+            "like": 126611,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              5383.0,
+              44.0,
+              9173.6
+            ],
+            "toward": [
+              5390.0,
+              9173.6
+            ],
+            "note": "the starter quests' giver, a Jal'Raeth channeler, on the temple's east side"
+          },
+          {
+            "name": "Grocer Saelun",
+            "like": 126608,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5367.8,
+              43.9,
+              9204.3
+            ],
+            "toward": [
+              5383.0,
+              9173.6
+            ],
+            "stock": "Grocer Deorda",
+            "note": "the order's grocer by the temple's east wall, a Highbourne grocer's food"
+          },
+          {
+            "name": "Spiritmaster Oravai",
+            "like": 126615,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              5392.7,
+              43.9,
+              9146.4
+            ],
+            "toward": [
+              5383.0,
+              9173.6
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Tavrin",
+            "like": 126605,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              5187.9,
+              43.9,
+              9372.0
+            ],
+            "toward": [
+              5270.0,
+              9260.0
+            ],
+            "note": "by the temple's west side: sends one who has done the starter quests to Highbourne (the quest The Scholars' City)"
+          },
+          {
+            "name": "Envar sentinel",
+            "like": 126603,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5395.1,
+              43.9,
+              9206.2
+            ],
+            "facing": 64
+          },
+          {
+            "name": "Envar sentinel",
+            "like": 126603,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5158.8,
+              43.9,
+              9377.4
+            ],
+            "facing": 224
+          },
+          {
+            "name": "Envar sentinel",
+            "like": 126603,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5229.0,
+              47.4,
+              9330.0
+            ],
+            "facing": 192
+          },
+          {
+            "name": "ash grub",
+            "body": "0x1FA284AE",
+            "level": 1,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5497.6,
+              60.6,
+              9190.9
+            ],
+            "note": "the starter hunt's grubs (a moth larva's body, small), in the dead hills east of the temple"
+          },
+          {
+            "name": "ash grub",
+            "body": "0x1FA284AE",
+            "level": 1,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5442.1,
+              55.6,
+              8988.7
+            ]
+          },
+          {
+            "name": "ash grub",
+            "body": "0x1FA284AE",
+            "level": 2,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5528.0,
+              55.5,
+              8922.6
+            ]
+          },
+          {
+            "name": "ash grub",
+            "body": "0x1FA284AE",
+            "level": 1,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5520.0,
+              59.2,
+              9050.0
+            ]
+          },
+          {
+            "name": "ash grub",
+            "body": "0x1FA284AE",
+            "level": 1,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5460.0,
+              65.9,
+              9040.0
+            ]
+          },
+          {
+            "name": "ash grub",
+            "body": "0x1FA284AE",
+            "level": 2,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5510.0,
+              64.0,
+              9100.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "ash grub"
+        ]
+      }
+    },
+    {
       "name": "Moss Mouth Cavern",
       "from": "TUNARIA.ESF",
       "zone": 68,

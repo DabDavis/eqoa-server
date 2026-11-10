@@ -237,6 +237,12 @@ type Player struct {
 	RaidRoster     bool
 	raidRosterSent string
 
+	// RaidWindows: the player's client shows the raid's windows and answered the
+	// raid offer (raidrules.go, opcodes 0x7E42-0x7E48): its raid's state, its rolls
+	// and the master looter's list; raidStateSent is the state it was last sent.
+	RaidWindows   bool
+	raidStateSent string
+
 	// PetEffects: the player's client draws its pet's effects under the pet's
 	// bar and asked for them (peteffects.go, opcodes 0x7E32 and 0x7E33);
 	// petEffectsSent is what made the set it was last sent (each effect's

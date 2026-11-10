@@ -110,6 +110,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	t.mark(tsGroupSync)
 	w.powerSyncSystem()
 	w.raidRosterSystem()
+	w.raidStateSystem()     // the raid's state to the clients that show it, the claims swept (raidrules.go)
 	w.petEffectsSystem(now) // the pet's effects, to the clients that draw them (peteffects.go)
 	t.mark(tsPowerSync)
 	w.tickSeenLocked()

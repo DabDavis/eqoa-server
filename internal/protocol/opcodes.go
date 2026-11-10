@@ -753,6 +753,49 @@ const (
 	// figure on the player that another made, any to a session that never
 	// answered 1) is the retail body alone.
 	OpcodeNumberTagsAnswer GameOpcode = 0x7E39
+
+	// The raid's windows (the GM Jibrish's petitions 1448 and 1451: the leader's
+	// mark, loot rules, need before greed's rolls, the master looter's list;
+	// entity/raidrules.go, handlers/raidloot.go). Not retail: CLIENT's dispatcher
+	// has no case above 0x1402 and no default, so a PS2 ignores every one and is
+	// told the same in chat lines (and answers them by /t need, /t assign ...).
+	// Every id in them is the one the RECEIVING client knows the player by (its
+	// own, a visibility channel's, or groupFarID's stand-in, as 0x7E1A's); a name
+	// is a u8 byte count and its bytes.
+	//
+	// OpcodeRaidOffer, server to client once the player is in the world: a u8, 1.
+	OpcodeRaidOffer GameOpcode = 0x7E42
+	// OpcodeRaidAnswer, client to server at once after the offer and on a change:
+	// a u8, 1 to be sent the raid's state, its rolls as windows and the master
+	// looter's list (0x7E44, 0x7E45, 0x7E47), 0 for the chat lines a PS2 gets.
+	OpcodeRaidAnswer GameOpcode = 0x7E43
+	// OpcodeRaidState, server to client to one that answered 1, on a change (looked
+	// at once a second, and at once after a raid command), and all zero once when
+	// its player is in no raid: u32 leader (0: no raid), u32 helper (0 none), u32
+	// main assist (0 none), u8 loot rule (0 free for all, 1 need before greed, 2
+	// master looter), u8 flags (bit 0 in combat: no rule change and no disband, bit
+	// 1 the client's player leads, bit 2 it is the helper).
+	OpcodeRaidState GameOpcode = 0x7E44
+	// OpcodeRaidRoll, server to client, one roll for an answered client offered it:
+	// u32 roll id (1-999, round), u16 seconds left; 0 seconds is the roll over for
+	// that client (chosen, decided, the corpse gone) and nothing follows; else u8
+	// flags (bit 0 it may Need, by the equip rules) and the item as an inventory
+	// record (0x003B's body: writeSingleItem, its key the roll id).
+	OpcodeRaidRoll GameOpcode = 0x7E45
+	// OpcodeRaidRollChoice, client to server: u32 roll id, u8 choice (1 need, 2
+	// greed, 3 pass); taken, it is answered with 0x7E45 of 0 seconds.
+	OpcodeRaidRollChoice GameOpcode = 0x7E46
+	// OpcodeRaidMasterLoot, server to client, after 0x0018 when a master looter opens
+	// a corpse it holds, and u8 0 alone when that hold ends: u8 1, u16 seconds left
+	// of the hold, u8 count, then each u32 id and its name (the raid's members and
+	// those kicked from it in that fight).
+	OpcodeRaidMasterLoot GameOpcode = 0x7E47
+	// OpcodeRaidCommand, client to server: u8 op, then 1 loot rule (u8), 2 leave the
+	// raid, 3 assign (u32 the open corpse's record key, u32 the player's id), 4
+	// abandon the open corpse, 5 raid-invite (u32 target), 6 the raid flag, 7
+	// assist the main assist, 8 leader (u32 target), 9 helper (u32 target, 0
+	// none), 10 main assist (u32 target, 0 none), 11 kick (u32 target).
+	OpcodeRaidCommand GameOpcode = 0x7E48
 )
 
 // =============================================================================
@@ -1059,6 +1102,20 @@ func (op GameOpcode) String() string {
 		return "NumberTagsOffer"
 	case OpcodeNumberTagsAnswer:
 		return "NumberTagsAnswer"
+	case OpcodeRaidOffer:
+		return "RaidOffer"
+	case OpcodeRaidAnswer:
+		return "RaidAnswer"
+	case OpcodeRaidState:
+		return "RaidState"
+	case OpcodeRaidRoll:
+		return "RaidRoll"
+	case OpcodeRaidRollChoice:
+		return "RaidRollChoice"
+	case OpcodeRaidMasterLoot:
+		return "RaidMasterLoot"
+	case OpcodeRaidCommand:
+		return "RaidCommand"
 	case OpcodeMapTravel:
 		return "MapTravel"
 	case OpcodeMapTravelTo:

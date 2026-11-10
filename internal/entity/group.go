@@ -54,6 +54,8 @@ type Group struct {
 	// flagged: its leader raised a raid flag (raidflag.go): a raid's group,
 	// whatever its size, to its chat (GroupIsRaid)
 	flagged bool
+	// rules: a raid's loot rule, helper and main assist (raidrules.go)
+	rules raidRules
 }
 
 // GroupMembers is p's group's members (the leader first), or none.
@@ -238,7 +240,12 @@ func (w *World) GroupInvite(sess *session.Session, targetID uint32) {
 	if inviter == nil {
 		return
 	}
-	target := w.playerSeenByLocked(sess, targetID)
+	w.groupInviteLocked(sess, inviter, w.playerSeenByLocked(sess, targetID))
+}
+
+// groupInviteLocked is inviter's invite of target (nil: no one), GroupInvite's rules,
+// for its 0x0625 and /invite <name> (raidcmds.go). Must be called with the lock held.
+func (w *World) groupInviteLocked(sess *session.Session, inviter, target *Player) {
 	tsess := w.sessionOfLocked(target)
 	if target == nil || tsess == nil || target == inviter {
 		w.sendGroupNotice(sess, 3, "")
@@ -340,7 +347,7 @@ func (w *World) GroupAccept(sess *session.Session, inviterID uint32) {
 		ask, asked = w.takeInviteLocked(p, inviter)
 	}
 	if asked && inviter == p {
-		w.raidFlagOwnYesLocked(sess, p) // raidflag.go
+		w.ownBoxYesLocked(sess, p, ask) // raidflag.go
 		return
 	}
 	if !asked || p.GroupID != 0 {
@@ -392,7 +399,7 @@ func (w *World) GroupDecline(sess *session.Session, inviterID uint32, why byte) 
 		return
 	}
 	if inviter == p {
-		w.raidFlagOwnNoLocked(sess, p, why) // raidflag.go
+		w.ownBoxNoLocked(sess, p, why, ask) // raidflag.go
 		return
 	}
 	if ask.raid && why == 1 {
@@ -449,6 +456,7 @@ func (w *World) leaveGroupLocked(p *Player) {
 	if g == nil {
 		return
 	}
+	led := len(g.Members) > 0 && g.Members[0] == p.ServerID
 	for i, id := range g.Members {
 		if id == p.ServerID {
 			g.Members = append(g.Members[:i], g.Members[i+1:]...)
@@ -457,8 +465,13 @@ func (w *World) leaveGroupLocked(p *Player) {
 	}
 	delete(g.lastRoster, p.ServerID)
 	log.Printf("Group: %s left group %d (%d left)", p.Name, g.ID, len(g.Members))
+	w.raidMemberGoneLocked(g, p.ServerID) // raidrules.go
 	w.raidLeftLocked(g, p.Name)
+	if led {
+		w.raidLeadPassedLocked(g) // raidrules.go
+	}
 	w.shrinkLocked(g)
+	w.raidStateNowForLocked(p)
 }
 
 // shrinkLocked dissolves a group of one (2: disbanded) or sends the rest
@@ -488,9 +501,16 @@ func (w *World) GroupBoot(sess *session.Session, memberID uint32) {
 		return
 	}
 	g := w.groups[p.GroupID]
-	if g == nil || g.Members[0] != p.ServerID {
+	if g == nil || !w.mayKickLocked(g, p, m) { // the leader, or a raid's helper (raidcmds.go)
 		return
 	}
+	w.bootLocked(g, m)
+}
+
+// bootLocked takes m out of g as ejected (0x069A 1), a raid's kick in a fight keeping
+// its claims (raidrules.go). Must be called with the lock held.
+func (w *World) bootLocked(g *Group, m *Player) {
+	w.raidKickedLocked(g, m)
 	for i, id := range g.Members {
 		if id == m.ServerID {
 			g.Members = append(g.Members[:i], g.Members[i+1:]...)
@@ -500,8 +520,10 @@ func (w *World) GroupBoot(sess *session.Session, memberID uint32) {
 	m.GroupID = 0
 	delete(g.lastRoster, m.ServerID)
 	w.sendGroupRemoved(m, 1)
+	w.raidMemberGoneLocked(g, m.ServerID)
 	w.raidLeftLocked(g, m.Name)
 	w.shrinkLocked(g)
+	w.raidStateNowForLocked(m)
 }
 
 // GroupDisband is 0x0627 from the leader: the rest are told (2).
@@ -513,7 +535,14 @@ func (w *World) GroupDisband(sess *session.Session) {
 		return
 	}
 	g := w.groups[p.GroupID]
-	if g == nil || g.Members[0] != p.ServerID {
+	if g == nil {
+		return
+	}
+	// CLIENT's DisbandGroup lets its own group go before it sends: one that no longer
+	// leads (a lead handed on, /raidleader) and a raid's leader in a fight leave
+	// instead, the rest going on (raidcmds.go)
+	if g.Members[0] != p.ServerID || w.disbandRefusedLocked(sess, g, p) {
+		w.leaveGroupLocked(p)
 		return
 	}
 	for _, id := range g.Members {
@@ -522,6 +551,7 @@ func (w *World) GroupDisband(sess *session.Session) {
 			if m != p {
 				w.sendGroupRemoved(m, 2)
 			}
+			w.raidStateNowForLocked(m)
 		}
 	}
 	delete(w.groups, g.ID)

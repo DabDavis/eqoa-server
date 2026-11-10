@@ -35,6 +35,7 @@ type KeptPlayer struct {
 	PowerBars    bool          `json:"power_bars,omitempty"`
 	PetEffects   bool          `json:"pet_effects,omitempty"`
 	RaidRoster   bool          `json:"raid_roster,omitempty"`
+	RaidWindows  bool          `json:"raid_windows,omitempty"`
 	DuelWindow   bool          `json:"duel_window,omitempty"`
 	GM           bool          `json:"gm,omitempty"`
 	Flying       bool          `json:"flying,omitempty"`
@@ -80,6 +81,12 @@ type KeptSlot struct {
 type KeptGroup struct {
 	ID      uint32   `json:"id"`
 	Members []uint32 `json:"members"`
+	// a raid's own (raidrules.go): its flag, its loot rule, its helper and main
+	// assist by their characters
+	Flagged bool     `json:"flagged,omitempty"`
+	Loot    LootRule `json:"loot,omitempty"`
+	Helper  uint32   `json:"helper,omitempty"`
+	Assist  uint32   `json:"assist,omitempty"`
 }
 
 // KeepPlayer is what a restart carries of sess's player, false when it has
@@ -92,7 +99,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 		return KeptPlayer{}, false
 	}
 	k := KeptPlayer{CharServerID: p.CharServerID, Name: p.Name, Dead: p.IsDead() || p.respawnPending(),
-		Target: p.TargetObjectID, PowerBars: p.PowerBars, RaidRoster: p.RaidRoster, DuelWindow: p.DuelWindow, GM: p.GM, Flying: p.Flying,
+		Target: p.TargetObjectID, PowerBars: p.PowerBars, RaidRoster: p.RaidRoster, RaidWindows: p.RaidWindows, DuelWindow: p.DuelWindow, GM: p.GM, Flying: p.Flying,
 		Place: [3]float32{p.X, p.Y, p.Z}, World: p.World, PetEffects: p.PetEffects}
 	k.RaceLabels = p.RaceLabels
 	k.RecordWindow = p.RecordWindow
@@ -130,6 +137,7 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	p.PowerBars, p.powerBarsSent, p.powerBarsDue = k.PowerBars, "", k.PowerBars
 	p.PetEffects, p.petEffectsSent, p.petEffectsDue = k.PetEffects, "", k.PetEffects // its pet's set again once the pet is back
 	p.RaidRoster, p.raidRosterSent = k.RaidRoster, ""
+	p.RaidWindows, p.raidStateSent = k.RaidWindows, "" // the state again at the next pass (raidrules.go)
 	p.GM = k.GM
 	p.DuelWindow = k.DuelWindow
 	// its record's summary is read again (handlers/keep.go)
@@ -218,11 +226,17 @@ func (w *World) KeepGroups() []KeptGroup {
 	defer w.mu.RUnlock()
 	var out []KeptGroup
 	for _, g := range w.groups {
-		k := KeptGroup{ID: g.ID}
+		k := KeptGroup{ID: g.ID, Flagged: g.flagged, Loot: g.rules.loot}
 		for _, id := range g.Members {
 			if p := w.Players[id]; p != nil {
 				k.Members = append(k.Members, p.CharServerID)
 			}
+		}
+		if p := w.Players[g.rules.helper]; p != nil {
+			k.Helper = p.CharServerID
+		}
+		if p := w.Players[g.rules.assist]; p != nil {
+			k.Assist = p.CharServerID
 		}
 		if len(k.Members) >= 2 {
 			out = append(out, k)
@@ -249,10 +263,17 @@ func (w *World) RestoreGroups(groups []KeptGroup) (int, error) {
 			errs = append(errs, fmt.Sprintf("group %d: its id is taken", k.ID))
 			continue
 		}
-		g := &Group{ID: k.ID, lastRoster: map[EntityID]string{}, raid: len(k.Members) > GroupWindowSize}
+		g := &Group{ID: k.ID, lastRoster: map[EntityID]string{}, raid: len(k.Members) > GroupWindowSize,
+			flagged: k.Flagged, rules: raidRules{loot: k.Loot}}
 		for _, c := range k.Members {
 			if p := w.playerByCharacterLocked(c); p != nil && p.GroupID == 0 {
 				g.Members = append(g.Members, p.ServerID)
+				if c == k.Helper && c != 0 {
+					g.rules.helper = p.ServerID
+				}
+				if c == k.Assist && c != 0 {
+					g.rules.assist = p.ServerID
+				}
 			}
 		}
 		if len(g.Members) < 2 {

@@ -89,6 +89,7 @@ func (w *World) playerDownLocked(sess *session.Session, p *Player, now time.Time
 	}
 	p.HP = 0
 	p.DiedAt = now
+	w.ctfDownLocked(p, now) // ctfflag.go: a carrier's banner drops where it fell
 	p.AutoAttack = false
 	p.disengage()
 	w.clearSpellsLocked(p)
@@ -136,7 +137,14 @@ func (w *World) dropAggroLocked(id EntityID) {
 func (w *World) playerRespawnSystem(now time.Time) []respawnDue {
 	var due []respawnDue
 	for _, p := range w.Players {
-		if !p.respawnPending() || now.Sub(p.DiedAt) < PlayerRespawnDelay {
+		if !p.respawnPending() {
+			continue
+		}
+		if due, arena := w.ctfRespawnDueLocked(p, now); arena { // ctf.go: the arena's waves
+			if !due {
+				continue
+			}
+		} else if now.Sub(p.DiedAt) < PlayerRespawnDelay {
 			continue
 		}
 		p.DiedAt = time.Time{}

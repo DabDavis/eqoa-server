@@ -88,6 +88,8 @@ type InteractHandler struct {
 
 	// tele is the Teleporter's boxes and what it offers (teleporter.go)
 	tele Teleporter
+	// ctf is the PvP Events herald's boxes (ctf.go)
+	ctf CTFHerald
 }
 
 // SetDialogLines gives the handler npcdialog's reader (database.NPCDialog).
@@ -263,6 +265,12 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 
 	// Dabrish (dabrish.go): a level of the player's choosing, or mastery points.
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.dabrishTalk(sess, player, npc) {
+		return nil
+	}
+
+	// The PvP Events herald (ctf.go): capture the flag's sign-up; and a talk to a banner or a power-up
+	// of the arena's match is a touch.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.ctfTalk(sess, player, npc) {
 		return nil
 	}
 
@@ -574,6 +582,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// the Teleporter's (teleporter.go); an old one does nothing
 	if h.answerTeleporter(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// the PvP Events herald's (ctf.go); an old one does nothing
+	if h.answerCTF(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// a Spell Archivist's (archivist.go); an old one does nothing

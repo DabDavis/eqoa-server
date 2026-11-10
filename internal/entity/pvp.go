@@ -119,15 +119,28 @@ func (w *World) SetPvP(on bool) {
 func (p *Player) PvPFlagged() bool { return p.pvp.on }
 
 // pvpFoe reports q a player p may fight now: both flagged, alive, in one world and in no group
-// together. Nothing else; in any area.
+// together. Nothing else; in any area. In the arena (ctf.go) the teams alone decide: two players of
+// one match on different teams while its banners are live, whatever their flags and groups, and a
+// match's player is no one else's foe, nor anyone else its.
 func (p *Player) pvpFoe(q *Player) bool {
-	if p == nil || q == nil || p == q || !p.pvp.on || !q.pvp.on || p.World != q.World {
+	if p == nil || q == nil || p == q || p.World != q.World {
 		return false
 	}
 	if p.IsDead() || q.IsDead() || p.respawnPending() || q.respawnPending() {
 		return false
 	}
+	if p.ctf.match != 0 || q.ctf.match != 0 {
+		return p.ctf.match == q.ctf.match && p.ctf.team != q.ctf.team && p.ctf.live && q.ctf.live
+	}
+	if !p.pvp.on || !q.pvp.on {
+		return false
+	}
 	return p.GroupID == 0 || p.GroupID != q.GroupID
+}
+
+// pvpLive reports p fighting players: flagged for PvP, or playing in the arena's match (ctf.go).
+func (p *Player) pvpLive() bool {
+	return p.pvp.on || p.ctf.match != 0
 }
 
 // PvPWant is what a /pvp asks for: the flag turned over, or (/pvp on, /pvp off) one way only, so
@@ -252,7 +265,7 @@ func pvpAttackedLocked(attacker, t *Player, now time.Time) {
 // on a player who is no foe is told why (at most every pvpSayEvery).
 func (w *World) pvpEngageLocked(p *Player, ent Entity, objectID uint32, swing Swing, now time.Time) bool {
 	t, ok := ent.(*Player)
-	if !ok || !w.pvpAllowed || t == p {
+	if !ok || t == p || (!w.pvpAllowed && p.ctf.match == 0) {
 		return false
 	}
 	if !p.pvpFoe(t) {
@@ -281,6 +294,9 @@ func (w *World) pvpEngageLocked(p *Player, ent Entity, objectID uint32, swing Sw
 // pvpRefusal is why p may not attack t, for the line; "" when it may or when nothing need be said
 // (the dead).
 func pvpRefusal(p, t *Player) string {
+	if p.ctf.match != 0 || t.ctf.match != 0 {
+		return ctfRefusal(p, t) // ctf.go
+	}
 	switch {
 	case p.IsDead() || t.IsDead():
 		return ""
@@ -300,7 +316,7 @@ func pvpRefusal(p, t *Player) string {
 func (w *World) pvpSpellTargetLocked(p *Player, spell *CastSpell, target Entity) (ids []EntityID, refusal string, ok bool) {
 	d := &spell.Def
 	t, isPlayer := target.(*Player)
-	if !w.pvpAllowed || !d.Harmful || !isPlayer || t == p {
+	if (!w.pvpAllowed && p.ctf.match == 0) || !d.Harmful || !isPlayer || t == p {
 		return nil, "", false
 	}
 	if !p.pvpFoe(t) {
@@ -335,7 +351,7 @@ func (w *World) pvpSpellTargetLocked(p *Player, spell *CastSpell, target Entity)
 // the lock held.
 func (w *World) areaFoesLocked(p *Player, cs *castState, cx, cy, cz, r float32) []areaNear {
 	d := &cs.spell.Def
-	if !pvpAreaAtTarget || !w.pvpAllowed || !p.pvp.on || d.undeadOnly() || d.TargetKind != "" || d.Charms() {
+	if !pvpAreaAtTarget || (!(w.pvpAllowed && p.pvp.on) && p.ctf.match == 0) || d.undeadOnly() || d.TargetKind != "" || d.Charms() {
 		return nil
 	}
 	place := w.areaPlaceLocked(p, cs)
@@ -353,7 +369,7 @@ func (w *World) areaFoesLocked(p *Player, cs *castState, cx, cy, cz, r float32) 
 
 // pvpCastBegunLocked is a cast begun: one aimed at a foe holds its caster's flag from now.
 func (w *World) pvpCastBegunLocked(p *Player, spell *CastSpell, targets []EntityID, now time.Time) {
-	if !spell.duel || !p.pvp.on {
+	if !spell.duel || !p.pvpLive() {
 		return
 	}
 	for _, id := range targets {
@@ -375,6 +391,7 @@ func (w *World) pvpDeathLocked(killer, t *Player, now time.Time) {
 	}
 	if !t.respawnPending() {
 		w.recordKillLocked(killer, t, now) // combatrecord.go: counted once a death
+		w.ctfKillLocked(killer, t)         // ctf.go: the match's count
 	}
 	sess := w.findSessionByEntityIDLocked(t.ServerID)
 	w.playerDownLocked(sess, t, now, pvpDeathDebt)
@@ -393,7 +410,7 @@ func (w *World) pvpDeathLocked(killer, t *Player, now time.Time) {
 // body down (Msg005E), and a dead client standing still reports nothing, so everyone else would see
 // the fallen stand there with no health until it went home. Must be called with the lock held.
 func (w *World) pvpViewLocked(sess *session.Session, p *Player, buf []byte) {
-	if !p.pvp.on || len(buf) <= 142 {
+	if !p.pvpLive() || len(buf) <= 142 {
 		return
 	}
 	if p.respawnPending() {
@@ -411,7 +428,7 @@ func (w *World) pvpViewLocked(sess *session.Session, p *Player, buf []byte) {
 // so one that watched it fall, and whose view it comes back into before its slot goes, would draw it
 // lying there for as long as it stayed in view. Must be called with the lock held.
 func (w *World) pvpRiseLocked(p *Player) {
-	if !p.pvp.on || w.SessionManager == nil {
+	if !p.pvpLive() || w.SessionManager == nil {
 		return
 	}
 	w.SessionManager.ForEach(func(s *session.Session) bool {
@@ -442,6 +459,22 @@ func (w *World) PlayerFace(t *Player) byte {
 		return FaceHostile
 	}
 	return FaceAlly
+}
+
+// PlayerFaceFor is the face viewer's target window shows for player t: in the arena (ctf.go) the red face
+// for the other team's and a player's blue for its own team's, else PlayerFace's.
+func (w *World) PlayerFaceFor(viewer, t *Player) byte {
+	w.mu.RLock()
+	m := w.ctf.m
+	if viewer.inMatch(m) && t.inMatch(m) {
+		w.mu.RUnlock()
+		if viewer.ctf.team != t.ctf.team {
+			return FaceHostile
+		}
+		return FaceAlly
+	}
+	w.mu.RUnlock()
+	return w.PlayerFace(t)
 }
 
 // Targeter is a session whose client has a player as its target.
@@ -493,7 +526,7 @@ func (w *World) SetTargetToken(id EntityID, token uint32) {
 // reports whether the pet fought this tick (its other fights and its following wait).
 func (w *World) pvpPetLocked(ps *petState, dt float32, now time.Time) bool {
 	owner, pet := ps.owner, ps.npc
-	if !owner.pvp.on || pet.Charm != nil || !pet.petFights() {
+	if !owner.pvpLive() || pet.Charm != nil || !pet.petFights() {
 		if ps.pvpTarget != 0 {
 			ps.pvpTarget = 0
 			pet.endRound()

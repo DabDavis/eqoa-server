@@ -921,6 +921,9 @@ func duelHalf(n int) int {
 // ends the duel. It reports the end.
 func (w *World) duelHurtLocked(d *Duel, attacker *Player, src EntityID, t *Player, n int, now time.Time, kind numberKind) bool {
 	dmg := d.hit(n)
+	if d.pvp {
+		dmg = w.ctfHurtLocked(t, dmg) // ctfflag.go: a carrier held too long takes more
+	}
 	attacker.LastCombatTime, t.LastCombatTime = now, now
 	if d.pvp {
 		pvpAttackedLocked(attacker, t, now) // pvp.go: both flags held from now

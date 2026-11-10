@@ -846,6 +846,8 @@ func main() {
 	for _, b := range handlers.LoadServerWorlds(cfg.Patch.WorldsDir, cfg.World.ServerWorlds) {
 		entity.SetComposedWorld(uint8(b.World), true)
 	}
+	// capture the flag in an arena of the server's own worlds (world.ctf; handlers/ctf.go)
+	handlers.SetupCTF(gameWorld, cfg.World.CTF)
 	if avail := worlds.Available(cfg.Patch.WorldsDir, 8, handlers.WorldCount); len(avail) > 0 {
 		for slot := 8; slot < handlers.WorldCount; slot++ {
 			if name, ok := avail[slot]; ok {

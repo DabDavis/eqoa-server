@@ -215,6 +215,13 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		return nil
 	}
 
+	// /ctf (or #ctf; a PS2's is "/t ctf", below): capture the flag's arena, its sign-up and
+	// its leave, everyone's (ctf.go)
+	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/ctf") || strings.EqualFold(word, "#ctf") {
+		ctfCommand(h.gameWorld, sess, rest)
+		return nil
+	}
+
 	// /lfg (or #lfg) on|off: the live group search's registration (lfg.go),
 	// everyone's. The live client sends 0x0801 for its own /lfg; vanilla
 	// forwards the line; a PS2 keeps an unknown /command to itself, so its
@@ -303,6 +310,11 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		// take it off put it back up)
 		if b := strings.ToLower(strings.TrimSpace(body)); strings.EqualFold(name, "pvp") && (b == "" || b == "off" || b == "on") {
 			pvpCommand(h.gameWorld, sess, b, time.Now())
+			return nil
+		}
+		// and /ctf (ctf.go): "/t ctf", "/t ctf join", "/t ctf leave", "/t ctf rules"
+		if b := strings.ToLower(strings.TrimSpace(body)); strings.EqualFold(name, "ctf") && (b == "" || b == "join" || b == "leave" || b == "rules") {
+			ctfCommand(h.gameWorld, sess, b)
 			return nil
 		}
 		// and /stuck (entity/stuck.go)
@@ -1434,6 +1446,11 @@ func (h *ChatHandler) whoList(sess *session.Session) {
 // stuckCommand is /stuck: its player home, or the line saying why not (entity/stuck.go).
 func stuckCommand(w *entity.World, sess *session.Session) {
 	if w == nil {
+		return
+	}
+	// a player of the arena's match goes back to its camp (entity/ctf.go)
+	if line, arena := w.CTFStuck(sess, time.Now()); arena {
+		ctfTell(sess, line)
 		return
 	}
 	if why := w.Stuck(sess, time.Now()); why != "" {

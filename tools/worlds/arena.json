@@ -1,0 +1,45 @@
+{
+  "world": 11,
+  "name": "the Canyon of Banners",
+  "note": "The PvP arena for capture the flag (handlers/ctf.go, entity/ctf.go; claude-notes/ctf-world-20261110.md): Box Canyons, one zone of the disc, where it stands on the disc (Tunaria's cell 10, 10). Its southern canyon system is the field: two fingers of canyon floor pointing north between unclimbable mesas, the Ember Band's to the west and the Dusk Band's in the middle, each a camp and a banner stand deep inside a narrowing mouth, joined at their mouths by a long low valley with a mound in it (the middle field), and two side pockets off it, the south-west run and the south-east lobe, with the speed shrines; a heal spring mid-valley. Built by cmd/worldbuild from the operator's disc; the arena block is read by the server, never written into the file.",
+  "zones": [
+    {
+      "name": "Canyon of Banners",
+      "from": "TUNARIA.ESF",
+      "zone": 121,
+      "note": "Box Canyons (cell 10, 10): a desert maze of canyon floors under high mesas; the southern system (the two fingers, the valley joining them, the two pockets) is closed by its cliffs but for one way out at its south end, which the field's edge cuts off until the decoration closes it"
+    }
+  ],
+  "arena": {
+    "game": "ctf",
+    "name": "the Canyon of Banners",
+    "speed_body": "0x8143DC70",
+    "heal_body": "0xC5F3788D",
+    "teams": [
+      {
+        "name": "the Ember Band",
+        "short": "Ember",
+        "flag": "Ember Banner",
+        "flag_body": "0xF97FD9FC",
+        "flag_size": 0.6,
+        "stand": { "x": 20470, "y": 3.8, "z": 21070, "facing": 180 },
+        "camp": { "x": 20480, "y": 6.5, "z": 21200, "toward": [20470, 21070] }
+      },
+      {
+        "name": "the Dusk Band",
+        "short": "Dusk",
+        "flag": "Dusk Banner",
+        "flag_body": "0x4446A60B",
+        "flag_size": 0.6,
+        "stand": { "x": 20970, "y": -2.9, "z": 21010, "facing": 180 },
+        "camp": { "x": 20965, "y": 6.5, "z": 21140, "toward": [20970, 21010] }
+      }
+    ],
+    "powerups": [
+      { "kind": "speed", "name": "West Wind Shrine", "at": { "x": 20330, "y": 6.5, "z": 20560 } },
+      { "kind": "speed", "name": "East Wind Shrine", "at": { "x": 21350, "y": 0.5, "z": 20620 } },
+      { "kind": "heal", "name": "Mending Spring", "at": { "x": 20680, "y": 6.5, "z": 20810 } }
+    ],
+    "field": [[20250, 20380], [21700, 20380], [21700, 21320], [20250, 21320]]
+  }
+}

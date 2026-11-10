@@ -218,4 +218,6 @@ func (w *World) ApplyClientUpdate(id EntityID, u ClientUpdate) {
 	}
 	// a teleport orb the report brings it into (orbs.go)
 	w.orbStepLocked(p, before, now)
+	// a banner, a stand or a power-up of the arena's match it touches (ctfflag.go)
+	w.ctfStepLocked(p, now)
 }

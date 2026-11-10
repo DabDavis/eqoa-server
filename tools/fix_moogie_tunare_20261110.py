@@ -23,7 +23,8 @@ writes are that code's: an older server reads these templates as unreadable and 
     out, the Red Swarming Death's kit in (its petstats row's abilities, spell 700823: its damage over time, nuke and
     lifetap, and its template "pet swarming death"'s melee proc, Swarming Sting, as his template's proc), Largesse of
     Plague (700794) as a proc he always has (at the chance a pet of his level has under it), and Veil of Death: 1% of
-    his most hit points at every melee hit that lands, AR; his two meleekind lines, his crit and his hit points kept;
+    his most hit points at every melee hit that lands, AR, Veil of Death's own visual (901430's) when its record has one;
+    his two meleekind lines, his crit and his hit points kept;
   npcs "Servant of Moogie", spawn-only (npcspawnonly), Mr. Moogie's body at half his size, level 65, no NPC bit: the
     original his summon copies; npcaggro: it attacks no one on sight (it fights his hate list);
   npcs "Metal Moogie V2" (petition 1441), spawn-only, a copy of Metal Moogie's row at 1.2 times his size, his npcitem
@@ -71,6 +72,7 @@ SERVANT, SERVANT_KEY, SERVANT_LEVEL, SERVANT_SIZE = "Servant of Moogie", "servan
 MM_NAME, V2_NAME, V2_KEY = "Metal Moogie", "Metal Moogie V2", "metal moogie v2"
 V2_SIZE, V2_FIGURES = 1.2, 1.1
 RSD_SPELL, LARGESSE, LARGESSE_NAME = 700823, 700794, "Largesse of Plague"
+VEIL_SPELL, VEIL_NAME = 901430, "Veil of Death"  # its visual his veil's, when its record has one
 INNO_CASTS = (905145, 905146, 905147, 905148)
 RALLOS = "Rallos Zek Unbound"
 
@@ -285,7 +287,12 @@ def plan(db):
         if have is None or len(have) != 6 or len(melee) != 2 or casts != sorted(INNO_CASTS):
             refusals.append(f"{INNO_T!r}'s abilities are not his two meleekind lines and the casts {INNO_CASTS}: {t['abilities']}")
         elif pet is not None and rsd is not None:
-            after = dict(t, abilities=abilities_json(melee + json.loads(pet[0]) + INNO_ADDED), **RSD_PROC)
+            added = [dict(a) for a in INNO_ADDED]
+            vr = db.execute("SELECT p.spellname, e.fxdict FROM spellpattern p JOIN spelleffect e ON e.spellid = p.spellid "
+                            "WHERE p.spellid = ?", (VEIL_SPELL,)).fetchone() if table(db, "spelleffect") else None
+            if vr and (vr[0] or "").strip().lower() == VEIL_NAME.lower() and vr[1]:
+                added[1]["fx"] = vr[1] & 0xFFFFFFFF  # the procs show a visual: Veil of Death's own
+            after = dict(t, abilities=abilities_json(melee + json.loads(pet[0]) + added), **RSD_PROC)
             changes.append(("classtemplates", t, after))
             level = db.execute("SELECT npc_level FROM npcs WHERE lower(trim(npc_name)) = 'innoruuk' ORDER BY id LIMIT 1").fetchone()
             lvl = level[0] if level else 70
@@ -294,7 +301,9 @@ def plan(db):
                          f"lifetap in; Swarming Sting (25% for 250, AR) his template's proc (was {t['proc_chance']}% for "
                          f"{t['proc_damage']}); Largesse of Plague a proc he always has, at a pet's chance of his level {lvl}: "
                          f"{chance}% (3% and 1 more for each 20 of a pet's INT, three a level, at most 25%: proc.go); Veil of Death, "
-                         f"1% of his most hit points at every hit, AR")
+                         f"1% of his most hit points at every hit, AR, " +
+                         (f"Veil of Death's ({VEIL_SPELL}) visual {added[1]['fx']:#010x}" if "fx" in added[1] else
+                          f"the creature special's visual (no record {VEIL_SPELL} of Veil of Death with one)"))
             if lvl:
                 inno_hp = npc_max_hp(db, lvl, t["hp_pct"])
                 rz = db.execute("SELECT npc_name, npc_level FROM npcs WHERE lower(trim(npc_name)) = ? ORDER BY id LIMIT 1",

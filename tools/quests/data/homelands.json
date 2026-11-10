@@ -470,6 +470,123 @@
       "notes": "Ours: the gatekeeper's port to Tethelin or Fayspire by class, the pixie's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a pixie back in Misty Thicket is sent again; no reward, so none is had twice."
     },
     {
+      "key": "homelands/fairy/welcome",
+      "name": "Thistledown Welcome",
+      "giver": "Elder Moonpetal",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Oh, a new one! Welcome to the valley, little friend. Before anything else, fly over to Dewberry by the old forge and say who you are. She feeds us all, and she does not like strangers.",
+      "accept": "I will go and see her.",
+      "decline": "Not now.",
+      "declined": "Then come back when you are hungry. You will be.",
+      "started": "Dewberry is just west of here, by the old forge.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Dewberry",
+          "journal": "Introduce yourself to Grocer Dewberry by the old forge.",
+          "says": "Moonpetal sent you? Welcome, welcome! Here is some cheese for the road. Fairies cannot live on dew alone.",
+          "rewards": {
+            "items": [
+              "cheddar cheese"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Moonpetal",
+          "journal": "Return to Elder Moonpetal.",
+          "says": "Lovely. Now you have a friend in the valley, and that is worth more than any spell I could teach you.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the fairys' first, at their home zone, Twisted Tower of the disc."
+    },
+    {
+      "key": "homelands/fairy/beetles",
+      "name": "Beetles in the Garden",
+      "giver": "Grocer Dewberry",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/fairy/welcome"
+      ],
+      "offer": "Dusk beetles have got into the gardens again, at both ends of the valley. Would you deal with five of them for me? They are slow, and they only bite a little.",
+      "accept": "I will deal with them.",
+      "decline": "Not now.",
+      "declined": "Then the beetles will have my lettuce.",
+      "started": "Five beetles. Look in the gardens at either end of the valley.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "dusk beetle",
+          "count": 5,
+          "journal": "Kill five dusk beetles in the gardens at either end of the valley."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Dewberry",
+          "journal": "Tell Grocer Dewberry the beetles are gone.",
+          "says": "Five! My garden is saved. Thank you, little friend, and take this for your trouble.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the fairys' second starter quest; the dusk beetles are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/fairy/flight",
+      "name": "The Road to Qeynos",
+      "giver": "Gatekeeper Starling",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/fairy/welcome",
+        "homelands/fairy/beetles"
+      ],
+      "repeatable": true,
+      "offer": "The humans of Qeynos and the rangers of Surefall Glade are kind to fairies, and they will teach you all they know. I can send you to them, and that will be your home. Are you ready?",
+      "accept": "Send me to the humans.",
+      "decline": "Not yet.",
+      "declined": "The humans will wait. They are slower than we are.",
+      "started": "Fly true, little friend!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Starling",
+          "journal": "Tell Gatekeeper Starling when you are ready to go to the humans of Qeynos.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Qeynos (its rangers and druids Surefall Glade), the fairy's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a fairy back in Twisted Tower is sent again; no reward, so none is had twice."
+    },
+    {
       "key": "homelands/aviak/welcome",
       "name": "A Fledgling's Welcome",
       "giver": "Elder Kraawk",

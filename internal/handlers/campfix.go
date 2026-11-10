@@ -1280,11 +1280,15 @@ type campfixFiler struct {
 
 // campfixPost is a report's board entry as filed: owner the GMs, planned,
 // area data, touching npcs (and campspawns when a camp's spawn is a mark's row
-// or template, camps), with campfixTitle and campfixDetails.
+// or template, camps), with campfixTitle and campfixDetails, the place of its
+// first mark named once (campfixPlace: a world's camps looked up in gw take
+// a second on a full server).
 func campfixPost(gw *entity.World, id int64, who campfixFiler, marks []CampfixMarkRecord, note string,
 	near []CampfixNearRecord, flags []CampfixFlagRecord, camps map[int]bool, now time.Time) database.WorkPost {
-	title := campfixTitle(gw, id, who, marks)
-	details := campfixDetails(gw, id, who, marks, note, near, flags, now)
+	first := marks[0]
+	place := campfixPlace(gw, uint8(first.World), float32(first.X), float32(first.Z))
+	title := campfixTitle(id, who, marks, place)
+	details := campfixDetails(id, who, marks, place, note, near, flags, now)
 	touches := "npcs"
 	for _, m := range marks {
 		if camps[m.Row] || camps[m.Template] {
@@ -1302,16 +1306,15 @@ const CampfixBoardOwner = "GMs (Camp reports page)"
 
 // campfixTitle is the board entry's title, at most database.WorkMaxTitle
 // characters: "Camp fix report 512: Kaelith (L24 ranger), Tunaria near bandits:
-// 2 move, 1 add, 1 remove", the place cut short when it does not fit.
-func campfixTitle(gw *entity.World, id int64, who campfixFiler, marks []CampfixMarkRecord) string {
-	first := marks[0]
+// 2 move, 1 add, 1 remove", the place (campfixPlace's) cut short when it does
+// not fit.
+func campfixTitle(id int64, who campfixFiler, marks []CampfixMarkRecord, place string) string {
 	head := fmt.Sprintf("Camp fix report %d: %s (L%d %s), ", id, who.Name, who.Level, strings.ToLower(entity.ClassName(who.Class)))
 	kinds := make([]string, len(marks))
 	for i, m := range marks {
 		kinds[i] = m.Kind
 	}
 	tail := ": " + campfixKinds(kinds, false)
-	place := campfixPlace(gw, uint8(first.World), float32(first.X), float32(first.Z))
 	if room := database.WorkMaxTitle - utf8.RuneCountInString(head) - utf8.RuneCountInString(tail); utf8.RuneCountInString(place) > room {
 		place = campfixCut(place, room-3) + "..."
 	}
@@ -1346,23 +1349,27 @@ const CampfixReviewLine = "A GM approves or declines it on the GM panel's Camp r
 	"Camp fix reports); nothing is applied before that, and no session applies one itself."
 
 // campfixDetails is the board entry's details, under database.WorkMaxDetails
-// characters: the line on the review, the petition it came from, who, where,
-// when, the build and the shard, the note as its writer's text, the marks,
-// the flags and the creatures nearby, the last cut short (and said so) when
-// they do not all fit.
-func campfixDetails(gw *entity.World, id int64, who campfixFiler, marks []CampfixMarkRecord, note string,
+// characters: the line on the review, the petition it came from, who, where
+// (place, campfixPlace's), when, the build and the shard, the note as its
+// writer's text, the marks, the flags and the creatures nearby, the last cut
+// short (and said so) when they do not all fit.
+func campfixDetails(id int64, who campfixFiler, marks []CampfixMarkRecord, place, note string,
 	near []CampfixNearRecord, flags []CampfixFlagRecord, now time.Time) string {
 	first := marks[0]
 	var b strings.Builder
 	b.WriteString(CampfixReviewLine + "\n\n")
 	if who.Petition != 0 {
-		fmt.Fprintf(&b, "- **From:** petition %d, filed %s; made a camp report by %s. Its marks are where the character stood "+
-			"when it filed the petition.\n", who.Petition, who.PetitionFiled.UTC().Format("2006-01-02 15:04:05 UTC"), campfixCell(who.FiledBy))
+		filed := ""
+		if !who.PetitionFiled.IsZero() {
+			filed = ", filed " + who.PetitionFiled.UTC().Format("2006-01-02 15:04:05 UTC")
+		}
+		fmt.Fprintf(&b, "- **From:** petition %d%s; made a camp report by %s. Its marks are where the character stood "+
+			"when it filed the petition.\n", who.Petition, filed, campfixCell(who.FiledBy))
 	}
 	fmt.Fprintf(&b, "- **Who:** %s, a level %d %s (character %d, account %d)\n", campfixCell(who.Name), who.Level,
 		entity.ClassName(who.Class), who.CharID, who.AccountID)
 	fmt.Fprintf(&b, "- **Where:** %s (world %d); the first mark at (%.1f, %.1f, %.1f)\n",
-		campfixCell(campfixPlace(gw, uint8(first.World), float32(first.X), float32(first.Z))), first.World, first.X, first.Y, first.Z)
+		campfixCell(place), first.World, first.X, first.Y, first.Z)
 	fmt.Fprintf(&b, "- **When:** %s (report %d)\n", now.UTC().Format("2006-01-02 15:04:05 UTC"), id)
 	fmt.Fprintf(&b, "- **Build:** %s; **shard:** %s\n\n", serverBuild(), campfixCell(campfixShard()))
 	switch {

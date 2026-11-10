@@ -40,10 +40,10 @@ export async function render(box, parts) {
 
   // a mark's guidance: its colour, then every rule that holds by its colour
   function guidance(m) {
-    if (m.stale) return h('div', { class: 'stack small' }, h('span', { class: 'badge' }, 'stale'), h('span', { text: m.stale }));
+    if (m.stale) return h('div', { class: 'stack small' }, h('div', null, h('span', { class: 'badge' }, 'stale')), h('span', { text: m.stale }));
     const lists = [['red', m.red], ['yellow', m.yellow], ['green', m.green]].filter(([, l]) => l && l.length);
     return h('div', { class: 'stack small' },
-      m.colour ? h('span', { class: 'badge ' + COLOUR[m.colour] }, m.colour) : null,
+      m.colour ? h('div', null, h('span', { class: 'badge ' + COLOUR[m.colour] }, m.colour)) : null,
       lists.length ? h('ul', null, ...lists.flatMap(([c, l]) => l.map((r) => h('li', { class: c === m.colour ? '' : 'faint' },
         c === m.colour ? '' : c + ': ', h('span', { text: r }))))) : null);
   }

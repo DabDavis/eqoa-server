@@ -668,3 +668,25 @@ func TestKillWithMasterLaysItDown(t *testing.T) {
 		t.Error("its next life is still one of nothing")
 	}
 }
+
+// A cooldown begun under a longer one than its ability has now is held to its new length (Mr. Moogie's Lay
+// Hands, an hour's cooldown running as the data makes it 15 minutes): cooling down still, then ready 15
+// minutes on, not an hour; the control, one shorter than its new length, runs out as it was.
+func TestAShortenedCooldownIsHeldToItsNewLength(t *testing.T) {
+	r := newTemplateRig(t)
+	r.godTemplate("quick hands", ", class", ", 0", `[{"kind":"heal","heal_pct":100,"below":50,"every":900,"cooldown":900,"name":"Lay Hands"}]`, "gnoll guard")
+	guard := r.npc("Gnoll Guard")
+	a := &guard.tmpl.abilities[0]
+	now := r.at(0)
+	guard.abilityReady = map[string]time.Time{abilityKey(&a.TemplateAbility): now.Add(time.Hour)}
+	if !guard.coolingDown(a, now) {
+		t.Fatal("an hour's cooldown running: not cooling down")
+	}
+	if guard.coolingDown(a, now.Add(901*time.Second)) {
+		t.Error("cooling down past its new 15 minutes")
+	}
+	guard.abilityReady[abilityKey(&a.TemplateAbility)] = now.Add(5 * time.Minute)
+	if !guard.coolingDown(a, now.Add(4*time.Minute)) || guard.coolingDown(a, now.Add(5*time.Minute)) {
+		t.Error("the control: a cooldown of 5 minutes does not run out at 5")
+	}
+}

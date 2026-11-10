@@ -61,6 +61,9 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	s.SetDiscVersion(0x12)
 	s.OfferCapesOnce()
 	s.SetCapes(true)
+	s.OfferServerWorldsOnce()
+	s.TakeServerWorlds()
+	s.SetServerWorlds([]uint8{10})
 	conn := s.Connection()
 	conn.SetEntitySlots(204)
 	conn.SetViewDistance(1000)
@@ -112,6 +115,16 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	// offered them again
 	if !r.Capes() || !r.CapesOffered() || r.OfferCapesOnce() {
 		t.Fatalf("capes: drawn %v, offered %v", r.Capes(), r.CapesOffered())
+	}
+	// the server's own worlds (handlers/serverworlds.go): the offer is not made
+	// again, the client still took it (so a later character list still says
+	// which characters need them) and still holds what it said; the control, a
+	// session made anew, took nothing
+	if r.OfferServerWorldsOnce() || !r.ServerWorldsTaken() || !r.HoldsServerWorld(10) || r.HoldsServerWorld(11) {
+		t.Fatalf("the server's worlds: taken %v, holds 10 %v", r.ServerWorldsTaken(), r.HoldsServerWorld(10))
+	}
+	if fresh := m.CreateSession(&net.UDPAddr{IP: net.IPv4(198, 51, 100, 8), Port: 40124}, 7, 7, 2, 3, true); fresh.ServerWorldsTaken() || !fresh.OfferServerWorldsOnce() {
+		t.Fatal("a session made anew took the server's worlds, or was offered them before")
 	}
 	rc := r.Connection()
 	if rc.EntitySlots() != 204 || rc.ViewDistance() != 1000 {

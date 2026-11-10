@@ -70,8 +70,9 @@ type Kept struct {
 	BoonNotice         bool `json:"boon_notice,omitempty"`
 	WorldLoadPending   bool `json:"world_load_pending,omitempty"`
 
-	// the server's own worlds offered, and those the client holds
+	// the server's own worlds offered and taken, and those the client holds
 	ServerWorldsOffered bool    `json:"server_worlds_offered,omitempty"`
+	ServerWorldsTaken   bool    `json:"server_worlds_taken,omitempty"`
 	ServerWorlds        []uint8 `json:"server_worlds,omitempty"`
 
 	Clock *KeptClock `json:"clock,omitempty"`
@@ -205,6 +206,7 @@ func (s *Session) Keep() Kept {
 		WorldLoadPending:   s.worldLoadPending,
 
 		ServerWorldsOffered: s.serverWorldsOffered,
+		ServerWorldsTaken:   s.serverWorldsTaken,
 		ServerWorlds:        append([]uint8(nil), s.serverWorlds...),
 	}
 	if s.clock.ready {
@@ -337,6 +339,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 	s.liveLookOffered = k.LiveLookOffered
 	s.creationOffered = k.CreationOffered
 	s.serverWorldsOffered = k.ServerWorldsOffered
+	s.serverWorldsTaken = k.ServerWorldsTaken
 	s.serverWorlds = append([]uint8(nil), k.ServerWorlds...)
 
 	s.capes = k.Capes

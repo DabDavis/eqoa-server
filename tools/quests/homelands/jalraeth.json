@@ -1,0 +1,176 @@
+{
+  "race": "jalraeth",
+  "home": "Envar",
+  "city": "Highbourne",
+  "note": "The silent order round the old temple of Envar. Its people are tools/worlds/homelands.json's (Envar): Elder Ithrael, on the road before the temple's east door, gives the first two; Watcher Vaeris, a few steps south of him, the three hunts; Artificer Maelis, on the road's north side, is the outfitter; Coachman Therun keeps the stable a few steps north-east (his coach runs to Freeport and to the other homes). The ash grubs (the dead hills to the east), the cinder adders (the low hills to the north-east) and the Hollow Pilgrim, one of the temple's dead that wandered out (the hill beyond the grubs), are placed for these quests. The Jal'Raeth speak little, and of stillness. Highbourne stands on Tunaria's west coast: the flight's words name no land across the sea.",
+  "L1": {
+    "name": "A Novice's Prayer Beads",
+    "giver": "Elder Ithrael",
+    "offer": [
+      "Be still. Good. You have come out of the long quiet and into the noise of the world. It will pass. Everything loud does.",
+      "Each novice of the order counts its breaths on a string of temple beads. Artificer Maelis strings them, a few steps north of here.",
+      "Will you fetch your beads and show them to me?"
+    ],
+    "accept": "I will fetch them.",
+    "decline": "Not now.",
+    "declined": "Then wait. Waiting, too, is practice.",
+    "started": "Maelis is a few steps to the north, on the road's far side.",
+    "merchant": "Artificer Maelis",
+    "piece": {
+      "name": "novice's prayer beads",
+      "description": "A string of grey stone beads from the temple of Envar. A novice of the Jal'Raeth counts its breaths on them.",
+      "like": "Carved Bracelet",
+      "set": {
+        "POWMAX": 5
+      }
+    },
+    "fetch": {
+      "journal": "Ask Artificer Maelis, a few steps north of Elder Ithrael, for a novice's prayer beads.",
+      "says": "A novice. Hold out your hand. One bead for each breath, and when the string ends, begin again. The order asks no coin of its own."
+    },
+    "show": {
+      "journal": "Show the novice's prayer beads to Elder Ithrael.",
+      "says": "Count on them when the world grows loud. It will. Now you are one of the order, and the order is quiet."
+    }
+  },
+  "L2": {
+    "name": "Anchored at Envar",
+    "giver": "Elder Ithrael",
+    "offer": [
+      "A mind adrift is lost. Have Spiritmaster Oravai anchor your spirit at Envar, so that you return to this road if the world unmakes you.",
+      "Then give your name to Coachman Therun for his ledger. His coach runs to Freeport and to the other homes of the Homelands.",
+      "Will you see them both and return to me?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "Then go nowhere you cannot walk back from.",
+    "started": "Oravai waits to the south-west. Therun is a few steps behind you, by the road.",
+    "spiritmaster": "Spiritmaster Oravai",
+    "coachman": "Coachman Therun",
+    "bind": {
+      "journal": "Have Spiritmaster Oravai, south-west of the elder, bind your spirit to Envar.",
+      "says": "It is done. Whatever unmakes you, you will gather again on this road. Now give Coachman Therun your name."
+    },
+    "ledger": {
+      "journal": "Give your name to Coachman Therun, by the road just east of the elder, for his ledger.",
+      "says": "A novice. My coach runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now. I will not speak on the road. You will be glad of it."
+    },
+    "back": {
+      "journal": "Return to Elder Ithrael.",
+      "says": [
+        "Good. Now you have a place to return to, and may go out from it.",
+        "Therun's coach goes where its ledgers know you, but the scholars' door is earned. Watcher Vaeris, a few steps south, has work for you."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Grubs in the Dead Hills",
+    "giver": "Watcher Vaeris",
+    "offer": [
+      "The novice. Good. Ash grubs breed in the dead hills east of the road, and they have begun to gnaw at the temple's stones.",
+      "Thin them, and bring me three of their teeth. Then I will show you a thing the order teaches.",
+      "Will you hunt them?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "Stone is patient. It will be eaten slowly.",
+    "started": "Three teeth. East, where the road runs out into the hills.",
+    "target": "ash grub",
+    "count": 3,
+    "drop": {
+      "name": "ash grub tooth",
+      "description": "The tooth of an ash grub from the dead hills east of Envar.",
+      "like": "grub tooth"
+    },
+    "hunt": {
+      "journal": "Take three ash grub teeth from the ash grubs in the dead hills east of the road."
+    },
+    "give": {
+      "journal": "Bring three ash grub teeth to Watcher Vaeris.",
+      "says": "Three teeth. You did not hurry, and you did not falter. Now watch, and learn this."
+    }
+  },
+  "L4": {
+    "name": "A Novice's Arms",
+    "giver": "Watcher Vaeris",
+    "offer": [
+      "A still mind is not enough in the lands beyond. I will make you proper gear, but you will bring what it needs.",
+      "Artificer Maelis has cord and a shaft set aside. Then take a fang from the cinder adders on the low hills to the north-east.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then go unarmed, and be very still indeed.",
+    "started": "Cord and a shaft from Maelis, a fang from the adders. Go.",
+    "materials": [
+      {
+        "merchant": "Artificer Maelis",
+        "items": [
+          "silk cord",
+          "wooden shaft"
+        ],
+        "journal": "Ask Artificer Maelis for the silk cord and the wooden shaft.",
+        "says": "For Vaeris. Here: cord, and a shaft cut straight. Use them once, and well."
+      }
+    ],
+    "target": "cinder adder",
+    "count": 1,
+    "drop": {
+      "name": "cinder adder fang",
+      "description": "The fang of a cinder adder from the low hills north-east of Envar.",
+      "like": "cracked snake fang"
+    },
+    "hunt": {
+      "journal": "Take a cinder adder fang from the cinder adders on the low hills north-east of the road."
+    },
+    "give": {
+      "journal": "Bring the silk cord, the wooden shaft and the cinder adder fang to Watcher Vaeris.",
+      "says": "All three. Be patient a moment... there. It is yours. Do not grow fond of it. It is a tool."
+    }
+  },
+  "L5": {
+    "name": "The Hollow Pilgrim",
+    "giver": "Watcher Vaeris",
+    "offer": [
+      "One task more. The temple's dead keep to the temple, but one has wandered out: a hollow thing in a pilgrim's rags, on the hill east of the grubs.",
+      "It has no stillness left, only hunger, and it will come at you on sight. Give it rest, and bring me a bone of it for the crypt.",
+      "Will you lay the Hollow Pilgrim to rest?"
+    ],
+    "accept": "I will lay it to rest.",
+    "decline": "Not yet.",
+    "declined": "It does not sleep. It will be there.",
+    "started": "East, through the grubs' hills, to the rise beyond. It will see you first.",
+    "target": "Hollow Pilgrim",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "Hollow Pilgrim's bone",
+      "description": "A brittle bone of the Hollow Pilgrim, to be laid back in the crypt of Envar.",
+      "like": "brittle zombie bone"
+    },
+    "hunt": {
+      "journal": "Take the Hollow Pilgrim's bone from the Hollow Pilgrim on the hill east of the ash grubs."
+    },
+    "give": {
+      "journal": "Bring the Hollow Pilgrim's bone to Watcher Vaeris.",
+      "says": [
+        "It rests, then. I will see the bone laid where it belongs. You are a novice no longer.",
+        "Learn this, and go to Gatekeeper Tavrin at the temple's east door when you are ready for Highbourne."
+      ]
+    }
+  },
+  "flight": {
+    "name": "The Scholars' City",
+    "giver": "Gatekeeper Tavrin",
+    "offer": [
+      "The scholars of Highbourne, on Tunaria's western shore, took in the first of us, eager for what we know. They will teach you in turn.",
+      "You have earned the door. I will set you down among your own guild in Highbourne, and your spirit will rest there.",
+      "Shall I send you to Highbourne?"
+    ],
+    "accept": "Send me to Highbourne.",
+    "decline": "Not yet.",
+    "declined": "The door will wait.",
+    "started": "Drift well, and keep your mind still!",
+    "journal": "Tell Gatekeeper Tavrin when you are ready to go to Highbourne."
+  }
+}

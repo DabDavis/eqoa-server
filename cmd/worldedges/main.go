@@ -7,31 +7,41 @@
 // walking (or swimming) past it falls into nothing, down to the world's floor.
 // An edge where the zone touches another of the world's zones (Odus's homes,
 // which stand side by side as on the disc) leads into the neighbour and stays
-// open. Every other edge is given a ridge of rocks (extras: the disc's art
-// placed as actors, internal/worlds/extras.go): pieces of a palette chosen by
-// the zone's disc file, big, turned at random, each set down into the ground
-// (the lowest floor under it) and tall enough to stand well over the highest
-// floor under it and over the water's surface, overlapping by half their
-// width, from corner to corner.
+// open, if the two grounds meet there (linesUp: zones of two disc worlds meet
+// in steps, and that edge is closed as one onto nothing). Every other edge is
+// given a ridge of rocks (extras: the disc's art placed as actors,
+// internal/worlds/extras.go): pieces of a palette chosen by the zone's disc
+// file, big, turned at random, each set into the ground to its widest (below
+// the lowest floor under it) and tall enough that its steep sides stand over
+// the highest floor under it and the water's surface, and its top well over
+// them; each the palette's step (a share of its width) on from the last, from
+// corner to corner.
 //
 //	worldedges -iso disc.iso -built worlds/world10.json -ground worlds/ground \
 //	    -palette tools/worlds/edges-palette.json -out tools/worlds/homelands-edges.json
 //
-// writes the extras file the recipe takes in (its extraFiles); then build the
-// world and bake its ground again, and
+// writes the extras file the recipe takes in (its extraFiles), off the world
+// built and baked WITHOUT it (the ground the rocks stand on); then build the
+// world with it, bake its ground again, and
 //
 //	worldedges -check -built worlds/world10.json -ground worlds/ground
 //
 // walks the server's ground (internal/ground: the terrain, everything placed
 // on it, the water) along every open edge as the movement check judges a
-// player's moves (entity/movecheck.go): from every place a band's width inside
-// the edge, a step of a unit at a time in four directions, onto a floor no
-// more than a step's climb above (1:1 plus 0.13) or falling to the next one
-// down, swimming anywhere in a water's column, never through the front of a
-// face at the body's middle. A way out is a step that reaches past the edge,
-// or one with nothing under it; each is reported, and the command fails.
-// The test is a point's, where the game's body is a ball 1.2 across: a gap
-// narrower than that the check reports, and the game does not let through.
+// player's moves (entity/movecheck.go): from every floor of the terrain a
+// band's width inside the edge (not one under another sheet of it, nor under
+// anything placed), a step of a unit at a time in four directions, onto a
+// floor no more than a step's climb above (1:1 plus 0.13) and no steeper than
+// a walk stands on (one steeper is slid off, to the floor under it), else
+// falling to the next one down; swimming at the water's top or down to its
+// floor; never through the front of a face where the game's body is (its
+// middle, and a little under and over it). A way out is a step that reaches
+// past the edge, or one with nothing under it (inside the cell: "in", a hole
+// in the zone's own ground); each is reported, and the command fails.
+// -leaks writes them down, -fix adds rocks over them, and -trace with -near
+// (and -map) shows the way to one. The test is a point's where the game's
+// body is a ball 1.2 across: a gap narrower than that the check reports, and
+// the game does not let through.
 package main
 
 import (
@@ -279,6 +289,10 @@ type palette struct {
 	// SteepGround is the rise and fall of the ground under a rock past
 	// which the set's steepest is used.
 	SteepGround float32 `json:"steepGround"`
+	// Step is how far on the next rock stands, a share of this one's span
+	// (none given: 0.5): the closer, the higher and steeper the saddle
+	// between two, which a walk would climb over.
+	Step float32 `json:"step,omitempty"`
 }
 
 func readPalette(path string) (*palette, error) {
@@ -407,7 +421,11 @@ func ridge(g *ground.Ground, env *ground.Env, w uint8, e edge, set []piece, rng 
 		}
 		ex, span := place(g, env, w, e, t, p, width, 0.3, 0, rng, pal)
 		out = append(out, ex)
-		t += span * 0.5
+		step := pal.Step
+		if step <= 0 {
+			step = 0.5
+		}
+		t += span * step
 	}
 	return out
 }
@@ -529,6 +547,8 @@ type stretch struct {
 	Ylo  float32 `json:"ylo"`
 	Yhi  float32 `json:"yhi"`
 	N    int     `json:"n"`
+	// At is one of its places (x, z), for -trace -near.
+	At [2]float32 `json:"at"`
 }
 
 // column is a place's surfaces and water, read once.
@@ -688,6 +708,31 @@ func meets(g *ground.Ground, w uint8, x, y, z, nx, ny, nz float32) bool {
 	return false
 }
 
+// buried reports whether a floor at y is inside the ground: the next
+// surface over it faces up (the top of what it is under) where an open floor
+// has a face looking down over it (a ceiling) or nothing. Two sheets of
+// terrain that cross leave the lower one under the upper.
+func buried(surfs []ground.Surface, y float32) bool {
+	next, up, ok := float32(0), false, false
+	for _, sf := range surfs {
+		if sf.Y > y+0.05 && (!ok || sf.Y < next) {
+			next, up, ok = sf.Y, sf.Up, true
+		}
+	}
+	return ok && up
+}
+
+// floorUnder is the highest floor under the height top (a water's floor).
+func floorUnder(surfs []ground.Surface, top float32) (float32, bool) {
+	best, ok := float32(0), false
+	for _, sf := range surfs {
+		if sf.Up && sf.Y < top && (!ok || sf.Y > best) {
+			best, ok = sf.Y, true
+		}
+	}
+	return best, ok
+}
+
 func abs32(v float32) float32 {
 	if v < 0 {
 		return -v
@@ -838,7 +883,7 @@ func walkZone(g *ground.Ground, env *ground.Env, b worlds.Built, i int, band flo
 				}
 			}
 			for _, s := range c.surfs {
-				if s.Up && !s.Placed && !under {
+				if s.Up && !s.Placed && !under && !buried(c.surfs, s.Y) {
 					push(state{ii, jj, tenth(s.Y)})
 				}
 			}
@@ -858,11 +903,11 @@ func walkZone(g *ground.Ground, env *ground.Env, b worlds.Built, i int, band flo
 		lx, lz := at(s.i, s.j)
 		if trace && traced < 3 && (traceNear[0] == 0 || abs32(lx-traceNear[0]) < 30 && abs32(lz-traceNear[1]) < 30) {
 			traced++
-			fmt.Printf("way out (%s), backwards:\n", why)
+			fmt.Printf("way out (%s) at (%.0f, %.1f, %.0f), backwards:\n", why, lx, float32(s.y)/10, lz)
 			p := cur
-			for k := 0; k < 400; k++ {
+			for k := 0; k < 20000; k++ {
 				x, z := at(p.i, p.j)
-				if k < 400 {
+				{
 					on := "air"
 					for _, sf := range colAt(p.i, p.j).surfs {
 						if sf.Up && math.Abs(float64(sf.Y-float32(p.y)/10)) < 0.06 {
@@ -915,8 +960,9 @@ func walkZone(g *ground.Ground, env *ground.Env, b worlds.Built, i int, band flo
 					best, found = sf.Y, true
 				}
 			}
+			slid := false
 			if found && steepAt(ni, nj, best) {
-				found = false
+				found, slid = false, true
 				y = min(y, best) // what is under it, from where it was met
 			}
 			if found {
@@ -933,11 +979,22 @@ func walkZone(g *ground.Ground, env *ground.Env, b worlds.Built, i int, band flo
 					to = append(to, down)
 				}
 			}
-			if swimming && !math.IsNaN(float64(nc.water)) && y+middle <= nc.water {
-				// a swimmer goes on at its height, wherever the water does
-				to = append(to, y)
+			if swimming && !math.IsNaN(float64(nc.water)) {
+				// a swimmer goes on where the water does: at its top, or
+				// down to its floor (two heights a place: a swimmer's every
+				// height would be a state of its own)
+				to = append(to, nc.water-middle-0.3)
+				if best, ok := floorUnder(nc.surfs, nc.water); ok {
+					to = append(to, best)
+				}
 			}
 			if len(to) == 0 {
+				// a floor too steep with nothing under it is slid down, the
+				// way the slope goes (a step of its own, from here or the
+				// floor below), but for one past the edge: down into nothing
+				if slid && !past(nx, nz) {
+					continue
+				}
 				if inBand(nx, nz) || past(nx, nz) {
 					// nothing under it: past the terrain
 					if !meets(g, w, x, y, z, nx, y, nz) {
@@ -962,15 +1019,21 @@ func walkZone(g *ground.Ground, env *ground.Env, b worlds.Built, i int, band flo
 					continue
 				}
 				push(ns)
-				// in water, the whole column
+				// in water, up or down the column to its top, if nothing is
+				// in the way (a rock's top just under the water's would let
+				// a swimmer down into the rock)
 				if wt := nc.water; !math.IsNaN(float64(wt)) && ny < wt {
-					push(state{ni, nj, tenth(wt - middle - 0.3)})
+					if sy := wt - middle - 0.3; !meets(g, w, nx, ny, nz, nx, sy, nz) {
+						push(state{ni, nj, tenth(sy)})
+					}
 				}
 			}
 		}
 	}
 	// the ways out as stretches of each edge (where along it, how high)
-	byEdge := map[string][][2]float32{}
+	// (a step onto nothing inside the cell is a hole in its ground: "in",
+	// along z)
+	byEdge := map[string][][4]float32{}
 	for k, y := range outs {
 		x, z := at(k[0], k[1])
 		var name string
@@ -982,19 +1045,24 @@ func walkZone(g *ground.Ground, env *ground.Env, b worlds.Built, i int, band flo
 			name, t = "z-", x-x0
 		case x > x0+cell:
 			name, t = "x+", z-z0
-		default:
+		case x < x0:
 			name, t = "x-", z-z0
+		default:
+			name, t = "in", z-z0
 		}
-		byEdge[name] = append(byEdge[name], [2]float32{t, y})
+		byEdge[name] = append(byEdge[name], [4]float32{t, y, x, z})
 	}
 	var all []stretch
 	for name, list := range byEdge {
 		sort.Slice(list, func(i, j int) bool { return list[i][0] < list[j][0] })
-		cur := stretch{Edge: name, T0: list[0][0], T1: list[0][0], Ylo: list[0][1], Yhi: list[0][1]}
+		first := func(p [4]float32) stretch {
+			return stretch{Edge: name, T0: p[0], T1: p[0], Ylo: p[1], Yhi: p[1], At: [2]float32{p[2], p[3]}}
+		}
+		cur := first(list[0])
 		for _, p := range list {
 			if p[0]-cur.T1 > 6 {
 				all = append(all, cur)
-				cur = stretch{Edge: name, T0: p[0], T1: p[0], Ylo: p[1], Yhi: p[1]}
+				cur = first(p)
 			}
 			cur.T1, cur.Ylo, cur.Yhi = p[0], min(cur.Ylo, p[1]), max(cur.Yhi, p[1])
 			cur.N++
@@ -1006,7 +1074,7 @@ func walkZone(g *ground.Ground, env *ground.Env, b worlds.Built, i int, band flo
 	})
 	var lines []string
 	for _, st := range all {
-		lines = append(lines, fmt.Sprintf("edge %s %.0f..%.0f along it (%d places, feet %.1f..%.1f): open", st.Edge, st.T0, st.T1, st.N, st.Ylo, st.Yhi))
+		lines = append(lines, fmt.Sprintf("edge %s %.0f..%.0f along it (%d places, feet %.1f..%.1f, one at %.0f, %.0f): open", st.Edge, st.T0, st.T1, st.N, st.Ylo, st.Yhi, st.At[0], st.At[1]))
 	}
 	if mapOut != "" && traceNear[0] != 0 {
 		drawMap(mapOut, traceNear, at, n, colAt, seen, outs)

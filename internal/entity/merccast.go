@@ -89,6 +89,13 @@ const (
 	useBuff              // what lasts on a friend: itself, one or the group
 )
 
+// MercUseName is what a merc casts a spell for, in words ("" for a spell it
+// never casts): the handlers' real-data test's.
+func MercUseName(s *CastSpell) string {
+	return [...]string{useNone: "", useNuke: "hit", useDoT: "damage over time", useTaunt: "taunt", useHeal: "heal",
+		useHoT: "heal over time", useGroupHeal: "group heal", useBuff: "buff"}[mercUseOf(s)]
+}
+
 // atFoe is whether the use is cast at a creature.
 func (u mercUse) atFoe() bool { return u == useNuke || u == useDoT || u == useTaunt }
 

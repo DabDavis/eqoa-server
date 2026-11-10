@@ -171,6 +171,9 @@ type mercState struct {
 	asked, full bool
 	// levelAsked is the level its kit was last asked for again (MercNoteLevel)
 	levelAsked int
+	// regroup: a keep restart carried it in its owner's group, its owner's
+	// client holding the group (keepmerc.go): the group upkeep puts it back
+	regroup bool
 	// book is its book as it casts it (merccast.go), made for bookOf, its
 	// body when it was made
 	book   []mercSpell

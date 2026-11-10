@@ -543,6 +543,7 @@ func TestMercKeepRestart(t *testing.T) {
 		t.Fatal("the merc did not come back")
 	}
 	m := r2.w.mercs[r2.p.ServerID]
+	r2.run(0, 600*time.Millisecond) // the group upkeep, once the kept groups are formed again
 	if m.npc.X != place[0] || m.npc.Z != place[2] || m.stance != MercAggressive || m.npc.HP != m.npc.MaxHP/2 {
 		t.Errorf("back at (%.1f, %.1f) stance %d HP %d/%d, want (%.1f, %.1f), aggressive, half", m.npc.X, m.npc.Z, m.stance,
 			m.npc.HP, m.npc.MaxHP, place[0], place[2])

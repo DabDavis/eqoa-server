@@ -249,7 +249,7 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 	// its leave, everyone's (ctf.go)
 	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/ctf") || strings.EqualFold(word, "#ctf") {
 		ctfCommand(h.gameWorld, sess, rest)
-		return nil
+		return
 	}
 
 	// /lfg (or #lfg) on|off: the live group search's registration (lfg.go),
@@ -364,7 +364,7 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		// and /ctf (ctf.go): "/t ctf", "/t ctf join", "/t ctf leave", "/t ctf rules"
 		if b := strings.ToLower(strings.TrimSpace(body)); strings.EqualFold(name, "ctf") && (b == "" || b == "join" || b == "leave" || b == "rules") {
 			ctfCommand(h.gameWorld, sess, b)
-			return nil
+			return
 		}
 		// and /stuck (entity/stuck.go)
 		if body == "" && strings.EqualFold(name, "stuck") {

@@ -1556,7 +1556,7 @@
               4892.5,
               2405.7
             ],
-            "note": "the starter quests' giver, a kappa shaman, on the sand south of the Dwell"
+            "note": "gives the first two starter quests (the shell charm; the spiritmaster and the coachman): a kappa shaman, on the sand south of the Dwell"
           },
           {
             "name": "Grocer Pemmi",
@@ -1608,6 +1608,73 @@
             "note": "on the causeway: sends a young kappa who has done the starter quests to Rivervale (the quest Down the River)"
           },
           {
+            "name": "Reedwarden Tsumo",
+            "like": 129539,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              4905.0,
+              61.3,
+              2396.0
+            ],
+            "toward": [
+              4892.5,
+              2405.7
+            ],
+            "note": "gives the three hunts (levels 3-5), beside the elder: a kappa warrior"
+          },
+          {
+            "name": "Netmender Ishiko",
+            "like": 129549,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              4862.0,
+              61.3,
+              2400.0
+            ],
+            "toward": [
+              4892.5,
+              2405.7
+            ],
+            "stock": "Tailor Vali",
+            "note": "the Dwell's outfitter, on the sand west of the elder: hands over the level 1 shell charm and the level 4 materials; a Rivervale tailor's cloth (Tailor Vali)"
+          },
+          {
+            "name": "Coachman Dobu",
+            "like": 162672,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              4905.0,
+              61.3,
+              2440.0
+            ],
+            "toward": [
+              4892.5,
+              2405.7
+            ],
+            "note": "the Dwell's stable, on the open sand south of the elder: the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 129505,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              4922.0,
+              61.3,
+              2398.0
+            ],
+            "toward": [
+              4892.5,
+              2405.7
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), a kappa wizard on the sand east of the elder; left out where the database has none to take wares from"
+          },
+          {
             "name": "Dwell sentinel",
             "like": 129463,
             "level": 25,
@@ -1646,7 +1713,7 @@
           {
             "name": "marsh rat",
             "body": "0x12098DE0",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.8,
             "at": [
@@ -1654,12 +1721,12 @@
               54.6,
               2768.9
             ],
-            "note": "the starter hunt's rats (a grave rat's body), on the shore where the causeway comes in"
+            "note": "the level 3 quest's rats (a grave rat's body), on the shore where the causeway comes in, south-east of the Dwell"
           },
           {
             "name": "marsh rat",
             "body": "0x12098DE0",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.8,
             "at": [
@@ -1671,7 +1738,7 @@
           {
             "name": "marsh rat",
             "body": "0x12098DE0",
-            "level": 2,
+            "level": 3,
             "role": "foe",
             "size": 0.8,
             "at": [
@@ -1683,7 +1750,7 @@
           {
             "name": "marsh rat",
             "body": "0x12098DE0",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.8,
             "at": [
@@ -1695,7 +1762,7 @@
           {
             "name": "marsh rat",
             "body": "0x12098DE0",
-            "level": 1,
+            "level": 3,
             "role": "foe",
             "size": 0.8,
             "at": [
@@ -1715,11 +1782,132 @@
               54.1,
               2760.0
             ]
+          },
+          {
+            "name": "marsh rat",
+            "body": "0x12098DE0",
+            "level": 3,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              4968.1,
+              57.3,
+              2775.1
+            ]
+          },
+          {
+            "name": "mudfang basilisk",
+            "body": "0xFD1EC25E",
+            "level": 3,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              4891.2,
+              57.2,
+              2907.7
+            ],
+            "note": "the level 4 quest's basilisks (the plains basilisk's body, half its size), at the zone's own creatures' spots on the flats south of the rats"
+          },
+          {
+            "name": "mudfang basilisk",
+            "body": "0xFD1EC25E",
+            "level": 3,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              4973.7,
+              56.5,
+              2924.5
+            ]
+          },
+          {
+            "name": "mudfang basilisk",
+            "body": "0xFD1EC25E",
+            "level": 4,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5105.0,
+              43.6,
+              2942.0
+            ]
+          },
+          {
+            "name": "mudfang basilisk",
+            "body": "0xFD1EC25E",
+            "level": 3,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5000.0,
+              54.1,
+              3000.0
+            ]
+          },
+          {
+            "name": "mudfang basilisk",
+            "body": "0xFD1EC25E",
+            "level": 4,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              4896.0,
+              56.5,
+              3021.1
+            ]
+          },
+          {
+            "name": "mudfang basilisk",
+            "body": "0xFD1EC25E",
+            "level": 4,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              4797.1,
+              58.0,
+              3018.0
+            ]
+          },
+          {
+            "name": "Gulpjaw",
+            "body": "0x4FDFC99D",
+            "level": 5,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              5341.9,
+              57.4,
+              2603.1
+            ],
+            "note": "the level 5 quest's foe (the blue basilisk's body), alone at a basilisk's spot on the east shore; hostile"
           }
         ],
         "peaceful": [
-          "marsh rat"
-        ]
+          "marsh rat",
+          "mudfang basilisk"
+        ],
+        "hostile": [
+          "Gulpjaw"
+        ],
+        "lines": {
+          "Gatekeeper Kabbo": [
+            "The river is not for you yet, young one. Finish what the elder and the reedwarden ask of you first.",
+            "When Tsumo says your shell is hard enough, I will send you down the river. Not before."
+          ],
+          "Dwell sentinel": [
+            "Keep to the causeway, young one. The deep water keeps its own.",
+            "All is calm on the water.",
+            "A dry shell cracks, %p. Wade often."
+          ],
+          "Elder Hoshuk": [
+            "May the current carry you well, %p.",
+            "The Dwell remembers every shell that leaves it."
+          ],
+          "Reedwarden Tsumo": [
+            "Keep your shell between you and their teeth, %p.",
+            "Slow water runs deep. Do not hurry a hunt."
+          ]
+        }
       }
     },
     {
@@ -2922,7 +3110,7 @@
               8793.5,
               8522.5
             ],
-            "note": "the starter quests' giver, in a high shaman's skull, by the cavern's stalls"
+            "note": "gives the first two starter quests (the digging sash; the spiritmaster and the coachman), in a high shaman's skull, by the cavern's stalls"
           },
           {
             "name": "Grocer Snivvet",
@@ -2974,6 +3162,73 @@
             "note": "sends a pup who has done the starter quests to Klick'Anon (the quest The Deep Ways)"
           },
           {
+            "name": "Packleader Yarrk",
+            "like": 122788,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              8803.9,
+              137.8,
+              8531.2
+            ],
+            "toward": [
+              8793.5,
+              8522.5
+            ],
+            "note": "gives the three hunts (levels 3-5), beside the elder: a clan battlemaster's look"
+          },
+          {
+            "name": "Stitcher Vikka",
+            "like": 133155,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              8765.7,
+              137.9,
+              8512.8
+            ],
+            "toward": [
+              8793.5,
+              8522.5
+            ],
+            "stock": "Tailor Tavin",
+            "note": "the cavern's outfitter, west of the elder: hands over the level 1 digging sash and the level 4 materials; a Klick'Anon tailor's cloth (Tailor Tavin)"
+          },
+          {
+            "name": "Coachman Drekk",
+            "like": 133171,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              8790.8,
+              137.8,
+              8563.5
+            ],
+            "toward": [
+              8793.5,
+              8522.5
+            ],
+            "note": "the cavern's stable, south of the elder: the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 133161,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              8737.6,
+              137.8,
+              8516.8
+            ],
+            "toward": [
+              8793.5,
+              8522.5
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), a clan mystic west of the stalls; left out where the database has none to take wares from"
+          },
+          {
             "name": "Warren sentinel",
             "like": 130025,
             "level": 25,
@@ -3012,7 +3267,7 @@
           {
             "name": "tunnel beetle",
             "body": "0x1806DCEA",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.6,
             "at": [
@@ -3020,12 +3275,12 @@
               137.8,
               8579.0
             ],
-            "note": "the starter hunt's beetles (a death beetle's body, small), at the cavern's west end"
+            "note": "the level 3 quest's beetles (a fire beetle's body, small), at the cavern's west end"
           },
           {
             "name": "tunnel beetle",
             "body": "0x1806DCEA",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.6,
             "at": [
@@ -3037,7 +3292,7 @@
           {
             "name": "tunnel beetle",
             "body": "0x1806DCEA",
-            "level": 2,
+            "level": 3,
             "role": "foe",
             "size": 0.6,
             "at": [
@@ -3049,7 +3304,7 @@
           {
             "name": "tunnel beetle",
             "body": "0x1806DCEA",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.6,
             "at": [
@@ -3061,7 +3316,7 @@
           {
             "name": "tunnel beetle",
             "body": "0x1806DCEA",
-            "level": 1,
+            "level": 3,
             "role": "foe",
             "size": 0.6,
             "at": [
@@ -3077,15 +3332,136 @@
             "role": "foe",
             "size": 0.6,
             "at": [
-              8650.0,
+              8630.0,
               137.8,
               8590.0
             ]
+          },
+          {
+            "name": "tunnel beetle",
+            "body": "0x1806DCEA",
+            "level": 3,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              8619.2,
+              137.8,
+              8610.2
+            ]
+          },
+          {
+            "name": "deepway millipede",
+            "body": "0x1C53AB27",
+            "level": 3,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              8845.6,
+              137.8,
+              8668.9
+            ],
+            "note": "the level 4 quest's millipedes (the millipede's body, half its size), at the clan's own spots in the south tunnels"
+          },
+          {
+            "name": "deepway millipede",
+            "body": "0x1C53AB27",
+            "level": 3,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              8863.2,
+              137.8,
+              8666.2
+            ]
+          },
+          {
+            "name": "deepway millipede",
+            "body": "0x1C53AB27",
+            "level": 4,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              8847.7,
+              137.8,
+              8678.2
+            ]
+          },
+          {
+            "name": "deepway millipede",
+            "body": "0x1C53AB27",
+            "level": 3,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              8870.7,
+              137.8,
+              8678.4
+            ]
+          },
+          {
+            "name": "deepway millipede",
+            "body": "0x1C53AB27",
+            "level": 4,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              8867.9,
+              137.8,
+              8692.4
+            ]
+          },
+          {
+            "name": "deepway millipede",
+            "body": "0x1C53AB27",
+            "level": 4,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              8846.0,
+              137.8,
+              8705.7
+            ]
+          },
+          {
+            "name": "Gravelmaw",
+            "body": "0x0168D38C",
+            "level": 5,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              8888.5,
+              137.8,
+              8728.5
+            ],
+            "note": "the level 5 quest's foe (the scythe beetle's body), alone at a guardian's spot in the far chamber past the south tunnels; hostile"
           }
         ],
         "peaceful": [
-          "tunnel beetle"
-        ]
+          "tunnel beetle",
+          "deepway millipede"
+        ],
+        "hostile": [
+          "Gravelmaw"
+        ],
+        "lines": {
+          "Gatekeeper Ruknar": [
+            "The deep ways are not for you yet, pup. Do what the elder and the packleader ask of you first.",
+            "When Yarrk says your teeth are in, I will send you to Klick'Anon. Not before."
+          ],
+          "Warren sentinel": [
+            "Keep to the lit tunnels, pup.",
+            "Yip! All quiet in the warren.",
+            "Sniff before you dig, %p. Always."
+          ],
+          "Elder Grikkis": [
+            "Dig deep and dig true, %p.",
+            "Clan Kolbok remembers every pup it sends out."
+          ],
+          "Packleader Yarrk": [
+            "Keep your snout low and your tail lower, %p.",
+            "A pup that hunts alone is a meal. Remember the pack."
+          ]
+        }
       }
     },
     {
@@ -3361,7 +3737,7 @@
               10605.7,
               6751.0
             ],
-            "note": "the starter quests' giver, a ratman spiritist, in the shore camp"
+            "note": "gives the first two starter quests (the tideline ring; the spiritmaster and the coachman), a ratman spiritist, in the shore camp"
           },
           {
             "name": "Grocer Nibbla",
@@ -3413,6 +3789,73 @@
             "note": "by the water: sends a young ratman who has done the starter quests to Moradhim (the quest Into the Deep Halls)"
           },
           {
+            "name": "Tunnelrunner Chisk",
+            "like": 131355,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              10618.0,
+              54.2,
+              6756.0
+            ],
+            "toward": [
+              10605.7,
+              6751.0
+            ],
+            "note": "gives the three hunts (levels 3-5), beside the elder: a ratman fighter"
+          },
+          {
+            "name": "Ragpicker Tikka",
+            "like": 131421,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10596.5,
+              54.3,
+              6712.0
+            ],
+            "toward": [
+              10605.7,
+              6751.0
+            ],
+            "stock": "Tailor Chloe",
+            "note": "the camp's outfitter, on the sand north of the elder: hands over the level 1 tideline ring and the level 4 materials; a Moradhim tailor's cloth (Tailor Chloe)"
+          },
+          {
+            "name": "Coachman Rusk",
+            "like": 131399,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10670.0,
+              54.2,
+              6780.0
+            ],
+            "toward": [
+              10605.7,
+              6751.0
+            ],
+            "note": "the camp's stable, on the open sand south-east of the elder: the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 131402,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              10585.0,
+              54.0,
+              6770.0
+            ],
+            "toward": [
+              10605.7,
+              6751.0
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), a ratman wizard on the sand south-west of the elder; left out where the database has none to take wares from"
+          },
+          {
             "name": "Deepshore sentinel",
             "like": 131399,
             "level": 25,
@@ -3451,7 +3894,7 @@
           {
             "name": "dune snake",
             "body": "0x5276C760",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.8,
             "at": [
@@ -3459,12 +3902,12 @@
               54.1,
               6787.8
             ],
-            "note": "the starter hunt's snakes (a green racer snake's body), on the shore east of the camp"
+            "note": "the level 3 quest's snakes (a green racer snake's body), on the sand east of the camp"
           },
           {
             "name": "dune snake",
             "body": "0x5276C760",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.8,
             "at": [
@@ -3476,7 +3919,7 @@
           {
             "name": "dune snake",
             "body": "0x5276C760",
-            "level": 2,
+            "level": 3,
             "role": "foe",
             "size": 0.8,
             "at": [
@@ -3488,19 +3931,19 @@
           {
             "name": "dune snake",
             "body": "0x5276C760",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.8,
             "at": [
-              10820.0,
-              54.2,
-              6700.0
+              10830.0,
+              54.1,
+              6720.0
             ]
           },
           {
             "name": "dune snake",
             "body": "0x5276C760",
-            "level": 1,
+            "level": 3,
             "role": "foe",
             "size": 0.8,
             "at": [
@@ -3516,15 +3959,136 @@
             "role": "foe",
             "size": 0.8,
             "at": [
-              10870.0,
-              56.6,
-              6700.0
+              10760.0,
+              54.1,
+              6750.0
             ]
+          },
+          {
+            "name": "tidewrack crab",
+            "body": "0x09185B98",
+            "level": 3,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              10760.0,
+              53.7,
+              6840.0
+            ],
+            "note": "the level 4 quest's crabs (the crab's body, small), along the tide line south-east of the camp, round the zone's own turtle and cobra spots"
+          },
+          {
+            "name": "tidewrack crab",
+            "body": "0x09185B98",
+            "level": 3,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              10790.0,
+              52.4,
+              6850.0
+            ]
+          },
+          {
+            "name": "tidewrack crab",
+            "body": "0x09185B98",
+            "level": 4,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              10806.0,
+              50.9,
+              6868.5
+            ]
+          },
+          {
+            "name": "tidewrack crab",
+            "body": "0x09185B98",
+            "level": 3,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              10830.0,
+              47.3,
+              6850.0
+            ]
+          },
+          {
+            "name": "tidewrack crab",
+            "body": "0x09185B98",
+            "level": 4,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              10849.2,
+              47.6,
+              6928.0
+            ]
+          },
+          {
+            "name": "tidewrack crab",
+            "body": "0x09185B98",
+            "level": 4,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              10830.0,
+              46.6,
+              6890.0
+            ]
+          },
+          {
+            "name": "tidewrack crab",
+            "body": "0x09185B98",
+            "level": 4,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              10880.0,
+              47.1,
+              6960.0
+            ]
+          },
+          {
+            "name": "Hoodscale",
+            "body": "0xA7104191",
+            "level": 5,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              10840.5,
+              71.3,
+              6650.3
+            ],
+            "note": "the level 5 quest's foe (the cobra's body), alone at a creature's spot on the rise north-east of the camp, past the dune snakes; hostile"
           }
         ],
         "peaceful": [
-          "dune snake"
-        ]
+          "dune snake",
+          "tidewrack crab"
+        ],
+        "hostile": [
+          "Hoodscale"
+        ],
+        "lines": {
+          "Gatekeeper Ksarr": [
+            "Hss. The deep halls are not for you yet, whisker. Do what the elder and the tunnelrunner ask of you first.",
+            "When Chisk says you are quick enough, I will send you down to Moradhim. Not before."
+          ],
+          "Deepshore sentinel": [
+            "Keep off the wet rocks, whisker. The tide takes the slow.",
+            "Nothing on the wind but salt.",
+            "Sniff twice, %p. Then run."
+          ],
+          "Elder Skritch": [
+            "Keep your whiskers dry, %p.",
+            "The camp remembers who brings back more than it took."
+          ],
+          "Tunnelrunner Chisk": [
+            "Quick paws, %p. Quick paws and a quicker nose.",
+            "What the tide leaves is ours. What bites, you kill."
+          ]
+        }
       }
     },
     {
@@ -3567,7 +4131,7 @@
               6057.1,
               4444.1
             ],
-            "note": "the starter quests' giver, an acolyte satyr, in the glade"
+            "note": "gives the first two starter quests (the reveler's bangle; the spiritmaster and the coachman), an acolyte satyr, in the glade"
           },
           {
             "name": "Grocer Lyrrin",
@@ -3609,7 +4173,7 @@
             "role": "talker",
             "at": [
               6095.4,
-              81.0,
+              82.0,
               4394.5
             ],
             "toward": [
@@ -3617,6 +4181,73 @@
               4444.1
             ],
             "note": "sends a young satyr who has done the starter quests to its elven city (the quest The Elven Road)"
+          },
+          {
+            "name": "Hornwarden Tavos",
+            "like": 130636,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              6055.7,
+              80.7,
+              4436.7
+            ],
+            "toward": [
+              6057.1,
+              4444.1
+            ],
+            "note": "gives the three hunts (levels 3-5), beside the elder: an acolyte satyr"
+          },
+          {
+            "name": "Reedcutter Syla",
+            "like": 130522,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6078.0,
+              80.7,
+              4468.0
+            ],
+            "toward": [
+              6057.1,
+              4444.1
+            ],
+            "stock": "Tailor Everleaf",
+            "note": "the glade's outfitter, a faun maiden south-east of the elder: hands over the level 1 bangle and the level 4 materials; a Tethelin tailor's cloth (Tailor Everleaf)"
+          },
+          {
+            "name": "Coachman Brannoc",
+            "like": 130568,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6080.0,
+              80.7,
+              4440.0
+            ],
+            "toward": [
+              6057.1,
+              4444.1
+            ],
+            "note": "the glade's stable, on the open grass east of the elder: the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 130539,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              6040.0,
+              80.7,
+              4470.0
+            ],
+            "toward": [
+              6057.1,
+              4444.1
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), an acolyte faun south-west of the elder; left out where the database has none to take wares from"
           },
           {
             "name": "Glade sentinel",
@@ -3637,7 +4268,7 @@
             "role": "talker",
             "at": [
               6062.5,
-              77.7,
+              76.8,
               4533.7
             ],
             "facing": 0
@@ -3657,7 +4288,7 @@
           {
             "name": "glade spiderling",
             "body": "0xF9D756D6",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.6,
             "at": [
@@ -3665,12 +4296,12 @@
               85.4,
               4417.2
             ],
-            "note": "the starter hunt's spiderlings (a vineweb spiderling's body, small), east of the glade"
+            "note": "the level 3 quest's spiderlings (a vineweb spiderling's body, small), on the grass east of the glade"
           },
           {
             "name": "glade spiderling",
             "body": "0xF9D756D6",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.6,
             "at": [
@@ -3682,7 +4313,7 @@
           {
             "name": "glade spiderling",
             "body": "0xF9D756D6",
-            "level": 2,
+            "level": 3,
             "role": "foe",
             "size": 0.6,
             "at": [
@@ -3694,7 +4325,7 @@
           {
             "name": "glade spiderling",
             "body": "0xF9D756D6",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.6,
             "at": [
@@ -3706,19 +4337,7 @@
           {
             "name": "glade spiderling",
             "body": "0xF9D756D6",
-            "level": 1,
-            "role": "foe",
-            "size": 0.6,
-            "at": [
-              6268.2,
-              80.7,
-              4529.2
-            ]
-          },
-          {
-            "name": "glade spiderling",
-            "body": "0xF9D756D6",
-            "level": 2,
+            "level": 3,
             "role": "foe",
             "size": 0.6,
             "at": [
@@ -3726,11 +4345,132 @@
               80.7,
               4529.2
             ]
+          },
+          {
+            "name": "glade spiderling",
+            "body": "0xF9D756D6",
+            "level": 3,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6380.1,
+              80.7,
+              4482.5
+            ]
+          },
+          {
+            "name": "mead wasp",
+            "body": "0x859D0C8A",
+            "level": 3,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              6116.8,
+              80.7,
+              4543.0
+            ],
+            "note": "the level 4 quest's wasps (the hornet's body, half its size), at the zone's own creatures' spots south-east of the glade"
+          },
+          {
+            "name": "mead wasp",
+            "body": "0x859D0C8A",
+            "level": 3,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              6181.2,
+              80.7,
+              4534.3
+            ]
+          },
+          {
+            "name": "mead wasp",
+            "body": "0x859D0C8A",
+            "level": 4,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              6171.8,
+              86.0,
+              4579.9
+            ]
+          },
+          {
+            "name": "mead wasp",
+            "body": "0x859D0C8A",
+            "level": 4,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              6229.6,
+              80.7,
+              4591.3
+            ]
+          },
+          {
+            "name": "mead wasp",
+            "body": "0x859D0C8A",
+            "level": 4,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              6274.5,
+              80.1,
+              4616.4
+            ]
+          },
+          {
+            "name": "mead wasp",
+            "body": "0x859D0C8A",
+            "level": 3,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              6268.2,
+              80.7,
+              4529.2
+            ]
+          },
+          {
+            "name": "Nightpelt",
+            "body": "0xAC4818AA",
+            "level": 5,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              6050.0,
+              54.6,
+              4740.0
+            ],
+            "note": "the level 5 quest's foe (the shadow panther's body), alone in the hollow at the south end of the woods; hostile"
           }
         ],
         "peaceful": [
-          "glade spiderling"
-        ]
+          "glade spiderling",
+          "mead wasp"
+        ],
+        "hostile": [
+          "Nightpelt"
+        ],
+        "lines": {
+          "Gatekeeper Dorvan": [
+            "The elven road is not for you yet, kid. Dance to the elder's tune and the hornwarden's first.",
+            "When Tavos says your horns are in, I will send you to the elves. Not before."
+          ],
+          "Glade sentinel": [
+            "Keep to the glade, kid. The deep woods do not dance.",
+            "All merry in the glade.",
+            "Listen to the trees, %p. They carry every footstep."
+          ],
+          "Elder Pannoch": [
+            "Dance well, %p.",
+            "The glade keeps a song for every kid it sends away."
+          ],
+          "Hornwarden Tavos": [
+            "Light hooves, %p, and a heavy hand.",
+            "A satyr who cannot fight pipes for someone else's supper."
+          ]
+        }
       }
     },
     {
@@ -3773,7 +4513,7 @@
               5450.4,
               4952.6
             ],
-            "note": "the starter quests' giver, a forest dryad, on the lake's west shore"
+            "note": "gives the first two starter quests (the acorn-cap earring; the spiritmaster and the coachman), a forest dryad, on the lake's west shore"
           },
           {
             "name": "Grocer Willowmere",
@@ -3825,6 +4565,73 @@
             "note": "sends a young dryad who has done the starter quests to Qeynos or Surefall Glade (the quest Roots in the West)"
           },
           {
+            "name": "Thornwarden Briony",
+            "like": 129633,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              5450.0,
+              54.2,
+              4938.0
+            ],
+            "toward": [
+              5450.4,
+              4952.6
+            ],
+            "note": "gives the three hunts (levels 3-5), beside the elder: a forest dryad"
+          },
+          {
+            "name": "Weaver Fernlight",
+            "like": 129825,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5440.0,
+              54.2,
+              4975.0
+            ],
+            "toward": [
+              5450.4,
+              4952.6
+            ],
+            "stock": "Tailor Zenie",
+            "note": "the grove's outfitter, a few steps south of the elder: hands over the level 1 earring and the level 4 materials; a Qeynos tailor's cloth (Tailor Zenie)"
+          },
+          {
+            "name": "Coachman Thistlewick",
+            "like": 129706,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5440.0,
+              54.2,
+              4915.0
+            ],
+            "toward": [
+              5450.4,
+              4952.6
+            ],
+            "note": "the grove's stable, under the trees north of the elder, kept by a satyr of the eastern woods: the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 129822,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              5460.0,
+              54.2,
+              4975.0
+            ],
+            "toward": [
+              5450.4,
+              4952.6
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), a forest dryad by the water south of the elder; left out where the database has none to take wares from"
+          },
+          {
             "name": "Grove sentinel",
             "like": 129605,
             "level": 25,
@@ -3863,7 +4670,7 @@
           {
             "name": "bark beetle",
             "body": "0xFE31035A",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.45,
             "at": [
@@ -3871,19 +4678,7 @@
               84.1,
               4911.3
             ],
-            "note": "the starter hunt's beetles (a giant scarab's body, small), in the woods west of the lake"
-          },
-          {
-            "name": "bark beetle",
-            "body": "0xFE31035A",
-            "level": 1,
-            "role": "foe",
-            "size": 0.45,
-            "at": [
-              5198.0,
-              65.4,
-              4880.3
-            ]
+            "note": "the level 3 quest's beetles (a giant scarab's body, small), in the woods west of the lake"
           },
           {
             "name": "bark beetle",
@@ -3892,27 +4687,15 @@
             "role": "foe",
             "size": 0.45,
             "at": [
-              5148.8,
-              60.2,
-              4906.1
+              5260.0,
+              80.5,
+              4870.0
             ]
           },
           {
             "name": "bark beetle",
             "body": "0xFE31035A",
-            "level": 1,
-            "role": "foe",
-            "size": 0.45,
-            "at": [
-              5239.0,
-              64.2,
-              4813.4
-            ]
-          },
-          {
-            "name": "bark beetle",
-            "body": "0xFE31035A",
-            "level": 1,
+            "level": 3,
             "role": "foe",
             "size": 0.45,
             "at": [
@@ -3928,15 +4711,172 @@
             "role": "foe",
             "size": 0.45,
             "at": [
-              5260.0,
-              80.5,
-              4870.0
+              5239.0,
+              64.2,
+              4813.4
             ]
+          },
+          {
+            "name": "bark beetle",
+            "body": "0xFE31035A",
+            "level": 3,
+            "role": "foe",
+            "size": 0.45,
+            "at": [
+              5280.0,
+              84.2,
+              4920.0
+            ]
+          },
+          {
+            "name": "bark beetle",
+            "body": "0xFE31035A",
+            "level": 2,
+            "role": "foe",
+            "size": 0.45,
+            "at": [
+              5290.0,
+              83.7,
+              4890.0
+            ]
+          },
+          {
+            "name": "bark beetle",
+            "body": "0xFE31035A",
+            "level": 3,
+            "role": "foe",
+            "size": 0.45,
+            "at": [
+              5320.0,
+              82.6,
+              4930.0
+            ]
+          },
+          {
+            "name": "rootcoil snake",
+            "body": "0x8751FF83",
+            "level": 3,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              5198.0,
+              65.4,
+              4880.3
+            ],
+            "note": "the level 4 quest's snakes (the anaconda's body, small), deeper in the woods to the west, past the beetles"
+          },
+          {
+            "name": "rootcoil snake",
+            "body": "0x8751FF83",
+            "level": 4,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              5148.8,
+              60.2,
+              4906.1
+            ]
+          },
+          {
+            "name": "rootcoil snake",
+            "body": "0x8751FF83",
+            "level": 3,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              5170.0,
+              54.7,
+              4940.0
+            ]
+          },
+          {
+            "name": "rootcoil snake",
+            "body": "0x8751FF83",
+            "level": 4,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              5150.0,
+              54.2,
+              4860.0
+            ]
+          },
+          {
+            "name": "rootcoil snake",
+            "body": "0x8751FF83",
+            "level": 3,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              5170.0,
+              54.4,
+              4900.0
+            ]
+          },
+          {
+            "name": "rootcoil snake",
+            "body": "0x8751FF83",
+            "level": 4,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              5130.0,
+              59.1,
+              4880.0
+            ]
+          },
+          {
+            "name": "rootcoil snake",
+            "body": "0x8751FF83",
+            "level": 3,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              5200.0,
+              52.8,
+              4960.0
+            ]
+          },
+          {
+            "name": "Rotbark",
+            "body": "0x91872E96",
+            "level": 5,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              5098.8,
+              86.7,
+              5011.5
+            ],
+            "note": "the level 5 quest's foe (the forest shambling's body), alone at a forest shambling's own spot at the far west edge of the woods; hostile"
           }
         ],
         "peaceful": [
-          "bark beetle"
-        ]
+          "bark beetle",
+          "rootcoil snake"
+        ],
+        "hostile": [
+          "Rotbark"
+        ],
+        "lines": {
+          "Gatekeeper Thornwyn": [
+            "The way west is not for you yet, sapling. Do what the elder and the thornwarden ask of you first.",
+            "When Briony says your roots hold, I will send you to Qeynos. Not before."
+          ],
+          "Grove sentinel": [
+            "Keep to the grove, sapling. The far woods are not all ours.",
+            "The leaves are quiet today.",
+            "Listen to the old trees, %p. They have seen everything twice."
+          ],
+          "Elder Silverbough": [
+            "Grow well, %p.",
+            "The grove remembers every leaf the wind carries off."
+          ],
+          "Thornwarden Briony": [
+            "Bend, %p, and you will not break.",
+            "The forest feeds those who guard it. Remember that among the humans."
+          ]
+        }
       }
     },
     {
@@ -4681,7 +5621,7 @@
               10251.5,
               9028.1
             ],
-            "note": "the starter quests' giver, a statue guardian, atop the crag"
+            "note": "gives the first two starter quests (the stonewake band; the spiritmaster and the coachman), a statue guardian, atop the crag"
           },
           {
             "name": "Grocer Skarn",
@@ -4733,6 +5673,73 @@
             "note": "on the crag's south slope: sends a gargoyle who has done the starter quests to Oggok (the quest Wings to Oggok)"
           },
           {
+            "name": "Talonmaster Krall",
+            "like": 132918,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              10237.5,
+              162.7,
+              9016.9
+            ],
+            "toward": [
+              10251.5,
+              9028.1
+            ],
+            "note": "gives the three hunts (levels 3-5), beside the elder atop the crag: a gargoyle soldier"
+          },
+          {
+            "name": "Hidecutter Vess",
+            "like": 132915,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10270.9,
+              162.7,
+              9024.5
+            ],
+            "toward": [
+              10251.5,
+              9028.1
+            ],
+            "stock": "Tailor Walth",
+            "note": "the roost's outfitter, atop the crag east of the elder: hands over the level 1 band and the level 4 materials; an Oggok tailor's cloth (Tailor Walth)"
+          },
+          {
+            "name": "Coachman Durn",
+            "like": 132922,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10113.9,
+              84.0,
+              9008.8
+            ],
+            "toward": [
+              10251.5,
+              9028.1
+            ],
+            "note": "the roost's stable, at the crag's foot beside the grocer, west of and below the elder: the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot (the ground, not the crag's top)"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 132934,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              10255.2,
+              162.7,
+              9010.6
+            ],
+            "toward": [
+              10251.5,
+              9028.1
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), a gargoyle atop the crag north of the elder; left out where the database has none to take wares from"
+          },
+          {
             "name": "Crag sentinel",
             "like": 132932,
             "level": 25,
@@ -4771,7 +5778,7 @@
           {
             "name": "crag bat",
             "body": "0x8023AD71",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.7,
             "at": [
@@ -4779,12 +5786,12 @@
               54.1,
               9168.4
             ],
-            "note": "the starter hunt's bats (a vampire bat's body), round the crag's foot"
+            "note": "the level 3 quest's bats (a vampire bat's body), round the crag's foot, south-west of it"
           },
           {
             "name": "crag bat",
             "body": "0x8023AD71",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.7,
             "at": [
@@ -4796,7 +5803,7 @@
           {
             "name": "crag bat",
             "body": "0x8023AD71",
-            "level": 2,
+            "level": 3,
             "role": "foe",
             "size": 0.7,
             "at": [
@@ -4808,7 +5815,7 @@
           {
             "name": "crag bat",
             "body": "0x8023AD71",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.7,
             "at": [
@@ -4820,7 +5827,7 @@
           {
             "name": "crag bat",
             "body": "0x8023AD71",
-            "level": 1,
+            "level": 3,
             "role": "foe",
             "size": 0.7,
             "at": [
@@ -4832,7 +5839,7 @@
           {
             "name": "crag bat",
             "body": "0x8023AD71",
-            "level": 2,
+            "level": 3,
             "role": "foe",
             "size": 0.7,
             "at": [
@@ -4840,11 +5847,120 @@
               54.3,
               9180.0
             ]
+          },
+          {
+            "name": "cragside skink",
+            "body": "0x7E0AB34A",
+            "level": 3,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              10430.7,
+              62.1,
+              9002.9
+            ],
+            "note": "the level 4 quest's skinks (the tan basilisk's body, half its size), at the zone's own creatures' spots on the barrens east of the crag"
+          },
+          {
+            "name": "cragside skink",
+            "body": "0x7E0AB34A",
+            "level": 3,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              10395.3,
+              66.3,
+              8917.2
+            ]
+          },
+          {
+            "name": "cragside skink",
+            "body": "0x7E0AB34A",
+            "level": 4,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              10433.9,
+              48.7,
+              8928.3
+            ]
+          },
+          {
+            "name": "cragside skink",
+            "body": "0x7E0AB34A",
+            "level": 4,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              10445.6,
+              64.2,
+              9108.7
+            ]
+          },
+          {
+            "name": "cragside skink",
+            "body": "0x7E0AB34A",
+            "level": 3,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              10477.8,
+              54.2,
+              8996.9
+            ]
+          },
+          {
+            "name": "cragside skink",
+            "body": "0x7E0AB34A",
+            "level": 4,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              10566.6,
+              66.4,
+              9000.3
+            ]
+          },
+          {
+            "name": "Grindstone",
+            "body": "0xEE8C04E3",
+            "level": 5,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              10282.9,
+              52.4,
+              8777.4
+            ],
+            "note": "the level 5 quest's foe (the crumbling sand's body), alone at a crumbling sand's own spot on the flats north of the crag; hostile"
           }
         ],
         "peaceful": [
-          "crag bat"
-        ]
+          "crag bat",
+          "cragside skink"
+        ],
+        "hostile": [
+          "Grindstone"
+        ],
+        "lines": {
+          "Gatekeeper Kragg": [
+            "The sky to Oggok is not yours yet, wakeling. Do what the elder and the talonmaster ask of you first.",
+            "When Krall says your stone has set, I will send you to Oggok. Not before."
+          ],
+          "Crag sentinel": [
+            "Mind the edge, wakeling. Stone falls as fast as flesh.",
+            "Nothing moves on the barrens.",
+            "Stand still long enough, %p, and you see everything."
+          ],
+          "Elder Gorrak": [
+            "Stand firm, %p.",
+            "The crag remembers every stone that woke upon it."
+          ],
+          "Talonmaster Krall": [
+            "Strike once, %p. Strike hard.",
+            "Stone does not hurry. Stone does not miss."
+          ]
+        }
       }
     }
   ]

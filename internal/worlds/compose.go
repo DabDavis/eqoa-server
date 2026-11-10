@@ -29,6 +29,10 @@ package worlds
 // zone is in world space: moving one would rewrite them all), so no two of a
 // recipe's zones may share a cell of the 2000-unit grid. The +8 word of the
 // header is 43855 in every retail file, worlds and the rest: kept.
+//
+// A zone may be given extras: the disc's art placed in it as actors of its
+// own, the records of art it lacks copied in (extras.go). A zone without any
+// is its record on the disc with its offsets moved, as before.
 
 import (
 	"encoding/binary"
@@ -39,6 +43,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 )
@@ -76,6 +81,10 @@ type Recipe struct {
 	// Name is what players are told it is.
 	Name  string       `json:"name"`
 	Zones []RecipeZone `json:"zones"`
+	// ExtraFiles are files of extras (ExtrasFile; paths beside the recipe)
+	// whose zones' extras ReadRecipe adds after each zone's own: a long
+	// list a tool writes kept out of the recipe a person edits.
+	ExtraFiles []string `json:"extraFiles,omitempty"`
 }
 
 // RecipeZone is one zone of a recipe: zone Zone of the disc's file From.
@@ -89,6 +98,10 @@ type RecipeZone struct {
 	// maker's word for it. Neither changes the file.
 	Race int    `json:"race,omitempty"`
 	Note string `json:"note,omitempty"`
+	// Extras are the disc's art placed in the zone as actors of its own
+	// (extras.go): each a sprite by DictID, where it stands, its turn and
+	// size. A zone with none is copied as it is on the disc.
+	Extras []Extra `json:"extras,omitempty"`
 }
 
 // Built is a recipe as built: what cmd/worldbuild writes beside the world
@@ -116,6 +129,10 @@ type BuiltZone struct {
 	Row   int        `json:"row"`
 	Box   [6]float32 `json:"box"`
 	Start [3]float32 `json:"centre"`
+	// Extras is how many extras it was given, Brought how many records of
+	// the disc their art brought into it (extras.go).
+	Extras  int `json:"extras,omitempty"`
+	Brought int `json:"brought,omitempty"`
 }
 
 // Source reads the disc's files: a file's bytes at an offset.
@@ -134,7 +151,45 @@ func ReadRecipe(path string) (Recipe, error) {
 	if err := json.Unmarshal(b, &r); err != nil {
 		return r, fmt.Errorf("%s: %w", path, err)
 	}
+	if err := r.takeExtraFiles(filepath.Dir(path)); err != nil {
+		return r, err
+	}
 	return r, r.check()
+}
+
+// takeExtraFiles adds each extras file's zones' extras (ExtraFiles, read
+// from dir) after the zone's own, naming the zone by its world file and
+// index; then the recipe names no files (what is built holds them all).
+func (r *Recipe) takeExtraFiles(dir string) error {
+	for _, name := range r.ExtraFiles {
+		path := name
+		if !filepath.IsAbs(path) {
+			path = filepath.Join(dir, name)
+		}
+		b, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		var f ExtrasFile
+		if err := json.Unmarshal(b, &f); err != nil {
+			return fmt.Errorf("%s: %w", path, err)
+		}
+		for _, z := range f.Zones {
+			found := false
+			for i := range r.Zones {
+				if strings.EqualFold(r.Zones[i].From, z.From) && r.Zones[i].Zone == z.Zone {
+					r.Zones[i].Extras = append(r.Zones[i].Extras, z.Extras...)
+					found = true
+					break
+				}
+			}
+			if !found {
+				return fmt.Errorf("%s: %s zone %d is not one of the recipe's", path, z.From, z.Zone)
+			}
+		}
+	}
+	r.ExtraFiles = nil
+	return nil
 }
 
 func (r Recipe) check() error {
@@ -150,6 +205,21 @@ func (r Recipe) check() error {
 	for i, z := range r.Zones {
 		if z.From == "" || z.Zone < 0 || z.Zone > 0xFFFF {
 			return fmt.Errorf("zone %d: %q zone %d", i, z.From, z.Zone)
+		}
+		if len(z.Extras) > 0xFFFF {
+			return fmt.Errorf("zone %d: %d extras, at most 65535", i, len(z.Extras))
+		}
+		sources := map[ArtSource]bool{}
+		for k, e := range z.Extras {
+			if err := e.check(); err != nil {
+				return fmt.Errorf("zone %d (%s %d) extra %d: %w", i, z.From, z.Zone, k, err)
+			}
+			if s := e.source(); s.From != "" {
+				sources[s] = true
+			}
+		}
+		if len(sources) > 254 {
+			return fmt.Errorf("zone %d: its extras' art from %d places, at most 254", i, len(sources))
 		}
 	}
 	return nil
@@ -400,6 +470,23 @@ func Compose(src Source, r Recipe) ([]byte, Built, error) {
 		cols, rows = max(cols, p.col+1), max(rows, p.row+1)
 	}
 
+	// the extras' art, read off the disc before anything is written
+	arts := zoneArt{}
+	for _, z := range r.Zones {
+		for _, e := range z.Extras {
+			s := e.source()
+			if s.From == "" || arts[s] != nil {
+				continue
+			}
+			a, err := openArt(src, s)
+			if err != nil {
+				return nil, Built{}, fmt.Errorf("%s zone %d's extras: %w", z.From, z.Zone, err)
+			}
+			arts[s] = a
+		}
+	}
+	brought := make([]map[uint32][]byte, len(parts))
+
 	built := Built{Recipe: r, Rows: rows, Cols: cols}
 	out := make([]byte, 0, 1<<20)
 	le32 := func(v uint32) { out = binary.LittleEndian.AppendUint32(out, v) }
@@ -428,23 +515,40 @@ func Compose(src Source, r Recipe) ([]byte, Built, error) {
 	for i := range parts {
 		p := &parts[i]
 		at := int64(len(out))
-		delta := at - p.src.zones[r.Zones[i].Zone][0]
-		rec := append([]byte(nil), p.rec...)
-		baseAt, err := rebase(rec, delta)
-		if err != nil {
-			return nil, Built{}, fmt.Errorf("%s zone %d: %w", r.Zones[i].From, r.Zones[i].Zone, err)
+		srcAt := p.src.zones[r.Zones[i].Zone][0]
+		copiedIn := 0
+		if extras := r.Zones[i].Extras; len(extras) > 0 {
+			z, err := withExtras(p.rec, srcAt, at, extras, arts)
+			if err != nil {
+				return nil, Built{}, fmt.Errorf("%s zone %d: %w", r.Zones[i].From, r.Zones[i].Zone, err)
+			}
+			out = append(out, z.rec...)
+			binary.LittleEndian.PutUint64(p.proxy[0:], uint64(at))
+			binary.LittleEndian.PutUint64(p.proxy[8:], uint64(at+z.baseAt))
+			binary.LittleEndian.PutUint32(p.proxy[16:], uint32(z.baseLen))
+			brought[i], copiedIn = z.brought, z.copied
+		} else {
+			rec := append([]byte(nil), p.rec...)
+			baseAt, err := rebase(rec, at-srcAt)
+			if err != nil {
+				return nil, Built{}, fmt.Errorf("%s zone %d: %w", r.Zones[i].From, r.Zones[i].Zone, err)
+			}
+			out = append(out, rec...)
+			binary.LittleEndian.PutUint64(p.proxy[0:], uint64(at))
+			binary.LittleEndian.PutUint64(p.proxy[8:], uint64(at+baseAt))
 		}
-		out = append(out, rec...)
-		binary.LittleEndian.PutUint64(p.proxy[0:], uint64(at))
-		binary.LittleEndian.PutUint64(p.proxy[8:], uint64(at+baseAt))
 		var c [3]float32
 		for k := range c {
 			c[k] = f32(p.proxy, 20+4*k)
 		}
 		built.Parts = append(built.Parts, BuiltZone{From: strings.ToUpper(r.Zones[i].From), Zone: r.Zones[i].Zone,
-			Size: len(p.rec), CRC: crc32.ChecksumIEEE(p.rec), Col: p.col, Row: p.row, Box: p.box, Start: c})
+			Size: len(p.rec), CRC: crc32.ChecksumIEEE(p.rec), Col: p.col, Row: p.row, Box: p.box, Start: c,
+			Extras: len(r.Zones[i].Extras), Brought: copiedIn})
 	}
 	end(world)
+	if err := clashes(parts, brought); err != nil {
+		return nil, Built{}, err
+	}
 
 	base := begin(typeWorldBase, 2, 4)
 	h := begin(typeBaseHeader, 1, 0)

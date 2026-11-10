@@ -463,6 +463,11 @@ func main() {
 	if cfg.World.Mercs || cfg.World.Familiars {
 		log.Printf("Mercenaries %v, familiars %v (world.mercs, world.familiars)", cfg.World.Mercs, cfg.World.Familiars)
 	}
+	// a monster's name and level on the talk button (handlers/mobinfo.go)
+	handlers.SetMobInfo(cfg.World.MobInfo)
+	if cfg.World.MobInfo {
+		log.Printf("Mob info: a monster with nothing to say shows its name and level (world.mob_info)")
+	}
 	if cfg.World.RockOfFreeport {
 		if id, made, err := handlers.EnsureRockOfFreeport(db); err != nil {
 			log.Printf("WARNING: the Rock of Freeport's record: %v; none is given", err)

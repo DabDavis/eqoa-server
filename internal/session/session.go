@@ -208,6 +208,12 @@ type Session struct {
 	npcTints     bool
 	npcTintsSent string
 
+	// mobInfo: the client answered the mob info's offer 1
+	// (protocol.OpcodeMobInfoAnswer, handlers/mobinfo.go), so a monster's name
+	// and level go to it as OpcodeMobInfo, shown in its target's details box. A
+	// client that never answered (a PS2, an older build) is sent a dialogue box.
+	mobInfo bool
+
 	// resume is the MemoryDump a session carried through a restart is due,
 	// and resumed whether it was carried through one (keep.go)
 	resume  resumeDump
@@ -320,6 +326,22 @@ func (s *Session) TakeNPCTints(body string, empty bool) bool {
 	}
 	s.npcTintsSent = body
 	return true
+}
+
+// SetMobInfo records the client's answer to the mob info's offer: on, a
+// monster's name and level go to it as protocol.OpcodeMobInfo.
+func (s *Session) SetMobInfo(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.mobInfo = on
+}
+
+// MobInfo is whether the client shows a monster's name and level in its own
+// details box (SetMobInfo). A client that never answered (a PS2) does not.
+func (s *Session) MobInfo() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.mobInfo
 }
 
 // SetBugNote keeps the client's note for the next petition it files.

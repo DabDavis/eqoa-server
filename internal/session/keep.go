@@ -64,6 +64,7 @@ type Kept struct {
 	FlyClient          bool `json:"fly_client,omitempty"`
 	NumberTags         bool `json:"number_tags,omitempty"`
 	NPCTints           bool `json:"npc_tints,omitempty"`
+	MobInfo            bool `json:"mob_info,omitempty"`
 	ReportNotice       bool `json:"report_notice,omitempty"`
 	BoonNotice         bool `json:"boon_notice,omitempty"`
 	WorldLoadPending   bool `json:"world_load_pending,omitempty"`
@@ -196,6 +197,7 @@ func (s *Session) Keep() Kept {
 		FlyClient:          s.flyClient,
 		NumberTags:         s.numberTags,
 		NPCTints:           s.npcTints,
+		MobInfo:            s.mobInfo,
 		ReportNotice:       s.reportNotice,
 		BoonNotice:         s.boonNotice,
 		WorldLoadPending:   s.worldLoadPending,
@@ -351,6 +353,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 	if k.NPCTints {
 		s.npcTintsSent = npcTintsUnknown
 	}
+	s.mobInfo = k.MobInfo
 	s.reportNotice = k.ReportNotice
 	s.boonNotice = k.BoonNotice
 	s.worldLoadPending = k.WorldLoadPending

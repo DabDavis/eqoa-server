@@ -338,6 +338,13 @@
       "note": "Fungusman: the fungal folk's caverns (Guk's) (Guk, cell 12,14)"
     },
     {
+      "name": "West Feerrott",
+      "from": "RATHE.ESF",
+      "zone": 16,
+      "race": 31,
+      "note": "Wisp: the will o' wisps' swamp: 34 wisps of the game in the race's own body (0x8143DC70) float in it, more than anywhere else (West Feerrott, cell 3,4)"
+    },
+    {
       "name": "South Barren Coast",
       "from": "ODUS.ESF",
       "zone": 28,

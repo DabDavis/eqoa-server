@@ -25,9 +25,11 @@ import (
 // or tester flag needed."). A player stands where a creature belongs, turns its
 // character the way the creature should face, and marks the spot; the marks
 // wait in memory, the session's, until it sends them. Sending files a row of
-// campfix_reports (database/campfix.go) and a work board entry for dab's
-// sessions, who review every report (CLAUDE.md, "Camp fix reports: how they are
-// reviewed"); dab confirms before any spawn moves. Nothing here changes one.
+// campfix_reports (database/campfix.go) and a work board entry; the report
+// waits on the GM panel's Camp reports page until a GM approves some or all of
+// its marks or declines it (campfixreview.go, gmweb/ops_campfix.go; CLAUDE.md,
+// "Camp fix reports: how they are reviewed"), and no spawn changes before
+// that. Nothing here changes one.
 //
 //   - /campfix opens a report; typed again, sends it. /campfix list, undo,
 //     note <text>, cancel.
@@ -562,15 +564,29 @@ func (h *ChatHandler) campfixMarkCommand(sess *session.Session, player *entity.P
 		player.Name, len(r.marks), campfixWhat(m), m.x, m.y, m.z, m.world, m.facing, facingByte(float64(m.facing)))
 }
 
-// campfixName is the creature typed, as a report reads a name: matched without
-// case against the names of the NPCs of rows in the player's world, the whole
+// campfixName is the creature typed where the player stands (campfixMatch
+// over the world's NPCs).
+func (h *ChatHandler) campfixName(me entity.CampfixPlayer, typed string) (string, []entity.CampfixNPC, []string, string) {
+	return campfixMatch(typed, func(names []string) ([]entity.CampfixNPC, []entity.CampfixName) {
+		return h.gameWorld.CampfixScan(me.World, me.X, me.Y, me.Z, campfixSpan, names)
+	})
+}
+
+// campfixScanFunc is what matching a name reads of a place: the NPCs of rows
+// whose spawn lies within campfixSpan of it, nearest first, and what the world
+// holds of each of names (World.CampfixScan; for a report filed off the
+// database, a petition's, campfixRows.scan over its rows).
+type campfixScanFunc func(names []string) ([]entity.CampfixNPC, []entity.CampfixName)
+
+// campfixMatch is the creature typed, as a report reads a name: matched
+// without case against the names of the NPCs of rows in the world, the whole
 // text, else the text without a leading article, else the one name among the
 // spawns within campfixSpan holding it. It returns the name as its nearest
 // spawn spells it, those spawns (nearest first), the lines saying how it was
 // taken, and the refusal ("" when found).
-func (h *ChatHandler) campfixName(me entity.CampfixPlayer, typed string) (string, []entity.CampfixNPC, []string, string) {
+func campfixMatch(typed string, scan campfixScanFunc) (string, []entity.CampfixNPC, []string, string) {
 	stripped := campfixStripArticle(typed)
-	near, of := h.gameWorld.CampfixScan(me.World, me.X, me.Y, me.Z, campfixSpan, []string{typed, stripped})
+	near, of := scan([]string{typed, stripped})
 	for _, o := range of {
 		if o.Count > 0 {
 			return o.Nearest.Name, near, nil, ""
@@ -730,6 +746,17 @@ func (h *ChatHandler) campfixRemoveMark(r *campfixReport, me entity.CampfixPlaye
 	return m, nil, ""
 }
 
+// campfixWhatRecord is a filed mark in a few words, as campfixWhat says it.
+func campfixWhatRecord(m CampfixMarkRecord) string {
+	switch {
+	case m.Kind == campfixAdd:
+		return "add " + m.Name
+	case m.Row != 0:
+		return fmt.Sprintf("%s %s (spawn %d)", m.Kind, m.Name, m.Row)
+	}
+	return m.Kind + " " + m.Name
+}
+
 // campfixWhat is a mark in a few words.
 func campfixWhat(m campfixMark) string {
 	switch {
@@ -872,8 +899,13 @@ func (h *ChatHandler) campfixResolve(marks []campfixMark) []entity.CampfixNPC {
 	return out
 }
 
-// The report's JSON (campfix_reports' marks, near and flags).
-type campfixMarkJSON struct {
+// The report's JSON (campfix_reports' marks, near and flags), as the sending
+// and a petition's filing (campfixpetition.go) write them and the GM panel's
+// review (campfixreview.go) reads them back.
+
+// CampfixMarkRecord is one of a report's marks: what it asks, where the
+// player stood and faced, and the spawn it names as it was then.
+type CampfixMarkRecord struct {
 	Kind       string  `json:"kind"`
 	Typed      string  `json:"typed"`
 	Name       string  `json:"name"`
@@ -894,7 +926,10 @@ type campfixMarkJSON struct {
 	At         string  `json:"at"`
 }
 
-type campfixNearJSON struct {
+// CampfixNearRecord is an NPC of a row whose spawn was within
+// campfixNearReach of a mark. Alive and Movement are the world's: a report
+// filed off the database alone (a petition's) has neither.
+type CampfixNearRecord struct {
 	Row        int      `json:"row"`
 	Name       string   `json:"name"`
 	Level      int      `json:"level"`
@@ -902,7 +937,7 @@ type campfixNearJSON struct {
 	Y          float64  `json:"y"`
 	Z          float64  `json:"z"`
 	FacingByte int      `json:"facing_byte"`
-	Alive      bool     `json:"alive"`
+	Alive      *bool    `json:"alive,omitempty"`
 	Movement   string   `json:"movement"`
 	Camp       int64    `json:"camp,omitempty"`
 	Kinds      []string `json:"kinds,omitempty"`
@@ -910,7 +945,9 @@ type campfixNearJSON struct {
 	Distance   float64  `json:"distance"` // to its nearest mark
 }
 
-type campfixFlagJSON struct {
+// CampfixFlagRecord is what the filing flagged of a mark (1-based) for the
+// review: its kind and its words.
+type CampfixFlagRecord struct {
 	Mark int    `json:"mark"`
 	Flag string `json:"flag"`
 	Text string `json:"text"`
@@ -922,9 +959,9 @@ func campfix2(v float32) float64 { return math.Round(float64(v)*100) / 100 }
 // recorded, the marks' rows and templates, the flags.
 type campfixFiled struct {
 	row   database.CampfixReport
-	marks []campfixMarkJSON
-	near  []campfixNearJSON
-	flags []campfixFlagJSON
+	marks []CampfixMarkRecord
+	near  []CampfixNearRecord
+	flags []CampfixFlagRecord
 	camps map[int]bool // npcs rows that are camps' spawns (campspawns)
 }
 
@@ -960,18 +997,9 @@ func (h *ChatHandler) campfixSend(sess *session.Session, player *entity.Player, 
 		return
 	}
 	f := h.campfixFile(sess, player, r, now)
+	who := campfixFiler{Name: player.Name, Level: player.Level, Class: player.Class, CharID: player.CharServerID, AccountID: acct}
 	post := func(id int64) database.WorkPost {
-		title := h.campfixTitle(id, player, r)
-		details := h.campfixDetails(id, sess, player, r, f, now)
-		touches := "npcs"
-		for _, m := range f.marks {
-			if f.camps[m.Row] || f.camps[m.Template] {
-				touches += ", campspawns"
-				break
-			}
-		}
-		owner, status, area := "dab's sessions", database.WorkPlanned, "data"
-		return database.WorkPost{Title: &title, Area: &area, Touches: &touches, Status: &status, Owner: &owner, Details: &details}
+		return campfixPost(h.gameWorld, id, who, f.marks, r.note, f.near, f.flags, f.camps, now)
 	}
 	rep, entry, err := cf.db.FileCampfixReport(f.row, now, post, database.GMEdit{AccountID: acct, Via: "campfix"})
 	if err != nil {
@@ -989,11 +1017,20 @@ func (h *ChatHandler) campfixSend(sess *session.Session, player *entity.Player, 
 // campfixKindCounts is how many marks of each kind, "2 moves, 1 add" (long:
 // the reply's) or "2 move, 1 add" (the title's), kinds with none left out.
 func campfixKindCounts(marks []campfixMark, long bool) string {
+	kinds := make([]string, len(marks))
+	for i, m := range marks {
+		kinds[i] = m.kind
+	}
+	return campfixKinds(kinds, long)
+}
+
+// campfixKinds is campfixKindCounts of the marks' kinds.
+func campfixKinds(kinds []string, long bool) string {
 	var parts []string
 	for _, k := range []string{campfixMove, campfixTurn, campfixAdd, campfixRemove} {
 		n := 0
-		for _, m := range marks {
-			if m.kind == k {
+		for _, mk := range kinds {
+			if mk == k {
 				n++
 			}
 		}
@@ -1046,7 +1083,7 @@ func (h *ChatHandler) campfixFile(sess *session.Session, player *entity.Player, 
 			subjects[i] = of[0].Nearest
 		}
 		s := subjects[i]
-		j := campfixMarkJSON{Kind: m.kind, Typed: m.typed, Name: m.name, World: int(m.world),
+		j := CampfixMarkRecord{Kind: m.kind, Typed: m.typed, Name: m.name, World: int(m.world),
 			X: campfix2(m.x), Y: campfix2(m.y), Z: campfix2(m.z), Facing: math.Round(float64(m.facing)*10000) / 10000,
 			FacingByte: facingByte(float64(m.facing)), At: m.at.UTC().Format(time.RFC3339)}
 		if s.ID != 0 {
@@ -1064,8 +1101,8 @@ func (h *ChatHandler) campfixFile(sess *session.Session, player *entity.Player, 
 
 	// the creatures near
 	for _, n := range gw.CampfixNear(world, pts, campfixNearReach, campfixNearMost) {
-		j := campfixNearJSON{Row: int(n.ID), Name: n.Name, Level: n.Level, X: campfix2(n.X), Y: campfix2(n.Y), Z: campfix2(n.Z),
-			FacingByte: facingByte(float64(n.Facing)), Alive: !n.Dead, Movement: n.Movement, SameName: marked[campfixKey(n.Name)],
+		j := CampfixNearRecord{Row: int(n.ID), Name: n.Name, Level: n.Level, X: campfix2(n.X), Y: campfix2(n.Y), Z: campfix2(n.Z),
+			FacingByte: facingByte(float64(n.Facing)), Alive: campfixBool(!n.Dead), Movement: n.Movement, SameName: marked[campfixKey(n.Name)],
 			Distance: campfix2(n.Dist)}
 		if c, ok := campRows[int(n.ID)]; ok {
 			j.Camp, j.Kinds = c.Camp, c.Kinds
@@ -1081,7 +1118,7 @@ func (h *ChatHandler) campfixFile(sess *session.Session, player *entity.Player, 
 	median, haveMedian := campfixMedian(f.near)
 	combos := campfixNewcomers(spots)
 	flag := func(i int, kind, text string) {
-		f.flags = append(f.flags, campfixFlagJSON{Mark: i + 1, Flag: kind, Text: text})
+		f.flags = append(f.flags, CampfixFlagRecord{Mark: i + 1, Flag: kind, Text: text})
 	}
 	for i, m := range r.marks {
 		s := subjects[i]
@@ -1138,7 +1175,7 @@ func campfixJSON(v any) string {
 }
 
 // campfixMedian is the median level of the creatures recorded near the marks.
-func campfixMedian(near []campfixNearJSON) (float64, bool) {
+func campfixMedian(near []CampfixNearRecord) (float64, bool) {
 	if len(near) == 0 {
 		return 0, false
 	}
@@ -1204,12 +1241,13 @@ func (h *ChatHandler) campfixNewcomerPlace(world uint8, x, z float32, spots []da
 }
 
 // campfixPlace is where a report's first mark is, as its board entry names
-// it: the nearest #tele camp within campfixCampName (CampMarkers), else the
-// nearest town within campfixTownName (TownMarks), else its x and z; after the
-// world's name.
-func (h *ChatHandler) campfixPlace(world uint8, x, z float32) string {
+// it: the nearest #tele camp within campfixCampName (CampMarkers: where its
+// anchor stands in gw, else as written; gw may be nil), else the nearest town
+// within campfixTownName (TownMarks), else its x and z; after the world's
+// name.
+func campfixPlace(gw *entity.World, world uint8, x, z float32) string {
 	label, best := "", float32(-1)
-	for _, c := range CampMarkers(h.gameWorld, int(world)) {
+	for _, c := range CampMarkers(gw, int(world)) {
 		if d := campfixXZ(c.X, c.Z, x, z); d <= campfixCampName && (best < 0 || d < best || d == best && c.Label < label) {
 			label, best = c.Label, d
 		}
@@ -1227,14 +1265,55 @@ func (h *ChatHandler) campfixPlace(world uint8, x, z float32) string {
 	return fmt.Sprintf("%s at %.0f, %.0f", worldName(world), x, z)
 }
 
+// campfixFiler is whom a report is from, as its board entry says it: the
+// character (its name, level and class then, its id) and its account; and for
+// one filed from a petition (campfixpetition.go), the petition, when it was
+// filed, and who made it a report.
+type campfixFiler struct {
+	Name          string
+	Level         int
+	Class         int
+	CharID        uint32
+	AccountID     int
+	Petition      int64
+	PetitionFiled time.Time
+	FiledBy       string
+}
+
+// campfixPost is a report's board entry as filed: owner the GMs, planned,
+// area data, touching npcs (and campspawns when a camp's spawn is a mark's row
+// or template, camps), with campfixTitle and campfixDetails.
+func campfixPost(gw *entity.World, id int64, who campfixFiler, marks []CampfixMarkRecord, note string,
+	near []CampfixNearRecord, flags []CampfixFlagRecord, camps map[int]bool, now time.Time) database.WorkPost {
+	title := campfixTitle(gw, id, who, marks)
+	details := campfixDetails(gw, id, who, marks, note, near, flags, now)
+	touches := "npcs"
+	for _, m := range marks {
+		if camps[m.Row] || camps[m.Template] {
+			touches += ", campspawns"
+			break
+		}
+	}
+	owner, status, area := CampfixBoardOwner, database.WorkPlanned, "data"
+	return database.WorkPost{Title: &title, Area: &area, Touches: &touches, Status: &status, Owner: &owner, Details: &details}
+}
+
+// CampfixBoardOwner is the owner of a report's board entry: the GMs, who
+// approve or decline it on the panel (no session applies one).
+const CampfixBoardOwner = "GMs (Camp reports page)"
+
 // campfixTitle is the board entry's title, at most database.WorkMaxTitle
 // characters: "Camp fix report 512: Kaelith (L24 ranger), Tunaria near bandits:
 // 2 move, 1 add, 1 remove", the place cut short when it does not fit.
-func (h *ChatHandler) campfixTitle(id int64, player *entity.Player, r *campfixReport) string {
-	first := r.marks[0]
-	head := fmt.Sprintf("Camp fix report %d: %s (L%d %s), ", id, player.Name, player.Level, strings.ToLower(entity.ClassName(player.Class)))
-	tail := ": " + campfixKindCounts(r.marks, false)
-	place := h.campfixPlace(first.world, first.x, first.z)
+func campfixTitle(gw *entity.World, id int64, who campfixFiler, marks []CampfixMarkRecord) string {
+	first := marks[0]
+	head := fmt.Sprintf("Camp fix report %d: %s (L%d %s), ", id, who.Name, who.Level, strings.ToLower(entity.ClassName(who.Class)))
+	kinds := make([]string, len(marks))
+	for i, m := range marks {
+		kinds[i] = m.Kind
+	}
+	tail := ": " + campfixKinds(kinds, false)
+	place := campfixPlace(gw, uint8(first.World), float32(first.X), float32(first.Z))
 	if room := database.WorkMaxTitle - utf8.RuneCountInString(head) - utf8.RuneCountInString(tail); utf8.RuneCountInString(place) > room {
 		place = campfixCut(place, room-3) + "..."
 	}
@@ -1263,30 +1342,44 @@ func campfixCell(s string) string {
 
 func campfixAt(x, y, z float64) string { return fmt.Sprintf("%.1f, %.1f, %.1f", x, y, z) }
 
+// CampfixReviewLine is the first line of a report's board entry: where it is
+// decided.
+const CampfixReviewLine = "A GM approves or declines it on the GM panel's Camp reports page (the server's CLAUDE.md, " +
+	"Camp fix reports); nothing is applied before that, and no session applies one itself."
+
 // campfixDetails is the board entry's details, under database.WorkMaxDetails
-// characters: the line on the review, who, where, when, the build and the
-// shard, the note as the player's text, the marks, the flags and the creatures
-// nearby, the last cut short (and said so) when they do not all fit.
-func (h *ChatHandler) campfixDetails(id int64, sess *session.Session, player *entity.Player, r *campfixReport, f campfixFiled, now time.Time) string {
-	first := r.marks[0]
+// characters: the line on the review, the petition it came from, who, where,
+// when, the build and the shard, the note as its writer's text, the marks,
+// the flags and the creatures nearby, the last cut short (and said so) when
+// they do not all fit.
+func campfixDetails(gw *entity.World, id int64, who campfixFiler, marks []CampfixMarkRecord, note string,
+	near []CampfixNearRecord, flags []CampfixFlagRecord, now time.Time) string {
+	first := marks[0]
 	var b strings.Builder
-	b.WriteString("Review per the server's CLAUDE.md, Camp fix reports. Nothing is applied without dab's OK.\n\n")
-	fmt.Fprintf(&b, "- **Who:** %s, a level %d %s (character %d, account %d)\n", campfixCell(player.Name), player.Level,
-		entity.ClassName(player.Class), player.CharServerID, sess.AccountID())
+	b.WriteString(CampfixReviewLine + "\n\n")
+	if who.Petition != 0 {
+		fmt.Fprintf(&b, "- **From:** petition %d, filed %s; made a camp report by %s. Its marks are where the character stood "+
+			"when it filed the petition.\n", who.Petition, who.PetitionFiled.UTC().Format("2006-01-02 15:04:05 UTC"), campfixCell(who.FiledBy))
+	}
+	fmt.Fprintf(&b, "- **Who:** %s, a level %d %s (character %d, account %d)\n", campfixCell(who.Name), who.Level,
+		entity.ClassName(who.Class), who.CharID, who.AccountID)
 	fmt.Fprintf(&b, "- **Where:** %s (world %d); the first mark at (%.1f, %.1f, %.1f)\n",
-		campfixCell(h.campfixPlace(first.world, first.x, first.z)), first.world, first.x, first.y, first.z)
+		campfixCell(campfixPlace(gw, uint8(first.World), float32(first.X), float32(first.Z))), first.World, first.X, first.Y, first.Z)
 	fmt.Fprintf(&b, "- **When:** %s (report %d)\n", now.UTC().Format("2006-01-02 15:04:05 UTC"), id)
 	fmt.Fprintf(&b, "- **Build:** %s; **shard:** %s\n\n", serverBuild(), campfixCell(campfixShard()))
-	if r.note == "" {
+	switch {
+	case note == "":
 		b.WriteString("**Note:** none.\n\n")
-	} else {
-		fmt.Fprintf(&b, "**Note**, the player's own text:\n\n> %s\n\n", r.note)
+	case who.Petition != 0:
+		fmt.Fprintf(&b, "**Note**, by whoever made it a report:\n\n> %s\n\n", note)
+	default:
+		fmt.Fprintf(&b, "**Note**, the player's own text:\n\n> %s\n\n", note)
 	}
 
 	b.WriteString("### Marks\n\n")
 	b.WriteString("| # | Kind | Typed | Creature | Place | Facing | Row | From | From facing | Distance |\n")
 	b.WriteString("|---|---|---|---|---|---|---|---|---|---|\n")
-	for i, m := range f.marks {
+	for i, m := range marks {
 		creature, row, from, fromFacing, dist := m.Name, "-", "-", "-", "-"
 		if m.Row != 0 || m.Template != 0 {
 			creature = fmt.Sprintf("%s (L%d)", m.Name, m.Level)
@@ -1303,32 +1396,36 @@ func (h *ChatHandler) campfixDetails(id int64, sess *session.Session, player *en
 	}
 
 	b.WriteString("\n### Flags\n\n")
-	if len(f.flags) == 0 {
+	if len(flags) == 0 {
 		b.WriteString("None.\n")
 	}
-	for _, fl := range f.flags {
-		fmt.Fprintf(&b, "- Mark %d (%s): %s\n", fl.Mark, campfixCell(campfixWhat(r.marks[fl.Mark-1])), campfixCell(fl.Text))
+	for _, fl := range flags {
+		what := "?"
+		if fl.Mark >= 1 && fl.Mark <= len(marks) {
+			what = campfixWhatRecord(marks[fl.Mark-1])
+		}
+		fmt.Fprintf(&b, "- Mark %d (%s): %s\n", fl.Mark, campfixCell(what), campfixCell(fl.Text))
 	}
 
 	b.WriteString("\n### Nearby\n\n")
-	if len(f.near) == 0 {
+	if len(near) == 0 {
 		fmt.Fprintf(&b, "No NPC of a row spawns within %.0f of a mark.\n", campfixNearReach)
 		return b.String()
 	}
 	fmt.Fprintf(&b, "%d NPCs of rows whose spawn is within %.0f of a mark, nearest first (Movement as the panel says it, to its first colon):\n\n",
-		len(f.near), campfixNearReach)
+		len(near), campfixNearReach)
 	b.WriteString("| Row | Name | Level | Spawn | Facing | Alive | Movement | Camp | Same name | To a mark |\n")
 	b.WriteString("|---|---|---|---|---|---|---|---|---|---|\n")
 	head := b.String()
 	var lines []string
-	for _, n := range f.near {
+	for _, n := range near {
 		camp := "-"
 		if n.Camp != 0 {
 			camp = fmt.Sprintf("%d: %s", n.Camp, strings.Join(n.Kinds, ", "))
 		}
 		move, _, _ := strings.Cut(n.Movement, ":")
 		lines = append(lines, fmt.Sprintf("| %d | %s | %d | %s | %d | %s | %s | %s | %s | %.1f |\n", n.Row, campfixCell(n.Name), n.Level,
-			campfixAt(n.X, n.Y, n.Z), n.FacingByte, campfixYes(n.Alive), campfixCell(move), campfixCell(camp), campfixYes(n.SameName), n.Distance))
+			campfixAt(n.X, n.Y, n.Z), n.FacingByte, campfixKnown(n.Alive), campfixCell(move), campfixCell(camp), campfixYes(n.SameName), n.Distance))
 	}
 	most := database.WorkMaxDetails - 1 // under the board's bound
 	size := utf8.RuneCountInString(head)
@@ -1354,4 +1451,15 @@ func campfixYes(b bool) string {
 		return "yes"
 	}
 	return "no"
+}
+
+func campfixBool(b bool) *bool { return &b }
+
+// campfixKnown is an optional yes or no as a table's cell says it: "-" when
+// not known.
+func campfixKnown(b *bool) string {
+	if b == nil {
+		return "-"
+	}
+	return campfixYes(*b)
 }

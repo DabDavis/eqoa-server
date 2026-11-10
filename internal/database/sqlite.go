@@ -633,6 +633,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureNPCSpawnOnly(); err != nil { // npcspawnonly.go
 		return err
 	}
+	if err := db.ensureNPCTint(); err != nil { // npctint.go
+		return err
+	}
 	if err := db.ensurePotionCooldowns(); err != nil { // potioncooldown.go
 		return err
 	}

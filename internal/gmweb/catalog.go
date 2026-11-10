@@ -976,6 +976,24 @@ var catalog = map[string]tableNote{
 			"source":     {Label: "Source", Help: "gm, or seed for tools/seed_npc_charm.py's rows (its --undo deletes those)"},
 		},
 	},
+	"npctint": {
+		Label: "NPC body tints", Group: "World", Title: "name", Sort: "name",
+		Help: "A colour laid on the bodies of the NPCs of a NAME (any case; entity/npctint.go): every spawn of the name, its " +
+			"respawns and a GM's #spawn copy, never a player. Drawn only by eqoa-rust-client-vanilla, which is told the " +
+			"tints; a PS2 draws the body in its own colours. Color is 0xRRGGBBAA, red in the high byte: each of the body's " +
+			"colours' red, green and blue times the tint's (FF keeps a channel, 00 makes it black: 0x2A7333FF black and green, Yhafiran's, " +
+			"0x80808080 the body a quarter darker), as much of it as the alpha says (FF the whole, 80 about half, 00 none: the " +
+			"row kept, nothing drawn). For a creature the disc has no body of its colours for: Yhafiran, the black and green " +
+			"oriental dragon, wears the Plane of Disease twins' green dragon, tinted. What it holds and its helm keep their colours.",
+		Live:   "At once: every client that draws tints draws the NPCs of the name in it.",
+		Search: []string{"name", "note", "source"},
+		Cols: map[string]colNote{
+			"name":   {Label: "NPC name (key)", Help: "as in NPCs, any case (lower case, trimmed, no trailing $ is how it is matched)"},
+			"color":  {Label: "Tint", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA: each channel of the body times RR/FF, GG/FF, BB/FF; AA how much of it (FF all, 00 none)"},
+			"note":   {Label: "Note", Help: "why"},
+			"source": {Label: "Source", Help: "gm, or seed for tools/seed_npc_tint.py's rows (its --undo takes out exactly what it wrote)"},
+		},
+	},
 	"npcdeath": {
 		Label: "NPC deaths fire triggers", Group: "World", Title: "name", Sort: "name",
 		Help: "A creature's death fires a GM trigger where it fell (handlers/gmtriggers.go), by the creature's NAME (any case) and the " +

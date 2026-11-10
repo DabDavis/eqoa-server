@@ -234,6 +234,37 @@ func TestWelcomeNeverAgainOnThatCharacter(t *testing.T) {
 	w.want("Cora's never", w.msgs(w.cora), "colour:You will not be asked again on Cora. Type /tutorial any time to see the guide.")
 }
 
+// Never again is the character's, kept over a logout: its next login (a new
+// session and player, as a client's next login makes them) is not asked the
+// next day. The control: Cora, logged out and in again with no answer given,
+// is.
+func TestWelcomeNeverKeptOverALogout(t *testing.T) {
+	w := newWelcomeRig(t)
+	w.enter(w.anna, w.cora)
+	w.pick(w.anna, w.asked("Anna", w.anna, daily("Anna")), 1)
+	w.asked("Cora", w.cora, daily("Cora"))
+	relog := func(id int, name string, s *session.Session) *session.Session {
+		t.Helper()
+		w.gw.RemovePlayerBySession(s)
+		s.SetCharacterInWorld(false)
+		again := w.sm.CreateSession(&net.UDPAddr{IP: net.IPv4(203, 0, 113, byte(100+id)), Port: 6100 + id},
+			uint32(100+id), uint32(100+id), uint16(100+id), 1, true)
+		p := w.gw.CreatePlayer(again, &database.CharacterRecord{ServerID: uint32(id), CharName: name, X: 5000, Y: 50, Z: 5000})
+		if p == nil {
+			t.Fatalf("%s's next login", name)
+		}
+		p.HP, p.MaxHP = 100, 100
+		again.SetCharacterInWorld(true)
+		return again
+	}
+	w.drain()
+	anna, cora := relog(1, "Anna", w.anna), relog(2, "Cora", w.cora)
+	w.run(24 * time.Hour)
+	w.enter(anna, cora)
+	w.none("Anna's next login", anna)
+	w.asked("Cora's next login", cora, daily("Cora"))
+}
+
 // /tutorial is everyone's: "/tutorial" and "#tutorial" (anything after them),
 // "/t tutorial" and "/tell tutorial" alone (a PS2's), in any case, show the
 // sender alone the box at once. The controls: "/t tutorial hello" is a tell, a

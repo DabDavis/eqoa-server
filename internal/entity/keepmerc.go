@@ -18,8 +18,9 @@ import (
 // A merc that was in its owner's group is in it again: the group itself,
 // formed again from its players (RestoreGroups), or, its owner and it alone,
 // the two of them again with no box (the client holds the group it was in
-// through the restart, its m_inGroup set). A merc out of every group (its
-// owner said no) is not asked again.
+// through the restart, its m_inGroup set), at the group upkeep after the
+// kept groups are formed again. A merc out of every group (its owner said no)
+// is not asked again.
 
 // KeptMerc is a player's merc as a restart carries it.
 type KeptMerc struct {
@@ -90,13 +91,9 @@ func (w *World) RestoreMerc(sess *session.Session, kit MercKit, k KeptMerc, now 
 	n.Power = min(n.MaxPower, int(k.PowerPct*float64(n.MaxPower)+0.5))
 	syncMercBody(ms)
 	ms.asked = true // not asked again: its client holds what it answered before
-	if k.Grouped {
-		if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil {
-			w.mercIntoGroupLocked(ms, g)
-		} else {
-			w.sendRosterLocked(w.formGroupLocked(p), true)
-		}
-	}
+	// its group place at the group upkeep, once the kept groups are formed
+	// again (RestoreGroups comes after every session's character)
+	ms.regroup = k.Grouped
 	log.Printf("Keep: %s's mercenary %q back (%d/%d HP, %s, grouped %v)", p.Name, n.Name, n.HP, n.MaxHP,
 		MercStanceNames[ms.stance], k.Grouped)
 	return true

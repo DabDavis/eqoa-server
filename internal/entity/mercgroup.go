@@ -288,8 +288,15 @@ func (w *World) mercGroupUpkeepLocked(ms *mercState, sess *session.Session) {
 			break
 		}
 	}
-	if own != nil {
+	switch {
+	case own != nil:
+		ms.regroup = false
 		w.mercIntoGroupLocked(ms, own)
+	case ms.regroup:
+		// a keep restart's: its owner's client holds the group of the two of
+		// them, which no box need ask again (keepmerc.go)
+		ms.regroup = false
+		w.sendRosterLocked(w.formGroupLocked(o), true)
 	}
 }
 

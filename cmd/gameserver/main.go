@@ -543,6 +543,10 @@ func main() {
 
 	handlers.SetNPCText(cfg.World.NPCText)
 	handlers.SetReportNotice(cfg.World.ReportNotice == nil || *cfg.World.ReportNotice)
+	handlers.SetWelcomeGuide(cfg.World.WelcomeGuide == nil || *cfg.World.WelcomeGuide) // the welcome box and /tutorial (welcome.go)
+	if !handlers.WelcomeGuideOn() {
+		log.Printf("Welcome guide: off (world.welcome_guide false)")
+	}
 	handlers.SetCampfix(cfg.World.Campfix == nil || *cfg.World.Campfix) // the players' camp reports (campfix.go)
 	if !handlers.CampfixOn() {
 		log.Printf("Camp reports: off (world.campfix false)")

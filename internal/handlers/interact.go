@@ -83,6 +83,8 @@ type InteractHandler struct {
 	// rehab is the rehabilitators (rehab.go): their menu, and its answers.
 	// Nil: a rehabilitator is any other NPC.
 	rehab *Rehab
+	// welcome answers the welcome guide's box (welcome.go); nil: none is asked
+	welcome *WelcomeGuide
 
 	// archivist answers the Spell Archivists' boxes (archivist.go), which a
 	// request for one's shop asks (merchant.go); nil: none is asked
@@ -545,6 +547,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// A GM trigger's popup (gmtriggers.go): its one answer changes nothing.
 	if IsTriggerBox(targetObjectID) {
+		return nil
+	}
+	// the welcome guide's (welcome.go); an old one does nothing
+	if h.welcome.Answer(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// A rehabilitator's question (rehab.go); an old one does nothing.

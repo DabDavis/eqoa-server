@@ -32,7 +32,7 @@ const HeroesFaction = "Testing Heroes"
 
 // HeroesStockSchema, HeroesPurchasesSchema and BonusTPSchema are the three
 // tables (tools/seed_testing_heroes.py makes heroes_stock by the same words
-// where a server has not yet: TestSeedTestingHeroesToolKeepsTheSchema).
+// where a server has not yet: tools/seed_testing_heroes_test.py holds the two to each other).
 const HeroesStockSchema = `CREATE TABLE IF NOT EXISTS heroes_stock (
 	id        INTEGER PRIMARY KEY AUTOINCREMENT,
 	patternid INTEGER NOT NULL UNIQUE,

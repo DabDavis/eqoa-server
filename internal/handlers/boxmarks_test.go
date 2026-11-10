@@ -42,6 +42,7 @@ var boxMarks = map[string]uint32{
 	"welcomeBoxMark":    welcomeBoxMark,
 	"ctfBoxMark":        ctfBoxMark,
 	"heroCallBoxMark":   heroCallBoxMark,
+	"heroesBoxMark":     heroesBoxMark,
 }
 
 // boxMarkClashes says what is wrong with a set of marks: two of one high byte, a mark with any of the low 24 bits

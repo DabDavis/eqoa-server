@@ -185,7 +185,7 @@ func calcConColor(observerLevel, targetLevel int) byte {
 // title and guild.
 func playerTargetInfo(gw *entity.World, viewer, t *entity.Player, objectID, token uint32) targetInfo {
 	info := targetInfo{name: t.Name, level: t.Level, race: entity.WireRace(t.Race), class: t.Class, objectID: objectID, counter: token}
-	info.faceColor = gw.PlayerFace(t)
+	info.faceColor = gw.PlayerFaceFor(viewer, t) // the arena's teams (entity/ctf.go), else PlayerFace
 	info.title, info.guild = gw.TargetInfoLines(viewer, t)
 	return info
 }

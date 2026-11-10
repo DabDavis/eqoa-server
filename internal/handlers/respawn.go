@@ -32,6 +32,23 @@ func (h *CharacterHandler) respawnPlayer(sess *session.Session, p *entity.Player
 	}
 	x, y, z, world := snap.X, snap.Y, snap.Z, snap.World
 	where := "where it died"
+	if at, facing, arena := gw.CTFRespawnSpot(p.ServerID); arena {
+		// the arena's (entity/ctf.go): its team's camp, or beside the herald once its match is over
+		at = gw.GateRingSpot(at, ctfRing(p.ServerID))
+		placed, worldChanged, ok := gw.PlaceFacing(p.ServerID, at.X, at.Y, at.Z, at.World, facing)
+		if !ok {
+			return
+		}
+		if worldChanged {
+			beginWorldLoad(sess, true)
+		}
+		gw.SyncSelfChannels(sess)
+		h.queueMemoryDump(sess, &placed)
+		n := gw.SendLockouts(sess, time.Now())
+		log.Printf("Respawn: '%s' at %s (%.1f, %.1f, %.1f) world=%d (world changed: %v), %d/%d HP, %d lockouts told",
+			placed.Name, at.Place, placed.X, placed.Y, placed.Z, placed.World, worldChanged, placed.HP, placed.MaxHP, n)
+		return
+	}
 	if hx, hy, hz, hw, via, found := homeOf(gw, sess, p.ServerID); !found {
 		log.Printf("Respawn: no home for '%s'; it respawns where it died", snap.Name)
 	} else {

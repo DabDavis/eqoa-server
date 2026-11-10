@@ -85,6 +85,9 @@ type Recipe struct {
 	// whose zones' extras ReadRecipe adds after each zone's own: a long
 	// list a tool writes kept out of the recipe a person edits.
 	ExtraFiles []string `json:"extraFiles,omitempty"`
+	// Arena is the game a world is the place of, as its maker writes it (tools/worlds/arena.json's capture the
+	// flag: handlers/ctf.go reads it): carried into the built recipe as it is, never into the file.
+	Arena json.RawMessage `json:"arena,omitempty"`
 }
 
 // RecipeZone is one zone of a recipe: zone Zone of the disc's file From.

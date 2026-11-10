@@ -70,6 +70,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.portalSystem(now)      // the Summoning Portals' time (summonportal.go)
 	w.metalMoogieSystem(now) // Mr. Moogie's challenge (metalmoogie.go)
 	w.bufferSystem(now)      // Buffer's casts landing (buffer.go)
+	w.ctfSystem(now)         // capture the flag's queue and match (ctf.go)
 	t.mark(tsDuels)
 	gates := w.castSystem(now)
 	t.mark(tsCasts)

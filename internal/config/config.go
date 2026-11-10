@@ -357,6 +357,11 @@ type WorldConfig struct {
 	// Heirloom Test Server sets it.
 	MobInfo bool `yaml:"mob_info"`
 
+	// CTF is capture the flag in an arena world of the server's own (entity/ctf.go, handlers/ctf.go): the
+	// PvP Events herald signs players up, two teams fight over each other's banners. Off unless enabled, and
+	// only with its world built and listed in ServerWorlds (its places are the built recipe's "arena").
+	CTF CTFConfig `yaml:"ctf"`
+
 	// QuestMarksBelow is how many levels below the player's a quest's lowest
 	// level may be for its giver's "!" on a client's map
 	// (handlers/questmarks.go; a quest's name is marked once, at its nearest
@@ -365,6 +370,52 @@ type WorldConfig struct {
 	// below 50); a number, that many; -1, every quest the player may take,
 	// however low.
 	QuestMarksBelow int `yaml:"quest_marks_below"`
+}
+
+// CTFConfig is world.ctf: capture the flag's switch, its world and its numbers. A number left unset (0) is
+// its default (entity.DefaultCTFSettings; claude-notes/ctf-world-20261110.md has the table).
+type CTFConfig struct {
+	// Enabled turns the arena on; World is its slot (unset: 11), which must be in world.server_worlds.
+	Enabled bool `yaml:"enabled"`
+	World   int  `yaml:"world"`
+
+	// TeamSize is the most a team holds (10); MinPerTeam the fewest a team starts with (2).
+	TeamSize   int `yaml:"team_size"`
+	MinPerTeam int `yaml:"min_per_team"`
+
+	// ScoreLimit is the captures that win (3); TimeLimit the match's length from the banners going live
+	// (20m): then the higher score wins and a tie is a draw.
+	ScoreLimit int           `yaml:"score_limit"`
+	TimeLimit  time.Duration `yaml:"time_limit"`
+
+	// WaveEvery is how often the dead rise together at their camp (30s), WaveMinDead how long one lies dead
+	// at least (5s).
+	WaveEvery   time.Duration `yaml:"wave_every"`
+	WaveMinDead time.Duration `yaml:"wave_min_dead"`
+
+	// Countdown runs from enough signed up to the start (30s); Prep is in the arena before the banners go
+	// live (30s); EndHold from the end to everyone sent back (15s).
+	Countdown time.Duration `yaml:"countdown"`
+	Prep      time.Duration `yaml:"prep"`
+	EndHold   time.Duration `yaml:"end_hold"`
+
+	// FlagReturn is how long a dropped banner lies untouched before it goes back to its stand (30s).
+	FlagReturn time.Duration `yaml:"flag_return"`
+
+	// WoundAfter is how long a carrier holds a banner before it takes WoundStep percent more from every hit,
+	// as much again each further minute, at most WoundMax more (4m, 25, 200); WoundAfter below 0: never.
+	WoundAfter time.Duration `yaml:"wound_after"`
+	WoundStep  int           `yaml:"wound_step"`
+	WoundMax   int           `yaml:"wound_max"`
+
+	// PowerUpEvery is how long a taken power-up is gone (60s); SpeedFor how long the speed one lasts (20s).
+	PowerUpEvery time.Duration `yaml:"powerup_every"`
+	SpeedFor     time.Duration `yaml:"speed_for"`
+
+	// MinLevel is the lowest level that may sign up (1); TouchReach how near a banner, a stand or a
+	// power-up a player must come to touch it (5).
+	MinLevel   int     `yaml:"min_level"`
+	TouchReach float32 `yaml:"touch_reach"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

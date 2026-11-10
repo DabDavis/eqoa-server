@@ -262,6 +262,9 @@ type Player struct {
 	// 0x1501/0x1502, not boxes, and its opponent stays a player to it
 	DuelWindow bool
 
+	// ctf: its part in capture the flag, the arena's match (ctf.go)
+	ctf ctfPlayer
+
 	// pvp: its PvP flag and what goes with it (pvp.go); targetToken its last
 	// 0x0010's token, for a target's face told unasked
 	pvp         pvpFlag

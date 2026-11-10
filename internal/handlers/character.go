@@ -1009,6 +1009,11 @@ func loginSpawn(gw *entity.World, record *database.CharacterRecord, held func(wo
 	if record == nil {
 		return
 	}
+	// the arena (entity/ctf.go): no match is kept over a logout, so a character saved there starts beside
+	// the herald, as its match's end would have sent it
+	if gw != nil && arenaLogin(gw, record) {
+		return
+	}
 	why, resume := resumable(record, held)
 	if resume {
 		log.Printf("loginSpawn: '%s' resumes where it logged out (%.1f, %.1f, %.1f) world=%d",
@@ -1055,6 +1060,23 @@ func loginSpawn(gw *entity.World, record *database.CharacterRecord, held func(wo
 
 	record.X, record.Y, record.Z = x, y, z
 	record.World = int(world)
+}
+
+// arenaLogin starts a character saved in the arena's world beside the herald (entity/ctf.go: no match is kept
+// over a logout), and reports whether it did.
+func arenaLogin(gw *entity.World, record *database.CharacterRecord) bool {
+	at, arena, ok := gw.CTFReturnSpot()
+	if !ok || record.World != int(arena) {
+		return false
+	}
+	w, err := ValidateTeleport(at.X, at.Y, at.Z, at.World)
+	if err != nil {
+		return false
+	}
+	log.Printf("loginSpawn: '%s' was saved in the arena (world %d): starts %s (%.1f, %.1f, %.1f) world=%d",
+		record.CharName, arena, at.Place, at.X, at.Y, at.Z, w)
+	record.X, record.Y, record.Z, record.World = at.X, at.Y, at.Z, int(w)
+	return true
 }
 
 // saveTakenOver writes the row of a character just taken over from the live

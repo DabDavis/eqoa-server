@@ -159,9 +159,10 @@ func TestRaidLeaveTellsTheClientAndHandsTheLeadOn(t *testing.T) {
 	if saidPart(r.heard(1), "leads the raid now") {
 		t.Fatal("a plain member's leave named a new leader (the control)")
 	}
+	r.w.RaidHelper(r.sess[0], "Bob", 0)
 	r.w.RaidLeave(r.sess[0])
-	if g := r.raidOf(1); g == nil || g.Members[0] != r.p[1].ServerID {
-		t.Fatalf("after the leader left: %+v, want Bob leading", g)
+	if g := r.raidOf(1); g == nil || g.Members[0] != r.p[1].ServerID || g.rules.helper != 0 {
+		t.Fatalf("after the leader left: %+v, want Bob leading, helping no one", g)
 	}
 	if !saidPart(r.heard(2), "Bob leads the raid now.") {
 		t.Fatal("the raid was not told who leads")

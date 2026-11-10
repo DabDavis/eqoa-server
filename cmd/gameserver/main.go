@@ -458,6 +458,11 @@ func main() {
 	// /testinvis, every player's safe mode (handlers/safemode.go)
 	handlers.SetTestInvis(cfg.World.TestInvis)
 	handlers.SetTeleporter(cfg.World.Teleporter) // handlers/teleporter.go
+	handlers.SetMercs(cfg.World.Mercs)           // the mercenaries (handlers/merc.go)
+	handlers.SetFamiliars(cfg.World.Familiars)   // the familiars (handlers/familiar.go)
+	if cfg.World.Mercs || cfg.World.Familiars {
+		log.Printf("Mercenaries %v, familiars %v (world.mercs, world.familiars)", cfg.World.Mercs, cfg.World.Familiars)
+	}
 	if cfg.World.RockOfFreeport {
 		if id, made, err := handlers.EnsureRockOfFreeport(db); err != nil {
 			log.Printf("WARNING: the Rock of Freeport's record: %v; none is given", err)

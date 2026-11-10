@@ -100,6 +100,10 @@ func (w *World) npcRegenSystem(now time.Time) {
 // enchanter's Clarity or Power Flow on a charmed creature: charm.go), within
 // the maximum.
 func (n *NPC) petRegen() {
+	if n.isMerc() {
+		n.mercRegen() // a player's HoT and PoT (merc.go)
+		return
+	}
 	if n.sheet != nil {
 		n.petSheetRegen() // a workbook pet's HoT and PoT (petstats.go)
 		return

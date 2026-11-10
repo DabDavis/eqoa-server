@@ -585,6 +585,17 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 
 		// /testinvis's safe mode (safemode.go)
 		chatHandler.SetSafeModeStore(charStore.DB())
+
+		// the mercenaries (merc.go): the liaisons, /merc, the hires kept; and
+		// the familiars (familiar.go): their items' Use, /familiar
+		if gameWorld != nil {
+			mercs := NewMercs(gameWorld, charStore.DB(), charHandler.heirlooms)
+			interactHandler.mercs, chatHandler.mercs = mercs, mercs
+			mercs.Start()
+			familiars := NewFamiliars(gameWorld, charStore.DB())
+			equipHandler.familiars, chatHandler.familiars = familiars, familiars
+			familiars.Start()
+		}
 	}
 	// the Spell Archivists (archivist.go): a request for one's shop asks first,
 	// his shop, the class's basic spells or a clear book

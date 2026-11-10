@@ -316,6 +316,22 @@ type WorldConfig struct {
 	// Heirloom Test Server sets it.
 	Teleporter bool `yaml:"teleporter"`
 
+	// Mercs turns on the mercenaries (handlers/merc.go, entity/merc.go): a
+	// Mercenary Liaison (tools/place_merc_liaisons.py stands one beside each
+	// city's announcements board and Dabrish) hires one for nothing, a player
+	// of any class and race of its owner's level in heirlooms, a member of its
+	// group, commanded by /merc; the hire is kept until dismissed. Unset or
+	// false: a liaison says nothing and /merc says mercenaries are off. The
+	// Heirloom Test Server sets it.
+	Mercs bool `yaml:"mercs"`
+
+	// Familiars turns on the familiars (handlers/familiar.go,
+	// entity/familiar.go): an item of table familiars calls its familiar with a
+	// cast (tools/seed_familiars.py: Healbot, sold by the Genie), and
+	// /familiar dismiss sends it away. Unset or false: the item is quiet. The
+	// Heirloom Test Server sets it.
+	Familiars bool `yaml:"familiars"`
+
 	// QuestMarksBelow is how many levels below the player's a quest's lowest
 	// level may be for its giver's "!" on a client's map
 	// (handlers/questmarks.go; a quest's name is marked once, at its nearest

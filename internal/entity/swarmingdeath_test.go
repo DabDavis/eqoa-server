@@ -73,7 +73,8 @@ func swarmRig(t *testing.T, template string, kit ...string) *petRig {
 // swarmFight is a Swarming Death's fight with the rig's crab (a million hit
 // points, not fighting back): the pets' and the effects' systems every 100 ms
 // from the attack at 9.6 s, the proc's dice under its 25 on every fourth throw
-// alone, and what was seen.
+// alone, and what was seen. A setup is run on the pet once it stands by the
+// crab, before the attack (a buff already on it, as one a pet keeps up).
 type swarmFight struct {
 	pet   *NPC
 	casts []petSeen // the pet's 0x00B1s
@@ -84,7 +85,7 @@ type swarmFight struct {
 	lines string    // the log
 }
 
-func swarmFightFor(t *testing.T, r *petRig, spell CastSpell, hp int, d time.Duration) *swarmFight {
+func swarmFightFor(t *testing.T, r *petRig, spell CastSpell, hp int, d time.Duration, setup ...func(pet *NPC)) *swarmFight {
 	t.Helper()
 	var lines bytes.Buffer
 	was := log.Writer()
@@ -101,6 +102,9 @@ func swarmFightFor(t *testing.T, r *petRig, spell CastSpell, hp int, d time.Dura
 	pet.X, pet.Y, pet.Z = r.enemy.X-2, r.enemy.Y, r.enemy.Z
 	r.w.SpatialIndex.Update(pet.ServerID, ox, oz, pet.X, pet.Z)
 	pet.HP = hp
+	for _, s := range setup {
+		s(pet)
+	}
 	petID := r.w.objectIDForEntityLocked(r.sess, pet.ServerID)
 	r.w.PetCommand(r.sess, petCmdAttack, crabObject, r.at(9600*time.Millisecond))
 	r.sent()

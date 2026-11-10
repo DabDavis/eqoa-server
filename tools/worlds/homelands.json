@@ -1404,7 +1404,233 @@
       "from": "TUNARIA.ESF",
       "zone": 65,
       "race": 20,
-      "note": "Gnoll: the gnolls' burrow: 124 gnolls of the game (Blackburrow, cell 6,6)"
+      "note": "Gnoll: the gnolls' burrow: 124 gnolls of the game (Blackburrow, cell 6,6)",
+      "home": {
+        "flavor": "Gnolls are hyena-faced hunters of Blackburrow in the Homelands, cunning in a pack and fierce alone, who serve the dark elves of Neriak.",
+        "start": {
+          "x": 12564.9,
+          "y": 54.16,
+          "z": 12961.9,
+          "toward": [
+            12558.3,
+            12959.5
+          ]
+        },
+        "mainland": {
+          "place": "Neriak",
+          "world": 0,
+          "x": 25220.1,
+          "y": 7.4,
+          "z": 8626.2,
+          "facing": 0.04
+        },
+        "npcs": [
+          {
+            "name": "Elder Grawl",
+            "like": 103575,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              12558.3,
+              54.16,
+              12959.5
+            ],
+            "toward": [
+              12564.9,
+              12961.9
+            ],
+            "note": "the starter quests' giver, a spiritist's look, by the fire pit of the gnolls' stockade south of the burrow"
+          },
+          {
+            "name": "Grocer Snaggle",
+            "like": 103668,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12574.7,
+              54.16,
+              12986.7
+            ],
+            "toward": [
+              12558.3,
+              12959.5
+            ],
+            "stock": "Grocer Droel",
+            "note": "a forager's look, by the cook pots; a Neriak grocer's food"
+          },
+          {
+            "name": "Spiritmaster Rakk",
+            "like": 103577,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              12624.0,
+              54.16,
+              12960.2
+            ],
+            "toward": [
+              12558.3,
+              12959.5
+            ],
+            "note": "binds, as every spiritmaster; a shaman's look"
+          },
+          {
+            "name": "Gatekeeper Brindle",
+            "like": 103565,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              12694.7,
+              54.16,
+              13031.8
+            ],
+            "toward": [
+              12558.3,
+              12959.5
+            ],
+            "note": "sends a gnoll who has done the starter quests to Neriak (The Road to Neriak); at the stockade's south-east gate"
+          },
+          {
+            "name": "Burrow guard",
+            "like": 103588,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12616.2,
+              71.15,
+              12913.1
+            ],
+            "facing": 124
+          },
+          {
+            "name": "Burrow guard",
+            "like": 103588,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12497.7,
+              71.15,
+              12976.7
+            ],
+            "facing": 185
+          },
+          {
+            "name": "Burrow guard",
+            "like": 103588,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12624.6,
+              71.15,
+              13042.9
+            ],
+            "facing": 1
+          },
+          {
+            "name": "Burrow guard",
+            "like": 103588,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12684.5,
+              71.15,
+              12960.6
+            ],
+            "facing": 80
+          },
+          {
+            "name": "hill badger",
+            "body": "0x8C4F05A3",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              12304.1,
+              82.32,
+              12784.4
+            ],
+            "note": "the starter quest's badgers, at a creature camp's spots on the hill north-west of the stockade"
+          },
+          {
+            "name": "hill badger",
+            "body": "0x8C4F05A3",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              12306.9,
+              85.61,
+              12793.6
+            ]
+          },
+          {
+            "name": "hill badger",
+            "body": "0x8C4F05A3",
+            "level": 2,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              12316.6,
+              79.81,
+              12789.7
+            ]
+          },
+          {
+            "name": "hill badger",
+            "body": "0x8C4F05A3",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              12306.2,
+              81.19,
+              12762.2
+            ]
+          },
+          {
+            "name": "hill badger",
+            "body": "0x8C4F05A3",
+            "level": 2,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              12308.9,
+              80.11,
+              12774.9
+            ]
+          },
+          {
+            "name": "hill badger",
+            "body": "0x8C4F05A3",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              12312.9,
+              78.24,
+              12767.2
+            ]
+          }
+        ],
+        "peaceful": [
+          "hill badger"
+        ],
+        "lines": {
+          "Gatekeeper Brindle": [
+            "Not yet, pup. Elder Grawl has to know your scent before Neriak does.",
+            "Go and see Elder Grawl by the fire. Then we will talk."
+          ],
+          "Burrow guard": [
+            "Nothing moves on the hill that I do not see.",
+            "Keep your nose up, %r. Trouble smells before it shows.",
+            "New pup? Elder Grawl is by the fire pit."
+          ],
+          "Elder Grawl": [
+            "The pack is strong because each gnoll is strong. Remember that.",
+            "Wherever you go, pup, the pack goes with you."
+          ]
+        }
+      }
     },
     {
       "name": "Thedruk",

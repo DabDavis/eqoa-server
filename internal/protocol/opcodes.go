@@ -890,6 +890,39 @@ const (
 	OpcodeNPCTints GameOpcode = 0x7E40
 )
 
+// A monster's name and level when the player talks to it (□, Q on vanilla's
+// keyboard) and it has nothing to say, for a client that shows them in the
+// target's details box (handlers/mobinfo.go, world.mob_info; the GM Jibrish's
+// petition 1459, 2026-11-10: "press the mob information button on monster (Q
+// by default on keyboard). This should ONLY show the monsters name and level,
+// nothing else.").
+const (
+	// OpcodeMobInfoOffer is not retail: the server's offer, server to client
+	// once the player is in the world, only where world.mob_info is on: a u8,
+	// 1, the layout of OpcodeMobInfo. A PS2 ignores it (CLIENT's dispatcher
+	// has no case above 0x1402 and no default) and never answers: its talk to
+	// such a monster is answered with a dialogue box (0x0046) of the same two
+	// lines.
+	OpcodeMobInfoOffer GameOpcode = 0x7E4C
+
+	// OpcodeMobInfoAnswer is a client's answer to OpcodeMobInfoOffer, client to
+	// server, at once: a u8, 1 to be sent OpcodeMobInfo in place of the
+	// dialogue box, 0 for the box (a wider answer is read by its first byte).
+	OpcodeMobInfoAnswer GameOpcode = 0x7E4D
+
+	// OpcodeMobInfo is a monster's name and level, server to a client that
+	// answered 1, in answer to its 0x0004 on a living NPC without the NPC bit
+	// (what CLIENT lets a player attack) that has nothing to say or stands out
+	// of the talk's reach. Little-endian: a u8 layout (1), the u32 id the
+	// 0x0004 named (the monster as that client knows it), a u8 its level (the
+	// NPC's Level: the con colour's, the entity channel's byte 140), and its
+	// name (a u8 byte count and the bytes, at most 63, of what a PS2 can type:
+	// handlers/consoletext.go). The client shows the two as CLIENT's
+	// VIWndGame::DrawTargetInfo shows a pet's (the name, then word 503 "Level"
+	// and the level), in the target's details box, while its □ is held.
+	OpcodeMobInfo GameOpcode = 0x7E4E
+)
+
 // =============================================================================
 // Game Version Constants
 // =============================================================================

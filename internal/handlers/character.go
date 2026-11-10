@@ -905,6 +905,10 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// and a damage meter (dpsmeter.go): a client that draws one asks, a PS2
 	// ignores it
 	SendDPSMeterOffer(sess)
+	// and a monster's name and level in the details box (mobinfo.go), where
+	// world.mob_info is on: a client that shows them there asks, a PS2
+	// ignores it and is shown them in a dialogue box
+	SendMobInfoOffer(sess)
 
 	// Offer quest marks for the map (questmarks.go): a client that draws them
 	// asks, a PS2 ignores it

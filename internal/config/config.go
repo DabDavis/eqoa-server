@@ -347,6 +347,16 @@ type WorldConfig struct {
 	// Heirloom Test Server sets it.
 	Familiars bool `yaml:"familiars"`
 
+	// MobInfo shows a monster's name and level, and nothing else, when a
+	// player talks to it (□, Q on vanilla's keyboard) and it has nothing to
+	// say, or stands out of the talk's reach (handlers/mobinfo.go; the GM
+	// Jibrish's petition 1459): a client that can (vanilla) is offered it
+	// (protocol.OpcodeMobInfoOffer) and shows them in the target's details
+	// box, a PS2 in a dialogue box. A monster is an NPC without the NPC bit,
+	// alive. Unset or false: such a talk answers nothing, as before. The
+	// Heirloom Test Server sets it.
+	MobInfo bool `yaml:"mob_info"`
+
 	// QuestMarksBelow is how many levels below the player's a quest's lowest
 	// level may be for its giver's "!" on a client's map
 	// (handlers/questmarks.go; a quest's name is marked once, at its nearest

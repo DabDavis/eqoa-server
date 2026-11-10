@@ -195,8 +195,9 @@ func (h *InteractHandler) RegisterHandlers(r *Registry) {
 // A corpse opens its loot, a sign or a board its words (and nothing else),
 // the hard-disk technician his menu, a travel NPC its routes, a greeter its
 // words, a quest giver the player is too low for its city's "not yet" and a
-// town's person or a guard a line of npcdialog; anything else answers
-// nothing.
+// town's person or a guard a line of npcdialog; where world.mob_info is on a
+// monster its name and level, in reach or not (mobinfo.go); anything else
+// answers nothing.
 func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	if len(data) < 4 {
@@ -225,6 +226,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 	if !entity.InRange(player, targetEntity, entity.InteractRange) {
+		// A monster out of reach is looked at, not talked to: its name and
+		// level, where world.mob_info is on (mobinfo.go).
+		if npc, ok := targetEntity.(*entity.NPC); ok && showMobInfo(sess, player, npc, targetObjectID) {
+			return nil
+		}
 		// Name the target and print both positions. "too far (dist=21.3)" alone
 		// cannot distinguish the two failures that look identical from the
 		// client: a genuinely distant NPC, versus the server resolving the
@@ -430,6 +436,12 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 	// A town's people and the guards of Norrath (entity/dialog.go): a line of
 	// npcdialog, when one fits.
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.townSay(sess, player, npc) {
+		return nil
+	}
+
+	// A monster with nothing to say: its name and level, and nothing else,
+	// where world.mob_info is on (mobinfo.go; petition 1459).
+	if npc, ok := targetEntity.(*entity.NPC); ok && showMobInfo(sess, player, npc, targetObjectID) {
 		return nil
 	}
 

@@ -56,6 +56,7 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	s.SetFlyClient(true)
 	s.SetNumberTags(true)
 	s.SetNPCTints(true)
+	s.SetMobInfo(true)
 	s.SetDiscVersion(0x12)
 	s.OfferCapesOnce()
 	s.SetCapes(true)
@@ -96,6 +97,11 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	// control, the session before the restart, held none and takes no empty set
 	if !r.NPCTints() || !r.TakeNPCTints("\x00\x00", true) || r.TakeNPCTints("\x00\x00", true) || s.TakeNPCTints("\x00\x00", true) {
 		t.Fatal("the NPC tints' answer not kept, or the set it holds not unknown")
+	}
+	// a monster's name and level (handlers/mobinfo.go): still shown in the
+	// client's details box, not a dialogue box
+	if !r.MobInfo() {
+		t.Fatal("the mob info's answer not kept")
 	}
 	// the capes (handlers/capes.go): the client still draws them, and is not
 	// offered them again
@@ -181,6 +187,11 @@ func TestAKeptChannelGoesOutWholeAndNew(t *testing.T) {
 	// (a PS2's) comes back without them, and may still be offered them
 	if r.Capes() || r.CapesOffered() {
 		t.Fatalf("capes on a session that never answered: drawn %v, offered %v", r.Capes(), r.CapesOffered())
+	}
+	// and for the mob info's kept above: a client that never answered (a PS2)
+	// still takes the dialogue box
+	if r.MobInfo() {
+		t.Fatal("a session that never answered shows a monster's name in its details box")
 	}
 	rch := r.Connection().GetClientStatUpdate()
 	data, seq, ref := rch.GenerateXORDelta()

@@ -1124,18 +1124,16 @@ func (h *ChatHandler) campfixFile(sess *session.Session, player *entity.Player, 
 		s := subjects[i]
 		places := m.kind == campfixMove || m.kind == campfixAdd
 		if counts[i] <= campfixFew {
-			flag(i, "few", fmt.Sprintf("%s has %d %s in %s: few in the world: named or rare?", m.name, counts[i],
-				plural(counts[i], "spawn", "spawns"), worldName(world)))
+			flag(i, "few", campfixFewText(m.name, counts[i], world))
 		}
 		if !near300[campfixKey(m.name)] {
-			flag(i, "none_near", fmt.Sprintf("%s had no spawn within %.0f of the marks", m.name, campfixSpan))
+			flag(i, "none_near", campfixNoneNearText(m.name))
 		}
 		if m.kind == campfixMove && s.ID == 0 {
 			flag(i, "no_spawn", fmt.Sprintf("no spawn of %s was left free near it to move: the report's other marks name them", m.name))
 		}
 		if s.ID != 0 && haveMedian && math.Abs(float64(s.Level)-median) > campfixLevelOff {
-			flag(i, "level", fmt.Sprintf("%s is level %d, %s from the median level %s of the creatures nearby", m.name, s.Level,
-				campfixNum(math.Abs(float64(s.Level)-median)), campfixNum(median)))
+			flag(i, "level", campfixLevelText(m.name, s.Level, median))
 		}
 		if m.kind == campfixMove && s.ID != 0 {
 			if d := campfixDist(s.X, s.Y, s.Z, m.x, m.y, m.z); d > campfixFarMove {

@@ -620,7 +620,8 @@ func (m *Mercs) bring(sess *session.Session, p *entity.Player, row database.Merc
 }
 
 // note keeps a merc's event (entity.OnMercNote, off the World's lock): a
-// death's rest, a dismissal by another's hand, its owner's new level's kit.
+// death's rest, a dismissal by another's hand, its owner's new level's kit,
+// its owner out of the arena it waited outside of.
 func (m *Mercs) note(n entity.MercNote) {
 	if m.db == nil || n.Owner == nil {
 		return
@@ -636,6 +637,12 @@ func (m *Mercs) note(n entity.MercNote) {
 		}
 	case entity.MercNoteLevel:
 		go m.rekit(n.Owner.CharServerID, n.Level)
+	case entity.MercNoteBack:
+		// its owner out of capture the flag's arena, where it waited
+		// (entity/ctfaway.go): back from its row as at a login
+		if n.Sess != nil {
+			go m.comeBack(n.Sess, n.Owner)
+		}
 	}
 }
 

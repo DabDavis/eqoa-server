@@ -869,6 +869,72 @@ restarts and swaps; nothing before its first deploy is in it, and each shard cou
   style (0 heading, 1 label and value) and two strings (u8 byte count, UTF-8), the server's words ("2 hours ago") as they stand when sent
   (`recordRows`). A PS2 ignores the offer.
 
+### Capture the flag: the arena of the server's own worlds (`entity/ctf.go`, `entity/ctfflag.go`, `handlers/ctf.go`, `world.ctf`)
+
+The owner, 2026-11-10: "since we have a template for making new worlds and zones lets add a new PvP world. One zone for Capture
+the Flag. players will join from PvP Events NPC next to Dabrish, will have 2 teams", then "for the ctf we are making it like
+warsong gulch from WoW": that game's rules, never its map, names or look. `claude-notes/ctf-world-20261110.md` has the design,
+every number and what the rig measured. **`world.ctf.enabled`** (off by default) turns it on, with its world (`world.ctf.world`,
+11) one of `world.server_worlds`: a composed world of one disc zone, **Box Canyons** (Tunaria zone 121), built from
+`tools/worlds/arena.json` by `cmd/worldbuild`, whose `"arena"` block (carried into `worldN.json`, never the file) is the
+places: each team's banner stand and camp, the power-ups, the field's edge, the bodies. Every number is in config with its
+default (`config.yaml.example`, `entity.DefaultCTFSettings`).
+
+- **Joining**: the **PvP Events** herald (any NPC of the name; `tools/place_ctf_herald.py` stands one behind Dabrish in a war
+  captain's look) asks a box (mark **0x62000000**; a Mercenary Liaison's is 0x5F, and `handlers/boxmarks_test.go` holds
+  every feature's `<feature>BoxMark` to its own high byte): sign up or take the name off, the rules, how things stand. `/ctf`,
+  `/ctf join`, `/ctf leave`, `/ctf rules` (`#ctf`; a PS2's `/t ctf ...`). **The arena is reached by a client that holds it**:
+  one that built the world and said so (0x7E31's answer: vanilla natively and in a page alike), as well as its game's slot
+  (`ctfReaches`, `ctfReachesLocked`). Anyone else is told why and kept out: every PS2 (the July S2's table, DiscVersion
+  0x13, takes every slot below 30, the server's worlds among them, which reach no console), a vanilla from before the
+  server's worlds or one that reads no version 2 list (it holds none), one holding the Homelands alone. The dead and
+  duelists wait.
+- **The start**: `min_per_team` a side ready starts a `countdown` (everyone in the world told where to sign up); then up to
+  `team_size` a side are split as even as they come (count, then the levels' sums), sent to their camps (the gates' travel), and
+  `prep` later the banners go live. Signed-up players are sent into a match with room while 2 minutes or more are left.
+- **The banners**: two Temporary NPCs, each on its stand. A touch (a report within `touch_reach`, or the tick at the server's
+  place: a client standing still sends none; a talk to it too) takes the other team's; it **trails its carrier** a step
+  behind with the carrier's velocity, the carrier's name reads `[Banner] Name` to every client and is gold to the other team
+  (channel byte 142 0, as swingable as a foe's 4), the rest of the other team green (byte 157 bit 0), its own blue. A carrier
+  at its own stand scores **only while its own banner stands there** (else told so); a carrier's death, logout, leaving or
+  straying past the field drops it where it is; its own team returns it by a touch, the other takes it up again, and one left
+  lying `flag_return` goes home. A report the move check holds as from before a server's move (`mv.pending`) and the two
+  seconds after the server put a player somewhere touch nothing (a client's last report from where it fell took the banner).
+- **The fight**: in the arena the teams alone decide foes (`pvpFoe`): the PvP flag's fight (`pvp.go`: melee, spells, procs,
+  pets at `PvPDamageShare`), never a teammate, never anyone outside the match, flags and groups aside; no death debt, no loss;
+  a death counts in the combat record as any PvP kill. The dead rise in **waves** at their camp every `wave_every` from the
+  banners going live, the first at least `wave_min_dead` after the death (`ctfRespawnDueLocked` in the respawn system,
+  `CTFRespawnSpot` in `handlers/respawn.go`). A carrier held `wound_after` takes `wound_step`% more from every hit, more each
+  further minute, at most `wound_max`%. Power-ups: the speed shrines (Spirit of the Wolf's run speed for `speed_for`, effect
+  key -1010) and the mending spring (hit points and power full), back `powerup_every` after. No duels in the arena; `/stuck`
+  there is back to the camp (once a minute, never with a banner).
+- **Mercenaries and familiars never enter the arena** (`entity/ctfaway.go`): a match is its players' alone, so a merc never
+  counts on a team or touches a banner, and no merc's heal nor Healbot's reaches a match. Sent in (`ctfEnterLocked`), or
+  standing in the arena's world any other way (a GM's move, a keep restart), a player's merc and familiar go out of the
+  world as at a logout (the merc out of its group too) and **wait outside**, told so; a hire or `/merc` there is refused
+  with the same line and kept for after, the familiar's item lands only the line, a keep restart's restore goes back to
+  waiting, one found there all the same is sent out at its next step. Once its owner is out of every match and of the
+  arena's world, in the world, alive and loaded, the familiar comes back as it was (its share of hit points) and the merc
+  is made again from its row beside it (`MercNoteBack`: a login's return, whole, asked into a group again). A dismissal
+  while it waits ends it; a logout lets the wait go (the login brings the merc back by its row); a keep restart carries it
+  as if out (`KeptMerc.Away`: its owner asked into a group with it again, as at its return). Class pets go in, as the PvP fight's (`pvpPetLocked`); a group or raid across the teams stays the group it was.
+- **The end**: `score_limit` captures, or `time_limit` (the higher score wins, a tie is a draw), or a team empty 30 s (a
+  forfeit). Everyone is told (the server too), each player its own count, and `end_hold` later all go back beside the herald
+  (one lying dead rises there). A login saved in the arena starts beside the herald (`arenaLogin`), and so does a keep restart's
+  player out of a match (matches are not kept; its merc waiting outside comes back beside it): the server's own worlds and
+  capture the flag are set up before the kept sessions are put back (`cmd/gameserver`; until 2026-11-10 they came after,
+  and every player standing in the Homelands went to Freeport's login spot at each keep restart). A player in the arena's
+  world with no match there any other way is sent beside the herald after 5 s, a GM excepted.
+- **Every client sees it with no client change** (vanilla builds the world off its own disc through 0x7E30/0x7E31): the
+  banners are NPCs, the tags and colours are the channel's. A banner's body is Highbourne's guild banner (the wizards' for
+  Ember, the enchanters' for Dusk, at 0.17) where the built world holds that art among its zone's extras (the recipe's
+  decoration, the homes-edges composer's format: towers, walls, boulders, catapults, the guild banners by the stands, the
+  sun flags mid-valley, boulders across the south run), else a CHAR.ESF orb (`fallback_body`): vanilla draws a zone's art
+  as an NPC's body once the zone is in. The deployed world 11 (the decorated arena, 47 extras) is 5,732,225 bytes, CRC
+  6c892af2, as the homes-edges composer built it before the merge. Tests: `TestCTF*` (`entity/ctf_test.go`,
+  `entity/ctfaway_test.go`, `handlers/ctf_test.go`, `handlers/ctfaway_test.go`), `TestBoxMarksAreEachFeaturesOwn`,
+  `TestHeraldAndLiaisonAnswersAreTheirOwn` (`handlers/boxmarks_test.go`).
+
 ### Mail, resets, one Master Class, petitions: SOE's live client's, for every client
 
 The user, 2026-10-29: SOE's later features, read out of the live CLIENT in the Corsten state, built on
@@ -1834,7 +1900,7 @@ figures (`spellAmount` of its stats) and its regeneration (a player's HoT and Po
 split, the merc in none; factions; quests).
 
 **How it fights** (`mercfight.go`, `merccast.go`): it follows as a pet (floors, swimming, a teleport or another world
-brings it along) and assists: by stance (`/merc stance`) passive fights only what `/merc attack` names, **assist** (the
+brings it along; never capture the flag's arena, where it waits outside until its owner leaves: `entity/ctfaway.go`) and assists: by stance (`/merc stance`) passive fights only what `/merc attack` names, **assist** (the
 default) its owner's auto-attack's target, else the nearest creature within 30 of its owner fighting its owner or itself,
 hurt by its owner or fought by its owner's pet, aggressive also what fights or is fought by its owner's group; never a
 player, a duel's opponent or pet (`duelFoeLocked` leaves a merc out), an unattackable NPC, another's pet or merc, a Metal
@@ -1891,7 +1957,8 @@ Invention's body (the gnome's tinker pet, 0xFBABEB00), 100,000 hit points, 2,000
 visual, a 600 heal below 75% at most every 6 s. The item's Use is a cast through the World's casting
 (`CastSpell.Familiar`, as the Rock of Freeport's travel: no lockout, no 0x00CD), the familiar beside its caster as it
 lands, used again at will: one familiar a player (a new one takes the old one's place), beside the class pet and the
-merc. It follows its owner, never attacks, and is **never fought**: an NPC with the NPC bit, never owned (as the genie),
+merc. It follows its owner (never into capture the flag's arena: it waits outside, `entity/ctfaway.go`), never attacks,
+and is **never fought**: an NPC with the NPC bit, never owned (as the genie),
 so no player, pet, guard or area spell of a player's or a creature's reaches it, and nothing puts it on a hate list
 (`addThreatLocked` refuses a familiar): nothing harmful lands on it, which is the petition's "immune to all resists". Its
 heal is instant: its owner below 75% and within 30, not flagged for PvP and in no duel, healed 600 (at most what is
@@ -2170,6 +2237,7 @@ case *entity.NPC:
 | `petSystem` | Every tick | Summoned pets (`pet.go`): following (`npcmove.go`: an NPC's step with its velocity and locomotion on its channel), stances, rounds on their targets, their owners told their ids (0x007E), and taken away with their owners. A pet's floor is looked for at its owner's (or its target's) height, the highest floor placed there (a bridge's deck, a walkway, a house's floor: ground's `Support`, half a unit over to 4 under) winning over the terrain under it, for a pet summoned anywhere but in the water (the user, 2026-11-01: "Jedds pet skeleton collision made it stand under the bridge": the terrain's floor alone put it on the ground under Neriak's walkways), and the deck it walks on goes on under it though its owner stands lower (ground's `PlacedSupport` from the pet's own height: at a bridge's end the deck's crest stands over the land, and a pet still on the deck fell into the river under it), and in deep water it swims (the water, above), its animation the floor's it ends the step on (the step's terrain-only grounding played a swim, which stayed once the deck was found: "the hulking bones pet is on the bridge ,but swimming in mid air. seems to trigger at where the bridge meets the land", the same day; a chasing creature's swim was played as a walk until then). A workbook pet's size is the commonest its body's wearers have within a person's, 0.75-1.5, else its body's own 1 (`petBodyLocked`; "hulking bones scale is too big": it wore the skeletal giants' 2.2). **A pet's maximum hit points take its effects** (`syncEffectMaxHP`; the user, 2026-11-01, of the shaman's Avatar: "a one time max hp buff and massive stat buff"; until then a pet's maximum took none, so Avatar on a pet only healed it): its own (the balance's, its template's) plus each effect's maximum and hit point factor, a raising spell's heal landing after the raise as on a player, the raise taken back within the pet's tick when the effect ends (its hit points kept within the lower maximum), kept when the balance sets its hit points again; **a charmed creature set free keeps its buffs until each runs out** (the user, 2026-11-01: "is charm breaks/release the mob retains all buffs until they expire"): its raise and its heals over time go on the creatures' effects at its release (`releaseCharmLocked`, `effectSystem`, where a pet's never were, so they never ran out), the raise taken back as each ends; a respawn is a new life without them. **A creature's effects count in its fights** (`creatureMods`; the user, the same day: "make the released mob's buffs count in its fights too", then "yes make player debuffs count too"; until then a creature fought by its level alone, and an AC, STR, DEX or AGI debuff on one did nothing): the debuffs players and their pets put on it and a freed charm's kept buffs, each while it lasts and only the best of a line (`bestOfLine`: two ranks of one debuff's line count as the higher, as on a player). STR and DEX move its rolls as a pet's effects move its own (`meleeRoll.withMods`: STR the top by 0.196 and the floor by 0.02 a point, DEX the bottom by `petDexShare` of the width), on players, pets and guards; AC and AGI take off (a debuff: add to) a player's, a pet's and a workbook pet's roll on it as a player's take off a creature's (`creatureDefence`: the creature line's AC slope at the attacker's level, a tank's per point of AGI; ours, no record of a creature's armour exists); a maximum hit points' effect its maximum (`syncEffectMaxHP`: the shaman's Wind line lowers it while it lasts, its hit points within it, the maximum back at its end); its resists were counted already (`npcResistKindPct`); STA, WIS, INT and CHA count for nothing on a creature (no creature's hit points or hits come from them). The dummies' measured rolls take their effects too |
 | `mercSystem` | Every tick | Mercenaries (`merc.go`): following, their level their owner's, their casts landing, their heals, buffs, taunts and attacks (`merccast.go`), their melee (`mercfight.go`), their group place every 5 ticks (`mercgroup.go`), a dead one's rest told; after the lock (`runMercNotes`) the handlers keep a death's rest and make a new level's kit |
 | `familiarSystem` | Every tick | Familiars (`familiar.go`): following, 2,000 (their row's) a regen tick, Healbot's heal of its owner; gone with a dead owner |
+| `ctfSystem` | Every tick | Capture the flag (`ctf.go`, `ctfflag.go`, `ctfaway.go`; with `world.ctf` on): the queue let go of who left, the arena's strays sent beside the herald after 5 s (a GM excepted), what waits outside the arena (mercs, familiars) brought back to its owner once out, the countdown and the start, the prep's end, backfill, the touches at the server's place, the banners trailing their carriers and left alone going home, wounds, power-ups, the minutes, a forfeit, the time limit, the end's hold and the way back |
 | `duelSystem` | Every tick | Duels (`duel.go`): invitations lapsing at 20 s, live wager windows at 2 min, an accepted duel's countdown said and its fight begun at its end (or called off), fights ending (a duelist gone, dead, out of the arena, 10 min), a live window told a new id for its opponent; after the lock (`runDuelPurse`, as `Tick` runs it) a wager's stakes held or paid (`duelpurse.go`) |
 | `playerRespawnSystem` | Every tick | A dead player (`respawn.go`: 0x005E once, off every threat list, no regen) is restored 15 s after its death (Sandstorm's 15.6 s in `pcaps/breath_capture.pcap`) and sent a MemoryDump at its bind point (`charbind`, a spiritmaster's; never bound, the login spawn: `homeOf`): the dump, not 0x00B2, is what clears CLIENT's dead flag (Msg000D's ClearPC1B0). **A death leaves the live game's experience debt** (`deathdebt.go`; the user: "add xp debt on death like live"): its level's unrezzed debt (eqoa.fandom.com's Formulas chart, levels 6-54; SOE's Corsten state holds exactly five level 49 deaths of it), added to what is owed, told by 0x00D9 (the debt icon on the player's own target bar) and a line (ours); none below level 6, the chart's blanks (51, 53, 55-60) on its curve, ours; half of every award pays it (`mastery.go` splitXP); `#debt [amount]` shows or sets a GM's own (and what a rez may still give back). A resurrection gives back its printed share of what the latest death added (`resurrect.go`, below) |
 | `regenSystem` | Every 6 s | Health and power over time as the live game's (`regen.go`; eqoa.fandom.com's Formulas and HoT pages, F3 pass 14): HoT = max HP / 50 and PoT = max power / 50 (at least 1), plus worn items' HoT/PoT, the best in full, the second at `SecondItemShare` (40%, the Formulas page; the HoT page says 50%), each further one 1, plus a meal's HoT and a drink's PoT (`consumable.go`); every 6 s, in a fight or out of it (Sandstorm's capture: power ticked every 6.0-6.2 s through a fight); a HoT below nothing (the Lich form's -196, the workbook's) takes its hit points at full health too, never below 1 (the user, 2026-11-01; the floor ours: until then a full necromancer paid nothing); the stat channel carries PoT and HoT |

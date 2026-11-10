@@ -47,9 +47,23 @@ func abilityKey(a *database.TemplateAbility) string {
 	return a.Kind + "|" + strconv.Itoa(a.SpellID) + "|" + a.Spell + "|" + a.Name + "|" + strconv.Itoa(a.HealPct)
 }
 
-// coolingDown reports whether the ability's cooldown on n runs at now.
+// coolingDown reports whether the ability's cooldown on n runs at now. A cooldown begun under a longer one
+// than its ability has now (a GM's edit or a data step since: Mr. Moogie's Lay Hands from an hour to 15
+// minutes, petition 1437) is held to its new length from now, so no running one outlasts what the
+// template says.
 func (n *NPC) coolingDown(a *templateAbility, now time.Time) bool {
-	return a.Cooldown > 0 && now.Before(n.abilityReady[abilityKey(&a.TemplateAbility)])
+	if a.Cooldown <= 0 {
+		return false
+	}
+	k := abilityKey(&a.TemplateAbility)
+	until, ok := n.abilityReady[k]
+	if !ok {
+		return false
+	}
+	if most := now.Add(time.Duration(a.Cooldown * float64(time.Second))); until.After(most) {
+		n.abilityReady[k], until = most, most
+	}
+	return now.Before(until)
 }
 
 // startCooldown begins the ability's cooldown on n at now, its cast's start.

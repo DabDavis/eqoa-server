@@ -1,0 +1,176 @@
+{
+  "race": "wisp",
+  "home": "West Feerrott",
+  "city": "Qeynos",
+  "note": "The wandering lights of the Feerrott. Its people are tools/worlds/homelands.json's (West Feerrott), every one a wisp: Elder Faintglow, on the hill above the south pond, gives the first two; Watchlight Gleam, a little east of her by the pond, the three hunts; Lampwright Glimmer, up the hill to the north-west, is the outfitter; Coachman Wick keeps the stable on the rise to the south-west (his coach runs to Freeport and to the other homes). The bog rats (the reeds to the east), the bog gnats (the pools to the south) and the young jaguar Duskpaw (north-west) are placed for these quests. A wisp speaks in few words, and of light.",
+  "L1": {
+    "name": "A Bead of Marsh Glass",
+    "giver": "Elder Faintglow",
+    "offer": [
+      "Oh! A new light, kindled out of the mist. Hush, little flame. Burn slowly. You are among your own.",
+      "A light with nothing to hold it drifts and thins. Each of us keeps a bead of marsh glass to gather in. Lampwright Glimmer blows them, a short drift up the hill to the north.",
+      "Will you fetch your bead and show it to me?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "Then drift a while. The mist will keep you.",
+    "started": "Glimmer glows a short drift up the hill to the north.",
+    "merchant": "Lampwright Glimmer",
+    "piece": {
+      "name": "marsh-glass bead",
+      "description": "A bead of green marsh glass on a reed cord. A wisp's light gathers in it and does not thin.",
+      "like": "glass trinket",
+      "set": {
+        "HPMAX": 5
+      }
+    },
+    "fetch": {
+      "journal": "Ask Lampwright Glimmer, up the hill north of Elder Faintglow, for a marsh-glass bead.",
+      "says": "A new light! Come close. Closer. There: the glass knows you now. It was sand and fire once, as you were mist. No price, little flame."
+    },
+    "show": {
+      "journal": "Show the marsh-glass bead to Elder Faintglow.",
+      "says": "See how it holds you. Keep it near, and you will not thin, however far the wind carries you."
+    }
+  },
+  "L2": {
+    "name": "A Light That Returns",
+    "giver": "Elder Faintglow",
+    "offer": [
+      "Lights go out, little flame. It is not the end, if you are tied to a place. Have Spiritmaster Shimmer tie you to the swamp, so that you kindle here again.",
+      "Then give your name to Coachman Wick for his ledger. His coach runs to Freeport and to the other homes of the Homelands.",
+      "Will you see them both and come back to me?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "Then burn low until you do.",
+    "started": "Shimmer glows on the hill to the north. Wick waits on the rise to the south-west.",
+    "spiritmaster": "Spiritmaster Shimmer",
+    "coachman": "Coachman Wick",
+    "bind": {
+      "journal": "Have Spiritmaster Shimmer, on the hill north of the elder, bind your spirit to the swamp.",
+      "says": "It is done. Go out where you will, and you will kindle here again among us. Now give Coachman Wick your name."
+    },
+    "ledger": {
+      "journal": "Give your name to Coachman Wick, on the rise south-west of the elder, for his ledger.",
+      "says": "A passenger who weighs nothing! My coach runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now."
+    },
+    "back": {
+      "journal": "Return to Elder Faintglow.",
+      "says": [
+        "Good. Now the dark cannot keep you.",
+        "Wick's coach goes where its ledgers know you, but a shape to walk in Qeynos is earned. Watchlight Gleam, by the pond to the east, has work for you."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Rats in the Reeds",
+    "giver": "Watchlight Gleam",
+    "offer": [
+      "The new light. Good. Bog rats gnaw the reeds east of here, where our youngest glow, and a rat will snap at anything bright.",
+      "Put out a few, and bring me three of their tails. Then I will show you something a light should know.",
+      "Will you hunt them?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "Then the reeds grow thinner, and so do we.",
+    "started": "Three tails. East, in the reeds.",
+    "target": "bog rat",
+    "count": 3,
+    "drop": {
+      "name": "bog rat tail",
+      "description": "The tail of a bog rat from the reeds of the West Feerrott.",
+      "like": "Rat Tail Tip"
+    },
+    "hunt": {
+      "journal": "Take three bog rat tails from the bog rats in the reeds east of the elder."
+    },
+    "give": {
+      "journal": "Bring three bog rat tails to Watchlight Gleam.",
+      "says": "Three tails, and you burn as bright as before. Good. Now be still, and learn this."
+    }
+  },
+  "L4": {
+    "name": "A Shape to Hold",
+    "giver": "Watchlight Gleam",
+    "offer": [
+      "A bare light can carry nothing. I will make you something to bear, but you must bring what goes into it.",
+      "Lampwright Glimmer keeps leather and cord for me. Then take a wing from the bog gnats that cloud the pools to the south.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then go bare, and carry only yourself.",
+    "started": "Leather and cord from Glimmer, a wing from the gnats. Go.",
+    "materials": [
+      {
+        "merchant": "Lampwright Glimmer",
+        "items": [
+          "leather strip",
+          "silk cord"
+        ],
+        "journal": "Ask Lampwright Glimmer for the leather strip and the silk cord.",
+        "says": "For Gleam? Here. Leather, and a cord of silk. Heavy things. I do not know how the walking folk bear them."
+      }
+    ],
+    "target": "bog gnats",
+    "count": 1,
+    "drop": {
+      "name": "bog gnat wing",
+      "description": "A wing, thin as breath, from the gnats over the south pools of the West Feerrott.",
+      "like": "damaged mosquito wing"
+    },
+    "hunt": {
+      "journal": "Take a bog gnat wing from the bog gnats over the pools south of the elder."
+    },
+    "give": {
+      "journal": "Bring the leather strip, the silk cord and the bog gnat wing to Watchlight Gleam.",
+      "says": "All three. A moment, while I bind them... there. It is yours. Let it be your hands."
+    }
+  },
+  "L5": {
+    "name": "Duskpaw",
+    "giver": "Watchlight Gleam",
+    "offer": [
+      "One thing more. A young jaguar, Duskpaw, has learned that lights can be caught. It dens to the north-west, and two of ours have gone dark there.",
+      "It will spring as soon as it sees your glow. Do not flee. Put it out, and bring me its fang.",
+      "Will you hunt Duskpaw?"
+    ],
+    "accept": "I will hunt it.",
+    "decline": "Not yet.",
+    "declined": "It hunts tonight, whether you do or not.",
+    "started": "North-west, beyond Glimmer's hill. It will see you first.",
+    "target": "Duskpaw",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "Duskpaw's fang",
+      "description": "A fang of the young jaguar Duskpaw, who hunted the lights of the West Feerrott.",
+      "like": "sharp panther fang"
+    },
+    "hunt": {
+      "journal": "Take Duskpaw's fang from the young jaguar Duskpaw, north-west of the elder."
+    },
+    "give": {
+      "journal": "Bring Duskpaw's fang to Watchlight Gleam.",
+      "says": [
+        "Duskpaw's fang! The youngest may glow in peace. You are no small flame now.",
+        "Learn this, and find Gatekeeper Dimlight to the south-east when you are ready for Qeynos."
+      ]
+    }
+  },
+  "flight": {
+    "name": "A Shape for Qeynos",
+    "giver": "Gatekeeper Dimlight",
+    "offer": [
+      "In Qeynos the humans will take you for one of their own, so long as your armour holds its shape around you. They train any who come in good faith.",
+      "You have earned the way, bright one. I will set you down among your own guild there, and your light will rest in Qeynos.",
+      "Shall I send you to Qeynos?"
+    ],
+    "accept": "Send me to Qeynos.",
+    "decline": "Not yet.",
+    "declined": "The swamp will hold your light a while longer.",
+    "started": "Burn bright, and keep your helm on!",
+    "journal": "Tell Gatekeeper Dimlight when you are ready to go to Qeynos."
+  }
+}

@@ -5192,96 +5192,571 @@
       "notes": "Ours: the gatekeeper's port to Tethelin and Fayspire, the fungusman's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/fungusman.json."
     },
     {
-      "key": "homelands/wisp/welcome",
-      "name": "First Light",
+      "key": "homelands/wisp/L1",
+      "name": "A Bead of Marsh Glass",
       "giver": "Elder Faintglow",
       "classes": [],
-      "races": [],
+      "races": [
+        31
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "A new light in the swamp! Welcome, little flame. The humans you will walk among eat bread and carry coin, and you must learn their ways. Begin with Flicker. She trades with travellers.",
-      "accept": "I will find Flicker.",
+      "offer": "Oh! A new light, kindled out of the mist. Hush, little flame. Burn slowly. You are among your own.\nA light with nothing to hold it drifts and thins. Each of us keeps a bead of marsh glass to gather in. Lampwright Glimmer blows them, a short drift up the hill to the north.\nWill you fetch your bead and show it to me?",
+      "accept": "I will fetch it.",
       "decline": "Not now.",
-      "declined": "Drift a while, then. The swamp is in no hurry.",
-      "started": "Flicker glows down by the south pond. You cannot miss her.",
+      "declined": "Then drift a while. The mist will keep you.",
+      "started": "Glimmer glows a short drift up the hill to the north.",
       "steps": [
         {
           "kind": "talk",
-          "target": "Grocer Flicker",
-          "journal": "Find Grocer Flicker by the south pond.",
-          "says": "Faintglow sent you? Here, take this bread. You will not eat it, but in Qeynos it helps to carry what humans carry.",
+          "target": "Lampwright Glimmer",
+          "journal": "Ask Lampwright Glimmer, up the hill north of Elder Faintglow, for a marsh-glass bead.",
+          "says": "A new light! Come close. Closer. There: the glass knows you now. It was sand and fire once, as you were mist. No price, little flame.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "marsh-glass bead",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "show",
+          "target": "Elder Faintglow",
+          "items": [
+            {
+              "item": "marsh-glass bead",
+              "count": 1
+            }
+          ],
+          "journal": "Show the marsh-glass bead to Elder Faintglow.",
+          "says": "See how it holds you. Keep it near, and you will not thin, however far the wind carries you.",
           "rewards": {
-            "items": [
-              "raisin bread"
-            ]
+            "xp": 430
           }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 1
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the wisp's level 1, at West Feerrott, on the cities' level 1 quest: a piece of equipment fetched from a merchant and shown to the giver. Finishing it finishes the character's own city class quest of level 1 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/wisp.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/wisp/L2",
+      "name": "A Light That Returns",
+      "giver": "Elder Faintglow",
+      "classes": [],
+      "races": [
+        31
+      ],
+      "minlevel": 2,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/wisp/L1"
+      ],
+      "offer": "Lights go out, little flame. It is not the end, if you are tied to a place. Have Spiritmaster Shimmer tie you to the swamp, so that you kindle here again.\nThen give your name to Coachman Wick for his ledger. His coach runs to Freeport and to the other homes of the Homelands.\nWill you see them both and come back to me?",
+      "accept": "I will see them both.",
+      "decline": "Not now.",
+      "declined": "Then burn low until you do.",
+      "started": "Shimmer glows on the hill to the north. Wick waits on the rise to the south-west.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Spiritmaster Shimmer",
+          "journal": "Have Spiritmaster Shimmer, on the hill north of the elder, bind your spirit to the swamp.",
+          "says": "It is done. Go out where you will, and you will kindle here again among us. Now give Coachman Wick your name."
+        },
+        {
+          "kind": "talk",
+          "target": "Coachman Wick",
+          "journal": "Give your name to Coachman Wick, on the rise south-west of the elder, for his ledger.",
+          "says": "A passenger who weighs nothing! My coach runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now."
         },
         {
           "kind": "talk",
           "target": "Elder Faintglow",
           "journal": "Return to Elder Faintglow.",
-          "says": "Good. You learn quickly, little flame. Keep your light low among the humans, and they will hardly know.",
+          "says": "Good. Now the dark cannot keep you.\nWick's coach goes where its ledgers know you, but a shape to walk in Qeynos is earned. Watchlight Gleam, by the pond to the east, has work for you.",
           "rewards": {
-            "xp": 200,
-            "tunar": 10
+            "xp": 2200
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 2
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the wisps' first, at their home zone, West Feerrott of the disc."
+      "notes": "Ours (the Homelands' starter quests): the wisp's level 2, at West Feerrott, on the cities' level 2 quest: the spiritmaster's bind and the coachman's ledger. Finishing it finishes the character's own city class quest of level 2 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/wisp.json: change that file, never this quest's rows by hand."
     },
     {
-      "key": "homelands/wisp/rats",
+      "key": "homelands/wisp/L3",
       "name": "Rats in the Reeds",
-      "giver": "Grocer Flicker",
+      "giver": "Watchlight Gleam",
       "classes": [],
-      "races": [],
-      "minlevel": 1,
+      "races": [
+        31
+      ],
+      "minlevel": 3,
       "maxlevel": 60,
       "requires": [
-        "homelands/wisp/welcome"
+        "homelands/wisp/L2"
       ],
-      "offer": "Bog rats chew at the travellers' packs I keep for trade. They hide in the reeds east of the elder. Put out five of them for me, little flame, and I will share the coin.",
-      "accept": "I will deal with them.",
+      "offer": "The new light. Good. Bog rats gnaw the reeds east of here, where our youngest glow, and a rat will snap at anything bright.\nPut out a few, and bring me three of their tails. Then I will show you something a light should know.\nWill you hunt them?",
+      "accept": "I will hunt them.",
       "decline": "Not now.",
-      "declined": "Then the rats will dine on bread tonight.",
-      "started": "Five rats, in the reeds east of the elder.",
+      "declined": "Then the reeds grow thinner, and so do we.",
+      "started": "Three tails. East, in the reeds.",
       "steps": [
         {
-          "kind": "kill",
+          "kind": "loot",
           "target": "bog rat",
-          "count": 5,
-          "journal": "Kill five bog rats in the reeds east of Elder Faintglow."
+          "items": [
+            {
+              "item": "bog rat tail",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three bog rat tails from the bog rats in the reeds east of the elder."
         },
         {
-          "kind": "talk",
-          "target": "Grocer Flicker",
-          "journal": "Tell Grocer Flicker the rats are gone.",
-          "says": "Five! The packs are safe. Here is your share, bright one.",
+          "kind": "give",
+          "target": "Watchlight Gleam",
+          "items": [
+            {
+              "item": "bog rat tail",
+              "count": 3
+            }
+          ],
+          "journal": "Bring three bog rat tails to Watchlight Gleam.",
+          "says": "Three tails, and you burn as bright as before. Good. Now be still, and learn this.",
           "rewards": {
-            "xp": 400,
-            "tunar": 25
+            "xp": 6900,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Swift Blade"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Hero Guard"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Malice"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Chant of Battle"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Sneak"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Fiery Burst"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Tribal Toughness"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Minor Blessing"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Smoldering Aura"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Life Tap"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Crawling Skin"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Arcane Bindings"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Hardening Agent"
+                ]
+              }
+            }
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 3
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours: the wisps' second starter quest; the bog rats are tools/seed_race_homes.py's, passive (npcaggro)."
+      "notes": "Ours (the Homelands' starter quests): the wisp's level 3, at West Feerrott, on the cities' level 3 quest: a hunt for drops; each class is taught what its own city's level 3 quest teaches it. Finishing it finishes the character's own city class quest of level 3 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/wisp.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/wisp/L4",
+      "name": "A Shape to Hold",
+      "giver": "Watchlight Gleam",
+      "classes": [],
+      "races": [
+        31
+      ],
+      "minlevel": 4,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/wisp/L3"
+      ],
+      "offer": "A bare light can carry nothing. I will make you something to bear, but you must bring what goes into it.\nLampwright Glimmer keeps leather and cord for me. Then take a wing from the bog gnats that cloud the pools to the south.\nWill you bring me all three?",
+      "accept": "I will bring them.",
+      "decline": "Not now.",
+      "declined": "Then go bare, and carry only yourself.",
+      "started": "Leather and cord from Glimmer, a wing from the gnats. Go.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Lampwright Glimmer",
+          "journal": "Ask Lampwright Glimmer for the leather strip and the silk cord.",
+          "says": "For Gleam? Here. Leather, and a cord of silk. Heavy things. I do not know how the walking folk bear them.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "leather strip",
+                  "count": 1
+                },
+                {
+                  "item": "silk cord",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "loot",
+          "target": "bog gnats",
+          "items": [
+            {
+              "item": "bog gnat wing",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 0.5,
+          "journal": "Take a bog gnat wing from the bog gnats over the pools south of the elder."
+        },
+        {
+          "kind": "give",
+          "target": "Watchlight Gleam",
+          "items": [
+            {
+              "item": "leather strip",
+              "count": 1
+            },
+            {
+              "item": "silk cord",
+              "count": 1
+            },
+            {
+              "item": "bog gnat wing",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the leather strip, the silk cord and the bog gnat wing to Watchlight Gleam.",
+          "says": "All three. A moment, while I bind them... there. It is yours. Let it be your hands.",
+          "rewards": {
+            "xp": 17000,
+            "byclass": {
+              "0": {
+                "items": [
+                  "militia short sword"
+                ]
+              },
+              "1": {
+                "items": [
+                  "Glade Crafted Longbow"
+                ]
+              },
+              "2": {
+                "items": [
+                  "Sword of Faith"
+                ]
+              },
+              "3": {
+                "items": [
+                  "Iron Hatchet"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Disciple's Jitte"
+                ]
+              },
+              "5": {
+                "items": [
+                  "Traveler's Rapier"
+                ]
+              },
+              "6": {
+                "items": [
+                  "tiger dirk"
+                ]
+              },
+              "7": {
+                "items": [
+                  "crafted glade staff"
+                ]
+              },
+              "8": {
+                "items": [
+                  "Corse Spiked Club"
+                ]
+              },
+              "9": {
+                "items": [
+                  "Acolyte's Hammer"
+                ]
+              },
+              "10": {
+                "items": [
+                  "blue robe"
+                ]
+              },
+              "11": {
+                "items": [
+                  "Black Robe of the Order"
+                ]
+              },
+              "12": {
+                "items": [
+                  "yellow robe"
+                ]
+              },
+              "13": {
+                "items": [
+                  "red robe"
+                ]
+              },
+              "14": {
+                "items": [
+                  "burnt gloves"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 4
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the wisp's level 4, at West Feerrott, on the cities' level 4 quest: new gear of a merchant's materials and a drop; each class is given what its own city's level 4 quest gives it (class-rewards.json has the two classes the cities give nothing). Finishing it finishes the character's own city class quest of level 4 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/wisp.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/wisp/L5",
+      "name": "Duskpaw",
+      "giver": "Watchlight Gleam",
+      "classes": [],
+      "races": [
+        31
+      ],
+      "minlevel": 5,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/wisp/L4"
+      ],
+      "offer": "One thing more. A young jaguar, Duskpaw, has learned that lights can be caught. It dens to the north-west, and two of ours have gone dark there.\nIt will spring as soon as it sees your glow. Do not flee. Put it out, and bring me its fang.\nWill you hunt Duskpaw?",
+      "accept": "I will hunt it.",
+      "decline": "Not yet.",
+      "declined": "It hunts tonight, whether you do or not.",
+      "started": "North-west, beyond Glimmer's hill. It will see you first.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "Duskpaw",
+          "items": [
+            {
+              "item": "Duskpaw's fang",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 1.0,
+          "journal": "Take Duskpaw's fang from the young jaguar Duskpaw, north-west of the elder."
+        },
+        {
+          "kind": "give",
+          "target": "Watchlight Gleam",
+          "items": [
+            {
+              "item": "Duskpaw's fang",
+              "count": 1
+            }
+          ],
+          "journal": "Bring Duskpaw's fang to Watchlight Gleam.",
+          "says": "Duskpaw's fang! The youngest may glow in peace. You are no small flame now.\nLearn this, and find Gatekeeper Dimlight to the south-east when you are ready for Qeynos.",
+          "rewards": {
+            "xp": 36500,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Taunt"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Forage Berries"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Lay Hands"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Harm Touch"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Minor Purity"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Funeral March"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Shadowstrike"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Snare"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Blighting Mist"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Holy Shock"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Motivate"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Rabid Infection"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Heavy Arms"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Shock of Frost"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Refinement"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 5
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the wisp's level 5, at West Feerrott, on the cities' level 5 quest: a foe to bring down; each class is taught what its own city's level 5 quest teaches it. Finishing it finishes the character's own city class quest of level 5 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/wisp.json: change that file, never this quest's rows by hand."
     },
     {
       "key": "homelands/wisp/flight",
       "name": "A Shape for Qeynos",
       "giver": "Gatekeeper Dimlight",
       "classes": [],
-      "races": [],
+      "races": [
+        31
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [
-        "homelands/wisp/welcome",
-        "homelands/wisp/rats"
+        "homelands/wisp/L1",
+        "homelands/wisp/L2",
+        "homelands/wisp/L3",
+        "homelands/wisp/L4",
+        "homelands/wisp/L5"
       ],
       "repeatable": true,
-      "offer": "In Qeynos the humans will take you for one of their own, so long as your armour holds its shape around you. I can send you there, and it will be your home. Are you ready to go?",
+      "offer": "In Qeynos the humans will take you for one of their own, so long as your armour holds its shape around you. They train any who come in good faith.\nYou have earned the way, bright one. I will set you down among your own guild there, and your light will rest in Qeynos.\nShall I send you to Qeynos?",
       "accept": "Send me to Qeynos.",
       "decline": "Not yet.",
       "declined": "The swamp will hold your light a while longer.",
@@ -5306,7 +5781,7 @@
         }
       ],
       "unresolved": [],
-      "notes": "Ours: the gatekeeper's port to Qeynos (its rangers and druids Surefall Glade), the wisp's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a wisp back in West Feerrott is sent again; no reward, so none is had twice."
+      "notes": "Ours: the gatekeeper's port to Qeynos, the wisp's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/wisp.json."
     }
   ],
   "items": [
@@ -5501,6 +5976,38 @@
       "description": "A broad plate from the back of the great centipede Old Manylegs.",
       "notrade": true,
       "like": "centipede carapace"
+    },
+    {
+      "name": "marsh-glass bead",
+      "description": "A bead of green marsh glass on a reed cord. A wisp's light gathers in it and does not thin.",
+      "notrade": true,
+      "like": "glass trinket",
+      "set": {
+        "HPMAX": 5,
+        "classuse": 32767,
+        "raceuse": 1023,
+        "levelreq": 1,
+        "itemcost": 0,
+        "maxhp": 500
+      }
+    },
+    {
+      "name": "bog rat tail",
+      "description": "The tail of a bog rat from the reeds of the West Feerrott.",
+      "notrade": true,
+      "like": "Rat Tail Tip"
+    },
+    {
+      "name": "bog gnat wing",
+      "description": "A wing, thin as breath, from the gnats over the south pools of the West Feerrott.",
+      "notrade": true,
+      "like": "damaged mosquito wing"
+    },
+    {
+      "name": "Duskpaw's fang",
+      "description": "A fang of the young jaguar Duskpaw, who hunted the lights of the West Feerrott.",
+      "notrade": true,
+      "like": "sharp panther fang"
     }
   ]
 }

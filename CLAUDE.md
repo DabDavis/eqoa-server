@@ -495,8 +495,8 @@ with the code), each usable by any creature's template:
   fight), never at what it fights (the owner, 2026-11-10, watching: each proc and tap had sent the buff's visual at Mr.
   Moogie; no effect is put on it, so no strip takes it: `entity/selfbuff.go`);
 - a **line at a kill** (`killsay`, `foes` names, `say`: its line in /say when a hit of its own kills one of them, its melee,
-  casts, specials, kicks, procs, veil, rampage or damage over time, on a creature or a player; not a pet's kill nor
-  another's; petition 1458, Mr. Moogie's "Dab got dunked again" at Innoruuk's death: `entity/selfbuff.go`);
+  casts, specials, kicks, procs, veil, rampage or damage over time, on a creature or a player; not a pet's kill, an add's
+  (a Servant of Moogie's: an add says none of its creature's lines) or another's; petition 1458, Mr. Moogie's "Dab got dunked again" at Innoruuk's death: `entity/selfbuff.go`);
 - a creature's **damage over time** (`dot`, until now a pet's alone): on a player its ticks as a debuff's damage tick, on a
   scripted fight's NPC each tick the fight's hit, kept up as a pet's (cast again as the one on its target runs out; at a pet it
   waits): `entity/creaturedot.go`.

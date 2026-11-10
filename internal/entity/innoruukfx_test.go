@@ -173,19 +173,27 @@ func TestACreaturesBuffsAreItsOwnInAScriptedFight(t *testing.T) {
 	}
 }
 
-// Petition 1458: Mr. Moogie's line in /say when his hit kills Innoruuk, heard within a say's reach; the
-// control, his kill of another creature, says nothing.
+// Petition 1458: Mr. Moogie's line in /say when his hit kills Innoruuk, heard within a say's reach. The
+// controls: his kill of another creature says nothing, nor his add's kill of one of his foes (a Servant of
+// Moogie fights by his template, and an add says none of its creature's lines).
 func TestAKillSaysItsLine(t *testing.T) {
 	r := newTemplateRig(t)
-	r.godTemplate("dunker", ", class", ", 0", `[{"kind":"killsay","foes":["Gnoll Brute"],"say":"Dab got dunked again"}]`, "gnoll guard")
-	guard, brute, pup := r.npc("Gnoll Guard"), r.npc("Gnoll Brute"), r.npc("Gnoll Pup")
+	r.godTemplate("dunker", ", class", ", 0", `[{"kind":"killsay","foes":["Gnoll Brute","Gnoll Pyro"],"say":"Dab got dunked again"}]`, "gnoll guard")
+	guard, brute, pup, pyro, priest := r.npc("Gnoll Guard"), r.npc("Gnoll Brute"), r.npc("Gnoll Pup"), r.npc("Gnoll Pyro"), r.npc("Gnoll Priest")
 	_, sess := r.player("Listener", guard.X+20, guard.Z)
+	r.place(priest, guard.X+2, guard.Z) // heard where the guard is heard
 	r.w.mu.Lock()
 	defer r.w.mu.Unlock()
 	pup.HP = 1
 	r.w.npcHitNPCLocked(guard, pup, r.at(0))
 	if !pup.Dead || countLines(linesOf(drain(sess)), "Dab got dunked again") != 0 {
 		t.Fatalf("the control, the pup killed (dead %v): the line said", pup.Dead)
+	}
+	priest.tmpl, priest.add = guard.tmpl, &addTie{by: guard, pct: 50, level: guard.Level, class: guard.Class} // its add, as summon.go makes one
+	pyro.HP = 1
+	r.w.npcHitNPCLocked(priest, pyro, r.at(500*time.Millisecond))
+	if !pyro.Dead || countLines(linesOf(drain(sess)), "Dab got dunked again") != 0 {
+		t.Fatalf("the control, a foe of his killed by his add (dead %v): the line said", pyro.Dead)
 	}
 	brute.HP = 1
 	r.w.castFoeHitLocked(guard, brute, 10, "Kick", r.at(time.Second))

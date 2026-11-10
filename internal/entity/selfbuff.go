@@ -26,7 +26,8 @@ import (
 // reach) when a hit of its own kills one of its foes by name: the killing blow, tracked exactly, of its
 // melee, casts, specials, kicks, procs, veil, rampage or damage over time on a creature (an NPC: the fight's
 // hit, castFoeHitLocked, and its melee, npcHitNPCLocked), or of its melee, spells, specials, procs, veil,
-// damage shield or damage over time on a player. Not a death another's hit made, nor a pet's.
+// damage shield or damage over time on a player. Not a death another's hit made, nor a pet's, nor an
+// add's (a summon's copies fight by their creature's template and say none of its lines: summon.go).
 
 // templateSelfBuff is a buff a templated creature casts on itself: its name, its look (a 0x00B1's
 // visual), and how long it lasts (0: once a fight).
@@ -85,7 +86,7 @@ func (w *World) selfBuffsLocked(npc *NPC, f *templateFight, now time.Time) {
 // killSaidLocked is killer's line in /say when its hit killed the one named victim (the file's doc), each
 // killsay of its template's that names it. Must be called with the lock held.
 func (w *World) killSaidLocked(killer *NPC, victim string) {
-	if killer == nil || killer.tmpl == nil || len(killer.tmpl.killSays) == 0 {
+	if killer == nil || killer.add != nil || killer.tmpl == nil || len(killer.tmpl.killSays) == 0 {
 		return
 	}
 	v := strings.ToLower(strings.TrimSpace(victim))

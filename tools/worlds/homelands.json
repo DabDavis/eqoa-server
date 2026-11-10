@@ -470,7 +470,233 @@
       "from": "TUNARIA.ESF",
       "zone": 160,
       "race": 15,
-      "note": "Lizardman: the Tae Ew lizardmen's temple in the swamp (Cazic-Thule, cell 7,15)"
+      "note": "Lizardman: the Tae Ew lizardmen's temple in the swamp (Cazic-Thule, cell 7,15)",
+      "home": {
+        "flavor": "Lizardmen are cold-blooded hunters of the swamps of Cazic-Thule in the Homelands, patient and tireless, who sell their blades in Freeport.",
+        "start": {
+          "x": 14965.2,
+          "y": 57.62,
+          "z": 30941.4,
+          "toward": [
+            14958.2,
+            30940.8
+          ]
+        },
+        "mainland": {
+          "place": "Freeport",
+          "world": 0,
+          "x": 25486.5,
+          "y": 61.4,
+          "z": 15547.0,
+          "facing": 4.72
+        },
+        "npcs": [
+          {
+            "name": "Elder Hsslarn",
+            "like": 112631,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              14958.2,
+              57.62,
+              30940.8
+            ],
+            "toward": [
+              14965.2,
+              30941.4
+            ],
+            "note": "the starter quests' giver, in a hierophant's robes, on the west shore before the old temple"
+          },
+          {
+            "name": "Grocer Sskaya",
+            "like": 112644,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              15027.2,
+              54.12,
+              30947.0
+            ],
+            "toward": [
+              14958.2,
+              30940.8
+            ],
+            "stock": "Grocer Calinet",
+            "note": "the swamp's grocer at the long bridge's west end, in the race's own body; a Freeport grocer's food"
+          },
+          {
+            "name": "Spiritmaster Thessik",
+            "like": 112658,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              14857.4,
+              58.9,
+              30921.8
+            ],
+            "toward": [
+              14958.2,
+              30940.8
+            ],
+            "note": "binds, as every spiritmaster; before the old temple"
+          },
+          {
+            "name": "Gatekeeper Vosskar",
+            "like": 121615,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              15235.2,
+              54.12,
+              31005.5
+            ],
+            "toward": [
+              14965.2,
+              30941.4
+            ],
+            "note": "sends a lizardman who has done the starter quests to Freeport (The Road to Freeport); on the east island, over the long bridge"
+          },
+          {
+            "name": "Mirewatch sentinel",
+            "like": 112623,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              14872.0,
+              51.75,
+              30801.2
+            ],
+            "facing": 128
+          },
+          {
+            "name": "Mirewatch sentinel",
+            "like": 112623,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              14946.0,
+              58.51,
+              30949.4
+            ],
+            "facing": 105
+          },
+          {
+            "name": "Mirewatch sentinel",
+            "like": 112623,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              15244.9,
+              51.75,
+              30974.0
+            ],
+            "facing": 128
+          },
+          {
+            "name": "Mirewatch sentinel",
+            "like": 112623,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              15221.0,
+              54.12,
+              31047.3
+            ],
+            "facing": 147
+          },
+          {
+            "name": "bog beetle",
+            "body": "0x4140233B",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              14867.9,
+              54.12,
+              31188.5
+            ],
+            "note": "the starter quest's beetles, at the Tae Ew's spots on the southern banks"
+          },
+          {
+            "name": "bog beetle",
+            "body": "0x4140233B",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              14865.7,
+              54.12,
+              31201.4
+            ]
+          },
+          {
+            "name": "bog beetle",
+            "body": "0x4140233B",
+            "level": 2,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              14850.5,
+              54.12,
+              31203.3
+            ]
+          },
+          {
+            "name": "bog beetle",
+            "body": "0x4140233B",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              15191.6,
+              54.12,
+              31186.9
+            ]
+          },
+          {
+            "name": "bog beetle",
+            "body": "0x4140233B",
+            "level": 2,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              15202.9,
+              54.12,
+              31192.9
+            ]
+          },
+          {
+            "name": "bog beetle",
+            "body": "0x4140233B",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              15201.6,
+              54.12,
+              31193.8
+            ]
+          }
+        ],
+        "peaceful": [
+          "bog beetle"
+        ],
+        "lines": {
+          "Gatekeeper Vosskar": [
+            "Not yet, hatchling. Elder Hsslarn has work for you first.",
+            "Every hatchling sees the elder before it sees Freeport. He waits on the west shore, before the old temple."
+          ],
+          "Mirewatch sentinel": [
+            "The water is calm today. Calm water hides the most.",
+            "Stay on the bridges, %r. The mud has no bottom in places.",
+            "New to the swamp? Elder Hsslarn waits on the west shore, before the old temple."
+          ],
+          "Elder Hsslarn": [
+            "Patience, hatchling. The swamp rewards those who wait.",
+            "Keep your scales dry and your blade sharp, and the mainland will treat you well."
+          ]
+        }
+      }
     },
     {
       "name": "Sylhilthis' Dwell",

@@ -587,6 +587,123 @@
       "notes": "Ours: the gatekeeper's port to Qeynos (its rangers and druids Surefall Glade), the fairy's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a fairy back in Twisted Tower is sent again; no reward, so none is had twice."
     },
     {
+      "key": "homelands/gnoll/welcome",
+      "name": "Fresh Pup",
+      "giver": "Elder Grawl",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "A new pup at the fire! Good. The pack feeds its own, but you must know who feeds it. Go to Snaggle by the cook pots and let him take your scent. Then come back to me.",
+      "accept": "I will go to him.",
+      "decline": "Not now.",
+      "declined": "Then you eat last, pup. The pack waits for no one.",
+      "started": "Snaggle is by the cook pots, just south of the fire.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Snaggle",
+          "journal": "Let Grocer Snaggle take your scent by the cook pots.",
+          "says": "Grawl sent you? Here, pup, chew on this. It is mostly meat.",
+          "rewards": {
+            "items": [
+              "dried beef"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Grawl",
+          "journal": "Return to Elder Grawl.",
+          "says": "Good. Snaggle knows your scent now. A gnoll the pack knows is never alone.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the gnolls' first, at their home zone, Blackburrow of the disc."
+    },
+    {
+      "key": "homelands/gnoll/badgers",
+      "name": "Badgers on the Hill",
+      "giver": "Grocer Snaggle",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/gnoll/welcome"
+      ],
+      "offer": "Hill badgers keep digging under the stockade to get at my pots. Go up the hill north-west of the camp and kill five of them for me. I will pay, and maybe there will be badger stew.",
+      "accept": "I will hunt them.",
+      "decline": "Not now.",
+      "declined": "Then the badgers eat, and so do I, eventually.",
+      "started": "Five badgers. They bite, so bite first.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "hill badger",
+          "count": 5,
+          "journal": "Kill five hill badgers on the hill north-west of the camp."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Snaggle",
+          "journal": "Tell Grocer Snaggle the badgers are dead.",
+          "says": "Five badgers! You hunt like a proper gnoll. Here, this is yours.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gnolls' second starter quest; the hill badgers are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/gnoll/flight",
+      "name": "The Road to Neriak",
+      "giver": "Gatekeeper Brindle",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/gnoll/welcome",
+        "homelands/gnoll/badgers"
+      ],
+      "repeatable": true,
+      "offer": "The dark elves of Neriak have use for gnolls with sharp noses and sharper teeth, and they treat the pack fairly enough. I can send you to them, and Neriak will be your home. Ready?",
+      "accept": "Send me to Neriak.",
+      "decline": "Not yet.",
+      "declined": "Neriak will keep. The dark elves are not going anywhere.",
+      "started": "Hunt well, and keep your nose to the wind!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Brindle",
+          "journal": "Tell Gatekeeper Brindle when you are ready to go to Neriak.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Neriak, the gnoll's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a gnoll back in Blackburrow is sent again; no reward, so none is had twice."
+    },
+    {
       "key": "homelands/aviak/welcome",
       "name": "A Fledgling's Welcome",
       "giver": "Elder Kraawk",

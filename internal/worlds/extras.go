@@ -132,16 +132,17 @@ type Extra struct {
 	Note string `json:"note,omitempty"`
 }
 
-// size is its scale as written: 1 when none is given.
-func (e Extra) size() float32 {
+// ActorScale is its scale as its ZoneActor has it: 1 when none is given.
+func (e Extra) ActorScale() float32 {
 	if e.Scale == 0 {
 		return 1
 	}
 	return e.Scale
 }
 
-// light is its static light as written: none given is 0, 0, 0, 255.
-func (e Extra) light() [4]uint8 {
+// ActorLight is its static light as its ZoneActor has it: none given is 0,
+// 0, 0, 255.
+func (e Extra) ActorLight() [4]uint8 {
 	if e.Color == nil {
 		return [4]uint8{0, 0, 0, 255}
 	}
@@ -594,8 +595,8 @@ func actorNode(e Extra) *node {
 	for _, v := range e.HPR {
 		b = binary.LittleEndian.AppendUint32(b, math.Float32bits(v))
 	}
-	b = binary.LittleEndian.AppendUint32(b, math.Float32bits(e.size()))
-	l := e.light()
+	b = binary.LittleEndian.AppendUint32(b, math.Float32bits(e.ActorScale()))
+	l := e.ActorLight()
 	b = append(b, l[:]...)
 	return &node{ty: typeActor, version: actorVersion, tail: b, old: -1}
 }

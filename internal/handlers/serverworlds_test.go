@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -67,6 +68,49 @@ func TestServerWorldsFormat(t *testing.T) {
 	}
 	if b := encodeServerWorlds(nil); !bytes.Equal(b, []byte{1, 0}) {
 		t.Fatalf("no worlds: %x", b)
+	}
+}
+
+// With extras the list is version 2, each zone followed by its extras: the
+// places their art comes from, named once each in first use, and each extra
+// as its ZoneActor takes it (the scale 1 and the light 0, 0, 0, 255 when none
+// is given). A zone with none says so (0, 0). The control: no world with
+// extras is version 1 (above), which a client of version 1 still reads.
+func TestServerWorldsFormatWithExtras(t *testing.T) {
+	w := homelands()
+	w.Zones[1].Extras = []worlds.Extra{
+		{Sprite: 0xF0178AAC, From: "odus.esf", Zone: 22, At: [3]float32{1, 2, 3}, HPR: [3]float32{0.5, 0, 0}, Scale: 2},
+		{Sprite: 0x194FA7CB, At: [3]float32{4, 5, 6}, Color: &[4]uint8{9, 8, 7, 6}},
+		{Sprite: 0x5698614C, From: "ODUS.ESF", Zone: 22, At: [3]float32{7, 8, 9}},
+	}
+	got := encodeServerWorlds([]worlds.Built{w})
+	v1 := encodeServerWorlds([]worlds.Built{homelands()})
+	// version 2: the same up to the first zone's race, then its (no) extras
+	if got[0] != 2 || !bytes.Equal(got[1:], func() []byte {
+		first := bytes.Index(v1, []byte("Aviak Village")) + len("Aviak Village") + 1
+		b := append([]byte(nil), v1[1:first]...)
+		b = append(b, 0, 0, 0)
+		b = append(b, v1[first:]...)
+		b = append(b, 3, 0, 1, 8)
+		b = append(b, "ODUS.ESF"...)
+		b = append(b, 22, 0)
+		f := func(v ...float32) {
+			for _, x := range v {
+				b = binary.LittleEndian.AppendUint32(b, math.Float32bits(x))
+			}
+		}
+		b = append(b, 0)
+		b = binary.LittleEndian.AppendUint32(b, 0xF0178AAC)
+		f(1, 2, 3, 0.5, 0, 0, 2)
+		b = append(b, 0, 0, 0, 255, 0xFF)
+		b = binary.LittleEndian.AppendUint32(b, 0x194FA7CB)
+		f(4, 5, 6, 0, 0, 0, 1)
+		b = append(b, 9, 8, 7, 6, 0)
+		b = binary.LittleEndian.AppendUint32(b, 0x5698614C)
+		f(7, 8, 9, 0, 0, 0, 1)
+		return append(b, 0, 0, 0, 255)
+	}()) {
+		t.Fatalf("\n got %x\nwant (v1 with extras) from %x", got, v1)
 	}
 }
 

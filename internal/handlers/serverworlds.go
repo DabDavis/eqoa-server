@@ -4,9 +4,11 @@ import (
 	"encoding/binary"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/eqoa/pkg/pkg/buffer"
@@ -31,8 +33,16 @@ import (
 // disc goes over the wire: a world is named by its zones (a world file of the
 // disc and an index) and checked by CRCs.
 
-// serverWorldsVersion is OpcodeServerWorldsData's first byte.
-const serverWorldsVersion = 1
+// OpcodeServerWorldsData's first byte: version 1, a world named by its
+// zones; version 2, each zone followed by its extras (the disc's art placed
+// in it, internal/worlds/extras.go), sent only when a world has any, so a
+// client that reads version 1 alone still builds a world with none (a world
+// with extras it could not build the same anyway: it is told nothing it can
+// read, and holds nothing).
+const (
+	serverWorldsVersion       = 1
+	serverWorldsExtrasVersion = 2
+)
 
 var (
 	serverWorldsMu sync.RWMutex
@@ -140,11 +150,24 @@ func SendServerWorldsOffer(sess *session.Session) {
 }
 
 // encodeServerWorlds is OpcodeServerWorldsData's body (protocol.OpcodeServerWorldsData).
+// Version 2 adds after each zone its extras: a u16 count, the u8 count of the
+// places their art comes from and each (its file's name, a u16 zone), then
+// each extra (a u8 place, 0xFF the zone's own; the sprite's u32 DictID; where
+// it stands, its heading, pitch and roll and its scale, f32s; its static
+// light, RGBA), as the zone's ZoneActor takes them.
 func encodeServerWorlds(list []worlds.Built) []byte {
 	if len(list) > 255 {
 		list = list[:255]
 	}
-	b := []byte{serverWorldsVersion, byte(len(list))}
+	version := byte(serverWorldsVersion)
+	for _, w := range list {
+		for _, z := range w.Zones {
+			if len(z.Extras) > 0 {
+				version = serverWorldsExtrasVersion
+			}
+		}
+	}
+	b := []byte{version, byte(len(list))}
 	str := func(s string) {
 		if len(s) > 255 {
 			s = s[:255]
@@ -174,9 +197,63 @@ func encodeServerWorlds(list []worlds.Built) []byte {
 			}
 			str(name)
 			b = append(b, byte(race))
+			if version >= serverWorldsExtrasVersion {
+				var extras []worlds.Extra
+				if i < len(w.Zones) {
+					extras = w.Zones[i].Extras
+				}
+				b = appendExtras(b, extras)
+			}
 		}
 	}
 	return b
+}
+
+// appendExtras is a zone's extras as version 2 has them.
+func appendExtras(b []byte, extras []worlds.Extra) []byte {
+	type place struct {
+		from string
+		zone int
+	}
+	var places []place
+	index := map[place]int{}
+	for _, e := range extras {
+		if p := (place{strings.ToUpper(e.From), e.Zone}); e.From != "" {
+			if _, ok := index[p]; !ok {
+				index[p] = len(places)
+				places = append(places, p)
+			}
+		}
+	}
+	b = binary.LittleEndian.AppendUint16(b, uint16(len(extras)))
+	b = append(b, byte(len(places)))
+	for _, p := range places {
+		b = appendStr8(b, p.from)
+		b = binary.LittleEndian.AppendUint16(b, uint16(p.zone))
+	}
+	for _, e := range extras {
+		at := byte(0xFF)
+		if e.From != "" {
+			at = byte(index[place{strings.ToUpper(e.From), e.Zone}])
+		}
+		b = append(b, at)
+		b = binary.LittleEndian.AppendUint32(b, uint32(e.Sprite))
+		for _, v := range [7]float32{e.At[0], e.At[1], e.At[2], e.HPR[0], e.HPR[1], e.HPR[2], e.ActorScale()} {
+			b = binary.LittleEndian.AppendUint32(b, math.Float32bits(v))
+		}
+		l := e.ActorLight()
+		b = append(b, l[:]...)
+	}
+	return b
+}
+
+// appendStr8 is a string as the list has them: a u8 length, its bytes.
+func appendStr8(b []byte, s string) []byte {
+	if len(s) > 255 {
+		s = s[:255]
+	}
+	b = append(b, byte(len(s)))
+	return append(b, s...)
 }
 
 // serverWorldsMessage is OpcodeServerWorldsData with body, a message of its

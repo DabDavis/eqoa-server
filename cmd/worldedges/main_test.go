@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"math"
 	"strings"
 	"testing"
 
+	"github.com/eqoa/server/internal/ground"
 	"github.com/eqoa/server/internal/worlds"
 )
 
@@ -75,5 +77,61 @@ func TestCompact(t *testing.T) {
 	}
 	if len(back.Zones) != 1 || len(back.Zones[0].Extras) != 2 || back.Zones[0].Extras[1].Scale != 20 || back.Zones[0].Extras[0].Sprite != 0x7FFD2E87 {
 		t.Errorf("%+v", back)
+	}
+}
+
+// Where a body is put by the check: a floor under another sheet of the
+// terrain, or under a roof lower than its head, is no place to stand; a swim
+// at the water's top is no swim where the water is too shallow or where its
+// top is inside the ground.
+func TestPlacesABodyTakes(t *testing.T) {
+	up := func(y float32) ground.Surface { return ground.Surface{Y: y, Up: true} }
+	down := func(y float32) ground.Surface { return ground.Surface{Y: y} }
+	if !buried([]ground.Surface{up(10), up(15)}, 10) || buried([]ground.Surface{up(10), up(15)}, 15) {
+		t.Error("buried: the lower of two sheets is under the upper")
+	}
+	if buried([]ground.Surface{up(10), down(13), up(40)}, 10) {
+		t.Error("buried: a cave's floor has its roof over it")
+	}
+	for _, c := range []struct {
+		surfs []ground.Surface
+		want  bool
+	}{
+		{[]ground.Surface{up(10)}, true},
+		{[]ground.Surface{up(10), down(11), up(40)}, false}, // a cave's tip
+		{[]ground.Surface{up(10), down(13), up(40)}, true},
+		{[]ground.Surface{up(10), up(15)}, false},
+	} {
+		if roomOver(c.surfs, 10) != c.want {
+			t.Errorf("roomOver(%v) is not %v", c.surfs, c.want)
+		}
+	}
+	for _, c := range []struct {
+		col  column
+		want bool
+	}{
+		{column{surfs: []ground.Surface{up(5)}, water: 20}, true},
+		{column{surfs: []ground.Surface{up(19)}, water: 20}, false},                  // shallow: stood in
+		{column{surfs: []ground.Surface{up(5), down(10), up(30)}, water: 20}, false}, // inside the hill
+		{column{surfs: []ground.Surface{up(5)}, water: float32(math.NaN())}, false},  // no water
+		{column{surfs: []ground.Surface{up(5), down(25), up(30)}, water: 20}, true},  // a flooded cave
+	} {
+		if _, ok := swimAt(&c.col); ok != c.want {
+			t.Errorf("swimAt(%+v) is not %v", c.col, c.want)
+		}
+	}
+}
+
+// A ridge's seed goes by its zone and side alone, so a world given another
+// zone (another order, another neighbour) lays the rest as it did.
+func TestEdgeSeed(t *testing.T) {
+	south := edge{nz: -1}
+	if edgeSeed(1, "odus.esf", 19, south) != edgeSeed(1, "ODUS.ESF", 19, south) {
+		t.Error("a disc file by any case is one")
+	}
+	if edgeSeed(1, "ODUS.ESF", 19, south) == edgeSeed(1, "ODUS.ESF", 19, edge{nx: 1}) ||
+		edgeSeed(1, "ODUS.ESF", 19, south) == edgeSeed(1, "ODUS.ESF", 22, south) ||
+		edgeSeed(1, "ODUS.ESF", 19, south) == edgeSeed(2, "ODUS.ESF", 19, south) {
+		t.Error("another side, zone or seed is another ridge")
 	}
 }

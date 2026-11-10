@@ -76,6 +76,7 @@ func main() {
 	seed := flag.Int64("seed", 1, "the layout's random seed")
 	workers := flag.Int("workers", 4, "zones checked at once")
 	only := flag.Int("zone", -1, "one zone only (its index in the world)")
+	zonesFlag := flag.String("zones", "", "with -check: these zones only (indices, a comma between)")
 	leaks := flag.String("leaks", "", "with -check: write the ways out found to this file (for -fix)")
 	fix := flag.String("fix", "", "add rocks over the ways out this file names (-check -leaks) to the extras file -out names")
 	flag.BoolVar(&trace, "trace", false, "print the way to the first ways out")
@@ -94,7 +95,17 @@ func main() {
 		fmt.Sscanf(*near, "%f,%f", &traceNear[0], &traceNear[1])
 	}
 	if *check {
-		n := checkWorld(b, *groundDir, float32(*band), *workers, *only, *leaks)
+		var some map[int]bool
+		if *zonesFlag != "" {
+			some = map[int]bool{}
+			for _, z := range strings.Split(*zonesFlag, ",") {
+				var i int
+				if _, err := fmt.Sscan(strings.TrimSpace(z), &i); err == nil {
+					some[i] = true
+				}
+			}
+		}
+		n := checkWorld(b, *groundDir, float32(*band), *workers, *only, some, *leaks)
 		if n > 0 {
 			log.Fatalf("%d ways out", n)
 		}
@@ -141,13 +152,13 @@ func main() {
 			log.Fatalf("zone %d (%s %d): no palette", i, p.From, p.Zone)
 		}
 		var extras []worlds.Extra
-		for k, e := range openEdges(b, i) {
+		for k, e := range openEdges(b, i, g) {
 			rng := rand.New(rand.NewSource(*seed + int64(i)*100 + int64(k)))
 			extras = append(extras, ridge(g, env, uint8(b.World), e, set, rng, pal)...)
 		}
 		f.Zones = append(f.Zones, worlds.ExtrasOfOne{From: p.From, Zone: p.Zone, Name: b.Zones[i].Name, Extras: extras})
 		total += len(extras)
-		log.Printf("zone %2d %-20s %d open edges, %d rocks", i, b.Zones[i].Name, len(openEdges(b, i)), len(extras))
+		log.Printf("zone %2d %-20s %d open edges, %d rocks", i, b.Zones[i].Name, len(openEdges(b, i, g)), len(extras))
 	}
 	j, err := json.MarshalIndent(f, "", " ")
 	if err != nil {
@@ -302,7 +313,7 @@ type edge struct {
 }
 
 // openEdges are zone i's edges no other zone of the world touches.
-func openEdges(b worlds.Built, i int) []edge {
+func openEdges(b worlds.Built, i int, g *ground.Ground) []edge {
 	cells := map[[2]int]bool{}
 	for _, p := range b.Parts {
 		cells[[2]int{p.Col, p.Row}] = true
@@ -320,12 +331,33 @@ func openEdges(b worlds.Built, i int) []edge {
 	}
 	var out []edge
 	for _, a := range all {
-		if !cells[a.nb] {
-			a.e.x0, a.e.z0 = x0, z0
+		a.e.x0, a.e.z0 = x0, z0
+		if !cells[a.nb] || g != nil && !linesUp(g, uint8(b.World), a.e) {
 			out = append(out, a.e)
 		}
 	}
 	return out
+}
+
+// linesUp reports whether the ground meets across edge e, where another
+// zone of the world stands: the floors a quarter of a unit either side of it
+// within 3 of each other all along it, but for a place in fifty (a sample on
+// a vertex of the terrain can miss its triangles). Zones side by side on the
+// disc share their edge's vertices (the Homelands' Odus homes: 0 of 2,000
+// places differ); two of different worlds meet in steps, which a ridge closes
+// as it closes an edge onto nothing.
+func linesUp(g *ground.Ground, w uint8, e edge) bool {
+	off, n := 0, 0
+	for t := float32(2.5); t < cell; t += 8 {
+		x, z := e.ax+e.ux*t, e.az+e.uz*t
+		a, oka := floorAt(g, w, x-e.nx*0.25, z-e.nz*0.25)
+		b, okb := floorAt(g, w, x+e.nx*0.25, z+e.nz*0.25)
+		n++
+		if oka != okb || oka && abs32(a-b) > 3 {
+			off++
+		}
+	}
+	return off*50 <= n
 }
 
 // floorAt is the terrain's highest floor at (x, z), false where it has none.
@@ -506,13 +538,14 @@ type column struct {
 }
 
 // checkWorld walks every zone's open edges; it returns the ways out found.
-func checkWorld(b worlds.Built, dir string, band float32, workers, only int, leaksOut string) int {
+func checkWorld(b worlds.Built, dir string, band float32, workers, only int, some map[int]bool, leaksOut string) int {
 	type result struct {
 		zone   int
 		lines  []string
 		leaks  int
 		nodes  int
 		ranges []stretch
+		edges  int
 	}
 	jobs := make(chan int)
 	results := make(chan result)
@@ -531,13 +564,13 @@ func checkWorld(b worlds.Built, dir string, band float32, workers, only int, lea
 			}
 			for i := range jobs {
 				ranges, nodes, lines := walkZone(g, env, b, i, band)
-				results <- result{i, lines, len(ranges), nodes, ranges}
+				results <- result{i, lines, len(ranges), nodes, ranges, len(openEdges(b, i, g))}
 			}
 		}()
 	}
 	go func() {
 		for i := range b.Parts {
-			if only < 0 || i == only {
+			if (only < 0 || i == only) && (some == nil || some[i]) {
 				jobs <- i
 			}
 		}
@@ -548,6 +581,7 @@ func checkWorld(b worlds.Built, dir string, band float32, workers, only int, lea
 	var all []result
 	for r := range results {
 		all = append(all, r)
+		log.Printf("zone %d walked: %d places, %d stretches open", r.zone, r.nodes, r.leaks)
 	}
 	sort.Slice(all, func(i, j int) bool { return all[i].zone < all[j].zone })
 	leaks := 0
@@ -556,7 +590,7 @@ func checkWorld(b worlds.Built, dir string, band float32, workers, only int, lea
 		if r.leaks > 0 {
 			verdict = fmt.Sprintf("%d ways out", r.leaks)
 		}
-		fmt.Printf("zone %2d %-22s %d open edges, %d places walked: %s\n", r.zone, b.Zones[r.zone].Name, len(openEdges(b, r.zone)), r.nodes, verdict)
+		fmt.Printf("zone %2d %-22s %d open edges, %d places walked: %s\n", r.zone, b.Zones[r.zone].Name, r.edges, r.nodes, verdict)
 		for _, l := range r.lines {
 			fmt.Println("   ", l)
 		}
@@ -673,7 +707,7 @@ func walkZone(g *ground.Ground, env *ground.Env, b worlds.Built, i int, band flo
 	w := uint8(b.World)
 	p := b.Parts[i]
 	x0, z0 := float32(p.Col*cell), float32(p.Row*cell)
-	edges := openEdges(b, i)
+	edges := openEdges(b, i, g)
 	if len(edges) == 0 {
 		return nil, 0, nil
 	}

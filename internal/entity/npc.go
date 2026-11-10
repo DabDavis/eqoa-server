@@ -97,6 +97,9 @@ type NPC struct {
 	// CorpseGone is when its corpse left the world: emptied and closed, or
 	// decayed (corpse.go). Zero while it is alive or its corpse still lies.
 	CorpseGone time.Time
+	// corpseHeld keeps its corpse lying until then at least: a raid's loot rolls and
+	// its winners' time (corpse.go's HoldCorpse); zero none.
+	corpseHeld time.Time
 
 	// roam is its wander round its spawn (roam.go), and spots the places it
 	// wanders between, with the ways between them it has tried (roam.go's

@@ -105,6 +105,9 @@ type KeptNPC struct {
 	Gone       time.Time `json:"gone,omitzero"`
 	Held       bool      `json:"held,omitempty"`
 	GuardsKill bool      `json:"guards_kill,omitempty"`
+	// CorpseHeld is how long a raid's loot keeps its corpse lying (corpse.go's
+	// HoldCorpse), zero none.
+	CorpseHeld time.Time `json:"corpse_held,omitzero"`
 	// Home is where the fight it was in, or is on its way back from, began.
 	Home *[3]float32 `json:"home,omitempty"`
 	// PathDir is the way it walked its path (+1 on, -1 back), 0 for no path taken
@@ -179,7 +182,7 @@ func (w *World) keptNPCLocked(npc *NPC, now time.Time) (KeptNPC, bool) {
 			return KeptNPC{}, false // no death corpseSystem could bring it back from
 		}
 		k.Dead, k.Died, k.Gone = true, npc.DeathTime, npc.CorpseGone
-		k.Held, k.GuardsKill = npc.GMHeld, npc.guardHit
+		k.Held, k.GuardsKill, k.CorpseHeld = npc.GMHeld, npc.guardHit, npc.corpseHeld
 	} else {
 		if npc.HP < npc.MaxHP {
 			k.HP, k.MaxHP = npc.HP, npc.MaxHP
@@ -325,7 +328,7 @@ func (w *World) restoreNPCLocked(npc *NPC, k *KeptNPC, onRow bool, r *NPCsRestor
 	if k.Dead {
 		npc.HP, npc.Dead = 0, true
 		npc.DeathTime, npc.CorpseGone = k.Died, k.Gone
-		npc.GMHeld, npc.guardHit = k.Held, k.GuardsKill
+		npc.GMHeld, npc.guardHit, npc.corpseHeld = k.Held, k.GuardsKill, k.CorpseHeld
 		r.Dead++
 		w.wakeNPCLocked(npc) // the corpses' set, for its decay and its return
 		return

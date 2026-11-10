@@ -94,6 +94,10 @@ type NPCWindowHandler struct {
 	// archivist is the Spell Archivists (archivist.go): a request for one's
 	// window is answered with his question; nil, his shop opens at once
 	archivist *Archivist
+
+	// raid and raids are a raid's loot rules' World and state (raidloot.go)
+	raid  raidHooks
+	raids raidState
 }
 
 // NewNPCWindowHandler creates the handler. inv may be nil (no database): the
@@ -124,6 +128,7 @@ func (h *NPCWindowHandler) SetGameWorld(gw *entity.World) {
 	h.guardsKill = gw.GuardsKill
 	h.duelLoot = gw.ChallengeLooter // a Metal Moogie's corpse is his challenger's (entity/metalmoogie.go)
 	gw.OnCorpseGone(h.CorpsesGone)
+	h.setRaidHooks(gw) // a raid's loot rules (raidloot.go)
 }
 
 // RegisterHandlers registers the window requests.

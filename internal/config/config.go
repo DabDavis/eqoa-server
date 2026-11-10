@@ -212,6 +212,12 @@ type WorldConfig struct {
 	// once a session, a few seconds after the player is in the world.
 	ReportNotice *bool `yaml:"report_notice"`
 
+	// WelcomeGuide false turns the welcome guide off (handlers/welcome.go):
+	// the box a character's first world entry of a UTC day asks (a guide of
+	// the server, or never again on this character) and /tutorial, which then
+	// says there is none. Unset: on.
+	WelcomeGuide *bool `yaml:"welcome_guide"`
+
 	// Campfix false turns the players' camp reports off (/campfix, /mark,
 	// /markadd and /markremove: handlers/campfix.go): every one of them then
 	// answers that they are off, and a GM's own /mark (gmcamps.go) is as

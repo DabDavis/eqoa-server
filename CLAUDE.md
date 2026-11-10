@@ -1718,6 +1718,35 @@ table **`charsafemode`** (serverid, since), so it outlives a change of world, a 
 `enterFromRecord`, `restoreSafeMode`), and a login in it is told so once in the world (`tellSafeMode`, `OnPlayerEntered`); with
 the switch off a login leaves it, its row deleted. Not invisibility: players and NPCs still see the character.
 
+### The welcome guide: a box once a day, and `/tutorial` (`handlers/welcome.go`, `database/welcome.go`, `world.welcome_guide`)
+
+Petition 1457, the GM Jibrish (2026-11-10): "Add a game popup when people first log in, a dialogue pop up, for the day ... 1:
+Ask if they would like a guide of the server 2: Ask if they never want to see this on that character again ... Make sure to
+tell them that /tutorial will bring this menu up again at any time". **A character's first world entry of a UTC calendar day**
+asks, 10 s after its client says it is in the world (`welcomeAfter`, `OnPlayerEntered`), in the game's own question box (0x0034,
+mark **0x61000000**; a PS2 and vanilla show it alike): "Welcome, Anna! Would you like a quick guide to this server? Close this to
+be asked again another day." with Yes, show me the guide / Never show this again on this character, and the box's own Close (255:
+nothing, the next day asks again). The day is taken as the box goes out (`TakeWelcomeDay`, one statement, so a second entry that
+day, a takeover's or a restart's, is not asked). It never goes out over what the player must see to first: while dead, on its way
+back from a death or loading a world (state channels held) it waits, looking every 3 s, at most 3 minutes (then the day is not
+taken and the next entry asks); a box CLIENT declines itself because a menu is up (Msg0034: 255 within 1.5 s) goes out again 3 s
+later (vanilla holds it until its menu closes). A keep restart's resumed session is not asked (its 0x0014 is not its first).
+**The guide** is dialogue boxes (0x0046, 217 characters each; CLIENT queues eleven), built from what the server has
+(`welcomeFacts`, read at most every 5 minutes): the kept items a login gives (the Genie's Lamp, the Heirloom Fang of the Wolf,
+the Summoning Portal while `world.heirlooms` and their records; the Rock of Freeport with `world.rock_of_freeport`) and the
+Heirloom Outfitters' free gear, Dabrish and the Spell Archivist (said to be in Freeport only when they stand within 60 of the
+"Freeport Announcements" board), "And more!", how to report a bug (bugreport.go's own lines: F3 and `/bug` for a client that
+reports with F3, else `#bug` and Support), raids (the Raid List window to a client of ours, `/help` or a PS2's `/t help`) and the
+raid loot rules, Options > Extended (to a PS2: "On the PC or browser client, ..."), and `/tutorial` last; six boxes on the
+Heirloom Test Server, three on a server with none of the extras. A client "of ours" is one that answered the offers
+(`Session.AckMasks`: vanilla, which forwards a /command it does not know); a PS2 keeps one to itself, so it is told `/t tutorial`.
+**Never again** is kept in table **`charwelcome`** (serverid, shown_day, never, changed: a player's own choice, deleted with
+its character; empty it on a new server's copy), through logouts and restarts. **`/tutorial`** (`#tutorial`, a PS2's
+`/t tutorial`; with text after it `/t tutorial ...` is a tell) shows the box at once, whatever the day and the flag (typed while
+the day's box waits to go out, it takes that box's place and its day), and no answer turns the daily box back on (the user's
+choice): a GM does, in the GM panel's Players > Welcome guide (Never again No, or the row deleted). `world.welcome_guide: false`
+turns all of it off (`/tutorial` then says there is no guide). Words and times are ours.
+
 ### The Teleporter: every raid's way in and every XP camp (`handlers/teleporter.go`, `world.teleporter`, `tools/place_teleporter.py`)
 
 The owner, 2026-11-09: "lets add a portal npc named Teleporter. has destinations of all raids and camps", "put it next to
@@ -2005,8 +2034,8 @@ comes through: melee, spells, pets): on the whole award, before a boon's, a debt
 whoever of it is near. A quest's experience (`AwardXP`) is not cut. Back at four the cut ends.
 **The flag is the one way past four, so no one takes the cut by accident.** An invite at four is refused with a line naming it (`raidFullLine`;
 a yes to an invite that came before the group filled, 0x069A 4 and the same line to both). A group past four from before stays as it is until
-it shrinks. `/raid` (`#raid`; `/t raid` with no text from a PS2, whose CLIENT keeps an unknown /command unless it has an S2, as eqoaclassic serves
-none: a tell is the one thing it forwards) from a leader asks every player within `RaidFlagRadius` (60, one constant) in its world in no group, no line of sight,
+it shrinks. `/raidaoe` or `/raid` (`#raid`; `/t raid` with no text from a PS2, whose CLIENT keeps an unknown /command unless it has an S2, as eqoaclassic serves
+none: a tell is the one thing it forwards) from a leader (or a raid's helper, below) asks every player within `RaidFlagRadius` (60, one constant) in its world in no group, no line of sight,
 in the same box as an invite (0x0773, "<leader>'s raid", cut to 23 bytes as CLIENT's name[24] is), each yes joining whatever the size, while its
 leader leads. The leader is told who was asked (`raidAskedLine`). Another `/raid` asks whoever has come since: no one with a box still up, no one
 who said no within a minute (`raidAskAgain`). A GM hidden from players is not asked. Someone in no group gets a box first ("The raid flag"), and its
@@ -2019,8 +2048,8 @@ four and misreads the names after. A member's client holds the leader (member 0 
 earliest of the others, in the order they joined, so a newcomer moves no one's window and a window moves only when one of its own
 leaves; up to four that is everyone in the same order as before. To a client a raid group is a group of four: its other members are
 ordinary players it may target (so the leader's Boot Member, which goes by target, reaches them), not on its bars, its group Tab, its
-Follow or its power bars. Everything else reads the whole group: group chat, what is looted (anyone may loot a corpse: there are no
-loot rights or round robin), quest kills, pets defending a member, scope 2 spells, gates, and a group's area (`SpellArea.mostOfGroup`:
+Follow or its power bars. Everything else reads the whole group: group chat, what is looted (anyone may loot a corpse unless its raid's
+loot rule holds it, below), quest kills, pets defending a member, scope 2 spells, gates, and a group's area (`SpellArea.mostOfGroup`:
 no `AreaMaxTargets` for a group's, a GM's row's cap still holds; the 0x00B1 still names seven, `areaShown`, the rest land unnamed; a group's spell needs no line of sight, `areaOfGroup`).
 **The whole roster** goes to a client that asks (`raidroster.go`): 0x7E18 offers it once the player is in the world, as mana bars' 0x7E01, 0x7E19 {1} asks,
 {0} stops, and 0x7E1A (`protocol/opcodes.go` has the format) sends every member's id as that client knows it, name, class, level, HP and power of
@@ -2033,7 +2062,59 @@ fewer back says so; a client with the roster is not told what bars hold, `raidLi
 windows may never show them). The lines are in a PS2's own characters. **A keep restart** forms the group again whole (`KeepGroups`,
 `RestoreGroups`), the same rosters, no one told. **A replaced login or a takeover** stays in the group on the server, as in any group,
 but its new client shows no group and cannot leave it (`Msg0772` returns unless `InGroup`, which only an invite or an accept sets), so it
-is told once it is in the world that it is still in a raid group and that logging out leaves it. **A logout** leaves the group.
+is told once it is in the world that it is still in a raid group and that logging out leaves it (and `/raidleave` leaves it at once, below). **A logout** leaves the group.
+
+### A raid's own rules: lead, helper, main assist, loot rolls, the master looter (`entity/raidrules.go`, `entity/raidcmds.go`, `handlers/raidloot.go`, `handlers/raidcmds.go`)
+
+The GM Jibrish's petitions 1448, 1451, 1452 and 1453 (2026-11-10); the long form is `claude-notes/raid-loot-rolls-20261110.md`. A raid is a
+group flagged (a raid flag, or a `/raidinvite`) or past four; its leader is `Members[0]` as every group's. **The commands, everyone's**, each
+in its `/`, `#` and a PS2's `/t <word>` spellings (`handlers/raidcmds.go` routes them; the raid's words always, `/t invite`, `/t target`,
+`/t tar` and `/t help` unless a player of that name is in the world, `/t need|greed|pass` while the sender has a roll to answer, `/t assign`
+and `/t abandon` while it holds a corpse as master looter, else they are tells): `/raidaoe` (the flag), `/raidinvite [name]` (the leader's or
+the helper's: a player by name anywhere in the world, else its target, in the flag's box "<leader>'s raid", the yes joining whatever the
+size; a caller in no group takes a box of its own first, as for the flag; a plain group's leader's invite makes it a raid), `/raidleave`
+(any member: 0x069A 8, CLIENT's case that lets its group go with no word, and a line; works whatever the client thinks, a replaced login's
+too; the leader's hands the lead on, told), `/raidkick <name>` (the leader or the helper, never the leader; Boot Member's 0x069A 1; the
+helper's own Boot Member works too), `/raidleader [name]` (the leader's: the member first in every roster; alone, anyone's: the raid as it
+stands), `/raidhelper <name|none>` (the leader's one helper, a member, who may invite, raise the flag and kick), `/raidassist <name|none>`
+(the leader's main assist) and `/raidassist` alone (anyone's: 0x007B with what the main assist targets, `AssistTarget`'s rules, for a
+macro), `/raidloot ffa|needgreed|master` (the leader's; alone, the raid as it stands), `/rsay <text>` (the group's chat: "tells the raid" in
+orange in a raid), `/invite <name>` (a group invite by name, `GroupInvite`'s rules, the caller in no group asked first), `/target <name>`
+and `/tar` (`TargetNear`: the nearest the sender's client shows within 100 whose name, any case, is it, else starts with it; an exact name
+beats a nearer start; an NPC's "a"/"an"/"the" may be left off; none: "No target in range"; 0x007B, CLIENT's own `Msg007B`, which sets
+`m_target` and asks 0x0010, so it works on a PS2), `/help` (`playerHelpLines`; a GM's `#help` stays its own, its `/help` the players'),
+`/need|/greed|/pass [n]`, `/assign <n> <name>`, `/abandon`. Vanilla's start menu sends the same through 0x7E48.
+**In combat** (ours): a living creature has a member or a member's pet on its hate list (`groupsInCombatLocked`, one pass over the fights'
+set). Then the loot rule does not change, and the raid is not disbanded: CLIENT's `DisbandGroup` lets its own group go before it sends 0x0627,
+so a leader's disband in a fight **leaves** instead (the lead passes, the raid fights on), as does a disband from one who no longer leads
+(after `/raidleader` its CLIENT keeps `m_p2BD78`, which `Msg0772` never clears). **A member kicked in a fight keeps a claim** on the loot of
+every creature then fighting the raid (`raidKickedLocked`, `w.raids.claims`): its corpse's rolls offer it a seat and the master looter's list
+names it, wherever it stands; the claim ends at that creature's kill (taken), or once it is out of its fight alive or gone (swept each
+second). A voluntary leave keeps none. **The loot rules** (`handlers/raidloot.go`): free for all, as every group's, until the leader picks
+another. A raid's kill (`KillCredit.Raid`, credited to a member) under **need before greed** is rolled at its death for the highest seat's
+level, and each item the rules cover (`raidCovers`: never a stackable or vendor trash; a no trade item, an item with stats, or anything else
+a raid boss drops) comes off the corpse and is offered to its seats (members within `KillShareRange` 200, alive or dead, and the claims):
+Need by the equip rules (`cannotWear`, `scrollRefusal`), Greed, or Pass, 120 s; a choice rolls 0-100 at once, said in raid chat; when all
+chose or time is up (no choice a pass) the highest Need wins, else the highest Greed, a tie rolling again between the tied; no roll leaves it
+on the corpse for anyone. The winner's item goes to its pack at once when there is room, else it waits for the winner alone for 5 minutes
+and its opening the corpse then puts it in the pack (or says the pack is full) and opens no window; then it is anyone's. **A raid boss**
+(ours): a class template of 1,000% or more of its level's hit points (every tuned one is 1,008-10,417%), a `boss` profile in `lootcreature`
+(the panel's Loot creatures) or a `boss ...` loot table (`database.RaidBoss`). Under **master looter** a raid's kill holding an item the
+rules cover is the leader's alone for 5 minutes (anyone else: 0x0085 3, word 675, and a line): it takes, assigns an item to a member or a
+claim (into that one's pack, refused when full) or abandons the corpse to anyone; a kill of nothing covered is free for all. A corpse the
+rules hold lies until they are done and then its decay (`World.HoldCorpse`, kept in `KeptNPC.CorpseHeld`); the rolls, holds and master
+looter survive a keep restart (`KeptCorpse.Raid`), as do the raid's flag, rule, helper and main assist (`KeptGroup`) and a client's answer.
+**Mercenaries** (`mercgroup.go`): a merc takes a place in its owner's group but is no player, so it is never a roll seat, a claim, on the
+master looter's list, the leader, the helper or the main assist (refused with a line by name or by target), and never invited as one
+(`/raidinvite` or `/invite <name>` of it: "X is a mercenary: it comes into a group or a raid with its owner."); `/raidkick` or Boot Member
+of a merc dismisses it (the leader; the helper too, never the leader's own merc), with no claim; its fight is its raid's (`NPC.Owner`,
+as a pet's); a player in a group of it and its merc alone steps aside (0x069A 8) for `/raidinvite`, `/invite <name>` and the flag, its
+merc following its yes, past four in a flagged raid; `/raidleave` takes the merc out with its owner, who is then asked into a group with
+it again, as any leave of a group of others. `/help` lists `/tutorial` too, and the welcome guide's raid box names `/help` and the loot
+rules as they are.
+**The windows** (0x7E42-0x7E48, Key Server Protocol Details): a client that answered the offer gets the raid's state, its rolls and the
+master looter's list as messages; a PS2 the same as chat lines in the raid's orange ("Roll 7: ... /t need 7, /t greed 7 or /t pass 7",
+the master looter's items by number at its opening and after each assign).
 
 ### Data Flow (World Entry)
 
@@ -2084,6 +2165,7 @@ case *entity.NPC:
 | `statChannelSyncSystem` | Every 20 ticks | Serialize stats to channel 0x42 |
 | `visibilitySystem` | Every 5 ticks | Assign nearby entities to channels 1-23, or the slots (and distance) the client asked for |
 | `powerSyncSystem` | Every 5 ticks | Others' power (0x7E02) to a client that asked with 0x7E01: its group's members, its target and its target's target, players only, when the set changed (`powerbars.go`) |
+| `raidStateSystem` | Every 10 ticks | **The raid's state** (0x7E44) to a client that answered 0x7E42 when it changed (its leader, helper and main assist as that client knows them, the loot rule, in combat), and the kicked members' claims whose fight is over swept (`raidrules.go`); the loot's rolls and holds end on `handlers/raidloot.go`'s own worker, once a second |
 | `petEffectsSystem` | Every 5 ticks | **The pet's effects** (0x7E33) to a client that asked with 0x7E32 (vanilla's row under the pet's bar, Extended > UI's Pet Effects; the user, 2026-11-09: "jibcro is showing pets buffs as if on him, put the buff icons under the pet name plate"): each effect on the player's pet with a name that has not run out (its own buffs, its owner's, its drain's share), its icon, time left and name, in the order they went on, when the set changed and at once after the ask; an empty set as the pet goes (`peteffects.go`). A PS2 never asks and is sent none. **The player's own effects window (0x43) is its own effects alone**: from petition 1041 (2026-11-06, Eatma: "Pet buffs for necro aren't showing up on buff display") until this, `buffChannelSyncSystem` sent the pet's after them, so every client, a PS2's too, showed them as the player's own |
 | `dpsMeterSystem` | Every 5 ticks | **The damage meters** (0x7E3C) to each client that asked with 0x7E3B (vanilla's DPS Meter, Extended > Combat; the owner, 2026-11-10: "lets add dps meters, will work solo, group, raid"): its group's fight as it stands, at most once a second while it changes, and once more as it ends, `DPSMeterIdle` (10 s) after the group's last damage (`dpsmeter.go`). A PS2 never asks and is sent none |
 
@@ -2878,6 +2960,21 @@ to the latest; the client divides each line by it (at least a second). Sent at m
 (`dpsMeterEvery`), at once after the ask, and once more as it ends (over). Duels and PvP count (halved as told). A
 session that never asks (every PS2, a vanilla build from before it) is sent nothing; its player's damage still counts
 on its group's others' meters. `dpsmeter_test.go` holds every path's count to the figures told.
+
+**The raid's windows** (2026-11-10; `entity/raidrules.go`, `handlers/raidcmds.go`, `handlers/raidloot.go`,
+`claude-notes/raid-loot-rolls-20261110.md`; the GM Jibrish's petitions 1448 and 1451). Beside 0x7E18 the server offers opcode
+**0x7E42** (`OpcodeRaidOffer`, a u8 1; not retail, ignored by a PS2, which gets chat lines instead). A client that shows them (vanilla)
+answers **0x7E43** (a u8, 1, or 0 for the chat lines; kept over a keep restart) and from then on is sent **0x7E44**
+(`OpcodeRaidState`, on a change, once a second and at once after a command; all zero once out of a raid): u32 leader (0 none), u32
+helper, u32 main assist (each the id that client knows the player by, the same as 0x7E1A's), u8 loot rule (0 free for all, 1 need
+before greed, 2 master looter), u8 flags (bit 0 in combat, bit 1 it leads, bit 2 it is the helper); **0x7E45** (`OpcodeRaidRoll`) for
+each roll it is offered: u32 roll id (1-999, round), u16 seconds left, then u8 flags (bit 0 it may Need) and the item as 0x003B's
+record, its key the roll id; or 0 seconds alone, the roll over for it (chosen, decided, the corpse gone); it answers **0x7E46** (u32
+roll id, u8 1 need, 2 greed, 3 pass); **0x7E47** (`OpcodeRaidMasterLoot`) after every 0x0018 of a corpse it holds as master looter,
+resends included: u8 1, u16 seconds left, u8 count, each u32 id and a u8-counted name (the raid's members and the claims), and u8 0
+alone when the hold ends; and it sends **0x7E48** (`OpcodeRaidCommand`, u8 op): 1 loot rule (u8), 2 leave, 3 assign (u32 the open
+corpse's record key, u32 player id), 4 abandon, 5 raid-invite, 8 leader, 9 helper, 10 main assist, 11 kick (each a u32 target, the
+client's `m_target` as it is: a visibility id or a roster stand-in; 0 for none), 6 the flag, 7 assist the main assist.
 
 **Quest marks for a client's map** (F3 pass 18; `handlers/questmarks.go`, `entity/questspots.go`;
 the user's "add quest markers for givers to the map too", "only if eligible for the class/level").

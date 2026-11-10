@@ -907,7 +907,41 @@
               9207.5,
               21486.6
             ],
-            "note": "the starter quests' giver, in the high priest's robes"
+            "note": "gives the first two starter quests (the wingband; the spiritmaster and the coachman), in the high priest's robes"
+          },
+          {
+            "name": "Huntmaster Arrok",
+            "like": 103537,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              9228.1,
+              84.1,
+              21475.8
+            ],
+            "toward": [
+              9207.5,
+              21486.6
+            ],
+            "note": "gives the three hunts (levels 3-5), beside the elder: a high guard's armour"
+          },
+          {
+            "name": "Weaver Tikkri",
+            "like": 103465,
+            "body": "0x8EFD12EA",
+            "level": 25,
+            "role": "talker",
+            "at": [
+              9177.7,
+              84.1,
+              21452.0
+            ],
+            "toward": [
+              9207.5,
+              21486.6
+            ],
+            "stock": "Tailor McQuaid",
+            "note": "the Roost's outfitter: hands over the level 1 wingband and the level 4 materials; a Halas tailor's cloth (Tailor McQuaid)"
           },
           {
             "name": "Grocer Skreel",
@@ -940,6 +974,40 @@
             "note": "binds, as every spiritmaster"
           },
           {
+            "name": "Coachman Harrek",
+            "like": 103465,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              9211.7,
+              84.1,
+              21547.1
+            ],
+            "toward": [
+              9207.5,
+              21486.6
+            ],
+            "note": "the Roost's stable: the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot (open floor, no creature near)"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 103514,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              9161.9,
+              84.1,
+              21507.4
+            ],
+            "toward": [
+              9207.5,
+              21486.6
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), so a fledgling caster has its spells; left out where the database has none to take wares from"
+          },
+          {
             "name": "Gatekeeper Windwhistle",
             "like": 103532,
             "level": 35,
@@ -953,7 +1021,7 @@
               9104.5,
               21436.5
             ],
-            "note": "sends a fledgling who has done the starter quests to Halas (the quest The Long Flight)"
+            "note": "sends a fledgling who has done the five starter quests to Halas (the quest The Long Flight)"
           },
           {
             "name": "Roost sentinel",
@@ -1006,7 +1074,7 @@
           {
             "name": "scrub rat",
             "body": "0x9E004757",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.8,
             "at": [
@@ -1014,12 +1082,36 @@
               63.6,
               21097.6
             ],
-            "note": "the starter quest's rats, at the grave rats' spots south of the nests"
+            "note": "the level 3 quest's rats (the grave rat's body, small), at the zone's own creatures' spots on the grass south of the nests"
           },
           {
             "name": "scrub rat",
             "body": "0x9E004757",
-            "level": 1,
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              9107.9,
+              64.8,
+              21124.9
+            ]
+          },
+          {
+            "name": "scrub rat",
+            "body": "0x9E004757",
+            "level": 3,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              9206.2,
+              86.3,
+              21022.9
+            ]
+          },
+          {
+            "name": "scrub rat",
+            "body": "0x9E004757",
+            "level": 2,
             "role": "foe",
             "size": 0.8,
             "at": [
@@ -1031,13 +1123,13 @@
           {
             "name": "scrub rat",
             "body": "0x9E004757",
-            "level": 1,
+            "level": 3,
             "role": "foe",
             "size": 0.8,
             "at": [
-              8876.2,
-              59.2,
-              20850.6
+              8906.4,
+              72.9,
+              21177.3
             ]
           },
           {
@@ -1055,13 +1147,13 @@
           {
             "name": "scrub rat",
             "body": "0x9E004757",
-            "level": 1,
+            "level": 3,
             "role": "foe",
             "size": 0.8,
             "at": [
-              8701.1,
-              65.0,
-              21202.4
+              8884.2,
+              68.0,
+              21210.1
             ]
           },
           {
@@ -1071,15 +1163,124 @@
             "role": "foe",
             "size": 0.8,
             "at": [
-              8723.1,
-              54.1,
-              20753.0
+              9576.2,
+              83.3,
+              21241.4
             ]
+          },
+          {
+            "name": "brush wasp",
+            "body": "0x0BC2015F",
+            "level": 3,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              8956.0,
+              86.0,
+              21416.5
+            ],
+            "note": "the level 4 quest's wasps (the huge wasp's body, half its size), at the zone's own creatures' spots on the hill west of the nests"
+          },
+          {
+            "name": "brush wasp",
+            "body": "0x0BC2015F",
+            "level": 3,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              8843.2,
+              159.4,
+              21652.0
+            ]
+          },
+          {
+            "name": "brush wasp",
+            "body": "0x0BC2015F",
+            "level": 4,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              8834.5,
+              160.5,
+              21647.0
+            ]
+          },
+          {
+            "name": "brush wasp",
+            "body": "0x0BC2015F",
+            "level": 3,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              8858.5,
+              160.4,
+              21667.2
+            ]
+          },
+          {
+            "name": "brush wasp",
+            "body": "0x0BC2015F",
+            "level": 4,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              8715.8,
+              146.8,
+              21554.4
+            ]
+          },
+          {
+            "name": "brush wasp",
+            "body": "0x0BC2015F",
+            "level": 4,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              8703.7,
+              147.9,
+              21556.5
+            ]
+          },
+          {
+            "name": "Razortusk",
+            "body": "0x08F544F2",
+            "level": 5,
+            "role": "foe",
+            "size": 1.1,
+            "at": [
+              9599.0,
+              124.4,
+              21577.0
+            ],
+            "note": "the level 5 quest's foe (a boar's body), at a wild boar's spot on the rise east of the nests; hostile"
           }
         ],
         "peaceful": [
-          "scrub rat"
-        ]
+          "scrub rat",
+          "brush wasp"
+        ],
+        "hostile": [
+          "Razortusk"
+        ],
+        "lines": {
+          "Gatekeeper Windwhistle": [
+            "The north wind is not for you yet, fledgling. Finish what the elder and the huntmaster ask of you first.",
+            "When Arrok says you are ready, I will send you to Halas. Not before."
+          ],
+          "Roost sentinel": [
+            "Keep to the grass, fledgling. The lions keep to the far hills.",
+            "All quiet on the wind.",
+            "Watch the sky, %p. It tells you everything."
+          ],
+          "Elder Kraawk": [
+            "Fly well, %p.",
+            "The Roost remembers every fledgling it sends north."
+          ],
+          "Huntmaster Arrok": [
+            "Keep your talons sharp, %p.",
+            "A hunter who watches the grass eats. One who does not is eaten."
+          ]
+        }
       }
     },
     {
@@ -3386,7 +3587,7 @@
             "note": "the glade's grocer, a faun maiden on its south side, a Tethelin grocer's food and drink"
           },
           {
-            "name": "Spiritmaster Fennick",
+            "name": "Spiritmaster Corvann",
             "like": 130401,
             "level": 30,
             "role": "talker",
@@ -3399,7 +3600,7 @@
               6050.1,
               4444.1
             ],
-            "note": "binds, as every spiritmaster"
+            "note": "binds, as every spiritmaster (Corvann since 2026-11-10: Mayfly Glade's spiritmaster is Fennick too, and a bind is told by its spiritmaster's name)"
           },
           {
             "name": "Gatekeeper Dorvan",

@@ -26,7 +26,7 @@ with what is missing in its notes, so only whole quests are offered to players.
 | `key` | stable and unique, no spaces: the guide's key and its section, `1-20/freeport/warrior/L3`; a second quest in one section `.../L20b`; a later guide's `<EQOA-Data folder>/<guide file stem>/<part>` (`23-47/23/p1`, `30,40,49/group-1-good/p2`, `60/good-tank/ep2-3`), the GM panel filing it under its folder's category (`misc`, `30-40-49`, `tank-exemplar`) |
 | `name` | the quest's name, the guide's where it gives one, else a short one of ours |
 | `giver` | the NPC that offers it, as `npcs.name` spells it |
-| `classes` | class ids (WAR 0 ... ALC 14) the guide is for; `races`: race ids, empty for any |
+| `classes` | class ids (WAR 0 ... ALC 14) the guide is for; `races`: race ids, empty for any: 0-10 the game's races and the froglok, which a race of the server's own (a row of `racedefs`) takes as the race it passes as (an Aviak does Halas's quests as a barbarian); 11-52 a race of `racedefs` by its own id, that race alone (a homeland's quests are its people's: an Aviak's `[14]` is no barbarian's) |
 | `minlevel`, `maxlevel` | the section's level; `maxlevel` 60 unless the guide says otherwise |
 | `requires` | keys of the quests to have finished first: a class's chain, each section after the one before. An entry that is a list of keys is one requirement any of them meets (`[["60/good-healer/start-g1", "60/good-healer/start-g2", "60/good-healer/start-g3"]]`): a quest several classes take whose hand-in each class gets from a quest of its own (a recruiter's token), written `a|b|c` in the requires column. It is a draft only when every quest of the group keeps it out |
 | `factions_required` | optional: `[["<faction>", min], ["<faction>", min, max]]`, the standings it asks for (-2000 to 2000, `max` not below `min`), each faction as the `factions` table spells it. It is offered (and marked on a client's map) only while the player's standing with every one is at least `min` and, when given, at most `max`; once taken, its steps at its giver wait on them too (the giver says it will not deal with the player, a line of ours), while a step at another NPC, a kill, a loot or a reach goes on. A faction the database lacks makes the quest a draft |
@@ -44,7 +44,7 @@ with what is missing in its notes, so only whole quests are offered to players.
 
 | field | what |
 |-------|------|
-| `kind` | `talk` (talk to `target`), `show` (show `items`, kept), `give` (hand over `items` and `tunar`), `kill` (`count` of `target`), `loot` (kill `target` until `count` of `items[0]` have been taken off their corpses during this step: each kill of one drops one with `chance` for a player on this step, onto that player's view of its corpse; what was held before the step does not count), `reach` (`world`, `x`, `y`, `z` within `radius`) |
+| `kind` | `talk` (talk to `target`), `show` (show `items`, kept: held in the pack or worn), `give` (hand over `items` and `tunar`), `kill` (`count` of `target`), `loot` (kill `target` until `count` of `items[0]` have been taken off their corpses during this step: each kill of one drops one with `chance` for a player on this step, onto that player's view of its corpse; what was held before the step does not count), `reach` (`world`, `x`, `y`, `z` within `radius`) |
 | `target` | the NPC or creature, as `npcs.name` spells it |
 | `items` | `[{"item": "<itempattern name>", "count": n}]` |
 | `tunar`, `count`, `chance` | as `kind` needs them; `chance` 0-1 is ours (the guides give none), 0 every kill |
@@ -63,7 +63,13 @@ with what is missing in its notes, so only whole quests are offered to players.
 
 A quest item a step needs that `itempattern` may lack (a belt that drops, a letter an NPC hands
 over): `{"name", "description", "notrade": true, "like": "<an item whose look it takes>"}`.
-The importer makes it when no item has the name.
+The importer makes it when no item has the name, as a copy of its `like` record with its own name
+and description (NO TRADE with `notrade`). An optional `"set": {"<column>": n, ...}` gives it
+figures of its own over its like's (whole numbers; the importer's `ITEM_SET`: `AC`, `HPMAX`,
+`POWMAX`, the seven stats, `PoT`, `HoT`, the six resists, `itemcost`, `levelreq`, `maxhp` its
+durability, `classuse`, `raceuse`, `lore`): a piece of equipment a quest hands out to wear, as a
+homeland's first gift (every class's, level 1, 4 armour: `tools/quests/gen_homelands.py`). An item
+made by an earlier import is not made again: a `set` changed later changes no record.
 
 ## Event
 
@@ -86,7 +92,12 @@ it lands, as a spiritmaster binds, by `npc` or the quest's giver: a homeland's g
 `entity/vampire.go`; the vampire quest's bats); `trigger` (`trigger`: the name of a row of `gmtriggers`, fired with
 the player as its firer: the guides' raid encounters; a step that fires one whose lock is held is not done, nothing
 handed in, and says `text`); `dostep` (a step's `start`: the step tried at once, for a hand-in at the NPC just
-talked to). One popup at a time: the client shows one question box at once.
+talked to); `classquest` (a quest's `finish`, with `level`: every starting city's class quest of that level, key
+`1-20/<city>/<class>/L<level>`, that takes the player's class and its race as the quests ask it (its wire race) is
+finished for the character too, with no reward and no word, unless it has a row in it already: a homeland's starter
+quest stands for its city's, and the city's guildmaster goes on from the next level; `homelands.json`, which
+`tools/quests/gen_homelands.py` writes from `tools/quests/homelands/`: see its README). One popup at a time: the
+client shows one question box at once.
 
 ## The import
 

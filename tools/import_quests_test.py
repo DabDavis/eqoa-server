@@ -103,6 +103,48 @@ class ImportQuests(unittest.TestCase):
                          (f"{tusk[0]}*2", 430, "2", "Testmoor Watch:+10"), "'boar's tusk' is the Boar's Tusk")
         self.assertEqual(give["spells"], "2", "the warrior's Swipe, not the monk's (the control: spell 1)")
 
+    def test_a_made_items_set_is_its_own_figures(self):
+        # a homeland's first gift (tools/quests/gen_homelands.py): a copy of an all-class base with its own armour
+        self.db.execute("ALTER TABLE itempattern ADD COLUMN AC INTEGER")
+        self.db.execute("ALTER TABLE itempattern ADD COLUMN classuse INTEGER NOT NULL DEFAULT 1")
+        files = json.loads(json.dumps(self.files))
+        files[0][1]["items"].append({"name": "Moor Bracer", "description": "A bracer.", "notrade": True, "like": "broken fang",
+                                     "set": {"AC": 4, "classuse": 32767, "itemcost": 0}})
+        p = iq.plan(self.db, files)
+        self.assertEqual([m["name"] for m in p["made"]], ["Boar's Tusk", "Moor Bracer"])
+        iq.write(self.db, p)
+        got = self.db.execute("SELECT AC, classuse, itemcost, trade, itemicon FROM itempattern WHERE itemname = 'Moor Bracer'").fetchone()
+        self.assertEqual(got, (4, 32767, 0, 1, 111), "its set's columns, NO TRADE, the rest its like's")
+        tusk = self.db.execute("SELECT AC, classuse, itemcost FROM itempattern WHERE itemname = ?", ("Boar's Tusk",)).fetchone()
+        self.assertEqual(tusk, (None, 1, 5), "the control: an item with no set is its like's")
+        # a set of a column that is not a figure, or of no whole number, makes nothing (and says so)
+        for bad in ({"itemname": 1}, {"AC": "4"}, {"AC": True}, [1]):
+            files[0][1]["items"][-1] = {"name": "Moor Ring", "like": "broken fang", "set": bad}
+            p = iq.plan(self.db, files)
+            self.assertNotIn("Moor Ring", [m["name"] for m in p["made"]], bad)
+            self.assertIn("'Moor Ring' cannot be made: its set", "\n".join(p["warnings"]))
+
+    def test_a_classquest_event_is_a_quests_on_its_finish(self):
+        # the homelands' starter quests: the player's own city class quest of that level finished too
+        files = json.loads(json.dumps(self.files))
+        q = files[0][1]["quests"][0]
+        q["events"].append({"on": "finish", "do": "classquest", "level": 3})
+        p = iq.plan(self.db, files)
+        iq.write(self.db, p)
+        row, steps = self.quest("1-20/testmoor/warrior/L1")
+        self.assertEqual(row["enabled"], 1)
+        self.assertEqual(json.loads(row["events"])[1], {"on": "finish", "do": "classquest", "level": 3})
+        # the controls: on accept, a step's, no level, a level out of range: each a draft that says why
+        for bad, where in (({"on": "accept", "do": "classquest", "level": 3}, "quest"), ({"on": "finish", "do": "classquest"}, "quest"),
+                           ({"on": "finish", "do": "classquest", "level": 0}, "quest"), ({"on": "finish", "do": "classquest", "level": "3"}, "quest"),
+                           ({"on": "done", "do": "classquest", "level": 3}, "step")):
+            files = json.loads(json.dumps(self.files))
+            q = files[0][1]["quests"][0]
+            (q["events"] if where == "quest" else q["steps"][0]["events"]).append(bad)
+            x = [x for x in iq.plan(self.db, files)["quests"] if x["key"] == "1-20/testmoor/warrior/L1"][0]
+            self.assertTrue(x["draft"], bad)
+            self.assertIn("classquest", "; ".join(x["why"]))
+
     def test_a_missing_creature_makes_drafts_down_the_chain(self):
         iq.write(self.db, iq.plan(self.db, self.files))
         ghost, _ = self.quest("1-20/testmoor/warrior/L3")

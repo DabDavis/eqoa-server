@@ -877,7 +877,7 @@ func (q *QuestEngine) mayTakeAtLocked(look *factionLook, p *entity.Player, c *qu
 		return fmt.Sprintf("it ends at level %d", qu.MaxLevel)
 	case len(qu.Classes) > 0 && !containsInt(qu.Classes, p.Class):
 		return "not for that class"
-	case len(qu.Races) > 0 && !containsInt(qu.Races, entity.WireRace(p.Race)):
+	case len(qu.Races) > 0 && !questRaceTakes(qu.Races, p.Race):
 		return "not for that race"
 	}
 	if g, unmet := database.UnmetRequire(qu.Required(), c.hasFinished); unmet {
@@ -910,6 +910,28 @@ func (q *QuestEngine) mayTakeAtLocked(look *factionLook, p *entity.Player, c *qu
 
 // hasFinished is whether the character has finished the quest at least once.
 func (c *questChar) hasFinished(id int) bool { return c.timesDone(id) > 0 }
+
+// questRaceTakes reports a quest's races (not empty) taking a character of
+// race. A race of the game's and the froglok (0 to 10) is asked of the
+// character's wire race: a race of the server's own does the quests of the
+// race it passes as (an Aviak Halas's, as a barbarian). A race of racedefs
+// (entity.FirstCustomRace and up) is asked of the character's own race: a
+// homeland's quests name its people alone, so a barbarian who rides the coach
+// into Aviak Village is offered none of the Roost's (the owner, 2026-11-10:
+// "the coach will connect to freeport and the other homeland areas").
+func questRaceTakes(races []int, race int) bool {
+	wire := entity.WireRace(race)
+	for _, r := range races {
+		if r >= entity.FirstCustomRace {
+			if r == race {
+				return true
+			}
+		} else if r == wire {
+			return true
+		}
+	}
+	return false
+}
 
 // timesDone is how many times the character has finished the quest.
 func (c *questChar) timesDone(id int) int {
@@ -1527,6 +1549,22 @@ func (q *QuestEngine) teachLocked(sess *session.Session, p *entity.Player, spell
 // heldItems is the player's unworn inventory records, in the client's list
 // order (bank and worn items are not handed in).
 func (q *QuestEngine) heldItems(p *entity.Player) []database.CharInventoryEntry {
+	return q.itemsOn(p, false)
+}
+
+// shownItems is what a show step looks at: the pack and what the player
+// wears (never the bank). A show step keeps its items, so one worn is shown
+// as well as one carried: every city's first class quest hands out a piece of
+// equipment to show its giver (Freeport's militia bracer, Halas's tunic; the
+// homelands' first gift), and a player who put it on, as one does, was told
+// to come back with it (the owner's homelands polish, 2026-11-10).
+func (q *QuestEngine) shownItems(p *entity.Player) []database.CharInventoryEntry {
+	return q.itemsOn(p, true)
+}
+
+// itemsOn is the player's pack records, in the client's list order, with the
+// ones it wears when worn is set.
+func (q *QuestEngine) itemsOn(p *entity.Player, worn bool) []database.CharInventoryEntry {
 	if q.inv == nil {
 		return nil
 	}
@@ -1537,7 +1575,7 @@ func (q *QuestEngine) heldItems(p *entity.Player) []database.CharInventoryEntry 
 	}
 	var out []database.CharInventoryEntry
 	for _, r := range rows {
-		if r.Location == 0 && r.EquipLoc < 0 && r.StackLeft > 0 {
+		if r.Location == 0 && (worn || r.EquipLoc < 0) && r.StackLeft > 0 {
 			out = append(out, r)
 		}
 	}

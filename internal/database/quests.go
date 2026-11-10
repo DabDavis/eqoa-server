@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -231,6 +232,9 @@ const (
 	EventVampire  = "vampire"  // the player made a vampire (charvampire, entity/vampire.go): the bats' infection
 	EventTrigger  = "trigger"  // a GM trigger (table gmtriggers) fired by its name, the player its firer
 	EventDoStep   = "dostep"   // the step to do now tried at once, its NPC being the one just talked to
+	// EventClassQuest: the player's own city class quests of a level (Level) finished too, silently: a
+	// homeland's starter quest stands for its city's (handlers/questevents.go). A quest's, on its finish.
+	EventClassQuest = "classquest"
 )
 
 // TeleportMainland is a teleport's to that sends the player to its race's spot
@@ -242,7 +246,7 @@ const TeleportMainland = "mainland"
 var (
 	QuestEventWhens   = []string{EventAccept, EventFinish}
 	StepEventWhens    = []string{EventStart, EventDone}
-	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventAttack, EventVisual, EventTeleport, EventVampire, EventTrigger, EventDoStep}
+	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventAttack, EventVisual, EventTeleport, EventVampire, EventTrigger, EventDoStep, EventClassQuest}
 )
 
 // DoesStep reports a step tried at once when it starts (EventDoStep).
@@ -286,6 +290,30 @@ type QuestEvent struct {
 	// and a death take it there: a homeland's gatekeeper sends a new player
 	// to its city for good
 	Bind bool `json:"bind,omitempty"`
+	// Level (classquest): the level of the city class quests finished too (the
+	// import key 1-20/<city>/<class>/L<level>: ClassQuestLevel)
+	Level int `json:"level,omitempty"`
+}
+
+// reClassQuestKey is a starting city's class quest's import key
+// ("1-20/freeport/warrior/L3"; a second quest of a level, "L20b", is not one).
+var reClassQuestKey = regexp.MustCompile(`^1-20/[^/]+/[^/]+/L(\d+)$`)
+
+// ClassQuestLevel is the level of a starting city's class quest, read off its
+// source's import key (QuestImportKey: "EQOA-Data 1-20/halas/warrior/L3
+// (tools/import_quests.py)" is 3), or 0 for any other quest: what a
+// classquest event finishes (a homeland's starter quest of that level stands
+// for it).
+func ClassQuestLevel(source string) int {
+	m := reClassQuestKey.FindStringSubmatch(QuestImportKey(source))
+	if m == nil {
+		return 0
+	}
+	n, err := strconv.Atoi(m[1])
+	if err != nil {
+		return 0
+	}
+	return n
 }
 
 // ParseQuestEvents reads an events column: a JSON array of QuestEvent, ""
@@ -379,6 +407,13 @@ func EventProblems(s string, step bool) []string {
 		case EventDoStep:
 			if !step || e.On != EventStart {
 				add(i, "a dostep is a step's, on its start: the step tried at once")
+			}
+		case EventClassQuest:
+			if step || e.On != EventFinish {
+				add(i, "a classquest is a quest's, on its finish: the player's city class quests of its level finished too")
+			}
+			if e.Level < 1 || e.Level > 60 {
+				add(i, "classquest's level %d is not 1 to 60", e.Level)
 			}
 		default:
 			add(i, "do %q is not one of %s", e.Do, strings.Join(QuestEventActions, ", "))

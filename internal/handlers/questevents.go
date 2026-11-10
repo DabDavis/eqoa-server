@@ -61,6 +61,9 @@ import (
 //     already held is not done, nothing handed in (triggerBusyLocked).
 //   - dostep: the step just started tried at once: a repeatable hand-in at its
 //     giver is done on the answer that takes it, with no second talk.
+//   - classquest: the player's own city class quests of the event's level
+//     finished too (classQuestLocked): a homeland's starter quest stands for
+//     its city's, so the guildmaster on the mainland goes on from there.
 //
 // A loot step (kind loot) is a kill step whose kills drop its item: each kill
 // of its creature credited to a player on the step, while the player has
@@ -143,9 +146,47 @@ func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c
 					q.atNPCLocked(sess, p, c, qu, cq, st, false, -1)
 				}
 			}
+		case database.EventClassQuest:
+			q.classQuestLocked(p, c, qu, e.Level)
 		default:
 			log.Printf("Quests: %q step %d: no event %q", qu.Name, step, e.Do)
 		}
+	}
+}
+
+// classQuestLocked is a classquest event: every city class quest of the level
+// (database.ClassQuestLevel: the import key 1-20/<city>/<class>/L<level>) that
+// is in the game, takes the player's class and takes its race as the quests
+// ask it (questRaceTakes: a race of the server's passes as one of the game's)
+// is written finished for the character, once, with no reward and no word.
+// The races' homelands (tools/quests/gen_homelands.py; the owner, 2026-11-10:
+// "follow the same template as the other main race quests"): a homeland's
+// starter quest of a level gives what the city's gives, so the city's is done
+// with it, and the guildmaster on the mainland offers the next one (level 7
+// after the homeland's five), not the tunic again. Every quest that matches:
+// a race that passes as a human could take Freeport's and Qeynos's alike. One
+// the character has a row in already (under way, or finished) is left as it
+// is; a class its race's cities have no chain for has none to finish.
+func (q *QuestEngine) classQuestLocked(p *entity.Player, c *questChar, by *database.Quest, level int) {
+	if p == nil || c == nil || level < 1 {
+		return
+	}
+	for _, qu := range q.cat.all {
+		if !qu.Enabled || qu.ID == by.ID || database.ClassQuestLevel(qu.Source) != level {
+			continue
+		}
+		// a city's class quest names its classes and its races: one that
+		// names none is no class's own
+		if !containsInt(qu.Classes, p.Class) || !questRaceTakes(qu.Races, p.Race) {
+			continue
+		}
+		if c.quests[qu.ID] != nil {
+			continue
+		}
+		cq := &database.CharQuest{ServerID: c.serverID, QuestID: qu.ID, Done: 1}
+		c.quests[qu.ID] = cq
+		q.saveLocked(cq)
+		log.Printf("Quests: %s's %q (%s) is finished with %q", p.Name, qu.Name, database.QuestImportKey(qu.Source), by.Name)
 	}
 }
 

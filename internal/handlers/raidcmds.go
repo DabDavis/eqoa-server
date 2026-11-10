@@ -296,7 +296,7 @@ func (h *ChatHandler) raidSay(sess *session.Session, player *entity.Player, text
 		return
 	}
 	if h.gmChatGate(sess, player, chatModeName(ChatModeGroup), text) {
-		h.groupChat(sess, player, text)
+		h.groupChat(sess, player, plainText(text))
 	}
 }
 

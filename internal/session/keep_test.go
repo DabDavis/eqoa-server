@@ -57,6 +57,7 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	s.SetNumberTags(true)
 	s.SetNPCTints(true)
 	s.SetMobInfo(true)
+	s.SetItemLinks(true)
 	s.SetDiscVersion(0x12)
 	s.OfferCapesOnce()
 	s.SetCapes(true)
@@ -102,6 +103,10 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	// client's details box, not a dialogue box
 	if !r.MobInfo() {
 		t.Fatal("the mob info's answer not kept")
+	}
+	// chat lines with links (handlers/itemlinks.go): still taken
+	if !r.ItemLinks() {
+		t.Fatal("the item links' answer not kept")
 	}
 	// the capes (handlers/capes.go): the client still draws them, and is not
 	// offered them again
@@ -192,6 +197,11 @@ func TestAKeptChannelGoesOutWholeAndNew(t *testing.T) {
 	// still takes the dialogue box
 	if r.MobInfo() {
 		t.Fatal("a session that never answered shows a monster's name in its details box")
+	}
+	// and for the item links' kept above: a client that never answered (a PS2)
+	// is still sent the retail lines
+	if r.ItemLinks() {
+		t.Fatal("a session that never answered takes chat lines with links")
 	}
 	rch := r.Connection().GetClientStatUpdate()
 	data, seq, ref := rch.GenerateXORDelta()

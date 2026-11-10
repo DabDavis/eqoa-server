@@ -82,6 +82,10 @@ type Snapshot struct {
 	// rolled back to read each other's) leaves every NPC as its row makes it.
 	NPCs    []entity.KeptNPC      `json:"npcs,omitempty"`
 	Corpses []handlers.KeptCorpse `json:"corpses,omitempty"`
+	// ItemLinks are the links in players' chat lines (handlers/itemlinks.go),
+	// so each still opens after the restart. A file without them leaves the
+	// links empty.
+	ItemLinks []handlers.KeptItemLink `json:"item_links,omitempty"`
 }
 
 // KeptSession is one session in a Snapshot: its connection, and with a
@@ -188,6 +192,7 @@ func (l *Listener) Snapshot(now time.Time) *Snapshot {
 		snap.NPCs = l.gameWorld.KeepNPCs()
 		snap.Corpses = handlers.KeepCorpses()
 	}
+	snap.ItemLinks = handlers.KeepItemLinks()
 	return snap
 }
 
@@ -294,8 +299,8 @@ func (l *Listener) KeepRestart(o KeepOptions) error {
 	if fi, err := os.Stat(o.File); err == nil {
 		size = fi.Size()
 	}
-	log.Printf("Keep: %d sessions (%d in the world, %d groups), %d NPCs off their rows' state and %d corpses opened written to %s (%d KB), %v after the signal",
-		len(snap.Sessions), in, len(snap.Groups), len(snap.NPCs), len(snap.Corpses), o.File, size/1024, time.Since(start).Round(time.Millisecond))
+	log.Printf("Keep: %d sessions (%d in the world, %d groups), %d NPCs off their rows' state, %d corpses opened and %d item links written to %s (%d KB), %v after the signal",
+		len(snap.Sessions), in, len(snap.Groups), len(snap.NPCs), len(snap.Corpses), len(snap.ItemLinks), o.File, size/1024, time.Since(start).Round(time.Millisecond))
 	if o.Hold != "" {
 		if _, err := os.Stat(o.Hold); err == nil {
 			if o.Saved != "" {
@@ -426,6 +431,10 @@ func (l *Listener) ResumeKept(snap *Snapshot, now time.Time) (resumed, told int)
 		corpses := handlers.RestoreCorpses(snap.Corpses)
 		log.Printf("Keep: of %d NPCs written, %s; %d of %d opened corpses as they were; in %v",
 			len(snap.NPCs), r, corpses, len(snap.Corpses), time.Since(start).Round(time.Millisecond))
+	}
+	// the links in players' chat lines, which still open
+	if len(snap.ItemLinks) > 0 {
+		log.Printf("Keep: %d of %d item links as they were", handlers.RestoreItemLinks(snap.ItemLinks), len(snap.ItemLinks))
 	}
 	for _, ks := range snap.Sessions {
 		sess, err := l.sessionManager.Resume(ks.Session)

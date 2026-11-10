@@ -12,6 +12,8 @@ import (
 	"sync"
 
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 	"github.com/eqoa/server/internal/worlds"
@@ -32,6 +34,16 @@ import (
 // served the file over /worlds/, which no live server does). Nothing of the
 // disc goes over the wire: a world is named by its zones (a world file of the
 // disc and an index) and checked by CRCs.
+//
+// A login is placed by what the client holds when its character is picked,
+// and building takes a client seconds, so a pick made meanwhile must wait or
+// the character starts in its mainland city for good. Almost no character
+// needs the wait: a client that took the offer is told which of its
+// characters do (protocol.OpcodeServerWorldsChars, loginServerWorld), before
+// the recipes and after every later character list, and holds only those
+// picks (petition 1468: a page held every one, 10 to 36 s a login). A client
+// whose pick went before the recipes were all in (the promotion empties the
+// lobby connection's queue) asks for them again in the world, with the same 1.
 
 // OpcodeServerWorldsData's first byte: version 1, a world named by its
 // zones; version 2, each zone followed by its extras (the disc's art placed
@@ -264,11 +276,119 @@ func serverWorldsMessage(body []byte) *protocol.Message {
 	return msg
 }
 
+// serverWorldsCharsVersion is OpcodeServerWorldsChars' first byte.
+const serverWorldsCharsVersion = 1
+
+// encodeServerWorldsChars is OpcodeServerWorldsChars' body: the version, a u8
+// count, then each character's ServerID (u32), at most 255.
+func encodeServerWorldsChars(ids []uint32) []byte {
+	if len(ids) > 255 {
+		ids = ids[:255]
+	}
+	b := make([]byte, 0, 2+4*len(ids))
+	b = append(b, serverWorldsCharsVersion, byte(len(ids)))
+	for _, id := range ids {
+		b = binary.LittleEndian.AppendUint32(b, id)
+	}
+	return b
+}
+
+// loginServerWorld is the server's own world a login of record starts in for
+// a client that holds it, and only for one: the character was saved there
+// (or stands there now, at) and the place is one a login resumes (resumable),
+// so loginSpawn keeps it there for a client that holds the world and puts it
+// on its race's mainland spot for one that does not. False for every other
+// character, whose login is placed the same whatever its client holds: one in
+// a world of the disc, one whose place there no login resumes, and one saved
+// in the arena's world, which starts beside the herald (arenaStart; gw nil:
+// no arena). The characters a client is told to hold its pick for
+// (OpcodeServerWorldsChars) are exactly these.
+func loginServerWorld(gw *entity.World, record *database.CharacterRecord) (uint8, bool) {
+	if record == nil || record.World < discWorlds || record.World >= WorldCount {
+		return 0, false
+	}
+	world := uint8(record.World)
+	if _, server := ServerWorld(world); !server {
+		return 0, false
+	}
+	if gw != nil {
+		if _, _, arena := arenaStart(gw, record); arena {
+			return 0, false
+		}
+	}
+	if _, resume := resumable(record, func(uint8) bool { return true }); !resume {
+		return 0, false
+	}
+	return world, true
+}
+
+// serverWorldChars are the characters among records a login needs one of the
+// server's worlds for (loginServerWorld), by ServerID: each by its row, or by
+// where it stands when it is still in the world (a dropped client's, another
+// window's: the login takes it over where it is, placeTakenOver).
+func (h *CharacterHandler) serverWorldChars(records []*database.CharacterRecord) []uint32 {
+	var ids []uint32
+	for _, c := range records {
+		if c == nil {
+			continue
+		}
+		at := *c
+		gw := h.gameWorld
+		if gw != nil {
+			if x, y, z, facing, world, live := gw.CharacterPlace(uint32(c.ServerID)); live {
+				// taken over as it stands: no start beside the herald for it
+				at.X, at.Y, at.Z, at.Facing, at.World = x, y, z, facing, int(world)
+				gw = nil
+			}
+		}
+		if _, needs := loginServerWorld(gw, &at); needs {
+			ids = append(ids, uint32(c.ServerID))
+		}
+	}
+	return ids
+}
+
+// sendServerWorldsChars tells a session that took the offer which of records
+// (its account's characters, as its list has them) a login needs the server's
+// worlds for (OpcodeServerWorldsChars); nothing to any other session.
+func (h *CharacterHandler) sendServerWorldsChars(sess *session.Session, records []*database.CharacterRecord) {
+	if !sess.ServerWorldsTaken() {
+		return
+	}
+	ids := h.serverWorldChars(records)
+	body := encodeServerWorldsChars(ids)
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeServerWorldsChars)
+	msg.SetData(append(binary.LittleEndian.AppendUint16(make([]byte, 0, 2+len(body)), uint16(protocol.OpcodeServerWorldsChars)), body...))
+	sess.Queue().AddWithSequence(msg)
+	log.Printf("ServerWorlds: %s told which of its %d characters need the server's own worlds: %v", sess.RemoteAddr(), len(records), ids)
+}
+
+// sendServerWorldsCharsOfAccount is sendServerWorldsChars for the characters
+// of sess's account, read as its character list reads them.
+func (h *CharacterHandler) sendServerWorldsCharsOfAccount(sess *session.Session) {
+	if h == nil || h.store == nil || sess.AccountID() <= 0 || !sess.ServerWorldsTaken() {
+		return
+	}
+	records, err := h.store.GetByAccountID(sess.AccountID())
+	if err != nil {
+		// said nothing: the client holds as it did before the server said
+		log.Printf("ServerWorlds: account %d's characters: %v", sess.AccountID(), err)
+		return
+	}
+	h.sendServerWorldsChars(sess, records)
+}
+
 // ServerWorldsHandler takes a client's answer to the offer, and what it holds.
-type ServerWorldsHandler struct{}
+type ServerWorldsHandler struct {
+	// chars reads the account's characters for OpcodeServerWorldsChars (nil:
+	// a test's, which says nothing of them)
+	chars *CharacterHandler
+}
 
 // NewServerWorldsHandler creates the server worlds' handler.
-func NewServerWorldsHandler() *ServerWorldsHandler { return &ServerWorldsHandler{} }
+func NewServerWorldsHandler(chars *CharacterHandler) *ServerWorldsHandler {
+	return &ServerWorldsHandler{chars: chars}
+}
 
 // RegisterHandlers registers it.
 func (h *ServerWorldsHandler) RegisterHandlers(r *Registry) {
@@ -277,7 +397,12 @@ func (h *ServerWorldsHandler) RegisterHandlers(r *Registry) {
 }
 
 // HandleOffer takes the client's answer: a u32, nonzero to be sent the
-// worlds (as they stand now), 0 nothing.
+// worlds (as they stand now), 0 nothing. A client still choosing is first
+// told which of its characters need them (OpcodeServerWorldsChars): the
+// recipes are seconds on the way, and a pick made meanwhile goes by that. One
+// already in the world (its pick went before the recipes were all in, and the
+// promotion emptied the queue they waited in) asks again and is sent the
+// recipes alone.
 func (h *ServerWorldsHandler) HandleOffer(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	if len(data) < 4 {
@@ -286,6 +411,10 @@ func (h *ServerWorldsHandler) HandleOffer(sess *session.Session, msg *protocol.M
 	}
 	if binary.LittleEndian.Uint32(data[:4]) == 0 {
 		return nil
+	}
+	sess.TakeServerWorlds()
+	if !sess.InGame() {
+		h.chars.sendServerWorldsCharsOfAccount(sess)
 	}
 	list := ServerWorldList()
 	body := encodeServerWorlds(list)

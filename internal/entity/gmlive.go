@@ -443,6 +443,20 @@ func (w *World) HealPlayer(serverID uint32) bool {
 	return true
 }
 
+// CharacterPlace is where a character (its serverid) stands while it has a
+// Player in the world (played, or left behind by a client that dropped), as
+// the Player holds it: the place a login that takes it over finds it in
+// (handlers' placeTakenOver). False for a character not in the world.
+func (w *World) CharacterPlace(serverID uint32) (x, y, z, facing float32, world uint8, ok bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p := w.playerByCharacterLocked(serverID)
+	if p == nil {
+		return 0, 0, 0, 0, 0, false
+	}
+	return p.X, p.Y, p.Z, p.Facing, p.World, true
+}
+
 // HasCharacter reports whether a character (its serverid) has a Player in
 // the world: played, or left behind by a client that dropped or quit in a
 // fight (linkdead.go) and not yet gone.

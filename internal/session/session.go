@@ -135,8 +135,13 @@ type Session struct {
 	creationOffered bool
 	// serverWorldsOffered: the offer of the server's own worlds went out
 	// (protocol.OpcodeServerWorlds, handlers/serverworlds.go), once a session;
-	// serverWorlds: those the client said it holds, built off its own disc.
+	// serverWorldsTaken: the client answered it 1 (it builds them), so it is
+	// told which of its characters a login needs them for
+	// (protocol.OpcodeServerWorldsChars) and its lists go out on the tick
+	// while it chooses; serverWorlds: those the client said it holds, built
+	// off its own disc.
 	serverWorldsOffered bool
+	serverWorldsTaken   bool
 	serverWorlds        []uint8
 
 	// capes: the client answered the cape offer 1 (protocol.OpcodeCapes,
@@ -539,6 +544,23 @@ func (s *Session) OfferServerWorldsOnce() bool {
 	first := !s.serverWorldsOffered
 	s.serverWorldsOffered = true
 	return first
+}
+
+// TakeServerWorlds records that the client took the offer of the server's
+// own worlds (it answered protocol.OpcodeServerWorlds 1: it builds them).
+func (s *Session) TakeServerWorlds() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.serverWorldsTaken = true
+}
+
+// ServerWorldsTaken is whether the client took the offer of the server's own
+// worlds. A client that never answered (a PS2, a page that cannot keep one)
+// did not.
+func (s *Session) ServerWorldsTaken() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.serverWorldsTaken
 }
 
 // SetServerWorlds records the server's own worlds the client said it holds

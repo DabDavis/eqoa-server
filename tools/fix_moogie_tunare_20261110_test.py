@@ -83,8 +83,11 @@ class FixMoogieTunareTest(unittest.TestCase):
         x("INSERT INTO npctemplate (name, template) VALUES ('mr moogie', 'mr moogie'), ('tunare', 'tunare'), ('innoruuk', 'innoruuk'), "
           "('rallos zek unbound', 'rallos zek unbound'), ('metal moogie', 'metal moogie')")
         x("INSERT INTO petstats (spellid, name, abilities) VALUES (?, 'Red Swarming Death', ?)", (fm.RSD_SPELL, json.dumps(fm.RSD_ABILITIES)))
-        x("INSERT INTO spellpattern (spellid, abilitylvl, unk2, unk3, range, casttime, power, iconColor, icon, scope, recast, eqprequire, "
-          "spellname, spelldesc) VALUES (?, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 'Largesse of Plague', '')", (fm.LARGESSE,))
+        for sid, name in ((fm.LARGESSE, "Largesse of Plague"), (fm.VEIL_SPELL, "Veil of Death")):
+            x("INSERT INTO spellpattern (spellid, abilitylvl, unk2, unk3, range, casttime, power, iconColor, icon, scope, recast, eqprequire, "
+              "spellname, spelldesc) VALUES (?, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ?, '')", (sid, name))
+        x(schema("spelleffect"))
+        x("INSERT INTO spelleffect (spellid, line, fxdict, source) VALUES (?, 'Self, Proc', ?, 'test')", (fm.VEIL_SPELL, -205483512))  # 0xF3C09208, kept signed as the tables keep a DictID
         db.close()
 
     def run_tool(self, *args):
@@ -124,6 +127,7 @@ class FixMoogieTunareTest(unittest.TestCase):
         inno = self.template("innoruuk")
         kit = json.loads(inno["abilities"])
         self.assertEqual([a["kind"] for a in kit], ["meleekind", "meleekind", "dot", "nuke", "lifetap", "proc", "veil"])
+        self.assertEqual(kit[-1].get("fx"), 0xF3C09208, "Veil of Death's own visual on his veil")
         self.assertEqual((inno["proc_chance"], inno["proc_damage"], inno["proc_name"], inno["proc_resist"]), (25, 250, "Swarming Sting", "AR"))
         self.assertEqual((inno["hp_pct"], inno["special"], inno["special_damage"]), (2646, "Crit", 100.0), "his hit points and crit kept")
         db = self.db()

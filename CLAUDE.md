@@ -503,7 +503,7 @@ Servants at 25% and the enrage at 10% (lines of his: "Servants of the jungle, to
 jungle does not fall!"); `tunare`'s Renewal first (100% below 20%, every and cooldown 1800 s); `innoruuk`'s four casts
 (905145-905148) out for the Red Swarming Death's kit (petstats 700823: Swarming Plague kept up, Swarming Harm Touch,
 Swarming Leech; `pet swarming death`'s Swarming Sting as his template's proc), Largesse of Plague (700794) always, Veil of
-Death, his meleekinds, crit and hit points kept (the tool prints his hit points against Rallos Zek Unbound's); the
+Death (901430's visual when its record has one), his meleekinds, crit and hit points kept (the tool prints his hit points against Rallos Zek Unbound's); the
 Servant of Moogie, spawn-only, his body at half his size, level 65, never attacking on sight (`npcaggro`); Metal Moogie
 V2 (below). Templates, NPCs and their spawn-only, aggro and item rows are read at the server's start (a GM panel template
 edit or `reload_npcs` reads templates again at once): run it as the `before.sh` of the keep restart that brings this code.

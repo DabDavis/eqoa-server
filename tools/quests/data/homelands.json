@@ -1055,96 +1055,571 @@
       "notes": "Ours: the gatekeeper's port to Highbourne, the Jal'Raeth's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
     },
     {
-      "key": "homelands/aviak/welcome",
-      "name": "A Fledgling's Welcome",
+      "key": "homelands/aviak/L1",
+      "name": "A Fledgling's Wingband",
       "giver": "Elder Kraawk",
       "classes": [],
-      "races": [],
+      "races": [
+        14
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "Another fledgling, fresh from the egg! Before you take wing, every young one of the Roost greets our grocer, Skreel, by the market nests. She will see you do not fly hungry.",
-      "accept": "I will greet her.",
+      "offer": "Another fledgling, fresh from the egg! Every young one of the Roost wears a wingband before its first hunt, so the sentinels know it for ours.\nWeaver Tikkri knots them from reed and down. Her loom is a short hop north-west of here.\nWill you fetch your wingband and show it to me?",
+      "accept": "I will fetch it.",
       "decline": "Not now.",
       "declined": "The Roost will wait for you, little one.",
-      "started": "Go on, then. Skreel keeps the nests to the east.",
+      "started": "Go on, then. Tikkri's loom is just north-west of here.",
       "steps": [
         {
           "kind": "talk",
-          "target": "Grocer Skreel",
-          "journal": "Greet Grocer Skreel by the Roost's market nests.",
-          "says": "The elder sent you? Then take this for the road, fledgling.",
+          "target": "Weaver Tikkri",
+          "journal": "Ask Weaver Tikkri, north-west of Elder Kraawk, for a fledgling's wingband.",
+          "says": "The elder sent you? Hold out your wing. There: reed for strength, down for luck. No charge for a fledgling.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "fledgling's wingband",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "show",
+          "target": "Elder Kraawk",
+          "items": [
+            {
+              "item": "fledgling's wingband",
+              "count": 1
+            }
+          ],
+          "journal": "Show the fledgling's wingband to Elder Kraawk.",
+          "says": "It sits well on you. Wear it, and the Roost will always know its own.",
           "rewards": {
-            "items": [
-              "dried beef"
-            ]
+            "xp": 430
           }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 1
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the aviak's level 1, at Aviak Village, on the cities' level 1 quest: a piece of equipment fetched from a merchant and shown to the giver. Finishing it finishes the character's own city class quest of level 1 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L2",
+      "name": "Bound to the Roost",
+      "giver": "Elder Kraawk",
+      "classes": [],
+      "races": [
+        14
+      ],
+      "minlevel": 2,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L1"
+      ],
+      "offer": "The winds carry fledglings far, and not always gently. Have Spiritmaster Kreeal bind your spirit to the Roost, so that you wake here if you fall.\nThen give your name to Coachman Harrek for his ledger. His coach runs to Freeport and to the other homes of the Homelands, for those their stables know.\nWill you see them both and come back to me?",
+      "accept": "I will see them both.",
+      "decline": "Not now.",
+      "declined": "Then fly low until you do.",
+      "started": "Kreeal keeps the spirit perch to the south-west. Harrek's stable is on the path south of here.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Spiritmaster Kreeal",
+          "journal": "Have Spiritmaster Kreeal, south-west of the elder, bind your spirit to the Roost.",
+          "says": "It is done. Should you fall, you will wake here among your own. Now go and give Coachman Harrek your name."
+        },
+        {
+          "kind": "talk",
+          "target": "Coachman Harrek",
+          "journal": "Give your name to Coachman Harrek, south of the elder, for his ledger.",
+          "says": "Welcome to my stable, fledgling. My coach runs to Freeport and to every other home of the Homelands, for travelers whose names their ledgers hold. Yours is in mine now."
         },
         {
           "kind": "talk",
           "target": "Elder Kraawk",
           "journal": "Return to Elder Kraawk.",
-          "says": "Good. Now you know where to find your food, and Skreel knows your face.",
+          "says": "Good. Now you will always find your way back to us.\nHarrek's coach will carry you to Freeport if its ledger knows you, but the flight to Halas is earned. Huntmaster Arrok, beside me, has work for you.",
           "rewards": {
-            "xp": 200,
-            "tunar": 10
+            "xp": 2200
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 2
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours (the Homelands' starter quests, 2026-11-08): the aviaks' first, at their home zone, Aviak Village of the disc."
+      "notes": "Ours (the Homelands' starter quests): the aviak's level 2, at Aviak Village, on the cities' level 2 quest: the spiritmaster's bind and the coachman's ledger. Finishing it finishes the character's own city class quest of level 2 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
     },
     {
-      "key": "homelands/aviak/rats",
+      "key": "homelands/aviak/L3",
       "name": "Rats Among the Seed",
-      "giver": "Grocer Skreel",
+      "giver": "Huntmaster Arrok",
       "classes": [],
-      "races": [],
-      "minlevel": 1,
+      "races": [
+        14
+      ],
+      "minlevel": 3,
       "maxlevel": 60,
       "requires": [
-        "homelands/aviak/welcome"
+        "homelands/aviak/L2"
       ],
-      "offer": "Scrub rats have been at the seed stores again. Thin them out for me: five of them, out on the grass south of the nests.",
+      "offer": "So you are the new fledgling. Good. Scrub rats are into the seed stores again, and the grocer is squawking.\nHunt them on the grass north of the Roost and bring me three of their tails. Then I will teach you something worth knowing.\nWill you hunt them?",
       "accept": "I will hunt them.",
       "decline": "Not now.",
       "declined": "Then the rats eat well tonight.",
-      "started": "Five of them. Mind their teeth.",
+      "started": "Three tails. Mind their teeth.",
       "steps": [
         {
-          "kind": "kill",
+          "kind": "loot",
           "target": "scrub rat",
-          "count": 5,
-          "journal": "Kill five scrub rats on the grass south of the Roost."
+          "items": [
+            {
+              "item": "scrub rat tail",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three scrub rat tails from the scrub rats on the grass north of the Roost."
         },
         {
-          "kind": "talk",
-          "target": "Grocer Skreel",
-          "journal": "Tell Grocer Skreel the rats are dealt with.",
-          "says": "Five fewer thieves at the seed. Thank you, fledgling!",
+          "kind": "give",
+          "target": "Huntmaster Arrok",
+          "items": [
+            {
+              "item": "scrub rat tail",
+              "count": 3
+            }
+          ],
+          "journal": "Bring three scrub rat tails to Huntmaster Arrok.",
+          "says": "Three tails, and all your feathers still in place. You can fight. Now watch closely, and learn this.",
           "rewards": {
-            "xp": 400,
-            "tunar": 25
+            "xp": 6900,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Swift Blade"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Hero Guard"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Malice"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Chant of Battle"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Sneak"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Fiery Burst"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Tribal Toughness"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Minor Blessing"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Smoldering Aura"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Life Tap"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Crawling Skin"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Arcane Bindings"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Hardening Agent"
+                ]
+              }
+            }
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 3
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours: the aviaks' second starter quest; the rats are tools/seed_race_homes.py's, passive (npcaggro)."
+      "notes": "Ours (the Homelands' starter quests): the aviak's level 3, at Aviak Village, on the cities' level 3 quest: a hunt for drops; each class is taught what its own city's level 3 quest teaches it. Finishing it finishes the character's own city class quest of level 3 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L4",
+      "name": "A Fledgling's Arms",
+      "giver": "Huntmaster Arrok",
+      "classes": [],
+      "races": [
+        14
+      ],
+      "minlevel": 4,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L3"
+      ],
+      "offer": "Bare talons will not serve you in the north. I will make you proper gear, but you will fetch what I need.\nWeaver Tikkri has leather and a good shaft for me. Then take a stinger from the brush wasps on the hill west of the Roost.\nWill you bring me all three?",
+      "accept": "I will bring them.",
+      "decline": "Not now.",
+      "declined": "Then keep to your talons, and to the nest.",
+      "started": "Leather and a shaft from Tikkri, a stinger from the wasps. Go.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Weaver Tikkri",
+          "journal": "Ask Weaver Tikkri for the leather strip and the wooden shaft.",
+          "says": "For Arrok? Here, a strip of leather and a straight shaft. Tell him he owes me a rat pelt.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "leather strip",
+                  "count": 1
+                },
+                {
+                  "item": "wooden shaft",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "loot",
+          "target": "brush wasp",
+          "items": [
+            {
+              "item": "brush wasp stinger",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 0.5,
+          "journal": "Take a brush wasp stinger from the brush wasps on the hill west of the Roost."
+        },
+        {
+          "kind": "give",
+          "target": "Huntmaster Arrok",
+          "items": [
+            {
+              "item": "leather strip",
+              "count": 1
+            },
+            {
+              "item": "wooden shaft",
+              "count": 1
+            },
+            {
+              "item": "brush wasp stinger",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the leather strip, the wooden shaft and the brush wasp stinger to Huntmaster Arrok.",
+          "says": "All three. Give me a moment... there. It is yours: carry it well.",
+          "rewards": {
+            "xp": 17000,
+            "byclass": {
+              "0": {
+                "items": [
+                  "militia short sword"
+                ]
+              },
+              "1": {
+                "items": [
+                  "Glade Crafted Longbow"
+                ]
+              },
+              "2": {
+                "items": [
+                  "Sword of Faith"
+                ]
+              },
+              "3": {
+                "items": [
+                  "Iron Hatchet"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Disciple's Jitte"
+                ]
+              },
+              "5": {
+                "items": [
+                  "Traveler's Rapier"
+                ]
+              },
+              "6": {
+                "items": [
+                  "tiger dirk"
+                ]
+              },
+              "7": {
+                "items": [
+                  "crafted glade staff"
+                ]
+              },
+              "8": {
+                "items": [
+                  "Corse Spiked Club"
+                ]
+              },
+              "9": {
+                "items": [
+                  "Acolyte's Hammer"
+                ]
+              },
+              "10": {
+                "items": [
+                  "blue robe"
+                ]
+              },
+              "11": {
+                "items": [
+                  "Black Robe of the Order"
+                ]
+              },
+              "12": {
+                "items": [
+                  "yellow robe"
+                ]
+              },
+              "13": {
+                "items": [
+                  "red robe"
+                ]
+              },
+              "14": {
+                "items": [
+                  "burnt gloves"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 4
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the aviak's level 4, at Aviak Village, on the cities' level 4 quest: new gear of a merchant's materials and a drop; each class is given what its own city's level 4 quest gives it (class-rewards.json has the two classes the cities give nothing). Finishing it finishes the character's own city class quest of level 4 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L5",
+      "name": "Old Razortusk",
+      "giver": "Huntmaster Arrok",
+      "classes": [],
+      "races": [
+        14
+      ],
+      "minlevel": 5,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L4"
+      ],
+      "offer": "One task more before the winds take you north. An old boar we call Razortusk has gored two of our foragers on the east rise.\nHe is mean and he is quick, so strike first. Bring me his tusk, and I will teach you the last thing I have for a fledgling.\nWill you hunt Razortusk?",
+      "accept": "I will hunt him.",
+      "decline": "Not yet.",
+      "declined": "He will not grow gentler while you wait.",
+      "started": "East, up the rise past the market nests. Do not let him get behind you.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "Razortusk",
+          "items": [
+            {
+              "item": "Razortusk's tusk",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 1.0,
+          "journal": "Take Razortusk's tusk from the old boar Razortusk on the rise east of the Roost."
+        },
+        {
+          "kind": "give",
+          "target": "Huntmaster Arrok",
+          "items": [
+            {
+              "item": "Razortusk's tusk",
+              "count": 1
+            }
+          ],
+          "journal": "Bring Razortusk's tusk to Huntmaster Arrok.",
+          "says": "Razortusk's own tusk! The foragers will sleep easier. You are a fledgling no longer.\nLearn this, and see Gatekeeper Windwhistle when you are ready to fly north.",
+          "rewards": {
+            "xp": 36500,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Taunt"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Forage Berries"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Lay Hands"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Harm Touch"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Minor Purity"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Funeral March"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Shadowstrike"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Snare"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Blighting Mist"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Holy Shock"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Motivate"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Rabid Infection"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Heavy Arms"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Shock of Frost"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Refinement"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 5
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the aviak's level 5, at Aviak Village, on the cities' level 5 quest: a foe to bring down; each class is taught what its own city's level 5 quest teaches it. Finishing it finishes the character's own city class quest of level 5 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
     },
     {
       "key": "homelands/aviak/flight",
       "name": "The Long Flight",
       "giver": "Gatekeeper Windwhistle",
       "classes": [],
-      "races": [],
+      "races": [
+        14
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [
-        "homelands/aviak/welcome",
-        "homelands/aviak/rats"
+        "homelands/aviak/L1",
+        "homelands/aviak/L2",
+        "homelands/aviak/L3",
+        "homelands/aviak/L4",
+        "homelands/aviak/L5"
       ],
       "repeatable": true,
-      "offer": "The winds are fair for the north, fledgling. The barbarians of Halas fight the giants beside us, and they will train you as their own. When you are ready, I will send you to them. Shall I?",
+      "offer": "The winds are fair for the north. The barbarians of Halas fight the giants beside us, and they will train you as their own.\nYou have earned the long flight, fledgling. I will set you down among your own guild in Halas, and your spirit will rest there.\nShall I send you north?",
       "accept": "Send me north.",
       "decline": "Not yet.",
       "declined": "The winds will wait for you.",
@@ -1169,7 +1644,7 @@
         }
       ],
       "unresolved": [],
-      "notes": "Ours: the gatekeeper's port to Halas, the aviak's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a fledgling back in the Roost is sent again; no reward, so none is had twice."
+      "notes": "Ours: the gatekeeper's port to Halas, the aviak's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json."
     },
     {
       "key": "homelands/goblin/welcome",
@@ -2459,5 +2934,38 @@
       "notes": "Ours: the gatekeeper's port to Qeynos (its rangers and druids Surefall Glade), the wisp's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a wisp back in West Feerrott is sent again; no reward, so none is had twice."
     }
   ],
-  "items": []
+  "items": [
+    {
+      "name": "fledgling's wingband",
+      "description": "A band of knotted reed and down. Every fledgling of the Roost wears one on its wing.",
+      "notrade": true,
+      "like": "Tattered Bracers",
+      "set": {
+        "AC": 4,
+        "classuse": 32767,
+        "raceuse": 1023,
+        "levelreq": 1,
+        "itemcost": 0,
+        "maxhp": 500
+      }
+    },
+    {
+      "name": "scrub rat tail",
+      "description": "The tail of a scrub rat from the grass north of the Roost.",
+      "notrade": true,
+      "like": "Rat Tail Tip"
+    },
+    {
+      "name": "brush wasp stinger",
+      "description": "The stinger of a brush wasp from the hill west of the Roost.",
+      "notrade": true,
+      "like": "Zapper Stinger"
+    },
+    {
+      "name": "Razortusk's tusk",
+      "description": "The chipped tusk of the old boar Razortusk.",
+      "notrade": true,
+      "like": "plagueswine tusk"
+    }
+  ]
 }

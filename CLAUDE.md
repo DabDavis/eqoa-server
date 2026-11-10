@@ -663,6 +663,31 @@ offers a trip to it (a GM's own list has it); `interact.go`'s `warpRoutes` keeps
 people's own words are npcdialog rows of their names (the recipe's `lines`). `tools/seed_race_homes_test.py` holds
 the real recipe to its zones' cells. `tools/import_quests.py --undo` takes back every import, not one file: the
 homes' quests come out by the import's own copy of the database, made before it writes.
+**The homes' starter quests are the cities' template** (the owner, 2026-11-10: "the first quests should be a piece
+of equipment(not wep), 2nd quest spiritmaster and coachman. 3rd kill a mob, etc. follow the same template as the other
+main race quests"; `tools/quests/homelands/README.md` is the guide and the per-home checklist). `tools/quests/
+gen_homelands.py` writes `tools/quests/data/homelands.json` (never edited by hand) from one spec a race
+(`tools/quests/homelands/<race>.json`: names and words) and one table of class rewards (`class-rewards.json`, read off
+the live cities' rows): `homelands/<race>/L1`..`L5` at levels 1-5 with the cities' experience (a piece of equipment
+from a merchant, shown; the spiritmaster and the coachman; drops for the class's level 3 ability; materials and a drop
+for its level 4 weapon; a named foe for its level 5 ability), then the gatekeeper's `flight` after all five; a race
+with no spec keeps its legacy three (`legacy.json`). Three engine rules carry it: **a quest's `races` of 11 and up
+name a race of racedefs by its own id** (0-10 are asked of the wire race as before: `questRaceTakes`), so a home's
+chain is its people's alone; **a `classquest` event** (a quest's, on finish, with `level`) finishes every city class
+quest of that level the character could take (key `1-20/<city>/<class>/L<level>` off `quests.source`, its class, its
+wire race; one it has a row in is left), silently, so the mainland's guildmaster goes on at level 7; and **a show step
+counts what is worn** as well as what is carried (every city's level 1 gift too). The importer's made items take a
+`set` (a gift's own figures). `tools/seed_race_homes.py` knows `optional` people (the homes' `Spell Archivist`, left
+out where the database has none), `hostile` rules, keeps an `npcaggro` row that is there, refuses a creature's name
+NPCs of another world bear, and lays the recipe out (`--format`); `tools/retire_quests.py` takes out the quests a
+content file dropped (the homes' old welcome and hunt), exact `--undo`. `tools/homes_flown.py` marks the five finished for a character whose flight was finished under the old two (it keeps its passage, is offered no fledgling's quest, and gets nothing), exact `--undo`; a home's data update over a seeding that is there is undo, apply, import, retire, flown, in a keep restart's `before.sh` (2 s on the live database's copy, once the seeding and the import stopped scanning `npcs` and digesting every quest). **A home's coachman keeps a stable**
+(`entity/coachhomes.go`; the owner: "the coach will connect to freeport and the other homeland areas"): his town is his
+home's zone name off the built recipe (`handlers.SetServerWorlds`; "Gerntar Mines (the Homelands)" where a coach town
+of the game has the name), his coach runs to Freeport and every other home and Freeport's to every home, by the
+stables' own rules (the talk signs the ledger, a ride only to a signed town, the every-ledger offer takes the homes
+in), offered only to a client that said it built the world (`holdsWorld`). The gatekeepers stay off every network.
+**In the game +x is east and +z is SOUTH** (north is toward smaller z): a quest's directions are checked against the
+client's compass, and `gen_homelands_test.py` holds each journal's to the recipe.
 **Extras** (`internal/worlds/extras.go`, 2026-11-10): a recipe zone's `extras` place the disc's art in it as
 actors of its own (`{"sprite": "0x7FFD2E87", "from": "ODUS.ESF", "zone": 10, "at": [x, y, z], "hpr": [h, p, r],
 "scale": 6.5, "color": [r, g, b, a]}`; `from`/`zone` only when the zone does not hold the art itself), each a

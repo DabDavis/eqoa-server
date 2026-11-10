@@ -95,11 +95,26 @@ func (h *InteractHandler) signLedger(sess *session.Session, player *entity.Playe
 // it offers nothing, what he says instead (none; "" for a coachman who has
 // nothing to say, as before: no other coach in his world); every is whether
 // he offers to sign every ledger at once (the player has not, and is no GM).
+// A stable in a world the client does not hold is offered to no one (a race's
+// home, entity/coachhomes.go: holdsWorld), and a coachman of a server's world
+// that is no home's runs no coach.
 func (h *InteractHandler) coachDests(sess *session.Session, player *entity.Player, npc *entity.NPC) (dests []entity.CoachDest, none string, every bool) {
-	all := h.gameWorld.GetCoachDestinations(npc.Name, npc.World)
 	town, named := entity.CoachTown(npc)
-	// a network's neighbours may stand in another world (Oggok's Dark Solace)
-	runs, routed := entity.CoachMenu(town, named, h.gameWorld.GetCoachDestinationsEveryWorld(npc.Name))
+	if entity.Composed(npc.World) && !named {
+		return nil, "", false
+	}
+	held := func(in []entity.CoachDest) []entity.CoachDest {
+		out := in[:0:0]
+		for _, d := range in {
+			if holdsWorld(sess, d.World) {
+				out = append(out, d)
+			}
+		}
+		return out
+	}
+	all := held(h.gameWorld.GetCoachDestinations(npc.Name, npc.World))
+	// a network's neighbours may stand in another world (Oggok's Dark Solace, a race's home)
+	runs, routed := entity.CoachMenu(town, named, held(h.gameWorld.GetCoachDestinationsEveryWorld(npc.Name)))
 	if !routed {
 		return all, "", false
 	}
@@ -121,12 +136,19 @@ func (h *InteractHandler) coachDests(sess *session.Session, player *entity.Playe
 	} else if player.CharServerID != 0 {
 		every = len(unsignedLedgers(signed)) > 0
 	}
+	// the towns his coach runs to, for what he says when none is signed: the
+	// races' homes together by their world's name ("the Homelands"), not one
+	// by one (twenty-one of them)
 	var towns []string
 	seen := map[string]bool{}
 	for _, d := range runs {
-		if !seen[d.Name] {
-			seen[d.Name] = true
-			towns = append(towns, d.Name)
+		said := d.Name
+		if w, home := entity.CoachHomeWorld(d.Name); home && w != "" {
+			said = w
+		}
+		if !seen[said] {
+			seen[said] = true
+			towns = append(towns, said)
 		}
 		if signed[d.Name] {
 			dests = append(dests, d)
@@ -164,6 +186,16 @@ func (h *InteractHandler) coachMenu(sess *session.Session, player *entity.Player
 	player.CoachPage = 0
 	h.sendCoachPage(sess, player)
 	return true
+}
+
+// holdsWorld is whether sess's client can be sent to a stable of world: any
+// world it can load (LoadableWorlds), and one of the server's own only when it
+// said it built it (a July S2's table has every slot, and nothing in them).
+func holdsWorld(sess *session.Session, world uint8) bool {
+	if _, own := ServerWorld(world); own || entity.Composed(world) {
+		return sess != nil && holds(sess.ServerWorlds(), world)
+	}
+	return LoadableWorlds(sess)(world)
 }
 
 // The words of the offer to sign every ledger at once. everyLedgerOption is

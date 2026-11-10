@@ -71,6 +71,25 @@ func SetServerWorlds(built []worlds.Built) {
 	serverWorldsMu.Lock()
 	serverWorlds = m
 	serverWorldsMu.Unlock()
+	entity.SetCoachHomes(coachHomesOf(built))
+}
+
+// coachHomesOf is the races' homes of the server's own worlds, for their
+// stables (entity/coachhomes.go): each zone a recipe gives a race, by its name
+// and its ground as built.
+func coachHomesOf(built []worlds.Built) []entity.CoachHome {
+	var out []entity.CoachHome
+	for _, b := range built {
+		for i, z := range b.Zones {
+			if z.Race == 0 || i >= len(b.Parts) {
+				continue
+			}
+			box := b.Parts[i].Box
+			out = append(out, entity.CoachHome{World: uint8(b.World), WorldName: b.Name, Zone: z.Name,
+				MinX: box[0], MinZ: box[2], MaxX: box[3], MaxZ: box[5]})
+		}
+	}
+	return out
 }
 
 // ServerWorld is the server's own world in slot world, when it has one.

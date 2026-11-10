@@ -11,7 +11,10 @@ the people's own words (npcdialog by name, the table made where the server
 never ran and dropped again at the undo); a second apply is refused; undo puts
 every table back as it was, row for row (the AUTOINCREMENT counters move on,
 as any delete leaves them). Lines for no one of the home, and wares from a
-seller of nothing, are refused.
+seller of nothing, are refused. A name with an npcaggro row already (a GM's)
+keeps it; a hostile name gets a rule of aggressive 1; an optional person whose
+like or whose wares' seller the database lacks is left out; a foe named as
+NPCs of another world are is refused; --format lays the recipe file out again.
 
     python3 tools/seed_race_homes_test.py
 """
@@ -105,7 +108,10 @@ class SeedRaceHomes(unittest.TestCase):
             rat = db.execute("SELECT world, modelid, primary_weapon, size, npc_level, npc_type FROM npcs WHERE npc_name = 'scrub rat'").fetchone()
             self.assertEqual(rat, (10, 0x9E004757, 0, 0.8, 1, 0))
             self.assertEqual(db.execute("SELECT patternid FROM npcitem WHERE npcid = ? ORDER BY listnumber", (elder[0],)).fetchall(), [(11,), (12,)])
-            self.assertEqual(db.execute("SELECT npc_name, aggressive FROM npcaggro ORDER BY npc_name").fetchall(), [("Elder", 0), ("scrub rat", 0)])
+            self.assertEqual(db.execute("SELECT npc_name, aggressive, radius, source FROM npcaggro ORDER BY npc_name").fetchall(),
+                             [("Elder", 1, 30.0, "gm"), ("scrub rat", 0, 0.0, "racehomes")],
+                             "a rule that was there (a GM's Elder) is kept as it is; the rats' is the homes'")
+            self.assertIn("kept as it is", [st for st in steps if st[0] == "skip"][0][4])
             self.assertEqual(db.execute("SELECT name, line, weight, source, town, role, race FROM npcdialog ORDER BY id").fetchall(),
                              [("Elder", "Welcome, %r.", 1, "racehomes", "", "", -1), ("Elder", "Fly well.", 1, "racehomes", "", "", -1)])
             with self.assertRaises(SystemExit):
@@ -146,6 +152,75 @@ class SeedRaceHomes(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 srh.plan(db, RECIPE)
 
+    def test_a_hostile_foe_an_optional_person_and_a_name_of_its_own(self):
+        import copy
+        with tempfile.TemporaryDirectory() as d:
+            db = make_db(os.path.join(d, "t.db"))
+            before = self.rows(db)
+            r = copy.deepcopy(RECIPE)
+            home = r["zones"][0]["home"]
+            home["npcs"] += [
+                {"name": "Razortusk", "body": "0x9E004757", "level": 5, "role": "foe", "at": [160.0, 40.0, 160.0]},
+                # optional, and here: placed, a merchant of the seller's wares
+                {"name": "Spell Archivist", "like": "aviak", "role": "talker", "at": [101.0, 50.0, 205.0], "stock": "Merchant",
+                 "optional": True},
+                # optional, and this database has no such seller, no such row to copy: left out, and said
+                {"name": "Loremaster", "like": "aviak", "role": "talker", "at": [102.0, 50.0, 205.0], "stock": "Spell Archivist",
+                 "optional": True},
+                {"name": "Ghost", "like": "no such row", "role": "talker", "at": [103.0, 50.0, 205.0], "optional": True},
+            ]
+            home["hostile"] = ["Razortusk"]
+            steps = srh.plan(db, r)
+            skipped = [st[4] for st in steps if st[0] == "skip"]
+            self.assertEqual(len(skipped), 3, skipped)   # the Loremaster, the Ghost, and the GM's Elder rule kept
+            self.assertTrue(any("Loremaster" in x and "no NPC 'Spell Archivist'" in x for x in skipped), skipped)
+            self.assertTrue(any("Ghost" in x and "no npcs row like" in x for x in skipped), skipped)
+            srh.apply(db, steps)
+            self.assertEqual(db.execute("SELECT aggressive, source FROM npcaggro WHERE npc_name = 'Razortusk'").fetchone(), (1, "racehomes"))
+            arch = db.execute("SELECT id, npc_type FROM npcs WHERE npc_name = 'Spell Archivist'").fetchone()
+            self.assertEqual(arch[1], 129)
+            self.assertEqual(db.execute("SELECT count(*) FROM npcitem WHERE npcid = ?", (arch[0],)).fetchone()[0], 2)
+            self.assertEqual(db.execute("SELECT count(*) FROM npcs WHERE npc_name IN ('Loremaster', 'Ghost')").fetchone()[0], 0)
+            srh.undo(db)
+            self.assertEqual(self.rows(db), before, "undo is exact")
+            # the controls: not optional, the same lacks are refusals; a rule for no one of the home; both rules for one
+            for npc in ({"name": "Loremaster", "like": "aviak", "role": "talker", "at": [1.0, 2.0, 3.0], "stock": "Spell Archivist"},
+                        {"name": "Ghost", "like": "no such row", "role": "talker", "at": [1.0, 2.0, 3.0]}):
+                bad = copy.deepcopy(RECIPE)
+                bad["zones"][0]["home"]["npcs"].append(npc)
+                with self.assertRaises(SystemExit):
+                    srh.plan(db, bad)
+            bad = copy.deepcopy(RECIPE)
+            bad["zones"][0]["home"]["hostile"] = ["Nobody"]
+            with self.assertRaises(SystemExit):
+                srh.plan(db, bad)
+            bad = copy.deepcopy(RECIPE)
+            bad["zones"][0]["home"]["hostile"] = ["scrub rat"]
+            with self.assertRaises(SystemExit):
+                srh.plan(db, bad)
+            # a foe named as a creature of another world is: refused (npcaggro and a quest's kill go by name)
+            bad = copy.deepcopy(RECIPE)
+            bad["zones"][0]["home"]["npcs"][1]["name"] = "Grave Rat"
+            bad["zones"][0]["home"]["peaceful"] = ["Grave Rat", "Elder"]
+            with self.assertRaises(SystemExit) as e:
+                srh.plan(db, bad)
+            self.assertIn("a name of its own", str(e.exception))
+
+    def test_a_seller_of_the_home_is_no_source_of_wares(self):
+        # a second seeding after an undo: the Spell Archivist's wares are the other world's seller's, whatever stands in the home
+        with tempfile.TemporaryDirectory() as d:
+            db = make_db(os.path.join(d, "t.db"))
+            db.execute("""INSERT INTO npcs (npc_name, x_coord, y_coord, z_coord, facing, world, modelid, size, race, npc_level, npc_type, npc_id)
+                VALUES ('Merchant', 9, 9, 9, 0, 10, 1, 1.0, '0', 20, 129, 4)""")   # a seller of the name in the recipe's world, no wares
+            steps = srh.plan(db, RECIPE)
+            elder = [st for st in steps if st[0] == "npc" and st[3]["row"]["npc_name"] == "Elder"][0]
+            self.assertEqual([it["patternid"] for it in elder[3]["stock"]], [11, 12])
+
+    def test_the_recipe_file_is_laid_out_as_format_writes_it(self):
+        text = open(srh.DEFAULT_HOMES).read()
+        self.assertEqual(srh.format_recipe(json.loads(text)), text, "tools/seed_race_homes.py --format lays it out again")
+        self.assertIn('  "extraFiles": ["homelands-edges.json"],\n', text)
+
     def rows_of(self, dumped, d):
         db = sqlite3.connect(os.path.join(d, "before.db"))
         db.executescript(dumped)
@@ -177,6 +252,25 @@ class TheRecipe(unittest.TestCase):
     of a home is placed in another's), its peaceful names are its foes', and its gatekeeper flies the player to
     its mainland and binds it there. Zones whose cell this table lacks are held to their notes' "cell c,r"."""
 
+    def test_a_homes_travel_people_are_named_once(self):
+        # a coachman is his stable (the coach menus and the ledgers go by his town, his menu by his name), a
+        # gatekeeper his flight: no two homes share one's name, and the homes' zone names (the stables' towns) differ
+        with open(srh.DEFAULT_HOMES) as f:
+            recipe = json.load(f)
+        seen, zones = {}, set()
+        for z in recipe["zones"]:
+            if not z.get("home"):
+                continue
+            self.assertNotIn(z["name"], zones, f"two homes are named {z['name']}")
+            zones.add(z["name"])
+            for n in z["home"]["npcs"]:
+                if n["name"].startswith(("Coachman ", "Coachwoman ", "Gatekeeper ", "Spiritmaster ")):
+                    self.assertIn(seen.setdefault(n["name"], z["name"]), (z["name"],), f"{n['name']} stands in two homes")
+            coaches = [n for n in z["home"]["npcs"] if n["name"].startswith(("Coachman ", "Coachwoman "))]
+            self.assertLessEqual(len(coaches), 1, f"{z['name']}: one stable a home")
+            for n in coaches:
+                self.assertNotIn(n["name"], z["home"].get("lines", {}), f"{n['name']} opens his menu: he says no lines")
+
     def test_homes_stand_in_their_zones(self):
         recipe = json.load(open(srh.DEFAULT_HOMES))
         quests = json.load(open(os.path.join(HERE, "quests", "data", "homelands.json")))["quests"]
@@ -197,6 +291,12 @@ class TheRecipe(unittest.TestCase):
                 self.assertEqual((int(x // 2000), int(zz // 2000)), cell, f"{z['name']}: {who} at ({x}, {zz}) is outside cell {cell}")
             foes = {n["name"] for n in h["npcs"] if n.get("role") == "foe"}
             self.assertTrue(set(h.get("peaceful", [])) <= foes, f"{z['name']}: a peaceful name that is none of its foes")
+            self.assertTrue(set(h.get("hostile", [])) <= foes, f"{z['name']}: a hostile name that is none of its foes")
+            self.assertFalse(set(h.get("hostile", [])) & set(h.get("peaceful", [])), f"{z['name']}: a name both peaceful and hostile")
+            # a home's every creature has a rule: wildlife of level 5 and under attacks no one, and anything else
+            # (a body that is no player's, outside the towns) attacks on sight: which it is is the home's to say
+            self.assertEqual(foes, set(h.get("peaceful", [])) | set(h.get("hostile", [])),
+                             f"{z['name']}: each creature is peaceful or hostile, by name")
             gates = [n["name"] for n in h["npcs"] if n["name"].startswith("Gatekeeper ")]
             self.assertEqual(len(gates), 1, f"{z['name']}: one gatekeeper")
             flights = [q for q in quests if q["giver"] == gates[0] and any(

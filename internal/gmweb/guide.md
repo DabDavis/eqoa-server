@@ -123,7 +123,7 @@ beside it):
 | `charmastery` | each character's mastery points: `points` unspent, `spent`, `percent` of experience going to them, `xp` toward the next | `serverid` |
 | `spellfx_suggestions` | the players' suggestions of a spell's visual, from the public spell-visual page: `fxdict`, the sender's `name`/`note` as typed, `status` new/accepted/dismissed; use the operations below | `id` |
 | `defaultcharacter` | where a new character starts, per race, home city (`humType`: a human's east 1, west 2) and class: `x`, `y`, `z`, `facing` (radians), `world`; it is bound there until a spiritmaster binds it; read at each creation | `defaultCharacterID` |
-| `quests` | a quest: its giver (an NPC's name), levels, classes, races, quests first, what the giver says (`offer`, `accept`, `started`); `enabled` 0 is a draft | `questid` |
+| `quests` | a quest: its giver (an NPC's name), levels, classes, races (0-10 the game's, which a race of the server's takes as the race it passes as; 11 and up a race of `racedefs` by its own id, that race alone: a homeland's quests), quests first, what the giver says (`offer`, `accept`, `started`); `enabled` 0 is a draft | `questid` |
 | `queststeps` | a quest's steps in order: `kind` talk / show / give / kill / loot / reach, `target` (an NPC's or creature's name), `items` (`patternid*count, ...`), `chance` (a loot step's), the `journal` line, the NPC's words, the rewards, `events` | `questid`+`step` |
 | `queststeptargets` | a kill or loot step's other creatures, a row a name: a kill of any counts, a loot step's item drops off any (the Quests page and `quest_save`'s `also` edit them) | `questid`+`step`+`target` |
 | `charquests` | how far a character has come in a quest: `step` (0 finished), `count` (kills so far), `done` (times finished) | `serverid`+`questid` |
@@ -325,7 +325,10 @@ beside it):
   `say` (`npc`, `text`), `give` (`items`: `patternid*count`), `spawn` (`npc`, `hostile`: a copy before the
   player for that step, gone when it is done; hostile, it may be attacked and attacks), `visual` (`fx`, a
   0x00B1 DictID like `0x1DAEB5B6`, `seconds`), `teleport` (`world`, `x`, `y`, `z`), `vampire` (the player made a
-  vampire, whom the sun burns by day: the vampire quest's bats); one popup at a time (the
+  vampire, whom the sun burns by day: the vampire quest's bats), `classquest` (a quest's, on `finish`, with
+  `level`: the character's own city class quest of that level, any city's it could take, is finished too with no
+  reward and no word: a homeland's starter quest stands for its city's, so leave these on the homelands'
+  quests); one popup at a time (the
   client shows one question box at once). The journal holds eight quests. Keep a quest
   a draft (`enabled` 0) until it is right; `quest_try` gives it to your own character in the world to play.
 - **Hundreds of quests** (the city quests imported whole, `tools/import_quests.py`): `quest_list` with `status`

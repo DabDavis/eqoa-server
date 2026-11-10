@@ -376,6 +376,26 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 		if refusal != "" {
 			return refusal, nil, nil
 		}
+		// an item whose use charms (the Puppet Strings: petition 1426, transfer
+		// 97): a charm spell's checks and landing (charm.go) on a creature, never a
+		// player; a charge spent whether it holds or is resisted, none on a refusal
+		if pe.Def.Charms() {
+			npc := w.NPCs[targets[0]]
+			if npc == nil {
+				return charmCannot, nil, nil
+			}
+			if r := w.charmPetRefusalLocked(p, &spell); r != "" {
+				return r, nil, nil
+			}
+			if r := w.charmStartLocked(&spell, targets[:1]); r != "" {
+				return r, nil, nil
+			}
+			w.broadcastCastLocked(p, npc.ServerID, 0, spell.visual())
+			w.charmLandLocked(&castState{spell: spell, caster: p.ServerID, targets: targets[:1]}, p, sess, npc, now)
+			w.potionUsedLocked(p, &pe, now)
+			log.Printf("Potion: %s uses %q on %s: a charm", p.Name, pe.ItemName, npc.Name)
+			return "", nil, nil
+		}
 		// at a duel's or a PvP fight's foe (castTargetsLocked's duel and pvp halves)
 		if t := w.Players[targets[0]]; t != nil && spell.duel {
 			w.broadcastCastLocked(p, t.ServerID, 0, spell.visual())

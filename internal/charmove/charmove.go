@@ -733,9 +733,12 @@ func (m *migration) giveItems(items []Item, made map[string]int, to string, forc
 			given++
 			var itemID int64 = -1
 			if m.apply {
+				// a non-stacking item of charges (itemeffect.charges) holds them all, as
+				// one bought does (database.ItemCharges): 0 would make its first use its last
 				res, err := m.tx.Exec(`INSERT INTO charinventory (serverid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber)
-					VALUES (?, 1, ?, 0, ?, -1, ?, (SELECT COALESCE(MAX(listnumber), -1) + 1 FROM charinventory WHERE serverid = ? AND location = ?))`,
-					m.ch.serverID, maxHP, pattern, loc, m.ch.serverID, loc)
+					VALUES (?, 1, ?, COALESCE((SELECT e.charges FROM itemeffect e JOIN itempattern p ON p.patternid = e.patternid
+						WHERE e.patternid = ? AND p.maxstack < 2), 0), ?, -1, ?, (SELECT COALESCE(MAX(listnumber), -1) + 1 FROM charinventory WHERE serverid = ? AND location = ?))`,
+					m.ch.serverID, maxHP, pattern, pattern, loc, m.ch.serverID, loc)
 				if err != nil {
 					return fmt.Errorf("giving %q: %w", name, err)
 				}

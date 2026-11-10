@@ -295,6 +295,17 @@ class AscendBossLootTest(unittest.TestCase):
                          [(self.copy_of(SHIELD),), (GEM,)])
         self.assertEqual(self.q("SELECT count(*) FROM loottables WHERE tablename = 'shared ascended'")[0][0], 0)
 
+    def test_a_quest_item_it_drops_that_a_quest_turns_into_gear_is_named(self):
+        db = sqlite3.connect(self.path)
+        db.execute("INSERT INTO quests (questid, name, enabled, giver) VALUES (501, 'The gem', 1, 'Smith')")
+        db.execute("INSERT INTO queststeps (questid, step, kind, target, items, rewarditems) VALUES (501, 1, 'give', 'Smith', ?, ?)",
+                   (str(GEM), str(PLATE)))
+        db.commit()
+        db.close()
+        code, out = self.run_tool("--boss", "Big Boss")
+        self.assertIn('Not changed: gleaming gem (Big Boss), no gear, drops as it is: quest 501 "The gem" step 1 turns it into '
+                      'Breastplate of the Test, given regular', out)
+
     def test_items_another_creature_shares_stay(self):
         db = sqlite3.connect(self.path)
         db.execute("UPDATE npcs SET npc_id = 9001 WHERE npc_name = 'small orc'")  # the orc's corpse holds the same rows

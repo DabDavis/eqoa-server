@@ -369,7 +369,7 @@ def build_plan(db, names):
         return w.copy_of.get(pid, ("new", pid))
 
     for key, shown in keys.items():
-        b = {"name": shown, "key": key, "spawns": spawns.get(key, []), "lines": [], "ascended": set()}
+        b = {"name": shown, "key": key, "spawns": spawns.get(key, []), "lines": [], "ascended": set(), "other": set()}
         p.bosses.append(b)
         if not b["spawns"] and not by_boss.get(key):
             like = suggest(db, shown)
@@ -381,6 +381,7 @@ def build_plan(db, names):
             t = bind["tablename"]
             rows = dict_rows(db, "SELECT * FROM loottables WHERE tablename = ? ORDER BY id", (t,))
             gear = [r for r in rows if w.kind(r["patternid"]) == "gear"]
+            b["other"] |= {r["patternid"] for r in rows if w.kind(r["patternid"]) == "other"}
             done = [r["patternid"] for r in rows if w.kind(r["patternid"]) == "ascended"]
             for pid in done:
                 b["ascended"].add(w.ascended[pid])
@@ -495,8 +496,17 @@ def build_plan(db, names):
     bases = {pid for pid, r in p.records.items() if not r["reward"]}
     for b in p.bosses:
         bases |= b["ascended"]
-    if has_table(db, "queststeps") and bases:
+    others = {pid: b["name"] for b in p.bosses for pid in b["other"]}
+    if has_table(db, "queststeps") and (bases or others):
         names = dict(db.execute("SELECT questid, name FROM quests").fetchall()) if has_table(db, "quests") else {}
+        for st in dict_rows(db, "SELECT * FROM queststeps WHERE kind IN ('give', 'show') ORDER BY questid, step"):
+            # a quest item (no gear) a boss drops that a quest turns into gear: not made Ascended (gear alone is)
+            q_items = [pid for pid, _ in item_counts(st["items"]) if pid in others]
+            g = [w.name(pid) for pid, _ in step_rewards(st) if w.kind(pid) == "gear"]
+            if q_items and g:
+                p.notes.append(f'{", ".join(f"{w.name(pid)} ({others[pid]})" for pid in q_items)}, no gear, drops as it is: '
+                               f'quest {st["questid"]} "{names.get(st["questid"], "")}" step {st["step"]} turns it into '
+                               f'{", ".join(g)}, given regular')
         for st in dict_rows(db, "SELECT * FROM queststeps WHERE kind IN ('give', 'show', 'loot') ORDER BY questid, step"):
             items = item_counts(st["items"])
             if st["kind"] == "loot":  # a loot step's item is its first (QuestStep.LootItem)

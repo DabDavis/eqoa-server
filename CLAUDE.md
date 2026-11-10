@@ -630,6 +630,23 @@ offers a trip to it (a GM's own list has it); `interact.go`'s `warpRoutes` keeps
 people's own words are npcdialog rows of their names (the recipe's `lines`). `tools/seed_race_homes_test.py` holds
 the real recipe to its zones' cells. `tools/import_quests.py --undo` takes back every import, not one file: the
 homes' quests come out by the import's own copy of the database, made before it writes.
+**Extras** (`internal/worlds/extras.go`, 2026-11-10): a recipe zone's `extras` place the disc's art in it as
+actors of its own (`{"sprite": "0x7FFD2E87", "from": "ODUS.ESF", "zone": 10, "at": [x, y, z], "hpr": [h, p, r],
+"scale": 6.5, "color": [r, g, b, a]}`; `from`/`zone` only when the zone does not hold the art itself), each a
+ZoneActor after its room's own; art the zone lacks is COPIED in with every record it names (a reference to
+another file's art would have no collision in the server's bake, which reads the world file alone), and a
+zone's absolute table offsets are mapped. A recipe's `extraFiles` keep a long list apart (zones named by
+file and index). vanilla composes the same bytes (`serverworlds::extras`), sent as 0x7E31 version 2 (version 1
+when no world has any). The Homelands' open edges are closed with them: `cmd/worldedges` lays a ridge of
+steep rocks (`tools/worlds/edges-palette.json`: Odus's mossy boulder) along every edge no other zone touches,
+or touches with ground that does not meet it (zones of two disc worlds), into `tools/worlds/homelands-edges.json`,
+and `worldedges -check` walks the baked ground along every open edge as the game's walk goes (eight ways, a
+body standing on anything and climbing nothing steeper than 49 degrees; fails on any way out, `-leaks` writes
+them, `-trace -near` shows the way to one). A ridge's layout goes by its zone and side, so a zone added to the
+recipe changes no other zone's rocks: build and bake the world without the file, run `worldedges` off it (with
+`-keep tools/worlds/homelands.json` once the recipe holds its homes' people: no rock then covers a start or an
+NPC; unkept, rocks the size of hills covered five of them, a gatekeeper among them), then build, bake and
+`-check` with it.
 
 ### The server's own view of a player's moves (`entity/movecheck.go`, `#movecheck`)
 

@@ -424,7 +424,11 @@ func (w *World) raidMemberGoneLocked(g *Group, id EntityID) {
 // raidLeadPassedLocked tells g's members who leads it now, the old leader having left.
 // Must be called with the lock held.
 func (w *World) raidLeadPassedLocked(g *Group) {
-	if l := w.leaderOfLocked(g); l != nil && raidingLocked(g) && len(g.Members) > 1 {
+	l := w.leaderOfLocked(g)
+	if l != nil && g.rules.helper == l.ServerID {
+		g.rules.helper = 0 // the helper leads now, and helps no one
+	}
+	if l != nil && raidingLocked(g) && len(g.Members) > 1 {
 		w.groupSayColoredLocked(g, l.Name+" leads the raid now.", nil)
 	}
 }

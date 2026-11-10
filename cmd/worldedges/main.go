@@ -21,8 +21,10 @@
 //	    -palette tools/worlds/edges-palette.json -out tools/worlds/homelands-edges.json
 //
 // writes the extras file the recipe takes in (its extraFiles), off the world
-// built and baked WITHOUT it (the ground the rocks stand on); then build the
-// world with it, bake its ground again, and
+// built and baked WITHOUT it (the ground the rocks stand on); with -keep
+// recipe.json no rock covers a place its homes put people at (a start, an
+// NPC: a big rock stands out over the edge instead). Then build the world
+// with it, bake its ground again, and
 //
 //	worldedges -check -built worlds/world10.json -ground worlds/ground
 //
@@ -96,7 +98,16 @@ func main() {
 	flag.BoolVar(&trace, "trace", false, "print the way to the first ways out")
 	near := flag.String("near", "", "with -trace: only ways out near x,z")
 	flag.StringVar(&mapOut, "map", "", "with -near: a picture of the walk round there")
+	keep := flag.String("keep", "", "a recipe whose homes' starts and people (zones[].home) no rock may cover")
 	flag.Parse()
+	if *keep != "" {
+		k, err := readKeep(*keep)
+		if err != nil {
+			log.Fatal(err)
+		}
+		keepClear = k
+		log.Printf("%s: %d places kept clear of rocks", *keep, len(k))
+	}
 	if *builtPath == "" || *groundDir == "" || !*check && (*iso == "" || *palettePath == "" || *out == "") {
 		flag.Usage()
 		os.Exit(2)
@@ -312,6 +323,57 @@ type palette struct {
 	Around float32 `json:"around,omitempty"`
 }
 
+// keepClear are the places no rock may cover (-keep): a recipe's homes'
+// starts and people.
+var keepClear [][2]float32
+
+// covers reports whether a place to keep clear is within r of (x, z).
+func covers(x, z, r float32) bool {
+	for _, k := range keepClear {
+		if dx, dz := k[0]-x, k[1]-z; dx*dx+dz*dz < r*r {
+			return true
+		}
+	}
+	return false
+}
+
+// readKeep reads the places a recipe's homes put people at (its zones'
+// home.start and home.npcs[].at, tools/seed_race_homes.py's).
+func readKeep(path string) ([][2]float32, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var r struct {
+		Zones []struct {
+			Home *struct {
+				Start *struct{ X, Z float32 } `json:"start"`
+				NPCs  []struct {
+					At []float32 `json:"at"`
+				} `json:"npcs"`
+			} `json:"home"`
+		} `json:"zones"`
+	}
+	if err := json.Unmarshal(b, &r); err != nil {
+		return nil, fmt.Errorf("%s: %w", path, err)
+	}
+	var out [][2]float32
+	for _, z := range r.Zones {
+		if z.Home == nil {
+			continue
+		}
+		if z.Home.Start != nil {
+			out = append(out, [2]float32{z.Home.Start.X, z.Home.Start.Z})
+		}
+		for _, n := range z.Home.NPCs {
+			if len(n.At) == 3 {
+				out = append(out, [2]float32{n.At[0], n.At[2]})
+			}
+		}
+	}
+	return out, nil
+}
+
 func readPalette(path string) (*palette, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
@@ -503,7 +565,14 @@ func place(g *ground.Ground, env *ground.Env, w uint8, e edge, t float32, p piec
 	for pass := 0; pass < 8; pass++ {
 		span := narrow * scale
 		reach := max(bw, bd) * scale / 2
-		x, z = e.ax+e.ux*t-e.nx*in*span, e.az+e.uz*t-e.nz*in*span
+		// its middle in of its span inside the edge; out over the edge as
+		// far as it must to stand clear of what -keep names (a home's start
+		// and people: a hill-sized rock covers 300 of a zone)
+		c := in * span
+		for c > -reach && covers(e.ax+e.ux*t-e.nx*c, e.az+e.uz*t-e.nz*c, reach+3) {
+			c -= 5
+		}
+		x, z = e.ax+e.ux*t-e.nx*c, e.az+e.uz*t-e.nz*c
 		lo, hi := float32(math.MaxFloat32), float32(-math.MaxFloat32)
 		top := float32(-math.MaxFloat32)
 		for a := -4; a <= 4; a++ {

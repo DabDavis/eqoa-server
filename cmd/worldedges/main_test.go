@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"math"
+	"os"
 	"strings"
 	"testing"
 
@@ -133,5 +134,28 @@ func TestEdgeSeed(t *testing.T) {
 		edgeSeed(1, "ODUS.ESF", 19, south) == edgeSeed(1, "ODUS.ESF", 22, south) ||
 		edgeSeed(1, "ODUS.ESF", 19, south) == edgeSeed(2, "ODUS.ESF", 19, south) {
 		t.Error("another side, zone or seed is another ridge")
+	}
+}
+
+// -keep reads a recipe's homes (their starts and people) as places no rock
+// may cover, and a zone with no home names none.
+func TestKeep(t *testing.T) {
+	path := t.TempDir() + "/r.json"
+	recipe := `{"zones": [{"name": "a", "home": {"start": {"x": 10, "y": 5, "z": 20},
+		"npcs": [{"name": "gatekeeper", "at": [30, 5, 40]}, {"name": "no place"}]}}, {"name": "b"}]}`
+	if err := os.WriteFile(path, []byte(recipe), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	k, err := readKeep(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(k) != 2 || k[0] != [2]float32{10, 20} || k[1] != [2]float32{30, 40} {
+		t.Fatalf("%v", k)
+	}
+	keepClear = k
+	defer func() { keepClear = nil }()
+	if !covers(35, 40, 6) || covers(35, 40, 4) || covers(100, 100, 50) {
+		t.Error("covers: within the radius only")
 	}
 }

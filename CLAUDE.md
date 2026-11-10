@@ -569,8 +569,10 @@ or touches with ground that does not meet it (zones of two disc worlds), into `t
 and `worldedges -check` walks the baked ground along every open edge as the game's walk goes (eight ways, a
 body standing on anything and climbing nothing steeper than 49 degrees; fails on any way out, `-leaks` writes
 them, `-trace -near` shows the way to one). A ridge's layout goes by its zone and side, so a zone added to the
-recipe changes no other zone's rocks: build and bake the world without the file, run `worldedges` off it, then
-build, bake and `-check` with it.
+recipe changes no other zone's rocks: build and bake the world without the file, run `worldedges` off it (with
+`-keep tools/worlds/homelands.json` once the recipe holds its homes' people: no rock then covers a start or an
+NPC; unkept, rocks the size of hills covered five of them, a gatekeeper among them), then build, bake and
+`-check` with it.
 
 ### The server's own view of a player's moves (`entity/movecheck.go`, `#movecheck`)
 

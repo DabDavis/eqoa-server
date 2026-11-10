@@ -353,3 +353,98 @@ func TestTheBarShowsTheWayToTheNextMasteryPoint(t *testing.T) {
 		t.Errorf("a GM's level 100, a point all but made: %d", got)
 	}
 }
+
+// What the client is told of the caps (petition 1375): CLIENT has one m_p44
+// for the seven stats and stops a base at it (GetP44Total(-1)), so m_p44 is
+// the highest cap and each m_bonus its stat's cap less it; GetP44Total(stat),
+// m_p44 + m_bonus, is then each stat's own cap. The controls: holding no rank
+// that raises a cap, a character is told what SOE's server told (m_p44 the
+// level's, 400 or 350, and no bonus), and a raise of all seven alike is m_p44
+// alone.
+func TestTheTrainerIsToldEachStatsCap(t *testing.T) {
+	for _, level := range []int{45, 60} {
+		p := &Player{Level: level}
+		if p.TrainerCap() != StatCapBase(level) || p.TrainerBonuses() != [7]int{} {
+			t.Errorf("level %d, no raise: m_p44 %d, bonuses %v; want %d and none", level, p.TrainerCap(), p.TrainerBonuses(), StatCapBase(level))
+		}
+	}
+	p := &Player{Level: 60}
+	for i, v := range [7]int{150, 25, 45, 220, 25, 25, 25} { // Corsten's raises
+		p.CMEffects[cmSlotCap+i] = v
+	}
+	if p.TrainerCap() != 620 {
+		t.Errorf("m_p44 %d, want DEX's 620", p.TrainerCap())
+	}
+	b := p.TrainerBonuses()
+	for i := range 7 {
+		if got, want := p.TrainerCap()+b[i], p.StatCapOf(StatStr+Stat(i)); got != want || b[i] > 0 {
+			t.Errorf("stat %d: m_p44 + m_bonus = %d, want its cap %d (bonus %d)", i, got, want, b[i])
+		}
+	}
+	all := &Player{Level: 60}
+	for i := range 7 {
+		all.CMEffects[cmSlotCap+i] = 25 // Godborn
+	}
+	if all.TrainerCap() != 425 || all.TrainerBonuses() != [7]int{} {
+		t.Errorf("Godborn alone: m_p44 %d, bonuses %v; want 425 and none", all.TrainerCap(), all.TrainerBonuses())
+	}
+}
+
+// A mastery that moves the highest cap tells it (0x001C), where its trainer
+// stops a base: a purchase, a removal, a GM's reload. The control: a rank
+// raising a cap below the highest, or none, sends no 0x001C.
+func TestAMasteryChangeTellsTheTrainersCap(t *testing.T) {
+	w := NewWorld()
+	mgr := session.NewManager()
+	w.SessionManager = mgr
+	all, races := 32767, 2047
+	w.SetCMCatalog([]database.CMRankRow{
+		{ID: 1, Classes: all, Races: races, Name: "Brawn 1", Cost: 10, Level: 10, Effects: "STR:1,STRMax:15", Enabled: true},
+		{ID: 21, Classes: all, Races: races, Name: "Vigor 1", Cost: 10, Level: 10, Effects: "STA:1,STAMax:15", Enabled: true},
+		{ID: 3, Classes: all, Races: races, Name: "Plain", Cost: 10, Level: 1, Effects: "STR:5", Enabled: true},
+	})
+	s := mgr.CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 0, 8), Port: 7102}, 1, 1, 1, 2, true)
+	p := &Player{ServerID: 1002, CharServerID: 1002, Name: "Caps", Level: 60, BaseStr: 200, Mastery: Mastery{Points: 100}}
+	w.Players[p.ServerID] = p
+	s.SetECSEntity(p)
+	s.SetCharacterInWorld(true)
+	told := func() []uint32 {
+		var out []uint32
+		for _, m := range s.Queue().GetPending() {
+			if d := m.Data(); protocol.GameOpcode(binary.LittleEndian.Uint16(d)) == protocol.OpcodePlayerP44 {
+				out = append(out, binary.LittleEndian.Uint32(d[2:]))
+			}
+		}
+		return out
+	}
+	if r := w.BuyCM(s, 3, CMKnows{}); r.Refusal != "" {
+		t.Fatal(r.Refusal)
+	}
+	if got := told(); len(got) != 0 {
+		t.Errorf("the control: a rank raising no cap told %v", got)
+	}
+	if r := w.BuyCM(s, 1, CMKnows{}); r.Refusal != "" {
+		t.Fatal(r.Refusal)
+	}
+	if got := told(); len(got) != 1 || got[0] != 415 {
+		t.Errorf("Brawn 1 told %v, want [415]", got)
+	}
+	if r := w.BuyCM(s, 21, CMKnows{}); r.Refusal != "" {
+		t.Fatal(r.Refusal)
+	}
+	if got := told(); len(got) != 0 {
+		t.Errorf("the control: Vigor 1 (STA's 415, not past STR's) told %v", got)
+	}
+	if r := w.RemoveCM(s, 1); r.Refusal != "" {
+		t.Fatal(r.Refusal)
+	}
+	if got := told(); len(got) != 0 {
+		t.Errorf("removing Brawn 1 (Vigor's 415 stays the highest) told %v", got)
+	}
+	if _, ok := w.ReloadCMs(p.CharServerID, nil); !ok {
+		t.Fatal("not in the world")
+	}
+	if got := told(); len(got) != 1 || got[0] != 400 {
+		t.Errorf("a GM's reload to none told %v, want [400]", got)
+	}
+}

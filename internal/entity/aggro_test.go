@@ -79,7 +79,7 @@ func (f *aggroFix) attacks(n *NPC) bool { return n.CurrentEnemy == f.p.ServerID 
 func (f *aggroFix) selfHeal(n int) {
 	f.w.mu.Lock()
 	defer f.w.mu.Unlock()
-	f.w.healLocked(f.p, f.sess, f.p, n)
+	f.w.healLocked(f.p, f.sess, f.p, n, numberHeal)
 }
 
 // The user, 2026-10-30: "if a mob is green to a player it should not aggro

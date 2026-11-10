@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 )
 
@@ -564,5 +565,102 @@ func TestAnAwaitDeadGoesOnAtTheDeathNotItsSeconds(t *testing.T) {
 	w.at(3701 * time.Second)
 	if w.e.Running()[21] {
 		t.Fatal("the control still runs past its seconds")
+	}
+}
+
+// A resummon calls its NPC back while its caller lives (the user, 2026-11-09: "cause
+// tunare to resummon her pets"): the pet killed, nothing comes before the step's
+// seconds since it was first seen gone, then one more beside the caller, set on the
+// target, its line said to the run's players; again after a second death. The
+// controls: no resummon while the pet stands, and none once the caller is dead (its
+// awaitdead and despawn then end the run).
+func TestTriggerResummonCallsThePetBack(t *testing.T) {
+	w := newTrigWorld(t)
+	gp := w.gp
+	w.gw.NPCs[701] = &entity.NPC{ServerID: 701, Name: "Orc Chief", HP: 500, MaxHP: 500, Level: 20, NPCType: 0x80, X: 100, Y: 50, Z: 120, World: 0}
+	target := &entity.NPC{ServerID: 702, Name: "Mr. Moogie", HP: 100000, MaxHP: 100000, Level: 50, X: gp.X + 10, Y: gp.Y, Z: gp.Z, World: gp.World}
+	w.gw.NPCs[target.ServerID] = target
+	w.set(30, "Chief and pawn", "near", 60, `[{"do":"spawn","npc":"Orc Chief","attackable":true,"minutes":60,"spread":1},
+		{"do":"spawn","npc":"Orc Pawn","attackable":true,"minutes":60,"spread":1},
+		{"do":"sic","npc":"Orc Pawn","target":"Mr. Moogie","radius":40},
+		{"do":"resummon","npc":"Orc Pawn","by":"Orc Chief","seconds":10,"target":"Mr. Moogie","radius":40,"attackable":true,"minutes":60,
+		 "text":"The chief calls a pawn back to %p's fight."},
+		{"do":"awaitdead","npc":"Orc Chief","seconds":3600},{"do":"despawn"}]`)
+	if _, err := w.fire(30); err != nil {
+		t.Fatal(err)
+	}
+	of := func(name string) []*entity.NPC {
+		var out []*entity.NPC
+		for _, n := range w.spawned() {
+			if n.Name == name {
+				out = append(out, n)
+			}
+		}
+		return out
+	}
+	chief, pawns := of("Orc Chief"), of("Orc Pawn")
+	if len(chief) != 1 || len(pawns) != 1 {
+		t.Fatalf("%d chiefs and %d pawns, want one each", len(chief), len(pawns))
+	}
+	w.at(5 * time.Second)
+	if p := of("Orc Pawn"); len(p) != 1 || p[0].ServerID != pawns[0].ServerID {
+		t.Fatalf("with the pawn standing, the pawns are %v", p)
+	}
+	for round := 1; round <= 2; round++ {
+		w.clear()
+		gone := pawns[0].ServerID
+		w.gw.KillNPCNow(gone)
+		start := 5*time.Second + time.Duration(round-1)*30*time.Second
+		w.at(start + time.Second) // seen gone here
+		w.at(start + 10*time.Second)
+		if p := of("Orc Pawn"); len(p) != 0 {
+			t.Fatalf("round %d: a pawn back %v before the 10 s", round, p)
+		}
+		w.at(start + 11*time.Second)
+		pawns = of("Orc Pawn")
+		if len(pawns) != 1 || pawns[0].ServerID == gone {
+			t.Fatalf("round %d: the pawns after 10 s: %v", round, pawns)
+		}
+		c := chief[0]
+		if d := math.Hypot(float64(pawns[0].X-c.X), float64(pawns[0].Z-c.Z)); d > 3.01 {
+			t.Errorf("round %d: the pawn came %.1f from the chief, want within 3", round, d)
+		}
+		if pawns[0].CurrentEnemy != target.ServerID {
+			t.Errorf("round %d: the new pawn's enemy %d, want Mr. Moogie %d", round, pawns[0].CurrentEnemy, target.ServerID)
+		}
+		if got := yellow(t, w.ps); len(got) != 1 || got[0] != "The chief calls a pawn back to Player's fight." {
+			t.Errorf("round %d: the player heard %q", round, got)
+		}
+	}
+	// the chief dies, then the pawn: none comes back, and the run ends
+	w.gw.KillNPCNow(chief[0].ServerID)
+	w.gw.KillNPCNow(pawns[0].ServerID)
+	for s := 70; s <= 100; s += 5 {
+		w.at(time.Duration(s) * time.Second)
+	}
+	if p := of("Orc Pawn"); len(p) != 0 {
+		t.Fatalf("a pawn came back with the chief dead: %v", p)
+	}
+	if runs := w.e.Runs(); len(runs) != 0 {
+		t.Errorf("the run lives on: %+v", runs)
+	}
+}
+
+// A resummon names whom it calls back and who calls it: either missing, or its
+// seconds or stay out of bounds, is a problem the panel shows.
+func TestTriggerResummonProblems(t *testing.T) {
+	ok := database.StepProblems([]database.TriggerStep{{Do: database.TriggerResummon, NPC: "Orc Pawn", By: "Orc Chief", Seconds: 20}})
+	if len(ok) != 0 {
+		t.Fatalf("a good resummon: %q", ok)
+	}
+	for _, s := range []database.TriggerStep{
+		{Do: database.TriggerResummon, By: "Orc Chief"},
+		{Do: database.TriggerResummon, NPC: "Orc Pawn"},
+		{Do: database.TriggerResummon, NPC: "Orc Pawn", By: "Orc Chief", Seconds: -1},
+		{Do: database.TriggerResummon, NPC: "Orc Pawn", By: "Orc Chief", Minutes: 1e6},
+	} {
+		if got := database.StepProblems([]database.TriggerStep{s}); len(got) != 1 {
+			t.Errorf("%+v: problems %q, want one", s, got)
+		}
 	}
 }

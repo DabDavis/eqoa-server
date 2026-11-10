@@ -182,6 +182,123 @@ func TestTemplateAbilities(t *testing.T) {
 	}
 }
 
+// A strip's forms (petition 1368, Mr. Moogie's): on its clock with a name of
+// its own, with none (its lines say DefaultStripName), or pinning a spell for
+// its look; a name is a strip's alone, at most StripNameMost characters, and a
+// strip is named one way, not both. Written back, it reads the same.
+func TestTemplateStripAbilities(t *testing.T) {
+	for _, ok := range []string{
+		`[{"kind": "strip", "every": 30, "first": 30, "name": " Royal Decree "}]`,
+		`[{"kind": "strip", "every": 30}]`,
+		`[{"kind": "strip", "every": 30, "spell": "Searing Dread"}]`,
+		`[{"kind": "nuke", "every": 10}, {"kind": "strip", "chain": true, "chance": 50}]`,
+	} {
+		list, err := ParseTemplateAbilities(ok)
+		if err != nil {
+			t.Errorf("%s refused: %v", ok, err)
+			continue
+		}
+		again, err := ParseTemplateAbilities(TemplateAbilitiesJSON(list))
+		if err != nil || !reflect.DeepEqual(again, list) {
+			t.Errorf("%s written back: %v %v", ok, again, err)
+		}
+	}
+	if list, _ := ParseTemplateAbilities(`[{"kind": "strip", "every": 30, "name": " Royal Decree "}]`); len(list) != 1 || list[0].Name != "Royal Decree" {
+		t.Errorf("the name read: %+v", list)
+	}
+	for _, bad := range []string{
+		`[{"kind": "nuke", "every": 10, "name": "Royal Decree"}]`,
+		`[{"kind": "debuff", "every": 10, "spell_id": 5, "name": "Royal Decree"}]`,
+		`[{"kind": "strip", "every": 30, "name": "Royal Decree", "spell": "Searing Dread"}]`,
+		`[{"kind": "strip", "every": 30, "name": "Royal Decree", "spell_id": 7001}]`,
+		`[{"kind": "strip", "every": 30, "name": "` + strings.Repeat("x", StripNameMost+1) + `"}]`,
+		`[{"kind": "strip", "every": 1}]`,
+		`[{"kind": "strip", "every": 30, "no_cure": true}]`,
+	} {
+		if _, err := ParseTemplateAbilities(bad); err == nil {
+			t.Errorf("%s read, want refused", bad)
+		}
+	}
+}
+
+// A pet's damage over time and an ability's own cast (petition 1388, the
+// Swarming Deaths' "300 a tick dot (.5 second cast)"): a dot on its clock,
+// pinned or by element, its cast a half second; written back it reads the
+// same. A cast below 0 or past a minute, or one that is not a number, is
+// refused; an element is a harmful spell's, a dot's among them.
+func TestTemplateDoTAndCast(t *testing.T) {
+	for _, ok := range []string{
+		`[{"kind": "dot", "spell_id": 905100, "every": 24, "first": 1, "cast": 0.5}]`,
+		`[{"kind": "dot", "every": 24, "element": "disease"}]`,
+		`[{"kind": "nuke", "every": 50, "cast": 2.25}, {"kind": "dot", "chain": true}]`,
+	} {
+		list, err := ParseTemplateAbilities(ok)
+		if err != nil {
+			t.Errorf("%s refused: %v", ok, err)
+			continue
+		}
+		again, err := ParseTemplateAbilities(TemplateAbilitiesJSON(list))
+		if err != nil || !reflect.DeepEqual(again, list) {
+			t.Errorf("%s written back: %v %v", ok, again, err)
+		}
+	}
+	if list, _ := ParseTemplateAbilities(`[{"kind": " DOT ", "every": 24, "cast": 0.5}]`); len(list) != 1 || list[0].Kind != AbilityDoT ||
+		list[0].Cast != 0.5 {
+		t.Errorf("read: %+v", list)
+	}
+	for _, bad := range []string{
+		`[{"kind": "dot", "every": 24, "cast": -0.5}]`,
+		`[{"kind": "dot", "every": 24, "cast": 61}]`,
+		`[{"kind": "dot", "every": 24, "cast": "half"}]`,
+		`[{"kind": "dot", "every": 1}]`,
+		`[{"kind": "heal", "every": 10, "element": "disease"}]`,
+	} {
+		if _, err := ParseTemplateAbilities(bad); err == nil {
+			t.Errorf("%s read, want refused", bad)
+		}
+	}
+}
+
+// A creature's ability fields (petition 1394, Mr. Moogie's Lay Hands): a heal of
+// its share with a cooldown across fights, a line in /say and the proc its
+// landing gives, trimmed and written back the same; each held to its bounds, a
+// proc whole or not at all, a name a strip's or a share heal's.
+func TestTemplateAbilityCooldownSayAndProc(t *testing.T) {
+	list, err := ParseTemplateAbilities(`[{"kind":"heal","spell_id":700046,"heal_pct":100,"below":50,"every":3600,"cooldown":3600,` +
+		`"say":" Thats an hour cool down, you'll pay for that ","proc_chance":25,"proc_damage":1500,"proc_name":" Royal Fury "}]`)
+	if err != nil || len(list) != 1 {
+		t.Fatalf("%v %v", list, err)
+	}
+	a := list[0]
+	if a.Cooldown != 3600 || a.Say != "Thats an hour cool down, you'll pay for that" || a.ProcChance != 25 || a.ProcDamage != 1500 ||
+		a.ProcName != "Royal Fury" || a.HealPct != 100 {
+		t.Errorf("read: %+v", a)
+	}
+	if again, err := ParseTemplateAbilities(TemplateAbilitiesJSON(list)); err != nil || !reflect.DeepEqual(again, list) {
+		t.Errorf("written back: %v %v", again, err)
+	}
+	if _, err := ParseTemplateAbilities(`[{"kind":"heal","heal_pct":100,"every":30,"name":"Lay Hands"}]`); err != nil {
+		t.Errorf("a share heal named: %v", err)
+	}
+	for _, bad := range []string{
+		`[{"kind":"heal","heal_pct":100,"every":30,"cooldown":-1}]`,
+		`[{"kind":"heal","heal_pct":100,"every":30,"cooldown":86401}]`,
+		`[{"kind":"heal","heal_pct":100,"every":30,"say":"` + strings.Repeat("x", SayMost+1) + `"}]`,
+		`[{"kind":"heal","heal_pct":100,"every":30,"say":"a | b"}]`,
+		`[{"kind":"heal","heal_pct":100,"every":30,"proc_chance":25}]`,
+		`[{"kind":"heal","heal_pct":100,"every":30,"proc_damage":1500}]`,
+		`[{"kind":"heal","heal_pct":100,"every":30,"proc_chance":101,"proc_damage":1500}]`,
+		`[{"kind":"heal","heal_pct":100,"every":30,"proc_chance":25,"proc_damage":100001}]`,
+		`[{"kind":"heal","heal_pct":100,"every":30,"proc_name":"Royal Fury"}]`,
+		`[{"kind":"heal","every":30,"name":"Lay Hands"}]`,
+		`[{"kind":"heal","heal_pct":100,"every":30,"name":"Lay Hands","spell_id":700046}]`,
+	} {
+		if _, err := ParseTemplateAbilities(bad); err == nil {
+			t.Errorf("%s read, want refused", bad)
+		}
+	}
+}
+
 // A template's spells: its class's by level as classspells has them (a
 // mastery's left out), with their lines, visuals and spellarea rows; a spell
 // pinned by name is the record with a line first. The range's bits are the

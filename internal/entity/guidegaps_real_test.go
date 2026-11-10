@@ -66,6 +66,11 @@ func TestRealGuideBosses(t *testing.T) {
 		{"Rallos Zek the Warlord", 480000, 520000, 1900, 2500, 4, 3},
 		{"Rallos Zek Unbound", 480000, 520000, 3100, 4100, 2, 3},
 		{"Razeal Moloch", 380000, 420000, 1500, 2600, 4, 0},
+		// Zaoran Plateau (tools/guidegaps/tallon.json, vallon.json): Vallon's floor ~3,520 on a L60 warrior in 2009
+		// footage; Tallon's and Vallon's HP from the footage's effective HP; the sentry's danger is its breath
+		{"Tallon Zek", 950000, 1050000, 700, 900, 4, 0},
+		{"Zek sentry", 240000, 260000, 300, 450, 4, 0},
+		{"Vallon Zek", 950000, 1050000, 3300, 3800, 4, 0},
 	}
 	for _, b := range bosses {
 		var npc *NPC

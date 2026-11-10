@@ -315,3 +315,44 @@ func TestResetCommandsHaveTheSlashSpelling(t *testing.T) {
 		}
 	}
 }
+
+// A reset's removals (0x1402 sub-op 6, one a rank) carry the known flags in
+// the last alone: CLIENT's ReadFlags sets only the entries it is given, so the
+// others' empty lists change nothing and the last's whole list leaves every
+// flag as each would have. Each list was the whole catalog's, 8 bytes an
+// entry (Jibrish's 58-rank reset: 116 fragments). The control: the last
+// carries the list.
+func TestAResetSendsTheKnownFlagsOnce(t *testing.T) {
+	w := newResetWorld(t)
+	w.pp.Mastery = entity.Mastery{Points: 100}
+	w.pp.Level = 30
+	w.buy(w.ps, 1)
+	w.buy(w.ps, 2)
+	if len(w.pp.CMs) != 2 {
+		t.Fatalf("bought %v", w.pp.CMs)
+	}
+	w.ps.Queue().GetPending()
+	w.say(w.gs, "#rst_mastr player")
+	var counts []uint32
+	for _, m := range w.ps.Queue().PeekPending() {
+		d := m.Data()
+		if opcode(d) != protocol.OpcodeClassMasteryServer || d[2] != cmRespRemoved {
+			continue
+		}
+		// op, sub, token, id, speed, 29 + 7 zigzag varints, then the count
+		r := buffer.NewReader(d[3+12:])
+		for i := 0; i < 36; i++ {
+			if _, err := r.Read7BitEncodedUInt64(); err != nil {
+				t.Fatal(err)
+			}
+		}
+		n, err := r.ReadUint32()
+		if err != nil {
+			t.Fatal(err)
+		}
+		counts = append(counts, n)
+	}
+	if len(counts) != 2 || counts[0] != 0 || counts[1] == 0 {
+		t.Fatalf("the removals' known flag counts: %v, want [0 the catalog's]", counts)
+	}
+}

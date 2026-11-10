@@ -61,9 +61,11 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	t.mark(tsAttack)
 	w.petSystem(now)
 	t.mark(tsPets)
-	w.duelSystem(now)   // duels' invitations and ends (duel.go)
-	w.genieSystem(now)  // the lamps' genies and their windows (genie.go)
-	w.portalSystem(now) // the Summoning Portals' time (summonportal.go)
+	w.duelSystem(now)        // duels' invitations and ends (duel.go)
+	w.genieSystem(now)       // the lamps' genies and their windows (genie.go)
+	w.portalSystem(now)      // the Summoning Portals' time (summonportal.go)
+	w.metalMoogieSystem(now) // Mr. Moogie's challenge (metalmoogie.go)
+	w.bufferSystem(now)      // Buffer's casts landing (buffer.go)
 	t.mark(tsDuels)
 	gates := w.castSystem(now)
 	t.mark(tsCasts)
@@ -102,11 +104,13 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.guildAnnounceSystem()
 	t.mark(tsGuildAnnounce)
 	w.visibilitySystem()
+	w.capesSyncSystem() // the capes on this tick's slots, to the clients that draw them (capes.go)
 	t.mark(tsVisibility)
 	w.groupSyncSystem()
 	t.mark(tsGroupSync)
 	w.powerSyncSystem()
 	w.raidRosterSystem()
+	w.petEffectsSystem(now) // the pet's effects, to the clients that draw them (peteffects.go)
 	t.mark(tsPowerSync)
 	w.tickSeenLocked()
 	return due, gates, gone
@@ -288,7 +292,7 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	// The hit's figure on the player (source=NPC, target=player); the
 	// round's swing (0x00B1) went out at its start, to everyone near
 	npcObjectID := w.objectIDForEntityLocked(sess, npc.ServerID)
-	w.sendDamageIndication(sess, npcObjectID, -damage, sess.PlayerObjectID())
+	w.sendDamageIndication(sess, npcObjectID, -damage, sess.PlayerObjectID(), 0) // the creature's on the player: untagged
 
 	log.Printf("Combat: NPC '%s' hit player %s for %d damage (HP: %d/%d) %.2f off, reach %.2f",
 		npc.Name, sess.RemoteAddr(), damage, player.HP, player.MaxHP,
@@ -511,7 +515,7 @@ func (w *World) breathSystem(now time.Time) {
 					}
 
 					playerObjectID := sess.PlayerObjectID()
-					w.sendDamageIndication(sess, playerObjectID, -damage, playerObjectID)
+					w.sendDamageIndication(sess, playerObjectID, -damage, playerObjectID, 0) // drowning: on the player, untagged
 					w.sendEntityAction(sess, playerObjectID, actionDrowning)
 
 					log.Printf("Drowning: %s took %d drowning damage (HP: %d/%d, breath: %d)",
@@ -590,7 +594,10 @@ func (w *World) buffChannelSyncSystem() {
 		}
 		player.StatsDirty = false
 
-		buffData := SerializeBuffSlots(w.buffSlotsLocked(player, time.Now()))
+		// the player's own effects alone: its pet's are not on it, and a
+		// client that draws them under the pet's bar has them by 0x7E33
+		// (peteffects.go)
+		buffData := SerializeBuffUpdate(player)
 
 		conn := sess.Connection()
 		if conn != nil {

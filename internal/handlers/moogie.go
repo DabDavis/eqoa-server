@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/session"
@@ -36,9 +37,38 @@ type moogieAsks struct {
 	asked map[uint32]moogieAsk
 }
 
+// moogieAsk is a box he asked: its id, which Mr. Moogie, and what each of its answers does, in its order.
 type moogieAsk struct {
-	box uint32
-	npc entity.EntityID
+	box  uint32
+	npc  entity.EntityID
+	does []moogieDo
+}
+
+// What an answer in his box does: the buffs cleared, a full heal, his metal twin's duel (the GM
+// Jibrish's petition 1379: metalmoogie.go), a Moogie Tribute handed in for his favor, nothing.
+type moogieDo int
+
+const (
+	moogieDoClear moogieDo = iota
+	moogieDoHeal
+	moogieDoProve
+	moogieDoTribute
+	moogieDoNothing
+)
+
+// moogieAnswers is his box's answers for p, in order, and what each does: the duel while his metal twin
+// is on the server (entity's MetalMoogieHere), the hand-in while p holds a tribute and his favor is
+// there.
+func (h *InteractHandler) moogieAnswers(p *entity.Player) ([]string, []moogieDo) {
+	labels := []string{moogieClearOpt, moogieHealOpt}
+	does := []moogieDo{moogieDoClear, moogieDoHeal}
+	if h.gameWorld != nil && h.gameWorld.MetalMoogieHere() {
+		labels, does = append(labels, moogieProveOpt), append(does, moogieDoProve)
+	}
+	if h.favor.offers(p) {
+		labels, does = append(labels, moogieTributeOpt), append(does, moogieDoTribute)
+	}
+	return append(labels, moogieNoOpt), append(does, moogieDoNothing)
 }
 
 // moogieTalk is a talk to npc: his question when npc is Mr. Moogie, else false.
@@ -50,20 +80,22 @@ func (h *InteractHandler) moogieTalk(sess *session.Session, p *entity.Player, np
 		SendColoredChat(sess, why, 255, 63, 63)
 		return true
 	}
+	labels, does := h.moogieAnswers(p)
 	h.boardMu.Lock()
 	h.moogie.seq++
 	id := moogieBoxMark | (h.moogie.seq & 0xFFFFFF)
 	if h.moogie.asked == nil {
 		h.moogie.asked = map[uint32]moogieAsk{}
 	}
-	h.moogie.asked[p.CharServerID] = moogieAsk{box: id, npc: npc.ServerID}
+	h.moogie.asked[p.CharServerID] = moogieAsk{box: id, npc: npc.ServerID, does: does}
 	h.boardMu.Unlock()
-	SendQuestPopupMulti(sess, id, moogieQuestion, []string{moogieClearOpt, moogieHealOpt, moogieNoOpt})
+	SendQuestPopupMulti(sess, id, moogieQuestion, labels)
 	return true
 }
 
-// answerMoogie is HandleDialogueOption's question for his box: the first answer clears the buffs,
-// the second heals, each once. It reports whether the box was his (an old one does nothing).
+// answerMoogie is HandleDialogueOption's question for his box: each answer does what it did when
+// asked (moogieAnswers: the buffs cleared, a heal, his metal twin's duel, the tribute's hand-in), once.
+// It reports whether the box was his (an old one does nothing).
 func (h *InteractHandler) answerMoogie(sess *session.Session, p *entity.Player, box uint32, option byte) bool {
 	if box&0xFF000000 != moogieBoxMark {
 		return false
@@ -74,21 +106,31 @@ func (h *InteractHandler) answerMoogie(sess *session.Session, p *entity.Player, 
 		delete(h.moogie.asked, p.CharServerID)
 	}
 	h.boardMu.Unlock()
-	if !ok || asked.box != box || h.gameWorld == nil || option > 1 {
+	if !ok || asked.box != box || h.gameWorld == nil || int(option) >= len(asked.does) {
+		return true
+	}
+	do := asked.does[option]
+	if do == moogieDoNothing {
 		return true
 	}
 	if why := h.gameWorld.MoogieBusy(sess, asked.npc); why != "" {
 		SendColoredChat(sess, why, 255, 63, 63)
 		return true
 	}
-	if option == 0 {
+	switch do {
+	case moogieDoClear:
 		if name, _, done := h.gameWorld.MoogieClear(sess); done {
 			SendClientMessage(sess, fmt.Sprintf(moogieCleared, name))
 		}
-		return true
-	}
-	if name, done := h.gameWorld.MoogieHeal(sess); done {
-		SendClientMessage(sess, fmt.Sprintf(moogieHealed, name))
+	case moogieDoHeal:
+		if name, done := h.gameWorld.MoogieHeal(sess); done {
+			SendClientMessage(sess, fmt.Sprintf(moogieHealed, name))
+		}
+	case moogieDoProve:
+		line, _ := h.gameWorld.MetalMoogieChallenge(sess, asked.npc, time.Now()) // metalmoogie.go
+		SendClientMessage(sess, line)
+	case moogieDoTribute:
+		h.moogieHandIn(sess, p) // metalmoogie.go
 	}
 	return true
 }

@@ -304,7 +304,7 @@ func TestAKillTheGuardsHitEarnsNothing(t *testing.T) {
 	kill := func(n *NPC) {
 		f.w.mu.Lock()
 		defer f.w.mu.Unlock()
-		f.w.spellHitLocked(f.p, f.sess, n, 1_000_000)
+		f.w.spellHitLocked(f.p, f.sess, n, 1_000_000, numberSpell)
 	}
 
 	ours := f.npc(301, "Ravenous wolf", 40, bearBody, 1003, 1003)

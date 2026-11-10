@@ -51,7 +51,12 @@ import (
 // the pet fights and lands on its area (below); a template's timed special
 // (special_every and its kin) is a pet's crit as it is a creature's
 // (petTemplateSpecialLocked; special_chance, the kick by chance, an NPC's
-// alone). A charmed creature fights by its npccharm row's template
+// alone). A "dot" is a damage over time on what it fights, kept up, and a
+// template's melee proc (proc_chance) is the pet's own melee hits' too, as
+// it is a creature's (the GM Jibrish's petition 1388, the Swarming Deaths':
+// petDoTLocked, petTemplateProcLocked); an ability's cast may be its own
+// (cast: the half second a record's whole seconds cannot hold). A charmed
+// creature fights by its npccharm row's template
 // (charm.go), its class and swing its own, and its casts cost it their
 // spells' power (petCastCost) unless the ability is free. A pet with no row
 // (a shaman's, a wizard's, the Grand Animation, a charmed creature without
@@ -181,7 +186,8 @@ func (ps *petState) petAbilityClocks(foe EntityID, now time.Time) *templateFight
 // petAtFoe is whether a kind is cast at what the pet fights.
 func petAtFoe(kind string) bool {
 	switch kind {
-	case database.AbilityNuke, database.AbilityAoE, database.AbilityLifetap, database.AbilityTaunt, database.AbilityRoot:
+	case database.AbilityNuke, database.AbilityAoE, database.AbilityLifetap, database.AbilityTaunt, database.AbilityRoot,
+		database.AbilityDoT:
 		return true
 	}
 	return false
@@ -218,8 +224,9 @@ func (w *World) petTemplateTurnLocked(ps *petState, t *NPC, now time.Time) bool 
 	}
 	for i := range abilities {
 		a := &abilities[i]
-		if a.Chain || now.Before(f.next[i]) || ps.npc.Level < a.From || petShareHeal(a) || a.Kind == database.AbilityDebuff {
-			continue // a debuff is a creature's, on a player
+		if a.Chain || now.Before(f.next[i]) || ps.npc.Level < a.From || petShareHeal(a) || a.Kind == database.AbilityDebuff ||
+			a.Kind == database.AbilityStrip {
+			continue // a debuff and a strip are a creature's, at a player (a strip at a pet too)
 		}
 		if petAtFoe(a.Kind) && t == nil {
 			continue
@@ -287,20 +294,25 @@ func (w *World) petShareHealLocked(ps *petState, a *templateAbility, now time.Ti
 	log.Printf("Pet: %s's %q heals itself %d%% for %d (HP %d/%d)", ps.owner.Name, pet.Name, a.HealPct, n, pet.HP, pet.MaxHP)
 }
 
-// tellPetHealLocked tells the owner of a heal on its pet: a 0x00DB from the
-// owner over the pet, as a tap's heal is told (pettap.go).
+// tellPetHealLocked tells the owner of a heal the pet made on itself: a 0x00DB
+// from the owner over the pet, as a tap's heal is told (pettap.go), its pet's
+// heal (numbertags.go).
 func (w *World) tellPetHealLocked(ps *petState, n int) {
 	if sess := w.findSessionByEntityIDLocked(ps.owner.ServerID); sess != nil {
 		if id := w.objectIDForEntityLocked(sess, ps.npc.ServerID); id != 0 {
-			w.sendDamageIndication(sess, sess.PlayerObjectID(), n, id)
+			w.sendDamageIndication(sess, sess.PlayerObjectID(), n, id, numberHeal.byPet())
 		}
 	}
 }
 
 // petWantsLocked is whether a due ability is wanted now: a heal on its
 // owner or a spell's on itself below its share, a buff its target (itself,
-// or its owner) lacks; anything at a foe, yes.
+// or its owner) lacks; anything at a foe, yes, but a spell for undead alone
+// at a foe that is not undead (it waits, due, for one that is).
 func (w *World) petWantsLocked(ps *petState, a *templateAbility, now time.Time) bool {
+	if petAtFoe(a.Kind) && !w.petUndeadMayLocked(a.spellFor(petSpellClass(a, ps.npc), ps.npc.Level), w.NPCs[ps.target]) {
+		return false
+	}
 	switch a.Kind {
 	case database.AbilityHeal:
 		owner := func() bool {
@@ -327,8 +339,24 @@ func (w *World) petWantsLocked(ps *petState, a *templateAbility, now time.Time) 
 	case database.AbilityRoot:
 		t := w.NPCs[ps.target] // not again on what its root still holds
 		return t != nil && !t.rooted(now)
+	case database.AbilityDoT:
+		// kept up: again once the one on its target is about to run out
+		t := w.NPCs[ps.target]
+		s := a.spellFor(petSpellClass(a, ps.npc), ps.npc.Level)
+		return t != nil && s != nil && !w.petDoTUpLocked(ps, a, s, t, now)
 	}
 	return true
+}
+
+// petUndeadMayLocked is whether a pet's spell may go at t: any spell at
+// anything, but a spell for undead alone (a "Target undead" line, undead.go) at
+// an undead creature alone (its npcundead row, else its name: undeadLocked), as
+// a player's is refused at the living (the magician Waldorf's petition 1395:
+// the Ghilan Noble's "undead nuke against undead creatures"); so it is neither
+// cast at nor lands on the living, and an area of it spares them. No spell or
+// no target is the caller's to say. Must be called with the lock held.
+func (w *World) petUndeadMayLocked(s *CastSpell, t *NPC) bool {
+	return s == nil || t == nil || !s.Def.undeadOnly() || w.undeadLocked(t)
 }
 
 // buffOn is whether effects hold the buff's effect, or one of its line of a
@@ -377,11 +405,12 @@ func (w *World) petCastLocked(ps *petState, i int, t *NPC, now time.Time) bool {
 	if cost > pet.Power {
 		return false // a charmed creature out of power: it fights with its melee (charm.go)
 	}
-	c := &petCast{ps: ps, tmpl: ps.tmpl, a: a, spell: spell, lands: now.Add(spell.CastTime + castLand)}
+	ct := a.castTime(spell)
+	c := &petCast{ps: ps, tmpl: ps.tmpl, a: a, spell: spell, lands: now.Add(ct + castLand)}
 	switch {
 	case petAtFoe(a.Kind):
-		if t == nil || t.Dead {
-			return false
+		if t == nil || t.Dead || !w.petUndeadMayLocked(spell, t) {
+			return false // a spell for undead alone not cast at the living (a chained one too)
 		}
 		c.target = t.ServerID
 	case a.TargetOr() == database.AbilityOnOwner:
@@ -399,13 +428,13 @@ func (w *World) petCastLocked(ps *petState, i int, t *NPC, now time.Time) bool {
 	w.petCasts = append(w.petCasts, c)
 	pet.Power -= cost
 	f := pet.fight()
-	f.busy = now.Add(spell.CastTime + castBusy)
+	f.busy = now.Add(ct + castBusy)
 	if j := i + 1; j < len(abilities) && abilities[j].Chain {
 		f.chain = j + 1
 	}
-	w.broadcastNPCSwingLocked(pet, c.target, uint32(spell.CastTime/time.Millisecond), spell.visual())
+	w.broadcastNPCSwingLocked(pet, c.target, uint32(ct/time.Millisecond), spell.visual())
 	log.Printf("Pet: %s's %q (%s) begins %q (spell %d) on %s: %v cast, %d power (%d left)", ps.owner.Name, pet.Name, ps.tmpl.Template,
-		spell.Name, spell.SpellID, w.entityNameLocked(c.target), spell.CastTime, cost, pet.Power)
+		spell.Name, spell.SpellID, w.entityNameLocked(c.target), ct, cost, pet.Power)
 	return true
 }
 
@@ -457,7 +486,8 @@ func (w *World) petTemplateSpecialLocked(ps *petState, t *NPC, now time.Time) bo
 	w.broadcastNPCSwingLocked(pet, t.ServerID, 0, fx)
 	pet.LastCombatTime = now
 	log.Printf("Pet: %s's %q (%s) lands its %s on %s for %d before the balance", ps.owner.Name, pet.Name, tm.Name, specialName(tm), t.Name, n)
-	return w.petDamageLocked(ps, t, n, now)
+	// a charmed creature's lands as a creature's does, fixed (classtemplate.go)
+	return w.petLandHitLocked(ps, t, n, now, pet.Charm == nil, numberSpell)
 }
 
 // petCastSystemLocked lands every templated pet's cast whose time has come,
@@ -540,7 +570,8 @@ func (w *World) petAreaFoesLocked(pet, t *NPC, area SpellArea, now time.Time) []
 }
 
 // petSplashLocked lands a pet's area nuke's figure on the others of its area
-// (petAreaFoesLocked), each as one of the pet's hits.
+// (petAreaFoesLocked), each as one of the pet's hits; a spell for undead alone
+// on its undead alone.
 func (w *World) petSplashLocked(ps *petState, t *NPC, c *petCast, a *templateAbility, now time.Time) {
 	area := c.spell.Area
 	if area.Centre == AreaNone {
@@ -552,6 +583,9 @@ func (w *World) petSplashLocked(ps *petState, t *NPC, c *petCast, a *templateAbi
 	}
 	pet := ps.npc
 	for _, o := range w.petAreaFoesLocked(pet, t, area, now) {
+		if !w.petUndeadMayLocked(c.spell, o) {
+			continue
+		}
 		n, _ := templateFigure(effects, a.DamageOr())
 		if pet.sheet != nil {
 			n, _ = sheetFigure(pet, effects, a.DamageOr(), false)
@@ -560,7 +594,7 @@ func (w *World) petSplashLocked(ps *petState, t *NPC, c *petCast, a *templateAbi
 			continue
 		}
 		log.Printf("Pet: %s's %q splashes %q on %s for %d before the balance", ps.owner.Name, pet.Name, c.spell.Name, o.Name, n)
-		w.petDamageLocked(ps, o, -creatureResists(c.spell.resist, o, -n, now), now)
+		w.petDamageLocked(ps, o, -creatureResists(c.spell.resist, o, -n, now), now, numberSpell) // an area's: a spell's
 	}
 }
 
@@ -659,6 +693,136 @@ func (w *World) petDrainStatsLocked(ps *petState, t *NPC, spell *CastSpell, now 
 	log.Printf("Pet: %s's %q drains %s with %q: %+v", ps.owner.Name, pet.Name, t.Name, spell.Name, gain)
 }
 
+// A pet's damage over time (AbilityDoT; the GM Jibrish's petition 1388, of the
+// Swarming Deaths: "a 300 a tick dot (.5 second cast) it keeps up that lasts for
+// 24 seconds") is its spell's damage tick on what it fights for the spell's
+// time, ticking at its landing and every effectTick after it (a 24 s spell four
+// times), each tick one of the pet's hits. The pet casts it again once the one
+// on its target has no more than the cast's time and its landing left, so the
+// new one lands as the old one ends: never two of its owner's on one creature
+// (the old one is replaced), never down while the pet fights it. Another
+// owner's pet keeps its own on the same creature.
+
+// petDoTUpLocked is whether the pet's damage over time s is up on t: on its way
+// there, or on it from this pet with more than the cast's time and its landing
+// to run (petWantsLocked). Must be called with the lock held.
+func (w *World) petDoTUpLocked(ps *petState, a *templateAbility, s *CastSpell, t *NPC, now time.Time) bool {
+	for _, c := range w.petCasts {
+		if c.ps == ps && c.target == t.ServerID && c.spell.SpellID == s.SpellID {
+			return true
+		}
+	}
+	lead := a.castTime(s) + castLand
+	for _, e := range t.Effects {
+		if e.SpellID == s.SpellID && e.pet == ps.npc.ServerID && e.Until.Sub(now) > lead {
+			return true
+		}
+	}
+	return false
+}
+
+// petDoTLocked lands a pet's damage over time on t: its tick (petTickFigure) on
+// it for the spell's time, its owner's pets' earlier one of the spell taken off,
+// and its first tick at once, as a player's on a creature ticks
+// (landOnNPCLocked). Must be called with the lock held.
+func (w *World) petDoTLocked(ps *petState, t *NPC, spell *CastSpell, a *templateAbility, now time.Time) {
+	pet, d := ps.npc, &spell.Def
+	tick := petTickFigure(pet, d.Effects, a.DamageOr())
+	if tick <= 0 {
+		return
+	}
+	dur := d.Duration
+	if dur <= 0 {
+		dur = tickDuration // a tick's line with no time (cast.go)
+	}
+	owner := ps.owner.ServerID
+	keep := t.Effects[:0]
+	for _, e := range t.Effects {
+		if e.pet == 0 || e.SpellID != spell.SpellID || e.Caster != owner {
+			keep = append(keep, e)
+		}
+	}
+	for i := len(keep); i < len(t.Effects); i++ {
+		t.Effects[i] = nil
+	}
+	resist := spell.resist
+	if spell.unresistable {
+		resist = StatNone
+	}
+	ae := &ActiveEffect{SpellID: spell.SpellID, Name: spell.Name, Icon: spell.Icon, Caster: owner, Until: now.Add(dur),
+		NextTick: now, HPTick: -tick, pet: pet.ServerID, Rules: EffectRules{Resist: resist, Harm: true}}
+	t.Effects = append(keep, ae)
+	if w.affected == nil {
+		w.affected = make(map[EntityID]*NPC)
+	}
+	w.affected[t.ServerID] = t
+	log.Printf("Pet: %s's %q puts %q on %s: %d a tick for %v", ps.owner.Name, pet.Name, spell.Name, t.Name, tick, dur)
+	w.tickNPCEffectLocked(t, ae, now)
+}
+
+// petTickFigure is a pet's damage over time's tick: each damage tick of its
+// effects rolled, a workbook pet's stat share added as its spells' figures are
+// (sheetFigure), within its cap, at the ability's percent.
+func petTickFigure(pet *NPC, effects []SpellEffect, pct int) int {
+	n := 0
+	for _, e := range effects {
+		if e.Kind != EffectHPTick || e.Amount >= 0 || e.Self {
+			continue
+		}
+		v := -rollAmount(e)
+		if pet.sheet != nil && e.Scale != StatNone && e.ScalePct != 0 {
+			v += int(math.Round(float64(pet.petStat(e.Scale)) * float64(e.ScalePct) / 100))
+		}
+		if e.Cap > 0 {
+			v = min(v, e.Cap)
+		}
+		n += int(math.Round(float64(v) * float64(pct) / 100))
+	}
+	return n
+}
+
+// petTickLocked is a tick of a pet's damage over time on the creature
+// (tickNPCEffectLocked): one of the pet's hits of the tick, less the share the
+// creature's template resists of its element, as the pet's spells land
+// (petLandLocked), through the balance (petDamageLocked). A tick whose pet is
+// gone (dead, dismissed, its owner's pet another since) does nothing: what is
+// left of it runs out. Must be called with the lock held.
+func (w *World) petTickLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
+	ae.NextTick = ae.NextTick.Add(effectTick)
+	ps := w.pets[ae.Caster]
+	if ps == nil || ps.npc.ServerID != ae.pet || ps.npc.Dead || npc.Dead || ae.HPTick >= 0 {
+		return
+	}
+	n := -creatureResists(ae.Rules.Resist, npc, ae.HPTick, now)
+	ae.ticking = true // its own tick is no contact for itself (contactNPCLocked)
+	defer func() { ae.ticking = false }()
+	ps.npc.LastCombatTime = now
+	log.Printf("Pet: %s's %q's %q ticks on %s for %d before the balance", ps.owner.Name, ps.npc.Name, ae.Name, npc.Name, n)
+	w.petDamageLocked(ps, npc, n, now, numberDoT)
+}
+
+// petTemplateProcLocked rolls the pet's template's melee proc after one of its
+// melee hits landed on t, still standing (petition 1388, Jibrish: the Swarming
+// Deaths' "melee proc for 250 damage, with a 25% proc rate, base"): proc_chance
+// percent of its hits that land also deal proc_damage, neither scaled by
+// anything of the pet's, less the share the creature's template resists of
+// proc_resist's element (creatureResists, as its spells), one of its hits
+// through the balance (petDamageLocked), seen as a player's proc is
+// (fxShieldHit). It reports a kill. A template's dice are templateIntn.
+func (w *World) petTemplateProcLocked(ps *petState, t *NPC, now time.Time) bool {
+	if ps.tmpl == nil || t.Dead {
+		return false
+	}
+	tm := ps.tmpl.tmpl
+	if tm.ProcChance <= 0 || tm.ProcDamage <= 0 || templateIntn(100) >= tm.ProcChance {
+		return false
+	}
+	n := -creatureResists(shieldResistStat(tm.ProcResist), t, -tm.ProcDamage, now)
+	w.broadcastNPCSwingLocked(ps.npc, t.ServerID, 0, fxShieldHit)
+	log.Printf("Pet: %s's %q's %s hits %s for %d before the balance", ps.owner.Name, ps.npc.Name, procName(tm), t.Name, n)
+	return w.petDamageLocked(ps, t, n, now, numberProc)
+}
+
 // petLandLocked lands a pet's cast: a harmful spell's figure (its hits
 // rolled, no stat: a pet has none, at the ability's percent) on the
 // creature as one of the pet's hits (petDamageLocked), a tap's drained
@@ -667,6 +831,9 @@ func (w *World) petDrainStatsLocked(ps *petState, t *NPC, spell *CastSpell, now 
 // owner's own cast on itself.
 func (w *World) petLandLocked(c *petCast, now time.Time) {
 	ps, pet, a := c.ps, c.ps.npc, c.a
+	if petAtFoe(a.Kind) && !w.petUndeadMayLocked(c.spell, w.NPCs[c.target]) {
+		return // for undead alone, and its target no longer is (a GM's tag in its cast)
+	}
 	switch a.Kind {
 	case database.AbilityNuke, database.AbilityAoE, database.AbilityLifetap:
 		t := w.NPCs[c.target]
@@ -685,13 +852,28 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 		}
 		pet.LastCombatTime = now
 		log.Printf("Pet: %s's %q lands %q on %s for %d before the balance", ps.owner.Name, pet.Name, c.spell.Name, t.Name, hit)
+		taken := -creatureResists(c.spell.resist, t, -hit, now)
+		if drained > 0 {
+			// a tap heals the pet by what it took (a player's tap's rule, lifetap.go):
+			// its drained share of the hit after the creature's resist and the
+			// balance, whole though the hit kills (petition 1388: until then the
+			// figure before either)
+			drained = int(math.Round(float64(w.petDealtLocked(pet, t, taken)) * float64(drained) / float64(hit)))
+		}
 		w.petSplashLocked(ps, t, c, a, now) // an area spell's others (before the target's hit, which may kill it)
-		w.petDamageLocked(ps, t, -creatureResists(c.spell.resist, t, -hit, now), now)
+		w.petDamageLocked(ps, t, taken, now, numberSpell)
 		if drained > 0 && pet.HP < pet.MaxHP {
 			n := min(drained, pet.MaxHP-pet.HP)
 			pet.HP += n
 			w.tellPetHealLocked(ps, n)
 		}
+	case database.AbilityDoT:
+		t := w.NPCs[c.target]
+		if t == nil || t.Dead || t.World != pet.World {
+			return
+		}
+		pet.LastCombatTime = now
+		w.petDoTLocked(ps, t, c.spell, a, now)
 	case database.AbilityRoot:
 		t := w.NPCs[c.target]
 		if t == nil || t.Dead || t.World != pet.World {
@@ -717,7 +899,7 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 			o.StatsDirty = true
 			if sess := w.findSessionByEntityIDLocked(o.ServerID); sess != nil {
 				if id := w.objectIDForEntityLocked(sess, pet.ServerID); id != 0 {
-					w.sendDamageIndication(sess, id, n, sess.PlayerObjectID())
+					w.sendDamageIndication(sess, id, n, sess.PlayerObjectID(), numberHeal.byPet()) // its pet's heal on it (numbertags.go)
 				}
 			}
 			log.Printf("Pet: %s's %q heals its owner with %q for %d (HP %d/%d)", o.Name, pet.Name, c.spell.Name, n, o.HP, o.MaxHPNow())
@@ -741,6 +923,7 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 			return
 		}
 		cs := &castState{spell: *c.spell, caster: o.ServerID, targets: []EntityID{o.ServerID}}
+		cs.spell.figures = figuresPet // what it heals now and at its ticks the pet's (numbertags.go)
 		w.landOnPlayerLocked(cs, o, w.findSessionByEntityIDLocked(o.ServerID), o, now)
 		log.Printf("Pet: %s's %q buffs its owner with %q", o.Name, pet.Name, c.spell.Name)
 	}
@@ -830,7 +1013,7 @@ func (w *World) petTemplateTauntLocked(ps *petState, a *templateAbility, t *NPC,
 			return false
 		}
 		log.Printf("Pet: %s's %q taunts %s for %d", ps.owner.Name, pet.Name, t.Name, n)
-		return w.petLandHitLocked(ps, t, n, now, false)
+		return w.petLandHitLocked(ps, t, n, now, false, numberSpell)
 	}
 	n := float64(petMeleeHit(pet, t, meleeIntn))
 	if ps.hitScale > 0 {
@@ -838,13 +1021,13 @@ func (w *World) petTemplateTauntLocked(ps *petState, a *templateAbility, t *NPC,
 	}
 	m := ps.meleeOut(int(math.Round(n * float64(a.DamageOr()) / 100)))
 	log.Printf("Pet: %s's %q taunts %s (a melee hit of %d)", ps.owner.Name, pet.Name, t.Name, m)
-	return w.petDamageLocked(ps, t, m, now)
+	return w.petDamageLocked(ps, t, m, now, numberSpell) // a taunt's: an ability's
 }
 
 // petTopHateLocked puts the pet at the top of t's hate, and makes it what t
 // fights (a training dummy's is its own: dummy.go).
 func (w *World) petTopHateLocked(pet, t *NPC) {
-	if t.Dummy != NotDummy {
+	if t.Dummy != NotDummy || t.challenge != nil { // a Metal Moogie keeps to his challenger (metalmoogie.go)
 		return
 	}
 	var top int64
@@ -877,14 +1060,17 @@ func (w *World) PetTemplateSummary() string {
 		len(w.templates.weapon))
 }
 
-// petOnly is whether an ability is a pet's alone: a taunt, a buff, a root, a heal
-// on its owner or of its own share (an NPC of the template casts none).
+// petOnly is whether an ability is a pet's alone: a taunt, a buff, a root, a damage
+// over time, a heal on its owner (an NPC of the template casts none; a creature's
+// damage over time is its debuff's). A heal of its own share is a creature's too
+// since petition 1394 (abilitytimes.go: Mr. Moogie's Lay Hands), cast as its other
+// abilities are; a pet's comes by size (petSharePickLocked).
 func petOnly(a *templateAbility) bool {
 	switch {
-	case a.Kind == database.AbilityTaunt, a.Kind == database.AbilityBuff, a.Kind == database.AbilityRoot:
+	case a.Kind == database.AbilityTaunt, a.Kind == database.AbilityBuff, a.Kind == database.AbilityRoot, a.Kind == database.AbilityDoT:
 		return true
-	case a.Kind == database.AbilityHeal && (a.HealPct > 0 || a.TargetOr() == database.AbilityOnOwner):
-		return true
+	case a.Kind == database.AbilityHeal && a.TargetOr() == database.AbilityOnOwner:
+		return true // a creature's heal of its share is its own now (abilitytimes.go: petition 1394)
 	}
 	return false
 }

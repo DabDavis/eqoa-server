@@ -5,6 +5,7 @@ import (
 	"github.com/eqoa/server/internal/debuglog"
 	"log"
 	"sort"
+	"sync/atomic"
 	"time"
 
 	"github.com/eqoa/server/internal/session"
@@ -29,6 +30,12 @@ type VisibilityState struct {
 	ChannelEntity   []EntityID // Entity in each slot
 	ChannelObjectID []uint32   // ObjectID assigned to each slot's entity
 	nextObjectID    uint32     // Counter for assigning stable object IDs
+
+	// capesSent is the last set of capes in view sent to the client
+	// (capes.go: OpcodeCapesInView's body), touched under the world lock;
+	// capesDue sends the next one whatever it is (ResendCapes).
+	capesSent string
+	capesDue  atomic.Bool
 }
 
 // GetOrCreateVisibility retrieves or creates a VisibilityState from a session.
@@ -317,7 +324,8 @@ func (w *World) serializeEntityDiscLocked(sess *session.Session, id EntityID, ob
 			buf[26] = 3
 			buf[27] = 0
 		}
-		w.duelViewPetLocked(sess, npc, buf) // a duel opponent's pet as a creature (duel.go)
+		w.duelViewPetLocked(sess, npc, buf)   // a duel opponent's pet as a creature (duel.go)
+		w.challengeViewLocked(sess, npc, buf) // a Metal Moogie not one's own to fight (metalmoogie.go)
 		w.putChannelTargetLocked(sess, npc, buf)
 		return buf, nil
 	}

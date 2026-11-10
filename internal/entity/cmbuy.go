@@ -22,7 +22,7 @@ import (
 // needs, its text, the stats it modifies, the abilities it adds and those it
 // removes or needs, the masteries it needs), a purchase (sub-op 5: the points
 // left and spent, the run speed, the 29 stats the masteries add, the seven
-// stat caps they raise, the known flags again) and a removal (sub-op 6). It
+// m_bonus of the stat caps, the known flags again) and a removal (sub-op 6). It
 // shows a rank "known" when its requirements are met (else "???", "Locked"),
 // in five categories: CLIENT's words 1653-1656 and 511, General, Racial,
 // Archetype, Class and Master Class.
@@ -290,9 +290,16 @@ func (w *World) LoadCMCatalog(db *database.SQLiteDB) (int, error) {
 	w.mu.Lock()
 	w.cms = cat
 	for _, p := range w.Players {
+		trainer := p.TrainerCap()
 		p.refreshCMLocked(cat)
 		p.RecalcStats(false)
 		p.StatsDirty = true
+		// where its trainer stops a base (mastery.go), as a purchase tells it
+		if t := p.TrainerCap(); t != trainer && w.SessionManager != nil {
+			if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
+				SendStatCap(sess, t)
+			}
+		}
 	}
 	w.mu.Unlock()
 	return len(rows), nil
@@ -333,7 +340,13 @@ func (w *World) CMSummary() string {
 // offered is whether the rank is listed for the player: enabled, and for its
 // class and race.
 func (r *CMRank) offered(p *Player) bool {
-	return r.Enabled && r.Classes&(1<<uint(p.Class)) != 0 && raceInMask(r.Races, p.Race)
+	return r.OfferedTo(p.Class, p.Race)
+}
+
+// OfferedTo is whether the rank is listed for a character of the class and
+// race: enabled, and for both (the Spell Archivist's, handlers/archivistmastery.go).
+func (r *CMRank) OfferedTo(class, race int) bool {
+	return r.Enabled && class >= 0 && r.Classes&(1<<uint(class)) != 0 && raceInMask(r.Races, race)
 }
 
 // refreshCMLocked sums the player's ranks' effects again.
@@ -444,8 +457,10 @@ type CMEntryLine struct {
 }
 
 // CMState is what the dump's mastery block and a purchase's reply carry
-// besides the points: the run speed, the 29 stats the masteries add and the
-// seven caps they raise.
+// besides the points: the run speed, the 29 stats the masteries add (the
+// seven caps they raise among them, slots 7-13, which no window reads) and
+// the seven m_bonus CLIENT adds to m_p44 for a stat's cap: TrainerBonuses,
+// each stat's cap less the highest (mastery.go), not the raises themselves.
 type CMState struct {
 	Speed   float32
 	Stats   [CMSlots]int
@@ -453,9 +468,7 @@ type CMState struct {
 }
 
 func (p *Player) cmStateLocked() CMState {
-	st := CMState{Speed: p.SpeedNow(), Stats: p.CMEffects}
-	copy(st.Bonuses[:], p.CMEffects[cmSlotCap:cmSlotCap+7])
-	return st
+	return CMState{Speed: p.SpeedNow(), Stats: p.CMEffects, Bonuses: p.TrainerBonuses()}
 }
 
 // CMStateOf is the session's player's CMState (the MemoryDump's).
@@ -893,15 +906,24 @@ func (w *World) cmRank(id int) *CMRank {
 }
 
 // cmChangedLocked puts the player's ranks on its stats: the effects summed,
-// the stats again within the new caps, a new run speed told.
+// the stats again within the new caps, a new run speed told, and a new
+// TrainerCap (0x001C: where the trainer stops a base; mastery.go).
 func (w *World) cmChangedLocked(p *Player) {
-	speed := p.SpeedNow()
+	speed, trainer := p.SpeedNow(), p.TrainerCap()
 	p.refreshCMLocked(w.cms)
 	p.RecalcStats(false)
 	p.StatsDirty = true
-	if s := p.SpeedNow(); s != speed && w.SessionManager != nil {
+	if w.SessionManager == nil {
+		return
+	}
+	if s, t := p.SpeedNow(), p.TrainerCap(); s != speed || t != trainer {
 		if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
-			sendPlayerSpeed(sess, s)
+			if s != speed {
+				sendPlayerSpeed(sess, s)
+			}
+			if t != trainer {
+				SendStatCap(sess, t)
+			}
 		}
 	}
 }

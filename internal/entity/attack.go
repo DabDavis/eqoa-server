@@ -323,6 +323,10 @@ func (w *World) engageLocked(sess *session.Session, p *Player, objectID uint32, 
 		// swinging at it, though the 0x000F still comes.
 		return false
 	}
+	if line := challengeRefusal(npc, p.ServerID); line != "" {
+		w.tellChallengeLocked(sess, p, line, now) // another's duel (metalmoogie.go)
+		return false
+	}
 	p.Swing, p.swingNew = swing, false
 	if p.AttackTarget == npc.ServerID && p.AttackObjectID == objectID {
 		p.pressed(now) // a press with the client's timer run out: its timer from the press
@@ -712,7 +716,7 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 		// told, taken off nothing; the dummy fights back (dummy.go)
 		now := time.Now()
 		attacker.LastCombatTime = now
-		w.sendDamageIndication(sess, sess.PlayerObjectID(), -damage, objectID)
+		w.sendDamageIndication(sess, sess.PlayerObjectID(), -damage, objectID, numberMelee)
 		w.markHealPlayerLocked(sess, attacker, npc, now) // markheal.go
 		w.dummyEngagedLocked(npc, attacker, now)
 		w.playerProcsLocked(sess, attacker, npc, now)
@@ -725,7 +729,7 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 	killed := npc.HP <= 0
 	attacker.LastCombatTime = time.Now()
 
-	w.sendDamageIndication(sess, sess.PlayerObjectID(), -damage, objectID)
+	w.sendDamageIndication(sess, sess.PlayerObjectID(), -damage, objectID, numberMelee)
 	w.markHealPlayerLocked(sess, attacker, npc, attacker.LastCombatTime) // markheal.go: a mark on it heals the hitter
 	log.Printf("Combat: %s hit %s for %d damage (HP: %d/%d) %.2f off, reach %.2f", attacker.Name, npc.Name, damage, npc.HP, npc.MaxHP,
 		dist3(attacker.X, attacker.Y, attacker.Z, npc.X, npc.Y, npc.Z), attacker.Swing.Reach+npcReachExtra(npc))

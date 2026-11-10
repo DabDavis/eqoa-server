@@ -1,0 +1,1319 @@
+{
+ "set": "tallon",
+ "notes": "Tallon Zek's fortress (EQOA-Data Quests/Portal/zaoran-plateau.json, Tallon Zek; zp-research).",
+ "items": [
+  {
+   "name": "Tallon's Bow",
+   "like": "Longbow of Zek",
+   "notrade": true,
+   "lore": 1,
+   "levelreq": 70,
+   "classuse": 2,
+   "description": "Tallon Zek's own bow. (Seen on his corpse in 2009: Class RAN, Level 70, NO TRADE NO RENT LORE; its figures are Longbow of Zek's, ours.)"
+  },
+  {
+   "name": "Tallon's Left Eye",
+   "like": "Eye of the Sphynx",
+   "notrade": true,
+   "levelreq": 55,
+   "maxstack": 1,
+   "itemcost": 0,
+   "description": "One of Tallon Zek's eyes. 'Supposed to give you offensive mods, has five charges' (2012); it does nothing yet."
+  },
+  {
+   "name": "Tallon's Right Eye",
+   "like": "Eye of the Sphynx",
+   "notrade": true,
+   "levelreq": 55,
+   "maxstack": 1,
+   "itemcost": 0,
+   "description": "One of Tallon Zek's eyes. 'Supposed to give you offensive mods, has five charges' (2012); it does nothing yet."
+  },
+  {
+   "name": "Zek's battleplans",
+   "like": "letter from sigmor",
+   "notrade": true,
+   "maxstack": 1,
+   "itemcost": 0,
+   "description": "Tallon Zek's plans for the war on the plateau."
+  },
+  {
+   "name": "Potion of Amalgamation",
+   "like": "Gem of Battle",
+   "notrade": true,
+   "levelreq": 1,
+   "maxstack": 1,
+   "description": "50% more experience for 30 minutes, 3 charges (the old plateau's lists); it does nothing yet."
+  }
+ ],
+ "spells": [
+  {
+   "id": 905040,
+   "name": "Tallon's Arrow",
+   "line": "Target, Decrease Hitpoints by 5000",
+   "fx": 0,
+   "effects": {
+    "v": 1,
+    "scope": "target",
+    "target_type": "Enemy",
+    "harmful": true,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "req_equipment": "Any",
+    "sheet_type": "Dmg/Heal",
+    "effects": [
+     {
+      "type": "Dmg/Heal",
+      "kind": "hp",
+      "amount": -5000,
+      "resist": "ar"
+     }
+    ]
+   }
+  },
+  {
+   "id": 905041,
+   "name": "Breath of the Sentry",
+   "line": "Target, aoe Decrease Hitpoints by 4000, Radius 40",
+   "fx": 1338050560,
+   "effects": {
+    "v": 1,
+    "scope": "target_aoe",
+    "target_type": "Enemy",
+    "harmful": true,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "req_equipment": "Any",
+    "sheet_type": "Dmg/Heal",
+    "effects": [
+     {
+      "type": "Dmg/Heal",
+      "kind": "hp2",
+      "amount": -4000,
+      "resist": "fr"
+     }
+    ],
+    "radius": 40
+   }
+  },
+  {
+   "id": 905042,
+   "name": "Tallon's Rage",
+   "line": "Target, Decrease Hitpoints by 30000",
+   "fx": 0,
+   "effects": {
+    "v": 1,
+    "scope": "target",
+    "target_type": "Enemy",
+    "harmful": true,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "req_equipment": "Any",
+    "sheet_type": "Dmg/Heal",
+    "effects": [
+     {
+      "type": "Dmg/Heal",
+      "kind": "hp",
+      "amount": -30000,
+      "resist": "ar"
+     }
+    ]
+   }
+  },
+  {
+   "id": 905047,
+   "name": "Tallon's Volley",
+   "line": "Target, aoe Decrease Hitpoints by 1500, Radius 30",
+   "fx": 2972655019,
+   "effects": {
+    "v": 1,
+    "scope": "target_aoe",
+    "target_type": "Enemy",
+    "harmful": true,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "req_equipment": "Any",
+    "sheet_type": "Dmg/Heal",
+    "effects": [
+     {
+      "type": "Dmg/Heal",
+      "kind": "hp2",
+      "amount": -1500,
+      "resist": "ar"
+     }
+    ],
+    "radius": 30
+   }
+  },
+  {
+   "id": 905043,
+   "name": "Zek Arrow",
+   "line": "Target, Decrease Hitpoints by 900",
+   "fx": 0,
+   "effects": {
+    "v": 1,
+    "scope": "target",
+    "target_type": "Enemy",
+    "harmful": true,
+    "stack": 0,
+    "level": 60,
+    "min_level": 1,
+    "req_equipment": "Any",
+    "sheet_type": "Dmg/Heal",
+    "effects": [
+     {
+      "type": "Dmg/Heal",
+      "kind": "hp",
+      "amount": -900,
+      "resist": "ar"
+     }
+    ]
+   }
+  }
+ ],
+ "templates": [
+  {
+   "name": "zek sentry",
+   "class": 0,
+   "hp": 250000,
+   "level": 64,
+   "melee": 300,
+   "note": "'a large red dragon ... a huge 4k aoe nuke and uses it frequently but cannot be pulled out of position' [guide].",
+   "crit": 1500,
+   "abilities": [
+    {
+     "kind": "aoe",
+     "spell_id": 905041,
+     "every": 18,
+     "first": 4
+    }
+   ]
+  },
+  {
+   "name": "tallon's rage",
+   "class": 0,
+   "hp": 60000,
+   "level": 66,
+   "melee": 300,
+   "note": "'The first floor is suppose to be filled with Tallon Rage's (that DT) ... suppose to die once you defeat the dragon' [guide].",
+   "abilities": [
+    {
+     "kind": "nuke",
+     "spell_id": 905042,
+     "every": 12,
+     "first": 2
+    }
+   ]
+  },
+  {
+   "name": "fortress golem",
+   "class": 0,
+   "hp": 40000,
+   "level": 62,
+   "melee": 200,
+   "note": "'you will spawn golems (6-8) ... They can be tanked by one tank' [guide]."
+  },
+  {
+   "name": "zek assassin",
+   "class": 6,
+   "hp": 25000,
+   "level": 61,
+   "melee": 250,
+   "note": "'approximately 15 Assasins that pour out ... There appears to be no benefit to doing this' [guide]."
+  },
+  {
+   "name": "zek hall guard",
+   "class": 0,
+   "hp": 50000,
+   "level": 62,
+   "melee": 250,
+   "note": "'6 more halls, each with roamers' [guide]."
+  },
+  {
+   "name": "zek archer",
+   "class": 1,
+   "hp": 30000,
+   "level": 63,
+   "melee": 150,
+   "note": "'the Archers that pop when you spawn TZ himself' [guide].",
+   "abilities": [
+    {
+     "kind": "nuke",
+     "spell_id": 905043,
+     "every": 8,
+     "first": 3
+    }
+   ]
+  },
+  {
+   "name": "tallon zek",
+   "class": 1,
+   "hp": 1000000,
+   "level": 65,
+   "melee": 600,
+   "note": "'No way known yet for a MT to survive his bow shots ... his health is really low' [guide, Wickedlyrics]; pets took him in every recorded kill; 'stay out of aoe', 'move ... before he aoes' (raid chat 2009, 2012); effective HP 0.5-0.7M (2012 webcam) vs 1.9-2.6M (PR 2009 bar rate): ~1.1M effective here, ours.",
+   "crit": 2000,
+   "abilities": [
+    {
+     "kind": "nuke",
+     "spell_id": 905040,
+     "every": 6,
+     "first": 2
+    },
+    {
+     "kind": "aoe",
+     "spell_id": 905047,
+     "every": 30,
+     "first": 12
+    }
+   ]
+  }
+ ],
+ "npcs": [
+  {
+   "name": "huge black widow",
+   "world": 5,
+   "x": 4690.5,
+   "y": 197.5,
+   "z": 7666.5,
+   "level": 58,
+   "type": 0,
+   "charm": 0,
+   "like": "giant black widow",
+   "size": 2.5,
+   "roam": 0,
+   "aggro": {
+    "aggressive": 0
+   },
+   "note": "'huge black widow spiders to your left and right ... Just ignore them' [guide]; 'some have the Black Widow Spiders which means Dead End' [guide]."
+  },
+  {
+   "name": "huge black widow",
+   "world": 5,
+   "x": 4682.5,
+   "y": 197.5,
+   "z": 7672.5,
+   "level": 58,
+   "type": 0,
+   "charm": 0,
+   "like": "giant black widow",
+   "size": 2.5,
+   "roam": 0,
+   "aggro": {
+    "aggressive": 0
+   },
+   "note": "'huge black widow spiders to your left and right ... Just ignore them' [guide]; 'some have the Black Widow Spiders which means Dead End' [guide]."
+  },
+  {
+   "name": "huge black widow",
+   "world": 5,
+   "x": 4769.5,
+   "y": 197.5,
+   "z": 7667.5,
+   "level": 58,
+   "type": 0,
+   "charm": 0,
+   "like": "giant black widow",
+   "size": 2.5,
+   "roam": 0,
+   "aggro": {
+    "aggressive": 0
+   },
+   "note": "'huge black widow spiders to your left and right ... Just ignore them' [guide]; 'some have the Black Widow Spiders which means Dead End' [guide]."
+  },
+  {
+   "name": "huge black widow",
+   "world": 5,
+   "x": 4641.0,
+   "y": 167.5,
+   "z": 7750.0,
+   "level": 58,
+   "type": 0,
+   "charm": 0,
+   "like": "giant black widow",
+   "size": 2.5,
+   "roam": 0,
+   "aggro": {
+    "aggressive": 0
+   },
+   "note": "'huge black widow spiders to your left and right ... Just ignore them' [guide]; 'some have the Black Widow Spiders which means Dead End' [guide]."
+  },
+  {
+   "name": "huge black widow",
+   "world": 5,
+   "x": 4647.0,
+   "y": 167.5,
+   "z": 7748.0,
+   "level": 58,
+   "type": 0,
+   "charm": 0,
+   "like": "giant black widow",
+   "size": 2.5,
+   "roam": 0,
+   "aggro": {
+    "aggressive": 0
+   },
+   "note": "'huge black widow spiders to your left and right ... Just ignore them' [guide]; 'some have the Black Widow Spiders which means Dead End' [guide]."
+  },
+  {
+   "name": "huge black widow",
+   "world": 5,
+   "x": 4725.0,
+   "y": 167.5,
+   "z": 7750.0,
+   "level": 58,
+   "type": 0,
+   "charm": 0,
+   "like": "giant black widow",
+   "size": 2.5,
+   "roam": 0,
+   "aggro": {
+    "aggressive": 0
+   },
+   "note": "'huge black widow spiders to your left and right ... Just ignore them' [guide]; 'some have the Black Widow Spiders which means Dead End' [guide]."
+  },
+  {
+   "name": "huge black widow",
+   "world": 5,
+   "x": 4731.0,
+   "y": 167.5,
+   "z": 7748.0,
+   "level": 58,
+   "type": 0,
+   "charm": 0,
+   "like": "giant black widow",
+   "size": 2.5,
+   "roam": 0,
+   "aggro": {
+    "aggressive": 0
+   },
+   "note": "'huge black widow spiders to your left and right ... Just ignore them' [guide]; 'some have the Black Widow Spiders which means Dead End' [guide]."
+  },
+  {
+   "name": "fortress post",
+   "world": 5,
+   "x": 4684.5,
+   "y": 179.9,
+   "z": 7600.5,
+   "level": 1,
+   "type": 128,
+   "charm": 0,
+   "body": "C4B6331E",
+   "size": 0.6,
+   "note": "'an empty-con post, if you talk to it, you will spawn approximately 15 Assasins' [guide]."
+  },
+  {
+   "name": "Tallon's Rage",
+   "world": 5,
+   "x": 4730.5,
+   "y": 197.5,
+   "z": 7640.5,
+   "level": 66,
+   "type": 0,
+   "charm": 0,
+   "like": "Zek trainer",
+   "size": 1.4,
+   "spawnonly": true,
+   "template": "tallon's rage",
+   "aggro": {
+    "aggressive": 1,
+    "radius": 25
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named",
+   "note": "Spawned by the fortress's run."
+  },
+  {
+   "name": "fortress golem",
+   "world": 5,
+   "x": 4710.5,
+   "y": 179.9,
+   "z": 7610.5,
+   "level": 62,
+   "type": 0,
+   "charm": 0,
+   "body": "14328B36",
+   "size": 1.6,
+   "spawnonly": true,
+   "template": "fortress golem",
+   "aggro": {
+    "aggressive": 1,
+    "radius": 25
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named"
+  },
+  {
+   "name": "Zek assassin",
+   "world": 5,
+   "x": 4684.5,
+   "y": 179.9,
+   "z": 7600.5,
+   "level": 61,
+   "type": 0,
+   "charm": 0,
+   "like": "Zek trainer",
+   "size": 1.0,
+   "spawnonly": true,
+   "template": "zek assassin",
+   "aggro": {
+    "aggressive": 1,
+    "radius": 40
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named"
+  },
+  {
+   "name": "Zek hall guard",
+   "world": 5,
+   "x": 4645.0,
+   "y": 167.5,
+   "z": 7672.0,
+   "level": 62,
+   "type": 0,
+   "charm": 0,
+   "like": "Zek trainer",
+   "size": 1.2,
+   "spawnonly": true,
+   "template": "zek hall guard",
+   "aggro": {
+    "aggressive": 1,
+    "radius": 22
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named"
+  },
+  {
+   "name": "Zek archer",
+   "world": 5,
+   "x": 4725.5,
+   "y": 162.4,
+   "z": 7631.5,
+   "level": 63,
+   "type": 0,
+   "charm": 0,
+   "like": "Zek trainer",
+   "size": 1.1,
+   "spawnonly": true,
+   "template": "zek archer",
+   "aggro": {
+    "aggressive": 1,
+    "radius": 40
+   },
+   "roam": 0,
+   "loot_region": "secrets",
+   "loot_profile": "named"
+  }
+ ],
+ "triggers": [
+  {
+   "slot": 130,
+   "name": "Tallon's Fortress",
+   "scope": "near",
+   "radius": 300,
+   "world": 5,
+   "x": 4730.0,
+   "y": 180.0,
+   "z": 7600.0,
+   "steps": [
+    {
+     "do": "lock",
+     "lock": "tallon fortress"
+    },
+    {
+     "do": "clock",
+     "seconds": 7200,
+     "empty": 900
+    },
+    {
+     "do": "broadcast",
+     "text": "Tallon's fortress wakes. Its guardian rears up at the foot of the way up."
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek sentry",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4750.0,
+     "y": 175.7,
+     "z": 7480.0
+    },
+    {
+     "do": "spawn",
+     "npc": "Tallon's Rage",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4730.5,
+     "y": 197.5,
+     "z": 7640.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Tallon's Rage",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4730.5,
+     "y": 197.5,
+     "z": 7631.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Tallon's Rage",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4723.5,
+     "y": 197.5,
+     "z": 7646.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Tallon's Rage",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4739.5,
+     "y": 197.5,
+     "z": 7640.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Tallon's Rage",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4732.5,
+     "y": 197.5,
+     "z": 7649.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek captain",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4683.5,
+     "y": 167.5,
+     "z": 7685.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek captain",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4682.5,
+     "y": 167.5,
+     "z": 7692.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek captain",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4683.5,
+     "y": 167.5,
+     "z": 7678.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek captain",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4674.5,
+     "y": 167.5,
+     "z": 7683.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek captain",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4692.5,
+     "y": 167.5,
+     "z": 7685.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek captain",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4673.5,
+     "y": 167.5,
+     "z": 7690.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek captain",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4690.5,
+     "y": 167.5,
+     "z": 7678.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek captain",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4691.5,
+     "y": 167.5,
+     "z": 7692.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek captain",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4676.5,
+     "y": 167.5,
+     "z": 7676.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek captain",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4677.5,
+     "y": 167.5,
+     "z": 7697.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek captain",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4686.5,
+     "y": 167.5,
+     "z": 7698.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek captain",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4683.5,
+     "y": 167.5,
+     "z": 7671.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek hall guard",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4645.0,
+     "y": 167.5,
+     "z": 7672.0
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek hall guard",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4645.0,
+     "y": 167.5,
+     "z": 7708.0
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek hall guard",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4721.0,
+     "y": 167.5,
+     "z": 7672.0
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek hall guard",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4721.0,
+     "y": 167.5,
+     "z": 7708.0
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek hall guard",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4673.0,
+     "y": 167.5,
+     "z": 7730.0
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek hall guard",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4691.0,
+     "y": 167.5,
+     "z": 7730.0
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek hall guard",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4760.0,
+     "y": 167.5,
+     "z": 7720.0
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek hall guard",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4760.0,
+     "y": 167.5,
+     "z": 7710.0
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek hall guard",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4790.0,
+     "y": 167.5,
+     "z": 7683.0
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek hall guard",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4799.0,
+     "y": 167.5,
+     "z": 7705.0
+    },
+    {
+     "do": "awaitdead",
+     "npc": "Zek sentry",
+     "any": true
+    },
+    {
+     "do": "despawn",
+     "npc": "Tallon's Rage"
+    },
+    {
+     "do": "broadcast",
+     "text": "The sentry falls, and Tallon's Rages crumble with it. The fortress lies open."
+    },
+    {
+     "do": "spawn",
+     "npc": "fortress golem",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4710.5,
+     "y": 179.9,
+     "z": 7610.5
+    },
+    {
+     "do": "spawn",
+     "npc": "fortress golem",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4704.5,
+     "y": 179.9,
+     "z": 7610.5
+    },
+    {
+     "do": "spawn",
+     "npc": "fortress golem",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4708.5,
+     "y": 179.9,
+     "z": 7604.5
+    },
+    {
+     "do": "spawn",
+     "npc": "fortress golem",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4710.5,
+     "y": 179.9,
+     "z": 7616.5
+    },
+    {
+     "do": "spawn",
+     "npc": "fortress golem",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4704.5,
+     "y": 179.9,
+     "z": 7616.5
+    },
+    {
+     "do": "spawn",
+     "npc": "fortress golem",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4702.5,
+     "y": 179.9,
+     "z": 7604.5
+    },
+    {
+     "do": "spawn",
+     "npc": "fortress golem",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4714.5,
+     "y": 179.9,
+     "z": 7605.5
+    },
+    {
+     "do": "spawn",
+     "npc": "fortress golem",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4722.5,
+     "y": 177.5,
+     "z": 7641.5
+    },
+    {
+     "do": "spawn",
+     "npc": "fortress golem",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4728.5,
+     "y": 177.5,
+     "z": 7641.5
+    },
+    {
+     "do": "spawn",
+     "npc": "fortress golem",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4720.5,
+     "y": 177.5,
+     "z": 7647.5
+    },
+    {
+     "do": "spawn",
+     "npc": "fortress golem",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4716.5,
+     "y": 177.5,
+     "z": 7641.5
+    },
+    {
+     "do": "spawn",
+     "npc": "fortress golem",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4720.5,
+     "y": 177.5,
+     "z": 7635.5
+    },
+    {
+     "do": "spawn",
+     "npc": "fortress golem",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4726.5,
+     "y": 177.5,
+     "z": 7649.5
+    },
+    {
+     "do": "awaittalk",
+     "npc": "Tallon Zek",
+     "text": "You have come a long way to die in my hall. Archers!"
+    },
+    {
+     "do": "hide",
+     "npc": "Tallon Zek",
+     "radius": 80,
+     "minutes": 120
+    },
+    {
+     "do": "spawn",
+     "npc": "Tallon Zek",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 30,
+     "world": 5,
+     "x": 4703.5,
+     "y": 162.4,
+     "z": 7641.0
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek archer",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4725.5,
+     "y": 162.4,
+     "z": 7631.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek archer",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4737.5,
+     "y": 162.4,
+     "z": 7631.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek archer",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4725.5,
+     "y": 162.4,
+     "z": 7651.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek archer",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4737.5,
+     "y": 162.4,
+     "z": 7651.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek archer",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4716.5,
+     "y": 162.4,
+     "z": 7628.5
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek archer",
+     "hostile": true,
+     "spread": 0.5,
+     "minutes": 120,
+     "world": 5,
+     "x": 4716.5,
+     "y": 162.4,
+     "z": 7654.5
+    },
+    {
+     "do": "awaitdead",
+     "npc": "Tallon Zek",
+     "any": true
+    },
+    {
+     "do": "broadcast",
+     "text": "Tallon Zek has fallen."
+    },
+    {
+     "do": "wait",
+     "seconds": 900
+    },
+    {
+     "do": "end"
+    },
+    {
+     "do": "despawn"
+    },
+    {
+     "do": "hide",
+     "npc": "Tallon Zek",
+     "radius": 80,
+     "minutes": 0
+    }
+   ],
+   "notes": "The key's bearer reaches the way up (quest 'Tallon Zek' step 4): the sentry, Tallon's Rages on the first floor, the captains and the halls' roamers; the sentry dead, the Rages crumble and the golems stand at the ramps' feet; Tallon spoken to in the deepest room, he and his archers. Two hours, or fifteen minutes with no one there."
+  },
+  {
+   "slot": 131,
+   "name": "Fortress Post",
+   "scope": "near",
+   "radius": 80,
+   "world": 5,
+   "x": 4684.5,
+   "y": 179.9,
+   "z": 7600.5,
+   "steps": [
+    {
+     "do": "lock",
+     "lock": "fortress post"
+    },
+    {
+     "do": "clock",
+     "seconds": 7200,
+     "empty": 900
+    },
+    {
+     "do": "awaittalk",
+     "npc": "fortress post",
+     "text": "The post's runes flare. Doors grind open behind you!"
+    },
+    {
+     "do": "spawn",
+     "npc": "Zek assassin",
+     "hostile": true,
+     "count": 15,
+     "spread": 10.0,
+     "minutes": 30,
+     "world": 5,
+     "x": 4704.0,
+     "y": 179.9,
+     "z": 7612.0
+    },
+    {
+     "do": "awaitdead"
+    },
+    {
+     "do": "end"
+    },
+    {
+     "do": "despawn"
+    }
+   ],
+   "notes": "The guide's trap: the post by ramp 1 calls ~15 assassins. Fired with the fortress."
+  }
+ ],
+ "loot": [
+  {
+   "table": "tallon zek",
+   "items": [
+    [
+     "Warlord's Legplates",
+     2
+    ],
+    [
+     "Greaves of Maneuvering",
+     2
+    ],
+    [
+     "Warmage's Leggings",
+     2
+    ],
+    [
+     "Campaigner Legs",
+     2
+    ],
+    "Earring of Overflowing Efficancy",
+    "Lead Plated Choker",
+    "Tallon's Bow",
+    "Tallon's Left Eye",
+    "Tallon's Right Eye",
+    "Potion of Amalgamation"
+   ],
+   "npcs": [
+    [
+     "Tallon Zek",
+     100,
+     4
+    ]
+   ]
+  },
+  {
+   "table": "zek's battleplans",
+   "items": [
+    "Zek's battleplans"
+   ],
+   "npcs": [
+    [
+     "Tallon Zek",
+     100,
+     1
+    ]
+   ]
+  }
+ ],
+ "dialog": [
+  {
+   "name": "fortress post",
+   "line": "An old post, carved deep with Zek's runes."
+  },
+  {
+   "name": "Tallon Zek",
+   "line": "He does not look up from the table."
+  }
+ ],
+ "step_events": [
+  {
+   "quest": "Portal/zaoran-plateau/tallon",
+   "step": 4,
+   "target": "",
+   "events": [
+    {
+     "on": "done",
+     "do": "trigger",
+     "trigger": "Tallon's Fortress",
+     "text": "The fortress is awake already: another raid is inside."
+    },
+    {
+     "on": "done",
+     "do": "trigger",
+     "trigger": "Fortress Post"
+    }
+   ]
+  }
+ ],
+ "sql": [
+  [
+   "UPDATE quests SET repeatable = 1 WHERE questid = (SELECT questid FROM quest_import_quests WHERE key = ?)",
+   [
+    "Portal/zaoran-plateau/tallon"
+   ]
+  ],
+  [
+   "UPDATE npcs SET npc_type = 128, x_coord = ?, y_coord = ?, z_coord = ?, facing = 64 WHERE npc_name = 'Tallon Zek' AND world = 5",
+   [
+    4703.5,
+    162.4,
+    7641.0
+   ]
+  ],
+  [
+   "UPDATE npcs SET modelid = ?, size = 2.0, npc_level = ? WHERE npc_name = 'Zek sentry' AND world = 5",
+   [
+    -3608879674,
+    64
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO npcspawnonly (name, note, source) VALUES ('zek sentry', 'Spawned by the fortress''s run (guide gaps tallon).', 'guide gaps tallon')",
+   []
+  ],
+  [
+   "INSERT OR REPLACE INTO npctemplate (name, template, note, source) VALUES ('zek sentry', 'zek sentry', '', 'guide gaps tallon')",
+   []
+  ],
+  [
+   "INSERT OR REPLACE INTO npctemplate (name, template, note, source) VALUES ('tallon zek', 'tallon zek', '', 'guide gaps tallon')",
+   []
+  ],
+  [
+   "UPDATE classtemplates SET run_speed = 1 WHERE name = 'zek sentry'",
+   []
+  ],
+  [
+   "INSERT OR REPLACE INTO npccharm (name, charmable, resist_pct, template, note, source) VALUES ('zek sentry', 0, 0, '', '', 'guide gaps tallon')",
+   []
+  ],
+  [
+   "INSERT OR REPLACE INTO npccharm (name, charmable, resist_pct, template, note, source) VALUES ('tallon zek', 0, 0, '', '', 'guide gaps tallon')",
+   []
+  ],
+  [
+   "INSERT OR REPLACE INTO npcaggro (npc_name, aggressive, radius, note, source) VALUES ('zek sentry', 1, 40, 'sees far: \"He''s sees through invis\" [guide] (not modelled)', 'guide gaps tallon')",
+   []
+  ],
+  [
+   "INSERT OR REPLACE INTO npcaggro (npc_name, aggressive, radius, note, source) VALUES ('tallon zek', 1, 40, '', 'guide gaps tallon')",
+   []
+  ],
+  [
+   "INSERT OR REPLACE INTO lootcreature (npc_name, region, profile, source) VALUES ('tallon zek', 'secrets', 'boss', 'guide gaps tallon')",
+   []
+  ],
+  [
+   "INSERT OR REPLACE INTO lootcreature (npc_name, region, profile, source) VALUES ('zek sentry', 'secrets', 'named', 'guide gaps tallon')",
+   []
+  ],
+  [
+   "INSERT OR REPLACE INTO npcsocial (npc_name, social, faction, radius, note, source) VALUES ('zek captain', 1, 'Tallon''s Fortress', 45, 'the fortress''s captains and hall guards help each other (Muffin_Man24, CS 2009-04-10); radius ours', 'guide gaps tallon')",
+   []
+  ],
+  [
+   "INSERT OR REPLACE INTO npcsocial (npc_name, social, faction, radius, note, source) VALUES ('zek hall guard', 1, 'Tallon''s Fortress', 45, 'as the captains', 'guide gaps tallon')",
+   []
+  ]
+ ]
+}

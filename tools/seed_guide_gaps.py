@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """The content EQOA-Data's guides describe and the server lacked, as data: one set a
-file of tools/guidegaps/ (sky-twins, rallos, razeal, oneoffs), each with its quest
-file in tools/quests/data/. The user, 2026-11-07: "lets build them all".
+file of tools/guidegaps/ (sky-twins, rallos, razeal, oneoffs, pod-twins; Zaoran Plateau's
+tallon, vallon, zp-armour, then zp-minions, and zp-records), each with its quest file in
+tools/quests/data/ when it has one. The user, 2026-11-07: "lets build them all".
 
     tools/seed_guide_gaps.py --db eqoa.db --set sky-twins              report: what it would write
     tools/seed_guide_gaps.py --db eqoa.db --set sky-twins --apply

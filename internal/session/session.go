@@ -62,8 +62,12 @@ type Session struct {
 	inGameTimeout  time.Duration // Timeout for in-game sessions (default 60s)
 
 	// Account/character info
-	accountID      int
-	charServerID   uint32      // Character's database server_id (for dedup on reconnect)
+	accountID    int
+	charServerID uint32 // Character's database server_id (for dedup on reconnect)
+	charName     string // its name, for the log's lines (SetCharacterName)
+	// lobbyLate counts the lobby connection's packets that came after the
+	// promotion (NoteLobbyLate)
+	lobbyLate      int32
 	character      interface{} // Will be *entity.Character when implemented
 	playerObjectID uint32      // Unique ID for this player in the game world (assigned on enter world)
 
@@ -135,6 +139,33 @@ type Session struct {
 	serverWorldsOffered bool
 	serverWorlds        []uint8
 
+	// capes: the client answered the cape offer 1 (protocol.OpcodeCapes,
+	// handlers/capes.go): it draws capes, so it is sent a cape's wear slot and
+	// a worn one's equip slot, may wear one, and is told who wears which.
+	// capesOffered: the offer went out, once a session as the live look's.
+	capes        bool
+	capesOffered bool
+	// itemListsPack, itemListsBank: the client's answer to the item lists'
+	// offer (protocol.OpcodeItemLists, handlers/itemlists.go), the records it
+	// holds of the pack and the bank; 0 for a client that never answered (a
+	// PS2), which holds CLIENT's 40. itemListsOffered: the offer went out, once
+	// a session as the capes'.
+	itemListsPack, itemListsBank int
+	itemListsOffered             bool
+	// raceOptionsOffered: the race options' offer went out
+	// (protocol.OpcodeRaceOptions, handlers/raceoptions.go), once a session.
+	// raceLooks: the client answered it, so it is sent each race's options
+	// (raceCatalogueSent: once) and the looks the characters chose, whenever
+	// they differ from raceLooksSent, the list it was last sent.
+	raceOptionsOffered bool
+	raceLooks          bool
+	raceCatalogueSent  bool
+	raceLooksSent      string
+	// creationAsked: the client answered creation's offer 1
+	// (protocol.OpcodeCreationOffer, handlers/creation.go), so a login's world
+	// entry sends it creation's races again (handlers/raceoptions.go)
+	creationAsked bool
+
 	// clock is the game clock the session's client keeps, set by each 0x0013
 	// it was sent: its time of day (gameclock.go).
 	clock gameClock
@@ -146,7 +177,11 @@ type Session struct {
 	// petition filed, and bugNoteAt when it came. reportNotice: the line on
 	// how to report a bug went out. boonNotice: the line on where the towns'
 	// boon is went out (handlers/boon.go).
-	bugReports   bool
+	bugReports bool
+	// ackMasks: the client answered the bug report offer (any answer: a PS2
+	// never does), so our acks carry their mask (network/udp/rdp.go); never
+	// cleared, as CLIENT refuses a mask taken back (SetAckMasks)
+	ackMasks     bool
 	bugNote      string
 	bugNoteAt    time.Time
 	reportNotice bool
@@ -156,6 +191,13 @@ type Session struct {
 	// so #fly may send it the opcode. A client that never said (a PS2, an older
 	// build) is sent none.
 	flyClient bool
+
+	// numberTags: the client answered the number tags' offer 1
+	// (protocol.OpcodeNumberTagsAnswer, handlers/numbertags.go), so each 0x00DB
+	// it is sent of a figure its player or its player's pet made carries a byte
+	// more, what made it (entity/numbertags.go). A client that never answered
+	// (a PS2, an older build) is sent the retail body alone.
+	numberTags bool
 
 	// resume is the MemoryDump a session carried through a restart is due,
 	// and resumed whether it was carried through one (keep.go)
@@ -175,6 +217,24 @@ func (s *Session) SetBugReports(on bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.bugReports = on
+}
+
+// SetAckMasks marks the session's client as one of ours (it answered the bug
+// report offer, whatever it answered): our acks of its messages carry their
+// mask from now on. Once set it stays, through a restart too: a mask stopped
+// while its bits are out would read to CLIENT as acks taken back ("some of
+// the previously acked packets have become un-acked"), every segment refused.
+func (s *Session) SetAckMasks() {
+	s.mu.Lock()
+	s.ackMasks = true
+	s.mu.Unlock()
+}
+
+// AckMasks is whether our acks to the client carry their mask (SetAckMasks).
+func (s *Session) AckMasks() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.ackMasks
 }
 
 // BugReports is whether the client said it reports bugs from a key of its own
@@ -198,6 +258,22 @@ func (s *Session) FlyClient() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.flyClient
+}
+
+// SetNumberTags records the client's answer to the number tags' offer: on, its
+// own and its pet's figures are told with what made them.
+func (s *Session) SetNumberTags(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.numberTags = on
+}
+
+// NumberTags is whether the client asked for its figures' tags
+// (SetNumberTags). A client that never answered (a PS2) did not.
+func (s *Session) NumberTags() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.numberTags
 }
 
 // SetBugNote keeps the client's note for the next petition it files.
@@ -278,6 +354,83 @@ func (s *Session) OfferLiveLookOnce() bool {
 	return first
 }
 
+// OfferRaceOptionsOnce reports whether the race options' offer is still to be
+// made to this session, and marks it made.
+func (s *Session) OfferRaceOptionsOnce() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	first := !s.raceOptionsOffered
+	s.raceOptionsOffered = true
+	return first
+}
+
+// SetRaceLooks records the client's answer to the race options' offer: on, it
+// is sent the options and the looks; off, nothing more.
+func (s *Session) SetRaceLooks(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.raceLooks = on
+	if !on {
+		s.raceLooksSent = ""
+	}
+}
+
+// RaceLooks is whether the client asked for the races' options and looks. A
+// client that never answered (a PS2) did not.
+func (s *Session) RaceLooks() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.raceLooks
+}
+
+// TakeRaceCatalogue is true the first time it is asked of a session that asked
+// for the races' options: their list goes out once a session.
+func (s *Session) TakeRaceCatalogue() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if !s.raceLooks || s.raceCatalogueSent {
+		return false
+	}
+	s.raceCatalogueSent = true
+	return true
+}
+
+// RaceDataAgain forgets that the races' options and the looks went out, so the
+// next SendRaceOptions and RefreshRaceLooks send them again: a login's world
+// entry, as they went on the lobby's connection (handlers/raceoptions.go).
+func (s *Session) RaceDataAgain() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.raceCatalogueSent = false
+	s.raceLooksSent = ""
+}
+
+// SetCreationAsked records that the client answered creation's offer 1.
+func (s *Session) SetCreationAsked() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.creationAsked = true
+}
+
+// CreationAsked is whether the client answered creation's offer 1.
+func (s *Session) CreationAsked() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.creationAsked
+}
+
+// TakeRaceLooks reports whether body, a list of the looks, is to go to this
+// session (it asked, and was last sent another), and records it as sent.
+func (s *Session) TakeRaceLooks(body string) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if !s.raceLooks || s.raceLooksSent == body {
+		return false
+	}
+	s.raceLooksSent = body
+	return true
+}
+
 // OfferCreationOnce reports whether creation's offer is still to be made to
 // this session, and marks it made.
 func (s *Session) OfferCreationOnce() bool {
@@ -323,6 +476,73 @@ func (s *Session) ServerWorlds() []uint8 {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return append([]uint8(nil), s.serverWorlds...)
+}
+
+// SetCapes records the client's answer to the cape offer: it draws capes.
+func (s *Session) SetCapes(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.capes = on
+}
+
+// Capes is whether the client said it draws capes. A client that never
+// answered (a PS2) did not.
+func (s *Session) Capes() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.capes
+}
+
+// CapesOffered is whether the cape offer went out on this session: only then
+// is a client's answer taken.
+func (s *Session) CapesOffered() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.capesOffered
+}
+
+// OfferCapesOnce reports whether the cape offer is still to be made to this
+// session, and marks it made.
+func (s *Session) OfferCapesOnce() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	first := !s.capesOffered
+	s.capesOffered = true
+	return first
+}
+
+// SetItemLists records the client's answer to the item lists' offer: the
+// records it holds of the pack and the bank (0, 0: it stopped, CLIENT's 40).
+func (s *Session) SetItemLists(pack, bank int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.itemListsPack, s.itemListsBank = pack, bank
+}
+
+// ItemLists is what the client said it holds of the pack and the bank: 0, 0
+// for one that never answered (a PS2), which holds CLIENT's 40.
+func (s *Session) ItemLists() (pack, bank int) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.itemListsPack, s.itemListsBank
+}
+
+// ItemListsOffered is whether the item lists' offer went out on this session:
+// only then is a client's answer taken.
+func (s *Session) ItemListsOffered() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.itemListsOffered
+}
+
+// OfferItemListsOnce reports whether the item lists' offer is still to be made
+// to this session, and marks it made.
+func (s *Session) OfferItemListsOnce() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	first := !s.itemListsOffered
+	s.itemListsOffered = true
+	return first
 }
 
 // SetFactionMessagesOff records the client's Faction Messages option (0x00C9):
@@ -737,6 +957,43 @@ func (s *Session) SetCharacterServerID(id uint32) {
 	s.charServerID = id
 }
 
+// SetCharacterName names the session's character, for the log's lines
+// (netstats.go's "Net:").
+func (s *Session) SetCharacterName(name string) {
+	s.mu.Lock()
+	s.charName = name
+	s.mu.Unlock()
+}
+
+// CharacterName is the session's character's name, "" before one is picked.
+func (s *Session) CharacterName() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.charName
+}
+
+// NoteLobbyLate counts one more of the lobby connection's packets come to
+// this promoted session (PromotedOwn), and says how many so far.
+func (s *Session) NoteLobbyLate() int {
+	return int(atomic.AddInt32(&s.lobbyLate, 1))
+}
+
+// Label names the session in a log line: its address and its character's
+// name when it has one.
+func (s *Session) Label() string {
+	if s == nil {
+		return "<none>"
+	}
+	addr := "?"
+	if a := s.RemoteAddr(); a != nil {
+		addr = a.String()
+	}
+	if n := s.CharacterName(); n != "" {
+		return addr + " '" + n + "'"
+	}
+	return addr
+}
+
 // PlayerObjectID returns the player's unique object ID in the game world.
 // This is assigned when the player enters the world and is used in state channel 0.
 func (s *Session) PlayerObjectID() uint32 {
@@ -879,6 +1136,13 @@ func (s *Session) ResetTimeout() {
 	} else {
 		s.timeoutTick = time.Now().Add(s.preGameTimeout)
 	}
+}
+
+// SetLastActivity sets when the client was last heard from (a test's silence).
+func (s *Session) SetLastActivity(t time.Time) {
+	s.mu.Lock()
+	s.lastActivity = t
+	s.mu.Unlock()
 }
 
 // LastActivity is when the client last sent a real packet (UpdateActivity).

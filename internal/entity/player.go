@@ -59,6 +59,12 @@ type Player struct {
 	// Dyes: a colour per armour slot, held item and the robe (livelook.go,
 	// table chardyes), drawn by a client of the live game's look; 0 none.
 	Dyes Dyes
+	// CapeStyle is the worn cape's style (its record's model, 1-255; 0 none
+	// worn) and CapeColor its colour (0xRRGGBBAA, 0 the art's own): an equip
+	// slot of this server's own, told only to the clients that draw capes
+	// (capes.go; handlers.wornLook sets them)
+	CapeStyle uint8
+	CapeColor uint32
 
 	// PlayerInfo
 	AccountID    int
@@ -231,6 +237,15 @@ type Player struct {
 	RaidRoster     bool
 	raidRosterSent string
 
+	// PetEffects: the player's client draws its pet's effects under the pet's
+	// bar and asked for them (peteffects.go, opcodes 0x7E32 and 0x7E33);
+	// petEffectsSent is what made the set it was last sent (each effect's
+	// icon, name and end, not its time left), so only a change goes out, and
+	// petEffectsDue sends the next one whatever it is (just asked).
+	PetEffects     bool
+	petEffectsSent string
+	petEffectsDue  bool
+
 	// DuelWindow: the player's client has the live game's duel window and
 	// answered the duel offer (duel.go, opcode 0x7E09): its duels go by
 	// 0x1501/0x1502, not boxes, and its opponent stays a player to it
@@ -264,6 +279,9 @@ type Player struct {
 	// mv is the server's own view of the player's moves (movecheck.go):
 	// the place last taken from its 0x40, the speed in hand, the fall
 	mv moveState
+	// orb is its standing with the teleport orbs (orbs.go): the orb it is
+	// in, its place at the last report, its orbs' rest
+	orb orbWatch
 
 	// Stood is the last place the player was known to stand, on a floor or
 	// in a liquid (clientupdate.go's Standing): where it arrived (a login, a
@@ -335,11 +353,20 @@ type Player struct {
 	// session.
 	GMTestMode    bool
 	GMTankProfile int
+	// metalSpared is when the duel Metal Moogie won stops holding the player at
+	// 1 HP (metalmoogie.go): what was on its way from him when it ended (a proc,
+	// a shield's answer) kills no one.
+	metalSpared time.Time
 
 	// Flying: a GM's #fly is on (fly.go), until #fly off or the next login.
 	// flyGrace: its last few reports on the way down from it (fly.go).
 	Flying   bool
 	flyGrace time.Time
+
+	// Jumps: the player's client jumps and answered the jump offer (jump.go,
+	// opcode 0x7E28, world.jump): the movement check takes a jump's arc from it.
+	// A new client's answer says again (a takeover clears it).
+	Jumps bool
 
 	// Vampire: the sun burns it by day (vampire.go; table charvampire, read
 	// at its login, set by #vampire and the GM panel where it stands). GM:

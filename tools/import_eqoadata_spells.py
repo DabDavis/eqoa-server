@@ -89,6 +89,14 @@ ID_BASE = 700000
 # "Unknown" are the lists' own words (the shaman's whole list says None).
 LEVELED = {"Merchant", "Quest", "Mob Drop", "None", "Unknown", "", "MC", "EG Stone", "PoD Drop"}
 
+# The lists' word for how a spell is got, taken otherwise here, by (class, level, spell_name): the
+# enchanter's Boon path at 49, Power Stream and Power Flux, are a quest's, not a mastery's (petition
+# 1366): EQOAEmu's workbook has them scrolls from a quest, as the Mind path's Boundless and Infinite
+# Mind beside them are, and the level 49 reward offers all four (tools/quests/data/30-40-49.json);
+# EQOA-Data's own 60 epic calls Power Flux the Boon path's. load_lists reads them so, and so does
+# import_eqoadata_mastery_spells.py, which would otherwise mark them a mastery's ("eqoa-data cm").
+HOW_FIXES = {(12, 49, "power stream"): "Quest", (12, 49, "power flux"): "Quest"}
+
 SCOPE_FRAME = {0: -1809115846, 1: 486870879, 2: 593297002, 3: 439871130}
 SCOPE_RANGE = {0: 16528, 1: 16880, 2: 16880, 3: 16880}
 
@@ -265,8 +273,10 @@ def load_lists(path):
             data = json.load(fh)
         for lv in data["list"]:
             for ab in lv["abilities"]:
-                out.append(dict(cls=cls, level=int(lv["level"]), name=(ab.get("name") or "").strip(),
-                                line=(ab.get("description") or "").strip(), how=(ab.get("source") or "").strip(),
+                name, how = (ab.get("name") or "").strip(), (ab.get("source") or "").strip()
+                how = HOW_FIXES.get((cls, int(lv["level"]), spell_name(name)), how)
+                out.append(dict(cls=cls, level=int(lv["level"]), name=name,
+                                line=(ab.get("description") or "").strip(), how=how,
                                 icon=ab.get("icon")))
     return out
 

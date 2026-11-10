@@ -365,8 +365,8 @@ func TestThePetCommands(t *testing.T) {
 	r.w.PetCommand(r.sess, petCmdDismiss, 0, r.at(12*time.Second))
 	msgs := r.sent()
 	wantOps(t, msgs, protocol.OpcodeClearPet, protocol.OpcodeNoCollideRemove, protocol.OpcodeClientMessage)
-	if _, ok := r.w.NPCs[pet.ServerID]; ok || r.w.petOfLocked(r.p) != nil {
-		t.Error("the dismissed pet is still in the world")
+	if !pet.Dead || r.w.petOfLocked(r.p) != nil {
+		t.Error("the dismissed pet does not lie dead where it stood (petition 1398), or is still its owner's")
 	}
 	r.w.PetCommand(r.sess, 1, 0, r.at(13*time.Second))
 	if msgs := r.sent(); len(msgs) != 1 || chatText(msgs[0]) != castNoPet {
@@ -584,15 +584,16 @@ func TestAPetIsOnThePlayersSide(t *testing.T) {
 	}
 }
 
-// The pet goes with its owner: a logout takes it out of the world; the
-// owner's death too, the owner told.
+// The pet goes with its owner: a logout lays it down dead where it stands
+// (its body goes once its death has played: petdeath_test.go); the owner's
+// death too, the owner told.
 func TestThePetGoesWithItsOwner(t *testing.T) {
 	r := newPetRig(t)
 	pet, _ := r.summon(t, fireElemental(), 0)
 	r.p.HP = 0
 	r.p.DiedAt = r.at(10 * time.Second)
 	r.tick(10 * time.Second)
-	if _, ok := r.w.NPCs[pet.ServerID]; ok {
+	if !pet.Dead || r.w.petOfLocked(r.p) != nil {
 		t.Error("the pet outlived its owner")
 	}
 	wantOps(t, r.sent(), protocol.OpcodeClearPet, protocol.OpcodeNoCollideRemove)
@@ -601,7 +602,7 @@ func TestThePetGoesWithItsOwner(t *testing.T) {
 	pet, _ = r.summon(t, fireElemental(), 0)
 	delete(r.w.Players, r.p.ServerID)
 	r.tick(10 * time.Second)
-	if _, ok := r.w.NPCs[pet.ServerID]; ok || len(r.w.pets) != 0 {
+	if !pet.Dead || len(r.w.pets) != 0 {
 		t.Error("the pet stays when its owner leaves")
 	}
 }
@@ -627,7 +628,7 @@ func TestThePetIsToldAgain(t *testing.T) {
 	r.p.Power = r.p.MaxPower
 	_, msgs = r.summon(t, fireElemental(), 20*time.Second)
 	wantOps(t, msgs, protocol.OpcodeClearPet, protocol.OpcodeNoCollideRemove, protocol.OpcodeSetPet, protocol.OpcodeNoCollideAdd)
-	if _, ok := r.w.NPCs[pet.ServerID]; ok {
+	if !pet.Dead || r.w.petOfLocked(r.p) == pet {
 		t.Error("the first pet stays")
 	}
 }

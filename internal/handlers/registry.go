@@ -275,6 +275,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	connStatsHandler.relay = chatHandler.gmNetStats
 	if gameWorld != nil {
 		gameWorld.OnPlayerLeaving(chatHandler.gmLeft)
+		gameWorld.OnPlayerLeaving(chatHandler.campfixLeft) // a logout discards its camp report (campfix.go)
 	}
 	trainingHandler := NewTrainingHandler(sessionMgr, charStore)
 	if gameWorld != nil {
@@ -356,6 +357,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// the coachmen's GMs, offered every coach town (coachledger.go)
 	interactHandler.isGM = chatHandler.isGM
 	interactHandler.dabrishLevel, interactHandler.dabrishMastery = chatHandler.applyLevel, chatHandler.giveMastery // dabrish.go
+	interactHandler.favor = NewMoogieFavor(invStore, spellStore)                                                   // Mr. Moogie's favor (metalmoogie.go)
+	interactHandler.buffer = NewBuffer(gameWorld, spellStore)                                                      // Buffer's casts (buffer.go)
 	if charStore != nil {
 		interactHandler.binds = charStore
 		// the stables' ledgers (coachledger.go)
@@ -431,6 +434,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 
 	// A GM's flight: a client's word that it flies (fly.go)
 	NewFlyHandler().RegisterHandlers(r)
+	// A player's jump: a client's answer to the offer (jump.go, world.jump)
+	NewJumpHandler(gameWorld).RegisterHandlers(r)
 
 	// Register the buddy and ignore lists (entity/social.go)
 	NewSocialHandler(gameWorld).RegisterHandlers(r)
@@ -465,6 +470,11 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		transferDB := charStore.DB()
 		gameWorld.OnPlayerEntered(func(sess *session.Session, p *entity.Player) { tellTransfers(transferDB, sess, p) })
 		gameWorld.OnPlayerEntered(tellVanished) // norent.go
+		gameWorld.OnPlayerEntered(tellRockOwed) // rockfreeport.go: a login with no room for the stone
+		gameWorld.OnPlayerEntered(tellKept)     // itemlists.go
+
+		// a login in safe mode, /testinvis (safemode.go)
+		gameWorld.OnPlayerEntered(tellSafeMode(gameWorld))
 	}
 
 	// Register the spell book's requests (0x0033, 0x003A, 0x00FE), and the
@@ -519,6 +529,12 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// Register others' power (0x7E01; powerbars.go): a client that draws
 	// power bars under its group's, its target's and their target's health
 	NewPowerBarsHandler(gameWorld).RegisterHandlers(r)
+	// The pet's effects (0x7E32; peteffects.go): a client that draws them
+	// under its pet's bar
+	NewPetEffectsHandler(gameWorld).RegisterHandlers(r)
+	// What made each figure (0x7E39; numbertags.go): a client that colours
+	// its numbers by it
+	NewNumberTagsHandler().RegisterHandlers(r)
 	// A race the game does not have, by its own words (0x7E1C; racelabels.go)
 	if charStore != nil {
 		NewRaceLabelsHandler(gameWorld, charStore.DB()).RegisterHandlers(r)
@@ -541,6 +557,19 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// what creation takes past the game's, to a client that can show it (creation.go)
 	NewCreationHandler().RegisterHandlers(r)
 	NewServerWorldsHandler().RegisterHandlers(r)
+
+	// the cape slot (0x7E25; capes.go): the answer to its offer, on a server with world.capes
+	NewCapesHandler(charHandler).RegisterHandlers(r)
+	// a pack and a bank past CLIENT's 40 (0x7E29; itemlists.go): the answer to
+	// their offer, on a server with world.pack_slots or world.bank_slots
+	NewItemListsHandler().RegisterHandlers(r)
+	// a custom race's own options and the looks chosen, to a client that can
+	// show them (0x7E22; raceoptions.go)
+	if charStore != nil {
+		NewRaceOptionsHandler(gameWorld, charStore.DB()).RegisterHandlers(r)
+	} else {
+		NewRaceOptionsHandler(gameWorld, nil).RegisterHandlers(r)
+	}
 	if charStore != nil && charStore.DB() != nil {
 		chatHandler.SetDyeStore(charStore.DB())
 		// the Armor Dyers (dyer.go) dye as #dye does
@@ -551,6 +580,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		genie.rehab = interactHandler.rehab         // its fourth answer (genie.go)
 		genie.dyer = interactHandler.dyer           // its fifth (genie.go)
 		chatHandler.SetVampireStore(charStore.DB()) // #vampire (vampirecmd.go)
+
+		// /testinvis's safe mode (safemode.go)
+		chatHandler.SetSafeModeStore(charStore.DB())
 	}
 	// the Spell Archivists (archivist.go): a request for one's shop asks first,
 	// his shop, the class's basic spells or a clear book

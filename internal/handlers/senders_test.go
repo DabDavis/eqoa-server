@@ -249,7 +249,7 @@ func TestClassicTargetInfoEndsWithTheToken(t *testing.T) {
 
 func TestLootIsAnItemList(t *testing.T) {
 	items := make([]database.CharInventoryEntry, maxCorpseItems+5)
-	r := open(t, buildLoot(items), protocol.OpcodeLoot)
+	r := open(t, buildLoot(items, false), protocol.OpcodeLoot)
 	if n, next := r.signed(), r.u32(); n != maxCorpseItems || next != maxCorpseItems {
 		t.Fatalf("count %d, next key %d; want %d each", n, next, maxCorpseItems)
 	}
@@ -346,4 +346,22 @@ func equalInts(a, b []int32) bool {
 		}
 	}
 	return true
+}
+
+// An item's icon reaches CLIENT as its DictID however the table keeps it:
+// ReadSigned gathers a zigzag into 32 bits, so the record writes the icon as
+// a signed 32-bit value (an unsigned 0xB6FF63C5 went out as 0x36FF63C5, a
+// picture that is not on the disc).
+func TestAnItemsIconReachesCLIENTKeptEitherWay(t *testing.T) {
+	for _, icon := range []int64{3070190533, -1224776763} {
+		e := &database.CharInventoryEntry{Pattern: database.ItemPatternRecord{PatternID: 4767, ItemIcon: icon, ItemName: "Force of Mind"}}
+		buf := make([]byte, 4096)
+		w := buffer.NewWriter(buf)
+		writeItemPattern(w, e, false)
+		r := &vimsReader{b: buf[:w.Position()]}
+		id, cost, unk1, got := r.signed(), r.signed(), r.signed(), r.signed()
+		if r.err || id != 4767 || cost != 0 || unk1 != 0 || uint32(got) != 0xB6FF63C5 {
+			t.Errorf("icon kept as %d: CLIENT reads %#x (id %d), want 0xB6FF63C5", icon, uint32(got), id)
+		}
+	}
 }

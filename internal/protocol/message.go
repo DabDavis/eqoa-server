@@ -95,8 +95,19 @@ type Message struct {
 	Unsplit  bool
 	Created  time.Time
 	LastSent time.Time
-	data     []byte
-	size     int
+	// Queued is when a reliable message took its sequence number
+	// (MessageQueue.AddWithSequence): how long it has waited for its
+	// acknowledgement, for the log's "Net:" lines and #net.
+	Queued time.Time
+	// Tries is how many times a reliable message went again: each resend
+	// waits twice as long as the one before (MessageQueue.TakeRetransmits).
+	Tries int
+	// Acked: the client has acknowledged this reliable message
+	// (MessageQueue.RemoveReliables), so a copy still queued to go again
+	// (a resend put back when its packet was full) is not sent.
+	Acked bool
+	data  []byte
+	size  int
 }
 
 // Wire is a message's bytes as they came: its opcode (little end first) and
@@ -165,6 +176,9 @@ func (m *Message) Reset() {
 	m.Unsplit = false
 	m.Created = time.Time{}
 	m.LastSent = time.Time{}
+	m.Queued = time.Time{}
+	m.Acked = false
+	m.Tries = 0
 	m.size = 0
 	// Clear data but keep the backing array
 	for i := range m.data[:m.size] {

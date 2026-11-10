@@ -154,6 +154,10 @@ type NPC struct {
 	// EventAggro is a GM trigger's hostile spawn (gmtriggers.go): it
 	// attacks any player on sight, in a town too, whatever their levels.
 	EventAggro bool
+	// castsAt is the NPC a trigger's sic set it on to fight by its whole class
+	// template (SetNPCOn's casts, classtemplate.go): its casts and specials land
+	// on that NPC too, where a fight between two NPCs is their melee alone. 0 none.
+	castsAt EntityID
 
 	// Its melee round (rounds.go): when it began, how many of its hits
 	// have landed, and at whom.
@@ -165,6 +169,10 @@ type NPC struct {
 	// player it fights.
 	Dummy       DummyKind
 	DummyTarget EntityID
+	// DummyHits is how many times as hard a sparring dummy hits, its hits and
+	// its element's strike, by its name ("Sparring Dummy x2": DummyHitsOf); 1
+	// for every other
+	DummyHits int
 
 	// HiddenUntil keeps it out of every view until then (gmlive.go): an NPC
 	// the GM panel changed leaves each client's channels and comes back as
@@ -228,10 +236,20 @@ type NPC struct {
 	tmpl   *ClassTemplate
 	tbase  templateBase
 	tfight *templateFight
+	// abilityReady is when each of its template's abilities with a cooldown
+	// may be cast again, by abilityKey (abilitytimes.go): on the creature, not
+	// its fight, so a fight's end and its death leave it; a restart that keeps
+	// the sessions carries it (keepnpc.go). nil for none.
+	abilityReady map[string]time.Time
 
 	// sheet is a workbook pet's petstats row (petstats.go), nil for every
 	// other NPC
 	sheet *petSheet
+
+	// challenge is the duel Mr. Moogie's challenge stood it in (metalmoogie.go):
+	// the one player it fights and the one alone who may hurt it, and whose its
+	// corpse's loot is; nil for every other NPC. Its corpse keeps it.
+	challenge *npcChallenge
 }
 
 // GetEntityID returns the NPC's entity ID.

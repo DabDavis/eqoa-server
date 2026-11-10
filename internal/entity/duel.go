@@ -915,10 +915,11 @@ func duelHalf(n int) int {
 
 // duelHurtLocked lands n of attacker's duel damage (before the halving) on
 // t: from the attacker itself, or from src, its pet. Told to both (0x00DB:
-// the attacker's own figure as its own, as a pet's hits are its owner's);
-// a hit t cannot take leaves it DuelLoserHP and ends the duel. It reports
-// the end.
-func (w *World) duelHurtLocked(d *Duel, attacker *Player, src EntityID, t *Player, n int, now time.Time) bool {
+// the attacker's own figure as its own, as a pet's hits are its owner's, told
+// as kind, what made it, its pet's bit set by the caller: numbertags.go; t's
+// a figure another made on it); a hit t cannot take leaves it DuelLoserHP and
+// ends the duel. It reports the end.
+func (w *World) duelHurtLocked(d *Duel, attacker *Player, src EntityID, t *Player, n int, now time.Time, kind numberKind) bool {
 	dmg := d.hit(n)
 	attacker.LastCombatTime, t.LastCombatTime = now, now
 	if d.pvp {
@@ -927,12 +928,12 @@ func (w *World) duelHurtLocked(d *Duel, attacker *Player, src EntityID, t *Playe
 	}
 	if as := w.findSessionByEntityIDLocked(attacker.ServerID); as != nil {
 		if tid := w.objectIDSeenByLocked(as, t.ServerID); tid != 0 {
-			w.sendDamageIndication(as, as.PlayerObjectID(), -dmg, tid)
+			w.sendDamageIndication(as, as.PlayerObjectID(), -dmg, tid, kind)
 		}
 	}
 	if ts := w.findSessionByEntityIDLocked(t.ServerID); ts != nil {
 		if sid := w.objectIDSeenByLocked(ts, src); sid != 0 {
-			w.sendDamageIndication(ts, sid, -dmg, ts.PlayerObjectID())
+			w.sendDamageIndication(ts, sid, -dmg, ts.PlayerObjectID(), 0)
 		}
 	}
 	d.struck[t.ServerID] = true
@@ -954,15 +955,15 @@ func (w *World) duelHurtLocked(d *Duel, attacker *Player, src EntityID, t *Playe
 }
 
 // duelHurtPetLocked lands n of attacker's duel damage (before the halving)
-// on the opponent's pet: told to the attacker; a hit it cannot take leaves it
-// at one hit point, out of the duel (its owner told), as nothing dies of a
-// duel.
-func (w *World) duelHurtPetLocked(d *Duel, attacker *Player, pet *NPC, n int, now time.Time) {
+// on the opponent's pet: told to the attacker as kind (numbertags.go); a hit
+// it cannot take leaves it at one hit point, out of the duel (its owner
+// told), as nothing dies of a duel.
+func (w *World) duelHurtPetLocked(d *Duel, attacker *Player, pet *NPC, n int, now time.Time, kind numberKind) {
 	dmg := d.hit(n)
 	attacker.LastCombatTime = now
 	if as := w.findSessionByEntityIDLocked(attacker.ServerID); as != nil {
 		if tid := w.objectIDSeenByLocked(as, pet.ServerID); tid != 0 {
-			w.sendDamageIndication(as, as.PlayerObjectID(), -dmg, tid)
+			w.sendDamageIndication(as, as.PlayerObjectID(), -dmg, tid, kind)
 		}
 	}
 	d.struck[pet.Owner] = true
@@ -1083,12 +1084,12 @@ func (w *World) duelRoundLocked(p *Player, now time.Time) bool {
 			// (attack.go playerShotHit; "ranger bow only hitting for 90 in
 			// pvp mode on": it was a melee roll on the bow)
 			n := playerShotHit(p, duelStandIn(t.Level), rand.Intn)
-			return w.duelHurtLocked(d, p, p.ServerID, t, n, now) ||
+			return w.duelHurtLocked(d, p, p.ServerID, t, n, now, numberMelee) ||
 				w.duelAnswerLocked(d, t, duelMark{t: p}, now) || // duelprocs.go
 				w.duelProcsLocked(d, p, duelMark{t: t}, now)
 		}
 		n := playerShotHit(p, duelStandIn(pet.Level), rand.Intn)
-		w.duelHurtPetLocked(d, p, pet, n, now)
+		w.duelHurtPetLocked(d, p, pet, n, now, numberMelee)
 		if p.AttackTarget != 0 && !d.petOut[pet.Owner] {
 			w.duelProcsLocked(d, p, duelMark{pet: pet}, now)
 		}

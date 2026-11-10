@@ -149,7 +149,7 @@ func TestAClassDealtShareByLevel(t *testing.T) {
 		defer func() { meleeIntn = was }()
 		c.w.mu.Lock()
 		defer c.w.mu.Unlock()
-		c.w.spellHitLocked(c.p, c.sess, npc, 100)
+		c.w.spellHitLocked(c.p, c.sess, npc, 100, numberSpell)
 		spell = 50000 - npc.HP
 		npc.HP = 50000
 		c.w.playerHitLocked(c.sess, c.p, npc, 0x01312E99)
@@ -209,7 +209,7 @@ func TestAPlayersMeleeShareByLevelAndClass(t *testing.T) {
 		defer func() { meleeIntn = was }()
 		c.w.mu.Lock()
 		defer c.w.mu.Unlock()
-		c.w.spellHitLocked(c.p, c.sess, npc, 100)
+		c.w.spellHitLocked(c.p, c.sess, npc, 100, numberSpell)
 		spell = 50000 - npc.HP
 		npc.HP = 50000
 		c.w.playerHitLocked(c.sess, c.p, npc, 0x01312E99)

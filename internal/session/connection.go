@@ -27,16 +27,17 @@ type ConnectionData struct {
 	serverID uint16
 
 	// Sequence tracking - incoming
-	lastReceivedPacketSeq  uint16
+	lastReceivedPacketSeq uint16
+	// lastReceivedMessageSeq is the newest of the client's reliable messages
+	// taken with every one before it: our guaranteed ack. rxWin are those
+	// taken past it, bit i the message lastReceivedMessageSeq+1+i (bit 0 is
+	// never set: that one taken moves the ack), told the client as the ack's
+	// mask (rxwindow.go).
 	lastReceivedMessageSeq uint16
-	// rxSeen is the window of the client's reliable messages taken on a
-	// promoted session: bit i is lastReceivedMessageSeq - i (TakeReliable)
+	rxWin                  uint64
+	// rxSeen is kept in a restart's snapshot for an older binary's sake
+	// (keep.go); nothing reads it
 	rxSeen uint64
-	// rxTaken is the client's last reliable messages taken, each by its
-	// number and contents, so a copy the client sends again is known
-	// (TakeReliableOnce); rxNext the next entry to write over
-	rxTaken [reliableTakenKept]reliableTaken
-	rxNext  int
 	// frags puts back together a message the client sent in pieces
 	// (fragments.go: Assemble)
 	frags assembler
@@ -45,8 +46,11 @@ type ConnectionData struct {
 	lastSentPacketSeq  uint16
 	lastSentMessageSeq uint16
 
-	// Client acknowledgment tracking
+	// Client acknowledgment tracking: its guaranteed ack (every one of our
+	// reliable messages to here) and its mask (those past it it holds, bit
+	// i the message ack+2+i: connection_get_ack_mask)
 	clientLastReceivedMessage uint16
+	clientAckMask             uint64
 
 	// State channel data. serverObjects is by entity slot (entityslots.go):
 	// slot 0 the player, 1 on the entities in view, slot n on state channel
@@ -66,7 +70,14 @@ type ConnectionData struct {
 
 	// Round-robin offset for state update generation (ensures all channels get served)
 	stateUpdateOffset int
+
+	// net is the reliable stream as measured: round trips, acks, resends
+	// (netstats.go)
+	net NetStats
 }
+
+// Net is the session's reliable stream as measured (netstats.go).
+func (cd *ConnectionData) Net() *NetStats { return &cd.net }
 
 // RefnumOffsetMax is how far back a state message may name its reference:
 // connection.cpp's REFNUM_OFFSET_MAX. CLIENT refuses the WHOLE segment that
@@ -143,6 +154,13 @@ type sentValue struct {
 // may pass 65535.
 func seqBefore(a, b uint16) bool {
 	return int16(a-b) < 0
+}
+
+// SeqAfter reports whether a comes after b, as seqBefore orders them: every
+// packet, message and acknowledgement number of a connection is compared so
+// (connection.cpp's uns16_gt), since a long session passes 65535.
+func SeqAfter(a, b uint16) bool {
+	return int16(a-b) > 0
 }
 
 // ClientStateData tracks client input state.
@@ -245,13 +263,13 @@ func (cd *ConnectionData) IncrementReceivedMessageSeq() uint16 {
 	return cd.lastReceivedMessageSeq
 }
 
-// SetLastReceivedMessageSeq sets the last received message sequence.
+// SetLastReceivedMessageSeq takes every message of the client up to seq as
+// received, and none past it (the receive window starts again there: a
+// test's, as a restart's restore does).
 func (cd *ConnectionData) SetLastReceivedMessageSeq(seq uint16) {
 	cd.mu.Lock()
 	defer cd.mu.Unlock()
-	if seq > cd.lastReceivedMessageSeq {
-		cd.lastReceivedMessageSeq = seq
-	}
+	cd.lastReceivedMessageSeq, cd.rxWin = seq, 0
 }
 
 // LastSentPacketSeq increments and returns the sent packet sequence.
@@ -287,11 +305,29 @@ func (cd *ConnectionData) ClientLastReceivedMessage() uint16 {
 
 // SetClientLastReceivedMessage sets the last message the client acknowledged.
 func (cd *ConnectionData) SetClientLastReceivedMessage(seq uint16) {
+	cd.SetClientAck(seq, 0)
+}
+
+// SetClientAck takes the client's guaranteed ack and its mask. An ack past
+// the last replaces both; the same ack adds the mask's messages (a message
+// the client holds out of order it holds until it hands it on, so a word of
+// one is never taken back); an older one changes nothing.
+func (cd *ConnectionData) SetClientAck(ack uint16, mask uint64) {
 	cd.mu.Lock()
 	defer cd.mu.Unlock()
-	if seq > cd.clientLastReceivedMessage {
-		cd.clientLastReceivedMessage = seq
+	switch {
+	case SeqAfter(ack, cd.clientLastReceivedMessage):
+		cd.clientLastReceivedMessage, cd.clientAckMask = ack, mask
+	case ack == cd.clientLastReceivedMessage:
+		cd.clientAckMask |= mask
 	}
+}
+
+// ClientAck is the client's guaranteed ack and its mask (SetClientAck).
+func (cd *ConnectionData) ClientAck() (uint16, uint64) {
+	cd.mu.Lock()
+	defer cd.mu.Unlock()
+	return cd.clientLastReceivedMessage, cd.clientAckMask
 }
 
 // ResetForMasterSession resets all sequence counters for master session transition.
@@ -303,11 +339,13 @@ func (cd *ConnectionData) ResetForMasterSession() {
 	cd.lastSentPacketSeq = 0
 	cd.lastSentMessageSeq = 0
 	cd.clientLastReceivedMessage = 0
+	cd.clientAckMask = 0
 	cd.lastReceivedPacketSeq = 0
 	cd.lastReceivedMessageSeq = 0
+	cd.rxWin = 0
 	cd.rxSeen = 0
-	cd.rxTaken, cd.rxNext = [reliableTakenKept]reliableTaken{}, 0
 	cd.frags = assembler{}
+	cd.net.Restart()
 }
 
 // ProcessPacket processes an incoming packet's sequence data.

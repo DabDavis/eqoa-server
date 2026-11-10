@@ -132,7 +132,13 @@ func (h *SupportHandler) handleBugReportOffer(sess *session.Session, msg *protoc
 	}
 	on := binary.LittleEndian.Uint32(data[:4]) != 0
 	sess.SetBugReports(on)
+	sess.SetAckMasks() // any answer: one of ours, which takes our acks' masks
 	log.Printf("BugReports: %s %s", sess.RemoteAddr(), map[bool]string{true: "reports with F3 and a note", false: "has no report key"}[on])
+	// a client that answers is one of ours, not a PS2: it may be offered the
+	// jump (jump.go), which no PS2 is ever sent
+	if on {
+		OfferJump(sess)
+	}
 	// the login's line on reporting, F3's, now (once a session)
 	if on && reportNotice.Load() && sess.CharacterInWorld() && sess.TakeReportNotice() {
 		SendClientMessage(sess, reportNoticeF3)

@@ -65,7 +65,7 @@ func (w *World) duelLandLocked(cs *castState, caster *Player, casterSess *sessio
 				if e.Drain != DrainNone {
 					w.drainLocked(cs, caster, casterSess, e, d.hit(-n), now)
 				}
-				if w.duelHurtLocked(d, caster, caster.ServerID, t, -n, now) {
+				if w.duelHurtLocked(d, caster, caster.ServerID, t, -n, now, cs.spell.hitKind()) {
 					return true // the duel is over: nothing more of it lands
 				}
 			}
@@ -112,7 +112,7 @@ func (w *World) duelLandPetLocked(cs *castState, caster *Player, pet *NPC, now t
 			continue
 		}
 		if n := spellAmount(e, caster); n < 0 {
-			w.duelHurtPetLocked(d, caster, pet, -n, now)
+			w.duelHurtPetLocked(d, caster, pet, -n, now, cs.spell.hitKind())
 			if d.petOut[pet.Owner] {
 				return true
 			}
@@ -136,7 +136,7 @@ func (w *World) duelTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	if d == nil {
 		return
 	}
-	w.duelHurtLocked(d, caster, caster.ServerID, t, -ae.HPTick, now)
+	w.duelHurtLocked(d, caster, caster.ServerID, t, -ae.HPTick, now, ae.tickKind(false))
 }
 
 // duelPetLocked is petSystem's duel half: a duelist's pet fights the
@@ -230,13 +230,13 @@ func (w *World) duelPetRoundLocked(ps *petState, d *Duel, target EntityID, dt fl
 		pet.LastCombatTime = now
 		n := petMeleeHit(pet, duelStandIn(level), rand.Intn)
 		if t := w.Players[target]; t != nil {
-			if w.duelHurtLocked(d, owner, pet.ServerID, t, n, now) || w.duelAnswerLocked(d, t, duelMark{pet: pet}, now) { // duelprocs.go
+			if w.duelHurtLocked(d, owner, pet.ServerID, t, n, now, numberMelee.byPet()) || w.duelAnswerLocked(d, t, duelMark{pet: pet}, now) { // duelprocs.go
 				return true
 			}
 			continue
 		}
 		if tp := w.NPCs[target]; tp != nil {
-			w.duelHurtPetLocked(d, owner, tp, n, now)
+			w.duelHurtPetLocked(d, owner, tp, n, now, numberMelee.byPet())
 			if d.petOut[tp.Owner] {
 				d.petTarget[owner.ServerID] = d.other(owner.ServerID)
 				pet.endRound()

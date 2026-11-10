@@ -1,0 +1,92 @@
+{
+ "about": "Highbourne's teleport pads, read off the disc (TUNARIA.ESF, world 0, zone 113): every placement of the pad sprite C28D156A (an octagon 3.7 across and 0.61 high) in the city, eight, each with its zone room, its actor index and its place and heading as the zone actor gives them, and the banners that stand behind it (within 6 of it: each guild's own banner sprite, 0.21 scale). The three tower pads sit on each tower's top floor under a column of light (EffectVolumeSprite AE9501BC, LightShafts); the hall's three stand in a row on the first floor of the building of Grand Historian Kortha and the senators (65.4 up), each with one tower's banner, which is how the pairs are known. The two cave pads, each in a dark octagonal room with two brazier pillars (GroupSprite 48033ACC), two skeletal guards and the necromancers' banner (DC638F22), are the two Shimmering Portals of table npcs (the orb of light, CSprite 8143DC70, stands on each): twins, so each other's pair. A flood fill of the ground files from each tower start reaches that tower's floors and pad alone; from the hall, the caves and every other start, the whole city.",
+ "world": 0,
+ "file": "TUNARIA.ESF",
+ "zone": 113,
+ "pad": "C28D156A",
+ "orbs": [
+  {
+   "key": "wizards-tower",
+   "set": "towers",
+   "name": "Highbourne: the wizards' tower orb, down to the hall",
+   "room": 213, "actor": 0,
+   "x": 4185.535, "y": 127.75, "z": 21547.484, "rot": 0,
+   "banner": "B714B430",
+   "banners": [[4188.104, 21549.002], [4182.9976, 21549.148]],
+   "pair": "hall-wizards",
+   "start": "the wizard's start (defaultcharacter: Erudite wizard) is the floor under it, 108.8 up"
+  },
+  {
+   "key": "enchanters-tower",
+   "set": "towers",
+   "name": "Highbourne: the enchanters' tower orb, down to the hall",
+   "room": 160, "actor": 8,
+   "x": 4515.414, "y": 139.28125, "z": 21707.459, "rot": 0,
+   "banner": "F0CFEF05",
+   "banners": [[4518.3804, 21704.371], [4518.3804, 21710.277]],
+   "pair": "hall-enchanters",
+   "start": "the enchanter's start is the floor under it, 120.4 up"
+  },
+  {
+   "key": "magicians-tower",
+   "set": "towers",
+   "name": "Highbourne: the magicians' (Gate Callers') tower orb, down to the hall",
+   "room": 190, "actor": 12,
+   "x": 4470.155, "y": 188.5, "z": 21845.727, "rot": 0,
+   "banner": "3A9ED617",
+   "banners": [[4471.3994, 21842.918], [4471.9087, 21848.566]],
+   "pair": "hall-magicians",
+   "start": "the magician's start is the floor under it, 169.6 up"
+  },
+  {
+   "key": "hall-wizards",
+   "set": "towers",
+   "name": "Highbourne: the hall's orb up to the wizards' tower",
+   "room": 177, "actor": 0,
+   "x": 4503.311, "y": 65.4375, "z": 21550.086, "rot": -0.87266475,
+   "banner": "B714B430",
+   "banners": [[4504.8726, 21548.62]],
+   "pair": "wizards-tower"
+  },
+  {
+   "key": "hall-enchanters",
+   "set": "towers",
+   "name": "Highbourne: the hall's orb up to the enchanters' tower",
+   "room": 177, "actor": 1,
+   "x": 4505.34, "y": 65.4375, "z": 21555.572, "rot": -1.5707964,
+   "banner": "F0CFEF05",
+   "banners": [[4507.752, 21555.53]],
+   "pair": "enchanters-tower"
+  },
+  {
+   "key": "hall-magicians",
+   "set": "towers",
+   "name": "Highbourne: the hall's orb up to the magicians' tower",
+   "room": 177, "actor": 2,
+   "x": 4503.267, "y": 65.4375, "z": 21561.127, "rot": -2.3346658,
+   "banner": "3A9ED617",
+   "banners": [[4504.785, 21562.518]],
+   "pair": "magicians-tower"
+  },
+  {
+   "key": "west-cave",
+   "set": "caves",
+   "name": "Highbourne: the Shimmering Portal of the west cave",
+   "room": 151, "actor": 0,
+   "x": 4931.2344, "y": 56.15625, "z": 21699.643, "rot": 0,
+   "banner": "DC638F22",
+   "banners": [[4936.198, 21699.666]],
+   "pair": "east-cave"
+  },
+  {
+   "key": "east-cave",
+   "set": "caves",
+   "name": "Highbourne: the Shimmering Portal of the east cave",
+   "room": 54, "actor": 0,
+   "x": 5399.8843, "y": 56.15625, "z": 21617.52, "rot": 1.5707964,
+   "banner": "DC638F22",
+   "banners": [[5397.7227, 21617.633]],
+   "pair": "west-cave"
+  }
+ ]
+}

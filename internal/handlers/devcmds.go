@@ -102,7 +102,7 @@ var gmCommands = map[string]bool{
 	"#hp": true, "#tunar": true, "#kill": true, "#pos": true, "#who": true,
 	"#guildhall": true, "#effect": true, "#faction": true, "#template": true, "#help": true,
 	"#grantcm": true, "#npcinfo": true, "#fx": true, "#spellfx": true,
-	"#aggro": true, "#fly": true, "#movecheck": true, "#ticks": true, "#packetlog": true, "#stats": true, "#cm": true, "#cmreset": true, "#debt": true,
+	"#aggro": true, "#fly": true, "#movecheck": true, "#ticks": true, "#net": true, "#packetlog": true, "#stats": true, "#cm": true, "#cmreset": true, "#debt": true,
 	"#trigger": true, "#craftskill": true, "#craftlearn": true,
 	"#clearbuffs": true, "#nukebuffs": true, "#dye": true, "#vampire": true,
 	"#rst_mastr": true, "#rst_both": true, "#rem_abil": true, "#banktunar": true, "#servdown": true,
@@ -564,7 +564,7 @@ func (h *ChatHandler) applyLevel(sess *session.Session, player *entity.Player, l
 	level = max(1, min(entity.LevelCap(h.isGM(sess)), level)) // the account's, read now
 	before := player.UnusedTP
 	h.gameWorld.SetPlayerLevel(player.CharServerID, level)
-	SendLevel(sess, level, h.gameWorld.CharacterBar(player.CharServerID))
+	SendLevel(sess, level, h.gameWorld.CharacterBar(player.CharServerID), h.gameWorld.CharacterTrainerCap(player.CharServerID, level))
 	// the training points the level is due (entity/training.go)
 	if unused, total, ok := h.gameWorld.LiveTrainingPoints(player.ServerID); ok && unused != before {
 		entity.SendTrainingPoints(sess, unused)

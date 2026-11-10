@@ -435,7 +435,7 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 	if cost > 0 {
 		p.HP -= cost
 		p.StatsDirty = true
-		w.tellAmountLocked(p, sess, p.ServerID, -cost)
+		w.tellAmountLocked(p, sess, p.ServerID, -cost, 0) // its price on the drinker: untagged (numbertags.go)
 	}
 	if pe.Cures > 0 {
 		w.curePlayerLocked(p, pe.Cures)
@@ -473,7 +473,8 @@ func (w *World) throwLocked(sess *session.Session, p *Player, pe *PotionEffect, 
 		place := areaPlace{world: npc.World, caster: [3]float32{p.X, p.Y, p.Z}, centre: [3]float32{npc.X, npc.Y, npc.Z}, onOther: true}
 		for _, id := range w.SpatialIndex.QueryRadius(npc.X, npc.Z, pe.Area) {
 			o := w.NPCs[id]
-			if o == nil || o == npc || o.Dead || o.World != npc.World || o.Owner != 0 || o.NPCType&0x80 != 0 || o.hiddenAt(now) {
+			if o == nil || o == npc || o.Dead || o.World != npc.World || o.Owner != 0 || o.NPCType&0x80 != 0 || o.hiddenAt(now) ||
+				challengeBars(o, p.ServerID) {
 				continue
 			}
 			if dist3(o.X, o.Y, o.Z, npc.X, npc.Y, npc.Z) > pe.Area || !w.reachesLocked(place, o.X, o.Y, o.Z) {

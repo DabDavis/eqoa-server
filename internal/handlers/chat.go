@@ -74,9 +74,14 @@ type ChatHandler struct {
 	dyes     dyeStore     // #dye's (dye.go)
 	vampires vampireStore // #vampire's (vampirecmd.go)
 
+	// safe is where /testinvis keeps a player's safe mode (safemode.go)
+	safe safeModeStore
+
 	support *SupportHandler // /bug's (bugreport.go)
 
 	camps campTools // /mark's, /camp's and /path's (gmcamps.go)
+
+	campfix campfixReports // the players' camp reports, /campfix's (campfix.go)
 
 	portal *Portal // the name typed for a Summoning Portal (summonportal.go)
 }
@@ -252,6 +257,22 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		return nil
 	}
 
+	// /campfix (or #campfix; a PS2's "/t campfix"): a camp report, everyone's, and
+	// /mark, /markadd and /markremove (# and /t too) while its sender has one open
+	// (campfix.go), ahead of the GM's # commands and the tells. With none open a GM's
+	// /mark and #mark are its own (gmcamps.go, below), "/t mark bob" is a tell, and
+	// any other mark is told to open a report first.
+	if cmd, rest, tell, ok := campfixLine(message); ok && h.campfixRoute(sess, player, cmd, rest, tell) {
+		return nil
+	}
+
+	// /testinvis (or #testinvis; a PS2's is "/t testinvis", below): safe mode, no
+	// creature attacks on sight, everyone's (safemode.go)
+	if word, rest, _ := strings.Cut(message, " "); (strings.EqualFold(word, "/"+testInvisWord) || strings.EqualFold(word, "#"+testInvisWord)) && strings.TrimSpace(rest) == "" {
+		h.testInvisCommand(sess, player)
+		return nil
+	}
+
 	// /record [name] (or #record; a PS2's is "/t record [name]", below): a combat
 	// record, its own or any character's, everyone's (combatrecord.go)
 	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/record") || strings.EqualFold(word, "#record") {
@@ -287,6 +308,11 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		// and /stuck (entity/stuck.go)
 		if body == "" && strings.EqualFold(name, "stuck") {
 			stuckCommand(h.gameWorld, sess)
+			return nil
+		}
+		// and /testinvis, safe mode (safemode.go)
+		if strings.TrimSpace(body) == "" && strings.EqualFold(name, testInvisWord) {
+			h.testInvisCommand(sess, player)
 			return nil
 		}
 		// and the combat record: "/t record" its own, "/t record <name>" a
@@ -1195,6 +1221,10 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// #ticks: how long the world's ticks took over the last minute
 		// (tickscmd.go, entity/ticktime.go)
 		h.ticksCommand(sess)
+	case "#net":
+		// #net [name]: the reliable stream to the players' clients: what
+		// waits for an acknowledgement, resends, round trips (netcmd.go)
+		h.netCommand(sess, parts[1:])
 	case "#packetlog":
 		// #packetlog [on|off]: every packet's own lines in the log
 		// (packetlogcmd.go, internal/debuglog)
@@ -1291,6 +1321,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #fly [on|off] - fly where you look at your run speed, no gravity (alone: on, or off again; until you log out)")
 		h.gmReply(sess, "  #movecheck [off|log|enforce] - the check of players' own moves, and who it moved back")
 		h.gmReply(sess, "  #ticks - how long the server's ticks took over the last minute, system by system")
+		h.gmReply(sess, "  #net [name] - what each client has not acknowledged and how long, resends and round trips (a name: that one's, and its client's own counters)")
 		h.gmReply(sess, "  #packetlog [on|off] - every packet's own lines in the server's log (off by default)")
 		h.gmReply(sess, "  #fx <visual> [seconds] | <spell> - play a spell visual (0x1DAEB5B6) on your target, nothing saved")
 		h.gmReply(sess, "  #spellfx <spell> [<visual> | 0] - a spell's visual, or give it one (0: its stand-in)")

@@ -1,0 +1,42 @@
+{
+ "set": "zp-records",
+ "notes": "Item records on dab's ZP tables put right by the era's lists (zp-research/loot-evidence.md): forum t301 'ZP Loot Table' (Ronson 2010, the source dab's sets cite) and the Cryptic Souls pages it copies. By name, so it holds on either shard; jibrish's decision on dab's rows. Not made: Rallos's Keeper's Staff and Ceremonial Vestment (t301) share their names with unrelated records here (707116, a level 10 enchanter quest staff; 5192, a level 29 robe), and Life Eternal needs code (a 5-charge use: a massive melee hit, then a saved death).",
+ "sql": [
+  [
+   "UPDATE itempattern SET \"str\" = ?, \"sta\" = ?, \"agi\" = ?, \"wis\" = ?, \"dex\" = ?, \"cha\" = ?, \"intelligence\" = ?, \"HPMAX\" = ?, \"POWMAX\" = ?, \"PoT\" = ?, \"HoT\" = ?, \"AC\" = ?, \"PR\" = ?, \"DR\" = ?, \"FR\" = ?, \"CR\" = ?, \"LR\" = ?, \"AR\" = ?, levelreq = 55 WHERE itemname = ?",
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    200,
+    0,
+    10,
+    -10,
+    70,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    "Pendant of Razeal"
+   ]
+  ],
+  [
+   "UPDATE itempattern SET agi = 20 WHERE itemname = 'Trueshot Pendant' AND agi = 10",
+   []
+  ],
+  [
+   "UPDATE itempattern SET cha = 25, wis = 25 WHERE itemname = 'Honor Guard Totem' AND cha = 20 AND wis = 20",
+   []
+  ],
+  [
+   "UPDATE itempattern SET equipslot = 14 WHERE itemname IN ('Chosen''s Staff', 'Chosen''s Rapier', 'Chosen''s Baton', 'Victor''s Blade') AND equipslot = 12",
+   []
+  ]
+ ]
+}

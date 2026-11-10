@@ -37,13 +37,22 @@ import (
 // Charmable Mobs page (Kaleif's and KriztianBBB's lists), its Charming page,
 // its List of Enchanter Spells and SOE's own Class Balancing notes of 2010.
 //
-//   - refused at its start, no power taken, no lockout: with a pet out
-//     (summoned or charmed), before its target is looked at, "You already
-//     have a pet." in red and nothing else, as Sandstorm refuses any cast
-//     (one red line: claude-notes/casting-sandstorm-20261021.md), the words
-//     the game's own "You do not have a pet." (WORDS.TXT 1021) turned round
-//     (until F3 20261029-082049, jib: "Charm line should not be castable
-//     while you currently have a pet", it also showed a brief cast); at a
+//   - refused at its start, no power taken, no lockout: with a charmed
+//     creature out, before its target is looked at, "You already have a
+//     pet." in red and nothing else, as Sandstorm refuses any cast (one red
+//     line: claude-notes/casting-sandstorm-20261021.md), the words the game's
+//     own "You do not have a pet." (WORDS.TXT 1021) turned round (until F3
+//     20261029-082049, jib: "Charm line should not be castable while you
+//     currently have a pet", it also showed a brief cast). A summoned pet out
+//     is no refusal since petition 1348 (Battaryhog: "when tring to charm a
+//     pet with binding grasp, if i alrdy got swarming blades out tanking it
+//     to charm, i get red message saying already got a pet"): the charm is
+//     cast while the summoned pet holds the creature, and when it takes hold
+//     the summoned pet goes (charmLandLocked: 0x007F, its non-collide entry
+//     off, charmPetLeaves), so there is never a spell pet and a charmed one at
+//     once (petition 1351, Jibrish: "Dont make it so they can summon their
+//     spell pet and charm at the same time"); a charm resisted leaves it
+//     there. Refused too at a
 //     creature of a name npccharm makes uncharmable, "Your target cannot be
 //     charmed." (ours: the live game showed a pop-up whose words no record
 //     keeps; the Charmable Mobs page: Were-Hunter NPCs, raging rhinos, the
@@ -155,6 +164,9 @@ const (
 	// (charmFar), and charmNoCoach when its master takes a coach.
 	charmTooFar  = "Your charm breaks: the creature will not be led so far from its home."
 	charmNoCoach = "Your charm breaks: a charmed creature will not ride a coach."
+	// charmPetLeaves follows a summoned pet's name when it goes as a charm
+	// takes hold (petition 1348; ours)
+	charmPetLeaves = " departs as your charm takes hold."
 )
 
 // charmIntn is the charm's dice (a test's own).
@@ -217,11 +229,12 @@ func (w *World) charmResistLocked(npc *NPC, now time.Time) int {
 }
 
 // charmPetRefusalLocked is the line refusing a charm its caster casts with a
-// pet out, summoned or charmed ("" for any other spell, or no pet): the first
-// of a cast's checks, so whatever is targeted the charm is not cast (F3
+// charmed creature out ("" for any other spell, no pet, or a summoned one,
+// which goes when the charm takes hold: petition 1348, charmLandLocked): the
+// first of a cast's checks, so whatever is targeted the charm is not cast (F3
 // 20261029-082049). Must be called with the lock held.
 func (w *World) charmPetRefusalLocked(p *Player, spell *CastSpell) string {
-	if spell.Def.Charms() && w.petOfLocked(p) != nil {
+	if pet := w.petOfLocked(p); spell.Def.Charms() && pet != nil && pet.Charm != nil {
 		return charmHavePet
 	}
 	return ""
@@ -252,8 +265,8 @@ func (w *World) charmLandLocked(cs *castState, caster *Player, sess *session.Ses
 	if npc.Dead || npc.Owner != 0 {
 		return
 	}
-	if w.petOfLocked(caster) != nil {
-		// a pet came while it was cast
+	if pet := w.petOfLocked(caster); pet != nil && pet.Charm != nil {
+		// a charmed one came while it was cast
 		if sess != nil {
 			w.sendColoredLocked(sess, charmHavePet, castRefusalRGB)
 		}
@@ -274,6 +287,22 @@ func (w *World) charmLandLocked(cs *castState, caster *Player, sess *session.Ses
 		log.Printf("Charm: %s's %q resisted by %s (%d%%)", caster.Name, cs.spell.Name, npc.Name, resist)
 		return
 	}
+	if old := w.pets[caster.ServerID]; old != nil {
+		// one pet at a time (petition 1351): the summoned pet that held the
+		// creature goes as the charm takes hold (petition 1348), its 0x007F
+		// before the creature's 0x007E so the bar takes the new name; one
+		// that died lies its corpse's time, its owner told nothing more; an
+		// earlier login's goes untold, as petSystem lets it go
+		tell, line := sess, ""
+		switch {
+		case old.owner != caster:
+			tell = nil
+		case !old.npc.Dead:
+			line = strings.TrimSpace(old.npc.Name) + charmPetLeaves
+			log.Printf("Charm: %s's %q takes the place of its %q", caster.Name, cs.spell.Name, old.npc.Name)
+		}
+		w.dismissPetLocked(old, tell, line, now)
+	}
 	w.charmLocked(caster, sess, npc, &cs.spell, now)
 }
 
@@ -285,6 +314,13 @@ func (w *World) charmLocked(caster *Player, sess *session.Session, npc *NPC, spe
 	if d := charmDuration(spell, caster.StatNow(StatCha)); d > 0 {
 		hold.until = now.Add(d)
 	}
+	w.holdCharmLocked(caster, sess, npc, hold, now)
+}
+
+// holdCharmLocked makes the creature the caster's pet under hold: a charm's
+// landing (charmLocked) or one a restart carried (keeppet.go). Must be called
+// with the lock held.
+func (w *World) holdCharmLocked(caster *Player, sess *session.Session, npc *NPC, hold *charmHold, now time.Time) {
 	npc.Charm = hold
 	npc.Owner = caster.ServerID
 	npc.NPCType = charmNPCType
@@ -316,7 +352,7 @@ func (w *World) charmLocked(caster *Player, sess *session.Session, npc *NPC, spe
 	if ps.tmpl != nil {
 		fights = "by template " + ps.tmpl.tmpl.Name
 	}
-	log.Printf("Charm: %s's %q takes %s (level %d, %d/%d HP, power %d), %s, %s", caster.Name, spell.Name, npc.Name, npc.Level,
+	log.Printf("Charm: %s's %q takes %s (level %d, %d/%d HP, power %d), %s, %s", caster.Name, hold.spell, npc.Name, npc.Level,
 		npc.HP, npc.MaxHP, npc.Power, lasts, fights)
 }
 

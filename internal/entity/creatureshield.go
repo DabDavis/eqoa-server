@@ -62,7 +62,7 @@ func (w *World) creatureShieldLocked(sess *session.Session, p *Player, npc *NPC,
 	p.LastCombatTime = now
 	if sess != nil {
 		if nid := w.objectIDForEntityLocked(sess, npc.ServerID); nid != 0 {
-			w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID())
+			w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID(), 0) // the creature's on the player: untagged
 		}
 		w.sendChatToSession(sess, fmt.Sprintf("%s's damage shield hits you for %d%s.", npc.Name, taken, words))
 	}
@@ -113,17 +113,31 @@ func procName(t *ClassTemplate) string {
 	return "proc"
 }
 
-// creatureProcLocked rolls the creature's melee proc after a hit of its landed on a standing player: the
-// creature's 0x00B1, the figure, a line and any death. It reports whether the player died of it. A template's
-// dice are templateIntn.
+// creatureProcLocked rolls the creature's melee procs after a hit of its landed on a standing player: its
+// template's, then the one an ability's landing gave it for this fight (abilitytimes.go), each the
+// creature's 0x00B1, the figure, a line and any death. It reports whether the player died of one. A
+// template's dice are templateIntn.
 func (w *World) creatureProcLocked(sess *session.Session, p *Player, npc *NPC, now time.Time) bool {
 	t := npc.tmpl
-	if t == nil || t.ProcChance <= 0 || t.ProcDamage <= 0 || p.IsDead() || templateIntn(100) >= t.ProcChance {
+	if t == nil || p.IsDead() {
 		return false
 	}
-	taken, words := t.ProcDamage, ""
-	if st := shieldResistStat(t.ProcResist); st != StatNone {
-		share, how := t.rollResist(p.StatNow(st))
+	if t.ProcChance > 0 && t.ProcDamage > 0 && templateIntn(100) < t.ProcChance &&
+		w.creatureProcHitLocked(sess, p, npc, procName(t), t.ProcDamage, t.ProcResist, now) {
+		return true
+	}
+	if fp := npc.fightProcNow(); fp != nil && !p.IsDead() && templateIntn(100) < fp.chance {
+		return w.creatureProcHitLocked(sess, p, npc, fp.name, fp.damage, "", now) // fixed, unresisted
+	}
+	return false
+}
+
+// creatureProcHitLocked is one of a creature's melee procs on a player: the figure, cut by the resist resist
+// names ("" none), its 0x00B1, a line and any death. It reports whether the player died of it.
+func (w *World) creatureProcHitLocked(sess *session.Session, p *Player, npc *NPC, name string, damage int, resist string, now time.Time) bool {
+	taken, words := damage, ""
+	if st := shieldResistStat(resist); st != StatNone {
+		share, how := npc.tmpl.rollResist(p.StatNow(st))
 		taken = max(int(math.Round(float64(taken)*(1-share))), 1)
 		words = " (" + resistWords(share, how) + ")"
 	}
@@ -133,11 +147,11 @@ func (w *World) creatureProcLocked(sess *session.Session, p *Player, npc *NPC, n
 	p.LastCombatTime = now
 	if sess != nil {
 		if nid := w.objectIDForEntityLocked(sess, npc.ServerID); nid != 0 {
-			w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID())
+			w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID(), 0) // the creature's on the player: untagged
 		}
-		w.sendChatToSession(sess, fmt.Sprintf("%s's %s hits you for %d%s.", npc.Name, procName(t), taken, words))
+		w.sendChatToSession(sess, fmt.Sprintf("%s's %s hits you for %d%s.", npc.Name, name, taken, words))
 	}
-	log.Printf("Template: %s's %s hits %s for %d of %d (HP %d/%d)", npc.Name, procName(t), p.Name, taken, t.ProcDamage, p.HP, p.MaxHPNow())
+	log.Printf("Template: %s's %s hits %s for %d of %d (HP %d/%d)", npc.Name, name, p.Name, taken, damage, p.HP, p.MaxHPNow())
 	if p.HP > 0 {
 		return false
 	}
@@ -145,15 +159,27 @@ func (w *World) creatureProcLocked(sess *session.Session, p *Player, npc *NPC, n
 	return p.IsDead() // a GM's #testmode stands at 1 HP: the hit goes on
 }
 
-// creatureProcOnPetLocked is creatureProcLocked on a pet: a workbook pet's resists cut it (petstats.go), any
-// other takes it whole. It reports whether the pet died of it.
+// creatureProcOnPetLocked is creatureProcLocked on a pet: a workbook pet's resists cut the template's (petstats.go),
+// any other takes it whole, and the fight's proc lands whole. It reports whether the pet died of one.
 func (w *World) creatureProcOnPetLocked(npc, pet *NPC, now time.Time) bool {
 	t := npc.tmpl
-	if t == nil || t.ProcChance <= 0 || t.ProcDamage <= 0 || pet.Dead || templateIntn(100) >= t.ProcChance {
+	if t == nil || pet.Dead {
 		return false
 	}
-	taken := t.ProcDamage
-	if st := shieldResistStat(t.ProcResist); st != StatNone {
+	if t.ProcChance > 0 && t.ProcDamage > 0 && templateIntn(100) < t.ProcChance &&
+		w.creatureProcPetHitLocked(npc, pet, procName(t), t.ProcDamage, t.ProcResist, now) {
+		return true
+	}
+	if fp := npc.fightProcNow(); fp != nil && !pet.Dead && templateIntn(100) < fp.chance {
+		return w.creatureProcPetHitLocked(npc, pet, fp.name, fp.damage, "", now)
+	}
+	return false
+}
+
+// creatureProcPetHitLocked is one of a creature's melee procs on a pet. It reports whether the pet died of it.
+func (w *World) creatureProcPetHitLocked(npc, pet *NPC, name string, damage int, resist string, now time.Time) bool {
+	taken := damage
+	if st := shieldResistStat(resist); st != StatNone {
 		if share := pet.petResistShare(st); share > 0 {
 			taken = max(int(math.Round(float64(taken)*(1-share))), 1)
 		}
@@ -161,7 +187,7 @@ func (w *World) creatureProcOnPetLocked(npc, pet *NPC, now time.Time) bool {
 	w.broadcastNPCSwingLocked(npc, pet.ServerID, 0, templateSpecialFX)
 	pet.HP = max(pet.HP-taken, 0)
 	pet.LastCombatTime = now
-	log.Printf("Template: %s's %s hits the pet %q for %d (HP %d/%d)", npc.Name, procName(t), pet.Name, taken, pet.HP, pet.MaxHP)
+	log.Printf("Template: %s's %s hits the pet %q for %d (HP %d/%d)", npc.Name, name, pet.Name, taken, pet.HP, pet.MaxHP)
 	if pet.HP > 0 {
 		return false
 	}

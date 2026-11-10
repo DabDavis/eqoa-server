@@ -67,6 +67,9 @@ type NPCWindowHandler struct {
 	// guardsKill is the World's GuardsKill: a corpse the town guards made
 	// is no one's to loot (entity/guards.go)
 	guardsKill func(entity.EntityID) bool
+	// duelLoot is the World's ChallengeLooter: a Metal Moogie's corpse is his
+	// challenger's alone to loot (entity/metalmoogie.go)
+	duelLoot func(*session.Session, *entity.NPC) (duel, mine bool, line string)
 	// takeOff is the EquipHandler's TakeOff: a worn item is taken off before
 	// the bank or a trade moves it (nil: a worn item is refused, as before)
 	takeOff func(*session.Session, *entity.Player, *database.CharInventoryEntry) bool
@@ -119,6 +122,7 @@ func (h *NPCWindowHandler) SetGameWorld(gw *entity.World) {
 	h.corpseLies = gw.CorpseLies
 	h.clearCorpse = gw.ClearCorpse
 	h.guardsKill = gw.GuardsKill
+	h.duelLoot = gw.ChallengeLooter // a Metal Moogie's corpse is his challenger's (entity/metalmoogie.go)
 	gw.OnCorpseGone(h.CorpsesGone)
 }
 
@@ -193,7 +197,9 @@ func refuse(sess *session.Session) {
 // counter, the records), then the greeting (VIMemStream::ReadString16: u32
 // characters, UTF-16). lines are finished records (buyback.go) that follow the
 // catalog; the two may not pass the client's 40 together.
-func merchantBoxPayload(id uint32, catalog []database.CharInventoryEntry, greeting string, lines ...database.CharInventoryEntry) []byte {
+// capes is whether the client draws capes (readsCapes): to one that does not,
+// a cape is a plain item (capes.go).
+func merchantBoxPayload(id uint32, catalog []database.CharInventoryEntry, greeting string, capes bool, lines ...database.CharInventoryEntry) []byte {
 	n := len(catalog) + len(lines)
 	return build(protocol.OpcodeMerchantBox, 64+1024*(n+1), func(w *buffer.Writer) {
 		w.WriteUint32(id)
@@ -203,10 +209,10 @@ func merchantBoxPayload(id uint32, catalog []database.CharInventoryEntry, greeti
 		w.WriteUint32(uint32(n))
 		for i := range catalog {
 			rec := catalogRecord(catalog[i])
-			writeSingleItem(w, &rec, i)
+			writeSingleItem(w, &rec, i, capes)
 		}
 		for i := range lines {
-			writeSingleItem(w, &lines[i], len(catalog)+i)
+			writeSingleItem(w, &lines[i], len(catalog)+i, capes)
 		}
 		w.WriteStringUnicode(greeting)
 	})
@@ -214,10 +220,11 @@ func merchantBoxPayload(id uint32, catalog []database.CharInventoryEntry, greeti
 
 // addInvItemPayload is 0x003B: one record, ReadNetItem then
 // VIItemList::AddItem(item, maxStack, 40) [V]. The client files it under its
-// own counter, whatever key it carries; this sends that counter.
-func addInvItemPayload(e *database.CharInventoryEntry, key uint32) []byte {
+// own counter, whatever key it carries; this sends that counter. capes is
+// whether the client draws capes (readsCapes, capes.go).
+func addInvItemPayload(e *database.CharInventoryEntry, key uint32, capes bool) []byte {
 	return build(protocol.OpcodeAddInvItem, 1024, func(w *buffer.Writer) {
-		writeSingleItem(w, e, int(key))
+		writeSingleItem(w, e, int(key), capes)
 	})
 }
 
@@ -327,7 +334,7 @@ func (h *NPCWindowHandler) HandleMerchantOpen(sess *session.Session, msg *protoc
 // may buy back (buyback.go), as 0x00B7 under id, which CLIENT hands back with
 // each buy and sale: an NPC's own id, or a genie's window (genie.go).
 func (h *NPCWindowHandler) openMerchant(sess *session.Session, player *entity.Player, npc *entity.NPC, id uint32, greeting string) {
-	l := h.merchantList(player, npc)
+	l := h.merchantList(player, npc, readsCapes(sess))
 	h.sendMerchantList(sess, id, greeting, l, nil)
 	log.Printf("Merchant: %s opened %q (npc %d): %d items for sale, %d to buy back", player.Name, npc.Name, npc.NPCID, len(l.wares), len(l.lines))
 }
@@ -363,7 +370,7 @@ func (h *NPCWindowHandler) buy(sess *session.Session, id uint32, index, count in
 	if w := sessionMerchantWindow(sess); w != nil && w.id == id && index >= w.wares {
 		return h.buyBack(sess, player, npc, inv, w, id, index)
 	}
-	catalog, err := h.waresFor(player, npc) // the list it was sent (buyback.go)
+	catalog, err := h.waresFor(player, npc, readsCapes(sess)) // the list it was sent (buyback.go)
 	if err != nil || index < 0 || index >= len(catalog) {
 		log.Printf("MerchantBuy: %s asked %q for item %d of %d (%v)", player.Name, npc.Name, index, len(catalog), err)
 		return false
@@ -411,7 +418,7 @@ func (h *NPCWindowHandler) buy(sess *session.Session, id uint32, index, count in
 			break
 		}
 		player.Tunar -= cost
-		queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(rec, key))
+		queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(rec, key, readsCapes(sess)))
 		log.Printf("MerchantBuy: %s bought %d %q from %q for %d", player.Name, took, p.ItemName, npc.Name, cost)
 	}
 	if bought == 0 {
@@ -508,6 +515,11 @@ func (h *NPCWindowHandler) sell(sess *session.Session, id, key uint32, n int) bo
 	row, err := h.inv.GetCharItem(player.CharServerID, rec.itemID)
 	if err != nil {
 		log.Printf("MerchantSell: %s: %v", player.Name, err)
+		return false
+	}
+	// a worn cape, which a client that does not draw capes holds as a plain
+	// item (capes.go), comes off first, as the bank and a trade take one off
+	if row.EquipLoc == equipCape && !readsCapes(sess) && h.takeOff != nil && !h.takeOff(sess, player, &row) {
 		return false
 	}
 	if row.EquipLoc != -1 {

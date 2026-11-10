@@ -312,7 +312,7 @@ func TestEveryKillIsCut(t *testing.T) {
 		{"spell", func(r *raidRig, npc *NPC) {
 			r.w.mu.Lock()
 			defer r.w.mu.Unlock()
-			if !r.w.spellHitLocked(r.p[0], r.sess[0], npc, 500) {
+			if !r.w.spellHitLocked(r.p[0], r.sess[0], npc, 500, numberSpell) {
 				r.t.Fatal("the spell did not kill")
 			}
 		}},
@@ -322,7 +322,7 @@ func TestEveryKillIsCut(t *testing.T) {
 			ps := &petState{owner: r.p[0], npc: pet}
 			r.w.mu.Lock()
 			defer r.w.mu.Unlock()
-			if !r.w.petLandHitLocked(ps, npc, 500, time.Now(), false) {
+			if !r.w.petLandHitLocked(ps, npc, 500, time.Now(), false, numberMelee) {
 				r.t.Fatal("the pet did not kill")
 			}
 		}},
@@ -442,7 +442,7 @@ func TestAQuestKillCreditsARaidGroup(t *testing.T) {
 	})
 	npc := r.killable(30)
 	r.w.mu.Lock()
-	r.w.spellHitLocked(r.p[0], r.sess[0], npc, 500)
+	r.w.spellHitLocked(r.p[0], r.sess[0], npc, 500, numberSpell)
 	r.w.mu.Unlock()
 	if strings.Join(got, " ") != "Ann Bob Cal Dee Eve" {
 		t.Errorf("credited %v", got)

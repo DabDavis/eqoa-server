@@ -75,14 +75,15 @@ func (s *InventoryStore) GetNPCItems(npcID int) ([]CharInventoryEntry, error) {
 	return items, rows.Err()
 }
 
-// GetCharItem returns one of a character's item rows with its pattern.
+// GetCharItem returns one of a character's item rows with its pattern: one in its
+// pack or its bank, never one kept for a larger client (itemlists.go).
 func (s *InventoryStore) GetCharItem(serverID uint32, itemID int) (CharInventoryEntry, error) {
 	row := s.db.QueryRow(`
 		SELECT c.itemid, c.stackleft, c.remainHP, c.remaincharge, c.equiploc, c.location, c.listnumber,
 		`+itemPatternColumns+`
 		FROM charinventory c
 		JOIN itempattern p ON c.patternid = p.patternid
-		WHERE c.serverid = ? AND c.itemid = ?
+		WHERE c.serverid = ? AND c.itemid = ? AND `+heldLocations+`
 	`, serverID, itemID)
 	e, err := scanItemRow(row.Scan)
 	if err == sql.ErrNoRows {
@@ -112,9 +113,11 @@ func (s *InventoryStore) AddCharItem(serverID uint32, patternID, stack, remainHP
 	return int(id), err
 }
 
-// SetItemStack sets a row's stack. Scoped by serverID as SetEquipLoc is.
+// SetItemStack sets a row's stack. Scoped by serverID as SetEquipLoc is, and
+// like every change here to a row in the pack or the bank, never to one kept
+// for a larger client (itemlists.go): that is an error, as a row not there is.
 func (s *InventoryStore) SetItemStack(serverID uint32, itemID, stack int) error {
-	return s.execOne(`UPDATE charinventory SET stackleft = ? WHERE itemid = ? AND serverid = ?`,
+	return s.execOne(`UPDATE charinventory SET stackleft = ? WHERE itemid = ? AND serverid = ? AND location IN (0, 1)`,
 		stack, itemID, serverID)
 }
 
@@ -134,19 +137,19 @@ func (s *InventoryStore) ItemCharges(patternID int) int {
 
 // SetItemCharges sets a row's charges left (a use).
 func (s *InventoryStore) SetItemCharges(serverID uint32, itemID, charges int) error {
-	return s.execOne(`UPDATE charinventory SET remaincharge = ? WHERE itemid = ? AND serverid = ?`,
+	return s.execOne(`UPDATE charinventory SET remaincharge = ? WHERE itemid = ? AND serverid = ? AND location IN (0, 1)`,
 		charges, itemID, serverID)
 }
 
 // SetItemRemainHP sets a row's condition (a repair).
 func (s *InventoryStore) SetItemRemainHP(serverID uint32, itemID, hp int) error {
-	return s.execOne(`UPDATE charinventory SET remainHP = ? WHERE itemid = ? AND serverid = ?`,
+	return s.execOne(`UPDATE charinventory SET remainHP = ? WHERE itemid = ? AND serverid = ? AND location IN (0, 1)`,
 		hp, itemID, serverID)
 }
 
 // DeleteCharItem removes a row (sold, or the last of a stack moved).
 func (s *InventoryStore) DeleteCharItem(serverID uint32, itemID int) error {
-	if err := s.execOne(`DELETE FROM charinventory WHERE itemid = ? AND serverid = ?`, itemID, serverID); err != nil {
+	if err := s.execOne(`DELETE FROM charinventory WHERE itemid = ? AND serverid = ? AND location IN (0, 1)`, itemID, serverID); err != nil {
 		return err
 	}
 	return s.dropQuickSlot(serverID, itemID)
@@ -159,7 +162,7 @@ func (s *InventoryStore) MoveCharItem(serverID uint32, itemID, location int) err
 	if err := s.execOne(`
 		UPDATE charinventory SET location = ?, equiploc = -1,
 			listnumber = (SELECT COALESCE(MAX(listnumber), -1) + 1 FROM charinventory WHERE serverid = ? AND location = ?)
-		WHERE itemid = ? AND serverid = ?
+		WHERE itemid = ? AND serverid = ? AND location IN (0, 1)
 	`, location, serverID, location, itemID, serverID); err != nil {
 		return err
 	}

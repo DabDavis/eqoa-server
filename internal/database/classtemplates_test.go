@@ -155,7 +155,7 @@ func TestTemplateAbilities(t *testing.T) {
 		`[{"kind": "nuke", "every": 1}]`,
 		`[{"kind": "nuke", "every": 10, "chance": 101}]`,
 		`[{"kind": "nuke", "every": 10}] junk`,
-		`[{"kind": "nuke", "every": 10, "damage": 50}]`,
+		`[{"kind": "nuke", "every": 10, "damages": 50}]`, // "damage" is a fixed hit's since 2026-11-10
 	} {
 		if _, err := ParseTemplateAbilities(bad); err == nil {
 			t.Errorf("%s read, want refused", bad)

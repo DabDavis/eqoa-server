@@ -742,6 +742,7 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 		w.factionKillLocked(sess, attacker, npc)
 		return true
 	}
+	w.hitHealLocked(npc, damage, sess) // its heal at every hit that lands (hitheal.go)
 	// a proc's damage after the hit (proc.go), then the creature's damage
 	// shield's answer, which may end the fight the other way (creatureshield.go)
 	if w.playerProcsLocked(sess, attacker, npc, attacker.LastCombatTime) {

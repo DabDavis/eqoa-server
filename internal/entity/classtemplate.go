@@ -110,6 +110,21 @@ type ClassTemplate struct {
 	// not named): AbilityHealShield, AbilityMeleeKind
 	healBelow int
 	kindTaken map[Stat]int
+	// hitHeal is what every hit that lands on it heals it (AbilityHitHeal,
+	// hitheal.go; 0 none), prefer the names of the foes it fights first
+	// (AbilityPrefer, prefer.go: lower case, the first first)
+	hitHeal int
+	prefer  []string
+	// summons and enrage are its fight's moments below a share of its hit
+	// points (AbilitySummon, summon.go; AbilityEnrage, enrage.go: one at most)
+	summons []templateSummon
+	enrage  *database.TemplateAbility
+	// procs and veils are melee procs it always has beside its template's
+	// (AbilityProc, AbilityVeil: creatureproc.go)
+	procs []templateProc
+	veils []templateVeil
+	// farCasts: one of its abilities is cast only out of its reach (OutOfReach)
+	farCasts bool
 	// problems is what of it the world cannot use, for the log and the panel
 	problems []string
 }
@@ -184,6 +199,12 @@ type templateFight struct {
 	// proc is the melee proc an ability's landing gave it for the rest of this
 	// fight (abilitytimes.go), nil for none: the fight's end takes it
 	proc *fightProc
+	// summoned is the summons that have called their adds this fight (a bit an
+	// index of the template's summons), adds the adds they called (summon.go);
+	// enraged its enrage once it is on, nil before it (enrage.go)
+	summoned uint32
+	adds     []EntityID
+	enraged  *enrageOn
 }
 
 // templateContactGap is the longest gap between two of a templated NPC's
@@ -201,9 +222,13 @@ func (n *NPC) fight() *templateFight {
 }
 
 // endTemplateFight forgets the NPC's fight by its template: the next one
-// starts its clocks again.
+// starts its clocks again. Its enrage's size goes back (enrage.go); the adds
+// its summons called go with the fight (summon.go's addsSystem).
 func (n *NPC) endTemplateFight() {
 	if n.tfight != nil {
+		if e := n.tfight.enraged; e != nil {
+			n.Size = e.size
+		}
 		n.tfight = nil
 	}
 }
@@ -295,6 +320,9 @@ func (w *World) templateForLocked(npc *NPC) *ClassTemplate {
 // template has not changed is left as it is. Must be called with the lock
 // held.
 func (w *World) applyTemplateLocked(npc *NPC) {
+	if npc.add != nil && npc.add.pct > 0 {
+		return // an add of a share keeps its creature's template it was called with (summon.go)
+	}
 	t := w.templateForLocked(npc)
 	if t == npc.tmpl {
 		return
@@ -507,7 +535,41 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 				}
 				t.kindTaken[map[string]Stat{"slash": StatSlash, "pierce": StatPierce, "blunt": StatBlunt}[ra.MeleeKind]] = ra.TakenPct
 				continue
+			case database.AbilityHitHeal:
+				t.hitHeal += ra.Heal // hitheal.go
+				continue
+			case database.AbilityPrefer:
+				for _, f := range ra.Foes {
+					t.prefer = append(t.prefer, strings.ToLower(f)) // prefer.go
+				}
+				continue
+			case database.AbilitySummon:
+				t.summons = append(t.summons, templateSummon{TemplateAbility: ra}) // summon.go
+				continue
+			case database.AbilityEnrage:
+				if t.enrage == nil {
+					e := ra
+					t.enrage = &e // enrage.go
+				} else {
+					t.problems = append(t.problems, fmt.Sprintf("ability %d: a second enrage (the first is its own)", i+1))
+				}
+				continue
+			case database.AbilityVeil:
+				t.veils = append(t.veils, veilOf(ra)) // creatureproc.go
+				continue
+			case database.AbilityProc:
+				p, problem, err := procOf(db, ra) // creatureproc.go
+				if err != nil {
+					return 0, fmt.Errorf("classtemplates %q: %w", name, err)
+				}
+				if problem != "" {
+					t.problems = append(t.problems, fmt.Sprintf("ability %d: %s (it procs nothing)", i+1, problem))
+				} else {
+					t.procs = append(t.procs, p)
+				}
+				continue
 			}
+			t.farCasts = t.farCasts || ra.OutOfReach
 			if ra.Spell == "" && ra.SpellID == 0 && (ra.Kind == database.AbilityTaunt || ra.Kind == database.AbilityHeal && ra.HealPct > 0) {
 				if ra.Kind == database.AbilityHeal {
 					a.share = shareHealSpell(ra) // a creature's cast of it (abilitytimes.go)
@@ -517,6 +579,11 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 			}
 			if ra.Spell == "" && ra.SpellID == 0 && ra.Kind == database.AbilityStrip {
 				a.pinned = stripSpell(ra) // strip.go: a cast of its own name, no book's spell
+				t.abilities = append(t.abilities, a)
+				continue
+			}
+			if ra.Spell == "" && ra.SpellID == 0 && ra.Damage > 0 && ra.Name != "" {
+				a.pinned = fixedHitSpell(ra) // a fixed hit of its own name and look, no book's spell
 				t.abilities = append(t.abilities, a)
 				continue
 			}
@@ -544,7 +611,10 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 					a.byClass[c] = templateCandidates(ra, spells)
 					found = found || len(a.byClass[c]) > 0
 				}
-				if !found {
+				switch {
+				case !found && ra.Damage > 0:
+					a.pinned = fixedHitSpell(ra) // a fixed hit needs no spell: its default name and its kind's look
+				case !found:
 					t.problems = append(t.problems, fmt.Sprintf("ability %d: no %s spell of the class's at any level (it casts nothing)", i+1, ra.Kind))
 				}
 			}
@@ -682,12 +752,7 @@ func (w *World) templateTurnLocked(npc *NPC, target EntityID, now time.Time) boo
 		return false
 	}
 	f := npc.fight()
-	if !f.on {
-		f.on = true
-		for i := range t.abilities {
-			f.next[i] = now.Add(t.abilities[i].first)
-		}
-	}
+	f.begin(t, now)
 	if now.Before(f.busy) {
 		return true
 	}
@@ -700,14 +765,11 @@ func (w *World) templateTurnLocked(npc *NPC, target EntityID, now time.Time) boo
 	}
 	for i := range t.abilities {
 		a := &t.abilities[i]
-		if a.Chain || now.Before(f.next[i]) || npc.Level < a.From || petOnly(a) || npc.coolingDown(a, now) {
-			continue // a cooldown across fights (abilitytimes.go): it waits, due
+		if a.Chain || a.OutOfReach || now.Before(f.next[i]) || npc.Level < a.From || petOnly(a) || npc.coolingDown(a, now) {
+			continue // a cooldown across fights (abilitytimes.go): it waits, due; one cast from afar alone: templateFarTurnLocked
 		}
-		if a.Kind == database.AbilityHeal && npc.HP*100 >= npc.MaxHP*a.BelowOr() {
-			continue // whole enough: it waits, due
-		}
-		if a.Kind == database.AbilityDebuff && w.Players[target] == nil {
-			continue // a pet: it waits, due
+		if !w.templateWantsLocked(npc, a, target, now) {
+			continue // it waits, due
 		}
 		f.next[i] = now.Add(a.every)
 		if c := a.ChanceOr(); c < 100 && templateIntn(100) >= c {
@@ -720,6 +782,94 @@ func (w *World) templateTurnLocked(npc *NPC, target EntityID, now time.Time) boo
 	return false
 }
 
+// begin sets the fight's clocks at its first turn: each ability first its
+// first into the fight.
+func (f *templateFight) begin(t *ClassTemplate, now time.Time) {
+	if f.on {
+		return
+	}
+	f.on = true
+	for i := range t.abilities {
+		f.next[i] = now.Add(t.abilities[i].first)
+	}
+}
+
+// templateWantsLocked is whether a due ability is wanted at target now: a heal
+// below its share, a debuff at a player, a damage over time not already up on
+// what it fights (creaturedot.go), anything else yes. One not wanted waits,
+// due. Must be called with the lock held.
+func (w *World) templateWantsLocked(npc *NPC, a *templateAbility, target EntityID, now time.Time) bool {
+	switch a.Kind {
+	case database.AbilityHeal:
+		return npc.HP*100 < npc.MaxHP*a.BelowOr() // whole enough: it waits
+	case database.AbilityDebuff:
+		return w.Players[target] != nil // a pet: it waits
+	case database.AbilityDoT:
+		return w.creatureDoTWantedLocked(npc, a, target, now) // creaturedot.go
+	}
+	return true
+}
+
+// templateFarTurnLocked is a templated NPC's turn while what it fights (target:
+// a player, a player's pet, or the NPC of a scripted fight) stands beyond its
+// melee reach, rooted, snared or kiting (the GM Jibrish's petition 1442: Metal
+// Moogie V2's "ranged attack they can use if the target is out of range ... ONLY
+// if the target is out of normal melee attack range, due to root or snare or
+// kiting"): the first of its out-of-reach abilities (OutOfReach) due and wanted,
+// with target within its range (RangeOr, from centre to centre) and in its sight
+// (sight.go); the rest, and one whose target is too far or hidden, wait, due. Its
+// melee and its other abilities are its turn's in reach (templateTurnLocked),
+// where these wait. It reports whether a cast began. Must be called with the
+// lock held.
+func (w *World) templateFarTurnLocked(npc *NPC, target EntityID, now time.Time) bool {
+	t := npc.tmpl
+	if t == nil || !t.farCasts || npc.Dead {
+		return false
+	}
+	f := npc.fight()
+	f.begin(t, now)
+	if now.Before(f.busy) {
+		return false
+	}
+	x, y, z, world, ok := w.fightSpotLocked(target)
+	if !ok || world != npc.World {
+		return false
+	}
+	for i := range t.abilities {
+		a := &t.abilities[i]
+		if !a.OutOfReach || now.Before(f.next[i]) || npc.Level < a.From || npc.coolingDown(a, now) {
+			continue
+		}
+		if dist3(npc.X, npc.Y, npc.Z, x, y, z) > float32(a.RangeOr()) || !w.inSightLocked(npc.World, npc.X, npc.Y, npc.Z, x, y, z) {
+			continue // too far, or out of its sight: it waits, due
+		}
+		if !w.templateWantsLocked(npc, a, target, now) {
+			continue
+		}
+		f.next[i] = now.Add(a.every)
+		if c := a.ChanceOr(); c < 100 && templateIntn(100) >= c {
+			continue
+		}
+		if w.templateCastLocked(npc, i, target, now) {
+			return true
+		}
+	}
+	return false
+}
+
+// fightSpotLocked is where what an NPC fights stands: a player, or an NPC (a pet,
+// a scripted fight's foe); ok false for one gone. Must be called with the lock
+// held.
+func (w *World) fightSpotLocked(id EntityID) (x, y, z float32, world uint8, ok bool) {
+	if p := w.Players[id]; p != nil {
+		return p.X, p.Y, p.Z, p.World, true
+	}
+	if n := w.NPCs[id]; n != nil && !n.Dead {
+		return n.X, n.Y, n.Z, n.World, true
+	}
+	return 0, 0, 0, 0, false
+}
+
 // npcCast is a templated NPC's cast on its way to landing (templateSystem).
 type npcCast struct {
 	npc    *NPC
@@ -730,13 +880,20 @@ type npcCast struct {
 	debuff bool // what lasts of its spell, no hit (templateDebuffLocked)
 	noCure bool // a debuff's: no cure takes it off
 	strip  bool // every beneficial effect off its target, nothing of its spell (strip.go)
+	dot    bool // its spell's damage over time on what it fights, kept up (creaturedot.go)
 	// ability is the index of the ability cast in tmpl's, for what its landing
 	// does past itself (abilitytimes.go); healPct a heal of the NPC's share
 	ability int
 	healPct int
-	target  EntityID
-	others  []EntityID
-	lands   time.Time
+	// fixed is a fixed figure's hit in place of its spell's figures (Damage, at
+	// an add's share), cut by fixedResist alone; tap: all of what lands of it
+	// back on the NPC (a lifetap's)
+	fixed       int
+	fixedResist Stat
+	tap         bool
+	target      EntityID
+	others      []EntityID
+	lands       time.Time
 }
 
 // templateCastLocked begins the NPC's cast of its ability i at target (a
@@ -748,7 +905,8 @@ type npcCast struct {
 func (w *World) templateCastLocked(npc *NPC, i int, target EntityID, now time.Time) bool {
 	t := npc.tmpl
 	a := &t.abilities[i]
-	spell := a.spellFor(npc.Class, npc.Level)
+	src := npc.figures() // an add's are its creature's level and class (summon.go)
+	spell := a.spellFor(src.Class, src.Level)
 	if spell == nil {
 		spell = a.share // a heal of its share that pins no spell (abilitytimes.go)
 	}
@@ -756,9 +914,12 @@ func (w *World) templateCastLocked(npc *NPC, i int, target EntityID, now time.Ti
 		return false
 	}
 	ct := a.castTime(spell)
-	c := &npcCast{npc: npc, tmpl: t, spell: spell, pct: a.DamageOr(), target: target,
+	c := &npcCast{npc: npc, tmpl: t, spell: spell, pct: npc.shared(a.DamageOr()), target: target,
 		debuff: a.Kind == database.AbilityDebuff, noCure: a.NoCure, strip: a.Kind == database.AbilityStrip,
-		ability: i, lands: now.Add(ct + castLand)}
+		dot: a.Kind == database.AbilityDoT, ability: i, lands: now.Add(ct + castLand)}
+	if a.Damage > 0 {
+		c.fixed, c.fixedResist, c.tap = npc.shared(a.Damage), shieldResistStat(a.Resist), a.Kind == database.AbilityLifetap
+	}
 	if a.Kind == database.AbilityHeal {
 		c.heal, c.target, c.healPct = true, npc.ServerID, a.HealPct
 	} else {
@@ -780,36 +941,58 @@ func (w *World) templateCastLocked(npc *NPC, i int, target EntityID, now time.Ti
 		f.chain = j + 1
 	}
 	w.broadcastNPCSwingLocked(npc, c.target, uint32(ct/time.Millisecond), spell.visual(), c.others...)
-	log.Printf("Template: %s (%s, level %d) begins %q (spell %d) on %s: %v cast, %d%% of its figures, %d others",
-		npc.Name, t.Name, npc.Level, spell.Name, spell.SpellID, w.entityNameLocked(c.target), ct, c.pct, len(c.others))
+	figures := fmt.Sprintf("%d%% of its figures", c.pct)
+	if c.fixed > 0 {
+		figures = fmt.Sprintf("a fixed %d", c.fixed)
+	}
+	log.Printf("Template: %s (%s, level %d) begins %q (spell %d) on %s: %v cast, %s, %d others",
+		npc.Name, t.Name, npc.Level, spell.Name, spell.SpellID, w.entityNameLocked(c.target), ct, figures, len(c.others))
 	return true
 }
 
 // templateMayHitLocked reports whether the NPC's harmful spell may be cast at
 // target: a living player in its world (not across the water's edge from it,
-// water.go), or a living pet of a player's there, or the NPC a trigger set it
-// on with casts (castsAt, SetNPCOn).
+// water.go), or a living pet of a player's there, or the NPC of a scripted
+// fight (scriptedFoes: the NPC a trigger set it on with casts, or one set so on
+// it).
 func (w *World) templateMayHitLocked(npc *NPC, target EntityID) bool {
 	if p := w.Players[target]; p != nil {
 		return !p.IsDead() && !p.respawnPending() && p.World == npc.World && !w.apartLocked(p, npc)
 	}
 	n := w.NPCs[target]
-	return n != nil && (n.Owner != 0 || npc.castsAt == target) && !n.Dead && n.World == npc.World &&
+	return n != nil && (n.Owner != 0 || scriptedFoes(npc, n)) && !n.Dead && n.World == npc.World &&
 		(w.env == nil || w.npcInWaterLocked(n) == w.npcInWaterLocked(npc))
 }
 
 // castFoeLocked is the NPC a templated NPC's cast or special at target lands on
-// when target is the NPC a trigger set it on with casts (castsAt: no pet, alive),
-// nil otherwise. Must be called with the lock held.
+// when target is the NPC of a scripted fight (scriptedFoes: no pet, alive), nil
+// otherwise. Must be called with the lock held.
 func (w *World) castFoeLocked(npc *NPC, target EntityID) *NPC {
-	if npc.castsAt == 0 || target != npc.castsAt {
+	if target == 0 || target == npc.ServerID {
 		return nil
 	}
 	foe := w.NPCs[target]
-	if foe == nil || foe.Owner != 0 || foe.Dead || foe.World != npc.World {
+	if foe == nil || foe.Owner != 0 || foe.Dead || foe.World != npc.World || !scriptedFoes(npc, foe) {
 		return nil
 	}
 	return foe
+}
+
+// scriptedFoes reports a scripted fight between two NPCs, which each fights by
+// its whole class template (its casts, specials, kicks and procs) where any
+// other fight between two NPCs is their melee alone (a town's guard and a
+// creature): one a trigger's sic set on the other with casts (castsAt,
+// SetNPCOn), either way round, so the NPC it was set on fights it back so too
+// (the GM Jibrish's petition 1437: Mr. Moogie answered Tunare and her pets by
+// his melee alone, his Lay Hands, his strip and his crit never fired); and an
+// add a summon called (summon.go) fights as its creature does, either way round.
+func scriptedFoes(npc, foe *NPC) bool {
+	return scriptedPair(npc, foe) || scriptedPair(npc.summoner(), foe) || scriptedPair(npc, foe.summoner())
+}
+
+// scriptedPair is scriptedFoes' test of two NPCs as they are.
+func scriptedPair(a, b *NPC) bool {
+	return a != nil && b != nil && a != b && (a.castsAt == b.ServerID || b.castsAt == a.ServerID)
 }
 
 // castFoeHitLocked lands n of a templated NPC's cast or special on the NPC a
@@ -822,6 +1005,7 @@ func (w *World) castFoeHitLocked(npc, foe *NPC, n int, what string, now time.Tim
 	w.addThreatLocked(foe, npc.ServerID, n)
 	log.Printf("Template: %s's %s hits %s for %d (HP %d/%d)", npc.Name, what, foe.Name, n, foe.HP, foe.MaxHP)
 	if foe.HP > 0 {
+		w.hitHealLocked(foe, n, nil) // its heal at every hit that lands (hitheal.go)
 		return
 	}
 	foe.Effects = nil
@@ -976,6 +1160,9 @@ func (w *World) templateLandLocked(c *npcCast, now time.Time) {
 	case c.strip:
 		w.templateStripLocked(c, now) // strip.go
 		return
+	case c.dot:
+		w.templateDoTLocked(c, now) // creaturedot.go
+		return
 	}
 	place := w.templateAreaPlaceLocked(npc, c.spell, c.target)
 	var seen areaLog
@@ -1043,6 +1230,13 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 	npc := c.npc
 	hit, drained := templateFigure(effects, c.pct)
 	power := templatePowerFigure(effects, c.pct)
+	if c.fixed > 0 {
+		// a fixed figure in place of its spell's (Damage): a tap's all of it back
+		hit, drained, power = c.fixed, 0, 0
+		if c.tap {
+			drained = c.fixed
+		}
+	}
 	if hit <= 0 && power <= 0 {
 		return
 	}
@@ -1058,6 +1252,13 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 		share, how := c.tmpl.rollResist(p.StatNow(resist))
 		if c.spell.unresistable {
 			share, how = 0, ResistFailed
+		}
+		if c.fixed > 0 {
+			// a fixed figure lands as it is but for its own resist's share
+			share, how = 0, ResistFailed
+			if c.fixedResist != StatNone {
+				share, how = c.tmpl.rollResist(p.StatNow(c.fixedResist))
+			}
 		}
 		p.StatsDirty = true
 		p.LastCombatTime = now
@@ -1082,7 +1283,11 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 				if nid := w.objectIDForEntityLocked(sess, npc.ServerID); nid != 0 {
 					w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID(), 0) // the creature's on the player: untagged
 				}
-				w.sendChatToSession(sess, fmt.Sprintf("%s's %s hits you for %d (%s).", npc.Name, c.spell.Name, taken, resistWords(share, how)))
+				line := fmt.Sprintf("%s's %s hits you for %d (%s).", npc.Name, c.spell.Name, taken, resistWords(share, how))
+				if c.fixed > 0 && c.fixedResist == StatNone {
+					line = fmt.Sprintf("%s's %s hits you for %d.", npc.Name, c.spell.Name, taken) // no resist of it
+				}
+				w.sendChatToSession(sess, line)
 			}
 			log.Printf("Template: %s's %q hits %s for %d of %d (resist %.0f%%; HP %d/%d)", npc.Name, c.spell.Name, p.Name, taken, hit,
 				share*100, p.HP, p.MaxHPNow())
@@ -1096,13 +1301,23 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 		if hit <= 0 {
 			return
 		}
-		taken := -creatureResists(c.spell.resist, foe, -hit, now)
+		resist := c.spell.resist
+		if c.fixed > 0 {
+			resist = c.fixedResist // a fixed figure's own, none for none
+		}
+		taken := -creatureResists(resist, foe, -hit, now)
 		if taken < hit {
 			drained = int(math.Round(float64(drained) * float64(taken) / float64(hit)))
 		}
 		w.castFoeHitLocked(npc, foe, taken, fmt.Sprintf("%q", c.spell.Name), now)
 	} else if pet := w.NPCs[id]; pet != nil && pet.Owner != 0 && !pet.Dead {
 		share := pet.petResistShare(c.spell.resist) // a workbook pet's resists (petstats.go); any other takes it whole
+		if c.fixed > 0 {
+			share = 0
+			if c.fixedResist != StatNone {
+				share = pet.petResistShare(c.fixedResist)
+			}
+		}
 		if power > 0 {
 			lost := min(int(math.Round(float64(power)*(1-min(share*powerDrainCapShare/ResistCapShare, 1)))), pet.Power)
 			pet.Power -= max(lost, 0)
@@ -1152,6 +1367,12 @@ func debuffStats(s *CastSpell) bool {
 	return false
 }
 
+// templateTickFigure is a damage tick's figure from a templated NPC at its
+// ability's percent: the tick rolled in its range, within its cap.
+func templateTickFigure(e SpellEffect, pct int) int {
+	return int(math.Round(float64(-capAmount(rollAmount(e), e.Cap)) * float64(pct) / 100))
+}
+
 // templateDebuffLocked lands a templated NPC's debuff on the player it fights:
 // the stats its spell takes, for the spell's time; a recast starts it again. Must
 // be called with the lock held.
@@ -1162,19 +1383,23 @@ func (w *World) templateDebuffLocked(c *npcCast, now time.Time) {
 		return
 	}
 	d := &c.spell.Def
-	ae := &ActiveEffect{SpellID: c.spell.SpellID, Name: c.spell.Name, Icon: c.spell.Icon, Caster: npc.ServerID, Until: now.Add(d.Duration)}
+	dur := d.Duration
+	if dur <= 0 && c.dot {
+		dur = tickDuration // a damage over time's tick line with no time (cast.go)
+	}
+	ae := &ActiveEffect{SpellID: c.spell.SpellID, Name: c.spell.Name, Icon: c.spell.Icon, Caster: npc.ServerID, Until: now.Add(dur)}
 	ae.Rules = rulesOf(d)
 	ae.Rules.NoCure = c.noCure
 	ae.Rules.Harm = true // a creature's debuff is harm whatever its record reads: a strip leaves it on (strip.go)
 	tickResist := StatNone
 	for _, e := range d.Effects {
-		if e.Kind == EffectStat && !e.Set {
+		if e.Kind == EffectStat && !e.Set && !c.dot { // a damage over time is its ticks alone (creaturedot.go)
 			ae.Mods.add(e.Stat, e.Amount)
 		}
 		// a damage tick, at the ability's percent: each tick hurts as the
 		// creature's spell does, at its element's resist (npcTickLocked)
 		if e.Kind == EffectHPTick && e.Amount < 0 {
-			ae.HPTick -= int(math.Round(float64(-capAmount(rollAmount(e), e.Cap)) * float64(c.pct) / 100))
+			ae.HPTick -= templateTickFigure(e, c.pct)
 			if e.Resist >= StatFR && e.Resist <= StatAR {
 				tickResist = e.Resist
 			}
@@ -1204,7 +1429,7 @@ func (w *World) templateDebuffLocked(c *npcCast, now time.Time) {
 	if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
 		w.sendChatToSession(sess, fmt.Sprintf("%s's %s takes hold of you.", npc.Name, c.spell.Name))
 	}
-	log.Printf("Template: %s's %q lands on %s for %v", npc.Name, c.spell.Name, p.Name, d.Duration)
+	log.Printf("Template: %s's %q lands on %s for %v", npc.Name, c.spell.Name, p.Name, dur)
 }
 
 // npcTickLocked is a tick of a creature's damage over time on t (runTickLocked):
@@ -1351,7 +1576,8 @@ func templateJitter(base, jitter float64) time.Duration {
 // lock held.
 func (w *World) templateSpecialHitLocked(npc *NPC, target EntityID, now time.Time) {
 	t := npc.tmpl
-	w.templateStrikeLocked(npc, target, now, max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1), specialName(t))
+	// an add's is its creature's of its level, at its share (summon.go)
+	w.templateStrikeLocked(npc, target, now, npc.shared(max(int(math.Round(float64(npc.figureLevel())*t.SpecialDamage)), 1)), specialName(t))
 }
 
 // templateKickLocked is its template's kick on its own clock (KickEvery): the first KickFirst
@@ -1373,7 +1599,7 @@ func (w *World) templateKickLocked(npc *NPC, target EntityID, now time.Time) {
 	f.kickSeen = now
 	if f.kickLeft <= 0 && !now.Before(f.busy) {
 		f.kickLeft = templateJitter(t.KickEvery, 0)
-		w.templateStrikeLocked(npc, target, now, t.KickDamage, "Kick")
+		w.templateStrikeLocked(npc, target, now, npc.shared(t.KickDamage), "Kick")
 	}
 }
 

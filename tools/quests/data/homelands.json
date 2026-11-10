@@ -952,7 +952,7 @@
       "requires": [
         "homelands/kobold/L2"
       ],
-      "offer": "So you are the new pup. Good. Tunnel beetles have crawled up at the west end of the cavern, and they chew the props that hold our roof.\nCrack them and bring me three of their horns. Then I will teach you something worth knowing.\nWill you hunt them?",
+      "offer": "So you are the new pup. Good. Tunnel beetles have crawled in at the west end of the warren, where the walls give way to the hillside, and they chew our props.\nCrack them and bring me three of their horns. Then I will teach you something worth knowing.\nWill you hunt them?",
       "accept": "I will hunt them.",
       "decline": "Not now.",
       "declined": "Then pray the props hold, pup.",
@@ -969,7 +969,7 @@
           ],
           "count": 3,
           "chance": 0.5,
-          "journal": "Take three tunnel beetle horns from the tunnel beetles at the west end of the cavern."
+          "journal": "Take three tunnel beetle horns from the tunnel beetles at the west end of the warren, on the hillside."
         },
         {
           "kind": "give",
@@ -1126,7 +1126,7 @@
           ],
           "count": 1,
           "chance": 0.5,
-          "journal": "Take a deepway millipede leg from the deepway millipedes in the tunnels south of the cavern."
+          "journal": "Take a deepway millipede leg from the deepway millipedes in the passages south of the stalls."
         },
         {
           "kind": "give",
@@ -5839,7 +5839,7 @@
     },
     {
       "name": "tunnel beetle horn",
-      "description": "The horn of a tunnel beetle from the west end of the Warrens' cavern.",
+      "description": "The horn of a tunnel beetle from the west end of the Warrens.",
       "notrade": true,
       "like": "Cracked Beetle Horn"
     },

@@ -2,7 +2,7 @@
   "race": "kobold",
   "home": "The Warrens",
   "city": "Klick'Anon",
-  "note": "The Warrens' people are tools/worlds/homelands.json's (The Warrens): Elder Grikkis gives the first two, Packleader Yarrk beside him the three hunts; Stitcher Vikka (west of the elder) is the outfitter, Coachman Drekk keeps the stable south of the elder. The tunnel beetles are at the cavern's west end, the deepway millipedes in the south tunnels, the scythe beetle Gravelmaw alone in the far chamber past them.",
+  "note": "The Warrens' people are tools/worlds/homelands.json's (The Warrens): Elder Grikkis gives the first two, Packleader Yarrk beside him the three hunts; Stitcher Vikka (west of the elder) is the outfitter, Coachman Drekk keeps the stable south of the elder. The tunnel beetles are at the warren's west end, where the walls give way to the hillside, the deepway millipedes in the south tunnels, the scythe beetle Gravelmaw alone in the far chamber past them.",
   "L1": {
     "name": "A Pup's Digging Sash",
     "giver": "Elder Grikkis",
@@ -67,7 +67,7 @@
     "name": "Beetles in the Props",
     "giver": "Packleader Yarrk",
     "offer": [
-      "So you are the new pup. Good. Tunnel beetles have crawled up at the west end of the cavern, and they chew the props that hold our roof.",
+      "So you are the new pup. Good. Tunnel beetles have crawled in at the west end of the warren, where the walls give way to the hillside, and they chew our props.",
       "Crack them and bring me three of their horns. Then I will teach you something worth knowing.",
       "Will you hunt them?"
     ],
@@ -79,11 +79,11 @@
     "count": 3,
     "drop": {
       "name": "tunnel beetle horn",
-      "description": "The horn of a tunnel beetle from the west end of the Warrens' cavern.",
+      "description": "The horn of a tunnel beetle from the west end of the Warrens.",
       "like": "Cracked Beetle Horn"
     },
     "hunt": {
-      "journal": "Take three tunnel beetle horns from the tunnel beetles at the west end of the cavern."
+      "journal": "Take three tunnel beetle horns from the tunnel beetles at the west end of the warren, on the hillside."
     },
     "give": {
       "journal": "Bring three tunnel beetle horns to Packleader Yarrk.",
@@ -125,7 +125,7 @@
       "like": "beetle leg segment"
     },
     "hunt": {
-      "journal": "Take a deepway millipede leg from the deepway millipedes in the tunnels south of the cavern."
+      "journal": "Take a deepway millipede leg from the deepway millipedes in the passages south of the stalls."
     },
     "give": {
       "journal": "Bring the rat-hide lacing, the wooden shaft and the deepway millipede leg to Packleader Yarrk.",

@@ -159,7 +159,7 @@ func (w *World) raidInviteLocked(sess *session.Session, inviter *Player, g *Grou
 	case t.GroupID == g.ID:
 		w.refuseLocked(sess, fmt.Sprintf("%s is already in your raid.", t.Name))
 		return
-	case t.GroupID != 0:
+	case t.GroupID != 0 && !w.mercOnlyGroupLocked(t): // its and its merc's alone gives way (mercgroup.go)
 		w.refuseLocked(sess, fmt.Sprintf("%s is already in a group.", t.Name))
 		return
 	}
@@ -167,6 +167,7 @@ func (w *World) raidInviteLocked(sess *session.Session, inviter *Player, g *Grou
 		w.refuseLocked(sess, fmt.Sprintf("%s has not answered your invitation yet.", t.Name))
 		return
 	}
+	w.mercGivesWayLocked(t) // its merc comes with its yes, past four as a flag's (mercgroup.go)
 	g.flagged = true
 	w.raidBoxLocked(t, inviter, ts, fmt.Sprintf("%s invites you to %s's raid.", inviter.Name, w.raidNameLocked(inviter)))
 	w.raidLineLocked(sess, fmt.Sprintf("You invite %s to the raid.", t.Name))
@@ -196,7 +197,7 @@ func (w *World) InviteByName(sess *session.Session, name string) {
 		return
 	}
 	if p.GroupID == 0 || w.groups[p.GroupID] == nil {
-		if t.GroupID != 0 {
+		if t.GroupID != 0 && !w.mercOnlyGroupLocked(t) { // its and its merc's alone gives way (mercgroup.go)
 			w.sendGroupNotice(sess, 2, t.Name)
 			return
 		}
@@ -265,6 +266,20 @@ func (w *World) RaidKick(sess *session.Session, name string, targetID uint32) {
 	} else if t := w.playerSeenByLocked(sess, targetID); t != nil && t.GroupID == g.ID {
 		m = t
 	}
+	if m == nil {
+		// a merc of the raid is no player: dismissed, as Boot Member dismisses one
+		// (mercgroup.go), and it holds no claim
+		if ms := w.raidMercLocked(sess, g, name, targetID); ms != nil {
+			if !w.mayDismissMercLocked(g, p, ms) {
+				w.refuseLocked(sess, "The raid's helper cannot dismiss its leader's mercenary.")
+				return
+			}
+			who := ms.npc.Name
+			w.mercBootedLocked(p, ms)
+			w.raidLineLocked(sess, fmt.Sprintf("You dismissed %s from the raid.", who))
+			return
+		}
+	}
 	switch {
 	case m == nil && name != "":
 		w.refuseLocked(sess, fmt.Sprintf("%s is not in your raid.", name))
@@ -311,6 +326,9 @@ func (w *World) RaidLeader(sess *session.Session, name string, targetID uint32) 
 		}
 	}
 	switch {
+	case m == nil && w.raidMercLocked(sess, g, name, targetID) != nil:
+		w.refuseLocked(sess, "A mercenary cannot lead the raid: only a player can.")
+		return
 	case m == nil:
 		w.refuseLocked(sess, fmt.Sprintf("%s is not in your raid.", orTarget(name)))
 		return
@@ -387,6 +405,9 @@ func (w *World) raidPick(sess *session.Session, name string, targetID uint32, ro
 		}
 	}
 	switch {
+	case m == nil && w.raidMercLocked(sess, g, name, targetID) != nil:
+		w.refuseLocked(sess, fmt.Sprintf("A mercenary cannot be the raid's %s: only a player can.", role))
+		return
 	case m == nil:
 		w.refuseLocked(sess, fmt.Sprintf("%s is not in your raid.", orTarget(name)))
 		return
@@ -580,4 +601,36 @@ func nameRank(name, want string) int {
 		return 1
 	}
 	return 2
+}
+
+// raidMercLocked is g's merc named name (any case), else the one the sender knows by
+// targetID, nil for none: a merc takes a place in its owner's group (mercgroup.go) but is
+// no player, so never a seat, a claim, the leader, the helper or the main assist. Must be
+// called with the lock held.
+func (w *World) raidMercLocked(sess *session.Session, g *Group, name string, targetID uint32) *mercState {
+	if name = strings.TrimSpace(name); name != "" {
+		for _, id := range g.Members {
+			if n := w.NPCs[id]; n.isMerc() && strings.EqualFold(strings.TrimSpace(n.Name), name) {
+				return n.merc
+			}
+		}
+		return nil
+	}
+	if targetID == 0 {
+		return nil
+	}
+	return w.mercSeenByLocked(sess, g, targetID)
+}
+
+// mayDismissMercLocked is whether p may take merc ms out of g, which dismisses it
+// (mercgroup.go's mercBootedLocked): g's leader, or a raid's helper, never the leader's
+// own merc. Must be called with the lock held.
+func (w *World) mayDismissMercLocked(g *Group, p *Player, ms *mercState) bool {
+	if len(g.Members) == 0 || p == nil || ms == nil {
+		return false
+	}
+	if g.Members[0] == p.ServerID {
+		return true
+	}
+	return raidingLocked(g) && g.rules.helper == p.ServerID && ms.owner != nil && ms.owner.ServerID != g.Members[0]
 }

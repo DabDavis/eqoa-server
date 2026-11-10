@@ -236,6 +236,123 @@
       "notes": "Ours: the gatekeeper's port to Qeynos, the kerrans' wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
     },
     {
+      "key": "homelands/kappa/welcome",
+      "name": "Fresh from the Shell",
+      "giver": "Elder Hoshuk",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Another young one, fresh from the shell! Before you go wading off, greet Pemmi, who keeps the Dwell's stores on the east sand. Nobody in the Dwell goes hungry while Pemmi has a say.",
+      "accept": "I will greet Pemmi.",
+      "decline": "Not now.",
+      "declined": "The Dwell will wait for you.",
+      "started": "Go on. Pemmi is on the sand to the east.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Pemmi",
+          "journal": "Greet Grocer Pemmi on the east sand of the Dwell.",
+          "says": "Hoshuk sent you? Then take this loaf, and keep it dry!",
+          "rewards": {
+            "items": [
+              "hearty bread"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Hoshuk",
+          "journal": "Return to Elder Hoshuk on the sand north of the Dwell.",
+          "says": "Good. Now you will not starve, and Pemmi will not forget you.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the kappa's first, at their home zone, Sylhilthis' Dwell of the disc."
+    },
+    {
+      "key": "homelands/kappa/hunt",
+      "name": "Rats in the Reeds",
+      "giver": "Elder Hoshuk",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/kappa/welcome"
+      ],
+      "offer": "Marsh rats have dug into the reeds where the causeway meets the shore. Cross over and drive off five of them before they reach our stores.",
+      "accept": "I will drive them off.",
+      "decline": "Not now.",
+      "declined": "Then the stores will be gnawed.",
+      "started": "Five rats. Keep your shell between you and their teeth.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "marsh rat",
+          "count": 5,
+          "journal": "Kill five marsh rats on the shore where the causeway comes in."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Hoshuk",
+          "journal": "Tell Elder Hoshuk the rats are dealt with.",
+          "says": "Five fewer gnawers. The stores are safe, young one.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the kappa's second starter quest, the elder's too (the owner's 2026-11-10: an elder giving two starter quests); the marsh rats are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/kappa/flight",
+      "name": "Down the River",
+      "giver": "Gatekeeper Kabbo",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/kappa/welcome",
+        "homelands/kappa/hunt"
+      ],
+      "repeatable": true,
+      "offer": "The halflings of Rivervale welcomed the first of us who went down the river, and they will train you too. I can send you to them, but the current runs one way. Are you ready?",
+      "accept": "Send me to Rivervale.",
+      "decline": "Not yet.",
+      "declined": "The river will wait.",
+      "started": "Swim strong, and keep your shell clean!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Kabbo",
+          "journal": "Tell Gatekeeper Kabbo when you are ready to go to Rivervale.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Rivervale, the kappa's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
+    },
+    {
       "key": "homelands/aviak/welcome",
       "name": "A Fledgling's Welcome",
       "giver": "Elder Kraawk",

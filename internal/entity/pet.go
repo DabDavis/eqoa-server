@@ -1192,7 +1192,7 @@ func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
 		if w.petLandHitLocked(ps, t, ps.meleeOut(w.charmedHitLocked(ps.npc, t, meleeIntn)), now, false, numberMelee) {
 			return true
 		}
-		if w.petTemplateProcLocked(ps, t, now) || w.petProcsLocked(ps, t, now) {
+		if w.petTemplateProcLocked(ps, t, now) || w.petProcsLocked(ps, t, now) || w.petMarkHitLocked(ps, t, now) {
 			return true
 		}
 		return w.creatureShieldOnPetLocked(ps, t, now)
@@ -1205,7 +1205,8 @@ func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
 	if w.petDamageLocked(ps, t, n, now, numberMelee) {
 		return true
 	}
-	if w.petTemplateProcLocked(ps, t, now) || w.petProcsLocked(ps, t, now) {
+	// its procs, then a damage mark on its target (markhit.go)
+	if w.petTemplateProcLocked(ps, t, now) || w.petProcsLocked(ps, t, now) || w.petMarkHitLocked(ps, t, now) {
 		return true
 	}
 	return w.creatureShieldOnPetLocked(ps, t, now) // creatureshield.go

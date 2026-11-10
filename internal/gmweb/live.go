@@ -275,7 +275,7 @@ func checkTintRow(row map[string]any) error {
 	if v, ok := row["color"]; ok {
 		f, fok := asFloat(v)
 		if !fok || f != math.Trunc(f) || !database.ValidNPCTint(int64(f)) {
-			return badRequest("color is 0xRRGGBBAA (0x5A8C50FF a dark green): each channel of the body times RR/FF, GG/FF, BB/FF, AA how much of it")
+			return badRequest("color is 0xRRGGBBAA (0x2A7333FF black and green, Yhafiran's): each channel of the body times RR/FF, GG/FF, BB/FF, AA how much of it")
 		}
 	}
 	return nil

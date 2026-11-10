@@ -2072,6 +2072,7 @@ reach the rows. An enrolment begun before a restart starts again (its secret is 
 - **Live** (`live.go`, `entity/gmlive.go`, `handlers/gmops.go`): an `npcs` row inserted, edited
   or deleted is applied to the World at once (the NPC is hidden from every view for
   `NPCRefreshHold` so each client re-creates it); `npcclass` re-classes NPCs by name; `npcspawnonly` takes the NPCs of a name out of the world or puts them back;
+  `npctint` sends the NPCs' body tints to every client that draws them (vanilla; `reload_npcs` reads it again too);
   `classtemplates` and `npctemplate` give the NPCs of a name their class template where they stand (`live_templates.go`);
   `defaultcharacter` invalidates both template caches; an online character's level, tunar,
   bank tunar and place are applied where it stands; a ban ejects (0x07A2) the account's
@@ -2485,6 +2486,25 @@ a spell's or a potion's price), a gift landed as the player's own cast (Buffer's
 `healLocked`, `spellHit*`, `petDamageLocked`, `petLandHitLocked`, `duelHurt*`), so a new call site must say
 what it is (0 for untagged); a cast carries whose its figures are (`CastSpell.figures`) into what lasts of it
 (`ActiveEffect.figures`, kept over a logout by buffsave). `numbertags_test.go` holds each path to its kind.
+
+**The NPCs' body tints, for a client that draws them** (2026-11-10; `entity/npctint.go`, `handlers/npctint.go`,
+`database/npctint.go`, `tools/seed_npc_tint.py`; the server owner: Yhafiran, "the black and green oriental dragon",
+wears the disc's only green oriental dragon, CHAR.ESF 0xB5C8A651, the Plane of Disease twins' body, and no black and
+green body exists, so "vanilla draws Yhafiran tinted toward black and green"). Table `npctint` (`name` any case, keyed as
+npcclass keys it; `color` 0xRRGGBBAA, each of the body's colours' red, green and blue times the tint's 255ths, as much of
+it as the alpha says: FF the whole, 0 none; the GM panel's "NPC body tints", live) is read at the start, at a panel
+edit and at `reload_npcs`. Beside 0x7E38 the server offers opcode **0x7E3E** (`OpcodeNPCTintsOffer`, a u8 1, the
+layout; not retail, ignored by a PS2). A client that draws tints (vanilla's `npctint`) answers **0x7E3F**
+(`OpcodeNPCTintsAnswer`, a u8: 1, dropping what it held, 0 to stop; kept on the session through a keep restart, the
+set sent again after it) and is sent **0x7E40** (`OpcodeNPCTints`) at once when there are tints and again whenever
+they change: a u16 count, then each tint's name (a u8 byte count and the key, cut to the 24 bytes the entity channel
+carries a name in) and its u32 colour, the whole set each time (the empty one when the last goes, to a client that held
+some), at most 200. **By name, not by entity**: every spawn of the name, a respawn under a new id, a GM's `#spawn` copy
+and its corpse are tinted alike, and nothing goes as an NPC comes into view; vanilla tints no player's character. A
+PS2, and every client of a server without the table, draws the body in its own colours. Yhafiran's is the seed's
+0x2A7333FF (red x0.16, green x0.45, blue x0.20: near-black at noon with his scales' green showing, deep green on black
+in the morning sun; picked from vanilla's `eqoa shot ... tint=` beside 0x73B366FF, 0x598C54FF and 0x4D804DFF), logged
+in `npc_tint_seed_log`, `--undo` exact; run it before the server starts, or press the panel's Reload every NPC after.
 
 **Quest marks for a client's map** (F3 pass 18; `handlers/questmarks.go`, `entity/questspots.go`;
 the user's "add quest markers for givers to the map too", "only if eligible for the class/level").

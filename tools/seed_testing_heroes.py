@@ -101,10 +101,11 @@ USE_ITEM = {  # a use item's record, as the Reconstructive's and the Ring of Spe
     "weapondamage": 0, "unk5": 0, "levelreq": 1, "maxstack": 1, "maxhp": 0, "duration": 50, "classuse": 32767,
     "raceuse": 1023, "procanim": 7, "lore": 0, "unk6": 0, "craft": 0, "model": 0, "color": 4294967295,
 }
+# A box draws no percent sign (CLIENT shows "(?)"): the words say percent.
 SAYS = {
     ELIXIR: "Five draughts. Each makes you a gnome as tall as a hill giant for thirty minutes, or until you die.",
     TOME: "Read it once for 5 training points, unspent, yours to place. It stays shut while your stats have no room for five more.",
-    WEAKENED: "The Breastplate of the Anointed, weakened: all of its stats, but its heal at each hit is 30% less.",
+    WEAKENED: "The Breastplate of the Anointed, weakened: all of its stats, but its heal at each hit is 30 percent less.",
     BASE: "The Breastplate of the Anointed, whole: 15 and a tenth of your charisma healed at each hit you take.",
     "ascended": "The Breastplate of the Anointed, Ascended: its stats and its heal a tenth more.",
 }
@@ -211,7 +212,7 @@ def plan(db):
         weak = dict(base)
         weak["patternid" if "patternid" in weak else "patternID"] = WEAKENED
         weak[name_col] = WEAKENED_NAME
-        weak[desc_col] = "A Breastplate of the Anointed whose blessing has thinned: its heal at each hit is 30% less."
+        weak[desc_col] = "A Breastplate of the Anointed whose blessing has thinned: its heal at each hit is 30 percent less."
         steps.append(("itempattern", weak))
         lines.append(f"itempattern {WEAKENED}: {WEAKENED_NAME}, a copy of {BASE} (the server reads its heal at 70% by its name)")
 

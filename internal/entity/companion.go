@@ -42,9 +42,10 @@ import (
 //     helpers);
 //   - the owner giving up and going home takes its pets home with it
 //     (giveUpLocked);
-//   - the owner's death takes its pets with it, gone at once with no corpse
-//     (a summoned pet goes with its caster), and its return brings them back
-//     with it (respawnNPCLocked).
+//   - the owner's death takes its pets with it, each laid down dead where it
+//     stands (masterdeath.go: its death played, its body gone a few seconds
+//     later, a corpse of nothing; until 2026-11-10 gone at once with no death
+//     seen), and its return brings them back with it (respawnNPCLocked).
 // A pet charmed by a player is the player's while the charm holds and is no one
 // else's companion (companionFighter); a player's pets and charmed creatures
 // are never paired, and town guards' assist (socialaggro.go) is untouched.
@@ -198,9 +199,10 @@ func (w *World) companionsHomeLocked(owner *NPC) {
 	}
 }
 
-// companionsDieLocked takes an owner's living pets with it when it dies: gone
-// at once, no corpse, their respawn time running from now. Must be called with
-// the lock held.
+// companionsDieLocked lays an owner's living pets down dead with it when it
+// dies (masterdeath.go's killWithMasterLocked: their deaths played, their
+// bodies gone a few seconds later, their respawn time running from then). Must
+// be called with the lock held.
 func (w *World) companionsDieLocked(owner *NPC, now time.Time) {
 	w.linkCompanionsLocked()
 	if w.companions[owner.ServerID] == nil || owner.Owner != 0 || owner.Charm != nil {
@@ -211,18 +213,17 @@ func (w *World) companionsDieLocked(owner *NPC, now time.Time) {
 		if p == nil || p.Dead || !companionFighter(p) {
 			continue
 		}
-		w.dropAggroLocked(p.ServerID)
-		w.killNPC(p)
-		p.CorpseGone = now
-		log.Printf("Companions: %s goes with %s", p.Name, owner.Name)
+		w.killWithMasterLocked(p, now)
+		log.Printf("Companions: %s dies with %s", p.Name, owner.Name)
 	}
 }
 
 // companionsBackLocked brings back an owner's pets that went with it, as it
-// comes back itself. Must be called with the lock held.
+// comes back itself: one that died with it, its body lying yet or gone, or
+// one whose corpse went. Must be called with the lock held.
 func (w *World) companionsBackLocked(owner *NPC) {
 	for _, id := range w.companions[owner.ServerID] {
-		if p := w.NPCs[id]; p != nil && p.Dead && !p.CorpseGone.IsZero() && companionFighter(p) {
+		if p := w.NPCs[id]; p != nil && p.Dead && (p.withMaster || !p.CorpseGone.IsZero()) && companionFighter(p) {
 			w.respawnNPCLocked(p)
 		}
 	}

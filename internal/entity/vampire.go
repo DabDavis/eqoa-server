@@ -381,14 +381,8 @@ func (w *World) forgetLocked(npc *NPC, caster *Player) {
 	if npc.CurrentEnemy != caster.ServerID {
 		return
 	}
-	npc.CurrentEnemy = 0
-	var top int64
-	for id, t := range npc.Threats {
-		if t > top {
-			top, npc.CurrentEnemy = t, id
-		}
-	}
-	w.wakeNPCLocked(npc) // its next enemy, or its fight to put away (npcsets.go)
+	npc.CurrentEnemy = w.pickEnemyLocked(npc) // its next, a preferred foe first (prefer.go)
+	w.wakeNPCLocked(npc)                      // its next enemy, or its fight to put away (npcsets.go)
 	log.Printf("Cast: %s forgets %s (now on %d)", npc.Name, caster.Name, npc.CurrentEnemy)
 }
 

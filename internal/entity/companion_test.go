@@ -76,17 +76,22 @@ func TestACreatureAndItsPetFightAsOne(t *testing.T) {
 		t.Errorf("given up: the minion's threats %v (enemy %d), the griffawn's enemy %d", pet.Threats, pet.CurrentEnemy, other.CurrentEnemy)
 	}
 
-	// the owner dies: its pet goes at once, no corpse; back with it; the griffawn untouched
+	// the owner dies: its pet dies with it where it stands (masterdeath.go: its
+	// death played, its body for petDismissedLies, a corpse of nothing; until
+	// 2026-11-10 gone at once with no death seen); back with it; the griffawn
+	// untouched
 	w, owner, pet, other, _ = companionWorld(t)
 	w.mu.Lock()
 	w.linkCompanionsLocked()
 	w.killNPC(owner)
-	died := pet.Dead && !pet.CorpseGone.IsZero() && !other.Dead
-	lies := pet.corpseLies(time.Now(), w.corpseDecay)
+	now := time.Now()
+	died := pet.Dead && pet.HP == 0 && pet.CorpseOfNothing() && !other.Dead
+	lies, gone := pet.corpseLies(now, w.corpseDecay), !pet.corpseLies(now.Add(petDismissedLies+time.Second), w.corpseDecay)
 	w.respawnNPCLocked(owner)
 	w.mu.Unlock()
-	if !died || lies || pet.Dead {
-		t.Errorf("the necromancer's death: minion dead %v with no corpse %v, griffawn alive %v; back with it: dead %v", died, !lies, !other.Dead, pet.Dead)
+	if !died || !lies || !gone || pet.Dead || pet.CorpseOfNothing() {
+		t.Errorf("the necromancer's death: minion dead of nothing %v, lying %v and gone after %v %v, griffawn alive %v; back with it: dead %v, nothing %v",
+			died, lies, petDismissedLies, gone, !other.Dead, pet.Dead, pet.CorpseOfNothing())
 	}
 }
 

@@ -25,6 +25,13 @@ const (
 type Session struct {
 	mu sync.RWMutex
 
+	// sendMu is held while a packet of this session is built
+	// (udp.RDPHandler.PreparePacket) and while the session is promoted
+	// (Manager.PromoteSessionToMaster): a packet is all the lobby
+	// connection's or all the promoted one's, never the promoted one's
+	// header over messages drained from the lobby's queue (LockSend).
+	sendMu sync.Mutex
+
 	// Network info
 	remoteAddr     *net.UDPAddr
 	instanceID     uint32
@@ -545,6 +552,20 @@ func (s *Session) OfferServerWorldsOnce() bool {
 	s.serverWorldsOffered = true
 	return first
 }
+
+// LockSend holds the session's packets still: until UnlockSend none is built
+// (udp.RDPHandler.PreparePacket takes it for each) and the session is not
+// promoted (Manager.PromoteSessionToMaster takes it). Packets are built on the
+// tick's goroutine and on each arriving packet's, a pick promotes on its own
+// packet's: without it a packet being built as the pick came could carry
+// messages drained from the lobby connection's queue under the promoted
+// connection's header and numbers, where the client files them under the
+// numbers of messages still to come (a MemoryDump's fragments) and drops
+// those when they come. Nothing that holds it takes it again.
+func (s *Session) LockSend() { s.sendMu.Lock() }
+
+// UnlockSend lets the session's packets go again (LockSend).
+func (s *Session) UnlockSend() { s.sendMu.Unlock() }
 
 // TakeServerWorlds records that the client took the offer of the server's
 // own worlds (it answered protocol.OpcodeServerWorlds 1: it builds them).

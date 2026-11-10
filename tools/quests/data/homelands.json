@@ -2466,96 +2466,571 @@
       "notes": "Ours: the gatekeeper's port to Halas, the orc's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a orc back in Thedruk is sent again; no reward, so none is had twice."
     },
     {
-      "key": "homelands/minotaur/welcome",
-      "name": "Horns and Hunger",
+      "key": "homelands/minotaur/L1",
+      "name": "A Calf's Nose Ring",
       "giver": "Elder Hornbrand",
       "classes": [],
-      "races": [],
+      "races": [
+        23
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "Another calf for the herd! Stand up straight. Before you lower those horns at anyone, go and see Brassnose at the mine cart outside. He keeps the food, and he keeps it from fools.",
-      "accept": "I will see Brassnose.",
+      "offer": "So. A new calf stands in the mouth of our mine. You have horns, but the herd does not know you yet.\nEvery Rustel wears the herd's iron in its nose. Smith Dargha hammers the rings at the old forge, just east of the mine's mouth.\nWill you fetch your nose ring and show it to me?",
+      "accept": "I will fetch it.",
       "decline": "Not now.",
-      "declined": "Then go hungry, calf, and learn the hard way.",
-      "started": "Brassnose is by the mine cart, just outside the mine.",
+      "declined": "Then stand there, nameless. The herd can wait longer than you can.",
+      "started": "Go. Dargha is at the old forge, just east of the mouth.",
       "steps": [
         {
           "kind": "talk",
-          "target": "Grocer Brassnose",
-          "journal": "See Grocer Brassnose by the mine cart outside the mine.",
-          "says": "Hornbrand sent you? Here, calf. Eat, and grow those horns.",
+          "target": "Smith Dargha",
+          "journal": "Ask Smith Dargha, at the old forge east of the mine's mouth, for a calf's nose ring.",
+          "says": "Hornbrand sent you? Hold still. Hah, it does not hurt, calf. Gerntar iron, dug by the herd. No charge for one of ours.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "calf's nose ring",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "show",
+          "target": "Elder Hornbrand",
+          "items": [
+            {
+              "item": "calf's nose ring",
+              "count": 1
+            }
+          ],
+          "journal": "Show the calf's nose ring to Elder Hornbrand.",
+          "says": "Good iron. Now any Rustel who sees you knows whose calf you are. Do not shame the ring.",
           "rewards": {
-            "items": [
-              "multigrain loaf"
-            ]
+            "xp": 430
           }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 1
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the minotaur's level 1, at Gerntar Mines, on the cities' level 1 quest: a piece of equipment fetched from a merchant and shown to the giver. Finishing it finishes the character's own city class quest of level 1 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/minotaur.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/minotaur/L2",
+      "name": "Bound to the Mine",
+      "giver": "Elder Hornbrand",
+      "classes": [],
+      "races": [
+        23
+      ],
+      "minlevel": 2,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/minotaur/L1"
+      ],
+      "offer": "A calf charges first and thinks after. So first let Spiritmaster Ruhga bind your spirit to the mine, in the tunnel behind me, to the west.\nThen give your name to Coachman Durruk, on the grass east of the old forge. His coach runs to Freeport and to the other homes of the Homelands.\nWill you see them both and come back to me?",
+      "accept": "I will see them both.",
+      "decline": "Not now.",
+      "declined": "Then charge nothing bigger than a rat until you do.",
+      "started": "Ruhga is in the tunnel to the west. Durruk waits on the grass east of the old forge.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Spiritmaster Ruhga",
+          "journal": "Have Spiritmaster Ruhga, in the tunnel west of the elder, bind your spirit to the mine.",
+          "says": "It is done. Fall where you will, calf, and you will wake here under the stone. Now go and give Coachman Durruk your name."
+        },
+        {
+          "kind": "talk",
+          "target": "Coachman Durruk",
+          "journal": "Give your name to Coachman Durruk, on the grass east of the old forge, for his ledger.",
+          "says": "A new calf! My coach runs to Freeport and to every other home of the Homelands, for travelers whose names their ledgers hold. Yours is in mine now."
         },
         {
           "kind": "talk",
           "target": "Elder Hornbrand",
           "journal": "Return to Elder Hornbrand.",
-          "says": "Good. A full belly and a hard head. That is all a minotaur needs to begin.",
+          "says": "Good. Now the stone will always call you back.\nDurruk's coach will carry you where its ledgers know you, but the road to Grobb is earned. Warden Ironhide, outside the mouth, has work for you.",
           "rewards": {
-            "xp": 200,
-            "tunar": 10
+            "xp": 2200
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 2
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the minotaurs' first, at their home zone, Gerntar Mines of the disc."
+      "notes": "Ours (the Homelands' starter quests): the minotaur's level 2, at Gerntar Mines, on the cities' level 2 quest: the spiritmaster's bind and the coachman's ledger. Finishing it finishes the character's own city class quest of level 2 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/minotaur.json: change that file, never this quest's rows by hand."
     },
     {
-      "key": "homelands/minotaur/rats",
+      "key": "homelands/minotaur/L3",
       "name": "Rats in the Grain",
-      "giver": "Grocer Brassnose",
+      "giver": "Warden Ironhide",
       "classes": [],
-      "races": [],
-      "minlevel": 1,
+      "races": [
+        23
+      ],
+      "minlevel": 3,
       "maxlevel": 60,
       "requires": [
-        "homelands/minotaur/welcome"
+        "homelands/minotaur/L2"
       ],
-      "offer": "Mine rats are in the grain again. They come up out of the grass east of the mine. Kill five of them, calf, and I will pay you. Trample them if you like.",
-      "accept": "I will kill them.",
+      "offer": "You are the new calf. Good, I need hooves. Mine rats are in the herd's grain again, and they breed in the grass east of here.\nStamp them out and bring me three of their tails. Then I will teach you something a Rustel should know.\nWill you hunt them?",
+      "accept": "I will hunt them.",
       "decline": "Not now.",
-      "declined": "Then the rats eat the grain, and the herd eats the rats.",
-      "started": "Five rats. They are small, so look down.",
+      "declined": "Then you eat what the rats leave.",
+      "started": "Three tails. East, past the old forge and the coach.",
       "steps": [
         {
-          "kind": "kill",
+          "kind": "loot",
           "target": "mine rat",
-          "count": 5,
-          "journal": "Kill five mine rats in the grass east of the mine."
+          "items": [
+            {
+              "item": "mine rat tail",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three mine rat tails from the mine rats on the grass east of the mine."
         },
         {
-          "kind": "talk",
-          "target": "Grocer Brassnose",
-          "journal": "Tell Grocer Brassnose the rats are dead.",
-          "says": "Five rats! The grain is safe, for now. Here is your coin.",
+          "kind": "give",
+          "target": "Warden Ironhide",
+          "items": [
+            {
+              "item": "mine rat tail",
+              "count": 3
+            }
+          ],
+          "journal": "Bring three mine rat tails to Warden Ironhide.",
+          "says": "Three tails, and no bites worth showing. You will do. Now plant your hooves, watch me, and learn this.",
           "rewards": {
-            "xp": 400,
-            "tunar": 25
+            "xp": 6900,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Swift Blade"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Hero Guard"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Malice"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Chant of Battle"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Sneak"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Fiery Burst"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Tribal Toughness"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Minor Blessing"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Smoldering Aura"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Life Tap"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Crawling Skin"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Arcane Bindings"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Hardening Agent"
+                ]
+              }
+            }
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 3
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours: the minotaurs' second starter quest; the mine rats are tools/seed_race_homes.py's, passive (npcaggro)."
+      "notes": "Ours (the Homelands' starter quests): the minotaur's level 3, at Gerntar Mines, on the cities' level 3 quest: a hunt for drops; each class is taught what its own city's level 3 quest teaches it. Finishing it finishes the character's own city class quest of level 3 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/minotaur.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/minotaur/L4",
+      "name": "A Calf's Arms",
+      "giver": "Warden Ironhide",
+      "classes": [],
+      "races": [
+        23
+      ],
+      "minlevel": 4,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/minotaur/L3"
+      ],
+      "offer": "Horns are not enough where you are going. I will make you proper gear, but you will bring me what I need.\nSmith Dargha has ore and leather for me. Then crack a shell off the ore beetles on the low rise south-east of here.\nWill you bring me all three?",
+      "accept": "I will bring them.",
+      "decline": "Not now.",
+      "declined": "Then fight with your horns, and hope they are enough.",
+      "started": "Ore and leather from Dargha, a shell from the beetles. Go.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Smith Dargha",
+          "journal": "Ask Smith Dargha for the iron ore and the leather strip.",
+          "says": "For Ironhide? Here. Good ore and a strip of hide. Tell him the forge wants its hammer back.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "iron ore",
+                  "count": 1
+                },
+                {
+                  "item": "leather strip",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "loot",
+          "target": "ore beetle",
+          "items": [
+            {
+              "item": "ore beetle shell",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 0.5,
+          "journal": "Take an ore beetle shell from the ore beetles on the low rise south-east of the mine."
+        },
+        {
+          "kind": "give",
+          "target": "Warden Ironhide",
+          "items": [
+            {
+              "item": "iron ore",
+              "count": 1
+            },
+            {
+              "item": "leather strip",
+              "count": 1
+            },
+            {
+              "item": "ore beetle shell",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the iron ore, the leather strip and the ore beetle shell to Warden Ironhide.",
+          "says": "All three. Stand back from the sparks... there. It is yours. Carry it like a Rustel.",
+          "rewards": {
+            "xp": 17000,
+            "byclass": {
+              "0": {
+                "items": [
+                  "militia short sword"
+                ]
+              },
+              "1": {
+                "items": [
+                  "Glade Crafted Longbow"
+                ]
+              },
+              "2": {
+                "items": [
+                  "Sword of Faith"
+                ]
+              },
+              "3": {
+                "items": [
+                  "Iron Hatchet"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Disciple's Jitte"
+                ]
+              },
+              "5": {
+                "items": [
+                  "Traveler's Rapier"
+                ]
+              },
+              "6": {
+                "items": [
+                  "tiger dirk"
+                ]
+              },
+              "7": {
+                "items": [
+                  "crafted glade staff"
+                ]
+              },
+              "8": {
+                "items": [
+                  "Corse Spiked Club"
+                ]
+              },
+              "9": {
+                "items": [
+                  "Acolyte's Hammer"
+                ]
+              },
+              "10": {
+                "items": [
+                  "blue robe"
+                ]
+              },
+              "11": {
+                "items": [
+                  "Black Robe of the Order"
+                ]
+              },
+              "12": {
+                "items": [
+                  "yellow robe"
+                ]
+              },
+              "13": {
+                "items": [
+                  "red robe"
+                ]
+              },
+              "14": {
+                "items": [
+                  "burnt gloves"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 4
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the minotaur's level 4, at Gerntar Mines, on the cities' level 4 quest: new gear of a merchant's materials and a drop; each class is given what its own city's level 4 quest gives it (class-rewards.json has the two classes the cities give nothing). Finishing it finishes the character's own city class quest of level 4 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/minotaur.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/minotaur/L5",
+      "name": "Gorespine",
+      "giver": "Warden Ironhide",
+      "classes": [],
+      "races": [
+        23
+      ],
+      "minlevel": 5,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/minotaur/L4"
+      ],
+      "offer": "One task more, calf. A young spineback we call Gorespine has taken the water hole far to the east, and it gores whatever comes to drink.\nIt will charge you on sight. Good. Meet it head on, and bring me one of its spines.\nWill you hunt Gorespine?",
+      "accept": "I will hunt it.",
+      "decline": "Not yet.",
+      "declined": "It grows while you wait. So does its temper.",
+      "started": "East, past the rats' grass, to the water hole. Horns down.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "Gorespine",
+          "items": [
+            {
+              "item": "Gorespine's spine",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 1.0,
+          "journal": "Take Gorespine's spine from the young spineback Gorespine at the water hole far east of the mine."
+        },
+        {
+          "kind": "give",
+          "target": "Warden Ironhide",
+          "items": [
+            {
+              "item": "Gorespine's spine",
+              "count": 1
+            }
+          ],
+          "journal": "Bring Gorespine's spine to Warden Ironhide.",
+          "says": "Gorespine's own spine! The herd drinks in peace tonight. You are a calf no longer.\nLearn this, and see Gatekeeper Stonehoof at the south-east mine when you are ready for Grobb.",
+          "rewards": {
+            "xp": 36500,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Taunt"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Forage Berries"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Lay Hands"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Harm Touch"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Minor Purity"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Funeral March"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Shadowstrike"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Snare"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Blighting Mist"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Holy Shock"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Motivate"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Rabid Infection"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Heavy Arms"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Shock of Frost"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Refinement"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 5
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the minotaur's level 5, at Gerntar Mines, on the cities' level 5 quest: a foe to bring down; each class is taught what its own city's level 5 quest teaches it. Finishing it finishes the character's own city class quest of level 5 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/minotaur.json: change that file, never this quest's rows by hand."
     },
     {
       "key": "homelands/minotaur/flight",
       "name": "The Road to Grobb",
       "giver": "Gatekeeper Stonehoof",
       "classes": [],
-      "races": [],
+      "races": [
+        23
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [
-        "homelands/minotaur/welcome",
-        "homelands/minotaur/rats"
+        "homelands/minotaur/L1",
+        "homelands/minotaur/L2",
+        "homelands/minotaur/L3",
+        "homelands/minotaur/L4",
+        "homelands/minotaur/L5"
       ],
       "repeatable": true,
-      "offer": "The trolls of Grobb do not care how big your horns are, only how hard you hit. They will take you in as one of their own. I can send you to them, and Grobb will be your home. Ready?",
+      "offer": "The trolls of Grobb do not care how big your horns are, only how hard you hit. They will train you as one of their own.\nYou have earned the road, Rustel. I will set you down among your own guild in Grobb, and your spirit will rest there.\nShall I send you to Grobb?",
       "accept": "Send me to Grobb.",
       "decline": "Not yet.",
       "declined": "Grobb will still be there. So will the trolls.",
@@ -2580,7 +3055,7 @@
         }
       ],
       "unresolved": [],
-      "notes": "Ours: the gatekeeper's port to Grobb, the minotaur's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a minotaur back in Gerntar Mines is sent again; no reward, so none is had twice."
+      "notes": "Ours: the gatekeeper's port to Grobb, the minotaur's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/minotaur.json."
     },
     {
       "key": "homelands/skeleton/welcome",
@@ -2964,6 +3439,38 @@
     {
       "name": "Razortusk's tusk",
       "description": "The chipped tusk of the old boar Razortusk.",
+      "notrade": true,
+      "like": "plagueswine tusk"
+    },
+    {
+      "name": "calf's nose ring",
+      "description": "A ring of dark Gerntar iron. Every calf of the Rustel herd is given one.",
+      "notrade": true,
+      "like": "Chipped Ring",
+      "set": {
+        "HPMAX": 5,
+        "classuse": 32767,
+        "raceuse": 1023,
+        "levelreq": 1,
+        "itemcost": 0,
+        "maxhp": 500
+      }
+    },
+    {
+      "name": "mine rat tail",
+      "description": "The tail of a mine rat from the grass east of the Gerntar Mines.",
+      "notrade": true,
+      "like": "Rat Tail Tip"
+    },
+    {
+      "name": "ore beetle shell",
+      "description": "The hard shell of an ore beetle from the rise south-east of the Gerntar Mines.",
+      "notrade": true,
+      "like": "beetle carapace"
+    },
+    {
+      "name": "Gorespine's spine",
+      "description": "A long black spine from the back of the young spineback Gorespine.",
       "notrade": true,
       "like": "plagueswine tusk"
     }

@@ -70,8 +70,10 @@ func TestWorkbookSelfSpellPaysItsPrice(t *testing.T) {
 }
 
 // A self spell's loss each tick (Cursed Flesh's) is paid at the landing and
-// every tick while it lasts, never below 1 hit point, as the Lich form's
-// price over time is (regen.go). The control: the same line's heal over time
+// every tick while it lasts, and the tick that leaves nothing kills its bearer
+// (the owner, 2026-11-10: a price over time can kill, as jib's ruling says),
+// the death taking the effect off: no tick after it. The controls: a bearer
+// with the hit points to pay lives on, and the same line's heal over time
 // heals.
 func TestSelfLineTickIsItsPrice(t *testing.T) {
 	c := newCaster(t)
@@ -83,14 +85,17 @@ func TestSelfLineTickIsItsPrice(t *testing.T) {
 	}
 	c.tick(land + 6*time.Second)
 	c.tick(land + 12*time.Second)
-	if c.p.HP != 479 {
-		t.Fatalf("after two more ticks: HP %d, want 479", c.p.HP)
+	if c.p.HP != 479 || c.p.IsDead() {
+		t.Fatalf("after two more ticks: HP %d dead %v, want 479 and alive", c.p.HP, c.p.IsDead())
 	}
 	c.p.HP = 5
 	c.tick(land + 18*time.Second)
+	if !c.p.IsDead() || len(c.p.Effects) != 0 {
+		t.Fatalf("a tick's price with 5 left: HP %d dead %v effects %d, want dead and the effect gone", c.p.HP, c.p.IsDead(), len(c.p.Effects))
+	}
 	c.tick(land + 24*time.Second)
-	if c.p.HP != 1 || c.p.IsDead() {
-		t.Errorf("a tick's price with 5 left: HP %d dead %v, want 1 and alive", c.p.HP, c.p.IsDead())
+	if c.p.HP != 0 {
+		t.Errorf("a tick after the death: HP %d", c.p.HP)
 	}
 
 	h := newCaster(t)

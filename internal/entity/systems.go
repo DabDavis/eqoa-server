@@ -366,6 +366,7 @@ func (w *World) regenSystem(now time.Time) {
 	}
 	w.regenAt = now
 
+	var dead []*Player
 	for _, p := range w.Players {
 		// A corpse does not heal: the respawn restores it (respawn.go)
 		if p.respawnPending() {
@@ -377,8 +378,15 @@ func (w *World) regenSystem(now time.Time) {
 			continue
 		}
 
-		// HoT and PoT, in a fight or out of one (regen.go)
-		p.regenTick()
+		// HoT and PoT, in a fight or out of one (regen.go); a spell's price
+		// over time may take the last hit point (the Lich form's)
+		if p.regenTick() {
+			dead = append(dead, p)
+		}
+	}
+	for _, p := range dead {
+		log.Printf("Regen: %s's price over time (HoT %d) takes its last hit point", p.Name, p.HoTNow())
+		w.playerDiedLocked(w.findSessionByEntityIDLocked(p.ServerID), p, now)
 	}
 }
 

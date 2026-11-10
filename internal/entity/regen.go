@@ -69,19 +69,29 @@ func (p *Player) PoTNow() int {
 // regenTick gives the player its HoT in hit points and its PoT in power,
 // each within its maximum: what a tick does. A HoT below nothing is a price
 // over time (the Lich form's -196 a tick, the workbook's): it takes its hit
-// points at full health too, never below 1 (the user, 2026-11-01, "yes";
-// the floor ours), where until then the tick ran only below full health and
-// a full necromancer paid nothing.
-func (p *Player) regenTick() {
+// points at full health too (the user, 2026-11-01, "yes"), where until then
+// the tick ran only below full health and a full necromancer paid nothing.
+// One a spell's effect makes (Mods.HoT below nothing: Lich) can kill (the
+// owner, 2026-11-10, for the GM Jibrish's ruling of 2026-10-29 in jib's PR #1:
+// "You could definitely kill yourself with lich form, pacts and so on");
+// until then it stopped at 1, as anything else (a worn item's) still does. It
+// reports whether the tick took the last hit point (regenSystem: the death).
+func (p *Player) regenTick() (died bool) {
 	switch top, hot := p.MaxHPNow(), p.HoTNow(); {
 	case hot < 0:
-		if p.HP > 1 {
-			p.HP = max(p.HP+hot, 1)
+		least := 1
+		if p.Mods.HoT < 0 {
+			least = 0 // a spell's price over time
+		}
+		if p.HP > least {
+			p.HP = max(p.HP+hot, least)
+			died = p.HP <= 0
 		}
 	case p.HP < top:
 		p.HP = min(p.HP+hot, top)
 	}
-	if top := p.MaxPowerNow(); p.Power < top {
+	if top := p.MaxPowerNow(); p.Power < top && !died {
 		p.Power = min(p.Power+p.PoTNow(), top)
 	}
+	return died
 }

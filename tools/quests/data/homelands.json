@@ -587,6 +587,123 @@
       "notes": "Ours: the gatekeeper's port to Moradhim, the ratmen's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
     },
     {
+      "key": "homelands/satyr/welcome",
+      "name": "A New Song in the Glade",
+      "giver": "Elder Pannoch",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "A new voice for the glade! Before you go dancing off, greet Lyrrin on the north side of the glade. She keeps the larder, and no satyr plays well on an empty belly.",
+      "accept": "I will greet Lyrrin.",
+      "decline": "Not now.",
+      "declined": "The glade will wait for your song.",
+      "started": "Go on. Lyrrin is just north of here.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Lyrrin",
+          "journal": "Greet Grocer Lyrrin on the north side of the glade.",
+          "says": "Pannoch sent you? Then take a muffin, and play me a tune some day.",
+          "rewards": {
+            "items": [
+              "oat muffin"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Pannoch",
+          "journal": "Return to Elder Pannoch in the glade.",
+          "says": "Good. Now you know where to eat, and Lyrrin knows your face.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the satyrs' first, at their home zone, East Toxxulia of the disc."
+    },
+    {
+      "key": "homelands/satyr/hunt",
+      "name": "Webs on the Dancing Paths",
+      "giver": "Elder Pannoch",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/satyr/welcome"
+      ],
+      "offer": "Glade spiderlings have been spinning webs across our dancing paths. Go east of the glade and clear five of them out.",
+      "accept": "I will clear them out.",
+      "decline": "Not now.",
+      "declined": "Then we dance around the webs.",
+      "started": "Five spiderlings. Mind the webs!",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "glade spiderling",
+          "count": 5,
+          "journal": "Kill five glade spiderlings east of the glade."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Pannoch",
+          "journal": "Tell Elder Pannoch the spiderlings are dealt with.",
+          "says": "Five spiderlings gone. The paths are clear for dancing again.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the satyrs' second starter quest, the elder's too (the owner's 2026-11-10: an elder giving two starter quests); the glade spiderlings are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/satyr/flight",
+      "name": "The Elven Road",
+      "giver": "Gatekeeper Dorvan",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/satyr/welcome",
+        "homelands/satyr/hunt"
+      ],
+      "repeatable": true,
+      "offer": "The elves of Tethelin and Fayspire share our love of the old woods, and they will train you as one of their own, each in the city of your calling. I can send you there, but the road runs one way. Ready?",
+      "accept": "Send me to the elves.",
+      "decline": "Not yet.",
+      "declined": "The road will wait.",
+      "started": "Go with a light step!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Dorvan",
+          "journal": "Tell Gatekeeper Dorvan when you are ready to go to the elves' cities.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Tethelin or Fayspire, the satyrs' wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
+    },
+    {
       "key": "homelands/aviak/welcome",
       "name": "A Fledgling's Welcome",
       "giver": "Elder Kraawk",

@@ -12,7 +12,7 @@ import (
 // GM Jibrish's ask of 2026-11-09): the NPCs of rows a player may name, where
 // they spawn and how they face, and what the report's flags ask of a creature
 // and a place. Nothing here changes an NPC: a report is a suggestion, applied
-// (or not) by a GM's review.
+// (or not) by a GM's approval on the GM panel's Camp reports page.
 
 // CampfixNPC is an NPC of a row as a camp report sees it: its spawn and its
 // spawn's facing (the row's place and byte, as the loader made them), its
@@ -266,4 +266,27 @@ func (w *World) CampfixKeepsToLand(id EntityID) bool {
 	defer w.mu.RUnlock()
 	npc := w.NPCs[id]
 	return npc != nil && w.keepsToLocked(npc) == keepsToLand
+}
+
+// campfixStep is the ground's step (internal/ground's StepUp, as gates.go's
+// gateStep): Floor gives the highest floor no more than this above the height
+// it is asked at.
+const campfixStep float32 = 2
+
+// CampfixFloorNear is the ground's highest floor at (x, z) in world within
+// reach of y, above or below it (Floor asked at reach less the step above
+// y), false with no ground there or none that near: where a camp report's
+// add or move puts its creature (the GM panel's Camp reports page).
+func (w *World) CampfixFloorNear(world uint8, x, y, z, reach float32) (float32, bool) {
+	w.mu.RLock()
+	g := w.ground
+	w.mu.RUnlock()
+	if g == nil {
+		return y, false
+	}
+	f, ok := g.Floor(world, x, y+reach-campfixStep, z)
+	if !ok || f < y-reach || f > y+reach {
+		return y, false
+	}
+	return f, true
 }

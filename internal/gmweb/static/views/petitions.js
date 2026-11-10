@@ -13,9 +13,13 @@
 // (petition_get's server_view) is what the server held when it was filed:
 // the character, its place and target with #stats' lines, what it was shown
 // around it and in the last minutes, its quests, the client and its note,
-// and a GM's marks (/mark), each a link to its place on the World map.
+// and a GM's marks (/mark), each a link to its place on the World map. Camp
+// report from this petition (campfix_from_petition) files a spawn request it
+// makes ("a guard spawns here", "this camp is not populated") as a waiting
+// camp report at the character's place and facing when it filed: nothing
+// spawns until a GM approves it on the Camp reports page.
 
-import { h, mount, pageHead, button, toast, card, empty, confirmBox } from '../lib/dom.js';
+import { h, mount, pageHead, button, toast, card, empty, confirmBox, formBox } from '../lib/dom.js';
 import { op } from '../lib/api.js';
 import { when, ago } from '../lib/fmt.js';
 
@@ -131,11 +135,48 @@ export async function render(box) {
         }
       },
     });
+    const campSlot = h('div');
+    const campBtn = button('Camp report from this petition', {
+      class: 'small ghost', title: "File its spawn request as a camp report, at the character's place: a GM approves it on the Camp reports page",
+      onclick: async () => {
+        let target = '';
+        try {
+          const got = await op('petition_get', { id: p.id });
+          const v = got.server_view;
+          if (!v || !v.character) { toast('This petition has no server view: there is no place to mark', 'error'); return; }
+          if (v.target && v.target.kind === 'npc') target = v.target.name || '';
+        } catch (e) { toast(e.message, 'error'); return; }
+        const f = await formBox({
+          title: `Camp report from ticket #${p.id}`,
+          intro: `The mark is where ${p.character} stood and faced when filing it. The report waits for a GM's approval: nothing spawns now.`,
+          submitLabel: 'File it',
+          fields: [
+            { name: 'kind', label: 'What it asks', type: 'select', value: 'add', options: [
+              { value: 'add', label: 'Add: more of a creature should stand there' },
+              { value: 'move', label: 'Move: a spawn of it should stand there' },
+              { value: 'remove', label: 'Remove: the spawn there (or its target) should go' },
+              { value: 'turn', label: 'Turn: a spawn of it should face that way' }] },
+            { name: 'name', label: 'The creature', value: target, placeholder: 'as /campfix takes a name', hint: 'any case; a leading a/an/the left off' },
+            { name: 'count', label: 'How many (an add)', type: 'number', value: 1 },
+            { name: 'note', label: 'Note', placeholder: 'why (kept after "From petition N:")' },
+          ],
+        });
+        if (!f) return;
+        try {
+          const out = await op('campfix_from_petition', { petition: p.id, kind: f.kind, name: f.name,
+            count: f.kind === 'add' ? Number(f.count || 1) : 0, note: f.note });
+          toast(out.message, 'ok', out.live || '');
+          mount(campSlot, h('div', { class: 'notice ok small' }, (out.said || []).join(' ') + ' ',
+            h('a', { href: '#/campfix/' + out.report.id }, `Camp report #${out.report.id}`), ' waits on the Camp reports page.'));
+        } catch (e) { toast(e.message, 'error'); }
+      },
+    });
     return card(`Ticket #${p.id}`, h('div', { class: 'stack' },
       meta,
       h('pre', { class: 'json' }, p.text),
-      h('div', { class: 'row' }, viewBtn),
+      h('div', { class: 'row' }, viewBtn, campBtn),
       viewSlot,
+      campSlot,
       history.length ? h('div', { class: 'faint small' }, history.join(' · ')) : null,
       open ? h('div', { class: 'stack' },
         answer,

@@ -120,9 +120,13 @@ type ClassTemplate struct {
 	summons []templateSummon
 	enrage  *database.TemplateAbility
 	// procs and veils are melee procs it always has beside its template's
-	// (AbilityProc, AbilityVeil: creatureproc.go)
-	procs []templateProc
-	veils []templateVeil
+	// (AbilityProc, AbilityVeil: creatureproc.go); selfBuffs the buffs those of
+	// a pinned spell are, cast on itself as its fight begins and at each one's
+	// time (selfbuff.go); killSays its lines at a kill (AbilityKillSay)
+	procs     []templateProc
+	veils     []templateVeil
+	selfBuffs []templateSelfBuff
+	killSays  []templateKillSay
 	// farCasts: one of its abilities is cast only out of its reach (OutOfReach)
 	farCasts bool
 	// problems is what of it the world cannot use, for the log and the panel
@@ -205,6 +209,9 @@ type templateFight struct {
 	summoned uint32
 	adds     []EntityID
 	enraged  *enrageOn
+	// buffNext is when each of its template's buffs on itself is cast next
+	// (selfbuff.go: index as selfBuffs'; nil before its first)
+	buffNext []time.Time
 }
 
 // templateContactGap is the longest gap between two of a templated NPC's
@@ -555,10 +562,20 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 				}
 				continue
 			case database.AbilityVeil:
-				t.veils = append(t.veils, veilOf(ra)) // creatureproc.go
+				v, buff, problem, err := veilOf(db, ra) // creatureproc.go
+				if err != nil {
+					return 0, fmt.Errorf("classtemplates %q: %w", name, err)
+				}
+				if problem != "" {
+					t.problems = append(t.problems, fmt.Sprintf("ability %d: %s (its veil is its own, no buff cast)", i+1, problem))
+				}
+				t.veils = append(t.veils, v)
+				if buff != nil {
+					t.selfBuffs = append(t.selfBuffs, *buff) // selfbuff.go
+				}
 				continue
 			case database.AbilityProc:
-				p, problem, err := procOf(db, ra) // creatureproc.go
+				p, buff, problem, err := procOf(db, ra) // creatureproc.go
 				if err != nil {
 					return 0, fmt.Errorf("classtemplates %q: %w", name, err)
 				}
@@ -566,7 +583,13 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 					t.problems = append(t.problems, fmt.Sprintf("ability %d: %s (it procs nothing)", i+1, problem))
 				} else {
 					t.procs = append(t.procs, p)
+					if buff != nil {
+						t.selfBuffs = append(t.selfBuffs, *buff) // selfbuff.go
+					}
 				}
+				continue
+			case database.AbilityKillSay:
+				t.killSays = append(t.killSays, killSayOf(ra)) // selfbuff.go
 				continue
 			}
 			t.farCasts = t.farCasts || ra.OutOfReach
@@ -1012,6 +1035,7 @@ func (w *World) castFoeHitLocked(npc, foe *NPC, n int, what string, now time.Tim
 	w.killNPC(foe)
 	w.dropAggroLocked(foe.ServerID)
 	log.Printf("Combat: %s killed by %s", foe.Name, npc.Name)
+	w.killSaidLocked(npc, foe.Name) // its line at the kill (selfbuff.go)
 }
 
 // templateAreaCentreLocked is where a templated NPC's area spell lies now:
@@ -1293,6 +1317,7 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 				share*100, p.HP, p.MaxHPNow())
 			if p.HP <= 0 {
 				w.playerDiedLocked(sess, p, now)
+				w.killedPlayerLocked(npc, p) // its line at the kill (selfbuff.go)
 			}
 		}
 	} else if foe := w.castFoeLocked(npc, id); foe != nil {
@@ -1466,6 +1491,7 @@ func (w *World) npcTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 		share*100, t.HP, t.MaxHPNow())
 	if t.HP <= 0 {
 		w.playerDiedLocked(sess, t, now)
+		w.killedPlayerLocked(npc, t) // its line at the kill (selfbuff.go)
 	}
 }
 
@@ -1634,6 +1660,7 @@ func (w *World) templateStrikeLocked(npc *NPC, target EntityID, now time.Time, d
 		log.Printf("Template: %s's %s hits %s for %d (HP %d/%d)", npc.Name, name, p.Name, damage, p.HP, p.MaxHPNow())
 		if p.HP <= 0 {
 			w.playerDiedLocked(sess, p, now)
+			w.killedPlayerLocked(npc, p) // its line at the kill (selfbuff.go)
 			return
 		}
 		w.wereBiteLocked(sess, p, npc)                 // a were's bite may infect (wereinfect.go)

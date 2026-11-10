@@ -71,6 +71,7 @@ func (w *World) creatureShieldLocked(sess *session.Session, p *Player, npc *NPC,
 		return false
 	}
 	w.playerDiedLocked(sess, p, now)
+	w.killedPlayerLocked(npc, p) // its line at the kill (selfbuff.go)
 	return true
 }
 
@@ -157,7 +158,8 @@ func (w *World) creatureProcHitLocked(sess *session.Session, p *Player, npc *NPC
 		return false
 	}
 	w.playerDiedLocked(sess, p, now)
-	return p.IsDead() // a GM's #testmode stands at 1 HP: the hit goes on
+	w.killedPlayerLocked(npc, p) // its line at the kill (selfbuff.go)
+	return p.IsDead()            // a GM's #testmode stands at 1 HP: the hit goes on
 }
 
 // creatureProcOnPetLocked is creatureProcLocked on a pet: a workbook pet's resists cut the template's (petstats.go),

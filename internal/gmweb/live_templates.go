@@ -20,8 +20,9 @@ const classTemplateAbilitiesHelp = `a JSON list, each {"kind": nuke | aoe | life
 	`hitheal (a creature's: "heal" hit points at every hit that lands on it, the hit whole) | prefer (a creature's: "foes", a list of names it fights first whenever one is on its hate list) | ` +
 	`summon (a creature's, once a fight below "below" %: "count" copies of the NPC "npc" beside it in its fight; "share" %: each fights by its template at that share of its figures and hit points, rolled as its own, and dies with it) | ` +
 	`enrage (a creature's, once a fight below "below" %: "grow" % bigger, every "every" s the players of its hate list beyond its reach pulled to it, "rampage" % of each melee hit on its target on the second of its hate list in its reach; its size back at the fight's end) | ` +
-	`proc (a creature's melee proc on every fight: "spell"/"spell_id" a proc buff whose proc it has at a pet's chance of its level, or "proc_chance", "proc_damage", "proc_name", "resist") | ` +
-	`veil (a creature's: at every melee hit that lands, "tap_pct" % of its own most hit points taken from what it hit into itself, cut by "resist"; "name", "fx"), ` +
+	`proc (a creature's melee proc on every fight: "spell"/"spell_id" a proc buff whose proc it has at a pet's chance of its level, the buff cast on itself as its fight begins and again at the buff's time, or "proc_chance", "proc_damage", "proc_name", "resist"; "fx" its look at what each proc hits) | ` +
+	`veil (a creature's: at every melee hit that lands, "tap_pct" % of its own most hit points taken from what it hit into itself, cut by "resist"; "fx" its look at what each tap hits (none: no look), "name", or "spell"/"spell_id" a buff of that name cast on itself as its fight begins and again at its time) | ` +
+	`killsay (a creature's: "say" its line in /say when a hit of its own kills one of "foes", names) | ` +
 	`"every": seconds from one cast's start to the next (2-3600), "first": seconds into a fight before the first, ` +
 	`"chain": true to cast it as soon as the ability before it is cast (its clock then unused), ` +
 	`"chance": % of its due casts (100), "damage_pct": % of its spell's figures (100), ` +

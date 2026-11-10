@@ -121,14 +121,19 @@ func (n *NPC) figureLevel() int {
 // alone (handlers' loot: no coins, no loot table of every creature's, no category roll).
 func (n *NPC) Summoned() bool { return n != nil && n.add != nil }
 
-// templatePhasesLocked is a templated NPC's moments in its fight this tick: each summon of its
-// template's once a fight below its share of hit points, its enrage once (enrage.go), and its
-// enrage's pulls on their clock. Never an add's, a pet's or a dummy's. Must be called with the lock
-// held.
+// templatePhasesLocked is a templated NPC's moments in its fight this tick: its buffs on itself as
+// its fight begins and at their times (selfbuff.go, an add's too), each summon of its template's once
+// a fight below its share of hit points, its enrage once (enrage.go), and its enrage's pulls on their
+// clock. Never a pet's or a dummy's; no add summons or enrages. Must be called with the lock held.
 func (w *World) templatePhasesLocked(npc *NPC, now time.Time) {
 	t := npc.tmpl
-	if t == nil || npc.Dead || npc.add != nil || npc.Owner != 0 || npc.Dummy != NotDummy || npc.MaxHP <= 0 ||
-		(len(t.summons) == 0 && t.enrage == nil) {
+	if t == nil || npc.Dead || npc.Owner != 0 || npc.Dummy != NotDummy || npc.MaxHP <= 0 {
+		return
+	}
+	if len(t.selfBuffs) > 0 {
+		w.selfBuffsLocked(npc, npc.fight(), now) // selfbuff.go
+	}
+	if npc.add != nil || (len(t.summons) == 0 && t.enrage == nil) {
 		return
 	}
 	f := npc.fight()

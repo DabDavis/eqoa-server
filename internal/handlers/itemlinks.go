@@ -569,15 +569,16 @@ func buildItemLinkLine(spans []wireSpan, inner []byte) []byte {
 }
 
 // buildItemLinkRecord is OpcodeItemLinkRecord for a link that lives: its id,
-// 1, and the item as 0x003B's body, keyed by the id (rec is wireRecord's: worn
-// nowhere, on no quick slot).
+// 1, and the item as 0x003B's body, keyed by the id, as every record outside
+// the MemoryDump goes (wireRecord: worn nowhere, on no quick slot).
 func buildItemLinkRecord(id uint32, rec *database.CharInventoryEntry, capes bool) []byte {
-	p := &rec.Pattern
+	e := wireRecord(*rec)
+	p := &e.Pattern
 	size := 2 + 4 + 1 + 1024 + 4*(len(p.ItemName)+len(database.ImportedTag)+len(p.ItemDesc))
 	return build(protocol.OpcodeItemLinkRecord, size, func(w *buffer.Writer) {
 		w.WriteUint32(id)
 		w.WriteByte(1)
-		writeSingleItem(w, rec, int(id), capes)
+		writeSingleItem(w, &e, int(id), capes)
 	})
 }
 

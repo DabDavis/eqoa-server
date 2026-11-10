@@ -182,7 +182,7 @@ func (w *World) ctfKeptAwayLocked(p *Player, k *KeptPlayer) {
 	}
 	if a.merc != "" && k.Merc == nil {
 		// no place of its own: RestoreMerc stands it beside its owner (its world is not its owner's)
-		k.Merc = &KeptMerc{Name: a.merc, HPPct: 1, PowerPct: 1, World: w.ctf.set.World}
+		k.Merc = &KeptMerc{Name: a.merc, HPPct: 1, PowerPct: 1, World: w.ctf.set.World, Away: true}
 	}
 	if a.familiar != nil && k.Familiar == nil {
 		k.Familiar = &KeptFamiliar{Item: a.familiar.Item, HPPct: a.famHP}

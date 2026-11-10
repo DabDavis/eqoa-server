@@ -62,6 +62,9 @@ type EquipHandler struct {
 	fishing *FishingHandler // a fishing pole used from the HUD (fishing.go)
 	craft   *CraftHandler   // a recipe scroll used (craft.go)
 
+	// familiars is the items that call a familiar (familiar.go): a Use casts
+	familiars *Familiars
+
 	// hands is what the switches for an art remember (handswitch.go)
 	hands handMemory
 }
@@ -541,6 +544,11 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 		// the Rock of Freeport, never spent: a cast to Freeport (rockfreeport.go)
 		if IsRockOfFreeport(&row.Pattern) {
 			h.useRockOfFreeport(sess, player)
+			return nil
+		}
+		// an item that calls a familiar, never spent: its cast (familiar.go)
+		if row.EquipLoc < 0 && h.familiars.IsItem(row.Pattern.PatternID) {
+			h.familiars.Use(sess, player, &row.Pattern)
 			return nil
 		}
 		// the Rolling Dice, rolled for the room, never spent (roll.go)

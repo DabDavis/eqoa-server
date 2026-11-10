@@ -237,17 +237,6 @@ func (w *World) familiarLeavingLocked(p *Player) {
 	}
 }
 
-// FamiliarDumped is a MemoryDump sent to the session: its client's non-collide
-// list is told the familiar again.
-func (w *World) FamiliarDumped(sess *session.Session) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	p := w.sessionPlayerLocked(sess)
-	if fs := w.familiars[p.idOrZero()]; fs != nil && fs.owner == p {
-		fs.noCollide = false
-	}
-}
-
 // familiarSystem moves every familiar with its owner, regenerates it and does
 // its act; a familiar whose owner is gone or dead goes. Every tick; must be
 // called with the lock held.

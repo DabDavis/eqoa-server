@@ -832,51 +832,95 @@ line for every client 15 s in.
 
 ### Camp fix reports: how they are reviewed
 
-No report is applied as sent. A player's marks are a suggestion: the review decides each mark, and dab confirms before any row changes.
+**A GM approves or declines every spawn request on the GM panel's Camp reports page, and nothing is applied before
+that** (the owner, 2026-11-10: "lets require GM approval"; players' requests had been applied by an AI session spawning
+creatures where the player stood, unreviewed). **No session applies a spawn request itself**, from `/campfix` or from a
+petition ("kappa guard spawns here", "bandit camp not populated"): a petition's request is filed as a camp report
+(`cmd/campfixfile` on the box, or the petition's Camp report button) and waits for a GM like any other.
 
-1. **Re-check the rows.** Read the entry and its `campfix_reports` row, then re-read every row it names. A row moved, deleted or edited since the report was sent is left out as stale.
-2. **Sort each mark into red, yellow or green.**
-   - **Red: dab decides each one.** Give the mark's facts, and recommend declining it unless a source backs it.
-     - a. An add of a rare or valuable name, or a move of one into another camp. A name counts as rare or valuable if any of these holds:
-       - it has 3 spawns or fewer in its world;
-       - it is a proper noun (entry 16's casing);
-       - it respawns after more than 10 minutes (`npcrespawn`, or the row's own time);
-       - it has any `npcloot` binding other than the camp's biome table and "generic" (`tools/seed_camp_loot.py`'s);
-       - it rolls a "boss ..." table, or drops an item more than 5 levels above the creature or NO TRADE;
-       - it is a rare mob in `campNotes`;
-       - it is in `npcspawnonly`.
-     - b. A creature that attacks on sight (as flagged), placed within 150 of a town, coachman, spiritmaster, merchant, quest giver, waysender or start spot.
-     - c. A level more than 8 off the camp's median.
-     - d. A removal of a quest's giver or step target (`quests`, `queststeps`, `queststeptargets`), or of the last spawn of a name in its world.
-     - e. More than 5 adds in one report, or adds raising a name's spawns in the camp by more than half (a camp of one or two may take one more).
-     - f. Any mark from an account with an earlier report declined as abuse.
-   - **Yellow: listed in dab's one yes for the report.**
-     - a move of 150 to 300;
-     - a removal that leaves none of the name in the camp;
-     - an add whose template row is 300 or more from the mark;
-     - a mark the ground or water check flagged, once grounded.
-   - **Green: counted in dab's one yes.**
-     - a move under 150 of a common creature (4 or more spawns in the world, lowercase name) within its camp;
-     - an add of one or two of a common creature already in the camp;
-     - a removal of a spawn within 3 of another of its name (a stacked duplicate);
-     - a change of facing alone.
-3. **Weigh the other evidence.**
-   - Other reports within 300 of the same camp: agreement strengthens a mark; disagreement goes to dab.
-   - The sources: EQOA-Data's camp notes and map, and FrontiersForge sightings (`npcs_ff_import` within 100).
-   - A source wins over a single report. Two or more agreeing reports against a source go to dab.
-4. **Ground each place.** Use the ground files' highest floor within 2.5 of the mark's y; with no floor there, keep the mark's y and make it yellow. Never put a land creature in water (`.env`), and never within 3 of another spawn.
-5. **Declines that need no dab.** Decline on your own only:
-   - a report with nothing usable;
-   - a duplicate of one already applied;
-   - a joke or spam (a test filing, names unrelated to the place).
-6. **Plan, then ask dab.** Post the plan as a note on the report's entry: each mark apply, trim or decline, with a one-line reason. Then ask dab, for example: "Report 512: apply 3 green and 1 yellow (list); 1 red needs your call: (facts)". Wait for dab's answer.
-7. **Apply on dab's yes, on both shards,** through audited row changes:
-   - a move: the npcs row's x, y, z and facing (the mark's facing_byte, never the row's old one); a turn: the facing alone;
-   - an add: a copy of the template row with the new place and facing, plus a `campspawns` row with the same kinds when the template is a camp spawn;
-   - a removal: delete the row, and its `campspawns` row.
+**Where a report comes from.** A player's `/campfix` (Working, "Camp fix reports"), or a petition made a report
+(`handlers/campfixpetition.go`: `campfix_from_petition`, the button on a petition's card, `cmd/campfixfile`). A petition's
+mark is where its character stood and faced when it filed it (its server view); its kind is the filer's: `add` (a count of
+them, on rings 3 apart round the place, so no two marks are within 2), `move`, `remove` or `turn`; its creature is matched
+as `/campfix` matches a name; a move's, a turn's or a removal's spawn is the petition's target when that is one of the name,
+else the nearest (a move or a turn within 300, a removal within 15). The report is the petition's player's (account,
+character, level, class), its note "From petition N: ..." (the filer's words), its board entry posted by the filer. It reads
+the database alone, so the panel and the box file the same report, flagging what the database can (a name of 3 spawns or
+fewer, none near, a level off the median, a move past 150); the world's checks are the review's, made when a GM looks.
 
-   On the other shard, find the row by name and spawn within 1 unit; a row not found there is listed, not changed. An npcs edit respawns the NPC at full health, so check `world_npcs` for a fight there first.
-8. **Close.** Set the report's status (`applied`, `partial` or `declined`) and review line. Mark the entry done with a one-line result, for example "applied 3 of 4; mark 2 declined: bandit captain is one of a kind".
+```bash
+./campfixfile -petition 1423 -add "bandit" -count 3 -note "the camp is empty"   # on the box, where config.yaml is
+./campfixfile -petition 1424 -move "kappa guard" -dry                            # what it would file, nothing filed
+```
+
+Copy it to the box as `cmd/workboard` is (`go build -o campfixfile ./cmd/campfixfile`; `/campfixfile` is ignored). It
+opens the database for the board and the reports alone (`database.OpenCampfix`) and posts as dab's sessions (`-as` another).
+
+**The page** (`gmweb/ops_campfix.go`, `views/campfix.js`, `handlers/campfixreview.go`): `campfix_list`, `campfix_get`,
+`campfix_approve`, `campfix_decline`, `campfix_from_petition`, on the page, MCP and OpenAPI alike, each a GM's (a tester, a
+storyteller and a read-only token are refused). Each waiting report shows its marks: kind, creature, place and facing, the
+row it names (an add's: the row it copies now), the distance, the flags the report recorded, the colour below with every
+reason, and what applying it does now (its plan) or why it cannot. A checkbox a mark, red and stale ones unchecked to begin
+with (a stale one cannot be checked); the GM's note goes in the review. Preview is the dry run.
+
+- **Approve** applies the checked marks (adds first, then moves, turns, removals), each through the panel's own row edits,
+  an audited change by the approving GM (`gm_audit`, its detail "camp report N, mark M: ..."; `revert_change` undoes it) that
+  the world follows at once (`live.go`), no restart:
+  - a **move**: the row's x, y, z and facing (the mark's facing byte); its zone, which nothing reads, is left;
+  - an **add**: a copy of the nearest row of its name in the world (`clone_row`'s copy: body, level, gear; loot, class,
+    template and faction go by name), at the mark, facing as the player did; a camp's spawn when its template is one (a
+    `campspawns` row of the template's camp and kinds, the world told of the camp first, as `/camp` does);
+  - a **remove**: the row deleted, with its `npcpaths` and `campspawns` rows;
+  - a **turn**: the facing alone.
+
+  An add's or a move's height is the ground's highest floor within 2.5 of the mark's (`entity.CampfixFloorNear`), else the
+  mark's own. A mark whose row moved, turned, was renamed, kept out of the world, deleted or changed by anyone since the
+  report was sent (its place and facing against the report's, then the audit log, a tool's lines too) is **skipped as
+  stale** and said so; a change expects its row as the review read it, so one made meanwhile is refused. The report becomes
+  **applied** (some or all of its marks): its review says who, which marks went (their audit lines), which were declined or
+  stale, and the GM's note; its board entry is closed (done, the review's first line its result, the review a note). One
+  whose checked marks are all stale is refused, and one whose every mark failed, and both still wait.
+- **Decline** applies none: the report becomes **declined**, its board entry closed. **As abuse** (a joke, spam) makes every
+  mark of the account's later reports red.
+- One decision at a time, and a decided report is not decided again. The status is the decisions' alone (the table editor
+  keeps the review line); `revert_change` of a decision's audit line puts the report back to waiting. A shard decides its own
+  reports on its own panel: an approval changes that shard's database alone.
+
+**The guidance: red, yellow and green**, worked out from the database as it is now and, with a world running, its ground,
+its towns and what attacks on sight; a mark's colour is the worst rule that holds, and one no rule covers is yellow ("no
+rule calls it green").
+
+- **Red: the GM decides each on its facts; decline it unless a source backs it.**
+  - a. An add of a rare or valuable name, or a move of one into another camp (another #tele camp, or past 150). A name is
+    rare or valuable when any holds: 3 spawns or fewer in its world; a proper noun (every word of it but of, the, a, an and
+    capitalised: SOE's casing, `claude-notes/npc-name-case-20261030.md`); a spawn of it comes back after more than 10
+    minutes (`npcrespawn`); an `npcloot` binding other than the biome tables and "generic" (`tools/seed_camp_loot.py`'s);
+    a "boss ..." table, or an item its tables give it at its level more than 5 levels above it or NO TRADE (its row's own
+    `npcitem` too, a merchant's stock aside); a rare mob in `campNotes`; in `npcspawnonly`.
+  - b. An add or move of a creature that attacks a level 1 on sight, within 150 of a town, a start spot, a coachman, a
+    spiritmaster, a waysender, a merchant or a quest giver (with no world running, the report's own `aggro` flag).
+  - c. An add or move of a creature more than 8 levels off the median of the creatures within 100 of the marks.
+  - d. A removal of a quest's giver or step target (`quests`, `queststeps` and a step's pinned spawn, `queststeptargets`),
+    or of the last spawn of a name in its world.
+  - e. More than 5 adds in one report, or adds raising a name's spawns in the camp (within 300 of the marks) by more than
+    half (a camp of one or two may take one more; none there at all is red).
+  - f. Any mark of an account with an earlier report declined as abuse.
+  - g. A move past 300; an add or a move within 3 of another spawn; a land creature placed in the water (`.env`).
+- **Yellow: look at it.**
+  - a move of 150 to 300, or into another camp;
+  - a removal that leaves none of the name in the camp;
+  - an add whose template row is 300 or more from the mark;
+  - an add or a move the ground has no floor for within 2.5 (it keeps the mark's height), or one the report flagged above
+    the ground.
+- **Green: the rules call it safe.**
+  - a move under 150 of a common creature (4 or more spawns in the world, not a proper noun) within its camp;
+  - an add of one or two of a common creature already in the camp;
+  - a removal of a spawn within 3 of another of its name (a stacked duplicate);
+  - a change of facing alone.
+
+**The rest is the GM's to weigh**: other reports within 300 of the same camp (agreement strengthens a mark, disagreement is
+the GM's call), EQOA-Data's camp notes and map, FrontiersForge sightings (`npcs_ff_import` within 100). A source wins over
+a single report; two or more reports agreeing against a source are the GM's call.
 
 ### Character transfers: a form, a GM's plan, the next login (`internal/transfers`, `database/transfers.go`, `internal/charmove`)
 
@@ -2061,7 +2105,7 @@ reach the rows. An enrolment begun before a restart starts again (its secret is 
   | `workboard`, `workboard_overview` | every row deleted | what people and agents wrote each other (a note can hold a password or a token); the default overview is seeded again on open |
   | `petitions` | every row deleted | a player's own words to the staff and the staff's answers, with the account they came from |
   | `chartransfers` | every row deleted | a player's own words about a character on another server, the GMs' answers, with the account they came from |
-  | `campfix_reports` | every row deleted | a player's camp report (`/campfix`): the account and the character that sent it, its own note, the GMs' review |
+  | `campfix_reports` | every row deleted | a player's camp report (`/campfix`, or a petition's request made one): the account and the character that sent it, its note, the GMs' review |
   | `hotkeys` | every row deleted | the quick-chat lines a player typed; a server sends the defaults for a character with no rows |
   | `sqlite_stat3`, `sqlite_stat4` | every row deleted | samples of the indexes' keys |
   | `snapshot_info` (added) | the sanitiser's version, when, by whom, what it took out | so a copy says what it is |
@@ -2114,6 +2158,15 @@ reach the rows. An enrolment begun before a restart starts again (its secret is 
   Decide's form (each gear line's record picked, an exact match already, a near one marked "≈" to check, a line with no
   record a copy of another under its name), Preview (the dry run), Approve, Reject (a word the player reads), Undo of an
   applied one; the navigation shows the waiting count, as Petitions'. A browser test drives Decide and Approve.
+- **Camp reports** (`ops_campfix.go`, `static/views/campfix.js`, `handlers/campfixreview.go`; "Camp fix reports: how they are
+  reviewed", above): the players' `/campfix` reports and petitions' spawn requests filed as reports, waiting until a GM approves
+  some or all of their marks or declines them; nothing spawns before that. `campfix_list` (waiting, oldest first; `counts`
+  alone for the navigation's badge), `campfix_get`, `campfix_approve` (the checked marks applied through `updateRow`,
+  `cloneRow`, `insertRow` and `deleteRow`, each audited and revertible, the world following; `dry_run`), `campfix_decline`
+  (`abuse`), `campfix_from_petition` (the petition page's Camp report button); one decision at a time (`campfixMu`), each
+  `database.DecideCampfixReport`'s audited row change, the board entry closed by `PostWork`. Not core operations. The page
+  shows each mark's plan, the report's flags and the review rules' colour with every reason, a checkbox apiece; the navigation
+  shows the waiting count. A browser test drives Approve and the petition's button.
 - **Triggers** (`ops_triggers.go`, `static/views/triggers.js`; the GMs' scripted events, above): `trigger_list`,
   `trigger_get` (with its problems: `database.TriggerProblems` and a spawn's NPC or a give's item this server
   lacks), `trigger_save` (its row by slot, steps given as a list or its JSON and kept in `TriggerStep`'s own
@@ -2393,7 +2446,7 @@ simulator's kits: `balancesim_real_test.go` is the check after it.
 - **What jib's quest walk of 2026-10-30 found, put right** (his agent walked every quest in the game with the headless client on a copy of eqoaclassic: 1,335 of 1,386 passed for some character). **A requires group** (`database.ParseRequires`, `UnmetRequire`): numbers apart in `quests.requires` are each to be finished, numbers joined by `|` one requirement any of them meets ("100880, 101064|101065|101066"); the quest files write it as a list among the keys (`tools/quests/FORMAT.md`), the importer as `a|b`, the GM panel's index counts a group out only when every quest of it is (a draft requiring "a|b" is ready on either). A quest several classes take whose hand-in each class gets from a quest of its own (the 60 epics' recruiter tokens, the 30-49 paths' runed tablets and writs) requires them as one group: plain requires are every one, so "the class's own" needed it. **An older server reads a group as every one of its quests**: apply the data with the restart that brings this code. **A shop's quest offer** (`AtWindow`) is once a session again: forgotten at a login (`QuestEngine.LoggedIn`, from `SendMemoryDump`, not a respawn's dump) and when the quest is given up or reset (until then once for the server's whole run: Spellsmith Ulla's "The Orb of Parathior" never offered again after one refusal). **A giver offers** (`nextOfferLocked`, Talk, AtWindow and the marks alike) the first of its quests the player may take and has never finished, else of its finished repeatable ones the one finished fewest times: Chef Lukkif's eleven repeatable Hunt and Gather quests are offered in turn (it offered its first for ever; 101158-101160 could not be reached). **A loot step's drop a full stack cannot take is counted at the kill** (`lootKillLocked`, `fullStack`): CLIENT's VIItemList::AddItem (0x00BBD130) puts a stackable item on the FIRST record of it and keeps nothing past its stack, opening no second record (0x003B and a corpse's 0x0019/0x001A alike), so a player holding a full stack from an earlier try (two froglok summoner's wands, stack 2) could never take one; the line "You can carry no more X: this one counts." **A cast refused "Out of range." logs the distance it measured** (`refuseOutOfRange`: across and up or down, and the reach): the test is CLIENT's TargetInRange, centre to centre in three dimensions, so a #spawn copy (3 ahead, at the GM's height) is in a 4.5 reach unless one of them moved, or 3.4 of height parts them (`TestASpawnedTargetThreeAheadIsInReach`). **The data** (`tools/fix_quest_chains.py [--apply|--undo] [--write-data tools/quests/data]`, table `quest_chain_fix_log`, the import's digests kept; on eqoaclassic's data of 07:10 UTC): 24 quests require the quests that alone give their hand-in (jib's 25th, Three Tablets for Crikston, has its note through the three tablets it requires), 8 give steps that hand on an item a later step needs are shows (Lady Furess's Packages' locked box x4, Herbs and a Totem's sack, The Goblin Poison's recipe, The Thulite Anvil's scrolls, and the repeatable Passage to Lord Nagafen's token, which only The Fire Giant Magus gives, once), the 746 city class quests (`1-20/<city>/<class>/L<n>`) take the races that start in their city as their class (the user's pick: defaultcharacter's combos in `database.HomeCity`'s cities, the froglok with the eastern human; a human of either Freeport or Qeynos is race 0 to both, and starts at no worse than -349 with the other's guards), and the Stranger (quest 101230's step 3, placed by `seed_quest_npcs.py`'s set qd at the top of the ramp into Neriak, deleted in the GM panel on 2026-10-29, audit 4154) is put back with the delete marked reverted. `TestRealQuestChainsWalk` (`EQOA_REAL_DB`, `EQOA_WALK_QUESTS`) walks the quests the tool changed through the engine, each by a character of its class and race with its chain first and only what the walk was given to hand in.
 - Factions (`entity/faction.go`, F3 20261025-044451; by race and class 2026-10-29, `claude-notes/factions-by-race-20261029.md`): a character's standing with a faction is its own (`charfactions`, kept as `charbuffs` are), else its start: table `factionstart` (race, class, humtype, -1 any; the row naming most of the three wins, then race, then class; a froglok starts as an eastern human; GM panel "Faction starts", live), else the faction's own in `factions` (filled from `database.DefaultFactions`, one eqoa.live gnome's 331, when empty). **The starts are Sandstorm's, measured**: `eqoa factionsurvey` (eqoa-rust-headless's harvester) made a throwaway character of each of defaultcharacter's 75 combos on Sandstorm and read its faction list; `tools/seed_faction_starts.py --measured <starts.tsv> [--apply|--undo]` writes them compressed (every combo checked exact; a partial survey refused but with `--partial`), sets each faction's own to its commonest start, adds the 39 factions Sandstorm lists that the table lacked (370), and `--gates <quest files>` says which quests' faction gates a new character meets. Race and class both decide (a human warrior starts at Citizens of Neriak -2000, a human shadow knight at 1; a dark elf shadow knight +151). **Which faction an NPC is of** is table `npcfaction` (by NPC name as npcclass keys it; anywhere, in a world, or spawned within a radius of a place; GM panel "NPC factions", live): `tools/seed_npc_factions.py --eqoa-data ../external/EQOA-Data [--apply|--undo]` writes each town's people (its Citizens; guards their guard faction; houses by surname), the creatures inside the hull of its people at their height (Neriak's ghoul servants and zombies, city cats; never a hostile camp within 40-80 of a town), the quests' NPCs no town takes (NAMED: the Plane of Sky's essences, Graumord's citizens, the Fire Giant Magus) and single spawns by place (PLACED: the raven and scorchflies in the mouth of Neriak's tunnel to its coach; the seventh of Neriak's city cats, 393 from the six the town's row takes, which set on a level 2 dark elf: the user, 2026-10-29); its report counts per town the attackable members a new character of each race starts KOS to, and `--apply` is refused while one would be attacked at its own start spot (so the starts go first). Killing an NPC changes the KILLER's standings by the `factionhits` rows for its name (melee, spell or a GM's `#kill`; a `#spawn` copy counts as its original; a member of a faction with no row costs nothing), each change a white chat line (0x0A7A) as Sandstorm's (F3 20261029-011325, jib: "need to display the current faction value and the amount it changed by"; `factionLine`): the standing after it, the faction, the change asked with its sign, "-690 faction with Centaurs of the Plains (-10)" (a kill's in a report's log; questrec16's quest rewards "11 faction with Merchant House Nothard (+10)"), and at -2000 or 2000 the standing held with the change asked, as Sandstorm's nine gnoll kills at the floor all said "-2000 faction with Blackburrow Gnolls (-10)" (F3 20261024-200725; EverQuest's "Your faction standing with X got worse." until then), unless 0x00C9 says Faction Messages off; -2000..2000; the window (0x0AC4 → 0x07E2) lists the character's own and its starts. **The hit numbers are ours, not measured.** `tools/seed_faction_hits.py` writes the town rows (source `town-seed`: a city's townsfolk -25 on its Citizens, its guards -50 on its guard factions; the cities off EQOA-Data's map; its Neriak is the Nektulos outpost, the map's point), `tools/seed_quest_hits.py [--apply|--undo]` the kills the later quests' faction gates need (source `quest-seed`, +5 a kill: the Cracktooth orcs by Bobble-by-Water for Feria Hurkert, Lady Vox's castle for Citizens of Castle Lightwolf, the Isle of Dread's foes for Citizens of Graumord). `#faction <faction> [standing]` shows or sets a GM's own; `#stats` on an NPC says its faction, the GM's standing and whether it attacks the GM
 - **Teleport orbs** (`entity/orbs.go`, table `orbs`, `tools/seed_orbs.py`; "Teleport orbs: a step onto a pad sends the player to its pair" above): Highbourne's tower pads and the hall's, so its magicians, enchanters and wizards leave their sealed towers, and the caves' Shimmering Portals
-- **Camp fix reports** (`handlers/campfix.go`, `entity/campfix.go`, `database/campfix.go`, table `campfix_reports`; board entry 513, the GM Jibrish's ask of 2026-11-09; petition 1423: everyone's, no GM or tester flag): a player says a camp's creatures stand in the wrong place, face the wrong way, or are one too many or too few, and nothing changes until a review ("Camp fix reports: how they are reviewed", above). `/campfix` opens a report (six lines say how) and, typed again, sends it; `/mark [name]` (no name: the target's) says an existing spawn of that name should stand where the player stands, facing the way it faces (the target when it is one within 300, else one the sending picks: a name's open moves take its free spawns within 300 at the least distance, greedy by the pair; a turn, the facing alone, when that spawn lies within 2), `/markadd <name>` that one more should, `/markremove` that the target's spawn (within 100) or the one the player stands on (within 15) should go; `/campfix list`, `undo`, `note <text>` (200 characters, control characters dropped, `maskProfanity`), `cancel`. Every spelling: `/name`, `#name`, a PS2's `/t name`. Routed beside `/stuck`, ahead of the GM's `#` and the tells; `/mark`, `/markadd` and `/markremove` are the report's only while its sender has one open, so a GM's own `/mark` (`gmcamps.go`) is shadowed then and back once it is sent or cancelled, `/t mark bob` is a tell with none open, and any other mark with none open is told "Open a camp report with /campfix first." A name is matched without case against the NPCs of rows in the player's world (not a GM's, a quest's or a trigger's spawn, a spawn-only one, a pet, a genie or a portal): the whole text, else without a leading a/an/the, else the one name near holding it ("Taken as ..."), several listed (five) and refused. The open report is the session's, in memory: 15 marks, one camp (within 300 of the first, in its world), none within 2 of another, none dead, flying or loading a world, a name's marks never more than its spawns near; a logout or 30 minutes with no command discards it (the next command says so), a death keeps it, a keep restart loses it. A mark keeps the player's facing in radians and as the npcs row's byte (`facingByte`: heading byte b is row byte (b+128) mod 256, exact for all 256 now that the channels' byte 15 rounds, `entity.FacingByte`; truncated, 40 row bytes and 147 heading bytes went out a step low). Sending (one an account every 10 minutes, 3 of its own waiting, 100 waiting in all, each refusal keeping the report open) resolves the open moves, records every row NPC within 100 of a mark (nearest first, at most 60: row, name, level, spawn, facing byte, alive, movement, camp and kinds, same name), flags what a review must look at (a name of 3 spawns or fewer in the world; none within 300 of the marks; a level more than 8 off the median near; a move past 150; a creature that attacks a level 1 on sight, moved or added within 150 of a town or a start spot; a move or add more than 3 over the ground's floor, or a land creature's in the water), keeps a `campfix_reports` row (status `waiting`; the panel edits only `status` and `review`, `reviewed` stamped by the table's trigger) and posts a work board entry through `database.PostWork` as the player's account via `campfix` (owner dab's sessions, `planned`, area `data`, touches `npcs`, and `campspawns` when a camp spawn's row is named; the details under 20,000 characters, the near table cut, and said so, past that), each shard on its own board. `world.campfix` false turns every command off ("Camp reports are off on this server."; a GM's `/mark` is as ever). The snapshot clears the table.
+- **Camp fix reports** (`handlers/campfix.go`, `entity/campfix.go`, `database/campfix.go`, table `campfix_reports`; board entry 513, the GM Jibrish's ask of 2026-11-09; petition 1423: everyone's, no GM or tester flag): a player says a camp's creatures stand in the wrong place, face the wrong way, or are one too many or too few, and nothing changes until a GM approves it on the GM panel's Camp reports page ("Camp fix reports: how they are reviewed", above, which also files a petition's spawn request as a report; no session applies one). `/campfix` opens a report (six lines say how) and, typed again, sends it; `/mark [name]` (no name: the target's) says an existing spawn of that name should stand where the player stands, facing the way it faces (the target when it is one within 300, else one the sending picks: a name's open moves take its free spawns within 300 at the least distance, greedy by the pair; a turn, the facing alone, when that spawn lies within 2), `/markadd <name>` that one more should, `/markremove` that the target's spawn (within 100) or the one the player stands on (within 15) should go; `/campfix list`, `undo`, `note <text>` (200 characters, control characters dropped, `maskProfanity`), `cancel`. Every spelling: `/name`, `#name`, a PS2's `/t name`. Routed beside `/stuck`, ahead of the GM's `#` and the tells; `/mark`, `/markadd` and `/markremove` are the report's only while its sender has one open, so a GM's own `/mark` (`gmcamps.go`) is shadowed then and back once it is sent or cancelled, `/t mark bob` is a tell with none open, and any other mark with none open is told "Open a camp report with /campfix first." A name is matched without case against the NPCs of rows in the player's world (not a GM's, a quest's or a trigger's spawn, a spawn-only one, a pet, a genie or a portal): the whole text, else without a leading a/an/the, else the one name near holding it ("Taken as ..."), several listed (five) and refused. The open report is the session's, in memory: 15 marks, one camp (within 300 of the first, in its world), none within 2 of another, none dead, flying or loading a world, a name's marks never more than its spawns near; a logout or 30 minutes with no command discards it (the next command says so), a death keeps it, a keep restart loses it. A mark keeps the player's facing in radians and as the npcs row's byte (`facingByte`: heading byte b is row byte (b+128) mod 256, exact for all 256 now that the channels' byte 15 rounds, `entity.FacingByte`; truncated, 40 row bytes and 147 heading bytes went out a step low). Sending (one an account every 10 minutes, 3 of its own waiting, 100 waiting in all, each refusal keeping the report open) resolves the open moves, records every row NPC within 100 of a mark (nearest first, at most 60: row, name, level, spawn, facing byte, alive, movement, camp and kinds, same name), flags what a review must look at (a name of 3 spawns or fewer in the world; none within 300 of the marks; a level more than 8 off the median near; a move past 150; a creature that attacks a level 1 on sight, moved or added within 150 of a town or a start spot; a move or add more than 3 over the ground's floor, or a land creature's in the water), keeps a `campfix_reports` row (status `waiting` until a GM's `campfix_approve` or `campfix_decline` decides it, `applied` or `declined`; the table editor keeps only `review`, `reviewed` stamped by the table's trigger) and posts a work board entry through `database.PostWork` as the player's account via `campfix` (owner `GMs (Camp reports page)`, `planned`, area `data`, touches `npcs`, and `campspawns` when a camp spawn's row is named; the details begin with where it is decided and stay under 20,000 characters, the near table cut, and said so, past that), each shard on its own board; a decision closes the entry. `world.campfix` false turns every command off ("Camp reports are off on this server."; a GM's `/mark` is as ever). The snapshot clears the table.
 
 ### Key Server Protocol Details
 

@@ -282,3 +282,41 @@ func TestAPacketIsNotBuiltAcrossAPromotion(t *testing.T) {
 		t.Fatal("the control: the lobby's packet holds no run of the recipes' bytes")
 	}
 }
+
+// A long message waits in the queue (MessageQueue.Waits) from its queueing
+// until the client holds its last fragment, sent or not: what keeps the
+// worlds' recipes to one copy in a queue however often a client asks for them
+// (handlers.ServerWorldsHandler.HandleOffer). The controls: another opcode
+// never waits there; the queue emptied (a pick's promotion), nothing waits.
+func TestALongMessageWaitsUntilItIsAllAcknowledged(t *testing.T) {
+	r := newStreamRig(t)
+	q, conn := r.sess.Queue(), r.sess.Connection()
+	if q.Waits(protocol.OpcodeServerWorldsData) {
+		t.Fatal("an empty queue: the recipes wait in it")
+	}
+	last := r.long(5)
+	if !q.Waits(protocol.OpcodeServerWorldsData) || q.Waits(protocol.OpcodeServerWorldsChars) {
+		t.Fatalf("queued: waits %v, another opcode %v", q.Waits(protocol.OpcodeServerWorldsData), q.Waits(protocol.OpcodeServerWorldsChars))
+	}
+	r.sess.TakeServerWorlds()
+	NewRDPHandler(r.l).SendWaiting(r.sess)
+	r.read()
+	if !q.Waits(protocol.OpcodeServerWorldsData) {
+		t.Fatal("sent and not acknowledged: it no longer waits")
+	}
+	conn.SetClientAck(last-1, 0)
+	q.RemoveReliables()
+	if !q.Waits(protocol.OpcodeServerWorldsData) {
+		t.Fatal("all but its last fragment acknowledged: it no longer waits")
+	}
+	conn.SetClientAck(last, 0)
+	q.RemoveReliables()
+	if q.Waits(protocol.OpcodeServerWorldsData) {
+		t.Fatal("all acknowledged: it still waits")
+	}
+	r.long(3)
+	q.Clear()
+	if q.Waits(protocol.OpcodeServerWorldsData) {
+		t.Fatal("the queue emptied: it still waits")
+	}
+}

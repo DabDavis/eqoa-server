@@ -383,7 +383,8 @@ func TestWhichLoginsNeedTheServersWorlds(t *testing.T) {
 // storage) is never sent it, not with its first list and not with a later
 // one; a first list says nothing (the offer is not yet answered); a client
 // already in the world that asks again (its pick went before the worlds were
-// all in) is sent the worlds alone.
+// all in) is sent the worlds alone; a client that asks while the worlds it
+// was sent still wait in its queue is queued nothing more (one copy at most).
 func TestAClientIsToldWhichCharactersNeedTheServersWorlds(t *testing.T) {
 	r := newCreationRig(t, entity.CreationRules{Races: true})
 	withServerWorlds(t, homelands())
@@ -489,12 +490,25 @@ func TestAClientIsToldWhichCharactersNeedTheServersWorlds(t *testing.T) {
 		t.Fatalf("a later list: %v, want the list and then which characters need the worlds", got[before:])
 	}
 
-	// in the world, the worlds asked for again: the worlds alone
+	// asked again while the worlds sent still wait in its queue (none
+	// acknowledged): nothing more is queued, however often it asks
+	before = len(van.Queue().PeekPending())
+	for i := 0; i < 5; i++ {
+		take(van)
+	}
+	if n := len(van.Queue().PeekPending()); n != before {
+		t.Fatalf("asked 5 times with the worlds on the way: %d messages more queued, want none", n-before)
+	}
+
+	// in the world (the pick's promotion emptied the queue), the worlds asked
+	// for again: the worlds alone, and once however often it asks
+	van.Queue().Clear()
 	van.SetInGame(true)
-	before = len(ops(van))
-	take(van)
-	if got := ops(van); len(got) != before+1 || got[before] != protocol.OpcodeServerWorldsData {
-		t.Fatalf("asked again in the world: %v, want the worlds alone", got[before:])
+	for i := 0; i < 3; i++ {
+		take(van)
+	}
+	if got := ops(van); len(got) != 1 || got[0] != protocol.OpcodeServerWorldsData {
+		t.Fatalf("asked again in the world, 3 times: %v, want the worlds alone, once", got)
 	}
 
 	// the controls: a session that never took the offer

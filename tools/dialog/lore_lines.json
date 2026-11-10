@@ -1,0 +1,818 @@
+{
+ "doc": "What the towns' people and the guards of Norrath say of their world's own story (the user, 2026-11-10: \"Let's add more lines, the NPCs talk about random eqoa lore (remember this is before EQ1 lorewise)\"): the lore set of tools/seed_town_dialog.py (--set lore; table npcdialog, source lore, logged in npcdialog_lore_seed). EverQuest Online Adventures is set about five hundred years before EverQuest: the continent is Tunaria, and nothing of EverQuest's own day is spoken of. No lore is invented: every line's note names the facts it rests on by their ids in tools/dialog/LORE-FACTS.md, which gives each fact's source and the source's own words; a line whose fact was in no source was left out. Blocks and fields as town_lines.json's (town, role, mood, race the listener's, sex), and speaker_race (a race's own voice wherever it stands; with away, only as a guest away from its own towns). A line is {line, note}. Trolls and ogres say no common line (no town, no race), so their lore is in their towns' and their races' blocks, in their speech. In a line %p is the listener's name, %r its race, %c its class, %t the town, %n the speaker. tools/seed_town_dialog_lore_test.py holds the file to its rules (a note on every line, the client's box, no name of EverQuest's day, no two lines alike).",
+ "blocks": [
+  {"say": [
+   {"line": "They say the dragons had Norrath to themselves once. Veeshan clawed the world and left her brood upon it.", "note": "GODS-1: Veeshan, the crystalline dragon, was the first god to come to a lifeless Norrath; she marked it..."},
+   {"line": "The oldest tales call the first days the Age of Scale. Nothing walked the world then but wurms and drakes.", "note": "GODS-1: Veeshan, the crystalline dragon, was the first god to come to a lifeless Norrath; she marked it..."},
+   {"line": "Brell loosed things into the deep places before he sealed his gate. To this day nobody can say what they were.", "note": "GODS-3: Brell Serilis, the Duke of Below, came second, claimed the caves under Norrath, loosed..."},
+   {"line": "Goblins and gnolls both claim Brell for their maker. I would not repeat that in Moradhim or in Klick'Anon.", "note": "GODS-5: Goblins and gnolls also claim to be Brell's children; gnomes and dwarves call that blasphemy."},
+   {"line": "They say a whole people lives under the sea, the Kedge. Prexus made them, and he does not share them.", "note": "GODS-7: Prexus, the Ocean Lord, was the third of the First Pact; he took the seas and made the Kedge..."},
+   {"line": "Rallos Zek would not put his name to the first pact of the gods. He made the giants and let them speak for him.", "note": "GODS-8: Rallos Zek, the Warlord, came with the first gods but kept out of the First Pact; he left his..."},
+   {"line": "Two pacts the gods made over Norrath, my grandmother said. I never could keep straight who swore to which.", "note": "GODS-4, GODS-11: In the First Pact of the Gods Brell made the dwarves and set them deep below the crust; by a..."},
+   {"line": "The Marr twins came last of the great gods, and found the world already at war. Little has changed.", "note": "GODS-14: Mithaniel Marr, the Truthbringer, and his twin Erollisi were the last of the greater gods to..."},
+   {"line": "Never lend your purse to one of Bristlebane's faithful. Share a table with one, though. You will not be bored.", "note": "GODS-12: Followers of Bristlebane should not be trusted with anything of value, but they can be counted..."},
+   {"line": "Veeshan and Brell have been at odds since the beginning. The sky and the deep never did get along.", "note": "GODS-2: Veeshan is the Wurm Queen, the Mother of All Wurms; her home is the Plane of Sky, she has no..."},
+   {"line": "Tunare took the green of the world for her own and set the elves to guard it. That has been a long watch.", "note": "GODS-6: Tunare, the Mother of All, came soon after Brell, took the surface of Norrath in the First Pact..."},
+   {"line": "Nobody can say who raised Rosethorn Spire, or when. Not even the elves, and they have asked for a very long time.", "note": "SPIRE-1: Rosethorn Spire, Aros'Thalinor in the elven tongue, is older than almost anything mortals..."},
+   {"line": "They found a tomb under Rosethorn Spire that no elf built. A sarcophagus, and an arch of stone from nowhere in the land.", "note": "SPIRE-4: Digging there the elves found a strange room of the same black stone with carvings foreign to..."},
+   {"line": "When the dead marched on Rosethorn Spire, the wizards burned the whole field. They say the Lifire ran thick with bodies.", "note": "SPIRE-5: The Teir'Dal raised a legion of dead to take the Spire; its masters met them with the greatest..."},
+   {"line": "Only four wizards still live in Rosethorn Spire, and those four are dying. The roses went first.", "note": "SPIRE-6: The necromancers laughed last: they had poisoned the mana itself, the weave all magic draws on..."},
+   {"line": "Rosethorn Spire still takes pupils, from any people. It is necromancers they will not have through the door.", "note": "SPIRE-7: The Spire is still a place of learning: wizards travel from afar to be taught there, Teir'Dal..."},
+   {"line": "The elves of Takish'Hiz bore their dead down the Road of the Dead to the Tomb of the Crown. The sand has the road now.", "note": "TOMB-2: For hundreds of years the honored dead of Takish'Hiz, commoner to royalty, each caste in its..."},
+   {"line": "They say the old elven Kings and Queens still walk the Tomb of the Crown. It has not stopped the treasure hunters.", "note": "TOMB-6: The dead there do not rest: the spirits of the Kings and Queens haunt the halls, and still..."},
+   {"line": "The way to the Tomb of the Crown runs through Scorchstone Gorge. It was green once, before the curse.", "note": "TOMB-7: The way to the tomb crosses the Desert of Ro to Scorchstone Gorge, green once and hidden from..."},
+   {"line": "Whoever dies in the Tomb of the Crown gets up again to guard it. So say the few who came back.", "note": "TOMB-8: With Takish'Hiz and its people gone, nothing ties the spirits to who they were; they have grown..."},
+   {"line": "Ask ten travelers where the Tomb of the Crown lies and you will hear ten roads. Nine of them end in the desert.", "note": "TOMB-9: Rumors, lies and half-truths about where the Tomb of the Crown lies and what it holds go round..."},
+   {"line": "A jealous god burned the Elddar forest down to sand. The elves will tell you which one. I would rather not say the name.", "note": "TOMB-3, TOMB-12: When the forest of Elddar fell to the burning sands, most of the elves of Takish'Hiz left..."},
+   {"line": "Somewhere in the desert one grove of the old forest still stands, around a sacred tree. The beasts there guard it.", "note": "TOMB-11: A sacred tree, guarded by beasts, still keeps one grove of the old forest alive in the middle..."},
+   {"line": "Now and then a madman washes ashore raving of an isle in the fog. Nobody in his right mind has seen it.", "note": "DREAD-2: All that is known of the isle comes from the ramblings of madmen washed ashore after days lost..."},
+   {"line": "Some say the Isle of Dread is the reward the Faceless keeps for his faithful. Some say it is his trap for fools. I am staying ashore.", "note": "DREAD-1: The Faceless has more realms than his Plane of Fear, and the Isle of Dread is one: a reward for..."},
+   {"line": "Have you ever dreamed of a village called Graumord? They say everyone has, once. Nobody likes to speak of it.", "note": "DREAD-4: Graumord is a nightmarish village of lost souls, known only in the terrifying dreams of all..."},
+   {"line": "Nobody knows yet where the plague began. Whoever finds out will have every healer in Tunaria at the door.", "note": "PLAGUE-2: Creatures the plague killed are rising from their shallow graves as undead, and no one yet..."},
+   {"line": "The first were-folk came of a bargain an old elven druid struck with the wolfmen and bearmen of the Unkempt. So the tale goes.", "note": "WERE-1: The were-folk began with pacts the ancient elven druid Wegadas made with the Lujien, the..."},
+   {"line": "Old Wegadas of the Unkempt is dying, they say, and his sons already fight over the wood.", "note": "WERE-5: Wegadas is dying, and his heirs are at war for the leadership of the Unkempt; the Night Reapers..."},
+   {"line": "When the moon is full the wolfweres hunt from dusk until dawn. Bar the door and count the goats in the morning.", "note": "WERE-7: Wolfweres have no human form and no mastery of themselves; when the moon of Drinal is full they..."},
+   {"line": "Not every were-beast is a killer. The Wards of Dawn are bears, and healers, and they keep to the Unkempt.", "note": "WERE-8: Dorandas's werebears are the Wards of Dawn, under a golden half circle on black for the rising..."},
+   {"line": "The lionmen of Karana are nearly gone. Most have crossed the sea to their cousins on Odus.", "note": "WERE-13: The Kejrahn lionmen are dwindling, and many have fled Tunaria for the lands of their cousins..."},
+   {"line": "There were rat-folk under Qeynos once, the Ratonga. They went back into the Underfoot and left their spies behind.", "note": "WERE-15: Wegadas's son Yindrius was stolen as a baby by the Ratonga, masters of stealth living under..."},
+   {"line": "They say a wererat who will not join the Topi di Ombra is not asked a second time.", "note": "WERE-17: An orphan wererat the Topi di Ombra find is offered a place in the family and killed if he..."},
+   {"line": "Die out there and you wake where a spiritmaster last bound you. The land does not let go of its own.", "note": "LAND-1: Every creature of Tunaria is bound to the land and is reborn after it dies. Spiritmasters have..."},
+   {"line": "A coachman will only carry you where you have signed the ledger. Walk a road once, and ride it ever after.", "note": "LAND-2: Coachmen run Tunaria's coaches between their stables and other stables that are affiliated with..."},
+   {"line": "If a gypsy wagon stops near town, go and look. They sell things no city merchant has.", "note": "LAND-6: Gypsies travel all over Tunaria selling valuable wares to those who seek them out; an..."},
+   {"line": "There are folk mad enough to worship dragons. The dragons do not seem to mind how their worshippers taste.", "note": "LAND-8: A cult of mad humans worships dragons, whatever the plain danger of it."},
+   {"line": "They say the goblins and giants of the north march at the word of Lady Vox. A dragon with an army. Think on that.", "note": "LAND-9: Lady Vox is the terrible and legendary ice dragon of the north, said to lead legions of goblins..."},
+   {"line": "A black dragon hunts the swamps of the south. Siliskor, it is called. I have never met anyone who went to look.", "note": "LAND-10: Siliskor is a loathsome black dragon that terrorizes the swamps of southern Tunaria."},
+   {"line": "There is a tower whose stair is said to climb out of the world, to a plane where genies rule. Monks guard the first step.", "note": "LAND-11: The monks of the Endless Tower guard a sacred stairway said to lead to another plane, where..."},
+   {"line": "There are ruins in the Green Rift from an empire so old that only its name is left. The Combine, it was called.", "note": "LAND-25: Old ruins of the Combine lie in the Green Rift."},
+   {"line": "Vampire hunters keep a camp outside Jaeger Mansion, on the edge of the Unkempt. They never run short of work.", "note": "LAND-19: Vampire hunters camp by the evil Jaeger Mansion, a dark house on the edge of the Unkempt Wood..."},
+   {"line": "The bards have taken to calling this the Age of Adventure. I call it a good age to stay home in.", "note": "LAND-7: The age the world is in is called the Age of Adventure."}
+  ]},
+  {"role": "guard", "say": [
+   {"line": "The old folk tell of wolfmen in the Unkempt woods. I used to laugh. I do not stand a night watch laughing any more.", "note": "WERE-4: The barbarians of the north still fear the Unkempt woods and believe their forefathers' tales..."},
+   {"line": "If you see a bear walking upright at dusk, it is not a bear. Go the other way, and tell the watch.", "note": "WERE-11: Bearweres are hard to tell from bears, but at dusk and dawn they take the bearman's shape and..."},
+   {"line": "The wererats keep to the roads and stay off the Plains of Karana. The werelions out there kill every one they catch.", "note": "WERE-14: Werelions hunt down and kill any werewolf, bearwere or ratwere they meet on the Plains of..."},
+   {"line": "The Topi di Ombra are smugglers, thieves and killers, and wererats to the last one. Qeynos, Freeport and Neriak are thick with them.", "note": "WERE-16: The Topi di Ombra are a powerful family of wererats under Yindrius, chiefly in Qeynos, Neriak..."},
+   {"line": "If you cross the Desert of Ro, cross it armed. The Deathfist are the biggest horde of orcs in the world, and caravans are their bread.", "note": "LAND-23: The Deathfist are the largest horde of orcs known in the world, and live by raiding and..."},
+   {"line": "The black orcs of the Hatebone turn up all over the east of Tunaria. Where you see one, there are more.", "note": "LAND-24: The black orcs of the Hatebone are found through most of eastern Tunaria."},
+   {"line": "There is a brotherhood of bandits that works every road in Tunaria. Hang one, and three more take his place.", "note": "LAND-6: Gypsies travel all over Tunaria selling valuable wares to those who seek them out; an..."},
+   {"line": "If you find a plague grave opened from the inside, do not stay to look. Fetch a guard.", "note": "PLAGUE-2: Creatures the plague killed are rising from their shallow graves as undead, and no one yet..."},
+   {"line": "Treasure hunters pass through, bound for the Tomb of the Crown. I have stopped learning their names.", "note": "TOMB-6, TOMB-8: The dead there do not rest: the spirits of the Kings and Queens haunt the halls, and still..."},
+   {"line": "Madmen wash ashore raving of an isle of fear. I have orders for thieves and orders for drunks. I have none for that.", "note": "DREAD-2: All that is known of the isle comes from the ramblings of madmen washed ashore after days lost..."},
+   {"line": "They post cyclops at Urglunt's Gate, on the way into the Rathe Mountains. I would like to see a thief talk his way past one.", "note": "LAND-18: Cyclops guards watch Urglunt's Gate, one of the few passes into the Rathe Mountains."},
+   {"line": "A wise traveler sees a spiritmaster before the wolves, not after.", "note": "LAND-1: Every creature of Tunaria is bound to the land and is reborn after it dies. Spiritmasters have..."},
+   {"line": "Sign the coachman's ledger before you leave. It will save your boots the next time.", "note": "LAND-2: Coachmen run Tunaria's coaches between their stables and other stables that are affiliated with..."},
+   {"line": "I have stood watch against orcs and bandits. They say Lady Vox has whole legions of goblins and giants. I am glad she is far away.", "note": "LAND-9: Lady Vox is the terrible and legendary ice dragon of the north, said to lead legions of goblins..."}
+  ]},
+  {"role": "citizen", "say": [
+   {"line": "My grandmother swore there were wolfmen in the Unkempt woods. We all laughed at her. Nobody laughs now.", "note": "WERE-4: The barbarians of the north still fear the Unkempt woods and believe their forefathers' tales..."},
+   {"line": "They say what you leave with a banker here, a banker in any other city can hand back to you. I do not ask how. I count it twice.", "note": "LAND-5: A banker keeps your goods and Tunar in his vault, and one account answers at any banker in any..."},
+   {"line": "They buried the plague's dead in a hurry, and shallow. Now the dead are climbing back out.", "note": "PLAGUE-2: Creatures the plague killed are rising from their shallow graves as undead, and no one yet..."},
+   {"line": "My neighbor sold his house for a map to the Tomb of the Crown. The map was wrong. So was my neighbor.", "note": "TOMB-9: Rumors, lies and half-truths about where the Tomb of the Crown lies and what it holds go round..."},
+   {"line": "A wolf that has caught the curse is worse than a man who has. The man at least remembers what he was.", "note": "WERE-19: Beasts take the curse too: feral weres keep an animal's mind and are behind most of the tales..."},
+   {"line": "A fellow came through preaching that we should all bow to the dragons. I asked him which one. He said any.", "note": "LAND-8: A cult of mad humans worships dragons, whatever the plain danger of it."},
+   {"line": "I leave a crumb on the sill for Bristlebane. He came late to the making of the world, they say, and I like a god who is not in a hurry.", "note": "GODS-11, GODS-12: Fizzlethorpe Bristlebane, the King of Thieves, came fashionably late, joined Brell and..."},
+   {"line": "I dreamed of Graumord once. A village full of lost folk, all looking at me. I do not eat cheese before bed any more.", "note": "DREAD-4: Graumord is a nightmarish village of lost souls, known only in the terrifying dreams of all..."}
+  ]},
+  {"role": "trader", "say": [
+   {"line": "The Deathfist horde lives on plundered caravans. Half of what I ordered from the south is on some orc's back by now.", "note": "LAND-23: The Deathfist are the largest horde of orcs known in the world, and live by raiding and..."},
+   {"line": "There is a great deal of old elven work for sale these days. All of it came out of Takish'Hiz, whatever the seller tells you.", "note": "TOMB-5: The dark elves looted and defiled the city, and its treasure was, and still is, shipped to..."},
+   {"line": "The gypsies sell wares I cannot get at any price. I have asked where they find them. They only smile.", "note": "LAND-6: Gypsies travel all over Tunaria selling valuable wares to those who seek them out; an..."},
+   {"line": "Leave it with a banker here and draw it out in any city of Tunaria. Do not ask me how the ledgers travel.", "note": "LAND-5: A banker keeps your goods and Tunar in his vault, and one account answers at any banker in any..."},
+   {"line": "Whatever crosses the mountains crosses at Highpass, and Highpass takes its share. Everyone wonders what they are saving it for.", "note": "HUMAN-3: Inland, Highpass carves its living out of the Serpent Spine Mountains and commands the only..."},
+   {"line": "I take Tunar, and only Tunar. Do not offer me a goat again.", "note": "LAND-3: Money in Tunaria is coins called Tunar."},
+   {"line": "Treasure hunters buy rope, lamps and a great deal of courage before they leave for the Tomb of the Crown. They seldom come back for more.", "note": "TOMB-6: The dead there do not rest: the spirits of the Kings and Queens haunt the halls, and still..."},
+   {"line": "The coach is quick, if you have signed the ledger at the far end. If not, I sell boots.", "note": "LAND-2: Coachmen run Tunaria's coaches between their stables and other stables that are affiliated with..."}
+  ]},
+  {"role": "priest", "say": [
+   {"line": "Before any god we pray to came Veeshan, and the Age of Scale. The world was a nest before it was a home.", "note": "GODS-1: Veeshan, the crystalline dragon, was the first god to come to a lifeless Norrath; she marked it..."},
+   {"line": "The gods made their pacts, and each set a people upon Norrath. We have quarreled over the borders ever since.", "note": "GODS-4, GODS-10: In the First Pact of the Gods Brell made the dwarves and set them deep below the crust; by a..."},
+   {"line": "Rallos Zek kept out of the First Pact and made the giants all the same. A god does not wait for leave.", "note": "GODS-8: Rallos Zek, the Warlord, came with the first gods but kept out of the First Pact; he left his..."},
+   {"line": "The Marr twins were the last of the great gods to come. They found a world at war, and made a people to stand in it.", "note": "GODS-14: Mithaniel Marr, the Truthbringer, and his twin Erollisi were the last of the greater gods to..."},
+   {"line": "Even the gods keep allies and enemies. Why should their children be any wiser?", "note": "GODS-16: The gods' quarrels: Innoruuk and Cazic-Thule stand with Rallos Zek; the Marr twins are enemies..."},
+   {"line": "Prexus made the Kedge and hid them beneath the sea. Not every god wants his children known.", "note": "GODS-7: Prexus, the Ocean Lord, was the third of the First Pact; he took the seas and made the Kedge..."},
+   {"line": "The spiritmasters tie the spirit to the land, so that the dead wake where they were bound. Do not ask a priest whether that is a blessing.", "note": "LAND-1: Every creature of Tunaria is bound to the land and is reborn after it dies. Spiritmasters have..."},
+   {"line": "The plague has a patron. Bertoxxulous is called the Plague King, and his faithful hide their temples well.", "note": "PLAGUE-3: Bertoxxulous is the Plague King, Lord of Decay; a hidden temple of his stands even in..."},
+   {"line": "The Faceless has more realms than his Plane of Fear. The Isle of Dread is one, and it is not far enough away.", "note": "DREAD-1: The Faceless has more realms than his Plane of Fear, and the Isle of Dread is one: a reward for..."},
+   {"line": "The dead of the Tomb of the Crown have no people left to remember who they were. That is why they are bitter.", "note": "TOMB-8: With Takish'Hiz and its people gone, nothing ties the spirits to who they were; they have grown..."},
+   {"line": "Innoruuk came late and found the world shared out without him. Remember that, when you wonder what hate is made of.", "note": "GODS-13: Innoruuk, the Prince of Hate, found Norrath after the First Pact, raged that it was peopled..."},
+   {"line": "The were-folk of the Unkempt pray to spirits older than our temples. Drinal the Silver Reaper is the god of the wolves.", "note": "WERE-21: The Lujien, the Night Reapers and the Unkempt worship Drinal the Silver Reaper, spirit of..."}
+  ]},
+  {"role": "scholar", "say": [
+   {"line": "The elves hold that they were the first to wield wizardry, and Rosethorn Spire is their proof. It is hard to argue with a tower.", "note": "SPIRE-2: The elves say they were the first people to wield wizardry, and point to the Spire as proof."},
+   {"line": "The elves did not so much build onto Rosethorn Spire as grow it. They coaxed the black stone into shape with magic.", "note": "SPIRE-3: The elves shaped its black stone by magic and carved vaults beneath it that hold the artifacts..."},
+   {"line": "There is a chamber under the Spire with carvings no scholar could read. Nearly a hundred years they studied it. Then the war came.", "note": "SPIRE-4: Digging there the elves found a strange room of the same black stone with carvings foreign to..."},
+   {"line": "Holciel Rowen'dal. It means the Tomb of the Crown, near enough. Lyriam Kaelean of Fayspires wrote down what is known of it.", "note": "TOMB-1: Takish'Hiz built its tomb and catacombs to the west, within the Serpent's Spine: Holciel..."},
+   {"line": "Takish'Hiz was lost when Al'Karad fell. After that it was only a matter of time, and the Teir'Dal had time.", "note": "TOMB-4: The elves' attempts to restore Elddar failed and their numbers dwindled; then the Teir'Dal came..."},
+   {"line": "The Combine left ruins in the Green Rift and very little else. I would give a year of my life for one of their books.", "note": "LAND-25: Old ruins of the Combine lie in the Green Rift."},
+   {"line": "The first age was the Age of Scale. They are calling ours the Age of Adventure. I should like to know who decides these things.", "note": "LAND-7, GODS-1: The age the world is in is called the Age of Adventure."},
+   {"line": "The greatest wizards in Tunaria keep to themselves at Kelinar. They do not answer letters. I have tried.", "note": "LAND-13: Kelinar is a society of Tunaria's most powerful wizards."},
+   {"line": "Radavex Planeswalker has walked more planes than most of us have walked roads. I envy him the notes.", "note": "LAND-12: Radavex Planeswalker is a famous wizard known for his long travels to the outer planes."},
+   {"line": "Levandius the Wolf Father and Dorandas the Bear Father were brothers, sons of the druid Wegadas. Every were-tale begins there.", "note": "WERE-2: Wegadas gave two unborn children to be raised by them; in the Valley of the Dawn their mortal..."},
+   {"line": "Few remember that the werelions began with a peacemaker. Corindas went to the Plains of Karana to end the killing between lionmen and settlers.", "note": "WERE-12: Corindas, another son of Wegadas, went south to the Plains of Karana and worked with the druids..."},
+   {"line": "The Northmen are the root of the human tree, and the Erudites a branch of it. It is rude to say so in Highbourne.", "note": "GODS-15, BARB-5: Erollisi Marr, the Queen of Love, and her brother set the barbarians to roam the frozen north..."},
+   {"line": "The dwarves reckon Moradhim near three centuries old. King Stormhammer sent out many expeditions. That one struck ore.", "note": "DWARF-1: Almost three centuries ago the dwarven King Stormhammer sent out many expeditions for new..."},
+   {"line": "Erud means to carry his whole people across the ocean. The Exodus, he calls it. Imagine the books they must pack.", "note": "ERUD-2: The violence and greed of the land grew too much for them: the Erudites look to the Exodus of..."},
+   {"line": "The elves are building a fleet at Fayspires. When it sails, the oldest memory on Tunaria sails with it.", "note": "ELF-2: From Fayspires the elves left on Tunaria race to build a fleet and join their brethren across..."}
+  ]},
+  {"role": "worker", "say": [
+   {"line": "Too many graves and too few shovels, that was the trouble with the plague. We dug them shallow. Now look.", "note": "PLAGUE-2: Creatures the plague killed are rising from their shallow graves as undead, and no one yet..."},
+   {"line": "I hauled for a caravan through the Desert of Ro once. Never again. The Deathfist do not ask what you are paid before they rob you.", "note": "LAND-23: The Deathfist are the largest horde of orcs known in the world, and live by raiding and..."},
+   {"line": "Work enough seasons and you can afford the coach. Until then the ledger is a book of other folk's names.", "note": "LAND-2: Coachmen run Tunaria's coaches between their stables and other stables that are affiliated with..."},
+   {"line": "The lords of Highpass grow rich on a gap in the mountains. I never found a gap that paid me.", "note": "HUMAN-3: Inland, Highpass carves its living out of the Serpent Spine Mountains and commands the only..."},
+   {"line": "My brother fell off a roof and woke up at the spiritmaster's, sore and ashamed. Bound to the land, they call it. He calls it embarrassing.", "note": "LAND-1: Every creature of Tunaria is bound to the land and is reborn after it dies. Spiritmasters have..."}
+  ]},
+  {"role": "noble", "say": [
+   {"line": "Highpass holds the only pass through the mountains, and so Highpass grows rich. One almost admires it.", "note": "HUMAN-3: Inland, Highpass carves its living out of the Serpent Spine Mountains and commands the only..."},
+   {"line": "A king in Qeynos, merchants in Freeport, and councils everywhere else. No two cities agree on who ought to rule.", "note": "HUMAN-1, HUMAN-2: In the west Antonius Bayle II has been crowned King of the city-state of Qeynos, and its..."},
+   {"line": "The court of Takish'Hiz ranked even its dead by caste, each in a proper place in the tomb. Now that was a nobility.", "note": "TOMB-2: For hundreds of years the honored dead of Takish'Hiz, commoner to royalty, each caste in its..."},
+   {"line": "One account, and every banker in Tunaria answers to it. It is the only civilized thing about travel.", "note": "LAND-5: A banker keeps your goods and Tunar in his vault, and one account answers at any banker in any..."},
+   {"line": "Takish'Hiz stood longer than any house now living. If that could fall, %r, nothing any of us holds is safe.", "note": "ELF-1: Takish'Hiz, the ancient home of the elves, is a smoking ruin; most of its refugees fled north..."}
+  ]},
+  {"town": "Qeynos", "say": [
+   {"line": "Antonius Bayle the Second has not worn the crown long. The farmers already speak as if the harvest were his doing.", "note": "QEY-1: Qeynos is the greatest human city on Tunaria, ruled by the lately crowned Antonius Bayle II."},
+   {"line": "A king in Qeynos, and newly crowned. My father never thought he would see the day. He did not, as it happens.", "note": "QEY-1, HUMAN-1: Qeynos is the greatest human city on Tunaria, ruled by the lately crowned Antonius Bayle II."},
+   {"line": "Hagley and Blakedown both shelter under the protection of Qeynos. Good folk. They send us their turnips.", "note": "QEY-2: Hagley is a small village just east of Qeynos, under that city's protection; Blakedown is a..."},
+   {"line": "The King broke up Talamir's Regiment for cruelty. Now those same soldiers roam the land as outlaws, and no kinder for it.", "note": "QEY-3: Talamir's Regiment was an old regiment of the Qeynos Guard that Antonius Bayle II disbanded for..."},
+   {"line": "The prisoners hold Qeynos Prison now, south of the city. A prison run by its prisoners. Think on that before you travel that way.", "note": "QEY-4: The prisoners of Qeynos Prison, south of the city, have taken the prison over and are hostile..."},
+   {"line": "There is a tomb near Blakedown where the Servants of the Sickle keep house. Necromancers and dark knights. The farmers plow around it.", "note": "QEY-5: The Servants of the Sickle are a cult of necromancers and shadowknights who live in a tomb near..."},
+   {"line": "They say a vampire keeps Crethley Manor, north-east of the city. The house is a ruin, but something still lights the windows.", "note": "QEY-8: Crethley Manor, north-east of Qeynos, is an ancient ruined mansion rumored to be haunted by a..."},
+   {"line": "The gnolls of Blackburrow are bad enough. They say there are scarabs below them that even the gnolls will not go near.", "note": "QEY-9: A ragtag band of desperate gnolls raids the western regions of Tunaria; the vicious gnolls of..."},
+   {"line": "Mind your purse in the lower streets. The rats of Qeynos walk on two legs when it suits them, and they answer to a family.", "note": "WERE-15, WERE-16: Wegadas's son Yindrius was stolen as a baby by the Ratonga, masters of stealth living under..."},
+   {"line": "Qeynos is a young city yet. When its first villages rose, a druid named Corindas worked among them. He is a lion now, they say.", "note": "WERE-12: Corindas, another son of Wegadas, went south to the Plains of Karana and worked with the druids..."},
+   {"line": "We of the west turn a hand to anything: spell, prayer or sword. The eastern folk have a taste for darker studies, I hear.", "note": "HUMAN-6: Humans of the east are drawn to the paths of shadow and the forbidden dark arts; humans of the..."}
+  ]},
+  {"town": "Qeynos", "role": "guard", "say": [
+   {"line": "A patrol of ours went out and never came back. Lost, the captain says. If you meet guards who look confused, send them home.", "note": "QEY-7: Some guards of Qeynos went out on a patrol and became lost."},
+   {"line": "If you meet men in old Qeynos colors on the road, they are not ours. Talamir's Regiment was disbanded, and for good reason.", "note": "QEY-3: Talamir's Regiment was an old regiment of the Qeynos Guard that Antonius Bayle II disbanded for..."},
+   {"line": "Nobody guards Qeynos Prison any more. The prisoners saw to that. They spare bards and rogues, I am told. Nobody else.", "note": "QEY-4: The prisoners of Qeynos Prison, south of the city, have taken the prison over and are hostile..."},
+   {"line": "Gnoll raiders, desperate ones, all through the west. A hungry gnoll is braver than a fed one. Keep to the road.", "note": "QEY-9: A ragtag band of desperate gnolls raids the western regions of Tunaria; the vicious gnolls of..."}
+  ]},
+  {"town": "Qeynos", "role": "priest", "say": [
+   {"line": "A new cult of Rodcet Nife gathers in a corner of the old prison, of all places. Faith grows in odd soil.", "note": "QEY-4: The prisoners of Qeynos Prison, south of the city, have taken the prison over and are hostile..."},
+   {"line": "The Defenders of Erollisi Marr are the clerics of this city. The Queen of Love makes warriors of her poets, and poets of her warriors.", "note": "QEY-6, GODS-15: The guilds of Qeynos: the monks' Order of the Silent Fist, the bards' Qeynos Troupe, the..."}
+  ]},
+  {"town": "Qeynos", "role": "scholar", "say": [
+   {"line": "The Anagogical Order takes wizards, magicians and enchanters alike. We find the three quarrel less under one roof. Slightly less.", "note": "QEY-6: The guilds of Qeynos: the monks' Order of the Silent Fist, the bards' Qeynos Troupe, the..."}
+  ]},
+  {"town": "Freeport", "say": [
+   {"line": "Freeport is the largest city of men on the eastern coast, and every soul in it is counting something.", "note": "FREE-1: Freeport is the largest human city on the eastern coast of Tunaria, and its citizens are driven..."},
+   {"line": "House Nothard rules Freeport, and the Iron Coffer with it. Here the crown is a ledger.", "note": "FREE-2: Merchant House Nothard is the ruling merchant house of Freeport and of the Iron Coffer..."},
+   {"line": "Merchant House Slaerin deals in the dead. They call it a guild of necromancers. I call it a reason to be buried elsewhere.", "note": "FREE-2: Merchant House Nothard is the ruling merchant house of Freeport and of the Iron Coffer..."},
+   {"line": "The Crusaders of Marr's Fist hold their outpost like an island of law. In Freeport, that is a small island.", "note": "FREE-3, HUMAN-5: The Crusaders of Marr's Fist keep an outpost that is a bastion of honor and law among the..."},
+   {"line": "Nobody knows what is inside the Towers of Noctix. The land around them, west of here, has gone sour. That is all the answer I need.", "note": "FREE-4: The Towers of Noctix are towers of darkness that corrupt the commonlands west of Freeport; what..."},
+   {"line": "The Cracktooth are a small clan, as orcs go. Small clans raid just as hard. Ask anyone who farms the commonlands.", "note": "FREE-5: The Cracktooth are a small clan of orcs that raids the eastern commonlands near Freeport; they..."},
+   {"line": "Temby, just north of here, is a smuggling village. Everyone knows it. Half of Freeport shops there.", "note": "FREE-6: Temby is a small smuggling village just north of Freeport; Hodstock is a village of xenophobic..."},
+   {"line": "The folk of Hodstock, up the River Saren, do not care for strangers. Or neighbors. Or one another, some days.", "note": "FREE-6: Temby is a small smuggling village just north of Freeport; Hodstock is a village of xenophobic..."},
+   {"line": "Men walk into the Desert of Ro and come out mad, if they come out. The sand takes the mind first.", "note": "FREE-8: The northern Desert of Ro begins in the zone south of Freeport; humans who wander into the..."},
+   {"line": "Freeport is a new city, and new gold makes for old sins. Count your change twice.", "note": "HUMAN-2: In the east the new merchant city of Freeport rings with gold changing hands, not always..."},
+   {"line": "We eastern folk have a name for dabbling in shadow. It is not wholly unearned.", "note": "HUMAN-6: Humans of the east are drawn to the paths of shadow and the forbidden dark arts; humans of the..."}
+  ]},
+  {"town": "Freeport", "role": "guard", "say": [
+   {"line": "The Militia keeps the peace in Freeport. The price of peace is posted nowhere. You will learn it.", "note": "FREE-7: The guilds of Freeport: the Academy of Arcane Science for wizards, enchanters and magicians..."},
+   {"line": "Cracktooth orcs again on the commonlands road. Small clan, big appetite. Travel by day.", "note": "FREE-5: The Cracktooth are a small clan of orcs that raids the eastern commonlands near Freeport; they..."},
+   {"line": "The Marr crusaders think Freeport needs saving. The Militia thinks Freeport needs taxing. We were here first.", "note": "FREE-3: The Crusaders of Marr's Fist keep an outpost that is a bastion of honor and law among the..."}
+  ]},
+  {"town": "Freeport", "role": "trader", "say": [
+   {"line": "Nothing is sold in Freeport that House Nothard has not weighed first. I say that with respect. They may be listening.", "note": "FREE-2: Merchant House Nothard is the ruling merchant house of Freeport and of the Iron Coffer..."}
+  ]},
+  {"town": "Freeport", "role": "priest", "say": [
+   {"line": "The Church of the Marr twins has only begun its work here. There are a few good people in Freeport. We mean to find them all.", "note": "HUMAN-5, FREE-3: In Freeport the Church of the Marr twins is only now beginning its crusade against tyranny, for..."}
+  ]},
+  {"town": "Freeport", "role": "scholar", "say": [
+   {"line": "The Academy of Arcane Science teaches wizards, enchanters and magicians. The fees are steep. Ignorance costs more, we like to say.", "note": "FREE-7: The guilds of Freeport: the Academy of Arcane Science for wizards, enchanters and magicians..."}
+  ]},
+  {"town": "Highpass", "say": [
+   {"line": "We carved Highpass out of the Serpent's Spine with our own hands. The mountain did not want us here. The mountain lost.", "note": "PASS-1: The rugged humans of Highpass have carved a lucrative living out of the Serpent's Spine..."},
+   {"line": "There is one pass through these mountains and we sit in it. Some call that luck. We call it rent.", "note": "PASS-1, HUMAN-3: The rugged humans of Highpass have carved a lucrative living out of the Serpent's Spine..."},
+   {"line": "Bastable lies east along the great Trade Road. Decent folk. Every wagon that reaches us has watered its horses there.", "note": "PASS-2: Bastable is a human village east of Highpass, on the great Trade Road; the bards of Highpass..."},
+   {"line": "The Royal Players sing in Highpass. They will sing of you too, for a price. For a higher one they will not.", "note": "PASS-2: Bastable is a human village east of Highpass, on the great Trade Road; the bards of Highpass..."},
+   {"line": "Runnyeye sits just north of us, full of goblins. A place of festering evil, the priests call it. I call it a bad neighbor.", "note": "PASS-3: Runnyeye Citadel, a place of festering evil on the edge of the Misty Thicket, is held by the..."},
+   {"line": "The hills west of the hold are called the Bandit Hills. Nobody argued about the name.", "note": "PASS-3: Runnyeye Citadel, a place of festering evil on the edge of the Misty Thicket, is held by the..."},
+   {"line": "Ferran's Hope was a thriving village once, down in the Serpent Hills. Go and look at the ashes, if you think walls do not matter.", "note": "LAND-20: Ferran's Hope, once a thriving human village in the Serpent Hills, is a charred husk."},
+   {"line": "Folk wonder what the lords of Highpass mean to do with all that wealth. So do we, between ourselves.", "note": "HUMAN-3: Inland, Highpass carves its living out of the Serpent Spine Mountains and commands the only..."}
+  ]},
+  {"town": "Highpass", "role": "guard", "say": [
+   {"line": "The Highpass Guard is well paid, and worth it. Dark elf, troll or dwarf, we let you pass alike. Your coin has no race.", "note": "PASS-1: The rugged humans of Highpass have carved a lucrative living out of the Serpent's Spine..."},
+   {"line": "Goblins from Runnyeye test the north road every season. Every season we send fewer of them home.", "note": "PASS-3: Runnyeye Citadel, a place of festering evil on the edge of the Misty Thicket, is held by the..."}
+  ]},
+  {"town": "Highpass", "role": "trader", "say": [
+   {"line": "East or west, it all rolls down the Trade Road and through our gate. I only stand here and wait for it.", "note": "PASS-2: Bastable is a human village east of Highpass, on the great Trade Road; the bards of Highpass..."}
+  ]},
+  {"town": "Halas", "say": [
+   {"line": "Halas is a young city. My grandfather followed the herds from camp to camp. I have a roof, and I still wake at every wind.", "note": "HAL-1: Halas is a fledgling city far to the north, built and sustained by the united barbarian tribes..."},
+   {"line": "The tribes of Everfrost built Halas together. It is the first thing they ever agreed on. It may be the last.", "note": "HAL-1, BARB-1: Halas is a fledgling city far to the north, built and sustained by the united barbarian tribes..."},
+   {"line": "The Anu tribe keeps to itself. Kill a frost giant and they might share their fire. Bring a wizard or a priest and they will not.", "note": "HAL-2: The barbarians of the Anu tribe keep apart: their trust is won only by killing their most hated..."},
+   {"line": "Snowfist orcs to the east, Frosteye to the south, and Freezeblood goblins under every drift. Halas does not lack for neighbors.", "note": "HAL-3: Clan Snowfist, brutal orcs of the frozen wastes, hold the zone east of Halas; the Frosteye orcs..."},
+   {"line": "Diren's Hold sits on a mountain south of here. Northmen too, and they sleep sounder than we do, with all that rock around them.", "note": "HAL-4: Diren's Hold is a barbarian village built securely on a mountain south of Halas; Brontar's..."},
+   {"line": "Brontar and his bandits roam the tundra. A man who robs travelers in Everfrost must be desperate. There are so few of us to rob.", "note": "HAL-4: Diren's Hold is a barbarian village built securely on a mountain south of Halas; Brontar's..."},
+   {"line": "The southerners call us barbarians. We call ourselves Northmen. One of those names was chosen by people who have met us.", "note": "BARB-3: Their city Halas stands in the mountains of Everfrost; the world calls them barbarians, and..."},
+   {"line": "Ask a Northman his clan before you ask his name. He will tell you both anyway, and his grandfather's.", "note": "BARB-4: Northmen take great pride in clan lineage; eating, drinking and battle are their pastimes. Most..."},
+   {"line": "They say Ungar Glacierfist of the Anu fought with a bear's strength because he was one. Nobody said it to his face.", "note": "WERE-10: Among the barbarian tribes of the north the bear's curse is second only to the wolf's; the..."},
+   {"line": "Orcs, goblins and giants on every side. If Halas falls, there is no second Halas. So it will not fall.", "note": "BARB-2: Orcs, goblins and the frost giants press the barbarians from every side and could snuff out all..."},
+   {"line": "Lady Vox is the ice dragon of the north. The giants and goblins take her orders, they say. We have a wall, and good axes.", "note": "LAND-9: Lady Vox is the terrible and legendary ice dragon of the north, said to lead legions of goblins..."}
+  ]},
+  {"town": "Halas", "role": "guard", "say": [
+   {"line": "The Wolves of the North guard Halas. We are a new pack, but the cold trained us long before the city did.", "note": "HAL-1: Halas is a fledgling city far to the north, built and sustained by the united barbarian tribes..."},
+   {"line": "The Freezeblood goblins have their village south of the gate. Small, blue with cold, and mean. Do not stop to pity them.", "note": "HAL-3: Clan Snowfist, brutal orcs of the frozen wastes, hold the zone east of Halas; the Frosteye orcs..."},
+   {"line": "The frost giants are the Anu tribe's most hated enemy. They are no friends of ours either. That is as near as we come to an alliance.", "note": "HAL-2: The barbarians of the Anu tribe keep apart: their trust is won only by killing their most hated..."}
+  ]},
+  {"town": "Halas", "role": "priest", "say": [
+   {"line": "The Seers of the Tribunal are the shamans of the clans. Not every Northman hears the call. Those who do are never quite warm again.", "note": "HAL-1, BARB-4: Halas is a fledgling city far to the north, built and sustained by the united barbarian tribes..."}
+  ]},
+  {"town": "Moradhim", "say": [
+   {"line": "King Stormhammer sent us out to find ore near three hundred years back. We found it. Nobody has sent word to stop digging.", "note": "DWARF-1: Almost three centuries ago the dwarven King Stormhammer sent out many expeditions for new..."},
+   {"line": "The elves are at war again, off east. Let them. The mountain does not care who rules the trees, and neither do we.", "note": "DWARF-2: The dwarves are content to harvest the mountains and care nothing for the elven war raging to..."},
+   {"line": "Chiasta lies in a little canyon east of here. Quiet folk. Too quiet for a dwarf, but pleasant enough.", "note": "MOR-2: Chiasta is a quiet village in a small canyon east of Moradhim; Baga is a small troll village..."},
+   {"line": "There is a troll village at Baga, south of us. Small. We watch it the way you watch a crack in a mine prop.", "note": "MOR-2: Chiasta is a quiet village in a small canyon east of Moradhim; Baga is a small troll village..."},
+   {"line": "The Goldfeather birdmen nest north of us. One at Goldfeather is called the Blue Magician. I have not asked what makes him blue.", "note": "MOR-3: The eyrie of the Goldfeather aviaks lies north of Moradhim, the Shon-To monastery east of it..."},
+   {"line": "There is a monastery east of here, Shon-To. Monks. They do not dig. I do not know what they do all day.", "note": "MOR-3: The eyrie of the Goldfeather aviaks lies north of Moradhim, the Shon-To monastery east of it..."},
+   {"line": "Miners Guild 189 went into Blackburrow years ago. They are still down there, trapped among the gnolls. We raise a mug to them.", "note": "QEY-9: A ragtag band of desperate gnolls raids the western regions of Tunaria; the vicious gnolls of..."},
+   {"line": "Grim Brellhand, the Last Smith, went off to live alone in the Unkempt Wood. A legend at the anvil, and only the trees hear his hammer.", "note": "MURNF-3: The Last Smith, Grim Brellhand, is a legendary dwarven smith who lives in seclusion in the..."},
+   {"line": "Clan Gerntar has a mine working far to the south. Good dwarves, bad company down there. Minotaurs, I hear.", "note": "GERN-1: Gerntar is an active mining operation worked by the dwarves of Clan Gerntar; Head Foreman Zeke..."},
+   {"line": "The Frosteye orcs sit west of us, south of Halas. The Northmen thin them from one side, we from the other.", "note": "HAL-3: Clan Snowfist, brutal orcs of the frozen wastes, hold the zone east of Halas; the Frosteye orcs..."},
+   {"line": "Any tavern worth the name keeps a stout stool for a dwarf. If it breaks, the stool was at fault.", "note": "DWARF-3: Dwarves do not count their height a lack (a kneecap breaks as well as a nose); every dwarf..."},
+   {"line": "Brell made us in the first pact and set us in the deep. Gnolls say he made them too. Gnolls say many things before the axe lands.", "note": "GODS-4, GODS-5: In the First Pact of the Gods Brell made the dwarves and set them deep below the crust; by a..."}
+  ]},
+  {"town": "Moradhim", "role": "guard", "say": [
+   {"line": "The Stoneguard holds Moradhim. We stand like the mountain stands. Mostly because we are too stubborn to sit.", "note": "MOR-1: The guards of Moradhim are the Stoneguard, its clerics the Church of Below, its paladins the..."},
+   {"line": "The trolls of Baga are few, and they know it. The day they forget it, the Stoneguard will remind them.", "note": "MOR-2: Chiasta is a quiet village in a small canyon east of Moradhim; Baga is a small troll village..."}
+  ]},
+  {"town": "Moradhim", "role": "priest", "say": [
+   {"line": "The Church of Below serves the Duke of Below. Brell sealed his gate with living stone. We like to think he left us the key.", "note": "MOR-1, GODS-3: The guards of Moradhim are the Stoneguard, its clerics the Church of Below, its paladins the..."}
+  ]},
+  {"town": "Moradhim", "role": "worker", "say": [
+   {"line": "Miners Guild 231 is the rogues' guild, whatever the sign says. They mine pockets. Rich seams, some of them.", "note": "MOR-1: The guards of Moradhim are the Stoneguard, its clerics the Church of Below, its paladins the..."}
+  ]},
+  {"town": "Fayspires", "say": [
+   {"line": "Fayspires is the greatest city we have raised since Takish'Hiz fell. It is beautiful. It is not home.", "note": "FAY-1, ELF-1: Fayspires is the greatest elven city since the fall of Takish'Hiz; its guards are the Paladins..."},
+   {"line": "Every plank laid on the fleet is one day nearer to leaving Tunaria. I have stopped planting trees I will not see grown.", "note": "ELF-2: From Fayspires the elves left on Tunaria race to build a fleet and join their brethren across..."},
+   {"line": "Feydwell was a small village. Raiders out of Neriak left little of it. Those who lived call themselves its last defenders, and they are.", "note": "FAY-2: The small village of Feydwell was almost destroyed by dark elf raiders out of Neriak; its..."},
+   {"line": "The druids of Melton guard the Glinaldal Forest. After Elddar, we do not leave a forest unguarded.", "note": "FAY-3: Melton is a druidic community charged with protecting the Glinaldal Forest; Proudpine is a..."},
+   {"line": "East past Kara Village the path runs on to Klick'Anon. The gnomes are odd neighbors, but they have never burned a forest on purpose.", "note": "FAY-4: Kara Village lies east of Fayspires and Tethelin, and the path east of Kara Village leads to..."},
+   {"line": "Mariel is the last outpost of ours in the west, since Al'Karad fell. A long road from here, and lonelier every year.", "note": "WYND-2: Mariel, the zone north of Wyndhaven, is the only elven outpost left on the western side of..."},
+   {"line": "Cyrian Truearrow still fights in the ruins of Takish'Hiz. He does not fight to win it back. He fights for vengeance.", "note": "TOMB-10: Dark elf forces under General Torvek hold what was Takish'Hiz; the last of its elves fight on..."},
+   {"line": "Some of our kin left Tunaria when the forest first burned. We stayed, sure we could mend it. We were wrong, and here we are.", "note": "TOMB-3: When the forest of Elddar fell to the burning sands, most of the elves of Takish'Hiz left..."},
+   {"line": "Four masters are left in Rosethorn Spire. When the last one dies, a thing older than our people passes to our enemies.", "note": "SPIRE-6: The necromancers laughed last: they had poisoned the mana itself, the weave all magic draws on..."},
+   {"line": "A human necromancer holds Castle Felstar, south-east of us, with legions of dead. As if the Teir'Dal were not enough.", "note": "SERIAK-2: The human necromancer Verghest Felstar and his undead legions hold Castle Felstar, by Lake..."},
+   {"line": "We hold the balance of the living world sacred. Others call that pride. They have never watched a forest die.", "note": "ELF-4: The elves of Tunaria hold the balance of the natural world sacred above all things."}
+  ]},
+  {"town": "Fayspires", "role": "guard", "say": [
+   {"line": "The Paladins of Tunare guard Fayspires. We were too few at Takish'Hiz. We are too few here. We stand all the same.", "note": "FAY-1: Fayspires is the greatest elven city since the fall of Takish'Hiz; its guards are the Paladins..."},
+   {"line": "Dark elf raiders burned Feydwell almost to the ground. They will find Fayspires a harder village.", "note": "FAY-2: The small village of Feydwell was almost destroyed by dark elf raiders out of Neriak; its..."}
+  ]},
+  {"town": "Fayspires", "role": "scholar", "say": [
+   {"line": "Guildmaster Lyriam Kaelean of the College of High Magic wrote the history of the Tomb of the Crown. Read it before you go looking.", "note": "TOMB-1, FAY-1: Takish'Hiz built its tomb and catacombs to the west, within the Serpent's Spine: Holciel..."},
+   {"line": "The vaults under Rosethorn Spire hold the learning of the Koada'Dal wizards. The College would give much to have it here and safe.", "note": "SPIRE-3: The elves shaped its black stone by magic and carved vaults beneath it that hold the artifacts..."}
+  ]},
+  {"town": "Fayspires", "role": "priest", "say": [
+   {"line": "Tunare made us to guard the green world. Innoruuk took our first King and Queen and made of them our enemy. We remember both.", "note": "GODS-6, GODS-13: Tunare, the Mother of All, came soon after Brell, took the surface of Norrath in the First Pact..."}
+  ]},
+  {"town": "Tethelin", "say": [
+   {"line": "We live high in the trees and in sight of our woods. If the forest burns again, we mean to see it coming.", "note": "ELF-3: Most races like the elves; dark elves and trolls would sooner turn them on a spit than speak to..."},
+   {"line": "The Keepers of the Glade tend what grows here, and the Songweavers sing to it. The trees seem to prefer the singing.", "note": "TETH-1: Tethelin's druids are the Keepers of the Glade, its rogues the Scouts of Tunare, its bards the..."},
+   {"line": "Dryads, satyrs and fauns walk these woods. They are the spirits of the forest. Be polite; they have long memories.", "note": "TETH-2: Dryads, satyrs and fauns are the spirits of the forest."},
+   {"line": "The village of Loreth Kith has sworn to protect Kithicor Forest. Druids and rangers, all of them. Good neighbors to a tree.", "note": "VALE-4: The Misty Thicket lies west of Rivervale and the northern Kithicor east of it; Loreth Kith is a..."},
+   {"line": "Rangers and druids keep a small outpost at Proudpine. Small is enough, if the eyes are sharp.", "note": "FAY-3: Melton is a druidic community charged with protecting the Glinaldal Forest; Proudpine is a..."},
+   {"line": "The elves of Tak'Xiv made their last stand for the Elddar. The forest is gone, and they stand there still. Somber folk.", "note": "TOMB-10: Dark elf forces under General Torvek hold what was Takish'Hiz; the last of its elves fight on..."},
+   {"line": "One grove of the Elddar lives yet, around a sacred tree in the desert. I mean to see it once, before the fleet sails.", "note": "TOMB-11: A sacred tree, guarded by beasts, still keeps one grove of the old forest alive in the middle..."},
+   {"line": "Most who fled Takish'Hiz went to Fayspires. Some of us wanted leaves overhead, not towers.", "note": "ELF-1: Takish'Hiz, the ancient home of the elves, is a smoking ruin; most of its refugees fled north..."},
+   {"line": "Dark elves and trolls would roast us sooner than greet us. Up here, at least, they must climb first.", "note": "ELF-3: Most races like the elves; dark elves and trolls would sooner turn them on a spit than speak to..."}
+  ]},
+  {"town": "Tethelin", "role": "guard", "say": [
+   {"line": "The Emerald Guardians watch Tethelin from the branches. If you did not see us on your way in, that is as it should be.", "note": "TETH-1: Tethelin's druids are the Keepers of the Glade, its rogues the Scouts of Tunare, its bards the..."},
+   {"line": "A troll cannot climb quietly, and a dark elf would sooner send the dead up a tree than come himself. We watch for both.", "note": "ELF-3, DELF-1: Most races like the elves; dark elves and trolls would sooner turn them on a spit than speak to..."}
+  ]},
+  {"town": "Tethelin", "role": "priest", "say": [
+   {"line": "Karana, Erollisi Marr and Rodcet Nife stand with the Mother of All. Bertoxxulous stands against her. So does every rot in the wood.", "note": "GODS-6: Tunare, the Mother of All, came soon after Brell, took the surface of Norrath in the First Pact..."}
+  ]},
+  {"town": "Klick`Anon", "say": [
+   {"line": "Klick'Anon is the only gnomish city on Tunaria. We put it by the Lavastorm Mountains. The warm ground saves on fuel.", "note": "KLICK-1: Klick'Anon is the only gnomish city on Tunaria, and lies along the edge of the Lavastorm..."},
+   {"line": "We dug our way up to the surface for a little peace and quiet. We came out in the middle of the elves' war. Typical.", "note": "GNOME-1: By exploratory mining a colony of gnomes found a place on the surface to build Klick'Anon and..."},
+   {"line": "We built the clockworks to serve us. Some of them served notice. They have a town of their own now, off east.", "note": "KLICK-2: Clockwork automatons were made to serve the citizens of Klick'Anon; rogue clockworks felled..."},
+   {"line": "Do not mention Clockwork Town to the tinkers. Their own creations threw down their masters and walked out. It stings.", "note": "KLICK-2: Clockwork automatons were made to serve the citizens of Klick'Anon; rogue clockworks felled..."},
+   {"line": "The Institute of Astral Cognizance keeps observatories all over Tunaria. Somebody has to keep an eye on the sky.", "note": "KLICK-4: Gnomes of the Institute of Astral Cognizance keep observatories across Tunaria; the gnomes of..."},
+   {"line": "Plankwalker's Pirates are gnomes, I am sorry to say. They love piracy dearly. They are not at all good at it.", "note": "KLICK-5: Plankwalker's Pirates are gnomish pirates whose fascination with piracy outweighs their skill..."},
+   {"line": "The Coldpaw gnolls have a village just outside the city. Gnolls claim Brell made them. We claim they are mistaken.", "note": "KLICK-6, GODS-5: The Coldpaw gnolls have a village just outside Klick'Anon; the Taereg, a band of rogues and..."},
+   {"line": "The Taereg camp west of the city. Rogues and burglars. Lock your workshop, and then lock the lock.", "note": "KLICK-6: The Coldpaw gnolls have a village just outside Klick'Anon; the Taereg, a band of rogues and..."},
+   {"line": "There are no failures, only temporary setbacks. My cousin has had eleven setbacks and still has seven fingers.", "note": "GNOME-2: Gnomes hold that building contraptions ranks with saving the world; explosions and lost limbs..."},
+   {"line": "They say there is a temple of the Plague King hidden somewhere in this very city. I have looked. Purely as a scholar.", "note": "PLAGUE-3: Bertoxxulous is the Plague King, Lord of Decay; a hidden temple of his stands even in..."},
+   {"line": "Goblins hold the Lavastorm Mountains, and fire giants sit in Solusek's Eye. Explorers Guild 135 goes anyway.", "note": "LAND-14, KLICK-4: Fire giants and a tribe of kobolds live in Solusek's Eye, and goblins hold the Lavastorm..."}
+  ]},
+  {"town": "Klick`Anon", "role": "guard", "say": [
+   {"line": "The Klick'Anon Watch keeps order. If a clockwork gives you trouble, report it. If it gives you a speech, run.", "note": "KLICK-3: The guilds of Klick'Anon: the Mechanamagical College of wizards, enchanters and magicians, the..."},
+   {"line": "Coldpaw gnolls outside the gate, Taereg thieves to the west. Small folk learn to count their enemies early.", "note": "KLICK-6: The Coldpaw gnolls have a village just outside Klick'Anon; the Taereg, a band of rogues and..."}
+  ]},
+  {"town": "Klick`Anon", "role": "scholar", "say": [
+   {"line": "The Mechanamagical College holds that a spell is only a machine with no moving parts. The wizards of other cities find this rude.", "note": "KLICK-3: The guilds of Klick'Anon: the Mechanamagical College of wizards, enchanters and magicians, the..."},
+   {"line": "The Necrological Society is our guild of necromancers. They study the dead with permission. Whose permission is a question they dislike.", "note": "KLICK-3: The guilds of Klick'Anon: the Mechanamagical College of wizards, enchanters and magicians, the..."}
+  ]},
+  {"town": "Klick`Anon", "role": "priest", "say": [
+   {"line": "By the second pact Brell made the gnomes and put us deep underground. The Temple of Brell trusts he does not mind that we came up.", "note": "KLICK-3, GODS-4: The guilds of Klick'Anon: the Mechanamagical College of wizards, enchanters and magicians, the..."}
+  ]},
+  {"town": "Neriak", "say": [
+   {"line": "Neriak lies under the earth, as its people prefer. The sun flatters lesser races.", "note": "NER-1: Neriak is the subterranean city of the dark elves, with its laypeople and its nobility."},
+   {"line": "House Do'Vexis stands first in Neriak, nearest the royal family. Everyone bows to them. Everyone is measuring them for a coffin.", "note": "NER-2: House Do'Vexis is the first House of Neriak, closest to the royal family and the most..."},
+   {"line": "They whisper that House U'Dedne will fall soon. In Neriak a whisper is a knife already drawn.", "note": "NER-2: House Do'Vexis is the first House of Neriak, closest to the royal family and the most..."},
+   {"line": "House J'Narus is third, for now. Many expect it to climb. Make friends there early, or do not be seen there at all.", "note": "NER-2: House Do'Vexis is the first House of Neriak, closest to the royal family and the most..."},
+   {"line": "House Gal'Saris won the right to dig up the Combine ruins in the Green Rift. Whatever they find, the other Houses will want.", "note": "NER-3: House Gal'Saris, a noble house of Neriak, has won the task of excavating the Combine ruins in..."},
+   {"line": "A few fools without a House talk of rebellion against the old order. The old order has buried better fools.", "note": "NER-5: The Houseless Rebellion is a small group of dark elves who seek to rebel against the ancient..."},
+   {"line": "The Double Daggers Inn has rats. Four-legged ones as well.", "note": "NER-7: The noble House of Dshinn works from a secret dark elf outpost; rats infest the Double Daggers..."},
+   {"line": "Takish'Hiz is destroyed, and we destroyed it. Remember that the next time an elf of the light speaks to you of destiny.", "note": "DELF-1: The dark elves poured up out of the Underfoot onto Tunaria, and by necromancy have just won..."},
+   {"line": "The treasure of Takish'Hiz still comes home by way of Hazinak, shipload after shipload. Victory should be carried indoors.", "note": "TOMB-5, HAZ-1: The dark elves looted and defiled the city, and its treasure was, and still is, shipped to..."},
+   {"line": "I will help you now and use you later. That is not a threat, %r. Here it is simple courtesy.", "note": "DELF-3: The Teir'Dal hate every other race and each other; they help one another only for their own..."},
+   {"line": "The trolls are our allies now. Useful creatures. One does not turn one's back on them near a mealtime.", "note": "TROLL-2: The trolls mean to widen their lands; their new alliance with the dark elves is only the start...."}
+  ]},
+  {"town": "Neriak", "role": "guard", "say": [
+   {"line": "The Indigo Brotherhood guards the city. The Royal Guard guards the Royal Family and the First House, and nothing else. Know the difference.", "note": "NER-4: The Royal Guard are elite dark elf guards born and bred for one purpose: to protect the Royal..."},
+   {"line": "If someone speaks to you of a Houseless rebellion, tell the Brotherhood. Quickly. Before someone tells us that you listened.", "note": "NER-5: The Houseless Rebellion is a small group of dark elves who seek to rebel against the ancient..."}
+  ]},
+  {"town": "Neriak", "role": "noble", "say": [
+   {"line": "Three Houses stand above the rest: Do'Vexis, U'Dedne, J'Narus. That is the order this morning. Ask again at dusk.", "note": "NER-2: House Do'Vexis is the first House of Neriak, closest to the royal family and the most..."},
+   {"line": "House Dshinn keeps an outpost that is a secret. I would tell you where, but then one of us would have to stop breathing.", "note": "NER-7: The noble House of Dshinn works from a secret dark elf outpost; rats infest the Double Daggers..."}
+  ]},
+  {"town": "Neriak", "role": "priest", "say": [
+   {"line": "Innoruuk kept the first King and Queen of the elves three hundred years in his Plane of Hate. We are what his attention made. Be grateful.", "note": "GODS-13: Innoruuk, the Prince of Hate, found Norrath after the First Pact, raged that it was peopled..."},
+   {"line": "The Church of Innoruuk teaches one lesson. The Lodge of the Dead teaches what to do with those who fail it.", "note": "NER-6: The guilds of Neriak: the Lodge of the Dead of shadowknights and necromancers, the Spurned of..."}
+  ]},
+  {"town": "Neriak", "role": "scholar", "say": [
+   {"line": "The wizards of Neriak call themselves the Spurned. Ask one why, if you have an hour to lose and nothing you would miss.", "note": "NER-6: The guilds of Neriak: the Lodge of the Dead of shadowknights and necromancers, the Spurned of..."}
+  ]},
+  {"town": "Rivervale", "say": [
+   {"line": "Rivervale is warm, comfortable and ours. Every halfling who leaves spends the whole trip describing it to strangers.", "note": "VALE-1: Rivervale is the warm and comfortable homestead of the halflings; its guards are the Guardians..."},
+   {"line": "We sit in the very middle of Tunaria, and somehow nothing important ever happens here. That takes work.", "note": "HALF-2: Rivervale is a quiet hamlet in the very middle of Tunaria; halflings love travel and adventure..."},
+   {"line": "My cousins live at Merry-by-Water, on the Serpent River. There are not many halfling hamlets. We know every chimney in each.", "note": "VALE-2: Merry-by-Water is one of the few halfling hamlets of Tunaria, on the shore of the northern..."},
+   {"line": "The Thinhairs will not lift a hand against a necromancer or a shadowknight. A halfling family! We do not discuss it at table.", "note": "VALE-3: The Thinhairs are halflings who do not kill necromancers and shadowknights outright, which is..."},
+   {"line": "Runnyeye sits on the edge of the Misty Thicket, full of goblins. Nasty things. They do not even cook what they steal.", "note": "PASS-3: Runnyeye Citadel, a place of festering evil on the edge of the Misty Thicket, is held by the..."},
+   {"line": "East of us is Kithicor. The folk of Loreth Kith have sworn to protect the forest. Somebody should; it is a very dark wood.", "note": "VALE-4: The Misty Thicket lies west of Rivervale and the northern Kithicor east of it; Loreth Kith is a..."},
+   {"line": "Bristlebane tucked us away in a quiet corner of the world on purpose. Best thing a god ever did for anybody.", "note": "GODS-11: Fizzlethorpe Bristlebane, the King of Thieves, came fashionably late, joined Brell and..."},
+   {"line": "We live as our great-grandparents did. Same fields, same recipes. If it was good enough for them, pass the gravy.", "note": "HALF-1: Halflings live as they did hundreds of years ago, simple farmers and craftsmen who care little..."},
+   {"line": "The Bobble-by-Water folk live right up against Nektulos Forest. Brave of them. Or the fishing is very good.", "note": "BOB-1: The halflings of Bobble-by-Water live near Nektulos Forest: Neriak's country is the zone north..."}
+  ]},
+  {"town": "Rivervale", "role": "guard", "say": [
+   {"line": "The Guardians of the Vale keep Rivervale. We are small. So is a wasp.", "note": "VALE-1: Rivervale is the warm and comfortable homestead of the halflings; its guards are the Guardians..."},
+   {"line": "Runnyeye goblins come creeping through the Thicket. We send them back with lumps. It is tradition by now.", "note": "PASS-3, HALF-2: Runnyeye Citadel, a place of festering evil on the edge of the Misty Thicket, is held by the..."}
+  ]},
+  {"town": "Rivervale", "role": "priest", "say": [
+   {"line": "The Temple of Bristlebane holds a good laugh sacred. Do not leave your purse on the pew, mind. That is sacred too.", "note": "VALE-1, GODS-12: Rivervale is the warm and comfortable homestead of the halflings; its guards are the Guardians..."}
+  ]},
+  {"town": "Rivervale", "role": "citizen", "say": [
+   {"line": "The Deep Pockets are Rivervale's rogues. We do not approve. We do like to know where our spoons have got to.", "note": "VALE-1: Rivervale is the warm and comfortable homestead of the halflings; its guards are the Guardians..."}
+  ]},
+  {"town": "Surefall Glade", "say": [
+   {"line": "This circle has kept the Jaggedpine for many years. Rangers and druids together. The pines do not care which is which.", "note": "SURE-1: The circle of rangers and druids of Surefall Glade has worked for many years to protect the..."},
+   {"line": "Jethro's Pike is a fishing village on the big lake west of here. Honest folk, mostly, when the gnolls let them be.", "note": "SURE-2: Jethro's Pike is a fishing village on the shore of a large lake just west of Surefall Glade..."},
+   {"line": "The Red Ear gnolls fight the fishermen of Jethro's Pike and leave us in peace. A gnoll can tell who respects the wood.", "note": "SURE-2: Jethro's Pike is a fishing village on the shore of a large lake just west of Surefall Glade..."},
+   {"line": "North of the glade lies Murnf, on the edge of the Unkempt. The farmers there say keep out of that forest. Heed them.", "note": "SURE-3, MURNF-1: Murnf lies north of Surefall Glade and the Fog Marsh south of it; Wymondham, to the east, is a..."},
+   {"line": "The Fog Marsh lies south of us. Trolls keep a holy place there. We do not trouble them, and we count them often.", "note": "SURE-3, HONJ-1: Murnf lies north of Surefall Glade and the Fog Marsh south of it; Wymondham, to the east, is a..."},
+   {"line": "Corindas worked beside the druids of this glade once, before he took the lion's shape. We still speak his name with respect.", "note": "WERE-12: Corindas, another son of Wegadas, went south to the Plains of Karana and worked with the druids..."},
+   {"line": "The Sun Manes fight the plow and the poacher out on the plains. I cannot say they are wrong. I cannot say it loudly, either.", "note": "WERE-13: The Kejrahn lionmen are dwindling, and many have fled Tunaria for the lands of their cousins..."},
+   {"line": "The gnolls of Blackburrow are a vicious tribe. A wood has more than one kind of blight.", "note": "QEY-9: A ragtag band of desperate gnolls raids the western regions of Tunaria; the vicious gnolls of..."}
+  ]},
+  {"town": "Surefall Glade", "role": "guard", "say": [
+   {"line": "The Protectors of the Pine guard this glade. Hunt what you need and no more. We count the deer, and the hunters.", "note": "SURE-1: The circle of rangers and druids of Surefall Glade has worked for many years to protect the..."},
+   {"line": "Poachers on the plains answer to the werelions. Poachers in the Jaggedpine answer to us. They prefer the lions.", "note": "WERE-13: The Kejrahn lionmen are dwindling, and many have fled Tunaria for the lands of their cousins..."}
+  ]},
+  {"town": "Highbourne", "say": [
+   {"line": "Erud lives among us, one of the great minds of Tunaria. One tries not to waste his time. One tries not to waste one's own.", "note": "HIGH-1: Highbourne is the center of Erudite society and home to Erud, one of the greatest minds on..."},
+   {"line": "Highbourne was built on earth, stone and the words of Erud. The words have borne the most weight.", "note": "ERUD-1: Highbourne, the city of the Highmen in the south and west, was built on earth, stone and the..."},
+   {"line": "The land has grown too violent and too greedy for thinking people. From here we shall build the fleet. We call it the Exodus.", "note": "ERUD-2: The violence and greed of the land grew too much for them: the Erudites look to the Exodus of..."},
+   {"line": "Across the water, on Odus, Arcadin is rising in gleaming marble. It is not finished. Neither are we.", "note": "HIGH-4: Arcadin is a gleaming city of marble still under construction on Odus, the new home of the..."},
+   {"line": "Some of our own sell forbidden goods from a camp at Jextalan, against the wishes of Arcadin. Even the High Men have their low ones.", "note": "HIGH-4: Arcadin is a gleaming city of marble still under construction on Odus, the new home of the..."},
+   {"line": "There are Erudites who follow the Faceless. They have a foothold on Odus already, and they build there with slaves. We do not call them kin.", "note": "HIGH-5: The Erudite followers of Cazic-Thule built Morthalis, a temporary town, to secure their..."},
+   {"line": "Odus is no garden. A queen of the Naga holds power there, and a poison dragon. We shall civilize what we can.", "note": "HIGH-6: Odus has its terrors: Sylhilthis, Queen of the evil and deceitful Naga, a being of awesome..."},
+   {"line": "The road to Highbourne crosses a river's mouth and passes beasts that have eaten better scholars than you. Stay on it.", "note": "HIGH-7: Qeynos Prison is the zone north of Highbourne and Stoneclaw the zone east of it, where phase..."},
+   {"line": "East of the city lies Stoneclaw. Jackals that phase out of nothing, and pumas made of shadow. Fascinating. From a distance.", "note": "HIGH-7: Qeynos Prison is the zone north of Highbourne and Stoneclaw the zone east of it, where phase..."},
+   {"line": "The Northmen settle matters with their arms. We find that any obstacle yields to sufficient thought. Eventually.", "note": "ERUD-3: The High Men are the opposite of the Northmen: proud of mind and manners, careless of the body..."},
+   {"line": "It is said the Northmen were our forefathers. One does not choose one's ancestors. One merely improves upon them.", "note": "GODS-15: Erollisi Marr, the Queen of Love, and her brother set the barbarians to roam the frozen north..."}
+  ]},
+  {"town": "Highbourne", "role": "guard", "say": [
+   {"line": "The Peacekeepers keep Highbourne as it ought to be kept: quietly. Lower your voice, %r.", "note": "HIGH-2: Highbourne's church of Prexus is the Church of the Holy Pearl; its clerics are the Hand of..."},
+   {"line": "Undead rats have been seen outside the walls. They serve something hidden. If you learn what, the Peacekeepers would be obliged.", "note": "HIGH-3: Evil Erudites keep a hidden chapel of Cazic-Thule, the Hidden; undead rats outside Highbourne..."}
+  ]},
+  {"town": "Highbourne", "role": "scholar", "say": [
+   {"line": "The Library governs Highbourne, and Erud leads the Library. Other cities are ruled by whoever has the most swords. Imagine.", "note": "HIGH-1: Highbourne is the center of Erudite society and home to Erud, one of the greatest minds on..."},
+   {"line": "I have seen the plans for Arcadin. A whole city of marble, and still under construction. Scholars are debating the rest.", "note": "HIGH-4: Arcadin is a gleaming city of marble still under construction on Odus, the new home of the..."}
+  ]},
+  {"town": "Highbourne", "role": "priest", "say": [
+   {"line": "The Church of the Holy Pearl honors Prexus, the Ocean Lord. A people about to cross the sea does well to be on good terms with it.", "note": "HIGH-2, GODS-7: Highbourne's church of Prexus is the Church of the Holy Pearl; its clerics are the Hand of..."},
+   {"line": "There is talk of a hidden chapel to the Faceless among our own people. Fear is a poor substitute for understanding.", "note": "HIGH-3: Evil Erudites keep a hidden chapel of Cazic-Thule, the Hidden; undead rats outside Highbourne..."}
+  ]},
+  {"town": "Highbourne", "role": "noble", "say": [
+   {"line": "The Senate of Highbourne debates every matter thoroughly. Erud then tells us what we concluded.", "note": "HIGH-1: Highbourne is the center of Erudite society and home to Erud, one of the greatest minds on..."}
+  ]},
+  {"town": "Grobb", "say": [
+   {"line": "Grobb biggest troll place in all Tunaria. Most trolls. Most teeth.", "note": "GROBB-1: Grobb is the largest community of trolls on Tunaria; its guards are Da Bashers, its shamans the..."},
+   {"line": "Ykesha best troll ever. Ykesha dead now. No troll that good again. Maybe me.", "note": "TROLL-1: Ykesha, the greatest troll leader who ever lived, is dead; the frogloks have retaken the caves..."},
+   {"line": "Dead frogloks walk in Guk. Angry troll ghosts ride inside them. Good. Trolls still fight for Guk, even dead.", "note": "GROBB-2: Guk is the zone north of Grobb; the undead frogloks there are possessed by the angry spirits of..."},
+   {"line": "Mushroom men live in Guk too. Troll eat one once. Troll see colors for three days.", "note": "GROBB-2: Guk is the zone north of Grobb; the undead frogloks there are possessed by the angry spirits of..."},
+   {"line": "Razgut clan lose. Razgut camp at Fort Alliance now. Shame on Razgut.", "note": "GROBB-3: The troll clans struggle for dominance: the Razgut, camped at Fort Alliance, are losing; the..."},
+   {"line": "Brokenskull clan think Brokenskull best. Grobb think Grobb best. Clans hit each other till one right.", "note": "GROBB-3: The troll clans struggle for dominance: the Razgut, camped at Fort Alliance, are losing; the..."},
+   {"line": "Bloodfoot trolls go rob with orcs on Mount Hatespike. Orcs share loot. Trolls share less.", "note": "GROBB-4: The Bloodfoot are orc and troll bandits with a large camp on Mount Hatespike."},
+   {"line": "Dark elves friends with Grobb now. Dark elves think they use troll. Troll think dark elf look tasty. We see who right.", "note": "TROLL-2: The trolls mean to widen their lands; their new alliance with the dark elves is only the start...."},
+   {"line": "Black dragon Siliskor scare whole south swamp. Even troll look up. Troll no like look up.", "note": "LAND-10: Siliskor is a loathsome black dragon that terrorizes the swamps of southern Tunaria."},
+   {"line": "Mog crazy. Mog shaman, live in Brog Fens with crazy friends. Even troll say Mog crazy.", "note": "BLACK-1: Blackwater is a human town bordering a swamp on the Lifire River, in the Brog Fens, where the..."}
+  ]},
+  {"town": "Grobb", "role": "guard", "say": [
+   {"line": "Me Basher. Da Bashers guard Grobb. Bash first. Ask later. Then bash again.", "note": "GROBB-1: Grobb is the largest community of trolls on Tunaria; its guards are Da Bashers, its shamans the..."},
+   {"line": "Grimrik trolls hide in Spider Mine. Hate everybody. Even Grobb. You see them, you tell Basher.", "note": "GROBB-3: The troll clans struggle for dominance: the Razgut, camped at Fort Alliance, are losing; the..."}
+  ]},
+  {"town": "Grobb", "role": "priest", "say": [
+   {"line": "Cazic-Thule make troll in second pact. Give troll swamp. Give troll fear. Troll keep both.", "note": "GODS-10: In the Second Pact Cazic-Thule, the Faceless, made the lizard men and the trolls and gave them..."},
+   {"line": "Dark Ones shamans of Grobb. Talk to spirits. Spirits say eat. Spirits always say eat. Good spirits.", "note": "GROBB-1: Grobb is the largest community of trolls on Tunaria; its guards are Da Bashers, its shamans the..."}
+  ]},
+  {"town": "Honjour", "say": [
+   {"line": "Honjour holy place. Cazic-Thule look at troll here. Troll feel it on neck.", "note": "HONJ-1: Honjour, in the Fog Marsh, is a place of religious significance to the devout troll worshippers..."},
+   {"line": "Trolls walk long way to pray at Honjour. Feet hurt. Fear good. Worth it.", "note": "HONJ-1: Honjour, in the Fog Marsh, is a place of religious significance to the devout troll worshippers..."},
+   {"line": "Cazic-Thule make troll and lizard man same pact. Troll better. Lizard man know it.", "note": "GODS-10: In the Second Pact Cazic-Thule, the Faceless, made the lizard men and the trolls and gave them..."},
+   {"line": "Tree people live north of marsh, in Surefall. They count trolls. Troll count them back. Troll lose count.", "note": "HONJ-2: Surefall Glade lies north of the Fog Marsh, the ruins of Al'Karad east of it and Crethley Manor..."},
+   {"line": "Old elf ruins east of marsh. Al'Karad. Elves lose big there. Troll like that story.", "note": "HONJ-2: Surefall Glade lies north of the Fog Marsh, the ruins of Al'Karad east of it and Crethley Manor..."},
+   {"line": "Blood drinker live in broken house west of marsh. Troll no visit. Troll blood stay in troll.", "note": "QEY-8, HONJ-2: Crethley Manor, north-east of Qeynos, is an ancient ruined mansion rumored to be haunted by a..."},
+   {"line": "Troll kill, troll eat, troll kill again. Shaman say this whole wisdom. Shaman smart.", "note": "TROLL-3: Trolls delight in killing, eating what they kill, and killing again; now and then one with a..."}
+  ]},
+  {"town": "Honjour", "role": "guard", "say": [
+   {"line": "Me guard holy place. You no pray to Cazic-Thule? Then you walk soft and leave fast.", "note": "HONJ-1: Honjour, in the Fog Marsh, is a place of religious significance to the devout troll worshippers..."}
+  ]},
+  {"town": "Oggok", "say": [
+   {"line": "Oggok sit on old Rallosian Empire. Ogres great once. Stones remember. Ogres forget little bit.", "note": "OGG-1: Oggok is the ogres' city, built on the ruins of the once great Rallosian Empire; the Craknek..."},
+   {"line": "Under Oggok, old empire ruins. Big stones. Old ogres build good. New ogres sit good.", "note": "OGG-1: Oggok is the ogres' city, built on the ruins of the once great Rallosian Empire; the Craknek..."},
+   {"line": "Sarek betray all ogres. Great Betrayer. Sarek hide with dirt monsters now. Ogre find him, ogre smash long time.", "note": "OGG-2: Sarek is the Great Betrayer of the ogre race, and has earthen minions."},
+   {"line": "Blacktoe ogres guard shrine. Trust nobody. Trust troll little bit. Very little bit.", "note": "OGG-3: The Blacktoe ogres keep the shrine at Oggok and trust no one, except trolls a little; the Mog..."},
+   {"line": "Mog Thugs rob in Rathe Mountains. Bad ogres. Good at robbing, though.", "note": "OGG-3: The Blacktoe ogres keep the shrine at Oggok and trust no one, except trolls a little; the Mog..."},
+   {"line": "Sphinx live in Rathe Mountains. Sphinx keep secrets. Ogre no like secrets. Ogre like club.", "note": "OGG-4: The Rathe Mountains are the only home of the mysterious and secretive sphinxes; the Rainfeather..."},
+   {"line": "Bird men live up in mountains. Rainfeather tribe. Too high for ogre. Too bony for dinner.", "note": "OGG-4: The Rathe Mountains are the only home of the mysterious and secretive sphinxes; the Rainfeather..."},
+   {"line": "Rallos Zek make giants first. Then make ogre. Second try better.", "note": "GODS-8, GODS-9: Rallos Zek, the Warlord, came with the first gods but kept out of the First Pact; he left his..."},
+   {"line": "One-eyes guard Urglunt's Gate into mountains. One eye enough to see you. You go round.", "note": "LAND-18: Cyclops guards watch Urglunt's Gate, one of the few passes into the Rathe Mountains."}
+  ]},
+  {"town": "Oggok", "role": "guard", "say": [
+   {"line": "Craknek strongest in Oggok. Craknek guard ogres. Me Craknek. You see how strong?", "note": "OGG-1: Oggok is the ogres' city, built on the ruins of the once great Rallosian Empire; the Craknek..."},
+   {"line": "You see Sarek, you tell Craknek. No fight him. He got dirt monsters. We got bigger clubs.", "note": "OGG-2: Sarek is the Great Betrayer of the ogre race, and has earthen minions."}
+  ]},
+  {"town": "Oggok", "role": "priest", "say": [
+   {"line": "Chosen of Gunthak talk to spirits. Greenblood temple talk to dead. Ogre talk to everybody. Nobody get away.", "note": "OGG-1: Oggok is the ogres' city, built on the ruins of the once great Rallosian Empire; the Craknek..."}
+  ]},
+  {"town": "Kerplunk Outpost", "say": [
+   {"line": "Kerplunk last ogre place outside mountains. No other left. Kerplunk stay.", "note": "KERP-1: Kerplunk is the last ogre outpost outside the Rathe Mountains, deep in the jungles of southern..."},
+   {"line": "Jungle all round. Deep jungle. Bugs big. Ogre bigger. Ogre stay.", "note": "KERP-1: Kerplunk is the last ogre outpost outside the Rathe Mountains, deep in the jungles of southern..."},
+   {"line": "Old place of Cazic-Thule south of here. Lizard men love it. Ogre no go. Too many stairs.", "note": "KERP-2: The temple-land of Cazic-Thule is the zone south of Kerplunk, the gate of Oggok west of it..."},
+   {"line": "Tae Ew lizard men sneak in jungle. Ogre step on some. More come.", "note": "KERP-2: The temple-land of Cazic-Thule is the zone south of Kerplunk, the gate of Oggok west of it..."},
+   {"line": "Elephant bones north of outpost. Whole graveyard. Elephant almost big as ogre. Almost.", "note": "KERP-2: The temple-land of Cazic-Thule is the zone south of Kerplunk, the gate of Oggok west of it..."},
+   {"line": "Black dragon Siliskor scare south swamps. Ogre no afraid. Ogre just busy that day.", "note": "LAND-10: Siliskor is a loathsome black dragon that terrorizes the swamps of southern Tunaria."},
+   {"line": "Oggok far behind gate, on old empire stones. Here only outpost. Somebody must watch jungle.", "note": "OGG-1, KERP-2: Oggok is the ogres' city, built on the ruins of the once great Rallosian Empire; the Craknek..."}
+  ]},
+  {"town": "Kerplunk Outpost", "role": "guard", "say": [
+   {"line": "Me guard last outpost. Outpost fall, no more ogre outside mountains. So outpost no fall.", "note": "KERP-1: Kerplunk is the last ogre outpost outside the Rathe Mountains, deep in the jungles of southern..."}
+  ]},
+  {"town": "Blackwater", "say": [
+   {"line": "We live between the Lifire and the swamp. The river brings trade. The swamp brings everything else.", "note": "BLACK-1: Blackwater is a human town bordering a swamp on the Lifire River, in the Brog Fens, where the..."},
+   {"line": "A crazed troll shaman called Mog keeps to the Brog Fens with his followers. We leave the fens to him. He has not thanked us.", "note": "BLACK-1: Blackwater is a human town bordering a swamp on the Lifire River, in the Brog Fens, where the..."},
+   {"line": "The centaurs hold the valley north of us. They trade now and then, and always look as if they are doing us a favor.", "note": "BLACK-2: The valley of the centaurs lies north of Blackwater's fens, Fort Alliance south of them..."},
+   {"line": "South of the fens stands Fort Alliance. Elves, dwarves and men living together, and in harmony. I would not have believed it.", "note": "BLACK-2, LAND-15: The valley of the centaurs lies north of Blackwater's fens, Fort Alliance south of them..."},
+   {"line": "Birdmen roost on Widow's Peak, west of here. Bluefeather's Brood. They watch the fens like herons.", "note": "BLACK-2: The valley of the centaurs lies north of Blackwater's fens, Fort Alliance south of them..."},
+   {"line": "Griffons nest in the Serpent Hills to the east. The folk of Waterspout scrape a living under them. Poor souls.", "note": "BLACK-2: The valley of the centaurs lies north of Blackwater's fens, Fort Alliance south of them..."},
+   {"line": "Old folk say the Lifire once ran choked with the dead of Rosethorn Spire, burned by the wizards' fire. I still will not drink from it.", "note": "SPIRE-5: The Teir'Dal raised a legion of dead to take the Spire; its masters met them with the greatest..."}
+  ]},
+  {"town": "Blackwater", "role": "guard", "say": [
+   {"line": "Watch the swamp side after dark. Mog's trolls wander when the fit takes them, and the fit takes them often.", "note": "BLACK-1: Blackwater is a human town bordering a swamp on the Lifire River, in the Brog Fens, where the..."},
+   {"line": "Dragon worshippers pass through now and then. Mad, every one. If a stranger asks which dragon you favor, walk away.", "note": "LAND-8: A cult of mad humans worships dragons, whatever the plain danger of it."}
+  ]},
+  {"town": "Bobble-by-Water", "say": [
+   {"line": "Nektulos Forest starts just past our fences. We planted the hedge thick on that side.", "note": "BOB-1: The halflings of Bobble-by-Water live near Nektulos Forest: Neriak's country is the zone north..."},
+   {"line": "Neriak is the next country north. We wave at the dark elves when they pass. They never wave back.", "note": "BOB-1: The halflings of Bobble-by-Water live near Nektulos Forest: Neriak's country is the zone north..."},
+   {"line": "The Cracktooth orcs are a small clan, they say. They do not look small from behind a pie safe.", "note": "FREE-5: The Cracktooth are a small clan of orcs that raids the eastern commonlands near Freeport; they..."},
+   {"line": "West of us is the Green Rift, with Combine ruins in it older than anybody's grandmother. A House of Neriak is digging there.", "note": "BOB-1, LAND-25, NER-3: The halflings of Bobble-by-Water live near Nektulos Forest: Neriak's country is the zone north..."},
+   {"line": "There are only a few halfling hamlets in all Tunaria. We are one. Merry-by-Water is another. We exchange recipes and insults.", "note": "VALE-2: Merry-by-Water is one of the few halfling hamlets of Tunaria, on the shore of the northern..."},
+   {"line": "Hodstock is south of here. They dislike strangers. We have been neighbors for years and they still call us strangers.", "note": "FREE-6, BOB-1: Temby is a small smuggling village just north of Freeport; Hodstock is a village of xenophobic..."},
+   {"line": "Bristlebane put halflings out of the way of trouble. Somebody moved the trouble closer. We have complained.", "note": "GODS-11: Fizzlethorpe Bristlebane, the King of Thieves, came fashionably late, joined Brell and..."}
+  ]},
+  {"town": "Bobble-by-Water", "role": "guard", "say": [
+   {"line": "Cracktooth orcs lurk about the village. Raise a shout if you see one. Raise two if it sees you.", "note": "FREE-5: The Cracktooth are a small clan of orcs that raids the eastern commonlands near Freeport; they..."}
+  ]},
+  {"town": "Castle Lightwolf", "say": [
+   {"line": "This castle trains warriors, and it guards the north from invasion. Both duties are older than anyone serving here.", "note": "LIGHT-1: Castle Lightwolf, in the North Wilderlands, is a training center for warriors and is charged..."},
+   {"line": "Slay a beast in the ice castle of Lady Vox, up in Permafrost, and you will find a warmer welcome within these walls.", "note": "LIGHT-2: The castle trusts those who slay the beasts of Lady Vox's castle in Permafrost; ambassadors..."},
+   {"line": "Ambassadors keep rooms in our towers. Each one watches the others. We watch all of them.", "note": "LIGHT-2: The castle trusts those who slay the beasts of Lady Vox's castle in Permafrost; ambassadors..."},
+   {"line": "The Anu have their village north of the Wilderlands. Hard folk. They trust a giant-killer and nobody else.", "note": "LIGHT-3, HAL-2: The village of the Anu lies north of the castle's Wilderlands, the northern Unkempt west of..."},
+   {"line": "West of us the Unkempt begins. The castle helps keep its northern edge. Who asked that of us is not a thing we discuss.", "note": "LIGHT-3, WERE-6: The village of the Anu lies north of the castle's Wilderlands, the northern Unkempt west of..."},
+   {"line": "Three generations of Lightwolfs have kept this castle. And its secrets. Do not ask which is the heavier burden.", "note": "WERE-6: For three generations the lords of Castle Lightwolf have kept their lycanthropy secret from all..."},
+   {"line": "The wolves that howl outside our walls are not ours. Masterless things. The moon makes fools of them.", "note": "WERE-7: Wolfweres have no human form and no mastery of themselves; when the moon of Drinal is full they..."}
+  ]},
+  {"town": "Castle Lightwolf", "role": "guard", "say": [
+   {"line": "We are charged with guarding the north. Orc, giant or goblin, the castle means to stop it here.", "note": "LIGHT-1: Castle Lightwolf, in the North Wilderlands, is a training center for warriors and is charged..."},
+   {"line": "Werewolves prowl the country round the castle. Stay on the road at night. If you leave it, do not run. They like it when you run.", "note": "LIGHT-1, WERE-7: Castle Lightwolf, in the North Wilderlands, is a training center for warriors and is charged..."}
+  ]},
+  {"town": "Dark Solace", "say": [
+   {"line": "The self-righteous of Tunaria drove us out of their cities. Dark Solace took us in. We remember both.", "note": "SOLACE-1: Dark Solace is a safe sanctuary offered to every evil humanoid persecuted by the self-righteous..."},
+   {"line": "Troll, ogre, dark elf, or a human with the wrong god: all are safe here. It is the only promise this town makes.", "note": "SOLACE-1: Dark Solace is a safe sanctuary offered to every evil humanoid persecuted by the self-righteous..."},
+   {"line": "Pay no mind to the Disciples of Plague at the front of town. They do not think. They only serve.", "note": "SOLACE-1: Dark Solace is a safe sanctuary offered to every evil humanoid persecuted by the self-righteous..."},
+   {"line": "West of the crossroads is Urglunt's Wall, with cyclops at its gate. East, the centaurs. Neither likes our kind. Nobody does.", "note": "SOLACE-2, LAND-18: Urglunt's Wall lies west of Dark Solace's crossroads, the valley of the centaurs east of them..."},
+   {"line": "Widow's Peak rises south of us. Birdmen keep it. They look down on everyone, which at least is fair.", "note": "SOLACE-2, BLACK-2: Urglunt's Wall lies west of Dark Solace's crossroads, the valley of the centaurs east of them..."},
+   {"line": "Forkwatch lies north up the road. Good honest folk. That is why we stay down here.", "note": "FORK-2: The Salt Mine lies east of Forkwatch, held by the Blackscourge river pirates; the South..."},
+   {"line": "Some pray to the Plague King. In the cities his faithful must hide their temples. Here nobody is made to hide.", "note": "PLAGUE-3: Bertoxxulous is the Plague King, Lord of Decay; a hidden temple of his stands even in..."}
+  ]},
+  {"town": "Dark Solace", "role": "guard", "say": [
+   {"line": "This is a sanctuary. Whatever you did out there, you did not do it here. Keep it so.", "note": "SOLACE-1: Dark Solace is a safe sanctuary offered to every evil humanoid persecuted by the self-righteous..."}
+  ]},
+  {"town": "Darvar Manor", "say": [
+   {"line": "They call this country Jared's Blight. Jared is an enchanter, one of the most powerful in Tunaria. The name tells you how he uses it.", "note": "DARV-1: Darvar Manor stands in the land called Jared's Blight; Jared is one of Tunaria's most powerful..."},
+   {"line": "Jared has a tower. The master does not call on him. Nobody calls on Jared twice.", "note": "DARV-1: Darvar Manor stands in the land called Jared's Blight; Jared is one of Tunaria's most powerful..."},
+   {"line": "The Bandit Hills lie just east. The name is not a jest. The manor pays its guards well for a reason.", "note": "DARV-2: The Bandit Hills lie east of the manor's land, the ruins of Al'Karad west of it and Blackburrow..."},
+   {"line": "West of here are the ruins of Al'Karad. When Al'Karad was defeated, Takish'Hiz was doomed. Elves still flinch at the name.", "note": "DARV-2, TOMB-4: The Bandit Hills lie east of the manor's land, the ruins of Al'Karad west of it and Blackburrow..."},
+   {"line": "The Black Swan Inn is the first roof on the road south. If the manor will not have you, the Swan will.", "note": "DARV-2: The Bandit Hills lie east of the manor's land, the ruins of Al'Karad west of it and Blackburrow..."},
+   {"line": "A barrow of cultists lies on the river toward Forkwatch. Thenon the Wise, they named it for. He cannot have been very.", "note": "DARV-3: A dark elf ambassador keeps a front room at Darvar Manor; west of the manor a place is called..."},
+   {"line": "An ambassador of the Teir'Dal keeps a front room here. The master calls it diplomacy. The staff call it a draft.", "note": "DARV-3: A dark elf ambassador keeps a front room at Darvar Manor; west of the manor a place is called..."}
+  ]},
+  {"town": "Darvar Manor", "role": "guard", "say": [
+   {"line": "Gnolls from Blackburrow to the north, bandits from the hills to the east. The manor wall is the only quiet line in the Blight.", "note": "DARV-2, QEY-9: The Bandit Hills lie east of the manor's land, the ruins of Al'Karad west of it and Blackburrow..."}
+  ]},
+  {"town": "Forkwatch", "say": [
+   {"line": "Forkwatch is a castle first and a town after. The town grew up because the castle looked lonely.", "note": "FORK-1: Forkwatch is a castle with its guards and citizens and the country round it; gypsies camp north..."},
+   {"line": "The gypsies camp north of the castle. They travel all over Tunaria. Buy something and they may tell you about a road or two.", "note": "FORK-1, LAND-6: Forkwatch is a castle with its guards and citizens and the country round it; gypsies camp north..."},
+   {"line": "River pirates hold the Salt Mine east of here. The Blackscourge. They kill whoever they meet. No salt is worth it.", "note": "FORK-2: The Salt Mine lies east of Forkwatch, held by the Blackscourge river pirates; the South..."},
+   {"line": "Dark Solace sits at the crossroads south of us. Outcasts, every one. They keep to their town and we keep to ours.", "note": "FORK-2, SOLACE-1: The Salt Mine lies east of Forkwatch, held by the Blackscourge river pirates; the South..."},
+   {"line": "Cultists dug a barrow up the river toward Darvar Manor. They named it for Thenon the Wise. A dead thing keeps the tomb.", "note": "DARV-3: A dark elf ambassador keeps a front room at Darvar Manor; west of the manor a place is called..."},
+   {"line": "Centaurs live on the southern plains. Proud creatures. Do not offer one an apple. I speak from experience.", "note": "LAND-21: Centaurs live on the southern Plains of Karana."},
+   {"line": "Men of Talamir's old regiment wander the land as outlaws. The King of Qeynos cast them out. We do not take them in.", "note": "QEY-3: Talamir's Regiment was an old regiment of the Qeynos Guard that Antonius Bayle II disbanded for..."}
+  ]},
+  {"town": "Forkwatch", "role": "guard", "say": [
+   {"line": "The Blackscourge pirates work the river from the Salt Mine. We watch the water as hard as the roads.", "note": "FORK-2: The Salt Mine lies east of Forkwatch, held by the Blackscourge river pirates; the South..."},
+   {"line": "The castle and all the country round it. That is the whole of our charge, and it is plenty.", "note": "FORK-1: Forkwatch is a castle with its guards and citizens and the country round it; gypsies camp north..."}
+  ]},
+  {"town": "Fort Seriak", "say": [
+   {"line": "Fort Seriak is the westernmost post of Neriak. Beyond these walls, nobody bows to the Houses. Yet.", "note": "SERIAK-1: Fort Seriak is a dark elf fort on the shores of Lake Nerius, the westernmost outpost of Neriak..."},
+   {"line": "The fort stands on the shore of Lake Nerius. The lake is cold, and we share it with a necromancer.", "note": "SERIAK-1: Fort Seriak is a dark elf fort on the shores of Lake Nerius, the westernmost outpost of Neriak..."},
+   {"line": "Verghest Felstar holds the castle, a human with legions of dead. A human! The insult is worse than the danger.", "note": "SERIAK-2: The human necromancer Verghest Felstar and his undead legions hold Castle Felstar, by Lake..."},
+   {"line": "Collonridge Cemetery lies south-east of us. Convenient, some say. A fort is never far from needing one.", "note": "SERIAK-1: Fort Seriak is a dark elf fort on the shores of Lake Nerius, the westernmost outpost of Neriak..."},
+   {"line": "Word from the city is that House U'Dedne totters. Out here we learn who has fallen when the supply wagons change colors.", "note": "NER-2: House Do'Vexis is the first House of Neriak, closest to the royal family and the most..."},
+   {"line": "Our raiders nearly wiped Feydwell from the map. Nearly. The survivors have been tiresome ever since.", "note": "FAY-2: The small village of Feydwell was almost destroyed by dark elf raiders out of Neriak; its..."},
+   {"line": "When the last elf of the light has left Tunaria, this fort will be the middle of our lands and not their edge.", "note": "DELF-2: Once the elves are driven from Tunaria the dark elves mean to be the greatest power on it."}
+  ]},
+  {"town": "Fort Seriak", "role": "guard", "say": [
+   {"line": "Felstar's dead do not tire and they do not learn. A soldier could envy the first part.", "note": "SERIAK-2: The human necromancer Verghest Felstar and his undead legions hold Castle Felstar, by Lake..."}
+  ]},
+  {"town": "Gerntar", "say": [
+   {"line": "Clan Gerntar works this mine. Every dwarf here is a cousin. Mind what you say about anyone.", "note": "GERN-1: Gerntar is an active mining operation worked by the dwarves of Clan Gerntar; Head Foreman Zeke..."},
+   {"line": "The Rustel minotaurs are peaceable enough, left alone. It is their leader, Khelmarak, who is the bad seam in that rock.", "note": "GERN-1: Gerntar is an active mining operation worked by the dwarves of Clan Gerntar; Head Foreman Zeke..."},
+   {"line": "Head Foreman Zeke wants help with the minotaurs. He has wanted it for some time. Volunteers are thin on the ground.", "note": "GERN-1: Gerntar is an active mining operation worked by the dwarves of Clan Gerntar; Head Foreman Zeke..."},
+   {"line": "Kelinar is just north of us. Wizards, the mightiest in Tunaria. They do not dig, and they do not care for our noise.", "note": "GERN-2, LAND-13: Kelinar lies north of Gerntar's mines, the gate of Oggok south of them and the Elephant..."},
+   {"line": "The gate of Oggok lies south of the mines. We sell the ogres nothing. They would not pay, and we could not make them.", "note": "GERN-2: Kelinar lies north of Gerntar's mines, the gate of Oggok south of them and the Elephant..."},
+   {"line": "King Stormhammer sent out many expeditions looking for ore. Moradhim got the hills of the Serpent's Spine. We got the minotaurs.", "note": "DWARF-1: Almost three centuries ago the dwarven King Stormhammer sent out many expeditions for new..."},
+   {"line": "A mine without ale is only a hole. Every dwarf of Clan Gerntar believes that, and digs accordingly.", "note": "DWARF-3: Dwarves do not count their height a lack (a kneecap breaks as well as a nose); every dwarf..."}
+  ]},
+  {"town": "Gerntar", "role": "guard", "say": [
+   {"line": "If the minotaurs give trouble, look for Khelmarak. The rest are quiet beasts without him.", "note": "GERN-1: Gerntar is an active mining operation worked by the dwarves of Clan Gerntar; Head Foreman Zeke..."}
+  ]},
+  {"town": "Graumord", "say": [
+   {"line": "You dreamed of this village before you ever saw it. All peoples do. That is how we knew you would come.", "note": "DREAD-4: Graumord is a nightmarish village of lost souls, known only in the terrifying dreams of all..."},
+   {"line": "We are the lost souls of Graumord. Nobody remembers arriving. Nobody remembers anywhere else.", "note": "DREAD-4: Graumord is a nightmarish village of lost souls, known only in the terrifying dreams of all..."},
+   {"line": "Some say this isle is the gift of the Faceless to his faithful dead. Some say it is a snare. From inside, there is no difference.", "note": "DREAD-1: The Faceless has more realms than his Plane of Fear, and the Isle of Dread is one: a reward for..."},
+   {"line": "The statue of Cazic-Thule stands on this isle, his foothold out of the Plane of Fear. Do not look for its face. It has none.", "note": "DREAD-3: A statue of Cazic-Thule stands on the Isle of Dread, a foothold on Tunaria from the Plane of..."},
+   {"line": "Adventurers come for the trials of the Faceless. Only the worthy are meant to pass. The rest stay with us.", "note": "DREAD-3: A statue of Cazic-Thule stands on the Isle of Dread, a foothold on Tunaria from the Plane of..."},
+   {"line": "Now and then a sailor washes up on Tunaria, raving. That is all the mainland knows of us. It is enough.", "note": "DREAD-2: All that is known of the isle comes from the ramblings of madmen washed ashore after days lost..."},
+   {"line": "The things that walk these hills were made by the Lord of Fear for his own plane. This isle is near enough to it for them.", "note": "LAND-29, DREAD-1: The creatures of the Plane of Sky are majestic and powerful; the dreadful creatures Cazic-Thule..."}
+  ]},
+  {"town": "Graumord", "role": "guard", "say": [
+   {"line": "I keep watch. Against what, I no longer know. The Faceless has more servants here than I have arrows.", "note": "DREAD-3: A statue of Cazic-Thule stands on the Isle of Dread, a foothold on Tunaria from the Plane of..."}
+  ]},
+  {"town": "Hazinak", "say": [
+   {"line": "Everything taken out of Takish'Hiz comes through this port on its way to Neriak. We count it in. Somebody else counts it again.", "note": "HAZ-1: Hazinak is a dark elf outpost and port, the staging area for shipping the artifacts of..."},
+   {"line": "Hazinak is an outpost, not a home. One serves here, and waits to be recalled. Some wait a long time.", "note": "HAZ-1: Hazinak is a dark elf outpost and port, the staging area for shipping the artifacts of..."},
+   {"line": "The Slith'Tar hives lie west of the walls. Half-witted vermin that hate everything living. Do not wander that way.", "note": "HAZ-2: Guk lies south of Hazinak and the hives of the Slith'Tar west of it; the Slith'Tar are an evil..."},
+   {"line": "Guk is south of here. The frogloks have retaken its caves from the trolls. Our allies sulk about it loudly.", "note": "HAZ-2, TROLL-1: Guk lies south of Hazinak and the hives of the Slith'Tar west of it; the Slith'Tar are an evil..."},
+   {"line": "General Torvek holds what is left of Takish'Hiz. The last elves there still fight him for vengeance. It slows the looting.", "note": "TOMB-10: Dark elf forces under General Torvek hold what was Takish'Hiz; the last of its elves fight on..."},
+   {"line": "Human nomads loot the old elven catacombs as well. They take scraps. Neriak takes the rest.", "note": "TOMB-5: The dark elves looted and defiled the city, and its treasure was, and still is, shipped to..."},
+   {"line": "Necromancy won us Takish'Hiz. The dead did the fighting, and the living do the hauling. A sensible division.", "note": "DELF-1: The dark elves poured up out of the Underfoot onto Tunaria, and by necromancy have just won..."}
+  ]},
+  {"town": "Hazinak", "role": "guard", "say": [
+   {"line": "Every crate on that dock is bound for Neriak. If one goes missing, so does a guard. I do not mean to be that guard.", "note": "HAZ-1: Hazinak is a dark elf outpost and port, the staging area for shipping the artifacts of..."}
+  ]},
+  {"town": "Muniels Tea Garden", "say": [
+   {"line": "Skeleton pirates hold the island off our coast, captain and all. They do not drink tea. It would run straight through.", "note": "TEA-1: People live and work at Muniel's Tea Garden, south along the coast from Freeport; skeleton..."},
+   {"line": "The Deathfist citadel is the next country west of us. The biggest horde of orcs in the world, and so close. More tea?", "note": "TEA-2, LAND-23: The Deathfist citadel is the zone west of Muniel's Tea Garden, the desert of north-western Ro..."},
+   {"line": "South of the garden are the ruins of Al Farak. Guests ask about them. We advise the mint and a different subject.", "note": "TEA-2: The Deathfist citadel is the zone west of Muniel's Tea Garden, the desert of north-western Ro..."},
+   {"line": "Sand giants walk the Desert of Ro. They look slow. Do not let that comfort you. So does a landslide.", "note": "TEA-3: Sand giants walk the Desert of Ro, and a desert dragon, Skahyir."},
+   {"line": "There is a dragon in the desert, they say. Skahyir. It has never come for tea. We have never invited it.", "note": "TEA-3: Sand giants walk the Desert of Ro, and a desert dragon, Skahyir."},
+   {"line": "We see them pass sometimes, the ones the desert has driven mad. We leave a cup out. It is usually gone by morning.", "note": "FREE-8: The northern Desert of Ro begins in the zone south of Freeport; humans who wander into the..."},
+   {"line": "The Nasehir rob and kill whoever crosses their sand. The Taksehir are at war with them, and are rather better guests.", "note": "OASIS-1: The Nasehir are aggressive desert nomads who live by robbing and killing whoever passes; the..."}
+  ]},
+  {"town": "Muniels Tea Garden", "role": "guard", "say": [
+   {"line": "Deathfist to the west, the desert to the north, pirates off the shore. We guard a tea garden. Somebody thinks highly of the tea.", "note": "TEA-1, TEA-2: People live and work at Muniel's Tea Garden, south along the coast from Freeport; skeleton..."}
+  ]},
+  {"town": "Murnf", "say": [
+   {"line": "Do not go into the Unkempt Wood. We tell everyone. Some listen. The others we do not see again.", "note": "MURNF-1: Murnf is a farming village on the edge of the Unkempt Wood; its simple folk warn people not to..."},
+   {"line": "We farm right to the edge of the Unkempt and not one furrow farther. My grandfather drew that line. I do not cross it.", "note": "MURNF-1: Murnf is a farming village on the edge of the Unkempt Wood; its simple folk warn people not to..."},
+   {"line": "They say a dwarf smith lives alone in the Unkempt. Grim Brellhand, the Last Smith. A legend. I would not go in to check.", "note": "MURNF-3: The Last Smith, Grim Brellhand, is a legendary dwarven smith who lives in seclusion in the..."},
+   {"line": "The old treants of the Unkempt drive out whoever walks in. Tree, wolf or bear, something in there will not have you.", "note": "WERE-20: The Werebear Witchking and his cultists camp near Zentar's Keep, where werewolves prowl too..."},
+   {"line": "The wolfmen in the wood carry a silver crescent on a black circle. If you are near enough to see it, it is too late to run.", "note": "WERE-3: Levandius has lived in the Unkempt Forest for centuries, fighting all who trespass; his blood..."},
+   {"line": "The wood has been restless of late. They say its old druid is dying and his heirs are at each other's throats.", "note": "WERE-5: Wegadas is dying, and his heirs are at war for the leadership of the Unkempt; the Night Reapers..."},
+   {"line": "Surefall Glade is south of us. The druids there understand woods. Even they do not tell us ours is safe.", "note": "SURE-3, SURE-1: Murnf lies north of Surefall Glade and the Fog Marsh south of it; Wymondham, to the east, is a..."}
+  ]},
+  {"town": "Murnf", "role": "guard", "say": [
+   {"line": "When the moon is full, every door in Murnf is barred by dusk. The watch stands indoors those nights. So should you.", "note": "WERE-7: Wolfweres have no human form and no mastery of themselves; when the moon of Drinal is full they..."}
+  ]},
+  {"town": "Oasis", "say": [
+   {"line": "The Nasehir live by the knife. The Taksehir are at war with them, and so are we, in our way. Ask a gypsy who is winning.", "note": "OASIS-1: The Nasehir are aggressive desert nomads who live by robbing and killing whoever passes; the..."},
+   {"line": "West of the water lies Tak'Xiv, where the last somber elves hold on. They buy little and say less.", "note": "OASIS-2, TOMB-10: Tak'Xiv lies west of Oasis, the Great Waste east of it, the Eternal Desert north of it and the..."},
+   {"line": "The Sea of Lions is south of here. Nobody has ever told me where the lions went.", "note": "OASIS-2: Tak'Xiv lies west of Oasis, the Great Waste east of it, the Eternal Desert north of it and the..."},
+   {"line": "There is a grove in this desert that never died. A sacred tree keeps it, and beasts keep the tree. The caravans go around.", "note": "TOMB-11: A sacred tree, guarded by beasts, still keeps one grove of the old forest alive in the middle..."},
+   {"line": "All of this was forest once, the Elddar. A god's jealousy made it sand. We draw our water from what he missed.", "note": "TOMB-3, TOMB-12: When the forest of Elddar fell to the burning sands, most of the elves of Takish'Hiz left..."},
+   {"line": "The plunder of Takish'Hiz goes out by the wagonload, bound for Neriak. The ruins are not far. The dust reaches us first.", "note": "TOMB-5, OASIS-2: The dark elves looted and defiled the city, and its treasure was, and still is, shipped to..."},
+   {"line": "The Deathfist live on the caravans that cross the Desert of Ro. Every caravan master here has a scar and a story.", "note": "LAND-23: The Deathfist are the largest horde of orcs known in the world, and live by raiding and..."},
+   {"line": "When a sand giant crosses the dunes you feel it in your feet before you see it.", "note": "TEA-3: Sand giants walk the Desert of Ro, and a desert dragon, Skahyir."}
+  ]},
+  {"town": "Oasis", "role": "guard", "say": [
+   {"line": "Nasehir cutthroats rob and kill whoever passes their way. They have not passed this wall. Not while I have it.", "note": "OASIS-1: The Nasehir are aggressive desert nomads who live by robbing and killing whoever passes; the..."}
+  ]},
+  {"town": "Wyndhaven", "say": [
+   {"line": "Wyndhaven is the northern edge of the King's country. The King's law comes this far. It arrives tired.", "note": "WYND-1: Wyndhaven is a town of shady humans on the northern edge of the Qeynos city-state; Bogman..."},
+   {"line": "Bogman is north of us. Northmen, of a sort, in a ramshackle village. We get on. Nobody asks questions in either place.", "note": "WYND-1: Wyndhaven is a town of shady humans on the northern edge of the Qeynos city-state; Bogman..."},
+   {"line": "The elves keep an outpost at Mariel, north of here. The last they have in the west. They look at the sea a great deal.", "note": "WYND-2: Mariel, the zone north of Wyndhaven, is the only elven outpost left on the western side of..."},
+   {"line": "Northmen fish out of Binshore, down on Whale Hill. Big, loud and honest. They find us odd.", "note": "WYND-2: Mariel, the zone north of Wyndhaven, is the only elven outpost left on the western side of..."},
+   {"line": "A new king in Qeynos. He will want to know what goes on up here. We wish him patience.", "note": "QEY-1: Qeynos is the greatest human city on Tunaria, ruled by the lately crowned Antonius Bayle II."},
+   {"line": "Crethley Manor is a ruin with a vampire in it, they say. Nobody here has been to check. We are shady, not stupid.", "note": "QEY-8: Crethley Manor, north-east of Qeynos, is an ancient ruined mansion rumored to be haunted by a..."},
+   {"line": "The rat family has friends in the outlying villages. I am not saying here. I am not saying anything.", "note": "WERE-16: The Topi di Ombra are a powerful family of wererats under Yindrius, chiefly in Qeynos, Neriak..."}
+  ]},
+  {"town": "Wyndhaven", "role": "guard", "say": [
+   {"line": "I keep the peace in Wyndhaven. It is a flexible sort of peace. Do not stretch it.", "note": "WYND-1: Wyndhaven is a town of shady humans on the northern edge of the Qeynos city-state; Bogman..."}
+  ]},
+  {"town": "Zentar's Keep", "say": [
+   {"line": "Zentar built this fortress, the knight of darkness the legends tell of. The legends are kind. Stone tells it truer.", "note": "ZENT-1: Zentar's Keep is a fortress built by Zentar, the legendary knight of darkness; Zentar Reese is..."},
+   {"line": "Zentar Reese commands here. The man, the myth and the legend, and he will tell you so himself.", "note": "ZENT-1: Zentar's Keep is a fortress built by Zentar, the legendary knight of darkness; Zentar Reese is..."},
+   {"line": "North of the keep is Permafrost, the ice dragon's country. We are the warm country, by her reckoning.", "note": "ZENT-2, LAND-9: Permafrost lies north of Zentar's Keep, the northern Unkempt east of it and Bogman south of it..."},
+   {"line": "Great ice worms roam the snow north and east of the walls. A cook in Wyndhaven pays for the meat. Each to his taste.", "note": "ZENT-2: Permafrost lies north of Zentar's Keep, the northern Unkempt east of it and Bogman south of it..."},
+   {"line": "The Witchking camps near the keep with his cultists. He wants the Unkempt for himself. He may have it, if he leaves us the road.", "note": "WERE-20, WERE-9: The Werebear Witchking and his cultists camp near Zentar's Keep, where werewolves prowl too..."},
+   {"line": "Werewolves prowl near the keep most nights. We do not hunt them. They thin out the visitors.", "note": "WERE-20: The Werebear Witchking and his cultists camp near Zentar's Keep, where werewolves prowl too..."},
+   {"line": "Bogman lies south of us. Rough folk in a ramshackle village. They sell to us and do not ask what for.", "note": "ZENT-2, WYND-1: Permafrost lies north of Zentar's Keep, the northern Unkempt east of it and Bogman south of it..."}
+  ]},
+  {"town": "Zentar's Keep", "role": "guard", "say": [
+   {"line": "You stand in the keep of Zentar Reese. Whatever law you kept in the south, leave it at the gate.", "note": "ZENT-1: Zentar's Keep is a fortress built by Zentar, the legendary knight of darkness; Zentar Reese is..."}
+  ]},
+  {"speaker_race": "human", "say": [
+   {"line": "They say only the rats outnumber us humans. I have seen the rats of a city. It is closer than you would think.", "note": "HUMAN-4: Humans are the most numerous people of Norrath (some say only rats outnumber them)..."},
+   {"line": "Every human comes of Northman stock, if you go back far enough. I feel it most when the ale comes round.", "note": "BARB-5: The barbarians are the hardy stock of Northmen from which all humans came."},
+   {"line": "A human will take up any trade there is. Except shaman. We never did get the knack of it.", "note": "HUMAN-4: Humans are the most numerous people of Norrath (some say only rats outnumber them)..."},
+   {"line": "The Marr twins made the Northmen, and we came of the Northmen. So I count the twins as family, a few times removed.", "note": "GODS-14, BARB-5: Mithaniel Marr, the Truthbringer, and his twin Erollisi were the last of the greater gods to..."}
+  ]},
+  {"speaker_race": "human", "away": true, "say": [
+   {"line": "West of the mountains, a king. East of them, merchants. We humans cannot even agree on how to be ruled.", "note": "HUMAN-1, HUMAN-2: In the west Antonius Bayle II has been crowned King of the city-state of Qeynos, and its..."}
+  ]},
+  {"speaker_race": "elf", "say": [
+   {"line": "They told me as a child that the Elddar would stand for ever. Then it fell to the burning sands, and I stopped believing in for ever.", "note": "TOMB-3: When the forest of Elddar fell to the burning sands, most of the elves of Takish'Hiz left..."},
+   {"line": "Our kin wait across the Ocean of Tears. When the fleet is ready we follow them. Until then, I am learning to like the sea.", "note": "ELF-2: From Fayspires the elves left on Tunaria race to build a fleet and join their brethren across..."},
+   {"line": "Solusek Ro killed our forest out of jealousy. A god, jealous of trees. Forgive me if I do not pray in his direction.", "note": "TOMB-12: The Spire fell into peril when the Teir'Dal advanced on elves already suffering under the..."},
+   {"line": "The Teir'Dal came of our own first King and Queen, after the Prince of Hate had them three hundred years. We do not forget whose kin they are.", "note": "GODS-13: Innoruuk, the Prince of Hate, found Norrath after the First Pact, raged that it was peopled..."}
+  ]},
+  {"speaker_race": "elf", "away": true, "say": [
+   {"line": "Most peoples make an elf welcome, I find. Only the dark elves and the trolls would sooner see me on a spit.", "note": "ELF-3: Most races like the elves; dark elves and trolls would sooner turn them on a spit than speak to..."}
+  ]},
+  {"speaker_race": "dark elf", "say": [
+   {"line": "No people on Norrath matches ours for cunning. I say it as a plain fact, %r. Flattery is for those who need something.", "note": "DELF-4: The dark elves are unrivaled in cunning and wit, and driven by a thirst for personal power that..."},
+   {"line": "We Teir'Dal hate the other races, and one another. It keeps us sharp. Affection makes a people slow.", "note": "DELF-3: The Teir'Dal hate every other race and each other; they help one another only for their own..."},
+   {"line": "We came up out of the Underfoot, and already Takish'Hiz is destroyed. Consider what we shall do once we know the surface well.", "note": "DELF-1: The dark elves poured up out of the Underfoot onto Tunaria, and by necromancy have just won..."},
+   {"line": "When the elves of the light are driven from Tunaria, there will be one great power on it. Learn our courtesies now.", "note": "DELF-2: Once the elves are driven from Tunaria the dark elves mean to be the greatest power on it."}
+  ]},
+  {"speaker_race": "dark elf", "away": true, "say": [
+   {"line": "You will have seen elven treasures for sale in this place. Think of them as ours. We took them, after all.", "note": "TOMB-5: The dark elves looted and defiled the city, and its treasure was, and still is, shipped to..."}
+  ]},
+  {"speaker_race": "gnome", "say": [
+   {"line": "We gnomes never waste time on revenge. If an experiment happens to go wrong near somebody who offended us, that cannot be helped.", "note": "GNOME-3: Gnomes do not waste time on revenge; it cannot be helped if an experiment goes bad on someone..."},
+   {"line": "Building a good contraption is as important as saving the world. Often it is the same job.", "note": "GNOME-2: Gnomes hold that building contraptions ranks with saving the world; explosions and lost limbs..."},
+   {"line": "Brell made us second, after the dwarves. Anyone who builds things knows the second one always works better.", "note": "GODS-4: In the First Pact of the Gods Brell made the dwarves and set them deep below the crust; by a..."},
+   {"line": "We only wanted a quiet place to experiment. Then we found the elves had been using the neighborhood for a war.", "note": "GNOME-1: By exploratory mining a colony of gnomes found a place on the surface to build Klick'Anon and..."},
+   {"line": "Never trust a clockwork to stay grateful. Ours felled their masters and built a town of their own. They do not write.", "note": "KLICK-2: Clockwork automatons were made to serve the citizens of Klick'Anon; rogue clockworks felled..."}
+  ]},
+  {"speaker_race": "gnome", "away": true, "say": [
+   {"line": "Have you an observatory here? No? We gnomes keep them all over Tunaria. How else do you know what the sky is up to?", "note": "KLICK-4: Gnomes of the Institute of Astral Cognizance keep observatories across Tunaria; the gnomes of..."}
+  ]},
+  {"speaker_race": "dwarf", "say": [
+   {"line": "Short? A kneecap breaks as easy as a nose, friend, and I do not have to reach for it.", "note": "DWARF-3: Dwarves do not count their height a lack (a kneecap breaks as well as a nose); every dwarf..."},
+   {"line": "A dwarf laughs easy and forgives hard. Stay on the laughing side.", "note": "DWARF-4: Dwarves are stout and hardy, jovial of temper, and stubborn and unforgiving when crossed."},
+   {"line": "They say nobody understands what dwarves want. It is not hard. Nobody ever asks, that is all.", "note": "LAND-4: Tunaria is full of rival factions: dark elves fight humans, humans fight ogres, and nobody..."},
+   {"line": "Let the elves have their war. We are content with the mountains, and the mountains do not take sides.", "note": "DWARF-2: The dwarves are content to harvest the mountains and care nothing for the elven war raging to..."}
+  ]},
+  {"speaker_race": "dwarf", "away": true, "say": [
+   {"line": "A decent tavern keeps a stool that can take a dwarf and a beating. I have tested the one here. It will do.", "note": "DWARF-3: Dwarves do not count their height a lack (a kneecap breaks as well as a nose); every dwarf..."}
+  ]},
+  {"speaker_race": "halfling", "say": [
+   {"line": "My worries are goblins, visiting relatives and a ruined pot roast. In that order, most weeks. Not every week.", "note": "HALF-1: Halflings live as they did hundreds of years ago, simple farmers and craftsmen who care little..."},
+   {"line": "We halflings love a bit of travel and adventure. We love coming home from it even more.", "note": "HALF-2: Rivervale is a quiet hamlet in the very middle of Tunaria; halflings love travel and adventure..."},
+   {"line": "Bristlebane turned up late to the making of the world and still found us a quiet spot. That is how it is done.", "note": "GODS-11: Fizzlethorpe Bristlebane, the King of Thieves, came fashionably late, joined Brell and..."},
+   {"line": "The rest of the world can keep its wars. We have farmed the same way for hundreds of years, and the fields still need weeding.", "note": "HALF-1: Halflings live as they did hundreds of years ago, simple farmers and craftsmen who care little..."}
+  ]},
+  {"speaker_race": "halfling", "away": true, "say": [
+   {"line": "Rivervale sits in the very middle of Tunaria. So wherever I go, I am only ever halfway from home.", "note": "HALF-2: Rivervale is a quiet hamlet in the very middle of Tunaria; halflings love travel and adventure..."}
+  ]},
+  {"speaker_race": "barbarian", "say": [
+   {"line": "Eating, drinking and battle. A Northman needs no fourth pastime.", "note": "BARB-4: Northmen take great pride in clan lineage; eating, drinking and battle are their pastimes. Most..."},
+   {"line": "My people wandered the ice for centuries. We have only lately learned to stay in one place. I am still learning.", "note": "BARB-1: The frozen north was shut off for centuries; only lately did the barbarians unite, leave their..."},
+   {"line": "The Marr twins set us down in the frozen north. The south calls that cruel. We call it a compliment.", "note": "GODS-15: Erollisi Marr, the Queen of Love, and her brother set the barbarians to roam the frozen north..."},
+   {"line": "In the north we tell of heroes with a bear's strength and a bear's wisdom. Some of those tales are truer than the tellers know.", "note": "WERE-10: Among the barbarian tribes of the north the bear's curse is second only to the wolf's; the..."}
+  ]},
+  {"speaker_race": "barbarian", "away": true, "say": [
+   {"line": "All you southern humans came of Northman stock. You have gone a little soft since. No offense meant.", "note": "BARB-5: The barbarians are the hardy stock of Northmen from which all humans came."}
+  ]},
+  {"speaker_race": "erudite", "say": [
+   {"line": "We High Men are proud of the mind and careless of the body. A body is only what carries the mind to the library.", "note": "ERUD-3: The High Men are the opposite of the Northmen: proud of mind and manners, careless of the body..."},
+   {"line": "I am told we have few friends outside our own people. I have not found the lack troubling.", "note": "ERUD-3: The High Men are the opposite of the Northmen: proud of mind and manners, careless of the body..."},
+   {"line": "Soon we leave this continent to its violence and its greed. The Exodus will be the first sensible thing ever done on Tunaria.", "note": "ERUD-2: The violence and greed of the land grew too much for them: the Erudites look to the Exodus of..."},
+   {"line": "Under Erud we began a new age of discovery and learning. The rest of Tunaria is still enjoying the old one.", "note": "ERUD-1: Highbourne, the city of the Highmen in the south and west, was built on earth, stone and the..."}
+  ]},
+  {"speaker_race": "erudite", "away": true, "say": [
+   {"line": "A city of marble is rising for us on Odus. I shall miss very little here. The weather, perhaps.", "note": "HIGH-4: Arcadin is a gleaming city of marble still under construction on Odus, the new home of the..."}
+  ]},
+  {"speaker_race": "troll", "say": [
+   {"line": "Ykesha greatest troll. Dead now. Frogloks take Guk back. Troll take Guk again. Soon.", "note": "TROLL-1: Ykesha, the greatest troll leader who ever lived, is dead; the frogloks have retaken the caves..."},
+   {"line": "Troll kill. Troll eat. Troll kill again. Good life.", "note": "TROLL-3: Trolls delight in killing, eating what they kill, and killing again; now and then one with a..."},
+   {"line": "Cazic-Thule make troll. Give troll swamp and dark jungle. Good god. Scary god. Same thing.", "note": "GODS-10: In the Second Pact Cazic-Thule, the Faceless, made the lizard men and the trolls and gave them..."},
+   {"line": "Troll land get bigger soon. Dark elves help. Dark elves think troll dumb. Troll let them think.", "note": "TROLL-2: The trolls mean to widen their lands; their new alliance with the dark elves is only the start...."},
+   {"line": "Some troll get little wisdom, become shaman. Most troll no bother. Wisdom hurt head.", "note": "TROLL-3: Trolls delight in killing, eating what they kill, and killing again; now and then one with a..."}
+  ]},
+  {"speaker_race": "ogre", "say": [
+   {"line": "Ogre big. Ogre strong. Somebody stand against ogre, ogre no wait. Ogre hit.", "note": "OGRE-1: Ogres are large, powerful and warlike, and never hesitate to attack whoever stands against them."},
+   {"line": "Rallos Zek make ogre for war. Make orc too. Orc little cousin. Ogre no invite orc to dinner.", "note": "GODS-9: When Brell formed the Second Pact, Rallos Zek loosed the ogres and the orcs; all his creations..."},
+   {"line": "Warlord make ogre fierce. No make ogre patient. Warlord no need patient.", "note": "GODS-9: When Brell formed the Second Pact, Rallos Zek loosed the ogres and the orcs; all his creations..."},
+   {"line": "Ogres great once. Rallosian Empire. Ogre no remember all. Ogre remember it big.", "note": "OGG-1: Oggok is the ogres' city, built on the ruins of the once great Rallosian Empire; the Craknek..."},
+   {"line": "Some ogre go fight for Deathfist orcs. Orcs pay. Ogre fight anyway. But pay nice.", "note": "LAND-23: The Deathfist are the largest horde of orcs known in the world, and live by raiding and..."}
+  ]},
+  {"town": "Moradhim", "race": 0, "say": [
+   {"line": "Your people turn up in every trade and every town, %p. Some say only the rats outnumber humans. I mean that kindly.", "note": "HUMAN-4: Humans are the most numerous people of Norrath (some say only rats outnumber them)..."}
+  ]},
+  {"town": "Qeynos", "race": 1, "say": [
+   {"line": "An elf. I heard what became of Takish'Hiz. I am sorry for it, %p. A smoking ruin, they say, and it was so old.", "note": "ELF-1: Takish'Hiz, the ancient home of the elves, is a smoking ruin; most of its refugees fled north..."}
+  ]},
+  {"town": "Freeport", "race": 2, "say": [
+   {"line": "A Teir'Dal. Your people destroyed Takish'Hiz, they say. I will keep my hands where you can see them, and my opinions to myself.", "note": "DELF-1: The dark elves poured up out of the Underfoot onto Tunaria, and by necromancy have just won..."}
+  ]},
+  {"town": "Rivervale", "race": 3, "say": [
+   {"line": "A gnome! Is it true your people call an explosion a learning experience? Stand a little farther from my things, if you would.", "note": "GNOME-2: Gnomes hold that building contraptions ranks with saving the world; explosions and lost limbs..."}
+  ]},
+  {"town": "Highbourne", "race": 4, "say": [
+   {"line": "A dwarf. Tell me, since everyone wonders: what is it that dwarves want? No, truly. Nobody seems to know.", "note": "LAND-4: Tunaria is full of rival factions: dark elves fight humans, humans fight ogres, and nobody..."}
+  ]},
+  {"town": "Freeport", "race": 5, "say": [
+   {"line": "A troll. I have heard your kind eat what they kill. I would be grateful if we kept this to talk.", "note": "TROLL-3: Trolls delight in killing, eating what they kill, and killing again; now and then one with a..."}
+  ]},
+  {"town": "Qeynos", "race": 6, "say": [
+   {"line": "A Northman, are you not? I am told your people do not use the word barbarian. I shall remember it, %p.", "note": "BARB-3: Their city Halas stands in the mountains of Everfrost; the world calls them barbarians, and..."}
+  ]},
+  {"town": "Freeport", "race": 7, "say": [
+   {"line": "A halfling, and so far from Rivervale! They say your folk love travel and adventure. Has it been worth the walk?", "note": "HALF-2: Rivervale is a quiet hamlet in the very middle of Tunaria; halflings love travel and adventure..."}
+  ]},
+  {"town": "Qeynos", "race": 8, "say": [
+   {"line": "A High Man. Is it true your people mean to leave Tunaria altogether? I cannot say I blame you. The land is not gentle.", "note": "ERUD-2: The violence and greed of the land grew too much for them: the Erudites look to the Exodus of..."}
+  ]},
+  {"town": "Highpass", "race": 9, "say": [
+   {"line": "An ogre. They say your people never hesitate. I ask only that you hesitate here, friend. Just this once.", "note": "OGRE-1: Ogres are large, powerful and warlike, and never hesitate to attack whoever stands against them."}
+  ]},
+  {"sex": "female", "say": [
+   {"line": "My husband was killed by a bear last spring. He woke at the spiritmaster's before supper, bound to the land. He still will not go near the woods.", "note": "LAND-1: Every creature of Tunaria is bound to the land and is reborn after it dies. Spiritmasters have..."},
+   {"line": "My husband bought a map to the Tomb of the Crown from a man in a tavern. We now own a very handsome drawing of some hills.", "note": "TOMB-9: Rumors, lies and half-truths about where the Tomb of the Crown lies and what it holds go round..."},
+   {"line": "When the moon is full my husband bars the door and sits up with the axe. He has never once seen a wolfwere. He says that proves it works.", "note": "WERE-7: Wolfweres have no human form and no mastery of themselves; when the moon of Drinal is full they..."},
+   {"line": "My husband says the gypsies cheated him. He also wears the hat they sold him every single day.", "note": "LAND-6: Gypsies travel all over Tunaria selling valuable wares to those who seek them out; an..."}
+  ]},
+  {"sex": "male", "say": [
+   {"line": "My wife has signed every coachman's ledger from here to the coast. I have signed two. One was by mistake.", "note": "LAND-2: Coachmen run Tunaria's coaches between their stables and other stables that are affiliated with..."},
+   {"line": "My wife went to help the Healers of Springview when the plague came. No cure yet, she says. She will not come home until there is one.", "note": "PLAGUE-1: A deadly plague has lately broken out across Norrath and keeps spreading; for all the work of..."},
+   {"line": "My wife keeps our Tunar with the banker. She says any banker in any city can give it back. That is exactly what worries me.", "note": "LAND-5: A banker keeps your goods and Tunar in his vault, and one account answers at any banker in any..."},
+   {"line": "My wife follows Bristlebane. She is wonderful company, and I keep the purse.", "note": "GODS-12: Followers of Bristlebane should not be trusted with anything of value, but they can be counted..."}
+  ]},
+  {"say": [
+   {"line": "Not every monk is a man of peace. The Seisen train for war and pray to Rallos Zek. Do not ask to see their garden.", "note": "LAND-26: The Seisen are a militaristic society of warmongering monks who worship Rallos Zek."},
+   {"line": "There is a guild of actors on the roads, the Actour's Guild. Nobody knows what they are really about. That may be the performance.", "note": "LAND-27: The Actour's Guild is a mysterious guild of actors whose motives are unknown."},
+   {"line": "The magician Saerk keeps a tower with his staff and his minions. He does not take callers. The minions make that clear.", "note": "LAND-28: Saerk is a magician who keeps a tower with his minions and his staff."},
+   {"line": "The Stone Watchers take no side in anything. Not the elves', not the Teir'Dal's, not yours.", "note": "LAND-22: The Stone Watchers are a wholly neutral people."},
+   {"line": "The Evil Eyes have a prophet, Xorbb, and he has thralls. They call themselves the Eye. Try not to catch it.", "note": "LAND-16: The thralls of Xorbb, the prophet of the Evil Eyes, are called the Eye."},
+   {"line": "There is a cave so full of snakes that folk think some unknown snake-god is worshipped there. Nobody has stayed long enough to ask.", "note": "LAND-17: Deep in a cave full of snakes, some think, an unknown snake-god is worshipped."},
+   {"line": "There are gnome pirates, did you know? Plankwalker's crew. By all accounts they adore the work and are dreadful at it.", "note": "KLICK-5: Plankwalker's Pirates are gnomish pirates whose fascination with piracy outweighs their skill..."},
+   {"line": "The sphinxes live in the Rathe Mountains and nowhere else. A secretive people. That is nearly all anyone can tell you, which rather proves it.", "note": "OGG-4: The Rathe Mountains are the only home of the mysterious and secretive sphinxes; the Rainfeather..."},
+   {"line": "They say the creatures of the Plane of Sky are majestic to behold. The ones who say so did not get close.", "note": "LAND-29: The creatures of the Plane of Sky are majestic and powerful; the dreadful creatures Cazic-Thule..."},
+   {"line": "Antonius Bayle disbanded a whole regiment of his own guard for its ruthless ways. They are outlaws now. Mind who you ask for directions.", "note": "QEY-3: Talamir's Regiment was an old regiment of the Qeynos Guard that Antonius Bayle II disbanded for..."}
+  ]},
+  {"role": "guard", "say": [
+   {"line": "The Seisen monks worship the Warlord and drill like an army. I have seen armies drill worse.", "note": "LAND-26: The Seisen are a militaristic society of warmongering monks who worship Rallos Zek."},
+   {"line": "Runnyeye is a goblin citadel on the edge of the Misty Thicket. A place of festering evil. I quote the report.", "note": "PASS-3: Runnyeye Citadel, a place of festering evil on the edge of the Misty Thicket, is held by the..."}
+  ]},
+  {"role": "scholar", "say": [
+   {"line": "The ogres of Oggok live on the ruins of the Rallosian Empire. A great empire once. Imagine what the grandsons have forgotten.", "note": "OGG-1: Oggok is the ogres' city, built on the ruins of the once great Rallosian Empire; the Craknek..."},
+   {"line": "Travelers speak of a Naga queen of awesome power on Odus, and a poison dragon. The Erudites mean to move there. Scholars!", "note": "HIGH-6: Odus has its terrors: Sylhilthis, Queen of the evil and deceitful Naga, a being of awesome..."},
+   {"line": "The gnomes keep observatories all across Tunaria. I asked one what he had learned. He said the sky is very large.", "note": "KLICK-4: Gnomes of the Institute of Astral Cognizance keep observatories across Tunaria; the gnomes of..."}
+  ]},
+  {"role": "trader", "say": [
+   {"line": "The dark elves ship the artifacts of Takish'Hiz out through Hazinak. Some of it slips off the dock. I do not ask how it reaches me.", "note": "HAZ-1: Hazinak is a dark elf outpost and port, the staging area for shipping the artifacts of..."},
+   {"line": "If you cannot find a thing in Freeport, try Temby, just north of it. Smugglers, all of them. Do not ask for a bill of sale.", "note": "FREE-6: Temby is a small smuggling village just north of Freeport; Hodstock is a village of xenophobic..."}
+  ]},
+  {"role": "priest", "say": [
+   {"line": "Veeshan's home is the Plane of Sky, and the creatures there are majestic and powerful. A god's house says much about the god.", "note": "LAND-29, GODS-2: The creatures of the Plane of Sky are majestic and powerful; the dreadful creatures Cazic-Thule..."}
+  ]},
+  {"role": "noble", "say": [
+   {"line": "I am told Neriak ranks its Houses first, second and third, and that the second is expected to fall. They keep score, at least.", "note": "NER-2: House Do'Vexis is the first House of Neriak, closest to the royal family and the most..."},
+   {"line": "Antonius Bayle the Second is newly crowned in Qeynos. A young reign is like a young wine. One waits before judging.", "note": "QEY-1: Qeynos is the greatest human city on Tunaria, ruled by the lately crowned Antonius Bayle II."}
+  ]},
+  {"role": "worker", "say": [
+   {"line": "I heard Clan Gerntar has an active mine in the south. Then I heard about the minotaurs. I am staying here.", "note": "GERN-1: Gerntar is an active mining operation worked by the dwarves of Clan Gerntar; Head Foreman Zeke..."}
+  ]},
+  {"role": "citizen", "say": [
+   {"line": "Players from the Actour's Guild came through once. Fine show. Nobody could say afterward what it had been about, or what they wanted.", "note": "LAND-27: The Actour's Guild is a mysterious guild of actors whose motives are unknown."},
+   {"line": "I heard of halflings who will not turn necromancers away. Halflings! You think you know a people.", "note": "VALE-3: The Thinhairs are halflings who do not kill necromancers and shadowknights outright, which is..."}
+  ]}
+ ]
+}

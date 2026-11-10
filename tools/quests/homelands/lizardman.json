@@ -1,0 +1,176 @@
+{
+  "race": "lizardman",
+  "home": "Cazic-Thule",
+  "city": "Freeport",
+  "note": "The Mirewatch's people are tools/worlds/homelands.json's (Cazic-Thule): Elder Hsslarn on the west shore of the temple island gives the first two, Huntmaster Kessrak beside him the three hunts; Hidebinder Ssilith, just east of the elder, is the outfitter; Coachman Rassk keeps the stable south-east of the elder, short of the east bridge (his coach runs to Freeport and to the other homes); the bog beetles (the south shore of the temple island), the marsh serpents (the south end of the east island, past the gatekeeper) and the alligator Old Snapjaw (alone on the north shore, over the north bridge) are placed for these quests.",
+  "L1": {
+    "name": "A Hatchling's Fang Cord",
+    "giver": "Elder Hsslarn",
+    "offer": [
+      "So. The egg has opened, and here you stand. Good. But the Mirewatch does not know you yet, hatchling, and what the Mirewatch does not know, it spears.",
+      "Every hatchling wears the fang cord. Hidebinder Ssilith strings them, a few steps east of here.",
+      "Will you fetch your fang cord and show it to me?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "Then wait. The swamp has time. You may not.",
+    "started": "East, a few steps. Ssilith is the one who smells of tanning bark.",
+    "merchant": "Hidebinder Ssilith",
+    "piece": {
+      "name": "hatchling's fang cord",
+      "description": "A cord of swamp reed strung with a young gator's fang. Every hatchling of the Mirewatch wears one at its throat.",
+      "like": "glass trinket",
+      "set": {
+        "HPMAX": 5
+      }
+    },
+    "fetch": {
+      "journal": "Ask Hidebinder Ssilith, just east of Elder Hsslarn, for a hatchling's fang cord.",
+      "says": "The elder sent you. Yes. Lower your head. Reed for the cord, a gator's fang for the bite. A hatchling pays nothing. Once."
+    },
+    "show": {
+      "journal": "Show the hatchling's fang cord to Elder Hsslarn.",
+      "says": "It hangs well. Now the sentinels will lower their spears when you pass. Keep it at your throat."
+    }
+  },
+  "L2": {
+    "name": "Bound to the Mire",
+    "giver": "Elder Hsslarn",
+    "offer": [
+      "The swamp takes the careless, hatchling, and gives nothing back. Have Spiritmaster Thessik bind your spirit to the temple island, so that you wake here if it takes you.",
+      "Then give your name to Coachman Rassk for his ledger. His coach runs to Freeport and to the other homes of the Homelands, for those their stables know.",
+      "Will you see them both and come back to me?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "Then step carefully. Very carefully.",
+    "started": "Thessik waits on the west shore. Rassk keeps his coach south-east of here, short of the east bridge.",
+    "spiritmaster": "Spiritmaster Thessik",
+    "coachman": "Coachman Rassk",
+    "bind": {
+      "journal": "Have Spiritmaster Thessik, west of the elder, bind your spirit to the temple island.",
+      "says": "It is done. If the swamp takes you, it must give you back, here. Now go to Coachman Rassk and give him your name."
+    },
+    "ledger": {
+      "journal": "Give your name to Coachman Rassk, south-east of the elder, for his ledger.",
+      "says": "A hatchling for the ledger. My coach runs to Freeport and to every other home of the Homelands, for travelers whose names their ledgers hold. Yours is in mine now."
+    },
+    "back": {
+      "journal": "Return to Elder Hsslarn.",
+      "says": [
+        "Good. The mire knows you now, and so does the road.",
+        "Rassk's coach will carry you to Freeport if its ledger knows you, but the road I mean for you is earned. Huntmaster Kessrak, beside me, has work for you."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Beetles in the Reeds",
+    "giver": "Huntmaster Kessrak",
+    "offer": [
+      "The hatchling. Good. Bog beetles are in the reeds on the south shore again, and they eat the eggs of everything, ours too.",
+      "Go south round the old temple to the shore, and bring me three of their shells. Then I will teach you something worth the walk.",
+      "Will you hunt them?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "The beetles thank you. The eggs do not.",
+    "started": "Three shells. Strike where the wing cases meet.",
+    "target": "bog beetle",
+    "count": 3,
+    "drop": {
+      "name": "bog beetle shell",
+      "description": "The green-black shell of a bog beetle from the south shore of the temple island.",
+      "like": "beetle carapace"
+    },
+    "hunt": {
+      "journal": "Take three bog beetle shells from the bog beetles on the south shore of the temple island."
+    },
+    "give": {
+      "journal": "Bring three bog beetle shells to Huntmaster Kessrak.",
+      "says": "Three shells, cleanly taken. You have patience. Now watch, and learn this."
+    }
+  },
+  "L4": {
+    "name": "A Hatchling's Arms",
+    "giver": "Huntmaster Kessrak",
+    "offer": [
+      "Freeport pays for blades, not for claws. I will make you proper gear, but you will bring what I need.",
+      "Hidebinder Ssilith has a leather strip and a shaft for me. Then take a fang from the marsh serpents at the south end of the east island, over the bridge.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then keep to your claws, and to the shallows.",
+    "started": "Leather and a shaft from Ssilith. A fang from the serpents. Go.",
+    "materials": [
+      {
+        "merchant": "Hidebinder Ssilith",
+        "items": [
+          "leather strip",
+          "wooden shaft"
+        ],
+        "journal": "Ask Hidebinder Ssilith for the leather strip and the wooden shaft.",
+        "says": "For Kessrak. Yes. A strip of gator leather and a shaft of swamp ash. Tell him the next hide is mine."
+      }
+    ],
+    "target": "marsh serpent",
+    "count": 1,
+    "drop": {
+      "name": "marsh serpent fang",
+      "description": "The curved fang of a marsh serpent from the east island of Cazic-Thule.",
+      "like": "Tree Viper Fang"
+    },
+    "hunt": {
+      "journal": "Take a marsh serpent fang from the marsh serpents at the south end of the east island."
+    },
+    "give": {
+      "journal": "Bring the leather strip, the wooden shaft and the marsh serpent fang to Huntmaster Kessrak.",
+      "says": "All three. Wait... there. The fang sets the edge. It is yours. Keep it dry."
+    }
+  },
+  "L5": {
+    "name": "Old Snapjaw",
+    "giver": "Huntmaster Kessrak",
+    "offer": [
+      "One hunt more, hatchling. An old gator we call Snapjaw lies on the north shore, over the north bridge. He has taken two of our fishers, and he is not sorry.",
+      "He looks like a log until he moves, and then it is too late. Strike first. Bring me his tooth, and I will teach you the last thing I have for a hatchling.",
+      "Will you hunt Old Snapjaw?"
+    ],
+    "accept": "I will hunt him.",
+    "decline": "Not yet.",
+    "declined": "He will wait. Gators are good at it. Better than you.",
+    "started": "North, over the bridge. Do not trust anything that floats.",
+    "target": "Old Snapjaw",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "Snapjaw's tooth",
+      "description": "A yellowed tooth, long as a hand, from the old alligator Snapjaw.",
+      "like": "alligator fang"
+    },
+    "hunt": {
+      "journal": "Take Snapjaw's tooth from the alligator Old Snapjaw on the north shore, over the north bridge."
+    },
+    "give": {
+      "journal": "Bring Snapjaw's tooth to Huntmaster Kessrak.",
+      "says": [
+        "Snapjaw's own tooth. The fishers will go north again. You are a hatchling no longer.",
+        "Learn this, and see Gatekeeper Vosskar on the east island when you are ready for Freeport."
+      ]
+    }
+  },
+  "flight": {
+    "name": "The Road to Freeport",
+    "giver": "Gatekeeper Vosskar",
+    "offer": [
+      "In Freeport the humans pay good coin for a blade that does not tire, and they ask few questions. Kessrak says yours is ready.",
+      "You have earned the road, hatchling. I will set you down among your own guild in Freeport, and your spirit will rest there.",
+      "Shall I send you to Freeport?"
+    ],
+    "accept": "Send me to Freeport.",
+    "decline": "Not yet.",
+    "declined": "The coin will keep. So will Freeport.",
+    "started": "Hunt well, and send word home now and then!",
+    "journal": "Tell Gatekeeper Vosskar when you are ready to go to Freeport."
+  }
+}

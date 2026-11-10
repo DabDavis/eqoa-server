@@ -362,7 +362,9 @@ func TestTheHeroesVendorTakesNothingForNothing(t *testing.T) {
 	}
 
 	r.anna.SetInventoryList(newInvList(nil))
-	r.ih.heroes.give = func(*session.Session, database.ItemPatternRecord) (int, error) { return 0, errors.New("the database is away") }
+	r.ih.heroes.give = func(*session.Session, database.ItemPatternRecord) (int, error) {
+		return 0, errors.New("the database is away")
+	}
 	_, box = r.visit()
 	_, buy := r.choose(box, 0)
 	got, _ = r.choose(buy, 0)

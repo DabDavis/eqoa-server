@@ -48,6 +48,9 @@ type KeptPlayer struct {
 	PvPHoldMS int64 `json:"pvp_hold_ms,omitempty"`
 	// Jumps: its client jumps (jump.go)
 	Jumps bool `json:"jumps,omitempty"`
+	// DPSMeter: its client draws a damage meter (dpsmeter.go); its fight ends
+	// at the restart
+	DPSMeter bool `json:"dps_meter,omitempty"`
 	// Pet: its pet, summoned or charmed (keeppet.go), nil none
 	Pet *KeptPet `json:"pet,omitempty"`
 }
@@ -97,6 +100,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 	k.RaceLabels = p.RaceLabels
 	k.RecordWindow = p.RecordWindow
 	k.Jumps = p.Jumps
+	k.DPSMeter = p.dps != nil
 	if p.pvp.on {
 		k.PvP, k.PvPHoldMS = true, max(0, p.pvp.hold.Sub(now).Milliseconds())
 	}
@@ -130,6 +134,9 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	p.PowerBars, p.powerBarsSent, p.powerBarsDue = k.PowerBars, "", k.PowerBars
 	p.PetEffects, p.petEffectsSent, p.petEffectsDue = k.PetEffects, "", k.PetEffects // its pet's set again once the pet is back
 	p.RaidRoster, p.raidRosterSent = k.RaidRoster, ""
+	if k.DPSMeter {
+		p.dps = &dpsMeter{} // the next figure starts its fight (dpsmeter.go)
+	}
 	p.GM = k.GM
 	p.DuelWindow = k.DuelWindow
 	// its record's summary is read again (handlers/keep.go)

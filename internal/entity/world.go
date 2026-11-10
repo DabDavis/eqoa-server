@@ -61,6 +61,9 @@ type World struct {
 	nextGroupID uint32
 	invites     map[EntityID]map[EntityID]groupAsk // invitee -> inviters
 
+	// dpsFight is the last damage meter fight's number given (dpsmeter.go)
+	dpsFight uint32
+
 	// Buddy and ignore lists (social.go), in memory only
 	social socialLists
 
@@ -1090,8 +1093,13 @@ func (w *World) sendGrantXP(sess *session.Session, level, xpInLevel int) {
 // Negative amount = damage, positive = healing. kind is what made it when the
 // session's player or its pet did (numbertags.go), 0 for any other figure: a
 // session that asked for its figures' tags (NumberTags) is sent it as one
-// byte more, any other the retail body alone.
+// byte more, any other the retail body alone. Damage of a kind is the
+// player's own and counts on the damage meters of its group (dpsmeter.go),
+// whoever asked for tags.
 func (w *World) sendDamageIndication(sess *session.Session, sourceObjectID uint32, amount int, targetObjectID uint32, kind numberKind) {
+	if amount < 0 && kind.tagged() {
+		w.dpsFigureLocked(sess, -amount, kind, targetObjectID)
+	}
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeDamageIndication)
 	writer := buffer.NewWriter(msg.Span())
 

@@ -65,6 +65,7 @@ type Kept struct {
 	NumberTags         bool `json:"number_tags,omitempty"`
 	NPCTints           bool `json:"npc_tints,omitempty"`
 	MobInfo            bool `json:"mob_info,omitempty"`
+	ItemLinks          bool `json:"item_links,omitempty"`
 	ReportNotice       bool `json:"report_notice,omitempty"`
 	BoonNotice         bool `json:"boon_notice,omitempty"`
 	WorldLoadPending   bool `json:"world_load_pending,omitempty"`
@@ -198,6 +199,7 @@ func (s *Session) Keep() Kept {
 		NumberTags:         s.numberTags,
 		NPCTints:           s.npcTints,
 		MobInfo:            s.mobInfo,
+		ItemLinks:          s.itemLinks,
 		ReportNotice:       s.reportNotice,
 		BoonNotice:         s.boonNotice,
 		WorldLoadPending:   s.worldLoadPending,
@@ -354,6 +356,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 		s.npcTintsSent = npcTintsUnknown
 	}
 	s.mobInfo = k.MobInfo
+	s.itemLinks = k.ItemLinks
 	s.reportNotice = k.ReportNotice
 	s.boonNotice = k.BoonNotice
 	s.worldLoadPending = k.WorldLoadPending

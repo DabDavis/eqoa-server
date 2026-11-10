@@ -1,0 +1,176 @@
+{
+  "race": "hillgiant",
+  "home": "West Plateau",
+  "city": "Oggok",
+  "note": "The hill giants' camp on the West Plateau of Odus, the wild island (no city of the erudites stands on it yet: the words name none). Its people are tools/worlds/homelands.json's (West Plateau): Elder Hrolmog, at the foot of the old steps, gives the first two; Stonehand Borrik, beside him, the three hunts; Hidewife Marna, a few steps south-west, is the outfitter; Coachman Durgo keeps the stable on the plain to the south (his coach runs to Freeport and to the other homes). The plateau skinks (the plain to the west), the rock badgers (the plain to the south) and the old wolf Greyjaw (far to the north, beyond the gatekeeper) are placed for these quests. A giant speaks slow and short.",
+  "L1": {
+    "name": "A Young Giant's Tooth",
+    "giver": "Elder Hrolmog",
+    "offer": [
+      "Hmm. A new one. Small yet. You will grow. Everything on the plateau grows, or gets stepped on.",
+      "Every giant of the camp wears a rhino's tooth on a thong, so the others know it is no ogre. Hidewife Marna cuts the thongs. She sits a few steps to the south.",
+      "Will you fetch your tooth and show it to me?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "Then stand there. You are good at it.",
+    "started": "Marna. A few steps south. Go.",
+    "merchant": "Hidewife Marna",
+    "piece": {
+      "name": "young giant's tooth thong",
+      "description": "A rhino's tooth on a thong of thick hide. Every young giant of the West Plateau camp wears one.",
+      "like": "glass trinket",
+      "set": {
+        "HPMAX": 5
+      }
+    },
+    "fetch": {
+      "journal": "Ask Hidewife Marna, a few steps south of Elder Hrolmog, for a young giant's tooth thong.",
+      "says": "Hrolmog sent you? Bend down. Further. There. A rhino's tooth, and my best hide. Do not chew it. Nothing to pay, little one."
+    },
+    "show": {
+      "journal": "Show the young giant's tooth thong to Elder Hrolmog.",
+      "says": "Good tooth. Now the camp knows you. When you are big, you will pull your own from a rhino."
+    }
+  },
+  "L2": {
+    "name": "A Stone That Comes Back",
+    "giver": "Elder Hrolmog",
+    "offer": [
+      "Giants fall. It is loud, and it hurts. Go to Spiritmaster Ognarr. He will tie your spirit to the camp, so you get up here after.",
+      "Then tell Coachman Durgo your name for his ledger. His coach goes to Freeport and to the other homes of the Homelands. It is a strong coach.",
+      "Will you see them both and come back?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "Then do not fall down.",
+    "started": "Ognarr is north. Durgo is south, out on the plain.",
+    "spiritmaster": "Spiritmaster Ognarr",
+    "coachman": "Coachman Durgo",
+    "bind": {
+      "journal": "Have Spiritmaster Ognarr, north of the elder, bind your spirit to the camp.",
+      "says": "Done. Fall where you like. You will get up here. Now go and tell Coachman Durgo your name."
+    },
+    "ledger": {
+      "journal": "Give your name to Coachman Durgo, on the plain south of the elder, for his ledger.",
+      "says": "A giant! Good. I built the coach for giants. It runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now."
+    },
+    "back": {
+      "journal": "Return to Elder Hrolmog.",
+      "says": [
+        "Good. Now you always come back.",
+        "Durgo's coach goes where its ledgers know you. But the stone way to Oggok is earned. Stonehand Borrik, beside me, has work for you."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Skinks in the Grass",
+    "giver": "Stonehand Borrik",
+    "offer": [
+      "You are the new one. Good. Skinks are in the grass west of camp. They bite ankles. Giants have a lot of ankle.",
+      "Stamp on some. Bring me three of their scales. Then I will show you a thing.",
+      "Will you hunt them?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "Then mind your ankles.",
+    "started": "Three scales. West, out on the plain.",
+    "target": "plateau skink",
+    "count": 3,
+    "drop": {
+      "name": "plateau skink scale",
+      "description": "A scale of a plateau skink from the plain west of the giants' camp.",
+      "like": "chipped basilisk scale"
+    },
+    "hunt": {
+      "journal": "Take three plateau skink scales from the plateau skinks on the plain west of the camp."
+    },
+    "give": {
+      "journal": "Bring three plateau skink scales to Stonehand Borrik.",
+      "says": "Three scales. Ankles still on. Good. Now watch my hands, and learn this."
+    }
+  },
+  "L4": {
+    "name": "A Young Giant's Arms",
+    "giver": "Stonehand Borrik",
+    "offer": [
+      "Fists are good. Fists with something in them are better. I will make you proper gear. You fetch what I need.",
+      "Hidewife Marna has leather and a shaft for me. Then take a claw off the rock badgers on the plain south of camp.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then use your fists. They are not bad.",
+    "started": "Leather and a shaft from Marna. A claw from the badgers. Go.",
+    "materials": [
+      {
+        "merchant": "Hidewife Marna",
+        "items": [
+          "leather strip",
+          "wooden shaft"
+        ],
+        "journal": "Ask Hidewife Marna for the leather strip and the wooden shaft.",
+        "says": "For Borrik? Here. Hide, and a shaft. It was a tree this morning. Tell him to make it a big one."
+      }
+    ],
+    "target": "rock badger",
+    "count": 1,
+    "drop": {
+      "name": "rock badger claw",
+      "description": "The claw of a rock badger from the plain south of the giants' camp.",
+      "like": "shattered badger claw"
+    },
+    "hunt": {
+      "journal": "Take a rock badger claw from the rock badgers on the plain south of the camp."
+    },
+    "give": {
+      "journal": "Bring the leather strip, the wooden shaft and the rock badger claw to Stonehand Borrik.",
+      "says": "All three. Stand back. This is loud... there. It is yours. Do not drop it on anyone you like."
+    }
+  },
+  "L5": {
+    "name": "Old Greyjaw",
+    "giver": "Stonehand Borrik",
+    "offer": [
+      "One more thing. An old wolf, Greyjaw, hunts far to the north, past Thundrik's stones. It took a calf from the herders. It is not afraid of giants.",
+      "It will come at you first. Let it. Then hit it. Bring me its fang.",
+      "Will you hunt Greyjaw?"
+    ],
+    "accept": "I will hunt it.",
+    "decline": "Not yet.",
+    "declined": "It is old. It is not getting slower.",
+    "started": "North. Past Thundrik and his stones, and on. It will find you.",
+    "target": "Greyjaw",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "Greyjaw's fang",
+      "description": "A yellowed fang of the old wolf Greyjaw of the West Plateau.",
+      "like": "Forger Wolf Fang"
+    },
+    "hunt": {
+      "journal": "Take Greyjaw's fang from the old wolf Greyjaw, far north of the camp, beyond the gatekeeper."
+    },
+    "give": {
+      "journal": "Bring Greyjaw's fang to Stonehand Borrik.",
+      "says": [
+        "Greyjaw's fang. Hah! The herders will sleep. You are not so small now.",
+        "Learn this. Then see Gatekeeper Thundrik at the stones to the north when you want Oggok."
+      ]
+    }
+  },
+  "flight": {
+    "name": "The Stone Way",
+    "giver": "Gatekeeper Thundrik",
+    "offer": [
+      "The ogres of Oggok are strong, and they like giants. They will train you as one of their own, across the sea.",
+      "You have earned the stone way. I will set you down among your own guild in Oggok, and your spirit will rest there.",
+      "Shall I open the way to Oggok?"
+    ],
+    "accept": "Open the way to Oggok.",
+    "decline": "Not yet.",
+    "declined": "The way will keep. Stone does.",
+    "started": "Stand still and hold your breath. Walk tall in Oggok!",
+    "journal": "Tell Gatekeeper Thundrik when you are ready to go to Oggok."
+  }
+}

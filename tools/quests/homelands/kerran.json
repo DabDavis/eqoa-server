@@ -1,0 +1,176 @@
+{
+  "race": "kerran",
+  "home": "Kerra Isle",
+  "city": "Qeynos",
+  "note": "The kerrans' stilt village on Kerra Isle, off Odus, the wild island (no city of the erudites stands there yet: the words name none). Its people are tools/worlds/homelands.json's (Kerra Isle): Elder Ssharu, on the village's landward side, gives the first two; Huntress Kazhra, beside her, the three hunts; Weaver Shimra, under the first stilt house to the north-east, is the outfitter; Coachman Tolhra keeps the stable a few steps north (his coach, and the ferry that carries it, runs to Freeport and to the other homes). The isle crabs (the sand spit to the north), the fern vipers (the ferns to the west) and the great crab Old Snapclaw (the island's far south-west) are placed for these quests.",
+  "L1": {
+    "name": "A Cub's Claw Band",
+    "giver": "Elder Ssharu",
+    "offer": [
+      "Mrrr. A new cub, with its eyes barely open. Come, let me look at you. Yes. You will do.",
+      "Every cub of the isle wears a claw band, woven of palm and its mother's fur, until its first hunt. Weaver Shimra makes them, under the first stilt house to the north-east.",
+      "Will you fetch your claw band and show it to me?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "Then curl up in the sun a while. I often do.",
+    "started": "Shimra sits under the first stilt house, north-east of here.",
+    "merchant": "Weaver Shimra",
+    "piece": {
+      "name": "cub's claw band",
+      "description": "A band of woven palm and soft fur. Every cub of Kerra Isle wears one until its first hunt.",
+      "like": "Tattered Bracers",
+      "set": {
+        "AC": 4
+      }
+    },
+    "fetch": {
+      "journal": "Ask Weaver Shimra, under the stilt house north-east of Elder Ssharu, for a cub's claw band.",
+      "says": "The elder's new cub? Paw out. Claws in, please. There: palm for the island, fur for the pride. A cub pays nothing."
+    },
+    "show": {
+      "journal": "Show the cub's claw band to Elder Ssharu.",
+      "says": "It suits you. Wear it, and every kerran on the isle will know whose cub you are."
+    }
+  },
+  "L2": {
+    "name": "Nine Lives, One Home",
+    "giver": "Elder Ssharu",
+    "offer": [
+      "They say a kerran has nine lives. Do not count on it. Have Spiritmaster Talhrin bind your spirit to the isle, so that you wake here whichever life you lose.",
+      "Then give your name to Coachman Tolhra for his ledger. His coach, and the ferry that carries it, runs to Freeport and to the other homes of the Homelands.",
+      "Will you see them both and come back to me?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "Then keep out of the deep water until you do.",
+    "started": "Talhrin is across the village, to the east. Tolhra waits a few steps north of here.",
+    "spiritmaster": "Spiritmaster Talhrin",
+    "coachman": "Coachman Tolhra",
+    "bind": {
+      "journal": "Have Spiritmaster Talhrin, east of the elder, bind your spirit to the isle.",
+      "says": "It is done. Lose a life where you will, cub, and you will wake here in the sun. Now go and give Coachman Tolhra your name."
+    },
+    "ledger": {
+      "journal": "Give your name to Coachman Tolhra, a few steps north of the elder, for his ledger.",
+      "says": "A cub off the isle at last! My coach rides the ferry over, then runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now."
+    },
+    "back": {
+      "journal": "Return to Elder Ssharu.",
+      "says": [
+        "Good. Now the isle will always have you back.",
+        "Tolhra's coach goes where its ledgers know you, but the crossing to Qeynos is earned. Huntress Kazhra, beside me, has work for you."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Crabs on the Sand",
+    "giver": "Huntress Kazhra",
+    "offer": [
+      "So this is the new cub. Good. Isle crabs are thick on the sand spit north of the village, and they have been cutting the fishers' nets.",
+      "Go and pounce on a few, and bring me three of their claws. Then I will teach you something every hunter knows.",
+      "Will you hunt them?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "Then the fishers mend nets tonight, and curse your name.",
+    "started": "Three claws. North, out along the sand. Mind your tail.",
+    "target": "isle crab",
+    "count": 3,
+    "drop": {
+      "name": "isle crab claw",
+      "description": "The claw of an isle crab from the sand spit north of the kerrans' village.",
+      "like": "chipped crab claw"
+    },
+    "hunt": {
+      "journal": "Take three isle crab claws from the isle crabs on the sand spit north of the village."
+    },
+    "give": {
+      "journal": "Bring three isle crab claws to Huntress Kazhra.",
+      "says": "Three claws, and your tail unpinched. You can hunt. Now watch closely, and learn this."
+    }
+  },
+  "L4": {
+    "name": "A Cub's Arms",
+    "giver": "Huntress Kazhra",
+    "offer": [
+      "Claws are a fine start, but the mainland wants more. I will make you proper gear, if you bring me what I need.",
+      "Weaver Shimra has leather and cord for me. Then take a fang from the fern vipers that coil in the ferns west of the village.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then keep to your claws, and to the isle.",
+    "started": "Leather and cord from Shimra, a fang from the vipers. Go softly.",
+    "materials": [
+      {
+        "merchant": "Weaver Shimra",
+        "items": [
+          "leather strip",
+          "silk cord"
+        ],
+        "journal": "Ask Weaver Shimra for the leather strip and the silk cord.",
+        "says": "For Kazhra? Here: a strip of leather and a silk cord. Tell her she still owes me a fish. A large one."
+      }
+    ],
+    "target": "fern viper",
+    "count": 1,
+    "drop": {
+      "name": "fern viper fang",
+      "description": "The fang of a fern viper from the ferns west of the kerrans' village.",
+      "like": "chipped viper fang"
+    },
+    "hunt": {
+      "journal": "Take a fern viper fang from the fern vipers among the ferns west of the village."
+    },
+    "give": {
+      "journal": "Bring the leather strip, the silk cord and the fern viper fang to Huntress Kazhra.",
+      "says": "All three. Sit a moment while I work... there. It is yours. Keep it as sharp as your claws."
+    }
+  },
+  "L5": {
+    "name": "Old Snapclaw",
+    "giver": "Huntress Kazhra",
+    "offer": [
+      "One hunt more, cub. A great crab we call Old Snapclaw has the far south-west of the island, and it took a fisher's tail last moon.",
+      "It does not scuttle off like the small ones. It comes for you. Stand, strike, and bring me its claw.",
+      "Will you hunt Old Snapclaw?"
+    ],
+    "accept": "I will hunt it.",
+    "decline": "Not yet.",
+    "declined": "It will only grow, and so will its temper.",
+    "started": "South-west, through the ferns, to the island's end. Keep your tail behind you.",
+    "target": "Old Snapclaw",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "Old Snapclaw's claw",
+      "description": "The great notched claw of the crab Old Snapclaw of Kerra Isle.",
+      "like": "sharp crab claw"
+    },
+    "hunt": {
+      "journal": "Take Old Snapclaw's claw from the great crab Old Snapclaw at the island's far south-west."
+    },
+    "give": {
+      "journal": "Bring Old Snapclaw's claw to Huntress Kazhra.",
+      "says": [
+        "Old Snapclaw's own claw! The fishers will purr for a week. You are a cub no longer.",
+        "Learn this, and see Gatekeeper Raszhar at the water's edge, north-east of the village, when you are ready to cross."
+      ]
+    }
+  },
+  "flight": {
+    "name": "Across the Water",
+    "giver": "Gatekeeper Raszhar",
+    "offer": [
+      "The humans of Qeynos trade with our boats and train our young as their own. Rangers and druids go to their Surefall Glade.",
+      "You have earned the crossing, hunter. I will set you down among your own guild there, and your spirit will rest in Qeynos.",
+      "Shall I send you across the water?"
+    ],
+    "accept": "Send me across the water.",
+    "decline": "Not yet.",
+    "declined": "The tide will wait.",
+    "started": "Keep your claws sharp and your fur dry!",
+    "journal": "Tell Gatekeeper Raszhar when you are ready to cross to Qeynos."
+  }
+}

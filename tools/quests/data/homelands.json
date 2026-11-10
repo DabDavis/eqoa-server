@@ -2,99 +2,574 @@
   "city": "homelands",
   "quests": [
     {
-      "key": "homelands/hillgiant/welcome",
-      "name": "A Stone Among Stones",
+      "key": "homelands/hillgiant/L1",
+      "name": "A Young Giant's Tooth",
       "giver": "Elder Hrolmog",
       "classes": [],
-      "races": [],
+      "races": [
+        11
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "Ho, a new giant on the plateau! Before you go stomping off, every young one of the clan greets Bulka. She keeps the meat pits by the old steps, and no giant marches hungry while she has a say.",
-      "accept": "I will greet her.",
+      "offer": "Hmm. A new one. Small yet. You will grow. Everything on the plateau grows, or gets stepped on.\nEvery giant of the camp wears a rhino's tooth on a thong, so the others know it is no ogre. Hidewife Marna cuts the thongs. She sits a few steps to the south.\nWill you fetch your tooth and show it to me?",
+      "accept": "I will fetch it.",
       "decline": "Not now.",
-      "declined": "The plateau is patient. So am I.",
-      "started": "Go on. Bulka is just west of here, by the pits.",
+      "declined": "Then stand there. You are good at it.",
+      "started": "Marna. A few steps south. Go.",
       "steps": [
         {
           "kind": "talk",
-          "target": "Grocer Bulka",
-          "journal": "Greet Grocer Bulka by the meat pits west of the old steps.",
-          "says": "Hrolmog sent you? Then eat this, and grow bigger still.",
-          "rewards": {
-            "items": [
-              "spiced jerky"
-            ]
-          }
+          "target": "Hidewife Marna",
+          "journal": "Ask Hidewife Marna, a few steps south of Elder Hrolmog, for a young giant's tooth thong.",
+          "says": "Hrolmog sent you? Bend down. Further. There. A rhino's tooth, and my best hide. Do not chew it. Nothing to pay, little one.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "young giant's tooth thong",
+                  "count": 1
+                }
+              ]
+            }
+          ]
         },
         {
-          "kind": "talk",
+          "kind": "show",
           "target": "Elder Hrolmog",
-          "journal": "Return to Elder Hrolmog at the foot of the old steps.",
-          "says": "Good. Now Bulka knows your face, and you know where the food is.",
+          "items": [
+            {
+              "item": "young giant's tooth thong",
+              "count": 1
+            }
+          ],
+          "journal": "Show the young giant's tooth thong to Elder Hrolmog.",
+          "says": "Good tooth. Now the camp knows you. When you are big, you will pull your own from a rhino.",
           "rewards": {
-            "xp": 200,
-            "tunar": 10
+            "xp": 430
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 1
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the hill giants' first, at their home zone, West Plateau of the disc."
+      "notes": "Ours (the Homelands' starter quests): the hillgiant's level 1, at West Plateau, on the cities' level 1 quest: a piece of equipment fetched from a merchant and shown to the giver. Finishing it finishes the character's own city class quest of level 1 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/hillgiant.json: change that file, never this quest's rows by hand."
     },
     {
-      "key": "homelands/hillgiant/hunt",
-      "name": "Skinks in the Pits",
+      "key": "homelands/hillgiant/L2",
+      "name": "A Stone That Comes Back",
       "giver": "Elder Hrolmog",
       "classes": [],
-      "races": [],
-      "minlevel": 1,
+      "races": [
+        11
+      ],
+      "minlevel": 2,
       "maxlevel": 60,
       "requires": [
-        "homelands/hillgiant/welcome"
+        "homelands/hillgiant/L1"
       ],
-      "offer": "Plateau skinks keep slipping into Bulka's meat pits. Go out on the grass west of the steps and stamp on five of them. Mind you do not stamp on Bulka.",
-      "accept": "I will stamp on them.",
+      "offer": "Giants fall. It is loud, and it hurts. Go to Spiritmaster Ognarr. He will tie your spirit to the camp, so you get up here after.\nThen tell Coachman Durgo your name for his ledger. His coach goes to Freeport and to the other homes of the Homelands. It is a strong coach.\nWill you see them both and come back?",
+      "accept": "I will see them both.",
       "decline": "Not now.",
-      "declined": "Then the skinks feast tonight.",
-      "started": "Five skinks. They are quick, so be quicker.",
+      "declined": "Then do not fall down.",
+      "started": "Ognarr is north. Durgo is south, out on the plain.",
       "steps": [
         {
-          "kind": "kill",
-          "target": "plateau skink",
-          "count": 5,
-          "journal": "Kill five plateau skinks on the grass west of the old steps."
+          "kind": "talk",
+          "target": "Spiritmaster Ognarr",
+          "journal": "Have Spiritmaster Ognarr, north of the elder, bind your spirit to the camp.",
+          "says": "Done. Fall where you like. You will get up here. Now go and tell Coachman Durgo your name."
+        },
+        {
+          "kind": "talk",
+          "target": "Coachman Durgo",
+          "journal": "Give your name to Coachman Durgo, on the plain south of the elder, for his ledger.",
+          "says": "A giant! Good. I built the coach for giants. It runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now."
         },
         {
           "kind": "talk",
           "target": "Elder Hrolmog",
-          "journal": "Tell Elder Hrolmog the skinks are dealt with.",
-          "says": "Five fewer thieves. You have heavy feet, young one. Good feet.",
+          "journal": "Return to Elder Hrolmog.",
+          "says": "Good. Now you always come back.\nDurgo's coach goes where its ledgers know you. But the stone way to Oggok is earned. Stonehand Borrik, beside me, has work for you.",
           "rewards": {
-            "xp": 400,
-            "tunar": 25
+            "xp": 2200
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 2
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours: the hill giants' second starter quest, the elder's too (the owner's 2026-11-10: an elder giving two starter quests); the plateau skinks are tools/seed_race_homes.py's, passive (npcaggro)."
+      "notes": "Ours (the Homelands' starter quests): the hillgiant's level 2, at West Plateau, on the cities' level 2 quest: the spiritmaster's bind and the coachman's ledger. Finishing it finishes the character's own city class quest of level 2 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/hillgiant.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/hillgiant/L3",
+      "name": "Skinks in the Grass",
+      "giver": "Stonehand Borrik",
+      "classes": [],
+      "races": [
+        11
+      ],
+      "minlevel": 3,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/hillgiant/L2"
+      ],
+      "offer": "You are the new one. Good. Skinks are in the grass west of camp. They bite ankles. Giants have a lot of ankle.\nStamp on some. Bring me three of their scales. Then I will show you a thing.\nWill you hunt them?",
+      "accept": "I will hunt them.",
+      "decline": "Not now.",
+      "declined": "Then mind your ankles.",
+      "started": "Three scales. West, out on the plain.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "plateau skink",
+          "items": [
+            {
+              "item": "plateau skink scale",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three plateau skink scales from the plateau skinks on the plain west of the camp."
+        },
+        {
+          "kind": "give",
+          "target": "Stonehand Borrik",
+          "items": [
+            {
+              "item": "plateau skink scale",
+              "count": 3
+            }
+          ],
+          "journal": "Bring three plateau skink scales to Stonehand Borrik.",
+          "says": "Three scales. Ankles still on. Good. Now watch my hands, and learn this.",
+          "rewards": {
+            "xp": 6900,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Swift Blade"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Hero Guard"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Malice"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Chant of Battle"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Sneak"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Fiery Burst"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Tribal Toughness"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Minor Blessing"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Smoldering Aura"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Life Tap"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Crawling Skin"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Arcane Bindings"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Hardening Agent"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 3
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the hillgiant's level 3, at West Plateau, on the cities' level 3 quest: a hunt for drops; each class is taught what its own city's level 3 quest teaches it. Finishing it finishes the character's own city class quest of level 3 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/hillgiant.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/hillgiant/L4",
+      "name": "A Young Giant's Arms",
+      "giver": "Stonehand Borrik",
+      "classes": [],
+      "races": [
+        11
+      ],
+      "minlevel": 4,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/hillgiant/L3"
+      ],
+      "offer": "Fists are good. Fists with something in them are better. I will make you proper gear. You fetch what I need.\nHidewife Marna has leather and a shaft for me. Then take a claw off the rock badgers on the plain south of camp.\nWill you bring me all three?",
+      "accept": "I will bring them.",
+      "decline": "Not now.",
+      "declined": "Then use your fists. They are not bad.",
+      "started": "Leather and a shaft from Marna. A claw from the badgers. Go.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Hidewife Marna",
+          "journal": "Ask Hidewife Marna for the leather strip and the wooden shaft.",
+          "says": "For Borrik? Here. Hide, and a shaft. It was a tree this morning. Tell him to make it a big one.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "leather strip",
+                  "count": 1
+                },
+                {
+                  "item": "wooden shaft",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "loot",
+          "target": "rock badger",
+          "items": [
+            {
+              "item": "rock badger claw",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 0.5,
+          "journal": "Take a rock badger claw from the rock badgers on the plain south of the camp."
+        },
+        {
+          "kind": "give",
+          "target": "Stonehand Borrik",
+          "items": [
+            {
+              "item": "leather strip",
+              "count": 1
+            },
+            {
+              "item": "wooden shaft",
+              "count": 1
+            },
+            {
+              "item": "rock badger claw",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the leather strip, the wooden shaft and the rock badger claw to Stonehand Borrik.",
+          "says": "All three. Stand back. This is loud... there. It is yours. Do not drop it on anyone you like.",
+          "rewards": {
+            "xp": 17000,
+            "byclass": {
+              "0": {
+                "items": [
+                  "militia short sword"
+                ]
+              },
+              "1": {
+                "items": [
+                  "Glade Crafted Longbow"
+                ]
+              },
+              "2": {
+                "items": [
+                  "Sword of Faith"
+                ]
+              },
+              "3": {
+                "items": [
+                  "Iron Hatchet"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Disciple's Jitte"
+                ]
+              },
+              "5": {
+                "items": [
+                  "Traveler's Rapier"
+                ]
+              },
+              "6": {
+                "items": [
+                  "tiger dirk"
+                ]
+              },
+              "7": {
+                "items": [
+                  "crafted glade staff"
+                ]
+              },
+              "8": {
+                "items": [
+                  "Corse Spiked Club"
+                ]
+              },
+              "9": {
+                "items": [
+                  "Acolyte's Hammer"
+                ]
+              },
+              "10": {
+                "items": [
+                  "blue robe"
+                ]
+              },
+              "11": {
+                "items": [
+                  "Black Robe of the Order"
+                ]
+              },
+              "12": {
+                "items": [
+                  "yellow robe"
+                ]
+              },
+              "13": {
+                "items": [
+                  "red robe"
+                ]
+              },
+              "14": {
+                "items": [
+                  "burnt gloves"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 4
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the hillgiant's level 4, at West Plateau, on the cities' level 4 quest: new gear of a merchant's materials and a drop; each class is given what its own city's level 4 quest gives it (class-rewards.json has the two classes the cities give nothing). Finishing it finishes the character's own city class quest of level 4 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/hillgiant.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/hillgiant/L5",
+      "name": "Old Greyjaw",
+      "giver": "Stonehand Borrik",
+      "classes": [],
+      "races": [
+        11
+      ],
+      "minlevel": 5,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/hillgiant/L4"
+      ],
+      "offer": "One more thing. An old wolf, Greyjaw, hunts far to the north, past Thundrik's stones. It took a calf from the herders. It is not afraid of giants.\nIt will come at you first. Let it. Then hit it. Bring me its fang.\nWill you hunt Greyjaw?",
+      "accept": "I will hunt it.",
+      "decline": "Not yet.",
+      "declined": "It is old. It is not getting slower.",
+      "started": "North. Past Thundrik and his stones, and on. It will find you.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "Greyjaw",
+          "items": [
+            {
+              "item": "Greyjaw's fang",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 1.0,
+          "journal": "Take Greyjaw's fang from the old wolf Greyjaw, far north of the camp, beyond the gatekeeper."
+        },
+        {
+          "kind": "give",
+          "target": "Stonehand Borrik",
+          "items": [
+            {
+              "item": "Greyjaw's fang",
+              "count": 1
+            }
+          ],
+          "journal": "Bring Greyjaw's fang to Stonehand Borrik.",
+          "says": "Greyjaw's fang. Hah! The herders will sleep. You are not so small now.\nLearn this. Then see Gatekeeper Thundrik at the stones to the north when you want Oggok.",
+          "rewards": {
+            "xp": 36500,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Taunt"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Forage Berries"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Lay Hands"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Harm Touch"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Minor Purity"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Funeral March"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Shadowstrike"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Snare"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Blighting Mist"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Holy Shock"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Motivate"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Rabid Infection"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Heavy Arms"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Shock of Frost"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Refinement"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 5
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the hillgiant's level 5, at West Plateau, on the cities' level 5 quest: a foe to bring down; each class is taught what its own city's level 5 quest teaches it. Finishing it finishes the character's own city class quest of level 5 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/hillgiant.json: change that file, never this quest's rows by hand."
     },
     {
       "key": "homelands/hillgiant/flight",
       "name": "The Stone Way",
       "giver": "Gatekeeper Thundrik",
       "classes": [],
-      "races": [],
+      "races": [
+        11
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [
-        "homelands/hillgiant/welcome",
-        "homelands/hillgiant/hunt"
+        "homelands/hillgiant/L1",
+        "homelands/hillgiant/L2",
+        "homelands/hillgiant/L3",
+        "homelands/hillgiant/L4",
+        "homelands/hillgiant/L5"
       ],
       "repeatable": true,
-      "offer": "The ogres of Oggok are strong, and they will train you as one of their own. I can open the stone way across the sea to them, but it opens one way only. Are you ready to go?",
+      "offer": "The ogres of Oggok are strong, and they like giants. They will train you as one of their own, across the sea.\nYou have earned the stone way. I will set you down among your own guild in Oggok, and your spirit will rest there.\nShall I open the way to Oggok?",
       "accept": "Open the way to Oggok.",
       "decline": "Not yet.",
-      "declined": "The way will keep.",
+      "declined": "The way will keep. Stone does.",
       "started": "Stand still and hold your breath. Walk tall in Oggok!",
       "steps": [
         {
@@ -116,99 +591,574 @@
         }
       ],
       "unresolved": [],
-      "notes": "Ours: the gatekeeper's port to Oggok, the hill giants' wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
+      "notes": "Ours: the gatekeeper's port to Oggok, the hillgiant's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/hillgiant.json."
     },
     {
-      "key": "homelands/kerran/welcome",
-      "name": "Whiskers and Welcome",
+      "key": "homelands/kerran/L1",
+      "name": "A Cub's Claw Band",
       "giver": "Elder Ssharu",
       "classes": [],
-      "races": [],
+      "races": [
+        12
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "A new cub on the isle! Before you go prowling, every young one of the village greets Miyanne at the water's edge. She feeds the whole village, and she will feed you too.",
-      "accept": "I will greet her.",
+      "offer": "Mrrr. A new cub, with its eyes barely open. Come, let me look at you. Yes. You will do.\nEvery cub of the isle wears a claw band, woven of palm and its mother's fur, until its first hunt. Weaver Shimra makes them, under the first stilt house to the north-east.\nWill you fetch your claw band and show it to me?",
+      "accept": "I will fetch it.",
       "decline": "Not now.",
-      "declined": "The isle will wait, cub.",
-      "started": "Go on. Miyanne keeps her stall by the water.",
+      "declined": "Then curl up in the sun a while. I often do.",
+      "started": "Shimra sits under the first stilt house, north-east of here.",
       "steps": [
         {
           "kind": "talk",
-          "target": "Grocer Miyanne",
-          "journal": "Greet Grocer Miyanne by the water's edge.",
-          "says": "Ssharu sent you? Here, a boiled egg. Do not eat the shell.",
-          "rewards": {
-            "items": [
-              "boiled egg"
-            ]
-          }
+          "target": "Weaver Shimra",
+          "journal": "Ask Weaver Shimra, under the stilt house north-east of Elder Ssharu, for a cub's claw band.",
+          "says": "The elder's new cub? Paw out. Claws in, please. There: palm for the island, fur for the pride. A cub pays nothing.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "cub's claw band",
+                  "count": 1
+                }
+              ]
+            }
+          ]
         },
         {
-          "kind": "talk",
+          "kind": "show",
           "target": "Elder Ssharu",
-          "journal": "Return to Elder Ssharu on the village's landward side.",
-          "says": "Good. Now you know where the food is, and Miyanne knows your face.",
+          "items": [
+            {
+              "item": "cub's claw band",
+              "count": 1
+            }
+          ],
+          "journal": "Show the cub's claw band to Elder Ssharu.",
+          "says": "It suits you. Wear it, and every kerran on the isle will know whose cub you are.",
           "rewards": {
-            "xp": 200,
-            "tunar": 10
+            "xp": 430
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 1
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the kerrans' first, at their home zone, Kerra Isle of the disc."
+      "notes": "Ours (the Homelands' starter quests): the kerran's level 1, at Kerra Isle, on the cities' level 1 quest: a piece of equipment fetched from a merchant and shown to the giver. Finishing it finishes the character's own city class quest of level 1 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/kerran.json: change that file, never this quest's rows by hand."
     },
     {
-      "key": "homelands/kerran/hunt",
-      "name": "Crabs on the Sand",
+      "key": "homelands/kerran/L2",
+      "name": "Nine Lives, One Home",
       "giver": "Elder Ssharu",
       "classes": [],
-      "races": [],
-      "minlevel": 1,
+      "races": [
+        12
+      ],
+      "minlevel": 2,
       "maxlevel": 60,
       "requires": [
-        "homelands/kerran/welcome"
+        "homelands/kerran/L1"
       ],
-      "offer": "Isle crabs crawl up the beach and pinch holes in our nets. Hunt five of them on the sand north of the village, and watch your tail.",
-      "accept": "I will hunt them.",
+      "offer": "They say a kerran has nine lives. Do not count on it. Have Spiritmaster Talhrin bind your spirit to the isle, so that you wake here whichever life you lose.\nThen give your name to Coachman Tolhra for his ledger. His coach, and the ferry that carries it, runs to Freeport and to the other homes of the Homelands.\nWill you see them both and come back to me?",
+      "accept": "I will see them both.",
       "decline": "Not now.",
-      "declined": "Then the nets will suffer.",
-      "started": "Five crabs. Pounce, do not paw.",
+      "declined": "Then keep out of the deep water until you do.",
+      "started": "Talhrin is across the village, to the east. Tolhra waits a few steps north of here.",
       "steps": [
         {
-          "kind": "kill",
-          "target": "isle crab",
-          "count": 5,
-          "journal": "Kill five isle crabs on the sand north of the village."
+          "kind": "talk",
+          "target": "Spiritmaster Talhrin",
+          "journal": "Have Spiritmaster Talhrin, east of the elder, bind your spirit to the isle.",
+          "says": "It is done. Lose a life where you will, cub, and you will wake here in the sun. Now go and give Coachman Tolhra your name."
+        },
+        {
+          "kind": "talk",
+          "target": "Coachman Tolhra",
+          "journal": "Give your name to Coachman Tolhra, a few steps north of the elder, for his ledger.",
+          "says": "A cub off the isle at last! My coach rides the ferry over, then runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now."
         },
         {
           "kind": "talk",
           "target": "Elder Ssharu",
-          "journal": "Tell Elder Ssharu the crabs are dealt with.",
-          "says": "Five fewer pinchers. You hunt well for a cub.",
+          "journal": "Return to Elder Ssharu.",
+          "says": "Good. Now the isle will always have you back.\nTolhra's coach goes where its ledgers know you, but the crossing to Qeynos is earned. Huntress Kazhra, beside me, has work for you.",
           "rewards": {
-            "xp": 400,
-            "tunar": 25
+            "xp": 2200
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 2
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours: the kerrans' second starter quest, the elder's too (the owner's 2026-11-10: an elder giving two starter quests); the isle crabs are tools/seed_race_homes.py's, passive (npcaggro)."
+      "notes": "Ours (the Homelands' starter quests): the kerran's level 2, at Kerra Isle, on the cities' level 2 quest: the spiritmaster's bind and the coachman's ledger. Finishing it finishes the character's own city class quest of level 2 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/kerran.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/kerran/L3",
+      "name": "Crabs on the Sand",
+      "giver": "Huntress Kazhra",
+      "classes": [],
+      "races": [
+        12
+      ],
+      "minlevel": 3,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/kerran/L2"
+      ],
+      "offer": "So this is the new cub. Good. Isle crabs are thick on the sand spit north of the village, and they have been cutting the fishers' nets.\nGo and pounce on a few, and bring me three of their claws. Then I will teach you something every hunter knows.\nWill you hunt them?",
+      "accept": "I will hunt them.",
+      "decline": "Not now.",
+      "declined": "Then the fishers mend nets tonight, and curse your name.",
+      "started": "Three claws. North, out along the sand. Mind your tail.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "isle crab",
+          "items": [
+            {
+              "item": "isle crab claw",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three isle crab claws from the isle crabs on the sand spit north of the village."
+        },
+        {
+          "kind": "give",
+          "target": "Huntress Kazhra",
+          "items": [
+            {
+              "item": "isle crab claw",
+              "count": 3
+            }
+          ],
+          "journal": "Bring three isle crab claws to Huntress Kazhra.",
+          "says": "Three claws, and your tail unpinched. You can hunt. Now watch closely, and learn this.",
+          "rewards": {
+            "xp": 6900,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Swift Blade"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Hero Guard"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Malice"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Chant of Battle"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Sneak"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Fiery Burst"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Tribal Toughness"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Minor Blessing"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Smoldering Aura"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Life Tap"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Crawling Skin"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Arcane Bindings"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Hardening Agent"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 3
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the kerran's level 3, at Kerra Isle, on the cities' level 3 quest: a hunt for drops; each class is taught what its own city's level 3 quest teaches it. Finishing it finishes the character's own city class quest of level 3 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/kerran.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/kerran/L4",
+      "name": "A Cub's Arms",
+      "giver": "Huntress Kazhra",
+      "classes": [],
+      "races": [
+        12
+      ],
+      "minlevel": 4,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/kerran/L3"
+      ],
+      "offer": "Claws are a fine start, but the mainland wants more. I will make you proper gear, if you bring me what I need.\nWeaver Shimra has leather and cord for me. Then take a fang from the fern vipers that coil in the ferns west of the village.\nWill you bring me all three?",
+      "accept": "I will bring them.",
+      "decline": "Not now.",
+      "declined": "Then keep to your claws, and to the isle.",
+      "started": "Leather and cord from Shimra, a fang from the vipers. Go softly.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Weaver Shimra",
+          "journal": "Ask Weaver Shimra for the leather strip and the silk cord.",
+          "says": "For Kazhra? Here: a strip of leather and a silk cord. Tell her she still owes me a fish. A large one.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "leather strip",
+                  "count": 1
+                },
+                {
+                  "item": "silk cord",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "loot",
+          "target": "fern viper",
+          "items": [
+            {
+              "item": "fern viper fang",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 0.5,
+          "journal": "Take a fern viper fang from the fern vipers among the ferns west of the village."
+        },
+        {
+          "kind": "give",
+          "target": "Huntress Kazhra",
+          "items": [
+            {
+              "item": "leather strip",
+              "count": 1
+            },
+            {
+              "item": "silk cord",
+              "count": 1
+            },
+            {
+              "item": "fern viper fang",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the leather strip, the silk cord and the fern viper fang to Huntress Kazhra.",
+          "says": "All three. Sit a moment while I work... there. It is yours. Keep it as sharp as your claws.",
+          "rewards": {
+            "xp": 17000,
+            "byclass": {
+              "0": {
+                "items": [
+                  "militia short sword"
+                ]
+              },
+              "1": {
+                "items": [
+                  "Glade Crafted Longbow"
+                ]
+              },
+              "2": {
+                "items": [
+                  "Sword of Faith"
+                ]
+              },
+              "3": {
+                "items": [
+                  "Iron Hatchet"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Disciple's Jitte"
+                ]
+              },
+              "5": {
+                "items": [
+                  "Traveler's Rapier"
+                ]
+              },
+              "6": {
+                "items": [
+                  "tiger dirk"
+                ]
+              },
+              "7": {
+                "items": [
+                  "crafted glade staff"
+                ]
+              },
+              "8": {
+                "items": [
+                  "Corse Spiked Club"
+                ]
+              },
+              "9": {
+                "items": [
+                  "Acolyte's Hammer"
+                ]
+              },
+              "10": {
+                "items": [
+                  "blue robe"
+                ]
+              },
+              "11": {
+                "items": [
+                  "Black Robe of the Order"
+                ]
+              },
+              "12": {
+                "items": [
+                  "yellow robe"
+                ]
+              },
+              "13": {
+                "items": [
+                  "red robe"
+                ]
+              },
+              "14": {
+                "items": [
+                  "burnt gloves"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 4
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the kerran's level 4, at Kerra Isle, on the cities' level 4 quest: new gear of a merchant's materials and a drop; each class is given what its own city's level 4 quest gives it (class-rewards.json has the two classes the cities give nothing). Finishing it finishes the character's own city class quest of level 4 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/kerran.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/kerran/L5",
+      "name": "Old Snapclaw",
+      "giver": "Huntress Kazhra",
+      "classes": [],
+      "races": [
+        12
+      ],
+      "minlevel": 5,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/kerran/L4"
+      ],
+      "offer": "One hunt more, cub. A great crab we call Old Snapclaw has the far south-west of the island, and it took a fisher's tail last moon.\nIt does not scuttle off like the small ones. It comes for you. Stand, strike, and bring me its claw.\nWill you hunt Old Snapclaw?",
+      "accept": "I will hunt it.",
+      "decline": "Not yet.",
+      "declined": "It will only grow, and so will its temper.",
+      "started": "South-west, through the ferns, to the island's end. Keep your tail behind you.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "Old Snapclaw",
+          "items": [
+            {
+              "item": "Old Snapclaw's claw",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 1.0,
+          "journal": "Take Old Snapclaw's claw from the great crab Old Snapclaw at the island's far south-west."
+        },
+        {
+          "kind": "give",
+          "target": "Huntress Kazhra",
+          "items": [
+            {
+              "item": "Old Snapclaw's claw",
+              "count": 1
+            }
+          ],
+          "journal": "Bring Old Snapclaw's claw to Huntress Kazhra.",
+          "says": "Old Snapclaw's own claw! The fishers will purr for a week. You are a cub no longer.\nLearn this, and see Gatekeeper Raszhar at the water's edge, north-east of the village, when you are ready to cross.",
+          "rewards": {
+            "xp": 36500,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Taunt"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Forage Berries"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Lay Hands"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Harm Touch"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Minor Purity"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Funeral March"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Shadowstrike"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Snare"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Blighting Mist"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Holy Shock"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Motivate"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Rabid Infection"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Heavy Arms"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Shock of Frost"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Refinement"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 5
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the kerran's level 5, at Kerra Isle, on the cities' level 5 quest: a foe to bring down; each class is taught what its own city's level 5 quest teaches it. Finishing it finishes the character's own city class quest of level 5 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/kerran.json: change that file, never this quest's rows by hand."
     },
     {
       "key": "homelands/kerran/flight",
       "name": "Across the Water",
       "giver": "Gatekeeper Raszhar",
       "classes": [],
-      "races": [],
+      "races": [
+        12
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [
-        "homelands/kerran/welcome",
-        "homelands/kerran/hunt"
+        "homelands/kerran/L1",
+        "homelands/kerran/L2",
+        "homelands/kerran/L3",
+        "homelands/kerran/L4",
+        "homelands/kerran/L5"
       ],
       "repeatable": true,
-      "offer": "The humans of Qeynos trade with our boats and train our young as their own; rangers and druids go to their Surefall Glade. I can send you across the water, but the way runs one way. Are you ready?",
+      "offer": "The humans of Qeynos trade with our boats and train our young as their own. Rangers and druids go to their Surefall Glade.\nYou have earned the crossing, hunter. I will set you down among your own guild there, and your spirit will rest in Qeynos.\nShall I send you across the water?",
       "accept": "Send me across the water.",
       "decline": "Not yet.",
       "declined": "The tide will wait.",
@@ -233,7 +1183,7 @@
         }
       ],
       "unresolved": [],
-      "notes": "Ours: the gatekeeper's port to Qeynos, the kerrans' wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
+      "notes": "Ours: the gatekeeper's port to Qeynos, the kerran's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/kerran.json."
     },
     {
       "key": "homelands/kappa/welcome",
@@ -938,99 +1888,574 @@
       "notes": "Ours: the gatekeeper's port to Oggok, the gargoyles' wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
     },
     {
-      "key": "homelands/jalraeth/welcome",
-      "name": "The First Stillness",
+      "key": "homelands/jalraeth/L1",
+      "name": "A Novice's Prayer Beads",
       "giver": "Elder Ithrael",
       "classes": [],
-      "races": [],
+      "races": [
+        30
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "Be welcome, newly woken one. Before your path begins, greet Saelun on this road. She keeps the order's stores, and even a drifting mind must eat.",
-      "accept": "I will greet Saelun.",
+      "offer": "Be still. Good. You have come out of the long quiet and into the noise of the world. It will pass. Everything loud does.\nEach novice of the order counts its breaths on a string of temple beads. Artificer Maelis strings them, a few steps north of here.\nWill you fetch your beads and show them to me?",
+      "accept": "I will fetch them.",
       "decline": "Not now.",
-      "declined": "Stillness can wait. So can I.",
-      "started": "Go. Saelun waits on the road's north side, toward the door.",
+      "declined": "Then wait. Waiting, too, is practice.",
+      "started": "Maelis is a few steps to the north, on the road's far side.",
       "steps": [
         {
           "kind": "talk",
-          "target": "Grocer Saelun",
-          "journal": "Greet Grocer Saelun on the road before the temple's east door.",
-          "says": "Ithrael sent you? Then take this bread, and eat it slowly.",
-          "rewards": {
-            "items": [
-              "flax bread"
-            ]
-          }
+          "target": "Artificer Maelis",
+          "journal": "Ask Artificer Maelis, a few steps north of Elder Ithrael, for a novice's prayer beads.",
+          "says": "A novice. Hold out your hand. One bead for each breath, and when the string ends, begin again. The order asks no coin of its own.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "novice's prayer beads",
+                  "count": 1
+                }
+              ]
+            }
+          ]
         },
         {
-          "kind": "talk",
+          "kind": "show",
           "target": "Elder Ithrael",
-          "journal": "Return to Elder Ithrael on the temple's east road.",
-          "says": "Good. A still mind starts with a full stomach.",
+          "items": [
+            {
+              "item": "novice's prayer beads",
+              "count": 1
+            }
+          ],
+          "journal": "Show the novice's prayer beads to Elder Ithrael.",
+          "says": "Count on them when the world grows loud. It will. Now you are one of the order, and the order is quiet.",
           "rewards": {
-            "xp": 200,
-            "tunar": 10
+            "xp": 430
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 1
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the Jal'Raeth's first, at their home zone, Envar of the disc."
+      "notes": "Ours (the Homelands' starter quests): the jalraeth's level 1, at Envar, on the cities' level 1 quest: a piece of equipment fetched from a merchant and shown to the giver. Finishing it finishes the character's own city class quest of level 1 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/jalraeth.json: change that file, never this quest's rows by hand."
     },
     {
-      "key": "homelands/jalraeth/hunt",
-      "name": "Grubs in the Dead Hills",
+      "key": "homelands/jalraeth/L2",
+      "name": "Anchored at Envar",
       "giver": "Elder Ithrael",
       "classes": [],
-      "races": [],
-      "minlevel": 1,
+      "races": [
+        30
+      ],
+      "minlevel": 2,
       "maxlevel": 60,
       "requires": [
-        "homelands/jalraeth/welcome"
+        "homelands/jalraeth/L1"
       ],
-      "offer": "Ash grubs creep down from the dead hills where this road ends and gnaw at the temple's stones. Go up into those hills and end five of them.",
-      "accept": "I will end them.",
+      "offer": "A mind adrift is lost. Have Spiritmaster Oravai anchor your spirit at Envar, so that you return to this road if the world unmakes you.\nThen give your name to Coachman Therun for his ledger. His coach runs to Freeport and to the other homes of the Homelands.\nWill you see them both and return to me?",
+      "accept": "I will see them both.",
       "decline": "Not now.",
-      "declined": "Then the stones will be gnawed.",
-      "started": "Five grubs. Strike calmly.",
+      "declined": "Then go nowhere you cannot walk back from.",
+      "started": "Oravai waits to the south-west. Therun is a few steps behind you, by the road.",
       "steps": [
         {
-          "kind": "kill",
-          "target": "ash grub",
-          "count": 5,
-          "journal": "Kill five ash grubs in the hills where the east road ends."
+          "kind": "talk",
+          "target": "Spiritmaster Oravai",
+          "journal": "Have Spiritmaster Oravai, south-west of the elder, bind your spirit to Envar.",
+          "says": "It is done. Whatever unmakes you, you will gather again on this road. Now give Coachman Therun your name."
+        },
+        {
+          "kind": "talk",
+          "target": "Coachman Therun",
+          "journal": "Give your name to Coachman Therun, by the road just east of the elder, for his ledger.",
+          "says": "A novice. My coach runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now. I will not speak on the road. You will be glad of it."
         },
         {
           "kind": "talk",
           "target": "Elder Ithrael",
-          "journal": "Tell Elder Ithrael the grubs are dealt with.",
-          "says": "Five grubs ended. The stones are quiet again, and so, I hope, is your mind.",
+          "journal": "Return to Elder Ithrael.",
+          "says": "Good. Now you have a place to return to, and may go out from it.\nTherun's coach goes where its ledgers know you, but the scholars' door is earned. Watcher Vaeris, a few steps south, has work for you.",
           "rewards": {
-            "xp": 400,
-            "tunar": 25
+            "xp": 2200
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 2
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours: the Jal'Raeth's second starter quest, the elder's too (the owner's 2026-11-10: an elder giving two starter quests); the ash grubs are tools/seed_race_homes.py's, passive (npcaggro)."
+      "notes": "Ours (the Homelands' starter quests): the jalraeth's level 2, at Envar, on the cities' level 2 quest: the spiritmaster's bind and the coachman's ledger. Finishing it finishes the character's own city class quest of level 2 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/jalraeth.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/jalraeth/L3",
+      "name": "Grubs in the Dead Hills",
+      "giver": "Watcher Vaeris",
+      "classes": [],
+      "races": [
+        30
+      ],
+      "minlevel": 3,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/jalraeth/L2"
+      ],
+      "offer": "The novice. Good. Ash grubs breed in the dead hills east of the road, and they have begun to gnaw at the temple's stones.\nThin them, and bring me three of their teeth. Then I will show you a thing the order teaches.\nWill you hunt them?",
+      "accept": "I will hunt them.",
+      "decline": "Not now.",
+      "declined": "Stone is patient. It will be eaten slowly.",
+      "started": "Three teeth. East, where the road runs out into the hills.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "ash grub",
+          "items": [
+            {
+              "item": "ash grub tooth",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three ash grub teeth from the ash grubs in the dead hills east of the road."
+        },
+        {
+          "kind": "give",
+          "target": "Watcher Vaeris",
+          "items": [
+            {
+              "item": "ash grub tooth",
+              "count": 3
+            }
+          ],
+          "journal": "Bring three ash grub teeth to Watcher Vaeris.",
+          "says": "Three teeth. You did not hurry, and you did not falter. Now watch, and learn this.",
+          "rewards": {
+            "xp": 6900,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Swift Blade"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Hero Guard"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Malice"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Chant of Battle"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Sneak"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Fiery Burst"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Tribal Toughness"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Minor Blessing"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Smoldering Aura"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Life Tap"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Crawling Skin"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Arcane Bindings"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Hardening Agent"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 3
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the jalraeth's level 3, at Envar, on the cities' level 3 quest: a hunt for drops; each class is taught what its own city's level 3 quest teaches it. Finishing it finishes the character's own city class quest of level 3 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/jalraeth.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/jalraeth/L4",
+      "name": "A Novice's Arms",
+      "giver": "Watcher Vaeris",
+      "classes": [],
+      "races": [
+        30
+      ],
+      "minlevel": 4,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/jalraeth/L3"
+      ],
+      "offer": "A still mind is not enough in the lands beyond. I will make you proper gear, but you will bring what it needs.\nArtificer Maelis has cord and a shaft set aside. Then take a fang from the cinder adders on the low hills to the north-east.\nWill you bring me all three?",
+      "accept": "I will bring them.",
+      "decline": "Not now.",
+      "declined": "Then go unarmed, and be very still indeed.",
+      "started": "Cord and a shaft from Maelis, a fang from the adders. Go.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Artificer Maelis",
+          "journal": "Ask Artificer Maelis for the silk cord and the wooden shaft.",
+          "says": "For Vaeris. Here: cord, and a shaft cut straight. Use them once, and well.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "silk cord",
+                  "count": 1
+                },
+                {
+                  "item": "wooden shaft",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "loot",
+          "target": "cinder adder",
+          "items": [
+            {
+              "item": "cinder adder fang",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 0.5,
+          "journal": "Take a cinder adder fang from the cinder adders on the low hills north-east of the road."
+        },
+        {
+          "kind": "give",
+          "target": "Watcher Vaeris",
+          "items": [
+            {
+              "item": "silk cord",
+              "count": 1
+            },
+            {
+              "item": "wooden shaft",
+              "count": 1
+            },
+            {
+              "item": "cinder adder fang",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the silk cord, the wooden shaft and the cinder adder fang to Watcher Vaeris.",
+          "says": "All three. Be patient a moment... there. It is yours. Do not grow fond of it. It is a tool.",
+          "rewards": {
+            "xp": 17000,
+            "byclass": {
+              "0": {
+                "items": [
+                  "militia short sword"
+                ]
+              },
+              "1": {
+                "items": [
+                  "Glade Crafted Longbow"
+                ]
+              },
+              "2": {
+                "items": [
+                  "Sword of Faith"
+                ]
+              },
+              "3": {
+                "items": [
+                  "Iron Hatchet"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Disciple's Jitte"
+                ]
+              },
+              "5": {
+                "items": [
+                  "Traveler's Rapier"
+                ]
+              },
+              "6": {
+                "items": [
+                  "tiger dirk"
+                ]
+              },
+              "7": {
+                "items": [
+                  "crafted glade staff"
+                ]
+              },
+              "8": {
+                "items": [
+                  "Corse Spiked Club"
+                ]
+              },
+              "9": {
+                "items": [
+                  "Acolyte's Hammer"
+                ]
+              },
+              "10": {
+                "items": [
+                  "blue robe"
+                ]
+              },
+              "11": {
+                "items": [
+                  "Black Robe of the Order"
+                ]
+              },
+              "12": {
+                "items": [
+                  "yellow robe"
+                ]
+              },
+              "13": {
+                "items": [
+                  "red robe"
+                ]
+              },
+              "14": {
+                "items": [
+                  "burnt gloves"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 4
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the jalraeth's level 4, at Envar, on the cities' level 4 quest: new gear of a merchant's materials and a drop; each class is given what its own city's level 4 quest gives it (class-rewards.json has the two classes the cities give nothing). Finishing it finishes the character's own city class quest of level 4 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/jalraeth.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/jalraeth/L5",
+      "name": "The Hollow Pilgrim",
+      "giver": "Watcher Vaeris",
+      "classes": [],
+      "races": [
+        30
+      ],
+      "minlevel": 5,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/jalraeth/L4"
+      ],
+      "offer": "One task more. The temple's dead keep to the temple, but one has wandered out: a hollow thing in a pilgrim's rags, on the hill east of the grubs.\nIt has no stillness left, only hunger, and it will come at you on sight. Give it rest, and bring me a bone of it for the crypt.\nWill you lay the Hollow Pilgrim to rest?",
+      "accept": "I will lay it to rest.",
+      "decline": "Not yet.",
+      "declined": "It does not sleep. It will be there.",
+      "started": "East, through the grubs' hills, to the rise beyond. It will see you first.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "Hollow Pilgrim",
+          "items": [
+            {
+              "item": "Hollow Pilgrim's bone",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 1.0,
+          "journal": "Take the Hollow Pilgrim's bone from the Hollow Pilgrim on the hill east of the ash grubs."
+        },
+        {
+          "kind": "give",
+          "target": "Watcher Vaeris",
+          "items": [
+            {
+              "item": "Hollow Pilgrim's bone",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the Hollow Pilgrim's bone to Watcher Vaeris.",
+          "says": "It rests, then. I will see the bone laid where it belongs. You are a novice no longer.\nLearn this, and go to Gatekeeper Tavrin at the temple's east door when you are ready for Highbourne.",
+          "rewards": {
+            "xp": 36500,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Taunt"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Forage Berries"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Lay Hands"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Harm Touch"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Minor Purity"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Funeral March"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Shadowstrike"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Snare"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Blighting Mist"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Holy Shock"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Motivate"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Rabid Infection"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Heavy Arms"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Shock of Frost"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Refinement"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 5
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the jalraeth's level 5, at Envar, on the cities' level 5 quest: a foe to bring down; each class is taught what its own city's level 5 quest teaches it. Finishing it finishes the character's own city class quest of level 5 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/jalraeth.json: change that file, never this quest's rows by hand."
     },
     {
       "key": "homelands/jalraeth/flight",
       "name": "The Scholars' City",
       "giver": "Gatekeeper Tavrin",
       "classes": [],
-      "races": [],
+      "races": [
+        30
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [
-        "homelands/jalraeth/welcome",
-        "homelands/jalraeth/hunt"
+        "homelands/jalraeth/L1",
+        "homelands/jalraeth/L2",
+        "homelands/jalraeth/L3",
+        "homelands/jalraeth/L4",
+        "homelands/jalraeth/L5"
       ],
       "repeatable": true,
-      "offer": "The scholars of Highbourne took in the first of us, eager for what we know, and they will teach you in turn. I can send you to them, but the path runs one way. Are you ready?",
+      "offer": "The scholars of Highbourne, on Tunaria's western shore, took in the first of us, eager for what we know. They will teach you in turn.\nYou have earned the door. I will set you down among your own guild in Highbourne, and your spirit will rest there.\nShall I send you to Highbourne?",
       "accept": "Send me to Highbourne.",
       "decline": "Not yet.",
-      "declined": "The path will wait.",
+      "declined": "The door will wait.",
       "started": "Drift well, and keep your mind still!",
       "steps": [
         {
@@ -1052,7 +2477,7 @@
         }
       ],
       "unresolved": [],
-      "notes": "Ours: the gatekeeper's port to Highbourne, the Jal'Raeth's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
+      "notes": "Ours: the gatekeeper's port to Highbourne, the jalraeth's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/jalraeth.json."
     },
     {
       "key": "homelands/aviak/L1",
@@ -2466,96 +3891,571 @@
       "notes": "Ours: the gatekeeper's port to Halas, the orc's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a orc back in Thedruk is sent again; no reward, so none is had twice."
     },
     {
-      "key": "homelands/minotaur/welcome",
-      "name": "Horns and Hunger",
+      "key": "homelands/minotaur/L1",
+      "name": "A Calf's Nose Ring",
       "giver": "Elder Hornbrand",
       "classes": [],
-      "races": [],
+      "races": [
+        23
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "Another calf for the herd! Stand up straight. Before you lower those horns at anyone, go and see Brassnose at the mine cart outside. He keeps the food, and he keeps it from fools.",
-      "accept": "I will see Brassnose.",
+      "offer": "So. A new calf stands in the mouth of our mine. You have horns, but the herd does not know you yet.\nEvery Rustel wears the herd's iron in its nose. Smith Dargha hammers the rings at the old forge, just east of the mine's mouth.\nWill you fetch your nose ring and show it to me?",
+      "accept": "I will fetch it.",
       "decline": "Not now.",
-      "declined": "Then go hungry, calf, and learn the hard way.",
-      "started": "Brassnose is by the mine cart, just outside the mine.",
+      "declined": "Then stand there, nameless. The herd can wait longer than you can.",
+      "started": "Go. Dargha is at the old forge, just east of the mouth.",
       "steps": [
         {
           "kind": "talk",
-          "target": "Grocer Brassnose",
-          "journal": "See Grocer Brassnose by the mine cart outside the mine.",
-          "says": "Hornbrand sent you? Here, calf. Eat, and grow those horns.",
+          "target": "Smith Dargha",
+          "journal": "Ask Smith Dargha, at the old forge east of the mine's mouth, for a calf's nose ring.",
+          "says": "Hornbrand sent you? Hold still. Hah, it does not hurt, calf. Gerntar iron, dug by the herd. No charge for one of ours.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "calf's nose ring",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "show",
+          "target": "Elder Hornbrand",
+          "items": [
+            {
+              "item": "calf's nose ring",
+              "count": 1
+            }
+          ],
+          "journal": "Show the calf's nose ring to Elder Hornbrand.",
+          "says": "Good iron. Now any Rustel who sees you knows whose calf you are. Do not shame the ring.",
           "rewards": {
-            "items": [
-              "multigrain loaf"
-            ]
+            "xp": 430
           }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 1
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the minotaur's level 1, at Gerntar Mines, on the cities' level 1 quest: a piece of equipment fetched from a merchant and shown to the giver. Finishing it finishes the character's own city class quest of level 1 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/minotaur.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/minotaur/L2",
+      "name": "Bound to the Mine",
+      "giver": "Elder Hornbrand",
+      "classes": [],
+      "races": [
+        23
+      ],
+      "minlevel": 2,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/minotaur/L1"
+      ],
+      "offer": "A calf charges first and thinks after. So first let Spiritmaster Ruhga bind your spirit to the mine, in the tunnel behind me, to the west.\nThen give your name to Coachman Durruk, on the grass east of the old forge. His coach runs to Freeport and to the other homes of the Homelands.\nWill you see them both and come back to me?",
+      "accept": "I will see them both.",
+      "decline": "Not now.",
+      "declined": "Then charge nothing bigger than a rat until you do.",
+      "started": "Ruhga is in the tunnel to the west. Durruk waits on the grass east of the old forge.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Spiritmaster Ruhga",
+          "journal": "Have Spiritmaster Ruhga, in the tunnel west of the elder, bind your spirit to the mine.",
+          "says": "It is done. Fall where you will, calf, and you will wake here under the stone. Now go and give Coachman Durruk your name."
+        },
+        {
+          "kind": "talk",
+          "target": "Coachman Durruk",
+          "journal": "Give your name to Coachman Durruk, on the grass east of the old forge, for his ledger.",
+          "says": "A new calf! My coach runs to Freeport and to every other home of the Homelands, for travelers whose names their ledgers hold. Yours is in mine now."
         },
         {
           "kind": "talk",
           "target": "Elder Hornbrand",
           "journal": "Return to Elder Hornbrand.",
-          "says": "Good. A full belly and a hard head. That is all a minotaur needs to begin.",
+          "says": "Good. Now the stone will always call you back.\nDurruk's coach will carry you where its ledgers know you, but the road to Grobb is earned. Warden Ironhide, outside the mouth, has work for you.",
           "rewards": {
-            "xp": 200,
-            "tunar": 10
+            "xp": 2200
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 2
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the minotaurs' first, at their home zone, Gerntar Mines of the disc."
+      "notes": "Ours (the Homelands' starter quests): the minotaur's level 2, at Gerntar Mines, on the cities' level 2 quest: the spiritmaster's bind and the coachman's ledger. Finishing it finishes the character's own city class quest of level 2 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/minotaur.json: change that file, never this quest's rows by hand."
     },
     {
-      "key": "homelands/minotaur/rats",
+      "key": "homelands/minotaur/L3",
       "name": "Rats in the Grain",
-      "giver": "Grocer Brassnose",
+      "giver": "Warden Ironhide",
       "classes": [],
-      "races": [],
-      "minlevel": 1,
+      "races": [
+        23
+      ],
+      "minlevel": 3,
       "maxlevel": 60,
       "requires": [
-        "homelands/minotaur/welcome"
+        "homelands/minotaur/L2"
       ],
-      "offer": "Mine rats are in the grain again. They come up out of the grass east of the mine. Kill five of them, calf, and I will pay you. Trample them if you like.",
-      "accept": "I will kill them.",
+      "offer": "You are the new calf. Good, I need hooves. Mine rats are in the herd's grain again, and they breed in the grass east of here.\nStamp them out and bring me three of their tails. Then I will teach you something a Rustel should know.\nWill you hunt them?",
+      "accept": "I will hunt them.",
       "decline": "Not now.",
-      "declined": "Then the rats eat the grain, and the herd eats the rats.",
-      "started": "Five rats. They are small, so look down.",
+      "declined": "Then you eat what the rats leave.",
+      "started": "Three tails. East, past the old forge and the coach.",
       "steps": [
         {
-          "kind": "kill",
+          "kind": "loot",
           "target": "mine rat",
-          "count": 5,
-          "journal": "Kill five mine rats in the grass east of the mine."
+          "items": [
+            {
+              "item": "mine rat tail",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three mine rat tails from the mine rats on the grass east of the mine."
         },
         {
-          "kind": "talk",
-          "target": "Grocer Brassnose",
-          "journal": "Tell Grocer Brassnose the rats are dead.",
-          "says": "Five rats! The grain is safe, for now. Here is your coin.",
+          "kind": "give",
+          "target": "Warden Ironhide",
+          "items": [
+            {
+              "item": "mine rat tail",
+              "count": 3
+            }
+          ],
+          "journal": "Bring three mine rat tails to Warden Ironhide.",
+          "says": "Three tails, and no bites worth showing. You will do. Now plant your hooves, watch me, and learn this.",
           "rewards": {
-            "xp": 400,
-            "tunar": 25
+            "xp": 6900,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Swift Blade"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Hero Guard"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Malice"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Chant of Battle"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Sneak"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Fiery Burst"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Tribal Toughness"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Minor Blessing"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Smoldering Aura"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Life Tap"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Crawling Skin"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Arcane Bindings"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Hardening Agent"
+                ]
+              }
+            }
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 3
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours: the minotaurs' second starter quest; the mine rats are tools/seed_race_homes.py's, passive (npcaggro)."
+      "notes": "Ours (the Homelands' starter quests): the minotaur's level 3, at Gerntar Mines, on the cities' level 3 quest: a hunt for drops; each class is taught what its own city's level 3 quest teaches it. Finishing it finishes the character's own city class quest of level 3 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/minotaur.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/minotaur/L4",
+      "name": "A Calf's Arms",
+      "giver": "Warden Ironhide",
+      "classes": [],
+      "races": [
+        23
+      ],
+      "minlevel": 4,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/minotaur/L3"
+      ],
+      "offer": "Horns are not enough where you are going. I will make you proper gear, but you will bring me what I need.\nSmith Dargha has ore and leather for me. Then crack a shell off the ore beetles on the low rise south-east of here.\nWill you bring me all three?",
+      "accept": "I will bring them.",
+      "decline": "Not now.",
+      "declined": "Then fight with your horns, and hope they are enough.",
+      "started": "Ore and leather from Dargha, a shell from the beetles. Go.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Smith Dargha",
+          "journal": "Ask Smith Dargha for the iron ore and the leather strip.",
+          "says": "For Ironhide? Here. Good ore and a strip of hide. Tell him the forge wants its hammer back.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "iron ore",
+                  "count": 1
+                },
+                {
+                  "item": "leather strip",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "loot",
+          "target": "ore beetle",
+          "items": [
+            {
+              "item": "ore beetle shell",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 0.5,
+          "journal": "Take an ore beetle shell from the ore beetles on the low rise south-east of the mine."
+        },
+        {
+          "kind": "give",
+          "target": "Warden Ironhide",
+          "items": [
+            {
+              "item": "iron ore",
+              "count": 1
+            },
+            {
+              "item": "leather strip",
+              "count": 1
+            },
+            {
+              "item": "ore beetle shell",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the iron ore, the leather strip and the ore beetle shell to Warden Ironhide.",
+          "says": "All three. Stand back from the sparks... there. It is yours. Carry it like a Rustel.",
+          "rewards": {
+            "xp": 17000,
+            "byclass": {
+              "0": {
+                "items": [
+                  "militia short sword"
+                ]
+              },
+              "1": {
+                "items": [
+                  "Glade Crafted Longbow"
+                ]
+              },
+              "2": {
+                "items": [
+                  "Sword of Faith"
+                ]
+              },
+              "3": {
+                "items": [
+                  "Iron Hatchet"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Disciple's Jitte"
+                ]
+              },
+              "5": {
+                "items": [
+                  "Traveler's Rapier"
+                ]
+              },
+              "6": {
+                "items": [
+                  "tiger dirk"
+                ]
+              },
+              "7": {
+                "items": [
+                  "crafted glade staff"
+                ]
+              },
+              "8": {
+                "items": [
+                  "Corse Spiked Club"
+                ]
+              },
+              "9": {
+                "items": [
+                  "Acolyte's Hammer"
+                ]
+              },
+              "10": {
+                "items": [
+                  "blue robe"
+                ]
+              },
+              "11": {
+                "items": [
+                  "Black Robe of the Order"
+                ]
+              },
+              "12": {
+                "items": [
+                  "yellow robe"
+                ]
+              },
+              "13": {
+                "items": [
+                  "red robe"
+                ]
+              },
+              "14": {
+                "items": [
+                  "burnt gloves"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 4
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the minotaur's level 4, at Gerntar Mines, on the cities' level 4 quest: new gear of a merchant's materials and a drop; each class is given what its own city's level 4 quest gives it (class-rewards.json has the two classes the cities give nothing). Finishing it finishes the character's own city class quest of level 4 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/minotaur.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/minotaur/L5",
+      "name": "Gorespine",
+      "giver": "Warden Ironhide",
+      "classes": [],
+      "races": [
+        23
+      ],
+      "minlevel": 5,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/minotaur/L4"
+      ],
+      "offer": "One task more, calf. A young spineback we call Gorespine has taken the water hole far to the east, and it gores whatever comes to drink.\nIt will charge you on sight. Good. Meet it head on, and bring me one of its spines.\nWill you hunt Gorespine?",
+      "accept": "I will hunt it.",
+      "decline": "Not yet.",
+      "declined": "It grows while you wait. So does its temper.",
+      "started": "East, past the rats' grass, to the water hole. Horns down.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "Gorespine",
+          "items": [
+            {
+              "item": "Gorespine's spine",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 1.0,
+          "journal": "Take Gorespine's spine from the young spineback Gorespine at the water hole far east of the mine."
+        },
+        {
+          "kind": "give",
+          "target": "Warden Ironhide",
+          "items": [
+            {
+              "item": "Gorespine's spine",
+              "count": 1
+            }
+          ],
+          "journal": "Bring Gorespine's spine to Warden Ironhide.",
+          "says": "Gorespine's own spine! The herd drinks in peace tonight. You are a calf no longer.\nLearn this, and see Gatekeeper Stonehoof at the south-east mine when you are ready for Grobb.",
+          "rewards": {
+            "xp": 36500,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Taunt"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Forage Berries"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Lay Hands"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Harm Touch"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Minor Purity"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Funeral March"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Shadowstrike"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Snare"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Blighting Mist"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Holy Shock"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Motivate"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Rabid Infection"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Heavy Arms"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Shock of Frost"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Refinement"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 5
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the minotaur's level 5, at Gerntar Mines, on the cities' level 5 quest: a foe to bring down; each class is taught what its own city's level 5 quest teaches it. Finishing it finishes the character's own city class quest of level 5 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/minotaur.json: change that file, never this quest's rows by hand."
     },
     {
       "key": "homelands/minotaur/flight",
       "name": "The Road to Grobb",
       "giver": "Gatekeeper Stonehoof",
       "classes": [],
-      "races": [],
+      "races": [
+        23
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [
-        "homelands/minotaur/welcome",
-        "homelands/minotaur/rats"
+        "homelands/minotaur/L1",
+        "homelands/minotaur/L2",
+        "homelands/minotaur/L3",
+        "homelands/minotaur/L4",
+        "homelands/minotaur/L5"
       ],
       "repeatable": true,
-      "offer": "The trolls of Grobb do not care how big your horns are, only how hard you hit. They will take you in as one of their own. I can send you to them, and Grobb will be your home. Ready?",
+      "offer": "The trolls of Grobb do not care how big your horns are, only how hard you hit. They will train you as one of their own.\nYou have earned the road, Rustel. I will set you down among your own guild in Grobb, and your spirit will rest there.\nShall I send you to Grobb?",
       "accept": "Send me to Grobb.",
       "decline": "Not yet.",
       "declined": "Grobb will still be there. So will the trolls.",
@@ -2580,99 +4480,574 @@
         }
       ],
       "unresolved": [],
-      "notes": "Ours: the gatekeeper's port to Grobb, the minotaur's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a minotaur back in Gerntar Mines is sent again; no reward, so none is had twice."
+      "notes": "Ours: the gatekeeper's port to Grobb, the minotaur's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/minotaur.json."
     },
     {
-      "key": "homelands/skeleton/welcome",
-      "name": "Bones Awake",
+      "key": "homelands/skeleton/L1",
+      "name": "A Waking Band",
       "giver": "Elder Ossric",
       "classes": [],
-      "races": [],
+      "races": [
+        27
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "So, another of us wakes. Do not be alarmed. The bones remember how to walk. First, go and see Marrowby, just down the hall. He trades with the living who come by, and he will want to know you.",
-      "accept": "I will see Marrowby.",
+      "offer": "So. Another of us opens eyes it no longer has. Be still a moment. The first waking is the strangest.\nEach of the woken wears a band of the kings' bronze, so the sentinels do not take you for a robber. Shroudmaker Corwen keeps them, up the hall to the north.\nWill you fetch your waking band and show it to me?",
+      "accept": "I will fetch it.",
       "decline": "Not now.",
-      "declined": "We have all the time in the world. Come back when you are ready.",
-      "started": "Marrowby is just down the hall, toward the light.",
+      "declined": "As you like. We have nothing here if not time.",
+      "started": "Corwen's alcove is up the hall to the north, on the east side.",
       "steps": [
         {
           "kind": "talk",
-          "target": "Grocer Marrowby",
-          "journal": "See Grocer Marrowby down the hall.",
-          "says": "Ossric sent you? Take this bread. We do not eat it, but the living you meet will, and a gift opens doors.",
+          "target": "Shroudmaker Corwen",
+          "journal": "Ask Shroudmaker Corwen, up the hall north of Elder Ossric, for a waking band.",
+          "says": "Newly woken? Give me your wrist. What is left of it. There: the kings' bronze, and it will not slip. No charge. The dead do not bill the dead.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "waking band",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "show",
+          "target": "Elder Ossric",
+          "items": [
+            {
+              "item": "waking band",
+              "count": 1
+            }
+          ],
+          "journal": "Show the waking band to Elder Ossric.",
+          "says": "It fits, as far as anything fits us now. Wear it, and the tomb will know you for its own.",
           "rewards": {
-            "items": [
-              "sourdough bread"
-            ]
+            "xp": 430
           }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 1
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the skeleton's level 1, at Tomb of Kings, on the cities' level 1 quest: a piece of equipment fetched from a merchant and shown to the giver. Finishing it finishes the character's own city class quest of level 1 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/skeleton.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/skeleton/L2",
+      "name": "Bound to the Tomb",
+      "giver": "Elder Ossric",
+      "classes": [],
+      "races": [
+        27
+      ],
+      "minlevel": 2,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/skeleton/L1"
+      ],
+      "offer": "You have died once. It need not become a habit. Have Spiritmaster Vellum bind you to the tomb, so that you gather yourself here if your bones are scattered.\nThen give your name to Coachman Grimsby, up the hall. His coach runs to Freeport and to the other homes of the Homelands.\nWill you see them both and come back to me?",
+      "accept": "I will see them both.",
+      "decline": "Not now.",
+      "declined": "Then do try not to fall apart in the meantime.",
+      "started": "Vellum keeps the alcove to the south-west. Grimsby waits up the hall to the north.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Spiritmaster Vellum",
+          "journal": "Have Spiritmaster Vellum, in the alcove south-west of the elder, bind your spirit to the tomb.",
+          "says": "It is done. Wherever your bones fall, they will find their way back here. Now go and give Coachman Grimsby your name."
+        },
+        {
+          "kind": "talk",
+          "target": "Coachman Grimsby",
+          "journal": "Give your name to Coachman Grimsby, up the hall north of the elder, for his ledger.",
+          "says": "Another one up and about! My coach was a hearse once. It runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now."
         },
         {
           "kind": "talk",
           "target": "Elder Ossric",
           "journal": "Return to Elder Ossric.",
-          "says": "Good. You walk, you speak, you make friends. The rest will come back to you in time.",
+          "says": "Good. Now even the worst day ends with you back among us.\nGrimsby's coach goes where its ledgers know you, but the road to Freeport's guilds is earned. Captain Harrow, beside me, has work for you.",
           "rewards": {
-            "xp": 200,
-            "tunar": 10
+            "xp": 2200
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 2
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the skeletons' first, at their home zone, Tomb of Kings of the disc."
+      "notes": "Ours (the Homelands' starter quests): the skeleton's level 2, at Tomb of Kings, on the cities' level 2 quest: the spiritmaster's bind and the coachman's ledger. Finishing it finishes the character's own city class quest of level 2 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/skeleton.json: change that file, never this quest's rows by hand."
     },
     {
-      "key": "homelands/skeleton/beetles",
+      "key": "homelands/skeleton/L3",
       "name": "Beetles in the Bones",
-      "giver": "Grocer Marrowby",
+      "giver": "Captain Harrow",
       "classes": [],
-      "races": [],
-      "minlevel": 1,
+      "races": [
+        27
+      ],
+      "minlevel": 3,
       "maxlevel": 60,
       "requires": [
-        "homelands/skeleton/welcome"
+        "homelands/skeleton/L2"
       ],
-      "offer": "Tomb beetles are gnawing at the old halls to the west. They have no respect for the dead, and they are fond of my stock. Kill five of them and I will pay you well.",
-      "accept": "I will kill them.",
+      "offer": "You are the new one. Good. Tomb beetles have come up out of the excavators' pit, down the hall to the south, and they gnaw at those of us who have not woken yet.\nCrack them and bring me three of their shells. Then I will show you something every one of the watch should know.\nWill you hunt them?",
+      "accept": "I will hunt them.",
       "decline": "Not now.",
-      "declined": "Then they will gnaw on, as beetles do.",
-      "started": "Five beetles, in the west halls past the old guard posts.",
+      "declined": "Then the sleepers are gnawed a little longer. They will not complain.",
+      "started": "Three shells. The pit is down the hall to the south.",
       "steps": [
         {
-          "kind": "kill",
+          "kind": "loot",
           "target": "tomb beetle",
-          "count": 5,
-          "journal": "Kill five tomb beetles in the west halls of the tomb."
+          "items": [
+            {
+              "item": "tomb beetle shell",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three tomb beetle shells from the tomb beetles in the pit south of the great hall."
         },
         {
-          "kind": "talk",
-          "target": "Grocer Marrowby",
-          "journal": "Tell Grocer Marrowby the beetles are dead.",
-          "says": "Five! The halls are quieter already. Here is your pay. Spend it on something the living sell.",
+          "kind": "give",
+          "target": "Captain Harrow",
+          "items": [
+            {
+              "item": "tomb beetle shell",
+              "count": 3
+            }
+          ],
+          "journal": "Bring three tomb beetle shells to Captain Harrow.",
+          "says": "Three shells, and you are still in one piece. More or less. Now attend, and learn this.",
           "rewards": {
-            "xp": 400,
-            "tunar": 25
+            "xp": 6900,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Swift Blade"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Hero Guard"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Malice"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Chant of Battle"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Sneak"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Fiery Burst"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Tribal Toughness"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Minor Blessing"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Smoldering Aura"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Life Tap"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Crawling Skin"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Arcane Bindings"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Hardening Agent"
+                ]
+              }
+            }
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 3
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours: the skeletons' second starter quest; the tomb beetles are tools/seed_race_homes.py's, passive (npcaggro)."
+      "notes": "Ours (the Homelands' starter quests): the skeleton's level 3, at Tomb of Kings, on the cities' level 3 quest: a hunt for drops; each class is taught what its own city's level 3 quest teaches it. Finishing it finishes the character's own city class quest of level 3 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/skeleton.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/skeleton/L4",
+      "name": "Arms for the Woken",
+      "giver": "Captain Harrow",
+      "classes": [],
+      "races": [
+        27
+      ],
+      "minlevel": 4,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/skeleton/L3"
+      ],
+      "offer": "Bare bone breaks. I will make you proper gear from the kings' stores, but you will fetch what I need.\nShroudmaker Corwen has cord and a shaft set by for me. Then take a wing from the crypt bats that roost in the south passage, past the pit.\nWill you bring me all three?",
+      "accept": "I will bring them.",
+      "decline": "Not now.",
+      "declined": "Then go as you are, and count your ribs afterwards.",
+      "started": "Cord and a shaft from Corwen, a wing from the bats. Go.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Shroudmaker Corwen",
+          "journal": "Ask Shroudmaker Corwen for the silk cord and the wooden shaft.",
+          "says": "For the captain? Here: a length of cord and a straight shaft. Tell him I want the cord back when you have no more use for it. I can wait.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "silk cord",
+                  "count": 1
+                },
+                {
+                  "item": "wooden shaft",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "loot",
+          "target": "crypt bat",
+          "items": [
+            {
+              "item": "crypt bat wing",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 0.5,
+          "journal": "Take a crypt bat wing from the crypt bats in the passage south of the pit."
+        },
+        {
+          "kind": "give",
+          "target": "Captain Harrow",
+          "items": [
+            {
+              "item": "silk cord",
+              "count": 1
+            },
+            {
+              "item": "wooden shaft",
+              "count": 1
+            },
+            {
+              "item": "crypt bat wing",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the silk cord, the wooden shaft and the crypt bat wing to Captain Harrow.",
+          "says": "All three. A moment... there. It is yours. It has outlasted better hands than ours.",
+          "rewards": {
+            "xp": 17000,
+            "byclass": {
+              "0": {
+                "items": [
+                  "militia short sword"
+                ]
+              },
+              "1": {
+                "items": [
+                  "Glade Crafted Longbow"
+                ]
+              },
+              "2": {
+                "items": [
+                  "Sword of Faith"
+                ]
+              },
+              "3": {
+                "items": [
+                  "Iron Hatchet"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Disciple's Jitte"
+                ]
+              },
+              "5": {
+                "items": [
+                  "Traveler's Rapier"
+                ]
+              },
+              "6": {
+                "items": [
+                  "tiger dirk"
+                ]
+              },
+              "7": {
+                "items": [
+                  "crafted glade staff"
+                ]
+              },
+              "8": {
+                "items": [
+                  "Corse Spiked Club"
+                ]
+              },
+              "9": {
+                "items": [
+                  "Acolyte's Hammer"
+                ]
+              },
+              "10": {
+                "items": [
+                  "blue robe"
+                ]
+              },
+              "11": {
+                "items": [
+                  "Black Robe of the Order"
+                ]
+              },
+              "12": {
+                "items": [
+                  "yellow robe"
+                ]
+              },
+              "13": {
+                "items": [
+                  "red robe"
+                ]
+              },
+              "14": {
+                "items": [
+                  "burnt gloves"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 4
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the skeleton's level 4, at Tomb of Kings, on the cities' level 4 quest: new gear of a merchant's materials and a drop; each class is given what its own city's level 4 quest gives it (class-rewards.json has the two classes the cities give nothing). Finishing it finishes the character's own city class quest of level 4 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/skeleton.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/skeleton/L5",
+      "name": "The Living Robber",
+      "giver": "Captain Harrow",
+      "classes": [],
+      "races": [
+        27
+      ],
+      "minlevel": 5,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/skeleton/L4"
+      ],
+      "offer": "One task more. A living robber, Sela by name, has got in at the far end of the south passage and is prying the seals off the kings' doors.\nThe living strike first when they see us, so do not stand and stare. Put her out, and bring me the seal she stole.\nWill you deal with the robber?",
+      "accept": "I will deal with her.",
+      "decline": "Not yet.",
+      "declined": "She will not grow more honest while you wait.",
+      "started": "The far end of the south passage. She will see you before you see her.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "Tomb Robber Sela",
+          "items": [
+            {
+              "item": "stolen burial seal",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 1.0,
+          "journal": "Take the stolen burial seal from Tomb Robber Sela at the far south end of the passage."
+        },
+        {
+          "kind": "give",
+          "target": "Captain Harrow",
+          "items": [
+            {
+              "item": "stolen burial seal",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the stolen burial seal to Captain Harrow.",
+          "says": "The seal, and whole! The kings may go on sleeping. You have earned your place on the watch.\nLearn this, and see Gatekeeper Dustcloak down the hall to the south when you are ready for Freeport.",
+          "rewards": {
+            "xp": 36500,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Taunt"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Forage Berries"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Lay Hands"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Harm Touch"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Minor Purity"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Funeral March"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Shadowstrike"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Snare"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Blighting Mist"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Holy Shock"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Motivate"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Rabid Infection"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Heavy Arms"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Shock of Frost"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Refinement"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 5
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the skeleton's level 5, at Tomb of Kings, on the cities' level 5 quest: a foe to bring down; each class is taught what its own city's level 5 quest teaches it. Finishing it finishes the character's own city class quest of level 5 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/skeleton.json: change that file, never this quest's rows by hand."
     },
     {
       "key": "homelands/skeleton/flight",
       "name": "The Road to Freeport",
       "giver": "Gatekeeper Dustcloak",
       "classes": [],
-      "races": [],
+      "races": [
+        27
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [
-        "homelands/skeleton/welcome",
-        "homelands/skeleton/beetles"
+        "homelands/skeleton/L1",
+        "homelands/skeleton/L2",
+        "homelands/skeleton/L3",
+        "homelands/skeleton/L4",
+        "homelands/skeleton/L5"
       ],
       "repeatable": true,
-      "offer": "The living fear us, but Freeport is not so particular, and its darker guilds will take you in. I can send you there, and it will be your home from then on. Are you ready to go?",
+      "offer": "The living fear us, but Freeport is not so particular, and its guilds will train you as they would any other.\nYou have earned the road, woken one. I will set you down among your own guild in Freeport, and your spirit will rest there.\nShall I send you to Freeport?",
       "accept": "Send me to Freeport.",
       "decline": "Not yet.",
       "declined": "The tomb is patient. So am I.",
@@ -2697,103 +5072,578 @@
         }
       ],
       "unresolved": [],
-      "notes": "Ours: the gatekeeper's port to Freeport, the skeleton's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a skeleton back in Tomb of Kings is sent again; no reward, so none is had twice."
+      "notes": "Ours: the gatekeeper's port to Freeport, the skeleton's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/skeleton.json."
     },
     {
-      "key": "homelands/fungusman/welcome",
-      "name": "A New Sprout",
+      "key": "homelands/fungusman/L1",
+      "name": "A Sprout's Root Sash",
       "giver": "Elder Moldcap",
       "classes": [],
-      "races": [],
+      "races": [
+        28
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "Ah. A new sprout. Welcome to the hall, little one. There is no hurry here, but there is supper. Go slowly over to Puffstool, by the north wall, and let her know you have come up.",
-      "accept": "I will go to her.",
+      "offer": "Ahh. A new cap pushes up through the dark. Welcome, little sprout. Stand a while. There is no hurry here.\nEvery sprout of the hall wears a sash of braided root, to hold it to the ground it grew from. Capwright Chanter braids them, a little way up the passage to the north.\nWill you fetch your root sash and show it to me?",
+      "accept": "I will fetch it.",
       "decline": "Not now.",
-      "declined": "There is no hurry. There never is.",
-      "started": "Puffstool is by the north wall. Take your time.",
+      "declined": "Then rest, sprout. The hall will still be damp tomorrow.",
+      "started": "Slowly, now. Chanter is a little way up the passage to the north.",
       "steps": [
         {
           "kind": "talk",
-          "target": "Grocer Puffstool",
-          "journal": "Find Grocer Puffstool by the north wall of the hall.",
-          "says": "Moldcap sent you? Welcome, sprout. Here is some flax bread. It is dry, but so is the air up top.",
+          "target": "Capwright Chanter",
+          "journal": "Ask Capwright Chanter, up the passage north of Elder Moldcap, for a sprout's root sash.",
+          "says": "The elder sent you? Hold still, sprout. Round the stem, twice... there. Root for holding, damp for growing. Nothing owed. You are one of ours.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "sprout's root sash",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "show",
+          "target": "Elder Moldcap",
+          "items": [
+            {
+              "item": "sprout's root sash",
+              "count": 1
+            }
+          ],
+          "journal": "Show the sprout's root sash to Elder Moldcap.",
+          "says": "It sits well. Wear it, and wherever you wander, a little of the hall goes with you.",
           "rewards": {
-            "items": [
-              "flax bread"
-            ]
+            "xp": 430
           }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 1
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the fungusman's level 1, at Guk, on the cities' level 1 quest: a piece of equipment fetched from a merchant and shown to the giver. Finishing it finishes the character's own city class quest of level 1 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/fungusman.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/fungusman/L2",
+      "name": "Rooted in the Hall",
+      "giver": "Elder Moldcap",
+      "classes": [],
+      "races": [
+        28
+      ],
+      "minlevel": 2,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/fungusman/L1"
+      ],
+      "offer": "A sprout is soft, and the caverns are not. Let Spiritmaster Sporewell root your spirit in the hall, so that you grow again here if you are trodden down.\nThen give your name to Coachman Inkcap for his ledger. His coach runs to Freeport and to the other homes of the Homelands.\nWill you see them both and come back to me?",
+      "accept": "I will see them both.",
+      "decline": "Not now.",
+      "declined": "No hurry. But tread softly until you do.",
+      "started": "Sporewell is down the passage to the east. Inkcap keeps his coach to the north-east.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Spiritmaster Sporewell",
+          "journal": "Have Spiritmaster Sporewell, down the passage east of the elder, bind your spirit to the hall.",
+          "says": "It is done. Should you be trodden down, you will sprout again here in the damp. Now go and give Coachman Inkcap your name."
+        },
+        {
+          "kind": "talk",
+          "target": "Coachman Inkcap",
+          "journal": "Give your name to Coachman Inkcap, in the passage north-east of the elder, for his ledger.",
+          "says": "A new sprout! My coach is slow, but it gets there. It runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now."
         },
         {
           "kind": "talk",
           "target": "Elder Moldcap",
           "journal": "Return to Elder Moldcap.",
-          "says": "Good. Now you know the hall, and the hall knows you. That is the first thing, and the most important.",
+          "says": "Good. Now you are rooted, and may wander without fear.\nInkcap's coach goes where its ledgers know you, but the way up to the elves is earned. Warden Morel, beside me, has work for you.",
           "rewards": {
-            "xp": 200,
-            "tunar": 10
+            "xp": 2200
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 2
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the fungusmans' first, at their home zone, Guk of the disc."
+      "notes": "Ours (the Homelands' starter quests): the fungusman's level 2, at Guk, on the cities' level 2 quest: the spiritmaster's bind and the coachman's ledger. Finishing it finishes the character's own city class quest of level 2 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/fungusman.json: change that file, never this quest's rows by hand."
     },
     {
-      "key": "homelands/fungusman/beetles",
+      "key": "homelands/fungusman/L3",
       "name": "Beetles at the Caps",
-      "giver": "Grocer Puffstool",
+      "giver": "Warden Morel",
       "classes": [],
-      "races": [],
-      "minlevel": 1,
+      "races": [
+        28
+      ],
+      "minlevel": 3,
       "maxlevel": 60,
       "requires": [
-        "homelands/fungusman/welcome"
+        "homelands/fungusman/L2"
       ],
-      "offer": "Cave beetles come in from the east passage and nibble at the young caps. It is very rude of them. Would you see to five of them for me? Slowly is fine. Thoroughly is better.",
-      "accept": "I will see to them.",
+      "offer": "So you are the new sprout. Good. Cave beetles are chewing the young caps in the north-east passage, and the gatherers will not go near.\nGo and break them, and bring me three of their shells. Then I will teach you a thing worth knowing.\nWill you hunt them?",
+      "accept": "I will hunt them.",
       "decline": "Not now.",
-      "declined": "The caps will grow back. Eventually.",
-      "started": "Five beetles, by the east passage.",
+      "declined": "Then the beetles eat, and the sprouts do not grow.",
+      "started": "Three shells. North-east, past Inkcap's coach, where the passage bends.",
       "steps": [
         {
-          "kind": "kill",
+          "kind": "loot",
           "target": "cave beetle",
-          "count": 5,
-          "journal": "Kill five cave beetles by the east passage of the hall."
+          "items": [
+            {
+              "item": "cave beetle shell",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three cave beetle shells from the cave beetles in the passage north-east of the hall."
         },
         {
-          "kind": "talk",
-          "target": "Grocer Puffstool",
-          "journal": "Tell Grocer Puffstool the beetles are gone.",
-          "says": "Five! The young caps thank you. So do I. Here, for your trouble.",
+          "kind": "give",
+          "target": "Warden Morel",
+          "items": [
+            {
+              "item": "cave beetle shell",
+              "count": 3
+            }
+          ],
+          "journal": "Bring three cave beetle shells to Warden Morel.",
+          "says": "Three shells, and your cap not even nibbled. You will do. Now watch, slowly, and learn this.",
           "rewards": {
-            "xp": 400,
-            "tunar": 25
+            "xp": 6900,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Swift Blade"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Hero Guard"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Malice"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Chant of Battle"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Sneak"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Fiery Burst"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Tribal Toughness"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Minor Blessing"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Smoldering Aura"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Life Tap"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Crawling Skin"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Arcane Bindings"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Hardening Agent"
+                ]
+              }
+            }
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 3
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours: the fungusmans' second starter quest; the cave beetles are tools/seed_race_homes.py's, passive (npcaggro)."
+      "notes": "Ours (the Homelands' starter quests): the fungusman's level 3, at Guk, on the cities' level 3 quest: a hunt for drops; each class is taught what its own city's level 3 quest teaches it. Finishing it finishes the character's own city class quest of level 3 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/fungusman.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/fungusman/L4",
+      "name": "A Sprout's Arms",
+      "giver": "Warden Morel",
+      "classes": [],
+      "races": [
+        28
+      ],
+      "minlevel": 4,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/fungusman/L3"
+      ],
+      "offer": "A soft cap needs something hard to hold. I will make you proper gear, but you will gather what I need.\nCapwright Chanter has leather and a shaft for me. Then take a wing from the muck roaches down the east tunnel, south of the beetles.\nWill you bring me all three?",
+      "accept": "I will bring them.",
+      "decline": "Not now.",
+      "declined": "Then go soft, and hope nothing bites.",
+      "started": "Leather and a shaft from Chanter, a wing from the roaches. Go on.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Capwright Chanter",
+          "journal": "Ask Capwright Chanter for the leather strip and the wooden shaft.",
+          "says": "For Morel? Here: a strip of hide and a good dry shaft. Dry! I kept it wrapped a whole season. Tell him so.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "leather strip",
+                  "count": 1
+                },
+                {
+                  "item": "wooden shaft",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "loot",
+          "target": "muck roach",
+          "items": [
+            {
+              "item": "muck roach wing",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 0.5,
+          "journal": "Take a muck roach wing from the muck roaches down the tunnel east of the hall."
+        },
+        {
+          "kind": "give",
+          "target": "Warden Morel",
+          "items": [
+            {
+              "item": "leather strip",
+              "count": 1
+            },
+            {
+              "item": "wooden shaft",
+              "count": 1
+            },
+            {
+              "item": "muck roach wing",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the leather strip, the wooden shaft and the muck roach wing to Warden Morel.",
+          "says": "All three. Give me a little while... there. It is yours. Hold it as the root holds the stone.",
+          "rewards": {
+            "xp": 17000,
+            "byclass": {
+              "0": {
+                "items": [
+                  "militia short sword"
+                ]
+              },
+              "1": {
+                "items": [
+                  "Glade Crafted Longbow"
+                ]
+              },
+              "2": {
+                "items": [
+                  "Sword of Faith"
+                ]
+              },
+              "3": {
+                "items": [
+                  "Iron Hatchet"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Disciple's Jitte"
+                ]
+              },
+              "5": {
+                "items": [
+                  "Traveler's Rapier"
+                ]
+              },
+              "6": {
+                "items": [
+                  "tiger dirk"
+                ]
+              },
+              "7": {
+                "items": [
+                  "crafted glade staff"
+                ]
+              },
+              "8": {
+                "items": [
+                  "Corse Spiked Club"
+                ]
+              },
+              "9": {
+                "items": [
+                  "Acolyte's Hammer"
+                ]
+              },
+              "10": {
+                "items": [
+                  "blue robe"
+                ]
+              },
+              "11": {
+                "items": [
+                  "Black Robe of the Order"
+                ]
+              },
+              "12": {
+                "items": [
+                  "yellow robe"
+                ]
+              },
+              "13": {
+                "items": [
+                  "red robe"
+                ]
+              },
+              "14": {
+                "items": [
+                  "burnt gloves"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 4
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the fungusman's level 4, at Guk, on the cities' level 4 quest: new gear of a merchant's materials and a drop; each class is given what its own city's level 4 quest gives it (class-rewards.json has the two classes the cities give nothing). Finishing it finishes the character's own city class quest of level 4 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/fungusman.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/fungusman/L5",
+      "name": "Old Manylegs",
+      "giver": "Warden Morel",
+      "classes": [],
+      "races": [
+        28
+      ],
+      "minlevel": 5,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/fungusman/L4"
+      ],
+      "offer": "One task more before the light. A great centipede we call Old Manylegs dens at the far end of the east tunnel, and it has eaten two gatherers.\nIt does not wait to be struck. Be quick, for once, and bring me a plate of its shell.\nWill you hunt Old Manylegs?",
+      "accept": "I will hunt it.",
+      "decline": "Not yet.",
+      "declined": "It will not grow fewer legs while you wait.",
+      "started": "East, past the roaches, to the tunnel's end. Mind every one of its legs.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "Old Manylegs",
+          "items": [
+            {
+              "item": "Old Manylegs' shell plate",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 1.0,
+          "journal": "Take Old Manylegs' shell plate from the centipede Old Manylegs at the far end of the tunnel east of the hall."
+        },
+        {
+          "kind": "give",
+          "target": "Warden Morel",
+          "items": [
+            {
+              "item": "Old Manylegs' shell plate",
+              "count": 1
+            }
+          ],
+          "journal": "Bring Old Manylegs' shell plate to Warden Morel.",
+          "says": "Old Manylegs' own shell! The gatherers will sing, slowly, for days. You are a sprout no longer.\nLearn this, and see Gatekeeper Gillford, north of the elder, when you are ready to go up to the light.",
+          "rewards": {
+            "xp": 36500,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Taunt"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Forage Berries"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Lay Hands"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Harm Touch"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Minor Purity"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Funeral March"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Shadowstrike"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Snare"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Blighting Mist"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Holy Shock"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Motivate"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Rabid Infection"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Heavy Arms"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Shock of Frost"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Refinement"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 5
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the fungusman's level 5, at Guk, on the cities' level 5 quest: a foe to bring down; each class is taught what its own city's level 5 quest teaches it. Finishing it finishes the character's own city class quest of level 5 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/fungusman.json: change that file, never this quest's rows by hand."
     },
     {
       "key": "homelands/fungusman/flight",
       "name": "Up to the Light",
       "giver": "Gatekeeper Gillford",
       "classes": [],
-      "races": [],
+      "races": [
+        28
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [
-        "homelands/fungusman/welcome",
-        "homelands/fungusman/beetles"
+        "homelands/fungusman/L1",
+        "homelands/fungusman/L2",
+        "homelands/fungusman/L3",
+        "homelands/fungusman/L4",
+        "homelands/fungusman/L5"
       ],
       "repeatable": true,
-      "offer": "Up above, the elves of Tethelin and the Fayspires keep shaded groves where our spores grow well, and they are kind to slow folk. I can send you up to them, and that will be your home. Ready?",
-      "accept": "Send me to the elves.",
+      "offer": "Up above, the elves of Tethelin and the Fayspires keep shaded groves where our spores grow well, and they are kind to slow folk.\nYou have earned the way up, cap and stem. I will set you down among your own guild there, and your spirit will rest among the elves.\nShall I send you up to the light?",
+      "accept": "Send me up.",
       "decline": "Not yet.",
       "declined": "There is no hurry. The elves live a long time.",
-      "started": "Grow well, sprout, up in the light!",
+      "started": "Grow well, up in the light!",
       "steps": [
         {
           "kind": "talk",
@@ -2814,99 +5664,574 @@
         }
       ],
       "unresolved": [],
-      "notes": "Ours: the gatekeeper's port to Tethelin or Fayspire by class, the fungusman's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a fungusman back in Guk is sent again; no reward, so none is had twice."
+      "notes": "Ours: the gatekeeper's port to Tethelin and Fayspire, the fungusman's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/fungusman.json."
     },
     {
-      "key": "homelands/wisp/welcome",
-      "name": "First Light",
+      "key": "homelands/wisp/L1",
+      "name": "A Bead of Marsh Glass",
       "giver": "Elder Faintglow",
       "classes": [],
-      "races": [],
+      "races": [
+        31
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "A new light in the swamp! Welcome, little flame. The humans you will walk among eat bread and carry coin, and you must learn their ways. Begin with Flicker. She trades with travellers.",
-      "accept": "I will find Flicker.",
+      "offer": "Oh! A new light, kindled out of the mist. Hush, little flame. Burn slowly. You are among your own.\nA light with nothing to hold it drifts and thins. Each of us keeps a bead of marsh glass to gather in. Lampwright Glimmer blows them, a short drift up the hill to the north.\nWill you fetch your bead and show it to me?",
+      "accept": "I will fetch it.",
       "decline": "Not now.",
-      "declined": "Drift a while, then. The swamp is in no hurry.",
-      "started": "Flicker glows down by the south pond. You cannot miss her.",
+      "declined": "Then drift a while. The mist will keep you.",
+      "started": "Glimmer glows a short drift up the hill to the north.",
       "steps": [
         {
           "kind": "talk",
-          "target": "Grocer Flicker",
-          "journal": "Find Grocer Flicker by the south pond.",
-          "says": "Faintglow sent you? Here, take this bread. You will not eat it, but in Qeynos it helps to carry what humans carry.",
+          "target": "Lampwright Glimmer",
+          "journal": "Ask Lampwright Glimmer, up the hill north of Elder Faintglow, for a marsh-glass bead.",
+          "says": "A new light! Come close. Closer. There: the glass knows you now. It was sand and fire once, as you were mist. No price, little flame.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "marsh-glass bead",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "show",
+          "target": "Elder Faintglow",
+          "items": [
+            {
+              "item": "marsh-glass bead",
+              "count": 1
+            }
+          ],
+          "journal": "Show the marsh-glass bead to Elder Faintglow.",
+          "says": "See how it holds you. Keep it near, and you will not thin, however far the wind carries you.",
           "rewards": {
-            "items": [
-              "raisin bread"
-            ]
+            "xp": 430
           }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 1
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the wisp's level 1, at West Feerrott, on the cities' level 1 quest: a piece of equipment fetched from a merchant and shown to the giver. Finishing it finishes the character's own city class quest of level 1 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/wisp.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/wisp/L2",
+      "name": "A Light That Returns",
+      "giver": "Elder Faintglow",
+      "classes": [],
+      "races": [
+        31
+      ],
+      "minlevel": 2,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/wisp/L1"
+      ],
+      "offer": "Lights go out, little flame. It is not the end, if you are tied to a place. Have Spiritmaster Shimmer tie you to the swamp, so that you kindle here again.\nThen give your name to Coachman Wick for his ledger. His coach runs to Freeport and to the other homes of the Homelands.\nWill you see them both and come back to me?",
+      "accept": "I will see them both.",
+      "decline": "Not now.",
+      "declined": "Then burn low until you do.",
+      "started": "Shimmer glows on the hill to the north. Wick waits on the rise to the south-west.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Spiritmaster Shimmer",
+          "journal": "Have Spiritmaster Shimmer, on the hill north of the elder, bind your spirit to the swamp.",
+          "says": "It is done. Go out where you will, and you will kindle here again among us. Now give Coachman Wick your name."
+        },
+        {
+          "kind": "talk",
+          "target": "Coachman Wick",
+          "journal": "Give your name to Coachman Wick, on the rise south-west of the elder, for his ledger.",
+          "says": "A passenger who weighs nothing! My coach runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now."
         },
         {
           "kind": "talk",
           "target": "Elder Faintglow",
           "journal": "Return to Elder Faintglow.",
-          "says": "Good. You learn quickly, little flame. Keep your light low among the humans, and they will hardly know.",
+          "says": "Good. Now the dark cannot keep you.\nWick's coach goes where its ledgers know you, but a shape to walk in Qeynos is earned. Watchlight Gleam, by the pond to the east, has work for you.",
           "rewards": {
-            "xp": 200,
-            "tunar": 10
+            "xp": 2200
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 2
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the wisps' first, at their home zone, West Feerrott of the disc."
+      "notes": "Ours (the Homelands' starter quests): the wisp's level 2, at West Feerrott, on the cities' level 2 quest: the spiritmaster's bind and the coachman's ledger. Finishing it finishes the character's own city class quest of level 2 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/wisp.json: change that file, never this quest's rows by hand."
     },
     {
-      "key": "homelands/wisp/rats",
+      "key": "homelands/wisp/L3",
       "name": "Rats in the Reeds",
-      "giver": "Grocer Flicker",
+      "giver": "Watchlight Gleam",
       "classes": [],
-      "races": [],
-      "minlevel": 1,
+      "races": [
+        31
+      ],
+      "minlevel": 3,
       "maxlevel": 60,
       "requires": [
-        "homelands/wisp/welcome"
+        "homelands/wisp/L2"
       ],
-      "offer": "Bog rats chew at the travellers' packs I keep for trade. They hide in the reeds east of the elder. Put out five of them for me, little flame, and I will share the coin.",
-      "accept": "I will deal with them.",
+      "offer": "The new light. Good. Bog rats gnaw the reeds east of here, where our youngest glow, and a rat will snap at anything bright.\nPut out a few, and bring me three of their tails. Then I will show you something a light should know.\nWill you hunt them?",
+      "accept": "I will hunt them.",
       "decline": "Not now.",
-      "declined": "Then the rats will dine on bread tonight.",
-      "started": "Five rats, in the reeds east of the elder.",
+      "declined": "Then the reeds grow thinner, and so do we.",
+      "started": "Three tails. East, in the reeds.",
       "steps": [
         {
-          "kind": "kill",
+          "kind": "loot",
           "target": "bog rat",
-          "count": 5,
-          "journal": "Kill five bog rats in the reeds east of Elder Faintglow."
+          "items": [
+            {
+              "item": "bog rat tail",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three bog rat tails from the bog rats in the reeds east of the elder."
         },
         {
-          "kind": "talk",
-          "target": "Grocer Flicker",
-          "journal": "Tell Grocer Flicker the rats are gone.",
-          "says": "Five! The packs are safe. Here is your share, bright one.",
+          "kind": "give",
+          "target": "Watchlight Gleam",
+          "items": [
+            {
+              "item": "bog rat tail",
+              "count": 3
+            }
+          ],
+          "journal": "Bring three bog rat tails to Watchlight Gleam.",
+          "says": "Three tails, and you burn as bright as before. Good. Now be still, and learn this.",
           "rewards": {
-            "xp": 400,
-            "tunar": 25
+            "xp": 6900,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Swift Blade"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Hero Guard"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Malice"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Chant of Battle"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Sneak"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Fiery Burst"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Tribal Toughness"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Minor Blessing"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Smoldering Aura"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Life Tap"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Crawling Skin"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Arcane Bindings"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Hardening Agent"
+                ]
+              }
+            }
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 3
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours: the wisps' second starter quest; the bog rats are tools/seed_race_homes.py's, passive (npcaggro)."
+      "notes": "Ours (the Homelands' starter quests): the wisp's level 3, at West Feerrott, on the cities' level 3 quest: a hunt for drops; each class is taught what its own city's level 3 quest teaches it. Finishing it finishes the character's own city class quest of level 3 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/wisp.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/wisp/L4",
+      "name": "A Shape to Hold",
+      "giver": "Watchlight Gleam",
+      "classes": [],
+      "races": [
+        31
+      ],
+      "minlevel": 4,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/wisp/L3"
+      ],
+      "offer": "A bare light can carry nothing. I will make you something to bear, but you must bring what goes into it.\nLampwright Glimmer keeps leather and cord for me. Then take a wing from the bog gnats that cloud the pools to the south.\nWill you bring me all three?",
+      "accept": "I will bring them.",
+      "decline": "Not now.",
+      "declined": "Then go bare, and carry only yourself.",
+      "started": "Leather and cord from Glimmer, a wing from the gnats. Go.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Lampwright Glimmer",
+          "journal": "Ask Lampwright Glimmer for the leather strip and the silk cord.",
+          "says": "For Gleam? Here. Leather, and a cord of silk. Heavy things. I do not know how the walking folk bear them.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "leather strip",
+                  "count": 1
+                },
+                {
+                  "item": "silk cord",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "loot",
+          "target": "bog gnats",
+          "items": [
+            {
+              "item": "bog gnat wing",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 0.5,
+          "journal": "Take a bog gnat wing from the bog gnats over the pools south of the elder."
+        },
+        {
+          "kind": "give",
+          "target": "Watchlight Gleam",
+          "items": [
+            {
+              "item": "leather strip",
+              "count": 1
+            },
+            {
+              "item": "silk cord",
+              "count": 1
+            },
+            {
+              "item": "bog gnat wing",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the leather strip, the silk cord and the bog gnat wing to Watchlight Gleam.",
+          "says": "All three. A moment, while I bind them... there. It is yours. Let it be your hands.",
+          "rewards": {
+            "xp": 17000,
+            "byclass": {
+              "0": {
+                "items": [
+                  "militia short sword"
+                ]
+              },
+              "1": {
+                "items": [
+                  "Glade Crafted Longbow"
+                ]
+              },
+              "2": {
+                "items": [
+                  "Sword of Faith"
+                ]
+              },
+              "3": {
+                "items": [
+                  "Iron Hatchet"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Disciple's Jitte"
+                ]
+              },
+              "5": {
+                "items": [
+                  "Traveler's Rapier"
+                ]
+              },
+              "6": {
+                "items": [
+                  "tiger dirk"
+                ]
+              },
+              "7": {
+                "items": [
+                  "crafted glade staff"
+                ]
+              },
+              "8": {
+                "items": [
+                  "Corse Spiked Club"
+                ]
+              },
+              "9": {
+                "items": [
+                  "Acolyte's Hammer"
+                ]
+              },
+              "10": {
+                "items": [
+                  "blue robe"
+                ]
+              },
+              "11": {
+                "items": [
+                  "Black Robe of the Order"
+                ]
+              },
+              "12": {
+                "items": [
+                  "yellow robe"
+                ]
+              },
+              "13": {
+                "items": [
+                  "red robe"
+                ]
+              },
+              "14": {
+                "items": [
+                  "burnt gloves"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 4
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the wisp's level 4, at West Feerrott, on the cities' level 4 quest: new gear of a merchant's materials and a drop; each class is given what its own city's level 4 quest gives it (class-rewards.json has the two classes the cities give nothing). Finishing it finishes the character's own city class quest of level 4 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/wisp.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/wisp/L5",
+      "name": "Duskpaw",
+      "giver": "Watchlight Gleam",
+      "classes": [],
+      "races": [
+        31
+      ],
+      "minlevel": 5,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/wisp/L4"
+      ],
+      "offer": "One thing more. A young jaguar, Duskpaw, has learned that lights can be caught. It dens to the north-west, and two of ours have gone dark there.\nIt will spring as soon as it sees your glow. Do not flee. Put it out, and bring me its fang.\nWill you hunt Duskpaw?",
+      "accept": "I will hunt it.",
+      "decline": "Not yet.",
+      "declined": "It hunts tonight, whether you do or not.",
+      "started": "North-west, beyond Glimmer's hill. It will see you first.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "Duskpaw",
+          "items": [
+            {
+              "item": "Duskpaw's fang",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 1.0,
+          "journal": "Take Duskpaw's fang from the young jaguar Duskpaw, north-west of the elder."
+        },
+        {
+          "kind": "give",
+          "target": "Watchlight Gleam",
+          "items": [
+            {
+              "item": "Duskpaw's fang",
+              "count": 1
+            }
+          ],
+          "journal": "Bring Duskpaw's fang to Watchlight Gleam.",
+          "says": "Duskpaw's fang! The youngest may glow in peace. You are no small flame now.\nLearn this, and find Gatekeeper Dimlight to the south-east when you are ready for Qeynos.",
+          "rewards": {
+            "xp": 36500,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Taunt"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Forage Berries"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Lay Hands"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Harm Touch"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Minor Purity"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Funeral March"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Shadowstrike"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Snare"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Blighting Mist"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Holy Shock"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Motivate"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Rabid Infection"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Heavy Arms"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Shock of Frost"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Refinement"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 5
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the wisp's level 5, at West Feerrott, on the cities' level 5 quest: a foe to bring down; each class is taught what its own city's level 5 quest teaches it. Finishing it finishes the character's own city class quest of level 5 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/wisp.json: change that file, never this quest's rows by hand."
     },
     {
       "key": "homelands/wisp/flight",
       "name": "A Shape for Qeynos",
       "giver": "Gatekeeper Dimlight",
       "classes": [],
-      "races": [],
+      "races": [
+        31
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [
-        "homelands/wisp/welcome",
-        "homelands/wisp/rats"
+        "homelands/wisp/L1",
+        "homelands/wisp/L2",
+        "homelands/wisp/L3",
+        "homelands/wisp/L4",
+        "homelands/wisp/L5"
       ],
       "repeatable": true,
-      "offer": "In Qeynos the humans will take you for one of their own, so long as your armour holds its shape around you. I can send you there, and it will be your home. Are you ready to go?",
+      "offer": "In Qeynos the humans will take you for one of their own, so long as your armour holds its shape around you. They train any who come in good faith.\nYou have earned the way, bright one. I will set you down among your own guild there, and your light will rest in Qeynos.\nShall I send you to Qeynos?",
       "accept": "Send me to Qeynos.",
       "decline": "Not yet.",
       "declined": "The swamp will hold your light a while longer.",
@@ -2931,10 +6256,106 @@
         }
       ],
       "unresolved": [],
-      "notes": "Ours: the gatekeeper's port to Qeynos (its rangers and druids Surefall Glade), the wisp's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a wisp back in West Feerrott is sent again; no reward, so none is had twice."
+      "notes": "Ours: the gatekeeper's port to Qeynos, the wisp's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/wisp.json."
     }
   ],
   "items": [
+    {
+      "name": "young giant's tooth thong",
+      "description": "A rhino's tooth on a thong of thick hide. Every young giant of the West Plateau camp wears one.",
+      "notrade": true,
+      "like": "glass trinket",
+      "set": {
+        "HPMAX": 5,
+        "classuse": 32767,
+        "raceuse": 1023,
+        "levelreq": 1,
+        "itemcost": 0,
+        "maxhp": 500
+      }
+    },
+    {
+      "name": "plateau skink scale",
+      "description": "A scale of a plateau skink from the plain west of the giants' camp.",
+      "notrade": true,
+      "like": "chipped basilisk scale"
+    },
+    {
+      "name": "rock badger claw",
+      "description": "The claw of a rock badger from the plain south of the giants' camp.",
+      "notrade": true,
+      "like": "shattered badger claw"
+    },
+    {
+      "name": "Greyjaw's fang",
+      "description": "A yellowed fang of the old wolf Greyjaw of the West Plateau.",
+      "notrade": true,
+      "like": "Forger Wolf Fang"
+    },
+    {
+      "name": "cub's claw band",
+      "description": "A band of woven palm and soft fur. Every cub of Kerra Isle wears one until its first hunt.",
+      "notrade": true,
+      "like": "Tattered Bracers",
+      "set": {
+        "AC": 4,
+        "classuse": 32767,
+        "raceuse": 1023,
+        "levelreq": 1,
+        "itemcost": 0,
+        "maxhp": 500
+      }
+    },
+    {
+      "name": "isle crab claw",
+      "description": "The claw of an isle crab from the sand spit north of the kerrans' village.",
+      "notrade": true,
+      "like": "chipped crab claw"
+    },
+    {
+      "name": "fern viper fang",
+      "description": "The fang of a fern viper from the ferns west of the kerrans' village.",
+      "notrade": true,
+      "like": "chipped viper fang"
+    },
+    {
+      "name": "Old Snapclaw's claw",
+      "description": "The great notched claw of the crab Old Snapclaw of Kerra Isle.",
+      "notrade": true,
+      "like": "sharp crab claw"
+    },
+    {
+      "name": "novice's prayer beads",
+      "description": "A string of grey stone beads from the temple of Envar. A novice of the Jal'Raeth counts its breaths on them.",
+      "notrade": true,
+      "like": "Carved Bracelet",
+      "set": {
+        "POWMAX": 5,
+        "classuse": 32767,
+        "raceuse": 1023,
+        "levelreq": 1,
+        "itemcost": 0,
+        "maxhp": 500
+      }
+    },
+    {
+      "name": "ash grub tooth",
+      "description": "The tooth of an ash grub from the dead hills east of Envar.",
+      "notrade": true,
+      "like": "grub tooth"
+    },
+    {
+      "name": "cinder adder fang",
+      "description": "The fang of a cinder adder from the low hills north-east of Envar.",
+      "notrade": true,
+      "like": "cracked snake fang"
+    },
+    {
+      "name": "Hollow Pilgrim's bone",
+      "description": "A brittle bone of the Hollow Pilgrim, to be laid back in the crypt of Envar.",
+      "notrade": true,
+      "like": "brittle zombie bone"
+    },
     {
       "name": "fledgling's wingband",
       "description": "A band of knotted reed and down. Every fledgling of the Roost wears one on its wing.",
@@ -2966,6 +6387,134 @@
       "description": "The chipped tusk of the old boar Razortusk.",
       "notrade": true,
       "like": "plagueswine tusk"
+    },
+    {
+      "name": "calf's nose ring",
+      "description": "A ring of dark Gerntar iron. Every calf of the Rustel herd is given one.",
+      "notrade": true,
+      "like": "Chipped Ring",
+      "set": {
+        "HPMAX": 5,
+        "classuse": 32767,
+        "raceuse": 1023,
+        "levelreq": 1,
+        "itemcost": 0,
+        "maxhp": 500
+      }
+    },
+    {
+      "name": "mine rat tail",
+      "description": "The tail of a mine rat from the grass east of the Gerntar Mines.",
+      "notrade": true,
+      "like": "Rat Tail Tip"
+    },
+    {
+      "name": "ore beetle shell",
+      "description": "The hard shell of an ore beetle from the rise south-east of the Gerntar Mines.",
+      "notrade": true,
+      "like": "beetle carapace"
+    },
+    {
+      "name": "Gorespine's spine",
+      "description": "A long black spine from the back of the young spineback Gorespine.",
+      "notrade": true,
+      "like": "plagueswine tusk"
+    },
+    {
+      "name": "waking band",
+      "description": "A band of tarnished bronze from the kings' stores. Each of the woken dead of the tomb wears one.",
+      "notrade": true,
+      "like": "Carved Bracelet",
+      "set": {
+        "HPMAX": 5,
+        "classuse": 32767,
+        "raceuse": 1023,
+        "levelreq": 1,
+        "itemcost": 0,
+        "maxhp": 500
+      }
+    },
+    {
+      "name": "tomb beetle shell",
+      "description": "The cracked shell of a tomb beetle from the excavators' pit in the Tomb of Kings.",
+      "notrade": true,
+      "like": "cracked beetle carapace"
+    },
+    {
+      "name": "crypt bat wing",
+      "description": "The leathery wing of a crypt bat from the south passage of the Tomb of Kings.",
+      "notrade": true,
+      "like": "ruined bat wing"
+    },
+    {
+      "name": "stolen burial seal",
+      "description": "A seal of old ivory, pried from a king's door by the robber Sela.",
+      "notrade": true,
+      "like": "bit of ivory"
+    },
+    {
+      "name": "sprout's root sash",
+      "description": "A sash of braided rootlets, still damp. Every sprout of the hall in Guk wears one.",
+      "notrade": true,
+      "like": "Dun Cloth Belt",
+      "set": {
+        "AC": 4,
+        "classuse": 32767,
+        "raceuse": 1023,
+        "levelreq": 1,
+        "itemcost": 0,
+        "maxhp": 500
+      }
+    },
+    {
+      "name": "cave beetle shell",
+      "description": "The shell of a cave beetle from the north-east passage of the hall in Guk.",
+      "notrade": true,
+      "like": "beetle carapace fragment"
+    },
+    {
+      "name": "muck roach wing",
+      "description": "The stiff wing of a muck roach from the east tunnel of the hall in Guk.",
+      "notrade": true,
+      "like": "Fungus Cockroach Wing"
+    },
+    {
+      "name": "Old Manylegs' shell plate",
+      "description": "A broad plate from the back of the great centipede Old Manylegs.",
+      "notrade": true,
+      "like": "centipede carapace"
+    },
+    {
+      "name": "marsh-glass bead",
+      "description": "A bead of green marsh glass on a reed cord. A wisp's light gathers in it and does not thin.",
+      "notrade": true,
+      "like": "glass trinket",
+      "set": {
+        "HPMAX": 5,
+        "classuse": 32767,
+        "raceuse": 1023,
+        "levelreq": 1,
+        "itemcost": 0,
+        "maxhp": 500
+      }
+    },
+    {
+      "name": "bog rat tail",
+      "description": "The tail of a bog rat from the reeds of the West Feerrott.",
+      "notrade": true,
+      "like": "Rat Tail Tip"
+    },
+    {
+      "name": "bog gnat wing",
+      "description": "A wing, thin as breath, from the gnats over the south pools of the West Feerrott.",
+      "notrade": true,
+      "like": "damaged mosquito wing"
+    },
+    {
+      "name": "Duskpaw's fang",
+      "description": "A fang of the young jaguar Duskpaw, who hunted the lights of the West Feerrott.",
+      "notrade": true,
+      "like": "sharp panther fang"
     }
   ]
 }

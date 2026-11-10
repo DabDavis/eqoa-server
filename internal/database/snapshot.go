@@ -187,6 +187,7 @@ var snapshotRules = map[string]snapshotRule{
 	"spell_pages_sweep_log":       {allow: []string{"rowkey"}, why: "tools/sweep_spell_pages.py's log"},
 	"spell_records_fix_log":       {allow: []string{"rowkey"}, why: "tools/fix_spell_records.py's log"},
 	"tested_spells_fix_log":       {allow: []string{"rowkey"}, why: "tools/fix_tested_spells.py's log"},
+	"testing_heroes_log":          {allow: []string{"rowkey"}, why: "tools/seed_testing_heroes.py's log"},
 	"tradeskill_seed":             {allow: []string{"key"}, why: "tools/seed_tradeskills.py's log"},
 	"town_wildlife_seed_meta":     {allow: []string{"key"}, why: "tools/seed_town_wildlife.py's facts, a town's"},
 	"wildlife_seed_meta":          {allow: []string{"key"}, why: "tools/seed_wildlife.py's facts"},

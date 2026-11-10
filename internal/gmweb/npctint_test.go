@@ -3,6 +3,7 @@ package gmweb
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"net"
 	"strings"
 	"testing"
@@ -75,6 +76,19 @@ func TestTintEditsAreLive(t *testing.T) {
 	}
 	if got := tints(van); len(got) != 3 || !bytes.Equal(got[2], []byte{0, 0}) {
 		t.Fatalf("after the delete: % x", got)
+	}
+
+	// a row a tool wrote (SQL) reaches the clients with reload_npcs, and not
+	// before it
+	mustExec(t, f.db, `INSERT INTO npctint (name, color, source) VALUES ('Yhafiran', 1435259135, 'seed')`)
+	if len(tints(van)) != 3 {
+		t.Fatal("a row written outside the panel went out by itself")
+	}
+	if code, out := c.op("reload_npcs", map[string]any{}); code != 200 || !strings.Contains(fmt.Sprint(out["message"]), "1 name(s) tinted, sent to 1 client(s)") {
+		t.Fatalf("reload_npcs: %d %v", code, out)
+	}
+	if got := tints(van); len(got) != 4 || !bytes.Contains(got[3], []byte("yhafiran")) {
+		t.Fatalf("after reload_npcs: % x", got)
 	}
 	if len(tints(ps2)) != 0 {
 		t.Fatalf("the PS2 was sent %d tint messages", len(tints(ps2)))

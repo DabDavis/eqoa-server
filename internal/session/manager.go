@@ -277,6 +277,10 @@ func (m *Manager) PromoteSessionToMaster(sess *Session, playerObjectID uint32) u
 	// session's own key).
 	instanceID := sess.InstanceID()
 
+	// No packet of the session is built while it changes hands (LockSend): one
+	// built across these three steps would carry the lobby connection's
+	// messages under the promoted connection's header and numbers.
+	sess.LockSend()
 	sess.PromoteToMaster(instanceID, playerObjectID)
 
 	// Reset connection counters for a clean master-session start. Sandstorm's
@@ -286,6 +290,7 @@ func (m *Manager) PromoteSessionToMaster(sess *Session, playerObjectID uint32) u
 
 	// Clear the message queue (pre-promotion reliable messages)
 	sess.Queue().Clear()
+	sess.UnlockSend()
 
 	log.Printf("PromoteSessionToMaster: promoted session %s (instance=0x%X kept, sessionID/objectID=%d (0x%X))",
 		sess.RemoteAddr(), instanceID, playerObjectID, playerObjectID)

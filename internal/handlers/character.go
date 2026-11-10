@@ -1080,18 +1080,30 @@ func loginSpawn(gw *entity.World, record *database.CharacterRecord, held func(wo
 // arenaLogin starts a character saved in the arena's world beside the herald (entity/ctf.go: no match is kept
 // over a logout), and reports whether it did.
 func arenaLogin(gw *entity.World, record *database.CharacterRecord) bool {
-	at, arena, ok := gw.CTFReturnSpot()
-	if !ok || record.World != int(arena) {
-		return false
-	}
-	w, err := ValidateTeleport(at.X, at.Y, at.Z, at.World)
-	if err != nil {
+	at, w, ok := arenaStart(gw, record)
+	if !ok {
 		return false
 	}
 	log.Printf("loginSpawn: '%s' was saved in the arena (world %d): starts %s (%.1f, %.1f, %.1f) world=%d",
-		record.CharName, arena, at.Place, at.X, at.Y, at.Z, w)
+		record.CharName, record.World, at.Place, at.X, at.Y, at.Z, w)
 	record.X, record.Y, record.Z, record.World = at.X, at.Y, at.Z, int(w)
 	return true
+}
+
+// arenaStart is where a login of a character saved in the arena's world starts, beside the herald, and in which
+// world; false for a character saved anywhere else, and while there is no arena or no such spot. arenaLogin's
+// rule, changing nothing: loginServerWorld asks it too, since such a login is placed the same whatever the
+// client holds.
+func arenaStart(gw *entity.World, record *database.CharacterRecord) (entity.GateSpot, uint8, bool) {
+	at, arena, ok := gw.CTFReturnSpot()
+	if !ok || record.World != int(arena) {
+		return entity.GateSpot{}, 0, false
+	}
+	w, err := ValidateTeleport(at.X, at.Y, at.Z, at.World)
+	if err != nil {
+		return entity.GateSpot{}, 0, false
+	}
+	return at, w, true
 }
 
 // saveTakenOver writes the row of a character just taken over from the live
@@ -1752,8 +1764,11 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 	SendLiveLookOffer(sess)
 	SendCreationOffer(sess)
 	// and the server's own worlds' (serverworlds.go), before a character is
-	// picked: a login into one goes by the client's answer
+	// picked: a login into one goes by the client's answer; a client that
+	// took the offer (at this session's first list) is told which of this
+	// list's characters need them, so only their picks wait for its worlds
 	SendServerWorldsOffer(sess)
+	h.sendServerWorldsChars(sess, records)
 
 	// then the capes': the offer once, and to a client that took it the
 	// list's capes after every list (capes.go)

@@ -221,8 +221,12 @@ func mergeReliablesInSequenceOrder(pending, retrans []*protocol.Message) []*prot
 	return combined
 }
 
-// PreparePacket builds an outgoing packet for a session.
+// PreparePacket builds an outgoing packet for a session. The session is not
+// promoted while it does (session.LockSend): what it drains from the queue
+// and the header it writes over it are one connection's.
 func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
+	sess.LockSend()
+	defer sess.UnlockSend()
 	queue := sess.Queue()
 
 	// Check if we need to send anything. A due retransmit counts as work even
@@ -264,6 +268,9 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 
 	// Drain messages atomically to avoid races between queue peek and get.
 	pending := queue.GetPending()
+	if testAfterDrain != nil {
+		testAfterDrain(sess)
+	}
 
 	// Reliable messages must leave in ascending sequence order. Retransmits and
 	// freshly-queued messages are two independent ascending streams, so simply
@@ -606,6 +613,49 @@ func (l *Listener) silentInWorldOver(sess *session.Session, silent time.Duration
 	log.Printf("Session: %s silent %.0fs in the world: its client is gone, ended", sess.Label(), silent.Seconds())
 	sess.SetPendingTermination(true)
 	return true
+}
+
+// testAfterDrain, set by a test alone, runs in PreparePacket between the
+// queue's drain and the packet's header: where a promotion must not come.
+var testAfterDrain func(sess *session.Session)
+
+// SendWaiting is the tick's send for a session at character select whose
+// client took the offer of the server's own worlds (session.ServerWorldsTaken:
+// a client of ours, never a PS2): the reliable messages that wait in its
+// queue go out now, in up to 1+BurstPackets packets, while they fit the
+// client's window (NextFits), as TickSession sends a burst to a session in
+// the world. Until 2026-11-10 a session before the world was sent a packet
+// only in answer to one of its client's, so the worlds' recipes (70 KB, 62
+// fragments) went one fragment for each of the client's acknowledgements,
+// which its DRDP holds 100 ms: 8 s on a loopback and a round trip more a
+// fragment on a real line, 10 to 36 s on eqoaclassic, every login, with every
+// pick in a page waiting for it (petition 1468). A resend that is due goes
+// with the first packet, and alone only while the client was heard from
+// within StateSilence (the last fragment lost: the client, sent nothing
+// more, says nothing more until its keepalive, 30 s on): a client that is
+// gone is sent nothing from here. It reports how many packets went.
+func (r *RDPHandler) SendWaiting(sess *session.Session) int {
+	queue, conn := sess.Queue(), sess.Connection()
+	sent := 0
+	for p := 0; p <= BurstPackets; p++ {
+		ack, _ := conn.ClientAck()
+		if !queue.NextFits(ack, SendWindow, SendWindowBytes) {
+			heard := time.Since(sess.LastActivity()) < StateSilence
+			if p > 0 || !heard || !queue.HasRetransmits(conn.Net().RTO()) {
+				break
+			}
+		}
+		data := r.PreparePacket(sess)
+		if data == nil {
+			break
+		}
+		if err := r.SendPacket(sess, data); err != nil {
+			log.Printf("Failed to send packet to %s: %v", sess.RemoteAddr(), err)
+			break
+		}
+		sent++
+	}
+	return sent
 }
 
 // sendPrepared sends the packet PreparePacket builds, if there is one.

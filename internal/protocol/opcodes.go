@@ -607,6 +607,27 @@ const (
 	// slot); the server sends it into those alone (LoadableWorlds).
 	OpcodeServerWorldsData GameOpcode = 0x7E31
 
+	// OpcodeServerWorldsChars is which of a session's characters a login needs
+	// the server's own worlds for, server to a client that answered
+	// OpcodeServerWorlds 1 (petition 1468, 2026-11-10: every pick in a page
+	// waited for the worlds to be built, a wait almost no character needs):
+	// u8 version (1), u8 count, then each character's ServerID (u32,
+	// little-endian, as 0x002C carries it) whose login starts in one of the
+	// server's worlds for a client that holds it and on its race's mainland
+	// spot for one that does not (handlers.loginServerWorld: saved there, and
+	// a place a login resumes; one standing there in the world, left behind
+	// by a dropped client, too). Each one is the whole set: a character it
+	// leaves out is placed the same whatever the client holds, and its pick
+	// need wait for nothing. Sent at once after the client's 1, BEFORE
+	// OpcodeServerWorldsData (a list of 70 KB is seconds on the way, and a
+	// pick made meanwhile goes by this), and again after every later
+	// character list of the session. A client that reads it holds a pick only
+	// for a character it names, natively as in a page; one that does not (an
+	// older vanilla: its dispatcher passes an unknown opcode on and nothing
+	// takes it) holds as it did. Never sent to a session that did not take
+	// the offer, so never to a PS2. (0x7E55 is left unused, this lane's.)
+	OpcodeServerWorldsChars GameOpcode = 0x7E54
+
 	// OpcodeRaceOptions is not retail: a custom race's own character options
 	// (entity/raceoptions.go, handlers/raceoptions.go): a u32 after the opcode,
 	// both ways, as OpcodeRaceLabels. The server offers it (1) after a session's
@@ -1237,6 +1258,8 @@ func (op GameOpcode) String() string {
 		return "ServerWorlds"
 	case OpcodeServerWorldsData:
 		return "ServerWorldsData"
+	case OpcodeServerWorldsChars:
+		return "ServerWorldsChars"
 
 	case OpcodeCapes:
 		return "Capes"

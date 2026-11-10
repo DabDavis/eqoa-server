@@ -5458,7 +5458,7 @@
       "requires": [
         "homelands/orc/L3"
       ],
-      "offer": "The barbarians of Halas laugh at an orc with empty hands. I will make you proper gear. You will fetch what I need.\nHidecutter Marga has a leather strip and a shaft for me. Then tear a leg off one of the rock spiders among the rocks north of the camp.\nWill you bring me all three?",
+      "offer": "The barbarians of Halas laugh at an orc with empty hands. I will make you proper gear. You will fetch what I need.\nHidecutter Marga has a leather strip and a shaft for me. Then tear a leg off one of the scree spiders among the rocks north of the camp.\nWill you bring me all three?",
       "accept": "I will bring them.",
       "decline": "Not now.",
       "declined": "Then fight with your fists, and lose.",
@@ -5488,16 +5488,16 @@
         },
         {
           "kind": "loot",
-          "target": "rock spider",
+          "target": "scree spider",
           "items": [
             {
-              "item": "rock spider leg",
+              "item": "scree spider leg",
               "count": 1
             }
           ],
           "count": 1,
           "chance": 0.5,
-          "journal": "Take a rock spider leg from the rock spiders among the rocks north of the camp."
+          "journal": "Take a scree spider leg from the scree spiders among the rocks north of the camp."
         },
         {
           "kind": "give",
@@ -5512,11 +5512,11 @@
               "count": 1
             },
             {
-              "item": "rock spider leg",
+              "item": "scree spider leg",
               "count": 1
             }
           ],
-          "journal": "Bring the leather strip, the wooden shaft and the rock spider leg to Warleader Krugg.",
+          "journal": "Bring the leather strip, the wooden shaft and the scree spider leg to Warleader Krugg.",
           "says": "All three. Stand back... the leg makes a spike worth having. There. It is yours. Break it and you fetch another.",
           "rewards": {
             "xp": 17000,
@@ -6505,8 +6505,8 @@
       "like": "Rat Tail Tip"
     },
     {
-      "name": "rock spider leg",
-      "description": "The hard, jointed leg of a rock spider from the rocks north of Thedruk.",
+      "name": "scree spider leg",
+      "description": "The hard, jointed leg of a scree spider from the rocks north of Thedruk.",
       "notrade": true,
       "like": "Spider Leg Tip"
     },

@@ -77,7 +77,7 @@ func IsHeroesBox(id uint32) bool { return id&0xFF000000 == heroesBoxMark }
 // His words. A question is 127 characters at most (questAskChars), an answer
 // 63 (questAnswerChars), a box 217 (questBoxChars: say cuts a longer one).
 const (
-	heroesGreeting = "Well met, %s. Every kill that gives you experience earns 1 faction with the Testing Heroes, a raid boss 5. You stand at %d: %d above the bottom, and that is yours to spend."
+	heroesGreeting = "Well met, %s. Every kill that gives you experience earns 1 faction with the Testing Heroes, a raid boss 5. You stand at %d: %d above the bottom, yours to spend."
 	heroesAskList  = "Testing Heroes Vendor: 'You have %d to spend. What will you have?'"
 	heroesAskBuy   = "Testing Heroes Vendor: 'The %s, for %d of your %d?'"
 	heroesYes      = "Yes, I will take it"

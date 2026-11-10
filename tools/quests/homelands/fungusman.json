@@ -1,0 +1,176 @@
+{
+  "race": "fungusman",
+  "home": "Guk",
+  "city": "Tethelin and Fayspire",
+  "note": "The fungal folk's hall deep in Guk. Its people are tools/worlds/homelands.json's (Guk): Elder Moldcap, by the west wall, gives the first two; Warden Morel, beside him, the three hunts; Capwright Chanter, up the passage to the north-west, is the outfitter; Coachman Inkcap keeps the stable in the passage to the north-east (his coach runs to Freeport and to the other homes). The cave beetles (the north-east passage), the muck roaches (the east tunnel, south of the beetles) and the centipede Old Manylegs (the spur at the tunnel's end) are placed for these quests, one after another down the same tunnel.",
+  "L1": {
+    "name": "A Sprout's Root Sash",
+    "giver": "Elder Moldcap",
+    "offer": [
+      "Ahh. A new cap pushes up through the dark. Welcome, little sprout. Stand a while. There is no hurry here.",
+      "Every sprout of the hall wears a sash of braided root, to hold it to the ground it grew from. Capwright Chanter braids them, a little way up the passage to the north.",
+      "Will you fetch your root sash and show it to me?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "Then rest, sprout. The hall will still be damp tomorrow.",
+    "started": "Slowly, now. Chanter is a little way up the passage to the north.",
+    "merchant": "Capwright Chanter",
+    "piece": {
+      "name": "sprout's root sash",
+      "description": "A sash of braided rootlets, still damp. Every sprout of the hall in Guk wears one.",
+      "like": "Dun Cloth Belt",
+      "set": {
+        "AC": 4
+      }
+    },
+    "fetch": {
+      "journal": "Ask Capwright Chanter, up the passage north of Elder Moldcap, for a sprout's root sash.",
+      "says": "The elder sent you? Hold still, sprout. Round the stem, twice... there. Root for holding, damp for growing. Nothing owed. You are one of ours."
+    },
+    "show": {
+      "journal": "Show the sprout's root sash to Elder Moldcap.",
+      "says": "It sits well. Wear it, and wherever you wander, a little of the hall goes with you."
+    }
+  },
+  "L2": {
+    "name": "Rooted in the Hall",
+    "giver": "Elder Moldcap",
+    "offer": [
+      "A sprout is soft, and the caverns are not. Let Spiritmaster Sporewell root your spirit in the hall, so that you grow again here if you are trodden down.",
+      "Then give your name to Coachman Inkcap for his ledger. His coach runs to Freeport and to the other homes of the Homelands.",
+      "Will you see them both and come back to me?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "No hurry. But tread softly until you do.",
+    "started": "Sporewell is down the passage to the east. Inkcap keeps his coach to the north-east.",
+    "spiritmaster": "Spiritmaster Sporewell",
+    "coachman": "Coachman Inkcap",
+    "bind": {
+      "journal": "Have Spiritmaster Sporewell, down the passage east of the elder, bind your spirit to the hall.",
+      "says": "It is done. Should you be trodden down, you will sprout again here in the damp. Now go and give Coachman Inkcap your name."
+    },
+    "ledger": {
+      "journal": "Give your name to Coachman Inkcap, in the passage north-east of the elder, for his ledger.",
+      "says": "A new sprout! My coach is slow, but it gets there. It runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now."
+    },
+    "back": {
+      "journal": "Return to Elder Moldcap.",
+      "says": [
+        "Good. Now you are rooted, and may wander without fear.",
+        "Inkcap's coach goes where its ledgers know you, but the way up to the elves is earned. Warden Morel, beside me, has work for you."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Beetles at the Caps",
+    "giver": "Warden Morel",
+    "offer": [
+      "So you are the new sprout. Good. Cave beetles are chewing the young caps in the north-east passage, and the gatherers will not go near.",
+      "Go and break them, and bring me three of their shells. Then I will teach you a thing worth knowing.",
+      "Will you hunt them?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "Then the beetles eat, and the sprouts do not grow.",
+    "started": "Three shells. North-east, past Inkcap's coach, where the passage bends.",
+    "target": "cave beetle",
+    "count": 3,
+    "drop": {
+      "name": "cave beetle shell",
+      "description": "The shell of a cave beetle from the north-east passage of the hall in Guk.",
+      "like": "beetle carapace fragment"
+    },
+    "hunt": {
+      "journal": "Take three cave beetle shells from the cave beetles in the passage north-east of the hall."
+    },
+    "give": {
+      "journal": "Bring three cave beetle shells to Warden Morel.",
+      "says": "Three shells, and your cap not even nibbled. You will do. Now watch, slowly, and learn this."
+    }
+  },
+  "L4": {
+    "name": "A Sprout's Arms",
+    "giver": "Warden Morel",
+    "offer": [
+      "A soft cap needs something hard to hold. I will make you proper gear, but you will gather what I need.",
+      "Capwright Chanter has leather and a shaft for me. Then take a wing from the muck roaches down the east tunnel, south of the beetles.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then go soft, and hope nothing bites.",
+    "started": "Leather and a shaft from Chanter, a wing from the roaches. Go on.",
+    "materials": [
+      {
+        "merchant": "Capwright Chanter",
+        "items": [
+          "leather strip",
+          "wooden shaft"
+        ],
+        "journal": "Ask Capwright Chanter for the leather strip and the wooden shaft.",
+        "says": "For Morel? Here: a strip of hide and a good dry shaft. Dry! I kept it wrapped a whole season. Tell him so."
+      }
+    ],
+    "target": "muck roach",
+    "count": 1,
+    "drop": {
+      "name": "muck roach wing",
+      "description": "The stiff wing of a muck roach from the east tunnel of the hall in Guk.",
+      "like": "Fungus Cockroach Wing"
+    },
+    "hunt": {
+      "journal": "Take a muck roach wing from the muck roaches down the tunnel east of the hall."
+    },
+    "give": {
+      "journal": "Bring the leather strip, the wooden shaft and the muck roach wing to Warden Morel.",
+      "says": "All three. Give me a little while... there. It is yours. Hold it as the root holds the stone."
+    }
+  },
+  "L5": {
+    "name": "Old Manylegs",
+    "giver": "Warden Morel",
+    "offer": [
+      "One task more before the light. A great centipede we call Old Manylegs dens at the far end of the east tunnel, and it has eaten two gatherers.",
+      "It does not wait to be struck. Be quick, for once, and bring me a plate of its shell.",
+      "Will you hunt Old Manylegs?"
+    ],
+    "accept": "I will hunt it.",
+    "decline": "Not yet.",
+    "declined": "It will not grow fewer legs while you wait.",
+    "started": "East, past the roaches, to the tunnel's end. Mind every one of its legs.",
+    "target": "Old Manylegs",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "Old Manylegs' shell plate",
+      "description": "A broad plate from the back of the great centipede Old Manylegs.",
+      "like": "centipede carapace"
+    },
+    "hunt": {
+      "journal": "Take Old Manylegs' shell plate from the centipede Old Manylegs at the far end of the tunnel east of the hall."
+    },
+    "give": {
+      "journal": "Bring Old Manylegs' shell plate to Warden Morel.",
+      "says": [
+        "Old Manylegs' own shell! The gatherers will sing, slowly, for days. You are a sprout no longer.",
+        "Learn this, and see Gatekeeper Gillford, north of the elder, when you are ready to go up to the light."
+      ]
+    }
+  },
+  "flight": {
+    "name": "Up to the Light",
+    "giver": "Gatekeeper Gillford",
+    "offer": [
+      "Up above, the elves of Tethelin and the Fayspires keep shaded groves where our spores grow well, and they are kind to slow folk.",
+      "You have earned the way up, cap and stem. I will set you down among your own guild there, and your spirit will rest among the elves.",
+      "Shall I send you up to the light?"
+    ],
+    "accept": "Send me up.",
+    "decline": "Not yet.",
+    "declined": "There is no hurry. The elves live a long time.",
+    "started": "Grow well, up in the light!",
+    "journal": "Tell Gatekeeper Gillford when you are ready to go up to the elves."
+  }
+}

@@ -373,6 +373,8 @@ func (w *World) duelRefusalLocked(p, t *Player, now time.Time) string {
 		return "You cannot duel now."
 	case t.IsDead() || t.respawnPending():
 		return fmt.Sprintf("%s cannot duel now.", t.Name)
+	case p.ctf.match != 0 || t.ctf.match != 0 || w.ctfArenaLocked(p.World):
+		return ctfLineNoDuel // the arena's fights are its match's (ctf.go)
 	case p.World != t.World || dist3(p.X, p.Y, p.Z, t.X, t.Y, t.Z) > DuelStartRange:
 		return fmt.Sprintf("%s is too far away to duel.", t.Name)
 	case !w.duels.asked[p.ServerID].IsZero() && now.Sub(w.duels.asked[p.ServerID]) < DuelAskAgain:

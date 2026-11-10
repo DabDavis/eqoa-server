@@ -387,6 +387,7 @@ const (
 	ctfLineAlready    = "You are already signed up. %s"
 	ctfLineNoArena    = "The arena cannot be reached now."
 	ctfLineSameTeam   = "%s fights on your side."
+	ctfLineNoDuel     = "There are no duels in the arena: its fights are its match's."
 	ctfLineNotLive    = "The banners are not live yet."
 	ctfStatusNone     = "No match is on. %s"
 	ctfStatusOn       = "A match is on in %s: %s, %d minutes left. %s"

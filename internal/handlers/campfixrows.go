@@ -5,6 +5,7 @@ import (
 	"math"
 	"sort"
 	"strings"
+	"unicode"
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
@@ -158,7 +159,14 @@ func (rs *campfixRows) named(name string) ([]campfixRowNPC, error) {
 	if l, ok := rs.names[k]; ok {
 		return l, nil
 	}
-	got, err := campfixQueryRows(rs.db, rs.spawnOnly, `WHERE world = ? AND lower(trim(npc_name)) = ? ORDER BY id`, int(rs.world), k)
+	query, args := `WHERE world = ? AND lower(trim(npc_name)) = ? ORDER BY id`, []any{int(rs.world), k}
+	for _, r := range k {
+		if r > unicode.MaxASCII { // SQLite's lower folds ASCII alone: the world's rows, compared here
+			query, args = `WHERE world = ? ORDER BY id`, []any{int(rs.world)}
+			break
+		}
+	}
+	got, err := campfixQueryRows(rs.db, rs.spawnOnly, query, args...)
 	if err != nil {
 		return nil, err
 	}

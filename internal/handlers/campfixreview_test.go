@@ -332,3 +332,27 @@ func TestCampfixFromAPetition(t *testing.T) {
 		t.Errorf("the control, the target's removal: %v", err)
 	}
 }
+
+// A name of letters past ASCII is matched without case as /campfix matches
+// one (SQLite's lower folds ASCII alone): a petition's add of "ÖGRE BRUTE"
+// copies the row named "Ögre brute"; the control, a name no row has, is refused.
+func TestCampfixPetitionMatchesANameOfNonASCIILetters(t *testing.T) {
+	w := campfixWorld(t)
+	if _, err := w.db.Exec(`INSERT INTO npcs (id, npc_name, world, x_coord, y_coord, z_coord, facing, modelid, size, npc_level, npc_type, race, zone)
+		VALUES (710, 'Ögre brute', 0, 25020, 50, 15020, 0, ?, 1.0, 25, 0, '0', 7)`, cfCreature); err != nil {
+		t.Fatal(err)
+	}
+	p, err := w.db.FilePetition(database.Petition{ServerID: 2, CharName: "Player", AccountID: 2, Category: 1, Subcategory: 10, Text: "x",
+		ServerView: `{"filed":"2026-11-09T10:00:00Z","character":{"name":"Player","serverid":2,"level":12,"class":"Ranger","world":0,` +
+			`"x":25010,"y":50,"z":15000,"facing":0}}`}, w.now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan, err := PlanCampfixPetition(w.db, CampfixPetition{Petition: p.ID, Kind: "add", Name: "ÖGRE BRUTE"}, w.now)
+	if err != nil || len(plan.Marks) != 1 || plan.Marks[0].Name != "Ögre brute" || plan.Marks[0].Template != 710 {
+		t.Fatalf("the add: %+v %v", plan.Marks, err)
+	}
+	if _, err := PlanCampfixPetition(w.db, CampfixPetition{Petition: p.ID, Kind: "add", Name: "Ügre brute"}, w.now); err == nil {
+		t.Fatal("the control, a name no row has, was taken")
+	}
+}

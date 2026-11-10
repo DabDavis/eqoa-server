@@ -33,6 +33,10 @@ type KeptMerc struct {
 	Place    [4]float32 `json:"place"` // x, y, z, facing
 	World    uint8      `json:"world"`
 	Grouped  bool       `json:"grouped,omitempty"`
+	// Away: it waited outside capture the flag's arena (ctfaway.go), in no
+	// group of its owner's: it comes back as its return from there does, its
+	// owner asked into a group with it again
+	Away bool `json:"away,omitempty"`
 }
 
 // KeptFamiliar is a player's familiar as a restart carries it: the item that
@@ -94,7 +98,9 @@ func (w *World) RestoreMerc(sess *session.Session, kit MercKit, k KeptMerc, now 
 	n.HP = keptShare(k.HPPct, n.MaxHP)
 	n.Power = min(n.MaxPower, int(k.PowerPct*float64(n.MaxPower)+0.5))
 	syncMercBody(ms)
-	ms.asked = true // not asked again: its client holds what it answered before
+	// not asked again: its client holds what it answered before; one that
+	// waited outside the arena is asked, as at its return from there
+	ms.asked = !k.Away
 	// its group place at the group upkeep, once the kept groups are formed
 	// again (RestoreGroups comes after every session's character)
 	ms.regroup = k.Grouped

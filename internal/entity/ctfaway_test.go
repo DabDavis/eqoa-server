@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -311,7 +312,7 @@ func TestCTFAwayThroughAKeepRestart(t *testing.T) {
 	fs.npc.HP = fs.npc.MaxHP / 4
 	r.startMatch(t)
 	kp, ok := r.w.KeepPlayer(r.ss[0], r.at(r.live()))
-	if !ok || kp.Merc == nil || kp.Merc.Name != "Gorvak" || kp.Familiar == nil || kp.Familiar.Item != healbot().Item || kp.Familiar.HPPct != 0.25 {
+	if !ok || kp.Merc == nil || kp.Merc.Name != "Gorvak" || !kp.Merc.Away || kp.Familiar == nil || kp.Familiar.Item != healbot().Item || kp.Familiar.HPPct != 0.25 {
 		t.Fatalf("kept: merc %+v familiar %+v", kp.Merc, kp.Familiar)
 	}
 	if kb, _ := r.w.KeepPlayer(r.ss[1], r.at(r.live())); kb.Merc != nil || kb.Familiar != nil {
@@ -329,6 +330,21 @@ func TestCTFAwayThroughAKeepRestart(t *testing.T) {
 	m, f := r2.followersOf(r2.ps[0])
 	if m == nil || f == nil || m.World != 0 || distXZ(m.X, m.Z, r2.ps[0].X, r2.ps[0].Z) > petLost || f.HP != f.MaxHP/4 {
 		t.Fatalf("back: merc %+v familiar %+v", m, f)
+	}
+	// its owner asked into a group with it, as at its return from the arena (a merc carried out of a group is not:
+	// TestMercKeepRestart)
+	r2.ss[0].Queue().GetPending()
+	for i := 1; i <= 5; i++ {
+		r2.all(time.Duration(i) * 100 * time.Millisecond)
+	}
+	asked := 0
+	for _, msg := range r2.ss[0].Queue().GetPending() {
+		if opOfMsg(msg.Data()) == protocol.OpcodeGroupInviteReceived {
+			asked++
+		}
+	}
+	if asked != 1 {
+		t.Errorf("its owner was asked into a group %d times, want once", asked)
 	}
 
 	// an owner in the arena's world: back to waiting

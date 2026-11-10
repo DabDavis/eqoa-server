@@ -917,7 +917,7 @@ default (`config.yaml.example`, `entity.DefaultCTFSettings`).
   arena's world, in the world, alive and loaded, the familiar comes back as it was (its share of hit points) and the merc
   is made again from its row beside it (`MercNoteBack`: a login's return, whole, asked into a group again). A dismissal
   while it waits ends it; a logout lets the wait go (the login brings the merc back by its row); a keep restart carries it
-  as if out. Class pets go in, as the PvP fight's (`pvpPetLocked`); a group or raid across the teams stays the group it was.
+  as if out (`KeptMerc.Away`: its owner asked into a group with it again, as at its return). Class pets go in, as the PvP fight's (`pvpPetLocked`); a group or raid across the teams stays the group it was.
 - **The end**: `score_limit` captures, or `time_limit` (the higher score wins, a tie is a draw), or a team empty 30 s (a
   forfeit). Everyone is told (the server too), each player its own count, and `end_hold` later all go back beside the herald
   (one lying dead rises there). A login saved in the arena starts beside the herald (`arenaLogin`), and so does a keep restart's

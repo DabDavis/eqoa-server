@@ -2064,6 +2064,13 @@ rules cover is the leader's alone for 5 minutes (anyone else: 0x0085 3, word 675
 claim (into that one's pack, refused when full) or abandons the corpse to anyone; a kill of nothing covered is free for all. A corpse the
 rules hold lies until they are done and then its decay (`World.HoldCorpse`, kept in `KeptNPC.CorpseHeld`); the rolls, holds and master
 looter survive a keep restart (`KeptCorpse.Raid`), as do the raid's flag, rule, helper and main assist (`KeptGroup`) and a client's answer.
+**Mercenaries** (`mercgroup.go`): a merc takes a place in its owner's group but is no player, so it is never a roll seat, a claim, on the
+master looter's list, the leader, the helper or the main assist (refused with a line by name or by target); `/raidkick` or Boot Member
+of a merc dismisses it (the leader; the helper too, never the leader's own merc), with no claim; its fight is its raid's (`NPC.Owner`,
+as a pet's); a player in a group of it and its merc alone steps aside (0x069A 8) for `/raidinvite`, `/invite <name>` and the flag, its
+merc following its yes, past four in a flagged raid; `/raidleave` takes the merc out with its owner, who is then asked into a group with
+it again, as any leave of a group of others. `/help` lists `/tutorial` too, and the welcome guide's raid box names `/help` and the loot
+rules as they are.
 **The windows** (0x7E42-0x7E48, Key Server Protocol Details): a client that answered the offer gets the raid's state, its rolls and the
 master looter's list as messages; a PS2 the same as chat lines in the raid's orange ("Roll 7: ... /t need 7, /t greed 7 or /t pass 7",
 the master looter's items by number at its opening and after each assign).

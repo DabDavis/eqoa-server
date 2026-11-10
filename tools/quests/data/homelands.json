@@ -1647,96 +1647,571 @@
       "notes": "Ours: the gatekeeper's port to Halas, the aviak's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json."
     },
     {
-      "key": "homelands/goblin/welcome",
-      "name": "Fresh From the Mud",
+      "key": "homelands/goblin/L1",
+      "name": "A Tunnel-Runner's Ear Ring",
       "giver": "Elder Snikkit",
       "classes": [],
-      "races": [],
+      "races": [
+        13
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "Another one crawls out of the mud! Listen, little one: in Moss Mouth, a goblin who does not know the grocer goes hungry. Find Mudgrub by the cook pots and tell him the elder sent you.",
-      "accept": "I will find Mudgrub.",
+      "offer": "A new one, yes? Hmm. Two ears, all your fingers. You will do. But no goblin of Moss Mouth runs the tunnels without the ear ring, or the lookouts take it for a thief.\nStitcher Nibb makes them, from rat bone and a bit of wire. Nibb sits across the hall, a few steps to the south-west.\nWill you fetch your ear ring and show it to me?",
+      "accept": "I will fetch it.",
       "decline": "Not now.",
-      "declined": "Go hungry, then. The cavern feeds no one twice.",
-      "started": "Mudgrub keeps the cook pots, just south of here. Do not touch them.",
+      "declined": "Then stay where the lookouts can see you, little one.",
+      "started": "Go on, go on. Just across the hall. Nibb does not bite. Much.",
       "steps": [
         {
           "kind": "talk",
-          "target": "Grocer Mudgrub",
-          "journal": "Find Grocer Mudgrub by the cook pots in the great hall.",
-          "says": "The elder sent you? Here, eat this before someone takes it from you. It smells, but so do we.",
+          "target": "Stitcher Nibb",
+          "journal": "Ask Stitcher Nibb, across the hall south-west of Elder Snikkit, for a tunnel-runner's ear ring.",
+          "says": "Snikkit sent you? Hold still. There: rat bone, good wire, hardly rusted. No charge for a new one. The next one costs you.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "tunnel-runner's ear ring",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "show",
+          "target": "Elder Snikkit",
+          "items": [
+            {
+              "item": "tunnel-runner's ear ring",
+              "count": 1
+            }
+          ],
+          "journal": "Show the tunnel-runner's ear ring to Elder Snikkit.",
+          "says": "Good, good. Now the lookouts will know you for one of ours. Do not lose it, little one.",
           "rewards": {
-            "items": [
-              "stilton cheese"
-            ]
+            "xp": 430
           }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 1
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the goblin's level 1, at Moss Mouth Cavern, on the cities' level 1 quest: a piece of equipment fetched from a merchant and shown to the giver. Finishing it finishes the character's own city class quest of level 1 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/goblin.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/goblin/L2",
+      "name": "Bound to Moss Mouth",
+      "giver": "Elder Snikkit",
+      "classes": [],
+      "races": [
+        13
+      ],
+      "minlevel": 2,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/goblin/L1"
+      ],
+      "offer": "A goblin who dies far from home is a goblin wasted. Have Spiritmaster Grizzik bind your spirit to the cavern, so that you wake here when something eats you.\nThen put your mark in Coachman Rukkit's ledger. His coach runs to Freeport and to the other homes of the Homelands, for those their stables know.\nWill you see them both and come back to me?",
+      "accept": "I will see them both.",
+      "decline": "Not now.",
+      "declined": "Then try not to die, little one. It is harder than it sounds.",
+      "started": "Grizzik sits just south-east of here. Rukkit keeps his coach in the south chamber, down the passage.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Spiritmaster Grizzik",
+          "journal": "Have Spiritmaster Grizzik, south-east of the elder, bind your spirit to Moss Mouth Cavern.",
+          "says": "There. The cavern has you now. Fall, and you wake here in the dark with the rest of us. Now go and make your mark for Coachman Rukkit."
+        },
+        {
+          "kind": "talk",
+          "target": "Coachman Rukkit",
+          "journal": "Put your mark in Coachman Rukkit's ledger, in the south chamber down the passage from the hall.",
+          "says": "A new mark for the ledger! My coach runs to Freeport and to every other home of the Homelands, for travelers whose names their ledgers hold. Yours is in mine now."
         },
         {
           "kind": "talk",
           "target": "Elder Snikkit",
           "journal": "Return to Elder Snikkit.",
-          "says": "Good. Mudgrub knows your face now, and you know where the food is. That is half of being a goblin.",
+          "says": "Good. Now you cannot get lost, and you cannot stay dead. Both are useful.\nRukkit's coach will take you to Freeport if its ledger knows you, but the road to Neriak is earned. Pitmaster Grukk, beside me, has work for you.",
           "rewards": {
-            "xp": 200,
-            "tunar": 10
+            "xp": 2200
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 2
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the goblins' first, at their home zone, Moss Mouth Cavern of the disc."
+      "notes": "Ours (the Homelands' starter quests): the goblin's level 2, at Moss Mouth Cavern, on the cities' level 2 quest: the spiritmaster's bind and the coachman's ledger. Finishing it finishes the character's own city class quest of level 2 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/goblin.json: change that file, never this quest's rows by hand."
     },
     {
-      "key": "homelands/goblin/rats",
-      "name": "Rats in the Larder",
-      "giver": "Grocer Mudgrub",
+      "key": "homelands/goblin/L3",
+      "name": "Rats in the Long Tunnel",
+      "giver": "Pitmaster Grukk",
       "classes": [],
-      "races": [],
-      "minlevel": 1,
+      "races": [
+        13
+      ],
+      "minlevel": 3,
       "maxlevel": 60,
       "requires": [
-        "homelands/goblin/welcome"
+        "homelands/goblin/L2"
       ],
-      "offer": "Tunnel rats are in my stores again, and they eat better than I do. Kill five of them down in the pit east of the hall, where they nest, and I will pay you in good coin.",
-      "accept": "I will kill them.",
+      "offer": "You are the new one? Hah. Small. The tunnel rats are breeding in the long tunnel again, and they chew every sack we carry in from the mouth.\nGo west out of the hall, then south down the long tunnel to the mouth. Kill rats until you have three tails, and I will teach you a thing worth knowing.\nWill you clear some rats?",
+      "accept": "I will clear them.",
       "decline": "Not now.",
-      "declined": "Then the rats eat, and you do not.",
-      "started": "Five rats. Bring me none of their fleas.",
+      "declined": "Scared of rats? Neriak will eat you whole.",
+      "started": "Three tails. Not ears, not feet. Tails.",
       "steps": [
         {
-          "kind": "kill",
+          "kind": "loot",
           "target": "tunnel rat",
-          "count": 5,
-          "journal": "Kill five tunnel rats in the pit east of the great hall."
+          "items": [
+            {
+              "item": "tunnel rat tail",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three tunnel rat tails from the tunnel rats in the long tunnel that runs south to the mouth."
         },
         {
-          "kind": "talk",
-          "target": "Grocer Mudgrub",
-          "journal": "Tell Grocer Mudgrub the rats are dead.",
-          "says": "Five rats! You are quicker than you look. Here is your pay. Do not spend it all in one place.",
+          "kind": "give",
+          "target": "Pitmaster Grukk",
+          "items": [
+            {
+              "item": "tunnel rat tail",
+              "count": 3
+            }
+          ],
+          "journal": "Bring three tunnel rat tails to Pitmaster Grukk.",
+          "says": "Three tails, and you still have your own. Hah! Good. Now watch what I do, and learn this.",
           "rewards": {
-            "xp": 400,
-            "tunar": 25
+            "xp": 6900,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Swift Blade"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Hero Guard"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Malice"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Chant of Battle"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Sneak"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Fiery Burst"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Tribal Toughness"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Minor Blessing"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Smoldering Aura"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Life Tap"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Crawling Skin"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Arcane Bindings"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Hardening Agent"
+                ]
+              }
+            }
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 3
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours: the goblins' second starter quest; the tunnel rats are tools/seed_race_homes.py's, passive (npcaggro)."
+      "notes": "Ours (the Homelands' starter quests): the goblin's level 3, at Moss Mouth Cavern, on the cities' level 3 quest: a hunt for drops; each class is taught what its own city's level 3 quest teaches it. Finishing it finishes the character's own city class quest of level 3 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/goblin.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/goblin/L4",
+      "name": "A Goblin's Arms",
+      "giver": "Pitmaster Grukk",
+      "classes": [],
+      "races": [
+        13
+      ],
+      "minlevel": 4,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/goblin/L3"
+      ],
+      "offer": "The dark elves laugh at a goblin with empty hands. I will make you proper gear, but you fetch what I need.\nStitcher Nibb has a leather strip and a shaft put by for me. Then bring a wing from the cave bats that roost in the far north-east chamber.\nWill you bring me all three?",
+      "accept": "I will bring them.",
+      "decline": "Not now.",
+      "declined": "Then fight with your teeth. See how long they last.",
+      "started": "Leather and a shaft from Nibb, a wing from the bats. Quick, now.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Stitcher Nibb",
+          "journal": "Ask Stitcher Nibb for the leather strip and the wooden shaft.",
+          "says": "For Grukk? Here, a leather strip and a shaft, straight enough. Tell him he still owes me for the last ones.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "leather strip",
+                  "count": 1
+                },
+                {
+                  "item": "wooden shaft",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "loot",
+          "target": "cave bat",
+          "items": [
+            {
+              "item": "cave bat wing",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 0.5,
+          "journal": "Take a cave bat wing from the cave bats in the far north-east chamber of the cavern."
+        },
+        {
+          "kind": "give",
+          "target": "Pitmaster Grukk",
+          "items": [
+            {
+              "item": "leather strip",
+              "count": 1
+            },
+            {
+              "item": "wooden shaft",
+              "count": 1
+            },
+            {
+              "item": "cave bat wing",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the leather strip, the wooden shaft and the cave bat wing to Pitmaster Grukk.",
+          "says": "All three. Give it here... wing for the grip, leather to bind. There. It is yours. Try not to cut yourself.",
+          "rewards": {
+            "xp": 17000,
+            "byclass": {
+              "0": {
+                "items": [
+                  "militia short sword"
+                ]
+              },
+              "1": {
+                "items": [
+                  "Glade Crafted Longbow"
+                ]
+              },
+              "2": {
+                "items": [
+                  "Sword of Faith"
+                ]
+              },
+              "3": {
+                "items": [
+                  "Iron Hatchet"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Disciple's Jitte"
+                ]
+              },
+              "5": {
+                "items": [
+                  "Traveler's Rapier"
+                ]
+              },
+              "6": {
+                "items": [
+                  "tiger dirk"
+                ]
+              },
+              "7": {
+                "items": [
+                  "crafted glade staff"
+                ]
+              },
+              "8": {
+                "items": [
+                  "Corse Spiked Club"
+                ]
+              },
+              "9": {
+                "items": [
+                  "Acolyte's Hammer"
+                ]
+              },
+              "10": {
+                "items": [
+                  "blue robe"
+                ]
+              },
+              "11": {
+                "items": [
+                  "Black Robe of the Order"
+                ]
+              },
+              "12": {
+                "items": [
+                  "yellow robe"
+                ]
+              },
+              "13": {
+                "items": [
+                  "red robe"
+                ]
+              },
+              "14": {
+                "items": [
+                  "burnt gloves"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 4
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the goblin's level 4, at Moss Mouth Cavern, on the cities' level 4 quest: new gear of a merchant's materials and a drop; each class is given what its own city's level 4 quest gives it (class-rewards.json has the two classes the cities give nothing). Finishing it finishes the character's own city class quest of level 4 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/goblin.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/goblin/L5",
+      "name": "Mother Mossweb",
+      "giver": "Pitmaster Grukk",
+      "classes": [],
+      "races": [
+        13
+      ],
+      "minlevel": 5,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/goblin/L4"
+      ],
+      "offer": "One more thing before Neriak gets you. A great spider nests in the old camp outside the mouth, far to the south. We call her Mother Mossweb. She took two lookouts last moon.\nShe bites first and she bites deep, so do not stand and stare. Bring me her fang, and I will teach you the last thing I have for a new one.\nWill you kill Mother Mossweb?",
+      "accept": "I will kill her.",
+      "decline": "Not yet.",
+      "declined": "She will only get fatter while you wait.",
+      "started": "South, down the long tunnel and out past the mouth, among the old huts. Keep moving when she comes.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "Mother Mossweb",
+          "items": [
+            {
+              "item": "Mossweb's fang",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 1.0,
+          "journal": "Take Mossweb's fang from the spider Mother Mossweb, in the old camp outside the mouth, far to the south."
+        },
+        {
+          "kind": "give",
+          "target": "Pitmaster Grukk",
+          "items": [
+            {
+              "item": "Mossweb's fang",
+              "count": 1
+            }
+          ],
+          "journal": "Bring Mossweb's fang to Pitmaster Grukk.",
+          "says": "Her fang! Hah! The lookouts will sleep tonight. You are no new one any more.\nLearn this, and see Gatekeeper Skabber when you are ready for Neriak.",
+          "rewards": {
+            "xp": 36500,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Taunt"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Forage Berries"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Lay Hands"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Harm Touch"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Minor Purity"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Funeral March"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Shadowstrike"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Snare"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Blighting Mist"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Holy Shock"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Motivate"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Rabid Infection"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Heavy Arms"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Shock of Frost"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Refinement"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 5
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the goblin's level 5, at Moss Mouth Cavern, on the cities' level 5 quest: a foe to bring down; each class is taught what its own city's level 5 quest teaches it. Finishing it finishes the character's own city class quest of level 5 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/goblin.json: change that file, never this quest's rows by hand."
     },
     {
       "key": "homelands/goblin/flight",
       "name": "The Road to Neriak",
       "giver": "Gatekeeper Skabber",
       "classes": [],
-      "races": [],
+      "races": [
+        13
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [
-        "homelands/goblin/welcome",
-        "homelands/goblin/rats"
+        "homelands/goblin/L1",
+        "homelands/goblin/L2",
+        "homelands/goblin/L3",
+        "homelands/goblin/L4",
+        "homelands/goblin/L5"
       ],
       "repeatable": true,
-      "offer": "The dark elves of Neriak pay well for goblins who are quick and quiet. I can send you to them, and Neriak will be your home from then on. Are you ready to go?",
+      "offer": "The dark elves of Neriak pay well for goblins who are quick and quiet, and Grukk says you are both.\nYou have earned the road, little one. I will set you down among your own guild in Neriak, and your spirit will rest there.\nShall I send you to Neriak?",
       "accept": "Send me to Neriak.",
       "decline": "Not yet.",
       "declined": "Neriak will wait. Dark elves are good at waiting.",
@@ -1761,7 +2236,7 @@
         }
       ],
       "unresolved": [],
-      "notes": "Ours: the gatekeeper's port to Neriak, the goblin's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a goblin back in Moss Mouth Cavern is sent again; no reward, so none is had twice."
+      "notes": "Ours: the gatekeeper's port to Neriak, the goblin's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/goblin.json."
     },
     {
       "key": "homelands/lizardman/welcome",
@@ -2966,6 +3441,38 @@
       "description": "The chipped tusk of the old boar Razortusk.",
       "notrade": true,
       "like": "plagueswine tusk"
+    },
+    {
+      "name": "tunnel-runner's ear ring",
+      "description": "A ring of rat bone and wire. Every goblin of Moss Mouth Cavern wears one, so the lookouts know it in the dark.",
+      "notrade": true,
+      "like": "Shell Earring",
+      "set": {
+        "HPMAX": 5,
+        "classuse": 32767,
+        "raceuse": 1023,
+        "levelreq": 1,
+        "itemcost": 0,
+        "maxhp": 500
+      }
+    },
+    {
+      "name": "tunnel rat tail",
+      "description": "The tail of a tunnel rat from the long tunnel of Moss Mouth Cavern.",
+      "notrade": true,
+      "like": "Rat Tail Tip"
+    },
+    {
+      "name": "cave bat wing",
+      "description": "The leathery wing of a cave bat from the north-east chamber of Moss Mouth Cavern.",
+      "notrade": true,
+      "like": "bat pelt"
+    },
+    {
+      "name": "Mossweb's fang",
+      "description": "The long black fang of the spider Mother Mossweb.",
+      "notrade": true,
+      "like": "Tree Viper Fang"
     }
   ]
 }

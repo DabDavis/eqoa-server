@@ -715,15 +715,82 @@
             "level": 35,
             "role": "talker",
             "at": [
-              19493.1,
+              19487.0,
               84.84,
-              12239.4
+              12247.0
             ],
             "toward": [
               19380.0,
-              12222.0
+              12229.0
             ],
-            "note": "sends a goblin who has done the starter quests to Neriak (the quest The Road to Neriak); a goblin warrior's look"
+            "note": "sends a goblin who has done the starter quests to Neriak (the quest The Road to Neriak); a goblin warrior's look; on open floor before the east huts"
+          },
+          {
+            "name": "Pitmaster Grukk",
+            "like": 108307,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              19392.0,
+              84.84,
+              12236.0
+            ],
+            "toward": [
+              19380.0,
+              12229.0
+            ],
+            "note": "gives the three hunts (levels 3-5), a few steps from the elder on the hall's open floor: a goblin warrior's arms"
+          },
+          {
+            "name": "Stitcher Nibb",
+            "like": 108218,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19370.0,
+              84.84,
+              12246.0
+            ],
+            "toward": [
+              19380.0,
+              12229.0
+            ],
+            "stock": "Tailor Desrez",
+            "note": "the cavern's outfitter, across the hall from the elder (open floor): hands over the level 1 ear ring and the level 4 materials; a Neriak tailor's cloth (Tailor Desrez)"
+          },
+          {
+            "name": "Coachman Rukkit",
+            "like": 108189,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19392.0,
+              84.84,
+              12324.0
+            ],
+            "toward": [
+              19380.0,
+              12229.0
+            ],
+            "note": "the cavern's stable, in the south chamber down the passage from the hall (open floor, clear of the huts): the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot (open floor, nothing that attacks near)"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 108230,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              19416.0,
+              84.84,
+              12248.0
+            ],
+            "toward": [
+              19380.0,
+              12229.0
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), in a witch doctor's look; left out where the database has none to take wares from"
           },
           {
             "name": "Moss Mouth lookout",
@@ -776,38 +843,38 @@
           {
             "name": "tunnel rat",
             "body": "0x12098DE0",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.8,
             "at": [
-              19458.7,
-              81.47,
-              12164.1
+              19316.8,
+              84.84,
+              12375.7
             ],
-            "note": "the starter quest's rats, at the dire wolves' spots in the hall's pit"
+            "note": "the level 3 quest's rats, at the goblins' spots in the long west tunnel that runs south from the hall and down its slope to the cavern's mouth"
           },
           {
             "name": "tunnel rat",
             "body": "0x12098DE0",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.8,
             "at": [
-              19447.1,
-              81.47,
-              12166.9
+              19269.0,
+              84.84,
+              12383.5
             ]
           },
           {
             "name": "tunnel rat",
             "body": "0x12098DE0",
-            "level": 1,
+            "level": 3,
             "role": "foe",
             "size": 0.8,
             "at": [
-              19459.6,
-              81.47,
-              12175.5
+              19300.9,
+              84.84,
+              12375.6
             ]
           },
           {
@@ -817,21 +884,21 @@
             "role": "foe",
             "size": 0.8,
             "at": [
-              19438.5,
-              81.47,
-              12187.3
+              19326.4,
+              84.84,
+              12439.3
             ]
           },
           {
             "name": "tunnel rat",
             "body": "0x12098DE0",
-            "level": 1,
+            "level": 3,
             "role": "foe",
             "size": 0.8,
             "at": [
-              19443.5,
-              81.47,
-              12192.6
+              19327.4,
+              84.84,
+              12462.5
             ]
           },
           {
@@ -841,14 +908,125 @@
             "role": "foe",
             "size": 0.8,
             "at": [
-              19444.6,
-              81.47,
-              12199.0
+              19362.5,
+              84.84,
+              12468.7
             ]
+          },
+          {
+            "name": "tunnel rat",
+            "body": "0x12098DE0",
+            "level": 3,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19351.3,
+              84.84,
+              12470.8
+            ]
+          },
+          {
+            "name": "tunnel rat",
+            "body": "0x12098DE0",
+            "level": 3,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19354.3,
+              63.62,
+              12545.0
+            ]
+          },
+          {
+            "name": "cave bat",
+            "body": "0x80F533D0",
+            "level": 3,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              19517.4,
+              84.84,
+              12068.3
+            ],
+            "note": "the level 4 quest's bats (the bat's body, smaller), at the enthralled goblins' spots in the far north-east chamber"
+          },
+          {
+            "name": "cave bat",
+            "body": "0x80F533D0",
+            "level": 3,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              19509.8,
+              84.84,
+              12059.5
+            ]
+          },
+          {
+            "name": "cave bat",
+            "body": "0x80F533D0",
+            "level": 4,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              19525.4,
+              84.84,
+              12072.3
+            ]
+          },
+          {
+            "name": "cave bat",
+            "body": "0x80F533D0",
+            "level": 3,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              19537.0,
+              84.84,
+              12071.7
+            ]
+          },
+          {
+            "name": "cave bat",
+            "body": "0x80F533D0",
+            "level": 4,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              19531.0,
+              84.84,
+              12047.0
+            ]
+          },
+          {
+            "name": "cave bat",
+            "body": "0x80F533D0",
+            "level": 4,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              19523.4,
+              84.84,
+              12066.1
+            ]
+          },
+          {
+            "name": "Mother Mossweb",
+            "body": "0x13ECB2D8",
+            "level": 5,
+            "role": "foe",
+            "size": 1.2,
+            "at": [
+              19407.1,
+              59.41,
+              12725.1
+            ],
+            "note": "the level 5 quest's foe (the black widow's body), alone in the old camp outside the cavern's mouth, far to the south, at a witch doctor's spot; hostile"
           }
         ],
         "peaceful": [
-          "tunnel rat"
+          "tunnel rat",
+          "cave bat"
         ],
         "lines": {
           "Gatekeeper Skabber": [
@@ -863,8 +1041,15 @@
           "Elder Snikkit": [
             "Mind Mudgrub and mind Skabber, and you will do well, little one.",
             "A goblin who keeps his ears open lives long enough to grow wise. Look at me."
+          ],
+          "Pitmaster Grukk": [
+            "Keep your knife where you can reach it, %p.",
+            "Rats, bats, spiders. The dark is never empty. Remember that in Neriak."
           ]
-        }
+        },
+        "hostile": [
+          "Mother Mossweb"
+        ]
       }
     },
     {

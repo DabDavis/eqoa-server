@@ -1,0 +1,176 @@
+{
+  "race": "goblin",
+  "home": "Moss Mouth Cavern",
+  "city": "Neriak",
+  "note": "Moss Mouth's people are tools/worlds/homelands.json's (Moss Mouth Cavern): Elder Snikkit in the middle of the great hall gives the first two, Pitmaster Grukk a few steps from him the three hunts; Stitcher Nibb, across the hall to the south-west, is the outfitter; Coachman Rukkit keeps the stable in the south chamber, down the passage from the hall (his coach runs to Freeport and to the other homes); the tunnel rats (the long west tunnel that runs south to the cavern's mouth), the cave bats (the far north-east chamber) and the spider Mother Mossweb (alone in the old camp outside the mouth, far to the south) are placed for these quests.",
+  "L1": {
+    "name": "A Tunnel-Runner's Ear Ring",
+    "giver": "Elder Snikkit",
+    "offer": [
+      "A new one, yes? Hmm. Two ears, all your fingers. You will do. But no goblin of Moss Mouth runs the tunnels without the ear ring, or the lookouts take it for a thief.",
+      "Stitcher Nibb makes them, from rat bone and a bit of wire. Nibb sits across the hall, a few steps to the south-west.",
+      "Will you fetch your ear ring and show it to me?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "Then stay where the lookouts can see you, little one.",
+    "started": "Go on, go on. Just across the hall. Nibb does not bite. Much.",
+    "merchant": "Stitcher Nibb",
+    "piece": {
+      "name": "tunnel-runner's ear ring",
+      "description": "A ring of rat bone and wire. Every goblin of Moss Mouth Cavern wears one, so the lookouts know it in the dark.",
+      "like": "Shell Earring",
+      "set": {
+        "HPMAX": 5
+      }
+    },
+    "fetch": {
+      "journal": "Ask Stitcher Nibb, across the hall south-west of Elder Snikkit, for a tunnel-runner's ear ring.",
+      "says": "Snikkit sent you? Hold still. There: rat bone, good wire, hardly rusted. No charge for a new one. The next one costs you."
+    },
+    "show": {
+      "journal": "Show the tunnel-runner's ear ring to Elder Snikkit.",
+      "says": "Good, good. Now the lookouts will know you for one of ours. Do not lose it, little one."
+    }
+  },
+  "L2": {
+    "name": "Bound to Moss Mouth",
+    "giver": "Elder Snikkit",
+    "offer": [
+      "A goblin who dies far from home is a goblin wasted. Have Spiritmaster Grizzik bind your spirit to the cavern, so that you wake here when something eats you.",
+      "Then put your mark in Coachman Rukkit's ledger. His coach runs to Freeport and to the other homes of the Homelands, for those their stables know.",
+      "Will you see them both and come back to me?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "Then try not to die, little one. It is harder than it sounds.",
+    "started": "Grizzik sits just south-east of here. Rukkit keeps his coach in the south chamber, down the passage.",
+    "spiritmaster": "Spiritmaster Grizzik",
+    "coachman": "Coachman Rukkit",
+    "bind": {
+      "journal": "Have Spiritmaster Grizzik, south-east of the elder, bind your spirit to Moss Mouth Cavern.",
+      "says": "There. The cavern has you now. Fall, and you wake here in the dark with the rest of us. Now go and make your mark for Coachman Rukkit."
+    },
+    "ledger": {
+      "journal": "Put your mark in Coachman Rukkit's ledger, in the south chamber down the passage from the hall.",
+      "says": "A new mark for the ledger! My coach runs to Freeport and to every other home of the Homelands, for travelers whose names their ledgers hold. Yours is in mine now."
+    },
+    "back": {
+      "journal": "Return to Elder Snikkit.",
+      "says": [
+        "Good. Now you cannot get lost, and you cannot stay dead. Both are useful.",
+        "Rukkit's coach will take you to Freeport if its ledger knows you, but the road to Neriak is earned. Pitmaster Grukk, beside me, has work for you."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Rats in the Long Tunnel",
+    "giver": "Pitmaster Grukk",
+    "offer": [
+      "You are the new one? Hah. Small. The tunnel rats are breeding in the long tunnel again, and they chew every sack we carry in from the mouth.",
+      "Go west out of the hall, then south down the long tunnel to the mouth. Kill rats until you have three tails, and I will teach you a thing worth knowing.",
+      "Will you clear some rats?"
+    ],
+    "accept": "I will clear them.",
+    "decline": "Not now.",
+    "declined": "Scared of rats? Neriak will eat you whole.",
+    "started": "Three tails. Not ears, not feet. Tails.",
+    "target": "tunnel rat",
+    "count": 3,
+    "drop": {
+      "name": "tunnel rat tail",
+      "description": "The tail of a tunnel rat from the long tunnel of Moss Mouth Cavern.",
+      "like": "Rat Tail Tip"
+    },
+    "hunt": {
+      "journal": "Take three tunnel rat tails from the tunnel rats in the long tunnel that runs south to the mouth."
+    },
+    "give": {
+      "journal": "Bring three tunnel rat tails to Pitmaster Grukk.",
+      "says": "Three tails, and you still have your own. Hah! Good. Now watch what I do, and learn this."
+    }
+  },
+  "L4": {
+    "name": "A Goblin's Arms",
+    "giver": "Pitmaster Grukk",
+    "offer": [
+      "The dark elves laugh at a goblin with empty hands. I will make you proper gear, but you fetch what I need.",
+      "Stitcher Nibb has a leather strip and a shaft put by for me. Then bring a wing from the cave bats that roost in the far north-east chamber.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then fight with your teeth. See how long they last.",
+    "started": "Leather and a shaft from Nibb, a wing from the bats. Quick, now.",
+    "materials": [
+      {
+        "merchant": "Stitcher Nibb",
+        "items": [
+          "leather strip",
+          "wooden shaft"
+        ],
+        "journal": "Ask Stitcher Nibb for the leather strip and the wooden shaft.",
+        "says": "For Grukk? Here, a leather strip and a shaft, straight enough. Tell him he still owes me for the last ones."
+      }
+    ],
+    "target": "cave bat",
+    "count": 1,
+    "drop": {
+      "name": "cave bat wing",
+      "description": "The leathery wing of a cave bat from the north-east chamber of Moss Mouth Cavern.",
+      "like": "bat pelt"
+    },
+    "hunt": {
+      "journal": "Take a cave bat wing from the cave bats in the far north-east chamber of the cavern."
+    },
+    "give": {
+      "journal": "Bring the leather strip, the wooden shaft and the cave bat wing to Pitmaster Grukk.",
+      "says": "All three. Give it here... wing for the grip, leather to bind. There. It is yours. Try not to cut yourself."
+    }
+  },
+  "L5": {
+    "name": "Mother Mossweb",
+    "giver": "Pitmaster Grukk",
+    "offer": [
+      "One more thing before Neriak gets you. A great spider nests in the old camp outside the mouth, far to the south. We call her Mother Mossweb. She took two lookouts last moon.",
+      "She bites first and she bites deep, so do not stand and stare. Bring me her fang, and I will teach you the last thing I have for a new one.",
+      "Will you kill Mother Mossweb?"
+    ],
+    "accept": "I will kill her.",
+    "decline": "Not yet.",
+    "declined": "She will only get fatter while you wait.",
+    "started": "South, down the long tunnel and out past the mouth, among the old huts. Keep moving when she comes.",
+    "target": "Mother Mossweb",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "Mossweb's fang",
+      "description": "The long black fang of the spider Mother Mossweb.",
+      "like": "Tree Viper Fang"
+    },
+    "hunt": {
+      "journal": "Take Mossweb's fang from the spider Mother Mossweb, in the old camp outside the mouth, far to the south."
+    },
+    "give": {
+      "journal": "Bring Mossweb's fang to Pitmaster Grukk.",
+      "says": [
+        "Her fang! Hah! The lookouts will sleep tonight. You are no new one any more.",
+        "Learn this, and see Gatekeeper Skabber when you are ready for Neriak."
+      ]
+    }
+  },
+  "flight": {
+    "name": "The Road to Neriak",
+    "giver": "Gatekeeper Skabber",
+    "offer": [
+      "The dark elves of Neriak pay well for goblins who are quick and quiet, and Grukk says you are both.",
+      "You have earned the road, little one. I will set you down among your own guild in Neriak, and your spirit will rest there.",
+      "Shall I send you to Neriak?"
+    ],
+    "accept": "Send me to Neriak.",
+    "decline": "Not yet.",
+    "declined": "Neriak will wait. Dark elves are good at waiting.",
+    "started": "Keep your blade close and your purse closer!",
+    "journal": "Tell Gatekeeper Skabber when you are ready to go to Neriak."
+  }
+}

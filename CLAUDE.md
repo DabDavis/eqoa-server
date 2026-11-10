@@ -1104,7 +1104,10 @@ it by later runs: fix the table, never the copy), lists the quests that take the
 records so they can be read) and reports what it leaves: every creature's tables (`*`) and the loot categories'
 shared pools, which a tuned boss still rolls at its profile's rates. Each row a gm_audit line and a row of
 `ascended_loot_log`; `--undo [--run R]` puts back every row still as written and keeps a record a character holds; a
-second run writes nothing. Data only: no restart. `TestATunedBossDropsAscendedGearAndItsSpells` runs it end to end;
+second run writes nothing. Data only: no restart, but the first time the binary with this code must be in before
+the tool runs (an older one would give the heirlooms the Ascended records' figures, `WearablePatterns`, and refuse an
+Ascended hand-in). `TestATunedBossDropsAscendedGearAndItsSpells` runs it end to end, `TestRealAscendedLoot`
+(`EQOA_REAL_DB`) on a copy of a shard's database;
 `TestAscendBossLootToolKeepsTheRule` holds its constants and SQL to the server's.
 
 ### Heirloom test gear and the Armor Dyers (`handlers/heirloom.go`, `handlers/dyer.go`, `tools/seed_heirlooms.py`)

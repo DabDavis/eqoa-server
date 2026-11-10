@@ -359,9 +359,9 @@ class Race:
             "unresolved": [],
             "notes": f"Ours: the gatekeeper's port to {self.spec.get('city', 'the mainland')}, the {self.race}'s wire race's city, each "
                      "class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound "
-                     "there, one way. After the five starter quests. Repeatable, so one back in the homeland is sent again; no "
-                     f"reward, so none is had twice. Written by tools/quests/gen_homelands.py from "
-                     f"tools/quests/homelands/{self.race}.json.",
+                     "there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). "
+                     "Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by "
+                     f"tools/quests/gen_homelands.py from tools/quests/homelands/{self.race}.json.",
         }
 
     def quests(self):

@@ -14,9 +14,11 @@ import (
 // should let players set their level. They can pick in increments of 5. Level
 // 5 to level 60. They can change their level at will. He should also have an
 // option for CM's to set them between 0 and 1000 CM's, but it will just add
-// cm's on their existing total up to 1000. It wont remove CM's."). A talk asks
-// which range (levels 5 to 30 or 35 to 60, mastery points 100 to 500 or 600 to
-// 1000 in all: a box holds six answers, maxDialogOptions), then the one. A
+// cm's on their existing total up to 1000. It wont remove CM's."; petition 1461,
+// 2026-11-10: "Add another CM option on Dabrish to take CM's up to 1250, working
+// identical to all the other options."). A talk asks which range (levels 5 to 30
+// or 35 to 60, mastery points 100 to 500, 600 to 1000 or 1100 to 1250 in all: a
+// box holds six answers, maxDialogOptions), then the one. A
 // level is set as #setlevel sets it, up or down, as often as asked
 // (ChatHandler.applyLevel: the level alone); a mastery total is made up to
 // with unspent points, spent and unspent counted together, and never taken
@@ -33,7 +35,7 @@ const dabrishBoxMark = 0x5C000000
 
 // His questions and answers, and what he says.
 const (
-	dabrishQuestion = "Dabrish: 'I set levels from 5 to 60, up or down as often as you like, and add mastery points up to 1000 in all.'" // 127 at most (questAskChars)
+	dabrishQuestion = "Dabrish: 'I set levels from 5 to 60, up or down as often as you like, and add mastery points up to 1250 in all.'" // 127 at most (questAskChars)
 	dabrishLevelAsk = "Dabrish: 'Which level?'"
 	dabrishCMAsk    = "Dabrish: 'How many mastery points in all, spent and unspent? I only ever add.'"
 	dabrishLevelSet = "There: you are level %d."
@@ -52,6 +54,7 @@ var dabrishRanges = []struct {
 	{"A level from 35 to 60", false, 35, 5, 6},
 	{"Mastery points: 100 to 500 in all", true, 100, 100, 5},
 	{"Mastery points: 600 to 1000 in all", true, 600, 100, 5},
+	{"Mastery points: 1100 to 1250 in all", true, 1100, 50, 4},
 }
 
 // dabrishAsks is the boxes he has asked, by the character's serverid.

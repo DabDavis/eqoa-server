@@ -29,7 +29,7 @@ func TestDabrishSetsLevelsAndAddsMasteryPoints(t *testing.T) {
 		r.talk(r.anna, dab)
 		got := r.msgs(r.anna)
 		if len(got) != 1 || !strings.HasPrefix(got[0], "ask#") ||
-			!strings.HasSuffix(got[0], "|A level from 5 to 30|A level from 35 to 60|Mastery points: 100 to 500 in all|Mastery points: 600 to 1000 in all") {
+			!strings.HasSuffix(got[0], "|A level from 5 to 30|A level from 35 to 60|Mastery points: 100 to 500 in all|Mastery points: 600 to 1000 in all|Mastery points: 1100 to 1250 in all") {
 			t.Fatalf("his talk: %q", got)
 		}
 		return boxID(got)
@@ -74,6 +74,18 @@ func TestDabrishSetsLevelsAndAddsMasteryPoints(t *testing.T) {
 	}
 	if m, err := store.LoadMastery(1); err != nil || m.Points+m.Spent != 1000 {
 		t.Errorf("the row's mastery: %+v %v", m, err)
+	}
+	// petition 1461: up to 1250, as the others (the last of 1100 to 1250's four)
+	got = pick(4, 3, "|1100 in all|1150 in all|1200 in all|1250 in all")
+	if total() != 1250 || !hasMsg(got, "box:Dabrish: There: 250 mastery points more, 1250 in all, 1250 of them unspent.") {
+		t.Fatalf("1250 in all with 1000: %d, sent %q", total(), got)
+	}
+	got = pick(4, 0, "|1100 in all|1150 in all|1200 in all|1250 in all") // the control: never taken away
+	if total() != 1250 || !hasMsg(got, "box:Dabrish: You hold 1250 mastery points already*") {
+		t.Fatalf("1100 in all with 1250 (never taken away): %d, sent %q", total(), got)
+	}
+	if m, err := store.LoadMastery(1); err != nil || m.Points+m.Spent != 1250 {
+		t.Errorf("the row's mastery at 1250: %+v %v", m, err)
 	}
 
 	// a close keeps it; an old box does nothing

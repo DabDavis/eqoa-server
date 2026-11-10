@@ -31,14 +31,25 @@ type campfixRowNPC struct {
 	RawNull          []string
 }
 
-// campfixRows is a world's NPC rows a report may name, by id and by name
-// (campfixKey).
+// campfixRows is a world's NPC rows a report reads: those round its marks
+// (list: one query, every row within campfixRowsReach of them across), and
+// every row of a name it asks about (named: a query a name, kept in names,
+// which a reviewer shares between its reports of the world). err is the
+// first read that failed in scan, which cannot return one.
 type campfixRows struct {
-	world uint8
-	list  []campfixRowNPC
-	byID  map[entity.EntityID]int
-	byKey map[string][]int
+	db        *database.SQLiteDB
+	world     uint8
+	spawnOnly map[string]bool
+	list      []campfixRowNPC
+	byID      map[entity.EntityID]int
+	names     map[string][]campfixRowNPC
+	err       error
 }
+
+// campfixRowsReach is how far round a report's marks its rows are read,
+// across: the rules' farthest reach (a camp's campfixSpan, a stacked spawn's
+// campfixStacked round a move's row) and some.
+const campfixRowsReach float32 = 400
 
 const campfixRowCols = `id, COALESCE(npc_name, ''), COALESCE(npc_level, 1), COALESCE(world, 0), COALESCE(x_coord, 0),
 	COALESCE(y_coord, 0), COALESCE(z_coord, 0), COALESCE(facing, 0), COALESCE(npc_type, 0),
@@ -69,53 +80,69 @@ func scanCampfixRow(sc interface{ Scan(...any) error }) (campfixRowNPC, error) {
 	return r, nil
 }
 
-// loadCampfixRows is world's rows, none of a name spawnOnly holds (by
-// database.NPCClassKey, as database.NPCSpawnOnly keys it).
-func loadCampfixRows(db *database.SQLiteDB, world uint8, spawnOnly map[string]bool) (*campfixRows, error) {
-	rs, err := db.Query(`SELECT `+campfixRowCols+` FROM npcs WHERE world = ? ORDER BY id`, int(world))
+// campfixQueryRows is the rows a query of campfixRowCols gives, none of a name
+// spawnOnly holds (by database.NPCClassKey, as database.NPCSpawnOnly keys it).
+func campfixQueryRows(db *database.SQLiteDB, spawnOnly map[string]bool, query string, args ...any) ([]campfixRowNPC, error) {
+	var out []campfixRowNPC
+	err := campfixEach(db, `SELECT `+campfixRowCols+` FROM npcs `+query, func(sc func(...any) error) error {
+		r, err := scanCampfixRow(scanFunc(sc))
+		if err != nil {
+			return err
+		}
+		if !spawnOnly[database.NPCClassKey(r.Name)] {
+			out = append(out, r)
+		}
+		return nil
+	}, args...)
 	if err != nil {
 		return nil, fmt.Errorf("npcs: %w", err)
 	}
-	defer rs.Close()
-	out := &campfixRows{world: world, byID: map[entity.EntityID]int{}, byKey: map[string][]int{}}
-	for rs.Next() {
-		r, err := scanCampfixRow(rs)
-		if err != nil {
-			return nil, fmt.Errorf("npcs: %w", err)
-		}
-		if spawnOnly[database.NPCClassKey(r.Name)] {
-			continue
-		}
-		out.byID[r.ID] = len(out.list)
-		k := campfixKey(r.Name)
-		out.byKey[k] = append(out.byKey[k], len(out.list))
-		out.list = append(out.list, r)
+	return out, nil
+}
+
+// scanFunc is a Scan function as scanCampfixRow takes one.
+type scanFunc func(...any) error
+
+func (f scanFunc) Scan(dest ...any) error { return f(dest...) }
+
+// loadCampfixRows is world's rows within reach of pts across (none when pts
+// is empty), with names the rows of a name already read (nil: none).
+func loadCampfixRows(db *database.SQLiteDB, world uint8, spawnOnly map[string]bool, pts [][3]float32, reach float32,
+	names map[string][]campfixRowNPC) (*campfixRows, error) {
+	if names == nil {
+		names = map[string][]campfixRowNPC{}
 	}
-	if err := rs.Err(); err != nil {
-		return nil, fmt.Errorf("npcs: %w", err)
+	out := &campfixRows{db: db, world: world, spawnOnly: spawnOnly, byID: map[entity.EntityID]int{}, names: names}
+	if len(pts) == 0 {
+		return out, nil
 	}
+	minX, maxX, minZ, maxZ := pts[0][0], pts[0][0], pts[0][2], pts[0][2]
+	for _, p := range pts {
+		minX, maxX, minZ, maxZ = min(minX, p[0]), max(maxX, p[0]), min(minZ, p[2]), max(maxZ, p[2])
+	}
+	list, err := campfixQueryRows(db, spawnOnly, `WHERE world = ? AND x_coord BETWEEN ? AND ? AND z_coord BETWEEN ? AND ? ORDER BY id`,
+		int(world), float64(minX-reach), float64(maxX+reach), float64(minZ-reach), float64(maxZ+reach))
+	if err != nil {
+		return nil, err
+	}
+	for i, r := range list {
+		out.byID[r.ID] = i
+	}
+	out.list = list
 	return out, nil
 }
 
 // campfixRowByID is the NPC row id whatever its world and name, false when
 // there is none.
 func campfixRowByID(db *database.SQLiteDB, id int) (campfixRowNPC, bool, error) {
-	rs, err := db.Query(`SELECT `+campfixRowCols+` FROM npcs WHERE id = ?`, id)
-	if err != nil {
-		return campfixRowNPC{}, false, fmt.Errorf("npcs: %w", err)
+	l, err := campfixQueryRows(db, nil, `WHERE id = ?`, id)
+	if err != nil || len(l) == 0 {
+		return campfixRowNPC{}, false, err
 	}
-	defer rs.Close()
-	if !rs.Next() {
-		return campfixRowNPC{}, false, rs.Err()
-	}
-	r, err := scanCampfixRow(rs)
-	if err != nil {
-		return campfixRowNPC{}, false, fmt.Errorf("npcs: %w", err)
-	}
-	return r, true, nil
+	return l[0], true, nil
 }
 
-// row is the row of id among them, false when it is not one.
+// row is the row of id among those round the marks, false when it is not one.
 func (rs *campfixRows) row(id entity.EntityID) (campfixRowNPC, bool) {
 	i, ok := rs.byID[id]
 	if !ok {
@@ -124,29 +151,44 @@ func (rs *campfixRows) row(id entity.EntityID) (campfixRowNPC, bool) {
 	return rs.list[i], true
 }
 
-// named is the rows of a name (compared as campfixKey compares two).
-func (rs *campfixRows) named(name string) []campfixRowNPC {
-	idx := rs.byKey[campfixKey(name)]
-	out := make([]campfixRowNPC, len(idx))
-	for i, j := range idx {
-		out[i] = rs.list[j]
+// named is every row of a name in the world (compared as campfixKey compares
+// two), read once.
+func (rs *campfixRows) named(name string) ([]campfixRowNPC, error) {
+	k := campfixKey(name)
+	if l, ok := rs.names[k]; ok {
+		return l, nil
 	}
-	return out
+	got, err := campfixQueryRows(rs.db, rs.spawnOnly, `WHERE world = ? AND lower(trim(npc_name)) = ? ORDER BY id`, int(rs.world), k)
+	if err != nil {
+		return nil, err
+	}
+	l := []campfixRowNPC{}
+	for _, r := range got {
+		if campfixKey(r.Name) == k {
+			l = append(l, r)
+		}
+	}
+	rs.names[k] = l
+	return l, nil
 }
 
 // nearestNamed is the row of name whose spawn is nearest (x, y, z), the lower
 // id of two as near (its Dist that distance), false when the world has none.
-func (rs *campfixRows) nearestNamed(name string, x, y, z float32) (campfixRowNPC, bool) {
+func (rs *campfixRows) nearestNamed(name string, x, y, z float32) (campfixRowNPC, bool, error) {
+	rows, err := rs.named(name)
+	if err != nil {
+		return campfixRowNPC{}, false, err
+	}
 	var best campfixRowNPC
 	found := false
-	for _, r := range rs.named(name) {
+	for _, r := range rows {
 		d := campfixDist(r.X, r.Y, r.Z, x, y, z)
 		if !found || d < best.Dist || d == best.Dist && r.ID < best.ID {
 			best, found = r, true
 			best.Dist = d
 		}
 	}
-	return best, found
+	return best, found, nil
 }
 
 // sortCampfixNPCs puts the nearest first, the lower id of two as near
@@ -160,28 +202,35 @@ func sortCampfixNPCs(l []entity.CampfixNPC) {
 	})
 }
 
-// scan is World.CampfixScan over the rows: those whose spawn lies within
-// reach of (x, y, z), nearest first, and what the world holds of each of
-// names (compared without case, trimmed).
+// scan is World.CampfixScan over the rows: those round the marks whose spawn
+// lies within reach of (x, y, z), nearest first, and what the world holds of
+// each of names (compared without case, trimmed); a failed read is rs.err.
 func (rs *campfixRows) scan(x, y, z, reach float32, names []string) ([]entity.CampfixNPC, []entity.CampfixName) {
-	keys := make([]string, len(names))
-	for i, n := range names {
-		keys[i] = campfixKey(n)
-	}
-	of := make([]entity.CampfixName, len(names))
 	var near []entity.CampfixNPC
 	for _, r := range rs.list {
-		d := campfixDist(r.X, r.Y, r.Z, x, y, z)
-		c := r.CampfixNPC
-		c.Dist = d
-		if reach > 0 && d <= reach {
+		if d := campfixDist(r.X, r.Y, r.Z, x, y, z); reach > 0 && d <= reach {
+			c := r.CampfixNPC
+			c.Dist = d
 			near = append(near, c)
 		}
-		rk := campfixKey(r.Name)
-		for i, k := range keys {
-			if k == "" || rk != k {
-				continue
+	}
+	sortCampfixNPCs(near)
+	of := make([]entity.CampfixName, len(names))
+	for i, n := range names {
+		if campfixKey(n) == "" {
+			continue
+		}
+		rows, err := rs.named(n)
+		if err != nil {
+			if rs.err == nil {
+				rs.err = err
 			}
+			continue
+		}
+		for _, r := range rows {
+			d := campfixDist(r.X, r.Y, r.Z, x, y, z)
+			c := r.CampfixNPC
+			c.Dist = d
 			o := &of[i]
 			o.Count++
 			if o.Count == 1 || d < o.Nearest.Dist || d == o.Nearest.Dist && r.ID < o.Nearest.ID {
@@ -189,7 +238,6 @@ func (rs *campfixRows) scan(x, y, z, reach float32, names []string) ([]entity.Ca
 			}
 		}
 	}
-	sortCampfixNPCs(near)
 	return near, of
 }
 

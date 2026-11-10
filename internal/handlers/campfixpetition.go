@@ -173,15 +173,18 @@ func PlanCampfixPetition(db *database.SQLiteDB, req CampfixPetition, now time.Ti
 	if err != nil {
 		return plan, fmt.Errorf("npcspawnonly: %w", err)
 	}
-	rows, err := loadCampfixRows(db, world, spawnOnly)
+	x, y, z, facing := float32(c.X), float32(c.Y), float32(c.Z), float32(c.Facing)
+	rows, err := loadCampfixRows(db, world, spawnOnly, [][3]float32{{x, y, z}}, campfixRowsReach, nil)
 	if err != nil {
 		return plan, err
 	}
-	x, y, z, facing := float32(c.X), float32(c.Y), float32(c.Z), float32(c.Facing)
 	name, _, said, why := campfixMatch(typed, func(names []string) ([]entity.CampfixNPC, []entity.CampfixName) {
 		return rows.scan(x, y, z, campfixSpan, names)
 	})
 	plan.Said = said
+	if rows.err != nil {
+		return plan, rows.err
+	}
 	if why != "" {
 		return plan, errors.New(why)
 	}
@@ -202,19 +205,17 @@ func PlanCampfixPetition(db *database.SQLiteDB, req CampfixPetition, now time.Ti
 	}
 	// the spawn a move, a turn or a removal names: the target when it is one of
 	// the name within reach, else the nearest of the name within stand
-	subject := func(reach, stand float32) (campfixRowNPC, bool) {
+	subject := func(reach, stand float32) (campfixRowNPC, bool, error) {
 		if t := v.Target; t != nil && t.NPCID != 0 {
 			if r, ok := rows.row(entity.EntityID(t.NPCID)); ok && campfixKey(r.Name) == key {
 				if d := campfixDist(r.X, r.Y, r.Z, x, y, z); d <= reach {
 					r.Dist = d
-					return r, true
+					return r, true, nil
 				}
 			}
 		}
-		if r, ok := rows.nearestNamed(name, x, y, z); ok && r.Dist <= stand {
-			return r, true
-		}
-		return campfixRowNPC{}, false
+		r, ok, err := rows.nearestNamed(name, x, y, z)
+		return r, ok && r.Dist <= stand, err
 	}
 	switch kind {
 	case campfixAdd:
@@ -222,14 +223,21 @@ func PlanCampfixPetition(db *database.SQLiteDB, req CampfixPetition, now time.Ti
 			dx, dz := campfixRing(i)
 			mx, mz := x+dx, z+dz
 			m := mark(campfixAdd, mx, y, mz)
-			if t, ok := rows.nearestNamed(name, mx, y, mz); ok {
+			t, ok, err := rows.nearestNamed(name, mx, y, mz)
+			if err != nil {
+				return plan, err
+			}
+			if ok {
 				m.Template = int(t.ID)
 				from(&m, t, mx, y, mz)
 			}
 			plan.Marks = append(plan.Marks, m)
 		}
 	case campfixMove, campfixTurn:
-		s, ok := subject(campfixSpan, campfixSpan)
+		s, ok, err := subject(campfixSpan, campfixSpan)
+		if err != nil {
+			return plan, err
+		}
 		if !ok {
 			return plan, fmt.Errorf("no %s spawns within %.0f of where %s stood: there is none to %s (an add makes one)",
 				name, campfixSpan, who, kind)
@@ -243,7 +251,10 @@ func PlanCampfixPetition(db *database.SQLiteDB, req CampfixPetition, now time.Ti
 		from(&m, s, x, y, z)
 		plan.Marks = append(plan.Marks, m)
 	case campfixRemove:
-		s, ok := subject(campfixRemoveTarget, campfixRemoveStand)
+		s, ok, err := subject(campfixRemoveTarget, campfixRemoveStand)
+		if err != nil {
+			return plan, err
+		}
 		if !ok {
 			return plan, fmt.Errorf("no %s spawns within %.0f of where %s stood, and its target was not one within %.0f: "+
 				"there is none to remove", name, campfixRemoveStand, who, campfixRemoveTarget)
@@ -284,7 +295,11 @@ func PlanCampfixPetition(db *database.SQLiteDB, req CampfixPetition, now time.Ti
 			break
 		}
 	}
-	inWorld := len(rows.named(name))
+	named, err := rows.named(name)
+	if err != nil {
+		return plan, err
+	}
+	inWorld := len(named)
 	median, haveMedian := campfixMedian(plan.Near)
 	flag := func(i int, kind, text string) {
 		plan.Flags = append(plan.Flags, CampfixFlagRecord{Mark: i + 1, Flag: kind, Text: text})

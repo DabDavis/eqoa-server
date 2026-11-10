@@ -143,20 +143,21 @@ type CampfixPlace struct {
 	Null   []string `json:"null,omitempty"`
 }
 
-// CampfixReviewer reviews reports, reading each world's NPC rows and the
-// other tables the rules read once for all of them.
+// CampfixReviewer reviews reports, reading the other tables the rules read
+// once for all of them, and each world's rows of a name once (a report's own
+// rows round its marks are its own read).
 type CampfixReviewer struct {
 	db    *database.SQLiteDB
 	gw    *entity.World
 	facts *campfixFacts
-	rows  map[uint8]*campfixRows
+	names map[uint8]map[string][]campfixRowNPC
 	drops map[string]string
 }
 
 // NewCampfixReviewer reviews against db and, when gw is not nil, the world
 // running on it.
 func NewCampfixReviewer(db *database.SQLiteDB, gw *entity.World) *CampfixReviewer {
-	return &CampfixReviewer{db: db, gw: gw, rows: map[uint8]*campfixRows{}, drops: map[string]string{}}
+	return &CampfixReviewer{db: db, gw: gw, names: map[uint8]map[string][]campfixRowNPC{}, drops: map[string]string{}}
 }
 
 func (rv *CampfixReviewer) loadFacts() (*campfixFacts, error) {
@@ -170,20 +171,17 @@ func (rv *CampfixReviewer) loadFacts() (*campfixFacts, error) {
 	return rv.facts, nil
 }
 
-func (rv *CampfixReviewer) rowsOf(world uint8) (*campfixRows, error) {
-	if rs := rv.rows[world]; rs != nil {
-		return rs, nil
-	}
+// rowsOf is world's rows round pts, the world's rows of a name read before
+// kept.
+func (rv *CampfixReviewer) rowsOf(world uint8, pts [][3]float32) (*campfixRows, error) {
 	f, err := rv.loadFacts()
 	if err != nil {
 		return nil, err
 	}
-	rs, err := loadCampfixRows(rv.db, world, f.spawnOnly)
-	if err != nil {
-		return nil, err
+	if rv.names[world] == nil {
+		rv.names[world] = map[string][]campfixRowNPC{}
 	}
-	rv.rows[world] = rs
-	return rs, nil
+	return loadCampfixRows(rv.db, world, f.spawnOnly, pts, campfixRowsReach, rv.names[world])
 }
 
 var campfixFromPetition = regexp.MustCompile(`^From petition (\d+)\b`)
@@ -256,9 +254,6 @@ func (rv *CampfixReviewer) Review(r database.CampfixReport) (CampfixReview, erro
 	if c.facts, err = rv.loadFacts(); err != nil {
 		return out, err
 	}
-	if c.rows, err = rv.rowsOf(c.world); err != nil {
-		return out, err
-	}
 	if c.created, err = time.Parse(time.RFC3339, r.Created); err != nil {
 		c.created = time.Time{}
 		out.Notes = append(out.Notes, "When it was sent is not readable: changes to its rows since are looked for by their place and facing alone, not in the audit log.")
@@ -279,6 +274,11 @@ func (rv *CampfixReviewer) Review(r database.CampfixReport) (CampfixReview, erro
 	pts := make([][3]float32, len(marks))
 	for i, m := range marks {
 		pts[i] = [3]float32{float32(m.X), float32(m.Y), float32(m.Z)}
+	}
+	if c.rows, err = rv.rowsOf(c.world, pts); err != nil {
+		return out, err
+	}
+	for _, m := range marks {
 		k := campfixKey(m.Name)
 		switch m.Kind {
 		case campfixAdd:
@@ -300,7 +300,7 @@ func (rv *CampfixReviewer) Review(r database.CampfixReport) (CampfixReview, erro
 	}
 	c.median, c.haveMedian = campfixMedian(levels)
 	c.combos = campfixNewcomers(c.facts.spots)
-	c.markers = CampMarkers(rv.gw, int(c.world))
+	c.markers = CampMarkers(nil, int(c.world)) // the camps' written places: looking up each anchor in the world takes a second
 	for i := range marks {
 		mr, err := c.mark(i, flagsOf(i+1))
 		if err != nil {
@@ -372,7 +372,10 @@ func campfixProperNoun(name string) bool {
 func (c *campfixReviewing) rare(name string, subject campfixRowNPC) ([]string, error) {
 	var why []string
 	key := campfixKey(name)
-	rows := c.rows.named(name)
+	rows, err := c.rows.named(name)
+	if err != nil {
+		return nil, err
+	}
 	if n := len(rows); n <= campfixFew {
 		why = append(why, fmt.Sprintf("%d %s in %s", n, plural(n, "spawn", "spawns"), worldName(c.world)))
 	}
@@ -667,7 +670,11 @@ func (c *campfixReviewing) mark(i int, fl []CampfixFlagRecord) (CampfixMarkRevie
 	if len(c.abuse) > 0 {
 		red = append(red, fmt.Sprintf("the account had an earlier report declined as abuse (%s)", campfixIDs(c.abuse)))
 	}
-	worldCount := len(c.rows.named(m.Name))
+	named, err := c.rows.named(m.Name)
+	if err != nil {
+		return mr, err
+	}
+	worldCount := len(named)
 	common := worldCount > campfixFew && !campfixProperNoun(m.Name)
 	mx, my, mz := float32(m.X), float32(m.Y), float32(m.Z)
 	fighting := func(id entity.EntityID) string {
@@ -796,7 +803,10 @@ func (c *campfixReviewing) mark(i int, fl []CampfixFlagRecord) (CampfixMarkRevie
 			}
 		}
 	case campfixAdd:
-		t, ok := c.rows.nearestNamed(m.Name, mx, my, mz)
+		t, ok, err := c.rows.nearestNamed(m.Name, mx, my, mz)
+		if err != nil {
+			return mr, err
+		}
 		if !ok {
 			mr.Stale = fmt.Sprintf("no row of %s is left in %s to copy", m.Name, worldName(c.world))
 			break

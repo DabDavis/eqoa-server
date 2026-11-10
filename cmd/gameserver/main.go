@@ -308,6 +308,12 @@ func main() {
 		log.Printf("WARNING: %v; every NPC stands in the world", err)
 	}
 	log.Printf("Creatures: %s", gameWorld.SpawnOnlySummary())
+	// The NPCs' body tints, for the clients that draw them (entity/npctint.go,
+	// table npctint)
+	if _, _, err := gameWorld.LoadNPCTints(db); err != nil {
+		log.Printf("WARNING: %v; no NPC is tinted", err)
+	}
+	log.Printf("Creatures: %s", gameWorld.NPCTintSummary())
 	// The necromancer's life taps its pets cast (entity/pettap.go)
 	if _, err := gameWorld.LoadPetTaps(db); err != nil {
 		log.Printf("WARNING: %v; no pet taps", err)

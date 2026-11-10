@@ -174,6 +174,9 @@ type World struct {
 	// The NPC names that stand out of the world, there only for the quests'
 	// and triggers' spawns that copy them, table npcspawnonly (spawnonly.go)
 	spawnOnly map[string]bool
+	// The NPCs' body tints by name, table npctint, as the clients that draw
+	// them are told (npctint.go)
+	npcTints npcTintState
 	// The masteries a character may buy, table cmcatalog (cmbuy.go)
 	cms *cmCatalog
 	// NPCs coming to the help of their own (socialaggro.go)

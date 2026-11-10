@@ -899,6 +899,9 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// and what made each figure (numbertags.go): a client that colours its
 	// numbers by it asks, a PS2 ignores it
 	SendNumberTagsOffer(sess)
+	// and the NPCs' body tints (npctint.go): a client that draws them asks,
+	// a PS2 ignores it
+	SendNPCTintsOffer(sess)
 
 	// Offer quest marks for the map (questmarks.go): a client that draws them
 	// asks, a PS2 ignores it

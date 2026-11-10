@@ -128,6 +128,9 @@ func (n *NPC) corpseLies(now time.Time, decay time.Duration) bool {
 // decayOf is how long the NPC's corpse lies: its own CorpseDecay (a pet's,
 // pet.go), else the world's.
 func (n *NPC) decayOf(world time.Duration) time.Duration {
+	if n.withMaster {
+		return petDismissedLies // died with its master: its death played, then gone (masterdeath.go)
+	}
 	if n.CorpseDecay > 0 {
 		return n.CorpseDecay
 	}
@@ -232,8 +235,9 @@ func (w *World) respawnNPCLocked(npc *NPC) {
 	npc.CorpseGone = time.Time{}
 	npc.Threats = nil
 	npc.CurrentEnemy = 0
-	npc.guardHit = false // a new life (guards.go)
-	npc.swimming = false // on its spawn (water.go)
+	npc.guardHit = false   // a new life (guards.go)
+	npc.withMaster = false // and its own (masterdeath.go)
+	npc.swimming = false   // on its spawn (water.go)
 	npc.stopMoving()
 	npc.roam = roamState{}
 	npc.path = pathState{}

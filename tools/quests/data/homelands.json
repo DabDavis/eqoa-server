@@ -704,6 +704,123 @@
       "notes": "Ours: the gatekeeper's port to Neriak, the gnoll's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a gnoll back in Blackburrow is sent again; no reward, so none is had twice."
     },
     {
+      "key": "homelands/orc/welcome",
+      "name": "Blood of the Camp",
+      "giver": "Elder Gorruk",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Another whelp for the camp. Good. Strong arms are always welcome. First, go and see Bulgash at the cook fire. An orc who does not eat does not fight, and an orc who does not fight is no orc.",
+      "accept": "I will see Bulgash.",
+      "decline": "Not now.",
+      "declined": "Then come back when your belly is louder than your pride.",
+      "started": "Bulgash is at the cook fire, west of the totems.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Bulgash",
+          "journal": "See Grocer Bulgash at the cook fire.",
+          "says": "Gorruk sent you? Eat this, whelp. It is tough, but so are you.",
+          "rewards": {
+            "items": [
+              "spiced jerky"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Gorruk",
+          "journal": "Return to Elder Gorruk.",
+          "says": "Good. Now you know where the meat is. The rest you will learn by fighting.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the orcs' first, at their home zone, Thedruk of the disc."
+    },
+    {
+      "key": "homelands/orc/rats",
+      "name": "Rats in the Camp",
+      "giver": "Grocer Bulgash",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/orc/welcome"
+      ],
+      "offer": "Camp rats! They get into everything. Go down the slope to the west, past the trees, and kill five of them. Bring me nothing back. I have enough rats.",
+      "accept": "I will kill them.",
+      "decline": "Not now.",
+      "declined": "Then I will eat the rats myself.",
+      "started": "Five rats. Do not let them bite your ankles.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "camp rat",
+          "count": 5,
+          "journal": "Kill five camp rats on the slope west of the camp."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Bulgash",
+          "journal": "Tell Grocer Bulgash the rats are dead.",
+          "says": "Five rats! Ha! You will make a fine warrior. Here, take this coin.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the orcs' second starter quest; the camp rats are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/orc/flight",
+      "name": "The Road to Halas",
+      "giver": "Gatekeeper Thrakka",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/orc/welcome",
+        "homelands/orc/rats"
+      ],
+      "repeatable": true,
+      "offer": "The barbarians of Halas fight giants and ice, and they respect an orc who fights beside them. There is peace between us, rough as it is. I can send you to them. Are you ready?",
+      "accept": "Send me to Halas.",
+      "decline": "Not yet.",
+      "declined": "Halas is cold. It will still be cold tomorrow.",
+      "started": "Fight well, and do not let the cold bite!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Thrakka",
+          "journal": "Tell Gatekeeper Thrakka when you are ready to go to Halas.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Halas, the orc's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a orc back in Thedruk is sent again; no reward, so none is had twice."
+    },
+    {
       "key": "homelands/aviak/welcome",
       "name": "A Fledgling's Welcome",
       "giver": "Elder Kraawk",

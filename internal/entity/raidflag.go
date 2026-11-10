@@ -130,7 +130,7 @@ func (w *World) raidFlagLocked(sess *session.Session, leader *Player, now time.T
 	waiting := 0
 	for _, id := range w.SpatialIndex.QueryRadius(leader.X, leader.Z, RaidFlagRadius) {
 		t := w.Players[id]
-		if t == nil || t == leader || t.GroupID != 0 || t.World != leader.World || t.GMHidden ||
+		if t == nil || t == leader || (t.GroupID != 0 && !w.mercOnlyGroupLocked(t)) || t.World != leader.World || t.GMHidden ||
 			dist3(t.X, t.Y, t.Z, leader.X, leader.Y, leader.Z) > RaidFlagRadius {
 			continue
 		}
@@ -145,6 +145,7 @@ func (w *World) raidFlagLocked(sess *session.Session, leader *Player, now time.T
 		if wait || refused {
 			continue
 		}
+		w.mercGivesWayLocked(t) // a group of it and its merc alone (mercgroup.go)
 		w.raidAskLocked(t, leader, ts)
 		asked = append(asked, t.Name)
 	}

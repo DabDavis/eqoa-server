@@ -397,7 +397,7 @@ func (m *Mercs) hire(sess *session.Session, p *entity.Player, class, race, sex i
 			log.Printf("Merc: %s's hire of %q not kept: %v", p.Name, name, err)
 		}
 	}
-	log.Printf("Merc: %s hires %q, a %s %s (sex %d)", p.Name, name, entity.RaceName(race), entity.ClassName(class), row.Sex)
+	log.Printf("Merc: %s hires %q (%s %s, sex %d)", p.Name, name, entity.RaceName(race), entity.ClassName(class), row.Sex)
 	mercSay(sess, fmt.Sprintf(mercHiredLine, name, entity.RaceName(race), entity.ClassName(class)))
 }
 

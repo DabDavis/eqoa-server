@@ -185,8 +185,8 @@ func (w *World) sendGroupRemoved(p *Player, sub byte) {
 }
 
 // sendRosterLocked sends each member the roster its client holds
-// (shownMembersLocked) in its own ids, when it changed since the last one it was
-// sent (or always, with force).
+// (shownViewsLocked: its players and mercs) in its own ids, when it changed
+// since the last one it was sent (or always, with force).
 func (w *World) sendRosterLocked(g *Group, force bool) {
 	for _, mid := range g.Members {
 		m := w.Players[mid]
@@ -244,7 +244,7 @@ func (w *World) GroupInvite(sess *session.Session, targetID uint32) {
 		w.sendGroupNotice(sess, 3, "")
 		return
 	}
-	if target.GroupID != 0 {
+	if target.GroupID != 0 && !w.mercOnlyGroupLocked(target) { // its and its merc's alone gives way (mercgroup.go)
 		w.sendGroupNotice(sess, 2, target.Name)
 		return
 	}
@@ -262,6 +262,7 @@ func (w *World) GroupInvite(sess *session.Session, targetID uint32) {
 	if g == nil {
 		w.formGroupLocked(inviter)
 	}
+	w.mercGivesWayLocked(target)
 	w.askLocked(target, inviter, tsess, groupAsk{}, inviter.Name)
 	log.Printf("Group: %s invites %s", inviter.Name, target.Name)
 }
@@ -478,7 +479,8 @@ func (w *World) leaveGroupLocked(p *Player) {
 		}
 	}
 	delete(g.lastRoster, p.ServerID)
-	// its merc goes with it (mercgroup.go), and asks again once it is in no group
+	// its merc goes with it, the two of them asked into a group again when
+	// others are left in this one (mercgroup.go)
 	if ms := w.mercs[p.ServerID]; ms != nil && ms.owner == p {
 		for i, id := range g.Members {
 			if id == ms.npc.ServerID {
@@ -487,6 +489,9 @@ func (w *World) leaveGroupLocked(p *Player) {
 			}
 		}
 		delete(g.lastRoster, ms.npc.ServerID)
+		if len(g.Members) > 0 {
+			ms.asked = false
+		}
 	}
 	log.Printf("Group: %s left group %d (%d left)", p.Name, g.ID, len(g.Members))
 	w.raidLeftLocked(g, p.Name)
@@ -547,7 +552,7 @@ func (w *World) GroupBoot(sess *session.Session, memberID uint32) {
 				break
 			}
 		}
-		ms.asked = false
+		ms.asked = false // the two of them asked into a group again
 	}
 	w.sendGroupRemoved(m, 1)
 	w.raidLeftLocked(g, m.Name)
@@ -566,11 +571,22 @@ func (w *World) GroupDisband(sess *session.Session) {
 	if g == nil || g.Members[0] != p.ServerID {
 		return
 	}
+	players := 0
+	for _, id := range g.Members {
+		if w.Players[id] != nil {
+			players++
+		}
+	}
 	for _, id := range g.Members {
 		if m := w.Players[id]; m != nil {
 			m.GroupID = 0
 			if m != p {
 				w.sendGroupRemoved(m, 2)
+			}
+			// a merc's owner out of a group of others is asked into one with
+			// it again (mercgroup.go)
+			if ms := w.mercs[m.ServerID]; ms != nil && ms.owner == m && players > 1 {
+				ms.asked = false
 			}
 		}
 	}

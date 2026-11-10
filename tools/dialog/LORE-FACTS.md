@@ -393,3 +393,408 @@ The game's own text and SOE's own lore come first; Prima's guide was written wit
 - **LAND-25** Old ruins of the Combine lie in the Green Rift.
   - Prima, factions: House Gal`Saris: "excavating the Combine ruins found in the Greenrift"
   - WORDS.TXT 1155: "The Green Rift"
+
+## Qeynos and the west
+
+- **QEY-1** Qeynos is the greatest human city on Tunaria, ruled by the lately crowned Antonius Bayle II.
+  - Prima, factions: Citizens of Qeynos: "The greatest Human city found on Tunaria, ruled by the recently crowned, Antonius Bayle II."
+- **QEY-2** Hagley is a small village just east of Qeynos, under that city's protection; Blakedown is a farming community of good-hearted humans under Qeynos's protection too.
+  - Prima, factions: Citizens of Hagley: "A small village just to the east of Qeynos, and under that city's protection."
+  - Prima, factions: Citizens of Blakedown: "A farming community inhabited by good-hearted humans under the protection of Qeynos."
+- **QEY-3** Talamir's Regiment was an old regiment of the Qeynos Guard that Antonius Bayle II disbanded for its ruthless tactics; its men wander the land as outlaws.
+  - Prima, factions: Talamirs Regiment: "An old regiment of the Qeynos Guard, disbanded by Antonious Bayle II for their ruthless tactics. They now wander the land as outlaws."
+- **QEY-4** The prisoners of Qeynos Prison, south of the city, have taken the prison over and are hostile to all but bards and rogues; and a new cult of Rodcet Nife is forming in its north-east corner.
+  - Prima, factions: Qeynos Prisoners: "Faction for prisoners in Qeynos Prison that have taken over the prison. KOS to all except bards and rogues."
+  - Prima, factions: Followers of Rodcet Nife: "New cult forming in the North East Corner of Qeynos Prison."
+  - zone grid: Qeynos Prison lies 1 zone south of Qeynos
+- **QEY-5** The Servants of the Sickle are a cult of necromancers and shadowknights who live in a tomb near Blakedown.
+  - Prima, factions: Servants of the Sickle: "A cult of necromancers and shadowknights living in a tomb near Blakedown."
+- **QEY-6** The guilds of Qeynos: the monks' Order of the Silent Fist, the bards' Qeynos Troupe, the Anagogical Order of wizards, magicians and enchanters, the clerics' Defenders of Erollisi Marr, and the rogues' Heavy Purse.
+  - Prima, factions: Order of the Silent Fist: "Qeynos monk guild."
+  - Prima, factions: Qeynos Troupe: "Bard's guild of Qeynos."
+  - Prima, factions: The Anagogical Order: "Wizard, magician, and enchanters' guild of Qeynos."
+  - Prima, factions: Defenders of Erollisi Marr: "Clerics Guild of Qeynos."
+  - Prima, factions: The Heavy Purse: "Qeynos rogues guild."
+- **QEY-7** Some guards of Qeynos went out on a patrol and became lost.
+  - Prima, factions: Lost guards: "Qeynos guards who became lost after a patrol."
+- **QEY-8** Crethley Manor, north-east of Qeynos, is an ancient ruined mansion rumored to be haunted by a vampire and his minions.
+  - Prima, factions: Crethley Manor: "This ancient and ruined mansion is rumored to be haunted by a vampire and his minions."
+  - zone grid: Crethley Manor lies 1 zone north-east of Qeynos
+- **QEY-9** A ragtag band of desperate gnolls raids the western regions of Tunaria; the vicious gnolls of Blackburrow hold that dungeon, deadly scarabs live deeper in it than even the gnolls go, and an old dwarven mining guild is trapped there.
+  - Prima, factions: Gnoll Raiders: "A ragtag band of desperate gnolls found in the Western regions of Tunaria."
+  - Prima, factions: Blackburrow Gnolls: "A tribe of vicious gnolls that inhabit the dungeon of Blackburrow."
+  - Prima, factions: Deepscarabs: "The deadly scarabs found deep within the dungeon Blackburrow, deeper than even the Gnolls venture."
+  - Prima, factions: Miners Guild 189: "Old Dwarven mining guild trapped in Blackburrow."
+- **WYND-1** Wyndhaven is a town of shady humans on the northern edge of the Qeynos city-state; Bogman, north of it, is a ramshackle village of shady barbarians.
+  - Prima, factions: Citizens of Wyndhaven: "A town of shady humans living on the northern edge of the Qeynos city-state."
+  - Prima, factions: Citizens of Bogman: "A ramshackle village of shady Barbarians found to the north of Wyndhaven."
+- **WYND-2** Mariel, the zone north of Wyndhaven, is the only elven outpost left on the western side of Tunaria since Al'Karad fell; Binshore is a barbarian fishing village in Whale Hill, the zone south of Wyndhaven.
+  - Prima, factions: Citizens of Mariel: "The only Elven outpost found on the Western side of Tunaria after the fall of Al`Karad."
+  - Prima, factions: Binshore: "Barbarian fishing village in Whale Hill."
+  - zone grid: Mariel Village lies 1 zone north of Wyndhaven
+  - zone grid: Whale Hill lies 1 zone south of Wyndhaven
+- **SURE-1** The circle of rangers and druids of Surefall Glade has worked for many years to protect the Jaggedpine Forest; its guards are the Protectors of the Pine.
+  - Prima, factions: Citizens of Surefall Glade: "This circle of rangers and druids have worked to protect the Jaggedpine Forest for many years."
+  - Prima, factions: Protectors of the Pine: "Surefall Glade guard faction."
+- **SURE-2** Jethro's Pike is a fishing village on the shore of a large lake just west of Surefall Glade; the Red Ear gnolls quarrel with its humans, yet live at peace with the protectors of the Jaggedpine.
+  - Prima, factions: Citizens of Jethro Pike: "A fishing village built on the shores of a large lake just west of Surefall Glade."
+  - Prima, factions: Red Ear Gnolls: "A tribe of gnolls who come into conflict with the humans of Jethro's Pike, yet coexist peacefully with the protectors of the Jaggedpine Forest."
+- **SURE-3** Murnf lies north of Surefall Glade and the Fog Marsh south of it; Wymondham, to the east, is a village of Qeynos.
+  - zone grid: Murnf lies 1 zone north of Surefall Glade
+  - zone grid: Fog Marsh lies 1 zone south of Surefall Glade
+  - zone grid: Wymondham lies 1 zone east of Surefall Glade
+  - Prima, factions: Citizens of Wymondham: "Qeynos Village in Wymondham"
+- **MURNF-1** Murnf is a farming village on the edge of the Unkempt Wood; its simple folk warn people not to enter the forest.
+  - Prima, factions: Citizens of Murnf: "A farming village built along the edge of the Unkempt Wood. The simple folk there warn people not to enter the forest."
+- **MURNF-2** The Twisted Tower lies west of Murnf and Spirit Talkers Wood east of it.
+  - WORDS.TXT 1060: "Twisted Tower"
+  - zone grid: Twisted Tower lies 1 zone west of Murnf
+  - zone grid: Spirit Talkers Wood lies 1 zone east of Murnf
+- **MURNF-3** The Last Smith, Grim Brellhand, is a legendary dwarven smith who lives in seclusion in the Unkempt Wood.
+  - Prima, factions: The Last Smith: "Also known as Grim Brellhand, the Last Smith is a legendary dwarven smith living in seclusion in the Unkempt Wood."
+- **HONJ-1** Honjour, in the Fog Marsh, is a place of religious significance to the devout troll worshippers of Cazic-Thule.
+  - Prima, factions: Citizens of Honjour: "A place of religious significance to devout Troll worshippers of Cazic-Thule."
+- **HONJ-2** Surefall Glade lies north of the Fog Marsh, the ruins of Al'Karad east of it and Crethley Manor west of it.
+  - zone grid: Surefall Glade lies 1 zone north of Fog Marsh
+  - zone grid: Al Karad Ruins lies 1 zone east of Fog Marsh
+  - zone grid: Crethley Manor lies 1 zone west of Fog Marsh
+- **ZENT-1** Zentar's Keep is a fortress built by Zentar, the legendary knight of darkness; Zentar Reese is its evil leader.
+  - Prima, factions: Citizens of Zentar's Keep: "A fortress built by the legendary knight of darkness, Zentar."
+  - Prima, factions: Zentar Reese: "Zentar Reese is the evil leader of Zentar's Keep."
+- **ZENT-2** Permafrost lies north of Zentar's Keep, the northern Unkempt east of it and Bogman south of it; great ice worms roam near the keep.
+  - zone grid: Permafrost lies 1 zone north of Zentars Keep
+  - zone grid: Unkempt North lies 1 zone east of Zentars Keep
+  - zone grid: Bogman Village lies 1 zone south of Zentars Keep
+  - EQOA-Data, 23-47/45: "You need 3 chunks of ice worm meat. Random spawns NW/E of ZK."
+- **LIGHT-1** Castle Lightwolf, in the North Wilderlands, is a training center for warriors and is charged with guarding the north from invasion; werewolves prowl the country round it.
+  - Prima, factions: Citizens of Castle Lightwolf: "Castle Lightwolf is a training center for warriors and charged with guarding the north from invasion."
+  - Prima, factions: Werewolves of Lightwolf: "Faction for the werewolves in the areas surrounding Castle Lightwolf."
+  - EQOA-Data, 23-47/45: "Castle Lightwolf - North Wilderlands"
+- **LIGHT-2** The castle trusts those who slay the beasts of Lady Vox's castle in Permafrost; ambassadors keep rooms in its towers.
+  - EQOA-Data, 23-47/45: "Obtain faction by slaying beasts in Lady Vox's Castle, Permafrost."
+  - EQOA-Data, 23-47/45: "Talk to **Ambassador Kizden G'Lux** (first floor, north tower)."
+- **LIGHT-3** The village of the Anu lies north of the castle's Wilderlands, the northern Unkempt west of them and the Guardian Forest east of them.
+  - zone grid: Anu Village lies 1 zone north of North Wilderlands
+  - zone grid: Unkempt North lies 1 zone west of North Wilderlands
+  - zone grid: Guardian Forest lies 1 zone east of North Wilderlands
+
+## Freeport and the east
+
+- **FREE-1** Freeport is the largest human city on the eastern coast of Tunaria, and its citizens are driven by wealth.
+  - Prima, factions: Citizens of Freeport: "The wealth-driven citizens of the largest human city on the Eastern coast of Tunaria."
+- **FREE-2** Merchant House Nothard is the ruling merchant house of Freeport and of the Iron Coffer; Merchant House Slaerin is the city's guild of necromancers.
+  - Prima, factions: Merchant House Nothard: "Ruling merchant house of Freeport and the Iron Coffer."
+  - Prima, factions: Merchant House Slaerin: "Freeport necromancer Guild."
+- **FREE-3** The Crusaders of Marr's Fist keep an outpost that is a bastion of honor and law among the greedy humans of Freeport.
+  - Prima, factions: Crusaders of Marr's Fist: "An outpost that acts as a bastion of honor and law among the greedy humans of Freeport."
+- **FREE-4** The Towers of Noctix are towers of darkness that corrupt the commonlands west of Freeport; what lies inside them is a mystery.
+  - Prima, factions: Towers of Noctix: "The towers of darkness that corrupt the region of the commonlands west of Freeport. What lies inside is a mystery."
+- **FREE-5** The Cracktooth are a small clan of orcs that raids the eastern commonlands near Freeport; they lurk near Bobble-by-Water too.
+  - Prima, factions: Cracktooth Orcs: "A small clan of orcs that raid the Eastern Commanlands near Freeport."
+- **FREE-6** Temby is a small smuggling village just north of Freeport; Hodstock is a village of xenophobic humans north of Freeport on the River Saren, where the retired scholar and explorer Feria Hurkert lives.
+  - Prima, factions: Smugglers of Temby: "A small smuggling village situated just north of Freeport."
+  - Prima, factions: Citizens of Hodstock: "A village of xenophobic humans found north of Freeport, along the River Saren."
+  - Prima, factions: Feria Hurkert: "A retired scholar and explorer now living in the village of Hodstock."
+- **FREE-7** The guilds of Freeport: the Academy of Arcane Science for wizards, enchanters and magicians, the bards' Silken Gauntlet, and the Spiteful Shield of shadowknights, clerics and rogues; its guards are the Freeport Militia.
+  - Prima, factions: Academy of Arcane Science: "Freeport wizard, enchanter, and magician guild."
+  - Prima, factions: Silken Gauntlet: "Freeport bard guild."
+  - Prima, factions: The Spiteful Shield: "Freeport shadowknight, cleric, and rogue guild."
+  - Prima, factions: The Freeport Militia: "Freeport guard faction."
+- **FREE-8** The northern Desert of Ro begins in the zone south of Freeport; humans who wander into the deserts of Ro lose their minds completely.
+  - zone grid: Northern Ro lies 1 zone south of Freeport
+  - Prima, factions: Madman: "A group of humans who have wandered into the deserts of Ro, only to lose their minds completely."
+- **BOB-1** The halflings of Bobble-by-Water live near Nektulos Forest: Neriak's country is the zone north of theirs, the Green Rift lies west and Hodstock south.
+  - Prima, factions: Citizens of Bobble-by-water: "Halflings living near Nektulos Forest."
+  - zone grid: Neriak Nektulos lies 1 zone north of Bobble-by-Water
+  - zone grid: The Green Rift lies 1 zone west of Bobble-by-Water
+  - zone grid: Hodstock and Temby lies 1 zone south of Bobble-by-Water
+- **TEA-1** People live and work at Muniel's Tea Garden, south along the coast from Freeport; skeleton pirates and a pirate captain hold an island off it.
+  - Prima, factions: Muniel's Tea Garden: "Faction for the people who live and work at Muniel's Tea Garden."
+  - Prima, walkthrough, line 21040: "There are several skeleton pirates and a pirate captain on the island."
+- **TEA-2** The Deathfist citadel is the zone west of Muniel's Tea Garden, the desert of north-western Ro lies north of it and the ruins of Al Farak south of it.
+  - zone grid: Deathfist Citadel lies 1 zone west of Muniels Tea Garden
+  - zone grid: Northwestern Ro lies 1 zone north of Muniels Tea Garden
+  - zone grid: Al Farak Ruins lies 1 zone south of Muniels Tea Garden
+- **TEA-3** Sand giants walk the Desert of Ro, and a desert dragon, Skahyir.
+  - Prima, factions: Sand Giants of Ro: "Faction used by sand giants."
+  - Prima, factions: Desert Dragon Skahyir: "Faction of the Desert Dragon Skahyir."
+- **OASIS-1** The Nasehir are aggressive desert nomads who live by robbing and killing whoever passes; the Taksehir Nation, the more light-minded of the desert's bandits, is at war with them. The gypsies of Oasis count the Nasehir their enemies.
+  - Prima, factions: Nasehir Cutthroats: "An aggressive group of desert nomads that sustain themselves by robbing and killing whomever passes their way."
+  - Prima, factions: The Taksehir Nation: "They are at war with Nahsehir."
+  - EQOA-Data, 23-47/37: "Improve gypsy faction via Siloth or Nasehir kills if quest unavailable."
+- **OASIS-2** Tak'Xiv lies west of Oasis, the Great Waste east of it, the Eternal Desert north of it and the Sea of Lions south; the ruins of Takish'Hiz lie to the south-west.
+  - zone grid: Tak Xiv lies 1 zone west of Oasis
+  - zone grid: Great Waste lies 1 zone east of Oasis
+  - zone grid: Eternal Desert lies 1 zone north of Oasis
+  - zone grid: Sea of Lions lies 1 zone south of Oasis
+  - zone grid: Takish Hiz lies 1 zone south-west of Oasis
+- **HAZ-1** Hazinak is a dark elf outpost and port, the staging area for shipping the artifacts of Takish'Hiz to Neriak.
+  - Prima, factions: Citizens of Hazinak: "A Dark Elf outpost and port used as a staging area for the shipment of artifacts from Takish`Hiz to Neriak."
+- **HAZ-2** Guk lies south of Hazinak and the hives of the Slith'Tar west of it; the Slith'Tar are an evil, half-thinking race, hostile to all.
+  - zone grid: Guk lies 1 zone south of Hazinak
+  - zone grid: Slithtar Hive lies 1 zone west of Hazinak
+  - Prima, factions: SlithTar: "Evil race of semi-sentient creatures, KOS to all."
+  - EQOA-Data, 23-47/33: "Coach to Hazinak, head west. Many hives, one is larger."
+
+## Highpass and the middle lands
+
+- **PASS-1** The rugged humans of Highpass have carved a lucrative living out of the Serpent's Spine Mountains; its garrison, the Highpass Guard, is tough and well paid, and tolerates the evil races.
+  - Prima, factions: Citizens of Highpass: "The rugged humans that have carved out a lucrative existence in the Serpent's Spine Mountains."
+  - Prima, factions: The Highpass Guard: "The tough, and well-paid, human garrison that guards the city of Highpass."
+  - Prima, factions: Defenders of Highpass: "Tolerant of evil races, neutral to good races"
+- **PASS-2** Bastable is a human village east of Highpass, on the great Trade Road; the bards of Highpass are the Royal Players.
+  - Prima, factions: Citizens of Bastable: "A human village found east of Highpass, along the great Trade Road."
+  - Prima, factions: Royal Players: "Faction for bards of Highpass."
+- **PASS-3** Runnyeye Citadel, a place of festering evil on the edge of the Misty Thicket, is held by the goblins of Clan Runnyeye; it lies in the zone north of Highpass Hold, and the Bandit Hills west.
+  - Prima, factions: Clan Runnyeye: "The goblins that inhabit Runnyeye Citadel, a place of festering evil found on the edge of Misty Thicket."
+  - zone grid: Runnyeye lies 1 zone north of Highpass Hold
+  - zone grid: Bandit Hills lies 1 zone west of Highpass Hold
+- **VALE-1** Rivervale is the warm and comfortable homestead of the halflings; its guards are the Guardians of the Vale, its druids the Stormreapers, its clerics keep the Temple of Bristlebane, and its rogues are the Deep Pockets.
+  - Prima, factions: Citizens of Rivervale: "The warm and comfortable homestead of the Halflings."
+  - Prima, factions: The Guardians of the Vale: "Rivervale guard faction."
+  - Prima, factions: The Stormreapers: "Rivervale druid guild."
+  - Prima, factions: Temple of Bristlebane: "Rivervale cleric guild."
+  - Prima, factions: The Deep Pockets: "Rivervale rogue guild."
+- **VALE-2** Merry-by-Water is one of the few halfling hamlets of Tunaria, on the shore of the northern Serpent River.
+  - Prima, factions: Citizens of Merry-by-water: "One of the few Halfling hamlets of Tunaria, built along the shore of the Northern Serpent River."
+- **VALE-3** The Thinhairs are halflings who do not kill necromancers and shadowknights outright, which is remarkable.
+  - Prima, factions: The Thinhairs: "outright kill necromancers and shadowknights. Amazing."
+- **VALE-4** The Misty Thicket lies west of Rivervale and the northern Kithicor east of it; Loreth Kith is a village of druids and rangers sworn to protect Kithicor Forest.
+  - zone grid: Misty Thicket lies 1 zone west of Rivervale
+  - zone grid: North Kithicor lies 1 zone east of Rivervale
+  - Prima, factions: Citizens of Loreth Kith: "A village of druids and rangers sworn to protect Kithicor Forest from those that would do it harm."
+- **DARV-1** Darvar Manor stands in the land called Jared's Blight; Jared is one of Tunaria's most powerful enchanters, and has a tower.
+  - WORDS.TXT 1091: "Jared's Blight"
+  - Prima, factions: Jared's Tower: "The tower of Jared, one of Tunaria's most powerful enchanters."
+- **DARV-2** The Bandit Hills lie east of the manor's land, the ruins of Al'Karad west of it and Blackburrow north; the Black Swan Inn is the first building on the road south of the manor.
+  - zone grid: Bandit Hills lies 1 zone east of Jareds Blight
+  - zone grid: Al Karad Ruins lies 1 zone west of Jareds Blight
+  - zone grid: Blackburrow lies 1 zone north of Jareds Blight
+  - EQOA-Data, 23-47/30: "From DM, follow road south, Inn is first building."
+- **DARV-3** A dark elf ambassador keeps a front room at Darvar Manor; west of the manor a place is called the Crazed Experiments, and a barrow of cultists, that of Thenon the Wise, lies along the river between the manor and Forkwatch.
+  - EQOA-Data, 23-47/45: "**Ambassador Do'Nerua** in Darvar Manor, by coachman, front room."
+  - EQOA-Data, 23-47/43: "west area called Crazed Experiments"
+  - EQOA-Data, 23-47/43: "Barrow is along the river between Forkwatch and Darvar Manor."
+- **FORK-1** Forkwatch is a castle with its guards and citizens and the country round it; gypsies camp north of it.
+  - Prima, factions: Citizens of Forkwatch: "Guards and citizens of Forkwatch castle and its surrounding areas."
+  - EQOA-Data, 23-47/37: "at gypsy camp north of Forkwatch"
+- **FORK-2** The Salt Mine lies east of Forkwatch, held by the Blackscourge river pirates; the South Crossroads, where Dark Solace stands, lie south of it.
+  - zone grid: Salt Mine lies 1 zone east of Forkwatch
+  - Prima, factions: Blackscourge Pirates: "River pirates in salt mine, KOS to all."
+  - zone grid: South Crossroads lies 1 zone south of Forkwatch
+  - EQOA-Data, 23-47/35: "**Dark Solace** (South Crossroads)"
+- **SOLACE-1** Dark Solace is a safe sanctuary offered to every evil humanoid persecuted by the self-righteous of Tunaria; mindless drones, the Disciples of Plague, fill its front part.
+  - Prima, factions: Citizens of Dark Solace: "A safe sanctuary offered to all evil humanoids persecuted by the self-righteous of Tunaria."
+  - Prima, factions: Disciples of Plague: "Faction of mindless drones in the front part of Dark Solace."
+- **SOLACE-2** Urglunt's Wall lies west of Dark Solace's crossroads, the valley of the centaurs east of them and Widow's Peak south.
+  - zone grid: Urglunts Wall lies 1 zone west of South Crossroads
+  - zone grid: Centaur Valley lies 1 zone east of South Crossroads
+  - zone grid: Widows Peak lies 1 zone south of South Crossroads
+- **BLACK-1** Blackwater is a human town bordering a swamp on the Lifire River, in the Brog Fens, where the crazed troll shaman Mog and his followers live.
+  - Prima, factions: Citizens of Blackwater: "A human town bordering a swamp along the Lifire River."
+  - EQOA-Data, 23-47/37: "**Ralis** in Brog Fens (BW, Black Water)"
+  - Prima, factions: Followers of Mog: "Faction for the crazed Troll shaman, Mog, and his followers living in the Brog Fens."
+- **BLACK-2** The valley of the centaurs lies north of Blackwater's fens, Fort Alliance south of them, Widow's Peak west and the Serpent Hills east; aviaks, Bluefeather's Brood, live on Widow's Peak, griffons nest in the Serpent Hills, and the humans of Waterspout eke out a living there.
+  - zone grid: Centaur Valley lies 1 zone north of Brog Fens
+  - zone grid: Fort Alliance lies 1 zone south of Brog Fens
+  - zone grid: Widows Peak lies 1 zone west of Brog Fens
+  - zone grid: Serpent Hills lies 1 zone east of Brog Fens
+  - Prima, factions: Bluefeather's Brood: "Aviaks from Widow's Peak and Kelinar."
+  - Prima, factions: Mountain Feather: "A flock of griffons that nest within the Serpent Hills."
+  - Prima, factions: Villagers of Waterspout: "A small village of humans trying to eke out a living in the dangerous Serpent Hills."
+
+## Halas, Moradhim and the north
+
+- **HAL-1** Halas is a fledgling city far to the north, built and sustained by the united barbarian tribes of Everfrost; its guards are the Wolves of the North, its rogues the Eyes of the Tribunal, its shamans the Seers of the Tribunal.
+  - Prima, factions: Citizens of Halas: "The fledgling city far to the north built and sustained by the unified Barbarian tribes of the Everfrost region."
+  - Prima, factions: The Wolves of the North: "Halas guard faction."
+  - Prima, factions: Eyes of the Tribunal: "Halas rogue guild."
+  - Prima, factions: Seers of the Tribunal: "Halas shaman guild."
+- **HAL-2** The barbarians of the Anu tribe keep apart: their trust is won only by killing their most hated enemy, the frost giants, and they do not trust magic users or priests.
+  - Prima, factions: Barbarians of the Anu Tribe: "Isolationist Barbarians whose trust can only be gained by killing their most hated enemy, the frost giants. They do not trust magic users or priests."
+- **HAL-3** Clan Snowfist, brutal orcs of the frozen wastes, hold the zone east of Halas; the Frosteye orcs lie south of Halas and west of Moradhim; the arctic goblins are the Freezeblood, whose village is the zone south of Halas.
+  - Prima, factions: Clan Snowfist: "A clan of brutal orcs who live in the frozen wastes of the North."
+  - Prima, factions: Frosteye Cohort: "Frosteye orc faction located south of Halas and west of Moradhim."
+  - Prima, factions: The Freezeblood Goblins: "Arctic goblins of the North."
+  - zone grid: Snowfist lies 1 zone east of Halas
+  - zone grid: Freezeblood Village lies 1 zone south of Halas
+- **HAL-4** Diren's Hold is a barbarian village built securely on a mountain south of Halas; Brontar's bandits wander the northern tundras of Everfrost.
+  - Prima, factions: Citizens of Diren Hold: "A Barbarian village securely built upon a mountain south of Halas."
+  - Prima, factions: Brontar's Bandits: "A group of bandits that wander the northern tundras of Everfrost."
+- **MOR-1** The guards of Moradhim are the Stoneguard, its clerics the Church of Below, its paladins the Doomseekers, and its rogues Miners Guild 231.
+  - Prima, factions: The Stoneguard: "Moradhim guard faction"
+  - Prima, factions: The Church of Below: "Moradhim cleric guild."
+  - Prima, factions: The Doomseekers of Moradhim: "Moradhim paladin guild."
+  - Prima, factions: Miners Guild 231: "Moradhim rogue guild."
+- **MOR-2** Chiasta is a quiet village in a small canyon east of Moradhim; Baga is a small troll village south of Moradhim.
+  - Prima, factions: Chiasta Citizens: "A quiet village nestled in a small canyon east of Moradhim."
+  - Prima, factions: Citizens of Baga: "A small Troll village found south of Moradhim."
+- **MOR-3** The eyrie of the Goldfeather aviaks lies north of Moradhim, the Shon-To monastery east of it and Diren's village west; Jareth Roanir of Goldfeather is called the Blue Magician.
+  - zone grid: Goldfeather Eyrie lies 1 zone north of Moradhim
+  - zone grid: Shon-To Monastery lies 1 zone east of Moradhim
+  - zone grid: Diren Village lies 1 zone west of Moradhim
+  - Prima, factions: Goldfeather Aviaks: "Aviaks of Goldfeather Eyrie"
+  - Prima, factions: Jareth Roanir: "The Blue Magician, Goldfeather."
+- **GERN-1** Gerntar is an active mining operation worked by the dwarves of Clan Gerntar; Head Foreman Zeke needs help with the minotaurs there. The Rustel minotaurs of the mines are peaceful but for their evil leader Khelmarak.
+  - Prima, factions: Citizens of Gerntar: "An active mining operation worked by the dwarves of Clan Gerntar."
+  - EQOA-Data, 23-47/47: "**Head Foreman Zeke** in Gerntars Mine, help with minotaurs."
+  - Prima, factions: Khelmarak: "the evil leader of the otherwise peaceful Rustel Minotaurs in Gentar's Mines."
+- **GERN-2** Kelinar lies north of Gerntar's mines, the gate of Oggok south of them and the Elephant Graveyard east.
+  - zone grid: Kelinar lies 1 zone north of Gerntar Mines
+  - zone grid: Oggok Gate lies 1 zone south of Gerntar Mines
+  - zone grid: Elephant Graveyard lies 1 zone east of Gerntar Mines
+
+## The elves' and the gnomes' country
+
+- **FAY-1** Fayspires is the greatest elven city since the fall of Takish'Hiz; its guards are the Paladins of Tunare, and the College of High Magic is its guild of wizards, enchanters and magicians.
+  - Prima, factions: Citizens of Fayspires: "The elven citizenry of Fayspires, the greatest elven city since the fall of Takish`Hiz."
+  - Prima, factions: The Paladins of Tunare: "Fayspires guard faction."
+  - Prima, factions: College of High Magic: "Fayspires Wizard, Enchanter, and Magician guild."
+- **FAY-2** The small village of Feydwell was almost destroyed by dark elf raiders out of Neriak; its survivors are its last defenders.
+  - Prima, factions: Last Defenders of Feydwell: "Survivors of the small village of Feydwell, which was almost destroyed by Dark Elf raiders out of Neriak."
+- **FAY-3** Melton is a druidic community charged with protecting the Glinaldal Forest; Proudpine is a small outpost of rangers and druids.
+  - Prima, factions: Citizens of Melton: "A druidic community charged with the protection of the Glinaldal Forest."
+  - Prima, factions: Proudpine Outpost: "A small outpost of rangers and druids."
+- **FAY-4** Kara Village lies east of Fayspires and Tethelin, and the path east of Kara Village leads to Klick'Anon; Castle Felstar lies to the south-east.
+  - zone grid: Kara Village lies 1 zone east of Fayspires Tethelin
+  - Prima, walkthrough, line 27446: "Travel the path east of Kara Village to reach Klick'Anon."
+  - zone grid: Castle Felstar lies 1 zone south-east of Fayspires Tethelin
+- **TETH-1** Tethelin's druids are the Keepers of the Glade, its rogues the Scouts of Tunare, its bards the Songweavers of Tunare; its guards and rangers are the Emerald Guardians.
+  - Prima, factions: Keepers of the Glade: "Tethelin druid guild."
+  - Prima, factions: Scouts of Tunare: "Tethelin rogue guild."
+  - Prima, factions: Songweavers of Tunare: "Tethelin bard guild."
+  - Prima, factions: The Emerald Guardians: "Tethelin guard and ranger faction."
+- **TETH-2** Dryads, satyrs and fauns are the spirits of the forest.
+  - Prima, factions: The Spirits of the Forest: "Faction for dryad, satyr, and faun NPCs."
+- **KLICK-1** Klick'Anon is the only gnomish city on Tunaria, and lies along the edge of the Lavastorm Mountains.
+  - Prima, factions: Citizens of Klick`Anon: "The only Gnomish city found on Tunaria. It lies along the edge of the Lavastorm Mountains."
+- **KLICK-2** Clockwork automatons were made to serve the citizens of Klick'Anon; rogue clockworks felled their masters there and settled to the east, in Clockwork Town.
+  - Prima, factions: Klick`Anon Clockworks: "The clockwork automatons created to serve the citizens of Klick`Anon."
+  - Prima, factions: Clockwork Town: "These rogue clockwork creations felled their masters in Klick`Anon to settle to the East."
+  - zone grid: Rogue Clockworks lies 1 zone east of KlickAnon
+- **KLICK-3** The guilds of Klick'Anon: the Mechanamagical College of wizards, enchanters and magicians, the Necrological Society of necromancers, the clerics' Temple of Brell, and the rogues' Junk Mongers; its guards are the Klick'Anon Watch.
+  - Prima, factions: Mechanamagical College: "Klick`Anon wizard, enchanter, and magician guild."
+  - Prima, factions: Necrological Society: "Klick`Anon necromancer guild."
+  - Prima, factions: Temple of Brell: "Klick`Anon cleric faction"
+  - Prima, factions: The Junk Mongers: "Klick`Anon rogue guild."
+  - Prima, factions: Klick`Anon Watch: "Klick`Anon guard faction."
+- **KLICK-4** Gnomes of the Institute of Astral Cognizance keep observatories across Tunaria; the gnomes of Explorers Guild 135 work in the Lavastorm Mountains.
+  - Prima, factions: Institute of Astral Cognizance: "Faction for all Gnomes at the various observatories on Tunaria."
+  - Prima, factions: Explorers Guild 135: "Faction of Gnomes in Lavastorm Mountains."
+- **KLICK-5** Plankwalker's Pirates are gnomish pirates whose fascination with piracy outweighs their skill at it.
+  - Prima, factions: Plankwalker's Pirates: "A group of gnomish pirates whose fascination with piracy outweighs their actually skill."
+- **KLICK-6** The Coldpaw gnolls have a village just outside Klick'Anon; the Taereg, a band of rogues and burglars, camp west of the city.
+  - Prima, factions: Coldpaw: "Faction for a gnoll village just outside of Klick`Anon."
+  - Prima, factions: Taereg of Tunaria: "A band of rogues and burglars camped to the West of Klick`Anon."
+
+## Neriak and its outposts
+
+- **NER-1** Neriak is the subterranean city of the dark elves, with its laypeople and its nobility.
+  - Prima, factions: Citizens of Neriak: "The laypeople and nobility of Neriak, the subterranean city of the Dark Elves."
+- **NER-2** House Do'Vexis is the first House of Neriak, closest to the royal family and the most influential; House U'Dedne is the second, and rumor persists that it will soon fall; House J'Narus is the third, and many believe it will soon be much more.
+  - Prima, factions: House Do`Vexis: "1st house of Neriak, closest to the royal family and the most influential of all Neriak's Houses."
+  - Prima, factions: House U`Dedne: "The 2nd House of Neriak. Rumors persist that this house will soon fall."
+  - Prima, factions: House J`Narus: "Currently the 3rd House of Neriak, though many believe they will soon become much more influential."
+- **NER-3** House Gal'Saris, a noble house of Neriak, has won the task of excavating the Combine ruins in the Green Rift.
+  - Prima, factions: House Gal`Saris: "A noble house of Neriak. They have won the responsibility of excavating the Combine ruins found in the Greenrift."
+- **NER-4** The Royal Guard are elite dark elf guards born and bred for one purpose: to protect the Royal Family and the first House of Neriak from outsiders. The city's own guards are the Indigo Brotherhood.
+  - Prima, factions: The Royal Guard: "The elite Dark Elf guards born and bred for one purpose: to protect the Royal Family and 1st House of Neriak from outsiders."
+  - Prima, factions: The Indigo Brotherhood: "Neriak guard faction."
+- **NER-5** The Houseless Rebellion is a small group of dark elves who seek to rebel against the ancient established society of the Teir'Dal.
+  - Prima, factions: The Houseless Rebelion: "A small group of Dark Elf individuals who seek to rebel against the ancient established society of the Teir`Dal."
+- **NER-6** The guilds of Neriak: the Lodge of the Dead of shadowknights and necromancers, the Spurned of wizards, magicians and enchanters, the Church of Innoruuk, and the rogues' Ebon Mask.
+  - Prima, factions: Lodge of the Dead: "Neriak shadowknight and necromancer guild."
+  - Prima, factions: The Spurned: "Neriak wizard, magician, and enchanter guild."
+  - Prima, factions: The Church of Innoruuk: "Neriak cleric guild."
+  - Prima, factions: The Ebon Mask: "Neriak rogue guild."
+- **NER-7** The noble House of Dshinn works from a secret dark elf outpost; rats infest the Double Daggers Inn of Neriak.
+  - Prima, factions: Citizens of Dshinn: "A secret Dark Elf outpost used as a base of operations by the noble House of Dshinn."
+  - Prima, factions: Double Dagger Rats: "Rats that infest the Double Daggers Inn of Neriak."
+- **SERIAK-1** Fort Seriak is a dark elf fort on the shores of Lake Nerius, the westernmost outpost of Neriak, north-west of Collonridge Cemetery.
+  - Prima, factions: Fort Seriak: "Dark Elf fort on the shores of Lake Nerrius in Castle Felstar."
+  - Prima, walkthrough, line 19145: "To the west is Fort Seriak, the western most outpost of Neriak. Fort Seriak is northwest of Collonridge Cemetery"
+- **SERIAK-2** The human necromancer Verghest Felstar and his undead legions hold Castle Felstar, by Lake Nerius.
+  - Prima, factions: Verghest Felstar: "Verghest Felstar (Human necro) and his undead legions are in this faction."
+
+## Highbourne and Odus
+
+- **HIGH-1** Highbourne is the center of Erudite society and home to Erud, one of the greatest minds on Tunaria; the Library of Highbourne, led by Erud, rules it and is its guild of wizards, magicians and enchanters. The city has a Senate.
+  - Prima, factions: Citizens of Highbourne: "The center of Erudite society, and home to one of the greatest minds on Tunaria, Erud."
+  - Prima, factions: Library of Highbourne: "Ruling faction of Highbourne, lead by Erud. Wizards, magicians, and enchanters Guild."
+  - Prima, factions: The Highbourne Senate: "Exclusive to the Senate of Highbourne"
+- **HIGH-2** Highbourne's church of Prexus is the Church of the Holy Pearl; its clerics are the Hand of Quellious, and its guards are the Peacekeepers.
+  - Prima, factions: Church of the Holy Pearl: "Highbourne church of Prexus."
+  - Prima, factions: The Hand of Quellious: "Highbourne cleric guild."
+  - Prima, factions: The Peacekeepers: "Highbourne guard faction."
+- **HIGH-3** Evil Erudites keep a hidden chapel of Cazic-Thule, the Hidden; undead rats outside Highbourne serve it.
+  - Prima, factions: The Hidden: "Hidden Chapel of Cazic Thule guard faction. (For evil Erudites)"
+  - Prima, factions: Servants of the Hidden: "Used specifically for the undead rats outside of Highbourne."
+- **HIGH-4** Arcadin is a gleaming city of marble still under construction on Odus, the new home of the Erudites; at Jextalan a small camp of Erudites sells black market goods against the wishes of Arcadin's people.
+  - Prima, factions: Denizens of Arcadin: "A gleaming city of marble still under construction on the continent of Odus. The new home of the Erudites."
+  - Prima, factions: People of Jextalan: "A small encampment of Erudites who attempt to sell black market merchandise against the wishes of the people of Arcadin."
+- **HIGH-5** The Erudite followers of Cazic-Thule built Morthalis, a temporary town, to secure their foothold on Odus, and are building a haven of their own there; many of its slaves are Kerrans of the Merka tribe, and undead raised from the grave guard the building.
+  - Prima, factions: Citizens of Morthalis: "A temporary town built by the Erudite followers of Cazic-Thule in order to secure their foothold on Odus."
+  - Prima, factions: The Merka Tribe: "Many of this tribe make up the slaves"
+  - Prima, factions: Undead of Paineel: "The undead servants risen from the grave to protect the construction"
+- **HIGH-6** Odus has its terrors: Sylhilthis, Queen of the evil and deceitful Naga, a being of awesome power; Toxxulia, the poison dragon; and evil beings made by some unknown god of nightmare, which haunt its mountains.
+  - Prima, factions: Sylhilthis: "The Queen of the evil and deceitful Naga of Odus. A being of awesome power."
+  - Prima, factions: Toxxulia's Brood: "The servants of the poison dragon of Odus, Toxxulia."
+  - Prima, factions: Coalescence of Evil: "A faction of evil beings created by some unknown god of nightmare. They haunt the mountains of Odus."
+- **HIGH-7** Qeynos Prison is the zone north of Highbourne and Stoneclaw the zone east of it, where phase jackals and shadow pumas are found; the road to Highbourne runs south across a river's mouth, with dangerous creatures along it.
+  - zone grid: Qeynos Prison lies 1 zone north of Highbourne
+  - zone grid: Stoneclaw lies 1 zone east of Highbourne
+  - Prima, factions: Light of Stoneclaw: "Faction unique to Phase Jackals in Stoneclaw."
+  - Prima, factions: Shadows of Stoneclaw: "Faction unique to the shadow pumas of Stoneclaw."
+  - Prima, walkthrough, line 52347: "Travel south and cross the river's mouth until you reach Highbourne."
+
+## The trolls' and the ogres' country
+
+- **GROBB-1** Grobb is the largest community of trolls on Tunaria; its guards are Da Bashers, its shamans the Dark Ones, its shadowknights those of Nightkeep.
+  - Prima, factions: Citizens of Grobb: "The largest community of Trolls on Tunaria."
+  - Prima, factions: Da Bashers: "Grobb guard faction."
+  - Prima, factions: The Dark Ones: "Grobb shaman guild."
+  - Prima, factions: Shadowknights of Nightkeep: "Grobb shadowknight guild."
+- **GROBB-2** Guk is the zone north of Grobb; the undead frogloks there are possessed by the angry spirits of the trolls who once lived in Guk, and a primitive society of fungusmen lives in it.
+  - zone grid: Guk lies 1 zone north of Grobb
+  - Prima, factions: Undead Frogloks: "The undead frogloks possessed by the angry Troll spirits that once inhabited Guk."
+  - Prima, factions: Fungusmen of Guk: "The primitive fungusman society living within the dungeon of Guk."
+- **GROBB-3** The troll clans struggle for dominance: the Razgut, camped at Fort Alliance, are losing; the Brokenskull are a clan of their own; Grimrik's outcasts keep to the Spider Mine and hate everyone.
+  - Prima, factions: Razgut: "Camp of Trolls in Fort Alliance, a clan losing the struggle for dominance in the Troll society."
+  - Prima, factions: Brokenskull Rock: "Faction for the Brokenskull Troll clan."
+  - Prima, factions: Grimrik's Outcasts: "This faction is for the Trolls in the mines at Spider Mine. They hate all PC races"
+- **GROBB-4** The Bloodfoot are orc and troll bandits with a large camp on Mount Hatespike.
+  - Prima, factions: Bloodfoot Bandits: "Orc and Troll bandits with a large encampment in Mount Hatespike."
+- **OGG-1** Oggok is the ogres' city, built on the ruins of the once great Rallosian Empire; the Craknek, its strongest warriors, protect its citizens; its shamans are the Chosen of Gunthak, and the Temple of Greenblood is its guild of shadowknights and necromancers.
+  - Prima, factions: Citizens of Oggok: "The Ogre city of Tunaria built upon the ruins of the once great Rallosian Empire."
+  - Prima, factions: Craknek Warriors: "The strongest warriors of Oggok charged with the protection of the Citizens of Oggok."
+  - Prima, factions: Chosen of Gunthak: "Oggok shaman guild."
+  - Prima, factions: Temple of Greenblood: "Shadowknight and necromancer guild of Oggok."
+- **OGG-2** Sarek is the Great Betrayer of the ogre race, and has earthen minions.
+  - Prima, factions: Sarek the Betrayer: "The Great Betrayer of the Ogre race and his earthen minions."
+- **OGG-3** The Blacktoe ogres keep the shrine at Oggok and trust no one, except trolls a little; the Mog Thugs are ogre bandits in the Rathe Mountains.
+  - Prima, factions: Blacktoe Ogres: "This is a faction made for the Ogres at the shrine in Ogguk. They do not trust anyone"
+  - Prima, factions: Mog Thugs: "Faction for Ogre bandits in Rathe Mountains."
+- **OGG-4** The Rathe Mountains are the only home of the mysterious and secretive sphinxes; the Rainfeather tribe of aviaks lives there, and hobgoblins.
+  - Prima, factions: Sphynxs of Rathe: "The only home of the mysterious and secretive race known as the Sphinx."
+  - Prima, factions: The Rainfeather Tribe: "A tribe of Aviaks living in the Rathe Mountains."
+  - Prima, factions: Hobgoblins of Rathe Mtns.: "Hobgoblins of Rathe Mountains."
+- **KERP-1** Kerplunk is the last ogre outpost outside the Rathe Mountains, deep in the jungles of southern Tunaria.
+  - Prima, factions: Citizens of Kerplunk: "The last Ogre outpost existing outside of the Rathe Mountains, deep within the jungles of Southern Tunaria."
+- **KERP-2** The temple-land of Cazic-Thule is the zone south of Kerplunk, the gate of Oggok west of it, Lake Noregard east and the Elephant Graveyard north; the Tae Ew are a tribe of lizardmen.
+  - zone grid: Cazic-Thule lies 1 zone south of Kerplunk Outpost
+  - zone grid: Oggok Gate lies 1 zone west of Kerplunk Outpost
+  - zone grid: Lake Noregard lies 1 zone east of Kerplunk Outpost
+  - zone grid: Elephant Graveyard lies 1 zone north of Kerplunk Outpost
+  - Prima, factions: Tae Ew Lizards: "The lizardman tribe know as the Tae Ew."
+
+## More of the land
+
+- **LAND-26** The Seisen are a militaristic society of warmongering monks who worship Rallos Zek.
+  - Prima, factions: Seisen Monks: "A militaristic society of warmongering monks who worship Rallos Zek."
+- **LAND-27** The Actour's Guild is a mysterious guild of actors whose motives are unknown.
+  - Prima, factions: Actour's Guild: "A mysterious guild of actors."
+- **LAND-28** Saerk is a magician who keeps a tower with his minions and his staff.
+  - Prima, factions: Saerk: "Faction for the magician Saerk, his minions, and his staff at his tower."
+- **LAND-29** The creatures of the Plane of Sky are majestic and powerful; the dreadful creatures Cazic-Thule made are found only in his Plane of Fear.
+  - Prima, factions: Denizens of the Plane of Sky: "The majestic and powerful creatures that inhabit the Plane of Sky."
+  - Prima, factions: Denizens of Dread: "The dreadful creatures created by the Lord of Fear, Cazic-Thule. They're found only in the Plane of Fear."

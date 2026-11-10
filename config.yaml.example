@@ -80,6 +80,32 @@ world:
   # -world 10=worlds/world10.ESF its ground. None unless listed.
   # server_worlds: [10]
 
+  # Capture the flag (entity/ctf.go, handlers/ctf.go): an arena world of the
+  # server's own (tools/worlds/arena.json, slot 11, built by cmd/worldbuild and
+  # listed in server_worlds), joined at the PvP Events herald beside Dabrish
+  # (tools/place_ctf_herald.py) or with /ctf join. Off unless enabled; every
+  # number left out is its default (shown here; claude-notes/ctf-world-20261110.md).
+  # ctf:
+  #   enabled: true
+  #   world: 11
+  #   team_size: 10       # the most a team holds
+  #   min_per_team: 2     # the fewest a team starts with
+  #   score_limit: 3      # captures that win
+  #   time_limit: 20m     # then the higher score wins, a tie a draw
+  #   wave_every: 30s     # the dead rise together at their camp
+  #   wave_min_dead: 5s
+  #   countdown: 30s      # from enough signed up to the start
+  #   prep: 30s           # in the arena before the banners go live
+  #   end_hold: 15s       # from the end to everyone sent back
+  #   flag_return: 30s    # a dropped banner left alone goes home
+  #   wound_after: 4m     # a carrier past this takes more from every hit
+  #   wound_step: 25      # percent more, and as much again each further minute
+  #   wound_max: 200      # the most more, in percent
+  #   powerup_every: 60s  # a taken power-up comes back
+  #   speed_for: 20s      # the speed shrine's boost lasts
+  #   min_level: 1
+  #   touch_reach: 5
+
   # How many records the pack (worn items among them, as CLIENT's 40 counts
   # them) and the bank hold for a client that holds more (vanilla, offered them
   # with opcode 0x7E29). Unset or 40: CLIENT's 40, nothing offered; at most 255.

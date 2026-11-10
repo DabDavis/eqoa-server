@@ -124,8 +124,10 @@ func (f *shopFixture) loadLists() {
 			inv = append(inv, r)
 		}
 	}
-	f.sess.SetInventoryList(newInvList(inv))
-	f.sess.SetBankList(newInvList(bank))
+	packList, bankList := newInvList(inv), newInvList(bank)
+	packList.bank = bankList // as SendMemoryDump links them (character.go)
+	f.sess.SetInventoryList(packList)
+	f.sess.SetBankList(bankList)
 }
 
 // send feeds a request: its payload after the opcode, as Data() holds it.

@@ -1072,43 +1072,42 @@ record** is an itempattern row of its own (ids 980001-989999; table `itemascende
 "Ascended <name>", made once a base by `AscendedCopyTx`: the figures an import's copy scales (the seven stats, the hit
 point and power maxima and ticks, AC, the six resists, a weapon's damage) each above 0 times 110/100 in whole numbers,
 half up (4 stays 4, 5 is 6, 15 is 17; a penalty as it is: a tenth more never makes an item worse), its use effect's
-"by N" so, its proc and worn hit effect read by its base's record and name a tenth more (`entity.copyRecord`; an import
-of one damped after it); its durability (`maxhp`), price (`itemcost`), look, icon, slot, level, classes, races, NO
-TRADE and Lore its base's; never NO RENT (a base of rent 0, as Lord Nagafen's twins were made, gives rent 1, never in
-`norentvanish`). Gear (`IsAscendableGear`) is what is worn in wear slots 1-19, not a stack, not a thrown potion, not an
-Heirloom, not a copy; so is a tuned boss's quest item that a quest's show or give step turns into gear (the petition's
-own Ring of Veeshan is no gear: the Plane of Sky's armourers take it), unless a recipe takes it (the tool's rule); a
-spell scroll never is. A name over 63 characters (CLIENT's `m_name[64]` shows a longer one
-empty) is refused. **A record follows its base**: `SyncAscendedCopies` makes each its base again at every start (fix the
+"by N" so, its proc and worn hit effect read by its base's record and name a tenth more (`entity.copyRecord`; an
+import of one damped after it); its durability (`maxhp`), price (`itemcost`), look, icon, slot, level, classes, races,
+NO TRADE and Lore its base's; never NO RENT (a base of rent 0, as Lord Nagafen's twins were made, gives rent 1, never
+in `norentvanish`). What is made one: gear (`IsAscendableGear`: worn in wear slots 1-19, not a stack, not a thrown
+potion, not an Heirloom, not a copy), and a tuned boss's quest item that a quest's show or give step turns into gear
+unless a recipe takes it (the tool's rule: the petition's own Ring of Veeshan is no gear, and the Plane of Sky's
+armourers take it); never a spell scroll. A name over 63 characters is refused (CLIENT's `m_name[64]` shows a longer
+one empty). **A record follows its base**: `SyncAscendedCopies` makes each its base again at every start (fix the
 base, never the record); `itemascended` is read at the start and every minute, so a new record needs no restart.
 `WearablePatterns` leaves the records out (the heirlooms' figures and the balance kits stay the regular items': a
 boss's drop a tenth above them would raise every heirloom of its role). Lore stays per record: a player may hold a
-record and its Ascended one at once. **Quests**, every one (`handlers/questascended.go`): a show or give step's item is
-met by it or its Ascended record, one for one; the step comes Ascended when it wants an item that has one and the
-pack's Ascended records alone meet every such item's count (a give step then hands those in first), and its reward gear
-(its rewards, its class's, the picked option's) is given as their Ascended records, made at that moment when a reward
-has none; otherwise the regular items go first, an Ascended one only making up a count, and the rewards are regular. A
-loot step and the tracker count an Ascended record for its base; events' gives, tunar, XP, factions and spells never
-change. In the repository's quest files that is the Plane of Sky's four breastplate and tunic quests (the Ring of
-Veeshan off the Quintessence); the tool lists a database's own.
+record and its Ascended one at once. **Quests**, every one (`handlers/questascended.go`): a show or give step's item
+is met by it or its Ascended record, one for one; the step comes Ascended when it wants an item that has one and the
+pack's Ascended records alone meet every such item's count (a give step then hands those in first), and its reward
+gear (its rewards, its class's, the picked option's) is given as their Ascended records, made at that moment when a
+reward has none; otherwise the regular items go first, an Ascended one only making up a count, and the rewards are
+regular. A loot step and the tracker count an Ascended record for its base; events' gives, tunar, XP, factions and
+spells never change. In the repository's quest files that is the Plane of Sky's four breastplate and tunic quests (the
+Ring of Veeshan off the Quintessence); the tool lists a database's own.
 
 **When a GM tunes a raid boss, its loot is made Ascended** by a session (a GM asks with a work board entry "For dab's
-sessions: ascend <boss>"), on EACH shard's database (the shards' ids differ: the tool goes by name):
-`python3 -E -s tools/ascend_boss_loot.py --db eqoa.db --boss "<name>"` reports, `--apply` writes; `--tuned` is its
-`TUNED` list, the bosses so far (Lord Nagafen, Noroxus, Bertoxxulous, Uzrathixius, Poxathixius, the Quintessence of
-Veeshan, Yhafiran): add each boss tuned later. It points the gear rows of the boss's own loot tables, its own
-`lootpool` rows and its spawns' `npcitem` rows at Ascended records (spells and anything not gear stay), binds the boss
-to a copy "<table> ascended" of a table a creature not made Ascended also rolls, makes its quest items for gear
-Ascended too (one copy a table, kept in step with
-it by later runs: fix the table, never the copy), lists the quests that take the gear (making their reward gear's
-records so they can be read) and reports what it leaves: every creature's tables (`*`) and the loot categories'
-shared pools, which a tuned boss still rolls at its profile's rates. Each row a gm_audit line and a row of
-`ascended_loot_log`; `--undo [--run R]` puts back every row still as written and keeps a record a character holds; a
-second run writes nothing. Data only: no restart, but the first time the binary with this code must be in before
-the tool runs (an older one would give the heirlooms the Ascended records' figures, `WearablePatterns`, and refuse an
-Ascended hand-in). `TestATunedBossDropsAscendedGearAndItsSpells` runs it end to end, `TestRealAscendedLoot`
-(`EQOA_REAL_DB`) on a copy of a shard's database;
-`TestAscendBossLootToolKeepsTheRule` holds its constants and SQL to the server's.
+sessions: ascend <boss>"), on EACH shard's database (the shards' ids differ: the tool goes by name): `python3 -E -s
+tools/ascend_boss_loot.py --db eqoa.db --boss "<name>"` reports, `--apply` writes; `--tuned` is its `TUNED` list, the
+bosses so far (Lord Nagafen, Noroxus, Bertoxxulous, Uzrathixius, Poxathixius, the Quintessence of Veeshan, Yhafiran):
+add each boss tuned later. It points the rows of the boss's own loot tables, its own `lootpool` rows and its spawns'
+`npcitem` rows (by `npc_id`, when no creature not made Ascended shares it) that hold such an item at its Ascended
+record (spells and the rest stay); binds the boss to a copy "<table> ascended" of a table a creature not made Ascended
+also rolls (one copy a table, kept in step with it by later runs: fix the table, never the copy); lists the quests
+that take the items, making their reward gear's records so they can be read; and reports what it leaves: every
+creature's tables (`*`), the loot categories' shared pools (which a tuned boss still rolls at its profile's rates) and
+a quest item whose gear comes at a later step. Each row a gm_audit line and a row of `ascended_loot_log`; `--undo
+[--run R]` puts back every row still as written and keeps a record a character holds; a second run writes nothing.
+Data only, no restart; but the first time, the binary with this code must be in before the tool runs (an older one
+would give the heirlooms the Ascended records' figures and refuse an Ascended hand-in).
+`TestATunedBossDropsAscendedGearAndItsSpells` runs it end to end, `TestRealAscendedLoot` (`EQOA_REAL_DB`) on a copy of
+a shard's database, and `TestAscendBossLootToolKeepsTheRule` holds its constants and SQL to the server's.
 
 ### Heirloom test gear and the Armor Dyers (`handlers/heirloom.go`, `handlers/dyer.go`, `tools/seed_heirlooms.py`)
 

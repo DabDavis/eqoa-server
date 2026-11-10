@@ -938,99 +938,574 @@
       "notes": "Ours: the gatekeeper's port to Oggok, the gargoyles' wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
     },
     {
-      "key": "homelands/jalraeth/welcome",
-      "name": "The First Stillness",
+      "key": "homelands/jalraeth/L1",
+      "name": "A Novice's Prayer Beads",
       "giver": "Elder Ithrael",
       "classes": [],
-      "races": [],
+      "races": [
+        30
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "Be welcome, newly woken one. Before your path begins, greet Saelun on this road. She keeps the order's stores, and even a drifting mind must eat.",
-      "accept": "I will greet Saelun.",
+      "offer": "Be still. Good. You have come out of the long quiet and into the noise of the world. It will pass. Everything loud does.\nEach novice of the order counts its breaths on a string of temple beads. Artificer Maelis strings them, a few steps north of here.\nWill you fetch your beads and show them to me?",
+      "accept": "I will fetch them.",
       "decline": "Not now.",
-      "declined": "Stillness can wait. So can I.",
-      "started": "Go. Saelun waits on the road's north side, toward the door.",
+      "declined": "Then wait. Waiting, too, is practice.",
+      "started": "Maelis is a few steps to the north, on the road's far side.",
       "steps": [
         {
           "kind": "talk",
-          "target": "Grocer Saelun",
-          "journal": "Greet Grocer Saelun on the road before the temple's east door.",
-          "says": "Ithrael sent you? Then take this bread, and eat it slowly.",
-          "rewards": {
-            "items": [
-              "flax bread"
-            ]
-          }
+          "target": "Artificer Maelis",
+          "journal": "Ask Artificer Maelis, a few steps north of Elder Ithrael, for a novice's prayer beads.",
+          "says": "A novice. Hold out your hand. One bead for each breath, and when the string ends, begin again. The order asks no coin of its own.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "novice's prayer beads",
+                  "count": 1
+                }
+              ]
+            }
+          ]
         },
         {
-          "kind": "talk",
+          "kind": "show",
           "target": "Elder Ithrael",
-          "journal": "Return to Elder Ithrael on the temple's east road.",
-          "says": "Good. A still mind starts with a full stomach.",
+          "items": [
+            {
+              "item": "novice's prayer beads",
+              "count": 1
+            }
+          ],
+          "journal": "Show the novice's prayer beads to Elder Ithrael.",
+          "says": "Count on them when the world grows loud. It will. Now you are one of the order, and the order is quiet.",
           "rewards": {
-            "xp": 200,
-            "tunar": 10
+            "xp": 430
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 1
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the Jal'Raeth's first, at their home zone, Envar of the disc."
+      "notes": "Ours (the Homelands' starter quests): the jalraeth's level 1, at Envar, on the cities' level 1 quest: a piece of equipment fetched from a merchant and shown to the giver. Finishing it finishes the character's own city class quest of level 1 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/jalraeth.json: change that file, never this quest's rows by hand."
     },
     {
-      "key": "homelands/jalraeth/hunt",
-      "name": "Grubs in the Dead Hills",
+      "key": "homelands/jalraeth/L2",
+      "name": "Anchored at Envar",
       "giver": "Elder Ithrael",
       "classes": [],
-      "races": [],
-      "minlevel": 1,
+      "races": [
+        30
+      ],
+      "minlevel": 2,
       "maxlevel": 60,
       "requires": [
-        "homelands/jalraeth/welcome"
+        "homelands/jalraeth/L1"
       ],
-      "offer": "Ash grubs creep down from the dead hills where this road ends and gnaw at the temple's stones. Go up into those hills and end five of them.",
-      "accept": "I will end them.",
+      "offer": "A mind adrift is lost. Have Spiritmaster Oravai anchor your spirit at Envar, so that you return to this road if the world unmakes you.\nThen give your name to Coachman Therun for his ledger. His coach runs to Freeport and to the other homes of the Homelands.\nWill you see them both and return to me?",
+      "accept": "I will see them both.",
       "decline": "Not now.",
-      "declined": "Then the stones will be gnawed.",
-      "started": "Five grubs. Strike calmly.",
+      "declined": "Then go nowhere you cannot walk back from.",
+      "started": "Oravai waits to the south-west. Therun is a few steps behind you, by the road.",
       "steps": [
         {
-          "kind": "kill",
-          "target": "ash grub",
-          "count": 5,
-          "journal": "Kill five ash grubs in the hills where the east road ends."
+          "kind": "talk",
+          "target": "Spiritmaster Oravai",
+          "journal": "Have Spiritmaster Oravai, south-west of the elder, bind your spirit to Envar.",
+          "says": "It is done. Whatever unmakes you, you will gather again on this road. Now give Coachman Therun your name."
+        },
+        {
+          "kind": "talk",
+          "target": "Coachman Therun",
+          "journal": "Give your name to Coachman Therun, by the road just east of the elder, for his ledger.",
+          "says": "A novice. My coach runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now. I will not speak on the road. You will be glad of it."
         },
         {
           "kind": "talk",
           "target": "Elder Ithrael",
-          "journal": "Tell Elder Ithrael the grubs are dealt with.",
-          "says": "Five grubs ended. The stones are quiet again, and so, I hope, is your mind.",
+          "journal": "Return to Elder Ithrael.",
+          "says": "Good. Now you have a place to return to, and may go out from it.\nTherun's coach goes where its ledgers know you, but the scholars' door is earned. Watcher Vaeris, a few steps south, has work for you.",
           "rewards": {
-            "xp": 400,
-            "tunar": 25
+            "xp": 2200
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 2
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours: the Jal'Raeth's second starter quest, the elder's too (the owner's 2026-11-10: an elder giving two starter quests); the ash grubs are tools/seed_race_homes.py's, passive (npcaggro)."
+      "notes": "Ours (the Homelands' starter quests): the jalraeth's level 2, at Envar, on the cities' level 2 quest: the spiritmaster's bind and the coachman's ledger. Finishing it finishes the character's own city class quest of level 2 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/jalraeth.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/jalraeth/L3",
+      "name": "Grubs in the Dead Hills",
+      "giver": "Watcher Vaeris",
+      "classes": [],
+      "races": [
+        30
+      ],
+      "minlevel": 3,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/jalraeth/L2"
+      ],
+      "offer": "The novice. Good. Ash grubs breed in the dead hills east of the road, and they have begun to gnaw at the temple's stones.\nThin them, and bring me three of their teeth. Then I will show you a thing the order teaches.\nWill you hunt them?",
+      "accept": "I will hunt them.",
+      "decline": "Not now.",
+      "declined": "Stone is patient. It will be eaten slowly.",
+      "started": "Three teeth. East, where the road runs out into the hills.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "ash grub",
+          "items": [
+            {
+              "item": "ash grub tooth",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three ash grub teeth from the ash grubs in the dead hills east of the road."
+        },
+        {
+          "kind": "give",
+          "target": "Watcher Vaeris",
+          "items": [
+            {
+              "item": "ash grub tooth",
+              "count": 3
+            }
+          ],
+          "journal": "Bring three ash grub teeth to Watcher Vaeris.",
+          "says": "Three teeth. You did not hurry, and you did not falter. Now watch, and learn this.",
+          "rewards": {
+            "xp": 6900,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Swift Blade"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Hero Guard"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Malice"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Chant of Battle"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Sneak"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Fiery Burst"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Tribal Toughness"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Minor Blessing"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Smoldering Aura"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Life Tap"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Crawling Skin"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Arcane Bindings"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Hardening Agent"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 3
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the jalraeth's level 3, at Envar, on the cities' level 3 quest: a hunt for drops; each class is taught what its own city's level 3 quest teaches it. Finishing it finishes the character's own city class quest of level 3 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/jalraeth.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/jalraeth/L4",
+      "name": "A Novice's Arms",
+      "giver": "Watcher Vaeris",
+      "classes": [],
+      "races": [
+        30
+      ],
+      "minlevel": 4,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/jalraeth/L3"
+      ],
+      "offer": "A still mind is not enough in the lands beyond. I will make you proper gear, but you will bring what it needs.\nArtificer Maelis has cord and a shaft set aside. Then take a fang from the cinder adders on the low hills to the north-east.\nWill you bring me all three?",
+      "accept": "I will bring them.",
+      "decline": "Not now.",
+      "declined": "Then go unarmed, and be very still indeed.",
+      "started": "Cord and a shaft from Maelis, a fang from the adders. Go.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Artificer Maelis",
+          "journal": "Ask Artificer Maelis for the silk cord and the wooden shaft.",
+          "says": "For Vaeris. Here: cord, and a shaft cut straight. Use them once, and well.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "silk cord",
+                  "count": 1
+                },
+                {
+                  "item": "wooden shaft",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "loot",
+          "target": "cinder adder",
+          "items": [
+            {
+              "item": "cinder adder fang",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 0.5,
+          "journal": "Take a cinder adder fang from the cinder adders on the low hills north-east of the road."
+        },
+        {
+          "kind": "give",
+          "target": "Watcher Vaeris",
+          "items": [
+            {
+              "item": "silk cord",
+              "count": 1
+            },
+            {
+              "item": "wooden shaft",
+              "count": 1
+            },
+            {
+              "item": "cinder adder fang",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the silk cord, the wooden shaft and the cinder adder fang to Watcher Vaeris.",
+          "says": "All three. Be patient a moment... there. It is yours. Do not grow fond of it. It is a tool.",
+          "rewards": {
+            "xp": 17000,
+            "byclass": {
+              "0": {
+                "items": [
+                  "militia short sword"
+                ]
+              },
+              "1": {
+                "items": [
+                  "Glade Crafted Longbow"
+                ]
+              },
+              "2": {
+                "items": [
+                  "Sword of Faith"
+                ]
+              },
+              "3": {
+                "items": [
+                  "Iron Hatchet"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Disciple's Jitte"
+                ]
+              },
+              "5": {
+                "items": [
+                  "Traveler's Rapier"
+                ]
+              },
+              "6": {
+                "items": [
+                  "tiger dirk"
+                ]
+              },
+              "7": {
+                "items": [
+                  "crafted glade staff"
+                ]
+              },
+              "8": {
+                "items": [
+                  "Corse Spiked Club"
+                ]
+              },
+              "9": {
+                "items": [
+                  "Acolyte's Hammer"
+                ]
+              },
+              "10": {
+                "items": [
+                  "blue robe"
+                ]
+              },
+              "11": {
+                "items": [
+                  "Black Robe of the Order"
+                ]
+              },
+              "12": {
+                "items": [
+                  "yellow robe"
+                ]
+              },
+              "13": {
+                "items": [
+                  "red robe"
+                ]
+              },
+              "14": {
+                "items": [
+                  "burnt gloves"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 4
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the jalraeth's level 4, at Envar, on the cities' level 4 quest: new gear of a merchant's materials and a drop; each class is given what its own city's level 4 quest gives it (class-rewards.json has the two classes the cities give nothing). Finishing it finishes the character's own city class quest of level 4 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/jalraeth.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/jalraeth/L5",
+      "name": "The Hollow Pilgrim",
+      "giver": "Watcher Vaeris",
+      "classes": [],
+      "races": [
+        30
+      ],
+      "minlevel": 5,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/jalraeth/L4"
+      ],
+      "offer": "One task more. The temple's dead keep to the temple, but one has wandered out: a hollow thing in a pilgrim's rags, on the hill east of the grubs.\nIt has no stillness left, only hunger, and it will come at you on sight. Give it rest, and bring me a bone of it for the crypt.\nWill you lay the Hollow Pilgrim to rest?",
+      "accept": "I will lay it to rest.",
+      "decline": "Not yet.",
+      "declined": "It does not sleep. It will be there.",
+      "started": "East, through the grubs' hills, to the rise beyond. It will see you first.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "Hollow Pilgrim",
+          "items": [
+            {
+              "item": "Hollow Pilgrim's bone",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 1.0,
+          "journal": "Take the Hollow Pilgrim's bone from the Hollow Pilgrim on the hill east of the ash grubs."
+        },
+        {
+          "kind": "give",
+          "target": "Watcher Vaeris",
+          "items": [
+            {
+              "item": "Hollow Pilgrim's bone",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the Hollow Pilgrim's bone to Watcher Vaeris.",
+          "says": "It rests, then. I will see the bone laid where it belongs. You are a novice no longer.\nLearn this, and go to Gatekeeper Tavrin at the temple's east door when you are ready for Highbourne.",
+          "rewards": {
+            "xp": 36500,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Taunt"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Forage Berries"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Lay Hands"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Harm Touch"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Minor Purity"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Funeral March"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Shadowstrike"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Snare"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Blighting Mist"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Holy Shock"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Motivate"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Rabid Infection"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Heavy Arms"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Shock of Frost"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Refinement"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 5
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the jalraeth's level 5, at Envar, on the cities' level 5 quest: a foe to bring down; each class is taught what its own city's level 5 quest teaches it. Finishing it finishes the character's own city class quest of level 5 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/jalraeth.json: change that file, never this quest's rows by hand."
     },
     {
       "key": "homelands/jalraeth/flight",
       "name": "The Scholars' City",
       "giver": "Gatekeeper Tavrin",
       "classes": [],
-      "races": [],
+      "races": [
+        30
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [
-        "homelands/jalraeth/welcome",
-        "homelands/jalraeth/hunt"
+        "homelands/jalraeth/L1",
+        "homelands/jalraeth/L2",
+        "homelands/jalraeth/L3",
+        "homelands/jalraeth/L4",
+        "homelands/jalraeth/L5"
       ],
       "repeatable": true,
-      "offer": "The scholars of Highbourne took in the first of us, eager for what we know, and they will teach you in turn. I can send you to them, but the path runs one way. Are you ready?",
+      "offer": "The scholars of Highbourne, on Tunaria's western shore, took in the first of us, eager for what we know. They will teach you in turn.\nYou have earned the door. I will set you down among your own guild in Highbourne, and your spirit will rest there.\nShall I send you to Highbourne?",
       "accept": "Send me to Highbourne.",
       "decline": "Not yet.",
-      "declined": "The path will wait.",
+      "declined": "The door will wait.",
       "started": "Drift well, and keep your mind still!",
       "steps": [
         {
@@ -1052,7 +1527,7 @@
         }
       ],
       "unresolved": [],
-      "notes": "Ours: the gatekeeper's port to Highbourne, the Jal'Raeth's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
+      "notes": "Ours: the gatekeeper's port to Highbourne, the jalraeth's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/jalraeth.json."
     },
     {
       "key": "homelands/aviak/L1",
@@ -4360,6 +4835,38 @@
     }
   ],
   "items": [
+    {
+      "name": "novice's prayer beads",
+      "description": "A string of grey stone beads from the temple of Envar. A novice of the Jal'Raeth counts its breaths on them.",
+      "notrade": true,
+      "like": "Carved Bracelet",
+      "set": {
+        "POWMAX": 5,
+        "classuse": 32767,
+        "raceuse": 1023,
+        "levelreq": 1,
+        "itemcost": 0,
+        "maxhp": 500
+      }
+    },
+    {
+      "name": "ash grub tooth",
+      "description": "The tooth of an ash grub from the dead hills east of Envar.",
+      "notrade": true,
+      "like": "grub tooth"
+    },
+    {
+      "name": "cinder adder fang",
+      "description": "The fang of a cinder adder from the low hills north-east of Envar.",
+      "notrade": true,
+      "like": "cracked snake fang"
+    },
+    {
+      "name": "Hollow Pilgrim's bone",
+      "description": "A brittle bone of the Hollow Pilgrim, to be laid back in the crypt of Envar.",
+      "notrade": true,
+      "like": "brittle zombie bone"
+    },
     {
       "name": "fledgling's wingband",
       "description": "A band of knotted reed and down. Every fledgling of the Roost wears one on its wing.",

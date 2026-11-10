@@ -5698,36 +5698,12 @@
             "level": 3,
             "role": "foe",
             "at": [
-              6469.7,
-              68.48,
-              9058.3
-            ],
-            "size": 0.7,
-            "note": "the level 4 quest's gnats (the mosquito swarm's body, small), at the swamp creatures' spots among the pools south of the elder"
-          },
-          {
-            "name": "bog gnats",
-            "body": "0x0ED0E723",
-            "level": 3,
-            "role": "foe",
-            "at": [
-              6485.1,
-              83.46,
-              9129.2
-            ],
-            "size": 0.7
-          },
-          {
-            "name": "bog gnats",
-            "body": "0x0ED0E723",
-            "level": 4,
-            "role": "foe",
-            "at": [
               6477.1,
               83.91,
               9130.9
             ],
-            "size": 0.7
+            "size": 0.7,
+            "note": "the level 4 quest's gnats (the mosquito swarm's body, small), at the swamp's land creatures' spots among the pools south of the elder (not the anaconda's or the alligator's: those are in the water)"
           },
           {
             "name": "bog gnats",
@@ -5756,12 +5732,36 @@
           {
             "name": "bog gnats",
             "body": "0x0ED0E723",
-            "level": 4,
+            "level": 3,
             "role": "foe",
             "at": [
               6394.1,
               73.8,
               9150.7
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "bog gnats",
+            "body": "0x0ED0E723",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              6494.9,
+              70.23,
+              9209.1
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "bog gnats",
+            "body": "0x0ED0E723",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              6550.5,
+              57.9,
+              9198.2
             ],
             "size": 0.7
           },

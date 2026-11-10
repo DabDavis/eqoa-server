@@ -226,6 +226,10 @@ type SpellDef struct {
 	// description says ("Charms up to level 54 mobs", "Charm up to level
 	// 54"); 0: the spell's own level (charm.go).
 	CharmMax int
+	// CharmMin is the lowest level a charm takes when its line or description
+	// says ("Charm from level 41 up to level 52": the Puppet Strings, petition
+	// 1426 and transfer 97: "Charms mobs from 41+ but oor at 53"); 0: none.
+	CharmMin int
 	// Form is the body an illusion shows its bearer in, as the spell's name
 	// gives it ("troll", "clay golem"), and FormKind whom it lands on
 	// (illusion.go); "" and FormNone for every other spell.
@@ -311,6 +315,9 @@ func (d *SpellDef) Charms() bool {
 
 // reCharmMax is a charm's level cap in its words.
 var reCharmMax = regexp.MustCompile(`up to level (\d+)`)
+
+// reCharmMin is a charm's lowest level in its words.
+var reCharmMin = regexp.MustCompile(`from level (\d+)`)
 
 // Summons reports whether the spell makes a pet.
 func (d *SpellDef) Summons() bool {
@@ -460,6 +467,11 @@ func ParseSpell(line, desc string) SpellDef {
 	if d.Charms() && d.CharmMax == 0 {
 		if m := reCharmMax.FindStringSubmatch(strings.ToLower(desc)); m != nil {
 			d.CharmMax = atoi(m[1])
+		}
+	}
+	if d.Charms() && d.CharmMin == 0 {
+		if m := reCharmMin.FindStringSubmatch(strings.ToLower(desc)); m != nil {
+			d.CharmMin = atoi(m[1])
 		}
 	}
 	return d
@@ -713,6 +725,9 @@ func (d *SpellDef) parsePart(part, verb string) string {
 		d.Effects = append(d.Effects, SpellEffect{Kind: EffectCharm})
 		if m := reCharmMax.FindStringSubmatch(part); m != nil {
 			d.CharmMax = atoi(m[1])
+		}
+		if m := reCharmMin.FindStringSubmatch(part); m != nil {
+			d.CharmMin = atoi(m[1])
 		}
 		return verb
 	case part == "sow" || part == "spirit of the wolf":

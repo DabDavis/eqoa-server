@@ -158,7 +158,8 @@ const (
 	charmHavePet  = "You already have a pet."
 	charmCannot   = "Your target cannot be charmed." // ours: the live game's pop-up is not recorded
 	charmTooHigh  = "Your target is too high a level to charm."
-	charmResisted = "Attempt resisted!" // Sandstorm's
+	charmTooLow   = "Your target is too low a level for this charm." // ours: a charm with a lowest level (CharmMin)
+	charmResisted = "Attempt resisted!"                              // Sandstorm's
 	charmWornOff  = "Your charm spell has worn off."
 	// charmTooFar is the line when a charmed creature is led past its grace
 	// (charmFar), and charmNoCoach when its master takes a coach.
@@ -254,6 +255,9 @@ func (w *World) charmStartLocked(spell *CastSpell, targets []EntityID) string {
 		}
 		if npc.Level > charmMaxLevel(spell) {
 			return charmTooHigh
+		}
+		if spell.Def.CharmMin > 0 && npc.Level < spell.Def.CharmMin {
+			return charmTooLow
 		}
 	}
 	return ""

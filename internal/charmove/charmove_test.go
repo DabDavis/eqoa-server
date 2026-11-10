@@ -355,3 +355,37 @@ func TestAPlanFillsToItsClientsSizes(t *testing.T) {
 		t.Errorf("60 more into CLIENT's pack: %v", err)
 	}
 }
+
+// A plan's item of charges (itemeffect.charges, its record not stacking) holds them
+// all, as one bought does (database.ItemCharges): with 0 its first use was its last
+// (the Puppet Strings' 50, transfer 97). The control: a stacking item holds none,
+// its uses come off its stack.
+func TestAGivenItemHoldsItsCharges(t *testing.T) {
+	db, _ := migrateDB(t)
+	for _, q := range []string{
+		`UPDATE itempattern SET maxstack = 5 WHERE patternid = 5408`,
+		`INSERT INTO itemeffect (patternid, line, charges) VALUES (6207, 'Target, Charm from level 41 up to level 52, 3min', 50),
+			(5408, 'Self, Increase HP by 10', 4)`,
+	} {
+		if _, err := db.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	p := Plan{Character: "Wanderer", To: "auto", Items: []Item{{Pattern: 6207}, {Pattern: 5408}}}
+	if err := migrateErr(Migrate(db, p, true, false, io.Discard)); err != nil {
+		t.Fatal(err)
+	}
+	charges := func(pid int) int {
+		var n int
+		if err := db.QueryRow(`SELECT remaincharge FROM charinventory WHERE serverid = 126 AND patternid = ?`, pid).Scan(&n); err != nil {
+			t.Fatal(err)
+		}
+		return n
+	}
+	if c := charges(6207); c != 50 {
+		t.Errorf("an item of 50 charges given holds %d", c)
+	}
+	if c := charges(5408); c != 0 {
+		t.Errorf("a stacking item given holds %d charges, want 0", c)
+	}
+}

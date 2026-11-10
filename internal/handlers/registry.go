@@ -472,6 +472,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		gameWorld.OnPlayerEntered(tellVanished) // norent.go
 		gameWorld.OnPlayerEntered(tellRockOwed) // rockfreeport.go: a login with no room for the stone
 		gameWorld.OnPlayerEntered(tellKept)     // itemlists.go
+
+		// a login in safe mode, /testinvis (safemode.go)
+		gameWorld.OnPlayerEntered(tellSafeMode(gameWorld))
 	}
 
 	// Register the spell book's requests (0x0033, 0x003A, 0x00FE), and the
@@ -575,6 +578,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		genie.rehab = interactHandler.rehab         // its fourth answer (genie.go)
 		genie.dyer = interactHandler.dyer           // its fifth (genie.go)
 		chatHandler.SetVampireStore(charStore.DB()) // #vampire (vampirecmd.go)
+
+		// /testinvis's safe mode (safemode.go)
+		chatHandler.SetSafeModeStore(charStore.DB())
 	}
 	// the Spell Archivists (archivist.go): a request for one's shop asks first,
 	// his shop, the class's basic spells or a clear book

@@ -428,6 +428,8 @@ func main() {
 	// the Rock of Freeport (world.rock_of_freeport): its record made now when
 	// none is so named, given at a login, a cast to Freeport when used
 	handlers.SetRockOfFreeport(cfg.World.RockOfFreeport)
+	// /testinvis, every player's safe mode (handlers/safemode.go)
+	handlers.SetTestInvis(cfg.World.TestInvis)
 	handlers.SetTeleporter(cfg.World.Teleporter) // handlers/teleporter.go
 	if cfg.World.RockOfFreeport {
 		if id, made, err := handlers.EnsureRockOfFreeport(db); err != nil {

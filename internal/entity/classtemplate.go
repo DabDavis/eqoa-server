@@ -880,7 +880,8 @@ func (w *World) templateSparedLocked(c *npcCast, place areaPlace, id EntityID, s
 // a caster's area), within its radius and reached by it (sight.go), the
 // nearest first, its cap with the target counted; the players a creature may
 // notice (aggro.go: not hidden, not a GM who turned aggro off, not loading a
-// world), not across the water's edge from it, and players' pets.
+// world; one in safe mode only when it is part of npc's fight), not across
+// the water's edge from it, and players' pets.
 func (w *World) templateAreaLocked(npc *NPC, spell *CastSpell, target EntityID) []EntityID {
 	if w.SpatialIndex == nil {
 		return nil
@@ -897,7 +898,8 @@ func (w *World) templateAreaLocked(npc *NPC, spell *CastSpell, target EntityID) 
 			continue
 		}
 		if p := w.Players[id]; p != nil {
-			if p.World == npc.World && w.noticeableLocked(p) && !w.apartLocked(p, npc) {
+			// a player in safe mode (/testinvis, safemode.go) only once it is part of this fight
+			if p.World == npc.World && w.noticeableLocked(p) && (!w.safeLocked(p) || inFightLocked(npc, p)) && !w.apartLocked(p, npc) {
 				if d := dist3(p.X, p.Y, p.Z, cx, cy, cz); d <= r {
 					reached := w.reachesLocked(place, p.X, p.Y, p.Z)
 					seen.note(reached, p.Name, p.X, p.Y, p.Z)

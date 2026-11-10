@@ -348,7 +348,7 @@ func (h *TradeHandler) offerLocked(t *trade, me, you *tradeSide, key uint32, n i
 	})
 	out := wireRecord(row)
 	out.StackLeft = n
-	h.send(you, sub, h.seen(you, me.player), func(w *buffer.Writer) { writeSingleItem(w, &out, int(key)) })
+	h.send(you, sub, h.seen(you, me.player), func(w *buffer.Writer) { writeSingleItem(w, &out, int(key), readsCapes(you.sess)) })
 	h.clearAcceptsLocked(t)
 	log.Printf("Trade: %s offers %d %q", me.player.Name, n, row.Pattern.ItemName)
 }
@@ -405,9 +405,21 @@ func (h *TradeHandler) completeLocked(t *trade) {
 			return
 		}
 	}
+	gives := map[*tradeSide][]invGive{}
 	for _, m := range moves {
 		toInv := sessionInvList(m.to.sess)
 		if toInv.loreRoom(&m.row.Pattern, toInv.wouldAdd(m.row.Pattern.PatternID, m.n, m.row.Pattern.MaxStack)) < m.n {
+			h.refuseLocked(t)
+			return
+		}
+		gives[m.to] = append(gives[m.to], invGive{patternID: m.row.Pattern.PatternID, n: m.n, maxStack: m.row.Pattern.MaxStack})
+	}
+	// and all a side takes in, together, as its client files them, in the
+	// records its list holds (itemlists.go: CLIENT's 40 or a larger client's):
+	// each offer alone could fit where all four do not
+	for side, g := range gives {
+		if short := sessionInvList(side.sess).roomFor(nil, g); len(short) > 0 {
+			log.Printf("Trade: %s has no room for all %d offers", side.player.Name, len(g))
 			h.refuseLocked(t)
 			return
 		}
@@ -434,7 +446,7 @@ func (h *TradeHandler) completeLocked(t *trade) {
 			log.Printf("Trade: giving to %s: %v", m.to.player.Name, err)
 			continue
 		}
-		queueReliable(m.to.sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, key))
+		queueReliable(m.to.sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, key, readsCapes(m.to.sess)))
 		log.Printf("Trade: %d %q from %s to %s", m.n, m.row.Pattern.ItemName, m.from.player.Name, m.to.player.Name)
 	}
 	if t.a.money != 0 || t.b.money != 0 {

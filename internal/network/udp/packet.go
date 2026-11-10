@@ -24,6 +24,17 @@ type Packet struct {
 	RawData        []byte
 }
 
+// NamesSoftwareEndpoint reports whether the segment names a software
+// endpoint as its destination (segment flag 0x800, CLIENT's
+// append_segment_header: is_software_endpoint(dst)): what the client's
+// connection to a promoted session does, that session's SessionID (the src
+// our promoted packets carry) being one. Its lobby connection, to our drdp
+// port, never does (pcaps/ps2_sandstorm.pcap: the PS2's 553 promoted packets
+// all 0x3800 or 0x1800, its lobby's 0x7000, 0x87000, 0x53000).
+func (p *Packet) NamesSoftwareEndpoint() bool {
+	return p.Header != nil && p.Header.Flags&protocol.SegmentFlagIsRemote != 0
+}
+
 // GetLocalEndpoint returns the client's endpoint ID.
 func (p *Packet) GetLocalEndpoint() uint16 {
 	return p.LocalEndpoint
@@ -195,6 +206,12 @@ func (b *PacketBuilder) WriteRDPReport(packetSeq, lastRecvPacket, lastRecvMsg ui
 		return b.writer.WriteUint16(lastRecvMsg)
 	}
 	return nil
+}
+
+// WriteAckMask writes the guaranteed ack's mask (body flag 0x08): a plain
+// 7-bit varint, as CLIENT's buffer_append_packed_uns64 writes it.
+func (b *PacketBuilder) WriteAckMask(mask uint64) error {
+	return b.writer.Write7BitEncodedUInt64(mask)
 }
 
 // WriteStateAck writes a state channel acknowledgment.

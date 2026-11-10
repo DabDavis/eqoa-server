@@ -212,6 +212,12 @@ type WorldConfig struct {
 	// once a session, a few seconds after the player is in the world.
 	ReportNotice *bool `yaml:"report_notice"`
 
+	// Campfix false turns the players' camp reports off (/campfix, /mark,
+	// /markadd and /markremove: handlers/campfix.go): every one of them then
+	// answers that they are off, and a GM's own /mark (gmcamps.go) is as
+	// ever. Unset: on.
+	Campfix *bool `yaml:"campfix"`
+
 	// MoveCheck is what the server does with a player's report of its own
 	// place (its 0x40) that its moves cannot have reached: in the air with
 	// nothing under it, under the ground, through a wall, faster than its
@@ -233,6 +239,13 @@ type WorldConfig struct {
 	// or false, /pvp says it is not available and nothing else changes.
 	PvP bool `yaml:"pvp"`
 
+	// Jump lets players jump (entity/jump.go, handlers/jump.go): a client that
+	// can (vanilla) is offered it (protocol.OpcodeJump) and jumps about 0.9 up,
+	// and the movement check takes a jump's arc from it. Unset or false: nothing
+	// is offered, and every rise in the air is judged as before. A PS2 cannot
+	// jump and is never offered it.
+	Jump bool `yaml:"jump"`
+
 	// Heirlooms false gives no character the kept items at its login: the
 	// Genie's Lamp, the Heirloom Fang of the Wolf and the Summoning Portal
 	// (handlers/genie.go, wolffang.go, summonportal.go). Unset: given, to a
@@ -251,8 +264,27 @@ type WorldConfig struct {
 	OpenRaces  bool `yaml:"open_races"`
 	AllClasses bool `yaml:"all_classes"`
 
+	// PackSlots and BankSlots are how many records the pack (worn items among
+	// them, as CLIENT counts its 40) and the bank hold for a client that holds
+	// more than CLIENT's 40 (vanilla), which is offered them after the first
+	// character list (protocol.OpcodeItemLists, handlers/itemlists.go). Unset or
+	// 40 or less: 40, nothing offered; at most 255. A PS2 always holds 40, and a
+	// character with more is sent its first 40, the rest kept for it
+	// (charinventory locations 2 and 3) until a client that holds them logs in.
+	PackSlots int `yaml:"pack_slots"`
+	BankSlots int `yaml:"bank_slots"`
+
+	// Capes is an equip slot of this server's own, a cape's (entity/capes.go,
+	// handlers/capes.go): items of wear slot 28 worn in equip slot 22, each
+	// drawn in its record's style (model) by a client that draws capes
+	// (vanilla), which is offered them after the first character list
+	// (protocol.OpcodeCapes) and told who in its view wears which. Every other
+	// client (a PS2) is sent a cape as a plain item, never worn. Unset or
+	// false: no offer, and no cape can be worn.
+	Capes bool `yaml:"capes"`
+
 	// ImportedTag shows "(Imported)" after the name of gear a character
-	// transfer brought in (its record a copy at 70%: database/imported.go;
+	// transfer brought in (its record a copy at world.imported_share: database/imported.go;
 	// handlers/importedtag.go). Unset, off: the copies show their bases' names.
 	ImportedTag bool `yaml:"imported_tag"`
 
@@ -263,6 +295,44 @@ type WorldConfig struct {
 	// worlds folder offer what each lists (the Homelands, slot 10, on the
 	// Heirloom server alone).
 	ServerWorlds []int `yaml:"server_worlds"`
+
+	// ImportedShare is the share of its record's stats, procs and worn hit
+	// effects that gear a transfer brought in keeps (0.85 = 85%), each copy
+	// made its base again at this share at the start. Unset: 0.85.
+	ImportedShare float64 `yaml:"imported_share"`
+
+	// RockOfFreeport gives every character the Rock of Freeport
+	// (handlers/rockfreeport.go): the server makes its record at its start
+	// when none is so named, a character holding none is given one in its pack
+	// at its login (told once in the world when the pack is full), and its Use
+	// is a 2 s cast in Return Home's visual that sends its user a few steps in
+	// front of Dabrish. Unset or false: none of it, and a stone held does
+	// nothing. The Heirloom Test Server sets it.
+	RockOfFreeport bool `yaml:"rock_of_freeport"`
+
+	// TestInvis turns on /testinvis, every player's safe mode
+	// (handlers/safemode.go, entity/safemode.go; petition 1424): typed, no
+	// creature attacks the character on sight until it is typed again, and a
+	// fight it starts works as any other. Unset or false: the command says it
+	// is off, and a character left in safe mode leaves it at its next login.
+	// The Heirloom Test Server sets it.
+	TestInvis bool `yaml:"testinvis"`
+
+	// Teleporter turns on the Teleporter (handlers/teleporter.go): an NPC of
+	// that name (tools/place_teleporter.py stands one beside Dabrish) sends a
+	// player to every raid's way in and beside every XP camp, a box at a time,
+	// for nothing. Unset or false: it says its portals are closed. The
+	// Heirloom Test Server sets it.
+	Teleporter bool `yaml:"teleporter"`
+
+	// QuestMarksBelow is how many levels below the player's a quest's lowest
+	// level may be for its giver's "!" on a client's map
+	// (handlers/questmarks.go; a quest's name is marked once, at its nearest
+	// giver, whatever this is). Unset or 0: 10, so a level 60 is shown the
+	// quests for 50 and up (of the 150 or so it may take, three in five are for
+	// below 50); a number, that many; -1, every quest the player may take,
+	// however low.
+	QuestMarksBelow int `yaml:"quest_marks_below"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

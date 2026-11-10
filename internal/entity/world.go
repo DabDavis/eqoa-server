@@ -43,6 +43,9 @@ type World struct {
 	guildStore  GuildStore                        // guild.go: where every change is kept; nil: memory alone
 	genies      map[EntityID]EntityID             // the lamps' genies standing, by their owners (genie.go)
 	portals     map[EntityID]*portalState         // the Summoning Portals standing, by their NPCs (summonportal.go)
+	metal       *metalDuel                        // the Metal Moogie standing and his duel (metalmoogie.go), nil none
+	metalTold   map[EntityID]time.Time            // when each player was last told he is another's (metalmoogie.go)
+	buffers     []*bufferCast                     // Buffer's casts on their way to landing (buffer.go)
 	leaving     []func(*Player)                   // OnPlayerLeaving
 	entered     []func(*session.Session, *Player) // OnPlayerEntered
 	respawn     RespawnFunc                       // OnPlayerRespawn (respawn.go)
@@ -79,6 +82,8 @@ type World struct {
 	// The spells that send players to a named place, table spellgates, and
 	// those on their way (gates.go)
 	gates gateState
+	// The teleport orbs, table orbs (orbs.go)
+	orbs orbState
 	// regenAt is when the last regen tick fell (regenSystem): the regular
 	// tick a heal over time's ticks after its first keep to (hot.go)
 	regenAt time.Time
@@ -131,6 +136,8 @@ type World struct {
 
 	// pvpAllowed is world.pvp: whether players may flag themselves (pvp.go)
 	pvpAllowed bool
+	// jumpsAllowed is world.jump: whether players may jump (jump.go)
+	jumpsAllowed bool
 
 	// The combat records' counts waiting to be written (combatrecord.go)
 	records combatRecords
@@ -171,6 +178,12 @@ type World struct {
 	cms *cmCatalog
 	// NPCs coming to the help of their own (socialaggro.go)
 	npcSocial npcSocialState
+	// companions are the creatures' own pets by owner, companionOf each pet's
+	// owner, read off the NPCs when companionsAt (their number then) changes
+	// (companion.go)
+	companions   map[EntityID][]EntityID
+	companionOf  map[EntityID]EntityID
+	companionsAt int
 	// Every item's use, and the hooks that give and take potions (potion.go)
 	potions potionTable
 	// Where the water is (water.go), and how the creatures of a name move,
@@ -222,8 +235,9 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 	}
 
 	// Tag this session with the character's serverID for future dedup lookups
-	if sess != nil {
+	if sess != nil && record != nil {
 		sess.SetCharacterServerID(uint32(record.ServerID))
+		sess.SetCharacterName(record.CharName)
 	}
 
 	w.mu.Lock()
@@ -445,10 +459,11 @@ func (w *World) PlayerEntered(sess *session.Session) {
 // portal, and returns the departure hooks to run once the lock is let go.
 func (w *World) leavingLocked(p *Player) []func(*Player) {
 	delete(w.announced, p)
-	w.dropGenieLocked(p)   // its genie goes with it (genie.go)
-	w.dropPortalLocked(p)  // its portal too (summonportal.go)
-	w.duelLeavingLocked(p) // its invitation lapses, its duel is forfeit (duel.go)
-	w.pvpLeavingLocked(p)  // what it put on foes goes (pvp.go)
+	w.dropGenieLocked(p)    // its genie goes with it (genie.go)
+	w.dropPortalLocked(p)   // its portal too (summonportal.go)
+	w.duelLeavingLocked(p)  // its invitation lapses, its duel is forfeit (duel.go)
+	w.metalLeavingLocked(p) // its Metal Moogie leaves (metalmoogie.go)
+	w.pvpLeavingLocked(p)   // what it put on foes goes (pvp.go)
 	fns := make([]func(*Player), len(w.leaving))
 	copy(fns, w.leaving)
 	return fns
@@ -752,8 +767,9 @@ func (n *NPC) fromRecord(rec *database.NPCRecord, class int, ranged map[uint32]b
 		Class: class,
 	}
 	if dummy == SparringDummy {
-		// it quads at any level (sparring.go)
+		// it quads at any level (sparring.go), as hard as its name says
 		n.SwingFixed, n.SwingKind = true, sparSwing
+		n.DummyHits = DummyHitsOf(rec.NPCName)
 	}
 }
 
@@ -906,6 +922,7 @@ func (w *World) killNPC(npc *NPC) {
 	w.wakeNPCLocked(npc) // a corpse, and its fight to put away (npcsets.go)
 
 	log.Printf("Combat: NPC '%s' killed (entity ID=%d)", npc.Name, npc.ServerID)
+	w.companionsDieLocked(npc, npc.DeathTime) // its own pets go with it (companion.go)
 }
 
 // updateAggro adds or updates threat on an NPC: a hit or another hostile act
@@ -918,15 +935,19 @@ func (w *World) updateAggro(npc *NPC, attackerID EntityID, damage int) {
 	}
 	contactNPCLocked(npc) // a lull ends at a hit or a hostile act (workbook.go)
 	w.addThreatLocked(npc, attackerID, damage)
+	if npc.challenge != nil {
+		return // a duel: no one comes to a Metal Moogie's help (metalmoogie.go)
+	}
 	w.socialAssistLocked(npc, attackerID)
+	w.companionJoinLocked(npc, attackerID) // its pet, or its owner, with it (companion.go)
 }
 
 // addThreatLocked is threat on an NPC and its enemy the highest: a fight
 // begun or kept up, and no one else told of it. Must be called with the lock
 // held.
 func (w *World) addThreatLocked(npc *NPC, attackerID EntityID, damage int) {
-	if npc.Dummy != NotDummy {
-		return
+	if npc.Dummy != NotDummy || challengeBars(npc, attackerID) {
+		return // a dummy's one player (dummy.go), a Metal Moogie's challenger (metalmoogie.go)
 	}
 	w.wakeNPCLocked(npc)                  // a fight, and its regeneration's count after it (npcsets.go)
 	npc.calmTicks, npc.healing = 0, false // in a fight: no regeneration after it for a while (npcregen.go)
@@ -968,7 +989,7 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 		player.Debt = max(0, player.Debt-shares.Debt)
 		sendExpDebt(sess, player.Debt)
 	}
-	statCap := StatCapBase(player.Level)
+	statCap := player.TrainerCap()
 	startLevel := player.Level
 	player.TotalXP += levelXP
 	player.XPInLevel += levelXP
@@ -994,8 +1015,8 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 		}
 	}
 
-	if StatCapBase(player.Level) != statCap {
-		SendStatCap(sess, player.Level)
+	if t := player.TrainerCap(); t != statCap {
+		SendStatCap(sess, t)
 	}
 	if player.Level != startLevel {
 		for _, fn := range w.onLevelUp {
@@ -1065,8 +1086,11 @@ func (w *World) sendGrantXP(sess *session.Session, level, xpInLevel int) {
 
 // sendDamageIndication sends a visual damage/heal pop-up (0x00DB).
 // Wire format: opcode(2) + uint32(sourceObjectID) + 7BitEncodedInt64(amount) + uint32(targetObjectID)
-// Negative amount = damage, positive = healing.
-func (w *World) sendDamageIndication(sess *session.Session, sourceObjectID uint32, amount int, targetObjectID uint32) {
+// Negative amount = damage, positive = healing. kind is what made it when the
+// session's player or its pet did (numbertags.go), 0 for any other figure: a
+// session that asked for its figures' tags (NumberTags) is sent it as one
+// byte more, any other the retail body alone.
+func (w *World) sendDamageIndication(sess *session.Session, sourceObjectID uint32, amount int, targetObjectID uint32, kind numberKind) {
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeDamageIndication)
 	writer := buffer.NewWriter(msg.Span())
 
@@ -1074,6 +1098,9 @@ func (w *World) sendDamageIndication(sess *session.Session, sourceObjectID uint3
 	writer.WriteUint32(sourceObjectID)
 	writer.Write7BitEncodedInt64(int64(amount))
 	writer.WriteUint32(targetObjectID)
+	if kind.tagged() && sess.NumberTags() {
+		writer.WriteByte(byte(kind))
+	}
 
 	msg.SetSize(writer.Position())
 	sess.Queue().AddWithSequence(msg)

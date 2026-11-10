@@ -1,6 +1,6 @@
 // Command importdamper puts the gear character transfers brought in on its
-// imported copies (database/imported.go: each record copied once at 70% of
-// its stats; petition 1314, jibrish: "Any gear that was imported from the
+// imported copies (database/imported.go: each record copied once at ImportedShare of
+// its stats, 85% since petition 1320; petition 1314, jibrish: "Any gear that was imported from the
 // character transfer tool should be blanket reduced in stats by 30%. The real
 // world server drop equivelents should be the full thing."; the user: "you
 // can do what jib says for the 30% imported gear damper").
@@ -292,7 +292,7 @@ func audit(tx *sql.Tx, action string, what map[string]any, now time.Time) error 
 	_, err := tx.Exec(`INSERT INTO gm_audit (at, accountid, username, via, ip, action, tbl, rowkey, before, after, detail)
 		VALUES (?, 1, 'dab', 'tool', '', ?, 'charinventory', ?, NULL, ?, ?)`,
 		now.Format(time.RFC3339), action, `{"importdamper":"`+now.Format("20060102T150405Z")+`"}`, string(b),
-		"imported gear on its 70% copies (petition 1314, the user's yes); cmd/importdamper")
+		"imported gear on its damped copies (petition 1314, the user's yes); cmd/importdamper")
 	return err
 }
 

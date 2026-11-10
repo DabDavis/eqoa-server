@@ -44,6 +44,8 @@ type InteractHandler struct {
 	genie *Genie
 	// portal is the Summoning Portals' talk (summonportal.go)
 	portal *Portal
+	// buffer is Buffer's talk (buffer.go); nil: an NPC named Buffer has nothing to say
+	buffer *Buffer
 
 	// dialogLines is npcdialog (database.NPCDialog): what a town's people and
 	// the guards say (entity/dialog.go). Nil: they say nothing.
@@ -55,8 +57,10 @@ type InteractHandler struct {
 	boardAsked map[uint32]uint32 // the box last asked, by the character's serverid
 	boardBack  map[uint32]int    // that box's option of the way back, -1 none
 	boardSpell func() (entity.CastSpell, bool)
-	// Mr. Moogie's boxes (moogie.go), under boardMu
+	// Mr. Moogie's boxes (moogie.go), under boardMu, and his favor's turn-in (metalmoogie.go; nil:
+	// none offered)
 	moogie moogieAsks
+	favor  *MoogieFavor
 	// Dabrish's boxes (dabrish.go), under boardMu, and his work: a level set
 	// as #setlevel sets it (ChatHandler.applyLevel) and mastery points given
 	// as #grantcm gives them (ChatHandler.giveMastery). Nil: his ledger is
@@ -81,6 +85,9 @@ type InteractHandler struct {
 	// archivist answers the Spell Archivists' boxes (archivist.go), which a
 	// request for one's shop asks (merchant.go); nil: none is asked
 	archivist *Archivist
+
+	// tele is the Teleporter's boxes and what it offers (teleporter.go)
+	tele Teleporter
 }
 
 // SetDialogLines gives the handler npcdialog's reader (database.NPCDialog).
@@ -243,13 +250,29 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 
-	// Mr. Moogie (moogie.go): buffs cleared or a full heal, out of PvP and duels.
+	// Mr. Moogie (moogie.go): buffs cleared or a full heal, out of PvP and duels; his metal twin's
+	// duel and his favor (metalmoogie.go).
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.moogieTalk(sess, player, npc) {
+		return nil
+	}
+
+	// A Metal Moogie (metalmoogie.go): another's duel, said in a line.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.metalTalk(sess, npc) {
 		return nil
 	}
 
 	// Dabrish (dabrish.go): a level of the player's choosing, or mastery points.
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.dabrishTalk(sess, player, npc) {
+		return nil
+	}
+
+	// The Teleporter (teleporter.go): every raid and every camp.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.teleporterTalk(sess, player, npc) {
+		return nil
+	}
+
+	// Buffer (buffer.go): his five buffs, five hours each, a second after the talk.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.buffer.Talk(sess, player, npc) {
 		return nil
 	}
 
@@ -547,6 +570,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// Dabrish's (dabrish.go); an old one does nothing
 	if h.answerDabrish(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// the Teleporter's (teleporter.go); an old one does nothing
+	if h.answerTeleporter(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// a Spell Archivist's (archivist.go); an old one does nothing

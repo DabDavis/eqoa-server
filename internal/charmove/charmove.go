@@ -68,10 +68,18 @@ type Plan struct {
 	// Vampire makes the character a vampire (table charvampire, source
 	// "transfer"), unless it is one.
 	Vampire bool `json:"vampire,omitempty"`
-	// Imported gives the items' gear as its imported copies, at 70% of its
+	// Imported gives the items' gear as its imported copies, at ImportedShare of its
 	// records' stats (database.ImportedCopyTx; petition 1314): a transfer's,
 	// never a GM's grant (handlers/transfers.go decides it at the login).
 	Imported bool `json:"imported,omitempty"`
+	// PackSlots and BankSlots are how many records the character's pack (worn
+	// ones among them) and bank hold as its client keeps them: CLIENT's 40
+	// (PackCap, BankCap) when 0, or a larger client's (handlers/itemlists.go).
+	// "pack" and "auto" fill the pack to PackSlots and the bank is checked
+	// against BankSlots. Not the plan file's: the login that applies a
+	// transfer sets them (handlers/transfers.go).
+	PackSlots int `json:"-"`
+	BankSlots int `json:"-"`
 }
 
 type Move struct {
@@ -98,12 +106,15 @@ type Item struct {
 	Count   int    `json:"count"`
 }
 
-// PackCap is how many records CLIENT's pack holds, worn ones among them
-// (handlers/itemlist.go invListCap). bankWarn is past what this tool will put
-// in a bank without -force (CLIENT's bank list is not measured here).
+// PackCap is how many records CLIENT's pack holds, worn ones among them, and
+// BankCap its bank's (VIItemList's 40, handlers/itemlist.go invListCap): what a
+// plan fills to and checks against unless it says its client holds more
+// (Plan.PackSlots, BankSlots). More than BankCap in a bank needs -force; past
+// what the character's client holds, the rest is kept for it at its login
+// (handlers/itemlists.go), never sent to a client that cannot hold it.
 const (
-	PackCap  = 40
-	bankWarn = 60
+	PackCap = 40
+	BankCap = 40
 )
 
 const LogSchema = `CREATE TABLE IF NOT EXISTS charmigrate_log (
@@ -200,6 +211,8 @@ type migration struct {
 	logged int
 	// imported is Plan.Imported
 	imported bool
+	// packCap, bankCap: Plan.PackSlots and BankSlots, CLIENT's 40 for 0
+	packCap, bankCap int
 }
 
 func (m *migration) say(format string, a ...any) { fmt.Fprintf(m.out, format+"\n", a...) }
@@ -277,7 +290,8 @@ func firstNonEmpty(a, b string) string {
 func migrateTx(tx *sql.Tx, ch character, p Plan, apply, force bool, out io.Writer) (string, error) {
 	now := time.Now().UTC()
 	m := &migration{tx: tx, ch: ch, apply: apply, out: out, stamp: now.Format(time.RFC3339),
-		run: now.Format("20060102T150405Z") + "-" + strings.ToLower(ch.name), imported: p.Imported}
+		run: now.Format("20060102T150405Z") + "-" + strings.ToLower(ch.name), imported: p.Imported,
+		packCap: max(p.PackSlots, PackCap), bankCap: max(p.BankSlots, BankCap)}
 	if apply {
 		// a run's id is its own: another in the same second gets -2, -3...
 		base := m.run
@@ -675,15 +689,15 @@ func (m *migration) giveItems(items []Item, made map[string]int, to string, forc
 	toPack := 0
 	switch to {
 	case "pack":
-		if pack+rows > PackCap {
-			return fmt.Errorf("the pack holds %d records and %d more would pass its %d: give to the bank or auto", pack, rows, PackCap)
+		if pack+rows > m.packCap {
+			return fmt.Errorf("the pack holds %d records and %d more would pass its %d: give to the bank or auto", pack, rows, m.packCap)
 		}
 		toPack = rows
 	case "auto":
-		toPack = min(rows, max(PackCap-pack, 0))
+		toPack = min(rows, max(m.packCap-pack, 0))
 	}
-	if toBank := rows - toPack; bank+toBank > bankWarn && !force {
-		return fmt.Errorf("the bank holds %d records and %d more would pass %d (force to go on)", bank, toBank, bankWarn)
+	if toBank := rows - toPack; bank+toBank > m.bankCap && !force {
+		return fmt.Errorf("the bank holds %d records and %d more would pass its %d (force to go on)", bank, toBank, m.bankCap)
 	}
 	m.say("Items: %d into the pack (holding %d), %d into the bank (holding %d)", toPack, pack, rows-toPack, bank)
 	given := 0
@@ -739,7 +753,7 @@ func (m *migration) giveItems(items []Item, made map[string]int, to string, forc
 }
 
 // moveItems moves rows the character holds to the bank or the pack,
-// unequipped, at the end of that list; the pack held to PackCap.
+// unequipped, at the end of that list; the pack held to its client's (packCap).
 func (m *migration) moveItems(moves []Move) error {
 	if len(moves) == 0 {
 		return nil
@@ -769,7 +783,7 @@ func (m *migration) moveItems(moves []Move) error {
 			continue
 		}
 		if loc == 0 {
-			if pack >= PackCap {
+			if pack >= m.packCap {
 				return fmt.Errorf("the pack holds %d records: no room for %s", pack, name)
 			}
 			pack++

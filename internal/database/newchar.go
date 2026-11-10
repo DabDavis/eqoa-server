@@ -196,6 +196,10 @@ func HomeCity(race, humType, class int) string {
 // second ability.
 const returnHome = 1623
 
+// ReturnHomeSpell is returnHome for the handlers: the Rock of Freeport casts
+// in its visual (handlers/rockfreeport.go).
+const ReturnHomeSpell = returnHome
+
 // startingAbilities are what a fresh character of each class has on
 // Sandstorm, besides Return Home: one ability. Measured on its fresh
 // characters (eqoa harvest dumps and questrec16's warrior, F3 pass 17):

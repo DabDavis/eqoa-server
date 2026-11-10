@@ -3,6 +3,7 @@
 
 import { h } from './dom.js';
 import { lookupName } from './meta.js';
+import { lookCell } from './look.js';
 
 export function hex32(v) {
   if (v === null || v === undefined || v === '') return '';
@@ -30,11 +31,29 @@ export function enumLabel(meta, col, v) {
   return e ? e.label : v;
 }
 
+// A bit set's bits as BigInt: JavaScript's bit operators stop at 32 bits (bit 31
+// is the sign), and a race's bit in cmcatalog.races reaches 2^52 (entity's
+// LastCustomRace).
+export function big(v) {
+  const n = Number(v);
+  return Number.isSafeInteger(n) ? BigInt(n) : 0n;
+}
+
+export function hasBit(v, bit) {
+  const b = big(bit);
+  return (big(v) & b) === b;
+}
+
+export function withBit(v, bit, on) {
+  const b = big(bit);
+  return Number(on ? big(v) | b : big(v) & ~b);
+}
+
 export function flagLabels(meta, col, v) {
   const bits = meta.flags?.[col.flags] || [];
-  const n = Number(v) || 0;
-  const on = bits.filter((b) => (n & b.bit) === b.bit).map((b) => b.label);
-  const known = bits.reduce((a, b) => a | b.bit, 0);
+  const n = big(v);
+  const on = bits.filter((b) => hasBit(n, b.bit)).map((b) => b.label);
+  const known = bits.reduce((a, b) => a | big(b.bit), 0n);
   const rest = n & ~known;
   if (rest) on.push('0x' + rest.toString(16));
   return on;
@@ -78,6 +97,11 @@ export function duration(sec) {
 export function cell(meta, col, v) {
   if (v === null || v === undefined) return h('span', { class: 'faint' }, '—');
   if (col.enum) return String(enumLabel(meta, col, v));
+  // a look column: its picture or colour beside the number (lib/look.js)
+  if (col.look) {
+    const lc = lookCell(meta, col, v);
+    if (lc) return lc;
+  }
   if (col.flags) {
     const labels = flagLabels(meta, col, v);
     return labels.length ? labels.join(', ') : h('span', { class: 'faint' }, '0');

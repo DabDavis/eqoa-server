@@ -140,10 +140,12 @@ func TestTheArmorDyersQuestionsFitTheBox(t *testing.T) {
 			}
 		}
 	}
-	fits("what", choiceLabels(dyerChoices))
-	for _, c := range dyerChoices {
-		if c.sub != nil {
-			fits(c.label, choiceLabels(c.sub))
+	for _, menu := range [][]dyerChoice{dyerChoices, dyerChoicesCapes} { // without capes and with (capes.go)
+		fits("what", choiceLabels(menu))
+		for _, c := range menu {
+			if c.sub != nil {
+				fits(c.label, choiceLabels(c.sub))
+			}
 		}
 	}
 	var families []string

@@ -96,7 +96,7 @@ beside it):
 | `gm_testers` | who is a tester, a row an account: a player in the game who signs in to this panel and reads and changes the item and spell records, nothing else; `set_account_tester` gives and takes it (an admin's) | `accountid` |
 | `gm_storytellers` | who is a storyteller, a row an account: a player in the game who signs in to this panel and changes NPC dialog (`npcdialog`) and the quests' words (what their NPCs say, the answers, the journal's lines), nothing else; `set_account_storyteller` gives and takes it (an admin's); an account with both rows is both | `accountid` |
 | `characters` | player characters; `serverid` is the character's id everywhere | `serverid` |
-| `charinventory` | a character's items: `patternid` (the item), `stackleft`, `remainHP` (condition), `equiploc` (-1 not worn), `location` 0 inventory / 1 bank | `itemid` |
+| `charinventory` | a character's items: `patternid` (the item), `stackleft`, `remainHP` (condition), `equiploc` (-1 not worn), `location` 0 inventory / 1 bank / 2 and 3 kept from them (past what the client it logged in with holds, a PS2's 40: untouched, back at a login with room) | `itemid` |
 | `spells` | a character's spell book: `spellid`, `addedorder` (place in the book, < 252) | `id` |
 | `charbuffs` | spell effects kept over a logout | `serverid`+`seq` |
 | `npcs` | every NPC spawn; its `id` is its id in the world | `id` |
@@ -140,7 +140,13 @@ beside it):
   NPC `facing` is 0-255 for a full turn; a character's is radians.
 - **Ids that are asset ids** (`modelid`, `primary_weapon`, `secondary_weapon`, `shield`, `itemicon`, `model`,
   `icon`, `fxdict`, colours) are 32-bit values, shown in hex (`0x70D898C6`). Write them as hex strings
-  ("0x70D898C6") or numbers. Copy them from rows that look right.
+  ("0x70D898C6") or numbers. Copy them from rows that look right. `describe_table` gives such a column a
+  `look` (what it shows: `char` a body, `item` a held item's model, `itemicon`, `uiicon`/`uiback` a spell
+  icon's front and back, `itemlook` an item's model by its wear slot, `itemcolor`/`rgba` a colour, `tint` and
+  `armor:*` palette entries) and a `store`: write an `int32` column's id as its signed number (0xB44E7A96 is
+  -1269925226) and a `uint32` one's unsigned; the game reads the low 32 bits of either, but an item's icon goes
+  out in a field that needs it signed. `look_names` lists every id of a kind with what wears it ("which body do
+  the orc pawns use?"). Colours are 0xRRGGBBAA; an item's `color` 0-14 is a disc tint (`palettes`).
 - **`npcs.npc_type` is bit flags**: 0x01 merchant, 0x02 banker, 0x08 blacksmith, 0x80 not attackable
   (friendly or neutral; without it, any other bit makes the NPC hostile), 0x100 travel NPC, 0x400 large,
   0x800 huge. A friendly merchant is 0x81 (129); a plain townsperson 0x80 (128); a monster usually 0.

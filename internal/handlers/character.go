@@ -334,6 +334,29 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 		return nil
 	}
 
+	// a custom race's own options, chosen on a page of a client that was
+	// offered them (raceoptions.go): its body, and the looks its parts take
+	rest, _ := reader.ReadBytes(reader.Remaining())
+	choices, present, ok := raceOptionsBlock(rest)
+	var chosenBody int64
+	var looks []database.CharLook
+	if present {
+		var err error
+		if ok {
+			chosenBody, looks, err = entity.ResolveOptions(int(race), int(gender), choices)
+		}
+		if !ok || err != nil {
+			log.Printf("CreateCharacter: refused '%s': its race options (%d bytes): %v", name, len(rest), err)
+			h.sendCreateRefusal(sess, protocol.OpcodeCreateCharFailed)
+			return nil
+		}
+		log.Printf("CreateCharacter: '%s' chose %v: body %#x, %d looks", name, choices, uint32(chosenBody), len(looks))
+	} else if _, always, err := entity.ResolveOptions(int(race), int(gender), nil); err == nil && len(always) > 0 {
+		// no block (a PS2, the account page, an older client): the rows laid
+		// always all the same (the Wisp's wisp)
+		looks = always
+	}
+
 	// Create character record for database
 	accountID := sess.AccountID()
 	if accountID == 0 {
@@ -380,6 +403,10 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 		TotalTP:      20,
 	}
 
+	if chosenBody != 0 {
+		record.ModelID = chosenBody
+	}
+
 	// Save to database, at the start level, in the home city (a froglok in
 	// a human of the east's) and with its class's first abilities or, when
 	// the server gives them, all its class's spells (database/newchar.go):
@@ -403,6 +430,13 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 	log.Printf("*** CHARACTER CREATED: '%s' (ServerID=%d, Level %d Race=%d Class=%d, %d spells; the message asked level %d) - Total chars: %d ***",
 		name, record.ServerID, record.Level, record.Race, record.TClass, spells, level, count)
 
+	// the look it chose (charlook.go), told the clients that show looks
+	if len(looks) > 0 && h.store.DB() != nil {
+		if err := h.store.DB().SetCharLooks(uint32(record.ServerID), looks); err != nil {
+			log.Printf("CreateCharacter: '%s' made, its look not: %v", name, err)
+		}
+	}
+
 	// Don't create entity here — player entities are created when entering the world
 	// (CreatePlayer in HandleSelectedChar). Creating them at character creation would
 	// leave ghost entities in the spatial index that consume NPC render slots.
@@ -410,6 +444,9 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 	// Send updated character list
 	sess.Queue().SetBodyFlags(protocol.BodyFlagGuaranteedAck)
 	h.SendCharacterSelectEQOA(sess)
+	if len(looks) > 0 {
+		h.gameWorld.RefreshRaceLooks(h.store.DB())
+	}
 
 	return nil
 }
@@ -536,7 +573,7 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 
 	// A GM's approved character transfer applies now, before this login reads
 	// the character (transfers.go): no logout save can write over it here.
-	if h.applyTransfer(uint32(record.ServerID)) {
+	if h.applyTransfer(uint32(record.ServerID), sessionListSizes(sess)) {
 		if again, err := h.store.GetByServerID(charID); err == nil {
 			record = again
 		}
@@ -544,11 +581,15 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	// the No Rent items that vanish at logout go, before its items are read
 	// (norent.go)
 	h.vanishNoRent(uint32(record.ServerID))
-	// the kept items a character holds none of, before its items are read
-	h.giveKeptItems(uint32(record.ServerID))
+	// the kept items a character holds none of, before its items are read, in
+	// the room its client's lists have (itemlists.go)
+	h.giveKeptItems(uint32(record.ServerID), sessionListSizes(sess))
 
 	// the look it plays in, before anything reads the character
 	h.keepSelectedLook(record, data)
+	// the Rock of Freeport, on a server that gives it, before its items are
+	// read (rockfreeport.go)
+	h.giveRockOfFreeport(uint32(record.ServerID), sessionListSizes(sess))
 
 	log.Printf("SelectedChar: selected '%s' (level %d race=%d class=%d)", record.CharName, record.Level, record.Race, record.TClass)
 
@@ -607,6 +648,14 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 
 	// Send memory dump reading all data from player struct (single source of truth)
 	h.SendMemoryDump(sess)
+	// and each ability still locked out from its last session, after the
+	// dump that built the client's ability bar with none on (as a takeover's,
+	// a respawn's and a kept session's are told: entity/takeover.go)
+	if h.gameWorld != nil {
+		if n := h.gameWorld.SendLockouts(sess, time.Now()); n > 0 {
+			log.Printf("SelectedChar: '%s' told its %d lockouts", record.CharName, n)
+		}
+	}
 
 	return nil
 }
@@ -644,10 +693,12 @@ func (h *CharacterHandler) keepSelectedLook(record *database.CharacterRecord, da
 // enterFromRecord builds the character's Player from its row, as a login
 // does: where it starts (loginSpawn), the training points its level is due,
 // the Player in the world (CreatePlayer), then what its last session kept:
-// its spell effects, standings, mastery points, a rez's share, the masteries
-// it bought, its bind point, whether it is a vampire, its worn items and dyes,
-// its hit points and power. HandleSelectedChar's login and a session carried
-// through a restart (keep.go) build it the same way. nil with no World.
+// its spell effects, its abilities' lockouts, standings, mastery points, a
+// rez's share, the masteries it bought, its bind point, whether it is a
+// vampire, its worn items and dyes, its hit points and power. HandleSelectedChar's
+// login and a session carried through a restart (keep.go) build it the same
+// way (the kept session's lockouts are then its own: RestoreKeptPlayer). nil
+// with no World.
 func (h *CharacterHandler) enterFromRecord(sess *session.Session, record *database.CharacterRecord) *entity.Player {
 	// Where the session starts (loginSpawn): where the character logged out,
 	// or beside Archivist Vaal. Decided here, before CreatePlayer reads it.
@@ -680,6 +731,12 @@ func (h *CharacterHandler) enterFromRecord(sess *session.Session, record *databa
 		} else if n := h.gameWorld.RestoreEffects(sess, rows, time.Now()); n > 0 {
 			log.Printf("SelectedChar: '%s' keeps %d spell effects from its last session", record.CharName, n)
 		}
+		// and its abilities still locked out, the time it was away counted
+		// (entity/lockoutsave.go): a logout made every recast ready until
+		// 2026-11-09
+		h.restoreLockouts(sess, record)
+		// and its safe mode, /testinvis (safemode.go)
+		h.restoreSafeMode(sess, record)
 		// and its standings with the factions (entity/faction.go)
 		if m, err := h.store.LoadFactions(record.ServerID); err != nil {
 			log.Printf("SelectedChar: '%s' standings: %v", record.CharName, err)
@@ -836,6 +893,12 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// Offer others' power (powerbars.go): a client that draws power bars
 	// asks for it, a PS2 ignores it
 	SendPowerBarsOffer(sess)
+	// and the pet's effects (peteffects.go): a client that draws them under
+	// its pet's bar asks for them, a PS2 ignores it
+	SendPetEffectsOffer(sess)
+	// and what made each figure (numbertags.go): a client that colours its
+	// numbers by it asks, a PS2 ignores it
+	SendNumberTagsOffer(sess)
 
 	// Offer quest marks for the map (questmarks.go): a client that draws them
 	// asks, a PS2 ignores it
@@ -1015,12 +1078,18 @@ func (h *CharacterHandler) saveTakenOver(p *entity.Player, record *database.Char
 			log.Printf("SelectedChar: could not save '%s' taken over's level: %v", record.CharName, err)
 		}
 	}
-	// its spell effects, standings, mastery points and chance of a rez
-	// (entity/buffsave.go, faction.go, mastery.go, resurrect.go)
+	// its spell effects, lockouts, standings, mastery points and chance of a
+	// rez (entity/buffsave.go, lockoutsave.go, faction.go, mastery.go,
+	// resurrect.go)
 	now := time.Now()
 	if rows, ok := gw.SavedEffects(id, now); ok {
 		if err := h.store.SaveBuffs(record.ServerID, rows); err != nil {
 			log.Printf("SelectedChar: could not keep '%s' taken over's %d effects: %v", record.CharName, len(rows), err)
+		}
+	}
+	if rows, ok := gw.SavedLockouts(id, now); ok {
+		if err := h.store.SaveLockouts(record.ServerID, rows); err != nil {
+			log.Printf("SelectedChar: could not keep '%s' taken over's %d lockouts: %v", record.CharName, len(rows), err)
 		}
 	}
 	if m, ok := gw.SavedFactions(id); ok {
@@ -1181,6 +1250,7 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 	player.RobeTint, player.RobeColor = 0, 0
 	player.ArmorColors = [len(player.ArmorColors)]uint32{}
 	player.PrimaryType, player.SecondaryType = 0, 0
+	player.CapeStyle, player.CapeColor = 0, 0
 	worn := map[int]*database.CharInventoryEntry{}
 	for i := range items {
 		item := &items[i]
@@ -1208,6 +1278,10 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 		case 2: // Robe: style 0 is a robe too; its tint and colour its record's
 			player.Robe, player.RobeWorn = uint32(model), true
 			player.RobeTint, player.RobeColor = entity.RobeLook(item.Pattern.Color)
+		case wearCape: // the cape slot (capes.go): drawn only by a client that draws capes
+			if item.EquipLoc == equipCape {
+				player.CapeStyle, player.CapeColor = capeLook(&item.Pattern)
+			}
 		}
 	}
 	first := func(slots ...int) *database.CharInventoryEntry {
@@ -1430,6 +1504,7 @@ func (h *CharacterHandler) HandleDelCharacter(sess *session.Session, msg *protoc
 		return nil
 	}
 
+	looked := h.store.DB() != nil && h.store.DB().HasCharLook(serverID)
 	if err := h.store.Delete(serverID); err != nil {
 		log.Printf("DelCharacter: failed to delete serverID=%d: %v", serverID, err)
 	} else {
@@ -1437,6 +1512,9 @@ func (h *CharacterHandler) HandleDelCharacter(sess *session.Session, msg *protoc
 	}
 
 	h.SendCharacterSelectEQOA(sess)
+	if looked { // its look leaves the clients' lists (raceoptions.go)
+		h.gameWorld.RefreshRaceLooks(h.store.DB())
+	}
 	return nil
 }
 
@@ -1564,6 +1642,8 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 	// makes the PS2 see half the characters.
 	writer.Write7BitEncodedInt64(int64(len(records)))
 
+	var capes []listCape // the characters' capes, for a client that draws them (capes.go)
+	wantCapes := readsCapes(sess)
 	for _, c := range records {
 		// Name (int32 length prefix + UTF-8 string)
 		writer.WriteInt32(int32(len(c.CharName)))
@@ -1601,6 +1681,12 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 		// the live game's record to a client of its look, with the dyes
 		// (livelook.go); the disc's 32 bytes to every other
 		writer.WriteBytes(h.listGear(sess, uint32(c.ServerID), characterGear(items)))
+		// its cape, for a client that draws capes (capes.go), in its dye if it
+		// has one
+		if lc, ok := characterCape(uint32(c.ServerID), items); ok && wantCapes {
+			lc.color = h.capeDye(lc.serverID, lc.color)
+			capes = append(capes, lc)
+		}
 	}
 
 	msg.SetSize(writer.Position())
@@ -1618,6 +1704,17 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 	// and the server's own worlds' (serverworlds.go), before a character is
 	// picked: a login into one goes by the client's answer
 	SendServerWorldsOffer(sess)
+
+	// then the capes': the offer once, and to a client that took it the
+	// list's capes after every list (capes.go)
+	SendCapesOffer(sess)
+	sendCapesList(sess, capes)
+	// and the larger pack and bank's, once, where this server holds more than
+	// CLIENT's 40 (itemlists.go): answered before a character is chosen, so
+	// the world's first dump is sent at the client's sizes
+	SendItemListsOffer(sess)
+	// and the race options', every session's once (raceoptions.go)
+	SendRaceOptionsOffer(sess)
 }
 
 // worldPaths maps a world index to the esfPath the client loads it from.
@@ -1739,11 +1836,17 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 	// forgotten (quests' AtWindow), which a respawn's dump does not do
 	Quests().LoggedIn(player.CharServerID)
 
-	h.queueMemoryDump(sess, player)
+	// a login's: the rows kept for the character come back where its client
+	// has room (itemlists.go)
+	h.queueMemoryDumpAt(sess, player, true)
 
 	// Send ignore list and buddy list after memory dump (matches eqoa.live)
 	h.SendNoCollideList(sess)
 	h.SendBuddyList(sess)
+
+	// what the client asked for at character select, again on this connection
+	// (raceoptions.go)
+	h.resendPregameExtras(sess)
 
 	// Initialize state channel 0 from Player struct
 	h.initPlayerStateChannel(sess, player)
@@ -1770,10 +1873,22 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 // it after Camera1 and Time (SendMemoryDump); a respawn sends it alone
 // (respawnPlayer), as Sandstorm does.
 func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity.Player) {
+	h.queueMemoryDumpAt(sess, player, false)
+}
+
+// queueMemoryDumpAt is queueMemoryDump; login (SendMemoryDump's) also brings
+// back the rows kept for the character where its client has room
+// (itemlists.go), which no other dump does.
+func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *entity.Player, login bool) {
 	// The dump clears CLIENT's pet (m_petId, its name): told again after it
 	// (entity/pet.go)
 	if h.gameWorld != nil {
 		defer h.gameWorld.PetDumped(sess)
+	}
+	// and a scene of its own: a client that draws capes is told its view's
+	// capes again whatever it was told before (capes.go)
+	if readsCapes(sess) {
+		defer entity.GetOrCreateVisibility(sess).ResendCapes()
 	}
 	// The bank as one piece (bank.go's bankMu): its tunar, its list and the
 	// auction's lots and bids read and the dump queued with nothing of the
@@ -1789,11 +1904,20 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 			bankTunar = live.BankTunar
 		}
 	}
+	// The lists, as many records as the client holds (itemlists.go): a
+	// character with more keeps the rest, and a login's brings kept ones back
+	// where there is room. Read before the buffer is made, which their size
+	// sets.
+	packCap, bankCap := listCaps(sess)
+	invItems, bankItems, keptPack := h.fitItemLists(player.CharServerID, packCap, bankCap, login)
+
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeMemoryDump)
 	// MemoryDump can be 30KB+ with items/spells/hotkeys; write to a large
 	// buffer then SetData (the Writer drops what does not fit, silently: the
-	// auction's lists put up to ~5 KB more in it)
-	dumpBuf := make([]byte, 131072)
+	// auction's lists put up to ~5 KB more in it, and a record is at most
+	// about 900 bytes: a 64-character name and a 256-character description in
+	// UTF-16, its fields and stats)
+	dumpBuf := make([]byte, 131072+1024*(len(invItems)+len(bankItems)))
 	writer := buffer.NewWriter(dumpBuf)
 
 	// Write opcode in data
@@ -1863,23 +1987,7 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 		writeWideString(writer, line, 256)
 	}
 
-	// === Inventory + Bank sections ===
-	// Load items from database (charinventory joined with itempattern)
-	var invItems, bankItems []database.CharInventoryEntry
-	if h.inventoryStore != nil {
-		allItems, err := h.inventoryStore.GetCharacterItems(player.CharServerID)
-		if err != nil {
-			log.Printf("SendMemoryDump: inventory query error: %v", err)
-		} else {
-			for i := range allItems {
-				if allItems[i].Location == 1 {
-					bankItems = append(bankItems, allItems[i])
-				} else {
-					invItems = append(invItems, allItems[i])
-				}
-			}
-		}
-	}
+	// === Inventory + Bank sections === (read above: fitItemLists)
 
 	// The items prepared on the HUD's quick slots (gearsets.go)
 	quick := map[int]int{}
@@ -1899,13 +2007,15 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 		if pos, ok := quick[invItems[i].ItemID]; ok {
 			q = int64(pos)
 		}
-		writeItem(writer, &invItems[i], i, q)
+		writeItem(writer, &invItems[i], i, q, readsCapes(sess))
 	}
 	log.Printf("SendMemoryDump: wrote %d inventory items", len(invItems))
 	// The client's inventory list as this dump leaves it (key = position,
 	// counter = count): InteractItem's key resolves through it, and its reply
 	// carries the position in THIS list.
-	sess.SetInventoryList(newInvList(invItems))
+	packList := newInvListCap(invItems, packCap)
+	packList.kept = keptPack // a Lore item kept for it is one held (itemlist.go's loreRoom)
+	sess.SetInventoryList(packList)
 	// Dump the list the client will index into, so any disagreement about
 	// order shows up here.
 	for i := range invItems {
@@ -1922,11 +2032,11 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 	writer.Write7BitEncodedInt64(int64(len(bankItems)))
 	writer.WriteUint32(uint32(len(bankItems)))
 	for i := range bankItems {
-		writeSingleItem(writer, &bankItems[i], i)
+		writeSingleItem(writer, &bankItems[i], i, readsCapes(sess))
 	}
 	log.Printf("SendMemoryDump: wrote %d bank items", len(bankItems))
 	// The bank list keeps keys of its own, numbered the same way.
-	sess.SetBankList(newInvList(bankItems))
+	sess.SetBankList(newInvListCap(bankItems, bankCap))
 
 	var spells []database.CharSpellEntry
 	if h.spellbookStore != nil {
@@ -1956,6 +2066,12 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 			log.Printf("SendMemoryDump: debug wrote %d payload bytes to %s", len(dumpData)-2, path)
 		}
 	}
+	if writer.Remaining() < 256 {
+		log.Printf("SendMemoryDump: WARNING '%s''s dump filled its %d-byte buffer (%d left): it may be cut short", player.Name, writer.Length(), writer.Remaining())
+	}
+	// the sizes of its lists, first, to a client that holds more than CLIENT's
+	// (itemlists.go)
+	sendItemListsInForce(sess, packCap, bankCap)
 	msg.SetData(dumpData)
 	sess.Queue().AddWithSequence(msg)
 
@@ -2050,8 +2166,9 @@ func writeMemoryDumpTailWith(w *buffer.Writer, player *entity.Player, spells []d
 // writeDumpRecord is the player's record in the MemoryDump, VINetCharacter's
 // read (decomp vinetcharacter.cpp) up to the world index: the id, the name,
 // class, race, level, the experience into it, m_p2C, the breath, the purse,
-// the bank's tunar, the training points (m_p40) and m_p44, the stat cap
-// before masteries (entity/mastery.go; CLIENT's GetP44Total).
+// the bank's tunar, the training points (m_p40) and m_p44, where the trainer
+// stops a base: the highest stat cap (entity.Player.TrainerCap; CLIENT's
+// GetP44Total).
 func writeDumpRecord(writer *buffer.Writer, player *entity.Player) {
 	writeDumpRecordBank(writer, player, player.BankTunar)
 }
@@ -2070,7 +2187,7 @@ func writeDumpRecordBank(writer *buffer.Writer, player *entity.Player, bankTunar
 	writer.Write7BitEncodedInt64(int64(player.Tunar))
 	writer.Write7BitEncodedInt64(int64(bankTunar))
 	writer.Write7BitEncodedInt64(int64(player.UnusedTP))
-	writer.Write7BitEncodedInt64(int64(entity.StatCapBase(player.Level)))
+	writer.Write7BitEncodedInt64(int64(player.TrainerCap()))
 }
 
 // writeMasteryState is the dump's class mastery block, CLIENT's
@@ -2080,8 +2197,9 @@ func writeDumpRecordBank(writer *buffer.Writer, player *entity.Player, bankTunar
 // experience going to masteries (m_x08, the mastery points window's 0-100),
 // the run speed (raw; ReadState keeps it, only a buy's reply hands it to
 // SetSpeed), the 29 stats the masteries it bought add (the trainer shows a
-// stat as its base and training plus GetStat's) and the seven stat caps they
-// raise (m_bonus: GetP44Total's addend, the trainer's cap): entity/cmbuy.go.
+// stat as its base and training plus GetStat's) and the seven m_bonus,
+// GetP44Total's addend to m_p44 for a stat's cap: each stat's cap less the
+// highest (entity.Player.TrainerBonuses; entity/cmbuy.go, mastery.go).
 func writeMasteryState(w *buffer.Writer, player *entity.Player) {
 	m := player.Mastery
 	st := entity.CMStateOfPlayer(player)
@@ -2125,36 +2243,43 @@ func dumpQuickSlot(e *database.CharInventoryEntry) int64 {
 // never renumbers), so requests resolve keys through the session's invList
 // (itemlist.go), never by indexing. Sending charinventory.itemid here instead
 // made clicking one row act on another.
-func writeSingleItem(w *buffer.Writer, e *database.CharInventoryEntry, key int) {
-	writeItem(w, e, key, dumpQuickSlot(e))
+//
+// capes is whether the client draws capes (readsCapes): to one that does not, a
+// cape goes out as a plain item, never worn (capes.go's wireWear, wireEquipLoc).
+func writeSingleItem(w *buffer.Writer, e *database.CharInventoryEntry, key int, capes bool) {
+	writeItem(w, e, key, dumpQuickSlot(e), capes)
 }
 
 // writeItem is writeSingleItem with the record's quick slot given: only the
 // MemoryDump's inventory sends a prepared item's (gearsets.go); every other
 // record arrives on none.
-func writeItem(w *buffer.Writer, e *database.CharInventoryEntry, key int, quick int64) {
+func writeItem(w *buffer.Writer, e *database.CharInventoryEntry, key int, quick int64, capes bool) {
 	// Per-instance fields
 	w.Write7BitEncodedInt64(int64(e.StackLeft))
 	w.Write7BitEncodedInt64(int64(e.RemainHP))
 	w.Write7BitEncodedInt64(int64(e.Charges))
-	w.Write7BitEncodedInt64(int64(e.EquipLoc))
+	w.Write7BitEncodedInt64(int64(wireEquipLoc(e.EquipLoc, capes)))
 	w.Write7BitEncodedInt64(quick)
 	w.WriteUint32(uint32(key)) // key = container position (see doc comment)
-	writeItemPattern(w, e)
+	writeItemPattern(w, e, capes)
 }
 
 // writeItemPattern is the VIItem half of a record (0x00CBACE8): what an
-// auction lot carries after its own fields.
-func writeItemPattern(w *buffer.Writer, e *database.CharInventoryEntry) {
+// auction lot carries after its own fields. A cape's wear slot goes out as -1
+// to a client that does not draw capes (capes, wireWear).
+func writeItemPattern(w *buffer.Writer, e *database.CharInventoryEntry, capes bool) {
 	p := &e.Pattern
 
 	// Pattern fields
 	w.Write7BitEncodedInt64(int64(p.PatternID)) // ItemID on wire
 	w.Write7BitEncodedInt64(int64(p.ItemCost))
 	w.Write7BitEncodedInt64(int64(p.Unk1))
-	w.Write7BitEncodedInt64(p.ItemIcon)
+	// the icon as a signed 32-bit DictID, as writeAbilityRecord writes a spell's:
+	// CLIENT's ReadSigned gathers a zigzag into 32 bits, so an icon kept unsigned
+	// (the panel stored a typed 0x... as is until 2026-11-09) lost its top bit
+	w.Write7BitEncodedInt64(int64(int32(p.ItemIcon)))
 	w.Write7BitEncodedInt64(int64(p.Unk2))
-	w.Write7BitEncodedInt64(int64(p.EquipSlot))
+	w.Write7BitEncodedInt64(int64(wireWear(p.EquipSlot, capes)))
 	w.Write7BitEncodedInt64(int64(p.Unk3))
 	w.Write7BitEncodedInt64(int64(p.Trade))
 	w.Write7BitEncodedInt64(int64(p.Rent))

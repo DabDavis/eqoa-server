@@ -127,6 +127,9 @@ type Server struct {
 
 	dummyOnce sync.Once
 	dummy     string
+
+	// looks is look_names' answers, a minute each (looks.go)
+	looks lookCache
 }
 
 // New builds the panel. It creates its own tables (gm_audit, gm_totp,
@@ -162,7 +165,7 @@ func New(d Deps) (*Server, error) {
 		cfg:      cfg,
 		started:  time.Now(),
 		build:    buildVersion(),
-		sessions: newSessionStore(cfg.SessionIdle),
+		sessions: newSessionStore(cfg.SessionIdle, d.DB.DB),
 		limiter:  d.Limiter,
 		rate:     newRateLimiter(cfg.TokenRate, time.Minute),
 		oauth:    newOAuthState(),

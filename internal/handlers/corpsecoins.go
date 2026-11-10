@@ -26,8 +26,8 @@ const corpseCoinLine = "You receive %d tunar from the corpse."
 // corpseCoins is the tunar a creature's corpse carries, rolled when it is
 // first opened (roll is rand.Intn, a test's stand-in).
 func corpseCoins(npc *entity.NPC, roll func(int) int) int {
-	if npc.Owner != 0 || npc.Dummy != entity.NotDummy || npc.Level <= 0 {
-		return 0
+	if npc.Owner != 0 || npc.Dummy != entity.NotDummy || npc.Level <= 0 || npc.DuelSpawn() {
+		return 0 // a Metal Moogie's gives its tribute alone (entity/metalmoogie.go)
 	}
 	if roll == nil {
 		roll = rand.Intn

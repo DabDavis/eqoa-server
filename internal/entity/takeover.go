@@ -120,6 +120,7 @@ func (w *World) TakeOverPlayer(sess *session.Session, charServerID uint32) (*Pla
 		}
 	}
 	sess.SetCharacterServerID(charServerID)
+	sess.SetCharacterName(p.Name)
 	sess.SetECSEntity(p)
 	w.handedOverLocked(p)
 	t := w.takeoverOfLocked(p, now)
@@ -141,10 +142,10 @@ func (w *World) TakeOverPlayer(sess *session.Session, charServerID uint32) (*Pla
 // things by (each session numbers the world its own way: its target), the
 // attack button it held and the swing it drove (its NPCs' fights with it go
 // on), its velocity (the dump stands it still), the menus and questions open
-// on that client, its flight, and what that client asked for (power bars, voice,
-// the profanity filter off: on at every login), so the new client asks again. Its
-// guild, its group's roster and its pet are told to the new session as at a
-// login. Must be called with the lock held.
+// on that client, its flight, and what that client asked for (power bars, its
+// pet's effects, voice, the profanity filter off: on at every login), so the new
+// client asks again. Its guild, its group's roster and its pet are told to the
+// new session as at a login. Must be called with the lock held.
 func (w *World) handedOverLocked(p *Player) {
 	p.TargetObjectID = 0
 	p.AutoAttack = false
@@ -157,9 +158,11 @@ func (w *World) handedOverLocked(p *Player) {
 	p.RaceLabels, p.raceLabelsSent = false, "" // the new client's answer says
 	p.ProfanityFilterOff = false
 	p.PowerBars, p.powerBarsSent, p.powerBarsDue = false, "", false
+	p.PetEffects, p.petEffectsSent, p.petEffectsDue = false, "", false
 	p.RaidRoster, p.raidRosterSent = false, ""
 	delete(w.invites, p.ServerID)           // the new client has no box up
 	w.setFlyingLocked(p, false, time.Now()) // a new login: its client is not flying (fly.go)
+	p.Jumps, p.mv.jump = false, jumpState{} // and its answer to the jump offer says whether it jumps (jump.go)
 	p.StatsDirty = true
 	delete(w.announced, p) // guildAnnounceSystem tells the new client its guild
 	if g := w.groups[p.GroupID]; g != nil && p.GroupID != 0 {
@@ -221,7 +224,8 @@ func (w *World) SendTakenOver(sess *session.Session, now time.Time) int {
 // the client's ability bar anew with no lockout on, so until 2026-11-09 a
 // player who died with abilities locked out came back to them shown ready,
 // still refused (petition 1312, Hoofbite: "when you have buffs on cooldown,
-// when you die, they no longer are shaded out"). It returns how many it sent.
+// when you die, they no longer are shaded out"). It returns how many it sent;
+// a lockout of a spell that left the book (no index, bookchange.go) is not.
 func (w *World) SendLockouts(sess *session.Session, now time.Time) int {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
@@ -231,7 +235,7 @@ func (w *World) SendLockouts(sess *session.Session, now time.Time) int {
 	}
 	n := 0
 	for _, l := range p.Lockouts {
-		if left := l.until.Sub(now); left > 0 {
+		if left := l.until.Sub(now); left > 0 && l.displayIndex >= 0 {
 			sendCooldown(sess, l.displayIndex, left)
 			n++
 		}

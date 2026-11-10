@@ -214,10 +214,16 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 		return false, true
 	}
 	reach, stop := npcReach(npc), npcStop(npc)
+	// a creature that shoots fights from its bow's reach where it sees its enemy,
+	// on another floor or not (npcshoot.go)
+	shot, shooting := w.shootReachLocked(npc, d, x, y, z)
+	if shooting {
+		reach, stop = shot, shot-npcStopShort
+	}
 	// its enemy over or under it, on another floor within its reach across the
 	// ground (a ledge): no fight from there, but its way round to it at its run,
 	// where the ground has one (chaseroute.go)
-	if d <= reach+routeLook && absf(y-npc.Y) > routeLevel && !npc.rooted(now) && dt > 0 {
+	if !shooting && d <= reach+routeLook && absf(y-npc.Y) > routeLevel && !npc.rooted(now) && dt > 0 {
 		run := npc.runSpeed() * npc.snareFactor(now)
 		routing, hold := w.routeWayLocked(npc, &npc.chase.route, x, y, z, d, run*dt, true, now)
 		if routing {
@@ -311,6 +317,7 @@ func (w *World) giveUpLocked(npc *NPC) {
 	npc.CurrentEnemy = 0
 	npc.endRound()
 	w.goHomeLocked(npc)
+	w.companionsHomeLocked(npc) // its pets home with it (companion.go)
 }
 
 // goHomeLocked starts an NPC that was fighting back to where the fight

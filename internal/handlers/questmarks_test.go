@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/binary"
 	"math"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -190,5 +191,191 @@ func TestQuestMarksStayBounded(t *testing.T) {
 	}
 	if s := got[0].npc; len(s) > maxMarkText || !strings.HasSuffix(s, "...") || !strings.HasPrefix(s, "é") {
 		t.Fatalf("a long name %q (%d bytes)", s, len(s))
+	}
+}
+
+// takeMarksBy is the marks sent now, as "giver: quest" for each quest to take
+// on a "!", and "?giver" for each step's mark; the marks are off again after.
+func (f *questFixture) takeMarksBy() []string {
+	f.t.Helper()
+	f.qe.SetMarkers(f.tw.s, f.tw.p, true)
+	marks, _ := sentMarks(f.t, f.tw.s)
+	f.qe.SetMarkers(f.tw.s, f.tw.p, false)
+	var out []string
+	for _, m := range marks {
+		if m.kind != markTake {
+			out = append(out, "?"+m.npc)
+			continue
+		}
+		for _, q := range m.quests {
+			out = append(out, m.npc+": "+q.name)
+		}
+	}
+	sort.Strings(out)
+	return out
+}
+
+// A quest's name is marked once, at its nearest giver (the same quest is
+// given in each city: Armorcrafting by twelve smiths), and by none of its
+// givers while one of that name is under way or once one is finished; one
+// that may be done again is marked again, at its nearest, once finished. The
+// controls: another quest of the far giver's is marked there throughout, and
+// with only the far giver standing, the far one is marked.
+func TestQuestMarksANameOnceAtItsNearestGiver(t *testing.T) {
+	f := newQuestFixture(t)
+	f.tw.p.HP = 100
+	f.tw.add(1, &entity.NPC{ServerID: 701, Name: "Smithy Near", SpawnX: 25500, SpawnZ: 15725})
+	f.tw.add(2, &entity.NPC{ServerID: 702, Name: "Smithy Far", SpawnX: 27000, SpawnZ: 15725})
+	f.tw.add(3, &entity.NPC{ServerID: 703, Name: "Kellina", SpawnX: 25404, SpawnZ: 15726})
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel, maxlevel, repeatable) VALUES
+		(20001, 'Armorcrafting', 1, 'Smithy Far', 1, 60, 0), (20002, 'Armorcrafting', 1, 'Smithy Near', 1, 60, 0),
+		(20003, 'Far Errand', 1, 'Smithy Far', 1, 60, 0),
+		(20004, 'Chore', 1, 'Smithy Far', 1, 60, 1), (20005, 'Chore', 1, 'Smithy Near', 1, 60, 1)`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES
+		(20001, 1, 'talk', 'Kellina', 'a'), (20002, 1, 'talk', 'Kellina', 'a'), (20003, 1, 'talk', 'Kellina', 'e'),
+		(20004, 1, 'talk', 'Kellina', 'c'), (20005, 1, 'talk', 'Kellina', 'c')`)
+	f.reload()
+	f.msgs()
+	want := func(when string, w ...string) {
+		t.Helper()
+		if got := f.takeMarksBy(); strings.Join(got, "|") != strings.Join(w, "|") {
+			t.Fatalf("%s: marks %q, want %q", when, got, w)
+		}
+	}
+	want("nothing taken", "Smithy Far: Far Errand", "Smithy Near: Armorcrafting", "Smithy Near: Chore")
+
+	if _, err := f.qe.SetCharacterQuest(f.sid, 20002, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.msgs()
+	want("Armorcrafting under way", "?Kellina", "Smithy Far: Far Errand", "Smithy Near: Chore")
+	f.finish(20002)
+	want("Armorcrafting finished", "Smithy Far: Far Errand", "Smithy Near: Chore")
+
+	// a repeatable one, finished, is marked again at its nearest
+	f.finish(20005)
+	want("the chore finished", "Smithy Far: Far Errand", "Smithy Near: Chore")
+
+	// the near smith gone: the far one's
+	delete(f.tw.w.NPCs, 701)
+	f.reload()
+	f.exec(`DELETE FROM charquests`)
+	f.qe.mu.Lock()
+	delete(f.qe.chars, f.sid)
+	f.qe.mu.Unlock()
+	want("only the far smith standing", "Smithy Far: Armorcrafting", "Smithy Far: Chore", "Smithy Far: Far Errand")
+}
+
+// Only quests near the player's level are marked (world.quest_marks_below):
+// unset, a level 60 is shown a quest for 50 and not one for 49 or for 1 (a
+// quest of no lowest level counts as one for 1); 15 shows the one for 49, and
+// -1 every one. The controls: a level 11 is shown the quests for 1, and a
+// level 12 is not.
+func TestQuestMarksNearThePlayersLevel(t *testing.T) {
+	f := newQuestFixture(t)
+	defer SetQuestMarksBelow(0)
+	f.tw.p.HP, f.tw.p.Level = 100, 60
+	f.tw.add(1, &entity.NPC{ServerID: 701, Name: "Elder", SpawnX: 25500, SpawnZ: 15725})
+	f.tw.add(3, &entity.NPC{ServerID: 703, Name: "Kellina", SpawnX: 25404, SpawnZ: 15726})
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel, maxlevel) VALUES
+		(20011, 'For fifty', 1, 'Elder', 50, 60), (20012, 'For forty-nine', 1, 'Elder', 49, 60),
+		(20013, 'For one', 1, 'Elder', 1, 60), (20014, 'For anyone', 1, 'Elder', 0, 0)`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES
+		(20011, 1, 'talk', 'Kellina', 'a'), (20012, 1, 'talk', 'Kellina', 'b'), (20013, 1, 'talk', 'Kellina', 'c'),
+		(20014, 1, 'talk', 'Kellina', 'd')`)
+	f.reload()
+	f.msgs()
+	for _, c := range []struct {
+		below, level int
+		want         string
+	}{
+		{0, 60, "Elder: For fifty"},
+		{10, 60, "Elder: For fifty"},
+		{15, 60, "Elder: For fifty|Elder: For forty-nine"},
+		{-1, 60, "Elder: For anyone|Elder: For fifty|Elder: For forty-nine|Elder: For one"},
+		{0, 11, "Elder: For anyone|Elder: For one"},
+		{0, 12, ""},
+	} {
+		SetQuestMarksBelow(c.below)
+		f.tw.p.Level = c.level
+		if got := strings.Join(f.takeMarksBy(), "|"); got != c.want {
+			t.Errorf("quest_marks_below %d, level %d: marks %q, want %q", c.below, c.level, got, c.want)
+		}
+	}
+}
+
+// A giver where the player has a step to do shows that step's "?" alone, not
+// a "!" for its own quest besides; once the step is done, its "!" is back.
+// The control: the giver's "!" before the step is taken.
+func TestQuestMarksAStepOverAGiversQuest(t *testing.T) {
+	f := newQuestFixture(t)
+	f.tw.p.HP = 100
+	malsis := f.tw.add(1, &entity.NPC{ServerID: 701, Name: "Malsis", SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
+	f.tw.add(2, &entity.NPC{ServerID: 702, Name: "Kellina", SpawnX: 25420, SpawnY: 54.1, SpawnZ: 15726})
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel, maxlevel) VALUES (20021, 'Kellina''s own', 1, 'Kellina', 1, 10)`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (20021, 1, 'talk', 'Malsis', 'k')`)
+	f.reload()
+	f.msgs()
+	if got, want := strings.Join(f.takeMarksBy(), "|"), "Kellina: Kellina's own|Malsis: The pincers"; got != want {
+		t.Fatalf("before: marks %q, want %q", got, want)
+	}
+	// the pincers taken: its step at Kellina, Kellina's "!" gone
+	f.tw.talk(malsis)
+	f.tw.pick(boxID(f.msgs()), 0)
+	if got, want := strings.Join(f.takeMarksBy(), "|"), "?Kellina"; got != want {
+		t.Fatalf("a step at Kellina: marks %q, want %q", got, want)
+	}
+}
+
+// A reach step the player has to do is a "?" at its spot (petition 1404:
+// Totem of the Plains' cave in Snowfist had none), its journal line for its
+// name and the quest's levels, its own line left out (the name says it). The
+// controls: the player at the spot, the step done (checkReach), its mark goes
+// and the next step's NPC has its "?"; a reach step of a quest not taken has
+// no mark.
+func TestQuestMarksAReachStepsPlace(t *testing.T) {
+	f := newQuestFixture(t)
+	f.tw.p.HP, f.tw.p.MaxHP = 100, 100 // a dead player stands nowhere
+	f.tw.add(2, &entity.NPC{ServerID: 702, Name: "Kellina", SpawnX: 25404, SpawnY: 54.1, SpawnZ: 15726})
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel, maxlevel) VALUES
+		(20041, 'Totem of the Hills', 1, 'Malsis', 1, 10), (20042, 'Not taken', 1, 'Malsis', 1, 10)`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, world, x, y, z, radius, journal) VALUES
+		(20041, 1, 'reach', '', 0, 25600, 47, 15900, 40, 'Enter the blue cave east of the camp.'),
+		(20041, 2, 'talk', 'Kellina', 0, 0, 0, 0, 15, 'Tell Kellina of the cave.'),
+		(20042, 1, 'reach', '', 0, 25700, 47, 15950, 40, 'A cave no one was sent to.')`)
+	f.reload()
+	if _, err := f.qe.SetCharacterQuest(f.sid, 20041, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.msgs()
+	f.qe.SetMarkers(f.tw.s, f.tw.p, true)
+	marks, _ := sentMarks(t, f.tw.s)
+	var steps []questMark
+	for _, m := range marks {
+		if m.kind != markTake {
+			steps = append(steps, m)
+		}
+	}
+	if len(steps) != 1 {
+		t.Fatalf("step marks %+v, want the reach step's one", steps)
+	}
+	m := steps[0]
+	if m.kind != markStep || m.world != 0 || m.x != 25600 || m.z != 15900 || m.npc != "Enter the blue cave east of the camp." || len(m.quests) != 1 {
+		t.Fatalf("the reach step's mark %+v", m)
+	}
+	if q := m.quests[0]; q.name != "Totem of the Hills" || q.min != 1 || q.max != 10 || q.line != "" || q.detail != "" {
+		t.Fatalf("its quest %+v", q)
+	}
+	f.qe.SetMarkers(f.tw.s, f.tw.p, false)
+
+	// at the cave: the step done, its mark gone, Kellina's "?" come
+	f.tw.p.X, f.tw.p.Z = 25605, 15895
+	f.qe.checkReach()
+	if s, _ := f.progress(20041); s != 2 {
+		t.Fatalf("at the cave: step %d, want 2", s)
+	}
+	f.msgs()
+	if got, want := strings.Join(f.takeMarksBy(), "|"), "?Kellina"; got != want {
+		t.Fatalf("the reach step done: marks %q, want %q", got, want)
 	}
 }

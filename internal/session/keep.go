@@ -51,8 +51,18 @@ type Kept struct {
 	LiveLook           bool `json:"live_look,omitempty"`
 	LiveLookOffered    bool `json:"live_look_offered,omitempty"`
 	CreationOffered    bool `json:"creation_offered,omitempty"`
+	Capes              bool `json:"capes,omitempty"`
+	CapesOffered       bool `json:"capes_offered,omitempty"`
+	ItemListsPack      int  `json:"item_lists_pack,omitempty"`
+	ItemListsBank      int  `json:"item_lists_bank,omitempty"`
+	ItemListsOffered   bool `json:"item_lists_offered,omitempty"`
+	RaceOptionsOffered bool `json:"race_options_offered,omitempty"`
+	RaceLooks          bool `json:"race_looks,omitempty"`
+	RaceCatalogueSent  bool `json:"race_catalogue_sent,omitempty"`
 	BugReports         bool `json:"bug_reports,omitempty"`
+	AckMasks           bool `json:"ack_masks,omitempty"`
 	FlyClient          bool `json:"fly_client,omitempty"`
+	NumberTags         bool `json:"number_tags,omitempty"`
 	ReportNotice       bool `json:"report_notice,omitempty"`
 	BoonNotice         bool `json:"boon_notice,omitempty"`
 	WorldLoadPending   bool `json:"world_load_pending,omitempty"`
@@ -86,9 +96,19 @@ type KeptConn struct {
 	RxPacket  uint16 `json:"rx_packet"`
 	RxMessage uint16 `json:"rx_message"`
 	RxSeen    uint64 `json:"rx_seen"`
-	TxPacket  uint16 `json:"tx_packet"`
-	TxMessage uint16 `json:"tx_message"`
-	Acked     uint16 `json:"acked"`
+	// RxAck and RxWin are the receive window (rxwindow.go): the client's
+	// messages taken with every one before them, and those taken past it.
+	// RxMessage stays the newest taken, what a binary from before the window
+	// acknowledged and reads back: given the window's ack, it would
+	// acknowledge less than the client was told, with no mask, and CLIENT
+	// refuses every such segment ("some of the previously acked packets have
+	// become un-acked"). An older binary's file has neither: its RxMessage
+	// was acknowledged whole.
+	RxAck     *uint16 `json:"rx_ack,omitempty"`
+	RxWin     uint64  `json:"rx_win,omitempty"`
+	TxPacket  uint16  `json:"tx_packet"`
+	TxMessage uint16  `json:"tx_message"`
+	Acked     uint16  `json:"acked"`
 	// Fragments is a message the client was sending in pieces, the pieces
 	// taken so far (fragments.go)
 	Fragments *KeptFragments `json:"fragments,omitempty"`
@@ -162,8 +182,18 @@ func (s *Session) Keep() Kept {
 		LiveLook:           s.liveLook,
 		LiveLookOffered:    s.liveLookOffered,
 		CreationOffered:    s.creationOffered,
+		Capes:              s.capes,
+		CapesOffered:       s.capesOffered,
+		ItemListsPack:      s.itemListsPack,
+		ItemListsBank:      s.itemListsBank,
+		ItemListsOffered:   s.itemListsOffered,
+		RaceOptionsOffered: s.raceOptionsOffered,
+		RaceLooks:          s.raceLooks,
+		RaceCatalogueSent:  s.raceCatalogueSent,
 		BugReports:         s.bugReports,
+		AckMasks:           s.ackMasks,
 		FlyClient:          s.flyClient,
+		NumberTags:         s.numberTags,
 		ReportNotice:       s.reportNotice,
 		BoonNotice:         s.boonNotice,
 		WorldLoadPending:   s.worldLoadPending,
@@ -188,10 +218,13 @@ func (s *Session) Keep() Kept {
 // reads it under the queue's lock).
 func (cd *ConnectionData) keep() KeptConn {
 	cd.mu.Lock()
+	ack := cd.lastReceivedMessageSeq
 	k := KeptConn{
 		RxPacket:  cd.lastReceivedPacketSeq,
-		RxMessage: cd.lastReceivedMessageSeq,
-		RxSeen:    cd.rxSeen,
+		RxMessage: cd.newestTakenLocked(),
+		RxAck:     &ack,
+		RxSeen:    ^uint64(0),
+		RxWin:     cd.rxWin,
 		TxPacket:  cd.lastSentPacketSeq,
 		TxMessage: cd.lastSentMessageSeq,
 		Acked:     cd.clientLastReceivedMessage,
@@ -299,8 +332,17 @@ func (s *Session) restore(k Kept, now time.Time) {
 	s.creationOffered = k.CreationOffered
 	s.serverWorldsOffered = k.ServerWorldsOffered
 	s.serverWorlds = append([]uint8(nil), k.ServerWorlds...)
+
+	s.capes = k.Capes
+	s.capesOffered = k.CapesOffered
+	s.itemListsPack, s.itemListsBank, s.itemListsOffered = k.ItemListsPack, k.ItemListsBank, k.ItemListsOffered
+	// the client keeps its lists; a data step in the hold may have changed the
+	// looks, so the next refresh sends them again (handlers/keep.go)
+	s.raceOptionsOffered, s.raceLooks, s.raceCatalogueSent, s.raceLooksSent = k.RaceOptionsOffered, k.RaceLooks, k.RaceCatalogueSent, ""
 	s.bugReports = k.BugReports
+	s.ackMasks = k.AckMasks
 	s.flyClient = k.FlyClient
+	s.numberTags = k.NumberTags
 	s.reportNotice = k.ReportNotice
 	s.boonNotice = k.BoonNotice
 	s.worldLoadPending = k.WorldLoadPending
@@ -327,14 +369,20 @@ func (cd *ConnectionData) restore(k KeptConn) {
 	cd.mu.Lock()
 	cd.lastReceivedPacketSeq = k.RxPacket
 	cd.lastReceivedMessageSeq = k.RxMessage
+	if k.RxAck != nil {
+		cd.lastReceivedMessageSeq = *k.RxAck
+	}
 	// everything at or below the newest message the old process took counts
 	// as taken: it acknowledged them all (its acks are cumulative), and a copy
 	// of one the client sends again now is one handled already
-	cd.rxSeen = ^uint64(0)
+	cd.rxWin = 0
+	if k.RxAck != nil {
+		cd.rxWin = k.RxWin
+	}
 	cd.lastSentPacketSeq = k.TxPacket
 	cd.lastSentMessageSeq = k.TxMessage
 	cd.clientLastReceivedMessage = k.Acked
-	cd.frags.restoreLocked(k.Fragments, k.RxMessage, time.Now())
+	cd.frags.restoreLocked(k.Fragments, cd.lastReceivedMessageSeq, time.Now())
 	cd.mu.Unlock()
 
 	cd.objMu.Lock()
@@ -408,28 +456,40 @@ func (c *ClientStateData) restore(k KeptClient) {
 // resend at once (the client may have had none of them since the restart
 // began), the pending ones queued as they were. A message in both lists is one
 // message in both queues, as AddWithSequence puts it.
+//
+// Each keeps its number. Every reliable message here took one at its queueing
+// (AddWithSequence), and PreparePacket keeps a number only on a message whose
+// Queued stamp says it has one: since 2119f18 (2026-11-09 05:20 UTC, which
+// made 0 a number like any other), a restored message had no stamp, so it went
+// out under the next new number, and its own was sent no more. The client,
+// holding every message past one it never had, took nothing reliable again,
+// not a chat line, a target's con or a window, while the creatures moved on
+// their state channels, until its player logged in again; one it had came
+// twice. 0 is a number like any other here too.
 func (q *MessageQueue) restore(unacked, pending []KeptMessage) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
+	now := time.Now()
 	bySeq := make(map[uint16]*protocol.Message, len(unacked))
 	for _, k := range unacked {
-		m := restoredMessage(k)
+		m := restoredMessage(k, now)
 		q.reliable = append(q.reliable, m)
-		if k.Seq != 0 {
-			bySeq[k.Seq] = m
-		}
+		bySeq[k.Seq] = m
 	}
 	for _, k := range pending {
-		if m, ok := bySeq[k.Seq]; ok && k.Seq != 0 {
-			q.pending = append(q.pending, m)
-			continue
+		m, ok := bySeq[k.Seq]
+		if !ok {
+			m = restoredMessage(k, now)
 		}
-		q.pending = append(q.pending, restoredMessage(k))
+		m.LastSent = m.Queued // queued, never sent, as AddWithSequence leaves one
+		q.pending = append(q.pending, m)
 	}
 }
 
-func restoredMessage(k KeptMessage) *protocol.Message {
-	m := &protocol.Message{Type: protocol.MessageType(k.Type), Opcode: protocol.GameOpcode(k.Opcode), Sequence: k.Seq, Created: time.Now()}
+// restoredMessage is a kept message as the queue holds one: numbered (Queued
+// set, at the restore) and never sent since (LastSent zero: due at once).
+func restoredMessage(k KeptMessage, now time.Time) *protocol.Message {
+	m := &protocol.Message{Type: protocol.MessageType(k.Type), Opcode: protocol.GameOpcode(k.Opcode), Sequence: k.Seq, Created: now, Queued: now}
 	m.SetData(k.Data)
 	return m
 }
@@ -449,32 +509,9 @@ func unixOfTimer(t int64) int64 {
 // below the newest that was never taken is new. Sequence numbers compare as
 // connection.cpp's do (the signed 16-bit difference). 0 is never recorded.
 func (cd *ConnectionData) TakeReliable(seq uint16) bool {
-	if seq == 0 {
-		return true
-	}
 	cd.mu.Lock()
 	defer cd.mu.Unlock()
-	d := int16(seq - cd.lastReceivedMessageSeq)
-	if d > 0 {
-		if d >= 64 {
-			cd.rxSeen = 0
-		} else {
-			cd.rxSeen <<= uint(d)
-		}
-		cd.rxSeen |= 1
-		cd.lastReceivedMessageSeq = seq
-		return true
-	}
-	back := uint(-int32(d))
-	if back >= 64 {
-		return false
-	}
-	bit := uint64(1) << back
-	if cd.rxSeen&bit != 0 {
-		return false
-	}
-	cd.rxSeen |= bit
-	return true
+	return cd.takeLocked(seq)
 }
 
 // resumeDump is when a resumed session's client is sent the MemoryDump that

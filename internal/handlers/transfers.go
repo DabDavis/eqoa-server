@@ -20,8 +20,10 @@ import (
 // transfer, so it waits for a login that reads it from the database.
 
 // applyTransfer applies serverID's approved transfer, if it has one and is not
-// in the world: true when it did (the record is then read again).
-func (h *CharacterHandler) applyTransfer(serverID uint32) bool {
+// in the world: true when it did (the record is then read again). room is the
+// records its client's pack and bank hold (itemlists.go): what the plan fills
+// the pack to and checks the bank against.
+func (h *CharacterHandler) applyTransfer(serverID uint32, room listSizes) bool {
 	if h.store == nil {
 		return false
 	}
@@ -46,7 +48,8 @@ func (h *CharacterHandler) applyTransfer(serverID uint32) bool {
 		return false
 	}
 	plan.CharacterID = serverID
-	// a transfer's gear comes in as its imported copies, at 70%; a GM's grant
+	plan.PackSlots, plan.BankSlots = room.packOf(), room.bankOf()
+	// a transfer's gear comes in as its imported copies, damped; a GM's grant
 	// as given (database/imported.go; petition 1314)
 	plan.Imported = plan.Imported || t.FromServer != database.GMGrantSource
 	var out strings.Builder

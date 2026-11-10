@@ -197,7 +197,7 @@ func TestAProcsHealIsSeenAtFullHealth(t *testing.T) {
 	// the controls: a spell's heal on a full player, none; a hurt one's life steal, healed
 	full()
 	r.w.mu.Lock()
-	r.w.healLocked(p, sess, p, 300)
+	r.w.healLocked(p, sess, p, 300, numberHeal)
 	r.w.mu.Unlock()
 	if figs := figuresIn(drain(sess)); len(figs) != 0 {
 		t.Errorf("a spell's heal on a full player: %v", figs)

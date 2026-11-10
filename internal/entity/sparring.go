@@ -109,7 +109,7 @@ func (w *World) sparRoundLocked(sess *session.Session, npc *NPC, p *Player, star
 	npc.SparStruck = npc.RoundStart
 	el := SparElements[npc.SparElement]
 	share, how := RollResist(p.StatNow(el.Resist))
-	damage := sparStrikeDamage(npc.Level, share, rand.Float64())
+	damage := npc.sparHits(sparStrikeDamage(npc.Level, share, rand.Float64())) // as hard as the dummy hits (dummy.go)
 	w.broadcastNPCSwingLocked(npc, p.ServerID, 0, sparFX)
 	line := fmt.Sprintf("%s strikes you with %s for %d (%s).", npc.Name, el.Name, damage, resistWords(share, how))
 	w.sparHitLocked(sess, npc, p, damage, line, now)
@@ -125,7 +125,7 @@ func (w *World) sparHitLocked(sess *session.Session, npc *NPC, p *Player, damage
 	if line != "" {
 		w.sendChatToSession(sess, line)
 	}
-	w.sendDamageIndication(sess, npcObjectID, -damage, sess.PlayerObjectID())
+	w.sendDamageIndication(sess, npcObjectID, -damage, sess.PlayerObjectID(), 0) // the dummy's on the player: untagged
 	if p.HP-damage >= 1 {
 		p.HP -= damage
 		return false

@@ -49,6 +49,12 @@ world:
   # flagged players can attack each other anywhere. Off unless set.
   # pvp: true
 
+  # Lets players jump (entity/jump.go): a client that can (vanilla, opcode
+  # 0x7E28) is offered it and jumps about 0.9 up, and the check of players' own
+  # moves takes a jump's arc from it. A PS2 cannot jump and is never offered it.
+  # Off unless set.
+  # jump: true
+
   # What an NPC says when talked to, by name, in place of the debug box
   # (ServerID, HP, position...) every other NPC opens.
   npc_text:
@@ -73,6 +79,33 @@ world:
   # (tools/worlds/homelands.json is the Homelands, slot 10), then groundbake
   # -world 10=worlds/world10.ESF its ground. None unless listed.
   # server_worlds: [10]
+
+  # How many records the pack (worn items among them, as CLIENT's 40 counts
+  # them) and the bank hold for a client that holds more (vanilla, offered them
+  # with opcode 0x7E29). Unset or 40: CLIENT's 40, nothing offered; at most 255.
+  # A PS2 always holds 40: a character with more is sent its first 40 (worn
+  # items always), the rest kept for it until a client that holds them logs in.
+  # pack_slots: 100
+  # bank_slots: 100
+
+  # A cape slot of this server's own (entity/capes.go): items of wear slot 28
+  # (tools/seed_capes.py makes them) worn in equip slot 22, drawn by a client
+  # that draws capes (vanilla, offered them with opcode 0x7E25); a PS2 is sent
+  # a cape as a plain item it cannot wear. Off unless set.
+  # capes: true
+
+  # The Rock of Freeport (handlers/rockfreeport.go): the server makes its record
+  # at its start, every character holding none is given one at its login, and
+  # its Use is a 2 s cast in Return Home's visual to a few steps in front of
+  # Dabrish. Off unless set (the Heirloom Test Server sets it).
+  # rock_of_freeport: true
+
+  # The quest marks on a client's map (handlers/questmarks.go, vanilla's Quest
+  # Markers): a giver's "!" only for quests whose lowest level is at most this
+  # many below the player's (a quest's name is marked once, at its nearest
+  # giver, either way). Unset or 0: 10 (a level 60 is shown quests for 50 and
+  # up); -1: every quest the player may take, however low.
+  # quest_marks_below: 10
 
   # The most NPCs and players (the player's own among them) a client that
   # keeps more than the game's 24 may have in view, and the farthest they are
@@ -110,6 +143,10 @@ world:
   # The line a login is sent once on how to report a bug (#bug, /bug, vanilla's
   # F3, Support in the start menu: handlers/bugreport.go). On unless false.
   # report_notice: false
+  # The players' camp reports (/campfix, /mark, /markadd, /markremove:
+  # handlers/campfix.go), filed with a work board entry for a GM's review and
+  # changing no spawn. On unless false.
+  # campfix: false
   # The check of a player's own moves (entity/movecheck.go): off takes every
   # 0x40 as before; log (unset) takes every one and logs the rest (MOVECHECK);
   # enforce leaves a player where it was last right and moves the client back.

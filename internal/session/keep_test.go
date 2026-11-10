@@ -54,7 +54,10 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	s.SetLiveLook(true)
 	s.SetBugReports(true)
 	s.SetFlyClient(true)
+	s.SetNumberTags(true)
 	s.SetDiscVersion(0x12)
+	s.OfferCapesOnce()
+	s.SetCapes(true)
 	conn := s.Connection()
 	conn.SetEntitySlots(204)
 	conn.SetViewDistance(1000)
@@ -82,6 +85,15 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	if !r.DidServerInitiate() || !r.HasInstance() || r.NeedsNewInstance() || !r.InGame() || !r.CharacterInWorld() ||
 		r.State() != session.StateInGame || !r.LiveLook() || !r.BugReports() || !r.FlyClient() || r.DiscVersion() != 0x12 {
 		t.Fatal("flags not kept")
+	}
+	// its figures' tags (entity/numbertags.go): still asked for
+	if !r.NumberTags() {
+		t.Fatal("the number tags' answer not kept")
+	}
+	// the capes (handlers/capes.go): the client still draws them, and is not
+	// offered them again
+	if !r.Capes() || !r.CapesOffered() || r.OfferCapesOnce() {
+		t.Fatalf("capes: drawn %v, offered %v", r.Capes(), r.CapesOffered())
 	}
 	rc := r.Connection()
 	if rc.EntitySlots() != 204 || rc.ViewDistance() != 1000 {
@@ -158,6 +170,11 @@ func TestAKeptChannelGoesOutWholeAndNew(t *testing.T) {
 		ch.UpdateBaseXor(seq)
 	}
 	r, _ := keptRoundTrip(t, s)
+	// the control for the capes kept above: a client that never drew them
+	// (a PS2's) comes back without them, and may still be offered them
+	if r.Capes() || r.CapesOffered() {
+		t.Fatalf("capes on a session that never answered: drawn %v, offered %v", r.Capes(), r.CapesOffered())
+	}
 	rch := r.Connection().GetClientStatUpdate()
 	data, seq, ref := rch.GenerateXORDelta()
 	if data == nil {
@@ -270,7 +287,8 @@ func TestKeptClock(t *testing.T) {
 }
 
 // TakeReliable: new, a copy, out of order, the edge of the window, and past
-// 65535.
+// 65535 (a resumed session's copies are the window's, as any session's:
+// rxwindow.go).
 func TestTakeReliable(t *testing.T) {
 	cd := session.NewConnectionData(nil, 1, 2)
 	steps := []struct {
@@ -278,9 +296,10 @@ func TestTakeReliable(t *testing.T) {
 		want bool
 	}{
 		{1, true}, {1, false}, {3, true}, {2, true}, {2, false}, {3, false},
-		{70, true}, {6, false}, // 64 back: counted as taken
-		{7, true},            // 63 back, never taken
-		{0, true}, {0, true}, // 0 is never recorded
+		{68, false}, // 65 past the ack (3): beyond the window, not now
+		{67, true},  // 64 past it: the window's edge
+		{6, true},   // a hole below it, filled
+		{0, false},  // before the ack: a copy
 	}
 	for _, st := range steps {
 		if got := cd.TakeReliable(st.seq); got != st.want {
@@ -288,12 +307,52 @@ func TestTakeReliable(t *testing.T) {
 		}
 	}
 	cd = session.NewConnectionData(nil, 1, 2)
+	cd.SetLastReceivedMessageSeq(65533)
 	for _, seq := range []uint16{65534, 65535, 0, 1} {
-		if seq != 0 && !cd.TakeReliable(seq) {
+		if !cd.TakeReliable(seq) {
 			t.Fatalf("seq %d not new", seq)
 		}
 	}
 	if cd.TakeReliable(65535) || cd.LastReceivedMessageSeq() != 1 {
 		t.Fatalf("past 65535: a copy of 65535 taken, or the newest is %d", cd.LastReceivedMessageSeq())
+	}
+}
+
+// The receive window comes through a restart whole (RxAck, RxWin), and the
+// file's RxMessage stays the newest taken, what a binary from before the
+// window acknowledged and reads back: given the window's ack it would say
+// less than the client was told, with no mask, which CLIENT refuses whole. An
+// older binary's file (no RxAck) is taken as acknowledged to its RxMessage.
+func TestTheReceiveWindowComesThroughARestart(t *testing.T) {
+	m := session.NewManager()
+	s := m.CreateSession(&net.UDPAddr{IP: net.IPv4(198, 51, 100, 7), Port: 40123}, 5, 5, 2, 3, true)
+	conn := s.Connection()
+	for _, seq := range []uint16{1, 2, 4, 6} {
+		conn.TakeReliable(seq)
+	}
+	s.SetAckMasks() // our acks carry their mask: kept too (CLIENT refuses one taken back)
+	k := s.Keep()
+	if k.Conn.RxMessage != 6 || k.Conn.RxAck == nil || *k.Conn.RxAck != 2 {
+		t.Fatalf("the file: RxMessage %d (want 6, the newest taken), RxAck %v (want 2)", k.Conn.RxMessage, k.Conn.RxAck)
+	}
+	r, _ := keptRoundTrip(t, s)
+	if !r.AckMasks() {
+		t.Fatal("the ack masks did not come through the restart")
+	}
+	rep := r.Connection().NextPacketReport()
+	if rep.Ack != 2 || rep.Mask != 0b101 {
+		t.Fatalf("after the restart: ack %d mask %b, want 2 and 101 (4 and 6)", rep.Ack, rep.Mask)
+	}
+	if r.Connection().TakeReliable(4) || !r.Connection().TakeReliable(3) {
+		t.Fatal("after the restart: 4 taken again, or 3 not taken")
+	}
+	// an older binary's file: acknowledged to RxMessage, no window
+	k.Conn.RxAck, k.Conn.RxWin = nil, 0
+	old, err := session.NewManager().Resume(k)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rep := old.Connection().NextPacketReport(); rep.Ack != 6 || rep.Mask != 0 {
+		t.Fatalf("an older binary's file: ack %d mask %b, want 6 and none", rep.Ack, rep.Mask)
 	}
 }

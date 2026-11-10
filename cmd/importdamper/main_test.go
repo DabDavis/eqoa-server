@@ -101,6 +101,7 @@ func run(t *testing.T, db *sql.DB, f func(*sql.Tx) error) {
 // a second run moves nothing more, and the undo puts the sword back on
 // Steelwind and takes the copy out.
 func TestTheDamperMovesATransfersGearAndUndoesIt(t *testing.T) {
+	defer database.SetImportedShare(database.SetImportedShare(0.7)) // the figures below are at 70%
 	db := damperDB(t)
 	now := time.Unix(1_800_000_000, 0)
 	run(t, db, func(tx *sql.Tx) error { return move(tx, skipRuns("run-skip"), now) })

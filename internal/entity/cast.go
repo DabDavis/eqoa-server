@@ -154,6 +154,13 @@ type CastSpell struct {
 	// bow borrowed for it (handsBackLocked; a cast at a creature gives back
 	// a switch's hands by its reach, marked or not)
 	HandsBack bool
+	// Travel is where an item's cast sends its caster as it lands (the Rock
+	// of Freeport, handlers/rockfreeport.go), nil for a spell: the caster
+	// alone, handed to the travel hook as a gate's traveller is (gates.go),
+	// and nothing else lands. It is no ability of the book, so it has no
+	// lockout and no 0x00CD; while one is on its way, begun and not landed,
+	// another is let go unanswered (StartCast).
+	Travel *GateSpot
 	// resist is the resist that cuts a templated NPC's spell's hit on a
 	// player, by its element (classtemplate.go); a player's spell has none
 	resist Stat
@@ -164,6 +171,9 @@ type CastSpell struct {
 	// opponent's pet (duelSpellTargetLocked): its landing is the duel's
 	// alone (duelLandLocked)
 	duel bool
+	// figures is whose its figures are to a client that colours its numbers
+	// (numbertags.go): its caster's spell, or a proc's, a pet's, a gift's
+	figures castFigures
 }
 
 // SpellOf is an ability record as the World casts it: handlers' castSpell
@@ -314,6 +324,10 @@ type ActiveEffect struct {
 	// logout (buffsave.go)
 	npcFoe    EntityID
 	npcResist Stat
+	// pet is the pet whose damage over time it is on a creature (a pet
+	// template's AbilityDoT, pettemplate.go; Caster its owner), 0 for every
+	// other effect: each tick is one of the pet's hits (petTickLocked)
+	pet EntityID
 	// Line and Rank are a beneficial spell's line and its level on a player
 	// (buffline.go): only the best of a line counts; "" for none
 	Line string
@@ -327,6 +341,8 @@ type ActiveEffect struct {
 	parts []*effectPart
 	// ProcSpells are its procs that cast more than a hit (workbookmore.go)
 	ProcSpells []ProcSpell
+	// figures is whose its ticks' figures are (numbertags.go): its cast's
+	figures castFigures
 }
 
 // StatMods is what effects add to a player's stats (kept over a logout as
@@ -714,6 +730,10 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 		log.Printf("Cast: %s uses %q %v before the arts' cooldown ends: not answered", p.Name, spell.Name, p.artReady.Sub(now).Round(time.Millisecond))
 		return false
 	}
+	if spell.Travel != nil && w.travelOnItsWayLocked(p) {
+		log.Printf("Cast: %s uses %q while a travel of its own is on its way: not answered", p.Name, spell.Name)
+		return false
+	}
 	targets, refusal, fizzle := w.castRefusalLocked(sess, p, &spell, targetObjectID, now, true)
 	if refusal != "" {
 		log.Printf("Cast: %s casts %q on %#x: %s", p.Name, spell.Name, targetObjectID, refusal)
@@ -740,7 +760,9 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	}
 	w.dispelOnCastLocked(p, spell.Def.Harmful) // workbook.go: what ends at a cast (a run speed only at a harmful one)
 	lockout := spell.CastTime + spell.Recast + castLockoutExtra
-	p.Lockouts = append(p.Lockouts, castLockout{spellID: spell.SpellID, displayIndex: spell.DisplayIndex, until: now.Add(lockout)})
+	if spell.Travel == nil { // an item's travel is no ability: nothing to lock out
+		p.Lockouts = append(p.Lockouts, castLockout{spellID: spell.SpellID, displayIndex: spell.DisplayIndex, until: now.Add(lockout)})
+	}
 	cs := &castState{spell: spell, caster: p.ServerID, targets: targets, ends: now.Add(spell.CastTime + castBusy), lands: now.Add(spell.CastTime + castLand),
 		castEnds: now.Add(spell.CastTime)}
 	w.areaStartLocked(p, cs, now) // area.go: an area spell's others
@@ -748,7 +770,9 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	w.endFoodOnCastLocked(p) // consumable.go: a meal or drink a cast ends
 	w.casts = append(w.casts, cs)
 
-	sendCooldown(sess, spell.DisplayIndex, lockout)
+	if spell.Travel == nil {
+		sendCooldown(sess, spell.DisplayIndex, lockout)
+	}
 	target := p.ServerID
 	if len(targets) > 0 {
 		target = targets[0]
@@ -757,6 +781,35 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	log.Printf("Cast: %s begins %q (spell %d) on %#x: %v cast, %d power (%d left), lands in %v",
 		p.Name, spell.Name, spell.SpellID, targetObjectID, spell.CastTime, spell.PowerCost, p.Power, spell.CastTime+castLand)
 	return true
+}
+
+// TravelBusy reports whether a travel cast (CastSpell.Travel) the session's
+// player began now would be let go before its checks: dead or gone, within
+// another cast's time, or a travel of its own on its way. Its handler asks
+// first, so a quick slot pressed over and over looks for no place
+// (handlers/rockfreeport.go: Dabrish is found by a walk over every NPC).
+func (w *World) TravelBusy(sess *session.Session, now time.Time) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil || p.IsDead() {
+		return true
+	}
+	if p.Casting != nil && now.Before(p.Casting.ends) {
+		return true
+	}
+	return w.travelOnItsWayLocked(p)
+}
+
+// travelOnItsWayLocked reports a travel cast of the player's (CastSpell.Travel)
+// begun and not yet landed. Must be called with the lock held.
+func (w *World) travelOnItsWayLocked(p *Player) bool {
+	for _, cs := range w.casts {
+		if cs.caster == p.ServerID && cs.spell.Travel != nil {
+			return true
+		}
+	}
+	return false
 }
 
 // castWait is what StartCast does with a cast before its checks.
@@ -1056,6 +1109,12 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 		if t.NPCType&0x80 != 0 {
 			return nil, castFriendly // not attackable (CLIENT's own test, +0x25A & 0x80)
 		}
+		if line := challengeRefusal(t, p.ServerID); line != "" {
+			return nil, line // another's duel (metalmoogie.go)
+		}
+		if t.challenge != nil && d.Charms() {
+			return nil, MetalLineCharm
+		}
 		if reach := spell.Range + npcReachExtra(t); outOfRange(p, t.X, t.Y, t.Z, reach) {
 			return nil, refuseOutOfRange(p, spell, t.Name, t.X, t.Y, t.Z, reach)
 		}
@@ -1189,6 +1248,13 @@ func (w *World) castSystem(now time.Time) []respawnDue {
 func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate bool) {
 	d := &cs.spell.Def
 	casterSess := w.findSessionByEntityIDLocked(caster.ServerID)
+	if to := cs.spell.Travel; to != nil { // an item's travel: its caster sent, nothing else lands
+		if casterSess != nil {
+			w.gates.due = append(w.gates.due, GateTravel{Sess: casterSess, P: caster, To: *to, Spell: cs.spell.Name})
+			log.Printf("Cast: %s's %q lands: to %s (%.1f, %.1f, %.1f) world %d", caster.Name, cs.spell.Name, to.Place, to.X, to.Y, to.Z, to.World)
+		}
+		return false
+	}
 	for _, e := range d.Effects {
 		if e.Kind == EffectGate {
 			gate = true
@@ -1316,6 +1382,7 @@ func lastingParts(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 		Until: now.Add(dur), NextTick: now, Ticks: d.Ticks}
 	ae.Rules = rulesOf(d) // workbook.go
 	ae.ProcSpells = d.ProcSpells
+	ae.figures = cs.spell.figures // its ticks told as its cast's figures (numbertags.go)
 	any := false
 	for _, e := range d.Effects {
 		if ae.workbookLasting(e, d) { // workbook.go: its own kinds
@@ -1366,6 +1433,8 @@ func lastingParts(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 			if !ae.PowerCapped || e.Amount < ae.PowerCap {
 				ae.PowerCap, ae.PowerCapped = e.Amount, true
 			}
+		case EffectSize:
+			ae.Rules.Grow += e.Amount // the body's scale (Player.Body)
 		default:
 			continue
 		}
@@ -1397,7 +1466,7 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 				heals = append(heals, spellAmount(e, caster))
 				continue
 			}
-			w.healLocked(caster, casterSess, t, spellAmount(e, caster))
+			w.healLocked(caster, casterSess, t, spellAmount(e, caster), cs.spell.healKind())
 		case EffectPower:
 			if e.Set { // the workbook's power set to a figure (spelljson.go)
 				t.Power = min(max(e.Amount, 0), t.MaxPowerNow())
@@ -1434,14 +1503,15 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 		w.addEffectLocked(t, ae, now)
 	}
 	for _, n := range heals {
-		w.healLocked(caster, casterSess, t, n)
+		w.healLocked(caster, casterSess, t, n, cs.spell.healKind())
 	}
 	log.Printf("Cast: %s's %q lands on %s (%d/%d HP, %d effects)", caster.Name, cs.spell.Name, t.Name, t.HP, t.MaxHPNow(), len(t.Effects))
 }
 
 // healLocked restores n hit points to t; the amount is told (0x00DB, whole,
-// as Sandstorm tells it) only when t was short of its maximum.
-func (w *World) healLocked(caster *Player, casterSess *session.Session, t *Player, n int) {
+// as Sandstorm tells it, kind to the caster: tellAmountLocked) only when t was
+// short of its maximum.
+func (w *World) healLocked(caster *Player, casterSess *session.Session, t *Player, n int, kind numberKind) {
 	if n <= 0 {
 		return
 	}
@@ -1452,19 +1522,21 @@ func (w *World) healLocked(caster *Player, casterSess *session.Session, t *Playe
 	before := t.HP
 	t.HP = min(t.HP+n, top)
 	t.StatsDirty = true
-	w.tellAmountLocked(caster, casterSess, t.ServerID, n)
+	w.tellAmountLocked(caster, casterSess, t.ServerID, n, kind)
 	w.healHateLocked(caster, t, t.HP-before) // aggro.go
 	if t.ServerID == caster.ServerID {
 		w.healAggroLocked(caster) // a creature it is green to comes now (aggro.go)
 	}
 }
 
-// tellAmountLocked sends 0x00DB (caster, amount, target) to the caster and,
-// when the target is another player, to it.
-func (w *World) tellAmountLocked(caster *Player, casterSess *session.Session, target EntityID, amount int) {
+// tellAmountLocked sends 0x00DB (caster, amount, target) to the caster, told
+// as kind (what made it, numbertags.go: 0 for a figure none of the caster's
+// made), and, when the target is another player, to it as a figure another
+// made on it (untagged).
+func (w *World) tellAmountLocked(caster *Player, casterSess *session.Session, target EntityID, amount int, kind numberKind) {
 	if casterSess != nil {
 		if tid := w.objectIDSeenByLocked(casterSess, target); tid != 0 {
-			w.sendDamageIndication(casterSess, casterSess.PlayerObjectID(), amount, tid)
+			w.sendDamageIndication(casterSess, casterSess.PlayerObjectID(), amount, tid, kind)
 		}
 	}
 	if target == caster.ServerID {
@@ -1472,7 +1544,7 @@ func (w *World) tellAmountLocked(caster *Player, casterSess *session.Session, ta
 	}
 	if ts := w.findSessionByEntityIDLocked(target); ts != nil {
 		if cid := w.objectIDSeenByLocked(ts, caster.ServerID); cid != 0 {
-			w.sendDamageIndication(ts, cid, amount, ts.PlayerObjectID())
+			w.sendDamageIndication(ts, cid, amount, ts.PlayerObjectID(), 0)
 		}
 	}
 }
@@ -1555,12 +1627,14 @@ func (w *World) runTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	if ae.HPTick > 0 {
 		// the caster may be gone (logged out, or the effect kept over a
 		// logout): the figure is then the target's own, as Sandstorm's first
-		// tick after a login was
-		caster := w.Players[ae.Caster]
+		// tick after a login was, and none of its making (numbertags.go: a
+		// player's own effect has the player for its caster, there while it
+		// ticks)
+		caster, kind := w.Players[ae.Caster], ae.tickKind(true)
 		if caster == nil {
-			caster = t
+			caster, kind = t, 0
 		}
-		w.healLocked(caster, w.findSessionByEntityIDLocked(caster.ServerID), t, ae.HPTick)
+		w.healLocked(caster, w.findSessionByEntityIDLocked(caster.ServerID), t, ae.HPTick, kind)
 	}
 	if ae.PowerTick > 0 && t.Power < t.MaxPowerNow() {
 		t.Power = min(t.Power+ae.PowerTick, t.MaxPowerNow())
@@ -1572,6 +1646,9 @@ func (w *World) runTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 // what lasts (a damage tick; a hold, a slow or a stat change is kept, though
 // no creature moves or uses its stats yet).
 func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *session.Session, npc *NPC, now time.Time) {
+	if challengeBars(npc, caster.ServerID) {
+		return // another's duel: nothing of the spell lands (metalmoogie.go)
+	}
 	caster.LastCombatTime = now
 	cs, took := w.resistLocked(cs, caster, casterSess, npc, now) // workbook.go: its resists
 	if !took {
@@ -1582,7 +1659,7 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 		switch e.Kind {
 		case EffectHP:
 			if n := creatureResists(e.Resist, npc, arcaneDebuffed(e.Resist, npc, debuffScaled(e, npc, spellAmount(e, caster), now), now), now); n < 0 {
-				killed := w.spellHitLocked(caster, casterSess, npc, -n)
+				killed := w.spellHitHateLocked(caster, casterSess, npc, -n, e.HateOff, cs.spell.hitKind())
 				// a life tap's heal (lifetap.go): what landed, after the
 				// con's cut (balance.go)
 				w.drainLocked(cs, caster, casterSess, e, w.dealtLocked(npc, caster, -n), now)
@@ -1639,19 +1716,27 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 }
 
 // spellHitLocked is a spell's damage on a creature: the figure to the
-// caster, the hate, and on a kill the XP and the faction hits. It reports
-// the kill.
-func (w *World) spellHitLocked(caster *Player, casterSess *session.Session, npc *NPC, n int) bool {
+// caster (told as kind: numbertags.go), the hate, and on a kill the XP and
+// the faction hits. It reports the kill.
+func (w *World) spellHitLocked(caster *Player, casterSess *session.Session, npc *NPC, n int, kind numberKind) bool {
+	return w.spellHitHateLocked(caster, casterSess, npc, n, 0, kind)
+}
+
+// spellHitHateLocked is spellHitLocked with hateOff percent of the damage
+// dealt making no hate (SpellEffect.HateOff): the rest is the hate, and the
+// hit angers the creature all the same (updateAggro's contact, its kind
+// called, its companion), so a hit of no hate still makes a fight.
+func (w *World) spellHitHateLocked(caster *Player, casterSess *session.Session, npc *NPC, n, hateOff int, kind numberKind) bool {
 	if npc.Dummy != NotDummy {
 		// told, taken off nothing (dummy.go)
-		w.tellAmountLocked(caster, casterSess, npc.ServerID, -n)
+		w.tellAmountLocked(caster, casterSess, npc.ServerID, -n, kind)
 		w.dummyEngagedLocked(npc, caster, time.Now())
 		return false
 	}
 	n = w.dealtLocked(npc, caster, n) // balance.go
 	npc.HP = max(npc.HP-n, 0)
-	w.tellAmountLocked(caster, casterSess, npc.ServerID, -n)
-	w.updateAggro(npc, caster.ServerID, n)
+	w.tellAmountLocked(caster, casterSess, npc.ServerID, -n, kind)
+	w.updateAggro(npc, caster.ServerID, n-n*hateOff/100)
 	w.rootBreakLocked(npc, caster.Level) // root.go
 	log.Printf("Cast: %s's spell hit %s for %d (HP %d/%d)", caster.Name, npc.Name, n, npc.HP, npc.MaxHP)
 	if npc.HP > 0 {
@@ -1670,6 +1755,10 @@ func (w *World) spellHitLocked(caster *Player, casterSess *session.Session, npc 
 // tickNPCEffectLocked runs a damage tick on a creature when one is due.
 func (w *World) tickNPCEffectLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 	if ae.NextTick.IsZero() || now.Before(ae.NextTick) || ae.HPTick == 0 {
+		return
+	}
+	if ae.pet != 0 {
+		w.petTickLocked(npc, ae, now) // a pet's damage over time (pettemplate.go)
 		return
 	}
 	if ae.HPTick > 0 {
@@ -1692,12 +1781,12 @@ func (w *World) tickNPCEffectLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 		if caster := w.Players[ae.Caster]; caster != nil && !npc.Dead {
 			sess := w.findSessionByEntityIDLocked(caster.ServerID)
 			hit := -creatureResists(ae.Rules.Resist, npc, arcaneDebuffed(ae.Rules.Resist, npc, ae.HPTick, now), now)
-			died := w.spellHitLocked(caster, sess, npc, hit)
+			died := w.spellHitLocked(caster, sess, npc, hit, ae.tickKind(false))
 			// a drain over time: each tick's figure to the caster (or its
 			// group), whole, as a tap's is though it killed (lifetap.go)
 			if ae.TickDrain != DrainNone && !caster.IsDead() {
 				for _, p := range w.tickDrainersLocked(caster, ae) {
-					w.healLocked(caster, sess, p, hit)
+					w.healLocked(caster, sess, p, hit, ae.tickKind(true))
 				}
 			}
 			if died {
@@ -1789,8 +1878,12 @@ func (w *World) runGates(due []respawnDue) {
 }
 
 // sendCooldown is 0x00CD: the ability's display index, stamp 0, the lockout
-// in ms (zigzag), 0 when it is over.
+// in ms (zigzag), 0 when it is over. A lockout of no index (-1: its spell
+// left the book, bookchange.go) is shown on nothing, and nothing is sent.
 func sendCooldown(sess *session.Session, displayIndex int, lockout time.Duration) {
+	if displayIndex < 0 {
+		return
+	}
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeCooldownTimer)
 	w := buffer.NewWriter(msg.Span())
 	w.WriteUint16(uint16(protocol.OpcodeCooldownTimer))

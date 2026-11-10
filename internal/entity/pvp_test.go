@@ -138,7 +138,7 @@ func TestPvPFlagTimes(t *testing.T) {
 	d.flag(t, d.sb, 100*time.Second)
 	fight := d.w.pvpFightLocked(d.a, d.b)
 	d.w.mu.Lock()
-	d.w.duelHurtLocked(fight, d.a, d.a.ServerID, d.b, 10, d.at(150*time.Second))
+	d.w.duelHurtLocked(fight, d.a, d.a.ServerID, d.b, 10, d.at(150*time.Second), numberMelee)
 	d.w.mu.Unlock()
 	for _, s := range []*session.Session{d.sa, d.sb} {
 		duelDrain(s)
@@ -388,7 +388,7 @@ func TestPvPKill(t *testing.T) {
 	d.b.HP = 5
 	now := d.at(time.Second)
 	d.w.mu.Lock()
-	over := d.w.duelHurtLocked(d.w.pvpFightLocked(d.a, d.b), d.a, d.a.ServerID, d.b, 500, now)
+	over := d.w.duelHurtLocked(d.w.pvpFightLocked(d.a, d.b), d.a, d.a.ServerID, d.b, 500, now, numberMelee)
 	d.w.mu.Unlock()
 	if !over || !d.b.IsDead() || !d.b.respawnPending() {
 		t.Fatalf("a killing hit: over %v, HP %d, respawn %v", over, d.b.HP, d.b.respawnPending())
@@ -638,7 +638,7 @@ func TestPvPPet(t *testing.T) {
 	if d.w.pvpPetLocked(ps, 0.1, d.at(2*time.Second)) || ps.pvpTarget != 0 {
 		t.Fatal("a defensive pet went before its owner was struck")
 	}
-	d.w.duelHurtLocked(d.w.pvpFightLocked(d.b, d.a), d.b, d.b.ServerID, d.a, 10, d.at(2*time.Second))
+	d.w.duelHurtLocked(d.w.pvpFightLocked(d.b, d.a), d.b, d.b.ServerID, d.a, 10, d.at(2*time.Second), numberMelee)
 	before := d.b.HP
 	for x := 2 * time.Second; x < 6*time.Second; x += 100 * time.Millisecond {
 		if !d.w.pvpPetLocked(ps, 0.1, d.at(x)) {
@@ -670,7 +670,7 @@ func TestPvPPet(t *testing.T) {
 	}
 	// a shield's answer: a hit point, and it yields
 	fight := d.w.pvpFightLocked(d.b, d.a)
-	d.w.duelHurtPetLocked(fight, d.b, pet, 5000, d.at(9*time.Second))
+	d.w.duelHurtPetLocked(fight, d.b, pet, 5000, d.at(9*time.Second), numberMelee)
 	if pet.HP != 1 || pet.Dead || ps.pvpTarget != 0 || !ps.heldUntil.Equal(d.at(9*time.Second+pvpPetYields)) {
 		t.Fatalf("HP %d, dead %v, target %d, held %v", pet.HP, pet.Dead, ps.pvpTarget, ps.heldUntil)
 	}
@@ -693,7 +693,7 @@ func TestPvPAndADuel(t *testing.T) {
 		t.Fatalf("the third's fight %+v", f)
 	}
 	d.b.HP = 3
-	if !d.w.duelHurtLocked(duel, d.a, d.a.ServerID, d.b, 5000, d.at(time.Second)) || d.b.HP != 1 || d.b.IsDead() {
+	if !d.w.duelHurtLocked(duel, d.a, d.a.ServerID, d.b, 5000, d.at(time.Second), numberMelee) || d.b.HP != 1 || d.b.IsDead() {
 		t.Fatalf("a duel's last hit left %d", d.b.HP)
 	}
 	if d.w.duels.of[d.a.ServerID] != nil {
@@ -703,7 +703,7 @@ func TestPvPAndADuel(t *testing.T) {
 	d.w.duels.add(duel)
 	duel.Phase = duelOn
 	d.b.HP = 3
-	d.w.duelHurtLocked(d.w.pvpFightLocked(d.c, d.b), d.c, d.c.ServerID, d.b, 5000, d.at(2*time.Second))
+	d.w.duelHurtLocked(d.w.pvpFightLocked(d.c, d.b), d.c, d.c.ServerID, d.b, 5000, d.at(2*time.Second), numberMelee)
 	if !d.b.IsDead() {
 		t.Fatalf("a third's PvP hit left %d", d.b.HP)
 	}
@@ -730,7 +730,7 @@ func TestPvPDeathIsSeen(t *testing.T) {
 	}
 	d.b.HP = 3
 	now := d.at(time.Second)
-	d.w.duelHurtLocked(d.w.pvpFightLocked(d.a, d.b), d.a, d.a.ServerID, d.b, 5000, now)
+	d.w.duelHurtLocked(d.w.pvpFightLocked(d.a, d.b), d.a, d.a.ServerID, d.b, 5000, now, numberMelee)
 	if !d.b.IsDead() {
 		t.Fatal("not dead")
 	}

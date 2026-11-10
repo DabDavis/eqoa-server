@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
@@ -152,7 +153,8 @@ const (
 	AuctionMinMinutesGM = 2         // a GM's form counts minutes (InMinutes: the GM channel)
 	// AuctionBankSlots is the records a bank list holds (VIBankControl's
 	// RecvAdded: AddItem(item, maxStack, 40)): an item is filed into a bank
-	// only as that AddItem would keep it.
+	// only as that AddItem would keep it. A holder whose client holds more
+	// (handlers/itemlists.go) is filed as its own list holds: BankSlotsOf.
 	AuctionBankSlots = 40
 	// AuctionMaxOpenLots is how many lots a character may have open (ours:
 	// nothing records SOE's).
@@ -959,10 +961,34 @@ type AuctionDelivery struct {
 	Merged bool // onto a stack of the same item already there
 }
 
+// bankSlotsOf is the handlers' word on how many records a holder's bank holds
+// (its client's, handlers/itemlists.go), set once at the start.
+var bankSlotsOf atomic.Pointer[func(holder uint32) int]
+
+// SetBankSlotsOf says how many records a holder's bank holds: f answers for a
+// holder in the world (what its client holds), 0 for one it does not know.
+func SetBankSlotsOf(f func(holder uint32) int) {
+	bankSlotsOf.Store(&f)
+}
+
+// BankSlotsOf is how many records holder's bank holds as its client keeps it:
+// AuctionBankSlots (CLIENT's 40) unless SetBankSlotsOf's answer says more. A
+// holder out of the world is filed as CLIENT's, and what waits is filed at its
+// login (handlers/auction.go's BeforeDump), as its client's list then holds.
+func BankSlotsOf(holder uint32) int {
+	if f := bankSlotsOf.Load(); f != nil {
+		if n := (*f)(holder); n > 0 {
+			return n
+		}
+	}
+	return AuctionBankSlots
+}
+
 // deliverTx files a closed lot's item into its holder's bank, as CLIENT's
 // AddItem(item, maxStack, 40) would keep it: a stackable item onto the first
 // record of the same item when the whole stack fits there, else a new record
-// while the bank holds fewer than 40. It returns nil when the item must wait
+// while the bank holds fewer than its client's list (BankSlotsOf: CLIENT's 40
+// or more). It returns nil when the item must wait
 // (no room), and marks a lot whose holder is gone delivered with nothing to
 // deliver to. The lot is marked delivered only while it is not, so an item
 // is filed once.
@@ -1003,8 +1029,9 @@ func deliverTx(tx sqlRunner, l *AuctionLot, now time.Time) (*AuctionDelivery, er
 // fileItemTx files n of an item (its pattern, condition and charges) into a
 // character's bank as CLIENT's AddItem(item, maxStack, 40) would keep them: a
 // stackable item onto the first record of the same item when all n fit there,
-// else a new record while the bank holds fewer than 40. ok false: no room, and
-// nothing was written.
+// else a new record while the bank holds fewer than its client's list
+// (BankSlotsOf: CLIENT's 40 or more). ok false: no room, and nothing was
+// written.
 func fileItemTx(tx sqlRunner, holder uint32, item *CharInventoryEntry, n int) (itemID int, merged, ok bool, err error) {
 	rows, err := tx.Query(`SELECT itemid, patternid, stackleft FROM charinventory
 		WHERE serverid = ? AND location = 1 ORDER BY listnumber, itemid`, holder)
@@ -1046,7 +1073,7 @@ func fileItemTx(tx sqlRunner, holder uint32, item *CharInventoryEntry, n int) (i
 			return 0, false, false, err
 		}
 		return bank[onto].itemID, true, true, nil
-	case len(bank) >= AuctionBankSlots:
+	case len(bank) >= BankSlotsOf(holder):
 		return 0, false, false, nil
 	}
 	r, err := tx.Exec(`INSERT INTO charinventory (serverid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber)

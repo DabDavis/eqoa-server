@@ -34,6 +34,7 @@ type archivistFixture struct {
 	spells  *database.SpellbookStore
 	inv     *database.InventoryStore
 	w       *entity.World
+	mgr     *session.Manager
 	sess    *session.Session
 	p       *entity.Player
 	windows *NPCWindowHandler
@@ -62,7 +63,7 @@ func newArchivistFixture(t *testing.T, db *database.SQLiteDB) *archivistFixture 
 	f := &archivistFixture{t: t, db: db, spells: database.NewSpellbookStore(db), inv: database.NewInventoryStore(db)}
 	f.w = entity.NewWorld()
 	mgr := session.NewManager()
-	f.w.SessionManager = mgr
+	f.w.SessionManager, f.mgr = mgr, mgr
 	f.sess = mgr.CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 0, 12), Port: 7012}, 12, 1, 1, 2, true)
 	f.p = &entity.Player{ServerID: 1012, CharServerID: rec.ServerID, Name: "Archivisttester", X: 100, Y: 54, Z: 100, Level: 30,
 		Class: archivistWizard, HP: 100, MaxHP: 100, Tunar: 1000}
@@ -75,6 +76,7 @@ func newArchivistFixture(t *testing.T, db *database.SQLiteDB) *archivistFixture 
 	f.ih = NewInteractHandler(mgr)
 	f.ih.SetGameWorld(f.w)
 	f.a = NewArchivist(f.spells, f.windows)
+	f.a.quests = func() *QuestEngine { return nil } // no quests (another test's running engine is not this one's)
 	f.ih.archivist = f.a
 	f.npc = f.stand(SpellArchivistName, archivistShop, 0x81, archivistObject)
 	return f
@@ -214,7 +216,7 @@ func (f *archivistFixture) pick(box uint32, option byte) []string {
 func (f *archivistFixture) menu() uint32 {
 	f.t.Helper()
 	got := f.open(archivistObject)
-	want := "ask#*:" + archivistQuestion + "|Browse your scrolls|Grant basic spells|Clear my spellbook|Nothing, thank you"
+	want := "ask#*:" + archivistQuestion + "|Browse your scrolls|Grant basic spells|Grant path spells|Clear my spellbook|Unlock my masteries|Nothing, thank you"
 	if len(got) != 2 || !archivistLike(got[0], want) || got[1] != "op:00D7" {
 		f.f("his question: %q, want %q and 0x00D7", got, want)
 	}
@@ -252,7 +254,8 @@ func archivistLike(got, want string) bool {
 }
 
 // archivistMsgs is what the session was sent and took: "box:", "ask#id:text|a|b",
-// "add:id@index flag N" (0x00B3), "remove:index" (0x00B8), "shop:id N" (0x00B7:
+// "add:id@index flag N" (0x00B3), "remove:index" (0x00B8), "lockout:index" (0x00CD
+// with a lockout left, "lockout:index over" with none), "shop:id N" (0x00B7:
 // the merchant and how many records), "red:"/"yellow:"/"colour:" lines, "item"
 // (0x003B) and "op:XXXX" for the rest.
 func archivistMsgs(s *session.Session) []string {
@@ -295,6 +298,14 @@ func archivistMsgs(s *session.Session) []string {
 			r.ReadUint32()
 			index, _ := r.Read7BitEncodedInt64()
 			out = append(out, fmt.Sprintf("remove:%d", index))
+		case protocol.OpcodeCooldownTimer:
+			index, _ := r.ReadByte()
+			r.ReadUint32()
+			if ms, _ := r.Read7BitEncodedInt64(); ms > 0 {
+				out = append(out, fmt.Sprintf("lockout:%d", index))
+			} else {
+				out = append(out, fmt.Sprintf("lockout:%d over", index))
+			}
 		case protocol.OpcodeMerchantBox:
 			id, _ := r.ReadUint32()
 			r.Read7BitEncodedInt64()
@@ -481,20 +492,20 @@ func TestTheArchivistGrantsTheBasicSpells(t *testing.T) {
 
 	f.wantMsgs("the grant", f.grant(),
 		"add:101@4 flag 0", "add:102@5 flag 0", "add:115@6 flag 0", "add:120@7 flag 0", "add:113@8 flag 0",
-		"box:Spell Archivist: There: 5 spells of your calling written into your book, every one the merchants sell up to level 30 that you lacked.")
+		"box:Spell Archivist: There: 5 spells of your calling written into your book, every one the merchants sell or its quests teach up to level 30 that you lacked.")
 	want := []string{"1623@0/0", "117@1", "119@2", "121@3", "101@4", "102@5", "115@6", "120@7", "113@8"}
 	if got := f.book(); strings.Join(got, " ") != strings.Join(want, " ") {
 		t.Errorf("the book: %v, want %v", got, want)
 	}
 
 	f.wantMsgs("a second grant", f.grant(),
-		"box:Spell Archivist: Your book holds every spell of your calling the merchants sell up to level 30 already.")
+		"box:Spell Archivist: Your book holds every spell of your calling the merchants sell or its quests teach up to level 30 already.")
 
 	was := entity.Creation()
 	defer entity.SetCreationRules(was)
 	entity.SetCreationRules(entity.CreationRules{Races: true, AllClasses: true})
 	f.wantMsgs("every class open to every race", f.grant(), "add:107@9 flag 0",
-		"box:Spell Archivist: There: 1 spell of your calling written into your book, every one the merchants sell up to level 30 that you lacked.")
+		"box:Spell Archivist: There: 1 spell of your calling written into your book, every one the merchants sell or its quests teach up to level 30 that you lacked.")
 }
 
 // The grant stops at level 60 whatever the level (the petition's "cap 60"),
@@ -514,7 +525,7 @@ func TestTheArchivistGrantsUpToSixtyAndWhatFits(t *testing.T) {
 	f.shop("Scroll Merchant", 0x81, 41, sold...)
 	f.p.Level = 65
 	f.wantMsgs("a level 65's grant", f.grant(), "add:201@0 flag 0", "add:202@1 flag 0", "add:203@2 flag 0",
-		"box:Spell Archivist: There: 3 spells of your calling written into your book, every one the merchants sell up to level 60 that you lacked.")
+		"box:Spell Archivist: There: 3 spells of your calling written into your book, every one the merchants sell or its quests teach up to level 60 that you lacked.")
 
 	// a book to index 250: one fits, at 251
 	if _, err := f.db.Exec(`DELETE FROM spells WHERE serverid = ?`, f.p.CharServerID); err != nil {
@@ -608,7 +619,9 @@ func TestTheArchivistsWordsFitTheirBoxes(t *testing.T) {
 	}
 	for _, s := range []string{archivistClearIs, fmt.Sprintf(archivistGranted, spellCount(251), 60),
 		fmt.Sprintf(archivistGrantedSome, spellCount(251), 251), fmt.Sprintf(archivistHasAll, 60), archivistBookFull,
-		fmt.Sprintf(archivistCleared, spellCount(251)), archivistNothingToClear, archivistKept, archivistTrouble} {
+		fmt.Sprintf(archivistCleared, spellCount(251)), archivistNothingToClear, archivistKept, archivistTrouble,
+		fmt.Sprintf(archivistUnlocked, joinAnd(archivistUnlockLines)), fmt.Sprintf(archivistUnlockedAll, joinAnd(archivistUnlockLines)),
+		archivistUnlockNone} {
 		if n := len([]rune(SpellArchivistName + ": " + s)); n > questBoxChars {
 			t.Errorf("%q is %d characters with his name, a box shows %d", s, n, questBoxChars)
 		}

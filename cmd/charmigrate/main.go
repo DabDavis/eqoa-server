@@ -44,6 +44,8 @@ func main() {
 	runs := flag.Bool("runs", false, "list the runs")
 	force := flag.Bool("force", false, "past the checks: a full bank, rows changed since a run")
 	backup := flag.String("backup", "", "with -apply: copy the database here first (VACUUM INTO), after any -wait")
+	pack := flag.Int("pack", charmove.PackCap, "the records the character's client's pack holds (worn ones among them): a PS2's 40, more for a larger client (world.pack_slots)")
+	bank := flag.Int("bank", charmove.BankCap, "the records its client's bank holds: a PS2's 40, more for a larger client (world.bank_slots)")
 	flag.Parse()
 	log.SetFlags(log.LstdFlags | log.LUTC)
 
@@ -92,6 +94,7 @@ func main() {
 		}
 		log.Printf("database copied to %s", *backup)
 	}
+	p.PackSlots, p.BankSlots = *pack, *bank
 	if _, err := charmove.Migrate(db, p, *apply, *force, os.Stdout); err != nil {
 		log.Fatal(err)
 	}

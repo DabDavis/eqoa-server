@@ -37,6 +37,8 @@ func (w *World) MoogieBusy(sess *session.Session, moogie EntityID) string {
 		return MoogieLinePvP
 	case w.duelOnLocked(p.ServerID) != nil:
 		return MoogieLineDuel
+	case w.metalDuelOfLocked(p.ServerID):
+		return MetalLineDueling // metalmoogie.go
 	}
 	if npc := w.NPCs[moogie]; npc != nil {
 		if _, foe := npc.Threats[p.ServerID]; foe || npc.CurrentEnemy == p.ServerID {
@@ -56,7 +58,7 @@ func (w *World) MoogieClear(sess *session.Session) (name string, n int, ok bool)
 		return "", 0, false
 	}
 	for _, ae := range append([]*ActiveEffect(nil), p.Effects...) {
-		if ae.SpellID == BoonEffectID {
+		if ae.SpellID == BoonEffectID || ae.Rules.Kept { // the Boon, his own Duelist's Favor (metalmoogie.go)
 			continue
 		}
 		w.removeEffectLocked(p, ae.SpellID)

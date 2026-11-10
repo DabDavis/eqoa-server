@@ -999,7 +999,7 @@ func TestALoginGivesTheSummoningPortal(t *testing.T) {
 		}
 		return n
 	}
-	h.giveSummoningPortal(rec.ServerID)
+	h.giveSummoningPortal(rec.ServerID, clientLists)
 	if count() != 0 {
 		t.Fatal("an item with no record")
 	}
@@ -1008,9 +1008,50 @@ func TestALoginGivesTheSummoningPortal(t *testing.T) {
 		VALUES (0, 0, 0, 0, -1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 80, 32767, 32767, 7, 0, 0, 0, ?, '', 0, 0)`, SummoningPortalName); err != nil {
 		t.Fatal(err)
 	}
-	h.giveSummoningPortal(rec.ServerID)
-	h.giveSummoningPortal(rec.ServerID)
+	h.giveSummoningPortal(rec.ServerID, clientLists)
+	h.giveSummoningPortal(rec.ServerID, clientLists)
 	if count() != 1 {
 		t.Fatalf("%d items, want one", count())
+	}
+}
+
+// The user, 2026-11-09: "lets add to summoning portal to port back to
+// freeport, where dabrish is". The portal's box has a second answer: anyone
+// talking to it goes through it to a few steps in front of Dabrish, wherever he
+// stands, with no name awaited. The control: with no Dabrish in the world, the
+// player is told and stays.
+func TestAPortalTakesYouToFreeport(t *testing.T) {
+	r := newPortalRig(t)
+	n := r.open()
+	r.talk(r.cora, n)
+	got := r.msgs(r.cora)
+	box := boxID(got)
+	if !strings.HasSuffix(got[0], "|"+portalWillType+"|"+portalToFreeport) {
+		t.Fatalf("the box: %q", got)
+	}
+	r.now = r.now.Add(2 * time.Second)
+	r.pick(r.cora, box, 1)
+	r.want("Cora", r.msgs(r.cora), "red:"+portalNoFreeport)
+	r.tick()
+	if snap, _ := r.gw.PlayerSnapshot(r.pc.ServerID); snap.X != 5001 || snap.Z != 5001 {
+		t.Fatalf("with no Dabrish, Cora went to (%.0f, %.0f)", snap.X, snap.Z)
+	}
+
+	r.gw.NPCs[entity.EntityID(77001)] = &entity.NPC{ServerID: 77001, Name: "Dabrish", Level: 60, World: 0, X: 5100, Y: r.pa.Y, Z: 5200, HP: 100, MaxHP: 100}
+	r.talk(r.cora, n)
+	box = boxID(r.msgs(r.cora))
+	r.now = r.now.Add(2 * time.Second)
+	r.pick(r.cora, box, 1)
+	r.want("Cora", r.msgs(r.cora), "chat:"+portalToFreeportT)
+	r.tick()
+	snap, _ := r.gw.PlayerSnapshot(r.pc.ServerID)
+	if snap.World != 0 || snap.X != 5100 || snap.Z != 5200+portalFreeportOut {
+		t.Errorf("Cora stands at world %d (%.1f, %.1f), want (5100, %d) in front of Dabrish", snap.World, snap.X, snap.Z, 5200+portalFreeportOut)
+	}
+	r.want("Cora", r.msgs(r.cora), "teleport")
+	// no name is awaited after it: Cora's next line is the room's
+	r.say(r.cora, "made it")
+	if got := r.msgs(r.cora); len(got) == 0 {
+		t.Error("Cora's line after the trip was taken as a name")
 	}
 }

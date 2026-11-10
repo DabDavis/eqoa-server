@@ -111,12 +111,20 @@ func (h *CreationHandler) HandleCreationOffer(sess *session.Session, msg *protoc
 		log.Printf("CreationOffer: %s wants nothing", sess.RemoteAddr())
 		return nil
 	}
+	sess.SetCreationAsked()
+	SendCreationRaces(sess)
+	return nil
+}
+
+// SendCreationRaces sends sess creation's races as they stand now: at its
+// client's answer to the offer, and again at a login's world entry
+// (resendPregameExtras).
+func SendCreationRaces(sess *session.Session) {
 	rules, races := entity.Creation(), entity.CreationRaces()
 	body := encodeCreationRaces(rules, races)
 	sess.Queue().AddWithSequence(creationRacesMessage(body))
 	log.Printf("CreationOffer: %s told %d races past the game's (every class for every race: %v), %d bytes",
 		sess.RemoteAddr(), len(races), rules.AllClasses, len(body))
-	return nil
 }
 
 // NewCharRace is the account page's rule for a race past the game's ten (main.go

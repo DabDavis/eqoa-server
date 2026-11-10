@@ -49,6 +49,13 @@ and of anyone else's what changed and when.
   1023 = every race. `equipslot` is where it is worn (`describe_table` lists the values).
 - **Ids that are asset ids** (`itemicon`, `model`, `icon`, `fxdict`, colours) are 32-bit values, shown in hex
   (`0x70D898C6`). Write them as hex strings ("0x70D898C6") or numbers. Copy them from rows that look right.
+  A column's `store` in `describe_table` says the form: `int32` (an item's icon, a spell's icons) its signed
+  number (0xB44E7A96 is -1269925226), `uint32` unsigned. `look_names` lists every icon or model of a kind with
+  the items and spells using it. The page shows each as its picture off the tester's own disc.
+- **On the page, choose an icon by its picture**: "Choose an icon…" opens every icon of the disc, each drawn twice
+  the game's size with the items already using it (hover one for its id). The pictures need the game disc loaded
+  once on the Game disc page; until then the list shows only what each icon is used by. The id itself is folded
+  under "Id" beside the picture, for typing one in; a tester never needs it to pick.
 
 ## What takes effect when
 

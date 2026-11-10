@@ -636,6 +636,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensurePotionCooldowns(); err != nil { // potioncooldown.go
 		return err
 	}
+	if err := db.ensureCharLockouts(); err != nil { // lockouts.go
+		return err
+	}
 	if err := db.ensureItemEffects(); err != nil {
 		return err
 	}
@@ -667,6 +670,9 @@ func (db *SQLiteDB) initSchema() error {
 		return err
 	}
 	if err := db.ensureSpellGates(); err != nil { // spellgates.go
+		return err
+	}
+	if err := db.ensureOrbs(); err != nil { // orbs.go
 		return err
 	}
 	if err := db.ensureFishCatch(); err != nil { // fishing.go
@@ -726,6 +732,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharDyes(); err != nil { // chardyes.go
 		return err
 	}
+	if err := db.ensureCharLook(); err != nil { // charlook.go: a custom race's look as chosen
+		return err
+	}
 	if err := db.ensureHeirlooms(); err != nil { // heirlooms.go: test gear that follows its wearer
 		return err
 	}
@@ -738,6 +747,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharVampire(); err != nil { // vampire.go: who the sun burns
 		return err
 	}
+	if err := db.ensureCharSafeMode(); err != nil { // safemode.go: who /testinvis keeps out of the creatures' sight
+		return err
+	}
 	if err := db.ensureCharBuyBack(); err != nil { // buyback.go: what merchants sell back
 		return err
 	}
@@ -745,6 +757,9 @@ func (db *SQLiteDB) initSchema() error {
 		return err
 	}
 	if err := db.ensureCamps(); err != nil { // gmcamps.go: a GM's marks and camps from the game
+		return err
+	}
+	if err := db.ensureCampfix(); err != nil { // campfix.go: the players' camp reports
 		return err
 	}
 
@@ -1046,8 +1061,11 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 	if _, err := s.db.Exec(`DELETE FROM charvitals WHERE serverid = ?`, serverID); err != nil {
 		return err
 	}
-	// and its resets counted (rehab.go)
+	// and its resets counted and its templates (rehab.go, rehabtemplates.go)
 	if err := s.db.deleteCharResets(serverID); err != nil {
+		return err
+	}
+	if err := s.db.deleteRehabTemplates(serverID); err != nil {
 		return err
 	}
 	// nor be a vampire (vampire.go)
@@ -1060,6 +1078,14 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 	}
 	// and its combat record (combatrecord.go)
 	if err := s.db.deleteCharRecord(serverID); err != nil {
+		return err
+	}
+	// and the look it chose (charlook.go)
+	if _, err := s.db.Exec(`DELETE FROM charlook WHERE serverid = ?`, serverID); err != nil {
+		return err
+	}
+	// and its abilities' lockouts (lockouts.go)
+	if _, err := s.db.Exec(`DELETE FROM charlockouts WHERE serverid = ?`, serverID); err != nil {
 		return err
 	}
 	// and its tradeskills and recipe book (craft.go), for the same reason

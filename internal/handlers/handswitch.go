@@ -278,7 +278,7 @@ func (h *EquipHandler) TakeOff(sess *session.Session, player *entity.Player, row
 		h.hands.update(player.CharServerID, func(k *keptHands) { k.took = 0 })
 	}
 	log.Printf("TakeOff: %s's %q off slot %d", player.Name, row.Pattern.ItemName, slot)
-	sess.Queue().AddWithSequence(unequipItemMessage(slot))
+	queueUnequip(sess, slot) // nothing of the cape's slot to a client that does not draw capes (capes.go)
 	row.EquipLoc = -1
 	h.wornChanged(sess, player, player.CharServerID)
 	return true

@@ -172,6 +172,22 @@ func (w *World) PortalBring(portal, player EntityID, sess *session.Session) bool
 	return true
 }
 
+// PortalSend sends player through the portal to a place of its own (the
+// portal's "Take me to Freeport", handlers/summonportal.go), as a call's travel
+// goes (the gates' queue, travelPlayer), and reports whether it went: not for a
+// dead player, nor through a portal closed.
+func (w *World) PortalSend(portal, player EntityID, sess *session.Session, to GateSpot) bool {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	st, p := w.portalStandingLocked(portal), w.Players[player]
+	if st == nil || p == nil || p.IsDead() {
+		return false
+	}
+	log.Printf("Portal: %d sends %s to %s", portal, p.Name, to.Place)
+	w.gates.due = append(w.gates.due, GateTravel{Sess: sess, P: p, To: to, Spell: PortalName})
+	return true
+}
+
 // closePortalLocked takes the portal out of the world and off its owner. Must
 // be called with the lock held.
 func (w *World) closePortalLocked(id EntityID, st *portalState) {

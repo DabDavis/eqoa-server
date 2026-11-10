@@ -117,16 +117,19 @@ func TestMemoryDumpTailMatchesClientReadSequence(t *testing.T) {
 			t.Errorf("cm stat %d = %d, want %d (what the masteries bought add)", i, got, player.CMEffects[i])
 		}
 	}
-	// the caps they raise: STR's by Brawn 1's 15, the rest by nothing. Until
-	// masteries were sold every character was sent the general ones its level
-	// allowed (150 each at 60), bought or not.
+	// the seven m_bonus: each stat's cap less the highest (TrainerBonuses,
+	// entity/mastery.go), STR's raised by Brawn 1's 15 the highest, so 0 for
+	// STR and -15 for the rest: m_p44 (415) plus each is the stat's own cap.
+	// Until masteries were sold every character was sent the general ones its
+	// level allowed (150 each at 60), bought or not; until petition 1375 the
+	// raises themselves, beside m_p44 400.
 	for i := 0; i < 7; i++ {
-		want := int64(0)
+		want := int64(-15)
 		if i == 0 {
-			want = 15
+			want = 0
 		}
-		if got := zigzag("cm stat caps raised"); got != want {
-			t.Errorf("cap raise %d = %d, want %d", i, got, want)
+		if got := zigzag("cm stat cap bonuses"); got != want {
+			t.Errorf("cap bonus %d = %d, want %d", i, got, want)
 		}
 	}
 

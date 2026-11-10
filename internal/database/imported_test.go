@@ -65,6 +65,7 @@ func copyOf(t *testing.T, db *sql.DB, base int) (int, bool) {
 // with each "by N" scaled. A potion and an Heirloom are no gear: given back
 // as they are; a copy given again is itself.
 func TestAnImportedCopyIsItsRecordAt70Percent(t *testing.T) {
+	defer SetImportedShare(SetImportedShare(0.7)) // the figures below are at 70%
 	db := importedDB(t)
 	id, made := copyOf(t, db, 1026)
 	if !made || id != importedFirst {
@@ -111,6 +112,7 @@ func TestAnImportedCopyIsItsRecordAt70Percent(t *testing.T) {
 // figure) takes them with it at the server's start; a copy as its base makes
 // it is not written again. The control: an untouched copy stays.
 func TestTheCopiesFollowTheirBasesAtTheStart(t *testing.T) {
+	defer SetImportedShare(SetImportedShare(0.7))
 	db := importedDB(t)
 	sword, _ := copyOf(t, db, 1026)
 	helm, _ := copyOf(t, db, 6207)
@@ -139,5 +141,31 @@ func TestTheCopiesFollowTheirBasesAtTheStart(t *testing.T) {
 	}
 	if n, err := SyncImportedCopies(db, time.Unix(1_800_000_000, 0)); err != nil || n != 0 {
 		t.Errorf("a second start synced %d (%v), want none", n, err)
+	}
+}
+
+// Petition 1320 (jibrish): "The -30% debuff on imported gear went a bit too
+// hard, lets reduce that to -15%". The share is 85% unless set, and a copy
+// made at another share is made again at the one in force at the next start.
+func TestTheShareIsASettingAndTheCopiesFollowIt(t *testing.T) {
+	if got := ImportedShare(); got != DefaultImportedShare || DefaultImportedShare != 0.85 {
+		t.Fatalf("the share is %v by default (%v), want 0.85", got, DefaultImportedShare)
+	}
+	defer SetImportedShare(SetImportedShare(0.7))
+	db := importedDB(t)
+	sword, _ := copyOf(t, db, 1026)
+	SetImportedShare(0.85)
+	if n, err := SyncImportedCopies(db, time.Unix(1_800_000_000, 0)); err != nil || n != 1 {
+		t.Fatalf("synced %d (%v), want the sword's copy", n, err)
+	}
+	var dmg, str, hp int
+	if err := db.QueryRow(`SELECT weapondamage, str, HPMAX FROM itempattern WHERE patternid = ?`, sword).Scan(&dmg, &str, &hp); err != nil {
+		t.Fatal(err)
+	}
+	if dmg != 494 || str != 13 || hp != 60 {
+		t.Errorf("the copy at 85%%: damage %d, STR %d, HP %d; want 494, 13, 60", dmg, str, hp)
+	}
+	if got := SetImportedShare(3); got != 0.85 || ImportedShare() != 1 {
+		t.Errorf("a share past 100%% is held to it: %v", ImportedShare())
 	}
 }

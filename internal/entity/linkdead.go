@@ -87,6 +87,17 @@ func (w *World) QuitStayOver(sess *session.Session, since, now time.Time) bool {
 	return now.Sub(since) >= QuitLinger || w.fightingLocked(p) == 0
 }
 
+// RespawnPending reports whether the session's player is the world's and
+// dead with its respawn to come: a session whose client went silent then
+// stays until the respawn has put it at its bind point (udp's
+// silentInWorldOver), as QuitStayOver keeps a Quit's.
+func (w *World) RespawnPending(sess *session.Session) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p := w.sessionPlayerLocked(sess)
+	return p != nil && w.Players[p.ServerID] == p && p.respawnPending()
+}
+
 // Vitals is the hit points and power the session's player leaves the world
 // with, for the next login; keep is false for one dead or on its way to a
 // respawn, which comes back whole. ok is false when the session's player is

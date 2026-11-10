@@ -832,3 +832,43 @@ func TestAuctionStaleWritesRefused(t *testing.T) {
 	}
 	r.audit()
 }
+
+// A holder whose client holds more than CLIENT's 40 (handlers/itemlists.go)
+// is filed as its own bank holds: the handlers say how many (SetBankSlotsOf).
+// The controls: unsaid (0) is CLIENT's 40, and the item waits.
+func TestAuctionBankSlotsAreTheHolders(t *testing.T) {
+	r := newAuctionRig(t)
+	t.Cleanup(func() { SetBankSlotsOf(func(uint32) int { return 0 }) })
+	lot, err := r.list(r.seller, r.item(r.seller, r.sword, 1, 1), 100, 1000, 720)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < AuctionBankSlots; i++ {
+		r.item(r.seller, r.sword, 1, 1)
+	}
+	end := time.Unix(lot.EndsAt, 0)
+	SetBankSlotsOf(func(uint32) int { return 0 })
+	if sw, err := r.db.AuctionSettleDue(end); err != nil || len(sw.Settled) != 1 || sw.Settled[0].Delivery != nil {
+		t.Fatalf("into a bank of 40 holding 40: %+v %v", sw, err)
+	}
+	if BankSlotsOf(r.seller) != 40 {
+		t.Errorf("unsaid: %d", BankSlotsOf(r.seller))
+	}
+	SetBankSlotsOf(func(holder uint32) int {
+		if holder == r.seller {
+			return 100
+		}
+		return 0
+	})
+	got, left, err := r.db.AuctionDeliverPending(r.seller, end)
+	if err != nil || len(got) != 1 || left != 0 {
+		t.Fatalf("into a bank of 100 holding 40: %+v %d %v", got, left, err)
+	}
+	if n := len(r.rowsOf(r.seller, 1)); n != AuctionBankSlots+1 {
+		t.Errorf("%d bank rows, want %d", n, AuctionBankSlots+1)
+	}
+	if BankSlotsOf(r.a) != 40 {
+		t.Errorf("another holder: %d", BankSlotsOf(r.a))
+	}
+	r.audit()
+}

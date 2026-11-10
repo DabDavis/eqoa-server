@@ -141,6 +141,9 @@ type petState struct {
 	// abilities' clocks were last started on (pettemplate.go)
 	tmpl *petTemplate
 	foe  EntityID
+	// spell is the summoning spell that made it, 0 for a charmed one: what a
+	// restart summons it again by (keeppet.go)
+	spell int
 }
 
 // petOfLocked is the player's pet, alive, or nil.
@@ -395,7 +398,7 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 		return
 	}
 	if old := w.pets[caster.ServerID]; old != nil {
-		w.dismissPetLocked(old, sess, "")
+		w.dismissPetLocked(old, sess, "", now)
 	}
 	level := petLevel(spell.Level, caster.Level)
 	if spell.Def.PetLevel > 0 {
@@ -440,7 +443,7 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 		w.pets = make(map[EntityID]*petState)
 	}
 	ps := &petState{owner: caster, npc: pet, stance: petSheetStance(sheet), last: now,
-		taunts: caster.Class == classEnchanter && pt == nil, kind: kind, hitScale: hitScale, tmpl: pt}
+		taunts: caster.Class == classEnchanter && pt == nil, kind: kind, hitScale: hitScale, tmpl: pt, spell: spell.SpellID}
 	w.pets[caster.ServerID] = ps
 	if sess != nil {
 		w.announcePetLocked(ps, sess)
@@ -560,10 +563,11 @@ func (w *World) pinPetLocked(p *Player, cands []entityDist) []entityDist {
 }
 
 // dismissPetLocked takes the pet away: off every fight, out of the world
-// (a dead one's corpse lies its time), and its owner told (0x007F, its
-// non-collide entry off, text when there is any). sess is the owner's, or
+// (a dead one's corpse lies its time; a living one dies where it stands and
+// goes once its death has played: petDiesLocked), and its owner told (0x007F,
+// its non-collide entry off, text when there is any). sess is the owner's, or
 // nil when it has none to tell. Must be called with the lock held.
-func (w *World) dismissPetLocked(ps *petState, sess *session.Session, text string) {
+func (w *World) dismissPetLocked(ps *petState, sess *session.Session, text string, now time.Time) {
 	if ps.npc.Charm != nil {
 		// a charmed creature is let go, not taken away (charm.go)
 		w.releaseCharmLocked(ps, sess, text, false)
@@ -575,7 +579,7 @@ func (w *World) dismissPetLocked(ps *petState, sess *session.Session, text strin
 	}
 	w.dropAggroLocked(pet.ServerID)
 	if !pet.Dead {
-		w.removeNPCLocked(pet)
+		w.petDiesLocked(pet, now) // seen dying, then gone (petition 1398)
 	}
 	if sess != nil {
 		sendClearPet(sess)
@@ -587,6 +591,32 @@ func (w *World) dismissPetLocked(ps *petState, sess *session.Session, text strin
 		}
 	}
 	log.Printf("Pet: %s's %q goes", ps.owner.Name, pet.Name)
+}
+
+// petDismissedLies is how long the body of a pet that went alive lies dead
+// before it goes: the longest death of CHAR.ESF's 536 bodies (play list slot
+// 14) runs 4.0 s (the median 1.3 s; the Swarming Death's 1.0 s, a Fire
+// Elemental's 1.5 s), and a second more for the channel to take the death to
+// every client. A pet killed in a fight lies petCorpseTime, as before.
+const petDismissedLies = 5 * time.Second
+
+// petDiesLocked lays a pet that goes alive (dismissed, replaced by a new
+// summoning, its owner gone or dead, a charm taking its place) down dead where
+// it stands, as a killed creature's channel shows its death (byte 58 Die, 26 a
+// corpse, health 0: serializeEntityDiscLocked), so CLIENT (UpdateCreatures'
+// SetDeath) and vanilla play its death on everyone's screen; its body goes once
+// that has played (petDismissedLies), as a Temporary NPC's corpse goes
+// (corpseSystem). Until petition 1398 (Contintious: "whenever you dismiss a
+// pet or recast a pet, the pet should show dying it currently just vanishes")
+// it was taken out of the world at once. No one's kill: no experience, no
+// faction, nothing on its corpse and no one to loot it (handlers/loot.go: a
+// pet's). Must be called with the lock held.
+func (w *World) petDiesLocked(pet *NPC, now time.Time) {
+	pet.HP = 0
+	w.killNPC(pet)
+	pet.DeathTime = now // the tick's, as its corpse's time is counted by
+	pet.CorpseDecay = petDismissedLies
+	log.Printf("Pet: %q dies as it goes (its body for %v)", pet.Name, petDismissedLies)
 }
 
 // PetDumped is a MemoryDump sent to the session: it cleared the client's pet,
@@ -632,7 +662,7 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 			w.releaseCharmLocked(ps, sess, "Your pet has been dismissed.", true)
 			return
 		}
-		w.dismissPetLocked(ps, sess, "Your pet has been dismissed.")
+		w.dismissPetLocked(ps, sess, "Your pet has been dismissed.", now)
 	case petCmdBackOff:
 		ps.target, ps.pvpTarget = 0, 0
 		ps.heldUntil = now.Add(petBackOffHold)
@@ -645,8 +675,16 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 			return
 		}
 		npc, isNPC := ent.(*NPC)
-		if !ok || !isNPC || !pet.petFights() || !petMayFight(pet, npc) || distXZ(p.X, p.Z, npc.X, npc.Z) > petLeash {
-			w.sendChatToSession(sess, "Your pet cannot attack that.")
+		if ok && isNPC && challengeBars(npc, p.ServerID) {
+			w.sendChatToSession(sess, fmt.Sprintf(MetalLinePet, npc.challenge.name)) // another's duel (metalmoogie.go)
+			return
+		}
+		if !ok || !isNPC || !pet.petFights() || !petMayFight(pet, npc) {
+			w.sendChatToSession(sess, petCannotAttack)
+			return
+		}
+		if distXZ(p.X, p.Z, npc.X, npc.Z) > petLeash {
+			w.sendChatToSession(sess, petTargetTooFar) // one it could fight, too far off (petition 1399)
 			return
 		}
 		ps.target = npc.ServerID
@@ -654,6 +692,18 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 		w.sendChatToSession(sess, "Your pet attacks "+npc.Name+".")
 	}
 }
+
+// The attack command's refusals: a target the pet may not fight at all (none,
+// a player, an unattackable creature, another's pet or duel, a pet that fights
+// nothing), and one it may but too far from its owner to go for (petLeash). The
+// magician Waldorf's petition 1399 had the second say the first's line ("Should
+// read "Target is out of range." Or something like that"). Ours: CLIENT has no
+// line for a pet's (its word 723 "Out of range." is a ranged weapon's, and
+// Sandstorm's red "Out of range." a cast's, castOutOfRange), nor does a recording.
+const (
+	petCannotAttack = "Your pet cannot attack that."
+	petTargetTooFar = "Your target is too far away."
+)
 
 // petStanceRefused is the line for a stance a workbook pet does not take.
 var petStanceRefused = map[petStance]string{
@@ -673,7 +723,8 @@ var petStanceWords = map[petStance]string{
 // petMayFight is whether a pet may take on the creature: alive, in its world,
 // attackable (not npc flags 0x80, as CLIENT's own test) and nobody's pet.
 func petMayFight(pet, npc *NPC) bool {
-	return npc != nil && npc != pet && !npc.Dead && npc.World == pet.World && npc.NPCType&0x80 == 0 && npc.Owner == 0
+	return npc != nil && npc != pet && !npc.Dead && npc.World == pet.World && npc.NPCType&0x80 == 0 && npc.Owner == 0 &&
+		!challengeBars(npc, pet.Owner) // another's duel (metalmoogie.go)
 }
 
 func distXZ(ax, az, bx, bz float32) float32 {
@@ -691,16 +742,16 @@ func (w *World) petSystem(now time.Time) {
 		owner, pet := ps.owner, ps.npc
 		if w.Players[id] != owner {
 			// logged out, or logged in again as a new player: nobody to tell
-			w.dismissPetLocked(ps, nil, "")
+			w.dismissPetLocked(ps, nil, "", now)
 			continue
 		}
 		sess := w.findSessionByEntityIDLocked(id)
 		if pet.Dead {
-			w.dismissPetLocked(ps, sess, "Your pet has died.")
+			w.dismissPetLocked(ps, sess, "Your pet has died.", now)
 			continue
 		}
 		if owner.IsDead() || owner.respawnPending() {
-			w.dismissPetLocked(ps, sess, "")
+			w.dismissPetLocked(ps, sess, "", now)
 			continue
 		}
 		if h := pet.Charm; h != nil && !h.until.IsZero() && !now.Before(h.until) {
@@ -1082,7 +1133,7 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 // (Grand Animation's grandAnimationTaunt). It reports a kill.
 func (w *World) petTauntLocked(ps *petState, t *NPC, now time.Time) bool {
 	pet := ps.npc
-	if t.Dummy == NotDummy {
+	if t.Dummy == NotDummy && t.challenge == nil { // a Metal Moogie keeps to his challenger (metalmoogie.go)
 		var top int64
 		for id, v := range t.Threats {
 			if id != pet.ServerID && v > top {
@@ -1105,7 +1156,7 @@ func (w *World) petTauntLocked(ps *petState, t *NPC, now time.Time) bool {
 	log.Printf("Pet: %s's %q taunts %s (round %d)", ps.owner.Name, pet.Name, t.Name, ps.rounds)
 	w.showPetTauntLocked(pet, t.ServerID)
 	pet.LastCombatTime = now
-	return w.petDamageLocked(ps, t, n, now)
+	return w.petDamageLocked(ps, t, n, now, numberSpell) // an ability's hit (numbertags.go)
 }
 
 // petTauntFX is the visual a pet's taunt shows on its target: the Taunt
@@ -1120,34 +1171,62 @@ func (w *World) showPetTauntLocked(pet *NPC, target EntityID) {
 	w.broadcastNPCSwingLocked(pet, target, 0, petTauntFX)
 }
 
-// petHitLocked is one of the pet's hits on its target, then its procs
-// (proc.go). It reports a kill.
+// petHitLocked is one of the pet's hits on its target, then its template's
+// proc (pettemplate.go) and its effects' procs (proc.go). It reports a kill.
 func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
 	ps.npc.LastCombatTime = now
+	if ps.npc.Charm != nil {
+		// a charmed creature hits at its own strength, as a creature hits a
+		// creature (charmedHitLocked), its charm template's melee_pct on it
+		if w.petLandHitLocked(ps, t, ps.meleeOut(w.charmedHitLocked(ps.npc, t, meleeIntn)), now, false, numberMelee) {
+			return true
+		}
+		if w.petTemplateProcLocked(ps, t, now) || w.petProcsLocked(ps, t, now) {
+			return true
+		}
+		return w.creatureShieldOnPetLocked(ps, t, now)
+	}
 	n := petMeleeHit(ps.npc, t, meleeIntn)
 	if ps.hitScale > 0 && ps.hitScale != 1 {
 		n = int(math.Round(float64(n) * ps.hitScale)) // a recorded kind's (petrotation.go)
 	}
 	n = ps.meleeOut(n) // its template's melee_pct (pettemplate.go)
-	if w.petDamageLocked(ps, t, n, now) {
+	if w.petDamageLocked(ps, t, n, now, numberMelee) {
 		return true
 	}
-	if w.petProcsLocked(ps, t, now) {
+	if w.petTemplateProcLocked(ps, t, now) || w.petProcsLocked(ps, t, now) {
 		return true
 	}
 	return w.creatureShieldOnPetLocked(ps, t, now) // creatureshield.go
 }
 
+// charmedHitLocked is a charmed creature's melee hit on a creature at its own
+// strength ("they can stay mob strength", the user, 2026-11-02), as a creature
+// hits a creature (guards.go's npcHitNPCLocked): a roll of its level, with
+// what its effects add to its STR and DEX (its master's buffs), on a tank of
+// the foe's level (npcHitOnPet's AC ten a level and AGI its level, with what
+// the foe's own effects add), its level's damage share and its con's on the
+// foe (npcHitLocked), as the foe's template takes it. Not the foe's con on
+// it: a creature's hit takes none.
+func (w *World) charmedHitLocked(pet, t *NPC, intn func(int) int) int {
+	r := creatureRoll(pet.Level).withMods(pet.effectMods())
+	m := t.creatureMods()
+	top := int(math.Round(r.Top - r.ACSlope*float64(10*t.Level+m.AC) - agiSlope[archTank]*float64(t.Level+m.Agi)))
+	hit := top - r.Width + intn(r.Width+1)
+	return t.meleeTaken(w.npcHitLocked(pet, t.Level, max(hit, r.Floor, 1)))
+}
+
 // petDamageLocked is n of the pet's damage on its target, its owner's: the
-// figure to the owner as the owner's (0x00DB), the target's hate for the
-// pet, and on a kill the owner's XP and faction hits. It reports a kill.
-func (w *World) petDamageLocked(ps *petState, t *NPC, n int, now time.Time) bool {
-	return w.petLandHitLocked(ps, t, n, now, true)
+// figure to the owner as the owner's (0x00DB, what made it kind, told as its
+// pet's: numbertags.go), the target's hate for the pet, and on a kill the
+// owner's XP and faction hits. It reports a kill.
+func (w *World) petDamageLocked(ps *petState, t *NPC, n int, now time.Time, kind numberKind) bool {
+	return w.petLandHitLocked(ps, t, n, now, true, kind)
 }
 
 // petLandHitLocked is petDamageLocked, balanced or landing as it is (a
 // templated pet's taunt of a fixed figure: pettemplate.go).
-func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, balanced bool) bool {
+func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, balanced bool, kind numberKind) bool {
 	owner, pet := ps.owner, ps.npc
 	sess := w.findSessionByEntityIDLocked(owner.ServerID)
 	tell := func() {
@@ -1157,7 +1236,7 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 			return
 		}
 		if tid := w.objectIDForEntityLocked(sess, t.ServerID); tid != 0 {
-			w.sendDamageIndication(sess, sess.PlayerObjectID(), -n, tid)
+			w.sendDamageIndication(sess, sess.PlayerObjectID(), -n, tid, kind.byPet())
 		}
 	}
 	if t.Dummy != NotDummy {
@@ -1186,8 +1265,12 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 	if owner.AttackTarget == t.ServerID {
 		owner.disengage()
 	}
-	ps.target = 0
-	pet.endRound()
+	if ps.target == t.ServerID {
+		// its fight over; a kill of another (its damage over time left on
+		// one it fought before, an area spell's others) leaves its fight on
+		ps.target = 0
+		pet.endRound()
+	}
 	return true
 }
 
@@ -1420,13 +1503,13 @@ func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *sessi
 			switch n := spellAmount(e, caster); {
 			case n > 0 && pet.HP < pet.MaxHP:
 				pet.HP = min(pet.HP+n, pet.MaxHP)
-				w.tellAmountLocked(caster, casterSess, pet.ServerID, n)
+				w.tellAmountLocked(caster, casterSess, pet.ServerID, n, cs.spell.healKind())
 			case n < 0 && !e.Self && !pet.Dead:
 				// its owner's blast on it (the alchemist's Destroy
 				// Contraption, -20000: until 2026-11-01 a friendly spell's
 				// hit on a pet was dropped and the contraption stood)
 				pet.HP = max(pet.HP+n, 0)
-				w.tellAmountLocked(caster, casterSess, pet.ServerID, n)
+				w.tellAmountLocked(caster, casterSess, pet.ServerID, n, cs.spell.hitKind())
 				if pet.HP == 0 {
 					log.Printf("Cast: %s's %q destroys the pet %q", caster.Name, cs.spell.Name, pet.Name)
 					w.killNPC(pet)

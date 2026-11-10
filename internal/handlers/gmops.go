@@ -123,11 +123,12 @@ func EjectAccount(sm *session.Manager, accountID int) int {
 // SendLevel tells a client its player's level (0x0020) and the experience its
 // bar is drawn from (bar: entity.Player.BarXP, none into a level set, or the way
 // to the next mastery point at the cap or at 100%), as a level set by a GM is:
-// CLIENT plays its level-up sound for a higher one. The level's stat cap goes
-// with it (0x001C; entity/mastery.go).
-func SendLevel(sess *session.Session, level, bar int) {
+// CLIENT plays its level-up sound for a higher one. Where its trainer stops a
+// base at that level goes with it (0x001C, trainerCap:
+// entity.World.CharacterTrainerCap; entity/mastery.go).
+func SendLevel(sess *session.Session, level, bar, trainerCap int) {
 	SendGrantXP(sess, level, int64(bar))
-	entity.SendStatCap(sess, level)
+	entity.SendStatCap(sess, trainerCap)
 }
 
 // GiveItemNow gives an online player n of an item now, as a merchant's sale
@@ -165,7 +166,7 @@ func GiveItemNow(sess *session.Session, gw *entity.World, inv *database.Inventor
 		if err != nil {
 			return given, err
 		}
-		queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, key))
+		queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, key, readsCapes(sess)))
 		given += took
 	}
 	log.Printf("GM: gave %s %d of %q", player.Name, given, pattern.ItemName)

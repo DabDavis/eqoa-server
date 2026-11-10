@@ -93,12 +93,17 @@ const (
 	TriggerHide      = "hide"      // the NPCs named npc near the place out of every view for minutes (0: back)
 	TriggerRouse     = "rouse"     // the run's spawns named npc attack on sight from now on
 	TriggerSic       = "sic"       // the run's spawns named npc (none: all) attack the NPC named target nearest each
+	// The run's spawn named npc called back while its spawn named by lives: seconds after the
+	// last one fell, one more beside it, set on target (the user, 2026-11-09: "cause tunare to
+	// resummon her pets"), from this step to the run's end
+	TriggerResummon = "resummon"
 )
 
 // TriggerActions is every action, in the order the panel offers them.
 var TriggerActions = []string{TriggerBroadcast, TriggerPopup, TriggerSay, TriggerGive, TriggerVisual,
 	TriggerTeleport, TriggerSpawn, TriggerDespawn, TriggerStop, TriggerWait,
-	TriggerLock, TriggerPlace, TriggerClock, TriggerEnd, TriggerAwaitTalk, TriggerAwaitDead, TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic}
+	TriggerLock, TriggerPlace, TriggerClock, TriggerEnd, TriggerAwaitTalk, TriggerAwaitDead, TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic,
+	TriggerResummon}
 
 // TriggerStep is one step of a trigger, kept in the steps column's array.
 type TriggerStep struct {
@@ -132,8 +137,17 @@ type TriggerStep struct {
 	// each spawn within the step's radius (0: the run's reach), in its world (the user,
 	// 2026-11-08: "spawn nagafen attacking mr moogie")
 	Target string `json:"target,omitempty"`
+	// Casts (sic): they fight the target by their whole class template, its casts and
+	// specials too (entity.SetNPCOn; the user, 2026-11-09: Tunare, "a strong druid god",
+	// fights Mr. Moogie with a druid's spells); without it a fight between two NPCs is their
+	// melee alone
+	Casts bool `json:"casts,omitempty"`
 	// Empty (clock): its seconds with no player within the run's reach end the clock at once
 	Empty float64 `json:"empty,omitempty"`
+	// By (resummon): the run's spawn, by name, that calls npc back while it lives; seconds the
+	// time after npc's last one fell, target, radius and casts the sic it is given, attackable,
+	// hostile and minutes its spawn's, text a line in its players' chat as it comes
+	By string `json:"by,omitempty"`
 }
 
 // GMTrigger is one row of gmtriggers.
@@ -171,10 +185,17 @@ func (t GMTrigger) Title() string {
 // MenuName is the name the TEST menu shows (vanilla, 0x7E08): the trigger's
 // name cut to TriggerMaxName bytes on a character's edge, else "Trigger n".
 func (t GMTrigger) MenuName() string {
-	n := strings.TrimSpace(t.Name)
-	if n == "" {
-		n = fmt.Sprintf("Trigger %d", t.Slot)
+	if n := t.ListName(); n != "" {
+		return n
 	}
+	return fmt.Sprintf("Trigger %d", t.Slot)
+}
+
+// ListName is the name vanilla's whole list carries (0x7E36, which carries the
+// slot beside it): the trigger's name cut to TriggerMaxName bytes on a
+// character's edge, "" when it has none.
+func (t GMTrigger) ListName() string {
+	n := strings.TrimSpace(t.Name)
 	for len(n) > TriggerMaxName {
 		r := []rune(n)
 		n = string(r[:len(r)-1])
@@ -388,6 +409,19 @@ func StepProblems(steps []TriggerStep) []string {
 			if strings.TrimSpace(s.Target) == "" {
 				add(i, "sic names no target")
 			}
+		case TriggerResummon:
+			if strings.TrimSpace(s.NPC) == "" {
+				add(i, "resummon names no NPC to call back")
+			}
+			if strings.TrimSpace(s.By) == "" {
+				add(i, "resummon names no NPC who calls it back (by)")
+			}
+			if s.Seconds < 0 || s.Seconds > TriggerMaxWait {
+				add(i, "resummon's %.1f s after a death: 0 to %d", s.Seconds, TriggerMaxWait)
+			}
+			if s.Minutes < 0 || s.Minutes > TriggerMaxMinutes {
+				add(i, "resummon's stay %.1f minutes: 0 (%d) to %d", s.Minutes, TriggerDefaultStay, TriggerMaxMinutes)
+			}
 		}
 		switch s.Do {
 		case TriggerAwaitTalk, TriggerAwaitDead:
@@ -396,7 +430,7 @@ func StepProblems(steps []TriggerStep) []string {
 			}
 		case TriggerBroadcast, TriggerPopup, TriggerSay, TriggerGive, TriggerVisual, TriggerTeleport, TriggerSpawn,
 			TriggerDespawn, TriggerStop, TriggerWait, TriggerLock, TriggerPlace, TriggerClock, TriggerEnd,
-			TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic:
+			TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic, TriggerResummon:
 		default:
 			add(i, "do %q is not one of %s", s.Do, strings.Join(TriggerActions, ", "))
 		}

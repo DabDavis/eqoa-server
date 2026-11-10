@@ -416,7 +416,10 @@ const (
 	// its TEST menu (handlers/gmtriggers.go), a u32 after the opcode, both
 	// ways. The server offers it (1) to a GM's client right after the GM
 	// channel's 0x0700 {35, n}; a client that shows the names answers 1 to
-	// have them and 0 to stop. A PS2 ignores the offer.
+	// have the menu's eight lines' (OpcodeGMTriggersData), 2 to have every
+	// trigger in their place (OpcodeGMTriggerList, the menu a line a trigger),
+	// and 0 to stop; another value is taken as 1, as a server from before the
+	// list took any but 0. A PS2 ignores the offer.
 	OpcodeGMTriggers GameOpcode = 0x7E07
 
 	// OpcodeGMTriggersData is the names, server to a client that asked: a u8
@@ -604,9 +607,175 @@ const (
 	// slot); the server sends it into those alone (LoadableWorlds).
 	OpcodeServerWorldsData GameOpcode = 0x7E31
 
+	// OpcodeRaceOptions is not retail: a custom race's own character options
+	// (entity/raceoptions.go, handlers/raceoptions.go): a u32 after the opcode,
+	// both ways, as OpcodeRaceLabels. The server offers it (1) after a session's
+	// first character list; a client that can answers 1 (0 to stop) and is sent
+	// the options each race has (OpcodeRaceOptionsData, once a session) and the
+	// looks the characters chose (OpcodeRaceLooks, then whenever they change). A
+	// PS2 ignores the offer: a body chosen is the character's model on every
+	// client, and nothing else of a look reaches one.
+	OpcodeRaceOptions GameOpcode = 0x7E22
+
+	// OpcodeRaceOptionsData is each race's options, to a client that answered
+	// OpcodeRaceOptions: u8 version (1), u8 races, then each: u8 race (as
+	// characters.race holds it), u8 rows, then each row: its key and label, u8
+	// kind (1 a body, 2 a colour, 3 a texture), u8 parts, then each part: u32 the
+	// body it is of, u8 entries and each palette entry (u8), u8 rects and each
+	// rect's four u8 (u0, v0, u1, v1 in 255ths of the texture); then u8 steps for
+	// a male and each step: its name, u32 value (a body's or a texture's DictID,
+	// or a colour), u16 size (a body's scale against its race's own, 1000ths; 0
+	// for a colour or a texture); then u8 steps for a female (0: the male's) and
+	// each as the male's. Every string is a u8 byte count and UTF-8.
+	OpcodeRaceOptionsData GameOpcode = 0x7E23
+
+	// OpcodeRaceLooks is the looks the characters chose, to a client that
+	// answered OpcodeRaceOptions: u8 version (1), u16 characters, then each: its
+	// name (a u8 byte count and UTF-8; a GM's both with and without the tag its
+	// channel name carries), u32 the body the look is of (its own model: a look
+	// is drawn only on it, never under an illusion or another body), u8 parts,
+	// then each part: u8 kind (2 a colour, 3 a texture), u32 value, u8 entries and
+	// each palette entry, u8 rects and each rect's four u8. Each one is the whole
+	// list: a name it leaves out is drawn in its body's own colours.
+	OpcodeRaceLooks GameOpcode = 0x7E24
+
+	// OpcodeJump is not retail: a player's jump (entity/jump.go,
+	// handlers/jump.go; world.jump), a u32 after the opcode, both ways. CLIENT's
+	// walk has no jump, so the server offers it (1) only to a client of its own:
+	// one that answered the bug report offer (OpcodeBugReportOffer), which a PS2
+	// never does, so a PS2 is never sent it. A client that jumps answers 1 (0: it
+	// does not), and the movement check takes a jump's arc from that player
+	// (movecheck.go). The server says 0 to a client it offered jumps to before a
+	// restart into a server without them.
+	OpcodeJump GameOpcode = 0x7E28
+
+	// OpcodeItemLists is not retail: a pack and a bank that hold more than
+	// CLIENT's 40 records each (world.pack_slots, world.bank_slots;
+	// entity/itemslots.go, handlers/itemlists.go). The server offers them after
+	// a session's first character list, once, only while it holds more: a u32
+	// 1, then u32 the pack's records and u32 the bank's, little-endian. A
+	// client that holds more answers 1 and the records it holds of each (u32,
+	// u32), or 0 to stop; the server takes each between 40 and its own. A PS2
+	// ignores the offer (CLIENT's dispatcher has no default case) and holds 40.
+	OpcodeItemLists GameOpcode = 0x7E29
+	// OpcodeItemListsInForce is the sizes in force, server to a client that
+	// answered OpcodeItemLists: u32 the pack's records, u32 the bank's, sent
+	// before every MemoryDump (a login, a respawn, a restart's), whose lists
+	// hold that many at most and which every add after it fills to. A client
+	// never told holds 40 of each. (0x7E2B is left unused, the item lists'.)
+	OpcodeItemListsInForce GameOpcode = 0x7E2A
+
+	// OpcodeMapTravel is not retail: a GM's travel to a spot of the map
+	// (handlers/maptravel.go), offered at a GM's world entry with the GM's
+	// channel (SendGMChannel): a u32 after the opcode, 1. A client that has a
+	// map (vanilla) lets the GM ask for a spot of it then (OpcodeMapTravelTo); a
+	// PS2 ignores the offer (CLIENT's dispatcher has no default case), and no
+	// one else is offered it.
+	OpcodeMapTravel GameOpcode = 0x7E34
+	// OpcodeMapTravelTo is a GM's ask, client to server: u32 world (the
+	// MemoryDump's world index), f32 x, f32 z, little-endian. The server moves
+	// a GM's character there as #goto x y z does, on the ground's floor, and
+	// refuses anyone else's (logged, nothing said, nothing moved).
+	OpcodeMapTravelTo GameOpcode = 0x7E35
+
 	// 0x7E10-0x7E16 were voice chat's (offer, config, roster, signal, room,
 	// lobby, room state), removed with it on 2026-11-08: left unused, as a
 	// client from before then may still send them
+
+	// OpcodeCapes is not retail: a cape, an equip slot of this server's own
+	// (world.capes; entity/capes.go, handlers/capes.go), for a client that
+	// draws capes. A u32 after the opcode, both ways, as OpcodeLiveLook: the
+	// server offers it (1) after a session's first character list, only while
+	// world.capes is on; a client that draws capes answers 1 (0 to stop). From
+	// its 1 on, the items it is sent keep a cape's wear slot (28) and a worn
+	// cape's equip slot (22), it may put a cape on and take it off with the
+	// game's own messages (0x003E, 0x003F, 0x0040), and it is sent
+	// OpcodeCapesList with each character list and OpcodeCapesInView in the
+	// world. A PS2 ignores the offer (CLIENT's dispatcher has no default case)
+	// and is sent a cape as a plain item (wear -1), never worn. (0x7E22-0x7E24
+	// are the race options'.)
+	OpcodeCapes GameOpcode = 0x7E25
+
+	// OpcodeCapesInView is the capes worn in a client's view, server to a
+	// client that answered OpcodeCapes 1, in the world: a u8 count, then for
+	// each a u32 id (as that client knows the entity: its own object id for
+	// its own character, the visibility channel's for another), a u8 style
+	// (the cape record's model, never 0) and a u32 colour (0xRRGGBBAA: the
+	// cape's dye, an Armor Dyer's or #dye's, else its record's colour; 0 the
+	// art's own), little-endian. Players only. Each one is the whole set: an
+	// id it leaves out wears no cape. Sent when the set changes, and again at
+	// each MemoryDump and world change.
+	OpcodeCapesInView GameOpcode = 0x7E26
+
+	// OpcodeCapesList is the capes the characters of a list wear, server to a
+	// client that answered OpcodeCapes 1, after each character list (0x002C)
+	// and when its answer comes while it is choosing: a u8 count, then for each
+	// character that wears one a u32 its ServerID (as 0x002C carries it), a u8
+	// style and a u32 colour, as OpcodeCapesInView. The whole list each time.
+	OpcodeCapesList GameOpcode = 0x7E27
+
+	// OpcodePetEffects is not retail: the effects on the player's pet, for a
+	// client that draws them under its pet's bar (entity/peteffects.go,
+	// handlers/peteffects.go; the user, 2026-11-09: "put the buff icons under
+	// the pet name plate"). A u32 after the opcode, both ways, as
+	// OpcodePowerBars: the server offers it (1) once the player is in the
+	// world; a client that draws them answers 1 to have them and 0 to stop, at
+	// once and whenever that changes. A PS2 ignores the offer (CLIENT's
+	// dispatcher has no case above 0x1402 and no default) and never asks, so
+	// it is sent none: the pet's effects are on no PS2's screen, its own
+	// effects window (channel 0x43) the player's alone.
+	OpcodePetEffects GameOpcode = 0x7E32
+
+	// OpcodePetEffectsData is the pet's effects, server to a client that
+	// asked, whenever they change (one goes on, runs out, is cast again, the
+	// pet goes or another comes) and at once after the ask: a u8 count, then
+	// for each, in the order they went on, a u32 icon (a DictID, as channel
+	// 0x43's records carry it), a u32 its time left in milliseconds as the
+	// message is made, and a u8 byte count and the name in UTF-8 (at most 31
+	// characters, as channel 0x43's). Each one is the whole set; 0 effects:
+	// none, or no pet. At most 16 (entity.PetEffectsMost).
+	OpcodePetEffectsData GameOpcode = 0x7E33
+
+	// OpcodeGMTriggerList is every GM trigger, server to a client that
+	// answered OpcodeGMTriggers 2 (handlers/gmtriggers.go; the user, 2026-11-09:
+	// "can we add the triggers to client menu also in gm menus"), in place of
+	// OpcodeGMTriggersData: a u16 count, then each row of gmtriggers by slot: a
+	// u32 slot, u8 flags (bit 0 on, bit 1 running now) and its name (a u8 byte
+	// count and UTF-8, at most 32 bytes; 0 for a trigger with none), little-
+	// endian. Each one is the whole table, off triggers too. Sent after the
+	// client's 2 and whenever a trigger is saved, deleted, starts or ends. A
+	// client fires a line by its slot with OpcodeGMTriggerFire.
+	OpcodeGMTriggerList GameOpcode = 0x7E36
+
+	// OpcodeGMTriggerFire is a GM's firing of a trigger by its slot, client to
+	// server: a u32 slot, little-endian. The server fires it as 0x0702 and
+	// #trigger <n> do, for a GM alone (anyone else's is logged and dropped),
+	// and tells the GM what it did. A client sends it only for a line of
+	// OpcodeGMTriggerList's; 0x0702's byte reaches slots 1 to 256 and no
+	// further.
+	OpcodeGMTriggerFire GameOpcode = 0x7E37
+
+	// OpcodeNumberTagsOffer is not retail: what made each figure, for a client
+	// that colours its numbers by it (entity/numbertags.go,
+	// handlers/numbertags.go; the user, 2026-11-09, of a player's ask to "see/
+	// change colors of damage/procs/healing for player/pets similar to the way
+	// SS does": "we can add the number colors to extended menu"). Server to
+	// client once the player is in the world: a u8, 1, the tag's layout below.
+	// A PS2 ignores it (CLIENT's dispatcher has no case above 0x1402 and no
+	// default) and never answers.
+	OpcodeNumberTagsOffer GameOpcode = 0x7E38
+
+	// OpcodeNumberTagsAnswer is a client's answer to OpcodeNumberTagsOffer,
+	// client to server, at once and whenever it changes: a u8, 1 to have its
+	// figures tagged, 0 to stop. From a 1 on, each 0x00DB the session is sent
+	// of a figure its player or its player's pet made carries one byte after
+	// the retail body (u32 attacker, zigzag amount, u32 defender): its low 7
+	// bits what made it (1 melee, 2 a spell or an ability, 3 a damage over
+	// time's tick, 4 a damage shield, 5 a proc, 6 a heal, 7 a heal over time's
+	// tick), bit 7 set when the player's pet made it. Every other 0x00DB (a
+	// figure on the player that another made, any to a session that never
+	// answered 1) is the retail body alone.
+	OpcodeNumberTagsAnswer GameOpcode = 0x7E39
 )
 
 // =============================================================================
@@ -857,6 +1026,8 @@ func (op GameOpcode) String() string {
 		return "CombatRecordData"
 	case OpcodeFly:
 		return "Fly"
+	case OpcodeJump:
+		return "Jump"
 	case OpcodeCreationOffer:
 		return "CreationOffer"
 	case OpcodeCreationRaces:
@@ -865,6 +1036,23 @@ func (op GameOpcode) String() string {
 		return "ServerWorlds"
 	case OpcodeServerWorldsData:
 		return "ServerWorldsData"
+
+	case OpcodeCapes:
+		return "Capes"
+	case OpcodeCapesInView:
+		return "CapesInView"
+	case OpcodeCapesList:
+		return "CapesList"
+	case OpcodePetEffects:
+		return "PetEffects"
+	case OpcodePetEffectsData:
+		return "PetEffectsData"
+	case OpcodeRaceOptions:
+		return "RaceOptions"
+	case OpcodeRaceOptionsData:
+		return "RaceOptionsData"
+	case OpcodeRaceLooks:
+		return "RaceLooks"
 	case OpcodeNoCollideList:
 		return "NoCollideList"
 	case OpcodeFactionPage:
@@ -891,6 +1079,18 @@ func (op GameOpcode) String() string {
 		return "GMTriggers"
 	case OpcodeGMTriggersData:
 		return "GMTriggersData"
+	case OpcodeGMTriggerList:
+		return "GMTriggerList"
+	case OpcodeGMTriggerFire:
+		return "GMTriggerFire"
+	case OpcodeNumberTagsOffer:
+		return "NumberTagsOffer"
+	case OpcodeNumberTagsAnswer:
+		return "NumberTagsAnswer"
+	case OpcodeMapTravel:
+		return "MapTravel"
+	case OpcodeMapTravelTo:
+		return "MapTravelTo"
 	default:
 		return "Unknown"
 	}

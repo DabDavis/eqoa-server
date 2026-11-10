@@ -8,7 +8,8 @@ import (
 
 // The panel's own tables, in the game's database: the audit log (its
 // statement the database package's: a GM command in the game writes it too),
-// the GMs' authenticators, their API and OAuth tokens, the OAuth clients and
+// the GMs' authenticators, their API and OAuth tokens, the browser sessions
+// (session.go: kept over a restart, the token by its hash), the OAuth clients and
 // who is a tester (tester.go) and who a storyteller (storyteller.go).
 // Times are TEXT in RFC 3339 (UTC), which every reader of the file can sort
 // and parse.
@@ -37,6 +38,18 @@ CREATE TABLE IF NOT EXISTS gm_tokens (
 	revoked   INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_gm_tokens_acct ON gm_tokens(accountid);
+
+CREATE TABLE IF NOT EXISTS gm_sessions (
+	hash      TEXT PRIMARY KEY,
+	accountid INTEGER NOT NULL,
+	username  TEXT NOT NULL,
+	csrf      TEXT NOT NULL,
+	ip        TEXT NOT NULL DEFAULT '',
+	created   TEXT NOT NULL,
+	seen      TEXT NOT NULL,
+	mfa       INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_gm_sessions_acct ON gm_sessions(accountid);
 
 CREATE TABLE IF NOT EXISTS gm_oauth_clients (
 	client_id     TEXT PRIMARY KEY,

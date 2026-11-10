@@ -80,7 +80,10 @@ import (
 // put on, but for a debuff's (petition 1170, Lord Nagafen's: "a single target
 // ability that cant be cured and lasts 2 minutes"): the stats its named spell
 // takes, on the player it fights, for the spell's time; no_cure keeps every cure
-// off it. It hits for nothing, and waits while what it fights is a pet.
+// off it. It hits for nothing, and waits while what it fights is a pet. A strip
+// (petition 1368, Mr. Moogie's) casts no spell of a book: at its landing every
+// beneficial effect on what it fights, a player or a pet, ends, and a GM's
+// #testmode, the god mode, goes off (strip.go).
 //
 // The numbers of jib's five are ours, the row's notes say which; the kick's
 // are Sandstorm's crab's. No recording has a creature casting.
@@ -119,6 +122,9 @@ type templateAbility struct {
 	every, first time.Duration
 	byClass      [15][]*CastSpell
 	pinned       *CastSpell
+	// share is a creature's heal of its share that pins no spell: the cast it
+	// goes out as (abilitytimes.go); a pet's heals its share with no cast
+	share *CastSpell
 }
 
 // spellFor is the spell the ability casts for an NPC of the class and level:
@@ -138,6 +144,16 @@ func (a *templateAbility) spellFor(class, level int) *CastSpell {
 		}
 	}
 	return best
+}
+
+// castTime is how long the ability's cast of s takes: its own cast (the
+// record's whole seconds cannot hold the Swarming Deaths' half second), else
+// the spell's.
+func (a *templateAbility) castTime(s *CastSpell) time.Duration {
+	if a.Cast > 0 {
+		return time.Duration(math.Round(a.Cast*1000)) * time.Millisecond
+	}
+	return s.CastTime
 }
 
 // templateBase is what a templated NPC was without its template: put back
@@ -165,6 +181,9 @@ type templateFight struct {
 	// kickLeft and kickSeen are its kick's clock (KickEvery), as timedLeft's
 	kickLeft time.Duration
 	kickSeen time.Time
+	// proc is the melee proc an ability's landing gave it for the rest of this
+	// fight (abilitytimes.go), nil for none: the fight's end takes it
+	proc *fightProc
 }
 
 // templateContactGap is the longest gap between two of a templated NPC's
@@ -319,10 +338,14 @@ func templateKindTakes(kind string, s *CastSpell) bool {
 	if d.Summons() || d.Charms() || d.FormKind != FormNone || d.undeadOnly() || d.hasProc() {
 		return false
 	}
-	var hits, drains, heals, price, roots, powers bool
+	var hits, drains, heals, price, roots, powers, ticks, tickDrains bool
 	for _, e := range d.Effects {
 		if e.Kind == EffectRoot {
 			roots = true
+		}
+		if e.Kind == EffectHPTick && e.Amount < 0 && !e.Self {
+			ticks = true // a damage over time
+			tickDrains = tickDrains || e.Drain != DrainNone
 		}
 		if e.Kind == EffectPower && e.Amount < 0 && !e.Self {
 			powers = true // a mana tap (templatePowerFigure)
@@ -359,6 +382,10 @@ func templateKindTakes(kind string, s *CastSpell) bool {
 		return d.Harmful && single && drains
 	case database.AbilityRoot:
 		return d.Harmful && roots && !hits
+	case database.AbilityDoT:
+		// its ticks alone are what lands, no one's take (pettemplate.go's
+		// petDoTLocked): no instant hit, no drain
+		return d.Harmful && single && ticks && !hits && !drains && !tickDrains
 	case database.AbilityHeal:
 		// a heal is at once: a lasting spell that raises hit points is a
 		// buff (the cleric's Courage line), a heal over time a tick's
@@ -482,7 +509,15 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 				continue
 			}
 			if ra.Spell == "" && ra.SpellID == 0 && (ra.Kind == database.AbilityTaunt || ra.Kind == database.AbilityHeal && ra.HealPct > 0) {
+				if ra.Kind == database.AbilityHeal {
+					a.share = shareHealSpell(ra) // a creature's cast of it (abilitytimes.go)
+				}
 				t.abilities = append(t.abilities, a) // a taunt and a heal of its share cast no spell
+				continue
+			}
+			if ra.Spell == "" && ra.SpellID == 0 && ra.Kind == database.AbilityStrip {
+				a.pinned = stripSpell(ra) // strip.go: a cast of its own name, no book's spell
+				t.abilities = append(t.abilities, a)
 				continue
 			}
 			if ra.Spell != "" || ra.SpellID != 0 {
@@ -665,8 +700,8 @@ func (w *World) templateTurnLocked(npc *NPC, target EntityID, now time.Time) boo
 	}
 	for i := range t.abilities {
 		a := &t.abilities[i]
-		if a.Chain || now.Before(f.next[i]) || npc.Level < a.From || petOnly(a) {
-			continue
+		if a.Chain || now.Before(f.next[i]) || npc.Level < a.From || petOnly(a) || npc.coolingDown(a, now) {
+			continue // a cooldown across fights (abilitytimes.go): it waits, due
 		}
 		if a.Kind == database.AbilityHeal && npc.HP*100 >= npc.MaxHP*a.BelowOr() {
 			continue // whole enough: it waits, due
@@ -694,9 +729,14 @@ type npcCast struct {
 	heal   bool
 	debuff bool // what lasts of its spell, no hit (templateDebuffLocked)
 	noCure bool // a debuff's: no cure takes it off
-	target EntityID
-	others []EntityID
-	lands  time.Time
+	strip  bool // every beneficial effect off its target, nothing of its spell (strip.go)
+	// ability is the index of the ability cast in tmpl's, for what its landing
+	// does past itself (abilitytimes.go); healPct a heal of the NPC's share
+	ability int
+	healPct int
+	target  EntityID
+	others  []EntityID
+	lands   time.Time
 }
 
 // templateCastLocked begins the NPC's cast of its ability i at target (a
@@ -710,43 +750,84 @@ func (w *World) templateCastLocked(npc *NPC, i int, target EntityID, now time.Ti
 	a := &t.abilities[i]
 	spell := a.spellFor(npc.Class, npc.Level)
 	if spell == nil {
+		spell = a.share // a heal of its share that pins no spell (abilitytimes.go)
+	}
+	if spell == nil || npc.coolingDown(a, now) {
 		return false
 	}
+	ct := a.castTime(spell)
 	c := &npcCast{npc: npc, tmpl: t, spell: spell, pct: a.DamageOr(), target: target,
-		debuff: a.Kind == database.AbilityDebuff, noCure: a.NoCure,
-		lands: now.Add(spell.CastTime + castLand)}
+		debuff: a.Kind == database.AbilityDebuff, noCure: a.NoCure, strip: a.Kind == database.AbilityStrip,
+		ability: i, lands: now.Add(ct + castLand)}
 	if a.Kind == database.AbilityHeal {
-		c.heal, c.target = true, npc.ServerID
+		c.heal, c.target, c.healPct = true, npc.ServerID, a.HealPct
 	} else {
 		if !w.templateMayHitLocked(npc, target) {
 			return false
 		}
-		if spell.Area.Centre != AreaNone {
+		// a strip is its target's alone, whatever its spell's area; and round an
+		// NPC a trigger set it on, an area spell takes it alone: the players and
+		// pets near (a raid fighting beside it) are no one's foes
+		if spell.Area.Centre != AreaNone && !c.strip && w.castFoeLocked(npc, target) == nil {
 			c.others = w.templateAreaLocked(npc, spell, target)
 		}
 	}
 	w.npcCasts = append(w.npcCasts, c)
+	npc.startCooldown(a, now) // from its cast's start, across fights (abilitytimes.go)
 	f := npc.fight()
-	f.busy = now.Add(spell.CastTime + castBusy)
+	f.busy = now.Add(ct + castBusy)
 	if j := i + 1; j < len(t.abilities) && t.abilities[j].Chain {
 		f.chain = j + 1
 	}
-	w.broadcastNPCSwingLocked(npc, c.target, uint32(spell.CastTime/time.Millisecond), spell.visual(), c.others...)
+	w.broadcastNPCSwingLocked(npc, c.target, uint32(ct/time.Millisecond), spell.visual(), c.others...)
 	log.Printf("Template: %s (%s, level %d) begins %q (spell %d) on %s: %v cast, %d%% of its figures, %d others",
-		npc.Name, t.Name, npc.Level, spell.Name, spell.SpellID, w.entityNameLocked(c.target), spell.CastTime, c.pct, len(c.others))
+		npc.Name, t.Name, npc.Level, spell.Name, spell.SpellID, w.entityNameLocked(c.target), ct, c.pct, len(c.others))
 	return true
 }
 
 // templateMayHitLocked reports whether the NPC's harmful spell may be cast at
 // target: a living player in its world (not across the water's edge from it,
-// water.go), or a living pet of a player's there.
+// water.go), or a living pet of a player's there, or the NPC a trigger set it
+// on with casts (castsAt, SetNPCOn).
 func (w *World) templateMayHitLocked(npc *NPC, target EntityID) bool {
 	if p := w.Players[target]; p != nil {
 		return !p.IsDead() && !p.respawnPending() && p.World == npc.World && !w.apartLocked(p, npc)
 	}
-	pet := w.NPCs[target]
-	return pet != nil && pet.Owner != 0 && !pet.Dead && pet.World == npc.World &&
-		(w.env == nil || w.npcInWaterLocked(pet) == w.npcInWaterLocked(npc))
+	n := w.NPCs[target]
+	return n != nil && (n.Owner != 0 || npc.castsAt == target) && !n.Dead && n.World == npc.World &&
+		(w.env == nil || w.npcInWaterLocked(n) == w.npcInWaterLocked(npc))
+}
+
+// castFoeLocked is the NPC a templated NPC's cast or special at target lands on
+// when target is the NPC a trigger set it on with casts (castsAt: no pet, alive),
+// nil otherwise. Must be called with the lock held.
+func (w *World) castFoeLocked(npc *NPC, target EntityID) *NPC {
+	if npc.castsAt == 0 || target != npc.castsAt {
+		return nil
+	}
+	foe := w.NPCs[target]
+	if foe == nil || foe.Owner != 0 || foe.Dead || foe.World != npc.World {
+		return nil
+	}
+	return foe
+}
+
+// castFoeHitLocked lands n of a templated NPC's cast or special on the NPC a
+// trigger set it on (castFoeLocked): its hit points, its hate for the caster,
+// and its death, as an NPC's melee hit on it does (npcHitNPCLocked). Must be
+// called with the lock held.
+func (w *World) castFoeHitLocked(npc, foe *NPC, n int, what string, now time.Time) {
+	foe.HP = max(foe.HP-n, 0)
+	npc.LastCombat = now
+	w.addThreatLocked(foe, npc.ServerID, n)
+	log.Printf("Template: %s's %s hits %s for %d (HP %d/%d)", npc.Name, what, foe.Name, n, foe.HP, foe.MaxHP)
+	if foe.HP > 0 {
+		return
+	}
+	foe.Effects = nil
+	w.killNPC(foe)
+	w.dropAggroLocked(foe.ServerID)
+	log.Printf("Combat: %s killed by %s", foe.Name, npc.Name)
 }
 
 // templateAreaCentreLocked is where a templated NPC's area spell lies now:
@@ -799,7 +880,8 @@ func (w *World) templateSparedLocked(c *npcCast, place areaPlace, id EntityID, s
 // a caster's area), within its radius and reached by it (sight.go), the
 // nearest first, its cap with the target counted; the players a creature may
 // notice (aggro.go: not hidden, not a GM who turned aggro off, not loading a
-// world), not across the water's edge from it, and players' pets.
+// world; one in safe mode only when it is part of npc's fight), not across
+// the water's edge from it, and players' pets.
 func (w *World) templateAreaLocked(npc *NPC, spell *CastSpell, target EntityID) []EntityID {
 	if w.SpatialIndex == nil {
 		return nil
@@ -816,7 +898,8 @@ func (w *World) templateAreaLocked(npc *NPC, spell *CastSpell, target EntityID) 
 			continue
 		}
 		if p := w.Players[id]; p != nil {
-			if p.World == npc.World && w.noticeableLocked(p) && !w.apartLocked(p, npc) {
+			// a player in safe mode (/testinvis, safemode.go) only once it is part of this fight
+			if p.World == npc.World && w.noticeableLocked(p) && (!w.safeLocked(p) || inFightLocked(npc, p)) && !w.apartLocked(p, npc) {
 				if d := dist3(p.X, p.Y, p.Z, cx, cy, cz); d <= r {
 					reached := w.reachesLocked(place, p.X, p.Y, p.Z)
 					seen.note(reached, p.Name, p.X, p.Y, p.Z)
@@ -873,33 +956,45 @@ func (w *World) templateSystem(now time.Time) {
 		if npc.Dead || npc.Owner != 0 || w.NPCs[npc.ServerID] != npc || npc.tmpl != c.tmpl {
 			continue
 		}
-		if c.heal {
-			w.templateHealLocked(c)
-			continue
-		}
-		if c.debuff {
-			w.templateDebuffLocked(c, now)
-			continue
-		}
-		place := w.templateAreaPlaceLocked(npc, c.spell, c.target)
-		var seen areaLog
-		if !w.templateSparedLocked(c, place, c.target, &seen) {
-			w.templateHitLocked(c, c.target, c.spell.Def.Effects, now)
-		}
-		share := c.spell.Def.Effects
-		if e := c.spell.Area.Effects; e != nil {
-			share = e
-		}
-		for _, id := range c.others {
-			if npc.Dead {
-				break
-			}
-			if !w.templateSparedLocked(c, place, id, &seen) {
-				w.templateHitLocked(c, id, share, now)
-			}
-		}
-		seen.write("lands", npc.Name, c.spell.Name, place)
+		w.templateLandLocked(c, now)
+		w.templateLandedLocked(c) // its line in /say, the proc it gives (abilitytimes.go)
 	}
+}
+
+// templateLandLocked lands one templated NPC's cast whose time has come, by its
+// kind: a heal on itself, a debuff, a strip, else its hits on its target and its
+// others. Must be called with the lock held.
+func (w *World) templateLandLocked(c *npcCast, now time.Time) {
+	npc := c.npc
+	switch {
+	case c.heal:
+		w.templateHealLocked(c)
+		return
+	case c.debuff:
+		w.templateDebuffLocked(c, now)
+		return
+	case c.strip:
+		w.templateStripLocked(c, now) // strip.go
+		return
+	}
+	place := w.templateAreaPlaceLocked(npc, c.spell, c.target)
+	var seen areaLog
+	if !w.templateSparedLocked(c, place, c.target, &seen) {
+		w.templateHitLocked(c, c.target, c.spell.Def.Effects, now)
+	}
+	share := c.spell.Def.Effects
+	if e := c.spell.Area.Effects; e != nil {
+		share = e
+	}
+	for _, id := range c.others {
+		if npc.Dead {
+			break
+		}
+		if !w.templateSparedLocked(c, place, id, &seen) {
+			w.templateHitLocked(c, id, share, now)
+		}
+	}
+	seen.write("lands", npc.Name, c.spell.Name, place)
 }
 
 // templateFigure is what effects' hits come to from a templated NPC at its
@@ -985,7 +1080,7 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 			p.HP = max(p.HP-taken, 0)
 			if sess != nil {
 				if nid := w.objectIDForEntityLocked(sess, npc.ServerID); nid != 0 {
-					w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID())
+					w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID(), 0) // the creature's on the player: untagged
 				}
 				w.sendChatToSession(sess, fmt.Sprintf("%s's %s hits you for %d (%s).", npc.Name, c.spell.Name, taken, resistWords(share, how)))
 			}
@@ -995,6 +1090,17 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 				w.playerDiedLocked(sess, p, now)
 			}
 		}
+	} else if foe := w.castFoeLocked(npc, id); foe != nil {
+		// the NPC a trigger set it on with casts: its hit less the foe's template's
+		// resist of the spell's element (creatureResists, as a player's spell on it)
+		if hit <= 0 {
+			return
+		}
+		taken := -creatureResists(c.spell.resist, foe, -hit, now)
+		if taken < hit {
+			drained = int(math.Round(float64(drained) * float64(taken) / float64(hit)))
+		}
+		w.castFoeHitLocked(npc, foe, taken, fmt.Sprintf("%q", c.spell.Name), now)
 	} else if pet := w.NPCs[id]; pet != nil && pet.Owner != 0 && !pet.Dead {
 		share := pet.petResistShare(c.spell.resist) // a workbook pet's resists (petstats.go); any other takes it whole
 		if power > 0 {
@@ -1059,6 +1165,7 @@ func (w *World) templateDebuffLocked(c *npcCast, now time.Time) {
 	ae := &ActiveEffect{SpellID: c.spell.SpellID, Name: c.spell.Name, Icon: c.spell.Icon, Caster: npc.ServerID, Until: now.Add(d.Duration)}
 	ae.Rules = rulesOf(d)
 	ae.Rules.NoCure = c.noCure
+	ae.Rules.Harm = true // a creature's debuff is harm whatever its record reads: a strip leaves it on (strip.go)
 	tickResist := StatNone
 	for _, e := range d.Effects {
 		if e.Kind == EffectStat && !e.Set {
@@ -1126,7 +1233,7 @@ func (w *World) npcTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	sess := w.findSessionByEntityIDLocked(t.ServerID)
 	if sess != nil {
 		if nid := w.objectIDForEntityLocked(sess, npc.ServerID); nid != 0 {
-			w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID())
+			w.sendDamageIndication(sess, nid, -taken, sess.PlayerObjectID(), 0) // the creature's on the player: untagged
 		}
 		w.sendChatToSession(sess, fmt.Sprintf("%s's %s hits you for %d (%s).", npc.Name, ae.Name, taken, resistWords(share, how)))
 	}
@@ -1138,7 +1245,8 @@ func (w *World) npcTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 }
 
 // templateHealLocked lands a templated NPC's heal on itself: its figure at
-// the ability's percent, when it is short of its maximum.
+// the ability's percent, or its share of its most hit points (heal_pct), when
+// it is short of its maximum.
 func (w *World) templateHealLocked(c *npcCast) {
 	npc := c.npc
 	n := 0
@@ -1146,6 +1254,11 @@ func (w *World) templateHealLocked(c *npcCast) {
 		if e.Kind == EffectHP && e.Amount > 0 && !e.Self && e.Drain == DrainNone {
 			n += int(math.Round(float64(capAmount(rollAmount(e), e.Cap)) * float64(c.pct) / 100))
 		}
+	}
+	if c.healPct > 0 {
+		// a heal of its share in place of its spell's figure, what it lacks of
+		// it (abilitytimes.go: Mr. Moogie's Lay Hands, all of it)
+		n = min(petShareAmount(npc.MaxHP, c.healPct), npc.MaxHP-npc.HP)
 	}
 	if n <= 0 || npc.HP >= npc.MaxHP {
 		return
@@ -1167,7 +1280,7 @@ func (w *World) tellNPCHealLocked(sess *session.Session, npc *NPC, n int) {
 		return
 	}
 	if nid := w.objectIDForEntityLocked(sess, npc.ServerID); nid != 0 {
-		w.sendDamageIndication(sess, nid, n, nid)
+		w.sendDamageIndication(sess, nid, n, nid, 0) // the creature's on itself: untagged
 	}
 }
 
@@ -1273,6 +1386,12 @@ func (w *World) templateStrikeLocked(npc *NPC, target EntityID, now time.Time, d
 	if fx == 0 {
 		fx = templateSpecialFX
 	}
+	if foe := w.castFoeLocked(npc, target); foe != nil {
+		// the NPC a trigger set it on with casts (SetNPCOn): through any armour too
+		w.broadcastNPCSwingLocked(npc, target, 0, fx)
+		w.castFoeHitLocked(npc, foe, damage, name, now)
+		return
+	}
 	if p := w.Players[target]; p != nil {
 		if p.IsDead() || w.apartLocked(p, npc) {
 			return
@@ -1284,7 +1403,7 @@ func (w *World) templateStrikeLocked(npc *NPC, target EntityID, now time.Time, d
 		w.breakInvisLocked(p, "a hit") // invis.go: every invisibility, whatever gave it
 		sess := w.findSessionByEntityIDLocked(p.ServerID)
 		if sess != nil {
-			w.sendDamageIndication(sess, w.objectIDForEntityLocked(sess, npc.ServerID), -damage, sess.PlayerObjectID())
+			w.sendDamageIndication(sess, w.objectIDForEntityLocked(sess, npc.ServerID), -damage, sess.PlayerObjectID(), 0) // the creature's on the player: untagged
 		}
 		log.Printf("Template: %s's %s hits %s for %d (HP %d/%d)", npc.Name, name, p.Name, damage, p.HP, p.MaxHPNow())
 		if p.HP <= 0 {
@@ -1354,7 +1473,7 @@ var templateElements = []struct {
 }
 
 // templateLineLocked says a templated NPC's template for #stats.
-func (w *World) templateLineLocked(npc *NPC) string {
+func (w *World) templateLineLocked(npc *NPC, now time.Time) string {
 	t := npc.tmpl
 	parts := []string{fmt.Sprintf("Class template %s: a %s, hit points %d (%d%% of its %d), melee taken %d%%, its melee %d%%",
 		t.Name, nameIn(classNames, npc.Class), npc.MaxHP, t.HPPct, npc.tbase.maxHP, t.TakenPct, t.MeleePct)}
@@ -1374,15 +1493,30 @@ func (w *World) templateLineLocked(npc *NPC) string {
 	}
 	for i := range t.abilities {
 		a := &t.abilities[i]
-		what := "nothing at its level"
-		if s := a.spellFor(npc.Class, npc.Level); s != nil {
-			what = fmt.Sprintf("%s (level %d, %v cast)", s.Name, s.Level, s.CastTime)
-		}
 		when := fmt.Sprintf("every %v", a.every)
 		if a.Chain {
 			when = "chained"
 		}
-		parts = append(parts, fmt.Sprintf("%s %s %s at %d%%", a.Kind, what, when, a.DamageOr()))
+		if a.Kind == database.AbilityStrip {
+			parts = append(parts, stripStatsWords(a, when)) // strip.go
+			continue
+		}
+		what := "nothing at its level"
+		s := a.spellFor(npc.Class, npc.Level)
+		if s == nil {
+			s = a.share
+		}
+		if s != nil {
+			what = fmt.Sprintf("%s (level %d, %v cast)", s.Name, s.Level, a.castTime(s))
+		}
+		line := fmt.Sprintf("%s %s %s at %d%%", a.Kind, what, when, a.DamageOr())
+		if a.Kind == database.AbilityHeal && a.HealPct > 0 && s != nil {
+			line = fmt.Sprintf("heal %s (%v cast) of %d%% of its hit points below %d%% %s", s.Name, a.castTime(s), a.HealPct, a.BelowOr(), when)
+		}
+		parts = append(parts, line+abilityTimesWords(npc, a, now)) // abilitytimes.go
+	}
+	if fp := npc.fightProcNow(); fp != nil {
+		parts = append(parts, fmt.Sprintf("%s on for this fight: %d%% of its melee hits %d more", fp.name, fp.chance, fp.damage))
 	}
 	return strings.Join(parts, "; ")
 }

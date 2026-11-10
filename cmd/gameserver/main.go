@@ -332,6 +332,9 @@ func main() {
 	log.Printf("Characters: %s", gameWorld.CMSummary())
 	// Imported gear's copies (database/imported.go): its procs and worn hit
 	// effects damped, and "(Imported)" after its name when world.imported_tag
+	if s := cfg.World.ImportedShare; s > 0 {
+		database.SetImportedShare(s)
+	}
 	if n, err := database.SyncImportedCopies(db.DB, time.Now()); err != nil {
 		log.Printf("WARNING: the imported copies not made their bases again: %v", err)
 	} else if n > 0 {
@@ -342,7 +345,7 @@ func main() {
 	} else {
 		entity.SetImportedItems(m)
 		handlers.SetImportedTag(cfg.World.ImportedTag)
-		log.Printf("Items: %d imported gear records (tag shown: %v)", len(m), cfg.World.ImportedTag)
+		log.Printf("Items: %d imported gear records at %.0f%% (tag shown: %v)", len(m), database.ImportedShare()*100, cfg.World.ImportedTag)
 	}
 	// Where the gates, portals, circles and evacuations send (entity/gates.go,
 	// table spellgates): with none, each is refused as it begins
@@ -350,6 +353,12 @@ func main() {
 		log.Printf("WARNING: %v; every teleport spell is refused", err)
 	}
 	log.Printf("Spells: %s", gameWorld.SpellGatesSummary())
+	// The teleport orbs (entity/orbs.go, table orbs): with none, a pad sends
+	// no one (Highbourne's towers' starts stay in their towers)
+	if _, err := gameWorld.LoadOrbs(db); err != nil {
+		log.Printf("WARNING: %v; no teleport orb sends anyone", err)
+	}
+	log.Printf("World: %s", gameWorld.OrbsSummary())
 
 	log.Printf("Entity world: %d players, %d NPCs", gameWorld.PlayerCount(), gameWorld.NPCCount())
 
@@ -379,6 +388,9 @@ func main() {
 	onList := false
 	for _, sh := range shards {
 		log.Printf("Server list: %q on %s:%d (recommended: %v)", sh.Name, sh.IP, sh.Port, sh.Recommended != 0)
+		if int(sh.Port) == cfg.Server.GamePort && !onList {
+			handlers.SetCampfixShard(sh.Name) // the shard a camp report's board entry names (campfix.go)
+		}
 		onList = onList || int(sh.Port) == cfg.Server.GamePort
 	}
 	if !onList {
@@ -388,9 +400,43 @@ func main() {
 	if cfg.World.PvP {
 		log.Printf("PvP: players may flag themselves (world.pvp)")
 	}
+	entity.SetCapes(cfg.World.Capes) // entity/capes.go
+	if cfg.World.Capes {
+		log.Printf("Capes: worn in equip slot 22 by a client that draws them (world.capes)")
+	}
+	entity.SetItemSlots(cfg.World.PackSlots, cfg.World.BankSlots) // entity/itemslots.go, handlers/itemlists.go
+	if entity.ItemSlotsOffered() {
+		pack, bank := entity.ItemSlots()
+		log.Printf("Item lists: the pack holds %d and the bank %d for a client that holds them; a PS2 holds %d of each (world.pack_slots, world.bank_slots)",
+			pack, bank, entity.ClientItemSlots)
+	}
+	gameWorld.SetJumps(cfg.World.Jump) // entity/jump.go, handlers/jump.go
+	handlers.SetJumps(cfg.World.Jump)
+	if cfg.World.Jump {
+		log.Printf("Jump: a client that can jumps (world.jump)")
+	}
+	handlers.SetQuestMarksBelow(cfg.World.QuestMarksBelow) // handlers/questmarks.go
+	if n := handlers.QuestMarksBelow(); n < 0 {
+		log.Printf("Quest marks: every quest a player may take (world.quest_marks_below)")
+	} else {
+		log.Printf("Quest marks: quests down to %d levels below the player's (world.quest_marks_below)", n)
+	}
 	handlers.SetHeirloomsGiven(cfg.World.Heirlooms == nil || *cfg.World.Heirlooms)
 	if cfg.World.Heirlooms != nil && !*cfg.World.Heirlooms {
 		log.Printf("Heirlooms: none given at a login (world.heirlooms: false)")
+	}
+	// the Rock of Freeport (world.rock_of_freeport): its record made now when
+	// none is so named, given at a login, a cast to Freeport when used
+	handlers.SetRockOfFreeport(cfg.World.RockOfFreeport)
+	// /testinvis, every player's safe mode (handlers/safemode.go)
+	handlers.SetTestInvis(cfg.World.TestInvis)
+	handlers.SetTeleporter(cfg.World.Teleporter) // handlers/teleporter.go
+	if cfg.World.RockOfFreeport {
+		if id, made, err := handlers.EnsureRockOfFreeport(db); err != nil {
+			log.Printf("WARNING: the Rock of Freeport's record: %v; none is given", err)
+		} else {
+			log.Printf("Rock of Freeport: record %d (made now: %v), given at a login to every character holding none (world.rock_of_freeport)", id, made)
+		}
 	}
 
 	// Create UDP handler registry and register handlers.
@@ -465,6 +511,10 @@ func main() {
 
 	handlers.SetNPCText(cfg.World.NPCText)
 	handlers.SetReportNotice(cfg.World.ReportNotice == nil || *cfg.World.ReportNotice)
+	handlers.SetCampfix(cfg.World.Campfix == nil || *cfg.World.Campfix) // the players' camp reports (campfix.go)
+	if !handlers.CampfixOn() {
+		log.Printf("Camp reports: off (world.campfix false)")
+	}
 	handlers.SetMaxEntitySlots(cfg.World.MaxEntitySlots)
 	handlers.SetMaxViewDistance(cfg.World.MaxViewDistance)
 

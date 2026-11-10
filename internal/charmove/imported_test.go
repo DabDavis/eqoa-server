@@ -12,6 +12,7 @@ import (
 // every transfer; the same plan as a GM's grant (not Imported) gives the
 // records themselves. A dry run makes no copy.
 func TestATransfersGearComesInAsItsImportedCopies(t *testing.T) {
+	defer database.SetImportedShare(database.SetImportedShare(0.7)) // the figures below are at 70%
 	db, _ := migrateDB(t)
 	p := testPlan()
 	p.Imported = true

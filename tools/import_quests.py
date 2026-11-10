@@ -130,6 +130,13 @@ def fold(s):
     return " ".join(re.sub(r"[^\w\s-]", " ", s).split())
 
 
+def exact_name(s):
+    """A spell's name as written, case and spaces aside: its "+" kept (a base
+    spell and its mastery's "+" are two spells, handlers/scribe.go's
+    exactKey)."""
+    return " ".join(str(s or "").lower().replace("’", "'").replace("`", "'").split())
+
+
 def has_table(db, t):
     return db.execute("SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = ?", (t,)).fetchone()[0] > 0
 
@@ -163,9 +170,10 @@ class Names:
         self.items = {}
         for pid, name in db.execute("SELECT patternid, itemname FROM itempattern ORDER BY patternid"):
             self.items.setdefault(fold(name), []).append((pid, name))
-        self.spells = {}
+        self.spells, self.spell_names = {}, {}
         for sid, name in db.execute("SELECT spellid, spellname FROM spellpattern ORDER BY spellid"):
             self.spells.setdefault(fold(name), []).append(sid)
+            self.spell_names[sid] = name
         self.class_spells = set()
         if has_table(db, "classspells"):
             self.class_spells = {(c, s) for c, s in db.execute("SELECT class, spellid FROM classspells")}
@@ -190,12 +198,24 @@ class Names:
         return None
 
     def spell(self, name, classes):
+        """The record of a spell's name: the class's own of the name as written
+        (case and spaces aside), else its own of the name folded, else the
+        first as written, else the first folded. A base spell and its
+        mastery's "+" fold to one name and are two spells (petition 1381: the
+        necromancer's "Flesh Mastery +" was the quests' for "Flesh Mastery",
+        the lower record, which Teachings of Morthalis 1 gives for the plain
+        one it needs)."""
         ids = self.spells.get(fold(name)) or []
-        for c in classes:
-            for sid in ids:
-                if (c, sid) in self.class_spells:
-                    return sid
-        return ids[0] if ids else None
+        exact = [sid for sid in ids if exact_name(self.spell_names.get(sid)) == exact_name(name)]
+        for group in (exact, ids):
+            for c in classes:
+                for sid in group:
+                    if (c, sid) in self.class_spells:
+                        return sid
+        for group in (exact, ids):
+            if group:
+                return group[0]
+        return None
 
     def faction(self, name):
         return self.factions.get(fold(name))

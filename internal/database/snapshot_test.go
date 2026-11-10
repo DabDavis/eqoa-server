@@ -81,6 +81,7 @@ var planted = map[string]string{
 	"workboard.notes":       "the test login is keeper / hunter2-planted-password",
 	"workboard.overview":    "PLANTED overview: the box's root password is not here",
 	"petitions.text":        "PLANTED petition: someone took my account, write me at planted.petitioner@example.org",
+	"campfix_reports.note":  "PLANTED camp report: the bandits are wrong, write me at planted.camper@example.org",
 }
 
 // seededDB is a database with the game's tables, the panel's, content, a GM
@@ -152,6 +153,8 @@ func seededDB(t *testing.T) (*SQLiteDB, string) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	exec(`INSERT INTO campfix_reports (accountid, charname, note, created) VALUES (2, 'Hero', ?, '2026-11-10T12:00:00Z')`,
+		p["campfix_reports.note"])
 	exec(petitionFixLogForTest)
 	exec(`INSERT INTO petition_fix_log (petition, tbl, rowkey, col, before, after, at) VALUES
 		(?, 'itempattern', 10, 'weapondamage', '5', '7', '2026-10-29T10:04:00Z'),
@@ -237,7 +240,8 @@ func TestASnapshotTakesOutEverySecretAndKeepsTheGame(t *testing.T) {
 			t.Errorf("%s: %d rows, %d in the snapshot", table, a, b)
 		}
 	}
-	for _, table := range []string{"gm_tokens", "gm_totp", "gm_oauth_clients", "gm_audit", "spellfx_meta", "mapmark_meta", "workboard", "petitions"} {
+	for _, table := range []string{"gm_tokens", "gm_totp", "gm_oauth_clients", "gm_audit", "spellfx_meta", "mapmark_meta", "workboard", "petitions",
+		"campfix_reports"} {
 		if n := count(snap, `SELECT COUNT(*) FROM `+table); n != 0 {
 			t.Errorf("%s kept %d rows", table, n)
 		}

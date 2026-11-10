@@ -162,7 +162,12 @@ func (m *Manager) GetOrCreateSession(addr *net.UDPAddr, packet interface{}) *Ses
 	// server stores the session under the SERVER's instance ID, but the client
 	// sends its OWN (different) instance. Route to the master session and
 	// re-key it so future packets match directly.
-	{
+	//
+	// Only a segment addressed to a promoted session (its SessionID as dst,
+	// PromotedOwn) may be one of its: a new lobby connection from the same
+	// address (a login from the same socket while the old session lingers)
+	// gets a session of its own, as any new connection does.
+	if sa, ok := packet.(softwareAddressed); !ok || sa.NamesSoftwareEndpoint() {
 		addrStr := addr.String()
 		var masterSess *Session
 		m.sessions.Range(func(k, v interface{}) bool {
@@ -323,6 +328,32 @@ func (m *Manager) ForEach(fn func(*Session) bool) {
 	m.sessions.Range(func(key, value interface{}) bool {
 		return fn(value.(*Session))
 	})
+}
+
+// softwareAddressed is a packet that can say whether its segment names a
+// software endpoint as its destination (udp.Packet.NamesSoftwareEndpoint).
+type softwareAddressed interface {
+	NamesSoftwareEndpoint() bool
+}
+
+// PromotedOwn reports whether a segment that came to sess belongs to its
+// connection: any does before the promotion; after it, only one addressed to
+// the session's SessionID (named reports the segment's 0x800 flag).
+//
+// The client keeps its lobby connection after the promotion until that is in
+// sync (connection_close), and the lobby connection carries the SAME instance,
+// so its packets land on this session. Until 2026-11-09 they were taken as
+// the promoted connection's: the lobby's arrival number became the flush ack
+// our promoted packets carry, which the client's new connection, whose flush
+// numbers start again at 1, refuses whole ("segment is acking a segment that
+// hasn't been sent yet", connection.cpp), so it never got going: its packets
+// stopped, our counters stayed on the lobby's, and the MemoryDump went again
+// and again to a client that threw every copy away (jibrish's logins at 04:13
+// and 04:24 UTC, 492 KB in 30 s; the rig's net1109 j3). And the lobby's
+// guaranteed ack (its count of OUR lobby messages) retired the promoted
+// stream's messages of those numbers unsent.
+func PromotedOwn(sess *Session, named bool) bool {
+	return sess == nil || !sess.DidServerInitiate() || named
 }
 
 // staleLobbyIdle is how long a same-IP pre-game session must have been silent

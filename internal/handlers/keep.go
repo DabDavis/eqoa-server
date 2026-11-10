@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sort"
 	"sync/atomic"
 	"time"
 
@@ -49,10 +50,14 @@ type KeptExtras struct {
 	LootOpen bool `json:"loot_open,omitempty"`
 }
 
-// KeptList is an item list's copy (itemlist.go's invList).
+// KeptList is an item list's copy (itemlist.go's invList); Cap the records
+// the client's list holds (0, or a file from before it: CLIENT's 40).
 type KeptList struct {
 	Recs []KeptListRec `json:"recs"`
 	Next uint32        `json:"next"`
+	Cap  int           `json:"cap,omitempty"`
+	// Kept: the items of the rows kept beside the list (invList.kept)
+	Kept []int `json:"kept,omitempty"`
 }
 
 // KeptListRec is one of a KeptList's records.
@@ -69,10 +74,14 @@ func keptList(l *invList) *KeptList {
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	k := &KeptList{Next: l.next, Recs: make([]KeptListRec, 0, len(l.recs))}
+	k := &KeptList{Next: l.next, Recs: make([]KeptListRec, 0, len(l.recs)), Cap: l.cap}
 	for _, r := range l.recs {
 		k.Recs = append(k.Recs, KeptListRec{Key: r.key, Item: r.itemID, Pattern: r.patternID, Qty: r.qty})
 	}
+	for id := range l.kept {
+		k.Kept = append(k.Kept, id)
+	}
+	sort.Ints(k.Kept)
 	return k
 }
 
@@ -80,9 +89,15 @@ func (k *KeptList) list() *invList {
 	if k == nil {
 		return nil
 	}
-	l := &invList{next: k.Next, recs: make([]invRec, 0, len(k.Recs))}
+	l := &invList{next: k.Next, recs: make([]invRec, 0, len(k.Recs)), cap: k.Cap}
 	for _, r := range k.Recs {
 		l.recs = append(l.recs, invRec{key: r.Key, itemID: r.Item, patternID: r.Pattern, qty: r.Qty})
+	}
+	if len(k.Kept) > 0 {
+		l.kept = make(map[int]bool, len(k.Kept))
+		for _, id := range k.Kept {
+			l.kept[id] = true
+		}
 	}
 	return l
 }
@@ -223,11 +238,20 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 		return nil, fmt.Errorf("character %d: no player made", record.ServerID)
 	}
 	h.gameWorld.RestoreKeptPlayer(sess, kp, now)
+	if kp.Pet != nil {
+		h.restorePet(sess, *kp.Pet, now) // its pet, summoned or charmed (entity/keeppet.go)
+	}
 	resumeRecord(player.CharServerID) // its target window's record lines (combatrecord.go)
+	if kp.Jumps && !h.gameWorld.JumpsAllowed() {
+		// offered the jump before a restart into a server without them (jump.go)
+		SendJumpsOff(sess)
+	}
 	if kp.RaceLabels {
 		// its client keeps its list; a data step in the hold may have changed it
 		h.gameWorld.RefreshRaceLabels(h.store.DB())
 	}
+	// and its race looks, the same (raceoptions.go)
+	h.gameWorld.RefreshRaceLooks(h.store.DB(), sess)
 	// the lists the client has, until its dump sends them anew
 	sess.SetInventoryList(ex.Inventory.list())
 	sess.SetBankList(ex.Bank.list())
@@ -298,4 +322,22 @@ func ResumeDump(sess *session.Session, dead bool) bool {
 	}
 	SendClientMessage(sess, ResumeLine)
 	return true
+}
+
+// restorePet gives the resumed player back the pet the restart carried
+// (entity/keeppet.go, petition 1363): a summoned one by its spell's record as
+// the database has it now, a charmed one by its creature.
+func (h *CharacterHandler) restorePet(sess *session.Session, k entity.KeptPet, now time.Time) {
+	var spell *entity.CastSpell
+	if k.Spell != 0 && h.spellbookStore != nil {
+		sp, err := h.spellbookStore.SpellPattern(k.Spell)
+		row, _, err2 := h.spellbookStore.SpellEffectRow(k.Spell)
+		if err == nil && err2 == nil && sp != nil {
+			s := castSpellRow(&database.CharSpellEntry{Pattern: *sp}, row)
+			spell = &s
+		} else {
+			log.Printf("Keep: the pet %q's spell %d: %v %v", k.Name, k.Spell, err, err2)
+		}
+	}
+	h.gameWorld.RestorePet(sess, k, spell, now)
 }

@@ -369,7 +369,7 @@ func TestALoginGivesTheLamp(t *testing.T) {
 		}
 		return n
 	}
-	h.giveGenieLamp(rec.ServerID) // no record yet: nothing
+	h.giveGenieLamp(rec.ServerID, clientLists) // no record yet: nothing
 	if count("1") != 0 {
 		t.Fatal("a lamp with no record")
 	}
@@ -380,8 +380,8 @@ func TestALoginGivesTheLamp(t *testing.T) {
 		t.Fatal(err)
 	}
 	lamp, _ := res.LastInsertId()
-	h.giveGenieLamp(rec.ServerID)
-	h.giveGenieLamp(rec.ServerID)
+	h.giveGenieLamp(rec.ServerID, clientLists)
+	h.giveGenieLamp(rec.ServerID, clientLists)
 	if count("c.location = 0") != 1 || count("1") != 1 {
 		t.Fatalf("lamps: %d in the pack, %d in all; want one", count("c.location = 0"), count("1"))
 	}
@@ -405,7 +405,7 @@ func TestALoginGivesTheLamp(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	h.giveGenieLamp(rec.ServerID)
+	h.giveGenieLamp(rec.ServerID, clientLists)
 	if count("c.location = 1") != 1 {
 		t.Fatalf("a full pack's lamp: %d in the bank", count("c.location = 1"))
 	}

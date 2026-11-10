@@ -15,7 +15,9 @@ import (
 //
 // slot: 0 chest, 1 bracer, 2 gloves, 3 legs, 4 boots, 5 helm (the channel's
 // armour order), 6 primary, 7 secondary, 8 shield (its three held items), 9
-// robe. color: 0xRRGGBBAA, red in the high byte, as itempattern.color holds
+// robe, 10 cape (the cape slot of a server with world.capes: no live game's
+// slot, so its dye goes to the clients that draw capes as the cape's colour,
+// handlers/capes.go). color: 0xRRGGBBAA, red in the high byte, as itempattern.color holds
 // Return Home's item colours and the live client reads the bytes (red
 // first); alpha is never 0 (a slot drawn in it would vanish). Set by #dye in
 // the game and the GM panel's "Character dyes"; source gm.
@@ -41,17 +43,19 @@ const (
 	DyeSecondary
 	DyeShield
 	DyeRobe
+	DyeCape
 	DyeSlots
 )
 
 // DyeSlotNames are the slots' words (#dye, the panel's help).
-var DyeSlotNames = [DyeSlots]string{"chest", "bracer", "gloves", "legs", "boots", "helm", "primary", "secondary", "shield", "robe"}
+var DyeSlotNames = [DyeSlots]string{"chest", "bracer", "gloves", "legs", "boots", "helm", "primary", "secondary", "shield", "robe", "cape"}
 
 // dyeSlotWords are other words for a slot.
 var dyeSlotWords = map[string]int{
 	"bracers": DyeBracer, "forearm": DyeBracer, "arms": DyeBracer, "glove": DyeGloves, "hands": DyeGloves,
 	"leg": DyeLegs, "feet": DyeBoots, "boot": DyeBoots, "head": DyeHelm, "helmet": DyeHelm,
 	"main": DyePrimary, "mainhand": DyePrimary, "weapon": DyePrimary, "off": DyeSecondary, "offhand": DyeSecondary,
+	"cloak": DyeCape,
 }
 
 // DyeSlotByName is a slot by its word (or its number), and whether there is one.

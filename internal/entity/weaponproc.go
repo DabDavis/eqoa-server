@@ -37,9 +37,16 @@ import (
 // and nothing reads it.
 //
 // How often and how it lands is not recorded anywhere (Sandstorm's recordings
-// hold no weapon proc), so it is proc.go's rule for the enchanter's procs,
-// chosen there: each landed hit of the hand that holds the weapon procs at
-// 3% and one more for each 20 INT, at most 25%; the creature resists it all
+// hold no weapon proc), so it is proc.go's figures for the enchanter's procs,
+// by DEX where theirs go by INT (petition 1360, Zaeire: "weapon proc chance
+// scales off dex while ability proc chance scales off int"): each landed hit
+// of the hand that holds the weapon procs at 3% and one more for each 20 DEX,
+// at most 25% (weaponProcChancePct), unless its words give its own chance
+// ("Procs 2000 slashing damage, a 10% chance each hit.": "N% chance", "N% a
+// hit" or "per swing", from 1 to 100), which then holds at any DEX (the same
+// petition: "Katana of severing proc should be set to 2k with a 10% chance to
+// proc"; procChanceRe), as weaponProcsByName's Chance does; the
+// creature resists it all
 // or nothing at 5% against a wielder of its level, 3 more a level above (its
 // element's debuffs taken off: npcSpellResistPct); the damage as it is, no
 // mod (an epic quest guide: "weapon/spell procs and abilities hit full").
@@ -104,8 +111,8 @@ type WeaponProc struct {
 	Only     string        // the creatures it fires on alone, by a word of their name ("goblin")
 	FX       uint32        // its visual
 	pattern  int           // the record, for a DoT's or a form's effect id
-	// Chance is its chance a hit in percent, 0 for proc.go's rule by INT; a
-	// form's own proc has the same chance.
+	// Chance is its chance a hit in percent, 0 for the rule by DEX
+	// (weaponProcChancePct); a form's own proc has the same chance.
 	Chance int
 	// Form, Body and Icon are a form's name on the effects list, its body and
 	// its icon; Duration its time. Damage to DamageTo are its own proc's, and
@@ -116,13 +123,20 @@ type WeaponProc struct {
 	RoundMost int
 }
 
-// chancePct is the chance, in percent, that a hit of a bearer of that INT procs
+// chancePct is the chance, in percent, that a hit of a bearer of that DEX procs
 // it.
-func (wp *WeaponProc) chancePct(intel int) int {
+func (wp *WeaponProc) chancePct(dex int) int {
 	if wp.Chance > 0 {
 		return wp.Chance
 	}
-	return procChancePct(intel)
+	return weaponProcChancePct(dex)
+}
+
+// weaponProcChancePct is the chance, in percent, that a hit procs a weapon of
+// no chance of its own for a wielder of that DEX: proc.go's figures (3%, one
+// more each 20, at most 25%), by DEX (the file's doc).
+func weaponProcChancePct(dex int) int {
+	return min(procBasePct+max(dex, 0)/procIntPer, procMostPct)
 }
 
 // procDoTFor is how long a weapon's damage over time lasts (ours).
@@ -175,6 +189,10 @@ var (
 	procFigureRe = regexp.MustCompile(`(?i)\bprocs?\s+(?:a\s+|for\s+around\s+)?(\d+)(?:\s*-\s*(\d+))?`)
 	ddFigureRe   = regexp.MustCompile(`(?i)\b(\d+)\s+dd\b[^.]*\bproc`)
 	onlyOnRe     = regexp.MustCompile(`(?i)\bworks only on ([a-z]+?)s?\b`)
+	// procChanceRe is a proc's own chance in its words: "10% chance", "a 10%
+	// chance each hit", "10% a hit", "10% per swing" (never a scale's "30%
+	// based on DEX")
+	procChanceRe = regexp.MustCompile(`(?i)\b(\d{1,3})\s*%\s*(?:chance\b|(?:a|an|per|each)\s+(?:hit|swing)s?\b)`)
 )
 
 // WeaponProcFromText is the proc a weapon's description gives, false when it
@@ -209,6 +227,11 @@ func WeaponProcFromText(desc string) (WeaponProc, bool) {
 	wp.Resist = elementOf(lower)
 	if m := onlyOnRe.FindStringSubmatch(desc); m != nil {
 		wp.Only = strings.ToLower(m[1])
+	}
+	if m := procChanceRe.FindStringSubmatch(desc); m != nil {
+		if c, _ := strconv.Atoi(m[1]); c >= 1 && c <= 100 {
+			wp.Chance = c
+		}
 	}
 	return wp, true
 }
@@ -293,6 +316,9 @@ func (wp WeaponProc) String() string {
 	default:
 		s = figure
 	}
+	if wp.Chance > 0 && wp.Kind != ProcForm { // its own chance (a form's is in its words)
+		s += fmt.Sprintf(" at %d%% a hit", wp.Chance)
+	}
 	if wp.Only != "" {
 		s += ", on " + wp.Only + "s alone"
 	}
@@ -330,7 +356,7 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 		w.formProcLocked(sess, p, wp, now)
 		return false
 	}
-	if procIntn(100) >= wp.chancePct(p.StatNow(StatInt)) {
+	if procIntn(100) >= wp.chancePct(p.StatNow(StatDex)) {
 		return false
 	}
 	// resisted, a proc that hurts does the least it can (workbook.go's leastHarm); one that
@@ -367,7 +393,7 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 	w.broadcastCastLocked(p, npc.ServerID, 0, wp.FX)
 	before := npc.HP
 	log.Printf("Proc: %s's %q hits %s for %d", p.Name, wp.Item, npc.Name, n)
-	killed := w.spellHitLocked(p, sess, npc, n)
+	killed := w.spellHitLocked(p, sess, npc, n, numberProc)
 	if wp.Kind == ProcTap && !p.IsDead() {
 		back := before - npc.HP
 		if npc.Dummy != NotDummy {
@@ -382,7 +408,7 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 // is not on it already (the file's doc). Must be called with the lock held.
 func (w *World) formProcLocked(sess *session.Session, p *Player, wp *WeaponProc, now time.Time) {
 	id := weaponProcSpellID(wp.pattern)
-	if procIntn(100) >= wp.chancePct(p.StatNow(StatInt)) {
+	if procIntn(100) >= wp.chancePct(p.StatNow(StatDex)) {
 		return
 	}
 	// the form on: the proc renews its time, nothing else (the file's doc)
@@ -406,26 +432,34 @@ func (w *World) formProcLocked(sess *session.Session, p *Player, wp *WeaponProc,
 // weaponDoTCast is a weapon proc's damage over time as a spell of p's at target, n a tick.
 func weaponDoTCast(p *Player, wp *WeaponProc, target EntityID, n int) *castState {
 	return &castState{spell: CastSpell{SpellID: weaponProcSpellID(wp.pattern), Name: wp.Item, Level: p.Level, Scope: 1,
-		Def: SpellDef{Effects: []SpellEffect{{Kind: EffectHPTick, Amount: -n, AmountMax: -n}}, Duration: procDoTFor, Harmful: true}},
+		Def:     SpellDef{Effects: []SpellEffect{{Kind: EffectHPTick, Amount: -n, AmountMax: -n}}, Duration: procDoTFor, Harmful: true},
+		figures: figuresProc}, // its ticks a proc's (numbertags.go)
 		caster: p.ServerID, targets: []EntityID{target}}
 }
 
 // weaponProcWords is the #stats line of the player's weapon procs, its
-// chance a hit at its INT; "" with none.
+// chance a hit at its DEX for those of no chance of their own (a proc's own
+// is in its words); "" with none.
 func weaponProcWords(p *Player) string {
 	g := &p.Gear
 	var parts []string
+	byDEX := false
 	if g.MainProc != nil {
 		parts = append(parts, fmt.Sprintf("%s %s", g.MainProc.Item, g.MainProc))
+		byDEX = byDEX || g.MainProc.Chance <= 0
 	}
 	if g.OffProc != nil && g.OffArmed && !g.WeaponTwoHanded {
 		parts = append(parts, fmt.Sprintf("off hand %s %s", g.OffProc.Item, g.OffProc))
+		byDEX = byDEX || g.OffProc.Chance <= 0
 	}
 	if len(parts) == 0 {
 		return ""
 	}
-	return fmt.Sprintf("Weapon procs: %s; %d%% a hit of its hand (INT %d)", strings.Join(parts, "; "),
-		procChancePct(p.StatNow(StatInt)), p.StatNow(StatInt)) // a form's own chance is in its words
+	if !byDEX {
+		return "Weapon procs: " + strings.Join(parts, "; ")
+	}
+	return fmt.Sprintf("Weapon procs: %s; %d%% a hit of its hand (DEX %d)", strings.Join(parts, "; "),
+		weaponProcChancePct(p.StatNow(StatDex)), p.StatNow(StatDex))
 }
 
 // restoreProcLocked lands a restoring proc: n hit points and wp.Power power to

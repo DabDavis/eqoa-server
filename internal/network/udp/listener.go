@@ -333,6 +333,16 @@ func (l *Listener) handlePacket(data []byte, addr *net.UDPAddr, turn *packetTurn
 		})
 	}
 
+	// After the promotion only the promoted connection's own segments are
+	// this session's (session.PromotedOwn): the client's lobby connection,
+	// on the same instance, still sends a few (its acks of our last lobby
+	// messages, its reset), and nothing of them may reach the promoted
+	// connection's numbers or handlers.
+	if !session.PromotedOwn(sess, packet.NamesSoftwareEndpoint()) {
+		noteLobbyAfterPromotion(sess, packet)
+		return
+	}
+
 	// Update session activity
 	sess.UpdateActivity()
 
@@ -351,21 +361,13 @@ func (l *Listener) handlePacket(data []byte, addr *net.UDPAddr, turn *packetTurn
 		conn := sess.Connection()
 		for _, msg := range packet.Body.Messages {
 			// Track reliable message sequence numbers for ACKing
-			if msg.Type.IsReliable() && msg.Sequence > 0 {
-				copied := false
-				if sess.Resumed() {
-					// a session carried through a restart: the copies its
-					// client sent again while the server was away (one a
-					// second) are acknowledged, not handled twice
-					copied = !conn.TakeReliable(msg.Sequence)
-				} else {
-					// any other: a copy the client sent again, its
-					// acknowledgment not yet seen (a stalled link sends
-					// one in every packet), by its number and contents
-					// (session/reliablecopies.go)
-					copied = !conn.TakeReliableOnce(msg.Sequence,
-						session.ReliableSum(byte(msg.Type), uint16(msg.Opcode), msg.Data()), time.Now())
-				}
+			if msg.Type.IsReliable() {
+				// a copy the client sent again, its acknowledgment not yet
+				// seen (a stalled link sends one in every packet; a session
+				// carried through a restart gets one a second of the time
+				// the server was away), or one beyond the window, is
+				// acknowledged, not handled (session/reliablecopies.go)
+				copied := !conn.TakeReliable(msg.Sequence)
 				// Set flag to ACK the reliable message back to client
 				sess.Queue().SetBodyFlags(protocol.BodyFlagGuaranteedAck | protocol.BodyFlagFlushAck)
 				if copied {
@@ -441,6 +443,22 @@ func (l *Listener) handlePacket(data []byte, addr *net.UDPAddr, turn *packetTurn
 
 	// Flush any queued messages immediately
 	l.flushSession(sess)
+}
+
+// noteLobbyAfterPromotion logs a lobby connection's packet that came to its
+// promoted session, the first few of a session and then one in 50.
+func noteLobbyAfterPromotion(sess *session.Session, packet *Packet) {
+	n := sess.NoteLobbyLate()
+	if n > 3 && n%50 != 0 {
+		return
+	}
+	var arrival, flushAck, gAck uint16
+	msgs := 0
+	if b := packet.Body; b != nil {
+		arrival, flushAck, gAck, msgs = b.ArrivalNumber, b.FlushAck, b.GuaranteedAck, len(b.Messages)
+	}
+	log.Printf("Promoted: %s's lobby connection sent packet %d after the promotion (its arrival %d, acks %d/%d, %d messages, header 0x%X): not the promoted connection's, left alone (%d so far)",
+		sess.Label(), n, arrival, flushAck, gAck, msgs, uint32(packet.Header.Flags), n)
 }
 
 // flushSession sends any queued messages for a session.
@@ -563,7 +581,12 @@ func (l *Listener) tickAllSessions() {
 			rdp.TickSession(sess)
 		} else if sess.InGame() {
 			// Session B (MemoryDump session) has messages queued before CharacterInWorld.
-			// Just send pending packets without full timeout/ping/state-update logic.
+			// Just send pending packets without full timeout/ping/state-update logic,
+			// but a client gone before its 0x0014 ends as one in the world does.
+			if l.silentInWorldOver(sess, time.Since(sess.LastActivity())) {
+				toRemove = append(toRemove, sess)
+				return true
+			}
 			if data := rdp.PreparePacket(sess); data != nil {
 				if err := rdp.SendPacket(sess, data); err != nil {
 					log.Printf("Failed to send initial packet to %s: %v", sess.RemoteAddr(), err)
@@ -608,6 +631,7 @@ func (l *Listener) endSession(sess *session.Session) {
 		if l.charStore != nil {
 			l.savePlayerPosition(sess)
 			l.saveEffects(sess)
+			l.saveLockouts(sess) // lockoutsave.go
 			l.saveFactions(sess)
 			l.saveMastery(sess)
 			l.saveRez(sess) // rezsave.go
@@ -697,7 +721,7 @@ func (l *Listener) saveMastery(sess *session.Session) {
 }
 
 // SaveAll saves every player in the world as a logout would (position, spell
-// effects, standings and mastery points), for a shutdown: a restart is a logout for everyone
+// effects, lockouts, standings and mastery points), for a shutdown: a restart is a logout for everyone
 // in it, and before this one the state since each login was lost.
 // NoticeShutdown tells every client (each session is a game connected, in
 // the world or before it) that the server is going: 0x07C0, CLIENT's Disconnect(17), "The server has been shutdown by a
@@ -744,6 +768,7 @@ func (l *Listener) SaveAll() {
 	for _, sess := range inWorld {
 		l.savePlayerPosition(sess)
 		l.saveEffects(sess)
+		l.saveLockouts(sess) // lockoutsave.go
 		l.saveFactions(sess)
 		l.saveMastery(sess)
 		l.saveRez(sess) // rezsave.go

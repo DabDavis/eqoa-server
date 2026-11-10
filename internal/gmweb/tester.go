@@ -149,6 +149,7 @@ var testerOps = map[string]func(c *opCtx) error{
 	"fetch":          testerFetch,
 	"spell_visual":   nil, // one spell's record and visual
 	"visual_uses":    nil, // the spells' visuals
+	"look_names":     nil, // what wears each icon and model, off a tester's own tables alone (looks.go)
 	"audit_log":      testerAudit,
 	// changing
 	"insert_row":       testerWrites,

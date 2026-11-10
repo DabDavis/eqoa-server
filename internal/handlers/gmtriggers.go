@@ -49,8 +49,12 @@ import (
 // Vanilla shows each line's name (not retail: protocol.OpcodeGMTriggers): a
 // GM's client is offered the names with the GM channel, and one that answers
 // 1 is sent the whole set (OpcodeGMTriggersData) then and whenever a trigger
-// changes, starts or ends. A PS2 ignores the offer and shows eight TRIGGERs;
-// #trigger alone lists them.
+// changes, starts or ends. One that answers 2 is sent every trigger in the
+// table instead (OpcodeGMTriggerList, the user's "can we add the triggers to
+// client menu also in gm menus", 2026-11-09), at the same moments, and its
+// menu fires a line by its slot (OpcodeGMTriggerFire), so a slot past the
+// eight lines fires from the client too. A PS2 ignores the offer and shows
+// eight TRIGGERs; #trigger alone lists them.
 
 // triggerBoxMark marks a trigger's popup (0x0034's u32, echoed by 0x0035), so
 // its answer is told from a quest's (questBoxMark) and an NPC's (0).
@@ -81,8 +85,8 @@ type TriggerEngine struct {
 	boxSeq uint32
 
 	// named are the sessions whose clients asked for the names (0x7E07),
-	// each with the last set it was sent
-	named map[*session.Session]string
+	// each with what it asked for and the last set it was sent
+	named map[*session.Session]*triggerNamesAsk
 
 	now  func() time.Time
 	rand func() float64
@@ -124,6 +128,16 @@ type triggerRun struct {
 	lastNear   time.Time
 	died       []string
 	dead       *triggerPlaceAt
+	// resummons are its resummon steps from the step on: each keeps one of its spawns
+	// called back while its caller lives (resummonLocked)
+	resummons []*triggerResummon
+}
+
+// triggerResummon is one resummon step a run keeps: the step, and when its NPC's last
+// spawn was first seen gone (zero: one stands, or none has come yet).
+type triggerResummon struct {
+	step database.TriggerStep
+	fell time.Time
 }
 
 // triggerPlaceAt is a place in a world.
@@ -178,7 +192,7 @@ func NewTriggerEngine(db *database.SQLiteDB, gw *entity.World, sm *session.Manag
 		gw:    gw,
 		sm:    sm,
 		inv:   inv,
-		named: map[*session.Session]string{},
+		named: map[*session.Session]*triggerNamesAsk{},
 		now:   time.Now,
 		rand:  rand.Float64,
 		stop:  make(chan struct{}),
@@ -527,6 +541,7 @@ func (e *TriggerEngine) Tick() {
 		if r.stopped {
 			continue
 		}
+		e.resummonLocked(r, now)
 		if !r.deadline.IsZero() && (!now.Before(r.deadline) || e.emptyLocked(r, now)) {
 			e.clockEndLocked(r)
 		}
@@ -772,13 +787,16 @@ func (e *TriggerEngine) stepLocked(r *triggerRun, s database.TriggerStep) string
 			}
 		}
 		return fmt.Sprintf("%d of %s roused", n, s.NPC)
+	case database.TriggerResummon:
+		r.resummons = append(r.resummons, &triggerResummon{step: s})
+		return fmt.Sprintf("%s calls %s back %s after it falls", strings.TrimSpace(s.By), strings.TrimSpace(s.NPC), seconds(s.Seconds))
 	case database.TriggerSic:
 		n, on := 0, ""
 		for _, sp := range r.spawns {
 			if strings.TrimSpace(s.NPC) != "" && !strings.EqualFold(sp.name, strings.TrimSpace(s.NPC)) {
 				continue
 			}
-			if name, ok := e.gw.SetNPCOn(sp.id, s.Target, e.reachOf(r, s)); ok {
+			if name, ok := e.gw.SetNPCOn(sp.id, s.Target, e.reachOf(r, s), s.Casts); ok {
 				n, on = n+1, name
 			}
 		}
@@ -1127,6 +1145,55 @@ func (e *TriggerEngine) spawnLocked(r *triggerRun, s database.TriggerStep) strin
 	return fmt.Sprintf("spawned %d%s %s within %.0f of (%.0f, %.0f) for %s", placed, how, spelled, spread, cx, cz, seconds(stay*60))
 }
 
+// resummonLocked calls back each of the run's resummoned NPCs that has no spawn
+// standing (the user, 2026-11-09: "cause tunare to resummon her pets"): while one of
+// the run's spawns named by lives, the step's seconds after the NPC's last spawn was
+// first seen gone, one more beside the caller (within 3), with the step's attackable,
+// hostile and minutes, set on its target with its radius and casts, its text said to
+// the run's players. The caller dead or gone, nothing comes (and the wait starts
+// again when one does). Must be called with e.mu held.
+func (e *TriggerEngine) resummonLocked(r *triggerRun, now time.Time) {
+	for _, rs := range r.resummons {
+		name, by := strings.TrimSpace(rs.step.NPC), strings.TrimSpace(rs.step.By)
+		var caller entity.EntityID
+		standing := false
+		for _, sp := range r.spawns {
+			switch {
+			case strings.EqualFold(sp.name, name):
+				standing = true
+			case caller == 0 && strings.EqualFold(sp.name, by) && e.gw.NPCAlive(sp.id):
+				caller = sp.id
+			}
+		}
+		if standing || caller == 0 {
+			rs.fell = time.Time{}
+			continue
+		}
+		if rs.fell.IsZero() {
+			rs.fell = now
+		}
+		if now.Sub(rs.fell) < time.Duration(rs.step.Seconds*float64(time.Second)) {
+			continue
+		}
+		world, x, y, z, ok := e.gw.NPCSpot(caller)
+		if !ok {
+			continue
+		}
+		w := int(world)
+		line := e.spawnLocked(r, database.TriggerStep{Do: database.TriggerSpawn, NPC: name, Spread: 3, World: &w, X: x, Y: y, Z: z,
+			Minutes: rs.step.Minutes, Hostile: rs.step.Hostile, Attackable: rs.step.Attackable})
+		if strings.TrimSpace(rs.step.Target) != "" {
+			line += "; " + e.stepLocked(r, database.TriggerStep{Do: database.TriggerSic, NPC: name, Target: rs.step.Target,
+				Radius: rs.step.Radius, Casts: rs.step.Casts})
+		}
+		if strings.TrimSpace(rs.step.Text) != "" {
+			e.stepLocked(r, database.TriggerStep{Do: database.TriggerBroadcast, Text: rs.step.Text})
+		}
+		rs.fell = time.Time{}
+		log.Printf("Triggers: %s's %s calls %s back: %s", r.trig.Title(), by, name, line)
+	}
+}
+
 // despawnLocked takes away the run's live spawns (those named npc; none:
 // all) and answers how many. Must be called with e.mu held.
 func (e *TriggerEngine) despawnLocked(r *triggerRun, npc string) int {
@@ -1182,46 +1249,107 @@ func encodeTriggerNames(cat []database.GMTrigger, running map[int]bool) []byte {
 	return append([]byte{byte(n)}, body...)
 }
 
-// buildTriggerNames is OpcodeGMTriggersData with body.
-func buildTriggerNames(body []byte) []byte {
-	return build(protocol.OpcodeGMTriggersData, 2+len(body), func(w *buffer.Writer) {
+// buildTriggerNames is op (OpcodeGMTriggersData, OpcodeGMTriggerList) with
+// body.
+func buildTriggerNames(op protocol.GameOpcode, body []byte) []byte {
+	return build(op, 2+len(body), func(w *buffer.Writer) {
 		w.WriteBytes(body)
 	})
 }
 
-// SetNames makes a session's client have the names (on) or stop; on, they go
-// out at once.
-func (e *TriggerEngine) SetNames(sess *session.Session, on bool) {
+// encodeTriggerList is OpcodeGMTriggerList's body: a u16 count, then every
+// trigger in cat's order (by slot): a u32 slot, u8 flags (bit 0 on, bit 1
+// running) and its name (a u8 byte count, UTF-8, ListName's at most 32
+// bytes, none for a trigger with no name), little-endian. A slot a u32
+// cannot carry is left out (no client could fire it).
+func encodeTriggerList(cat []database.GMTrigger, running map[int]bool) []byte {
+	body := make([]byte, 2, 2+len(cat)*16)
+	n := 0
+	for _, t := range cat {
+		if t.Slot < 1 || uint64(t.Slot) > math.MaxUint32 || n == math.MaxUint16 {
+			continue
+		}
+		var flags byte
+		if t.Enabled {
+			flags |= 1
+		}
+		if running[t.Slot] {
+			flags |= 2
+		}
+		name := t.ListName()
+		body = binary.LittleEndian.AppendUint32(body, uint32(t.Slot))
+		body = append(body, flags, byte(len(name)))
+		body = append(body, name...)
+		n++
+	}
+	binary.LittleEndian.PutUint16(body, uint16(n))
+	return body
+}
+
+// What a client's answer to the names' offer asks for (a u32 after
+// protocol.OpcodeGMTriggers).
+const (
+	TriggerNamesOff  = 0 // nothing more
+	TriggerNamesMenu = 1 // the TEST menu's eight lines' names (OpcodeGMTriggersData)
+	TriggerNamesAll  = 2 // every trigger, by slot (OpcodeGMTriggerList)
+)
+
+// triggerNamesAsk is a session's ask for the names: which (all: the whole
+// list), and the body it was sent last ("": none yet).
+type triggerNamesAsk struct {
+	all  bool
+	last string
+}
+
+// SetNames makes a session's client have the names (TriggerNamesMenu), every
+// trigger (TriggerNamesAll) or stop (TriggerNamesOff); another ask is the
+// menu's names. Asked, they go out at once.
+func (e *TriggerEngine) SetNames(sess *session.Session, ask uint32) {
 	if e == nil || sess == nil {
 		return
 	}
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	if !on {
+	if ask == TriggerNamesOff {
 		delete(e.named, sess)
 		return
 	}
-	e.named[sess] = ""
+	e.named[sess] = &triggerNamesAsk{all: ask == TriggerNamesAll}
 	e.syncNamesLocked()
 }
 
-// syncNamesLocked sends the names to each client that asked whose last set
-// differs, and forgets the sessions gone. Must be called with e.mu held.
+// syncNamesLocked sends each client that asked what it asked for (the
+// menu's names or every trigger), where it differs from what it was sent
+// last, and forgets the sessions gone. Must be called with e.mu held.
 func (e *TriggerEngine) syncNamesLocked() {
 	if len(e.named) == 0 {
 		return
 	}
-	body := encodeTriggerNames(e.cat, e.runningLocked())
-	for sess, last := range e.named {
+	running := e.runningLocked()
+	var menu, all []byte // each made once, when a session asked for it
+	for sess, ask := range e.named {
 		if !sess.CharacterInWorld() || sess.PendingTermination() {
 			delete(e.named, sess)
 			continue
 		}
-		if last == string(body) {
+		var op protocol.GameOpcode
+		var body []byte
+		if ask.all {
+			if all == nil {
+				all = encodeTriggerList(e.cat, running)
+			}
+			op, body = protocol.OpcodeGMTriggerList, all
+		} else {
+			if menu == nil {
+				menu = encodeTriggerNames(e.cat, running)
+			}
+			op, body = protocol.OpcodeGMTriggersData, menu
+		}
+		if ask.last == string(body) {
 			continue
 		}
-		e.named[sess] = string(body)
-		queueReliable(sess, protocol.OpcodeGMTriggersData, buildTriggerNames(body))
+		ask.last = string(body)
+		queueReliable(sess, op, buildTriggerNames(op, body))
 	}
 }
 
@@ -1342,8 +1470,8 @@ func (h *ChatHandler) listTriggers(sess *session.Session, e *TriggerEngine) {
 }
 
 // HandleGMTriggerNames is a client's OpcodeGMTriggers: whether it shows the
-// triggers' names (a u32, nonzero yes). A GM's alone is taken; nothing is
-// answered.
+// triggers' names (a u32: 0 no, 2 every trigger, any other the menu's eight
+// lines'). A GM's alone is taken; nothing is answered.
 func (h *ChatHandler) HandleGMTriggerNames(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	if len(data) < 4 {
@@ -1356,7 +1484,32 @@ func (h *ChatHandler) HandleGMTriggerNames(sess *session.Session, msg *protocol.
 		}
 		return nil
 	}
-	on := binary.LittleEndian.Uint32(data[:4]) != 0
-	Triggers().SetNames(sess, on)
+	Triggers().SetNames(sess, binary.LittleEndian.Uint32(data[:4]))
+	return nil
+}
+
+// HandleGMTriggerFire is a client's OpcodeGMTriggerFire: a GM's firing of the
+// trigger in a slot (a u32) from a line of the whole list (vanilla's TEST
+// menu), fired as 0x0702's line is; anyone else's is logged and dropped.
+func (h *ChatHandler) HandleGMTriggerFire(sess *session.Session, msg *protocol.Message) error {
+	d := msg.Data()
+	if len(d) < 4 {
+		log.Printf("GM channel: a short trigger firing (%d bytes) from %s", len(d), sess.RemoteAddr())
+		return nil
+	}
+	slot := binary.LittleEndian.Uint32(d[:4])
+	if !h.isGM(sess) {
+		log.Printf("GM channel: trigger %d fired by account %d, not a GM: dropped", slot, sess.AccountID())
+		return nil
+	}
+	if h.gameWorld == nil {
+		return nil
+	}
+	gm := h.gameWorld.SessionPlayer(sess)
+	if gm == nil {
+		return nil
+	}
+	log.Printf("GM channel: %s: TRIGGER slot %d", gm.Name, slot)
+	h.fireTrigger(sess, gm, int(slot))
 	return nil
 }

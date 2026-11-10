@@ -14,8 +14,9 @@ package entity
 // describing the entity it shows (an NPC's id is its row's, a player's its
 // character's, the same in the new process), or take it away. Groups are
 // formed again among the characters that came back. A fight, a cast on its
-// way, a pet, a duel, a trade and an invitation end. The creatures come through
-// by keepnpc.go.
+// way, a duel, a trade and an invitation end. A pet comes through with its
+// owner (KeptPet, keeppet.go: petition 1363). The creatures come through by
+// keepnpc.go.
 
 import (
 	"fmt"
@@ -32,6 +33,7 @@ type KeptPlayer struct {
 	Target       uint32        `json:"target,omitempty"`
 	Lockouts     []KeptLockout `json:"lockouts,omitempty"`
 	PowerBars    bool          `json:"power_bars,omitempty"`
+	PetEffects   bool          `json:"pet_effects,omitempty"`
 	RaidRoster   bool          `json:"raid_roster,omitempty"`
 	DuelWindow   bool          `json:"duel_window,omitempty"`
 	GM           bool          `json:"gm,omitempty"`
@@ -44,6 +46,10 @@ type KeptPlayer struct {
 	// PvP: its flag (pvp.go), and how long it must yet stay on
 	PvP       bool  `json:"pvp,omitempty"`
 	PvPHoldMS int64 `json:"pvp_hold_ms,omitempty"`
+	// Jumps: its client jumps (jump.go)
+	Jumps bool `json:"jumps,omitempty"`
+	// Pet: its pet, summoned or charmed (keeppet.go), nil none
+	Pet *KeptPet `json:"pet,omitempty"`
 }
 
 // KeptLockout is a spell's lockout and what is left of it.
@@ -87,9 +93,10 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 	}
 	k := KeptPlayer{CharServerID: p.CharServerID, Name: p.Name, Dead: p.IsDead() || p.respawnPending(),
 		Target: p.TargetObjectID, PowerBars: p.PowerBars, RaidRoster: p.RaidRoster, DuelWindow: p.DuelWindow, GM: p.GM, Flying: p.Flying,
-		Place: [3]float32{p.X, p.Y, p.Z}, World: p.World}
+		Place: [3]float32{p.X, p.Y, p.Z}, World: p.World, PetEffects: p.PetEffects}
 	k.RaceLabels = p.RaceLabels
 	k.RecordWindow = p.RecordWindow
+	k.Jumps = p.Jumps
 	if p.pvp.on {
 		k.PvP, k.PvPHoldMS = true, max(0, p.pvp.hold.Sub(now).Milliseconds())
 	}
@@ -98,6 +105,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 			k.Lockouts = append(k.Lockouts, KeptLockout{Spell: l.spellID, Index: l.displayIndex, LeftMS: left.Milliseconds()})
 		}
 	}
+	k.Pet = w.keptPetLocked(p, now) // keeppet.go
 	return k, true
 }
 
@@ -120,6 +128,7 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	}
 	p.RaceLabels, p.raceLabelsSent = k.RaceLabels, "" // the client keeps its list; a data step may have changed it
 	p.PowerBars, p.powerBarsSent, p.powerBarsDue = k.PowerBars, "", k.PowerBars
+	p.PetEffects, p.petEffectsSent, p.petEffectsDue = k.PetEffects, "", k.PetEffects // its pet's set again once the pet is back
 	p.RaidRoster, p.raidRosterSent = k.RaidRoster, ""
 	p.GM = k.GM
 	p.DuelWindow = k.DuelWindow
@@ -128,6 +137,7 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	if k.PvP && w.pvpAllowed { // a server since turned off drops it
 		p.pvp = pvpFlag{on: true, hold: now.Add(time.Duration(k.PvPHoldMS) * time.Millisecond)}
 	}
+	p.Jumps = k.Jumps && w.jumpsAllowed // and its jumps (its client is told: handlers/keep.go)
 	w.restoreFlyingLocked(p, k)
 	return true
 }

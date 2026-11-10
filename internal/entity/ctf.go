@@ -217,8 +217,8 @@ type ctfFlag struct {
 
 // ctfPowerUp is a power-up in the field.
 type ctfPowerUp struct {
-	lay   CTFPowerUpLayout
-	npc   EntityID
+	lay    CTFPowerUpLayout
+	npc    EntityID
 	backAt time.Time // taken: back then
 }
 
@@ -231,19 +231,19 @@ type ctfTeam struct {
 
 // ctfMatch is the match on.
 type ctfMatch struct {
-	id        uint32
-	phase     ctfPhase
-	began     time.Time // its players sent in
-	opens     time.Time // the banners go live
-	ends      time.Time // the time limit
-	overAt    time.Time // the result told
-	teams     [2]ctfTeam
-	flags     [2]*ctfFlag
-	powerUps  []*ctfPowerUp
-	winner    int       // -1: a draw (or none yet)
-	how       string    // how it ended, for the log
-	minsTold  int       // the last "minutes left" said
-	sentHome  bool
+	id       uint32
+	phase    ctfPhase
+	began    time.Time // its players sent in
+	opens    time.Time // the banners go live
+	ends     time.Time // the time limit
+	overAt   time.Time // the result told
+	teams    [2]ctfTeam
+	flags    [2]*ctfFlag
+	powerUps []*ctfPowerUp
+	winner   int    // -1: a draw (or none yet)
+	how      string // how it ended, for the log
+	minsTold int    // the last "minutes left" said
+	sentHome bool
 }
 
 // ctfSignup is a player in the queue.
@@ -285,11 +285,11 @@ type ctfPlayer struct {
 	live    bool   // its match's banners are live: it fights the other team (pvpFoe)
 	carries bool   // it carries the other team's banner (its name tagged: ShownName)
 	hand    uint32 // the layout's banner item shown in its off hand (SerializePlayerUpdate's override item), 0 none
-	home   bool   // its next respawn lands beside the herald (the match over while it lay dead)
-	saidAt time.Time
-	stuck  time.Time // /stuck again from here
-	sentAt time.Time // sent to its camp (ctfToCampLocked): on its way there for ctfArriveGrace
-	quiet  time.Time // touches nothing before this (ctfMayTouch): the server just put it somewhere
+	home    bool   // its next respawn lands beside the herald (the match over while it lay dead)
+	saidAt  time.Time
+	stuck   time.Time // /stuck again from here
+	sentAt  time.Time // sent to its camp (ctfToCampLocked): on its way there for ctfArriveGrace
+	quiet   time.Time // touches nothing before this (ctfMayTouch): the server just put it somewhere
 	// what it did, for the end's lines
 	caps, returns, kills, deaths int
 }
@@ -342,57 +342,57 @@ func (w *World) ctfArenaLocked(world uint8) bool {
 
 // The lines (ours). A PS2 never reads them: it cannot load the arena and is told so at the herald.
 const (
-	ctfLineClosed     = "The arena is closed on this server."
-	ctfLineNoLoad     = "Your game cannot load the arena: it needs a client that builds the server's worlds (eqoa-rust-client-vanilla)."
-	ctfLineLevel      = "You must be level %d to fight in the arena."
-	ctfLineDead       = "You cannot sign up while you are dead."
-	ctfLineDuel       = "You cannot sign up while you are in a duel."
-	ctfLineJoined     = "You are signed up for capture the banner. %s"
-	ctfLineLeft       = "You are no longer signed up."
-	ctfLineInMatch    = "You are already fighting in the arena."
-	ctfLineNotSigned  = "You are not signed up."
-	ctfLineQueue      = "%d signed up; a match needs %d a side."
-	ctfLineCountdown  = "A match begins in %d seconds."
-	ctfLineWaitMatch  = "A match is on; you will be sent in as soon as a team has room."
-	ctfLineNextMatch  = "A match is on; you will fight in the next one."
-	ctfLineLeftMatch  = "You have left the match."
-	ctfLineCancel     = "Too few are signed up now: the match will begin when %d a side are."
-	ctfLineTeam       = "You fight for %s. Take %s from its stand and carry it to your own banner's stand, while your banner stands there."
-	ctfLinePrep       = "The banners go live in %d seconds."
-	ctfLineGo         = "The banners are live! First to %d captures wins; the match ends in %d minutes."
-	ctfLineTaken      = "%s has taken %s!"
-	ctfLineTakenUp    = "%s has picked up %s!"
-	ctfLineDropped    = "%s has dropped %s."
-	ctfLineReturned   = "%s has returned %s to its stand."
-	ctfLineHomeAlone  = "%s has returned to its stand."
-	ctfLineCaptured   = "%s has captured %s for %s! %s"
-	ctfLineOwnAway    = "Your own banner must be on its stand for you to score."
-	ctfLineWound      = "%s has carried %s too long and takes %d%% more from every hit."
-	ctfLineMinutes    = "%d %s left in the match. %s"
-	ctfLineWin        = "%s wins the match in %s, %s."
-	ctfLineDraw       = "The match in %s ends in a draw, %s."
-	ctfLineForfeit    = "%s has no one left: %s wins the match in %s, %s."
-	ctfLineBack       = "You return from the arena."
-	ctfLineYou        = "Your match: %d captures, %d returns, %d kills, %d deaths."
-	ctfLineStray      = "There is no match here for you: you are sent back."
-	ctfLineField      = "You have strayed from the field: back to your camp."
-	ctfLineStuck      = "You are sent back to your camp."
-	ctfLineStuckSoon  = "You can use /stuck again in %d seconds."
-	ctfLineStuckFlag  = "You cannot use /stuck while you carry a banner."
-	ctfLineSpeed      = "%s fills you with speed."
-	ctfLineHeal       = "%s mends your wounds."
-	ctfLineSignAll    = "A capture the banner match begins in %d seconds in %s. Talk to the PvP Events herald beside Dabrish to join."
-	ctfLineWaveSoon   = "You rise with the next wave at your camp, in %d seconds."
-	ctfLineTeamFull   = "Both teams are full; you will fight in the next match."
-	ctfLineAlready    = "You are already signed up. %s"
-	ctfLineNoArena    = "The arena cannot be reached now."
-	ctfLineSameTeam   = "%s fights on your side."
-	ctfLineNoDuel     = "There are no duels in the arena: its fights are its match's."
-	ctfLineNotLive    = "The banners are not live yet."
-	ctfStatusNone     = "No match is on. %s"
-	ctfStatusOn       = "A match is on in %s: %s, %d minutes left. %s"
-	ctfStatusPrep     = "A match is about to begin in %s."
-	ctfStatusOver     = "The match in %s is over, %s: everyone goes back in a moment."
+	ctfLineClosed    = "The arena is closed on this server."
+	ctfLineNoLoad    = "Your game cannot load the arena: it needs a client that builds the server's worlds (eqoa-rust-client-vanilla)."
+	ctfLineLevel     = "You must be level %d to fight in the arena."
+	ctfLineDead      = "You cannot sign up while you are dead."
+	ctfLineDuel      = "You cannot sign up while you are in a duel."
+	ctfLineJoined    = "You are signed up for capture the banner. %s"
+	ctfLineLeft      = "You are no longer signed up."
+	ctfLineInMatch   = "You are already fighting in the arena."
+	ctfLineNotSigned = "You are not signed up."
+	ctfLineQueue     = "%d signed up; a match needs %d a side."
+	ctfLineCountdown = "A match begins in %d seconds."
+	ctfLineWaitMatch = "A match is on; you will be sent in as soon as a team has room."
+	ctfLineNextMatch = "A match is on; you will fight in the next one."
+	ctfLineLeftMatch = "You have left the match."
+	ctfLineCancel    = "Too few are signed up now: the match will begin when %d a side are."
+	ctfLineTeam      = "You fight for %s. Take %s from its stand and carry it to your own banner's stand, while your banner stands there."
+	ctfLinePrep      = "The banners go live in %d seconds."
+	ctfLineGo        = "The banners are live! First to %d captures wins; the match ends in %d minutes."
+	ctfLineTaken     = "%s has taken %s!"
+	ctfLineTakenUp   = "%s has picked up %s!"
+	ctfLineDropped   = "%s has dropped %s."
+	ctfLineReturned  = "%s has returned %s to its stand."
+	ctfLineHomeAlone = "%s has returned to its stand."
+	ctfLineCaptured  = "%s has captured %s for %s! %s"
+	ctfLineOwnAway   = "Your own banner must be on its stand for you to score."
+	ctfLineWound     = "%s has carried %s too long and takes %d%% more from every hit."
+	ctfLineMinutes   = "%d %s left in the match. %s"
+	ctfLineWin       = "%s wins the match in %s, %s."
+	ctfLineDraw      = "The match in %s ends in a draw, %s."
+	ctfLineForfeit   = "%s has no one left: %s wins the match in %s, %s."
+	ctfLineBack      = "You return from the arena."
+	ctfLineYou       = "Your match: %d captures, %d returns, %d kills, %d deaths."
+	ctfLineStray     = "There is no match here for you: you are sent back."
+	ctfLineField     = "You have strayed from the field: back to your camp."
+	ctfLineStuck     = "You are sent back to your camp."
+	ctfLineStuckSoon = "You can use /stuck again in %d seconds."
+	ctfLineStuckFlag = "You cannot use /stuck while you carry a banner."
+	ctfLineSpeed     = "%s fills you with speed."
+	ctfLineHeal      = "%s mends your wounds."
+	ctfLineSignAll   = "A capture the banner match begins in %d seconds in %s. Talk to the PvP Events herald beside Dabrish to join."
+	ctfLineWaveSoon  = "You rise with the next wave at your camp, in %d seconds."
+	ctfLineTeamFull  = "Both teams are full; you will fight in the next match."
+	ctfLineAlready   = "You are already signed up. %s"
+	ctfLineNoArena   = "The arena cannot be reached now."
+	ctfLineSameTeam  = "%s fights on your side."
+	ctfLineNoDuel    = "There are no duels in the arena: its fights are its match's."
+	ctfLineNotLive   = "The banners are not live yet."
+	ctfStatusNone    = "No match is on. %s"
+	ctfStatusOn      = "A match is on in %s: %s, %d minutes left. %s"
+	ctfStatusPrep    = "A match is about to begin in %s."
+	ctfStatusOver    = "The match in %s is over, %s: everyone goes back in a moment."
 )
 
 // ctfBlue and ctfGold are the colours of a match's own lines: the game's own for an announcement.

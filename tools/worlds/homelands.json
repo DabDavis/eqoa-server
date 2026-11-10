@@ -1321,7 +1321,206 @@
       "from": "ODUS.ESF",
       "zone": 14,
       "race": 25,
-      "note": "Satyr: the satyrs' woods: 155 acolyte satyrs of the game (East Toxxulia, cell 3,2)"
+      "note": "Satyr: the satyrs' woods: 155 acolyte satyrs of the game (East Toxxulia, cell 3,2)",
+      "home": {
+        "flavor": "Satyrs are goat-legged revelers of the East Toxxulian woods in the Homelands, whose young dance off to the elven forest round Tethelin.",
+        "start": {
+          "x": 6057.1,
+          "y": 80.7,
+          "z": 4444.1,
+          "toward": [
+            6050.1,
+            4444.1
+          ]
+        },
+        "mainland": {
+          "place": "Tethelin",
+          "world": 0,
+          "x": 18380.2,
+          "y": 75.6,
+          "z": 7378.4,
+          "facing": 3.94
+        },
+        "npcs": [
+          {
+            "name": "Elder Pannoch",
+            "like": 129706,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              6050.1,
+              80.8,
+              4444.1
+            ],
+            "toward": [
+              6057.1,
+              4444.1
+            ],
+            "note": "the starter quests' giver, an acolyte satyr, in the glade"
+          },
+          {
+            "name": "Grocer Lyrrin",
+            "like": 130510,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6023.9,
+              80.7,
+              4492.0
+            ],
+            "toward": [
+              6050.1,
+              4444.1
+            ],
+            "stock": "Grocer Peltham",
+            "note": "the glade's grocer, a faun maiden on its north side, a Tethelin grocer's food and drink"
+          },
+          {
+            "name": "Spiritmaster Fennick",
+            "like": 130401,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              6051.8,
+              80.9,
+              4418.3
+            ],
+            "toward": [
+              6050.1,
+              4444.1
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Dorvan",
+            "like": 130566,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              6095.4,
+              81.0,
+              4394.5
+            ],
+            "toward": [
+              6050.1,
+              4444.1
+            ],
+            "note": "sends a young satyr who has done the starter quests to its elven city (the quest The Elven Road)"
+          },
+          {
+            "name": "Glade sentinel",
+            "like": 129706,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6016.8,
+              81.1,
+              4446.0
+            ],
+            "facing": 192
+          },
+          {
+            "name": "Glade sentinel",
+            "like": 129706,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6062.5,
+              77.7,
+              4533.7
+            ],
+            "facing": 0
+          },
+          {
+            "name": "Glade sentinel",
+            "like": 129706,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6178.9,
+              80.8,
+              4512.3
+            ],
+            "facing": 64
+          },
+          {
+            "name": "glade spiderling",
+            "body": "0xF9D756D6",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6270.3,
+              85.4,
+              4417.2
+            ],
+            "note": "the starter hunt's spiderlings (a vineweb spiderling's body, small), east of the glade"
+          },
+          {
+            "name": "glade spiderling",
+            "body": "0xF9D756D6",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6219.4,
+              80.7,
+              4478.2
+            ]
+          },
+          {
+            "name": "glade spiderling",
+            "body": "0xF9D756D6",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6302.5,
+              80.7,
+              4485.6
+            ]
+          },
+          {
+            "name": "glade spiderling",
+            "body": "0xF9D756D6",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6225.5,
+              83.2,
+              4407.8
+            ]
+          },
+          {
+            "name": "glade spiderling",
+            "body": "0xF9D756D6",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6268.2,
+              80.7,
+              4529.2
+            ]
+          },
+          {
+            "name": "glade spiderling",
+            "body": "0xF9D756D6",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6320.7,
+              80.7,
+              4529.2
+            ]
+          }
+        ],
+        "peaceful": [
+          "glade spiderling"
+        ]
+      }
     },
     {
       "name": "West Toxxulia",

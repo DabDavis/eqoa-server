@@ -107,18 +107,42 @@ def row_dict(db, table, where, args):
     return dict(zip([c[0] for c in cur.description], r))
 
 
+_FIRST = {}
+
+
+def first_ids(db):
+    """One reading of npcs for every lookup by name or body (npcs has no index on either, and a recipe asks some
+    six hundred times: 7 s of a keep restart's 12 before this): the lowest id of each name, of each name outside
+    each world, of each body, and how many rows of each world bear each name (lower case)."""
+    key = (id(db), db.total_changes)  # read again after any write through this connection
+    if key not in _FIRST:
+        by_name, by_body, by_name_world, lower = {}, {}, {}, {}
+        for i, name, model, world in db.execute("SELECT id, npc_name, modelid, world FROM npcs ORDER BY id"):
+            by_name.setdefault(name, i)
+            by_name_world.setdefault(name, {}).setdefault(world, i)
+            if model is not None:
+                by_body.setdefault(int(model) & 0xFFFFFFFF, i)
+            w = lower.setdefault(str(name).lower(), {})
+            w[world] = w.get(world, 0) + 1
+        _FIRST.clear()
+        _FIRST[key] = (by_name, by_body, by_name_world, lower)
+    return _FIRST[key]
+
+
 def template(db, spec, missing_ok=False):
     """The npcs row a spec copies: its `like` (an id or a name), else a row of its body. missing_ok: None when
     this database has none (an optional one's)."""
     like = spec.get("like")
+    by_name, by_body, _, _ = first_ids(db)
     if isinstance(like, int):
-        r = row_dict(db, "npcs", "id = ?", (like,))
+        i = like
     elif like:
-        r = row_dict(db, "npcs", "npc_name = ? ORDER BY id", (like,))
+        i = by_name.get(like)
     elif spec.get("body"):
-        r = row_dict(db, "npcs", "(modelid & 4294967295) = ? ORDER BY id", (int(spec["body"], 16) & 0xFFFFFFFF,))
+        i = by_body.get(int(spec["body"], 16) & 0xFFFFFFFF)
     else:
         raise SystemExit(f"{spec['name']}: no `like` and no `body`")
+    r = None if i is None else row_dict(db, "npcs", "id = ?", (i,))
     if r is None and not missing_ok:
         raise SystemExit(f"{spec['name']}: no npcs row like {like or spec.get('body')!r}")
     return r
@@ -155,8 +179,7 @@ def plan(db, recipe):
                                                            f"npcs row like {n.get('like') or n.get('body')!r}: left out"))
                 continue
             if n.get("role", "talker") == "foe":
-                n_else = db.execute("SELECT count(*) FROM npcs WHERE lower(npc_name) = lower(?) AND world != ?",
-                                    (n["name"], world)).fetchone()[0]
+                n_else = sum(c for w, c in first_ids(db)[3].get(n["name"].lower(), {}).items() if w != world)
                 if n_else:
                     raise SystemExit(f"{z['name']}: {n_else} NPCs of other worlds are named {n['name']!r} too: a home's creature "
                                      "has a name of its own (npcaggro and a quest's kill go by name)")
@@ -178,7 +201,8 @@ def plan(db, recipe):
             stock = []
             if n.get("stock"):
                 # the seller of another world: a home's own seller of the name (an earlier seeding's) is no source
-                src = row_dict(db, "npcs", "npc_name = ? AND world != ? ORDER BY id", (n["stock"], world))
+                ids = [i for w, i in first_ids(db)[2].get(n["stock"], {}).items() if w != world]
+                src = row_dict(db, "npcs", "id = ?", (min(ids),)) if ids else None
                 if src is not None:
                     cur = db.execute("SELECT * FROM npcitem WHERE npcid = ? ORDER BY listnumber, itemid", (src["id"],))
                     cols = [c[0] for c in cur.description]

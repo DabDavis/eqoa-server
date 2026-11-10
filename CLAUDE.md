@@ -659,7 +659,7 @@ counts what is worn** as well as what is carried (every city's level 1 gift too)
 `set` (a gift's own figures). `tools/seed_race_homes.py` knows `optional` people (the homes' `Spell Archivist`, left
 out where the database has none), `hostile` rules, keeps an `npcaggro` row that is there, refuses a creature's name
 NPCs of another world bear, and lays the recipe out (`--format`); `tools/retire_quests.py` takes out the quests a
-content file dropped (the homes' old welcome and hunt), exact `--undo`. **A home's coachman keeps a stable**
+content file dropped (the homes' old welcome and hunt), exact `--undo`. `tools/homes_flown.py` marks the five finished for a character whose flight was finished under the old two (it keeps its passage, is offered no fledgling's quest, and gets nothing), exact `--undo`; a home's data update over a seeding that is there is undo, apply, import, retire, flown, in a keep restart's `before.sh` (2 s on the live database's copy, once the seeding and the import stopped scanning `npcs` and digesting every quest). **A home's coachman keeps a stable**
 (`entity/coachhomes.go`; the owner: "the coach will connect to freeport and the other homeland areas"): his town is his
 home's zone name off the built recipe (`handlers.SetServerWorlds`; "Gerntar Mines (the Homelands)" where a coach town
 of the game has the name), his coach runs to Freeport and every other home and Freeport's to every home, by the

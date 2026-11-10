@@ -1,11 +1,13 @@
 package entity
 
 import (
+	"net"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/session"
 )
 
 // The rest of the workbook's kinds (workbookmore.go), on made-up spells.
@@ -155,23 +157,64 @@ func TestWorkbookDisguise(t *testing.T) {
 	}
 }
 
-// A summoned player goes beside its caster, a gate's travel; the caster
-// itself does not.
+// Call of the Hero (callhero.go; jib's PR #1): cast on its caster whatever its
+// scope, it asks the far members of its group, in another world too, and lands
+// on no one: the member near it is neither asked nor moved, the one below the
+// spell's lowest level is not asked (its caster told), and nothing travels
+// until a Yes (HeroCallBring: the caster's place when it comes). The control:
+// with no far member, the caster is told no one was far enough.
 func TestWorkbookSummonPlayer(t *testing.T) {
 	c := newCaster(t)
-	other := &Player{ServerID: 1003, Name: "Far", Level: 30, HP: 100, MaxHP: 100, World: 2, X: 5000}
-	c.w.Players[other.ServerID] = other
-	sess := c.w.SessionManager.CreateSession(nil, 2, 2, 2, 3, true)
-	sess.SetECSEntity(other)
-	sess.SetCharacterInWorld(true)
-	call := wbSpell(1121, 51, 2, "Test Call", `{"v":1,"scope":"group","target_type":"Friendly","effects":[{"kind":"summon_player"}]}`)
-	c.w.mu.Lock()
-	c.w.summonPlayerLocked(&castState{spell: call}, c.p, other)
-	c.w.summonPlayerLocked(&castState{spell: call}, c.p, c.p)
-	due := c.w.gates.due
-	c.w.mu.Unlock()
-	if len(due) != 1 || due[0].P != other || due[0].To.World != c.p.World || due[0].To.X != c.p.X || due[0].To.Z != c.p.Z {
-		t.Errorf("the travels: %+v", due)
+	c.p.Level = 51
+	far := &Player{ServerID: 1003, Name: "Far", Level: 30, HP: 100, MaxHP: 100, World: 2, X: 5000}
+	near := &Player{ServerID: 1004, Name: "Near", Level: 30, HP: 100, MaxHP: 100, X: 105, Y: 10, Z: 100}
+	low := &Player{ServerID: 1005, Name: "Low", Level: 20, HP: 100, MaxHP: 100, X: 900, Y: 10, Z: 900}
+	sessOf := map[EntityID]*session.Session{}
+	for i, m := range []*Player{far, near, low} {
+		c.w.Players[m.ServerID] = m
+		s := c.w.SessionManager.CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 1, byte(i+1)), Port: 7000}, uint32(i+2), 2, 2, 3, true)
+		s.SetECSEntity(m)
+		s.SetCharacterInWorld(true)
+		sessOf[m.ServerID] = s
+	}
+	c.w.groups = map[uint32]*Group{7: {ID: 7, Members: []EntityID{c.p.ServerID, far.ServerID, near.ServerID, low.ServerID}}}
+	c.p.GroupID, far.GroupID, near.GroupID, low.GroupID = 7, 7, 7, 7
+	call := wbSpell(1121, 51, 2, "Test Call", `{"v":1,"scope":"group","target_type":"Friendly","min_level":30,"radius":30,"effects":[{"kind":"summon_player"}]}`)
+	var asked []HeroCall
+	c.w.OnHeroCall(func(h HeroCall) { asked = append(asked, h) })
+	c.land(t, call, 0xFFFFFFFF, 0)
+	c.w.runHeroCalls()
+	if len(asked) != 1 || asked[0].Member != far.ServerID || asked[0].World != c.p.World || asked[0].Sess != sessOf[far.ServerID] {
+		t.Fatalf("asked %+v, want the far member alone, for the caster's world", asked)
+	}
+	if len(c.w.gates.due) != 0 || near.X != 105 {
+		t.Fatalf("a call moved someone unasked: travels %+v, the near member at %.0f", c.w.gates.due, near.X)
+	}
+
+	// a Yes: the member queued to the caster's place as it is then
+	c.p.X, c.p.Z = 150, 160
+	if ok, gone := c.w.HeroCallBring(c.p.ServerID, far.ServerID, sessOf[far.ServerID], asked[0].Ring, call.Name); !ok || gone {
+		t.Fatalf("a Yes did not bring the member: %v %v", ok, gone)
+	}
+	if due := c.w.gates.due; len(due) != 1 || due[0].P != far || due[0].To.World != c.p.World || due[0].To.X != 150 || due[0].To.Z != 160 {
+		t.Errorf("the travel: %+v", due)
+	}
+	// its caster dead by then: the member stays, the caller gone
+	c.w.gates.due = nil
+	c.p.HP = 0
+	if ok, gone := c.w.HeroCallBring(c.p.ServerID, far.ServerID, sessOf[far.ServerID], 1, call.Name); ok || !gone || len(c.w.gates.due) != 0 {
+		t.Errorf("a Yes to a dead caster: %v %v, travels %+v", ok, gone, c.w.gates.due)
+	}
+
+	// the control: no one far enough
+	o := newCaster(t)
+	o.p.Level = 51
+	var none []HeroCall
+	o.w.OnHeroCall(func(h HeroCall) { none = append(none, h) })
+	o.land(t, call, 0xFFFFFFFF, 0)
+	o.w.runHeroCalls()
+	if len(none) != 0 {
+		t.Errorf("a caster with no group asked %+v", none)
 	}
 }
 

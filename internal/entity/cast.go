@@ -1038,6 +1038,11 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 	if d.Target == TargetSelf && d.Resurrects() > 0 {
 		return []EntityID{p.ServerID}, ""
 	}
+	// Call of the Hero goes on its caster, whatever its record's scope: it
+	// asks its far group as it lands (callhero.go)
+	if d.callsHero() {
+		return []EntityID{p.ServerID}, ""
+	}
 	switch spell.Scope {
 	case 0:
 		return []EntityID{p.ServerID}, ""
@@ -1329,6 +1334,9 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 			w.landOnNPCLocked(cs, caster, casterSess, npc, now)
 		}
 	}
+	if d.callsHero() {
+		return gate // its call is its caster's alone: no area's others (callhero.go)
+	}
 	w.landOthersLocked(cs, caster, casterSess, now) // area.go: an area spell's others
 	return gate
 }
@@ -1516,7 +1524,9 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 		case EffectCure:
 			w.cureLocked(cs, t) // workbook.go
 		case EffectSummonPlayer:
-			w.summonPlayerLocked(cs, caster, t) // workbookmore.go
+			if t == caster {
+				w.heroCallLandLocked(cs, caster, casterSess) // callhero.go: the far group asked
+			}
 		}
 	}
 	if ae := lasting(cs, caster, now); ae != nil && w.lineTakesLocked(caster, casterSess, t, &cs.spell, ae) && // buffline.go

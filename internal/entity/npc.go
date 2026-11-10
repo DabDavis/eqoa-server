@@ -251,6 +251,13 @@ type NPC struct {
 	// corpse's loot is; nil for every other NPC. Its corpse keeps it.
 	challenge *npcChallenge
 
+	// add is its tie to the creature whose summon called it (summon.go): whose
+	// fight it joined, and its share of that creature's figures; nil for every
+	// other NPC. Its corpse keeps it (a corpse of nothing: handlers' loot).
+	add *addTie
+	// withMaster: it died with its master (masterdeath.go), its body lying
+	// petDismissedLies, a corpse of nothing; its next life clears it
+	withMaster bool
 	// merc is a hired mercenary's (merc.go: Owner its hirer's), familiar a
 	// familiar's (familiar.go: never owned); nil for every other NPC
 	merc     *mercState

@@ -137,6 +137,7 @@ func (s *Server) registerOps() {
 	s.registerMapMarkOps()
 	s.registerTriggerOps()  // ops_triggers.go
 	s.registerPetitionOps() // ops_petitions.go
+	s.registerCampfixOps()  // ops_campfix.go: camp reports wait for a GM's approval
 	if !s.d.NoTransfers {
 		s.registerTransferOps() // ops_transfers.go
 	}

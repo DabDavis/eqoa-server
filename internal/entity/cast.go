@@ -332,6 +332,10 @@ type ActiveEffect struct {
 	// template's AbilityDoT, pettemplate.go; Caster its owner), 0 for every
 	// other effect: each tick is one of the pet's hits (petTickLocked)
 	pet EntityID
+	// npcCaster is the creature whose damage over time it is on the creature
+	// it fights (a template's AbilityDoT, creaturedot.go), 0 for every other
+	// effect: each tick lands as that fight's hit (npcDoTTickLocked)
+	npcCaster EntityID
 	// merc is the merc whose damage over time or debuff it is on a creature
 	// (merccast.go; Caster the merc too), 0 for every other effect: each tick
 	// is one of the merc's hits (mercTickLocked)
@@ -1122,7 +1126,7 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 			return nil, line // another's duel (metalmoogie.go)
 		}
 		if t.challenge != nil && d.Charms() {
-			return nil, MetalLineCharm
+			return nil, duelLine(MetalLineCharm, t)
 		}
 		if reach := spell.Range + npcReachExtra(t); outOfRange(p, t.X, t.Y, t.Z, reach) {
 			return nil, refuseOutOfRange(p, spell, t.Name, t.X, t.Y, t.Z, reach)
@@ -1753,6 +1757,7 @@ func (w *World) spellHitHateLocked(caster *Player, casterSess *session.Session, 
 	w.rootBreakLocked(npc, caster.Level) // root.go
 	log.Printf("Cast: %s's spell hit %s for %d (HP %d/%d)", caster.Name, npc.Name, n, npc.HP, npc.MaxHP)
 	if npc.HP > 0 {
+		w.hitHealLocked(npc, n, casterSess) // its heal at every hit that lands (hitheal.go)
 		return false
 	}
 	npc.Effects = nil
@@ -1772,6 +1777,10 @@ func (w *World) tickNPCEffectLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 	}
 	if ae.pet != 0 {
 		w.petTickLocked(npc, ae, now) // a pet's damage over time (pettemplate.go)
+		return
+	}
+	if ae.npcCaster != 0 {
+		w.npcDoTTickLocked(npc, ae, now) // a creature's on the creature it fights (creaturedot.go)
 		return
 	}
 	if ae.merc != 0 {

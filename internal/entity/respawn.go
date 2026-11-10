@@ -117,15 +117,8 @@ func (w *World) dropAggroLocked(id EntityID) {
 		if npc.CurrentEnemy != id {
 			continue
 		}
-		npc.CurrentEnemy = 0
-		var top int64
-		for other, t := range npc.Threats {
-			if t > top {
-				top = t
-				npc.CurrentEnemy = other
-			}
-		}
-		w.wakeNPCLocked(npc) // its next enemy, or its fight to put away (npcsets.go)
+		npc.CurrentEnemy = w.pickEnemyLocked(npc) // its next, a preferred foe first (prefer.go)
+		w.wakeNPCLocked(npc)                      // its next enemy, or its fight to put away (npcsets.go)
 	}
 }
 

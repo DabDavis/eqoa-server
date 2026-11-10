@@ -44,6 +44,7 @@ type World struct {
 	genies      map[EntityID]EntityID             // the lamps' genies standing, by their owners (genie.go)
 	portals     map[EntityID]*portalState         // the Summoning Portals standing, by their NPCs (summonportal.go)
 	metal       *metalDuel                        // the Metal Moogie standing and his duel (metalmoogie.go), nil none
+	adds        []*NPC                            // the adds creatures' summons called, standing (summon.go)
 	metalTold   map[EntityID]time.Time            // when each player was last told he is another's (metalmoogie.go)
 	buffers     []*bufferCast                     // Buffer's casts on their way to landing (buffer.go)
 	leaving     []func(*Player)                   // OnPlayerLeaving
@@ -185,6 +186,9 @@ type World struct {
 	// The NPC names that stand out of the world, there only for the quests'
 	// and triggers' spawns that copy them, table npcspawnonly (spawnonly.go)
 	spawnOnly map[string]bool
+	// The NPCs' body tints by name, table npctint, as the clients that draw
+	// them are told (npctint.go)
+	npcTints npcTintState
 	// The masteries a character may buy, table cmcatalog (cmbuy.go)
 	cms *cmCatalog
 	// NPCs coming to the help of their own (socialaggro.go)
@@ -936,7 +940,8 @@ func (w *World) killNPC(npc *NPC) {
 	w.wakeNPCLocked(npc) // a corpse, and its fight to put away (npcsets.go)
 
 	log.Printf("Combat: NPC '%s' killed (entity ID=%d)", npc.Name, npc.ServerID)
-	w.companionsDieLocked(npc, npc.DeathTime) // its own pets go with it (companion.go)
+	w.companionsDieLocked(npc, npc.DeathTime) // its own pets die with it (companion.go)
+	w.addsDieLocked(npc, npc.DeathTime)       // and the adds its summons called (summon.go)
 }
 
 // updateAggro adds or updates threat on an NPC: a hit or another hostile act
@@ -974,13 +979,9 @@ func (w *World) addThreatLocked(npc *NPC, attackerID EntityID, damage int) {
 	npc.Threats[attackerID] += int64(damage)
 	npc.LastCombat = time.Now()
 
-	// Update current enemy to highest threat
-	var maxThreat int64
-	for id, t := range npc.Threats {
-		if t > maxThreat {
-			maxThreat = t
-			npc.CurrentEnemy = id
-		}
+	// its enemy the highest threat, or a preferred foe of its on the list (prefer.go)
+	if id := w.pickEnemyLocked(npc); id != 0 {
+		npc.CurrentEnemy = id
 	}
 }
 

@@ -120,6 +120,9 @@ func checkRow(table string, row map[string]any) error {
 	if table == "npcspawnonly" && row != nil {
 		return checkSpawnOnlyRow(row) // live.go
 	}
+	if table == "npctint" && row != nil {
+		return checkTintRow(row) // live.go
+	}
 	if table == "signtext" && row != nil {
 		return checkSignTextRow(row) // live_signs.go
 	}

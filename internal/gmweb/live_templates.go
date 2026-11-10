@@ -16,7 +16,12 @@ import (
 // classTemplateAbilitiesHelp is the abilities column's form, for the catalog.
 const classTemplateAbilitiesHelp = `a JSON list, each {"kind": nuke | aoe | lifetap | heal | taunt | buff | root (those three a pet's; a root holds what the pet fights, and round it for an area spell) | debuff (a creature's: the stats the spell it names takes, on the player it fights, for the spell's time; "no_cure": true, no cure takes it off) | ` +
 	`strip (a creature's: every beneficial effect on what it fights ends, buffs, damage shields, heals over time, invulnerabilities, the harmful and the Boon left on, and a GM's #testmode goes off; "name": what its lines call it (Dispel), or "spell" / "spell_id": a spell whose name, cast time and visual it takes, nothing else of it) | ` +
-	`dot (a pet's: its spell's damage over time on what it fights, its ticks its hits, kept up: cast again as the one on its target runs out, never two of its owner's on one creature), ` +
+	`dot (its spell's damage over time on what it fights, a pet's or a creature's, its ticks its hits, kept up: cast again as the one on its target runs out, never two of one caster's on one target) | ` +
+	`hitheal (a creature's: "heal" hit points at every hit that lands on it, the hit whole) | prefer (a creature's: "foes", a list of names it fights first whenever one is on its hate list) | ` +
+	`summon (a creature's, once a fight below "below" %: "count" copies of the NPC "npc" beside it in its fight; "share" %: each fights by its template at that share of its figures and hit points, rolled as its own, and dies with it) | ` +
+	`enrage (a creature's, once a fight below "below" %: "grow" % bigger, every "every" s the players of its hate list beyond its reach pulled to it, "rampage" % of each melee hit on its target on the second of its hate list in its reach; its size back at the fight's end) | ` +
+	`proc (a creature's melee proc on every fight: "spell"/"spell_id" a proc buff whose proc it has at a pet's chance of its level, or "proc_chance", "proc_damage", "proc_name", "resist") | ` +
+	`veil (a creature's: at every melee hit that lands, "tap_pct" % of its own most hit points taken from what it hit into itself, cut by "resist"; "name", "fx"), ` +
 	`"every": seconds from one cast's start to the next (2-3600), "first": seconds into a fight before the first, ` +
 	`"chain": true to cast it as soon as the ability before it is cast (its clock then unused), ` +
 	`"chance": % of its due casts (100), "damage_pct": % of its spell's figures (100), ` +
@@ -27,7 +32,9 @@ const classTemplateAbilitiesHelp = `a JSON list, each {"kind": nuke | aoe | life
 	`a creature's: "heal_pct" on a heal: that % of its most hit points (100 whole) in place of its spell's figure, its spell (or "name") its look, ` +
 	`"cooldown": the least seconds from one cast to the next across its fights, its deaths and a restart that keeps the sessions (0 none), ` +
 	`"say": its line in /say as it lands, "proc_chance" / "proc_damage" / "proc_name": a melee proc its landing gives it for the rest of that fight ` +
-	`(that % of its melee hits that land do that much more, fixed); ` +
+	`(that % of its melee hits that land do that much more, fixed), "damage": a nuke's or a lifetap's fixed figure in place of its spell's (a lifetap's all back on it), ` +
+	`"resist": FR CR LR AR PR or DR, the resist that cuts a fixed figure (none: it lands as it is), "fx": the visual of one that pins no spell, ` +
+	`"out_of_reach": true to cast it only while what it fights stands beyond its melee reach (rooted, snared, kiting), within "range" (100) and in its sight; ` +
 	`a pet's (Pet class templates): "target": self | owner (where its heal or buff lands: itself, the default, or its owner), "spells_of": the class ` +
 	`0-14 whose spells it picks, "stat": the stat a buff raises (ac str sta agi dex wis int cha hp power), "element": a ` +
 	`harmful spell's (fire cold lightning poison disease arcane), "heal_pct": a heal of that % of its most hit points (cast ` +

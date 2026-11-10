@@ -182,7 +182,7 @@ func SyncImportedCopies(db *sql.DB, now time.Time) (int, error) {
 		if _, err := tx.Exec(`DELETE FROM itemeffect WHERE patternid = ?`, p[0]); err != nil && !strings.Contains(err.Error(), "no such table") {
 			return 0, err
 		}
-		if err := copyItemEffects(tx, p[1], p[0]); err != nil {
+		if err := copyItemEffects(tx, p[1], p[0], importedLine); err != nil {
 			return 0, err
 		}
 	}
@@ -250,7 +250,7 @@ func ImportedCopyTx(tx *sql.Tx, base int, source string, now time.Time) (id int,
 		set, id, from), base); err != nil {
 		return 0, false, fmt.Errorf("copying record %d: %w", base, err)
 	}
-	if err := copyItemEffects(tx, base, id); err != nil {
+	if err := copyItemEffects(tx, base, id, importedLine); err != nil {
 		return 0, false, err
 	}
 	if _, err := tx.Exec(`INSERT INTO itemimported (patternid, base, made, source) VALUES (?, ?, ?, ?)`,
@@ -261,8 +261,9 @@ func ImportedCopyTx(tx *sql.Tx, base int, source string, now time.Time) (id int,
 }
 
 // copyItemEffects gives a copy its base's use effects (itemeffect), each line
-// scaled; a database without the table has none.
-func copyItemEffects(tx *sql.Tx, base, id int) error {
+// scaled by scale (importedLine, ascendedLine); a database without the table
+// has none.
+func copyItemEffects(tx *sql.Tx, base, id int, scale func(string) string) error {
 	cols, err := tableColumns(tx, "itemeffect")
 	if err != nil || len(cols) == 0 {
 		return err
@@ -288,9 +289,9 @@ func copyItemEffects(tx *sql.Tx, base, id int) error {
 				vals[i] = id
 			case "line", "target_line":
 				if s, ok := vals[i].(string); ok {
-					vals[i] = importedLine(s)
+					vals[i] = scale(s)
 				} else if b, ok := vals[i].([]byte); ok {
-					vals[i] = importedLine(string(b))
+					vals[i] = scale(string(b))
 				}
 			}
 		}

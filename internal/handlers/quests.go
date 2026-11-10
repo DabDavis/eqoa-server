@@ -1115,13 +1115,17 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 		log.Printf("Quests: %s's step %d of %q waits for room for %s", p.Name, st.Step, qu.Name, short)
 		return
 	}
-	var given []string
-	if st.Kind == database.StepGive {
+	var given *handedIn
+	switch st.Kind {
+	case database.StepGive:
 		var ok bool
 		if given, ok = q.takeLocked(sess, p, st); !ok {
 			q.tellLocked(c, sess, st.Target, sayLines(orText(st.Reminder, questNotYet))...)
 			return
 		}
+	case database.StepShow:
+		// what is shown is kept; shown Ascended, the rewards are (questascended.go)
+		given = &handedIn{ascended: q.planHandInLocked(p, st).ascended}
 	}
 	var extra *database.ClassReward
 	if opt != nil {
@@ -1342,7 +1346,7 @@ func (q *QuestEngine) checkReach() {
 // what was handed in and each item given, then the experience and the
 // faction lines. extra is the rewards of the option the player picked (nil
 // none), given besides the step's.
-func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, given []string, extra *database.ClassReward) {
+func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, given *handedIn, extra *database.ClassReward) {
 	delete(c.packTold, [2]int{qu.ID, st.Step})
 	idx := c.index(qu.ID)
 	next := qu.Next(st.Step)
@@ -1379,8 +1383,10 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 		log.Printf("Quests: %s did step %d of %q; step %d next", who, st.Step, qu.Name, next.Step)
 	}
 	q.saveLocked(cq)
-	for _, g := range given {
-		lines = append(lines, "You have given away "+g+".")
+	if given != nil {
+		for _, g := range given.names {
+			lines = append(lines, "You have given away "+g+".")
+		}
 	}
 	// the step's rewards and its rewards for the player's class
 	var rw database.ClassReward
@@ -1389,6 +1395,11 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 	}
 	if extra != nil {
 		rw = rw.Plus(*extra)
+	}
+	if given != nil && given.ascended {
+		// met with Ascended items: its reward gear Ascended (questascended.go)
+		rw = q.ascendRewardLocked(rw, who)
+		log.Printf("Quests: %s did step %d of %q with Ascended items", who, st.Step, qu.Name)
 	}
 	lines = append(lines, q.rewardLocked(sess, p, rw)...)
 	if next == nil && sess != nil {
@@ -1523,62 +1534,54 @@ func (q *QuestEngine) heldItems(p *entity.Player) []database.CharInventoryEntry 
 	return out
 }
 
-// lackingLocked is what the player still lacks for a give step, or "".
+// lackingLocked is what the player still lacks for a give step, or "": an
+// item's Ascended record held counts for it (questascended.go).
 func (q *QuestEngine) lackingLocked(p *entity.Player, st *database.QuestStep) string {
-	have := map[int]int{}
-	for _, r := range q.heldItems(p) {
-		have[r.Pattern.PatternID] += r.StackLeft
-	}
-	var lack []string
-	for _, it := range st.Items {
-		if have[it.PatternID] < it.Count {
-			lack = append(lack, fmt.Sprintf("%d of item %d", it.Count-have[it.PatternID], it.PatternID))
-		}
-	}
-	if p.Tunar < st.Tunar {
-		lack = append(lack, fmt.Sprintf("%d tunar", st.Tunar-p.Tunar))
-	}
-	return strings.Join(lack, ", ")
+	return strings.Join(q.planHandInLocked(p, st).lack, ", ")
 }
 
 // takeLocked takes a give step's items and tunar from the player, in the
 // database, the session's list and the client's (0x003C, 0x0052), and returns
-// what was handed in, by name; false (and nothing taken) when something lacks.
-func (q *QuestEngine) takeLocked(sess *session.Session, p *entity.Player, st *database.QuestStep) ([]string, bool) {
-	if q.lackingLocked(p, st) != "" || q.inv == nil {
+// what was handed in, by name, and whether it came Ascended (an item's
+// Ascended record stands for it: questascended.go); false (and nothing
+// taken) when something lacks.
+func (q *QuestEngine) takeLocked(sess *session.Session, p *entity.Player, st *database.QuestStep) (*handedIn, bool) {
+	plan := q.planHandInLocked(p, st)
+	if len(plan.lack) > 0 || q.inv == nil {
 		return nil, false
 	}
-	held := q.heldItems(p)
 	l := sessionInvList(sess)
-	var given []string
-	for _, it := range st.Items {
-		left, name := it.Count, fmt.Sprintf("item %d", it.PatternID)
-		for i := range held {
-			r := &held[i]
-			if left == 0 || r.Pattern.PatternID != it.PatternID || r.StackLeft == 0 {
-				continue
-			}
-			name = r.Pattern.ItemName
-			k := min(left, r.StackLeft)
-			var err error
-			if k >= r.StackLeft {
-				err = q.inv.DeleteCharItem(p.CharServerID, r.ItemID)
-			} else {
-				err = q.inv.SetItemStack(p.CharServerID, r.ItemID, r.StackLeft-k)
-			}
-			if err != nil {
-				log.Printf("Quests: taking %q from %s: %v", name, p.Name, err)
-				continue
-			}
-			r.StackLeft -= k
-			left -= k
-			if l != nil {
-				if idx := l.indexOfItem(r.ItemID); idx >= 0 && l.took(idx, k) && sess != nil {
-					queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(idx, 0, k))
-				}
+	given := &handedIn{ascended: plan.ascended}
+	taken := map[int]int{} // by record, in the order first taken
+	var order []int
+	for _, t := range plan.takes {
+		r := t.row
+		var err error
+		if t.n >= r.StackLeft {
+			err = q.inv.DeleteCharItem(p.CharServerID, r.ItemID)
+		} else {
+			err = q.inv.SetItemStack(p.CharServerID, r.ItemID, r.StackLeft-t.n)
+		}
+		if err != nil {
+			log.Printf("Quests: taking %q from %s: %v", r.Pattern.ItemName, p.Name, err)
+			continue
+		}
+		if l != nil {
+			if idx := l.indexOfItem(r.ItemID); idx >= 0 && l.took(idx, t.n) && sess != nil {
+				queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(idx, 0, t.n))
 			}
 		}
-		given = append(given, countOf(it.Count, name))
+		if taken[r.Pattern.PatternID] == 0 {
+			order = append(order, r.Pattern.PatternID)
+		}
+		taken[r.Pattern.PatternID] += t.n
+	}
+	names := map[int]string{}
+	for _, t := range plan.takes {
+		names[t.row.Pattern.PatternID] = t.row.Pattern.ItemName
+	}
+	for _, id := range order {
+		given.names = append(given.names, countOf(taken[id], names[id]))
 	}
 	if st.Tunar > 0 {
 		p.Tunar -= st.Tunar
@@ -1588,7 +1591,7 @@ func (q *QuestEngine) takeLocked(sess *session.Session, p *entity.Player, st *da
 		if sess != nil {
 			queueReliable(sess, protocol.OpcodePlayerTunar, tunarPayload(p.Tunar))
 		}
-		given = append(given, fmt.Sprintf("%d tunar", st.Tunar))
+		given.names = append(given.names, fmt.Sprintf("%d tunar", st.Tunar))
 	}
 	return given, true
 }

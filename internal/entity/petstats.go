@@ -32,9 +32,10 @@ import (
 //     DEX the bottom), its off hand every other hit of a round;
 //   - what it casts, the row's abilities (its own spells pinned by id,
 //     through pettemplate.go's machinery), in place of its pet template's
-//     (keep_template: those after them); the template row's class, swing and
-//     melee proc it keeps (the user's of 2026-10-30: the water pet a cleric, the earth
-//     a tank that quads, a necromancer's pet a warrior's round), and with no
+//     (keep_template: those after them); the template row's class, swing,
+//     melee proc and timed special (its crit) it keeps (the user's of
+//     2026-10-30: the water pet a cleric, the earth a tank that quads, a
+//     necromancer's pet a warrior's round), and with no
 //     template row it swings as pet.go has it (an enchanter's once a round,
 //     Grand Animation twice);
 //   - the stances it takes are the row's ("Passive" alone: it fights only
@@ -355,8 +356,12 @@ func sheetFigure(pet *NPC, effects []SpellEffect, pct int, heal bool) (n, draine
 
 // petSheetTemplate is the pet template a workbook pet fights by: its
 // summoning's pettemplate row's class, swing and round (base; none: it keeps
-// pet.go's warrior class and swing) and its melee proc (petition 1388: the
-// Swarming Deaths' own template's), no share of its hit points, a melee
+// pet.go's warrior class and swing), its melee proc (petition 1388: the
+// Swarming Deaths' own template's) and its timed special, the pet's crit
+// (petition 1450, the magician Manifest's Badi Elder: "crit should be every
+// 30 secs. Crit recommendation 2k": special_every and its kin, as a charm
+// template's crit is cast, petTemplateSpecialLocked; until then a workbook
+// pet left its template's special out), no share of its hit points, a melee
 // hit on it or its own (the row's numbers are its own), and the row's
 // abilities, then the base's when the row keeps them, at most
 // MaxTemplateAbilities.
@@ -369,6 +374,12 @@ func petSheetTemplate(s *petSheet, spell *CastSpell, base *petTemplate) *petTemp
 		ct.Class = base.tmpl.Class
 		ct.ProcChance, ct.ProcDamage, ct.ProcName, ct.ProcResist = base.tmpl.ProcChance, base.tmpl.ProcDamage, base.tmpl.ProcName,
 			base.tmpl.ProcResist
+		// the timed special (a pet's crit), not special_chance: the kick by
+		// chance in a round is a creature's alone
+		b := &base.tmpl.ClassTemplate
+		ct.Special, ct.SpecialFX, ct.SpecialDamage = b.Special, b.SpecialFX, b.SpecialDamage
+		ct.SpecialEvery, ct.SpecialFirst, ct.SpecialJitter, ct.SpecialFrom = b.SpecialEvery, b.SpecialFirst, b.SpecialJitter,
+			b.SpecialFrom
 		ct.Name = base.tmpl.Name + " (workbook pet " + s.SheetPetID + ")"
 		row.Weapon, row.SwingClass, row.Swing, row.RoundMS = base.Weapon, base.SwingClass, base.Swing, base.RoundMS
 		if s.KeepTemplate {

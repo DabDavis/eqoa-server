@@ -1590,7 +1590,12 @@ Accept, so an owner in no group is asked, in the group invitation's own box from
 raid flag's way); its yes makes the two a group, the owner leading; its no leaves the merc out of any group until `/merc
 group`, a group the owner joins or forms. A player's group heal or buff reaches it (`groupMercsLocked`). It leaves the
 group when dismissed, killed, or when its owner leaves the group or the world; a leader's boot of it dismisses it (its
-owner told, the hire ended). Familiars take no place.
+owner told, the hire ended). An owner out of a group of others (it left, was booted, its leader disbanded) is asked
+again; out of the group of it and its merc alone (its own leave or disband) it is not. **The group of a player and its
+merc alone gives way to another player's box** (an invitation, a raid flag's): CLIENT shows no box to a client in a
+group (Msg0773 declines it, 2), so that group ends first, its client told with 0x069A's 8 (CLIENT's removal with no
+line); a yes takes the merc along (room for both checked before the box), a no asks the owner into a group with it again.
+The merc's own box waits while any other is up. Familiars take no place.
 
 **`/merc`** (`#merc`, a PS2's `/t merc ...`; everyone's): alone its state (its class, race, level, hit points, power,
 stance, target) and its words; `stance passive|assist|aggressive` (kept in its row), `follow`, `stay` (holds its place out

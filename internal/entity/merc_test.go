@@ -519,6 +519,91 @@ func TestMercTakesAGroupPlace(t *testing.T) {
 	}
 }
 
+// A group of a player and its merc alone gives way to another player's
+// invitation: its client told it is out (0x069A's 8, no line) before the box,
+// and the yes takes both into the inviter's group. A no asks the owner into a
+// group with its merc again, and not while the box is up. Out of a group of
+// others the owner is asked again; out of the group of it and its merc alone it
+// is not. The control: a group of the owner, its merc and another player is a
+// group to an invitation (the inviter told so, the group kept).
+func TestMercGroupGivesWay(t *testing.T) {
+	r := newMercRig(t)
+	ms := r.hire(r.kit(9, 0, 0), MercAssist)
+	r.w.GroupAccept(r.sess, r.sess.PlayerObjectID())
+	own := r.p.GroupID
+	isess, inviter := r.player("Inviter", 0, 0)
+	r.sent()
+	r.w.GroupInvite(isess, r.w.IDSeenBy(isess, r.p))
+	if r.p.GroupID != 0 || r.w.groups[own] != nil {
+		t.Fatalf("the group of the owner and its merc did not give way: group %d", r.p.GroupID)
+	}
+	var ops []protocol.GameOpcode
+	for _, m := range r.sess.Queue().GetPending() {
+		ops = append(ops, opOfMsg(m.Data()))
+		if opOfMsg(m.Data()) == protocol.OpcodeRemoveGroupMember && m.Data()[2] != 8 {
+			t.Errorf("the owner's client was told %d, want 8 (no line)", m.Data()[2])
+		}
+	}
+	if len(ops) != 2 || ops[0] != protocol.OpcodeRemoveGroupMember || ops[1] != protocol.OpcodeGroupInviteReceived {
+		t.Fatalf("the owner's client was sent %04X, want 069A then 0773", ops)
+	}
+	r.run(0, time.Second) // the upkeep: no box of its own while the invitation's is up
+	if got := r.sent(); got[protocol.OpcodeGroupInviteReceived] != 0 {
+		t.Error("the owner was asked into a group with its merc while another box was up")
+	}
+	r.w.GroupDecline(r.sess, r.w.IDSeenBy(r.sess, inviter), 1)
+	r.run(time.Second, 2*time.Second)
+	if got := r.sent(); got[protocol.OpcodeGroupInviteReceived] != 1 {
+		t.Fatalf("after its no the owner was not asked into a group with its merc again: %v", got)
+	}
+	r.w.GroupAccept(r.sess, r.sess.PlayerObjectID())
+	// a second invitation, its yes: the owner and its merc in the inviter's group
+	r.w.GroupInvite(isess, r.w.IDSeenBy(isess, r.p))
+	r.w.GroupAccept(r.sess, r.w.IDSeenBy(r.sess, inviter))
+	g := r.w.groups[inviter.GroupID]
+	if g == nil || r.p.GroupID != g.ID || len(g.Members) != 3 || g.Members[0] != inviter.ServerID || !groupHas(g, ms.npc.ServerID) {
+		t.Fatalf("after the yes: group %+v, the owner's %d", g, r.p.GroupID)
+	}
+	// the control: a group of others is a group to an invitation
+	jsess, _ := r.player("Another", 0, 0)
+	r.w.GroupInvite(jsess, r.w.IDSeenBy(jsess, r.p))
+	if r.p.GroupID != g.ID || len(g.Members) != 3 {
+		t.Fatalf("an invitation took the owner out of a group of others: group %d, %d members", r.p.GroupID, len(g.Members))
+	}
+	// out of a group of others: asked again
+	r.sent()
+	r.w.GroupLeave(r.sess)
+	r.run(2*time.Second, 3*time.Second)
+	if got := r.sent(); got[protocol.OpcodeGroupInviteReceived] != 1 {
+		t.Fatalf("out of a group of others the owner was not asked again: %v", got)
+	}
+	r.w.GroupAccept(r.sess, r.sess.PlayerObjectID())
+	if g := r.w.groups[r.p.GroupID]; g == nil || len(g.Members) != 2 {
+		t.Fatalf("the owner and its merc are not a group again: %+v", g)
+	}
+	// out of the group of it and its merc alone: not asked again
+	r.sent()
+	r.w.GroupLeave(r.sess)
+	r.run(3*time.Second, 4*time.Second)
+	if got := r.sent(); got[protocol.OpcodeGroupInviteReceived] != 0 || r.p.GroupID != 0 {
+		t.Errorf("leaving the group of it and its merc asked again (%v) or kept a group (%d)", got, r.p.GroupID)
+	}
+	// a raid flag's box too: the group of the owner and its merc gives way
+	r.w.AskMercGroup(r.sess)
+	r.w.GroupAccept(r.sess, r.sess.PlayerObjectID())
+	if g := r.w.groups[r.p.GroupID]; g == nil || len(g.Members) != 2 {
+		t.Fatalf("/merc group made no group of the owner and its merc: %+v", g)
+	}
+	lsess, leader := r.player("Leader", 0, 0)
+	r.sent()
+	r.w.mu.Lock()
+	r.w.raidFlagLocked(lsess, leader, r.at(4*time.Second))
+	r.w.mu.Unlock()
+	if got := r.sent(); r.p.GroupID != 0 || got[protocol.OpcodeRemoveGroupMember] != 1 || got[protocol.OpcodeGroupInviteReceived] != 1 {
+		t.Errorf("a raid flag's box: group %d, sent %v", r.p.GroupID, got)
+	}
+}
+
 // A keep restart carries the merc: its shares of hit points and power, its
 // place, its stance and its group place, made again from its kit in the new
 // process; its owner and it alone a group again with no box.
@@ -572,5 +657,33 @@ func TestGroupSpellsReachTheMerc(t *testing.T) {
 	}
 	if why != "" || !found {
 		t.Errorf("a group buff's targets %v (%q): no merc", ids, why)
+	}
+}
+
+// A merc and a summoned pet are out together: the pet keeps the pet's slot
+// (its 0x007E, w.pets), the merc is no pet of its owner's, and both are
+// pinned in its owner's view.
+func TestMercBesideTheClassPet(t *testing.T) {
+	r := newPetRig(t)
+	pet, _ := r.summon(t, fireElemental(), 0)
+	r.sent()
+	kit := MercKit{Class: 9, Race: 0, Level: r.p.Level, Name: "Ralthas", Base: SimBaseStats(9, 0, r.p.Level), Look: MercLook{Robe: -1}}
+	if _, why := r.w.HireMerc(r.sess, kit, MercAssist, r.at(10*time.Second)); why != "" {
+		t.Fatalf("the hire was refused with a pet out: %s", why)
+	}
+	ms := r.w.mercs[r.p.ServerID]
+	if ms == nil || r.w.petOfLocked(r.p) != pet || r.w.pets[r.p.ServerID].npc == ms.npc {
+		t.Fatalf("pet %v, merc %v: not both out, apart", r.w.petOfLocked(r.p) != nil, ms != nil)
+	}
+	for _, m := range r.sent() {
+		if opOfMsg(m) == protocol.OpcodeSetPet {
+			t.Error("the hire told the client a new pet")
+		}
+	}
+	r.w.mu.Lock()
+	cands := r.w.pinPetLocked(r.p, nil)
+	r.w.mu.Unlock()
+	if len(cands) != 2 {
+		t.Errorf("pinned in its owner's view: %v, want the pet and the merc", cands)
 	}
 }

@@ -189,5 +189,11 @@ On a private server on a seeded copy, with the real client, as a NEW character o
     python3 tools/quests/check_quests.py --db copy.db tools/quests/data/homelands.json
     python3 tools/import_quests.py --db copy.db --apply tools/quests/data/homelands.json
 
+**Over a seeding that is there** (the live server's), the server stopped, in this order: `seed_race_homes.py --undo`,
+`--apply` (the new recipe), `import_quests.py --apply tools/quests/data/homelands.json`, `retire_quests.py --apply
+tools/quests/data/homelands.json` (the old welcome and hunt go, with the lines and marks characters had in them),
+`homes_flown.py --apply` (one who had flown under the old two keeps its passage: its home's five are marked finished).
+Never `import_quests.py --undo`: it takes back every import of the game.
+
 An item the importer has made is not made again: a piece's `set` or a drop's `like` changed after an import needs a
 fresh copy of the database (or the record mended by hand). The server reads people and quests at its start.

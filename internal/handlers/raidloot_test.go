@@ -639,7 +639,8 @@ func TestRaidWireBytes(t *testing.T) {
 // the check finds one taken out (the control).
 func TestHelpListsTheRaidsCommands(t *testing.T) {
 	want := []string{"/raidaoe", "/raid)", "/raidinvite", "/raidleave", "/rsay", "/raidkick", "/raidleader", "/raidhelper",
-		"/raidassist", "/raidloot", "/need", "/greed", "/pass", "/assign", "/abandon", "/invite", "/target", "/tar)", "/t raidinvite"}
+		"/raidassist", "/raidloot", "/need", "/greed", "/pass", "/assign", "/abandon", "/invite", "/target", "/tar)", "/t raidinvite",
+		"/tutorial"}
 	missing := func(lines []string) []string {
 		all := strings.Join(lines, "\n")
 		var out []string

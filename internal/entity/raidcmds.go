@@ -118,12 +118,19 @@ func (w *World) RaidInvite(sess *session.Session, name string, targetID uint32) 
 	}
 	var t *Player
 	if name = strings.TrimSpace(name); name != "" {
-		if t = w.inWorldPlayerLocked(name); t == nil {
+		t = w.inWorldPlayerLocked(name)
+	} else {
+		t = w.playerSeenByLocked(sess, targetID)
+	}
+	if t == nil {
+		switch m := w.mercInvitedLocked(sess, name, targetID); {
+		case m != nil:
+			w.refuseLocked(sess, fmt.Sprintf(mercInviteLine, m.Name))
+		case name != "":
 			w.refuseLocked(sess, fmt.Sprintf("No player named %s is in the world.", name))
-			return
+		default:
+			w.refuseLocked(sess, "Target a player to invite to your raid, or name one: /raidinvite <name>.")
 		}
-	} else if t = w.playerSeenByLocked(sess, targetID); t == nil {
-		w.refuseLocked(sess, "Target a player to invite to your raid, or name one: /raidinvite <name>.")
 		return
 	}
 	g := w.groups[p.GroupID]
@@ -189,7 +196,11 @@ func (w *World) InviteByName(sess *session.Session, name string) {
 	}
 	t := w.inWorldPlayerLocked(name)
 	if t == nil {
-		w.refuseLocked(sess, fmt.Sprintf("No player named %s is in the world.", name))
+		if m := w.mercInvitedLocked(sess, name, 0); m != nil {
+			w.refuseLocked(sess, fmt.Sprintf(mercInviteLine, m.Name))
+		} else {
+			w.refuseLocked(sess, fmt.Sprintf("No player named %s is in the world.", name))
+		}
 		return
 	}
 	if t == p {
@@ -620,6 +631,28 @@ func (w *World) raidMercLocked(sess *session.Session, g *Group, name string, tar
 		return nil
 	}
 	return w.mercSeenByLocked(sess, g, targetID)
+}
+
+// mercInviteLine refuses an invitation of a merc, by name or by target: it is no player,
+// and comes into a group or a raid with its owner (mercgroup.go).
+const mercInviteLine = "%s is a mercenary: it comes into a group or a raid with its owner."
+
+// mercInvitedLocked is the merc out that an invitation which found no player names: by
+// name (any case), else the one the sender knows by targetID; nil for none. Must be
+// called with the lock held.
+func (w *World) mercInvitedLocked(sess *session.Session, name string, targetID uint32) *NPC {
+	if name = strings.TrimSpace(name); name != "" {
+		for _, ms := range w.mercs {
+			if ms != nil && ms.npc != nil && strings.EqualFold(strings.TrimSpace(ms.npc.Name), name) {
+				return ms.npc
+			}
+		}
+		return nil
+	}
+	if n, ok := w.entitySeenByLocked(sess, targetID).(*NPC); ok && n.isMerc() {
+		return n
+	}
+	return nil
 }
 
 // mayDismissMercLocked is whether p may take merc ms out of g, which dismisses it

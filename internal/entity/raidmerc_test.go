@@ -233,6 +233,67 @@ func TestARaidInviteReachesAMercOnlyGroup(t *testing.T) {
 	}
 }
 
+// A merc is never invited as a player: /raidinvite by its name (any case) or its target,
+// and /invite <name>, are refused with what it is, no box asked and its owner's group
+// untouched; naming its owner asks (the controls).
+func TestAMercIsInvitedAsNoPlayer(t *testing.T) {
+	r := newMercRig(t)
+	ms := r.hire(r.kit(9, 0, 0), MercAssist)
+	r.w.GroupAccept(r.sess, r.sess.PlayerObjectID()) // the owner and its merc, a group
+	own := r.p.GroupID
+	lsess, leader := r.player("Leader", 0, 0)
+	r.w.mu.Lock()
+	r.w.formGroupLocked(leader).flagged = true
+	r.w.mu.Unlock()
+	vs := GetOrCreateVisibility(lsess)
+	vs.ChannelEntity[3], vs.ChannelObjectID[3] = ms.npc.ServerID, 0x00B00001
+	isess, _ := r.player("Asker", 0, 0)
+	drain := func(s *session.Session) (lines []string, boxes int) {
+		for _, m := range s.Queue().GetPending() {
+			switch opOfMsg(m.Data()) {
+			case protocol.OpcodeClientMessage, protocol.OpcodeColoredChat:
+				lines = append(lines, chatText(m.Data()))
+			case protocol.OpcodeGroupInviteReceived:
+				boxes++
+			}
+		}
+		return lines, boxes
+	}
+	refused := func(lines []string) (n int) {
+		for _, l := range lines {
+			if strings.Contains(l, ms.npc.Name+" is a mercenary") {
+				n++
+			}
+		}
+		return n
+	}
+	r.sent()
+	drain(lsess)
+	drain(isess)
+	r.w.RaidInvite(lsess, strings.ToLower(ms.npc.Name), 0)
+	r.w.RaidInvite(lsess, "", 0x00B00001)
+	r.w.InviteByName(isess, ms.npc.Name)
+	if lines, boxes := drain(lsess); refused(lines) != 2 || boxes != 0 {
+		t.Errorf("the raid's leader: %q, %d boxes", lines, boxes)
+	}
+	if lines, boxes := drain(isess); refused(lines) != 1 || boxes != 0 {
+		t.Errorf("the asker: %q, %d boxes", lines, boxes)
+	}
+	if got := r.sent(); got[protocol.OpcodeGroupInviteReceived] != 0 || got[protocol.OpcodeRemoveGroupMember] != 0 ||
+		r.p.GroupID != own || !groupHas(r.w.groups[own], ms.npc.ServerID) {
+		t.Fatalf("the owner's group was touched: %v, in %d", got, r.p.GroupID)
+	}
+	// the controls: its owner named
+	r.w.InviteByName(isess, "owner")
+	if _, boxes := drain(isess); boxes != 1 {
+		t.Fatalf("the control: /invite owner asked the asker %d boxes", boxes)
+	}
+	r.w.RaidInvite(lsess, "owner", 0)
+	if got := r.sent(); got[protocol.OpcodeGroupInviteReceived] != 1 {
+		t.Fatalf("the control: /raidinvite owner sent the owner %v", got)
+	}
+}
+
 // /raidleave takes the merc out with its owner (0x069A 8 to the owner, the raid two
 // smaller), and the owner is asked into a group with its merc again; a member with no
 // merc leaves alone (the control).

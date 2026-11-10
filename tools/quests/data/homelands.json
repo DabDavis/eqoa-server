@@ -6386,7 +6386,7 @@
       "name": "Greyback's claw",
       "description": "A blunt grey claw, as long as a brownie's arm, from the badger Old Greyback.",
       "notrade": true,
-      "like": "Beast Claw"
+      "like": "Cracked Rat Claw"
     },
     {
       "name": "dewdrop ring",
@@ -6514,7 +6514,7 @@
       "name": "Scarback's claw",
       "description": "A black claw, notched from old fights, from the bear Old Scarback.",
       "notrade": true,
-      "like": "Beast Claw"
+      "like": "Cracked Rat Claw"
     }
   ]
 }

@@ -239,15 +239,29 @@ func TestPetitionsThroughTheGame(t *testing.T) {
 	}
 }
 
-// A character with database.PetitionsListed petitions listed is refused a
-// new one (status 2), as CLIENT refuses itself at 100 rows; one deleted makes
-// room. The control: another character files.
-func TestPetitionsListedCap(t *testing.T) {
+// A character with database.PetitionsKept petitions listed is refused a new
+// one (status 2); one deleted makes room. Its inbox lists
+// database.PetitionsListed of them, fewer than the 100 rows with which CLIENT
+// refuses to file by itself (CheckFull, word 874): the GM Jibrish had 100 open
+// and could file none (2026-11-10). The control: another character files.
+func TestPetitionsKeptCap(t *testing.T) {
 	_, h, db, as, bs := csWorld(t)
-	for i := 0; i < database.PetitionsListed; i++ {
-		if _, err := db.FilePetition(database.Petition{ServerID: 1, CharName: "Ann", Text: "x"}, time.Now()); err != nil {
+	stamp := time.Now().UTC().Format(time.RFC3339)
+	tx, err := db.Begin()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < database.PetitionsKept; i++ {
+		if _, err := tx.Exec(`INSERT INTO petitions (serverid, charname, filed, text, status, updated)
+			VALUES (1, 'Ann', ?, 'x', 'open', ?)`, stamp, stamp); err != nil {
 			t.Fatal(err)
 		}
+	}
+	if err := tx.Commit(); err != nil {
+		t.Fatal(err)
+	}
+	if ids, _ := csInbox(t, h, as); len(ids) != database.PetitionsListed || len(ids) >= 100 {
+		t.Fatalf("the inbox lists %d: CLIENT files none with 100 held", len(ids))
 	}
 	req := func(w *buffer.Writer) {
 		w.Write7BitEncodedInt64(1)
@@ -255,7 +269,7 @@ func TestPetitionsListedCap(t *testing.T) {
 		writeWideString(w, "one more", 1024)
 	}
 	if got := csSend(t, h, as, 0, req); len(got) != 1 || !bytes.Equal(got[0], []byte{0, csTooMany}) {
-		t.Fatalf("the 101st: % X", got)
+		t.Fatalf("the 1001st: % X", got)
 	}
 	if got := csSend(t, h, bs, 0, req); len(got) != 1 || !bytes.Equal(got[0], []byte{0, csOK}) {
 		t.Errorf("the control, Bob: % X", got)

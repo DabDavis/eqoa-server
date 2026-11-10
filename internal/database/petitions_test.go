@@ -155,3 +155,40 @@ func TestPetitionRefusals(t *testing.T) {
 		t.Errorf("a good row: %v", err)
 	}
 }
+
+// The inbox lists PetitionsListed of a character's petitions, fewer than the
+// 100 rows with which CLIENT refuses to file (CheckFull): the most recently
+// changed, oldest first, so a GM's answer to an old one is listed. Filing goes
+// on past them, up to PetitionsKept. The control: another character's are not
+// listed.
+func TestTheInboxListsTheMostRecentlyChanged(t *testing.T) {
+	db := petitionDB(t)
+	at := time.Date(2026, 11, 10, 4, 0, 0, 0, time.UTC)
+	gm := GMEdit{AccountID: 1, Username: "gm", Via: "web"}
+	for i := 0; i < 120; i++ {
+		if _, err := db.FilePetition(Petition{ServerID: 1, CharName: "Ann", Text: fmt.Sprintf("ticket %d", i)}, at.Add(time.Duration(i)*time.Second)); err != nil {
+			t.Fatalf("ticket %d: %v", i, err)
+		}
+	}
+	if _, err := db.FilePetition(Petition{ServerID: 2, CharName: "Bob", Text: "his"}, at); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := db.AnswerPetition(1001, "", "Fixed.", gm, at.Add(time.Hour)); err != nil {
+		t.Fatal(err)
+	}
+	l, err := db.PlayerPetitions(1, at.Add(time.Hour))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(l) != PetitionsListed || PetitionsListed >= 100 {
+		t.Fatalf("%d listed (PetitionsListed %d): CLIENT files none with 100 held", len(l), PetitionsListed)
+	}
+	if l[0].ID != 1001 || l[1].ID != 1023 || l[len(l)-1].ID != 1120 {
+		t.Fatalf("listed %d, %d .. %d: want the answered 1001, then 1023 .. 1120", l[0].ID, l[1].ID, l[len(l)-1].ID)
+	}
+	for _, p := range l {
+		if p.ServerID != 1 {
+			t.Fatalf("another character's %d listed", p.ID)
+		}
+	}
+}

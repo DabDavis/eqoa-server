@@ -362,6 +362,13 @@ func TestCampfixStaleDeclineAndWho(t *testing.T) {
 	if got.Status != "declined" || !strings.HasPrefix(got.Review, handlers.CampfixDeclinedAbuse+" by gm on ") || e.Status != database.WorkDone {
 		t.Fatalf("after the decline: %+v %+v", got, e)
 	}
+	// revert_change of the decision's line puts it back to waiting
+	if code, out := gm.op("revert_change", map[string]any{"id": out["audit"]}); code != 200 {
+		t.Fatalf("revert the decline: %d %v", code, out)
+	}
+	if got, _, _ := f.db.CampfixReportByID(r2.ID); got.Status != "waiting" || got.Review != "" || got.Reviewed != "" {
+		t.Fatalf("after the revert: %+v", got)
+	}
 
 	// who: a tester and a read-only token are refused; the control, a GM's write token
 	r3 := campfixFile(t, f, campfixMarksJSON)

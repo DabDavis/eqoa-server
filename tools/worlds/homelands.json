@@ -1115,7 +1115,206 @@
       "from": "ODUS.ESF",
       "zone": 22,
       "race": 24,
-      "note": "Ratman: the ratmen's coast caves (The Vastly Deep, cell 5,3)"
+      "note": "Ratman: the ratmen's coast caves (The Vastly Deep, cell 5,3)",
+      "home": {
+        "flavor": "Ratmen are wiry, whiskered scavengers of the Vastly Deep's shore in the Homelands, whose young dig their way to the halls of Moradhim.",
+        "start": {
+          "x": 10605.7,
+          "y": 54.1,
+          "z": 6751.0,
+          "toward": [
+            10605.7,
+            6758.0
+          ]
+        },
+        "mainland": {
+          "place": "Moradhim",
+          "world": 0,
+          "x": 15190.8,
+          "y": 99.9,
+          "z": 8767.3,
+          "facing": 4.33
+        },
+        "npcs": [
+          {
+            "name": "Elder Skritch",
+            "like": 131409,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              10605.7,
+              54.6,
+              6758.0
+            ],
+            "toward": [
+              10605.7,
+              6751.0
+            ],
+            "note": "the starter quests' giver, a ratman spiritist, in the shore camp"
+          },
+          {
+            "name": "Grocer Nibbla",
+            "like": 131420,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10632.3,
+              54.0,
+              6735.2
+            ],
+            "toward": [
+              10605.7,
+              6758.0
+            ],
+            "stock": "Grocer Wolin",
+            "note": "the camp's grocer by the shacks, a Moradhim grocer's food"
+          },
+          {
+            "name": "Spiritmaster Vessik",
+            "like": 131401,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              10558.6,
+              54.2,
+              6713.2
+            ],
+            "toward": [
+              10605.7,
+              6758.0
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Ksarr",
+            "like": 131351,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              10575.3,
+              47.8,
+              6799.3
+            ],
+            "toward": [
+              10605.7,
+              6758.0
+            ],
+            "note": "by the water: sends a young ratman who has done the starter quests to Moradhim (the quest Into the Deep Halls)"
+          },
+          {
+            "name": "Deepshore sentinel",
+            "like": 131399,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10617.6,
+              54.0,
+              6642.8
+            ],
+            "facing": 128
+          },
+          {
+            "name": "Deepshore sentinel",
+            "like": 131399,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10535.4,
+              54.1,
+              6673.5
+            ],
+            "facing": 192
+          },
+          {
+            "name": "Deepshore sentinel",
+            "like": 131399,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10736.5,
+              54.1,
+              6819.5
+            ],
+            "facing": 64
+          },
+          {
+            "name": "dune snake",
+            "body": "0x5276C760",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              10775.4,
+              54.1,
+              6787.8
+            ],
+            "note": "the starter hunt's snakes (a green racer snake's body), on the shore east of the camp"
+          },
+          {
+            "name": "dune snake",
+            "body": "0x5276C760",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              10777.5,
+              54.1,
+              6692.6
+            ]
+          },
+          {
+            "name": "dune snake",
+            "body": "0x5276C760",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              10747.0,
+              54.1,
+              6715.2
+            ]
+          },
+          {
+            "name": "dune snake",
+            "body": "0x5276C760",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              10820.0,
+              54.2,
+              6700.0
+            ]
+          },
+          {
+            "name": "dune snake",
+            "body": "0x5276C760",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              10800.0,
+              54.1,
+              6740.0
+            ]
+          },
+          {
+            "name": "dune snake",
+            "body": "0x5276C760",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              10870.0,
+              56.6,
+              6700.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "dune snake"
+        ]
+      }
     },
     {
       "name": "East Toxxulia",

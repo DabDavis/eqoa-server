@@ -295,16 +295,53 @@ class AscendBossLootTest(unittest.TestCase):
                          [(self.copy_of(SHIELD),), (GEM,)])
         self.assertEqual(self.q("SELECT count(*) FROM loottables WHERE tablename = 'shared ascended'")[0][0], 0)
 
-    def test_a_quest_item_it_drops_that_a_quest_turns_into_gear_is_named(self):
+    def gem_quest(self, step=1, gear_step=1):
+        """Quest 501: the gem handed in at step `step` and the breastplate given at step `gear_step`."""
         db = sqlite3.connect(self.path)
         db.execute("INSERT INTO quests (questid, name, enabled, giver) VALUES (501, 'The gem', 1, 'Smith')")
-        db.execute("INSERT INTO queststeps (questid, step, kind, target, items, rewarditems) VALUES (501, 1, 'give', 'Smith', ?, ?)",
-                   (str(GEM), str(PLATE)))
+        for n in sorted({step, gear_step}):
+            db.execute("INSERT INTO queststeps (questid, step, kind, target, items, rewarditems) VALUES (501, ?, 'give', 'Smith', ?, ?)",
+                       (n, str(GEM) if n == step else "", str(PLATE) if n == gear_step else ""))
         db.commit()
         db.close()
+
+    def test_a_quest_item_it_drops_that_a_quest_turns_into_gear_is_made_ascended(self):
+        # petition 1446's Ring of Veeshan is no gear: the armourers' quest turns it into gear
+        self.gem_quest()
+        code, out = self.run_tool("--boss", "Big Boss", "--apply")
+        self.assertEqual(code, 0, out)
+        gem, plate = self.copy_of(GEM), self.copy_of(PLATE)
+        self.assertTrue(gem and plate, out)
+        self.assertIn("gleaming gem (a quest item: quest 501 gives gear for it): its Ascended record", out)
+        self.assertIn('quest 501 "The gem" step 1 (give Smith): gleaming gem: handed in Ascended, it gives Ascended '
+                      'Breastplate of the Test', out)
+        self.assertEqual(self.q("SELECT itemname, maxstack, equipslot FROM itempattern WHERE patternid = ?", (gem,))[0],
+                         ("Ascended gleaming gem", 20, -1))
+        self.assertEqual(self.q("SELECT patternid FROM loottables WHERE tablename = 'boss big boss' ORDER BY id")[3], (gem,))
+        self.assertEqual(self.q("SELECT patternid FROM loottables WHERE tablename = 'shared ascended' ORDER BY id")[1], (gem,))
+        self.assertEqual(self.q("SELECT patternid FROM loottables WHERE tablename IN ('shared', 'mods') AND patternid = ?", (GEM,)),
+                         [(GEM,), (GEM,)], "the orc's and every creature's tables keep the gem")
+
+    def test_a_quest_item_a_recipe_takes_stays(self):
+        self.gem_quest()
+        db = sqlite3.connect(self.path)
+        db.execute("CREATE TABLE craftrecipes (id INTEGER PRIMARY KEY, skill INTEGER, comp INTEGER, level INTEGER, rarity INTEGER, "
+                   "name TEXT, product INTEGER, yield INTEGER, ingredients TEXT, difficulty INTEGER, xp INTEGER, discover INTEGER)")
+        db.execute("INSERT INTO craftrecipes VALUES (1, 0, 0, 1, 0, 'a ring', 999, 1, ?, 1, 1, 1)", (f"{GEM}*2",))
+        db.commit()
+        db.close()
+        code, out = self.run_tool("--boss", "Big Boss", "--apply")
+        self.assertEqual(code, 0, out)
+        self.assertIsNone(self.copy_of(GEM))
+        self.assertIn('Not changed: gleaming gem (Big Boss), a quest item a recipe takes too, drops as it is: quest 501 "The gem" '
+                      'step 1 gives regular gear for it', out)
+
+    def test_a_quest_item_whose_gear_comes_later_stays(self):
+        self.gem_quest(step=1, gear_step=2)
         code, out = self.run_tool("--boss", "Big Boss")
-        self.assertIn('Not changed: gleaming gem (Big Boss), no gear, drops as it is: quest 501 "The gem" step 1 turns it into '
-                      'Breastplate of the Test, given regular', out)
+        self.assertIn('Not changed: gleaming gem (Big Boss), a quest item, drops as it is: quest 501 "The gem" step 1 takes it '
+                      'and the quest gives gear at step 2, which an Ascended hand-in would not reach', out)
+        self.assertNotIn("Ascended gleaming gem", out)
 
     def test_items_another_creature_shares_stay(self):
         db = sqlite3.connect(self.path)

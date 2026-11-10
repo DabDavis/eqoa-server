@@ -12,8 +12,11 @@ never by id (the two shards' ids differ):
     rows of its loot tables (npcloot -> loottables), its category pool rows of its own (lootpool, npc_name its name)
     and its spawns' own items (npcitem). Gear is what database/ascended.go makes an Ascended record of: a record worn
     in the gear's slots 1-19 (armour, jewellery, weapons, a bow, a held item, gloves), not a stack, not a thrown
-    potion (attack type 10), not an Heirloom, not a copy (an import's or an Ascended one). A spell scroll (wear slot
-    -1 with the scroll's icon) and everything else (a quest item, a gem, a component) stays as it is.
+    potion (attack type 10), not an Heirloom, not a copy (an import's or an Ascended one). A quest item it drops
+    that a quest's show or give step turns into gear is made Ascended too (the petition's Ring of Veeshan, no gear,
+    which the Plane of Sky's armourers take for their breastplates), unless a recipe takes it; one a quest takes
+    for gear given only at a later step is left and said. A spell scroll (wear slot -1 with the scroll's icon) and
+    everything else (a gem, a component) stays as it is.
   - An Ascended record is made where the gear has none, in the server's own SQL (database/ascended.go;
     TestAscendBossLootToolKeepsTheRule holds this file's constants to it): "Ascended <name>"; each stat, AC, resist,
     hit point and power maximum and tick and a weapon's damage above 0 a tenth more (times 110 / 100 in whole
@@ -248,6 +251,19 @@ class World:
         if has_table(db, "itemimported"):
             self.imported = {r[0] for r in db.execute("SELECT patternid FROM itemimported")}
         self.copy_of = {b: c for c, b in self.ascended.items()}
+        # the show and give steps that take an item and give gear for it: a quest item a tuned boss drops that one
+        # takes is made Ascended too (petition 1446's Ring of Veeshan, no gear: the Plane of Sky's armourers take it)
+        self.gear_steps = {}
+        if has_table(db, "queststeps"):
+            for st in dict_rows(db, "SELECT * FROM queststeps WHERE kind IN ('give', 'show') ORDER BY questid, step"):
+                if any(self.kind(pid) == "gear" for pid, _ in step_rewards(st)):
+                    for pid, _ in item_counts(st["items"]):
+                        self.gear_steps.setdefault(pid, []).append((st["questid"], st["step"]))
+        # what the tradeskills' recipes take or make (craftrecipes, by id): a quest item among them stays as it is
+        self.crafted = set()
+        if has_table(db, "craftrecipes"):
+            for ing, prod in db.execute("SELECT ingredients, product FROM craftrecipes"):
+                self.crafted |= {pid for pid, _ in item_counts(ing)} | {prod}
 
     def rec(self, pid):
         if pid not in self.recs:
@@ -266,6 +282,19 @@ class World:
         if is_scroll(r):
             return "spell"
         return "gear" if is_gear(r) else "other"
+
+    def ascends(self, pid):
+        """Whether a tuned boss's drop of record pid is made Ascended: gear, or a quest item a show or give step turns
+        into gear that no recipe takes."""
+        k = self.kind(pid)
+        return k == "gear" or (k == "other" and pid in self.gear_steps and pid not in self.crafted)
+
+    def what(self, pid):
+        """How the report names what record pid is."""
+        if self.kind(pid) == "gear":
+            return SLOT_NAMES.get(self.rec(pid)["equipslot"], "?")
+        steps = self.gear_steps.get(pid, [])
+        return f"a quest item: quest {', '.join(str(q) for q, _ in steps[:4])}{' ...' if len(steps) > 4 else ''} gives gear for it"
 
     def would_be(self, pid):
         """The Ascended record base pid makes, as a row (the server's SQL, nothing written)."""
@@ -380,8 +409,8 @@ def build_plan(db, names):
         for bind in by_boss.get(key, []):
             t = bind["tablename"]
             rows = dict_rows(db, "SELECT * FROM loottables WHERE tablename = ? ORDER BY id", (t,))
-            gear = [r for r in rows if w.kind(r["patternid"]) == "gear"]
-            b["other"] |= {r["patternid"] for r in rows if w.kind(r["patternid"]) == "other"}
+            gear = [r for r in rows if w.ascends(r["patternid"])]
+            b["other"] |= {r["patternid"] for r in rows if w.kind(r["patternid"]) == "other" and not w.ascends(r["patternid"])}
             done = [r["patternid"] for r in rows if w.kind(r["patternid"]) == "ascended"]
             for pid in done:
                 b["ascended"].add(w.ascended[pid])
@@ -396,7 +425,7 @@ def build_plan(db, names):
                 b["lines"].append(f"{head}, rolled by no creature not made Ascended ({', '.join(binders)}): changed in place")
                 for r in gear:
                     want(r["patternid"], key)
-                    b["lines"].append(f"  {r['patternid']} {w.name(r['patternid'])}: its Ascended record")
+                    b["lines"].append(f"  {r['patternid']} {w.name(r['patternid'])} ({w.what(r['patternid'])}): its Ascended record")
                     if not any(x["tbl"] == "loottables" and x["id"] == r["id"] for x in p.inplace):
                         p.inplace.append({"tbl": "loottables", "id": r["id"], "from": r["patternid"], "boss": key})
                 continue
@@ -406,7 +435,7 @@ def build_plan(db, names):
             for r in gear:
                 want(r["patternid"], key)
             if c not in p.tables:
-                desired = [(target(r["patternid"]) if w.kind(r["patternid"]) == "gear" else r["patternid"],
+                desired = [(target(r["patternid"]) if w.ascends(r["patternid"]) else r["patternid"],
                             r["weight"], r["minlevel"], r["maxlevel"]) for r in rows]
                 have = dict_rows(db, "SELECT * FROM loottables WHERE tablename = ? ORDER BY id", (c,))
                 mine = made_tables.get(c, set())
@@ -429,7 +458,7 @@ def build_plan(db, names):
         # its category pool rows of its own, and its spawns' own items
         if has_table(db, "lootpool"):
             own = dict_rows(db, "SELECT * FROM lootpool WHERE npc_name = ? ORDER BY id", (key,))
-            g = [r for r in own if w.kind(r["patternid"]) == "gear"]
+            g = [r for r in own if w.ascends(r["patternid"])]
             for r in g:
                 want(r["patternid"], key)
                 p.inplace.append({"tbl": "lootpool", "id": r["id"], "from": r["patternid"], "boss": key})
@@ -440,7 +469,7 @@ def build_plan(db, names):
             if not has_table(db, "npcitem"):
                 break
             items = dict_rows(db, "SELECT * FROM npcitem WHERE npcid = ? ORDER BY itemid", (nid,))
-            g = [r for r in items if w.kind(r["patternid"]) == "gear"]
+            g = [r for r in items if w.ascends(r["patternid"])]
             if not items:
                 continue
             sharing = sorted(item_keys.get(nid, set()) - tuned)
@@ -502,11 +531,16 @@ def build_plan(db, names):
         for st in dict_rows(db, "SELECT * FROM queststeps WHERE kind IN ('give', 'show') ORDER BY questid, step"):
             # a quest item (no gear) a boss drops that a quest turns into gear: not made Ascended (gear alone is)
             q_items = [pid for pid, _ in item_counts(st["items"]) if pid in others]
-            g = [w.name(pid) for pid, _ in step_rewards(st) if w.kind(pid) == "gear"]
-            if q_items and g:
-                p.notes.append(f'{", ".join(f"{w.name(pid)} ({others[pid]})" for pid in q_items)}, no gear, drops as it is: '
-                               f'quest {st["questid"]} "{names.get(st["questid"], "")}" step {st["step"]} turns it into '
-                               f'{", ".join(g)}, given regular')
+            later = [x for x in dict_rows(db, "SELECT * FROM queststeps WHERE questid = ? AND step > ?", (st["questid"], st["step"]))
+                     if any(w.kind(pid) == "gear" for pid, _ in step_rewards(x))] if q_items else []
+            for pid in q_items:
+                where = f'quest {st["questid"]} "{names.get(st["questid"], "")}" step {st["step"]}'
+                if pid in w.gear_steps and pid in w.crafted:
+                    p.notes.append(f"{w.name(pid)} ({others[pid]}), a quest item a recipe takes too, drops as it is: "
+                                   f"{where} gives regular gear for it")
+                elif later:
+                    p.notes.append(f"{w.name(pid)} ({others[pid]}), a quest item, drops as it is: {where} takes it and the "
+                                   f"quest gives gear at step {later[0]['step']}, which an Ascended hand-in would not reach")
         for st in dict_rows(db, "SELECT * FROM queststeps WHERE kind IN ('give', 'show', 'loot') ORDER BY questid, step"):
             items = item_counts(st["items"])
             if st["kind"] == "loot":  # a loot step's item is its first (QuestStep.LootItem)
@@ -536,6 +570,8 @@ def build_plan(db, names):
         if r["copy"] is not None:
             continue
         n = ascended_name(w.name(pid))
+        if pid in w.crafted:
+            p.warnings.append(f"{pid} {w.name(pid)} is in a recipe: its Ascended record is no ingredient or product of it")
         if len(n) > MAX_NAME:
             msg = f"{pid} {w.name(pid)}: {n!r} is {len(n)} characters, the client shows {MAX_NAME} (rename the record)"
             if r["for"]:
@@ -587,8 +623,7 @@ def report(p):
     for pid, r in new:
         rec = w.would_be(pid)
         why = "a quest's reward" if r["reward"] else ", ".join(sorted(r["for"]))
-        out.append(f"  {rec['itemname']} (of {pid}, {SLOT_NAMES.get(w.rec(pid)['equipslot'], '?')}; {why}): "
-                   f"{figures_line(w, pid, rec)}")
+        out.append(f"  {rec['itemname']} (of {pid}, {w.what(pid)}; {why}): {figures_line(w, pid, rec)}")
     for pid, r in old:
         out.append(f"  {r['copy']} {w.name(r['copy'])} (of {pid}): made already")
     out.append(f"Quests that take this gear: {len(p.quests) or 'none'}")

@@ -1076,7 +1076,9 @@ half up (4 stays 4, 5 is 6, 15 is 17; a penalty as it is: a tenth more never mak
 of one damped after it); its durability (`maxhp`), price (`itemcost`), look, icon, slot, level, classes, races, NO
 TRADE and Lore its base's; never NO RENT (a base of rent 0, as Lord Nagafen's twins were made, gives rent 1, never in
 `norentvanish`). Gear (`IsAscendableGear`) is what is worn in wear slots 1-19, not a stack, not a thrown potion, not an
-Heirloom, not a copy; a spell scroll never is. A name over 63 characters (CLIENT's `m_name[64]` shows a longer one
+Heirloom, not a copy; so is a tuned boss's quest item that a quest's show or give step turns into gear (the petition's
+own Ring of Veeshan is no gear: the Plane of Sky's armourers take it), unless a recipe takes it (the tool's rule); a
+spell scroll never is. A name over 63 characters (CLIENT's `m_name[64]` shows a longer one
 empty) is refused. **A record follows its base**: `SyncAscendedCopies` makes each its base again at every start (fix the
 base, never the record); `itemascended` is read at the start and every minute, so a new record needs no restart.
 `WearablePatterns` leaves the records out (the heirlooms' figures and the balance kits stay the regular items': a
@@ -1096,7 +1098,8 @@ sessions: ascend <boss>"), on EACH shard's database (the shards' ids differ: the
 `TUNED` list, the bosses so far (Lord Nagafen, Noroxus, Bertoxxulous, Uzrathixius, Poxathixius, the Quintessence of
 Veeshan, Yhafiran): add each boss tuned later. It points the gear rows of the boss's own loot tables, its own
 `lootpool` rows and its spawns' `npcitem` rows at Ascended records (spells and anything not gear stay), binds the boss
-to a copy "<table> ascended" of a table a creature not made Ascended also rolls (one copy a table, kept in step with
+to a copy "<table> ascended" of a table a creature not made Ascended also rolls, makes its quest items for gear
+Ascended too (one copy a table, kept in step with
 it by later runs: fix the table, never the copy), lists the quests that take the gear (making their reward gear's
 records so they can be read) and reports what it leaves: every creature's tables (`*`) and the loot categories'
 shared pools, which a tuned boss still rolls at its profile's rates. Each row a gm_audit line and a row of

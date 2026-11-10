@@ -228,8 +228,9 @@ beside it):
   `npctemplate` row to take it away (revertible). The seeds' numbers are the server's own: try one on a single
   creature (`#spawn` a copy) before giving it to a camp.
 - **A raid boss you tune drops Ascended gear** (petition 1446): its gear as "Ascended <name>" records, every stat a
-  tenth more, its spells and other drops as they were, and a quest that takes its gear takes the Ascended one too and
-  then rewards Ascended. A session makes it so with `tools/ascend_boss_loot.py` on both shards (by the boss's name):
+  tenth more, and its quest items a quest turns into gear (the Ring of Veeshan) Ascended too; its spells and other
+  drops as they were. A quest that takes its gear or such an item takes the Ascended one too and then rewards
+  Ascended. A session makes it so with `tools/ascend_boss_loot.py` on both shards (by the boss's name):
   post a work board entry "For dab's sessions: ascend <boss name>" when you tune one. A table it shares with creatures
   not tuned is not changed: the boss gets its own copy, "<table> ascended" (edit the table, not the copy). The bosses so
   far: Lord Nagafen, Noroxus, Bertoxxulous, Uzrathixius, Poxathixius, the Quintessence of Veeshan, Yhafiran.

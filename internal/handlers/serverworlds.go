@@ -413,13 +413,15 @@ func (h *ServerWorldsHandler) HandleOffer(sess *session.Session, msg *protocol.M
 		return nil
 	}
 	sess.TakeServerWorlds()
-	if !sess.InGame() {
+	again := sess.InGame()
+	if !again {
 		h.chars.sendServerWorldsCharsOfAccount(sess)
 	}
 	list := ServerWorldList()
 	body := encodeServerWorlds(list)
 	sess.Queue().AddWithSequence(serverWorldsMessage(body))
-	log.Printf("ServerWorlds: %s told %d worlds of the server's own, %d bytes", sess.RemoteAddr(), len(list), len(body))
+	log.Printf("ServerWorlds: %s told %d worlds of the server's own, %d bytes%s", sess.RemoteAddr(), len(list), len(body),
+		map[bool]string{true: " (asked again in the world: its character went in before they were all in)"}[again])
 	return nil
 }
 

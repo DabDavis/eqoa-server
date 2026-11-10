@@ -174,6 +174,8 @@ type World struct {
 
 	// The factions' starting standings and what a kill does (faction.go)
 	factions factionTable
+	// heroes is the Testing Heroes: the switch and the loot's raid bosses (heroes.go)
+	heroes heroesState
 
 	// Who hears every credited kill (questhooks.go: the quests)
 	onKill []KillFunc

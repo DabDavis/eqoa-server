@@ -76,6 +76,10 @@ const (
 	// scale on the state channel, every client's to draw ("Increase Size by 50%": Mr. Moogie's Duelist's
 	// Favor, metalmoogie.go)
 	EffectSize
+	// EffectTrainingPoints gives Amount unspent training points ("Increase Training Points by 5"):
+	// an item's use alone gives them (potion.go: the Tome of Heroic Training, petition 1471); a
+	// spell's cast with the words lands none
+	EffectTrainingPoints
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -265,6 +269,10 @@ type SpellDef struct {
 	SheetPetID string
 	// FormModel is an illusion's body by its sprite, 0 for one by name
 	FormModel uint32
+	// FormSize is the size an illusion's body is shown at when its line says
+	// ("Body Size 4.05": the Elixir of the Giant Gnome, petition 1471), 0 for
+	// the body's own rule (a race's players' size, a creature's: illusion.go)
+	FormSize float32
 	// Items are what it makes (potion.go's summoning of items)
 	Items []SpellItem
 	// Location is a teleport's place as the workbook writes it
@@ -709,6 +717,14 @@ func (d *SpellDef) parsePart(part, verb string) string {
 		d.Effects = append(d.Effects, SpellEffect{Kind: EffectSize, Amount: n, AmountMax: n})
 		return verb
 	}
+	if v, ok := bodySizePart(part); ok { // an illusion's body at a size of its own ("Body Size 4.05")
+		d.FormSize = v
+		return verb
+	}
+	if n, ok := trainingPart(part); ok { // training points, an item's use alone to give (potion.go)
+		d.Effects = append(d.Effects, SpellEffect{Kind: EffectTrainingPoints, Amount: n, AmountMax: n})
+		return verb
+	}
 	// the target's hate for the caster gone (Vampiric Gaze, vampire.go)
 	if part == "set aggro to 0" || part == "aggro to 0" {
 		d.Effects = append(d.Effects, SpellEffect{Kind: EffectForget})
@@ -861,4 +877,56 @@ func sizePart(part string) (int, bool) {
 		n = -min(n, 90)
 	}
 	return n, true
+}
+
+// reBodySize is a clause that gives an illusion's body a size of its own: "body size 4.05", "form
+// size 2" (lower case, as the line is read).
+var reBodySize = regexp.MustCompile(`^(?:body|form)\s+size\s+(\d+(?:\.\d+)?)$`)
+
+// FormSizeMost and FormSizeLeast bound the size a line gives an illusion's body.
+const (
+	FormSizeMost  float32 = 10
+	FormSizeLeast float32 = 0.1
+)
+
+// bodySizePart reads a body size clause: the scale its illusion's body is shown at (1 a body as
+// CHAR.ESF authors it), within FormSizeLeast and FormSizeMost.
+func bodySizePart(part string) (float32, bool) {
+	m := reBodySize.FindStringSubmatch(part)
+	if m == nil {
+		return 0, false
+	}
+	v, err := strconv.ParseFloat(m[1], 32)
+	if err != nil {
+		return 0, false
+	}
+	return min(max(float32(v), FormSizeLeast), FormSizeMost), true
+}
+
+// reTraining is a clause that gives training points: "increase training points by 5", "increase
+// unspent training points by 5" (lower case, as the line is read).
+var reTraining = regexp.MustCompile(`^(?:increase|raise)\s+(?:unspent\s+)?training\s+points\s+by\s+(\d+)$`)
+
+// TrainingGiftMost is the most training points one use of an item gives.
+const TrainingGiftMost = 100
+
+// trainingPart reads a training points clause: how many, at most TrainingGiftMost.
+func trainingPart(part string) (int, bool) {
+	m := reTraining.FindStringSubmatch(part)
+	if m == nil {
+		return 0, false
+	}
+	n := min(atoi(m[1]), TrainingGiftMost)
+	return n, n > 0
+}
+
+// TrainingPoints is the training points the line gives (EffectTrainingPoints), 0 none.
+func (d *SpellDef) TrainingPoints() int {
+	n := 0
+	for _, e := range d.Effects {
+		if e.Kind == EffectTrainingPoints {
+			n += e.Amount
+		}
+	}
+	return n
 }

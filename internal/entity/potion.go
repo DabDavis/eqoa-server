@@ -68,7 +68,16 @@ import (
 // CSprite's DictID as npcs.modelid holds it: the workbook's Alter Appearance
 // sprite, the other way round). A drink shows its drinker in it as a spell's
 // illusion does (a race's body of the drinker's own sex), a thrown potion the
-// creature it hits, for what lasts of it (NPC.Body).
+// creature it hits, for what lasts of it (NPC.Body). Its line may give the body
+// a size of its own ("Body Size 4.05": the Elixir of the Giant Gnome, petition
+// 1471, a gnome as tall as a Hill Giant's player), in place of the body's own
+// rule (a race's players' size).
+//
+// A drink may give training points ("Self, Increase Training Points by 5": the
+// Tome of Heroic Training, petition 1471): unspent ones, told as a level's are
+// (0x0036), kept apart from the levels' own (Player.BonusTP, training.go), and
+// refused, nothing used, where the drinker's stats could not take them
+// (TrainingRoom: the cap on unspent points).
 //
 // What ends one early is its row's: "attack" (jib: a quickening "break[s] on
 // any aggressive action done by the character": its auto-attack, a harmful
@@ -448,6 +457,12 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 	if cost > 0 && p.HP <= cost {
 		return PotionTooWeak, nil, nil
 	}
+	// training points its drinker's stats could not take are not given, and
+	// nothing is drunk (training.go)
+	gift := pe.Def.TrainingPoints()
+	if refusal := trainingGiftRefusal(p, gift, pe.ItemName); refusal != "" {
+		return refusal, nil, nil
+	}
 	// a potion drunk shows its drinker (the user, 2026-11-02: "potions should
 	// still break it"), before its own effects land: an invisibility potion's
 	// stays (invis.go)
@@ -471,6 +486,12 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 	}
 	cs := &castState{spell: drunk, caster: p.ServerID, targets: []EntityID{p.ServerID}}
 	w.landOnPlayerLocked(cs, p, sess, p, now)
+	if gift > 0 {
+		p.giveBonusTraining(gift) // training.go
+		SendTrainingPoints(sess, p.UnusedTP)
+		log.Printf("Potion: %q gives %s %d training points (%d unspent, %d in all, %d of them past its levels')",
+			pe.ItemName, p.Name, gift, p.UnusedTP, p.TotalTP, p.BonusTP)
+	}
 	w.potionUsedLocked(p, &pe, now)
 	log.Printf("Potion: %s drinks %q (%d health)", p.Name, pe.ItemName, cost)
 	if travel != nil {

@@ -92,7 +92,7 @@ type WornShield struct {
 // record shares (the named Mithril Breastplate, 2251, and the crafted
 // "mithril breastplate", 703150, a smith's, of no proc).
 var wornShields = map[string]WornShield{
-	"breastplate of the anointed": {Heal: 15, HealPct: 10, HealMax: 75, Scale: StatCha, Hate: true},
+	"breastplate of the anointed": anointed,
 	"splendor":                    {Damage: 30, Heal: 15},
 	"crown of the jaguar":         {Damage: 30, Heal: 15},
 	"nightshade gloves":           {Damage: 30, Heal: 15},
@@ -123,10 +123,39 @@ var wornShields = map[string]WornShield{
 	// to the next deploy: the user, "give it a healing effect per hit like the
 	// breastplate of the anointed", then "lets turn off the healing effect on
 	// hit from heirloom")
+
+	// the Testing Heroes Vendor's (petition 1471, the GM Jibrish: "a nerfed version of
+	// breastplate of the annointed regular. Heal proc does 30% less, call it weakened
+	// BPOA"): a record of its own, a copy of the breastplate's by tools/seed_testing_heroes.py
+	"weakened breastplate of the anointed": anointed.weakened(),
 }
 
 var wornShieldsByPattern = map[int]WornShield{
 	2251: {Power: 15}, // Mithril Breastplate
+}
+
+// anointed is the Breastplate of the Anointed's: 15 and a tenth of the wearer's CHA
+// back at each hit, 75 at most, the heal's figure hate (the file's doc).
+var anointed = WornShield{Heal: 15, HealPct: 10, HealMax: 75, Scale: StatCha, Hate: true}
+
+// WeakenedPercent is what a weakened record's hit effect is of its base's: 30% less
+// (petition 1471).
+const WeakenedPercent = 70
+
+// weakened is the hit effect as a weakened record's worn item has it: its damage,
+// heal and power figures at WeakenedPercent, in whole numbers, half up, as a copy's
+// are scaled (ascended.go, imported.go): the Anointed's 15 + 10% of CHA to 75 is 11
+// + 7% to 53.
+func (s WornShield) weakened() WornShield {
+	f := func(v int) int {
+		if v <= 0 {
+			return v
+		}
+		return (v*WeakenedPercent + 50) / 100
+	}
+	s.Damage, s.DamageTo, s.Heal, s.Power = f(s.Damage), f(s.DamageTo), f(s.Heal), f(s.Power)
+	s.DamageMax, s.HealMax, s.HealPct = f(s.DamageMax), f(s.HealMax), f(s.HealPct)
+	return s
 }
 
 // seraphicPlanar is the Plane of Sky's shadow knight breastplate's (its

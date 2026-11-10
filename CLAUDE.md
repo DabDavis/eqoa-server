@@ -2015,6 +2015,65 @@ missing), told as a heal from it, the next 6 s later at the soonest; at or above
 at `/familiar dismiss` (`#familiar`, `/t familiar dismiss`; `/familiar` alone says what is out) and at a logout (not kept:
 the item calls it again); a keep restart carries it. `TestFamiliar*`, `TestHealbot*`.
 
+### The Testing Heroes: a faction earned by kills, and its vendor (`entity/heroes.go`, `handlers/heroes.go`, `database/heroes.go`, `world.testing_heroes`, `tools/seed_testing_heroes.py`)
+
+Petition 1471 (the GM Jibrish, 2026-11-10): "For all mobs that give the player XP, add a new faction "Testing Heroes". This
+starts at max negative for all players. Each kill that gives XP also grants +1 to this faction, and +5 for raid bosses. Add a
+vendor in freeport near the well and dabrish that allows you to buy items from him with that faction. The items should cost
+25, 100, 250, 500 and 1000 faction and reduce their faction by that amount. If it would take the player below max negative,
+they do not have enough to buy the item." **`world.testing_heroes`** (off unless set; the Heirloom Test Server sets it) turns
+all of it on; off, no kill is credited, the faction window leaves the faction out (`PlayerFactions`) and an NPC of the
+vendor's name has nothing to say. On without the faction's row (the binary in before the tool) nothing is credited and the
+vendor says his ledger is closed, said once in the log: a faction the table lacks would read as standing 0, 2,000 to spend.
+
+- **The faction** is a row of `factions` ("Testing Heroes" at -2000, `FactionMin`), so a standing is kept in `charfactions`,
+  shown in the faction window (last: the window sorts by standing), set by `#faction Testing Heroes <n>` and edited in the
+  panel as any faction's. **The credit** is in `awardKillXPLocked` (`heroesCreditLocked`): each sharer the kill gives
+  experience to gains 1, once a kill (the killer, its group's members near, a raid group's each); a creature too low to be
+  worth experience to a member gives it none, and a kill that gives no experience (a guards' kill, a GM's `#kill`, a duel
+  with Metal Moogie) credits no one. **A raid boss is the raid loot's** (`RaidBossHPPct`, shared with
+  `handlers/raidloot.go`): a class template of 1,000% hit points or more, or a name the loot's tables make a boss
+  (`lootcreature` profile `boss`, an `npcloot` table "boss ..."), read whole at the start and every minute
+  (`database.RaidBossNames`, `World.LoadRaidBossNames`: the credit is given under the World's lock, which asks the database
+  nothing); its kill is worth 5. Each change is told as a faction's is ("-1999 faction with Testing Heroes (+1)"), unless the
+  client's Faction Messages are off; the standing holds at 2000.
+- **The vendor** is any NPC named `Testing Heroes Vendor` (asked before quests and town dialog, as Dabrish). His shop is
+  talk boxes, so a PS2 uses it as vanilla does, and no client message: a greeting (0x0046) saying the standing and what it
+  leaves to spend (the standing above -2000), then a question (0x0034, **box mark 0x64000000**) listing `heroes_stock`
+  cheapest first, "<item>: <cost>" (CLIENT shows three a page with its own More; past six wares the server pages five with
+  "More..."). A pick says what the item is (the row's `says`, else the record's description) and asks; Yes reads the row
+  again (a price changed since: "ask me again"), refuses a standing that would go below the floor ("costs 25 faction and you
+  have 24 to spend: 1 more to earn"), a Lore item held already and a full pack, then takes the cost (`HeroesSpend`), gives
+  the item as a merchant's sale does (`GiveItemNow`, with its charges), keeps the standing at once (`charfactions`) and
+  logs the purchase (`heroes_purchases`: who, what, the cost, the standing before and after); a give that fails gives the
+  cost back. A box is answered within 30 of him. **A box draws no percent sign** (CLIENT shows "(?)"): his words say
+  "percent". Opcodes 0x7E56-0x7E57 were reserved for this and are unused.
+- **The five** (`tools/seed_testing_heroes.py`): **Elixir of the Giant Gnome** (965001, 25): five charges, `itemeffect` "Self,
+  Body Size 4, 30min" with the gnome's body, the drinker's own sex's: `Body Size <n>` (`SpellDef.FormSize`, 0.1 to 10) is an
+  illusion's own size in place of the body's rule, and a gnome at 4.0 stands level with a Hill Giant player's body at 1.0
+  (measured side by side in vanilla); a death ends it as it ends every effect. **Tome of Heroic Training** (965002, 100): one
+  charge, "Self, Increase Training Points by 5" (`EffectTrainingPoints`, an item's use alone): five unspent points, told by
+  0x0036, kept at once with **`charbonustp`** (how many of `characters.totalTP` no level gave: `TopUpTrainingBonus` makes the
+  levels up beside them, or the next level would give five fewer). **The cap on unspent points**: CLIENT has none (m_p40 is
+  a whole int) and neither had the server, so the tome's is what the stats can still take (`Player.TrainingRoom`: each base
+  to its cap); past it the use is refused in red and the tome kept. **Weakened Breastplate of the Anointed** (965003, 250):
+  a copy of record 1076; its heal is read by its name at 70% (`WornShield.weakened`: 11 + 7% of CHA to 53, where the
+  Breastplate's is 15 + 10% to 75). **Breastplate of the Anointed** (1076, 500). **Ascended Breastplate of the Anointed**
+  (1000): the Ascended records' own rule (stats and heal a tenth more), the record the server has or one the tool makes.
+  All three are Lore, each a record of its own.
+- **The tool** writes the faction, the three new records, the Ascended one, the two use lines, the stock and the vendor
+  (Merchant Kari's look, Dabrish's facing, world 0 (25299.5, 54.1, 15755.5): 3 south-east of the well's roof, 7.7 from
+  Dabrish; the next of five spots where an NPC stands within 3.5): report by default, `--apply` one transaction with
+  gm_audit and `testing_heroes_log`, `--undo` all or nothing (refused while a row was changed since, a character holds a
+  record it made, or anything was sold). Run it in the before.sh of the keep restart that brings the code. A GM's own row of
+  `heroes_stock` (patternid, cost, says) sells anything else for the standing, read at every talk.
+
+The rig (`~/.cache/heroes1110/rig`, 2026-11-10, vanilla on a copy of Heirloom): a kill worth experience gave 1, a loot-table
+boss 5, a grey kill nothing; each of the five was bought (the last to exactly -2000) and refused when short; the elixir made
+a human a gnome at size 4.00 with 4 charges left and 27m28s showing a login later, gone at a death; the tome gave 462 to 467
+unspent and was refused at a made-up 9,000; hit by the same creature the three breastplates healed 16, 23 and 26; standing,
+charges and points came through a logout, a stop and a keep restart.
+
 ### Teleport orbs: a step onto a pad sends the player to its pair (`entity/orbs.go`, table `orbs`, `tools/seed_orbs.py`)
 
 The user, 2026-11-09: "the erudite starts that are in towers the orb wont teleport them yet to the main highbourne".

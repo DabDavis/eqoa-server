@@ -109,6 +109,9 @@ type Player struct {
 	XPInLevel int // XP earned within current level (sent to client)
 	UnusedTP  int
 	TotalTP   int
+	// BonusTP is how many of TotalTP no level gave: an item's gift (potion.go,
+	// table charbonustp), left out of the levels' top-up (training.go)
+	BonusTP int
 
 	// Rez is what a resurrection may still give back of the latest death's
 	// debt (resurrect.go)

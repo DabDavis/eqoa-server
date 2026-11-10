@@ -704,6 +704,123 @@
       "notes": "Ours: the gatekeeper's port to Tethelin or Fayspire, the satyrs' wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
     },
     {
+      "key": "homelands/dryad/welcome",
+      "name": "A New Leaf",
+      "giver": "Elder Silverbough",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "A new leaf on the old tree! Before you wander, greet Willowmere by the water to the north. She gathers food for the grove, and she will see that you do not wilt.",
+      "accept": "I will greet Willowmere.",
+      "decline": "Not now.",
+      "declined": "The grove is patient, little leaf.",
+      "started": "Go. Willowmere is by the water, north along the shore.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Willowmere",
+          "journal": "Greet Grocer Willowmere by the water, north along the shore.",
+          "says": "Silverbough sent you? Then take this bread, little leaf.",
+          "rewards": {
+            "items": [
+              "raisin bread"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Silverbough",
+          "journal": "Return to Elder Silverbough on the lake's west shore.",
+          "says": "Good. Now Willowmere knows your face, and you know where to eat.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the dryads' first, at their home zone, West Toxxulia of the disc."
+    },
+    {
+      "key": "homelands/dryad/hunt",
+      "name": "Beetles in the Bark",
+      "giver": "Elder Silverbough",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/dryad/welcome"
+      ],
+      "offer": "Bark beetles are boring into the old trees west of the lake. Go into the woods and stop five of them before the trees sicken.",
+      "accept": "I will stop them.",
+      "decline": "Not now.",
+      "declined": "Then the old trees will suffer.",
+      "started": "Five beetles. The trees will thank you.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "bark beetle",
+          "count": 5,
+          "journal": "Kill five bark beetles in the woods west of the lake."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Silverbough",
+          "journal": "Tell Elder Silverbough the beetles are dealt with.",
+          "says": "Five beetles gone. I can hear the old trees breathe easier.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the dryads' second starter quest, the elder's too (the owner's 2026-11-10: an elder giving two starter quests); the bark beetles are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/dryad/flight",
+      "name": "Roots in the West",
+      "giver": "Gatekeeper Thornwyn",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/dryad/welcome",
+        "homelands/dryad/hunt"
+      ],
+      "repeatable": true,
+      "offer": "The humans of Qeynos guard the groves of Surefall Glade, where our rangers and druids go; the rest of you train in Qeynos itself. I can send you there, but the way runs one way. Are you ready?",
+      "accept": "Send me west.",
+      "decline": "Not yet.",
+      "declined": "The way will wait.",
+      "started": "Grow tall and strong!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Thornwyn",
+          "journal": "Tell Gatekeeper Thornwyn when you are ready to go to Qeynos.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Qeynos or Surefall Glade, the dryads' wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
+    },
+    {
       "key": "homelands/aviak/welcome",
       "name": "A Fledgling's Welcome",
       "giver": "Elder Kraawk",

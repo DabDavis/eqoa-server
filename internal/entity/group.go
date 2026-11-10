@@ -534,10 +534,13 @@ func (w *World) GroupBoot(sess *session.Session, memberID uint32) {
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
 	if p != nil && p.GroupID != 0 {
-		// a merc of the group: dismissed (mercgroup.go)
-		if g := w.groups[p.GroupID]; g != nil && len(g.Members) > 0 && g.Members[0] == p.ServerID {
+		// a merc of the group: dismissed (mercgroup.go), by its leader or a raid's
+		// helper (raidcmds.go)
+		if g := w.groups[p.GroupID]; g != nil && len(g.Members) > 0 {
 			if ms := w.mercSeenByLocked(sess, g, memberID); ms != nil {
-				w.mercBootedLocked(p, ms)
+				if w.mayDismissMercLocked(g, p, ms) {
+					w.mercBootedLocked(p, ms)
+				}
 				return
 			}
 		}

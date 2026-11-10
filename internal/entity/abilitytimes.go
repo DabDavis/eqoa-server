@@ -47,9 +47,23 @@ func abilityKey(a *database.TemplateAbility) string {
 	return a.Kind + "|" + strconv.Itoa(a.SpellID) + "|" + a.Spell + "|" + a.Name + "|" + strconv.Itoa(a.HealPct)
 }
 
-// coolingDown reports whether the ability's cooldown on n runs at now.
+// coolingDown reports whether the ability's cooldown on n runs at now. A cooldown begun under a longer one
+// than its ability has now (a GM's edit or a data step since: Mr. Moogie's Lay Hands from an hour to 15
+// minutes, petition 1437) is held to its new length from now, so no running one outlasts what the
+// template says.
 func (n *NPC) coolingDown(a *templateAbility, now time.Time) bool {
-	return a.Cooldown > 0 && now.Before(n.abilityReady[abilityKey(&a.TemplateAbility)])
+	if a.Cooldown <= 0 {
+		return false
+	}
+	k := abilityKey(&a.TemplateAbility)
+	until, ok := n.abilityReady[k]
+	if !ok {
+		return false
+	}
+	if most := now.Add(time.Duration(a.Cooldown * float64(time.Second))); until.After(most) {
+		n.abilityReady[k], until = most, most
+	}
+	return now.Before(until)
 }
 
 // startCooldown begins the ability's cooldown on n at now, its cast's start.
@@ -92,7 +106,23 @@ func shareHealSpell(a database.TemplateAbility) *CastSpell {
 	if name == "" {
 		name = database.DefaultShareHealName
 	}
-	return &CastSpell{Name: name, Scope: 1, FX: fxHeal}
+	fx := uint32(fxHeal)
+	if a.FX != 0 {
+		fx = a.FX // its own look (the owner's Tunare's Renewal, a druid's heal's)
+	}
+	return &CastSpell{Name: name, Scope: 1, FX: fx}
+}
+
+// fixedHitSpell is a creature's fixed hit (Damage) when it pins no spell: its name
+// (database.DefaultFixedHitName for none), no cast time, its own visual (FX) or a
+// harmful spell's stand-in (petition 1439: Mr. Moogie's Royal Siphon; 1442: Metal
+// Moogie V2's Gear Barrage).
+func fixedHitSpell(a database.TemplateAbility) *CastSpell {
+	name := a.Name
+	if name == "" {
+		name = database.DefaultFixedHitName
+	}
+	return &CastSpell{Name: name, Scope: 1, FX: a.FX, Def: SpellDef{Harmful: true, Target: TargetSingle}}
 }
 
 // templateLandedLocked is what a templated NPC's cast does past its landing (the file's doc): its line
@@ -104,7 +134,7 @@ func (w *World) templateLandedLocked(c *npcCast) {
 		return
 	}
 	a := &c.tmpl.abilities[c.ability]
-	if a.Say != "" {
+	if a.Say != "" && npc.add == nil { // an add's lines are its creature's (summon.go)
 		n := w.sayNearLocked(npc.Name, npc.World, npc.X, npc.Z, a.Say)
 		log.Printf("Template: %s says %q (its %q) to %d players", npc.Name, a.Say, c.spell.Name, n)
 	}
@@ -116,7 +146,7 @@ func (w *World) templateLandedLocked(c *npcCast) {
 		if name == "" {
 			name = database.DefaultFightProcName
 		}
-		f.proc = &fightProc{chance: a.ProcChance, damage: a.ProcDamage, name: name}
+		f.proc = &fightProc{chance: a.ProcChance, damage: npc.shared(a.ProcDamage), name: name} // an add's at its share (summon.go)
 		log.Printf("Template: %s's %q gives it %s for the rest of its fight: %d%% of its melee hits %d more",
 			npc.Name, c.spell.Name, name, a.ProcChance, a.ProcDamage)
 	}

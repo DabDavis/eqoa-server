@@ -201,11 +201,11 @@ func TestMrMoogieOffersToProveWorth(t *testing.T) {
 	anna, pa := f.join("Anna", 100, 100)
 	cora, pc := f.join("Cora", 102, 100)
 	got := f.talk(anna, f.moogie)
-	want := "|" + strings.Join([]string{moogieClearOpt, moogieHealOpt, moogieProveOpt, moogieNoOpt}, "|")
+	want := "|" + strings.Join([]string{moogieClearOpt, moogieHealOpt, moogieResetOpt, moogieProveOpt, moogieNoOpt}, "|")
 	if len(got) != 1 || !strings.HasPrefix(got[0], "ask#") || !strings.HasSuffix(got[0], want) {
 		t.Fatalf("his talk: %q, want the answers %q", got, want)
 	}
-	got = f.pick(anna, boxID(got), 2)
+	got = f.pick(anna, boxID(got), 3)
 	if len(got) != 1 || got[0] != "chat:"+fmt.Sprintf(entity.MetalLineRises, "Anna") {
 		t.Errorf("Anna's pick: %q", got)
 	}
@@ -214,7 +214,7 @@ func TestMrMoogieOffersToProveWorth(t *testing.T) {
 		t.Fatalf("no Metal Moogie standing for Anna: %+v", c)
 	}
 	got = f.talk(cora, f.moogie)
-	got = f.pick(cora, boxID(got), 2)
+	got = f.pick(cora, boxID(got), 3)
 	if len(got) != 1 || got[0] != "chat:"+fmt.Sprintf(entity.MetalLineBusy, "Anna") {
 		t.Errorf("Cora's ask while Anna duels: %q", got)
 	}
@@ -230,7 +230,7 @@ func TestMrMoogieOffersToProveWorth(t *testing.T) {
 	f.orig.SpawnOnly = false
 	f.orig.Name = "Someone Else"
 	got = f.talk(cora, f.moogie)
-	want = "|" + strings.Join([]string{moogieClearOpt, moogieHealOpt, moogieNoOpt}, "|")
+	want = "|" + strings.Join([]string{moogieClearOpt, moogieHealOpt, moogieResetOpt, moogieNoOpt}, "|")
 	if len(got) != 1 || !strings.HasSuffix(got[0], want) || strings.Contains(got[0], moogieProveOpt) {
 		t.Errorf("his talk with no metal twin: %q", got)
 	}
@@ -254,11 +254,11 @@ func TestAMoogieTributeForMrMoogiesFavor(t *testing.T) {
 	}
 	f.give(anna, pa)
 	got = f.talk(anna, f.moogie)
-	want := "|" + strings.Join([]string{moogieClearOpt, moogieHealOpt, moogieProveOpt, moogieTributeOpt, moogieNoOpt}, "|")
+	want := "|" + strings.Join([]string{moogieClearOpt, moogieHealOpt, moogieResetOpt, moogieProveOpt, moogieTributeOpt, moogieNoOpt}, "|")
 	if len(got) != 1 || !strings.HasSuffix(got[0], want) {
 		t.Fatalf("his talk with a tribute held: %q, want the answers %q", got, want)
 	}
-	got = f.pick(anna, boxID(got), 3)
+	got = f.pick(anna, boxID(got), 4)
 	if !hasMsg(got, fmt.Sprintf("op:%04X", uint16(protocol.OpcodeRemoveInvItem))) || !hasMsg(got, "chat:"+fmt.Sprintf(moogieFavored, "Anna")) {
 		t.Errorf("the hand-in sent %q", got)
 	}

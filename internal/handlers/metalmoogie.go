@@ -28,6 +28,13 @@ const (
 	moogieFavored    = "Mr. Moogie says, 'A worthy duelist at last! Wear my favor proudly, %s, and stand tall.'"
 	moogieNoFavor    = "Mr. Moogie says, 'I have no favor to give today. Keep your tribute.'"
 	moogieNoTribute  = "Mr. Moogie says, 'You carry no tribute of mine.'"
+	// the tribute's second question while Metal Moogie V2 is on the server (the GM Jibrish's petition
+	// 1441: "if a player has a token from defeating metal moogie that can instead choose to use it to
+	// summon Metal Moogie V2"): its uses, and what he says when it cannot be taken
+	moogieTributeQuestion = "Mr. Moogie: 'A tribute! Shall I give you my favor for it, or will you spend it to face my metal twin remade?'"
+	moogieFavorOpt        = "I would have your favor"
+	moogieV2Opt           = "Summon Metal Moogie V2"
+	moogieV2Untaken       = "Mr. Moogie says, 'Your tribute slipped away, %s. My twin waits for another.'"
 )
 
 // MoogieFavor is what the turn-in needs: the pack, and the spell records.
@@ -119,6 +126,51 @@ func (f *MoogieFavor) take(sess *session.Session, p *entity.Player, r database.C
 		}
 	}
 	return true
+}
+
+// v2Offered reports whether his box offers p Metal Moogie V2's duel for a tribute: p holds one and V2's
+// original is on the server (entity's MetalMoogieV2Here).
+func (h *InteractHandler) v2Offered(p *entity.Player) bool {
+	if h.gameWorld == nil || !h.gameWorld.MetalMoogieV2Here() {
+		return false
+	}
+	_, ok := h.favor.tribute(p)
+	return ok
+}
+
+// moogieTributeAnswers is the tribute's second question's answers for p: his favor while the server has
+// it, V2's duel, nothing.
+func (h *InteractHandler) moogieTributeAnswers(p *entity.Player) moogieChoices {
+	var c moogieChoices
+	if _, ok := h.favor.favor(); ok {
+		c.labels, c.does = append(c.labels, moogieFavorOpt), append(c.does, moogieDoFavor)
+	}
+	c.labels, c.does = append(c.labels, moogieV2Opt, moogieNoOpt), append(c.does, moogieDoV2, moogieDoNothing)
+	return c
+}
+
+// moogieV2 is V2's duel asked for a tribute (petition 1441): Metal Moogie V2 rises as Metal Moogie does
+// (entity's MetalMoogieV2Challenge, every rule of the duel his), and once he stands one tribute is taken
+// from the pack; refused (another's duel, his original gone, no tribute) nothing is taken. A tribute that
+// cannot be taken after he rose ends his duel at once, so none is had for nothing.
+func (h *InteractHandler) moogieV2(sess *session.Session, p *entity.Player, moogie entity.EntityID) {
+	f := h.favor
+	r, ok := f.tribute(p)
+	if !ok {
+		SendClientMessage(sess, moogieNoTribute)
+		return
+	}
+	line, rose := h.gameWorld.MetalMoogieV2Challenge(sess, moogie, time.Now())
+	SendClientMessage(sess, line)
+	if !rose {
+		return
+	}
+	if !f.take(sess, p, r) {
+		h.gameWorld.EndMetalDuelOf(sess, "the tribute could not be taken")
+		SendClientMessage(sess, fmt.Sprintf(moogieV2Untaken, p.Name))
+		return
+	}
+	log.Printf("Moogie: %s spends a %s on %s's duel", p.Name, r.Pattern.ItemName, entity.MetalMoogieV2Name)
 }
 
 // handIn is the hand-in answered: the tribute taken and the favor landed, else said why not.

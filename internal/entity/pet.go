@@ -549,17 +549,28 @@ func (w *World) distSqToLocked(p *Player, id EntityID) float32 {
 // owner's view lets go comes back with a new id, and its bar would lose it
 // until the next 0x007E.
 func (w *World) pinPetLocked(p *Player, cands []entityDist) []entityDist {
-	pet := w.petOfLocked(p)
-	if pet == nil || pet.World != p.World {
+	cands = pinLocked(cands, w.petOfLocked(p), p)
+	if ms := w.mercOfLocked(p); ms != nil {
+		cands = pinLocked(cands, ms.npc, p) // its merc (merc.go)
+	}
+	if fs := w.familiars[p.ServerID]; fs != nil && fs.owner == p {
+		cands = pinLocked(cands, fs.npc, p) // its familiar (familiar.go)
+	}
+	return cands
+}
+
+// pinLocked puts n first among the candidates when it is in p's world.
+func pinLocked(cands []entityDist, n *NPC, p *Player) []entityDist {
+	if n == nil || n.World != p.World {
 		return cands
 	}
 	for i := range cands {
-		if cands[i].ID == pet.ServerID {
+		if cands[i].ID == n.ServerID {
 			cands[i].DistSq = -1
 			return cands
 		}
 	}
-	return append(cands, entityDist{ID: pet.ServerID, DistSq: -1})
+	return append(cands, entityDist{ID: n.ServerID, DistSq: -1})
 }
 
 // dismissPetLocked takes the pet away: off every fight, out of the world
@@ -676,7 +687,7 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 		}
 		npc, isNPC := ent.(*NPC)
 		if ok && isNPC && challengeBars(npc, p.ServerID) {
-			w.sendChatToSession(sess, fmt.Sprintf(MetalLinePet, npc.challenge.name)) // another's duel (metalmoogie.go)
+			w.sendChatToSession(sess, fmt.Sprintf(duelLine(MetalLinePet, npc), npc.challenge.name)) // another's duel (metalmoogie.go)
 			return
 		}
 		if !ok || !isNPC || !pet.petFights() || !petMayFight(pet, npc) {
@@ -1146,8 +1157,8 @@ func (w *World) petTauntLocked(ps *petState, t *NPC, now time.Time) bool {
 		if t.Threats[pet.ServerID] <= top {
 			t.Threats[pet.ServerID] = top + 1
 		}
-		t.CurrentEnemy = pet.ServerID
-		w.wakeNPCLocked(t) // npcsets.go
+		t.CurrentEnemy = w.tauntedLocked(t, pet.ServerID) // a preferred foe of its stays its enemy (prefer.go)
+		w.wakeNPCLocked(t)                                // npcsets.go
 	}
 	n := petMeleeHit(pet, t, meleeIntn)
 	if petName(pet.Name) == grandAnimation {
@@ -1232,7 +1243,11 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 	tell := func() {
 		if sess == nil || ps.kind != petKindOurs {
 			// Sandstorm told its necromancer's zombie's, mummy's and
-			// spectre's owner no hit of theirs (petrotation.go)
+			// spectre's owner no hit of theirs (petrotation.go); the damage
+			// meters count them where the figure would be (dpsmeter.go)
+			if sess != nil && w.objectIDForEntityLocked(sess, t.ServerID) != 0 {
+				w.dpsCountLocked(owner, n, true, dpsMeterNow())
+			}
 			return
 		}
 		if tid := w.objectIDForEntityLocked(sess, t.ServerID); tid != 0 {
@@ -1255,6 +1270,7 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 	w.rootBreakLocked(t, w.balanceLevelOf(pet)) // root.go
 	log.Printf("Pet: %s's %q hit %s for %d (HP %d/%d)", owner.Name, pet.Name, t.Name, n, t.HP, t.MaxHP)
 	if t.HP > 0 {
+		w.hitHealLocked(t, n, sess) // its heal at every hit that lands (hitheal.go)
 		return false
 	}
 	t.Effects = nil
@@ -1313,6 +1329,9 @@ var petDexShare = offenceArchs[archTank].LowShare * offLowDEX / (offHighD - offe
 // pet's skin and AGI lines, pettemplate.go), as a player's AC and AGI take
 // off a creature's top (defence.go).
 func npcHitOnPet(npc, pet *NPC, intn func(int) int) int {
+	if pet.isMerc() {
+		return mercHitOn(npc, pet, intn) // a player's AC and AGI (mercfight.go)
+	}
 	if pet.sheet != nil {
 		return sheetHitOn(npc, pet, intn) // a workbook pet's armour and archetype (petstats.go)
 	}
@@ -1422,6 +1441,9 @@ func (w *World) npcFightPetLocked(npc, pet *NPC, now time.Time) {
 	}
 	if !in {
 		npc.loseDueHits(now) // closing in: no hit lands from out of reach
+		if npc.tmpl != nil {
+			w.templateFarTurnLocked(npc, pet.ServerID, now) // its casts from afar (classtemplate.go)
+		}
 		return
 	}
 	// in reach its moving and turning are the chase's, as at a player: it
@@ -1454,11 +1476,13 @@ func (w *World) npcFightPetLocked(npc, pet *NPC, now time.Time) {
 	}
 	for npc.RoundHits < len(hits) && !now.Before(npc.RoundStart.Add(hits[npc.RoundHits])) {
 		npc.RoundHits++
-		n := w.npcHitLocked(npc, w.balanceLevelOf(pet), npc.meleeOut(npcHitOnPet(npc, pet, meleeIntn))) // balance.go, then its class template
-		n = w.petTakenLocked(pet, n)                                                                    // the pet's template's taken_pct (pettemplate.go)
+		src := npc.figures()                                                                                        // an add's are its creature's (summon.go)
+		n := npc.shared(w.npcHitLocked(src, w.balanceLevelOf(pet), src.meleeOut(npcHitOnPet(src, pet, meleeIntn)))) // balance.go, then its class template
+		n = w.petTakenLocked(pet, n)                                                                                // the pet's template's taken_pct (pettemplate.go)
 		pet.HP = max(pet.HP-n, 0)
 		pet.LastCombatTime = now
 		log.Printf("Pet: %s hit the pet %q for %d (HP %d/%d)", npc.Name, pet.Name, n, pet.HP, pet.MaxHP)
+		w.rampageLocked(npc, pet.ServerID, n, now) // an enraged creature's share on the second of its list (enrage.go)
 		if pet.HP == 0 {
 			w.killNPC(pet)
 			w.dropAggroLocked(pet.ServerID)
@@ -1476,15 +1500,8 @@ func (w *World) npcFightPetLocked(npc, pet *NPC, now time.Time) {
 
 // retargetLocked turns a creature to its highest threat left, or to none.
 func (w *World) retargetLocked(npc *NPC) {
-	npc.CurrentEnemy = 0
-	var top int64
-	for id, t := range npc.Threats {
-		if t > top {
-			top = t
-			npc.CurrentEnemy = id
-		}
-	}
-	w.wakeNPCLocked(npc) // its next enemy, or its fight to put away (npcsets.go)
+	npc.CurrentEnemy = w.pickEnemyLocked(npc) // a preferred foe first (prefer.go)
+	w.wakeNPCLocked(npc)                      // its next enemy, or its fight to put away (npcsets.go)
 }
 
 // landOnPetLocked is a beneficial spell on a pet: a heal now, and what lasts

@@ -527,7 +527,7 @@ func (q *QuestEngine) Looted(sess *session.Session, p *entity.Player, pattern, n
 			continue
 		}
 		pid, _, ok := st.LootItem()
-		if !ok || pid != pattern {
+		if !ok || (pid != pattern && !ascendedFor(pattern, pid)) { // its Ascended record counts for it (questascended.go)
 			continue
 		}
 		q.countLootLocked(sess, p, c, qu, cq, st, n)

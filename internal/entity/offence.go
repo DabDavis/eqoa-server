@@ -108,9 +108,16 @@ func targetDefenceAt(npc *NPC, level int) float64 {
 // 6.1): 7 at level 1, 49 at 5, 102 at 10, 209 at 20, 315 at 30, 422 at 40,
 // 528 at 50, 634 at 60. The levels' own medians at 58-60 run above it (640,
 // 690, 700: the epics).
+//
+// Then a tenth less (petition 1455, the monk Drunkenfist, 2026-11-10: "Monks
+// barefist damage should be reduced by 10% to match live. Bare hand damage is
+// doing 450 dmg a hit vs 430 a hit with force of mind"): handToHandShare of the
+// line, 6 at level 1, 44 at 5, 92 at 10, 188 at 20, 284 at 30, 379 at 40, 475
+// at 50, 571 at 60.
 var (
 	handToHandPerLevel = 10.64
 	handToHandAt0      = -4.0
+	handToHandShare    = 0.9
 )
 
 // The monk's class id, and the ranger's (balancekit.go).
@@ -121,7 +128,7 @@ const (
 
 // handToHandDMG is a monk's bare hands' DMG at a level.
 func handToHandDMG(level int) int {
-	return max(int(math.Round(handToHandPerLevel*float64(level)+handToHandAt0)), 1)
+	return max(int(math.Round(handToHandShare*(handToHandPerLevel*float64(level)+handToHandAt0))), 1)
 }
 
 // meleeWeapon is what the player's melee rolls on: its weapon's DMG, its

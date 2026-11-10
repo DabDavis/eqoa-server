@@ -308,6 +308,12 @@ func main() {
 		log.Printf("WARNING: %v; every NPC stands in the world", err)
 	}
 	log.Printf("Creatures: %s", gameWorld.SpawnOnlySummary())
+	// The NPCs' body tints, for the clients that draw them (entity/npctint.go,
+	// table npctint)
+	if _, _, err := gameWorld.LoadNPCTints(db); err != nil {
+		log.Printf("WARNING: %v; no NPC is tinted", err)
+	}
+	log.Printf("Creatures: %s", gameWorld.NPCTintSummary())
 	// The necromancer's life taps its pets cast (entity/pettap.go)
 	if _, err := gameWorld.LoadPetTaps(db); err != nil {
 		log.Printf("WARNING: %v; no pet taps", err)
@@ -347,6 +353,27 @@ func main() {
 		handlers.SetImportedTag(cfg.World.ImportedTag)
 		log.Printf("Items: %d imported gear records at %.0f%% (tag shown: %v)", len(m), database.ImportedShare()*100, cfg.World.ImportedTag)
 	}
+	// The tuned raid bosses' Ascended gear (database/ascended.go, petition
+	// 1446): each record made its base again, its procs and worn hit effects
+	// a tenth more where they are read (entity/ascended.go), the records read
+	// again every minute so tools/ascend_boss_loot.py's new ones need no restart
+	if n, err := database.SyncAscendedCopies(db.DB, time.Now()); err != nil {
+		log.Printf("WARNING: the Ascended records not made their bases again: %v", err)
+	} else if n > 0 {
+		log.Printf("Items: %d Ascended records made their bases again (a base changed)", n)
+	}
+	if n, err := entity.LoadAscendedItems(db.DB); err != nil {
+		log.Printf("WARNING: %v; no Ascended gear is known", err)
+	} else {
+		log.Printf("Items: %d Ascended gear records at +%d%%", n, database.AscendedPercent)
+	}
+	go func() {
+		for range time.Tick(time.Minute) {
+			if _, err := entity.LoadAscendedItems(db.DB); err != nil {
+				log.Printf("Items: the Ascended records not read again: %v", err)
+			}
+		}
+	}()
 	// Where the gates, portals, circles and evacuations send (entity/gates.go,
 	// table spellgates): with none, each is refused as it begins
 	if _, err := gameWorld.LoadSpellGates(db); err != nil {
@@ -431,6 +458,11 @@ func main() {
 	// /testinvis, every player's safe mode (handlers/safemode.go)
 	handlers.SetTestInvis(cfg.World.TestInvis)
 	handlers.SetTeleporter(cfg.World.Teleporter) // handlers/teleporter.go
+	handlers.SetMercs(cfg.World.Mercs)           // the mercenaries (handlers/merc.go)
+	handlers.SetFamiliars(cfg.World.Familiars)   // the familiars (handlers/familiar.go)
+	if cfg.World.Mercs || cfg.World.Familiars {
+		log.Printf("Mercenaries %v, familiars %v (world.mercs, world.familiars)", cfg.World.Mercs, cfg.World.Familiars)
+	}
 	if cfg.World.RockOfFreeport {
 		if id, made, err := handlers.EnsureRockOfFreeport(db); err != nil {
 			log.Printf("WARNING: the Rock of Freeport's record: %v; none is given", err)

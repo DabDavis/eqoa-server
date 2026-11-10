@@ -540,6 +540,10 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// What made each figure (0x7E39; numbertags.go): a client that colours
 	// its numbers by it
 	NewNumberTagsHandler().RegisterHandlers(r)
+	// The NPCs' body tints (0x7E3F; npctint.go): a client that draws them
+	NewNPCTintsHandler(gameWorld).RegisterHandlers(r)
+	// A damage meter (0x7E3B, 0x7E3D; dpsmeter.go): a client that draws one
+	NewDPSMeterHandler(gameWorld).RegisterHandlers(r)
 	// A race the game does not have, by its own words (0x7E1C; racelabels.go)
 	if charStore != nil {
 		NewRaceLabelsHandler(gameWorld, charStore.DB()).RegisterHandlers(r)
@@ -586,6 +590,17 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 
 		// /testinvis's safe mode (safemode.go)
 		chatHandler.SetSafeModeStore(charStore.DB())
+
+		// the mercenaries (merc.go): the liaisons, /merc, the hires kept; and
+		// the familiars (familiar.go): their items' Use, /familiar
+		if gameWorld != nil {
+			mercs := NewMercs(gameWorld, charStore.DB(), charHandler.heirlooms)
+			interactHandler.mercs, chatHandler.mercs = mercs, mercs
+			mercs.Start()
+			familiars := NewFamiliars(gameWorld, charStore.DB())
+			equipHandler.familiars, chatHandler.familiars = familiars, familiars
+			familiars.Start()
+		}
 	}
 	// the Spell Archivists (archivist.go): a request for one's shop asks first,
 	// his shop, the class's basic spells or a clear book

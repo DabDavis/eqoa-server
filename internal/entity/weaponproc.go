@@ -262,9 +262,12 @@ func elementOf(lower string) Stat {
 }
 
 // WeaponProcOf is the proc of an item worn in a hand, by its name, else its
-// description; false for an item that has none.
+// description; false for an item that has none. A copy's is its base's
+// (ascended.go: an Ascended record's by its base's name, a tenth more; an
+// import's damped).
 func WeaponProcOf(patternID int, itemName, desc string) (WeaponProc, bool) {
-	wp, ok := weaponProcsByName[strings.ToLower(strings.TrimSpace(itemName))]
+	_, lookup, imported, ascended := copyRecord(patternID, itemName)
+	wp, ok := weaponProcsByName[strings.ToLower(strings.TrimSpace(lookup))]
 	if !ok {
 		wp, ok = WeaponProcFromText(desc)
 	}
@@ -285,7 +288,10 @@ func WeaponProcOf(patternID int, itemName, desc string) (WeaponProc, bool) {
 		}
 	}
 	wp.Item, wp.pattern = itemName, patternID
-	if IsImported(patternID) { // an import's copy: its damper (imported.go)
+	if ascended { // a tuned boss's Ascended record: a tenth more (ascended.go)
+		wp = wp.ascended()
+	}
+	if imported { // an import's copy: its damper (imported.go)
 		wp = wp.imported()
 	}
 	return wp, true

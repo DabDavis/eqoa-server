@@ -82,6 +82,9 @@ type ChatHandler struct {
 	camps campTools // /mark's, /camp's and /path's (gmcamps.go)
 
 	campfix campfixReports // the players' camp reports, /campfix's (campfix.go)
+	// mercs and familiars are /merc's and /familiar's (merc.go, familiar.go)
+	mercs     *Mercs
+	familiars *Familiars
 
 	// raid is the raid's handler: its loot's rolls and master looter (raidcmds.go)
 	raid *RaidHandler
@@ -276,6 +279,17 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		return nil
 	}
 
+	// /merc (or #merc; a PS2's is "/t merc ...", below): its mercenary, everyone's
+	// (merc.go); /familiar (or #familiar, "/t familiar ...") its familiar (familiar.go)
+	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/merc") || strings.EqualFold(word, "#merc") {
+		h.mercs.Command(sess, player, rest)
+		return nil
+	}
+	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/familiar") || strings.EqualFold(word, "#familiar") {
+		h.familiars.Command(sess, player, rest)
+		return nil
+	}
+
 	// /record [name] (or #record; a PS2's is "/t record [name]", below): a combat
 	// record, its own or any character's, everyone's (combatrecord.go)
 	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/record") || strings.EqualFold(word, "#record") {
@@ -317,6 +331,16 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		// and /testinvis, safe mode (safemode.go)
 		if strings.TrimSpace(body) == "" && strings.EqualFold(name, testInvisWord) {
 			h.testInvisCommand(sess, player)
+			return nil
+		}
+		// and the mercenary's and the familiar's words (merc.go, familiar.go): "/t
+		// merc" alone or with one of them; anything else to a "merc" is a tell
+		if strings.EqualFold(name, "merc") && mercWords(body) {
+			h.mercs.Command(sess, player, body)
+			return nil
+		}
+		if strings.EqualFold(name, "familiar") && familiarWords(body) {
+			h.familiars.Command(sess, player, body)
 			return nil
 		}
 		// and the combat record: "/t record" its own, "/t record <name>" a

@@ -46,6 +46,8 @@ type InteractHandler struct {
 	portal *Portal
 	// buffer is Buffer's talk (buffer.go); nil: an NPC named Buffer has nothing to say
 	buffer *Buffer
+	// mercs is the Mercenary Liaisons' (merc.go)
+	mercs *Mercs
 
 	// dialogLines is npcdialog (database.NPCDialog): what a town's people and
 	// the guards say (entity/dialog.go). Nil: they say nothing.
@@ -268,6 +270,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 
 	// The Teleporter (teleporter.go): every raid and every camp.
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.teleporterTalk(sess, player, npc) {
+		return nil
+	}
+
+	// A Mercenary Liaison (merc.go): a mercenary for nothing.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.mercs.Talk(sess, player, npc) {
 		return nil
 	}
 
@@ -574,6 +581,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// the Teleporter's (teleporter.go); an old one does nothing
 	if h.answerTeleporter(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// a Mercenary Liaison's (merc.go); an old one does nothing
+	if h.mercs.Answer(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// a Spell Archivist's (archivist.go); an old one does nothing

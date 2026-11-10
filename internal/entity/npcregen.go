@@ -72,7 +72,7 @@ func (w *World) npcRegenSystem(now time.Time) {
 			npc.calmTicks = 0
 			// its template's healing in a fight (fight_regen), a tick at a time
 			if t := npc.tmpl; t != nil && t.FightRegen > 0 && npc.HP > 0 && npc.HP < npc.MaxHP {
-				npc.HP = min(npc.HP+t.FightRegen, npc.MaxHP)
+				npc.HP = min(npc.HP+npc.shared(t.FightRegen), npc.MaxHP) // an add's at its share (summon.go)
 			}
 			continue
 		}
@@ -100,6 +100,10 @@ func (w *World) npcRegenSystem(now time.Time) {
 // enchanter's Clarity or Power Flow on a charmed creature: charm.go), within
 // the maximum.
 func (n *NPC) petRegen() {
+	if n.isMerc() {
+		n.mercRegen() // a player's HoT and PoT (merc.go)
+		return
+	}
 	if n.sheet != nil {
 		n.petSheetRegen() // a workbook pet's HoT and PoT (petstats.go)
 		return

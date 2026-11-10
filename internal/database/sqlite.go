@@ -633,6 +633,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureNPCSpawnOnly(); err != nil { // npcspawnonly.go
 		return err
 	}
+	if err := db.ensureNPCTint(); err != nil { // npctint.go
+		return err
+	}
 	if err := db.ensurePotionCooldowns(); err != nil { // potioncooldown.go
 		return err
 	}
@@ -662,6 +665,9 @@ func (db *SQLiteDB) initSchema() error {
 	}
 	if _, err := db.Exec(ImportedSchema); err != nil { // imported gear's copies (imported.go)
 		return fmt.Errorf("itemimported: %w", err)
+	}
+	if _, err := db.Exec(AscendedSchema); err != nil { // the tuned bosses' Ascended gear (ascended.go)
+		return fmt.Errorf("itemascended: %w", err)
 	}
 	if err := db.ensureSpellArea(); err != nil {
 		return err
@@ -748,6 +754,9 @@ func (db *SQLiteDB) initSchema() error {
 		return err
 	}
 	if err := db.ensureCharSafeMode(); err != nil { // safemode.go: who /testinvis keeps out of the creatures' sight
+		return err
+	}
+	if err := db.ensureMercs(); err != nil { // mercs.go: the mercenaries hired and the familiars
 		return err
 	}
 	if err := db.ensureCharBuyBack(); err != nil { // buyback.go: what merchants sell back
@@ -1070,6 +1079,10 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 	}
 	// nor be a vampire (vampire.go)
 	if _, err := s.db.Exec(`DELETE FROM charvampire WHERE serverid = ?`, serverID); err != nil {
+		return err
+	}
+	// nor have a mercenary hired (mercs.go)
+	if err := s.db.DeleteMerc(serverID); err != nil {
 		return err
 	}
 	// and have nothing to buy back (buyback.go)

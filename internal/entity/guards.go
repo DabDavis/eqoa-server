@@ -270,10 +270,14 @@ func (w *World) npcFoeLocked(npc *NPC) *NPC {
 
 // npcFightNPCLocked is npc's fight with foe this tick, as with a player
 // (aiSystem): the chase and the leash (chase.go), then its rounds
-// (rounds.go): its swing to everyone who sees it, then its hits. A trigger's
-// spawn set on foe with casts (SetNPCOn) fights it by its whole class
-// template, its casts held as with a player and its special after its round
-// (classtemplate.go); any other NPC by its melee alone.
+// (rounds.go): its swing to everyone who sees it, then its hits. A scripted
+// fight's two (scriptedFoes: a trigger's spawn set on foe with casts by
+// SetNPCOn, and since petition 1437 the NPC it was set on fighting it back, and
+// either's summoned adds) fight by their whole class templates: their casts
+// held as with a player, their out-of-reach casts while closing in, their
+// specials after their rounds and their melee procs on their hits
+// (classtemplate.go, creatureproc.go); any other two NPCs (a town's guard and a
+// creature) by their melee alone.
 func (w *World) npcFightNPCLocked(npc, foe *NPC, now time.Time) {
 	in, giveUp := w.chaseLocked(npc, foe.X, foe.Y, foe.Z, foe.VelX, foe.VelZ, now)
 	if giveUp {
@@ -284,11 +288,14 @@ func (w *World) npcFightNPCLocked(npc, foe *NPC, now time.Time) {
 		npc.endRound()
 		npc.RoundTarget = foe.ServerID
 	}
+	byTemplate := npc.tmpl != nil && scriptedFoes(npc, foe)
 	if !in {
 		npc.loseDueHits(now) // closing in: no hit lands from out of reach
+		if byTemplate {
+			w.templateFarTurnLocked(npc, foe.ServerID, now) // its casts from afar (classtemplate.go)
+		}
 		return
 	}
-	byTemplate := npc.tmpl != nil && npc.castsAt == foe.ServerID
 	if byTemplate && w.templateTurnLocked(npc, foe.ServerID, now) {
 		npc.loseDueHits(now) // casting: no swing meanwhile (classtemplate.go)
 		return
@@ -317,10 +324,14 @@ func (w *World) npcFightNPCLocked(npc, foe *NPC, now time.Time) {
 
 // npcHitNPCLocked is one of npc's hits on foe: a creature's roll on a
 // creature (npcHitOnPet), its class template's, balanced for its level
-// against foe's (npcHitLocked), as foe's template takes it; foe's hate for
-// npc, a guard's mark on it (guardHit), and its death. It reports a kill.
+// against foe's (npcHitLocked), an add's as its creature's at its share
+// (summon.go), as foe's template takes it; foe's hate for npc, a guard's mark
+// on it (guardHit), an enraged one's rampage (enrage.go), foe's heal at a hit
+// (hitheal.go), a scripted fight's melee procs (creatureproc.go), and its
+// death. It reports a kill.
 func (w *World) npcHitNPCLocked(npc, foe *NPC, now time.Time) bool {
-	n := foe.meleeTaken(w.npcHitLocked(npc, foe.Level, npc.meleeOut(npcHitOnPet(npc, foe, meleeIntn))))
+	src := npc.figures()
+	n := foe.meleeTaken(npc.shared(w.npcHitLocked(src, foe.Level, src.meleeOut(npcHitOnPet(src, foe, meleeIntn)))))
 	foe.HP = max(foe.HP-n, 0)
 	npc.LastCombat = now
 	if w.townGuardLocked(npc) {
@@ -328,13 +339,16 @@ func (w *World) npcHitNPCLocked(npc, foe *NPC, now time.Time) bool {
 	}
 	w.addThreatLocked(foe, npc.ServerID, n)
 	log.Printf("Combat: %s hit %s for %d (HP %d/%d)", npc.Name, foe.Name, n, foe.HP, foe.MaxHP)
+	w.rampageLocked(npc, foe.ServerID, n, now)
 	if foe.HP > 0 {
-		return false
+		w.hitHealLocked(foe, n, nil)
+		return npc.tmpl != nil && scriptedFoes(npc, foe) && w.creatureProcOnNPCLocked(npc, foe, n, now)
 	}
 	foe.Effects = nil
 	w.killNPC(foe)
 	w.dropAggroLocked(foe.ServerID)
 	log.Printf("Combat: %s killed by %s", foe.Name, npc.Name)
+	w.killSaidLocked(npc, foe.Name) // its line at the kill (selfbuff.go)
 	return true
 }
 

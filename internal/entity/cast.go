@@ -161,6 +161,10 @@ type CastSpell struct {
 	// lockout and no 0x00CD; while one is on its way, begun and not landed,
 	// another is let go unanswered (StartCast).
 	Travel *GateSpot
+	// Familiar is the familiar an item's cast calls as it lands (familiar.go),
+	// nil for a spell: its caster's, and nothing else lands; no ability of the
+	// book, as Travel's
+	Familiar *FamiliarDef
 	// resist is the resist that cuts a templated NPC's spell's hit on a
 	// player, by its element (classtemplate.go); a player's spell has none
 	resist Stat
@@ -328,6 +332,14 @@ type ActiveEffect struct {
 	// template's AbilityDoT, pettemplate.go; Caster its owner), 0 for every
 	// other effect: each tick is one of the pet's hits (petTickLocked)
 	pet EntityID
+	// npcCaster is the creature whose damage over time it is on the creature
+	// it fights (a template's AbilityDoT, creaturedot.go), 0 for every other
+	// effect: each tick lands as that fight's hit (npcDoTTickLocked)
+	npcCaster EntityID
+	// merc is the merc whose damage over time or debuff it is on a creature
+	// (merccast.go; Caster the merc too), 0 for every other effect: each tick
+	// is one of the merc's hits (mercTickLocked)
+	merc EntityID
 	// Line and Rank are a beneficial spell's line and its level on a player
 	// (buffline.go): only the best of a line counts; "" for none
 	Line string
@@ -760,7 +772,7 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	}
 	w.dispelOnCastLocked(p, spell.Def.Harmful) // workbook.go: what ends at a cast (a run speed only at a harmful one)
 	lockout := spell.CastTime + spell.Recast + castLockoutExtra
-	if spell.Travel == nil { // an item's travel is no ability: nothing to lock out
+	if spell.Travel == nil && spell.Familiar == nil { // an item's travel or familiar is no ability: nothing to lock out
 		p.Lockouts = append(p.Lockouts, castLockout{spellID: spell.SpellID, displayIndex: spell.DisplayIndex, until: now.Add(lockout)})
 	}
 	cs := &castState{spell: spell, caster: p.ServerID, targets: targets, ends: now.Add(spell.CastTime + castBusy), lands: now.Add(spell.CastTime + castLand),
@@ -770,7 +782,7 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	w.endFoodOnCastLocked(p) // consumable.go: a meal or drink a cast ends
 	w.casts = append(w.casts, cs)
 
-	if spell.Travel == nil {
+	if spell.Travel == nil && spell.Familiar == nil {
 		sendCooldown(sess, spell.DisplayIndex, lockout)
 	}
 	target := p.ServerID
@@ -1055,6 +1067,7 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 		if d.hasProc() {
 			ids = w.groupProcPetsLocked(p, ids, spell.Range) // enchanter.go
 		}
+		ids = w.groupMercsLocked(p, ids, spell.Range) // a merc is a member (mercgroup.go)
 		return ids, ""
 	}
 	if targetObjectID == 0 || targetObjectID == 0xFFFFFFFF {
@@ -1113,7 +1126,7 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 			return nil, line // another's duel (metalmoogie.go)
 		}
 		if t.challenge != nil && d.Charms() {
-			return nil, MetalLineCharm
+			return nil, duelLine(MetalLineCharm, t)
 		}
 		if reach := spell.Range + npcReachExtra(t); outOfRange(p, t.X, t.Y, t.Z, reach) {
 			return nil, refuseOutOfRange(p, spell, t.Name, t.X, t.Y, t.Z, reach)
@@ -1253,6 +1266,10 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 			w.gates.due = append(w.gates.due, GateTravel{Sess: casterSess, P: caster, To: *to, Spell: cs.spell.Name})
 			log.Printf("Cast: %s's %q lands: to %s (%.1f, %.1f, %.1f) world %d", caster.Name, cs.spell.Name, to.Place, to.X, to.Y, to.Z, to.World)
 		}
+		return false
+	}
+	if f := cs.spell.Familiar; f != nil { // an item's familiar: its caster's, nothing else lands (familiar.go)
+		w.summonFamiliarLocked(caster, casterSess, f, now)
 		return false
 	}
 	for _, e := range d.Effects {
@@ -1740,6 +1757,7 @@ func (w *World) spellHitHateLocked(caster *Player, casterSess *session.Session, 
 	w.rootBreakLocked(npc, caster.Level) // root.go
 	log.Printf("Cast: %s's spell hit %s for %d (HP %d/%d)", caster.Name, npc.Name, n, npc.HP, npc.MaxHP)
 	if npc.HP > 0 {
+		w.hitHealLocked(npc, n, casterSess) // its heal at every hit that lands (hitheal.go)
 		return false
 	}
 	npc.Effects = nil
@@ -1759,6 +1777,14 @@ func (w *World) tickNPCEffectLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 	}
 	if ae.pet != 0 {
 		w.petTickLocked(npc, ae, now) // a pet's damage over time (pettemplate.go)
+		return
+	}
+	if ae.npcCaster != 0 {
+		w.npcDoTTickLocked(npc, ae, now) // a creature's on the creature it fights (creaturedot.go)
+		return
+	}
+	if ae.merc != 0 {
+		w.mercTickLocked(npc, ae, now) // a merc's (mercfight.go)
 		return
 	}
 	if ae.HPTick > 0 {

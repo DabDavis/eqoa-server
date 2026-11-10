@@ -49,8 +49,15 @@ type KeptPlayer struct {
 	PvPHoldMS int64 `json:"pvp_hold_ms,omitempty"`
 	// Jumps: its client jumps (jump.go)
 	Jumps bool `json:"jumps,omitempty"`
+	// DPSMeter: its client draws a damage meter (dpsmeter.go); its fight ends
+	// at the restart
+	DPSMeter bool `json:"dps_meter,omitempty"`
 	// Pet: its pet, summoned or charmed (keeppet.go), nil none
 	Pet *KeptPet `json:"pet,omitempty"`
+	// Merc and Familiar: its mercenary and its familiar (keepmerc.go), nil
+	// none
+	Merc     *KeptMerc     `json:"merc,omitempty"`
+	Familiar *KeptFamiliar `json:"familiar,omitempty"`
 }
 
 // KeptLockout is a spell's lockout and what is left of it.
@@ -104,6 +111,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 	k.RaceLabels = p.RaceLabels
 	k.RecordWindow = p.RecordWindow
 	k.Jumps = p.Jumps
+	k.DPSMeter = p.dps != nil
 	if p.pvp.on {
 		k.PvP, k.PvPHoldMS = true, max(0, p.pvp.hold.Sub(now).Milliseconds())
 	}
@@ -113,6 +121,8 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 		}
 	}
 	k.Pet = w.keptPetLocked(p, now) // keeppet.go
+	k.Merc = w.keptMercLocked(p)    // keepmerc.go
+	k.Familiar = w.keptFamiliarLocked(p)
 	return k, true
 }
 
@@ -138,6 +148,9 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	p.PetEffects, p.petEffectsSent, p.petEffectsDue = k.PetEffects, "", k.PetEffects // its pet's set again once the pet is back
 	p.RaidRoster, p.raidRosterSent = k.RaidRoster, ""
 	p.RaidWindows, p.raidStateSent = k.RaidWindows, "" // the state again at the next pass (raidrules.go)
+	if k.DPSMeter {
+		p.dps = &dpsMeter{} // the next figure starts its fight (dpsmeter.go)
+	}
 	p.GM = k.GM
 	p.DuelWindow = k.DuelWindow
 	// its record's summary is read again (handlers/keep.go)

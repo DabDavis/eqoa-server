@@ -299,6 +299,10 @@ func workBy(w GMEdit) string {
 	return name + " (" + w.Via + ")"
 }
 
+// WorkByName is who made a change as the board names them (workBy): the
+// account's name, and the agent or token it came through.
+func WorkByName(w GMEdit) string { return workBy(w) }
+
 // workLine is text as one line: line breaks and tabs as spaces, trimmed.
 func workLine(s string) string {
 	return strings.TrimSpace(strings.NewReplacer("\r\n", " ", "\n", " ", "\r", " ", "\t", " ").Replace(s))
@@ -905,7 +909,8 @@ type WorkChange struct {
 // transfer (transfers.go), oldest first, the
 // last limit of them.
 func (db *SQLiteDB) WorkHistory(table string, id int64, limit int) ([]WorkChange, error) {
-	if table != "workboard" && table != "workboard_overview" && table != "petitions" && table != "chartransfers" {
+	if table != "workboard" && table != "workboard_overview" && table != "petitions" && table != "chartransfers" &&
+		table != "campfix_reports" {
 		return nil, fmt.Errorf("%s is not the work board's", table)
 	}
 	if limit <= 0 {

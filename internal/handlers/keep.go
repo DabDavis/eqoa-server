@@ -248,6 +248,12 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 	if kp.Pet != nil {
 		h.restorePet(sess, *kp.Pet, now) // its pet, summoned or charmed (entity/keeppet.go)
 	}
+	if kp.Merc != nil {
+		mercsH.Load().Restore(sess, player, *kp.Merc, now) // its mercenary (merc.go, entity/keepmerc.go)
+	}
+	if kp.Familiar != nil {
+		familiarsH.Load().Restore(sess, *kp.Familiar, now) // its familiar (familiar.go)
+	}
 	resumeRecord(player.CharServerID) // its target window's record lines (combatrecord.go)
 	if kp.Jumps && !h.gameWorld.JumpsAllowed() {
 		// offered the jump before a restart into a server without them (jump.go)
@@ -259,6 +265,8 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 	}
 	// and its race looks, the same (raceoptions.go)
 	h.gameWorld.RefreshRaceLooks(h.store.DB(), sess)
+	// and the NPCs' body tints, to a client that asked (npctint.go)
+	h.gameWorld.RefreshNPCTints(sess)
 	// the lists the client has, until its dump sends them anew
 	sess.SetInventoryList(ex.Inventory.list())
 	sess.SetBankList(ex.Bank.list())

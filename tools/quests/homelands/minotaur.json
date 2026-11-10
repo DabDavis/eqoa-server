@@ -1,0 +1,176 @@
+{
+  "race": "minotaur",
+  "home": "Gerntar Mines",
+  "city": "Grobb",
+  "note": "The Rustel herd's mine. Its people are tools/worlds/homelands.json's (Gerntar Mines): Elder Hornbrand, in the mine's mouth, gives the first two; Warden Ironhide, outside it, the three hunts; Smith Dargha, by the old forge's stones, is the outfitter; Spiritmaster Ruhga stands in the mine behind the elder; Coachman Durruk keeps the stable on the grass east of the forge (his coach runs to Freeport and to the other homes). The mine rats (the grass to the east), the ore beetles (the low rise to the south-east) and the young spineback Gorespine (the water hole, far to the east) are placed for these quests.",
+  "L1": {
+    "name": "A Calf's Nose Ring",
+    "giver": "Elder Hornbrand",
+    "offer": [
+      "So. A new calf stands in the mouth of our mine. You have horns, but the herd does not know you yet.",
+      "Every Rustel wears the herd's iron in its nose. Smith Dargha hammers the rings at the old forge, just east of the mine's mouth.",
+      "Will you fetch your nose ring and show it to me?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "Then stand there, nameless. The herd can wait longer than you can.",
+    "started": "Go. Dargha is at the old forge, just east of the mouth.",
+    "merchant": "Smith Dargha",
+    "piece": {
+      "name": "calf's nose ring",
+      "description": "A ring of dark Gerntar iron. Every calf of the Rustel herd is given one.",
+      "like": "Chipped Ring",
+      "set": {
+        "HPMAX": 5
+      }
+    },
+    "fetch": {
+      "journal": "Ask Smith Dargha, at the old forge east of the mine's mouth, for a calf's nose ring.",
+      "says": "Hornbrand sent you? Hold still. Hah, it does not hurt, calf. Gerntar iron, dug by the herd. No charge for one of ours."
+    },
+    "show": {
+      "journal": "Show the calf's nose ring to Elder Hornbrand.",
+      "says": "Good iron. Now any Rustel who sees you knows whose calf you are. Do not shame the ring."
+    }
+  },
+  "L2": {
+    "name": "Bound to the Mine",
+    "giver": "Elder Hornbrand",
+    "offer": [
+      "A calf charges first and thinks after. So first let Spiritmaster Ruhga bind your spirit to the mine, in the tunnel behind me, to the west.",
+      "Then give your name to Coachman Durruk, on the grass east of the old forge. His coach runs to Freeport and to the other homes of the Homelands.",
+      "Will you see them both and come back to me?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "Then charge nothing bigger than a rat until you do.",
+    "started": "Ruhga is in the tunnel to the west. Durruk waits on the grass east of the old forge.",
+    "spiritmaster": "Spiritmaster Ruhga",
+    "coachman": "Coachman Durruk",
+    "bind": {
+      "journal": "Have Spiritmaster Ruhga, in the tunnel west of the elder, bind your spirit to the mine.",
+      "says": "It is done. Fall where you will, calf, and you will wake here under the stone. Now go and give Coachman Durruk your name."
+    },
+    "ledger": {
+      "journal": "Give your name to Coachman Durruk, on the grass east of the old forge, for his ledger.",
+      "says": "A new calf! My coach runs to Freeport and to every other home of the Homelands, for travelers whose names their ledgers hold. Yours is in mine now."
+    },
+    "back": {
+      "journal": "Return to Elder Hornbrand.",
+      "says": [
+        "Good. Now the stone will always call you back.",
+        "Durruk's coach will carry you where its ledgers know you, but the road to Grobb is earned. Warden Ironhide, outside the mouth, has work for you."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Rats in the Grain",
+    "giver": "Warden Ironhide",
+    "offer": [
+      "You are the new calf. Good, I need hooves. Mine rats are in the herd's grain again, and they breed in the grass east of here.",
+      "Stamp them out and bring me three of their tails. Then I will teach you something a Rustel should know.",
+      "Will you hunt them?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "Then you eat what the rats leave.",
+    "started": "Three tails. East, past the old forge and the coach.",
+    "target": "mine rat",
+    "count": 3,
+    "drop": {
+      "name": "mine rat tail",
+      "description": "The tail of a mine rat from the grass east of the Gerntar Mines.",
+      "like": "Rat Tail Tip"
+    },
+    "hunt": {
+      "journal": "Take three mine rat tails from the mine rats on the grass east of the mine."
+    },
+    "give": {
+      "journal": "Bring three mine rat tails to Warden Ironhide.",
+      "says": "Three tails, and no bites worth showing. You will do. Now plant your hooves, watch me, and learn this."
+    }
+  },
+  "L4": {
+    "name": "A Calf's Arms",
+    "giver": "Warden Ironhide",
+    "offer": [
+      "Horns are not enough where you are going. I will make you proper gear, but you will bring me what I need.",
+      "Smith Dargha has ore and leather for me. Then crack a shell off the ore beetles on the low rise south-east of here.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then fight with your horns, and hope they are enough.",
+    "started": "Ore and leather from Dargha, a shell from the beetles. Go.",
+    "materials": [
+      {
+        "merchant": "Smith Dargha",
+        "items": [
+          "iron ore",
+          "leather strip"
+        ],
+        "journal": "Ask Smith Dargha for the iron ore and the leather strip.",
+        "says": "For Ironhide? Here. Good ore and a strip of hide. Tell him the forge wants its hammer back."
+      }
+    ],
+    "target": "ore beetle",
+    "count": 1,
+    "drop": {
+      "name": "ore beetle shell",
+      "description": "The hard shell of an ore beetle from the rise south-east of the Gerntar Mines.",
+      "like": "beetle carapace"
+    },
+    "hunt": {
+      "journal": "Take an ore beetle shell from the ore beetles on the low rise south-east of the mine."
+    },
+    "give": {
+      "journal": "Bring the iron ore, the leather strip and the ore beetle shell to Warden Ironhide.",
+      "says": "All three. Stand back from the sparks... there. It is yours. Carry it like a Rustel."
+    }
+  },
+  "L5": {
+    "name": "Gorespine",
+    "giver": "Warden Ironhide",
+    "offer": [
+      "One task more, calf. A young spineback we call Gorespine has taken the water hole far to the east, and it gores whatever comes to drink.",
+      "It will charge you on sight. Good. Meet it head on, and bring me one of its spines.",
+      "Will you hunt Gorespine?"
+    ],
+    "accept": "I will hunt it.",
+    "decline": "Not yet.",
+    "declined": "It grows while you wait. So does its temper.",
+    "started": "East, past the rats' grass, to the water hole. Horns down.",
+    "target": "Gorespine",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "Gorespine's spine",
+      "description": "A long black spine from the back of the young spineback Gorespine.",
+      "like": "plagueswine tusk"
+    },
+    "hunt": {
+      "journal": "Take Gorespine's spine from the young spineback Gorespine at the water hole far east of the mine."
+    },
+    "give": {
+      "journal": "Bring Gorespine's spine to Warden Ironhide.",
+      "says": [
+        "Gorespine's own spine! The herd drinks in peace tonight. You are a calf no longer.",
+        "Learn this, and see Gatekeeper Stonehoof at the south-east mine when you are ready for Grobb."
+      ]
+    }
+  },
+  "flight": {
+    "name": "The Road to Grobb",
+    "giver": "Gatekeeper Stonehoof",
+    "offer": [
+      "The trolls of Grobb do not care how big your horns are, only how hard you hit. They will train you as one of their own.",
+      "You have earned the road, Rustel. I will set you down among your own guild in Grobb, and your spirit will rest there.",
+      "Shall I send you to Grobb?"
+    ],
+    "accept": "Send me to Grobb.",
+    "decline": "Not yet.",
+    "declined": "Grobb will still be there. So will the trolls.",
+    "started": "Hit hard, and keep your horns sharp!",
+    "journal": "Tell Gatekeeper Stonehoof when you are ready to go to Grobb."
+  }
+}

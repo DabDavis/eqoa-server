@@ -9,6 +9,7 @@ import (
 	"github.com/eqoa/server/internal/config"
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/worlds"
 )
 
@@ -177,6 +178,64 @@ func TestCTFHeraldEndToEnd(t *testing.T) {
 	ctfCommand(r.gw, r.anna, "rules")
 	if got := r.msgs(r.anna); len(got) != len(ctfRulesLines) {
 		t.Fatalf("/ctf rules: %d lines, want %d", len(got), len(ctfRulesLines))
+	}
+}
+
+// The herald and /ctf join let in a client that said it holds the arena (0x7E31's answer: vanilla, natively or in a
+// page, which the server cannot tell apart and need not) and tell every other why: a PS2 of the disc, a PS2 on the
+// July S2 (its table takes every slot below 30, the server's own worlds among them), one on Sandstorm's live S2, a
+// vanilla from before the server's worlds or one that read no version 2 list (either holds none), and one holding
+// the Homelands but not the arena. The control: the July S2's table alone says it loads world 11, so CanLoadWorld
+// does; the herald goes by what the client holds.
+func TestCTFHeraldReachesOnlyWhoHoldsTheArena(t *testing.T) {
+	r := newPortalRig(t)
+	SetServerWorlds([]worlds.Built{{Recipe: worlds.Recipe{World: 10, Name: "the Homelands"}}, {Recipe: worlds.Recipe{World: 11, Name: "the Test Canyon"}}})
+	t.Cleanup(func() { SetServerWorlds(nil) })
+	lay := entity.CTFLayout{Name: "the Test Canyon", Teams: [2]entity.CTFTeamLayout{
+		{Name: "the Ember Band", Short: "Ember", Flag: "Ember Banner", Body: 1, Stand: entity.CTFSpot{X: 100, Z: 100}, Camp: entity.CTFSpot{X: 100, Z: 150}},
+		{Name: "the Dusk Band", Short: "Dusk", Flag: "Dusk Banner", Body: 2, Stand: entity.CTFSpot{X: 900, Z: 100}, Camp: entity.CTFSpot{X: 900, Z: 150}}}}
+	set := entity.DefaultCTFSettings()
+	r.gw.SetCTF(true, set, lay)
+	herald := ctfHerald(t, r)
+	for _, c := range []struct {
+		what string
+		disc byte
+		held []uint8
+		in   bool
+	}{
+		{"a PS2 of the disc", protocol.GameVersionEQOAVanilla, nil, false},
+		{"a PS2 on the July S2", protocol.GameVersionSandstormS2, nil, false},
+		{"a PS2 on Sandstorm's live S2", protocol.GameVersionSandstormS2Live, nil, false},
+		{"a vanilla holding none", protocol.GameVersionEQOAVanilla, nil, false},
+		{"a vanilla holding the Homelands alone", protocol.GameVersionEQOAVanilla, []uint8{10}, false},
+		{"a vanilla holding both (natively or in a page)", protocol.GameVersionEQOAVanilla, []uint8{10, 11}, true},
+		{"a vanilla on the July S2 holding both", protocol.GameVersionSandstormS2, []uint8{10, 11}, true},
+	} {
+		r.anna.SetDiscVersion(c.disc)
+		r.anna.SetServerWorlds(c.held)
+		r.drain()
+		r.talk(r.anna, herald)
+		got := r.msgs(r.anna)
+		asked := len(got) == 1 && strings.HasPrefix(got[0], "ask#") && boxID(got)&0xFF000000 == ctfBoxMark
+		told := len(got) == 1 && strings.Contains(got[0], "cannot see the arena")
+		if asked != c.in || told == c.in {
+			t.Errorf("%s at the herald: %q", c.what, got)
+		}
+		ctfCommand(r.gw, r.anna, "join")
+		got = r.msgs(r.anna)
+		joined := r.gw.CTFQueued(r.anna)
+		if joined != c.in || (!c.in && (len(got) != 1 || !strings.Contains(got[0], "cannot see the arena"))) {
+			t.Errorf("%s at /ctf join: %q, queued %v", c.what, got, joined)
+		}
+		if joined {
+			ctfCommand(r.gw, r.anna, "leave")
+		}
+	}
+	// the control: the July S2's table takes world 11, which the herald does not go by
+	r.anna.SetDiscVersion(protocol.GameVersionSandstormS2)
+	r.anna.SetServerWorlds(nil)
+	if !CanLoadWorld(r.anna, set.World) || ctfReaches(r.anna, set.World) {
+		t.Errorf("a PS2 on the July S2: loads world %d %v, reaches the arena %v", set.World, CanLoadWorld(r.anna, set.World), ctfReaches(r.anna, set.World))
 	}
 }
 

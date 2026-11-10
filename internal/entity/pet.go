@@ -1232,7 +1232,11 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 	tell := func() {
 		if sess == nil || ps.kind != petKindOurs {
 			// Sandstorm told its necromancer's zombie's, mummy's and
-			// spectre's owner no hit of theirs (petrotation.go)
+			// spectre's owner no hit of theirs (petrotation.go); the damage
+			// meters count them where the figure would be (dpsmeter.go)
+			if sess != nil && w.objectIDForEntityLocked(sess, t.ServerID) != 0 {
+				w.dpsCountLocked(owner, n, true, dpsMeterNow())
+			}
 			return
 		}
 		if tid := w.objectIDForEntityLocked(sess, t.ServerID); tid != 0 {

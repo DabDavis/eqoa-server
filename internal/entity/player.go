@@ -246,6 +246,11 @@ type Player struct {
 	petEffectsSent string
 	petEffectsDue  bool
 
+	// dps: the player's client draws a damage meter and asked for it
+	// (dpsmeter.go, opcodes 0x7E3A-0x7E3D): its fight as that client is
+	// shown it; nil when it never asked or stopped
+	dps *dpsMeter
+
 	// DuelWindow: the player's client has the live game's duel window and
 	// answered the duel offer (duel.go, opcode 0x7E09): its duels go by
 	// 0x1501/0x1502, not boxes, and its opponent stays a player to it

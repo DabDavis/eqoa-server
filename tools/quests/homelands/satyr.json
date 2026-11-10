@@ -1,0 +1,180 @@
+{
+  "race": "satyr",
+  "home": "East Toxxulia",
+  "city": "Tethelin",
+  "note": "The glade's people are tools/worlds/homelands.json's (East Toxxulia): Elder Pannoch gives the first two, Hornwarden Tavos beside him the three hunts; Reedcutter Syla (south-east of the elder) is the outfitter, Coachman Brannoc keeps the stable on the grass east of the elder. The glade spiderlings are on the grass east of the glade, the mead wasps south-east of it, the shadow panther Nightpelt alone in the hollow at the south end of the woods. The flight sets each satyr down in its class's elven city (Tethelin or Fayspire).",
+  "L1": {
+    "name": "A Reveler's Bangle",
+    "giver": "Elder Pannoch",
+    "offer": [
+      "A new voice for the glade, and not a thing on you that rattles! Every satyr of these woods wears a bangle of vine-wood, so the dance can hear it coming.",
+      "Reedcutter Syla carves them between songs. You will find her a few steps south-east of here.",
+      "Will you fetch your bangle and show it to me?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "The glade will wait for your song.",
+    "started": "Off you skip, then. Syla is just south-east of here.",
+    "merchant": "Reedcutter Syla",
+    "piece": {
+      "name": "reveler's bangle",
+      "description": "A bangle of carved vine-wood that clicks in time when its wearer dances. Every young satyr of the glade wears one.",
+      "like": "Carved Bracelet",
+      "set": {
+        "POWMAX": 5
+      }
+    },
+    "fetch": {
+      "journal": "Ask Reedcutter Syla, south-east of Elder Pannoch, for a reveler's bangle.",
+      "says": "Pannoch sent you? Give me your wrist. There: vine-wood, so it sings when you dance. I take no coin from a kid, only a tune some day."
+    },
+    "show": {
+      "journal": "Show the reveler's bangle to Elder Pannoch.",
+      "says": "Ha! Hear it click. Wear it, and the glade will never lose you in the dance."
+    }
+  },
+  "L2": {
+    "name": "Bound to the Glade",
+    "giver": "Elder Pannoch",
+    "offer": [
+      "A dance can carry a kid far from home, and the woods are not always kind. Have Spiritmaster Corvann bind your spirit to the glade, so that you wake here if you fall.",
+      "Then give your name to Coachman Brannoc for his ledger. His coach runs to Freeport and to the other homes of the Homelands, for those their stables know.",
+      "Will you see them both and come back to me?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "Then dance close to the fire until you do.",
+    "started": "Corvann stands just north of here. Brannoc keeps his coach on the grass to the east.",
+    "spiritmaster": "Spiritmaster Corvann",
+    "coachman": "Coachman Brannoc",
+    "bind": {
+      "journal": "Have Spiritmaster Corvann, north of the elder, bind your spirit to the glade.",
+      "says": "It is done. Should you fall, you will wake here among the pipes. Now go and give Coachman Brannoc your name."
+    },
+    "ledger": {
+      "journal": "Give your name to Coachman Brannoc, east of the elder, for his ledger.",
+      "says": "Welcome to my stable, kid. My coach runs to Freeport and to every other home of the Homelands, for travelers whose names their ledgers hold. Yours is in mine now."
+    },
+    "back": {
+      "journal": "Return to Elder Pannoch.",
+      "says": [
+        "Good! Now every road you dance down leads back to us.",
+        "Brannoc's coach will carry you to Freeport if its ledger knows you, but the elven road is earned. Hornwarden Tavos, beside me, has work for you."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Webs on the Dancing Paths",
+    "giver": "Hornwarden Tavos",
+    "offer": [
+      "So you are the new kid. Good. Glade spiderlings are spinning their webs across our dancing paths, on the grass east of the glade.",
+      "Clear them out and bring me three of their legs. Then I will teach you something worth knowing.",
+      "Will you hunt them?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "Then we dance around the webs.",
+    "started": "Three legs. Mind the webs!",
+    "target": "glade spiderling",
+    "count": 3,
+    "drop": {
+      "name": "glade spiderling leg",
+      "description": "The leg of a glade spiderling from the grass east of the satyrs' glade.",
+      "like": "small spider leg"
+    },
+    "hunt": {
+      "journal": "Take three glade spiderling legs from the glade spiderlings on the grass east of the glade."
+    },
+    "give": {
+      "journal": "Bring three glade spiderling legs to Hornwarden Tavos.",
+      "says": "Three legs, and no web in your fur. You can fight. Now watch my hooves, and learn this."
+    }
+  },
+  "L4": {
+    "name": "A Kid's Arms",
+    "giver": "Hornwarden Tavos",
+    "offer": [
+      "Stubby horns will not serve you on the elven road. I will make you proper gear, but you will fetch what I need.",
+      "Reedcutter Syla has vine cord and a good shaft for me. Then take a stinger from the mead wasps that swarm south-east of the glade.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then keep to your horns, and to the fire.",
+    "started": "Cord and a shaft from Syla, a stinger from the wasps. Go.",
+    "materials": [
+      {
+        "merchant": "Reedcutter Syla",
+        "items": [
+          {
+            "name": "twisted vine cord",
+            "description": "A cord of green vine, twisted tight by the reedcutters of the satyrs' glade.",
+            "like": "silk cord"
+          },
+          "wooden shaft"
+        ],
+        "journal": "Ask Reedcutter Syla for the twisted vine cord and the wooden shaft.",
+        "says": "For Tavos? Here, a twist of vine cord and a straight shaft. Tell him he still owes me a dance."
+      }
+    ],
+    "target": "mead wasp",
+    "count": 1,
+    "drop": {
+      "name": "mead wasp stinger",
+      "description": "The stinger of a mead wasp from the woods south-east of the satyrs' glade.",
+      "like": "Zapper Stinger"
+    },
+    "hunt": {
+      "journal": "Take a mead wasp stinger from the mead wasps south-east of the glade."
+    },
+    "give": {
+      "journal": "Bring the twisted vine cord, the wooden shaft and the mead wasp stinger to Hornwarden Tavos.",
+      "says": "All three. Give me a moment... there. It is yours: carry it lightly."
+    }
+  },
+  "L5": {
+    "name": "Nightpelt",
+    "giver": "Hornwarden Tavos",
+    "offer": [
+      "One task more before the road. A shadow panther we call Nightpelt has taken two pipers from the hollow at the south end of the woods.",
+      "She hunts alone down there, and she springs first. Bring me her fang, and I will teach you the last thing I have for a kid.",
+      "Will you hunt Nightpelt?"
+    ],
+    "accept": "I will hunt her.",
+    "decline": "Not yet.",
+    "declined": "She will not grow gentler while you wait.",
+    "started": "South, past the sentinel on the path, and down into the hollow. Do not let her get behind you.",
+    "target": "Nightpelt",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "Nightpelt's fang",
+      "description": "A long fang of the shadow panther Nightpelt.",
+      "like": "bat fang"
+    },
+    "hunt": {
+      "journal": "Take Nightpelt's fang from the shadow panther Nightpelt in the hollow south of the glade."
+    },
+    "give": {
+      "journal": "Bring Nightpelt's fang to Hornwarden Tavos.",
+      "says": [
+        "Nightpelt's own fang! The pipers will play in the hollow again. You are a kid no longer.",
+        "Learn this, and see Gatekeeper Dorvan when you are ready for the elven road."
+      ]
+    }
+  },
+  "flight": {
+    "name": "The Elven Road",
+    "giver": "Gatekeeper Dorvan",
+    "offer": [
+      "The road to Tunaria is open. The elves of Tethelin and Fayspire share our love of the old woods, and they will train you as their own, each in the city of your calling.",
+      "You have earned the passage, kid. I will set you down among your own guild in the elves' city, and your spirit will rest there.",
+      "Shall I send you down the elven road?"
+    ],
+    "accept": "Send me to the elves.",
+    "decline": "Not yet.",
+    "declined": "The road will wait for you.",
+    "started": "Go with a light step!",
+    "journal": "Tell Gatekeeper Dorvan when you are ready to take the elven road to the elves' cities."
+  }
+}

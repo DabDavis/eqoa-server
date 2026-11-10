@@ -1,0 +1,180 @@
+{
+  "race": "ratman",
+  "home": "The Vastly Deep",
+  "city": "Moradhim",
+  "note": "The shore camp's people are tools/worlds/homelands.json's (The Vastly Deep): Elder Skritch gives the first two, Tunnelrunner Chisk beside him the three hunts; Ragpicker Tikka (north of the elder) is the outfitter, Coachman Rusk keeps the stable on the open sand south-east of the camp. The dune snakes are on the sand east of the camp, the tidewrack crabs along the tide line south-east of it, the cobra Hoodscale alone on the rise north-east, past the snakes.",
+  "L1": {
+    "name": "A Ring from the Tide Line",
+    "giver": "Elder Skritch",
+    "offer": [
+      "Hss, a new whisker in the camp, and nothing shiny on it yet! Every ratman of the Deep wears a tideline ring, twisted from the first good wire the sea gave us.",
+      "Ragpicker Tikka sorts what the tide leaves. Her heap is on the sand north of here.",
+      "Will you fetch your ring and show it to me?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "The camp will wait, whisker.",
+    "started": "Go. Tikka's heap is on the sand north of here.",
+    "merchant": "Ragpicker Tikka",
+    "piece": {
+      "name": "tideline ring",
+      "description": "A ring of twisted wire scavenged from the tide line. Every young ratman of the shore camp wears one.",
+      "like": "Chipped Ring",
+      "set": {
+        "HPMAX": 5
+      }
+    },
+    "fetch": {
+      "journal": "Ask Ragpicker Tikka, north of Elder Skritch, for a tideline ring.",
+      "says": "Skritch sent you? Hold out a claw. There: good wire, twisted tight, and it is the only thing in this heap you get for nothing."
+    },
+    "show": {
+      "journal": "Show the tideline ring to Elder Skritch.",
+      "says": "Shiny enough. Wear it, and the camp will know you did not steal your place here."
+    }
+  },
+  "L2": {
+    "name": "Bound to the Shore",
+    "giver": "Elder Skritch",
+    "offer": [
+      "The tide takes the slow, whisker, and the deep tunnels take the rest. Have Spiritmaster Vessik bind your spirit to the camp, so that you wake here when something eats you.",
+      "Then give your name to Coachman Rusk for his ledger. His coach runs to Freeport and to the other homes of the Homelands, for those their stables know.",
+      "Will you see them both and come back to me?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "Then stay where I can see you.",
+    "started": "Vessik is north-west of here, by the shacks. Rusk keeps his coach on the open sand to the south-east.",
+    "spiritmaster": "Spiritmaster Vessik",
+    "coachman": "Coachman Rusk",
+    "bind": {
+      "journal": "Have Spiritmaster Vessik, north-west of the elder, bind your spirit to the shore camp.",
+      "says": "It is done. When something eats you, you will wake here in the camp. Now go and give Coachman Rusk your name."
+    },
+    "ledger": {
+      "journal": "Give your name to Coachman Rusk, south-east of the elder, for his ledger.",
+      "says": "Welcome to my stable, whisker. My coach runs to Freeport and to every other home of the Homelands, for travelers whose names their ledgers hold. Yours is in mine now."
+    },
+    "back": {
+      "journal": "Return to Elder Skritch.",
+      "says": [
+        "Good. Now you cannot get lost, however hard you try.",
+        "Rusk's coach will carry you to Freeport if its ledger knows you, but the way down to Moradhim is earned. Tunnelrunner Chisk, beside me, has work for you."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Snakes on the Shore",
+    "giver": "Tunnelrunner Chisk",
+    "offer": [
+      "So you are the new whisker. Good. Dune snakes come down the sand east of the camp and swallow our eggs whole.",
+      "Kill them and bring me three of their fangs. Then I will teach you something worth knowing.",
+      "Will you hunt them?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "Then hide the eggs well.",
+    "started": "Three fangs. Strike first, whisker.",
+    "target": "dune snake",
+    "count": 3,
+    "drop": {
+      "name": "dune snake fang",
+      "description": "The fang of a dune snake from the sand east of the ratmen's shore camp.",
+      "like": "cracked snake fang"
+    },
+    "hunt": {
+      "journal": "Take three dune snake fangs from the dune snakes on the sand east of the camp."
+    },
+    "give": {
+      "journal": "Bring three dune snake fangs to Tunnelrunner Chisk.",
+      "says": "Three fangs, and your tail still on. You can fight. Now watch my paws, and learn this."
+    }
+  },
+  "L4": {
+    "name": "A Whisker's Arms",
+    "giver": "Tunnelrunner Chisk",
+    "offer": [
+      "Teeth and a bad temper will not serve you in the dwarves' halls. I will make you proper gear, but you will fetch what I need.",
+      "Ragpicker Tikka has net cord and a good shaft for me. Then take a claw from the tidewrack crabs along the tide line south-east of the camp.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then keep to your teeth, and to the shacks.",
+    "started": "Cord and a shaft from Tikka, a claw from the crabs. Go.",
+    "materials": [
+      {
+        "merchant": "Ragpicker Tikka",
+        "items": [
+          {
+            "name": "salvaged net cord",
+            "description": "A length of tarred cord picked out of a net the tide left on the ratmen's shore.",
+            "like": "silk cord"
+          },
+          "wooden shaft"
+        ],
+        "journal": "Ask Ragpicker Tikka for the salvaged net cord and the wooden shaft.",
+        "says": "For Chisk? Here, a length of net cord and a straight shaft. Tell him the heap keeps count of what he owes."
+      }
+    ],
+    "target": "tidewrack crab",
+    "count": 1,
+    "drop": {
+      "name": "tidewrack crab claw",
+      "description": "The heavy claw of a tidewrack crab from the tide line by the ratmen's shore camp.",
+      "like": "darkclaw crab claw"
+    },
+    "hunt": {
+      "journal": "Take a tidewrack crab claw from the tidewrack crabs along the tide line south-east of the camp."
+    },
+    "give": {
+      "journal": "Bring the salvaged net cord, the wooden shaft and the tidewrack crab claw to Tunnelrunner Chisk.",
+      "says": "All three. Give me a moment... there. It is yours: do not lose it to the tide."
+    }
+  },
+  "L5": {
+    "name": "Old Hoodscale",
+    "giver": "Tunnelrunner Chisk",
+    "offer": [
+      "One task more before the deep halls. The dune snakes have a mother, a great cobra we call Hoodscale, and she has killed two egg-watchers on the rise north-east of the camp.",
+      "She lies alone up there, past her brood, and she strikes first. Bring me her fang, and I will teach you the last thing I have for a whisker.",
+      "Will you hunt Hoodscale?"
+    ],
+    "accept": "I will hunt her.",
+    "decline": "Not yet.",
+    "declined": "She will not grow gentler while you wait.",
+    "started": "East past the snakes, then up the rise to the north. Do not stand where she can see you first.",
+    "target": "Hoodscale",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "Hoodscale's fang",
+      "description": "A long, hollow fang of the cobra Hoodscale.",
+      "like": "chipped snake fang"
+    },
+    "hunt": {
+      "journal": "Take Hoodscale's fang from the cobra Hoodscale on the rise north-east of the camp, past the dune snakes."
+    },
+    "give": {
+      "journal": "Bring Hoodscale's fang to Tunnelrunner Chisk.",
+      "says": [
+        "Hoodscale's own fang! Hss! The eggs will hatch this season. You are a whisker no longer.",
+        "Learn this, and see Gatekeeper Ksarr by the water when you are ready for the deep halls."
+      ]
+    }
+  },
+  "flight": {
+    "name": "Into the Deep Halls",
+    "giver": "Gatekeeper Ksarr",
+    "offer": [
+      "The way to Tunaria is open. The dwarves of Moradhim let us dig beside them in their deep halls, and they will train you as their own.",
+      "You have earned the passage, whisker. I will set you down among your own guild in Moradhim, and your spirit will rest there.",
+      "Shall I send you down to the deep halls?"
+    ],
+    "accept": "Send me to Moradhim.",
+    "decline": "Not yet.",
+    "declined": "The halls will wait for you.",
+    "started": "Keep your nose to the stone!",
+    "journal": "Tell Gatekeeper Ksarr when you are ready to go down to the deep halls of Moradhim."
+  }
+}

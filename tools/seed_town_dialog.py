@@ -34,6 +34,14 @@ gives lines that no faction of the database names (a town is its faction's:
 "Citizens of X", or a guard faction or House entity/dialog.go maps), and
 how many of the lines are in the table already.
 
+To add lore: the fact first, in tools/dialog/LORE-FACTS.md ("- **ID-n** the
+fact", then "  - where it stands: "the source's words"" under it), then the
+line in a block of lore_lines.json as {"line": ..., "note": "ID-n: ..."};
+tools/seed_town_dialog_lore_test.py holds the file to its rules (a fact for
+every line, the client's box, no name of EverQuest's day, no two lines
+alike, every town and people covered); then --set lore --apply on each
+shard's database, which writes only the new lines.
+
 --apply ADDS what is new, and only that: a line the set's log holds was
 written once (it is as it was, or as a GM left it, or a GM took it away: the
 GM's either way, never written again); a line the table holds unlogged, word

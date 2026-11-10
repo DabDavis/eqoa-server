@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"testing"
 	"time"
+
+	"github.com/eqoa/server/internal/session"
 )
 
 // Worn items' HoT (PoT) as the Formulas page counts them: the highest in
@@ -74,24 +76,43 @@ func TestRegenTicksEverySixSecondsInAFight(t *testing.T) {
 }
 
 // A HoT below nothing (the Lich form's -196 a tick) takes its hit points at
-// full health too and stops at 1; a HoT above nothing still heals only what
-// is missing (the control).
-func TestANegativeHoTDrainsAtFullHealthDownToOne(t *testing.T) {
-	p := &Player{Level: 60, HP: 3000, MaxHP: 3000, Power: 100, MaxPower: 2000}
+// full health too, and one a spell makes can kill (the owner, 2026-11-10, for
+// jib's ruling: "You could definitely kill yourself with lich form"): the
+// regen tick that leaves nothing is the bearer's death. The controls: a worn
+// item's HoT below nothing still stops at 1, and a HoT above nothing still
+// heals only what is missing.
+func TestANegativeHoTDrainsAtFullHealthAndASpellsCanKill(t *testing.T) {
+	w := NewWorld()
+	w.SessionManager = session.NewManager()
+	p := &Player{ServerID: 1, Name: "Lich", Level: 60, HP: 3000, MaxHP: 3000, Power: 100, MaxPower: 2000}
+	w.Players[p.ServerID] = p
 	p.Mods.HoT = -196 // the base is 3000/50 = 60: a tick of -136
-	p.regenTick()
+	regen := func() {
+		w.mu.Lock()
+		defer w.mu.Unlock()
+		w.TickCount = uint64(RegenInterval / (100 * time.Millisecond)) // a regen tick's
+		w.regenSystem(time.Unix(1_800_000_000, 0))
+	}
+	regen()
 	if p.HP != 3000-136 {
 		t.Fatalf("at full health: HP %d, want %d", p.HP, 3000-136)
 	}
 	p.HP = 100
-	p.regenTick()
-	if p.HP != 1 {
-		t.Fatalf("near its end: HP %d, want 1", p.HP)
+	regen()
+	if p.HP != 0 || !p.respawnPending() {
+		t.Fatalf("near its end: HP %d, died %v; want 0 and dead", p.HP, p.respawnPending())
 	}
-	p.regenTick()
-	if p.HP != 1 {
-		t.Fatalf("at 1: HP %d, want 1", p.HP)
+
+	worn := &Player{Level: 5, HP: 100, MaxHP: 100, MaxPower: 200}
+	worn.Gear.HoTItems = []int{-10} // the base is 100/50 = 2: a tick of -8
+	if worn.regenTick() || worn.HP != 92 {
+		t.Fatalf("a worn item's: HP %d, want 92 and alive", worn.HP)
 	}
+	worn.HP = 5
+	if worn.regenTick() || worn.HP != 1 {
+		t.Fatalf("a worn item's near its end: HP %d, want 1", worn.HP)
+	}
+
 	c := &Player{Level: 60, HP: 3000, MaxHP: 3000, MaxPower: 2000}
 	c.regenTick()
 	if c.HP != 3000 {

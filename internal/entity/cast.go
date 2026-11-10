@@ -1492,7 +1492,7 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 		case EffectHP:
 			n := spellAmount(e, caster)
 			if n < 0 && ownPrice {
-				if w.selfCostLocked(cs.spell.Name, caster, casterSess, -n, true, false, now) {
+				if w.selfCostLocked(cs.spell.Name, caster, casterSess, -n, true, now) {
 					return
 				}
 				continue
@@ -1650,7 +1650,7 @@ func (w *World) tickEffectLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	if ae.Rules.Twice { // the workbook's first tick, twice (workbook.go)
 		ae.Rules.Twice, times = false, 2
 	}
-	for ; times > 0; times-- {
+	for ; times > 0 && !t.IsDead(); times-- {
 		w.runTickLocked(t, ae, now)
 	}
 }
@@ -1661,11 +1661,12 @@ func (w *World) runTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 		w.duelTickLocked(t, ae, now) // a duel's damage over time (duelfight.go)
 		w.npcTickLocked(t, ae, now)  // a creature's (classtemplate.go)
 		// the bearer's own spell losing hit points each tick (Cursed Flesh's
-		// "Decrease HP per tic by 800"): its price, until it wears off or a
-		// Remove Illusion or True Form ends its look, never below 1
-		// (lifetap.go selfCostLocked)
-		if ae.Caster == t.ServerID && ae.duelFoe == 0 && ae.npcFoe == 0 {
-			w.selfCostLocked(ae.Name, t, w.findSessionByEntityIDLocked(t.ServerID), -ae.HPTick, false, true, now)
+		// "Decrease HP per tic by 800"): its price, until it wears off, or a
+		// Remove Illusion or True Form ends its look, or it kills its bearer
+		// (lifetap.go selfCostLocked), the tick doing no more
+		if ae.Caster == t.ServerID && ae.duelFoe == 0 && ae.npcFoe == 0 &&
+			w.selfCostLocked(ae.Name, t, w.findSessionByEntityIDLocked(t.ServerID), -ae.HPTick, false, now) {
+			return
 		}
 	}
 	if ae.HPTick > 0 {

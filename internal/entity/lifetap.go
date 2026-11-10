@@ -314,20 +314,15 @@ func (w *World) payPriceLocked(cs *castState, caster *Player, sess *session.Sess
 // nothing, and Cannibalize gave its power for nothing), and the shadow
 // knight's Cursed Flesh's "Decrease HP per tic by 800" at each tick
 // (runTickLocked, where a player's own damage tick did nothing). The figure on
-// the bearer and, when say, a line saying it. A landing's price may kill, as
-// a pact's does (payPriceLocked), and reports it so nothing more of the spell
-// lands; a tick's (floor) leaves at least 1, as the Lich form's price over time
-// does (regen.go: the user's "yes" of 2026-11-01, the floor ours). A pact's
-// price, a clause "... to Self", stays payPriceLocked's, resisted.
-func (w *World) selfCostLocked(name string, p *Player, sess *session.Session, n int, say, floor bool, now time.Time) bool {
+// the bearer and, when say, a line saying it. Either may kill, as a pact's
+// price does (payPriceLocked), and as the Lich form's price over time does
+// (regen.go; the owner, 2026-11-10: a price over time can kill, as the ruling
+// says): it reports the death, so nothing more of the spell lands and its
+// tick does no more. A pact's price, a clause "... to Self", stays
+// payPriceLocked's, resisted.
+func (w *World) selfCostLocked(name string, p *Player, sess *session.Session, n int, say bool, now time.Time) bool {
 	if n <= 0 || p.IsDead() {
 		return false
-	}
-	if floor {
-		n = min(n, p.HP-1)
-		if n <= 0 {
-			return false
-		}
 	}
 	log.Printf("Cast: %q costs %s %d hit points (HP %d)", name, p.Name, n, p.HP)
 	if say && sess != nil {

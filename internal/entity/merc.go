@@ -793,9 +793,12 @@ func (n *NPC) mercRegen() {
 // followLocked keeps npc petFollow off its owner as a pet follows
 // (petFollowLocked): from petFollowStart away, at its owner's speed, half as
 // fast again past petCatchUp. Must be called with the lock held.
-func (w *World) followLocked(npc *NPC, owner *Player, dt float32) {
+func (w *World) followLocked(npc *NPC, owner *Player, dt float32, now time.Time) {
 	d := distXZ(npc.X, npc.Z, owner.X, owner.Z)
-	if d <= petFollow || (npc.Loco == LocoStand && d <= petFollowStart) {
+	// beside its owner it stands; but not on the floor over or under it while
+	// the ground has a way to its owner's (petwalk.go)
+	stacked := d <= petFollowStart && w.petStackedLocked(npc, owner.X, owner.Y, owner.Z, now)
+	if !stacked && (d <= petFollow || (npc.Loco == LocoStand && d <= petFollowStart)) {
 		npc.stopMoving()
 		return
 	}
@@ -803,17 +806,20 @@ func (w *World) followLocked(npc *NPC, owner *Player, dt float32) {
 	if d > petCatchUp {
 		speed *= 1.5
 	}
-	x := owner.X + (npc.X-owner.X)/d*petFollow
-	z := owner.Z + (npc.Z-owner.Z)/d*petFollow
-	w.petStepLocked(npc, x, z, owner.Y, speed, dt)
+	x, z := npc.X, npc.Z
+	if d > petFollow {
+		x = owner.X + (npc.X-owner.X)/d*petFollow
+		z = owner.Z + (npc.Z-owner.Z)/d*petFollow
+	}
+	w.petWalkLocked(npc, owner.ServerID, x, z, owner.X, owner.Y, owner.Z, speed, dt, now) // round what stands between
 }
 
 // mercHomeLocked is where the merc stands out of a fight: beside its owner,
 // or the place it holds (/merc stay). Must be called with the lock held.
-func (w *World) mercHomeLocked(ms *mercState, dt float32) {
+func (w *World) mercHomeLocked(ms *mercState, dt float32, now time.Time) {
 	n := ms.npc
 	if !ms.stay {
-		w.followLocked(n, ms.owner, dt)
+		w.followLocked(n, ms.owner, dt, now)
 		return
 	}
 	if distXZ(n.X, n.Z, ms.stayAt[0], ms.stayAt[2]) <= 1 {

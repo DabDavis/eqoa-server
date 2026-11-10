@@ -286,7 +286,7 @@ func (w *World) familiarSystem(now time.Time) {
 			n.stopMoving()
 			w.SpatialIndex.Update(n.ServerID, oldX, oldZ, n.X, n.Z)
 		} else {
-			w.followLocked(n, owner, dt)
+			w.followLocked(n, owner, dt, now)
 		}
 		n.Level = owner.Level
 		w.familiarActLocked(fs, sess, now)

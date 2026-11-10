@@ -651,3 +651,41 @@ func TestTheRaidGodsAbilities(t *testing.T) {
 		}
 	}
 }
+
+// Innoruuk's buffs his own and Mr. Moogie's line at his death (the owner and petition 1458, 2026-11-10): a
+// proc or a veil of a pinned spell takes its own look at what it hits (fx), a killsay its foes and line;
+// each refused without its parts, with a clock, or named twice. The control: a visual beside a pinned
+// nuke's is still refused.
+func TestAbilitiesOfSelfBuffsAndKillSays(t *testing.T) {
+	for _, good := range []string{
+		`[{"kind":"proc","spell_id":700794,"fx":212655841},{"kind":"veil","spell_id":1431,"tap_pct":1,"resist":"AR"}]`,
+		`[{"kind":"veil","spell":"Veil of Death +","tap_pct":1,"fx":7}]`,
+		`[{"kind":"killsay","foes":["Innoruuk","Tunare"],"say":"Dab got dunked again"}]`,
+	} {
+		list, err := ParseTemplateAbilities(good)
+		if err != nil {
+			t.Errorf("%s refused: %v", good, err)
+			continue
+		}
+		again, err := ParseTemplateAbilities(TemplateAbilitiesJSON(list))
+		if err != nil || !reflect.DeepEqual(again, list) {
+			t.Errorf("%s written back: %v %v", good, again, err)
+		}
+	}
+	for _, bad := range []string{
+		`[{"kind":"killsay","foes":["Innoruuk"]}]`,                             // a line of nothing
+		`[{"kind":"killsay","say":"Dab got dunked again"}]`,                    // no foes
+		`[{"kind":"killsay","foes":[""],"say":"x"}]`,                           // a foe of no name
+		`[{"kind":"killsay","foes":["Innoruuk"],"say":"x","every":10}]`,        // a clock on what casts nothing
+		`[{"kind":"killsay","foes":["Innoruuk"],"say":"x","spell_id":1431}]`,   // a spell on a line
+		`[{"kind":"veil","spell_id":1431,"tap_pct":1,"name":"Veil of Death"}]`, // named by its name and its spell
+		`[{"kind":"veil","spell_id":1431}]`,                                    // a veil of nothing
+		`[{"kind":"veil","spell_id":1431,"tap_pct":1,"every":60}]`,             // a clock on a veil
+		`[{"kind":"proc","spell_id":700794,"fx":7,"every":60}]`,                // a clock on a proc
+		`[{"kind":"nuke","spell_id":905100,"every":10,"fx":7}]`,                // the control: a visual beside a pinned nuke's
+	} {
+		if _, err := ParseTemplateAbilities(bad); err == nil {
+			t.Errorf("%s read, want refused", bad)
+		}
+	}
+}

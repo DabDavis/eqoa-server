@@ -55,6 +55,7 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	s.SetBugReports(true)
 	s.SetFlyClient(true)
 	s.SetNumberTags(true)
+	s.SetNPCTints(true)
 	s.SetDiscVersion(0x12)
 	s.OfferCapesOnce()
 	s.SetCapes(true)
@@ -89,6 +90,12 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	// its figures' tags (entity/numbertags.go): still asked for
 	if !r.NumberTags() {
 		t.Fatal("the number tags' answer not kept")
+	}
+	// the NPCs' body tints (entity/npctint.go): still asked for, and what the
+	// client holds unknown, so the next set goes even when it is empty; the
+	// control, the session before the restart, held none and takes no empty set
+	if !r.NPCTints() || !r.TakeNPCTints("\x00\x00", true) || r.TakeNPCTints("\x00\x00", true) || s.TakeNPCTints("\x00\x00", true) {
+		t.Fatal("the NPC tints' answer not kept, or the set it holds not unknown")
 	}
 	// the capes (handlers/capes.go): the client still draws them, and is not
 	// offered them again

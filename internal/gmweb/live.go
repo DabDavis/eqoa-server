@@ -2,6 +2,7 @@ package gmweb
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/eqoa/server/internal/database"
@@ -49,6 +50,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveSocial()
 	case "npcspawnonly":
 		return s.liveSpawnOnly()
+	case "npctint":
+		return s.liveTints()
 	case "npcdialog":
 		database.InvalidateNPCDialog()
 		return "at once: the next talk to a town's person or a guard"
@@ -248,6 +251,34 @@ func (s *Server) liveSpawnOnly() string {
 	}
 	return fmt.Sprintf("at once: %d NPC(s) changed, %d out of the world in all; the quests' and triggers' spawns copy them as before",
 		changed, held)
+}
+
+// liveTints reads the NPCs' body tints again (entity/npctint.go; the change is
+// committed: the database is free) and tells every client that draws them.
+func (s *Server) liveTints() string {
+	if s.d.World == nil || s.d.DB == nil {
+		return "no world is running: at the next start"
+	}
+	names, told, err := s.d.World.LoadNPCTints(s.d.DB)
+	if err != nil {
+		return "not applied to the world: " + err.Error()
+	}
+	return fmt.Sprintf("at once: %d name(s) tinted, sent to the %d client(s) in the game that draw tints (a PS2 draws none)", names, told)
+}
+
+// checkTintRow holds an npctint row to a name and a 32-bit colour: a blank name
+// would tint no NPC and say nothing.
+func checkTintRow(row map[string]any) error {
+	if name, _ := row["name"].(string); database.NPCClassKey(name) == "" {
+		return badRequest("name is the NPC's name, as in NPCs (any case)")
+	}
+	if v, ok := row["color"]; ok {
+		f, fok := asFloat(v)
+		if !fok || f != math.Trunc(f) || !database.ValidNPCTint(int64(f)) {
+			return badRequest("color is 0xRRGGBBAA (0x5A8C50FF a dark green): each channel of the body times RR/FF, GG/FF, BB/FF, AA how much of it")
+		}
+	}
+	return nil
 }
 
 // checkSpawnOnlyRow holds an npcspawnonly row to a name: a blank one would

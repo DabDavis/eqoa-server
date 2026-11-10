@@ -2,99 +2,574 @@
   "city": "homelands",
   "quests": [
     {
-      "key": "homelands/hillgiant/welcome",
-      "name": "A Stone Among Stones",
+      "key": "homelands/hillgiant/L1",
+      "name": "A Young Giant's Tooth",
       "giver": "Elder Hrolmog",
       "classes": [],
-      "races": [],
+      "races": [
+        11
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "Ho, a new giant on the plateau! Before you go stomping off, every young one of the clan greets Bulka. She keeps the meat pits by the old steps, and no giant marches hungry while she has a say.",
-      "accept": "I will greet her.",
+      "offer": "Hmm. A new one. Small yet. You will grow. Everything on the plateau grows, or gets stepped on.\nEvery giant of the camp wears a rhino's tooth on a thong, so the others know it is no ogre. Hidewife Marna cuts the thongs. She sits a few steps to the south.\nWill you fetch your tooth and show it to me?",
+      "accept": "I will fetch it.",
       "decline": "Not now.",
-      "declined": "The plateau is patient. So am I.",
-      "started": "Go on. Bulka is just west of here, by the pits.",
+      "declined": "Then stand there. You are good at it.",
+      "started": "Marna. A few steps south. Go.",
       "steps": [
         {
           "kind": "talk",
-          "target": "Grocer Bulka",
-          "journal": "Greet Grocer Bulka by the meat pits west of the old steps.",
-          "says": "Hrolmog sent you? Then eat this, and grow bigger still.",
-          "rewards": {
-            "items": [
-              "spiced jerky"
-            ]
-          }
+          "target": "Hidewife Marna",
+          "journal": "Ask Hidewife Marna, a few steps south of Elder Hrolmog, for a young giant's tooth thong.",
+          "says": "Hrolmog sent you? Bend down. Further. There. A rhino's tooth, and my best hide. Do not chew it. Nothing to pay, little one.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "young giant's tooth thong",
+                  "count": 1
+                }
+              ]
+            }
+          ]
         },
         {
-          "kind": "talk",
+          "kind": "show",
           "target": "Elder Hrolmog",
-          "journal": "Return to Elder Hrolmog at the foot of the old steps.",
-          "says": "Good. Now Bulka knows your face, and you know where the food is.",
+          "items": [
+            {
+              "item": "young giant's tooth thong",
+              "count": 1
+            }
+          ],
+          "journal": "Show the young giant's tooth thong to Elder Hrolmog.",
+          "says": "Good tooth. Now the camp knows you. When you are big, you will pull your own from a rhino.",
           "rewards": {
-            "xp": 200,
-            "tunar": 10
+            "xp": 430
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 1
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the hill giants' first, at their home zone, West Plateau of the disc."
+      "notes": "Ours (the Homelands' starter quests): the hillgiant's level 1, at West Plateau, on the cities' level 1 quest: a piece of equipment fetched from a merchant and shown to the giver. Finishing it finishes the character's own city class quest of level 1 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/hillgiant.json: change that file, never this quest's rows by hand."
     },
     {
-      "key": "homelands/hillgiant/hunt",
-      "name": "Skinks in the Pits",
+      "key": "homelands/hillgiant/L2",
+      "name": "A Stone That Comes Back",
       "giver": "Elder Hrolmog",
       "classes": [],
-      "races": [],
-      "minlevel": 1,
+      "races": [
+        11
+      ],
+      "minlevel": 2,
       "maxlevel": 60,
       "requires": [
-        "homelands/hillgiant/welcome"
+        "homelands/hillgiant/L1"
       ],
-      "offer": "Plateau skinks keep slipping into Bulka's meat pits. Go out on the grass west of the steps and stamp on five of them. Mind you do not stamp on Bulka.",
-      "accept": "I will stamp on them.",
+      "offer": "Giants fall. It is loud, and it hurts. Go to Spiritmaster Ognarr. He will tie your spirit to the camp, so you get up here after.\nThen tell Coachman Durgo your name for his ledger. His coach goes to Freeport and to the other homes of the Homelands. It is a strong coach.\nWill you see them both and come back?",
+      "accept": "I will see them both.",
       "decline": "Not now.",
-      "declined": "Then the skinks feast tonight.",
-      "started": "Five skinks. They are quick, so be quicker.",
+      "declined": "Then do not fall down.",
+      "started": "Ognarr is north. Durgo is south, out on the plain.",
       "steps": [
         {
-          "kind": "kill",
-          "target": "plateau skink",
-          "count": 5,
-          "journal": "Kill five plateau skinks on the grass west of the old steps."
+          "kind": "talk",
+          "target": "Spiritmaster Ognarr",
+          "journal": "Have Spiritmaster Ognarr, north of the elder, bind your spirit to the camp.",
+          "says": "Done. Fall where you like. You will get up here. Now go and tell Coachman Durgo your name."
+        },
+        {
+          "kind": "talk",
+          "target": "Coachman Durgo",
+          "journal": "Give your name to Coachman Durgo, on the plain south of the elder, for his ledger.",
+          "says": "A giant! Good. I built the coach for giants. It runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now."
         },
         {
           "kind": "talk",
           "target": "Elder Hrolmog",
-          "journal": "Tell Elder Hrolmog the skinks are dealt with.",
-          "says": "Five fewer thieves. You have heavy feet, young one. Good feet.",
+          "journal": "Return to Elder Hrolmog.",
+          "says": "Good. Now you always come back.\nDurgo's coach goes where its ledgers know you. But the stone way to Oggok is earned. Stonehand Borrik, beside me, has work for you.",
           "rewards": {
-            "xp": 400,
-            "tunar": 25
+            "xp": 2200
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 2
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours: the hill giants' second starter quest, the elder's too (the owner's 2026-11-10: an elder giving two starter quests); the plateau skinks are tools/seed_race_homes.py's, passive (npcaggro)."
+      "notes": "Ours (the Homelands' starter quests): the hillgiant's level 2, at West Plateau, on the cities' level 2 quest: the spiritmaster's bind and the coachman's ledger. Finishing it finishes the character's own city class quest of level 2 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/hillgiant.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/hillgiant/L3",
+      "name": "Skinks in the Grass",
+      "giver": "Stonehand Borrik",
+      "classes": [],
+      "races": [
+        11
+      ],
+      "minlevel": 3,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/hillgiant/L2"
+      ],
+      "offer": "You are the new one. Good. Skinks are in the grass west of camp. They bite ankles. Giants have a lot of ankle.\nStamp on some. Bring me three of their scales. Then I will show you a thing.\nWill you hunt them?",
+      "accept": "I will hunt them.",
+      "decline": "Not now.",
+      "declined": "Then mind your ankles.",
+      "started": "Three scales. West, out on the plain.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "plateau skink",
+          "items": [
+            {
+              "item": "plateau skink scale",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three plateau skink scales from the plateau skinks on the plain west of the camp."
+        },
+        {
+          "kind": "give",
+          "target": "Stonehand Borrik",
+          "items": [
+            {
+              "item": "plateau skink scale",
+              "count": 3
+            }
+          ],
+          "journal": "Bring three plateau skink scales to Stonehand Borrik.",
+          "says": "Three scales. Ankles still on. Good. Now watch my hands, and learn this.",
+          "rewards": {
+            "xp": 6900,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Swift Blade"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Hero Guard"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Malice"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Chant of Battle"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Sneak"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Fiery Burst"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Tribal Toughness"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Minor Blessing"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Smoldering Aura"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Life Tap"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Crawling Skin"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Arcane Bindings"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Hardening Agent"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 3
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the hillgiant's level 3, at West Plateau, on the cities' level 3 quest: a hunt for drops; each class is taught what its own city's level 3 quest teaches it. Finishing it finishes the character's own city class quest of level 3 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/hillgiant.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/hillgiant/L4",
+      "name": "A Young Giant's Arms",
+      "giver": "Stonehand Borrik",
+      "classes": [],
+      "races": [
+        11
+      ],
+      "minlevel": 4,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/hillgiant/L3"
+      ],
+      "offer": "Fists are good. Fists with something in them are better. I will make you proper gear. You fetch what I need.\nHidewife Marna has leather and a shaft for me. Then take a claw off the rock badgers on the plain south of camp.\nWill you bring me all three?",
+      "accept": "I will bring them.",
+      "decline": "Not now.",
+      "declined": "Then use your fists. They are not bad.",
+      "started": "Leather and a shaft from Marna. A claw from the badgers. Go.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Hidewife Marna",
+          "journal": "Ask Hidewife Marna for the leather strip and the wooden shaft.",
+          "says": "For Borrik? Here. Hide, and a shaft. It was a tree this morning. Tell him to make it a big one.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "leather strip",
+                  "count": 1
+                },
+                {
+                  "item": "wooden shaft",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "loot",
+          "target": "rock badger",
+          "items": [
+            {
+              "item": "rock badger claw",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 0.5,
+          "journal": "Take a rock badger claw from the rock badgers on the plain south of the camp."
+        },
+        {
+          "kind": "give",
+          "target": "Stonehand Borrik",
+          "items": [
+            {
+              "item": "leather strip",
+              "count": 1
+            },
+            {
+              "item": "wooden shaft",
+              "count": 1
+            },
+            {
+              "item": "rock badger claw",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the leather strip, the wooden shaft and the rock badger claw to Stonehand Borrik.",
+          "says": "All three. Stand back. This is loud... there. It is yours. Do not drop it on anyone you like.",
+          "rewards": {
+            "xp": 17000,
+            "byclass": {
+              "0": {
+                "items": [
+                  "militia short sword"
+                ]
+              },
+              "1": {
+                "items": [
+                  "Glade Crafted Longbow"
+                ]
+              },
+              "2": {
+                "items": [
+                  "Sword of Faith"
+                ]
+              },
+              "3": {
+                "items": [
+                  "Iron Hatchet"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Disciple's Jitte"
+                ]
+              },
+              "5": {
+                "items": [
+                  "Traveler's Rapier"
+                ]
+              },
+              "6": {
+                "items": [
+                  "tiger dirk"
+                ]
+              },
+              "7": {
+                "items": [
+                  "crafted glade staff"
+                ]
+              },
+              "8": {
+                "items": [
+                  "Corse Spiked Club"
+                ]
+              },
+              "9": {
+                "items": [
+                  "Acolyte's Hammer"
+                ]
+              },
+              "10": {
+                "items": [
+                  "blue robe"
+                ]
+              },
+              "11": {
+                "items": [
+                  "Black Robe of the Order"
+                ]
+              },
+              "12": {
+                "items": [
+                  "yellow robe"
+                ]
+              },
+              "13": {
+                "items": [
+                  "red robe"
+                ]
+              },
+              "14": {
+                "items": [
+                  "burnt gloves"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 4
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the hillgiant's level 4, at West Plateau, on the cities' level 4 quest: new gear of a merchant's materials and a drop; each class is given what its own city's level 4 quest gives it (class-rewards.json has the two classes the cities give nothing). Finishing it finishes the character's own city class quest of level 4 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/hillgiant.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/hillgiant/L5",
+      "name": "Old Greyjaw",
+      "giver": "Stonehand Borrik",
+      "classes": [],
+      "races": [
+        11
+      ],
+      "minlevel": 5,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/hillgiant/L4"
+      ],
+      "offer": "One more thing. An old wolf, Greyjaw, hunts far to the north, past Thundrik's stones. It took a calf from the herders. It is not afraid of giants.\nIt will come at you first. Let it. Then hit it. Bring me its fang.\nWill you hunt Greyjaw?",
+      "accept": "I will hunt it.",
+      "decline": "Not yet.",
+      "declined": "It is old. It is not getting slower.",
+      "started": "North. Past Thundrik and his stones, and on. It will find you.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "Greyjaw",
+          "items": [
+            {
+              "item": "Greyjaw's fang",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 1.0,
+          "journal": "Take Greyjaw's fang from the old wolf Greyjaw, far north of the camp, beyond the gatekeeper."
+        },
+        {
+          "kind": "give",
+          "target": "Stonehand Borrik",
+          "items": [
+            {
+              "item": "Greyjaw's fang",
+              "count": 1
+            }
+          ],
+          "journal": "Bring Greyjaw's fang to Stonehand Borrik.",
+          "says": "Greyjaw's fang. Hah! The herders will sleep. You are not so small now.\nLearn this. Then see Gatekeeper Thundrik at the stones to the north when you want Oggok.",
+          "rewards": {
+            "xp": 36500,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Taunt"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Forage Berries"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Lay Hands"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Harm Touch"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Minor Purity"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Funeral March"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Shadowstrike"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Snare"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Blighting Mist"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Holy Shock"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Motivate"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Rabid Infection"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Heavy Arms"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Shock of Frost"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Refinement"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 5
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the hillgiant's level 5, at West Plateau, on the cities' level 5 quest: a foe to bring down; each class is taught what its own city's level 5 quest teaches it. Finishing it finishes the character's own city class quest of level 5 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/hillgiant.json: change that file, never this quest's rows by hand."
     },
     {
       "key": "homelands/hillgiant/flight",
       "name": "The Stone Way",
       "giver": "Gatekeeper Thundrik",
       "classes": [],
-      "races": [],
+      "races": [
+        11
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [
-        "homelands/hillgiant/welcome",
-        "homelands/hillgiant/hunt"
+        "homelands/hillgiant/L1",
+        "homelands/hillgiant/L2",
+        "homelands/hillgiant/L3",
+        "homelands/hillgiant/L4",
+        "homelands/hillgiant/L5"
       ],
       "repeatable": true,
-      "offer": "The ogres of Oggok are strong, and they will train you as one of their own. I can open the stone way across the sea to them, but it opens one way only. Are you ready to go?",
+      "offer": "The ogres of Oggok are strong, and they like giants. They will train you as one of their own, across the sea.\nYou have earned the stone way. I will set you down among your own guild in Oggok, and your spirit will rest there.\nShall I open the way to Oggok?",
       "accept": "Open the way to Oggok.",
       "decline": "Not yet.",
-      "declined": "The way will keep.",
+      "declined": "The way will keep. Stone does.",
       "started": "Stand still and hold your breath. Walk tall in Oggok!",
       "steps": [
         {
@@ -116,7 +591,7 @@
         }
       ],
       "unresolved": [],
-      "notes": "Ours: the gatekeeper's port to Oggok, the hill giants' wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
+      "notes": "Ours: the gatekeeper's port to Oggok, the hillgiant's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/hillgiant.json."
     },
     {
       "key": "homelands/kerran/welcome",
@@ -4835,6 +5310,38 @@
     }
   ],
   "items": [
+    {
+      "name": "young giant's tooth thong",
+      "description": "A rhino's tooth on a thong of thick hide. Every young giant of the West Plateau camp wears one.",
+      "notrade": true,
+      "like": "glass trinket",
+      "set": {
+        "HPMAX": 5,
+        "classuse": 32767,
+        "raceuse": 1023,
+        "levelreq": 1,
+        "itemcost": 0,
+        "maxhp": 500
+      }
+    },
+    {
+      "name": "plateau skink scale",
+      "description": "A scale of a plateau skink from the plain west of the giants' camp.",
+      "notrade": true,
+      "like": "chipped basilisk scale"
+    },
+    {
+      "name": "rock badger claw",
+      "description": "The claw of a rock badger from the plain south of the giants' camp.",
+      "notrade": true,
+      "like": "shattered badger claw"
+    },
+    {
+      "name": "Greyjaw's fang",
+      "description": "A yellowed fang of the old wolf Greyjaw of the West Plateau.",
+      "notrade": true,
+      "like": "Forger Wolf Fang"
+    },
     {
       "name": "novice's prayer beads",
       "description": "A string of grey stone beads from the temple of Envar. A novice of the Jal'Raeth counts its breaths on them.",

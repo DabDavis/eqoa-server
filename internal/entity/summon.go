@@ -39,13 +39,15 @@ import (
 //
 // Without Share an add is the copy it is, its own template if its name has one (npctemplate).
 //
-// They go when their creature's fight ends: its death, its hate list empty, a leash home, a GM's edit
-// of the templates (every fight by a template ends at one), or its going from the world; out of the
-// world at once, no corpse. One killed before that lies its time, a corpse of nothing: no coins, no loot
-// table of every creature's, no category roll (handlers' loot, as a duel's spawn's: DuelSpawn), its own
-// items alone, of which the data gives it none; its kill earns what a creature's of its level does. A
-// keep restart carries no Temporary NPC: the adds are gone, their creature whole on its spawn's
-// terms (keepnpc.go). Ours: the ring, the lines and the rules of their going.
+// They die with their creature (masterdeath.go: the owner's "when the summoned pet's master dies, so does
+// the pet"), laid down dead where they stand, their deaths played, a corpse of nothing a few seconds; and
+// they go when its fight ends any other way (its hate list empty, a leash home, a GM's edit of the
+// templates, as every fight by a template ends at one, or its going from the world): out of the world at
+// once, no corpse. One killed in the fight lies its corpse's time, a corpse of nothing no one loots
+// (handlers' loot: CorpseOfNothing: no coins, no items, no loot table or category roll); its kill earns
+// what a creature's of its level does. A keep restart carries no Temporary NPC: the adds are gone, their
+// creature whole on its spawn's terms (keepnpc.go). Ours: the ring, the lines and the rules of their
+// going.
 
 // addTie is a summoned add's tie to its creature (the file's doc): the creature, the fight it was
 // called in (another, or none, and it goes), its share of the creature's figures (0: its own), and the
@@ -213,10 +215,11 @@ func (w *World) joinAddLocked(add, by *NPC) {
 	w.wakeNPCLocked(add)
 }
 
-// addsSystem keeps each add standing to its creature's fight (the file's doc): one whose creature is dead
-// or gone, or whose fight is over, leaves the world at once; one left with no enemy while its creature
-// fights takes its creature's hate list up again. A dead add lies its corpse's time, its tie kept. Every
-// tick; must be called with the lock held.
+// addsSystem keeps each add standing to its creature's fight (the file's doc): one whose creature died
+// dies with it (killNPC laid it down already, masterdeath.go); one whose creature is gone, or whose fight
+// is over, leaves the world at once; one left with no enemy while its creature fights takes its
+// creature's hate list up again. A dead add lies its corpse's time, its tie kept. Every tick; must be
+// called with the lock held.
 func (w *World) addsSystem(now time.Time) {
 	if len(w.adds) == 0 {
 		return
@@ -227,7 +230,11 @@ func (w *World) addsSystem(now time.Time) {
 			continue // gone (a GM's #despawn), or a corpse lying its time
 		}
 		by := a.add.by
-		if by == nil || by.Dead || w.NPCs[by.ServerID] != by || by.tfight != a.add.fight {
+		if by != nil && by.Dead {
+			w.killWithMasterLocked(a, now) // it dies with its creature (masterdeath.go)
+			continue
+		}
+		if by == nil || w.NPCs[by.ServerID] != by || by.tfight != a.add.fight {
 			w.dropAggroLocked(a.ServerID)
 			w.removeNPCLocked(a)
 			log.Printf("Template: %s (%d) goes with its creature's fight", a.Name, a.ServerID)

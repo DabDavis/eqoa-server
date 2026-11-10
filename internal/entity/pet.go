@@ -676,7 +676,7 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 		}
 		npc, isNPC := ent.(*NPC)
 		if ok && isNPC && challengeBars(npc, p.ServerID) {
-			w.sendChatToSession(sess, fmt.Sprintf(MetalLinePet, npc.challenge.name)) // another's duel (metalmoogie.go)
+			w.sendChatToSession(sess, fmt.Sprintf(duelLine(MetalLinePet, npc), npc.challenge.name)) // another's duel (metalmoogie.go)
 			return
 		}
 		if !ok || !isNPC || !pet.petFights() || !petMayFight(pet, npc) {

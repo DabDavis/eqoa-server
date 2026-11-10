@@ -15,7 +15,7 @@ its gatekeeper's flight to the mainland comes after:
 | `L3` | 3 | 6,900 | 2-3 drops off a creature of the home (one kill in two drops one), handed in | the class's level 3 quest ability (Kick, Sneak, Minor Blessing ...) |
 | `L4` | 4 | 17,000 | "new gear": materials one or two merchants hand over, and a creature's drop, handed in | the class's level 4 weapon (a robe or gloves for the cloth classes) |
 | `L5` | 5 | 36,500 | a named foe's drop (it always drops), or a count of a tougher kind | the class's level 5 quest ability (Taunt, Shadowstrike, Holy Shock ...) |
-| `flight` | after all five | none | the gatekeeper sends the character to its class's city on the mainland and binds it there, one way | |
+| `flight` | after all five | none | the gatekeeper sends the character to its class's city on the mainland and binds it there: the passage the five quests earn (word it so; it is not the only road, a coach runs between the home and Freeport) | |
 
 `tools/quests/gen_homelands.py` writes `tools/quests/data/homelands.json` from the specs here. **The template is the
 generator's**: keys, levels, the chain, the experience, the steps' kinds, drop chances, rewards by class
@@ -129,8 +129,9 @@ Rules the tools hold you to:
 
 **Places.** Stand everyone on a spot the disc's own NPCs of that zone stand on: the `npcs` rows of worlds 0 and 2
 inside the home's cell have floor-true heights (`SELECT id, npc_name, x_coord, y_coord, z_coord FROM npcs WHERE world
-= 0 AND x_coord >= 8000 AND x_coord < 10000 AND z_coord >= 20000 AND z_coord < 22000` for Aviak Village; +x is east,
-+z north). A height taken from anywhere else floats or sinks. Village people on the village's floor near the start;
+= 0 AND x_coord >= 8000 AND x_coord < 10000 AND z_coord >= 20000 AND z_coord < 22000` for Aviak Village). **+x is
+east and +z is SOUTH: north is toward smaller z** (Halas, in the north, is at z 4,289; Grobb, in the south, at
+31,410; the client's map draws north, -z, up). A height taken from anywhere else floats or sinks. Village people on the village's floor near the start;
 creatures at the zone's own creature spots, the L3 kind nearest.
 
 **Bodies by sight, never by name.** A `like` row copies a look that is known; a `body` is chosen from a rendering of
@@ -173,7 +174,9 @@ On a private server on a seeded copy, with the real client, as a NEW character o
 7. **A visitor.** A character of another race at the givers: no quest of the home offered; the merchants, the
    spiritmaster and the Spell Archivist serve it.
 8. **Words.** In EQOA's voice: short, plain, the race's own manner; no line the client cuts (the generator checks);
-   directions that are true (check east and north against the compass); each name spelled one way everywhere.
+   directions that are true: check every direction against the client's compass, not the numbers alone (the test
+   holds a journal line's north, south, east and west to where its step's NPC or creatures stand from the start, and
+   catches a word turned round; it cannot tell a path from a hill); each name spelled one way everywhere.
 
 ## Commands
 

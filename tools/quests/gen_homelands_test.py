@@ -9,6 +9,8 @@
 - every NPC and creature a spec names stands in its home of tools/worlds/homelands.json, in its role (a giver, a
   merchant, the spiritmaster, the coachman and the gatekeeper talkers, a hunt's target a foe with a rule), and a
   merchant that hands things over sells something (a window: CLIENT asks a merchant for nothing else);
+- a journal line's north, south, east and west agree with where its step's NPC or creatures stand from the home's
+  start in the recipe (+x is east, +z SOUTH: a word turned round is caught, as the worked example's were);
 - what the client cannot show is refused (a box's line with its speaker's name, a question, an answer, a journal
   line), and so is a spec that leaves the template (made-up specs: the controls);
 - with EQOA_REAL_DB (a copy of a database the homes are seeded in): tools/quests/check_quests.py finds no error in
@@ -22,6 +24,7 @@ import collections
 import copy
 import json
 import os
+import re
 import shutil
 import sqlite3
 import sys
@@ -40,6 +43,28 @@ REAL_DB = os.environ.get("EQOA_REAL_DB", "")
 def load(path):
     with open(path) as f:
         return json.load(f)
+
+
+# The game's compass: +x is east, +z is SOUTH (north is toward smaller z: Halas at z 4,289, Grobb at 31,410; the
+# client's map draws -z up). A direction word is wrong when the thing lies clearly the other way.
+COMPASS = re.compile(r"\b(north|south)?[- ]?(east|west)?\b", re.I)
+CLEARLY = 20.0
+
+
+def direction_problems(text, dx, dz):
+    """What a text's compass words get wrong of something dx east and dz south of where the text is read from."""
+    out = []
+    for m in COMPASS.finditer(text):
+        ns, ew = (m.group(1) or "").lower(), (m.group(2) or "").lower()
+        if ns == "north" and dz > CLEARLY:
+            out.append(f"north, and it is {dz:.0f} to the south")
+        if ns == "south" and dz < -CLEARLY:
+            out.append(f"south, and it is {-dz:.0f} to the north")
+        if ew == "east" and dx < -CLEARLY:
+            out.append(f"east, and it is {-dx:.0f} to the west")
+        if ew == "west" and dx > CLEARLY:
+            out.append(f"west, and it is {dx:.0f} to the east")
+    return out
 
 
 class TheFile(unittest.TestCase):
@@ -192,6 +217,39 @@ class TheFile(unittest.TestCase):
             for kind, n in (("Coachman ", 1), ("Spiritmaster ", 1), ("Gatekeeper ", 1)):
                 have = [name for name in people if name.startswith(kind)]
                 self.assertEqual(len(have), n, f"{zone}: one {kind.strip()}")
+
+
+class TheCompass(unittest.TestCase):
+    def test_a_journals_directions_are_where_its_step_goes(self):
+        doc, how, _ = gh.build()
+        homes = {z["race"]: (z["name"], z["home"]) for z in load(RECIPE)["zones"] if z.get("home")}
+        for q in doc["quests"]:
+            _, race, part = q["key"].split("/")
+            if how[race] != "spec" or part == "flight":   # a flight's north is its city's
+                continue
+            zone, h = homes[gh.RACE_IDS[race]]
+            sx, sz = h["start"]["x"], h["start"]["z"]
+            for st in q["steps"]:
+                at = [n["at"] for n in h["npcs"] if n["name"] == st["target"]]
+                if not at:
+                    continue
+                dx = sum(a[0] for a in at) / len(at) - sx
+                dz = sum(a[2] for a in at) / len(at) - sz
+                wrong = direction_problems(st["journal"], dx, dz)
+                self.assertEqual(wrong, [], f"{q['key']}: {st['journal']!r}: {st['target']} from {zone}'s start (+z is SOUTH)")
+
+    def test_the_compass_itself(self):
+        # a thing 30 west and 40 north (dx -30, dz -40): north-west of here
+        self.assertEqual(direction_problems("Ask the weaver, north-west of the elder.", -30, -40), [])
+        self.assertEqual(len(direction_problems("Ask the weaver, south-west of the elder.", -30, -40)), 1)
+        self.assertEqual(len(direction_problems("Ask the weaver, south-east of the elder.", -30, -40)), 2)
+        self.assertEqual(len(direction_problems("The rats on the grass South of the Roost.", 5, -300)), 1)
+        self.assertEqual(direction_problems("The rats on the grass north of the Roost.", 5, -300), [])
+        self.assertEqual(direction_problems("Up the east rise.", 390, 90), [])
+        self.assertEqual(len(direction_problems("Up the West rise.", 390, 90)), 1)
+        # beside the reader, any word passes; a word that is no compass word says nothing
+        self.assertEqual(direction_problems("Just south of here, by the feast.", 3, -12), [])
+        self.assertEqual(direction_problems("Bring the beast's nest to the western hall.", 500, 500), [])
 
 
 class TheControls(unittest.TestCase):

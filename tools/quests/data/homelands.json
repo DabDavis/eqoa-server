@@ -1065,16 +1065,16 @@
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "Another fledgling, fresh from the egg! Every young one of the Roost wears a wingband before its first hunt, so the sentinels know it for ours.\nWeaver Tikkri knots them from reed and down. Her loom is a short hop south-west of here.\nWill you fetch your wingband and show it to me?",
+      "offer": "Another fledgling, fresh from the egg! Every young one of the Roost wears a wingband before its first hunt, so the sentinels know it for ours.\nWeaver Tikkri knots them from reed and down. Her loom is a short hop north-west of here.\nWill you fetch your wingband and show it to me?",
       "accept": "I will fetch it.",
       "decline": "Not now.",
       "declined": "The Roost will wait for you, little one.",
-      "started": "Go on, then. Tikkri's loom is just south-west of here.",
+      "started": "Go on, then. Tikkri's loom is just north-west of here.",
       "steps": [
         {
           "kind": "talk",
           "target": "Weaver Tikkri",
-          "journal": "Ask Weaver Tikkri, south-west of Elder Kraawk, for a fledgling's wingband.",
+          "journal": "Ask Weaver Tikkri, north-west of Elder Kraawk, for a fledgling's wingband.",
           "says": "The elder sent you? Hold out your wing. There: reed for strength, down for luck. No charge for a fledgling.",
           "events": [
             {
@@ -1132,18 +1132,18 @@
       "accept": "I will see them both.",
       "decline": "Not now.",
       "declined": "Then fly low until you do.",
-      "started": "Kreeal keeps the spirit perch to the north-west. Harrek's stable is on the path north of here.",
+      "started": "Kreeal keeps the spirit perch to the south-west. Harrek's stable is on the path south of here.",
       "steps": [
         {
           "kind": "talk",
           "target": "Spiritmaster Kreeal",
-          "journal": "Have Spiritmaster Kreeal, north-west of the elder, bind your spirit to the Roost.",
+          "journal": "Have Spiritmaster Kreeal, south-west of the elder, bind your spirit to the Roost.",
           "says": "It is done. Should you fall, you will wake here among your own. Now go and give Coachman Harrek your name."
         },
         {
           "kind": "talk",
           "target": "Coachman Harrek",
-          "journal": "Give your name to Coachman Harrek, north of the elder, for his ledger.",
+          "journal": "Give your name to Coachman Harrek, south of the elder, for his ledger.",
           "says": "Welcome to my stable, fledgling. My coach runs to Freeport and to every other home of the Homelands, for travelers whose names their ledgers hold. Yours is in mine now."
         },
         {
@@ -1179,7 +1179,7 @@
       "requires": [
         "homelands/aviak/L2"
       ],
-      "offer": "So you are the new fledgling. Good. Scrub rats are into the seed stores again, and the grocer is squawking.\nHunt them on the grass south of the Roost and bring me three of their tails. Then I will teach you something worth knowing.\nWill you hunt them?",
+      "offer": "So you are the new fledgling. Good. Scrub rats are into the seed stores again, and the grocer is squawking.\nHunt them on the grass north of the Roost and bring me three of their tails. Then I will teach you something worth knowing.\nWill you hunt them?",
       "accept": "I will hunt them.",
       "decline": "Not now.",
       "declined": "Then the rats eat well tonight.",
@@ -1196,7 +1196,7 @@
           ],
           "count": 3,
           "chance": 0.5,
-          "journal": "Take three scrub rat tails from the scrub rats on the grass south of the Roost."
+          "journal": "Take three scrub rat tails from the scrub rats on the grass north of the Roost."
         },
         {
           "kind": "give",
@@ -1619,7 +1619,7 @@
         "homelands/aviak/L5"
       ],
       "repeatable": true,
-      "offer": "The winds are fair for the north. The barbarians of Halas fight the giants beside us, and they will train you as their own.\nI can send you to them, but the wind blows one way: you will not fly back.\nShall I send you north?",
+      "offer": "The winds are fair for the north. The barbarians of Halas fight the giants beside us, and they will train you as their own.\nYou have earned the long flight, fledgling. I will set you down among your own guild in Halas, and your spirit will rest there.\nShall I send you north?",
       "accept": "Send me north.",
       "decline": "Not yet.",
       "declined": "The winds will wait for you.",
@@ -1644,7 +1644,7 @@
         }
       ],
       "unresolved": [],
-      "notes": "Ours: the gatekeeper's port to Halas, the aviak's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there, one way. After the five starter quests. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json."
+      "notes": "Ours: the gatekeeper's port to Halas, the aviak's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json."
     },
     {
       "key": "homelands/goblin/welcome",
@@ -2951,7 +2951,7 @@
     },
     {
       "name": "scrub rat tail",
-      "description": "The tail of a scrub rat from the grass south of the Roost.",
+      "description": "The tail of a scrub rat from the grass north of the Roost.",
       "notrade": true,
       "like": "Rat Tail Tip"
     },

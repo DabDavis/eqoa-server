@@ -493,12 +493,12 @@ func TestWelcomeGuideWords(t *testing.T) {
 	}
 	ours := []string{
 		"Found a bug? Press F3, or type /bug and what went wrong, right where it happened. A GM answers in Support's inbox (start menu).",
-		"Things to explore: raids, with the Raid List window and the raid commands (/help lists them), and the raid loot rules: free for all, need before greed and master looter.",
+		"Things to explore: raids, with the Raid List window and the raid commands (/help lists them), and the loot rules a raid's leader sets in Community > Group > Raid: free for all, need before greed and master looter.",
 		"Options > Extended has more graphics options and settings. Type /tutorial any time to bring this guide back. Have fun!",
 	}
 	ps2 := []string{
 		"Found a bug? Type #bug and what went wrong, right where it happened, or use Support in the start menu. A GM answers in Support's inbox.",
-		"Things to explore: raids, with the raid commands (/t help lists them), and the raid loot rules: free for all, need before greed and master looter.",
+		"Things to explore: raids, with the raid commands (/t help lists them), and the loot rules a raid's leader sets with /t raidloot: free for all, need before greed and master looter.",
 		"On the PC or browser client, Options > Extended has more graphics options and settings. Type /t tutorial any time to bring this guide back. Have fun!",
 	}
 	for _, c := range []struct {

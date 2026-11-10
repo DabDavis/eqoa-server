@@ -121,8 +121,8 @@ const (
 	welcomeArchivist      = "The Spell Archivist has your class's spells."
 	welcomeAndMore        = "And more!"
 
-	welcomeRaidsOurs    = "Things to explore: raids, with the Raid List window and the raid commands (/help lists them), and the raid loot rules: free for all, need before greed and master looter."
-	welcomeRaidsPS2     = "Things to explore: raids, with the raid commands (/t help lists them), and the raid loot rules: free for all, need before greed and master looter."
+	welcomeRaidsOurs    = "Things to explore: raids, with the Raid List window and the raid commands (/help lists them), and the loot rules a raid's leader sets in Community > Group > Raid: free for all, need before greed and master looter."
+	welcomeRaidsPS2     = "Things to explore: raids, with the raid commands (/t help lists them), and the loot rules a raid's leader sets with /t raidloot: free for all, need before greed and master looter."
 	welcomeExtendedOurs = "Options > Extended has more graphics options and settings."
 	welcomeExtendedPS2  = "On the PC or browser client, Options > Extended has more graphics options and settings."
 	welcomeTutorial     = "Type %s any time to bring this guide back. Have fun!"

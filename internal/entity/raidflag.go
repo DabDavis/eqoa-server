@@ -167,13 +167,25 @@ func (w *World) raidFlagLocked(sess *session.Session, leader *Player, now time.T
 // raidAskLocked is t's box from leader's flag, with what it means. Must be called
 // with the lock held.
 func (w *World) raidAskLocked(t, leader *Player, ts *session.Session) {
-	raid := leader.Name // the group's leader's, when its helper raised it (raidcmds.go)
-	if l := w.leaderOfLocked(w.groups[leader.GroupID]); leader.GroupID != 0 && l != nil {
-		raid = l.Name
+	w.raidBoxLocked(t, leader, ts, leader.Name+" raises a raid flag.")
+}
+
+// raidBoxLocked is t's raid box from inviter, named for its group's leader's raid (its
+// helper's ask's too, raidcmds.go), and a line: what brought it, and what a raid costs.
+// Must be called with the lock held.
+func (w *World) raidBoxLocked(t, inviter *Player, ts *session.Session, why string) {
+	w.askLocked(t, inviter, ts, groupAsk{raid: true}, w.raidNameLocked(inviter)+"'s raid")
+	w.sendChatToSession(ts, fmt.Sprintf("%s Past %d members a group takes %d%% less XP from kills.",
+		why, GroupWindowSize, 100-RaidXPPct))
+}
+
+// raidNameLocked is the name a raid inviter's raid goes by: its group's leader's, else its
+// own. Must be called with the lock held.
+func (w *World) raidNameLocked(inviter *Player) string {
+	if l := w.leaderOfLocked(w.groups[inviter.GroupID]); inviter.GroupID != 0 && l != nil {
+		return l.Name
 	}
-	w.askLocked(t, leader, ts, groupAsk{raid: true}, raid+"'s raid")
-	w.sendChatToSession(ts, fmt.Sprintf("%s raises a raid flag. Past %d members a group takes %d%% less XP from kills.",
-		leader.Name, GroupWindowSize, 100-RaidXPPct))
+	return inviter.Name
 }
 
 // raidAskedLine is the leader's line for a flag: who it asked, the first

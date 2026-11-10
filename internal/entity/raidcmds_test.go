@@ -66,8 +66,19 @@ func TestRaidInviteByNameOrTargetPastFour(t *testing.T) {
 	r.form(5) // a raid of five
 	r.drainAll()
 	r.w.RaidInvite(r.sess[0], "fay", 0) // any case
-	if got := r.boxFrom(5); got != "Ann's raid" {
-		t.Fatalf("Fay's box: %q, want the raid's", got)
+	msgs := drain(r.sess[5])
+	if l := linesOf(msgs); !saidPart(l, "Ann invites you to Ann's raid. Past 4 members") {
+		t.Fatalf("Fay's line: %q", l)
+	}
+	box := ""
+	for _, m := range msgs {
+		if opOfMsg(m) == protocol.OpcodeGroupInviteReceived && len(m) >= 14 {
+			n := int(binary.LittleEndian.Uint32(m[10:]))
+			box = string(m[14 : 14+n])
+		}
+	}
+	if box != "Ann's raid" {
+		t.Fatalf("Fay's box: %q, want the raid's", box)
 	}
 	r.accept(5, r.p[0])
 	if len(r.raidOf(0).Members) != 6 || r.p[5].GroupID != r.p[0].GroupID {

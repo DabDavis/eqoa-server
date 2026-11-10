@@ -219,10 +219,11 @@ func (w *World) companionsDieLocked(owner *NPC, now time.Time) {
 }
 
 // companionsBackLocked brings back an owner's pets that went with it, as it
-// comes back itself. Must be called with the lock held.
+// comes back itself: one that died with it, its body lying yet or gone, or
+// one whose corpse went. Must be called with the lock held.
 func (w *World) companionsBackLocked(owner *NPC) {
 	for _, id := range w.companions[owner.ServerID] {
-		if p := w.NPCs[id]; p != nil && p.Dead && !p.CorpseGone.IsZero() && companionFighter(p) {
+		if p := w.NPCs[id]; p != nil && p.Dead && (p.withMaster || !p.CorpseGone.IsZero()) && companionFighter(p) {
 			w.respawnNPCLocked(p)
 		}
 	}

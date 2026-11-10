@@ -2681,7 +2681,7 @@
       "accept": "I will see them both.",
       "decline": "Not now.",
       "declined": "Then stay under the branches until you do.",
-      "started": "Both are north along the shore: Thistlewick the satyr under the near trees, Ashleaf a little past him.",
+      "started": "Both are north along the shore: Thistlewick the satyr first, Ashleaf a little past him.",
       "steps": [
         {
           "kind": "talk",
@@ -2692,7 +2692,7 @@
         {
           "kind": "talk",
           "target": "Coachman Thistlewick",
-          "journal": "Give your name to Coachman Thistlewick, under the trees north of the elder, for his ledger.",
+          "journal": "Give your name to Coachman Thistlewick, on the shore north of the elder, for his ledger.",
           "says": "Welcome to my stable, little leaf. My coach runs to Freeport and to every other home of the Homelands, for travelers whose names their ledgers hold. Yours is in mine now."
         },
         {

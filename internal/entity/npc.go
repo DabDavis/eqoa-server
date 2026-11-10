@@ -169,9 +169,12 @@ type NPC struct {
 	RoundTarget EntityID
 
 	// Dummy is a training dummy's kind (dummy.go), by its name, and the
-	// player it fights.
+	// one it fights: a player, or a player's pet or mercenary.
 	Dummy       DummyKind
 	DummyTarget EntityID
+	// dummyHate is what each one in a dummy's reach has been told on it, a
+	// player, a pet or a mercenary: it fights the one with the most (dummy.go)
+	dummyHate map[EntityID]int64
 	// DummyHits is how many times as hard a sparring dummy hits, its hits and
 	// its element's strike, by its name ("Sparring Dummy x2": DummyHitsOf); 1
 	// for every other

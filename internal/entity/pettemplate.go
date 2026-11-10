@@ -1031,9 +1031,13 @@ func (w *World) petTemplateTauntLocked(ps *petState, a *templateAbility, t *NPC,
 }
 
 // petTopHateLocked puts the pet at the top of t's hate, and makes it what t
-// fights (a training dummy's is its own: dummy.go).
+// fights (a training dummy's hate is its own: dummy.go).
 func (w *World) petTopHateLocked(pet, t *NPC) {
-	if t.Dummy != NotDummy || t.challenge != nil { // a Metal Moogie keeps to his challenger (metalmoogie.go)
+	if t.Dummy != NotDummy {
+		w.dummyTopHateLocked(t, pet.ServerID, time.Now()) // a dummy's hate is its own (dummy.go, petition 1484)
+		return
+	}
+	if t.challenge != nil { // a Metal Moogie keeps to his challenger (metalmoogie.go)
 		return
 	}
 	var top int64

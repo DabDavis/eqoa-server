@@ -1775,7 +1775,7 @@ func (w *World) spellHitHateLocked(caster *Player, casterSess *session.Session, 
 	if npc.Dummy != NotDummy {
 		// told, taken off nothing (dummy.go)
 		w.tellAmountLocked(caster, casterSess, npc.ServerID, -n, kind)
-		w.dummyEngagedLocked(npc, caster, time.Now())
+		w.dummyEngagedLocked(npc, caster.ServerID, n, time.Now())
 		return false
 	}
 	n = w.dealtLocked(npc, caster, n) // balance.go

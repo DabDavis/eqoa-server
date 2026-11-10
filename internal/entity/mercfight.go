@@ -268,7 +268,7 @@ func (w *World) mercMeleeHitLocked(ms *mercState, t *NPC, now time.Time) bool {
 // mercDamageLocked is n of the merc's damage on t, the balance's already: its
 // owner told the figure as its pet's (numbertags.go), t's hate for the merc,
 // a root broken; on a kill, its owner's experience, factions and quests as a
-// pet's kill. A training dummy takes nothing and fights its owner (dummy.go).
+// pet's kill. A training dummy takes nothing, its hate the merc's (dummy.go).
 // It reports a kill. Must be called with the lock held.
 func (w *World) mercDamageLocked(ms *mercState, t *NPC, n int, kind numberKind, now time.Time) bool {
 	owner, m := ms.owner, ms.npc
@@ -284,7 +284,7 @@ func (w *World) mercDamageLocked(ms *mercState, t *NPC, n int, kind numberKind, 
 	m.LastCombatTime = now
 	if t.Dummy != NotDummy {
 		tell()
-		w.dummyEngagedLocked(t, owner, now)
+		w.dummyEngagedLocked(t, m.ServerID, n, now)
 		return false
 	}
 	t.HP = max(t.HP-n, 0)

@@ -88,8 +88,9 @@ func auditLines(t *testing.T, db *database.SQLiteDB, table, action string) int {
 // lists them, /marks undo drops the last, /marks clear all. They are the
 // account's, in the database: another character of it, and the server
 // started again on the same file, have them. Each is a row change in
-// gm_audit. The control: a player's /mark and #mark are an unknown command
-// and keep nothing.
+// gm_audit. The control: a player's /mark and #mark keep nothing; with no
+// camp report open they are told to open one (campfix.go: a player's /mark
+// is a camp report's mark, board entry 513).
 func TestMarksAreAGMsAndKept(t *testing.T) {
 	c, db, path, gs, gp, ps := campWorld(t)
 	stand(c, gp, 15023.3, 16.8, 27282.1, 1.5)
@@ -115,7 +116,7 @@ func TestMarksAreAGMsAndKept(t *testing.T) {
 	ps.Queue().GetPending()
 	c.say(ps, "/mark mine")
 	c.say(ps, "#mark mine")
-	if l := gmReplies(t, ps); !hasLine(l, `Unrecognized command "/mark"`) || !hasLine(l, `Unrecognized command "#mark"`) {
+	if l := gmReplies(t, ps); len(l) != 2 || l[0] != campfixLineOpenFirst || l[1] != campfixLineOpenFirst {
 		t.Fatalf("a player's /mark: %q", l)
 	}
 	if m, _ := db.GMMarks(2); len(m) != 0 {

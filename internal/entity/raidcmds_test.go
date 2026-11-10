@@ -433,6 +433,9 @@ func TestTheRaidStateGoesToAnsweredClients(t *testing.T) {
 	if got := state(1); got != nil {
 		t.Fatal("an unchanged state was sent again")
 	}
+	if got := state(2); got != nil {
+		t.Fatalf("the pass sent Cal, who never answered, % x", got)
+	}
 	r.w.RaidLeave(r.sess[1])
 	if got := state(1); len(got) != 14 || le.Uint32(got) != 0 {
 		t.Fatalf("out of the raid: % x", got)

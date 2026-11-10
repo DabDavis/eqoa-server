@@ -2,6 +2,7 @@ package entity
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"os"
 	"sort"
@@ -39,8 +40,17 @@ func TestRealPetsKeepToPermafrostsCaves(t *testing.T) {
 	src.LoadNPCs(database.NewNPCStore(db))
 	type spot struct{ x, y, z float32 }
 	var spots []spot
+	// EQOA_PET_BOX "x0,x1,z0,z1" walks another place of world 0 instead, for
+	// looking at by hand (its figures logged, nothing held)
+	box, elsewhere := [4]float32{4700, 5100, 4200, 4600}, false
+	if v := os.Getenv("EQOA_PET_BOX"); v != "" {
+		if n, _ := fmt.Sscanf(v, "%f,%f,%f,%f", &box[0], &box[1], &box[2], &box[3]); n != 4 {
+			t.Fatalf("EQOA_PET_BOX %q: x0,x1,z0,z1", v)
+		}
+		elsewhere = true
+	}
 	for _, n := range src.NPCs {
-		if n.World != 0 || n.SpawnX < 4700 || n.SpawnX > 5100 || n.SpawnZ < 4200 || n.SpawnZ > 4600 {
+		if n.World != 0 || n.SpawnX < box[0] || n.SpawnX > box[1] || n.SpawnZ < box[2] || n.SpawnZ > box[3] {
 			continue
 		}
 		if f, ok := g.Floor(0, n.SpawnX, n.SpawnY, n.SpawnZ); ok && n.SpawnY-f <= petOnTerrain {
@@ -53,7 +63,7 @@ func TestRealPetsKeepToPermafrostsCaves(t *testing.T) {
 		}
 		return spots[i].z < spots[j].z
 	})
-	if len(spots) < 60 {
+	if len(spots) < 60 && !elsewhere {
 		t.Fatalf("only %d of Permafrost's spawns stand on the ground's floor", len(spots))
 	}
 	type pair struct{ pet, owner spot }
@@ -165,12 +175,15 @@ func TestRealPetsKeepToPermafrostsCaves(t *testing.T) {
 			controlArrived++
 		}
 	}
-	t.Logf("%d pets following in Permafrost: %d straight all the way (%d through something), %d with a way round (%d never through "+
+	t.Logf("%d pets following in x %.0f-%.0f, z %.0f-%.0f (Permafrost's unless EQOA_PET_BOX): %d straight all the way (%d through something), %d with a way round (%d never through "+
 		"anything, %d came to their owner), %d with a search that found none (%d of them through something, as before); the control "+
 		"(no routes): %d went through a wall or a floor, %d came; %d searches, %v a walk on average, %v a tick at most", len(pairs),
-		straight, straightThrough, routed, clean, arrived, noWay, noWayThrough, controlThrough, controlArrived, searches,
+		box[0], box[1], box[2], box[3], straight, straightThrough, routed, clean, arrived, noWay, noWayThrough, controlThrough, controlArrived, searches,
 		took/time.Duration(max(len(pairs), 1)), worst)
 	t.Logf("of them %d with pet and owner on one floor: %d found no way, the control through something in %d", sameFloor, sameNoWay, sameControl)
+	if elsewhere {
+		return
+	}
 	if routed == 0 || controlThrough == 0 {
 		t.Fatalf("%d pairs: %d routed, the control through something in %d: the pairs test nothing", len(pairs), routed, controlThrough)
 	}

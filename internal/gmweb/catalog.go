@@ -979,8 +979,8 @@ var catalog = map[string]tableNote{
 			"tints; a PS2 draws the body in its own colours. Color is 0xRRGGBBAA, red in the high byte: each of the body's " +
 			"colours' red, green and blue times the tint's (FF keeps a channel, 00 makes it black: 0x2A7333FF black and green, Yhafiran's, " +
 			"0x80808080 the body a quarter darker), as much of it as the alpha says (FF the whole, 80 about half, 00 none: the " +
-			"row kept, nothing drawn). For a body the disc has in no colour of its own: Yhafiran, the black and green oriental " +
-			"dragon, wears the green dragon the Plane of Disease's twins wear. The held items are their own colours.",
+			"row kept, nothing drawn). For a creature the disc has no body of its colours for: Yhafiran, the black and green " +
+			"oriental dragon, wears the Plane of Disease twins' green dragon, tinted. What it holds and its helm keep their colours.",
 		Live:   "At once: every client that draws tints draws the NPCs of the name in it.",
 		Search: []string{"name", "note", "source"},
 		Cols: map[string]colNote{

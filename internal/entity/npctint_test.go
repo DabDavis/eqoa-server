@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"net"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/eqoa/server/internal/database"
@@ -104,5 +105,38 @@ func TestNPCTintsGoOnlyToClientsThatAsk(t *testing.T) {
 	}
 	if s := w.NPCTintSummary(); !strings.Contains(s, "yhafiran 203020FF") {
 		t.Errorf("summary: %s", s)
+	}
+}
+
+// A client's answer racing GMs' edits ends holding the last set the world has,
+// never an older one sent after a newer (each refresh makes and sends its set
+// under one lock).
+func TestNPCTintsRacingEditsEndOnTheLastSet(t *testing.T) {
+	for round := 0; round < 20; round++ {
+		w := NewWorld()
+		w.SessionManager = session.NewManager()
+		van := w.SessionManager.CreateSession(&net.UDPAddr{IP: net.IPv4(198, 51, 100, 9), Port: 6009}, 9, 9, 1, 2, true)
+		van.SetNPCTints(true)
+		var wg sync.WaitGroup
+		for i := 0; i < 40; i++ {
+			wg.Add(2)
+			go func(i int) {
+				defer wg.Done()
+				w.SetNPCTints([]database.NPCTint{{Name: "yhafiran", Color: uint32(0x10101000+i<<8) | 0xFF}})
+			}(i)
+			go func() {
+				defer wg.Done()
+				van.SetNPCTints(true)
+				w.RefreshNPCTints(van)
+			}()
+		}
+		wg.Wait()
+		sent := tintsSent(van)
+		if len(sent) == 0 {
+			t.Fatalf("round %d: nothing sent", round)
+		}
+		if want := EncodeNPCTints(w.NPCTints()); !bytes.Equal(sent[len(sent)-1], want) {
+			t.Fatalf("round %d: the client holds % x, the world has % x", round, sent[len(sent)-1], want)
+		}
 	}
 }

@@ -80,23 +80,34 @@ func TestServerWorldsOfferAndWhatAClientHolds(t *testing.T) {
 	r := newCreationRig(t, entity.CreationRules{})
 	off := r.session()
 	r.h.SendCharacterSelectEQOA(off)
-	if got := lookOpsQueued(off); len(got) != 2 {
-		t.Fatalf("no worlds of its own: %v, want the list and the live look's offer alone", got)
+	// the offers after a list are counted by the worlds' own (the live look's,
+	// the race options' and the others' come and go with their own switches)
+	offers := func(got []protocol.GameOpcode) int {
+		n := 0
+		for _, op := range got {
+			if op == protocol.OpcodeServerWorlds {
+				n++
+			}
+		}
+		return n
+	}
+	if got := lookOpsQueued(off); offers(got) != 0 || len(got) == 0 || got[0] != protocol.OpcodeCharacterSelect {
+		t.Fatalf("no worlds of its own: %v, want the list and no worlds' offer", got)
 	}
 
 	withServerWorlds(t, homelands())
 	van := r.session()
 	r.h.SendCharacterSelectEQOA(van)
-	want := []protocol.GameOpcode{protocol.OpcodeCharacterSelect, protocol.OpcodeLiveLook, protocol.OpcodeServerWorlds}
-	if got := lookOpsQueued(van); len(got) != 3 || got[2] != want[2] {
-		t.Fatalf("a first list: %v, want %v", got, want)
+	first := lookOpsQueued(van)
+	if offers(first) != 1 || first[0] != protocol.OpcodeCharacterSelect {
+		t.Fatalf("a first list: %v, want the list and one worlds' offer", first)
 	}
 	if d := sentOp(van, protocol.OpcodeServerWorlds); len(d) != 6 || binary.LittleEndian.Uint32(d[2:]) != 1 {
 		t.Fatalf("the offer: %x", d)
 	}
 	r.h.SendCharacterSelectEQOA(van)
-	if got := lookOpsQueued(van); len(got) != 4 {
-		t.Fatalf("a second list: %v, want no second offer", got)
+	if got := lookOpsQueued(van); offers(got) != 1 || len(got) != len(first)+1 {
+		t.Fatalf("a second list: %v, want the list again and no second offer", got)
 	}
 	h := NewServerWorldsHandler()
 	answer := func(s *session.Session, op protocol.GameOpcode, data []byte) {
@@ -113,13 +124,14 @@ func TestServerWorldsOfferAndWhatAClientHolds(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+	before := len(lookOpsQueued(van))
 	answer(van, protocol.OpcodeServerWorlds, u32b(0))
-	if got := lookOpsQueued(van); len(got) != 4 {
-		t.Fatalf("answered 0: %v", got)
+	if got := lookOpsQueued(van); len(got) != before {
+		t.Fatalf("answered 0: %v, want nothing more than %d", got, before)
 	}
 	answer(van, protocol.OpcodeServerWorlds, u32b(1))
-	if got := lookOpsQueued(van); len(got) != 5 || got[4] != protocol.OpcodeServerWorldsData {
-		t.Fatalf("answered 1: %v", got)
+	if got := lookOpsQueued(van); len(got) != before+1 || got[before] != protocol.OpcodeServerWorldsData {
+		t.Fatalf("answered 1: %v, want the worlds after %d", got, before)
 	}
 	if body := sentOp(van, protocol.OpcodeServerWorldsData)[2:]; !bytes.Equal(body, encodeServerWorlds([]worlds.Built{homelands()})) {
 		t.Fatalf("the worlds sent: %x", body)

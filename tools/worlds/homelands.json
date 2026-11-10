@@ -2364,7 +2364,233 @@
       "from": "TUNARIA.ESF",
       "zone": 157,
       "race": 28,
-      "note": "Fungusman: the fungal folk's caverns (Guk's) (Guk, cell 12,14)"
+      "note": "Fungusman: the fungal folk's caverns (Guk's) (Guk, cell 12,14)",
+      "home": {
+        "flavor": "Fungusmen are slow, gentle mushroom folk of the caverns of Guk in the Homelands, whose spores drift up into the shaded glades of the elves.",
+        "start": {
+          "x": 24686.0,
+          "y": -2.0,
+          "z": 28972.6,
+          "toward": [
+            24681.0,
+            28977.5
+          ]
+        },
+        "mainland": {
+          "place": "Tethelin and Fayspire",
+          "world": 0,
+          "x": 18380.2,
+          "y": 75.6,
+          "z": 7378.4,
+          "facing": 3.94
+        },
+        "npcs": [
+          {
+            "name": "Elder Moldcap",
+            "like": 107985,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              24681.0,
+              -2.0,
+              28977.5
+            ],
+            "toward": [
+              24686.0,
+              28972.6
+            ],
+            "note": "the starter quests' giver, a fungal elder of the funagl hall deep in Guk, at its own spot by the hall's west wall"
+          },
+          {
+            "name": "Grocer Puffstool",
+            "like": 107978,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              24701.2,
+              -2.0,
+              28895.6
+            ],
+            "toward": [
+              24681.0,
+              28977.5
+            ],
+            "stock": "Grocer Peltham",
+            "note": "the funagl gatherer's look and spot by the hall's north wall; an elven grocer's food and drink"
+          },
+          {
+            "name": "Spiritmaster Sporewell",
+            "like": 107981,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              24722.5,
+              -2.0,
+              28974.8
+            ],
+            "toward": [
+              24681.0,
+              28977.5
+            ],
+            "note": "binds, as every spiritmaster; the funagl devout's look"
+          },
+          {
+            "name": "Gatekeeper Gillford",
+            "like": 107996,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              24677.1,
+              -2.0,
+              28925.4
+            ],
+            "toward": [
+              24681.0,
+              28977.5
+            ],
+            "note": "sends a fungusman who has done the starter quests to the elves, Tethelin or Fayspire by class (Up to the Light)"
+          },
+          {
+            "name": "Guk sporeguard",
+            "like": 107967,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              24756.8,
+              -2.0,
+              28902.2
+            ],
+            "facing": 255
+          },
+          {
+            "name": "Guk sporeguard",
+            "like": 107967,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              24779.0,
+              -2.0,
+              28920.9
+            ],
+            "facing": 127
+          },
+          {
+            "name": "Guk sporeguard",
+            "like": 107967,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              24764.9,
+              -2.0,
+              28945.0
+            ],
+            "facing": 127
+          },
+          {
+            "name": "Guk sporeguard",
+            "like": 107967,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              24672.5,
+              -2.0,
+              28964.5
+            ],
+            "facing": 1
+          },
+          {
+            "name": "cave beetle",
+            "body": "0x4140233B",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              24818.4,
+              -2.0,
+              28889.4
+            ],
+            "note": "the starter quest's beetles, at the frogloks' spots by the hall's east passage"
+          },
+          {
+            "name": "cave beetle",
+            "body": "0x4140233B",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              24806.7,
+              -2.0,
+              28866.8
+            ]
+          },
+          {
+            "name": "cave beetle",
+            "body": "0x4140233B",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              24800.6,
+              -2.0,
+              28868.2
+            ]
+          },
+          {
+            "name": "cave beetle",
+            "body": "0x4140233B",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              24787.4,
+              -1.91,
+              28859.9
+            ]
+          },
+          {
+            "name": "cave beetle",
+            "body": "0x4140233B",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              24804.2,
+              -2.0,
+              28907.9
+            ]
+          },
+          {
+            "name": "cave beetle",
+            "body": "0x4140233B",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              24811.9,
+              -2.0,
+              28923.1
+            ]
+          }
+        ],
+        "peaceful": [
+          "cave beetle"
+        ],
+        "lines": {
+          "Gatekeeper Gillford": [
+            "Not yet, sprout. Elder Moldcap greets every new one first.",
+            "See the elder by the west wall. There is no hurry, but it must be done."
+          ],
+          "Guk sporeguard": [
+            "All is quiet in the hall.",
+            "Slow and steady, %r. The caverns do not reward haste.",
+            "New sprout? Elder Moldcap is by the west wall."
+          ],
+          "Elder Moldcap": [
+            "A spore that waits for the right ground grows the tallest cap.",
+            "Up above it is bright and dry. Carry a little of the damp with you."
+          ]
+        }
+      }
     },
     {
       "name": "West Feerrott",

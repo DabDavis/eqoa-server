@@ -1055,6 +1055,123 @@
       "notes": "Ours: the gatekeeper's port to Freeport, the skeleton's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a skeleton back in Tomb of Kings is sent again; no reward, so none is had twice."
     },
     {
+      "key": "homelands/fungusman/welcome",
+      "name": "A New Sprout",
+      "giver": "Elder Moldcap",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Ah. A new sprout. Welcome to the hall, little one. There is no hurry here, but there is supper. Go slowly over to Puffstool, by the north wall, and let her know you have come up.",
+      "accept": "I will go to her.",
+      "decline": "Not now.",
+      "declined": "There is no hurry. There never is.",
+      "started": "Puffstool is by the north wall. Take your time.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Puffstool",
+          "journal": "Find Grocer Puffstool by the north wall of the hall.",
+          "says": "Moldcap sent you? Welcome, sprout. Here is some flax bread. It is dry, but so is the air up top.",
+          "rewards": {
+            "items": [
+              "flax bread"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Moldcap",
+          "journal": "Return to Elder Moldcap.",
+          "says": "Good. Now you know the hall, and the hall knows you. That is the first thing, and the most important.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the fungusmans' first, at their home zone, Guk of the disc."
+    },
+    {
+      "key": "homelands/fungusman/beetles",
+      "name": "Beetles at the Caps",
+      "giver": "Grocer Puffstool",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/fungusman/welcome"
+      ],
+      "offer": "Cave beetles come in from the east passage and nibble at the young caps. It is very rude of them. Would you see to five of them for me? Slowly is fine. Thoroughly is better.",
+      "accept": "I will see to them.",
+      "decline": "Not now.",
+      "declined": "The caps will grow back. Eventually.",
+      "started": "Five beetles, by the east passage.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "cave beetle",
+          "count": 5,
+          "journal": "Kill five cave beetles by the east passage of the hall."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Puffstool",
+          "journal": "Tell Grocer Puffstool the beetles are gone.",
+          "says": "Five! The young caps thank you. So do I. Here, for your trouble.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the fungusmans' second starter quest; the cave beetles are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/fungusman/flight",
+      "name": "Up to the Light",
+      "giver": "Gatekeeper Gillford",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/fungusman/welcome",
+        "homelands/fungusman/beetles"
+      ],
+      "repeatable": true,
+      "offer": "Up above, the elves of Tethelin and the Fayspires keep shaded groves where our spores grow well, and they are kind to slow folk. I can send you up to them, and that will be your home. Ready?",
+      "accept": "Send me to the elves.",
+      "decline": "Not yet.",
+      "declined": "There is no hurry. The elves live a long time.",
+      "started": "Grow well, sprout, up in the light!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Gillford",
+          "journal": "Tell Gatekeeper Gillford when you are ready to go up to the elves.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Tethelin or Fayspire by class, the fungusman's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a fungusman back in Guk is sent again; no reward, so none is had twice."
+    },
+    {
       "key": "homelands/aviak/welcome",
       "name": "A Fledgling's Welcome",
       "giver": "Elder Kraawk",

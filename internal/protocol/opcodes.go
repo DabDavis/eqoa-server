@@ -584,6 +584,29 @@ const (
 	// as they come.
 	OpcodeCombatRecordData GameOpcode = 0x7E21
 
+	// OpcodeServerWorlds is not retail: the worlds this server has past the
+	// disc's, each made of the disc's own zones where they stand on the disc
+	// (internal/worlds, cmd/worldbuild, handlers/serverworlds.go), a u32 after
+	// the opcode, both ways, as OpcodeCreationOffer: the server offers them (1)
+	// after a session's first character list, while it has any; a client that
+	// can build them off its own disc (eqoa-rust-client-vanilla) answers 1 and
+	// is sent OpcodeServerWorldsData. A PS2 ignores the offer and is never sent
+	// into them. 0x7E22-0x7E26 were taken by other lanes the same day: these
+	// stand clear of them.
+	OpcodeServerWorlds GameOpcode = 0x7E30
+
+	// OpcodeServerWorldsData is the worlds, to a client that answered
+	// OpcodeServerWorlds: u8 version (1), u8 worlds, then each: u8 its slot, its
+	// name, u32 the built file's size and u32 its CRC-32, u8 zones, then each:
+	// the disc's world file it is on, u16 its index there, u32 its record's size
+	// and u32 its CRC-32 (header and body, as on the disc), u8 its cell's column
+	// and u8 row, its name, and u8 the race whose home it is (racedefs' id, 0
+	// none: a client names it the race's starting place); every string a u8
+	// byte count and UTF-8. From
+	// the client: the worlds it holds now, built and checked (u8 count, then each
+	// slot); the server sends it into those alone (LoadableWorlds).
+	OpcodeServerWorldsData GameOpcode = 0x7E31
+
 	// OpcodeRaceOptions is not retail: a custom race's own character options
 	// (entity/raceoptions.go, handlers/raceoptions.go): a u32 after the opcode,
 	// both ways, as OpcodeRaceLabels. The server offers it (1) after a session's
@@ -1079,6 +1102,11 @@ func (op GameOpcode) String() string {
 		return "CreationOffer"
 	case OpcodeCreationRaces:
 		return "CreationRaces"
+	case OpcodeServerWorlds:
+		return "ServerWorlds"
+	case OpcodeServerWorldsData:
+		return "ServerWorldsData"
+
 	case OpcodeCapes:
 		return "Capes"
 	case OpcodeCapesInView:

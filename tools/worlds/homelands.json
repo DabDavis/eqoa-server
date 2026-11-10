@@ -1,0 +1,4650 @@
+{
+  "world": 10,
+  "name": "the Homelands",
+  "note": "A zone of the disc for each race of racedefs past the game's, where it stands on the disc (no two in one cell of the grid). Built by cmd/worldbuild from the operator's disc; the content (start, people, quests) is tools/seed_race_homes.py's.",
+  "extraFiles": ["homelands-edges.json"],
+  "zones": [
+    {
+      "name": "West Plateau",
+      "from": "ODUS.ESF",
+      "zone": 8,
+      "race": 11,
+      "note": "Hill Giant: the hill giants' plateau: 73 hill giants of the game stand in it (West Plateau, cell 3,1)",
+      "home": {
+        "flavor": "Hill Giants are towering folk of the West Plateau in the Homelands, whose young cross the sea to train beside the ogres of Oggok.",
+        "start": {
+          "x": 6938.5,
+          "y": 57.7,
+          "z": 3356.6,
+          "toward": [
+            6947.5,
+            3356.6
+          ]
+        },
+        "mainland": {
+          "place": "Oggok",
+          "world": 1,
+          "x": 9377.7,
+          "y": 53.2,
+          "z": 7385.8,
+          "facing": 4.85
+        },
+        "npcs": [
+          {
+            "name": "Elder Hrolmog",
+            "like": 129052,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              6947.5,
+              57.7,
+              3356.6
+            ],
+            "toward": [
+              6938.5,
+              3356.6
+            ],
+            "note": "the starter quests' giver, a hill giant at the foot of the old steps"
+          },
+          {
+            "name": "Grocer Bulka",
+            "like": 128906,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6910.9,
+              57.7,
+              3339.4
+            ],
+            "toward": [
+              6947.5,
+              3356.6
+            ],
+            "stock": "Grocer Derg",
+            "note": "the camp's grocer, an Oggok grocer's food"
+          },
+          {
+            "name": "Spiritmaster Ognarr",
+            "like": 129052,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              6947.1,
+              57.6,
+              3309.4
+            ],
+            "toward": [
+              6947.5,
+              3356.6
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Thundrik",
+            "like": 128811,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              6955.3,
+              57.9,
+              3241.8
+            ],
+            "toward": [
+              6947.5,
+              3356.6
+            ],
+            "note": "sends a young giant who has done the starter quests to Oggok (the quest The Stone Way)"
+          },
+          {
+            "name": "Plateau sentinel",
+            "like": 129064,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6859.2,
+              57.7,
+              3388.5
+            ],
+            "facing": 192
+          },
+          {
+            "name": "Plateau sentinel",
+            "like": 129064,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6911.0,
+              57.7,
+              3436.4
+            ],
+            "facing": 0
+          },
+          {
+            "name": "Plateau sentinel",
+            "like": 129064,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6887.5,
+              57.7,
+              3278.9
+            ],
+            "facing": 160
+          },
+          {
+            "name": "Plateau sentinel",
+            "like": 129064,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6853.6,
+              57.6,
+              3344.5
+            ],
+            "facing": 192
+          },
+          {
+            "name": "plateau skink",
+            "body": "0xFD1EC25E",
+            "level": 1,
+            "role": "foe",
+            "size": 0.35,
+            "at": [
+              6817.6,
+              61.1,
+              3147.3
+            ],
+            "note": "the starter hunt's skinks (a plains basilisk's body, small), at the plain's basilisks' spots west of the steps"
+          },
+          {
+            "name": "plateau skink",
+            "body": "0xFD1EC25E",
+            "level": 1,
+            "role": "foe",
+            "size": 0.35,
+            "at": [
+              6645.3,
+              57.6,
+              3283.8
+            ]
+          },
+          {
+            "name": "plateau skink",
+            "body": "0xFD1EC25E",
+            "level": 2,
+            "role": "foe",
+            "size": 0.35,
+            "at": [
+              6628.0,
+              58.7,
+              3178.6
+            ]
+          },
+          {
+            "name": "plateau skink",
+            "body": "0xFD1EC25E",
+            "level": 1,
+            "role": "foe",
+            "size": 0.35,
+            "at": [
+              6683.5,
+              61.6,
+              3092.0
+            ]
+          },
+          {
+            "name": "plateau skink",
+            "body": "0xFD1EC25E",
+            "level": 1,
+            "role": "foe",
+            "size": 0.35,
+            "at": [
+              6577.5,
+              57.7,
+              3241.5
+            ]
+          },
+          {
+            "name": "plateau skink",
+            "body": "0xFD1EC25E",
+            "level": 2,
+            "role": "foe",
+            "size": 0.35,
+            "at": [
+              6740.0,
+              58.1,
+              3230.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "plateau skink"
+        ]
+      }
+    },
+    {
+      "name": "Kerra Isle",
+      "from": "ODUS.ESF",
+      "zone": 19,
+      "race": 12,
+      "note": "Kerran: the kerrans' island, its village and sentries (Kerra Isle, cell 2,3)",
+      "home": {
+        "flavor": "Kerrans are a proud feline people of the stilt villages of Kerra Isle in the Homelands, whose young cross the sea to train in Qeynos.",
+        "start": {
+          "x": 5130.9,
+          "y": 54.1,
+          "z": 6976.4,
+          "toward": [
+            5137.9,
+            6976.4
+          ]
+        },
+        "mainland": {
+          "place": "Qeynos",
+          "world": 0,
+          "x": 4243.7,
+          "y": 58.1,
+          "z": 17169.1,
+          "facing": 4.63
+        },
+        "npcs": [
+          {
+            "name": "Elder Ssharu",
+            "like": 132173,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              5137.9,
+              54.1,
+              6976.4
+            ],
+            "toward": [
+              5130.9,
+              6976.4
+            ],
+            "note": "the starter quests' giver, in a kerran priest's robe, on the village's landward side"
+          },
+          {
+            "name": "Grocer Miyanne",
+            "like": 132169,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5184.2,
+              54.3,
+              6962.2
+            ],
+            "toward": [
+              5137.9,
+              6976.4
+            ],
+            "stock": "Grocer Appleby",
+            "note": "the village's grocer by the water, a Qeynos grocer's food"
+          },
+          {
+            "name": "Spiritmaster Talhrin",
+            "like": 132167,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              5183.8,
+              54.3,
+              6993.7
+            ],
+            "toward": [
+              5137.9,
+              6976.4
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Raszhar",
+            "like": 132181,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              5202.8,
+              52.4,
+              6907.4
+            ],
+            "toward": [
+              5137.9,
+              6976.4
+            ],
+            "note": "at the water's edge: sends a cub who has done the starter quests to Qeynos (the quest Across the Water)"
+          },
+          {
+            "name": "Isle sentinel",
+            "like": 132177,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5170.2,
+              54.1,
+              6909.7
+            ],
+            "facing": 128
+          },
+          {
+            "name": "Isle sentinel",
+            "like": 132177,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5153.8,
+              54.3,
+              6991.1
+            ],
+            "facing": 0
+          },
+          {
+            "name": "Isle sentinel",
+            "like": 132177,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5132.3,
+              60.0,
+              6886.7
+            ],
+            "facing": 160
+          },
+          {
+            "name": "isle crab",
+            "body": "0x09185B98",
+            "level": 1,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5175.0,
+              54.1,
+              6800.0
+            ],
+            "note": "the starter hunt's crabs (a sandcrawler crab's body, small), on the sand north of the village"
+          },
+          {
+            "name": "isle crab",
+            "body": "0x09185B98",
+            "level": 1,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5205.0,
+              54.1,
+              6812.0
+            ]
+          },
+          {
+            "name": "isle crab",
+            "body": "0x09185B98",
+            "level": 2,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5185.0,
+              54.1,
+              6830.0
+            ]
+          },
+          {
+            "name": "isle crab",
+            "body": "0x09185B98",
+            "level": 1,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5210.0,
+              54.1,
+              6845.0
+            ]
+          },
+          {
+            "name": "isle crab",
+            "body": "0x09185B98",
+            "level": 1,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5172.0,
+              54.1,
+              6858.0
+            ]
+          },
+          {
+            "name": "isle crab",
+            "body": "0x09185B98",
+            "level": 2,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5195.0,
+              54.1,
+              6872.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "isle crab"
+        ]
+      }
+    },
+    {
+      "name": "Envar",
+      "from": "RATHE.ESF",
+      "zone": 15,
+      "race": 30,
+      "note": "Jal'Raeth: the Rathe's Envar, where the game's own Jal'Raeth stand: 29 of them, commoners, nobles, channelers, knights and champions, among the ruins (Envar, cell 2,4). Added 2026-11-10, after the plan: the race joined after it.",
+      "home": {
+        "flavor": "The Jal'Raeth are a silent folk who drift in meditation round the old temple of Envar in the Homelands; Highbourne's scholars take them in.",
+        "start": {
+          "x": 5437.0,
+          "y": 53.9,
+          "z": 9260.0,
+          "toward": [
+            5430.0,
+            9260.0
+          ]
+        },
+        "mainland": {
+          "place": "Highbourne",
+          "world": 0,
+          "x": 4727.4,
+          "y": 54.1,
+          "z": 21654.9,
+          "facing": 1.24
+        },
+        "npcs": [
+          {
+            "name": "Elder Ithrael",
+            "like": 126611,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              5430.0,
+              53.9,
+              9260.0
+            ],
+            "toward": [
+              5437.0,
+              9260.0
+            ],
+            "note": "the starter quests' giver, a Jal'Raeth channeler, on the road before the temple's east door"
+          },
+          {
+            "name": "Grocer Saelun",
+            "like": 126608,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5415.0,
+              53.9,
+              9240.0
+            ],
+            "toward": [
+              5430.0,
+              9260.0
+            ],
+            "stock": "Grocer Deorda",
+            "note": "the order's grocer on the road's north side, a Highbourne grocer's food"
+          },
+          {
+            "name": "Spiritmaster Oravai",
+            "like": 126615,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              5415.0,
+              53.9,
+              9282.0
+            ],
+            "toward": [
+              5430.0,
+              9260.0
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Tavrin",
+            "like": 126605,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              5405.0,
+              53.9,
+              9262.0
+            ],
+            "toward": [
+              5437.0,
+              9262.0
+            ],
+            "note": "at the temple's east door: sends one who has done the starter quests to Highbourne (the quest The Scholars' City)"
+          },
+          {
+            "name": "Envar sentinel",
+            "like": 126603,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5470.0,
+              53.9,
+              9245.0
+            ],
+            "facing": 64
+          },
+          {
+            "name": "Envar sentinel",
+            "like": 126603,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5470.0,
+              53.9,
+              9278.0
+            ],
+            "facing": 64
+          },
+          {
+            "name": "Envar sentinel",
+            "like": 126603,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5470.0,
+              53.9,
+              9230.0
+            ],
+            "facing": 128
+          },
+          {
+            "name": "ash grub",
+            "body": "0x1FA284AE",
+            "level": 1,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5530.0,
+              64.5,
+              9230.0
+            ],
+            "note": "the starter hunt's grubs (a moth larva's body, small), in the dead hills where the east road ends"
+          },
+          {
+            "name": "ash grub",
+            "body": "0x1FA284AE",
+            "level": 1,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5530.0,
+              63.7,
+              9290.0
+            ]
+          },
+          {
+            "name": "ash grub",
+            "body": "0x1FA284AE",
+            "level": 2,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5570.0,
+              69.2,
+              9300.0
+            ]
+          },
+          {
+            "name": "ash grub",
+            "body": "0x1FA284AE",
+            "level": 1,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5560.0,
+              76.3,
+              9250.0
+            ]
+          },
+          {
+            "name": "ash grub",
+            "body": "0x1FA284AE",
+            "level": 1,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5640.0,
+              74.2,
+              9260.0
+            ]
+          },
+          {
+            "name": "ash grub",
+            "body": "0x1FA284AE",
+            "level": 2,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5500.0,
+              57.2,
+              9260.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "ash grub"
+        ]
+      }
+    },
+    {
+      "name": "Moss Mouth Cavern",
+      "from": "TUNARIA.ESF",
+      "zone": 68,
+      "race": 13,
+      "note": "Goblin: a goblin cavern town: 87 goblins of the game, a blacksmith among them (Moss Mouth Cavern, cell 9,6)",
+      "home": {
+        "flavor": "Goblins are crafty folk of Moss Mouth Cavern in the Homelands, quick with a blade and quicker to flee, who serve the dark elves of Neriak.",
+        "start": {
+          "x": 19380.0,
+          "y": 84.84,
+          "z": 12229.0,
+          "toward": [
+            19380.0,
+            12222.0
+          ]
+        },
+        "mainland": {
+          "place": "Neriak",
+          "world": 0,
+          "x": 25220.1,
+          "y": 7.4,
+          "z": 8626.2,
+          "facing": 0.04
+        },
+        "npcs": [
+          {
+            "name": "Elder Snikkit",
+            "like": 108270,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              19380.0,
+              84.84,
+              12222.0
+            ],
+            "toward": [
+              19380.0,
+              12229.0
+            ],
+            "note": "the starter quests' giver, in a witch doctor's look, in the middle of the cavern's great hall"
+          },
+          {
+            "name": "Grocer Mudgrub",
+            "like": 108325,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19351.8,
+              84.84,
+              12263.2
+            ],
+            "toward": [
+              19380.0,
+              12222.0
+            ],
+            "stock": "Grocer G`Zar",
+            "note": "the cavern's grocer, in the blacksmith's look, a Neriak grocer's food"
+          },
+          {
+            "name": "Spiritmaster Grizzik",
+            "like": 117292,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              19405.8,
+              84.84,
+              12263.7
+            ],
+            "toward": [
+              19380.0,
+              12222.0
+            ],
+            "note": "binds, as every spiritmaster; a goblin seer's look"
+          },
+          {
+            "name": "Gatekeeper Skabber",
+            "like": 108308,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              19493.1,
+              84.84,
+              12239.4
+            ],
+            "toward": [
+              19380.0,
+              12222.0
+            ],
+            "note": "sends a goblin who has done the starter quests to Neriak (the quest The Road to Neriak); a goblin warrior's look"
+          },
+          {
+            "name": "Moss Mouth lookout",
+            "like": 108255,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19342.0,
+              84.84,
+              12037.2
+            ],
+            "facing": 53
+          },
+          {
+            "name": "Moss Mouth lookout",
+            "like": 108348,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19508.3,
+              84.84,
+              12329.8
+            ],
+            "facing": 187
+          },
+          {
+            "name": "Moss Mouth lookout",
+            "like": 108255,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19271.1,
+              84.84,
+              12370.9
+            ],
+            "facing": 52
+          },
+          {
+            "name": "Moss Mouth lookout",
+            "like": 108348,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19562.3,
+              84.84,
+              12121.9
+            ],
+            "facing": 98
+          },
+          {
+            "name": "tunnel rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19458.7,
+              81.47,
+              12164.1
+            ],
+            "note": "the starter quest's rats, at the dire wolves' spots in the hall's pit"
+          },
+          {
+            "name": "tunnel rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19447.1,
+              81.47,
+              12166.9
+            ]
+          },
+          {
+            "name": "tunnel rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19459.6,
+              81.47,
+              12175.5
+            ]
+          },
+          {
+            "name": "tunnel rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19438.5,
+              81.47,
+              12187.3
+            ]
+          },
+          {
+            "name": "tunnel rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19443.5,
+              81.47,
+              12192.6
+            ]
+          },
+          {
+            "name": "tunnel rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19444.6,
+              81.47,
+              12199.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "tunnel rat"
+        ],
+        "lines": {
+          "Gatekeeper Skabber": [
+            "Not so fast, little one. Do what Elder Snikkit asks of you first, then come back to me.",
+            "No one leaves Moss Mouth until the elder says so. He waits in the middle of the great hall."
+          ],
+          "Moss Mouth lookout": [
+            "Keep moving, %r. Lookouts do not chat.",
+            "If you hear something in the dark, it is probably a rat. Probably.",
+            "New, are you? Elder Snikkit wants to see every new face. He waits in the middle of the hall."
+          ],
+          "Elder Snikkit": [
+            "Mind Mudgrub and mind Skabber, and you will do well, little one.",
+            "A goblin who keeps his ears open lives long enough to grow wise. Look at me."
+          ]
+        }
+      }
+    },
+    {
+      "name": "Aviak Village",
+      "from": "TUNARIA.ESF",
+      "zone": 115,
+      "race": 14,
+      "note": "Aviak: the aviaks' savannah village: 173 aviaks of the game, a grocer and guards among them (Aviak Village, cell 4,10)",
+      "home": {
+        "flavor": "Aviaks are watchful bird folk of the savannah aeries in the Homelands, whose fledglings fly north to fight beside the barbarians of Halas.",
+        "start": {
+          "x": 9207.5,
+          "y": 84.2,
+          "z": 21486.6,
+          "toward": [
+            9213.9,
+            21489.6
+          ]
+        },
+        "mainland": {
+          "place": "Halas",
+          "world": 0,
+          "x": 13059.3,
+          "y": 54.4,
+          "z": 4289.6,
+          "facing": 1.28
+        },
+        "npcs": [
+          {
+            "name": "Elder Kraawk",
+            "like": 103515,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              9213.9,
+              84.1,
+              21489.6
+            ],
+            "toward": [
+              9207.5,
+              21486.6
+            ],
+            "note": "the starter quests' giver, in the high priest's robes"
+          },
+          {
+            "name": "Grocer Skreel",
+            "like": 103490,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              9351.3,
+              84.1,
+              21484.4
+            ],
+            "facing": 178,
+            "stock": "Grocer Hannibal",
+            "note": "the Roost's grocer, Halas's grocer's food (Grocer Hannibal)"
+          },
+          {
+            "name": "Spiritmaster Kreeal",
+            "like": 103490,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              9145.5,
+              84.1,
+              21590.4
+            ],
+            "toward": [
+              9104.5,
+              21436.5
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Windwhistle",
+            "like": 103532,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              9170.9,
+              84.1,
+              21636.7
+            ],
+            "toward": [
+              9104.5,
+              21436.5
+            ],
+            "note": "sends a fledgling who has done the starter quests to Halas (the quest The Long Flight)"
+          },
+          {
+            "name": "Roost sentinel",
+            "like": 103364,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              9131.1,
+              111.5,
+              20154.1
+            ],
+            "facing": 3
+          },
+          {
+            "name": "Roost sentinel",
+            "like": 103364,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              9114.6,
+              104.0,
+              20169.7
+            ],
+            "facing": 56
+          },
+          {
+            "name": "Roost sentinel",
+            "like": 103377,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              9029.3,
+              77.1,
+              20724.4
+            ],
+            "facing": 27
+          },
+          {
+            "name": "Roost sentinel",
+            "like": 103364,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              9064.5,
+              84.1,
+              21418.1
+            ],
+            "facing": 24
+          },
+          {
+            "name": "scrub rat",
+            "body": "0x9E004757",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              9346.5,
+              63.6,
+              21097.6
+            ],
+            "note": "the starter quest's rats, at the grave rats' spots south of the nests"
+          },
+          {
+            "name": "scrub rat",
+            "body": "0x9E004757",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              8952.0,
+              77.9,
+              21029.0
+            ]
+          },
+          {
+            "name": "scrub rat",
+            "body": "0x9E004757",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              8876.2,
+              59.2,
+              20850.6
+            ]
+          },
+          {
+            "name": "scrub rat",
+            "body": "0x9E004757",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              8884.3,
+              73.0,
+              21193.6
+            ]
+          },
+          {
+            "name": "scrub rat",
+            "body": "0x9E004757",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              8701.1,
+              65.0,
+              21202.4
+            ]
+          },
+          {
+            "name": "scrub rat",
+            "body": "0x9E004757",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              8723.1,
+              54.1,
+              20753.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "scrub rat"
+        ]
+      }
+    },
+    {
+      "name": "Cazic-Thule",
+      "from": "TUNARIA.ESF",
+      "zone": 160,
+      "race": 15,
+      "note": "Lizardman: the Tae Ew lizardmen's temple in the swamp (Cazic-Thule, cell 7,15)",
+      "home": {
+        "flavor": "Lizardmen are cold-blooded hunters of the swamps of Cazic-Thule in the Homelands, patient and tireless, who sell their blades in Freeport.",
+        "start": {
+          "x": 14965.2,
+          "y": 57.62,
+          "z": 30941.4,
+          "toward": [
+            14958.2,
+            30940.8
+          ]
+        },
+        "mainland": {
+          "place": "Freeport",
+          "world": 0,
+          "x": 25486.5,
+          "y": 61.4,
+          "z": 15547.0,
+          "facing": 4.72
+        },
+        "npcs": [
+          {
+            "name": "Elder Hsslarn",
+            "like": 112631,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              14958.2,
+              57.62,
+              30940.8
+            ],
+            "toward": [
+              14965.2,
+              30941.4
+            ],
+            "note": "the starter quests' giver, in a hierophant's robes, on the west shore before the old temple"
+          },
+          {
+            "name": "Grocer Sskaya",
+            "like": 112644,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              15027.2,
+              54.12,
+              30947.0
+            ],
+            "toward": [
+              14958.2,
+              30940.8
+            ],
+            "stock": "Grocer Calinet",
+            "note": "the swamp's grocer at the long bridge's west end, in the race's own body; a Freeport grocer's food"
+          },
+          {
+            "name": "Spiritmaster Thessik",
+            "like": 112658,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              14857.4,
+              58.9,
+              30921.8
+            ],
+            "toward": [
+              14958.2,
+              30940.8
+            ],
+            "note": "binds, as every spiritmaster; before the old temple"
+          },
+          {
+            "name": "Gatekeeper Vosskar",
+            "like": 121615,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              15235.2,
+              54.12,
+              31005.5
+            ],
+            "toward": [
+              14965.2,
+              30941.4
+            ],
+            "note": "sends a lizardman who has done the starter quests to Freeport (The Road to Freeport); on the east island, over the long bridge"
+          },
+          {
+            "name": "Mirewatch sentinel",
+            "like": 112623,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              14872.0,
+              51.75,
+              30801.2
+            ],
+            "facing": 128
+          },
+          {
+            "name": "Mirewatch sentinel",
+            "like": 112623,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              14946.0,
+              58.51,
+              30949.4
+            ],
+            "facing": 105
+          },
+          {
+            "name": "Mirewatch sentinel",
+            "like": 112623,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              15244.9,
+              51.75,
+              30974.0
+            ],
+            "facing": 128
+          },
+          {
+            "name": "Mirewatch sentinel",
+            "like": 112623,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              15221.0,
+              54.12,
+              31047.3
+            ],
+            "facing": 147
+          },
+          {
+            "name": "bog beetle",
+            "body": "0x4140233B",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              14867.9,
+              54.12,
+              31188.5
+            ],
+            "note": "the starter quest's beetles, at the Tae Ew's spots on the southern banks"
+          },
+          {
+            "name": "bog beetle",
+            "body": "0x4140233B",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              14865.7,
+              54.12,
+              31201.4
+            ]
+          },
+          {
+            "name": "bog beetle",
+            "body": "0x4140233B",
+            "level": 2,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              14850.5,
+              54.12,
+              31203.3
+            ]
+          },
+          {
+            "name": "bog beetle",
+            "body": "0x4140233B",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              15191.6,
+              54.12,
+              31186.9
+            ]
+          },
+          {
+            "name": "bog beetle",
+            "body": "0x4140233B",
+            "level": 2,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              15202.9,
+              54.12,
+              31192.9
+            ]
+          },
+          {
+            "name": "bog beetle",
+            "body": "0x4140233B",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              15201.6,
+              54.12,
+              31193.8
+            ]
+          }
+        ],
+        "peaceful": [
+          "bog beetle"
+        ],
+        "lines": {
+          "Gatekeeper Vosskar": [
+            "Not yet, hatchling. Elder Hsslarn has work for you first.",
+            "Every hatchling sees the elder before it sees Freeport. He waits on the west shore, before the old temple."
+          ],
+          "Mirewatch sentinel": [
+            "The water is calm today. Calm water hides the most.",
+            "Stay on the bridges, %r. The mud has no bottom in places.",
+            "New to the swamp? Elder Hsslarn waits on the west shore, before the old temple."
+          ],
+          "Elder Hsslarn": [
+            "Patience, hatchling. The swamp rewards those who wait.",
+            "Keep your scales dry and your blade sharp, and the mainland will treat you well."
+          ]
+        }
+      }
+    },
+    {
+      "name": "Sylhilthis' Dwell",
+      "from": "ODUS.ESF",
+      "zone": 7,
+      "race": 16,
+      "note": "Kappa: the kappa town of Odus: 179 kappa of the game, guards and a blacksmith (Sylhilthis' Dwell, cell 2,1)",
+      "home": {
+        "flavor": "Kappa are a hardy shelled river folk of Sylhilthis' Dwell in the Homelands, whose young go down the river to the halflings of Rivervale.",
+        "start": {
+          "x": 4892.5,
+          "y": 61.2,
+          "z": 2405.7,
+          "toward": [
+            4892.5,
+            2398.7
+          ]
+        },
+        "mainland": {
+          "place": "Rivervale",
+          "world": 0,
+          "x": 18776.3,
+          "y": 62.4,
+          "z": 10959.6,
+          "facing": 0.0
+        },
+        "npcs": [
+          {
+            "name": "Elder Hoshuk",
+            "like": 129506,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              4892.5,
+              61.4,
+              2398.7
+            ],
+            "toward": [
+              4892.5,
+              2405.7
+            ],
+            "note": "the starter quests' giver, a kappa shaman, on the sand south of the Dwell"
+          },
+          {
+            "name": "Grocer Pemmi",
+            "like": 129497,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              4946.6,
+              61.2,
+              2415.5
+            ],
+            "toward": [
+              4892.5,
+              2398.7
+            ],
+            "stock": "Grocer Dinkin",
+            "note": "the Dwell's grocer on the east sand, a Rivervale grocer's food"
+          },
+          {
+            "name": "Spiritmaster Oruko",
+            "like": 129508,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              4828.2,
+              61.4,
+              2385.3
+            ],
+            "toward": [
+              4892.5,
+              2398.7
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Kabbo",
+            "like": 129512,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              4978.4,
+              74.7,
+              2488.7
+            ],
+            "toward": [
+              4892.5,
+              2398.7
+            ],
+            "note": "on the causeway: sends a young kappa who has done the starter quests to Rivervale (the quest Down the River)"
+          },
+          {
+            "name": "Dwell sentinel",
+            "like": 129463,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              4967.7,
+              60.8,
+              2403.0
+            ],
+            "facing": 64
+          },
+          {
+            "name": "Dwell sentinel",
+            "like": 129463,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              4944.6,
+              61.4,
+              2281.9
+            ],
+            "facing": 128
+          },
+          {
+            "name": "Dwell sentinel",
+            "like": 129463,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              4988.7,
+              76.5,
+              2499.1
+            ],
+            "facing": 32
+          },
+          {
+            "name": "marsh rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              5233.3,
+              54.6,
+              2768.9
+            ],
+            "note": "the starter hunt's rats (a grave rat's body), on the shore where the causeway comes in"
+          },
+          {
+            "name": "marsh rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              5068.3,
+              53.7,
+              2741.8
+            ]
+          },
+          {
+            "name": "marsh rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              5254.2,
+              55.1,
+              2733.7
+            ]
+          },
+          {
+            "name": "marsh rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              5244.7,
+              54.4,
+              2818.9
+            ]
+          },
+          {
+            "name": "marsh rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              5180.0,
+              54.6,
+              2780.0
+            ]
+          },
+          {
+            "name": "marsh rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              5140.0,
+              54.1,
+              2760.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "marsh rat"
+        ]
+      }
+    },
+    {
+      "name": "Mayfly Glade",
+      "from": "TUNARIA.ESF",
+      "zone": 103,
+      "race": 17,
+      "note": "Brownie: a glade (the brownies' own Salisearaneen stands in the Warrens' cell) (Mayfly Glade, cell 5,9)",
+      "home": {
+        "flavor": "Brownies are quick-fingered fae of Mayfly Glade in the Homelands, fond of mischief and a good meal, and friends to the halflings of Rivervale.",
+        "start": {
+          "x": 11129.1,
+          "y": 75.25,
+          "z": 18702.0,
+          "toward": [
+            11135.5,
+            18699.2
+          ]
+        },
+        "mainland": {
+          "place": "Rivervale",
+          "world": 0,
+          "x": 18776.3,
+          "y": 62.4,
+          "z": 10959.6,
+          "facing": 0.0
+        },
+        "npcs": [
+          {
+            "name": "Elder Thimbleroot",
+            "like": 112787,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              11135.5,
+              75.25,
+              18699.2
+            ],
+            "toward": [
+              11129.1,
+              18702.0
+            ],
+            "note": "the starter quests' giver, a brownie elder of Salisearaneen's, east of the hut in the glade's stockade (the Glinaldal camp's spots: no brownie stands in the zone)"
+          },
+          {
+            "name": "Grocer Pippkin",
+            "like": 112836,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              11129.3,
+              75.25,
+              18660.3
+            ],
+            "toward": [
+              11135.5,
+              18699.2
+            ],
+            "stock": "Grocer Redders",
+            "note": "the glade's larder by the tent, a Rivervale grocer's food"
+          },
+          {
+            "name": "Spiritmaster Fennick",
+            "like": 112748,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              11083.1,
+              75.25,
+              18686.7
+            ],
+            "toward": [
+              11135.5,
+              18699.2
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Burrowby",
+            "like": 112786,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              11150.5,
+              75.25,
+              18691.8
+            ],
+            "toward": [
+              11135.5,
+              18699.2
+            ],
+            "note": "sends a brownie who has done the starter quests to Rivervale (The Road to Rivervale); at the stockade's gate"
+          },
+          {
+            "name": "Glade watcher",
+            "like": 112746,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              11166.0,
+              76.73,
+              18686.0
+            ],
+            "facing": 64,
+            "note": "outside the gate, on the ground"
+          },
+          {
+            "name": "Glade watcher",
+            "like": 112746,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              11106.7,
+              75.25,
+              18664.1
+            ],
+            "facing": 30
+          },
+          {
+            "name": "Glade watcher",
+            "like": 112746,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              11091.5,
+              75.25,
+              18704.3
+            ],
+            "facing": 97
+          },
+          {
+            "name": "Glade watcher",
+            "like": 112746,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              11166.0,
+              76.73,
+              18698.0
+            ],
+            "facing": 64
+          },
+          {
+            "name": "mayfly swarm",
+            "body": "0x2917BF34",
+            "level": 1,
+            "role": "foe",
+            "at": [
+              10573.2,
+              51.93,
+              18860.3
+            ],
+            "note": "the starter quest's mayflies, at the sacred monarchs' spots in the open glade west of the stockade"
+          },
+          {
+            "name": "mayfly swarm",
+            "body": "0x2917BF34",
+            "level": 1,
+            "role": "foe",
+            "at": [
+              10586.8,
+              52.53,
+              18829.4
+            ]
+          },
+          {
+            "name": "mayfly swarm",
+            "body": "0x2917BF34",
+            "level": 2,
+            "role": "foe",
+            "at": [
+              10596.6,
+              53.7,
+              18803.8
+            ]
+          },
+          {
+            "name": "mayfly swarm",
+            "body": "0x2917BF34",
+            "level": 1,
+            "role": "foe",
+            "at": [
+              10572.3,
+              54.12,
+              18815.1
+            ]
+          },
+          {
+            "name": "mayfly swarm",
+            "body": "0x2917BF34",
+            "level": 2,
+            "role": "foe",
+            "at": [
+              10547.7,
+              54.12,
+              18796.1
+            ]
+          },
+          {
+            "name": "mayfly swarm",
+            "body": "0x2917BF34",
+            "level": 1,
+            "role": "foe",
+            "at": [
+              10540.5,
+              54.13,
+              18816.1
+            ]
+          }
+        ],
+        "peaceful": [
+          "mayfly swarm"
+        ],
+        "lines": {
+          "Gatekeeper Burrowby": [
+            "Off to Rivervale already? Not before the elder has had a word with you. He is just inside, by the hut.",
+            "Elder Thimbleroot first, then me. That is the way of the glade."
+          ],
+          "Glade watcher": [
+            "Lovely day for it, whatever it is.",
+            "Keep your fingers out of Pippkin's larder, %r. She counts more than she says.",
+            "The stockade keeps out the wolves. Mostly."
+          ],
+          "Elder Thimbleroot": [
+            "A brownie with a full belly is a brownie ready for anything.",
+            "Rivervale is a fine place. The halflings bake almost as well as we do."
+          ]
+        }
+      }
+    },
+    {
+      "name": "Misty Thicket",
+      "from": "TUNARIA.ESF",
+      "zone": 54,
+      "race": 18,
+      "note": "Pixie: the bixies' thicket (Misty Thicket, cell 8,5)",
+      "home": {
+        "flavor": "Pixies are tiny winged fae of the Misty Thicket in the Homelands, bright as sparks and twice as quick, who learn the old magic among the elves.",
+        "start": {
+          "x": 17046.9,
+          "y": 70.89,
+          "z": 10438.6,
+          "toward": [
+            17040.1,
+            10440.2
+          ]
+        },
+        "mainland": {
+          "place": "Tethelin and Fayspire",
+          "world": 0,
+          "x": 18380.2,
+          "y": 75.6,
+          "z": 7378.4,
+          "facing": 3.94
+        },
+        "npcs": [
+          {
+            "name": "Elder Brightwing",
+            "like": 820,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              17040.1,
+              71.06,
+              10440.2
+            ],
+            "toward": [
+              17046.9,
+              10438.6
+            ],
+            "note": "the starter quests' giver, under the tall pines in the middle of the thicket, at the bixies' spots"
+          },
+          {
+            "name": "Grocer Nettlewick",
+            "like": 818,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              17147.0,
+              65.76,
+              10415.7
+            ],
+            "toward": [
+              17040.1,
+              10440.2
+            ],
+            "stock": "Grocer Nethelia",
+            "note": "the thicket's grocer by the old pines to the east, an elven grocer's food"
+          },
+          {
+            "name": "Spiritmaster Glimmerdew",
+            "like": 821,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              16878.8,
+              74.32,
+              10432.8
+            ],
+            "toward": [
+              17040.1,
+              10440.2
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Thistlewhirl",
+            "like": 819,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              17206.1,
+              70.79,
+              10452.7
+            ],
+            "toward": [
+              17040.1,
+              10440.2
+            ],
+            "note": "sends a pixie who has done the starter quests to the elves, Tethelin or Fayspire by class (The Elves' Wood)"
+          },
+          {
+            "name": "Thicket warden",
+            "like": 819,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              17191.1,
+              64.75,
+              10398.2
+            ],
+            "facing": 151
+          },
+          {
+            "name": "Thicket warden",
+            "like": 819,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              17123.0,
+              77.12,
+              10503.6
+            ],
+            "facing": 131
+          },
+          {
+            "name": "Thicket warden",
+            "like": 819,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              16998.2,
+              67.66,
+              10524.5
+            ],
+            "facing": 209
+          },
+          {
+            "name": "Thicket warden",
+            "like": 819,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              17042.9,
+              68.97,
+              10601.2
+            ],
+            "facing": 29
+          },
+          {
+            "name": "bramble rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              16830.3,
+              61.45,
+              10540.3
+            ],
+            "note": "the starter quest's rats, at the wolf spiders' and their neighbours' spots in the brambles to the south-west"
+          },
+          {
+            "name": "bramble rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              16779.6,
+              54.12,
+              10620.2
+            ]
+          },
+          {
+            "name": "bramble rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              16725.7,
+              54.12,
+              10550.7
+            ]
+          },
+          {
+            "name": "bramble rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              16895.9,
+              58.96,
+              10523.4
+            ]
+          },
+          {
+            "name": "bramble rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              16915.5,
+              55.84,
+              10570.9
+            ]
+          },
+          {
+            "name": "bramble rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              16955.0,
+              57.77,
+              10541.8
+            ]
+          }
+        ],
+        "peaceful": [
+          "bramble rat"
+        ],
+        "lines": {
+          "Gatekeeper Thistlewhirl": [
+            "Not yet, little spark. Elder Brightwing wants a word with you first.",
+            "Every pixie sees the elder before the elves see the pixie. Off you go!"
+          ],
+          "Thicket warden": [
+            "Watch the brambles, %r. The rats are bolder than they look.",
+            "Mist on the leaves means rain by evening.",
+            "Lost? Elder Brightwing is under the tall pines in the middle of the thicket."
+          ],
+          "Elder Brightwing": [
+            "The thicket remembers every pixie it has raised. It will remember you.",
+            "Be quick, be kind, and never let a goblin near your purse."
+          ]
+        }
+      }
+    },
+    {
+      "name": "Twisted Tower",
+      "from": "TUNARIA.ESF",
+      "zone": 49,
+      "race": 19,
+      "note": "Fairy: a faerie town: a blacksmith, druids and wizards of the game (Twisted Tower, cell 3,5)",
+      "home": {
+        "flavor": "Fairies are winged fae of the Twisted Tower in the Homelands, quick to laugh and light as thistledown, who go to the humans of Qeynos.",
+        "start": {
+          "x": 7041.2,
+          "y": 113.04,
+          "z": 11613.8,
+          "toward": [
+            7041.2,
+            11620.8
+          ]
+        },
+        "mainland": {
+          "place": "Qeynos (rangers and druids Surefall Glade)",
+          "world": 0,
+          "x": 4243.7,
+          "y": 58.1,
+          "z": 17169.1,
+          "facing": 4.63
+        },
+        "npcs": [
+          {
+            "name": "Elder Moonpetal",
+            "like": 115250,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              7041.2,
+              113.37,
+              11620.8
+            ],
+            "toward": [
+              7041.2,
+              11613.8
+            ],
+            "note": "the starter quests' giver, in the middle of the faeries' valley, at Sprinkletine's spot"
+          },
+          {
+            "name": "Grocer Dewberry",
+            "like": 115265,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6975.3,
+              113.62,
+              11634.4
+            ],
+            "toward": [
+              7041.2,
+              11620.8
+            ],
+            "stock": "Grocer Appleby",
+            "note": "the faerie grocer's look, by the old forge; a Qeynos grocer's food"
+          },
+          {
+            "name": "Spiritmaster Lirelle",
+            "like": 115263,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              7101.9,
+              107.98,
+              11551.1
+            ],
+            "toward": [
+              7041.2,
+              11620.8
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Starling",
+            "like": 115272,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              7063.3,
+              110.5,
+              11470.5
+            ],
+            "toward": [
+              7041.2,
+              11620.8
+            ],
+            "note": "sends a fairy who has done the starter quests to Qeynos, its rangers and druids to Surefall Glade (The Road to Qeynos); toward the pass"
+          },
+          {
+            "name": "Tower watcher",
+            "like": 115273,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              7058.8,
+              112.63,
+              11401.2
+            ],
+            "facing": 120
+          },
+          {
+            "name": "Tower watcher",
+            "like": 115273,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              7091.1,
+              112.48,
+              11407.5
+            ],
+            "facing": 149
+          },
+          {
+            "name": "Tower watcher",
+            "like": 115273,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6839.7,
+              111.78,
+              11600.1
+            ],
+            "facing": 212
+          },
+          {
+            "name": "Tower watcher",
+            "like": 115273,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              7237.0,
+              109.75,
+              11576.7
+            ],
+            "facing": 196
+          },
+          {
+            "name": "dusk beetle",
+            "body": "0x1806DCEA",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              6810.9,
+              110.73,
+              11613.1
+            ],
+            "note": "the starter quest's beetles, at the faeries' spots in the gardens at either end of the valley"
+          },
+          {
+            "name": "dusk beetle",
+            "body": "0x1806DCEA",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              6815.0,
+              110.06,
+              11623.8
+            ]
+          },
+          {
+            "name": "dusk beetle",
+            "body": "0x1806DCEA",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              6904.4,
+              110.79,
+              11610.2
+            ]
+          },
+          {
+            "name": "dusk beetle",
+            "body": "0x1806DCEA",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              7297.3,
+              110.0,
+              11540.3
+            ]
+          },
+          {
+            "name": "dusk beetle",
+            "body": "0x1806DCEA",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              7301.6,
+              109.9,
+              11540.4
+            ]
+          },
+          {
+            "name": "dusk beetle",
+            "body": "0x1806DCEA",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              7333.5,
+              109.93,
+              11546.4
+            ]
+          }
+        ],
+        "peaceful": [
+          "dusk beetle"
+        ],
+        "lines": {
+          "Gatekeeper Starling": [
+            "Not yet, little friend. Elder Moonpetal is waiting to meet you.",
+            "Elder Moonpetal sees every new fairy first. She is in the middle of the valley, south of here."
+          ],
+          "Tower watcher": [
+            "The pass is quiet today. Good.",
+            "Mind the drakes up on the slopes, %r. They do not care how small you are.",
+            "If you are new, see Elder Moonpetal. Everyone does."
+          ],
+          "Elder Moonpetal": [
+            "Laugh often, little friend. It is the oldest magic there is.",
+            "The valley will always remember you, wherever the winds take you."
+          ]
+        }
+      }
+    },
+    {
+      "name": "Blackburrow",
+      "from": "TUNARIA.ESF",
+      "zone": 65,
+      "race": 20,
+      "note": "Gnoll: the gnolls' burrow: 124 gnolls of the game (Blackburrow, cell 6,6)",
+      "home": {
+        "flavor": "Gnolls are hyena-faced hunters of Blackburrow in the Homelands, cunning in a pack and fierce alone, who serve the dark elves of Neriak.",
+        "start": {
+          "x": 12564.9,
+          "y": 54.16,
+          "z": 12961.9,
+          "toward": [
+            12558.3,
+            12959.5
+          ]
+        },
+        "mainland": {
+          "place": "Neriak",
+          "world": 0,
+          "x": 25220.1,
+          "y": 7.4,
+          "z": 8626.2,
+          "facing": 0.04
+        },
+        "npcs": [
+          {
+            "name": "Elder Grawl",
+            "like": 103575,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              12558.3,
+              54.16,
+              12959.5
+            ],
+            "toward": [
+              12564.9,
+              12961.9
+            ],
+            "note": "the starter quests' giver, a spiritist's look, by the fire pit of the gnolls' stockade south of the burrow"
+          },
+          {
+            "name": "Grocer Snaggle",
+            "like": 103668,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12574.7,
+              54.16,
+              12986.7
+            ],
+            "toward": [
+              12558.3,
+              12959.5
+            ],
+            "stock": "Grocer Droel",
+            "note": "a forager's look, by the cook pots; a Neriak grocer's food"
+          },
+          {
+            "name": "Spiritmaster Rakk",
+            "like": 103577,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              12624.0,
+              54.16,
+              12960.2
+            ],
+            "toward": [
+              12558.3,
+              12959.5
+            ],
+            "note": "binds, as every spiritmaster; a shaman's look"
+          },
+          {
+            "name": "Gatekeeper Brindle",
+            "like": 103565,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              12694.7,
+              54.16,
+              13031.8
+            ],
+            "toward": [
+              12558.3,
+              12959.5
+            ],
+            "note": "sends a gnoll who has done the starter quests to Neriak (The Road to Neriak); at the stockade's south-east gate"
+          },
+          {
+            "name": "Burrow guard",
+            "like": 103588,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12616.2,
+              71.15,
+              12913.1
+            ],
+            "facing": 124
+          },
+          {
+            "name": "Burrow guard",
+            "like": 103588,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12497.7,
+              71.15,
+              12976.7
+            ],
+            "facing": 185
+          },
+          {
+            "name": "Burrow guard",
+            "like": 103588,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12624.6,
+              71.15,
+              13042.9
+            ],
+            "facing": 1
+          },
+          {
+            "name": "Burrow guard",
+            "like": 103588,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12684.5,
+              71.15,
+              12960.6
+            ],
+            "facing": 80
+          },
+          {
+            "name": "hill badger",
+            "body": "0x8C4F05A3",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              12304.1,
+              82.32,
+              12784.4
+            ],
+            "note": "the starter quest's badgers, at a creature camp's spots on the hill north-west of the stockade"
+          },
+          {
+            "name": "hill badger",
+            "body": "0x8C4F05A3",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              12306.9,
+              85.61,
+              12793.6
+            ]
+          },
+          {
+            "name": "hill badger",
+            "body": "0x8C4F05A3",
+            "level": 2,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              12316.6,
+              79.81,
+              12789.7
+            ]
+          },
+          {
+            "name": "hill badger",
+            "body": "0x8C4F05A3",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              12306.2,
+              81.19,
+              12762.2
+            ]
+          },
+          {
+            "name": "hill badger",
+            "body": "0x8C4F05A3",
+            "level": 2,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              12308.9,
+              80.11,
+              12774.9
+            ]
+          },
+          {
+            "name": "hill badger",
+            "body": "0x8C4F05A3",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              12312.9,
+              78.24,
+              12767.2
+            ]
+          }
+        ],
+        "peaceful": [
+          "hill badger"
+        ],
+        "lines": {
+          "Gatekeeper Brindle": [
+            "Not yet, pup. Elder Grawl has to know your scent before Neriak does.",
+            "Go and see Elder Grawl by the fire. Then we will talk."
+          ],
+          "Burrow guard": [
+            "Nothing moves on the hill that I do not see.",
+            "Keep your nose up, %r. Trouble smells before it shows.",
+            "New pup? Elder Grawl is by the fire pit."
+          ],
+          "Elder Grawl": [
+            "The pack is strong because each gnoll is strong. Remember that.",
+            "Wherever you go, pup, the pack goes with you."
+          ]
+        }
+      }
+    },
+    {
+      "name": "Thedruk",
+      "from": "TUNARIA.ESF",
+      "zone": 42,
+      "race": 21,
+      "note": "Orc: the Hatebone orcs' camp: 93 orcs of the game, a prophet among them (Thedruk, cell 9,4)",
+      "home": {
+        "flavor": "Orcs are tusked warriors of the Thedruk camps in the Homelands, hard as stone, who keep a rough peace with the barbarians of Halas.",
+        "start": {
+          "x": 19832.3,
+          "y": 54.12,
+          "z": 8761.0,
+          "toward": [
+            19839.3,
+            8761.2
+          ]
+        },
+        "mainland": {
+          "place": "Halas",
+          "world": 0,
+          "x": 13059.3,
+          "y": 54.4,
+          "z": 4289.6,
+          "facing": 1.28
+        },
+        "npcs": [
+          {
+            "name": "Elder Gorruk",
+            "like": 100909,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              19839.3,
+              54.37,
+              8761.2
+            ],
+            "toward": [
+              19832.3,
+              8761.0
+            ],
+            "note": "the starter quests' giver, a prophet's look, among the totems of the Hatebone camp east of the river"
+          },
+          {
+            "name": "Grocer Bulgash",
+            "like": 100886,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19767.9,
+              54.12,
+              8717.3
+            ],
+            "toward": [
+              19839.3,
+              8761.2
+            ],
+            "stock": "Grocer Hannibal",
+            "note": "a henchman's look, at the camp's cook fire; a Halas grocer's food"
+          },
+          {
+            "name": "Spiritmaster Urzog",
+            "like": 100877,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              19804.6,
+              56.1,
+              8706.5
+            ],
+            "toward": [
+              19839.3,
+              8761.2
+            ],
+            "note": "binds, as every spiritmaster; a mystic's look"
+          },
+          {
+            "name": "Gatekeeper Thrakka",
+            "like": 100884,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              19904.2,
+              54.12,
+              8809.0
+            ],
+            "toward": [
+              19839.3,
+              8761.2
+            ],
+            "note": "sends an orc who has done the starter quests to Halas (The Road to Halas); a scout's look"
+          },
+          {
+            "name": "Thedruk sentry",
+            "like": 100916,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19820.2,
+              54.12,
+              8744.7
+            ],
+            "facing": 122
+          },
+          {
+            "name": "Thedruk sentry",
+            "like": 100916,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19793.7,
+              60.38,
+              8835.5
+            ],
+            "facing": 17
+          },
+          {
+            "name": "Thedruk sentry",
+            "like": 100916,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19862.9,
+              54.12,
+              8794.3
+            ],
+            "facing": 160
+          },
+          {
+            "name": "Thedruk sentry",
+            "like": 100916,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19606.1,
+              74.32,
+              8687.5
+            ],
+            "facing": 235
+          },
+          {
+            "name": "camp rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19436.1,
+              50.73,
+              8691.8
+            ],
+            "note": "the starter quest's rats, at the orc raiders' spots on the slope west of the camp"
+          },
+          {
+            "name": "camp rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19486.6,
+              50.91,
+              8703.6
+            ]
+          },
+          {
+            "name": "camp rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19443.1,
+              43.5,
+              8736.7
+            ]
+          },
+          {
+            "name": "camp rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19511.4,
+              51.04,
+              8754.0
+            ]
+          },
+          {
+            "name": "camp rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19449.1,
+              43.5,
+              8789.0
+            ]
+          },
+          {
+            "name": "camp rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19516.0,
+              52.38,
+              8801.8
+            ]
+          }
+        ],
+        "peaceful": [
+          "camp rat"
+        ],
+        "lines": {
+          "Gatekeeper Thrakka": [
+            "Not yet, whelp. Elder Gorruk speaks to every new orc first.",
+            "Go and see the elder among the totems. Then come back, and I will send you to Halas."
+          ],
+          "Thedruk sentry": [
+            "Eyes open, %r. Always.",
+            "The camp sleeps easier when I do not.",
+            "Looking for the elder? He is among the totems in the middle of the camp."
+          ],
+          "Elder Gorruk": [
+            "An orc is measured by the fights he finishes, not the ones he starts.",
+            "Make the camp proud, whelp."
+          ]
+        }
+      }
+    },
+    {
+      "name": "The Warrens",
+      "from": "ODUS.ESF",
+      "zone": 27,
+      "race": 22,
+      "note": "Kobold: the kobolds' tunnels: 114 of clan Kolbok (The Warrens, cell 4,4)",
+      "home": {
+        "flavor": "Kobolds are small, furred diggers of the Warrens in the Homelands, whose pups trade their tunnel lore with the gnomes of Klick'Anon.",
+        "start": {
+          "x": 8793.5,
+          "y": 137.8,
+          "z": 8522.5,
+          "toward": [
+            8793.5,
+            8529.5
+          ]
+        },
+        "mainland": {
+          "place": "Klick'Anon",
+          "world": 0,
+          "x": 23478.1,
+          "y": 37.2,
+          "z": 6209.9,
+          "facing": 5.31
+        },
+        "npcs": [
+          {
+            "name": "Elder Grikkis",
+            "like": 119222,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              8793.5,
+              137.8,
+              8529.5
+            ],
+            "toward": [
+              8793.5,
+              8522.5
+            ],
+            "note": "the starter quests' giver, in a high shaman's skull, by the cavern's stalls"
+          },
+          {
+            "name": "Grocer Snivvet",
+            "like": 133115,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              8763.1,
+              137.8,
+              8534.0
+            ],
+            "toward": [
+              8793.5,
+              8529.5
+            ],
+            "stock": "Grocer Guzzlewugs",
+            "note": "the cavern's grocer at the stalls, a Klick'Anon grocer's food"
+          },
+          {
+            "name": "Spiritmaster Kraaz",
+            "like": 133165,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              8820.6,
+              137.8,
+              8533.9
+            ],
+            "toward": [
+              8793.5,
+              8529.5
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Ruknar",
+            "like": 122819,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              8705.5,
+              137.8,
+              8556.1
+            ],
+            "toward": [
+              8793.5,
+              8529.5
+            ],
+            "note": "sends a pup who has done the starter quests to Klick'Anon (the quest The Deep Ways)"
+          },
+          {
+            "name": "Warren sentinel",
+            "like": 130025,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              8862.2,
+              137.8,
+              8572.2
+            ],
+            "facing": 64
+          },
+          {
+            "name": "Warren sentinel",
+            "like": 130025,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              8742.6,
+              137.8,
+              8578.4
+            ],
+            "facing": 192
+          },
+          {
+            "name": "Warren sentinel",
+            "like": 130025,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              8850.0,
+              137.8,
+              8596.6
+            ],
+            "facing": 32
+          },
+          {
+            "name": "tunnel beetle",
+            "body": "0x1806DCEA",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              8619.5,
+              137.8,
+              8579.0
+            ],
+            "note": "the starter hunt's beetles (a death beetle's body, small), at the cavern's west end"
+          },
+          {
+            "name": "tunnel beetle",
+            "body": "0x1806DCEA",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              8612.9,
+              137.7,
+              8613.2
+            ]
+          },
+          {
+            "name": "tunnel beetle",
+            "body": "0x1806DCEA",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              8640.0,
+              137.8,
+              8600.0
+            ]
+          },
+          {
+            "name": "tunnel beetle",
+            "body": "0x1806DCEA",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              8689.1,
+              137.8,
+              8620.0
+            ]
+          },
+          {
+            "name": "tunnel beetle",
+            "body": "0x1806DCEA",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              8702.5,
+              137.8,
+              8632.9
+            ]
+          },
+          {
+            "name": "tunnel beetle",
+            "body": "0x1806DCEA",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              8650.0,
+              137.8,
+              8590.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "tunnel beetle"
+        ]
+      }
+    },
+    {
+      "name": "Gerntar Mines",
+      "from": "TUNARIA.ESF",
+      "zone": 143,
+      "race": 23,
+      "note": "Minotaur: the Rustel minotaurs' mines: 41 minotaurs of the game (Gerntar Mines, cell 6,13)",
+      "home": {
+        "flavor": "Minotaurs are bull-headed brutes of the Gerntar Mines in the Homelands, proud and quick to anger, who throw in their lot with the trolls of Grobb.",
+        "start": {
+          "x": 12953.3,
+          "y": 59.84,
+          "z": 26307.6,
+          "toward": [
+            12941.4,
+            26305.8
+          ]
+        },
+        "mainland": {
+          "place": "Grobb",
+          "world": 0,
+          "x": 25407.7,
+          "y": 70.0,
+          "z": 31410.3,
+          "facing": 4.34
+        },
+        "npcs": [
+          {
+            "name": "Elder Hornbrand",
+            "like": 101842,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              12941.4,
+              56.0,
+              26305.8
+            ],
+            "toward": [
+              12953.3,
+              26307.6
+            ],
+            "note": "the starter quests' giver, Gilthirn Ironhoof's look, at the mouth of the Rustel minotaurs' mine"
+          },
+          {
+            "name": "Grocer Brassnose",
+            "like": 101841,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12992.7,
+              60.0,
+              26313.8
+            ],
+            "toward": [
+              12941.4,
+              26305.8
+            ],
+            "stock": "Barkeep Dunk",
+            "note": "by the mine cart outside; a Grobb barkeep's food"
+          },
+          {
+            "name": "Spiritmaster Ruhga",
+            "like": 122489,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              12868.4,
+              56.0,
+              26324.7
+            ],
+            "toward": [
+              12941.4,
+              26305.8
+            ],
+            "note": "binds, as every spiritmaster; Khelmarak's look, at Bribro Mino's spot in the mine"
+          },
+          {
+            "name": "Gatekeeper Stonehoof",
+            "like": 101839,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              13096.9,
+              59.14,
+              26546.2
+            ],
+            "toward": [
+              12953.3,
+              26307.6
+            ],
+            "note": "sends a minotaur who has done the starter quests to Grobb (The Road to Grobb); at the next mine's mouth to the south"
+          },
+          {
+            "name": "Rustel sentry",
+            "like": 101838,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12877.7,
+              56.0,
+              26317.0
+            ],
+            "facing": 111
+          },
+          {
+            "name": "Rustel sentry",
+            "like": 101838,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12907.5,
+              56.0,
+              26273.4
+            ],
+            "facing": 40
+          },
+          {
+            "name": "Rustel sentry",
+            "like": 101838,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              13082.9,
+              56.31,
+              26542.4
+            ],
+            "facing": 53
+          },
+          {
+            "name": "Rustel sentry",
+            "like": 101838,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              13048.2,
+              55.38,
+              26501.1
+            ],
+            "facing": 0
+          },
+          {
+            "name": "mine rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              13134.9,
+              59.41,
+              26238.6
+            ],
+            "note": "the starter quest's rats, at the savannah creatures' spots in the grass east of the mine"
+          },
+          {
+            "name": "mine rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              13146.5,
+              59.11,
+              26232.2
+            ]
+          },
+          {
+            "name": "mine rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              13142.6,
+              58.88,
+              26218.7
+            ]
+          },
+          {
+            "name": "mine rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              13241.9,
+              61.39,
+              26403.1
+            ]
+          },
+          {
+            "name": "mine rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              13254.7,
+              61.37,
+              26390.3
+            ]
+          },
+          {
+            "name": "mine rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              13330.0,
+              57.63,
+              26198.3
+            ]
+          }
+        ],
+        "peaceful": [
+          "mine rat"
+        ],
+        "lines": {
+          "Gatekeeper Stonehoof": [
+            "Not so fast, calf. Elder Hornbrand sees every new minotaur first.",
+            "The elder is at the mouth of the mine to the north. See him, then see me."
+          ],
+          "Rustel sentry": [
+            "The mine is ours. Remember that.",
+            "Watch your horns in the tunnels, %r. The ceilings are low.",
+            "New calf? Elder Hornbrand stands at the mouth of the mine."
+          ],
+          "Elder Hornbrand": [
+            "Pride is a fine thing, calf. So is patience. Learn both.",
+            "The herd remembers its own, wherever they roam."
+          ]
+        }
+      }
+    },
+    {
+      "name": "The Vastly Deep",
+      "from": "ODUS.ESF",
+      "zone": 22,
+      "race": 24,
+      "note": "Ratman: the ratmen's coast caves (The Vastly Deep, cell 5,3)",
+      "home": {
+        "flavor": "Ratmen are wiry, whiskered scavengers of the Vastly Deep's shore in the Homelands, whose young dig their way to the halls of Moradhim.",
+        "start": {
+          "x": 10605.7,
+          "y": 54.1,
+          "z": 6751.0,
+          "toward": [
+            10605.7,
+            6758.0
+          ]
+        },
+        "mainland": {
+          "place": "Moradhim",
+          "world": 0,
+          "x": 15190.8,
+          "y": 99.9,
+          "z": 8767.3,
+          "facing": 4.33
+        },
+        "npcs": [
+          {
+            "name": "Elder Skritch",
+            "like": 131409,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              10605.7,
+              54.6,
+              6758.0
+            ],
+            "toward": [
+              10605.7,
+              6751.0
+            ],
+            "note": "the starter quests' giver, a ratman spiritist, in the shore camp"
+          },
+          {
+            "name": "Grocer Nibbla",
+            "like": 131420,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10632.3,
+              54.0,
+              6735.2
+            ],
+            "toward": [
+              10605.7,
+              6758.0
+            ],
+            "stock": "Grocer Wolin",
+            "note": "the camp's grocer by the shacks, a Moradhim grocer's food"
+          },
+          {
+            "name": "Spiritmaster Vessik",
+            "like": 131401,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              10558.6,
+              54.2,
+              6713.2
+            ],
+            "toward": [
+              10605.7,
+              6758.0
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Ksarr",
+            "like": 131351,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              10575.3,
+              47.8,
+              6799.3
+            ],
+            "toward": [
+              10605.7,
+              6758.0
+            ],
+            "note": "by the water: sends a young ratman who has done the starter quests to Moradhim (the quest Into the Deep Halls)"
+          },
+          {
+            "name": "Deepshore sentinel",
+            "like": 131399,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10617.6,
+              54.0,
+              6642.8
+            ],
+            "facing": 128
+          },
+          {
+            "name": "Deepshore sentinel",
+            "like": 131399,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10535.4,
+              54.1,
+              6673.5
+            ],
+            "facing": 192
+          },
+          {
+            "name": "Deepshore sentinel",
+            "like": 131399,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10736.5,
+              54.1,
+              6819.5
+            ],
+            "facing": 64
+          },
+          {
+            "name": "dune snake",
+            "body": "0x5276C760",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              10775.4,
+              54.1,
+              6787.8
+            ],
+            "note": "the starter hunt's snakes (a green racer snake's body), on the shore east of the camp"
+          },
+          {
+            "name": "dune snake",
+            "body": "0x5276C760",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              10777.5,
+              54.1,
+              6692.6
+            ]
+          },
+          {
+            "name": "dune snake",
+            "body": "0x5276C760",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              10747.0,
+              54.1,
+              6715.2
+            ]
+          },
+          {
+            "name": "dune snake",
+            "body": "0x5276C760",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              10820.0,
+              54.2,
+              6700.0
+            ]
+          },
+          {
+            "name": "dune snake",
+            "body": "0x5276C760",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              10800.0,
+              54.1,
+              6740.0
+            ]
+          },
+          {
+            "name": "dune snake",
+            "body": "0x5276C760",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              10870.0,
+              56.6,
+              6700.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "dune snake"
+        ]
+      }
+    },
+    {
+      "name": "East Toxxulia",
+      "from": "ODUS.ESF",
+      "zone": 14,
+      "race": 25,
+      "note": "Satyr: the satyrs' woods: 155 acolyte satyrs of the game (East Toxxulia, cell 3,2)",
+      "home": {
+        "flavor": "Satyrs are goat-legged revelers of the East Toxxulian woods in the Homelands, whose young dance off to the elven forest round Tethelin.",
+        "start": {
+          "x": 6057.1,
+          "y": 80.7,
+          "z": 4444.1,
+          "toward": [
+            6050.1,
+            4444.1
+          ]
+        },
+        "mainland": {
+          "place": "Tethelin",
+          "world": 0,
+          "x": 18380.2,
+          "y": 75.6,
+          "z": 7378.4,
+          "facing": 3.94
+        },
+        "npcs": [
+          {
+            "name": "Elder Pannoch",
+            "like": 129706,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              6050.1,
+              80.8,
+              4444.1
+            ],
+            "toward": [
+              6057.1,
+              4444.1
+            ],
+            "note": "the starter quests' giver, an acolyte satyr, in the glade"
+          },
+          {
+            "name": "Grocer Lyrrin",
+            "like": 130510,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6023.9,
+              80.7,
+              4492.0
+            ],
+            "toward": [
+              6050.1,
+              4444.1
+            ],
+            "stock": "Grocer Peltham",
+            "note": "the glade's grocer, a faun maiden on its south side, a Tethelin grocer's food and drink"
+          },
+          {
+            "name": "Spiritmaster Fennick",
+            "like": 130401,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              6051.8,
+              80.9,
+              4418.3
+            ],
+            "toward": [
+              6050.1,
+              4444.1
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Dorvan",
+            "like": 130566,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              6095.4,
+              81.0,
+              4394.5
+            ],
+            "toward": [
+              6050.1,
+              4444.1
+            ],
+            "note": "sends a young satyr who has done the starter quests to its elven city (the quest The Elven Road)"
+          },
+          {
+            "name": "Glade sentinel",
+            "like": 129706,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6016.8,
+              81.1,
+              4446.0
+            ],
+            "facing": 192
+          },
+          {
+            "name": "Glade sentinel",
+            "like": 129706,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6062.5,
+              77.7,
+              4533.7
+            ],
+            "facing": 0
+          },
+          {
+            "name": "Glade sentinel",
+            "like": 129706,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6178.9,
+              80.8,
+              4512.3
+            ],
+            "facing": 64
+          },
+          {
+            "name": "glade spiderling",
+            "body": "0xF9D756D6",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6270.3,
+              85.4,
+              4417.2
+            ],
+            "note": "the starter hunt's spiderlings (a vineweb spiderling's body, small), east of the glade"
+          },
+          {
+            "name": "glade spiderling",
+            "body": "0xF9D756D6",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6219.4,
+              80.7,
+              4478.2
+            ]
+          },
+          {
+            "name": "glade spiderling",
+            "body": "0xF9D756D6",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6302.5,
+              80.7,
+              4485.6
+            ]
+          },
+          {
+            "name": "glade spiderling",
+            "body": "0xF9D756D6",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6225.5,
+              83.2,
+              4407.8
+            ]
+          },
+          {
+            "name": "glade spiderling",
+            "body": "0xF9D756D6",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6268.2,
+              80.7,
+              4529.2
+            ]
+          },
+          {
+            "name": "glade spiderling",
+            "body": "0xF9D756D6",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6320.7,
+              80.7,
+              4529.2
+            ]
+          }
+        ],
+        "peaceful": [
+          "glade spiderling"
+        ]
+      }
+    },
+    {
+      "name": "West Toxxulia",
+      "from": "ODUS.ESF",
+      "zone": 13,
+      "race": 26,
+      "note": "Dryad: the forest dryads' woods (West Toxxulia, cell 2,2)",
+      "home": {
+        "flavor": "Dryads are spirits of the old trees of West Toxxulia in the Homelands, whose young go to tend the groves round Surefall Glade.",
+        "start": {
+          "x": 5450.4,
+          "y": 54.1,
+          "z": 4952.6,
+          "toward": [
+            5457.4,
+            4952.6
+          ]
+        },
+        "mainland": {
+          "place": "Qeynos",
+          "world": 0,
+          "x": 4243.7,
+          "y": 58.1,
+          "z": 17169.1,
+          "facing": 4.63
+        },
+        "npcs": [
+          {
+            "name": "Elder Silverbough",
+            "like": 129876,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              5457.4,
+              54.3,
+              4952.6
+            ],
+            "toward": [
+              5450.4,
+              4952.6
+            ],
+            "note": "the starter quests' giver, a forest dryad, on the lake's west shore"
+          },
+          {
+            "name": "Grocer Willowmere",
+            "like": 129873,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5421.3,
+              54.1,
+              5039.0
+            ],
+            "toward": [
+              5457.4,
+              4952.6
+            ],
+            "stock": "Grocer Mary",
+            "note": "the grove's grocer by the water, a Surefall Glade grocer's food"
+          },
+          {
+            "name": "Spiritmaster Ashleaf",
+            "like": 129877,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              5470.0,
+              54.3,
+              4873.1
+            ],
+            "toward": [
+              5457.4,
+              4952.6
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Thornwyn",
+            "like": 130374,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              5348.3,
+              55.9,
+              4789.9
+            ],
+            "toward": [
+              5457.4,
+              4952.6
+            ],
+            "note": "sends a young dryad who has done the starter quests to Qeynos or Surefall Glade (the quest Roots in the West)"
+          },
+          {
+            "name": "Grove sentinel",
+            "like": 129605,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5394.2,
+              54.3,
+              5059.0
+            ],
+            "facing": 0
+          },
+          {
+            "name": "Grove sentinel",
+            "like": 129605,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5450.4,
+              54.3,
+              4836.1
+            ],
+            "facing": 128
+          },
+          {
+            "name": "Grove sentinel",
+            "like": 129605,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5381.0,
+              54.1,
+              5070.1
+            ],
+            "facing": 224
+          },
+          {
+            "name": "bark beetle",
+            "body": "0xFE31035A",
+            "level": 1,
+            "role": "foe",
+            "size": 0.45,
+            "at": [
+              5308.5,
+              84.1,
+              4911.3
+            ],
+            "note": "the starter hunt's beetles (a giant scarab's body, small), in the woods west of the lake"
+          },
+          {
+            "name": "bark beetle",
+            "body": "0xFE31035A",
+            "level": 1,
+            "role": "foe",
+            "size": 0.45,
+            "at": [
+              5198.0,
+              65.4,
+              4880.3
+            ]
+          },
+          {
+            "name": "bark beetle",
+            "body": "0xFE31035A",
+            "level": 2,
+            "role": "foe",
+            "size": 0.45,
+            "at": [
+              5148.8,
+              60.2,
+              4906.1
+            ]
+          },
+          {
+            "name": "bark beetle",
+            "body": "0xFE31035A",
+            "level": 1,
+            "role": "foe",
+            "size": 0.45,
+            "at": [
+              5239.0,
+              64.2,
+              4813.4
+            ]
+          },
+          {
+            "name": "bark beetle",
+            "body": "0xFE31035A",
+            "level": 1,
+            "role": "foe",
+            "size": 0.45,
+            "at": [
+              5297.2,
+              64.0,
+              4803.4
+            ]
+          },
+          {
+            "name": "bark beetle",
+            "body": "0xFE31035A",
+            "level": 2,
+            "role": "foe",
+            "size": 0.45,
+            "at": [
+              5260.0,
+              80.5,
+              4870.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "bark beetle"
+        ]
+      }
+    },
+    {
+      "name": "Tomb of Kings",
+      "from": "TUNARIA.ESF",
+      "zone": 82,
+      "race": 27,
+      "note": "Skeleton: a crypt of the old kings (Tomb of Kings, cell 10,7)",
+      "home": {
+        "flavor": "Skeletons are the restless dead of the Tomb of Kings in the Homelands, held to their bones by a will that would not die, who walk on to Freeport.",
+        "start": {
+          "x": 21072.1,
+          "y": 43.72,
+          "z": 14253.9,
+          "toward": [
+            21072.1,
+            14246.9
+          ]
+        },
+        "mainland": {
+          "place": "Freeport",
+          "world": 0,
+          "x": 25486.5,
+          "y": 61.4,
+          "z": 15547.0,
+          "facing": 4.72
+        },
+        "npcs": [
+          {
+            "name": "Elder Ossric",
+            "like": 104257,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              21072.1,
+              43.72,
+              14246.9
+            ],
+            "toward": [
+              21072.1,
+              14253.9
+            ],
+            "note": "the starter quests' giver, a Holciel noble's look, in the tomb's great hall"
+          },
+          {
+            "name": "Grocer Marrowby",
+            "like": 104189,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              21087.8,
+              43.72,
+              14270.9
+            ],
+            "toward": [
+              21072.1,
+              14246.9
+            ],
+            "stock": "Grocer Calinet",
+            "note": "a Holciel commoner's look, down the hall; a Freeport grocer's food, for the living he trades with"
+          },
+          {
+            "name": "Spiritmaster Vellum",
+            "like": 104225,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              21051.1,
+              43.72,
+              14271.0
+            ],
+            "toward": [
+              21072.1,
+              14246.9
+            ],
+            "note": "binds, as every spiritmaster; a Holciel bureaucrat's look"
+          },
+          {
+            "name": "Gatekeeper Dustcloak",
+            "like": 104224,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              21065.9,
+              43.72,
+              14341.5
+            ],
+            "toward": [
+              21072.1,
+              14246.9
+            ],
+            "note": "sends a skeleton who has done the starter quests to Freeport (The Road to Freeport); toward the tomb's door"
+          },
+          {
+            "name": "Tomb sentinel",
+            "like": 104224,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              21055.7,
+              43.72,
+              14159.0
+            ],
+            "facing": 193
+          },
+          {
+            "name": "Tomb sentinel",
+            "like": 104224,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              21129.7,
+              43.72,
+              14159.4
+            ],
+            "facing": 62
+          },
+          {
+            "name": "Tomb sentinel",
+            "like": 104224,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              21064.8,
+              43.59,
+              14390.7
+            ],
+            "facing": 30
+          },
+          {
+            "name": "Tomb sentinel",
+            "like": 104224,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              21077.7,
+              43.59,
+              14410.3
+            ],
+            "facing": 243
+          },
+          {
+            "name": "tomb beetle",
+            "body": "0xFE31035A",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              20897.9,
+              43.72,
+              14193.2
+            ],
+            "note": "the starter quest's beetles, at the Holciel guards' spots in the west halls"
+          },
+          {
+            "name": "tomb beetle",
+            "body": "0xFE31035A",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              20964.1,
+              43.72,
+              14200.9
+            ]
+          },
+          {
+            "name": "tomb beetle",
+            "body": "0xFE31035A",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              20883.5,
+              43.72,
+              14203.1
+            ]
+          },
+          {
+            "name": "tomb beetle",
+            "body": "0xFE31035A",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              20928.6,
+              43.72,
+              14210.0
+            ]
+          },
+          {
+            "name": "tomb beetle",
+            "body": "0xFE31035A",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              20943.5,
+              43.72,
+              14243.2
+            ]
+          },
+          {
+            "name": "tomb beetle",
+            "body": "0xFE31035A",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              20860.2,
+              43.72,
+              14245.3
+            ]
+          }
+        ],
+        "peaceful": [
+          "tomb beetle"
+        ],
+        "lines": {
+          "Gatekeeper Dustcloak": [
+            "Not yet. Elder Ossric speaks to every one of us who wakes.",
+            "See the elder in the great hall. Then come back to me."
+          ],
+          "Tomb sentinel": [
+            "The halls are quiet. They are always quiet.",
+            "Keep to the lit halls, %r. The dark ones go on for a long way.",
+            "Newly woken? Elder Ossric is in the great hall."
+          ],
+          "Elder Ossric": [
+            "Death was not an ending for us. Only a long rest, and the rest is over.",
+            "Walk among the living, and be patient with them. They have so little time."
+          ]
+        }
+      }
+    },
+    {
+      "name": "Guk",
+      "from": "TUNARIA.ESF",
+      "zone": 157,
+      "race": 28,
+      "note": "Fungusman: the fungal folk's caverns (Guk's) (Guk, cell 12,14)",
+      "home": {
+        "flavor": "Fungusmen are slow, gentle mushroom folk of the caverns of Guk in the Homelands, whose spores drift up into the shaded glades of the elves.",
+        "start": {
+          "x": 24686.0,
+          "y": -2.0,
+          "z": 28972.6,
+          "toward": [
+            24681.0,
+            28977.5
+          ]
+        },
+        "mainland": {
+          "place": "Tethelin and Fayspire",
+          "world": 0,
+          "x": 18380.2,
+          "y": 75.6,
+          "z": 7378.4,
+          "facing": 3.94
+        },
+        "npcs": [
+          {
+            "name": "Elder Moldcap",
+            "like": 107985,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              24681.0,
+              -2.0,
+              28977.5
+            ],
+            "toward": [
+              24686.0,
+              28972.6
+            ],
+            "note": "the starter quests' giver, a fungal elder of the funagl hall deep in Guk, at its own spot by the hall's west wall"
+          },
+          {
+            "name": "Grocer Puffstool",
+            "like": 107978,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              24701.2,
+              -2.0,
+              28895.6
+            ],
+            "toward": [
+              24681.0,
+              28977.5
+            ],
+            "stock": "Grocer Peltham",
+            "note": "the funagl gatherer's look and spot by the hall's north wall; an elven grocer's food and drink"
+          },
+          {
+            "name": "Spiritmaster Sporewell",
+            "like": 107981,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              24722.5,
+              -2.0,
+              28974.8
+            ],
+            "toward": [
+              24681.0,
+              28977.5
+            ],
+            "note": "binds, as every spiritmaster; the funagl devout's look"
+          },
+          {
+            "name": "Gatekeeper Gillford",
+            "like": 107996,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              24677.1,
+              -2.0,
+              28925.4
+            ],
+            "toward": [
+              24681.0,
+              28977.5
+            ],
+            "note": "sends a fungusman who has done the starter quests to the elves, Tethelin or Fayspire by class (Up to the Light)"
+          },
+          {
+            "name": "Guk sporeguard",
+            "like": 107967,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              24756.8,
+              -2.0,
+              28902.2
+            ],
+            "facing": 255
+          },
+          {
+            "name": "Guk sporeguard",
+            "like": 107967,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              24779.0,
+              -2.0,
+              28920.9
+            ],
+            "facing": 127
+          },
+          {
+            "name": "Guk sporeguard",
+            "like": 107967,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              24764.9,
+              -2.0,
+              28945.0
+            ],
+            "facing": 127
+          },
+          {
+            "name": "Guk sporeguard",
+            "like": 107967,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              24672.5,
+              -2.0,
+              28964.5
+            ],
+            "facing": 1
+          },
+          {
+            "name": "cave beetle",
+            "body": "0x4140233B",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              24818.4,
+              -2.0,
+              28889.4
+            ],
+            "note": "the starter quest's beetles, at the frogloks' spots by the hall's east passage"
+          },
+          {
+            "name": "cave beetle",
+            "body": "0x4140233B",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              24806.7,
+              -2.0,
+              28866.8
+            ]
+          },
+          {
+            "name": "cave beetle",
+            "body": "0x4140233B",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              24800.6,
+              -2.0,
+              28868.2
+            ]
+          },
+          {
+            "name": "cave beetle",
+            "body": "0x4140233B",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              24787.4,
+              -1.91,
+              28859.9
+            ]
+          },
+          {
+            "name": "cave beetle",
+            "body": "0x4140233B",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              24804.2,
+              -2.0,
+              28907.9
+            ]
+          },
+          {
+            "name": "cave beetle",
+            "body": "0x4140233B",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              24811.9,
+              -2.0,
+              28923.1
+            ]
+          }
+        ],
+        "peaceful": [
+          "cave beetle"
+        ],
+        "lines": {
+          "Gatekeeper Gillford": [
+            "Not yet, sprout. Elder Moldcap greets every new one first.",
+            "See the elder by the west wall. There is no hurry, but it must be done."
+          ],
+          "Guk sporeguard": [
+            "All is quiet in the hall.",
+            "Slow and steady, %r. The caverns do not reward haste.",
+            "New sprout? Elder Moldcap is by the west wall."
+          ],
+          "Elder Moldcap": [
+            "A spore that waits for the right ground grows the tallest cap.",
+            "Up above it is bright and dry. Carry a little of the damp with you."
+          ]
+        }
+      }
+    },
+    {
+      "name": "West Feerrott",
+      "from": "RATHE.ESF",
+      "zone": 16,
+      "race": 31,
+      "note": "Wisp: the will o' wisps' swamp: 34 wisps of the game in the race's own body (0x8143DC70) float in it, more than anywhere else (West Feerrott, cell 3,4)",
+      "home": {
+        "flavor": "Wisps are wandering lights of the Feerrott in the Homelands, spirits with no body of their own, who wear empty armour to walk in Qeynos.",
+        "start": {
+          "x": 6483.9,
+          "y": 58.64,
+          "z": 8994.1,
+          "toward": [
+            6480.4,
+            8988.0
+          ]
+        },
+        "mainland": {
+          "place": "Qeynos (rangers and druids Surefall Glade)",
+          "world": 0,
+          "x": 4243.7,
+          "y": 58.1,
+          "z": 17169.1,
+          "facing": 4.63
+        },
+        "npcs": [
+          {
+            "name": "Elder Faintglow",
+            "like": 127374,
+            "level": 30,
+            "role": "talker",
+            "size": 1.4,
+            "at": [
+              6480.4,
+              60.5,
+              8988.0
+            ],
+            "toward": [
+              6483.9,
+              8994.1
+            ],
+            "note": "the starter quests' giver, a will o' wisp of the swamp at its own spot on the hill above the south pond"
+          },
+          {
+            "name": "Grocer Flicker",
+            "like": 127374,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6525.7,
+              63.56,
+              9067.1
+            ],
+            "toward": [
+              6480.4,
+              8988.0
+            ],
+            "stock": "Grocer Appleby",
+            "note": "trades with travellers; a Qeynos grocer's food, which a wisp carries to pass among humans"
+          },
+          {
+            "name": "Spiritmaster Shimmer",
+            "like": 127374,
+            "level": 30,
+            "role": "talker",
+            "size": 1.2,
+            "at": [
+              6486.2,
+              70.16,
+              8910.2
+            ],
+            "toward": [
+              6480.4,
+              8988.0
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Dimlight",
+            "like": 127374,
+            "level": 35,
+            "role": "talker",
+            "size": 1.2,
+            "at": [
+              6543.4,
+              70.77,
+              9100.6
+            ],
+            "toward": [
+              6480.4,
+              8988.0
+            ],
+            "note": "sends a wisp who has done the starter quests to Qeynos, its rangers and druids to Surefall Glade (A Shape for Qeynos)"
+          },
+          {
+            "name": "Feerrott sentinel",
+            "like": 127374,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6371.9,
+              72.0,
+              8987.5
+            ],
+            "facing": 196
+          },
+          {
+            "name": "Feerrott sentinel",
+            "like": 127374,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6468.2,
+              82.26,
+              8893.2
+            ],
+            "facing": 126
+          },
+          {
+            "name": "Feerrott sentinel",
+            "like": 127374,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6507.4,
+              63.81,
+              8834.5
+            ],
+            "facing": 47
+          },
+          {
+            "name": "Feerrott sentinel",
+            "like": 127374,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6500.4,
+              55.0,
+              9000.3
+            ],
+            "facing": 13
+          },
+          {
+            "name": "bog rat",
+            "body": "0x11380781",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6602.1,
+              64.41,
+              8979.0
+            ],
+            "note": "the starter quest's rats, at the swamp creatures' spots in the reeds east of the elder"
+          },
+          {
+            "name": "bog rat",
+            "body": "0x11380781",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6593.9,
+              75.34,
+              9070.5
+            ]
+          },
+          {
+            "name": "bog rat",
+            "body": "0x11380781",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6617.4,
+              75.55,
+              9048.7
+            ]
+          },
+          {
+            "name": "bog rat",
+            "body": "0x11380781",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6556.5,
+              52.86,
+              8907.7
+            ]
+          },
+          {
+            "name": "bog rat",
+            "body": "0x11380781",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6561.3,
+              53.92,
+              8941.1
+            ]
+          },
+          {
+            "name": "bog rat",
+            "body": "0x11380781",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6567.0,
+              55.0,
+              8998.9
+            ]
+          }
+        ],
+        "peaceful": [
+          "bog rat"
+        ],
+        "lines": {
+          "Gatekeeper Dimlight": [
+            "Not yet, little flame. Elder Faintglow must see your light first.",
+            "Every new light visits the elder first. She glows on the hill above the south pond."
+          ],
+          "Feerrott sentinel": [
+            "The swamp is dark tonight. It is always dark.",
+            "Keep your glow low, %r. Lights draw eyes.",
+            "New light? Elder Faintglow glows on the hill above the south pond."
+          ],
+          "Elder Faintglow": [
+            "A light that knows where it came from never goes out.",
+            "The armour is only a shape. The light inside is you."
+          ]
+        }
+      }
+    },
+    {
+      "name": "South Barren Coast",
+      "from": "ODUS.ESF",
+      "zone": 28,
+      "race": 29,
+      "note": "Gargoyle: the gargoyles' crags: 91 gargoyles of the game (South Barren Coast, cell 5,4)",
+      "home": {
+        "flavor": "Gargoyles are winged creatures of living stone from the crags of the South Barren Coast in the Homelands, who roost above Oggok.",
+        "start": {
+          "x": 10251.5,
+          "y": 162.7,
+          "z": 9028.1,
+          "toward": [
+            10244.5,
+            9028.1
+          ]
+        },
+        "mainland": {
+          "place": "Oggok",
+          "world": 1,
+          "x": 9377.7,
+          "y": 53.2,
+          "z": 7385.8,
+          "facing": 4.85
+        },
+        "npcs": [
+          {
+            "name": "Elder Gorrak",
+            "like": 118049,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              10244.5,
+              162.7,
+              9028.1
+            ],
+            "toward": [
+              10251.5,
+              9028.1
+            ],
+            "note": "the starter quests' giver, a statue guardian, atop the crag"
+          },
+          {
+            "name": "Grocer Skarn",
+            "like": 132921,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10115.1,
+              83.8,
+              9021.4
+            ],
+            "toward": [
+              10244.5,
+              9028.1
+            ],
+            "stock": "Grocer Zurt",
+            "note": "the roost's grocer at the crag's foot, an Oggok grocer's food"
+          },
+          {
+            "name": "Spiritmaster Vorth",
+            "like": 118044,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              10241.4,
+              162.7,
+              9002.2
+            ],
+            "toward": [
+              10244.5,
+              9028.1
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Kragg",
+            "like": 132917,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              10237.4,
+              93.2,
+              9115.9
+            ],
+            "toward": [
+              10244.5,
+              9028.1
+            ],
+            "note": "on the crag's south slope: sends a gargoyle who has done the starter quests to Oggok (the quest Wings to Oggok)"
+          },
+          {
+            "name": "Crag sentinel",
+            "like": 132932,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10278.3,
+              162.6,
+              9009.5
+            ],
+            "facing": 96
+          },
+          {
+            "name": "Crag sentinel",
+            "like": 132932,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10268.9,
+              154.7,
+              8966.6
+            ],
+            "facing": 128
+          },
+          {
+            "name": "Crag sentinel",
+            "like": 132932,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10295.0,
+              113.1,
+              9092.0
+            ],
+            "facing": 32
+          },
+          {
+            "name": "crag bat",
+            "body": "0x8023AD71",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              10107.4,
+              54.1,
+              9168.4
+            ],
+            "note": "the starter hunt's bats (a vampire bat's body), round the crag's foot"
+          },
+          {
+            "name": "crag bat",
+            "body": "0x8023AD71",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              10053.3,
+              54.5,
+              9032.6
+            ]
+          },
+          {
+            "name": "crag bat",
+            "body": "0x8023AD71",
+            "level": 2,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              10173.6,
+              76.1,
+              9139.4
+            ]
+          },
+          {
+            "name": "crag bat",
+            "body": "0x8023AD71",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              10106.7,
+              74.0,
+              9056.8
+            ]
+          },
+          {
+            "name": "crag bat",
+            "body": "0x8023AD71",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              10060.0,
+              54.1,
+              9110.0
+            ]
+          },
+          {
+            "name": "crag bat",
+            "body": "0x8023AD71",
+            "level": 2,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              10140.0,
+              54.3,
+              9180.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "crag bat"
+        ]
+      }
+    }
+  ]
+}

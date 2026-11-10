@@ -46,7 +46,11 @@ import (
 //   - visual: a spell visual (a SPELLFX.CSF DictID) played from the player on
 //     itself, as a cast's 0x00B1 begins one for everyone who sees it.
 //   - teleport: the player warped as a travel NPC warps it (a world its
-//     client cannot load is refused).
+//     client cannot load is refused); to "mainland", to its race's spot on the
+//     disc's worlds (its wire race's start row for its class: where it would
+//     have started before its race had a homeland); with bind, bound where it
+//     lands as a spiritmaster binds (a homeland's gatekeeper: Return Home and
+//     a death take the player to its new city, not back to the homeland).
 //   - vampire: the player made a vampire (database.QuestStore.MarkVampire, a
 //     charvampire row of source quest, and in force where it stands:
 //     entity/vampire.go): the vampire quest's bats, whose blood changes
@@ -427,6 +431,19 @@ func (q *QuestEngine) respawnLost() {
 
 // teleportLocked warps the player as a travel NPC does.
 func (q *QuestEngine) teleportLocked(sess *session.Session, p *entity.Player, qu *database.Quest, e database.QuestEvent) {
+	if strings.EqualFold(strings.TrimSpace(e.To), database.TeleportMainland) {
+		at := &database.CharacterRecord{Race: p.Race, TClass: p.Class, HumType: p.HumType}
+		if q.places == nil || !q.places.MainlandPlace(at) {
+			log.Printf("Quests: %q: %s (race %d, class %d) has no spot on the disc's worlds", qu.Name, p.Name, p.Race, p.Class)
+			return
+		}
+		e.World, e.X, e.Y, e.Z = at.World, at.X, at.Y, at.Z
+	} else if e.X == 0 && e.Z == 0 {
+		// no place at all (a to this server does not know, a row cut short):
+		// the world's corner is no place to stand, nor to bind
+		log.Printf("Quests: %q: a teleport to 0, 0 (to %q) refused", qu.Name, e.To)
+		return
+	}
 	if q.gw == nil || e.World < 0 || e.World > 255 {
 		return
 	}
@@ -447,6 +464,20 @@ func (q *QuestEngine) teleportLocked(sess *session.Session, p *entity.Player, qu
 	beginWorldLoad(sess, changed)
 	q.gw.UpdatePosition(p.ServerID, e.X, e.Y, e.Z, facing)
 	log.Printf("Quests: %q teleported %s to (%.1f, %.1f, %.1f) world=%d", qu.Name, p.Name, e.X, e.Y, e.Z, world)
+	if e.Bind {
+		by := e.NPC
+		if by == "" {
+			by = qu.Giver
+		}
+		b := entity.Bind{Set: true, World: world, X: e.X, Y: e.Y, Z: e.Z, Facing: facing, By: by}
+		q.gw.SetBind(p.ServerID, b)
+		if q.binds != nil {
+			if err := q.binds.SaveBind(p.CharServerID, rowOfBind(b)); err != nil {
+				log.Printf("Quests: %q: saving %s's bind point: %v", qu.Name, p.Name, err)
+			}
+		}
+		log.Printf("Quests: %q bound %s there (by %s)", qu.Name, p.Name, by)
+	}
 }
 
 // stepStartedLocked is a step become the step to do: its start events.

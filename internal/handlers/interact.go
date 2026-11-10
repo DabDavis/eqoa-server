@@ -384,8 +384,9 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		var routes []entity.CoachDest
 		switch {
 		case entity.IsWarpNPC(npc.Name):
-			// only the worlds this client's table has (LoadableWorlds)
-			routes = h.gameWorld.GetWarpDestinations(npc.Name, LoadableWorlds(sess))
+			// only the worlds this client's table has (LoadableWorlds), and
+			// no homeland's (warpRoutes)
+			routes = warpRoutes(h.gameWorld, npc, LoadableWorlds(sess))
 		case entity.IsCoachman(npc.Name):
 			// the towns his coach runs to whose ledgers the player signed,
 			// else why not, and his offer to sign every ledger at once
@@ -436,6 +437,26 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 	// (VIClient::InteractWithTarget). What the box said is a GM's #npcinfo.
 	log.Printf("Interact: %s has nothing to say to %s", entity.EntityName(targetEntity), player.Name)
 	return nil
+}
+
+// warpRoutes is a gatekeeper's or harbormaster's trips (GetWarpDestinations):
+// the others of the worlds loadable takes, but none standing in a server's own
+// world, and none at all from one standing there. A homeland's gatekeeper
+// (tools/worlds/homelands.json, serverworlds.go) flies its race to its city by
+// its quest, one way (the owner, 2026-11-10: "the flight is one-way"); as a
+// stop of the network every gatekeeper offered a vanilla player a trip back
+// into every homeland, and a new player who talked to its own before the
+// starter quests got the network's whole menu instead of its quest.
+func warpRoutes(gw *entity.World, npc *entity.NPC, loadable func(world uint8) bool) []entity.CoachDest {
+	if _, homeland := ServerWorld(npc.World); homeland {
+		return nil
+	}
+	return gw.GetWarpDestinations(npc.Name, func(world uint8) bool {
+		if _, homeland := ServerWorld(world); homeland {
+			return false
+		}
+		return loadable == nil || loadable(world)
+	})
 }
 
 // EntityInfo is what #npcinfo shows of an NPC or a player: its ids, look,

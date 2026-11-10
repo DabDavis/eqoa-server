@@ -1,0 +1,29 @@
+{
+  "note": "cmd/worldedges' rocks for the open edges of a composed world's zones, by the zone's disc file (or FILE#zone): the disc's own art, its records copied into the zone (extras). Chosen and measured off their collision (closed hulls, sides too steep to walk up, and no slope a walk goes up where two meet): foot is the share of a rock's height at which it is widest, where it is set into the ground (a rounded rock set on its bottom leaves gaps under its belly its neighbours do not close); steep the share of its height, from its bottom, a walk does not climb (no face within 48 degrees of flat). Tried and left out: Tunaria's grey dome (0xB8C058DD; its foot is flat and walked up), grey crag (0x9799723E; its collision is an open shell, 118 open edges up to 83% of its height, so a walk passes through it from behind) and Gerntar Mines' dark spire (0x4A6801F0, TUNARIA.ESF zone 143: a cone whose lower half leans 52-54 degrees, so the crease where two meet is a slope a walk goes up: the check found it, and the game's own walk went up one and over Aviak Village's south edge). width is a rock's span along the edge (its narrow side, scaled); rise how far its top stands over the highest floor (or water) under it and round it (around: how far past its reach that is looked for; a hill just inside the ridge as high as the saddle between two rocks is a way onto it); maxScale the most a rock is grown; step how far on the next rock stands, a share of this one's span. Rise 40 and no around let the game's walk out at Tomb of Kings and Misty Thicket (along a boulder's flank from a terrain crest as high as the saddle beside it), and 70 and 40 at five more places (a big rock reaching in to a hill is a level way along its flank to its smaller neighbours' tops); 100 and 100 left one, at Twisted Tower; 100 and 200 none. (worldedges -fix, rocks over a way out, made Twisted Tower worse twice: a crowd of rocks is more creases to walk up.) steepGround (not given: every rock of a set of one is its steepest) is how much the ground under a rock may rise and fall before a set's steepest rock is taken.",
+  "width": [
+    70,
+    115
+  ],
+  "rise": 100,
+  "around": 200,
+  "maxScale": 30,
+  "step": 0.4,
+  "sets": {
+    "rocks": [
+      {
+        "sprite": "0x7FFD2E87",
+        "from": "ODUS.ESF",
+        "zone": 10,
+        "weight": 1,
+        "foot": 0.2,
+        "steep": 0.78,
+        "note": "a mossy boulder of Odus (zone 10; an LOD of three): a closed hull but for its bottom, widest at 20% of its height, its sides 66-76 degrees from 20% to 80%"
+      }
+    ]
+  },
+  "zones": {
+    "TUNARIA.ESF": "rocks",
+    "ODUS.ESF": "rocks",
+    "RATHE.ESF": "rocks"
+  }
+}

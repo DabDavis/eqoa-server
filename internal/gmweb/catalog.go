@@ -2038,7 +2038,7 @@ var catalog = map[string]tableNote{
 			"started":    {Label: "Giver says once taken", Format: "multiline"},
 			"source":     {Label: "Source"},
 			"notes":      {Label: "Notes", Format: "multiline"},
-			"events":     {Label: "Events", Format: "multiline", Help: "a JSON list: on accept or finish, do popup, say, give, spawn, visual, teleport or vampire (the Quests page edits them)"},
+			"events":     {Label: "Events", Format: "multiline", Help: "a JSON list: on accept or finish, do popup, say, give, spawn, visual, teleport, vampire or classquest (on finish, with a level: the character's city class quest of that level finished too) (the Quests page edits them)"},
 			"factionreq": {Label: "Standings asked", Help: "Faction Name:min or Faction Name:min..max, comma separated (the factions table's names): offered, and done at its giver, only while each is met; empty: none"},
 		},
 	},

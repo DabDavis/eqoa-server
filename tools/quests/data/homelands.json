@@ -2,6 +2,123 @@
   "city": "homelands",
   "quests": [
     {
+      "key": "homelands/goblin/welcome",
+      "name": "Fresh From the Mud",
+      "giver": "Elder Snikkit",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Another one crawls out of the mud! Listen, little one: in Moss Mouth, a goblin who does not know the grocer goes hungry. Find Mudgrub by the cook pots and tell him the elder sent you.",
+      "accept": "I will find Mudgrub.",
+      "decline": "Not now.",
+      "declined": "Go hungry, then. The cavern feeds no one twice.",
+      "started": "Mudgrub keeps the cook pots, just south of here. Do not touch them.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Mudgrub",
+          "journal": "Find Grocer Mudgrub by the cook pots in the great hall.",
+          "says": "The elder sent you? Here, eat this before someone takes it from you. It smells, but so do we.",
+          "rewards": {
+            "items": [
+              "stilton cheese"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Snikkit",
+          "journal": "Return to Elder Snikkit.",
+          "says": "Good. Mudgrub knows your face now, and you know where the food is. That is half of being a goblin.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the goblins' first, at their home zone, Moss Mouth Cavern of the disc."
+    },
+    {
+      "key": "homelands/goblin/rats",
+      "name": "Rats in the Larder",
+      "giver": "Grocer Mudgrub",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/goblin/welcome"
+      ],
+      "offer": "Tunnel rats are in my stores again, and they eat better than I do. Kill five of them down in the pit east of the hall, where they nest, and I will pay you in good coin.",
+      "accept": "I will kill them.",
+      "decline": "Not now.",
+      "declined": "Then the rats eat, and you do not.",
+      "started": "Five rats. Bring me none of their fleas.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "tunnel rat",
+          "count": 5,
+          "journal": "Kill five tunnel rats in the pit east of the great hall."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Mudgrub",
+          "journal": "Tell Grocer Mudgrub the rats are dead.",
+          "says": "Five rats! You are quicker than you look. Here is your pay. Do not spend it all in one place.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the goblins' second starter quest; the tunnel rats are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/goblin/flight",
+      "name": "The Road to Neriak",
+      "giver": "Gatekeeper Skabber",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/goblin/welcome",
+        "homelands/goblin/rats"
+      ],
+      "repeatable": true,
+      "offer": "The dark elves of Neriak pay well for goblins who are quick and quiet. I can send you to them, and Neriak will be your home from then on. Are you ready to go?",
+      "accept": "Send me to Neriak.",
+      "decline": "Not yet.",
+      "declined": "Neriak will wait. Dark elves are good at waiting.",
+      "started": "Keep your blade close and your purse closer!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Skabber",
+          "journal": "Tell Gatekeeper Skabber when you are ready to go to Neriak.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Neriak, the goblin's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a goblin back in Moss Mouth Cavern is sent again; no reward, so none is had twice."
+    },
+    {
       "key": "homelands/aviak/welcome",
       "name": "A Fledgling's Welcome",
       "giver": "Elder Kraawk",

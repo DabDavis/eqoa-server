@@ -22,7 +22,233 @@
       "from": "TUNARIA.ESF",
       "zone": 68,
       "race": 13,
-      "note": "Goblin: a goblin cavern town: 87 goblins of the game, a blacksmith among them (Moss Mouth Cavern, cell 9,6)"
+      "note": "Goblin: a goblin cavern town: 87 goblins of the game, a blacksmith among them (Moss Mouth Cavern, cell 9,6)",
+      "home": {
+        "flavor": "Goblins are crafty folk of Moss Mouth Cavern in the Homelands, quick with a blade and quicker to flee, who serve the dark elves of Neriak.",
+        "start": {
+          "x": 19380.0,
+          "y": 84.84,
+          "z": 12229.0,
+          "toward": [
+            19380.0,
+            12222.0
+          ]
+        },
+        "mainland": {
+          "place": "Neriak",
+          "world": 0,
+          "x": 25220.1,
+          "y": 7.4,
+          "z": 8626.2,
+          "facing": 0.04
+        },
+        "npcs": [
+          {
+            "name": "Elder Snikkit",
+            "like": 108270,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              19380.0,
+              84.84,
+              12222.0
+            ],
+            "toward": [
+              19380.0,
+              12229.0
+            ],
+            "note": "the starter quests' giver, in a witch doctor's look, in the middle of the cavern's great hall"
+          },
+          {
+            "name": "Grocer Mudgrub",
+            "like": 108325,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19351.8,
+              84.84,
+              12263.2
+            ],
+            "toward": [
+              19380.0,
+              12222.0
+            ],
+            "stock": "Grocer G`Zar",
+            "note": "the cavern's grocer, in the blacksmith's look, a Neriak grocer's food"
+          },
+          {
+            "name": "Spiritmaster Grizzik",
+            "like": 117292,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              19405.8,
+              84.84,
+              12263.7
+            ],
+            "toward": [
+              19380.0,
+              12222.0
+            ],
+            "note": "binds, as every spiritmaster; a goblin seer's look"
+          },
+          {
+            "name": "Gatekeeper Skabber",
+            "like": 108308,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              19493.1,
+              84.84,
+              12239.4
+            ],
+            "toward": [
+              19380.0,
+              12222.0
+            ],
+            "note": "sends a goblin who has done the starter quests to Neriak (the quest The Road to Neriak); a goblin warrior's look"
+          },
+          {
+            "name": "Moss Mouth lookout",
+            "like": 108255,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19342.0,
+              84.84,
+              12037.2
+            ],
+            "facing": 53
+          },
+          {
+            "name": "Moss Mouth lookout",
+            "like": 108348,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19508.3,
+              84.84,
+              12329.8
+            ],
+            "facing": 187
+          },
+          {
+            "name": "Moss Mouth lookout",
+            "like": 108255,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19271.1,
+              84.84,
+              12370.9
+            ],
+            "facing": 52
+          },
+          {
+            "name": "Moss Mouth lookout",
+            "like": 108348,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19562.3,
+              84.84,
+              12121.9
+            ],
+            "facing": 98
+          },
+          {
+            "name": "tunnel rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19458.7,
+              81.47,
+              12164.1
+            ],
+            "note": "the starter quest's rats, at the dire wolves' spots in the hall's pit"
+          },
+          {
+            "name": "tunnel rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19447.1,
+              81.47,
+              12166.9
+            ]
+          },
+          {
+            "name": "tunnel rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19459.6,
+              81.47,
+              12175.5
+            ]
+          },
+          {
+            "name": "tunnel rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19438.5,
+              81.47,
+              12187.3
+            ]
+          },
+          {
+            "name": "tunnel rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19443.5,
+              81.47,
+              12192.6
+            ]
+          },
+          {
+            "name": "tunnel rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19444.6,
+              81.47,
+              12199.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "tunnel rat"
+        ],
+        "lines": {
+          "Gatekeeper Skabber": [
+            "Not so fast, little one. Do what Elder Snikkit asks of you first, then come back to me.",
+            "No one leaves Moss Mouth until the elder says so. He waits in the middle of the great hall."
+          ],
+          "Moss Mouth lookout": [
+            "Keep moving, %r. Lookouts do not chat.",
+            "If you hear something in the dark, it is probably a rat. Probably.",
+            "New, are you? Elder Snikkit wants to see every new face. He waits in the middle of the hall."
+          ],
+          "Elder Snikkit": [
+            "Mind Mudgrub and mind Skabber, and you will do well, little one.",
+            "A goblin who keeps his ears open lives long enough to grow wise. Look at me."
+          ]
+        }
+      }
     },
     {
       "name": "Aviak Village",

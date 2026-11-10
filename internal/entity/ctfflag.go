@@ -167,7 +167,7 @@ func (w *World) ctfFlagOfCarrierGoneLocked(m *ctfMatch, id EntityID, now time.Ti
 		}
 		w.ctfFlagDropLocked(f, x, y, z, now)
 		log.Printf("CTF: %s is gone with %s: dropped at (%.1f, %.1f, %.1f)", name, w.ctf.lay.Teams[f.team].Flag, f.x, f.y, f.z)
-		w.ctfTellMatchLocked(m, fmt.Sprintf(ctfLineDropped, name, w.ctf.lay.Teams[f.team].Flag), ctfGold)
+		w.ctfTellMatchLocked(m, fmt.Sprintf(ctfLineDropped, name, w.ctfBannerWordsLocked(f.team)), ctfGold)
 	}
 }
 
@@ -192,7 +192,7 @@ func (w *World) ctfStepLocked(p *Player, now time.Time) {
 			for _, f := range m.flags {
 				if f != nil && f.state == ctfFlagCarried && f.carrier == p.ServerID {
 					w.ctfFlagDropLocked(f, p.X, p.Y, p.Z, now)
-					w.ctfTellMatchLocked(m, fmt.Sprintf(ctfLineDropped, p.Name, w.ctf.lay.Teams[f.team].Flag), ctfGold)
+					w.ctfTellMatchLocked(m, fmt.Sprintf(ctfLineDropped, p.Name, w.ctfBannerWordsLocked(f.team)), ctfGold)
 				}
 			}
 		}
@@ -201,10 +201,33 @@ func (w *World) ctfStepLocked(p *Player, now time.Time) {
 		w.ctfToCampLocked(p, 1)
 		return
 	}
-	if m.phase != ctfPlay {
+	if m.phase != ctfPlay || !ctfMayTouch(p, now) {
 		return
 	}
 	w.ctfTouchLocked(m, p, p.X, p.Y, p.Z, now)
+}
+
+// ctfMayTouch reports p's place one to touch by: not while the move check holds a report of the client's as from
+// before a server's move (movecheck.go's pending: in log mode it is taken, so a client's last report from where it
+// fell, sent before it heard of its rise at its camp, would put it back on the banner it died by), nor for
+// ctfQuietAfterMove after the server put it somewhere (the same with the move check off).
+func ctfMayTouch(p *Player, now time.Time) bool {
+	return !p.mv.pending && !now.Before(p.ctf.quiet)
+}
+
+// ctfTouchAllLocked is every living player of the match touching what it stands at, where the server holds it:
+// a client standing still sends no reports (CLIENT's 0x40 goes only with a move), and a server's move (a GM's,
+// a camp's) puts a player somewhere with none from there yet.
+func (w *World) ctfTouchAllLocked(m *ctfMatch, now time.Time) {
+	for t := range m.teams {
+		for _, id := range m.teams[t].members {
+			p := w.Players[id]
+			if p == nil || !p.inMatch(m) || p.World != w.ctf.set.World || p.IsDead() || p.respawnPending() || !ctfMayTouch(p, now) {
+				continue
+			}
+			w.ctfTouchLocked(m, p, p.X, p.Y, p.Z, now)
+		}
+	}
 }
 
 // ctfTouchLocked is p touching what is at (x, y, z): a power-up, a banner (taken, taken up, or returned), its own
@@ -237,7 +260,7 @@ func (w *World) ctfTouchLocked(m *ctfMatch, p *Player, x, y, z float32, now time
 		w.ctfFlagHomeLocked(own)
 		p.ctf.returns++
 		log.Printf("CTF: %s returns %s", p.Name, lay.Teams[own.team].Flag)
-		w.ctfTellMatchLocked(m, fmt.Sprintf(ctfLineReturned, p.Name, lay.Teams[own.team].Flag), ctfGold)
+		w.ctfTellMatchLocked(m, fmt.Sprintf(ctfLineReturned, p.Name, w.ctfBannerWordsLocked(own.team)), ctfGold)
 	}
 	// a carrier at its own stand
 	if other != nil && other.state == ctfFlagCarried && other.carrier == p.ServerID {
@@ -272,7 +295,7 @@ func (w *World) ctfTakeLocked(m *ctfMatch, f *ctfFlag, p *Player, up bool, now t
 		line = ctfLineTakenUp
 	}
 	log.Printf("CTF: %s takes %s (up from the field: %v)", p.Name, lay.Teams[f.team].Flag, up)
-	w.ctfTellMatchLocked(m, fmt.Sprintf(line, p.Name, lay.Teams[f.team].Flag), ctfGold)
+	w.ctfTellMatchLocked(m, fmt.Sprintf(line, p.Name, w.ctfBannerWordsLocked(f.team)), ctfGold)
 }
 
 // ctfCaptureLocked is p scoring with f, the other team's banner, at its own stand.
@@ -284,7 +307,7 @@ func (w *World) ctfCaptureLocked(m *ctfMatch, f *ctfFlag, p *Player, now time.Ti
 	w.ctfFlagHomeLocked(f)
 	score := w.ctfScoreLocked(m)
 	log.Printf("CTF: %s captures %s for %s: %s", p.Name, lay.Teams[f.team].Flag, lay.Teams[t].Short, score)
-	w.ctfTellMatchLocked(m, fmt.Sprintf(ctfLineCaptured, p.Name, lay.Teams[f.team].Flag, lay.Teams[t].Name, score+"."), ctfGold)
+	w.ctfTellMatchLocked(m, fmt.Sprintf(ctfLineCaptured, p.Name, w.ctfBannerWordsLocked(f.team), lay.Teams[t].Name, score+"."), ctfGold)
 	if m.teams[t].score >= max(w.ctf.set.ScoreLimit, 1) {
 		w.ctfEndLocked(t, "score", now)
 	}
@@ -298,7 +321,7 @@ func (w *World) ctfFlagsAloneLocked(m *ctfMatch, now time.Time) {
 		}
 		w.ctfFlagHomeLocked(f)
 		log.Printf("CTF: %s left alone: back on its stand", w.ctf.lay.Teams[f.team].Flag)
-		w.ctfTellMatchLocked(m, fmt.Sprintf(ctfLineHomeAlone, w.ctf.lay.Teams[f.team].Flag), ctfGold)
+		w.ctfTellMatchLocked(m, fmt.Sprintf(ctfLineHomeAlone, upFirstWord(w.ctfBannerWordsLocked(f.team))), ctfGold)
 	}
 }
 
@@ -324,7 +347,7 @@ func (w *World) ctfWoundsLocked(m *ctfMatch, now time.Time) {
 		f.wounds = pct
 		if p := w.Players[f.carrier]; p != nil {
 			log.Printf("CTF: %s has carried %s %v: +%d%% from every hit", p.Name, w.ctf.lay.Teams[f.team].Flag, now.Sub(f.takenAt).Round(time.Second), pct)
-			w.ctfTellMatchLocked(m, fmt.Sprintf(ctfLineWound, p.Name, w.ctf.lay.Teams[f.team].Flag, pct), ctfGold)
+			w.ctfTellMatchLocked(m, fmt.Sprintf(ctfLineWound, p.Name, w.ctfBannerWordsLocked(f.team), pct), ctfGold)
 		}
 	}
 }
@@ -356,7 +379,7 @@ func (w *World) ctfDownLocked(p *Player, now time.Time) {
 		}
 		w.ctfFlagDropLocked(f, p.X, p.Y, p.Z, now)
 		log.Printf("CTF: %s falls with %s: dropped at (%.1f, %.1f, %.1f)", p.Name, w.ctf.lay.Teams[f.team].Flag, f.x, f.y, f.z)
-		w.ctfTellMatchLocked(m, fmt.Sprintf(ctfLineDropped, p.Name, w.ctf.lay.Teams[f.team].Flag), ctfGold)
+		w.ctfTellMatchLocked(m, fmt.Sprintf(ctfLineDropped, p.Name, w.ctfBannerWordsLocked(f.team)), ctfGold)
 	}
 	if m.phase == ctfPlay {
 		wave := w.ctfWaveForLocked(m, now)
@@ -464,4 +487,9 @@ func ctfInside(poly [][2]float32, x, z float32) bool {
 		}
 	}
 	return in
+}
+
+// ctfBannerWordsLocked is team t's banner in a sentence: "the Ember Banner".
+func (w *World) ctfBannerWordsLocked(t int) string {
+	return "the " + w.ctf.lay.Teams[t].Flag
 }

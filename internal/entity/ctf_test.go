@@ -404,34 +404,39 @@ func TestCTFDropTakeUpAndReturnAlone(t *testing.T) {
 	}
 }
 
-// The dead rise together: a death waits for the first wave at least WaveMinDead after it; the respawn lands at its
-// team's camp; a death costs nothing.
+// The dead rise together: the waves come every WaveEvery from the banners going live, and a death waits for the
+// first wave at least WaveMinDead after it, through the tick as the server runs it (the respawn system after
+// capture the flag's); the respawn lands at its team's camp; a death costs nothing.
 func TestCTFWaves(t *testing.T) {
 	r := newCTF(t, 2)
 	ember, _ := r.startMatch(t)
 	a := ember[0]
-	live := r.live()
-	set := r.w.ctf.set
-	r.tick(live + 2*time.Second)
-	// die 1 s before a wave: that one is too soon, the next takes it
 	m := r.w.ctf.m
-	wave := m.waveAt
-	died := wave.Add(-time.Second)
+	set := r.w.ctf.set
+	// die a second before the second wave: that one is too soon, the third takes it
+	second := m.opens.Add(2 * set.WaveEvery)
+	died := second.Add(-time.Second)
 	r.w.mu.Lock()
 	r.w.playerDownLocked(nil, a, died, 0)
-	due, arena := r.w.ctfRespawnDueLocked(a, wave)
 	r.w.mu.Unlock()
-	if !arena || due {
-		t.Fatalf("rose with the wave a second after its death (arena %v)", arena)
+	rise := func(at time.Time) bool {
+		r.w.mu.Lock()
+		defer r.w.mu.Unlock()
+		r.w.ctfSystem(at)
+		for _, d := range r.w.playerRespawnSystem(at) {
+			if d.p == a {
+				return true
+			}
+		}
+		return false
 	}
-	next := r.w.ctfWaveForLocked(m, died)
-	if next.Sub(wave) != set.WaveEvery {
-		t.Fatalf("the next wave is %v after, want %v", next.Sub(wave), set.WaveEvery)
+	if rise(second) {
+		t.Fatal("rose with the wave a second after its death")
 	}
-	r.w.mu.Lock()
-	due, _ = r.w.ctfRespawnDueLocked(a, next)
-	r.w.mu.Unlock()
-	if !due {
+	if rise(second.Add(set.WaveEvery - time.Millisecond)) {
+		t.Fatal("rose before the next wave")
+	}
+	if !rise(second.Add(set.WaveEvery)) {
 		t.Fatal("not risen with the next wave")
 	}
 	if a.Debt != 0 {
@@ -684,5 +689,32 @@ func TestCTFBackfill(t *testing.T) {
 	r.tick(r.live() + 2*time.Second)
 	if !late.inMatch(m) || len(m.teams[late.ctf.team].members) != 2 {
 		t.Fatalf("not sent in: in %v", late.inMatch(m))
+	}
+}
+
+// A report the move check holds as from before a server's move (its pending: a client's last report from where it
+// fell, sent before it heard of its rise) touches nothing, nor anything in the moment after the server put it
+// somewhere.
+func TestCTFStaleReportTouchesNothing(t *testing.T) {
+	r := newCTF(t, 2)
+	ember, _ := r.startMatch(t)
+	a := ember[0]
+	live := r.live()
+	lay := r.w.ctf.lay
+	a.mv.pending = true
+	r.step(a, lay.Teams[1].Stand.X, lay.Teams[1].Stand.Z, live+time.Second)
+	r.tick(live + time.Second)
+	if a.ctf.carries {
+		t.Fatal("a stale report took the banner")
+	}
+	a.mv.pending = false
+	a.ctf.quiet = r.at(live + 3*time.Second)
+	r.step(a, lay.Teams[1].Stand.X, lay.Teams[1].Stand.Z, live+2*time.Second)
+	if a.ctf.carries {
+		t.Fatal("took the banner in the quiet after a server's move")
+	}
+	r.step(a, lay.Teams[1].Stand.X, lay.Teams[1].Stand.Z, live+3*time.Second)
+	if !a.ctf.carries {
+		t.Fatal("not taken once its reports were its own again")
 	}
 }

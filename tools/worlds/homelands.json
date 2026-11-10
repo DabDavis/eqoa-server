@@ -1877,7 +1877,233 @@
       "from": "TUNARIA.ESF",
       "zone": 143,
       "race": 23,
-      "note": "Minotaur: the Rustel minotaurs' mines: 41 minotaurs of the game (Gerntar Mines, cell 6,13)"
+      "note": "Minotaur: the Rustel minotaurs' mines: 41 minotaurs of the game (Gerntar Mines, cell 6,13)",
+      "home": {
+        "flavor": "Minotaurs are bull-headed brutes of the Gerntar Mines in the Homelands, proud and quick to anger, who throw in their lot with the trolls of Grobb.",
+        "start": {
+          "x": 12953.3,
+          "y": 59.84,
+          "z": 26307.6,
+          "toward": [
+            12941.4,
+            26305.8
+          ]
+        },
+        "mainland": {
+          "place": "Grobb",
+          "world": 0,
+          "x": 25407.7,
+          "y": 70.0,
+          "z": 31410.3,
+          "facing": 4.34
+        },
+        "npcs": [
+          {
+            "name": "Elder Hornbrand",
+            "like": 101842,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              12941.4,
+              56.0,
+              26305.8
+            ],
+            "toward": [
+              12953.3,
+              26307.6
+            ],
+            "note": "the starter quests' giver, Gilthirn Ironhoof's look, at the mouth of the Rustel minotaurs' mine"
+          },
+          {
+            "name": "Grocer Brassnose",
+            "like": 101841,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12992.7,
+              60.0,
+              26313.8
+            ],
+            "toward": [
+              12941.4,
+              26305.8
+            ],
+            "stock": "Barkeep Dunk",
+            "note": "by the mine cart outside; a Grobb barkeep's food"
+          },
+          {
+            "name": "Spiritmaster Ruhga",
+            "like": 122489,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              12868.4,
+              56.0,
+              26324.7
+            ],
+            "toward": [
+              12941.4,
+              26305.8
+            ],
+            "note": "binds, as every spiritmaster; Khelmarak's look, at Bribro Mino's spot in the mine"
+          },
+          {
+            "name": "Gatekeeper Stonehoof",
+            "like": 101839,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              13096.9,
+              59.14,
+              26546.2
+            ],
+            "toward": [
+              12953.3,
+              26307.6
+            ],
+            "note": "sends a minotaur who has done the starter quests to Grobb (The Road to Grobb); at the next mine's mouth to the south"
+          },
+          {
+            "name": "Rustel sentry",
+            "like": 101838,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12877.7,
+              56.0,
+              26317.0
+            ],
+            "facing": 111
+          },
+          {
+            "name": "Rustel sentry",
+            "like": 101838,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12907.5,
+              56.0,
+              26273.4
+            ],
+            "facing": 40
+          },
+          {
+            "name": "Rustel sentry",
+            "like": 101838,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              13082.9,
+              56.31,
+              26542.4
+            ],
+            "facing": 53
+          },
+          {
+            "name": "Rustel sentry",
+            "like": 101838,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              13048.2,
+              55.38,
+              26501.1
+            ],
+            "facing": 0
+          },
+          {
+            "name": "mine rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              13134.9,
+              59.41,
+              26238.6
+            ],
+            "note": "the starter quest's rats, at the savannah creatures' spots in the grass east of the mine"
+          },
+          {
+            "name": "mine rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              13146.5,
+              59.11,
+              26232.2
+            ]
+          },
+          {
+            "name": "mine rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              13142.6,
+              58.88,
+              26218.7
+            ]
+          },
+          {
+            "name": "mine rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              13241.9,
+              61.39,
+              26403.1
+            ]
+          },
+          {
+            "name": "mine rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              13254.7,
+              61.37,
+              26390.3
+            ]
+          },
+          {
+            "name": "mine rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              13330.0,
+              57.63,
+              26198.3
+            ]
+          }
+        ],
+        "peaceful": [
+          "mine rat"
+        ],
+        "lines": {
+          "Gatekeeper Stonehoof": [
+            "Not so fast, calf. Elder Hornbrand sees every new minotaur first.",
+            "The elder is at the mouth of the mine to the north. See him, then see me."
+          ],
+          "Rustel sentry": [
+            "The mine is ours. Remember that.",
+            "Watch your horns in the tunnels, %r. The ceilings are low.",
+            "New calf? Elder Hornbrand stands at the mouth of the mine."
+          ],
+          "Elder Hornbrand": [
+            "Pride is a fine thing, calf. So is patience. Learn both.",
+            "The herd remembers its own, wherever they roam."
+          ]
+        }
+      }
     },
     {
       "name": "The Vastly Deep",

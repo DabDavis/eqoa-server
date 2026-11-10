@@ -115,6 +115,12 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 		refuse(refusal)
 		return
 	}
+	// training points it gave (entity/potion.go), kept at once with how many of
+	// the character's no level gave: before the charge is spent, so a stop
+	// between the two leaves the item, never takes it for nothing
+	if pe.Def.TrainingPoints() > 0 {
+		h.keepTraining(player, row.Pattern.ItemName, used)
+	}
 	if pe.Cooldown > 0 { // kept over a logout and a restart (database/potioncooldown.go)
 		if err := h.inventoryStore.SetPotionCooldown(int(player.CharServerID), row.Pattern.PatternID, used.Add(pe.Cooldown)); err != nil {
 			log.Printf("Potion: %s, %q: keeping its cooldown: %v", player.Name, row.Pattern.ItemName, err)
@@ -149,6 +155,28 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 	// and what its line gives after it (a gem's cracked version)
 	for _, it := range pe.Summons() {
 		h.summonItem(sess, player.CharServerID, it.Name, it.Count, row.Pattern.ItemName)
+	}
+}
+
+// trainingKeeper keeps a character's training points with those an item gave
+// it (database.SQLiteCharacterStore).
+type trainingKeeper interface {
+	SetBonusTraining(serverID uint32, unused, total, bonus int, at time.Time) error
+}
+
+// keepTraining writes the player's training points as the World holds them
+// after an item gave it some (characters.unusedTP and totalTP, charbonustp).
+func (h *EquipHandler) keepTraining(player *entity.Player, item string, at time.Time) {
+	if h.training == nil || h.gameWorld == nil {
+		return
+	}
+	unused, total, bonus, ok := h.gameWorld.LiveBonusTraining(player.ServerID)
+	if !ok {
+		return
+	}
+	if err := h.training.SetBonusTraining(player.CharServerID, unused, total, bonus, at); err != nil {
+		log.Printf("Potion: %s, %q: keeping its training points (%d unspent, %d in all, %d past its levels'): %v",
+			player.Name, item, unused, total, bonus, err)
 	}
 }
 

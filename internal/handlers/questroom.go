@@ -76,27 +76,13 @@ func startGains(qu *database.Quest, st *database.QuestStep) []database.ItemCount
 }
 
 // handInTakes is what a give step takes from the pack, record by record, as
-// takeLocked takes it: the unworn inventory rows in their order.
+// takeLocked takes it (planHandInLocked: the unworn inventory rows in their
+// order, an item's Ascended records standing for it).
 func (q *QuestEngine) handInTakes(p *entity.Player, st *database.QuestStep) []invTake {
 	if st.Kind != database.StepGive || p == nil {
 		return nil
 	}
-	held := q.heldItems(p)
-	var out []invTake
-	for _, it := range st.Items {
-		left := it.Count
-		for i := range held {
-			r := &held[i]
-			if left == 0 || r.Pattern.PatternID != it.PatternID || r.StackLeft == 0 {
-				continue
-			}
-			k := min(left, r.StackLeft)
-			out = append(out, invTake{itemID: r.ItemID, n: k})
-			r.StackLeft -= k
-			left -= k
-		}
-	}
-	return out
+	return q.planHandInLocked(p, st).invTakes()
 }
 
 // packShortLocked is the gains that would not fit the session's pack once

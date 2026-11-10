@@ -64,6 +64,25 @@ func velocityToByte(v float32) byte {
 	return byte(int8(scaled))
 }
 
+// FacingByte is a facing in radians as the entity channel's byte 15 sends it:
+// 0-255 round the circle, turned into [0, 2pi) first (converting a negative
+// float to a byte is not defined), ROUNDED to the nearest step. Until
+// 2026-11-10 it was truncated, and the float32 steps went one step (1.4°) low:
+// a row's byte (the loader's float32(b)/256*2pi) went out as b-1 for 40 of the
+// 256 values, and a player's own 0x40 heading (ClientUpdateFacing) for 147 of
+// them, so a creature placed from a player's camp-report mark
+// (handlers/campfix.go) did not face the way the player had. Rounded, a
+// client's heading byte b goes out as (b+128) mod 256 and a row's byte as
+// itself, all 256 values exact; it is handlers' facingByte, the byte an npcs
+// row keeps.
+func FacingByte(f float32) byte {
+	r := math.Mod(float64(f), 2*math.Pi)
+	if r < 0 {
+		r += 2 * math.Pi
+	}
+	return byte(int(math.Round(r/(2*math.Pi)*256)) % 256)
+}
+
 // SerializePlayerUpdate builds a 162-byte state channel 0 buffer from a Player struct.
 // Byte-for-byte identical output to the ECS SerializeObjectUpdate.
 func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
@@ -96,11 +115,7 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 	// Offset 15: Facing (0=south, 128=north). A client's heading comes in
 	// over [-pi, pi) (ClientUpdateFacing): turned into [0, 2pi) first, as
 	// converting a negative float to a byte is not defined.
-	f := math.Mod(float64(p.Facing), 2*math.Pi)
-	if f < 0 {
-		f += 2 * math.Pi
-	}
-	buf[15] = byte(f / (2 * math.Pi) * 256)
+	buf[15] = FacingByte(p.Facing)
 
 	// Offset 17: World (ObjectUpdate offset 16 + the isActive prefix byte).
 	//
@@ -349,13 +364,8 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 
 	buf[5] = 0x82
 
-	// Facing, as the player's (byte 15): turned into [0, 2pi) first, as
-	// converting a negative float to a byte is not defined
-	f := math.Mod(float64(n.Facing), 2*math.Pi)
-	if f < 0 {
-		f += 2 * math.Pi
-	}
-	buf[15] = byte(f / (2 * math.Pi) * 256)
+	// Facing, as the player's (byte 15)
+	buf[15] = FacingByte(n.Facing)
 
 	buf[17] = n.World // World — see SerializePlayerUpdate for the measurement
 

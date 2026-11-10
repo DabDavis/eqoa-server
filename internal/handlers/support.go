@@ -56,7 +56,7 @@ const (
 const (
 	csOK        byte = 0
 	csBad       byte = 1 // a request that does not read
-	csTooMany   byte = 2 // database.PetitionsListed listed
+	csTooMany   byte = 2 // database.PetitionsKept listed
 	csNotFound  byte = 3 // not this character's, or deleted
 	csFull      byte = 4 // the ticket's text is full (database.PetitionMaxText)
 	csFailed    byte = 5 // the database failed, or there is none

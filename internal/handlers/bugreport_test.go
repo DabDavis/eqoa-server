@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -274,5 +275,26 @@ func TestTheOfferSaysHowLongAPetitionMayBe(t *testing.T) {
 	}
 	if CSTextMost != 2047 {
 		t.Fatalf("CSTextMost %d", CSTextMost)
+	}
+}
+
+// A GM's reports are not counted against the limit (the GM Jibrish files many
+// while testing, 2026-11-10): Bob, a GM, sends reportsPerHour+3 at once and
+// each is filed. The control: Ann, a player, is refused her second at once.
+func TestAGMIsNotHeldToTheReportLimit(t *testing.T) {
+	c, _, db, as, bs := bugWorld(t)
+	for i := 0; i < reportsPerHour+3; i++ {
+		chat(t, c, bs, fmt.Sprintf("/bug the GM's report %d", i))
+		if got := sentText(t, bs); !strings.Contains(got, "your report is Ticket #") {
+			t.Fatalf("the GM's report %d: told %q", i, got)
+		}
+	}
+	chat(t, c, as, "/bug the first")
+	chat(t, c, as, "/bug a second at once")
+	if got := sentText(t, as); !strings.Contains(got, reportLimitText) {
+		t.Fatalf("the player's second at once: told %q", got)
+	}
+	if n := len(views(t, db)); n != reportsPerHour+4 {
+		t.Fatalf("%d petitions, want %d", n, reportsPerHour+4)
 	}
 }

@@ -43,7 +43,7 @@ const BugNoteMax = 4000
 
 // The filings an account may make: one every reportGap, reportsPerHour in an
 // hour, whichever way they come (a form refused is answered csFailed and told
-// why in chat).
+// why in chat). A GM's account may make any (isGM).
 const (
 	reportGap      = 15 * time.Second
 	reportsPerHour = 12
@@ -191,7 +191,7 @@ func cleanNote(s string) string {
 // told; via says how it came ("support", "chat"). It is refused by the store,
 // or by the account's limit (errReportLimit).
 func (h *SupportHandler) fileTicket(sess *session.Session, me *entity.Player, cat, sub int64, text, via string, now time.Time) (database.Petition, error) {
-	if !h.limit.allow(sess.AccountID(), now) {
+	if !h.isGM(sess) && !h.limit.allow(sess.AccountID(), now) {
 		return database.Petition{}, errReportLimit
 	}
 	c, s := CSNames(cat, sub)
@@ -208,6 +208,17 @@ func (h *SupportHandler) fileTicket(sess *session.Session, me *entity.Player, ca
 }
 
 var errReportLimit = fmt.Errorf("too many reports lately")
+
+// isGM is whether sess's account is a GM's (acctlevel 1 or more), whose
+// reports the limit does not count (the GM Jibrish files many while testing,
+// 2026-11-10: the owner, "lets raise limit").
+func (h *SupportHandler) isGM(sess *session.Session) bool {
+	if h.access == nil || sess.AccountID() == 0 {
+		return false
+	}
+	level, err := h.access.AccessLevel(sess.AccountID())
+	return err == nil && level >= 1
+}
 
 // reportLimitText is a refused filing's line.
 const reportLimitText = "You have sent several reports lately: please wait a minute and send it again."

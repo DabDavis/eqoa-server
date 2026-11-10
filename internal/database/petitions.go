@@ -65,10 +65,19 @@ const (
 // PetitionStatuses is every status.
 var PetitionStatuses = []string{PetitionOpen, PetitionClosed, PetitionDeleted}
 
-// PetitionsListed is how many petitions a player's inbox lists: CLIENT keeps
-// 100 rows, and refuses to file a request past them (word 874, "You have too
-// many open tickets.").
-const PetitionsListed = 100
+// PetitionsListed is how many petitions a player's inbox lists: one fewer than
+// the 100 rows CLIENT keeps, since it refuses to file a request with 100 held
+// (VIWndCSRequest::CheckFull, word 874 "You have too many open tickets."), so a
+// character with more always has room to file another (the GM Jibrish had 100
+// open, 2026-11-10).
+const PetitionsListed = 99
+
+// PetitionsKept is how many petitions a character may have listed (open, or
+// closed within PetitionClosedListed) before a new one is refused with
+// ErrTooManyPetitions; its inbox shows the PetitionsListed most recently
+// changed of them. It was 100, CLIENT's own, until 2026-11-10 (the owner:
+// "lets raise limit").
+const PetitionsKept = 1000
 
 // PetitionClosedListed is how long a closed petition stays in its player's
 // inbox, where opening it is answered "addressed" (ours: the player cannot
@@ -175,11 +184,12 @@ func petitionsListedSince(now time.Time) string {
 	return petitionStamp(now.Add(-PetitionClosedListed))
 }
 
-// PlayerPetitions is a character's inbox: its open petitions and those closed
-// within PetitionClosedListed, oldest first, the newest PetitionsListed of them.
+// PlayerPetitions is a character's inbox: of its open petitions and those
+// closed within PetitionClosedListed, the PetitionsListed most recently changed
+// (filed, answered, replied to, closed: updated), oldest first.
 func (db *SQLiteDB) PlayerPetitions(serverID uint32, now time.Time) ([]Petition, error) {
 	rs, err := db.Query(`SELECT `+petitionCols+` FROM (SELECT * FROM petitions WHERE serverid = ?
-		AND (status = 'open' OR (status = 'closed' AND closed >= ?)) ORDER BY id DESC LIMIT ?) ORDER BY id`,
+		AND (status = 'open' OR (status = 'closed' AND closed >= ?)) ORDER BY updated DESC, id DESC LIMIT ?) ORDER BY id`,
 		serverID, petitionsListedSince(now), PetitionsListed)
 	if err != nil {
 		return nil, err
@@ -198,7 +208,7 @@ func (db *SQLiteDB) PlayerPetitions(serverID uint32, now time.Time) ([]Petition,
 
 // FilePetition files a petition for a character (p's serverid, name, account,
 // category, subcategory and text), open, unread and waiting on a GM; refused
-// with ErrTooManyPetitions when its inbox lists PetitionsListed already.
+// with ErrTooManyPetitions when it has PetitionsKept listed already.
 func (db *SQLiteDB) FilePetition(p Petition, now time.Time) (Petition, error) {
 	tx, err := db.Begin()
 	if err != nil {
@@ -210,7 +220,7 @@ func (db *SQLiteDB) FilePetition(p Petition, now time.Time) (Petition, error) {
 		AND (status = 'open' OR (status = 'closed' AND closed >= ?))`, p.ServerID, petitionsListedSince(now)).Scan(&n); err != nil {
 		return Petition{}, err
 	}
-	if n >= PetitionsListed {
+	if n >= PetitionsKept {
 		return Petition{}, ErrTooManyPetitions
 	}
 	p.Text = PetitionText(p.Text)

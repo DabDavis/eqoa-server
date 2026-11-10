@@ -826,6 +826,22 @@ func main() {
 		defer gm.Stop()
 	}
 
+	// The server's own worlds, built from the operator's disc by cmd/worldbuild
+	// (worldN.ESF and its built recipe, worldN.json): offered to a client that
+	// builds the same off its own disc (handlers/serverworlds.go). Before the
+	// kept sessions are put back: a character standing in one resumes there only
+	// when it is one of the server's (loginSpawn's resumable), and a keep
+	// restart's every player in the Homelands went to Freeport's login spot while
+	// they were read after.
+	for _, b := range handlers.LoadServerWorlds(cfg.Patch.WorldsDir, cfg.World.ServerWorlds) {
+		entity.SetComposedWorld(uint8(b.World), true)
+	}
+	// capture the flag in an arena of the server's own worlds (world.ctf;
+	// handlers/ctf.go), before the kept sessions too: a player a restart carried
+	// out of a match (none is kept) starts beside the herald (arenaLogin), and a
+	// merc waiting outside the arena stays out while its owner stands there
+	handlers.SetupCTF(gameWorld, cfg.World.CTF, cfg.Patch.WorldsDir)
+
 	// The sessions a restart kept (udp/keep.go), put back before a datagram
 	// is read: the clients' packets wait in the socket meanwhile
 	if keptConn != nil {
@@ -881,14 +897,6 @@ func main() {
 	// Every slot listed is reachable on every boot: the SD's stager fetches
 	// whichever "hdd:" world the client opens, so dropping worldN.ESF in here
 	// is the whole of adding a world.
-	// The server's own worlds, built from the operator's disc by cmd/worldbuild
-	// (worldN.ESF and its built recipe, worldN.json): offered to a client that
-	// builds the same off its own disc (handlers/serverworlds.go)
-	for _, b := range handlers.LoadServerWorlds(cfg.Patch.WorldsDir, cfg.World.ServerWorlds) {
-		entity.SetComposedWorld(uint8(b.World), true)
-	}
-	// capture the flag in an arena of the server's own worlds (world.ctf; handlers/ctf.go)
-	handlers.SetupCTF(gameWorld, cfg.World.CTF, cfg.Patch.WorldsDir)
 	if avail := worlds.Available(cfg.Patch.WorldsDir, 8, handlers.WorldCount); len(avail) > 0 {
 		for slot := 8; slot < handlers.WorldCount; slot++ {
 			if name, ok := avail[slot]; ok {

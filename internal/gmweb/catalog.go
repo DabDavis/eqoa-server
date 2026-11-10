@@ -332,6 +332,20 @@ var catalog = map[string]tableNote{
 			"source":   {Label: "Source", Help: "gm (a GM's) or quest (the bats' infection)"},
 		},
 	},
+	"charwelcome": {
+		Label: "Welcome guide", Group: "Players", Sort: "serverid",
+		Help: "The welcome guide's box, a row a character once asked (handlers/welcome.go): a character's first world entry " +
+			"of a UTC day asks whether the player would like a guide of the server, or never to be asked again on that " +
+			"character; /tutorial shows the box at any time. Set Never again to No, or delete the row, to have the daily " +
+			"box ask again; a character with no row is asked.",
+		Live: "At the character's next world entry.",
+		Cols: map[string]colNote{
+			"serverid":  {Label: "Character", Ref: "characters"},
+			"shown_day": {Label: "Last asked", Help: "the UTC day (2027-01-15) the daily box last went out; empty: never"},
+			"never":     {Label: "Never again", Enum: "bool", Help: "the player chose never to be asked again on this character (only /tutorial shows the box)"},
+			"changed":   {Label: "Changed", Format: "stamp", ReadOnly: true, Help: "when the row last changed (UTC)"},
+		},
+	},
 	"charcoaches": {
 		Label: "Character coach ledgers", Group: "Players", Sort: "serverid",
 		Help: "The stables' ledgers each character has signed, a town a row (handlers/coachledger.go): talking to a " +

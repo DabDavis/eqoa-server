@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"fmt"
+	"net"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -262,6 +264,87 @@ func TestTutorialForEveryone(t *testing.T) {
 	SetWelcomeGuide(true)
 	w.enter(w.anna)
 	w.asked("an entry with the guide on again", w.anna, daily("Anna"))
+}
+
+// /tutorial typed while the day's box waits to go out is that box: it shows at
+// once, the day's goes out no more, and the day is taken (a second entry that
+// day asks nothing).
+func TestTutorialDuringTheDaysWait(t *testing.T) {
+	w := newWelcomeRig(t)
+	w.gw.PlayerEntered(w.anna)
+	w.run(2 * time.Second)
+	w.say(w.anna, "/tutorial")
+	w.asked("Anna's /tutorial", w.anna, welcomeQuestionTutorial)
+	w.run(welcomeAfter)
+	w.none("Anna at the day box's time", w.anna)
+	if due, _ := w.db.WelcomeDue(1, welcomeDay(w.now)); due {
+		t.Fatal("the day not taken by the /tutorial in its place")
+	}
+	w.run(time.Hour)
+	w.enter(w.anna)
+	w.none("Anna's second entry that day", w.anna)
+}
+
+// The guide as RegisterDefaultHandlers wires it: a typed /tutorial (0x000B) is
+// answered with the welcome box, its answers (0x0035) reach the guide (never
+// kept in charwelcome; the guide's boxes), whatever else the registry runs.
+func TestWelcomeThroughTheRegistry(t *testing.T) {
+	db, err := database.NewSQLite(t.TempDir() + "/welcome.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	SetWelcomeGuide(true)
+	w := entity.NewWorld()
+	mgr := session.NewManager()
+	w.SessionManager = mgr
+	r := NewRegistry()
+	RegisterDefaultHandlers(r, database.NewSQLiteCharacterStore(db), database.NewSQLiteAccountStore(db),
+		mgr, "127.0.0.1", w, database.NewInventoryStore(db), database.NewSpellbookStore(db))
+	t.Cleanup(func() { // the process's engines, as TestOnlyACastOrAnAttackEndsInvisibility stops them
+		if q := Quests(); q != nil {
+			q.Stop()
+		}
+		if e := Triggers(); e != nil {
+			e.Stop()
+		}
+		if a := Auctions(); a != nil {
+			a.Stop()
+		}
+	})
+	sess := mgr.CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 0, 14), Port: 7004}, 1, 1, 1, 2, true)
+	p := &entity.Player{ServerID: 1001, CharServerID: 1001, Name: "Greta", Class: 6, Level: 20, HP: 400, MaxHP: 400, X: 100, Y: 10, Z: 100}
+	w.Players[p.ServerID] = p
+	sess.SetECSEntity(p)
+	sess.SetCharacterInWorld(true)
+	send := func(op protocol.GameOpcode, data []byte) {
+		t.Helper()
+		msg := protocol.NewMessage(protocol.MessageTypeReliable, op)
+		msg.SetData(data)
+		if err := r.Handle(sess, msg); err != nil {
+			t.Fatal(err)
+		}
+	}
+	ask := func() uint32 {
+		t.Helper()
+		send(protocol.OpcodeClientSayChat, wide("/t tutorial", 0xFFFFFFFF))
+		got := questMsgs(sess)
+		box := boxID(got)
+		if len(got) != 1 || !IsWelcomeBox(box) || !strings.HasPrefix(got[0], fmt.Sprintf("ask#%d:%s|", box, welcomeQuestionTutorial)) {
+			t.Fatalf("/t tutorial was answered %q", got)
+		}
+		return box
+	}
+	send(protocol.OpcodeDialogueBoxOption, append(u32b(ask()), 1))
+	if never, err := db.WelcomeNever(1001); err != nil || !never {
+		t.Fatalf("never through the registry: %v %v", never, err)
+	}
+	questMsgs(sess)
+	send(protocol.OpcodeDialogueBoxOption, append(u32b(ask()), 0))
+	got := questMsgs(sess)
+	if len(got) < 3 || !strings.HasPrefix(got[0], "box:") || !strings.Contains(got[len(got)-1], "/t tutorial") {
+		t.Fatalf("the guide through the registry: %q", got)
+	}
 }
 
 // A box never goes out over a death, the way back from one, or a world loading:

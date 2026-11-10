@@ -444,7 +444,12 @@ func (w *World) balanceLevelOf(npc *NPC) int {
 // (a summoned pet its pet's of its owner's level: the base its own level's),
 // whole: at its spawn (applyNPCSettingsLocked) or its summoning.
 func (w *World) applyBalanceLocked(npc *NPC) {
-	if !balanced(npc) {
+	if !balanced(npc) || npc.add != nil && npc.add.pct > 0 {
+		return // an add of a share keeps its share of its creature's hit points (summon.go)
+	}
+	if npc.isMerc() {
+		syncMercBody(npc.merc) // a player's maxima of its body (merc.go)
+		npc.HP = npc.MaxHP
 		return
 	}
 	if summoned(npc) {

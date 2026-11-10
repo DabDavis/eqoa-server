@@ -198,27 +198,27 @@ func (w *cfWorld) report(id int64) database.CampfixReport {
 	return r
 }
 
-func (w *cfWorld) marks(r database.CampfixReport) []campfixMarkJSON {
+func (w *cfWorld) marks(r database.CampfixReport) []CampfixMarkRecord {
 	w.t.Helper()
-	var out []campfixMarkJSON
+	var out []CampfixMarkRecord
 	if err := json.Unmarshal([]byte(r.Marks), &out); err != nil {
 		w.t.Fatalf("marks %q: %v", r.Marks, err)
 	}
 	return out
 }
 
-func (w *cfWorld) flags(r database.CampfixReport) []campfixFlagJSON {
+func (w *cfWorld) flags(r database.CampfixReport) []CampfixFlagRecord {
 	w.t.Helper()
-	var out []campfixFlagJSON
+	var out []CampfixFlagRecord
 	if err := json.Unmarshal([]byte(r.Flags), &out); err != nil {
 		w.t.Fatalf("flags %q: %v", r.Flags, err)
 	}
 	return out
 }
 
-func (w *cfWorld) near(r database.CampfixReport) []campfixNearJSON {
+func (w *cfWorld) near(r database.CampfixReport) []CampfixNearRecord {
 	w.t.Helper()
-	var out []campfixNearJSON
+	var out []CampfixNearRecord
 	if err := json.Unmarshal([]byte(r.Near), &out); err != nil {
 		w.t.Fatalf("near %q: %v", r.Near, err)
 	}
@@ -240,7 +240,7 @@ func (w *cfWorld) sent(said []string) database.CampfixReport {
 	return database.CampfixReport{}
 }
 
-func hasFlag(fl []campfixFlagJSON, mark int, flag string) bool {
+func hasFlag(fl []CampfixFlagRecord, mark int, flag string) bool {
 	for _, f := range fl {
 		if f.Mark == mark && f.Flag == flag {
 			return true
@@ -301,7 +301,7 @@ func TestCampfixIsEveryonesInEverySpelling(t *testing.T) {
 			t.Fatalf("%s row: %+v", sp, r)
 		}
 		e, ok, err := w.db.WorkEntryByID(r.Board)
-		if err != nil || !ok || e.CreatedBy != "account 2 (campfix)" || e.Owner != "dab's sessions" || e.Status != database.WorkPlanned {
+		if err != nil || !ok || e.CreatedBy != "account 2 (campfix)" || e.Owner != CampfixBoardOwner || e.Status != database.WorkPlanned {
 			t.Fatalf("%s board entry: %+v %v %v", sp, e, ok, err)
 		}
 		// cancel, in the same spelling
@@ -615,7 +615,7 @@ func TestCampfixNames(t *testing.T) {
 	}
 }
 
-// Sending: the table's row and the board entry (owner dab's sessions, status
+// Sending: the table's row and the board entry (owner the GMs, status
 // planned, area data, touches npcs, a title of at most 200, details under
 // 20,000 with 15 marks and 60 creatures near, in the plan's order), the row
 // read-only to the world: nothing is changed by it. Too many long names near
@@ -638,7 +638,7 @@ func TestCampfixSendsARowAndABoardEntry(t *testing.T) {
 	if r.World != 0 || r.X != 20000 || r.Z != 20030 || r.Level != 1 || r.Class != 0 || r.Created != "2026-11-10T12:00:00Z" {
 		t.Fatalf("the row: %+v", r)
 	}
-	if n := w.near(r); len(n) != 60 || n[0].Name != "goblin raider" || !n[0].SameName || !n[0].Alive || n[0].Movement == "" {
+	if n := w.near(r); len(n) != 60 || n[0].Name != "goblin raider" || !n[0].SameName || n[0].Alive == nil || !*n[0].Alive || n[0].Movement == "" {
 		t.Fatalf("near: %d %+v", len(n), n[:1])
 	}
 	if m := w.marks(r); len(m) != 15 || m[3].FacingByte != (48+128)%256 || m[0].Template == 0 || m[0].At != "2026-11-10T12:00:00Z" {
@@ -648,7 +648,7 @@ func TestCampfixSendsARowAndABoardEntry(t *testing.T) {
 	if err != nil || !ok {
 		t.Fatal(ok, err)
 	}
-	if e.Owner != "dab's sessions" || e.Status != database.WorkPlanned || e.Area != "data" || strings.Join(e.Touches, ",") != "npcs" {
+	if e.Owner != "GMs (Camp reports page)" || e.Status != database.WorkPlanned || e.Area != "data" || strings.Join(e.Touches, ",") != "npcs" {
 		t.Fatalf("the entry: %+v", e)
 	}
 	if !strings.HasPrefix(e.Title, fmt.Sprintf("Camp fix report %d: Player (L1 warrior), Tunaria ", r.ID)) || !strings.HasSuffix(e.Title, ": 15 add") ||
@@ -659,7 +659,7 @@ func TestCampfixSendsARowAndABoardEntry(t *testing.T) {
 	if n := utf8.RuneCountInString(d); n >= 20000 {
 		t.Fatalf("details of %d characters", n)
 	}
-	order := []string{"Review per the server's CLAUDE.md, Camp fix reports. Nothing is applied without dab's OK.",
+	order := []string{"A GM approves or declines it on the GM panel's Camp reports page", "nothing is applied before that, and no session applies one itself.",
 		"**Who:** Player, a level 1 Warrior (character 2, account 2)", "**Where:** Tunaria", "**When:** 2026-11-10 12:00:00 UTC",
 		"**Build:** ", "**shard:** Marr's Fist", "> goblins stand in a square, the guide puts them by the fire",
 		"### Marks", "| 15 | add | goblin raider |", "### Flags", "### Nearby", "60 NPCs of rows"}

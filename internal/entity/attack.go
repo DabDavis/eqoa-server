@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"time"
@@ -249,7 +250,21 @@ type Swing struct {
 	// Potion is the item id of a potion worn as the thrown weapon, 0 for
 	// none, and PotionLeft how many of it are on the stack (potion.go)
 	Potion, PotionLeft int
+	// Held is the name of the held item the hands hold when they hold no
+	// weapon (equip slot 19 or 20 worn, none of 14, 16 or 18; Never is set
+	// with it): such hands never swing, and a press is refused with
+	// heldNoFightWords. Petition 1435 (Afk, a wizard holding Swampstench,
+	// punched for 1), the GM Jibrish's rule: hitting with a held item is
+	// "supposed to be no". CLIENT's own AutoAttackTick swings bare hands so.
+	Held string
 }
+
+// heldNoFightWords is a press refused for hands holding a held item and no
+// weapon (Swing.Held), said at most once every heldNoFightGap.
+const (
+	heldNoFightWords = "You can't fight while holding %s."
+	heldNoFightGap   = 2 * time.Second
+)
 
 // SwingFor is the swing CLIENT's AutoAttackTick would make with this gear:
 // worn[e] for equip slots 14..20, and the first swinging item (slots 14,
@@ -310,6 +325,10 @@ func (w *World) EngageAttack(sess *session.Session, objectID uint32, swing Swing
 func (w *World) engageLocked(sess *session.Session, p *Player, objectID uint32, swing Swing, now time.Time) bool {
 	ent, found := w.findEntityByObjectIDLocked(sess, objectID)
 	if !found {
+		return false
+	}
+	if swing.Held != "" {
+		w.heldRefusalLocked(sess, p, swing.Held, now)
 		return false
 	}
 	if w.duelEngageLocked(p, ent, objectID, swing, now) { // a duel's opponent or its pet (duel.go)
@@ -742,10 +761,23 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 		w.factionKillLocked(sess, attacker, npc)
 		return true
 	}
+	w.hitHealLocked(npc, damage, sess) // its heal at every hit that lands (hitheal.go)
 	// a proc's damage after the hit (proc.go), then the creature's damage
 	// shield's answer, which may end the fight the other way (creatureshield.go)
 	if w.playerProcsLocked(sess, attacker, npc, attacker.LastCombatTime) {
 		return true
 	}
 	return w.creatureShieldLocked(sess, attacker, npc, attacker.LastCombatTime)
+}
+
+// heldRefusalLocked tells a player pressing attack with a held item and no
+// weapon in its hands that it cannot fight so (Swing.Held), at most once every
+// heldNoFightGap.
+func (w *World) heldRefusalLocked(sess *session.Session, p *Player, item string, now time.Time) {
+	if !p.heldToldAt.IsZero() && now.Sub(p.heldToldAt) < heldNoFightGap {
+		return
+	}
+	p.heldToldAt = now
+	w.sendColoredLocked(sess, fmt.Sprintf(heldNoFightWords, item), castRefusalRGB)
+	log.Printf("Combat: %s presses attack holding %q and no weapon: refused", p.Name, item)
 }

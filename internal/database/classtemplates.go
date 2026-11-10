@@ -130,14 +130,70 @@ const (
 	// again as the one on its target runs out, so the new one lands as the old
 	// ends, never two of its owner's on one creature (entity/pettemplate.go; the
 	// GM Jibrish's petition 1388: the Swarming Deaths' "300 a tick dot (.5
-	// second cast) it keeps up that lasts for 24 seconds"). A creature's damage
-	// over time on a player is its debuff's.
+	// second cast) it keeps up that lasts for 24 seconds"). A creature's is the
+	// same on what it fights, a player or a creature, kept up as a pet's is
+	// (entity/creaturedot.go; the owner, 2026-11-10: Innoruuk's of the Red
+	// Swarming Death's kit).
 	AbilityDoT = "dot"
+	// AbilityHitHeal casts nothing: every hit that lands on its creature heals
+	// it Heal hit points, the hit landing as ever (entity/hitheal.go; the GM
+	// Jibrish's petition 1439: Mr. Moogie's "heal damage shield that heals mr
+	// moogie for 150 every single time he is hit").
+	AbilityHitHeal = "hitheal"
+	// AbilityPrefer casts nothing: the foes (Foes, by name) its creature fights
+	// first whenever one is on its hate list (entity/prefer.go; petition 1438:
+	// Mr. Moogie and Tunare).
+	AbilityPrefer = "prefer"
+	// AbilitySummon calls Count copies of the NPC named NPC beside its creature,
+	// once a fight, when its hit points first fall below Below percent, each
+	// joining its fight; with Share each fights by its creature's own template
+	// at that share of its figures (entity/summon.go; petition 1440: Mr.
+	// Moogie's three Servants of Moogie at 25%).
+	AbilitySummon = "summon"
+	// AbilityEnrage is once a fight, below Below percent: its size Grow percent
+	// more, every Every seconds the players of its hate list beyond its reach
+	// brought beside it, and Rampage percent of each melee hit on the one it
+	// fights landing on the second of its hate list (entity/enrage.go;
+	// petition 1443: Mr. Moogie at 10%).
+	AbilityEnrage = "enrage"
+	// AbilityProc casts nothing: a melee proc its creature always has, on
+	// every fight's hits that land, beside its template's: its pinned spell's
+	// proc (a pet's buff: the owner's Innoruuk with Largesse of Plague) at the
+	// chance a pet of its level has under it, or ProcChance, ProcDamage,
+	// ProcName and Resist of its own (entity/creatureproc.go). FX is the look
+	// of each proc's hit on its target; a pinned spell is a buff its creature
+	// casts on itself as its fight begins and again at the buff's time.
+	AbilityProc = "proc"
+	// AbilityVeil casts nothing: each of its creature's melee hits that lands
+	// also takes TapPct percent of the creature's own most hit points from what
+	// it hit, into itself, cut by Resist (entity/creatureproc.go; the owner,
+	// 2026-11-10: Innoruuk "similar to veil of death, but scale it to innoruuks
+	// hp"). FX is each tap's look on its target (none for none); a pinned spell
+	// names it and is a buff cast on itself, as a proc's.
+	AbilityVeil = "veil"
+	// AbilityKillSay casts nothing: its creature's line in /say (Say) when one of
+	// its hits kills one of Foes (by name: the GM Jibrish's petition 1458, Mr.
+	// Moogie at Innoruuk's death, "Dab got dunked again").
+	AbilityKillSay = "killsay"
 )
 
 // AbilityKinds are the kinds, in the order the help lists them.
 var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot, AbilityDebuff,
-	AbilityStrip, AbilityHealShield, AbilityMeleeKind, AbilityDoT}
+	AbilityStrip, AbilityHealShield, AbilityMeleeKind, AbilityDoT, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage,
+	AbilityProc, AbilityVeil, AbilityKillSay}
+
+// passiveKind is whether an ability of the kind casts nothing on a clock of its
+// own: what it does is a rule its creature keeps (a heal shield, a melee kind,
+// a hit heal, its preferred foes, a proc, a veil, a line at a kill) or a moment
+// of its fight (a summon and an enrage, below their share of hit points).
+func passiveKind(k string) bool {
+	switch k {
+	case AbilityHealShield, AbilityMeleeKind, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage, AbilityProc, AbilityVeil,
+		AbilityKillSay:
+		return true
+	}
+	return false
+}
 
 // DefaultStripName is what a strip's lines call it when it has no name and
 // pins no spell (ours), and StripNameMost the most characters of a name;
@@ -150,6 +206,20 @@ const (
 	DefaultShareHealName = "Heal"
 	DefaultFightProcName = "Fury"
 	SayMost              = 160
+	// DefaultFixedHitName is what a fixed hit's lines call it when it has no
+	// name and pins no spell, DefaultVeilName a veil's, DefaultRampageName an
+	// enrage's rampage (ours all)
+	DefaultFixedHitName = "Strike"
+	DefaultVeilName     = "Veil"
+	DefaultRampageName  = "Rampage"
+	// DefaultOutOfReachRange is how far an out-of-reach ability reaches when
+	// it says no range of its own (ours: past every spell's 30, as far as a
+	// player kites a creature it has rooted)
+	DefaultOutOfReachRange = 100
+	// MostSummoned is the most adds a summon calls, MostFoes the most names a
+	// prefer holds
+	MostSummoned = 10
+	MostFoes     = 8
 )
 
 // Who a pet's heal or buff lands on (TemplateAbility.Target); either is a
@@ -279,6 +349,58 @@ type TemplateAbility struct {
 	ProcChance int    `json:"proc_chance,omitempty"`
 	ProcDamage int    `json:"proc_damage,omitempty"`
 	ProcName   string `json:"proc_name,omitempty"`
+
+	// The fields below are a creature's of 2026-11-10 (the GM Jibrish's
+	// petitions 1439-1443 and the owner's Innoruuk).
+
+	// Damage is a nuke's or a lifetap's hit as a fixed figure in place of its
+	// spell's figures (its damage_pct unused): it lands as it is but for
+	// Resist's share, a lifetap's all of it back on its creature (petition
+	// 1439: Mr. Moogie's 4,000; 1442: Metal Moogie V2's 2,000 at range). Its
+	// spell, or Name and FX, is its look.
+	Damage int `json:"damage,omitempty"`
+	// Resist is the resist that cuts a fixed figure (Damage, a veil's tap, a
+	// proc of its own figures): FR, CR, LR, AR, PR or DR; empty: none.
+	Resist string `json:"resist,omitempty"`
+	// FX is the 0x00B1 visual of an ability that pins no spell (a named strip,
+	// heal of its share, fixed hit, proc or veil) in place of its kind's
+	// stand-in; 0: the stand-in.
+	FX uint32 `json:"fx,omitempty"`
+	// OutOfReach casts it only while what its creature fights stands beyond its
+	// melee reach (rooted, snared, kiting), within Range of it and in its sight;
+	// never in reach, its clock waiting, due, meanwhile (petition 1442).
+	OutOfReach bool `json:"out_of_reach,omitempty"`
+	// Range is an out-of-reach ability's reach (0: DefaultOutOfReachRange).
+	Range float64 `json:"range,omitempty"`
+	// Heal is a hit heal's hit points at every hit that lands on its creature.
+	Heal int `json:"heal,omitempty"`
+	// Count, NPC and Share are a summon's: how many it calls, the name of the
+	// NPC each is a copy of (a spawn-only original as a trigger's spawn is), and
+	// the share of its creature's figures each fights by (0: the copy's own).
+	Count int    `json:"count,omitempty"`
+	NPC   string `json:"npc,omitempty"`
+	Share int    `json:"share,omitempty"`
+	// Grow and Rampage are an enrage's: how many percent bigger it grows (200:
+	// three times its size), and the percent of each of its melee hits on the
+	// one it fights that also lands on the second of its hate list (0 none).
+	Grow    int `json:"grow,omitempty"`
+	Rampage int `json:"rampage,omitempty"`
+	// Foes are a prefer's: names (any case) of the foes it fights first, the
+	// first of them first; and a killsay's: those whose death by its hit its
+	// line is for.
+	Foes []string `json:"foes,omitempty"`
+	// TapPct is a veil's: the percent of its creature's own most hit points each
+	// of its melee hits that lands takes from what it hit, into itself.
+	TapPct float64 `json:"tap_pct,omitempty"`
+}
+
+// RangeOr is an out-of-reach ability's reach: its own, else
+// DefaultOutOfReachRange.
+func (a TemplateAbility) RangeOr() float64 {
+	if a.Range <= 0 {
+		return DefaultOutOfReachRange
+	}
+	return a.Range
 }
 
 // TargetOr is who a pet's heal or buff lands on: its own, else the pet
@@ -406,6 +528,11 @@ func ParseTemplateAbilities(text string) ([]TemplateAbility, error) {
 		list[i].Name = strings.TrimSpace(list[i].Name)
 		list[i].Say = strings.TrimSpace(list[i].Say)
 		list[i].ProcName = strings.TrimSpace(list[i].ProcName)
+		list[i].NPC = strings.TrimSpace(list[i].NPC)
+		list[i].Resist = strings.ToUpper(strings.TrimSpace(list[i].Resist))
+		for j := range list[i].Foes {
+			list[i].Foes[j] = strings.TrimSpace(list[i].Foes[j])
+		}
 	}
 	if err := CheckTemplateAbilities(list); err != nil {
 		return nil, err
@@ -453,11 +580,25 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 			}
 			continue
 		}
+		if err := checkKindFields(n, a); err != nil {
+			return err
+		}
+		if passiveKind(a.Kind) {
+			if err := checkPassiveAbility(n, a); err != nil {
+				return err
+			}
+			if err := checkPetAbility(n, a); err != nil {
+				return err
+			}
+			continue
+		}
 		switch {
 		case !knownKind(a.Kind):
 			return fmt.Errorf("ability %d: kind %q: one of %s", n, a.Kind, strings.Join(AbilityKinds, ", "))
 		case a.Chain && i == 0:
 			return fmt.Errorf("ability 1 chains, and nothing is before it")
+		case a.Chain && passiveKind(list[i-1].Kind):
+			return fmt.Errorf("ability %d chains to a %s, which casts nothing", n, list[i-1].Kind)
 		case !finite(a.Every) || !finite(a.First) || !finite(a.MaxRecast) || !finite(a.MaxCast) || !finite(a.Cast):
 			return fmt.Errorf("ability %d: a number that is not one", n)
 		case !a.Chain && (a.Every < 2 || a.Every > 3600):
@@ -482,10 +623,13 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 			return fmt.Errorf("ability %d: a spell or line of more than 64 characters", n)
 		case len(a.Name) > StripNameMost:
 			return fmt.Errorf("ability %d: a name of more than %d characters", n, StripNameMost)
-		case a.Name != "" && a.Kind != AbilityStrip && !(a.Kind == AbilityHeal && a.HealPct > 0):
-			return fmt.Errorf("ability %d: a name is a strip's or a heal of its share's (its spell names any other)", n)
+		case a.Name != "" && a.Kind != AbilityStrip && !(a.Kind == AbilityHeal && a.HealPct > 0) && a.Damage == 0:
+			return fmt.Errorf("ability %d: a name is a strip's, a heal of its share's or a fixed hit's (its spell names any other)", n)
 		case a.Name != "" && (a.Spell != "" || a.SpellID != 0):
 			return fmt.Errorf("ability %d: named by its name or by the spell it pins, not both", n)
+		}
+		if err := checkFixedAbility(n, a); err != nil {
+			return err
 		}
 		if err := checkCreatureAbility(n, a); err != nil {
 			return err
@@ -519,6 +663,164 @@ func checkCreatureAbility(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: a proc_name with no proc", n)
 	case len(a.ProcName) > StripNameMost:
 		return fmt.Errorf("ability %d: a proc_name of more than %d characters", n, StripNameMost)
+	}
+	return nil
+}
+
+// checkKindFields refuses a field of one kind of ability on another: a hit heal's
+// heal, a summon's count, npc and share, an enrage's grow and rampage, a prefer's
+// foes, a veil's tap_pct, a fixed hit's damage, an out-of-reach ability's gate and
+// range, a resist and a visual where nothing takes them.
+func checkKindFields(n int, a TemplateAbility) error {
+	k := a.Kind
+	pinned := a.Spell != "" || a.SpellID != 0
+	switch {
+	case a.Heal != 0 && k != AbilityHitHeal:
+		return fmt.Errorf("ability %d: heal is a hitheal's", n)
+	case (a.Count != 0 || a.NPC != "" || a.Share != 0) && k != AbilitySummon:
+		return fmt.Errorf("ability %d: count, npc and share are a summon's", n)
+	case (a.Grow != 0 || a.Rampage != 0) && k != AbilityEnrage:
+		return fmt.Errorf("ability %d: grow and rampage are an enrage's", n)
+	case len(a.Foes) > 0 && k != AbilityPrefer && k != AbilityKillSay:
+		return fmt.Errorf("ability %d: foes are a prefer's or a killsay's", n)
+	case a.TapPct != 0 && k != AbilityVeil:
+		return fmt.Errorf("ability %d: tap_pct is a veil's", n)
+	case a.Damage != 0 && k != AbilityNuke && k != AbilityLifetap:
+		return fmt.Errorf("ability %d: a fixed damage is a nuke's or a lifetap's", n)
+	case a.OutOfReach && k != AbilityNuke && k != AbilityLifetap && k != AbilityAoE && k != AbilityDebuff && k != AbilityStrip && k != AbilityDoT:
+		return fmt.Errorf("ability %d: out_of_reach is a harmful cast's at what it fights (nuke, lifetap, aoe, debuff, strip, dot)", n)
+	case a.Range != 0 && !a.OutOfReach:
+		return fmt.Errorf("ability %d: a range is an out_of_reach ability's", n)
+	case math.IsNaN(a.Range) || math.IsInf(a.Range, 0) || a.Range < 0 || a.Range > 1000:
+		return fmt.Errorf("ability %d: range %.1f: 0 (%d) to 1000 units", n, a.Range, DefaultOutOfReachRange)
+	case !shieldResistKnown(a.Resist):
+		return fmt.Errorf("ability %d: resist %q: FR, CR, LR, AR, PR, DR or none", n, a.Resist)
+	case a.Resist != "" && a.Damage == 0 && k != AbilityVeil && !(k == AbilityProc && !pinned):
+		return fmt.Errorf("ability %d: a resist is a fixed damage's, a veil's or a proc's of its own figures (a spell's is its own)", n)
+	case a.FX != 0 && pinned && k != AbilityProc && k != AbilityVeil:
+		return fmt.Errorf("ability %d: a visual (fx) is an ability's that pins no spell (its spell's is its look), or a proc's or a veil's hit's", n)
+	case a.FX != 0 && k != AbilityStrip && !(k == AbilityHeal && a.HealPct > 0) && a.Damage == 0 && k != AbilityProc && k != AbilityVeil:
+		return fmt.Errorf("ability %d: a visual (fx) is a named strip's, heal of its share's, fixed hit's, proc's or veil's", n)
+	}
+	return nil
+}
+
+// checkPassiveAbility holds an ability that casts nothing on a clock (passiveKind)
+// to its kind's fields: no clock of its own (an enrage's every is its pulls'),
+// no chain, a summon's and an enrage's share of hit points, a line in /say only
+// for those two.
+func checkPassiveAbility(n int, a TemplateAbility) error {
+	finite := func(v float64) bool { return !math.IsNaN(v) && !math.IsInf(v, 0) }
+	pinned := a.Spell != "" || a.SpellID != 0
+	moment := a.Kind == AbilitySummon || a.Kind == AbilityEnrage
+	switch {
+	case a.Chain:
+		return fmt.Errorf("ability %d: a %s casts nothing to chain", n, a.Kind)
+	case a.Every != 0 && a.Kind != AbilityEnrage:
+		return fmt.Errorf("ability %d: a %s has no clock (every)", n, a.Kind)
+	case a.First != 0 || a.Chance != 0 || a.DamagePct != 0 || a.MaxRecast != 0 || a.MaxCast != 0 || a.Cast != 0 || a.Cooldown != 0 || a.HealPct != 0:
+		return fmt.Errorf("ability %d: a %s takes none of a cast's fields (first, chance, damage_pct, max_recast, max_cast, cast, cooldown, heal_pct)", n, a.Kind)
+	case a.Line != "" || (pinned && a.Kind != AbilityProc && a.Kind != AbilityVeil):
+		return fmt.Errorf("ability %d: a %s casts no spell (line, spell, spell_id)", n, a.Kind)
+	case moment && (a.Below < 1 || a.Below > 100):
+		return fmt.Errorf("ability %d: a %s's below %d: 1 to 100 percent of its hit points", n, a.Kind, a.Below)
+	case !moment && a.Below != 0:
+		return fmt.Errorf("ability %d: below is a summon's or an enrage's", n)
+	case a.Say != "" && !moment && a.Kind != AbilityKillSay:
+		return fmt.Errorf("ability %d: a say is a summon's, an enrage's or a killsay's (or a cast's)", n)
+	case len(a.Say) > SayMost:
+		return fmt.Errorf("ability %d: a say of more than %d characters", n, SayMost)
+	case strings.ContainsAny(a.Say, "|\n\r"):
+		return fmt.Errorf("ability %d: a say with a | or a line break", n)
+	case a.Name != "" && a.Kind != AbilityVeil:
+		return fmt.Errorf("ability %d: a name is a veil's (a proc's is proc_name, or its spell's)", n)
+	case a.Name != "" && pinned:
+		return fmt.Errorf("ability %d: named by its name or by the spell it pins, not both", n)
+	case len(a.Name) > StripNameMost:
+		return fmt.Errorf("ability %d: a name of more than %d characters", n, StripNameMost)
+	case a.From != 0:
+		return fmt.Errorf("ability %d: from is a cast's (a %s is its creature's at any level)", n, a.Kind)
+	}
+	switch a.Kind {
+	case AbilityHitHeal:
+		if a.Heal < 1 || a.Heal > 100000 {
+			return fmt.Errorf("ability %d: a hitheal's heal %d: 1 to 100000 hit points a hit", n, a.Heal)
+		}
+	case AbilityPrefer:
+		if len(a.Foes) == 0 || len(a.Foes) > MostFoes {
+			return fmt.Errorf("ability %d: a prefer's foes: 1 to %d names", n, MostFoes)
+		}
+		for _, f := range a.Foes {
+			if f == "" || len(f) > 64 {
+				return fmt.Errorf("ability %d: a prefer's foe %q: a name of 1 to 64 characters", n, f)
+			}
+		}
+	case AbilitySummon:
+		switch {
+		case a.Count < 1 || a.Count > MostSummoned:
+			return fmt.Errorf("ability %d: a summon's count %d: 1 to %d", n, a.Count, MostSummoned)
+		case a.NPC == "" || len(a.NPC) > 64:
+			return fmt.Errorf("ability %d: a summon's npc: the name of the NPC it calls copies of (1 to 64 characters)", n)
+		case a.Share < 0 || a.Share > 1000:
+			return fmt.Errorf("ability %d: a summon's share %d: 0 (the copies' own) to 1000 percent of its figures", n, a.Share)
+		}
+	case AbilityEnrage:
+		switch {
+		case !finite(a.Every) || a.Every < 0 || a.Every > 3600 || (a.Every > 0 && a.Every < 2):
+			return fmt.Errorf("ability %d: an enrage's every %.1f: 0 (no pulls) or 2 to 3600 seconds from one pull to the next", n, a.Every)
+		case a.Grow < 0 || a.Grow > 500:
+			return fmt.Errorf("ability %d: an enrage's grow %d: 0 to 500 percent bigger", n, a.Grow)
+		case a.Rampage < 0 || a.Rampage > 100:
+			return fmt.Errorf("ability %d: an enrage's rampage %d: 0 to 100 percent of each hit", n, a.Rampage)
+		case a.Grow == 0 && a.Every == 0 && a.Rampage == 0:
+			return fmt.Errorf("ability %d: an enrage that does nothing (grow, every, rampage)", n)
+		}
+	case AbilityProc:
+		switch {
+		case pinned && (a.ProcChance != 0 || a.ProcDamage != 0 || a.ProcName != ""):
+			return fmt.Errorf("ability %d: a proc of a spell is its spell's (no proc_chance, proc_damage, proc_name)", n)
+		case !pinned && (a.ProcChance < 1 || a.ProcChance > 100 || a.ProcDamage < 1 || a.ProcDamage > 100000):
+			return fmt.Errorf("ability %d: a proc pins a spell (spell or spell_id) or has a proc_chance (1-100) and a proc_damage (1-100000)", n)
+		case len(a.ProcName) > StripNameMost:
+			return fmt.Errorf("ability %d: a proc_name of more than %d characters", n, StripNameMost)
+		case a.SpellID < 0 || (a.SpellID != 0 && a.Spell != ""):
+			return fmt.Errorf("ability %d: a spell pinned by name or by id, not both", n)
+		}
+		return nil
+	case AbilityVeil:
+		switch {
+		case !finite(a.TapPct) || a.TapPct <= 0 || a.TapPct > 100:
+			return fmt.Errorf("ability %d: a veil's tap_pct %v: above 0 to 100 percent of its hit points", n, a.TapPct)
+		case a.SpellID < 0 || (a.SpellID != 0 && a.Spell != ""):
+			return fmt.Errorf("ability %d: a spell pinned by name or by id, not both", n)
+		}
+	case AbilityKillSay:
+		switch {
+		case len(a.Foes) == 0 || len(a.Foes) > MostFoes:
+			return fmt.Errorf("ability %d: a killsay's foes: 1 to %d names", n, MostFoes)
+		case a.Say == "":
+			return fmt.Errorf("ability %d: a killsay's say: its line", n)
+		}
+		for _, f := range a.Foes {
+			if f == "" || len(f) > 64 {
+				return fmt.Errorf("ability %d: a killsay's foe %q: a name of 1 to 64 characters", n, f)
+			}
+		}
+	}
+	if a.ProcChance != 0 || a.ProcDamage != 0 || a.ProcName != "" {
+		return fmt.Errorf("ability %d: a proc's fields are a proc's or a cast's that gives one", n)
+	}
+	return nil
+}
+
+// checkFixedAbility holds a clocked ability's fixed figure (damage) to its bounds:
+// not beside a damage_pct, which it takes the place of.
+func checkFixedAbility(n int, a TemplateAbility) error {
+	switch {
+	case a.Damage < 0 || a.Damage > 1000000:
+		return fmt.Errorf("ability %d: damage %d: 0 (its spell's figures) to 1000000, fixed", n, a.Damage)
+	case a.Damage > 0 && a.DamagePct != 0:
+		return fmt.Errorf("ability %d: a fixed damage takes its spell's figures' place: no damage_pct with it", n)
 	}
 	return nil
 }

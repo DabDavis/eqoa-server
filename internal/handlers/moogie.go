@@ -29,6 +29,12 @@ const (
 	moogieNoOpt    = "Nothing, thank you"
 	moogieCleared  = "Mr. Moogie says, '%s's buffs are clear.'"
 	moogieHealed   = "Mr. Moogie says, 'There you are, %s, whole again.'"
+	// the GM Jibrish's petition 1444: "Give a dialogue option to Mr. Moogie that will allow the player to
+	// reset all of their ability cool downs. This cannot be used on players in PvP, in duels and can only
+	// be used on a player once every 10 minutes" (entity's MoogieReset)
+	moogieResetOpt    = "Reset my ability cooldowns"
+	moogieReset       = "Mr. Moogie says, 'There you are, %s: your abilities are ready again.'"
+	moogieResetNotYet = "Mr. Moogie says, 'Not so soon, %s. I can ready your abilities again in %s.'"
 )
 
 // moogieAsks is the boxes he has asked, by the character's serverid: the box and which Mr. Moogie.
@@ -44,8 +50,10 @@ type moogieAsk struct {
 	does []moogieDo
 }
 
-// What an answer in his box does: the buffs cleared, a full heal, his metal twin's duel (the GM
-// Jibrish's petition 1379: metalmoogie.go), a Moogie Tribute handed in for his favor, nothing.
+// What an answer in his box does: the buffs cleared, a full heal, the abilities' lockouts reset (petition
+// 1444), his metal twin's duel (the GM Jibrish's petition 1379: metalmoogie.go), a Moogie Tribute handed
+// in (for his favor, or, while Metal Moogie V2 is on the server, a second question: the favor or V2's
+// duel, petition 1441), nothing.
 type moogieDo int
 
 const (
@@ -54,18 +62,22 @@ const (
 	moogieDoProve
 	moogieDoTribute
 	moogieDoNothing
+	moogieDoReset
+	moogieDoFavor
+	moogieDoV2
 )
 
-// moogieAnswers is his box's answers for p, in order, and what each does: the duel while his metal twin
-// is on the server (entity's MetalMoogieHere), the hand-in while p holds a tribute and his favor is
-// there.
+// moogieAnswers is his box's answers for p, in order, and what each does: the reset always, the duel
+// while his metal twin is on the server (entity's MetalMoogieHere), the tribute while p holds one and his
+// favor or Metal Moogie V2 is there. CLIENT's box holds six answers (maxDialogOptions): the tribute's two
+// uses are its second question's (moogieTributeAnswers), so this one never has more.
 func (h *InteractHandler) moogieAnswers(p *entity.Player) ([]string, []moogieDo) {
-	labels := []string{moogieClearOpt, moogieHealOpt}
-	does := []moogieDo{moogieDoClear, moogieDoHeal}
+	labels := []string{moogieClearOpt, moogieHealOpt, moogieResetOpt}
+	does := []moogieDo{moogieDoClear, moogieDoHeal, moogieDoReset}
 	if h.gameWorld != nil && h.gameWorld.MetalMoogieHere() {
 		labels, does = append(labels, moogieProveOpt), append(does, moogieDoProve)
 	}
-	if h.favor.offers(p) {
+	if h.favor.offers(p) || h.v2Offered(p) {
 		labels, does = append(labels, moogieTributeOpt), append(does, moogieDoTribute)
 	}
 	return append(labels, moogieNoOpt), append(does, moogieDoNothing)
@@ -81,16 +93,28 @@ func (h *InteractHandler) moogieTalk(sess *session.Session, p *entity.Player, np
 		return true
 	}
 	labels, does := h.moogieAnswers(p)
+	h.moogieAsk(sess, p, npc.ServerID, moogieQuestion, moogieChoices{labels, does})
+	return true
+}
+
+// moogieChoices is a box's answers and what each does, in order.
+type moogieChoices struct {
+	labels []string
+	does   []moogieDo
+}
+
+// moogieAsk asks p his question in a box under moogieBoxMark, the box and what its answers do kept for
+// answerMoogie (a new box takes the place of p's last).
+func (h *InteractHandler) moogieAsk(sess *session.Session, p *entity.Player, npc entity.EntityID, question string, c moogieChoices) {
 	h.boardMu.Lock()
 	h.moogie.seq++
 	id := moogieBoxMark | (h.moogie.seq & 0xFFFFFF)
 	if h.moogie.asked == nil {
 		h.moogie.asked = map[uint32]moogieAsk{}
 	}
-	h.moogie.asked[p.CharServerID] = moogieAsk{box: id, npc: npc.ServerID, does: does}
+	h.moogie.asked[p.CharServerID] = moogieAsk{box: id, npc: npc, does: c.does}
 	h.boardMu.Unlock()
-	SendQuestPopupMulti(sess, id, moogieQuestion, labels)
-	return true
+	SendQuestPopupMulti(sess, id, question, c.labels)
 }
 
 // answerMoogie is HandleDialogueOption's question for his box: each answer does what it did when
@@ -126,11 +150,26 @@ func (h *InteractHandler) answerMoogie(sess *session.Session, p *entity.Player, 
 		if name, done := h.gameWorld.MoogieHeal(sess); done {
 			SendClientMessage(sess, fmt.Sprintf(moogieHealed, name))
 		}
+	case moogieDoReset:
+		switch name, _, wait, done := h.gameWorld.MoogieReset(sess, time.Now()); {
+		case done:
+			SendClientMessage(sess, fmt.Sprintf(moogieReset, name))
+		case name != "":
+			SendColoredChat(sess, fmt.Sprintf(moogieResetNotYet, name, wait.Round(time.Second)), 255, 63, 63)
+		}
 	case moogieDoProve:
 		line, _ := h.gameWorld.MetalMoogieChallenge(sess, asked.npc, time.Now()) // metalmoogie.go
 		SendClientMessage(sess, line)
 	case moogieDoTribute:
-		h.moogieHandIn(sess, p) // metalmoogie.go
+		if !h.v2Offered(p) {
+			h.moogieHandIn(sess, p) // metalmoogie.go: his favor, as ever
+			break
+		}
+		h.moogieAsk(sess, p, asked.npc, moogieTributeQuestion, h.moogieTributeAnswers(p)) // the favor or V2
+	case moogieDoFavor:
+		h.moogieHandIn(sess, p)
+	case moogieDoV2:
+		h.moogieV2(sess, p, asked.npc) // metalmoogie.go
 	}
 	return true
 }

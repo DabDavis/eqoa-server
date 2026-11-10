@@ -21,6 +21,7 @@ const NAV = [
   ['World', [
     ['npcs', 'NPCs', 'skull'],
     ['merchants', 'Merchants', 'shop'],
+    ['campfix', 'Camp reports', 'flag'],
     ['triggers', 'Triggers', 'bolt'],
   ]],
   ['Content', [
@@ -78,6 +79,7 @@ const VIEWS = {
   transfers: () => import('./views/transfers.js'),
   npcs: () => import('./views/npcs.js'),
   merchants: () => import('./views/merchants.js'),
+  campfix: () => import('./views/campfix.js'),
   triggers: () => import('./views/triggers.js'),
   items: () => import('./views/items.js'),
   spells: () => import('./views/spells.js'),
@@ -200,15 +202,16 @@ function start(session) {
   route();
 }
 
-// The petitions and the character transfers waiting on a GM, beside their
-// pages in the navigation: asked at the start and every minute while signed
-// in.
+// The petitions, the character transfers and the camp reports waiting on a
+// GM, beside their pages in the navigation: asked at the start and every
+// minute while signed in.
 let badgeTimer = null;
 async function waitingBadge() {
   clearTimeout(badgeTimer);
   if (!state.session) return;
   for (const [page, name, args] of [['petitions', 'petition_list', { status: 'waiting', limit: 1 }],
-    ['transfers', 'transfer_list', { status: 'waiting', limit: 1 }]]) {
+    ['transfers', 'transfer_list', { status: 'waiting', limit: 1 }],
+    ['campfix', 'campfix_list', { counts: true }]]) {
     const link = nav?.querySelector(`a[data-page="${page}"]`);
     if (!link) continue;
     try {

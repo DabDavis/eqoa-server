@@ -50,7 +50,7 @@ func (w *World) creatureShieldLocked(sess *session.Session, p *Player, npc *NPC,
 	if k := p.Swing.Kind; k >= swingRange1 && k <= swingRange4 {
 		return false // a bow's shot
 	}
-	taken, words := t.ShieldDamage, ""
+	taken, words := npc.shared(t.ShieldDamage), "" // an add's at its share (summon.go)
 	if st := shieldResistStat(t.ShieldResist); st != StatNone {
 		share, how := t.rollResist(p.StatNow(st))
 		taken = max(int(math.Round(float64(taken)*(1-share))), 1)
@@ -71,6 +71,7 @@ func (w *World) creatureShieldLocked(sess *session.Session, p *Player, npc *NPC,
 		return false
 	}
 	w.playerDiedLocked(sess, p, now)
+	w.killedPlayerLocked(npc, p) // its line at the kill (selfbuff.go)
 	return true
 }
 
@@ -82,7 +83,7 @@ func (w *World) creatureShieldOnPetLocked(ps *petState, npc *NPC, now time.Time)
 	if t == nil || t.ShieldDamage <= 0 || npc.Dead || pet.Dead {
 		return false
 	}
-	taken := t.ShieldDamage
+	taken := npc.shared(t.ShieldDamage)
 	if st := shieldResistStat(t.ShieldResist); st != StatNone {
 		if share := pet.petResistShare(st); share > 0 {
 			taken = max(int(math.Round(float64(taken)*(1-share))), 1)
@@ -123,13 +124,14 @@ func (w *World) creatureProcLocked(sess *session.Session, p *Player, npc *NPC, n
 		return false
 	}
 	if t.ProcChance > 0 && t.ProcDamage > 0 && templateIntn(100) < t.ProcChance &&
-		w.creatureProcHitLocked(sess, p, npc, procName(t), t.ProcDamage, t.ProcResist, now) {
+		w.creatureProcHitLocked(sess, p, npc, procName(t), npc.shared(t.ProcDamage), t.ProcResist, now) { // an add's at its share (summon.go)
 		return true
 	}
-	if fp := npc.fightProcNow(); fp != nil && !p.IsDead() && templateIntn(100) < fp.chance {
-		return w.creatureProcHitLocked(sess, p, npc, fp.name, fp.damage, "", now) // fixed, unresisted
+	if fp := npc.fightProcNow(); fp != nil && !p.IsDead() && templateIntn(100) < fp.chance &&
+		w.creatureProcHitLocked(sess, p, npc, fp.name, fp.damage, "", now) { // fixed, unresisted
+		return true
 	}
-	return false
+	return !p.IsDead() && w.abilityProcsOnPlayerLocked(sess, p, npc, now) // its own procs and veils (creatureproc.go)
 }
 
 // creatureProcHitLocked is one of a creature's melee procs on a player: the figure, cut by the resist resist
@@ -156,7 +158,8 @@ func (w *World) creatureProcHitLocked(sess *session.Session, p *Player, npc *NPC
 		return false
 	}
 	w.playerDiedLocked(sess, p, now)
-	return p.IsDead() // a GM's #testmode stands at 1 HP: the hit goes on
+	w.killedPlayerLocked(npc, p) // its line at the kill (selfbuff.go)
+	return p.IsDead()            // a GM's #testmode stands at 1 HP: the hit goes on
 }
 
 // creatureProcOnPetLocked is creatureProcLocked on a pet: a workbook pet's resists cut the template's (petstats.go),
@@ -167,13 +170,14 @@ func (w *World) creatureProcOnPetLocked(npc, pet *NPC, now time.Time) bool {
 		return false
 	}
 	if t.ProcChance > 0 && t.ProcDamage > 0 && templateIntn(100) < t.ProcChance &&
-		w.creatureProcPetHitLocked(npc, pet, procName(t), t.ProcDamage, t.ProcResist, now) {
+		w.creatureProcPetHitLocked(npc, pet, procName(t), npc.shared(t.ProcDamage), t.ProcResist, now) {
 		return true
 	}
-	if fp := npc.fightProcNow(); fp != nil && !pet.Dead && templateIntn(100) < fp.chance {
-		return w.creatureProcPetHitLocked(npc, pet, fp.name, fp.damage, "", now)
+	if fp := npc.fightProcNow(); fp != nil && !pet.Dead && templateIntn(100) < fp.chance &&
+		w.creatureProcPetHitLocked(npc, pet, fp.name, fp.damage, "", now) {
+		return true
 	}
-	return false
+	return !pet.Dead && w.abilityProcsOnPetLocked(npc, pet, now) // its own procs and veils (creatureproc.go)
 }
 
 // creatureProcPetHitLocked is one of a creature's melee procs on a pet. It reports whether the pet died of it.

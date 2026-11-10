@@ -774,6 +774,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCampfix(); err != nil { // campfix.go: the players' camp reports
 		return err
 	}
+	if err := db.ensureHeroes(); err != nil { // heroes.go: the Testing Heroes' stock, purchases and bonus training points
+		return err
+	}
 
 	log.Printf("SQLite schema initialized")
 	return nil
@@ -1106,6 +1109,10 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 	}
 	// and the look it chose (charlook.go)
 	if _, err := s.db.Exec(`DELETE FROM charlook WHERE serverid = ?`, serverID); err != nil {
+		return err
+	}
+	// and the training points an item gave it (heroes.go)
+	if _, err := s.db.Exec(`DELETE FROM charbonustp WHERE serverid = ?`, serverID); err != nil {
 		return err
 	}
 	// and its abilities' lockouts (lockouts.go)

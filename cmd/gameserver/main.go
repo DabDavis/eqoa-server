@@ -463,6 +463,27 @@ func main() {
 	if cfg.World.Mercs || cfg.World.Familiars {
 		log.Printf("Mercenaries %v, familiars %v (world.mercs, world.familiars)", cfg.World.Mercs, cfg.World.Familiars)
 	}
+	// the Testing Heroes (world.testing_heroes; entity/heroes.go, handlers/heroes.go):
+	// a kill that gives experience credited with the faction, a raid boss's
+	// five times (the loot's raid bosses read now and every minute, as a GM
+	// makes one on the panel), and the vendor that sells for the standing
+	gameWorld.SetTestingHeroes(cfg.World.TestingHeroes)
+	handlers.SetTestingHeroes(cfg.World.TestingHeroes)
+	if cfg.World.TestingHeroes {
+		n, err := gameWorld.LoadRaidBossNames(db)
+		if err != nil {
+			log.Printf("WARNING: %v; a raid boss is one by its class template alone", err)
+		}
+		log.Printf("Testing Heroes: on (world.testing_heroes): %d for a kill that gives experience, %d for a raid boss (a class template of %d%% hit points or more, or one of the loot's %d boss names); the faction in the table: %v",
+			entity.HeroesKill, entity.HeroesBossKill, entity.RaidBossHPPct, n, gameWorld.HeroesOpen())
+		go func() {
+			for range time.Tick(time.Minute) {
+				if _, err := gameWorld.LoadRaidBossNames(db); err != nil {
+					log.Printf("Testing Heroes: the loot's raid bosses not read again: %v", err)
+				}
+			}
+		}()
+	}
 	// a monster's name and level on the talk button (handlers/mobinfo.go)
 	handlers.SetMobInfo(cfg.World.MobInfo)
 	if cfg.World.MobInfo {

@@ -65,6 +65,10 @@ type EquipHandler struct {
 	// familiars is the items that call a familiar (familiar.go): a Use casts
 	familiars *Familiars
 
+	// training keeps the training points an item's use gave (potion.go); nil:
+	// they are kept at the logout alone
+	training trainingKeeper
+
 	// hands is what the switches for an art remember (handswitch.go)
 	hands handMemory
 }

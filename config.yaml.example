@@ -134,6 +134,15 @@ world:
   # Dabrish. Off unless set (the Heirloom Test Server sets it).
   # rock_of_freeport: true
 
+  # The Testing Heroes (entity/heroes.go, handlers/heroes.go): every kill that
+  # gives a character experience gives it 1 standing with the faction Testing
+  # Heroes, a raid boss's 5; the faction starts at the floor, -2000, and the
+  # Testing Heroes Vendor sells for the standing above it. The faction, the
+  # vendor (by the well behind Dabrish), his stock and its items are
+  # tools/seed_testing_heroes.py's. Off unless set (the Heirloom Test Server
+  # sets it): no credit, no faction in the window, no vendor.
+  # testing_heroes: true
+
   # The quest marks on a client's map (handlers/questmarks.go, vanilla's Quest
   # Markers): a giver's "!" only for quests whose lowest level is at most this
   # many below the player's (a quest's name is marked once, at its nearest

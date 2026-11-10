@@ -253,8 +253,11 @@ func (w *World) landIllusionLocked(cs *castState, t *Player, ae *ActiveEffect) {
 		log.Printf("Cast: %q on %s: the disc has no body %#x: no illusion", cs.spell.Name, t.Name, model)
 		return
 	}
+	if d.FormSize > 0 { // its line's own size for the body ("Body Size 4.05": spelltext.go)
+		size = d.FormSize
+	}
 	ae.Form, ae.FormSize = model, size
-	log.Printf("Cast: %q shows %s as %q (model %#x)", cs.spell.Name, t.Name, d.Form, model)
+	log.Printf("Cast: %q shows %s as %q (model %#x, size %.2f)", cs.spell.Name, t.Name, d.Form, model, size)
 }
 
 // onDisc is whether the disc has a body of model, as far as the server knows
@@ -327,6 +330,9 @@ func (w *World) landNPCIllusionLocked(cs *castState, npc *NPC, ae *ActiveEffect)
 	if !onDisc(model) {
 		log.Printf("Cast: %q on %s: the disc has no body %#x: no illusion", cs.spell.Name, npc.Name, model)
 		return
+	}
+	if d.FormSize > 0 { // its line's own size for the body (spelltext.go)
+		size = d.FormSize
 	}
 	ae.Form, ae.FormSize = model, size
 	log.Printf("Cast: %q shows %s as model %#x", cs.spell.Name, npc.Name, model)

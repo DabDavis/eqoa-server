@@ -579,12 +579,16 @@ func factionLine(faction string, delta, standing int) string {
 // PlayerFactions is the standings the session's faction window lists, in its
 // order: every faction, with the player's own standing where it has one, else
 // its start (no player: the factions' own). A standing kept for a faction the
-// table no longer has is not listed.
+// table no longer has is not listed, nor is the Testing Heroes' on a server
+// where they are off (heroes.go).
 func (w *World) PlayerFactions(sess *session.Session) []FactionStanding {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.factions.ensure()
 	out := append([]FactionStanding(nil), w.factions.list...)
+	if !w.heroes.on { // the Testing Heroes' is no one's to see on a server without them (heroes.go)
+		out = slices.DeleteFunc(out, func(f FactionStanding) bool { return f.Name == HeroesFaction })
+	}
 	p := w.sessionPlayerLocked(sess)
 	if p == nil {
 		return out

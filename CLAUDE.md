@@ -1748,6 +1748,7 @@ case *entity.NPC:
 | `visibilitySystem` | Every 5 ticks | Assign nearby entities to channels 1-23, or the slots (and distance) the client asked for |
 | `powerSyncSystem` | Every 5 ticks | Others' power (0x7E02) to a client that asked with 0x7E01: its group's members, its target and its target's target, players only, when the set changed (`powerbars.go`) |
 | `petEffectsSystem` | Every 5 ticks | **The pet's effects** (0x7E33) to a client that asked with 0x7E32 (vanilla's row under the pet's bar, Extended > UI's Pet Effects; the user, 2026-11-09: "jibcro is showing pets buffs as if on him, put the buff icons under the pet name plate"): each effect on the player's pet with a name that has not run out (its own buffs, its owner's, its drain's share), its icon, time left and name, in the order they went on, when the set changed and at once after the ask; an empty set as the pet goes (`peteffects.go`). A PS2 never asks and is sent none. **The player's own effects window (0x43) is its own effects alone**: from petition 1041 (2026-11-06, Eatma: "Pet buffs for necro aren't showing up on buff display") until this, `buffChannelSyncSystem` sent the pet's after them, so every client, a PS2's too, showed them as the player's own |
+| `dpsMeterSystem` | Every 5 ticks | **The damage meters** (0x7E3C) to each client that asked with 0x7E3B (vanilla's DPS Meter, Extended > Combat; the owner, 2026-11-10: "lets add dps meters, will work solo, group, raid"): its group's fight as it stands, at most once a second while it changes, and once more as it ends, `DPSMeterIdle` (10 s) after the group's last damage (`dpsmeter.go`). A PS2 never asks and is sent none |
 
 ### The game's balance (`entity/balance.go`, tables `balance*`)
 
@@ -2485,6 +2486,32 @@ a spell's or a potion's price), a gift landed as the player's own cast (Buffer's
 `healLocked`, `spellHit*`, `petDamageLocked`, `petLandHitLocked`, `duelHurt*`), so a new call site must say
 what it is (0 for untagged); a cast carries whose its figures are (`CastSpell.figures`) into what lasts of it
 (`ActiveEffect.figures`, kept over a logout by buffsave). `numbertags_test.go` holds each path to its kind.
+
+**A damage meter for a client that draws one** (2026-11-10; `entity/dpsmeter.go`, `handlers/dpsmeter.go`,
+`claude-notes/dps-meter-20261110.md`; the owner: "lets add dps meters, will work solo, group, raid"). CLIENT has no
+meter. Beside 0x7E38 the server offers opcode **0x7E3A** (`OpcodeDPSMeterOffer`, a u8 1, the data's layout; not retail,
+ignored by a PS2). A client that draws one (vanilla's Extended > Combat > DPS Meter) answers **0x7E3B**
+(`OpcodeDPSMeterAnswer`, a u8: 1 to have it, 0 to stop; kept on the Player through a keep restart, dropped at a
+takeover), may reset its fight with **0x7E3D** (`OpcodeDPSMeterReset`, a u8 1: the fight under way dropped, nothing more
+sent of it, the next under another number), and from a 1 on `dpsMeterSystem` (every 5 ticks) sends **0x7E3C**
+(`OpcodeDPSMeterData`; `protocol/opcodes.go` has the layout: fight number, over or not, length, the whole, lines in
+all, the receiver's own place, then at most `DPSMeterLinesMost` (24) lines, the most damage first and the receiver's
+own always among them: flags, class, damage, its pet's share, name). **What counts is what the player is told it
+did**: `sendDamageIndication` counts each figure of damage of a tagged kind (the number tags' table above: a swing,
+a spell or ability, an area's others, a damage over time's tick, a damage shield, a proc's hit; its pet's the same)
+for the player it is sent to, at the figure told, on that player's meter and on every member's of its group, the
+pet's share apart; not a heal, not one on the player itself or on its own pet (Destroy Contraption), not any figure
+another made (untagged), whoever asked for tags. **The one count with no figure**: the necromancer's zombie, mummy
+and spectre fight untold (petrotation.go), and `petLandHitLocked` counts their hits where the figure would be. So a
+new path that tells a player its damage counts on the meters by itself; one that hurts something untold must call
+`dpsCountLocked`. **The scope is the group at each figure** (a raid group's too, any size): a member who joins
+counts from then on, one who leaves counts no more and keeps its line in that fight (flag 2); every member in the
+world has a line, of no damage too. **A fight is each client's own**: from the first figure counted on its meter to
+`DPSMeterIdle` (10 s: past a six-second tick or round and a long cast) after the last, its length the first figure
+to the latest; the client divides each line by it (at least a second). Sent at most once a second while it changes
+(`dpsMeterEvery`), at once after the ask, and once more as it ends (over). Duels and PvP count (halved as told). A
+session that never asks (every PS2, a vanilla build from before it) is sent nothing; its player's damage still counts
+on its group's others' meters. `dpsmeter_test.go` holds every path's count to the figures told.
 
 **Quest marks for a client's map** (F3 pass 18; `handlers/questmarks.go`, `entity/questspots.go`;
 the user's "add quest markers for givers to the map too", "only if eligible for the class/level").

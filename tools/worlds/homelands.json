@@ -938,7 +938,233 @@
       "from": "TUNARIA.ESF",
       "zone": 54,
       "race": 18,
-      "note": "Pixie: the bixies' thicket (Misty Thicket, cell 8,5)"
+      "note": "Pixie: the bixies' thicket (Misty Thicket, cell 8,5)",
+      "home": {
+        "flavor": "Pixies are tiny winged fae of the Misty Thicket in the Homelands, bright as sparks and twice as quick, who learn the old magic among the elves.",
+        "start": {
+          "x": 17046.9,
+          "y": 70.89,
+          "z": 10438.6,
+          "toward": [
+            17040.1,
+            10440.2
+          ]
+        },
+        "mainland": {
+          "place": "Tethelin and Fayspire",
+          "world": 0,
+          "x": 18380.2,
+          "y": 75.6,
+          "z": 7378.4,
+          "facing": 3.94
+        },
+        "npcs": [
+          {
+            "name": "Elder Brightwing",
+            "like": 820,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              17040.1,
+              71.06,
+              10440.2
+            ],
+            "toward": [
+              17046.9,
+              10438.6
+            ],
+            "note": "the starter quests' giver, under the tall pines in the middle of the thicket, at the bixies' spots"
+          },
+          {
+            "name": "Grocer Nettlewick",
+            "like": 818,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              17147.0,
+              65.76,
+              10415.7
+            ],
+            "toward": [
+              17040.1,
+              10440.2
+            ],
+            "stock": "Grocer Nethelia",
+            "note": "the thicket's grocer by the old pines to the east, an elven grocer's food"
+          },
+          {
+            "name": "Spiritmaster Glimmerdew",
+            "like": 821,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              16878.8,
+              74.32,
+              10432.8
+            ],
+            "toward": [
+              17040.1,
+              10440.2
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Thistlewhirl",
+            "like": 819,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              17206.1,
+              70.79,
+              10452.7
+            ],
+            "toward": [
+              17040.1,
+              10440.2
+            ],
+            "note": "sends a pixie who has done the starter quests to the elves, Tethelin or Fayspire by class (The Elves' Wood)"
+          },
+          {
+            "name": "Thicket warden",
+            "like": 819,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              17191.1,
+              64.75,
+              10398.2
+            ],
+            "facing": 151
+          },
+          {
+            "name": "Thicket warden",
+            "like": 819,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              17123.0,
+              77.12,
+              10503.6
+            ],
+            "facing": 131
+          },
+          {
+            "name": "Thicket warden",
+            "like": 819,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              16998.2,
+              67.66,
+              10524.5
+            ],
+            "facing": 209
+          },
+          {
+            "name": "Thicket warden",
+            "like": 819,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              17042.9,
+              68.97,
+              10601.2
+            ],
+            "facing": 29
+          },
+          {
+            "name": "bramble rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              16830.3,
+              61.45,
+              10540.3
+            ],
+            "note": "the starter quest's rats, at the wolf spiders' and their neighbours' spots in the brambles to the south-west"
+          },
+          {
+            "name": "bramble rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              16779.6,
+              54.12,
+              10620.2
+            ]
+          },
+          {
+            "name": "bramble rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              16725.7,
+              54.12,
+              10550.7
+            ]
+          },
+          {
+            "name": "bramble rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              16895.9,
+              58.96,
+              10523.4
+            ]
+          },
+          {
+            "name": "bramble rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              16915.5,
+              55.84,
+              10570.9
+            ]
+          },
+          {
+            "name": "bramble rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              16955.0,
+              57.77,
+              10541.8
+            ]
+          }
+        ],
+        "peaceful": [
+          "bramble rat"
+        ],
+        "lines": {
+          "Gatekeeper Thistlewhirl": [
+            "Not yet, little spark. Elder Brightwing wants a word with you first.",
+            "Every pixie sees the elder before the elves see the pixie. Off you go!"
+          ],
+          "Thicket warden": [
+            "Watch the brambles, %r. The rats are bolder than they look.",
+            "Mist on the leaves means rain by evening.",
+            "Lost? Elder Brightwing is under the tall pines in the middle of the thicket."
+          ],
+          "Elder Brightwing": [
+            "The thicket remembers every pixie it has raised. It will remember you.",
+            "Be quick, be kind, and never let a goblin near your purse."
+          ]
+        }
+      }
     },
     {
       "name": "Twisted Tower",

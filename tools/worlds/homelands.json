@@ -1637,7 +1637,233 @@
       "from": "TUNARIA.ESF",
       "zone": 42,
       "race": 21,
-      "note": "Orc: the Hatebone orcs' camp: 93 orcs of the game, a prophet among them (Thedruk, cell 9,4)"
+      "note": "Orc: the Hatebone orcs' camp: 93 orcs of the game, a prophet among them (Thedruk, cell 9,4)",
+      "home": {
+        "flavor": "Orcs are tusked warriors of the Thedruk camps in the Homelands, hard as stone, who keep a rough peace with the barbarians of Halas.",
+        "start": {
+          "x": 19832.3,
+          "y": 54.12,
+          "z": 8761.0,
+          "toward": [
+            19839.3,
+            8761.2
+          ]
+        },
+        "mainland": {
+          "place": "Halas",
+          "world": 0,
+          "x": 13059.3,
+          "y": 54.4,
+          "z": 4289.6,
+          "facing": 1.28
+        },
+        "npcs": [
+          {
+            "name": "Elder Gorruk",
+            "like": 100909,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              19839.3,
+              54.37,
+              8761.2
+            ],
+            "toward": [
+              19832.3,
+              8761.0
+            ],
+            "note": "the starter quests' giver, a prophet's look, among the totems of the Hatebone camp east of the river"
+          },
+          {
+            "name": "Grocer Bulgash",
+            "like": 100886,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19767.9,
+              54.12,
+              8717.3
+            ],
+            "toward": [
+              19839.3,
+              8761.2
+            ],
+            "stock": "Grocer Hannibal",
+            "note": "a henchman's look, at the camp's cook fire; a Halas grocer's food"
+          },
+          {
+            "name": "Spiritmaster Urzog",
+            "like": 100877,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              19804.6,
+              56.1,
+              8706.5
+            ],
+            "toward": [
+              19839.3,
+              8761.2
+            ],
+            "note": "binds, as every spiritmaster; a mystic's look"
+          },
+          {
+            "name": "Gatekeeper Thrakka",
+            "like": 100884,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              19904.2,
+              54.12,
+              8809.0
+            ],
+            "toward": [
+              19839.3,
+              8761.2
+            ],
+            "note": "sends an orc who has done the starter quests to Halas (The Road to Halas); a scout's look"
+          },
+          {
+            "name": "Thedruk sentry",
+            "like": 100916,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19820.2,
+              54.12,
+              8744.7
+            ],
+            "facing": 122
+          },
+          {
+            "name": "Thedruk sentry",
+            "like": 100916,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19793.7,
+              60.38,
+              8835.5
+            ],
+            "facing": 17
+          },
+          {
+            "name": "Thedruk sentry",
+            "like": 100916,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19862.9,
+              54.12,
+              8794.3
+            ],
+            "facing": 160
+          },
+          {
+            "name": "Thedruk sentry",
+            "like": 100916,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19606.1,
+              74.32,
+              8687.5
+            ],
+            "facing": 235
+          },
+          {
+            "name": "camp rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19436.1,
+              50.73,
+              8691.8
+            ],
+            "note": "the starter quest's rats, at the orc raiders' spots on the slope west of the camp"
+          },
+          {
+            "name": "camp rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19486.6,
+              50.91,
+              8703.6
+            ]
+          },
+          {
+            "name": "camp rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19443.1,
+              43.5,
+              8736.7
+            ]
+          },
+          {
+            "name": "camp rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19511.4,
+              51.04,
+              8754.0
+            ]
+          },
+          {
+            "name": "camp rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19449.1,
+              43.5,
+              8789.0
+            ]
+          },
+          {
+            "name": "camp rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19516.0,
+              52.38,
+              8801.8
+            ]
+          }
+        ],
+        "peaceful": [
+          "camp rat"
+        ],
+        "lines": {
+          "Gatekeeper Thrakka": [
+            "Not yet, whelp. Elder Gorruk speaks to every new orc first.",
+            "Go and see the elder among the totems. Then come back, and I will send you to Halas."
+          ],
+          "Thedruk sentry": [
+            "Eyes open, %r. Always.",
+            "The camp sleeps easier when I do not.",
+            "Looking for the elder? He is among the totems in the middle of the camp."
+          ],
+          "Elder Gorruk": [
+            "An orc is measured by the fights he finishes, not the ones he starts.",
+            "Make the camp proud, whelp."
+          ]
+        }
+      }
     },
     {
       "name": "The Warrens",

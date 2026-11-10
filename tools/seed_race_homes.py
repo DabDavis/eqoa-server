@@ -17,9 +17,16 @@ too). For each zone of the recipe with a `home`:
   or `facing` (the npcs byte, 0-255), of `level`, a `talker` (npc_type 128, the
   NPC bit: it is talked to, never fought) or a `foe` (0); `body` a CHAR.ESF
   DictID ("0x9E004757") worn instead of the copy's, `size` its size, `stock` an
-  NPC whose wares (npcitem) it sells too;
+  NPC whose wares (npcitem) it sells too, which makes it a merchant (npc_type
+  129: CLIENT opens a merchant's window by the flag 0x01, and asks the server
+  for nothing at a talker of 128 but a talk);
 - each name in `peaceful` gets an npcaggro row of aggressive 0 (a starter
-  quest's critters, which a fledgling hunts, never hunt it).
+  quest's critters, which a fledgling hunts, never hunt it);
+- `lines`, {name: [line, ...]}: the words of a home's people of that name when
+  nothing else answers (npcdialog rows of their name: a speaker of its own
+  lines says them alone, entity/dialog.go; %p the listener's name, %r its
+  race, %c its class): a gatekeeper's before the starter quests are done, the
+  sentinels', the elder's after.
 
 The quests (who gives what, the gatekeeper's port) are tools/quests/data/
 homelands.json's, written by tools/import_quests.py after this.
@@ -46,12 +53,28 @@ DEFAULT_HOMES = os.path.join(HERE, "worlds", "homelands.json")
 LOG = "race_homes_log"
 LOG_DDL = f"""CREATE TABLE IF NOT EXISTS {LOG} (
     seq   INTEGER PRIMARY KEY AUTOINCREMENT,
-    what  TEXT NOT NULL,   -- 'racedef' | 'start' | 'npc' | 'npcitem' | 'aggro'
-    key   TEXT NOT NULL,   -- the row: racedefs id, defaultcharacter id, npcs id, npcitem id, npcaggro name
+    what  TEXT NOT NULL,   -- 'racedef' | 'start' | 'npc' | 'npcitem' | 'aggro' | 'dialog' | 'dialogtable'
+    key   TEXT NOT NULL,   -- the row: racedefs id, defaultcharacter id, npcs id, npcitem id, npcaggro name, npcdialog id
     old   TEXT,            -- its columns before (JSON), none for a row added
     note  TEXT NOT NULL DEFAULT ''
 )"""
 TALKER, FOE = 128, 0
+MERCHANT = 0x01  # the npc flag CLIENT opens a merchant's window by (handlers/merchant.go)
+# npcdialog as the server makes it (database/npcdialog.go), for a database it has not run on
+NPCDIALOG_DDL = """CREATE TABLE IF NOT EXISTS npcdialog (
+    id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    town   TEXT NOT NULL DEFAULT '',
+    role   TEXT NOT NULL DEFAULT '',
+    name   TEXT NOT NULL DEFAULT '',
+    mood   TEXT NOT NULL DEFAULT '',
+    race   INTEGER NOT NULL DEFAULT -1,
+    sex    TEXT NOT NULL DEFAULT '',
+    line   TEXT NOT NULL,
+    weight INTEGER NOT NULL DEFAULT 1,
+    source TEXT NOT NULL DEFAULT 'gm',
+    speaker_race INTEGER NOT NULL DEFAULT -1,
+    away   INTEGER NOT NULL DEFAULT 0
+)"""
 
 
 def heading_to(x, z, tx, tz):
@@ -136,10 +159,19 @@ def plan(db, recipe):
                 cur = db.execute("SELECT * FROM npcitem WHERE npcid = ? ORDER BY listnumber, itemid", (src["id"],))
                 cols = [c[0] for c in cur.description]
                 stock = [dict(zip(cols, r)) for r in cur.fetchall()]
+                if not stock:
+                    raise SystemExit(f"{n['name']}: {n['stock']!r} sells nothing")
+                row["npc_type"] |= MERCHANT
             out.append(("npc", None, None, {"row": row, "stock": stock}, f"{n['name']} in {z['name']}: {n.get('note', '')}".rstrip(": ")))
         for name in home.get("peaceful", []):
             old = row_dict(db, "npcaggro", "npc_name = ?", (name,)) if has_table(db, "npcaggro") else None
             out.append(("aggro", name, old, {"aggressive": 0}, f"{name}: a starter quest's critter ({z['name']})"))
+        people = {n["name"] for n in home.get("npcs", [])}
+        for name, lines in home.get("lines", {}).items():
+            if name not in people:
+                raise SystemExit(f"{z['name']}: lines for {name!r}, who is none of its people")
+            for line in lines:
+                out.append(("dialog", name, None, {"line": line}, f"{name}'s words ({z['name']})"))
     return out
 
 
@@ -182,6 +214,12 @@ def apply(db, steps):
                     ON CONFLICT(npc_name) DO UPDATE SET aggressive = 0, radius = 0, note = excluded.note, source = excluded.source""",
                            (key, note))
                 log(what, key, old, note)
+            elif what == "dialog":
+                if not has_table(db, "npcdialog"):
+                    db.execute(NPCDIALOG_DDL)
+                    log("dialogtable", "npcdialog", None, "made for the homes' words (dropped at the undo)")
+                cur = db.execute("INSERT INTO npcdialog (name, line, weight, source) VALUES (?, ?, 1, 'racehomes')", (key, new["line"]))
+                log(what, cur.lastrowid, None, note)
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")
@@ -204,6 +242,10 @@ def undo(db):
                 db.execute("DELETE FROM npcitem WHERE itemid = ?", (int(key),))
             elif what == "npc":
                 db.execute("DELETE FROM npcs WHERE id = ?", (int(key),))
+            elif what == "dialog":
+                db.execute("DELETE FROM npcdialog WHERE id = ?", (int(key),))
+            elif what == "dialogtable":
+                db.execute("DROP TABLE IF EXISTS npcdialog")
             elif what == "aggro":
                 if old is None:
                     db.execute("DELETE FROM npcaggro WHERE npc_name = ?", (key,))
@@ -239,6 +281,8 @@ def main(argv=None):
             print(f"  npc     {r['npc_name']!r} world {r['world']} ({r['x_coord']}, {r['y_coord']}, {r['z_coord']}) facing {r['facing']} "
                   f"level {r['npc_level']} type {r['npc_type']} body {r['modelid'] & 0xFFFFFFFF:08X}"
                   + (f", {len(new['stock'])} wares" if new["stock"] else ""))
+        elif what == "dialog":
+            print(f"  dialog  {key}: {new['line']!r}")
         else:
             print(f"  {what:7} {key}: {note}")
     if a.apply:

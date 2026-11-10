@@ -555,10 +555,15 @@ then takes for that session (kept through a keep restart). A login in such a wor
 client that holds it, else on its race's mainland spot (`database.MainlandPlace`: its wire race's start row
 for its class). Nothing of the disc goes over the wire, and a PS2 never sees one. The homes' people, starts
 and flavour are `tools/seed_race_homes.py`'s (exact `--undo`), their quests `tools/quests/data/homelands.json`
-(a gatekeeper's `teleport` with `"to": "mainland"` and `"bind": true`: FORMAT.md). A homeland's gatekeeper
-is no stop of the cross-world travel network (`interact.go`'s `warpRoutes`: no gatekeeper or harbormaster offers a
-server world's, and one standing there offers none), so the flight is one-way, as the owner chose; the HDD worlds'
-(8, 9, 22) are not server worlds. `tools/seed_race_homes_test.py` holds the real recipe to its zones' cells.
+(a gatekeeper's `teleport` with `"to": "mainland"` and `"bind": true`: FORMAT.md). A gatekeeper standing in such a world
+is its home's alone (`entity.Composed`): it opens no travel menu (its flight is its quest's, one way, once the
+starter quests are done; before them it says its own lines), and no harbormaster, gatekeeper or account page
+offers a trip to it (a GM's own list has it); `interact.go`'s `warpRoutes` keeps the same rule on the network's side
+(no gatekeeper or harbormaster offers a server world's, one standing there offers none), and the HDD worlds' (8, 9,
+22) are not server worlds. A home's seller is a merchant (npc_type 129: CLIENT opens the window by the flag), and its
+people's own words are npcdialog rows of their names (the recipe's `lines`). `tools/seed_race_homes_test.py` holds
+the real recipe to its zones' cells. `tools/import_quests.py --undo` takes back every import, not one file: the
+homes' quests come out by the import's own copy of the database, made before it writes.
 
 ### The server's own view of a player's moves (`entity/movecheck.go`, `#movecheck`)
 

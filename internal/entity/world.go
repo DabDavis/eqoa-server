@@ -136,6 +136,8 @@ type World struct {
 
 	// pvpAllowed is world.pvp: whether players may flag themselves (pvp.go)
 	pvpAllowed bool
+	// ctf is capture the flag in the arena's world: its queue and its match (ctf.go)
+	ctf ctfState
 	// jumpsAllowed is world.jump: whether players may jump (jump.go)
 	jumpsAllowed bool
 
@@ -464,6 +466,7 @@ func (w *World) leavingLocked(p *Player) []func(*Player) {
 	w.duelLeavingLocked(p)  // its invitation lapses, its duel is forfeit (duel.go)
 	w.metalLeavingLocked(p) // its Metal Moogie leaves (metalmoogie.go)
 	w.pvpLeavingLocked(p)   // what it put on foes goes (pvp.go)
+	w.ctfLeavingLocked(p)   // off the queue, out of its match, its banner dropped (ctf.go)
 	fns := make([]func(*Player), len(w.leaving))
 	copy(fns, w.leaving)
 	return fns

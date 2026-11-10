@@ -179,7 +179,12 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 	// Offset 75-78: Shield (LE)
 	binary.LittleEndian.PutUint32(buf[75:79], p.Shield)
 
-	// Offset 79-90: the three override items (m_itemOver), none.
+	// Offset 79-90: the three override items (m_itemOver), none but a banner its carrier holds in the
+	// off hand (ctf.go): CLIENT's ApplyItems draws an override in its item's place, the item itself
+	// untouched, so the hand shows the banner to every client while the gear stays what it is.
+	if p.ctf.hand != 0 {
+		binary.LittleEndian.PutUint32(buf[83:87], p.ctf.hand)
+	}
 	// Offset 91-92: the two hands' attack types (m_itemType), as every player
 	// in the Sandstorm captures has them: ApplyItems attaches items 0 and 1
 	// with them, and the swing is picked by them (a two-hander's 2, 4 or 6
@@ -724,8 +729,12 @@ const GMTag = "[GM] "
 
 // ShownName is the name the entity channel carries: a GM's with GMTag.
 func (p *Player) ShownName() string {
-	if p.GM {
-		return GMTag + p.Name
+	name := p.Name
+	if p.ctf.carries {
+		name = CTFCarrierTag + name // the arena's banner carrier (ctfflag.go)
 	}
-	return p.Name
+	if p.GM {
+		return GMTag + name
+	}
+	return name
 }

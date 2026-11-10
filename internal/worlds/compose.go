@@ -76,6 +76,9 @@ type Recipe struct {
 	// Name is what players are told it is.
 	Name  string       `json:"name"`
 	Zones []RecipeZone `json:"zones"`
+	// Arena is the game a world is the place of, as its maker writes it (tools/worlds/arena.json's capture the
+	// flag: handlers/ctf.go reads it): carried into the built recipe as it is, never into the file.
+	Arena json.RawMessage `json:"arena,omitempty"`
 }
 
 // RecipeZone is one zone of a recipe: zone Zone of the disc's file From.

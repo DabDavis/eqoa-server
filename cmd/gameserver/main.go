@@ -353,6 +353,27 @@ func main() {
 		handlers.SetImportedTag(cfg.World.ImportedTag)
 		log.Printf("Items: %d imported gear records at %.0f%% (tag shown: %v)", len(m), database.ImportedShare()*100, cfg.World.ImportedTag)
 	}
+	// The tuned raid bosses' Ascended gear (database/ascended.go, petition
+	// 1446): each record made its base again, its procs and worn hit effects
+	// a tenth more where they are read (entity/ascended.go), the records read
+	// again every minute so tools/ascend_boss_loot.py's new ones need no restart
+	if n, err := database.SyncAscendedCopies(db.DB, time.Now()); err != nil {
+		log.Printf("WARNING: the Ascended records not made their bases again: %v", err)
+	} else if n > 0 {
+		log.Printf("Items: %d Ascended records made their bases again (a base changed)", n)
+	}
+	if n, err := entity.LoadAscendedItems(db.DB); err != nil {
+		log.Printf("WARNING: %v; no Ascended gear is known", err)
+	} else {
+		log.Printf("Items: %d Ascended gear records at +%d%%", n, database.AscendedPercent)
+	}
+	go func() {
+		for range time.Tick(time.Minute) {
+			if _, err := entity.LoadAscendedItems(db.DB); err != nil {
+				log.Printf("Items: the Ascended records not read again: %v", err)
+			}
+		}
+	}()
 	// Where the gates, portals, circles and evacuations send (entity/gates.go,
 	// table spellgates): with none, each is refused as it begins
 	if _, err := gameWorld.LoadSpellGates(db); err != nil {

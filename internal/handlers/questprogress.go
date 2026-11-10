@@ -182,7 +182,7 @@ func (q *QuestEngine) progressLocked(l *invList, p *entity.Player, c *questChar)
 			qp.goals = append(qp.goals, progressGoal{text: "Speak with " + target})
 		case st.Kind == database.StepShow || st.Kind == database.StepGive:
 			for _, it := range st.Items {
-				qp.goals = append(qp.goals, progressGoal{text: name(it.PatternID), have: l.held(it.PatternID), need: max(it.Count, 1)})
+				qp.goals = append(qp.goals, progressGoal{text: name(it.PatternID), have: l.heldStandingFor(it.PatternID), need: max(it.Count, 1)})
 			}
 			if st.Tunar > 0 {
 				qp.goals = append(qp.goals, progressGoal{text: "Tunar", have: p.Tunar, need: st.Tunar})

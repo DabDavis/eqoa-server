@@ -666,6 +666,9 @@ func (db *SQLiteDB) initSchema() error {
 	if _, err := db.Exec(ImportedSchema); err != nil { // imported gear's copies (imported.go)
 		return fmt.Errorf("itemimported: %w", err)
 	}
+	if _, err := db.Exec(AscendedSchema); err != nil { // the tuned bosses' Ascended gear (ascended.go)
+		return fmt.Errorf("itemascended: %w", err)
+	}
 	if err := db.ensureSpellArea(); err != nil {
 		return err
 	}

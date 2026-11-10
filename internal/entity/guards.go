@@ -348,6 +348,7 @@ func (w *World) npcHitNPCLocked(npc, foe *NPC, now time.Time) bool {
 	w.killNPC(foe)
 	w.dropAggroLocked(foe.ServerID)
 	log.Printf("Combat: %s killed by %s", foe.Name, npc.Name)
+	w.killSaidLocked(npc, foe.Name) // its line at the kill (selfbuff.go)
 	return true
 }
 

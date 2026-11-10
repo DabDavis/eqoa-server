@@ -160,28 +160,36 @@ const (
 	// every fight's hits that land, beside its template's: its pinned spell's
 	// proc (a pet's buff: the owner's Innoruuk with Largesse of Plague) at the
 	// chance a pet of its level has under it, or ProcChance, ProcDamage,
-	// ProcName and Resist of its own (entity/creatureproc.go).
+	// ProcName and Resist of its own (entity/creatureproc.go). FX is the look
+	// of each proc's hit on its target; a pinned spell is a buff its creature
+	// casts on itself as its fight begins and again at the buff's time.
 	AbilityProc = "proc"
 	// AbilityVeil casts nothing: each of its creature's melee hits that lands
 	// also takes TapPct percent of the creature's own most hit points from what
 	// it hit, into itself, cut by Resist (entity/creatureproc.go; the owner,
 	// 2026-11-10: Innoruuk "similar to veil of death, but scale it to innoruuks
-	// hp").
+	// hp"). FX is each tap's look on its target (none for none); a pinned spell
+	// names it and is a buff cast on itself, as a proc's.
 	AbilityVeil = "veil"
+	// AbilityKillSay casts nothing: its creature's line in /say (Say) when one of
+	// its hits kills one of Foes (by name: the GM Jibrish's petition 1458, Mr.
+	// Moogie at Innoruuk's death, "Dab got dunked again").
+	AbilityKillSay = "killsay"
 )
 
 // AbilityKinds are the kinds, in the order the help lists them.
 var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot, AbilityDebuff,
 	AbilityStrip, AbilityHealShield, AbilityMeleeKind, AbilityDoT, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage,
-	AbilityProc, AbilityVeil}
+	AbilityProc, AbilityVeil, AbilityKillSay}
 
 // passiveKind is whether an ability of the kind casts nothing on a clock of its
 // own: what it does is a rule its creature keeps (a heal shield, a melee kind,
-// a hit heal, its preferred foes, a proc, a veil) or a moment of its fight (a
-// summon and an enrage, below their share of hit points).
+// a hit heal, its preferred foes, a proc, a veil, a line at a kill) or a moment
+// of its fight (a summon and an enrage, below their share of hit points).
 func passiveKind(k string) bool {
 	switch k {
-	case AbilityHealShield, AbilityMeleeKind, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage, AbilityProc, AbilityVeil:
+	case AbilityHealShield, AbilityMeleeKind, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage, AbilityProc, AbilityVeil,
+		AbilityKillSay:
 		return true
 	}
 	return false
@@ -378,7 +386,8 @@ type TemplateAbility struct {
 	Grow    int `json:"grow,omitempty"`
 	Rampage int `json:"rampage,omitempty"`
 	// Foes are a prefer's: names (any case) of the foes it fights first, the
-	// first of them first.
+	// first of them first; and a killsay's: those whose death by its hit its
+	// line is for.
 	Foes []string `json:"foes,omitempty"`
 	// TapPct is a veil's: the percent of its creature's own most hit points each
 	// of its melee hits that lands takes from what it hit, into itself.
@@ -672,8 +681,8 @@ func checkKindFields(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: count, npc and share are a summon's", n)
 	case (a.Grow != 0 || a.Rampage != 0) && k != AbilityEnrage:
 		return fmt.Errorf("ability %d: grow and rampage are an enrage's", n)
-	case len(a.Foes) > 0 && k != AbilityPrefer:
-		return fmt.Errorf("ability %d: foes are a prefer's", n)
+	case len(a.Foes) > 0 && k != AbilityPrefer && k != AbilityKillSay:
+		return fmt.Errorf("ability %d: foes are a prefer's or a killsay's", n)
 	case a.TapPct != 0 && k != AbilityVeil:
 		return fmt.Errorf("ability %d: tap_pct is a veil's", n)
 	case a.Damage != 0 && k != AbilityNuke && k != AbilityLifetap:
@@ -688,8 +697,8 @@ func checkKindFields(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: resist %q: FR, CR, LR, AR, PR, DR or none", n, a.Resist)
 	case a.Resist != "" && a.Damage == 0 && k != AbilityVeil && !(k == AbilityProc && !pinned):
 		return fmt.Errorf("ability %d: a resist is a fixed damage's, a veil's or a proc's of its own figures (a spell's is its own)", n)
-	case a.FX != 0 && pinned:
-		return fmt.Errorf("ability %d: a visual (fx) is an ability's that pins no spell (its spell's is its look)", n)
+	case a.FX != 0 && pinned && k != AbilityProc && k != AbilityVeil:
+		return fmt.Errorf("ability %d: a visual (fx) is an ability's that pins no spell (its spell's is its look), or a proc's or a veil's hit's", n)
 	case a.FX != 0 && k != AbilityStrip && !(k == AbilityHeal && a.HealPct > 0) && a.Damage == 0 && k != AbilityProc && k != AbilityVeil:
 		return fmt.Errorf("ability %d: a visual (fx) is a named strip's, heal of its share's, fixed hit's, proc's or veil's", n)
 	}
@@ -711,20 +720,22 @@ func checkPassiveAbility(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: a %s has no clock (every)", n, a.Kind)
 	case a.First != 0 || a.Chance != 0 || a.DamagePct != 0 || a.MaxRecast != 0 || a.MaxCast != 0 || a.Cast != 0 || a.Cooldown != 0 || a.HealPct != 0:
 		return fmt.Errorf("ability %d: a %s takes none of a cast's fields (first, chance, damage_pct, max_recast, max_cast, cast, cooldown, heal_pct)", n, a.Kind)
-	case a.Line != "" || (pinned && a.Kind != AbilityProc):
+	case a.Line != "" || (pinned && a.Kind != AbilityProc && a.Kind != AbilityVeil):
 		return fmt.Errorf("ability %d: a %s casts no spell (line, spell, spell_id)", n, a.Kind)
 	case moment && (a.Below < 1 || a.Below > 100):
 		return fmt.Errorf("ability %d: a %s's below %d: 1 to 100 percent of its hit points", n, a.Kind, a.Below)
 	case !moment && a.Below != 0:
 		return fmt.Errorf("ability %d: below is a summon's or an enrage's", n)
-	case a.Say != "" && !moment:
-		return fmt.Errorf("ability %d: a say is a summon's or an enrage's (or a cast's)", n)
+	case a.Say != "" && !moment && a.Kind != AbilityKillSay:
+		return fmt.Errorf("ability %d: a say is a summon's, an enrage's or a killsay's (or a cast's)", n)
 	case len(a.Say) > SayMost:
 		return fmt.Errorf("ability %d: a say of more than %d characters", n, SayMost)
 	case strings.ContainsAny(a.Say, "|\n\r"):
 		return fmt.Errorf("ability %d: a say with a | or a line break", n)
 	case a.Name != "" && a.Kind != AbilityVeil:
 		return fmt.Errorf("ability %d: a name is a veil's (a proc's is proc_name, or its spell's)", n)
+	case a.Name != "" && pinned:
+		return fmt.Errorf("ability %d: named by its name or by the spell it pins, not both", n)
 	case len(a.Name) > StripNameMost:
 		return fmt.Errorf("ability %d: a name of more than %d characters", n, StripNameMost)
 	case a.From != 0:
@@ -777,8 +788,23 @@ func checkPassiveAbility(n int, a TemplateAbility) error {
 		}
 		return nil
 	case AbilityVeil:
-		if !finite(a.TapPct) || a.TapPct <= 0 || a.TapPct > 100 {
+		switch {
+		case !finite(a.TapPct) || a.TapPct <= 0 || a.TapPct > 100:
 			return fmt.Errorf("ability %d: a veil's tap_pct %v: above 0 to 100 percent of its hit points", n, a.TapPct)
+		case a.SpellID < 0 || (a.SpellID != 0 && a.Spell != ""):
+			return fmt.Errorf("ability %d: a spell pinned by name or by id, not both", n)
+		}
+	case AbilityKillSay:
+		switch {
+		case len(a.Foes) == 0 || len(a.Foes) > MostFoes:
+			return fmt.Errorf("ability %d: a killsay's foes: 1 to %d names", n, MostFoes)
+		case a.Say == "":
+			return fmt.Errorf("ability %d: a killsay's say: its line", n)
+		}
+		for _, f := range a.Foes {
+			if f == "" || len(f) > 64 {
+				return fmt.Errorf("ability %d: a killsay's foe %q: a name of 1 to 64 characters", n, f)
+			}
 		}
 	}
 	if a.ProcChance != 0 || a.ProcDamage != 0 || a.ProcName != "" {

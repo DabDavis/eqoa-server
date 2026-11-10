@@ -64,29 +64,42 @@ type templateVeil struct {
 	fx     uint32
 }
 
-// veilOf is a veil ability as the world rolls it.
-func veilOf(a database.TemplateAbility) templateVeil {
+// veilOf is a veil ability as the world rolls it, and the buff it is when it pins a spell (its name,
+// its look on its creature, its time: selfbuff.go); a problem's words for a spell pinned and not there.
+// Its fx is each tap's look on what it hit, none for none (a tap at every hit: kept quiet).
+func veilOf(db *database.SQLiteDB, a database.TemplateAbility) (templateVeil, *templateSelfBuff, string, error) {
 	name := a.Name
 	if name == "" {
 		name = database.DefaultVeilName
 	}
-	return templateVeil{pct: a.TapPct, resist: shieldResistStat(a.Resist), name: name, fx: a.FX}
+	v := templateVeil{pct: a.TapPct, resist: shieldResistStat(a.Resist), name: name, fx: a.FX}
+	if a.Spell == "" && a.SpellID == 0 {
+		return v, nil, "", nil
+	}
+	ts, ok, err := pinnedTemplateSpell(db, a)
+	if err != nil || !ok {
+		return v, nil, pinWords(a), err
+	}
+	s := templateSpellOf(ts)
+	v.name = s.Name
+	return v, selfBuffOf(s), "", nil
 }
 
-// procOf is a proc ability as the world rolls it: its own figures, or its pinned spell's proc (a
-// problem's words for a spell that is none or has no proc).
-func procOf(db *database.SQLiteDB, a database.TemplateAbility) (templateProc, string, error) {
+// procOf is a proc ability as the world rolls it: its own figures, or its pinned spell's proc and the
+// buff that spell is (cast on its creature: selfbuff.go); a problem's words for a spell that is none
+// or has no proc. Its fx is each proc's look on what it hit (0: Sandstorm's creature special's).
+func procOf(db *database.SQLiteDB, a database.TemplateAbility) (templateProc, *templateSelfBuff, string, error) {
 	if a.Spell == "" && a.SpellID == 0 {
 		name := a.ProcName
 		if name == "" {
 			name = database.DefaultFightProcName
 		}
 		return templateProc{chance: a.ProcChance, least: a.ProcDamage, most: a.ProcDamage, resist: shieldResistStat(a.Resist),
-			name: name, fx: a.FX}, "", nil
+			name: name, fx: a.FX}, nil, "", nil
 	}
 	ts, ok, err := pinnedTemplateSpell(db, a)
 	if err != nil || !ok {
-		return templateProc{}, pinWords(a), err
+		return templateProc{}, nil, pinWords(a), err
 	}
 	s := templateSpellOf(ts)
 	for _, e := range s.Def.Effects {
@@ -94,16 +107,16 @@ func procOf(db *database.SQLiteDB, a database.TemplateAbility) (templateProc, st
 			continue
 		}
 		p := templateProc{chance: s.Def.ProcChance, least: e.Amount, most: max(e.AmountMax, e.Amount), cap: e.Cap,
-			resist: e.Resist, undeadOnly: e.Undead, name: s.Name, spellID: s.SpellID, fromItsSpell: true}
+			resist: e.Resist, undeadOnly: e.Undead, name: s.Name, fx: a.FX, spellID: s.SpellID, fromItsSpell: true}
 		if p.resist == StatNone {
 			p.resist = rulesOf(&s.Def).Resist
 		}
 		if e.ScaleBearer && e.Scale != StatNone {
 			p.scalePct = e.ScalePct
 		}
-		return p, "", nil
+		return p, selfBuffOf(s), "", nil
 	}
-	return templateProc{}, fmt.Sprintf("%q is no proc buff", s.Name), nil
+	return templateProc{}, nil, fmt.Sprintf("%q is no proc buff", s.Name), nil
 }
 
 // chanceFor is the proc's chance a hit for npc: its own, else a pet's of npc's level under it (proc.go).
@@ -138,6 +151,16 @@ func procVisual(fx uint32) uint32 {
 	return templateSpecialFX
 }
 
+// veilLookLocked shows a veil's tap on target: its own look (fx) at it, as a proc's hit is shown, or
+// nothing (fx 0: a tap at every melee hit would be a visual at every hit; the owner, 2026-11-10, of
+// Innoruuk's: the buff's own visual at Mr. Moogie read as Innoruuk casting his buffs on him). Must be
+// called with the lock held.
+func (w *World) veilLookLocked(npc *NPC, target EntityID, v *templateVeil) {
+	if v.fx != 0 {
+		w.broadcastNPCSwingLocked(npc, target, 0, v.fx)
+	}
+}
+
 // tapOf is a veil's take for npc: its share of npc's most hit points, at least 1.
 func (v *templateVeil) tapOf(npc *NPC) int {
 	return max(1, int(math.Round(float64(npc.MaxHP)*v.pct/100)))
@@ -170,7 +193,7 @@ func (w *World) abilityProcsOnPlayerLocked(sess *session.Session, p *Player, npc
 		if taken <= 0 {
 			continue
 		}
-		w.broadcastNPCSwingLocked(npc, p.ServerID, 0, procVisual(v.fx))
+		w.veilLookLocked(npc, p.ServerID, v)
 		p.HP = max(p.HP-taken, 0)
 		p.StatsDirty = true
 		p.LastCombatTime = now
@@ -190,6 +213,7 @@ func (w *World) abilityProcsOnPlayerLocked(sess *session.Session, p *Player, npc
 		if p.HP <= 0 {
 			w.playerDiedLocked(sess, p, now)
 			if p.IsDead() {
+				w.killSaidLocked(npc, p.Name) // its line at the kill (selfbuff.go)
 				return true
 			}
 		}
@@ -225,7 +249,7 @@ func (w *World) abilityProcsOnPetLocked(npc, pet *NPC, now time.Time) bool {
 		if taken <= 0 {
 			continue
 		}
-		w.broadcastNPCSwingLocked(npc, pet.ServerID, 0, procVisual(v.fx))
+		w.veilLookLocked(npc, pet.ServerID, v)
 		pet.HP = max(pet.HP-taken, 0)
 		pet.LastCombatTime = now
 		w.veilHealLocked(npc, v, taken, nil)
@@ -277,7 +301,7 @@ func (w *World) creatureProcOnNPCLocked(npc, foe *NPC, n int, now time.Time) boo
 		v := &t.veils[i]
 		take := v.tapOf(npc)
 		taken := -creatureResists(v.resist, foe, -take, now)
-		w.broadcastNPCSwingLocked(npc, foe.ServerID, 0, procVisual(v.fx))
+		w.veilLookLocked(npc, foe.ServerID, v)
 		w.castFoeHitLocked(npc, foe, taken, v.name, now)
 		w.veilHealLocked(npc, v, taken, nil)
 		if foe.Dead {
@@ -324,7 +348,8 @@ func (w *World) creatureProcStatHitLocked(sess *session.Session, p *Player, npc 
 		return false
 	}
 	w.playerDiedLocked(sess, p, now)
-	return p.IsDead() // a GM's #testmode stands at 1 HP: the hit goes on
+	w.killedPlayerLocked(npc, p) // its line at the kill (selfbuff.go)
+	return p.IsDead()            // a GM's #testmode stands at 1 HP: the hit goes on
 }
 
 // creatureProcPetHitStatLocked is creatureProcPetHitLocked with the resist a Stat and a visual of its own.

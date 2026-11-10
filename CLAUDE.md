@@ -485,10 +485,18 @@ with the code), each usable by any creature's template:
   its share, its own size again at the fight's end: `entity/enrage.go`; Mr. Moogie's at 10%: x3, pulls every 3 s, rampage 50%);
 - a **proc** it always has (`proc`, beside its template's `proc_chance` and a fight's: a proc buff's spell pinned, its proc's
   figure, resist and own chance, else the chance a pet of its level has under it (3% and 1 more for each 20 of a pet's INT,
-  three a level, at most 25%: 13% at 70), or `proc_chance`/`proc_damage`/`proc_name`/`resist` of its own: Innoruuk's
-  Largesse of Plague, 650 disease, DR) and a **veil** (`veil`, `tap_pct` % of its own most hit points at every melee hit that
-  lands, from what it hit into itself, cut by `resist`, `name` and `fx` its look: Innoruuk's Veil of Death, 1%, AR), on players,
-  pets and creatures alike (`entity/creatureproc.go`);
+  three a level, at most 25%: 13% at 70), or `proc_chance`/`proc_damage`/`proc_name`/`resist` of its own; `fx` its look at
+  what each proc hits, the creature special's for none: Innoruuk's Largesse of Plague, 650 disease, DR, the disease hit
+  0x0CACDEE1) and a **veil** (`veil`, `tap_pct` % of its own most hit points at every melee hit that lands, from what it hit
+  into itself, cut by `resist`; `fx` its look at what each tap hits, none for none; `name`, or a spell pinned: Innoruuk's
+  Veil of Death +, 1%, AR, silent), on players, pets and creatures alike (`entity/creatureproc.go`). **A proc or veil of a
+  pinned spell is that buff on its creature, cast on itself**: as its fight begins, a 0x00B1 from it at itself with the
+  buff's own visual, and again at the buff's time (its record's: Largesse's 5 minutes, Veil of Death +'s 30; none, once a
+  fight), never at what it fights (the owner, 2026-11-10, watching: each proc and tap had sent the buff's visual at Mr.
+  Moogie; no effect is put on it, so no strip takes it: `entity/selfbuff.go`);
+- a **line at a kill** (`killsay`, `foes` names, `say`: its line in /say when a hit of its own kills one of them, its melee,
+  casts, specials, kicks, procs, veil, rampage or damage over time, on a creature or a player; not a pet's kill, an add's
+  (a Servant of Moogie's: an add says none of its creature's lines) or another's; petition 1458, Mr. Moogie's "Dab got dunked again" at Innoruuk's death: `entity/selfbuff.go`);
 - a creature's **damage over time** (`dot`, until now a pet's alone): on a player its ticks as a debuff's damage tick, on a
   scripted fight's NPC each tick the fight's hit, kept up as a pet's (cast again as the one on its target runs out; at a pet it
   waits): `entity/creaturedot.go`.
@@ -507,6 +515,10 @@ Death (901430's visual when its record has one), his meleekinds, crit and hit po
 Servant of Moogie, spawn-only, his body at half his size, level 65, never attacking on sight (`npcaggro`); Metal Moogie
 V2 (below). Templates, NPCs and their spawn-only, aggro and item rows are read at the server's start (a GM panel template
 edit or `reload_npcs` reads templates again at once): run it as the `before.sh` of the keep restart that brings this code.
+**After it, `tools/fix_innoruuk_visuals_20261110.py --db <db> [--apply | --undo]`** (the same writer, log
+`innoruuk_visuals_1110_log`; nothing written unless both templates are as that tool wrote them and 1431 is Veil of Death +; no
+Innoruuk template: another shard): `innoruuk`'s Largesse proc the disease hit's look, his veil pinned on Veil of Death + (1431)
+with no look of its own, and `mr moogie`'s killsay; its own binary's data (an older one reads both templates as unreadable).
 
 **Zaoran Plateau rebuilt** (the user, 2026-11-08: "hunt down and rebuild zaoran plateau - the bosses, quests and rare
 drops"; five sets beside Rallos's and Razeal's; the evidence is jibrish's `zp-research/`: the guide, Cryptic Souls'

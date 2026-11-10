@@ -1,0 +1,180 @@
+{
+  "race": "gargoyle",
+  "home": "South Barren Coast",
+  "city": "Oggok",
+  "note": "The crag's people are tools/worlds/homelands.json's (South Barren Coast): Elder Gorrak gives the first two, Talonmaster Krall beside him the three hunts; Hidecutter Vess (east of the elder, atop the crag) is the outfitter; Coachman Durn keeps the stable at the crag's foot to the west, beside the grocer, so that a rider lands on the ground. The crag bats are round the crag's foot to the south-west, the cragside skinks on the barrens east of the crag, the sand-thing Grindstone alone on the flats to the north.",
+  "L1": {
+    "name": "A Band for the Woken",
+    "giver": "Elder Gorrak",
+    "offer": [
+      "So. Another of us has woken from the stone. Every gargoyle of this crag wears a band set with a chip of the rock it woke on, so it does not forget where it stood.",
+      "Hidecutter Vess cuts them. She stands a few paces east of here, on the crag's top.",
+      "Will you fetch your band and show it to me?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "Stone is patient. So am I.",
+    "started": "Go. Vess is a few paces east of here.",
+    "merchant": "Hidecutter Vess",
+    "piece": {
+      "name": "stonewake band",
+      "description": "A band of crag-lizard hide set with a chip of the roost's own rock. Every newly woken gargoyle of the crag wears one.",
+      "like": "Tattered Bracers",
+      "set": {
+        "AC": 4
+      }
+    },
+    "fetch": {
+      "journal": "Ask Hidecutter Vess, east of Elder Gorrak atop the crag, for a stonewake band.",
+      "says": "Gorrak sent you. Hold out your arm. Hide from the barrens, a chip of the crag you woke on. The newly woken pay nothing."
+    },
+    "show": {
+      "journal": "Show the stonewake band to Elder Gorrak.",
+      "says": "Good. Wear it. Wherever you roost, a piece of this crag roosts with you."
+    }
+  },
+  "L2": {
+    "name": "Bound to the Crag",
+    "giver": "Elder Gorrak",
+    "offer": [
+      "Stone breaks, wakeling, when it falls far enough. Have Spiritmaster Vorth bind your spirit to the crag, so that you wake here again if you shatter.",
+      "Then go down to Coachman Durn at the crag's foot, and give him your name for his ledger. His coach runs to Freeport and to the other homes of the Homelands, for those their stables know.",
+      "Will you see them both and come back to me?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "Then keep away from the edge.",
+    "started": "Vorth stands just north of here. Durn waits below, at the foot of the crag to the west, by the grocer.",
+    "spiritmaster": "Spiritmaster Vorth",
+    "coachman": "Coachman Durn",
+    "bind": {
+      "journal": "Have Spiritmaster Vorth, north of the elder atop the crag, bind your spirit to the crag.",
+      "says": "It is done. Should you shatter, you will wake here on the crag. Now go down and give Coachman Durn your name."
+    },
+    "ledger": {
+      "journal": "Give your name to Coachman Durn, at the foot of the crag to the west, for his ledger.",
+      "says": "Welcome to my stable, wakeling. My coach runs to Freeport and to every other home of the Homelands, for travelers whose names their ledgers hold. Yours is in mine now."
+    },
+    "back": {
+      "journal": "Climb back to Elder Gorrak atop the crag.",
+      "says": [
+        "Good. You know the way down and the way back up. Remember both.",
+        "Durn's coach will carry you to Freeport if its ledger knows you, but the sky to Oggok is earned. Talonmaster Krall, beside me, has work for you."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Bats Round the Crag",
+    "giver": "Talonmaster Krall",
+    "offer": [
+      "You are the one newly woken. Good. Crag bats nest in the rocks round the foot of our crag, to the south-west, and their screeching keeps the sleepers from their stone.",
+      "Silence them and bring me three of their wings. Then I will teach you something worth knowing.",
+      "Will you hunt them?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "Then the sleepers will not rest.",
+    "started": "Three wings. Strike before they scatter.",
+    "target": "crag bat",
+    "count": 3,
+    "drop": {
+      "name": "crag bat wing",
+      "description": "The leathery wing of a crag bat from the foot of the gargoyles' crag.",
+      "like": "ruined bat wing"
+    },
+    "hunt": {
+      "journal": "Take three crag bat wings from the crag bats round the foot of the crag, to the south-west."
+    },
+    "give": {
+      "journal": "Bring three crag bat wings to Talonmaster Krall atop the crag.",
+      "says": "Three wings, and no chip out of you. You can fight. Now watch, and learn this."
+    }
+  },
+  "L4": {
+    "name": "A Wakeling's Arms",
+    "giver": "Talonmaster Krall",
+    "offer": [
+      "Blunt claws will not serve you among the ogres. I will make you proper gear, but you will fetch what I need.",
+      "Hidecutter Vess has a hide thong and a good shaft for me. Then take a tail from the cragside skinks on the barrens east of the crag.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then keep to your claws, and to your ledge.",
+    "started": "A thong and a shaft from Vess, a tail from the skinks. Go.",
+    "materials": [
+      {
+        "merchant": "Hidecutter Vess",
+        "items": [
+          {
+            "name": "crag-hide thong",
+            "description": "A thong cut from crag-lizard hide by the hidecutters of the gargoyles' roost.",
+            "like": "leather strip"
+          },
+          "wooden shaft"
+        ],
+        "journal": "Ask Hidecutter Vess for the crag-hide thong and the wooden shaft.",
+        "says": "For Krall. Here: a thong of hide and a straight shaft. Wood is scarce on the barrens. Do not break it."
+      }
+    ],
+    "target": "cragside skink",
+    "count": 1,
+    "drop": {
+      "name": "cragside skink tail",
+      "description": "The thick tail of a cragside skink from the barrens east of the gargoyles' crag.",
+      "like": "Rat Tail Tip"
+    },
+    "hunt": {
+      "journal": "Take a cragside skink tail from the cragside skinks on the barrens east of the crag."
+    },
+    "give": {
+      "journal": "Bring the crag-hide thong, the wooden shaft and the cragside skink tail to Talonmaster Krall.",
+      "says": "All three. Wait... there. It is yours. Stone made it: do not shame it."
+    }
+  },
+  "L5": {
+    "name": "Grindstone",
+    "giver": "Talonmaster Krall",
+    "offer": [
+      "One task more before the sky is yours. A thing of crumbling sand walks the flats north of the crag. We call it Grindstone. It has ground two sleepers to grit.",
+      "It walks alone, and it comes for anything of stone. Break it and bring me its core, and I will teach you the last thing I have for a wakeling.",
+      "Will you hunt Grindstone?"
+    ],
+    "accept": "I will hunt it.",
+    "decline": "Not yet.",
+    "declined": "It grinds on while you wait.",
+    "started": "Down the crag and north across the flats. Do not let it close its arms on you.",
+    "target": "Grindstone",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "Grindstone's core",
+      "description": "The hard knot of rock at the heart of the sand-thing Grindstone.",
+      "like": "block of rathestone"
+    },
+    "hunt": {
+      "journal": "Take Grindstone's core from the sand-thing Grindstone on the flats north of the crag."
+    },
+    "give": {
+      "journal": "Bring Grindstone's core to Talonmaster Krall atop the crag.",
+      "says": [
+        "Grindstone's core. The sleepers are safe in their stone. You are a wakeling no longer.",
+        "Learn this, and see Gatekeeper Kragg on the south slope when you are ready for Oggok."
+      ]
+    }
+  },
+  "flight": {
+    "name": "Wings to Oggok",
+    "giver": "Gatekeeper Kragg",
+    "offer": [
+      "The sky is clear to Tunaria. The ogres of Oggok gave us the crags above their city to roost on, and they will train you as their own.",
+      "You have earned the passage, wakeling. I will set you down among your own guild in Oggok, and your spirit will rest there.",
+      "Shall I send you to Oggok?"
+    ],
+    "accept": "Send me to Oggok.",
+    "decline": "Not yet.",
+    "declined": "The crag will wait for you.",
+    "started": "Stand firm in Oggok, and guard it well!",
+    "journal": "Tell Gatekeeper Kragg when you are ready to fly to Oggok."
+  }
+}

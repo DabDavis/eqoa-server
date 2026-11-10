@@ -1,0 +1,180 @@
+{
+  "race": "kappa",
+  "home": "Sylhilthis' Dwell",
+  "city": "Rivervale",
+  "note": "The Dwell's people are tools/worlds/homelands.json's (Sylhilthis' Dwell): Elder Hoshuk gives the first two, Reedwarden Tsumo beside him the three hunts; Netmender Ishiko (west of the elder) is the outfitter, Coachman Dobu keeps the stable on the south sand. The hunts are across the causeway, on the shore south-east of the island: the marsh rats where the causeway lands, the mudfang basilisks on the flats south of them, the blue basilisk Gulpjaw alone on the east shore.",
+  "L1": {
+    "name": "A Charm for the Shell",
+    "giver": "Elder Hoshuk",
+    "offer": [
+      "Another young one, fresh from the egg and still soft in the shell! Every kappa of the Dwell wears a shell charm before it first leaves the island.",
+      "Netmender Ishiko strings them from river shell and reed cord. She mends her nets on the sand just west of here.",
+      "Will you fetch your charm and show it to me?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "The Dwell will wait for you.",
+    "started": "Go on, then. Ishiko is on the sand just west of here.",
+    "merchant": "Netmender Ishiko",
+    "piece": {
+      "name": "river-shell charm",
+      "description": "A chip of river shell on a reed cord. Every young kappa of the Dwell wears one.",
+      "like": "glass trinket",
+      "set": {
+        "HPMAX": 5
+      }
+    },
+    "fetch": {
+      "journal": "Ask Netmender Ishiko, west of Elder Hoshuk, for a river-shell charm.",
+      "says": "The elder sent you? Bend your neck. There: river shell for a hard back, reed cord so the water does not take it. No charge for a young one."
+    },
+    "show": {
+      "journal": "Show the river-shell charm to Elder Hoshuk.",
+      "says": "It hangs well on you. Wear it, and the river will know you for one of ours."
+    }
+  },
+  "L2": {
+    "name": "Bound to the Dwell",
+    "giver": "Elder Hoshuk",
+    "offer": [
+      "The water carries young ones far, and it does not always carry them back. Have Spiritmaster Oruko bind your spirit to the Dwell, so that you wake here if you fall.",
+      "Then give your name to Coachman Dobu for his ledger. His coach runs to Freeport and to the other homes of the Homelands, for those their stables know.",
+      "Will you see them both and come back to me?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "Then wade in the shallows until you do.",
+    "started": "Oruko stands on the west sand, past Ishiko. Dobu keeps his coach on the sand south of here.",
+    "spiritmaster": "Spiritmaster Oruko",
+    "coachman": "Coachman Dobu",
+    "bind": {
+      "journal": "Have Spiritmaster Oruko, on the sand west of the elder, bind your spirit to the Dwell.",
+      "says": "It is done. Should you fall, you will wake here on our sand. Now go and give Coachman Dobu your name."
+    },
+    "ledger": {
+      "journal": "Give your name to Coachman Dobu, south of the elder, for his ledger.",
+      "says": "Welcome to my stable, young one. My coach runs to Freeport and to every other home of the Homelands, for travelers whose names their ledgers hold. Yours is in mine now."
+    },
+    "back": {
+      "journal": "Return to Elder Hoshuk.",
+      "says": [
+        "Good. Now the Dwell will always draw you home, as the sea draws the river.",
+        "Dobu's coach will carry you to Freeport if its ledger knows you, but the way down the river to Rivervale is earned. Reedwarden Tsumo, beside me, has work for you."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Rats in the Reeds",
+    "giver": "Reedwarden Tsumo",
+    "offer": [
+      "So you are the young one Hoshuk spoke of. Good. Marsh rats have dug into the reeds where our causeway meets the shore, and they gnaw the nets we dry there.",
+      "Cross the causeway to the south-east and bring me three of their tails. Then I will teach you something worth knowing.",
+      "Will you hunt them?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "Then the nets will be gnawed to string.",
+    "started": "Three tails. Keep your shell between you and their teeth.",
+    "target": "marsh rat",
+    "count": 3,
+    "drop": {
+      "name": "marsh rat tail",
+      "description": "The tail of a marsh rat from the shore where the Dwell's causeway lands.",
+      "like": "Rat Tail Tip"
+    },
+    "hunt": {
+      "journal": "Take three marsh rat tails from the marsh rats on the shore south-east of the Dwell, where the causeway lands."
+    },
+    "give": {
+      "journal": "Bring three marsh rat tails to Reedwarden Tsumo.",
+      "says": "Three tails, and not a crack in your shell. You can fight. Now watch closely, and learn this."
+    }
+  },
+  "L4": {
+    "name": "A Young One's Arms",
+    "giver": "Reedwarden Tsumo",
+    "offer": [
+      "Bare claws will not serve you down the river. I will make you proper gear, but you will fetch what I need.",
+      "Netmender Ishiko has reed cord and a good shaft for me. Then take a scale from the mudfang basilisks on the flats south of the shore, past the rats.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then keep to your claws, and to the shallows.",
+    "started": "Cord and a shaft from Ishiko, a scale from the mudfangs. Go.",
+    "materials": [
+      {
+        "merchant": "Netmender Ishiko",
+        "items": [
+          {
+            "name": "braided reed cord",
+            "description": "A length of river reed, braided tight by the Dwell's netmenders.",
+            "like": "silk cord"
+          },
+          "wooden shaft"
+        ],
+        "journal": "Ask Netmender Ishiko for the braided reed cord and the wooden shaft.",
+        "says": "For Tsumo? Here, a braid of reed cord and a straight shaft. Tell him the nets come first next time."
+      }
+    ],
+    "target": "mudfang basilisk",
+    "count": 1,
+    "drop": {
+      "name": "mudfang scale",
+      "description": "A broad scale from a mudfang basilisk of the flats south of the Dwell's shore.",
+      "like": "snake scales"
+    },
+    "hunt": {
+      "journal": "Take a mudfang scale from the mudfang basilisks on the flats south of the Dwell, past the marsh rats."
+    },
+    "give": {
+      "journal": "Bring the braided reed cord, the wooden shaft and the mudfang scale to Reedwarden Tsumo.",
+      "says": "All three. Give me a moment... there. It is yours: carry it well."
+    }
+  },
+  "L5": {
+    "name": "Old Gulpjaw",
+    "giver": "Reedwarden Tsumo",
+    "offer": [
+      "One task more before the river takes you. A great blue basilisk we call Gulpjaw has dragged two of our netmenders off the east shore.",
+      "He lies alone on the bank east of where the causeway lands, and he bites first. Bring me his tooth, and I will teach you the last thing I have for a young one.",
+      "Will you hunt Gulpjaw?"
+    ],
+    "accept": "I will hunt him.",
+    "decline": "Not yet.",
+    "declined": "He will not grow gentler while you wait.",
+    "started": "Over the causeway, then east along the shore. Do not let him get his jaws on your shell.",
+    "target": "Gulpjaw",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "Gulpjaw's tooth",
+      "description": "A long tooth of the blue basilisk Gulpjaw.",
+      "like": "cracked basilisk tooth"
+    },
+    "hunt": {
+      "journal": "Take Gulpjaw's tooth from the blue basilisk Gulpjaw on the shore south-east of the Dwell, east of the causeway."
+    },
+    "give": {
+      "journal": "Bring Gulpjaw's tooth to Reedwarden Tsumo.",
+      "says": [
+        "Gulpjaw's own tooth! The netmenders will work the east shore again. You are a young one no longer.",
+        "Learn this, and see Gatekeeper Kabbo on the causeway when you are ready to go down the river."
+      ]
+    }
+  },
+  "flight": {
+    "name": "Down the River",
+    "giver": "Gatekeeper Kabbo",
+    "offer": [
+      "The current is fair for Tunaria. The halflings of Rivervale welcomed the first of us who went down the river, and they will train you as their own.",
+      "You have earned the passage, young one. I will set you down among your own guild in Rivervale, and your spirit will rest there.",
+      "Shall I send you down the river?"
+    ],
+    "accept": "Send me to Rivervale.",
+    "decline": "Not yet.",
+    "declined": "The river will wait for you.",
+    "started": "Swim strong, and keep your shell clean!",
+    "journal": "Tell Gatekeeper Kabbo when you are ready to go down the river to Rivervale."
+  }
+}

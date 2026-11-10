@@ -3650,100 +3650,575 @@
       "notes": "Ours: the gatekeeper's port to Freeport, the skeleton's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/skeleton.json."
     },
     {
-      "key": "homelands/fungusman/welcome",
-      "name": "A New Sprout",
+      "key": "homelands/fungusman/L1",
+      "name": "A Sprout's Root Sash",
       "giver": "Elder Moldcap",
       "classes": [],
-      "races": [],
+      "races": [
+        28
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "Ah. A new sprout. Welcome to the hall, little one. There is no hurry here, but there is supper. Go slowly over to Puffstool, by the north wall, and let her know you have come up.",
-      "accept": "I will go to her.",
+      "offer": "Ahh. A new cap pushes up through the dark. Welcome, little sprout. Stand a while. There is no hurry here.\nEvery sprout of the hall wears a sash of braided root, to hold it to the ground it grew from. Capwright Chanter braids them, a little way up the passage to the north.\nWill you fetch your root sash and show it to me?",
+      "accept": "I will fetch it.",
       "decline": "Not now.",
-      "declined": "There is no hurry. There never is.",
-      "started": "Puffstool is by the north wall. Take your time.",
+      "declined": "Then rest, sprout. The hall will still be damp tomorrow.",
+      "started": "Slowly, now. Chanter is a little way up the passage to the north.",
       "steps": [
         {
           "kind": "talk",
-          "target": "Grocer Puffstool",
-          "journal": "Find Grocer Puffstool by the north wall of the hall.",
-          "says": "Moldcap sent you? Welcome, sprout. Here is some flax bread. It is dry, but so is the air up top.",
+          "target": "Capwright Chanter",
+          "journal": "Ask Capwright Chanter, up the passage north of Elder Moldcap, for a sprout's root sash.",
+          "says": "The elder sent you? Hold still, sprout. Round the stem, twice... there. Root for holding, damp for growing. Nothing owed. You are one of ours.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "sprout's root sash",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "show",
+          "target": "Elder Moldcap",
+          "items": [
+            {
+              "item": "sprout's root sash",
+              "count": 1
+            }
+          ],
+          "journal": "Show the sprout's root sash to Elder Moldcap.",
+          "says": "It sits well. Wear it, and wherever you wander, a little of the hall goes with you.",
           "rewards": {
-            "items": [
-              "flax bread"
-            ]
+            "xp": 430
           }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 1
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the fungusman's level 1, at Guk, on the cities' level 1 quest: a piece of equipment fetched from a merchant and shown to the giver. Finishing it finishes the character's own city class quest of level 1 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/fungusman.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/fungusman/L2",
+      "name": "Rooted in the Hall",
+      "giver": "Elder Moldcap",
+      "classes": [],
+      "races": [
+        28
+      ],
+      "minlevel": 2,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/fungusman/L1"
+      ],
+      "offer": "A sprout is soft, and the caverns are not. Let Spiritmaster Sporewell root your spirit in the hall, so that you grow again here if you are trodden down.\nThen give your name to Coachman Inkcap for his ledger. His coach runs to Freeport and to the other homes of the Homelands.\nWill you see them both and come back to me?",
+      "accept": "I will see them both.",
+      "decline": "Not now.",
+      "declined": "No hurry. But tread softly until you do.",
+      "started": "Sporewell is down the passage to the east. Inkcap keeps his coach to the north-east.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Spiritmaster Sporewell",
+          "journal": "Have Spiritmaster Sporewell, down the passage east of the elder, bind your spirit to the hall.",
+          "says": "It is done. Should you be trodden down, you will sprout again here in the damp. Now go and give Coachman Inkcap your name."
+        },
+        {
+          "kind": "talk",
+          "target": "Coachman Inkcap",
+          "journal": "Give your name to Coachman Inkcap, in the passage north-east of the elder, for his ledger.",
+          "says": "A new sprout! My coach is slow, but it gets there. It runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now."
         },
         {
           "kind": "talk",
           "target": "Elder Moldcap",
           "journal": "Return to Elder Moldcap.",
-          "says": "Good. Now you know the hall, and the hall knows you. That is the first thing, and the most important.",
+          "says": "Good. Now you are rooted, and may wander without fear.\nInkcap's coach goes where its ledgers know you, but the way up to the elves is earned. Warden Morel, beside me, has work for you.",
           "rewards": {
-            "xp": 200,
-            "tunar": 10
+            "xp": 2200
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 2
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the fungusmans' first, at their home zone, Guk of the disc."
+      "notes": "Ours (the Homelands' starter quests): the fungusman's level 2, at Guk, on the cities' level 2 quest: the spiritmaster's bind and the coachman's ledger. Finishing it finishes the character's own city class quest of level 2 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/fungusman.json: change that file, never this quest's rows by hand."
     },
     {
-      "key": "homelands/fungusman/beetles",
+      "key": "homelands/fungusman/L3",
       "name": "Beetles at the Caps",
-      "giver": "Grocer Puffstool",
+      "giver": "Warden Morel",
       "classes": [],
-      "races": [],
-      "minlevel": 1,
+      "races": [
+        28
+      ],
+      "minlevel": 3,
       "maxlevel": 60,
       "requires": [
-        "homelands/fungusman/welcome"
+        "homelands/fungusman/L2"
       ],
-      "offer": "Cave beetles come in from the east passage and nibble at the young caps. It is very rude of them. Would you see to five of them for me? Slowly is fine. Thoroughly is better.",
-      "accept": "I will see to them.",
+      "offer": "So you are the new sprout. Good. Cave beetles are chewing the young caps in the north-east passage, and the gatherers will not go near.\nGo and break them, and bring me three of their shells. Then I will teach you a thing worth knowing.\nWill you hunt them?",
+      "accept": "I will hunt them.",
       "decline": "Not now.",
-      "declined": "The caps will grow back. Eventually.",
-      "started": "Five beetles, by the east passage.",
+      "declined": "Then the beetles eat, and the sprouts do not grow.",
+      "started": "Three shells. North-east, past Inkcap's coach, where the passage bends.",
       "steps": [
         {
-          "kind": "kill",
+          "kind": "loot",
           "target": "cave beetle",
-          "count": 5,
-          "journal": "Kill five cave beetles by the east passage of the hall."
+          "items": [
+            {
+              "item": "cave beetle shell",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three cave beetle shells from the cave beetles in the passage north-east of the hall."
         },
         {
-          "kind": "talk",
-          "target": "Grocer Puffstool",
-          "journal": "Tell Grocer Puffstool the beetles are gone.",
-          "says": "Five! The young caps thank you. So do I. Here, for your trouble.",
+          "kind": "give",
+          "target": "Warden Morel",
+          "items": [
+            {
+              "item": "cave beetle shell",
+              "count": 3
+            }
+          ],
+          "journal": "Bring three cave beetle shells to Warden Morel.",
+          "says": "Three shells, and your cap not even nibbled. You will do. Now watch, slowly, and learn this.",
           "rewards": {
-            "xp": 400,
-            "tunar": 25
+            "xp": 6900,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Swift Blade"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Hero Guard"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Malice"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Chant of Battle"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Sneak"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Fiery Burst"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Tribal Toughness"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Minor Blessing"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Smoldering Aura"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Life Tap"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Crawling Skin"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Arcane Bindings"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Hardening Agent"
+                ]
+              }
+            }
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 3
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours: the fungusmans' second starter quest; the cave beetles are tools/seed_race_homes.py's, passive (npcaggro)."
+      "notes": "Ours (the Homelands' starter quests): the fungusman's level 3, at Guk, on the cities' level 3 quest: a hunt for drops; each class is taught what its own city's level 3 quest teaches it. Finishing it finishes the character's own city class quest of level 3 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/fungusman.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/fungusman/L4",
+      "name": "A Sprout's Arms",
+      "giver": "Warden Morel",
+      "classes": [],
+      "races": [
+        28
+      ],
+      "minlevel": 4,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/fungusman/L3"
+      ],
+      "offer": "A soft cap needs something hard to hold. I will make you proper gear, but you will gather what I need.\nCapwright Chanter has leather and a shaft for me. Then take a wing from the muck roaches down the east tunnel, south of the beetles.\nWill you bring me all three?",
+      "accept": "I will bring them.",
+      "decline": "Not now.",
+      "declined": "Then go soft, and hope nothing bites.",
+      "started": "Leather and a shaft from Chanter, a wing from the roaches. Go on.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Capwright Chanter",
+          "journal": "Ask Capwright Chanter for the leather strip and the wooden shaft.",
+          "says": "For Morel? Here: a strip of hide and a good dry shaft. Dry! I kept it wrapped a whole season. Tell him so.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "leather strip",
+                  "count": 1
+                },
+                {
+                  "item": "wooden shaft",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "loot",
+          "target": "muck roach",
+          "items": [
+            {
+              "item": "muck roach wing",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 0.5,
+          "journal": "Take a muck roach wing from the muck roaches down the tunnel east of the hall."
+        },
+        {
+          "kind": "give",
+          "target": "Warden Morel",
+          "items": [
+            {
+              "item": "leather strip",
+              "count": 1
+            },
+            {
+              "item": "wooden shaft",
+              "count": 1
+            },
+            {
+              "item": "muck roach wing",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the leather strip, the wooden shaft and the muck roach wing to Warden Morel.",
+          "says": "All three. Give me a little while... there. It is yours. Hold it as the root holds the stone.",
+          "rewards": {
+            "xp": 17000,
+            "byclass": {
+              "0": {
+                "items": [
+                  "militia short sword"
+                ]
+              },
+              "1": {
+                "items": [
+                  "Glade Crafted Longbow"
+                ]
+              },
+              "2": {
+                "items": [
+                  "Sword of Faith"
+                ]
+              },
+              "3": {
+                "items": [
+                  "Iron Hatchet"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Disciple's Jitte"
+                ]
+              },
+              "5": {
+                "items": [
+                  "Traveler's Rapier"
+                ]
+              },
+              "6": {
+                "items": [
+                  "tiger dirk"
+                ]
+              },
+              "7": {
+                "items": [
+                  "crafted glade staff"
+                ]
+              },
+              "8": {
+                "items": [
+                  "Corse Spiked Club"
+                ]
+              },
+              "9": {
+                "items": [
+                  "Acolyte's Hammer"
+                ]
+              },
+              "10": {
+                "items": [
+                  "blue robe"
+                ]
+              },
+              "11": {
+                "items": [
+                  "Black Robe of the Order"
+                ]
+              },
+              "12": {
+                "items": [
+                  "yellow robe"
+                ]
+              },
+              "13": {
+                "items": [
+                  "red robe"
+                ]
+              },
+              "14": {
+                "items": [
+                  "burnt gloves"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 4
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the fungusman's level 4, at Guk, on the cities' level 4 quest: new gear of a merchant's materials and a drop; each class is given what its own city's level 4 quest gives it (class-rewards.json has the two classes the cities give nothing). Finishing it finishes the character's own city class quest of level 4 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/fungusman.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/fungusman/L5",
+      "name": "Old Manylegs",
+      "giver": "Warden Morel",
+      "classes": [],
+      "races": [
+        28
+      ],
+      "minlevel": 5,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/fungusman/L4"
+      ],
+      "offer": "One task more before the light. A great centipede we call Old Manylegs dens at the far end of the east tunnel, and it has eaten two gatherers.\nIt does not wait to be struck. Be quick, for once, and bring me a plate of its shell.\nWill you hunt Old Manylegs?",
+      "accept": "I will hunt it.",
+      "decline": "Not yet.",
+      "declined": "It will not grow fewer legs while you wait.",
+      "started": "East, past the roaches, to the tunnel's end. Mind every one of its legs.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "Old Manylegs",
+          "items": [
+            {
+              "item": "Old Manylegs' shell plate",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 1.0,
+          "journal": "Take Old Manylegs' shell plate from the centipede Old Manylegs at the far end of the tunnel east of the hall."
+        },
+        {
+          "kind": "give",
+          "target": "Warden Morel",
+          "items": [
+            {
+              "item": "Old Manylegs' shell plate",
+              "count": 1
+            }
+          ],
+          "journal": "Bring Old Manylegs' shell plate to Warden Morel.",
+          "says": "Old Manylegs' own shell! The gatherers will sing, slowly, for days. You are a sprout no longer.\nLearn this, and see Gatekeeper Gillford, north of the elder, when you are ready to go up to the light.",
+          "rewards": {
+            "xp": 36500,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Taunt"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Forage Berries"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Lay Hands"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Harm Touch"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Minor Purity"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Funeral March"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Shadowstrike"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Snare"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Blighting Mist"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Holy Shock"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Motivate"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Rabid Infection"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Heavy Arms"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Shock of Frost"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Refinement"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 5
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the fungusman's level 5, at Guk, on the cities' level 5 quest: a foe to bring down; each class is taught what its own city's level 5 quest teaches it. Finishing it finishes the character's own city class quest of level 5 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/fungusman.json: change that file, never this quest's rows by hand."
     },
     {
       "key": "homelands/fungusman/flight",
       "name": "Up to the Light",
       "giver": "Gatekeeper Gillford",
       "classes": [],
-      "races": [],
+      "races": [
+        28
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [
-        "homelands/fungusman/welcome",
-        "homelands/fungusman/beetles"
+        "homelands/fungusman/L1",
+        "homelands/fungusman/L2",
+        "homelands/fungusman/L3",
+        "homelands/fungusman/L4",
+        "homelands/fungusman/L5"
       ],
       "repeatable": true,
-      "offer": "Up above, the elves of Tethelin and the Fayspires keep shaded groves where our spores grow well, and they are kind to slow folk. I can send you up to them, and that will be your home. Ready?",
-      "accept": "Send me to the elves.",
+      "offer": "Up above, the elves of Tethelin and the Fayspires keep shaded groves where our spores grow well, and they are kind to slow folk.\nYou have earned the way up, cap and stem. I will set you down among your own guild there, and your spirit will rest among the elves.\nShall I send you up to the light?",
+      "accept": "Send me up.",
       "decline": "Not yet.",
       "declined": "There is no hurry. The elves live a long time.",
-      "started": "Grow well, sprout, up in the light!",
+      "started": "Grow well, up in the light!",
       "steps": [
         {
           "kind": "talk",
@@ -3764,7 +4239,7 @@
         }
       ],
       "unresolved": [],
-      "notes": "Ours: the gatekeeper's port to Tethelin or Fayspire by class, the fungusman's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a fungusman back in Guk is sent again; no reward, so none is had twice."
+      "notes": "Ours: the gatekeeper's port to Tethelin and Fayspire, the fungusman's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/fungusman.json."
     },
     {
       "key": "homelands/wisp/welcome",
@@ -3980,6 +4455,38 @@
       "description": "A seal of old ivory, pried from a king's door by the robber Sela.",
       "notrade": true,
       "like": "bit of ivory"
+    },
+    {
+      "name": "sprout's root sash",
+      "description": "A sash of braided rootlets, still damp. Every sprout of the hall in Guk wears one.",
+      "notrade": true,
+      "like": "Dun Cloth Belt",
+      "set": {
+        "AC": 4,
+        "classuse": 32767,
+        "raceuse": 1023,
+        "levelreq": 1,
+        "itemcost": 0,
+        "maxhp": 500
+      }
+    },
+    {
+      "name": "cave beetle shell",
+      "description": "The shell of a cave beetle from the north-east passage of the hall in Guk.",
+      "notrade": true,
+      "like": "beetle carapace fragment"
+    },
+    {
+      "name": "muck roach wing",
+      "description": "The stiff wing of a muck roach from the east tunnel of the hall in Guk.",
+      "notrade": true,
+      "like": "Fungus Cockroach Wing"
+    },
+    {
+      "name": "Old Manylegs' shell plate",
+      "description": "A broad plate from the back of the great centipede Old Manylegs.",
+      "notrade": true,
+      "like": "centipede carapace"
     }
   ]
 }

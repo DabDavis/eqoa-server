@@ -594,96 +594,571 @@
       "notes": "Ours: the gatekeeper's port to Oggok, the hillgiant's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/hillgiant.json."
     },
     {
-      "key": "homelands/kerran/welcome",
-      "name": "Whiskers and Welcome",
+      "key": "homelands/kerran/L1",
+      "name": "A Cub's Claw Band",
       "giver": "Elder Ssharu",
       "classes": [],
-      "races": [],
+      "races": [
+        12
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "A new cub on the isle! Before you go prowling, every young one of the village greets Miyanne at the water's edge. She feeds the whole village, and she will feed you too.",
-      "accept": "I will greet her.",
+      "offer": "Mrrr. A new cub, with its eyes barely open. Come, let me look at you. Yes. You will do.\nEvery cub of the isle wears a claw band, woven of palm and its mother's fur, until its first hunt. Weaver Shimra makes them, under the first stilt house to the north-east.\nWill you fetch your claw band and show it to me?",
+      "accept": "I will fetch it.",
       "decline": "Not now.",
-      "declined": "The isle will wait, cub.",
-      "started": "Go on. Miyanne keeps her stall by the water.",
+      "declined": "Then curl up in the sun a while. I often do.",
+      "started": "Shimra sits under the first stilt house, north-east of here.",
       "steps": [
         {
           "kind": "talk",
-          "target": "Grocer Miyanne",
-          "journal": "Greet Grocer Miyanne by the water's edge.",
-          "says": "Ssharu sent you? Here, a boiled egg. Do not eat the shell.",
-          "rewards": {
-            "items": [
-              "boiled egg"
-            ]
-          }
+          "target": "Weaver Shimra",
+          "journal": "Ask Weaver Shimra, under the stilt house north-east of Elder Ssharu, for a cub's claw band.",
+          "says": "The elder's new cub? Paw out. Claws in, please. There: palm for the island, fur for the pride. A cub pays nothing.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "cub's claw band",
+                  "count": 1
+                }
+              ]
+            }
+          ]
         },
         {
-          "kind": "talk",
+          "kind": "show",
           "target": "Elder Ssharu",
-          "journal": "Return to Elder Ssharu on the village's landward side.",
-          "says": "Good. Now you know where the food is, and Miyanne knows your face.",
+          "items": [
+            {
+              "item": "cub's claw band",
+              "count": 1
+            }
+          ],
+          "journal": "Show the cub's claw band to Elder Ssharu.",
+          "says": "It suits you. Wear it, and every kerran on the isle will know whose cub you are.",
           "rewards": {
-            "xp": 200,
-            "tunar": 10
+            "xp": 430
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 1
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the kerrans' first, at their home zone, Kerra Isle of the disc."
+      "notes": "Ours (the Homelands' starter quests): the kerran's level 1, at Kerra Isle, on the cities' level 1 quest: a piece of equipment fetched from a merchant and shown to the giver. Finishing it finishes the character's own city class quest of level 1 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/kerran.json: change that file, never this quest's rows by hand."
     },
     {
-      "key": "homelands/kerran/hunt",
-      "name": "Crabs on the Sand",
+      "key": "homelands/kerran/L2",
+      "name": "Nine Lives, One Home",
       "giver": "Elder Ssharu",
       "classes": [],
-      "races": [],
-      "minlevel": 1,
+      "races": [
+        12
+      ],
+      "minlevel": 2,
       "maxlevel": 60,
       "requires": [
-        "homelands/kerran/welcome"
+        "homelands/kerran/L1"
       ],
-      "offer": "Isle crabs crawl up the beach and pinch holes in our nets. Hunt five of them on the sand north of the village, and watch your tail.",
-      "accept": "I will hunt them.",
+      "offer": "They say a kerran has nine lives. Do not count on it. Have Spiritmaster Talhrin bind your spirit to the isle, so that you wake here whichever life you lose.\nThen give your name to Coachman Tolhra for his ledger. His coach, and the ferry that carries it, runs to Freeport and to the other homes of the Homelands.\nWill you see them both and come back to me?",
+      "accept": "I will see them both.",
       "decline": "Not now.",
-      "declined": "Then the nets will suffer.",
-      "started": "Five crabs. Pounce, do not paw.",
+      "declined": "Then keep out of the deep water until you do.",
+      "started": "Talhrin is across the village, to the east. Tolhra waits a few steps north of here.",
       "steps": [
         {
-          "kind": "kill",
-          "target": "isle crab",
-          "count": 5,
-          "journal": "Kill five isle crabs on the sand north of the village."
+          "kind": "talk",
+          "target": "Spiritmaster Talhrin",
+          "journal": "Have Spiritmaster Talhrin, east of the elder, bind your spirit to the isle.",
+          "says": "It is done. Lose a life where you will, cub, and you will wake here in the sun. Now go and give Coachman Tolhra your name."
+        },
+        {
+          "kind": "talk",
+          "target": "Coachman Tolhra",
+          "journal": "Give your name to Coachman Tolhra, a few steps north of the elder, for his ledger.",
+          "says": "A cub off the isle at last! My coach rides the ferry over, then runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now."
         },
         {
           "kind": "talk",
           "target": "Elder Ssharu",
-          "journal": "Tell Elder Ssharu the crabs are dealt with.",
-          "says": "Five fewer pinchers. You hunt well for a cub.",
+          "journal": "Return to Elder Ssharu.",
+          "says": "Good. Now the isle will always have you back.\nTolhra's coach goes where its ledgers know you, but the crossing to Qeynos is earned. Huntress Kazhra, beside me, has work for you.",
           "rewards": {
-            "xp": 400,
-            "tunar": 25
+            "xp": 2200
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 2
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours: the kerrans' second starter quest, the elder's too (the owner's 2026-11-10: an elder giving two starter quests); the isle crabs are tools/seed_race_homes.py's, passive (npcaggro)."
+      "notes": "Ours (the Homelands' starter quests): the kerran's level 2, at Kerra Isle, on the cities' level 2 quest: the spiritmaster's bind and the coachman's ledger. Finishing it finishes the character's own city class quest of level 2 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/kerran.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/kerran/L3",
+      "name": "Crabs on the Sand",
+      "giver": "Huntress Kazhra",
+      "classes": [],
+      "races": [
+        12
+      ],
+      "minlevel": 3,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/kerran/L2"
+      ],
+      "offer": "So this is the new cub. Good. Isle crabs are thick on the sand spit north of the village, and they have been cutting the fishers' nets.\nGo and pounce on a few, and bring me three of their claws. Then I will teach you something every hunter knows.\nWill you hunt them?",
+      "accept": "I will hunt them.",
+      "decline": "Not now.",
+      "declined": "Then the fishers mend nets tonight, and curse your name.",
+      "started": "Three claws. North, out along the sand. Mind your tail.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "isle crab",
+          "items": [
+            {
+              "item": "isle crab claw",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three isle crab claws from the isle crabs on the sand spit north of the village."
+        },
+        {
+          "kind": "give",
+          "target": "Huntress Kazhra",
+          "items": [
+            {
+              "item": "isle crab claw",
+              "count": 3
+            }
+          ],
+          "journal": "Bring three isle crab claws to Huntress Kazhra.",
+          "says": "Three claws, and your tail unpinched. You can hunt. Now watch closely, and learn this.",
+          "rewards": {
+            "xp": 6900,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Swift Blade"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Hero Guard"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Malice"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Chant of Battle"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Sneak"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Fiery Burst"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Tribal Toughness"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Minor Blessing"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Smoldering Aura"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Life Tap"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Crawling Skin"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Arcane Bindings"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Hardening Agent"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 3
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the kerran's level 3, at Kerra Isle, on the cities' level 3 quest: a hunt for drops; each class is taught what its own city's level 3 quest teaches it. Finishing it finishes the character's own city class quest of level 3 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/kerran.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/kerran/L4",
+      "name": "A Cub's Arms",
+      "giver": "Huntress Kazhra",
+      "classes": [],
+      "races": [
+        12
+      ],
+      "minlevel": 4,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/kerran/L3"
+      ],
+      "offer": "Claws are a fine start, but the mainland wants more. I will make you proper gear, if you bring me what I need.\nWeaver Shimra has leather and cord for me. Then take a fang from the fern vipers that coil in the ferns west of the village.\nWill you bring me all three?",
+      "accept": "I will bring them.",
+      "decline": "Not now.",
+      "declined": "Then keep to your claws, and to the isle.",
+      "started": "Leather and cord from Shimra, a fang from the vipers. Go softly.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Weaver Shimra",
+          "journal": "Ask Weaver Shimra for the leather strip and the silk cord.",
+          "says": "For Kazhra? Here: a strip of leather and a silk cord. Tell her she still owes me a fish. A large one.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "leather strip",
+                  "count": 1
+                },
+                {
+                  "item": "silk cord",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "loot",
+          "target": "fern viper",
+          "items": [
+            {
+              "item": "fern viper fang",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 0.5,
+          "journal": "Take a fern viper fang from the fern vipers among the ferns west of the village."
+        },
+        {
+          "kind": "give",
+          "target": "Huntress Kazhra",
+          "items": [
+            {
+              "item": "leather strip",
+              "count": 1
+            },
+            {
+              "item": "silk cord",
+              "count": 1
+            },
+            {
+              "item": "fern viper fang",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the leather strip, the silk cord and the fern viper fang to Huntress Kazhra.",
+          "says": "All three. Sit a moment while I work... there. It is yours. Keep it as sharp as your claws.",
+          "rewards": {
+            "xp": 17000,
+            "byclass": {
+              "0": {
+                "items": [
+                  "militia short sword"
+                ]
+              },
+              "1": {
+                "items": [
+                  "Glade Crafted Longbow"
+                ]
+              },
+              "2": {
+                "items": [
+                  "Sword of Faith"
+                ]
+              },
+              "3": {
+                "items": [
+                  "Iron Hatchet"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Disciple's Jitte"
+                ]
+              },
+              "5": {
+                "items": [
+                  "Traveler's Rapier"
+                ]
+              },
+              "6": {
+                "items": [
+                  "tiger dirk"
+                ]
+              },
+              "7": {
+                "items": [
+                  "crafted glade staff"
+                ]
+              },
+              "8": {
+                "items": [
+                  "Corse Spiked Club"
+                ]
+              },
+              "9": {
+                "items": [
+                  "Acolyte's Hammer"
+                ]
+              },
+              "10": {
+                "items": [
+                  "blue robe"
+                ]
+              },
+              "11": {
+                "items": [
+                  "Black Robe of the Order"
+                ]
+              },
+              "12": {
+                "items": [
+                  "yellow robe"
+                ]
+              },
+              "13": {
+                "items": [
+                  "red robe"
+                ]
+              },
+              "14": {
+                "items": [
+                  "burnt gloves"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 4
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the kerran's level 4, at Kerra Isle, on the cities' level 4 quest: new gear of a merchant's materials and a drop; each class is given what its own city's level 4 quest gives it (class-rewards.json has the two classes the cities give nothing). Finishing it finishes the character's own city class quest of level 4 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/kerran.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/kerran/L5",
+      "name": "Old Snapclaw",
+      "giver": "Huntress Kazhra",
+      "classes": [],
+      "races": [
+        12
+      ],
+      "minlevel": 5,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/kerran/L4"
+      ],
+      "offer": "One hunt more, cub. A great crab we call Old Snapclaw has the far south-west of the island, and it took a fisher's tail last moon.\nIt does not scuttle off like the small ones. It comes for you. Stand, strike, and bring me its claw.\nWill you hunt Old Snapclaw?",
+      "accept": "I will hunt it.",
+      "decline": "Not yet.",
+      "declined": "It will only grow, and so will its temper.",
+      "started": "South-west, through the ferns, to the island's end. Keep your tail behind you.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "Old Snapclaw",
+          "items": [
+            {
+              "item": "Old Snapclaw's claw",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 1.0,
+          "journal": "Take Old Snapclaw's claw from the great crab Old Snapclaw at the island's far south-west."
+        },
+        {
+          "kind": "give",
+          "target": "Huntress Kazhra",
+          "items": [
+            {
+              "item": "Old Snapclaw's claw",
+              "count": 1
+            }
+          ],
+          "journal": "Bring Old Snapclaw's claw to Huntress Kazhra.",
+          "says": "Old Snapclaw's own claw! The fishers will purr for a week. You are a cub no longer.\nLearn this, and see Gatekeeper Raszhar at the water's edge, north-east of the village, when you are ready to cross.",
+          "rewards": {
+            "xp": 36500,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Taunt"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Forage Berries"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Lay Hands"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Harm Touch"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Minor Purity"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Funeral March"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Shadowstrike"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Snare"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Blighting Mist"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Holy Shock"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Motivate"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Rabid Infection"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Heavy Arms"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Shock of Frost"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Refinement"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 5
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the kerran's level 5, at Kerra Isle, on the cities' level 5 quest: a foe to bring down; each class is taught what its own city's level 5 quest teaches it. Finishing it finishes the character's own city class quest of level 5 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/kerran.json: change that file, never this quest's rows by hand."
     },
     {
       "key": "homelands/kerran/flight",
       "name": "Across the Water",
       "giver": "Gatekeeper Raszhar",
       "classes": [],
-      "races": [],
+      "races": [
+        12
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [
-        "homelands/kerran/welcome",
-        "homelands/kerran/hunt"
+        "homelands/kerran/L1",
+        "homelands/kerran/L2",
+        "homelands/kerran/L3",
+        "homelands/kerran/L4",
+        "homelands/kerran/L5"
       ],
       "repeatable": true,
-      "offer": "The humans of Qeynos trade with our boats and train our young as their own; rangers and druids go to their Surefall Glade. I can send you across the water, but the way runs one way. Are you ready?",
+      "offer": "The humans of Qeynos trade with our boats and train our young as their own. Rangers and druids go to their Surefall Glade.\nYou have earned the crossing, hunter. I will set you down among your own guild there, and your spirit will rest in Qeynos.\nShall I send you across the water?",
       "accept": "Send me across the water.",
       "decline": "Not yet.",
       "declined": "The tide will wait.",
@@ -708,7 +1183,7 @@
         }
       ],
       "unresolved": [],
-      "notes": "Ours: the gatekeeper's port to Qeynos, the kerrans' wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
+      "notes": "Ours: the gatekeeper's port to Qeynos, the kerran's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/kerran.json."
     },
     {
       "key": "homelands/kappa/welcome",
@@ -5816,6 +6291,38 @@
       "description": "A yellowed fang of the old wolf Greyjaw of the West Plateau.",
       "notrade": true,
       "like": "Forger Wolf Fang"
+    },
+    {
+      "name": "cub's claw band",
+      "description": "A band of woven palm and soft fur. Every cub of Kerra Isle wears one until its first hunt.",
+      "notrade": true,
+      "like": "Tattered Bracers",
+      "set": {
+        "AC": 4,
+        "classuse": 32767,
+        "raceuse": 1023,
+        "levelreq": 1,
+        "itemcost": 0,
+        "maxhp": 500
+      }
+    },
+    {
+      "name": "isle crab claw",
+      "description": "The claw of an isle crab from the sand spit north of the kerrans' village.",
+      "notrade": true,
+      "like": "chipped crab claw"
+    },
+    {
+      "name": "fern viper fang",
+      "description": "The fang of a fern viper from the ferns west of the kerrans' village.",
+      "notrade": true,
+      "like": "chipped viper fang"
+    },
+    {
+      "name": "Old Snapclaw's claw",
+      "description": "The great notched claw of the crab Old Snapclaw of Kerra Isle.",
+      "notrade": true,
+      "like": "sharp crab claw"
     },
     {
       "name": "novice's prayer beads",

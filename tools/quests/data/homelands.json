@@ -3058,96 +3058,571 @@
       "notes": "Ours: the gatekeeper's port to Grobb, the minotaur's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/minotaur.json."
     },
     {
-      "key": "homelands/skeleton/welcome",
-      "name": "Bones Awake",
+      "key": "homelands/skeleton/L1",
+      "name": "A Waking Band",
       "giver": "Elder Ossric",
       "classes": [],
-      "races": [],
+      "races": [
+        27
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "So, another of us wakes. Do not be alarmed. The bones remember how to walk. First, go and see Marrowby, just down the hall. He trades with the living who come by, and he will want to know you.",
-      "accept": "I will see Marrowby.",
+      "offer": "So. Another of us opens eyes it no longer has. Be still a moment. The first waking is the strangest.\nEach of the woken wears a band of the kings' bronze, so the sentinels do not take you for a robber. Shroudmaker Corwen keeps them, up the hall to the north.\nWill you fetch your waking band and show it to me?",
+      "accept": "I will fetch it.",
       "decline": "Not now.",
-      "declined": "We have all the time in the world. Come back when you are ready.",
-      "started": "Marrowby is just down the hall, toward the light.",
+      "declined": "As you like. We have nothing here if not time.",
+      "started": "Corwen's alcove is up the hall to the north, on the east side.",
       "steps": [
         {
           "kind": "talk",
-          "target": "Grocer Marrowby",
-          "journal": "See Grocer Marrowby down the hall.",
-          "says": "Ossric sent you? Take this bread. We do not eat it, but the living you meet will, and a gift opens doors.",
+          "target": "Shroudmaker Corwen",
+          "journal": "Ask Shroudmaker Corwen, up the hall north of Elder Ossric, for a waking band.",
+          "says": "Newly woken? Give me your wrist. What is left of it. There: the kings' bronze, and it will not slip. No charge. The dead do not bill the dead.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "waking band",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "show",
+          "target": "Elder Ossric",
+          "items": [
+            {
+              "item": "waking band",
+              "count": 1
+            }
+          ],
+          "journal": "Show the waking band to Elder Ossric.",
+          "says": "It fits, as far as anything fits us now. Wear it, and the tomb will know you for its own.",
           "rewards": {
-            "items": [
-              "sourdough bread"
-            ]
+            "xp": 430
           }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 1
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the skeleton's level 1, at Tomb of Kings, on the cities' level 1 quest: a piece of equipment fetched from a merchant and shown to the giver. Finishing it finishes the character's own city class quest of level 1 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/skeleton.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/skeleton/L2",
+      "name": "Bound to the Tomb",
+      "giver": "Elder Ossric",
+      "classes": [],
+      "races": [
+        27
+      ],
+      "minlevel": 2,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/skeleton/L1"
+      ],
+      "offer": "You have died once. It need not become a habit. Have Spiritmaster Vellum bind you to the tomb, so that you gather yourself here if your bones are scattered.\nThen give your name to Coachman Grimsby, up the hall. His coach runs to Freeport and to the other homes of the Homelands.\nWill you see them both and come back to me?",
+      "accept": "I will see them both.",
+      "decline": "Not now.",
+      "declined": "Then do try not to fall apart in the meantime.",
+      "started": "Vellum keeps the alcove to the south-west. Grimsby waits up the hall to the north.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Spiritmaster Vellum",
+          "journal": "Have Spiritmaster Vellum, in the alcove south-west of the elder, bind your spirit to the tomb.",
+          "says": "It is done. Wherever your bones fall, they will find their way back here. Now go and give Coachman Grimsby your name."
+        },
+        {
+          "kind": "talk",
+          "target": "Coachman Grimsby",
+          "journal": "Give your name to Coachman Grimsby, up the hall north of the elder, for his ledger.",
+          "says": "Another one up and about! My coach was a hearse once. It runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now."
         },
         {
           "kind": "talk",
           "target": "Elder Ossric",
           "journal": "Return to Elder Ossric.",
-          "says": "Good. You walk, you speak, you make friends. The rest will come back to you in time.",
+          "says": "Good. Now even the worst day ends with you back among us.\nGrimsby's coach goes where its ledgers know you, but the road to Freeport's guilds is earned. Captain Harrow, beside me, has work for you.",
           "rewards": {
-            "xp": 200,
-            "tunar": 10
+            "xp": 2200
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 2
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the skeletons' first, at their home zone, Tomb of Kings of the disc."
+      "notes": "Ours (the Homelands' starter quests): the skeleton's level 2, at Tomb of Kings, on the cities' level 2 quest: the spiritmaster's bind and the coachman's ledger. Finishing it finishes the character's own city class quest of level 2 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/skeleton.json: change that file, never this quest's rows by hand."
     },
     {
-      "key": "homelands/skeleton/beetles",
+      "key": "homelands/skeleton/L3",
       "name": "Beetles in the Bones",
-      "giver": "Grocer Marrowby",
+      "giver": "Captain Harrow",
       "classes": [],
-      "races": [],
-      "minlevel": 1,
+      "races": [
+        27
+      ],
+      "minlevel": 3,
       "maxlevel": 60,
       "requires": [
-        "homelands/skeleton/welcome"
+        "homelands/skeleton/L2"
       ],
-      "offer": "Tomb beetles are gnawing at the old halls to the west. They have no respect for the dead, and they are fond of my stock. Kill five of them and I will pay you well.",
-      "accept": "I will kill them.",
+      "offer": "You are the new one. Good. Tomb beetles have come up out of the excavators' pit, down the hall to the south, and they gnaw at those of us who have not woken yet.\nCrack them and bring me three of their shells. Then I will show you something every one of the watch should know.\nWill you hunt them?",
+      "accept": "I will hunt them.",
       "decline": "Not now.",
-      "declined": "Then they will gnaw on, as beetles do.",
-      "started": "Five beetles, in the west halls past the old guard posts.",
+      "declined": "Then the sleepers are gnawed a little longer. They will not complain.",
+      "started": "Three shells. The pit is down the hall to the south.",
       "steps": [
         {
-          "kind": "kill",
+          "kind": "loot",
           "target": "tomb beetle",
-          "count": 5,
-          "journal": "Kill five tomb beetles in the west halls of the tomb."
+          "items": [
+            {
+              "item": "tomb beetle shell",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three tomb beetle shells from the tomb beetles in the pit south of the great hall."
         },
         {
-          "kind": "talk",
-          "target": "Grocer Marrowby",
-          "journal": "Tell Grocer Marrowby the beetles are dead.",
-          "says": "Five! The halls are quieter already. Here is your pay. Spend it on something the living sell.",
+          "kind": "give",
+          "target": "Captain Harrow",
+          "items": [
+            {
+              "item": "tomb beetle shell",
+              "count": 3
+            }
+          ],
+          "journal": "Bring three tomb beetle shells to Captain Harrow.",
+          "says": "Three shells, and you are still in one piece. More or less. Now attend, and learn this.",
           "rewards": {
-            "xp": 400,
-            "tunar": 25
+            "xp": 6900,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Swift Blade"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Hero Guard"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Malice"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Chant of Battle"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Sneak"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Fiery Burst"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Tribal Toughness"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Minor Blessing"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Smoldering Aura"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Life Tap"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Crawling Skin"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Arcane Bindings"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Hardening Agent"
+                ]
+              }
+            }
           }
         }
       ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 3
+        }
+      ],
       "unresolved": [],
-      "notes": "Ours: the skeletons' second starter quest; the tomb beetles are tools/seed_race_homes.py's, passive (npcaggro)."
+      "notes": "Ours (the Homelands' starter quests): the skeleton's level 3, at Tomb of Kings, on the cities' level 3 quest: a hunt for drops; each class is taught what its own city's level 3 quest teaches it. Finishing it finishes the character's own city class quest of level 3 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/skeleton.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/skeleton/L4",
+      "name": "Arms for the Woken",
+      "giver": "Captain Harrow",
+      "classes": [],
+      "races": [
+        27
+      ],
+      "minlevel": 4,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/skeleton/L3"
+      ],
+      "offer": "Bare bone breaks. I will make you proper gear from the kings' stores, but you will fetch what I need.\nShroudmaker Corwen has cord and a shaft set by for me. Then take a wing from the crypt bats that roost in the south passage, past the pit.\nWill you bring me all three?",
+      "accept": "I will bring them.",
+      "decline": "Not now.",
+      "declined": "Then go as you are, and count your ribs afterwards.",
+      "started": "Cord and a shaft from Corwen, a wing from the bats. Go.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Shroudmaker Corwen",
+          "journal": "Ask Shroudmaker Corwen for the silk cord and the wooden shaft.",
+          "says": "For the captain? Here: a length of cord and a straight shaft. Tell him I want the cord back when you have no more use for it. I can wait.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "silk cord",
+                  "count": 1
+                },
+                {
+                  "item": "wooden shaft",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "loot",
+          "target": "crypt bat",
+          "items": [
+            {
+              "item": "crypt bat wing",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 0.5,
+          "journal": "Take a crypt bat wing from the crypt bats in the passage south of the pit."
+        },
+        {
+          "kind": "give",
+          "target": "Captain Harrow",
+          "items": [
+            {
+              "item": "silk cord",
+              "count": 1
+            },
+            {
+              "item": "wooden shaft",
+              "count": 1
+            },
+            {
+              "item": "crypt bat wing",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the silk cord, the wooden shaft and the crypt bat wing to Captain Harrow.",
+          "says": "All three. A moment... there. It is yours. It has outlasted better hands than ours.",
+          "rewards": {
+            "xp": 17000,
+            "byclass": {
+              "0": {
+                "items": [
+                  "militia short sword"
+                ]
+              },
+              "1": {
+                "items": [
+                  "Glade Crafted Longbow"
+                ]
+              },
+              "2": {
+                "items": [
+                  "Sword of Faith"
+                ]
+              },
+              "3": {
+                "items": [
+                  "Iron Hatchet"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Disciple's Jitte"
+                ]
+              },
+              "5": {
+                "items": [
+                  "Traveler's Rapier"
+                ]
+              },
+              "6": {
+                "items": [
+                  "tiger dirk"
+                ]
+              },
+              "7": {
+                "items": [
+                  "crafted glade staff"
+                ]
+              },
+              "8": {
+                "items": [
+                  "Corse Spiked Club"
+                ]
+              },
+              "9": {
+                "items": [
+                  "Acolyte's Hammer"
+                ]
+              },
+              "10": {
+                "items": [
+                  "blue robe"
+                ]
+              },
+              "11": {
+                "items": [
+                  "Black Robe of the Order"
+                ]
+              },
+              "12": {
+                "items": [
+                  "yellow robe"
+                ]
+              },
+              "13": {
+                "items": [
+                  "red robe"
+                ]
+              },
+              "14": {
+                "items": [
+                  "burnt gloves"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 4
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the skeleton's level 4, at Tomb of Kings, on the cities' level 4 quest: new gear of a merchant's materials and a drop; each class is given what its own city's level 4 quest gives it (class-rewards.json has the two classes the cities give nothing). Finishing it finishes the character's own city class quest of level 4 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/skeleton.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/skeleton/L5",
+      "name": "The Living Robber",
+      "giver": "Captain Harrow",
+      "classes": [],
+      "races": [
+        27
+      ],
+      "minlevel": 5,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/skeleton/L4"
+      ],
+      "offer": "One task more. A living robber, Sela by name, has got in at the far end of the south passage and is prying the seals off the kings' doors.\nThe living strike first when they see us, so do not stand and stare. Put her out, and bring me the seal she stole.\nWill you deal with the robber?",
+      "accept": "I will deal with her.",
+      "decline": "Not yet.",
+      "declined": "She will not grow more honest while you wait.",
+      "started": "The far end of the south passage. She will see you before you see her.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "Tomb Robber Sela",
+          "items": [
+            {
+              "item": "stolen burial seal",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 1.0,
+          "journal": "Take the stolen burial seal from Tomb Robber Sela at the far south end of the passage."
+        },
+        {
+          "kind": "give",
+          "target": "Captain Harrow",
+          "items": [
+            {
+              "item": "stolen burial seal",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the stolen burial seal to Captain Harrow.",
+          "says": "The seal, and whole! The kings may go on sleeping. You have earned your place on the watch.\nLearn this, and see Gatekeeper Dustcloak down the hall to the south when you are ready for Freeport.",
+          "rewards": {
+            "xp": 36500,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Taunt"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Forage Berries"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Lay Hands"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Harm Touch"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Minor Purity"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Funeral March"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Shadowstrike"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Snare"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Blighting Mist"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Holy Shock"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Motivate"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Rabid Infection"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Heavy Arms"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Shock of Frost"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Refinement"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 5
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the skeleton's level 5, at Tomb of Kings, on the cities' level 5 quest: a foe to bring down; each class is taught what its own city's level 5 quest teaches it. Finishing it finishes the character's own city class quest of level 5 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/skeleton.json: change that file, never this quest's rows by hand."
     },
     {
       "key": "homelands/skeleton/flight",
       "name": "The Road to Freeport",
       "giver": "Gatekeeper Dustcloak",
       "classes": [],
-      "races": [],
+      "races": [
+        27
+      ],
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [
-        "homelands/skeleton/welcome",
-        "homelands/skeleton/beetles"
+        "homelands/skeleton/L1",
+        "homelands/skeleton/L2",
+        "homelands/skeleton/L3",
+        "homelands/skeleton/L4",
+        "homelands/skeleton/L5"
       ],
       "repeatable": true,
-      "offer": "The living fear us, but Freeport is not so particular, and its darker guilds will take you in. I can send you there, and it will be your home from then on. Are you ready to go?",
+      "offer": "The living fear us, but Freeport is not so particular, and its guilds will train you as they would any other.\nYou have earned the road, woken one. I will set you down among your own guild in Freeport, and your spirit will rest there.\nShall I send you to Freeport?",
       "accept": "Send me to Freeport.",
       "decline": "Not yet.",
       "declined": "The tomb is patient. So am I.",
@@ -3172,7 +3647,7 @@
         }
       ],
       "unresolved": [],
-      "notes": "Ours: the gatekeeper's port to Freeport, the skeleton's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a skeleton back in Tomb of Kings is sent again; no reward, so none is had twice."
+      "notes": "Ours: the gatekeeper's port to Freeport, the skeleton's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/skeleton.json."
     },
     {
       "key": "homelands/fungusman/welcome",
@@ -3473,6 +3948,38 @@
       "description": "A long black spine from the back of the young spineback Gorespine.",
       "notrade": true,
       "like": "plagueswine tusk"
+    },
+    {
+      "name": "waking band",
+      "description": "A band of tarnished bronze from the kings' stores. Each of the woken dead of the tomb wears one.",
+      "notrade": true,
+      "like": "Carved Bracelet",
+      "set": {
+        "HPMAX": 5,
+        "classuse": 32767,
+        "raceuse": 1023,
+        "levelreq": 1,
+        "itemcost": 0,
+        "maxhp": 500
+      }
+    },
+    {
+      "name": "tomb beetle shell",
+      "description": "The cracked shell of a tomb beetle from the excavators' pit in the Tomb of Kings.",
+      "notrade": true,
+      "like": "cracked beetle carapace"
+    },
+    {
+      "name": "crypt bat wing",
+      "description": "The leathery wing of a crypt bat from the south passage of the Tomb of Kings.",
+      "notrade": true,
+      "like": "ruined bat wing"
+    },
+    {
+      "name": "stolen burial seal",
+      "description": "A seal of old ivory, pried from a king's door by the robber Sela.",
+      "notrade": true,
+      "like": "bit of ivory"
     }
   ]
 }

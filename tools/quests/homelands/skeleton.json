@@ -1,0 +1,176 @@
+{
+  "race": "skeleton",
+  "home": "Tomb of Kings",
+  "city": "Freeport",
+  "note": "The woken dead of the old kings' tomb. Its people are tools/worlds/homelands.json's (Tomb of Kings): Elder Ossric, in the great hall, gives the first two; Captain Harrow, a few steps from him, the three hunts; Shroudmaker Corwen, up the hall on its east side, is the outfitter; Coachman Grimsby keeps the stable in the middle of the hall to the north (his coach, a hearse once, runs to Freeport and to the other homes). The tomb's doors do not open in the client, so the hunts are down the great hall's own passage to the south: the tomb beetles in the excavators' pit, the crypt bats in the passage beyond it, the living grave robber Sela at its far end.",
+  "L1": {
+    "name": "A Waking Band",
+    "giver": "Elder Ossric",
+    "offer": [
+      "So. Another of us opens eyes it no longer has. Be still a moment. The first waking is the strangest.",
+      "Each of the woken wears a band of the kings' bronze, so the sentinels do not take you for a robber. Shroudmaker Corwen keeps them, up the hall to the north.",
+      "Will you fetch your waking band and show it to me?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "As you like. We have nothing here if not time.",
+    "started": "Corwen's alcove is up the hall to the north, on the east side.",
+    "merchant": "Shroudmaker Corwen",
+    "piece": {
+      "name": "waking band",
+      "description": "A band of tarnished bronze from the kings' stores. Each of the woken dead of the tomb wears one.",
+      "like": "Carved Bracelet",
+      "set": {
+        "HPMAX": 5
+      }
+    },
+    "fetch": {
+      "journal": "Ask Shroudmaker Corwen, up the hall north of Elder Ossric, for a waking band.",
+      "says": "Newly woken? Give me your wrist. What is left of it. There: the kings' bronze, and it will not slip. No charge. The dead do not bill the dead."
+    },
+    "show": {
+      "journal": "Show the waking band to Elder Ossric.",
+      "says": "It fits, as far as anything fits us now. Wear it, and the tomb will know you for its own."
+    }
+  },
+  "L2": {
+    "name": "Bound to the Tomb",
+    "giver": "Elder Ossric",
+    "offer": [
+      "You have died once. It need not become a habit. Have Spiritmaster Vellum bind you to the tomb, so that you gather yourself here if your bones are scattered.",
+      "Then give your name to Coachman Grimsby, up the hall. His coach runs to Freeport and to the other homes of the Homelands.",
+      "Will you see them both and come back to me?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "Then do try not to fall apart in the meantime.",
+    "started": "Vellum keeps the alcove to the south-west. Grimsby waits up the hall to the north.",
+    "spiritmaster": "Spiritmaster Vellum",
+    "coachman": "Coachman Grimsby",
+    "bind": {
+      "journal": "Have Spiritmaster Vellum, in the alcove south-west of the elder, bind your spirit to the tomb.",
+      "says": "It is done. Wherever your bones fall, they will find their way back here. Now go and give Coachman Grimsby your name."
+    },
+    "ledger": {
+      "journal": "Give your name to Coachman Grimsby, up the hall north of the elder, for his ledger.",
+      "says": "Another one up and about! My coach was a hearse once. It runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now."
+    },
+    "back": {
+      "journal": "Return to Elder Ossric.",
+      "says": [
+        "Good. Now even the worst day ends with you back among us.",
+        "Grimsby's coach goes where its ledgers know you, but the road to Freeport's guilds is earned. Captain Harrow, beside me, has work for you."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Beetles in the Bones",
+    "giver": "Captain Harrow",
+    "offer": [
+      "You are the new one. Good. Tomb beetles have come up out of the excavators' pit, down the hall to the south, and they gnaw at those of us who have not woken yet.",
+      "Crack them and bring me three of their shells. Then I will show you something every one of the watch should know.",
+      "Will you hunt them?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "Then the sleepers are gnawed a little longer. They will not complain.",
+    "started": "Three shells. The pit is down the hall to the south.",
+    "target": "tomb beetle",
+    "count": 3,
+    "drop": {
+      "name": "tomb beetle shell",
+      "description": "The cracked shell of a tomb beetle from the excavators' pit in the Tomb of Kings.",
+      "like": "cracked beetle carapace"
+    },
+    "hunt": {
+      "journal": "Take three tomb beetle shells from the tomb beetles in the pit south of the great hall."
+    },
+    "give": {
+      "journal": "Bring three tomb beetle shells to Captain Harrow.",
+      "says": "Three shells, and you are still in one piece. More or less. Now attend, and learn this."
+    }
+  },
+  "L4": {
+    "name": "Arms for the Woken",
+    "giver": "Captain Harrow",
+    "offer": [
+      "Bare bone breaks. I will make you proper gear from the kings' stores, but you will fetch what I need.",
+      "Shroudmaker Corwen has cord and a shaft set by for me. Then take a wing from the crypt bats that roost in the south passage, past the pit.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then go as you are, and count your ribs afterwards.",
+    "started": "Cord and a shaft from Corwen, a wing from the bats. Go.",
+    "materials": [
+      {
+        "merchant": "Shroudmaker Corwen",
+        "items": [
+          "silk cord",
+          "wooden shaft"
+        ],
+        "journal": "Ask Shroudmaker Corwen for the silk cord and the wooden shaft.",
+        "says": "For the captain? Here: a length of cord and a straight shaft. Tell him I want the cord back when you have no more use for it. I can wait."
+      }
+    ],
+    "target": "crypt bat",
+    "count": 1,
+    "drop": {
+      "name": "crypt bat wing",
+      "description": "The leathery wing of a crypt bat from the south passage of the Tomb of Kings.",
+      "like": "ruined bat wing"
+    },
+    "hunt": {
+      "journal": "Take a crypt bat wing from the crypt bats in the passage south of the pit."
+    },
+    "give": {
+      "journal": "Bring the silk cord, the wooden shaft and the crypt bat wing to Captain Harrow.",
+      "says": "All three. A moment... there. It is yours. It has outlasted better hands than ours."
+    }
+  },
+  "L5": {
+    "name": "The Living Robber",
+    "giver": "Captain Harrow",
+    "offer": [
+      "One task more. A living robber, Sela by name, has got in at the far end of the south passage and is prying the seals off the kings' doors.",
+      "The living strike first when they see us, so do not stand and stare. Put her out, and bring me the seal she stole.",
+      "Will you deal with the robber?"
+    ],
+    "accept": "I will deal with her.",
+    "decline": "Not yet.",
+    "declined": "She will not grow more honest while you wait.",
+    "started": "The far end of the south passage. She will see you before you see her.",
+    "target": "Tomb Robber Sela",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "stolen burial seal",
+      "description": "A seal of old ivory, pried from a king's door by the robber Sela.",
+      "like": "bit of ivory"
+    },
+    "hunt": {
+      "journal": "Take the stolen burial seal from Tomb Robber Sela at the far south end of the passage."
+    },
+    "give": {
+      "journal": "Bring the stolen burial seal to Captain Harrow.",
+      "says": [
+        "The seal, and whole! The kings may go on sleeping. You have earned your place on the watch.",
+        "Learn this, and see Gatekeeper Dustcloak down the hall to the south when you are ready for Freeport."
+      ]
+    }
+  },
+  "flight": {
+    "name": "The Road to Freeport",
+    "giver": "Gatekeeper Dustcloak",
+    "offer": [
+      "The living fear us, but Freeport is not so particular, and its guilds will train you as they would any other.",
+      "You have earned the road, woken one. I will set you down among your own guild in Freeport, and your spirit will rest there.",
+      "Shall I send you to Freeport?"
+    ],
+    "accept": "Send me to Freeport.",
+    "decline": "Not yet.",
+    "declined": "The tomb is patient. So am I.",
+    "started": "Walk tall, and keep your bones together!",
+    "journal": "Tell Gatekeeper Dustcloak when you are ready to go to Freeport."
+  }
+}

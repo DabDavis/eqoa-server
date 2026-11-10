@@ -1527,7 +1527,206 @@
       "from": "ODUS.ESF",
       "zone": 13,
       "race": 26,
-      "note": "Dryad: the forest dryads' woods (West Toxxulia, cell 2,2)"
+      "note": "Dryad: the forest dryads' woods (West Toxxulia, cell 2,2)",
+      "home": {
+        "flavor": "Dryads are spirits of the old trees of West Toxxulia in the Homelands, whose young go to tend the groves round Surefall Glade.",
+        "start": {
+          "x": 5450.4,
+          "y": 54.1,
+          "z": 4952.6,
+          "toward": [
+            5457.4,
+            4952.6
+          ]
+        },
+        "mainland": {
+          "place": "Qeynos",
+          "world": 0,
+          "x": 4243.7,
+          "y": 58.1,
+          "z": 17169.1,
+          "facing": 4.63
+        },
+        "npcs": [
+          {
+            "name": "Elder Silverbough",
+            "like": 129876,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              5457.4,
+              54.3,
+              4952.6
+            ],
+            "toward": [
+              5450.4,
+              4952.6
+            ],
+            "note": "the starter quests' giver, a forest dryad, on the lake's west shore"
+          },
+          {
+            "name": "Grocer Willowmere",
+            "like": 129873,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5421.3,
+              54.1,
+              5039.0
+            ],
+            "toward": [
+              5457.4,
+              4952.6
+            ],
+            "stock": "Grocer Mary",
+            "note": "the grove's grocer by the water, a Surefall Glade grocer's food"
+          },
+          {
+            "name": "Spiritmaster Ashleaf",
+            "like": 129877,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              5470.0,
+              54.3,
+              4873.1
+            ],
+            "toward": [
+              5457.4,
+              4952.6
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Thornwyn",
+            "like": 130374,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              5348.3,
+              55.9,
+              4789.9
+            ],
+            "toward": [
+              5457.4,
+              4952.6
+            ],
+            "note": "sends a young dryad who has done the starter quests to Qeynos or Surefall Glade (the quest Roots in the West)"
+          },
+          {
+            "name": "Grove sentinel",
+            "like": 129605,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5394.2,
+              54.3,
+              5059.0
+            ],
+            "facing": 0
+          },
+          {
+            "name": "Grove sentinel",
+            "like": 129605,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5450.4,
+              54.3,
+              4836.1
+            ],
+            "facing": 128
+          },
+          {
+            "name": "Grove sentinel",
+            "like": 129605,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5381.0,
+              54.1,
+              5070.1
+            ],
+            "facing": 224
+          },
+          {
+            "name": "bark beetle",
+            "body": "0xFE31035A",
+            "level": 1,
+            "role": "foe",
+            "size": 0.45,
+            "at": [
+              5308.5,
+              84.1,
+              4911.3
+            ],
+            "note": "the starter hunt's beetles (a giant scarab's body, small), in the woods west of the lake"
+          },
+          {
+            "name": "bark beetle",
+            "body": "0xFE31035A",
+            "level": 1,
+            "role": "foe",
+            "size": 0.45,
+            "at": [
+              5198.0,
+              65.4,
+              4880.3
+            ]
+          },
+          {
+            "name": "bark beetle",
+            "body": "0xFE31035A",
+            "level": 2,
+            "role": "foe",
+            "size": 0.45,
+            "at": [
+              5148.8,
+              60.2,
+              4906.1
+            ]
+          },
+          {
+            "name": "bark beetle",
+            "body": "0xFE31035A",
+            "level": 1,
+            "role": "foe",
+            "size": 0.45,
+            "at": [
+              5239.0,
+              64.2,
+              4813.4
+            ]
+          },
+          {
+            "name": "bark beetle",
+            "body": "0xFE31035A",
+            "level": 1,
+            "role": "foe",
+            "size": 0.45,
+            "at": [
+              5297.2,
+              64.0,
+              4803.4
+            ]
+          },
+          {
+            "name": "bark beetle",
+            "body": "0xFE31035A",
+            "level": 2,
+            "role": "foe",
+            "size": 0.45,
+            "at": [
+              5260.0,
+              80.5,
+              4870.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "bark beetle"
+        ]
+      }
     },
     {
       "name": "Tomb of Kings",

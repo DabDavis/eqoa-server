@@ -67,6 +67,7 @@ func newCTF(t *testing.T, n int) *ctfRig {
 		s.SetECSEntity(p)
 		s.SetCharacterInWorld(true)
 		s.SetPlayerObjectID(uint32(0x15000000 + i))
+		s.SetServerWorlds([]uint8{11}) // its game built the arena and said so (0x7E31's answer)
 		r.ps = append(r.ps, p)
 		r.ss = append(r.ss, s)
 	}
@@ -204,6 +205,35 @@ func TestCTFSignUpRules(t *testing.T) {
 	}
 	if got := r.w.CTFLeave(r.ss[1], r.at(3*time.Second)); got != ctfLineNotSigned {
 		t.Fatalf("a second leave said %q", got)
+	}
+}
+
+// Signing up needs the arena held, not only its slot loadable: a game whose table takes every slot (a PS2 on the
+// July S2, our hard-disk loader's) that never said it holds the arena is told it cannot load it, and is not sent in
+// once signed up some other way. The control: the same game holding the arena signs up and goes in.
+func TestCTFSignUpNeedsTheArenaHeld(t *testing.T) {
+	r := newCTF(t, 2)
+	r.w.SetLoadableWorlds(func(*session.Session) func(uint8) bool { return func(world uint8) bool { return world < 30 } })
+	r.ss[0].SetServerWorlds(nil)
+	if got := r.w.CTFJoin(r.ss[0], r.at(0)); len(got) != 1 || got[0] != ctfLineNoLoad {
+		t.Fatalf("a game holding nothing was told %q", got)
+	}
+	if got := r.w.CTFJoin(r.ss[1], r.at(0)); len(got) != 1 || !strings.HasPrefix(got[0], "You are signed up") {
+		t.Fatalf("the control was told %q", got)
+	}
+	r.w.mu.Lock()
+	r.w.ctf.queue = append(r.w.ctf.queue, ctfSignup{id: r.ps[0].ServerID, who: r.ps[0], at: r.at(0)})
+	ready := r.w.ctfReadyLocked()
+	r.w.mu.Unlock()
+	if len(ready) != 1 || ready[0] != r.ps[1] {
+		t.Fatalf("ready to go in: %v", r.w.ctfNamesLocked([]EntityID{r.ps[0].ServerID, r.ps[1].ServerID}))
+	}
+	r.ss[0].SetServerWorlds([]uint8{10, 11})
+	r.w.mu.Lock()
+	ready = r.w.ctfReadyLocked()
+	r.w.mu.Unlock()
+	if len(ready) != 2 {
+		t.Fatalf("holding the arena, %d ready", len(ready))
 	}
 }
 

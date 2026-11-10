@@ -30,6 +30,15 @@ import (
 // feature's mark its own). /ctf (and #ctf, and "/t ctf" from a PS2, which keeps an unknown /command to itself) says
 // how things stand; "/ctf join" and "/ctf leave" sign up and leave, the queue or a match. The words are ours.
 
+// ctfReaches is whether sess's client can be sent into the arena's world: its game loads the slot (CanLoadWorld) and
+// it said it holds the server's world there (0x7E31's answer: vanilla, natively or in a page; the server cannot tell
+// the two apart and need not), which no PS2 does. The slot alone is not enough: a PS2 on the July S2 (DiscVersion
+// 0x13, our hard-disk loader's) takes every slot below WorldCount, the server's own worlds among them, and they
+// reach no console (the patch server serves no world: patchserver.go). entity's ctfReachesLocked is the same test.
+func ctfReaches(sess *session.Session, world uint8) bool {
+	return sess != nil && CanLoadWorld(sess, world) && sess.HoldsServerWorld(world)
+}
+
 // ctfBoxMark marks the herald's questions' ids.
 const ctfBoxMark = 0x62000000
 
@@ -130,7 +139,7 @@ func (h *InteractHandler) ctfTalk(sess *session.Session, p *entity.Player, npc *
 	case gw.CTFInMatch(sess):
 		teleSay(sess, ctfHeraldInMatch)
 		return true
-	case !CanLoadWorld(sess, world):
+	case !ctfReaches(sess, world):
 		teleSay(sess, ctfHeraldNoArena)
 		log.Printf("CTF: %s at the herald: its game cannot load world %d", p.Name, world)
 		return true
@@ -237,7 +246,7 @@ func ctfCommand(gw *entity.World, sess *session.Session, rest string) {
 		ctfTell(sess, gw.CTFStatus(sess, now)...)
 	case "join":
 		_, world := gw.CTFOn()
-		if on, _ := gw.CTFOn(); on && !CanLoadWorld(sess, world) {
+		if on, _ := gw.CTFOn(); on && !ctfReaches(sess, world) {
 			ctfTell(sess, ctfHeraldNoArena)
 			return
 		}

@@ -342,6 +342,14 @@ func (w *World) ctfArenaLocked(world uint8) bool {
 	return w.ctf.on && world == w.ctf.set.World
 }
 
+// ctfReachesLocked is whether sess's client can be sent into the arena: its game loads the slot (loadsLocked) and it
+// said it holds the server's world there (OpcodeServerWorldsData's answer: vanilla, natively or in a page), which no
+// PS2 does. The slot alone is not enough: a PS2 on the July S2 (our hard-disk loader's, DiscVersion 0x13) takes every
+// slot of its table, the server's own worlds among them, which reach no console. Must be called with the lock held.
+func (w *World) ctfReachesLocked(sess *session.Session) bool {
+	return sess != nil && w.loadsLocked(sess, w.ctf.set.World) && sess.HoldsServerWorld(w.ctf.set.World)
+}
+
 // The lines (ours). A PS2 never reads them: it cannot load the arena and is told so at the herald.
 const (
 	ctfLineClosed    = "The arena is closed on this server."
@@ -419,7 +427,7 @@ func (w *World) CTFJoin(sess *session.Session, now time.Time) []string {
 		return []string{ctfLineInMatch}
 	case w.ctfQueuedLocked(p.ServerID) >= 0:
 		return []string{fmt.Sprintf(ctfLineAlready, w.ctfQueueLineLocked())}
-	case !w.loadsLocked(sess, w.ctf.set.World):
+	case !w.ctfReachesLocked(sess):
 		return []string{ctfLineNoLoad}
 	case p.Level < w.ctf.set.MinLevel:
 		return []string{fmt.Sprintf(ctfLineLevel, w.ctf.set.MinLevel)}
@@ -606,7 +614,7 @@ func (w *World) ctfReadyLocked() []*Player {
 			continue
 		}
 		if sess := w.findSessionByEntityIDLocked(p.ServerID); sess == nil || !sess.CharacterInWorld() || sess.StateChannelsHeld() ||
-			!w.loadsLocked(sess, w.ctf.set.World) {
+			!w.ctfReachesLocked(sess) {
 			continue
 		}
 		out = append(out, p)

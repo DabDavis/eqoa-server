@@ -49,7 +49,8 @@ import (
 // none, it never hits), so no creature takes it on and nothing harmful lands
 // on it: that is the petition's "immune to all resists". It never attacks.
 // Its heal is instant (no cast, no 0x00B1 time): its owner, below its
-// HealBelow percent and in its reach, not flagged for PvP and in no duel, is
+// HealBelow percent and in its reach, not flagged for PvP, in no duel and not
+// in Mr. Moogie's challenge (ownfight.go), is
 // healed its figure (at most what is missing), told as a heal from the
 // familiar (0x00DB, a pet's figure: numbertags.go), and the next is HealEvery
 // later at the soonest; at or above the percent it heals nothing.
@@ -304,8 +305,8 @@ func (w *World) familiarActLocked(fs *familiarState, sess *session.Session, now 
 	if top <= 0 || o.HP <= 0 || o.HP*100 >= top*d.HealBelow {
 		return
 	}
-	if o.pvp.on || w.duelOnLocked(o.ServerID) != nil {
-		return // no help in a fight between players
+	if w.ownFightLocked(o) {
+		return // no help in a fight that is its owner's alone (ownfight.go)
 	}
 	if n.World != o.World || dist3(n.X, n.Y, n.Z, o.X, o.Y, o.Z) > familiarReach {
 		return

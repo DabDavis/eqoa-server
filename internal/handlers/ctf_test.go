@@ -192,3 +192,27 @@ func TestCTFLoginInTheArena(t *testing.T) {
 		t.Fatalf("a login saved in the arena starts at world %d (%.1f, %.1f)", got.World, got.X, got.Z)
 	}
 }
+
+// A banner's body that is art the decoration copies into the zone is used where the built world holds it among its
+// extras, and its fallback (a CHAR.ESF orb, resident everywhere) where it does not (a composer without extras).
+func TestCTFArenaBannerBody(t *testing.T) {
+	r, err := worlds.ReadRecipe(filepath.Join("..", "..", "tools", "worlds", "arena.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	plain, err := ReadArena(worlds.Built{Recipe: r}, []byte(`{"zones": [{"from": "TUNARIA.ESF", "zone": 121}]}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if plain.Teams[0].Body != 0xF97FD9FC || plain.Teams[1].Body != 0x4446A60B || plain.Teams[0].Size != 1.5 {
+		t.Fatalf("undecorated: %08X %08X at %.2f", plain.Teams[0].Body, plain.Teams[1].Body, plain.Teams[0].Size)
+	}
+	deco, err := ReadArena(worlds.Built{Recipe: r}, []byte(`{"zones": [{"from": "TUNARIA.ESF", "zone": 121,
+		"extras": [{"sprite": "0xB714B430", "at": [0, 0, 0]}, {"sprite": "0xF0CFEF05", "at": [0, 0, 0]}]}]}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if deco.Teams[0].Body != 0xB714B430 || deco.Teams[1].Body != 0xF0CFEF05 || deco.Teams[0].Size != 0.17 {
+		t.Fatalf("decorated: %08X %08X at %.2f", deco.Teams[0].Body, deco.Teams[1].Body, deco.Teams[0].Size)
+	}
+}

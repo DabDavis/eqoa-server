@@ -765,6 +765,11 @@ func (w *World) mercHarmLocked(ms *mercState, s *CastSpell, t *NPC, now time.Tim
 				return
 			}
 		case EffectHate:
+			// a taunt puts the merc at the top of its target's hate, as a pet's
+			// taunt does (pet.go's petTopHateLocked), its line's hate on top:
+			// a tank holds what it taunts (ours: a player's taunt line adds its
+			// hate alone)
+			w.petTopHateLocked(m, t)
 			w.updateAggro(t, m.ServerID, max(spellAmount(e, b), 1))
 			angered = true
 		}

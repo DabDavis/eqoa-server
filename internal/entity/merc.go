@@ -318,6 +318,15 @@ func (w *World) mercModelLocked(race, sex int, owner *Player) uint32 {
 	return uint32(owner.ModelID)
 }
 
+// RaceModel is the body a merc of race and sex wears (mercModelLocked), false
+// when the server knows none: the handlers' look at its body's faces.
+func (w *World) RaceModel(race, sex int) (uint32, bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	m := w.mercModelLocked(race, sex, &Player{})
+	return m, m != 0
+}
+
 // newMercBody is the merc as a player of its kit (the file's doc), under the
 // NPC's id.
 func newMercBody(id EntityID, k *MercKit) *Player {
@@ -659,16 +668,6 @@ func (w *World) mercTellLocked(ms *mercState, sess *session.Session) {
 	}
 	sendNoCollideAdd(sess, ms.npc.Name, mercNoCollideID)
 	ms.noCollide = true
-}
-
-// MercDumped is a MemoryDump sent to the session (a login's, a respawn's): a
-// client's non-collide list is its own, so it is told the merc again.
-func (w *World) MercDumped(sess *session.Session) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	if ms := w.mercOfLocked(w.sessionPlayerLocked(sess)); ms != nil {
-		ms.noCollide = false
-	}
 }
 
 // mercSystem moves, heals, casts and fights for every merc (merccast.go,

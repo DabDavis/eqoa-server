@@ -226,7 +226,206 @@
       "from": "ODUS.ESF",
       "zone": 19,
       "race": 12,
-      "note": "Kerran: the kerrans' island, its village and sentries (Kerra Isle, cell 2,3)"
+      "note": "Kerran: the kerrans' island, its village and sentries (Kerra Isle, cell 2,3)",
+      "home": {
+        "flavor": "Kerrans are a proud feline people of the stilt villages of Kerra Isle in the Homelands, whose young cross the sea to train in Qeynos.",
+        "start": {
+          "x": 5130.9,
+          "y": 54.1,
+          "z": 6976.4,
+          "toward": [
+            5137.9,
+            6976.4
+          ]
+        },
+        "mainland": {
+          "place": "Qeynos",
+          "world": 0,
+          "x": 4243.7,
+          "y": 58.1,
+          "z": 17169.1,
+          "facing": 4.63
+        },
+        "npcs": [
+          {
+            "name": "Elder Ssharu",
+            "like": 132173,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              5137.9,
+              54.1,
+              6976.4
+            ],
+            "toward": [
+              5130.9,
+              6976.4
+            ],
+            "note": "the starter quests' giver, in a kerran priest's robe, on the village's landward side"
+          },
+          {
+            "name": "Grocer Miyanne",
+            "like": 132169,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5184.2,
+              54.3,
+              6962.2
+            ],
+            "toward": [
+              5137.9,
+              6976.4
+            ],
+            "stock": "Grocer Appleby",
+            "note": "the village's grocer by the water, a Qeynos grocer's food"
+          },
+          {
+            "name": "Spiritmaster Talhrin",
+            "like": 132167,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              5183.8,
+              54.3,
+              6993.7
+            ],
+            "toward": [
+              5137.9,
+              6976.4
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Raszhar",
+            "like": 132181,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              5202.8,
+              52.4,
+              6907.4
+            ],
+            "toward": [
+              5137.9,
+              6976.4
+            ],
+            "note": "at the water's edge: sends a cub who has done the starter quests to Qeynos (the quest Across the Water)"
+          },
+          {
+            "name": "Isle sentinel",
+            "like": 132177,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5170.2,
+              54.1,
+              6909.7
+            ],
+            "facing": 128
+          },
+          {
+            "name": "Isle sentinel",
+            "like": 132177,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5153.8,
+              54.3,
+              6991.1
+            ],
+            "facing": 0
+          },
+          {
+            "name": "Isle sentinel",
+            "like": 132177,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5132.3,
+              60.0,
+              6886.7
+            ],
+            "facing": 160
+          },
+          {
+            "name": "isle crab",
+            "body": "0x09185B98",
+            "level": 1,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5175.0,
+              54.1,
+              6800.0
+            ],
+            "note": "the starter hunt's crabs (a sandcrawler crab's body, small), on the sand north of the village"
+          },
+          {
+            "name": "isle crab",
+            "body": "0x09185B98",
+            "level": 1,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5205.0,
+              54.1,
+              6812.0
+            ]
+          },
+          {
+            "name": "isle crab",
+            "body": "0x09185B98",
+            "level": 2,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5185.0,
+              54.1,
+              6830.0
+            ]
+          },
+          {
+            "name": "isle crab",
+            "body": "0x09185B98",
+            "level": 1,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5210.0,
+              54.1,
+              6845.0
+            ]
+          },
+          {
+            "name": "isle crab",
+            "body": "0x09185B98",
+            "level": 1,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5172.0,
+              54.1,
+              6858.0
+            ]
+          },
+          {
+            "name": "isle crab",
+            "body": "0x09185B98",
+            "level": 2,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              5195.0,
+              54.1,
+              6872.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "isle crab"
+        ]
+      }
     },
     {
       "name": "Moss Mouth Cavern",

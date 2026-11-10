@@ -2063,7 +2063,7 @@ The user, 2026-11-07, after a player destroyed an item by accident: "lets give i
 out the oldest, made by a sale (`sell`, price what it paid) and the item menu's Destroy (`destroy`, price what `sell` would have paid
 at the time, `merchantWouldPay`: nothing for a Rose, which merchants refuse) and nothing else: the bank, a trade, a corpse, the auction
 and quests take items their own ways. **No Rent never goes in** (rent 0, what a spell conjures, or a row of `norentvanish`, what vanishes
-at a logout, unless its holder is back within five minutes: `handlers/norent.go`, table `charlogout`, jib's PR #1), and an entry whose record has gone or has since become No Rent drops quietly when next read; NO TRADE and heirlooms go
+at a logout, unless its holder is back within five minutes: `handlers/norent.go`, table `charlogout`, jib's PR #1; the twenty records a spell conjures have their rows since the owner's decision of 2026-11-10, `tools/norent_conjured_20261110.py [--apply|--undo]`, the Unit of Blood not), and an entry whose record has gone or has since become No Rent drops quietly when next read; NO TRADE and heirlooms go
 in like anything else. **No client change**: any merchant's 0x00B7 (a genie's too) lists them AFTER its wares as records of their own, so a
 ware's index means what it always did and a request past the wares is a line. What CLIENT does with it is at the top of `buyback.go`, read
 off the decomp: `VIItemList::Read` checks nothing against its 40, so wares first and lines only where there is room (the newest kept; the

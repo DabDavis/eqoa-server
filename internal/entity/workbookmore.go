@@ -50,8 +50,9 @@ import (
 //     are the race illusions' and glamours'): a disguise, ours: while it
 //     lasts no NPC of a faction attacks the bearer on sight by its standing
 //     (aggro.go's faction rule), the creatures hostile by nature still do.
-//   - Summon player (Call of the Hero): each target of it but its caster is
-//     brought beside the caster, as a gate's traveller is (gates.go).
+//   - Summon player (Call of the Hero): its caster's far group is asked, and
+//     whoever accepts is brought beside it (callhero.go; until 2026-11-10 the
+//     members in its range were brought, unasked, and no far one).
 //   - Required equipment (the legend: "Spell must check equipped weapon types
 //     before cast"): refused unless a hand holds one of the weapons it names
 //     (1HS, 2HS, 1HB, 2HB, 1HP, 2HP, Range, Shield; None bare hands), in red
@@ -424,21 +425,6 @@ func (p *Player) disguised(now time.Time) bool {
 		}
 	}
 	return false
-}
-
-// summonPlayerLocked brings a summoned player beside its caster: a travel,
-// as a gate's (gates.go). Must be called with the lock held.
-func (w *World) summonPlayerLocked(cs *castState, caster, t *Player) {
-	if t == caster || t.IsDead() {
-		return
-	}
-	sess := w.findSessionByEntityIDLocked(t.ServerID)
-	if sess == nil {
-		return
-	}
-	log.Printf("Cast: %s's %q calls %s to it", caster.Name, cs.spell.Name, t.Name)
-	w.gates.due = append(w.gates.due, GateTravel{Sess: sess, P: t, Ring: 1, Spell: cs.spell.Name,
-		To: GateSpot{World: caster.World, X: caster.X, Y: caster.Y, Z: caster.Z, Place: "beside " + caster.Name}})
 }
 
 // npcMeleeRollFor is a creature's melee roll on a player: a creature's of

@@ -44,6 +44,8 @@ type InteractHandler struct {
 	genie *Genie
 	// portal is the Summoning Portals' talk (summonportal.go)
 	portal *Portal
+	// heroCalls asks Call of the Hero's far members (callhero.go)
+	heroCalls *HeroCalls
 	// buffer is Buffer's talk (buffer.go); nil: an NPC named Buffer has nothing to say
 	buffer *Buffer
 	// mercs is the Mercenary Liaisons' (merc.go)
@@ -612,6 +614,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// a Summoning Portal's (summonportal.go); an old one does nothing
 	if h.portal.Answer(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// a Call of the Hero's (callhero.go); an old one does nothing
+	if h.heroCalls.Answer(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// a board's offer (boardinvis.go); an old one does nothing

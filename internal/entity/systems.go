@@ -28,6 +28,7 @@ func (w *World) Tick(now time.Time) {
 	w.runRespawns(due)
 	w.runGates(gates)
 	w.runTravels()   // the spells that send players to a named place (gates.go)
+	w.runHeroCalls() // Call of the Hero's members asked (callhero.go)
 	w.runHandsBack() // the hands a switch took off for a cast, back after it (cast.go)
 	w.runMercNotes() // what became of the mercs, to the handlers (merc.go)
 	w.runCorpsesGone(gone)

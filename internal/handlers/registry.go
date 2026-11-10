@@ -626,6 +626,11 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		portal := NewPortal(gameWorld)
 		interactHandler.portal, equipHandler.portal, chatHandler.portal, guildHandler.portal = portal, portal, portal, portal
 		portal.Start()
+		// Call of the Hero's question to the far group (callhero.go)
+		heroCalls := NewHeroCalls(gameWorld)
+		interactHandler.heroCalls = heroCalls
+		gameWorld.OnHeroCall(heroCalls.Ask)
+		heroCalls.Start()
 	}
 
 	// Register server handlers

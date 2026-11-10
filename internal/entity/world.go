@@ -87,6 +87,8 @@ type World struct {
 	// The spells that send players to a named place, table spellgates, and
 	// those on their way (gates.go)
 	gates gateState
+	// Call of the Hero's members to ask (callhero.go)
+	calls heroCallState
 	// The teleport orbs, table orbs (orbs.go)
 	orbs orbState
 	// regenAt is when the last regen tick fell (regenSystem): the regular

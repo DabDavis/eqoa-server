@@ -909,6 +909,9 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// world.mob_info is on: a client that shows them there asks, a PS2
 	// ignores it and is shown them in a dialogue box
 	SendMobInfoOffer(sess)
+	// and links to items in chat lines (itemlinks.go): a client that takes
+	// them answers, a PS2 ignores it and is sent the item's name in the line
+	SendItemLinksOffer(sess)
 
 	// Offer quest marks for the map (questmarks.go): a client that draws them
 	// asks, a PS2 ignores it

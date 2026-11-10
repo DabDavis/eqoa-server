@@ -47,7 +47,8 @@ func campfixOf(npc *NPC, d float32) CampfixNPC {
 // CampfixPlayer is a session's player as a report's mark takes it: where it
 // stands, the way it faces (Player.Facing: its latest 0x40's heading), whether
 // it may mark (dead or about to rise, flying), and its target when that is an
-// NPC a report may name (its spawn's distance from the player in Dist).
+// NPC a report may name in the player's own world (its spawn's distance from
+// the player in Dist).
 type CampfixPlayer struct {
 	World           uint8
 	X, Y, Z, Facing float32
@@ -68,7 +69,7 @@ func (w *World) CampfixPlayerOf(sess *session.Session, now time.Time) (CampfixPl
 		Dead: p.IsDead() || p.respawnPending(), Flying: p.flyingNow(now)}
 	if p.TargetObjectID != 0 && p.TargetObjectID != 0xFFFFFFFF {
 		if e := w.entitySeenByLocked(sess, p.TargetObjectID); e != nil {
-			if npc, ok := e.(*NPC); ok && campfixRow(npc) {
+			if npc, ok := e.(*NPC); ok && campfixRow(npc) && npc.World == p.World {
 				me.Target = campfixOf(npc, dist3(npc.SpawnX, npc.SpawnY, npc.SpawnZ, p.X, p.Y, p.Z))
 				me.HasTarget = true
 			}
@@ -183,13 +184,14 @@ func (w *World) CampfixRow(id EntityID) (CampfixNPC, bool) {
 // CampfixNewcomerThreat reports whether the NPC of row id would attack on
 // sight a level 1 character of one of combos (race, class, home city: a new
 // character's, as at its start spot), as aggroSystem decides (threatensLocked,
-// and not green to it but by a trigger), alive whether or not it is dead now.
-// StartThreats asks the same of the start spots.
+// and not green to it but by a trigger), alive whether or not it is dead now;
+// none does with world.aggro false. StartThreats asks the same of the start
+// spots.
 func (w *World) CampfixNewcomerThreat(id EntityID, combos [][3]int) bool {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	npc := w.NPCs[id]
-	if npc == nil {
+	if npc == nil || w.aggro.off {
 		return false
 	}
 	c := *npc // its nature as it would be alive: the copy keeps what is looked at

@@ -266,6 +266,8 @@ type ctfState struct {
 	seq     uint32
 	// strays are players in the arena's world with no match, by when they were first seen there
 	strays map[EntityID]time.Time
+	// away is what players of the arena left outside it, by their ids: their mercs and familiars (ctfaway.go)
+	away map[EntityID]*ctfAway
 	// clock is the last tick's time: what a logout or a line out of the tick goes by
 	clock time.Time
 }
@@ -544,6 +546,7 @@ func (w *World) ctfSystem(now time.Time) {
 	w.ctf.clock = now
 	w.ctfPruneQueueLocked()
 	w.ctfStraysLocked(now)
+	w.ctfAwayBackLocked(now) // the mercs and familiars of players out of the arena (ctfaway.go)
 	m := w.ctf.m
 	if m == nil {
 		w.ctfCountdownLocked(now)
@@ -774,6 +777,7 @@ func (w *World) ctfEnterLocked(m *ctfMatch, p *Player, t int, now time.Time) {
 	m.teams[t].emptySince = time.Time{}
 	p.ctf = ctfPlayer{match: m.id, team: t, live: m.phase == ctfPlay}
 	w.breakInvisLocked(p, "the arena")
+	w.ctfSendAwayLocked(p, now) // its merc and familiar wait outside (ctfaway.go)
 	lay := w.ctf.lay.Teams[t]
 	other := w.ctf.lay.Teams[1-t]
 	w.ctfTellLocked(p, fmt.Sprintf(ctfLineTeam, lay.Name, "the "+other.Flag), ctfBlue)
@@ -974,6 +978,7 @@ func (w *World) ctfLeavingLocked(p *Player) {
 		w.ctfDropOutLocked(p, "logs out of", w.ctfNowLocked())
 	}
 	delete(w.ctf.strays, p.ServerID)
+	delete(w.ctf.away, p.ServerID) // a login brings its merc back by its row; a familiar is not kept (ctfaway.go)
 }
 
 // ctfBackfillLocked sends signed-up players into a match on with room: each to the team with fewer (of two as

@@ -41,7 +41,8 @@ import (
 // the handlers' new kit after it: OnMercNote's MercNoteLevel).
 //
 // It follows its owner as a pet does (pet.go's step, floors, swimming, and
-// its coming along through a teleport or into another world), assists it
+// its coming along through a teleport or into another world, but never into
+// capture the flag's arena: it waits outside, ctfaway.go), assists it
 // (mercfight.go: what its owner fights, never a player, never a duel's) and
 // casts as its role does (merccast.go). A kill of its is its owner's, as a
 // pet's: the experience (no share of it its own: the split is the players'),
@@ -210,6 +211,9 @@ const (
 	// MercNoteDismissed: its hire ended other than by its owner's /merc
 	// dismiss (a group leader's boot: mercgroup.go)
 	MercNoteDismissed
+	// MercNoteBack: its owner left the arena, where it waited outside
+	// (ctfaway.go): the handlers make it again from its row, as at a login
+	MercNoteBack
 )
 
 // MercNote is a merc's event, handed to the hook after the tick's lock.
@@ -439,6 +443,12 @@ func (w *World) HireMerc(sess *session.Session, kit MercKit, stance MercStance, 
 	if p.IsDead() || p.respawnPending() {
 		return "", "The dead hire no one."
 	}
+	if w.ctfKeepsOutLocked(p) {
+		// a match is its players' alone: it waits outside the arena and comes
+		// when its owner leaves it (ctfaway.go)
+		w.ctfMercWaitsLocked(p, nil, kit.Name)
+		return "", fmt.Sprintf(ctfLineMercAway, kit.Name)
+	}
 	old := w.mercs[p.ServerID]
 	if why := w.mercGroupRoomLocked(p, old); why != "" {
 		return "", why
@@ -479,8 +489,11 @@ func (w *World) DismissMerc(sess *session.Session, now time.Time) (string, bool)
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
 	ms := w.mercs[p.idOrZero()]
-	if p == nil || ms == nil || ms.owner != p {
+	if p == nil {
 		return "", false
+	}
+	if ms == nil || ms.owner != p {
+		return w.ctfDismissAwayLocked(p, true) // one waiting outside the arena (ctfaway.go)
 	}
 	name := ms.npc.Name
 	w.mercGoesLocked(ms, sess, now)
@@ -692,6 +705,12 @@ func (w *World) mercSystem(now time.Time) {
 		sess := w.findSessionByEntityIDLocked(id)
 		if n.Dead {
 			w.mercDiedLocked(ms, sess, now)
+			continue
+		}
+		if w.ctfKeepsOutLocked(owner) {
+			// its owner in a match or the arena's world: it waits outside,
+			// out of the world, until its owner leaves it (ctfaway.go)
+			w.ctfSendAwayLocked(owner, now)
 			continue
 		}
 		dt := float32(now.Sub(ms.last).Seconds())

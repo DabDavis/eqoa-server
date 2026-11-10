@@ -79,6 +79,10 @@ func (w *World) RestoreMerc(sess *session.Session, kit MercKit, k KeptMerc, now 
 	if p == nil || p.IsDead() || p.respawnPending() || w.mercOfLocked(p) != nil {
 		return false
 	}
+	if w.ctfKeepsOutLocked(p) {
+		w.ctfMercWaitsLocked(p, sess, kit.Name) // its owner in the arena's world: it waits outside (ctfaway.go)
+		return false
+	}
 	ms := w.spawnMercLocked(p, kit, MercStance(k.Stance), now)
 	n := ms.npc
 	if k.World == p.World && distXZ(k.Place[0], k.Place[2], p.X, p.Z) <= petLost {

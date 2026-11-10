@@ -869,6 +869,51 @@ restarts and swaps; nothing before its first deploy is in it, and each shard cou
   style (0 heading, 1 label and value) and two strings (u8 byte count, UTF-8), the server's words ("2 hours ago") as they stand when sent
   (`recordRows`). A PS2 ignores the offer.
 
+### Capture the flag: the arena of the server's own worlds (`entity/ctf.go`, `entity/ctfflag.go`, `handlers/ctf.go`, `world.ctf`)
+
+The owner, 2026-11-10: "since we have a template for making new worlds and zones lets add a new PvP world. One zone for Capture
+the Flag. players will join from PvP Events NPC next to Dabrish, will have 2 teams", then "for the ctf we are making it like
+warsong gulch from WoW": that game's rules, never its map, names or look. `claude-notes/ctf-world-20261110.md` has the design,
+every number and what the rig measured. **`world.ctf.enabled`** (off by default) turns it on, with its world (`world.ctf.world`,
+11) one of `world.server_worlds`: a composed world of one disc zone, **Box Canyons** (Tunaria zone 121), built from
+`tools/worlds/arena.json` by `cmd/worldbuild`, whose `"arena"` block (carried into `worldN.json`, never the file) is the
+places: each team's banner stand and camp, the power-ups, the field's edge, the bodies. Every number is in config with its
+default (`config.yaml.example`, `entity.DefaultCTFSettings`).
+
+- **Joining**: the **PvP Events** herald (any NPC of the name; `tools/place_ctf_herald.py` stands one behind Dabrish in a war
+  captain's look) asks a box (mark **0x5F000000**): sign up or take the name off, the rules, how things stand. `/ctf`,
+  `/ctf join`, `/ctf leave`, `/ctf rules` (`#ctf`; a PS2's `/t ctf ...`). A client that cannot load the arena (a PS2, the
+  page, an older vanilla: `LoadableWorlds`) is told why and kept out; the dead and duelists wait.
+- **The start**: `min_per_team` a side ready starts a `countdown` (everyone in the world told where to sign up); then up to
+  `team_size` a side are split as even as they come (count, then the levels' sums), sent to their camps (the gates' travel), and
+  `prep` later the banners go live. Signed-up players are sent into a match with room while 2 minutes or more are left.
+- **The banners**: two Temporary NPCs, each on its stand. A touch (a report within `touch_reach`, or the tick at the server's
+  place: a client standing still sends none; a talk to it too) takes the other team's; it **trails its carrier** a step
+  behind with the carrier's velocity, the carrier's name reads `[Banner] Name` to every client and is gold to the other team
+  (channel byte 142 0, as swingable as a foe's 4), the rest of the other team green (byte 157 bit 0), its own blue. A carrier
+  at its own stand scores **only while its own banner stands there** (else told so); a carrier's death, logout, leaving or
+  straying past the field drops it where it is; its own team returns it by a touch, the other takes it up again, and one left
+  lying `flag_return` goes home. A report the move check holds as from before a server's move (`mv.pending`) and the two
+  seconds after the server put a player somewhere touch nothing (a client's last report from where it fell took the banner).
+- **The fight**: in the arena the teams alone decide foes (`pvpFoe`): the PvP flag's fight (`pvp.go`: melee, spells, procs,
+  pets at `PvPDamageShare`), never a teammate, never anyone outside the match, flags and groups aside; no death debt, no loss;
+  a death counts in the combat record as any PvP kill. The dead rise in **waves** at their camp every `wave_every` from the
+  banners going live, the first at least `wave_min_dead` after the death (`ctfRespawnDueLocked` in the respawn system,
+  `CTFRespawnSpot` in `handlers/respawn.go`). A carrier held `wound_after` takes `wound_step`% more from every hit, more each
+  further minute, at most `wound_max`%. Power-ups: the speed shrines (Spirit of the Wolf's run speed for `speed_for`, effect
+  key -1010) and the mending spring (hit points and power full), back `powerup_every` after. No duels in the arena; `/stuck`
+  there is back to the camp (once a minute, never with a banner).
+- **The end**: `score_limit` captures, or `time_limit` (the higher score wins, a tie is a draw), or a team empty 30 s (a
+  forfeit). Everyone is told (the server too), each player its own count, and `end_hold` later all go back beside the herald
+  (one lying dead rises there). A login saved in the arena starts beside the herald (`arenaLogin`); a player in the arena's
+  world with no match there (a keep restart's: matches are not kept) is sent beside it after 5 s, a GM excepted.
+- **Every client sees it with no client change** (vanilla builds the world off its own disc through 0x7E30/0x7E31): the
+  banners are NPCs, the tags and colours are the channel's. A banner's body is Highbourne's guild banner (the wizards' for
+  Ember, the enchanters' for Dusk, at 0.17) where the built world holds that art among its zone's extras (the recipe's
+  decoration, the homes-edges composer's format: towers, walls, boulders, catapults, the guild banners by the stands, the
+  sun flags mid-valley, boulders across the south run), else a CHAR.ESF orb (`fallback_body`): vanilla draws a zone's art
+  as an NPC's body once the zone is in. Tests: `TestCTF*` (`entity/ctf_test.go`, `handlers/ctf_test.go`).
+
 ### Mail, resets, one Master Class, petitions: SOE's live client's, for every client
 
 The user, 2026-10-29: SOE's later features, read out of the live CLIENT in the Corsten state, built on

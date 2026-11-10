@@ -265,6 +265,8 @@ type Player struct {
 	// pvp: its PvP flag and what goes with it (pvp.go); targetToken its last
 	// 0x0010's token, for a target's face told unasked
 	pvp         pvpFlag
+	// ctf: its part in capture the flag, the arena's match (ctf.go)
+	ctf ctfPlayer
 	targetToken uint32
 
 	// RaceLabels: the player's client shows a race of racedefs' own words and

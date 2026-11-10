@@ -19,9 +19,16 @@ too). For each zone of the recipe with a `home`:
   DictID ("0x9E004757") worn instead of the copy's, `size` its size, `stock` an
   NPC whose wares (npcitem) it sells too, which makes it a merchant (npc_type
   129: CLIENT opens a merchant's window by the flag 0x01, and asks the server
-  for nothing at a talker of 128 but a talk);
+  for nothing at a talker of 128 but a talk); `optional` true: one whose
+  `like` or whose `stock`'s seller this database lacks is left out, and said
+  (the homes' Spell Archivist, whose wares are the Heirloom server's own);
 - each name in `peaceful` gets an npcaggro row of aggressive 0 (a starter
-  quest's critters, which a fledgling hunts, never hunt it);
+  quest's critters, which a fledgling hunts, never hunt it), each name in
+  `hostile` one of aggressive 1 (the level 5 quest's foe: wildlife of level 5
+  and under attacks no one unless a rule says so). A name that has a row
+  already (a GM's) keeps it as it is, and that is said. A foe's name is its
+  home's alone: npcaggro and a quest's kill are by name, so a name NPCs of
+  another world bear too is refused;
 - `lines`, {name: [line, ...]}: the words of a home's people of that name when
   nothing else answers (npcdialog rows of their name: a speaker of its own
   lines says them alone, entity/dialog.go; %p the listener's name, %r its
@@ -39,6 +46,11 @@ start rows and the people are read at its start), start it after.
     tools/seed_race_homes.py [--db eqoa.db] [--homes tools/worlds/homelands.json]            report
     tools/seed_race_homes.py [--db eqoa.db] --apply                                          write it
     tools/seed_race_homes.py [--db eqoa.db] --undo                                           take it back
+    tools/seed_race_homes.py --format [--homes FILE]                                         the recipe file in its own layout again
+
+A new recipe over a seeding that is there (tools/quests/homelands/README.md): --undo with the old one, --apply
+with the new one, the server stopped (a keep restart's before.sh). The people get new npcs ids (rows added past
+whatever is there); nothing else names them by id.
 """
 import argparse
 import json
@@ -95,8 +107,9 @@ def row_dict(db, table, where, args):
     return dict(zip([c[0] for c in cur.description], r))
 
 
-def template(db, spec):
-    """The npcs row a spec copies: its `like` (an id or a name), else a row of its body."""
+def template(db, spec, missing_ok=False):
+    """The npcs row a spec copies: its `like` (an id or a name), else a row of its body. missing_ok: None when
+    this database has none (an optional one's)."""
     like = spec.get("like")
     if isinstance(like, int):
         r = row_dict(db, "npcs", "id = ?", (like,))
@@ -106,7 +119,7 @@ def template(db, spec):
         r = row_dict(db, "npcs", "(modelid & 4294967295) = ? ORDER BY id", (int(spec["body"], 16) & 0xFFFFFFFF,))
     else:
         raise SystemExit(f"{spec['name']}: no `like` and no `body`")
-    if r is None:
+    if r is None and not missing_ok:
         raise SystemExit(f"{spec['name']}: no npcs row like {like or spec.get('body')!r}")
     return r
 
@@ -135,7 +148,18 @@ def plan(db, recipe):
             new = {"x": s["x"], "y": s["y"], "z": s["z"], "facing": round(facing, 6), "world": world}
             out.append(("start", rid, old, new, f"{rd['name']} class {old['tclass']}: {z['name']}"))
         for n in home.get("npcs", []):
-            t = template(db, n)
+            optional = bool(n.get("optional"))
+            t = template(db, n, missing_ok=optional)
+            if t is None:
+                out.append(("skip", n["name"], None, None, f"{n['name']} in {z['name']}: optional, and this database has no "
+                                                           f"npcs row like {n.get('like') or n.get('body')!r}: left out"))
+                continue
+            if n.get("role", "talker") == "foe":
+                n_else = db.execute("SELECT count(*) FROM npcs WHERE lower(npc_name) = lower(?) AND world != ?",
+                                    (n["name"], world)).fetchone()[0]
+                if n_else:
+                    raise SystemExit(f"{z['name']}: {n_else} NPCs of other worlds are named {n['name']!r} too: a home's creature "
+                                     "has a name of its own (npcaggro and a quest's kill go by name)")
             row = {k: v for k, v in t.items() if k != "id"}
             x, y, zz = n["at"]
             if "toward" in n:
@@ -153,20 +177,34 @@ def plan(db, recipe):
                 row["size"] = float(n["size"])
             stock = []
             if n.get("stock"):
-                src = row_dict(db, "npcs", "npc_name = ? ORDER BY id", (n["stock"],))
-                if src is None:
-                    raise SystemExit(f"{n['name']}: no NPC {n['stock']!r} to take wares from")
-                cur = db.execute("SELECT * FROM npcitem WHERE npcid = ? ORDER BY listnumber, itemid", (src["id"],))
-                cols = [c[0] for c in cur.description]
-                stock = [dict(zip(cols, r)) for r in cur.fetchall()]
-                if not stock:
-                    raise SystemExit(f"{n['name']}: {n['stock']!r} sells nothing")
+                # the seller of another world: a home's own seller of the name (an earlier seeding's) is no source
+                src = row_dict(db, "npcs", "npc_name = ? AND world != ? ORDER BY id", (n["stock"], world))
+                if src is not None:
+                    cur = db.execute("SELECT * FROM npcitem WHERE npcid = ? ORDER BY listnumber, itemid", (src["id"],))
+                    cols = [c[0] for c in cur.description]
+                    stock = [dict(zip(cols, r)) for r in cur.fetchall()]
+                if src is None or not stock:
+                    why = f"no NPC {n['stock']!r} to take wares from" if src is None else f"{n['stock']!r} sells nothing"
+                    if not optional:
+                        raise SystemExit(f"{n['name']}: {why}")
+                    out.append(("skip", n["name"], None, None, f"{n['name']} in {z['name']}: optional, and {why}: left out"))
+                    continue
                 row["npc_type"] |= MERCHANT
             out.append(("npc", None, None, {"row": row, "stock": stock}, f"{n['name']} in {z['name']}: {n.get('note', '')}".rstrip(": ")))
-        for name in home.get("peaceful", []):
-            old = row_dict(db, "npcaggro", "npc_name = ?", (name,)) if has_table(db, "npcaggro") else None
-            out.append(("aggro", name, old, {"aggressive": 0}, f"{name}: a starter quest's critter ({z['name']})"))
         people = {n["name"] for n in home.get("npcs", [])}
+        for key, aggressive, what in (("peaceful", 0, "a starter quest's critter"), ("hostile", 1, "a starter quest's foe")):
+            for name in home.get(key, []):
+                if name not in people:
+                    raise SystemExit(f"{z['name']}: {key} names {name!r}, who is none of its people")
+                if name in home.get("hostile", []) and name in home.get("peaceful", []):
+                    raise SystemExit(f"{z['name']}: {name!r} is peaceful and hostile")
+                old = row_dict(db, "npcaggro", "npc_name = ?", (name,)) if has_table(db, "npcaggro") else None
+                if old is not None:
+                    # a rule that is there is someone's (a GM's): kept as it is
+                    out.append(("skip", name, None, None, f"{name} ({z['name']}): npcaggro has a row for it already (aggressive "
+                                                          f"{old.get('aggressive')}, source {old.get('source')!r}): kept as it is"))
+                    continue
+                out.append(("aggro", name, None, {"aggressive": aggressive}, f"{name}: {what} ({z['name']})"))
         for name, lines in home.get("lines", {}).items():
             if name not in people:
                 raise SystemExit(f"{z['name']}: lines for {name!r}, who is none of its people")
@@ -177,6 +215,15 @@ def plan(db, recipe):
 
 def has_table(db, name):
     return db.execute("SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = ?", (name,)).fetchone()[0] > 0
+
+
+def format_recipe(recipe):
+    """A recipe as its file is laid out: two spaces a level, a value a line, but the extra files' names on one."""
+    text = json.dumps(recipe, indent=2, ensure_ascii=False) + "\n"
+    if isinstance(recipe.get("extraFiles"), list):
+        spread = json.dumps({"extraFiles": recipe["extraFiles"]}, indent=2, ensure_ascii=False)[2:-2]
+        text = text.replace(spread, '  "extraFiles": ' + json.dumps(recipe["extraFiles"], ensure_ascii=False), 1)
+    return text
 
 
 def apply(db, steps):
@@ -210,10 +257,12 @@ def apply(db, steps):
             elif what == "aggro":
                 db.execute("""CREATE TABLE IF NOT EXISTS npcaggro (npc_name TEXT PRIMARY KEY, aggressive INTEGER NOT NULL DEFAULT 1,
                     radius REAL NOT NULL DEFAULT 0, note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm')""")
-                db.execute("""INSERT INTO npcaggro (npc_name, aggressive, radius, note, source) VALUES (?, 0, 0, ?, 'racehomes')
-                    ON CONFLICT(npc_name) DO UPDATE SET aggressive = 0, radius = 0, note = excluded.note, source = excluded.source""",
-                           (key, note))
-                log(what, key, old, note)
+                # a name two homes list is written once (the plan saw no row for either)
+                if db.execute("SELECT count(*) FROM npcaggro WHERE npc_name = ?", (key,)).fetchone()[0]:
+                    continue
+                db.execute("INSERT INTO npcaggro (npc_name, aggressive, radius, note, source) VALUES (?, ?, 0, ?, 'racehomes')",
+                           (key, new["aggressive"], note))
+                log(what, key, None, note)
             elif what == "dialog":
                 if not has_table(db, "npcdialog"):
                     db.execute(NPCDIALOG_DDL)
@@ -267,7 +316,17 @@ def main(argv=None):
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true")
     g.add_argument("--undo", action="store_true")
+    g.add_argument("--format", action="store_true", help="write the recipe file again in its own layout (no database)")
     a = ap.parse_args(argv)
+    if a.format:
+        text = format_recipe(json.load(open(a.homes)))
+        if text != open(a.homes).read():
+            with open(a.homes, "w") as f:
+                f.write(text)
+            print(f"{a.homes}: laid out again")
+        else:
+            print(f"{a.homes}: as it was")
+        return 0
     db = sqlite3.connect(a.db, isolation_level=None)
     if a.undo:
         undo(db)
@@ -285,11 +344,13 @@ def main(argv=None):
             print(f"  dialog  {key}: {new['line']!r}")
         else:
             print(f"  {what:7} {key}: {note}")
+    writes = [st for st in steps if st[0] != "skip"]
+    left = len(steps) - len(writes)
     if a.apply:
-        apply(db, steps)
-        print(f"{a.db}: {len(steps)} written, logged in {LOG}")
+        apply(db, writes)
+        print(f"{a.db}: {len(writes)} written, logged in {LOG}" + (f"; {left} left out or kept as they are (skip, above)" if left else ""))
     else:
-        print(f"{len(steps)} to write (--apply writes them)")
+        print(f"{len(writes)} to write (--apply writes them)" + (f"; {left} left out or kept as they are (skip, above)" if left else ""))
     return 0
 
 

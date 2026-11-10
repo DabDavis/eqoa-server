@@ -2028,7 +2028,7 @@ var catalog = map[string]tableNote{
 			"minlevel":   {Label: "From level"},
 			"maxlevel":   {Label: "To level"},
 			"classes":    {Label: "Classes", Help: "class ids, comma separated; empty: any"},
-			"races":      {Label: "Races", Help: "race ids, comma separated; empty: any"},
+			"races":      {Label: "Races", Help: "race ids, comma separated; empty: any. 0-10 are the game's races and the froglok (a race of the server's own takes them as the race it passes as); 11 and up a race of racedefs by its own id, that race alone (a homeland's quests)"},
 			"requires":   {Label: "Quests first", Help: "quest ids finished first, comma separated"},
 			"repeatable": {Label: "Repeatable"},
 			"offer":      {Label: "Giver offers", Format: "multiline", Help: "a paragraph a question: a line a box, its last line asks"},

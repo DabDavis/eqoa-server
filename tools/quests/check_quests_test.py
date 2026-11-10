@@ -118,6 +118,43 @@ class Later(unittest.TestCase):
         self.assertIn("no route", "\n".join(self.check(q, names=False).warnings), "routes checked without a database too")
 
 
+    def test_a_race_of_racedefs_is_a_race(self):
+        q = copy.deepcopy(GOOD)
+        q["races"] = [6, 14, 52]
+        self.assertEqual(self.check(q).errors, [], "the game's by number, a race of racedefs by its own id")
+        for bad in (53, -1, "14", True):
+            q["races"] = [bad]
+            self.assertIn(f"race {bad!r}", "\n".join(self.check(q).errors))
+
+    def test_a_classquest_event_is_a_quests_on_its_finish(self):
+        q = copy.deepcopy(GOOD)
+        q["events"] = [{"on": "finish", "do": "classquest", "level": 3}]
+        self.assertEqual(self.check(q).errors, [], "the control")
+        for bad, want in (({"on": "accept", "do": "classquest", "level": 3}, "a quest's, on its finish"),
+                          ({"on": "finish", "do": "classquest"}, "level None"),
+                          ({"on": "finish", "do": "classquest", "level": 61}, "level 61"),
+                          ({"on": "finish", "do": "classquest", "level": True}, "level True")):
+            q["events"] = [bad]
+            self.assertIn(want, "\n".join(self.check(q).errors), bad)
+        q["events"] = []
+        q["steps"][0]["events"] = [{"on": "done", "do": "classquest", "level": 3}]
+        self.assertIn("a quest's, on its finish", "\n".join(self.check(q).errors), "a step has none")
+
+    def test_a_made_items_set_is_checked(self):
+        import json
+        path = os.path.join(self.dir.name, "f.json")
+        doc = {"city": "testmoor", "quests": [], "items": [
+            {"name": "Moor Bracer", "like": "Old Spear", "set": {"AC": 4, "classuse": 32767}},
+            {"name": "Moor Ring", "like": "Old Spear", "set": {"itemname": 3, "AC": "4"}},
+            {"name": "Moor Belt", "like": "Old Spear", "set": [1]}]}
+        json.dump(doc, open(path, "w"))
+        ck = cq.Check(self.names, ROUTES)
+        ck.file(path, {})
+        errs = "\n".join(ck.errors)
+        self.assertNotIn("Moor Bracer", errs, "the control: figures the importer sets")
+        for want in ("'Moor Ring': set 'itemname': 3", "'Moor Ring': set 'AC': '4'", "'Moor Belt': set is not an object"):
+            self.assertIn(want, errs)
+
     def test_a_requires_group_is_its_quests(self):
         q = copy.deepcopy(GOOD)
         q["requires"] = ["Misc/a", ["Misc/b", "Misc/c"]]

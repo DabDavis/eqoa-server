@@ -16,8 +16,9 @@ items itempattern.itemname, spells spellpattern.spellname (the quest's class's
 own when classspells has one of the name), factions factions.name, a visual
 a DictID or a spell's spelleffect.fxdict. A file's quest items (its "items")
 are made where no item has the name, as a copy of their "like" item with
-their name and description (trade 1 when notrade: CLIENT's NO TRADE). A quest
-whose required quest is a draft is one too.
+their name and description (trade 1 when notrade: CLIENT's NO TRADE) and the
+columns its "set" gives of ITEM_SET (a starting gift's figures: its armour,
+who may wear it). A quest whose required quest is a draft is one too.
 
 The later guides' fields (FORMAT.md): a quest's factions_required (factions
 by name: one this database lacks makes it a draft), repeatable and unlocks (a
@@ -68,7 +69,11 @@ CLASSES = {
 KINDS = ("talk", "show", "give", "kill", "loot", "reach")
 NPC_KINDS = ("talk", "show", "give")
 QUEST_WHENS, STEP_WHENS = ("accept", "finish"), ("start", "done")
-DOS = ("popup", "say", "give", "spawn", "attack", "visual", "teleport", "vampire", "trigger", "dostep")
+DOS = ("popup", "say", "give", "spawn", "attack", "visual", "teleport", "vampire", "trigger", "dostep", "classquest")
+# The columns of itempattern a made item's "set" may give (FORMAT.md, Item): what a record a quest hands out to
+# wear needs of its own over its like's (a homeland's first gift: every class's, its own armour).
+ITEM_SET = ("AC", "HPMAX", "POWMAX", "str", "sta", "agi", "dex", "wis", "intelligence", "cha", "PoT", "HoT",
+            "PR", "DR", "FR", "CR", "LR", "AR", "itemcost", "levelreq", "maxhp", "classuse", "raceuse", "lore")
 
 # The quest tables as internal/database/quests.go makes them, and the columns
 # it adds to an older one.
@@ -305,8 +310,15 @@ def plan(db, files, routes=False):
             if like is None:
                 warnings.append(f"{fname}: item {name!r} cannot be made: its like {it.get('like')!r} is not here")
                 continue
+            sets = it.get("set") or {}
+            bad = [k for k, v in sets.items() if k not in ITEM_SET or not isinstance(v, int) or isinstance(v, bool)] \
+                if isinstance(sets, dict) else ["set"]
+            if bad:
+                warnings.append(f"{fname}: item {name!r} cannot be made: its set gives {', '.join(sorted(bad))} "
+                                f"(whole numbers for {', '.join(ITEM_SET)})")
+                continue
             m = dict(name=name, description=it.get("description") or "", notrade=bool(it.get("notrade")),
-                     like=like[0], file=fname)
+                     like=like[0], file=fname, set=dict(sets))
             made.append(m)
             made_by_fold[fold(name)] = m
 
@@ -424,6 +436,15 @@ def plan(db, files, routes=False):
                             ev["bind"] = True
                             if e.get("npc"):
                                 ev["npc"] = e["npc"]
+                    elif do == "classquest":
+                        # the player's own city class quest of that level finished too (handlers/questevents.go):
+                        # a quest's, on its finish
+                        level = e.get("level")
+                        if whens is not QUEST_WHENS or on != "finish" or not isinstance(level, int) \
+                                or isinstance(level, bool) or not 1 <= level <= 60:
+                            miss.append(f"{where} event {on}/classquest (a quest's, on finish, with a level 1-60)")
+                            continue
+                        ev["level"] = level
                     elif do == "trigger":
                         # a GM trigger by its name (handlers/gmtriggers.go), written before the import
                         ev["trigger"] = (e.get("trigger") or "").strip()
@@ -731,6 +752,10 @@ def write(db, p, own=True):
             row.update(itemname=m["name"], itemdesc=m["description"] or row["itemdesc"])
             if m["notrade"]:
                 row["trade"] = 1
+            for col, v in (m.get("set") or {}).items():
+                if col not in row:
+                    raise SystemExit(f"item {m['name']!r}: this database's itempattern has no column {col!r} to set")
+                row[col] = v
             cur = db.execute(f"INSERT INTO itempattern ({', '.join(icols)}) VALUES ({', '.join('?' * len(icols))})",
                              [row[c] for c in icols])
             db.execute("INSERT INTO quest_import_items VALUES (?, ?, ?)", (cur.lastrowid, m["name"], m["file"]))

@@ -23,9 +23,9 @@ import (
 //     points (a heal over time it has not put on it, else a heal; a group heal
 //     when two or more are), one below mercEmergencyPct first with its biggest
 //     heal; any other class with a heal in its book (a paladin's, a ranger's)
-//     only one below mercEmergencyPct. Never a player in a duel or flagged for
-//     PvP (the familiars' rule, familiar.go: no help in a fight between
-//     players);
+//     only one below mercEmergencyPct. Never a player in a duel, in Mr.
+//     Moogie's challenge or flagged for PvP (ownfight.go: no help in a fight
+//     that is a player's own);
 //   - out of a fight, a buff (mercBuffTurnLocked): the best rank of each line
 //     its book holds of what lasts mercBuffLasts or more, on itself (a self
 //     buff, or one of a target's its owner already has), its owner (one of a
@@ -353,14 +353,14 @@ func (mm mercMate) effects() []*ActiveEffect {
 }
 
 // mercTeamLocked is the merc's team: itself, its owner, and its owner's
-// group's other players and mercs, alive and in its world; a player in a duel
-// or flagged for PvP left out (the file's doc). Must be called with the lock
-// held.
+// group's other players and mercs, alive and in its world; a player in a duel,
+// in Mr. Moogie's challenge or flagged for PvP left out (ownfight.go). Must be
+// called with the lock held.
 func (w *World) mercTeamLocked(ms *mercState) []mercMate {
 	m := ms.npc
 	out := []mercMate{{n: m}}
 	add := func(p *Player) {
-		if p != nil && !p.IsDead() && !p.respawnPending() && p.World == m.World && !p.pvp.on && w.duelOnLocked(p.ServerID) == nil {
+		if p != nil && !p.IsDead() && !p.respawnPending() && p.World == m.World && !w.ownFightLocked(p) {
 			out = append(out, mercMate{p: p})
 		}
 	}
@@ -463,7 +463,7 @@ func (w *World) mercHealTurnLocked(ms *mercState, now time.Time) bool {
 // file's doc). It reports a cast begun. Must be called with the lock held.
 func (w *World) mercBuffTurnLocked(ms *mercState, now time.Time) bool {
 	m, o := ms.npc, ms.owner
-	if m.MaxPower <= 0 || m.Power*100 < m.MaxPower*mercBuffSpare || o.IsDead() || o.pvp.on || w.duelOnLocked(o.ServerID) != nil {
+	if m.MaxPower <= 0 || m.Power*100 < m.MaxPower*mercBuffSpare || o.IsDead() || w.ownFightLocked(o) {
 		return false
 	}
 	ownerNear := o.World == m.World
@@ -724,7 +724,9 @@ func (w *World) mercHelpLocked(ms *mercState, s *CastSpell, id EntityID, now tim
 	cs := &castState{spell: *s, caster: ms.npc.ServerID, targets: []EntityID{id}}
 	cs.spell.figures = figuresPet // a pet's figures to a client that colours them (numbertags.go)
 	if p := w.Players[id]; p != nil {
-		if !p.IsDead() && !p.respawnPending() {
+		// not on one whose fight became its own while the cast was on its way
+		// (ownfight.go, petition 1491)
+		if !p.IsDead() && !p.respawnPending() && !w.ownFightLocked(p) {
 			w.landOnPlayerLocked(cs, ms.body, nil, p, now)
 		}
 		return

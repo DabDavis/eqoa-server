@@ -91,9 +91,14 @@ type chaseRoute struct {
 }
 
 // routesFor reports a creature whose chase may go round: one on the ground, not
-// swimming, in a world with its ground. Must be called with the lock held.
+// swimming, in a world with its ground; a summoned pet or a mercenary, whose
+// routes its own walk asks for only on the terrain (petwalk.go's
+// petRoutesLocked). Must be called with the lock held.
 func (w *World) routesFor(npc *NPC) bool {
-	return chaseRoutes && w.ground != nil && !npc.swimming && w.spawnOnGroundLocked(npc)
+	if !chaseRoutes || w.ground == nil || npc.swimming {
+		return false
+	}
+	return npc.walksTerrain() || w.spawnOnGroundLocked(npc) // a pet's by where it stands (petwalk.go)
 }
 
 // routeLegLocked is the leg from (fx, fy, fz) to (x, z) as the creature would
@@ -146,7 +151,11 @@ func (w *World) routeWayLocked(npc *NPC, r *chaseRoute, tx, ty, tz, d, step floa
 	if now.Before(r.failedUntil) {
 		return false, false // found nothing a moment ago: straight, as it was
 	}
-	limit := min(routeNodes, w.routeLeft())
+	most := routeNodes
+	if npc.walksTerrain() {
+		most = petRouteNodes // a pet's search is a short one (petwalk.go)
+	}
+	limit := min(most, w.routeLeft())
 	if limit <= 0 {
 		return false, true // the tick's searches are spent: the next tick's
 	}
@@ -154,7 +163,7 @@ func (w *World) routeWayLocked(npc *NPC, r *chaseRoute, tx, ty, tz, d, step floa
 	pts, tried, ok := w.planRouteLocked(npc, tx, ty, tz, limit)
 	took := time.Since(began)
 	w.routeSpent += tried
-	if !ok && tried >= limit && limit < routeNodes {
+	if !ok && tried >= limit && limit < most {
 		return false, true // cut short by the tick's share, not a way it lacks: the next tick's
 	}
 	if !ok || len(pts) == 0 {
@@ -195,7 +204,7 @@ func (w *World) followRouteLocked(npc *NPC, r *chaseRoute, speed, dt float32) {
 			npc.Z += uz * left
 			left = 0
 		}
-		w.groundNPCLocked(npc)
+		w.routeGroundLocked(npc)
 		if npc.Y < y0-legDrop || npc.Y > y0+routeClimb {
 			npc.Y, npc.swimming = y0, swim0 // a gap between the search's points: across it at its height
 		}
@@ -211,6 +220,22 @@ func (w *World) followRouteLocked(npc *NPC, r *chaseRoute, speed, dt float32) {
 	if w.SpatialIndex != nil {
 		w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.X, npc.Z)
 	}
+}
+
+// routeGroundLocked sets an NPC on a route at the height it stands at now: a
+// creature's by its spawn's rule (groundNPCLocked); a summoned pet's or a
+// mercenary's on the terrain's floor under it, as its route was searched
+// (petwalk.go; its spawn is where it was summoned, no rule for where it walks).
+// Must be called with the lock held.
+func (w *World) routeGroundLocked(npc *NPC) {
+	if !npc.walksTerrain() {
+		w.groundNPCLocked(npc)
+		return
+	}
+	if y, ok := w.ground.Floor(npc.World, npc.X, npc.Y, npc.Z); ok {
+		npc.Y = y
+	}
+	w.swimLocked(npc) // water.go: in deep water it swims at the surface
 }
 
 // routeNode is a point of a search: its place, its floor once its leg from its

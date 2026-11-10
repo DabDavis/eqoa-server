@@ -1669,7 +1669,7 @@ func (w *World) runTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 			return
 		}
 	}
-	if ae.HPTick > 0 {
+	if ae.HPTick > 0 && !w.helperTickHeldLocked(t, ae) { // a merc's heal over time waits out its bearer's own fight (ownfight.go)
 		// the caster may be gone (logged out, or the effect kept over a
 		// logout): the figure is then the target's own, as Sandstorm's first
 		// tick after a login was, and none of its making (numbertags.go: a
@@ -1775,7 +1775,7 @@ func (w *World) spellHitHateLocked(caster *Player, casterSess *session.Session, 
 	if npc.Dummy != NotDummy {
 		// told, taken off nothing (dummy.go)
 		w.tellAmountLocked(caster, casterSess, npc.ServerID, -n, kind)
-		w.dummyEngagedLocked(npc, caster, time.Now())
+		w.dummyEngagedLocked(npc, caster.ServerID, n, time.Now())
 		return false
 	}
 	n = w.dealtLocked(npc, caster, n) // balance.go

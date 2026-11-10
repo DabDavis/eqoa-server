@@ -165,11 +165,11 @@ func (w *World) mercTurnLocked(ms *mercState, dt float32, now time.Time) {
 	}
 	switch {
 	case t == nil:
-		w.mercHomeLocked(ms, dt)
+		w.mercHomeLocked(ms, dt, now)
 	case ms.role == roleTank || ms.role == roleMelee:
 		w.mercMeleeLocked(ms, t, dt, now)
 	default:
-		w.mercStandOffLocked(ms, t, dt)
+		w.mercStandOffLocked(ms, t, dt, now)
 	}
 }
 
@@ -186,10 +186,15 @@ func mercReach(t *NPC) float32 {
 func (w *World) mercMeleeLocked(ms *mercState, t *NPC, dt float32, now time.Time) {
 	m := ms.npc
 	reach := mercReach(t)
-	if d := distXZ(m.X, m.Z, t.X, t.Z); d > reach {
-		x := t.X + (m.X-t.X)/d*(reach-1)
-		z := t.Z + (m.Z-t.Z)/d*(reach-1)
-		w.petStepLocked(m, x, z, t.Y, max(ms.owner.SpeedNow(), petRunSpeed), dt)
+	if d := distXZ(m.X, m.Z, t.X, t.Z); d > reach || w.petStackedLocked(m, t.X, t.Y, t.Z, now) {
+		// out of its reach, or its target on the floor over or under it: round
+		// what stands between (petwalk.go)
+		x, z := m.X, m.Z
+		if d > reach {
+			x = t.X + (m.X-t.X)/d*(reach-1)
+			z = t.Z + (m.Z-t.Z)/d*(reach-1)
+		}
+		w.petWalkLocked(m, t.ServerID, x, z, t.X, t.Y, t.Z, max(ms.owner.SpeedNow(), petRunSpeed), dt, now)
 		m.loseDueHits(now) // closing in: no hit lands from out of reach
 		return
 	}
@@ -221,11 +226,11 @@ func (w *World) mercMeleeLocked(ms *mercState, t *NPC, dt float32, now time.Time
 // follows its owner (or holds its place) while its spells reach the creature
 // from there, and steps toward it otherwise, to a little inside its longest
 // reach. Must be called with the lock held.
-func (w *World) mercStandOffLocked(ms *mercState, t *NPC, dt float32) {
+func (w *World) mercStandOffLocked(ms *mercState, t *NPC, dt float32, now time.Time) {
 	m := ms.npc
 	reach := w.mercReachOf(ms) + npcReachExtra(t)
 	if dist3(m.X, m.Y, m.Z, t.X, t.Y, t.Z) <= reach {
-		w.mercHomeLocked(ms, dt)
+		w.mercHomeLocked(ms, dt, now)
 		if dist3(m.X, m.Y, m.Z, t.X, t.Y, t.Z) <= reach && m.Loco == LocoStand {
 			m.Facing = headingTo(t.X-m.X, t.Z-m.Z)
 		}
@@ -234,7 +239,7 @@ func (w *World) mercStandOffLocked(ms *mercState, t *NPC, dt float32) {
 	d := distXZ(m.X, m.Z, t.X, t.Z)
 	x := t.X + (m.X-t.X)/d*(reach-2)
 	z := t.Z + (m.Z-t.Z)/d*(reach-2)
-	w.petStepLocked(m, x, z, t.Y, max(ms.owner.SpeedNow(), petRunSpeed), dt)
+	w.petWalkLocked(m, t.ServerID, x, z, t.X, t.Y, t.Z, max(ms.owner.SpeedNow(), petRunSpeed), dt, now)
 }
 
 // mercStandOffReach is the most a healer or a caster stands from its target
@@ -268,7 +273,7 @@ func (w *World) mercMeleeHitLocked(ms *mercState, t *NPC, now time.Time) bool {
 // mercDamageLocked is n of the merc's damage on t, the balance's already: its
 // owner told the figure as its pet's (numbertags.go), t's hate for the merc,
 // a root broken; on a kill, its owner's experience, factions and quests as a
-// pet's kill. A training dummy takes nothing and fights its owner (dummy.go).
+// pet's kill. A training dummy takes nothing, its hate the merc's (dummy.go).
 // It reports a kill. Must be called with the lock held.
 func (w *World) mercDamageLocked(ms *mercState, t *NPC, n int, kind numberKind, now time.Time) bool {
 	owner, m := ms.owner, ms.npc
@@ -284,7 +289,7 @@ func (w *World) mercDamageLocked(ms *mercState, t *NPC, n int, kind numberKind, 
 	m.LastCombatTime = now
 	if t.Dummy != NotDummy {
 		tell()
-		w.dummyEngagedLocked(t, owner, now)
+		w.dummyEngagedLocked(t, m.ServerID, n, now)
 		return false
 	}
 	t.HP = max(t.HP-n, 0)

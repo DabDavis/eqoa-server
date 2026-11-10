@@ -62,6 +62,10 @@ const (
 	legSample float32 = 2
 	legDrop   float32 = 2.5
 	legKnee   float32 = 1
+	// legHead is how far above the floor a pet's way is tested again where it
+	// meets the terrain at its knee: a wall there too is a wall, not a step
+	// (petwalk.go)
+	legHead float32 = 3
 )
 
 // CLIENT's ground probe and the room a creature is kept clear in
@@ -336,17 +340,20 @@ func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]flo
 		drop = legDrop * (d / float32(n)) / legSample
 		rise = drop
 	}
-	onGround := w.spawnOnGroundLocked(npc)
+	onGround, spawnLift := w.legStandLocked(npc) // a pet's the terrain where it stands (petwalk.go)
 	keeps := keepsToBoth
 	if w.env != nil && checks == legWhole {
 		keeps = w.keepsToLocked(npc)
 	}
 	y := fy
-	var walls Walls
+	var walls, solid Walls
 	var placed, placedWalls Placed
 	switch checks { // else the floor alone
 	case legRoute:
 		placedWalls, _ = w.ground.(Placed)
+		if npc.walksTerrain() {
+			solid, _ = w.ground.(Walls) // a pet's way: no wall of the terrain's either (petwalk.go)
+		}
 	case legWhole:
 		walls, _ = w.ground.(Walls)
 		placed, _ = w.ground.(Placed)
@@ -354,10 +361,10 @@ func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]flo
 	if !onGround {
 		placed = nil // set down where it was sent: nothing of the ground's to keep it off
 	}
-	lift := max(npc.spawnLift, 0) // its own floor over the terrain (a house's over the street)
+	lift := max(spawnLift, 0) // its own floor over the terrain (a house's over the street)
 	knee, px, py, pz := legKnee, fx, y, fz
 	if onGround {
-		knee += npc.spawnLift
+		knee += spawnLift
 		if f, ok := w.ground.Floor(npc.World, fx, y, fz); ok {
 			py = f
 		}
@@ -384,6 +391,7 @@ func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]flo
 		if placedWalls != nil && placedWalls.Placed(npc.World, px, py+knee, pz, sx, y+knee, sz) {
 			return false // a house's wall, a fence, a trunk in the way
 		}
+
 		if placed != nil {
 			// set down on its own floor here and halfway from the last point
 			mx, my, mz := (px+sx)/2, (py+y)/2, (pz+sz)/2
@@ -395,6 +403,17 @@ func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]flo
 				if !clearLocked(placed, npc.World, ox, y, oz, y+lift) {
 					return false // where the client may carry it on to before it stops
 				}
+			}
+		}
+		if solid != nil && i == n && d > 0 {
+			// the whole leg at once, from its first floor to its last: a wall from
+			// its knee to its head is a cave's side, not a step of the slope
+			y0 := fy
+			if onGround && heights != nil && len(*heights) > 0 {
+				y0 = (*heights)[len(*heights)-n-1]
+			}
+			if solid.Wall(npc.World, fx, y0+knee, fz, sx, y+knee, sz) && solid.Wall(npc.World, fx, y0+legHead, fz, sx, y+legHead, sz) {
+				return false
 			}
 		}
 		px, py, pz = sx, y, sz

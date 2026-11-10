@@ -735,6 +735,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharLook(); err != nil { // charlook.go: a custom race's look as chosen
 		return err
 	}
+	if err := db.ensureCharWelcome(); err != nil { // welcome.go: the welcome guide's box, a character's day and never
+		return err
+	}
 	if err := db.ensureHeirlooms(); err != nil { // heirlooms.go: test gear that follows its wearer
 		return err
 	}
@@ -1059,6 +1062,10 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 	}
 	// and the hit points it left with (vitals.go)
 	if _, err := s.db.Exec(`DELETE FROM charvitals WHERE serverid = ?`, serverID); err != nil {
+		return err
+	}
+	// and its welcome guide's day and never (welcome.go)
+	if _, err := s.db.Exec(`DELETE FROM charwelcome WHERE serverid = ?`, serverID); err != nil {
 		return err
 	}
 	// and its resets counted and its templates (rehab.go, rehabtemplates.go)

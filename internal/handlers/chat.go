@@ -76,6 +76,8 @@ type ChatHandler struct {
 
 	// safe is where /testinvis keeps a player's safe mode (safemode.go)
 	safe safeModeStore
+	// welcome is /tutorial's box (welcome.go); nil: no guide
+	welcome *WelcomeGuide
 
 	support *SupportHandler // /bug's (bugreport.go)
 
@@ -277,6 +279,13 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 	// record, its own or any character's, everyone's (combatrecord.go)
 	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/record") || strings.EqualFold(word, "#record") {
 		recordCommand(h.gameWorld, sess, player, rest)
+		return nil
+	}
+
+	// /tutorial (or #tutorial, and a PS2's "/t tutorial"): the welcome guide's box
+	// again, everyone's (welcome.go)
+	if tutorialLine(message) {
+		h.welcome.Show(sess, player)
 		return nil
 	}
 

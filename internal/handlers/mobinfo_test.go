@@ -178,21 +178,23 @@ func TestAMonsterOutOfReachShowsItsNameAndLevel(t *testing.T) {
 }
 
 // The name as players see it: a source's trailing '$' off, only what a PS2 can
-// type (a '|' would be a button's glyph in its text box), cut to 63; a level
-// past a byte the byte's most on the wire, the number itself in the box.
+// type (a '|' would be a button's glyph in its text box), cut to 63; in the box
+// a '%' doubled for CLIENT's text expander, which shows it as one (the message
+// carries it as it is: the details box draws a name as it is); a level past a
+// byte the byte's most on the wire, the number itself in the box.
 func TestMobInfoTheNameAsShown(t *testing.T) {
 	mobInfoSwitch(t)
 	tw := newTalkWorld(t, 25403, 15725)
 	long := "Pestiferous Spider Queen of the Deep Webs Under the Ruins of Old Highpass Hold"
-	odd := tw.add(1, &entity.NPC{ServerID: 731, Name: " Maeyni Do`Traelix|+ $", Level: 300, SpawnX: 25404, SpawnY: 54, SpawnZ: 15726})
+	odd := tw.add(1, &entity.NPC{ServerID: 731, Name: " Maeyni Do`Traelix|+ 5% $", Level: 300, SpawnX: 25404, SpawnY: 54, SpawnZ: 15726})
 	queen := tw.add(2, &entity.NPC{ServerID: 732, Name: long, Level: 55, SpawnX: 25404, SpawnY: 54, SpawnZ: 15724})
 	tw.talk(odd)
-	if got := tw.taken(); len(got) != 1 || mobBox(got[0]) != "Maeyni Do`Traelix+\nLevel 300" {
+	if got := tw.taken(); len(got) != 1 || mobBox(got[0]) != "Maeyni Do`Traelix+ 5%%\nLevel 300" {
 		t.Fatalf("the box: %q", mobBoxes(got))
 	}
 	tw.s.SetMobInfo(true)
 	tw.talk(odd)
-	if got := tw.taken(); len(got) != 1 || got[0][7] != 255 || string(got[0][9:]) != "Maeyni Do`Traelix+" {
+	if got := tw.taken(); len(got) != 1 || got[0][7] != 255 || string(got[0][9:]) != "Maeyni Do`Traelix+ 5%" {
 		t.Fatalf("the message: %x", got)
 	}
 	tw.talk(queen)

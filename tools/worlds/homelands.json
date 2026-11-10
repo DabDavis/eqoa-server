@@ -1171,7 +1171,233 @@
       "from": "TUNARIA.ESF",
       "zone": 49,
       "race": 19,
-      "note": "Fairy: a faerie town: a blacksmith, druids and wizards of the game (Twisted Tower, cell 3,5)"
+      "note": "Fairy: a faerie town: a blacksmith, druids and wizards of the game (Twisted Tower, cell 3,5)",
+      "home": {
+        "flavor": "Fairies are winged fae of the Twisted Tower in the Homelands, quick to laugh and light as thistledown, who go to the humans of Qeynos.",
+        "start": {
+          "x": 7041.2,
+          "y": 113.04,
+          "z": 11613.8,
+          "toward": [
+            7041.2,
+            11620.8
+          ]
+        },
+        "mainland": {
+          "place": "Qeynos (rangers and druids Surefall Glade)",
+          "world": 0,
+          "x": 4243.7,
+          "y": 58.1,
+          "z": 17169.1,
+          "facing": 4.63
+        },
+        "npcs": [
+          {
+            "name": "Elder Moonpetal",
+            "like": 115250,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              7041.2,
+              113.37,
+              11620.8
+            ],
+            "toward": [
+              7041.2,
+              11613.8
+            ],
+            "note": "the starter quests' giver, in the middle of the faeries' valley, at Sprinkletine's spot"
+          },
+          {
+            "name": "Grocer Dewberry",
+            "like": 115265,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6975.3,
+              113.62,
+              11634.4
+            ],
+            "toward": [
+              7041.2,
+              11620.8
+            ],
+            "stock": "Grocer Appleby",
+            "note": "the faerie grocer's look, by the old forge; a Qeynos grocer's food"
+          },
+          {
+            "name": "Spiritmaster Lirelle",
+            "like": 115263,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              7101.9,
+              107.98,
+              11551.1
+            ],
+            "toward": [
+              7041.2,
+              11620.8
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Starling",
+            "like": 115272,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              7063.3,
+              110.5,
+              11470.5
+            ],
+            "toward": [
+              7041.2,
+              11620.8
+            ],
+            "note": "sends a fairy who has done the starter quests to Qeynos, its rangers and druids to Surefall Glade (The Road to Qeynos); toward the pass"
+          },
+          {
+            "name": "Tower watcher",
+            "like": 115273,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              7058.8,
+              112.63,
+              11401.2
+            ],
+            "facing": 120
+          },
+          {
+            "name": "Tower watcher",
+            "like": 115273,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              7091.1,
+              112.48,
+              11407.5
+            ],
+            "facing": 149
+          },
+          {
+            "name": "Tower watcher",
+            "like": 115273,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6839.7,
+              111.78,
+              11600.1
+            ],
+            "facing": 212
+          },
+          {
+            "name": "Tower watcher",
+            "like": 115273,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              7237.0,
+              109.75,
+              11576.7
+            ],
+            "facing": 196
+          },
+          {
+            "name": "dusk beetle",
+            "body": "0x1806DCEA",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              6810.9,
+              110.73,
+              11613.1
+            ],
+            "note": "the starter quest's beetles, at the faeries' spots in the gardens at either end of the valley"
+          },
+          {
+            "name": "dusk beetle",
+            "body": "0x1806DCEA",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              6815.0,
+              110.06,
+              11623.8
+            ]
+          },
+          {
+            "name": "dusk beetle",
+            "body": "0x1806DCEA",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              6904.4,
+              110.79,
+              11610.2
+            ]
+          },
+          {
+            "name": "dusk beetle",
+            "body": "0x1806DCEA",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              7297.3,
+              110.0,
+              11540.3
+            ]
+          },
+          {
+            "name": "dusk beetle",
+            "body": "0x1806DCEA",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              7301.6,
+              109.9,
+              11540.4
+            ]
+          },
+          {
+            "name": "dusk beetle",
+            "body": "0x1806DCEA",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              7333.5,
+              109.93,
+              11546.4
+            ]
+          }
+        ],
+        "peaceful": [
+          "dusk beetle"
+        ],
+        "lines": {
+          "Gatekeeper Starling": [
+            "Not yet, little friend. Elder Moonpetal is waiting to meet you.",
+            "Elder Moonpetal sees every new fairy first. She is in the middle of the valley, south of here."
+          ],
+          "Tower watcher": [
+            "The pass is quiet today. Good.",
+            "Mind the drakes up on the slopes, %r. They do not care how small you are.",
+            "If you are new, see Elder Moonpetal. Everyone does."
+          ],
+          "Elder Moonpetal": [
+            "Laugh often, little friend. It is the oldest magic there is.",
+            "The valley will always remember you, wherever the winds take you."
+          ]
+        }
+      }
     },
     {
       "name": "Blackburrow",

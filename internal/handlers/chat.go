@@ -74,6 +74,9 @@ type ChatHandler struct {
 	dyes     dyeStore     // #dye's (dye.go)
 	vampires vampireStore // #vampire's (vampirecmd.go)
 
+	// safe is where /testinvis keeps a player's safe mode (safemode.go)
+	safe safeModeStore
+
 	support *SupportHandler // /bug's (bugreport.go)
 
 	camps campTools // /mark's, /camp's and /path's (gmcamps.go)
@@ -252,6 +255,13 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		return nil
 	}
 
+	// /testinvis (or #testinvis; a PS2's is "/t testinvis", below): safe mode, no
+	// creature attacks on sight, everyone's (safemode.go)
+	if word, rest, _ := strings.Cut(message, " "); (strings.EqualFold(word, "/"+testInvisWord) || strings.EqualFold(word, "#"+testInvisWord)) && strings.TrimSpace(rest) == "" {
+		h.testInvisCommand(sess, player)
+		return nil
+	}
+
 	// /record [name] (or #record; a PS2's is "/t record [name]", below): a combat
 	// record, its own or any character's, everyone's (combatrecord.go)
 	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/record") || strings.EqualFold(word, "#record") {
@@ -287,6 +297,11 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		// and /stuck (entity/stuck.go)
 		if body == "" && strings.EqualFold(name, "stuck") {
 			stuckCommand(h.gameWorld, sess)
+			return nil
+		}
+		// and /testinvis, safe mode (safemode.go)
+		if strings.TrimSpace(body) == "" && strings.EqualFold(name, testInvisWord) {
+			h.testInvisCommand(sess, player)
 			return nil
 		}
 		// and the combat record: "/t record" its own, "/t record <name>" a

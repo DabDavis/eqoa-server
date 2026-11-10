@@ -747,6 +747,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharVampire(); err != nil { // vampire.go: who the sun burns
 		return err
 	}
+	if err := db.ensureCharSafeMode(); err != nil { // safemode.go: who /testinvis keeps out of the creatures' sight
+		return err
+	}
 	if err := db.ensureCharBuyBack(); err != nil { // buyback.go: what merchants sell back
 		return err
 	}

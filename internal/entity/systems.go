@@ -167,7 +167,7 @@ func (w *World) aiSystem(now time.Time) {
 			}
 			continue
 		}
-		if npc.tmpl != nil && (len(npc.tmpl.summons) > 0 || npc.tmpl.enrage != nil) {
+		if npc.tmpl != nil && (len(npc.tmpl.summons) > 0 || npc.tmpl.enrage != nil || len(npc.tmpl.selfBuffs) > 0) {
 			phased = append(phased, npc)
 		}
 
@@ -324,6 +324,7 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 		w.playerDiedLocked(sess, player, now)
 		if player.IsDead() {
 			log.Printf("Combat: player %s has died!", sess.RemoteAddr())
+			w.killSaidLocked(npc, player.Name) // its line at the kill (selfbuff.go)
 			return
 		}
 	}

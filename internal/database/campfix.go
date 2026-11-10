@@ -68,12 +68,27 @@ const (
 // CampfixStatuses are a report's statuses, as a list filters them.
 var CampfixStatuses = []string{CampfixWaiting, CampfixApplied, CampfixPartial, CampfixDeclined}
 
-// ensureCampfix makes table campfix_reports (initSchema).
+// ensureCampfix makes table campfix_reports (initSchema, OpenCampfix).
 func (db *SQLiteDB) ensureCampfix() error {
 	if _, err := db.Exec(campfixSchema); err != nil {
 		return fmt.Errorf("campfix_reports: %w", err)
 	}
 	return nil
+}
+
+// OpenCampfix opens an existing database to file camp reports beside a
+// running server (cmd/campfixfile): as OpenWorkBoard, and campfix_reports
+// made when it is missing; nothing else of the game's schema is touched.
+func OpenCampfix(path string) (*SQLiteDB, error) {
+	db, err := OpenWorkBoard(path)
+	if err != nil {
+		return nil, err
+	}
+	if err := db.ensureCampfix(); err != nil {
+		db.Close()
+		return nil, err
+	}
+	return db, nil
 }
 
 // CampfixReport is one row of campfix_reports. Marks, Near and Flags are JSON.

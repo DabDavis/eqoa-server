@@ -53,10 +53,14 @@ type campTools struct {
 	rnd *rand.Rand
 }
 
-// SetCampStore gives /mark, /camp and /path where they keep what they make.
-// Without it they answer that nothing is kept.
+// SetCampStore gives /mark, /camp and /path where they keep what they make,
+// and the players' camp reports where they are filed (campfix.go). Without it
+// they answer that nothing is kept.
 func (h *ChatHandler) SetCampStore(db *database.SQLiteDB) {
 	h.camps.db = db
+	h.campfix.mu.Lock()
+	h.campfix.db = db
+	h.campfix.mu.Unlock()
 }
 
 // markNoteMax is the most of a mark's note kept, in characters.

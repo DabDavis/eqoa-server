@@ -78,6 +78,8 @@ type ChatHandler struct {
 
 	camps campTools // /mark's, /camp's and /path's (gmcamps.go)
 
+	campfix campfixReports // the players' camp reports, /campfix's (campfix.go)
+
 	portal *Portal // the name typed for a Summoning Portal (summonportal.go)
 }
 
@@ -249,6 +251,15 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 	// everyone's (entity/stuck.go)
 	if word, _, _ := strings.Cut(message, " "); strings.EqualFold(word, "/stuck") || strings.EqualFold(word, "#stuck") {
 		stuckCommand(h.gameWorld, sess)
+		return nil
+	}
+
+	// /campfix (or #campfix; a PS2's "/t campfix"): a camp report, everyone's, and
+	// /mark, /markadd and /markremove (# and /t too) while its sender has one open
+	// (campfix.go), ahead of the GM's # commands and the tells. With none open a GM's
+	// /mark and #mark are its own (gmcamps.go, below), "/t mark bob" is a tell, and
+	// any other mark is told to open a report first.
+	if cmd, rest, tell, ok := campfixLine(message); ok && h.campfixRoute(sess, player, cmd, rest, tell) {
 		return nil
 	}
 

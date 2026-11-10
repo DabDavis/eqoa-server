@@ -756,6 +756,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCamps(); err != nil { // gmcamps.go: a GM's marks and camps from the game
 		return err
 	}
+	if err := db.ensureCampfix(); err != nil { // campfix.go: the players' camp reports
+		return err
+	}
 
 	log.Printf("SQLite schema initialized")
 	return nil

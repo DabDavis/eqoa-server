@@ -212,6 +212,12 @@ type WorldConfig struct {
 	// once a session, a few seconds after the player is in the world.
 	ReportNotice *bool `yaml:"report_notice"`
 
+	// Campfix false turns the players' camp reports off (/campfix, /mark,
+	// /markadd and /markremove: handlers/campfix.go): every one of them then
+	// answers that they are off, and a GM's own /mark (gmcamps.go) is as
+	// ever. Unset: on.
+	Campfix *bool `yaml:"campfix"`
+
 	// MoveCheck is what the server does with a player's report of its own
 	// place (its 0x40) that its moves cannot have reached: in the air with
 	// nothing under it, under the ground, through a wall, faster than its

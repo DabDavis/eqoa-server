@@ -388,6 +388,9 @@ func main() {
 	onList := false
 	for _, sh := range shards {
 		log.Printf("Server list: %q on %s:%d (recommended: %v)", sh.Name, sh.IP, sh.Port, sh.Recommended != 0)
+		if int(sh.Port) == cfg.Server.GamePort && !onList {
+			handlers.SetCampfixShard(sh.Name) // the shard a camp report's board entry names (campfix.go)
+		}
 		onList = onList || int(sh.Port) == cfg.Server.GamePort
 	}
 	if !onList {
@@ -506,6 +509,10 @@ func main() {
 
 	handlers.SetNPCText(cfg.World.NPCText)
 	handlers.SetReportNotice(cfg.World.ReportNotice == nil || *cfg.World.ReportNotice)
+	handlers.SetCampfix(cfg.World.Campfix == nil || *cfg.World.Campfix) // the players' camp reports (campfix.go)
+	if !handlers.CampfixOn() {
+		log.Printf("Camp reports: off (world.campfix false)")
+	}
 	handlers.SetMaxEntitySlots(cfg.World.MaxEntitySlots)
 	handlers.SetMaxViewDistance(cfg.World.MaxViewDistance)
 

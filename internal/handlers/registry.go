@@ -275,6 +275,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	connStatsHandler.relay = chatHandler.gmNetStats
 	if gameWorld != nil {
 		gameWorld.OnPlayerLeaving(chatHandler.gmLeft)
+		gameWorld.OnPlayerLeaving(chatHandler.campfixLeft) // a logout discards its camp report (campfix.go)
 	}
 	trainingHandler := NewTrainingHandler(sessionMgr, charStore)
 	if gameWorld != nil {

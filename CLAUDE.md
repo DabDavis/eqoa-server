@@ -1995,6 +1995,7 @@ reach the rows. An enrolment begun before a restart starts again (its secret is 
   | `workboard`, `workboard_overview` | every row deleted | what people and agents wrote each other (a note can hold a password or a token); the default overview is seeded again on open |
   | `petitions` | every row deleted | a player's own words to the staff and the staff's answers, with the account they came from |
   | `chartransfers` | every row deleted | a player's own words about a character on another server, the GMs' answers, with the account they came from |
+  | `campfix_reports` | every row deleted | a player's camp report (`/campfix`): the account and the character that sent it, its own note, the GMs' review |
   | `hotkeys` | every row deleted | the quick-chat lines a player typed; a server sends the defaults for a character with no rows |
   | `sqlite_stat3`, `sqlite_stat4` | every row deleted | samples of the indexes' keys |
   | `snapshot_info` (added) | the sanitiser's version, when, by whom, what it took out | so a copy says what it is |

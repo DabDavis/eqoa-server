@@ -661,7 +661,206 @@
       "from": "ODUS.ESF",
       "zone": 7,
       "race": 16,
-      "note": "Kappa: the kappa town of Odus: 179 kappa of the game, guards and a blacksmith (Sylhilthis' Dwell, cell 2,1)"
+      "note": "Kappa: the kappa town of Odus: 179 kappa of the game, guards and a blacksmith (Sylhilthis' Dwell, cell 2,1)",
+      "home": {
+        "flavor": "Kappa are a hardy shelled river folk of Sylhilthis' Dwell in the Homelands, whose young go down the river to the halflings of Rivervale.",
+        "start": {
+          "x": 4892.5,
+          "y": 61.2,
+          "z": 2405.7,
+          "toward": [
+            4892.5,
+            2398.7
+          ]
+        },
+        "mainland": {
+          "place": "Rivervale",
+          "world": 0,
+          "x": 18776.3,
+          "y": 62.4,
+          "z": 10959.6,
+          "facing": 0.0
+        },
+        "npcs": [
+          {
+            "name": "Elder Hoshuk",
+            "like": 129506,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              4892.5,
+              61.4,
+              2398.7
+            ],
+            "toward": [
+              4892.5,
+              2405.7
+            ],
+            "note": "the starter quests' giver, a kappa shaman, on the sand north of the Dwell"
+          },
+          {
+            "name": "Grocer Pemmi",
+            "like": 129497,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              4946.6,
+              61.2,
+              2415.5
+            ],
+            "toward": [
+              4892.5,
+              2398.7
+            ],
+            "stock": "Grocer Dinkin",
+            "note": "the Dwell's grocer on the east sand, a Rivervale grocer's food"
+          },
+          {
+            "name": "Spiritmaster Oruko",
+            "like": 129508,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              4828.2,
+              61.4,
+              2385.3
+            ],
+            "toward": [
+              4892.5,
+              2398.7
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Kabbo",
+            "like": 129512,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              4978.4,
+              74.7,
+              2488.7
+            ],
+            "toward": [
+              4892.5,
+              2398.7
+            ],
+            "note": "on the causeway: sends a young kappa who has done the starter quests to Rivervale (the quest Down the River)"
+          },
+          {
+            "name": "Dwell sentinel",
+            "like": 129463,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              4967.7,
+              60.8,
+              2403.0
+            ],
+            "facing": 64
+          },
+          {
+            "name": "Dwell sentinel",
+            "like": 129463,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              4944.6,
+              61.4,
+              2281.9
+            ],
+            "facing": 128
+          },
+          {
+            "name": "Dwell sentinel",
+            "like": 129463,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              4988.7,
+              76.5,
+              2499.1
+            ],
+            "facing": 32
+          },
+          {
+            "name": "marsh rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              5233.3,
+              54.6,
+              2768.9
+            ],
+            "note": "the starter hunt's rats (a grave rat's body), on the shore where the causeway comes in"
+          },
+          {
+            "name": "marsh rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              5068.3,
+              53.7,
+              2741.8
+            ]
+          },
+          {
+            "name": "marsh rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              5254.2,
+              55.1,
+              2733.7
+            ]
+          },
+          {
+            "name": "marsh rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              5244.7,
+              54.4,
+              2818.9
+            ]
+          },
+          {
+            "name": "marsh rat",
+            "body": "0x12098DE0",
+            "level": 1,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              5180.0,
+              54.6,
+              2780.0
+            ]
+          },
+          {
+            "name": "marsh rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              5140.0,
+              54.1,
+              2760.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "marsh rat"
+        ]
+      }
     },
     {
       "name": "Mayfly Glade",

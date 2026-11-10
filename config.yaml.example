@@ -55,6 +55,14 @@ world:
   # Off unless set.
   # jump: true
 
+  # A monster's name and level, and nothing else, when a player presses the
+  # talk button on it (square; Q on vanilla's keyboard) and it has nothing to
+  # say, or stands out of the talk's reach (handlers/mobinfo.go). Vanilla
+  # (offered it with opcode 0x7E4C) shows them in the target's details box, as
+  # a player's, while the button is held; a PS2 in a dialogue box. Off unless
+  # set (the Heirloom Test Server sets it).
+  # mob_info: true
+
   # What an NPC says when talked to, by name, in place of the debug box
   # (ServerID, HP, position...) every other NPC opens.
   npc_text:

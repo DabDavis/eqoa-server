@@ -1117,7 +1117,7 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 			return nil, line // another's duel (metalmoogie.go)
 		}
 		if t.challenge != nil && d.Charms() {
-			return nil, MetalLineCharm
+			return nil, duelLine(MetalLineCharm, t)
 		}
 		if reach := spell.Range + npcReachExtra(t); outOfRange(p, t.X, t.Y, t.Z, reach) {
 			return nil, refuseOutOfRange(p, spell, t.Name, t.X, t.Y, t.Z, reach)

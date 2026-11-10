@@ -1736,13 +1736,38 @@ func (w *World) templateLineLocked(npc *NPC, now time.Time) string {
 			what = fmt.Sprintf("%s (level %d, %v cast)", s.Name, s.Level, a.castTime(s))
 		}
 		line := fmt.Sprintf("%s %s %s at %d%%", a.Kind, what, when, a.DamageOr())
+		if a.Damage > 0 {
+			line = fmt.Sprintf("%s %s %s for a fixed %d", a.Kind, what, when, npc.shared(a.Damage))
+		}
 		if a.Kind == database.AbilityHeal && a.HealPct > 0 && s != nil {
 			line = fmt.Sprintf("heal %s (%v cast) of %d%% of its hit points below %d%% %s", s.Name, a.castTime(s), a.HealPct, a.BelowOr(), when)
 		}
+		if a.OutOfReach {
+			line += fmt.Sprintf(", only out of its reach within %g", a.RangeOr())
+		}
 		parts = append(parts, line+abilityTimesWords(npc, a, now)) // abilitytimes.go
 	}
+	if t.hitHeal > 0 {
+		parts = append(parts, fmt.Sprintf("heals %d at every hit that lands on it", npc.shared(t.hitHeal))) // hitheal.go
+	}
+	if w := preferWords(t); w != "" {
+		parts = append(parts, w) // prefer.go
+	}
+	if npc.add == nil {
+		for i := range t.summons {
+			s := &t.summons[i]
+			parts = append(parts, fmt.Sprintf("summon below %d%%: %d %s, %s", s.Below, s.Count, s.NPC, shareWords(s.Share, npc))) // summon.go
+		}
+		if w := enrageWords(npc); w != "" {
+			parts = append(parts, w) // enrage.go
+		}
+	}
+	parts = append(parts, procsWords(npc)...) // creatureproc.go
 	if fp := npc.fightProcNow(); fp != nil {
 		parts = append(parts, fmt.Sprintf("%s on for this fight: %d%% of its melee hits %d more", fp.name, fp.chance, fp.damage))
+	}
+	if w := addWords(npc); w != "" {
+		parts = append(parts, w) // summon.go
 	}
 	return strings.Join(parts, "; ")
 }

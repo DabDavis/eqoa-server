@@ -923,7 +923,8 @@ func (w *World) killNPC(npc *NPC) {
 	w.wakeNPCLocked(npc) // a corpse, and its fight to put away (npcsets.go)
 
 	log.Printf("Combat: NPC '%s' killed (entity ID=%d)", npc.Name, npc.ServerID)
-	w.companionsDieLocked(npc, npc.DeathTime) // its own pets go with it (companion.go)
+	w.companionsDieLocked(npc, npc.DeathTime) // its own pets die with it (companion.go)
+	w.addsDieLocked(npc, npc.DeathTime)       // and the adds its summons called (summon.go)
 }
 
 // updateAggro adds or updates threat on an NPC: a hit or another hostile act

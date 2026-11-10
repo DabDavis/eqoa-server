@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"strings"
 	"time"
 
 	"github.com/eqoa/server/internal/session"
@@ -49,9 +50,22 @@ import (
 //   - when the challenger flees: another world, or past MetalArenaRadius of the arena's centre
 //     (halfway between where he rose and where the challenger stood); after MetalMaxTime; at the
 //     challenger's logout or a new login: he leaves the world, the challenger told why.
+//
+// Metal Moogie V2 (the GM Jibrish's petition 1441: "if a player has a token from defeating metal moogie
+// that can instead choose to use it to summon Metal Moogie V2 who is 20% bigger and has all his stats
+// and damaged tuned upward by 10%") is the same challenge of another original, the spawn-only NPC of his
+// name, asked of Mr. Moogie with a Moogie Tribute (handlers' moogie.go takes it once he stands): every
+// rule above is his, one duel of the two at a time on the whole server, his lines Metal Moogie's with his
+// name (duelLine). His size and figures are his row's and template's, data (Metal Moogie's at 1.2 and
+// 1.1, and a ranged attack of his own: petition 1442); his corpse gives his own items as Metal Moogie's
+// does (the data's: one Moogie Tribute, as his).
 
-// MetalMoogieName is his name: the spawn-only NPC of it is the original copied.
-const MetalMoogieName = "Metal Moogie"
+// MetalMoogieName is his name: the spawn-only NPC of it is the original copied; MetalMoogieV2Name his
+// remade twin's (petition 1441).
+const (
+	MetalMoogieName   = "Metal Moogie"
+	MetalMoogieV2Name = "Metal Moogie V2"
+)
 
 // The challenge's numbers (ours).
 const (
@@ -76,6 +90,7 @@ const (
 // The challenge's words (ours), Mr. Moogie's in his voice ("I am king of this jungle").
 const (
 	MetalLineRises   = "Mr. Moogie says, 'So, %s, you would prove your worth? Face my metal twin, and you alone!'"
+	MetalLineRisesV2 = "Mr. Moogie says, 'Your tribute buys a greater trial, %s: face my metal twin remade, and you alone!'"
 	MetalLineBusy    = "Mr. Moogie says, 'My metal twin is already dueling %s. One challenger at a time.'"
 	MetalLineMine    = "Mr. Moogie says, 'You are already dueling my metal twin. Finish what you started.'"
 	MetalLineAbsent  = "Mr. Moogie says, 'My metal twin is not here today.'"
@@ -102,10 +117,11 @@ type npcChallenge struct {
 	name   string
 }
 
-// metalDuel is the Metal Moogie standing: his NPC, the Mr. Moogie who sent him, the arena's centre and
-// world, and when it began.
+// metalDuel is the Metal Moogie standing: his NPC and its name, the Mr. Moogie who sent him, the arena's
+// centre and world, and when it began.
 type metalDuel struct {
 	npc     EntityID
+	name    string
 	moogie  EntityID
 	c       *npcChallenge
 	world   uint8
@@ -116,7 +132,13 @@ type metalDuel struct {
 // metalOriginalLocked is the spawn-only NPC of his name, nil when the server has none. Must be called
 // with the lock held.
 func (w *World) metalOriginalLocked() *NPC {
-	t := w.npcByNameLocked(MetalMoogieName)
+	return w.metalOriginalOfLocked(MetalMoogieName)
+}
+
+// metalOriginalOfLocked is the spawn-only NPC of the name (Metal Moogie's or V2's), nil for none. Must be
+// called with the lock held.
+func (w *World) metalOriginalOfLocked(name string) *NPC {
+	t := w.npcByNameLocked(name)
 	if t == nil || !t.SpawnOnly {
 		return nil
 	}
@@ -130,10 +152,47 @@ func (w *World) MetalMoogieHere() bool {
 	return w.metalOriginalLocked() != nil
 }
 
+// MetalMoogieV2Here reports whether Mr. Moogie can send his metal twin remade for a tribute: the
+// spawn-only original of Metal Moogie V2 is there (petition 1441).
+func (w *World) MetalMoogieV2Here() bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.metalOriginalOfLocked(MetalMoogieV2Name) != nil
+}
+
+// duelLine is one of the challenge's lines that names Metal Moogie, naming npc instead when it is another
+// (Metal Moogie V2: "Metal Moogie V2 duels Anna alone."); its first "Metal Moogie" alone, so Mr. Moogie
+// stays himself.
+func duelLine(line string, npc *NPC) string {
+	if npc == nil || strings.EqualFold(npc.Name, MetalMoogieName) {
+		return line
+	}
+	return strings.Replace(line, MetalMoogieName, npc.Name, 1)
+}
+
+// line is duelLine for the duel standing, by its NPC's name.
+func (d *metalDuel) line(line string) string {
+	if d == nil || d.name == "" || strings.EqualFold(d.name, MetalMoogieName) {
+		return line
+	}
+	return strings.Replace(line, MetalMoogieName, d.name, 1)
+}
+
 // MetalMoogieChallenge is sess's player asking Mr. Moogie (moogie, his NPC) to prove its worth: a Metal
 // Moogie rises and goes for it, the duel the file's doc's. It returns Mr. Moogie's answer, and whether
 // one rose.
 func (w *World) MetalMoogieChallenge(sess *session.Session, moogie EntityID, now time.Time) (string, bool) {
+	return w.metalChallenge(sess, moogie, MetalMoogieName, MetalLineRises, now)
+}
+
+// MetalMoogieV2Challenge is MetalMoogieChallenge of Metal Moogie V2, for a tribute the caller takes once
+// he stands (petition 1441, handlers' moogie.go).
+func (w *World) MetalMoogieV2Challenge(sess *session.Session, moogie EntityID, now time.Time) (string, bool) {
+	return w.metalChallenge(sess, moogie, MetalMoogieV2Name, MetalLineRisesV2, now)
+}
+
+// metalChallenge is a challenge of the spawn-only original of the name, risen with that line.
+func (w *World) metalChallenge(sess *session.Session, moogie EntityID, name, rises string, now time.Time) (string, bool) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
@@ -147,7 +206,7 @@ func (w *World) MetalMoogieChallenge(sess *session.Session, moogie EntityID, now
 		return fmt.Sprintf(MetalLineBusy, d.c.name), false
 	}
 	m := w.NPCs[moogie]
-	t := w.metalOriginalLocked()
+	t := w.metalOriginalOfLocked(name)
 	if m == nil || m.Dead || t == nil {
 		return MetalLineAbsent, false
 	}
@@ -173,11 +232,24 @@ func (w *World) MetalMoogieChallenge(sess *session.Session, moogie EntityID, now
 	c.NPCType &^= 0x80 // the challenger's to fight
 	c.EventAggro = false
 	w.addThreatLocked(c, p.ServerID, 1) // he goes for the challenger at once
-	w.metal = &metalDuel{npc: c.ServerID, moogie: m.ServerID, c: ch, world: m.World,
+	w.metal = &metalDuel{npc: c.ServerID, name: c.Name, moogie: m.ServerID, c: ch, world: m.World,
 		x: (x + p.X) / 2, y: (y + p.Y) / 2, z: (z + p.Z) / 2, began: now}
-	log.Printf("Metal Moogie: %s challenges Mr. Moogie: Metal Moogie (%d, level %d, %d HP, template %q) rises at (%.1f, %.1f, %.1f)",
-		p.Name, c.ServerID, c.Level, c.MaxHP, c.TemplateName(), x, y, z)
-	return fmt.Sprintf(MetalLineRises, p.Name), true
+	log.Printf("Metal Moogie: %s challenges Mr. Moogie: %s (%d, level %d, %d HP, size %.2f, template %q) rises at (%.1f, %.1f, %.1f)",
+		p.Name, c.Name, c.ServerID, c.Level, c.MaxHP, c.Size, c.TemplateName(), x, y, z)
+	return fmt.Sprintf(rises, p.Name), true
+}
+
+// EndMetalDuelOf ends the duel of sess's player now, its Metal Moogie out of the world (a tribute that
+// could not be taken: handlers' moogie.go). It reports whether one was on.
+func (w *World) EndMetalDuelOf(sess *session.Session, how string) bool {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil || !w.metalDuelOfLocked(p.ServerID) {
+		return false
+	}
+	w.endMetalLocked(how, time.Now())
+	return true
 }
 
 // MetalDuelOf reports whether the session's player is dueling a Metal Moogie now.
@@ -205,7 +277,7 @@ func challengeRefusal(npc *NPC, id EntityID) string {
 	if !challengeBars(npc, id) {
 		return ""
 	}
-	return fmt.Sprintf(MetalLineNotYour, npc.challenge.name)
+	return fmt.Sprintf(duelLine(MetalLineNotYour, npc), npc.challenge.name)
 }
 
 // tellChallengeLocked tells p, barred from npc, so in a line: at most one every MetalTellEvery. Must be
@@ -245,7 +317,7 @@ func (w *World) MetalMoogieTalk(npc *NPC) (string, bool) {
 	if npc == nil || npc.Dead || npc.challenge == nil {
 		return "", false
 	}
-	return fmt.Sprintf(MetalLineTalk, npc.challenge.name), true
+	return fmt.Sprintf(duelLine(MetalLineTalk, npc), npc.challenge.name), true
 }
 
 // ChallengeLooter reports a Metal Moogie's corpse: whether npc is one, whether the session's character
@@ -260,7 +332,7 @@ func (w *World) ChallengeLooter(sess *session.Session, npc *NPC) (duel, mine boo
 	if p != nil && p.CharServerID == npc.challenge.char {
 		return true, true, ""
 	}
-	return true, false, fmt.Sprintf(MetalLineLoot, npc.challenge.name)
+	return true, false, fmt.Sprintf(duelLine(MetalLineLoot, npc), npc.challenge.name)
 }
 
 // DuelSpawn reports a Metal Moogie (or his corpse): a duel's, whose corpse gives his own items alone (no
@@ -285,7 +357,7 @@ func (w *World) challengeDefeatLocked(sess *session.Session, p *Player, now time
 	p.StatsDirty = true
 	p.metalSpared = now.Add(metalSpareFor)
 	if sess != nil {
-		w.sendColoredLocked(sess, MetalLineLost, duelOrange)
+		w.sendColoredLocked(sess, d.line(MetalLineLost), duelOrange)
 	}
 	w.endMetalLocked("defeated", now)
 	w.moogieSayLocked(d, fmt.Sprintf(MetalSayPathetic, p.Name))
@@ -315,7 +387,7 @@ func (w *World) endMetalLocked(how string, now time.Time) {
 	if npc := w.NPCs[d.npc]; npc != nil && npc.challenge == d.c && !npc.Dead {
 		w.removeNPCLocked(npc)
 	}
-	log.Printf("Metal Moogie: %s's duel ends (%s) after %v", d.c.name, how, now.Sub(d.began).Round(time.Second))
+	log.Printf("Metal Moogie: %s's duel with %s ends (%s) after %v", d.c.name, d.name, how, now.Sub(d.began).Round(time.Second))
 }
 
 // metalMoogieSystem keeps the Metal Moogie standing to his duel: it ends at his death (won), the
@@ -341,21 +413,21 @@ func (w *World) metalMoogieSystem(now time.Time) {
 	if npc.Dead {
 		w.endMetalLocked("won", now)
 		if sess != nil {
-			w.sendColoredLocked(sess, MetalLineWon, duelOrange)
+			w.sendColoredLocked(sess, d.line(MetalLineWon), duelOrange)
 		}
 		return
 	}
 	if p.World != d.world || dist3(p.X, p.Y, p.Z, d.x, d.y, d.z) > MetalArenaRadius {
 		w.endMetalLocked("fled", now)
 		if sess != nil {
-			w.sendColoredLocked(sess, MetalLineFled, duelOrange)
+			w.sendColoredLocked(sess, d.line(MetalLineFled), duelOrange)
 		}
 		return
 	}
 	if now.Sub(d.began) >= MetalMaxTime {
 		w.endMetalLocked("time", now)
 		if sess != nil {
-			w.sendColoredLocked(sess, MetalLineTime, duelOrange)
+			w.sendColoredLocked(sess, d.line(MetalLineTime), duelOrange)
 		}
 		return
 	}

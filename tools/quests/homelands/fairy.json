@@ -1,0 +1,176 @@
+{
+  "race": "fairy",
+  "home": "Twisted Tower",
+  "city": "Qeynos (rangers and druids Surefall Glade)",
+  "note": "The valley's people are tools/worlds/homelands.json's (Twisted Tower): Elder Moonpetal in the middle of the valley gives the first two, Warden Larkspur a few steps east of her the three hunts; Petalweaver Lissa, just west of the elder, is the outfitter; Coachman Tumbleseed keeps the stable on the grass to the north-west (his coach runs to Freeport and to the other homes); the dusk beetles (the west end of the valley), the valley ravens (the trees to the east) and the young drake Cindersnap (alone at the far east end) are placed for these quests.",
+  "L1": {
+    "name": "A Fairy's Moonpetal Bracelet",
+    "giver": "Elder Moonpetal",
+    "offer": [
+      "There you are, little friend! New wings, and already you want to be off, I can tell. Not yet. First you must have your moonpetal bracelet, as every fairy of the valley has.",
+      "Petalweaver Lissa braids them from the flowers that open at moonrise. She is just west of here.",
+      "Will you fetch your bracelet and show it to me?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "Then dance a while first. The petals keep.",
+    "started": "Just to the west, little friend. You will smell the flowers before you see her.",
+    "merchant": "Petalweaver Lissa",
+    "piece": {
+      "name": "moonpetal bracelet",
+      "description": "A bracelet braided from the pale flowers that open at moonrise in the valley of the Twisted Tower. They do not wilt.",
+      "like": "Carved Bracelet",
+      "set": {
+        "POWMAX": 5
+      }
+    },
+    "fetch": {
+      "journal": "Ask Petalweaver Lissa, just west of Elder Moonpetal, for a moonpetal bracelet.",
+      "says": "Moonpetal sent you? Hold out your wrist. Three petals, braided thrice, and a laugh to seal it. There! A gift, little friend. They always are."
+    },
+    "show": {
+      "journal": "Show the moonpetal bracelet to Elder Moonpetal.",
+      "says": "Oh, it suits you! Wherever you go now, a little of the valley goes with you."
+    }
+  },
+  "L2": {
+    "name": "Bound to the Valley",
+    "giver": "Elder Moonpetal",
+    "offer": [
+      "The winds beyond the cliffs are rough with small wings, little friend. Have Spiritmaster Lirelle bind your spirit to the valley, so that you wake here if they throw you down.",
+      "Then give your name to Coachman Tumbleseed for his ledger. His coach runs to Freeport and to the other homes of the Homelands, for those their stables know.",
+      "Will you see them both and come back to me?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "Then stay under the trees, where the wind is kind.",
+    "started": "Lirelle is to the north-east, among the trees. Tumbleseed waits on the grass to the north-west.",
+    "spiritmaster": "Spiritmaster Lirelle",
+    "coachman": "Coachman Tumbleseed",
+    "bind": {
+      "journal": "Have Spiritmaster Lirelle, north-east of the elder, bind your spirit to the valley.",
+      "says": "It is done, and it did not even tickle. Should the winds throw you down, you will wake here. Now off to Coachman Tumbleseed with you."
+    },
+    "ledger": {
+      "journal": "Give your name to Coachman Tumbleseed, north-west of the elder, for his ledger.",
+      "says": "A new name! I do like a new name. My coach runs to Freeport and to every other home of the Homelands, for travelers whose names their ledgers hold. Yours is in mine now."
+    },
+    "back": {
+      "journal": "Return to Elder Moonpetal.",
+      "says": [
+        "Good, good. Now the valley can always call you home.",
+        "Tumbleseed's coach will carry you to Freeport if its ledger knows you, but the road to Qeynos is earned. Warden Larkspur, beside me, has work for you."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Beetles at Dusk",
+    "giver": "Warden Larkspur",
+    "offer": [
+      "The new one! Splendid. The dusk beetles are out at the west end of the valley again, chewing the moonpetals down to the root. No petals, no bracelets, no laughing.",
+      "Bring me three of their eyes, and I will teach you something worth knowing.",
+      "Will you hunt them?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "Then Lissa will have words for both of us.",
+    "started": "Three eyes. West, as far as the valley goes. They glow, so you cannot miss them.",
+    "target": "dusk beetle",
+    "count": 3,
+    "drop": {
+      "name": "dusk beetle eye",
+      "description": "The faintly glowing eye of a dusk beetle from the west end of the valley.",
+      "like": "Giant Beetle Eye"
+    },
+    "hunt": {
+      "journal": "Take three dusk beetle eyes from the dusk beetles at the west end of the valley."
+    },
+    "give": {
+      "journal": "Bring three dusk beetle eyes to Warden Larkspur.",
+      "says": "Three eyes, still glowing! The petals thank you. Now watch closely, little friend, and learn this."
+    }
+  },
+  "L4": {
+    "name": "A Fairy's Arms",
+    "giver": "Warden Larkspur",
+    "offer": [
+      "Laughter is the oldest magic, but it does not stop a wolf. I will make you proper gear, if you fetch what I need.",
+      "Petalweaver Lissa has a leather strip and a shaft put by for me. Then bring a tail feather from the valley ravens in the trees to the east.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then laugh very loudly, and fly very fast.",
+    "started": "Leather and a shaft from Lissa, a feather from the ravens. Off you go!",
+    "materials": [
+      {
+        "merchant": "Petalweaver Lissa",
+        "items": [
+          "leather strip",
+          "wooden shaft"
+        ],
+        "journal": "Ask Petalweaver Lissa for the leather strip and the wooden shaft.",
+        "says": "For Larkspur? Here they are: a strip of leather and a good straight shaft. Tell him the ravens have been at my thread again."
+      }
+    ],
+    "target": "valley raven",
+    "count": 1,
+    "drop": {
+      "name": "valley raven feather",
+      "description": "A glossy black tail feather from a raven of the valley of the Twisted Tower.",
+      "like": "Raven's Tail Feather"
+    },
+    "hunt": {
+      "journal": "Take a valley raven feather from the valley ravens in the trees east of the elder."
+    },
+    "give": {
+      "journal": "Bring the leather strip, the wooden shaft and the valley raven feather to Warden Larkspur.",
+      "says": "All three! The feather for balance, the leather to bind... there. It is yours, little friend. It will fly true."
+    }
+  },
+  "L5": {
+    "name": "Cindersnap",
+    "giver": "Warden Larkspur",
+    "offer": [
+      "One thing more, and it is no laughing matter. A young drake has come down off the slopes and made its den at the far east end of the valley. We call it Cindersnap. It has scorched two of our watchers.",
+      "It is small for a drake, which is still large for us. Strike first. Bring me one of its scales, and I will teach you the last thing I have for a new fairy.",
+      "Will you hunt Cindersnap?"
+    ],
+    "accept": "I will hunt it.",
+    "decline": "Not yet.",
+    "declined": "It will only grow, little friend. Drakes do.",
+    "started": "East, past the ravens, where the valley ends. Keep out from under its jaws.",
+    "target": "Cindersnap",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "Cindersnap's scale",
+      "description": "A warm, ember-coloured scale from the young drake Cindersnap.",
+      "like": "basilisk scale"
+    },
+    "hunt": {
+      "journal": "Take Cindersnap's scale from the young drake Cindersnap at the far east end of the valley."
+    },
+    "give": {
+      "journal": "Bring Cindersnap's scale to Warden Larkspur.",
+      "says": [
+        "Cindersnap's own scale, and still warm! The watchers will cheer you. You are a new fairy no longer.",
+        "Learn this, and see Gatekeeper Starling by the north pass when you are ready for Qeynos."
+      ]
+    }
+  },
+  "flight": {
+    "name": "The Road to Qeynos",
+    "giver": "Gatekeeper Starling",
+    "offer": [
+      "The humans of Qeynos and the rangers of Surefall Glade are kind to fairies, and they will teach you all they know. Larkspur says you are ready.",
+      "You have earned the road, little friend. I will set you down among your own guild there, and your spirit will rest there.",
+      "Shall I send you to the humans?"
+    ],
+    "accept": "Send me to the humans.",
+    "decline": "Not yet.",
+    "declined": "The humans will wait. They are slower than we are.",
+    "started": "Fly true, little friend!",
+    "journal": "Tell Gatekeeper Starling when you are ready to go to the humans of Qeynos."
+  }
+}

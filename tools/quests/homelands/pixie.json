@@ -1,0 +1,176 @@
+{
+  "race": "pixie",
+  "home": "Misty Thicket",
+  "city": "Tethelin and Fayspire",
+  "note": "The thicket's people are tools/worlds/homelands.json's (Misty Thicket): Elder Brightwing under the tall pines gives the first two, Huntress Thistledown a few steps north of her the three hunts; Spinner Gossamer, a few steps south-east, is the outfitter; Coachman Fernwick keeps the stable on open ground farther south-east (his coach runs to Freeport and to the other homes); the bramble rats (the brambles to the south-west), the thicket beetles (the low ground to the east) and the hornet Redsting (alone, far to the south) are placed for these quests.",
+  "L1": {
+    "name": "A Spark's Dewdrop Ring",
+    "giver": "Elder Brightwing",
+    "offer": [
+      "Oh! A new little spark, and your wings hardly dry. Welcome, welcome. Now, every pixie of the thicket wears a dewdrop ring, so the mist knows us and lets us through.",
+      "Spinner Gossamer catches the dew for them at first light. She is a few wingbeats south-east of here.",
+      "Will you fetch your ring and show it to me?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "As you like, little spark. The dew comes every morning.",
+    "started": "Off you flit! South-east, just past the pines.",
+    "merchant": "Spinner Gossamer",
+    "piece": {
+      "name": "dewdrop ring",
+      "description": "A ring of spider silk holding one drop of morning dew that never dries. Every pixie of the Misty Thicket wears one.",
+      "like": "Chipped Ring",
+      "set": {
+        "POWMAX": 5
+      }
+    },
+    "fetch": {
+      "journal": "Ask Spinner Gossamer, a few steps south-east of Elder Brightwing, for a dewdrop ring.",
+      "says": "A new spark! Hold out a finger. One twist of silk, one drop of first dew. There! It will never dry. No charge, the dew is free."
+    },
+    "show": {
+      "journal": "Show the dewdrop ring to Elder Brightwing.",
+      "says": "How it shines! Now the mist will part for you, little spark, as it does for all of us."
+    }
+  },
+  "L2": {
+    "name": "Bound to the Thicket",
+    "giver": "Elder Brightwing",
+    "offer": [
+      "The world beyond the mist is full of nets and jars, little spark. Have Spiritmaster Glimmerdew bind your spirit to the thicket, so that you wake here if you fall.",
+      "Then give your name to Coachman Fernwick for his ledger. His coach runs to Freeport and to the other homes of the Homelands, for those their stables know.",
+      "Will you see them both and come back to me?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "Then fly high, and keep away from jars.",
+    "started": "Glimmerdew is off to the west, among the far pines. Fernwick waits to the south-east, past Gossamer.",
+    "spiritmaster": "Spiritmaster Glimmerdew",
+    "coachman": "Coachman Fernwick",
+    "bind": {
+      "journal": "Have Spiritmaster Glimmerdew, among the pines to the west, bind your spirit to the thicket.",
+      "says": "Done, and gently. Should you fall, the mist will carry you back to me. Now flit along to Coachman Fernwick."
+    },
+    "ledger": {
+      "journal": "Give your name to Coachman Fernwick, south-east of the elder, for his ledger.",
+      "says": "In the ledger you go, small as you are! My coach runs to Freeport and to every other home of the Homelands, for travelers whose names their ledgers hold. Yours is in mine now."
+    },
+    "back": {
+      "journal": "Return to Elder Brightwing.",
+      "says": [
+        "Lovely. Now the thicket can always find you, and you it.",
+        "Fernwick's coach will carry you to Freeport if its ledger knows you, but the way to the elves is earned. Huntress Thistledown, just north of me, has work for you."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Rats in the Brambles",
+    "giver": "Huntress Thistledown",
+    "offer": [
+      "The new spark! Good. The bramble rats are gnawing the berry canes to the south-west again, and a rat is a great beast to a pixie. Time you learned that it bleeds.",
+      "Bring me three of their tails, and I will teach you something worth the scratches.",
+      "Will you hunt them?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "Then no berries this year, and you may tell the elder why.",
+    "started": "Three tails. South-west, where the brambles grow thick. Go for the eyes.",
+    "target": "bramble rat",
+    "count": 3,
+    "drop": {
+      "name": "bramble rat tail",
+      "description": "The tail of a bramble rat from the brambles south-west of the pines.",
+      "like": "Rat Tail Tip"
+    },
+    "hunt": {
+      "journal": "Take three bramble rat tails from the bramble rats in the brambles south-west of the pines."
+    },
+    "give": {
+      "journal": "Bring three bramble rat tails to Huntress Thistledown.",
+      "says": "Three tails, each one longer than you are! Well flown. Now watch my hands, little spark, and learn this."
+    }
+  },
+  "L4": {
+    "name": "A Spark's Arms",
+    "giver": "Huntress Thistledown",
+    "offer": [
+      "The elves will not send you out with only your sparkle. I will make you proper gear, if you bring me what I need.",
+      "Spinner Gossamer has a leather strip and a shaft put by for me. Then take a shell from the thicket beetles on the low ground to the east.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then sparkle hard, and hope it is enough.",
+    "started": "Leather and a shaft from Gossamer, a shell from the beetles. Quick as you can!",
+    "materials": [
+      {
+        "merchant": "Spinner Gossamer",
+        "items": [
+          "leather strip",
+          "wooden shaft"
+        ],
+        "journal": "Ask Spinner Gossamer for the leather strip and the wooden shaft.",
+        "says": "For Thistledown? Here: a strip of leather and a shaft, both far too big for either of us. Tell her to mind the canes."
+      }
+    ],
+    "target": "thicket beetle",
+    "count": 1,
+    "drop": {
+      "name": "thicket beetle shell",
+      "description": "The glossy shell of a thicket beetle from the low ground east of the pines.",
+      "like": "beetle carapace"
+    },
+    "hunt": {
+      "journal": "Take a thicket beetle shell from the thicket beetles on the low ground east of the pines."
+    },
+    "give": {
+      "journal": "Bring the leather strip, the wooden shaft and the thicket beetle shell to Huntress Thistledown.",
+      "says": "All three! A pinch of dust, a twist... there. It will grow to fit your hand. It is yours, little spark."
+    }
+  },
+  "L5": {
+    "name": "Redsting",
+    "giver": "Huntress Thistledown",
+    "offer": [
+      "One hunt more before the elves have you. A great red hornet we call Redsting hunts the woods far to the south. She has carried off two of our scouts, wings and all.",
+      "She is faster than you and she knows it, so strike first and do not stop. Bring me her stinger, and I will teach you the last thing I have for a spark.",
+      "Will you hunt Redsting?"
+    ],
+    "accept": "I will hunt her.",
+    "decline": "Not yet.",
+    "declined": "She will not grow slower while you wait.",
+    "started": "South, a long flight through the trees. Listen for the buzzing.",
+    "target": "Redsting",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "Redsting's stinger",
+      "description": "The barbed red stinger of the hornet Redsting, as long as a pixie's arm.",
+      "like": "Zapper Stinger"
+    },
+    "hunt": {
+      "journal": "Take Redsting's stinger from the hornet Redsting in the woods far south of the pines."
+    },
+    "give": {
+      "journal": "Bring Redsting's stinger to Huntress Thistledown.",
+      "says": [
+        "Redsting's own stinger! The scouts will fly south again. You are a little spark no longer. Well, a little one still.",
+        "Learn this, and see Gatekeeper Thistlewhirl to the east when you are ready for the elves."
+      ]
+    }
+  },
+  "flight": {
+    "name": "The Elves' Wood",
+    "giver": "Gatekeeper Thistlewhirl",
+    "offer": [
+      "The elves of Tethelin and the Fayspires have always welcomed our kind, and they will teach you as their own. Thistledown says you are ready.",
+      "You have earned the flight, little spark. I will set you down among your own guild in the elves' wood, and your spirit will rest there.",
+      "Shall I send you to the elves?"
+    ],
+    "accept": "Send me to the elves.",
+    "decline": "Not yet.",
+    "declined": "The elves are patient. They live a long time.",
+    "started": "Fly well, little spark!",
+    "journal": "Tell Gatekeeper Thistlewhirl when you are ready to go to the elves."
+  }
+}

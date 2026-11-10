@@ -1,0 +1,176 @@
+{
+  "race": "orc",
+  "home": "Thedruk",
+  "city": "Halas",
+  "note": "Thedruk's people are tools/worlds/homelands.json's (Thedruk): Elder Gorruk among the totems gives the first two, Warleader Krugg beside him the three hunts; Hidecutter Marga, south-west of the elder, is the outfitter; Coachman Dursh keeps the stable on open ground to the south (his coach runs to Freeport and to the other homes); the camp rats (the grass to the west, beyond the bare hill), the rock spiders (the rocks to the north) and the bear Old Scarback (alone on the slope far to the south) are placed for these quests.",
+  "L1": {
+    "name": "A Whelp's War Band",
+    "giver": "Elder Gorruk",
+    "offer": [
+      "Hm. A whelp. Stand up. Straighter. Good. You have a spine, at least. But you wear nothing of Thedruk, and the sentries crack the skulls of strangers.",
+      "Every whelp wears the war band on its arm. Hidecutter Marga makes them, south-west of the totems.",
+      "Will you fetch your war band and show it to me?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "Then stand there and be useless. It is your skull.",
+    "started": "South-west of the totems. Marga. Do not waste her time.",
+    "merchant": "Hidecutter Marga",
+    "piece": {
+      "name": "Thedruk war band",
+      "description": "A band of boiled hide, branded with the camp's mark. Every whelp of Thedruk wears one on its arm.",
+      "like": "Tattered Bracers",
+      "set": {
+        "AC": 4
+      }
+    },
+    "fetch": {
+      "journal": "Ask Hidecutter Marga, south-west of Elder Gorruk, for a Thedruk war band.",
+      "says": "Gorruk's whelp? Arm. Boiled hide, the camp's brand, burned in deep. There. It costs nothing. Lose it and it costs you teeth."
+    },
+    "show": {
+      "journal": "Show the Thedruk war band to Elder Gorruk.",
+      "says": "Good. Now you wear the camp's mark. Dishonour it and I will take it back myself, arm and all."
+    }
+  },
+  "L2": {
+    "name": "Bound to Thedruk",
+    "giver": "Elder Gorruk",
+    "offer": [
+      "An orc who dies far from camp dies for nothing. Have Spiritmaster Urzog bind your spirit to Thedruk, so that you wake here and fight again.",
+      "Then give your name to Coachman Dursh for his ledger. His coach runs to Freeport and to the other homes of the Homelands, for those their stables know.",
+      "Will you see them both and come back to me?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "Then die close to camp, whelp. It saves us the walk.",
+    "started": "Urzog is to the north-west. Dursh keeps his coach on the open ground south of here.",
+    "spiritmaster": "Spiritmaster Urzog",
+    "coachman": "Coachman Dursh",
+    "bind": {
+      "journal": "Have Spiritmaster Urzog, north-west of the elder, bind your spirit to Thedruk.",
+      "says": "Done. Die where you like, whelp. You wake here, and you fight again. Now go and give Coachman Dursh your name."
+    },
+    "ledger": {
+      "journal": "Give your name to Coachman Dursh, south of the elder, for his ledger.",
+      "says": "A whelp for the ledger. My coach runs to Freeport and to every other home of the Homelands, for travelers whose names their ledgers hold. Yours is in mine now."
+    },
+    "back": {
+      "journal": "Return to Elder Gorruk.",
+      "says": [
+        "Good. Now you cannot be lost, and you cannot stay dead. An orc needs little more.",
+        "Dursh's coach will carry you to Freeport if its ledger knows you, but the road to Halas is earned. Warleader Krugg, beside me, has work for you."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Rats in the Grain",
+    "giver": "Warleader Krugg",
+    "offer": [
+      "You. Whelp. The camp rats are breeding in the grass to the west, beyond the bare hill, and at night they come for our grain. It is no work for a warrior. So it is yours.",
+      "Bring me three tails. Then I will teach you something a warrior needs.",
+      "Will you kill them?"
+    ],
+    "accept": "I will kill them.",
+    "decline": "Not now.",
+    "declined": "Too proud for rats? You have earned no pride yet.",
+    "started": "Three tails. West, past the bare hill. Go.",
+    "target": "camp rat",
+    "count": 3,
+    "drop": {
+      "name": "camp rat tail",
+      "description": "The tail of a camp rat from the grass west of Thedruk.",
+      "like": "Rat Tail Tip"
+    },
+    "hunt": {
+      "journal": "Take three camp rat tails from the camp rats in the grass west of the camp, beyond the bare hill."
+    },
+    "give": {
+      "journal": "Bring three camp rat tails to Warleader Krugg.",
+      "says": "Three tails. You did not complain. Good. Now watch, whelp, and learn this."
+    }
+  },
+  "L4": {
+    "name": "A Whelp's Arms",
+    "giver": "Warleader Krugg",
+    "offer": [
+      "The barbarians of Halas laugh at an orc with empty hands. I will make you proper gear. You will fetch what I need.",
+      "Hidecutter Marga has a leather strip and a shaft for me. Then tear a leg off one of the rock spiders among the rocks north of the camp.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then fight with your fists, and lose.",
+    "started": "Leather and a shaft from Marga. A leg from the spiders. Move.",
+    "materials": [
+      {
+        "merchant": "Hidecutter Marga",
+        "items": [
+          "leather strip",
+          "wooden shaft"
+        ],
+        "journal": "Ask Hidecutter Marga for the leather strip and the wooden shaft.",
+        "says": "For Krugg. Here. A strip of hide and a shaft, straight as I could find. Tell him he pays in meat this time."
+      }
+    ],
+    "target": "rock spider",
+    "count": 1,
+    "drop": {
+      "name": "rock spider leg",
+      "description": "The hard, jointed leg of a rock spider from the rocks north of Thedruk.",
+      "like": "Spider Leg Tip"
+    },
+    "hunt": {
+      "journal": "Take a rock spider leg from the rock spiders among the rocks north of the camp."
+    },
+    "give": {
+      "journal": "Bring the leather strip, the wooden shaft and the rock spider leg to Warleader Krugg.",
+      "says": "All three. Stand back... the leg makes a spike worth having. There. It is yours. Break it and you fetch another."
+    }
+  },
+  "L5": {
+    "name": "Old Scarback",
+    "giver": "Warleader Krugg",
+    "offer": [
+      "Now a real fight, whelp. An old bear we call Scarback dens on the slope far to the south. He has mauled two of our hunters, and they were not whelps.",
+      "He charges the moment he sees you. Do not run: hit first. Bring me his claw, and I will teach you the last thing I have for a whelp.",
+      "Will you fight Old Scarback?"
+    ],
+    "accept": "I will fight him.",
+    "decline": "Not yet.",
+    "declined": "Fear is wise. Staying afraid is not.",
+    "started": "South, up the slope past the coach. Make the camp proud.",
+    "target": "Old Scarback",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "Scarback's claw",
+      "description": "A black claw, notched from old fights, from the bear Old Scarback.",
+      "like": "Beast Claw"
+    },
+    "hunt": {
+      "journal": "Take Scarback's claw from the bear Old Scarback on the slope far south of the camp."
+    },
+    "give": {
+      "journal": "Bring Scarback's claw to Warleader Krugg.",
+      "says": [
+        "Scarback's own claw. Hah! The hunters will drink to you tonight. You are a whelp no longer.",
+        "Learn this, and see Gatekeeper Thrakka when you are ready for Halas."
+      ]
+    }
+  },
+  "flight": {
+    "name": "The Road to Halas",
+    "giver": "Gatekeeper Thrakka",
+    "offer": [
+      "The barbarians of Halas fight giants and ice, and they respect an orc who fights beside them. There is peace between us, rough as it is. Krugg says you can fight.",
+      "You have earned the road, whelp. I will set you down among your own guild in Halas, and your spirit will rest there.",
+      "Shall I send you to Halas?"
+    ],
+    "accept": "Send me to Halas.",
+    "decline": "Not yet.",
+    "declined": "Halas is cold. It will still be cold tomorrow.",
+    "started": "Fight well, and do not let the cold bite!",
+    "journal": "Tell Gatekeeper Thrakka when you are ready to go to Halas."
+  }
+}

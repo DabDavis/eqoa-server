@@ -881,7 +881,7 @@ places: each team's banner stand and camp, the power-ups, the field's edge, the 
 default (`config.yaml.example`, `entity.DefaultCTFSettings`).
 
 - **Joining**: the **PvP Events** herald (any NPC of the name; `tools/place_ctf_herald.py` stands one behind Dabrish in a war
-  captain's look) asks a box (mark **0x5F000000**): sign up or take the name off, the rules, how things stand. `/ctf`,
+  captain's look) asks a box (mark **0x62000000**; a Mercenary Liaison's is 0x5F): sign up or take the name off, the rules, how things stand. `/ctf`,
   `/ctf join`, `/ctf leave`, `/ctf rules` (`#ctf`; a PS2's `/t ctf ...`). A client that cannot load the arena (a PS2, the
   page, an older vanilla: `LoadableWorlds`) is told why and kept out; the dead and duelists wait.
 - **The start**: `min_per_team` a side ready starts a `countdown` (everyone in the world told where to sign up); then up to

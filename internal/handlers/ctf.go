@@ -25,12 +25,13 @@ import (
 // is its places: each team's banner stand and camp, the power-ups, the field's edge, the bodies it shows.
 //
 // The herald is any NPC named "PvP Events" (entity.CTFHeraldName; tools/place_ctf_herald.py stands one beside
-// Dabrish), talked to before quests as Dabrish and the Teleporter: a box of answers under mark 0x5F000000 (beside
-// the Teleporter's 0x5E). /ctf (and #ctf, and "/t ctf" from a PS2, which keeps an unknown /command to itself) says
+// Dabrish), talked to before quests as Dabrish and the Teleporter: a box of answers under mark 0x62000000 (past
+// the welcome guide's 0x61; a Mercenary Liaison's is 0x5F, the Teleporter's 0x5E; boxmarks_test.go keeps every
+// feature's mark its own). /ctf (and #ctf, and "/t ctf" from a PS2, which keeps an unknown /command to itself) says
 // how things stand; "/ctf join" and "/ctf leave" sign up and leave, the queue or a match. The words are ours.
 
 // ctfBoxMark marks the herald's questions' ids.
-const ctfBoxMark = 0x5F000000
+const ctfBoxMark = 0x62000000
 
 // IsCTFHerald is whether an NPC of the name is the herald.
 func IsCTFHerald(name string) bool {
@@ -39,19 +40,19 @@ func IsCTFHerald(name string) bool {
 
 // The herald's words (ours).
 const (
-	ctfHeraldAsk      = "PvP Events: 'Two companies fight over each other's banners in %s. Will you take up arms?'"
-	ctfHeraldAskIn    = "PvP Events: 'Your name is on my list. %s'"
-	ctfAnswerJoin     = "Sign me up"
-	ctfAnswerLeave    = "Take my name off the list"
-	ctfAnswerRules    = "How is it fought?"
-	ctfAnswerStatus   = "How do things stand?"
-	ctfHeraldTooFar   = "Come back to me to answer: my list is here."
-	ctfHeraldClosed   = "PvP Events: 'The arena is closed on this server.'"
-	ctfHeraldNoArena  = "PvP Events: 'Your game cannot see the arena, so I cannot send you there. It needs a client that builds the server's worlds (eqoa-rust-client-vanilla).'"
-	ctfHeraldInMatch  = "PvP Events: 'You are already fighting in the arena.'"
-	ctfHeraldReach    = 30
-	ctfRulesHeading   = "Capture the banner, the rules:"
-	ctfCommandHelp    = "/ctf: how the arena stands. /ctf join signs you up (or talk to the PvP Events herald beside Dabrish), /ctf leave takes you off the list or out of a match, /ctf rules says how it is fought."
+	ctfHeraldAsk     = "PvP Events: 'Two companies fight over each other's banners in %s. Will you take up arms?'"
+	ctfHeraldAskIn   = "PvP Events: 'Your name is on my list. %s'"
+	ctfAnswerJoin    = "Sign me up"
+	ctfAnswerLeave   = "Take my name off the list"
+	ctfAnswerRules   = "How is it fought?"
+	ctfAnswerStatus  = "How do things stand?"
+	ctfHeraldTooFar  = "Come back to me to answer: my list is here."
+	ctfHeraldClosed  = "PvP Events: 'The arena is closed on this server.'"
+	ctfHeraldNoArena = "PvP Events: 'Your game cannot see the arena, so I cannot send you there. It needs a client that builds the server's worlds (eqoa-rust-client-vanilla).'"
+	ctfHeraldInMatch = "PvP Events: 'You are already fighting in the arena.'"
+	ctfHeraldReach   = 30
+	ctfRulesHeading  = "Capture the banner, the rules:"
+	ctfCommandHelp   = "/ctf: how the arena stands. /ctf join signs you up (or talk to the PvP Events herald beside Dabrish), /ctf leave takes you off the list or out of a match, /ctf rules says how it is fought."
 )
 
 // ctfRules are the rules as the herald and "/ctf rules" tell them, the numbers the server's (set).

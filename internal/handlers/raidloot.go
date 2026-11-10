@@ -69,8 +69,9 @@ const (
 	raidHoldFor = 5 * time.Minute
 	// raidRollTop is a roll's top: 0 to 100 (petition 1448).
 	raidRollTop = 100
-	// raidBossHPPct is the class template hit points from which a creature is a raid boss.
-	raidBossHPPct = 1000
+	// raidBossHPPct is the class template hit points from which a creature is a raid boss
+	// (the World's, which credits a raid boss's kill by the same rule: entity/heroes.go).
+	raidBossHPPct = entity.RaidBossHPPct
 	// raidRollIDs is the most roll numbers: they go round, 1 to 999.
 	raidRollIDs = 999
 )

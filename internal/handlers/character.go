@@ -706,8 +706,17 @@ func (h *CharacterHandler) enterFromRecord(sess *session.Session, record *databa
 
 	// The training points its level is due and it has not been given (a
 	// character made at a level, or one from before levels gave any;
-	// entity/training.go), kept at once.
-	if unused, total, give := entity.TopUpTraining(record.Level, record.UnusedTP, record.TotalTP); give > 0 || total != record.TotalTP {
+	// entity/training.go), kept at once. What an item gave it past its levels'
+	// (table charbonustp) is no level's: the levels are made up beside it.
+	bonus := 0
+	if h.store != nil {
+		n, err := h.store.BonusTP(record.ServerID)
+		if err != nil {
+			log.Printf("SelectedChar: '%s' bonus training points: %v", record.CharName, err)
+		}
+		bonus = n
+	}
+	if unused, total, give := entity.TopUpTrainingBonus(record.Level, record.UnusedTP, record.TotalTP, bonus); give > 0 || total != record.TotalTP {
 		record.UnusedTP, record.TotalTP = unused, total
 		if err := h.store.SetTrainingPoints(record.ServerID, unused, total); err != nil {
 			log.Printf("SelectedChar: '%s' training points not kept: %v", record.CharName, err)
@@ -721,6 +730,9 @@ func (h *CharacterHandler) enterFromRecord(sess *session.Session, record *databa
 	var player *entity.Player
 	if h.gameWorld != nil {
 		player = h.gameWorld.CreatePlayer(sess, record)
+		if player != nil && bonus > 0 {
+			h.gameWorld.RestoreBonusTraining(sess, bonus) // a level it leaves tops up beside them
+		}
 	}
 
 	// The spell effects it logged out with, their time running again

@@ -1952,6 +1952,41 @@ var catalog = map[string]tableNote{
 			"sex":     {Label: "Sex", Enum: "sex"},
 		},
 	},
+	"heroes_stock": {
+		Label: "Testing Heroes Vendor's stock", Group: "Items & spells", Sort: "cost",
+		Help: "What the Testing Heroes Vendor sells (world.testing_heroes; petition 1471), a row an item: the cost comes off the " +
+			"buyer's standing with the faction Testing Heroes, which may not go below -2000. Every kill that gives a character " +
+			"experience gives it 1 standing, a raid boss's 5. tools/seed_testing_heroes.py wrote the petition's five (source " +
+			"testing-heroes); a row of yours sells any other item. A record is sold once (one row a record).",
+		Live:   "At once: he reads his stock at every talk, and again at the buyer's Yes.",
+		Search: []string{"says", "source"},
+		Cols: map[string]colNote{
+			"id":        {Label: "Entry", ReadOnly: true},
+			"patternid": {Label: "Item", Ref: "itempattern"},
+			"cost":      {Label: "Cost", Help: "standing with Testing Heroes; 0 or less: not offered"},
+			"says":      {Label: "What he says of it", Help: "before the buyer says yes, 190 characters at most and no percent sign (a box draws none); empty: the item's own description"},
+			"source":    {Label: "Source", Help: "gm, or testing-heroes for the tool's rows"},
+		},
+	},
+	"heroes_purchases": {
+		Label: "Testing Heroes purchases", Group: "Players", Sort: "id",
+		Help: "Every purchase from the Testing Heroes Vendor, written as it is made: who, the item, its cost and the buyer's " +
+			"standing with Testing Heroes before and after. A log: nothing reads it back, and changing a row changes no standing.",
+		Search: []string{"charname", "item"},
+		Cols: map[string]colNote{
+			"id":              {Label: "Entry", ReadOnly: true},
+			"at":              {Label: "When", ReadOnly: true},
+			"serverid":        {Label: "Character", Ref: "characters", ReadOnly: true},
+			"charname":        {Label: "Name", ReadOnly: true},
+			"accountid":       {Label: "Account", ReadOnly: true},
+			"patternid":       {Label: "Item", Ref: "itempattern", ReadOnly: true},
+			"item":            {Label: "Item's name", ReadOnly: true},
+			"cost":            {Label: "Cost", ReadOnly: true},
+			"standing_before": {Label: "Standing before", ReadOnly: true},
+			"standing_after":  {Label: "Standing after", ReadOnly: true},
+			"vendor":          {Label: "Vendor", ReadOnly: true},
+		},
+	},
 	"racesize": {
 		Label: "Player sizes by race", Group: "New characters", Title: "race", Sort: "race",
 		Help: "How big a race's PLAYERS are drawn, on every client (the state channel's model size): 1.0 is the race's own " +

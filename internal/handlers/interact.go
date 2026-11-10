@@ -96,6 +96,9 @@ type InteractHandler struct {
 	tele Teleporter
 	// ctf is the PvP Events herald's boxes (ctf.go)
 	ctf CTFHerald
+	// heroes is the Testing Heroes Vendor's talk (heroes.go); nil: an NPC of his
+	// name has nothing to say
+	heroes *Heroes
 }
 
 // SetDialogLines gives the handler npcdialog's reader (database.NPCDialog).
@@ -298,6 +301,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 
 	// Buffer (buffer.go): his five buffs, five hours each, a second after the talk.
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.buffer.Talk(sess, player, npc) {
+		return nil
+	}
+
+	// The Testing Heroes Vendor (heroes.go): his stock, for the faction's standing.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.heroes.Talk(sess, player, npc) {
 		return nil
 	}
 
@@ -642,6 +650,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// the PvP Events herald's (ctf.go); an old one does nothing
 	if h.answerCTF(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// the Testing Heroes Vendor's (heroes.go); an old one does nothing
+	if h.heroes.Answer(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// a Spell Archivist's (archivist.go); an old one does nothing

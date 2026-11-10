@@ -1,6 +1,9 @@
 package entity
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -56,12 +59,92 @@ func TopUpTraining(level, unused, total int) (int, int, int) {
 	return unused + give, have + give, give
 }
 
+// TopUpTrainingBonus is TopUpTraining for a character holding bonus points:
+// training points an item gave it past its levels' (Player.BonusTP, table
+// charbonustp; petition 1471's Tome of Heroic Training). They are in its
+// total and no level's due, so the levels are made up as though it had none
+// and the bonus stays on top: without this a level left after the gift gave
+// that many fewer (the total already "held" them), and the gift was lost.
+func TopUpTrainingBonus(level, unused, total, bonus int) (int, int, int) {
+	bonus = max(bonus, 0)
+	unused, total, give := TopUpTraining(level, unused, total-bonus)
+	return unused, total + bonus, give
+}
+
 // TopUpTrainingPoints makes the player's training points up to its level's
-// (TopUpTraining): how many were given.
+// (TopUpTrainingBonus): how many were given.
 func (p *Player) TopUpTrainingPoints() int {
 	var give int
-	p.UnusedTP, p.TotalTP, give = TopUpTraining(p.Level, p.UnusedTP, p.TotalTP)
+	p.UnusedTP, p.TotalTP, give = TopUpTrainingBonus(p.Level, p.UnusedTP, p.TotalTP, p.BonusTP)
 	return give
+}
+
+// TrainingRoom is how many more training points the player's stats can take:
+// what each of the seven bases has left under its cap (StatCaps: the level's
+// and what its masteries raise it by). It is the cap on unspent training
+// points this server knows: CLIENT has none (its m_p40 is a whole int, read
+// zigzag, and its trainer prints it with %d) and neither had the server, but
+// a point past what the stats can take can never be spent (FitTraining holds
+// it back), so a gift that would pass it is refused (trainingGiftRefusal).
+func (p *Player) TrainingRoom() int {
+	base := [7]int{p.BaseStr, p.BaseSta, p.BaseAgi, p.BaseDex, p.BaseWis, p.BaseInt, p.BaseCha}
+	room := 0
+	for i, c := range p.StatCaps() {
+		room += max(c-base[i], 0)
+	}
+	return room
+}
+
+// TrainingFullLine refuses an item's training points where its user's stats
+// could not take them (ours): the item, how many it gives, how many the user
+// holds unspent and how many its stats can still take.
+const TrainingFullLine = "%s is kept: its %d training points would be more than your stats can still take (%d unspent, room for %d)."
+
+// trainingGiftRefusal is why p may not be given gift training points by item,
+// "" when it may (or none are given): with them its unspent points would pass
+// TrainingRoom.
+func trainingGiftRefusal(p *Player, gift int, item string) string {
+	if gift <= 0 {
+		return ""
+	}
+	if room := p.TrainingRoom(); p.UnusedTP+gift > room {
+		return fmt.Sprintf(TrainingFullLine, strings.TrimSpace(item), gift, p.UnusedTP, room)
+	}
+	return ""
+}
+
+// giveBonusTraining gives the player n training points past its levels': unspent,
+// in its total, and counted as no level's (BonusTP).
+func (p *Player) giveBonusTraining(n int) {
+	if n <= 0 {
+		return
+	}
+	p.UnusedTP += n
+	p.TotalTP += n
+	p.BonusTP += n
+}
+
+// RestoreBonusTraining gives sess's player the bonus training points its row
+// keeps (charbonustp), at the login.
+func (w *World) RestoreBonusTraining(sess *session.Session, bonus int) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if p := w.sessionPlayerLocked(sess); p != nil {
+		p.BonusTP = max(bonus, 0)
+	}
+}
+
+// LiveBonusTraining is a live player's unspent and total training points and
+// how many of the total no level gave, for a save; false when it is not in the
+// world.
+func (w *World) LiveBonusTraining(id EntityID) (unused, total, bonus int, ok bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p, found := w.Players[id]
+	if !found {
+		return 0, 0, 0, false
+	}
+	return p.UnusedTP, p.TotalTP, p.BonusTP, true
 }
 
 // SendTrainingPoints is 0x0036: a byte (1: sound 7) and the unspent training

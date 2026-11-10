@@ -347,6 +347,17 @@ type WorldConfig struct {
 	// Heirloom Test Server sets it.
 	Familiars bool `yaml:"familiars"`
 
+	// TestingHeroes turns on the Testing Heroes (entity/heroes.go,
+	// handlers/heroes.go; the GM Jibrish's petition 1471): every kill that gives
+	// a character experience gives it 1 standing with the faction Testing Heroes
+	// (5 for a raid boss), which starts at the floor, -2000, and the Testing
+	// Heroes Vendor (tools/seed_testing_heroes.py stands him by the well behind
+	// Dabrish, and writes the faction, his stock and its items) sells for the
+	// standing above the floor. Unset or false: no kill is credited, the
+	// faction window leaves the faction out and the vendor says nothing. The
+	// Heirloom Test Server sets it.
+	TestingHeroes bool `yaml:"testing_heroes"`
+
 	// MobInfo shows a monster's name and level, and nothing else, when a
 	// player talks to it (□, Q on vanilla's keyboard) and it has nothing to
 	// say, or stands out of the talk's reach (handlers/mobinfo.go; the GM

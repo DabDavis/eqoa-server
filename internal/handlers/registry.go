@@ -371,6 +371,11 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	interactHandler.favor = NewMoogieFavor(invStore, spellStore)                                                   // Mr. Moogie's favor (metalmoogie.go)
 	interactHandler.buffer = NewBuffer(gameWorld, spellStore)                                                      // Buffer's casts (buffer.go)
 	if charStore != nil {
+		// the Testing Heroes Vendor (heroes.go): his stock for the faction's
+		// standing, kept at each purchase; and the training points an item's
+		// use gives, kept at once (potion.go)
+		interactHandler.heroes = NewHeroes(gameWorld, charStore.DB(), invStore, charStore)
+		equipHandler.training = charStore
 		interactHandler.binds = charStore
 		// the stables' ledgers (coachledger.go)
 		interactHandler.ledger = charStore

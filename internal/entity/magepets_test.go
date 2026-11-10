@@ -291,8 +291,8 @@ func checkBadi1450(t *testing.T, r *petRig, f *swarmFight, crit bool) {
 // those times, 2 s casts, landing 1000 and 1300.
 func checkGhilan1450(t *testing.T, r *petRig, f *swarmFight, chill, frost uint32, chills, frosts []int) {
 	t.Helper()
-	if ps := r.w.pets[r.p.ServerID]; f.pet.Name != "Ghilan Noble" || ps == nil || len(ps.petAbilities()) != 6 {
-		t.Fatalf("the pet %q: want the Ghilan Noble with six abilities", f.pet.Name)
+	if ps := r.w.pets[r.p.ServerID]; f.pet.Name != "Ghilan Noble" || ps == nil || len(ps.petAbilities()) < 6 {
+		t.Fatalf("the pet %q: want the Ghilan Noble with its six abilities (a seventh after them is petition 1495's)", f.pet.Name)
 	}
 	checkCasts(t, f, "the chill", chill, 2000, chills)
 	checkCasts(t, f, "the frost wave", frost, 2000, frosts)

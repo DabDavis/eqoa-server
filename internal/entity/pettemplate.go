@@ -331,6 +331,8 @@ func (w *World) petWantsLocked(ps *petState, a *templateAbility, now time.Time) 
 			return owner()
 		case database.AbilityOnEither:
 			return owner() || ps.npc.HP*100 < ps.npc.MaxHP*a.BelowOr()
+		case database.AbilityOnGroup:
+			return w.petGroupHurtLocked(ps, a) // anyone of its side in reach (petgroupheal.go)
 		}
 		return ps.npc.HP*100 < ps.npc.MaxHP*a.BelowOr()
 	case database.AbilityBuff:
@@ -892,6 +894,10 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 		if pet.sheet != nil {
 			n, _ = sheetFigure(pet, c.spell.Def.Effects, a.DamageOr(), true) // its stats scale it (petstats.go)
 		}
+		if a.TargetOr() == database.AbilityOnGroup {
+			w.petGroupHealLocked(ps, c.spell, n) // everyone of its side in reach (petgroupheal.go)
+			return
+		}
 		if c.target == ps.owner.ServerID {
 			o := ps.owner
 			if a.HealPct > 0 {
@@ -1031,9 +1037,13 @@ func (w *World) petTemplateTauntLocked(ps *petState, a *templateAbility, t *NPC,
 }
 
 // petTopHateLocked puts the pet at the top of t's hate, and makes it what t
-// fights (a training dummy's is its own: dummy.go).
+// fights (a training dummy's hate is its own: dummy.go).
 func (w *World) petTopHateLocked(pet, t *NPC) {
-	if t.Dummy != NotDummy || t.challenge != nil { // a Metal Moogie keeps to his challenger (metalmoogie.go)
+	if t.Dummy != NotDummy {
+		w.dummyTopHateLocked(t, pet.ServerID, time.Now()) // a dummy's hate is its own (dummy.go, petition 1484)
+		return
+	}
+	if t.challenge != nil { // a Metal Moogie keeps to his challenger (metalmoogie.go)
 		return
 	}
 	var top int64
@@ -1075,7 +1085,7 @@ func petOnly(a *templateAbility) bool {
 	switch {
 	case a.Kind == database.AbilityTaunt, a.Kind == database.AbilityBuff, a.Kind == database.AbilityRoot:
 		return true
-	case a.Kind == database.AbilityHeal && a.TargetOr() == database.AbilityOnOwner:
+	case a.Kind == database.AbilityHeal && (a.TargetOr() == database.AbilityOnOwner || a.TargetOr() == database.AbilityOnGroup):
 		return true // a creature's heal of its share is its own now (abilitytimes.go: petition 1394)
 	}
 	return false

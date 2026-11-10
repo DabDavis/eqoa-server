@@ -224,11 +224,16 @@ const (
 
 // Who a pet's heal or buff lands on (TemplateAbility.Target); either is a
 // heal's alone: its owner or itself, whichever is the lower share of its hit
-// points below its threshold (a workbook pet's "Owner/Self" heal).
+// points below its threshold (a workbook pet's "Owner/Self" heal); group is a
+// heal's alone too: everyone of its side in its spell's reach of it at once
+// (itself, its owner, its owner's group's players, their pets and mercenaries:
+// entity/petgroupheal.go, petition 1495's "AOE heal ... that heals players and
+// pets in range"), cast when any of them is below its threshold.
 const (
 	AbilityOnOwner  = "owner"
 	AbilityOnSelf   = "self"
 	AbilityOnEither = "either"
+	AbilityOnGroup  = "group"
 )
 
 // AbilityStats are the stats a buff may be picked by (TemplateAbility.Stat);
@@ -828,12 +833,15 @@ func checkFixedAbility(n int, a TemplateAbility) error {
 // checkPetAbility holds a pet's fields of an ability to what its kind takes.
 func checkPetAbility(n int, a TemplateAbility) error {
 	switch {
-	case a.Target != "" && a.Target != AbilityOnOwner && a.Target != AbilityOnSelf && a.Target != AbilityOnEither:
-		return fmt.Errorf("ability %d: target %q: owner, self or either", n, a.Target)
+	case a.Target != "" && a.Target != AbilityOnOwner && a.Target != AbilityOnSelf && a.Target != AbilityOnEither &&
+		a.Target != AbilityOnGroup:
+		return fmt.Errorf("ability %d: target %q: owner, self, either or group", n, a.Target)
 	case a.Target != "" && a.Kind != AbilityHeal && a.Kind != AbilityBuff:
 		return fmt.Errorf("ability %d: a target is a heal's or a buff's", n)
 	case a.Target == AbilityOnEither && a.Kind != AbilityHeal:
 		return fmt.Errorf("ability %d: target either is a heal's", n)
+	case a.Target == AbilityOnGroup && a.Kind != AbilityHeal:
+		return fmt.Errorf("ability %d: target group is a heal's", n)
 	case a.SpellID < 0:
 		return fmt.Errorf("ability %d: spell_id %d: a spell's id (0 none)", n, a.SpellID)
 	case a.SpellID != 0 && a.Spell != "":

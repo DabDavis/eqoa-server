@@ -97,8 +97,10 @@ func TestRealMagePets1450(t *testing.T) {
 			if f.pet.sheet == nil {
 				t.Fatalf("%q: no workbook pet", f.pet.Name)
 			}
-			if k := kit(r); k != c.kit {
-				t.Errorf("its abilities: %s\nwant %s", k, c.kit)
+			// what tools/fix_pets_1110.py adds comes after them (petitions 1478 and
+			// 1495: pets1110_real_test.go)
+			if k := kit(r); !strings.HasPrefix(k, c.kit) {
+				t.Errorf("its abilities: %s\nwant %s first", k, c.kit)
 			}
 			c.check(t, r, f)
 			t.Logf("%s: %q level %d, %d HP, size %.2f, swing %d, template %q", c.name, f.pet.Name, f.pet.Level, f.pet.MaxHP,

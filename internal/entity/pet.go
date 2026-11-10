@@ -368,6 +368,7 @@ func newPet(t *NPC, id EntityID, owner *Player, name string, level int) *NPC {
 	// creature's or not
 	pet.tmpl, pet.tbase, pet.tfight = nil, templateBase{}, nil
 	pet.sheet = nil // a workbook pet's row is put on after (petstats.go)
+	pet.way = petWay{}
 	return &pet
 }
 
@@ -666,6 +667,9 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 			return
 		}
 		ps.stance = petStance(cmd)
+		if ps.stance == petPassive {
+			w.petStandsDownLocked(ps) // its fight ends there and it comes back (petition 1483)
+		}
 		w.sendChatToSession(sess, petStanceWords[ps.stance])
 	case petCmdDismiss:
 		if pet.Charm != nil {
@@ -701,6 +705,24 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 		ps.target = npc.ServerID
 		ps.heldUntil = time.Time{}
 		w.sendChatToSession(sess, "Your pet attacks "+npc.Name+".")
+	}
+}
+
+// petStandsDownLocked ends whatever the pet fights as it is made passive: its
+// target let go, its round ended, out of its owner's duel or PvP fight until
+// told to attack again, so that petSystem's next turn takes it back to its
+// owner, where it stands (the magician Lifeispain's petition 1483: "Pet Passive
+// doesn't stop the pet from fighting. It should stop fighting and run back to
+// the owner and stand there until it's told to fight"). Until then the stance
+// only kept a pet from taking a fight up: the one it had went on to the death.
+// Unlike a back off it holds nothing: an attack command (0x0041 8) sends it
+// out again at once, and what it fought may follow it back (npcFightPetLocked).
+// Must be called with the lock held.
+func (w *World) petStandsDownLocked(ps *petState) {
+	ps.target, ps.pvpTarget = 0, 0
+	ps.npc.endRound()
+	if d := w.duelOnLocked(ps.owner.ServerID); d != nil && d.pets[ps.owner.ServerID] {
+		d.pets[ps.owner.ServerID] = false // the duel's pet, until an attack command (duelfight.go)
 	}
 }
 
@@ -809,7 +831,7 @@ func (w *World) petSystem(now time.Time) {
 		} else {
 			ps.target = 0
 			if !w.petTemplateTurnLocked(ps, nil, now) { // its heals and buffs while it follows (pettemplate.go)
-				w.petFollowLocked(ps, dt)
+				w.petFollowLocked(ps, dt, now)
 			} else {
 				pet.stopMoving()
 			}
@@ -823,20 +845,8 @@ func (w *World) petSystem(now time.Time) {
 // petFollowLocked keeps the pet petFollow off its owner: it follows once the
 // owner is petFollowStart away, at the owner's speed (half as fast again
 // once petCatchUp behind), and stands when there.
-func (w *World) petFollowLocked(ps *petState, dt float32) {
-	owner, pet := ps.owner, ps.npc
-	d := distXZ(pet.X, pet.Z, owner.X, owner.Z)
-	if d <= petFollow || (pet.Loco == LocoStand && d <= petFollowStart) {
-		pet.stopMoving()
-		return
-	}
-	speed := max(owner.SpeedNow(), 3)
-	if d > petCatchUp {
-		speed *= 1.5
-	}
-	x := owner.X + (pet.X-owner.X)/d*petFollow
-	z := owner.Z + (pet.Z-owner.Z)/d*petFollow
-	w.petStepLocked(pet, x, z, owner.Y, speed, dt)
+func (w *World) petFollowLocked(ps *petState, dt float32, now time.Time) {
+	w.followLocked(ps.npc, ps.owner, dt, now) // merc.go: a pet's, a mercenary's and a familiar's alike
 }
 
 // petStepLocked steps the pet toward (x, z), its floor looked for from
@@ -1082,10 +1092,15 @@ func groupMateAttacks(w *World, owner *Player, npc *NPC) bool {
 func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) {
 	pet := ps.npc
 	d := distXZ(pet.X, pet.Z, t.X, t.Z)
-	if d > petReach {
-		x := t.X + (pet.X-t.X)/d*(petReach-1)
-		z := t.Z + (pet.Z-t.Z)/d*(petReach-1)
-		w.petStepLocked(pet, x, z, t.Y, max(ps.owner.SpeedNow(), petRunSpeed), dt)
+	// out of its reach, or its target on the floor over or under it (no fight
+	// through a floor while the ground has a way to it: petwalk.go)
+	if d > petReach || w.petStackedLocked(pet, t.X, t.Y, t.Z, now) {
+		x, z := pet.X, pet.Z
+		if d > petReach {
+			x = t.X + (pet.X-t.X)/d*(petReach-1)
+			z = t.Z + (pet.Z-t.Z)/d*(petReach-1)
+		}
+		w.petWalkLocked(pet, t.ServerID, x, z, t.X, t.Y, t.Z, max(ps.owner.SpeedNow(), petRunSpeed), dt, now)
 		return
 	}
 	pet.stopMoving()
@@ -1159,6 +1174,8 @@ func (w *World) petTauntLocked(ps *petState, t *NPC, now time.Time) bool {
 		}
 		t.CurrentEnemy = w.tauntedLocked(t, pet.ServerID) // a preferred foe of its stays its enemy (prefer.go)
 		w.wakeNPCLocked(t)                                // npcsets.go
+	} else if t.Dummy != NotDummy {
+		w.dummyTopHateLocked(t, pet.ServerID, now) // a dummy's hate is its own (dummy.go, petition 1484)
 	}
 	n := petMeleeHit(pet, t, meleeIntn)
 	if petName(pet.Name) == grandAnimation {
@@ -1256,9 +1273,9 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 		}
 	}
 	if t.Dummy != NotDummy {
-		// told, taken off nothing; the dummy fights its one player (dummy.go)
+		// told, taken off nothing; the dummy's hate is the pet's (dummy.go)
 		tell()
-		w.dummyEngagedLocked(t, owner, now)
+		w.dummyEngagedLocked(t, pet.ServerID, n, now)
 		return false
 	}
 	if balanced {

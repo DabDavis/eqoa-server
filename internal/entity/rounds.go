@@ -97,6 +97,12 @@ func swingHits(kind int) []time.Duration {
 // (which reports whether the fight ended with it). Must be called with the
 // lock held.
 func (w *World) npcRoundLocked(npc *NPC, target *Player, now time.Time, hit func() bool) {
+	w.npcRoundAtLocked(npc, target.ServerID, now, hit)
+}
+
+// npcRoundAtLocked is npcRoundLocked at anyone by its id (a dummy's round on a
+// pet: dummy.go).
+func (w *World) npcRoundAtLocked(npc *NPC, target EntityID, now time.Time, hit func() bool) {
 	length, delay, fx, hits := npcRound(npc)
 	if npc.RoundStart.IsZero() || !now.Before(npc.RoundStart.Add(length)) {
 		// a round on from the last one's start, a steady cadence as
@@ -107,7 +113,7 @@ func (w *World) npcRoundLocked(npc *NPC, target *Player, now time.Time, hit func
 		}
 		npc.RoundStart = next
 		npc.RoundHits = 0
-		w.broadcastNPCSwingLocked(npc, target.ServerID, uint32(delay/time.Millisecond), fx)
+		w.broadcastNPCSwingLocked(npc, target, uint32(delay/time.Millisecond), fx)
 	}
 	for npc.RoundHits < len(hits) && !now.Before(npc.RoundStart.Add(hits[npc.RoundHits])) {
 		npc.RoundHits++

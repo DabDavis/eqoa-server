@@ -263,7 +263,7 @@ func (s *Server) liveTints() string {
 	if err != nil {
 		return "not applied to the world: " + err.Error()
 	}
-	return fmt.Sprintf("at once: %d name(s) tinted, sent to the %d client(s) in the game that draw tints (a PS2 draws none)", names, told)
+	return fmt.Sprintf("at once: %d name(s) tinted; the new set sent to %d client(s) in the game that draw tints (a PS2 draws none)", names, told)
 }
 
 // checkTintRow holds an npctint row to a name and a 32-bit colour: a blank name

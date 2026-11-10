@@ -84,10 +84,9 @@ func NPCTintsMessage(body []byte) *protocol.Message {
 	return msg
 }
 
-// message is the body that tells the tints, and whether it tells none.
-func (s *npcTintState) message() ([]byte, bool) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+// messageLocked is the body that tells the tints, and whether it tells none.
+// Must be called with s.mu held.
+func (s *npcTintState) messageLocked() ([]byte, bool) {
 	if s.body == nil {
 		s.body = EncodeNPCTints(s.tints)
 	}
@@ -131,7 +130,11 @@ func (w *World) RefreshNPCTints(only ...*session.Session) int {
 	if w == nil {
 		return 0
 	}
-	body, empty := w.npcTints.message()
+	// held throughout, so no refresh sends a set older than one sent before it
+	// (a client's answer while a GM's edit goes out)
+	w.npcTints.mu.Lock()
+	defer w.npcTints.mu.Unlock()
+	body, empty := w.npcTints.messageLocked()
 	sent := 0
 	send := func(s *session.Session) bool {
 		if s != nil && s.TakeNPCTints(string(body), empty) {

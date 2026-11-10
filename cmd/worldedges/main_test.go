@@ -21,13 +21,13 @@ func TestOpenEdges(t *testing.T) {
 		}
 		return m
 	}
-	if n := normals(openEdges(b, 0)); len(n) != 3 || n[[2]float32{1, 0}] {
+	if n := normals(openEdges(b, 0, nil)); len(n) != 3 || n[[2]float32{1, 0}] {
 		t.Errorf("zone 0: %v (its +x side is zone 1's)", n)
 	}
-	if n := normals(openEdges(b, 1)); len(n) != 3 || n[[2]float32{-1, 0}] {
+	if n := normals(openEdges(b, 1, nil)); len(n) != 3 || n[[2]float32{-1, 0}] {
 		t.Errorf("zone 1: %v (its -x side is zone 0's)", n)
 	}
-	es := openEdges(b, 2)
+	es := openEdges(b, 2, nil)
 	if len(es) != 4 {
 		t.Fatalf("zone 2: %d open edges", len(es))
 	}

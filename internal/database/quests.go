@@ -233,6 +233,10 @@ const (
 	EventDoStep   = "dostep"   // the step to do now tried at once, its NPC being the one just talked to
 )
 
+// TeleportMainland is a teleport's to that sends the player to its race's spot
+// on the disc's worlds (QuestEvent.To).
+const TeleportMainland = "mainland"
+
 // QuestEventWhens are the times a quest's own events may name, StepEventWhens
 // a step's; QuestEventActions every action, in the order the panel offers them.
 var (
@@ -272,6 +276,16 @@ type QuestEvent struct {
 	X          float32 `json:"x,omitempty"`       // teleport: the place
 	Y          float32 `json:"y,omitempty"`
 	Z          float32 `json:"z,omitempty"`
+	// To (teleport): "mainland" sends the player to its race's spot on the disc's
+	// worlds instead of World/X/Y/Z: its wire race's start row for its class
+	// (SQLiteCharacterStore.MainlandPlace), where it would have started before
+	// its race had a homeland, by its class's guild; a homeland's gatekeeper
+	To string `json:"to,omitempty"`
+	// Bind (teleport): the player bound where it lands, as a spiritmaster binds
+	// (NPC: who bound it, for the log; none: the quest's giver), so Return Home
+	// and a death take it there: a homeland's gatekeeper sends a new player
+	// to its city for good
+	Bind bool `json:"bind,omitempty"`
 }
 
 // ParseQuestEvents reads an events column: a JSON array of QuestEvent, ""
@@ -348,8 +362,14 @@ func EventProblems(s string, step bool) []string {
 				add(i, "visual's fx %q is not a DictID (0x1DAEB5B6)", e.FX)
 			}
 		case EventTeleport:
-			if e.X == 0 && e.Z == 0 {
-				add(i, "teleport's place is 0, 0")
+			switch strings.ToLower(strings.TrimSpace(e.To)) {
+			case "":
+				if e.X == 0 && e.Z == 0 {
+					add(i, "teleport's place is 0, 0")
+				}
+			case TeleportMainland:
+			default:
+				add(i, "teleport's to %q is not %q", e.To, TeleportMainland)
 			}
 		case EventVampire:
 		case EventTrigger:

@@ -80,7 +80,9 @@ attacks you", with the kill or loot step after it: Valrean V`Ghen in Lady Furess
 alone, so the set's `attackable` list clears it first);
 `visual` (`fx`: a
 DictID like `0x1DAEB5B6`, or a spell's name for that spell's visual; `seconds`); `teleport`
-(`world`, `x`, `y`, `z`); `vampire` (nothing else: the player made a vampire, whom the sun burns by day,
+(`world`, `x`, `y`, `z`; or `"to": "mainland"`, the player's race's spot on the disc's worlds: its wire race's
+start row for its class, where it would have started before its race had a homeland; `"bind": true` binds it where
+it lands, as a spiritmaster binds, by `npc` or the quest's giver: a homeland's gatekeeper, `homelands.json`); `vampire` (nothing else: the player made a vampire, whom the sun burns by day,
 `entity/vampire.go`; the vampire quest's bats); `trigger` (`trigger`: the name of a row of `gmtriggers`, fired with
 the player as its firer: the guides' raid encounters; a step that fires one whose lock is held is not done, nothing
 handed in, and says `text`); `dostep` (a step's `start`: the step tried at once, for a hand-in at the NPC just

@@ -558,6 +558,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	NewLiveLookHandler(charHandler).RegisterHandlers(r)
 	// what creation takes past the game's, to a client that can show it (creation.go)
 	NewCreationHandler().RegisterHandlers(r)
+	NewServerWorldsHandler().RegisterHandlers(r)
+
 	// the cape slot (0x7E25; capes.go): the answer to its offer, on a server with world.capes
 	NewCapesHandler(charHandler).RegisterHandlers(r)
 	// a pack and a bank past CLIENT's 40 (0x7E29; itemlists.go): the answer to

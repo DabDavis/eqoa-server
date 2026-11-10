@@ -416,6 +416,14 @@ def plan(db, files, routes=False):
                         for k in ("world", "x", "y", "z"):
                             if k in e:
                                 ev[k] = e[k]
+                        # "mainland": the player's race's spot on the disc's worlds (handlers/questevents.go)
+                        if e.get("to"):
+                            ev["to"] = e["to"]
+                        # bound where it lands, as a spiritmaster binds (handlers/questevents.go)
+                        if e.get("bind"):
+                            ev["bind"] = True
+                            if e.get("npc"):
+                                ev["npc"] = e["npc"]
                     elif do == "trigger":
                         # a GM trigger by its name (handlers/gmtriggers.go), written before the import
                         ev["trigger"] = (e.get("trigger") or "").strip()

@@ -236,6 +236,123 @@
       "notes": "Ours: the gatekeeper's port to Freeport, the lizardman's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a lizardman back in Cazic-Thule is sent again; no reward, so none is had twice."
     },
     {
+      "key": "homelands/brownie/welcome",
+      "name": "A Seat at the Table",
+      "giver": "Elder Thimbleroot",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Welcome, welcome! A new face in the glade is a fine thing. Now, the first thing any brownie learns is where the food is kept. Go and say hello to Pippkin. She keeps the larder.",
+      "accept": "I will say hello.",
+      "decline": "Not now.",
+      "declined": "Hungry later, then! Do not say I did not tell you.",
+      "started": "Pippkin is just over there, by the tent. You will smell the larder.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Pippkin",
+          "journal": "Say hello to Grocer Pippkin by the tent in the glade's stockade.",
+          "says": "Thimbleroot sent you? Then you must be starving. Here, take a muffin. Take two, nobody is counting.",
+          "rewards": {
+            "items": [
+              "oat muffin"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Thimbleroot",
+          "journal": "Return to Elder Thimbleroot.",
+          "says": "There, you see? Fed and friended in one morning. You will make a fine brownie yet.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the brownies' first, at their home zone, Mayfly Glade of the disc."
+    },
+    {
+      "key": "homelands/brownie/mayflies",
+      "name": "Mayflies in the Berries",
+      "giver": "Grocer Pippkin",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/brownie/welcome"
+      ],
+      "offer": "Mayfly swarms are in the berry patches again, and they spoil more than they eat. Be rid of five of them for good, out in the open glade west of the stockade, and I will pay you well.",
+      "accept": "I will deal with them.",
+      "decline": "Not now.",
+      "declined": "Then we will have very few berries this year.",
+      "started": "Five swarms. Mind your ears, they buzz terribly.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "mayfly swarm",
+          "count": 5,
+          "journal": "Kill five mayfly swarms in the open glade west of the stockade."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Pippkin",
+          "journal": "Tell Grocer Pippkin the mayflies are gone.",
+          "says": "Five swarms gone! The berries thank you, and so do I. Here, for your trouble.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the brownies' second starter quest; the mayfly swarms are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/brownie/flight",
+      "name": "The Road to Rivervale",
+      "giver": "Gatekeeper Burrowby",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/brownie/welcome",
+        "homelands/brownie/mayflies"
+      ],
+      "repeatable": true,
+      "offer": "The halflings of Rivervale keep good tables and open doors, and they have always been kind to our kind. I can send you to them, and Rivervale will be your home. Shall I?",
+      "accept": "Send me to Rivervale.",
+      "decline": "Not yet.",
+      "declined": "Rivervale will keep. Halflings are patient about guests.",
+      "started": "Mind your manners, and save me a pie!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Burrowby",
+          "journal": "Tell Gatekeeper Burrowby when you are ready to go to Rivervale.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Rivervale, the brownie's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a brownie back in Mayfly Glade is sent again; no reward, so none is had twice."
+    },
+    {
       "key": "homelands/aviak/welcome",
       "name": "A Fledgling's Welcome",
       "giver": "Elder Kraawk",

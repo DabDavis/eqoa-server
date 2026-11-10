@@ -710,7 +710,228 @@
       "from": "TUNARIA.ESF",
       "zone": 103,
       "race": 17,
-      "note": "Brownie: a glade (the brownies' own Salisearaneen stands in the Warrens' cell) (Mayfly Glade, cell 5,9)"
+      "note": "Brownie: a glade (the brownies' own Salisearaneen stands in the Warrens' cell) (Mayfly Glade, cell 5,9)",
+      "home": {
+        "flavor": "Brownies are quick-fingered fae of Mayfly Glade in the Homelands, fond of mischief and a good meal, and friends to the halflings of Rivervale.",
+        "start": {
+          "x": 11129.1,
+          "y": 75.25,
+          "z": 18702.0,
+          "toward": [
+            11135.5,
+            18699.2
+          ]
+        },
+        "mainland": {
+          "place": "Rivervale",
+          "world": 0,
+          "x": 18776.3,
+          "y": 62.4,
+          "z": 10959.6,
+          "facing": 0.0
+        },
+        "npcs": [
+          {
+            "name": "Elder Thimbleroot",
+            "like": 112787,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              11135.5,
+              75.25,
+              18699.2
+            ],
+            "toward": [
+              11129.1,
+              18702.0
+            ],
+            "note": "the starter quests' giver, a brownie elder of Salisearaneen's, east of the hut in the glade's stockade (the Glinaldal camp's spots: no brownie stands in the zone)"
+          },
+          {
+            "name": "Grocer Pippkin",
+            "like": 112836,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              11129.3,
+              75.25,
+              18660.3
+            ],
+            "toward": [
+              11135.5,
+              18699.2
+            ],
+            "stock": "Grocer Redders",
+            "note": "the glade's larder by the tent, a Rivervale grocer's food"
+          },
+          {
+            "name": "Spiritmaster Fennick",
+            "like": 112748,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              11083.1,
+              75.25,
+              18686.7
+            ],
+            "toward": [
+              11135.5,
+              18699.2
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Burrowby",
+            "like": 112786,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              11150.5,
+              75.25,
+              18691.8
+            ],
+            "toward": [
+              11135.5,
+              18699.2
+            ],
+            "note": "sends a brownie who has done the starter quests to Rivervale (The Road to Rivervale); at the stockade's gate"
+          },
+          {
+            "name": "Glade watcher",
+            "like": 112746,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              11166.0,
+              76.73,
+              18686.0
+            ],
+            "facing": 64,
+            "note": "outside the gate, on the ground"
+          },
+          {
+            "name": "Glade watcher",
+            "like": 112746,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              11106.7,
+              75.25,
+              18664.1
+            ],
+            "facing": 30
+          },
+          {
+            "name": "Glade watcher",
+            "like": 112746,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              11091.5,
+              75.25,
+              18704.3
+            ],
+            "facing": 97
+          },
+          {
+            "name": "Glade watcher",
+            "like": 112746,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              11166.0,
+              76.73,
+              18698.0
+            ],
+            "facing": 64
+          },
+          {
+            "name": "mayfly swarm",
+            "body": "0x2917BF34",
+            "level": 1,
+            "role": "foe",
+            "at": [
+              10573.2,
+              51.93,
+              18860.3
+            ],
+            "note": "the starter quest's mayflies, at the sacred monarchs' spots in the open glade west of the stockade"
+          },
+          {
+            "name": "mayfly swarm",
+            "body": "0x2917BF34",
+            "level": 1,
+            "role": "foe",
+            "at": [
+              10586.8,
+              52.53,
+              18829.4
+            ]
+          },
+          {
+            "name": "mayfly swarm",
+            "body": "0x2917BF34",
+            "level": 2,
+            "role": "foe",
+            "at": [
+              10596.6,
+              53.7,
+              18803.8
+            ]
+          },
+          {
+            "name": "mayfly swarm",
+            "body": "0x2917BF34",
+            "level": 1,
+            "role": "foe",
+            "at": [
+              10572.3,
+              54.12,
+              18815.1
+            ]
+          },
+          {
+            "name": "mayfly swarm",
+            "body": "0x2917BF34",
+            "level": 2,
+            "role": "foe",
+            "at": [
+              10547.7,
+              54.12,
+              18796.1
+            ]
+          },
+          {
+            "name": "mayfly swarm",
+            "body": "0x2917BF34",
+            "level": 1,
+            "role": "foe",
+            "at": [
+              10540.5,
+              54.13,
+              18816.1
+            ]
+          }
+        ],
+        "peaceful": [
+          "mayfly swarm"
+        ],
+        "lines": {
+          "Gatekeeper Burrowby": [
+            "Off to Rivervale already? Not before the elder has had a word with you. He is just inside, by the hut.",
+            "Elder Thimbleroot first, then me. That is the way of the glade."
+          ],
+          "Glade watcher": [
+            "Lovely day for it, whatever it is.",
+            "Keep your fingers out of Pippkin's larder, %r. She counts more than she says.",
+            "The stockade keeps out the wolves. Mostly."
+          ],
+          "Elder Thimbleroot": [
+            "A brownie with a full belly is a brownie ready for anything.",
+            "Rivervale is a fine place. The halflings bake almost as well as we do."
+          ]
+        }
+      }
     },
     {
       "name": "Misty Thicket",

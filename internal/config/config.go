@@ -295,6 +295,14 @@ type WorldConfig struct {
 	// nothing. The Heirloom Test Server sets it.
 	RockOfFreeport bool `yaml:"rock_of_freeport"`
 
+	// TestInvis turns on /testinvis, every player's safe mode
+	// (handlers/safemode.go, entity/safemode.go; petition 1424): typed, no
+	// creature attacks the character on sight until it is typed again, and a
+	// fight it starts works as any other. Unset or false: the command says it
+	// is off, and a character left in safe mode leaves it at its next login.
+	// The Heirloom Test Server sets it.
+	TestInvis bool `yaml:"testinvis"`
+
 	// Teleporter turns on the Teleporter (handlers/teleporter.go): an NPC of
 	// that name (tools/place_teleporter.py stands one beside Dabrish) sends a
 	// player to every raid's way in and beside every XP camp, a box at a time,

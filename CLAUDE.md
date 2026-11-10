@@ -566,10 +566,11 @@ file and index). vanilla composes the same bytes (`serverworlds::extras`), sent 
 when no world has any). The Homelands' open edges are closed with them: `cmd/worldedges` lays a ridge of
 steep rocks (`tools/worlds/edges-palette.json`: Odus's mossy boulder) along every edge no other zone touches,
 or touches with ground that does not meet it (zones of two disc worlds), into `tools/worlds/homelands-edges.json`,
-and `worldedges -check` walks the baked ground along every open edge as the movement check judges a walk
-(fails on any way out; `-leaks` + `-fix` add rocks over what it finds). A ridge's layout goes by its zone and
-side, so a zone added to the recipe changes no other zone's rocks: build and bake the world without the file,
-run `worldedges` off it, then build, bake and `-check` with it.
+and `worldedges -check` walks the baked ground along every open edge as the game's walk goes (eight ways, a
+body standing on anything and climbing nothing steeper than 49 degrees; fails on any way out, `-leaks` writes
+them, `-trace -near` shows the way to one). A ridge's layout goes by its zone and side, so a zone added to the
+recipe changes no other zone's rocks: build and bake the world without the file, run `worldedges` off it, then
+build, bake and `-check` with it.
 
 ### The server's own view of a player's moves (`entity/movecheck.go`, `#movecheck`)
 

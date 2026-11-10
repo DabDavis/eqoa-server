@@ -130,6 +130,10 @@ type Server struct {
 
 	// looks is look_names' answers, a minute each (looks.go)
 	looks lookCache
+
+	// campfixMu orders the camp reports' decisions (ops_campfix.go): one at
+	// a time, so no report's marks are applied twice
+	campfixMu sync.Mutex
 }
 
 // New builds the panel. It creates its own tables (gm_audit, gm_totp,

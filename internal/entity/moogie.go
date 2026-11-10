@@ -2,6 +2,7 @@ package entity
 
 import (
 	"log"
+	"time"
 
 	"github.com/eqoa/server/internal/session"
 )
@@ -67,6 +68,53 @@ func (w *World) MoogieClear(sess *session.Session) (name string, n int, ok bool)
 	p.StatsDirty = true
 	log.Printf("Moogie: %s's buffs cleared (%d effects)", p.Name, n)
 	return p.Name, n, true
+}
+
+// MoogieResetID is the lockout of Mr. Moogie's reset itself (the GM Jibrish's petition 1444: "allow the
+// player to reset all of their ability cool downs ... can only be used on a player once every 10
+// minutes"): a lockout of no spell (an id no ability has), shown on no ability, so it is kept as every
+// lockout is over a logout (charlockouts: lockoutsave.go) and a restart that keeps the sessions (keep.go),
+// on the wall clock; MoogieResetEvery is how often a character may have it.
+const (
+	MoogieResetID    = -1444
+	MoogieResetEvery = 10 * time.Minute
+)
+
+// MoogieReset ends every lockout of sess's player's abilities still running (cast.go: each spell's and
+// art's, and the arts' shared cooldown) as their time running out ends them: each one's badge told 0x00CD
+// with 0, as castSystem tells a lockout over. Not its pet's, nor anyone else's; not its items' cooldowns.
+// Once in MoogieResetEvery a character (its own lockout, MoogieResetID): within it nothing is ended and
+// wait is what is left of it. It returns the player's name and how many lockouts it ended; ok false
+// with no living player, or within its ten minutes. The PvP flag and a duel are MoogieBusy's, asked
+// first.
+func (w *World) MoogieReset(sess *session.Session, now time.Time) (name string, n int, wait time.Duration, ok bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil || p.IsDead() {
+		return "", 0, 0, false
+	}
+	for _, l := range p.Lockouts {
+		if l.spellID == MoogieResetID && now.Before(l.until) {
+			return p.Name, 0, l.until.Sub(now), false
+		}
+	}
+	for _, l := range p.Lockouts {
+		if l.spellID == MoogieResetID {
+			continue // its own, over: another below
+		}
+		if now.Before(l.until) {
+			n++
+		}
+		sendCooldown(sess, l.displayIndex, 0) // a badge of no ability (-1) is sent nothing
+	}
+	if now.Before(p.artReady) {
+		n++
+	}
+	p.artReady = time.Time{}
+	p.Lockouts = append(p.Lockouts[:0], castLockout{spellID: MoogieResetID, displayIndex: -1, until: now.Add(MoogieResetEvery)})
+	log.Printf("Moogie: %s's ability lockouts reset (%d running); again from %s", p.Name, n, now.Add(MoogieResetEvery).UTC().Format("15:04:05"))
+	return p.Name, n, 0, true
 }
 
 // MoogieHeal brings sess's player's hit points and power to their most. It returns the player's

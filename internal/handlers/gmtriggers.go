@@ -133,11 +133,13 @@ type triggerRun struct {
 	resummons []*triggerResummon
 }
 
-// triggerResummon is one resummon step a run keeps: the step, and when its NPC's last
-// spawn was first seen gone (zero: one stands, or none has come yet).
+// triggerResummon is one resummon step a run keeps: the step, when its NPC's last
+// spawn was first seen gone (zero: one stands, or none has come yet), and whether its
+// caller has been seen living since the step (or since its spawns last died with it).
 type triggerResummon struct {
-	step database.TriggerStep
-	fell time.Time
+	step       database.TriggerStep
+	fell       time.Time
+	callerSeen bool
 }
 
 // triggerPlaceAt is a place in a world.
@@ -1151,7 +1153,10 @@ func (e *TriggerEngine) spawnLocked(r *triggerRun, s database.TriggerStep) strin
 // first seen gone, one more beside the caller (within 3), with the step's attackable,
 // hostile and minutes, set on its target with its radius and casts, its text said to
 // the run's players. The caller dead or gone, nothing comes (and the wait starts
-// again when one does). Must be called with e.mu held.
+// again when one does), and the NPC's spawns standing die with it (the owner,
+// 2026-11-10: "when the summoned pet's master dies, so does the pet"; entity's
+// KillWithMaster: their deaths played, corpses of nothing). Must be called with e.mu
+// held.
 func (e *TriggerEngine) resummonLocked(r *triggerRun, now time.Time) {
 	for _, rs := range r.resummons {
 		name, by := strings.TrimSpace(rs.step.NPC), strings.TrimSpace(rs.step.By)
@@ -1163,6 +1168,19 @@ func (e *TriggerEngine) resummonLocked(r *triggerRun, now time.Time) {
 				standing = true
 			case caller == 0 && strings.EqualFold(sp.name, by) && e.gw.NPCAlive(sp.id):
 				caller = sp.id
+			}
+		}
+		if caller != 0 {
+			rs.callerSeen = true
+		} else if rs.callerSeen {
+			// its caller is dead (or gone): its pets die with it
+			rs.callerSeen = false
+			for _, sp := range r.spawns {
+				if strings.EqualFold(sp.name, name) {
+					if n, ok := e.gw.KillWithMaster(sp.id); ok {
+						log.Printf("Triggers: %s's %s (%d) dies with its %s", r.trig.Title(), n, sp.id, by)
+					}
+				}
 			}
 		}
 		if standing || caller == 0 {

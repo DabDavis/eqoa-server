@@ -1048,8 +1048,8 @@ func (w *World) petTopHateLocked(pet, t *NPC) {
 	if t.Threats[pet.ServerID] <= top {
 		t.Threats[pet.ServerID] = top + 1
 	}
-	t.CurrentEnemy = pet.ServerID
-	w.wakeNPCLocked(t) // npcsets.go
+	t.CurrentEnemy = w.tauntedLocked(t, pet.ServerID) // a preferred foe of its stays its enemy (prefer.go)
+	w.wakeNPCLocked(t)                                // npcsets.go
 }
 
 // PetTemplateSummary is the pets' templates for the server's log.
@@ -1066,14 +1066,14 @@ func (w *World) PetTemplateSummary() string {
 		len(w.templates.weapon))
 }
 
-// petOnly is whether an ability is a pet's alone: a taunt, a buff, a root, a damage
-// over time, a heal on its owner (an NPC of the template casts none; a creature's
-// damage over time is its debuff's). A heal of its own share is a creature's too
-// since petition 1394 (abilitytimes.go: Mr. Moogie's Lay Hands), cast as its other
-// abilities are; a pet's comes by size (petSharePickLocked).
+// petOnly is whether an ability is a pet's alone: a taunt, a buff, a root, a heal
+// on its owner (an NPC of the template casts none). A heal of its own share is a
+// creature's too since petition 1394 (abilitytimes.go: Mr. Moogie's Lay Hands),
+// cast as its other abilities are; a pet's comes by size (petSharePickLocked); and
+// a damage over time since 2026-11-10 (creaturedot.go: the owner's Innoruuk).
 func petOnly(a *templateAbility) bool {
 	switch {
-	case a.Kind == database.AbilityTaunt, a.Kind == database.AbilityBuff, a.Kind == database.AbilityRoot, a.Kind == database.AbilityDoT:
+	case a.Kind == database.AbilityTaunt, a.Kind == database.AbilityBuff, a.Kind == database.AbilityRoot:
 		return true
 	case a.Kind == database.AbilityHeal && a.TargetOr() == database.AbilityOnOwner:
 		return true // a creature's heal of its share is its own now (abilitytimes.go: petition 1394)

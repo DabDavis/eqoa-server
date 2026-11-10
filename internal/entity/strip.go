@@ -49,7 +49,7 @@ func stripSpell(a database.TemplateAbility) *CastSpell {
 	if name == "" {
 		name = database.DefaultStripName
 	}
-	return &CastSpell{Name: name, Scope: 1, Def: SpellDef{Harmful: true, Target: TargetSingle}}
+	return &CastSpell{Name: name, Scope: 1, FX: a.FX, Def: SpellDef{Harmful: true, Target: TargetSingle}}
 }
 
 // beneficialEffect reports an effect its bearer is the better for, which a strip takes off: one
@@ -156,6 +156,13 @@ func (w *World) templateStripLocked(c *npcCast, now time.Time) {
 		if god {
 			log.Printf("Template: %s's %q turns %s's god mode off (#testmode)", npc.Name, name, p.Name)
 		}
+		return
+	}
+	if foe := w.castFoeLocked(npc, c.target); foe != nil {
+		// the creature of a scripted fight (scriptedFoes, classtemplate.go:
+		// petition 1437, Mr. Moogie's at Tunare): its beneficial effects end as a
+		// pet's do
+		stripLog(npc.Name, name, foe.Name, w.stripPetLocked(foe, now))
 		return
 	}
 	pet := w.NPCs[c.target]

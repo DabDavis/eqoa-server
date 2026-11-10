@@ -55,6 +55,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.aiSystem(now)
 	t.mark(tsAI)
 	w.templateSystem(now) // templated NPCs' casts landing (classtemplate.go)
+	w.addsSystem(now)     // the adds creatures' summons called, to their fights (summon.go)
 	t.mark(tsTemplates)
 	w.homeSystem(now)
 	t.mark(tsHome)
@@ -134,6 +135,7 @@ func (w *World) aiSystem(now time.Time) {
 	var dummies []*NPC
 	var petFights [][2]*NPC // a creature and the pet it fights (pet.go)
 	var npcFights [][2]*NPC // a guard and its creature, either way (guards.go)
+	var phased []*NPC       // templated NPCs in a fight: their summons and enrage (summon.go)
 
 	// only the NPCs with a fight, or a fight's end, to see to: a pet fights in
 	// petSystem (pet.go), and every other NPC has nothing (npcsets.go)
@@ -167,6 +169,9 @@ func (w *World) aiSystem(now time.Time) {
 				w.goHomeLocked(npc) // its fight is over: back where it began (chase.go)
 			}
 			continue
+		}
+		if npc.tmpl != nil && (len(npc.tmpl.summons) > 0 || npc.tmpl.enrage != nil) {
+			phased = append(phased, npc)
 		}
 
 		// Validate enemy is still a living player in world
@@ -216,11 +221,22 @@ func (w *World) aiSystem(now time.Time) {
 		}
 		if !in {
 			npc.loseDueHits(now) // closing in: no hit lands from out of reach
+			if npc.tmpl != nil {
+				w.templateFarTurnLocked(npc, enemy.ServerID, now) // its casts from afar (classtemplate.go)
+			}
 			continue
 		}
 		fights = append(fights, fight{npc: npc, enemy: enemy})
 	}
 	w.sets.ai.tidy()
+
+	// a summon's adds and an enrage after the checks, so a fight dropped this
+	// turn calls none, and before the rounds, which the adds join
+	for _, npc := range phased {
+		if !npc.Dead && npc.CurrentEnemy != 0 {
+			w.templatePhasesLocked(npc, now)
+		}
+	}
 
 	// The rounds after the checks: a player one NPC kills is off every
 	// NPC's list (playerDiedLocked) before the next one swings.
@@ -275,8 +291,10 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 
 	// Sandstorm's roll on the player's AC, AGI and archetype (defence.go),
 	// as its class template makes it (classtemplate.go), then the balance's
-	// (balance.go: its level's, its con's and the player's class's)
-	damage := w.npcHitPlayerLocked(npc, player, npcMeleeOn(npc, player, meleeIntn))
+	// (balance.go: its level's, its con's and the player's class's); an add's
+	// as its creature's at its share (summon.go)
+	src := npc.figures()
+	damage := npc.shared(w.npcHitPlayerLocked(src, player, npcMeleeOn(src, player, meleeIntn)))
 	damage = mitigateLocked(player, damage, now) // workbook.go: a mitigation's share off
 	player.HP -= damage
 	w.contactPlayerLocked(player)       // what ends at a hit (workbook.go)
@@ -285,6 +303,7 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 		player.HP = 0
 	}
 	player.LastCombatTime = now
+	w.rampageLocked(npc, playerID, damage, now) // an enraged creature's share on the second of its list (enrage.go)
 
 	// Find player session to send feedback
 	sess := w.findSessionByEntityIDLocked(playerID)

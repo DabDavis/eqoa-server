@@ -151,7 +151,10 @@ const allGameRaces = 10
 // WearablePatterns is every item of the wear slots given that a character of
 // class and race may wear at level, as CLIENT's VIPlayer::CanUse judges it:
 // its class's bit in classuse (1 << class), its race's in raceuse (1 <<
-// race), and levelreq at most the level. In patternid order.
+// race), and levelreq at most the level. In patternid order. An Ascended record
+// (ascended.go) is none of them: what is made of these (the heirlooms' figures,
+// the balance's kits) is the regular items', and a tuned boss's drop a tenth
+// above them would set every heirloom of its role a tenth higher.
 func (s *InventoryStore) WearablePatterns(class, race, level int, wear []int) ([]ItemPatternRecord, error) {
 	if len(wear) == 0 || class < 0 || class > 30 || race < 0 || race > 30 {
 		return nil, nil
@@ -179,6 +182,7 @@ func (s *InventoryStore) WearablePatterns(class, race, level int, wear []int) ([
 			weaponproc, fish
 		FROM itempattern
 		WHERE (classuse & ?) != 0 AND `+races+` AND levelreq <= ? AND equipslot IN (`+in+`)
+			AND patternid NOT IN (SELECT patternid FROM itemascended)
 		ORDER BY patternid`, args...)
 	if err != nil {
 		return nil, err

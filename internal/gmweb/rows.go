@@ -594,6 +594,9 @@ type writeOpts struct {
 	// NoLive leaves the running game alone: a caller writing many rows of one
 	// table applies it once after them (quest_save, quest_set_enabled).
 	NoLive bool
+	// Detail is the audit line's detail: what the change was for (a camp
+	// report's mark), empty for an edit of its own.
+	Detail string
 }
 
 // writableValues checks and converts the columns a change sets.
@@ -631,6 +634,8 @@ func readOnlyHint(table, col string) string {
 		return " (set_account_level changes it)"
 	case "accountinfo.pwhash":
 		return " (set_account_password changes it)"
+	case "campfix_reports.status":
+		return " (campfix_approve or campfix_decline decides it: the Camp reports page)"
 	}
 	return ""
 }
@@ -823,7 +828,7 @@ func (s *Server) insertRow(a *actor, t *Table, values map[string]any, o writeOpt
 	}
 	delete(after, "__key")
 	ch.Key, ch.After = key, after
-	if ch.Audit, err = s.auditTx(tx, a, "insert", t.Name, key, nil, after, ""); err != nil {
+	if ch.Audit, err = s.auditTx(tx, a, "insert", t.Name, key, nil, after, o.Detail); err != nil {
 		return nil, err
 	}
 	if err := tx.Commit(); err != nil {
@@ -951,7 +956,7 @@ func (s *Server) updateRow(a *actor, t *Table, key, values, base map[string]any,
 	}
 	delete(after, "__key")
 	ch.Key, ch.After = newKey, after
-	if ch.Audit, err = s.auditTx(tx, a, "update", t.Name, key, before, after, ""); err != nil {
+	if ch.Audit, err = s.auditTx(tx, a, "update", t.Name, key, before, after, o.Detail); err != nil {
 		return nil, err
 	}
 	if err := tx.Commit(); err != nil {
@@ -1005,7 +1010,7 @@ func (s *Server) deleteRow(a *actor, t *Table, key map[string]any, o writeOpts) 
 	if n, _ := res.RowsAffected(); n != 1 {
 		return nil, fmt.Errorf("%d rows deleted, not 1", n)
 	}
-	if ch.Audit, err = s.auditTx(tx, a, "delete", t.Name, key, before, nil, ""); err != nil {
+	if ch.Audit, err = s.auditTx(tx, a, "delete", t.Name, key, before, nil, o.Detail); err != nil {
 		return nil, err
 	}
 	if err := tx.Commit(); err != nil {
@@ -1016,6 +1021,33 @@ func (s *Server) deleteRow(a *actor, t *Table, key map[string]any, o writeOpts) 
 		ch.Live = s.applyLive(a, t, "delete", before, nil)
 	}
 	return ch, nil
+}
+
+// cloneRow copies the row of t at key into a new one with changes, as
+// clone_row does: every column but a secret one and an integer key of its own
+// (numbered anew), then the changes, through insertRow.
+func (s *Server) cloneRow(a *actor, t *Table, key, changes map[string]any, o writeOpts) (*change, error) {
+	src, err := getRow(s.d.DB, t, key)
+	if err != nil {
+		return nil, notFound("%v", err)
+	}
+	vals := map[string]any{}
+	for _, col := range t.Columns {
+		if col.Secret {
+			continue
+		}
+		// an integer key is numbered anew
+		if col.PK > 0 && len(t.Key) == 1 && col.Affinity == "INTEGER" {
+			continue
+		}
+		if v, ok := src[col.Name]; ok {
+			vals[col.Name] = v
+		}
+	}
+	for k, v := range changes {
+		vals[k] = v
+	}
+	return s.insertRow(a, t, vals, o)
 }
 
 // matchingKeys is the keys of the rows a query's filters match, at most max+1

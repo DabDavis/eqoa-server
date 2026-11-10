@@ -1170,6 +1170,1293 @@
       ],
       "unresolved": [],
       "notes": "Ours: the gatekeeper's port to Halas, the aviak's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a fledgling back in the Roost is sent again; no reward, so none is had twice."
+    },
+    {
+      "key": "homelands/goblin/welcome",
+      "name": "Fresh From the Mud",
+      "giver": "Elder Snikkit",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Another one crawls out of the mud! Listen, little one: in Moss Mouth, a goblin who does not know the grocer goes hungry. Find Mudgrub by the cook pots and tell him the elder sent you.",
+      "accept": "I will find Mudgrub.",
+      "decline": "Not now.",
+      "declined": "Go hungry, then. The cavern feeds no one twice.",
+      "started": "Mudgrub keeps the cook pots, just south of here. Do not touch them.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Mudgrub",
+          "journal": "Find Grocer Mudgrub by the cook pots in the great hall.",
+          "says": "The elder sent you? Here, eat this before someone takes it from you. It smells, but so do we.",
+          "rewards": {
+            "items": [
+              "stilton cheese"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Snikkit",
+          "journal": "Return to Elder Snikkit.",
+          "says": "Good. Mudgrub knows your face now, and you know where the food is. That is half of being a goblin.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the goblins' first, at their home zone, Moss Mouth Cavern of the disc."
+    },
+    {
+      "key": "homelands/goblin/rats",
+      "name": "Rats in the Larder",
+      "giver": "Grocer Mudgrub",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/goblin/welcome"
+      ],
+      "offer": "Tunnel rats are in my stores again, and they eat better than I do. Kill five of them down in the pit east of the hall, where they nest, and I will pay you in good coin.",
+      "accept": "I will kill them.",
+      "decline": "Not now.",
+      "declined": "Then the rats eat, and you do not.",
+      "started": "Five rats. Bring me none of their fleas.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "tunnel rat",
+          "count": 5,
+          "journal": "Kill five tunnel rats in the pit east of the great hall."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Mudgrub",
+          "journal": "Tell Grocer Mudgrub the rats are dead.",
+          "says": "Five rats! You are quicker than you look. Here is your pay. Do not spend it all in one place.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the goblins' second starter quest; the tunnel rats are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/goblin/flight",
+      "name": "The Road to Neriak",
+      "giver": "Gatekeeper Skabber",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/goblin/welcome",
+        "homelands/goblin/rats"
+      ],
+      "repeatable": true,
+      "offer": "The dark elves of Neriak pay well for goblins who are quick and quiet. I can send you to them, and Neriak will be your home from then on. Are you ready to go?",
+      "accept": "Send me to Neriak.",
+      "decline": "Not yet.",
+      "declined": "Neriak will wait. Dark elves are good at waiting.",
+      "started": "Keep your blade close and your purse closer!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Skabber",
+          "journal": "Tell Gatekeeper Skabber when you are ready to go to Neriak.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Neriak, the goblin's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a goblin back in Moss Mouth Cavern is sent again; no reward, so none is had twice."
+    },
+    {
+      "key": "homelands/lizardman/welcome",
+      "name": "Fresh From the Shell",
+      "giver": "Elder Hsslarn",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Another hatchling, still wet from the shell. Before you hunt, you eat, and in this swamp the eating starts with Sskaya. Go to her at the long bridge and let her learn your face.",
+      "accept": "I will go to her.",
+      "decline": "Not now.",
+      "declined": "Then go hungry. The swamp does not mind.",
+      "started": "Sskaya keeps her stall at the west end of the long bridge, just east of here.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Sskaya",
+          "journal": "Find Grocer Sskaya at the west end of the long bridge.",
+          "says": "Hsslarn sent you? Then take this, hatchling, and eat it slowly. Bread does not run away.",
+          "rewards": {
+            "items": [
+              "hearty bread"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Hsslarn",
+          "journal": "Return to Elder Hsslarn.",
+          "says": "Good. A hunter who knows where the food is can wait as long as the prey can, and longer.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the lizardmans' first, at their home zone, Cazic-Thule of the disc."
+    },
+    {
+      "key": "homelands/lizardman/beetles",
+      "name": "Beetles in the Reeds",
+      "giver": "Grocer Sskaya",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/lizardman/welcome"
+      ],
+      "offer": "Bog beetles have been chewing through my reed baskets. Hunt five of them for me on the southern banks, behind the old temple and on the far side of the east island, and I will make it worth your while.",
+      "accept": "I will hunt them.",
+      "decline": "Not now.",
+      "declined": "Then my baskets will have holes in them.",
+      "started": "Five beetles. Mind the deep water.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "bog beetle",
+          "count": 5,
+          "journal": "Kill five bog beetles on the southern banks, behind the old temple or across the east island."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Sskaya",
+          "journal": "Tell Grocer Sskaya the beetles are dead.",
+          "says": "Five! My baskets thank you, and so do I. Here, this is yours.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the lizardmans' second starter quest; the bog beetles are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/lizardman/flight",
+      "name": "The Road to Freeport",
+      "giver": "Gatekeeper Vosskar",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/lizardman/welcome",
+        "homelands/lizardman/beetles"
+      ],
+      "repeatable": true,
+      "offer": "In Freeport the humans pay good coin for a blade that does not tire, and they ask few questions. I can send you there, and it will be your home from then on. Are you ready to go?",
+      "accept": "Send me to Freeport.",
+      "decline": "Not yet.",
+      "declined": "The coin will keep. So will Freeport.",
+      "started": "Hunt well, and send word home now and then!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Vosskar",
+          "journal": "Tell Gatekeeper Vosskar when you are ready to go to Freeport.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Freeport, the lizardman's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a lizardman back in Cazic-Thule is sent again; no reward, so none is had twice."
+    },
+    {
+      "key": "homelands/brownie/welcome",
+      "name": "A Seat at the Table",
+      "giver": "Elder Thimbleroot",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Welcome, welcome! A new face in the glade is a fine thing. Now, the first thing any brownie learns is where the food is kept. Go and say hello to Pippkin. She keeps the larder.",
+      "accept": "I will say hello.",
+      "decline": "Not now.",
+      "declined": "Hungry later, then! Do not say I did not tell you.",
+      "started": "Pippkin is just over there, by the tent. You will smell the larder.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Pippkin",
+          "journal": "Say hello to Grocer Pippkin by the tent in the glade's stockade.",
+          "says": "Thimbleroot sent you? Then you must be starving. Here, take a muffin. Take two, nobody is counting.",
+          "rewards": {
+            "items": [
+              "oat muffin"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Thimbleroot",
+          "journal": "Return to Elder Thimbleroot.",
+          "says": "There, you see? Fed and friended in one morning. You will make a fine brownie yet.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the brownies' first, at their home zone, Mayfly Glade of the disc."
+    },
+    {
+      "key": "homelands/brownie/mayflies",
+      "name": "Mayflies in the Berries",
+      "giver": "Grocer Pippkin",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/brownie/welcome"
+      ],
+      "offer": "Mayfly swarms are in the berry patches again, and they spoil more than they eat. Be rid of five of them for good, out in the open glade west of the stockade, and I will pay you well.",
+      "accept": "I will deal with them.",
+      "decline": "Not now.",
+      "declined": "Then we will have very few berries this year.",
+      "started": "Five swarms. Mind your ears, they buzz terribly.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "mayfly swarm",
+          "count": 5,
+          "journal": "Kill five mayfly swarms in the open glade west of the stockade."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Pippkin",
+          "journal": "Tell Grocer Pippkin the mayflies are gone.",
+          "says": "Five swarms gone! The berries thank you, and so do I. Here, for your trouble.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the brownies' second starter quest; the mayfly swarms are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/brownie/flight",
+      "name": "The Road to Rivervale",
+      "giver": "Gatekeeper Burrowby",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/brownie/welcome",
+        "homelands/brownie/mayflies"
+      ],
+      "repeatable": true,
+      "offer": "The halflings of Rivervale keep good tables and open doors, and they have always been kind to our kind. I can send you to them, and Rivervale will be your home. Shall I?",
+      "accept": "Send me to Rivervale.",
+      "decline": "Not yet.",
+      "declined": "Rivervale will keep. Halflings are patient about guests.",
+      "started": "Mind your manners, and save me a pie!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Burrowby",
+          "journal": "Tell Gatekeeper Burrowby when you are ready to go to Rivervale.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Rivervale, the brownie's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a brownie back in Mayfly Glade is sent again; no reward, so none is had twice."
+    },
+    {
+      "key": "homelands/pixie/welcome",
+      "name": "A Spark in the Thicket",
+      "giver": "Elder Brightwing",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "A new spark in the thicket! Before you fly off anywhere, little one, go and find Nettlewick. She keeps the honey and the bread, and she likes to know every face she feeds.",
+      "accept": "I will find her.",
+      "decline": "Not now.",
+      "declined": "Then flit about hungry. You will be back.",
+      "started": "Nettlewick is by the old pines, a short flight east of here.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Nettlewick",
+          "journal": "Find Grocer Nettlewick by the old pines east of the elder.",
+          "says": "Brightwing sent you? Here, a boiled egg. It is bigger than you are, but you will manage.",
+          "rewards": {
+            "items": [
+              "boiled egg"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Brightwing",
+          "journal": "Return to Elder Brightwing.",
+          "says": "Good! Now Nettlewick knows you, and you know where the honey is kept. That is a fine start for any pixie.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the pixies' first, at their home zone, Misty Thicket of the disc."
+    },
+    {
+      "key": "homelands/pixie/rats",
+      "name": "Rats in the Brambles",
+      "giver": "Grocer Nettlewick",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/pixie/welcome"
+      ],
+      "offer": "Bramble rats have been nibbling at my stores. They are twice your size, but they are slow. Hunt five of them in the brambles south-west of the elder's pines and I will pay you well.",
+      "accept": "I will hunt them.",
+      "decline": "Not now.",
+      "declined": "Then the rats get fatter and I get poorer.",
+      "started": "Five rats. Stay out of reach of their teeth.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "bramble rat",
+          "count": 5,
+          "journal": "Kill five bramble rats in the brambles south-west of the elder's pines."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Nettlewick",
+          "journal": "Tell Grocer Nettlewick the rats are dead.",
+          "says": "Five rats! Small wings, big heart. Here is your pay, and well earned.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the pixies' second starter quest; the bramble rats are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/pixie/flight",
+      "name": "The Elves' Wood",
+      "giver": "Gatekeeper Thistlewhirl",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/pixie/welcome",
+        "homelands/pixie/rats"
+      ],
+      "repeatable": true,
+      "offer": "The elves of Tethelin and the Fayspires have always welcomed our kind, and they will teach you as their own. I can send you to them, and you will make your home there. Ready to fly?",
+      "accept": "Send me to the elves.",
+      "decline": "Not yet.",
+      "declined": "The elves are patient. They live a long time.",
+      "started": "Fly well, little spark!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Thistlewhirl",
+          "journal": "Tell Gatekeeper Thistlewhirl when you are ready to go to the elves.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Tethelin or Fayspire by class, the pixie's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a pixie back in Misty Thicket is sent again; no reward, so none is had twice."
+    },
+    {
+      "key": "homelands/fairy/welcome",
+      "name": "Thistledown Welcome",
+      "giver": "Elder Moonpetal",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Oh, a new one! Welcome to the valley, little friend. Before anything else, fly over to Dewberry by the old forge and say who you are. She feeds us all, and she does not like strangers.",
+      "accept": "I will go and see her.",
+      "decline": "Not now.",
+      "declined": "Then come back when you are hungry. You will be.",
+      "started": "Dewberry is just west of here, by the old forge.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Dewberry",
+          "journal": "Introduce yourself to Grocer Dewberry by the old forge.",
+          "says": "Moonpetal sent you? Welcome, welcome! Here is some cheese for the road. Fairies cannot live on dew alone.",
+          "rewards": {
+            "items": [
+              "cheddar cheese"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Moonpetal",
+          "journal": "Return to Elder Moonpetal.",
+          "says": "Lovely. Now you have a friend in the valley, and that is worth more than any spell I could teach you.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the fairys' first, at their home zone, Twisted Tower of the disc."
+    },
+    {
+      "key": "homelands/fairy/beetles",
+      "name": "Beetles in the Garden",
+      "giver": "Grocer Dewberry",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/fairy/welcome"
+      ],
+      "offer": "Dusk beetles have got into the gardens again, at both ends of the valley. Would you deal with five of them for me? They are slow, and they only bite a little.",
+      "accept": "I will deal with them.",
+      "decline": "Not now.",
+      "declined": "Then the beetles will have my lettuce.",
+      "started": "Five beetles. Look in the gardens at either end of the valley.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "dusk beetle",
+          "count": 5,
+          "journal": "Kill five dusk beetles in the gardens at either end of the valley."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Dewberry",
+          "journal": "Tell Grocer Dewberry the beetles are gone.",
+          "says": "Five! My garden is saved. Thank you, little friend, and take this for your trouble.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the fairys' second starter quest; the dusk beetles are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/fairy/flight",
+      "name": "The Road to Qeynos",
+      "giver": "Gatekeeper Starling",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/fairy/welcome",
+        "homelands/fairy/beetles"
+      ],
+      "repeatable": true,
+      "offer": "The humans of Qeynos and the rangers of Surefall Glade are kind to fairies, and they will teach you all they know. I can send you to them, and that will be your home. Are you ready?",
+      "accept": "Send me to the humans.",
+      "decline": "Not yet.",
+      "declined": "The humans will wait. They are slower than we are.",
+      "started": "Fly true, little friend!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Starling",
+          "journal": "Tell Gatekeeper Starling when you are ready to go to the humans of Qeynos.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Qeynos (its rangers and druids Surefall Glade), the fairy's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a fairy back in Twisted Tower is sent again; no reward, so none is had twice."
+    },
+    {
+      "key": "homelands/gnoll/welcome",
+      "name": "Fresh Pup",
+      "giver": "Elder Grawl",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "A new pup at the fire! Good. The pack feeds its own, but you must know who feeds it. Go to Snaggle by the cook pots and let him take your scent. Then come back to me.",
+      "accept": "I will go to him.",
+      "decline": "Not now.",
+      "declined": "Then you eat last, pup. The pack waits for no one.",
+      "started": "Snaggle is by the cook pots, just south of the fire.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Snaggle",
+          "journal": "Let Grocer Snaggle take your scent by the cook pots.",
+          "says": "Grawl sent you? Here, pup, chew on this. It is mostly meat.",
+          "rewards": {
+            "items": [
+              "dried beef"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Grawl",
+          "journal": "Return to Elder Grawl.",
+          "says": "Good. Snaggle knows your scent now. A gnoll the pack knows is never alone.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the gnolls' first, at their home zone, Blackburrow of the disc."
+    },
+    {
+      "key": "homelands/gnoll/badgers",
+      "name": "Badgers on the Hill",
+      "giver": "Grocer Snaggle",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/gnoll/welcome"
+      ],
+      "offer": "Hill badgers keep digging under the stockade to get at my pots. Go up the hill north-west of the camp and kill five of them for me. I will pay, and maybe there will be badger stew.",
+      "accept": "I will hunt them.",
+      "decline": "Not now.",
+      "declined": "Then the badgers eat, and so do I, eventually.",
+      "started": "Five badgers. They bite, so bite first.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "hill badger",
+          "count": 5,
+          "journal": "Kill five hill badgers on the hill north-west of the camp."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Snaggle",
+          "journal": "Tell Grocer Snaggle the badgers are dead.",
+          "says": "Five badgers! You hunt like a proper gnoll. Here, this is yours.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gnolls' second starter quest; the hill badgers are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/gnoll/flight",
+      "name": "The Road to Neriak",
+      "giver": "Gatekeeper Brindle",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/gnoll/welcome",
+        "homelands/gnoll/badgers"
+      ],
+      "repeatable": true,
+      "offer": "The dark elves of Neriak have use for gnolls with sharp noses and sharper teeth, and they treat the pack fairly enough. I can send you to them, and Neriak will be your home. Ready?",
+      "accept": "Send me to Neriak.",
+      "decline": "Not yet.",
+      "declined": "Neriak will keep. The dark elves are not going anywhere.",
+      "started": "Hunt well, and keep your nose to the wind!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Brindle",
+          "journal": "Tell Gatekeeper Brindle when you are ready to go to Neriak.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Neriak, the gnoll's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a gnoll back in Blackburrow is sent again; no reward, so none is had twice."
+    },
+    {
+      "key": "homelands/orc/welcome",
+      "name": "Blood of the Camp",
+      "giver": "Elder Gorruk",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Another whelp for the camp. Good. Strong arms are always welcome. First, go and see Bulgash at the cook fire. An orc who does not eat does not fight, and an orc who does not fight is no orc.",
+      "accept": "I will see Bulgash.",
+      "decline": "Not now.",
+      "declined": "Then come back when your belly is louder than your pride.",
+      "started": "Bulgash is at the cook fire, west of the totems.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Bulgash",
+          "journal": "See Grocer Bulgash at the cook fire.",
+          "says": "Gorruk sent you? Eat this, whelp. It is tough, but so are you.",
+          "rewards": {
+            "items": [
+              "spiced jerky"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Gorruk",
+          "journal": "Return to Elder Gorruk.",
+          "says": "Good. Now you know where the meat is. The rest you will learn by fighting.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the orcs' first, at their home zone, Thedruk of the disc."
+    },
+    {
+      "key": "homelands/orc/rats",
+      "name": "Rats in the Camp",
+      "giver": "Grocer Bulgash",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/orc/welcome"
+      ],
+      "offer": "Camp rats! They get into everything. Go down the slope to the west, past the trees, and kill five of them. Bring me nothing back. I have enough rats.",
+      "accept": "I will kill them.",
+      "decline": "Not now.",
+      "declined": "Then I will eat the rats myself.",
+      "started": "Five rats. Do not let them bite your ankles.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "camp rat",
+          "count": 5,
+          "journal": "Kill five camp rats on the slope west of the camp."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Bulgash",
+          "journal": "Tell Grocer Bulgash the rats are dead.",
+          "says": "Five rats! Ha! You will make a fine warrior. Here, take this coin.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the orcs' second starter quest; the camp rats are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/orc/flight",
+      "name": "The Road to Halas",
+      "giver": "Gatekeeper Thrakka",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/orc/welcome",
+        "homelands/orc/rats"
+      ],
+      "repeatable": true,
+      "offer": "The barbarians of Halas fight giants and ice, and they respect an orc who fights beside them. There is peace between us, rough as it is. I can send you to them. Are you ready?",
+      "accept": "Send me to Halas.",
+      "decline": "Not yet.",
+      "declined": "Halas is cold. It will still be cold tomorrow.",
+      "started": "Fight well, and do not let the cold bite!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Thrakka",
+          "journal": "Tell Gatekeeper Thrakka when you are ready to go to Halas.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Halas, the orc's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a orc back in Thedruk is sent again; no reward, so none is had twice."
+    },
+    {
+      "key": "homelands/minotaur/welcome",
+      "name": "Horns and Hunger",
+      "giver": "Elder Hornbrand",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Another calf for the herd! Stand up straight. Before you lower those horns at anyone, go and see Brassnose at the mine cart outside. He keeps the food, and he keeps it from fools.",
+      "accept": "I will see Brassnose.",
+      "decline": "Not now.",
+      "declined": "Then go hungry, calf, and learn the hard way.",
+      "started": "Brassnose is by the mine cart, just outside the mine.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Brassnose",
+          "journal": "See Grocer Brassnose by the mine cart outside the mine.",
+          "says": "Hornbrand sent you? Here, calf. Eat, and grow those horns.",
+          "rewards": {
+            "items": [
+              "multigrain loaf"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Hornbrand",
+          "journal": "Return to Elder Hornbrand.",
+          "says": "Good. A full belly and a hard head. That is all a minotaur needs to begin.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the minotaurs' first, at their home zone, Gerntar Mines of the disc."
+    },
+    {
+      "key": "homelands/minotaur/rats",
+      "name": "Rats in the Grain",
+      "giver": "Grocer Brassnose",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/minotaur/welcome"
+      ],
+      "offer": "Mine rats are in the grain again. They come up out of the grass east of the mine. Kill five of them, calf, and I will pay you. Trample them if you like.",
+      "accept": "I will kill them.",
+      "decline": "Not now.",
+      "declined": "Then the rats eat the grain, and the herd eats the rats.",
+      "started": "Five rats. They are small, so look down.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "mine rat",
+          "count": 5,
+          "journal": "Kill five mine rats in the grass east of the mine."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Brassnose",
+          "journal": "Tell Grocer Brassnose the rats are dead.",
+          "says": "Five rats! The grain is safe, for now. Here is your coin.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the minotaurs' second starter quest; the mine rats are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/minotaur/flight",
+      "name": "The Road to Grobb",
+      "giver": "Gatekeeper Stonehoof",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/minotaur/welcome",
+        "homelands/minotaur/rats"
+      ],
+      "repeatable": true,
+      "offer": "The trolls of Grobb do not care how big your horns are, only how hard you hit. They will take you in as one of their own. I can send you to them, and Grobb will be your home. Ready?",
+      "accept": "Send me to Grobb.",
+      "decline": "Not yet.",
+      "declined": "Grobb will still be there. So will the trolls.",
+      "started": "Hit hard, and keep your horns sharp!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Stonehoof",
+          "journal": "Tell Gatekeeper Stonehoof when you are ready to go to Grobb.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Grobb, the minotaur's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a minotaur back in Gerntar Mines is sent again; no reward, so none is had twice."
+    },
+    {
+      "key": "homelands/skeleton/welcome",
+      "name": "Bones Awake",
+      "giver": "Elder Ossric",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "So, another of us wakes. Do not be alarmed. The bones remember how to walk. First, go and see Marrowby, just down the hall. He trades with the living who come by, and he will want to know you.",
+      "accept": "I will see Marrowby.",
+      "decline": "Not now.",
+      "declined": "We have all the time in the world. Come back when you are ready.",
+      "started": "Marrowby is just down the hall, toward the light.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Marrowby",
+          "journal": "See Grocer Marrowby down the hall.",
+          "says": "Ossric sent you? Take this bread. We do not eat it, but the living you meet will, and a gift opens doors.",
+          "rewards": {
+            "items": [
+              "sourdough bread"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Ossric",
+          "journal": "Return to Elder Ossric.",
+          "says": "Good. You walk, you speak, you make friends. The rest will come back to you in time.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the skeletons' first, at their home zone, Tomb of Kings of the disc."
+    },
+    {
+      "key": "homelands/skeleton/beetles",
+      "name": "Beetles in the Bones",
+      "giver": "Grocer Marrowby",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/skeleton/welcome"
+      ],
+      "offer": "Tomb beetles are gnawing at the old halls to the west. They have no respect for the dead, and they are fond of my stock. Kill five of them and I will pay you well.",
+      "accept": "I will kill them.",
+      "decline": "Not now.",
+      "declined": "Then they will gnaw on, as beetles do.",
+      "started": "Five beetles, in the west halls past the old guard posts.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "tomb beetle",
+          "count": 5,
+          "journal": "Kill five tomb beetles in the west halls of the tomb."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Marrowby",
+          "journal": "Tell Grocer Marrowby the beetles are dead.",
+          "says": "Five! The halls are quieter already. Here is your pay. Spend it on something the living sell.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the skeletons' second starter quest; the tomb beetles are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/skeleton/flight",
+      "name": "The Road to Freeport",
+      "giver": "Gatekeeper Dustcloak",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/skeleton/welcome",
+        "homelands/skeleton/beetles"
+      ],
+      "repeatable": true,
+      "offer": "The living fear us, but Freeport is not so particular, and its darker guilds will take you in. I can send you there, and it will be your home from then on. Are you ready to go?",
+      "accept": "Send me to Freeport.",
+      "decline": "Not yet.",
+      "declined": "The tomb is patient. So am I.",
+      "started": "Walk tall, and keep your bones together!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Dustcloak",
+          "journal": "Tell Gatekeeper Dustcloak when you are ready to go to Freeport.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Freeport, the skeleton's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a skeleton back in Tomb of Kings is sent again; no reward, so none is had twice."
+    },
+    {
+      "key": "homelands/fungusman/welcome",
+      "name": "A New Sprout",
+      "giver": "Elder Moldcap",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Ah. A new sprout. Welcome to the hall, little one. There is no hurry here, but there is supper. Go slowly over to Puffstool, by the north wall, and let her know you have come up.",
+      "accept": "I will go to her.",
+      "decline": "Not now.",
+      "declined": "There is no hurry. There never is.",
+      "started": "Puffstool is by the north wall. Take your time.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Puffstool",
+          "journal": "Find Grocer Puffstool by the north wall of the hall.",
+          "says": "Moldcap sent you? Welcome, sprout. Here is some flax bread. It is dry, but so is the air up top.",
+          "rewards": {
+            "items": [
+              "flax bread"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Moldcap",
+          "journal": "Return to Elder Moldcap.",
+          "says": "Good. Now you know the hall, and the hall knows you. That is the first thing, and the most important.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the fungusmans' first, at their home zone, Guk of the disc."
+    },
+    {
+      "key": "homelands/fungusman/beetles",
+      "name": "Beetles at the Caps",
+      "giver": "Grocer Puffstool",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/fungusman/welcome"
+      ],
+      "offer": "Cave beetles come in from the east passage and nibble at the young caps. It is very rude of them. Would you see to five of them for me? Slowly is fine. Thoroughly is better.",
+      "accept": "I will see to them.",
+      "decline": "Not now.",
+      "declined": "The caps will grow back. Eventually.",
+      "started": "Five beetles, by the east passage.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "cave beetle",
+          "count": 5,
+          "journal": "Kill five cave beetles by the east passage of the hall."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Puffstool",
+          "journal": "Tell Grocer Puffstool the beetles are gone.",
+          "says": "Five! The young caps thank you. So do I. Here, for your trouble.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the fungusmans' second starter quest; the cave beetles are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/fungusman/flight",
+      "name": "Up to the Light",
+      "giver": "Gatekeeper Gillford",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/fungusman/welcome",
+        "homelands/fungusman/beetles"
+      ],
+      "repeatable": true,
+      "offer": "Up above, the elves of Tethelin and the Fayspires keep shaded groves where our spores grow well, and they are kind to slow folk. I can send you up to them, and that will be your home. Ready?",
+      "accept": "Send me to the elves.",
+      "decline": "Not yet.",
+      "declined": "There is no hurry. The elves live a long time.",
+      "started": "Grow well, sprout, up in the light!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Gillford",
+          "journal": "Tell Gatekeeper Gillford when you are ready to go up to the elves.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Tethelin or Fayspire by class, the fungusman's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a fungusman back in Guk is sent again; no reward, so none is had twice."
+    },
+    {
+      "key": "homelands/wisp/welcome",
+      "name": "First Light",
+      "giver": "Elder Faintglow",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "A new light in the swamp! Welcome, little flame. The humans you will walk among eat bread and carry coin, and you must learn their ways. Begin with Flicker. She trades with travellers.",
+      "accept": "I will find Flicker.",
+      "decline": "Not now.",
+      "declined": "Drift a while, then. The swamp is in no hurry.",
+      "started": "Flicker glows down by the south pond. You cannot miss her.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Flicker",
+          "journal": "Find Grocer Flicker by the south pond.",
+          "says": "Faintglow sent you? Here, take this bread. You will not eat it, but in Qeynos it helps to carry what humans carry.",
+          "rewards": {
+            "items": [
+              "raisin bread"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Faintglow",
+          "journal": "Return to Elder Faintglow.",
+          "says": "Good. You learn quickly, little flame. Keep your light low among the humans, and they will hardly know.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the wisps' first, at their home zone, West Feerrott of the disc."
+    },
+    {
+      "key": "homelands/wisp/rats",
+      "name": "Rats in the Reeds",
+      "giver": "Grocer Flicker",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/wisp/welcome"
+      ],
+      "offer": "Bog rats chew at the travellers' packs I keep for trade. They hide in the reeds east of the elder. Put out five of them for me, little flame, and I will share the coin.",
+      "accept": "I will deal with them.",
+      "decline": "Not now.",
+      "declined": "Then the rats will dine on bread tonight.",
+      "started": "Five rats, in the reeds east of the elder.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "bog rat",
+          "count": 5,
+          "journal": "Kill five bog rats in the reeds east of Elder Faintglow."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Flicker",
+          "journal": "Tell Grocer Flicker the rats are gone.",
+          "says": "Five! The packs are safe. Here is your share, bright one.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the wisps' second starter quest; the bog rats are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/wisp/flight",
+      "name": "A Shape for Qeynos",
+      "giver": "Gatekeeper Dimlight",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/wisp/welcome",
+        "homelands/wisp/rats"
+      ],
+      "repeatable": true,
+      "offer": "In Qeynos the humans will take you for one of their own, so long as your armour holds its shape around you. I can send you there, and it will be your home. Are you ready to go?",
+      "accept": "Send me to Qeynos.",
+      "decline": "Not yet.",
+      "declined": "The swamp will hold your light a while longer.",
+      "started": "Burn bright, and keep your helm on!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Dimlight",
+          "journal": "Tell Gatekeeper Dimlight when you are ready to go to Qeynos.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Qeynos (its rangers and druids Surefall Glade), the wisp's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a wisp back in West Feerrott is sent again; no reward, so none is had twice."
     }
   ],
   "items": []

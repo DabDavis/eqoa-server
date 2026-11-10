@@ -63,6 +63,13 @@ func SetComposedWorld(world uint8, on bool) {
 	composedWorlds[world].Store(on)
 }
 
+// Composed reports whether world is one the server made of the disc's own
+// zones (SetComposedWorld): the races' homelands, whose gatekeepers fly their
+// own people out by a quest and are no stop on the travel network.
+func Composed(world uint8) bool {
+	return composedWorlds[world].Load()
+}
+
 // SafeSaveHeight decides which height to persist on disconnect: the one the
 // player is at, or the last one that was written. It reports false when it
 // refused the current height, so the caller can say so.

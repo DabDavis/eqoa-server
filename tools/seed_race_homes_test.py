@@ -5,9 +5,13 @@ another's), a merchant's wares, an npcaggro row. No game data. Apply writes the
 flavour, moves every start row into the recipe's world facing the point given,
 places the people (each a copy of its template but its name, place, facing,
 level and role; a body given replaces the copy's and its gear), copies the
-wares, makes the critters passive (a GM's row of one kept for the undo); a
-second apply is refused; undo puts every table back as it was, row for row
-(the AUTOINCREMENT counters move on, as any delete leaves them).
+wares and makes their seller a merchant (the flag CLIENT opens the window
+by), makes the critters passive (a GM's row of one kept for the undo), writes
+the people's own words (npcdialog by name, the table made where the server
+never ran and dropped again at the undo); a second apply is refused; undo puts
+every table back as it was, row for row (the AUTOINCREMENT counters move on,
+as any delete leaves them). Lines for no one of the home, and wares from a
+seller of nothing, are refused.
 
     python3 tools/seed_race_homes_test.py
 """
@@ -50,6 +54,7 @@ RECIPE = {
                 {"name": "scrub rat", "body": "0x9E004757", "level": 1, "role": "foe", "size": 0.8, "at": [150.0, 40.0, 150.0]},
             ],
             "peaceful": ["scrub rat", "Elder"],
+            "lines": {"Elder": ["Welcome, %r.", "Fly well."]},
         }},
         {"name": "Elsewhere", "from": "ODUS.ESF", "zone": 7, "race": 16},
     ]}
@@ -95,12 +100,14 @@ class SeedRaceHomes(unittest.TestCase):
             self.assertEqual(db.execute("SELECT world FROM defaultcharacter WHERE race = 6").fetchone()[0], 0, "another race's row")
             elder = db.execute("SELECT id, npc_name, world, facing, npc_level, npc_type, modelid, primary_weapon, npc_id FROM npcs "
                                "WHERE npc_name = 'Elder'").fetchone()
-            self.assertEqual(elder[1:8], ("Elder", 10, 128, 30, 128, 827449107, 1234))  # facing -z: half a turn
+            self.assertEqual(elder[1:8], ("Elder", 10, 128, 30, 129, 827449107, 1234))  # facing -z: half a turn; a merchant
             self.assertEqual(elder[8], elder[0], "its npc_id is its id")
             rat = db.execute("SELECT world, modelid, primary_weapon, size, npc_level, npc_type FROM npcs WHERE npc_name = 'scrub rat'").fetchone()
             self.assertEqual(rat, (10, 0x9E004757, 0, 0.8, 1, 0))
             self.assertEqual(db.execute("SELECT patternid FROM npcitem WHERE npcid = ? ORDER BY listnumber", (elder[0],)).fetchall(), [(11,), (12,)])
             self.assertEqual(db.execute("SELECT npc_name, aggressive FROM npcaggro ORDER BY npc_name").fetchall(), [("Elder", 0), ("scrub rat", 0)])
+            self.assertEqual(db.execute("SELECT name, line, weight, source, town, role, race FROM npcdialog ORDER BY id").fetchall(),
+                             [("Elder", "Welcome, %r.", 1, "racehomes", "", "", -1), ("Elder", "Fly well.", 1, "racehomes", "", "", -1)])
             with self.assertRaises(SystemExit):
                 srh.apply(db, srh.plan(db, RECIPE))
             srh.undo(db)
@@ -110,8 +117,34 @@ class SeedRaceHomes(unittest.TestCase):
         out = {}
         for t in ("racedefs", "defaultcharacter", "npcs", "npcitem", "npcaggro"):
             out[t] = db.execute(f"SELECT * FROM {t} ORDER BY 1").fetchall()
-        out["log"] = db.execute("SELECT count(*) FROM sqlite_master WHERE name = ?", (srh.LOG,)).fetchone()[0]
+        for t in (srh.LOG, "npcdialog"):
+            out[t] = db.execute("SELECT count(*) FROM sqlite_master WHERE name = ?", (t,)).fetchone()[0]
+        if out["npcdialog"]:
+            out["npcdialog rows"] = db.execute("SELECT * FROM npcdialog ORDER BY 1").fetchall()
         return out
+
+    def test_words_join_a_table_the_server_made(self):
+        with tempfile.TemporaryDirectory() as d:
+            db = make_db(os.path.join(d, "t.db"))
+            db.execute(srh.NPCDIALOG_DDL)
+            db.execute("INSERT INTO npcdialog (role, line, source) VALUES ('guard', 'Move along.', 'ours')")
+            before = self.rows(db)
+            srh.apply(db, srh.plan(db, RECIPE))
+            self.assertEqual(db.execute("SELECT count(*) FROM npcdialog").fetchone()[0], 3)
+            srh.undo(db)
+            self.assertEqual(self.rows(db), before, "the server's table and its own line kept")
+
+    def test_refusals(self):
+        with tempfile.TemporaryDirectory() as d:
+            db = make_db(os.path.join(d, "t.db"))
+            import copy
+            r = copy.deepcopy(RECIPE)
+            r["zones"][0]["home"]["lines"] = {"Nobody": ["Hello."]}
+            with self.assertRaises(SystemExit):
+                srh.plan(db, r)
+            db.execute("DELETE FROM npcitem")
+            with self.assertRaises(SystemExit):
+                srh.plan(db, RECIPE)
 
     def rows_of(self, dumped, d):
         db = sqlite3.connect(os.path.join(d, "before.db"))

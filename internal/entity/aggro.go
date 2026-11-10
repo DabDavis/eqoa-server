@@ -134,6 +134,7 @@ type aggroState struct {
 	gen        uint32
 	reach      float32
 	ignored    map[uint32]bool
+	safe       map[uint32]bool // the players' /testinvis (safemode.go)
 	cacheMu    sync.Mutex
 	byName     map[string]aggroLookup
 }
@@ -363,7 +364,8 @@ func (w *World) aggroSystem(now time.Time) {
 		return
 	}
 	for _, p := range w.Players {
-		if w.noticeableLocked(p) {
+		// a player in safe mode (/testinvis, safemode.go) draws none on sight
+		if w.noticeableLocked(p) && !w.safeLocked(p) {
 			w.drawNearLocked(p, now, true)
 		}
 	}
@@ -373,7 +375,7 @@ func (w *World) aggroSystem(now time.Time) {
 // it that shows it the red face sets on it, the green ones too, which leave it
 // alone on sight (the file's doc). Must be called with the lock held.
 func (w *World) healAggroLocked(p *Player) {
-	if w.aggro.off || w.SpatialIndex == nil || !w.noticeableLocked(p) {
+	if w.aggro.off || w.SpatialIndex == nil || !w.noticeableLocked(p) || w.safeLocked(p) {
 		return
 	}
 	w.drawNearLocked(p, time.Now(), false)

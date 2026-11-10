@@ -112,6 +112,10 @@ type NPC struct {
 	// (chase.go).
 	chase chaseState
 
+	// way is a pet's or a mercenary's way round what stands between it and
+	// whom it goes to (petwalk.go).
+	way petWay
+
 	// path is where it is on the path a GM gave it (path.go).
 	path pathState
 

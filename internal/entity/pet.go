@@ -368,6 +368,7 @@ func newPet(t *NPC, id EntityID, owner *Player, name string, level int) *NPC {
 	// creature's or not
 	pet.tmpl, pet.tbase, pet.tfight = nil, templateBase{}, nil
 	pet.sheet = nil // a workbook pet's row is put on after (petstats.go)
+	pet.way = petWay{}
 	return &pet
 }
 
@@ -830,7 +831,7 @@ func (w *World) petSystem(now time.Time) {
 		} else {
 			ps.target = 0
 			if !w.petTemplateTurnLocked(ps, nil, now) { // its heals and buffs while it follows (pettemplate.go)
-				w.petFollowLocked(ps, dt)
+				w.petFollowLocked(ps, dt, now)
 			} else {
 				pet.stopMoving()
 			}
@@ -844,20 +845,8 @@ func (w *World) petSystem(now time.Time) {
 // petFollowLocked keeps the pet petFollow off its owner: it follows once the
 // owner is petFollowStart away, at the owner's speed (half as fast again
 // once petCatchUp behind), and stands when there.
-func (w *World) petFollowLocked(ps *petState, dt float32) {
-	owner, pet := ps.owner, ps.npc
-	d := distXZ(pet.X, pet.Z, owner.X, owner.Z)
-	if d <= petFollow || (pet.Loco == LocoStand && d <= petFollowStart) {
-		pet.stopMoving()
-		return
-	}
-	speed := max(owner.SpeedNow(), 3)
-	if d > petCatchUp {
-		speed *= 1.5
-	}
-	x := owner.X + (pet.X-owner.X)/d*petFollow
-	z := owner.Z + (pet.Z-owner.Z)/d*petFollow
-	w.petStepLocked(pet, x, z, owner.Y, speed, dt)
+func (w *World) petFollowLocked(ps *petState, dt float32, now time.Time) {
+	w.followLocked(ps.npc, ps.owner, dt, now) // merc.go: a pet's, a mercenary's and a familiar's alike
 }
 
 // petStepLocked steps the pet toward (x, z), its floor looked for from
@@ -1103,10 +1092,15 @@ func groupMateAttacks(w *World, owner *Player, npc *NPC) bool {
 func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) {
 	pet := ps.npc
 	d := distXZ(pet.X, pet.Z, t.X, t.Z)
-	if d > petReach {
-		x := t.X + (pet.X-t.X)/d*(petReach-1)
-		z := t.Z + (pet.Z-t.Z)/d*(petReach-1)
-		w.petStepLocked(pet, x, z, t.Y, max(ps.owner.SpeedNow(), petRunSpeed), dt)
+	// out of its reach, or its target on the floor over or under it (no fight
+	// through a floor while the ground has a way to it: petwalk.go)
+	if d > petReach || w.petStackedLocked(pet, t.X, t.Y, t.Z, now) {
+		x, z := pet.X, pet.Z
+		if d > petReach {
+			x = t.X + (pet.X-t.X)/d*(petReach-1)
+			z = t.Z + (pet.Z-t.Z)/d*(petReach-1)
+		}
+		w.petWalkLocked(pet, t.ServerID, x, z, t.X, t.Y, t.Z, max(ps.owner.SpeedNow(), petRunSpeed), dt, now)
 		return
 	}
 	pet.stopMoving()

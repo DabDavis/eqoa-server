@@ -902,7 +902,206 @@
       "from": "ODUS.ESF",
       "zone": 27,
       "race": 22,
-      "note": "Kobold: the kobolds' tunnels: 114 of clan Kolbok (The Warrens, cell 4,4)"
+      "note": "Kobold: the kobolds' tunnels: 114 of clan Kolbok (The Warrens, cell 4,4)",
+      "home": {
+        "flavor": "Kobolds are small, scaly diggers of the Warrens in the Homelands, whose pups trade their tunnel lore with the gnomes of Klick'Anon.",
+        "start": {
+          "x": 8793.5,
+          "y": 137.8,
+          "z": 8522.5,
+          "toward": [
+            8793.5,
+            8529.5
+          ]
+        },
+        "mainland": {
+          "place": "Klick'Anon",
+          "world": 0,
+          "x": 23478.1,
+          "y": 37.2,
+          "z": 6209.9,
+          "facing": 5.31
+        },
+        "npcs": [
+          {
+            "name": "Elder Grikkis",
+            "like": 119222,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              8793.5,
+              137.8,
+              8529.5
+            ],
+            "toward": [
+              8793.5,
+              8522.5
+            ],
+            "note": "the starter quests' giver, in a high shaman's skull, by the cavern's stalls"
+          },
+          {
+            "name": "Grocer Snivvet",
+            "like": 133115,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              8763.1,
+              137.8,
+              8534.0
+            ],
+            "toward": [
+              8793.5,
+              8529.5
+            ],
+            "stock": "Grocer Guzzlewugs",
+            "note": "the cavern's grocer at the stalls, a Klick'Anon grocer's food"
+          },
+          {
+            "name": "Spiritmaster Kraaz",
+            "like": 133165,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              8820.6,
+              137.8,
+              8533.9
+            ],
+            "toward": [
+              8793.5,
+              8529.5
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Ruknar",
+            "like": 122819,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              8705.5,
+              137.8,
+              8556.1
+            ],
+            "toward": [
+              8793.5,
+              8529.5
+            ],
+            "note": "sends a pup who has done the starter quests to Klick'Anon (the quest The Deep Ways)"
+          },
+          {
+            "name": "Warren sentinel",
+            "like": 130025,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              8862.2,
+              137.8,
+              8572.2
+            ],
+            "facing": 64
+          },
+          {
+            "name": "Warren sentinel",
+            "like": 130025,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              8742.6,
+              137.8,
+              8578.4
+            ],
+            "facing": 192
+          },
+          {
+            "name": "Warren sentinel",
+            "like": 130025,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              8850.0,
+              137.8,
+              8596.6
+            ],
+            "facing": 32
+          },
+          {
+            "name": "tunnel beetle",
+            "body": "0x1806DCEA",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              8619.5,
+              137.8,
+              8579.0
+            ],
+            "note": "the starter hunt's beetles (a death beetle's body, small), at the cavern's west end"
+          },
+          {
+            "name": "tunnel beetle",
+            "body": "0x1806DCEA",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              8612.9,
+              137.7,
+              8613.2
+            ]
+          },
+          {
+            "name": "tunnel beetle",
+            "body": "0x1806DCEA",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              8640.0,
+              137.8,
+              8600.0
+            ]
+          },
+          {
+            "name": "tunnel beetle",
+            "body": "0x1806DCEA",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              8689.1,
+              137.8,
+              8620.0
+            ]
+          },
+          {
+            "name": "tunnel beetle",
+            "body": "0x1806DCEA",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              8702.5,
+              137.8,
+              8632.9
+            ]
+          },
+          {
+            "name": "tunnel beetle",
+            "body": "0x1806DCEA",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              8650.0,
+              137.8,
+              8590.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "tunnel beetle"
+        ]
+      }
     },
     {
       "name": "Gerntar Mines",

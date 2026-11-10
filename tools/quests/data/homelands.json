@@ -353,6 +353,123 @@
       "notes": "Ours: the gatekeeper's port to Rivervale, the kappa's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
     },
     {
+      "key": "homelands/kobold/welcome",
+      "name": "A New Pup in the Warren",
+      "giver": "Elder Grikkis",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Yip! A new pup in the warren. Before you go digging, greet Snivvet at the stalls. She trades for the whole clan, and a pup who knows her never goes hungry.",
+      "accept": "I will greet Snivvet.",
+      "decline": "Not now.",
+      "declined": "The warren will wait, pup.",
+      "started": "Go. Snivvet is at the stalls, just west of here.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Snivvet",
+          "journal": "Greet Grocer Snivvet at the cavern's stalls.",
+          "says": "Grikkis sent you? Then take some dried beef, pup. Do not share it.",
+          "rewards": {
+            "items": [
+              "dried beef"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Grikkis",
+          "journal": "Return to Elder Grikkis by the stalls.",
+          "says": "Good. Snivvet knows your snout now, and you know her stall.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the kobolds' first, at their home zone, The Warrens of the disc."
+    },
+    {
+      "key": "homelands/kobold/hunt",
+      "name": "Beetles in the Tunnels",
+      "giver": "Elder Grikkis",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/kobold/welcome"
+      ],
+      "offer": "Tunnel beetles have crawled up from the deep ways at the west end of the cavern. Crack five of them before they chew through our props.",
+      "accept": "I will crack them.",
+      "decline": "Not now.",
+      "declined": "Then pray the props hold.",
+      "started": "Five beetles. Hit them where the shell is thin.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "tunnel beetle",
+          "count": 5,
+          "journal": "Kill five tunnel beetles at the cavern's west end."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Grikkis",
+          "journal": "Tell Elder Grikkis the beetles are dealt with.",
+          "says": "Five beetles cracked. The props will hold. Good pup.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the kobolds' second starter quest, the elder's too (the owner's 2026-11-10: an elder giving two starter quests); the tunnel beetles are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/kobold/flight",
+      "name": "The Deep Ways",
+      "giver": "Gatekeeper Ruknar",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/kobold/welcome",
+        "homelands/kobold/hunt"
+      ],
+      "repeatable": true,
+      "offer": "The gnomes of Klick'Anon pay well for our tunnel lore, and they will teach you their trades in turn. I can send you through the deep ways to them, but the ways run one way. Are you ready?",
+      "accept": "Send me to Klick'Anon.",
+      "decline": "Not yet.",
+      "declined": "The deep ways will wait.",
+      "started": "Mind your tail in the gnome city!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Ruknar",
+          "journal": "Tell Gatekeeper Ruknar when you are ready to go to Klick'Anon.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Klick'Anon, the kobolds' wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
+    },
+    {
       "key": "homelands/aviak/welcome",
       "name": "A Fledgling's Welcome",
       "giver": "Elder Kraawk",

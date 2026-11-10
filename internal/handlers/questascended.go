@@ -71,11 +71,14 @@ func (q *QuestEngine) ascendedMapLocked() map[int]int {
 	return m
 }
 
-// planHandInLocked is how the player's unworn pack meets a show or give
-// step's items and tunar.
+// planHandInLocked is how the player's unworn pack meets a give step's items
+// and tunar, and its pack and what it wears a show step's (shownItems).
 func (q *QuestEngine) planHandInLocked(p *entity.Player, st *database.QuestStep) handIn {
 	var plan handIn
 	held := q.heldItems(p)
+	if st.Kind == database.StepShow {
+		held = q.shownItems(p)
+	}
 	asc := q.ascendedMapLocked()
 	baseOf := func(id int) (int, bool) {
 		b, ok := asc[id]

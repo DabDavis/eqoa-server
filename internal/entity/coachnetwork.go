@@ -45,9 +45,10 @@ var coachNetwork = func() map[string]map[string]bool {
 }()
 
 // CoachRunsTo is whether a coach runs between towns a and b: the live
-// game's ran either way between them.
+// game's ran either way between them, and the races' homes' run to Freeport
+// and to one another (coachhomes.go).
 func CoachRunsTo(a, b string) bool {
-	return coachNetwork[a][b]
+	return coachNetwork[a][b] || coachHomesRun(a, b)
 }
 
 // OnCoachNetwork is whether the town has a stable on the live game's coach
@@ -55,7 +56,7 @@ func CoachRunsTo(a, b string) bool {
 // there, in whatever world they stand (Oggok, in the Rathe, to Dark Solace, in
 // Tunaria); any other offers every coach town of his world, as all did before.
 func OnCoachNetwork(town string) bool {
-	return len(coachNetwork[town]) > 0
+	return len(coachNetwork[town]) > 0 || IsCoachHome(town)
 }
 
 // CoachTown is the town a coachman serves, as the coach menus list it, and
@@ -80,22 +81,10 @@ func CoachMenu(town string, named bool, all []CoachDest) (runs []CoachDest, rout
 }
 
 // CoachTownNames are every coach town's name, sorted: the coachmen's towns
-// (coachLocationNames, coachTowns) and the network's. A ledger names one.
+// (coachLocationNames, coachTowns), the network's, and the races' homes'
+// stables the server has (coachhomes.go). A ledger names one.
 func CoachTownNames() []string {
-	seen := map[string]bool{}
-	for _, t := range coachLocationNames {
-		seen[t] = true
-	}
-	for _, t := range coachTowns {
-		seen[t.name] = true
-	}
-	for t := range coachNetwork {
-		seen[t] = true
-	}
-	out := make([]string, 0, len(seen))
-	for t := range seen {
-		out = append(out, t)
-	}
+	out := append(gameCoachTowns(), CoachHomeNames()...)
 	sort.Strings(out)
 	return out
 }

@@ -6,8 +6,9 @@
 With no files it checks every tools/quests/data/*.json. It checks each file's
 shape, the chains (every `requires` names a quest of some file, a group of
 alternatives each of its quests, no cycles),
-the lengths CLIENT's windows take (handlers/quests.go: a box's paragraph 218
-characters, an answer 63, a journal line 127), and, with --db, every name the
+the lengths CLIENT's windows take (handlers/quests.go: a box, which is a line
+of what an NPC says, 218 characters, an answer 63, a journal line 127), and,
+with --db, every name the
 way the game matches one (case and surrounding spaces aside): givers and step
 targets in npcs, step and reward items in itempattern or the file's `items`,
 reward spells in spellpattern, a kill or loot target that can be attacked
@@ -23,7 +24,9 @@ yet or, with --db, an NPC no row has: an unlock is not a name the quest needs
 to be played), a step's rewards.byclass (class ids 0-14, their items and
 spells checked as the step's own), a talk, show or give step's choices (at
 most six options, each an answer of 63 characters at most; their items and
-spells checked) and its choose (the question).
+spells checked) and its choose (the question); a made item's `set` (the
+importer's ITEM_SET columns, whole numbers); a quest's classquest event (on
+finish, a level 1-60).
 """
 import argparse
 import collections
@@ -39,7 +42,10 @@ import routes as travel  # noqa: E402
 KINDS = {'talk', 'show', 'give', 'kill', 'loot', 'reach'}
 EVENT_ON = {'accept', 'finish', 'start', 'done'}
 # database.QuestEventActions; 'attack' (an NPC near the player turns on it: the step's target unless named) since 2026-11-01
-EVENT_DO = {'popup', 'say', 'give', 'spawn', 'attack', 'visual', 'teleport', 'vampire', 'trigger', 'dostep'}
+EVENT_DO = {'popup', 'say', 'give', 'spawn', 'attack', 'visual', 'teleport', 'vampire', 'trigger', 'dostep', 'classquest'}
+# tools/import_quests.py's ITEM_SET: the columns a made item's `set` may give
+ITEM_SET = {'AC', 'HPMAX', 'POWMAX', 'str', 'sta', 'agi', 'dex', 'wis', 'intelligence', 'cha', 'PoT', 'HoT',
+            'PR', 'DR', 'FR', 'CR', 'LR', 'AR', 'itemcost', 'levelreq', 'maxhp', 'classuse', 'raceuse', 'lore'}
 BOX, ANSWER, LINE = 218, 63, 127
 TEXT = ('offer', 'accept', 'decline', 'declined', 'started')
 FACTION_MIN, FACTION_MAX = -2000, 2000   # entity/faction.go
@@ -93,9 +99,11 @@ class Check:
         self.warnings.append(f'{where}: {msg}')
 
     def paragraphs(self, where, field, text, limit):
-        for p in [p.strip() for p in (text or '').split('\n\n') if p.strip()]:
-            if len(p) > limit:
-                self.warn(where, f'{field} paragraph is {len(p)} characters (a window takes {limit})')
+        # a line a box (handlers/quests.go: sayLines; an offer's paragraph is its lines, the last one the question):
+        # a line past a box is cut into more than one
+        for line in [l.strip() for l in (text or '').split('\n') if l.strip()]:
+            if len(line) > limit:
+                self.warn(where, f'a line of {field} is {len(line)} characters (a box takes {limit}: it is cut into more than one)')
 
     def items_of(self, where, lst):
         out = []
@@ -133,6 +141,13 @@ class Check:
             self.paragraphs(where, 'popup', ev.get('text'), BOX)
         if do == 'trigger' and not (ev.get('trigger') or '').strip():
             self.err(where, 'trigger event without trigger')
+        if do == 'classquest':
+            # the player's own city class quest of that level finished too: a quest's, on its finish
+            lv = ev.get('level')
+            if allowed_on != {'accept', 'finish'} or ev.get('on') != 'finish':
+                self.err(where, "a classquest event is a quest's, on its finish")
+            if not isinstance(lv, int) or isinstance(lv, bool) or not 1 <= lv <= 60:
+                self.err(where, f'classquest event with level {lv!r} (1-60)')
 
     def quest(self, fname, q, file_items):
         key = q.get('key', '?')
@@ -174,9 +189,11 @@ class Check:
         for c in q.get('classes', []):
             if not isinstance(c, int) or not 0 <= c <= 14:
                 self.err(where, f'class {c!r}')
+        # 0-10 the game's races and the froglok (a race of the server's takes them as the race it passes as), 11-52 a
+        # race of racedefs by its own id, that race alone (entity.FirstCustomRace, LastCustomRace)
         for r in q.get('races', []):
-            if not isinstance(r, int) or not 0 <= r <= 10:
-                self.err(where, f'race {r!r}')
+            if not isinstance(r, int) or isinstance(r, bool) or not 0 <= r <= 52:
+                self.err(where, f'race {r!r} (0-10 the game\'s, 11-52 a race of racedefs)')
         lo, hi = q.get('minlevel', 1), q.get('maxlevel', 60)
         if not (isinstance(lo, int) and isinstance(hi, int) and 1 <= lo <= hi <= 60):
             self.err(where, f'levels {lo!r}..{hi!r}')
@@ -366,6 +383,13 @@ class Check:
                 self.err(fname, f"item {it['name']!r} has no like")
             elif self.names and fold(it['like']) not in self.names.item:
                 self.err(fname, f"item {it['name']!r}: like {it['like']!r} is not an item")
+            sets = it.get('set', {})
+            if not isinstance(sets, dict):
+                self.err(fname, f"item {it['name']!r}: set is not an object of columns")
+            else:
+                for col, v in sets.items():
+                    if col not in ITEM_SET or not isinstance(v, int) or isinstance(v, bool):
+                        self.err(fname, f"item {it['name']!r}: set {col!r}: {v!r} (whole numbers for {', '.join(sorted(ITEM_SET))})")
             file_items.add(fold(it['name']))
         for q in doc['quests']:
             k = q.get('key')

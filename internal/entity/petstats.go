@@ -417,6 +417,14 @@ func (n *NPC) petFights() bool {
 // petResistShare is the share of a creature's spell of the element a
 // workbook pet resists (resist.go's roll of its resist), 0 for any other.
 func (n *NPC) petResistShare(element Stat) float64 {
+	if n.isMerc() {
+		// a player's resists of its heirlooms and buffs (merc.go)
+		if element == StatNone {
+			element = StatAR
+		}
+		share, _ := RollResist(n.merc.body.StatNow(element))
+		return share
+	}
 	if n.sheet == nil {
 		return 0
 	}

@@ -447,6 +447,11 @@ func (w *World) applyBalanceLocked(npc *NPC) {
 	if !balanced(npc) || npc.add != nil && npc.add.pct > 0 {
 		return // an add of a share keeps its share of its creature's hit points (summon.go)
 	}
+	if npc.isMerc() {
+		syncMercBody(npc.merc) // a player's maxima of its body (merc.go)
+		npc.HP = npc.MaxHP
+		return
+	}
 	if summoned(npc) {
 		// its level's, or a workbook pet's own (petstats.go)
 		npc.MaxHP = pct(npc.petBaseHP(), w.balance.Level(w.balanceLevelOf(npc)).PetHPPct)

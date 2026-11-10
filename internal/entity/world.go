@@ -134,6 +134,17 @@ type World struct {
 	// Summoned pets by their owners' ids (pet.go)
 	pets map[EntityID]*petState
 
+	// Hired mercenaries by their owners' ids (merc.go), their casts on their
+	// way to landing (merccast.go), what became of them this tick for the
+	// handlers (runMercNotes), and a count telling one hire from the next
+	mercs      map[EntityID]*mercState
+	mercCasts  []*mercCast
+	mercNotes  []MercNote
+	onMercNote MercNoteFunc
+	mercLife   uint64
+	// Familiars by their owners' ids (familiar.go)
+	familiars map[EntityID]*familiarState
+
 	// Duels, asked and on (duel.go), and their wagers' writes (duelpurse.go)
 	duels     duelTable
 	duelPurse duelPurse
@@ -471,6 +482,9 @@ func (w *World) leavingLocked(p *Player) []func(*Player) {
 	w.duelLeavingLocked(p)  // its invitation lapses, its duel is forfeit (duel.go)
 	w.metalLeavingLocked(p) // its Metal Moogie leaves (metalmoogie.go)
 	w.pvpLeavingLocked(p)   // what it put on foes goes (pvp.go)
+
+	w.mercLeavingLocked(p)     // its merc goes, its hire kept (merc.go)
+	w.familiarLeavingLocked(p) // its familiar goes (familiar.go)
 	fns := make([]func(*Player), len(w.leaving))
 	copy(fns, w.leaving)
 	return fns
@@ -956,6 +970,9 @@ func (w *World) updateAggro(npc *NPC, attackerID EntityID, damage int) {
 func (w *World) addThreatLocked(npc *NPC, attackerID EntityID, damage int) {
 	if npc.Dummy != NotDummy || challengeBars(npc, attackerID) {
 		return // a dummy's one player (dummy.go), a Metal Moogie's challenger (metalmoogie.go)
+	}
+	if w.isFamiliarIDLocked(attackerID) {
+		return // a familiar draws no one's hate (familiar.go)
 	}
 	w.wakeNPCLocked(npc)                  // a fight, and its regeneration's count after it (npcsets.go)
 	npc.calmTicks, npc.healing = 0, false // in a fight: no regeneration after it for a while (npcregen.go)

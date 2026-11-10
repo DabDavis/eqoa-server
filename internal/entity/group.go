@@ -1,8 +1,8 @@
 package entity
 
 import (
+	"fmt"
 	"log"
-	"math"
 	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
@@ -185,8 +185,8 @@ func (w *World) sendGroupRemoved(p *Player, sub byte) {
 }
 
 // sendRosterLocked sends each member the roster its client holds
-// (shownMembersLocked) in its own ids, when it changed since the last one it was
-// sent (or always, with force).
+// (shownViewsLocked: its players and mercs) in its own ids, when it changed
+// since the last one it was sent (or always, with force).
 func (w *World) sendRosterLocked(g *Group, force bool) {
 	for _, mid := range g.Members {
 		m := w.Players[mid]
@@ -196,9 +196,9 @@ func (w *World) sendRosterLocked(g *Group, force bool) {
 		}
 		var ids []uint32
 		var names []string
-		for _, o := range w.shownMembersLocked(g, m) {
-			ids = append(ids, w.idSeenByLocked(sess, o))
-			names = append(names, o.Name)
+		for _, v := range w.shownViewsLocked(g, m) { // its players and mercs (mercgroup.go)
+			ids = append(ids, w.groupIDSeenByLocked(sess, v.id))
+			names = append(names, v.name)
 		}
 		key := ""
 		for k := range ids {
@@ -244,7 +244,7 @@ func (w *World) GroupInvite(sess *session.Session, targetID uint32) {
 		w.sendGroupNotice(sess, 3, "")
 		return
 	}
-	if target.GroupID != 0 {
+	if target.GroupID != 0 && !w.mercOnlyGroupLocked(target) { // its and its merc's alone gives way (mercgroup.go)
 		w.sendGroupNotice(sess, 2, target.Name)
 		return
 	}
@@ -253,9 +253,16 @@ func (w *World) GroupInvite(sess *session.Session, targetID uint32) {
 		w.sendColoredLocked(sess, raidFullLine, castRefusalRGB)
 		return
 	}
+	// a merc out takes a place of its own (mercgroup.go)
+	if have := 1 + w.followersLocked(inviter); (g == nil || !g.flagged) && w.followersLocked(target) > 0 &&
+		max(len(g.membersOrNone()), have)+1+w.followersLocked(target) > GroupWindowSize {
+		w.sendColoredLocked(sess, fmt.Sprintf(mercNoRoomLine, target.Name), castRefusalRGB)
+		return
+	}
 	if g == nil {
 		w.formGroupLocked(inviter)
 	}
+	w.mercGivesWayLocked(target)
 	w.askLocked(target, inviter, tsess, groupAsk{}, inviter.Name)
 	log.Printf("Group: %s invites %s", inviter.Name, target.Name)
 }
@@ -270,6 +277,7 @@ func (w *World) formGroupLocked(leader *Player) *Group {
 	w.groups[g.ID] = g
 	leader.GroupID = g.ID
 	log.Printf("Group: %s formed group %d", leader.Name, g.ID)
+	w.mercFollowIntoLocked(leader) // its merc a member too (mercgroup.go)
 	return g
 }
 
@@ -340,6 +348,10 @@ func (w *World) GroupAccept(sess *session.Session, inviterID uint32) {
 		ask, asked = w.takeInviteLocked(p, inviter)
 	}
 	if asked && inviter == p {
+		if ask.merc {
+			w.mercOwnYesLocked(sess, p) // mercgroup.go
+			return
+		}
 		w.raidFlagOwnYesLocked(sess, p) // raidflag.go
 		return
 	}
@@ -367,9 +379,16 @@ func (w *World) GroupAccept(sess *session.Session, inviterID uint32) {
 		}
 		return
 	}
+	// and its merc's place (mercgroup.go)
+	if !ask.raid && !g.flagged && len(g.Members)+1+w.followersLocked(p) > GroupWindowSize {
+		w.sendGroupRemoved(p, 4)
+		w.sendColoredLocked(sess, mercNoRoomYours, castRefusalRGB)
+		return
+	}
 	g.Members = append(g.Members, p.ServerID)
 	p.GroupID = g.ID
 	log.Printf("Group: %s joined %s's group %d (%d members)", p.Name, inviter.Name, g.ID, len(g.Members))
+	w.mercFollowIntoLocked(p) // its merc with it (mercgroup.go)
 	w.sendRosterLocked(g, true)
 	w.raidJoinedLocked(g, p, sess)
 }
@@ -392,6 +411,10 @@ func (w *World) GroupDecline(sess *session.Session, inviterID uint32, why byte) 
 		return
 	}
 	if inviter == p {
+		if ask.merc {
+			w.mercOwnNoLocked(sess, p, why) // mercgroup.go
+			return
+		}
 		w.raidFlagOwnNoLocked(sess, p, why) // raidflag.go
 		return
 	}
@@ -456,6 +479,20 @@ func (w *World) leaveGroupLocked(p *Player) {
 		}
 	}
 	delete(g.lastRoster, p.ServerID)
+	// its merc goes with it, the two of them asked into a group again when
+	// others are left in this one (mercgroup.go)
+	if ms := w.mercs[p.ServerID]; ms != nil && ms.owner == p {
+		for i, id := range g.Members {
+			if id == ms.npc.ServerID {
+				g.Members = append(g.Members[:i], g.Members[i+1:]...)
+				break
+			}
+		}
+		delete(g.lastRoster, ms.npc.ServerID)
+		if len(g.Members) > 0 {
+			ms.asked = false
+		}
+	}
 	log.Printf("Group: %s left group %d (%d left)", p.Name, g.ID, len(g.Members))
 	w.raidLeftLocked(g, p.Name)
 	w.shrinkLocked(g)
@@ -483,6 +520,15 @@ func (w *World) GroupBoot(sess *session.Session, memberID uint32) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
+	if p != nil && p.GroupID != 0 {
+		// a merc of the group: dismissed (mercgroup.go)
+		if g := w.groups[p.GroupID]; g != nil && len(g.Members) > 0 && g.Members[0] == p.ServerID {
+			if ms := w.mercSeenByLocked(sess, g, memberID); ms != nil {
+				w.mercBootedLocked(p, ms)
+				return
+			}
+		}
+	}
 	m := w.playerSeenByLocked(sess, memberID)
 	if p == nil || m == nil || m == p || p.GroupID == 0 || m.GroupID != p.GroupID {
 		return
@@ -499,6 +545,15 @@ func (w *World) GroupBoot(sess *session.Session, memberID uint32) {
 	}
 	m.GroupID = 0
 	delete(g.lastRoster, m.ServerID)
+	if ms := w.mercs[m.ServerID]; ms != nil && ms.owner == m {
+		for i, id := range g.Members {
+			if id == ms.npc.ServerID {
+				g.Members = append(g.Members[:i], g.Members[i+1:]...) // its merc with it (mercgroup.go)
+				break
+			}
+		}
+		ms.asked = false // the two of them asked into a group again
+	}
 	w.sendGroupRemoved(m, 1)
 	w.raidLeftLocked(g, m.Name)
 	w.shrinkLocked(g)
@@ -516,11 +571,22 @@ func (w *World) GroupDisband(sess *session.Session) {
 	if g == nil || g.Members[0] != p.ServerID {
 		return
 	}
+	players := 0
+	for _, id := range g.Members {
+		if w.Players[id] != nil {
+			players++
+		}
+	}
 	for _, id := range g.Members {
 		if m := w.Players[id]; m != nil {
 			m.GroupID = 0
 			if m != p {
 				w.sendGroupRemoved(m, 2)
+			}
+			// a merc's owner out of a group of others is asked into one with
+			// it again (mercgroup.go)
+			if ms := w.mercs[m.ServerID]; ms != nil && ms.owner == m && players > 1 {
+				ms.asked = false
 			}
 		}
 	}
@@ -553,27 +619,22 @@ func (w *World) groupSyncSystem() {
 			}
 			data := make([]byte, 13*(GroupWindowSize-1))
 			k := 0
-			for _, o := range w.shownMembersLocked(g, m) {
-				if o == m || k == GroupWindowSize-1 {
+			for _, v := range w.shownViewsLocked(g, m) { // its players and mercs (mercgroup.go)
+				if v.id == m.ServerID || k == GroupWindowSize-1 {
 					continue
 				}
-				r := data[k*13:]
-				id := w.idSeenByLocked(sess, o)
-				r[0], r[1], r[2], r[3] = byte(id), byte(id>>8), byte(id>>16), byte(id>>24)
-				r[4] = 1
-				hp := 0
-				if top := o.MaxHPNow(); top > 0 {
-					hp = int(healthBar(o.HP, top))
-				}
-				r[5] = byte(max(0, min(255, hp)))
-				r[6] = 0
-				for c, v := range []float32{o.X, o.Y, o.Z} {
-					s := int16(max(math.MinInt16, min(math.MaxInt16, int(v))))
-					r[7+2*c], r[8+2*c] = byte(s), byte(uint16(s)>>8)
-				}
+				groupRecord(data[k*13:], w.groupIDSeenByLocked(sess, v.id), v)
 				k++
 			}
 			ch.SetData(data)
 		}
 	}
+}
+
+// membersOrNone is g's members, none for no group.
+func (g *Group) membersOrNone() []EntityID {
+	if g == nil {
+		return nil
+	}
+	return g.Members
 }

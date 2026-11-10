@@ -1,0 +1,183 @@
+package database
+
+import (
+	"database/sql"
+	"errors"
+	"fmt"
+	"time"
+)
+
+// charmerc: each character's hired mercenary (handlers/merc.go,
+// entity/merc.go), a row a character, kept until it is dismissed so the merc
+// comes back at the next login and through any restart: its name, class,
+// race and sex, its face and hair as the liaison chose them, its stance, and
+// when the rest after its death ends (UTC, RFC 3339; ” none). hired is when
+// (UTC, RFC 3339).
+const charMercSchema = `
+	CREATE TABLE IF NOT EXISTS charmerc (
+		serverid    INTEGER PRIMARY KEY,
+		name        TEXT NOT NULL,
+		class       INTEGER NOT NULL,
+		race        INTEGER NOT NULL,
+		sex         INTEGER NOT NULL DEFAULT 0,
+		face        INTEGER NOT NULL DEFAULT 0,
+		hair_color  INTEGER NOT NULL DEFAULT 0,
+		hair_length INTEGER NOT NULL DEFAULT 0,
+		hair_style  INTEGER NOT NULL DEFAULT 0,
+		stance      INTEGER NOT NULL DEFAULT 2,
+		dead_until  TEXT NOT NULL DEFAULT '',
+		hired       TEXT NOT NULL DEFAULT ''
+	);`
+
+// familiars: what a familiar is and does, by the item whose Use calls it
+// (handlers/familiar.go, entity/familiar.go; the GM Jibrish's petition 1445,
+// Healbot the first: tools/seed_familiars.py), GM-editable: its name, body
+// (CHAR.ESF, as npcs.modelid) and size, its hit points and what it regenerates
+// each six-second tick, the item's cast and its visual (0: a buff's stand-in),
+// and its heal of its owner: so much (0: none), below heal_below percent of
+// its owner's hit points, at most every heal_every_ms, its visual (0: a heal's).
+const familiarsSchema = `
+	CREATE TABLE IF NOT EXISTS familiars (
+		patternid     INTEGER PRIMARY KEY,
+		name          TEXT NOT NULL,
+		model         INTEGER NOT NULL DEFAULT 0,
+		size          REAL NOT NULL DEFAULT 1,
+		hp            INTEGER NOT NULL DEFAULT 100000,
+		regen         INTEGER NOT NULL DEFAULT 0,
+		cast_ms       INTEGER NOT NULL DEFAULT 2000,
+		cast_fx       INTEGER NOT NULL DEFAULT 0,
+		heal          INTEGER NOT NULL DEFAULT 0,
+		heal_below    INTEGER NOT NULL DEFAULT 75,
+		heal_every_ms INTEGER NOT NULL DEFAULT 6000,
+		heal_fx       INTEGER NOT NULL DEFAULT 0,
+		note          TEXT NOT NULL DEFAULT '',
+		source        TEXT NOT NULL DEFAULT 'gm'
+	);`
+
+// ensureMercs makes tables charmerc and familiars (initSchema).
+func (db *SQLiteDB) ensureMercs() error {
+	if _, err := db.Exec(charMercSchema); err != nil {
+		return fmt.Errorf("charmerc: %w", err)
+	}
+	if _, err := db.Exec(familiarsSchema); err != nil {
+		return fmt.Errorf("familiars: %w", err)
+	}
+	return nil
+}
+
+// MercRow is a character's hire.
+type MercRow struct {
+	ServerID                               uint32
+	Name                                   string
+	Class, Race, Sex                       int
+	Face, HairColor, HairLength, HairStyle int
+	Stance                                 int
+	DeadUntil                              time.Time // zero: alive
+	Hired                                  time.Time
+}
+
+// Merc is the character's hire, false for none.
+func (db *SQLiteDB) Merc(serverID uint32) (MercRow, bool, error) {
+	var r MercRow
+	var dead, hired string
+	err := db.QueryRow(`SELECT serverid, name, class, race, sex, face, hair_color, hair_length, hair_style, stance, dead_until, hired
+		FROM charmerc WHERE serverid = ?`, serverID).Scan(&r.ServerID, &r.Name, &r.Class, &r.Race, &r.Sex, &r.Face, &r.HairColor,
+		&r.HairLength, &r.HairStyle, &r.Stance, &dead, &hired)
+	if errors.Is(err, sql.ErrNoRows) {
+		return MercRow{}, false, nil
+	}
+	if err != nil {
+		return MercRow{}, false, err
+	}
+	r.DeadUntil, _ = time.Parse(time.RFC3339, dead)
+	r.Hired, _ = time.Parse(time.RFC3339, hired)
+	return r, true, nil
+}
+
+// SetMerc writes the character's hire in place of any it had.
+func (db *SQLiteDB) SetMerc(r MercRow) error {
+	dead, hired := "", ""
+	if !r.DeadUntil.IsZero() {
+		dead = r.DeadUntil.UTC().Format(time.RFC3339)
+	}
+	if !r.Hired.IsZero() {
+		hired = r.Hired.UTC().Format(time.RFC3339)
+	}
+	_, err := db.Exec(`INSERT OR REPLACE INTO charmerc (serverid, name, class, race, sex, face, hair_color, hair_length, hair_style,
+		stance, dead_until, hired) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.ServerID, r.Name, r.Class, r.Race, r.Sex, r.Face,
+		r.HairColor, r.HairLength, r.HairStyle, r.Stance, dead, hired)
+	return err
+}
+
+// SetMercStance keeps the character's merc's stance.
+func (db *SQLiteDB) SetMercStance(serverID uint32, stance int) error {
+	_, err := db.Exec(`UPDATE charmerc SET stance = ? WHERE serverid = ?`, stance, serverID)
+	return err
+}
+
+// SetMercRest keeps when the character's merc's rest after its death ends
+// (zero: alive again).
+func (db *SQLiteDB) SetMercRest(serverID uint32, until time.Time) error {
+	v := ""
+	if !until.IsZero() {
+		v = until.UTC().Format(time.RFC3339)
+	}
+	_, err := db.Exec(`UPDATE charmerc SET dead_until = ? WHERE serverid = ?`, v, serverID)
+	return err
+}
+
+// DeleteMerc ends the character's hire.
+func (db *SQLiteDB) DeleteMerc(serverID uint32) error {
+	_, err := db.Exec(`DELETE FROM charmerc WHERE serverid = ?`, serverID)
+	return err
+}
+
+// FamiliarRow is a familiar as table familiars has it.
+type FamiliarRow struct {
+	PatternID   int
+	Name        string
+	Model       uint32
+	Size        float64
+	HP, Regen   int
+	CastMS      int
+	CastFX      uint32
+	Heal        int
+	HealBelow   int
+	HealEveryMS int
+	HealFX      uint32
+}
+
+// Familiar is the familiar the item calls, false for an item that calls none.
+func (db *SQLiteDB) Familiar(patternID int) (FamiliarRow, bool, error) {
+	var r FamiliarRow
+	var model, castFX, healFX int64
+	err := db.QueryRow(`SELECT patternid, name, model, size, hp, regen, cast_ms, cast_fx, heal, heal_below, heal_every_ms, heal_fx
+		FROM familiars WHERE patternid = ?`, patternID).Scan(&r.PatternID, &r.Name, &model, &r.Size, &r.HP, &r.Regen, &r.CastMS,
+		&castFX, &r.Heal, &r.HealBelow, &r.HealEveryMS, &healFX)
+	if errors.Is(err, sql.ErrNoRows) {
+		return FamiliarRow{}, false, nil
+	}
+	if err != nil {
+		return FamiliarRow{}, false, err
+	}
+	r.Model, r.CastFX, r.HealFX = uint32(model), uint32(castFX), uint32(healFX)
+	return r, true, nil
+}
+
+// FamiliarItems is the items that call a familiar, by their record ids.
+func (db *SQLiteDB) FamiliarItems() (map[int]bool, error) {
+	rows, err := db.Query(`SELECT patternid FROM familiars`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[int]bool{}
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		out[id] = true
+	}
+	return out, rows.Err()
+}

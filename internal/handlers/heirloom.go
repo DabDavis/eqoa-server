@@ -178,6 +178,19 @@ func (h *Heirlooms) View(serverID uint32, p *database.ItemPatternRecord) {
 	if !ok {
 		return
 	}
+	h.figuresFor(def, race, level, p)
+}
+
+// ViewFor is View for a wearer that is no character, of race and level: a
+// merc's heirlooms (merc.go). Any other record is left as it is.
+func (h *Heirlooms) ViewFor(race, level int, p *database.ItemPatternRecord) {
+	if def, ok := h.def(p.PatternID); ok {
+		h.figuresFor(def, race, level, p)
+	}
+}
+
+// figuresFor puts the heirloom's figures for a wearer of race and level on p.
+func (h *Heirlooms) figuresFor(def database.HeirloomDef, race, level int, p *database.ItemPatternRecord) {
 	level = min(level, heirloomTopLevel) // its figures go no further (heirloomTopLevel)
 	epicNow := false
 	if def.Epic != 0 {

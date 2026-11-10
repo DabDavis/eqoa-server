@@ -733,34 +733,34 @@
    {"line": "Ogres great once. Rallosian Empire. Ogre no remember all. Ogre remember it big.", "note": "OGG-1: Oggok is the ogres' city, built on the ruins of the once great Rallosian Empire; the Craknek..."},
    {"line": "Some ogre go fight for Deathfist orcs. Orcs pay. Ogre fight anyway. But pay nice.", "note": "LAND-23: The Deathfist are the largest horde of orcs known in the world, and live by raiding and..."}
   ]},
-  {"race": 0, "say": [
+  {"town": "Moradhim", "race": 0, "say": [
    {"line": "Your people turn up in every trade and every town, %p. Some say only the rats outnumber humans. I mean that kindly.", "note": "HUMAN-4: Humans are the most numerous people of Norrath (some say only rats outnumber them)..."}
   ]},
-  {"race": 1, "say": [
+  {"town": "Qeynos", "race": 1, "say": [
    {"line": "An elf. I heard what became of Takish'Hiz. I am sorry for it, %p. A smoking ruin, they say, and it was so old.", "note": "ELF-1: Takish'Hiz, the ancient home of the elves, is a smoking ruin; most of its refugees fled north..."}
   ]},
-  {"race": 2, "say": [
+  {"town": "Freeport", "race": 2, "say": [
    {"line": "A Teir'Dal. Your people destroyed Takish'Hiz, they say. I will keep my hands where you can see them, and my opinions to myself.", "note": "DELF-1: The dark elves poured up out of the Underfoot onto Tunaria, and by necromancy have just won..."}
   ]},
-  {"race": 3, "say": [
+  {"town": "Rivervale", "race": 3, "say": [
    {"line": "A gnome! Is it true your people call an explosion a learning experience? Stand a little farther from my things, if you would.", "note": "GNOME-2: Gnomes hold that building contraptions ranks with saving the world; explosions and lost limbs..."}
   ]},
-  {"race": 4, "say": [
+  {"town": "Highbourne", "race": 4, "say": [
    {"line": "A dwarf. Tell me, since everyone wonders: what is it that dwarves want? No, truly. Nobody seems to know.", "note": "LAND-4: Tunaria is full of rival factions: dark elves fight humans, humans fight ogres, and nobody..."}
   ]},
-  {"race": 5, "say": [
+  {"town": "Freeport", "race": 5, "say": [
    {"line": "A troll. I have heard your kind eat what they kill. I would be grateful if we kept this to talk.", "note": "TROLL-3: Trolls delight in killing, eating what they kill, and killing again; now and then one with a..."}
   ]},
-  {"race": 6, "say": [
+  {"town": "Qeynos", "race": 6, "say": [
    {"line": "A Northman, are you not? I am told your people do not use the word barbarian. I shall remember it, %p.", "note": "BARB-3: Their city Halas stands in the mountains of Everfrost; the world calls them barbarians, and..."}
   ]},
-  {"race": 7, "say": [
+  {"town": "Freeport", "race": 7, "say": [
    {"line": "A halfling, and so far from Rivervale! They say your folk love travel and adventure. Has it been worth the walk?", "note": "HALF-2: Rivervale is a quiet hamlet in the very middle of Tunaria; halflings love travel and adventure..."}
   ]},
-  {"race": 8, "say": [
+  {"town": "Qeynos", "race": 8, "say": [
    {"line": "A High Man. Is it true your people mean to leave Tunaria altogether? I cannot say I blame you. The land is not gentle.", "note": "ERUD-2: The violence and greed of the land grew too much for them: the Erudites look to the Exodus of..."}
   ]},
-  {"race": 9, "say": [
+  {"town": "Highpass", "race": 9, "say": [
    {"line": "An ogre. They say your people never hesitate. I ask only that you hesitate here, friend. Just this once.", "note": "OGRE-1: Ogres are large, powerful and warlike, and never hesitate to attack whoever stands against them."}
   ]},
   {"sex": "female", "say": [

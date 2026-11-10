@@ -4,9 +4,9 @@ import "testing"
 
 // A homeland's gatekeeper (in a world the server composed of the disc's own
 // zones: the races' homelands) flies its own people out by its quest, one
-// way: no other warp NPC offers it and the account pages' routes leave it out;
-// a GM's own list, with no one asking, still has it. A world that is not
-// composed is offered as ever (the control).
+// way: it offers no trips, no other warp NPC offers it and the account pages'
+// routes leave it out; a GM's own list, with no one asking, still has it. A
+// world that is not composed is offered as ever (the control).
 func TestAHomelandGatekeeperIsNoStop(t *testing.T) {
 	w := gukWorld()
 	w.NPCs[7] = &NPC{ServerID: 7, Name: "Gatekeeper Windwhistle", World: 10, SpawnX: 9170.9, SpawnY: 84.1, SpawnZ: 21636.7}
@@ -42,6 +42,9 @@ func TestAHomelandGatekeeperIsNoStop(t *testing.T) {
 	}
 	if !offered("") {
 		t.Error("a GM's own list (no one asking) lost the homeland's gatekeeper")
+	}
+	if d := w.GetWarpDestinations("Gatekeeper Windwhistle", nil); d != nil {
+		t.Errorf("a homeland's gatekeeper offers %+v: none (its quest flies its people out, one way)", d)
 	}
 	if d := w.GetWarpDestinations("Harbormaster Thand", nil); len(d) != 1 || d[0].World != 8 {
 		t.Errorf("Thand offers %+v, want world 8's Krup alone", d)

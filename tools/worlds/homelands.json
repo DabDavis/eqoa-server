@@ -4008,7 +4008,7 @@
             "size": 0.8
           },
           {
-            "name": "rock spider",
+            "name": "scree spider",
             "body": "0xCAB991F3",
             "level": 3,
             "role": "foe",
@@ -4021,7 +4021,7 @@
             "note": "the level 4 quest's spiders (the stone spider's body, half its size), among the rocks north of the camp"
           },
           {
-            "name": "rock spider",
+            "name": "scree spider",
             "body": "0xCAB991F3",
             "level": 3,
             "role": "foe",
@@ -4033,7 +4033,7 @@
             "size": 0.5
           },
           {
-            "name": "rock spider",
+            "name": "scree spider",
             "body": "0xCAB991F3",
             "level": 4,
             "role": "foe",
@@ -4045,7 +4045,7 @@
             "size": 0.5
           },
           {
-            "name": "rock spider",
+            "name": "scree spider",
             "body": "0xCAB991F3",
             "level": 3,
             "role": "foe",
@@ -4057,7 +4057,7 @@
             "size": 0.5
           },
           {
-            "name": "rock spider",
+            "name": "scree spider",
             "body": "0xCAB991F3",
             "level": 4,
             "role": "foe",
@@ -4069,7 +4069,7 @@
             "size": 0.5
           },
           {
-            "name": "rock spider",
+            "name": "scree spider",
             "body": "0xCAB991F3",
             "level": 4,
             "role": "foe",
@@ -4096,7 +4096,7 @@
         ],
         "peaceful": [
           "camp rat",
-          "rock spider"
+          "scree spider"
         ],
         "lines": {
           "Gatekeeper Thrakka": [

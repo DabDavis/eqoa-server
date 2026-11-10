@@ -2,7 +2,7 @@
   "race": "orc",
   "home": "Thedruk",
   "city": "Halas",
-  "note": "Thedruk's people are tools/worlds/homelands.json's (Thedruk): Elder Gorruk among the totems gives the first two, Warleader Krugg beside him the three hunts; Hidecutter Marga, south-west of the elder, is the outfitter; Coachman Dursh keeps the stable on open ground to the south (his coach runs to Freeport and to the other homes); the camp rats (the grass to the west, beyond the bare hill), the rock spiders (the rocks to the north) and the bear Old Scarback (alone on the slope far to the south) are placed for these quests.",
+  "note": "Thedruk's people are tools/worlds/homelands.json's (Thedruk): Elder Gorruk among the totems gives the first two, Warleader Krugg beside him the three hunts; Hidecutter Marga, south-west of the elder, is the outfitter; Coachman Dursh keeps the stable on open ground to the south (his coach runs to Freeport and to the other homes); the camp rats (the grass to the west, beyond the bare hill), the scree spiders (the rocks to the north) and the bear Old Scarback (alone on the slope far to the south) are placed for these quests.",
   "L1": {
     "name": "A Whelp's War Band",
     "giver": "Elder Gorruk",
@@ -95,7 +95,7 @@
     "giver": "Warleader Krugg",
     "offer": [
       "The barbarians of Halas laugh at an orc with empty hands. I will make you proper gear. You will fetch what I need.",
-      "Hidecutter Marga has a leather strip and a shaft for me. Then tear a leg off one of the rock spiders among the rocks north of the camp.",
+      "Hidecutter Marga has a leather strip and a shaft for me. Then tear a leg off one of the scree spiders among the rocks north of the camp.",
       "Will you bring me all three?"
     ],
     "accept": "I will bring them.",
@@ -113,18 +113,18 @@
         "says": "For Krugg. Here. A strip of hide and a shaft, straight as I could find. Tell him he pays in meat this time."
       }
     ],
-    "target": "rock spider",
+    "target": "scree spider",
     "count": 1,
     "drop": {
-      "name": "rock spider leg",
-      "description": "The hard, jointed leg of a rock spider from the rocks north of Thedruk.",
+      "name": "scree spider leg",
+      "description": "The hard, jointed leg of a scree spider from the rocks north of Thedruk.",
       "like": "Spider Leg Tip"
     },
     "hunt": {
-      "journal": "Take a rock spider leg from the rock spiders among the rocks north of the camp."
+      "journal": "Take a scree spider leg from the scree spiders among the rocks north of the camp."
     },
     "give": {
-      "journal": "Bring the leather strip, the wooden shaft and the rock spider leg to Warleader Krugg.",
+      "journal": "Bring the leather strip, the wooden shaft and the scree spider leg to Warleader Krugg.",
       "says": "All three. Stand back... the leg makes a spike worth having. There. It is yours. Break it and you fetch another."
     }
   },

@@ -6,6 +6,7 @@ import contextlib
 import io
 import json
 import os
+import re
 import sqlite3
 import sys
 import tempfile
@@ -51,7 +52,7 @@ CREATE TABLE lootpool (id INTEGER PRIMARY KEY AUTOINCREMENT, category TEXT NOT N
 CREATE TABLE lootcreature (npc_name TEXT PRIMARY KEY, region TEXT NOT NULL DEFAULT '', profile TEXT NOT NULL DEFAULT '',
     source TEXT NOT NULL DEFAULT 'gm');
 CREATE TABLE npcs (id INTEGER PRIMARY KEY AUTOINCREMENT, npc_name TEXT, world INTEGER, npc_level INTEGER,
-    npc_type INTEGER);
+    npc_type INTEGER, npc_id INTEGER);
 CREATE TABLE npcitem (itemid INTEGER PRIMARY KEY AUTOINCREMENT, npcid INTEGER NOT NULL, stackleft INTEGER NOT NULL DEFAULT 0,
     remainHP INTEGER NOT NULL DEFAULT 0, remaincharge INTEGER NOT NULL DEFAULT 0, patternid INTEGER NOT NULL,
     equiploc INTEGER NOT NULL DEFAULT 0, location INTEGER NOT NULL DEFAULT 1, listnumber INTEGER NOT NULL DEFAULT 0);
@@ -91,8 +92,8 @@ def fixture(path):
     item(db, TALISMAN, "Talisman of the Test", -1)
     db.execute("INSERT INTO itemeffect (patternid, line, target_line, cooldown) VALUES (?, 'Self, Increase AR by 75, 30min', '', 60)",
                (RING,))
-    db.executemany("INSERT INTO npcs (id, npc_name, world, npc_level, npc_type) VALUES (?, ?, 3, ?, 0)",
-                   [(1, "Big Boss", 65), (2, "small orc", 10), (3, "Other Boss", 60)])
+    db.executemany("INSERT INTO npcs (id, npc_name, world, npc_level, npc_type, npc_id) VALUES (?, ?, 3, ?, 0, ?)",
+                   [(1, "Big Boss", 65, 9001), (2, "small orc", 10, 0), (3, "Other Boss", 60, 0)])
     db.executemany("INSERT INTO npcloot (npc_name, tablename, chance, rolls) VALUES (?, ?, ?, ?)",
                    [("big boss", "boss big boss", 100, 2), ("big boss", "shared", 25, 1), ("small orc", "shared", 25, 1),
                     ("*", "mods", 3, 1)])
@@ -105,7 +106,7 @@ def fixture(path):
     db.execute("INSERT INTO lootcreature (npc_name, region, profile) VALUES ('big boss', 'lavastorm', 'boss')")
     db.executemany("INSERT INTO lootpool (category, region, npc_name, patternid) VALUES (?, ?, ?, ?)",
                    [("rare", "*", "big boss", SHIELD), ("rare", "lavastorm", "", PLATE)])
-    db.execute("INSERT INTO npcitem (npcid, stackleft, patternid) VALUES (1, 1, ?)", (RING,))
+    db.execute("INSERT INTO npcitem (npcid, stackleft, patternid) VALUES (9001, 1, ?)", (RING,))
     db.execute("INSERT INTO quests (questid, name, enabled, giver) VALUES (500, 'Armour of the Test', 1, 'Smith')")
     db.execute("INSERT INTO queststeps (questid, step, kind, target, items, byclass) VALUES (500, 1, 'give', 'Smith', ?, ?)",
                (f"{TALISMAN}, {RING}", json.dumps({"0": {"items": str(PLATE)}, "2": {"items": str(SCROLL)}})))
@@ -264,6 +265,24 @@ class AscendBossLootTest(unittest.TestCase):
         self.assertEqual(self.q("SELECT tablename, chance FROM npcloot WHERE npc_name = 'other boss'"), [("shared ascended", 50)])
         self.assertEqual(self.q("SELECT tablename FROM npcloot WHERE npc_name = 'small orc'"), [("shared",)])
 
+    def test_undo_of_one_run_leaves_the_others(self):
+        self.run_tool("--boss", "Big Boss", "--apply")
+        after_first = dump(self.path, skip=("gm_audit",))
+        db = sqlite3.connect(self.path)
+        db.execute("INSERT INTO npcloot (npc_name, tablename, chance, rolls) VALUES ('other boss', 'shared', 50, 1)")
+        db.commit()
+        db.close()
+        before_second = dump(self.path)
+        code, out = self.run_tool("--boss", "Other Boss", "--apply")
+        run = re.search(r"^run (\S+): wrote", out, re.M).group(1)
+        self.assertEqual(self.q("SELECT tablename FROM npcloot WHERE npc_name = 'other boss'"), [("shared ascended",)])
+        code, out = self.run_tool("--undo", "--run", run)
+        self.assertEqual(code, 0, out)
+        self.assertEqual(dump(self.path), before_second, "the second run alone taken back")
+        self.assertEqual(self.q("SELECT tablename FROM npcloot WHERE npc_name = 'big boss' ORDER BY tablename"),
+                         [("boss big boss",), ("shared ascended",)])
+        self.assertNotEqual(after_first, dump(self.path, skip=("gm_audit",)))  # the other boss's binding is the GM's row
+
     def test_a_table_only_tuned_bosses_roll_changes_in_place(self):
         db = sqlite3.connect(self.path)
         db.execute("DELETE FROM npcloot WHERE npc_name = 'small orc'")
@@ -275,6 +294,16 @@ class AscendBossLootTest(unittest.TestCase):
         self.assertEqual(self.q("SELECT patternid FROM loottables WHERE tablename = 'shared' ORDER BY id"),
                          [(self.copy_of(SHIELD),), (GEM,)])
         self.assertEqual(self.q("SELECT count(*) FROM loottables WHERE tablename = 'shared ascended'")[0][0], 0)
+
+    def test_items_another_creature_shares_stay(self):
+        db = sqlite3.connect(self.path)
+        db.execute("UPDATE npcs SET npc_id = 9001 WHERE npc_name = 'small orc'")  # the orc's corpse holds the same rows
+        db.commit()
+        db.close()
+        code, out = self.run_tool("--boss", "Big Boss", "--apply")
+        self.assertEqual(code, 0, out)
+        self.assertIn("WARNING: Big Boss's spawns' items (npcitem, npc_id 9001) are those of small orc too", out)
+        self.assertEqual(self.q("SELECT patternid FROM npcitem"), [(RING,)])
 
     def test_an_unknown_boss_is_refused(self):
         before = dump(self.path)

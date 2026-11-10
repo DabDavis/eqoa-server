@@ -791,7 +791,11 @@ default (`config.yaml.example`, `entity.DefaultCTFSettings`).
   (one lying dead rises there). A login saved in the arena starts beside the herald (`arenaLogin`); a player in the arena's
   world with no match there (a keep restart's: matches are not kept) is sent beside it after 5 s, a GM excepted.
 - **Every client sees it with no client change** (vanilla builds the world off its own disc through 0x7E30/0x7E31): the
-  banners are NPCs, the tags and colours are the channel's. Tests: `TestCTF*` (`entity/ctf_test.go`, `handlers/ctf_test.go`).
+  banners are NPCs, the tags and colours are the channel's. A banner's body is Highbourne's guild banner (the wizards' for
+  Ember, the enchanters' for Dusk, at 0.17) where the built world holds that art among its zone's extras (the recipe's
+  decoration, the homes-edges composer's format: towers, walls, boulders, catapults, the guild banners by the stands, the
+  sun flags mid-valley, boulders across the south run), else a CHAR.ESF orb (`fallback_body`): vanilla draws a zone's art
+  as an NPC's body once the zone is in. Tests: `TestCTF*` (`entity/ctf_test.go`, `handlers/ctf_test.go`).
 
 ### Mail, resets, one Master Class, petitions: SOE's live client's, for every client
 

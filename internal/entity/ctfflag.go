@@ -19,9 +19,9 @@ import (
 // ctfFlagLevel is a banner's and a power-up's level: what a con of it says.
 const ctfFlagLevel = 1
 
-// ctfTrail is how far from its carrier a carried banner goes: ctfTrailSide to its left and ctfTrailBack behind,
-// clear of the carrier's own camera, which follows a few steps straight behind it (a banner right behind its
-// carrier stood between the camera and the player on the rig).
+// ctfTrail is how far from its carrier a carried banner goes: ctfTrailSide to one side of its heading and
+// ctfTrailBack behind, clear of the carrier's own camera, which follows a few steps straight behind it (a banner
+// right behind its carrier stood between the camera and the player on the rig).
 const (
 	ctfTrailSide float32 = 1.3
 	ctfTrailBack float32 = 0.4
@@ -134,7 +134,7 @@ func (w *World) ctfFollowLocked(m *ctfMatch) {
 			f.npc = w.ctfBannerLocked(f.team, p.X, p.Y, p.Z, p.Facing)
 			npc = w.NPCs[f.npc]
 		}
-		// its front is CLIENT's heading (sin h, cos h), its right (cos h, -sin h)
+		// its front is CLIENT's heading (sin h, cos h); the banner goes off it along (-cos h, sin h)
 		h := float64(p.Facing)
 		fx, fz := float32(math.Sin(h)), float32(math.Cos(h))
 		x, z := p.X-ctfTrailBack*fx-ctfTrailSide*fz, p.Z-ctfTrailBack*fz+ctfTrailSide*fx

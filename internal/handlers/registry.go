@@ -537,6 +537,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	NewNumberTagsHandler().RegisterHandlers(r)
 	// The NPCs' body tints (0x7E3F; npctint.go): a client that draws them
 	NewNPCTintsHandler(gameWorld).RegisterHandlers(r)
+	// A damage meter (0x7E3B, 0x7E3D; dpsmeter.go): a client that draws one
+	NewDPSMeterHandler(gameWorld).RegisterHandlers(r)
 	// A race the game does not have, by its own words (0x7E1C; racelabels.go)
 	if charStore != nil {
 		NewRaceLabelsHandler(gameWorld, charStore.DB()).RegisterHandlers(r)

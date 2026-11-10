@@ -755,6 +755,39 @@ const (
 	OpcodeNumberTagsAnswer GameOpcode = 0x7E39
 )
 
+// A tint on the bodies of the NPCs of a name, for a client that draws one
+// (entity/npctint.go, handlers/npctint.go, table npctint; the server owner,
+// 2026-11-10: Yhafiran, "the black and green oriental dragon", wears the
+// disc's only green oriental dragon, and "vanilla draws Yhafiran tinted toward
+// black and green").
+const (
+	// OpcodeNPCTintsOffer is not retail: the server's offer of its NPCs'
+	// body tints, server to client once the player is in the world: a u8, 1,
+	// the layout of OpcodeNPCTints below. A PS2 ignores it (CLIENT's
+	// dispatcher has no case above 0x1402 and no default) and never answers,
+	// so it draws every NPC in its body's own colours.
+	OpcodeNPCTintsOffer GameOpcode = 0x7E3E
+
+	// OpcodeNPCTintsAnswer is a client's answer to OpcodeNPCTintsOffer, client
+	// to server: a u8, 1 to be sent the tints, 0 to stop (a wider answer is
+	// read by its first byte). A client answers at once: one that answers 1
+	// drops what it held and is sent the tints there are (OpcodeNPCTints),
+	// none when there are none.
+	OpcodeNPCTintsAnswer GameOpcode = 0x7E3F
+
+	// OpcodeNPCTints is the tints, server to a client that answered 1, at
+	// once and whenever they change (a GM's edit of npctint): a u16 count,
+	// then each tint: its NPC name (a u8 byte count and UTF-8, as
+	// database.NPCClassKey keys it: lower case, trimmed, no trailing '$', cut
+	// to the 24 bytes the entity channel carries a name in) and a u32 colour
+	// 0xRRGGBBAA, little-endian. The client draws the body of every NPC whose
+	// name keys the same (a player's never) with each of its colours' red,
+	// green and blue times the tint's (255ths), as much of it as the alpha
+	// says (0xFF the whole, 0 none). Each one is the whole set; 0 names: none.
+	// At most entity.NPCTintsMost.
+	OpcodeNPCTints GameOpcode = 0x7E40
+)
+
 // =============================================================================
 // Game Version Constants
 // =============================================================================
@@ -1063,6 +1096,12 @@ func (op GameOpcode) String() string {
 		return "MapTravel"
 	case OpcodeMapTravelTo:
 		return "MapTravelTo"
+	case OpcodeNPCTintsOffer:
+		return "NPCTintsOffer"
+	case OpcodeNPCTintsAnswer:
+		return "NPCTintsAnswer"
+	case OpcodeNPCTints:
+		return "NPCTints"
 	default:
 		return "Unknown"
 	}

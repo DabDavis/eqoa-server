@@ -193,6 +193,15 @@ type Session struct {
 	// (a PS2, an older build) is sent the retail body alone.
 	numberTags bool
 
+	// npcTints: the client answered the NPC tints' offer 1
+	// (protocol.OpcodeNPCTintsAnswer, handlers/npctint.go), so it is sent the
+	// NPCs' body tints (entity/npctint.go) whenever they differ from
+	// npcTintsSent, what it was last sent ("" none since its answer: it holds
+	// none; npcTintsUnknown after a keep restart). A client that never answered
+	// (a PS2, an older build) is sent none.
+	npcTints     bool
+	npcTintsSent string
+
 	// resume is the MemoryDump a session carried through a restart is due,
 	// and resumed whether it was carried through one (keep.go)
 	resume  resumeDump
@@ -268,6 +277,43 @@ func (s *Session) NumberTags() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.numberTags
+}
+
+// npcTintsUnknown is what a session restored through a keep restart was last
+// sent of the NPC tints, for all the new image knows: no body, so the next one
+// goes whatever it is.
+const npcTintsUnknown = "\xff"
+
+// SetNPCTints records the client's answer to the NPC tints' offer: on, it is
+// sent the tints there are; either way it holds none now (a client that
+// answers drops what it held), so nothing has been sent since.
+func (s *Session) SetNPCTints(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.npcTints = on
+	s.npcTintsSent = ""
+}
+
+// NPCTints is whether the client asked for the NPCs' body tints
+// (SetNPCTints). A client that never answered (a PS2) did not.
+func (s *Session) NPCTints() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.npcTints
+}
+
+// TakeNPCTints reports whether the tints' message body is to go to the
+// client now, and if so takes it as what the client holds: only to a client
+// that asked, only when it differs from what it was last sent, and an empty
+// set (empty) never to one that holds none.
+func (s *Session) TakeNPCTints(body string, empty bool) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if !s.npcTints || body == s.npcTintsSent || (empty && s.npcTintsSent == "") {
+		return false
+	}
+	s.npcTintsSent = body
+	return true
 }
 
 // SetBugNote keeps the client's note for the next petition it files.

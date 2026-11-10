@@ -252,6 +252,8 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 	}
 	// and its race looks, the same (raceoptions.go)
 	h.gameWorld.RefreshRaceLooks(h.store.DB(), sess)
+	// and the NPCs' body tints, to a client that asked (npctint.go)
+	h.gameWorld.RefreshNPCTints(sess)
 	// the lists the client has, until its dump sends them anew
 	sess.SetInventoryList(ex.Inventory.list())
 	sess.SetBankList(ex.Bank.list())

@@ -305,8 +305,10 @@ func checkGhilan1450(t *testing.T, r *petRig, f *swarmFight, chill, frost uint32
 // The Djinni Vizier at 1.3, 30% over its body's 1: its three spells at 1, 3 and
 // 5 s into the fight (10.7, 12.7, 14.7) and every 12 s after, instant, its buff
 // once between them; the bolt lands 1000, the thunderclap 1300, the tempest 3000
-// on its target (its 1700 and its area's 1300) and 1300 on a creature 6 from it,
-// nothing on one 25 away (outside its 15).
+// on its target (its 1700 and its area's 1300) and 1300 on a creature 14 from it
+// (16 from the pet, which stands 2 from its target on the far side), nothing on
+// one 16 from its target and 14 from the pet (the area is round its target), nor
+// on one 25 away.
 func TestTheDjinniViziersKitIsPetition1450s(t *testing.T) {
 	r, _ := magePetRig(t, true)
 	add := func(id EntityID, dx float32) *NPC {
@@ -316,8 +318,11 @@ func TestTheDjinniViziersKitIsPetition1450s(t *testing.T) {
 		r.w.SpatialIndex.Insert(id, n.X, n.Z)
 		return n
 	}
-	near, far := add(3301, 6), add(3302, 25)
+	near, behind, far := add(3301, 14), add(3303, -16), add(3302, 25)
 	f := swarmFightFor(t, r, summonDjinniVizier, 3440, fight1450)
+	if d := distXZ(f.pet.X, f.pet.Z, behind.X, behind.Z); d > 15 {
+		t.Fatalf("the pet %.1f from the creature behind it, want within the area's 15 of the pet", d)
+	}
 	if f.pet.sheet == nil || f.pet.Name != "Djinni Vizier" || f.pet.Size < 1.2999 || f.pet.Size > 1.3001 {
 		t.Fatalf("the pet: row %v, name %q, size %.3f: want the Djinni Vizier's row at 1.3", f.pet.sheet != nil, f.pet.Name, f.pet.Size)
 	}
@@ -329,14 +334,16 @@ func TestTheDjinniViziersKitIsPetition1450s(t *testing.T) {
 		n    int
 	}{
 		{`splashes "Vizier's Tempest" on ` + near.Name + ` for 1300 before`, landedBy(storms, 0, last)},
+		{`splashes "Vizier's Tempest" on ` + behind.Name, 0},
 		{`splashes "Vizier's Tempest" on ` + far.Name, 0},
 	} {
 		if n := f.logged(c.line); n != c.n {
 			t.Errorf("%d lines %q, want %d", n, c.line, c.n)
 		}
 	}
-	if lost := 1_000_000 - near.HP; lost != 1300*landedBy(storms, 0, last) || far.HP != 1_000_000 {
-		t.Errorf("the creature 6 from its target lost %d, the one 25 away %d", lost, 1_000_000-far.HP)
+	if lost := 1_000_000 - near.HP; lost != 1300*landedBy(storms, 0, last) || behind.HP != 1_000_000 || far.HP != 1_000_000 {
+		t.Errorf("the creature 14 from its target lost %d, the one behind the pet %d, the one 25 away %d", lost,
+			1_000_000-behind.HP, 1_000_000-far.HP)
 	}
 }
 

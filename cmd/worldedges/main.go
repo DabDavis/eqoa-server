@@ -48,6 +48,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"hash/fnv"
 	"log"
 	"math"
 	"math/rand"
@@ -162,8 +163,8 @@ func main() {
 			log.Fatalf("zone %d (%s %d): no palette", i, p.From, p.Zone)
 		}
 		var extras []worlds.Extra
-		for k, e := range openEdges(b, i, g) {
-			rng := rand.New(rand.NewSource(*seed + int64(i)*100 + int64(k)))
+		for _, e := range openEdges(b, i, g) {
+			rng := rand.New(rand.NewSource(edgeSeed(*seed, p.From, p.Zone, e)))
 			extras = append(extras, ridge(g, env, uint8(b.World), e, set, rng, pal)...)
 		}
 		f.Zones = append(f.Zones, worlds.ExtrasOfOne{From: p.From, Zone: p.Zone, Name: b.Zones[i].Name, Extras: extras})
@@ -178,6 +179,15 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Printf("%s: %d rocks in %d zones", *out, total, len(f.Zones))
+}
+
+// edgeSeed is the random seed of a zone's ridge along edge e: the zone's
+// disc file and index and the edge's side, so a world given another zone (or
+// a zone another neighbour) keeps every other ridge as it was.
+func edgeSeed(seed int64, from string, zone int, e edge) int64 {
+	h := fnv.New64a()
+	fmt.Fprintf(h, "%s#%d %g %g", strings.ToUpper(from), zone, e.nx, e.nz)
+	return seed ^ int64(h.Sum64()>>1)
 }
 
 // fixLeaks adds rocks over the ways out in leaksPath to the extras file at
@@ -722,6 +732,37 @@ func buried(surfs []ground.Surface, y float32) bool {
 	return ok && up
 }
 
+// roomOver reports whether a body stands on a floor at y: not inside the
+// ground (buried), and the ceiling over it, if any, over its head (the tip of
+// a cave, where its floor and roof meet, is no place to stand).
+func roomOver(surfs []ground.Surface, y float32) bool {
+	if buried(surfs, y) {
+		return false
+	}
+	for _, sf := range surfs {
+		if !sf.Up && sf.Y > y+0.05 && sf.Y < y+middle+0.6 {
+			return false
+		}
+	}
+	return true
+}
+
+// swimAt is where a swimmer's feet are at the top of a place's water (its
+// middle a little under the surface), false where there is no water, where
+// it is too shallow to swim in (a floor under the water over that: one
+// stands on it) or where that is inside the ground (a water's box goes on
+// through the hill over a flooded cave).
+func swimAt(c *column) (float32, bool) {
+	if math.IsNaN(float64(c.water)) {
+		return 0, false
+	}
+	sy := c.water - middle - 0.3
+	if f, ok := floorUnder(c.surfs, c.water); ok && f > sy || buried(c.surfs, sy) {
+		return 0, false
+	}
+	return sy, true
+}
+
 // floorUnder is the highest floor under the height top (a water's floor).
 func floorUnder(surfs []ground.Surface, top float32) (float32, bool) {
 	best, ok := float32(0), false
@@ -883,12 +924,12 @@ func walkZone(g *ground.Ground, env *ground.Env, b worlds.Built, i int, band flo
 				}
 			}
 			for _, s := range c.surfs {
-				if s.Up && !s.Placed && !under && !buried(c.surfs, s.Y) {
+				if s.Up && !s.Placed && !under && roomOver(c.surfs, s.Y) {
 					push(state{ii, jj, tenth(s.Y)})
 				}
 			}
-			if !math.IsNaN(float64(c.water)) && !under {
-				push(state{ii, jj, tenth(c.water - middle - 0.3)})
+			if sy, ok := swimAt(c); ok && !under {
+				push(state{ii, jj, tenth(sy)})
 			}
 		}
 	}
@@ -983,7 +1024,9 @@ func walkZone(g *ground.Ground, env *ground.Env, b worlds.Built, i int, band flo
 				// a swimmer goes on where the water does: at its top, or
 				// down to its floor (two heights a place: a swimmer's every
 				// height would be a state of its own)
-				to = append(to, nc.water-middle-0.3)
+				if sy, ok := swimAt(nc); ok {
+					to = append(to, sy)
+				}
 				if best, ok := floorUnder(nc.surfs, nc.water); ok {
 					to = append(to, best)
 				}
@@ -1022,10 +1065,8 @@ func walkZone(g *ground.Ground, env *ground.Env, b worlds.Built, i int, band flo
 				// in water, up or down the column to its top, if nothing is
 				// in the way (a rock's top just under the water's would let
 				// a swimmer down into the rock)
-				if wt := nc.water; !math.IsNaN(float64(wt)) && ny < wt {
-					if sy := wt - middle - 0.3; !meets(g, w, nx, ny, nz, nx, sy, nz) {
-						push(state{ni, nj, tenth(sy)})
-					}
+				if sy, ok := swimAt(nc); ok && ny < nc.water && !meets(g, w, nx, ny, nz, nx, sy, nz) {
+					push(state{ni, nj, tenth(sy)})
 				}
 			}
 		}

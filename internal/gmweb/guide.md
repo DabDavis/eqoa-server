@@ -111,6 +111,7 @@ beside it):
 | `racedefs` | a race this server has and the game does not, a row a race (`id` 11 to 30): `name` and `short_name` as clients that can show them, `wire_race` the game's race it passes as on every client (its camera, its items), its seven `bonus_*`, its two bodies (`body_male`, `body_female`, kept out of `charactermodel`, which would make its creatures townsfolk); only a GM makes a character of one: set the character's `race` and `modelid`; applied at once but for a character's stats, which go at its next login |
 | `npcmove` | how the creatures of a name move, by NPC NAME (lower case): `roam` -1 as its kind (the default: wildlife wanders, the rest stands), 0 stands it until pulled, 1 wanders whatever it is, `radius` its own wander radius (0: the server's), `water` land / both / water (empty: by where it spawned) | `name` |
 | `itempattern` | every item that exists; `trade` 1 is NO TRADE | `patternid` |
+| `itemascended` | the tuned raid bosses' Ascended gear: each `patternid` an "Ascended <name>" record, `base` the record it is made of (every stat, AC, resist, HP/power and a weapon's damage a tenth more; durability, price, look and flags the base's, never NO RENT). The server makes each its base again at every restart: fix the base, never the Ascended record | `patternid` |
 | `itemeffect` | what using an item does (the alchemists' potions): `line` in spell words, `Self` drunk or `Target` thrown; `name`/`icon` on the effects list; `breaks` attack/damage; `wear` % a tick; `area` a thrown one's splash | `patternid` |
 | `spellpattern` | every spell and ability: level, cast/recast ms, power, range, icon | `spellid` |
 | `spelleffect` | what a spell does, as a line of words (below) | `spellid` |
@@ -226,6 +227,12 @@ beside it):
   (or `clone_row` a seed with changes); a row the server cannot fight by is refused with the reason. Delete the
   `npctemplate` row to take it away (revertible). The seeds' numbers are the server's own: try one on a single
   creature (`#spawn` a copy) before giving it to a camp.
+- **A raid boss you tune drops Ascended gear** (petition 1446): its gear as "Ascended <name>" records, every stat a
+  tenth more, its spells and other drops as they were, and a quest that takes its gear takes the Ascended one too and
+  then rewards Ascended. A session makes it so with `tools/ascend_boss_loot.py` on both shards (by the boss's name):
+  post a work board entry "For dab's sessions: ascend <boss name>" when you tune one. A table it shares with creatures
+  not tuned is not changed: the boss gets its own copy, "<table> ascended" (edit the table, not the copy). The bosses so
+  far: Lord Nagafen, Noroxus, Bertoxxulous, Uzrathixius, Poxathixius, the Quintessence of Veeshan, Yhafiran.
 - **Make a merchant**: set `npc_type` to 129 (0x81), then `insert_row` into `npcitem` one row per item:
   `{npcid, patternid, stackleft: 1, listnumber: 0, 1, 2...}`.
 - **Change what a spell does**: `update_row` on `spelleffect` (`line`). The words the server reads:

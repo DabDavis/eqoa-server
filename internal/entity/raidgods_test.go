@@ -641,6 +641,19 @@ func TestACreaturesKitOnACreature(t *testing.T) {
 	if got := inno.HP - 400_000; got != 5000 {
 		t.Errorf("his veil on the player healed him %d, want 5,000", got)
 	}
+
+	// a miss: rooted out of a kiter's reach, no hit lands, and no veil takes anything
+	r.endFight(moog, 40*time.Second)
+	r.endFight(inno, 40*time.Second)
+	inno.Effects = []*ActiveEffect{{SpellID: 78, Name: "Test Root", Root: true, Until: r.at(time.Hour)}}
+	kiter, ksess := r.player("Kiter", inno.X+20, inno.Z)
+	kiter.HP, kiter.MaxHP = 1_000_000, 1_000_000
+	r.refight(inno, kiter.ServerID)
+	drain(ksess)
+	r.run(40*time.Second+100*time.Millisecond, 46*time.Second)
+	if kiter.HP != kiter.MaxHP || countLines(linesOf(drain(ksess)), "Veil of Death") != 0 {
+		t.Errorf("a miss: the kiter lost %d", kiter.MaxHP-kiter.HP)
+	}
 }
 
 // The owner's "when the summoned pet's master dies, so does the pet": a creature's summoned adds die with it
@@ -688,5 +701,43 @@ func TestAShortenedCooldownIsHeldToItsNewLength(t *testing.T) {
 	guard.abilityReady[abilityKey(&a.TemplateAbility)] = now.Add(5 * time.Minute)
 	if !guard.coolingDown(a, now.Add(4*time.Minute)) || guard.coolingDown(a, now.Add(5*time.Minute)) {
 		t.Error("the control: a cooldown of 5 minutes does not run out at 5")
+	}
+}
+
+// A player's summoned pet dies with its master (the owner, 2026-11-10: "when the summoned pet's master dies, so does
+// the pet, goes for NPCs and players"; petition 1398 laid it down so already): its master dead, it dies where it
+// stands, dead on the channel, its body for petDismissedLies, no experience; the control, a charmed creature whose
+// master dies, is let go alive, its charm broken, as ever.
+func TestAPetDiesWithItsDeadMaster(t *testing.T) {
+	r := newPetRig(t)
+	pet, _ := r.summon(t, fireElemental(), 0)
+	xp := r.p.TotalXP
+	r.w.mu.Lock()
+	r.w.playerDiedLocked(r.sess, r.p, r.at(20*time.Second))
+	r.w.petSystem(r.at(20 * time.Second))
+	r.w.mu.Unlock()
+	if !pet.Dead || pet.HP != 0 || r.w.NPCs[pet.ServerID] != pet || r.w.petOfLocked(r.p) != nil || !deadOnChannel(r, pet) {
+		t.Fatalf("its master dead: dead %v, HP %d, lying %v, still its master's %v, dead on the channel %v", pet.Dead, pet.HP,
+			r.w.NPCs[pet.ServerID] == pet, r.w.petOfLocked(r.p) != nil, deadOnChannel(r, pet))
+	}
+	r.corpses(20*time.Second + petDismissedLies)
+	if r.w.NPCs[pet.ServerID] != nil || r.p.TotalXP != xp {
+		t.Errorf("its body lies on after its death (%v), or gave %d experience", r.w.NPCs[pet.ServerID] != nil, r.p.TotalXP-xp)
+	}
+
+	defer func(f func(int) int) { charmIntn = f }(charmIntn)
+	charmIntn = dice(99)
+	c, _, _ := charmRig(t)
+	crab := c.enemy
+	crab.Level = 2
+	if began, _ := castCharm(t, c, enticement(), crabID, 0); !began || crab.Owner == 0 {
+		t.Fatal("the control: not charmed")
+	}
+	c.w.mu.Lock()
+	c.w.playerDiedLocked(c.sess, c.p, c.at(time.Minute))
+	c.w.petSystem(c.at(time.Minute))
+	c.w.mu.Unlock()
+	if crab.Dead || crab.Owner != 0 || crab.Charm != nil {
+		t.Errorf("the control, a charmed creature whose master died: dead %v, owner %d, charm %v; want let go alive", crab.Dead, crab.Owner, crab.Charm != nil)
 	}
 }

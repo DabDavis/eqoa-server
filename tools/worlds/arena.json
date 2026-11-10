@@ -1,0 +1,782 @@
+{
+  "world": 11,
+  "name": "the Canyon of Banners",
+  "note": "The PvP arena for capture the flag (handlers/ctf.go, entity/ctf.go; claude-notes/ctf-world-20261110.md): Box Canyons, one zone of the disc, where it stands on the disc (Tunaria's cell 10, 10). Its southern canyon system is the field: two fingers of canyon floor pointing north between unclimbable mesas, the Ember Band's to the west and the Dusk Band's in the middle, each a camp and a banner stand deep inside a narrowing mouth, joined at their mouths by a long low valley with a mound in it (the middle field), and two side pockets off it, the south-west run and the south-east lobe, with the speed shrines; a heal spring mid-valley. Built by cmd/worldbuild from the operator's disc; the arena block is read by the server, never written into the file. The decoration is the zone's extras (the homes-edges composer's format: the disc's art copied into the zone and placed as actors of its own): two watchtowers splitting the bases' mouths, each team's guild banners beside its stand behind a low wall, lean-tos, braziers and a catapult at each camp, ruined walls, boulders and a wrecked catapult as staggered cover in the valley, the two sun flags on the mound at its middle, and boulders closing the south run, the field's one way out. A composer without extras builds the zone undecorated, as it is on the disc.",
+  "zones": [
+    {
+      "name": "Canyon of Banners",
+      "from": "TUNARIA.ESF",
+      "zone": 121,
+      "note": "Box Canyons (cell 10, 10): a desert maze of canyon floors under high mesas; the southern system (the two fingers, the valley joining them, the two pockets) is closed by its cliffs but for one way out at its south end, which the field's edge cuts off until the decoration closes it",
+      "extras": [
+        {
+          "sprite": "0xB714B430",
+          "from": "TUNARIA.ESF",
+          "zone": 113,
+          "at": [
+            20462,
+            3.8,
+            21074
+          ],
+          "hpr": [
+            3.1416,
+            0,
+            0
+          ],
+          "scale": 0.21,
+          "note": "Ember's stand, its left banner (Highbourne's wizards' banner: the burning hand, red on gold (0.21, as Highbourne stands it))"
+        },
+        {
+          "sprite": "0xB714B430",
+          "from": "TUNARIA.ESF",
+          "zone": 113,
+          "at": [
+            20478,
+            2.0,
+            21074
+          ],
+          "hpr": [
+            3.1416,
+            0,
+            0
+          ],
+          "scale": 0.21,
+          "note": "Ember's stand, its right banner (Highbourne's wizards' banner: the burning hand, red on gold (0.21, as Highbourne stands it))"
+        },
+        {
+          "sprite": "0x17520771",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            20470,
+            6.3,
+            21040
+          ],
+          "note": "a breastwork before Ember's stand: around it at either end (the Deathfist ruins' stone wall, 11.6 long and 5.3 high)"
+        },
+        {
+          "sprite": "0x17520772",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            20456,
+            6.4,
+            21040
+          ],
+          "scale": 0.6,
+          "note": "its west end (the Deathfist ruins' square pillar, 12 high)"
+        },
+        {
+          "sprite": "0x17520772",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            20484,
+            6.2,
+            21040
+          ],
+          "scale": 0.6,
+          "note": "its east end (the Deathfist ruins' square pillar, 12 high)"
+        },
+        {
+          "sprite": "0xBC9588CE",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            20445,
+            6.5,
+            21215
+          ],
+          "hpr": [
+            2.7925,
+            0,
+            0
+          ],
+          "note": "Ember's camp (a thatched lean-to, 10 across)"
+        },
+        {
+          "sprite": "0xBC9588CE",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            20515,
+            6.5,
+            21215
+          ],
+          "hpr": [
+            3.4907,
+            0,
+            0
+          ],
+          "note": "Ember's camp (a thatched lean-to, 10 across)"
+        },
+        {
+          "sprite": "0xE64B8D78",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            20530,
+            3.7,
+            21160
+          ],
+          "hpr": [
+            3.6652,
+            0,
+            0
+          ],
+          "note": "Ember's camp: a siege engine as cover by the stand (the Deathfist siege catapult, 18 long)"
+        },
+        {
+          "sprite": "0x48033ACC",
+          "from": "TUNARIA.ESF",
+          "zone": 80,
+          "at": [
+            20462,
+            6.5,
+            21195
+          ],
+          "note": "Ember's camp, the rising point (Highpass Hold's brazier pillar, 7.6 high)"
+        },
+        {
+          "sprite": "0x48033ACC",
+          "from": "TUNARIA.ESF",
+          "zone": 80,
+          "at": [
+            20498,
+            6.4,
+            21195
+          ],
+          "note": "Ember's camp, the rising point (Highpass Hold's brazier pillar, 7.6 high)"
+        },
+        {
+          "sprite": "0x34058CAE",
+          "from": "TUNARIA.ESF",
+          "zone": 80,
+          "at": [
+            20430,
+            6.5,
+            20925
+          ],
+          "note": "the watchtower in Ember's mouth: two ways in, either side of it (Highpass Hold's brick watchtower, 13 across, 24 high)"
+        },
+        {
+          "sprite": "0xD7BA9C7C",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            20400,
+            6.5,
+            20960
+          ],
+          "hpr": [
+            3.1416,
+            0,
+            0
+          ],
+          "note": "Ember's mouth, on the inner side (the Deathfist war banner on its crossbar, 9.5 high)"
+        },
+        {
+          "sprite": "0xF0CFEF05",
+          "from": "TUNARIA.ESF",
+          "zone": 113,
+          "at": [
+            20962,
+            -2.0,
+            21014
+          ],
+          "hpr": [
+            3.1416,
+            0,
+            0
+          ],
+          "scale": 0.21,
+          "note": "Dusk's stand, its left banner (Highbourne's enchanters' banner: the hand on violet (0.21))"
+        },
+        {
+          "sprite": "0xF0CFEF05",
+          "from": "TUNARIA.ESF",
+          "zone": 113,
+          "at": [
+            20978,
+            -0.6,
+            21014
+          ],
+          "hpr": [
+            3.1416,
+            0,
+            0
+          ],
+          "scale": 0.21,
+          "note": "Dusk's stand, its right banner (Highbourne's enchanters' banner: the hand on violet (0.21))"
+        },
+        {
+          "sprite": "0x17520771",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            20970,
+            -2.9,
+            20980
+          ],
+          "note": "a breastwork before Dusk's stand (the Deathfist ruins' stone wall, 11.6 long and 5.3 high)"
+        },
+        {
+          "sprite": "0x17520772",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            20956,
+            -2.2,
+            20980
+          ],
+          "scale": 0.6,
+          "note": "its west end (the Deathfist ruins' square pillar, 12 high)"
+        },
+        {
+          "sprite": "0x17520772",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            20984,
+            1.1,
+            20980
+          ],
+          "scale": 0.6,
+          "note": "its east end (the Deathfist ruins' square pillar, 12 high)"
+        },
+        {
+          "sprite": "0xBC9588CE",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            20930,
+            6.5,
+            21155
+          ],
+          "hpr": [
+            2.7925,
+            0,
+            0
+          ],
+          "note": "Dusk's camp (a thatched lean-to, 10 across)"
+        },
+        {
+          "sprite": "0xBC9588CE",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            21000,
+            7.9,
+            21160
+          ],
+          "hpr": [
+            3.4907,
+            0,
+            0
+          ],
+          "note": "Dusk's camp (a thatched lean-to, 10 across)"
+        },
+        {
+          "sprite": "0xE64B8D78",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            21030,
+            6.5,
+            21100
+          ],
+          "hpr": [
+            2.618,
+            0,
+            0
+          ],
+          "note": "Dusk's camp: a siege engine as cover by the stand (the Deathfist siege catapult, 18 long)"
+        },
+        {
+          "sprite": "0x48033ACC",
+          "from": "TUNARIA.ESF",
+          "zone": 80,
+          "at": [
+            20947,
+            6.5,
+            21135
+          ],
+          "note": "Dusk's camp, the rising point (Highpass Hold's brazier pillar, 7.6 high)"
+        },
+        {
+          "sprite": "0x48033ACC",
+          "from": "TUNARIA.ESF",
+          "zone": 80,
+          "at": [
+            20983,
+            6.5,
+            21135
+          ],
+          "note": "Dusk's camp, the rising point (Highpass Hold's brazier pillar, 7.6 high)"
+        },
+        {
+          "sprite": "0x34058CAE",
+          "from": "TUNARIA.ESF",
+          "zone": 80,
+          "at": [
+            20985,
+            6.5,
+            20905
+          ],
+          "note": "the watchtower in Dusk's mouth (Highpass Hold's brick watchtower, 13 across, 24 high)"
+        },
+        {
+          "sprite": "0x17520771",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            20900,
+            6.5,
+            20890
+          ],
+          "hpr": [
+            1.5708,
+            0,
+            0
+          ],
+          "note": "Dusk's mouth, its west side narrowed (the Deathfist ruins' stone wall, 11.6 long and 5.3 high)"
+        },
+        {
+          "sprite": "0x17520771",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            21070,
+            6.8,
+            20885
+          ],
+          "hpr": [
+            1.5708,
+            0,
+            0
+          ],
+          "note": "Dusk's mouth, its east side narrowed (the Deathfist ruins' stone wall, 11.6 long and 5.3 high)"
+        },
+        {
+          "sprite": "0xD7BA9C7C",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            21040,
+            6.5,
+            20930
+          ],
+          "hpr": [
+            3.1416,
+            0,
+            0
+          ],
+          "note": "Dusk's mouth, on the inner side (the Deathfist war banner on its crossbar, 9.5 high)"
+        },
+        {
+          "sprite": "0x82CBAEF6",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            20575,
+            55.2,
+            20755
+          ],
+          "note": "the mound mid-valley: its west flag (the Deathfist sun flag on its pole, 9 high)"
+        },
+        {
+          "sprite": "0x82CBAEF6",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            20615,
+            48.0,
+            20755
+          ],
+          "note": "the mound mid-valley: its east flag (the Deathfist sun flag on its pole, 9 high)"
+        },
+        {
+          "sprite": "0x37F613AF",
+          "from": "TUNARIA.ESF",
+          "zone": 136,
+          "at": [
+            20500,
+            14.2,
+            20830
+          ],
+          "hpr": [
+            0.5236,
+            0,
+            0
+          ],
+          "scale": 0.6,
+          "note": "valley cover, north lane (Fort Alliance's grey boulder, 21 by 17, 6 high)"
+        },
+        {
+          "sprite": "0x17520771",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            20560,
+            6.5,
+            20815
+          ],
+          "hpr": [
+            1.5708,
+            0,
+            0
+          ],
+          "note": "valley cover, a broken wall across the middle lane (the Deathfist ruins' stone wall, 11.6 long and 5.3 high)"
+        },
+        {
+          "sprite": "0x17520772",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            20560,
+            6.5,
+            20800
+          ],
+          "scale": 0.6,
+          "note": "its south end (the Deathfist ruins' square pillar, 12 high)"
+        },
+        {
+          "sprite": "0x37F613AF",
+          "from": "TUNARIA.ESF",
+          "zone": 136,
+          "at": [
+            20760,
+            6.5,
+            20800
+          ],
+          "hpr": [
+            2.0944,
+            0,
+            0
+          ],
+          "scale": 0.6,
+          "note": "valley cover, south lane (Fort Alliance's grey boulder, 21 by 17, 6 high)"
+        },
+        {
+          "sprite": "0x17520771",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            20660,
+            19.8,
+            20845
+          ],
+          "hpr": [
+            1.3963,
+            0,
+            0
+          ],
+          "note": "valley cover, the north lane's wall (the Deathfist ruins' stone wall, 11.6 long and 5.3 high)"
+        },
+        {
+          "sprite": "0xE64B8D78",
+          "from": "TUNARIA.ESF",
+          "zone": 108,
+          "at": [
+            20820,
+            6.5,
+            20835
+          ],
+          "hpr": [
+            4.7124,
+            0,
+            0
+          ],
+          "note": "a wrecked catapult at the valley's east end (the Deathfist siege catapult, 18 long)"
+        },
+        {
+          "sprite": "0x48033ACC",
+          "from": "TUNARIA.ESF",
+          "zone": 80,
+          "at": [
+            20342,
+            7.1,
+            20570
+          ],
+          "note": "the West Wind Shrine (Highpass Hold's brazier pillar, 7.6 high)"
+        },
+        {
+          "sprite": "0x48033ACC",
+          "from": "TUNARIA.ESF",
+          "zone": 80,
+          "at": [
+            21362,
+            2.8,
+            20630
+          ],
+          "note": "the East Wind Shrine (Highpass Hold's brazier pillar, 7.6 high)"
+        },
+        {
+          "sprite": "0x48033ACC",
+          "from": "TUNARIA.ESF",
+          "zone": 80,
+          "at": [
+            20690,
+            8.5,
+            20822
+          ],
+          "note": "the Mending Spring (Highpass Hold's brazier pillar, 7.6 high)"
+        },
+        {
+          "sprite": "0x37F613AF",
+          "from": "TUNARIA.ESF",
+          "zone": 136,
+          "at": [
+            20590,
+            35.9,
+            20384
+          ],
+          "note": "the south run closed at the field's edge (Fort Alliance's grey boulder, 21 by 17, 6 high)"
+        },
+        {
+          "sprite": "0x37F613AF",
+          "from": "TUNARIA.ESF",
+          "zone": 136,
+          "at": [
+            20611,
+            22.7,
+            20385
+          ],
+          "hpr": [
+            0.3491,
+            0,
+            0
+          ],
+          "note": "the south run closed at the field's edge (Fort Alliance's grey boulder, 21 by 17, 6 high)"
+        },
+        {
+          "sprite": "0x37F613AF",
+          "from": "TUNARIA.ESF",
+          "zone": 136,
+          "at": [
+            20632,
+            11.2,
+            20386
+          ],
+          "hpr": [
+            -0.1745,
+            0,
+            0
+          ],
+          "note": "the south run closed at the field's edge (Fort Alliance's grey boulder, 21 by 17, 6 high)"
+        },
+        {
+          "sprite": "0x37F613AF",
+          "from": "TUNARIA.ESF",
+          "zone": 136,
+          "at": [
+            20653,
+            7.4,
+            20384
+          ],
+          "hpr": [
+            0.2618,
+            0,
+            0
+          ],
+          "note": "the south run closed at the field's edge (Fort Alliance's grey boulder, 21 by 17, 6 high)"
+        },
+        {
+          "sprite": "0x37F613AF",
+          "from": "TUNARIA.ESF",
+          "zone": 136,
+          "at": [
+            20674,
+            6.5,
+            20385
+          ],
+          "hpr": [
+            -0.3491,
+            0,
+            0
+          ],
+          "note": "the south run closed at the field's edge (Fort Alliance's grey boulder, 21 by 17, 6 high)"
+        },
+        {
+          "sprite": "0x37F613AF",
+          "from": "TUNARIA.ESF",
+          "zone": 136,
+          "at": [
+            20695,
+            6.5,
+            20386
+          ],
+          "hpr": [
+            0.0873,
+            0,
+            0
+          ],
+          "note": "the south run closed at the field's edge (Fort Alliance's grey boulder, 21 by 17, 6 high)"
+        },
+        {
+          "sprite": "0x37F613AF",
+          "from": "TUNARIA.ESF",
+          "zone": 136,
+          "at": [
+            20716,
+            6.5,
+            20384
+          ],
+          "note": "the south run closed at the field's edge (Fort Alliance's grey boulder, 21 by 17, 6 high)"
+        },
+        {
+          "sprite": "0x37F613AF",
+          "from": "TUNARIA.ESF",
+          "zone": 136,
+          "at": [
+            20737,
+            8.5,
+            20385
+          ],
+          "hpr": [
+            0.3491,
+            0,
+            0
+          ],
+          "note": "the south run closed at the field's edge (Fort Alliance's grey boulder, 21 by 17, 6 high)"
+        },
+        {
+          "sprite": "0x37F613AF",
+          "from": "TUNARIA.ESF",
+          "zone": 136,
+          "at": [
+            20758,
+            22.3,
+            20386
+          ],
+          "hpr": [
+            -0.1745,
+            0,
+            0
+          ],
+          "note": "the south run closed at the field's edge (Fort Alliance's grey boulder, 21 by 17, 6 high)"
+        },
+        {
+          "sprite": "0x37F613AF",
+          "from": "TUNARIA.ESF",
+          "zone": 136,
+          "at": [
+            20779,
+            41.9,
+            20384
+          ],
+          "hpr": [
+            0.2618,
+            0,
+            0
+          ],
+          "note": "the south run closed at the field's edge (Fort Alliance's grey boulder, 21 by 17, 6 high)"
+        }
+      ]
+    }
+  ],
+  "arena": {
+    "game": "ctf",
+    "note": "The banners' bodies are the guild banners of Highbourne the decoration copies into the zone (the wizards' burning hand for Ember, the enchanters' violet hand for Dusk), drawn at 0.17; in a world built without the decoration that art is not resident, and the CHAR.ESF orbs (red for Ember, violet for Dusk, 1.5) stand in (fallback_body).",
+    "name": "the Canyon of Banners",
+    "speed_body": "0x8143DC70",
+    "heal_body": "0xC5F3788D",
+    "teams": [
+      {
+        "name": "the Ember Band",
+        "short": "Ember",
+        "flag": "Ember Banner",
+        "flag_body": "0xB714B430",
+        "flag_size": 0.17,
+        "fallback_body": "0xF97FD9FC",
+        "fallback_size": 1.5,
+        "stand": {
+          "x": 20470,
+          "y": 3.8,
+          "z": 21070,
+          "facing": 180
+        },
+        "camp": {
+          "x": 20480,
+          "y": 6.5,
+          "z": 21200,
+          "toward": [
+            20470,
+            21070
+          ]
+        }
+      },
+      {
+        "name": "the Dusk Band",
+        "short": "Dusk",
+        "flag": "Dusk Banner",
+        "flag_body": "0xF0CFEF05",
+        "flag_size": 0.17,
+        "fallback_body": "0x4446A60B",
+        "fallback_size": 1.5,
+        "stand": {
+          "x": 20970,
+          "y": -2.9,
+          "z": 21010,
+          "facing": 180
+        },
+        "camp": {
+          "x": 20965,
+          "y": 6.5,
+          "z": 21140,
+          "toward": [
+            20970,
+            21010
+          ]
+        }
+      }
+    ],
+    "powerups": [
+      {
+        "kind": "speed",
+        "name": "West Wind Shrine",
+        "at": {
+          "x": 20330,
+          "y": 6.5,
+          "z": 20560
+        }
+      },
+      {
+        "kind": "speed",
+        "name": "East Wind Shrine",
+        "at": {
+          "x": 21350,
+          "y": 0.5,
+          "z": 20620
+        }
+      },
+      {
+        "kind": "heal",
+        "name": "Mending Spring",
+        "at": {
+          "x": 20680,
+          "y": 6.5,
+          "z": 20810
+        }
+      }
+    ],
+    "field": [
+      [
+        20250,
+        20380
+      ],
+      [
+        21700,
+        20380
+      ],
+      [
+        21700,
+        21320
+      ],
+      [
+        20250,
+        21320
+      ]
+    ]
+  }
+}

@@ -356,6 +356,7 @@ func (w *World) serializeEntityDiscLocked(sess *session.Session, id EntityID, ob
 		buf := SerializePlayerUpdate(objectID, p)
 		w.duelViewLocked(sess, p.ServerID, buf) // a duel opponent as a creature (duel.go)
 		w.pvpViewLocked(sess, p, buf)           // a foe, to be swung at (pvp.go)
+		w.ctfViewLocked(sess, p, buf)           // the arena's teams by their names' colours (ctf.go)
 		w.putChannelTargetLocked(sess, p, buf)
 		return buf, p
 	}

@@ -666,6 +666,9 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 			return
 		}
 		ps.stance = petStance(cmd)
+		if ps.stance == petPassive {
+			w.petStandsDownLocked(ps) // its fight ends there and it comes back (petition 1483)
+		}
 		w.sendChatToSession(sess, petStanceWords[ps.stance])
 	case petCmdDismiss:
 		if pet.Charm != nil {
@@ -701,6 +704,24 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 		ps.target = npc.ServerID
 		ps.heldUntil = time.Time{}
 		w.sendChatToSession(sess, "Your pet attacks "+npc.Name+".")
+	}
+}
+
+// petStandsDownLocked ends whatever the pet fights as it is made passive: its
+// target let go, its round ended, out of its owner's duel or PvP fight until
+// told to attack again, so that petSystem's next turn takes it back to its
+// owner, where it stands (the magician Lifeispain's petition 1483: "Pet Passive
+// doesn't stop the pet from fighting. It should stop fighting and run back to
+// the owner and stand there until it's told to fight"). Until then the stance
+// only kept a pet from taking a fight up: the one it had went on to the death.
+// Unlike a back off it holds nothing: an attack command (0x0041 8) sends it
+// out again at once, and what it fought may follow it back (npcFightPetLocked).
+// Must be called with the lock held.
+func (w *World) petStandsDownLocked(ps *petState) {
+	ps.target, ps.pvpTarget = 0, 0
+	ps.npc.endRound()
+	if d := w.duelOnLocked(ps.owner.ServerID); d != nil && d.pets[ps.owner.ServerID] {
+		d.pets[ps.owner.ServerID] = false // the duel's pet, until an attack command (duelfight.go)
 	}
 }
 

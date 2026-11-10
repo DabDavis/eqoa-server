@@ -402,7 +402,9 @@ func (h *ServerWorldsHandler) RegisterHandlers(r *Registry) {
 // recipes are seconds on the way, and a pick made meanwhile goes by that. One
 // already in the world (its pick went before the recipes were all in, and the
 // promotion emptied the queue they waited in) asks again and is sent the
-// recipes alone.
+// recipes alone. An ask that comes while the recipes last sent are not yet
+// all acknowledged queues nothing (MessageQueue.Waits): the queue holds one
+// copy of them at most, whatever a client sends.
 func (h *ServerWorldsHandler) HandleOffer(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	if len(data) < 4 {
@@ -413,6 +415,13 @@ func (h *ServerWorldsHandler) HandleOffer(sess *session.Session, msg *protocol.M
 		return nil
 	}
 	sess.TakeServerWorlds()
+	if sess.Queue().Waits(protocol.OpcodeServerWorldsData) {
+		// asked again while the recipes it was sent still wait in its queue
+		// (not all acknowledged): they are on their way, and a client that
+		// asks over and over is not queued 70 KB for each ask
+		log.Printf("ServerWorlds: %s asked again while its worlds are still on the way: nothing more queued", sess.RemoteAddr())
+		return nil
+	}
 	again := sess.InGame()
 	if !again {
 		h.chars.sendServerWorldsCharsOfAccount(sess)

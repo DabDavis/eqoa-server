@@ -631,7 +631,28 @@ character list it offers them (0x7E30) and a client that builds the same file of
 byte for byte, the CRCs checked) is sent the recipe (0x7E31) and says which it holds, which `LoadableWorlds`
 then takes for that session (kept through a keep restart). A login in such a world resumes there for a
 client that holds it, else on its race's mainland spot (`database.MainlandPlace`: its wire race's start row
-for its class). Nothing of the disc goes over the wire, and a PS2 never sees one. The homes' people, starts
+for its class). Nothing of the disc goes over the wire, and a PS2 never sees one.
+**Which picks wait** (2026-11-10, petition 1468: "it hangs up at loading showing the spinning character"): a
+login is placed by what the client holds WHEN ITS CHARACTER IS PICKED, so a client must not pick a homeland
+character before it has answered, and a page held every pick for it. A client that takes the offer is told
+which of its account's characters need the worlds (0x7E54 `OpcodeServerWorldsChars`: u8 version 1, u8 count,
+each ServerID u32; `loginServerWorld`, held to `loginSpawn` by a test: saved in a server's world at a place a
+login resumes, or standing there now in the world; never one saved in the arena, which starts beside the
+herald either way), BEFORE the recipes and after every later character list; vanilla then holds only those
+picks, natively too (a native homeland character picked early started in its city for good). **Where the wait
+went:** not the client's check (0.5 s) but the recipes' way there, 72 KB in 62 fragments: a session before
+the world was sent a packet only in answer to one of its client's (`tickAllSessions` ticked only sessions in
+the game), and the client's DRDP holds an ack 100 ms, so a fragment every 129 ms on a loopback (8.7 s) and a
+round trip more each on a real line (10-36 s on eqoaclassic, natively as in a page). A session whose client
+took the offer (ours, never a PS2) is now sent what waits in its queue on the tick (`RDPHandler.SendWaiting`,
+`MessageQueue.NextFits`: 1+`BurstPackets` packets while they fit the window, 1.6 s for the recipes); every
+other session before the world is sent what it always was. **A pick empties the lobby queue**
+(`PromoteSessionToMaster`): a character picked before the recipes were all in never got the rest, and its
+session held no world of the server's (no arena, no GM's move there; natively that was nearly everyone). Such
+a client asks again in the world (0x7E30 1) and is sent the recipes alone; an ask that comes while the recipes
+last sent still wait unacknowledged queues nothing (`MessageQueue.Waits`: one copy in a queue at most). `PreparePacket` and the promotion
+hold the session's send lock (`Session.LockSend`): a packet built across a promotion carried the lobby's
+fragments under the promoted connection's header and numbers. The homes' people, starts
 and flavour are `tools/seed_race_homes.py`'s (exact `--undo`), their quests `tools/quests/data/homelands.json`
 (a gatekeeper's `teleport` with `"to": "mainland"` and `"bind": true`: FORMAT.md). A gatekeeper standing in such a world
 is its home's alone (`entity.Composed`): it opens no travel menu (its flight is its quest's, one way, once the

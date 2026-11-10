@@ -443,6 +443,22 @@ func (q *MessageQueue) NextFits(ack uint16, window uint16, windowBytes int) bool
 	return false
 }
 
+// Waits reports whether a reliable message of opcode is still the queue's:
+// queued or sent, and not acknowledged (a long one's fragments carry its
+// opcode). For a list a client may ask for again (the server's worlds'
+// recipes, 70 KB): one asked for while the last still waits is not queued a
+// second time, so a client that asks over and over grows nothing.
+func (q *MessageQueue) Waits(opcode protocol.GameOpcode) bool {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	for _, msg := range q.reliable {
+		if msg.Opcode == opcode && !msg.Acked {
+			return true
+		}
+	}
+	return false
+}
+
 // noteResentLocked counts a packet's resends for the session's stats and,
 // every netLogEvery while it resends, writes its "Net:" line: who, how many
 // went again, and its stream as it stands (Report). It replaced a line a

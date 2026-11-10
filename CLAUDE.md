@@ -1555,8 +1555,9 @@ Heirloom Test Server, three on a server with none of the extras. A client "of ou
 (`Session.AckMasks`: vanilla, which forwards a /command it does not know); a PS2 keeps one to itself, so it is told `/t tutorial`.
 **Never again** is kept in table **`charwelcome`** (serverid, shown_day, never, changed: a player's own choice, deleted with
 its character; empty it on a new server's copy), through logouts and restarts. **`/tutorial`** (`#tutorial`, a PS2's
-`/t tutorial`; with text after it `/t tutorial ...` is a tell) shows the box at once, whatever the day and the flag, and no answer
-turns the daily box back on (the user's choice): a GM does, by the row (never 0, or delete it). `world.welcome_guide: false`
+`/t tutorial`; with text after it `/t tutorial ...` is a tell) shows the box at once, whatever the day and the flag (typed while
+the day's box waits to go out, it takes that box's place and its day), and no answer turns the daily box back on (the user's
+choice): a GM does, in the GM panel's Players > Welcome guide (Never again No, or the row deleted). `world.welcome_guide: false`
 turns all of it off (`/tutorial` then says there is no guide). Words and times are ours.
 
 ### The Teleporter: every raid's way in and every XP camp (`handlers/teleporter.go`, `world.teleporter`, `tools/place_teleporter.py`)

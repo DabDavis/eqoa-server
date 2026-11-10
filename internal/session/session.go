@@ -214,6 +214,12 @@ type Session struct {
 	// client that never answered (a PS2, an older build) is sent a dialogue box.
 	mobInfo bool
 
+	// itemLinks: the client answered the item links' offer 1
+	// (protocol.OpcodeItemLinksOffer, handlers/itemlinks.go), so a chat line
+	// with links goes to it as OpcodeItemLinkLine. A client that never
+	// answered (a PS2, an older build), or answered 0, is sent the retail line.
+	itemLinks bool
+
 	// resume is the MemoryDump a session carried through a restart is due,
 	// and resumed whether it was carried through one (keep.go)
 	resume  resumeDump
@@ -342,6 +348,22 @@ func (s *Session) MobInfo() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.mobInfo
+}
+
+// SetItemLinks records the client's answer to the item links' offer: on, a
+// chat line with links goes to it as protocol.OpcodeItemLinkLine.
+func (s *Session) SetItemLinks(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.itemLinks = on
+}
+
+// ItemLinks is whether the client takes chat lines with links (SetItemLinks).
+// A client that never answered (a PS2) does not.
+func (s *Session) ItemLinks() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.itemLinks
 }
 
 // SetBugNote keeps the client's note for the next petition it files.

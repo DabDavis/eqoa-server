@@ -197,6 +197,12 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	if gameWorld != nil {
 		chatHandler.SetGameWorld(gameWorld)
 	}
+	// item links in chat (itemlinks.go): the records read as a client is sent
+	// them, the links a keep restart carries
+	if invStore != nil {
+		chatHandler.linkRows = invStore
+	}
+	keepLinks.Store(chatHandler.links)
 	if accountStore != nil {
 		chatHandler.SetAccessLevels(accountStore)
 	}
@@ -430,6 +436,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	}
 	guildHandler.chatGate = chatHandler.gmChatGate
 	guildHandler.RegisterHandlers(r)
+	// a line with links said to the guild (itemlinks.go: OpcodeItemLinkSay's route 2)
+	chatHandler.guildChat = guildHandler.chatLine
 
 	// Register group handlers (the group is the World's: entity/group.go)
 	NewGroupHandler(gameWorld).RegisterHandlers(r)

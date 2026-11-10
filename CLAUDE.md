@@ -836,6 +836,43 @@ offer, **0x7E4D** answer, a u8 each, sent with the world entry's offers; kept ov
 talk named, the level, the name: `protocol/opcodes.go`) and vanilla shows the two lines in that details box while Q is held; anyone else
 (a PS2, an older vanilla) a dialogue box (0x0046) of the same two lines. The name is cleaned as `consoletext.go` cleans a relayed line.
 
+### Item links in chat, EQ1's (`handlers/itemlinks.go`)
+
+The GM Jibrish's petition 1463, 2026-11-10: a player puts a link to one of its own items in a chat line and whoever clicks it sees
+the item's figures in a small window. The server offers it at every world entry, whatever its settings (**0x7E4F**,
+`OpcodeItemLinksOffer`, a u8 1, beside the mob info's offer; a PS2 ignores it), and a client that takes links answers on the same
+opcode (a u8: 1 links, 0 plain lines, its player's row turned off; `Session.ItemLinks`, kept over a keep restart). Such a client sends
+a typed line holding a link as **0x7E50** (`OpcodeItemLinkSay`) in place of the retail message: u8 route (0 as 0x000B, routed by the
+line and then by the chat mode; 1 as 0x0C01 sub 2, a shout; 2 as 0x0578 sub 12, the guild's, its text read to a NUL as that one's is;
+any other dropped), u32 target (0x000B's), the text as 0x000B carries it, each link's item name in its place (the text alone is the
+line a client without links sends), then u8 count and each link's u16 start and u16 length (UTF-16 units), u8 list (0 the pack, worn
+items among it; 1 the bank) and u32 key (the record's key as 0x003E names it). **A link is a snapshot**: only of a record its sender
+holds now, resolved through the session's own copy of that list (never a position) and read as a record is sent (the heirloom view on
+it), kept as it was then (`ItemLinks`: a copy of the row as `wireRecord` sends it, pointers its own), so the item worn down, its stack
+spent or anything after changes nothing of the link; the same character linking the same row as the same record within its life gets
+the same link back, its life begun again. A link whose span leaves the text, splits a character or starts before the last one taken
+ends, whose list is neither, whose key names nothing that list holds or a row not the sender's, is its plain text; past four in a line
+(`itemLinksPerLine`) the rest are too. A link's span becomes the server's word for the name (`itemNameShown`, consoleLine'd to 63).
+The line then goes as a typed line goes (`typedLine`, `shoutLine`, the guild handler's `chatLine`): every command (a GM's #, /bug,
+/rsay, a Summoning Portal's name) takes the text alone, a tell its body with the links in it (`chatText.tail`), and a GM's Silence
+and Snoop the text; **a link is made only when its line is said** (`chatText.made`), so a command, a silenced speaker's line or one
+cut away makes none. What is said keeps
+its links through every relay of `chat.go` and `guild.go` (say, shout, group, raid, guild in mode 4 and by 0x0578, a tell and its
+echo, a whisper and its echo), the text between them cleaned as every relayed line is (`consoletext.go`), the line cut at
+`chatLineMost` with the names in it (a link the cut goes through is what is left of its name, plain), each hearer's profanity mask
+over the whole. **A hearer whose client took links is sent 0x7E51** (`OpcodeItemLinkLine`: u8 count 1-4, each link's u16 start and
+u16 length in the inner message's text as that hearer is shown it, after the speaker's words and its mask, and u32 id; then the retail
+message it would have been sent, whole, its opcode first: 0x0A7A, 0x0A7B, 0x069E or 0x0468 sub 5; a line without links is never
+wrapped); **every other hearer, a PS2 among them, the retail message byte for byte** as for the line typed without links (`relayTo`;
+`TestItemLinkLinesOnEveryPath` holds every path to it). A click is **0x7E52** (`OpcodeItemLinkAsk`, a u32 link id), answered to
+anyone in the world with **0x7E53** (`OpcodeItemLinkRecord`: u32 id, u8 1 and the record as 0x003B's body, keyed by the id as 0x7E45's
+is by its roll, worn nowhere and on no quick slot, for the asker's capes; or u8 0, no such link), at most 30 asks in 10 s a session, the
+rest dropped with one line logged a window. A link lives an hour from when it was made or last linked (`itemLinkTTL`), at most 10,000
+(`itemLinkMost`), the oldest going first; ids count on from a random number, never 0, never one in use, and come through a keep
+restart with the links (`KeepItemLinks`, `RestoreItemLinks`, the snapshot's `item_links`; a file without them leaves none), counted on
+after the largest kept. The log says `ItemLinks: <who> linked "<name>" (item <its charinventory row>, link <id>)` as a link is made and
+`ItemLinks: <who> viewed link <id> ("<name>", <linker>'s)` at each answered ask.
+
 ### The combat record: PvP and duels, lifetime (`entity/combatrecord.go`, `handlers/combatrecord.go`, table `charrecord`)
 
 The user, 2026-11-07: "lets add a combat record for pvp and duels to the menu for players, has lifetime kills, deaths, etc.". A row a

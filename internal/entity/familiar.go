@@ -37,7 +37,8 @@ import (
 // ability of the book), landing castLand after its cast time with the
 // familiar beside its caster, in place of one already out: one familiar a
 // player, beside its pet and its merc. It follows its owner as a pet does and
-// comes along through a teleport, goes when its owner dies, logs out (not kept
+// comes along through a teleport (never into capture the flag's arena: it
+// waits outside, ctfaway.go), goes when its owner dies, logs out (not kept
 // over a logout: the item calls it again) or dismisses it (/familiar dismiss),
 // and is carried through a keep restart.
 //
@@ -131,6 +132,10 @@ func (w *World) summonFamiliarLocked(p *Player, sess *session.Session, d *Famili
 	if p.IsDead() || p.respawnPending() {
 		return
 	}
+	if w.ctfKeepsOutLocked(p) {
+		w.ctfFamiliarWaitsLocked(p, sess, *d, 1) // not in the arena: it comes when its owner leaves (ctfaway.go)
+		return
+	}
 	if old := w.familiars[p.ServerID]; old != nil {
 		w.familiarGoesLocked(old, sess)
 	}
@@ -162,6 +167,10 @@ func (w *World) RestoreFamiliar(sess *session.Session, d FamiliarDef, hpShare fl
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
 	if p == nil || p.IsDead() || p.respawnPending() {
+		return false
+	}
+	if w.ctfKeepsOutLocked(p) {
+		w.ctfFamiliarWaitsLocked(p, sess, d, hpShare) // it waits outside the arena (ctfaway.go)
 		return false
 	}
 	w.summonFamiliarLocked(p, nil, &d, now)
@@ -208,8 +217,11 @@ func (w *World) DismissFamiliar(sess *session.Session) (string, bool) {
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
 	fs := w.familiars[p.idOrZero()]
-	if p == nil || fs == nil || fs.owner != p {
+	if p == nil {
 		return "", false
+	}
+	if fs == nil || fs.owner != p {
+		return w.ctfDismissAwayLocked(p, false) // one waiting outside the arena (ctfaway.go)
 	}
 	name := fs.npc.Name
 	w.familiarGoesLocked(fs, sess)
@@ -254,6 +266,10 @@ func (w *World) familiarSystem(now time.Time) {
 		sess := w.findSessionByEntityIDLocked(id)
 		if owner.IsDead() || owner.respawnPending() || n.Dead {
 			w.familiarGoesLocked(fs, sess) // the petition's "depops when player dies"
+			continue
+		}
+		if w.ctfKeepsOutLocked(owner) {
+			w.ctfSendAwayLocked(owner, now) // its owner in the arena: it waits outside (ctfaway.go)
 			continue
 		}
 		dt := float32(now.Sub(fs.last).Seconds())

@@ -475,6 +475,12 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 
 		// a login in safe mode, /testinvis (safemode.go)
 		gameWorld.OnPlayerEntered(tellSafeMode(gameWorld))
+
+		// the welcome guide (welcome.go): the box a character's first world entry
+		// of a UTC day asks, its answers, and /tutorial
+		welcome := NewWelcomeGuide(gameWorld, charStore.DB())
+		interactHandler.welcome, chatHandler.welcome = welcome, welcome
+		gameWorld.OnPlayerEntered(welcome.Entered)
 	}
 
 	// Register the spell book's requests (0x0033, 0x003A, 0x00FE), and the

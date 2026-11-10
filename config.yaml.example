@@ -137,6 +137,11 @@ world:
   # The line a login is sent once on how to report a bug (#bug, /bug, vanilla's
   # F3, Support in the start menu: handlers/bugreport.go). On unless false.
   # report_notice: false
+  # The welcome guide (handlers/welcome.go): a character's first world entry of
+  # a UTC day asks, in a box, whether the player would like a guide of the
+  # server or never to be asked again on that character; /tutorial shows the
+  # box at any time. On unless false.
+  # welcome_guide: false
   # The players' camp reports (/campfix, /mark, /markadd, /markremove:
   # handlers/campfix.go), filed with a work board entry for a GM's review and
   # changing no spawn. On unless false.

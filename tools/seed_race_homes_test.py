@@ -11,8 +11,10 @@ second apply is refused; undo puts every table back as it was, row for row
 
     python3 tools/seed_race_homes_test.py
 """
+import json
 import math
 import os
+import re
 import sqlite3
 import sys
 import tempfile
@@ -127,6 +129,48 @@ class SeedRaceHomes(unittest.TestCase):
         self.assertAlmostEqual(srh.heading_to(0, 0, 1, 0), math.pi / 2)
         self.assertEqual(srh.byte_heading(math.pi), 128)
         self.assertEqual(srh.byte_heading(2 * math.pi - 0.001), 0)
+
+
+ZONES = {  # the disc's zones' cells (each world's 2000-unit grid), for the real recipe's check
+    ("ODUS.ESF", 7): (2, 1), ("ODUS.ESF", 8): (3, 1), ("ODUS.ESF", 13): (2, 2), ("ODUS.ESF", 14): (3, 2),
+    ("ODUS.ESF", 19): (2, 3), ("ODUS.ESF", 22): (5, 3), ("ODUS.ESF", 27): (4, 4), ("ODUS.ESF", 28): (5, 4),
+    ("RATHE.ESF", 15): (2, 4),
+}
+
+
+class TheRecipe(unittest.TestCase):
+    """tools/worlds/homelands.json and tools/quests/data/homelands.json as written: every home's start, people and
+    critters stand in its own zone's cell (where homes touch, a player may walk into a neighbour's, but nothing
+    of a home is placed in another's), its peaceful names are its foes', and its gatekeeper flies the player to
+    its mainland and binds it there. Zones whose cell this table lacks are held to their notes' "cell c,r"."""
+
+    def test_homes_stand_in_their_zones(self):
+        recipe = json.load(open(srh.DEFAULT_HOMES))
+        quests = json.load(open(os.path.join(HERE, "quests", "data", "homelands.json")))["quests"]
+        cells = set()
+        for z in recipe["zones"]:
+            cell = ZONES.get((z["from"], z["zone"]))
+            if cell is None:
+                m = re.search(r"cell (\d+),\s*(\d+)\)", z.get("note", ""))
+                self.assertIsNotNone(m, f"{z['name']}: no cell known")
+                cell = (int(m.group(1)), int(m.group(2)))
+            self.assertNotIn(cell, cells, f"{z['name']}: two zones in cell {cell}")
+            cells.add(cell)
+            h = z.get("home")
+            if not h:
+                continue
+            spots = [("start", (h["start"]["x"], h["start"]["z"]))] + [(n["name"], (n["at"][0], n["at"][2])) for n in h["npcs"]]
+            for who, (x, zz) in spots:
+                self.assertEqual((int(x // 2000), int(zz // 2000)), cell, f"{z['name']}: {who} at ({x}, {zz}) is outside cell {cell}")
+            foes = {n["name"] for n in h["npcs"] if n.get("role") == "foe"}
+            self.assertTrue(set(h.get("peaceful", [])) <= foes, f"{z['name']}: a peaceful name that is none of its foes")
+            gates = [n["name"] for n in h["npcs"] if n["name"].startswith("Gatekeeper ")]
+            self.assertEqual(len(gates), 1, f"{z['name']}: one gatekeeper")
+            flights = [q for q in quests if q["giver"] == gates[0] and any(
+                e.get("do") == "teleport" and e.get("to") == "mainland" and e.get("bind")
+                for st in q["steps"] for e in st.get("events", []))]
+            self.assertEqual(len(flights), 1, f"{z['name']}: {gates[0]} gives one flight to the mainland that binds")
+            self.assertTrue(flights[0].get("repeatable"), f"{z['name']}: the flight is repeatable")
 
 
 if __name__ == "__main__":

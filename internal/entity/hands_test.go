@@ -9,16 +9,17 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// A monk's bare hands roll its hand to hand (offence.go): the fit's line by
-// level, rolled as a one-hander of that DMG in repair; with a weapon in hand
+// A monk's bare hands roll its hand to hand (offence.go): nine tenths of the
+// fit's line by level (petition 1455), rolled as a one-hander of that DMG in
+// repair; with a weapon in hand
 // a monk rolls the weapon (as a ranger, its archetype, does), and any other
 // class's bare hands roll a weapon's 0 (the top of its STR alone, the floor
 // 0.02 of it). The control: a monk's bare hands as they rolled before (no
 // BareHands) are that roll of 0 too.
 func TestAMonksBareHandsRollItsHandToHand(t *testing.T) {
-	for level, want := range map[int]int{1: 7, 5: 49, 10: 102, 20: 209, 30: 315, 40: 422, 50: 528, 60: 634} {
+	for level, want := range map[int]int{1: 6, 5: 44, 10: 92, 20: 188, 30: 284, 40: 379, 50: 475, 60: 571} {
 		if got := handToHandDMG(level); got != want {
-			t.Errorf("level %d: hand to hand DMG %d, want the fit's %d", level, got, want)
+			t.Errorf("level %d: hand to hand DMG %d, want nine tenths of the fit's, %d", level, got, want)
 		}
 	}
 	npc := &NPC{Level: 30}
@@ -31,8 +32,8 @@ func TestAMonksBareHandsRollItsHandToHand(t *testing.T) {
 	}
 	bare := Gear{WeaponCond: 1, BareHands: true}
 	monk := roll(who(classMonk, bare))
-	if armed := roll(who(classMonk, Gear{WeaponCond: 1, WeaponDamage: 315})); monk != armed {
-		t.Errorf("a level 30 monk's bare hands roll %v, a 315 one-hander %v", monk, armed)
+	if armed := roll(who(classMonk, Gear{WeaponCond: 1, WeaponDamage: 284})); monk != armed {
+		t.Errorf("a level 30 monk's bare hands roll %v, a 284 one-hander %v", monk, armed)
 	}
 	sword := Gear{WeaponCond: 1, WeaponDamage: 100, WeaponSlot: 14}
 	if got, ranger := roll(who(classMonk, sword)), roll(who(1, sword)); got == monk || got != ranger {
@@ -47,7 +48,7 @@ func TestAMonksBareHandsRollItsHandToHand(t *testing.T) {
 	}
 	// #stats says what it rolls on
 	p := who(classMonk, bare)
-	if s := meleeWeaponWords(p); !strings.Contains(s, "hand to hand of level 30, DMG 315") {
+	if s := meleeWeaponWords(p); !strings.Contains(s, "hand to hand of level 30, DMG 284") {
 		t.Errorf("#stats: %q", s)
 	}
 	p.Gear = Gear{WeaponCond: 1, WeaponDamage: 400, WeaponSlot: 18}

@@ -208,7 +208,9 @@ func RestoreCorpses(kept []KeptCorpse) int {
 		if k.Opened {
 			c := &corpse{died: died, items: k.Items}
 			ls.corpses[id] = c
-			restoreRaid(ls, id, c, k.Raid, h.raidClock())
+			if restoreRaid(ls, id, c, k.Raid, h.raidClock()) {
+				h.startRaidWorker() // its rolls and holds end on time
+			}
 		}
 		if len(k.Drops) > 0 {
 			ls.drops[id] = &questDrops{died: died, items: k.Drops}

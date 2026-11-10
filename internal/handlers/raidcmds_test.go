@@ -169,3 +169,79 @@ func TestAGMsHelpIsItsOwn(t *testing.T) {
 		t.Fatalf("a GM's /help: %q", got)
 	}
 }
+
+// raidOffers is every OpcodeRaidOffer queued for the session's client.
+func raidOffers(sess *session.Session) [][]byte {
+	var out [][]byte
+	for _, m := range sess.Queue().PeekPending() {
+		if d := m.Data(); len(d) >= 2 && protocol.GameOpcode(binary.LittleEndian.Uint16(d)) == protocol.OpcodeRaidOffer {
+			out = append(out, d)
+		}
+	}
+	return out
+}
+
+// The first 0x0014 offers the raid's windows (u8 1), once; the second offers nothing more.
+func TestTheRaidOfferAtWorldEntry(t *testing.T) {
+	h := &CharacterHandler{}
+	in := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeCharacterInWorld)
+	sess := entitySlotsSession()
+	for range 2 {
+		if err := h.HandleCharacterInWorld(sess, in); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if got := raidOffers(sess); len(got) != 1 || string(got[0]) != "\x42\x7E\x01" {
+		t.Fatalf("world entry offered %x", got)
+	}
+}
+
+// 0x7E43 makes the player's client a window client (1) or not (0); 0x7E48's ops reach
+// their commands: the loot rule (1), leave (2), the flag (6), the leader by target (8); an
+// unknown op does nothing (the control).
+func TestTheRaidMessagesReachTheRaid(t *testing.T) {
+	c := newChatWorld(t)
+	alice, pa := c.join(1, "Alice", 25000, 16000, 0)
+	bob, pb := c.join(2, "Bob", 25010, 16000, 0)
+	h := NewRaidHandler(c.gw, NewNPCWindowHandler(nil, nil))
+	r := NewRegistry()
+	h.RegisterHandlers(r)
+	feed := func(s *session.Session, op protocol.GameOpcode, data ...byte) {
+		t.Helper()
+		f, ok := r.Get(op)
+		if !ok {
+			t.Fatalf("no handler for %#x", uint16(op))
+		}
+		if err := f(s, incoming(op, data)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	feed(alice, protocol.OpcodeRaidAnswer, 1)
+	if !c.gw.RaidWindows(pa) {
+		t.Fatal("0x7E43 1 did not take")
+	}
+	feed(alice, protocol.OpcodeRaidAnswer, 0)
+	if c.gw.RaidWindows(pa) {
+		t.Fatal("0x7E43 0 did not stop it")
+	}
+	c.group(t, alice, pa, bob, pb)
+	feed(alice, protocol.OpcodeRaidCommand, 6) // the flag: a raid
+	if !c.gw.GroupIsRaid(pa) {
+		t.Fatal("op 6 raised no flag")
+	}
+	feed(alice, protocol.OpcodeRaidCommand, 99) // the control
+	feed(alice, protocol.OpcodeRaidCommand, 1, byte(entity.LootNeedGreed))
+	flushQueue(bob)
+	id := c.gw.IDSeenBy(alice, pb)
+	feed(alice, protocol.OpcodeRaidCommand, 8, byte(id), byte(id>>8), byte(id>>16), byte(id>>24))
+	if m := c.gw.GroupMembers(pa); len(m) != 2 || m[0] != pb {
+		t.Fatalf("op 8: the members %v", m)
+	}
+	if got := texts(heard(t, bob)); !raidSaid(got, "Alice makes Bob the raid's leader.") {
+		t.Fatalf("Bob heard %q", got)
+	}
+	feed(bob, protocol.OpcodeRaidCommand, 2) // leave
+	if len(c.gw.GroupMembers(pa)) != 0 {
+		t.Fatal("op 2 left nothing")
+	}
+}

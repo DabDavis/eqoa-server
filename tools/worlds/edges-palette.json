@@ -1,0 +1,36 @@
+{
+  "note": "cmd/worldedges' rocks for the open edges of a composed world's zones, by the zone's disc file (or FILE#zone): the disc's own art, its records copied into the zone (extras). Chosen and measured off their collision (closed hulls, sides too steep to walk up): foot is the share of a rock's height at which it is widest, where it is set into the ground (a rounded rock set on its bottom leaves gaps under its belly its neighbours do not close); steep the share of its height, from its bottom, a walk does not climb (no face within 48 degrees of flat). Tried and left out: Tunaria's grey dome (0xB8C058DD; its foot is flat and walked up) and grey crag (0x9799723E; its collision is an open shell, 118 open edges up to 83% of its height, so a walk passes through it from behind). steepGround is how much the ground under a rock may rise and fall before the steepest rock is taken (the cone, which grows less than a boulder set to its widest); maxScale the most a rock is grown (a cone 30 times over is a hill). width is a rock's span along the edge (its narrow side, scaled); rise how far its top stands over the highest floor (or water) under it.",
+  "width": [
+    70,
+    115
+  ],
+  "rise": 32,
+  "maxScale": 30,
+  "sets": {
+    "rocks": [
+      {
+        "sprite": "0x7FFD2E87",
+        "from": "ODUS.ESF",
+        "zone": 10,
+        "weight": 3,
+        "foot": 0.2,
+        "steep": 0.78,
+        "note": "a mossy boulder of Odus (zone 10; an LOD of three): widest at 20% of its height, steep to 80%"
+      },
+      {
+        "sprite": "0x4A6801F0",
+        "from": "TUNARIA.ESF",
+        "zone": 143,
+        "weight": 2,
+        "foot": 0,
+        "steep": 0.85,
+        "note": "a dark rock spire of Gerntar Mines (Tunaria zone 143): a cone, steep to 90%"
+      }
+    ]
+  },
+  "zones": {
+    "TUNARIA.ESF": "rocks",
+    "ODUS.ESF": "rocks"
+  },
+  "steepGround": 25
+}

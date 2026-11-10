@@ -1475,15 +1475,25 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 	// a spell that raises the maximum heals after the raise (spellnotes.go),
 	// or a target at full health would get none of it
 	raises := cs.spell.Def.RaisesMaxHP()
+	// a self spell's lost hit points are its caster's price, paid in full
+	// (lifetap.go selfCostLocked): a price that kills lands nothing more
+	ownPrice := cs.spell.ownPrice(caster, t)
 	var heals []int
 	for _, e := range cs.spell.Def.Effects {
 		switch e.Kind {
 		case EffectHP:
-			if raises {
-				heals = append(heals, spellAmount(e, caster))
+			n := spellAmount(e, caster)
+			if n < 0 && ownPrice {
+				if w.selfCostLocked(cs.spell.Name, caster, casterSess, -n, true, false, now) {
+					return
+				}
 				continue
 			}
-			w.healLocked(caster, casterSess, t, spellAmount(e, caster), cs.spell.healKind())
+			if raises {
+				heals = append(heals, n)
+				continue
+			}
+			w.healLocked(caster, casterSess, t, n, cs.spell.healKind())
 		case EffectPower:
 			if e.Set { // the workbook's power set to a figure (spelljson.go)
 				t.Power = min(max(e.Amount, 0), t.MaxPowerNow())
@@ -1640,6 +1650,13 @@ func (w *World) runTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	if ae.HPTick < 0 {
 		w.duelTickLocked(t, ae, now) // a duel's damage over time (duelfight.go)
 		w.npcTickLocked(t, ae, now)  // a creature's (classtemplate.go)
+		// the bearer's own spell losing hit points each tick (Cursed Flesh's
+		// "Decrease HP per tic by 800"): its price, until it wears off or a
+		// Remove Illusion or True Form ends its look, never below 1
+		// (lifetap.go selfCostLocked)
+		if ae.Caster == t.ServerID && ae.duelFoe == 0 && ae.npcFoe == 0 {
+			w.selfCostLocked(ae.Name, t, w.findSessionByEntityIDLocked(t.ServerID), -ae.HPTick, false, true, now)
+		}
 	}
 	if ae.HPTick > 0 {
 		// the caster may be gone (logged out, or the effect kept over a

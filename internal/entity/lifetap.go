@@ -304,6 +304,55 @@ func (w *World) payPriceLocked(cs *castState, caster *Player, sess *session.Sess
 	}
 }
 
+// selfCostLocked takes a self spell's own price of n hit points off its
+// bearer, in full, where the spell's line or its workbook effects put the loss
+// on the caster alone (jib's PR #1, the GM Jibrish's ruling of 2026-10-29: "You
+// could definitely kill yourself with lich form, pacts and so on. That was a
+// drawback people had to actively manage with remove illusion."): the
+// shaman's five Cannibalize ranks' "Decrease Hitpoints by N" at the landing
+// (ownPrice: until then healLocked was handed a negative heal, which heals
+// nothing, and Cannibalize gave its power for nothing), and the shadow
+// knight's Cursed Flesh's "Decrease HP per tic by 800" at each tick
+// (runTickLocked, where a player's own damage tick did nothing). The figure on
+// the bearer and, when say, a line saying it. A landing's price may kill, as
+// a pact's does (payPriceLocked), and reports it so nothing more of the spell
+// lands; a tick's (floor) leaves at least 1, as the Lich form's price over time
+// does (regen.go: the user's "yes" of 2026-11-01, the floor ours). A pact's
+// price, a clause "... to Self", stays payPriceLocked's, resisted.
+func (w *World) selfCostLocked(name string, p *Player, sess *session.Session, n int, say, floor bool, now time.Time) bool {
+	if n <= 0 || p.IsDead() {
+		return false
+	}
+	if floor {
+		n = min(n, p.HP-1)
+		if n <= 0 {
+			return false
+		}
+	}
+	log.Printf("Cast: %q costs %s %d hit points (HP %d)", name, p.Name, n, p.HP)
+	if say && sess != nil {
+		w.sendChatToSession(sess, fmt.Sprintf("%s costs you %d hit points.", name, n))
+	}
+	p.HP = max(p.HP-n, 0)
+	p.StatsDirty = true
+	w.tellAmountLocked(p, sess, p.ServerID, -n, 0) // a price on the bearer: untagged (numbertags.go)
+	if p.HP > 0 {
+		return false
+	}
+	w.playerDiedLocked(sess, p, now)
+	return true
+}
+
+// ownPrice reports whether the spell's lost hit points on t are its caster's
+// own price (selfCostLocked): a self spell landing on its caster that reaches
+// no one else. A self spell with an area (the custom races' Giant's Stomp and
+// Tail Sweep, Frost Breath: the workbook's player-based areas) hits the
+// creatures round its caster with that figure and costs the caster nothing; a
+// potion's price is paid as it is drunk (potion.go usePotion).
+func (s *CastSpell) ownPrice(caster, t *Player) bool {
+	return t == caster && s.Def.Target == TargetSelf && s.Area.Centre == AreaNone && s.Travel == nil && s.Familiar == nil
+}
+
 // casterShareLocked puts a cast's stat changes on its caster for the line's
 // duration: an effect of the spell's name (its id negated, so it is not the
 // one the spell leaves on a target, oneself included). A share landed this

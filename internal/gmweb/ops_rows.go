@@ -150,27 +150,7 @@ func (s *Server) registerRowOps() {
 			if t.Name == "accountinfo" || t.Name == "characters" {
 				return nil, badRequest("%s rows are not copied", t.Name)
 			}
-			src, err := getRow(c.s.d.DB, t, req.Key)
-			if err != nil {
-				return nil, notFound("%v", err)
-			}
-			vals := map[string]any{}
-			for _, col := range t.Columns {
-				if col.Secret {
-					continue
-				}
-				// an integer key is numbered anew
-				if col.PK > 0 && len(t.Key) == 1 && col.Affinity == "INTEGER" {
-					continue
-				}
-				if v, ok := src[col.Name]; ok {
-					vals[col.Name] = v
-				}
-			}
-			for k, v := range req.Changes {
-				vals[k] = v
-			}
-			ch, err := c.s.insertRow(c.a, t, vals, writeOpts{Dry: req.DryRun, Raw: false})
+			ch, err := c.s.cloneRow(c.a, t, req.Key, req.Changes, writeOpts{Dry: req.DryRun})
 			if err != nil {
 				return nil, err
 			}

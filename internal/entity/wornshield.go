@@ -135,19 +135,20 @@ var wornShieldsByPattern = map[int]WornShield{
 var seraphicPlanar = WornShield{Damage: 75, DamageMax: 120, Heal: 75, HealMax: 120, Scale: StatInt, Line: true}
 
 // WornShieldOf is the item's, by its record (patternid), else by its name;
-// false for an item that does nothing at a hit.
+// false for an item that does nothing at a hit. A copy's is its base's: an
+// import's damped (imported.go), an Ascended record's a tenth more
+// (ascended.go), both for an import of an Ascended record.
 func WornShieldOf(patternID int, itemName string) (WornShield, bool) {
-	record := patternID
-	base, imported := ImportedBase(patternID) // an import's copy: its base's, damped (imported.go)
-	if imported {
-		record = base
-	}
+	record, lookup, imported, ascended := copyRecord(patternID, itemName)
 	s, ok := wornShieldsByPattern[record]
 	if !ok {
-		s, ok = wornShields[strings.ToLower(strings.TrimSpace(itemName))]
+		s, ok = wornShields[strings.ToLower(strings.TrimSpace(lookup))]
 	}
 	if ok {
 		s.Item = itemName
+		if ascended {
+			s = s.ascended()
+		}
 		if imported {
 			s = s.imported()
 		}

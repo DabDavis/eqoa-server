@@ -753,6 +753,42 @@ const (
 	// figure on the player that another made, any to a session that never
 	// answered 1) is the retail body alone.
 	OpcodeNumberTagsAnswer GameOpcode = 0x7E39
+
+	// OpcodeDPSMeterOffer is not retail: a damage meter, who in the player's
+	// group did how much damage in the fight and how fast (entity/dpsmeter.go,
+	// handlers/dpsmeter.go; the owner, 2026-11-10: "lets add dps meters, will
+	// work solo, group, raid"). Server to client once the player is in the
+	// world: a u8, 1, OpcodeDPSMeterData's layout. A PS2 ignores it (CLIENT's
+	// dispatcher has no case above 0x1402 and no default) and never answers.
+	OpcodeDPSMeterOffer GameOpcode = 0x7E3A
+
+	// OpcodeDPSMeterAnswer is a client's answer to OpcodeDPSMeterOffer, client
+	// to server, at once and whenever it changes: a u8, 1 to be sent the meter
+	// (OpcodeDPSMeterData), 0 to stop.
+	OpcodeDPSMeterAnswer GameOpcode = 0x7E3B
+
+	// OpcodeDPSMeterData is the meter, server to a client that answered 1: at
+	// most once a second while a fight in its group is on and something in it
+	// changed, and once more as the fight ends (a fight ends DPSMeterIdle after
+	// the last damage anyone in the group did). Little-endian: a u8 layout (1),
+	// u32 the fight's number (another number, another fight; numbers are the
+	// server's, never 0), u8 1 when the fight is over (this is its last
+	// message) else 0, u32 the fight's length in ms (from its first damage to
+	// its latest), u32 the damage of all its lines (what each line's share is
+	// of), u16 its lines in all, u8 the lines here (at most
+	// entity.DPSMeterLinesMost, the most damage first, the receiver's own always
+	// among them), then each line: u8 flags (1 the receiver's own; 2 no longer
+	// in its group: one that did damage in this fight and left), u8 its class,
+	// u32 its damage (its pet's included), u32 its pet's share of that, and its
+	// name (a u8 byte count and UTF-8, at most 23 bytes). Every member of the
+	// group in the world has a line, none of damage too.
+	OpcodeDPSMeterData GameOpcode = 0x7E3C
+
+	// OpcodeDPSMeterReset is a client's reset, client to server: a u8, 1. The
+	// fight under way, if any, is the receiver's no more (nothing is sent of it
+	// again); the next damage in its group starts another, under another
+	// number.
+	OpcodeDPSMeterReset GameOpcode = 0x7E3D
 )
 
 // =============================================================================
@@ -1059,6 +1095,14 @@ func (op GameOpcode) String() string {
 		return "NumberTagsOffer"
 	case OpcodeNumberTagsAnswer:
 		return "NumberTagsAnswer"
+	case OpcodeDPSMeterOffer:
+		return "DPSMeterOffer"
+	case OpcodeDPSMeterAnswer:
+		return "DPSMeterAnswer"
+	case OpcodeDPSMeterData:
+		return "DPSMeterData"
+	case OpcodeDPSMeterReset:
+		return "DPSMeterReset"
 	case OpcodeMapTravel:
 		return "MapTravel"
 	case OpcodeMapTravelTo:

@@ -111,6 +111,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.powerSyncSystem()
 	w.raidRosterSystem()
 	w.petEffectsSystem(now) // the pet's effects, to the clients that draw them (peteffects.go)
+	w.dpsMeterSystem(now)   // the damage meters' fights, to the clients that draw them (dpsmeter.go)
 	t.mark(tsPowerSync)
 	w.tickSeenLocked()
 	return due, gates, gone

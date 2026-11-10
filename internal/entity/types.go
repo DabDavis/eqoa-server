@@ -1,6 +1,9 @@
 package entity
 
-import "math"
+import (
+	"math"
+	"sync/atomic"
+)
 
 // WorldFloorY is where the client puts a character who is over nothing. Walking
 // off the edge of terrain drops them to exactly -1000 and leaves them there;
@@ -41,9 +44,30 @@ const SpawnLift = float32(3)
 const DiscWorlds = 6
 
 // SpawnLifted reports whether a login into world is lifted by SpawnLift: only
-// in a world that is not on every disc, where heights were measured low.
+// in a world that is not on every disc, where heights were measured low; not
+// in one the server composed of the disc's own zones (SetComposedWorld), whose
+// heights are the disc's.
 func SpawnLifted(world int) bool {
+	if world >= 0 && world < len(composedWorlds) && composedWorlds[world].Load() {
+		return false
+	}
 	return world < 0 || world >= DiscWorlds
+}
+
+// composedWorlds are the worlds made of the disc's own zones
+// (handlers/serverworlds.go).
+var composedWorlds [256]atomic.Bool
+
+// SetComposedWorld marks world as one made of the disc's own zones.
+func SetComposedWorld(world uint8, on bool) {
+	composedWorlds[world].Store(on)
+}
+
+// Composed reports whether world is one the server made of the disc's own
+// zones (SetComposedWorld): the races' homelands, whose gatekeepers fly their
+// own people out by a quest and are no stop on the travel network.
+func Composed(world uint8) bool {
+	return composedWorlds[world].Load()
 }
 
 // SafeSaveHeight decides which height to persist on disconnect: the one the

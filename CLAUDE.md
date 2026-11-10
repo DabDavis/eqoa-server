@@ -620,6 +620,46 @@ no session is the disc's six, and an offline character logs in only there): a cl
 to load a world its table lacks stayed where it was while the server filed it under that
 world. World 8 is labelled "World 8 (HDD)" (it was "Guk" while worlds came off the card).
 
+**Worlds of the disc's own zones** (`internal/worlds`, `cmd/worldbuild`, `handlers/serverworlds.go`; the owner,
+2026-11-08: "new world with a zone for each new race"; `claude-notes/race-homelands-20261108.md`): a recipe
+(`tools/worlds/homelands.json`, the Homelands, slot 10: a zone of the disc for each race of racedefs) names
+zones by disc file and index; `worldbuild -iso <disc> -recipe <json> -out worlds` copies each whole, where it
+stands on the disc (one zone a cell; its ResourceTable and ZoneStaticTable offsets moved), into `worldN.ESF`
+in retail's shape, with `worldN.json` (each zone's record CRC, the file's), and `groundbake -world N=path`
+bakes its ground. A shard lists the slots it offers (`world.server_worlds: [10]`); after a session's first
+character list it offers them (0x7E30) and a client that builds the same file off its own disc (vanilla,
+byte for byte, the CRCs checked) is sent the recipe (0x7E31) and says which it holds, which `LoadableWorlds`
+then takes for that session (kept through a keep restart). A login in such a world resumes there for a
+client that holds it, else on its race's mainland spot (`database.MainlandPlace`: its wire race's start row
+for its class). Nothing of the disc goes over the wire, and a PS2 never sees one. The homes' people, starts
+and flavour are `tools/seed_race_homes.py`'s (exact `--undo`), their quests `tools/quests/data/homelands.json`
+(a gatekeeper's `teleport` with `"to": "mainland"` and `"bind": true`: FORMAT.md). A gatekeeper standing in such a world
+is its home's alone (`entity.Composed`): it opens no travel menu (its flight is its quest's, one way, once the
+starter quests are done; before them it says its own lines), and no harbormaster, gatekeeper or account page
+offers a trip to it (a GM's own list has it); `interact.go`'s `warpRoutes` keeps the same rule on the network's side
+(no gatekeeper or harbormaster offers a server world's, one standing there offers none), and the HDD worlds' (8, 9,
+22) are not server worlds. A home's seller is a merchant (npc_type 129: CLIENT opens the window by the flag), and its
+people's own words are npcdialog rows of their names (the recipe's `lines`). `tools/seed_race_homes_test.py` holds
+the real recipe to its zones' cells. `tools/import_quests.py --undo` takes back every import, not one file: the
+homes' quests come out by the import's own copy of the database, made before it writes.
+**Extras** (`internal/worlds/extras.go`, 2026-11-10): a recipe zone's `extras` place the disc's art in it as
+actors of its own (`{"sprite": "0x7FFD2E87", "from": "ODUS.ESF", "zone": 10, "at": [x, y, z], "hpr": [h, p, r],
+"scale": 6.5, "color": [r, g, b, a]}`; `from`/`zone` only when the zone does not hold the art itself), each a
+ZoneActor after its room's own; art the zone lacks is COPIED in with every record it names (a reference to
+another file's art would have no collision in the server's bake, which reads the world file alone), and a
+zone's absolute table offsets are mapped. A recipe's `extraFiles` keep a long list apart (zones named by
+file and index). vanilla composes the same bytes (`serverworlds::extras`), sent as 0x7E31 version 2 (version 1
+when no world has any). The Homelands' open edges are closed with them: `cmd/worldedges` lays a ridge of
+steep rocks (`tools/worlds/edges-palette.json`: Odus's mossy boulder) along every edge no other zone touches,
+or touches with ground that does not meet it (zones of two disc worlds), into `tools/worlds/homelands-edges.json`,
+and `worldedges -check` walks the baked ground along every open edge as the game's walk goes (eight ways, a
+body standing on anything and climbing nothing steeper than 49 degrees; fails on any way out, `-leaks` writes
+them, `-trace -near` shows the way to one). A ridge's layout goes by its zone and side, so a zone added to the
+recipe changes no other zone's rocks: build and bake the world without the file, run `worldedges` off it (with
+`-keep tools/worlds/homelands.json` once the recipe holds its homes' people: no rock then covers a start or an
+NPC; unkept, rocks the size of hills covered five of them, a gatekeeper among them), then build, bake and
+`-check` with it.
+
 ### The server's own view of a player's moves (`entity/movecheck.go`, `#movecheck`)
 
 A client says where it is in its state channel (0x40), and until 2026-11-01 the server took every

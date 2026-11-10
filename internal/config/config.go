@@ -287,6 +287,15 @@ type WorldConfig struct {
 	// transfer brought in (its record a copy at world.imported_share: database/imported.go;
 	// handlers/importedtag.go). Unset, off: the copies show their bases' names.
 	ImportedTag bool `yaml:"imported_tag"`
+
+	// ServerWorlds are the slots of the worlds of the disc's own zones this
+	// server offers (handlers/serverworlds.go): each built by cmd/worldbuild
+	// into the worlds folder (worldN.ESF and worldN.json), for clients that
+	// build it off their own disc (vanilla). Empty, none: two shards sharing a
+	// worlds folder offer what each lists (the Homelands, slot 10, on the
+	// Heirloom server alone).
+	ServerWorlds []int `yaml:"server_worlds"`
+
 	// ImportedShare is the share of its record's stats, procs and worn hit
 	// effects that gear a transfer brought in keeps (0.85 = 85%), each copy
 	// made its base again at this share at the start. Unset: 0.85.

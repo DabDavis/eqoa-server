@@ -18,7 +18,12 @@
 // creature's wander does not walk through (F3 pass 24); -only-walls writes
 // those alone.
 //
+// A world the server composed of the disc's own zones (cmd/worldbuild:
+// worlds/worldN.ESF) is baked the same way, from its file, with -world N=path
+// (as many as there are; with any, the disc's six are not baked again).
+//
 //	groundbake -iso /path/to/frontiers.iso [-out worlds/ground] [-only-env | -only-walls]
+//	groundbake -world 10=worlds/world10.ESF [-out worlds/ground]
 package main
 
 import (
@@ -30,6 +35,8 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/eqoa/pkg/pkg/esf"
@@ -45,8 +52,10 @@ func main() {
 	out := flag.String("out", "worlds/ground", "the folder the ground files go to")
 	onlyEnv := flag.Bool("only-env", false, "write the environment files (<world>.env) alone")
 	onlyWalls := flag.Bool("only-walls", false, "write the walls files (<world>.walls) alone")
+	var extra extraWorlds
+	flag.Var(&extra, "world", "N=path: a world file of the server's own (cmd/worldbuild) baked as world N, instead of the disc's six")
 	flag.Parse()
-	if *iso == "" || *onlyEnv && *onlyWalls {
+	if *iso == "" && len(extra) == 0 || *onlyEnv && *onlyWalls {
 		flag.Usage()
 		os.Exit(2)
 	}
@@ -54,9 +63,18 @@ func main() {
 		log.Fatal(err)
 	}
 	want := what{terrain: !*onlyEnv && !*onlyWalls, walls: !*onlyEnv, env: !*onlyWalls}
-	for n, name := range worldFiles {
+	jobs := make([]job, 0, len(worldFiles))
+	if len(extra) > 0 {
+		jobs = extra
+	} else {
+		for n, name := range worldFiles {
+			jobs = append(jobs, job{n: n, name: name, open: func() (*esf.ObjFile, error) { return esf.OpenISOFile(*iso, name) }})
+		}
+	}
+	for _, j := range jobs {
+		n, name := j.n, j.name
 		t := time.Now()
-		b, err := bake(*iso, name, want)
+		b, err := bake(j.open, want)
 		if err != nil {
 			log.Fatalf("%s: %v", name, err)
 		}
@@ -103,6 +121,28 @@ func main() {
 // what is what a bake writes.
 type what struct{ terrain, walls, env bool }
 
+// job is a world to bake: its number, its name for the log, and its file.
+type job struct {
+	n    int
+	name string
+	open func() (*esf.ObjFile, error)
+}
+
+// extraWorlds are -world's: N=path, each a world file of the server's own.
+type extraWorlds []job
+
+func (e *extraWorlds) String() string { return fmt.Sprint(len(*e), " worlds") }
+
+func (e *extraWorlds) Set(v string) error {
+	num, path, ok := strings.Cut(v, "=")
+	n, err := strconv.Atoi(num)
+	if !ok || err != nil || n < 6 || n > 255 || path == "" {
+		return fmt.Errorf("%q: want N=path, N a world past the disc's six", v)
+	}
+	*e = append(*e, job{n: n, name: filepath.Base(path), open: func() (*esf.ObjFile, error) { return esf.Open(path) }})
+	return nil
+}
+
 // baked is a world baked: its zones' terrain, what stands on it (the
 // collision buffers once each, and each zone's placements of them) and its
 // environment.
@@ -120,8 +160,8 @@ type baked struct {
 // placed (what stands on the terrain: a plant, which collides as nothing
 // (vanilla's SpriteKind::Flora), is left out); and its environment; each as
 // asked.
-func bake(iso, name string, want what) (*baked, error) {
-	f, err := esf.OpenISOFile(iso, name)
+func bake(open func() (*esf.ObjFile, error), want what) (*baked, error) {
+	f, err := open()
 	if err != nil {
 		return nil, err
 	}

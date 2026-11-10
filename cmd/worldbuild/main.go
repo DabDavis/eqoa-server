@@ -6,6 +6,12 @@
 // builds is the operator's, beside the server (worlds/, which git never takes),
 // as cmd/groundbake's ground is.
 //
+// A zone may be given extras, the disc's art placed in it as actors of its
+// own (internal/worlds/extras.go): a sprite by DictID, where it stands, its
+// turn and size, and where its art is on the disc when the zone does not hold
+// it (copied in). A recipe's extraFiles keep a long list apart from it
+// (tools/worlds/homelands-edges.json, the homelands' barriers).
+//
 // It writes <out>/worldN.ESF (N the recipe's slot) and <out>/worldN.json, the
 // recipe as built (each zone's source record's size and CRC, the file's size
 // and CRC, the grid), which the server reads at its start and tells a client
@@ -66,7 +72,11 @@ func main() {
 	}
 	fmt.Printf("%s: world %d %q, %d zones, %d bytes, CRC %08x, grid %d x %d\n", esf, r.World, r.Name, len(built.Parts), built.Size, built.CRC, built.Cols, built.Rows)
 	for i, p := range built.Parts {
-		fmt.Printf("  zone %2d  %-12s %3d  cell (%2d, %2d)  %8d bytes  %08x  %s\n", i, p.From, p.Zone, p.Col, p.Row, p.Size, p.CRC, r.Zones[i].Name)
+		extra := ""
+		if p.Extras > 0 {
+			extra = fmt.Sprintf("  + %d extras (%d records of the disc brought)", p.Extras, p.Brought)
+		}
+		fmt.Printf("  zone %2d  %-12s %3d  cell (%2d, %2d)  %8d bytes  %08x  %s%s\n", i, p.From, p.Zone, p.Col, p.Row, p.Size, p.CRC, r.Zones[i].Name, extra)
 	}
 	fmt.Printf("%s: the recipe as built\n", meta)
 }

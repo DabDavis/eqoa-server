@@ -11,10 +11,11 @@ import "github.com/eqoa/server/internal/session"
 // worn item's answer and damage shield's (cast.go's spellHitHateLocked, which they all land through), a
 // thrown potion's hit (a spell's), every hit of a pet's (its melee, spells, ticks, procs, taunts and
 // damage shield: pet.go's petLandHitLocked), and an NPC's in a fight with it (its melee: guards.go; a
-// scripted fight's casts, specials, kicks, procs and rampage: castFoeHitLocked). Not a hit that kills it,
-// one that takes nothing (a dummy's figures, a resist that left nothing), a heal shield's own heal-and-1
-// (that 1 lands, and heals), nor a player's price or a GM's kill. The heal is told to the hitter's client
-// as a creature's heal on itself is (tellNPCHealLocked: the figure over it), when the hitter has one.
+// scripted fight's casts, specials, kicks, procs and rampage: castFoeHitLocked). Under a heal shield the
+// hit heals it whole and 1 lands, and that 1 is a hit that landed: this heal follows it too. Not a hit that
+// kills it, one that takes nothing (a dummy's figures, a resist that left nothing), nor a player's price or
+// a GM's kill. The heal is told to the hitter's client as a creature's heal on itself is (tellNPCHealLocked:
+// the figure over it), when the hitter has one.
 
 // hitHealLocked is npc's heal after a hit of n that landed on it and left it standing (the file's doc),
 // told to sess (the hitter's, or its owner's: nil for none). Must be called with the lock held.

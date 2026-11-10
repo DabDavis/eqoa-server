@@ -461,8 +461,8 @@ with the code), each usable by any creature's template:
   2,000 every 10 s);
 - a **heal at every hit** (`hitheal`, `heal`: every hit that lands on it and leaves it standing heals it so much, the hit whole:
   a player's melee and bow, its spells' hits, ticks, procs, weapon procs, worn items' and damage shields' answers, thrown potions,
-  every hit of a pet's, an NPC's melee, a scripted fight's casts, specials, kicks, procs and rampage; not a killing hit, a
-  heal shield's heal-and-1; told to the hitter's client as the creature's own heal: `entity/hitheal.go`);
+  every hit of a pet's, an NPC's melee, a scripted fight's casts, specials, kicks, procs and rampage, a heal shield's 1 too;
+  not a killing hit; told to the hitter's client as the creature's own heal: `entity/hitheal.go`);
 - **preferred foes** (`prefer`, `foes`: names, any case, the first first; whenever one is on its hate list, alive and in its
   world, it fights that one whatever the rest's hate, a taunt not turning it; with none of them there, its highest threat as
   ever: `pickEnemyLocked`, every place an enemy is chosen, `entity/prefer.go`; Mr. Moogie prefers Tunare);

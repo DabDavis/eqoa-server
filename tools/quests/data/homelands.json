@@ -1172,6 +1172,123 @@
       "notes": "Ours: the gatekeeper's port to Tethelin or Fayspire by class, the fungusman's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a fungusman back in Guk is sent again; no reward, so none is had twice."
     },
     {
+      "key": "homelands/wisp/welcome",
+      "name": "First Light",
+      "giver": "Elder Faintglow",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "A new light in the swamp! Welcome, little flame. The humans you will walk among eat bread and carry coin, and you must learn their ways. Begin with Flicker. She trades with travellers.",
+      "accept": "I will find Flicker.",
+      "decline": "Not now.",
+      "declined": "Drift a while, then. The swamp is in no hurry.",
+      "started": "Flicker glows down by the south pond. You cannot miss her.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Flicker",
+          "journal": "Find Grocer Flicker by the south pond.",
+          "says": "Faintglow sent you? Here, take this bread. You will not eat it, but in Qeynos it helps to carry what humans carry.",
+          "rewards": {
+            "items": [
+              "raisin bread"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Faintglow",
+          "journal": "Return to Elder Faintglow.",
+          "says": "Good. You learn quickly, little flame. Keep your light low among the humans, and they will hardly know.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the wisps' first, at their home zone, West Feerrott of the disc."
+    },
+    {
+      "key": "homelands/wisp/rats",
+      "name": "Rats in the Reeds",
+      "giver": "Grocer Flicker",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/wisp/welcome"
+      ],
+      "offer": "Bog rats chew at the travellers' packs I keep for trade. They hide in the reeds east of the elder. Put out five of them for me, little flame, and I will share the coin.",
+      "accept": "I will deal with them.",
+      "decline": "Not now.",
+      "declined": "Then the rats will dine on bread tonight.",
+      "started": "Five rats, in the reeds east of the elder.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "bog rat",
+          "count": 5,
+          "journal": "Kill five bog rats in the reeds east of Elder Faintglow."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Flicker",
+          "journal": "Tell Grocer Flicker the rats are gone.",
+          "says": "Five! The packs are safe. Here is your share, bright one.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the wisps' second starter quest; the bog rats are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/wisp/flight",
+      "name": "A Shape for Qeynos",
+      "giver": "Gatekeeper Dimlight",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/wisp/welcome",
+        "homelands/wisp/rats"
+      ],
+      "repeatable": true,
+      "offer": "In Qeynos the humans will take you for one of their own, so long as your armour holds its shape around you. I can send you there, and it will be your home. Are you ready to go?",
+      "accept": "Send me to Qeynos.",
+      "decline": "Not yet.",
+      "declined": "The swamp will hold your light a while longer.",
+      "started": "Burn bright, and keep your helm on!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Dimlight",
+          "journal": "Tell Gatekeeper Dimlight when you are ready to go to Qeynos.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Qeynos (its rangers and druids Surefall Glade), the wisp's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a wisp back in West Feerrott is sent again; no reward, so none is had twice."
+    },
+    {
       "key": "homelands/aviak/welcome",
       "name": "A Fledgling's Welcome",
       "giver": "Elder Kraawk",

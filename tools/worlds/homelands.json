@@ -2597,7 +2597,236 @@
       "from": "RATHE.ESF",
       "zone": 16,
       "race": 31,
-      "note": "Wisp: the will o' wisps' swamp: 34 wisps of the game in the race's own body (0x8143DC70) float in it, more than anywhere else (West Feerrott, cell 3,4)"
+      "note": "Wisp: the will o' wisps' swamp: 34 wisps of the game in the race's own body (0x8143DC70) float in it, more than anywhere else (West Feerrott, cell 3,4)",
+      "home": {
+        "flavor": "Wisps are wandering lights of the Feerrott in the Homelands, spirits with no body of their own, who wear empty armour to walk in Qeynos.",
+        "start": {
+          "x": 6483.9,
+          "y": 58.64,
+          "z": 8994.1,
+          "toward": [
+            6480.4,
+            8988.0
+          ]
+        },
+        "mainland": {
+          "place": "Qeynos (rangers and druids Surefall Glade)",
+          "world": 0,
+          "x": 4243.7,
+          "y": 58.1,
+          "z": 17169.1,
+          "facing": 4.63
+        },
+        "npcs": [
+          {
+            "name": "Elder Faintglow",
+            "like": 127374,
+            "level": 30,
+            "role": "talker",
+            "size": 1.4,
+            "at": [
+              6480.4,
+              60.5,
+              8988.0
+            ],
+            "toward": [
+              6483.9,
+              8994.1
+            ],
+            "note": "the starter quests' giver, a will o' wisp of the swamp at its own spot on the hill above the south pond"
+          },
+          {
+            "name": "Grocer Flicker",
+            "like": 127374,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6525.7,
+              63.56,
+              9067.1
+            ],
+            "toward": [
+              6480.4,
+              8988.0
+            ],
+            "stock": "Grocer Appleby",
+            "note": "trades with travellers; a Qeynos grocer's food, which a wisp carries to pass among humans"
+          },
+          {
+            "name": "Spiritmaster Shimmer",
+            "like": 127374,
+            "level": 30,
+            "role": "talker",
+            "size": 1.2,
+            "at": [
+              6486.2,
+              70.16,
+              8910.2
+            ],
+            "toward": [
+              6480.4,
+              8988.0
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Dimlight",
+            "like": 127374,
+            "level": 35,
+            "role": "talker",
+            "size": 1.2,
+            "at": [
+              6543.4,
+              70.77,
+              9100.6
+            ],
+            "toward": [
+              6480.4,
+              8988.0
+            ],
+            "note": "sends a wisp who has done the starter quests to Qeynos, its rangers and druids to Surefall Glade (A Shape for Qeynos)"
+          },
+          {
+            "name": "Feerrott sentinel",
+            "like": 127374,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6371.9,
+              72.0,
+              8987.5
+            ],
+            "facing": 196
+          },
+          {
+            "name": "Feerrott sentinel",
+            "like": 127374,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6468.2,
+              82.26,
+              8893.2
+            ],
+            "facing": 126
+          },
+          {
+            "name": "Feerrott sentinel",
+            "like": 127374,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6507.4,
+              63.81,
+              8834.5
+            ],
+            "facing": 47
+          },
+          {
+            "name": "Feerrott sentinel",
+            "like": 127374,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6500.4,
+              55.0,
+              9000.3
+            ],
+            "facing": 13
+          },
+          {
+            "name": "bog rat",
+            "body": "0x11380781",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6602.1,
+              64.41,
+              8979.0
+            ],
+            "note": "the starter quest's rats, at the swamp creatures' spots in the reeds east of the elder"
+          },
+          {
+            "name": "bog rat",
+            "body": "0x11380781",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6593.9,
+              75.34,
+              9070.5
+            ]
+          },
+          {
+            "name": "bog rat",
+            "body": "0x11380781",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6617.4,
+              75.55,
+              9048.7
+            ]
+          },
+          {
+            "name": "bog rat",
+            "body": "0x11380781",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6556.5,
+              52.86,
+              8907.7
+            ]
+          },
+          {
+            "name": "bog rat",
+            "body": "0x11380781",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6561.3,
+              53.92,
+              8941.1
+            ]
+          },
+          {
+            "name": "bog rat",
+            "body": "0x11380781",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              6567.0,
+              55.0,
+              8998.9
+            ]
+          }
+        ],
+        "peaceful": [
+          "bog rat"
+        ],
+        "lines": {
+          "Gatekeeper Dimlight": [
+            "Not yet, little flame. Elder Faintglow must see your light first.",
+            "Every new light visits the elder first. She glows on the hill above the south pond."
+          ],
+          "Feerrott sentinel": [
+            "The swamp is dark tonight. It is always dark.",
+            "Keep your glow low, %r. Lights draw eyes.",
+            "New light? Elder Faintglow glows on the hill above the south pond."
+          ],
+          "Elder Faintglow": [
+            "A light that knows where it came from never goes out.",
+            "The armour is only a shape. The light inside is you."
+          ]
+        }
+      }
     },
     {
       "name": "South Barren Coast",

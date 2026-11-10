@@ -250,6 +250,11 @@ type NPC struct {
 	// the one player it fights and the one alone who may hurt it, and whose its
 	// corpse's loot is; nil for every other NPC. Its corpse keeps it.
 	challenge *npcChallenge
+
+	// add is its tie to the creature whose summon called it (summon.go): whose
+	// fight it joined, and its share of that creature's figures; nil for every
+	// other NPC. Its corpse keeps it (a corpse of nothing: handlers' loot).
+	add *addTie
 }
 
 // GetEntityID returns the NPC's entity ID.

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"testing"
+	"time"
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
@@ -81,5 +82,79 @@ func TestNoRentVanishesAtTheLogin(t *testing.T) {
 	h.vanishNoRent(8)
 	if count(8, 1) != 1 {
 		t.Error("a character still in the world lost its copy")
+	}
+}
+
+// A login within NoRentAway of the character's last logout keeps its No Rent items (jib's PR #1, the GM
+// Jibrish's ruling of 2026-10-29: No Rent "means it vanishes if the player logs out for more than 5 minutes"),
+// and the logout row is read once. The controls: a login six minutes after it, and one with no row at all (a
+// crash, the first login after this came), take them as before.
+func TestNoRentStaysWithinFiveMinutesAway(t *testing.T) {
+	db, err := database.NewSQLite(t.TempDir() + "/norentaway.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, err := db.Exec(`INSERT INTO itempattern (patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, attacktype,
+		weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, unk6, craft, itemname, itemdesc, model, color,
+		str, sta, agi, wis, dex, cha, intelligence, HPMAX, POWMAX, PoT, HoT, AC, PR, DR, FR, CR, LR, AR, weaponproc, fish)
+		VALUES (1, 0, 0, 1, 0, 13, 0, 0, 0, 0, 0, 0, 0, 60, 1, 100, 0, 8, 1023, 0, 0, 0, 0, 'Made-up Belt', '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`INSERT INTO norentvanish (patternid, note) VALUES (1, 'test')`); err != nil {
+		t.Fatal(err)
+	}
+	give := func(serverID int) {
+		t.Helper()
+		if _, err := db.Exec(`INSERT INTO charinventory (itemid, serverid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber)
+			VALUES (?, ?, 1, 100, 0, 1, -1, 0, 1)`, 100+serverID, serverID); err != nil {
+			t.Fatal(err)
+		}
+	}
+	held := func(serverID int) bool {
+		t.Helper()
+		var n int
+		if err := db.QueryRow(`SELECT COUNT(*) FROM charinventory WHERE serverid = ? AND patternid = 1`, serverID).Scan(&n); err != nil {
+			t.Fatal(err)
+		}
+		return n > 0
+	}
+	now := time.Unix(1_800_000_000, 0)
+	defer func(f func() time.Time) { noRentNow = f }(noRentNow)
+	noRentNow = func() time.Time { return now }
+	h := NewCharacterHandler(database.NewSQLiteCharacterStore(db), nil, nil, database.NewSpellbookStore(db))
+	defer func() {
+		vanishedMu.Lock()
+		delete(vanished, 21)
+		delete(vanished, 22)
+		delete(vanished, 23)
+		vanishedMu.Unlock()
+	}()
+
+	give(21)
+	if err := db.SaveLogout(21, now.Add(-4*time.Minute)); err != nil {
+		t.Fatal(err)
+	}
+	h.vanishNoRent(21)
+	if !held(21) {
+		t.Error("a login four minutes after the logout took the item")
+	}
+	if _, ok, _ := db.TakeLogout(21); ok {
+		t.Error("the logout's row was not taken away by the login")
+	}
+
+	give(22)
+	if err := db.SaveLogout(22, now.Add(-6*time.Minute)); err != nil {
+		t.Fatal(err)
+	}
+	h.vanishNoRent(22)
+	if held(22) {
+		t.Error("the control: a login six minutes after the logout kept the item")
+	}
+
+	give(23)
+	h.vanishNoRent(23)
+	if held(23) {
+		t.Error("the control: a login with no logout kept the item")
 	}
 }

@@ -88,3 +88,50 @@ func TestLoreRoom(t *testing.T) {
 		t.Errorf("no room became %d", n)
 	}
 }
+
+// A Lore item held in the bank is held (jib's PR #1: a lore item comes to a character holding one
+// anywhere, worn, in the inventory or in the bank, not at all): a summon gives none and says why; the
+// control, the bank empty, gives one. The lists are linked as a dump links them (SendMemoryDump).
+func TestALoreItemInTheBankIsHeld(t *testing.T) {
+	for _, banked := range []bool{true, false} {
+		f := newScribeFixture(t)
+		f.potionWorld()
+		lore := f.potion("Reconstructive", -1, 1, 0, "Self, Increase Hitpoints by 20000", "", "")
+		if _, err := f.db.Exec(`UPDATE itempattern SET lore = 1 WHERE patternid = ?`, lore); err != nil {
+			t.Fatal(err)
+		}
+		if banked {
+			if _, err := f.db.Exec(`INSERT INTO charinventory (itemid, serverid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber)
+				VALUES (9001, ?, 1, 100, 0, ?, -1, ?, 0)`, f.sid, lore, database.LocBank); err != nil {
+				t.Fatal(err)
+			}
+		}
+		rows := f.rowsOf()
+		var pack, bank []database.CharInventoryEntry
+		for _, r := range rows {
+			if r.Location == database.LocBank {
+				bank = append(bank, r)
+			} else {
+				pack = append(pack, r)
+			}
+		}
+		pl, bl := newInvList(pack), newInvList(bank)
+		pl.bank = bl
+		f.sess.SetInventoryList(pl)
+		f.sess.SetBankList(bl)
+
+		f.h.summonItem(f.sess, f.sid, "reconstructive", 1, "Reconstructive")
+		got := 0
+		for _, r := range f.rowsOf() {
+			if r.Pattern.PatternID == lore && r.Location != database.LocBank {
+				got += r.StackLeft
+			}
+		}
+		switch {
+		case banked && (got != 0 || !f.loreLineSent("Reconstructive")):
+			t.Errorf("one in the bank: %d summoned (want 0), told %v", got, f.loreLineSent("Reconstructive"))
+		case !banked && got != 1:
+			t.Errorf("the control, the bank empty: %d summoned, want 1", got)
+		}
+	}
+}

@@ -636,6 +636,7 @@ func (l *Listener) endSession(sess *session.Session) {
 			l.saveMastery(sess)
 			l.saveRez(sess) // rezsave.go
 			l.saveVitals(sess)
+			l.saveLogout(sess, time.Now()) // norentsave.go
 		}
 		l.gameWorld.RemovePlayerBySession(sess)
 	}
@@ -773,6 +774,7 @@ func (l *Listener) SaveAll() {
 		l.saveMastery(sess)
 		l.saveRez(sess) // rezsave.go
 		l.saveVitals(sess)
+		l.saveLogout(sess, time.Now()) // norentsave.go
 	}
 	log.Printf("SaveAll: %d players saved", len(inWorld))
 }

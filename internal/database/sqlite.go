@@ -1073,6 +1073,10 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 	if _, err := s.db.Exec(`DELETE FROM charvitals WHERE serverid = ?`, serverID); err != nil {
 		return err
 	}
+	// and when it last left the world (norent.go)
+	if _, err := s.db.Exec(`DELETE FROM charlogout WHERE serverid = ?`, serverID); err != nil {
+		return err
+	}
 	// and its welcome guide's day and never (welcome.go)
 	if _, err := s.db.Exec(`DELETE FROM charwelcome WHERE serverid = ?`, serverID); err != nil {
 		return err

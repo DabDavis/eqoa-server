@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/session"
@@ -14,6 +15,19 @@ import (
 // (database/norent.go), before the login reads its items. A character still in the world (a
 // login that takes it over as it stands) has not left, so it keeps them. The player is told once
 // in the world.
+//
+// A login within NoRentAway of the character's last logout keeps them too (jib's PR #1, bf7400b,
+// the GM Jibrish's ruling of 2026-10-29: No Rent "means it vanishes if the player logs out for more
+// than 5 minutes"): the logout is table charlogout's, written as a session ends and at a
+// shutdown's save (network/udp/norentsave.go) and taken away at the next login. With no row (a
+// crash, the first login after this came) the items go, as before it: only a logout known to be
+// that recent spares them.
+
+// NoRentAway is how long a character may be out of the world and keep its No Rent items.
+const NoRentAway = 5 * time.Minute
+
+// noRentNow is the clock a login's time away is read by (a test's to turn).
+var noRentNow = time.Now
 
 // vanished is what a login took, until its player is in the world to be told.
 var (
@@ -30,6 +44,12 @@ func (h *CharacterHandler) vanishNoRent(serverID uint32) {
 		if _, live := h.gameWorld.PlayerByCharacter(serverID); live {
 			return
 		}
+	}
+	if at, ok, err := h.store.DB().TakeLogout(serverID); err != nil {
+		log.Printf("NoRent: character %d's logout: %v", serverID, err)
+	} else if away := noRentNow().Sub(at); ok && away < NoRentAway {
+		log.Printf("NoRent: character %d was away %v, under %v: its No Rent items stay", serverID, away.Round(time.Second), NoRentAway)
+		return
 	}
 	names, err := h.store.DB().VanishNoRent(serverID)
 	if err != nil {

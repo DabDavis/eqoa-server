@@ -2071,7 +2071,9 @@ func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *enti
 	}
 	log.Printf("SendMemoryDump: wrote %d bank items", len(bankItems))
 	// The bank list keeps keys of its own, numbered the same way.
-	sess.SetBankList(newInvListCap(bankItems, bankCap))
+	bankList := newInvListCap(bankItems, bankCap)
+	packList.bank = bankList // a Lore item in the bank is one held (itemlist.go's loreRoom)
+	sess.SetBankList(bankList)
 
 	var spells []database.CharSpellEntry
 	if h.spellbookStore != nil {

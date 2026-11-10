@@ -317,22 +317,19 @@ func dpsName(s string) string {
 // encodeDPSMeter is OpcodeDPSMeterData's body (past its opcode) for a fight of
 // number fight, over or not, length long, of rows in their order: the first
 // DPSMeterLinesMost, the receiver's own (flag 1) in the last place when it is
-// not among them.
+// not among them, its place among all of them said (0 for none).
 func encodeDPSMeter(fight uint32, over bool, length time.Duration, rows []dpsRow) []byte {
 	var total int64
-	for _, r := range rows {
+	mine := -1
+	for i, r := range rows {
 		total += r.line.damage
+		if r.flags&1 != 0 && mine < 0 {
+			mine = i
+		}
 	}
 	shown := rows
 	if len(shown) > DPSMeterLinesMost {
 		shown = append([]dpsRow(nil), rows[:DPSMeterLinesMost]...)
-		mine := -1
-		for i, r := range rows {
-			if r.flags&1 != 0 {
-				mine = i
-				break
-			}
-		}
 		if mine >= DPSMeterLinesMost {
 			shown[DPSMeterLinesMost-1] = rows[mine]
 		}
@@ -348,6 +345,7 @@ func encodeDPSMeter(fight uint32, over bool, length time.Duration, rows []dpsRow
 	out = binary.LittleEndian.AppendUint32(out, clamp(length.Milliseconds()))
 	out = binary.LittleEndian.AppendUint32(out, clamp(total))
 	out = binary.LittleEndian.AppendUint16(out, uint16(min(len(rows), 0xFFFF)))
+	out = binary.LittleEndian.AppendUint16(out, uint16(min(mine+1, 0xFFFF)))
 	out = append(out, byte(len(shown)))
 	for _, r := range shown {
 		name := dpsName(r.line.name)

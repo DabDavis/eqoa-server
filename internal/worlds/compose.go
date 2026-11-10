@@ -29,6 +29,10 @@ package worlds
 // zone is in world space: moving one would rewrite them all), so no two of a
 // recipe's zones may share a cell of the 2000-unit grid. The +8 word of the
 // header is 43855 in every retail file, worlds and the rest: kept.
+//
+// A zone may be given extras: the disc's art placed in it as actors of its
+// own, the records of art it lacks copied in (extras.go). A zone without any
+// is its record on the disc with its offsets moved, as before.
 
 import (
 	"encoding/binary"

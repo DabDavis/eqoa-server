@@ -917,3 +917,33 @@ func clashes(parts []part, brought []map[uint32][]byte) error {
 	}
 	return nil
 }
+
+// ArtBox is the box an extra's sprite has in its own space (its header's,
+// as the game reads it: a sprite's, an LOD's, a group's or an HSprite's),
+// read off the disc where the extra says its art is; its size times the
+// extra's scale is what it covers placed. A tool's (cmd/worldedges), for
+// laying extras out.
+func ArtBox(src Source, e Extra) ([6]float32, error) {
+	var box [6]float32
+	s := e.source()
+	if s.From == "" {
+		return box, errors.New("the extra names no art (from)")
+	}
+	a, err := openArt(src, s)
+	if err != nil {
+		return box, err
+	}
+	r := a.dict[uint32(e.Sprite)]
+	if r == nil {
+		return box, fmt.Errorf("%s zone %d does not register %#08x", s.From, s.Zone, uint32(e.Sprite))
+	}
+	h := map[uint16]uint16{0x2000: 0x2001, 0x2A00: 0x2A10, 0x2C00: 0x2C10, 0x2200: 0x2210, 0x2F00: 0x2F01}[r.ty]
+	hn := r.child(h)
+	if h == 0 || hn == nil || len(hn.tail) < 28 {
+		return box, fmt.Errorf("%#08x (%#x) has no box", uint32(e.Sprite), r.ty)
+	}
+	for k := range box {
+		box[k] = math.Float32frombits(word(hn.tail, 4+4*k))
+	}
+	return box, nil
+}

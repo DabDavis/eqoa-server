@@ -556,6 +556,17 @@ client that holds it, else on its race's mainland spot (`database.MainlandPlace`
 for its class). Nothing of the disc goes over the wire, and a PS2 never sees one. The homes' people, starts
 and flavour are `tools/seed_race_homes.py`'s (exact `--undo`), their quests `tools/quests/data/homelands.json`
 (a gatekeeper's `teleport` with `"to": "mainland"` and `"bind": true`: FORMAT.md).
+**Extras** (`internal/worlds/extras.go`, 2026-11-10): a recipe zone's `extras` place the disc's art in it as
+actors of its own (`{"sprite": "0x7FFD2E87", "from": "ODUS.ESF", "zone": 10, "at": [x, y, z], "hpr": [h, p, r],
+"scale": 6.5, "color": [r, g, b, a]}`; `from`/`zone` only when the zone does not hold the art itself), each a
+ZoneActor after its room's own; art the zone lacks is COPIED in with every record it names (a reference to
+another file's art would have no collision in the server's bake, which reads the world file alone), and a
+zone's absolute table offsets are mapped. A recipe's `extraFiles` keep a long list apart (zones named by
+file and index). vanilla composes the same bytes (`serverworlds::extras`), sent as 0x7E31 version 2 (version 1
+when no world has any). The Homelands' open edges are closed with them: `cmd/worldedges` lays a ridge of
+steep rocks (`tools/worlds/edges-palette.json`) along every edge no other zone touches into
+`tools/worlds/homelands-edges.json`, and `worldedges -check` walks the baked ground along every open edge as
+the movement check judges a walk (fails on any way out; `-leaks` + `-fix` add rocks over what it finds).
 
 ### The server's own view of a player's moves (`entity/movecheck.go`, `#movecheck`)
 

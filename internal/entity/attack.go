@@ -739,6 +739,7 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 		w.markHealPlayerLocked(sess, attacker, npc, now) // markheal.go
 		w.dummyEngagedLocked(npc, attacker, now)
 		w.playerProcsLocked(sess, attacker, npc, now)
+		w.markHitLocked(sess, attacker, npc, now) // markhit.go: told, as a dummy's hits are
 		return false
 	}
 	npc.HP -= damage
@@ -765,6 +766,10 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 	// a proc's damage after the hit (proc.go), then the creature's damage
 	// shield's answer, which may end the fight the other way (creatureshield.go)
 	if w.playerProcsLocked(sess, attacker, npc, attacker.LastCombatTime) {
+		return true
+	}
+	// a damage mark on it answers the hit (markhit.go)
+	if w.markHitLocked(sess, attacker, npc, attacker.LastCombatTime) {
 		return true
 	}
 	return w.creatureShieldLocked(sess, attacker, npc, attacker.LastCombatTime)

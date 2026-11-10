@@ -33,7 +33,13 @@ import (
 // caster's bind); the kind stays for a GM's row. A line that says "Set Maximum Power to 0"
 // (Allakhazam: a 1 to 10 second effect of the fast group teleports) leaves
 // its caster no power when it lands: ours, the caster's alone (the records
-// do not say whose). What else the line says lands as any spell's (Commons
+// do not say whose). An evacuation (its row's kind, or "Evacuation" in its
+// name: the wizard's three) takes the whole power of everyone it sends, its
+// caster among them, as it lands, whatever its line or its workbook record
+// says (the owner, 2026-11-10, for the GM Jibrish's ruling of 2026-10-29 in
+// jib's PR #1: "the group pays for evacuations (as well as the caster), the
+// caster just pays for circles"); a circle's, a portal's or a gate's price
+// stays its caster's. What else the line says lands as any spell's (Commons
 // Escape's "Increase Maximum Power by 10 for 12 seconds").
 //
 // Refused as the cast begins, before its power is spent and with no lockout:
@@ -265,6 +271,7 @@ func (w *World) gateLandLocked(cs *castState, caster *Player, casterSess *sessio
 		caster.Power = 0
 		caster.StatsDirty = true
 	}
+	evac := isEvacuation(cs.spell.Name, g) // every traveller pays its whole power (the file's doc)
 	var at GateSpot
 	where := "its caster's bind point"
 	if g.Kind != database.GateEvac {
@@ -281,6 +288,10 @@ func (w *World) gateLandLocked(cs *castState, caster *Player, casterSess *sessio
 		if sess == nil {
 			continue
 		}
+		if evac && t.Power > 0 {
+			t.Power = 0
+			t.StatsDirty = true
+		}
 		tr := GateTravel{Sess: sess, P: t, To: at, Ring: i, Spell: cs.spell.Name}
 		if g.Kind == database.GateEvac {
 			tr.Home = caster.ServerID
@@ -290,6 +301,14 @@ func (w *World) gateLandLocked(cs *castState, caster *Player, casterSess *sessio
 	}
 	log.Printf("Gate: %s's %q (%s) sends %s to %s", caster.Name, cs.spell.Name, g.Kind, strings.Join(names, ", "), where)
 	return true
+}
+
+// isEvacuation reports whether a gate is an evacuation, whose price is every
+// traveller's whole power (the file's doc): its row's kind, or its name (the
+// wizard's Freeport, Melton and Highpass Evacuation are group gates by row:
+// tools/seed_spell_gates.py).
+func isEvacuation(name string, g database.SpellGate) bool {
+	return g.Kind == database.GateEvac || strings.Contains(strings.ToLower(name), "evacuation")
 }
 
 // gateTravellersLocked is whom a gate sends, its caster first: the caster

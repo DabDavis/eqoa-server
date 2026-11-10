@@ -599,3 +599,44 @@ func TestAGateInARoomWithAHoleLandsOnItsFloor(t *testing.T) {
 		t.Errorf("the control: ring 2 at (%.1f, %.1f, %.1f), want 3 off on the floor", s.X, s.Y, s.Z)
 	}
 }
+
+// An evacuation takes the whole power of everyone it sends, its caster among
+// them, whatever its line says (the owner, 2026-11-10, for jib's ruling: "the
+// group pays for evacuations (as well as the caster), the caster just pays for
+// circles"): the wizard's three are group gates named "... Evacuation", their
+// workbook records read no "Set Maximum Power to 0". A member it does not send
+// keeps its power. The control: a circle, the same group and a line with no
+// price, leaves the member its power and its caster the cast's cost alone.
+func TestAnEvacuationTakesEveryTravellersPower(t *testing.T) {
+	f := newGateFixture(t)
+	near, _ := f.member(1002, "Near", 1005, 50, 1000)
+	far, _ := f.member(1003, "Far", 1100, 50, 1000)
+	f.gate(database.SpellGate{Spell: "Freeport Evacuation", Kind: database.GateGroup, Place: "Freeport", World: 0, X: 25614, Y: 54, Z: 15691})
+	evac := CastSpell{SpellID: 700284, DisplayIndex: 5, Scope: 2, Name: "Freeport Evacuation", CastTime: time.Second,
+		Recast: 5 * time.Second, PowerCost: 100, Range: 30, Def: ParseSpellNamed("Freeport Evacuation", "Group, Teleport to Freeport", "")}
+	if !f.cast(evac) {
+		t.Fatal("not begun")
+	}
+	if got := f.travellers(); strings.Join(got, ",") != "Wizard,Near" {
+		t.Fatalf("sent %v, want the caster and the near member", got)
+	}
+	if f.caster.Power != 0 || near.Power != 0 || far.Power != 500 {
+		t.Errorf("power: caster %d, near %d, far %d; want 0, 0 and the far one's 500", f.caster.Power, near.Power, far.Power)
+	}
+
+	// the control: a circle's price is its caster's alone
+	c := newGateFixture(t)
+	cn, _ := c.member(1002, "Near", 1005, 50, 1000)
+	c.gate(database.SpellGate{Spell: "Jaggedpine Circle", Kind: database.GateGroup, Place: "Surefall Glade", World: 0, X: 9284, Y: 59, Z: 12305})
+	circle := CastSpell{SpellID: 700286, DisplayIndex: 6, Scope: 2, Name: "Jaggedpine Circle", CastTime: time.Second,
+		Recast: 5 * time.Second, PowerCost: 400, Range: 30, Def: ParseSpellNamed("Jaggedpine Circle", "Group, Teleport to Surefall Glade", "")}
+	if !c.cast(circle) {
+		t.Fatal("the control: not begun")
+	}
+	if got := c.travellers(); strings.Join(got, ",") != "Wizard,Near" {
+		t.Fatalf("the control: sent %v", got)
+	}
+	if c.caster.Power != 2000-400 || cn.Power != 500 {
+		t.Errorf("the control's power: caster %d (want %d), member %d (want 500)", c.caster.Power, 2000-400, cn.Power)
+	}
+}

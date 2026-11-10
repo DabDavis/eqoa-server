@@ -549,17 +549,28 @@ func (w *World) distSqToLocked(p *Player, id EntityID) float32 {
 // owner's view lets go comes back with a new id, and its bar would lose it
 // until the next 0x007E.
 func (w *World) pinPetLocked(p *Player, cands []entityDist) []entityDist {
-	pet := w.petOfLocked(p)
-	if pet == nil || pet.World != p.World {
+	cands = pinLocked(cands, w.petOfLocked(p), p)
+	if ms := w.mercOfLocked(p); ms != nil {
+		cands = pinLocked(cands, ms.npc, p) // its merc (merc.go)
+	}
+	if fs := w.familiars[p.ServerID]; fs != nil && fs.owner == p {
+		cands = pinLocked(cands, fs.npc, p) // its familiar (familiar.go)
+	}
+	return cands
+}
+
+// pinLocked puts n first among the candidates when it is in p's world.
+func pinLocked(cands []entityDist, n *NPC, p *Player) []entityDist {
+	if n == nil || n.World != p.World {
 		return cands
 	}
 	for i := range cands {
-		if cands[i].ID == pet.ServerID {
+		if cands[i].ID == n.ServerID {
 			cands[i].DistSq = -1
 			return cands
 		}
 	}
-	return append(cands, entityDist{ID: pet.ServerID, DistSq: -1})
+	return append(cands, entityDist{ID: n.ServerID, DistSq: -1})
 }
 
 // dismissPetLocked takes the pet away: off every fight, out of the world
@@ -1313,6 +1324,9 @@ var petDexShare = offenceArchs[archTank].LowShare * offLowDEX / (offHighD - offe
 // pet's skin and AGI lines, pettemplate.go), as a player's AC and AGI take
 // off a creature's top (defence.go).
 func npcHitOnPet(npc, pet *NPC, intn func(int) int) int {
+	if pet.isMerc() {
+		return mercHitOn(npc, pet, intn) // a player's AC and AGI (mercfight.go)
+	}
 	if pet.sheet != nil {
 		return sheetHitOn(npc, pet, intn) // a workbook pet's armour and archetype (petstats.go)
 	}

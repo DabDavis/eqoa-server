@@ -48,7 +48,10 @@ const raidAskedNames = 12
 // groupAsk is an invitation: raid, a raid flag's; declined, when it was refused, for a
 // flag's refusal is kept for raidAskAgain (it no longer waits on an answer).
 type groupAsk struct {
-	raid     bool
+	raid bool
+	// merc: a merc's own box, its owner asked into a group with it
+	// (mercgroup.go)
+	merc     bool
 	declined time.Time
 	// sent is the id the box named its inviter by: what the answer sends back,
 	// though the asked one's view may since have moved the inviter to another

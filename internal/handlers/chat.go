@@ -76,6 +76,8 @@ type ChatHandler struct {
 
 	// safe is where /testinvis keeps a player's safe mode (safemode.go)
 	safe safeModeStore
+	// welcome is /tutorial's box (welcome.go); nil: no guide
+	welcome *WelcomeGuide
 
 	support *SupportHandler // /bug's (bugreport.go)
 
@@ -85,6 +87,9 @@ type ChatHandler struct {
 	// mercs and familiars are /merc's and /familiar's (merc.go, familiar.go)
 	mercs     *Mercs
 	familiars *Familiars
+
+	// raid is the raid's handler: its loot's rolls and master looter (raidcmds.go)
+	raid *RaidHandler
 
 	portal *Portal // the name typed for a Summoning Portal (summonportal.go)
 }
@@ -204,10 +209,10 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		return nil
 	}
 
-	// /raid (or #raid; a PS2's is "/t raid", below): a group's raid flag,
-	// everyone's (entity/raidflag.go)
-	if word, _, _ := strings.Cut(message, " "); strings.EqualFold(word, "/raid") || strings.EqualFold(word, "#raid") {
-		h.gameWorld.RaidCall(sess)
+	// the raid's commands, /raid and /raidaoe (a group's raid flag, entity/raidflag.go)
+	// among them, and /help, /invite, /target and /tar, everyone's (raidcmds.go; a PS2's
+	// "/t <word>" spellings are below)
+	if h.raidLine(sess, player, message, target) {
 		return nil
 	}
 
@@ -294,6 +299,13 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		return nil
 	}
 
+	// /tutorial (or #tutorial, and a PS2's "/t tutorial"): the welcome guide's box
+	// again, everyone's (welcome.go)
+	if tutorialLine(message) {
+		h.welcome.Show(sess, player)
+		return nil
+	}
+
 	// GM commands start with #
 	if strings.HasPrefix(message, "#") {
 		h.handleGMCommand(sess, player, message)
@@ -306,10 +318,11 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 			h.whoList(sess)
 			return nil
 		}
-		// a PS2's raid flag: it sends /t on as typed and neither keeps /raid nor can
-		// type a # (entity/raidflag.go), and a tell with no text is no tell
-		if body == "" && strings.EqualFold(name, "raid") {
-			h.gameWorld.RaidCall(sess)
+		// a PS2's raid flag and the raid's other commands: it sends /t on as typed and
+		// neither keeps /raid nor can type a # (entity/raidflag.go), and a tell with no
+		// text is no tell; /t invite, /t target, /t need ... when they are commands
+		// (raidcmds.go)
+		if h.raidTell(sess, player, name, body) {
 			return nil
 		}
 		// the PvP flag the same way (pvp.go), and "/t pvp off" or "/t pvp on" for one way

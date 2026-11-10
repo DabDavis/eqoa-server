@@ -60,6 +60,7 @@ type World struct {
 	groups      map[uint32]*Group
 	nextGroupID uint32
 	invites     map[EntityID]map[EntityID]groupAsk // invitee -> inviters
+	raids       raidWorld                          // the kicked members' loot claims (raidrules.go)
 
 	// dpsFight is the last damage meter fight's number given (dpsmeter.go)
 	dpsFight uint32

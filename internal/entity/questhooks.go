@@ -29,6 +29,9 @@ type KillCredit struct {
 	Level    int
 	World    uint8
 	Players  []KillPlayer
+	// Raid is the killer's raid's loot rule and seats when it has one but free for
+	// all (raidrules.go's RaidKill), nil otherwise
+	Raid *RaidKill
 }
 
 // KillPlayer is one player a kill counts for.
@@ -64,14 +67,18 @@ func (w *World) OnLevelUp(fn LevelUpFunc) {
 
 // creditKillLocked tells the kill's hearers. Must be called with the lock held.
 func (w *World) creditKillLocked(sess *session.Session, p *Player, npc *NPC) {
-	if len(w.onKill) == 0 || p == nil || npc == nil {
+	if p == nil || npc == nil {
+		return
+	}
+	raid := w.raidKillLocked(p, npc) // the kicked members' claims taken either way (raidrules.go)
+	if len(w.onKill) == 0 {
 		return
 	}
 	spawn := npc.ServerID
 	if npc.Temporary {
 		spawn = 0
 	}
-	c := KillCredit{NPCName: npc.Name, NPCSpawn: spawn, NPCID: npc.ServerID, Died: npc.DeathTime, Level: npc.Level, World: npc.World}
+	c := KillCredit{NPCName: npc.Name, NPCSpawn: spawn, NPCID: npc.ServerID, Died: npc.DeathTime, Level: npc.Level, World: npc.World, Raid: raid}
 	c.Players = append(c.Players, KillPlayer{Session: sess, ServerID: p.CharServerID, Name: p.Name})
 	if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil {
 		for _, id := range g.Members {

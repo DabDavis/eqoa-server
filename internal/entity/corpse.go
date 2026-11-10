@@ -122,7 +122,34 @@ func (w *World) applyNPCSettingsLocked(npc *NPC) {
 // not emptied and closed, not decayed (its decay, the world's `decay` or its
 // own, after its death).
 func (n *NPC) corpseLies(now time.Time, decay time.Duration) bool {
-	return n.Dead && !n.DeathTime.IsZero() && n.CorpseGone.IsZero() && now.Before(n.DeathTime.Add(n.decayOf(decay)))
+	return n.Dead && !n.DeathTime.IsZero() && n.CorpseGone.IsZero() && now.Before(n.corpseEnds(decay))
+}
+
+// corpseEnds is when the NPC's corpse decays: its decay after its death, or later while
+// its raid's loot holds it (HoldCorpse).
+func (n *NPC) corpseEnds(decay time.Duration) time.Time {
+	end := n.DeathTime.Add(n.decayOf(decay))
+	if n.corpseHeld.After(end) {
+		return n.corpseHeld
+	}
+	return end
+}
+
+// HoldCorpse keeps the corpse of the death died lying until at least until (a raid's
+// rolls and its winners' five minutes, handlers/raidloot.go, then its decay as it would
+// have from then): its creature comes back that much later. A corpse of another death, or
+// gone already, is left alone; it reports whether it holds.
+func (w *World) HoldCorpse(id EntityID, died, until time.Time) bool {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	npc, ok := w.NPCs[id]
+	if !ok || !npc.DeathTime.Equal(died) || !npc.corpseLies(time.Now(), w.corpseDecay) {
+		return false
+	}
+	if until.After(npc.corpseHeld) {
+		npc.corpseHeld = until
+	}
+	return true
 }
 
 // decayOf is how long the NPC's corpse lies: its own CorpseDecay (a pet's,
@@ -190,7 +217,7 @@ func (w *World) corpseSystem(now time.Time) []EntityID {
 			if npc.corpseLies(now, w.corpseDecay) {
 				continue
 			}
-			npc.CorpseGone = npc.DeathTime.Add(npc.decayOf(w.corpseDecay))
+			npc.CorpseGone = npc.corpseEnds(w.corpseDecay)
 			gone = append(gone, npc.ServerID)
 		}
 		// A GM's /spawn leaves once its corpse is gone (devspawn.go).
@@ -230,6 +257,7 @@ func (w *World) respawnNPCLocked(npc *NPC) {
 	npc.Dead = false
 	npc.DeathTime = time.Time{}
 	npc.CorpseGone = time.Time{}
+	npc.corpseHeld = time.Time{}
 	npc.Threats = nil
 	npc.CurrentEnemy = 0
 	npc.guardHit = false // a new life (guards.go)

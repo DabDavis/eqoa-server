@@ -146,6 +146,8 @@ type KeptCorpse struct {
 	Opened bool                                     `json:"opened,omitempty"`
 	Items  []database.CharInventoryEntry            `json:"items,omitempty"`
 	Drops  map[uint32][]database.CharInventoryEntry `json:"drops,omitempty"`
+	// Raid is its raid's hold (raidloot.go: keepRaid), nil for none
+	Raid *KeptRaidCorpse `json:"raid,omitempty"`
 }
 
 // KeepCorpses is what the corpses that lie now hold (KeptCorpse).
@@ -173,6 +175,7 @@ func KeepCorpses() []KeptCorpse {
 		k := KeptCorpse{ID: uint32(id), Died: died}
 		if c := ls.corpses[id]; c != nil && c.died.Equal(died) {
 			k.Opened, k.Items = true, c.items
+			k.Raid = keepRaid(ls, c, h.raidClock())
 		}
 		if d := ls.drops[id]; d != nil && d.died.Equal(died) {
 			k.Drops = d.items
@@ -203,7 +206,9 @@ func RestoreCorpses(kept []KeptCorpse) int {
 			continue
 		}
 		if k.Opened {
-			ls.corpses[id] = &corpse{died: died, items: k.Items}
+			c := &corpse{died: died, items: k.Items}
+			ls.corpses[id] = c
+			restoreRaid(ls, id, c, k.Raid, h.raidClock())
 		}
 		if len(k.Drops) > 0 {
 			ls.drops[id] = &questDrops{died: died, items: k.Drops}

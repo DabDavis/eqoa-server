@@ -8,7 +8,218 @@
       "from": "ODUS.ESF",
       "zone": 8,
       "race": 11,
-      "note": "Hill Giant: the hill giants' plateau: 73 hill giants of the game stand in it (West Plateau, cell 3,1)"
+      "note": "Hill Giant: the hill giants' plateau: 73 hill giants of the game stand in it (West Plateau, cell 3,1)",
+      "home": {
+        "flavor": "Hill Giants are towering folk of the West Plateau in the Homelands, whose young cross the sea to train beside the ogres of Oggok.",
+        "start": {
+          "x": 6938.5,
+          "y": 57.7,
+          "z": 3356.6,
+          "toward": [
+            6947.5,
+            3356.6
+          ]
+        },
+        "mainland": {
+          "place": "Oggok",
+          "world": 1,
+          "x": 9377.7,
+          "y": 53.2,
+          "z": 7385.8,
+          "facing": 4.85
+        },
+        "npcs": [
+          {
+            "name": "Elder Hrolmog",
+            "like": 129052,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              6947.5,
+              57.7,
+              3356.6
+            ],
+            "toward": [
+              6938.5,
+              3356.6
+            ],
+            "note": "the starter quests' giver, a hill giant at the foot of the old steps"
+          },
+          {
+            "name": "Grocer Bulka",
+            "like": 128906,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6910.9,
+              57.7,
+              3339.4
+            ],
+            "toward": [
+              6947.5,
+              3356.6
+            ],
+            "stock": "Grocer Derg",
+            "note": "the camp's grocer, an Oggok grocer's food"
+          },
+          {
+            "name": "Spiritmaster Ognarr",
+            "like": 129052,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              6947.1,
+              57.6,
+              3309.4
+            ],
+            "toward": [
+              6947.5,
+              3356.6
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Thundrik",
+            "like": 128811,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              6955.3,
+              57.9,
+              3241.8
+            ],
+            "toward": [
+              6947.5,
+              3356.6
+            ],
+            "note": "sends a young giant who has done the starter quests to Oggok (the quest The Stone Way)"
+          },
+          {
+            "name": "Plateau sentinel",
+            "like": 129064,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6859.2,
+              57.7,
+              3388.5
+            ],
+            "facing": 192
+          },
+          {
+            "name": "Plateau sentinel",
+            "like": 129064,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6911.0,
+              57.7,
+              3436.4
+            ],
+            "facing": 0
+          },
+          {
+            "name": "Plateau sentinel",
+            "like": 129064,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6887.5,
+              57.7,
+              3278.9
+            ],
+            "facing": 160
+          },
+          {
+            "name": "Plateau sentinel",
+            "like": 129064,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6853.6,
+              57.6,
+              3344.5
+            ],
+            "facing": 192
+          },
+          {
+            "name": "plateau skink",
+            "body": "0xFD1EC25E",
+            "level": 1,
+            "role": "foe",
+            "size": 0.35,
+            "at": [
+              6817.6,
+              61.1,
+              3147.3
+            ],
+            "note": "the starter hunt's skinks (a plains basilisk's body, small), at the plain's basilisks' spots west of the steps"
+          },
+          {
+            "name": "plateau skink",
+            "body": "0xFD1EC25E",
+            "level": 1,
+            "role": "foe",
+            "size": 0.35,
+            "at": [
+              6645.3,
+              57.6,
+              3283.8
+            ]
+          },
+          {
+            "name": "plateau skink",
+            "body": "0xFD1EC25E",
+            "level": 2,
+            "role": "foe",
+            "size": 0.35,
+            "at": [
+              6628.0,
+              58.7,
+              3178.6
+            ]
+          },
+          {
+            "name": "plateau skink",
+            "body": "0xFD1EC25E",
+            "level": 1,
+            "role": "foe",
+            "size": 0.35,
+            "at": [
+              6683.5,
+              61.6,
+              3092.0
+            ]
+          },
+          {
+            "name": "plateau skink",
+            "body": "0xFD1EC25E",
+            "level": 1,
+            "role": "foe",
+            "size": 0.35,
+            "at": [
+              6577.5,
+              57.7,
+              3241.5
+            ]
+          },
+          {
+            "name": "plateau skink",
+            "body": "0xFD1EC25E",
+            "level": 2,
+            "role": "foe",
+            "size": 0.35,
+            "at": [
+              6740.0,
+              58.1,
+              3230.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "plateau skink"
+        ]
+      }
     },
     {
       "name": "Kerra Isle",

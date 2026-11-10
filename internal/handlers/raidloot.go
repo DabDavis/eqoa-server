@@ -196,6 +196,11 @@ func (h *NPCWindowHandler) setRaidHooks(gw *entity.World) {
 		},
 	}
 	gw.OnKill(h.heardRaidKill)
+}
+
+// startRaidWorker starts, once, the worker that rolls the raid kills heard and ends what
+// is due: at the first raid kill heard, or a raid hold a restart brought back.
+func (h *NPCWindowHandler) startRaidWorker() {
 	h.raids.once.Do(func() {
 		h.raids.wake = make(chan struct{}, 1)
 		go h.raidWorker(h.raids.wake)
@@ -304,6 +309,7 @@ func (h *NPCWindowHandler) heardRaidKill(k entity.KillCredit) {
 		return
 	}
 	h.raids.kills.Store(k.NPCID, k)
+	h.startRaidWorker()
 	select {
 	case h.raids.wake <- struct{}{}:
 	default:
@@ -368,6 +374,9 @@ func (h *NPCWindowHandler) takeRaidKillLocked(ls *lootState, npc *entity.NPC, di
 func (h *NPCWindowHandler) startRaidLootLocked(ls *lootState, npc *entity.NPC, k entity.KillCredit) {
 	if c := ls.corpses[npc.ServerID]; c != nil && c.died.Equal(k.Died) {
 		return // opened already
+	}
+	if npc.Owner != 0 || npc.Charm != nil || npc.Dummy != entity.NotDummy {
+		return // no one's to loot, or nothing to (loot.go)
 	}
 	r := k.Raid
 	level := 0
@@ -1239,10 +1248,10 @@ func keepRaid(ls *lootState, c *corpse, now time.Time) *KeptRaidCorpse {
 }
 
 // restoreRaid puts a kept raid hold back on corpse c of creature id, its rolls under their
-// numbers. Must be called with ls.mu held.
-func restoreRaid(ls *lootState, id entity.EntityID, c *corpse, k *KeptRaidCorpse, now time.Time) {
+// numbers, and reports whether there was one. Must be called with ls.mu held.
+func restoreRaid(ls *lootState, id entity.EntityID, c *corpse, k *KeptRaidCorpse, now time.Time) bool {
 	if k == nil {
-		return
+		return false
 	}
 	rc := &raidCorpse{rule: k.Rule, group: k.Group, from: k.From, master: k.Master, masterName: k.MasterName,
 		until: now.Add(time.Duration(k.MasterLeft) * time.Millisecond)}
@@ -1268,4 +1277,5 @@ func restoreRaid(ls *lootState, id entity.EntityID, c *corpse, k *KeptRaidCorpse
 		}
 		rc.held = append(rc.held, hi)
 	}
+	return true
 }

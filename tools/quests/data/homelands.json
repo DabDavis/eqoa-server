@@ -264,7 +264,7 @@
         {
           "kind": "talk",
           "target": "Elder Hoshuk",
-          "journal": "Return to Elder Hoshuk on the sand north of the Dwell.",
+          "journal": "Return to Elder Hoshuk on the sand south of the Dwell.",
           "says": "Good. Now you will not starve, and Pemmi will not forget you.",
           "rewards": {
             "xp": 200,
@@ -595,16 +595,16 @@
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "A new voice for the glade! Before you go dancing off, greet Lyrrin on the north side of the glade. She keeps the larder, and no satyr plays well on an empty belly.",
+      "offer": "A new voice for the glade! Before you go dancing off, greet Lyrrin on the south side of the glade. She keeps the larder, and no satyr plays well on an empty belly.",
       "accept": "I will greet Lyrrin.",
       "decline": "Not now.",
       "declined": "The glade will wait for your song.",
-      "started": "Go on. Lyrrin is just north of here.",
+      "started": "Go on. Lyrrin is just south of here.",
       "steps": [
         {
           "kind": "talk",
           "target": "Grocer Lyrrin",
-          "journal": "Greet Grocer Lyrrin on the north side of the glade.",
+          "journal": "Greet Grocer Lyrrin on the south side of the glade.",
           "says": "Pannoch sent you? Then take a muffin, and play me a tune some day.",
           "rewards": {
             "items": [
@@ -712,16 +712,16 @@
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "A new leaf on the old tree! Before you wander, greet Willowmere by the water to the north. She gathers food for the grove, and she will see that you do not wilt.",
+      "offer": "A new leaf on the old tree! Before you wander, greet Willowmere by the water to the south. She gathers food for the grove, and she will see that you do not wilt.",
       "accept": "I will greet Willowmere.",
       "decline": "Not now.",
       "declined": "The grove is patient, little leaf.",
-      "started": "Go. Willowmere is by the water, north along the shore.",
+      "started": "Go. Willowmere is by the water, south along the shore.",
       "steps": [
         {
           "kind": "talk",
           "target": "Grocer Willowmere",
-          "journal": "Greet Grocer Willowmere by the water, north along the shore.",
+          "journal": "Greet Grocer Willowmere by the water, south along the shore.",
           "says": "Silverbough sent you? Then take this bread, little leaf.",
           "rewards": {
             "items": [
@@ -946,16 +946,16 @@
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "Be welcome, newly woken one. Before your path begins, greet Saelun beside the temple's east wall. She keeps the order's stores, and even a drifting mind must eat.",
+      "offer": "Be welcome, newly woken one. Before your path begins, greet Saelun on this road. She keeps the order's stores, and even a drifting mind must eat.",
       "accept": "I will greet Saelun.",
       "decline": "Not now.",
       "declined": "Stillness can wait. So can I.",
-      "started": "Go. Saelun waits by the east wall, just north of here.",
+      "started": "Go. Saelun waits on the road's north side, toward the door.",
       "steps": [
         {
           "kind": "talk",
           "target": "Grocer Saelun",
-          "journal": "Greet Grocer Saelun beside the temple's east wall.",
+          "journal": "Greet Grocer Saelun on the road before the temple's east door.",
           "says": "Ithrael sent you? Then take this bread, and eat it slowly.",
           "rewards": {
             "items": [
@@ -966,7 +966,7 @@
         {
           "kind": "talk",
           "target": "Elder Ithrael",
-          "journal": "Return to Elder Ithrael on the temple's east side.",
+          "journal": "Return to Elder Ithrael on the temple's east road.",
           "says": "Good. A still mind starts with a full stomach.",
           "rewards": {
             "xp": 200,
@@ -988,7 +988,7 @@
       "requires": [
         "homelands/jalraeth/welcome"
       ],
-      "offer": "Ash grubs creep out of the dead hills and gnaw at the temple's stones. Go out among the hills east of the temple and end five of them.",
+      "offer": "Ash grubs creep down from the dead hills where this road ends and gnaw at the temple's stones. Go up into those hills and end five of them.",
       "accept": "I will end them.",
       "decline": "Not now.",
       "declined": "Then the stones will be gnawed.",
@@ -998,7 +998,7 @@
           "kind": "kill",
           "target": "ash grub",
           "count": 5,
-          "journal": "Kill five ash grubs in the hills east of the temple."
+          "journal": "Kill five ash grubs in the hills where the east road ends."
         },
         {
           "kind": "talk",

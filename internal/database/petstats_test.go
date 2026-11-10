@@ -29,6 +29,8 @@ func TestPetStatsRows(t *testing.T) {
 		`INSERT INTO petstats (spellid, name, abilities) VALUES (5, 'two pins', '[{"kind":"nuke","spell":"Pet Strike","spell_id":902100,"every":6}]')`,
 		`INSERT INTO petstats (spellid, name, abilities) VALUES (6, 'either buff', '[{"kind":"buff","spell_id":902100,"target":"either","every":6}]')`,
 		`INSERT INTO petstats (spellid, name, hp) VALUES (7, 'negative', -1)`,
+		`INSERT INTO petstats (spellid, name, abilities) VALUES (8, 'group buff', '[{"kind":"buff","spell_id":902100,"target":"group","every":6}]')`,
+		`INSERT INTO petstats (spellid, name, abilities) VALUES (9, 'group heal', '[{"kind":"heal","spell_id":902100,"target":"group","below":100,"every":6}]')`,
 	} {
 		if _, err := db.Exec(q); err != nil {
 			t.Fatalf("%s: %v", q, err)
@@ -39,8 +41,12 @@ func TestPetStatsRows(t *testing.T) {
 		t.Fatal(err)
 	}
 	p, ok := rows[717]
-	if !ok || len(rows) != 1 {
-		t.Fatalf("rows %v: want 717 alone", rows)
+	if !ok || len(rows) != 2 {
+		t.Fatalf("rows %v: want 717 and 9 alone", rows)
+	}
+	// petition 1495: a heal of the pet's whole side (target group), a heal's alone
+	if g, ok := rows[9]; !ok || len(g.Abilities) != 1 || g.Abilities[0].TargetOr() != AbilityOnGroup || g.Abilities[0].BelowOr() != 100 {
+		t.Errorf("the group heal's row: %+v", g)
 	}
 	if p.Name != "Test Flame" || p.Model != 3000000000 || p.Level != 38 || p.Type != PetTypeMelee || p.AC != 1100 ||
 		p.Str != 55 || p.Int != 12 || p.HP != 2500 || p.AR != 20 || p.DR != 25 || p.ChaMax != 400 || !p.KeepTemplate || p.Size != 3 {
@@ -55,10 +61,10 @@ func TestPetStatsRows(t *testing.T) {
 	if len(p.Abilities) != 2 || p.Abilities[0].SpellID != 902100 || p.Abilities[1].TargetOr() != AbilityOnEither {
 		t.Errorf("abilities %+v", p.Abilities)
 	}
-	if len(bad) != 6 {
-		t.Errorf("bad %q: want the six rows it cannot use", bad)
+	if len(bad) != 7 {
+		t.Errorf("bad %q: want the seven rows it cannot use", bad)
 	}
-	for _, want := range []string{"wizard", "berserk", "axe", "by name and by id", "either is a heal's", "hp -1"} {
+	for _, want := range []string{"wizard", "berserk", "axe", "by name and by id", "either is a heal's", "group is a heal's", "hp -1"} {
 		found := false
 		for _, b := range bad {
 			found = found || strings.Contains(b, want)

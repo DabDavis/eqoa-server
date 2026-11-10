@@ -352,7 +352,7 @@ export function pickLook(kind, { title, current } = {}) {
     const sizeSel = kind === 'uiicon' || kind === 'uiback'
       ? h('select', { 'aria-label': 'Size' }, h('option', { value: kind === 'uiicon' ? '32' : '64' }, kind === 'uiicon' ? '32×32 (fronts)' : '64×64 (backs)'), h('option', { value: '' }, 'Every size'))
       : null;
-    const grid = h('div', { class: 'look-grid', role: 'listbox', 'aria-label': many });
+    const grid = h('div', { class: 'look-grid' + (kind === 'itemicon' ? ' wide' : ''), role: 'listbox', 'aria-label': many });
     const foot = h('div', { class: 'faint small' }, 'Loading…');
     const pick = (id) => { done = true; resolve(id >>> 0); dlg.close(); };
     let all = [];
@@ -370,11 +370,14 @@ export function pickLook(kind, { title, current } = {}) {
       list.sort((a, b) => (u32(current) === a.id ? -1 : u32(current) === b.id ? 1 : 0) || (b.rows || 0) - (a.rows || 0) || a.id - b.id);
       const shown = list.slice(0, 600);
       mount(grid, ...shown.map((e) => {
-        const pic = kind === 'visual' ? h('div', { class: 'look-pic visual' }, icon('play')) : thumb(kind, e.id, kind === 'itemicon' ? [104, 40] : kind === 'uiicon' ? [44, 44] : kind === 'uiback' ? [69, 51] : [96, 96]);
-        const b = h('button', { type: 'button', class: 'look-cell' + (u32(current) === e.id ? ' on' : '') + (e.disc ? '' : ' offdisc'), role: 'option', 'aria-selected': u32(current) === e.id ? 'true' : 'false', title: (e.names || []).join(', ') },
+        // an item icon twice the game's size, the rest as they were: the picture is what tells them apart, the id
+        // only in the tooltip (the GMs' word, 2026-11-10: testers "can't tell icons apart", "the numbers" confused them)
+        const pic = kind === 'visual' ? h('div', { class: 'look-pic visual' }, icon('play')) : thumb(kind, e.id, kind === 'itemicon' ? [208, 80] : kind === 'uiicon' ? [44, 44] : kind === 'uiback' ? [69, 51] : [96, 96]);
+        const tip = [hex8(e.id), (e.names || []).length ? 'used by ' + e.names.join(', ') : 'used by nothing'].join(' · ');
+        const b = h('button', { type: 'button', class: 'look-cell' + (u32(current) === e.id ? ' on' : '') + (e.disc ? '' : ' offdisc'), role: 'option', 'aria-selected': u32(current) === e.id ? 'true' : 'false', title: tip },
           pic,
-          h('span', { class: 'mono small' }, hex8(e.id)),
-          e.names?.length ? h('span', { class: 'look-names' }, e.names.slice(0, 3).join(', ')) : null,
+          u32(current) === e.id ? h('span', { class: 'badge' }, 'current') : null,
+          e.names?.length ? h('span', { class: 'look-names' }, e.names.slice(0, 2).join(', ')) : h('span', { class: 'look-names faint' }, 'not used yet'),
           kind === 'visual' && e.lists ? h('span', { class: 'look-names faint' }, visualText(e.lists)) : null,
           e.rows ? h('span', { class: 'faint small' }, e.rows + (e.rows === 1 ? ' row' : ' rows')) : null,
           !e.disc && all.some((x) => x.disc) ? h('span', { class: 'badge warn' }, 'not on the disc') : null);
@@ -401,8 +404,9 @@ export function pickLook(kind, { title, current } = {}) {
       all = entries;
       if (!onDisc) {
         const hint = await noDiscHint(kind);
-        mount(notice, h('p', { class: 'notice warn small' }, 'No pictures: ', hint || 'your disc is not loaded.',
-          ' Below are the ids the database already uses, by what wears them.'));
+        mount(notice, h('div', { class: 'notice warn' },
+          h('p', null, h('b', null, 'No pictures yet. '), 'The ' + many + ' are drawn from your own game disc, so load it once on the ',
+            h('a', { href: '#/disc', onclick: () => dlg.close() }, 'Game disc'), ' page and come back. Until then the list shows only what each one is used by.')));
       }
       draw();
       search.focus();
@@ -458,7 +462,6 @@ function idField(col, value, ctx, kind, opts = {}) {
   const picBox = h('div', { class: 'look-pic-box', role: kind === 'visual' ? null : 'button', tabindex: kind === 'visual' ? null : '0' });
   const dec = h('span', { class: 'hint mono' });
   const names = h('span', { class: 'look-names' });
-  const extra = h('div', { class: 'look-sub' }, dec, names);
   let spellRow = null; // a spell's icon is its front over its back (spellpattern)
   const isSpell = (kind === 'uiicon' || kind === 'uiback') && ctx.meta?.name === 'spellpattern';
   const show = () => {
@@ -483,7 +486,7 @@ function idField(col, value, ctx, kind, opts = {}) {
       const other = parseId(spellRow.value);
       mount(picBox, kind === 'uiback' ? spellIcon(n, other) : spellIcon(other, n));
     } else {
-      mount(picBox, thumb(kind, n));
+      mount(picBox, thumb(kind, n, kind === 'itemicon' ? [152, 60] : undefined));
     }
     names.textContent = '';
     if (u32(n)) {
@@ -530,10 +533,16 @@ function idField(col, value, ctx, kind, opts = {}) {
   // game), a spell's own there for that spell; a new tab keeps this form
   const spell = ctx.form?.row?.spellid;
   const preview = kind === 'visual' ? h('a', { class: 'small', href: '#/visuals' + (spell !== undefined && ctx.meta?.name === 'spelleffect' ? '/' + spell : ''), target: '_blank', rel: 'noopener' }, 'See it played') : null;
+  // the picture and Choose lead; the id (a hex box, and the number the column stores) folds away under "Id",
+  // opened when it is not an id (the GMs' word, 2026-11-10: the numbers on the field confused the testers)
+  const one = (KIND_WORDS[kind] || ['id'])[0];
+  const idBox = h('details', { class: 'look-idbox' }, h('summary', null, 'Id'), h('div', { class: 'with' }, input, dec));
+  input.addEventListener('input', () => { if (input.classList.contains('bad')) idBox.open = true; });
   const control = h('div', { class: 'look look-id' },
-    h('div', { class: 'with' }, picBox, input,
-      ctx.locked ? null : button('Choose…', { class: 'small', onclick: choose })),
-    extra, preview, hint);
+    h('div', { class: 'with' }, picBox,
+      ctx.locked ? null : button('Choose ' + (/^[aeiou]/.test(one) ? 'an ' : 'a ') + one + '…', { class: 'small', onclick: choose }),
+      names),
+    idBox, preview, hint);
   return { input, control, wide: 'pair' };
 }
 

@@ -271,6 +271,20 @@ func TestTheLookFieldsWriteTheColumnsForm(t *testing.T) {
     same(` + string(cj) + `.map((c) => L.nearestTint(c, meta.palettes.tints)), ` + string(wj) + `);
     // an item: its icon in hex, its model in decimal, a dyer's purple
     await open('#/items/10', 'Item 10');
+    // the icon's picture and Choose lead, its id folded away (the GMs' word, 2026-11-10: testers could not tell icons
+    // apart and the numbers confused them); the picker's grid is the wide one, and with no disc it says where to load it
+    const iconField = field('input', 'Icon')[0];
+    const idBox = iconField && iconField.closest('details.look-idbox');
+    if (!idBox || idBox.open) throw new Error('the Icon id is not folded under Id: ' + (idBox ? 'open' : 'no box'));
+    const chooseIcon = [...document.querySelectorAll('main button')].find((b) => b.textContent.trim() === 'Choose an icon…');
+    if (!chooseIcon) throw new Error('no "Choose an icon…" button: ' + buttons().join(', '));
+    chooseIcon.click();
+    await wait(() => document.querySelector('[role=dialog] .look-grid'), 'the icon picker');
+    if (!document.querySelector('[role=dialog] .look-grid').classList.contains('wide')) throw new Error('the item icon picker is not the wide grid');
+    await wait(() => document.querySelector('[role=dialog] .notice a[href="#/disc"]'), 'the picker\'s Game disc link');
+    if (!document.querySelector('[role=dialog] .notice').textContent.includes('No pictures yet')) throw new Error('the picker\'s notice: ' + document.querySelector('[role=dialog] .notice').textContent);
+    [...document.querySelectorAll('[role=dialog] button')].find((b) => b.textContent.trim() === 'Cancel').click();
+    await wait(() => !document.querySelector('[role=dialog] .look-grid'), 'the picker closed');
     const set = (label, v) => { const i = field('input', label)[0]; if (!i) throw new Error('no field ' + label); i.value = v; i.dispatchEvent(new Event('input')); i.dispatchEvent(new Event('blur')); };
     set('Icon', '0xB44E7A96');
     set('Model', '3025042070');

@@ -2065,7 +2065,8 @@ claim (into that one's pack, refused when full) or abandons the corpse to anyone
 rules hold lies until they are done and then its decay (`World.HoldCorpse`, kept in `KeptNPC.CorpseHeld`); the rolls, holds and master
 looter survive a keep restart (`KeptCorpse.Raid`), as do the raid's flag, rule, helper and main assist (`KeptGroup`) and a client's answer.
 **Mercenaries** (`mercgroup.go`): a merc takes a place in its owner's group but is no player, so it is never a roll seat, a claim, on the
-master looter's list, the leader, the helper or the main assist (refused with a line by name or by target); `/raidkick` or Boot Member
+master looter's list, the leader, the helper or the main assist (refused with a line by name or by target), and never invited as one
+(`/raidinvite` or `/invite <name>` of it: "X is a mercenary: it comes into a group or a raid with its owner."); `/raidkick` or Boot Member
 of a merc dismisses it (the leader; the helper too, never the leader's own merc), with no claim; its fight is its raid's (`NPC.Owner`,
 as a pet's); a player in a group of it and its merc alone steps aside (0x069A 8) for `/raidinvite`, `/invite <name>` and the flag, its
 merc following its yes, past four in a flagged raid; `/raidleave` takes the merc out with its owner, who is then asked into a group with

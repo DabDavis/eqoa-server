@@ -1,0 +1,180 @@
+{
+  "race": "dryad",
+  "home": "West Toxxulia",
+  "city": "Qeynos",
+  "note": "The grove's people are tools/worlds/homelands.json's (West Toxxulia): Elder Silverbough gives the first two, Thornwarden Briony beside her the three hunts; Weaver Fernlight (a few steps south of the elder) is the outfitter, Coachman Thistlewick, a satyr of the eastern woods, keeps the stable on the shore to the north. The hunts are all in the woods west of the lake: the bark beetles nearest, the rootcoil snakes deeper in, the rotting shambler Rotbark alone at the far west edge. The flight sets a ranger or druid down in Surefall Glade and the rest in Qeynos.",
+  "L1": {
+    "name": "An Acorn for the Ear",
+    "giver": "Elder Silverbough",
+    "offer": [
+      "A new leaf on the old tree! Every dryad of the grove wears an acorn cap at her ear, from the oak that first sheltered us, so the forest knows her voice.",
+      "Weaver Fernlight keeps them. She sits by the water a few steps south of here.",
+      "Will you fetch your acorn cap and show it to me?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "The grove is patient, little leaf.",
+    "started": "Go, then. Fernlight is by the water, just south of here.",
+    "merchant": "Weaver Fernlight",
+    "piece": {
+      "name": "acorn-cap earring",
+      "description": "The cap of an acorn from the grove's first oak, hung on a thread of bark. Every young dryad of the grove wears one.",
+      "like": "Shell Earring",
+      "set": {
+        "HPMAX": 5
+      }
+    },
+    "fetch": {
+      "journal": "Ask Weaver Fernlight, south of Elder Silverbough, for an acorn-cap earring.",
+      "says": "Silverbough sent you? Turn your head, little leaf. There: a cap from the first oak. The grove asks nothing for it but that you come back."
+    },
+    "show": {
+      "journal": "Show the acorn-cap earring to Elder Silverbough.",
+      "says": "It suits you. Wear it, and the old trees will know your step wherever you walk."
+    }
+  },
+  "L2": {
+    "name": "Rooted in the Grove",
+    "giver": "Elder Silverbough",
+    "offer": [
+      "The wind carries young leaves far, and not all of them land softly. Have Spiritmaster Ashleaf bind your spirit to the grove, so that you wake here if you fall.",
+      "Then give your name to Coachman Thistlewick for his ledger. His coach runs to Freeport and to the other homes of the Homelands, for those their stables know.",
+      "Will you see them both and come back to me?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "Then stay under the branches until you do.",
+    "started": "Both are north along the shore: Thistlewick the satyr first, Ashleaf a little past him.",
+    "spiritmaster": "Spiritmaster Ashleaf",
+    "coachman": "Coachman Thistlewick",
+    "bind": {
+      "journal": "Have Spiritmaster Ashleaf, north of the elder along the shore, bind your spirit to the grove.",
+      "says": "It is done. Should you fall, you will wake here under our branches. Now go and give Coachman Thistlewick your name."
+    },
+    "ledger": {
+      "journal": "Give your name to Coachman Thistlewick, on the shore north of the elder, for his ledger.",
+      "says": "Welcome to my stable, little leaf. My coach runs to Freeport and to every other home of the Homelands, for travelers whose names their ledgers hold. Yours is in mine now."
+    },
+    "back": {
+      "journal": "Return to Elder Silverbough.",
+      "says": [
+        "Good. Now your roots are here, however far your branches reach.",
+        "Thistlewick's coach will carry you to Freeport if its ledger knows you, but the way west to Qeynos is earned. Thornwarden Briony, beside me, has work for you."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Beetles in the Bark",
+    "giver": "Thornwarden Briony",
+    "offer": [
+      "So you are the new leaf. Good. Bark beetles are boring into the old trees in the woods west of the lake, and the trees are sickening.",
+      "Stop them and bring me three of their shells. Then I will teach you something worth knowing.",
+      "Will you hunt them?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "Then the old trees will suffer.",
+    "started": "Three shells. The trees will thank you.",
+    "target": "bark beetle",
+    "count": 3,
+    "drop": {
+      "name": "bark beetle shell",
+      "description": "The shell of a bark beetle from the woods west of the dryads' lake.",
+      "like": "beetle carapace fragment"
+    },
+    "hunt": {
+      "journal": "Take three bark beetle shells from the bark beetles in the woods west of the lake."
+    },
+    "give": {
+      "journal": "Bring three bark beetle shells to Thornwarden Briony.",
+      "says": "Three shells, and not a leaf out of place. You can fight. Now watch closely, and learn this."
+    }
+  },
+  "L4": {
+    "name": "A Sapling's Arms",
+    "giver": "Thornwarden Briony",
+    "offer": [
+      "Soft bark will not serve you among the humans. I will make you proper gear, but you will fetch what I need.",
+      "Weaver Fernlight has bark cord and a shaft of deadfall for me. Then take a skin from the rootcoil snakes deeper in the woods to the west, past the beetles.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then keep to the grove, and to its shade.",
+    "started": "Cord and a shaft from Fernlight, a skin from the snakes. Go.",
+    "materials": [
+      {
+        "merchant": "Weaver Fernlight",
+        "items": [
+          {
+            "name": "willow-bark cord",
+            "description": "A cord of willow bark, peeled and twisted by the weavers of the dryads' grove.",
+            "like": "silk cord"
+          },
+          "wooden shaft"
+        ],
+        "journal": "Ask Weaver Fernlight for the willow-bark cord and the wooden shaft.",
+        "says": "For Briony? Here, a cord of willow bark and a shaft of deadfall. No living branch was cut for it: tell her so."
+      }
+    ],
+    "target": "rootcoil snake",
+    "count": 1,
+    "drop": {
+      "name": "rootcoil snake skin",
+      "description": "The mottled skin of a rootcoil snake from the deep woods west of the dryads' lake.",
+      "like": "torn snake scales"
+    },
+    "hunt": {
+      "journal": "Take a rootcoil snake skin from the rootcoil snakes deep in the woods west of the lake, past the beetles."
+    },
+    "give": {
+      "journal": "Bring the willow-bark cord, the wooden shaft and the rootcoil snake skin to Thornwarden Briony.",
+      "says": "All three. Give me a moment... there. It is yours: let it serve the forest."
+    }
+  },
+  "L5": {
+    "name": "Rotbark",
+    "giver": "Thornwarden Briony",
+    "offer": [
+      "One task more before you go west. A shambler of the forest has gone to rot at the far west edge of the woods. We call it Rotbark, and what it touches withers.",
+      "It stands alone there, past the snakes, and it strikes at anything that walks. Bring me its heartwood, and I will teach you the last thing I have for a sapling.",
+      "Will you hunt Rotbark?"
+    ],
+    "accept": "I will hunt it.",
+    "decline": "Not yet.",
+    "declined": "The rot will not wait as you do.",
+    "started": "West through the woods, past the beetles and the snakes. Do not let it take hold of you.",
+    "target": "Rotbark",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "Rotbark's heartwood",
+      "description": "A knot of blackened heartwood from the rotting shambler Rotbark.",
+      "like": "festering root"
+    },
+    "hunt": {
+      "journal": "Take Rotbark's heartwood from the rotting shambler Rotbark at the far west edge of the woods."
+    },
+    "give": {
+      "journal": "Bring Rotbark's heartwood to Thornwarden Briony.",
+      "says": [
+        "Rotbark's heartwood... The woods can heal now. You are a sapling no longer.",
+        "Learn this, and see Gatekeeper Thornwyn when you are ready to go west."
+      ]
+    }
+  },
+  "flight": {
+    "name": "Roots in the West",
+    "giver": "Gatekeeper Thornwyn",
+    "offer": [
+      "The way to Tunaria is open. The humans of Qeynos guard the groves of Surefall Glade, where our rangers and druids go; the rest of us train in Qeynos itself.",
+      "You have earned the passage, sapling. I will set you down among your own guild there, and your spirit will rest there.",
+      "Shall I send you west?"
+    ],
+    "accept": "Send me west.",
+    "decline": "Not yet.",
+    "declined": "The way will wait for you.",
+    "started": "Grow tall and strong!",
+    "journal": "Tell Gatekeeper Thornwyn when you are ready to go to Qeynos."
+  }
+}

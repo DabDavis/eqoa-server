@@ -923,6 +923,62 @@ const (
 	OpcodeMobInfo GameOpcode = 0x7E4E
 )
 
+// Item links in chat, EQ1's: a player puts a link to one of its own items in a
+// line, and whoever clicks it sees the item as the linker held it then
+// (handlers/itemlinks.go; the GM Jibrish's petition 1463, 2026-11-10). A PS2,
+// and any client that does not take links, sees the item's name in the line,
+// plain, the retail message byte for byte. All little-endian.
+const (
+	// OpcodeItemLinksOffer is not retail, both ways. Server to client at every
+	// world entry: a u8, 1, the layout of OpcodeItemLinkLine and
+	// OpcodeItemLinkRecord. A PS2 ignores it (CLIENT's dispatcher has no case
+	// above 0x1402 and no default) and never answers. Client to server: a u8,
+	// 1 this client takes links (it is sent OpcodeItemLinkLine and may send
+	// OpcodeItemLinkSay), 0 it does not (plain lines from then on); a wider
+	// answer is read by its first byte. Kept on the session, through a keep
+	// restart; a session that never answers takes none.
+	OpcodeItemLinksOffer GameOpcode = 0x7E4F
+
+	// OpcodeItemLinkSay is a typed line with links, client to server, sent by
+	// a client that answered 1 in place of the retail chat message when the
+	// line holds a link: u8 route (0 as 0x000B, routed by the line and then by
+	// the chat mode; 1 as 0x0C01 sub 2, a shout; 2 as 0x0578 sub 12, the
+	// guild's; any other dropped), u32 target (0x000B's; route 0 only), the
+	// text as 0x000B carries it (u32 count of UTF-16 units, 1..1023, then the
+	// units: the line as typed, each link's item name in its place), u8 link
+	// count, then each link: u16 start, u16 length (UTF-16 units into the
+	// text, at least 1), u8 list (0 the pack, worn items among it; 1 the
+	// bank), u32 key (the record's key as the client files it,
+	// VIItemList::GetSlotId, as 0x003E sends it). A link that does not
+	// resolve to a record the sender holds is its plain text; past four in a
+	// line the rest are plain text too.
+	OpcodeItemLinkSay GameOpcode = 0x7E50
+
+	// OpcodeItemLinkLine is a chat line with its links, server to a client
+	// that answered 1, in place of the retail message it would get: u8 link
+	// count (1..4), each link u16 start, u16 length (UTF-16 units into the
+	// text the inner message carries, as that client shows it: after the
+	// speaker's words and that hearer's profanity mask), u32 link id; then the
+	// inner message whole, its u16 opcode first, exactly as a client without
+	// links is sent it: 0x0A7A (a say), 0x0A7B (a shout, a tell and its echo,
+	// a whisper, a raid's line), 0x069E (the group's) or 0x0468 sub 5 (the
+	// guild's). A line without links is never wrapped.
+	OpcodeItemLinkLine GameOpcode = 0x7E51
+
+	// OpcodeItemLinkAsk is a client's "show me this link", client to server: a
+	// u32 link id. Answered with OpcodeItemLinkRecord, from a session in the
+	// world, at most 30 in 10 s a session.
+	OpcodeItemLinkAsk GameOpcode = 0x7E52
+
+	// OpcodeItemLinkRecord is a link's item, server to the asker: u32 link id,
+	// u8 status (1 the item follows; 0 no such link: never made, or expired an
+	// hour after it was last linked), then for 1 the item as 0x003B's body
+	// (the record as every record outside the MemoryDump goes: worn slot -1,
+	// quick slot -1), its key the link id, as the linker held it when it was
+	// linked. Nothing after the record.
+	OpcodeItemLinkRecord GameOpcode = 0x7E53
+)
+
 // =============================================================================
 // Game Version Constants
 // =============================================================================
@@ -1264,6 +1320,16 @@ func (op GameOpcode) String() string {
 		return "NPCTintsAnswer"
 	case OpcodeNPCTints:
 		return "NPCTints"
+	case OpcodeItemLinksOffer:
+		return "ItemLinksOffer"
+	case OpcodeItemLinkSay:
+		return "ItemLinkSay"
+	case OpcodeItemLinkLine:
+		return "ItemLinkLine"
+	case OpcodeItemLinkAsk:
+		return "ItemLinkAsk"
+	case OpcodeItemLinkRecord:
+		return "ItemLinkRecord"
 	default:
 		return "Unknown"
 	}

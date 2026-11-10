@@ -114,6 +114,10 @@ const ctfSayEvery = 4 * time.Second
 // ctfStuckEvery is how often /stuck sends a match's player back to its camp.
 const ctfStuckEvery = time.Minute
 
+// ctfQuietAfterMove is how long a player the server put somewhere (a rise at its camp, a send there) touches
+// nothing: its client's reports from before it heard of the move are not where it is.
+const ctfQuietAfterMove = 2 * time.Second
+
 // ctfArriveGrace is how long a player sent to its camp may take to be in the arena (the world loaded) before a
 // match lets it go as gone from the arena.
 const ctfArriveGrace = time.Minute
@@ -236,7 +240,6 @@ type ctfMatch struct {
 	teams     [2]ctfTeam
 	flags     [2]*ctfFlag
 	powerUps  []*ctfPowerUp
-	waveAt    time.Time // the next wave
 	winner    int       // -1: a draw (or none yet)
 	how       string    // how it ended, for the log
 	minsTold  int       // the last "minutes left" said
@@ -286,6 +289,7 @@ type ctfPlayer struct {
 	saidAt time.Time
 	stuck  time.Time // /stuck again from here
 	sentAt time.Time // sent to its camp (ctfToCampLocked): on its way there for ctfArriveGrace
+	quiet  time.Time // touches nothing before this (ctfMayTouch): the server just put it somewhere
 	// what it did, for the end's lines
 	caps, returns, kills, deaths int
 }
@@ -387,6 +391,7 @@ const (
 	ctfStatusNone     = "No match is on. %s"
 	ctfStatusOn       = "A match is on in %s: %s, %d minutes left. %s"
 	ctfStatusPrep     = "A match is about to begin in %s."
+	ctfStatusOver     = "The match in %s is over, %s: everyone goes back in a moment."
 )
 
 // ctfBlue and ctfGold are the colours of a match's own lines: the game's own for an announcement.
@@ -462,9 +467,15 @@ func (w *World) CTFStatus(sess *session.Session, now time.Time) []string {
 		out = append(out, fmt.Sprintf(ctfStatusNone, w.ctfQueueLineLocked()))
 	case m.phase == ctfPrep:
 		out = append(out, fmt.Sprintf(ctfStatusPrep, w.ctf.lay.Name))
+	case m.phase == ctfOver:
+		out = append(out, fmt.Sprintf(ctfStatusOver, w.ctf.lay.Name, w.ctfScoreLocked(m)))
 	default:
 		left := int(math.Ceil(m.ends.Sub(now).Minutes()))
-		out = append(out, fmt.Sprintf(ctfStatusOn, w.ctf.lay.Name, w.ctfScoreLocked(m), max(left, 0), w.ctfQueueLineLocked()))
+		queue := w.ctfQueueLineLocked()
+		if p := w.sessionPlayerLocked(sess); p.inMatch(m) {
+			queue = ""
+		}
+		out = append(out, strings.TrimSpace(fmt.Sprintf(ctfStatusOn, w.ctf.lay.Name, w.ctfScoreLocked(m), max(left, 0), queue)))
 	}
 	if p != nil {
 		switch {
@@ -550,6 +561,7 @@ func (w *World) ctfSystem(now time.Time) {
 		}
 	case ctfPlay:
 		w.ctfBackfillLocked(m, now)
+		w.ctfTouchAllLocked(m, now)
 		w.ctfFollowLocked(m)
 		w.ctfFlagsAloneLocked(m, now)
 		w.ctfWoundsLocked(m, now)
@@ -563,9 +575,6 @@ func (w *World) ctfSystem(now time.Time) {
 		if !m.sentHome && !now.Before(m.overAt.Add(w.ctf.set.EndHold)) {
 			w.ctfSendAllBackLocked(m)
 		}
-	}
-	if m := w.ctf.m; m != nil && m.phase != ctfOver {
-		w.ctfWaveClockLocked(m, now)
 	}
 }
 
@@ -766,7 +775,7 @@ func (w *World) ctfEnterLocked(m *ctfMatch, p *Player, t int, now time.Time) {
 	w.breakInvisLocked(p, "the arena")
 	lay := w.ctf.lay.Teams[t]
 	other := w.ctf.lay.Teams[1-t]
-	w.ctfTellLocked(p, fmt.Sprintf(ctfLineTeam, lay.Name, other.Flag), ctfBlue)
+	w.ctfTellLocked(p, fmt.Sprintf(ctfLineTeam, lay.Name, "the "+other.Flag), ctfBlue)
 	switch m.phase {
 	case ctfPrep:
 		w.ctfTellLocked(p, fmt.Sprintf(ctfLinePrep, int(math.Ceil(m.opens.Sub(now).Seconds()))), ctfBlue)
@@ -785,6 +794,7 @@ func (w *World) ctfToCampLocked(p *Player, ring int) {
 	}
 	c := w.ctf.lay.Teams[p.ctf.team].Camp
 	p.ctf.sentAt = w.ctfNowLocked()
+	p.ctf.quiet = p.ctf.sentAt.Add(ctfQuietAfterMove)
 	to := GateSpot{World: w.ctf.set.World, X: c.X, Y: c.Y, Z: c.Z, Place: w.ctf.lay.Teams[p.ctf.team].Name + "'s camp"}
 	w.gates.due = append(w.gates.due, GateTravel{Sess: sess, P: p, To: to, Ring: ring % 9, Spell: w.ctf.lay.Name,
 		Facing: c.Facing, HasFacing: true})
@@ -835,6 +845,7 @@ func (w *World) CTFRespawnSpot(id EntityID) (spot GateSpot, facing float32, ok b
 		return to, 0, found
 	}
 	if m := w.ctf.m; p.inMatch(m) {
+		p.ctf.quiet = w.ctfNowLocked().Add(ctfQuietAfterMove)
 		c := w.ctf.lay.Teams[p.ctf.team].Camp
 		at := GateSpot{World: w.ctf.set.World, X: c.X, Y: c.Y, Z: c.Z, Place: w.ctf.lay.Teams[p.ctf.team].Name + "'s camp"}
 		return at, c.Facing, true
@@ -862,28 +873,17 @@ func (w *World) ctfRespawnDueLocked(p *Player, now time.Time) (due, handled bool
 	return !now.Before(w.ctfWaveForLocked(m, p.DiedAt)), true
 }
 
-// ctfWaveForLocked is the wave a player dead since died rises with: the first wave at least WaveMinDead after it.
+// ctfWaveForLocked is the wave a player dead since died rises with: the waves come every WaveEvery from the banners
+// going live, and it rises with the first at least WaveMinDead after its death (one dead before the banners went
+// live, at their going live).
 func (w *World) ctfWaveForLocked(m *ctfMatch, died time.Time) time.Time {
 	every := max(w.ctf.set.WaveEvery, time.Second)
-	at := m.waveAt
-	if at.IsZero() {
-		at = died.Add(every)
+	earliest := died.Add(w.ctf.set.WaveMinDead)
+	if m.phase == ctfPrep || !earliest.After(m.opens) {
+		return m.opens
 	}
-	for at.Before(died.Add(w.ctf.set.WaveMinDead)) {
-		at = at.Add(every)
-	}
-	return at
-}
-
-// ctfWaveClockLocked moves the waves' clock on: the next wave every WaveEvery from the banners going live.
-func (w *World) ctfWaveClockLocked(m *ctfMatch, now time.Time) {
-	every := max(w.ctf.set.WaveEvery, time.Second)
-	if m.waveAt.IsZero() {
-		m.waveAt = m.opens.Add(every)
-	}
-	for !m.waveAt.After(now) {
-		m.waveAt = m.waveAt.Add(every)
-	}
+	k := (earliest.Sub(m.opens) + every - 1) / every
+	return m.opens.Add(time.Duration(max(k, 1)) * every)
 }
 
 // ctfOpenLocked makes the banners live.
@@ -891,7 +891,6 @@ func (w *World) ctfOpenLocked(m *ctfMatch, now time.Time) {
 	m.phase = ctfPlay
 	m.opens = now
 	m.ends = now.Add(w.ctf.set.TimeLimit)
-	m.waveAt = time.Time{}
 	m.minsTold = int(math.Ceil(w.ctf.set.TimeLimit.Minutes()))
 	for t := range m.teams {
 		for _, id := range m.teams[t].members {

@@ -21,7 +21,7 @@
         "short": "Ember",
         "flag": "Ember Banner",
         "flag_body": "0xF97FD9FC",
-        "flag_size": 0.6,
+        "flag_size": 1.5,
         "stand": { "x": 20470, "y": 3.8, "z": 21070, "facing": 180 },
         "camp": { "x": 20480, "y": 6.5, "z": 21200, "toward": [20470, 21070] }
       },
@@ -30,7 +30,7 @@
         "short": "Dusk",
         "flag": "Dusk Banner",
         "flag_body": "0x4446A60B",
-        "flag_size": 0.6,
+        "flag_size": 1.5,
         "stand": { "x": 20970, "y": -2.9, "z": 21010, "facing": 180 },
         "camp": { "x": 20965, "y": 6.5, "z": 21140, "toward": [20970, 21010] }
       }

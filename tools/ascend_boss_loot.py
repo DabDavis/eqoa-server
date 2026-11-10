@@ -335,8 +335,13 @@ def build_plan(db, names):
     tuned = set(keys) | logged_bosses(db)
     made_tables = logged_tables(db)
     spawns = {}
-    for r in dict_rows(db, "SELECT id, npc_name, npc_level, world FROM npcs WHERE npc_name IS NOT NULL ORDER BY id"):
+    item_keys = {}  # npcs.npc_id -> the names whose corpses hold its npcitem rows (handlers/loot.go: GetNPCItems(npc.NPCID))
+    has_npc_id = "npc_id" in columns(db, "npcs")
+    for r in dict_rows(db, f"SELECT id, npc_name, npc_level, world{', npc_id' if has_npc_id else ''} FROM npcs "
+                           "WHERE npc_name IS NOT NULL ORDER BY id"):
         k = npc_key(r["npc_name"])
+        if r.get("npc_id"):
+            item_keys.setdefault(r["npc_id"], set()).add(k)
         if k in keys:
             spawns.setdefault(k, []).append(r)
     binds = {}
@@ -429,15 +434,24 @@ def build_plan(db, names):
                 p.inplace.append({"tbl": "lootpool", "id": r["id"], "from": r["patternid"], "boss": key})
             b["lines"].append(f"its own category pool rows: {len(own)}, {len(g)} of them regular gear"
                               + (" (pointed at their Ascended records)" if g else ""))
-        ids = [s["id"] for s in b["spawns"]]
-        if ids and has_table(db, "npcitem"):
-            q = ",".join("?" * len(ids))
-            items = dict_rows(db, f"SELECT * FROM npcitem WHERE npcid IN ({q}) ORDER BY itemid", ids)
+        # its spawns' own items: npcitem rows by the spawns' npc_id, a key other creatures may share
+        for nid in sorted({s.get("npc_id") for s in b["spawns"] if s.get("npc_id")}):
+            if not has_table(db, "npcitem"):
+                break
+            items = dict_rows(db, "SELECT * FROM npcitem WHERE npcid = ? ORDER BY itemid", (nid,))
             g = [r for r in items if w.kind(r["patternid"]) == "gear"]
+            if not items:
+                continue
+            sharing = sorted(item_keys.get(nid, set()) - tuned)
+            if g and sharing:
+                p.warnings.append(f"{shown}'s spawns' items (npcitem, npc_id {nid}) are those of {', '.join(sharing[:6])} "
+                                  f"too (not made Ascended): their {len(g)} regular gear left as they are")
+                continue
             for r in g:
                 want(r["patternid"], key)
-                p.inplace.append({"tbl": "npcitem", "id": r["itemid"], "from": r["patternid"], "boss": key})
-            b["lines"].append(f"its spawns' own items (npcitem): {len(items)}, {len(g)} of them regular gear"
+                if not any(x["tbl"] == "npcitem" and x["id"] == r["itemid"] for x in p.inplace):
+                    p.inplace.append({"tbl": "npcitem", "id": r["itemid"], "from": r["patternid"], "boss": key})
+            b["lines"].append(f"its spawns' own items (npcitem, npc_id {nid}): {len(items)}, {len(g)} of them regular gear"
                               + (" (pointed at their Ascended records)" if g else ""))
         # what it rolls besides, reported
         for t, rs in binds.items():

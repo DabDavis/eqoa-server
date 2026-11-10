@@ -1747,7 +1747,206 @@
       "from": "ODUS.ESF",
       "zone": 28,
       "race": 29,
-      "note": "Gargoyle: the gargoyles' crags: 91 gargoyles of the game (South Barren Coast, cell 5,4)"
+      "note": "Gargoyle: the gargoyles' crags: 91 gargoyles of the game (South Barren Coast, cell 5,4)",
+      "home": {
+        "flavor": "Gargoyles are winged creatures of living stone from the crags of the South Barren Coast in the Homelands, who roost above Oggok.",
+        "start": {
+          "x": 10251.5,
+          "y": 162.7,
+          "z": 9028.1,
+          "toward": [
+            10244.5,
+            9028.1
+          ]
+        },
+        "mainland": {
+          "place": "Oggok",
+          "world": 1,
+          "x": 9377.7,
+          "y": 53.2,
+          "z": 7385.8,
+          "facing": 4.85
+        },
+        "npcs": [
+          {
+            "name": "Elder Gorrak",
+            "like": 118049,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              10244.5,
+              162.7,
+              9028.1
+            ],
+            "toward": [
+              10251.5,
+              9028.1
+            ],
+            "note": "the starter quests' giver, a statue guardian, atop the crag"
+          },
+          {
+            "name": "Grocer Skarn",
+            "like": 132921,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10115.1,
+              83.8,
+              9021.4
+            ],
+            "toward": [
+              10244.5,
+              9028.1
+            ],
+            "stock": "Grocer Zurt",
+            "note": "the roost's grocer at the crag's foot, an Oggok grocer's food"
+          },
+          {
+            "name": "Spiritmaster Vorth",
+            "like": 118044,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              10241.4,
+              162.7,
+              9002.2
+            ],
+            "toward": [
+              10244.5,
+              9028.1
+            ],
+            "note": "binds, as every spiritmaster"
+          },
+          {
+            "name": "Gatekeeper Kragg",
+            "like": 132917,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              10237.4,
+              93.2,
+              9115.9
+            ],
+            "toward": [
+              10244.5,
+              9028.1
+            ],
+            "note": "on the crag's south slope: sends a gargoyle who has done the starter quests to Oggok (the quest Wings to Oggok)"
+          },
+          {
+            "name": "Crag sentinel",
+            "like": 132932,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10278.3,
+              162.6,
+              9009.5
+            ],
+            "facing": 96
+          },
+          {
+            "name": "Crag sentinel",
+            "like": 132932,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10268.9,
+              154.7,
+              8966.6
+            ],
+            "facing": 128
+          },
+          {
+            "name": "Crag sentinel",
+            "like": 132932,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10295.0,
+              113.1,
+              9092.0
+            ],
+            "facing": 32
+          },
+          {
+            "name": "crag bat",
+            "body": "0x8023AD71",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              10107.4,
+              54.1,
+              9168.4
+            ],
+            "note": "the starter hunt's bats (a vampire bat's body), round the crag's foot"
+          },
+          {
+            "name": "crag bat",
+            "body": "0x8023AD71",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              10053.3,
+              54.5,
+              9032.6
+            ]
+          },
+          {
+            "name": "crag bat",
+            "body": "0x8023AD71",
+            "level": 2,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              10173.6,
+              76.1,
+              9139.4
+            ]
+          },
+          {
+            "name": "crag bat",
+            "body": "0x8023AD71",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              10106.7,
+              74.0,
+              9056.8
+            ]
+          },
+          {
+            "name": "crag bat",
+            "body": "0x8023AD71",
+            "level": 1,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              10060.0,
+              54.1,
+              9110.0
+            ]
+          },
+          {
+            "name": "crag bat",
+            "body": "0x8023AD71",
+            "level": 2,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              10140.0,
+              54.3,
+              9180.0
+            ]
+          }
+        ],
+        "peaceful": [
+          "crag bat"
+        ]
+      }
     }
   ]
 }

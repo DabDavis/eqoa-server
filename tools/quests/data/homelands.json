@@ -821,6 +821,123 @@
       "notes": "Ours: the gatekeeper's port to Qeynos or Surefall Glade, the dryads' wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
     },
     {
+      "key": "homelands/gargoyle/welcome",
+      "name": "Waking Stone",
+      "giver": "Elder Gorrak",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "So, another of us has woken from the stone. Before you take wing, go down the crag and greet Skarn at its foot. She keeps what little we eat, and she likes to know who is awake.",
+      "accept": "I will greet Skarn.",
+      "decline": "Not now.",
+      "declined": "Stone is patient. So am I.",
+      "started": "Go. Skarn waits at the foot of the crag, to the west.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Skarn",
+          "journal": "Greet Grocer Skarn at the foot of the crag.",
+          "says": "Gorrak sent you? Then take this cheese. Stone needs feeding too.",
+          "rewards": {
+            "items": [
+              "stilton cheese"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Gorrak",
+          "journal": "Return to Elder Gorrak atop the crag.",
+          "says": "Good. You know the way down and the way back up. Remember both.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the gargoyles' first, at their home zone, South Barren Coast of the disc."
+    },
+    {
+      "key": "homelands/gargoyle/hunt",
+      "name": "Bats Round the Crag",
+      "giver": "Elder Gorrak",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/gargoyle/welcome"
+      ],
+      "offer": "Crag bats nest in the rocks round the foot of our crag, and their screeching keeps the sleepers awake. Go down and silence five of them.",
+      "accept": "I will silence them.",
+      "decline": "Not now.",
+      "declined": "Then the sleepers will not rest.",
+      "started": "Five bats. Strike before they scatter.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "crag bat",
+          "count": 5,
+          "journal": "Kill five crag bats round the foot of the crag."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Gorrak",
+          "journal": "Tell Elder Gorrak the bats are dealt with.",
+          "says": "Five bats silenced. The sleepers thank you, whether they know it or not.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gargoyles' second starter quest, the elder's too (the owner's 2026-11-10: an elder giving two starter quests); the crag bats are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/gargoyle/flight",
+      "name": "Wings to Oggok",
+      "giver": "Gatekeeper Kragg",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/gargoyle/welcome",
+        "homelands/gargoyle/hunt"
+      ],
+      "repeatable": true,
+      "offer": "The ogres of Oggok gave us the crags above their city to roost on, and they will train you as one of their own. I can send you there, but the way runs one way. Are you ready?",
+      "accept": "Send me to Oggok.",
+      "decline": "Not yet.",
+      "declined": "The crag will wait.",
+      "started": "Stand firm in Oggok, and guard it well!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Kragg",
+          "journal": "Tell Gatekeeper Kragg when you are ready to go to Oggok.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Oggok, the gargoyles' wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
+    },
+    {
       "key": "homelands/aviak/welcome",
       "name": "A Fledgling's Welcome",
       "giver": "Elder Kraawk",

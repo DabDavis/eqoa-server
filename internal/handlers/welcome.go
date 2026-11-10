@@ -60,8 +60,7 @@ import (
 // and times are ours.
 
 // welcomeBoxMark marks the welcome box's id (beside the quests' 0x51, the
-// triggers' 0x52 and the others to the Teleporter's 0x5E; 0x5F is spoken for
-// by two lanes' boxes).
+// triggers' 0x52 and the others, the Teleporter's 0x5E among them).
 const welcomeBoxMark = 0x61000000
 
 // The welcome box's times (ours).
@@ -210,22 +209,29 @@ func (g *WelcomeGuide) Entered(sess *session.Session, p *entity.Player) {
 	if !due {
 		return
 	}
-	a := g.ask(sess, p, true)
+	a, _ := g.ask(sess, p, true)
 	g.tryIn(a, welcomeAfter)
 }
 
 // Show is /tutorial: the box, whatever the day and never (it waits as the
-// day's does for a death or a world loading).
+// day's does for a death or a world loading). Typed while the day's box waits
+// to go out, it is that box: the day is taken.
 func (g *WelcomeGuide) Show(sess *session.Session, p *entity.Player) {
 	if g == nil || p == nil || !WelcomeGuideOn() {
 		SendErrorMessage(sess, welcomeOffLine)
 		return
 	}
-	g.try(g.ask(sess, p, false))
+	a, old := g.ask(sess, p, false)
+	if old != nil && old.daily && !old.taken && g.store != nil {
+		if _, err := g.store.TakeWelcomeDay(p.CharServerID, welcomeDay(g.now())); err != nil {
+			log.Printf("Welcome: %s's day: %v", p.Name, err)
+		}
+	}
+	g.try(a)
 }
 
-// ask makes p's next box, in place of any it has.
-func (g *WelcomeGuide) ask(sess *session.Session, p *entity.Player, daily bool) *welcomeAsk {
+// ask makes p's next box in place of any it has, which it returns (nil: none).
+func (g *WelcomeGuide) ask(sess *session.Session, p *entity.Player, daily bool) (a, old *welcomeAsk) {
 	now := g.now()
 	question := welcomeQuestionTutorial
 	if daily {
@@ -236,16 +242,17 @@ func (g *WelcomeGuide) ask(sess *session.Session, p *entity.Player, daily bool) 
 	}
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	for char, a := range g.asked {
-		if now.Sub(a.asked) > welcomeAsksKept {
+	for char, x := range g.asked {
+		if now.Sub(x.asked) > welcomeAsksKept {
 			delete(g.asked, char)
 		}
 	}
 	g.seq++
-	a := &welcomeAsk{char: p.CharServerID, sess: sess, box: welcomeBoxMark | (g.seq & 0xFFFFFF), question: question,
+	a = &welcomeAsk{char: p.CharServerID, sess: sess, box: welcomeBoxMark | (g.seq & 0xFFFFFF), question: question,
 		daily: daily, asked: now, until: now.Add(welcomeGiveUp)}
+	old = g.asked[a.char]
 	g.asked[a.char] = a
-	return a
+	return a, old
 }
 
 // tryIn tries a again d from now, once however often it is asked for.

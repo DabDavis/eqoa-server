@@ -1531,6 +1531,34 @@ table **`charsafemode`** (serverid, since), so it outlives a change of world, a 
 `enterFromRecord`, `restoreSafeMode`), and a login in it is told so once in the world (`tellSafeMode`, `OnPlayerEntered`); with
 the switch off a login leaves it, its row deleted. Not invisibility: players and NPCs still see the character.
 
+### The welcome guide: a box once a day, and `/tutorial` (`handlers/welcome.go`, `database/welcome.go`, `world.welcome_guide`)
+
+Petition 1457, the GM Jibrish (2026-11-10): "Add a game popup when people first log in, a dialogue pop up, for the day ... 1:
+Ask if they would like a guide of the server 2: Ask if they never want to see this on that character again ... Make sure to
+tell them that /tutorial will bring this menu up again at any time". **A character's first world entry of a UTC calendar day**
+asks, 10 s after its client says it is in the world (`welcomeAfter`, `OnPlayerEntered`), in the game's own question box (0x0034,
+mark **0x61000000**; a PS2 and vanilla show it alike): "Welcome, Anna! Would you like a quick guide to this server? Close this to
+be asked again another day." with Yes, show me the guide / Never show this again on this character, and the box's own Close (255:
+nothing, the next day asks again). The day is taken as the box goes out (`TakeWelcomeDay`, one statement, so a second entry that
+day, a takeover's or a restart's, is not asked). It never goes out over what the player must see to first: while dead, on its way
+back from a death or loading a world (state channels held) it waits, looking every 3 s, at most 3 minutes (then the day is not
+taken and the next entry asks); a box CLIENT declines itself because a menu is up (Msg0034: 255 within 1.5 s) goes out again 3 s
+later (vanilla holds it until its menu closes). A keep restart's resumed session is not asked (its 0x0014 is not its first).
+**The guide** is dialogue boxes (0x0046, 217 characters each; CLIENT queues eleven), built from what the server has
+(`welcomeFacts`, read at most every 5 minutes): the kept items a login gives (the Genie's Lamp, the Heirloom Fang of the Wolf,
+the Summoning Portal while `world.heirlooms` and their records; the Rock of Freeport with `world.rock_of_freeport`) and the
+Heirloom Outfitters' free gear, Dabrish and the Spell Archivist (said to be in Freeport only when they stand within 60 of the
+"Freeport Announcements" board), "And more!", how to report a bug (bugreport.go's own lines: F3 and `/bug` for a client that
+reports with F3, else `#bug` and Support), raids (the Raid List window to a client of ours, `/help` or a PS2's `/t help`) and the
+raid loot rules, Options > Extended (to a PS2: "On the PC or browser client, ..."), and `/tutorial` last; six boxes on the
+Heirloom Test Server, three on a server with none of the extras. A client "of ours" is one that answered the offers
+(`Session.AckMasks`: vanilla, which forwards a /command it does not know); a PS2 keeps one to itself, so it is told `/t tutorial`.
+**Never again** is kept in table **`charwelcome`** (serverid, shown_day, never, changed: a player's own choice, deleted with
+its character; empty it on a new server's copy), through logouts and restarts. **`/tutorial`** (`#tutorial`, a PS2's
+`/t tutorial`; with text after it `/t tutorial ...` is a tell) shows the box at once, whatever the day and the flag, and no answer
+turns the daily box back on (the user's choice): a GM does, by the row (never 0, or delete it). `world.welcome_guide: false`
+turns all of it off (`/tutorial` then says there is no guide). Words and times are ours.
+
 ### The Teleporter: every raid's way in and every XP camp (`handlers/teleporter.go`, `world.teleporter`, `tools/place_teleporter.py`)
 
 The owner, 2026-11-09: "lets add a portal npc named Teleporter. has destinations of all raids and camps", "put it next to

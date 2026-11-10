@@ -620,30 +620,30 @@ func TestTheRaidGodsAbilities(t *testing.T) {
 		t.Errorf("a resist's case: %+v", list)
 	}
 	for _, bad := range []string{
-		`[{"kind":"nuke","every":10,"heal":150}]`,                                      // a hit heal's figure on a nuke
-		`[{"kind":"hitheal","heal":0}]`,                                                // a hit heal of nothing
-		`[{"kind":"hitheal","heal":150,"every":10}]`,                                   // a clock on what casts nothing
-		`[{"kind":"summon","count":3,"npc":"Servant of Moogie"}]`,                      // a summon with no share of hit points
-		`[{"kind":"summon","below":25,"count":11,"npc":"Servant of Moogie"}]`,          // too many
-		`[{"kind":"summon","below":25,"count":3}]`,                                     // no one to call
-		`[{"kind":"enrage","below":10}]`,                                               // an enrage that does nothing
-		`[{"kind":"enrage","below":10,"grow":200,"every":1}]`,                          // pulls too often
-		`[{"kind":"prefer"}]`,                                                          // no foes
-		`[{"kind":"prefer","foes":[""]}]`,                                              // a foe of no name
-		`[{"kind":"proc"}]`,                                                            // a proc of nothing
-		`[{"kind":"proc","spell_id":7,"proc_chance":10,"proc_damage":5}]`,              // a spell's and its own figures
-		`[{"kind":"veil","tap_pct":0}]`,                                                // a veil of nothing
-		`[{"kind":"veil","tap_pct":1,"resist":"XR"}]`,                                  // a resist of none
-		`[{"kind":"heal","heal_pct":100,"every":60,"out_of_reach":true}]`,              // a heal from afar
-		`[{"kind":"nuke","every":10,"range":50}]`,                                      // a range with no gate
-		`[{"kind":"nuke","every":10,"damage":50,"damage_pct":200}]`,                    // a fixed figure and a percent
-		`[{"kind":"heal","every":10,"damage":50}]`,                                     // a fixed hit on a heal
-		`[{"kind":"nuke","spell":"Fire Bolt","every":10,"fx":7}]`,                      // a visual beside a spell's
-		`[{"kind":"nuke","every":10,"resist":"AR"}]`,                                   // a resist with no fixed figure
-		`[{"kind":"hitheal","heal":150},{"kind":"nuke","chain":true}]`,                 // a chain to what casts nothing
-		`[{"kind":"nuke","every":10,"count":3}]`,                                       // a summon's field on a nuke
-		`[{"kind":"enrage","below":10,"grow":200,"from":5}]`,                           // a level gate on a moment
-		`[{"kind":"veil","tap_pct":1,"say":"no"}]`,                                     // a say on a veil
+		`[{"kind":"nuke","every":10,"heal":150}]`,                                       // a hit heal's figure on a nuke
+		`[{"kind":"hitheal","heal":0}]`,                                                 // a hit heal of nothing
+		`[{"kind":"hitheal","heal":150,"every":10}]`,                                    // a clock on what casts nothing
+		`[{"kind":"summon","count":3,"npc":"Servant of Moogie"}]`,                       // a summon with no share of hit points
+		`[{"kind":"summon","below":25,"count":11,"npc":"Servant of Moogie"}]`,           // too many
+		`[{"kind":"summon","below":25,"count":3}]`,                                      // no one to call
+		`[{"kind":"enrage","below":10}]`,                                                // an enrage that does nothing
+		`[{"kind":"enrage","below":10,"grow":200,"every":1}]`,                           // pulls too often
+		`[{"kind":"prefer"}]`,                                                           // no foes
+		`[{"kind":"prefer","foes":[""]}]`,                                               // a foe of no name
+		`[{"kind":"proc"}]`,                                                             // a proc of nothing
+		`[{"kind":"proc","spell_id":7,"proc_chance":10,"proc_damage":5}]`,               // a spell's and its own figures
+		`[{"kind":"veil","tap_pct":0}]`,                                                 // a veil of nothing
+		`[{"kind":"veil","tap_pct":1,"resist":"XR"}]`,                                   // a resist of none
+		`[{"kind":"heal","heal_pct":100,"every":60,"out_of_reach":true}]`,               // a heal from afar
+		`[{"kind":"nuke","every":10,"range":50}]`,                                       // a range with no gate
+		`[{"kind":"nuke","every":10,"damage":50,"damage_pct":200}]`,                     // a fixed figure and a percent
+		`[{"kind":"heal","every":10,"damage":50}]`,                                      // a fixed hit on a heal
+		`[{"kind":"nuke","spell":"Fire Bolt","every":10,"fx":7}]`,                       // a visual beside a spell's
+		`[{"kind":"nuke","every":10,"resist":"AR"}]`,                                    // a resist with no fixed figure
+		`[{"kind":"hitheal","heal":150},{"kind":"nuke","chain":true}]`,                  // a chain to what casts nothing
+		`[{"kind":"nuke","every":10,"count":3}]`,                                        // a summon's field on a nuke
+		`[{"kind":"enrage","below":10,"grow":200,"from":5}]`,                            // a level gate on a moment
+		`[{"kind":"veil","tap_pct":1,"say":"no"}]`,                                      // a say on a veil
 		`[{"kind":"summon","below":25,"count":3,"npc":"Servant of Moogie","share":-1}]`, // a share below none
 	} {
 		if _, err := ParseTemplateAbilities(bad); err == nil {

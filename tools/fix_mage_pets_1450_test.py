@@ -231,6 +231,14 @@ class FixMagePetsTest(unittest.TestCase):
         self.db().execute("UPDATE classtemplates SET special_every = 20, special_damage = 5 WHERE name = 'pet badi elder'")
         self.refused("has a special already")
 
+    def test_another_templates_special_is_noted_and_left(self):
+        # a GM's crit on the Efreeti Lord's template: its workbook pet crits by it with this code, said
+        self.db().execute("INSERT INTO classtemplates (name, special_every, special_damage) VALUES ('pet efreeti lord', 20, 5)")
+        p = self.run_tool("--apply")
+        self.assertIn("note: 'summon efreeti lord''s workbook pet crits by its template 'pet efreeti lord'", p.stdout)
+        self.assertEqual(self.db().execute("SELECT special_every, special_damage FROM classtemplates WHERE name = "
+                                           "'pet efreeti lord'").fetchone(), (20.0, 5.0))
+
     def test_a_missing_pet_row_is_refused(self):
         self.db().execute("DELETE FROM petstats WHERE spellid = ?", (fix.GHILAN,))
         self.refused("no row for Summon Ghilan Noble")

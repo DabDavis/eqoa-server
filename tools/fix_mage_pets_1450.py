@@ -272,6 +272,8 @@ def body_size(db, model):
     """The size a workbook pet of no row size takes from its body (entity/petstats.go petBodyLocked): the commonest of
     its wearers' within a person's (0.75 to 1.5), the lowest id's on a tie; else 1."""
     sizes = {}
+    if not has_table(db, "npcs"):
+        return 1.0
     for i, s in db.execute("SELECT id, size FROM npcs WHERE modelid = ? ORDER BY id", (model,)):
         if s is not None and 0.75 <= s <= 1.5:
             n, first = sizes.get(s, (0, i))
@@ -389,6 +391,15 @@ def plan(db):
     else:
         refuse(f"classtemplates {TEMPLATE!r} has a special already ({ {c: t[c] for c in CRIT_OFF} }): a GM's?")
     return changes, done
+
+
+def other_crits(db):
+    """The summonings of a workbook pet whose pet template has a timed special already (not the Badi Elder's): since
+    this petition's code their pets crit by it too, which the report says."""
+    q = ("SELECT pt.spell, c.name, c.special_every, c.special_damage FROM pettemplate pt JOIN classtemplates c ON c.name = "
+         "pt.template WHERE c.special_every > 0 AND c.special_damage > 0 AND c.name != ? AND EXISTS (SELECT 1 FROM petstats "
+         "s JOIN spellpattern p ON p.spellid = s.spellid WHERE lower(trim(p.spellname)) = pt.spell) ORDER BY pt.spell")
+    return db.execute(q, (TEMPLATE,)).fetchall()
 
 
 def backup(path):
@@ -518,6 +529,9 @@ def main():
             print(describe(c))
         for d in done:
             print(f"done already: {d}")
+        for spell, tmpl, every, dmg in other_crits(db):
+            print(f"note: {spell!r}'s workbook pet crits by its template {tmpl!r} with this code too ({dmg} a level every "
+                  f"{every} s): a GM's special, left")
         print(f"{len(changes)} rows to write, {len(done)} done already")
         if not a.apply:
             print("report only: --apply to write")

@@ -113,12 +113,14 @@ func (h *CombatHandler) swingFor(sess *session.Session, p *entity.Player) entity
 // swingOf is the swing CLIENT's AutoAttackTick would make with this player's
 // gear: which of equip slots 14-20 are worn, and the first worn item in 14,
 // 16 or 18 in the client's list order, whose attack type and range (the item
-// record's field after the weapon damage) set the reach.
+// record's field after the weapon damage) set the reach. Hands holding a held
+// item (slot 19 or 20) and none of those never swing (entity.Swing's Held).
 func swingOf(gw *entity.World, inv *database.InventoryStore, sess *session.Session, p *entity.Player) entity.Swing {
 	var worn [21]bool
 	hasItem := false
 	var attackType, itemRange int
 	potion, potionLeft := 0, 0 // a potion worn as the thrown weapon (potion.go)
+	held := ""                 // the first held item worn, in the client's list order
 	if inv != nil {
 		rows, err := inv.GetCharacterItems(p.CharServerID)
 		if err != nil {
@@ -130,6 +132,9 @@ func swingOf(gw *entity.World, inv *database.InventoryStore, sess *session.Sessi
 				continue
 			}
 			worn[e] = true
+			if held == "" && (e == equipHeldMain || e == equipHeldOff) {
+				held = r.Pattern.ItemName
+			}
 			if !hasItem && (e == 14 || e == 16 || e == 18) {
 				hasItem = true
 				attackType, itemRange = r.Pattern.AttackType, r.Pattern.Unk5
@@ -141,6 +146,9 @@ func swingOf(gw *entity.World, inv *database.InventoryStore, sess *session.Sessi
 	}
 	s := entity.SwingFor(p.Class, p.Level, worn, hasItem, attackType, itemRange)
 	s.Potion, s.PotionLeft = potion, potionLeft
+	if !hasItem && held != "" {
+		s.Never, s.Held = true, held
+	}
 	return s
 }
 

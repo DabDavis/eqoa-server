@@ -1180,6 +1180,8 @@ func (w *World) petTauntLocked(ps *petState, t *NPC, now time.Time) bool {
 		}
 		t.CurrentEnemy = w.tauntedLocked(t, pet.ServerID) // a preferred foe of its stays its enemy (prefer.go)
 		w.wakeNPCLocked(t)                                // npcsets.go
+	} else if t.Dummy != NotDummy {
+		w.dummyTopHateLocked(t, pet.ServerID, now) // a dummy's hate is its own (dummy.go, petition 1484)
 	}
 	n := petMeleeHit(pet, t, meleeIntn)
 	if petName(pet.Name) == grandAnimation {
@@ -1277,9 +1279,9 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 		}
 	}
 	if t.Dummy != NotDummy {
-		// told, taken off nothing; the dummy fights its one player (dummy.go)
+		// told, taken off nothing; the dummy's hate is the pet's (dummy.go)
 		tell()
-		w.dummyEngagedLocked(t, owner, now)
+		w.dummyEngagedLocked(t, pet.ServerID, n, now)
 		return false
 	}
 	if balanced {

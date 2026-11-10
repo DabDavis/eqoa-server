@@ -92,11 +92,18 @@ type ChatHandler struct {
 	raid *RaidHandler
 
 	portal *Portal // the name typed for a Summoning Portal (summonportal.go)
+
+	// links are the item links made in chat lines, linkRows where a linked
+	// record is read, and guildChat the guild handler's chat, where a line
+	// with links said to the guild goes (itemlinks.go)
+	links     *ItemLinks
+	linkRows  itemLinkRows
+	guildChat func(sess *session.Session, p *entity.Player, line chatText)
 }
 
 // NewChatHandler creates a new chat handler.
 func NewChatHandler(sessionMgr *session.Manager) *ChatHandler {
-	return &ChatHandler{sessionManager: sessionMgr, modes: make(map[entity.EntityID]byte)}
+	return &ChatHandler{sessionManager: sessionMgr, modes: make(map[entity.EntityID]byte), links: NewItemLinks()}
 }
 
 // SetGameWorld sets the game world reference (called after world init).
@@ -111,6 +118,10 @@ func (h *ChatHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeChangeChatMode, h.HandleChangeChatMode)
 	r.Register(protocol.OpcodeProfanityFilter, h.HandleProfanityFilter)
 	r.Register(protocol.OpcodeRollRequest, h.HandleRollRequest) // roll.go: the L2 menu's roll
+	// item links (itemlinks.go): the offer's answer, a line with links, a click
+	r.Register(protocol.OpcodeItemLinksOffer, h.HandleItemLinksAnswer)
+	r.Register(protocol.OpcodeItemLinkSay, h.HandleItemLinkSay)
+	r.Register(protocol.OpcodeItemLinkAsk, h.HandleItemLinkAsk)
 }
 
 // chatMode is the mode p's last 0x000E named, say before any.
@@ -161,8 +172,7 @@ func readChatLine(data []byte) (text string, target uint32, ok bool) {
 	return text, target, true
 }
 
-// HandleSayChat is 0x000B: a typed line. Server commands first (/hddsetup and
-// the GM's #), then a tell, then any other /command, then the sender's mode.
+// HandleSayChat is 0x000B: a typed line (typedLine).
 func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message) error {
 	message, target, ok := readChatLine(msg.Data())
 	if !ok || h.gameWorld == nil {
@@ -174,6 +184,17 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		log.Printf("SayChat: sender has no player entity, playerObjectID=%d", sess.PlayerObjectID())
 		return nil
 	}
+	h.typedLine(sess, player, plainText(message), target)
+	return nil
+}
+
+// typedLine is a typed line, 0x000B's or OpcodeItemLinkSay's route 0 with its
+// links (itemlinks.go). Server commands first (/hddsetup and the GM's #), then
+// a tell, then any other /command, then the sender's mode. Every command takes
+// the line's text alone; what is said (a tell's body, the mode's line) carries
+// its links.
+func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, line chatText, target uint32) {
+	message := line.text
 
 	// /hddsetup, for players who reach for the slash. The PS2 client eats most
 	// /-commands locally, so this only ever fires when it forwards one as plain
@@ -182,14 +203,15 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 	if strings.HasPrefix(strings.ToLower(message), "/hddsetup") {
 		hddSetupCommand(sess, player, strings.TrimSpace(message[len("/hddsetup"):]),
 			func(t string) { h.gmReply(sess, t) }, hddChatConfirmHint)
-		return nil
+		return
 	}
 
 	// /filter (or /profanity): the profanity filter turned over, everyone's
 	// (profanity.go). The game's own toggle, action 0x0B052000, is in no
 	// menu of the retail client, so a player had no way to it.
 	if word, _, _ := strings.Cut(strings.ToLower(message), " "); word == "/filter" || word == "/profanity" {
-		return h.HandleProfanityFilter(sess, nil)
+		h.HandleProfanityFilter(sess, nil)
+		return
 	}
 
 	// /fish (or #fish): a fishing session with the pole in the hand, everyone's
@@ -198,7 +220,7 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 	// slot instead.
 	if word, _, _ := strings.Cut(strings.ToLower(message), " "); (word == "/fish" || word == "#fish") && h.fishing != nil {
 		h.fishing.StartFishing(sess)
-		return nil
+		return
 	}
 
 	// /duel (duel.go): everyone's, from a client that forwards it (a PS2
@@ -206,21 +228,21 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 	// duel" instead, below)
 	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/duel") {
 		duelCommand(h.gameWorld, sess, rest, target)
-		return nil
+		return
 	}
 
 	// the raid's commands, /raid and /raidaoe (a group's raid flag, entity/raidflag.go)
 	// among them, and /help, /invite, /target and /tar, everyone's (raidcmds.go; a PS2's
 	// "/t <word>" spellings are below)
 	if h.raidLine(sess, player, message, target) {
-		return nil
+		return
 	}
 
 	// /pvp (or #pvp; a PS2's is "/t pvp", below): the PvP flag, everyone's, where
 	// world.pvp allows it (pvp.go)
 	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/pvp") || strings.EqualFold(word, "#pvp") {
 		pvpCommand(h.gameWorld, sess, rest, time.Now())
-		return nil
+		return
 	}
 
 	// /lfg (or #lfg) on|off: the live group search's registration (lfg.go),
@@ -229,7 +251,7 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 	// player types "#lfg on", which goes out as chat
 	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/lfg") || strings.EqualFold(word, "#lfg") {
 		lfgCommand(h.gameWorld, sess, strings.ToLower(word), rest)
-		return nil
+		return
 	}
 
 	// /roll (or /random; #roll, #random from a PS2, which keeps an unknown
@@ -237,7 +259,7 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 	// everyone's (roll.go)
 	if word, rest, _ := strings.Cut(message, " "); isRollWord(word) {
 		h.roll(sess, player, strings.Fields(rest))
-		return nil
+		return
 	}
 
 	// /bug (or #bug from a PS2, which keeps an unknown /command to itself):
@@ -248,21 +270,21 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		} else {
 			SendErrorMessage(sess, "This server keeps no reports.")
 		}
-		return nil
+		return
 	}
 
 	// /who (or #who; a PS2's is "/t who", below): who is in the world, everyone's (the user,
 	// 2026-11-07: "lets allow anyone to use /who"). A GM's #who still says where each stands
 	if word, _, _ := strings.Cut(message, " "); (strings.EqualFold(word, "/who") || strings.EqualFold(word, "#who")) && !h.isGM(sess) {
 		h.whoList(sess)
-		return nil
+		return
 	}
 
 	// /stuck (or #stuck; a PS2's is "/t stuck", below): home, as a gate sends its caster,
 	// everyone's (entity/stuck.go)
 	if word, _, _ := strings.Cut(message, " "); strings.EqualFold(word, "/stuck") || strings.EqualFold(word, "#stuck") {
 		stuckCommand(h.gameWorld, sess)
-		return nil
+		return
 	}
 
 	// /campfix (or #campfix; a PS2's "/t campfix"): a camp report, everyone's, and
@@ -271,103 +293,103 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 	// /mark and #mark are its own (gmcamps.go, below), "/t mark bob" is a tell, and
 	// any other mark is told to open a report first.
 	if cmd, rest, tell, ok := campfixLine(message); ok && h.campfixRoute(sess, player, cmd, rest, tell) {
-		return nil
+		return
 	}
 
 	// /testinvis (or #testinvis; a PS2's is "/t testinvis", below): safe mode, no
 	// creature attacks on sight, everyone's (safemode.go)
 	if word, rest, _ := strings.Cut(message, " "); (strings.EqualFold(word, "/"+testInvisWord) || strings.EqualFold(word, "#"+testInvisWord)) && strings.TrimSpace(rest) == "" {
 		h.testInvisCommand(sess, player)
-		return nil
+		return
 	}
 
 	// /merc (or #merc; a PS2's is "/t merc ...", below): its mercenary, everyone's
 	// (merc.go); /familiar (or #familiar, "/t familiar ...") its familiar (familiar.go)
 	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/merc") || strings.EqualFold(word, "#merc") {
 		h.mercs.Command(sess, player, rest)
-		return nil
+		return
 	}
 	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/familiar") || strings.EqualFold(word, "#familiar") {
 		h.familiars.Command(sess, player, rest)
-		return nil
+		return
 	}
 
 	// /record [name] (or #record; a PS2's is "/t record [name]", below): a combat
 	// record, its own or any character's, everyone's (combatrecord.go)
 	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/record") || strings.EqualFold(word, "#record") {
 		recordCommand(h.gameWorld, sess, player, rest)
-		return nil
+		return
 	}
 
 	// /tutorial (or #tutorial, and a PS2's "/t tutorial"): the welcome guide's box
 	// again, everyone's (welcome.go)
 	if tutorialLine(message) {
 		h.welcome.Show(sess, player)
-		return nil
+		return
 	}
 
 	// GM commands start with #
 	if strings.HasPrefix(message, "#") {
 		h.handleGMCommand(sess, player, message)
-		return nil
+		return
 	}
 
 	if name, body, isTell := parseTell(message); isTell {
 		// a PS2's /who: it keeps an unknown /command to itself and cannot type a #
 		if body == "" && strings.EqualFold(name, "who") {
 			h.whoList(sess)
-			return nil
+			return
 		}
 		// a PS2's raid flag and the raid's other commands: it sends /t on as typed and
 		// neither keeps /raid nor can type a # (entity/raidflag.go), and a tell with no
 		// text is no tell; /t invite, /t target, /t need ... when they are commands
 		// (raidcmds.go)
 		if h.raidTell(sess, player, name, body) {
-			return nil
+			return
 		}
 		// the PvP flag the same way (pvp.go), and "/t pvp off" or "/t pvp on" for one way
 		// alone (Larrybird, 2026-11-08: a relog took his flag down and the "/pvp" he typed to
 		// take it off put it back up)
 		if b := strings.ToLower(strings.TrimSpace(body)); strings.EqualFold(name, "pvp") && (b == "" || b == "off" || b == "on") {
 			pvpCommand(h.gameWorld, sess, b, time.Now())
-			return nil
+			return
 		}
 		// and /stuck (entity/stuck.go)
 		if body == "" && strings.EqualFold(name, "stuck") {
 			stuckCommand(h.gameWorld, sess)
-			return nil
+			return
 		}
 		// and /testinvis, safe mode (safemode.go)
 		if strings.TrimSpace(body) == "" && strings.EqualFold(name, testInvisWord) {
 			h.testInvisCommand(sess, player)
-			return nil
+			return
 		}
 		// and the mercenary's and the familiar's words (merc.go, familiar.go): "/t
 		// merc" alone or with one of them; anything else to a "merc" is a tell
 		if strings.EqualFold(name, "merc") && mercWords(body) {
 			h.mercs.Command(sess, player, body)
-			return nil
+			return
 		}
 		if strings.EqualFold(name, "familiar") && familiarWords(body) {
 			h.familiars.Command(sess, player, body)
-			return nil
+			return
 		}
 		// and the combat record: "/t record" its own, "/t record <name>" a
 		// character's (combatrecord.go); more than a name is a tell
 		if strings.EqualFold(name, "record") && !strings.ContainsAny(strings.TrimSpace(body), " \t") {
 			recordCommand(h.gameWorld, sess, player, body)
-			return nil
+			return
 		}
 		if wager, ok := duelTell(body); ok {
 			// Sandstorm's challenge, "whisper "duel" to another player"
 			// (duel.go): the challenge, not a tell
 			h.gameWorld.DuelChallenge(sess, 0, name, wager, time.Now())
-			return nil
+			return
 		}
 		if h.gmChatGate(sess, player, "tell "+name, body) {
-			h.tell(sess, player, name, body)
+			h.tell(sess, player, name, line.tail(body))
 		}
-		return nil
+		return
 	}
 
 	// A GM's /command spelling of a # command (devcmds.go), from a client
@@ -375,7 +397,7 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 	// (devcmds.go's granted: /fly).
 	if gm := slashGM(message); gm != "" && (h.isGM(sess) || h.granted(sess, strings.ToLower(strings.Fields(gm)[0]))) {
 		h.handleGMCommand(sess, player, gm)
-		return nil
+		return
 	}
 
 	// Any other /command reaches the server only from a client that forwards
@@ -387,31 +409,30 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 			word = word[:i]
 		}
 		SendErrorMessage(sess, fmt.Sprintf("Unrecognized command %q.", word))
-		return nil
+		return
 	}
 
 	// the name a Summoning Portal is waiting for (summonportal.go): every
 	// command above has had its turn, and no one hears it
 	if h.portal.TakeName(sess, player, message) {
-		return nil
+		return
 	}
 
 	if !h.gmChatGate(sess, player, chatModeName(h.chatMode(player)), message) {
-		return nil // a GM's Silence (gmchannel.go)
+		return // a GM's Silence (gmchannel.go)
 	}
 	switch h.chatMode(player) {
 	case ChatModeGroup:
-		h.groupChat(sess, player, message)
+		h.groupChat(sess, player, line)
 	case ChatModeGuild:
-		RouteGuildChat(h.gameWorld, sess, player, message)
+		routeGuildChat(h.gameWorld, sess, player, line)
 	case ChatModeShout:
-		h.shout(sess, player, message)
+		h.shout(sess, player, line)
 	case ChatModeWhisper:
-		h.whisper(sess, player, target, message)
+		h.whisper(sess, player, target, line)
 	default:
-		h.say(sess, player, message)
+		h.say(sess, player, line)
 	}
-	return nil
 }
 
 // HandleShoutChat is 0x0C01, VIClientPart2EFCC's message: sub 2 is a shout
@@ -436,15 +457,21 @@ func (h *ChatHandler) HandleShoutChat(sess *session.Session, msg *protocol.Messa
 		log.Printf("ShoutChat: sender has no player entity, playerObjectID=%d", sess.PlayerObjectID())
 		return nil
 	}
-	// a typed line in shout mode comes here, a portal's name too (summonportal.go)
-	if h.portal.TakeName(sess, player, message) {
-		return nil
-	}
-	if !h.gmChatGate(sess, player, "shout", message) {
-		return nil
-	}
-	h.shout(sess, player, message)
+	h.shoutLine(sess, player, plainText(message))
 	return nil
+}
+
+// shoutLine is a shout, 0x0C01 sub 2's or OpcodeItemLinkSay's route 1 with its
+// links (itemlinks.go). A typed line in shout mode comes here, a portal's name
+// too (summonportal.go), which takes the text alone.
+func (h *ChatHandler) shoutLine(sess *session.Session, player *entity.Player, line chatText) {
+	if h.portal.TakeName(sess, player, line.text) {
+		return
+	}
+	if !h.gmChatGate(sess, player, "shout", line.text) {
+		return
+	}
+	h.shout(sess, player, line)
 }
 
 // playerSessions maps every in-world player to its session, in one pass:
@@ -493,45 +520,51 @@ func (h *ChatHandler) inSayRange(sess *session.Session, player *entity.Player) [
 }
 
 // say is mode 0: "Name: text", white (0x0A7A, as Sandstorm says NPC lines
-// [C]), to every player within sayRadius in the sender's world.
-func (h *ChatHandler) say(sess *session.Session, player *entity.Player, message string) {
-	if message = consoleLine(message, chatLineMost); message == "" {
+// [C]), to every player within sayRadius in the sender's world; with its links
+// to a client that takes them (relayTo).
+func (h *ChatHandler) say(sess *session.Session, player *entity.Player, message chatText) {
+	if message = message.clean(chatLineMost); message.text == "" {
 		return
 	}
-	line := fmt.Sprintf("%s: %s", player.Name, message)
+	line := message.wrap(player.Name+": ", "").made()
 	hear := h.inSayRange(sess, player)
 	for _, l := range hear {
-		l.s.Queue().AddWithSequence(buildClientMessage(lineFor(l.p, line)))
+		shown := lineFor(l.p, line.text)
+		relayTo(l.s, protocol.OpcodeClientMessage, clientMessagePayload(shown), line, shown, wideLineMost)
 	}
-	log.Printf("SayChat: %q to %d players", line, len(hear))
+	log.Printf("SayChat: %q to %d players", line.text, len(hear))
 }
 
 // shout is mode 3: "Name shouts: text" in (63, 255, 63), 0x0A7B, as Sandstorm
-// sends it [C], to every player in the world.
-func (h *ChatHandler) shout(sess *session.Session, player *entity.Player, message string) {
-	if message = consoleLine(message, chatLineMost); message == "" {
+// sends it [C], to every player in the world; with its links to a client that
+// takes them (relayTo).
+func (h *ChatHandler) shout(sess *session.Session, player *entity.Player, message chatText) {
+	if message = message.clean(chatLineMost); message.text == "" {
 		return
 	}
-	line := fmt.Sprintf("%s shouts: %s", player.Name, message)
+	line := message.wrap(player.Name+" shouts: ", "").made()
 	n := 0
 	self := false
 	sessions := playerSessions(h.gameWorld)
+	to := func(s *session.Session, p *entity.Player) {
+		shown := lineFor(p, line.text)
+		relayTo(s, protocol.OpcodeColoredChat, coloredChatPayload(shown, 0x3F, 0xFF, 0x3F), line, shown, wideLineMost)
+		n++
+	}
 	h.gameWorld.ForEachPlayer(func(p *entity.Player) {
 		s := sessions[p.ServerID]
 		if s == nil {
 			return
 		}
-		s.Queue().AddWithSequence(buildColoredMessage(lineFor(p, line)))
-		n++
+		to(s, p)
 		if p.ServerID == player.ServerID {
 			self = true
 		}
 	})
 	if !self {
-		sess.Queue().AddWithSequence(buildColoredMessage(lineFor(player, line)))
-		n++
+		to(sess, player)
 	}
-	log.Printf("ShoutChat: %q to %d players", line, n)
+	log.Printf("ShoutChat: %q to %d players", line.text, n)
 }
 
 // groupChat is mode 2: 0x069E (the dispatcher [A]: a u32 CLIENT does not use,
@@ -541,8 +574,9 @@ func (h *ChatHandler) shout(sess *session.Session, player *entity.Player, messag
 // GroupIsRaid: a raid flag raised, or past four) hears "Name tells the raid:"
 // in raidChatRGB instead, a line in its colour (the user, 2026-11-08: "make it
 // say tells the raid instead of group and make text color orange").
-func (h *ChatHandler) groupChat(sess *session.Session, player *entity.Player, message string) {
-	if message = consoleLine(message, chatLineMost); message == "" {
+// With its links to a client that takes them (relayTo).
+func (h *ChatHandler) groupChat(sess *session.Session, player *entity.Player, message chatText) {
+	if message = message.clean(chatLineMost); message.text == "" {
 		return
 	}
 	members := h.gameWorld.GroupChatHearers(player)
@@ -551,21 +585,23 @@ func (h *ChatHandler) groupChat(sess *session.Session, player *entity.Player, me
 		return
 	}
 	raid := h.gameWorld.GroupIsRaid(player)
-	line := fmt.Sprintf("%s tells the group: %s", player.Name, message)
+	line := message.wrap(player.Name+" tells the group: ", "")
 	if raid {
-		line = fmt.Sprintf("%s tells the raid: %s", player.Name, message)
+		line = message.wrap(player.Name+" tells the raid: ", "")
 	}
+	line = line.made()
 	sessions := playerSessions(h.gameWorld)
 	for _, m := range members {
 		if s := sessions[m.ServerID]; s != nil {
+			shown := lineFor(m, line.text)
 			if raid {
-				SendColoredChat(s, lineFor(m, line), raidChatRGB[0], raidChatRGB[1], raidChatRGB[2])
+				relayTo(s, protocol.OpcodeColoredChat, coloredChatPayload(shown, raidChatRGB[0], raidChatRGB[1], raidChatRGB[2]), line, shown, wideLineMost)
 			} else {
-				SendGroupChat(s, uint32(player.ServerID), lineFor(m, line))
+				relayTo(s, protocol.OpcodeGroupChat, buildGroupChat(uint32(player.ServerID), shown), line, shown, wideLineMost)
 			}
 		}
 	}
-	log.Printf("GroupChat: %q to %d members", line, len(members))
+	log.Printf("GroupChat: %q to %d members", line.text, len(members))
 }
 
 // raidChatRGB is a raid's chat: orange.
@@ -587,6 +623,12 @@ func guildChatLinePayload(senderID uint32, text string) []byte {
 // as the guild handler sends it.
 // Not in a guild: an error to the sender alone.
 func RouteGuildChat(gw *entity.World, sess *session.Session, player *entity.Player, message string) {
+	routeGuildChat(gw, sess, player, plainText(message))
+}
+
+// routeGuildChat is RouteGuildChat of a line with its links, sent with them to
+// a client that takes them (relayTo).
+func routeGuildChat(gw *entity.World, sess *session.Session, player *entity.Player, message chatText) {
 	if gw == nil || player == nil {
 		return
 	}
@@ -594,11 +636,11 @@ func RouteGuildChat(gw *entity.World, sess *session.Session, player *entity.Play
 		SendErrorMessage(sess, "You are not in a guild.")
 		return
 	}
-	if message = consoleLine(message, chatLineMost); message == "" {
+	if message = message.clean(chatLineMost); message.text == "" {
 		return
 	}
 	// the guild handler's line (0x0578 sub 12): CLIENT prints it as it is
-	line := player.Name + ": " + message
+	line := message.wrap(player.Name+": ", "").made()
 	sessions := playerSessions(gw)
 	type member struct {
 		s *session.Session
@@ -613,9 +655,10 @@ func RouteGuildChat(gw *entity.World, sess *session.Session, player *entity.Play
 		}
 	})
 	for _, m := range to {
-		queueReliable(m.s, protocol.OpcodeGuildInfo, entity.BuildGuildChat(0, lineFor(m.p, line)))
+		shown := lineFor(m.p, line.text)
+		relayTo(m.s, protocol.OpcodeGuildInfo, entity.BuildGuildChat(0, shown), line, shown, guildLineMost)
 	}
-	log.Printf("GuildChat: %q to %d members", line, len(to))
+	log.Printf("GuildChat: %q to %d members", line.text, len(to))
 }
 
 // parseTell splits a /t or /tell line (the command word in any case, as the
@@ -652,9 +695,10 @@ func findPlayerByName(gw *entity.World, name string) *entity.Player {
 // reply name). The sender sees "You told Name, 'text'"; CLIENT echoes
 // nothing itself. An unknown or offline name is an error to the sender alone.
 // The texts are a choice [P]: no capture holds a tell.
-func (h *ChatHandler) tell(sess *session.Session, from *entity.Player, name, text string) {
-	text = consoleLine(text, chatLineMost)
-	if name == "" || text == "" {
+// Both lines carry the body's links to a client that takes them (relayTo).
+func (h *ChatHandler) tell(sess *session.Session, from *entity.Player, name string, text chatText) {
+	text = text.clean(chatLineMost)
+	if name == "" || text.text == "" {
 		SendErrorMessage(sess, "Tell Failed")
 		return
 	}
@@ -667,17 +711,24 @@ func (h *ChatHandler) tell(sess *session.Session, from *entity.Player, name, tex
 		SendErrorMessage(sess, fmt.Sprintf("%s is not connected.", name))
 		return
 	}
+	text = text.made()
 	SendReplyName(toSess, from.Name)
-	SendColoredChat(toSess, lineFor(to, fmt.Sprintf("%s tells you, '%s'", from.Name, text)), tellR, tellG, tellB)
-	SendColoredChat(sess, lineFor(from, fmt.Sprintf("You told %s, '%s'", to.Name, text)), tellR, tellG, tellB)
+	h.tellLine(toSess, to, text.wrap(from.Name+" tells you, '", "'"))
+	h.tellLine(sess, from, text.wrap("You told "+to.Name+", '", "'"))
 	log.Printf("Tell: %s -> %s", from.Name, to.Name)
+}
+
+// tellLine is one of a tell's or a whisper's lines to p, in the tells' colour.
+func (h *ChatHandler) tellLine(s *session.Session, p *entity.Player, line chatText) {
+	shown := lineFor(p, line.text)
+	relayTo(s, protocol.OpcodeColoredChat, coloredChatPayload(shown, tellR, tellG, tellB), line, shown, wideLineMost)
 }
 
 // whisper is mode 1, which no window of the client offers (its four modes
 // are say, shout, group and guild): a 0x000B in it goes to the sender's
 // target alone, if that is a player, and never to the room [P].
-func (h *ChatHandler) whisper(sess *session.Session, from *entity.Player, target uint32, text string) {
-	if text = consoleLine(text, chatLineMost); text == "" {
+func (h *ChatHandler) whisper(sess *session.Session, from *entity.Player, target uint32, text chatText) {
+	if text = text.clean(chatLineMost); text.text == "" {
 		return
 	}
 	var to *entity.Player
@@ -695,9 +746,10 @@ func (h *ChatHandler) whisper(sess *session.Session, from *entity.Player, target
 		SendErrorMessage(sess, fmt.Sprintf("%s is not connected.", to.Name))
 		return
 	}
-	SendColoredChat(toSess, lineFor(to, fmt.Sprintf("%s whispers, '%s'", from.Name, text)), tellR, tellG, tellB)
+	text = text.made()
+	h.tellLine(toSess, to, text.wrap(from.Name+" whispers, '", "'"))
 	if toSess != sess {
-		SendColoredChat(sess, lineFor(from, fmt.Sprintf("You whisper to %s, '%s'", to.Name, text)), tellR, tellG, tellB)
+		h.tellLine(sess, from, text.wrap("You whisper to "+to.Name+", '", "'"))
 	}
 }
 

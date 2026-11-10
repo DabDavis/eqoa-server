@@ -148,29 +148,49 @@ func (h *GuildHandler) HandleGuildCommand(sess *session.Session, msg *protocol.M
 	case guildCmdCharter:
 		h.charter(sess, p, consoleBlock(r.str16(guildCharterMaxUnits), guildCharterMaxUnits))
 	case guildCmdChat:
-		text := consoleLine(r.str16(1023), chatLineMost)
-		if r.err || text == "" {
+		text := r.str16(1023)
+		if r.err {
 			return nil
 		}
-		// a typed line in guild mode comes here, a portal's name too (summonportal.go)
-		if h.portal.TakeName(sess, p, text) {
-			return nil
-		}
-		// Recv0468/5 prints the line alone, so the speaker goes into it;
-		// every online member hears it, the speaker too.
-		g := h.gameWorld.GuildOf(p)
-		if g == nil {
-			queueReliable(sess, protocol.OpcodeGuildCommandFailed, buildGuildFailed(guildCmdChat, guildFailNotInGuild))
-			return nil
-		}
-		if h.chatGate != nil && !h.chatGate(sess, p, "guild", text) {
-			return nil
-		}
-		h.broadcast(g, nil, entity.BuildGuildChat(0, p.Name+": "+text))
+		h.chatLine(sess, p, plainText(text))
 	default:
 		log.Printf("Guild: sub-command %d from %s ignored", sub, p.Name)
 	}
 	return nil
+}
+
+// chatLine is the guild's chat, 0x0578 sub 12's or OpcodeItemLinkSay's route 2
+// with its links (itemlinks.go): the line cleaned as every relayed line is. A
+// typed line in guild mode comes here, a portal's name too (summonportal.go),
+// which takes the text alone. Recv0468/5 prints the line alone, so the speaker
+// goes into it; every online member hears it, the speaker too, a client that
+// takes links with them (relayTo).
+func (h *GuildHandler) chatLine(sess *session.Session, p *entity.Player, line chatText) {
+	if line = line.clean(chatLineMost); line.text == "" {
+		return
+	}
+	if h.portal.TakeName(sess, p, line.text) {
+		return
+	}
+	g := h.gameWorld.GuildOf(p)
+	if g == nil {
+		queueReliable(sess, protocol.OpcodeGuildCommandFailed, buildGuildFailed(guildCmdChat, guildFailNotInGuild))
+		return
+	}
+	if h.chatGate != nil && !h.chatGate(sess, p, "guild", line.text) {
+		return
+	}
+	line = line.wrap(p.Name+": ", "").made()
+	payload := entity.BuildGuildChat(0, line.text)
+	if len(line.links) == 0 {
+		h.broadcast(g, nil, payload)
+		return
+	}
+	for _, m := range h.gameWorld.GuildMembers(g.ID) {
+		if s := h.gameWorld.FindSessionByEntityID(m.ServerID); s != nil {
+			relayTo(s, protocol.OpcodeGuildInfo, payload, line, line.text, guildLineMost)
+		}
+	}
 }
 
 func (h *GuildHandler) create(sess *session.Session, p *entity.Player, name string) {

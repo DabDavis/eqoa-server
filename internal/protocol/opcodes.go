@@ -775,9 +775,10 @@ const (
 	// server's, never 0), u8 1 when the fight is over (this is its last
 	// message) else 0, u32 the fight's length in ms (from its first damage to
 	// its latest), u32 the damage of all its lines (what each line's share is
-	// of), u16 its lines in all, u8 the lines here (at most
-	// entity.DPSMeterLinesMost, the most damage first, the receiver's own always
-	// among them), then each line: u8 flags (1 the receiver's own; 2 no longer
+	// of), u16 its lines in all, u16 the receiver's own line's place among them
+	// (1 the most damage), u8 the lines here (at most entity.DPSMeterLinesMost,
+	// the most damage first, the receiver's own always among them: in the last
+	// place when its place is past them), then each line: u8 flags (1 the receiver's own; 2 no longer
 	// in its group: one that did damage in this fight and left), u8 its class,
 	// u32 its damage (its pet's included), u32 its pet's share of that, and its
 	// name (a u8 byte count and UTF-8, at most 23 bytes). Every member of the

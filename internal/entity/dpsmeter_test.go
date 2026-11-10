@@ -24,6 +24,7 @@ type meterMsg struct {
 	lengthMS uint32
 	total    uint32
 	all      int
+	place    int
 	lines    []meterMsgLine
 }
 
@@ -59,6 +60,7 @@ func readMeterMsg(t *testing.T, b []byte) meterMsg {
 	m.lengthMS = binary.LittleEndian.Uint32(need(4))
 	m.total = binary.LittleEndian.Uint32(need(4))
 	m.all = int(binary.LittleEndian.Uint16(need(2)))
+	m.place = int(binary.LittleEndian.Uint16(need(2)))
 	n := int(need(1)[0])
 	for range n {
 		var l meterMsgLine
@@ -425,7 +427,7 @@ func TestDPSMeterScopeFollowsTheGroup(t *testing.T) {
 	}
 	got := fmt.Sprint(msgs[0].lines)
 	want := fmt.Sprint([]meterMsgLine{{flags: 1, class: classEnchanter, damage: 160, name: "Druid"}, {flags: 2, damage: 40, name: "Tank"}, {class: 9, name: "Healer"}})
-	if got != want || msgs[0].all != 3 || msgs[0].total != 200 {
+	if got != want || msgs[0].all != 3 || msgs[0].total != 200 || msgs[0].place != 1 {
 		t.Errorf("the enchanter's lines %s (%d in all, %d), want %s", got, msgs[0].all, msgs[0].total, want)
 	}
 }
@@ -558,7 +560,7 @@ func TestDPSMeterOnTheWire(t *testing.T) {
 		{id: 2, line: dpsLine{name: "Jib", class: 10, damage: 300, pet: 120}, flags: 2},
 	}
 	got := encodeDPSMeter(0x01020304, true, 1500*time.Millisecond, rows)
-	want := []byte{1, 4, 3, 2, 1, 1, 0xDC, 5, 0, 0, 0x14, 5, 0, 0, 2, 0, 2,
+	want := []byte{1, 4, 3, 2, 1, 1, 0xDC, 5, 0, 0, 0x14, 5, 0, 0, 2, 0, 1, 0, 2,
 		1, 3, 0xE8, 3, 0, 0, 0, 0, 0, 0, 3, 'D', 'a', 'b',
 		2, 10, 0x2C, 1, 0, 0, 0x78, 0, 0, 0, 3, 'J', 'i', 'b'}
 	if !bytes.Equal(got, want) {
@@ -570,7 +572,7 @@ func TestDPSMeterOnTheWire(t *testing.T) {
 	}
 	many[27].flags = 1
 	m := readMeterMsg(t, encodeDPSMeter(9, false, time.Second, many))
-	if len(m.lines) != DPSMeterLinesMost || m.all != 30 || m.lines[DPSMeterLinesMost-1].name != "M27" || m.lines[DPSMeterLinesMost-2].name != "M22" {
+	if len(m.lines) != DPSMeterLinesMost || m.all != 30 || m.place != 28 || m.lines[DPSMeterLinesMost-1].name != "M27" || m.lines[DPSMeterLinesMost-2].name != "M22" {
 		t.Fatalf("%d lines of %d, last %s", len(m.lines), m.all, m.lines[len(m.lines)-1].name)
 	}
 	if m.total != 30*1000-29*30/2 {
@@ -578,7 +580,7 @@ func TestDPSMeterOnTheWire(t *testing.T) {
 	}
 	many[27].flags, many[3].flags = 0, 1
 	m = readMeterMsg(t, encodeDPSMeter(9, false, time.Second, many))
-	if m.lines[DPSMeterLinesMost-1].name != "M23" {
+	if m.lines[DPSMeterLinesMost-1].name != "M23" || m.place != 4 {
 		t.Fatalf("its own among the top: the last is %s, want the 24th", m.lines[DPSMeterLinesMost-1].name)
 	}
 	if got := dpsName(strings.Repeat("é", 12)); got != strings.Repeat("é", 11) {

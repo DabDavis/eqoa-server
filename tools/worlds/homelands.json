@@ -44,7 +44,40 @@
               6938.5,
               3356.6
             ],
-            "note": "the starter quests' giver, a hill giant at the foot of the old steps"
+            "note": "gives the first two starter quests (the tooth thong; the spiritmaster and the coachman); a hill giant at the foot of the old steps"
+          },
+          {
+            "name": "Stonehand Borrik",
+            "like": 129064,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              6944.0,
+              57.62,
+              3368.0
+            ],
+            "toward": [
+              6938.5,
+              3356.6
+            ],
+            "note": "gives the three hunts (levels 3-5), a few steps south-east of the newcomer, beside the elder: a plateau sentinel's look"
+          },
+          {
+            "name": "Hidewife Marna",
+            "like": 128906,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6928.0,
+              57.62,
+              3374.0
+            ],
+            "toward": [
+              6938.5,
+              3356.6
+            ],
+            "stock": "Lucas Anstol",
+            "note": "the camp's outfitter, a few steps south-west of the elder: hands over the level 1 tooth thong and the level 4 materials; a Freeport merchant's goods (Lucas Anstol)"
           },
           {
             "name": "Grocer Bulka",
@@ -80,6 +113,40 @@
             "note": "binds, as every spiritmaster"
           },
           {
+            "name": "Coachman Durgo",
+            "like": 128811,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6938.0,
+              57.62,
+              3395.0
+            ],
+            "toward": [
+              6938.5,
+              3356.6
+            ],
+            "note": "the camp's stable, on the open plain south of the elder: the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 129052,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              6922.0,
+              57.62,
+              3326.0
+            ],
+            "toward": [
+              6938.5,
+              3356.6
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), so a young giant that casts has its spells; north-west of the elder, past the grocer; left out where the database has none to take wares from"
+          },
+          {
             "name": "Gatekeeper Thundrik",
             "like": 128811,
             "level": 35,
@@ -93,7 +160,7 @@
               6947.5,
               3356.6
             ],
-            "note": "sends a young giant who has done the starter quests to Oggok (the quest The Stone Way)"
+            "note": "sends a young giant who has done the five starter quests to Oggok (the quest The Stone Way); by the standing stones north of the camp"
           },
           {
             "name": "Plateau sentinel",
@@ -146,80 +213,189 @@
           {
             "name": "plateau skink",
             "body": "0xFD1EC25E",
-            "level": 1,
+            "level": 2,
             "role": "foe",
-            "size": 0.35,
             "at": [
-              6817.6,
-              61.1,
-              3147.3
+              6818.6,
+              57.73,
+              3298.9
             ],
-            "note": "the starter hunt's skinks (a plains basilisk's body, small), at the plain's basilisks' spots west of the steps"
-          },
-          {
-            "name": "plateau skink",
-            "body": "0xFD1EC25E",
-            "level": 1,
-            "role": "foe",
             "size": 0.35,
-            "at": [
-              6645.3,
-              57.6,
-              3283.8
-            ]
+            "note": "the level 3 quest's skinks (a plains basilisk's body, small), at the plain's own creatures' spots west of the camp (moved in from the far pits: the nearest is 130 off, not 240)"
           },
           {
             "name": "plateau skink",
             "body": "0xFD1EC25E",
             "level": 2,
             "role": "foe",
-            "size": 0.35,
             "at": [
-              6628.0,
-              58.7,
-              3178.6
-            ]
+              6802.5,
+              57.73,
+              3331.9
+            ],
+            "size": 0.35
           },
           {
             "name": "plateau skink",
             "body": "0xFD1EC25E",
-            "level": 1,
+            "level": 3,
             "role": "foe",
-            "size": 0.35,
             "at": [
-              6683.5,
-              61.6,
-              3092.0
-            ]
-          },
-          {
-            "name": "plateau skink",
-            "body": "0xFD1EC25E",
-            "level": 1,
-            "role": "foe",
-            "size": 0.35,
-            "at": [
-              6577.5,
-              57.7,
-              3241.5
-            ]
+              6804.5,
+              57.73,
+              3419.8
+            ],
+            "size": 0.35
           },
           {
             "name": "plateau skink",
             "body": "0xFD1EC25E",
             "level": 2,
             "role": "foe",
-            "size": 0.35,
             "at": [
-              6740.0,
-              58.1,
-              3230.0
-            ]
+              6806.4,
+              57.73,
+              3476.1
+            ],
+            "size": 0.35
+          },
+          {
+            "name": "plateau skink",
+            "body": "0xFD1EC25E",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              6743.6,
+              57.62,
+              3330.0
+            ],
+            "size": 0.35
+          },
+          {
+            "name": "plateau skink",
+            "body": "0xFD1EC25E",
+            "level": 2,
+            "role": "foe",
+            "at": [
+              6748.3,
+              57.73,
+              3418.3
+            ],
+            "size": 0.35
+          },
+          {
+            "name": "rock badger",
+            "body": "0x8C4F05A3",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              6912.4,
+              57.73,
+              3506.3
+            ],
+            "size": 0.9,
+            "note": "the level 4 quest's badgers (the badger's body), at the plain's own creatures' spots south of the camp (two on the plain's own height)"
+          },
+          {
+            "name": "rock badger",
+            "body": "0x8C4F05A3",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              6957.8,
+              57.73,
+              3526.2
+            ],
+            "size": 0.9
+          },
+          {
+            "name": "rock badger",
+            "body": "0x8C4F05A3",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              6935.0,
+              57.63,
+              3555.0
+            ],
+            "size": 0.9
+          },
+          {
+            "name": "rock badger",
+            "body": "0x8C4F05A3",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              6980.0,
+              57.62,
+              3560.0
+            ],
+            "size": 0.9
+          },
+          {
+            "name": "rock badger",
+            "body": "0x8C4F05A3",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              6886.8,
+              57.73,
+              3581.8
+            ],
+            "size": 0.9
+          },
+          {
+            "name": "rock badger",
+            "body": "0x8C4F05A3",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              6806.5,
+              57.73,
+              3547.2
+            ],
+            "size": 0.9
+          },
+          {
+            "name": "Greyjaw",
+            "body": "0x7E4AEA3D",
+            "level": 5,
+            "role": "foe",
+            "at": [
+              6951.4,
+              59.87,
+              3159.3
+            ],
+            "size": 1.3,
+            "note": "the level 5 quest's foe (a grey wolf's body, large), alone at a wyrm's spot far north of the camp, 80 beyond the gatekeeper; hostile"
           }
         ],
         "peaceful": [
-          "plateau skink"
-        ]
+          "plateau skink",
+          "rock badger"
+        ],
+        "hostile": [
+          "Greyjaw"
+        ],
+        "lines": {
+          "Gatekeeper Thundrik": [
+            "Not yet, little one. The stone way is for giants the plateau has tested.",
+            "Do what Elder Hrolmog and Stonehand Borrik ask. Then come back."
+          ],
+          "Plateau sentinel": [
+            "Hmm. All quiet. The rhinos are far off.",
+            "Keep off the old steps, %r. The dead up there do not like company.",
+            "New one? Elder Hrolmog stands at the foot of the old steps."
+          ],
+          "Elder Hrolmog": [
+            "A giant is a stone that walks, %p. Walk slow. Fall on what needs falling on.",
+            "The ogres are loud. You will get used to it."
+          ],
+          "Stonehand Borrik": [
+            "Big steps, %p. Small ones waste the day.",
+            "Hit it once. If it gets up, hit it again."
+          ]
+        }
       }
     },
     {
@@ -262,7 +438,40 @@
               5130.9,
               6976.4
             ],
-            "note": "the starter quests' giver, in a kerran priest's robe, on the village's landward side"
+            "note": "gives the first two starter quests (the claw band; the spiritmaster and the coachman); in a kerran priest's robe, on the village's landward side"
+          },
+          {
+            "name": "Huntress Kazhra",
+            "like": 132177,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              5133.0,
+              54.09,
+              6989.0
+            ],
+            "toward": [
+              5130.9,
+              6976.4
+            ],
+            "note": "gives the three hunts (levels 3-5), a few steps south of the newcomer, beside the elder: an isle sentinel's look"
+          },
+          {
+            "name": "Weaver Shimra",
+            "like": 132169,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5166.8,
+              54.12,
+              6953.9
+            ],
+            "toward": [
+              5130.9,
+              6976.4
+            ],
+            "stock": "Lucas Anstol",
+            "note": "the village's outfitter, under the first stilt house north-east of the elder (a kerran soldier's spot on the ground): hands over the level 1 claw band and the level 4 materials; a Freeport merchant's goods (Lucas Anstol)"
           },
           {
             "name": "Grocer Miyanne",
@@ -298,6 +507,40 @@
             "note": "binds, as every spiritmaster"
           },
           {
+            "name": "Coachman Tolhra",
+            "like": 132167,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5125.0,
+              54.09,
+              6960.0
+            ],
+            "toward": [
+              5130.9,
+              6976.4
+            ],
+            "note": "the isle's stable, on the open grass north-west of the elder, on the landward side: the level 2 quest's ledger; his coach (and the ferry that carries it) runs to Freeport and to the other homes, and a rider from them lands on his spot"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 132173,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              5181.8,
+              54.27,
+              6968.0
+            ],
+            "toward": [
+              5130.9,
+              6976.4
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), so a cub that casts has its spells; a kerran priest's look at a kerran wizard's spot east of the elder; left out where the database has none to take wares from"
+          },
+          {
             "name": "Gatekeeper Raszhar",
             "like": 132181,
             "level": 35,
@@ -311,7 +554,7 @@
               5137.9,
               6976.4
             ],
-            "note": "at the water's edge: sends a cub who has done the starter quests to Qeynos (the quest Across the Water)"
+            "note": "at the water's edge north-east of the village: sends a cub who has done the five starter quests to Qeynos (the quest Across the Water)"
           },
           {
             "name": "Isle sentinel",
@@ -352,80 +595,189 @@
           {
             "name": "isle crab",
             "body": "0x09185B98",
-            "level": 1,
+            "level": 2,
             "role": "foe",
-            "size": 0.5,
             "at": [
               5175.0,
               54.1,
               6800.0
             ],
-            "note": "the starter hunt's crabs (a sandcrawler crab's body, small), on the sand north of the village"
+            "size": 0.5,
+            "note": "the level 3 quest's crabs (a sandcrawler crab's body, small), on the sand spit north of the village"
           },
           {
             "name": "isle crab",
             "body": "0x09185B98",
-            "level": 1,
+            "level": 2,
             "role": "foe",
-            "size": 0.5,
             "at": [
               5205.0,
               54.1,
               6812.0
-            ]
+            ],
+            "size": 0.5
           },
           {
             "name": "isle crab",
             "body": "0x09185B98",
-            "level": 2,
+            "level": 3,
             "role": "foe",
-            "size": 0.5,
             "at": [
               5185.0,
               54.1,
               6830.0
-            ]
-          },
-          {
-            "name": "isle crab",
-            "body": "0x09185B98",
-            "level": 1,
-            "role": "foe",
-            "size": 0.5,
-            "at": [
-              5210.0,
-              54.1,
-              6845.0
-            ]
-          },
-          {
-            "name": "isle crab",
-            "body": "0x09185B98",
-            "level": 1,
-            "role": "foe",
-            "size": 0.5,
-            "at": [
-              5172.0,
-              54.1,
-              6858.0
-            ]
+            ],
+            "size": 0.5
           },
           {
             "name": "isle crab",
             "body": "0x09185B98",
             "level": 2,
             "role": "foe",
-            "size": 0.5,
+            "at": [
+              5210.0,
+              54.1,
+              6845.0
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "isle crab",
+            "body": "0x09185B98",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              5172.0,
+              54.1,
+              6858.0
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "isle crab",
+            "body": "0x09185B98",
+            "level": 2,
+            "role": "foe",
             "at": [
               5195.0,
               54.1,
               6872.0
-            ]
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "fern viper",
+            "body": "0x5276C760",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              5050.0,
+              54.09,
+              6985.0
+            ],
+            "size": 0.7,
+            "note": "the level 4 quest's snakes (the grass viper's body, small), among the ferns and palms west and south-west of the village, on the ground's own heights"
+          },
+          {
+            "name": "fern viper",
+            "body": "0x5276C760",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              5030.0,
+              55.09,
+              6965.0
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "fern viper",
+            "body": "0x5276C760",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              5010.0,
+              54.09,
+              7000.0
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "fern viper",
+            "body": "0x5276C760",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              5060.0,
+              54.09,
+              7020.0
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "fern viper",
+            "body": "0x5276C760",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              5035.0,
+              54.09,
+              7035.0
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "fern viper",
+            "body": "0x5276C760",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              5080.0,
+              54.09,
+              7050.0
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "Old Snapclaw",
+            "body": "0x09185B98",
+            "level": 5,
+            "role": "foe",
+            "at": [
+              4995.4,
+              54.09,
+              7051.8
+            ],
+            "size": 1.5,
+            "note": "the level 5 quest's foe (the crab's body, half as big again), alone at a millipede's spot on the island's far south-west; hostile"
           }
         ],
         "peaceful": [
-          "isle crab"
-        ]
+          "isle crab",
+          "fern viper"
+        ],
+        "hostile": [
+          "Old Snapclaw"
+        ],
+        "lines": {
+          "Gatekeeper Raszhar": [
+            "Not yet, cub. The water is wide, and you have not earned the crossing.",
+            "Do what Elder Ssharu and Huntress Kazhra ask of you. Then come to me at the water's edge."
+          ],
+          "Isle sentinel": [
+            "The tide is quiet, %r. So am I.",
+            "Walk softly on the stilts, cub. The elders are sleeping. The elders are always sleeping.",
+            "A new cub? Elder Ssharu stands on the landward side."
+          ],
+          "Elder Ssharu": [
+            "A kerran lands on its feet, %p. See that you do.",
+            "The humans mean well. Do not scratch them unless you must."
+          ],
+          "Huntress Kazhra": [
+            "Ears up, %p. The ferns hide more than they show.",
+            "Stalk first. Pounce once."
+          ]
+        }
       }
     },
     {
@@ -468,7 +820,40 @@
               5437.0,
               9260.0
             ],
-            "note": "the starter quests' giver, a Jal'Raeth channeler, on the road before the temple's east door"
+            "note": "gives the first two starter quests (the prayer beads; the spiritmaster and the coachman); a Jal'Raeth channeler, on the road before the temple's east door"
+          },
+          {
+            "name": "Watcher Vaeris",
+            "like": 126603,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              5437.0,
+              53.88,
+              9273.0
+            ],
+            "toward": [
+              5437.0,
+              9260.0
+            ],
+            "note": "gives the three hunts (levels 3-5), on the road a few steps south of the elder: a sentinel's look"
+          },
+          {
+            "name": "Artificer Maelis",
+            "like": 126608,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5427.0,
+              53.88,
+              9244.0
+            ],
+            "toward": [
+              5437.0,
+              9260.0
+            ],
+            "stock": "Lucas Anstol",
+            "note": "the order's outfitter, on the road's north side: hands over the level 1 prayer beads and the level 4 materials; a Freeport merchant's goods (Lucas Anstol)"
           },
           {
             "name": "Grocer Saelun",
@@ -504,6 +889,40 @@
             "note": "binds, as every spiritmaster"
           },
           {
+            "name": "Coachman Therun",
+            "like": 126605,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              5450.0,
+              53.88,
+              9250.0
+            ],
+            "toward": [
+              5437.0,
+              9260.0
+            ],
+            "note": "the order's stable, on the road north-east of the elder (open floor): the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 126611,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              5427.0,
+              53.88,
+              9280.0
+            ],
+            "toward": [
+              5437.0,
+              9260.0
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), so a novice that casts has its spells; a channeler's look, on the road's south side; left out where the database has none to take wares from"
+          },
+          {
             "name": "Gatekeeper Tavrin",
             "like": 126605,
             "level": 35,
@@ -517,7 +936,7 @@
               5437.0,
               9262.0
             ],
-            "note": "at the temple's east door: sends one who has done the starter quests to Highbourne (the quest The Scholars' City)"
+            "note": "at the temple's east door: sends one who has done the five starter quests to Highbourne (the quest The Scholars' City)"
           },
           {
             "name": "Envar sentinel",
@@ -558,80 +977,192 @@
           {
             "name": "ash grub",
             "body": "0x1FA284AE",
-            "level": 1,
+            "level": 2,
             "role": "foe",
-            "size": 0.5,
             "at": [
               5530.0,
               64.5,
               9230.0
             ],
-            "note": "the starter hunt's grubs (a moth larva's body, small), in the dead hills where the east road ends"
+            "size": 0.5,
+            "note": "the level 3 quest's grubs (a moth larva's body, small), in the dead hills where the east road runs out"
           },
           {
             "name": "ash grub",
             "body": "0x1FA284AE",
-            "level": 1,
+            "level": 2,
             "role": "foe",
-            "size": 0.5,
             "at": [
               5530.0,
               63.7,
               9290.0
-            ]
+            ],
+            "size": 0.5
           },
           {
             "name": "ash grub",
             "body": "0x1FA284AE",
-            "level": 2,
+            "level": 3,
             "role": "foe",
-            "size": 0.5,
             "at": [
               5570.0,
               69.2,
               9300.0
-            ]
-          },
-          {
-            "name": "ash grub",
-            "body": "0x1FA284AE",
-            "level": 1,
-            "role": "foe",
-            "size": 0.5,
-            "at": [
-              5560.0,
-              76.3,
-              9250.0
-            ]
-          },
-          {
-            "name": "ash grub",
-            "body": "0x1FA284AE",
-            "level": 1,
-            "role": "foe",
-            "size": 0.5,
-            "at": [
-              5640.0,
-              74.2,
-              9260.0
-            ]
+            ],
+            "size": 0.5
           },
           {
             "name": "ash grub",
             "body": "0x1FA284AE",
             "level": 2,
             "role": "foe",
-            "size": 0.5,
+            "at": [
+              5560.0,
+              76.3,
+              9250.0
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "ash grub",
+            "body": "0x1FA284AE",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              5640.0,
+              74.2,
+              9260.0
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "ash grub",
+            "body": "0x1FA284AE",
+            "level": 2,
+            "role": "foe",
             "at": [
               5500.0,
               57.2,
               9260.0
-            ]
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "cinder adder",
+            "body": "0xD914A1AB",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              5497.6,
+              60.59,
+              9190.9
+            ],
+            "size": 0.7,
+            "note": "the level 4 quest's snakes (the copperhead's body, small), on the low hills north-east of the road (the first at a beetle's own spot, the rest on the ground's own heights)"
+          },
+          {
+            "name": "cinder adder",
+            "body": "0xD914A1AB",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              5505.0,
+              59.42,
+              9205.0
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "cinder adder",
+            "body": "0xD914A1AB",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              5510.0,
+              61.05,
+              9175.0
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "cinder adder",
+            "body": "0xD914A1AB",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              5525.0,
+              61.07,
+              9195.0
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "cinder adder",
+            "body": "0xD914A1AB",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              5540.0,
+              59.28,
+              9170.0
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "cinder adder",
+            "body": "0xD914A1AB",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              5520.0,
+              60.34,
+              9160.0
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "Hollow Pilgrim",
+            "like": 126567,
+            "level": 5,
+            "role": "foe",
+            "at": [
+              5594.8,
+              73.83,
+              9319.1
+            ],
+            "toward": [
+              5437.0,
+              9260.0
+            ],
+            "note": "the level 5 quest's foe: one of the temple's dead that wandered out (an Envaric zombie's look), alone at a revenant's spot on the hill east of the grubs; hostile"
           }
         ],
         "peaceful": [
-          "ash grub"
-        ]
+          "ash grub",
+          "cinder adder"
+        ],
+        "hostile": [
+          "Hollow Pilgrim"
+        ],
+        "lines": {
+          "Gatekeeper Tavrin": [
+            "Not yet. The door opens for a still mind, and yours is still loud.",
+            "Do what Elder Ithrael and Watcher Vaeris ask of you. Then return to me."
+          ],
+          "Envar sentinel": [
+            "Be still. Listen.",
+            "The dead of the temple keep to the temple, %r. Mostly.",
+            "A novice? Elder Ithrael waits on the road before the east door."
+          ],
+          "Elder Ithrael": [
+            "Stillness is not silence, %p. It is what remains when the noise is spent.",
+            "The scholars will ask you a great many questions. Answer the ones worth answering."
+          ],
+          "Watcher Vaeris": [
+            "Watch first. Then act once.",
+            "The hills are dead, %p. What moves in them is not ours."
+          ]
+        }
       }
     },
     {
@@ -4140,7 +4671,40 @@
               21072.1,
               14253.9
             ],
-            "note": "the starter quests' giver, a Holciel noble's look, in the tomb's great hall"
+            "note": "gives the first two starter quests (the waking band; the spiritmaster and the coachman); a Holciel noble's look, in the tomb's great hall"
+          },
+          {
+            "name": "Captain Harrow",
+            "like": 104211,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              21061.7,
+              43.71,
+              14260.7
+            ],
+            "toward": [
+              21072.1,
+              14253.9
+            ],
+            "note": "gives the three hunts (levels 3-5), a few steps from the elder: a Holciel guard's look, at an excavator's spot in the great hall"
+          },
+          {
+            "name": "Shroudmaker Corwen",
+            "like": 104242,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              21087.7,
+              43.71,
+              14218.7
+            ],
+            "toward": [
+              21072.1,
+              14253.9
+            ],
+            "stock": "Lucas Anstol",
+            "note": "the tomb's outfitter, up the hall on its east side (a Holciel commoner's spot): hands over the level 1 waking band and the level 4 materials; a Freeport merchant's goods (Lucas Anstol). Crostell the Jeweler's look (a hexbone)"
           },
           {
             "name": "Grocer Marrowby",
@@ -4176,6 +4740,40 @@
             "note": "binds, as every spiritmaster; a Holciel bureaucrat's look"
           },
           {
+            "name": "Coachman Grimsby",
+            "like": 104189,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              21074.1,
+              43.71,
+              14199.3
+            ],
+            "toward": [
+              21072.1,
+              14253.9
+            ],
+            "note": "the tomb's stable, in the middle of the great hall to the north (an excavator's spot, open floor): the level 2 quest's ledger; his coach, a hearse once, runs to Freeport and to the other homes, and a rider from them lands on his spot"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 104192,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              21051.0,
+              43.71,
+              14218.5
+            ],
+            "toward": [
+              21072.1,
+              14253.9
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), so a woken caster has its spells; the summoned arcanist's look, at a commoner's spot; left out where the database has none to take wares from"
+          },
+          {
             "name": "Gatekeeper Dustcloak",
             "like": 104224,
             "level": 35,
@@ -4189,7 +4787,7 @@
               21072.1,
               14246.9
             ],
-            "note": "sends a skeleton who has done the starter quests to Freeport (The Road to Freeport); toward the tomb's door"
+            "note": "sends a skeleton who has done the five starter quests to Freeport (the quest The Road to Freeport); down the hall to the south, toward the stair"
           },
           {
             "name": "Tomb sentinel",
@@ -4242,84 +4840,174 @@
           {
             "name": "tomb beetle",
             "body": "0xFE31035A",
-            "level": 1,
+            "level": 2,
             "role": "foe",
-            "size": 0.6,
             "at": [
-              20897.9,
-              43.72,
-              14193.2
+              21066.3,
+              41.26,
+              14299.9
             ],
-            "note": "the starter quest's beetles, at the Holciel guards' spots in the west halls"
-          },
-          {
-            "name": "tomb beetle",
-            "body": "0xFE31035A",
-            "level": 1,
-            "role": "foe",
-            "size": 0.6,
-            "at": [
-              20964.1,
-              43.72,
-              14200.9
-            ]
+            "size": 0.5,
+            "note": "the level 3 quest's beetles (the scarab's body, half its size), in and beside the excavators' pit down the hall to the south (the excavators' own spots, and two on the walk beside the pit): the tomb's doors do not open in the client, so every hunt is in the great hall's own passage"
           },
           {
             "name": "tomb beetle",
             "body": "0xFE31035A",
             "level": 2,
             "role": "foe",
-            "size": 0.6,
             "at": [
-              20883.5,
-              43.72,
-              14203.1
-            ]
+              21064.9,
+              37.36,
+              14310.4
+            ],
+            "size": 0.5
           },
           {
             "name": "tomb beetle",
             "body": "0xFE31035A",
-            "level": 1,
+            "level": 3,
             "role": "foe",
-            "size": 0.6,
             "at": [
-              20928.6,
-              43.72,
-              14210.0
-            ]
+              21063.5,
+              38.32,
+              14315.8
+            ],
+            "size": 0.5
           },
           {
             "name": "tomb beetle",
             "body": "0xFE31035A",
             "level": 2,
             "role": "foe",
-            "size": 0.6,
             "at": [
-              20943.5,
-              43.72,
-              14243.2
-            ]
+              21070.8,
+              43.14,
+              14314.7
+            ],
+            "size": 0.5
           },
           {
             "name": "tomb beetle",
             "body": "0xFE31035A",
-            "level": 1,
+            "level": 3,
             "role": "foe",
-            "size": 0.6,
             "at": [
-              20860.2,
+              21073.0,
               43.72,
-              14245.3
-            ]
+              14304.0
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "tomb beetle",
+            "body": "0xFE31035A",
+            "level": 2,
+            "role": "foe",
+            "at": [
+              21073.0,
+              43.72,
+              14322.0
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "crypt bat",
+            "body": "0x8023AD71",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              21066.0,
+              43.72,
+              14328.0
+            ],
+            "size": 0.8,
+            "note": "the level 4 quest's bats (the marrow bat's body, small), in the passage before and beyond the pit, on its floor: each more than 30 from the robber (a creature notices at 21)"
+          },
+          {
+            "name": "crypt bat",
+            "body": "0x8023AD71",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              21072.0,
+              43.72,
+              14330.0
+            ],
+            "size": 0.8
+          },
+          {
+            "name": "crypt bat",
+            "body": "0x8023AD71",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              21066.0,
+              43.72,
+              14336.0
+            ],
+            "size": 0.8
+          },
+          {
+            "name": "crypt bat",
+            "body": "0x8023AD71",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              21072.0,
+              43.72,
+              14338.0
+            ],
+            "size": 0.8
+          },
+          {
+            "name": "crypt bat",
+            "body": "0x8023AD71",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              21072.0,
+              43.72,
+              14294.0
+            ],
+            "size": 0.8
+          },
+          {
+            "name": "crypt bat",
+            "body": "0x8023AD71",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              21066.5,
+              43.72,
+              14292.0
+            ],
+            "size": 0.8
+          },
+          {
+            "name": "Tomb Robber Sela",
+            "like": 104254,
+            "level": 5,
+            "role": "foe",
+            "at": [
+              21072.5,
+              43.14,
+              14369.7
+            ],
+            "toward": [
+              21072.1,
+              14253.9
+            ],
+            "note": "the level 5 quest's foe: a living grave robber (Grave Robber Laen's look), alone at the far end of the south passage (a Holciel commoner's spot); hostile"
           }
         ],
         "peaceful": [
-          "tomb beetle"
+          "tomb beetle",
+          "crypt bat"
         ],
         "lines": {
           "Gatekeeper Dustcloak": [
-            "Not yet. Elder Ossric speaks to every one of us who wakes.",
-            "See the elder in the great hall. Then come back to me."
+            "Not yet. The living are hard on the newly woken. Finish what Elder Ossric and Captain Harrow ask of you.",
+            "When the captain says your bones will hold, I will send you to Freeport. I have waited longer for less."
           ],
           "Tomb sentinel": [
             "The halls are quiet. They are always quiet.",
@@ -4329,8 +5017,15 @@
           "Elder Ossric": [
             "Death was not an ending for us. Only a long rest, and the rest is over.",
             "Walk among the living, and be patient with them. They have so little time."
+          ],
+          "Captain Harrow": [
+            "Stand straight, %p. You have the spine for it.",
+            "The kings sleep. We do not. That is the whole of the watch."
           ]
-        }
+        },
+        "hostile": [
+          "Tomb Robber Sela"
+        ]
       }
     },
     {
@@ -4373,7 +5068,40 @@
               24686.0,
               28972.6
             ],
-            "note": "the starter quests' giver, a fungal elder of the funagl hall deep in Guk, at its own spot by the hall's west wall"
+            "note": "gives the first two starter quests (the root sash; the spiritmaster and the coachman); a fungal elder of the funagl hall deep in Guk, at its own spot"
+          },
+          {
+            "name": "Warden Morel",
+            "like": 107987,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              24673.4,
+              -2.0,
+              28977.6
+            ],
+            "toward": [
+              24686.0,
+              28972.6
+            ],
+            "note": "gives the three hunts (levels 3-5), beside the elder at a fungal elder's spot: a funagl cavalier's look (the red cap)"
+          },
+          {
+            "name": "Capwright Chanter",
+            "like": 107965,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              24673.6,
+              -2.0,
+              28952.0
+            ],
+            "toward": [
+              24686.0,
+              28972.6
+            ],
+            "stock": "Lucas Anstol",
+            "note": "the hall's outfitter, up the passage to the north-west (a froglok's spot): hands over the level 1 root sash and the level 4 materials; a Freeport merchant's goods (Lucas Anstol). A funagl adept's look"
           },
           {
             "name": "Grocer Puffstool",
@@ -4409,6 +5137,40 @@
             "note": "binds, as every spiritmaster; the funagl devout's look"
           },
           {
+            "name": "Coachman Inkcap",
+            "like": 107966,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              24735.9,
+              -2.0,
+              28945.8
+            ],
+            "toward": [
+              24686.0,
+              28972.6
+            ],
+            "note": "the hall's stable, in the passage to the north-east (a funagl warrior's spot, open floor): the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 107984,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              24676.0,
+              -2.0,
+              28989.1
+            ],
+            "toward": [
+              24686.0,
+              28972.6
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), so a sprout that casts has its spells; Shutaki's look (the pale cap) at Shutaki's spot; left out where the database has none to take wares from"
+          },
+          {
             "name": "Gatekeeper Gillford",
             "like": 107996,
             "level": 35,
@@ -4422,7 +5184,7 @@
               24681.0,
               28977.5
             ],
-            "note": "sends a fungusman who has done the starter quests to the elves, Tethelin or Fayspire by class (Up to the Light)"
+            "note": "sends a fungusman who has done the five starter quests up to the elves, Tethelin or Fayspire by class (the quest Up to the Light); a funagl cavalier's spot north of the elder"
           },
           {
             "name": "Guk sporeguard",
@@ -4475,84 +5237,171 @@
           {
             "name": "cave beetle",
             "body": "0x4140233B",
-            "level": 1,
+            "level": 2,
             "role": "foe",
-            "size": 0.6,
             "at": [
               24818.4,
               -2.0,
               28889.4
             ],
-            "note": "the starter quest's beetles, at the frogloks' spots by the hall's east passage"
+            "size": 0.5,
+            "note": "the level 3 quest's beetles (the huge beetle's body, half its size), at the frogloks' spots in the hall's north-east passage"
           },
           {
             "name": "cave beetle",
             "body": "0x4140233B",
-            "level": 1,
+            "level": 2,
             "role": "foe",
-            "size": 0.6,
             "at": [
               24806.7,
               -2.0,
               28866.8
-            ]
+            ],
+            "size": 0.5
           },
           {
             "name": "cave beetle",
             "body": "0x4140233B",
-            "level": 2,
+            "level": 3,
             "role": "foe",
-            "size": 0.6,
             "at": [
               24800.6,
               -2.0,
               28868.2
-            ]
-          },
-          {
-            "name": "cave beetle",
-            "body": "0x4140233B",
-            "level": 1,
-            "role": "foe",
-            "size": 0.6,
-            "at": [
-              24787.4,
-              -1.91,
-              28859.9
-            ]
+            ],
+            "size": 0.5
           },
           {
             "name": "cave beetle",
             "body": "0x4140233B",
             "level": 2,
             "role": "foe",
-            "size": 0.6,
             "at": [
-              24804.2,
-              -2.0,
-              28907.9
-            ]
+              24787.4,
+              -1.91,
+              28859.9
+            ],
+            "size": 0.5
           },
           {
             "name": "cave beetle",
             "body": "0x4140233B",
-            "level": 1,
+            "level": 3,
             "role": "foe",
-            "size": 0.6,
+            "at": [
+              24804.2,
+              -2.0,
+              28907.9
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "cave beetle",
+            "body": "0x4140233B",
+            "level": 2,
+            "role": "foe",
             "at": [
               24811.9,
               -2.0,
               28923.1
-            ]
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "muck roach",
+            "body": "0x3615BBA5",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              24822.0,
+              -2.0,
+              28932.0
+            ],
+            "size": 0.6,
+            "note": "the level 4 quest's roaches (the cockroach's body, small), down the east tunnel south of the beetles, on its floor"
+          },
+          {
+            "name": "muck roach",
+            "body": "0x3615BBA5",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              24822.0,
+              -2.0,
+              28944.0
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "muck roach",
+            "body": "0x3615BBA5",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              24822.0,
+              -2.0,
+              28954.0
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "muck roach",
+            "body": "0x3615BBA5",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              24828.0,
+              -2.05,
+              28976.0
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "muck roach",
+            "body": "0x3615BBA5",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              24836.0,
+              -2.05,
+              28980.0
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "muck roach",
+            "body": "0x3615BBA5",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              24806.0,
+              -2.0,
+              28994.0
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "Old Manylegs",
+            "body": "0x899785FB",
+            "level": 5,
+            "role": "foe",
+            "at": [
+              24850.0,
+              -2.0,
+              28964.0
+            ],
+            "size": 0.9,
+            "note": "the level 5 quest's foe (a centipede's body), alone in the spur at the east tunnel's far end; hostile"
           }
         ],
         "peaceful": [
-          "cave beetle"
+          "cave beetle",
+          "muck roach"
         ],
         "lines": {
           "Gatekeeper Gillford": [
-            "Not yet, sprout. Elder Moldcap greets every new one first.",
-            "See the elder by the west wall. There is no hurry, but it must be done."
+            "Not yet, sprout. The light above is hard on a cap that has not toughened.",
+            "Do what Elder Moldcap and Warden Morel ask of you. There is no hurry, but it must be done."
           ],
           "Guk sporeguard": [
             "All is quiet in the hall.",
@@ -4562,8 +5411,15 @@
           "Elder Moldcap": [
             "A spore that waits for the right ground grows the tallest cap.",
             "Up above it is bright and dry. Carry a little of the damp with you."
+          ],
+          "Warden Morel": [
+            "Keep to the damp, %p, and keep your cap low.",
+            "What gnaws in the dark, we tend. That is a warden's whole work."
           ]
-        }
+        },
+        "hostile": [
+          "Old Manylegs"
+        ]
       }
     },
     {
@@ -4607,7 +5463,40 @@
               6483.9,
               8994.1
             ],
-            "note": "the starter quests' giver, a will o' wisp of the swamp at its own spot on the hill above the south pond"
+            "note": "gives the first two starter quests (the marsh-glass bead; the spiritmaster and the coachman); a will o' wisp of the swamp at its own spot on the hill above the south pond"
+          },
+          {
+            "name": "Watchlight Gleam",
+            "like": 127374,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              6500.4,
+              55.2,
+              9000.3
+            ],
+            "toward": [
+              6483.9,
+              8994.1
+            ],
+            "note": "gives the three hunts (levels 3-5), a little east of the elder, at a wisp's own spot by the pond (a sentinel stood here)"
+          },
+          {
+            "name": "Lampwright Glimmer",
+            "like": 127374,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6473.9,
+              63.23,
+              8972.0
+            ],
+            "toward": [
+              6483.9,
+              8994.1
+            ],
+            "stock": "Lucas Anstol",
+            "note": "the lights' outfitter, up the hill north-west of the elder (a jaguar's spot): hands over the level 1 marsh-glass bead and the level 4 materials; a Freeport merchant's goods (Lucas Anstol)"
           },
           {
             "name": "Grocer Flicker",
@@ -4644,6 +5533,40 @@
             "note": "binds, as every spiritmaster"
           },
           {
+            "name": "Coachman Wick",
+            "like": 127374,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6453.9,
+              69.41,
+              9038.5
+            ],
+            "toward": [
+              6483.9,
+              8994.1
+            ],
+            "note": "the swamp's stable, on the rise south-west of the elder (a spider's spot, open ground): the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 127374,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              6445.2,
+              69.7,
+              9011.0
+            ],
+            "toward": [
+              6483.9,
+              8994.1
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), so a light that casts has its spells; a wisp, west of the elder; left out where the database has none to take wares from"
+          },
+          {
             "name": "Gatekeeper Dimlight",
             "like": 127374,
             "level": 35,
@@ -4658,7 +5581,7 @@
               6480.4,
               8988.0
             ],
-            "note": "sends a wisp who has done the starter quests to Qeynos, its rangers and druids to Surefall Glade (A Shape for Qeynos)"
+            "note": "sends a wisp who has done the five starter quests to Qeynos, its rangers and druids to Surefall Glade (the quest A Shape for Qeynos)"
           },
           {
             "name": "Feerrott sentinel",
@@ -4697,98 +5620,173 @@
             "facing": 47
           },
           {
-            "name": "Feerrott sentinel",
-            "like": 127374,
-            "level": 25,
-            "role": "talker",
-            "at": [
-              6500.4,
-              55.0,
-              9000.3
-            ],
-            "facing": 13
-          },
-          {
             "name": "bog rat",
             "body": "0x11380781",
-            "level": 1,
+            "level": 2,
             "role": "foe",
-            "size": 0.6,
             "at": [
               6602.1,
               64.41,
               8979.0
             ],
-            "note": "the starter quest's rats, at the swamp creatures' spots in the reeds east of the elder"
+            "size": 0.6,
+            "note": "the level 3 quest's rats (the dire rat's body, small), at the swamp creatures' spots in the reeds east of the elder"
           },
           {
             "name": "bog rat",
             "body": "0x11380781",
-            "level": 1,
+            "level": 2,
             "role": "foe",
-            "size": 0.6,
             "at": [
               6593.9,
               75.34,
               9070.5
-            ]
+            ],
+            "size": 0.6
           },
           {
             "name": "bog rat",
             "body": "0x11380781",
-            "level": 2,
+            "level": 3,
             "role": "foe",
-            "size": 0.6,
             "at": [
               6617.4,
               75.55,
               9048.7
-            ]
-          },
-          {
-            "name": "bog rat",
-            "body": "0x11380781",
-            "level": 1,
-            "role": "foe",
-            "size": 0.6,
-            "at": [
-              6556.5,
-              52.86,
-              8907.7
-            ]
+            ],
+            "size": 0.6
           },
           {
             "name": "bog rat",
             "body": "0x11380781",
             "level": 2,
             "role": "foe",
-            "size": 0.6,
             "at": [
-              6561.3,
-              53.92,
-              8941.1
-            ]
+              6556.5,
+              52.86,
+              8907.7
+            ],
+            "size": 0.6
           },
           {
             "name": "bog rat",
             "body": "0x11380781",
-            "level": 1,
+            "level": 3,
             "role": "foe",
-            "size": 0.6,
+            "at": [
+              6561.3,
+              53.92,
+              8941.1
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "bog rat",
+            "body": "0x11380781",
+            "level": 2,
+            "role": "foe",
             "at": [
               6567.0,
               55.0,
               8998.9
-            ]
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "bog gnats",
+            "body": "0x0ED0E723",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              6469.7,
+              68.48,
+              9058.3
+            ],
+            "size": 0.7,
+            "note": "the level 4 quest's gnats (the mosquito swarm's body, small), at the swamp creatures' spots among the pools south of the elder"
+          },
+          {
+            "name": "bog gnats",
+            "body": "0x0ED0E723",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              6485.1,
+              83.46,
+              9129.2
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "bog gnats",
+            "body": "0x0ED0E723",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              6477.1,
+              83.91,
+              9130.9
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "bog gnats",
+            "body": "0x0ED0E723",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              6534.3,
+              68.23,
+              9173.7
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "bog gnats",
+            "body": "0x0ED0E723",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              6447.2,
+              79.7,
+              9198.4
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "bog gnats",
+            "body": "0x0ED0E723",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              6394.1,
+              73.8,
+              9150.7
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "Duskpaw",
+            "body": "0xAC4818AA",
+            "level": 5,
+            "role": "foe",
+            "at": [
+              6394.6,
+              72.72,
+              8877.4
+            ],
+            "size": 0.6,
+            "note": "the level 5 quest's foe (the jaguar's body, small: a young one), alone at a jaguar's own spot north-west of the elder; hostile"
           }
         ],
         "peaceful": [
-          "bog rat"
+          "bog rat",
+          "bog gnats"
         ],
         "lines": {
           "Gatekeeper Dimlight": [
-            "Not yet, little flame. Elder Faintglow must see your light first.",
-            "Every new light visits the elder first. She glows on the hill above the south pond."
+            "Not yet, little flame. A light that has not been tested gutters in the wind.",
+            "Do what Elder Faintglow and Watchlight Gleam ask of you. Then I will show you the way to Qeynos."
           ],
           "Feerrott sentinel": [
             "The swamp is dark tonight. It is always dark.",
@@ -4798,8 +5796,15 @@
           "Elder Faintglow": [
             "A light that knows where it came from never goes out.",
             "The armour is only a shape. The light inside is you."
+          ],
+          "Watchlight Gleam": [
+            "Burn steady, %p.",
+            "What hunts by night hunts us first. So we watch."
           ]
-        }
+        },
+        "hostile": [
+          "Duskpaw"
+        ]
       }
     },
     {

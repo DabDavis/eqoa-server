@@ -165,7 +165,7 @@ export async function render(box, parts) {
         mount(listBox, reportCard(out.report));
         return;
       }
-      const out = await op('campfix_list', { status: status.value, limit: 50 });
+      const out = await op('campfix_list', { status: status.value, limit: 20 });
       const c = out.counts || {};
       countLine.textContent = `${out.matching} shown by the filter${out.matching > out.reports.length ? `, the first ${out.reports.length} here` : ''} · ` +
         `${c.waiting || 0} waiting, ${c.applied || 0} applied, ${c.declined || 0} declined in all`;

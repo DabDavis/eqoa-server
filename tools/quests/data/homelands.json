@@ -119,6 +119,123 @@
       "notes": "Ours: the gatekeeper's port to Neriak, the goblin's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a goblin back in Moss Mouth Cavern is sent again; no reward, so none is had twice."
     },
     {
+      "key": "homelands/lizardman/welcome",
+      "name": "Fresh From the Shell",
+      "giver": "Elder Hsslarn",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Another hatchling, still wet from the shell. Before you hunt, you eat, and in this swamp the eating starts with Sskaya. Go to her at the long bridge and let her learn your face.",
+      "accept": "I will go to her.",
+      "decline": "Not now.",
+      "declined": "Then go hungry. The swamp does not mind.",
+      "started": "Sskaya keeps her stall at the west end of the long bridge, just east of here.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Sskaya",
+          "journal": "Find Grocer Sskaya at the west end of the long bridge.",
+          "says": "Hsslarn sent you? Then take this, hatchling, and eat it slowly. Bread does not run away.",
+          "rewards": {
+            "items": [
+              "hearty bread"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Hsslarn",
+          "journal": "Return to Elder Hsslarn.",
+          "says": "Good. A hunter who knows where the food is can wait as long as the prey can, and longer.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the lizardmans' first, at their home zone, Cazic-Thule of the disc."
+    },
+    {
+      "key": "homelands/lizardman/beetles",
+      "name": "Beetles in the Reeds",
+      "giver": "Grocer Sskaya",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/lizardman/welcome"
+      ],
+      "offer": "Bog beetles have been chewing through my reed baskets. Hunt five of them for me on the southern banks, behind the old temple and on the far side of the east island, and I will make it worth your while.",
+      "accept": "I will hunt them.",
+      "decline": "Not now.",
+      "declined": "Then my baskets will have holes in them.",
+      "started": "Five beetles. Mind the deep water.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "bog beetle",
+          "count": 5,
+          "journal": "Kill five bog beetles on the southern banks, behind the old temple or across the east island."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Sskaya",
+          "journal": "Tell Grocer Sskaya the beetles are dead.",
+          "says": "Five! My baskets thank you, and so do I. Here, this is yours.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the lizardmans' second starter quest; the bog beetles are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/lizardman/flight",
+      "name": "The Road to Freeport",
+      "giver": "Gatekeeper Vosskar",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/lizardman/welcome",
+        "homelands/lizardman/beetles"
+      ],
+      "repeatable": true,
+      "offer": "In Freeport the humans pay good coin for a blade that does not tire, and they ask few questions. I can send you there, and it will be your home from then on. Are you ready to go?",
+      "accept": "Send me to Freeport.",
+      "decline": "Not yet.",
+      "declined": "The coin will keep. So will Freeport.",
+      "started": "Hunt well, and send word home now and then!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Vosskar",
+          "journal": "Tell Gatekeeper Vosskar when you are ready to go to Freeport.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Freeport, the lizardman's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a lizardman back in Cazic-Thule is sent again; no reward, so none is had twice."
+    },
+    {
       "key": "homelands/aviak/welcome",
       "name": "A Fledgling's Welcome",
       "giver": "Elder Kraawk",

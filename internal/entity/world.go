@@ -1309,6 +1309,18 @@ func (w *World) GetWarpDestinations(excludeName string, loadable func(world uint
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 
+	// a homeland's gatekeeper (one standing in a world the server composed)
+	// flies its own people out by its quest, one way: it offers no trips, so
+	// a new player who talks to it before the starter quests flies nowhere
+	// (its quest answers first, its own lines after: handlers/interact.go)
+	if excludeName != "" {
+		for _, npc := range w.NPCs {
+			if npc.Name == excludeName && Composed(npc.World) {
+				return nil
+			}
+		}
+	}
+
 	var dests []CoachDest
 	for _, npc := range w.NPCs {
 		if !IsWarpNPC(npc.Name) || npc.Name == excludeName {

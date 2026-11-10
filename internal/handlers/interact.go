@@ -376,11 +376,6 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 	if npc, ok := targetEntity.(*entity.NPC); ok {
 		var routes []entity.CoachDest
 		switch {
-		case entity.IsWarpNPC(npc.Name) && entity.Composed(npc.World):
-			// a homeland's gatekeeper: its flight is its quest's (one way,
-			// once the starter quests are done: quests answered above), and
-			// it offers no routes, so a new character skips nothing and no
-			// one is flown on to another race's home
 		case entity.IsWarpNPC(npc.Name):
 			// only the worlds this client's table has (LoadableWorlds)
 			routes = h.gameWorld.GetWarpDestinations(npc.Name, LoadableWorlds(sess))

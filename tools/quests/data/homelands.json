@@ -353,6 +353,123 @@
       "notes": "Ours: the gatekeeper's port to Rivervale, the brownie's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a brownie back in Mayfly Glade is sent again; no reward, so none is had twice."
     },
     {
+      "key": "homelands/pixie/welcome",
+      "name": "A Spark in the Thicket",
+      "giver": "Elder Brightwing",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "A new spark in the thicket! Before you fly off anywhere, little one, go and find Nettlewick. She keeps the honey and the bread, and she likes to know every face she feeds.",
+      "accept": "I will find her.",
+      "decline": "Not now.",
+      "declined": "Then flit about hungry. You will be back.",
+      "started": "Nettlewick is by the old pines, a short flight east of here.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Nettlewick",
+          "journal": "Find Grocer Nettlewick by the old pines east of the elder.",
+          "says": "Brightwing sent you? Here, a boiled egg. It is bigger than you are, but you will manage.",
+          "rewards": {
+            "items": [
+              "boiled egg"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Brightwing",
+          "journal": "Return to Elder Brightwing.",
+          "says": "Good! Now Nettlewick knows you, and you know where the honey is kept. That is a fine start for any pixie.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the pixies' first, at their home zone, Misty Thicket of the disc."
+    },
+    {
+      "key": "homelands/pixie/rats",
+      "name": "Rats in the Brambles",
+      "giver": "Grocer Nettlewick",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/pixie/welcome"
+      ],
+      "offer": "Bramble rats have been nibbling at my stores. They are twice your size, but they are slow. Hunt five of them in the brambles south-west of the elder's pines and I will pay you well.",
+      "accept": "I will hunt them.",
+      "decline": "Not now.",
+      "declined": "Then the rats get fatter and I get poorer.",
+      "started": "Five rats. Stay out of reach of their teeth.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "bramble rat",
+          "count": 5,
+          "journal": "Kill five bramble rats in the brambles south-west of the elder's pines."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Nettlewick",
+          "journal": "Tell Grocer Nettlewick the rats are dead.",
+          "says": "Five rats! Small wings, big heart. Here is your pay, and well earned.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the pixies' second starter quest; the bramble rats are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/pixie/flight",
+      "name": "The Elves' Wood",
+      "giver": "Gatekeeper Thistlewhirl",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/pixie/welcome",
+        "homelands/pixie/rats"
+      ],
+      "repeatable": true,
+      "offer": "The elves of Tethelin and the Fayspires have always welcomed our kind, and they will teach you as their own. I can send you to them, and you will make your home there. Ready to fly?",
+      "accept": "Send me to the elves.",
+      "decline": "Not yet.",
+      "declined": "The elves are patient. They live a long time.",
+      "started": "Fly well, little spark!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Thistlewhirl",
+          "journal": "Tell Gatekeeper Thistlewhirl when you are ready to go to the elves.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Tethelin or Fayspire by class, the pixie's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a pixie back in Misty Thicket is sent again; no reward, so none is had twice."
+    },
+    {
       "key": "homelands/aviak/welcome",
       "name": "A Fledgling's Welcome",
       "giver": "Elder Kraawk",

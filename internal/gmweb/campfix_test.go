@@ -1,9 +1,14 @@
 package gmweb
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"os/exec"
 	"strings"
 	"testing"
 	"time"
@@ -479,5 +484,120 @@ func TestCampfixFromPetitionOp(t *testing.T) {
 	if code, out := gm.op("campfix_from_petition", map[string]any{"petition": p2.ID, "kind": "add", "name": "bandit"}); code != 400 ||
 		!strings.Contains(fmt.Sprint(out["error"]), "has no server view") {
 		t.Fatalf("no server view: %d %v", code, out)
+	}
+}
+
+// The Camp reports page in a real browser, when one is installed: signed in as
+// a GM it lists a waiting report with its marks (the player's note as text,
+// not markup), its colours and its checkboxes; unchecking the add and
+// pressing Approve checked applies the other four and declines it. Then a
+// petition's Camp report from this petition files one where its character
+// stood. A page that fails to load or to render shows nothing at all, which no
+// other test sees.
+func TestTheCampReportsPageInABrowser(t *testing.T) {
+	var browser string
+	for _, name := range []string{"chromium", "chromium-browser", "google-chrome", "google-chrome-stable"} {
+		if p, err := exec.LookPath(name); err == nil {
+			browser = p
+			break
+		}
+	}
+	if browser == "" {
+		t.Skip("no Chromium to load the page in")
+	}
+	f := campfixFixture(t)
+	title, details, status, owner := "Camp fix report: Hero", "the marks", database.WorkPlanned, handlers.CampfixBoardOwner
+	r, _, err := f.db.FileCampfixReport(database.CampfixReport{AccountID: 3, CharName: "Hero", Level: 10, World: 0, X: 21010, Z: 12000,
+		Note: "the <b>bandits</b> stand wrong", Marks: campfixMarksJSON}, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
+		func(id int64) database.WorkPost {
+			return database.WorkPost{Title: &title, Details: &details, Status: &status, Owner: &owner}
+		}, database.GMEdit{AccountID: 3, Via: "campfix"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, err := f.db.FilePetition(database.Petition{ServerID: 7, CharName: "Hero", AccountID: 3, Category: 1, Subcategory: 10,
+		Text: "a bandit should stand here", ServerView: `{"filed":"2026-11-09T10:00:00Z","via":"chat","character":{"name":"Hero",` +
+			`"serverid":7,"level":10,"class":"Warrior","race":"Human","world":0,"x":21100,"y":40,"z":12100,"facing":0}}`}, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	harness := `<!doctype html><meta charset="utf-8"><div id="out"></div><div id="pet"></div><script type="module">
+import { setCSRF } from '/static/lib/api.js';
+const out = document.getElementById('out');
+const pet = document.getElementById('pet');
+const wait = async (ok) => { for (let i = 0; i < 100 && !ok(); i++) await new Promise((r) => setTimeout(r, 100)); return ok(); };
+const press = (root, label) => [...root.querySelectorAll('button')].find((b) => b.textContent.trim() === label).click();
+(async () => {
+  try {
+    const r = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'gm', password: ` + "'" + testPassword + "'" + ` }) });
+    setCSRF((await r.json()).csrf);
+    const m = await import('/static/views/campfix.js');
+    await m.render(out, []);
+    if (!(await wait(() => out.textContent.includes('Report #` + fmt.Sprint(r.ID) + `')))) throw new Error('no report listed: ' + out.textContent.slice(0, 300));
+    const boxes = [...out.querySelectorAll('input[type=checkbox][data-mark]')];
+    if (boxes.length !== 5 || !boxes.every((b) => b.checked)) throw new Error('the checkboxes: ' + boxes.map((b) => b.checked).join(','));
+    if (!out.textContent.includes('green') || !out.textContent.includes('yellow')) throw new Error('no colours: ' + out.textContent.slice(0, 800));
+    boxes[1].checked = false;
+    press(out, 'Approve checked');
+    if (!(await wait(() => document.querySelector('.dialog')))) throw new Error('no confirmation');
+    press(document.querySelector('.dialog'), 'Approve');
+    if (!(await wait(() => out.textContent.includes('No camp report waits')))) throw new Error('the report did not leave the waiting list: ' + out.textContent.slice(0, 600));
+    const pm = await import('/static/views/petitions.js');
+    await pm.render(pet);
+    if (!(await wait(() => pet.textContent.includes('Ticket #` + fmt.Sprint(p.ID) + `')))) throw new Error('no petition listed');
+    press(pet, 'Camp report from this petition');
+    if (!(await wait(() => document.querySelector('.dialog input[type=text]')))) throw new Error('no form');
+    const dlg = document.querySelector('.dialog');
+    dlg.querySelector('input[type=text]').value = 'bandit';
+    press(dlg, 'File it');
+    if (!(await wait(() => pet.textContent.includes('waits on the Camp reports page')))) throw new Error('not filed: ' + pet.textContent.slice(0, 600));
+    out.dataset.done = '1';
+  } catch (e) {
+    out.dataset.failed = String(e);
+  }
+})();
+</script>`
+	mux := http.NewServeMux()
+	mux.HandleFunc("/harness.html", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write([]byte(harness))
+	})
+	mux.Handle("/static/", f.s.Handler())
+	mux.Handle("/api/", f.s.Handler())
+	ts := httptest.NewServer(mux)
+	defer ts.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, browser, "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
+		"--virtual-time-budget=20000", "--user-data-dir="+t.TempDir(), "--dump-dom", ts.URL+"/harness.html")
+	tmp, err := os.MkdirTemp("", "camp")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { os.RemoveAll(tmp) })
+	cmd.Env = append(os.Environ(), "DBUS_SESSION_BUS_ADDRESS=disabled:", "TMPDIR="+tmp)
+	var stderr strings.Builder
+	cmd.Stderr = &stderr
+	out, err := cmd.Output()
+	dom := string(out)
+	if err != nil || !strings.Contains(dom, `id="out"`) {
+		t.Skipf("the browser did not load the page (%v): %.300s %.600s", err, out, stderr.String())
+	}
+	if !strings.Contains(dom, `data-done="1"`) {
+		t.Fatalf("the page did not list and approve the report:\n%.4000s", dom)
+	}
+	got, _, _ := f.db.CampfixReportByID(r.ID)
+	if got.Status != "applied" || !strings.Contains(got.Review, "marks 1, 3, 4 and 5 of 5 applied; mark 2 declined") {
+		t.Fatalf("after the page's Approve: %+v", got)
+	}
+	var adds, filed int
+	f.db.QueryRow(`SELECT COUNT(*) FROM npcs WHERE x_coord = 21062`).Scan(&adds)
+	f.db.QueryRow(`SELECT COUNT(*) FROM campfix_reports WHERE status = 'waiting' AND note LIKE ?`, fmt.Sprintf("From petition %d%%", p.ID)).Scan(&filed)
+	if adds != 0 || filed != 1 {
+		t.Fatalf("the unchecked add made %d rows; %d reports filed from the petition", adds, filed)
+	}
+	if strings.Contains(dom, "<b>bandits</b>") {
+		t.Errorf("the player's note is not shown as text")
 	}
 }

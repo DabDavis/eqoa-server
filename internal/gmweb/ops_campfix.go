@@ -428,11 +428,13 @@ func (s *Server) registerCampfixOps() {
 				append(append([]string{}, database.CampfixStatuses...), "all")...),
 			"limit":  integer("at most this many (default 20, at most 100)"),
 			"offset": integer("reports to skip"),
+			"counts": boolean("only how many reports there are of each status, no reports"),
 		}),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct {
 				Status        string
 				Limit, Offset int
+				Counts        bool
 			}
 			if err := c.decode(&req); err != nil {
 				return nil, err
@@ -441,9 +443,15 @@ func (s *Server) registerCampfixOps() {
 			if limit <= 0 {
 				limit = 20
 			}
+			if req.Counts {
+				limit = 1
+			}
 			l, err := c.s.d.DB.CampfixReports(database.CampfixQuery{Status: req.Status, Limit: min(limit, 100), Offset: req.Offset})
 			if err != nil {
 				return nil, badRequest("%v", err)
+			}
+			if req.Counts {
+				return map[string]any{"matching": l.Matching, "counts": l.Counts}, nil
 			}
 			reviewer := handlers.NewCampfixReviewer(c.s.d.DB, c.s.d.World)
 			out := []map[string]any{}

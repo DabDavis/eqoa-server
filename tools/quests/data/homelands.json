@@ -470,6 +470,123 @@
       "notes": "Ours: the gatekeeper's port to Klick'Anon, the kobolds' wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
     },
     {
+      "key": "homelands/ratman/welcome",
+      "name": "A New Whisker",
+      "giver": "Elder Skritch",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Hss, a new whisker in the camp. Before you go scurrying, greet Nibbla by the shacks. She keeps the camp's food, and she remembers who greets her and who does not.",
+      "accept": "I will greet Nibbla.",
+      "decline": "Not now.",
+      "declined": "The camp will wait, whisker.",
+      "started": "Go. Nibbla is by the shacks to the east.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Nibbla",
+          "journal": "Greet Grocer Nibbla by the camp's shacks.",
+          "says": "Skritch sent you? Then have some cheese, whisker. The good kind.",
+          "rewards": {
+            "items": [
+              "cheddar cheese"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Skritch",
+          "journal": "Return to Elder Skritch in the shore camp.",
+          "says": "Good. Now Nibbla will feed you, and you will not steal from her.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the ratmen's first, at their home zone, The Vastly Deep of the disc."
+    },
+    {
+      "key": "homelands/ratman/hunt",
+      "name": "Snakes on the Shore",
+      "giver": "Elder Skritch",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/ratman/welcome"
+      ],
+      "offer": "Dune snakes come down the shore east of the camp and steal our eggs. Go east along the water and kill five of them.",
+      "accept": "I will kill them.",
+      "decline": "Not now.",
+      "declined": "Then hide the eggs well.",
+      "started": "Five snakes. Strike first, whisker.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "dune snake",
+          "count": 5,
+          "journal": "Kill five dune snakes on the shore east of the camp."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Skritch",
+          "journal": "Tell Elder Skritch the snakes are dealt with.",
+          "says": "Five snakes gone. The eggs are safe, and you are quick.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the ratmen's second starter quest, the elder's too (the owner's 2026-11-10: an elder giving two starter quests); the dune snakes are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/ratman/flight",
+      "name": "Into the Deep Halls",
+      "giver": "Gatekeeper Ksarr",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/ratman/welcome",
+        "homelands/ratman/hunt"
+      ],
+      "repeatable": true,
+      "offer": "The dwarves of Moradhim let us dig beside them in their deep halls, and they will train you. I can send you down to them, but the way runs one way. Are you ready?",
+      "accept": "Send me to Moradhim.",
+      "decline": "Not yet.",
+      "declined": "The halls will wait.",
+      "started": "Keep your nose to the stone!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Ksarr",
+          "journal": "Tell Gatekeeper Ksarr when you are ready to go to Moradhim.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Moradhim, the ratmen's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so one back in the homeland is sent again; no reward, so none is had twice."
+    },
+    {
       "key": "homelands/aviak/welcome",
       "name": "A Fledgling's Welcome",
       "giver": "Elder Kraawk",

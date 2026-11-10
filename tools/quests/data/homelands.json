@@ -938,6 +938,123 @@
       "notes": "Ours: the gatekeeper's port to Grobb, the minotaur's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a minotaur back in Gerntar Mines is sent again; no reward, so none is had twice."
     },
     {
+      "key": "homelands/skeleton/welcome",
+      "name": "Bones Awake",
+      "giver": "Elder Ossric",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "So, another of us wakes. Do not be alarmed. The bones remember how to walk. First, go and see Marrowby, just down the hall. He trades with the living who come by, and he will want to know you.",
+      "accept": "I will see Marrowby.",
+      "decline": "Not now.",
+      "declined": "We have all the time in the world. Come back when you are ready.",
+      "started": "Marrowby is just down the hall, toward the light.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Grocer Marrowby",
+          "journal": "See Grocer Marrowby down the hall.",
+          "says": "Ossric sent you? Take this bread. We do not eat it, but the living you meet will, and a gift opens doors.",
+          "rewards": {
+            "items": [
+              "sourdough bread"
+            ]
+          }
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Ossric",
+          "journal": "Return to Elder Ossric.",
+          "says": "Good. You walk, you speak, you make friends. The rest will come back to you in time.",
+          "rewards": {
+            "xp": 200,
+            "tunar": 10
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests, 2026-11-10): the skeletons' first, at their home zone, Tomb of Kings of the disc."
+    },
+    {
+      "key": "homelands/skeleton/beetles",
+      "name": "Beetles in the Bones",
+      "giver": "Grocer Marrowby",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/skeleton/welcome"
+      ],
+      "offer": "Tomb beetles are gnawing at the old halls to the west. They have no respect for the dead, and they are fond of my stock. Kill five of them and I will pay you well.",
+      "accept": "I will kill them.",
+      "decline": "Not now.",
+      "declined": "Then they will gnaw on, as beetles do.",
+      "started": "Five beetles, in the west halls past the old guard posts.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "tomb beetle",
+          "count": 5,
+          "journal": "Kill five tomb beetles in the west halls of the tomb."
+        },
+        {
+          "kind": "talk",
+          "target": "Grocer Marrowby",
+          "journal": "Tell Grocer Marrowby the beetles are dead.",
+          "says": "Five! The halls are quieter already. Here is your pay. Spend it on something the living sell.",
+          "rewards": {
+            "xp": 400,
+            "tunar": 25
+          }
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the skeletons' second starter quest; the tomb beetles are tools/seed_race_homes.py's, passive (npcaggro)."
+    },
+    {
+      "key": "homelands/skeleton/flight",
+      "name": "The Road to Freeport",
+      "giver": "Gatekeeper Dustcloak",
+      "classes": [],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/skeleton/welcome",
+        "homelands/skeleton/beetles"
+      ],
+      "repeatable": true,
+      "offer": "The living fear us, but Freeport is not so particular, and its darker guilds will take you in. I can send you there, and it will be your home from then on. Are you ready to go?",
+      "accept": "Send me to Freeport.",
+      "decline": "Not yet.",
+      "declined": "The tomb is patient. So am I.",
+      "started": "Walk tall, and keep your bones together!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Dustcloak",
+          "journal": "Tell Gatekeeper Dustcloak when you are ready to go to Freeport.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Freeport, the skeleton's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there. Repeatable, so a skeleton back in Tomb of Kings is sent again; no reward, so none is had twice."
+    },
+    {
       "key": "homelands/aviak/welcome",
       "name": "A Fledgling's Welcome",
       "giver": "Elder Kraawk",

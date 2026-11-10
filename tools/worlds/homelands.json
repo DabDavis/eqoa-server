@@ -2131,7 +2131,233 @@
       "from": "TUNARIA.ESF",
       "zone": 82,
       "race": 27,
-      "note": "Skeleton: a crypt of the old kings (Tomb of Kings, cell 10,7)"
+      "note": "Skeleton: a crypt of the old kings (Tomb of Kings, cell 10,7)",
+      "home": {
+        "flavor": "Skeletons are the restless dead of the Tomb of Kings in the Homelands, held to their bones by a will that would not die, who walk on to Freeport.",
+        "start": {
+          "x": 21072.1,
+          "y": 43.72,
+          "z": 14253.9,
+          "toward": [
+            21072.1,
+            14246.9
+          ]
+        },
+        "mainland": {
+          "place": "Freeport",
+          "world": 0,
+          "x": 25486.5,
+          "y": 61.4,
+          "z": 15547.0,
+          "facing": 4.72
+        },
+        "npcs": [
+          {
+            "name": "Elder Ossric",
+            "like": 104257,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              21072.1,
+              43.72,
+              14246.9
+            ],
+            "toward": [
+              21072.1,
+              14253.9
+            ],
+            "note": "the starter quests' giver, a Holciel noble's look, in the tomb's great hall"
+          },
+          {
+            "name": "Grocer Marrowby",
+            "like": 104189,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              21087.8,
+              43.72,
+              14270.9
+            ],
+            "toward": [
+              21072.1,
+              14246.9
+            ],
+            "stock": "Grocer Calinet",
+            "note": "a Holciel commoner's look, down the hall; a Freeport grocer's food, for the living he trades with"
+          },
+          {
+            "name": "Spiritmaster Vellum",
+            "like": 104225,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              21051.1,
+              43.72,
+              14271.0
+            ],
+            "toward": [
+              21072.1,
+              14246.9
+            ],
+            "note": "binds, as every spiritmaster; a Holciel bureaucrat's look"
+          },
+          {
+            "name": "Gatekeeper Dustcloak",
+            "like": 104224,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              21065.9,
+              43.72,
+              14341.5
+            ],
+            "toward": [
+              21072.1,
+              14246.9
+            ],
+            "note": "sends a skeleton who has done the starter quests to Freeport (The Road to Freeport); toward the tomb's door"
+          },
+          {
+            "name": "Tomb sentinel",
+            "like": 104224,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              21055.7,
+              43.72,
+              14159.0
+            ],
+            "facing": 193
+          },
+          {
+            "name": "Tomb sentinel",
+            "like": 104224,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              21129.7,
+              43.72,
+              14159.4
+            ],
+            "facing": 62
+          },
+          {
+            "name": "Tomb sentinel",
+            "like": 104224,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              21064.8,
+              43.59,
+              14390.7
+            ],
+            "facing": 30
+          },
+          {
+            "name": "Tomb sentinel",
+            "like": 104224,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              21077.7,
+              43.59,
+              14410.3
+            ],
+            "facing": 243
+          },
+          {
+            "name": "tomb beetle",
+            "body": "0xFE31035A",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              20897.9,
+              43.72,
+              14193.2
+            ],
+            "note": "the starter quest's beetles, at the Holciel guards' spots in the west halls"
+          },
+          {
+            "name": "tomb beetle",
+            "body": "0xFE31035A",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              20964.1,
+              43.72,
+              14200.9
+            ]
+          },
+          {
+            "name": "tomb beetle",
+            "body": "0xFE31035A",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              20883.5,
+              43.72,
+              14203.1
+            ]
+          },
+          {
+            "name": "tomb beetle",
+            "body": "0xFE31035A",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              20928.6,
+              43.72,
+              14210.0
+            ]
+          },
+          {
+            "name": "tomb beetle",
+            "body": "0xFE31035A",
+            "level": 2,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              20943.5,
+              43.72,
+              14243.2
+            ]
+          },
+          {
+            "name": "tomb beetle",
+            "body": "0xFE31035A",
+            "level": 1,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              20860.2,
+              43.72,
+              14245.3
+            ]
+          }
+        ],
+        "peaceful": [
+          "tomb beetle"
+        ],
+        "lines": {
+          "Gatekeeper Dustcloak": [
+            "Not yet. Elder Ossric speaks to every one of us who wakes.",
+            "See the elder in the great hall. Then come back to me."
+          ],
+          "Tomb sentinel": [
+            "The halls are quiet. They are always quiet.",
+            "Keep to the lit halls, %r. The dark ones go on for a long way.",
+            "Newly woken? Elder Ossric is in the great hall."
+          ],
+          "Elder Ossric": [
+            "Death was not an ending for us. Only a long rest, and the rest is over.",
+            "Walk among the living, and be patient with them. They have so little time."
+          ]
+        }
+      }
     },
     {
       "name": "Guk",

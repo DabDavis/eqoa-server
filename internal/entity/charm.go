@@ -64,7 +64,7 @@ import (
 //     below its own level, and three below for a druid's animal charm: the
 //     wiki's "any creature that conned Green, Light Blue, or Dark Blue at
 //     that spell's level was charmable" (dark blue is one or two below,
-//     con.go), and SOE's two caps both sit at its lower edge (Allure, level
+//     concolor.go), and SOE's two caps both sit at its lower edge (Allure, level
 //     55: 53; Binding Grasp, level 60: 58); Allakhazam's comments put the
 //     druid's at light blue (three below).
 //   - at its landing a resist: training dummies always; else the creature's

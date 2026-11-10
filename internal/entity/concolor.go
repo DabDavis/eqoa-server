@@ -1,4 +1,4 @@
-// con.go — the consider colours: what a player sees a creature as, by their
+// concolor.go — the consider colours: what a player sees a creature as, by their
 // levels (0x0010's con byte, handlers/target.go), and the colour aggro.go
 // keeps creatures off a player at on sight (green).
 

@@ -37,11 +37,15 @@ import (
 // record's figures do not hold, a weapon's proc and a worn item's hit effect
 // read by the record's name, is scaled where it is read (entity/ascended.go).
 //
-// The records made are gear (IsAscendableGear): what is worn in the gear's
-// slots 1-19 (armour, jewellery, weapons, a bow, a held item, gloves: the
-// equipment of a corpse's level rule, handlers/loot.go), not a stack, not a
-// thrown potion (attack type 10), not an Heirloom, not a copy (an import's or
-// an Ascended one). A spell scroll (wear slot -1, ScrollArt) never is.
+// The records made here are gear (IsAscendableGear): what is worn in the
+// gear's slots 1-19 (armour, jewellery, weapons, a bow, a held item, gloves:
+// the equipment of a corpse's level rule, handlers/loot.go), not a stack, not
+// a thrown potion (attack type 10), not an Heirloom, not a copy (an import's
+// or an Ascended one). tools/ascend_boss_loot.py also makes one, by the same
+// SQL, of a tuned boss's quest item that a quest's show or give step turns
+// into gear (the petition's own example, the Ring of Veeshan, is no gear: the
+// Plane of Sky's armourers take it for their breastplates), so the quest can
+// tell an Ascended one. A spell scroll (wear slot -1, ScrollArt) never is.
 //
 // A copy follows its base: at every start SyncAscendedCopies makes each copy
 // its base again by the rule (a fixed look or figure on the base reaches its

@@ -268,8 +268,12 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 	// and the NPCs' body tints, to a client that asked (npctint.go)
 	h.gameWorld.RefreshNPCTints(sess)
 	// the lists the client has, until its dump sends them anew
-	sess.SetInventoryList(ex.Inventory.list())
-	sess.SetBankList(ex.Bank.list())
+	pack, bank := ex.Inventory.list(), ex.Bank.list()
+	if pack != nil {
+		pack.bank = bank // a Lore item in the bank is one held (itemlist.go's loreRoom)
+	}
+	sess.SetInventoryList(pack)
+	sess.SetBankList(bank)
 	if ex.AuctionForm && h.auction != nil {
 		h.auction.formMu.Lock()
 		h.auction.form[sess] = true

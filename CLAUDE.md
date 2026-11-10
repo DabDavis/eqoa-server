@@ -2026,7 +2026,7 @@ The user, 2026-11-07, after a player destroyed an item by accident: "lets give i
 out the oldest, made by a sale (`sell`, price what it paid) and the item menu's Destroy (`destroy`, price what `sell` would have paid
 at the time, `merchantWouldPay`: nothing for a Rose, which merchants refuse) and nothing else: the bank, a trade, a corpse, the auction
 and quests take items their own ways. **No Rent never goes in** (rent 0, what a spell conjures, or a row of `norentvanish`, what vanishes
-at a logout), and an entry whose record has gone or has since become No Rent drops quietly when next read; NO TRADE and heirlooms go
+at a logout, unless its holder is back within five minutes: `handlers/norent.go`, table `charlogout`, jib's PR #1), and an entry whose record has gone or has since become No Rent drops quietly when next read; NO TRADE and heirlooms go
 in like anything else. **No client change**: any merchant's 0x00B7 (a genie's too) lists them AFTER its wares as records of their own, so a
 ware's index means what it always did and a request past the wares is a line. What CLIENT does with it is at the top of `buyback.go`, read
 off the decomp: `VIItemList::Read` checks nothing against its 40, so wares first and lines only where there is room (the newest kept; the
@@ -2076,7 +2076,9 @@ with no check, so a 41st overruns the VIClient fields after the list. So **a PS2
   condition, charges, quick slot), the newly kept after any kept before. Nothing in the game reads them there:
   `GetCharacterItems` and `GetCharItem` read locations 0 and 1 alone and every row change (`SetItemStack`, charges,
   condition, `DeleteCharItem`, `MoveCharItem`, `SetEquipLoc`) refuses a kept row, so no request, sale, cast, potion,
-  quest, trade or gear set reaches what the client was never sent. A Lore item kept is one held (`invList.kept`), and
+  quest, trade or gear set reaches what the client was never sent. A Lore item kept (from the pack or the bank) is one
+  held (`invList.kept`), as is one in the bank list (`invList.bank`, linked by the dump and the keep restart: jib's PR #1,
+  a lore item held once whether worn, in the pack or in the bank; until 2026-11-10 the bank's was not counted), and
   `#template` counts kept heirlooms. **A login with room brings them back**, the first kept first, at the end of the
   list; a respawn's, a restart's or `#template`'s dump keeps and never brings back (what a player freed in a session is
   theirs until the next login). The player is told once in the world (`tellKept`, yellow): how many are kept and that

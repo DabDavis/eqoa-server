@@ -145,7 +145,7 @@ func craftNeeds(r *database.CraftRecipe, lostOnly bool) []craftNeed {
 func (l *invList) clone() *invList {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	return &invList{recs: append([]invRec(nil), l.recs...), next: l.next, cap: l.cap, kept: l.kept}
+	return &invList{recs: append([]invRec(nil), l.recs...), next: l.next, cap: l.cap, kept: l.kept, bank: l.bank}
 }
 
 // craftRoom is whether n of the product fits once the takes are taken, filed
@@ -165,7 +165,7 @@ func craftRoom(l *invList, takes []craftTake, p *database.ItemPatternRecord, n i
 	if p.MaxStack >= 2 {
 		return sim.loreRoom(p, sim.wouldAdd(p.PatternID, n, p.MaxStack)) == n
 	}
-	if p.Lore != 0 && (n > 1 || sim.held(p.PatternID) > 0 || sim.keptHas(p.PatternID)) { // one at most (itemlist.go's loreRoom)
+	if p.Lore != 0 && (n > 1 || sim.loreHeld(p.PatternID)) { // one at most (itemlist.go's loreRoom)
 		return false
 	}
 	for i := 0; i < n; i++ {

@@ -331,10 +331,18 @@ func (h *CharacterHandler) fitItemLists(serverID uint32, pack, bank int, login b
 		log.Printf("ItemLists: character %d holds %d and %d past lists of %d and %d after a plan: fitted again", serverID, len(inv), len(bnk), pack, bank)
 	}
 	inv, bnk = capEntries(inv, pack), capEntries(bnk, bank)
-	if note.keptPack > 0 {
-		var err error
-		if kept, _, err = h.inventoryStore.KeptPatterns(serverID); err != nil {
+	if note.keptPack > 0 || note.keptBank > 0 {
+		// a Lore item kept beside either list is one held (itemlist.go's loreRoom)
+		pk, bk, err := h.inventoryStore.KeptPatterns(serverID)
+		if err != nil {
 			log.Printf("ItemLists: character %d's kept items: %v", serverID, err)
+		}
+		kept = pk
+		for id := range bk {
+			if kept == nil {
+				kept = map[int]bool{}
+			}
+			kept[id] = true
 		}
 	}
 	if login && (note.keptPack > 0 || note.keptBank > 0 || note.backPack > 0 || note.backBank > 0) {

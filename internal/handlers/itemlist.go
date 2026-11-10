@@ -41,9 +41,13 @@ type invList struct {
 	// (itemlists.go), as the dump that made the list told it.
 	cap int
 	// kept is the items of the rows kept for the character beside this list
-	// (the pack's keeping, itemlists.go), which its client was never sent: a
-	// Lore item there is one held (loreRoom), and nothing else reads them.
+	// (the pack's and the bank's keeping, itemlists.go), which its client was
+	// never sent: a Lore item there is one held (loreRoom), and nothing else
+	// reads them.
 	kept map[int]bool
+	// bank is the session's bank list beside its pack's (the pack's own; nil
+	// for the bank and before a dump): a Lore item there is one held too
+	bank *invList
 }
 
 // keptHas is whether a row kept beside the list is of the item.
@@ -274,15 +278,26 @@ const loreLine = "You can hold only one %s."
 // GM's give through GiveItemNow, loot, a merchant, a buyback, a trade, a craft);
 // a move between its own bank and pack does not. Before it the flag was only
 // shown. One kept for the character (a client that holds fewer records was
-// not sent it: itemlists.go) is held as well.
+// not sent it: itemlists.go) is held as well, and so is one in the bank.
 func (l *invList) loreRoom(p *database.ItemPatternRecord, room int) int {
 	if p == nil || p.Lore == 0 || room <= 0 {
 		return room
 	}
-	if l.held(p.PatternID) > 0 || l.keptHas(p.PatternID) {
+	if l.loreHeld(p.PatternID) {
 		return 0
 	}
 	return 1
+}
+
+// loreHeld is whether the character holds one of an item anywhere a Lore item
+// counts: worn or in the pack (the list), kept beside the lists, or in the bank
+// (jib's PR #1: a lore item "held once", worn, in the inventory or the bank;
+// until 2026-11-10 the bank's was not counted).
+func (l *invList) loreHeld(patternID int) bool {
+	if l == nil {
+		return false
+	}
+	return l.held(patternID) > 0 || l.keptHas(patternID) || l.bank.held(patternID) > 0
 }
 
 // stackOnto is the list index of the record a stackable item would join

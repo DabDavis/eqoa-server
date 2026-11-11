@@ -274,6 +274,13 @@ func (w *World) runMercNotes() {
 	}
 }
 
+// mercHiredByLocked reports id a merc whose owner is owner (dead or not: a
+// heal over time it laid is still its own). Must be called with the lock held.
+func (w *World) mercHiredByLocked(id, owner EntityID) bool {
+	n := w.NPCs[id]
+	return n.isMerc() && n.merc.owner != nil && n.merc.owner.ServerID == owner
+}
+
 // mercOfLocked is the player's merc, alive, or nil. Must be called with the
 // lock held.
 func (w *World) mercOfLocked(p *Player) *mercState {

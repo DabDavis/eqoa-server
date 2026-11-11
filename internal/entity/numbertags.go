@@ -55,6 +55,19 @@ package entity
 // (an NPC buffer's spells, a town board's, Mr. Moogie's favor: figuresGift) is
 // none of the player's, and its figures go untagged; so does a heal over time's
 // tick whose caster is gone (the figure falls to its bearer, runTickLocked).
+//
+// numberByMerc is set on any of them the player's merc made (petition 1613,
+// Thorinoak: "Is there a way that the text color for mercs damage be changed
+// to be different than the chars?"): its melee and shots (mercMeleeHitLocked,
+// mercShootLocked), its spells' hits and damage over time's ticks
+// (mercHarmLocked, mercTickLocked, through mercDamageLocked), its heal on its
+// owner (mercHelpLocked as figuresMerc: tellAmountLocked tells the owner's
+// copy, from the merc) and its heal over time's ticks on its owner
+// (runTickLocked). It goes only to a client that answered layout 2
+// (Session.NumberTagsLayout); to one that answered 1 (every vanilla before
+// 2026-11-11) a merc's figure goes as it went before (wireByte): a hit or a
+// tick as its pet's, bit 7 in place of bit 6, a heal and a heal over time's
+// tick untagged. A merc's own pet's figures are a pet's (bit 7), as they were.
 type numberKind uint8
 
 const (
@@ -67,11 +80,42 @@ const (
 	numberHoT    numberKind = 7
 	// numberByPet marks a kind its maker's pet made (bit 7).
 	numberByPet numberKind = 0x80
+	// numberByMerc marks a kind its maker's merc made (bit 6, layout 2).
+	numberByMerc numberKind = 0x40
 )
 
 // tagged is whether a figure of kind k is told with its byte: any kind but
-// none (0, an untagged figure; the pet's bit alone is none too).
-func (k numberKind) tagged() bool { return k&^numberByPet != 0 }
+// none (0, an untagged figure; the pet's or the merc's bit alone is none too).
+func (k numberKind) tagged() bool { return k&^(numberByPet|numberByMerc) != 0 }
+
+// byMerc is k as its maker's merc made it; none stays none.
+func (k numberKind) byMerc() numberKind {
+	if !k.tagged() {
+		return 0
+	}
+	return k&^numberByPet | numberByMerc
+}
+
+// byHelper is whether k's maker's pet or merc made it (the damage meter's
+// pet's share: dpsmeter.go).
+func (k numberKind) byHelper() bool { return k&(numberByPet|numberByMerc) != 0 }
+
+// wireByte is k's byte to a client that reads the tags' layout: from 2, as k
+// is; to 1, a merc's figure as layout 1 told it: a hurt as its pet's (the
+// merc's bit read as the pet's), a heal or a heal over time's tick none (they
+// went untagged); 0 is no byte at all, nor is a kind of none.
+func (k numberKind) wireByte(layout uint8) (byte, bool) {
+	if layout == 0 || !k.tagged() {
+		return 0, false
+	}
+	if layout < 2 && k&numberByMerc != 0 {
+		if base := k &^ (numberByPet | numberByMerc); base == numberHeal || base == numberHoT {
+			return 0, false
+		}
+		k = k&^numberByMerc | numberByPet
+	}
+	return byte(k), true
+}
 
 // byPet is k as its maker's pet made it; none stays none.
 func (k numberKind) byPet() numberKind {
@@ -91,6 +135,9 @@ const (
 	figuresProc
 	figuresPet
 	figuresGift
+	// figuresMerc: the caster's merc's (merccast.go); appended, so a kept
+	// effect's number (buffsave.go) still names the same
+	figuresMerc
 )
 
 // kind is what a figure of whose kind f is told as: one that heals (heal) or
@@ -111,8 +158,11 @@ func (f castFigures) kind(heal, tick bool) numberKind {
 	default:
 		k = numberSpell
 	}
-	if f == figuresPet {
+	switch f {
+	case figuresPet:
 		k = k.byPet()
+	case figuresMerc:
+		k = k.byMerc()
 	}
 	return k
 }

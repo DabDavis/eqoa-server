@@ -19,7 +19,7 @@ func TestWorldHeirloomsOffGivesNothing(t *testing.T) {
 	if err := store.Create(rec); err != nil {
 		t.Fatal(err)
 	}
-	for _, name := range []string{GenieLampName, WolfFangName, SummoningPortalName} {
+	for _, name := range []string{GenieLampName, WolfFangName, SummoningPortalName, JarOfBreathName} {
 		if _, err := db.Exec(`INSERT INTO itempattern (itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, attacktype,
 			weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, unk6, craft, itemname, itemdesc, model, color)
 			VALUES (0, 0, 0, 0, -1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 80, 32767, 32767, 7, 0, 0, 0, ?, '', 0, 0)`, name); err != nil {
@@ -42,7 +42,7 @@ func TestWorldHeirloomsOffGivesNothing(t *testing.T) {
 	SetHeirloomsGiven(true)
 	h.giveKeptItems(rec.ServerID, clientLists)
 	h.giveKeptItems(rec.ServerID, clientLists)
-	if n := held(); n != 3 {
-		t.Fatalf("on: %d items held, want the three", n)
+	if n := held(); n != 4 {
+		t.Fatalf("on: %d items held, want the four", n)
 	}
 }

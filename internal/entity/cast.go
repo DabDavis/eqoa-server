@@ -1697,6 +1697,9 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 		return // another's duel: nothing of the spell lands (metalmoogie.go)
 	}
 	caster.LastCombatTime = now
+	// a taunt (taunt.go), as its record is, before a resist takes a part; a proc's hate (an offensive
+	// or defensive proc's, figuresProc) is added as a hit's
+	taunt := cs.spell.figures != figuresProc && isTaunt(&cs.spell)
 	cs, took := w.resistLocked(cs, caster, casterSess, npc, now) // workbook.go: its resists
 	if !took {
 		w.updateAggro(npc, caster.ServerID, 1) // resisted, it is angered all the same
@@ -1715,7 +1718,11 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 				}
 			}
 		case EffectHate:
-			w.updateAggro(npc, caster.ServerID, spellAmount(e, caster))
+			if taunt {
+				w.tauntHateLocked(npc, caster.ServerID, spellAmount(e, caster)) // taunt.go: the top of its hate
+			} else {
+				w.updateAggro(npc, caster.ServerID, spellAmount(e, caster))
+			}
 		case EffectForget:
 			w.forgetLocked(npc, caster) // vampire.go: Vampiric Gaze
 		case EffectPickpocket:

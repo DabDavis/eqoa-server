@@ -555,6 +555,10 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 			h.familiars.Use(sess, player, &row.Pattern)
 			return nil
 		}
+		// an item that takes an NPC near out of the world, never spent (itemhide.go)
+		if row.EquipLoc < 0 && h.useItemHide(sess, player, &row.Pattern) {
+			return nil
+		}
 		// the Rolling Dice, rolled for the room, never spent (roll.go)
 		if IsRollingDice(&row.Pattern) && h.dice != nil {
 			h.dice(sess, player, time.Now())

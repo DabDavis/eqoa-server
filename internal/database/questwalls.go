@@ -27,8 +27,9 @@ const questWallsSchema = `
 
 // itemhide: an item whose Use near an NPC of a name takes that NPC out of the
 // world for a while (handlers/itemhide.go): Cazic's Scent at the Estate's door
-// "to remove the Guardian blocking the doorway" (t196), once the user has
-// finished quest (0: anyone). text is said to the user (none: ours).
+// "to remove the Guardian blocking the doorway" (t196), once the user is past
+// step of quest as a wall's passer is (questid 0: anyone). text is said to the
+// user, refuse to one not past it (none: ours).
 const itemHideSchema = `
 	CREATE TABLE IF NOT EXISTS itemhide (
 		patternid INTEGER PRIMARY KEY,
@@ -36,6 +37,7 @@ const itemHideSchema = `
 		radius    REAL NOT NULL DEFAULT 20,
 		minutes   REAL NOT NULL DEFAULT 10,
 		questid   INTEGER NOT NULL DEFAULT 0,
+		step      INTEGER NOT NULL DEFAULT 0,
 		text      TEXT NOT NULL DEFAULT '',
 		refuse    TEXT NOT NULL DEFAULT '',
 		note      TEXT NOT NULL DEFAULT '',
@@ -93,15 +95,16 @@ type ItemHide struct {
 	Radius    float64
 	Minutes   float64
 	QuestID   int
+	Step      int
 	Text      string
 	Refuse    string
 }
 
 // ItemHideOf is the item's row of itemhide, false when it has none.
-func (db *SQLiteDB) ItemHideOf(patternID int) (ItemHide, bool, error) {
+func (s *InventoryStore) ItemHideOf(patternID int) (ItemHide, bool, error) {
 	var h ItemHide
-	err := db.QueryRow(`SELECT patternid, npc, radius, minutes, questid, text, refuse FROM itemhide WHERE patternid = ?`, patternID).
-		Scan(&h.PatternID, &h.NPC, &h.Radius, &h.Minutes, &h.QuestID, &h.Text, &h.Refuse)
+	err := s.db.QueryRow(`SELECT patternid, npc, radius, minutes, questid, step, text, refuse FROM itemhide WHERE patternid = ?`, patternID).
+		Scan(&h.PatternID, &h.NPC, &h.Radius, &h.Minutes, &h.QuestID, &h.Step, &h.Text, &h.Refuse)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ItemHide{}, false, nil

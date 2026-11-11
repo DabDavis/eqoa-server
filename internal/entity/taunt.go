@@ -1,5 +1,7 @@
 package entity
 
+import "time"
+
 // taunt.go — a taunt puts its caster at the top of the creature's hate (the owner, 2026-11-11, in a
 // Cazic-Thule raid: "taunts are having a hard time keeping aggro, does hate work well?").
 //
@@ -29,6 +31,14 @@ package entity
 // (pet.go/pettemplate.go petTopHateLocked: the top and 1, already). Not changed: a defensive proc's
 // hate (dshield.go, a buff's "hate" on a creature's hit: a little hate a hit, not a taunt), a
 // dummy's own hate (dummy.go), a Metal Moogie's challenge (metalmoogie.go).
+
+// tauntLockout is how long after a taunt no ability starts, a spell or an art (board #575: the GM
+// Jibrish, 2026-11-10, petition 1434, "taunts land at once but should have a very brief lockout before
+// the next ability can be used, probably .5 seconds, lets try that and see how it goes"). A taunt
+// lands at the end of its cast time (0 for every taunt of the records) with no castLand, keeps its
+// caster busy this long in place of castBusy, and holds the next art this long in place of the arts'
+// cooldown (balance.ArtCooldown); each taunt's own recovery is as it was. A trial: the one figure.
+const tauntLockout = 500 * time.Millisecond
 
 // isTaunt reports a taunt (the file's doc).
 func isTaunt(s *CastSpell) bool {

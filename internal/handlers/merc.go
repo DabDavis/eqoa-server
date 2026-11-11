@@ -483,11 +483,9 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 	l.PrimaryType, l.SecondaryType = p.PrimaryType, p.SecondaryType
 	if row.Class == mercAlchemist {
 		if bottle := m.potionBottle(); bottle != 0 {
-			// held as an alchemist player holds its thrown potions (worn in
-			// the ranged slot, 18: the second hand's look), its staff's
-			// figures kept and its look not shown
-			l.Primary, l.PrimaryType = 0, 0
-			l.Secondary, l.SecondaryType = bottle, thrownAttackType
+			// in the hand the staff was, as the alchemists' NPCs hold one (the
+			// Chemists of Freeport, Aemilia); its staff's figures kept
+			l.Primary, l.PrimaryType = bottle, thrownAttackType
 		}
 	}
 	for _, it := range items {
@@ -510,9 +508,10 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 // An alchemist's merc holds a potion bottle (petition 1585, Hogbear: "alc
 // option feels off with alc not holding a potion bottle, they got a staff
 // instead"): the look of the thrown potions (attack type 10, thrown) the
-// alchemists throw, in its second hand as a player holds one worn in the
-// ranged slot (handlers' wornLook: 18 is the second hand's); its heirloom
-// staff's figures stay its gear. The model is read off the potions' records
+// alchemists throw, in its main hand where the staff was, as the alchemists'
+// NPCs hold it (Chemist L`Kron, R`Exyl and R`Vorr, Aemilia: npcs.primary_weapon,
+// the same model); its heirloom staff's figures stay its gear, and its swing's
+// animation is a throw's (the hand's attack type). The model is read off the potions' records
 // (potionBottle), never chosen by hand; none found, the staff is shown.
 const (
 	mercAlchemist    = 14

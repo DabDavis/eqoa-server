@@ -266,6 +266,13 @@ func (w *World) metalDuelOfLocked(id EntityID) bool {
 	return w.metal != nil && w.metal.c.player == id
 }
 
+// metalSparesLocked reports whether an area of player id's (or its pet's) must leave npc out: Mr.
+// Moogie, while id duels his Metal Moogie (the GM Jibrish's petition 1619: a challenger's pet splashed
+// Mr. Moogie, standing beside his twin, and he killed it). Must be called with the lock held.
+func (w *World) metalSparesLocked(npc *NPC, id EntityID) bool {
+	return npc != nil && w.metalDuelOfLocked(id) && strings.EqualFold(strings.TrimSpace(npc.Name), MoogieName)
+}
+
 // challengeBars reports whether npc is a Metal Moogie that player id may not hurt (another's to fight):
 // id a player, or the owner of the pet that would.
 func challengeBars(npc *NPC, id EntityID) bool {

@@ -115,7 +115,7 @@ var csCategories = []csCategory{
 		{id: bugSubcategory, name: "Sent from chat", hidden: true}}},
 	{id: 2, name: "Stuck", subs: []csSub{{id: 20, name: "In terrain"}, {id: 21, name: "Lost in a zone"}}},
 	{id: 3, name: "Player Issue", subs: []csSub{{id: 30, name: "Harassment"}, {id: 31, name: "Other", hidden: true}}},
-	{id: 9, name: "Internal", hidden: true, subs: []csSub{{id: 90, name: "Notes"}}},
+	{id: 9, name: "Internal", hidden: true, subs: []csSub{{id: 90, name: "Notes"}, {id: portalSubcategory, name: "Portal", hidden: true}}},
 }
 
 // petitionStore keeps the tickets (database.SQLiteDB).

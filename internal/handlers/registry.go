@@ -611,6 +611,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		genie.rehab = interactHandler.rehab         // its fourth answer (genie.go)
 		genie.dyer = interactHandler.dyer           // its fifth (genie.go)
 		chatHandler.SetVampireStore(charStore.DB()) // #vampire (vampirecmd.go)
+		if spellStore != nil {
+			chatHandler.SetRewardStore(spellStore, charStore.DB()) // #reward (reward.go)
+		}
 
 		// /testinvis's safe mode (safemode.go)
 		chatHandler.SetSafeModeStore(charStore.DB())

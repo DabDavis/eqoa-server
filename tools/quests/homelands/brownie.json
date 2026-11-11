@@ -2,7 +2,7 @@
   "race": "brownie",
   "home": "Mayfly Glade",
   "city": "Rivervale",
-  "note": "The glade's people are tools/worlds/homelands.json's (Mayfly Glade): Elder Thimbleroot inside the stockade gives the first two, Hedgewarden Tansy a few steps north of him the three hunts; Weaver Mossbutton, at the north side of the stockade, is the outfitter; Coachman Twigg keeps the stable on the grass outside the east gate (his coach runs to Freeport and to the other homes); the mayfly swarms (the hollow south of the stockade), the glade snakes (the woods to the west) and the badger Old Greyback (alone, far to the north-west) are placed for these quests.",
+  "note": "The glade's people are tools/worlds/homelands.json's (Mayfly Glade): Elder Thimbleroot inside the stockade gives the first two, Hedgewarden Tansy a few steps north of him the three hunts; Weaver Mossbutton, at the north side of the stockade, is the outfitter; Coachman Twigg keeps the stable on the grass outside the east gate (his coach runs to Freeport and to the other homes); the mayfly swarms (the hollow south of the stockade), the glade snakes (the woods to the west) and the badger Old Greyback (alone, far to the north-west) are placed for these quests. Levels 7-20 (2026-11-11): Tansy gives L7-L15, Thimbleroot the L20 path; objectives on the Homelands' shared ground, the Goldfeather Eyrie (Twigg's coach), as a good neighbor: a quilt, mittens of frostpaw fur, a Rimeheart shard for Dunmore's larder.",
   "L1": {
     "name": "A Sprout's Acorn Sash",
     "giver": "Elder Thimbleroot",
@@ -172,5 +172,186 @@
     "declined": "Rivervale will keep. Halflings are patient about guests.",
     "started": "Mind your manners, and save me a pie!",
     "journal": "Tell Gatekeeper Burrowby when you are ready to go to Rivervale."
+  },
+  "L7": {
+    "name": "A Quilt for the Winter",
+    "giver": "Hedgewarden Tansy",
+    "offer": [
+      "Winter is coming, sprout, and Thimbleroot's old bones feel it. I mean to stitch him a quilt, and only snowfield badger pelts are warm enough.",
+      "Ride Twigg's coach to the Goldfeather Eyrie. The badgers dig on the snow east of the hunters' outpost there. Bring me two pelts, nice and thick.",
+      "Will you fetch two badger pelts?"
+    ],
+    "accept": "I will fetch them.",
+    "decline": "Not now.",
+    "declined": "Then the elder shivers a little longer.",
+    "started": "Two pelts. Badgers are Greyback's cousins, and just as cross.",
+    "hunts": [
+      {
+        "target": "snowfield badger",
+        "count": 2,
+        "drop": {
+          "name": "snowfield badger pelt",
+          "description": "The thick pelt of a snowfield badger of the Goldfeather Eyrie.",
+          "like": "beast pelt"
+        },
+        "hunt": {
+          "journal": "Take two snowfield badger pelts from the badgers on the snow east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring two snowfield badger pelts to Hedgewarden Tansy in the glade.",
+      "says": "Oh, they are lovely and warm! The elder will purr like a cat. Now, sprout, a trick for your trouble. Learn this."
+    }
+  },
+  "L10": {
+    "name": "A Sprout No More",
+    "giver": "Hedgewarden Tansy",
+    "offer": [
+      "You have outgrown your little arms, sprout. Time for proper ones. Mossbutton has a leather strip for me, and the Eyrie's quartermaster has iron.",
+      "Then bring me two skeins of silk from the rime spiders north-east of the Eyrie outpost. Nothing binds a grip like it.",
+      "Will you gather it all?"
+    ],
+    "accept": "I will gather it.",
+    "decline": "Not now.",
+    "declined": "Then mind you do not break the old ones.",
+    "started": "Mossbutton first, she is on the way. Then Dunmore, then the spiders.",
+    "materials": [
+      {
+        "merchant": "Weaver Mossbutton",
+        "items": [
+          "leather strip"
+        ],
+        "journal": "Ask Weaver Mossbutton at the stockade for Tansy's leather strip.",
+        "says": "Tansy's strip? Here it is, sprout, and here is a crumb for the road. Do not tell Tansy. She says I spoil you."
+      },
+      {
+        "merchant": "Quartermaster Dunmore",
+        "items": [
+          "iron ore"
+        ],
+        "journal": "Ask Quartermaster Dunmore at the Eyrie outpost for iron ore.",
+        "says": "A brownie? Tansy's? Well, I owe the glade for that honey cake. Here is your ore. Carry it with both hands."
+      }
+    ],
+    "target": "rime spider",
+    "count": 2,
+    "drop": {
+      "name": "rime spider silk",
+      "description": "A skein of frosted silk from a rime spider of the Goldfeather Eyrie.",
+      "like": "Black Widow Silk"
+    },
+    "hunt": {
+      "journal": "Take two skeins of silk from the rime spiders north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the leather strip, the iron ore and the rime spider silk to Hedgewarden Tansy.",
+      "says": "All of it! Iron for the edge, leather and silk for the grip... there. It is yours, and it is no toy. Do not poke the grocer."
+    }
+  },
+  "L13": {
+    "name": "Mittens for the Little Ones",
+    "giver": "Hedgewarden Tansy",
+    "offer": [
+      "The little sprouts of the glade have cold paws this year, and I have promised them mittens. The softest fur there is grows on the frostpaw cubs.",
+      "They play on the snow north of the Eyrie outpost. Bring me three tufts of their fur. Hunt with the other homes: those cubs bite.",
+      "Will you fetch three tufts?"
+    ],
+    "accept": "I will fetch them.",
+    "decline": "Not yet.",
+    "declined": "Then the little ones blow on their paws a while longer.",
+    "started": "Three tufts. Mind the cubs. They are bigger than they look.",
+    "kind": "loot",
+    "target": "frostpaw cub",
+    "count": 3,
+    "chance": 0.5,
+    "drop": {
+      "name": "frostpaw tuft",
+      "description": "A tuft of thick white fur from a frostpaw cub of the Goldfeather Eyrie.",
+      "like": "Beast Fur"
+    },
+    "hunt": {
+      "journal": "Take three frostpaw tufts from the frostpaw cubs north of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring three frostpaw tufts to Hedgewarden Tansy.",
+      "says": "So soft! The little ones will have the warmest paws in the Homelands. You deserve a good trick for this. Learn it."
+    }
+  },
+  "L15": {
+    "name": "Cold for the Larder",
+    "giver": "Hedgewarden Tansy",
+    "offer": [
+      "The Eyrie's quartermaster tells me there is a thing of ice in the caves north-east of his outpost. The Rimeheart, they call it. Ice that never melts!",
+      "Dunmore's stores spoil like ours do. Break the Rimeheart and take him a shard, and his larder stays cold all summer. Then come home to me.",
+      "Will you face the Rimeheart?"
+    ],
+    "accept": "I will face it.",
+    "decline": "Not yet.",
+    "declined": "Then the butter melts, and the caves stay cold.",
+    "started": "Take friends, sprout, and come home in one piece.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "carry": {
+      "target": "Quartermaster Dunmore",
+      "journal": "Bring the shard of the Rimeheart to Quartermaster Dunmore at the Eyrie outpost.",
+      "says": "Ice that never melts, for my larder? Tansy said a brownie would think of it. Tell her the honey cakes are on me this winter."
+    },
+    "back": {
+      "journal": "Return to Hedgewarden Tansy in the glade.",
+      "says": "Dunmore's larder is cold and the Rimeheart is broken. You are a hedgewarden in all but name, sprout. Learn this."
+    }
+  },
+  "L20": {
+    "name": "A Good Neighbor",
+    "giver": "Elder Thimbleroot",
+    "offer": [
+      "Tansy tells me you have kept the whole Eyrie in honey cakes and cold butter. Splendid! A brownie is a good neighbor, sprout, and so are you.",
+      "The Eyrie's folk could use a good neighbor now. Ask Quartermaster Dunmore what they need, and help them. Then come home and tell me all.",
+      "Will you go and be a good neighbor?"
+    ],
+    "accept": "I will go.",
+    "decline": "Not yet.",
+    "declined": "Neighbors keep. Come when you are ready.",
+    "started": "Twigg's coach will take you. Mind your manners!",
+    "road": [
+      {
+        "target": "Quartermaster Dunmore",
+        "journal": "Ask Quartermaster Dunmore at the Eyrie outpost what the outpost needs.",
+        "says": "What do we need? Quiet nights. The raiders keep the warden up. Go and ask Warden Halvek, he will tell you more than I."
+      },
+      {
+        "target": "Warden Halvek",
+        "journal": "Find Warden Halvek at the Eyrie outpost.",
+        "says": "Dunmore sent you? The Goldfeather raiders round the eyrie east of here steal from our camp. Two of their war-talons would warn them off."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 2,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take two war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "journal": "Bring the two war-talons to Warden Halvek.",
+      "says": "Two talons. They will think twice about our camp now. The glade raises good neighbors. Go home and tell your elder so."
+    },
+    "picked": "A fine choice, dear. It is yours.",
+    "final": {
+      "journal": "Return to Elder Thimbleroot in the glade.",
+      "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Use it well, dear."
+    }
   }
 }

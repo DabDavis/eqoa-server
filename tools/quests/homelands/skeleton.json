@@ -172,5 +172,193 @@
     "declined": "The tomb is patient. So am I.",
     "started": "Walk tall, and keep your bones together!",
     "journal": "Tell Gatekeeper Dustcloak when you are ready to go to Freeport."
+  },
+  "L7": {
+    "name": "Claws and Fur",
+    "giver": "Captain Harrow",
+    "offer": [
+      "You have stood the watch well. The living keep a hunters' outpost at the Goldfeather Eyrie, and every home sends its young there. The tomb will too.",
+      "Ride Grimsby's coach to the Eyrie. Corwen wants drift rat fur to line the shrouds, and I want two badger claws. Both are on the snow east of the outpost.",
+      "Will you hunt the Eyrie's snow?"
+    ],
+    "accept": "I will hunt there.",
+    "decline": "Not now.",
+    "declined": "We have time. We have nothing but time.",
+    "started": "Grimsby's coach will take you. The cold will not trouble you. Small mercies.",
+    "hunts": [
+      {
+        "target": "snowfield badger",
+        "count": 2,
+        "drop": {
+          "name": "snowfield badger claw",
+          "description": "A long digging claw from a snowfield badger of the Goldfeather Eyrie.",
+          "like": "Beast Claw"
+        },
+        "hunt": {
+          "journal": "Take two snowfield badger claws from the badgers on the snow east of the Eyrie outpost."
+        }
+      },
+      {
+        "target": "drift rat",
+        "count": 1,
+        "drop": {
+          "name": "drift rat fur",
+          "description": "A clump of white fur from a drift rat of the Goldfeather Eyrie's snow.",
+          "like": "clump of rat fur"
+        },
+        "hunt": {
+          "journal": "Take a clump of drift rat fur from the drift rats east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring the badger claws and the drift rat fur to Captain Harrow.",
+      "says": "Claws and fur. The fur is Corwen's; the claws will make latches the robbers cannot pry. Now attend, and learn this."
+    }
+  },
+  "L10": {
+    "name": "White Feathers",
+    "giver": "Captain Harrow",
+    "offer": [
+      "Your arms are older than you are, which here is saying something. The kings' armourers dressed their best arms in white feathers, and the pale owls of the Eyrie have them.",
+      "Corwen has cord and a shaft set by for me again. Then take two feathers from the pale owls north of the Eyrie outpost.",
+      "Will you bring me the cord, the shaft and the feathers?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "The old arms will do. They have done for centuries.",
+    "started": "Cord and a shaft from Corwen, feathers from the owls. Go.",
+    "materials": [
+      {
+        "merchant": "Shroudmaker Corwen",
+        "items": [
+          "silk cord",
+          "wooden shaft"
+        ],
+        "journal": "Ask Shroudmaker Corwen for another length of silk cord and another wooden shaft.",
+        "says": "Again? The captain goes through cord the way the living go through bread. Here. I still want the first length back."
+      }
+    ],
+    "target": "pale owl",
+    "count": 2,
+    "drop": {
+      "name": "pale owl feather",
+      "description": "A long white flight feather from a pale owl of the Goldfeather Eyrie.",
+      "like": "ruined owl feathers"
+    },
+    "hunt": {
+      "journal": "Take two pale owl feathers from the pale owls north of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the silk cord, the wooden shaft and the pale owl feathers to Captain Harrow.",
+      "says": "White feathers, as the kings' armourers used. A moment... there. It is yours. Try to outlast it."
+    }
+  },
+  "L13": {
+    "name": "The Warden's Asking",
+    "giver": "Captain Harrow",
+    "offer": [
+      "Warden Halvek of the Eyrie outpost sent word by Grimsby's coach. The frostpaw cubs north of the outpost, past the river, have grown bold, and his hunters are tired.",
+      "He asked for the watch by name. It is not every day the living ask the dead for help. Kill five of the cubs.",
+      "Will you answer the warden?"
+    ],
+    "accept": "I will answer him.",
+    "decline": "Not yet.",
+    "declined": "Then the living must wait. They are not good at it.",
+    "started": "North, past the river. Five.",
+    "kind": "kill",
+    "target": "frostpaw cub",
+    "count": 5,
+    "hunt": {
+      "journal": "Kill five frostpaw cubs north of the Eyrie outpost, past the river."
+    },
+    "back": {
+      "journal": "Return to Captain Harrow.",
+      "says": "Five, and the warden's thanks came by the coach. The living may yet learn to like us. Learn this."
+    }
+  },
+  "L15": {
+    "name": "A Shard for the Spirits",
+    "giver": "Captain Harrow",
+    "offer": [
+      "Spiritmaster Oswin of the Eyrie outpost writes that a thing walks the ice caves north-east of it, the Rimeheart: cold, old and not alive. Rather like us, but less polite.",
+      "Break it, and carry a shard to Oswin, so that he can be sure it does not wake again. Then come back to me.",
+      "Will you break the Rimeheart?"
+    ],
+    "accept": "I will break it.",
+    "decline": "Not yet.",
+    "declined": "Then it walks on. Some things do.",
+    "started": "Go with friends. Even bones can be broken.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "carry": {
+      "target": "Spiritmaster Oswin",
+      "journal": "Bring the shard of the Rimeheart to Spiritmaster Oswin at the Eyrie outpost.",
+      "says": "The Rimeheart's own ice. Nothing stirs in it now. Tell your captain the outpost thanks the tomb. I never thought I would say that."
+    },
+    "back": {
+      "journal": "Return to Captain Harrow.",
+      "says": "Oswin's thanks, to the tomb. The kings would be amused. You have done the watch proud. Learn this."
+    }
+  },
+  "L20": {
+    "name": "A Watch Among the Living",
+    "giver": "Elder Ossric",
+    "offer": [
+      "Harrow says you have earned your place on the watch. Before the woken choose their path, each stands one watch among the living at the Eyrie, so they learn we mean no harm.",
+      "Spiritmaster Oswin at the Eyrie outpost knows you now. Go to him, do as the outpost asks, then come back to me and choose your path.",
+      "Will you stand watch among the living?"
+    ],
+    "accept": "I will stand it.",
+    "decline": "Not yet.",
+    "declined": "We are patient. It is the one thing death teaches.",
+    "started": "Go. Try not to frighten anyone.",
+    "road": [
+      {
+        "target": "Spiritmaster Oswin",
+        "journal": "Find Spiritmaster Oswin at the Eyrie outpost.",
+        "says": "The woken one who broke the Rimeheart. The outpost has heard. Scout Feyla, on the river's far reach, needs a steady hand: go to her."
+      },
+      {
+        "target": "Scout Feyla",
+        "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+        "says": "Oswin sent you? I see. Well, the raiders will run from you if from nothing else. Bring me three of their war-talons."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 3,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "journal": "Bring the three war-talons to Scout Feyla.",
+      "says": "Three talons. I will not pretend you did not startle me, but that was good work. Warden Halvek should hear of it."
+    },
+    "after": [
+      {
+        "target": "Warden Halvek",
+        "journal": "Tell Warden Halvek at the Eyrie outpost that the raiders are beaten back.",
+        "says": "Feyla speaks well of you, and Feyla speaks well of no one. The tomb is welcome at the Eyrie. Go home, woken one."
+      }
+    ],
+    "final": {
+      "target": "Elder Ossric",
+      "journal": "Return to Elder Ossric in the Tomb of Kings.",
+      "says": "You opened your eyes in this hall not long ago. Now the living know your name, and speak it kindly. The tomb has one thing more for you."
+    },
+    "picked": "Then it is yours. Spend it well. We of all folk know how short a life is."
   }
 }

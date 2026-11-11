@@ -2,7 +2,7 @@
   "race": "wisp",
   "home": "West Feerrott",
   "city": "Qeynos",
-  "note": "The wandering lights of the Feerrott. Its people are tools/worlds/homelands.json's (West Feerrott), every one a wisp: Elder Faintglow, on the hill above the south pond, gives the first two; Watchlight Gleam, a little east of her by the pond, the three hunts; Lampwright Glimmer, up the hill to the north-west, is the outfitter; Coachman Wick keeps the stable on the rise to the south-west (his coach runs to Freeport and to the other homes). The bog rats (the reeds to the east), the bog gnats (the pools to the south) and the young jaguar Duskpaw (north-west) are placed for these quests. A wisp speaks in few words, and of light.",
+  "note": "The wandering lights of the Feerrott. Its people are tools/worlds/homelands.json's (West Feerrott), every one a wisp: Elder Faintglow, on the hill above the south pond, gives the first two; Watchlight Gleam, a little east of her by the pond, the three hunts; Lampwright Glimmer, up the hill to the north-west, is the outfitter; Coachman Wick keeps the stable on the rise to the south-west (his coach runs to Freeport and to the other homes). The bog rats (the reeds to the east), the bog gnats (the pools to the south) and the young jaguar Duskpaw (north-west) are placed for these quests. A wisp speaks in few words, and of light. Levels 7-20 (2026-11-11): Watchlight Gleam gives L7-L15, Elder Faintglow the L20 path; their objectives are on the Homelands' shared ground, the Goldfeather Eyrie (Wick's coach): drift rat fur for Glimmer's lamps, Glimmer's oil and pale owl eyes, six frostpaw cubs, the Rimeheart's shard to Spiritmaster Oswin, then Scout Feyla's raiders and word to Warden Halvek.",
   "L1": {
     "name": "A Bead of Marsh Glass",
     "giver": "Elder Faintglow",
@@ -172,5 +172,173 @@
     "declined": "The swamp will hold your light a while longer.",
     "started": "Burn bright, and keep your helm on!",
     "journal": "Tell Gatekeeper Dimlight when you are ready to go to Qeynos."
+  },
+  "L7": {
+    "name": "White Fur for the Lamps",
+    "giver": "Watchlight Gleam",
+    "offer": [
+      "You burn steadier now. Good. The Homelands keep an outpost on the frozen river under the Goldfeather Eyrie, and every home sends its young there.",
+      "The drift rats on the snow east of it wear a white fur that holds a glow. Glimmer packs her lamps with it. Ride Wick's coach there, and bring me three clumps.",
+      "Will you go out into the cold for us?"
+    ],
+    "accept": "I will go.",
+    "decline": "Not now.",
+    "declined": "The cold is patient. So are we.",
+    "started": "Burn close to the others there. The snow eats small lights.",
+    "hunts": [
+      {
+        "target": "drift rat",
+        "count": 3,
+        "drop": {
+          "name": "drift rat fur",
+          "description": "A clump of white fur from a drift rat of the Goldfeather Eyrie's snow.",
+          "like": "clump of rat fur"
+        },
+        "hunt": {
+          "journal": "Take three clumps of drift rat fur from the drift rats on the snow east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring the three clumps of drift rat fur to Watchlight Gleam.",
+      "says": "Three clumps, and still warm. Glimmer's lamps will glow through the long nights. Be still now, and learn this."
+    }
+  },
+  "L10": {
+    "name": "An Eye for the Dark",
+    "giver": "Watchlight Gleam",
+    "offer": [
+      "The pale owls of the Eyrie see by night, and they hunt our wandering lights. Their eyes are what lets them.",
+      "Lampwright Glimmer has oil set aside for me. Then bring me two eyes of the pale owls north of the Eyrie outpost, and I will shape you something better to hold.",
+      "Will you bring me the oil and the eyes?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then hold what you have, and hold it tight.",
+    "started": "Oil from Glimmer, eyes from the owls. Do not let them see you first.",
+    "materials": [
+      {
+        "merchant": "Lampwright Glimmer",
+        "items": [
+          "lantern oil"
+        ],
+        "journal": "Ask Lampwright Glimmer for the lantern oil Gleam set aside.",
+        "says": "Gleam's oil. Here. It burns clean and slow, as a light should. Do not spill it on yourself."
+      }
+    ],
+    "target": "pale owl",
+    "count": 2,
+    "drop": {
+      "name": "pale owl eye",
+      "description": "The wide, pale eye of an owl of the Goldfeather Eyrie, that sees by night.",
+      "like": "raven eye"
+    },
+    "hunt": {
+      "journal": "Take two pale owl eyes from the pale owls north of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the lantern oil and the two pale owl eyes to Watchlight Gleam.",
+      "says": "Oil to burn, eyes to see. A moment, while I bind them... there. It is yours. It will not fail you in the dark."
+    }
+  },
+  "L13": {
+    "name": "Cubs That Chase Lights",
+    "giver": "Watchlight Gleam",
+    "offer": [
+      "Word came on Wick's coach. The frostpaw cubs north of the Eyrie outpost have learned to chase lights, the way Duskpaw did. Two of ours have gone dark in the snow.",
+      "They are only cubs. They will not stay cubs. Put out six of them before they learn more.",
+      "Will you hunt the frostpaw cubs?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not yet.",
+    "declined": "Then they grow, and they learn.",
+    "started": "Six. Then come back, and burn bright.",
+    "kind": "kill",
+    "target": "frostpaw cub",
+    "count": 6,
+    "hunt": {
+      "journal": "Kill six frostpaw cubs on the snow north of the Eyrie outpost."
+    },
+    "back": {
+      "journal": "Return to Watchlight Gleam.",
+      "says": "Six. The snow is safer for small lights now. You are not small. Learn this."
+    }
+  },
+  "L15": {
+    "name": "The Cold That Puts Out Lights",
+    "giver": "Watchlight Gleam",
+    "offer": [
+      "There is a cold in the ice caves north-east of the Eyrie outpost that puts out any light that drifts too near. The hunters call it the Rimeheart.",
+      "Break it. Take a shard to Spiritmaster Oswin at the outpost: he keeps the spirits of every home, and he will know what to do with it. Then come back.",
+      "Will you face the Rimeheart?"
+    ],
+    "accept": "I will face it.",
+    "decline": "Not yet.",
+    "declined": "Then keep away from the caves. Far away.",
+    "started": "Do not go alone. A light alone in that cold goes out.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "carry": {
+      "target": "Spiritmaster Oswin",
+      "journal": "Bring the shard of the Rimeheart to Spiritmaster Oswin at the Eyrie outpost.",
+      "says": "So cold, even now. I will keep it far from the bound spirits. Tell Gleam the lights of the Feerrott may drift here safely."
+    },
+    "back": {
+      "journal": "Return to Watchlight Gleam.",
+      "says": "You came back, and you burn as bright as ever. Brighter. Learn this."
+    }
+  },
+  "L20": {
+    "name": "The Long Light",
+    "giver": "Elder Faintglow",
+    "offer": [
+      "Gleam says you burn steady now, little flame. Not so little. Each of us, once, carries our light where the dark is thickest, so the other homes see it.",
+      "Go to Scout Feyla, who watches the Goldfeather eyrie from the frozen river. Do what she asks. Then come home, and choose your path.",
+      "Will you carry the long light?"
+    ],
+    "accept": "I will carry it.",
+    "decline": "Not yet.",
+    "declined": "Burn a while longer, then.",
+    "started": "Go. We will keep a place for you.",
+    "road": [
+      {
+        "target": "Scout Feyla",
+        "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+        "says": "A wisp? I saw you coming a long way off. Good: so will the raiders. Draw them out, and bring me two of their war-talons."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 2,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take two war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "journal": "Bring the two war-talons to Scout Feyla.",
+      "says": "Two talons. They will think twice about lights on the river now. Tell Warden Halvek it was done."
+    },
+    "after": [
+      {
+        "target": "Warden Halvek",
+        "journal": "Tell Warden Halvek at the Eyrie outpost that the raiders were drawn out.",
+        "says": "Feyla's word, and yours. The outpost will remember the light from the Feerrott. Go home now."
+      }
+    ],
+    "final": {
+      "journal": "Return to Elder Faintglow in the West Feerrott.",
+      "says": "You went out into the dark and came back brighter. That is all a light can do. The swamp has one more thing for you."
+    }
   }
 }

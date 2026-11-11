@@ -172,5 +172,173 @@
     "declined": "Grobb will still be there. So will the trolls.",
     "started": "Hit hard, and keep your horns sharp!",
     "journal": "Tell Gatekeeper Stonehoof when you are ready to go to Grobb."
+  },
+  "L7": {
+    "name": "Rats in the Stores",
+    "giver": "Warden Ironhide",
+    "offer": [
+      "You stand like a Rustel now. The herd trades ore to a hunters' outpost at the Goldfeather Eyrie, and drift rats are in its stores, as ours were in the grain.",
+      "Ride Durruk's coach to the Eyrie and stamp them out on the snow east of the outpost. Bring me three of their furs, so I know it was done.",
+      "Will you clear out the drift rats?"
+    ],
+    "accept": "I will clear them out.",
+    "decline": "Not now.",
+    "declined": "The rats will not stop eating while you wait.",
+    "started": "Durruk's coach will take you. Hooves slip on ice: mind them.",
+    "hunts": [
+      {
+        "target": "drift rat",
+        "count": 3,
+        "drop": {
+          "name": "drift rat fur",
+          "description": "A clump of white fur from a drift rat of the Goldfeather Eyrie's snow.",
+          "like": "clump of rat fur"
+        },
+        "hunt": {
+          "journal": "Take three clumps of drift rat fur from the drift rats east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring the three clumps of drift rat fur to Warden Ironhide.",
+      "says": "Three furs. The outpost's stores are safe, and the herd's trade with them. Plant your hooves, and learn this."
+    }
+  },
+  "L10": {
+    "name": "Gerntar Iron",
+    "giver": "Warden Ironhide",
+    "offer": [
+      "A Rustel of your size needs a heavier weapon. The herd sold its best ore to the Eyrie outpost this season, so Quartermaster Dunmore will give a little back.",
+      "Bring me his ore, and three skeins of silk from the rime spiders north-east of the outpost to bind the grip.",
+      "Will you bring me the ore and the silk?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then carry the calf's weapon a while longer.",
+    "started": "Ore from Dunmore, silk from the spiders. Go.",
+    "materials": [
+      {
+        "merchant": "Quartermaster Dunmore",
+        "items": [
+          "iron ore"
+        ],
+        "journal": "Ask Quartermaster Dunmore at the Eyrie outpost for the herd's iron ore.",
+        "says": "Gerntar ore, back to the herd that dug it. Ironhide's word came by the coach. Here. And mind your horns on my lamps."
+      }
+    ],
+    "target": "rime spider",
+    "count": 3,
+    "drop": {
+      "name": "rime spider silk",
+      "description": "A skein of frosted silk from a rime spider of the Goldfeather Eyrie.",
+      "like": "Black Widow Silk"
+    },
+    "hunt": {
+      "journal": "Take three skeins of silk from the rime spiders north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the iron ore and the rime spider silk to Warden Ironhide.",
+      "says": "Our own ore, and good silk. Stand back from the sparks... there. It is yours. It will not bend on a hard head."
+    }
+  },
+  "L13": {
+    "name": "Horns Against Frostjaw",
+    "giver": "Warden Ironhide",
+    "offer": [
+      "The outpost's hunters fear an old snow leopard, Old Frostjaw, on the slopes north-east of the outpost. He kills from behind, and never meets a foe head on.",
+      "A Rustel meets him head on. Bring him down, and take friends from the other homes if you are wise.",
+      "Will you face Old Frostjaw?"
+    ],
+    "accept": "I will face him.",
+    "decline": "Not yet.",
+    "declined": "Then he goes on striking from behind.",
+    "started": "Horns down. He strikes first, and hard.",
+    "kind": "kill",
+    "target": "Old Frostjaw",
+    "count": 1,
+    "hunt": {
+      "journal": "Kill Old Frostjaw on the slopes north-east of the Eyrie outpost."
+    },
+    "back": {
+      "journal": "Return to Warden Ironhide.",
+      "says": "Frostjaw met horns at last. The outpost will tell of the Rustel who did it. Learn this."
+    }
+  },
+  "L15": {
+    "name": "Ice That Never Melts",
+    "giver": "Warden Ironhide",
+    "offer": [
+      "Dunmore sends word of a thing in the ice caves north-east of the Eyrie outpost, the Rimeheart. Its ice never melts, he says, not even in a forge.",
+      "Break it, and carry a shard of it to Dunmore. The herd's smiths want to know if he is right. Then come back to me.",
+      "Will you break the Rimeheart?"
+    ],
+    "accept": "I will break it.",
+    "decline": "Not yet.",
+    "declined": "Then the caves stay cold, and the smiths stay curious.",
+    "started": "Not alone. Even a Rustel does not go into those caves alone.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "carry": {
+      "target": "Quartermaster Dunmore",
+      "journal": "Bring the shard of the Rimeheart to Quartermaster Dunmore at the Eyrie outpost.",
+      "says": "So that is the Rimeheart. Cold as a grave, and it will not warm in my hand. I will send it to Gerntar's smiths by the coach. Tell Ironhide so."
+    },
+    "back": {
+      "journal": "Return to Warden Ironhide.",
+      "says": "The smiths have their shard, and the caves are warmer for it. The herd is proud of you. Learn this."
+    }
+  },
+  "L20": {
+    "name": "The Herd's Stand",
+    "giver": "Elder Hornbrand",
+    "offer": [
+      "Ironhide says you charge like a grown Rustel. Every Rustel of the herd stands once with the other homes at the Eyrie, so they know our horns are with them.",
+      "Go to Quartermaster Dunmore at the Eyrie outpost. He trades with us, and he knows who needs help. When it is done, come back and choose your path.",
+      "Will you take the herd's stand?"
+    ],
+    "accept": "I will take it.",
+    "decline": "Not yet.",
+    "declined": "The stand waits for those who are ready.",
+    "started": "Go. Horns high.",
+    "road": [
+      {
+        "target": "Quartermaster Dunmore",
+        "journal": "Find Quartermaster Dunmore at the Eyrie outpost.",
+        "says": "Hornbrand's Rustel? Then you are here for the raiders. Scout Feyla watches them from the river's far reach. Go to her."
+      },
+      {
+        "target": "Scout Feyla",
+        "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+        "says": "A Rustel! Good. The Goldfeather raiders carry war-talons. Bring me two, and charge through the rest if you like."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 2,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take two war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "journal": "Bring the two war-talons to Scout Feyla.",
+      "says": "Two talons, and half the raiders still running. The eyrie will be quiet tonight. Go home, Rustel: your elder waits."
+    },
+    "final": {
+      "target": "Elder Hornbrand",
+      "journal": "Return to Elder Hornbrand in the Gerntar Mines.",
+      "says": "So. You left the mine a calf and come back a Rustel the other homes know. The herd has one thing more for you."
+    },
+    "picked": "Then it is yours. Carry it as a Rustel carries everything: forward."
   }
 }

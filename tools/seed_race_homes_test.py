@@ -129,6 +129,50 @@ class SeedRaceHomes(unittest.TestCase):
             out["npcdialog rows"] = db.execute("SELECT * FROM npcdialog ORDER BY 1").fetchall()
         return out
 
+    def test_the_shared_ground(self):
+        """The homes' shared ground (a zone's `shared` block, no race's home): its people and creatures placed, their
+        rules, words, combat templates and loot regions written; no start row or flavour moved; a template or loot row
+        that is there (a GM's) kept; the undo exact; a zone that is both a home and the shared ground refused."""
+        import copy
+        with tempfile.TemporaryDirectory() as d:
+            db = make_db(os.path.join(d, "t.db"))
+            for q in ("CREATE TABLE npctemplate (name TEXT PRIMARY KEY, template TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '', "
+                      "source TEXT NOT NULL DEFAULT 'gm')",
+                      "CREATE TABLE lootcreature (npc_name TEXT PRIMARY KEY, region TEXT NOT NULL DEFAULT '', profile TEXT NOT NULL DEFAULT '', "
+                      "source TEXT NOT NULL DEFAULT 'gm')"):
+                db.execute(q)
+            db.execute("INSERT INTO lootcreature VALUES ('pale owl', 'forest', '', 'gm')")
+            before = self.rows(db) | {"t": db.execute("SELECT * FROM npctemplate").fetchall(), "l": db.execute("SELECT * FROM lootcreature").fetchall()}
+            r = {"world": 10, "name": "Test", "zones": [{"name": "Eyrie", "from": "TUNARIA.ESF", "zone": 27, "stable": True, "shared": {
+                "npcs": [{"name": "Coachwoman Brenna", "like": "aviak", "level": 25, "role": "talker", "at": [10.0, 5.0, 20.0], "toward": [10.0, 30.0]},
+                         {"name": "pale owl", "like": "grave rat", "level": 11, "role": "foe", "at": [50.0, 5.0, 60.0]},
+                         {"name": "Old Frostjaw", "like": "grave rat", "level": 14, "role": "foe", "at": [90.0, 5.0, 60.0]}],
+                "peaceful": ["pale owl"], "hostile": ["Old Frostjaw"],
+                "templates": {"pale owl": "roamer", "Old Frostjaw": "roamer"}, "loot": {"pale owl": "arctic", "Old Frostjaw": "arctic"},
+                "lines": {"Coachwoman Brenna": ["Mind the ice."]}}}]}
+            steps = srh.plan(db, r)
+            self.assertEqual(sorted({st[0] for st in steps}), ["aggro", "dialog", "loot", "npc", "skip", "template"], "no start, no flavour")
+            srh.apply(db, [st for st in steps if st[0] != "skip"])
+            self.assertEqual(db.execute("SELECT npc_name, world, npc_type FROM npcs WHERE world = 10 ORDER BY id").fetchall(),
+                             [("Coachwoman Brenna", 10, 128), ("pale owl", 10, 0), ("Old Frostjaw", 10, 0)])
+            self.assertEqual(db.execute("SELECT npc_name, aggressive FROM npcaggro WHERE source = 'racehomes' ORDER BY 1").fetchall(),
+                             [("Old Frostjaw", 1), ("pale owl", 0)])
+            self.assertEqual(db.execute("SELECT name, template FROM npctemplate ORDER BY 1").fetchall(), [("Old Frostjaw", "roamer"), ("pale owl", "roamer")])
+            self.assertEqual(db.execute("SELECT npc_name, region, source FROM lootcreature ORDER BY 1").fetchall(),
+                             [("Old Frostjaw", "arctic", "racehomes"), ("pale owl", "forest", "gm")], "a GM's loot row kept")
+            self.assertEqual(db.execute("SELECT x, world FROM defaultcharacter WHERE race = 14").fetchall()[0], (13059.3, 0), "no start moved")
+            srh.undo(db)
+            after = self.rows(db) | {"t": db.execute("SELECT * FROM npctemplate").fetchall(), "l": db.execute("SELECT * FROM lootcreature").fetchall()}
+            self.assertEqual(after, before, "undo is exact")
+            both = copy.deepcopy(r)
+            both["zones"][0]["home"] = copy.deepcopy(RECIPE["zones"][0]["home"])
+            with self.assertRaises(SystemExit):
+                srh.plan(db, both)
+            bad = copy.deepcopy(r)
+            bad["zones"][0]["shared"]["templates"]["Coachwoman Brenna"] = "roamer"
+            with self.assertRaises(SystemExit):
+                srh.plan(db, bad)
+
     def test_words_join_a_table_the_server_made(self):
         with tempfile.TemporaryDirectory() as d:
             db = make_db(os.path.join(d, "t.db"))

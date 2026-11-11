@@ -65,7 +65,7 @@ DEFAULT_HOMES = os.path.join(HERE, "worlds", "homelands.json")
 LOG = "race_homes_log"
 LOG_DDL = f"""CREATE TABLE IF NOT EXISTS {LOG} (
     seq   INTEGER PRIMARY KEY AUTOINCREMENT,
-    what  TEXT NOT NULL,   -- 'racedef' | 'start' | 'npc' | 'npcitem' | 'aggro' | 'dialog' | 'dialogtable'
+    what  TEXT NOT NULL,   -- 'racedef' | 'start' | 'npc' | 'npcitem' | 'aggro' | 'dialog' | 'dialogtable' | 'template' | 'loot'
     key   TEXT NOT NULL,   -- the row: racedefs id, defaultcharacter id, npcs id, npcitem id, npcaggro name, npcdialog id
     old   TEXT,            -- its columns before (JSON), none for a row added
     note  TEXT NOT NULL DEFAULT ''
@@ -153,7 +153,12 @@ def plan(db, recipe):
     world = recipe["world"]
     out = []
     for z in recipe["zones"]:
-        home = z.get("home")
+        home, shared = z.get("home"), z.get("shared")
+        if home and shared:
+            raise SystemExit(f"{z['name']}: a zone is a race's home or the homes' shared ground, not both")
+        if shared:
+            out += people(db, world, z, shared)
+            continue
         if not home:
             continue
         race = z["race"]
@@ -171,69 +176,88 @@ def plan(db, recipe):
             old = row_dict(db, "defaultcharacter", "defaultCharacterID = ?", (rid,))
             new = {"x": s["x"], "y": s["y"], "z": s["z"], "facing": round(facing, 6), "world": world}
             out.append(("start", rid, old, new, f"{rd['name']} class {old['tclass']}: {z['name']}"))
-        for n in home.get("npcs", []):
-            optional = bool(n.get("optional"))
-            t = template(db, n, missing_ok=optional)
-            if t is None:
-                out.append(("skip", n["name"], None, None, f"{n['name']} in {z['name']}: optional, and this database has no "
-                                                           f"npcs row like {n.get('like') or n.get('body')!r}: left out"))
+        out += people(db, world, z, home)
+    return out
+
+
+def people(db, world, z, home):
+    """The writes of a block of a zone's people (a home's, or the shared ground's): its npcs, their npcaggro rules, their
+    lines, and the shared ground's creatures' combat templates (npctemplate) and loot regions (lootcreature)."""
+    out = []
+    for n in home.get("npcs", []):
+        optional = bool(n.get("optional"))
+        t = template(db, n, missing_ok=optional)
+        if t is None:
+            out.append(("skip", n["name"], None, None, f"{n['name']} in {z['name']}: optional, and this database has no "
+                                                       f"npcs row like {n.get('like') or n.get('body')!r}: left out"))
+            continue
+        if n.get("role", "talker") == "foe":
+            n_else = sum(c for w, c in first_ids(db)[3].get(n["name"].lower(), {}).items() if w != world)
+            if n_else:
+                raise SystemExit(f"{z['name']}: {n_else} NPCs of other worlds are named {n['name']!r} too: a home's creature "
+                                 "has a name of its own (npcaggro and a quest's kill go by name)")
+        row = {k: v for k, v in t.items() if k != "id"}
+        x, y, zz = n["at"]
+        if "toward" in n:
+            face = byte_heading(heading_to(x, zz, *n["toward"]))
+        else:
+            face = int(n.get("facing", t.get("facing") or 0))
+        row.update(npc_name=n["name"], x_coord=x, y_coord=y, z_coord=zz, facing=face, world=world,
+                   npc_level=int(n.get("level", t.get("npc_level") or 1)),
+                   npc_type=TALKER if n.get("role", "talker") == "talker" else FOE, dt_kill=None)
+        if n.get("body"):
+            row["modelid"] = int(n["body"], 16) & 0xFFFFFFFF
+            for k in ("primary_weapon", "secondary_weapon", "shield", "torso", "forearm", "gloves", "legs", "feet", "head"):
+                row[k] = 0
+        if n.get("size"):
+            row["size"] = float(n["size"])
+        stock = []
+        if n.get("stock"):
+            # the seller of another world: a home's own seller of the name (an earlier seeding's) is no source
+            ids = [i for w, i in first_ids(db)[2].get(n["stock"], {}).items() if w != world]
+            src = row_dict(db, "npcs", "id = ?", (min(ids),)) if ids else None
+            if src is not None:
+                cur = db.execute("SELECT * FROM npcitem WHERE npcid = ? ORDER BY listnumber, itemid", (src["id"],))
+                cols = [c[0] for c in cur.description]
+                stock = [dict(zip(cols, r)) for r in cur.fetchall()]
+            if src is None or not stock:
+                why = f"no NPC {n['stock']!r} to take wares from" if src is None else f"{n['stock']!r} sells nothing"
+                if not optional:
+                    raise SystemExit(f"{n['name']}: {why}")
+                out.append(("skip", n["name"], None, None, f"{n['name']} in {z['name']}: optional, and {why}: left out"))
                 continue
-            if n.get("role", "talker") == "foe":
-                n_else = sum(c for w, c in first_ids(db)[3].get(n["name"].lower(), {}).items() if w != world)
-                if n_else:
-                    raise SystemExit(f"{z['name']}: {n_else} NPCs of other worlds are named {n['name']!r} too: a home's creature "
-                                     "has a name of its own (npcaggro and a quest's kill go by name)")
-            row = {k: v for k, v in t.items() if k != "id"}
-            x, y, zz = n["at"]
-            if "toward" in n:
-                face = byte_heading(heading_to(x, zz, *n["toward"]))
-            else:
-                face = int(n.get("facing", t.get("facing") or 0))
-            row.update(npc_name=n["name"], x_coord=x, y_coord=y, z_coord=zz, facing=face, world=world,
-                       npc_level=int(n.get("level", t.get("npc_level") or 1)),
-                       npc_type=TALKER if n.get("role", "talker") == "talker" else FOE, dt_kill=None)
-            if n.get("body"):
-                row["modelid"] = int(n["body"], 16) & 0xFFFFFFFF
-                for k in ("primary_weapon", "secondary_weapon", "shield", "torso", "forearm", "gloves", "legs", "feet", "head"):
-                    row[k] = 0
-            if n.get("size"):
-                row["size"] = float(n["size"])
-            stock = []
-            if n.get("stock"):
-                # the seller of another world: a home's own seller of the name (an earlier seeding's) is no source
-                ids = [i for w, i in first_ids(db)[2].get(n["stock"], {}).items() if w != world]
-                src = row_dict(db, "npcs", "id = ?", (min(ids),)) if ids else None
-                if src is not None:
-                    cur = db.execute("SELECT * FROM npcitem WHERE npcid = ? ORDER BY listnumber, itemid", (src["id"],))
-                    cols = [c[0] for c in cur.description]
-                    stock = [dict(zip(cols, r)) for r in cur.fetchall()]
-                if src is None or not stock:
-                    why = f"no NPC {n['stock']!r} to take wares from" if src is None else f"{n['stock']!r} sells nothing"
-                    if not optional:
-                        raise SystemExit(f"{n['name']}: {why}")
-                    out.append(("skip", n["name"], None, None, f"{n['name']} in {z['name']}: optional, and {why}: left out"))
-                    continue
-                row["npc_type"] |= MERCHANT
-            out.append(("npc", None, None, {"row": row, "stock": stock}, f"{n['name']} in {z['name']}: {n.get('note', '')}".rstrip(": ")))
-        people = {n["name"] for n in home.get("npcs", [])}
-        for key, aggressive, what in (("peaceful", 0, "a starter quest's critter"), ("hostile", 1, "a starter quest's foe")):
-            for name in home.get(key, []):
-                if name not in people:
-                    raise SystemExit(f"{z['name']}: {key} names {name!r}, who is none of its people")
-                if name in home.get("hostile", []) and name in home.get("peaceful", []):
-                    raise SystemExit(f"{z['name']}: {name!r} is peaceful and hostile")
-                old = row_dict(db, "npcaggro", "npc_name = ?", (name,)) if has_table(db, "npcaggro") else None
-                if old is not None:
-                    # a rule that is there is someone's (a GM's): kept as it is
-                    out.append(("skip", name, None, None, f"{name} ({z['name']}): npcaggro has a row for it already (aggressive "
-                                                          f"{old.get('aggressive')}, source {old.get('source')!r}): kept as it is"))
-                    continue
-                out.append(("aggro", name, None, {"aggressive": aggressive}, f"{name}: {what} ({z['name']})"))
-        for name, lines in home.get("lines", {}).items():
+            row["npc_type"] |= MERCHANT
+        out.append(("npc", None, None, {"row": row, "stock": stock}, f"{n['name']} in {z['name']}: {n.get('note', '')}".rstrip(": ")))
+    people = {n["name"] for n in home.get("npcs", [])}
+    for key, aggressive, what in (("peaceful", 0, "a quest's critter"), ("hostile", 1, "a quest's foe")):
+        for name in home.get(key, []):
             if name not in people:
-                raise SystemExit(f"{z['name']}: lines for {name!r}, who is none of its people")
-            for line in lines:
-                out.append(("dialog", name, None, {"line": line}, f"{name}'s words ({z['name']})"))
+                raise SystemExit(f"{z['name']}: {key} names {name!r}, who is none of its people")
+            if name in home.get("hostile", []) and name in home.get("peaceful", []):
+                raise SystemExit(f"{z['name']}: {name!r} is peaceful and hostile")
+            old = row_dict(db, "npcaggro", "npc_name = ?", (name,)) if has_table(db, "npcaggro") else None
+            if old is not None:
+                # a rule that is there is someone's (a GM's): kept as it is
+                out.append(("skip", name, None, None, f"{name} ({z['name']}): npcaggro has a row for it already (aggressive "
+                                                      f"{old.get('aggressive')}, source {old.get('source')!r}): kept as it is"))
+                continue
+            out.append(("aggro", name, None, {"aggressive": aggressive}, f"{name}: {what} ({z['name']})"))
+    for name, lines in home.get("lines", {}).items():
+        if name not in people:
+            raise SystemExit(f"{z['name']}: lines for {name!r}, who is none of its people")
+        for line in lines:
+            out.append(("dialog", name, None, {"line": line}, f"{name}'s words ({z['name']})"))
+    # the house's creature patterns (as the roamers and the loot categories seed them): a name's combat template and
+    # its loot region; a name that has a row already (a GM's) keeps it
+    for key, table, col, what in (("templates", "npctemplate", "name", "template"), ("loot", "lootcreature", "npc_name", "loot")):
+        for name, value in sorted(home.get(key, {}).items()):
+            if name not in people or not all(n.get("role") == "foe" for n in home["npcs"] if n["name"] == name):
+                raise SystemExit(f"{z['name']}: {key} names {name!r}, who is none of its creatures")
+            old = row_dict(db, table, f"{col} = ?", (name,)) if has_table(db, table) else None
+            if old is not None:
+                out.append(("skip", name, None, None, f"{name} ({z['name']}): {table} has a row for it already: kept as it is"))
+                continue
+            out.append((what, name, None, {"value": value}, f"{name}: {table} {value!r} ({z['name']})"))
     return out
 
 
@@ -287,6 +311,16 @@ def apply(db, steps):
                 db.execute("INSERT INTO npcaggro (npc_name, aggressive, radius, note, source) VALUES (?, ?, 0, ?, 'racehomes')",
                            (key, new["aggressive"], note))
                 log(what, key, None, note)
+            elif what == "template":
+                if db.execute("SELECT count(*) FROM npctemplate WHERE name = ?", (key,)).fetchone()[0]:
+                    continue
+                db.execute("INSERT INTO npctemplate (name, template, note, source) VALUES (?, ?, ?, 'racehomes')", (key, new["value"], note))
+                log(what, key, None, note)
+            elif what == "loot":
+                if db.execute("SELECT count(*) FROM lootcreature WHERE npc_name = ?", (key,)).fetchone()[0]:
+                    continue
+                db.execute("INSERT INTO lootcreature (npc_name, region, profile, source) VALUES (?, ?, '', 'racehomes')", (key, new["value"]))
+                log(what, key, None, note)
             elif what == "dialog":
                 if not has_table(db, "npcdialog"):
                     db.execute(NPCDIALOG_DDL)
@@ -319,6 +353,10 @@ def undo(db):
                 db.execute("DELETE FROM npcdialog WHERE id = ?", (int(key),))
             elif what == "dialogtable":
                 db.execute("DROP TABLE IF EXISTS npcdialog")
+            elif what == "template":
+                db.execute("DELETE FROM npctemplate WHERE name = ?", (key,))
+            elif what == "loot":
+                db.execute("DELETE FROM lootcreature WHERE npc_name = ?", (key,))
             elif what == "aggro":
                 if old is None:
                     db.execute("DELETE FROM npcaggro WHERE npc_name = ?", (key,))

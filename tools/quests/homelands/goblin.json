@@ -2,7 +2,7 @@
   "race": "goblin",
   "home": "Moss Mouth Cavern",
   "city": "Neriak",
-  "note": "Moss Mouth's people are tools/worlds/homelands.json's (Moss Mouth Cavern): Elder Snikkit in the middle of the great hall gives the first two, Pitmaster Grukk a few steps from him the three hunts; Stitcher Nibb, across the hall to the south-west, is the outfitter; Coachman Rukkit keeps the stable in the south chamber, down the passage from the hall (his coach runs to Freeport and to the other homes); the tunnel rats (the long west tunnel that runs south to the cavern's mouth), the cave bats (the far north-east chamber) and the spider Mother Mossweb (alone in the old camp outside the mouth, far to the south) are placed for these quests.",
+  "note": "Moss Mouth's people are tools/worlds/homelands.json's (Moss Mouth Cavern): Elder Snikkit in the middle of the great hall gives the first two, Pitmaster Grukk a few steps from him the three hunts; Stitcher Nibb, across the hall to the south-west, is the outfitter; Coachman Rukkit keeps the stable in the south chamber, down the passage from the hall (his coach runs to Freeport and to the other homes); the tunnel rats (the long west tunnel that runs south to the cavern's mouth), the cave bats (the far north-east chamber) and the spider Mother Mossweb (alone in the old camp outside the mouth, far to the south) are placed for these quests. Levels 7-20 (2026-11-11): Grukk gives L7-L15, Snikkit the L20 path; objectives on the Homelands' shared ground, the Goldfeather Eyrie (Rukkit's coach), in the goblins' manner: fur and a pelt to sell, a bargain at Dunmore's, a bounty paid by him.",
   "L1": {
     "name": "A Tunnel-Runner's Ear Ring",
     "giver": "Elder Snikkit",
@@ -172,5 +172,169 @@
     "declined": "Neriak will wait. Dark elves are good at waiting.",
     "started": "Keep your blade close and your purse closer!",
     "journal": "Tell Gatekeeper Skabber when you are ready to go to Neriak."
+  },
+  "L7": {
+    "name": "Furs for Neriak",
+    "giver": "Pitmaster Grukk",
+    "offer": [
+      "Back again, and bigger! Hah. Listen. The dark elves of Neriak pay good coin for white fur, and the Eyrie's snow is full of drift rats wearing it.",
+      "Ride Rukkit's coach to the Goldfeather Eyrie. The rats run on the snow east of the hunters' outpost. Three clumps of fur, clean, no holes.",
+      "Will you skin some rats for Grukk?"
+    ],
+    "accept": "I will bring the fur.",
+    "decline": "Not now.",
+    "declined": "No fur, no coin. Come back when you want both.",
+    "started": "Three clumps. And keep your own ears warm. Cold ears snap off.",
+    "hunts": [
+      {
+        "target": "drift rat",
+        "count": 3,
+        "drop": {
+          "name": "drift rat fur",
+          "description": "A clump of white fur from a drift rat of the Goldfeather Eyrie's snow.",
+          "like": "clump of rat fur"
+        },
+        "hunt": {
+          "journal": "Take three clumps of drift rat fur from the drift rats east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring three clumps of drift rat fur to Pitmaster Grukk in Moss Mouth.",
+      "says": "White as a dark elf's lie! Hah. These fetch a fine price. Here, your share is a lesson. Watch, and learn this."
+    }
+  },
+  "L10": {
+    "name": "Grukk's Bargain",
+    "giver": "Pitmaster Grukk",
+    "offer": [
+      "Your blade is a toy now, little one. Grukk made a deal with the Eyrie's quartermaster: he gives you ore and a shaft, and we say nice things about him.",
+      "Get them from Quartermaster Dunmore at the outpost. Then bring me silk from the rime spiders north-east of it, three skeins, to bind it all.",
+      "Will you fetch Grukk's bargain?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "Then keep your toy, and hope nothing bites.",
+    "started": "Dunmore first. Do not let him talk you into paying.",
+    "materials": [
+      {
+        "merchant": "Quartermaster Dunmore",
+        "items": [
+          "iron ore",
+          "wooden shaft"
+        ],
+        "journal": "Ask Quartermaster Dunmore at the Eyrie outpost for the ore and the shaft Grukk bargained for.",
+        "says": "A goblin from Grukk. Of course. Here is his ore, and his shaft. Tell him we are square, and count your fingers on the way out."
+      }
+    ],
+    "target": "rime spider",
+    "count": 3,
+    "drop": {
+      "name": "rime spider silk",
+      "description": "A skein of frosted silk from a rime spider of the Goldfeather Eyrie.",
+      "like": "Black Widow Silk"
+    },
+    "hunt": {
+      "journal": "Take three skeins of silk from the rime spiders north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the iron ore, the wooden shaft and the rime spider silk to Pitmaster Grukk.",
+      "says": "Ore, shaft, silk, and nobody paid a copper. Hah! A moment... there. A real weapon. It is yours. Do not sell it."
+    }
+  },
+  "L13": {
+    "name": "The Old Cat's Coat",
+    "giver": "Pitmaster Grukk",
+    "offer": [
+      "Here is a thing. A snow leopard the Eyrie folk call Old Frostjaw hunts the slopes north-east of their outpost. His pelt would buy half of Neriak.",
+      "He is old and he is mean and he bites first. Take friends from the other homes and promise them nothing. Bring Grukk the pelt.",
+      "Will you bring me Old Frostjaw's pelt?"
+    ],
+    "accept": "I will bring it.",
+    "decline": "Not yet.",
+    "declined": "Then some other goblin gets rich. Not you.",
+    "started": "Go with friends. Let them stand in front.",
+    "kind": "loot",
+    "target": "Old Frostjaw",
+    "count": 1,
+    "drop": {
+      "name": "Old Frostjaw's pelt",
+      "description": "The scarred grey pelt of Old Frostjaw, the snow leopard of the Eyrie's slopes.",
+      "like": "catamount pelt"
+    },
+    "hunt": {
+      "journal": "Take Old Frostjaw's pelt, on the slopes north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring Old Frostjaw's pelt to Pitmaster Grukk.",
+      "says": "Look at it! Scars and all. The dark elves will fight over it. You did well, little one. Learn this."
+    }
+  },
+  "L15": {
+    "name": "Ice That Never Melts",
+    "giver": "Pitmaster Grukk",
+    "offer": [
+      "The Eyrie folk whisper about a cold thing in the ice caves north-east of their outpost. They call it the Rimeheart. It is made of ice that never melts.",
+      "Ice that never melts! Do you know what a wizard in Neriak pays for that? Break it and bring me a shard. Only one. Grukk is not greedy.",
+      "Will you break the Rimeheart for Grukk?"
+    ],
+    "accept": "I will break it.",
+    "decline": "Not yet.",
+    "declined": "Then the wizards keep their coin. Shame.",
+    "started": "Take friends. Big ones. Do not tell them what the shard is worth.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the shard of the Rimeheart to Pitmaster Grukk.",
+      "says": "Cold! Cold, and it does not drip. Hah! Grukk will be rich. And you will be clever, because now I teach you this."
+    }
+  },
+  "L20": {
+    "name": "The Bounty",
+    "giver": "Elder Snikkit",
+    "offer": [
+      "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.",
+      "The Eyrie's warden keeps a bounty book on the raiders of his river. Go to Warden Halvek at the outpost, get our name in it, and come home to me.",
+      "Will you take the warden's bounty?"
+    ],
+    "accept": "I will take it.",
+    "decline": "Not yet.",
+    "declined": "The bounty will keep. The raiders will not.",
+    "started": "Rukkit's coach will take you. Come home with our name in that book.",
+    "road": [
+      {
+        "target": "Warden Halvek",
+        "journal": "Find Warden Halvek at the Eyrie outpost.",
+        "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he keeps the bounty book."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 3,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "target": "Quartermaster Dunmore",
+      "journal": "Bring the three war-talons to Quartermaster Dunmore at the Eyrie outpost.",
+      "says": "Three talons, and Halvek's word on them. Moss Mouth goes in the bounty book, first page. Go home, goblin. You earned it."
+    },
+    "picked": "Hah! A good pick. It is yours. No refunds.",
+    "final": {
+      "journal": "Return to Elder Snikkit in Moss Mouth.",
+      "says": "First page of the warden's book! Hah! The other homes will say Moss Mouth's name now, and say it carefully. You did that, not Grukk."
+    }
   }
 }

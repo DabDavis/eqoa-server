@@ -17,6 +17,28 @@ its gatekeeper's flight to the mainland comes after:
 | `L5` | 5 | 36,500 | a named foe's drop (it always drops), or a count of a tougher kind | the class's level 5 quest ability (Taunt, Shadowstrike, Holy Shock ...) |
 | `flight` | after all five | none | the gatekeeper sends the character to its class's city on the mainland and binds it there: the passage the five quests earn (word it so; it is not the only road, a coach runs between the home and Freeport) | |
 
+The owner, 2026-11-11: "let's add up to lvl 20 path quests for them all. you can add a new zone for the higher level
+mobs/quest objectives and that zone can be shared by all the homeland races, so players can group together." Past the
+flight the chain goes on at the cities' levels, given by the home's own people and done on **the Homelands' shared
+ground, the Goldfeather Eyrie** (world 10's 22nd zone: below), which every home's coach (and Freeport's) runs to:
+
+| quest | level | experience | what it is (the cities' shape) | what it gives |
+|-------|-------|-----------|------------|---------------|
+| `L7` | 7 | 157,474 | two tasks of the hunt (Halas's Three Tasks): one or two kinds' drops, handed in together | the class's level 7 ability (Furious Defense, Acrobatics ...) |
+| `L10` | 10 | 556,753 | a new weapon: what a camp's quartermaster hands over (0-2) and a creature's drop | the class's level 10 weapon |
+| `L13` | 13 | 550,698 | a named foe brought down (a kill), or its drop brought back | the class's level 13 ability |
+| `L15` | 15 | 883,791 | a named foe's spoil (it always drops), carried to whoever wants it, then back | the class's level 15 ability (with the ranger's tunic) |
+| `L20` | 20 | 2,814,929 | the road: 1-3 stops, a hunt whose drops someone on it wants, 0-2 stops more, the last word at the giver | **the path pick**: "Which do you take?", the options the class's own city asks (Bellow or Pillar of Might ...) |
+
+Each finishes the character's own city class quest of its level too (`classquest`), as L1-L5 do, so the guildmaster on
+the mainland goes on from there and the level 30 path quests (which ask a city's level 20) chain. Both ways: a homeland
+quest **stands finished** when the city class quest it stands for is (a character that did Halas's level 7 after its
+flight is not offered the home's, nor paid twice, and the home's level 10 is offered); a class its race's cities train
+none of (an Aviak druid) finishes the class's quests of the level in every city (`handlers/questevents.go`). `L20` is one
+quest a class (`homelands/<race>/L20/<class>`, `classes: [c]`), each with its class's options (`class-rewards.json`'s
+`L20.choices`: the same in every city of the class; the cleric and the paladin have a third, a spell). Each level is
+optional in a spec, but none without the one before it.
+
 `tools/quests/gen_homelands.py` writes `tools/quests/data/homelands.json` from the specs here. **The template is the
 generator's**: keys, levels, the chain, the experience, the steps' kinds, drop chances, rewards by class
 (`class-rewards.json`, one table for every home), the flight's teleport and bind, whose the quests are (the home's
@@ -88,10 +110,57 @@ L4  materials         one or two {merchant, items, journal, says}: each merchant
 L5  kind              "loot" (default): target, count (1-3), drop, hunt, give; chance 1 unless given (a named foe
                       always drops). "kill": target, count (1-5), hunt, back {journal, says}
 flight  name, giver ("Gatekeeper ..."), offer, accept, decline, declined, started, journal
+
+L7  hunts             one or two {target, count (1-3), drop, hunt {journal}}: kinds of the shared ground; give {journal, says}
+L10 materials         zero to two {merchant, items, journal, says} (as L4; the Eyrie's Quartermaster Dunmore hands ore)
+    target, count (1-3), drop, hunt, give           as L4
+L13 kind              "kill" (default): target (a named foe, or a kind), count (1-8), hunt, back {journal, says};
+                      "loot": target, count (1-3), drop, hunt, give (chance 1 unless given)
+L15 target, count (1-3), drop, hunt                  a named foe's drop (chance 1 unless given)
+    carry             optional {target, journal, says}: the drop handed to someone (Warden Halvek), then
+    back              {journal, says} at the giver; with no carry, give {journal, says} at the giver
+L20 road              one to three stops {target, journal, says} (talks)
+    target, count (1-3), drop, hunt                  a hunt (one kill in two drops one)
+    handin            {target (default the last stop), journal, says}: the drops handed in
+    after             zero to two stops more
+    final             {target (default the giver), journal, says}: the last word, where the path is picked
+    picked            optional: the giver's words when a path is picked ("Then it is yours.")
 ```
 
 `give`, `show`, `back`, `fetch`, `bind`, `ledger` may add `notyet` (the player's answer while items lack),
 `waiting` and `reminder` (FORMAT.md).
+
+## The shared ground: the Goldfeather Eyrie
+
+Tunaria's zone 27 (cell 7,3), a snowfield under the Goldfeather aviaks' eyrie, is world 10's 22nd zone: no race's home
+(`"stable": true` in the recipe puts its coachwoman on the homes' coach network: every home's coach and Freeport's run
+there, hers to them) and its people and creatures are its zone's `shared` block, seeded by `tools/seed_race_homes.py` as a
+home's are (plus `templates`, the creatures' combat templates, `roamer`, and `loot`, their loot region, `arctic`).
+
+- **The outpost** on the frozen river's south-west reach, where the coach sets a rider down (14470, 66.5, 7500): Coachwoman
+  Brenna, **Warden Halvek** (a hill giant: L15 carries and L20 roads end with him), **Quartermaster Dunmore** (hands over L10
+  materials; sells Merchant Mallie's goods), Spiritmaster Oswin (a group binds here), three sentries. **Scout Feyla** stands
+  on the river's north-east reach, watching the eyrie (an L20 road's stop).
+- **The creatures**, by the level they serve (every home's chain shares them; each six spawns or more, at the zone's own
+  creatures' spots; from the outpost):
+
+| level | kind | spawns | where (from the outpost) | rule |
+|-------|------|--------|-------|------|
+| 6-7 | drift rat | 9 | the snow east | peaceful |
+| 7-9 | snowfield badger | 10 | the snow east | peaceful |
+| 9-11 | rime spider | 7 | north-east | peaceful |
+| 10-12 | pale owl | 10 | north | peaceful |
+| 12-14 | frostpaw cub | 12 | north, past the river | peaceful |
+| 14 | **Old Frostjaw** (named) | 1 | the slopes north-east | hostile |
+| 15-17 | rime elemental | 10 | the ice caves north-east (under the hills) | hostile |
+| 17 | **Rimeheart** (named) | 1 | the ice caves north-east | hostile |
+| 18-20 | Goldfeather raider | 10 | round the eyrie, east (its plateau) | hostile |
+
+- **Its drops are one set for every home**: copy the Aviak's `drop` blocks (`drift rat fur`, `snowfield badger pelt`,
+  `rime spider silk`, `shard of the Rimeheart`, `Goldfeather war-talon`) as they are; an item two homes make must be made
+  the same (the generator refuses two makings of one name). A home may add its own for a kind it hunts differently.
+- **Directions** in a journal line about the shared ground are from the outpost (the test measures them from Coachwoman
+  Brenna's spot); about the home, from its start, as before.
 
 ## The home's people (`tools/worlds/homelands.json`, `tools/seed_race_homes.py`)
 
@@ -148,6 +217,26 @@ no `lines`.
 
 **`lines`** (`npcdialog` by name: what one says when nothing else answers): the gatekeeper's before the five are
 done, the sentinels', the givers' afterwards. `%p`, `%r`, `%c` are the listener's name, race and class.
+
+## Adding L7-L20 to a home (a content lane's guide)
+
+The Aviak's (`aviak.json`'s `L7` .. `L20`) is the worked example. For a race:
+
+1. **Givers.** L7-L15 from the home's second giver (its huntmaster, warden, captain: whoever gives L3-L5), L20 from the
+   first (the elder, who gave L1-L2): the cities' captain and elder. No new person is needed in the home.
+2. **Objectives on the shared ground**, its people and kinds (the table above), each level's on the kinds of its level:
+   L7 drift rats and/or snowfield badgers, L10 Dunmore's ore (or no material) and rime spiders or pale owls, L13 Old
+   Frostjaw (or a count of frostpaw cubs), L15 the Rimeheart (carried to Warden Halvek), L20 a road through Halvek and
+   Scout Feyla to the Goldfeather raiders. A home may hunt in its own zone instead (its own creatures, placed in its
+   `home` block, six spawns or more, a level's worth), but the shared ground is where the homes meet: keep at least
+   L13-L20 there.
+3. **Words** in the race's voice, as its L1-L5: the giver sends the character by its home's coach ("ride Harrek's coach to
+   the Eyrie"), says why (the race's own reason), and the journal lines name where from the outpost. The shared people
+   are everyone's: their `says` lines answer this race's errand (each step carries its own words).
+4. `python3 tools/quests/gen_homelands.py`, `python3 tools/quests/gen_homelands_test.py`, then on a seeded copy
+   `check_quests.py`, `import_quests.py --apply`, `EQOA_REAL_DB=copy python3 tools/quests/gen_homelands_test.py`.
+5. Play L7 and the L20 pick on a rig (a GM's `#setlevel`, `/goto` and the coach are fine for the rest), and the
+   checklist below for the new steps.
 
 ## The checklist, per home (shots of each)
 

@@ -176,5 +176,173 @@
     "declined": "The road will wait for you.",
     "started": "Go with a light step!",
     "journal": "Tell Gatekeeper Dorvan when you are ready to take the elven road to the elves' cities."
+  },
+  "L7": {
+    "name": "Drumheads for the Glade",
+    "giver": "Hornwarden Tavos",
+    "offer": [
+      "Our dances need drums, kid, and the best drumheads are thick hides from cold country. The homes keep a hunters' outpost under the Goldfeather Eyrie, and Brannoc's coach runs there.",
+      "Bring me two snowfield badger pelts from the snow east of the outpost, and the glade will dance to them all winter.",
+      "Will you hunt the badgers?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "Then we dance to the old drums a while longer.",
+    "started": "Brannoc's coach will take you. Mind your hooves on the ice!",
+    "hunts": [
+      {
+        "target": "snowfield badger",
+        "count": 2,
+        "drop": {
+          "name": "snowfield badger pelt",
+          "description": "The thick pelt of a snowfield badger of the Goldfeather Eyrie.",
+          "like": "beast pelt"
+        },
+        "hunt": {
+          "journal": "Take two snowfield badger pelts from the badgers on the snow east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring the two badger pelts to Hornwarden Tavos.",
+      "says": "Thick as bark, and not a hole in them! Listen... a good drum, and a good hunter. Now watch my hooves, and learn this."
+    }
+  },
+  "L10": {
+    "name": "Feathers for Luck",
+    "giver": "Hornwarden Tavos",
+    "offer": [
+      "You have outgrown the arms I made you, kid. I will make you better ones, and a hornwarden's weapon is trimmed with owl feathers for luck.",
+      "Get a straight shaft from Reedcutter Syla. Then bring me three feathers from the pale owls north of the Eyrie outpost.",
+      "Will you bring me the shaft and the feathers?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then dance carefully with what you have.",
+    "started": "Syla first, then the owls. Off you go!",
+    "materials": [
+      {
+        "merchant": "Reedcutter Syla",
+        "items": [
+          "wooden shaft"
+        ],
+        "journal": "Ask Reedcutter Syla in the glade for a wooden shaft.",
+        "says": "Another shaft for Tavos? He breaks them dancing, you know. Here. Tell him this one is for fighting."
+      }
+    ],
+    "target": "pale owl",
+    "count": 3,
+    "drop": {
+      "name": "pale owl feather",
+      "description": "A long white flight feather from a pale owl of the Goldfeather Eyrie.",
+      "like": "ruined owl feathers"
+    },
+    "hunt": {
+      "journal": "Take three pale owl feathers from the pale owls north of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the wooden shaft and the pale owl feathers to Hornwarden Tavos.",
+      "says": "Light as a song. A moment... there. It is yours: swing it the way you dance."
+    }
+  },
+  "L13": {
+    "name": "Masks for the Revel",
+    "giver": "Hornwarden Tavos",
+    "offer": [
+      "The glade holds a winter revel, kid, and the dancers wear masks trimmed with frostpaw fur. The cubs are thick on the snow north of the Eyrie outpost this year.",
+      "The outpost's hunters say there are too many of them anyway. Bring me three tufts, and I will teach you what a hornwarden knows.",
+      "Will you bring me three frostpaw tufts?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not yet.",
+    "declined": "Then the dancers go bare-faced. A shame.",
+    "started": "Past the river, north. Their mothers are not far, so be quick!",
+    "kind": "loot",
+    "target": "frostpaw cub",
+    "count": 3,
+    "chance": 0.5,
+    "drop": {
+      "name": "frostpaw tuft",
+      "description": "A tuft of thick white fur from a frostpaw cub of the Goldfeather Eyrie.",
+      "like": "Beast Fur"
+    },
+    "hunt": {
+      "journal": "Take three frostpaw tufts from the frostpaw cubs north of the Eyrie outpost, past the river."
+    },
+    "give": {
+      "journal": "Bring three frostpaw tufts to Hornwarden Tavos.",
+      "says": "Soft as a lullaby! The revel will have its masks. Learn this, and come and dance with us."
+    }
+  },
+  "L15": {
+    "name": "Tavos's Wager",
+    "giver": "Hornwarden Tavos",
+    "offer": [
+      "I have a wager with Scout Feyla at the Eyrie: that a satyr of the glade could break the Rimeheart, the cold thing in the ice caves north-east of the outpost.",
+      "Win me my wager, kid. Break it, show Feyla a shard of it, then come back and tell me how she took it.",
+      "Will you win me my wager?"
+    ],
+    "accept": "I will win it.",
+    "decline": "Not yet.",
+    "declined": "Then I had better not bet the glade's pipes.",
+    "started": "Take friends. A wager is no good to a dead satyr.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "carry": {
+      "target": "Scout Feyla",
+      "journal": "Show the shard of the Rimeheart to Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+      "says": "That is a shard of the Rimeheart, all right. Tavos wins his wager, curse him. Tell him I will pay at his next revel."
+    },
+    "back": {
+      "journal": "Return to Hornwarden Tavos.",
+      "says": "She paid? Ha! She will. You have won me a wager and the snow its game back. Learn this."
+    }
+  },
+  "L20": {
+    "name": "Silence the Horns",
+    "giver": "Elder Pannoch",
+    "offer": [
+      "Tavos says you dance and fight like a hornwarden. Before a satyr of the glade chooses its path, it plays its part for the homes we share the snow with.",
+      "The Goldfeather raiders blow war-horns before every raid on the river. Ask Warden Halvek at the Eyrie outpost what he needs, then come back to me.",
+      "Will you go to the warden?"
+    ],
+    "accept": "I will go.",
+    "decline": "Not yet.",
+    "declined": "The horns will still be blowing when you are ready.",
+    "started": "Go with a light step, and come home with a song.",
+    "road": [
+      {
+        "target": "Warden Halvek",
+        "journal": "Find Warden Halvek at the Eyrie outpost.",
+        "says": "Pannoch's kid? Good. The raiders gather at their horns' call, round the eyrie east of here. Bring me two of their war-horns, and the river will be quiet."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 2,
+    "drop": {
+      "name": "Goldfeather war-horn",
+      "description": "A horn the Goldfeather raiders blow to gather before a raid.",
+      "like": "Magnar's war horn"
+    },
+    "hunt": {
+      "journal": "Take two war-horns from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "journal": "Bring the two war-horns to Warden Halvek.",
+      "says": "Two horns. Without them the raiders come in ones and twos, and those we can handle. Go home: your elder will want to hear it."
+    },
+    "final": {
+      "target": "Elder Pannoch",
+      "journal": "Return to Elder Pannoch in the glade.",
+      "says": "You went out a kid and came back with a song every home will sing. There is one more thing the glade gives its own."
+    }
   }
 }

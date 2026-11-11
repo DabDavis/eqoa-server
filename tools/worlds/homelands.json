@@ -3813,15 +3813,15 @@
             "level": 30,
             "role": "talker",
             "at": [
-              19846.0,
+              19855.0,
               54.12,
-              8776.0
+              8771.0
             ],
             "toward": [
               19832.3,
               8761.0
             ],
-            "note": "gives the three hunts (levels 3-5), a few steps south-east of the elder among the totems: an orc brute's look"
+            "note": "gives the three hunts (levels 3-5), a few steps east of the elder, clear of the round huts: an orc brute's look"
           },
           {
             "name": "Hidecutter Marga",

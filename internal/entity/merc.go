@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/eqoa/server/internal/session"
@@ -127,6 +128,9 @@ type MercKit struct {
 	Spells []CastSpell
 	// Bow is the bow a tank or a melee fighter shoots at range (mercshoot.go)
 	Bow MercBow
+	// PetPick is the words of the pet kind its hirer picked (/merc pet:
+	// mercpet.go's mercPetSpell), none for its best
+	PetPick []string
 }
 
 // MercLook is what a merc's channel shows of its body and its heirlooms.
@@ -609,8 +613,16 @@ func (w *World) SetMercKit(charID uint32, kit MercKit) bool {
 func (w *World) rekitMercLocked(ms *mercState, kit MercKit) {
 	n := ms.npc
 	hp, pw := share(n.HP, n.MaxHP), share(n.Power, n.MaxPower)
+	picked := strings.Join(ms.kit.PetPick, ",") != strings.Join(kit.PetPick, ",")
 	ms.kit = kit
 	ms.bowOut, ms.shot = false, nil // its hands the new kit's (mercshoot.go)
+	// a new pick of its pet's kind (/merc pet): a pet out of another
+	// summoning goes, and the picked one is summoned (mercpet.go)
+	if ps := w.mercPetOutLocked(ms); picked && ps != nil {
+		if want := ms.mercPetSpell(); want != nil && want.SpellID != ps.spell {
+			w.mercPetGoesLocked(ms, time.Now())
+		}
+	}
 	w.dressMercLocked(n, &kit, ms.owner)
 	ms.body = newMercBody(n.ServerID, &kit)
 	n.Level = ms.body.Level

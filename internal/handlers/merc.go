@@ -88,7 +88,7 @@ const (
 	mercRestLine  = "Your mercenary %s rests for %d more seconds."
 	mercBackLine  = "Your mercenary %s is back at your side."
 	mercKitFailed = "The liaison's ledger is out of order. Try again."
-	mercHelpLine  = "/merc stance passive|assist|aggressive, /merc follow, /merc stay, /merc attack (your target), /merc path, /merc group, /merc revive, /merc dismiss. /familiar dismiss sends a familiar away."
+	mercHelpLine  = "/merc stance passive|assist|aggressive, /merc follow, /merc stay, /merc attack (your target), /merc path, /merc pet, /merc group, /merc revive, /merc dismiss. /familiar dismiss sends a familiar away."
 )
 
 // mercRoles are the liaison's first answers, each role's classes in their
@@ -488,6 +488,7 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 	}
 	k.Spells, err = entity.SimBookFromDB(m.db, row.Class, k.Level, false)
 	k.Spells = mercPathBook(row.Class, row.Path, k.Spells) // its path's, no other's (mercpath.go)
+	k.PetPick = mercPetPick(row.Class, row.Pet)            // the pet kind its hirer picked (mercpetkind.go)
 	return k, err
 }
 
@@ -750,6 +751,8 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 		SendClientMessage(sess, "Your mercenary attacks "+name+".")
 	case "path":
 		m.path(sess, p, strings.Join(words[1:], " "))
+	case "pet":
+		m.pet(sess, p, strings.Join(words[1:], " ")) // mercpetkind.go
 	case "group":
 		if line := m.gw.AskMercGroup(sess); line != "" {
 			SendClientMessage(sess, line)
@@ -779,7 +782,7 @@ func (m *Mercs) dismiss(sess *session.Session, p *entity.Player) {
 // mercVerbs are /merc's words, which "/t merc <word>" takes as the command
 // (chat.go: anything else to a "merc" is a tell).
 var mercVerbs = map[string]bool{"status": true, "dismiss": true, "stance": true, "follow": true, "stay": true, "attack": true,
-	"group": true, "revive": true, "help": true, "path": true}
+	"group": true, "revive": true, "help": true, "path": true, "pet": true}
 
 // mercWords reports a tell's body that is /merc's: none, or one of its words
 // first.

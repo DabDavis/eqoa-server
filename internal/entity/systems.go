@@ -23,8 +23,9 @@ const (
 // with the lock let go (respawn.go).
 func (w *World) Tick(now time.Time) {
 	due, gates, gone := w.tickLocked(now)
-	w.runDuelPurse()     // a duel's wager held or paid (duelpurse.go)
-	w.runCombatRecords() // a PvP death or a duel's end counted (combatrecord.go)
+	w.runDuelPurse()        // a duel's wager held or paid (duelpurse.go)
+	w.runCombatRecords()    // a PvP death or a duel's end counted (combatrecord.go)
+	w.runProgressSaves(now) // a level gained, and experience every few minutes, written (progresssave.go)
 	w.runRespawns(due)
 	w.runGates(gates)
 	w.runTravels()   // the spells that send players to a named place (gates.go)

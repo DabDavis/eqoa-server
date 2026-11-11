@@ -73,6 +73,23 @@ type Listener struct {
 // SetCharStore sets the character store for position persistence on disconnect.
 func (l *Listener) SetCharStore(store *database.SQLiteCharacterStore) {
 	l.charStore = store
+	if l.gameWorld != nil && store != nil {
+		l.gameWorld.OnProgressSave(l.saveProgress)
+	}
+}
+
+// saveProgress writes a character's level and experience while it plays
+// (entity/progresssave.go): a level gained at the next tick, the experience
+// every few minutes, so a crash or a kill before the logout does not lose
+// them. Called with the world lock let go.
+func (l *Listener) saveProgress(s entity.ProgressSave) {
+	if err := l.charStore.SaveProgress(s.CharServerID, s.Level, s.TotalXP, s.Debt); err != nil {
+		log.Printf("saveProgress: '%s': %v", s.Name, err)
+		return
+	}
+	if s.Ding {
+		log.Printf("saveProgress: '%s' level %d (%d total xp) written", s.Name, s.Level, s.TotalXP)
+	}
 }
 
 // NewListener creates a new UDP listener.
@@ -637,6 +654,7 @@ func (l *Listener) endSession(sess *session.Session) {
 	if l.gameWorld != nil && sess.CharacterInWorld() {
 		// Save player position, spell effects and standings to database before removing
 		if l.charStore != nil {
+			release := l.gameWorld.ProgressHold() // no write of older figures after these (entity/progresssave.go)
 			l.savePlayerPosition(sess)
 			l.saveEffects(sess)
 			l.saveLockouts(sess) // lockoutsave.go
@@ -645,6 +663,7 @@ func (l *Listener) endSession(sess *session.Session) {
 			l.saveRez(sess) // rezsave.go
 			l.saveVitals(sess)
 			l.saveLogout(sess, time.Now()) // norentsave.go
+			release()
 		}
 		l.gameWorld.RemovePlayerBySession(sess)
 	}
@@ -774,6 +793,8 @@ func (l *Listener) SaveAll() {
 		}
 		return true
 	})
+	release := l.gameWorld.ProgressHold() // no write of older figures after these (entity/progresssave.go)
+	defer release()
 	for _, sess := range inWorld {
 		l.savePlayerPosition(sess)
 		l.saveEffects(sess)

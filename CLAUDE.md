@@ -559,6 +559,29 @@ them, and Chosen's Staff, Rapier, Baton and Victor's Blade secondary ("Raid weap
 Every HP, hit, timer, count, chance and spot is ours where no figure exists; `internal/handlers/zp_raids_test.go` plays
 both raids from the JSON, and `TestRealGuideBosses` holds the three new bosses to their figures.
 
+**Zaoran Plateau's factions as questmasters1.com has them** (the owner, 2026-11-11, pointing to its archived ZP pages of
+2006-07; beside the sets above, whose figures win where both give one; set `zp-factions`, `tools/zp_guides_20261111.py
+--db <db> [--apply|--undo]`, the quests `tools/quests/data/zp-factions.json`). **The passage**: the portal guardian takes
+5,000 tunar a trip (`waysender.go`, the guide's "With the five Ruins and 5,000 tunar") and The Way to Zaoran Plateau's
+show step 5,000 for the first (a show step pays its tunar: `payStepTunarLocked`, its items kept). **Three factions**:
+the Soldiers of Rallos Zek and Mithaniel Marr's Crusaders (in the table already) and the Akessan Collective (added, 0),
+each with a camp of ours on the plateau (the guide's places have no match on the disc's zone 5): the Zaorans east of the
+port-in (Lieutenant Ugmar), the Honor Guard east of them (Lieutenant Jenkavs), the Akessans across the lava on the north
+curl's high ground (the Akessan Liason, the Envoy and the Agent: the guide's two "an Akessan", named apart). Every member
+is of its faction (`npcfaction`, world 5), so it attacks only a player below -350 with it: a newcomer walks among all
+three ("the creatures roaming are all neutral"), an aligned player is the other two sides' foe; a camp soldier's kill
+-5 with its faction (ours). **Quests** (21): each side's introduction (no faction; 10M and 3,000) and alignment (+499
+Zek / +500 Marr / +500 Akessan, -2000 with the other two; each foe spawned at the player as its step starts, the
+guide's invisible forms, placeholders, escort walk and death touch made simple: the file's notes say how), the
+Liason's -350 and its +4 turn-ins to -320, the Akessans' five-quest chain, each side's repeatable weapon turn-ins (+16
+and 2.4M a stack of four: the Akessan Collector's measure, ours for the other two), and the Master Spellsmith's ability
+at 2,000 (one in each camp, its quest by the faction: a mystical parchment for the side's scroll of the class's
+archetype, #494's eleven; Marr's tanks have none and are not offered it). **Drops**: the camps' named are the guide's
+Tier One and Two with their lists (Devastator's Gloves made), an armour gem every named kill ("All named npcs ... drop
+at least 1 armor gem"), 2% a soldier's; the spellsmiths a mystical parchment each. `TestRealZaoranPlateauFactions`
+(`EQOA_REAL_DB`) plays the passage and each side from its first quest to its ability. Left: the XP gems and potions
+do nothing yet, the insignias, the Commander quest, the High Elder, the portal raid quests (`zp-guides` NOTES).
+
 **The XP camps are `#tele` shortcuts** (`handlers/camps.go`, written by `tools/gen_camp_teles.py`;
 the user's "add popular xp camps to the gm tele port like /tele dfc (deathfist citadel) /tele
 hexbones"): EQOA-Data's XP-camp guide (its map's 69 camps with a note, `Map/zones.json`) placed

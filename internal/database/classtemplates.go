@@ -1209,22 +1209,22 @@ type TemplateSpell struct {
 // spelleffect se and spellarea sa.
 const templateSpellColumns = `sp.spellid, sp.abilitylvl, sp.unk2, sp.unk3, sp.range, sp.casttime, sp.power, sp.iconColor,
 	sp.icon, sp.scope, sp.recast, sp.eqprequire, sp.spellname, COALESCE(sp.spelldesc, ''), COALESCE(se.line, ''),
-	COALESCE(se.effects, ''), COALESCE(se.fxdict, 0), sa.centre, sa.radius, sa.maxtargets`
+	COALESCE(se.effects, ''), COALESCE(se.fxdict, 0), sa.centre, sa.radius, sa.maxtargets, sa.cone`
 
 func scanTemplateSpell(scan func(...any) error) (TemplateSpell, error) {
 	var s TemplateSpell
 	var fx int64
 	var centre, maxTargets sql.NullInt64
-	var radius sql.NullFloat64
+	var radius, cone sql.NullFloat64
 	p := &s.Pattern
 	if err := scan(&p.SpellID, &p.AbilityLvl, &p.Unk2, &p.Unk3, &p.Range, &p.CastTime, &p.Power, &p.IconColor, &p.Icon,
-		&p.Scope, &p.Recast, &p.EqpRequire, &p.SpellName, &p.SpellDesc, &s.Line, &s.Effects, &fx, &centre, &radius, &maxTargets); err != nil {
+		&p.Scope, &p.Recast, &p.EqpRequire, &p.SpellName, &p.SpellDesc, &s.Line, &s.Effects, &fx, &centre, &radius, &maxTargets, &cone); err != nil {
 		return s, err
 	}
 	s.FX = uint32(fx)
 	if centre.Valid {
 		s.HasArea = true
-		s.Area = SpellAreaRow{Centre: int(centre.Int64), Radius: radius.Float64, MaxTargets: int(maxTargets.Int64)}
+		s.Area = SpellAreaRow{Centre: int(centre.Int64), Radius: radius.Float64, MaxTargets: int(maxTargets.Int64), Cone: cone.Float64}
 	}
 	return s, nil
 }

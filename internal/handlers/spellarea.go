@@ -23,7 +23,7 @@ func (h *SpellbookHandler) areaOf(spell entity.CastSpell) entity.CastSpell {
 // withAreaRow is spell with a spellarea row over its area; ok false for none.
 func withAreaRow(spell entity.CastSpell, row database.SpellAreaRow, ok bool) entity.CastSpell {
 	if ok {
-		spell.Area = spell.Area.With(entity.AreaRule{Centre: row.Centre, Radius: float32(row.Radius), Max: row.MaxTargets})
+		spell.Area = spell.Area.With(entity.AreaRule{Centre: row.Centre, Radius: float32(row.Radius), Max: row.MaxTargets, Cone: float32(row.Cone)})
 	}
 	return spell
 }

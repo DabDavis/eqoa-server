@@ -2,6 +2,7 @@ package entity
 
 import (
 	"log"
+	"math"
 	"regexp"
 	"sort"
 	"strconv"
@@ -84,6 +85,20 @@ import (
 // left a spell of one target: its line says nothing of an area, and its
 // record's recast is 3 s. A GM sets any spell's centre, radius and cap (table
 // spellarea, the GM panel's "Spell areas": AreaRule).
+//
+// A cone (the owner, 2026-11-11: "lets make cleave hit up to 3 in a frontal
+// cone"; no line words one, only a GM's row, centre 3): its apex the caster,
+// aimed at its own target (a melee strike swings at what it strikes; with no
+// target, or one standing on the caster, the caster's facing), reaching
+// ConeRadius past the caster (melee reach, attack.go's 4.5 centre to centre,
+// and a little for where the positions lag) plus each creature's own reach
+// allowance (reach.go: +3 large, +5 huge), within its half-angle (ConeHalfAngle
+// on either side, the angle taken on the ground: x and z). Its own target is hit
+// wherever it stands, as any area spell's is; its others are the foes in the
+// cone by the same rules as any harmful area's (the creatures one may attack,
+// a flagged caster's PvP foes, nothing hidden by a wall from the caster), the
+// nearest the caster first, up to its cap with its own target counted. Ours:
+// the radius and the angle (no list words a cone).
 
 // The radii and the cap: ours.
 const (
@@ -105,6 +120,16 @@ const (
 	// areaRadiusMost and areaMaxMost bound a GM's row.
 	areaRadiusMost float32 = 100
 	areaMaxMost            = 64
+	// ConeRadius is how far past its caster a cone reaches when its row gives
+	// no radius: melee reach (meleeReach, 4.5 centre to centre) and 1.5 for
+	// where the positions lag; a creature's own reach allowance on top.
+	ConeRadius float32 = 6
+	// ConeHalfAngle is a cone's half-angle in degrees when its row gives none:
+	// a 120-degree arc in front of its caster.
+	ConeHalfAngle float32 = 60
+	// coneReachMost is the most a creature's reach allowance adds (reach.go's
+	// huge, +5), for the spatial query.
+	coneReachMost float32 = 5
 )
 
 // AreaCentre is where an area spell's area lies.
@@ -114,6 +139,7 @@ const (
 	AreaNone     AreaCentre = iota // a spell of one target
 	AreaOnTarget                   // round its target ("Target AE")
 	AreaOnCaster                   // round its caster ("PB AE", a taunt, a group's)
+	AreaCone                       // a cone in front of its caster, aimed at its target (a GM's row: Cleave)
 )
 
 // SpellArea is an area spell's area: its line's reading (ReadSpellArea) and a
@@ -122,6 +148,7 @@ type SpellArea struct {
 	Centre AreaCentre
 	Radius float32 // its line's or its row's; 0: its kind's (radiusFor)
 	Max    int     // its row's cap; 0: AreaMaxTargets
+	Cone   float32 // a cone's half-angle in degrees; 0: ConeHalfAngle
 	// Effects is what its others take; nil: the spell's own
 	Effects []SpellEffect
 	// Why is what made it one, for the log
@@ -130,12 +157,14 @@ type SpellArea struct {
 
 // AreaRule is a GM's row of table spellarea: Centre AreaRuleLine as the
 // spell's line reads, AreaRuleTarget round its target, AreaRuleCaster round
-// its caster, AreaRuleNone not an area spell; Radius and Max 0 as its line or
-// its kind has them.
+// its caster, AreaRuleCone a cone in front of its caster, AreaRuleNone not an
+// area spell; Radius and Max 0 as its line or its kind has them; Cone a cone's
+// half-angle in degrees (0: ConeHalfAngle).
 type AreaRule struct {
 	Centre int
 	Radius float32
 	Max    int
+	Cone   float32
 }
 
 // The centres a spellarea row names.
@@ -144,6 +173,7 @@ const (
 	AreaRuleLine   = 0
 	AreaRuleTarget = 1
 	AreaRuleCaster = 2
+	AreaRuleCone   = 3
 )
 
 // With is the area as a GM's row has it.
@@ -155,6 +185,11 @@ func (a SpellArea) With(r AreaRule) SpellArea {
 		a.Centre = AreaOnTarget
 	case AreaRuleCaster:
 		a.Centre = AreaOnCaster
+	case AreaRuleCone:
+		a.Centre = AreaCone
+		if r.Cone > 0 {
+			a.Cone = min(r.Cone, 180)
+		}
 	}
 	if a.Centre == AreaNone {
 		return a
@@ -174,6 +209,8 @@ func (a SpellArea) radiusFor(harmful bool) float32 {
 	switch {
 	case a.Radius > 0:
 		return a.Radius
+	case a.Centre == AreaCone:
+		return ConeRadius
 	case harmful && a.Centre == AreaOnCaster:
 		return ShoutRadius
 	}
@@ -395,6 +432,91 @@ func areaShare(words string, d SpellDef) []SpellEffect {
 	return share
 }
 
+// areaCone is a cone area as it stands: its apex, the unit direction it is
+// aimed along on the ground, the cosine of its half-angle and its radius.
+type areaCone struct {
+	x, y, z    float32
+	dx, dz     float32
+	cosHalf, r float32
+}
+
+// coneOf is a's cone with its apex at (x, y, z) and aimed at (tx, tz), or along
+// facing (CLIENT's heading: x along sin, z along cos) when there is nothing to
+// aim at (aim false, or the aim on the apex); nil for an area not a cone.
+func (a *SpellArea) coneOf(x, y, z, facing float32, aim bool, tx, tz float32) *areaCone {
+	if a.Centre != AreaCone {
+		return nil
+	}
+	c := &areaCone{x: x, y: y, z: z, r: a.radiusFor(true)}
+	half := a.Cone
+	if half <= 0 {
+		half = ConeHalfAngle
+	}
+	c.cosHalf = float32(math.Cos(float64(min(half, 180)) * math.Pi / 180))
+	dx, dz := tx-x, tz-z
+	if l := float32(math.Hypot(float64(dx), float64(dz))); aim && l > 0.01 {
+		c.dx, c.dz = dx/l, dz/l
+	} else {
+		s, co := math.Sincos(float64(facing))
+		c.dx, c.dz = float32(s), float32(co)
+	}
+	return c
+}
+
+// holds reports (x, y, z) in the cone, extra (a creature's reach allowance)
+// past its radius, and how far it stands from the apex. One on the apex is in
+// it.
+func (c *areaCone) holds(x, y, z, extra float32) (bool, float32) {
+	d := dist3(x, y, z, c.x, c.y, c.z)
+	if d > c.r+extra {
+		return false, d
+	}
+	ox, oz := x-c.x, z-c.z
+	l := float32(math.Hypot(float64(ox), float64(oz)))
+	if l < 0.01 {
+		return true, d
+	}
+	return (ox*c.dx+oz*c.dz)/l >= c.cosHalf-1e-6, d
+}
+
+// inArea reports (x, y, z) in an area: in its cone (extra past its radius), or
+// for an area not a cone within r of (cx, cy, cz); and how far it stands from
+// the centre (a cone's apex).
+func inArea(cone *areaCone, cx, cy, cz, r, x, y, z, extra float32) (bool, float32) {
+	if cone != nil {
+		return cone.holds(x, y, z, extra)
+	}
+	d := dist3(x, y, z, cx, cy, cz)
+	return d <= r, d
+}
+
+// queryRadius is how far round its centre an area's spatial query looks: a
+// cone's radius and the largest reach allowance, else r.
+func queryRadius(cone *areaCone, r float32) float32 {
+	if cone != nil {
+		return cone.r + coneReachMost
+	}
+	return r
+}
+
+// playerConeLocked is a player's cast's cone (areaCone), aimed at its own
+// first target; nil for an area not a cone. Must be called with the lock held.
+func (w *World) playerConeLocked(p *Player, cs *castState) *areaCone {
+	if cs.spell.Area.Centre != AreaCone {
+		return nil
+	}
+	var tx, tz float32
+	aim := false
+	if len(cs.targets) > 0 {
+		if t := w.Players[cs.targets[0]]; t != nil && t != p {
+			tx, tz, aim = t.X, t.Z, true
+		} else if npc := w.NPCs[cs.targets[0]]; npc != nil {
+			tx, tz, aim = npc.X, npc.Z, true
+		}
+	}
+	return cs.spell.Area.coneOf(p.X, p.Y, p.Z, p.Facing, aim, tx, tz)
+}
+
 // areaNear is one of an area's others and how far it stands from its centre.
 type areaNear struct {
 	id   EntityID
@@ -448,6 +570,9 @@ func (w *World) areaStartLocked(p *Player, cs *castState, now time.Time) {
 		cx, cy, cz := w.areaCentreLocked(p, cs)
 		if a.Centre == AreaOnTarget && len(cs.targets) > 0 {
 			centre = "target"
+		}
+		if a.Centre == AreaCone {
+			centre = "caster, a cone in front of it,"
 		}
 		if d.Harmful {
 			near = w.areaCreaturesLocked(p, cs, cx, cy, cz, r, now)
@@ -512,10 +637,11 @@ func (w *World) areaOwnSparedLocked(caster *Player, cs *castState, npc *NPC) boo
 func (w *World) areaCreaturesLocked(p *Player, cs *castState, cx, cy, cz, r float32, now time.Time) []areaNear {
 	undead := cs.spell.Def.undeadOnly()
 	place := w.areaPlaceLocked(p, cs)
+	cone := w.playerConeLocked(p, cs)
 	var out []areaNear
 	var seen areaLog
 	defer func() { seen.write("begins", p.Name, cs.spell.Name, place) }()
-	for _, id := range w.SpatialIndex.QueryRadius(cx, cz, r) {
+	for _, id := range w.SpatialIndex.QueryRadius(cx, cz, queryRadius(cone, r)) {
 		npc := w.NPCs[id]
 		if npc == nil || areaHas(cs.targets, id) || npc.Dead || npc.Owner != 0 || npc.NPCType&0x80 != 0 ||
 			npc.World != p.World || npc.hiddenAt(now) || challengeBars(npc, p.ServerID) {
@@ -524,7 +650,7 @@ func (w *World) areaCreaturesLocked(p *Player, cs *castState, cx, cy, cz, r floa
 		if w.apartLocked(p, npc) || undead && !w.undeadLocked(npc) { // water.go, undead.go
 			continue
 		}
-		if dd := dist3(npc.X, npc.Y, npc.Z, cx, cy, cz); dd <= r {
+		if in, dd := inArea(cone, cx, cy, cz, r, npc.X, npc.Y, npc.Z, npcReachExtra(npc)); in {
 			reached := w.reachesLocked(place, npc.X, npc.Y, npc.Z)
 			seen.note(reached, npc.Name, npc.X, npc.Y, npc.Z)
 			if reached {

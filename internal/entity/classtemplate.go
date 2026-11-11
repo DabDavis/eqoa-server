@@ -470,7 +470,7 @@ func templateCandidates(a database.TemplateAbility, spells []*CastSpell) []*Cast
 func templateSpellOf(ts database.TemplateSpell) *CastSpell {
 	s := SpellOfRow(&ts.Pattern, 0, ts.Line, ts.Effects, ts.FX)
 	if ts.HasArea {
-		s.Area = s.Area.With(AreaRule{Centre: ts.Area.Centre, Radius: float32(ts.Area.Radius), Max: ts.Area.MaxTargets})
+		s.Area = s.Area.With(AreaRule{Centre: ts.Area.Centre, Radius: float32(ts.Area.Radius), Max: ts.Area.MaxTargets, Cone: float32(ts.Area.Cone)})
 	}
 	s.resist = templateResist(ts.Pattern.SpellName, ts.Line)
 	if st, ok := workbookResist(&s.Def); ok { // the workbook's resist basis (workbook.go)
@@ -1066,6 +1066,22 @@ func (w *World) templateAreaCentreLocked(npc *NPC, spell *CastSpell, target Enti
 	return npc.X, npc.Y, npc.Z
 }
 
+// templateConeLocked is a templated NPC's cone (area.go's areaCone), aimed at
+// its target; nil for an area not a cone. Must be called with the lock held.
+func (w *World) templateConeLocked(npc *NPC, spell *CastSpell, target EntityID) *areaCone {
+	if spell.Area.Centre != AreaCone {
+		return nil
+	}
+	var tx, tz float32
+	aim := false
+	if p := w.Players[target]; p != nil {
+		tx, tz, aim = p.X, p.Z, true
+	} else if o := w.NPCs[target]; o != nil && o != npc {
+		tx, tz, aim = o.X, o.Z, true
+	}
+	return spell.Area.coneOf(npc.X, npc.Y, npc.Z, npc.Facing, aim, tx, tz)
+}
+
 // templateAreaPlaceLocked is where a templated NPC's area spell stands now
 // (sight.go). Must be called with the lock held.
 func (w *World) templateAreaPlaceLocked(npc *NPC, spell *CastSpell, target EntityID) areaPlace {
@@ -1111,17 +1127,18 @@ func (w *World) templateAreaLocked(npc *NPC, spell *CastSpell, target EntityID) 
 	r := a.radiusFor(true)
 	cx, cy, cz := w.templateAreaCentreLocked(npc, spell, target)
 	place := w.templateAreaPlaceLocked(npc, spell, target)
+	cone := w.templateConeLocked(npc, spell, target) // area.go: a cone in front of it, at its target
 	var seen areaLog
 	defer func() { seen.write("begins", npc.Name, spell.Name, place) }()
 	var near []areaNear
-	for _, id := range w.SpatialIndex.QueryRadius(cx, cz, r) {
+	for _, id := range w.SpatialIndex.QueryRadius(cx, cz, queryRadius(cone, r)) {
 		if id == target {
 			continue
 		}
 		if p := w.Players[id]; p != nil {
 			// a player in safe mode (/testinvis, safemode.go) only once it is part of this fight
 			if p.World == npc.World && w.noticeableLocked(p) && (!w.safeLocked(p) || inFightLocked(npc, p)) && !w.apartLocked(p, npc) {
-				if d := dist3(p.X, p.Y, p.Z, cx, cy, cz); d <= r {
+				if in, d := inArea(cone, cx, cy, cz, r, p.X, p.Y, p.Z, 0); in {
 					reached := w.reachesLocked(place, p.X, p.Y, p.Z)
 					seen.note(reached, p.Name, p.X, p.Y, p.Z)
 					if reached {
@@ -1132,7 +1149,7 @@ func (w *World) templateAreaLocked(npc *NPC, spell *CastSpell, target EntityID) 
 			continue
 		}
 		if pet := w.NPCs[id]; pet != nil && pet.Owner != 0 && !pet.Dead && pet.World == npc.World {
-			if d := dist3(pet.X, pet.Y, pet.Z, cx, cy, cz); d <= r {
+			if in, d := inArea(cone, cx, cy, cz, r, pet.X, pet.Y, pet.Z, npcReachExtra(pet)); in {
 				reached := w.reachesLocked(place, pet.X, pet.Y, pet.Z)
 				seen.note(reached, pet.Name, pet.X, pet.Y, pet.Z)
 				if reached {

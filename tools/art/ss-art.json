@@ -1,0 +1,11 @@
+{
+  "note": "The disc's art added to Sandstorm's ss-art.csf (cmd/artbuild), so it draws in every world: the patch art is parsed at world entry, before any zone.",
+  "pieces": [
+    {
+      "sprite": "0x260EB42F",
+      "from": "TUNARIA.ESF",
+      "zone": 80,
+      "note": "Highpass's bulletin board with papers on it: the Mercenary Recruitment and Real Estate Listings boards (npcs.modelid 638497839), held by 23 Tunaria zones and no other file"
+    }
+  ]
+}

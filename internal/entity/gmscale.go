@@ -51,3 +51,25 @@ func (w *World) GMScale(gm *Player, factor float32) (string, bool) {
 	}
 	return "Nothing to scale", false
 }
+
+// GMSpeedBase is p's own run speed before a GM's /speed (gmSpeedBase), or its
+// speed now when unchanged.
+func (p *Player) GMSpeedBase() float32 {
+	if p.gmSpeedBase > 0 {
+		return p.gmSpeedBase
+	}
+	return p.Speed
+}
+
+// SetGMSpeed sets p's run speed to factor of its own (/speed; the owner,
+// 2026-11-11), 1 giving it back, and returns the speed.
+func (p *Player) SetGMSpeed(factor float32) float32 {
+	if p.gmSpeedBase == 0 {
+		p.gmSpeedBase = p.Speed
+	}
+	p.Speed = p.gmSpeedBase * factor
+	if factor == 1 {
+		p.gmSpeedBase = 0
+	}
+	return p.Speed
+}

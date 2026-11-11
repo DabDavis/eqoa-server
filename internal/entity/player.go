@@ -29,6 +29,9 @@ type Player struct {
 	// gmScaleBase is its size before a GM's /scale (gmscale.go), 0 when unscaled.
 	gmScaleBase float32
 
+	// gmSpeedBase is its run speed before a GM's /speed (gmscale.go), 0 when unchanged.
+	gmSpeedBase float32
+
 	// Appearance
 	Race, Sex, HumType                           int
 	HairColor, HairLength, HairStyle, FaceOption int

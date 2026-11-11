@@ -66,7 +66,7 @@ type subGMs interface {
 // subGMCommands are the GM commands a sub GM may use (the user, 2026-11-08:
 // "make his account a sub gm new category above tester than can fly"): a sub
 // GM is a tester in the panel and in the game a player but for these.
-var subGMCommands = map[string]bool{"#fly": true}
+var subGMCommands = map[string]bool{"#fly": true, "#speed": true}
 
 // isSubGM reports whether sess's account is a sub GM.
 func (h *ChatHandler) isSubGM(sess *session.Session) bool {

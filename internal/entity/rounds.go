@@ -113,7 +113,7 @@ func (w *World) npcRoundAtLocked(npc *NPC, target EntityID, now time.Time, hit f
 		}
 		npc.RoundStart = next
 		npc.RoundHits = 0
-		w.broadcastNPCSwingLocked(npc, target, uint32(delay/time.Millisecond), fx)
+		w.npcSwingLocked(npc, target, uint32(delay/time.Millisecond), fx, now) // none while it casts (classtemplate.go)
 	}
 	for npc.RoundHits < len(hits) && !now.Before(npc.RoundStart.Add(hits[npc.RoundHits])) {
 		npc.RoundHits++

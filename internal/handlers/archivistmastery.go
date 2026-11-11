@@ -1,6 +1,10 @@
 package handlers
 
-import "github.com/eqoa/server/internal/entity"
+import (
+	"strings"
+
+	"github.com/eqoa/server/internal/entity"
+)
 
 // archivistmastery.go — what the Spell Archivist leaves to the masteries
 // (petition 1381, Statler, 2026-11-09: "spell archivist gives necs cm version
@@ -38,7 +42,13 @@ import "github.com/eqoa/server/internal/entity"
 // (entity.CMRank.BookChange's takes: Gloom Pact for Gloom Covenant, Life Draw
 // for Life Draw +): his basic grant puts none of them back, which undid the
 // purchase's change (Statler's book held Life Draw beside Chardith's Boon 1's
-// Life Draw +).
+// Life Draw +). But a wizard's familiar (isFamiliar) is never one: the
+// Guardian Familiar ranks 1-5 take Lesser, plain, Greater, Elder and Arch
+// Familiar out for the Guardians, and Gargoyle Familiar 1 Arch Familiar for
+// the gargoyle, each another pet beside it, not the familiar improved; so a
+// wizard owning them was granted Minor Familiar alone (petition 1592, Kapow,
+// 2026-11-11: "no familiars on wizy when requesting spells from spell dude").
+// He grants the familiars of the wizard's level as every other spell.
 func takenByOwned(arch *spellArchive, owned map[int]bool) map[int]bool {
 	if arch == nil || len(owned) == 0 {
 		return nil
@@ -50,7 +60,7 @@ func takenByOwned(arch *spellArchive, owned map[int]bool) map[int]bool {
 		}
 		_, takes := r.BookChange()
 		for _, a := range takes {
-			if a.SpellID > 0 {
+			if a.SpellID > 0 && !isFamiliar(arch.names[a.SpellID].Name) {
 				out[a.SpellID] = true
 			}
 		}
@@ -121,4 +131,12 @@ func masteryOwn(qe *QuestEngine, arch *spellArchive, class, race int) map[int]bo
 		}
 	}
 	return own
+}
+
+// isFamiliar is whether a spell of the name is one of the wizard's familiars
+// (Minor, Lesser, plain, Greater, Elder and Arch Familiar, the merchants'
+// scrolls; Gargoyle Familiar, the mastery's): its name's last word.
+func isFamiliar(name string) bool {
+	f := strings.Fields(exactKey(name))
+	return len(f) > 0 && f[len(f)-1] == "familiar"
 }

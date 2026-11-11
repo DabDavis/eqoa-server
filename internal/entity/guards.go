@@ -296,9 +296,8 @@ func (w *World) npcFightNPCLocked(npc, foe *NPC, now time.Time) {
 		}
 		return
 	}
-	if byTemplate && w.templateTurnLocked(npc, foe.ServerID, now) {
-		npc.loseDueHits(now) // casting: no swing meanwhile (classtemplate.go)
-		return
+	if byTemplate {
+		w.templateTurnLocked(npc, foe.ServerID, now) // its casts; its rounds go on beside one (classtemplate.go)
 	}
 	defer func() {
 		if byTemplate && !npc.Dead && !foe.Dead && npc.CurrentEnemy == foe.ServerID {
@@ -312,7 +311,7 @@ func (w *World) npcFightNPCLocked(npc, foe *NPC, now time.Time) {
 			next = now
 		}
 		npc.RoundStart, npc.RoundHits = next, 0
-		w.broadcastNPCSwingLocked(npc, foe.ServerID, uint32(delay/time.Millisecond), fx)
+		w.npcSwingLocked(npc, foe.ServerID, uint32(delay/time.Millisecond), fx, now) // none while it casts
 	}
 	for npc.RoundHits < len(hits) && !now.Before(npc.RoundStart.Add(hits[npc.RoundHits])) {
 		npc.RoundHits++

@@ -236,6 +236,9 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 	held := npc.chase.heldSince
 	npc.chase.heldSince = time.Time{}
 	dt := npc.chaseStepDT(now)
+	// held where it stands: by a root, or by its own cast (castHeld: petition
+	// 1593, a creature stops moving while it casts)
+	still := npc.rooted(now) || npc.castHeld(now)
 	d := distXZ(npc.X, npc.Z, x, z)
 	leash := w.leashLocked(npc)
 	if d > npcGiveUp || distXZ(npc.X, npc.Z, npc.chase.fromX, npc.chase.fromZ) > leash {
@@ -251,7 +254,7 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 	// its enemy over or under it, on another floor within its reach across the
 	// ground (a ledge): no fight from there, but its way round to it at its run,
 	// where the ground has one (chaseroute.go)
-	if !shooting && d <= reach+routeLook && absf(y-npc.Y) > routeLevel && !npc.rooted(now) && dt > 0 {
+	if !shooting && d <= reach+routeLook && absf(y-npc.Y) > routeLevel && !still && dt > 0 {
 		run := npc.runSpeed() * npc.snareFactor(now)
 		routing, hold := w.routeWayLocked(npc, &npc.chase.route, x, y, z, d, run*dt, true, now)
 		if routing {
@@ -281,8 +284,9 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 	speed *= npc.snareFactor(now) // a snare's slow (workbook.go)
 	pace := min(away+chaseGain*(d-stop), speed)
 	step := pace * dt
-	if step <= chaseSlack || npc.rooted(now) || dt <= 0 {
-		// closed in, its enemy still (or held where it stands by a root):
+	if step <= chaseSlack || still || dt <= 0 {
+		// closed in, its enemy still (or held where it stands by a root or
+		// its cast):
 		// standing, turned to its enemy
 		if npc.moving() {
 			npc.stopMoving()

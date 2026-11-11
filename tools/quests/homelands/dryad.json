@@ -176,5 +176,183 @@
     "declined": "The way will wait for you.",
     "started": "Grow tall and strong!",
     "journal": "Tell Gatekeeper Thornwyn when you are ready to go to Qeynos."
+  },
+  "L7": {
+    "name": "The Pines of the Eyrie",
+    "giver": "Thornwarden Briony",
+    "offer": [
+      "The homes keep a hunters' outpost under the Goldfeather Eyrie, and the few pines round it are dying. Drift rats gnaw their bark, and badgers dig out their roots.",
+      "Ride Thistlewick's coach there. Bring me two drift rat teeth and a badger's claw from the snow east of the outpost, so the pines can rest.",
+      "Will you guard the Eyrie's pines?"
+    ],
+    "accept": "I will guard them.",
+    "decline": "Not now.",
+    "declined": "The pines will wait as long as they can.",
+    "started": "Thistlewick's coach will take you. Wrap up, little leaf: it is cold.",
+    "hunts": [
+      {
+        "target": "drift rat",
+        "count": 2,
+        "drop": {
+          "name": "drift rat incisor",
+          "description": "A yellow gnawing tooth from a drift rat of the Goldfeather Eyrie's snow.",
+          "like": "Cracked Rat Tooth"
+        },
+        "hunt": {
+          "journal": "Take two drift rat incisors from the drift rats east of the Eyrie outpost."
+        }
+      },
+      {
+        "target": "snowfield badger",
+        "count": 1,
+        "drop": {
+          "name": "snowfield badger claw",
+          "description": "A long digging claw from a snowfield badger of the Goldfeather Eyrie.",
+          "like": "Beast Claw"
+        },
+        "hunt": {
+          "journal": "Take a snowfield badger claw from the badgers on the snow east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring the drift rat incisors and the badger claw to Thornwarden Briony.",
+      "says": "Teeth and a claw. The pines will heal by spring. The forest is kind to those who keep it. Now watch closely, and learn this."
+    }
+  },
+  "L10": {
+    "name": "Thorn and Silk",
+    "giver": "Thornwarden Briony",
+    "offer": [
+      "You have grown past a sapling's arms. I will make you a thornwarden's weapon, bound with silk that does not rot in rain or snow.",
+      "Weaver Fernlight has cord for the grip. Then bring me two skeins from the rime spiders north-east of the Eyrie outpost.",
+      "Will you bring me the cord and the silk?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then your old arms will serve a while longer.",
+    "started": "Fernlight first. Then the spiders, and mind their webs.",
+    "materials": [
+      {
+        "merchant": "Weaver Fernlight",
+        "items": [
+          {
+            "name": "willow-bark cord",
+            "description": "A cord of willow bark, peeled and twisted by the weavers of the dryads' grove.",
+            "like": "silk cord"
+          }
+        ],
+        "journal": "Ask Weaver Fernlight in the grove for willow-bark cord.",
+        "says": "Cord for Briony again? Here, from the same old willow. She asks nothing of a tree it cannot spare."
+      }
+    ],
+    "target": "rime spider",
+    "count": 2,
+    "drop": {
+      "name": "rime spider silk",
+      "description": "A skein of frosted silk from a rime spider of the Goldfeather Eyrie.",
+      "like": "Black Widow Silk"
+    },
+    "hunt": {
+      "journal": "Take two skeins of silk from the rime spiders north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the willow-bark cord and the rime spider silk to Thornwarden Briony.",
+      "says": "Willow and silk. A moment... there. It is yours: let it serve the forest, wherever you carry it."
+    }
+  },
+  "L13": {
+    "name": "The Balance of the Snow",
+    "giver": "Thornwarden Briony",
+    "offer": [
+      "An old snow leopard they call Old Frostjaw hunts the slopes north-east of the Eyrie outpost. He kills more than he can eat, and the snow is emptying of game.",
+      "A forest is kept by taking what is out of balance. Bring him down, and I will teach you what a thornwarden knows. Take friends.",
+      "Will you bring down Old Frostjaw?"
+    ],
+    "accept": "I will.",
+    "decline": "Not yet.",
+    "declined": "Then the slopes grow emptier.",
+    "started": "He strikes first. Let the others draw him, and strike when he turns.",
+    "kind": "kill",
+    "target": "Old Frostjaw",
+    "count": 1,
+    "hunt": {
+      "journal": "Kill Old Frostjaw on the slopes north-east of the Eyrie outpost."
+    },
+    "back": {
+      "journal": "Return to Thornwarden Briony.",
+      "says": "He is gone? Then the game will come back to the slopes, and the hunters will eat. That is balance. Learn this."
+    }
+  },
+  "L15": {
+    "name": "A Seed of Ice",
+    "giver": "Thornwarden Briony",
+    "offer": [
+      "The Rimeheart walks the ice caves north-east of the Eyrie outpost, and where it walks nothing grows. The elder wants it broken, and a piece of it brought here.",
+      "We will bury the shard under the old oak. Even ice that never melts gives way to roots in time.",
+      "Will you bring me a shard of the Rimeheart?"
+    ],
+    "accept": "I will bring it.",
+    "decline": "Not yet.",
+    "declined": "Then the caves stay barren a while longer.",
+    "started": "Do not go into those caves alone, little leaf.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the shard of the Rimeheart to Thornwarden Briony.",
+      "says": "So cold, even now. The oak will have it, and a hundred springs will soften it. You have done the grove proud. Learn this."
+    }
+  },
+  "L20": {
+    "name": "The Last Pines",
+    "giver": "Elder Silverbough",
+    "offer": [
+      "Briony says your roots are deep now. Before a dryad of the grove chooses her path, she does a kindness for the homes we share the land with.",
+      "Spiritmaster Oswin at the Eyrie outpost sent word on the wind: the raiders are cutting the last pines. Go to him, then come home to me.",
+      "Will you go to Oswin?"
+    ],
+    "accept": "I will go.",
+    "decline": "Not yet.",
+    "declined": "The pines cannot wait forever, little leaf.",
+    "started": "Grow tall, and come home.",
+    "road": [
+      {
+        "target": "Spiritmaster Oswin",
+        "journal": "Find Spiritmaster Oswin at the Eyrie outpost.",
+        "says": "Silverbough's word reached you? Good. The Goldfeather raiders cut the pines for their fires. Warden Halvek means to stop them: go to him."
+      },
+      {
+        "target": "Warden Halvek",
+        "journal": "Find Warden Halvek at the Eyrie outpost.",
+        "says": "Oswin sent you. The raiders round the eyrie east of here carry war-talons. Bring me three, and they will learn the pines are guarded."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 3,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "journal": "Bring the three war-talons to Warden Halvek.",
+      "says": "Three talons. The pines will stand another winter. Go home to your grove: your elder will want to hear it from you."
+    },
+    "final": {
+      "target": "Elder Silverbough",
+      "journal": "Return to Elder Silverbough in the grove.",
+      "says": "You left a sapling and came back with branches that shelter other homes. The grove has one more thing to give you."
+    }
   }
 }

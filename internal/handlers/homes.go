@@ -194,6 +194,12 @@ func SetupHomes(gw *entity.World, c config.HomesConfig, db *database.SQLiteDB) b
 			log.Printf("WARNING: world.homes: the stays: %v", err)
 		}
 		for _, r := range srows {
+			if _, ok := names[r.Host]; !ok {
+				var n string
+				if db.QueryRow(`SELECT charName FROM characters WHERE serverid = ?`, r.Host).Scan(&n) == nil {
+					names[r.Host] = n // a host's name while it is away (the yard's box, the login's line)
+				}
+			}
 			stays[r.Char] = entity.HomeStay{Host: r.Host, FromFacing: r.FromFacing,
 				From: entity.GateSpot{World: uint8(r.FromWorld), X: r.FromX, Y: r.FromY, Z: r.FromZ, Place: "where you were"}}
 		}
@@ -516,8 +522,15 @@ func homeLogin(gw *entity.World, record *database.CharacterRecord, held func(wor
 	}
 	if resume && held != nil && held(uint8(record.World)) {
 		if _, err := ValidateTeleport(record.X, record.Y, record.Z, byte(record.World)); err == nil {
+			owner := gw.HomeHostName(host)
+			if host == record.ServerID || owner == "" {
+				owner = record.CharName // its own (or a host whose name is not known yet: logged out)
+				if host != record.ServerID {
+					owner = fmt.Sprintf("character %d", host)
+				}
+			}
 			log.Printf("loginSpawn: '%s' resumes in %s's home (instance %d) at (%.1f, %.1f, %.1f) world=%d",
-				record.CharName, gw.HomeHostName(host), host, record.X, record.Y, record.Z, record.World)
+				record.CharName, owner, host, record.X, record.Y, record.Z, record.World)
 			return true
 		}
 	}

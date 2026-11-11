@@ -1460,6 +1460,7 @@ func lastingParts(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 			}
 			ae.ProcCap = e.Cap
 			ae.ProcUndead = e.Undead
+			ae.Rules.ProcFX = e.ProcFX // its own look at each proc (proc.go)
 			if e.Cap > 0 && !e.ScaleBearer {
 				ae.Proc, ae.ProcMax = min(ae.Proc, e.Cap), min(ae.ProcMax, e.Cap)
 			}

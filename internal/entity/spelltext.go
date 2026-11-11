@@ -165,6 +165,9 @@ type SpellEffect struct {
 	// Cap is the most the effect does, its scale included ("max 250"); 0
 	// for no cap
 	Cap int
+	// ProcFX is an offensive proc's own look on what each of its procs hits (a SPELLFX.CSF
+	// DictID, the effects JSON's proc_fx: spelljson.go); 0, the stand-in of its kind (proc.go)
+	ProcFX uint32
 	// DebuffStat and DebuffPct: a hit on a creature that grows by DebuffPct
 	// percent for every point its resist of DebuffStat is lowered by, the
 	// largest such debuff on it (npcResistDebuff): the rogue's Agony, each of

@@ -170,7 +170,7 @@ func (w *World) handedOverLocked(p *Player) {
 	p.PendingBind = Bind{}
 	p.PendingSpar = SparPick{}
 	p.RaceLabels, p.raceLabelsSent = false, "" // the new client's answer says
-	p.ProfanityFilterOff = false
+	p.ProfanityFilterOff, p.ProfanityFilterMedium = false, false
 	p.PowerBars, p.powerBarsSent, p.powerBarsDue = false, "", false
 	p.PetEffects, p.petEffectsSent, p.petEffectsDue = false, "", false
 	p.RaidRoster, p.raidRosterSent = false, ""

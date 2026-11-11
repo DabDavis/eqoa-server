@@ -62,17 +62,28 @@ func profane(word string) bool {
 	return false
 }
 
-// lineFor is the line p hears: masked unless p turned the filter off.
+// lineFor is the line p hears: as said with the filter off, only the slurs
+// masked at Medium (its client's setting, petition 1625), every profane word
+// and slur at High (every login's).
 func lineFor(p *entity.Player, line string) string {
 	if p == nil || p.ProfanityFilterOff {
 		return line
 	}
+	if p.ProfanityFilterMedium {
+		return maskWords(line, slur)
+	}
 	return maskProfanity(line)
 }
 
-// maskProfanity is text with every profane word's letters starred; the
-// spaces, the punctuation and the clean words stay as they were.
+// maskProfanity is text with every profane word's or slur's letters starred
+// (the High filter); the spaces, the punctuation and the clean words stay as
+// they were.
 func maskProfanity(text string) string {
+	return maskWords(text, func(w string) bool { return profane(w) || slur(w) })
+}
+
+// maskWords is text with the letters of every word bad says is one starred.
+func maskWords(text string, bad func(string) bool) string {
 	runes := []rune(text)
 	changed := false
 	for i := 0; i < len(runes); {
@@ -84,7 +95,7 @@ func maskProfanity(text string) string {
 		for j < len(runes) && unicode.IsLetter(runes[j]) {
 			j++
 		}
-		if profane(string(runes[i:j])) {
+		if bad(string(runes[i:j])) {
 			for k := i; k < j; k++ {
 				runes[k] = '*'
 			}
@@ -128,7 +139,8 @@ func (h *ChatHandler) HandleProfanityFilter(sess *session.Session, msg *protocol
 	if p == nil {
 		return nil
 	}
-	p.ProfanityFilterOff = !p.ProfanityFilterOff
+	// on (High or Medium) turns off; off turns on at High
+	p.ProfanityFilterOff, p.ProfanityFilterMedium = !p.ProfanityFilterOff, false
 	on := int64(1)
 	if p.ProfanityFilterOff {
 		on = 0
@@ -142,6 +154,13 @@ func (h *ChatHandler) HandleProfanityFilter(sess *session.Session, msg *protocol
 
 // profanityChoiceLayout is the layout of OpcodeProfanityChoice the offer names.
 const profanityChoiceLayout = 1
+
+// OpcodeProfanityChoice's values from the client: 0 off, 2 Medium; any other
+// (1, an older client's On) is High.
+const (
+	profanityChoiceOff    = 0
+	profanityChoiceMedium = 2
+)
 
 // buildProfanityChoiceOffer is OpcodeProfanityChoice from the server: a u8,
 // the layout.
@@ -158,8 +177,9 @@ func SendProfanityChoiceOffer(sess *session.Session) {
 }
 
 // HandleProfanityChoice is OpcodeProfanityChoice from the client: its
-// setting, a u8 (nonzero the filter on, 0 off; a wider answer read by its
-// first byte), made the player's. Nothing is answered: the client's setting
+// setting, a u8 (0 off, 2 Medium: only slurs masked, any other value High:
+// every word; a wider answer read by its first byte), made the player's. An
+// older client sends 1 for its On, which is High. Nothing is answered: the client's setting
 // shows the state, and 0x0045 (with its chat line) is left to the game's own
 // toggle.
 func (h *ChatHandler) HandleProfanityChoice(sess *session.Session, msg *protocol.Message) error {
@@ -175,8 +195,14 @@ func (h *ChatHandler) HandleProfanityChoice(sess *session.Session, msg *protocol
 	if p == nil {
 		return nil
 	}
-	on := data[0] != 0
-	p.ProfanityFilterOff = !on
-	log.Printf("ProfanityChoice: %s set it %v", p.Name, map[bool]string{true: "on", false: "off"}[on])
+	p.ProfanityFilterOff = data[0] == profanityChoiceOff
+	p.ProfanityFilterMedium = data[0] == profanityChoiceMedium
+	tier := "high"
+	if p.ProfanityFilterOff {
+		tier = "off"
+	} else if p.ProfanityFilterMedium {
+		tier = "medium"
+	}
+	log.Printf("ProfanityChoice: %s set it %s", p.Name, tier)
 	return nil
 }

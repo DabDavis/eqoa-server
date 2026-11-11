@@ -55,6 +55,8 @@ type KeptPlayer struct {
 	// ProfanityOff: the player turned the profanity filter off (0x0045,
 	// /filter, or its client's setting: handlers/profanity.go)
 	ProfanityOff bool `json:"profanity_off,omitempty"`
+	// ProfanityMedium: its client's setting was Medium (only slurs masked)
+	ProfanityMedium bool `json:"profanity_medium,omitempty"`
 	// LFG: registered in the group search (lfg.go; petition 1582: a
 	// restart dropped every registration), and the group's chat hidden
 	LFG             bool `json:"lfg,omitempty"`
@@ -119,7 +121,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 	k.RecordWindow = p.RecordWindow
 	k.Jumps = p.Jumps
 	k.DPSMeter = p.dps != nil
-	k.ProfanityOff = p.ProfanityFilterOff
+	k.ProfanityOff, k.ProfanityMedium = p.ProfanityFilterOff, p.ProfanityFilterMedium
 	k.LFG, k.GroupChatHidden = p.LFG, p.GroupChatHidden
 	if p.pvp.on {
 		k.PvP, k.PvPHoldMS = true, max(0, p.pvp.hold.Sub(now).Milliseconds())
@@ -155,7 +157,7 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	}
 	p.RaceLabels, p.raceLabelsSent = k.RaceLabels, "" // the client keeps its list; a data step may have changed it
 	p.PowerBars, p.powerBarsSent, p.powerBarsDue = k.PowerBars, "", k.PowerBars
-	p.ProfanityFilterOff = k.ProfanityOff
+	p.ProfanityFilterOff, p.ProfanityFilterMedium = k.ProfanityOff, k.ProfanityMedium
 	p.LFG, p.GroupChatHidden = k.LFG, k.GroupChatHidden
 	p.PetEffects, p.petEffectsSent, p.petEffectsDue = k.PetEffects, "", k.PetEffects // its pet's set again once the pet is back
 	p.RaidRoster, p.raidRosterSent = k.RaidRoster, ""

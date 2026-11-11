@@ -3,6 +3,7 @@ package handlers
 import (
 	"testing"
 
+	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 )
 
@@ -138,5 +139,85 @@ func TestProfanityChoiceSetsTheHearersFilter(t *testing.T) {
 	c.say(as, "well shit")
 	if got := texts(heard(t, cs)); len(got) != 1 || got[0] != "Ann: well ****" {
 		t.Fatalf("Cid (on again) heard %v", got)
+	}
+}
+
+// The three tiers (petition 1625), on one line with a swear, "retarded", two
+// racial slurs (built from parts) and the controls a slur is inside or begins
+// like ("snigger", "spice", "chink" of armour): Off hears it as said; Medium
+// only the slurs starred, the swear and "retarded" kept; High all of them.
+func TestProfanityTiers(t *testing.T) {
+	s1, s2 := "ni"+"gga", "k"+"ike"
+	line := "shit retarded " + s1 + " " + s2 + "s snigger spice chink"
+	p := &entity.Player{}
+	p.ProfanityFilterOff = true
+	if got := lineFor(p, line); got != line {
+		t.Errorf("off: %q", got)
+	}
+	p.ProfanityFilterOff, p.ProfanityFilterMedium = false, true
+	if got, want := lineFor(p, line), "shit retarded ***** ***** snigger spice chink"; got != want {
+		t.Errorf("medium: %q, want %q", got, want)
+	}
+	p.ProfanityFilterMedium = false
+	if got, want := lineFor(p, line), "**** ******** ***** ***** snigger spice chink"; got != want {
+		t.Errorf("high: %q, want %q", got, want)
+	}
+	// every slur is High's too
+	for w := range slurWords {
+		if maskProfanity(w) == w {
+			t.Errorf("high missed a slur word (%d letters)", len(w))
+		}
+	}
+	for _, r := range slurRoots {
+		if maskProfanity(r+"s") == r+"s" {
+			t.Errorf("high missed a slur root (%d letters)", len(r))
+		}
+	}
+	// Medium masks no word of the High lists that is not a slur
+	for w := range profaneWords {
+		if !slur(w) && maskWords(w, slur) != w {
+			t.Errorf("medium masked %q", w)
+		}
+	}
+}
+
+// The client's setting by tier: 2 Medium, 1 (an older client's On) and any
+// other nonzero High, 0 Off; /filter from Medium turns it off, then on at High.
+func TestProfanityChoiceTiers(t *testing.T) {
+	c := newChatWorld(t)
+	as, _ := c.join(1, "Ann", 100, 100, 0)
+	cs, cp := c.join(3, "Cid", 120, 120, 0)
+	choose := func(b byte) {
+		t.Helper()
+		if err := c.h.HandleProfanityChoice(cs, incoming(protocol.OpcodeProfanityChoice, []byte{b})); err != nil {
+			t.Fatal(err)
+		}
+	}
+	slurred := "well shit " + "wet" + "back"
+	hear := func(want string) {
+		t.Helper()
+		cs.Queue().GetPending()
+		c.say(as, slurred)
+		if got := texts(heard(t, cs)); len(got) != 1 || got[0] != "Ann: "+want {
+			t.Fatalf("Cid heard %v, want %q", got, want)
+		}
+	}
+	choose(2)
+	hear("well shit *******")
+	choose(1)
+	hear("well **** *******")
+	choose(2)
+	choose(7)
+	hear("well **** *******")
+	choose(0)
+	hear(slurred)
+	choose(2)
+	c.h.HandleProfanityFilter(cs, nil)
+	if !cp.ProfanityFilterOff {
+		t.Fatal("/filter from Medium left it on")
+	}
+	c.h.HandleProfanityFilter(cs, nil)
+	if cp.ProfanityFilterOff || cp.ProfanityFilterMedium {
+		t.Fatal("/filter from Off is not High")
 	}
 }

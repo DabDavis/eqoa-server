@@ -84,6 +84,7 @@ type ChatHandler struct {
 	welcome *WelcomeGuide
 
 	support *SupportHandler // /bug's (bugreport.go)
+	portals *GMPortals      // /markportal's (gmportal.go)
 
 	camps campTools // /mark's, /camp's and /path's (gmcamps.go)
 
@@ -1421,6 +1422,11 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// #path [loop|pingpong|once] [walk|run] | clear: the target walks
 		// the marks (gmcamps.go)
 		h.pathCommand(sess, player, parts[1:])
+	case "#markportal":
+		// #markportal [exit [place] | on [id] | off [id] | list | cancel]: a
+		// portal's entry (the target) and landing, filed as a ticket and
+		// kept off until switched on (gmportal.go)
+		h.markPortalCommand(sess, player, parts[1:])
 
 	case "#help":
 		h.gmReply(sess, "GM Commands (each also as /name):")
@@ -1475,6 +1481,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #mark [note] - keep where you stand as your next mark (#marks lists them; #marks undo, #marks clear)")
 		h.gmReply(sess, "  #camp <creature>[, <creature>...] - a static spawn at each mark, popping one of them at random each time; #camp undo")
 		h.gmReply(sess, "  #path [loop|pingpong|once] [walk|run] - your target walks your marks; #path clear takes its path away")
+		h.gmReply(sess, "  #markportal - your target (an NPC) is a portal's entry; #markportal exit [place] - its landing: your target, else where you stand; filed as a ticket, off until #markportal on [id] (off, list, cancel)")
 		h.gmReply(sess, "  #who - list players")
 
 	default:

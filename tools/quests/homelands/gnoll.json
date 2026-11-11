@@ -2,19 +2,19 @@
   "race": "gnoll",
   "home": "Blackburrow",
   "city": "Neriak",
-  "note": "The burrow's people are tools/worlds/homelands.json's (Blackburrow): Elder Grawl by the fire pit gives the first two, Packleader Varg a few steps north of him the three hunts; Hidescraper Yipp, among the tents to the south-east, is the outfitter; Coachman Skulk keeps the stable on the road outside the south-east gate (his coach runs to Freeport and to the other homes); the hill badgers (the hill to the north-west), the ridge vipers (the scrub to the south) and the wolf Greymuzzle (alone on the rise far to the north-east) are placed for these quests.",
+  "note": "The burrow's people are tools/worlds/homelands.json's (Blackburrow): Elder Grawl, just east of the fire pit, gives the first two, Packleader Varg beside him the three hunts; Hidescraper Yipp, a few steps south by the tents, is the outfitter; Coachman Skulk keeps the stable on the road outside the south-east gate (his coach runs to Freeport and to the other homes); the hill badgers (the hill to the north-west), the ridge vipers (the scrub to the south) and the wolf Greymuzzle (alone on the rise far to the north-east) are placed for these quests.",
   "L1": {
     "name": "A Pup's Pack Collar",
     "giver": "Elder Grawl",
     "offer": [
       "Come closer, pup. Let me smell you. Hrrn. Milk and ashes. You are ours, then. But the guards cannot smell as I can, and they bite what they do not know.",
-      "Every pup wears the pack collar. Hidescraper Yipp cuts them, among the tents south-east of the fire.",
+      "Every pup wears the pack collar. Hidescraper Yipp cuts them, a few steps south of here, by the tents.",
       "Will you fetch your collar and show it to me?"
     ],
     "accept": "I will fetch it.",
     "decline": "Not now.",
     "declined": "Then stay by the fire, pup, where the guards can see you.",
-    "started": "South-east, among the tents. Follow the smell of wet hide.",
+    "started": "South, by the tents. Follow the smell of wet hide.",
     "merchant": "Hidescraper Yipp",
     "piece": {
       "name": "pup's pack collar",
@@ -25,7 +25,7 @@
       }
     },
     "fetch": {
-      "journal": "Ask Hidescraper Yipp, among the tents south-east of the fire pit, for a pup's pack collar.",
+      "journal": "Ask Hidescraper Yipp, a few steps south of Elder Grawl, for a pup's pack collar.",
       "says": "Grawl's new pup? Chin up. Badger hide, the pack's brand, a good tight knot. There. A pup pays nothing. A grown gnoll pays double."
     },
     "show": {
@@ -44,11 +44,11 @@
     "accept": "I will see them both.",
     "decline": "Not now.",
     "declined": "Then do not stray past the fence, pup.",
-    "started": "Rakk is across the yard to the east. Skulk waits on the road outside the south-east gate.",
+    "started": "Rakk is a few steps east of here. Skulk waits on the road outside the south-east gate.",
     "spiritmaster": "Spiritmaster Rakk",
     "coachman": "Coachman Skulk",
     "bind": {
-      "journal": "Have Spiritmaster Rakk, across the yard east of the fire pit, bind your spirit to the burrow.",
+      "journal": "Have Spiritmaster Rakk, a few steps east of the elder, bind your spirit to the burrow.",
       "says": "It is done. Fall where you will, pup: you wake here, with the pack's fire in your nose. Now go and give Coachman Skulk your name."
     },
     "ledger": {

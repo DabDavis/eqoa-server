@@ -204,3 +204,73 @@ func TestMercPetAssistsItsHirer(t *testing.T) {
 		t.Errorf("a passive merc told to attack: its pet's target %d, want %d", ms2.pet.target, d.ServerID)
 	}
 }
+
+// No player's pet is left in the world with its owner gone (the owner,
+// 2026-11-11: "there are many pets not connected to their master"): a merc's
+// pet, its merc and the hirer's own class pet all lie down dead as the hirer
+// logs out, and their bodies go after (corpseSystem), leaving no NPC the
+// hirer owns; and a merc's death takes its pet with it the same way.
+func TestNoPlayersPetOutlivesItsOwner(t *testing.T) {
+	owned := func(r *mercRig) (alive, any int) {
+		r.w.mu.Lock()
+		defer r.w.mu.Unlock()
+		for _, n := range r.w.NPCs {
+			if n.Owner == r.p.ServerID {
+				any++
+				if !n.Dead {
+					alive++
+				}
+			}
+		}
+		return alive, any
+	}
+	summoned := func(t *testing.T) (*mercRig, *mercState) {
+		r := newMercRig(t)
+		r.w.mu.Lock()
+		r.w.putNPCLocked(&NPC{ServerID: 4900, Name: "Fire Elemental", Level: 39, HP: 2340, MaxHP: 2340, ModelID: 0x8A416241, Size: 1,
+			NPCType: 0x80, X: 20000, Z: 20000, World: 0})
+		r.w.mu.Unlock()
+		fire := bookSpell(717, "Fire Elemental", 0, 8*time.Second, 45*time.Second, 300, "Summons a Fire Elemental to aid you")
+		fire.Level = 28
+		ms := r.hire(r.kit(10, 0, 0, fire), MercAssist)
+		r.run(0, 10*time.Second)
+		if ms.pet == nil {
+			t.Fatal("no merc pet")
+		}
+		return r, ms
+	}
+	sweep := func(r *mercRig, from time.Duration) {
+		for d := from; d <= from+2*petDismissedLies; d += 100 * time.Millisecond {
+			r.tick(d)
+			r.w.mu.Lock()
+			r.w.corpseSystem(r.at(d))
+			r.w.mu.Unlock()
+		}
+	}
+
+	r, _ := summoned(t)
+	if alive, _ := owned(r); alive < 2 {
+		t.Fatalf("%d of the hirer's NPCs alive before the logout, want the merc and its pet", alive)
+	}
+	r.w.RemovePlayer(r.p.ServerID)
+	sweep(r, 10100*time.Millisecond)
+	if alive, any := owned(r); any != 0 {
+		t.Errorf("after the logout: %d NPCs of the hirer's left (%d alive)", any, alive)
+	}
+
+	r, ms := summoned(t)
+	pet := ms.pet.npc
+	r.w.mu.Lock()
+	r.w.mercDiedLocked(ms, r.sess, r.at(10100*time.Millisecond))
+	r.w.mu.Unlock()
+	if !pet.Dead || ms.pet != nil {
+		t.Errorf("the merc dead: its pet dead %v, still its %v", pet.Dead, ms.pet != nil)
+	}
+	sweep(r, 10200*time.Millisecond)
+	r.w.mu.Lock()
+	_, there := r.w.NPCs[pet.ServerID]
+	r.w.mu.Unlock()
+	if there {
+		t.Error("the dead merc's pet's body never went")
+	}
+}

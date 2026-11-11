@@ -13,7 +13,7 @@ tools/seed_guide_gaps.py's machinery, every row it changes logged in guide_set_l
 
   - trigger slot 161, The Froglok Herbalist (world 0 at the herbalist, near 80): lock "guk herbalist"; protect the
     herbalist (his death fails the run: a window, the spawns taken away, nothing taken from anyone); a 90 minute clock
-    (10 empty minutes end it); three rounds of three waves 5 minutes apart from the dar warriors' floor 55 off (two
+    (10 empty minutes end it); three rounds of three waves 5 minutes apart from a spot on his floor 26 off (two
     froglok watchmen L53, two froglok guardsmen L60, a froglok lookout L61 and a froglok scout L63, each set on the
     herbalist), then two froglok bouncers L64 (hostile, template "guk bouncer"); when all are dead, quest 101035's and
     101097's step 4 done for every player near on it who holds the three ingredients (queststep): taken, and the
@@ -24,7 +24,9 @@ tools/seed_guide_gaps.py's machinery, every row it changes logged in guide_set_l
   - five spawn-only rows (looks copied off Guk's froglok guk warrior, zol knight, yun warrior, assassin, executioner;
     the bouncer at 1.3), held out of the world by row key ("#id": the world's froglok scouts stay where they are);
     npctemplate roamer for the new names as Guk's frogloks have; classtemplate "guk bouncer" (ours);
-  - the herbalist (row 107883) given the NPC bit: no longer red to a player nor hit by a player's area spell.
+  - the herbalist (row 107883) given the NPC bit (no longer red to a player nor hit by a player's area spell) and
+    classtemplate "guk herbalist" (8x a L40's hit points, 40% of a hit taken: ours; on the rig two guardsmen killed
+    the plain L40 in 18 s), so a wave left alone takes minutes to kill him, not seconds.
 
 Refused, nothing written, unless trigger slot 161 is free, the herbalist row and both steps are as imported, the copied
 rows and items are there and none of the new names is taken. Report only by default (the set run and rolled back);
@@ -92,8 +94,12 @@ def refusals(db, s):
         for t, c in (("npcs", "npc_name"), ("npctemplate", "name"), ("npcspawnonly", "name"), ("npcaggro", "npc_name")):
             if sgg.has(db, t) and db.execute(f"SELECT 1 FROM {t} WHERE lower(trim({c})) = ?", (name,)).fetchone():
                 out.append(f"{t} names {name!r} already")
-    if db.execute("SELECT 1 FROM classtemplates WHERE name = 'guk bouncer'").fetchone():
-        out.append("classtemplate 'guk bouncer' is there already")
+    for t in ("guk bouncer", "guk herbalist"):
+        if db.execute("SELECT 1 FROM classtemplates WHERE name = ?", (t,)).fetchone():
+            out.append(f"classtemplate {t!r} is there already")
+    r = db.execute("SELECT template FROM npctemplate WHERE name = 'froglok herbalist'").fetchone()
+    if r != ("roamer",):
+        out.append(f"npctemplate 'froglok herbalist' is {r}, not roamer")
     if not db.execute("SELECT 1 FROM classtemplates WHERE name = 'roamer'").fetchone():
         out.append("no classtemplate 'roamer'")
     for pid in (701138, 701139, 701140, 701141):

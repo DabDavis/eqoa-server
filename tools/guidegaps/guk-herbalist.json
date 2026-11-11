@@ -2,6 +2,15 @@
  "notes": "Petition 1617 (Lickinfrogs): the Froglok Herbalist's protection event, EQOA-Data's Good Tank Episode 1 and questmasters t238: every 5 minutes two froglok come for the herbalist (watchmen dark blue, guardsmen white, a lookout yellow and a scout red), three rounds, then two red bouncers; the step is done for the players near who hold the ingredients when the brew is done (the guide's 'the popups have an Area of Effect'); the herbalist's death fails it, nothing taken. Levels for a 60, templates, the spawn point and the potion from the herbalist himself (no Guk (S) human in the data) are ours.",
  "templates": [
   {
+   "name": "guk herbalist",
+   "class": 0,
+   "hp_pct": 800,
+   "level": 40,
+   "taken": 40,
+   "melee": 100,
+   "note": "The froglok herbalist, protected in petition 1617's event (trigger 161): two guardsmen took a L40's 7,560 in 18 s on the rig; 8x the hit points and 40% of a hit taken (ours) make a wave left alone minutes."
+  },
+  {
    "name": "guk bouncer",
    "class": 0,
    "hp_pct": 260,
@@ -16,9 +25,9 @@
    "name": "froglok watchman",
    "like": "froglok guk warrior",
    "world": 0,
-   "x": 24771.0,
+   "x": 24726.0,
    "y": 10.0,
-   "z": 29266.0,
+   "z": 29310.5,
    "facing": 0,
    "level": 53,
    "type": 0,
@@ -29,9 +38,9 @@
    "name": "froglok guardsman",
    "like": "froglok zol knight",
    "world": 0,
-   "x": 24771.0,
+   "x": 24726.0,
    "y": 10.0,
-   "z": 29266.0,
+   "z": 29310.5,
    "facing": 0,
    "level": 60,
    "type": 0,
@@ -42,9 +51,9 @@
    "name": "froglok lookout",
    "like": "froglok yun warrior",
    "world": 0,
-   "x": 24771.0,
+   "x": 24726.0,
    "y": 10.0,
-   "z": 29266.0,
+   "z": 29310.5,
    "facing": 0,
    "level": 61,
    "type": 0,
@@ -55,9 +64,9 @@
    "name": "froglok scout",
    "like": "froglok assassin",
    "world": 0,
-   "x": 24771.0,
+   "x": 24726.0,
    "y": 10.0,
-   "z": 29266.0,
+   "z": 29310.5,
    "facing": 0,
    "level": 63,
    "type": 0,
@@ -67,9 +76,9 @@
    "name": "froglok bouncer",
    "like": "froglok executioner",
    "world": 0,
-   "x": 24771.0,
+   "x": 24726.0,
    "y": 10.0,
-   "z": 29266.0,
+   "z": 29310.5,
    "facing": 0,
    "level": 64,
    "type": 0,
@@ -114,10 +123,10 @@
      "npc": "#WATCHMAN",
      "count": 2,
      "world": 0,
-     "x": 24771.0,
+     "x": 24726.0,
      "y": 10.0,
-     "z": 29266.0,
-     "spread": 4,
+     "z": 29310.5,
+     "spread": 3,
      "minutes": 90,
      "attackable": true
     },
@@ -140,10 +149,10 @@
      "npc": "#GUARDSMAN",
      "count": 2,
      "world": 0,
-     "x": 24771.0,
+     "x": 24726.0,
      "y": 10.0,
-     "z": 29266.0,
-     "spread": 4,
+     "z": 29310.5,
+     "spread": 3,
      "minutes": 90,
      "attackable": true
     },
@@ -166,10 +175,10 @@
      "npc": "#LOOKOUT",
      "count": 1,
      "world": 0,
-     "x": 24771.0,
+     "x": 24726.0,
      "y": 10.0,
-     "z": 29266.0,
-     "spread": 4,
+     "z": 29310.5,
+     "spread": 3,
      "minutes": 90,
      "attackable": true
     },
@@ -178,10 +187,10 @@
      "npc": "#SCOUT",
      "count": 1,
      "world": 0,
-     "x": 24771.0,
+     "x": 24726.0,
      "y": 10.0,
-     "z": 29266.0,
-     "spread": 4,
+     "z": 29310.5,
+     "spread": 3,
      "minutes": 90,
      "attackable": true
     },
@@ -210,10 +219,10 @@
      "npc": "#WATCHMAN",
      "count": 2,
      "world": 0,
-     "x": 24771.0,
+     "x": 24726.0,
      "y": 10.0,
-     "z": 29266.0,
-     "spread": 4,
+     "z": 29310.5,
+     "spread": 3,
      "minutes": 90,
      "attackable": true
     },
@@ -236,10 +245,10 @@
      "npc": "#GUARDSMAN",
      "count": 2,
      "world": 0,
-     "x": 24771.0,
+     "x": 24726.0,
      "y": 10.0,
-     "z": 29266.0,
-     "spread": 4,
+     "z": 29310.5,
+     "spread": 3,
      "minutes": 90,
      "attackable": true
     },
@@ -262,10 +271,10 @@
      "npc": "#LOOKOUT",
      "count": 1,
      "world": 0,
-     "x": 24771.0,
+     "x": 24726.0,
      "y": 10.0,
-     "z": 29266.0,
-     "spread": 4,
+     "z": 29310.5,
+     "spread": 3,
      "minutes": 90,
      "attackable": true
     },
@@ -274,10 +283,10 @@
      "npc": "#SCOUT",
      "count": 1,
      "world": 0,
-     "x": 24771.0,
+     "x": 24726.0,
      "y": 10.0,
-     "z": 29266.0,
-     "spread": 4,
+     "z": 29310.5,
+     "spread": 3,
      "minutes": 90,
      "attackable": true
     },
@@ -306,10 +315,10 @@
      "npc": "#WATCHMAN",
      "count": 2,
      "world": 0,
-     "x": 24771.0,
+     "x": 24726.0,
      "y": 10.0,
-     "z": 29266.0,
-     "spread": 4,
+     "z": 29310.5,
+     "spread": 3,
      "minutes": 90,
      "attackable": true
     },
@@ -332,10 +341,10 @@
      "npc": "#GUARDSMAN",
      "count": 2,
      "world": 0,
-     "x": 24771.0,
+     "x": 24726.0,
      "y": 10.0,
-     "z": 29266.0,
-     "spread": 4,
+     "z": 29310.5,
+     "spread": 3,
      "minutes": 90,
      "attackable": true
     },
@@ -358,10 +367,10 @@
      "npc": "#LOOKOUT",
      "count": 1,
      "world": 0,
-     "x": 24771.0,
+     "x": 24726.0,
      "y": 10.0,
-     "z": 29266.0,
-     "spread": 4,
+     "z": 29310.5,
+     "spread": 3,
      "minutes": 90,
      "attackable": true
     },
@@ -370,10 +379,10 @@
      "npc": "#SCOUT",
      "count": 1,
      "world": 0,
-     "x": 24771.0,
+     "x": 24726.0,
      "y": 10.0,
-     "z": 29266.0,
-     "spread": 4,
+     "z": 29310.5,
+     "spread": 3,
      "minutes": 90,
      "attackable": true
     },
@@ -402,10 +411,10 @@
      "npc": "#BOUNCER",
      "count": 2,
      "world": 0,
-     "x": 24771.0,
+     "x": 24726.0,
      "y": 10.0,
-     "z": 29266.0,
-     "spread": 4,
+     "z": 29310.5,
+     "spread": 3,
      "minutes": 90,
      "hostile": true
     },
@@ -452,6 +461,12 @@
    []
   ],
   [
+   "UPDATE npctemplate SET template = 'guk herbalist', note = ?, source = 'guide gaps guk-herbalist' WHERE name = 'froglok herbalist' AND template = 'roamer'",
+   [
+    "the protected herbalist of petition 1617's event: 8x a L40's hit points, 40% of a hit taken (ours), so a wave left alone takes minutes, not seconds"
+   ]
+  ],
+  [
    "UPDATE queststeps SET events = ?, says = ?, journal = ? WHERE questid = ? AND step = 4 AND events = ? AND says = ?",
    [
     "[{\"on\":\"done\",\"do\":\"trigger\",\"trigger\":\"The Froglok Herbalist\",\"hold\":true,\"says\":\"The ingredients! Stay close: I brew at once, and the Guk will not like it.\",\"text\":\"I am brewing already. Stay near me with your ingredients: when the brew is done there is a potion for you too.\"},{\"on\":\"done\",\"do\":\"give\",\"items\":\"701141\"}]",
@@ -480,16 +495,16 @@
    [
     "froglok watchman: copied by trigger 161 (The Froglok Herbalist), petition 1617",
     "froglok watchman",
-    24771.0,
-    29266.0
+    24726.0,
+    29310.5
    ]
   ],
   [
    "UPDATE gmtriggers SET steps = replace(steps, '\"#WATCHMAN\"', '\"#' || (SELECT id FROM npcs WHERE npc_name = ? AND world = 0 AND x_coord = ? AND z_coord = ?) || '\"') WHERE slot = 161",
    [
     "froglok watchman",
-    24771.0,
-    29266.0
+    24726.0,
+    29310.5
    ]
   ],
   [
@@ -497,16 +512,16 @@
    [
     "froglok guardsman: copied by trigger 161 (The Froglok Herbalist), petition 1617",
     "froglok guardsman",
-    24771.0,
-    29266.0
+    24726.0,
+    29310.5
    ]
   ],
   [
    "UPDATE gmtriggers SET steps = replace(steps, '\"#GUARDSMAN\"', '\"#' || (SELECT id FROM npcs WHERE npc_name = ? AND world = 0 AND x_coord = ? AND z_coord = ?) || '\"') WHERE slot = 161",
    [
     "froglok guardsman",
-    24771.0,
-    29266.0
+    24726.0,
+    29310.5
    ]
   ],
   [
@@ -514,16 +529,16 @@
    [
     "froglok lookout: copied by trigger 161 (The Froglok Herbalist), petition 1617",
     "froglok lookout",
-    24771.0,
-    29266.0
+    24726.0,
+    29310.5
    ]
   ],
   [
    "UPDATE gmtriggers SET steps = replace(steps, '\"#LOOKOUT\"', '\"#' || (SELECT id FROM npcs WHERE npc_name = ? AND world = 0 AND x_coord = ? AND z_coord = ?) || '\"') WHERE slot = 161",
    [
     "froglok lookout",
-    24771.0,
-    29266.0
+    24726.0,
+    29310.5
    ]
   ],
   [
@@ -531,16 +546,16 @@
    [
     "froglok scout: copied by trigger 161 (The Froglok Herbalist), petition 1617",
     "froglok scout",
-    24771.0,
-    29266.0
+    24726.0,
+    29310.5
    ]
   ],
   [
    "UPDATE gmtriggers SET steps = replace(steps, '\"#SCOUT\"', '\"#' || (SELECT id FROM npcs WHERE npc_name = ? AND world = 0 AND x_coord = ? AND z_coord = ?) || '\"') WHERE slot = 161",
    [
     "froglok scout",
-    24771.0,
-    29266.0
+    24726.0,
+    29310.5
    ]
   ],
   [
@@ -548,16 +563,16 @@
    [
     "froglok bouncer: copied by trigger 161 (The Froglok Herbalist), petition 1617",
     "froglok bouncer",
-    24771.0,
-    29266.0
+    24726.0,
+    29310.5
    ]
   ],
   [
    "UPDATE gmtriggers SET steps = replace(steps, '\"#BOUNCER\"', '\"#' || (SELECT id FROM npcs WHERE npc_name = ? AND world = 0 AND x_coord = ? AND z_coord = ?) || '\"') WHERE slot = 161",
    [
     "froglok bouncer",
-    24771.0,
-    29266.0
+    24726.0,
+    29310.5
    ]
   ]
  ]

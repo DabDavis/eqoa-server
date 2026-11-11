@@ -63,7 +63,11 @@ func (vs *VisibilityState) ResendCapes() {
 // object id), then each player on one of its entity slots, by the slot's id,
 // in slot order. An invisible player's is left out of another's view (its
 // body is hidden there, and a cape drawn alone would show where it stands),
-// not of its own. Must be called with the lock held.
+// not of its own; but a Wisp's in its own body (its own form, its Raiment),
+// which shows as what hangs on an invisible body whether invisible or not:
+// the wisp in its helm shows where it stands anyway, and its cape with it
+// (the owner, 2026-11-11: "let the capes be visible on wisp players"; an
+// invisible Wisp had shown its wisp alone). Must be called with the lock held.
 func (w *World) capesInViewLocked(sess *session.Session, me *Player) []capeWorn {
 	var out []capeWorn
 	if me.CapeStyle != 0 {
@@ -78,7 +82,7 @@ func (w *World) capesInViewLocked(sess *session.Session, me *Player) []capeWorn 
 			continue
 		}
 		p := w.Players[id]
-		if p == nil || p.CapeStyle == 0 || p.Invisible() {
+		if p == nil || p.CapeStyle == 0 || p.Invisible() && !p.wispOwnBody() {
 			continue
 		}
 		out = append(out, capeWorn{vs.ChannelObjectID[i], p.CapeStyle, p.CapeTint()})

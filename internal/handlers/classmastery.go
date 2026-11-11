@@ -140,7 +140,7 @@ func (h *ClassMasteryHandler) HandleClassMastery(sess *session.Session, msg *pro
 	case cmBrowse:
 		one(h.browse(sess, token, int(int32(arg))))
 	case cmBuy:
-		one(h.buy(sess, token, int(int32(arg))))
+		replies = h.buy(sess, token, int(int32(arg)))
 	case cmRemove:
 		replies = h.remove(sess, token, int(int32(arg)))
 	default:
@@ -252,6 +252,11 @@ func (h *ClassMasteryHandler) list(sess *session.Session, token uint32) []byte {
 	p := h.gameWorld.SessionPlayer(sess)
 	entries := h.gameWorld.CMList(sess, h.cmKnowsOf(p))
 	log.Printf("ClassMastery: list of %d masteries to %s", len(entries), sess.RemoteAddr())
+	return cmListReply(token, entries)
+}
+
+// cmListReply is Recv08 of entries.
+func cmListReply(token uint32, entries []entity.CMEntry) []byte {
 	return cmBig(func(w *buffer.Writer) {
 		w.WriteByte(cmRespList)
 		w.WriteUint32(token)
@@ -358,9 +363,10 @@ func writeCMState(w *buffer.Writer, st entity.CMState, list []entity.CMEntry) {
 	}
 }
 
-// buy is a purchase (sub-op 2): Recv05 when bought, else the refusal in red
-// and Recv02.
-func (h *ClassMasteryHandler) buy(sess *session.Session, token uint32, id int) []byte {
+// buy is a purchase (sub-op 2): Recv05 when bought (after the whole list
+// again when its parent keys changed: listAgain), else the refusal in red and
+// Recv02.
+func (h *ClassMasteryHandler) buy(sess *session.Session, token uint32, id int) [][]byte {
 	if h.gameWorld == nil {
 		return nil
 	}
@@ -368,6 +374,7 @@ func (h *ClassMasteryHandler) buy(sess *session.Session, token uint32, id int) [
 	if p == nil {
 		return nil
 	}
+	before := h.gameWorld.CMList(sess, h.cmKnowsOf(p))
 	res := h.gameWorld.BuyCM(sess, id, h.cmKnowsOf(p))
 	if res.Refusal != "" {
 		log.Printf("ClassMastery: %s buying %d refused: %s", p.Name, id, res.Refusal)
@@ -384,7 +391,7 @@ func (h *ClassMasteryHandler) buy(sess *session.Session, token uint32, id int) [
 	h.giveAbilities(sess, p, gives)
 	h.takeAbilities(sess, p, takes)
 	list := h.gameWorld.CMList(sess, h.cmKnowsOf(p))
-	return cmBig(func(w *buffer.Writer) {
+	bought := cmBig(func(w *buffer.Writer) {
 		w.WriteByte(cmRespBought)
 		w.WriteUint32(token)
 		w.WriteUint32(uint32(id))
@@ -392,6 +399,44 @@ func (h *ClassMasteryHandler) buy(sess *session.Session, token uint32, id int) [
 		w.WriteUint32(uint32(res.Mastery.Spent))
 		writeCMState(w, res.State, list)
 	})
+	return append(h.listAgain(token, before, list), bought)
+}
+
+// listAgain is Recv08 with list, when list's parent keys are not before's (the
+// keys the window sorted by: what it was last sent), else nothing. CLIENT
+// keeps the keys of the list it opened with through a purchase or a removal
+// (Recv05 and Recv06 bring the flags alone), and the keys of a master class's
+// abilities change with the class's state (entity.World.cmListParentsLocked):
+// one locked at the opening is listed in a chain, rank after rank, so when a
+// purchase in the same window made it buyable (a racial bought, the points
+// spent passing its 500) and it was bought, its first ability alone showed
+// and the second only once the first was bought (the owner, 2026-11-11, of
+// Transcendent: "it only unlocks the 2nd MCA if you buy the first one"). The
+// list goes BEFORE the reply: ReadList ends the wait as Recv05 does, and the
+// window sorts again (SelectCategory) at the first frame with no wait, which
+// then has the new list whether or not the reply came in the same frame; the
+// reply after it only sets the flags and the stats. The list is read whole
+// (its pool made anew), so it never goes after the window has sorted the old
+// one: the window keeps pointers into it.
+func (h *ClassMasteryHandler) listAgain(token uint32, before, list []entity.CMEntry) [][]byte {
+	if sameParents(before, list) {
+		return nil
+	}
+	return [][]byte{cmListReply(token, list)}
+}
+
+// sameParents is whether a and b list the same ranks, in order, under the
+// same parent keys.
+func sameParents(a, b []entity.CMEntry) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i].ID != b[i].ID || a[i].Parent != b[i].Parent {
+			return false
+		}
+	}
+	return true
 }
 
 // remove is a removal (sub-op 3): Recv06 and the points (Recv03, which
@@ -406,6 +451,7 @@ func (h *ClassMasteryHandler) remove(sess *session.Session, token uint32, id int
 	if p == nil {
 		return nil
 	}
+	before := h.gameWorld.CMList(sess, h.cmKnowsOf(p))
 	res := h.gameWorld.RemoveCM(sess, id)
 	if res.Refusal != "" {
 		log.Printf("ClassMastery: %s removing %d refused: %s", p.Name, id, res.Refusal)
@@ -432,7 +478,7 @@ func (h *ClassMasteryHandler) remove(sess *session.Session, token uint32, id int
 		w.WriteUint32(uint32(id))
 		writeCMState(w, res.State, list)
 	})
-	return [][]byte{removed, cmPoints(res.Mastery)}
+	return append(h.listAgain(token, before, list), removed, cmPoints(res.Mastery))
 }
 
 // cmPoints is Recv03: the points unspent and spent (entity.SendMasteryPoints'

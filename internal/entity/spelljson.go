@@ -803,6 +803,9 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 		}
 	case "faction":
 		add(SpellEffect{Kind: EffectDisguise, ID: e.ID}) // workbookmore.go
+	case "raiment":
+		// ours (wispform.go): a Wisp in its own form shown in its gear
+		add(SpellEffect{Kind: EffectRaiment, ID: e.ID})
 	case "pickpocket":
 		add(SpellEffect{Kind: EffectPickpocket, ID: e.ID})
 	case "summon_player":

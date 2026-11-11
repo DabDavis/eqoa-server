@@ -83,6 +83,24 @@ func b2i(b bool) int {
 	return 0
 }
 
+// cmBuyInWindow buys id in a window showing list and gives back what the
+// window then sorts: the list sent again first when its keys changed
+// (listAgain), then the purchase's flags on it.
+func cmBuyInWindow(t *testing.T, c *cmTest, list []cmSkill, id int) []cmSkill {
+	t.Helper()
+	rs, red := c.send(cmBuy, id)
+	if len(red) != 0 || len(rs) == 0 || len(rs) > 2 || rs[len(rs)-1][0] != cmRespBought {
+		t.Fatalf("buying %d: % x %v", id, rs, red)
+	}
+	if len(rs) == 2 {
+		if rs[0][0] != cmRespList {
+			t.Fatalf("buying %d: the first of two replies is % x, not the list", id, rs[0][:1])
+		}
+		list = readCMList(t, rs[0])
+	}
+	return cmFlagsAfter(t, list, rs[len(rs)-1], true)
+}
+
 // cmFlagsAfter is what CLIENT keeps of a purchase's (Recv05) or a removal's
 // (Recv06) reply: the known flags of every skill listed (ReadFlags) and the
 // rank's owned flag; the keys and parents stay the list's, which only the
@@ -165,11 +183,7 @@ func TestCMWindowReadsAMasterClassesAbilities(t *testing.T) {
 	}
 	buy := func(list []cmSkill, id int) []cmSkill {
 		t.Helper()
-		rs, red := c.send(cmBuy, id)
-		if len(red) != 0 || len(rs) != 1 || rs[0][0] != cmRespBought {
-			t.Fatalf("buying %d: % x %v", id, rs, red)
-		}
-		return cmFlagsAfter(t, list, rs[0], true)
+		return cmBuyInWindow(t, c, list, id)
 	}
 
 	want("level 54, both locked", c.list(), nil, []string{"???", "???"})
@@ -193,7 +207,8 @@ func TestCMWindowReadsAMasterClassesAbilities(t *testing.T) {
 		t.Errorf("Toughness before Bulwark: needs %q, want the class", n.Masteries)
 	}
 	list = buy(list, 50)
-	want("Bulwark bought, the same window", list, []string{"Bulwark"}, []string{"Guard 75", "Toughness 75", "???", "???"})
+	// the list sent again with the reply (listAgain): Hero one "???" as on an opening
+	want("Bulwark bought, the same window", list, []string{"Bulwark"}, []string{"Guard 75", "Toughness 75", "???"})
 	want("opened again", c.list(), []string{"Bulwark"}, []string{"Guard 75", "Toughness 75", "???"})
 	if _, red := c.send(cmBuy, 60); len(red) != 1 || red[0] != entity.OneMasterClass {
 		t.Errorf("a second master class: %v", red)
@@ -222,4 +237,56 @@ func TestCMWindowReadsAMasterClassesAbilities(t *testing.T) {
 		t.Errorf("removing Toughness, which nothing needs: % x %v", rs, red)
 	}
 	want("Toughness removed", c.list(), []string{"Bulwark", "Immortal Guard"}, []string{"Toughness 75", "???"})
+}
+
+// A master class locked when the window opened and made buyable by a purchase
+// in it (a racial bought, the points spent passing the class's 500), then
+// bought, opens every one of its abilities at once (the owner, 2026-11-11, of
+// the Wisp's Transcendent: "it only unlocks the 2nd MCA if you buy the first
+// one"): the window was listed the locked class's ranks one after another and
+// kept those keys through the purchases, so its second ability hung under the
+// first. The list is sent again before a reply when its keys changed
+// (listAgain), and only then. The control: the window as it was (the keys of
+// its opening kept, each reply's flags on them) shows the first ability alone.
+func TestCMWindowAMasterClassMadeBuyableInTheWindow(t *testing.T) {
+	c := newCMTest(t, 0, 0, 60)
+	cat := append(masterCatalog(), database.CMRankRow{ID: 70, Category: 1, Classes: 1, Races: 2047,
+		Mastery: "Spark", Rank: 1, Name: "Spark", Cost: 15, Level: 6, Enabled: true})
+	c.w.gw.SetCMCatalog(cat)
+	c.p.Mastery.Points, c.p.Mastery.Spent = 1000, 490
+	list := c.list()
+	if _, a := cmWindow(list, 4); !slices.Equal(a, []string{"???", "???"}) {
+		t.Fatalf("490 spent: the master classes show %q, want locked", a)
+	}
+	old := list // the control: the opening's keys
+	buy := func(id int, relist bool) {
+		t.Helper()
+		rs, red := c.send(cmBuy, id)
+		if len(red) != 0 || len(rs) == 0 || rs[len(rs)-1][0] != cmRespBought {
+			t.Fatalf("buying %d: % x %v", id, rs, red)
+		}
+		if got := len(rs) == 2 && rs[0][0] == cmRespList; got != relist || len(rs) > 2 {
+			t.Errorf("buying %d: %d replies, the list again %v, want %v", id, len(rs), got, relist)
+		}
+		if len(rs) == 2 {
+			list = readCMList(t, rs[0])
+		}
+		list = cmFlagsAfter(t, list, rs[len(rs)-1], true)
+		old = cmFlagsAfter(t, old, rs[len(rs)-1], true)
+	}
+	buy(70, true) // Spark: 505 spent, the master classes buyable
+	if _, a := cmWindow(list, 4); !slices.Equal(a, []string{"Bulwark 200", "Hero 200", "???", "???"}) {
+		t.Errorf("Spark bought, 505 spent: %q", a)
+	}
+	buy(50, true) // Bulwark: its abilities under no parent now
+	if o, a := cmWindow(list, 4); !slices.Equal(o, []string{"Bulwark"}) || !slices.Equal(a, []string{"Guard 75", "Toughness 75", "???"}) {
+		t.Errorf("Bulwark bought in the same window: Owned %q, Available %q; want both abilities", o, a)
+	}
+	if _, a := cmWindow(old, 4); slices.Contains(a, "Toughness 75") {
+		t.Errorf("the control: the opening's keys kept show %q, Toughness too", a)
+	}
+	buy(52, false) // nothing listed changed its keys: the reply alone
+	if o, a := cmWindow(list, 4); !slices.Equal(o, []string{"Bulwark", "Toughness"}) || !slices.Equal(a, []string{"Guard 75", "???"}) {
+		t.Errorf("Toughness bought: Owned %q, Available %q", o, a)
+	}
 }

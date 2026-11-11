@@ -258,7 +258,13 @@ func (c *cmTest) list() []cmSkill {
 	if len(replies) != 1 || replies[0][0] != cmRespList {
 		c.t.Fatalf("open: replies % x", replies)
 	}
-	r := &cmReader{b: replies[0], o: 1}
+	return readCMList(c.t, replies[0])
+}
+
+// readCMList reads a Recv08 reply (after the opcode) as CLIENT's ReadList.
+func readCMList(t *testing.T, reply []byte) []cmSkill {
+	t.Helper()
+	r := &cmReader{b: reply, o: 1}
 	r.u32()
 	n := int(r.u32())
 	var out []cmSkill
@@ -266,7 +272,7 @@ func (c *cmTest) list() []cmSkill {
 		out = append(out, r.skill())
 	}
 	if r.err != nil || r.o != len(r.b) {
-		c.t.Fatalf("the list does not read as CLIENT reads it: %v, %d of %d bytes", r.err, r.o, len(r.b))
+		t.Fatalf("the list does not read as CLIENT reads it: %v, %d of %d bytes", r.err, r.o, len(r.b))
 	}
 	return out
 }

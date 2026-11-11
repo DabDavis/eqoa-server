@@ -171,3 +171,36 @@ func TestADyedCapeGoesOutInItsDye(t *testing.T) {
 		t.Fatalf("the dye off: %x, want %x (the record's colour)", got, want)
 	}
 }
+
+// An invisible Wisp in its own body (its own form, its Raiment) keeps its cape
+// in another's view (the owner, 2026-11-11: "let the capes be visible on wisp
+// players"): it shows as what hangs on an invisible body anyway. The controls:
+// an invisible Wisp in a glamour (a mortal body, hidden) and an invisible human
+// are left out.
+func TestAnInvisibleWispKeepsItsCape(t *testing.T) {
+	withWispRace(t)
+	aw := newCapeWorld(t)
+	aw.leader.OfferCapesOnce()
+	aw.leader.SetCapes(true)
+	aw.a.GMHidden = true
+	aw.a.Race = 31
+	aw.w.capesSyncSystem()
+	if got, want := capeSets(aw.leader), capesBody(leaderSelf, 5, 0xC01010FF, bAsker, 2, 0); len(got) != 1 || !bytes.Equal(got[0], want) {
+		t.Fatalf("an invisible Wisp in its own form: %x, want %x (its cape)", got, want)
+	}
+	aw.a.Effects = []*ActiveEffect{{SpellID: 906720, Name: "Wisp's Raiment", Rules: EffectRules{Raiment: true}}}
+	aw.w.capesSyncSystem()
+	if got := capeSets(aw.leader); len(got) != 0 {
+		t.Fatalf("under its Raiment, the set changed: %x", got)
+	}
+	aw.a.Effects = []*ActiveEffect{{SpellID: 496, Name: "Glamour: Human", Form: bodyHumanMale}}
+	aw.w.capesSyncSystem()
+	if got, want := capeSets(aw.leader), capesBody(leaderSelf, 5, 0xC01010FF); len(got) != 1 || !bytes.Equal(got[0], want) {
+		t.Fatalf("the control, an invisible glamoured Wisp: %x, want %x", got, want)
+	}
+	aw.a.Effects, aw.a.Race = nil, 0
+	aw.w.capesSyncSystem()
+	if got := capeSets(aw.leader); len(got) != 0 {
+		t.Fatalf("the control, an invisible human: the set changed: %x", got)
+	}
+}

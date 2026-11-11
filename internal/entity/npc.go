@@ -193,6 +193,10 @@ type NPC struct {
 	// npcspawnonly): the original a quest's spawn event copies, in no view,
 	// fighting no one, standing on its spawn. Its copies are not.
 	SpawnOnly bool
+	// CopyOf is the npcs row a copy (Temporary: a spawn's, SpawnNPCCopy) was
+	// made from, 0 for any other NPC (npcrow.go): a table's row key ("#n")
+	// holds for the copies of that row too.
+	CopyOf EntityID
 
 	// Owner is the player whose pet it is (pet.go), 0 for any other NPC.
 	Owner EntityID

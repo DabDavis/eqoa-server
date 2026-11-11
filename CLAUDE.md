@@ -1965,6 +1965,31 @@ the day's box waits to go out, it takes that box's place and its day), and no an
 choice): a GM does, in the GM panel's Players > Welcome guide (Never again No, or the row deleted). `world.welcome_guide: false`
 turns all of it off (`/tutorial` then says there is no guide). Words and times are ours.
 
+### The Cazic-Thule trials (Isle of Dread): walls, a survive step, row keys, boss moments (`tools/ct_trials_20261111.py`)
+
+The owner, 2026-11-11, pointed at the forumotion t196 walkthrough; the GM Jibrish's board 430/616/640/656 give the numbers.
+**Row keys** (`entity/npcrow.go`): a table keyed by NPC name takes `#n` for one `npcs` row: `npctemplate` (`#118889`'s
+template before its name's, for the row and every copy of it: `NPC.CopyOf`), `npcspawnonly` (that row alone out of the
+world), and a spawn's NPC (a quest's, a trigger's, `#spawn #118877` copies that row): the IoD Dread and Terror and the
+catacomb copies share names with other creatures. A copy of a row that walks a path walks it too (`spawnCopyLocked`).
+**Quest walls** (`entity/questwalls.go`, `handlers/questwalls.go`, table `questwalls` npcid/questid/step, read at the
+start): an invisible blocker (0x6F412342) out of the view of a character past a step of a quest (finished, or under way at
+a later step), so its client walks through ("logging off and on to run through walls" on live: the client's collision);
+pinned into a view within 120 before nearer entities. The engine tells the World each second what each character passes
+(`SetQuestState`; the World's lock never waits on the engine's). **Aggro on an item held** (`npcaggro.holding`): the
+rule is for the holders of that item alone (the Guardian, KoS to a holder of Cazic's Scent). **An item that hides an NPC**
+(table `itemhide`, `handlers/itemhide.go`): its Use within `radius` of an NPC of the name takes it out of the world for
+`minutes`, for one past `step` of `questid` (Cazic's Scent at the Estate's door). **A survive step** (`survive`,
+`handlers/questsurvive.go`): `count` seconds in the world, dead or alive; its start's spawn events marked `keep` are made
+again as each one's corpse goes (a corpse lying holds its place); done once the time is up, none of them alive and the
+player alive within its radius. Spawn events take `count`, `minutes` and `keep`. **A boss's moments**
+(`entity/bossmoments.go`, ability kinds `selfdot`, `raidheal`, `powerzero`, each on `every`/`first`, `damage`, a raid
+heal's `count`): the Watchman's DoT on himself, 10,000 on three raiders, his target's power to 0. The data (101311's last
+step pinned, 101312 rebuilt in twelve steps, 101950 the talisman's refill, triggers 150-155, three walls, the third
+Kithgrin, the Trial of Celerity, the statue, the talisman's self port of 500 charges) is the tool's, `--undo` exact; read
+at the start. Not built: the phantasms' root of players and mana tap, death touch, frontal cones, AoE DoTs, the walls
+that close when CazicThule wakes.
+
 ### The Teleporter: every raid's way in and every XP camp (`handlers/teleporter.go`, `world.teleporter`, `tools/place_teleporter.py`)
 
 The owner, 2026-11-09: "lets add a portal npc named Teleporter. has destinations of all raids and camps", "put it next to

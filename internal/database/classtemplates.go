@@ -186,10 +186,31 @@ const (
 	AbilityLastStand = "laststand"
 )
 
+// A boss's moments on a clock of its own (entity/bossmoments.go; the
+// Cazic-Thule trials' Watchman, work board 616: "Casts a MASSIVE DoT on
+// himself when he spawns", "Sometimes casts a 10,000 heal on your raid party
+// members", "Casts a 0 Power Debuff on Target who has agro when the Watchman
+// is engaged"): each every Every seconds of a fight, the first First into it,
+// casting no spell.
+const (
+	// AbilitySelfDoT: Damage hit points off itself each time (never below 1)
+	AbilitySelfDoT = "selfdot"
+	// AbilityRaidHeal: Damage hit points onto Count players of its hate list
+	// (at random, alive, within 60 of it)
+	AbilityRaidHeal = "raidheal"
+	// AbilityPowerZero: the power of the player it fights set to 0
+	AbilityPowerZero = "powerzero"
+)
+
+// BossMomentKind is whether an ability is one of a boss's moments.
+func BossMomentKind(k string) bool {
+	return k == AbilitySelfDoT || k == AbilityRaidHeal || k == AbilityPowerZero
+}
+
 // AbilityKinds are the kinds, in the order the help lists them.
 var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot, AbilityDebuff,
 	AbilityStrip, AbilityHealShield, AbilityMeleeKind, AbilityDoT, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage,
-	AbilityProc, AbilityVeil, AbilityKillSay, AbilityLastStand}
+	AbilityProc, AbilityVeil, AbilityKillSay, AbilityLastStand, AbilitySelfDoT, AbilityRaidHeal, AbilityPowerZero}
 
 // passiveKind is whether an ability of the kind casts nothing on a clock of its
 // own: what it does is a rule its creature keeps (a heal shield, a melee kind,
@@ -595,6 +616,12 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 			}
 			continue
 		}
+		if BossMomentKind(a.Kind) {
+			if err := checkBossMoment(n, a); err != nil {
+				return err
+			}
+			continue
+		}
 		if err := checkKindFields(n, a); err != nil {
 			return err
 		}
@@ -716,6 +743,36 @@ func checkKindFields(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: a visual (fx) is an ability's that pins no spell (its spell's is its look), or a proc's or a veil's hit's", n)
 	case a.FX != 0 && k != AbilityStrip && !(k == AbilityHeal && a.HealPct > 0) && a.Damage == 0 && k != AbilityProc && k != AbilityVeil:
 		return fmt.Errorf("ability %d: a visual (fx) is a named strip's, heal of its share's, fixed hit's, proc's or veil's", n)
+	}
+	return nil
+}
+
+// checkBossMoment holds a boss's moment (BossMomentKind) to its fields: its
+// clock, its figure (damage) for a self dot and a raid heal, a raid heal's
+// count, a name for its lines; nothing of a cast's.
+func checkBossMoment(n int, a TemplateAbility) error {
+	finite := func(v float64) bool { return !math.IsNaN(v) && !math.IsInf(v, 0) }
+	figure := a.Kind == AbilitySelfDoT || a.Kind == AbilityRaidHeal
+	switch {
+	case !finite(a.Every) || !finite(a.First):
+		return fmt.Errorf("ability %d: a number that is not one", n)
+	case a.Every < 2 || a.Every > 3600:
+		return fmt.Errorf("ability %d: every %.1f: 2 to 3600 seconds from one to the next", n, a.Every)
+	case a.First < 0 || a.First > 3600:
+		return fmt.Errorf("ability %d: first %.1f: 0 to 3600 seconds into a fight", n, a.First)
+	case figure && (a.Damage < 1 || a.Damage > 1000000):
+		return fmt.Errorf("ability %d: a %s's damage %d: 1 to 1000000 hit points", n, a.Kind, a.Damage)
+	case !figure && a.Damage != 0:
+		return fmt.Errorf("ability %d: a %s has no damage", n, a.Kind)
+	case a.Kind == AbilityRaidHeal && (a.Count < 1 || a.Count > 40):
+		return fmt.Errorf("ability %d: a raidheal's count %d: 1 to 40 players", n, a.Count)
+	case a.Kind != AbilityRaidHeal && a.Count != 0:
+		return fmt.Errorf("ability %d: a count is a raidheal's", n)
+	case len(a.Name) > StripNameMost:
+		return fmt.Errorf("ability %d: a name of more than %d characters", n, StripNameMost)
+	case a.Chain || a.Spell != "" || a.SpellID != 0 || a.Line != "" || a.DamagePct != 0 || a.Below != 0 || a.HealPct != 0 ||
+		a.NPC != "" || a.Chance != 0 || a.Cooldown != 0 || a.Cast != 0:
+		return fmt.Errorf("ability %d: a %s takes none of a cast's fields (chain, spell, line, damage_pct, below, chance, cast, cooldown)", n, a.Kind)
 	}
 	return nil
 }

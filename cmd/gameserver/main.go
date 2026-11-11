@@ -311,6 +311,13 @@ func main() {
 		log.Printf("WARNING: %v; every NPC stands in the world", err)
 	}
 	log.Printf("Creatures: %s", gameWorld.SpawnOnlySummary())
+	// The quests' walls: invisible blockers a quest lets its characters
+	// through (entity/questwalls.go, table questwalls)
+	if n, err := gameWorld.LoadQuestWalls(db); err != nil {
+		log.Printf("WARNING: %v; no quest wall lets anyone through", err)
+	} else if n > 0 {
+		log.Printf("Creatures: %d quest walls (questwalls)", n)
+	}
 	// The NPCs' body tints, for the clients that draw them (entity/npctint.go,
 	// table npctint)
 	if _, _, err := gameWorld.LoadNPCTints(db); err != nil {

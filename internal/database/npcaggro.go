@@ -48,11 +48,17 @@ type NPCAggroRule struct {
 	NoWord     bool
 	Radius     float64
 	Leash      float64
+	// Holding (column holding, questwalls.go's ensure): when not 0 the rule
+	// is for the players holding that item alone: they are attacked on sight
+	// (or not, by aggressive), every other player is left alone (the Estate's
+	// Guardian and Cazic's Scent: "will become KoS and attack you if you have
+	// Cazic's Scent on you", t196)
+	Holding int
 }
 
 // NPCAggroRules is every row of npcaggro.
 func (db *SQLiteDB) NPCAggroRules() ([]NPCAggroRule, error) {
-	rows, err := db.Query(`SELECT npc_name, aggressive, radius, leash FROM npcaggro`)
+	rows, err := db.Query(`SELECT npc_name, aggressive, radius, leash, holding FROM npcaggro`)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +67,7 @@ func (db *SQLiteDB) NPCAggroRules() ([]NPCAggroRule, error) {
 	for rows.Next() {
 		var r NPCAggroRule
 		var aggressive int
-		if err := rows.Scan(&r.Name, &aggressive, &r.Radius, &r.Leash); err != nil {
+		if err := rows.Scan(&r.Name, &aggressive, &r.Radius, &r.Leash, &r.Holding); err != nil {
 			return nil, err
 		}
 		r.Aggressive = aggressive > 0

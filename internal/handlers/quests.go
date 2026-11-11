@@ -173,9 +173,12 @@ type questCatalog struct {
 // questChar is one character's quests.
 type questChar struct {
 	serverID uint32
-	quests   map[int]*database.CharQuest
-	token    uint32
-	box      *questBox
+	// qstate is what the World was last told of its walls and items
+	// (questwalls.go)
+	qstate questState
+	quests map[int]*database.CharQuest
+	token  uint32
+	box    *questBox
 	// shown is the journal as the client has it: the MemoryDump's lines, each
 	// 0x007C and 0x007D since (redrawLocked)
 	shown []string
@@ -358,11 +361,13 @@ func (q *QuestEngine) run() {
 			q.syncProgress()
 		case <-tick.C:
 			q.checkReach()
+			q.checkSurvive() // questsurvive.go: the Trial of Endurance's kind of step
 			q.checkWaiting() // questroom.go: steps that waited for room
 			q.expireSpawns()
 			q.respawnLost() // questevents.go: a spawn-only creature's lost spawns
 			q.syncMarks(time.Now())
 			q.syncProgress()
+			q.syncQuestState() // questwalls.go: the walls passed, the items held
 		}
 	}
 }

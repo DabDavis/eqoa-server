@@ -32,14 +32,16 @@ func buildLiveLookOffer() []byte {
 }
 
 // buildLiveLookInForce is OpcodeLiveLookInForce: 1 the live game's look, 0
-// the disc's.
-func buildLiveLookInForce(on bool) []byte {
-	return build(protocol.OpcodeLiveLookInForce, 6, func(w *buffer.Writer) {
+// the disc's; then the characters the client is listed and may make
+// (charslots.go), which a client that reads only the first u32 never sees.
+func buildLiveLookInForce(on bool, chars int) []byte {
+	return build(protocol.OpcodeLiveLookInForce, 10, func(w *buffer.Writer) {
 		v := uint32(0)
 		if on {
 			v = 1
 		}
 		w.WriteUint32(v)
+		w.WriteUint32(uint32(chars))
 	})
 }
 
@@ -68,20 +70,23 @@ func (h *LiveLookHandler) RegisterHandlers(r *Registry) {
 }
 
 // HandleLiveLook makes the client's answer its session's look: a u32, bit 0
-// the live game's. It says what is now in force, and sends the list again in
-// it to a client still choosing a character.
+// the live game's, bit 1 its select page lists every character (charslots.go).
+// It says what is now in force (the look, and the characters it is listed),
+// and sends the list again in it to a client still choosing a character.
 func (h *LiveLookHandler) HandleLiveLook(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	if len(data) < 4 {
 		log.Printf("LiveLook: short (%d bytes) from %s", len(data), sess.RemoteAddr())
 		return nil
 	}
-	on := binary.LittleEndian.Uint32(data[:4])&1 != 0
-	was := sess.LiveLook()
+	v := binary.LittleEndian.Uint32(data[:4])
+	on, many := v&1 != 0, v&2 != 0
+	was, wasMany := sess.LiveLook(), sess.ManyChars()
 	sess.SetLiveLook(on)
-	queueReliable(sess, protocol.OpcodeLiveLookInForce, buildLiveLookInForce(on))
-	log.Printf("LiveLook: %s reads %s look", sess.RemoteAddr(), map[bool]string{true: "the live game's", false: "the disc's"}[on])
-	if on != was && h.chars != nil && sess.State() == session.StateCharacterSelect && !sess.CharacterInWorld() {
+	sess.SetManyChars(many)
+	queueReliable(sess, protocol.OpcodeLiveLookInForce, buildLiveLookInForce(on, charCap(sess)))
+	log.Printf("LiveLook: %s reads %s look and lists %d characters", sess.RemoteAddr(), map[bool]string{true: "the live game's", false: "the disc's"}[on], charCap(sess))
+	if (on != was || many != wasMany) && h.chars != nil && sess.State() == session.StateCharacterSelect && !sess.CharacterInWorld() {
 		h.chars.SendCharacterSelectEQOA(sess)
 	}
 	return nil

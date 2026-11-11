@@ -116,7 +116,7 @@ beside it):
 | `itemeffect` | what using an item does (the alchemists' potions): `line` in spell words, `Self` drunk or `Target` thrown; `name`/`icon` on the effects list; `breaks` attack/damage; `wear` % a tick; `area` a thrown one's splash | `patternid` |
 | `spellpattern` | every spell and ability: level, cast/recast ms, power, range, icon | `spellid` |
 | `spelleffect` | what a spell does, as a line of words (below) | `spellid` |
-| `spellarea` | a spell's area where its line's reading is not what you want: `centre` 0 as its line reads, 1 round its target, 2 round its caster, -1 not an area spell; `radius` (0: its line's, else 15, or 10 round a harmful spell's caster); `maxtargets` (0: 8, its own target among them) | `spellid` |
+| `spellarea` | a spell's area where its line's reading is not what you want: `centre` 0 as its line reads, 1 round its target, 2 round its caster, 3 a cone in front of its caster aimed at its target, -1 not an area spell; `radius` (0: its line's, else 15, 10 round a harmful spell's caster, 6 for a cone); `maxtargets` (0: 8, its own target among them); `cone` a cone's half-angle in degrees (0: 60) | `spellid` |
 | `classspells` | which spells each class has (grant_spell "all" and `#template` never give a were form); a `source` of `eqoa-data cm` / `eqoa-data epic` / `eqoa-data mca` / `eqoa-data master <name>` marks a mastery's, an epic's or a master class's spell: listed for the class (the community visual page), never handed out by #template, start_all_spells or grant_spell "all" | `class`+`spellid` |
 | `cmcatalog` | every class mastery a character may buy, a row a rank: `category` 0 general / 1 racial / 2 archetype / 3 class / 4 master class, who (`classes`, `races` bit sets), `parent` (the rank before it), `require_ranks` (other masteries' ranks owned first, their ids), `cost`, `level`, `spent` (points spent first), `minstats`, `effects` (`STR:1,STRMax:15`), the abilities it needs, adds and replaces (names, and their spell ids in `require_spells` / `add_spells` / `remove_spells`), `enabled` | `id` |
 | `charcms` | the masteries each character bought and what each cost it | `serverid`+`cmid` |
@@ -282,8 +282,9 @@ beside it):
   player, a pet or charmed creature, an NPC with the NPC bit, one across the water's edge, nor (for undead alone)
   anything living; each hit is the caster's (hate, the faction's helpers, the kill). The cast's visual names up to seven
   others. To change one without its line, `insert_row` into `spellarea` (`{spellid, centre, radius, maxtargets,
-  note}`): centre 2 makes a spell of one target a blast round its caster, -1 makes an area spell one target's. At
-  the next cast.
+  note, cone}`): centre 2 makes a spell of one target a blast round its caster, 3 a frontal cone (its apex the caster,
+  aimed at its target, radius 0 = 6 past the caster plus a large creature's +3 or a huge one's +5, `cone` its
+  half-angle, 0 = 60; Cleave 700534: 3 in all), -1 makes an area spell one target's. At the next cast.
 - **Taps and pacts**: what a spell takes for its caster or costs it: `Drain HP by 50` (also `Decrease Drain HP by 50`, or
   `Decrease HP by 50 and transfer to caster` / `give self`): a life tap, the damage dealt heals the caster;
   `Drain Group HP by 125`: it heals the caster's group in range; `Drain STR by 10 and give to self, 60sec`

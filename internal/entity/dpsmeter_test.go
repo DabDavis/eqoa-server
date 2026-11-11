@@ -118,13 +118,24 @@ func group(w *World, id uint32, ps ...*Player) *Group {
 	return g
 }
 
-// line is p's meter's line of maker: its damage and its pet's share; ok false
-// when it has none.
-func line(p, maker *Player) (damage, pet int64, ok bool) {
-	if p.dps == nil || p.dps.lines == nil {
+// fightOf is the fight p's meter is shown (its group's, alone its own) when it
+// is under way, else nil. It takes no lock: a test calls it from its one
+// goroutine, the lock held or not.
+func fightOf(w *World, p *Player) *dpsFight {
+	if f := *w.dpsScopeLocked(p); f != nil && f.live {
+		return f
+	}
+	return nil
+}
+
+// line is the line of maker in the fight p's meter is shown: its damage and its
+// pet's share; ok false when it has none (or p has no meter).
+func line(w *World, p, maker *Player) (damage, pet int64, ok bool) {
+	f := fightOf(w, p)
+	if p.dps == nil || f == nil {
 		return 0, 0, false
 	}
-	l := p.dps.lines[maker.ServerID]
+	l := f.lines[maker.ServerID]
 	if l == nil {
 		return 0, 0, false
 	}
@@ -262,12 +273,12 @@ func TestDPSMeterCountsTheFiguresTold(t *testing.T) {
 				t.Fatalf("told %v: %d counts, want some %v", told, want, c.counts)
 			}
 			for _, v := range []*Player{r.p, r.friend} {
-				got, gotPet, _ := line(v, r.p)
+				got, gotPet, _ := line(r.w, v, r.p)
 				if got != want || gotPet != wantPet {
 					t.Errorf("%s's meter: %d (pet %d) of the enchanter's, want %d (pet %d) of %v", v.Name, got, gotPet, want, wantPet, told)
 				}
 			}
-			if !c.counts && (r.p.dps.live || r.friend.dps.live) {
+			if !c.counts && (fightOf(r.w, r.p) != nil || fightOf(r.w, r.friend) != nil) {
 				t.Errorf("a control started a fight")
 			}
 		})
@@ -287,7 +298,7 @@ func TestDPSMeterCountsWithoutTheTags(t *testing.T) {
 	// the control: a figure of no kind is none of the player's making, on a
 	// creature or not
 	r.w.sendDamageIndication(r.sess, r.me, -500, r.npcO, 0)
-	if r.friend.dps.live {
+	if fightOf(r.w, r.friend) != nil {
 		r.w.mu.Unlock()
 		t.Fatal("a figure of no kind counted")
 	}
@@ -304,7 +315,7 @@ func TestDPSMeterCountsWithoutTheTags(t *testing.T) {
 			pet -= int64(f.amount)
 		}
 	}
-	got, gotPet, ok := line(r.friend, r.p)
+	got, gotPet, ok := line(r.w, r.friend, r.p)
 	if !ok || got != sum || gotPet != pet || sum <= 50 {
 		t.Fatalf("the friend's meter has %d (pet %d), want the %d told (pet %d)", got, gotPet, sum, pet)
 	}
@@ -328,7 +339,7 @@ func TestDPSMeterCountsTheUntoldPets(t *testing.T) {
 		r.w.mu.Unlock()
 		told := figTags(t, r.sess)
 		taken := int64(hp - r.npc.HP)
-		got, pet, _ := line(r.p, r.p)
+		got, pet, _ := line(r.w, r.p, r.p)
 		if taken <= 0 || got != taken || pet != taken {
 			t.Errorf("%s: the meter has %d (pet %d), the creature took %d", kind, got, pet, taken)
 		}
@@ -338,12 +349,39 @@ func TestDPSMeterCountsTheUntoldPets(t *testing.T) {
 	}
 }
 
-// The scope is the group at each figure: a solo player's meter has itself, its
-// group's every member's meter has every member's damage; one who joins
-// mid-fight is counted from then on (its own meter's fight starts there), one
-// who leaves is counted no more and its line is kept, flagged, until the fight
-// ends. Figures of a player in no group reach no one else's meter (the
-// control).
+// sameFight is whether two members' messages are the same fight as sent: the
+// same number, state, length, whole, count and lines (names, classes, damage,
+// pets, flag 2) but for each receiver's own flag 1 and place.
+func sameFight(a, b meterMsg) bool {
+	strip := func(m meterMsg) string {
+		ls := append([]meterMsgLine(nil), m.lines...)
+		for i := range ls {
+			ls[i].flags &^= 1
+		}
+		m.lines, m.place = ls, 0
+		return fmt.Sprintf("%+v", m)
+	}
+	return strip(a) == strip(b)
+}
+
+// ownFlags is the lines of m whose flag 1 (the receiver's own) is set, by name.
+func ownFlags(m meterMsg) (out []string) {
+	for _, l := range m.lines {
+		if l.flags&1 != 0 {
+			out = append(out, l.name)
+		}
+	}
+	return out
+}
+
+// The scope is the group at each figure and the fight is the group's (the owner,
+// 2026-11-11: "drunkenfist came in the raid late and the dps meter was not the
+// same as other players"): a solo player's meter has its own fight; a group's
+// every member is shown one fight; one who joins mid-fight is shown it under way
+// at once, the same fight to the byte as the others but for its own line's flag
+// and place; one who leaves counts no more on it, its line kept, flagged 2, its
+// own view of the group's fight ends (over) and it goes on to its own fight.
+// Figures of a player in no group reach no one else's meter (the control).
 func TestDPSMeterScopeFollowsTheGroup(t *testing.T) {
 	r := newTagRig(t)
 	at := meterClock(t, r.t0)
@@ -364,71 +402,161 @@ func TestDPSMeterScopeFollowsTheGroup(t *testing.T) {
 		r.w.sendDamageIndication(r.sess, r.me, -n, r.npcO, numberSpell)
 		r.w.mu.Unlock()
 	}
+	pass := func(d time.Duration) {
+		r.w.mu.Lock()
+		r.w.TickCount = 0
+		r.w.dpsMeterSystem(r.t0.Add(d))
+		r.w.mu.Unlock()
+	}
 	// alone: each its own
 	myHit(100)
 	friendHit(40)
-	if d, _, _ := line(r.friend, r.p); d != 0 {
+	if d, _, _ := line(r.w, r.friend, r.p); d != 0 {
 		t.Fatalf("the friend's meter has %d of the enchanter's, in no group", d)
 	}
-	if d, _, _ := line(r.p, r.p); d != 100 {
+	if d, _, _ := line(r.w, r.p, r.p); d != 100 {
 		t.Fatalf("the enchanter's own: %d", d)
 	}
-	r.p.dps, r.friend.dps = &dpsMeter{}, &dpsMeter{}
-	// a group: each counts on both
+	pass(DPSMeterIdle) // the solo fights end
+	for _, s := range []*session.Session{r.sess, r.fsess, tsess} {
+		meterMsgs(t, s)
+	}
+	// a group: one fight, each counts on it
 	g := group(r.w, 77, r.p, r.friend)
-	at(time.Second)
+	at(20 * time.Second)
 	myHit(100)
 	friendHit(40)
 	for _, v := range []*Player{r.p, r.friend} {
-		mine, _, _ := line(v, r.p)
-		theirs, _, _ := line(v, r.friend)
+		mine, _, _ := line(r.w, v, r.p)
+		theirs, _, _ := line(r.w, v, r.friend)
 		if mine != 100 || theirs != 40 {
 			t.Errorf("%s's meter: %d and %d, want 100 and 40", v.Name, mine, theirs)
 		}
 	}
-	if third.dps.live {
+	if fightOf(r.w, third) != nil {
 		t.Fatal("the third's meter counted a group it is not in")
 	}
-	// the third joins: counted from its first figure, its own fight from the
-	// group's next figure
+	pass(20 * time.Second)
+	gm, fm := meterMsgs(t, r.sess), meterMsgs(t, r.fsess)
+	if len(gm) != 1 || len(fm) != 1 || !sameFight(gm[0], fm[0]) || gm[0].total != 140 {
+		t.Fatalf("the group's two were sent %+v and %+v", gm, fm)
+	}
+	if got := meterMsgs(t, tsess); len(got) != 0 {
+		t.Fatalf("the third, in no group, was sent %+v", got)
+	}
+	// the third joins late: shown the group's fight under way at once, all of
+	// it, the same as the others are
 	g.Members, third.GroupID = append(g.Members, third.ServerID), g.ID
-	at(2 * time.Second)
+	at(22 * time.Second)
 	myHit(50)
-	if d, _, _ := line(third, r.p); d != 50 || !third.dps.start.Equal(r.t0.Add(2*time.Second)) {
-		t.Errorf("the third's meter: %d of the enchanter's from %v", d, third.dps.start)
+	pass(22 * time.Second)
+	em, tm := meterMsgs(t, r.sess), meterMsgs(t, tsess)
+	if fm := meterMsgs(t, r.fsess); len(fm) != 1 || !sameFight(fm[0], tm[0]) {
+		t.Fatalf("at the late join the friend was sent %+v", fm)
 	}
-	if d, _, _ := line(r.p, r.p); d != 150 {
-		t.Errorf("the enchanter's fight goes on: %d", d)
+	if len(em) != 1 || len(tm) != 1 {
+		t.Fatalf("at the late join: the enchanter %+v, the third %+v", em, tm)
 	}
-	// the friend leaves: no more on the others', theirs no more on its
+	if !sameFight(em[0], tm[0]) || tm[0].fight != gm[0].fight || tm[0].lengthMS != 2000 || tm[0].total != 190 || tm[0].all != 3 {
+		t.Fatalf("the late joiner %+v, the enchanter %+v", tm[0], em[0])
+	}
+	if fmt.Sprint(ownFlags(em[0])) != "[Druid]" || fmt.Sprint(ownFlags(tm[0])) != "[Healer]" || tm[0].place != 3 || em[0].place != 1 {
+		t.Fatalf("own lines %v (place %d) and %v (place %d)", ownFlags(em[0]), em[0].place, ownFlags(tm[0]), tm[0].place)
+	}
+	if d, _, _ := line(r.w, third, r.p); d != 150 {
+		t.Errorf("the third's meter: %d of the enchanter's, want the whole fight's 150", d)
+	}
+	// the friend leaves: no more on the group's fight, its view of it over, its
+	// next figure its own fight
 	r.w.mu.Lock()
 	r.w.leaveGroupLocked(r.friend)
 	r.w.mu.Unlock()
-	at(3 * time.Second)
+	at(23 * time.Second)
 	friendHit(60)
 	myHit(10)
-	if d, _, _ := line(r.p, r.friend); d != 40 {
+	if d, _, _ := line(r.w, r.p, r.friend); d != 40 {
 		t.Errorf("the enchanter's meter kept %d of the friend's, want the 40 before it left", d)
 	}
-	if d, _, _ := line(r.friend, r.p); d != 150 {
-		t.Errorf("the friend's meter has %d of the enchanter's, want the 150 before it left", d)
+	if d, _, _ := line(r.w, r.friend, r.p); d != 0 {
+		t.Errorf("the friend's own fight has %d of the enchanter's", d)
 	}
-	if d, _, _ := line(r.friend, r.friend); d != 100 {
+	if d, _, _ := line(r.w, r.friend, r.friend); d != 60 {
 		t.Errorf("the friend's own: %d", d)
 	}
-	// on the wire: the one gone flagged 2, the receiver's own 1, a member of
-	// none counted listed with 0
-	r.w.mu.Lock()
-	r.w.dpsMeterSystem(r.t0.Add(3 * time.Second))
-	r.w.mu.Unlock()
-	msgs := meterMsgs(t, r.sess)
-	if len(msgs) != 1 {
-		t.Fatalf("the enchanter was sent %d meters", len(msgs))
+	pass(23 * time.Second)
+	msgs, tm := meterMsgs(t, r.sess), meterMsgs(t, tsess)
+	if len(msgs) != 1 || len(tm) != 1 || !sameFight(msgs[0], tm[0]) {
+		t.Fatalf("the enchanter was sent %+v, the third %+v", msgs, tm)
 	}
 	got := fmt.Sprint(msgs[0].lines)
 	want := fmt.Sprint([]meterMsgLine{{flags: 1, class: classEnchanter, damage: 160, name: "Druid"}, {flags: 2, damage: 40, name: "Tank"}, {class: 9, name: "Healer"}})
 	if got != want || msgs[0].all != 3 || msgs[0].total != 200 || msgs[0].place != 1 {
 		t.Errorf("the enchanter's lines %s (%d in all, %d), want %s", got, msgs[0].all, msgs[0].total, want)
+	}
+	fm = meterMsgs(t, r.fsess)
+	if len(fm) != 2 || !fm[0].over || fm[0].fight != gm[0].fight || fm[0].total != 200 || fmt.Sprint(ownFlags(fm[0])) != "[Tank]" ||
+		fm[1].over || fm[1].fight == gm[0].fight || fm[1].total != 60 || len(fm[1].lines) != 1 {
+		t.Fatalf("the leaver was sent %+v", fm)
+	}
+	if fm[0].lines[1].flags != 3 {
+		t.Errorf("the leaver's own line in the group's last view: flags %d, want 3", fm[0].lines[1].flags)
+	}
+}
+
+// A raid group is one group of more than four (raid.go): its every member, of
+// whatever part of it, is shown one fight; a group disbanded mid-fight ends its
+// members' views, and each one's next figure starts its own.
+func TestDPSMeterRaidOneFightAndDisband(t *testing.T) {
+	r := newTagRig(t)
+	at := meterClock(t, r.t0)
+	ps := []*Player{r.p, r.friend}
+	for i := range 5 {
+		o := &Player{ServerID: EntityID(2001 + i), Name: fmt.Sprintf("Raider%d", i), Class: 0, Level: 20, HP: 700, MaxHP: 700}
+		r.w.Players[o.ServerID] = o
+		ps = append(ps, o)
+	}
+	g := group(r.w, 88, ps...)
+	if !g.isRaid() {
+		t.Fatal("seven are no raid group")
+	}
+	r.p.dps, r.friend.dps = &dpsMeter{}, &dpsMeter{}
+	pass := func(d time.Duration) {
+		r.w.mu.Lock()
+		r.w.TickCount = 0
+		r.w.dpsMeterSystem(r.t0.Add(d))
+		r.w.mu.Unlock()
+	}
+	r.w.mu.Lock()
+	r.w.sendDamageIndication(r.sess, r.me, -100, r.npcO, numberSpell)
+	r.w.dpsCountLocked(ps[5], 70, false, r.t0)
+	r.w.mu.Unlock()
+	at(time.Second)
+	r.w.mu.Lock()
+	r.w.sendDamageIndication(r.fsess, r.fsess.PlayerObjectID(), -30, r.npcF, numberMelee)
+	r.w.mu.Unlock()
+	pass(time.Second)
+	a, b := meterMsgs(t, r.sess), meterMsgs(t, r.fsess)
+	if len(a) != 1 || len(b) != 1 || !sameFight(a[0], b[0]) || a[0].all != 7 || a[0].total != 200 || a[0].lengthMS != 1000 {
+		t.Fatalf("the raid's two were sent %+v and %+v", a, b)
+	}
+	// disbanded: both views end, over; the next figures each its own fight
+	r.w.mu.Lock()
+	for _, p := range ps {
+		p.GroupID = 0
+	}
+	delete(r.w.groups, g.ID)
+	r.w.mu.Unlock()
+	at(2 * time.Second)
+	r.w.mu.Lock()
+	r.w.sendDamageIndication(r.sess, r.me, -5, r.npcO, numberSpell)
+	r.w.mu.Unlock()
+	pass(2 * time.Second)
+	a, b = meterMsgs(t, r.sess), meterMsgs(t, r.fsess)
+	if len(a) != 2 || !a[0].over || a[0].fight != b[0].fight || a[1].over || a[1].fight == a[0].fight || a[1].total != 5 {
+		t.Fatalf("the enchanter after the disband: %+v", a)
+	}
+	if len(b) != 1 || !b[0].over || b[0].total != 200 {
+		t.Fatalf("the friend after the disband: %+v", b)
 	}
 }
 
@@ -526,12 +654,23 @@ func TestDPSMeterResetOffAndNeverAsked(t *testing.T) {
 	if !r.w.ResetDPSMeter(r.sess) {
 		t.Fatal("the reset not taken")
 	}
+	// the friend's meter is its own: one member's reset leaves the group's
+	// fight going on the others'
+	r.w.SetDPSMeter(r.fsess, true)
 	at(2 * time.Second)
+	hit(r.fsess, r.fsess.PlayerObjectID(), r.npcF, 20)
 	pass(2 * time.Second)
+	if f := meterMsgs(t, r.fsess); len(f) != 1 || f[0].fight != old || f[0].total != 200 || f[0].over {
+		t.Fatalf("the friend after the other's reset: %+v", f)
+	}
 	pass(30 * time.Second)
 	if got := meterMsgs(t, r.sess); len(got) != 0 {
 		t.Fatalf("the dropped fight was sent %+v", got)
 	}
+	if f := meterMsgs(t, r.fsess); len(f) != 1 || f[0].fight != old || !f[0].over {
+		t.Fatalf("the friend's end of the fight: %+v", f)
+	}
+	r.w.SetDPSMeter(r.fsess, false)
 	hit(r.fsess, r.fsess.PlayerObjectID(), r.npcF, 5)
 	pass(31 * time.Second)
 	m = meterMsgs(t, r.sess)
@@ -610,7 +749,7 @@ func TestDPSMeterKeptAndTakenOver(t *testing.T) {
 	}
 	d.a.dps = nil
 	d.w.RestoreKeptPlayer(d.sa, k, now)
-	if d.a.dps == nil || d.a.dps.live {
+	if d.a.dps == nil || d.a.dps.view != nil || d.a.dps.shown != 0 {
 		t.Fatalf("restored %+v: on, no fight", d.a.dps)
 	}
 	d.a.CharServerID = 77
@@ -632,10 +771,10 @@ func TestDPSMeterInADuel(t *testing.T) {
 	d.w.mu.Lock()
 	d.w.duelHurtLocked(duel, d.a, d.a.ServerID, d.b, 100, d.at(2*time.Second), numberMelee)
 	d.w.mu.Unlock()
-	if got, _, _ := line(d.a, d.a); got != int64(duelHalf(100)) {
+	if got, _, _ := line(d.w, d.a, d.a); got != int64(duelHalf(100)) {
 		t.Errorf("the attacker's meter: %d, want the %d told", got, duelHalf(100))
 	}
-	if d.b.dps.live {
+	if fightOf(d.w, d.b) != nil {
 		t.Error("its opponent's meter counted a hit on it")
 	}
 }

@@ -151,7 +151,7 @@ func mercUseOf(s *CastSpell) mercUse {
 		switch {
 		case s.Scope != 1:
 			return useNone // a self's or a group's line read as harmful (a price, a stance's stat): not at a foe
-		case hate:
+		case hate && isTaunt(s): // taunt.go: not a hit whose damage outweighs its hate (Hero's Blow)
 			return useTaunt
 		case hit:
 			return useNuke
@@ -776,10 +776,14 @@ func (w *World) mercHarmLocked(ms *mercState, s *CastSpell, t *NPC, now time.Tim
 		case EffectHate:
 			// a taunt puts the merc at the top of its target's hate, as a pet's
 			// taunt does (pet.go's petTopHateLocked), its line's hate on top:
-			// a tank holds what it taunts (ours: a player's taunt line adds its
-			// hate alone)
-			w.petTopHateLocked(m, t)
-			w.updateAggro(t, m.ServerID, max(spellAmount(e, b), 1))
+			// a tank holds what it taunts, as a player's taunt does since
+			// 2026-11-11 (taunt.go); a hit's hate (Hero's Blow) is added alone
+			if isTaunt(s) {
+				w.petTopHateLocked(m, t)
+				w.updateAggro(t, m.ServerID, max(spellAmount(e, b), 1))
+			} else {
+				w.updateAggro(t, m.ServerID, spellAmount(e, b))
+			}
 			angered = true
 		}
 	}

@@ -31,7 +31,19 @@ func TestSpellAreaRowsAreAGMs(t *testing.T) {
 	if err := f.db.QueryRow(`SELECT COUNT(*) FROM gm_audit WHERE tbl = 'spellarea'`).Scan(&audited); err != nil || audited != 1 {
 		t.Errorf("audited %d times (%v)", audited, err)
 	}
-	if n, ok := catalog["spellarea"]; !ok || n.Label != "Spell areas" || n.Cols["centre"].Enum != "areacentre" || len(enums()["areacentre"]) != 4 {
+	if n, ok := catalog["spellarea"]; !ok || n.Label != "Spell areas" || n.Cols["centre"].Enum != "areacentre" || len(enums()["areacentre"]) != 5 ||
+		n.Cols["cone"].Label == "" {
 		t.Errorf("the catalog's spellarea: %+v", n)
+	}
+
+	// a cone (Cleave's), its half-angle in column cone
+	code, out = c.op("insert_row", map[string]any{"table": "spellarea",
+		"values": map[string]any{"spellid": 700534, "centre": 3, "radius": 6, "maxtargets": 3, "cone": 60, "note": "Cleave"}})
+	if code != 200 {
+		t.Fatalf("insert the cone: %d %v", code, out)
+	}
+	if row, ok, err := database.NewSpellbookStore(f.db).SpellArea(700534); !ok || err != nil ||
+		row != (database.SpellAreaRow{Centre: 3, Radius: 6, MaxTargets: 3, Cone: 60}) {
+		t.Errorf("the cone's read: %+v %v %v", row, ok, err)
 	}
 }

@@ -100,7 +100,9 @@ func enums() map[string][]EnumValue {
 		// npcmove.roam (entity/movement.go)
 		"roam": {{Value: -1, Label: "As its kind (wildlife wanders)"}, {Value: 1, Label: "Wanders"}, {Value: 0, Label: "Stands until pulled"}},
 		// spellarea.centre (entity/area.go)
-		"areacentre": {{Value: 0, Label: "As its line reads"}, {Value: 1, Label: "Round its target"}, {Value: 2, Label: "Round its caster"}, {Value: -1, Label: "Not an area spell"}},
+		"areacentre": {{Value: 0, Label: "As its line reads"}, {Value: 1, Label: "Round its target"}, {Value: 2, Label: "Round its caster"},
+			{Value: 3, Label: "A cone in front of its caster", Help: "aimed at its target; radius 0 is 6 (melee reach, a large creature +3, a huge +5), cone the half-angle (0: 60)"},
+			{Value: -1, Label: "Not an area spell"}},
 		// factionstart (entity/faction.go): -1 any
 		"raceany":  append([]EnumValue{{Value: -1, Label: "Any race"}}, raceEnum()...),
 		"classany": append([]EnumValue{{Value: -1, Label: "Any class"}}, numbered("Warrior", "Ranger", "Paladin", "Shadow Knight", "Monk", "Bard", "Rogue", "Druid", "Shaman", "Cleric", "Magician", "Necromancer", "Enchanter", "Wizard", "Alchemist")...),
@@ -1666,15 +1668,18 @@ var catalog = map[string]tableNote{
 			"creature round it 90), a bare \"AOE\" (the shouts: all of it on all), a group heal's \"Radius 15\". A harmful " +
 			"one lands on creatures only (never a player or a pet, nor across the water's edge; a spell for undead alone, " +
 			"undead alone), a group's on the caster's group and their pets. centre: as its line reads, round its target, " +
-			"round its caster, or not an area spell at all; radius how far (0: its line's, else 15 round a target and 10 " +
-			"round a harmful spell's caster); maxtargets the most it lands on, its own target among them (0: 8, a group's all of it; the cast's " +
+			"round its caster, a cone in front of its caster (aimed at its target, the nearest the caster first: Cleave), or " +
+			"not an area spell at all; radius how far (0: its line's, else 15 round a target, 10 round a harmful spell's " +
+			"caster and 6 for a cone, melee reach, a large creature +3 and a huge +5); cone a cone's half-angle in degrees " +
+			"(0: 60, a 120-degree arc); maxtargets the most it lands on, its own target among them (0: 8, a group's all of it; the cast's " +
 			"visual names 7 others at most, all the client holds).",
 		Live:   "At once: read at every cast.",
 		Search: []string{"note"},
 		Cols: map[string]colNote{
 			"spellid":    {Label: "Spell", Ref: "spellpattern"},
-			"centre":     {Label: "Centre", Enum: "areacentre", Help: "as its line reads, round its target, round its caster, or not an area spell"},
-			"radius":     {Label: "Radius", Help: "how far round its centre; 0: its line's, else its kind's (15, or 10 round a harmful spell's caster)"},
+			"centre":     {Label: "Centre", Enum: "areacentre", Help: "as its line reads, round its target, round its caster, a cone in front of its caster (aimed at its target), or not an area spell"},
+			"radius":     {Label: "Radius", Help: "how far round its centre (a cone: past its caster); 0: its line's, else its kind's (15, 10 round a harmful spell's caster, 6 a cone)"},
+			"cone":       {Label: "Cone half-angle", Help: "a cone's (centre 3), degrees either side of the line to its target; 0: 60. Other centres ignore it"},
 			"maxtargets": {Label: "Most targets", Help: "the most it lands on, its own target among them; 0: 8, a group's all of it"},
 			"note":       {Label: "Note", Help: "why"},
 		},

@@ -44,6 +44,9 @@ type wayRoute struct {
 type wayPlace struct {
 	World   uint8
 	X, Y, Z float32
+	// Facing is the heading a player lands with (radians, 0 facing +z);
+	// 0 unless the place says.
+	Facing float32
 }
 
 // wayRoutes are each waysender's trips, by name; the guides' words beside.
@@ -265,9 +268,14 @@ var wayRoutes = map[string][]wayRoute{
 		{To: "the Plane of Sky", At: &wayPlace{World: 4, X: 4834.8, Y: 250.1, Z: 5524.7}, QuestOnly: true},
 	},
 	// "pay him the 10k (which you have to pay each and every time)"
-	// (isle-of-dread): the west edge of Graumord, the isle's town
+	// (isle-of-dread). The owner, 2026-11-11: "Norach ... on the little island
+	// with a palm tree. he will teleport you to Isle of Dread onto the little
+	// raft for 10k": open to anyone with the tunar (the medallion quest that
+	// gated it is a draft: tools/norach_20261111.py), landing on the deck of
+	// the fishing raft moored in the cove south of Graumord's pier (the deck's
+	// top 52.44 off the walls file, the water's 51.36), facing the pier.
 	"Norach": {
-		{To: "the Isle of Dread", At: &wayPlace{World: 0, X: 24500, Y: 54.1, Z: 3330}, Fee: 10000, QuestOnly: true},
+		{To: "the Isle of Dread", At: &wayPlace{World: 0, X: 24578, Y: 52.6, Z: 3626, Facing: 3.9}, Fee: 10000},
 	},
 	// "return to Lake Rathe (c) and speak with the portal guardian. Bring 1
 	// tunar for passage each time!" (zaoran-plateau): the plateau, zone 5 of
@@ -389,7 +397,7 @@ func wayDests(gw *entity.World, sess *session.Session, waysender string, player 
 		var x, y, z, facing float32
 		var world uint8
 		if r.At != nil {
-			x, y, z, world = r.At.X, r.At.Y, r.At.Z, r.At.World
+			x, y, z, world, facing = r.At.X, r.At.Y, r.At.Z, r.At.World, r.At.Facing
 		} else {
 			var ok bool
 			if x, y, z, facing, world, ok = gw.SpawnOfNPC(r.Arrive); !ok {

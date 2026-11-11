@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/binary"
 	"fmt"
 	"slices"
 	"strings"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -387,16 +389,16 @@ func TestAStepsChoiceGivesThePickedOption(t *testing.T) {
 	f.want(f.msgs(), "box:"+questFinished)
 }
 
-// A trip only a quest opens (the Portal guides': Norach's Isle of Dread, for
-// 10,000 a trip): with no quest unlocking it, or only a draft, no one is
-// offered it and Norach says so; once a quest in the game unlocks it, he
-// names that quest; finished, it is offered with its fee and lands on its
-// place, not in front of an NPC. A player who finished the quest keeps the
-// trip once the quest is a draft again.
+// A trip only a quest opens (the Portal guides': the portal guardian's
+// Zaoran Plateau, for 1 tunar a trip): with no quest unlocking it, or only a
+// draft, no one is offered it and the guardian says so; once a quest in the
+// game unlocks it, he names that quest; finished, it is offered with its fee
+// and lands on its place, not in front of an NPC. A player who finished the
+// quest keeps the trip once the quest is a draft again.
 func TestAQuestOnlyTripWaitsForItsQuest(t *testing.T) {
 	f := newQuestFixture(t)
 	f.exec(`UPDATE quests SET enabled = 0 WHERE questid = 10010`)
-	norach := f.tw.add(1, &entity.NPC{ServerID: 117982, Name: "Norach", SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
+	guardian := f.tw.add(1, &entity.NPC{ServerID: 117983, Name: "portal guardian", SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
 	f.tw.h.spend = func(_ *session.Session, p *entity.Player, n int) bool {
 		if n > p.Tunar {
 			return false
@@ -405,26 +407,26 @@ func TestAQuestOnlyTripWaitsForItsQuest(t *testing.T) {
 		return true
 	}
 	boxes := func() []string {
-		f.tw.talk(norach)
+		f.tw.talk(guardian)
 		return dialogueBoxes(f.tw.s)
 	}
-	if got := boxes(); !slices.Equal(got, []string{"You may not travel to the Isle of Dread yet."}) {
+	if got := boxes(); !slices.Equal(got, []string{"You may not travel to Zaoran Plateau yet."}) {
 		t.Fatalf("no quest unlocks it: %q", got)
 	}
-	f.exec(`INSERT INTO quests (questid, name, enabled, giver) VALUES (95, 'The Medallion', 0, 'Nobody Here')`)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver) VALUES (95, 'The Plateau', 0, 'Nobody Here')`)
 	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (95, 1, 'talk', 'Kellina', 'x')`)
-	f.exec(`INSERT INTO questunlocks VALUES (95, 'Norach', 'the Isle of Dread')`)
+	f.exec(`INSERT INTO questunlocks VALUES (95, 'portal guardian', 'Zaoran Plateau')`)
 	if err := f.qe.Reload(); err != nil {
 		t.Fatal(err)
 	}
-	if got := boxes(); !slices.Equal(got, []string{"You may not travel to the Isle of Dread yet."}) {
+	if got := boxes(); !slices.Equal(got, []string{"You may not travel to Zaoran Plateau yet."}) {
 		t.Fatalf("a draft unlocks it: %q", got)
 	}
 	f.exec(`UPDATE quests SET enabled = 1 WHERE questid = 95`)
 	if err := f.qe.Reload(); err != nil {
 		t.Fatal(err)
 	}
-	if got := boxes(); !slices.Equal(got, []string{"You may not travel to the Isle of Dread until you have finished The Medallion."}) {
+	if got := boxes(); !slices.Equal(got, []string{"You may not travel to Zaoran Plateau until you have finished The Plateau."}) {
 		t.Fatalf("a quest in the game unlocks it: %q", got)
 	}
 	if _, err := f.qe.SetCharacterQuest(f.sid, 95, QuestComplete, 0); err != nil {
@@ -434,15 +436,80 @@ func TestAQuestOnlyTripWaitsForItsQuest(t *testing.T) {
 	if err := f.qe.Reload(); err != nil {
 		t.Fatal(err)
 	}
+	f.tw.p.Tunar = 12
+	f.tw.talk(guardian)
+	if got := optionBox(t, f.tw.s); !slices.Equal(got, []string{"Yes", "No"}) {
+		t.Fatalf("finished, the guardian asked %q", got)
+	}
+	f.tw.pick(guardian, 0)
+	x, z, world, moved := teleported(f.tw.s)
+	if !moved || world != 5 || x != 4899 || z != 7049 || f.tw.p.Tunar != 11 {
+		t.Errorf("Yes: to (%.1f, %.1f) world %d (%v), tunar %d; want (4899, 7049) world 5 for 1", x, z, world, moved, f.tw.p.Tunar)
+	}
+}
+
+// Norach (the owner, 2026-11-11: "he will teleport you to Isle of Dread onto
+// the little raft for 10k"): with the medallion quest that gated his trip a
+// draft (tools/norach_20261111.py), anyone is asked the trip for 10,000; a
+// player short of it is told the fare and kept, tunar untouched; one with it
+// pays and lands standing on the raft's deck in the cove south of Graumord,
+// facing the pier. The control: while the quest is in the game, it still
+// gates the trip.
+func TestNorachFerriesToTheRaftForTenThousand(t *testing.T) {
+	f := newQuestFixture(t)
+	f.exec(`UPDATE quests SET enabled = 0 WHERE questid = 10010`)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel) VALUES (101309, 'The Medallion of the Faceless', 1, 'Norach', 50)`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (101309, 1, 'give', 'Norach', 'x')`)
+	f.exec(`INSERT INTO questunlocks VALUES (101309, 'Norach', 'the Isle of Dread')`)
+	if err := f.qe.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	norach := f.tw.add(1, &entity.NPC{ServerID: 117982, Name: "Norach", SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
+	f.tw.h.spend = func(_ *session.Session, p *entity.Player, n int) bool {
+		if n > p.Tunar {
+			return false
+		}
+		p.Tunar -= n
+		return true
+	}
+	f.tw.talk(norach)
+	if got := dialogueBoxes(f.tw.s); !slices.Equal(got, []string{"You may not travel to the Isle of Dread until you have finished The Medallion of the Faceless."}) {
+		t.Fatalf("the quest in the game (the control): %q", got)
+	}
+	f.exec(`UPDATE quests SET enabled = 0 WHERE questid = 101309`)
+	if err := f.qe.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	f.tw.p.Tunar = 9999
+	f.tw.talk(norach)
+	if got := optionBox(t, f.tw.s); !slices.Equal(got, []string{"Yes", "No"}) {
+		t.Fatalf("Norach asked %q", got)
+	}
+	f.tw.pick(norach, 0)
+	if _, _, _, moved := teleported(f.tw.s); moved || f.tw.p.Tunar != 9999 {
+		t.Fatalf("short of the fare: moved %v, tunar %d", moved, f.tw.p.Tunar)
+	}
+	if got := dialogueBoxes(f.tw.s); !slices.Equal(got, []string{"The trip to the Isle of Dread costs 10000 tunar."}) {
+		t.Fatalf("short of the fare, told %q", got)
+	}
 	f.tw.p.Tunar = 12000
 	f.tw.talk(norach)
 	if got := optionBox(t, f.tw.s); !slices.Equal(got, []string{"Yes", "No"}) {
-		t.Fatalf("finished, Norach asked %q", got)
+		t.Fatalf("Norach asked %q", got)
 	}
 	f.tw.pick(norach, 0)
 	x, z, world, moved := teleported(f.tw.s)
-	if !moved || world != 0 || x != 24500 || z != 3330 || f.tw.p.Tunar != 2000 {
-		t.Errorf("Yes: to (%.1f, %.1f) world %d (%v), tunar %d; want (24500, 3330) world 0 for 10000", x, z, world, moved, f.tw.p.Tunar)
+	y, _ := teleportedY(f.tw.s)
+	if !moved || world != 0 || x != 24578 || z != 3626 || y != 52.6 || f.tw.p.Tunar != 2000 {
+		t.Errorf("Yes: to (%.1f, %.2f, %.1f) world %d (%v), tunar %d; want the raft (24578, 52.6, 3626) world 0 for 10000",
+			x, y, z, world, moved, f.tw.p.Tunar)
+	}
+	for _, m := range f.tw.s.Queue().PeekPending() {
+		if d := m.Data(); len(d) >= 19 && protocol.GameOpcode(binary.LittleEndian.Uint16(d)) == protocol.OpcodeTeleport {
+			if face := f32(d[15:]); face != 3.9 {
+				t.Errorf("landed facing %v, want 3.9 (the pier)", face)
+			}
+		}
 	}
 }
 

@@ -639,3 +639,72 @@ func TestDPSMeterInADuel(t *testing.T) {
 		t.Error("its opponent's meter counted a hit on it")
 	}
 }
+
+// A quiet stretch inside a fight is the same fight (Lord Nagafen, 2026-11-11:
+// the caster dead, the tanks only taunting, 11 s of no damage while he fought
+// on): a creature with the player, or its pet, on its hate list holds the fight
+// open past DPSMeterIdle, up to DPSMeterHeld after the last figure; with the hate
+// gone it ends at DPSMeterIdle as before.
+func TestDPSMeterHeldWhileEngaged(t *testing.T) {
+	for _, c := range []struct {
+		name string
+		hate func(r *tagRig) EntityID
+	}{
+		{"the player on its hate list", func(r *tagRig) EntityID { return r.p.ServerID }},
+		{"its pet on its hate list", func(r *tagRig) EntityID { return r.pet.ServerID }},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			r := newTagRig(t)
+			at := meterClock(t, r.t0)
+			r.p.dps = &dpsMeter{}
+			pass := func(d time.Duration) []meterMsg {
+				r.w.mu.Lock()
+				r.w.TickCount = 0
+				r.w.dpsMeterSystem(r.t0.Add(d))
+				r.w.mu.Unlock()
+				return meterMsgs(t, r.sess)
+			}
+			at(0)
+			r.w.mu.Lock()
+			r.w.sendDamageIndication(r.sess, r.me, -100, r.npcO, numberMelee)
+			r.npc.Threats = map[EntityID]int64{c.hate(r): 10}
+			r.w.wakeNPCLocked(r.npc) // as every change of an NPC's hate does
+			r.w.mu.Unlock()
+			first := pass(500 * time.Millisecond)
+			if len(first) != 1 || first[0].over {
+				t.Fatalf("the first pass sent %+v", first)
+			}
+			for _, d := range []time.Duration{DPSMeterIdle, DPSMeterIdle + 5*time.Second, DPSMeterHeld - time.Second} {
+				for _, m := range pass(d) {
+					if m.over {
+						t.Fatalf("ended at %v while engaged: %+v", d, m)
+					}
+				}
+			}
+			// a figure in the quiet stretch: the same fight, its length to it
+			at(20 * time.Second)
+			r.w.mu.Lock()
+			r.w.sendDamageIndication(r.sess, r.me, -50, r.npcO, numberMelee)
+			r.w.mu.Unlock()
+			m := pass(20*time.Second + 500*time.Millisecond)
+			if len(m) != 1 || m[0].over || m[0].fight != first[0].fight || m[0].lengthMS != 20000 || m[0].lines[0].damage != 150 {
+				t.Fatalf("a figure after the quiet: %+v", m)
+			}
+			m = pass(20*time.Second + DPSMeterHeld)
+			if len(m) != 1 || !m[0].over || m[0].fight != first[0].fight {
+				t.Fatalf("held past DPSMeterHeld: %+v", m)
+			}
+			// hate gone: ends at DPSMeterIdle
+			at(200 * time.Second)
+			r.w.mu.Lock()
+			r.w.sendDamageIndication(r.sess, r.me, -7, r.npcO, numberMelee)
+			r.npc.Threats = nil
+			r.w.mu.Unlock()
+			pass(200*time.Second + 500*time.Millisecond)
+			m = pass(200*time.Second + DPSMeterIdle)
+			if len(m) != 1 || !m[0].over {
+				t.Fatalf("no hate, not ended at DPSMeterIdle: %+v", m)
+			}
+		})
+	}
+}

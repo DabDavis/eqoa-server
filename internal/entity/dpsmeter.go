@@ -47,7 +47,10 @@ import (
 // the fight ends; alone, the player and its pet. Each client's meter has its own
 // fight: it starts at the first figure counted on it and ends DPSMeterIdle after
 // the last, longer than anything that keeps a fight going leaves quiet (a damage
-// over time's six-second tick, effectTick; a round of six seconds; a long cast).
+// over time's six-second tick, effectTick; a round of six seconds; a long cast),
+// or, while the player or its group is still on a living creature's hate list
+// (dpsEngagedLocked), DPSMeterHeld after it: a boss fight's quiet stretch is the
+// same fight.
 // Its length is from its first figure to its latest, so a fight's quiet end adds
 // nothing, and the client divides each line's damage by it (at least a second):
 // every line over the same span, so DPS ranks as damage does and a healer's one
@@ -66,6 +69,15 @@ const DPSMeterLinesMost = 24
 // ends: past a damage over time's tick (effectTick, six seconds), a round of six
 // seconds and a long cast with room to spare, and well short of the next pull.
 const DPSMeterIdle = 10 * time.Second
+
+// DPSMeterHeld is how long a fight goes on with no damage in its group while the
+// group is still in it: a living creature has one of its members (or a member's
+// pet) on its hate list (groupsInCombatLocked; alone, the player or its pet). A
+// boss fight's quiet stretch (the caster dead, the tanks only taunting: Lord
+// Nagafen, 2026-11-11, 11 s and 16 s of no damage while he fought on) is the same
+// fight; a creature holding hate on a group that left it does not keep the fight
+// open past this.
+const DPSMeterHeld = 60 * time.Second
 
 // dpsMeterEvery is the least time between two messages of a fight under way: a
 // raid's meter changes at every hit, and its client is told a second's worth at a
@@ -366,13 +378,21 @@ func (w *World) dpsMeterSystem(now time.Time) {
 	if w.TickCount%dpsMeterTicks != 0 || w.SessionManager == nil {
 		return
 	}
+	var engaged map[EntityID]bool // dpsEngagedLocked, once a pass and only if asked
 	w.SessionManager.ForEach(func(s *session.Session) bool {
 		p := w.sessionPlayerLocked(s)
 		if p == nil || p.dps == nil || !p.dps.live {
 			return true
 		}
 		m := p.dps
-		over := now.Sub(m.last) >= DPSMeterIdle
+		quiet := now.Sub(m.last)
+		over := quiet >= DPSMeterIdle
+		if over && quiet < DPSMeterHeld {
+			if engaged == nil {
+				engaged = w.dpsEngagedLocked()
+			}
+			over = !engaged[p.ServerID]
+		}
 		body := encodeDPSMeter(m.fight, over, m.last.Sub(m.start), w.dpsRowsLocked(p, m))
 		switch {
 		case over:
@@ -386,4 +406,38 @@ func (w *World) dpsMeterSystem(now time.Time) {
 		sendGroupMsg(s, protocol.OpcodeDPSMeterData, func(b *buffer.Writer) { b.WriteBytes(body) })
 		return true
 	})
+}
+
+// dpsEngagedLocked is every player still in a fight now: one on a living
+// creature's hate list, or whose pet is, and every member of a group that is
+// (groupsInCombatLocked's rule). Must be called with the lock held.
+func (w *World) dpsEngagedLocked() map[EntityID]bool {
+	w.syncNPCSetsLocked()
+	out := map[EntityID]bool{}
+	groups := map[uint32]bool{}
+	for id, npc := range w.sets.ai.m {
+		if npc = w.setMember(w.sets.ai.m, id, npc); npc == nil || npc.Dead || len(npc.Threats) == 0 {
+			continue
+		}
+		for t := range npc.Threats {
+			pid := t
+			if n := w.NPCs[t]; n != nil && n.Owner != 0 {
+				pid = n.Owner
+			}
+			if p := w.Players[pid]; p != nil {
+				out[pid] = true
+				if p.GroupID != 0 {
+					groups[p.GroupID] = true
+				}
+			}
+		}
+	}
+	for gid := range groups {
+		if g := w.groups[gid]; g != nil {
+			for _, id := range g.Members {
+				out[id] = true
+			}
+		}
+	}
+	return out
 }

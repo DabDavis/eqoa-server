@@ -134,8 +134,15 @@ func (w *World) spawnCopyLocked(t *NPC, x, y, z, facing float32, world uint8) *N
 	c.endDummyFight()
 	c.tfight = nil    // its template's fight is its own (classtemplate.go)
 	c.challenge = nil // a duel's is its own (metalmoogie.go)
+	c.path = pathState{}
 	w.putNPCLocked(&c)
 	w.SpatialIndex.Insert(c.ServerID, x, z)
+	// a copy of a row that walks a path walks it too, from its nearest leg (the
+	// Trial of Contention's Watchman, spawned by Kithgrin's talk on the row's
+	// round of the halls: npcrow.go); dropNPCLocked takes it with the copy
+	if p := w.paths.byNPC[t.ServerID]; p != nil && p.World == world && !t.Temporary {
+		w.setPathLocked(c.ServerID, p)
+	}
 	return &c
 }
 

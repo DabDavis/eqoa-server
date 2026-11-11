@@ -581,8 +581,8 @@ func TestACreaturesKitOnACreature(t *testing.T) {
 	r.place(inno, moog.X+3, moog.Z)
 	pool(inno, 500_002)
 	pool(moog, 10_000_000)
-	if pr := inno.tmpl.procs; len(pr) != 1 || pr[0].least != 650 || pr[0].resist != StatDR || pr[0].chanceFor(inno) != 3+3*34/20 {
-		t.Fatalf("the proc spell read: %+v, want 650 disease at a pet's chance of level 34 (%d%%)", pr, 3+3*34/20)
+	if pr := inno.tmpl.procs; len(pr) != 1 || pr[0].least != 650 || pr[0].resist != StatDR || pr[0].chanceFor(inno) != 25+3*34/10 {
+		t.Fatalf("the proc spell read: %+v, want 650 disease at a pet's chance of level 34 (%d%%: the INT rule on its 102)", pr, 25+3*34/10)
 	}
 	if _, ok := r.w.SetNPCOn(inno.ServerID, "gnoll guard", 30, true); !ok {
 		t.Fatal("no sic")

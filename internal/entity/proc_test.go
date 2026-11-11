@@ -73,10 +73,18 @@ func TestTheChaoticLineIsAProc(t *testing.T) {
 	}
 }
 
-// The chance grows with INT to a cap; the resist with the creature's level
-// over the bearer's, from none to a cap.
+// The chance grows with INT, the beta sheet's (betaformula.webp, the owner
+// 2026-11-11: "a base chance of 25% plus 1% for every 10 points of INT"), whole
+// tens only, to the whole of the hits at 750; the resist with the creature's
+// level over the bearer's, from none to a cap. The control: a weapon's proc
+// keeps its own rule by DEX (3%, 1 each 20, at most 25%: petition 1360).
 func TestProcChanceAndResist(t *testing.T) {
-	for intel, want := range map[int]int{0: 3, 100: 8, 300: 18, 440: 25, 2000: 25} {
+	for dex, want := range map[int]int{0: 3, 100: 8, 300: 18, 440: 25, 2000: 25} {
+		if got := weaponProcChancePct(dex); got != want {
+			t.Errorf("a weapon's, DEX %d: %d%%, want %d%%", dex, got, want)
+		}
+	}
+	for intel, want := range map[int]int{-5: 25, 0: 25, 9: 25, 10: 26, 100: 35, 155: 40, 300: 55, 740: 99, 750: 100, 2000: 100} {
 		if got := procChancePct(intel); got != want {
 			t.Errorf("INT %d: %d%%, want %d%%", intel, got, want)
 		}

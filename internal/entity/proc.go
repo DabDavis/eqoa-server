@@ -25,10 +25,17 @@ import (
 // bearer, or a pet's owner), its hate the bearer's, its kill the bearer's
 // (a pet's its owner's) as a melee kill is.
 //
-// Not measured (Sandstorm's recordings have no proc in them), so chosen:
-//   - the chance a hit procs: 3%, and one more for each 20 INT the bearer
-//     has, at most 25% (INT 100: 8%; 300: 18%); a pet, which has no INT, as
-//     three a level;
+// The chance a hit procs is the beta's stat sheet's (betaformula.webp, adopted
+// by the owner 2026-11-11: "Intelligence factors in to calculating how likely
+// you are to process 'Proc' a spell when you have a buff on you that grants
+// you a chance to proc. These spells have a base chance of 25% plus 1% for
+// every 10 points of INT"): 25%, one more for each whole 10 INT the bearer
+// has, at most 100% (the sheet names no cap: INT 100 35%, 300 55%, 750 the
+// whole); a pet, which has no INT, as three a level (a level 60 pet's 180:
+// 43%). Until then ours, unmeasured: 3% and one more each 20 INT, at most 25%,
+// which a weapon's proc keeps, by DEX (weaponproc.go, petition 1360). A proc
+// that states its own chance keeps it. The rest not measured (Sandstorm's
+// recordings have no proc in them), so chosen:
 //   - a creature's resist (a proc's arcane, and every spell's, workbook.go):
 //     5% against a bearer of its own level, 1 more for each of the first 10
 //     levels it is above the bearer and 5 more for each level past them, 1
@@ -37,9 +44,9 @@ import (
 //     level either way). What a resist leaves is the hit at its least.
 
 const (
-	procBasePct  = 3
-	procIntPer   = 20
-	procMostPct  = 25
+	procBasePct  = 25  // the beta sheet's INT rule (above)
+	procIntPer   = 10  // a point of chance each
+	procMostPct  = 100 // ours: the sheet names no cap
 	resistAtPar  = 5
 	resistPerLvl = 1  // each of the first resistNear levels above
 	resistNear   = 10 // the levels a resist grows slowly over

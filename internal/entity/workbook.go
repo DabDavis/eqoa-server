@@ -227,6 +227,35 @@ func (d *SpellDef) lulls() bool {
 	return false
 }
 
+// lullChaPct is a lull's share of its caster's CHA in seconds when its effect
+// names none of CHA: charm's usual (charm.go, "Increase 25% based on CHA").
+const lullChaPct = 25
+
+// lullBonus is what a caster's CHA adds to a lull's time: the beta's stat
+// sheet's (betaformula.webp, adopted by the owner 2026-11-11: "Spells that
+// modify an NPCs behavior (Charm, Lull, Etc) will have a CHA mod on them that
+// increases their duration"), as charmDuration's: its effect's CHA share
+// (scale_pct of cha: Soothe's 10%) of the CHA in seconds, else lullChaPct's
+// (Soothing Verse's DEX 15% is not CHA: 25% of the CHA, its DEX nothing); 0 for
+// a spell that does not lull. Charm has its own (charmDuration); no other kind
+// of ours changes a creature's behaviour by itself (a root and a snare hold it
+// by the con's rolls, root.go; a hate or forget lasts nothing), so the sheet's
+// "Etc" adds nothing more. Until then a lull lasted its line's time, its CHA
+// and DEX shares read and unused.
+func lullBonus(d *SpellDef, cha int) time.Duration {
+	for _, e := range d.Effects {
+		if e.Kind != EffectLull {
+			continue
+		}
+		pct := lullChaPct
+		if e.Scale == StatCha && e.ScalePct > 0 {
+			pct = e.ScalePct
+		}
+		return time.Duration(pct*max(cha, 0)) * time.Second / 100
+	}
+	return 0
+}
+
 // resistOutcomeWords is the caster's line for a spell its target resisted
 // whole (EverQuest's words: no recording of EQOA's exists).
 const spellResisted = "Your target resisted the %s spell."

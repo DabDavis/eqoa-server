@@ -99,14 +99,20 @@ func (w *World) playerStatsLocked(p *Player, now time.Time) []string {
 		}
 		out = append(out, line)
 	}
-	out = append(out, fmt.Sprintf("AC %d = %d items %+d spells %+d masteries; resists fire %d, cold %d, lightning %d, arcane %d, poison %d, disease %d",
+	out = append(out, fmt.Sprintf("AC %d = %d items %+d spells %+d masteries; resists fire %d, cold %d, lightning %d, arcane %d, poison %d, disease %d (WIS %d gives each %d)",
 		p.StatNow(StatAC), p.Gear.AC, p.Mods.AC, p.CMEffects[cmSlotAC], p.StatNow(StatFR), p.StatNow(StatCR), p.StatNow(StatLR),
-		p.StatNow(StatAR), p.StatNow(StatPR), p.StatNow(StatDR)))
+		p.StatNow(StatAR), p.StatNow(StatPR), p.StatNow(StatDR), p.StatNow(StatWis), wisResist(p.StatNow(StatWis))))
 
 	foe := &NPC{Level: p.Level}
 	floor, low, high := playerMeleeRoll(p, foe)
-	out = append(out, fmt.Sprintf("Melee: %s; on a level %d creature %d-%d a hit, never under %d",
-		meleeWeaponWords(p), p.Level, max(low, floor), max(high, floor), floor))
+	if p.Gear.WeaponSlot == 18 { // a ranged weapon's arrow: DEX its top, WIS its bottom (offence.go)
+		floor, low, high = playerRangedRoll(p, foe)
+		out = append(out, fmt.Sprintf("Melee: %s; on a level %d creature %d-%d an arrow, never under %d, x%.2f a shot's arrow",
+			meleeWeaponWords(p), p.Level, max(low, floor), max(high, floor), floor, rangedShare))
+	} else {
+		out = append(out, fmt.Sprintf("Melee: %s; on a level %d creature %d-%d a hit, never under %d",
+			meleeWeaponWords(p), p.Level, max(low, floor), max(high, floor), floor))
+	}
 	if line := weaponProcWords(p); line != "" {
 		out = append(out, line)
 	}

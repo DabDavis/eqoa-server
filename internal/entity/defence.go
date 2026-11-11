@@ -137,7 +137,7 @@ func npcMeleeOn(npc *NPC, p *Player, intn func(int) int) int {
 	if !npc.softFloor() {
 		return npc.meleeOut(r.hitOn(p, intn))
 	}
-	return max(1, int(math.Round(r.softHit(p, intn)*float64(npc.tmpl.MeleePct)/100)))
+	return npc.stoodOut(max(1, int(math.Round(r.softHit(p, intn)*float64(npc.tmpl.MeleePct)/100)))) // laststand.go
 }
 
 // creatureRoll is the roll of a creature of the level: the floor half the

@@ -139,3 +139,44 @@ func (h *ChatHandler) HandleProfanityFilter(sess *session.Session, msg *protocol
 	log.Printf("ProfanityFilter: %s turned it %v", p.Name, on == 1)
 	return nil
 }
+
+// profanityChoiceLayout is the layout of OpcodeProfanityChoice the offer names.
+const profanityChoiceLayout = 1
+
+// buildProfanityChoiceOffer is OpcodeProfanityChoice from the server: a u8,
+// the layout.
+func buildProfanityChoiceOffer() []byte {
+	return build(protocol.OpcodeProfanityChoice, 3, func(w *buffer.Writer) {
+		w.WriteByte(profanityChoiceLayout)
+	})
+}
+
+// SendProfanityChoiceOffer offers the session's client to set the profanity
+// filter from its own setting (petition 1490). A PS2 ignores it.
+func SendProfanityChoiceOffer(sess *session.Session) {
+	queueReliable(sess, protocol.OpcodeProfanityChoice, buildProfanityChoiceOffer())
+}
+
+// HandleProfanityChoice is OpcodeProfanityChoice from the client: its
+// setting, a u8 (nonzero the filter on, 0 off; a wider answer read by its
+// first byte), made the player's. Nothing is answered: the client's setting
+// shows the state, and 0x0045 (with its chat line) is left to the game's own
+// toggle.
+func (h *ChatHandler) HandleProfanityChoice(sess *session.Session, msg *protocol.Message) error {
+	data := msg.Data()
+	if len(data) < 1 {
+		log.Printf("ProfanityChoice: short answer (%d bytes) from %s", len(data), sess.RemoteAddr())
+		return nil
+	}
+	if h.gameWorld == nil {
+		return nil
+	}
+	p := h.gameWorld.SessionPlayer(sess)
+	if p == nil {
+		return nil
+	}
+	on := data[0] != 0
+	p.ProfanityFilterOff = !on
+	log.Printf("ProfanityChoice: %s set it %v", p.Name, map[bool]string{true: "on", false: "off"}[on])
+	return nil
+}

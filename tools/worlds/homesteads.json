@@ -1,19 +1,1091 @@
 {
   "world": 13,
   "name": "the Homesteads",
-  "note": "The players' homes (handlers/homes.go, entity/homes.go; claude-notes/player-homes-20261111.md): one zone of the disc where it stands, Tunaria's cell (2, 9), whose fenced cottage (a green-roofed stone cottage with a door to the north, a stone path to a gate in a low fence round its yard, at (5798, 57.7, 18170)) is every character's home: the world is built once and every character stands in its own copy of it (an instance, by its owner's character id). The home block is read by the server, never written into the file: the door a player lands at (on the path before the cottage's door, facing it), the yard's board (the Real Estate Listings' twin, tools/place_homes_board_20261111.py, the way out), and the yard's edge (a circle round the fence: past it a player goes back to the door). Built by cmd/worldbuild from the operator's disc; no extras.",
+  "note": "The players' homes (handlers/homes.go, entity/homes.go; claude-notes/player-homes-20261111.md): one zone of the disc where it stands, Tunaria's cell (9, 5), the rim of a crater high over a valley with a lake and a village, and on the rim's southern tip a cottage in its fenced yard, every character's home: the world is built once and every character stands in its own copy of it (an instance, by its owner's character id). The cottage, its low fence, gate, path and stones are Tunaria zone 100's own cottage (a chapel there) carried whole to the rim as the zone's extras, turned to face the valley; outside every side of the fence stand invisible collision boxes (CHAR.ESF's blocker 0x6F412342, collision with nothing to draw, 30 a side) so nobody walks or jumps out. Extras made by the lane's homedecor.py on the rim's own floor. The home block is read by the server, never written into the file: the door a player lands at (on the path before the cottage's door, facing it), the yard's board (the Real Estate Listings' twin, the way out), and the fence's box (a note for tools: nothing is enforced by the server, the blockers are the edge). Built by cmd/worldbuild from the operator's disc.",
   "zones": [
     {
       "name": "The Homesteads",
       "from": "TUNARIA.ESF",
-      "zone": 100,
-      "note": "Tunaria cell (2, 9): the fenced cottage in its north-east part is the home; its people (the chapel's brothers and sisters of world 0) are not in world 13, which has no NPCs but the yard's board"
+      "zone": 55,
+      "note": "Tunaria cell (9, 5): a crater whose rim stands at 280, a lake and a village 100-240 below; the cottage's yard is on the rim's southern tip, the flat rim running on north; its people are not in world 13, which has no NPCs but the yard's board",
+      "extras": [
+        {
+          "sprite": "0xFA826974",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19335.0,
+            280.01,
+            10421.5
+          ],
+          "hpr": [
+            0.0584,
+            -0.0,
+            0.0
+          ],
+          "note": "the cottage (zone 100's house)"
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19309.03,
+            276.7,
+            10456.05
+          ],
+          "hpr": [
+            3.1416,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            0,
+            8,
+            2,
+            99
+          ]
+        },
+        {
+          "sprite": "0x3F4C5F5C",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19357.34,
+            279.89,
+            10394.27
+          ],
+          "hpr": [
+            3.1416,
+            -0.0,
+            0.0
+          ],
+          "note": "a fence post",
+          "color": [
+            0,
+            18,
+            4,
+            119
+          ]
+        },
+        {
+          "sprite": "0xA85AA553",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19334.85,
+            279.84,
+            10456.35
+          ],
+          "hpr": [
+            3.1236,
+            -0.0,
+            0.0
+          ],
+          "note": "the gate"
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19318.11,
+            278.79,
+            10456.15
+          ],
+          "hpr": [
+            3.1416,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            1,
+            23,
+            15,
+            91
+          ]
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19327.11,
+            279.91,
+            10456.26
+          ],
+          "hpr": [
+            3.1416,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)"
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19343.22,
+            279.91,
+            10456.22
+          ],
+          "hpr": [
+            0.0376,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)"
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19352.22,
+            279.91,
+            10455.96
+          ],
+          "hpr": [
+            0.0376,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            2,
+            25,
+            17,
+            91
+          ]
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19361.13,
+            278.24,
+            10455.72
+          ],
+          "hpr": [
+            0.0376,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            0,
+            8,
+            3,
+            84
+          ]
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19365.11,
+            277.34,
+            10450.79
+          ],
+          "hpr": [
+            1.5516,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            0,
+            13,
+            3,
+            90
+          ]
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19365.34,
+            277.41,
+            10441.81
+          ],
+          "hpr": [
+            1.5516,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            0,
+            23,
+            6,
+            90
+          ]
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19365.6,
+            279.43,
+            10432.86
+          ],
+          "hpr": [
+            1.5516,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            0,
+            30,
+            7,
+            90
+          ]
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19365.84,
+            279.91,
+            10423.96
+          ],
+          "hpr": [
+            1.5516,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            0,
+            32,
+            8,
+            90
+          ]
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19366.05,
+            279.91,
+            10415.01
+          ],
+          "hpr": [
+            1.5516,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            0,
+            28,
+            7,
+            90
+          ]
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19366.34,
+            279.91,
+            10406.02
+          ],
+          "hpr": [
+            1.5516,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            0,
+            20,
+            5,
+            90
+          ]
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19366.68,
+            279.91,
+            10397.07
+          ],
+          "hpr": [
+            1.5516,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            0,
+            11,
+            3,
+            90
+          ]
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19344.68,
+            279.91,
+            10394.41
+          ],
+          "hpr": [
+            -0.0336,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            0,
+            31,
+            8,
+            91
+          ]
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19335.76,
+            279.91,
+            10394.24
+          ],
+          "hpr": [
+            -0.0336,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            0,
+            37,
+            9,
+            91
+          ]
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19326.78,
+            279.91,
+            10394.07
+          ],
+          "hpr": [
+            -0.0336,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            0,
+            35,
+            9,
+            90
+          ]
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19317.77,
+            279.91,
+            10393.83
+          ],
+          "hpr": [
+            -0.0336,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            0,
+            27,
+            7,
+            91
+          ]
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19312.16,
+            279.91,
+            10397.61
+          ],
+          "hpr": [
+            1.4444,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            0,
+            19,
+            5,
+            91
+          ]
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19311.07,
+            279.91,
+            10406.54
+          ],
+          "hpr": [
+            1.4444,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            0,
+            30,
+            7,
+            91
+          ]
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19310.01,
+            279.91,
+            10415.47
+          ],
+          "hpr": [
+            1.4444,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)"
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19308.95,
+            279.91,
+            10424.37
+          ],
+          "hpr": [
+            1.4444,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            0,
+            40,
+            10,
+            91
+          ]
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19307.86,
+            279.36,
+            10433.28
+          ],
+          "hpr": [
+            1.4444,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            0,
+            33,
+            8,
+            91
+          ]
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19306.73,
+            277.1,
+            10442.15
+          ],
+          "hpr": [
+            1.4444,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            0,
+            22,
+            6,
+            91
+          ]
+        },
+        {
+          "sprite": "0xC4AD364A",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19305.65,
+            276.17,
+            10451.03
+          ],
+          "hpr": [
+            1.4444,
+            -0.0,
+            0.0
+          ],
+          "note": "a stretch of the low fence (4.3 high)",
+          "color": [
+            0,
+            13,
+            3,
+            91
+          ]
+        },
+        {
+          "sprite": "0x4BFAB5D7",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19335.64,
+            279.91,
+            10450.2
+          ],
+          "hpr": [
+            1.5708,
+            -0.0,
+            0.0
+          ],
+          "note": "the stone path"
+        },
+        {
+          "sprite": "0x940CB06B",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19350.19,
+            279.97,
+            10391.3
+          ],
+          "hpr": [
+            1.4693,
+            -0.1011,
+            0.1227
+          ],
+          "note": "a stepping stone",
+          "scale": 1.611,
+          "color": [
+            0,
+            26,
+            7,
+            153
+          ]
+        },
+        {
+          "sprite": "0x940CB06B",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19354.58,
+            280.59,
+            10390.26
+          ],
+          "hpr": [
+            1.3225,
+            -0.082,
+            0.1361
+          ],
+          "note": "a stepping stone",
+          "scale": 1.611,
+          "color": [
+            0,
+            22,
+            5,
+            153
+          ]
+        },
+        {
+          "sprite": "0x940CB06B",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19349.32,
+            280.29,
+            10387.67
+          ],
+          "hpr": [
+            -2.8765,
+            -0.0799,
+            -0.1373
+          ],
+          "note": "a stepping stone",
+          "scale": 1.611,
+          "color": [
+            0,
+            20,
+            5,
+            153
+          ]
+        },
+        {
+          "sprite": "0x940CB06B",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19361.39,
+            281.19,
+            10391.75
+          ],
+          "hpr": [
+            -0.2567,
+            0.138,
+            0.0795
+          ],
+          "note": "a stepping stone",
+          "scale": 1.611,
+          "color": [
+            0,
+            17,
+            4,
+            153
+          ]
+        },
+        {
+          "sprite": "0x940CB06B",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19328.59,
+            279.6,
+            10462.0
+          ],
+          "hpr": [
+            -1.6704,
+            -0.0,
+            0.0
+          ],
+          "note": "a stepping stone",
+          "scale": 1.611
+        },
+        {
+          "sprite": "0x940CB06B",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19326.08,
+            279.14,
+            10464.0
+          ],
+          "hpr": [
+            -0.8901,
+            -0.0,
+            0.0
+          ],
+          "note": "a stepping stone",
+          "scale": 1.611
+        },
+        {
+          "sprite": "0x940CB06B",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19344.82,
+            279.71,
+            10460.65
+          ],
+          "hpr": [
+            -2.2127,
+            -0.0,
+            0.0
+          ],
+          "note": "a stepping stone",
+          "scale": 1.611
+        },
+        {
+          "sprite": "0x940CB06B",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19345.95,
+            279.71,
+            10448.03
+          ],
+          "hpr": [
+            -0.5097,
+            -0.0,
+            0.0
+          ],
+          "note": "a stepping stone",
+          "scale": 1.611,
+          "color": [
+            18,
+            78,
+            50,
+            153
+          ]
+        },
+        {
+          "sprite": "0x940CB06B",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19323.18,
+            279.71,
+            10448.42
+          ],
+          "hpr": [
+            1.81,
+            -0.0,
+            0.0
+          ],
+          "note": "a stepping stone",
+          "scale": 1.611,
+          "color": [
+            14,
+            67,
+            41,
+            153
+          ]
+        },
+        {
+          "sprite": "0x940CB06B",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19325.57,
+            279.71,
+            10446.03
+          ],
+          "hpr": [
+            -0.4963,
+            -0.0,
+            0.0
+          ],
+          "note": "a stepping stone",
+          "scale": 1.611,
+          "color": [
+            17,
+            85,
+            46,
+            153
+          ]
+        },
+        {
+          "sprite": "0xBE97B53C",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19338.05,
+            279.91,
+            10430.51
+          ],
+          "hpr": [
+            3.1416,
+            -0.0,
+            0.0
+          ],
+          "note": "an effect volume of the cottage"
+        },
+        {
+          "sprite": "0x61F08395",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19311.35,
+            288.41,
+            10429.63
+          ],
+          "hpr": [
+            3.1416,
+            -0.0,
+            0.0
+          ],
+          "note": "the falling leaves by the cottage"
+        },
+        {
+          "sprite": "0xBAE349D1",
+          "from": "TUNARIA.ESF",
+          "zone": 100,
+          "at": [
+            19334.38,
+            286.64,
+            10421.5
+          ],
+          "hpr": [
+            3.1416,
+            -0.0,
+            0.0
+          ],
+          "note": "the light in the cottage"
+        },
+        {
+          "sprite": "0x6F412342",
+          "from": "CHAR.ESF",
+          "at": [
+            19289.45,
+            292.97,
+            10377.63
+          ],
+          "scale": 6.0,
+          "note": "an invisible blocker outside the north fence (CHAR.ESF's collision-only box, 30 a side)"
+        },
+        {
+          "sprite": "0x6F412342",
+          "from": "CHAR.ESF",
+          "at": [
+            19289.45,
+            253.09,
+            10472.55
+          ],
+          "scale": 6.0,
+          "note": "an invisible blocker outside the south fence (CHAR.ESF's collision-only box, 30 a side)"
+        },
+        {
+          "sprite": "0x6F412342",
+          "from": "CHAR.ESF",
+          "at": [
+            19289.45,
+            283.09,
+            10472.55
+          ],
+          "scale": 6.0,
+          "note": "an invisible blocker outside the south fence (CHAR.ESF's collision-only box, 30 a side)"
+        },
+        {
+          "sprite": "0x6F412342",
+          "from": "CHAR.ESF",
+          "at": [
+            19312.81,
+            292.97,
+            10377.63
+          ],
+          "scale": 6.0,
+          "note": "an invisible blocker outside the north fence (CHAR.ESF's collision-only box, 30 a side)"
+        },
+        {
+          "sprite": "0x6F412342",
+          "from": "CHAR.ESF",
+          "at": [
+            19312.81,
+            276.06,
+            10472.55
+          ],
+          "scale": 6.0,
+          "note": "an invisible blocker outside the south fence (CHAR.ESF's collision-only box, 30 a side)"
+        },
+        {
+          "sprite": "0x6F412342",
+          "from": "CHAR.ESF",
+          "at": [
+            19312.81,
+            306.06,
+            10472.55
+          ],
+          "scale": 6.0,
+          "note": "an invisible blocker outside the south fence (CHAR.ESF's collision-only box, 30 a side)"
+        },
+        {
+          "sprite": "0x6F412342",
+          "from": "CHAR.ESF",
+          "at": [
+            19336.17,
+            292.97,
+            10377.63
+          ],
+          "scale": 6.0,
+          "note": "an invisible blocker outside the north fence (CHAR.ESF's collision-only box, 30 a side)"
+        },
+        {
+          "sprite": "0x6F412342",
+          "from": "CHAR.ESF",
+          "at": [
+            19336.17,
+            287.63,
+            10472.55
+          ],
+          "scale": 6.0,
+          "note": "an invisible blocker outside the south fence (CHAR.ESF's collision-only box, 30 a side)"
+        },
+        {
+          "sprite": "0x6F412342",
+          "from": "CHAR.ESF",
+          "at": [
+            19359.52,
+            292.32,
+            10377.63
+          ],
+          "scale": 6.0,
+          "note": "an invisible blocker outside the north fence (CHAR.ESF's collision-only box, 30 a side)"
+        },
+        {
+          "sprite": "0x6F412342",
+          "from": "CHAR.ESF",
+          "at": [
+            19359.52,
+            287.94,
+            10472.55
+          ],
+          "scale": 6.0,
+          "note": "an invisible blocker outside the south fence (CHAR.ESF's collision-only box, 30 a side)"
+        },
+        {
+          "sprite": "0x6F412342",
+          "from": "CHAR.ESF",
+          "at": [
+            19382.88,
+            289.47,
+            10377.63
+          ],
+          "scale": 6.0,
+          "note": "an invisible blocker outside the north fence (CHAR.ESF's collision-only box, 30 a side)"
+        },
+        {
+          "sprite": "0x6F412342",
+          "from": "CHAR.ESF",
+          "at": [
+            19382.88,
+            279.7,
+            10472.55
+          ],
+          "scale": 6.0,
+          "note": "an invisible blocker outside the south fence (CHAR.ESF's collision-only box, 30 a side)"
+        },
+        {
+          "sprite": "0x6F412342",
+          "from": "CHAR.ESF",
+          "at": [
+            19289.45,
+            288.36,
+            10407.63
+          ],
+          "scale": 6.0,
+          "note": "an invisible blocker outside the west fence (CHAR.ESF's collision-only box, 30 a side)"
+        },
+        {
+          "sprite": "0x6F412342",
+          "from": "CHAR.ESF",
+          "at": [
+            19382.88,
+            284.95,
+            10407.63
+          ],
+          "scale": 6.0,
+          "note": "an invisible blocker outside the east fence (CHAR.ESF's collision-only box, 30 a side)"
+        },
+        {
+          "sprite": "0x6F412342",
+          "from": "CHAR.ESF",
+          "at": [
+            19289.45,
+            282.35,
+            10425.09
+          ],
+          "scale": 6.0,
+          "note": "an invisible blocker outside the west fence (CHAR.ESF's collision-only box, 30 a side)"
+        },
+        {
+          "sprite": "0x6F412342",
+          "from": "CHAR.ESF",
+          "at": [
+            19382.88,
+            283.33,
+            10425.09
+          ],
+          "scale": 6.0,
+          "note": "an invisible blocker outside the east fence (CHAR.ESF's collision-only box, 30 a side)"
+        },
+        {
+          "sprite": "0x6F412342",
+          "from": "CHAR.ESF",
+          "at": [
+            19289.45,
+            275.28,
+            10442.55
+          ],
+          "scale": 6.0,
+          "note": "an invisible blocker outside the west fence (CHAR.ESF's collision-only box, 30 a side)"
+        },
+        {
+          "sprite": "0x6F412342",
+          "from": "CHAR.ESF",
+          "at": [
+            19289.45,
+            305.28,
+            10442.55
+          ],
+          "scale": 6.0,
+          "note": "an invisible blocker outside the west fence (CHAR.ESF's collision-only box, 30 a side)"
+        },
+        {
+          "sprite": "0x6F412342",
+          "from": "CHAR.ESF",
+          "at": [
+            19382.88,
+            281.69,
+            10442.55
+          ],
+          "scale": 6.0,
+          "note": "an invisible blocker outside the east fence (CHAR.ESF's collision-only box, 30 a side)"
+        }
+      ]
     }
   ],
   "home": {
     "name": "the Homesteads",
-    "door": {"x": 5798, "y": 57.72, "z": 18146, "facing": 0},
-    "board": {"x": 5812, "y": 57.72, "z": 18142, "toward": [5798, 18146]},
-    "yard": {"x": 5798, "z": 18167, "r": 50}
+    "door": {
+      "x": 19335.2,
+      "y": 279.97,
+      "z": 10446.03,
+      "toward": [
+        19335.0,
+        10421.5
+      ]
+    },
+    "board": {
+      "x": 19321.2,
+      "y": 279.56,
+      "z": 10450.03,
+      "toward": [
+        19335.2,
+        10446.03
+      ]
+    },
+    "fence": {
+      "x0": 19304.85,
+      "z0": 10393.03,
+      "x1": 19367.48,
+      "z1": 10457.15
+    }
   }
 }

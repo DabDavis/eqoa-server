@@ -71,6 +71,11 @@ func SetServerWorlds(built []worlds.Built) {
 	serverWorldsMu.Lock()
 	serverWorlds = m
 	serverWorldsMu.Unlock()
+	// a kept session's held worlds are checked against these at a keep restart (session.stillHeld)
+	session.ServerWorldCRC = func(slot uint8) (uint32, bool) {
+		b, ok := ServerWorld(slot)
+		return b.CRC, ok
+	}
 	entity.SetCoachHomes(coachHomesOf(built))
 }
 

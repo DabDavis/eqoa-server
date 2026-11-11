@@ -16,7 +16,7 @@ import (
 
 // homesTestHome is a home block as a recipe carries it.
 const homesTestHome = `{"name": "the Test Homesteads", "door": {"x": 1000, "y": 50, "z": 1000, "facing": 90},
-	"board": {"x": 1010, "y": 50, "z": 1000, "toward": [1000, 1000]}, "yard": {"x": 1000, "z": 1000, "r": 60}}`
+	"board": {"x": 1010, "y": 50, "z": 1000, "toward": [1000, 1000]}}`
 
 // homesRig is the portal rig with the homes on in world 13 over a database: a board beside Anna (world 0) and its
 // twin in the yard, the characters' rows of Anna, Cora and Bert.
@@ -67,12 +67,10 @@ func TestHomesRecipeBlock(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if lay.Name != "the Test Homesteads" || lay.Door.X != 1000 || lay.YardRadius != 60 || !lay.InYard(1050, 1000) || lay.InYard(1070, 1000) {
+	if lay.Name != "the Test Homesteads" || lay.Door.X != 1000 || lay.Board.X != 1010 {
 		t.Fatalf("layout %+v", lay)
 	}
-	for _, bad := range []string{`{"door": {"x": 0, "z": 0}, "yard": {"x": 1, "z": 1, "r": 5}}`,
-		`{"door": {"x": 1000, "z": 1000}, "yard": {"x": 1000, "z": 1000, "r": 0}}`,
-		`{"door": {"x": 2000, "z": 1000}, "yard": {"x": 1000, "z": 1000, "r": 60}}`} {
+	for _, bad := range []string{`{"door": {"x": 0, "z": 0}}`, `{"door": 5}`} {
 		if _, err := ReadHome(worlds.Built{Recipe: worlds.Recipe{World: 13, Home: json.RawMessage(bad)}}); err == nil {
 			t.Fatalf("%s read", bad)
 		}
@@ -227,5 +225,22 @@ func TestHomesLoginRule(t *testing.T) {
 	}
 	if s, ok := r.gw.HomeStayOf(r.pc.CharServerID); !ok || s.Host != r.pa.CharServerID {
 		t.Fatalf("Cora's stay after a restart: %+v %v", s, ok)
+	}
+}
+
+// A character saved in the homes' world far from the door (the world rebuilt elsewhere since: the cottage moved from
+// Tunaria zone 100 to zone 55's rim) starts at the door of its home, not at its old place.
+func TestHomesLoginFarFromTheDoor(t *testing.T) {
+	r, _, _ := homesRig(t)
+	held := func(w uint8) bool { return w == 13 }
+	rec := &database.CharacterRecord{ServerID: r.pa.CharServerID, CharName: "Anna", World: 13, X: 5798, Y: 57.8, Z: 18146}
+	loginSpawn(r.gw, rec, held, nil)
+	if rec.World != 13 || rec.X != 1000 || rec.Z != 1000 || rec.Y != 50 {
+		t.Fatalf("a login saved far from the door: world %d (%.1f, %.1f, %.1f)", rec.World, rec.X, rec.Y, rec.Z)
+	}
+	rec = &database.CharacterRecord{ServerID: r.pa.CharServerID, CharName: "Anna", World: 13, X: 1020, Y: 50, Z: 990}
+	loginSpawn(r.gw, rec, held, nil)
+	if rec.X != 1020 || rec.Z != 990 {
+		t.Fatalf("a login saved in the yard moved: (%.1f, %.1f)", rec.X, rec.Z)
 	}
 }

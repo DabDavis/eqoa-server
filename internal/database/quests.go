@@ -307,6 +307,29 @@ type QuestEvent struct {
 	// Keep (spawn, a survive step's start): each one made again as its corpse
 	// goes, while the step's time runs (handlers/questsurvive.go)
 	Keep bool `json:"keep,omitempty"`
+	// Hold (trigger, a give or show step's, on its done): the step's NPC talked to
+	// with what the step needs fires the trigger and does NOT do the step: nothing
+	// is handed in, and the trigger's queststep step does it later for every player
+	// its scope takes who is on the step and holds what it needs (petition 1617, the
+	// Froglok Herbalist's brew, "Since the popups have an Area of Effect, your quest
+	// will still be advanced if you have the necessary items"); the step done so
+	// does not fire it again. Says: what the step's NPC says as it fires.
+	Hold bool   `json:"hold,omitempty"`
+	Says string `json:"says,omitempty"`
+}
+
+// HoldTrigger is a step's held trigger event (Hold), nil for none.
+func HoldTrigger(st *QuestStep) *QuestEvent {
+	if st == nil {
+		return nil
+	}
+	for _, e := range EventsOn(st.Events, EventDone) {
+		if e.Do == EventTrigger && e.Hold {
+			e := e
+			return &e
+		}
+	}
+	return nil
 }
 
 // reClassQuestKey is a starting city's class quest's import key
@@ -423,6 +446,9 @@ func EventProblems(s string, step bool) []string {
 		case EventTrigger:
 			if strings.TrimSpace(e.Trigger) == "" {
 				add(i, "trigger names no trigger")
+			}
+			if e.Hold && (!step || e.On != EventDone) {
+				add(i, "a held trigger is a step's, on its done: the trigger's queststep does the step")
 			}
 		case EventDoStep:
 			if !step || e.On != EventStart {

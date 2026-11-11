@@ -131,6 +131,16 @@ type triggerRun struct {
 	// resummons are its resummon steps from the step on: each keeps one of its spawns
 	// called back while its caller lives (resummonLocked)
 	resummons []*triggerResummon
+	// protect is its protect step's NPC, guarded to its end (nil: none)
+	protect *triggerProtect
+}
+
+// triggerProtect is the NPC a run guards: its death fails the run, text said to its
+// players in a window (the file's protect step).
+type triggerProtect struct {
+	id   entity.EntityID
+	name string
+	text string
 }
 
 // triggerResummon is one resummon step a run keeps: the step, when its NPC's last
@@ -543,6 +553,10 @@ func (e *TriggerEngine) Tick() {
 		if r.stopped {
 			continue
 		}
+		if r.protect != nil && !e.gw.NPCAlive(r.protect.id) {
+			e.protectFailedLocked(r)
+			continue
+		}
 		e.resummonLocked(r, now)
 		if !r.deadline.IsZero() && (!now.Before(r.deadline) || e.emptyLocked(r, now)) {
 			e.clockEndLocked(r)
@@ -810,6 +824,30 @@ func (e *TriggerEngine) stepLocked(r *triggerRun, s database.TriggerStep) string
 			return fmt.Sprintf("none of %s has a %s within reach", who, strings.TrimSpace(s.Target))
 		}
 		return fmt.Sprintf("%d of %s set on %s", n, who, on)
+	case database.TriggerProtect:
+		id, ok := e.gw.NearestNPC(s.NPC, r.world, r.x, r.z, e.reachOf(r, s))
+		if !ok {
+			return fmt.Sprintf("no %s within reach to protect", strings.TrimSpace(s.NPC))
+		}
+		r.protect = &triggerProtect{id: id, name: strings.TrimSpace(s.NPC), text: s.Text}
+		return fmt.Sprintf("%s (%d) protected to the run's end", strings.TrimSpace(s.NPC), id)
+	case database.TriggerQuestStep:
+		qe := Quests()
+		if qe == nil {
+			return "no quests on this server"
+		}
+		var members []heldMember
+		for _, m := range e.audience(r) {
+			members = append(members, heldMember{sess: m.sess, p: m.p})
+		}
+		title, quest, step := r.trig.Title(), s.Quest, s.QuestStep
+		// on its own goroutine: the quest engine's lock comes before this one's
+		// (a step's events fire triggers), never after
+		go func() {
+			n := qe.DoHeldStep(members, quest, step)
+			log.Printf("Triggers: %s: step %d of quest %d done for %s", title, step, quest, players(n))
+		}()
+		return fmt.Sprintf("step %d of quest %d for those of %s on it", step, quest, players(len(members)))
 	case database.TriggerHide:
 		until := time.Time{}
 		if s.Minutes > 0 {
@@ -818,6 +856,20 @@ func (e *TriggerEngine) stepLocked(r *triggerRun, s database.TriggerStep) string
 		return fmt.Sprintf("%d of %s out of view for %s", e.gw.HideNPCs(strings.TrimSpace(s.NPC), r.world, r.x, r.z, e.reachOf(r, s), until), s.NPC, seconds(s.Minutes*60))
 	}
 	return ""
+}
+
+// protectFailedLocked is a run's protected NPC dead or gone: its text in a window for
+// its players, its spawns taken away, its steps left undone (and with them its
+// queststep: no one's items are taken). Must be called with e.mu held.
+func (e *TriggerEngine) protectFailedLocked(r *triggerRun) {
+	who := e.audience(r)
+	if t := strings.TrimSpace(r.protect.text); t != "" {
+		for _, m := range who {
+			e.popupLocked(m.sess, triggerText(t, m.p.Name), "")
+		}
+	}
+	log.Printf("Triggers: %s's run %d failed: %s (%d) fell (%s told)", r.trig.Title(), r.id, r.protect.name, r.protect.id, players(len(who)))
+	e.stopLocked(func(o *triggerRun) bool { return o == r })
 }
 
 // reachOf is how far from the run's place a step takes its NPCs: its radius, else

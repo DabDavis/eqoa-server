@@ -19,7 +19,8 @@ are found as Heirloom's. Refused, nothing written, unless every row is there wit
 ids, or already exactly this tool's), its Fiery spell in its adds. Report only by default; --apply in one transaction,
 a gm_audit line a row, log static_destruction_1111_log; --undo exact (a row changed since is left and said).
 cmcatalog is read at the start (or the GM panel's reload of the masteries); the a|b reading needs the server of this
-branch (an older one reads "11|22" as 11 alone: no harm, the line stays as locked as before).
+branch: an older one cannot read "11|22" as a number, so it reads 0, which it does not check (the rank then needs no
+spell at all): apply it with this branch's binary, before the restart that loads it.
 
     tools/petfix_static_destruction_20261111.py --db eqoa.db [--apply | --undo]
 """

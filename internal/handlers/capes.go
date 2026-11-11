@@ -142,9 +142,10 @@ type listCape struct {
 
 // characterCape is the cape a character wears among its items (wornLook's:
 // the record worn in the cape's slot) in its record's colour, none when its
-// style is 0.
-func characterCape(serverID uint32, items []database.CharInventoryEntry) (listCape, bool) {
-	var p entity.Player
+// style is 0 or the character hides its cape slot's look (hidden: its hidden
+// equip slots, entity/hidelook.go).
+func characterCape(serverID uint32, items []database.CharInventoryEntry, hidden uint32) (listCape, bool) {
+	p := entity.Player{HiddenLocs: hidden}
 	wornLook(&p, items)
 	return listCape{serverID, p.CapeStyle, p.CapeColor}, p.CapeStyle != 0
 }
@@ -213,7 +214,7 @@ func (h *CharacterHandler) capesOfAccount(sess *session.Session) []listCape {
 			log.Printf("Capes: %s's items: %v", c.CharName, err)
 			continue
 		}
-		if lc, ok := characterCape(uint32(c.ServerID), items); ok {
+		if lc, ok := characterCape(uint32(c.ServerID), items, h.hiddenLooks(uint32(c.ServerID))); ok {
 			lc.color = h.capeDye(lc.serverID, lc.color)
 			out = append(out, lc)
 		}

@@ -927,6 +927,9 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// and the profanity filter set from the client's own setting
 	// (profanity.go, petition 1490): a PS2 ignores it, its filter on
 	SendProfanityChoiceOffer(sess)
+	// and the worn looks it hides (hidelook.go): a client that sets them
+	// answers, a PS2 ignores it
+	h.SendHideLookOffer(sess)
 
 	// Offer quest marks for the map (questmarks.go): a client that draws them
 	// asks, a PS2 ignores it
@@ -1290,6 +1293,8 @@ func (h *CharacterHandler) applyEquipmentFromDB(player *entity.Player, serverID 
 		h.gameWorld.SetGear(player.ServerID, wornGear(items), fill)
 	}
 
+	// the looks it hides (hidelook.go), read before the look is made
+	player.HiddenLocs = h.hiddenLooks(serverID)
 	wornLook(player, items)
 
 	robe := -1
@@ -1325,6 +1330,16 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 	player.ArmorColors = [len(player.ArmorColors)]uint32{}
 	player.PrimaryType, player.SecondaryType = 0, 0
 	player.CapeStyle, player.CapeColor = 0, 0
+	// the worn looks the character hides (entity/hidelook.go): a part is
+	// hidden when the item that shows it is worn in a hidden slot
+	player.HiddenParts = 0
+	hide := func(part uint16, item *database.CharInventoryEntry) {
+		if item.EquipLoc >= 0 && item.EquipLoc < 32 && player.HiddenLocs&(1<<uint(item.EquipLoc)) != 0 {
+			player.HiddenParts |= part
+		} else {
+			player.HiddenParts &^= part
+		}
+	}
 	worn := map[int]*database.CharInventoryEntry{}
 	for i := range items {
 		item := &items[i]
@@ -1339,22 +1354,34 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 		switch item.Pattern.EquipSlot {
 		case 1: // Head
 			player.Helm, player.ArmorColors[database.DyeHelm] = byte(model), color
+			hide(entity.HideHelm, item)
 		case 5: // Chest
 			player.Chest, player.ArmorColors[database.DyeChest] = byte(model), color
+			hide(entity.HideChest, item)
 		case 7: // Bracers
 			player.Bracer, player.ArmorColors[database.DyeBracer] = byte(model), color
+			hide(entity.HideBracer, item)
 		case 10: // Legs
 			player.Legs, player.ArmorColors[database.DyeLegs] = byte(model), color
+			hide(entity.HideLegs, item)
 		case 11: // Feet
 			player.Boots, player.ArmorColors[database.DyeBoots] = byte(model), color
+			hide(entity.HideBoots, item)
 		case 19: // Hands/Gloves
 			player.Gloves, player.ArmorColors[database.DyeGloves] = byte(model), color
+			hide(entity.HideGloves, item)
 		case 2: // Robe: style 0 is a robe too; its tint and colour its record's
 			player.Robe, player.RobeWorn = uint32(model), true
 			player.RobeTint, player.RobeColor = entity.RobeLook(item.Pattern.Color)
+			hide(entity.HideRobe, item)
 		case wearCape: // the cape slot (capes.go): drawn only by a client that draws capes
 			if item.EquipLoc == equipCape {
 				player.CapeStyle, player.CapeColor = capeLook(&item.Pattern)
+				// a hidden cape is told to no client: it is only a look
+				hide(entity.HideCape, item)
+				if player.HiddenParts&entity.HideCape != 0 {
+					player.CapeStyle, player.CapeColor = 0, 0
+				}
 			}
 		}
 	}
@@ -1368,12 +1395,15 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 	}
 	if item := first(16, 14, 19); item != nil {
 		player.Primary, player.PrimaryType = uint32(item.Pattern.Model), byte(item.Pattern.AttackType)
+		hide(entity.HidePrimary, item)
 	}
 	if item := first(15, 20, 18); item != nil {
 		player.Secondary, player.SecondaryType = uint32(item.Pattern.Model), byte(item.Pattern.AttackType)
+		hide(entity.HideSecondary, item)
 	}
 	if item := first(17); item != nil {
 		player.Shield = uint32(item.Pattern.Model)
+		hide(entity.HideShield, item)
 	}
 }
 
@@ -1387,7 +1417,13 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 // Until 2026-10-22 every entry was blank, so character select showed every
 // character bare and empty-handed.
 func characterGear(items []database.CharInventoryEntry) []byte {
-	var p entity.Player
+	return characterGearHiding(items, 0)
+}
+
+// characterGearHiding is characterGear of a character that hides the looks of
+// the equip slots hidden (entity/hidelook.go): those parts bare.
+func characterGearHiding(items []database.CharInventoryEntry, hidden uint32) []byte {
+	p := entity.Player{HiddenLocs: hidden}
 	wornLook(&p, items)
 	g := make([]byte, 32)
 	robe := uint32(0xFFFFFFFF)
@@ -1407,6 +1443,7 @@ func characterGear(items []database.CharInventoryEntry) []byte {
 		}
 		g[26+i] = entity.ArmorTint(p.ArmorColors[i])
 	}
+	entity.HideCharacterParts(g, p.HiddenParts)
 	return g
 }
 
@@ -1754,7 +1791,7 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 		}
 		// the live game's record to a client of its look, with the dyes
 		// (livelook.go); the disc's 32 bytes to every other
-		gear := characterGear(items)
+		gear := characterGearHiding(items, h.hiddenLooks(uint32(c.ServerID)))
 		if entity.IsWispRace(int(c.Race)) {
 			// a Wisp at select is in its own form: nothing worn shows but its
 			// cape (entity/wispform.go)
@@ -1763,7 +1800,7 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 		writer.WriteBytes(h.listGear(sess, uint32(c.ServerID), gear))
 		// its cape, for a client that draws capes (capes.go), in its dye if it
 		// has one
-		if lc, ok := characterCape(uint32(c.ServerID), items); ok && wantCapes {
+		if lc, ok := characterCape(uint32(c.ServerID), items, h.hiddenLooks(uint32(c.ServerID))); ok && wantCapes {
 			lc.color = h.capeDye(lc.serverID, lc.color)
 			capes = append(capes, lc)
 		}

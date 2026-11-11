@@ -1077,6 +1077,42 @@ default (`config.yaml.example`, `entity.DefaultCTFSettings`).
   `entity/ctfaway_test.go`, `handlers/ctf_test.go`, `handlers/ctfaway_test.go`), `TestBoxMarksAreEachFeaturesOwn`,
   `TestHeraldAndLiaisonAnswersAreTheirOwn` (`handlers/boxmarks_test.go`).
 
+### Player homes: an instanced world of the server's own (`entity/homes.go`, `handlers/homes.go`, `world.homes`)
+
+The owner, 2026-11-11: "lets add player homes, will be in a new world and instanced per player. players can invite players
+to their home. their home is a very small zone with a yard around and a house thats it. add a bulletin board in freeport
+near dabrish that says Real Estate Listings". `claude-notes/player-homes-20261111.md` has the design and what the rig showed.
+
+- **The world**: slot **13, the Homesteads** (`tools/worlds/homesteads.json`): Tunaria zone 100 (cell 2, 9) where it
+  stands, whose green fenced cottage (door to the north, a stone path to a gate) is every home; 9,493,348 bytes, CRC
+  2c61d844, no extras. Its recipe's `"home"` block (`worlds.Recipe.Home`, carried into `world13.json`, read by
+  `ReadHome`): the `door` a player lands at (facing the cottage), the yard's `board`, the `yard` circle (r 50 round the
+  fence: past it a player goes back to the door). `world.homes.enabled` (off by default) with 13 in `server_worlds`.
+- **Instances**: `Player.Instance` and `NPC.Instance`, a home's owner's character id; meaningful only in a world marked
+  `entity.SetInstancedWorld` (`instanceKey()` is 0 elsewhere, so nothing outside changes). An NPC with an owner (pet,
+  merc, merc's pet, familiar, genie, portal) stands in its owner's instance (`npcInstanceLocked`); an NPC of the world's
+  own with Instance 0 (the yard's board) in every one. **Everything that asks whether two things share a place asks
+  `SamePlace`/`npcSharesLocked`**: the view (visibility.go), a say and /roll (`inSayRange`), an area's foes, friends and
+  pets, a group's area, a group rez, a merc's group (area.go, resurrect.go, mercgroup.go). A new "same world" check that
+  could cross players should ask them too.
+- **Who stands in a home** (`homeAllowsLocked`): its owner, a character it invited (table `charhomeguests`), and while
+  grouped with the owner (online) a member of its group. `homesSystem` (once a second) sends anyone else out, to where they
+  came from (table `charhomestay`: the host and the place before the homes), else in front of Freeport's board; a player
+  in world 13 with no instance (a GM's move) goes into its own. Free: no deed, no price.
+- **The board** (any NPC named `Real Estate Listings`, `entity.HomesBoardName`; `tools/place_homes_board_20261111.py`
+  stands one beside Dabrish and its twin in the yard, the body a `--model` parameter): a box under **mark 0x68000000**:
+  Go to my home, Visit a friend's home (the homes the player was invited to and its group's members', five a box, More
+  homes), and in a home Return to where it came from. **`/home`** (`#home`, a PS2's `/t home ...`): `/home` goes home,
+  `/home leave`, `/home invite <name>`, `/home uninvite <name>` (sends the guest out at once), `/home kick <name>`,
+  `/home list`.
+- **Logins and restarts**: a login saved in world 13 (`homeLogin`, before the usual rule) resumes in the home it stood
+  in while it is its own or still invited (a group is not kept over a logout) and its client holds world 13, else starts
+  where it came from. The stays are read at the start (`SetupHomes`, before the kept sessions are put back), so a keep
+  restart and a cold one put everyone back in their instance.
+- **Who goes in**: a client that holds world 13 (0x7E31's answer: vanilla, natively or in a page; `homesReaches`); a
+  PS2 or an older vanilla is told why and not moved. No new opcodes. Room for later: furniture would be a table of its own
+  keyed by the home's owner (`charhomeitems`), not made.
+
 ### Mail, resets, one Master Class, petitions: SOE's live client's, for every client
 
 The user, 2026-10-29: SOE's later features, read out of the live CLIENT in the Corsten state, built on

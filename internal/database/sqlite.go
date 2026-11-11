@@ -771,6 +771,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureGroupInvites(); err != nil { // groupinvites.go: "Allow anyone in my group to invite"
 		return err
 	}
+	if err := db.ensureHomes(); err != nil { // homes.go: the players' homes
+		return err
+	}
 	if err := db.ensureCharBuyBack(); err != nil { // buyback.go: what merchants sell back
 		return err
 	}

@@ -166,6 +166,8 @@ type World struct {
 	pvpAllowed bool
 	// ctf is capture the flag in the arena's world: its queue and its match (ctf.go)
 	ctf ctfState
+	// homes are the players' homes in their instanced world (homes.go)
+	homes homesState
 	// jumpsAllowed is world.jump: whether players may jump (jump.go)
 	jumpsAllowed bool
 
@@ -397,6 +399,7 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 
 	w.rejoinGuildLocked(p)
 	w.rejoinGroupLocked(p)
+	p.Instance = w.homeInstanceOnLoadLocked(p.CharServerID, p.World) // a home's (homes.go)
 	w.Players[id] = p
 	w.SpatialIndex.Insert(id, p.X, p.Z)
 

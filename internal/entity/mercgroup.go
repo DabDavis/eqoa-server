@@ -435,7 +435,7 @@ func (w *World) groupMercsLocked(p *Player, ids []EntityID, rng float32) []Entit
 	}
 	for _, id := range g.Members {
 		n := w.NPCs[id]
-		if !n.isMerc() || n.Dead || n.World != p.World || outOfRange(p, n.X, n.Y, n.Z, rng) {
+		if !n.isMerc() || n.Dead || !w.npcSharesLocked(n, p) || outOfRange(p, n.X, n.Y, n.Z, rng) {
 			continue
 		}
 		ids = append(ids, id)

@@ -257,6 +257,12 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		return
 	}
 
+	// /home (or #home; a PS2's is "/t home", below): the players' homes, everyone's (homes.go)
+	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/home") || strings.EqualFold(word, "#home") {
+		homeCommand(h.gameWorld, sess, rest)
+		return
+	}
+
 	// /lfg (or #lfg) on|off: the live group search's registration (lfg.go),
 	// everyone's. The live client sends 0x0801 for its own /lfg; vanilla
 	// forwards the line; a PS2 keeps an unknown /command to itself, so its
@@ -369,6 +375,11 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		// and /ctf (ctf.go): "/t ctf", "/t ctf join", "/t ctf leave", "/t ctf rules"
 		if b := strings.ToLower(strings.TrimSpace(body)); strings.EqualFold(name, "ctf") && (b == "" || b == "join" || b == "leave" || b == "rules") {
 			ctfCommand(h.gameWorld, sess, b)
+			return
+		}
+		// and /home (homes.go): "/t home", "/t home invite Name", ...
+		if strings.EqualFold(name, "home") {
+			homeCommand(h.gameWorld, sess, body)
 			return
 		}
 		// and /stuck (entity/stuck.go)
@@ -523,7 +534,7 @@ func (h *ChatHandler) inSayRange(sess *session.Session, player *entity.Player) [
 	sessions := playerSessions(h.gameWorld)
 	var hear []hearer
 	h.gameWorld.ForEachPlayer(func(p *entity.Player) {
-		if p.World != player.World || p.ServerID == player.ServerID {
+		if !entity.SamePlace(p, player) || p.ServerID == player.ServerID { // its world and instance (entity/homes.go)
 			return
 		}
 		dx, dz := float64(p.X-player.X), float64(p.Z-player.Z)

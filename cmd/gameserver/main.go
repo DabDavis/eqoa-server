@@ -875,6 +875,9 @@ func main() {
 	// out of a match (none is kept) starts beside the herald (arenaLogin), and a
 	// merc waiting outside the arena stays out while its owner stands there
 	handlers.SetupCTF(gameWorld, cfg.World.CTF, cfg.Patch.WorldsDir)
+	// the players' homes in a world of the server's own (world.homes; handlers/homes.go), before the kept
+	// sessions too: a player a restart carried out of its home goes back into it (homeLogin)
+	handlers.SetupHomes(gameWorld, cfg.World.Homes, db)
 
 	// The sessions a restart kept (udp/keep.go), put back before a datagram
 	// is read: the clients' packets wait in the socket meanwhile

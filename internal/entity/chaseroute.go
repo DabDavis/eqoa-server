@@ -194,7 +194,7 @@ func (w *World) followRouteLocked(npc *NPC, r *chaseRoute, speed, dt float32) {
 		if dist > 0 {
 			ux, uz = dx/dist, dz/dist
 		}
-		y0, swim0 := npc.Y, npc.swimming
+		x0, y0, z0, swim0 := npc.X, npc.Y, npc.Z, npc.swimming
 		if dist <= left {
 			npc.X, npc.Z = p.x, p.z
 			left -= dist
@@ -208,9 +208,20 @@ func (w *World) followRouteLocked(npc *NPC, r *chaseRoute, speed, dt float32) {
 		if npc.Y < y0-legDrop || npc.Y > y0+routeClimb {
 			npc.Y, npc.swimming = y0, swim0 // a gap between the search's points: across it at its height
 		}
+		if w.inGroundLocked(npc.World, npc.X, npc.Y, npc.Z) {
+			// across it at its height would be in the ground (groundnpc.go): not
+			// taken, the route dropped and the way searched again
+			npc.X, npc.Y, npc.Z, npc.swimming = x0, y0, z0, swim0
+			r.pts, r.edge = nil, true
+			break
+		}
 	}
 	if ux != 0 || uz != 0 {
 		npc.Facing = headingTo(ux, uz)
+	}
+	if npc.X == oldX && npc.Z == oldZ {
+		npc.stopMoving() // its first step refused: standing, turned its way
+		return
 	}
 	npc.VelX, npc.VelY, npc.VelZ = ux*speed, 0, uz*speed
 	npc.Loco = LocoWalk

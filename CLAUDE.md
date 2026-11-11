@@ -578,8 +578,13 @@ and 2.4M a stack of four: the Akessan Collector's measure, ours for the other tw
 at 2,000 (one in each camp, its quest by the faction: a mystical parchment for the side's scroll of the class's
 archetype, #494's eleven; Marr's tanks have none and are not offered it). **Drops**: the camps' named are the guide's
 Tier One and Two with their lists (Devastator's Gloves made), an armour gem every named kill ("All named npcs ... drop
-at least 1 armor gem"), 2% a soldier's; the spellsmiths a mystical parchment each. `TestRealZaoranPlateauFactions`
-(`EQOA_REAL_DB`) plays the passage and each side from its first quest to its ability. Left: the XP gems and potions
+at least 1 armor gem"), 2% a soldier's; the spellsmiths a mystical parchment each. **#494's armour by side** (the owner,
+2026-11-11): each of the 18 turn-ins needs its side's alignment quest finished (Soldiers of Rallos Zek for Krognar,
+Mithaniel Marr's Crusaders for Merkym, The Captains' Weapons for the Akessan Collector) and a standing of 0 or better
+with the side (the set's `sql_after`); a player holding the gems who has not is told "I work only for those who have
+stood with <faction>, and you have not." by the lieutenant (`handInRefusalLocked`: any hand-in that asks a standing).
+`TestRealZaoranPlateauFactions` (`EQOA_REAL_DB`) plays the passage and each side from its first quest to its ability,
+its lieutenant's helm refused before the alignment and made after, the other two sides' refused. Left: the XP gems and potions
 do nothing yet, the insignias, the Commander quest, the High Elder, the portal raid quests (`zp-guides` NOTES).
 
 **The XP camps are `#tele` shortcuts** (`handlers/camps.go`, written by `tools/gen_camp_teles.py`;

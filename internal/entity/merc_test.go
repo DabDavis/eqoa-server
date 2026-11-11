@@ -258,6 +258,29 @@ func TestMercRaceBodies(t *testing.T) {
 	}
 }
 
+// A merc of a race whose own body takes no armour (the hill giant's) wears
+// the body of the armour on its chest, as its players do (the owner,
+// 2026-11-11: "mercenaries arent always wearing armor visually, like uwu's
+// merc ithiel", a hill giant necromancer): a robe's cloth the sand giant's, a
+// chain the fire giant's. The control: a bare chest, the race's own body.
+func TestMercWearsItsRacesArmourBody(t *testing.T) {
+	const own, sand, fire = 0xFFB1EA2C, 0xE6170C3B, 0x72A6B03B
+	SetRaceDefs([]database.RaceDefRow{{ID: 11, Name: "Hill Giant", WireRace: 9, BodyMale: own, BodyFemale: own}})
+	t.Cleanup(func() { SetRaceDefs(nil) })
+	r := newMercRig(t)
+	r.w.SetRaceArmorBodies([]database.RaceArmorBody{{Race: 11, Armor: "cloth", Body: sand}, {Race: 11, Armor: "chain", Body: fire}})
+	for _, c := range []struct {
+		armor ArmorKind
+		want  uint32
+	}{{ArmorCloth, sand}, {ArmorChain, fire}, {ArmorNone, own}} {
+		k := r.kit(11, 11, 0)
+		k.Gear.Armor = c.armor
+		if m := r.hire(k, MercAssist).npc; uint32(m.ModelID) != c.want {
+			t.Errorf("a hill giant merc in %v: body %#x, want %#x", c.armor, uint32(m.ModelID), c.want)
+		}
+	}
+}
+
 // A creature's hit on a merc is its roll on a player of the merc's class with
 // the merc's AC and AGI (defence.go), not a pet's tank of its level.
 func TestMercIsHitAsAPlayer(t *testing.T) {

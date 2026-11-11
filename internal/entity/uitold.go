@@ -14,7 +14,9 @@ import (
 // Jibrish's petitions 1475, 1476 and 1488, 2026-11-11):
 //
 //   - the mercs the player may see (protocol.OpcodeMercsData): every merc in
-//     its world by name, which the client draws in the pet's colour tinted red
+//     its world by name (with its hirer's, to a client that asked for layout
+//     2: its "<Hirer's Mercenary>" tag), which the client draws in the pet's
+//     colour tinted red
 //     (a merc's channel says pet as a pet's does: statesync.go's byte 142, 3),
 //     and whether its own is out, for Group > Dismiss Mercenary;
 //   - its group search standing (OpcodeGroupRegState): registered or not, its
@@ -45,7 +47,7 @@ func (w *World) uiToldSystem(now time.Time) {
 		return
 	}
 	w.uiTold = now
-	var names map[uint8][]string // the mercs by world, made when one asks
+	var names map[uint8][]mercNamed // the mercs by world, made when one asks
 	w.SessionManager.ForEach(func(s *session.Session) bool {
 		merc, reg := s.MercsTold(), s.GroupReg()
 		if !merc && !reg {
@@ -59,7 +61,7 @@ func (w *World) uiToldSystem(now time.Time) {
 			if names == nil {
 				names = w.mercNamesLocked()
 			}
-			body := mercsBody(w.ownMercOutLocked(p), names[p.World])
+			body := mercsBody(s.MercsLayout(), w.ownMercOutLocked(p), names[p.World])
 			if s.TakeMercs(string(body)) {
 				queueOurs(s, protocol.OpcodeMercsData, body)
 			}
@@ -74,18 +76,30 @@ func (w *World) uiToldSystem(now time.Time) {
 	})
 }
 
-// mercNamesLocked is every merc out by its world, each world's names sorted.
-// Must be called with the lock held.
-func (w *World) mercNamesLocked() map[uint8][]string {
-	out := map[uint8][]string{}
+// mercNamed is a merc out by its name and its hirer's.
+type mercNamed struct{ name, owner string }
+
+// mercNamesLocked is every merc out by its world, each world's sorted by
+// name, then hirer. Must be called with the lock held.
+func (w *World) mercNamesLocked() map[uint8][]mercNamed {
+	out := map[uint8][]mercNamed{}
 	for _, ms := range w.mercs {
 		if ms == nil || ms.npc == nil || ms.npc.Name == "" {
 			continue
 		}
-		out[ms.npc.World] = append(out[ms.npc.World], ms.npc.Name)
+		owner := ""
+		if ms.owner != nil {
+			owner = ms.owner.Name
+		}
+		out[ms.npc.World] = append(out[ms.npc.World], mercNamed{ms.npc.Name, owner})
 	}
 	for _, n := range out {
-		sort.Strings(n)
+		sort.Slice(n, func(i, j int) bool {
+			if n[i].name != n[j].name {
+				return n[i].name < n[j].name
+			}
+			return n[i].owner < n[j].owner
+		})
 	}
 	return out
 }
@@ -101,19 +115,27 @@ func (w *World) ownMercOutLocked(p *Player) bool {
 	return a != nil && a.merc != ""
 }
 
-// mercsBody is OpcodeMercsData's body (past the opcode).
-func mercsBody(own bool, names []string) []byte {
-	b := []byte{uiToldLayout, 0}
+// mercsBody is OpcodeMercsData's body (past the opcode) in the layout the
+// client asked for: 1 the names, 2 each with its hirer's.
+func mercsBody(layout uint8, own bool, names []mercNamed) []byte {
+	layout = min(max(layout, uiToldLayout), 2)
+	b := []byte{layout, 0}
 	if own {
 		b[1] = 1
 	}
-	b = binary.LittleEndian.AppendUint16(b, uint16(min(len(names), 0xFFFF)))
-	for _, n := range names[:min(len(names), 0xFFFF)] {
+	str := func(n string) {
 		if len(n) > mercNameMost {
 			n = n[:mercNameMost]
 		}
 		b = append(b, byte(len(n)))
 		b = append(b, n...)
+	}
+	b = binary.LittleEndian.AppendUint16(b, uint16(min(len(names), 0xFFFF)))
+	for _, n := range names[:min(len(names), 0xFFFF)] {
+		str(n.name)
+		if layout >= 2 {
+			str(n.owner)
+		}
 	}
 	return b
 }

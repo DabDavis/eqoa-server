@@ -14,8 +14,11 @@ import (
 // stance (/merc stance): passive, only what /merc attack names; assist (its
 // default), its owner's auto-attack's target, else the nearest creature within
 // petAssist of its owner fighting its owner or itself, hurt by its owner, or
-// fought by its owner's pet; aggressive, also one fighting or fought by any of
-// its owner's group (players, their pets and mercs). /merc attack sets it on
+// fought by its owner's pet, and one fighting anyone of its owner's group (a
+// player, its pet, its merc, that merc's pet) or its own pet
+// (mercDefendsLocked; the owner, 2026-11-11: "when 2 players in a group have a
+// merc, if one merc gets aggro, sometimes the other does not act to defend");
+// aggressive, also one fought by any of its owner's group. /merc attack sets it on
 // its owner's target whatever its stance, until that dies or goes. A target
 // petLeash from its owner is let go, as a pet's; one not ordered and not its
 // owner's auto-attack's, already past petAssist from its owner (its owner
@@ -67,6 +70,50 @@ func (w *World) mercTeamFightsLocked(ms *mercState, npc *NPC) bool {
 			}
 		}
 		if o := w.NPCs[id]; o.isMerc() && o.merc.target == npc.ServerID {
+			return true
+		}
+	}
+	return false
+}
+
+// mercDefendsLocked reports the creature fighting one the merc defends: its
+// owner, itself or its own pet, and anyone of its owner's group: a player, its
+// pet, its merc and that merc's pet (the file's doc). Must be called with the
+// lock held.
+func (w *World) mercDefendsLocked(ms *mercState, npc *NPC) bool {
+	e := npc.CurrentEnemy
+	if e == 0 {
+		return false
+	}
+	ours := func(o *Player) bool {
+		if o == nil {
+			return false
+		}
+		if e == o.ServerID {
+			return true
+		}
+		if pet := w.petOfLocked(o); pet != nil && e == pet.ServerID {
+			return true
+		}
+		if om := w.mercs[o.ServerID]; om != nil && om.owner == o {
+			if e == om.npc.ServerID || om.pet != nil && e == om.pet.npc.ServerID {
+				return true
+			}
+		}
+		return false
+	}
+	if ours(ms.owner) || e == ms.npc.ServerID {
+		return true
+	}
+	g := w.groups[ms.owner.GroupID]
+	if ms.owner.GroupID == 0 || g == nil {
+		return false
+	}
+	for _, id := range g.Members {
+		if id == e {
+			return true // a member: a player or a merc
+		}
+		if p := w.Players[id]; p != nil && p != ms.owner && ours(p) {
 			return true
 		}
 	}
@@ -128,6 +175,9 @@ func (w *World) mercChooseTargetLocked(ms *mercState) {
 		if !mine && pet != nil {
 			ps := w.pets[owner.ServerID]
 			mine = npc.CurrentEnemy == pet.ServerID || ps.target == npc.ServerID
+		}
+		if !mine {
+			mine = w.mercDefendsLocked(ms, npc)
 		}
 		if !mine && ms.stance == MercAggressive {
 			mine = w.mercTeamFightsLocked(ms, npc)

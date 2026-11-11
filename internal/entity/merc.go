@@ -181,6 +181,10 @@ type mercState struct {
 	bookOf *Player
 	// pet is its own pet, nil for none out (mercpet.go)
 	pet *petState
+	// petBook is its pet's heals and buffs (mercpetbuff.go), made for
+	// petBookOf, its body, as book is
+	petBook   *mercPetSpells
+	petBookOf *Player
 }
 
 // mercNoCollideID is a merc's entry on its owner's non-collide list (0x1003:
@@ -362,6 +366,13 @@ func newMercBody(id EntityID, k *MercKit) *Player {
 func (w *World) dressMercLocked(n *NPC, k *MercKit, owner *Player) {
 	l := &k.Look
 	n.ModelID = int64(w.mercModelLocked(k.Race, k.Sex, owner))
+	// a race whose own body takes no armour (the hill giant's) in the body of
+	// the armour on its chest, as its players are (armorbody.go; the owner,
+	// 2026-11-11: "mercenaries arent always wearing armor visually, like uwu's
+	// merc ithiel", a hill giant necromancer in its robe)
+	if b := w.armorBodies[k.Race][k.Gear.Armor]; b != 0 && !ChosenBody(k.Race, uint32(n.ModelID)) {
+		n.ModelID = int64(b)
+	}
 	n.Size = w.raceSizeLocked(k.Race)
 	n.Race = strconv.Itoa(WireRace(k.Race))
 	n.Face, n.HairColor, n.HairLength, n.HairStyle = l.Face, l.HairColor, l.HairLength, l.HairStyle

@@ -388,7 +388,7 @@ func (w *World) dressMercLocked(n *NPC, k *MercKit, owner *Player) {
 	// the armour on its chest, as its players are (armorbody.go; the owner,
 	// 2026-11-11: "mercenaries arent always wearing armor visually, like uwu's
 	// merc ithiel", a hill giant necromancer in its robe)
-	if b := w.armorBodies[k.Race][k.Gear.Armor]; b != 0 && !ChosenBody(k.Race, uint32(n.ModelID)) {
+	if b := w.armorBodies[k.Race][k.Gear.Armor]; b != 0 && takesArmorBody(k.Race, uint32(n.ModelID)) {
 		n.ModelID = int64(b)
 	}
 	n.Size = w.raceSizeLocked(k.Race)

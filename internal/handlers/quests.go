@@ -646,6 +646,10 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 		q.offerLocked(sess, p, c, qu)
 		return true
 	}
+	if line := q.handInRefusalLocked(look, p, c, npc.Name); line != "" {
+		q.tellLocked(c, sess, npc.Name, line)
+		return true
+	}
 	if q.stepAtLocked(sess, p, c, look, npc.Name, npc.ServerID, false) {
 		return true
 	}
@@ -753,6 +757,32 @@ func (q *QuestEngine) readyHandInLocked(look *factionLook, p *entity.Player, c *
 	}
 	return nil
 }
+
+// handInRefusalLocked is what a giver says to a player who holds a hand-in's
+// items but has not stood with the giver's side (the owner, 2026-11-11: Zaoran
+// Plateau's armour only for a player aligned with its lieutenant's side): a
+// hand-in that wants a standing (FactionReqs) is refused for a quest to finish
+// first or for that standing, in its giver's voice (ours: no recording has
+// one), or "" when there is none such.
+func (q *QuestEngine) handInRefusalLocked(look *factionLook, p *entity.Player, c *questChar, giver string) string {
+	for _, qu := range q.cat.givers[foldName(giver)] {
+		st := qu.First()
+		if len(qu.FactionReqs) == 0 || st == nil || st.Kind != database.StepGive || len(st.Items) == 0 || foldName(st.Target) != foldName(giver) {
+			continue
+		}
+		if q.lackingLocked(p, st) != "" {
+			continue
+		}
+		why := q.mayTakeLocked(look, p, c, qu)
+		if strings.HasPrefix(why, "quest ") || strings.HasPrefix(why, "one of quests ") || strings.HasPrefix(why, "its standing ") {
+			return fmt.Sprintf(handInNotYours, qu.FactionReqs[0].Faction)
+		}
+	}
+	return ""
+}
+
+// handInNotYours is that refusal: the side the giver works for.
+const handInNotYours = "I work only for those who have stood with %s, and you have not. Come back when you have."
 
 // offerAtLocked is the quest a giver talked to offers the player, or nil: the
 // next it has (nextOfferLocked) that the player has not just said no to, so a
@@ -1156,8 +1186,10 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 			return
 		}
 	case database.StepShow:
-		// what is shown is kept; shown Ascended, the rewards are (questascended.go)
+		// what is shown is kept; shown Ascended, the rewards are (questascended.go);
+		// its tunar, a fare, is paid (the lack check above held it)
 		given = &handedIn{ascended: q.planHandInLocked(p, st).ascended}
+		q.payStepTunarLocked(sess, p, st, given)
 	}
 	var extra *database.ClassReward
 	if opt != nil {
@@ -1632,17 +1664,28 @@ func (q *QuestEngine) takeLocked(sess *session.Session, p *entity.Player, st *da
 	for _, id := range order {
 		given.names = append(given.names, countOf(taken[id], names[id]))
 	}
-	if st.Tunar > 0 {
-		p.Tunar -= st.Tunar
-		if err := q.inv.SetPurse(p.CharServerID, p.Tunar); err != nil {
-			log.Printf("Quests: %s's tunar: %v", p.Name, err)
-		}
-		if sess != nil {
-			queueReliable(sess, protocol.OpcodePlayerTunar, tunarPayload(p.Tunar))
-		}
-		given.names = append(given.names, fmt.Sprintf("%d tunar", st.Tunar))
-	}
+	q.payStepTunarLocked(sess, p, st, given)
 	return given, true
+}
+
+// payStepTunarLocked takes a give or show step's tunar from the player (a
+// show step's fare: the portal guardian's 5,000 for the first passage to
+// Zaoran Plateau, questmasters1.com's "With the five Ruins and 5,000 tunar
+// you can talk to portal NPC and be ported"), in the database and the
+// client's purse, and names it among what was handed in. The caller has
+// checked the player holds it (planHandInLocked).
+func (q *QuestEngine) payStepTunarLocked(sess *session.Session, p *entity.Player, st *database.QuestStep, given *handedIn) {
+	if st.Tunar <= 0 || q.inv == nil {
+		return
+	}
+	p.Tunar -= st.Tunar
+	if err := q.inv.SetPurse(p.CharServerID, p.Tunar); err != nil {
+		log.Printf("Quests: %s's tunar: %v", p.Name, err)
+	}
+	if sess != nil {
+		queueReliable(sess, protocol.OpcodePlayerTunar, tunarPayload(p.Tunar))
+	}
+	given.names = append(given.names, fmt.Sprintf("%d tunar", st.Tunar))
 }
 
 // indexOfItem is the list index of the record of that inventory row, or -1.

@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"math"
 	"sort"
 
 	"github.com/eqoa/server/internal/session"
@@ -14,18 +15,22 @@ import (
 // the flag is the Player's, so a logout ends it (the next login is a new
 // Player).
 //
-// What a search returns is inferred (no capture of SOE's server holds one):
-// the window's type 0 is a group's leader with room looking for players, so
-// it lists registered characters in no group; type 1 is a character in no
-// group looking for one, so it lists the registered leaders of groups with
-// room, and (the GM Jibrish's petition 1476, 2026-11-11: "Players can
-// register for group, allowing them to show up in other players searches
-// through that window ... Any player can use this to select their name on the
-// list and invite them to group") the registered characters in no group too.
-// One in a group of its own and its merc's alone counts as in none: an invite
-// takes it (mercgroup.go). Rows are players either way (the window's title is
-// always "Search for Player"), filtered by the row's own class, race and
-// level.
+// What a search returns (the GM Jibrish's petition 1582, 2026-11-11: "When
+// players register with group by hitting community > group > register, the
+// search menu should display them on the list"): every registered character
+// the query's classes, races and levels take, of either type (the window's
+// type 0 is a group's leader looking for players, type 1 a character in no
+// group looking for one; the window's title is always "Search for Player"),
+// but the searcher, its own group and a member of a group it does not lead
+// (registered before it joined: a member cannot register). Until then a type 0 search left out
+// every registered group leader and a type 1 search a full group's (petition
+// 1476's rule, inferred: no capture of SOE's server holds a search).
+//
+// The levels: the window opens with the range its searcher hunts with
+// (LevelRange, the live client's 0x012EC0C0: a level 60 searcher's is 45-60),
+// which hid every registered character out of it, though the player chose no
+// levels. A query whose levels are that range (lfgDefaultRange) takes every
+// level; levels the player typed are a filter.
 
 // LFGMaxRows is the most rows a search returns (ours: the client allocates 56
 // bytes a row and shows ten at a time).
@@ -130,6 +135,7 @@ func (w *World) LFGSearch(sess *session.Session, q LFGQuery) []LFGRow {
 			return true
 		})
 	}
+	anyLevel := w.lfgDefaultRangeLocked(me, q.MinLevel, q.MaxLevel)
 	var found []*Player
 	for _, p := range w.Players {
 		if p == me || !p.LFG || !inWorld[p] {
@@ -138,24 +144,15 @@ func (w *World) LFGSearch(sess *session.Session, q LFGQuery) []LFGRow {
 		if me.GroupID != 0 && p.GroupID == me.GroupID {
 			continue
 		}
-		g := w.groups[p.GroupID]
-		// in no group, or in one of its own and its merc's alone, which gives
-		// way to an invite (mercgroup.go): one an invite takes
-		solo := p.GroupID == 0 || g == nil || w.mercOnlyGroupLocked(p)
-		switch q.Type {
-		case 0: // players for a group: in none
-			if !solo {
-				continue
-			}
-		case 1: // a group for a player: the leaders with room (one more and a group of four is a raid group: raid.go),
-			// and the players in none, whom one can invite into a group of one's own (petition 1476)
-			if !solo && (len(g.Members) == 0 || g.Members[0] != p.ServerID || len(g.Members) >= GroupWindowSize) {
-				continue
-			}
-		default:
+		if q.Type != 0 && q.Type != 1 { // the window sends no other
 			continue
 		}
-		if !lfgBit(q.Classes, p.Class) || !lfgBit(q.Races, WireRace(p.Race)) || p.Level < q.MinLevel || p.Level > q.MaxLevel {
+		// one registered before it joined a group it does not lead looks
+		// for none now (a member cannot register: SetLFG)
+		if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil && len(g.Members) > 0 && g.Members[0] != p.ServerID {
+			continue
+		}
+		if !lfgBit(q.Classes, p.Class) || !lfgBit(q.Races, WireRace(p.Race)) || (!anyLevel && (p.Level < q.MinLevel || p.Level > q.MaxLevel)) {
 			continue
 		}
 		found = append(found, p)
@@ -215,4 +212,70 @@ func (w *World) GroupChatHearers(p *Player) []*Player {
 		}
 	}
 	return out
+}
+
+// lfgLevelRange is the live client's LevelRange (0x012EC0C0, as vanilla's
+// groupsearch.rs level_range ports it) over a list's lowest and highest
+// levels: down to three quarters of the highest (at least six under it), up to
+// a third over the lowest (more than five over it), the low end no higher
+// than the high, both 1..60. The third's product is the EE's, which chops
+// where IEEE rounds: both are reported (the same but at a tie).
+func lfgLevelRange(lo, hi int) [2][2]int {
+	third := float64(lo) * float64(math.Float32frombits(0x3FAA3D71))
+	rounded := float32(third)
+	chopped := rounded
+	if float64(chopped) > third {
+		chopped = math.Nextafter32(chopped, 0)
+	}
+	var out [2][2]int
+	for i, f := range [2]float32{chopped, rounded} {
+		low := int(float32(hi) * 0.75) // exact: three quarters, truncated
+		high := int(f + 0.5)
+		if high-lo <= 5 {
+			high = lo + 6
+		}
+		if hi-low < 6 {
+			low = max(hi-6, 1)
+		}
+		low = min(low, high)
+		out[i] = [2]int{min(max(low, 1), 60), min(max(high, 1), 60)}
+	}
+	return out
+}
+
+// lfgDefaultRangeLocked is whether a search's levels are the range the window
+// opened with for me (its LevelRange over its group's levels: each member's
+// as the client sees its creature, its own for one out of its view, so each
+// other member either; out of a group its own alone). Must be called with
+// the lock held.
+func (w *World) lfgDefaultRangeLocked(me *Player, low, high int) bool {
+	var others []int
+	if g := w.groups[me.GroupID]; me.GroupID != 0 && g != nil {
+		for _, id := range g.Members {
+			if id == me.ServerID {
+				continue
+			}
+			if p := w.Players[id]; p != nil {
+				others = append(others, p.Level)
+			} else if n := w.NPCs[id]; n != nil {
+				others = append(others, n.Level)
+			}
+		}
+	}
+	others = others[:min(len(others), 8)]
+	for set := 0; set < 1<<len(others); set++ { // which members are seen at their own level
+		lo, hi := me.Level, me.Level
+		for i, l := range others {
+			if set&(1<<i) == 0 {
+				l = me.Level
+			}
+			lo, hi = min(lo, l), max(hi, l)
+		}
+		for _, r := range lfgLevelRange(lo, hi) {
+			if low == r[0] && high == r[1] {
+				return true
+			}
+		}
+	}
+	return false
 }

@@ -1,0 +1,2289 @@
+{
+ "set": "zp-factions",
+ "notes": "Zaoran Plateau's three factions as questmasters1.com's guide (2006-07, the 2007 pages of Cryptic Souls and BlackPearl it carries) has them, beside #494 (jibrish's 2008-2012 plateau, which stands): the Soldiers of Rallos Zek, Mithaniel Marr's Crusaders and the Akessan Collective, their camps, introductory and alignment quests, the faction turn-ins and the Master Spellsmiths' abilities, the camps' named and their drops. Spots, counts, levels and figures ours; see tools/quests/data/zp-factions.json's notes.",
+ "items": [
+  {
+   "name": "Piug's Staff",
+   "like": "frost giant staff",
+   "description": "The staff of Piug, an old Rallosian necromancer's servant.",
+   "notrade": true,
+   "equipslot": -1,
+   "stats": {}
+  },
+  {
+   "name": "slab of boar meat",
+   "like": "huge chunk of meat",
+   "description": "Meat from a Zaoran war boar, for the camp's fire.",
+   "notrade": true,
+   "maxstack": 20,
+   "equipslot": -1,
+   "stats": {},
+   "lore": 0
+  },
+  {
+   "name": "Fallen Zaoran's sword",
+   "like": "sword etched stone",
+   "description": "The sword of a fallen Zaoran, given up to the living.",
+   "notrade": true,
+   "maxstack": 20,
+   "equipslot": -1,
+   "stats": {},
+   "lore": 0
+  },
+  {
+   "name": "Translucent Akessan Armor",
+   "like": "geode talisman",
+   "description": "A piece of an Akessan's armour, glassy with poison.",
+   "notrade": true,
+   "equipslot": -1,
+   "stats": {}
+  },
+  {
+   "name": "explosive device",
+   "like": "geode talisman",
+   "description": "A Rallosian device made to blow an Akessan signal fire apart.",
+   "notrade": true,
+   "equipslot": -1,
+   "stats": {}
+  },
+  {
+   "name": "Akessan Talisman",
+   "like": "geode talisman",
+   "description": "A talisman of an Akessan Battle Mage.",
+   "notrade": true,
+   "equipslot": -1,
+   "stats": {}
+  },
+  {
+   "name": "Honor Guard Lance",
+   "like": "geode talisman",
+   "description": "The lance of the Honor Guard Captain.",
+   "notrade": true,
+   "equipslot": -1,
+   "stats": {}
+  },
+  {
+   "name": "Battle Priest's Wand",
+   "like": "froglok summoner's wand",
+   "description": "The wand of an Akessan Battle Priest.",
+   "notrade": true,
+   "equipslot": -1,
+   "stats": {}
+  },
+  {
+   "name": "Captain's Axe",
+   "like": "geode talisman",
+   "description": "The axe of the Rallosian Captain.",
+   "notrade": true,
+   "equipslot": -1,
+   "stats": {}
+  },
+  {
+   "name": "Zaoran Saboteur's Blade",
+   "like": "geode talisman",
+   "description": "The blade of the Zaoran Saboteur.",
+   "notrade": true,
+   "equipslot": -1,
+   "stats": {}
+  },
+  {
+   "name": "Akessan Charm",
+   "like": "geode talisman",
+   "description": "A charm the Akessan Defector carried.",
+   "notrade": true,
+   "equipslot": -1,
+   "stats": {}
+  },
+  {
+   "name": "Disenchanted Parchment",
+   "like": "Piece of Engineer's Parchment",
+   "description": "A spellsmith's parchment, its power drained.",
+   "notrade": true,
+   "maxstack": 20,
+   "equipslot": -1,
+   "stats": {},
+   "lore": 0
+  },
+  {
+   "name": "Revealing Lens",
+   "like": "geode talisman",
+   "description": "A lens a Rallosian Arcanist carried.",
+   "notrade": true,
+   "maxstack": 20,
+   "equipslot": -1,
+   "stats": {},
+   "lore": 0
+  },
+  {
+   "name": "Akessan Lucky Charm",
+   "like": "geode talisman",
+   "description": "The traveller's thanks for reaching the Zaoran tower alive.",
+   "notrade": true,
+   "equipslot": -1,
+   "stats": {}
+  },
+  {
+   "name": "Jubrak's Shield",
+   "like": "geode talisman",
+   "description": "The shield of Guard Jubrak.",
+   "notrade": true,
+   "equipslot": -1,
+   "stats": {}
+  },
+  {
+   "name": "Message from Jubrak",
+   "like": "forged letter",
+   "description": "A message Guard Jubrak sent to the Rallosians.",
+   "notrade": true,
+   "equipslot": -1,
+   "stats": {}
+  },
+  {
+   "name": "Honor Guard's blade",
+   "like": "sword etched stone",
+   "description": "A blade off an Honor Guard. The plateau's other factions pay for these.",
+   "notrade": true,
+   "maxstack": 20,
+   "equipslot": -1,
+   "stats": {},
+   "lore": 0
+  },
+  {
+   "name": "Zaoran war axe",
+   "like": "sword etched stone",
+   "description": "An axe off a Zaoran. The plateau's other factions pay for these.",
+   "notrade": true,
+   "maxstack": 20,
+   "equipslot": -1,
+   "stats": {},
+   "lore": 0
+  },
+  {
+   "name": "Akessan ritual dagger",
+   "like": "sword etched stone",
+   "description": "A dagger off an Akessan. The plateau's other factions pay for these.",
+   "notrade": true,
+   "maxstack": 20,
+   "equipslot": -1,
+   "stats": {},
+   "lore": 0
+  },
+  {
+   "name": "Devastator's Gloves",
+   "like": "Victor's Gloves",
+   "description": "Gloves of the Akessans' Tier Two.",
+   "notrade": true,
+   "classuse": 525,
+   "stats": {
+    "HPMAX": 150,
+    "sta": 10,
+    "str": 10,
+    "agi": 10,
+    "cha": 10,
+    "LR": 30,
+    "AC": 236
+   }
+  }
+ ],
+ "templates": [
+  {
+   "name": "zp faction soldier",
+   "class": 0,
+   "hp": 30000,
+   "level": 61,
+   "melee": 280,
+   "taken": 85,
+   "note": "Zaoran Plateau's faction soldiers (questmasters1.com: 'can one group'). Figures ours, by the Blood Thirsty Minion's measure."
+  },
+  {
+   "name": "zp tier one named",
+   "class": 0,
+   "hp": 60000,
+   "level": 62,
+   "melee": 320,
+   "crit": 1000,
+   "taken": 85,
+   "note": "A camp's Tier One named (questmasters1.com's loot table). Figures ours."
+  },
+  {
+   "name": "zp tier two named",
+   "class": 0,
+   "hp": 100000,
+   "level": 63,
+   "melee": 340,
+   "crit": 1200,
+   "taken": 85,
+   "note": "A camp's Tier Two named. Figures ours."
+  },
+  {
+   "name": "zp quest foe",
+   "class": 0,
+   "hp": 40000,
+   "level": 61,
+   "melee": 300,
+   "crit": 1000,
+   "note": "A ZP faction quest's foe (questmasters1.com: 'tough to solo'). Figures ours."
+  },
+  {
+   "name": "zp quest named",
+   "class": 0,
+   "hp": 120000,
+   "level": 62,
+   "melee": 340,
+   "crit": 1018,
+   "note": "The saboteur and the fire giant ('a 1018 crit', 'duoable by a high ac tank and a good healer', 20-25 min duo). Figures ours."
+  },
+  {
+   "name": "zp quest captain",
+   "class": 0,
+   "hp": 250000,
+   "level": 64,
+   "melee": 380,
+   "crit": 1500,
+   "note": "The captains, the battle priest, the cryptographer, Guard Jubrak ('2 groups', 'each hit around 1500 dmg'). Figures ours."
+  }
+ ],
+ "npcs": [
+  {
+   "name": "Lieutenant Ugmar",
+   "world": 5,
+   "x": 5520.0,
+   "y": 147.62,
+   "z": 6880.0,
+   "facing": 192,
+   "level": 60,
+   "type": 128,
+   "like": "Zek trainer",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'Head east to the first building on your right ... some Zaorans around a campfire. Speak with Lieutenant Ugmar'. Placed ours: the guide's places on the live plateau have no match on the disc's zone 5."
+  },
+  {
+   "name": "Rallosian Arcanist",
+   "world": 5,
+   "x": 5560.0,
+   "y": 147.62,
+   "z": 6850.0,
+   "facing": 0,
+   "level": 60,
+   "type": 128,
+   "like": "Zek initiate",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'the Rallosian Arcanist located in the se corner of the building'. Placed ours: the guide's places on the live plateau have no match on the disc's zone 5."
+  },
+  {
+   "name": "Master Spellsmith",
+   "world": 5,
+   "x": 5540.0,
+   "y": 147.62,
+   "z": 6920.0,
+   "facing": 0,
+   "level": 60,
+   "type": 128,
+   "like": "Rallosian Arbiter",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): the ability quest, 'the Master Spellsmith ... a Mystical Parchment'. One in each faction's camp. Placed ours: the guide's places on the live plateau have no match on the disc's zone 5."
+  },
+  {
+   "name": "Morduk",
+   "world": 5,
+   "x": 5470.0,
+   "y": 147.78,
+   "z": 6835.0,
+   "facing": 0,
+   "level": 50,
+   "type": 128,
+   "like": "Froglok Questor",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): the froglok the Zaorans hold ('Morduk is a froglok in a tent'). Placed ours: the guide's places on the live plateau have no match on the disc's zone 5."
+  },
+  {
+   "name": "Zaoran guard",
+   "world": 5,
+   "x": 5590.0,
+   "y": 150.8,
+   "z": 6820.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Zek initiate",
+   "template": "zp faction soldier",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): the Zaoran tower's guards ('Pull Zaoran Guards, keep them fresh'). Figures ours."
+  },
+  {
+   "name": "Zaoran guard",
+   "world": 5,
+   "x": 5600.0,
+   "y": 147.62,
+   "z": 6860.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Zek initiate",
+   "template": "zp faction soldier",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): the Zaoran tower's guards ('Pull Zaoran Guards, keep them fresh'). Figures ours."
+  },
+  {
+   "name": "Zaoran guard",
+   "world": 5,
+   "x": 5590.0,
+   "y": 147.62,
+   "z": 6900.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Zek initiate",
+   "template": "zp faction soldier",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): the Zaoran tower's guards ('Pull Zaoran Guards, keep them fresh'). Figures ours."
+  },
+  {
+   "name": "Zaoran guard",
+   "world": 5,
+   "x": 5580.0,
+   "y": 147.62,
+   "z": 6940.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Zek initiate",
+   "template": "zp faction soldier",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): the Zaoran tower's guards ('Pull Zaoran Guards, keep them fresh'). Figures ours."
+  },
+  {
+   "name": "Zaoran Spellsmith",
+   "world": 5,
+   "x": 5610.0,
+   "y": 147.62,
+   "z": 6880.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Zek initiate",
+   "template": "zp faction soldier",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'collect 4 mystical parchments from the Zaoran and Honor Guard Spellsmiths'; 'Spellsmiths will drop parchments every time they spawn'. Standing, not a rare spawn: ours."
+  },
+  {
+   "name": "Warmonger Ugnar",
+   "world": 5,
+   "x": 5620.0,
+   "y": 147.62,
+   "z": 6960.0,
+   "facing": 0,
+   "level": 62,
+   "type": 0,
+   "like": "Zek captain",
+   "template": "zp tier one named",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table (Janlynn, 2007-08): Zaoran/Rallosian Tier One. Spot, level and figures ours."
+  },
+  {
+   "name": "Tactician of Zek",
+   "world": 5,
+   "x": 5600.0,
+   "y": 147.62,
+   "z": 6990.0,
+   "facing": 0,
+   "level": 62,
+   "type": 0,
+   "like": "Zek captain",
+   "template": "zp tier one named",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table (Janlynn, 2007-08): Zaoran/Rallosian Tier One. Spot, level and figures ours."
+  },
+  {
+   "name": "Rallosian Machinist",
+   "world": 5,
+   "x": 5570.0,
+   "y": 147.62,
+   "z": 7000.0,
+   "facing": 0,
+   "level": 62,
+   "type": 0,
+   "like": "Zek captain",
+   "template": "zp tier one named",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table (Janlynn, 2007-08): Zaoran/Rallosian Tier One. Spot, level and figures ours."
+  },
+  {
+   "name": "Bombadier of Zek",
+   "world": 5,
+   "x": 5540.0,
+   "y": 168.68,
+   "z": 7000.0,
+   "facing": 0,
+   "level": 62,
+   "type": 0,
+   "like": "Zek captain",
+   "template": "zp tier one named",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table (Janlynn, 2007-08): Zaoran/Rallosian Tier One. Spot, level and figures ours."
+  },
+  {
+   "name": "Warmonger Tuwgma",
+   "world": 5,
+   "x": 5510.0,
+   "y": 147.62,
+   "z": 7005.0,
+   "facing": 0,
+   "level": 63,
+   "type": 0,
+   "like": "Zek captain",
+   "template": "zp tier two named",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Zaoran/Rallosian Tier Two. Spot, level and figures ours."
+  },
+  {
+   "name": "Rallosian Spiritseeker",
+   "world": 5,
+   "x": 5480.0,
+   "y": 147.62,
+   "z": 6990.0,
+   "facing": 0,
+   "level": 63,
+   "type": 0,
+   "like": "Zek captain",
+   "template": "zp tier two named",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Zaoran/Rallosian Tier Two. Spot, level and figures ours."
+  },
+  {
+   "name": "Colonel Ognel",
+   "world": 5,
+   "x": 5470.0,
+   "y": 147.62,
+   "z": 6960.0,
+   "facing": 0,
+   "level": 63,
+   "type": 0,
+   "like": "Zek captain",
+   "template": "zp tier two named",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Zaoran/Rallosian Tier Two. Spot, level and figures ours."
+  },
+  {
+   "name": "Rallosian Colonel",
+   "world": 5,
+   "x": 5640.0,
+   "y": 147.62,
+   "z": 6930.0,
+   "facing": 0,
+   "level": 63,
+   "type": 0,
+   "like": "Zek captain",
+   "template": "zp tier two named",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Zaoran/Rallosian Tier Two. Spot, level and figures ours."
+  },
+  {
+   "name": "Zaoran war boar",
+   "world": 5,
+   "x": 5440.0,
+   "y": 147.62,
+   "z": 6900.0,
+   "facing": 0,
+   "level": 58,
+   "type": 0,
+   "like": "war boar",
+   "roam": 1,
+   "roam_radius": 20,
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'You will find Wild Boars close by' / 'War Boars found around the compound'. Named for the plateau (ours) so another land's war boars do not count."
+  },
+  {
+   "name": "Zaoran war boar",
+   "world": 5,
+   "x": 5440.0,
+   "y": 147.62,
+   "z": 6940.0,
+   "facing": 0,
+   "level": 58,
+   "type": 0,
+   "like": "war boar",
+   "roam": 1,
+   "roam_radius": 20,
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'You will find Wild Boars close by' / 'War Boars found around the compound'. Named for the plateau (ours) so another land's war boars do not count."
+  },
+  {
+   "name": "Zaoran war boar",
+   "world": 5,
+   "x": 5460.0,
+   "y": 147.62,
+   "z": 6970.0,
+   "facing": 0,
+   "level": 58,
+   "type": 0,
+   "like": "war boar",
+   "roam": 1,
+   "roam_radius": 20,
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'You will find Wild Boars close by' / 'War Boars found around the compound'. Named for the plateau (ours) so another land's war boars do not count."
+  },
+  {
+   "name": "Zaoran war boar",
+   "world": 5,
+   "x": 5420.0,
+   "y": 147.62,
+   "z": 6925.0,
+   "facing": 0,
+   "level": 58,
+   "type": 0,
+   "like": "war boar",
+   "roam": 1,
+   "roam_radius": 20,
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'You will find Wild Boars close by' / 'War Boars found around the compound'. Named for the plateau (ours) so another land's war boars do not count."
+  },
+  {
+   "name": "Fallen Zaoran",
+   "world": 5,
+   "x": 5230.0,
+   "y": 147.62,
+   "z": 6880.0,
+   "facing": 0,
+   "level": 58,
+   "type": 128,
+   "like": "spectral rallosian",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): '3 fallen Zaorans ... out on the plain in front of the building where Lt. Ugmar is'."
+  },
+  {
+   "name": "Fallen Zaoran",
+   "world": 5,
+   "x": 5000.0,
+   "y": 147.62,
+   "z": 6960.0,
+   "facing": 0,
+   "level": 58,
+   "type": 128,
+   "like": "spectral rallosian",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): '3 fallen Zaorans ... out on the plain in front of the building where Lt. Ugmar is'."
+  },
+  {
+   "name": "Fallen Zaoran",
+   "world": 5,
+   "x": 5240.0,
+   "y": 147.62,
+   "z": 7010.0,
+   "facing": 0,
+   "level": 58,
+   "type": 128,
+   "like": "spectral rallosian",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): '3 fallen Zaorans ... out on the plain in front of the building where Lt. Ugmar is'."
+  },
+  {
+   "name": "Lieutenant Jenkavs",
+   "world": 5,
+   "x": 5760.0,
+   "y": 158.8,
+   "z": 6920.0,
+   "facing": 192,
+   "level": 60,
+   "type": 128,
+   "like": "Merkym",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'Lt. Jenkavs, in ZP(E), by a campfire, a number of tents and a Master spellsmith'. Placed ours: the guide's places on the live plateau have no match on the disc's zone 5."
+  },
+  {
+   "name": "Lieutenant Noblig",
+   "world": 5,
+   "x": 5740.0,
+   "y": 159.59,
+   "z": 6870.0,
+   "facing": 0,
+   "level": 60,
+   "type": 128,
+   "like": "Priest of Marr",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'Lt. Noblig, who is NorthWest of Jenkavs'. Placed ours: the guide's places on the live plateau have no match on the disc's zone 5."
+  },
+  {
+   "name": "Special Ops Leader",
+   "world": 5,
+   "x": 5800.0,
+   "y": 178.21,
+   "z": 6870.0,
+   "facing": 0,
+   "level": 60,
+   "type": 128,
+   "like": "Merkym",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'Special Ops Leader, who is East of Noblig'. Placed ours: the guide's places on the live plateau have no match on the disc's zone 5."
+  },
+  {
+   "name": "Field Reporter Cygled",
+   "world": 5,
+   "x": 5760.0,
+   "y": 150.32,
+   "z": 7000.0,
+   "facing": 0,
+   "level": 60,
+   "type": 128,
+   "like": "Scribe of Marr",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'Field Reporter Cygled who's south-ish from Jenkavs'. Placed ours: the guide's places on the live plateau have no match on the disc's zone 5."
+  },
+  {
+   "name": "Master Spellsmith",
+   "world": 5,
+   "x": 5780.0,
+   "y": 162.03,
+   "z": 6950.0,
+   "facing": 0,
+   "level": 60,
+   "type": 128,
+   "like": "Rallosian Arbiter",
+   "note": "The Honor Guard's (see the Zaorans')."
+  },
+  {
+   "name": "Akessan Defector",
+   "world": 5,
+   "x": 5810.0,
+   "y": 184.62,
+   "z": 6815.0,
+   "facing": 0,
+   "level": 60,
+   "type": 128,
+   "like": "Akessan bridge guard",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'the defector his own lil spot in the marr area which is north-ish from Jenkavs'. Placed ours: the guide's places on the live plateau have no match on the disc's zone 5."
+  },
+  {
+   "name": "Operative of Marr",
+   "world": 5,
+   "x": 5725.0,
+   "y": 148.95,
+   "z": 6935.0,
+   "facing": 0,
+   "level": 60,
+   "type": 128,
+   "like": "Priest of Marr",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'the Operative of Marr located on the West side of the big Honor Guard camp'. Placed ours: the guide's places on the live plateau have no match on the disc's zone 5."
+  },
+  {
+   "name": "Honor Guard veteran",
+   "world": 5,
+   "x": 5820.0,
+   "y": 165.45,
+   "z": 6900.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Merkym",
+   "template": "zp faction soldier",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'honor guard veterans (debuff ac by 1700, can one group, aggro like banidts). Loot weapons'. Figures ours."
+  },
+  {
+   "name": "Honor Guard veteran",
+   "world": 5,
+   "x": 5840.0,
+   "y": 154.53,
+   "z": 6930.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Merkym",
+   "template": "zp faction soldier",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'honor guard veterans (debuff ac by 1700, can one group, aggro like banidts). Loot weapons'. Figures ours."
+  },
+  {
+   "name": "Honor Guard veteran",
+   "world": 5,
+   "x": 5830.0,
+   "y": 154.05,
+   "z": 6960.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Merkym",
+   "template": "zp faction soldier",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'honor guard veterans (debuff ac by 1700, can one group, aggro like banidts). Loot weapons'. Figures ours."
+  },
+  {
+   "name": "Honor Guard veteran",
+   "world": 5,
+   "x": 5800.0,
+   "y": 150.54,
+   "z": 6990.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Merkym",
+   "template": "zp faction soldier",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'honor guard veterans (debuff ac by 1700, can one group, aggro like banidts). Loot weapons'. Figures ours."
+  },
+  {
+   "name": "Honor Guard Spellsmith",
+   "world": 5,
+   "x": 5845.0,
+   "y": 158.35,
+   "z": 6895.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Priest of Marr",
+   "template": "zp faction soldier",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'pull and kill Honor Guards until the Spellsmith spawns'. Standing, not a rare spawn: ours."
+  },
+  {
+   "name": "Lieutenant Hesnik",
+   "world": 5,
+   "x": 5820.0,
+   "y": 183.65,
+   "z": 6860.0,
+   "facing": 0,
+   "level": 62,
+   "type": 0,
+   "like": "Merkym",
+   "size": 1.15,
+   "template": "zp tier one named",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Honor Guard/Chosen Tier One. Spot, level and figures ours."
+  },
+  {
+   "name": "Sergeant Major Ulka",
+   "world": 5,
+   "x": 5845.0,
+   "y": 172.89,
+   "z": 6870.0,
+   "facing": 0,
+   "level": 62,
+   "type": 0,
+   "like": "Merkym",
+   "size": 1.15,
+   "template": "zp tier one named",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Honor Guard/Chosen Tier One. Spot, level and figures ours."
+  },
+  {
+   "name": "Honor Guard Champion",
+   "world": 5,
+   "x": 5850.0,
+   "y": 150.58,
+   "z": 6950.0,
+   "facing": 0,
+   "level": 62,
+   "type": 0,
+   "like": "Merkym",
+   "size": 1.15,
+   "template": "zp tier one named",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Honor Guard/Chosen Tier One. Spot, level and figures ours."
+  },
+  {
+   "name": "Honor Guard Marshall",
+   "world": 5,
+   "x": 5820.0,
+   "y": 149.76,
+   "z": 6990.0,
+   "facing": 0,
+   "level": 62,
+   "type": 0,
+   "like": "Merkym",
+   "size": 1.15,
+   "template": "zp tier one named",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Honor Guard/Chosen Tier One. Spot, level and figures ours."
+  },
+  {
+   "name": "Advocate of Marr",
+   "world": 5,
+   "x": 5790.0,
+   "y": 185.68,
+   "z": 6830.0,
+   "facing": 0,
+   "level": 63,
+   "type": 0,
+   "like": "Merkym",
+   "size": 1.25,
+   "template": "zp tier two named",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Honor Guard/Chosen Tier Two. Spot, level and figures ours."
+  },
+  {
+   "name": "Colonel Vikna",
+   "world": 5,
+   "x": 5835.0,
+   "y": 149.55,
+   "z": 6990.0,
+   "facing": 0,
+   "level": 63,
+   "type": 0,
+   "like": "Merkym",
+   "size": 1.25,
+   "template": "zp tier two named",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Honor Guard/Chosen Tier Two. Spot, level and figures ours."
+  },
+  {
+   "name": "Akessan Liason",
+   "world": 5,
+   "x": 5015.0,
+   "y": 112.06,
+   "z": 6350.0,
+   "facing": 0,
+   "level": 60,
+   "type": 128,
+   "like": "Akessan Collector",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'the northern side of the island coast where you will find An Akesson Liason near a tree'. Placed ours: the guide's places on the live plateau have no match on the disc's zone 5."
+  },
+  {
+   "name": "Akessan Envoy",
+   "world": 5,
+   "x": 5090.0,
+   "y": 110.6,
+   "z": 6410.0,
+   "facing": 0,
+   "level": 60,
+   "type": 128,
+   "like": "Akessan Collector",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived)'s 'an Akessan' on the right of the bridge (the ambassador faction quest). The name ours: two NPCs of one name would offer each other's quests."
+  },
+  {
+   "name": "Akessan Agent",
+   "world": 5,
+   "x": 4995.0,
+   "y": 112.29,
+   "z": 6410.0,
+   "facing": 0,
+   "level": 60,
+   "type": 128,
+   "like": "Akessan Collector",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived)'s 'an Akessan' on the left of the bridge (the collective's quests). The name ours."
+  },
+  {
+   "name": "Master Spellsmith",
+   "world": 5,
+   "x": 5040.0,
+   "y": 112.32,
+   "z": 6375.0,
+   "facing": 0,
+   "level": 60,
+   "type": 128,
+   "like": "Rallosian Arbiter",
+   "note": "The Akessans' (see the Zaorans')."
+  },
+  {
+   "name": "Akessan traveller",
+   "world": 5,
+   "x": 5060.0,
+   "y": 112.36,
+   "z": 6415.0,
+   "facing": 0,
+   "level": 60,
+   "type": 128,
+   "like": "Akessan Collector",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'Protect an Akessan travelling into the heart of the Zaorans'. The name ours."
+  },
+  {
+   "name": "Akessan Nihilist",
+   "world": 5,
+   "x": 5110.0,
+   "y": 111.85,
+   "z": 6350.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Akessan bridge guard",
+   "template": "zp faction soldier",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Akessan Tier One. Spot, count, level and figures ours."
+  },
+  {
+   "name": "Akessan Nihilist",
+   "world": 5,
+   "x": 5115.0,
+   "y": 111.88,
+   "z": 6380.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Akessan bridge guard",
+   "template": "zp faction soldier",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Akessan Tier One. Spot, count, level and figures ours."
+  },
+  {
+   "name": "Akessan Arcanist",
+   "world": 5,
+   "x": 5100.0,
+   "y": 111.38,
+   "z": 6400.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Akessan bridge guard",
+   "template": "zp faction soldier",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Akessan Tier One. Spot, count, level and figures ours."
+  },
+  {
+   "name": "Akessan Arcanist",
+   "world": 5,
+   "x": 5130.0,
+   "y": 109.15,
+   "z": 6400.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Akessan bridge guard",
+   "template": "zp faction soldier",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Akessan Tier One. Spot, count, level and figures ours."
+  },
+  {
+   "name": "Akessan Destroyer",
+   "world": 5,
+   "x": 5080.0,
+   "y": 112.38,
+   "z": 6345.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Akessan bridge guard",
+   "template": "zp faction soldier",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Akessan Tier One. Spot, count, level and figures ours."
+  },
+  {
+   "name": "Akessan Destroyer",
+   "world": 5,
+   "x": 5060.0,
+   "y": 112.35,
+   "z": 6340.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Akessan bridge guard",
+   "template": "zp faction soldier",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Akessan Tier One. Spot, count, level and figures ours."
+  },
+  {
+   "name": "Akessan Adept",
+   "world": 5,
+   "x": 5130.0,
+   "y": 110.17,
+   "z": 6370.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Akessan bridge guard",
+   "template": "zp faction soldier",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Akessan Tier One. Spot, count, level and figures ours."
+  },
+  {
+   "name": "Akessan Adept",
+   "world": 5,
+   "x": 5140.0,
+   "y": 108.05,
+   "z": 6390.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Akessan bridge guard",
+   "template": "zp faction soldier",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Akessan Tier One. Spot, count, level and figures ours."
+  },
+  {
+   "name": "Akessan Scribe",
+   "world": 5,
+   "x": 5120.0,
+   "y": 108.15,
+   "z": 6415.0,
+   "facing": 0,
+   "level": 63,
+   "type": 0,
+   "like": "Akessan bridge guard",
+   "size": 1.4,
+   "template": "zp tier two named",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Akessan Tier Two. Spot, level and figures ours."
+  },
+  {
+   "name": "Akessan Battlelord",
+   "world": 5,
+   "x": 5040.0,
+   "y": 111.88,
+   "z": 6345.0,
+   "facing": 0,
+   "level": 63,
+   "type": 0,
+   "like": "Akessan bridge guard",
+   "size": 1.4,
+   "template": "zp tier two named",
+   "loot_region": "secrets",
+   "loot_profile": "xp",
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived), Loot Table: Akessan Tier Two. Spot, level and figures ours."
+  },
+  {
+   "name": "Piug",
+   "world": 5,
+   "x": 5520.0,
+   "y": 147.62,
+   "z": 6900.0,
+   "facing": 0,
+   "level": 62,
+   "type": 0,
+   "like": "spectral rallosian",
+   "template": "zp quest foe",
+   "spawnonly": true,
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'Puig resembles an ancient death nec pet, cons yellow, and is tough to solo'; 'spawns near Lt. Ugmar when you log the quest'. Spawned only, by its quest step, beside the player."
+  },
+  {
+   "name": "Poisoned Akessan",
+   "world": 5,
+   "x": 5520.0,
+   "y": 147.62,
+   "z": 6900.0,
+   "facing": 0,
+   "level": 60,
+   "type": 0,
+   "like": "Akessan bridge guard",
+   "template": "zp quest foe",
+   "spawnonly": true,
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived). Spawned only, by its quest step, beside the player."
+  },
+  {
+   "name": "Akessan Battle Mage",
+   "world": 5,
+   "x": 5065.0,
+   "y": 112.32,
+   "z": 6380.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Akessan bridge guard",
+   "template": "zp quest foe",
+   "spawnonly": true,
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived). Spawned only, by its quest step, beside the player."
+  },
+  {
+   "name": "Morduk's guard",
+   "world": 5,
+   "x": 5470.0,
+   "y": 147.78,
+   "z": 6835.0,
+   "facing": 0,
+   "level": 60,
+   "type": 0,
+   "like": "Zek initiate",
+   "spawnonly": true,
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'talk to Morduk and slay the guards around him'. Spawned only, by its quest step, beside the player."
+  },
+  {
+   "name": "Marr's Cryptographer",
+   "world": 5,
+   "x": 5760.0,
+   "y": 158.8,
+   "z": 6920.0,
+   "facing": 0,
+   "level": 63,
+   "type": 0,
+   "like": "Scribe of Marr",
+   "template": "zp quest captain",
+   "spawnonly": true,
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'Cryptographer needs a couple of groups at least'. Spawned only, by its quest step, beside the player."
+  },
+  {
+   "name": "defeated Cryptographer",
+   "world": 5,
+   "x": 5760.0,
+   "y": 158.8,
+   "z": 6920.0,
+   "facing": 0,
+   "level": 63,
+   "type": 128,
+   "like": "Scribe of Marr",
+   "spawnonly": true,
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'con the defeated Cryptographer and \"speak\" to him'. Spawned only, by its quest step, beside the player."
+  },
+  {
+   "name": "Honor Guard Captain",
+   "world": 5,
+   "x": 5830.0,
+   "y": 156.12,
+   "z": 6930.0,
+   "facing": 0,
+   "level": 64,
+   "type": 0,
+   "like": "Merkym",
+   "size": 1.3,
+   "template": "zp quest captain",
+   "spawnonly": true,
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'CS took him down with 2 groups'; drops the lances. Spawned only, by its quest step, beside the player. (the guide's placeholder farming left out)"
+  },
+  {
+   "name": "Akessan Battle Priest",
+   "world": 5,
+   "x": 5100.0,
+   "y": 111.52,
+   "z": 6390.0,
+   "facing": 0,
+   "level": 64,
+   "type": 0,
+   "like": "Akessan bridge guard",
+   "size": 1.3,
+   "template": "zp quest captain",
+   "spawnonly": true,
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'his 2nd form ... each hit around 1500 dmg'. Spawned only, by its quest step, beside the player. (one form)"
+  },
+  {
+   "name": "Rallosian Captain",
+   "world": 5,
+   "x": 5600.0,
+   "y": 147.62,
+   "z": 6900.0,
+   "facing": 0,
+   "level": 64,
+   "type": 0,
+   "like": "Zek captain",
+   "template": "zp quest captain",
+   "spawnonly": true,
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'had a ton of Hps'; drops the axes. Spawned only, by its quest step, beside the player."
+  },
+  {
+   "name": "Zaoran Saboteur",
+   "world": 5,
+   "x": 5760.0,
+   "y": 150.32,
+   "z": 7000.0,
+   "facing": 0,
+   "level": 62,
+   "type": 0,
+   "like": "Zek initiate",
+   "size": 1.2,
+   "template": "zp quest named",
+   "spawnonly": true,
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'Duoing him takes 20-25 mins'. Spawned only, by its quest step, beside the player. (the three assassins left out)"
+  },
+  {
+   "name": "Akessan Fire Giant",
+   "world": 5,
+   "x": 5100.0,
+   "y": 111.38,
+   "z": 6400.0,
+   "facing": 0,
+   "level": 62,
+   "type": 0,
+   "like": "fire giant magus",
+   "template": "zp quest named",
+   "spawnonly": true,
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'This Akessan is in fire giant form'. Spawned only, by its quest step, beside the player."
+  },
+  {
+   "name": "Guard Jubrak",
+   "world": 5,
+   "x": 5830.0,
+   "y": 173.55,
+   "z": 6880.0,
+   "facing": 0,
+   "level": 63,
+   "type": 0,
+   "like": "Merkym",
+   "size": 1.3,
+   "template": "zp quest captain",
+   "spawnonly": true,
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'He has a LOT of hps'. Spawned only, by its quest step, beside the player."
+  },
+  {
+   "name": "Messenger of Jubrak",
+   "world": 5,
+   "x": 5600.0,
+   "y": 147.62,
+   "z": 6900.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Priest of Marr",
+   "template": "zp quest foe",
+   "spawnonly": true,
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived)'s 'messenger' (the name ours). Spawned only, by its quest step, beside the player."
+  },
+  {
+   "name": "Honor Guard ambusher",
+   "world": 5,
+   "x": 5300.0,
+   "y": 154.12,
+   "z": 6800.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "like": "Merkym",
+   "template": "zp faction soldier",
+   "spawnonly": true,
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): the escort's first and last sets ('2 Honor guards', '1 Honor Guard and 2-3 big Crusaders'). Spawned only, by its quest step, beside the player."
+  },
+  {
+   "name": "Honor Guard Crusader",
+   "world": 5,
+   "x": 5300.0,
+   "y": 154.12,
+   "z": 6800.0,
+   "facing": 0,
+   "level": 62,
+   "type": 0,
+   "like": "Merkym",
+   "size": 1.35,
+   "template": "zp quest foe",
+   "spawnonly": true,
+   "note": "questmasters1.com's Zaoran Plateau guide (2006-07, archived): the escort's 'Honor Guard Crusader' and 'big Crusaders'. Spawned only, by its quest step, beside the player."
+  }
+ ],
+ "loot": [
+  {
+   "table": "zp zaoran weapons",
+   "items": [
+    "Zaoran war axe"
+   ],
+   "npcs": [
+    [
+     "Zaoran guard",
+     50,
+     1
+    ],
+    [
+     "Zaoran Spellsmith",
+     50,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "zp honor weapons",
+   "items": [
+    "Honor Guard's blade"
+   ],
+   "npcs": [
+    [
+     "Honor Guard veteran",
+     50,
+     1
+    ],
+    [
+     "Honor Guard Spellsmith",
+     50,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "zp akessan weapons",
+   "items": [
+    "Akessan ritual dagger"
+   ],
+   "npcs": [
+    [
+     "Akessan Nihilist",
+     50,
+     1
+    ],
+    [
+     "Akessan Arcanist",
+     50,
+     1
+    ],
+    [
+     "Akessan Destroyer",
+     50,
+     1
+    ],
+    [
+     "Akessan Adept",
+     50,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "zp spellsmith parchment",
+   "items": [
+    "mystical parchment"
+   ],
+   "npcs": [
+    [
+     "Zaoran Spellsmith",
+     100,
+     1
+    ],
+    [
+     "Honor Guard Spellsmith",
+     100,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "zp zaoran common",
+   "items": [
+    "Victor's Gloves",
+    "Battleborn Earring",
+    "War Mage's Earring"
+   ],
+   "npcs": [
+    [
+     "Zaoran guard",
+     3,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "zp zaoran tier one",
+   "items": [
+    "Earring of Fortitude",
+    "Necklace of Rallosian Runes",
+    "Earring of Strategy",
+    "Barbed Collar",
+    "Bangle of Knowledge",
+    "Belt of Bloodlust"
+   ],
+   "npcs": [
+    [
+     "Warmonger Ugnar",
+     40,
+     1
+    ],
+    [
+     "Tactician of Zek",
+     40,
+     1
+    ],
+    [
+     "Rallosian Machinist",
+     40,
+     1
+    ],
+    [
+     "Bombadier of Zek",
+     40,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "zp zaoran tier two",
+   "items": [
+    "Victor's Gloves",
+    "Battleborn Earring",
+    "Bangle of Strategic Conquest",
+    "War Mage's Earring"
+   ],
+   "npcs": [
+    [
+     "Warmonger Tuwgma",
+     40,
+     1
+    ],
+    [
+     "Colonel Ognel",
+     40,
+     1
+    ],
+    [
+     "Rallosian Colonel",
+     40,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "zp spiritseeker",
+   "items": [
+    "Victor's Gloves",
+    "Battleborn Earring",
+    "Crown of Tactics",
+    "Bangle of Strategic Conquest",
+    "War Mage's Earring"
+   ],
+   "npcs": [
+    [
+     "Rallosian Spiritseeker",
+     40,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "zp honor tier one",
+   "items": [
+    "Shield of Purity",
+    "Earring of Virtues",
+    "Honor Guard Totem",
+    "Girdle of Flowing Power",
+    "Bangle of Capacity"
+   ],
+   "npcs": [
+    [
+     "Lieutenant Hesnik",
+     40,
+     1
+    ],
+    [
+     "Sergeant Major Ulka",
+     40,
+     1
+    ],
+    [
+     "Honor Guard Champion",
+     40,
+     1
+    ],
+    [
+     "Honor Guard Marshall",
+     40,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "zp honor tier two",
+   "items": [
+    "Trueshot Pendant",
+    "Boots of the Chosen",
+    "Gloves of the Chosen",
+    "Pendant of the Diviner",
+    "Bracelet of Might"
+   ],
+   "npcs": [
+    [
+     "Advocate of Marr",
+     40,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "zp colonel vikna",
+   "items": [
+    "Trueshot Pendant",
+    "Boots of the Chosen",
+    "Gloves of the Chosen",
+    "Pendant of the Diviner"
+   ],
+   "npcs": [
+    [
+     "Colonel Vikna",
+     40,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "zp akessan tier one",
+   "items": [
+    "Bracelet of Quickness",
+    "Ring of Stealth",
+    "Bangle of Nimbleness",
+    "Bracers of Annihilation",
+    "Sash of Pure Energy",
+    "Ring of Chaos"
+   ],
+   "npcs": [
+    [
+     "Akessan Nihilist",
+     5,
+     1
+    ],
+    [
+     "Akessan Arcanist",
+     5,
+     1
+    ],
+    [
+     "Akessan Destroyer",
+     5,
+     1
+    ],
+    [
+     "Akessan Adept",
+     5,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "zp akessan nihilist",
+   "items": [
+    "Akessan Collective Totem"
+   ],
+   "npcs": [
+    [
+     "Akessan Nihilist",
+     2,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "zp akessan arcanist",
+   "items": [
+    "Shield of the Diviner"
+   ],
+   "npcs": [
+    [
+     "Akessan Arcanist",
+     2,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "zp akessan destroyer",
+   "items": [
+    "Ring of Dimensions"
+   ],
+   "npcs": [
+    [
+     "Akessan Destroyer",
+     2,
+     1
+    ]
+   ]
+  },
+  {
+   "table": "zp akessan tier two",
+   "items": [
+    "Voltaic Band",
+    "Spiritist's Ring",
+    "Crown of the Driven",
+    "Devastator's Gloves",
+    "Robe of Potential"
+   ],
+   "npcs": [
+    [
+     "Akessan Scribe",
+     40,
+     1
+    ],
+    [
+     "Akessan Battlelord",
+     40,
+     1
+    ]
+   ]
+  }
+ ],
+ "sql": [
+  [
+   "INSERT OR IGNORE INTO factions (name, standing) VALUES (?, 0)",
+   [
+    "Akessan Collective"
+   ]
+  ],
+  [
+   "UPDATE queststeps SET tunar = 5000, says = ? WHERE questid = (SELECT questid FROM quest_import_quests WHERE key = 'Portal/zaoran-plateau/portal') AND step = 1 AND kind = 'show'",
+   [
+    "Five runes, and the fare. Pass, then."
+   ]
+  ],
+  [
+   "UPDATE quests SET offer = ? WHERE questid = (SELECT questid FROM quest_import_quests WHERE key = 'Portal/zaoran-plateau/portal')",
+   [
+    "The plateau lets in only those the five agents trust. Show me their five runes, and pay 5,000 tunar each time you pass."
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "lieutenant ugmar",
+    "Soldiers of Rallos Zek",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "rallosian arcanist",
+    "Soldiers of Rallos Zek",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "zaoran guard",
+    "Soldiers of Rallos Zek",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "zaoran spellsmith",
+    "Soldiers of Rallos Zek",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "warmonger ugnar",
+    "Soldiers of Rallos Zek",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "tactician of zek",
+    "Soldiers of Rallos Zek",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "rallosian machinist",
+    "Soldiers of Rallos Zek",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "bombadier of zek",
+    "Soldiers of Rallos Zek",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "warmonger tuwgma",
+    "Soldiers of Rallos Zek",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "rallosian spiritseeker",
+    "Soldiers of Rallos Zek",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "colonel ognel",
+    "Soldiers of Rallos Zek",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "rallosian colonel",
+    "Soldiers of Rallos Zek",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "lieutenant jenkavs",
+    "Mithaniel Marr's Crusaders",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "lieutenant noblig",
+    "Mithaniel Marr's Crusaders",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "special ops leader",
+    "Mithaniel Marr's Crusaders",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "field reporter cygled",
+    "Mithaniel Marr's Crusaders",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "akessan defector",
+    "Akessan Collective",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "operative of marr",
+    "Mithaniel Marr's Crusaders",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "honor guard veteran",
+    "Mithaniel Marr's Crusaders",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "honor guard spellsmith",
+    "Mithaniel Marr's Crusaders",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "lieutenant hesnik",
+    "Mithaniel Marr's Crusaders",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "sergeant major ulka",
+    "Mithaniel Marr's Crusaders",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "honor guard champion",
+    "Mithaniel Marr's Crusaders",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "honor guard marshall",
+    "Mithaniel Marr's Crusaders",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "advocate of marr",
+    "Mithaniel Marr's Crusaders",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "colonel vikna",
+    "Mithaniel Marr's Crusaders",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "akessan liason",
+    "Akessan Collective",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "akessan envoy",
+    "Akessan Collective",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "akessan agent",
+    "Akessan Collective",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "akessan traveller",
+    "Akessan Collective",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "akessan nihilist",
+    "Akessan Collective",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "akessan arcanist",
+    "Akessan Collective",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "akessan destroyer",
+    "Akessan Collective",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "akessan adept",
+    "Akessan Collective",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "akessan scribe",
+    "Akessan Collective",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, 5, 0, 0, 0, ?, ?, 'guide gaps zp-factions')",
+   [
+    "akessan battlelord",
+    "Akessan Collective",
+    "Zaoran Plateau's factions (questmasters1.com)"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES ('master spellsmith', 5, ?, ?, 20, ?, ?, 'guide gaps zp-factions')",
+   [
+    5540,
+    6920,
+    "Soldiers of Rallos Zek",
+    "the camp's Master Spellsmith"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES ('master spellsmith', 5, ?, ?, 20, ?, ?, 'guide gaps zp-factions')",
+   [
+    5780,
+    6950,
+    "Mithaniel Marr's Crusaders",
+    "the camp's Master Spellsmith"
+   ]
+  ],
+  [
+   "INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES ('master spellsmith', 5, ?, ?, 20, ?, ?, 'guide gaps zp-factions')",
+   [
+    5040,
+    6375,
+    "Akessan Collective",
+    "the camp's Master Spellsmith"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "zaoran guard",
+    "Soldiers of Rallos Zek"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "honor guard veteran",
+    "Mithaniel Marr's Crusaders"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "akessan nihilist",
+    "Akessan Collective"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "akessan arcanist",
+    "Akessan Collective"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "akessan destroyer",
+    "Akessan Collective"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "akessan adept",
+    "Akessan Collective"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "warmonger ugnar",
+    "Soldiers of Rallos Zek"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "tactician of zek",
+    "Soldiers of Rallos Zek"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "rallosian machinist",
+    "Soldiers of Rallos Zek"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "bombadier of zek",
+    "Soldiers of Rallos Zek"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "warmonger tuwgma",
+    "Soldiers of Rallos Zek"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "rallosian spiritseeker",
+    "Soldiers of Rallos Zek"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "colonel ognel",
+    "Soldiers of Rallos Zek"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "rallosian colonel",
+    "Soldiers of Rallos Zek"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "lieutenant hesnik",
+    "Mithaniel Marr's Crusaders"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "sergeant major ulka",
+    "Mithaniel Marr's Crusaders"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "honor guard champion",
+    "Mithaniel Marr's Crusaders"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "honor guard marshall",
+    "Mithaniel Marr's Crusaders"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "advocate of marr",
+    "Mithaniel Marr's Crusaders"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "colonel vikna",
+    "Mithaniel Marr's Crusaders"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "akessan scribe",
+    "Akessan Collective"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "akessan battlelord",
+    "Akessan Collective"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "zaoran spellsmith",
+    "Soldiers of Rallos Zek"
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, -5, 'guide gaps zp-factions')",
+   [
+    "honor guard spellsmith",
+    "Mithaniel Marr's Crusaders"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 100, 1, ?, 'guide gaps zp-factions')",
+   [
+    "warmonger ugnar",
+    "'All named npcs (non-quest rare spawns) drop at least 1 armor gem per kill' (questmasters1.com, ZP Stuff)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 100, 1, ?, 'guide gaps zp-factions')",
+   [
+    "tactician of zek",
+    "'All named npcs (non-quest rare spawns) drop at least 1 armor gem per kill' (questmasters1.com, ZP Stuff)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 100, 1, ?, 'guide gaps zp-factions')",
+   [
+    "rallosian machinist",
+    "'All named npcs (non-quest rare spawns) drop at least 1 armor gem per kill' (questmasters1.com, ZP Stuff)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 100, 1, ?, 'guide gaps zp-factions')",
+   [
+    "bombadier of zek",
+    "'All named npcs (non-quest rare spawns) drop at least 1 armor gem per kill' (questmasters1.com, ZP Stuff)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 100, 1, ?, 'guide gaps zp-factions')",
+   [
+    "warmonger tuwgma",
+    "'All named npcs (non-quest rare spawns) drop at least 1 armor gem per kill' (questmasters1.com, ZP Stuff)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 100, 1, ?, 'guide gaps zp-factions')",
+   [
+    "rallosian spiritseeker",
+    "'All named npcs (non-quest rare spawns) drop at least 1 armor gem per kill' (questmasters1.com, ZP Stuff)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 100, 1, ?, 'guide gaps zp-factions')",
+   [
+    "colonel ognel",
+    "'All named npcs (non-quest rare spawns) drop at least 1 armor gem per kill' (questmasters1.com, ZP Stuff)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 100, 1, ?, 'guide gaps zp-factions')",
+   [
+    "rallosian colonel",
+    "'All named npcs (non-quest rare spawns) drop at least 1 armor gem per kill' (questmasters1.com, ZP Stuff)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 100, 1, ?, 'guide gaps zp-factions')",
+   [
+    "lieutenant hesnik",
+    "'All named npcs (non-quest rare spawns) drop at least 1 armor gem per kill' (questmasters1.com, ZP Stuff)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 100, 1, ?, 'guide gaps zp-factions')",
+   [
+    "sergeant major ulka",
+    "'All named npcs (non-quest rare spawns) drop at least 1 armor gem per kill' (questmasters1.com, ZP Stuff)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 100, 1, ?, 'guide gaps zp-factions')",
+   [
+    "honor guard champion",
+    "'All named npcs (non-quest rare spawns) drop at least 1 armor gem per kill' (questmasters1.com, ZP Stuff)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 100, 1, ?, 'guide gaps zp-factions')",
+   [
+    "honor guard marshall",
+    "'All named npcs (non-quest rare spawns) drop at least 1 armor gem per kill' (questmasters1.com, ZP Stuff)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 100, 1, ?, 'guide gaps zp-factions')",
+   [
+    "advocate of marr",
+    "'All named npcs (non-quest rare spawns) drop at least 1 armor gem per kill' (questmasters1.com, ZP Stuff)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 100, 1, ?, 'guide gaps zp-factions')",
+   [
+    "colonel vikna",
+    "'All named npcs (non-quest rare spawns) drop at least 1 armor gem per kill' (questmasters1.com, ZP Stuff)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 100, 1, ?, 'guide gaps zp-factions')",
+   [
+    "akessan scribe",
+    "'All named npcs (non-quest rare spawns) drop at least 1 armor gem per kill' (questmasters1.com, ZP Stuff)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 100, 1, ?, 'guide gaps zp-factions')",
+   [
+    "akessan battlelord",
+    "'All named npcs (non-quest rare spawns) drop at least 1 armor gem per kill' (questmasters1.com, ZP Stuff)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 2, 1, ?, 'guide gaps zp-factions')",
+   [
+    "zaoran guard",
+    "a regular soldier's rare armour gem (the rate ours)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 2, 1, ?, 'guide gaps zp-factions')",
+   [
+    "honor guard veteran",
+    "a regular soldier's rare armour gem (the rate ours)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 2, 1, ?, 'guide gaps zp-factions')",
+   [
+    "akessan nihilist",
+    "a regular soldier's rare armour gem (the rate ours)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 2, 1, ?, 'guide gaps zp-factions')",
+   [
+    "akessan arcanist",
+    "a regular soldier's rare armour gem (the rate ours)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 2, 1, ?, 'guide gaps zp-factions')",
+   [
+    "akessan destroyer",
+    "a regular soldier's rare armour gem (the rate ours)"
+   ]
+  ],
+  [
+   "INSERT OR REPLACE INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES (?, 'zp armour gems', 2, 1, ?, 'guide gaps zp-factions')",
+   [
+    "akessan adept",
+    "a regular soldier's rare armour gem (the rate ours)"
+   ]
+  ]
+ ],
+ "quests": "zp-factions.json",
+ "sql_after": [
+  [
+   "UPDATE quests SET requires = (SELECT CAST(questid AS TEXT) FROM quest_import_quests WHERE key = ?), factionreq = ? WHERE questid IN (SELECT questid FROM quest_import_quests WHERE key LIKE ?) AND requires = '' AND factionreq = ''",
+   [
+    "ZP/factions/zek/align",
+    "Soldiers of Rallos Zek:0",
+    "ZP/armour/zek/%"
+   ]
+  ],
+  [
+   "UPDATE quests SET requires = (SELECT CAST(questid AS TEXT) FROM quest_import_quests WHERE key = ?), factionreq = ? WHERE questid IN (SELECT questid FROM quest_import_quests WHERE key LIKE ?) AND requires = '' AND factionreq = ''",
+   [
+    "ZP/factions/marr/align",
+    "Mithaniel Marr's Crusaders:0",
+    "ZP/armour/honor/%"
+   ]
+  ],
+  [
+   "UPDATE quests SET requires = (SELECT CAST(questid AS TEXT) FROM quest_import_quests WHERE key = ?), factionreq = ? WHERE questid IN (SELECT questid FROM quest_import_quests WHERE key LIKE ?) AND requires = '' AND factionreq = ''",
+   [
+    "ZP/factions/akessan/captains",
+    "Akessan Collective:0",
+    "ZP/armour/akessan/%"
+   ]
+  ]
+ ]
+}

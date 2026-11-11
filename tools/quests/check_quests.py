@@ -348,7 +348,10 @@ class Check:
                     missing.append(n)
             if self.names.faction is not None:
                 missing += [n for n in factions if fold(n) not in self.names.faction]
-            missing += [f'{n} (attackable)' for n in unattackable]
+            # a talker the quest itself spawns hostile is attackable: the copy loses the NPC bit (handlers/questevents.go)
+            spawned = {fold(e.get('npc')) for st in steps if isinstance(st, dict) for e in (st.get('events') or [])
+                       if isinstance(e, dict) and e.get('do') == 'spawn' and e.get('hostile')}
+            missing += [f'{n} (attackable)' for n in unattackable if fold(n) not in spawned]
             self.misses[key] = missing
             want = {fold(m) for m in missing}
             have = {fold(u) for u in q.get('unresolved', [])}

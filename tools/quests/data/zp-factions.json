@@ -1,0 +1,2077 @@
+{
+ "city": "zp-factions",
+ "quests": [
+  {
+   "key": "ZP/factions/zek/intro",
+   "name": "Lieutenant Ugmar's Trials",
+   "giver": "Lieutenant Ugmar",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "You walk into a war camp of Rallos Zek and you are still standing. Prove you are worth more than that. Piug has crawled out of the dark again. Kill him.",
+   "accept": "I will kill Piug.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "Piug is near. He casts; be quick.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Piug",
+     "journal": "Kill Piug, who has come out of the dark near Lieutenant Ugmar, and take his staff.",
+     "chance": 1,
+     "items": [
+      {
+       "item": "Piug's Staff",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Piug",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Lieutenant Ugmar",
+     "journal": "Bring Piug's Staff to Lieutenant Ugmar.",
+     "items": [
+      {
+       "item": "Piug's Staff",
+       "count": 1
+      }
+     ],
+     "says": "Piug is no more. Good. Now feed my soldiers."
+    },
+    {
+     "kind": "loot",
+     "target": "Zaoran war boar",
+     "journal": "Bring Lieutenant Ugmar two slabs of meat from the war boars around the camp.",
+     "chance": 0.5,
+     "items": [
+      {
+       "item": "slab of boar meat",
+       "count": 2
+      }
+     ],
+     "count": 2
+    },
+    {
+     "kind": "give",
+     "target": "Lieutenant Ugmar",
+     "journal": "Give the boar meat to Lieutenant Ugmar.",
+     "items": [
+      {
+       "item": "slab of boar meat",
+       "count": 2
+      }
+     ],
+     "says": "Meat for the fire. Now go and hear the fallen."
+    },
+    {
+     "kind": "talk",
+     "target": "Fallen Zaoran",
+     "journal": "Speak with the fallen Zaorans on the plain before the camp: three of them.",
+     "says": "I fell for Rallos and I fall still. Take my sword.",
+     "rewards": {
+      "items": [
+       "Fallen Zaoran's sword"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Fallen Zaoran",
+     "journal": "Speak with another fallen Zaoran on the plain.",
+     "says": "Rallos remembers the fallen. Take my sword.",
+     "rewards": {
+      "items": [
+       "Fallen Zaoran's sword"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Fallen Zaoran",
+     "journal": "Speak with a third fallen Zaoran on the plain.",
+     "says": "The war never ends. Take my sword.",
+     "rewards": {
+      "items": [
+       "Fallen Zaoran's sword"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Lieutenant Ugmar",
+     "journal": "Bring the three swords of the fallen to Lieutenant Ugmar.",
+     "items": [
+      {
+       "item": "Fallen Zaoran's sword",
+       "count": 3
+      }
+     ],
+     "says": "You have heard the fallen. Now hear the truth of this war: the Akessans would burn the world to end it, and Marr's crusaders came through the portal to judge us all. We fight to win.",
+     "rewards": {
+      "xp": 10000000,
+      "tunar": 3000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From questmasters1.com's Zaoran Plateau guide (2006-07, archived): Zek Walk-Thru and Zaoran Faction steps 1-3 and the Zaorans page ('turn these in, you will get 10 million xp points, 3k tunar ... There is no faction change up to this point'). Piug is spawned at the player as the step starts (the guide's 'spawns near Lt. Ugmar when you log the quest'); two slabs of meat (the walk-through's two, the other page's three); the three fallen Zaorans are three talks to any of them (the guide's 'if you wait, he'll spawn back in the same location'). Lines ours.",
+   "factions_required": [
+    [
+     "Soldiers of Rallos Zek",
+     -350
+    ]
+   ]
+  },
+  {
+   "key": "ZP/factions/zek/align",
+   "name": "Soldiers of Rallos Zek",
+   "giver": "Lieutenant Ugmar",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "ZP/factions/zek/intro"
+   ],
+   "offer": "You have heard the fallen. Will you fight for Rallos Zek? Think before you answer: the Honor Guard and the Akessans will not forgive it.",
+   "accept": "I will fight for Rallos Zek.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "Then begin with the Akessans. A poisoned one hides at the back of our camp.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Poisoned Akessan",
+     "journal": "Kill the Poisoned Akessan and take the Translucent Akessan Armor.",
+     "chance": 1,
+     "items": [
+      {
+       "item": "Translucent Akessan Armor",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Poisoned Akessan",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Rallosian Arcanist",
+     "journal": "Bring the Translucent Akessan Armor to the Rallosian Arcanist.",
+     "items": [
+      {
+       "item": "Translucent Akessan Armor",
+       "count": 1
+      }
+     ],
+     "says": "Their armour of glass. I will learn what I can from it. Go back to the lieutenant."
+    },
+    {
+     "kind": "talk",
+     "target": "Lieutenant Ugmar",
+     "journal": "Return to Lieutenant Ugmar.",
+     "says": "The Arcanist has a device for you. Take it to the Akessans' signal fire, across the lava to the north."
+    },
+    {
+     "kind": "talk",
+     "target": "Rallosian Arcanist",
+     "journal": "Get the explosive device from the Rallosian Arcanist.",
+     "says": "Careful with it. Drop it into their fire and step back.",
+     "rewards": {
+      "items": [
+       "explosive device"
+      ]
+     }
+    },
+    {
+     "kind": "reach",
+     "target": "",
+     "journal": "Take the explosive device to the Akessans' signal fire, across the lava to the north.",
+     "world": 5,
+     "x": 5065.0,
+     "y": 112.32,
+     "z": 6380.0,
+     "radius": 25.0,
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You drop the explosive device into the Akessan signal fire. The flames roar, and something steps out of the air beside you."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Akessan Battle Mage",
+     "journal": "Kill the Akessan Battle Mage and take his talisman.",
+     "chance": 1,
+     "items": [
+      {
+       "item": "Akessan Talisman",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Akessan Battle Mage",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Lieutenant Ugmar",
+     "journal": "Bring the Akessan Talisman to Lieutenant Ugmar.",
+     "items": [
+      {
+       "item": "Akessan Talisman",
+       "count": 1
+      }
+     ],
+     "says": "Good. Now, the froglok in our camp. Marr's spy. Speak to him, and deal with what comes for him."
+    },
+    {
+     "kind": "talk",
+     "target": "Morduk",
+     "journal": "Speak with Morduk, the froglok held in the camp.",
+     "says": "You are no Zaoran... guards! Guards!",
+     "events": [
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "Morduk's guard",
+       "hostile": true
+      },
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "Morduk's guard",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Morduk's guard",
+     "journal": "Kill the guards around Morduk.",
+     "count": 2
+    },
+    {
+     "kind": "talk",
+     "target": "Lieutenant Ugmar",
+     "journal": "Return to Lieutenant Ugmar.",
+     "says": "Now take this note to the Honor Guard's camp, east of here, and leave it where they will find it."
+    },
+    {
+     "kind": "reach",
+     "target": "",
+     "journal": "Take Lieutenant Ugmar's note to the Honor Guard's camp, east of the Zaoran camp.",
+     "world": 5,
+     "x": 5760.0,
+     "y": 158.8,
+     "z": 6920.0,
+     "radius": 40.0,
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You leave Lieutenant Ugmar's note where the Honor Guard will find it."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Lieutenant Ugmar",
+     "journal": "Return to Lieutenant Ugmar.",
+     "says": "Here, a large bag. Marr's Cryptographer reads what we send. Bring him to me."
+    },
+    {
+     "kind": "kill",
+     "target": "Marr's Cryptographer",
+     "journal": "Defeat Marr's Cryptographer.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Marr's Cryptographer",
+       "hostile": true
+      },
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "defeated Cryptographer"
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "defeated Cryptographer",
+     "journal": "Speak with the defeated Cryptographer.",
+     "says": "Enough... enough. I will come."
+    },
+    {
+     "kind": "talk",
+     "target": "Lieutenant Ugmar",
+     "journal": "Return to Lieutenant Ugmar with the Cryptographer.",
+     "says": "In the bag with him. Now the last of it: the Honor Guard Captain and an Akessan Battle Priest. Bring me their weapons.",
+     "rewards": {
+      "xp": 10000000
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Honor Guard Captain",
+     "journal": "Slay the Honor Guard Captain and take his lance.",
+     "chance": 1,
+     "items": [
+      {
+       "item": "Honor Guard Lance",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Honor Guard Captain",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Akessan Battle Priest",
+     "journal": "Slay an Akessan Battle Priest and take his wand.",
+     "chance": 1,
+     "items": [
+      {
+       "item": "Battle Priest's Wand",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Akessan Battle Priest",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Lieutenant Ugmar",
+     "journal": "Bring the Honor Guard Lance and the Battle Priest's Wand to Lieutenant Ugmar.",
+     "items": [
+      {
+       "item": "Honor Guard Lance",
+       "count": 1
+      },
+      {
+       "item": "Battle Priest's Wand",
+       "count": 1
+      }
+     ],
+     "says": "You are one of us now. Welcome to the Soldiers of Rallos Zek.",
+     "rewards": {
+      "factions": [
+       [
+        "Soldiers of Rallos Zek",
+        499
+       ],
+       [
+        "Mithaniel Marr's Crusaders",
+        -2000
+       ],
+       [
+        "Akessan Collective",
+        -2000
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From questmasters1.com's Zaoran Plateau guide (2006-07, archived): Zaoran Faction (Rallos Zek) steps 4-10 and the Zek Walk-Thru. Reward '+499 faction w/zek, -2000 faction with Mithaniel Marr's Crusaders, -2000 faction with the Akessan Collective'. Each foe is spawned at the player as its step starts (the guide's places, the invisible first forms and the placeholder farming left out); the explosive device is kept; the note is a reach of the Honor Guard's camp; the bag is words. The 10 million experience for the Cryptographer is the guide's '(xp!)', its figure ours. Lines ours.",
+   "factions_required": [
+    [
+     "Soldiers of Rallos Zek",
+     -350
+    ]
+   ]
+  },
+  {
+   "key": "ZP/factions/marr/intro",
+   "name": "The Honor Guard's Documents",
+   "giver": "Lieutenant Jenkavs",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Welcome, traveller, to the Honor Guard's camp. Will you carry these documents for me? Lieutenant Noblig waits for them.",
+   "accept": "I will carry them.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "Lieutenant Noblig is north-west of me.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Lieutenant Noblig",
+     "journal": "Take Lieutenant Jenkavs's documents to Lieutenant Noblig, north-west of him.",
+     "says": "Documents from Jenkavs. These go to the Special Ops Leader, east of here."
+    },
+    {
+     "kind": "talk",
+     "target": "Special Ops Leader",
+     "journal": "Take the documents to the Special Ops Leader, east of Lieutenant Noblig.",
+     "says": "Read and noted. Tell Jenkavs we are ready."
+    },
+    {
+     "kind": "talk",
+     "target": "Lieutenant Jenkavs",
+     "journal": "Return to Lieutenant Jenkavs.",
+     "says": "Thank you. We came through the portal first, and we will not leave this plateau to Rallos's butchers or to the Akessans, who would burn it all to end the war.",
+     "rewards": {
+      "xp": 10000000,
+      "tunar": 3000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From questmasters1.com's Zaoran Plateau guide (2006-07, archived): Honor Guard starting quests 1-4 ('3k tunar and 10 Mil in XP', 'no faction change'). Lines ours.",
+   "factions_required": [
+    [
+     "Mithaniel Marr's Crusaders",
+     -350
+    ]
+   ]
+  },
+  {
+   "key": "ZP/factions/marr/align",
+   "name": "Mithaniel Marr's Crusaders",
+   "giver": "Lieutenant Jenkavs",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "ZP/factions/marr/intro"
+   ],
+   "offer": "You carried our documents. Will you stand with Mithaniel Marr? Rallos's soldiers and the Akessans will count you an enemy.",
+   "accept": "I will stand with Marr.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "First, Morduk: the Zaorans hold him in their camp, west of here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Morduk",
+     "journal": "Free Morduk, the froglok the Zaorans hold in their camp.",
+     "answer": "I am here to free you.",
+     "says": "Free! Tell Jenkavs I will find my own way out.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You cut Morduk's bindings."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Lieutenant Jenkavs",
+     "journal": "Tell Lieutenant Jenkavs that Morduk is free.",
+     "says": "Well done. Now our field reporter, Cygled, means to draw the Zaorans out. Keep him alive."
+    },
+    {
+     "kind": "talk",
+     "target": "Field Reporter Cygled",
+     "journal": "Speak with Field Reporter Cygled, south of Lieutenant Jenkavs.",
+     "says": "Zaorans! Come and get me, cowards! ... Protect me!",
+     "events": [
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "Zaoran Saboteur",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Zaoran Saboteur",
+     "journal": "Kill the Zaoran Saboteur and take his blade.",
+     "chance": 1,
+     "items": [
+      {
+       "item": "Zaoran Saboteur's Blade",
+       "count": 1
+      }
+     ],
+     "count": 1
+    },
+    {
+     "kind": "give",
+     "target": "Field Reporter Cygled",
+     "journal": "Bring the Zaoran Saboteur's Blade to Field Reporter Cygled.",
+     "items": [
+      {
+       "item": "Zaoran Saboteur's Blade",
+       "count": 1
+      }
+     ],
+     "says": "Still alive! Go and tell Jenkavs."
+    },
+    {
+     "kind": "talk",
+     "target": "Lieutenant Jenkavs",
+     "journal": "Return to Lieutenant Jenkavs.",
+     "says": "An Akessan wants to come over to us. Help him make it look real: kill him in his giant form, across the first bridge to the Akessans."
+    },
+    {
+     "kind": "kill",
+     "target": "Akessan Fire Giant",
+     "journal": "Kill the Akessan in fire giant form.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Akessan Fire Giant",
+       "hostile": true
+      },
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Thank you for releasing me. I will find the Honor Guard's camp."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Lieutenant Jenkavs",
+     "journal": "Return to Lieutenant Jenkavs.",
+     "says": "We are not sure of this defector. Get close to him, north of me, and listen."
+    },
+    {
+     "kind": "reach",
+     "target": "",
+     "journal": "Listen in on the Akessan Defector, north of Lieutenant Jenkavs.",
+     "world": 5,
+     "x": 5810.0,
+     "y": 184.62,
+     "z": 6815.0,
+     "radius": 15.0,
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The Akessan Defector mutters to the air: 'They believe me. When the tree decays, I will burn their camp with it.'"
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Lieutenant Jenkavs",
+     "journal": "Tell Lieutenant Jenkavs what you heard.",
+     "says": "A traitor. Show him how we deal with traitors."
+    },
+    {
+     "kind": "talk",
+     "target": "Akessan Defector",
+     "journal": "Confront the Akessan Defector.",
+     "answer": "Your lies are done, traitor.",
+     "says": "Then you die first!",
+     "events": [
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "Akessan Defector",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Akessan Defector",
+     "journal": "Kill the Akessan Defector and take his charm.",
+     "chance": 1,
+     "items": [
+      {
+       "item": "Akessan Charm",
+       "count": 1
+      }
+     ],
+     "count": 1
+    },
+    {
+     "kind": "give",
+     "target": "Lieutenant Jenkavs",
+     "journal": "Bring the Akessan Charm to Lieutenant Jenkavs.",
+     "items": [
+      {
+       "item": "Akessan Charm",
+       "count": 1
+      }
+     ],
+     "says": "Justice. Now the hardest of it: an Akessan Battle Priest and the Rallosian Captain. Bring me their weapons.",
+     "rewards": {
+      "xp": 20000000,
+      "tunar": 5000
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Akessan Battle Priest",
+     "journal": "Slay an Akessan Battle Priest and take his wand.",
+     "chance": 1,
+     "items": [
+      {
+       "item": "Battle Priest's Wand",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Akessan Battle Priest",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Rallosian Captain",
+     "journal": "Slay the Rallosian Captain and take his axe.",
+     "chance": 1,
+     "items": [
+      {
+       "item": "Captain's Axe",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rallosian Captain",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Lieutenant Jenkavs",
+     "journal": "Bring the Battle Priest's Wand and the Captain's Axe to Lieutenant Jenkavs.",
+     "items": [
+      {
+       "item": "Battle Priest's Wand",
+       "count": 1
+      },
+      {
+       "item": "Captain's Axe",
+       "count": 1
+      }
+     ],
+     "says": "You stand with Mithaniel Marr. Welcome to the Crusaders.",
+     "rewards": {
+      "factions": [
+       [
+        "Mithaniel Marr's Crusaders",
+        500
+       ],
+       [
+        "Soldiers of Rallos Zek",
+        -2000
+       ],
+       [
+        "Akessan Collective",
+        -2000
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From questmasters1.com's Zaoran Plateau guide (2006-07, archived): Honor Faction Quest steps 5-12. Reward 'Mithaniel Marr Crusaders (+500), and -2k faction with both Rallos Zek and the Akessan Collective'. The guard's port to the lava column, the three assassins, the invisible forms and the placeholder farming are left out; each foe is spawned at the player. The defector's overheard words are ours (the guide's 'a few popups that confirm Jenkavs suspicions'). Lines ours.",
+   "factions_required": [
+    [
+     "Mithaniel Marr's Crusaders",
+     -350
+    ]
+   ]
+  },
+  {
+   "key": "ZP/factions/akessan/align",
+   "name": "The Akessan Collective",
+   "giver": "Akessan Liason",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "You are not of the plateau. Do you come to join the Collective?",
+   "accept": "Tell me of the Collective.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "Speak to me again when you have decided.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Akessan Liason",
+     "journal": "Tell the Akessan Liason you wish to align with the Akessans.",
+     "answer": "Yes, I wish to align with the Akessans.",
+     "says": "You would join those who end the war by ending everything? Are you sure?"
+    },
+    {
+     "kind": "talk",
+     "target": "Akessan Liason",
+     "journal": "Answer the Akessan Liason.",
+     "answer": "I am sure.",
+     "says": "Sure... are you truly sure?"
+    },
+    {
+     "kind": "talk",
+     "target": "Akessan Liason",
+     "journal": "Answer the Akessan Liason.",
+     "answer": "I am truly sure.",
+     "says": "Then it is done. The Collective does not trust you yet. Bring me the weapons of the Honor Guard, four at a time, and we will see.",
+     "rewards": {
+      "factions": [
+       [
+        "Mithaniel Marr's Crusaders",
+        -2000
+       ],
+       [
+        "Soldiers of Rallos Zek",
+        -2000
+       ],
+       [
+        "Akessan Collective",
+        -350
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From questmasters1.com's Zaoran Plateau guide (2006-07, archived): Akessan Faction ('He will ask you if you're sure twice ... -2000 Honor guards, -2000 Zaoran, -Akessan faction will be set to -350'). The ambassador faction (0) is not built. Lines ours.",
+   "factions_required": [
+    [
+     "Akessan Collective",
+     0
+    ]
+   ]
+  },
+  {
+   "key": "ZP/factions/akessan/liason-weapons",
+   "name": "Weapons for the Liason",
+   "giver": "Akessan Liason",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "ZP/factions/akessan/align"
+   ],
+   "offer": "Bring me the weapons of the Honor Guard, four at a time.",
+   "accept": "I will.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "Four blades.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Akessan Liason",
+     "journal": "Bring the Akessan Liason four Honor Guard's blades.",
+     "items": [
+      {
+       "item": "Honor Guard's blade",
+       "count": 4
+      }
+     ],
+     "says": "Four of Marr's blades. The Collective notices.",
+     "rewards": {
+      "factions": [
+       [
+        "Akessan Collective",
+        4
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'turn stacks of 4 weapons into Liason, who will give you 4 faction per stack' until -320. The weapon is ours (an Honor Guard veteran's).",
+   "factions_required": [
+    [
+     "Akessan Collective",
+     -2000,
+     -321
+    ]
+   ],
+   "repeatable": true
+  },
+  {
+   "key": "ZP/factions/akessan/envoy",
+   "name": "The Akessan Envoy's Test",
+   "giver": "Akessan Envoy",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "ZP/factions/akessan/align"
+   ],
+   "offer": "You want to speak for the Collective? First you must know death as we know it.",
+   "accept": "I am ready.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "Come back when you are.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Akessan Envoy",
+     "journal": "Let the Akessan Envoy show you death.",
+     "answer": "Show me.",
+     "says": "Death is only the first step.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The Akessan Envoy touches you, and for a moment your heart stops."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Akessan Envoy",
+     "journal": "Speak with the Akessan Envoy again.",
+     "answer": "Again.",
+     "says": "Again, then.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Again your heart stops, and again it starts."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Akessan Envoy",
+     "journal": "Speak with the Akessan Envoy again.",
+     "says": "Are you tired yet?",
+     "choices": [
+      {
+       "answer": "No, I am determined!",
+       "says": "Then you know death, and the Collective knows you."
+      },
+      {
+       "answer": "Yes, I am tired.",
+       "says": "Then rest. Come back when you are not.",
+       "stay": true
+      }
+     ],
+     "rewards": {
+      "xp": 5000000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From questmasters1.com's Zaoran Plateau guide (2006-07, archived): the ambassador faction quest ('he death touches you (for 20k damage). Rez back ... about 10 times ... say no, you are determined!'). The death touch is words and popups here, three talks not ten; the ambassador faction is not built; the experience ours.",
+   "factions_required": [
+    [
+     "Akessan Collective",
+     -320
+    ]
+   ]
+  },
+  {
+   "key": "ZP/factions/akessan/parchments",
+   "name": "Disenchanted Parchments",
+   "giver": "Akessan Agent",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "ZP/factions/akessan/align"
+   ],
+   "offer": "Marr's spellsmiths write power onto parchment. Take it from them: four parchments.",
+   "accept": "I will bring them.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "The Honor Guard's spellsmith is in their camp, far to the south-east.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Honor Guard Spellsmith",
+     "journal": "Collect four disenchanted parchments from the Honor Guard's spellsmith.",
+     "chance": 0.5,
+     "items": [
+      {
+       "item": "Disenchanted Parchment",
+       "count": 4
+      }
+     ],
+     "count": 4
+    },
+    {
+     "kind": "give",
+     "target": "Akessan Agent",
+     "journal": "Bring the four disenchanted parchments to the Akessan Agent.",
+     "items": [
+      {
+       "item": "Disenchanted Parchment",
+       "count": 4
+      }
+     ],
+     "says": "Their spells, drained. Good.",
+     "rewards": {
+      "xp": 10000000,
+      "tunar": 3000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From questmasters1.com's Zaoran Plateau guide (2006-07, archived): Akessan quest 2 ('collect 4 mystical parchments from the Zaoran and Honor Guard Spellsmiths ... 4 Disenchanted Parchments'; 'The reward is 10 million xp, 3k tunar'). The Honor Guard's spellsmith alone, half its kills.",
+   "factions_required": [
+    [
+     "Akessan Collective",
+     -320
+    ]
+   ]
+  },
+  {
+   "key": "ZP/factions/akessan/lenses",
+   "name": "The Rallosian Lenses",
+   "giver": "Akessan Agent",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "ZP/factions/akessan/parchments"
+   ],
+   "offer": "The Rallosian Arcanists carry lenses that see through our veils. Bring me two.",
+   "accept": "I will bring them.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "The arcanists are in the Zaoran camp.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Rallosian Arcanist",
+     "journal": "Slay a Rallosian Arcanist and take his lens.",
+     "chance": 1,
+     "items": [
+      {
+       "item": "Revealing Lens",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rallosian Arcanist",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Rallosian Arcanist",
+     "journal": "Slay another Rallosian Arcanist and take his lens.",
+     "chance": 1,
+     "items": [
+      {
+       "item": "Revealing Lens",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rallosian Arcanist",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Akessan Agent",
+     "journal": "Bring the two Revealing Lenses to the Akessan Agent.",
+     "items": [
+      {
+       "item": "Revealing Lens",
+       "count": 2
+      }
+     ],
+     "says": "Now they cannot see us coming.",
+     "rewards": {
+      "xp": 5000000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From questmasters1.com's Zaoran Plateau guide (2006-07, archived): Akessan quest 3 ('slay Rallosian Arcanists until you've got the two devices ... Revealing Lenses'). Each arcanist spawned at the player.",
+   "factions_required": [
+    [
+     "Akessan Collective",
+     -320
+    ]
+   ]
+  },
+  {
+   "key": "ZP/factions/akessan/escort",
+   "name": "Into the Heart of the Zaorans",
+   "giver": "Akessan Agent",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "ZP/factions/akessan/lenses"
+   ],
+   "offer": "One of ours must travel into the heart of the Zaorans. Keep him alive.",
+   "accept": "I will protect him.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "He waits beside me.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Akessan traveller",
+     "journal": "Speak with the Akessan traveller and protect him on his way.",
+     "says": "Keep the Honor Guard off me.",
+     "events": [
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "Honor Guard ambusher",
+       "hostile": true
+      },
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "Honor Guard ambusher",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Honor Guard ambusher",
+     "journal": "Kill the two Honor Guards who come for the traveller.",
+     "count": 2,
+     "events": [
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "Honor Guard Crusader",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Honor Guard Crusader",
+     "journal": "Kill the Honor Guard Crusader.",
+     "count": 1,
+     "events": [
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "Honor Guard Crusader",
+       "hostile": true
+      },
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "Honor Guard Crusader",
+       "hostile": true
+      },
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "Honor Guard ambusher",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Honor Guard Crusader",
+     "journal": "Kill the last of them: the big Crusaders.",
+     "count": 2
+    },
+    {
+     "kind": "talk",
+     "target": "Akessan traveller",
+     "journal": "Speak with the Akessan traveller.",
+     "says": "Alive. Take this, for luck.",
+     "rewards": {
+      "items": [
+       "Akessan Lucky Charm"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Akessan Agent",
+     "journal": "Bring the Akessan Lucky Charm to the Akessan Agent.",
+     "items": [
+      {
+       "item": "Akessan Lucky Charm",
+       "count": 1
+      }
+     ],
+     "says": "He made it. Good.",
+     "rewards": {
+      "xp": 21000000,
+      "tunar": 4000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From questmasters1.com's Zaoran Plateau guide (2006-07, archived): Akessan quest 4 (three sets: '2 Honor guards', '1 Honor Guard Crusader', '1 Honor Guard and 2-3 big Crusaders'; 'xp (21 million)', '4k tunar'). No walk: the server has no escort; each set comes at the player in turn. The AoE and pet warnings are left out.",
+   "factions_required": [
+    [
+     "Akessan Collective",
+     -320
+    ]
+   ]
+  },
+  {
+   "key": "ZP/factions/akessan/jubrak",
+   "name": "Guard Jubrak's Message",
+   "giver": "Akessan Agent",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "ZP/factions/akessan/escort"
+   ],
+   "offer": "Guard Jubrak walks the Honor Guard's camp. Find him alone, kill him, and bring me his shield.",
+   "accept": "I will.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "He has a great many hit points.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Guard Jubrak",
+     "journal": "Slay Guard Jubrak and take his shield.",
+     "chance": 1,
+     "items": [
+      {
+       "item": "Jubrak's Shield",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Guard Jubrak",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Akessan Agent",
+     "journal": "Bring Jubrak's Shield to the Akessan Agent.",
+     "items": [
+      {
+       "item": "Jubrak's Shield",
+       "count": 1
+      }
+     ],
+     "says": "Jubrak sent a message before he fell. The Operative of Marr, on the west side of the Honor Guard's camp, is ours. Ask him."
+    },
+    {
+     "kind": "talk",
+     "target": "Operative of Marr",
+     "journal": "Find the Operative of Marr on the west side of the Honor Guard's camp.",
+     "says": "If the tree decays, what will you do?",
+     "choices": [
+      {
+       "answer": "Burn it to the ground, and plant another.",
+       "says": "Then you are one of us. Jubrak's messenger runs for the Rallosians. Stop her."
+      },
+      {
+       "answer": "Tend it until it grows again.",
+       "says": "Then you are not who I wait for.",
+       "stay": true
+      },
+      {
+       "answer": "Leave it to fall.",
+       "says": "Then you are not who I wait for.",
+       "stay": true
+      }
+     ],
+     "events": [
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "Messenger of Jubrak",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Messenger of Jubrak",
+     "journal": "Kill Jubrak's messenger before she reaches the Rallosians.",
+     "chance": 1,
+     "items": [
+      {
+       "item": "Message from Jubrak",
+       "count": 1
+      }
+     ],
+     "count": 1
+    },
+    {
+     "kind": "give",
+     "target": "Akessan Agent",
+     "journal": "Bring the Message from Jubrak to the Akessan Agent.",
+     "items": [
+      {
+       "item": "Message from Jubrak",
+       "count": 1
+      }
+     ],
+     "says": "Their plans, in our hands.",
+     "rewards": {
+      "xp": 20000000,
+      "tunar": 5000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From questmasters1.com's Zaoran Plateau guide (2006-07, archived): Akessan quest 5 and the Operative's riddle ('If the tree decays, what will you do?' 'Burn it to the ground, and plant another'; 'you receive 20 million xp, and 5k tunar').",
+   "factions_required": [
+    [
+     "Akessan Collective",
+     -320
+    ]
+   ]
+  },
+  {
+   "key": "ZP/factions/akessan/captains",
+   "name": "The Captains' Weapons",
+   "giver": "Akessan Agent",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "ZP/factions/akessan/jubrak"
+   ],
+   "offer": "The last test: the Honor Guard Captain and the Rallosian Captain. Bring me their weapons.",
+   "accept": "I will.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "Both have a great many hit points.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Honor Guard Captain",
+     "journal": "Slay the Honor Guard Captain and take his lance.",
+     "chance": 1,
+     "items": [
+      {
+       "item": "Honor Guard Lance",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Honor Guard Captain",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Rallosian Captain",
+     "journal": "Slay the Rallosian Captain and take his axe.",
+     "chance": 1,
+     "items": [
+      {
+       "item": "Captain's Axe",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rallosian Captain",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Akessan Agent",
+     "journal": "Bring the Honor Guard Lance and the Captain's Axe to the Akessan Agent.",
+     "items": [
+      {
+       "item": "Honor Guard Lance",
+       "count": 1
+      },
+      {
+       "item": "Captain's Axe",
+       "count": 1
+      }
+     ],
+     "says": "You are of the Collective now.",
+     "rewards": {
+      "factions": [
+       [
+        "Akessan Collective",
+        500
+       ],
+       [
+        "Soldiers of Rallos Zek",
+        -2000
+       ],
+       [
+        "Mithaniel Marr's Crusaders",
+        -2000
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From questmasters1.com's Zaoran Plateau guide (2006-07, archived): Akessan quest 5/7 ('Akessan Collective (500), Rallos Zek (-2k), Mithaniel Marr Crusades (-2k)'). Each captain spawned at the player.",
+   "factions_required": [
+    [
+     "Akessan Collective",
+     -320
+    ]
+   ]
+  },
+  {
+   "key": "ZP/factions/zek/weapons-honor",
+   "name": "Honor Guard Weapons for the Soldiers",
+   "giver": "Lieutenant Ugmar",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "ZP/factions/zek/align"
+   ],
+   "offer": "Every Honor Guard weapon you bring me is one fewer raised against us. Four at a time.",
+   "accept": "I will.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "Four at a time.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Lieutenant Ugmar",
+     "journal": "Bring Lieutenant Ugmar four Honor Guard's blades.",
+     "items": [
+      {
+       "item": "Honor Guard's blade",
+       "count": 4
+      }
+     ],
+     "says": "Four more of theirs. The war turns.",
+     "rewards": {
+      "xp": 2400000,
+      "factions": [
+       [
+        "Soldiers of Rallos Zek",
+        16
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Ours, by the Akessan Collector's 'collective faction quest which is 4 faction per weapon and 600k xp per weapon' (questmasters1.com's Zaoran Plateau guide (2006-07, archived), Akessans): the way to the 2,000 the ability needs. The weapon is ours.",
+   "factions_required": [
+    [
+     "Soldiers of Rallos Zek",
+     0
+    ]
+   ],
+   "repeatable": true
+  },
+  {
+   "key": "ZP/factions/zek/weapons-akessan",
+   "name": "Akessan Weapons for the Soldiers",
+   "giver": "Lieutenant Ugmar",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "ZP/factions/zek/align"
+   ],
+   "offer": "Every Akessan weapon you bring me is one fewer raised against us. Four at a time.",
+   "accept": "I will.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "Four at a time.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Lieutenant Ugmar",
+     "journal": "Bring Lieutenant Ugmar four Akessan ritual daggers.",
+     "items": [
+      {
+       "item": "Akessan ritual dagger",
+       "count": 4
+      }
+     ],
+     "says": "Four more of theirs. The war turns.",
+     "rewards": {
+      "xp": 2400000,
+      "factions": [
+       [
+        "Soldiers of Rallos Zek",
+        16
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Ours, by the Akessan Collector's 'collective faction quest which is 4 faction per weapon and 600k xp per weapon' (questmasters1.com's Zaoran Plateau guide (2006-07, archived), Akessans): the way to the 2,000 the ability needs. The weapon is ours.",
+   "factions_required": [
+    [
+     "Soldiers of Rallos Zek",
+     0
+    ]
+   ],
+   "repeatable": true
+  },
+  {
+   "key": "ZP/factions/marr/weapons-zaoran",
+   "name": "Zaoran Weapons for the Crusaders",
+   "giver": "Lieutenant Jenkavs",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "ZP/factions/marr/align"
+   ],
+   "offer": "Every Zaoran weapon you bring me is one fewer raised against us. Four at a time.",
+   "accept": "I will.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "Four at a time.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Lieutenant Jenkavs",
+     "journal": "Bring Lieutenant Jenkavs four Zaoran war axes.",
+     "items": [
+      {
+       "item": "Zaoran war axe",
+       "count": 4
+      }
+     ],
+     "says": "Four more of theirs. The war turns.",
+     "rewards": {
+      "xp": 2400000,
+      "factions": [
+       [
+        "Mithaniel Marr's Crusaders",
+        16
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Ours, by the Akessan Collector's 'collective faction quest which is 4 faction per weapon and 600k xp per weapon' (questmasters1.com's Zaoran Plateau guide (2006-07, archived), Akessans): the way to the 2,000 the ability needs. The weapon is ours.",
+   "factions_required": [
+    [
+     "Mithaniel Marr's Crusaders",
+     0
+    ]
+   ],
+   "repeatable": true
+  },
+  {
+   "key": "ZP/factions/marr/weapons-akessan",
+   "name": "Akessan Weapons for the Crusaders",
+   "giver": "Lieutenant Jenkavs",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "ZP/factions/marr/align"
+   ],
+   "offer": "Every Akessan weapon you bring me is one fewer raised against us. Four at a time.",
+   "accept": "I will.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "Four at a time.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Lieutenant Jenkavs",
+     "journal": "Bring Lieutenant Jenkavs four Akessan ritual daggers.",
+     "items": [
+      {
+       "item": "Akessan ritual dagger",
+       "count": 4
+      }
+     ],
+     "says": "Four more of theirs. The war turns.",
+     "rewards": {
+      "xp": 2400000,
+      "factions": [
+       [
+        "Mithaniel Marr's Crusaders",
+        16
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Ours, by the Akessan Collector's 'collective faction quest which is 4 faction per weapon and 600k xp per weapon' (questmasters1.com's Zaoran Plateau guide (2006-07, archived), Akessans): the way to the 2,000 the ability needs. The weapon is ours.",
+   "factions_required": [
+    [
+     "Mithaniel Marr's Crusaders",
+     0
+    ]
+   ],
+   "repeatable": true
+  },
+  {
+   "key": "ZP/factions/akessan/weapons-honor",
+   "name": "Honor Guard Weapons for the Collective",
+   "giver": "Akessan Agent",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "ZP/factions/akessan/captains"
+   ],
+   "offer": "Every Honor Guard weapon you bring me is one fewer raised against us. Four at a time.",
+   "accept": "I will.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "Four at a time.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Akessan Agent",
+     "journal": "Bring Akessan Agent four Honor Guard's blades.",
+     "items": [
+      {
+       "item": "Honor Guard's blade",
+       "count": 4
+      }
+     ],
+     "says": "Four more of theirs. The war turns.",
+     "rewards": {
+      "xp": 2400000,
+      "factions": [
+       [
+        "Akessan Collective",
+        16
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Ours, by the Akessan Collector's 'collective faction quest which is 4 faction per weapon and 600k xp per weapon' (questmasters1.com's Zaoran Plateau guide (2006-07, archived), Akessans): the way to the 2,000 the ability needs. The weapon is ours.",
+   "factions_required": [
+    [
+     "Akessan Collective",
+     0
+    ]
+   ],
+   "repeatable": true
+  },
+  {
+   "key": "ZP/factions/akessan/weapons-zaoran",
+   "name": "Zaoran Weapons for the Collective",
+   "giver": "Akessan Agent",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "ZP/factions/akessan/captains"
+   ],
+   "offer": "Every Zaoran weapon you bring me is one fewer raised against us. Four at a time.",
+   "accept": "I will.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "Four at a time.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Akessan Agent",
+     "journal": "Bring Akessan Agent four Zaoran war axes.",
+     "items": [
+      {
+       "item": "Zaoran war axe",
+       "count": 4
+      }
+     ],
+     "says": "Four more of theirs. The war turns.",
+     "rewards": {
+      "xp": 2400000,
+      "factions": [
+       [
+        "Akessan Collective",
+        16
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "Ours, by the Akessan Collector's 'collective faction quest which is 4 faction per weapon and 600k xp per weapon' (questmasters1.com's Zaoran Plateau guide (2006-07, archived), Akessans): the way to the 2,000 the ability needs. The weapon is ours.",
+   "factions_required": [
+    [
+     "Akessan Collective",
+     0
+    ]
+   ],
+   "repeatable": true
+  },
+  {
+   "key": "ZP/factions/zek/ability",
+   "name": "The Master Spellsmith's Gift (Zek)",
+   "giver": "Master Spellsmith",
+   "classes": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "ZP/factions/zek/align"
+   ],
+   "offer": "You stand high with your side. Bring me a mystical parchment and I will write you its art.",
+   "accept": "I will bring one.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "A mystical parchment; the spellsmiths carry them.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Master Spellsmith",
+     "journal": "Bring the Master Spellsmith a mystical parchment.",
+     "items": [
+      {
+       "item": "mystical parchment",
+       "count": 1
+      }
+     ],
+     "says": "The parchment takes the words. Here is your art.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Rage of Zek"
+        ]
+       },
+       "2": {
+        "items": [
+         "Rage of Zek"
+        ]
+       },
+       "3": {
+        "items": [
+         "Rage of Zek"
+        ]
+       },
+       "1": {
+        "items": [
+         "Warmonger's Assault"
+        ]
+       },
+       "4": {
+        "items": [
+         "Warmonger's Assault"
+        ]
+       },
+       "5": {
+        "items": [
+         "Warmonger's Assault"
+        ]
+       },
+       "6": {
+        "items": [
+         "Warmonger's Assault"
+        ]
+       },
+       "7": {
+        "items": [
+         "Influence"
+        ]
+       },
+       "8": {
+        "items": [
+         "Influence"
+        ]
+       },
+       "9": {
+        "items": [
+         "Influence"
+        ]
+       },
+       "10": {
+        "items": [
+         "Fingers of Flame"
+        ]
+       },
+       "11": {
+        "items": [
+         "Fingers of Flame"
+        ]
+       },
+       "12": {
+        "items": [
+         "Fingers of Flame"
+        ]
+       },
+       "13": {
+        "items": [
+         "Fingers of Flame"
+        ]
+       },
+       "14": {
+        "items": [
+         "Fingers of Flame"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'Ensure your faction ... is 2k and you will be able to log the ability quest with the Master Spellsmith. He simply requires that you turn over a Mystical Parchment'. The abilities are #494's eleven scrolls by their faction's name (tank, melee, healer, caster); the guide's Compressive Coat, Perforative Coat, Divine Medicine and Fury of Marr are not on the server, so Marr's tanks have none and are not offered it.",
+   "factions_required": [
+    [
+     "Soldiers of Rallos Zek",
+     2000
+    ]
+   ]
+  },
+  {
+   "key": "ZP/factions/marr/ability",
+   "name": "The Master Spellsmith's Gift (Marr)",
+   "giver": "Master Spellsmith",
+   "classes": [
+    1,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "ZP/factions/marr/align"
+   ],
+   "offer": "You stand high with your side. Bring me a mystical parchment and I will write you its art.",
+   "accept": "I will bring one.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "A mystical parchment; the spellsmiths carry them.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Master Spellsmith",
+     "journal": "Bring the Master Spellsmith a mystical parchment.",
+     "items": [
+      {
+       "item": "mystical parchment",
+       "count": 1
+      }
+     ],
+     "says": "The parchment takes the words. Here is your art.",
+     "rewards": {
+      "byclass": {
+       "1": {
+        "items": [
+         "Divine Assault"
+        ]
+       },
+       "4": {
+        "items": [
+         "Divine Assault"
+        ]
+       },
+       "5": {
+        "items": [
+         "Divine Assault"
+        ]
+       },
+       "6": {
+        "items": [
+         "Divine Assault"
+        ]
+       },
+       "7": {
+        "items": [
+         "Divinity"
+        ]
+       },
+       "8": {
+        "items": [
+         "Divinity"
+        ]
+       },
+       "9": {
+        "items": [
+         "Divinity"
+        ]
+       },
+       "10": {
+        "items": [
+         "Fingers of Frost"
+        ]
+       },
+       "11": {
+        "items": [
+         "Fingers of Frost"
+        ]
+       },
+       "12": {
+        "items": [
+         "Fingers of Frost"
+        ]
+       },
+       "13": {
+        "items": [
+         "Fingers of Frost"
+        ]
+       },
+       "14": {
+        "items": [
+         "Fingers of Frost"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'Ensure your faction ... is 2k and you will be able to log the ability quest with the Master Spellsmith. He simply requires that you turn over a Mystical Parchment'. The abilities are #494's eleven scrolls by their faction's name (tank, melee, healer, caster); the guide's Compressive Coat, Perforative Coat, Divine Medicine and Fury of Marr are not on the server, so Marr's tanks have none and are not offered it.",
+   "factions_required": [
+    [
+     "Mithaniel Marr's Crusaders",
+     2000
+    ]
+   ]
+  },
+  {
+   "key": "ZP/factions/akessan/ability",
+   "name": "The Master Spellsmith's Gift (Akessan)",
+   "giver": "Master Spellsmith",
+   "classes": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "ZP/factions/akessan/captains"
+   ],
+   "offer": "You stand high with your side. Bring me a mystical parchment and I will write you its art.",
+   "accept": "I will bring one.",
+   "decline": "Not now.",
+   "declined": "Then go your way.",
+   "started": "A mystical parchment; the spellsmiths carry them.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Master Spellsmith",
+     "journal": "Bring the Master Spellsmith a mystical parchment.",
+     "items": [
+      {
+       "item": "mystical parchment",
+       "count": 1
+      }
+     ],
+     "says": "The parchment takes the words. Here is your art.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Fury of the Akessan"
+        ]
+       },
+       "2": {
+        "items": [
+         "Fury of the Akessan"
+        ]
+       },
+       "3": {
+        "items": [
+         "Fury of the Akessan"
+        ]
+       },
+       "1": {
+        "items": [
+         "Arcanic Assault"
+        ]
+       },
+       "4": {
+        "items": [
+         "Arcanic Assault"
+        ]
+       },
+       "5": {
+        "items": [
+         "Arcanic Assault"
+        ]
+       },
+       "6": {
+        "items": [
+         "Arcanic Assault"
+        ]
+       },
+       "7": {
+        "items": [
+         "Vibrance"
+        ]
+       },
+       "8": {
+        "items": [
+         "Vibrance"
+        ]
+       },
+       "9": {
+        "items": [
+         "Vibrance"
+        ]
+       },
+       "10": {
+        "items": [
+         "Fingers of Thunder"
+        ]
+       },
+       "11": {
+        "items": [
+         "Fingers of Thunder"
+        ]
+       },
+       "12": {
+        "items": [
+         "Fingers of Thunder"
+        ]
+       },
+       "13": {
+        "items": [
+         "Fingers of Thunder"
+        ]
+       },
+       "14": {
+        "items": [
+         "Fingers of Thunder"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From questmasters1.com's Zaoran Plateau guide (2006-07, archived): 'Ensure your faction ... is 2k and you will be able to log the ability quest with the Master Spellsmith. He simply requires that you turn over a Mystical Parchment'. The abilities are #494's eleven scrolls by their faction's name (tank, melee, healer, caster); the guide's Compressive Coat, Perforative Coat, Divine Medicine and Fury of Marr are not on the server, so Marr's tanks have none and are not offered it.",
+   "factions_required": [
+    [
+     "Akessan Collective",
+     2000
+    ]
+   ]
+  }
+ ],
+ "items": []
+}

@@ -16,7 +16,8 @@ import (
 // 45% and 74%), else it takes its 75%. His dice ("if both dice hit, the full
 // failure works. Otherwise, the partial failure") come to the same odds.
 // Used where a resist cuts a spell: a sparring dummy's element strike
-// (sparring.go) and a pact's price on its caster (lifetap.go). Until then the
+// (sparring.go); a pact's price on its caster (lifetap.go) has its own scale
+// below (RollPactResist: 90% at 350). Until then the
 // share was resist / (resist + 200), with no cap (200 took half, 600 took 75%).
 
 const (
@@ -62,6 +63,44 @@ func RollResist(resist int) (float64, ResistOutcome) {
 		return 0, ResistFailed
 	case d < resistFullFailure+resistPartialFailure:
 		return resistPartialLow + resistRand()*(resistPartialHigh-resistPartialLow), ResistPartial
+	}
+	return share, ResistHeld
+}
+
+// A pact's price (lifetap.go payPriceLocked) has its own scale (petition
+// 1532, Mortician: "id say cut by 90%" at 350 arcane resist): the caster's
+// arcane resist cuts it in proportion up to PactResistCap, where it takes
+// PactResistCapShare, no more past it. The shared scale above (75% at 315)
+// is left as it is for every other spell.
+const (
+	// PactResistCap is the most arcane resist that counts against a pact's price.
+	PactResistCap = 350
+	// PactResistCapShare is the share of the price a resist at PactResistCap takes.
+	PactResistCapShare = 0.90
+)
+
+// PactResistShare is the share of a pact's price a caster's arcane resist
+// takes: in proportion up to PactResistCapShare at PactResistCap.
+func PactResistShare(resist int) float64 {
+	r := min(max(resist, 0), PactResistCap)
+	return PactResistCapShare * float64(r) / PactResistCap
+}
+
+// RollPactResist is RollResist on the pact's scale: its PactResistShare,
+// and at PactResistCap the same dice (2.5% it fails altogether, another 5%
+// in part), a partial failure's share in the same proportion to the cap's
+// share as RollResist's (45-74% of 75% there, so 54-88.8% of the price here).
+func RollPactResist(resist int) (float64, ResistOutcome) {
+	share := PactResistShare(resist)
+	if resist < PactResistCap {
+		return share, ResistHeld
+	}
+	switch d := resistRand(); {
+	case d < resistFullFailure:
+		return 0, ResistFailed
+	case d < resistFullFailure+resistPartialFailure:
+		scale := PactResistCapShare / ResistCapShare
+		return scale * (resistPartialLow + resistRand()*(resistPartialHigh-resistPartialLow)), ResistPartial
 	}
 	return share, ResistHeld
 }

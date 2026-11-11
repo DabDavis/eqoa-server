@@ -1521,7 +1521,7 @@ func wornGear(items []database.CharInventoryEntry) entity.Gear {
 		}
 	}
 	if off != nil {
-		g.OffArmed = true
+		g.OffArmed, g.OffType = true, off.Pattern.AttackType
 		procName, procDesc := off.Pattern.ProcSource()
 		if wp, ok := entity.WeaponProcOf(off.Pattern.PatternID, procName, procDesc); ok {
 			g.OffProc = &wp

@@ -98,6 +98,13 @@ type NPCWindowHandler struct {
 	// raid and raids are a raid's loot rules' World and state (raidloot.go)
 	raid  raidHooks
 	raids raidState
+
+	// killRights is each corpse's kill group (lootrights.go), by creature:
+	// entity.EntityID -> lootRight; groupIDOf is the World's GroupIDOf and
+	// lootNow the holds' clock (time.Now when nil)
+	killRights sync.Map
+	groupIDOf  func(*entity.Player) uint32
+	lootNow    func() time.Time
 }
 
 // NewNPCWindowHandler creates the handler. inv may be nil (no database): the
@@ -128,7 +135,9 @@ func (h *NPCWindowHandler) SetGameWorld(gw *entity.World) {
 	h.guardsKill = gw.GuardsKill
 	h.duelLoot = gw.ChallengeLooter // a Metal Moogie's corpse is his challenger's (entity/metalmoogie.go)
 	gw.OnCorpseGone(h.CorpsesGone)
-	h.setRaidHooks(gw) // a raid's loot rules (raidloot.go)
+	h.groupIDOf = gw.GroupIDOf
+	gw.OnKill(h.heardKillRight) // the kill group's alone (lootrights.go)
+	h.setRaidHooks(gw)          // a raid's loot rules (raidloot.go)
 }
 
 // RegisterHandlers registers the window requests.

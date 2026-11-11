@@ -46,6 +46,14 @@ func (w *World) spawnOnlyLocked(name string) bool {
 	return w.spawnOnly[database.NPCClassKey(name)]
 }
 
+// SpawnOnlyNamed is whether the NPCs of that name stand out of the world
+// (handlers/questevents.go: a quest step's spawns come again by its NPC).
+func (w *World) SpawnOnlyNamed(name string) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.spawnOnlyLocked(name)
+}
+
 // SetSpawnOnly sets table npcspawnonly's names (keyed as database.NPCClassKey
 // keys a name) and applies them to every NPC a row made: one newly spawn-only
 // is put back on its spawn, out of any fight, and leaves every view at the next

@@ -119,3 +119,53 @@ func TestMercTankHoldingItsTargetStrikes(t *testing.T) {
 		t.Error("the tank never kicked")
 	}
 }
+
+// A caster short of power keeps casting (the owner, 2026-11-11: "magician
+// mercs need to cast spells for damage like the necro"): below
+// mercThriftyBelow of its power the hit that does most for its power, where
+// above it its biggest; a healer with no one hurt nukes from mercHealerSpare
+// of its power.
+func TestMercCasterShortOfPowerKeepsCasting(t *testing.T) {
+	r := newMercRig(t)
+	blaze := bookSpell(700768, "Blaze", 1, 2*time.Second, 3*time.Second, 428, "Target, Decrease Hitpoints by 1200")
+	frost := bookSpell(631, "Burst of Frost", 1, 2*time.Second, 3*time.Second, 7, "Target, Decrease Hitpoints by 70")
+	ms := r.hire(r.kit(10, 0, 0, blaze, frost), MercAssist)
+	crab := r.creature("Crab", 28, 10)
+	crab.HP, crab.MaxHP = 900000, 900000
+	m := ms.npc
+	cast := func(power int) int {
+		r.w.mu.Lock()
+		defer r.w.mu.Unlock()
+		m.Power = power
+		ms.ready = map[int]time.Time{}
+		ms.busy = time.Time{}
+		if !r.w.mercAttackTurnLocked(ms, crab, r.at(time.Minute)) {
+			return 0
+		}
+		for id := range ms.ready {
+			return id
+		}
+		return 0
+	}
+	if got := cast(m.MaxPower); got != blaze.SpellID {
+		t.Errorf("full power: cast %d, want its biggest (Blaze)", got)
+	}
+	if got := cast(m.MaxPower * (mercThriftyBelow - 5) / 100); got != frost.SpellID {
+		t.Errorf("short of power: cast %d, want the thrifty Burst of Frost", got)
+	}
+	if got := cast(300); got != frost.SpellID {
+		t.Errorf("Blaze out of reach of its power: cast %d, want Burst of Frost", got)
+	}
+
+	r2 := newMercRig(t)
+	smite := bookSpell(950, "Smite", 1, 2*time.Second, 3*time.Second, 44, "Target, Decrease Hitpoints by 100")
+	cl := r2.hire(r2.kit(9, 0, 0, smite), MercAssist)
+	c2 := r2.creature("Crab", 28, 10)
+	r2.w.mu.Lock()
+	cl.npc.Power = cl.npc.MaxPower / 2
+	ok := r2.w.mercAttackTurnLocked(cl, c2, r2.at(time.Minute))
+	r2.w.mu.Unlock()
+	if !ok {
+		t.Error("a cleric at half its power, no one hurt, did not smite")
+	}
+}

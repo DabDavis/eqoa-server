@@ -158,3 +158,71 @@ func TestTheArchivistLeavesTheMasteriesSpells(t *testing.T) {
 	// nor does a grant put back what they took out
 	f.wantMsgs("a grant after the purchases", f.grant(), "box:Spell Archivist: "+fmt.Sprintf(archivistHasAll, 60))
 }
+
+// A wizard's familiars are granted whatever masteries the wizard owns
+// (petition 1592, Kapow: "no familiars on wizy when requesting spells from
+// spell dude"): the live server's Guardian Familiar 1 takes Lesser Familiar
+// out for Lesser Guardian, another pet beside it, and a grant after its
+// purchase put Lesser Familiar back no more; it does now, beside the
+// Guardian, and a second grant writes nothing. Lesser Guardian stays the
+// mastery's: the grant never writes it. The ids and names are the live
+// server's.
+func TestTheArchivistGrantsFamiliarsPastGuardianFamiliar(t *testing.T) {
+	const (
+		minorFamiliar, lesserFamiliar, lesserGuardian = 700110, 700200, 700893
+		rankGuardian                                  = 6941
+	)
+	f := newArchivistFixture(t, nil)
+	f.p.Class, f.p.Level = archivistWizard, 60
+	for _, s := range []struct {
+		id    int
+		name  string
+		level int
+	}{
+		{1623, "Return Home", 1}, {minorFamiliar, "Minor Familiar", 12}, {lesserFamiliar, "Lesser Familiar", 20},
+		{lesserGuardian, "Lesser Guardian", 20},
+	} {
+		f.spell(s.id, s.name, s.level, "")
+	}
+	f.classSpell(archivistWizard, minorFamiliar, "eqoa-data")
+	f.classSpell(archivistWizard, lesserFamiliar, "eqoa-data")
+	f.shop(SpellArchivistName, 0x81, archivistShop)
+	wiz := 1 << archivistWizard
+	f.shop("Scroll Merchant", 0x81, 41, f.scroll("Minor Familiar", wiz, 12), f.scroll("Lesser Familiar", wiz, 20))
+	if _, err := f.db.Exec(`INSERT INTO cmcatalog (id, category, classes, races, mastery, rank, name, cost, level, adds,
+		add_spells, removes, remove_spells, requires, require_spells, enabled, source)
+		VALUES (?, 3, ?, 2047, 'Guardian Familiar', 1, 'Guardian Familiar 1', 25, 20, 'Lesser Guardian@20', ?,
+		'Lesser Familiar@20', ?, 'Lesser Familiar@20', ?, 1, 'test')`, rankGuardian, wiz, fmt.Sprint(lesserGuardian),
+		fmt.Sprint(lesserFamiliar), fmt.Sprint(lesserFamiliar)); err != nil {
+		t.Fatal(err)
+	}
+	f.know(1623, 0, 0)
+	f.wantMsgs("the grant", f.grant(), "add:700110@1 flag 0", "add:700200@2 flag 0",
+		"box:Spell Archivist: "+fmt.Sprintf(archivistGranted, spellCount(2), 60))
+
+	rows, err := f.db.CMCatalog()
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.w.SetCMCatalog(rows)
+	h := NewClassMasteryHandler(f.mgr)
+	h.SetGameWorld(f.w)
+	h.SetStore(database.NewSQLiteCharacterStore(f.db))
+	h.SetSpellbook(f.spells)
+	f.p.Mastery.Points = 100
+	if red := f.buyRank(h, rankGuardian); len(red) != 0 {
+		t.Fatalf("buying Guardian Familiar 1: %q", red)
+	}
+	if b := strings.Join(f.book(), " "); strings.Contains(b, "700200@") || !strings.Contains(b, "700893@") {
+		t.Fatalf("after the purchase the book %s: want Lesser Guardian for Lesser Familiar", b)
+	}
+	got := f.grant()
+	if len(got) != 2 || !strings.HasPrefix(got[0], "add:700200@") ||
+		got[1] != "box:Spell Archivist: "+fmt.Sprintf(archivistGranted, spellCount(1), 60) {
+		t.Fatalf("the grant after the purchase: %q, want Lesser Familiar back", got)
+	}
+	if b := strings.Join(f.book(), " "); !strings.Contains(b, "700200@") || !strings.Contains(b, "700893@") {
+		t.Errorf("the book %s: want Lesser Familiar beside Lesser Guardian", b)
+	}
+	f.wantMsgs("a second grant", f.grant(), "box:Spell Archivist: "+fmt.Sprintf(archivistHasAll, 60))
+}

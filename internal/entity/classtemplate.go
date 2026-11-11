@@ -51,8 +51,14 @@ import (
 //     level (the roamer's 10: the user's "they get it around level 10
 //     starting, but before only auto attack"), the creature's own;
 //   - casts its abilities in its fights, from where it stands in reach of its
-//     enemy (a player, or a player's pet), one at a time, its melee waiting
-//     while it casts. Each ability is on a clock of its own (every, first into
+//     enemy (a player, or a player's pet), one at a time, standing still for
+//     each cast (no chase, no way round, as a root holds it) and its melee
+//     rounds going on through it while its enemy is in its reach (the GM
+//     Jibrish's petition 1593, 2026-11-11: "Mobs should stop moving while
+//     casting (but the spell always resolves unless otherwise specified);
+//     however they should also keep quading IF in melee range of the
+//     target"; castHeld). A round begun while it casts sends no swing of its
+//     own: the cast's 0x00B1 stays what CLIENT draws, its hits land. Each ability is on a clock of its own (every, first into
 //     the fight) or chained to the one before it (cast as soon as that one's
 //     cast time is over: the wizard's area spell and then its single
 //     target's), with a chance; a heal only below its share of hit points.
@@ -229,6 +235,27 @@ type templateFight struct {
 // longer one (it closed in, was rooted away or cast) is time away from its
 // enemy, left out. A world tick is 100 ms.
 const templateContactGap = time.Second
+
+// castHeld is whether a templated NPC's cast holds it (petition 1593): from
+// its cast's start to its busy time's end (its cast time and castBusy, the
+// next chained cast's after it) it stands where it is, turning to its enemy as
+// a rooted creature does (chaseLocked), and its rounds' swings are not sent
+// (npcSwingLocked), its hits landing. The cast lands whatever its enemy does
+// meanwhile (templateSystem: only its own death, a charm or another template
+// stops it).
+func (n *NPC) castHeld(now time.Time) bool {
+	return n.tfight != nil && now.Before(n.tfight.busy)
+}
+
+// npcSwingLocked sends an NPC's round's swing (broadcastNPCSwingLocked) but
+// while its cast holds it (castHeld): the cast's own 0x00B1 is what CLIENT
+// draws of it until then. Must be called with the lock held.
+func (w *World) npcSwingLocked(npc *NPC, target EntityID, delayMS uint32, fx uint32, now time.Time) {
+	if npc.castHeld(now) {
+		return
+	}
+	w.broadcastNPCSwingLocked(npc, target, delayMS, fx)
+}
 
 // fight is the NPC's fight by its template, begun if it had none.
 func (n *NPC) fight() *templateFight {
@@ -795,8 +822,8 @@ func (w *World) NPCTemplateCount(template string) (of, all int) {
 // templateTurnLocked is a templated NPC's turn in its fight with target (a
 // player, or a player's pet) in its reach: the chained ability it owes once its
 // cast's time is over, else the first of its abilities that is due. It reports
-// whether the NPC is casting, its melee waiting. Must be called with the lock
-// held.
+// whether the NPC is casting; its melee goes on beside it (castHeld). Must be
+// called with the lock held.
 func (w *World) templateTurnLocked(npc *NPC, target EntityID, now time.Time) bool {
 	t := npc.tmpl
 	if t == nil || len(t.abilities) == 0 {
@@ -1585,10 +1612,12 @@ func (w *World) tellNPCHealLocked(sess *session.Session, npc *NPC, n int) {
 // time at its enemy (special_every), and by chance (special_chance) rolled
 // once a round, landing templateSpecialAfter past the round's last hit; one
 // its NPC was too busy or too far to land in time (casting, closing in) is
-// lost with its round. Must be called with the lock held.
+// lost with its round. While its cast holds it (castHeld) neither clock
+// counts and none comes: its melee rounds go on through a cast (petition
+// 1593), its specials wait as they did. Must be called with the lock held.
 func (w *World) templateSpecialLocked(npc *NPC, target EntityID, now time.Time) {
 	t := npc.tmpl
-	if t == nil {
+	if t == nil || npc.castHeld(now) {
 		return
 	}
 	w.templateKickLocked(npc, target, now)

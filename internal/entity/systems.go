@@ -251,9 +251,8 @@ func (w *World) aiSystem(now time.Time) {
 		if enemy.IsDead() || npc.CurrentEnemy != enemy.ServerID {
 			continue
 		}
-		if npc.tmpl != nil && w.templateTurnLocked(npc, enemy.ServerID, now) {
-			npc.loseDueHits(now) // casting: no swing meanwhile (classtemplate.go)
-			continue
+		if npc.tmpl != nil {
+			w.templateTurnLocked(npc, enemy.ServerID, now) // its casts; its rounds go on beside one (classtemplate.go)
 		}
 		w.npcRoundLocked(npc, enemy, now, func() bool {
 			w.npcAttackPlayer(npc, enemy.ServerID, now)

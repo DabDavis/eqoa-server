@@ -240,11 +240,35 @@ func (w *World) petTemplateTurnLocked(ps *petState, t *NPC, now time.Time) bool 
 		if !w.petWantsLocked(ps, a, now) {
 			continue // not wanted yet: it waits, due
 		}
+		if w.petHealTargetLocked(ps, a) == database.AbilityOnGroup && w.petSingleHealDueLocked(ps, f, now) {
+			continue // a single heal wanted now goes first; the group heal waits, due (petition 1639)
+		}
 		f.next[i] = now.Add(a.every)
 		if c := a.ChanceOr(); c < 100 && templateIntn(100) >= c {
 			continue
 		}
 		if w.petCastLocked(ps, i, t, now) && now.Before(f.busy) {
+			return true
+		}
+	}
+	return false
+}
+
+// petSingleHealDueLocked is whether one of the pet's single-target heals (on
+// its owner, itself, either or a member: not a group heal, not a heal of its
+// own share) is due and wanted now. A group heal yields to it whatever their
+// order in the row (the magician Waldorf's petition 1639, 2026-11-11: "Ghilan
+// Noble doesn't seem to be casting her giant heal anymore": her tide, wanted
+// while anyone of her side is a little hurt, is the cheap one; the big heal,
+// wanted when one is below its threshold, the urgent one). Must be called with
+// the lock held.
+func (w *World) petSingleHealDueLocked(ps *petState, f *templateFight, now time.Time) bool {
+	for j, b := range ps.petAbilities() {
+		if b.Kind != database.AbilityHeal || b.Chain || petShareHeal(&b) || now.Before(f.next[j]) || ps.npc.Level < b.From ||
+			w.petHealTargetLocked(ps, &b) == database.AbilityOnGroup {
+			continue
+		}
+		if w.petWantsLocked(ps, &b, now) {
 			return true
 		}
 	}

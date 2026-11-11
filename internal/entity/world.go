@@ -145,6 +145,11 @@ type World struct {
 	mercNotes  []MercNote
 	onMercNote MercNoteFunc
 	mercLife   uint64
+	// what the clients that asked are told of the mercs and of their group
+	// search standing, last done at uiTold (uitold.go); the characters whose
+	// "Allow anyone in my group to invite" is off (groupinvites.go)
+	uiTold           time.Time
+	groupInvitesShut map[uint32]bool
 	// Familiars by their owners' ids (familiar.go)
 	familiars map[EntityID]*familiarState
 

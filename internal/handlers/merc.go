@@ -679,17 +679,7 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 	case "", "status", "revive":
 		m.status(sess, p, verb == "revive")
 	case "dismiss":
-		name, ok := m.gw.DismissMerc(sess, m.now())
-		if !ok {
-			SendErrorMessage(sess, "You have no mercenary out.")
-			return
-		}
-		if m.db != nil {
-			if err := m.db.DeleteMerc(p.CharServerID); err != nil {
-				log.Printf("Merc: %s's dismissal of %q not kept: %v", p.Name, name, err)
-			}
-		}
-		SendClientMessage(sess, fmt.Sprintf("You dismiss %s. A Mercenary Liaison will hire you another.", name))
+		m.dismiss(sess, p)
 	case "stance":
 		if len(words) < 2 {
 			SendErrorMessage(sess, "/merc stance passive, assist or aggressive.")
@@ -734,6 +724,23 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 	default:
 		SendClientMessage(sess, mercHelpLine)
 	}
+}
+
+// dismiss is /merc dismiss, and vanilla's Group > Dismiss Mercenary
+// (mercui.go): the merc out (or waiting outside the arena) sent away and its
+// hire ended.
+func (m *Mercs) dismiss(sess *session.Session, p *entity.Player) {
+	name, ok := m.gw.DismissMerc(sess, m.now())
+	if !ok {
+		SendErrorMessage(sess, "You have no mercenary out.")
+		return
+	}
+	if m.db != nil {
+		if err := m.db.DeleteMerc(p.CharServerID); err != nil {
+			log.Printf("Merc: %s's dismissal of %q not kept: %v", p.Name, name, err)
+		}
+	}
+	SendClientMessage(sess, fmt.Sprintf("You dismiss %s. A Mercenary Liaison will hire you another.", name))
 }
 
 // mercVerbs are /merc's words, which "/t merc <word>" takes as the command

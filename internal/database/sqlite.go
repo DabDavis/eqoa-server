@@ -762,6 +762,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureMercs(); err != nil { // mercs.go: the mercenaries hired and the familiars
 		return err
 	}
+	if err := db.ensureGroupInvites(); err != nil { // groupinvites.go: "Allow anyone in my group to invite"
+		return err
+	}
 	if err := db.ensureCharBuyBack(); err != nil { // buyback.go: what merchants sell back
 		return err
 	}
@@ -1097,6 +1100,10 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 	}
 	// nor have a mercenary hired (mercs.go)
 	if err := s.db.DeleteMerc(serverID); err != nil {
+		return err
+	}
+	// nor its "Allow anyone in my group to invite" (groupinvites.go)
+	if _, err := s.db.Exec(`DELETE FROM chargroupinvites WHERE serverid = ?`, serverID); err != nil {
 		return err
 	}
 	// and have nothing to buy back (buyback.go)

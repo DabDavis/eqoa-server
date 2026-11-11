@@ -65,6 +65,8 @@ type Kept struct {
 	NumberTags         bool `json:"number_tags,omitempty"`
 	NPCTints           bool `json:"npc_tints,omitempty"`
 	MobInfo            bool `json:"mob_info,omitempty"`
+	MercsTold          bool `json:"mercs_told,omitempty"`
+	GroupReg           bool `json:"group_reg,omitempty"`
 	ItemLinks          bool `json:"item_links,omitempty"`
 	ReportNotice       bool `json:"report_notice,omitempty"`
 	BoonNotice         bool `json:"boon_notice,omitempty"`
@@ -200,6 +202,8 @@ func (s *Session) Keep() Kept {
 		NumberTags:         s.numberTags,
 		NPCTints:           s.npcTints,
 		MobInfo:            s.mobInfo,
+		MercsTold:          s.mercsTold,
+		GroupReg:           s.groupReg,
 		ItemLinks:          s.itemLinks,
 		ReportNotice:       s.reportNotice,
 		BoonNotice:         s.boonNotice,
@@ -359,6 +363,10 @@ func (s *Session) restore(k Kept, now time.Time) {
 		s.npcTintsSent = npcTintsUnknown
 	}
 	s.mobInfo = k.MobInfo
+	// what they were sent is sent again at the next refresh (the client
+	// keeps it; the world may have changed in the hold)
+	s.mercsTold, s.mercsSent = k.MercsTold, ""
+	s.groupReg, s.groupRegSent = k.GroupReg, ""
 	s.itemLinks = k.ItemLinks
 	s.reportNotice = k.ReportNotice
 	s.boonNotice = k.BoonNotice

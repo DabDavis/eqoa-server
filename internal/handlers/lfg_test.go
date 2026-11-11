@@ -151,7 +151,8 @@ func newLFGWorld(t *testing.T) *lfgWorld {
 }
 
 // Register, search both ways, unregister: type 0 finds registered players in
-// no group, type 1 the registered leaders of groups with room; the rows read
+// no group, type 1 the registered leaders of groups with room and the
+// registered players in no group; the rows read
 // back as the live client reads them, the id the one 0x0625 takes; nothing
 // unregistered, out of the range, grouped, full or the searcher itself.
 func TestLFGRegisterSearchUnregister(t *testing.T) {
@@ -178,9 +179,11 @@ func TestLFGRegisterSearchUnregister(t *testing.T) {
 	if got := rowNames(lfgSearch(t, w.h, w.alice, 0, -1, -1, 1, 60)); strings.Join(got, ",") != "Bob,Cara" {
 		t.Errorf("1-60: %v", got)
 	}
-	// groups for a player: Fay leads two, Gus's four are full
-	if got := rowNames(lfgSearch(t, w.h, w.alice, 1, -1, -1, 1, 60)); len(got) != 1 || got[0] != "Fay" {
-		t.Errorf("groups for a player: %v, want Fay alone", got)
+	// a group for a player: Fay leads two, Gus's four are full; and the
+	// registered players in no group, whom the searcher can invite into one of
+	// its own (petition 1476)
+	if got := rowNames(lfgSearch(t, w.h, w.alice, 1, -1, -1, 1, 60)); strings.Join(got, ",") != "Bob,Cara,Fay" {
+		t.Errorf("a group for a player: %v, want Bob, Cara and Fay", got)
 	}
 	// Bob unregisters (a line says so), and the answer is the empty one
 	w.bob.Queue().GetPending()

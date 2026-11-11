@@ -262,6 +262,10 @@ type SpellDef struct {
 	// it compares (buffline.go); MinLevel the lowest level a player may be to
 	// receive it (workbook.go)
 	Stack, StackLevel, MinLevel int
+	// AltersLook marks a workbook spell of the sheet's "Alter Appearance"
+	// type (a form's buff: Scorpion's Pestilence, Form of the Master), which
+	// has no buff line as a form has none (buffline.go, petition 1529)
+	AltersLook bool
 	// Area is the workbook's area, nil for a line's (area.go reads the line)
 	Area *SpellArea
 	// SheetPetID is the workbook's pet a summoning makes, for the pets'

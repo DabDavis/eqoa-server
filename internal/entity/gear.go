@@ -96,7 +96,8 @@ func (g *Gear) Add(id, v int) {
 // the worn items and the level: the stats it has (base and gear, each
 // within the level's stat cap, StatCap; what spells add stays in Mods), the
 // maxima from them (CalculateMaxHP of all the stamina, CalculateMaxPower of
-// all the stats, each with the gear's own), the AC and the resists. Hit
+// all the stats, each with the gear's own), the AC and the resists (the
+// gear's, the masteries' and the WIS's, wisResist). Hit
 // points and power are kept, within the new maxima; fill brings them to the
 // maxima (a login).
 func (p *Player) RecalcStats(fill bool) {
@@ -112,8 +113,9 @@ func (p *Player) RecalcStats(fill bool) {
 	p.MaxHP = p.maxHPFor(p.Sta) + g.MaxHP + c[cmSlotHP]
 	p.MaxPower = CalculateMaxPower(p.Level, p.Class, p.Str, p.Sta, p.Agi, p.Dex, p.Wis, p.Int, p.Cha) + g.MaxPower + c[cmSlotPower]
 	p.AC = g.AC + c[cmSlotAC]
-	p.PoisonR, p.DiseaseR, p.FireR = g.PR+c[cmSlotPR], g.DR+c[cmSlotDR], g.FR+c[cmSlotFR]
-	p.ColdR, p.LightningR, p.ArcaneR = g.CR+c[cmSlotCR], g.LR+c[cmSlotLR], g.AR+c[cmSlotAR]
+	wr := wisResist(p.Wis) // every 7 WIS, 1 to each resist (wisResist)
+	p.PoisonR, p.DiseaseR, p.FireR = g.PR+c[cmSlotPR]+wr, g.DR+c[cmSlotDR]+wr, g.FR+c[cmSlotFR]+wr
+	p.ColdR, p.LightningR, p.ArcaneR = g.CR+c[cmSlotCR]+wr, g.LR+c[cmSlotLR]+wr, g.AR+c[cmSlotAR]+wr
 	// The old OFF/DEF placeholders (stats.go), which nothing rolls on any
 	// more: an NPC's melee is defence.go's on the AC and AGI, the player's
 	// offence.go's on the worn weapon (Gear). A mastery's OFF/DEF MOD only
@@ -126,6 +128,25 @@ func (p *Player) RecalcStats(fill bool) {
 	} else {
 		p.HP, p.Power = min(p.HP, p.MaxHPNow()), min(p.Power, p.MaxPowerNow())
 	}
+}
+
+// wisResistPer is the WIS that adds a point to every resist: the beta's stat
+// sheet's (betaformula.webp, adopted by the owner 2026-11-11: "Every 7 points
+// of Wisdom adds 1 to all of your resistance").
+const wisResistPer = 7
+
+// wisResist is what a WIS adds to each of the six resists: a point for each
+// whole wisResistPer (WIS 100: 14; 300: 42). The resists then count to
+// ResistCap as any (resist.go).
+func wisResist(wis int) int {
+	return max(wis, 0) / wisResistPer
+}
+
+// wisResistNow is what the WIS the player has now adds to each resist beyond
+// what its own WIS (base, gear and masteries: RecalcStats's) puts in the
+// resists: a WIS buff's or debuff's share (StatNow).
+func (p *Player) wisResistNow() int {
+	return wisResist(p.StatNow(StatWis)) - wisResist(p.Wis)
 }
 
 // BaseMaxHP is the stat channel's base maximum hit points (byte 148) as

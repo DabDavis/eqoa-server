@@ -301,7 +301,7 @@ func (d *dictID) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// arenaJSON is a recipe's "arena" block (tools/worlds/arena.json).
+// arenaJSON is a recipe's "arena" block (tools/worlds/ring.json, tools/worlds/arena.json).
 type arenaJSON struct {
 	Game      string  `json:"game"`
 	Name      string  `json:"name"`
@@ -330,6 +330,12 @@ type arenaJSON struct {
 		At   arenaSpot `json:"at"`
 	} `json:"powerups"`
 	Field [][2]float32 `json:"field"`
+	// FieldCircle is a round field's edge (a hollow's rim: tools/worlds/ring.json), beside or instead of Field.
+	FieldCircle *struct {
+		X float32 `json:"x"`
+		Z float32 `json:"z"`
+		R float32 `json:"r"`
+	} `json:"field_circle"`
 }
 
 // builtExtras is the sprites a built world's zones were given as extras (its built recipe's zones' "extras", raw:
@@ -408,6 +414,17 @@ func ReadArena(b worlds.Built, raw ...[]byte) (entity.CTFLayout, error) {
 		return lay, fmt.Errorf("world %d's arena: a field of %d points", b.World, len(a.Field))
 	}
 	lay.Field = a.Field
+	if c := a.FieldCircle; c != nil {
+		if c.R <= 0 {
+			return lay, fmt.Errorf("world %d's arena: a round field of radius %.1f", b.World, c.R)
+		}
+		lay.Ring = entity.CTFRing{X: c.X, Z: c.Z, Radius: c.R}
+	}
+	for i, t := range lay.Teams {
+		if !lay.InField(t.Stand.X, t.Stand.Z) || !lay.InField(t.Camp.X, t.Camp.Z) {
+			return lay, fmt.Errorf("world %d's arena: team %d's stand or camp is outside its field", b.World, i)
+		}
+	}
 	return lay, nil
 }
 

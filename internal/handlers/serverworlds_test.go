@@ -329,6 +329,7 @@ func TestWhichLoginsNeedTheServersWorlds(t *testing.T) {
 	withServerWorlds(t, homelands(), arena)
 	pr := newPortalRig(t)
 	set := entity.DefaultCTFSettings()
+	set.World = 11 // the Canyon of Banners, by config (world.ctf.world)
 	pr.gw.SetCTF(true, set, entity.CTFLayout{Name: "the Test Canyon"})
 	ctfHerald(t, pr)
 	if int(set.World) != 11 {

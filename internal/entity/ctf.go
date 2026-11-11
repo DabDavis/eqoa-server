@@ -73,7 +73,7 @@ type CTFSettings struct {
 // DefaultCTFSettings are the numbers a server sets nothing of (the note's table).
 func DefaultCTFSettings() CTFSettings {
 	return CTFSettings{
-		World:        11,
+		World:        12,
 		TeamSize:     10,
 		MinPerTeam:   2,
 		ScoreLimit:   3,
@@ -161,6 +161,23 @@ type CTFPowerUpLayout struct {
 	At   CTFSpot
 }
 
+// CTFRing is a round field: its centre (X, Z) and Radius.
+type CTFRing struct {
+	X, Z, Radius float32
+}
+
+// InField reports whether (x, z) is inside the layout's field: its polygon (Field, three points or more) and its ring
+// (Ring, a radius over 0), each where it has one; true where it has neither.
+func (l *CTFLayout) InField(x, z float32) bool {
+	if len(l.Field) >= 3 && !ctfInside(l.Field, x, z) {
+		return false
+	}
+	if l.Ring.Radius > 0 && distXZ(x, z, l.Ring.X, l.Ring.Z) > l.Ring.Radius {
+		return false
+	}
+	return true
+}
+
 // The power-ups' kinds.
 const (
 	CTFSpeed = "speed"
@@ -176,6 +193,10 @@ type CTFLayout struct {
 	// Field is the playing field's edge, a polygon in (x, z): a player of a match past it is put back at its camp.
 	// Empty: no edge but the world's.
 	Field [][2]float32
+	// Ring is a round field's edge, its centre and radius in (x, z) (tools/worlds/ring.json's "field_circle"): a
+	// player of a match farther from the centre than the radius is put back at its camp, as past Field. Radius 0:
+	// none. A layout may have both: the field is then where both hold.
+	Ring CTFRing
 	// FlagBody is the body a banner's NPC stands in (a CHAR.ESF or ITEM.ESF sprite's DictID); FlagHand is the item
 	// a carrier is shown holding (an ITEM.ESF model's DictID, the channel's override item), 0 none.
 	FlagBody  uint32

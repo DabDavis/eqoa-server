@@ -89,13 +89,18 @@ world:
   # server_worlds: [10]
 
   # Capture the flag (entity/ctf.go, handlers/ctf.go): an arena world of the
-  # server's own (tools/worlds/arena.json, slot 11, built by cmd/worldbuild and
-  # listed in server_worlds), joined at the PvP Events herald beside Dabrish
-  # (tools/place_ctf_herald.py) or with /ctf join. Off unless enabled; every
-  # number left out is its default (shown here; claude-notes/ctf-world-20261110.md).
+  # server's own (built by cmd/worldbuild and listed in server_worlds), joined
+  # at the PvP Events herald beside Dabrish (tools/place_ctf_herald.py) or with
+  # /ctf join. Two arenas are kept: slot 12, the Spirit Ring
+  # (tools/worlds/ring.json: a round hollow, the default), and slot 11, the
+  # Canyon of Banners (tools/worlds/arena.json: the first, much larger field).
+  # Only the one `world` names is played; a world a server does not play need
+  # not be in server_worlds (every client builds each listed world). Off unless
+  # enabled; every number left out is its default (shown here;
+  # claude-notes/ctf-world-20261110.md, ctf-ring-20261111.md).
   # ctf:
   #   enabled: true
-  #   world: 11
+  #   world: 12
   #   team_size: 10       # the most a team holds
   #   min_per_team: 2     # the fewest a team starts with
   #   score_limit: 3      # captures that win

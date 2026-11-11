@@ -95,6 +95,12 @@ func (p *Player) inRaiment() bool {
 	return false
 }
 
+// wispOwnBody is whether the player is a Wisp in its own body: its own form or
+// its Raiment, the wisp in its helm (capes.go: its cape shown while invisible).
+func (p *Player) wispOwnBody() bool {
+	return IsWispRace(p.Race) && !p.inOtherBody()
+}
+
 // wispMortal is whether the player is a Wisp in another form (a mortal one):
 // drawn whole, its wisp left out of the looks.
 func (p *Player) wispMortal() bool {

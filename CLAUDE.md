@@ -1127,6 +1127,18 @@ are told each new ticket in yellow; the panel's navigation shows the waiting cou
 report (`world.report_notice`, on unless false): F3's line at the client's answer to the offer, else the
 line for every client 15 s in.
 
+**Crash reports** (the owner, 2026-11-11, `handlers/crashreport.go`): vanilla keeps its own panic (a file in its
+config directory, a page's storage) and sends it at the next login to a server that offers (**0x7E64**: u32
+version 1, u32 most bytes, `CrashReportMost` 12,000; **0x7E65**: u32 version, u32 the client's number, u32 count,
+UTF-8; **0x7E66**: the number and the ticket, 0 not kept, the client letting it go either way). Each is a petition,
+Bug Report / Crash (the hidden topic 10), open but **not waiting** on a GM (`database.Petition.NoAnswer`), its text
+the panic's line, its server view the report whole (`crash`) beside `stopped`, the server's own record of the
+client stopping. An account files at most 6 an hour (a GM any); the player is told the ticket, online GMs as for
+any petition. **A client that stops in the world** (`session/clientstopped.go`): silent 30 s with no logout while
+its world is not loading, or taken over by a login after 10 s silent, is said once in the log ("<name>'s client
+stopped in the world with no logout, last heard ...: a crash, a hang or a dropped line"), and heard again, "it was
+hung"; the record is kept a week for the character's next crash report.
+
 ### Camp fix reports: how they are reviewed
 
 **A GM approves or declines every spawn request on the GM panel's Camp reports page, and nothing is applied before

@@ -348,9 +348,10 @@
       "journal": "Bring the two war-talons to Warden Halvek.",
       "says": "Two talons. They will think twice about our camp now. The glade raises good neighbors. Go home and tell your elder so."
     },
+    "picked": "A fine choice, dear. It is yours.",
     "final": {
       "journal": "Return to Elder Thimbleroot in the glade.",
-      "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Now choose your path."
+      "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Use it well, dear."
     }
   }
 }

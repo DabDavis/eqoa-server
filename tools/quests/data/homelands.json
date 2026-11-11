@@ -9191,17 +9191,17 @@
       "requires": [
         "homelands/goblin/L15"
       ],
-      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden pays a bounty on the raiders that plague his river. Go to Warden Halvek at the outpost, do his work, and come home to me.\nWill you take the warden's bounty?",
+      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden keeps a bounty book on the raiders of his river. Go to Warden Halvek at the outpost, get our name in it, and come home to me.\nWill you take the warden's bounty?",
       "accept": "I will take it.",
       "decline": "Not yet.",
       "declined": "The bounty will keep. The raiders will not.",
-      "started": "Rukkit's coach will take you. Bring home the coin, and yourself.",
+      "started": "Rukkit's coach will take you. Come home with our name in that book.",
       "steps": [
         {
           "kind": "talk",
           "target": "Warden Halvek",
           "journal": "Find Warden Halvek at the Eyrie outpost.",
-          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he pays."
+          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he keeps the bounty book."
         },
         {
           "kind": "loot",
@@ -9225,14 +9225,14 @@
               "count": 3
             }
           ],
-          "journal": "Bring the three war-talons to Quartermaster Dunmore for the bounty.",
-          "says": "Three talons, and Halvek's word on them. Here is the bounty. No, you may not count it twice. Go home, goblin. You earned it."
+          "journal": "Bring the three war-talons to Quartermaster Dunmore at the Eyrie outpost.",
+          "says": "Three talons, and Halvek's word on them. Moss Mouth goes in the bounty book, first page. Go home, goblin. You earned it."
         },
         {
           "kind": "talk",
           "target": "Elder Snikkit",
           "journal": "Return to Elder Snikkit in Moss Mouth.",
-          "says": "Back, and with a fat purse! The other homes will say Moss Mouth's name now, and say it carefully. One thing more: choose your road.",
+          "says": "First page of the warden's book! Hah! The other homes will say Moss Mouth's name now, and say it carefully. You did that, not Grukk.",
           "rewards": {
             "xp": 2814929
           },
@@ -9240,7 +9240,7 @@
           "choices": [
             {
               "answer": "Bellow",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Bellow"
@@ -9249,7 +9249,7 @@
             },
             {
               "answer": "Pillar of Might",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Pillar of Might"
@@ -9284,17 +9284,17 @@
       "requires": [
         "homelands/goblin/L15"
       ],
-      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden pays a bounty on the raiders that plague his river. Go to Warden Halvek at the outpost, do his work, and come home to me.\nWill you take the warden's bounty?",
+      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden keeps a bounty book on the raiders of his river. Go to Warden Halvek at the outpost, get our name in it, and come home to me.\nWill you take the warden's bounty?",
       "accept": "I will take it.",
       "decline": "Not yet.",
       "declined": "The bounty will keep. The raiders will not.",
-      "started": "Rukkit's coach will take you. Bring home the coin, and yourself.",
+      "started": "Rukkit's coach will take you. Come home with our name in that book.",
       "steps": [
         {
           "kind": "talk",
           "target": "Warden Halvek",
           "journal": "Find Warden Halvek at the Eyrie outpost.",
-          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he pays."
+          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he keeps the bounty book."
         },
         {
           "kind": "loot",
@@ -9318,14 +9318,14 @@
               "count": 3
             }
           ],
-          "journal": "Bring the three war-talons to Quartermaster Dunmore for the bounty.",
-          "says": "Three talons, and Halvek's word on them. Here is the bounty. No, you may not count it twice. Go home, goblin. You earned it."
+          "journal": "Bring the three war-talons to Quartermaster Dunmore at the Eyrie outpost.",
+          "says": "Three talons, and Halvek's word on them. Moss Mouth goes in the bounty book, first page. Go home, goblin. You earned it."
         },
         {
           "kind": "talk",
           "target": "Elder Snikkit",
           "journal": "Return to Elder Snikkit in Moss Mouth.",
-          "says": "Back, and with a fat purse! The other homes will say Moss Mouth's name now, and say it carefully. One thing more: choose your road.",
+          "says": "First page of the warden's book! Hah! The other homes will say Moss Mouth's name now, and say it carefully. You did that, not Grukk.",
           "rewards": {
             "xp": 2814929
           },
@@ -9333,7 +9333,7 @@
           "choices": [
             {
               "answer": "Sparrow Eye",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Sparrow Eye"
@@ -9342,7 +9342,7 @@
             },
             {
               "answer": "Strikeblade",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Strikeblade"
@@ -9377,17 +9377,17 @@
       "requires": [
         "homelands/goblin/L15"
       ],
-      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden pays a bounty on the raiders that plague his river. Go to Warden Halvek at the outpost, do his work, and come home to me.\nWill you take the warden's bounty?",
+      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden keeps a bounty book on the raiders of his river. Go to Warden Halvek at the outpost, get our name in it, and come home to me.\nWill you take the warden's bounty?",
       "accept": "I will take it.",
       "decline": "Not yet.",
       "declined": "The bounty will keep. The raiders will not.",
-      "started": "Rukkit's coach will take you. Bring home the coin, and yourself.",
+      "started": "Rukkit's coach will take you. Come home with our name in that book.",
       "steps": [
         {
           "kind": "talk",
           "target": "Warden Halvek",
           "journal": "Find Warden Halvek at the Eyrie outpost.",
-          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he pays."
+          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he keeps the bounty book."
         },
         {
           "kind": "loot",
@@ -9411,14 +9411,14 @@
               "count": 3
             }
           ],
-          "journal": "Bring the three war-talons to Quartermaster Dunmore for the bounty.",
-          "says": "Three talons, and Halvek's word on them. Here is the bounty. No, you may not count it twice. Go home, goblin. You earned it."
+          "journal": "Bring the three war-talons to Quartermaster Dunmore at the Eyrie outpost.",
+          "says": "Three talons, and Halvek's word on them. Moss Mouth goes in the bounty book, first page. Go home, goblin. You earned it."
         },
         {
           "kind": "talk",
           "target": "Elder Snikkit",
           "journal": "Return to Elder Snikkit in Moss Mouth.",
-          "says": "Back, and with a fat purse! The other homes will say Moss Mouth's name now, and say it carefully. One thing more: choose your road.",
+          "says": "First page of the warden's book! Hah! The other homes will say Moss Mouth's name now, and say it carefully. You did that, not Grukk.",
           "rewards": {
             "xp": 2814929
           },
@@ -9426,7 +9426,7 @@
           "choices": [
             {
               "answer": "Fortify",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Fortify"
@@ -9435,7 +9435,7 @@
             },
             {
               "answer": "Shining Bastion",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Shining Bastion"
@@ -9444,7 +9444,7 @@
             },
             {
               "answer": "Clay Barrier",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "spells": [
                   "Clay Barrier"
@@ -9479,17 +9479,17 @@
       "requires": [
         "homelands/goblin/L15"
       ],
-      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden pays a bounty on the raiders that plague his river. Go to Warden Halvek at the outpost, do his work, and come home to me.\nWill you take the warden's bounty?",
+      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden keeps a bounty book on the raiders of his river. Go to Warden Halvek at the outpost, get our name in it, and come home to me.\nWill you take the warden's bounty?",
       "accept": "I will take it.",
       "decline": "Not yet.",
       "declined": "The bounty will keep. The raiders will not.",
-      "started": "Rukkit's coach will take you. Bring home the coin, and yourself.",
+      "started": "Rukkit's coach will take you. Come home with our name in that book.",
       "steps": [
         {
           "kind": "talk",
           "target": "Warden Halvek",
           "journal": "Find Warden Halvek at the Eyrie outpost.",
-          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he pays."
+          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he keeps the bounty book."
         },
         {
           "kind": "loot",
@@ -9513,14 +9513,14 @@
               "count": 3
             }
           ],
-          "journal": "Bring the three war-talons to Quartermaster Dunmore for the bounty.",
-          "says": "Three talons, and Halvek's word on them. Here is the bounty. No, you may not count it twice. Go home, goblin. You earned it."
+          "journal": "Bring the three war-talons to Quartermaster Dunmore at the Eyrie outpost.",
+          "says": "Three talons, and Halvek's word on them. Moss Mouth goes in the bounty book, first page. Go home, goblin. You earned it."
         },
         {
           "kind": "talk",
           "target": "Elder Snikkit",
           "journal": "Return to Elder Snikkit in Moss Mouth.",
-          "says": "Back, and with a fat purse! The other homes will say Moss Mouth's name now, and say it carefully. One thing more: choose your road.",
+          "says": "First page of the warden's book! Hah! The other homes will say Moss Mouth's name now, and say it carefully. You did that, not Grukk.",
           "rewards": {
             "xp": 2814929
           },
@@ -9528,7 +9528,7 @@
           "choices": [
             {
               "answer": "Bloodwasp",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Bloodwasp"
@@ -9537,7 +9537,7 @@
             },
             {
               "answer": "Shadow Tower",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Shadow Tower"
@@ -9572,17 +9572,17 @@
       "requires": [
         "homelands/goblin/L15"
       ],
-      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden pays a bounty on the raiders that plague his river. Go to Warden Halvek at the outpost, do his work, and come home to me.\nWill you take the warden's bounty?",
+      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden keeps a bounty book on the raiders of his river. Go to Warden Halvek at the outpost, get our name in it, and come home to me.\nWill you take the warden's bounty?",
       "accept": "I will take it.",
       "decline": "Not yet.",
       "declined": "The bounty will keep. The raiders will not.",
-      "started": "Rukkit's coach will take you. Bring home the coin, and yourself.",
+      "started": "Rukkit's coach will take you. Come home with our name in that book.",
       "steps": [
         {
           "kind": "talk",
           "target": "Warden Halvek",
           "journal": "Find Warden Halvek at the Eyrie outpost.",
-          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he pays."
+          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he keeps the bounty book."
         },
         {
           "kind": "loot",
@@ -9606,14 +9606,14 @@
               "count": 3
             }
           ],
-          "journal": "Bring the three war-talons to Quartermaster Dunmore for the bounty.",
-          "says": "Three talons, and Halvek's word on them. Here is the bounty. No, you may not count it twice. Go home, goblin. You earned it."
+          "journal": "Bring the three war-talons to Quartermaster Dunmore at the Eyrie outpost.",
+          "says": "Three talons, and Halvek's word on them. Moss Mouth goes in the bounty book, first page. Go home, goblin. You earned it."
         },
         {
           "kind": "talk",
           "target": "Elder Snikkit",
           "journal": "Return to Elder Snikkit in Moss Mouth.",
-          "says": "Back, and with a fat purse! The other homes will say Moss Mouth's name now, and say it carefully. One thing more: choose your road.",
+          "says": "First page of the warden's book! Hah! The other homes will say Moss Mouth's name now, and say it carefully. You did that, not Grukk.",
           "rewards": {
             "xp": 2814929
           },
@@ -9621,7 +9621,7 @@
           "choices": [
             {
               "answer": "Stone Stance",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Stone Stance"
@@ -9630,7 +9630,7 @@
             },
             {
               "answer": "Stasis Strike",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Stasis Strike"
@@ -9665,17 +9665,17 @@
       "requires": [
         "homelands/goblin/L15"
       ],
-      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden pays a bounty on the raiders that plague his river. Go to Warden Halvek at the outpost, do his work, and come home to me.\nWill you take the warden's bounty?",
+      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden keeps a bounty book on the raiders of his river. Go to Warden Halvek at the outpost, get our name in it, and come home to me.\nWill you take the warden's bounty?",
       "accept": "I will take it.",
       "decline": "Not yet.",
       "declined": "The bounty will keep. The raiders will not.",
-      "started": "Rukkit's coach will take you. Bring home the coin, and yourself.",
+      "started": "Rukkit's coach will take you. Come home with our name in that book.",
       "steps": [
         {
           "kind": "talk",
           "target": "Warden Halvek",
           "journal": "Find Warden Halvek at the Eyrie outpost.",
-          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he pays."
+          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he keeps the bounty book."
         },
         {
           "kind": "loot",
@@ -9699,14 +9699,14 @@
               "count": 3
             }
           ],
-          "journal": "Bring the three war-talons to Quartermaster Dunmore for the bounty.",
-          "says": "Three talons, and Halvek's word on them. Here is the bounty. No, you may not count it twice. Go home, goblin. You earned it."
+          "journal": "Bring the three war-talons to Quartermaster Dunmore at the Eyrie outpost.",
+          "says": "Three talons, and Halvek's word on them. Moss Mouth goes in the bounty book, first page. Go home, goblin. You earned it."
         },
         {
           "kind": "talk",
           "target": "Elder Snikkit",
           "journal": "Return to Elder Snikkit in Moss Mouth.",
-          "says": "Back, and with a fat purse! The other homes will say Moss Mouth's name now, and say it carefully. One thing more: choose your road.",
+          "says": "First page of the warden's book! Hah! The other homes will say Moss Mouth's name now, and say it carefully. You did that, not Grukk.",
           "rewards": {
             "xp": 2814929
           },
@@ -9714,7 +9714,7 @@
           "choices": [
             {
               "answer": "Power Dance",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Power Dance"
@@ -9723,7 +9723,7 @@
             },
             {
               "answer": "Sweeping Combat",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Sweeping Combat"
@@ -9758,17 +9758,17 @@
       "requires": [
         "homelands/goblin/L15"
       ],
-      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden pays a bounty on the raiders that plague his river. Go to Warden Halvek at the outpost, do his work, and come home to me.\nWill you take the warden's bounty?",
+      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden keeps a bounty book on the raiders of his river. Go to Warden Halvek at the outpost, get our name in it, and come home to me.\nWill you take the warden's bounty?",
       "accept": "I will take it.",
       "decline": "Not yet.",
       "declined": "The bounty will keep. The raiders will not.",
-      "started": "Rukkit's coach will take you. Bring home the coin, and yourself.",
+      "started": "Rukkit's coach will take you. Come home with our name in that book.",
       "steps": [
         {
           "kind": "talk",
           "target": "Warden Halvek",
           "journal": "Find Warden Halvek at the Eyrie outpost.",
-          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he pays."
+          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he keeps the bounty book."
         },
         {
           "kind": "loot",
@@ -9792,14 +9792,14 @@
               "count": 3
             }
           ],
-          "journal": "Bring the three war-talons to Quartermaster Dunmore for the bounty.",
-          "says": "Three talons, and Halvek's word on them. Here is the bounty. No, you may not count it twice. Go home, goblin. You earned it."
+          "journal": "Bring the three war-talons to Quartermaster Dunmore at the Eyrie outpost.",
+          "says": "Three talons, and Halvek's word on them. Moss Mouth goes in the bounty book, first page. Go home, goblin. You earned it."
         },
         {
           "kind": "talk",
           "target": "Elder Snikkit",
           "journal": "Return to Elder Snikkit in Moss Mouth.",
-          "says": "Back, and with a fat purse! The other homes will say Moss Mouth's name now, and say it carefully. One thing more: choose your road.",
+          "says": "First page of the warden's book! Hah! The other homes will say Moss Mouth's name now, and say it carefully. You did that, not Grukk.",
           "rewards": {
             "xp": 2814929
           },
@@ -9807,7 +9807,7 @@
           "choices": [
             {
               "answer": "Avoidance",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Avoidance"
@@ -9816,7 +9816,7 @@
             },
             {
               "answer": "Minor Wound",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Minor Wound"
@@ -9851,17 +9851,17 @@
       "requires": [
         "homelands/goblin/L15"
       ],
-      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden pays a bounty on the raiders that plague his river. Go to Warden Halvek at the outpost, do his work, and come home to me.\nWill you take the warden's bounty?",
+      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden keeps a bounty book on the raiders of his river. Go to Warden Halvek at the outpost, get our name in it, and come home to me.\nWill you take the warden's bounty?",
       "accept": "I will take it.",
       "decline": "Not yet.",
       "declined": "The bounty will keep. The raiders will not.",
-      "started": "Rukkit's coach will take you. Bring home the coin, and yourself.",
+      "started": "Rukkit's coach will take you. Come home with our name in that book.",
       "steps": [
         {
           "kind": "talk",
           "target": "Warden Halvek",
           "journal": "Find Warden Halvek at the Eyrie outpost.",
-          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he pays."
+          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he keeps the bounty book."
         },
         {
           "kind": "loot",
@@ -9885,14 +9885,14 @@
               "count": 3
             }
           ],
-          "journal": "Bring the three war-talons to Quartermaster Dunmore for the bounty.",
-          "says": "Three talons, and Halvek's word on them. Here is the bounty. No, you may not count it twice. Go home, goblin. You earned it."
+          "journal": "Bring the three war-talons to Quartermaster Dunmore at the Eyrie outpost.",
+          "says": "Three talons, and Halvek's word on them. Moss Mouth goes in the bounty book, first page. Go home, goblin. You earned it."
         },
         {
           "kind": "talk",
           "target": "Elder Snikkit",
           "journal": "Return to Elder Snikkit in Moss Mouth.",
-          "says": "Back, and with a fat purse! The other homes will say Moss Mouth's name now, and say it carefully. One thing more: choose your road.",
+          "says": "First page of the warden's book! Hah! The other homes will say Moss Mouth's name now, and say it carefully. You did that, not Grukk.",
           "rewards": {
             "xp": 2814929
           },
@@ -9900,7 +9900,7 @@
           "choices": [
             {
               "answer": "Enkindle",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Enkindle"
@@ -9909,7 +9909,7 @@
             },
             {
               "answer": "Creeping Health",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Creeping Health"
@@ -9944,17 +9944,17 @@
       "requires": [
         "homelands/goblin/L15"
       ],
-      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden pays a bounty on the raiders that plague his river. Go to Warden Halvek at the outpost, do his work, and come home to me.\nWill you take the warden's bounty?",
+      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden keeps a bounty book on the raiders of his river. Go to Warden Halvek at the outpost, get our name in it, and come home to me.\nWill you take the warden's bounty?",
       "accept": "I will take it.",
       "decline": "Not yet.",
       "declined": "The bounty will keep. The raiders will not.",
-      "started": "Rukkit's coach will take you. Bring home the coin, and yourself.",
+      "started": "Rukkit's coach will take you. Come home with our name in that book.",
       "steps": [
         {
           "kind": "talk",
           "target": "Warden Halvek",
           "journal": "Find Warden Halvek at the Eyrie outpost.",
-          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he pays."
+          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he keeps the bounty book."
         },
         {
           "kind": "loot",
@@ -9978,14 +9978,14 @@
               "count": 3
             }
           ],
-          "journal": "Bring the three war-talons to Quartermaster Dunmore for the bounty.",
-          "says": "Three talons, and Halvek's word on them. Here is the bounty. No, you may not count it twice. Go home, goblin. You earned it."
+          "journal": "Bring the three war-talons to Quartermaster Dunmore at the Eyrie outpost.",
+          "says": "Three talons, and Halvek's word on them. Moss Mouth goes in the bounty book, first page. Go home, goblin. You earned it."
         },
         {
           "kind": "talk",
           "target": "Elder Snikkit",
           "journal": "Return to Elder Snikkit in Moss Mouth.",
-          "says": "Back, and with a fat purse! The other homes will say Moss Mouth's name now, and say it carefully. One thing more: choose your road.",
+          "says": "First page of the warden's book! Hah! The other homes will say Moss Mouth's name now, and say it carefully. You did that, not Grukk.",
           "rewards": {
             "xp": 2814929
           },
@@ -9993,7 +9993,7 @@
           "choices": [
             {
               "answer": "Decaying Wind",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Decaying Wind"
@@ -10002,7 +10002,7 @@
             },
             {
               "answer": "Spiritual Guide",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Spiritual Guide"
@@ -10037,17 +10037,17 @@
       "requires": [
         "homelands/goblin/L15"
       ],
-      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden pays a bounty on the raiders that plague his river. Go to Warden Halvek at the outpost, do his work, and come home to me.\nWill you take the warden's bounty?",
+      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden keeps a bounty book on the raiders of his river. Go to Warden Halvek at the outpost, get our name in it, and come home to me.\nWill you take the warden's bounty?",
       "accept": "I will take it.",
       "decline": "Not yet.",
       "declined": "The bounty will keep. The raiders will not.",
-      "started": "Rukkit's coach will take you. Bring home the coin, and yourself.",
+      "started": "Rukkit's coach will take you. Come home with our name in that book.",
       "steps": [
         {
           "kind": "talk",
           "target": "Warden Halvek",
           "journal": "Find Warden Halvek at the Eyrie outpost.",
-          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he pays."
+          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he keeps the bounty book."
         },
         {
           "kind": "loot",
@@ -10071,14 +10071,14 @@
               "count": 3
             }
           ],
-          "journal": "Bring the three war-talons to Quartermaster Dunmore for the bounty.",
-          "says": "Three talons, and Halvek's word on them. Here is the bounty. No, you may not count it twice. Go home, goblin. You earned it."
+          "journal": "Bring the three war-talons to Quartermaster Dunmore at the Eyrie outpost.",
+          "says": "Three talons, and Halvek's word on them. Moss Mouth goes in the bounty book, first page. Go home, goblin. You earned it."
         },
         {
           "kind": "talk",
           "target": "Elder Snikkit",
           "journal": "Return to Elder Snikkit in Moss Mouth.",
-          "says": "Back, and with a fat purse! The other homes will say Moss Mouth's name now, and say it carefully. One thing more: choose your road.",
+          "says": "First page of the warden's book! Hah! The other homes will say Moss Mouth's name now, and say it carefully. You did that, not Grukk.",
           "rewards": {
             "xp": 2814929
           },
@@ -10086,7 +10086,7 @@
           "choices": [
             {
               "answer": "Disease Ward",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Disease Ward"
@@ -10095,7 +10095,7 @@
             },
             {
               "answer": "Field Dress",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Field Dress"
@@ -10104,7 +10104,7 @@
             },
             {
               "answer": "Elemental Ward",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "spells": [
                   "Elemental Ward"
@@ -10139,17 +10139,17 @@
       "requires": [
         "homelands/goblin/L15"
       ],
-      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden pays a bounty on the raiders that plague his river. Go to Warden Halvek at the outpost, do his work, and come home to me.\nWill you take the warden's bounty?",
+      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden keeps a bounty book on the raiders of his river. Go to Warden Halvek at the outpost, get our name in it, and come home to me.\nWill you take the warden's bounty?",
       "accept": "I will take it.",
       "decline": "Not yet.",
       "declined": "The bounty will keep. The raiders will not.",
-      "started": "Rukkit's coach will take you. Bring home the coin, and yourself.",
+      "started": "Rukkit's coach will take you. Come home with our name in that book.",
       "steps": [
         {
           "kind": "talk",
           "target": "Warden Halvek",
           "journal": "Find Warden Halvek at the Eyrie outpost.",
-          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he pays."
+          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he keeps the bounty book."
         },
         {
           "kind": "loot",
@@ -10173,14 +10173,14 @@
               "count": 3
             }
           ],
-          "journal": "Bring the three war-talons to Quartermaster Dunmore for the bounty.",
-          "says": "Three talons, and Halvek's word on them. Here is the bounty. No, you may not count it twice. Go home, goblin. You earned it."
+          "journal": "Bring the three war-talons to Quartermaster Dunmore at the Eyrie outpost.",
+          "says": "Three talons, and Halvek's word on them. Moss Mouth goes in the bounty book, first page. Go home, goblin. You earned it."
         },
         {
           "kind": "talk",
           "target": "Elder Snikkit",
           "journal": "Return to Elder Snikkit in Moss Mouth.",
-          "says": "Back, and with a fat purse! The other homes will say Moss Mouth's name now, and say it carefully. One thing more: choose your road.",
+          "says": "First page of the warden's book! Hah! The other homes will say Moss Mouth's name now, and say it carefully. You did that, not Grukk.",
           "rewards": {
             "xp": 2814929
           },
@@ -10188,7 +10188,7 @@
           "choices": [
             {
               "answer": "Frozen Mark",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Frozen Mark"
@@ -10197,7 +10197,7 @@
             },
             {
               "answer": "Lava Stone",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Lava Stone"
@@ -10232,17 +10232,17 @@
       "requires": [
         "homelands/goblin/L15"
       ],
-      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden pays a bounty on the raiders that plague his river. Go to Warden Halvek at the outpost, do his work, and come home to me.\nWill you take the warden's bounty?",
+      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden keeps a bounty book on the raiders of his river. Go to Warden Halvek at the outpost, get our name in it, and come home to me.\nWill you take the warden's bounty?",
       "accept": "I will take it.",
       "decline": "Not yet.",
       "declined": "The bounty will keep. The raiders will not.",
-      "started": "Rukkit's coach will take you. Bring home the coin, and yourself.",
+      "started": "Rukkit's coach will take you. Come home with our name in that book.",
       "steps": [
         {
           "kind": "talk",
           "target": "Warden Halvek",
           "journal": "Find Warden Halvek at the Eyrie outpost.",
-          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he pays."
+          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he keeps the bounty book."
         },
         {
           "kind": "loot",
@@ -10266,14 +10266,14 @@
               "count": 3
             }
           ],
-          "journal": "Bring the three war-talons to Quartermaster Dunmore for the bounty.",
-          "says": "Three talons, and Halvek's word on them. Here is the bounty. No, you may not count it twice. Go home, goblin. You earned it."
+          "journal": "Bring the three war-talons to Quartermaster Dunmore at the Eyrie outpost.",
+          "says": "Three talons, and Halvek's word on them. Moss Mouth goes in the bounty book, first page. Go home, goblin. You earned it."
         },
         {
           "kind": "talk",
           "target": "Elder Snikkit",
           "journal": "Return to Elder Snikkit in Moss Mouth.",
-          "says": "Back, and with a fat purse! The other homes will say Moss Mouth's name now, and say it carefully. One thing more: choose your road.",
+          "says": "First page of the warden's book! Hah! The other homes will say Moss Mouth's name now, and say it carefully. You did that, not Grukk.",
           "rewards": {
             "xp": 2814929
           },
@@ -10281,7 +10281,7 @@
           "choices": [
             {
               "answer": "Blood Gale",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Blood Gale"
@@ -10290,7 +10290,7 @@
             },
             {
               "answer": "Power Gale",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Power Gale"
@@ -10325,17 +10325,17 @@
       "requires": [
         "homelands/goblin/L15"
       ],
-      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden pays a bounty on the raiders that plague his river. Go to Warden Halvek at the outpost, do his work, and come home to me.\nWill you take the warden's bounty?",
+      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden keeps a bounty book on the raiders of his river. Go to Warden Halvek at the outpost, get our name in it, and come home to me.\nWill you take the warden's bounty?",
       "accept": "I will take it.",
       "decline": "Not yet.",
       "declined": "The bounty will keep. The raiders will not.",
-      "started": "Rukkit's coach will take you. Bring home the coin, and yourself.",
+      "started": "Rukkit's coach will take you. Come home with our name in that book.",
       "steps": [
         {
           "kind": "talk",
           "target": "Warden Halvek",
           "journal": "Find Warden Halvek at the Eyrie outpost.",
-          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he pays."
+          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he keeps the bounty book."
         },
         {
           "kind": "loot",
@@ -10359,14 +10359,14 @@
               "count": 3
             }
           ],
-          "journal": "Bring the three war-talons to Quartermaster Dunmore for the bounty.",
-          "says": "Three talons, and Halvek's word on them. Here is the bounty. No, you may not count it twice. Go home, goblin. You earned it."
+          "journal": "Bring the three war-talons to Quartermaster Dunmore at the Eyrie outpost.",
+          "says": "Three talons, and Halvek's word on them. Moss Mouth goes in the bounty book, first page. Go home, goblin. You earned it."
         },
         {
           "kind": "talk",
           "target": "Elder Snikkit",
           "journal": "Return to Elder Snikkit in Moss Mouth.",
-          "says": "Back, and with a fat purse! The other homes will say Moss Mouth's name now, and say it carefully. One thing more: choose your road.",
+          "says": "First page of the warden's book! Hah! The other homes will say Moss Mouth's name now, and say it carefully. You did that, not Grukk.",
           "rewards": {
             "xp": 2814929
           },
@@ -10374,7 +10374,7 @@
           "choices": [
             {
               "answer": "Spacious Mind",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Spacious Mind"
@@ -10383,7 +10383,7 @@
             },
             {
               "answer": "Power Boon",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Power Boon"
@@ -10418,17 +10418,17 @@
       "requires": [
         "homelands/goblin/L15"
       ],
-      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden pays a bounty on the raiders that plague his river. Go to Warden Halvek at the outpost, do his work, and come home to me.\nWill you take the warden's bounty?",
+      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden keeps a bounty book on the raiders of his river. Go to Warden Halvek at the outpost, get our name in it, and come home to me.\nWill you take the warden's bounty?",
       "accept": "I will take it.",
       "decline": "Not yet.",
       "declined": "The bounty will keep. The raiders will not.",
-      "started": "Rukkit's coach will take you. Bring home the coin, and yourself.",
+      "started": "Rukkit's coach will take you. Come home with our name in that book.",
       "steps": [
         {
           "kind": "talk",
           "target": "Warden Halvek",
           "journal": "Find Warden Halvek at the Eyrie outpost.",
-          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he pays."
+          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he keeps the bounty book."
         },
         {
           "kind": "loot",
@@ -10452,14 +10452,14 @@
               "count": 3
             }
           ],
-          "journal": "Bring the three war-talons to Quartermaster Dunmore for the bounty.",
-          "says": "Three talons, and Halvek's word on them. Here is the bounty. No, you may not count it twice. Go home, goblin. You earned it."
+          "journal": "Bring the three war-talons to Quartermaster Dunmore at the Eyrie outpost.",
+          "says": "Three talons, and Halvek's word on them. Moss Mouth goes in the bounty book, first page. Go home, goblin. You earned it."
         },
         {
           "kind": "talk",
           "target": "Elder Snikkit",
           "journal": "Return to Elder Snikkit in Moss Mouth.",
-          "says": "Back, and with a fat purse! The other homes will say Moss Mouth's name now, and say it carefully. One thing more: choose your road.",
+          "says": "First page of the warden's book! Hah! The other homes will say Moss Mouth's name now, and say it carefully. You did that, not Grukk.",
           "rewards": {
             "xp": 2814929
           },
@@ -10467,7 +10467,7 @@
           "choices": [
             {
               "answer": "Blazing Clash",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Blazing Clash"
@@ -10476,7 +10476,7 @@
             },
             {
               "answer": "Mental Focus",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Mental Focus"
@@ -10511,17 +10511,17 @@
       "requires": [
         "homelands/goblin/L15"
       ],
-      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden pays a bounty on the raiders that plague his river. Go to Warden Halvek at the outpost, do his work, and come home to me.\nWill you take the warden's bounty?",
+      "offer": "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.\nThe Eyrie's warden keeps a bounty book on the raiders of his river. Go to Warden Halvek at the outpost, get our name in it, and come home to me.\nWill you take the warden's bounty?",
       "accept": "I will take it.",
       "decline": "Not yet.",
       "declined": "The bounty will keep. The raiders will not.",
-      "started": "Rukkit's coach will take you. Bring home the coin, and yourself.",
+      "started": "Rukkit's coach will take you. Come home with our name in that book.",
       "steps": [
         {
           "kind": "talk",
           "target": "Warden Halvek",
           "journal": "Find Warden Halvek at the Eyrie outpost.",
-          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he pays."
+          "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he keeps the bounty book."
         },
         {
           "kind": "loot",
@@ -10545,14 +10545,14 @@
               "count": 3
             }
           ],
-          "journal": "Bring the three war-talons to Quartermaster Dunmore for the bounty.",
-          "says": "Three talons, and Halvek's word on them. Here is the bounty. No, you may not count it twice. Go home, goblin. You earned it."
+          "journal": "Bring the three war-talons to Quartermaster Dunmore at the Eyrie outpost.",
+          "says": "Three talons, and Halvek's word on them. Moss Mouth goes in the bounty book, first page. Go home, goblin. You earned it."
         },
         {
           "kind": "talk",
           "target": "Elder Snikkit",
           "journal": "Return to Elder Snikkit in Moss Mouth.",
-          "says": "Back, and with a fat purse! The other homes will say Moss Mouth's name now, and say it carefully. One thing more: choose your road.",
+          "says": "First page of the warden's book! Hah! The other homes will say Moss Mouth's name now, and say it carefully. You did that, not Grukk.",
           "rewards": {
             "xp": 2814929
           },
@@ -10560,7 +10560,7 @@
           "choices": [
             {
               "answer": "Student's Knack",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Student's Knack"
@@ -10569,7 +10569,7 @@
             },
             {
               "answer": "Klik'Anon Cocktail",
-              "says": "Then it is yours.",
+              "says": "Hah! A good pick. It is yours. No refunds.",
               "rewards": {
                 "items": [
                   "Klik'Anon Cocktail"
@@ -11802,7 +11802,7 @@
           "kind": "talk",
           "target": "Elder Hsslarn",
           "journal": "Return to Elder Hsslarn in the Mirewatch.",
-          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud. Now choose your path.",
+          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud of you, hunter.",
           "rewards": {
             "xp": 2814929
           },
@@ -11810,7 +11810,7 @@
           "choices": [
             {
               "answer": "Bellow",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Bellow"
@@ -11819,7 +11819,7 @@
             },
             {
               "answer": "Pillar of Might",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Pillar of Might"
@@ -11901,7 +11901,7 @@
           "kind": "talk",
           "target": "Elder Hsslarn",
           "journal": "Return to Elder Hsslarn in the Mirewatch.",
-          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud. Now choose your path.",
+          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud of you, hunter.",
           "rewards": {
             "xp": 2814929
           },
@@ -11909,7 +11909,7 @@
           "choices": [
             {
               "answer": "Sparrow Eye",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Sparrow Eye"
@@ -11918,7 +11918,7 @@
             },
             {
               "answer": "Strikeblade",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Strikeblade"
@@ -12000,7 +12000,7 @@
           "kind": "talk",
           "target": "Elder Hsslarn",
           "journal": "Return to Elder Hsslarn in the Mirewatch.",
-          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud. Now choose your path.",
+          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud of you, hunter.",
           "rewards": {
             "xp": 2814929
           },
@@ -12008,7 +12008,7 @@
           "choices": [
             {
               "answer": "Fortify",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Fortify"
@@ -12017,7 +12017,7 @@
             },
             {
               "answer": "Shining Bastion",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Shining Bastion"
@@ -12026,7 +12026,7 @@
             },
             {
               "answer": "Clay Barrier",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "spells": [
                   "Clay Barrier"
@@ -12108,7 +12108,7 @@
           "kind": "talk",
           "target": "Elder Hsslarn",
           "journal": "Return to Elder Hsslarn in the Mirewatch.",
-          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud. Now choose your path.",
+          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud of you, hunter.",
           "rewards": {
             "xp": 2814929
           },
@@ -12116,7 +12116,7 @@
           "choices": [
             {
               "answer": "Bloodwasp",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Bloodwasp"
@@ -12125,7 +12125,7 @@
             },
             {
               "answer": "Shadow Tower",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Shadow Tower"
@@ -12207,7 +12207,7 @@
           "kind": "talk",
           "target": "Elder Hsslarn",
           "journal": "Return to Elder Hsslarn in the Mirewatch.",
-          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud. Now choose your path.",
+          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud of you, hunter.",
           "rewards": {
             "xp": 2814929
           },
@@ -12215,7 +12215,7 @@
           "choices": [
             {
               "answer": "Stone Stance",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Stone Stance"
@@ -12224,7 +12224,7 @@
             },
             {
               "answer": "Stasis Strike",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Stasis Strike"
@@ -12306,7 +12306,7 @@
           "kind": "talk",
           "target": "Elder Hsslarn",
           "journal": "Return to Elder Hsslarn in the Mirewatch.",
-          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud. Now choose your path.",
+          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud of you, hunter.",
           "rewards": {
             "xp": 2814929
           },
@@ -12314,7 +12314,7 @@
           "choices": [
             {
               "answer": "Power Dance",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Power Dance"
@@ -12323,7 +12323,7 @@
             },
             {
               "answer": "Sweeping Combat",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Sweeping Combat"
@@ -12405,7 +12405,7 @@
           "kind": "talk",
           "target": "Elder Hsslarn",
           "journal": "Return to Elder Hsslarn in the Mirewatch.",
-          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud. Now choose your path.",
+          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud of you, hunter.",
           "rewards": {
             "xp": 2814929
           },
@@ -12413,7 +12413,7 @@
           "choices": [
             {
               "answer": "Avoidance",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Avoidance"
@@ -12422,7 +12422,7 @@
             },
             {
               "answer": "Minor Wound",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Minor Wound"
@@ -12504,7 +12504,7 @@
           "kind": "talk",
           "target": "Elder Hsslarn",
           "journal": "Return to Elder Hsslarn in the Mirewatch.",
-          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud. Now choose your path.",
+          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud of you, hunter.",
           "rewards": {
             "xp": 2814929
           },
@@ -12512,7 +12512,7 @@
           "choices": [
             {
               "answer": "Enkindle",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Enkindle"
@@ -12521,7 +12521,7 @@
             },
             {
               "answer": "Creeping Health",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Creeping Health"
@@ -12603,7 +12603,7 @@
           "kind": "talk",
           "target": "Elder Hsslarn",
           "journal": "Return to Elder Hsslarn in the Mirewatch.",
-          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud. Now choose your path.",
+          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud of you, hunter.",
           "rewards": {
             "xp": 2814929
           },
@@ -12611,7 +12611,7 @@
           "choices": [
             {
               "answer": "Decaying Wind",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Decaying Wind"
@@ -12620,7 +12620,7 @@
             },
             {
               "answer": "Spiritual Guide",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Spiritual Guide"
@@ -12702,7 +12702,7 @@
           "kind": "talk",
           "target": "Elder Hsslarn",
           "journal": "Return to Elder Hsslarn in the Mirewatch.",
-          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud. Now choose your path.",
+          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud of you, hunter.",
           "rewards": {
             "xp": 2814929
           },
@@ -12710,7 +12710,7 @@
           "choices": [
             {
               "answer": "Disease Ward",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Disease Ward"
@@ -12719,7 +12719,7 @@
             },
             {
               "answer": "Field Dress",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Field Dress"
@@ -12728,7 +12728,7 @@
             },
             {
               "answer": "Elemental Ward",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "spells": [
                   "Elemental Ward"
@@ -12810,7 +12810,7 @@
           "kind": "talk",
           "target": "Elder Hsslarn",
           "journal": "Return to Elder Hsslarn in the Mirewatch.",
-          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud. Now choose your path.",
+          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud of you, hunter.",
           "rewards": {
             "xp": 2814929
           },
@@ -12818,7 +12818,7 @@
           "choices": [
             {
               "answer": "Frozen Mark",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Frozen Mark"
@@ -12827,7 +12827,7 @@
             },
             {
               "answer": "Lava Stone",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Lava Stone"
@@ -12909,7 +12909,7 @@
           "kind": "talk",
           "target": "Elder Hsslarn",
           "journal": "Return to Elder Hsslarn in the Mirewatch.",
-          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud. Now choose your path.",
+          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud of you, hunter.",
           "rewards": {
             "xp": 2814929
           },
@@ -12917,7 +12917,7 @@
           "choices": [
             {
               "answer": "Blood Gale",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Blood Gale"
@@ -12926,7 +12926,7 @@
             },
             {
               "answer": "Power Gale",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Power Gale"
@@ -13008,7 +13008,7 @@
           "kind": "talk",
           "target": "Elder Hsslarn",
           "journal": "Return to Elder Hsslarn in the Mirewatch.",
-          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud. Now choose your path.",
+          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud of you, hunter.",
           "rewards": {
             "xp": 2814929
           },
@@ -13016,7 +13016,7 @@
           "choices": [
             {
               "answer": "Spacious Mind",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Spacious Mind"
@@ -13025,7 +13025,7 @@
             },
             {
               "answer": "Power Boon",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Power Boon"
@@ -13107,7 +13107,7 @@
           "kind": "talk",
           "target": "Elder Hsslarn",
           "journal": "Return to Elder Hsslarn in the Mirewatch.",
-          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud. Now choose your path.",
+          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud of you, hunter.",
           "rewards": {
             "xp": 2814929
           },
@@ -13115,7 +13115,7 @@
           "choices": [
             {
               "answer": "Blazing Clash",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Blazing Clash"
@@ -13124,7 +13124,7 @@
             },
             {
               "answer": "Mental Focus",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Mental Focus"
@@ -13206,7 +13206,7 @@
           "kind": "talk",
           "target": "Elder Hsslarn",
           "journal": "Return to Elder Hsslarn in the Mirewatch.",
-          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud. Now choose your path.",
+          "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud of you, hunter.",
           "rewards": {
             "xp": 2814929
           },
@@ -13214,7 +13214,7 @@
           "choices": [
             {
               "answer": "Student's Knack",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Student's Knack"
@@ -13223,7 +13223,7 @@
             },
             {
               "answer": "Klik'Anon Cocktail",
-              "says": "Then it is yours.",
+              "says": "So be it. It is yours.",
               "rewards": {
                 "items": [
                   "Klik'Anon Cocktail"
@@ -14496,7 +14496,7 @@
           "kind": "talk",
           "target": "Elder Thimbleroot",
           "journal": "Return to Elder Thimbleroot in the glade.",
-          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Now choose your path.",
+          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Use it well, dear.",
           "rewards": {
             "xp": 2814929
           },
@@ -14504,7 +14504,7 @@
           "choices": [
             {
               "answer": "Bellow",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Bellow"
@@ -14513,7 +14513,7 @@
             },
             {
               "answer": "Pillar of Might",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Pillar of Might"
@@ -14595,7 +14595,7 @@
           "kind": "talk",
           "target": "Elder Thimbleroot",
           "journal": "Return to Elder Thimbleroot in the glade.",
-          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Now choose your path.",
+          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Use it well, dear.",
           "rewards": {
             "xp": 2814929
           },
@@ -14603,7 +14603,7 @@
           "choices": [
             {
               "answer": "Sparrow Eye",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Sparrow Eye"
@@ -14612,7 +14612,7 @@
             },
             {
               "answer": "Strikeblade",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Strikeblade"
@@ -14694,7 +14694,7 @@
           "kind": "talk",
           "target": "Elder Thimbleroot",
           "journal": "Return to Elder Thimbleroot in the glade.",
-          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Now choose your path.",
+          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Use it well, dear.",
           "rewards": {
             "xp": 2814929
           },
@@ -14702,7 +14702,7 @@
           "choices": [
             {
               "answer": "Fortify",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Fortify"
@@ -14711,7 +14711,7 @@
             },
             {
               "answer": "Shining Bastion",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Shining Bastion"
@@ -14720,7 +14720,7 @@
             },
             {
               "answer": "Clay Barrier",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "spells": [
                   "Clay Barrier"
@@ -14802,7 +14802,7 @@
           "kind": "talk",
           "target": "Elder Thimbleroot",
           "journal": "Return to Elder Thimbleroot in the glade.",
-          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Now choose your path.",
+          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Use it well, dear.",
           "rewards": {
             "xp": 2814929
           },
@@ -14810,7 +14810,7 @@
           "choices": [
             {
               "answer": "Bloodwasp",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Bloodwasp"
@@ -14819,7 +14819,7 @@
             },
             {
               "answer": "Shadow Tower",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Shadow Tower"
@@ -14901,7 +14901,7 @@
           "kind": "talk",
           "target": "Elder Thimbleroot",
           "journal": "Return to Elder Thimbleroot in the glade.",
-          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Now choose your path.",
+          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Use it well, dear.",
           "rewards": {
             "xp": 2814929
           },
@@ -14909,7 +14909,7 @@
           "choices": [
             {
               "answer": "Stone Stance",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Stone Stance"
@@ -14918,7 +14918,7 @@
             },
             {
               "answer": "Stasis Strike",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Stasis Strike"
@@ -15000,7 +15000,7 @@
           "kind": "talk",
           "target": "Elder Thimbleroot",
           "journal": "Return to Elder Thimbleroot in the glade.",
-          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Now choose your path.",
+          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Use it well, dear.",
           "rewards": {
             "xp": 2814929
           },
@@ -15008,7 +15008,7 @@
           "choices": [
             {
               "answer": "Power Dance",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Power Dance"
@@ -15017,7 +15017,7 @@
             },
             {
               "answer": "Sweeping Combat",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Sweeping Combat"
@@ -15099,7 +15099,7 @@
           "kind": "talk",
           "target": "Elder Thimbleroot",
           "journal": "Return to Elder Thimbleroot in the glade.",
-          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Now choose your path.",
+          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Use it well, dear.",
           "rewards": {
             "xp": 2814929
           },
@@ -15107,7 +15107,7 @@
           "choices": [
             {
               "answer": "Avoidance",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Avoidance"
@@ -15116,7 +15116,7 @@
             },
             {
               "answer": "Minor Wound",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Minor Wound"
@@ -15198,7 +15198,7 @@
           "kind": "talk",
           "target": "Elder Thimbleroot",
           "journal": "Return to Elder Thimbleroot in the glade.",
-          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Now choose your path.",
+          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Use it well, dear.",
           "rewards": {
             "xp": 2814929
           },
@@ -15206,7 +15206,7 @@
           "choices": [
             {
               "answer": "Enkindle",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Enkindle"
@@ -15215,7 +15215,7 @@
             },
             {
               "answer": "Creeping Health",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Creeping Health"
@@ -15297,7 +15297,7 @@
           "kind": "talk",
           "target": "Elder Thimbleroot",
           "journal": "Return to Elder Thimbleroot in the glade.",
-          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Now choose your path.",
+          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Use it well, dear.",
           "rewards": {
             "xp": 2814929
           },
@@ -15305,7 +15305,7 @@
           "choices": [
             {
               "answer": "Decaying Wind",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Decaying Wind"
@@ -15314,7 +15314,7 @@
             },
             {
               "answer": "Spiritual Guide",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Spiritual Guide"
@@ -15396,7 +15396,7 @@
           "kind": "talk",
           "target": "Elder Thimbleroot",
           "journal": "Return to Elder Thimbleroot in the glade.",
-          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Now choose your path.",
+          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Use it well, dear.",
           "rewards": {
             "xp": 2814929
           },
@@ -15404,7 +15404,7 @@
           "choices": [
             {
               "answer": "Disease Ward",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Disease Ward"
@@ -15413,7 +15413,7 @@
             },
             {
               "answer": "Field Dress",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Field Dress"
@@ -15422,7 +15422,7 @@
             },
             {
               "answer": "Elemental Ward",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "spells": [
                   "Elemental Ward"
@@ -15504,7 +15504,7 @@
           "kind": "talk",
           "target": "Elder Thimbleroot",
           "journal": "Return to Elder Thimbleroot in the glade.",
-          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Now choose your path.",
+          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Use it well, dear.",
           "rewards": {
             "xp": 2814929
           },
@@ -15512,7 +15512,7 @@
           "choices": [
             {
               "answer": "Frozen Mark",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Frozen Mark"
@@ -15521,7 +15521,7 @@
             },
             {
               "answer": "Lava Stone",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Lava Stone"
@@ -15603,7 +15603,7 @@
           "kind": "talk",
           "target": "Elder Thimbleroot",
           "journal": "Return to Elder Thimbleroot in the glade.",
-          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Now choose your path.",
+          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Use it well, dear.",
           "rewards": {
             "xp": 2814929
           },
@@ -15611,7 +15611,7 @@
           "choices": [
             {
               "answer": "Blood Gale",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Blood Gale"
@@ -15620,7 +15620,7 @@
             },
             {
               "answer": "Power Gale",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Power Gale"
@@ -15702,7 +15702,7 @@
           "kind": "talk",
           "target": "Elder Thimbleroot",
           "journal": "Return to Elder Thimbleroot in the glade.",
-          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Now choose your path.",
+          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Use it well, dear.",
           "rewards": {
             "xp": 2814929
           },
@@ -15710,7 +15710,7 @@
           "choices": [
             {
               "answer": "Spacious Mind",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Spacious Mind"
@@ -15719,7 +15719,7 @@
             },
             {
               "answer": "Power Boon",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Power Boon"
@@ -15801,7 +15801,7 @@
           "kind": "talk",
           "target": "Elder Thimbleroot",
           "journal": "Return to Elder Thimbleroot in the glade.",
-          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Now choose your path.",
+          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Use it well, dear.",
           "rewards": {
             "xp": 2814929
           },
@@ -15809,7 +15809,7 @@
           "choices": [
             {
               "answer": "Blazing Clash",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Blazing Clash"
@@ -15818,7 +15818,7 @@
             },
             {
               "answer": "Mental Focus",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Mental Focus"
@@ -15900,7 +15900,7 @@
           "kind": "talk",
           "target": "Elder Thimbleroot",
           "journal": "Return to Elder Thimbleroot in the glade.",
-          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Now choose your path.",
+          "says": "Halvek's thanks came by the coach, and a honey cake with it. You went out a sprout and came home a neighbor to every home. Use it well, dear.",
           "rewards": {
             "xp": 2814929
           },
@@ -15908,7 +15908,7 @@
           "choices": [
             {
               "answer": "Student's Knack",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Student's Knack"
@@ -15917,7 +15917,7 @@
             },
             {
               "answer": "Klik'Anon Cocktail",
-              "says": "Then it is yours.",
+              "says": "A fine choice, dear. It is yours.",
               "rewards": {
                 "items": [
                   "Klik'Anon Cocktail"
@@ -17166,7 +17166,7 @@
           "kind": "talk",
           "target": "Elder Brightwing",
           "journal": "Return to Elder Brightwing in the thicket.",
-          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Now, one thing more: choose your path.",
+          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Shine well, little one.",
           "rewards": {
             "xp": 2814929
           },
@@ -17174,7 +17174,7 @@
           "choices": [
             {
               "answer": "Bellow",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Bellow"
@@ -17183,7 +17183,7 @@
             },
             {
               "answer": "Pillar of Might",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Pillar of Might"
@@ -17259,7 +17259,7 @@
           "kind": "talk",
           "target": "Elder Brightwing",
           "journal": "Return to Elder Brightwing in the thicket.",
-          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Now, one thing more: choose your path.",
+          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Shine well, little one.",
           "rewards": {
             "xp": 2814929
           },
@@ -17267,7 +17267,7 @@
           "choices": [
             {
               "answer": "Sparrow Eye",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Sparrow Eye"
@@ -17276,7 +17276,7 @@
             },
             {
               "answer": "Strikeblade",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Strikeblade"
@@ -17352,7 +17352,7 @@
           "kind": "talk",
           "target": "Elder Brightwing",
           "journal": "Return to Elder Brightwing in the thicket.",
-          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Now, one thing more: choose your path.",
+          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Shine well, little one.",
           "rewards": {
             "xp": 2814929
           },
@@ -17360,7 +17360,7 @@
           "choices": [
             {
               "answer": "Fortify",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Fortify"
@@ -17369,7 +17369,7 @@
             },
             {
               "answer": "Shining Bastion",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Shining Bastion"
@@ -17378,7 +17378,7 @@
             },
             {
               "answer": "Clay Barrier",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "spells": [
                   "Clay Barrier"
@@ -17454,7 +17454,7 @@
           "kind": "talk",
           "target": "Elder Brightwing",
           "journal": "Return to Elder Brightwing in the thicket.",
-          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Now, one thing more: choose your path.",
+          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Shine well, little one.",
           "rewards": {
             "xp": 2814929
           },
@@ -17462,7 +17462,7 @@
           "choices": [
             {
               "answer": "Bloodwasp",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Bloodwasp"
@@ -17471,7 +17471,7 @@
             },
             {
               "answer": "Shadow Tower",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Shadow Tower"
@@ -17547,7 +17547,7 @@
           "kind": "talk",
           "target": "Elder Brightwing",
           "journal": "Return to Elder Brightwing in the thicket.",
-          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Now, one thing more: choose your path.",
+          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Shine well, little one.",
           "rewards": {
             "xp": 2814929
           },
@@ -17555,7 +17555,7 @@
           "choices": [
             {
               "answer": "Stone Stance",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Stone Stance"
@@ -17564,7 +17564,7 @@
             },
             {
               "answer": "Stasis Strike",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Stasis Strike"
@@ -17640,7 +17640,7 @@
           "kind": "talk",
           "target": "Elder Brightwing",
           "journal": "Return to Elder Brightwing in the thicket.",
-          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Now, one thing more: choose your path.",
+          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Shine well, little one.",
           "rewards": {
             "xp": 2814929
           },
@@ -17648,7 +17648,7 @@
           "choices": [
             {
               "answer": "Power Dance",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Power Dance"
@@ -17657,7 +17657,7 @@
             },
             {
               "answer": "Sweeping Combat",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Sweeping Combat"
@@ -17733,7 +17733,7 @@
           "kind": "talk",
           "target": "Elder Brightwing",
           "journal": "Return to Elder Brightwing in the thicket.",
-          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Now, one thing more: choose your path.",
+          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Shine well, little one.",
           "rewards": {
             "xp": 2814929
           },
@@ -17741,7 +17741,7 @@
           "choices": [
             {
               "answer": "Avoidance",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Avoidance"
@@ -17750,7 +17750,7 @@
             },
             {
               "answer": "Minor Wound",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Minor Wound"
@@ -17826,7 +17826,7 @@
           "kind": "talk",
           "target": "Elder Brightwing",
           "journal": "Return to Elder Brightwing in the thicket.",
-          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Now, one thing more: choose your path.",
+          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Shine well, little one.",
           "rewards": {
             "xp": 2814929
           },
@@ -17834,7 +17834,7 @@
           "choices": [
             {
               "answer": "Enkindle",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Enkindle"
@@ -17843,7 +17843,7 @@
             },
             {
               "answer": "Creeping Health",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Creeping Health"
@@ -17919,7 +17919,7 @@
           "kind": "talk",
           "target": "Elder Brightwing",
           "journal": "Return to Elder Brightwing in the thicket.",
-          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Now, one thing more: choose your path.",
+          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Shine well, little one.",
           "rewards": {
             "xp": 2814929
           },
@@ -17927,7 +17927,7 @@
           "choices": [
             {
               "answer": "Decaying Wind",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Decaying Wind"
@@ -17936,7 +17936,7 @@
             },
             {
               "answer": "Spiritual Guide",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Spiritual Guide"
@@ -18012,7 +18012,7 @@
           "kind": "talk",
           "target": "Elder Brightwing",
           "journal": "Return to Elder Brightwing in the thicket.",
-          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Now, one thing more: choose your path.",
+          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Shine well, little one.",
           "rewards": {
             "xp": 2814929
           },
@@ -18020,7 +18020,7 @@
           "choices": [
             {
               "answer": "Disease Ward",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Disease Ward"
@@ -18029,7 +18029,7 @@
             },
             {
               "answer": "Field Dress",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Field Dress"
@@ -18038,7 +18038,7 @@
             },
             {
               "answer": "Elemental Ward",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "spells": [
                   "Elemental Ward"
@@ -18114,7 +18114,7 @@
           "kind": "talk",
           "target": "Elder Brightwing",
           "journal": "Return to Elder Brightwing in the thicket.",
-          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Now, one thing more: choose your path.",
+          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Shine well, little one.",
           "rewards": {
             "xp": 2814929
           },
@@ -18122,7 +18122,7 @@
           "choices": [
             {
               "answer": "Frozen Mark",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Frozen Mark"
@@ -18131,7 +18131,7 @@
             },
             {
               "answer": "Lava Stone",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Lava Stone"
@@ -18207,7 +18207,7 @@
           "kind": "talk",
           "target": "Elder Brightwing",
           "journal": "Return to Elder Brightwing in the thicket.",
-          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Now, one thing more: choose your path.",
+          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Shine well, little one.",
           "rewards": {
             "xp": 2814929
           },
@@ -18215,7 +18215,7 @@
           "choices": [
             {
               "answer": "Blood Gale",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Blood Gale"
@@ -18224,7 +18224,7 @@
             },
             {
               "answer": "Power Gale",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Power Gale"
@@ -18300,7 +18300,7 @@
           "kind": "talk",
           "target": "Elder Brightwing",
           "journal": "Return to Elder Brightwing in the thicket.",
-          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Now, one thing more: choose your path.",
+          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Shine well, little one.",
           "rewards": {
             "xp": 2814929
           },
@@ -18308,7 +18308,7 @@
           "choices": [
             {
               "answer": "Spacious Mind",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Spacious Mind"
@@ -18317,7 +18317,7 @@
             },
             {
               "answer": "Power Boon",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Power Boon"
@@ -18393,7 +18393,7 @@
           "kind": "talk",
           "target": "Elder Brightwing",
           "journal": "Return to Elder Brightwing in the thicket.",
-          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Now, one thing more: choose your path.",
+          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Shine well, little one.",
           "rewards": {
             "xp": 2814929
           },
@@ -18401,7 +18401,7 @@
           "choices": [
             {
               "answer": "Blazing Clash",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Blazing Clash"
@@ -18410,7 +18410,7 @@
             },
             {
               "answer": "Mental Focus",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Mental Focus"
@@ -18486,7 +18486,7 @@
           "kind": "talk",
           "target": "Elder Brightwing",
           "journal": "Return to Elder Brightwing in the thicket.",
-          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Now, one thing more: choose your path.",
+          "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Shine well, little one.",
           "rewards": {
             "xp": 2814929
           },
@@ -18494,7 +18494,7 @@
           "choices": [
             {
               "answer": "Student's Knack",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Student's Knack"
@@ -18503,7 +18503,7 @@
             },
             {
               "answer": "Klik'Anon Cocktail",
-              "says": "Then it is yours.",
+              "says": "Ooh, lovely! It is yours, little spark.",
               "rewards": {
                 "items": [
                   "Klik'Anon Cocktail"
@@ -19799,7 +19799,7 @@
           "kind": "talk",
           "target": "Elder Moonpetal",
           "journal": "Return to Elder Moonpetal in the valley.",
-          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Now, choose your path.",
+          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Keep it close.",
           "rewards": {
             "xp": 2814929
           },
@@ -19807,7 +19807,7 @@
           "choices": [
             {
               "answer": "Bellow",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Bellow"
@@ -19816,7 +19816,7 @@
             },
             {
               "answer": "Pillar of Might",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Pillar of Might"
@@ -19904,7 +19904,7 @@
           "kind": "talk",
           "target": "Elder Moonpetal",
           "journal": "Return to Elder Moonpetal in the valley.",
-          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Now, choose your path.",
+          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Keep it close.",
           "rewards": {
             "xp": 2814929
           },
@@ -19912,7 +19912,7 @@
           "choices": [
             {
               "answer": "Sparrow Eye",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Sparrow Eye"
@@ -19921,7 +19921,7 @@
             },
             {
               "answer": "Strikeblade",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Strikeblade"
@@ -20009,7 +20009,7 @@
           "kind": "talk",
           "target": "Elder Moonpetal",
           "journal": "Return to Elder Moonpetal in the valley.",
-          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Now, choose your path.",
+          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Keep it close.",
           "rewards": {
             "xp": 2814929
           },
@@ -20017,7 +20017,7 @@
           "choices": [
             {
               "answer": "Fortify",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Fortify"
@@ -20026,7 +20026,7 @@
             },
             {
               "answer": "Shining Bastion",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Shining Bastion"
@@ -20035,7 +20035,7 @@
             },
             {
               "answer": "Clay Barrier",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "spells": [
                   "Clay Barrier"
@@ -20123,7 +20123,7 @@
           "kind": "talk",
           "target": "Elder Moonpetal",
           "journal": "Return to Elder Moonpetal in the valley.",
-          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Now, choose your path.",
+          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Keep it close.",
           "rewards": {
             "xp": 2814929
           },
@@ -20131,7 +20131,7 @@
           "choices": [
             {
               "answer": "Bloodwasp",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Bloodwasp"
@@ -20140,7 +20140,7 @@
             },
             {
               "answer": "Shadow Tower",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Shadow Tower"
@@ -20228,7 +20228,7 @@
           "kind": "talk",
           "target": "Elder Moonpetal",
           "journal": "Return to Elder Moonpetal in the valley.",
-          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Now, choose your path.",
+          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Keep it close.",
           "rewards": {
             "xp": 2814929
           },
@@ -20236,7 +20236,7 @@
           "choices": [
             {
               "answer": "Stone Stance",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Stone Stance"
@@ -20245,7 +20245,7 @@
             },
             {
               "answer": "Stasis Strike",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Stasis Strike"
@@ -20333,7 +20333,7 @@
           "kind": "talk",
           "target": "Elder Moonpetal",
           "journal": "Return to Elder Moonpetal in the valley.",
-          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Now, choose your path.",
+          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Keep it close.",
           "rewards": {
             "xp": 2814929
           },
@@ -20341,7 +20341,7 @@
           "choices": [
             {
               "answer": "Power Dance",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Power Dance"
@@ -20350,7 +20350,7 @@
             },
             {
               "answer": "Sweeping Combat",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Sweeping Combat"
@@ -20438,7 +20438,7 @@
           "kind": "talk",
           "target": "Elder Moonpetal",
           "journal": "Return to Elder Moonpetal in the valley.",
-          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Now, choose your path.",
+          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Keep it close.",
           "rewards": {
             "xp": 2814929
           },
@@ -20446,7 +20446,7 @@
           "choices": [
             {
               "answer": "Avoidance",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Avoidance"
@@ -20455,7 +20455,7 @@
             },
             {
               "answer": "Minor Wound",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Minor Wound"
@@ -20543,7 +20543,7 @@
           "kind": "talk",
           "target": "Elder Moonpetal",
           "journal": "Return to Elder Moonpetal in the valley.",
-          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Now, choose your path.",
+          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Keep it close.",
           "rewards": {
             "xp": 2814929
           },
@@ -20551,7 +20551,7 @@
           "choices": [
             {
               "answer": "Enkindle",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Enkindle"
@@ -20560,7 +20560,7 @@
             },
             {
               "answer": "Creeping Health",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Creeping Health"
@@ -20648,7 +20648,7 @@
           "kind": "talk",
           "target": "Elder Moonpetal",
           "journal": "Return to Elder Moonpetal in the valley.",
-          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Now, choose your path.",
+          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Keep it close.",
           "rewards": {
             "xp": 2814929
           },
@@ -20656,7 +20656,7 @@
           "choices": [
             {
               "answer": "Decaying Wind",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Decaying Wind"
@@ -20665,7 +20665,7 @@
             },
             {
               "answer": "Spiritual Guide",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Spiritual Guide"
@@ -20753,7 +20753,7 @@
           "kind": "talk",
           "target": "Elder Moonpetal",
           "journal": "Return to Elder Moonpetal in the valley.",
-          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Now, choose your path.",
+          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Keep it close.",
           "rewards": {
             "xp": 2814929
           },
@@ -20761,7 +20761,7 @@
           "choices": [
             {
               "answer": "Disease Ward",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Disease Ward"
@@ -20770,7 +20770,7 @@
             },
             {
               "answer": "Field Dress",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Field Dress"
@@ -20779,7 +20779,7 @@
             },
             {
               "answer": "Elemental Ward",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "spells": [
                   "Elemental Ward"
@@ -20867,7 +20867,7 @@
           "kind": "talk",
           "target": "Elder Moonpetal",
           "journal": "Return to Elder Moonpetal in the valley.",
-          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Now, choose your path.",
+          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Keep it close.",
           "rewards": {
             "xp": 2814929
           },
@@ -20875,7 +20875,7 @@
           "choices": [
             {
               "answer": "Frozen Mark",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Frozen Mark"
@@ -20884,7 +20884,7 @@
             },
             {
               "answer": "Lava Stone",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Lava Stone"
@@ -20972,7 +20972,7 @@
           "kind": "talk",
           "target": "Elder Moonpetal",
           "journal": "Return to Elder Moonpetal in the valley.",
-          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Now, choose your path.",
+          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Keep it close.",
           "rewards": {
             "xp": 2814929
           },
@@ -20980,7 +20980,7 @@
           "choices": [
             {
               "answer": "Blood Gale",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Blood Gale"
@@ -20989,7 +20989,7 @@
             },
             {
               "answer": "Power Gale",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Power Gale"
@@ -21077,7 +21077,7 @@
           "kind": "talk",
           "target": "Elder Moonpetal",
           "journal": "Return to Elder Moonpetal in the valley.",
-          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Now, choose your path.",
+          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Keep it close.",
           "rewards": {
             "xp": 2814929
           },
@@ -21085,7 +21085,7 @@
           "choices": [
             {
               "answer": "Spacious Mind",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Spacious Mind"
@@ -21094,7 +21094,7 @@
             },
             {
               "answer": "Power Boon",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Power Boon"
@@ -21182,7 +21182,7 @@
           "kind": "talk",
           "target": "Elder Moonpetal",
           "journal": "Return to Elder Moonpetal in the valley.",
-          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Now, choose your path.",
+          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Keep it close.",
           "rewards": {
             "xp": 2814929
           },
@@ -21190,7 +21190,7 @@
           "choices": [
             {
               "answer": "Blazing Clash",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Blazing Clash"
@@ -21199,7 +21199,7 @@
             },
             {
               "answer": "Mental Focus",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Mental Focus"
@@ -21287,7 +21287,7 @@
           "kind": "talk",
           "target": "Elder Moonpetal",
           "journal": "Return to Elder Moonpetal in the valley.",
-          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Now, choose your path.",
+          "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Keep it close.",
           "rewards": {
             "xp": 2814929
           },
@@ -21295,7 +21295,7 @@
           "choices": [
             {
               "answer": "Student's Knack",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Student's Knack"
@@ -21304,7 +21304,7 @@
             },
             {
               "answer": "Klik'Anon Cocktail",
-              "says": "Then it is yours.",
+              "says": "A happy choice! It is yours, little friend.",
               "rewards": {
                 "items": [
                   "Klik'Anon Cocktail"

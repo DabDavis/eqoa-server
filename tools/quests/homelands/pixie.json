@@ -342,9 +342,10 @@
       "journal": "Bring the two war-talons to Warden Halvek at the Eyrie outpost.",
       "says": "Feyla's pixie, with two talons? The raiders will know the river is watched. Fly home, little one. Your elder is waiting."
     },
+    "picked": "Ooh, lovely! It is yours, little spark.",
     "final": {
       "journal": "Return to Elder Brightwing in the thicket.",
-      "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Now, one thing more: choose your path."
+      "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Shine well, little one."
     }
   }
 }

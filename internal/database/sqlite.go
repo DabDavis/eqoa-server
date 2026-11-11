@@ -1050,6 +1050,21 @@ func (s *SQLiteCharacterStore) SetProgress(serverID uint32, level, totalXP int) 
 	return nil
 }
 
+// SaveProgress stores a character's level, total experience and experience
+// debt while it plays (entity/progresssave.go), and nothing else of the row
+// (the place stays the logout's).
+func (s *SQLiteCharacterStore) SaveProgress(serverID uint32, level, totalXP, debt int) error {
+	res, err := s.db.Exec(`UPDATE characters SET level = ?, totalXP = ?, debt = ? WHERE serverid = ?`,
+		level, totalXP, debt, serverID)
+	if err != nil {
+		return err
+	}
+	if n, err := res.RowsAffected(); err == nil && n != 1 {
+		return ErrCharacterNotFound
+	}
+	return nil
+}
+
 // SetTrainingPoints stores a character's unspent training points and every
 // one it has been given (entity/training.go), and nothing else of the row.
 func (s *SQLiteCharacterStore) SetTrainingPoints(serverID uint32, unused, total int) error {

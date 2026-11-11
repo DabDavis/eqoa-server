@@ -15,6 +15,8 @@ type Player struct {
 	genie *genieState
 	// portal is the NPC of the portal it opened, 0 for none (summonportal.go)
 	portal EntityID
+	// progressSaved is its figures last written while it plays (progresssave.go)
+	progressSaved progressMark
 
 	// Spatial
 	X, Y, Z float32

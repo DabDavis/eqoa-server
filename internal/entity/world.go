@@ -171,6 +171,8 @@ type World struct {
 
 	// The combat records' counts waiting to be written (combatrecord.go)
 	records combatRecords
+	// The characters whose level and experience wait to be written (progresssave.go)
+	progress progressSaves
 
 	// The life taps a necromancer's pets cast, by level (pettap.go)
 	petTaps []PetTap
@@ -1065,6 +1067,7 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 		player.fillOnDing()
 	}
 	if player.Level != startLevel {
+		w.queueProgressLocked(player) // written at the next tick, not at the logout alone (progresssave.go)
 		for _, fn := range w.onLevelUp {
 			fn(sess, player)
 		}

@@ -531,6 +531,7 @@ func TestTheMasterLooterHoldsTheCorpse(t *testing.T) {
 		t.Fatal("the raid was not told")
 	}
 	r.f.h.MasterAbandon(r.sess[0])
+	r.f.h.HandleLootClose(r.sess[0], nil) // one looter at a time (lootrights.go)
 	r.drain()
 	r.f.h.OpenCorpse(r.sess[1], r.f.npc)
 	got = r.msgs(1)

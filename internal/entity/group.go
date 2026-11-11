@@ -58,6 +58,13 @@ type Group struct {
 	rules raidRules
 }
 
+// GroupIDOf is p's group's id (a raid's too), 0 for none.
+func (w *World) GroupIDOf(p *Player) uint32 {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return p.GroupID
+}
+
 // GroupMembers is p's group's members (the leader first), or none.
 func (w *World) GroupMembers(p *Player) []*Player {
 	w.mu.RLock()

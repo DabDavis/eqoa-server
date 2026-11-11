@@ -172,5 +172,181 @@
     "declined": "Halas is cold. It will still be cold tomorrow.",
     "started": "Fight well, and do not let the cold bite!",
     "journal": "Tell Gatekeeper Thrakka when you are ready to go to Halas."
+  },
+  "L7": {
+    "name": "Blood on the Snow",
+    "giver": "Warleader Krugg",
+    "offer": [
+      "You are no whelp now. But a warrior who has fought only in Thedruk has fought nothing. The Homelands keep a hunters' outpost at the Goldfeather Eyrie. Go and bleed there.",
+      "Ride Dursh's coach to the Eyrie. Kill drift rats and snowfield badgers on the snow east of the outpost. Bring me two furs and two pelts.",
+      "Will you fight on the snow?"
+    ],
+    "accept": "I will fight there.",
+    "decline": "Not now.",
+    "declined": "Then sit by the fire with the old ones.",
+    "started": "Dursh's coach. Then the snow. Move.",
+    "hunts": [
+      {
+        "target": "drift rat",
+        "count": 2,
+        "drop": {
+          "name": "drift rat fur",
+          "description": "A clump of white fur from a drift rat of the Goldfeather Eyrie's snow.",
+          "like": "clump of rat fur"
+        },
+        "hunt": {
+          "journal": "Take two clumps of drift rat fur from the drift rats east of the Eyrie outpost."
+        }
+      },
+      {
+        "target": "snowfield badger",
+        "count": 2,
+        "drop": {
+          "name": "snowfield badger pelt",
+          "description": "The thick pelt of a snowfield badger of the Goldfeather Eyrie.",
+          "like": "beast pelt"
+        },
+        "hunt": {
+          "journal": "Take two snowfield badger pelts from the badgers on the snow east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring the drift rat fur and the badger pelts to Warleader Krugg.",
+      "says": "Two furs, two pelts, and you still stand. Good. The cold makes a warrior. Watch, and learn this."
+    }
+  },
+  "L10": {
+    "name": "A Warrior's Weapon",
+    "giver": "Warleader Krugg",
+    "offer": [
+      "The weapon I gave a whelp is a whelp's weapon. You need a real one, and the Eyrie outpost has what I need.",
+      "Quartermaster Dunmore keeps ore and leather at the outpost. Then take two talons from the pale owls north of it. They make a spike that does not break.",
+      "Will you bring me the ore, the leather and the talons?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then fight with the whelp's weapon, and lose.",
+    "started": "Ore and leather from Dunmore. Talons from the owls. Move.",
+    "materials": [
+      {
+        "merchant": "Quartermaster Dunmore",
+        "items": [
+          "iron ore",
+          "leather strip"
+        ],
+        "journal": "Ask Quartermaster Dunmore at the Eyrie outpost for the iron ore and the leather strip.",
+        "says": "Krugg of Thedruk? His word came by the coach, and not politely. Here: ore and a strip of leather. Tell him he still owes me for the last lot."
+      }
+    ],
+    "target": "pale owl",
+    "count": 2,
+    "drop": {
+      "name": "pale owl talon",
+      "description": "A curved black talon from a pale owl of the Goldfeather Eyrie.",
+      "like": "chipped eagle talon"
+    },
+    "hunt": {
+      "journal": "Take two pale owl talons from the pale owls north of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the iron ore, the leather strip and the pale owl talons to Warleader Krugg.",
+      "says": "All of it. Stand back... iron, leather, and the talons for a spike. There. It is yours. Break it and you fetch more."
+    }
+  },
+  "L13": {
+    "name": "Thin the Litter",
+    "giver": "Warleader Krugg",
+    "offer": [
+      "The frostpaw cubs north of the Eyrie outpost, past the river, are growing fat. Cubs grow into cats, and cats grow into Frostjaws.",
+      "Kill six of them before they grow. A warrior does not wait for a fight to get bigger.",
+      "Will you kill six frostpaw cubs?"
+    ],
+    "accept": "I will kill them.",
+    "decline": "Not yet.",
+    "declined": "Then they grow. Your choice.",
+    "started": "North, past the river. Six. Count them.",
+    "kind": "kill",
+    "target": "frostpaw cub",
+    "count": 6,
+    "hunt": {
+      "journal": "Kill six frostpaw cubs north of the Eyrie outpost, past the river."
+    },
+    "back": {
+      "journal": "Return to Warleader Krugg.",
+      "says": "Six. The outpost's hunters will have fewer cats to fear next winter. Good work, warrior. Learn this."
+    }
+  },
+  "L15": {
+    "name": "The Giant's Fear",
+    "giver": "Warleader Krugg",
+    "offer": [
+      "The Eyrie's warden is a hill giant, Halvek. He sent word by the coach: a thing called the Rimeheart walks the ice caves north-east of his outpost, and his hunters will not go in.",
+      "Thedruk will. Break the Rimeheart, take a shard to Halvek so the giant knows who did it, then come back.",
+      "Will you break the Rimeheart for Thedruk?"
+    ],
+    "accept": "I will break it.",
+    "decline": "Not yet.",
+    "declined": "Then the giant thinks orcs are afraid. Are you?",
+    "started": "Take friends. Even Thedruk does not go in there alone.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "carry": {
+      "target": "Warden Halvek",
+      "journal": "Bring the shard of the Rimeheart to Warden Halvek at the Eyrie outpost.",
+      "says": "An orc of Thedruk broke it? Then I owe Krugg an apology, and a barrel. Tell him so."
+    },
+    "back": {
+      "journal": "Return to Warleader Krugg.",
+      "says": "The giant owes me a barrel? Hah! You have made the camp proud, warrior. Learn this."
+    }
+  },
+  "L20": {
+    "name": "Thedruk's Due",
+    "giver": "Elder Gorruk",
+    "offer": [
+      "Krugg says you fight well. Every warrior of Thedruk stands once at the Eyrie with the other homes and earns their respect in blood. Now it is your turn.",
+      "Go to Warden Halvek at the Eyrie outpost. Do what he asks. Then come back to me and choose your path.",
+      "Will you earn Thedruk's due?"
+    ],
+    "accept": "I will earn it.",
+    "decline": "Not yet.",
+    "declined": "Then the other homes will think little of us.",
+    "started": "Go. Do not shame the camp.",
+    "road": [
+      {
+        "target": "Warden Halvek",
+        "journal": "Find Warden Halvek at the Eyrie outpost.",
+        "says": "Gorruk's warrior. Good. The Goldfeather raiders round the eyrie have grown bold. Bring me three of their war-talons."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 3,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "journal": "Bring the three war-talons to Warden Halvek.",
+      "says": "Three talons, and no limp. The raiders will remember Thedruk. Go home, warrior: your elder waits."
+    },
+    "final": {
+      "target": "Elder Gorruk",
+      "journal": "Return to Elder Gorruk in Thedruk.",
+      "says": "Hm. You went out a whelp and came home a warrior the other homes know. The camp has one thing more for you."
+    },
+    "picked": "Then it is yours. Do not waste it."
   }
 }

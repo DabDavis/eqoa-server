@@ -7,6 +7,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -587,6 +588,7 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 
 	// the look it plays in, before anything reads the character
 	h.keepSelectedLook(record, data)
+	h.keepSelectedOptions(sess, record, data)
 	// the Rock of Freeport, on a server that gives it, before its items are
 	// read (rockfreeport.go)
 	h.giveRockOfFreeport(uint32(record.ServerID), sessionListSizes(sess))
@@ -688,6 +690,57 @@ func (h *CharacterHandler) keepSelectedLook(record *database.CharacterRecord, da
 	log.Printf("SelectedChar: '%s' restyled: face %d -> %d, hair style %d -> %d, length %d -> %d, colour %d -> %d",
 		record.CharName, record.FaceOption, face, record.HairStyle, style, record.HairLength, length, record.HairColor, color)
 	record.FaceOption, record.HairStyle, record.HairLength, record.HairColor = int(face), int(style), int(length), int(color)
+}
+
+// keepSelectedOptions keeps the race options a 0x002A carries after its five
+// ints: a game race's skin shade re-chosen at character select's Customize, by
+// a client that shows them (it answered the race options' offer 2: vanilla
+// since 2026-11-11), as a creation's choices follow 0x002B's fields
+// (raceOptionsBlock). The rows chosen replace the character's charlook rows of
+// those parts (a first step: none, the race's own skin) and every client that
+// asked is told the looks again. A PS2's 0x002A has none; one with bytes that
+// are not a block, a block from a client that was not offered them, or one no
+// such client could make is left unkept.
+func (h *CharacterHandler) keepSelectedOptions(sess *session.Session, record *database.CharacterRecord, data []byte) {
+	if len(data) <= 20 || h.store == nil || h.store.DB() == nil {
+		return
+	}
+	choices, present, ok := raceOptionsBlock(data[20:])
+	if !present {
+		return
+	}
+	if !ok || !sess.RaceSkins() {
+		log.Printf("SelectedChar: '%s' sent race options (%d bytes) its client was not offered or that do not read: not kept", record.CharName, len(data)-20)
+		return
+	}
+	db := h.store.DB()
+	have, err := db.CharLooks(uint32(record.ServerID))
+	if err != nil {
+		log.Printf("SelectedChar: '%s' looks: %v", record.CharName, err)
+		return
+	}
+	looks, parts, err := entity.ReselectOptions(record.Race, record.Sex, have, choices)
+	if err != nil {
+		log.Printf("SelectedChar: '%s' race options %v not kept: %v", record.CharName, choices, err)
+		return
+	}
+	if slices.Equal(looks, have) {
+		return
+	}
+	var mine []database.CharLook
+	for _, l := range looks {
+		if slices.Contains(parts, l.Part) {
+			mine = append(mine, l)
+		}
+	}
+	if err := db.SetCharLookParts(uint32(record.ServerID), parts, mine, "customize"); err != nil {
+		log.Printf("SelectedChar: '%s' race options not kept: %v", record.CharName, err)
+		return
+	}
+	log.Printf("SelectedChar: '%s' re-chose %v: %d looks", record.CharName, choices, len(looks))
+	if h.gameWorld != nil {
+		h.gameWorld.RefreshRaceLooks(db)
+	}
 }
 
 // enterFromRecord builds the character's Player from its row, as a login

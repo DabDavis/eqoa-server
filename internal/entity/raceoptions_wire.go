@@ -20,9 +20,17 @@ const raceOptionsVersion = 1
 
 // optionRaces is every race with options, by id: each racedefs row whose own
 // body has rows, and the froglok while creation offers it (a server that does
-// not has no froglok of its own to dress).
-func optionRaces() []int {
+// not has no froglok of its own to dress); with games, the game's races' too
+// (their skin shades, on a server that offers them: skinshades.go).
+func optionRaces(games bool) []int {
 	var out []int
+	if games {
+		for race := range 10 {
+			if len(RaceOptions(race)) > 0 {
+				out = append(out, race)
+			}
+		}
+	}
 	if Creation().Races && len(RaceOptions(raceFroglok)) > 0 {
 		out = append(out, raceFroglok)
 	}
@@ -71,12 +79,20 @@ func wireSteps(b []byte, steps []OptionStep) []byte {
 // HasRaceOptions reports whether any race here has options: a server with none
 // offers nothing, so its lists go as they always did.
 func HasRaceOptions() bool {
-	return len(optionRaces()) > 0
+	return len(optionRaces(true)) > 0
 }
 
-// EncodeRaceOptions is OpcodeRaceOptionsData's body: every race's options.
+// EncodeRaceOptions is OpcodeRaceOptionsData's body: every race's options
+// but the game's races' (a client that answered the offer 1).
 func EncodeRaceOptions() []byte {
-	races := optionRaces()
+	return EncodeRaceOptionsFor(false)
+}
+
+// EncodeRaceOptionsFor is OpcodeRaceOptionsData's body: every race's options,
+// with games the game's races' too (a client that answered the offer 2 shows
+// them under the four; one that answered 1 would show them instead).
+func EncodeRaceOptionsFor(games bool) []byte {
+	races := optionRaces(games)
 	if len(races) > 255 {
 		races = races[:255]
 	}
@@ -208,7 +224,7 @@ func SendRaceOptions(sess *session.Session) bool {
 	if !sess.TakeRaceCatalogue() {
 		return false
 	}
-	body := EncodeRaceOptions()
+	body := EncodeRaceOptionsFor(sess.RaceSkins())
 	sess.Queue().AddWithSequence(RaceOptionsMessage(body))
 	log.Printf("RaceOptions: %s told %d races' options, %d bytes", sess.RemoteAddr(), int(body[1]), len(body))
 	return true

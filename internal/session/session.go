@@ -171,8 +171,14 @@ type Session struct {
 	// they differ from raceLooksSent, the list it was last sent.
 	raceOptionsOffered bool
 	raceLooks          bool
-	raceCatalogueSent  bool
-	raceLooksSent      string
+	// raceSkins: the client answered the offer 2 or more, so its create pages
+	// show a game race's own rows beside the game's four (the core races' skin:
+	// entity/raceoptions.go), and it is sent them; one that answered 1 (vanilla
+	// before 2026-11-11) shows a race's rows instead of the four and is sent
+	// none of a game race's.
+	raceSkins         bool
+	raceCatalogueSent bool
+	raceLooksSent     string
 	// creationAsked: the client answered creation's offer 1
 	// (protocol.OpcodeCreationOffer, handlers/creation.go), so a login's world
 	// entry sends it creation's races again (handlers/raceoptions.go)
@@ -582,12 +588,28 @@ func (s *Session) OfferRaceOptionsOnce() bool {
 // SetRaceLooks records the client's answer to the race options' offer: on, it
 // is sent the options and the looks; off, nothing more.
 func (s *Session) SetRaceLooks(on bool) {
+	s.SetRaceLooksLevel(map[bool]uint32{true: 1}[on])
+}
+
+// SetRaceLooksLevel records the client's answer to the race options' offer as
+// it gave it: 0 nothing more, 1 the options and the looks, 2 or more a game
+// race's rows too (RaceSkins).
+func (s *Session) SetRaceLooksLevel(level uint32) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.raceLooks = on
-	if !on {
+	s.raceLooks = level != 0
+	s.raceSkins = level >= 2
+	if !s.raceLooks {
 		s.raceLooksSent = ""
 	}
+}
+
+// RaceSkins is whether the client answered the race options' offer 2 or more:
+// it shows a game race's rows (the skin) beside the game's four.
+func (s *Session) RaceSkins() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.raceSkins
 }
 
 // RaceLooks is whether the client asked for the races' options and looks. A

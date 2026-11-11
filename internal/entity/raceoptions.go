@@ -426,9 +426,13 @@ var raceOptionRows = map[uint32][]OptionRow{
 }
 
 // RaceOptions is race's rows: those of its own male body (racedefs', the
-// froglok's); none for a race with no body of the table's, a game race, or a
-// server that offers no races.
+// froglok's); a game race's skin shades (skinshades.go) on a server that
+// offers them; none for a race with no body of the table's, or a server that
+// offers no races.
 func RaceOptions(race int) []OptionRow {
+	if isGameRace(race) {
+		return gameRaceRows(race)
+	}
 	return raceOptionRows[uint32(raceOwnBody(race, 0))]
 }
 

@@ -280,6 +280,15 @@ type WorldConfig struct {
 	OpenRaces  bool `yaml:"open_races"`
 	AllClasses bool `yaml:"all_classes"`
 
+	// SkinShades offers the game's ten races more skin shades (the owner,
+	// 2026-11-11: "humans, ogres, gnomes, elfs, etc. can have dark skin like
+	// erudites, erudites can have light skin like humans"): a skin row in the
+	// races' options (entity/raceoptions.go) to a client that shows a game
+	// race's rows beside the four (vanilla since 2026-11-11), kept in charlook
+	// and told to every client that asked for the looks. Unset, off: no game
+	// race has a row. A PS2 draws every character in its race's own skin.
+	SkinShades bool `yaml:"skin_shades"`
+
 	// PackSlots and BankSlots are how many records the pack (worn items among
 	// them, as CLIENT counts its 40) and the bank hold for a client that holds
 	// more than CLIENT's 40 (vanilla), which is offered them after the first

@@ -634,6 +634,11 @@ const (
 	// first character list; a client that can answers 1 (0 to stop) and is sent
 	// the options each race has (OpcodeRaceOptionsData, once a session) and the
 	// looks the characters chose (OpcodeRaceLooks, then whenever they change). A
+	// client that answers 2 (vanilla since 2026-11-11) shows a game race's rows
+	// under the four as well (the skin shades, entity/skinshades.go), so it alone
+	// is sent the game races' (one that answered 1 showed a race's rows instead of
+	// the four), and its 0x002A may carry a re-chosen row after its five ints, in
+	// the 0x002B choices' form ('R', version, count, key and step each). A
 	// PS2 ignores the offer: a body chosen is the character's model on every
 	// client, and nothing else of a look reaches one.
 	OpcodeRaceOptions GameOpcode = 0x7E22

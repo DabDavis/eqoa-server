@@ -56,16 +56,20 @@ func (h *RaceOptionsHandler) RegisterHandlers(r *Registry) {
 }
 
 // HandleRaceOptions makes the client's answer the session's: a u32, nonzero to
-// be sent the races' options and the looks, 0 to stop. On, both go out at once.
+// be sent the races' options and the looks, 0 to stop; 2 or more, a client
+// that shows a game race's rows (the skin shades) under the four, which is sent
+// them too and may re-choose them with 0x002A (selectedRaceOptions). On, both
+// go out at once.
 func (h *RaceOptionsHandler) HandleRaceOptions(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	if len(data) < 4 {
 		log.Printf("RaceOptions: short (%d bytes) from %s", len(data), sess.RemoteAddr())
 		return nil
 	}
-	on := binary.LittleEndian.Uint32(data[:4]) != 0
-	sess.SetRaceLooks(on)
-	log.Printf("RaceOptions: %s %s", sess.RemoteAddr(), map[bool]string{true: "shows them", false: "stopped"}[on])
+	level := binary.LittleEndian.Uint32(data[:4])
+	on := level != 0
+	sess.SetRaceLooksLevel(level)
+	log.Printf("RaceOptions: %s %s (answered %d)", sess.RemoteAddr(), map[bool]string{true: "shows them", false: "stopped"}[on], level)
 	if on {
 		entity.SendRaceOptions(sess)
 		h.world.RefreshRaceLooks(h.db, sess)

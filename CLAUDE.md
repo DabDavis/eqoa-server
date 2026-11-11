@@ -1736,7 +1736,12 @@ vanilla draws the wisp and its cape alone and a PS2 a bare human with empty hand
 form) all of it shows, and the race looks (0x7E24) leave the Wisp's wisp row out while it is so (a Human glamour is its own
 model): the state tick notes the Wisps in another form and re-sends the looks from `RefreshRaceLooks`' last read. Its
 racials (Will-of-the-Wisp, Trickster Flame: the six CM glamours + Remove Illusion) and Master Class Transcendent are
-cmcatalog 2141-2145, `tools/wisp_kit_20261111.py`.
+cmcatalog 2141-2145, `tools/wisp_kit_20261111.py`. **Wisp's Raiment** (spell 906720, Trickster Flame's,
+`tools/wisp_raiment_20261111.py`; workbook kind `raiment` = `EffectRaiment`, `EffectRules.Raiment`): the own form in all its
+gear (the wisp kept in the looks); ended as an illusion is (`endIllusionsLocked`: Remove Illusion, a glamour). An invisible
+Wisp in its own body keeps its cape in others' capes (`capesInViewLocked`). The Class Mastery window keeps its opening's
+parent keys: a buy/remove that changes them sends Recv08 again BEFORE its reply (`listAgain`; a master class made buyable
+in the window had hung its second ability under its first).
 - **Kept**: a body chosen is `characters.modelid`, which every client draws (a PS2 too), the entity channel's scale its size
   against the race's own (`Player.Body`: `OptionBodySize`); a colour or a texture past a row's first step is a **`charlook`**
   row (serverid, part = the row's key, kind 2/3, value), which only a client that asked is told. A character with no row and

@@ -176,9 +176,9 @@ type questChar struct {
 	// qstate is what the World was last told of its walls and items
 	// (questwalls.go)
 	qstate questState
-	quests   map[int]*database.CharQuest
-	token    uint32
-	box      *questBox
+	quests map[int]*database.CharQuest
+	token  uint32
+	box    *questBox
 	// shown is the journal as the client has it: the MemoryDump's lines, each
 	// 0x007C and 0x007D since (redrawLocked)
 	shown []string

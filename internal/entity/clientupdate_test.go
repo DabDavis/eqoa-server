@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/session"
 	"math"
 	"testing"
@@ -318,5 +319,35 @@ func TestDrowningTakesATenthOfTheMaximum(t *testing.T) {
 	}
 	if got := drowningDamage(&Player{HP: 4, MaxHP: 4}); got != 1 {
 		t.Errorf("a maximum of 4 loses %d a step, want 1", got)
+	}
+}
+
+// Hold Breath (the owner, 2026-11-11: "hold breathe 1-5 need to be looked
+// at"): a player whose ranks give Breath:100 loses its breath half as fast,
+// a step every 12 s, 96 s in all; a rank's "Breath:N" is read into the sum.
+func TestHoldBreathMakesTheBreathLastLonger(t *testing.T) {
+	w := NewWorld()
+	w.SessionManager = session.NewManager()
+	p := &Player{ServerID: 7, HP: 50, MaxHP: 50, Breath: BreathFull, WalkFlags: 0x0004, HasWalkFlags: true, CMBreathPct: 100}
+	w.Players[p.ServerID] = p
+	calls := 0
+	for p.Breath > 0 && calls < 1000 {
+		w.TickCount = 6
+		w.breathSystem(time.Now())
+		calls++
+	}
+	if calls != 8*20 { // 8 steps of 12 s, a call every 0.6 s
+		t.Fatalf("breath ran out after %d calls (%.1f s), want 160 (96 s)", calls, float64(calls)*0.6)
+	}
+	w.SetCMCatalog([]database.CMRankRow{{ID: 281, Name: "Hold Breath 1", Rank: 1, Effects: "Breath:20", Enabled: true, Classes: 32767, Races: 2047}})
+	cat := w.cms
+	r := cat.byID[281]
+	if r == nil || r.BreathPct != 20 {
+		t.Fatalf("Breath:20 read as %+v", r)
+	}
+	q := &Player{CMs: map[int]int{281: 1}}
+	q.refreshCMLocked(cat)
+	if q.CMBreathPct != 20 {
+		t.Fatalf("one rank of Breath:20 sums to %d", q.CMBreathPct)
 	}
 }

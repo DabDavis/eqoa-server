@@ -135,9 +135,13 @@ type CMRank struct {
 	// NoWereIllusion keeps its owner in its own body under a were form
 	// (effects "NoWereIllusion:1", no slot of the window's: wereownbody.go)
 	NoWereIllusion bool
-	Adds, Removes  []CMAbility
-	Description    string
-	Enabled        bool
+	// BreathPct makes its owner's breath last longer under water: each 6 s
+	// step of it taken BreathPct% later (effects "Breath:N", no slot of the
+	// window's: the Hold Breath line, the owner 2026-11-11)
+	BreathPct     int
+	Adds, Removes []CMAbility
+	Description   string
+	Enabled       bool
 }
 
 // BookChange is what buying the rank does to the spell book: the abilities
@@ -219,6 +223,9 @@ func ParseCMRank(r database.CMRankRow) *CMRank {
 		}
 		if k == cmNoWereIllusion && v > 0 {
 			c.NoWereIllusion = true
+		}
+		if k == "breath" && v > 0 {
+			c.BreathPct += v
 		}
 	}
 	c.Requires = parseAbilities(r.Requires, r.RequireSpells)
@@ -353,6 +360,7 @@ func (r *CMRank) OfferedTo(class, race int) bool {
 func (p *Player) refreshCMLocked(cat *cmCatalog) {
 	var s [CMSlots]int
 	ownBody := false
+	breath := 0
 	if cat != nil {
 		for id := range p.CMs {
 			if r := cat.byID[id]; r != nil {
@@ -360,9 +368,11 @@ func (p *Player) refreshCMLocked(cat *cmCatalog) {
 					s[i] += v
 				}
 				ownBody = ownBody || r.NoWereIllusion
+				breath += r.BreathPct
 			}
 		}
 	}
+	p.CMBreathPct = breath
 	p.CMEffects = s
 	p.MoveRateBonus = s[cmSlotMoveRate]
 	p.WereOwnBody = ownBody

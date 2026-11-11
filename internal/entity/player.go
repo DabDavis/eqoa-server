@@ -131,6 +131,9 @@ type Player struct {
 	// WereOwnBody is whether a rank it owns keeps it in its own body under a
 	// were form (NoWereIllusion, wereownbody.go), summed with CMEffects
 	WereOwnBody bool
+	// CMBreathPct is how much longer its breath lasts under water, in percent,
+	// from the ranks it owns (CMRank.BreathPct: Hold Breath)
+	CMBreathPct int
 
 	// Currency
 	Tunar, BankTunar int

@@ -319,7 +319,10 @@ func (w *World) mercLeaveGroupLocked(ms *mercState) {
 			g.Members = append(g.Members[:i], g.Members[i+1:]...)
 			delete(g.lastRoster, id)
 			log.Printf("Group: %s's mercenary %q left group %d (%d left)", ms.owner.Name, ms.npc.Name, g.ID, len(g.Members))
-			w.raidLeftLocked(g, ms.npc.Name)
+			// no "left the raid group" line for a merc: a merc dying in a raid
+			// read as a player leaving (the owner, 2026-11-11: "dont show it in
+			// the raid chat as them leaving, it looks like a player left and is
+			// confusing"); its owner is told its own line (died, dismissed)
 			w.shrinkLocked(g)
 			return
 		}

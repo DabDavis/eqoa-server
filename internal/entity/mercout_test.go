@@ -3,6 +3,7 @@ package entity
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -159,4 +160,37 @@ func (r *mercRig) told(line string) bool {
 		found = found || bytes.Contains(m.Data(), want)
 	}
 	return found
+}
+
+// A merc dying in a raid group says nothing to the raid (the owner,
+// 2026-11-11: "dont show it in the raid chat as them leaving, it looks like a
+// player left"): it leaves the group, its owner is told it died, and no member
+// hears "<merc> left the raid group". The control: the raid's own line for a
+// player leaving is raidLeftLocked's, unchanged (raid_test.go).
+func TestAMercDyingInARaidSaysNothingToTheRaid(t *testing.T) {
+	r := newMercRig(t)
+	ms := r.hire(r.kit(0, 0, 0), MercAssist)
+	r.w.mu.Lock()
+	g := r.w.groups[r.p.GroupID]
+	if g == nil || !groupHas(g, ms.npc.ServerID) {
+		r.w.mu.Unlock()
+		t.Fatal("the merc is not in its owner's group")
+	}
+	g.raid = true
+	drain(r.sess)
+	r.w.mercDiedLocked(ms, r.sess, r.at(time.Second))
+	stillIn := groupHas(g, ms.npc.ServerID)
+	r.w.mu.Unlock()
+	if stillIn {
+		t.Fatal("the dead merc is still in the group")
+	}
+	got := linesOf(drain(r.sess))
+	for _, l := range got {
+		if strings.Contains(l, "left the raid group") {
+			t.Errorf("the raid was told %q", l)
+		}
+	}
+	if !hasLine(got, fmt.Sprintf(mercDiedLine, ms.npc.Name, int(MercRest/time.Second))) {
+		t.Errorf("the owner was not told it died: %q", got)
+	}
 }

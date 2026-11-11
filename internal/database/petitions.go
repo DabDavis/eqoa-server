@@ -122,6 +122,9 @@ type Petition struct {
 	// view of the moment it was filed; scanPetition never reads it back
 	// (PetitionServerView does).
 	ServerView string `json:"-"`
+	// NoAnswer files it open but not waiting on a GM (FilePetition): a
+	// client's crash report, which asks the player nothing.
+	NoAnswer bool `json:"-"`
 }
 
 // AnswerUnread is whether a GM answered and the player has not opened the
@@ -207,7 +210,8 @@ func (db *SQLiteDB) PlayerPetitions(serverID uint32, now time.Time) ([]Petition,
 }
 
 // FilePetition files a petition for a character (p's serverid, name, account,
-// category, subcategory and text), open, unread and waiting on a GM; refused
+// category, subcategory and text), open, unread and waiting on a GM (not with
+// p.NoAnswer); refused
 // with ErrTooManyPetitions when it has PetitionsKept listed already.
 func (db *SQLiteDB) FilePetition(p Petition, now time.Time) (Petition, error) {
 	tx, err := db.Begin()
@@ -229,8 +233,8 @@ func (db *SQLiteDB) FilePetition(p Petition, now time.Time) (Petition, error) {
 	}
 	stamp := petitionStamp(now)
 	res, err := tx.Exec(`INSERT INTO petitions (serverid, charname, accountid, category, subcategory, filed, text,
-		unread, status, waiting, updated, server_view) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 'open', 1, ?, ?)`,
-		p.ServerID, p.CharName, p.AccountID, p.Category, p.Subcategory, stamp, p.Text, stamp, p.ServerView)
+		unread, status, waiting, updated, server_view) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 'open', ?, ?, ?)`,
+		p.ServerID, p.CharName, p.AccountID, p.Category, p.Subcategory, stamp, p.Text, !p.NoAnswer, stamp, p.ServerView)
 	if err != nil {
 		return Petition{}, err
 	}

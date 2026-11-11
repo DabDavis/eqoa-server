@@ -948,6 +948,9 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// Offer the bug report key and note (bugreport.go): vanilla shows F3 and
 	// sends its note with each petition, a PS2 ignores it
 	SendBugReportOffer(sess)
+	// and to take its crash reports (crashreport.go): vanilla sends the one it
+	// kept of its last crash, a PS2 ignores it
+	SendCrashReportOffer(sess)
 
 	// Any member invites into its group here (group.go): vanilla drops the
 	// leader-only rule, a PS2 ignores the offer

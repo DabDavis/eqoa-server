@@ -25,7 +25,19 @@ import (
 // one's world), as a GM trigger's spawn is: a Temporary NPC, his template's with it. One stands at a
 // time, on the whole server. He rises at his original's spot when that is within MetalRiseNear of the
 // Mr. Moogie asked (the data puts it beside him), else MetalRiseOut from Mr. Moogie toward the
-// challenger, on the ground's floor there, facing the challenger, and goes for the challenger at once.
+// challenger, on the ground's floor there, facing the challenger.
+//
+// The fight starts after a countdown (the GM Jibrish's petition 1623: "when moogie spawns, he should be
+// immune for 5 seconds. A count down should start in the chat saying "Fight starts in 5" "4" etc. On
+// "FIGHT" metal moogie should attack the challenger with the same duel mechanics"): for MetalCountdown
+// seconds from his rising he is held (npcChallenge.held): no one, the challenger and its pet included,
+// may hurt him (a swing is not engaged, a harmful spell refused, an area passes him by, a pet will not
+// go for him; the challenger is told MetalLineWait, anyone else his duel is another's), he holds no hate,
+// attacks no one and notices no one. The challenger alone is told the count in chat, one line a second
+// on the world's tick (metalMoogieSystem): MetalLineCount, then MetalLineCountN down to 1, then
+// MetalLineFight, at which he goes for the challenger and every rule below is the duel's as before. The
+// countdown is the duel's: a challenger who leaves, flees or is brought to nothing during it ends it as
+// below (a restart ends it as it ends any duel: he is a Temporary NPC, not kept).
 //
 // The duel is the challenger's and his alone, as a duel's two are each other's (duel.go):
 //   - only the challenger, and the challenger's own pet, may hurt him: anyone else's melee is not
@@ -85,6 +97,10 @@ const (
 	metalSpareFor = time.Second
 	// metalRiseFloor is how far from his spot's height the ground's floor may be for him to stand on it.
 	metalRiseFloor float32 = 20
+	// MetalCountdown is the count from his rising to the fight, in seconds (petition 1623), a line each.
+	MetalCountdown = 5
+	// metalCountStep is the time between the countdown's lines.
+	metalCountStep = time.Second
 )
 
 // The challenge's words (ours), Mr. Moogie's in his voice ("I am king of this jungle").
@@ -104,6 +120,11 @@ const (
 	MetalLineFled    = "You fled the duel. Metal Moogie returns to Mr. Moogie's side."
 	MetalLineTime    = "The duel has gone on too long. Metal Moogie returns to Mr. Moogie's side."
 	MetalLineLoot    = "Metal Moogie's tribute is %s's alone."
+	// the countdown (petition 1623, Jibrish's words): the first line, each second after it, the start
+	MetalLineCount  = "Fight starts in %d"
+	MetalLineCountN = "%d"
+	MetalLineFight  = "FIGHT!"
+	MetalLineWait   = "The fight has not begun. Wait for FIGHT!"
 	// MetalSayPathetic is Mr. Moogie's /say at a challenger's defeat (petition 1380)
 	MetalSayPathetic = "Pathetic, %s! My metal twin barely warmed its gears. Come back when you are worthy of the king of this jungle."
 )
@@ -115,6 +136,8 @@ type npcChallenge struct {
 	who    *Player
 	char   uint32
 	name   string
+	// held is the countdown before the fight (petition 1623): no one may hurt him, he hurts no one
+	held bool
 }
 
 // metalDuel is the Metal Moogie standing: his NPC and its name, the Mr. Moogie who sent him, the arena's
@@ -127,6 +150,9 @@ type metalDuel struct {
 	world   uint8
 	x, y, z float32
 	began   time.Time
+	// count is the countdown's next number to say (MetalCountdown down to 1, 0 for FIGHT), at next
+	count int
+	next  time.Time
 }
 
 // metalOriginalLocked is the spawn-only NPC of his name, nil when the server has none. Must be called
@@ -227,13 +253,13 @@ func (w *World) metalChallenge(sess *session.Session, moogie EntityID, name, ris
 	}
 	facing := headingTo(p.X-x, p.Z-z)
 	c := w.spawnCopyLocked(t, x, y, z, facing, m.World)
-	ch := &npcChallenge{player: p.ServerID, who: p, char: p.CharServerID, name: p.Name}
+	ch := &npcChallenge{player: p.ServerID, who: p, char: p.CharServerID, name: p.Name, held: true}
 	c.challenge = ch
 	c.NPCType &^= 0x80 // the challenger's to fight
 	c.EventAggro = false
-	w.addThreatLocked(c, p.ServerID, 1) // he goes for the challenger at once
+	// no hate yet: he goes for the challenger at the countdown's FIGHT (metalMoogieSystem, petition 1623)
 	w.metal = &metalDuel{npc: c.ServerID, name: c.Name, moogie: m.ServerID, c: ch, world: m.World,
-		x: (x + p.X) / 2, y: (y + p.Y) / 2, z: (z + p.Z) / 2, began: now}
+		x: (x + p.X) / 2, y: (y + p.Y) / 2, z: (z + p.Z) / 2, began: now, count: MetalCountdown, next: now}
 	log.Printf("Metal Moogie: %s challenges Mr. Moogie: %s (%d, level %d, %d HP, size %.2f, template %q) rises at (%.1f, %.1f, %.1f)",
 		p.Name, c.Name, c.ServerID, c.Level, c.MaxHP, c.Size, c.TemplateName(), x, y, z)
 	return fmt.Sprintf(rises, p.Name), true
@@ -273,16 +299,23 @@ func (w *World) metalSparesLocked(npc *NPC, id EntityID) bool {
 	return npc != nil && w.metalDuelOfLocked(id) && strings.EqualFold(strings.TrimSpace(npc.Name), MoogieName)
 }
 
-// challengeBars reports whether npc is a Metal Moogie that player id may not hurt (another's to fight):
-// id a player, or the owner of the pet that would.
+// challengeBars reports whether npc is a Metal Moogie that player id may not hurt: another's to fight, or
+// anyone's during the countdown (petition 1623); id a player, or the owner of the pet that would.
 func challengeBars(npc *NPC, id EntityID) bool {
-	return npc != nil && npc.challenge != nil && npc.challenge.player != id
+	return npc != nil && npc.challenge != nil && (npc.challenge.held || npc.challenge.player != id)
 }
 
-// challengeRefusal is the line for one barred from a Metal Moogie (challengeBars), "" for none.
+// duelHeld reports whether n is a Metal Moogie in his countdown (petition 1623): nothing hurts him.
+func (n *NPC) duelHeld() bool { return n != nil && n.challenge != nil && n.challenge.held }
+
+// challengeRefusal is the line for one barred from a Metal Moogie (challengeBars), "" for none: the
+// challenger during the countdown is told to wait.
 func challengeRefusal(npc *NPC, id EntityID) string {
 	if !challengeBars(npc, id) {
 		return ""
+	}
+	if npc.challenge.player == id {
+		return MetalLineWait
 	}
 	return fmt.Sprintf(duelLine(MetalLineNotYour, npc), npc.challenge.name)
 }
@@ -431,6 +464,10 @@ func (w *World) metalMoogieSystem(now time.Time) {
 		}
 		return
 	}
+	if d.c.held {
+		w.metalCountLocked(d, npc, p, sess, now)
+		return
+	}
 	if now.Sub(d.began) >= MetalMaxTime {
 		w.endMetalLocked("time", now)
 		if sess != nil {
@@ -442,6 +479,38 @@ func (w *World) metalMoogieSystem(now time.Time) {
 		w.addThreatLocked(npc, p.ServerID, 1) // let go (a feigned death, an invisibility): taken up again
 		npc.CurrentEnemy = p.ServerID
 	}
+}
+
+// metalCountLocked is the countdown's tick (petition 1623): its next line to the challenger when its
+// second has come, "Fight starts in 5", "4" .. "1" a second apart, then "FIGHT!", at which the hold ends
+// and he goes for the challenger. Must be called with the lock held.
+func (w *World) metalCountLocked(d *metalDuel, npc *NPC, p *Player, sess *session.Session, now time.Time) {
+	if now.Before(d.next) {
+		return
+	}
+	line := MetalLineFight
+	switch {
+	case d.count == MetalCountdown:
+		line = fmt.Sprintf(MetalLineCount, d.count)
+	case d.count > 0:
+		line = fmt.Sprintf(MetalLineCountN, d.count)
+	}
+	if sess != nil {
+		w.sendColoredLocked(sess, line, duelOrange)
+	}
+	if d.count > 0 {
+		d.count--
+		d.next = d.next.Add(metalCountStep)
+		if !d.next.After(now) {
+			d.next = now.Add(metalCountStep) // a late tick: a second from this one, never two lines at once
+		}
+		return
+	}
+	d.c.held = false
+	npc.Threats = nil
+	w.addThreatLocked(npc, p.ServerID, 1) // he goes for the challenger now, the duel's rules as before
+	npc.CurrentEnemy = p.ServerID
+	log.Printf("Metal Moogie: %s's duel with %s begins (FIGHT, %v after he rose)", d.c.name, d.name, now.Sub(d.began).Round(time.Millisecond))
 }
 
 // metalLeavingLocked is p leaving the world: its duel ends at once, before the id is another's. Must be

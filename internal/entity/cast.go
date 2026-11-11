@@ -1815,6 +1815,9 @@ func (w *World) spellHitHateLocked(caster *Player, casterSess *session.Session, 
 		w.dummyEngagedLocked(npc, caster.ServerID, n, time.Now())
 		return false
 	}
+	if npc.duelHeld() {
+		return false // a Metal Moogie's countdown: nothing lands (metalmoogie.go, petition 1623)
+	}
 	n = w.dealtLocked(npc, caster, n) // balance.go
 	npc.HP = max(npc.HP-n, 0)
 	w.tellAmountLocked(caster, casterSess, npc.ServerID, -n, kind)

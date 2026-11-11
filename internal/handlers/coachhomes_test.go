@@ -235,3 +235,23 @@ func TestTheHomesAreTheServersWorldsZones(t *testing.T) {
 		t.Errorf("with no server worlds the homes' stables are %q", got)
 	}
 }
+
+// The homes' shared ground (the owner, 2026-11-11: a zone "shared by all the
+// homeland races, so players can group together") is no race's home and has a
+// stable all the same: a recipe's zone marked stable is on the homes' network,
+// its coach running to the homes and Freeport, theirs and Freeport's to it. The
+// control: the zone that is no one's and not marked has none.
+func TestTheHomesSharedGroundHasAStable(t *testing.T) {
+	b := homesBuilt()
+	b.Zones = append(b.Zones, worlds.RecipeZone{Name: "Goldfeather Eyrie", Stable: true})
+	b.Parts = append(b.Parts, worlds.BuiltZone{Box: [6]float32{14000, 0, 6000, 16000, 300, 8000}})
+	SetServerWorlds([]worlds.Built{b})
+	t.Cleanup(func() { SetServerWorlds(nil) })
+	want := []string{"Aviak Village", homesMenuGerntar, "Goldfeather Eyrie", "West Plateau"}
+	if got := entity.CoachHomeNames(); !slices.Equal(got, want) {
+		t.Errorf("the homes' stables %q, want %q (the shared ground's among them, No One's Vale not)", got, want)
+	}
+	if !entity.IsCoachHome("Goldfeather Eyrie") || entity.IsCoachHome("No One's Vale") {
+		t.Error("the shared ground is a stable of the homes' network, the unmarked zone is not")
+	}
+}

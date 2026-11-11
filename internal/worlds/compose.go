@@ -101,6 +101,11 @@ type RecipeZone struct {
 	// maker's word for it. Neither changes the file.
 	Race int    `json:"race,omitempty"`
 	Note string `json:"note,omitempty"`
+	// Stable is a zone that is no race's home and has a stable on the homes'
+	// coach network all the same (entity/coachhomes.go): the homes' shared
+	// ground (the owner, 2026-11-11: a zone "shared by all the homeland
+	// races, so players can group together"). It does not change the file.
+	Stable bool `json:"stable,omitempty"`
 	// Extras are the disc's art placed in the zone as actors of its own
 	// (extras.go): each a sprite by DictID, where it stands, its turn and
 	// size. A zone with none is copied as it is on the disc.

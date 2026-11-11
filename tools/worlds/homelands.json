@@ -8368,6 +8368,19 @@
           ]
         }
       }
+    },
+    {
+      "name": "Goldfeather Eyrie",
+      "from": "TUNARIA.ESF",
+      "zone": 27,
+      "stable": true,
+      "note": "The homes' shared ground (the owner, 2026-11-11: \"a new zone for the higher level mobs/quest objectives ... shared by all the homeland races, so players can group together\"): Tunaria's snowfield under the Goldfeather aviaks' eyrie (cell 7,3), creatures of levels 6-20 for the homes' L7-L20 quests; no race's home, a stable on the homes' coach network (every home's coach and Freeport's run to it)",
+      "shared": {
+        "npcs": [],
+        "peaceful": [],
+        "hostile": [],
+        "lines": {}
+      }
     }
   ]
 }

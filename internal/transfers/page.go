@@ -77,6 +77,7 @@ const page = `<!DOCTYPE html>
       <input id="p" type="password" autocomplete="current-password" required maxlength="64">
       <button type="submit">Sign in</button>
       <div class="msg" id="loginMsg" role="alert"></div>
+      <p class="small"><a id="forgotLink" href="/password#forgot" style="color:#c9a646">Forgot password?</a></p>
     </form>
   </div>
 
@@ -133,6 +134,8 @@ const page = `<!DOCTYPE html>
 (function () {
   'use strict';
   var base = location.pathname.indexOf('/eqoa/') === 0 ? '/eqoa/account/api/transfer/' : '/api/transfer/';
+  var pwPage = location.pathname.indexOf('/eqoa/') === 0 ? '/eqoa/password' : '/password';
+  document.getElementById('forgotLink').href = pwPage + '#forgot';
   var classes = ['Warrior', 'Ranger', 'Paladin', 'Shadow Knight', 'Monk', 'Bard', 'Rogue', 'Druid', 'Shaman', 'Cleric',
     'Magician', 'Necromancer', 'Enchanter', 'Wizard', 'Alchemist'];
   var $ = function (id) { return document.getElementById(id); };
@@ -315,6 +318,10 @@ const page = `<!DOCTYPE html>
     e.preventDefault();
     say('loginMsg', '');
     call('login', { username: $('u').value, password: $('p').value }).then(function (r) {
+      if (!r.ok && /temporary one from a GM/.test(r.error || '')) {
+        location.href = pwPage + '?temporary=1&account=' + encodeURIComponent($('u').value) + '#change';
+        return;
+      }
       if (!r.ok) { say('loginMsg', r.error); return; }
       $('p').value = '';
       load();

@@ -139,6 +139,7 @@ func (s *Server) registerOps() {
 	s.registerTriggerOps()  // ops_triggers.go
 	s.registerPetitionOps() // ops_petitions.go
 	s.registerCampfixOps()  // ops_campfix.go: camp reports wait for a GM's approval
+	s.registerPwResetOps()  // ops_pwreset.go: forgotten passwords, reset by a GM
 	if !s.d.NoTransfers {
 		s.registerTransferOps() // ops_transfers.go
 	}

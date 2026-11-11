@@ -2074,6 +2074,15 @@ sex where the race has two bodies. Any race takes any class. Free, one a charact
 old. The hire is kept in table **`charmerc`** (name, class, race, sex, face and hair, stance, the end of a death's rest)
 until dismissed, and a character's deletion drops it.
 
+**Since 2026-11-11 a liaison is the Mercenary Recruitment board** (the owner: "change mercenary liason NPC to a Bulletin
+Board Model (like in highpass) and it is named Mercenary Recruitment", then "put the merc board in all starter cities in
+the general area"; `handlers/merc.go` hires at either name). `tools/merc_boards_20261111.py [--apply|--undo]` gives the
+nine Highpass's papered board, sprite **0x260EB42F** (638497839) at size 1.0, the name and a board's look (no gear) where
+they stand, and stands one by the bank of each starter city that had none (Highbourne, Rivervale, Klick'Anon, Grobb),
+with `npcmove`/`npcaggro` rows for the name. That sprite is a zone actor of 23 Tunaria zones and no other file, so as a
+body it drew only where such a zone was loaded: **it reaches every client in the patch's art file**, `ss-art.csf`, built
+by `cmd/artbuild` (below, "The patch's art file").
+
 **What it is**: an NPC with no row, owned (`NPC.Owner`), so the server keeps it on the players' side as a pet (no player,
 pet or guard attacks it, no creature notices it on sight, its corpse is no one's loot, a creature fights it as a pet:
 `npcFightPetLocked`; a player's heal or buff lands on it as on a pet), but not in the pet slot: no 0x007E, no 0x0041, the
@@ -3526,6 +3535,21 @@ reaches a card. That was the silent "manifest GET, no file GET". The decomp of S
 patcher shows `<Product Version>` is never read, so the version-bump comments in
 `patchserver.go` are corrected in place. A file that SHRINKS still needs the Delete dance,
 because the card keeps the old tail. See `claude-notes/go-client-patcher-20261016.md`.
+
+### The patch's art file: the disc's art added by `cmd/artbuild`
+
+`ss-art.csf` is the art CLIENT parses into the live scene at world entry and at every scene's SetSky (S2's hook of
+SOE's own `addart.csf` read; `claude-notes/esf-asset-injection.md`); vanilla adds the server folder's copy to its
+library (`crates/eqoa/src/main.rs`, `s2::Rules::art_path`). So a sprite in it is had in every world: an NPC whose
+`modelid` names it draws anywhere. `cmd/artbuild -iso <disc> -base patches/ss-art.csf -recipe tools/art/ss-art.json
+-out patches/serve/ss-art.csf` (`internal/worlds/art.go`, `AddArt`) copies each piece the recipe names off the
+operator's disc as extras do (the sprite's record whole, and before it every record it names that the file does not
+register), after the base's own records (Sandstorm's robes and set 9, byte for byte), and writes a CSF as
+`VICSFFile::Compress` does. It refuses a DictID that a file the game reads first (CHAR.ESF, ITEM.ESF, ... ADDART.CSF)
+registers as other bytes, and **a file of 256 KB or more: our S2 reads it into `malloc(0x40000)`** (cave `FD740`).
+Sandstorm's own live S2 reads only 80 KB, so this file is for our S2. With the papered board (2026-11-11) it is
+95,493 bytes (CRC `5FEC112C`, Sandstorm's 45,278); a changed file is a new CRC, so every client takes it once at its
+next patch. `patches/ss-art.csf` (Sandstorm's, the base) stays as it is; nothing of the disc is in git.
 
 ### There is a SECOND manifest, and this server does not own it
 

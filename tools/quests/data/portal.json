@@ -3715,7 +3715,7 @@
      "to": "Zaoran Plateau"
     }
    ],
-   "offer": "The plateau lets in only those the five agents trust. Show me their five runes, and pay a single tunar each time you pass.",
+   "offer": "The plateau lets in only those the five agents trust. Show me their five runes, and pay 5,000 tunar each time you pass.",
    "accept": "Here are the runes.",
    "decline": "Not now.",
    "declined": "Come back with the runes.",
@@ -3747,7 +3747,8 @@
       }
      ],
      "journal": "Show the five agents' runes to the portal guardian on Lake Rathe.",
-     "says": "Five runes. Pass, then. Remember the tunar.",
+     "tunar": 5000,
+     "says": "Five runes, and the fare. Pass, then.",
      "events": [
       {
        "on": "done",
@@ -3761,7 +3762,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). The portal guardian: finishing it flags the player for his trip to Zaoran Plateau (unlocks; the route should take the guide's 1 tunar each time); the first trip is the hand-in's own, to the Secrets world's zone 5 by its port-in marker (ZP1). The runes are kept, as the guide's 'speak again with the Agent to get your rune' implies; the guide's old notes on picking a side are left out."
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). The portal guardian: finishing it flags the player for his trip to Zaoran Plateau (unlocks; the route takes 5,000 tunar each time, questmasters1.com's 'With the five Ruins and 5,000 tunar you can talk to portal NPC and be ported', over the EQOA-Data guide's 1); the first trip is the hand-in's own, its 5,000 paid there, to the Secrets world's zone 5 by its port-in marker (ZP1). The runes are kept, as the guide's 'speak again with the Agent to get your rune' implies; the guide's old notes on picking a side are left out."
   },
   {
    "key": "Portal/soluseks-eye/nagafen-1",

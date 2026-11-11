@@ -49,6 +49,7 @@ LOG = "guide_set_log"
 TABLES = ("itempattern", "spellpattern", "spelleffect", "spellarea", "classtemplates", "npctemplate", "npcs", "npcitem",
           "npcspawnonly", "npcaggro", "npccharm", "npcmove", "npcundead", "npcclass", "npcfaction", "npcsocial", "signtext",
           "loottables", "npcloot", "lootcreature", "gmtriggers", "npcdeath", "itemeffect", "npcrespawn", "npcdialog", "quests", "queststeps",
+          "factions", "factionhits",
           "questunlocks", "queststeptargets", "quest_import_quests", "quest_import_items", "quest_import_meta", "sqlite_sequence")
 BASE_HP = 240  # what a level gives a creature of no template: QoV 700,108 at 64 and 4558%
 
@@ -314,7 +315,8 @@ def log_changes(db, name, ch):
         db.execute(f"INSERT INTO {LOG} (setname, tbl, op, rid, old) VALUES (?,?,?,?,?)", (name, t, op, rid, old))
 
 
-def apply(db, spec, do_commit, say, plan_path=None):
+def apply(db, spec, do_commit, say, plan_path=None, extra=None):
+    """extra(db, counts), when given, runs in the same transaction before its commit (a caller's gm_audit line)."""
     db.execute("BEGIN IMMEDIATE")
     try:
         if has(db, LOG) and db.execute(f"SELECT 1 FROM {LOG} WHERE setname = ?", (spec["set"],)).fetchone():
@@ -333,6 +335,8 @@ def apply(db, spec, do_commit, say, plan_path=None):
             say(f"plan written to {plan_path} ({len(ch)} rows); nothing written here")
             db.execute("ROLLBACK")
         elif do_commit:
+            if extra:
+                extra(db, counts)
             db.execute("COMMIT")
             say(f"applied {spec['set']}")
         else:
@@ -395,7 +399,8 @@ def apply_plan(db, path, say):
         raise
 
 
-def undo(db, name, say):
+def undo(db, name, say, extra=None):
+    """extra(db, n), when given, runs in the same transaction before its commit."""
     if not has(db, LOG):
         raise SystemExit("nothing to undo")
     db.execute("BEGIN IMMEDIATE")
@@ -439,6 +444,8 @@ def undo(db, name, say):
         db.execute(f"DELETE FROM {LOG} WHERE setname = ?", (name,))
         if not db.execute(f"SELECT 1 FROM {LOG}").fetchone():
             db.execute(f"DROP TABLE {LOG}")
+        if extra:
+            extra(db, len(rows))
         db.execute("COMMIT")
         say(f"undid {name}: {len(rows)} rows")
     except BaseException:

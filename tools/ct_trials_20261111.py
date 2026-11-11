@@ -3,7 +3,9 @@
 walkthrough, the GM Jibrish's work board entries 430, 616, 627, 637, 640, 656), on the server's code of the same branch:
 quest walls (questwalls), aggro on an item held (npcaggro.holding), an item that hides an NPC (itemhide), a survive
 step, spawn events with count/minutes/keep, NPC row keys ("#118877"), copies that walk their row's path, and the
-boss moments (selfdot, raidheal, powerzero). An older server cannot read this data: apply it with the restart that
+boss moments (selfdot, raidheal, powerzero). It makes what that server's start would make if it is not there (tables questwalls and itemhide, column
+npcaggro.holding, as internal/database/questwalls.go does), so it runs as the before.sh of the restart that first
+brings the code, and --undo drops what it made. An older server cannot read this data: apply it with the restart that
 brings the code (NPCs, quests, templates, triggers and walls are read at the start).
 
 What it writes (every row in gm_audit and its log, ct_trials_1111_log; --undo exact):
@@ -256,16 +258,12 @@ def plan(db):
         return r
 
     def absent(tbl, key):
-        if row_of(db, tbl, key) is not None:
+        if table(db, tbl) and row_of(db, tbl, key) is not None:
             refuse.append(f"{tbl} {key}: there already")
 
-    for tbl in ("questwalls", "itemhide"):
-        if not table(db, tbl):
-            refuse.append(f"no table {tbl}: start this branch's server once on the database first (it makes them)")
-    if refuse:
+    if not table(db, "npcaggro"):
+        refuse.append("no table npcaggro")
         return [], refuse
-    if not [r for r in db.execute("PRAGMA table_info(npcaggro)") if r[1] == "holding"]:
-        refuse.append("npcaggro has no holding column: start this branch's server once first")
 
     # the NPCs: new rows (clones), renames, levels
     for tok, (src, name, at, facing, over) in NEW_NPCS.items():
@@ -400,6 +398,47 @@ def plan(db):
     return ch, refuse
 
 
+# What this branch's server makes at its start (internal/database/questwalls.go's ensureQuestWalls), made here
+# first when it is not there, since the tool runs before that server first starts; --undo drops what it made.
+QUESTWALLS_SCHEMA = """CREATE TABLE IF NOT EXISTS questwalls (
+		npcid   INTEGER PRIMARY KEY,
+		questid INTEGER NOT NULL,
+		step    INTEGER NOT NULL DEFAULT 0,
+		note    TEXT NOT NULL DEFAULT '',
+		source  TEXT NOT NULL DEFAULT 'gm'
+	)"""
+ITEMHIDE_SCHEMA = """CREATE TABLE IF NOT EXISTS itemhide (
+		patternid INTEGER PRIMARY KEY,
+		npc       TEXT NOT NULL,
+		radius    REAL NOT NULL DEFAULT 20,
+		minutes   REAL NOT NULL DEFAULT 10,
+		questid   INTEGER NOT NULL DEFAULT 0,
+		step      INTEGER NOT NULL DEFAULT 0,
+		text      TEXT NOT NULL DEFAULT '',
+		refuse    TEXT NOT NULL DEFAULT '',
+		note      TEXT NOT NULL DEFAULT '',
+		source    TEXT NOT NULL DEFAULT 'gm'
+	)"""
+HOLDING_ALTER = "ALTER TABLE npcaggro ADD COLUMN holding INTEGER NOT NULL DEFAULT 0"
+
+
+def has_column(db, tbl, col):
+    return any(r[1] == col for r in db.execute(f"PRAGMA table_info({tbl})"))
+
+
+def ensure_schema(db):
+    """What the server's start would make, made now: the names made, for the log (and --undo)."""
+    made = []
+    for name, ddl in (("questwalls", QUESTWALLS_SCHEMA), ("itemhide", ITEMHIDE_SCHEMA)):
+        if not table(db, name):
+            db.execute(ddl)
+            made.append("table " + name)
+    if not has_column(db, "npcaggro", "holding"):
+        db.execute(HOLDING_ALTER)
+        made.append("column npcaggro.holding")
+    return made
+
+
 LOG_SCHEMA = f"""CREATE TABLE IF NOT EXISTS {LOG} (
     seq INTEGER PRIMARY KEY AUTOINCREMENT, tbl TEXT NOT NULL, rowkey TEXT NOT NULL,
     before TEXT, after TEXT, audit INTEGER NOT NULL DEFAULT 0)"""
@@ -432,7 +471,9 @@ def resolve(v, ids):
 
 
 def apply(db, changes):
+    made = ensure_schema(db)
     db.execute(LOG_SCHEMA)
+    db.execute(f"INSERT INTO {LOG} (tbl, rowkey, before, after) VALUES ('schema', '{{}}', NULL, ?)", (json.dumps(made),))
     seq_before = db.execute("SELECT seq FROM sqlite_sequence WHERE name = 'npcs'").fetchone()
     ids = {}
     n = 0
@@ -479,7 +520,7 @@ def undo(db):
     back = left = 0
     seq_row = db.execute(f"SELECT before, after FROM {LOG} WHERE tbl = 'sqlite_sequence'").fetchone()
     for seq, tbl, key, before, after in db.execute(
-            f"SELECT seq, tbl, rowkey, before, after FROM {LOG} WHERE tbl != 'sqlite_sequence' ORDER BY seq DESC").fetchall():
+            f"SELECT seq, tbl, rowkey, before, after FROM {LOG} WHERE tbl NOT IN ('sqlite_sequence', 'schema') ORDER BY seq DESC").fetchall():
         key = json.loads(key)
         now = row_of(db, tbl, key)
         if now is None or json.dumps(now, sort_keys=True, default=str) != after:
@@ -502,6 +543,19 @@ def undo(db):
             cur = db.execute("SELECT seq FROM sqlite_sequence WHERE name = 'npcs'").fetchone()
             if was is not None and cur is not None and cur[0] == written:
                 db.execute("UPDATE sqlite_sequence SET seq = ? WHERE name = 'npcs'", (was,))
+        schema = db.execute(f"SELECT after FROM {LOG} WHERE tbl = 'schema'").fetchone()
+        for what in reversed(json.loads(schema[0]) if schema else []):
+            if what.startswith("table "):
+                name = what[6:]
+                if db.execute(f"SELECT count(*) FROM {name}").fetchone()[0]:
+                    print(f"  {what} kept: it has rows of another's now")
+                else:
+                    db.execute(f"DROP TABLE {name}")
+            elif what == "column npcaggro.holding":
+                if db.execute("SELECT count(*) FROM npcaggro WHERE holding != 0").fetchone()[0]:
+                    print("  npcaggro.holding kept: another row uses it now")
+                else:
+                    db.execute("ALTER TABLE npcaggro DROP COLUMN holding")
         db.execute(f"DROP TABLE {LOG}")
     return back, left
 

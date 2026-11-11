@@ -302,18 +302,18 @@
     "giver": "Elder Snikkit",
     "offer": [
       "Grukk says you came home with ice that does not melt and a pelt worth a house. Hmm. You are no little one now. Time the other homes knew Moss Mouth's name.",
-      "The Eyrie's warden pays a bounty on the raiders that plague his river. Go to Warden Halvek at the outpost, do his work, and come home to me.",
+      "The Eyrie's warden keeps a bounty book on the raiders of his river. Go to Warden Halvek at the outpost, get our name in it, and come home to me.",
       "Will you take the warden's bounty?"
     ],
     "accept": "I will take it.",
     "decline": "Not yet.",
     "declined": "The bounty will keep. The raiders will not.",
-    "started": "Rukkit's coach will take you. Bring home the coin, and yourself.",
+    "started": "Rukkit's coach will take you. Come home with our name in that book.",
     "road": [
       {
         "target": "Warden Halvek",
         "journal": "Find Warden Halvek at the Eyrie outpost.",
-        "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he pays."
+        "says": "Snikkit's goblin, come for the bounty? Fine. The Goldfeather raiders round the eyrie east of here carry war-talons. Bring three to Dunmore: he keeps the bounty book."
       }
     ],
     "target": "Goldfeather raider",
@@ -328,12 +328,13 @@
     },
     "handin": {
       "target": "Quartermaster Dunmore",
-      "journal": "Bring the three war-talons to Quartermaster Dunmore for the bounty.",
-      "says": "Three talons, and Halvek's word on them. Here is the bounty. No, you may not count it twice. Go home, goblin. You earned it."
+      "journal": "Bring the three war-talons to Quartermaster Dunmore at the Eyrie outpost.",
+      "says": "Three talons, and Halvek's word on them. Moss Mouth goes in the bounty book, first page. Go home, goblin. You earned it."
     },
+    "picked": "Hah! A good pick. It is yours. No refunds.",
     "final": {
       "journal": "Return to Elder Snikkit in Moss Mouth.",
-      "says": "Back, and with a fat purse! The other homes will say Moss Mouth's name now, and say it carefully. One thing more: choose your road."
+      "says": "First page of the warden's book! Hah! The other homes will say Moss Mouth's name now, and say it carefully. You did that, not Grukk."
     }
   }
 }

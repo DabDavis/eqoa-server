@@ -338,9 +338,10 @@
         "says": "Feyla's signal came already. The Mirewatch kept our watch. Go home, hunter, and tell your elder so."
       }
     ],
+    "picked": "So be it. It is yours.",
     "final": {
       "journal": "Return to Elder Hsslarn in the Mirewatch.",
-      "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud. Now choose your path."
+      "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud of you, hunter."
     }
   }
 }

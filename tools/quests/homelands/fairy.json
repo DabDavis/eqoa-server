@@ -370,9 +370,10 @@
         "says": "Safe? Then the stores open, and tonight there will be laughing at the Eyrie. Go home, fairy. Your elder is waiting."
       }
     ],
+    "picked": "A happy choice! It is yours, little friend.",
     "final": {
       "journal": "Return to Elder Moonpetal in the valley.",
-      "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Now, choose your path."
+      "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Keep it close."
     }
   }
 }

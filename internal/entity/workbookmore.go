@@ -194,14 +194,28 @@ func npcMeleeDebuffPct(npc *NPC, kind Stat, now time.Time) int {
 }
 
 // meleeDebuffed is a player's melee hit of n on a creature with its debuff
-// of the weapon's kind: the main hand's, or a ranged weapon's when it is the
-// ranged one that swings (Gear.WeaponSlot 18: no weapon in hand, whose main
-// hand reads as bare).
-func meleeDebuffed(p *Player, npc *NPC, n int, now time.Time) int {
-	if pct := npcMeleeDebuffPct(npc, meleeKindOf(p.heldType()), now); pct > 0 {
+// of the kind of the weapon that made it (handType: hit its number in the
+// round; a ranged weapon's when it is the ranged one that swings).
+func meleeDebuffed(p *Player, hit int, npc *NPC, n int, now time.Time) int {
+	if pct := npcMeleeDebuffPct(npc, meleeKindOf(p.handType(hit)), now); pct > 0 {
 		return n * (100 + pct) / 100
 	}
 	return n
+}
+
+// handType is the attack type of the weapon that made the player's hit, hit
+// its number in the round (RoundHits, from 1), by the hands handProcLocked
+// reads (weaponproc.go): with a weapon in each hand the even hits are the off
+// hand's, its own weapon's type; else, and the odd ones, the swinging
+// weapon's (heldType). Petition 1557: Rakish's pierce debuff went by the main
+// hand alone, so a slashing main hand with a piercer in the off hand had none
+// of it; each hand's hits now go by that hand's weapon.
+func (p *Player) handType(hit int) byte {
+	g := &p.Gear
+	if g.OffArmed && !g.WeaponTwoHanded && g.WeaponSlot != 18 && hit > 0 && hit%2 == 0 {
+		return byte(g.OffType)
+	}
+	return p.heldType()
 }
 
 // heldType is the attack type of the weapon it swings: the main hand's, or a ranged

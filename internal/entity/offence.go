@@ -199,7 +199,8 @@ func playerHitOf(p *Player, npc *NPC, intn func(int) int, roll func(*Player, *NP
 	floor, low, high := roll(p, npc)
 	hit := low + intn(high-low+1)
 	// as its class template takes it (classtemplate.go), and the creature's
-	// melee resist debuff of the weapon's kind (workbookmore.go)
-	n := meleeDebuffed(p, npc, max(hit, floor)+max(p.Mods.Melee, 0), time.Now())
-	return npc.meleeTaken(npc.kindTakenOf(meleeKindOf(p.heldType()), n))
+	// melee resist debuff of the kind of the hand's weapon that made it
+	// (workbookmore.go handType: the off hand's every second hit)
+	n := meleeDebuffed(p, p.RoundHits, npc, max(hit, floor)+max(p.Mods.Melee, 0), time.Now())
+	return npc.meleeTaken(npc.kindTakenOf(meleeKindOf(p.handType(p.RoundHits)), n))
 }

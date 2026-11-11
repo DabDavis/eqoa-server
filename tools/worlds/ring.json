@@ -7,27 +7,56 @@
       "name": "Spirit Ring",
       "from": "TUNARIA.ESF",
       "zone": 51,
-      "note": "Spirit Talkers Wood (cell 5, 5): the round hollow in its north-east corner, centred near (11590, 11540), is the field; the rest of the zone (a wood within a wall of cliffs) is outside the field's edge"
+      "note": "Spirit Talkers Wood (cell 5, 5): the round hollow in its north-east corner, centred near (11590, 11540), is the field; the rest of the zone (a wood within a wall of cliffs) is outside the field's edge. Its extras (the decoration, ours): each team's two guild banners of Highbourne beside its stand, a low wall with pillars before it, braziers and lean-tos at its camp; on the mound two sun flags by the spring, staggered cover (a boulder and a broken wall) in each lane either side of it, a brazier by each shrine",
+      "extras": [
+        {"sprite": "0xB714B430", "from": "TUNARIA.ESF", "zone": 113, "at": [11464.2, 54.1, 11646.9], "hpr": [2.3468, 0, 0], "scale": 0.21, "note": "Ember's stand, a banner beside it (Highbourne's wizards' banner: the burning hand, red on gold)"},
+        {"sprite": "0xB714B430", "from": "TUNARIA.ESF", "zone": 113, "at": [11476.9, 54.1, 11659.8], "hpr": [2.3468, 0, 0], "scale": 0.21, "note": "Ember's stand, a banner beside it (Highbourne's wizards' banner: the burning hand, red on gold)"},
+        {"sprite": "0x17520771", "from": "TUNARIA.ESF", "zone": 108, "at": [11493.4, 57.6, 11631.0], "hpr": [2.3468, 0, 0], "note": "a breastwork before Ember's stand: around it at either end (the Deathfist ruins' stone wall, 11.6 long and 5.3 high)"},
+        {"sprite": "0x17520772", "from": "TUNARIA.ESF", "zone": 108, "at": [11483.6, 57.6, 11621.0], "scale": 0.6, "note": "its one end (the Deathfist ruins' square pillar, 12 high)"},
+        {"sprite": "0x17520772", "from": "TUNARIA.ESF", "zone": 108, "at": [11503.2, 55.8, 11640.9], "scale": 0.6, "note": "its other end (the Deathfist ruins' square pillar, 12 high)"},
+        {"sprite": "0x48033ACC", "from": "TUNARIA.ESF", "zone": 80, "at": [11435.1, 55.1, 11665.8], "note": "Ember's camp, the rising point (Highpass Hold's brazier pillar, 7.6 high)"},
+        {"sprite": "0x48033ACC", "from": "TUNARIA.ESF", "zone": 80, "at": [11457.5, 54.1, 11688.6], "note": "Ember's camp, the rising point (Highpass Hold's brazier pillar, 7.6 high)"},
+        {"sprite": "0xBC9588CE", "from": "TUNARIA.ESF", "zone": 108, "at": [11411.1, 72.4, 11664.1], "hpr": [2.3468, 0, 0], "note": "Ember's camp (a thatched lean-to, 10 across)"},
+        {"sprite": "0xBC9588CE", "from": "TUNARIA.ESF", "zone": 108, "at": [11458.7, 62.5, 11712.7], "hpr": [2.3468, 0, 0], "note": "Ember's camp (a thatched lean-to, 10 across)"},
+        {"sprite": "0xF0CFEF05", "from": "TUNARIA.ESF", "zone": 113, "at": [11698.3, 43.5, 11417.2], "hpr": [5.4884, 0, 0], "scale": 0.21, "note": "Dusk's stand, a banner beside it (Highbourne's enchanters' banner: the hand on violet)"},
+        {"sprite": "0xF0CFEF05", "from": "TUNARIA.ESF", "zone": 113, "at": [11711.0, 43.5, 11430.1], "hpr": [5.4884, 0, 0], "scale": 0.21, "note": "Dusk's stand, a banner beside it (Highbourne's enchanters' banner: the hand on violet)"},
+        {"sprite": "0x17520771", "from": "TUNARIA.ESF", "zone": 108, "at": [11681.8, 47.1, 11446.0], "hpr": [2.3468, 0, 0], "note": "a breastwork before Dusk's stand: around it at either end (the Deathfist ruins' stone wall, 11.6 long and 5.3 high)"},
+        {"sprite": "0x17520772", "from": "TUNARIA.ESF", "zone": 108, "at": [11672.0, 48.3, 11436.1], "scale": 0.6, "note": "its one end (the Deathfist ruins' square pillar, 12 high)"},
+        {"sprite": "0x17520772", "from": "TUNARIA.ESF", "zone": 108, "at": [11691.6, 47.3, 11456.0], "scale": 0.6, "note": "its other end (the Deathfist ruins' square pillar, 12 high)"},
+        {"sprite": "0x48033ACC", "from": "TUNARIA.ESF", "zone": 80, "at": [11717.7, 48.5, 11388.4], "note": "Dusk's camp, the rising point (Highpass Hold's brazier pillar, 7.6 high)"},
+        {"sprite": "0x48033ACC", "from": "TUNARIA.ESF", "zone": 80, "at": [11740.1, 47.8, 11411.2], "note": "Dusk's camp, the rising point (Highpass Hold's brazier pillar, 7.6 high)"},
+        {"sprite": "0xBC9588CE", "from": "TUNARIA.ESF", "zone": 108, "at": [11716.5, 52.2, 11364.3], "hpr": [5.4884, 0, 0], "note": "Dusk's camp (a thatched lean-to, 10 across)"},
+        {"sprite": "0xBC9588CE", "from": "TUNARIA.ESF", "zone": 108, "at": [11764.1, 50.0, 11412.9], "hpr": [5.4884, 0, 0], "note": "Dusk's camp (a thatched lean-to, 10 across)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [11576.4, 83.0, 11527.1], "note": "the mound: its west flag (the Deathfist sun flag on its pole, 9 high)"},
+        {"sprite": "0x82CBAEF6", "from": "TUNARIA.ESF", "zone": 108, "at": [11598.8, 89.7, 11549.9], "note": "the mound: its east flag (the Deathfist sun flag on its pole, 9 high)"},
+        {"sprite": "0x48033ACC", "from": "TUNARIA.ESF", "zone": 80, "at": [11587.7, 87.5, 11527.2], "note": "the Mending Spring (Highpass Hold's brazier pillar, 7.6 high)"},
+        {"sprite": "0x37F613AF", "from": "TUNARIA.ESF", "zone": 136, "at": [11493.7, 54.5, 11521.4], "hpr": [0.5236, 0, 0], "scale": 0.7, "note": "cover in the west lane, Ember's side (Fort Alliance's grey boulder, 21 by 17, 6 high)"},
+        {"sprite": "0x17520771", "from": "TUNARIA.ESF", "zone": 108, "at": [11576.4, 54.9, 11448.6], "hpr": [-2.3656, 0, 0], "note": "cover in the west lane, Dusk's side: a broken wall across it (the Deathfist ruins' stone wall, 11.6 long and 5.3 high)"},
+        {"sprite": "0x37F613AF", "from": "TUNARIA.ESF", "zone": 136, "at": [11681.5, 68.8, 11555.6], "hpr": [2.0944, 0, 0], "scale": 0.7, "note": "cover in the east lane, Dusk's side (Fort Alliance's grey boulder, 21 by 17, 6 high)"},
+        {"sprite": "0x17520771", "from": "TUNARIA.ESF", "zone": 108, "at": [11598.8, 65.4, 11628.4], "hpr": [-2.3656, 0, 0], "note": "cover in the east lane, Ember's side: a broken wall across it (the Deathfist ruins' stone wall, 11.6 long and 5.3 high)"},
+        {"sprite": "0x48033ACC", "from": "TUNARIA.ESF", "zone": 80, "at": [11505.1, 57.1, 11440.1], "note": "the West Wind Shrine (Highpass Hold's brazier pillar, 7.6 high)"},
+        {"sprite": "0x48033ACC", "from": "TUNARIA.ESF", "zone": 80, "at": [11705.1, 53.8, 11672.5], "note": "the East Wind Shrine (Highpass Hold's brazier pillar, 7.6 high)"}
+      ]
     }
   ],
   "arena": {
     "game": "ctf",
     "name": "the Spirit Ring",
-    "note": "A round hollow: Ember's camp and stand at its south-west end, Dusk's at its north-east, 320 apart straight (the mound between), the West and East Wind Shrines at the ends of the short axis, each as far from both stands, the Mending Spring on the mound. The field's edge is a circle round the hollow's centre (field_circle) that takes in the whole floor and the lower slopes: a player past it, up the steepest ends of the rim, goes back to its camp. Banners: the CHAR.ESF orbs (no zone art of Highbourne is resident here unless the decoration copies it in: flag_body with fallback_body, as the Canyon's).",
+    "note": "A round hollow: Ember's camp and stand at its south-west end, Dusk's at its north-east, 320 apart straight (the mound between), the West and East Wind Shrines at the ends of the short axis, each as far from both stands, the Mending Spring on the mound. The field's edge is a circle round the hollow's centre (field_circle) that takes in the whole floor and the lower slopes: a player past it, up the steepest ends of the rim, goes back to its camp. Banners: Highbourne's guild banners the decoration copies into the zone (the wizards' for Ember, the enchanters' for Dusk) at 0.17; built without the decoration, the CHAR.ESF orbs (fallback_body), as the Canyon's.",
     "speed_body": "0x8143DC70",
     "heal_body": "0xC5F3788D",
     "teams": [
       {
         "name": "the Ember Band", "short": "Ember", "flag": "Ember Banner",
         "flag_body": "0xB714B430", "flag_size": 0.17, "fallback_body": "0xF97FD9FC", "fallback_size": 1.5,
-        "stand": {"x": 11473, "y": 54.4, "z": 11651, "toward": [11588, 11538]},
-        "camp": {"x": 11434, "y": 64.5, "z": 11689, "toward": [11473, 11651]}
+        "stand": {"x": 11473, "y": 54.1, "z": 11651, "toward": [11588, 11538]},
+        "camp": {"x": 11434, "y": 62.4, "z": 11689, "toward": [11473, 11651]}
       },
       {
         "name": "the Dusk Band", "short": "Dusk", "flag": "Dusk Banner",
         "flag_body": "0xF0CFEF05", "flag_size": 0.17, "fallback_body": "0x4446A60B", "fallback_size": 1.5,
         "stand": {"x": 11702, "y": 43.5, "z": 11426, "toward": [11588, 11538]},
-        "camp": {"x": 11737, "y": 50.4, "z": 11391, "toward": [11702, 11426]}
+        "camp": {"x": 11737, "y": 49.7, "z": 11391, "toward": [11702, 11426]}
       }
     ],
     "powerups": [

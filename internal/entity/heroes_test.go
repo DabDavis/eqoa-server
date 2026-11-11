@@ -103,7 +103,7 @@ func TestAKillThatGivesExperienceCreditsTheTestingHeroes(t *testing.T) {
 // 1,000% or more of its level's hit points, or one the loot's tables make a
 // boss (by its name, any case, a trailing $ or not). The controls: a template
 // of 999%, and a name that is no boss's, are worth one.
-func TestARaidBossIsWorthFive(t *testing.T) {
+func TestARaidBossIsWorthTwenty(t *testing.T) {
 	for _, tc := range []struct {
 		name string
 		npc  NPC
@@ -130,14 +130,14 @@ func TestARaidBossIsWorthFive(t *testing.T) {
 			}
 			wantLine := "faction with Testing Heroes (+1)"
 			if tc.want == HeroesBossKill {
-				wantLine = "-1995 faction with Testing Heroes (+5)"
+				wantLine = "-1980 faction with Testing Heroes (+20)"
 			}
 			if got := heroLines(k.sess[0]); len(got) != 1 || !strings.Contains(got[0], wantLine) {
 				t.Errorf("the line %q, want %q", got, wantLine)
 			}
 		})
 	}
-	if HeroesKill != 1 || HeroesBossKill != 5 || RaidBossHPPct != 1000 {
+	if HeroesKill != 1 || HeroesBossKill != 20 || RaidBossHPPct != 1000 {
 		t.Errorf("the petition's figures: %d a kill, %d a raid boss; the raid loot's %d%%", HeroesKill, HeroesBossKill, RaidBossHPPct)
 	}
 }
@@ -202,7 +202,7 @@ func TestTheTestingHeroesStandingHoldsAtTheCeiling(t *testing.T) {
 	if got := k.standing(0); got != FactionMax {
 		t.Fatalf("standing %d, want the ceiling %d", got, FactionMax)
 	}
-	if got := heroLines(k.sess[0]); len(got) != 1 || got[0] != "2000 faction with Testing Heroes (+5)" {
+	if got := heroLines(k.sess[0]); len(got) != 1 || got[0] != "2000 faction with Testing Heroes (+20)" {
 		t.Errorf("the line %q", got)
 	}
 }

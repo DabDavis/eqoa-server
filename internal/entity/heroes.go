@@ -54,10 +54,11 @@ import (
 const HeroesFaction = database.HeroesFaction
 
 // HeroesKill and HeroesBossKill are what a kill that gives experience is
-// worth with the Testing Heroes: a creature's, a raid boss's (petition 1471).
+// worth with the Testing Heroes: a creature's, a raid boss's (petition 1471; a raid
+// boss 20 since petition 1603, Jibrish: "increase the faction increase from 5 to 20").
 const (
 	HeroesKill     = 1
-	HeroesBossKill = 5
+	HeroesBossKill = 20
 )
 
 // RaidBossHPPct is the class template hit points (of its level's, in percent)

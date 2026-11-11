@@ -65,6 +65,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.petSystem(now)
 	w.mercSystem(now)     // the mercenaries (merc.go)
 	w.familiarSystem(now) // the familiars (familiar.go)
+	w.uiToldSystem(now)   // the mercs and the group search's standing told (uitold.go)
 	t.mark(tsPets)
 	w.duelSystem(now)        // duels' invitations and ends (duel.go)
 	w.genieSystem(now)       // the lamps' genies and their windows (genie.go)

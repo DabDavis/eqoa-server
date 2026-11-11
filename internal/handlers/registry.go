@@ -449,6 +449,12 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// The live client's group search and the Group menu's Show/Hide Chat
 	// (0x0801, the disc's 0x0B01; lfg.go, entity/lfg.go)
 	NewLFGHandler(gameWorld).RegisterHandlers(r)
+	// and its standing told and "Allow anyone in my group to invite" (groupreg.go)
+	var groupRegDB *database.SQLiteDB
+	if charStore != nil {
+		groupRegDB = charStore.DB()
+	}
+	NewGroupRegHandler(gameWorld, groupRegDB).RegisterHandlers(r)
 
 	// A GM's flight: a client's word that it flies (fly.go)
 	NewFlyHandler().RegisterHandlers(r)
@@ -624,6 +630,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 			mercs := NewMercs(gameWorld, charStore.DB(), charHandler.heirlooms)
 			interactHandler.mercs, chatHandler.mercs = mercs, mercs
 			mercs.Start()
+			// their names told and Group > Dismiss Mercenary (mercui.go)
+			NewMercUIHandler(gameWorld, mercs).RegisterHandlers(r)
 			familiars := NewFamiliars(gameWorld, charStore.DB())
 			equipHandler.familiars, chatHandler.familiars = familiars, familiars
 			familiars.Start()

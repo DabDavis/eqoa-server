@@ -226,6 +226,19 @@ type Session struct {
 	// client that never answered (a PS2, an older build) is sent a dialogue box.
 	mobInfo bool
 
+	// mercsTold: the client answered the mercs' offer 1
+	// (protocol.OpcodeMercsOffer, handlers/mercui.go), so it is sent the
+	// mercs it may see (OpcodeMercsData) whenever they differ from mercsSent,
+	// what it was last sent ("" none since its answer)
+	mercsTold bool
+	mercsSent string
+
+	// groupReg: the client answered the group search's offer 1
+	// (protocol.OpcodeGroupRegOffer, handlers/groupreg.go), so it is sent its
+	// standing (OpcodeGroupRegState) whenever it differs from groupRegSent
+	groupReg     bool
+	groupRegSent string
+
 	// itemLinks: the client answered the item links' offer 1
 	// (protocol.OpcodeItemLinksOffer, handlers/itemlinks.go), so a chat line
 	// with links goes to it as OpcodeItemLinkLine. A client that never
@@ -343,6 +356,62 @@ func (s *Session) TakeNPCTints(body string, empty bool) bool {
 		return false
 	}
 	s.npcTintsSent = body
+	return true
+}
+
+// SetMercsTold records the client's answer to the mercs' offer: on, it is
+// sent the mercs it may see (TakeMercs); either way what it was sent is
+// forgotten.
+func (s *Session) SetMercsTold(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.mercsTold, s.mercsSent = on, ""
+}
+
+// MercsTold is whether the client asked for the mercs it may see.
+func (s *Session) MercsTold() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.mercsTold
+}
+
+// TakeMercs reports whether body (OpcodeMercsData's) is to go to the client
+// now, and if so takes it as what the client holds: only to a client that
+// asked, only when it differs from what it was last sent.
+func (s *Session) TakeMercs(body string) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if !s.mercsTold || body == s.mercsSent {
+		return false
+	}
+	s.mercsSent = body
+	return true
+}
+
+// SetGroupReg records the client's answer to the group search's offer: on,
+// it is sent its standing (TakeGroupReg); either way what it was sent is
+// forgotten.
+func (s *Session) SetGroupReg(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.groupReg, s.groupRegSent = on, ""
+}
+
+// GroupReg is whether the client asked for its group search standing.
+func (s *Session) GroupReg() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.groupReg
+}
+
+// TakeGroupReg is TakeMercs for OpcodeGroupRegState's body.
+func (s *Session) TakeGroupReg(body string) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if !s.groupReg || body == s.groupRegSent {
+		return false
+	}
+	s.groupRegSent = body
 	return true
 }
 

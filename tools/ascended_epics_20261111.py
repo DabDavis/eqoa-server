@@ -551,9 +551,9 @@ def report(p):
         out.append(f"  {r['name']} (of {b}{', a pet ability' if r['helper'] else ''}): {what}"
                    + (f"; as it is: {', '.join(sorted(set(js_notes)))}" if js_notes else ""))
         if b in p.pets:
-            out.append(f"    its pet {p.pets[b]['name']}: hp {p.pets[b]['hp']} -> {up(p.pets[b]['hp'])}, weapon "
-                       f"{p.pets[b]['wpn1_dmg']}/{p.pets[b]['wpn2_dmg']} -> {up(p.pets[b]['wpn1_dmg'])}/{up(p.pets[b]['wpn2_dmg'])}, "
-                       f"AC {p.pets[b]['ac']} -> {up(p.pets[b]['ac'])}")
+            pet = p.pets[b]
+            figs = [f"{c} {pet[c]} -> {up(pet[c])}" for c in ("hp", "ac", "wpn1_dmg", "wpn2_dmg") if pet.get(c)]
+            out.append(f"    its pet {pet.get('name')}: {', '.join(figs)} (every stat, resist, tick and weapon so)")
     out.append(f"Quest steps to point at them: {len(p.steps)}")
     names = {q[0]: q[1] for q in p.quests}
     for s in p.steps:

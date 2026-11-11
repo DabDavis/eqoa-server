@@ -81,33 +81,39 @@ func (w *World) spawnOnGroundLocked(npc *NPC) bool {
 // the floor there if it spawned on the ground; one that spawned swimming
 // keeps its height, above the floor; one that stands on something the ground
 // leaves out keeps its spawn's height near its spawn and takes the terrain
-// once it has left it (a creature that never wanders off it: roam.go).
-// Must be called with the lock held.
-func (w *World) groundNPCLocked(npc *NPC) {
+// once it has left it (a creature that never wanders off it: roam.go). It
+// reports a place the ground was asked for a floor and had none for it, its
+// height kept (intoGroundLocked's question). Must be called with the lock
+// held.
+func (w *World) groundNPCLocked(npc *NPC) (noFloor bool) {
 	if w.ground == nil {
-		return
+		return false
 	}
 	if w.spawnOnGroundLocked(npc) {
-		if y, ok := w.floorOrBankLocked(npc.World, npc.X, npc.Y, npc.Z); ok {
+		y, ok := w.floorOrBankLocked(npc.World, npc.X, npc.Y, npc.Z)
+		if ok {
 			npc.Y = y
 		}
 		w.swimLocked(npc) // water.go: in deep water it swims at the surface
-		return
+		return !ok
 	}
 	if w.spawnInWaterLocked(npc) {
-		if y, ok := w.floorOrBankLocked(npc.World, npc.X, npc.Y, npc.Z); ok && y > npc.Y {
+		y, ok := w.floorOrBankLocked(npc.World, npc.X, npc.Y, npc.Z)
+		if ok && y > npc.Y {
 			npc.Y = y
 		}
-		return
+		return !ok
 	}
 	if distXZ(npc.X, npc.Z, npc.SpawnX, npc.SpawnZ) <= platformReach {
 		npc.Y = npc.SpawnY
-		return
+		return false
 	}
-	if y, ok := w.floorOrBankLocked(npc.World, npc.X, npc.Y, npc.Z); ok {
+	y, ok := w.floorOrBankLocked(npc.World, npc.X, npc.Y, npc.Z)
+	if ok {
 		npc.Y = y
 	}
 	w.swimLocked(npc)
+	return !ok
 }
 
 // Under the ground (petition 1500, Jibrish: "Players are able to run monsters
@@ -168,11 +174,20 @@ func (w *World) inGroundLocked(world uint8, x, y, z float32) bool {
 	return over
 }
 
+// intoGroundLocked reports a creature that moved into the ground: its
+// grounding found no floor for it (noFloor, groundNPCLocked's) and it stands
+// under the ground there. A summoned pet's and a mercenary's height is their
+// own walk's (petwalk.go, pet.go's petStepLocked), not judged so. Must be
+// called with the lock held.
+func (w *World) intoGroundLocked(npc *NPC, noFloor bool) bool {
+	return noFloor && !npc.walksTerrain() && w.inGroundLocked(npc.World, npc.X, npc.Y, npc.Z)
+}
+
 // liftOutLocked sets a creature found in the ground on the floor over it, the
 // lowest one (a creature put there before this rule, or by anything else), and
 // reports whether it moved it. Must be called with the lock held.
 func (w *World) liftOutLocked(npc *NPC) bool {
-	if !w.inGroundLocked(npc.World, npc.X, npc.Y, npc.Z) {
+	if npc.walksTerrain() || !w.inGroundLocked(npc.World, npc.X, npc.Y, npc.Z) {
 		return false
 	}
 	for up := floorStepUp; up <= groundOver; up += floorStepUp {

@@ -68,8 +68,7 @@ func (w *World) stepNPCLocked(npc *NPC, x, z, speed, dt float32, leg *roamState)
 	oldY, oldSwim := npc.Y, npc.swimming
 	if step := speed * dt; dist <= step {
 		npc.X, npc.Z = x, z
-		w.groundNPCLocked(npc)
-		if w.inGroundLocked(npc.World, npc.X, npc.Y, npc.Z) {
+		if w.intoGroundLocked(npc, w.groundNPCLocked(npc)) {
 			// into the ground (groundnpc.go): not taken
 			npc.X, npc.Y, npc.Z, npc.swimming = oldX, oldY, oldZ, oldSwim
 			npc.stopMoving()
@@ -89,7 +88,7 @@ func (w *World) stepNPCLocked(npc *NPC, x, z, speed, dt float32, leg *roamState)
 		npc.Z += uz * step
 		if y, ok := leg.legY(npc); ok {
 			npc.Y = y // its leg's floor, checked whole (roam.go)
-		} else if w.groundNPCLocked(npc); w.inGroundLocked(npc.World, npc.X, npc.Y, npc.Z) {
+		} else if w.intoGroundLocked(npc, w.groundNPCLocked(npc)) {
 			// into the ground (groundnpc.go): not taken
 			npc.X, npc.Y, npc.Z, npc.swimming = oldX, oldY, oldZ, oldSwim
 			npc.stopMoving()

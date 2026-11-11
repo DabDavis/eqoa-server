@@ -38,9 +38,11 @@ type Gear struct {
 	Shields []WornShield
 	// MainProc is the swinging weapon's proc (weaponproc.go), OffProc the off
 	// hand's (equip slot 15), nil for none; OffArmed: a weapon in the off
-	// hand, which makes every second hit of a round
+	// hand, which makes every second hit of a round; OffType that weapon's
+	// attack type (its hits' melee kind: workbookmore.go handType)
 	MainProc, OffProc *WeaponProc
 	OffArmed          bool
+	OffType           int
 	// Armor is the kind of armour on the chest (a robe: cloth), for a race shown in another body
 	// by it (armorbody.go)
 	Armor ArmorKind

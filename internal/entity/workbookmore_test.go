@@ -58,7 +58,7 @@ func TestWorkbookMeleeResists(t *testing.T) {
 		hand byte
 		want int
 	}{{1, 135}, {2, 135}, {3, 100}, {5, 100}, {0, 100}} {
-		if got := meleeDebuffed(&Player{PrimaryType: tc.hand}, npc, 100, now); got != tc.want {
+		if got := meleeDebuffed(&Player{PrimaryType: tc.hand}, 1, npc, 100, now); got != tc.want {
 			t.Errorf("hand %d: %d, want %d", tc.hand, got, tc.want)
 		}
 	}
@@ -342,5 +342,54 @@ func TestAHitSetsOffAHealOverTime(t *testing.T) {
 	}
 	if got[0].Name != "Fervor" {
 		t.Errorf("it is named %q", got[0].Name)
+	}
+}
+
+// Petition 1557: Rakish's pierce debuff on a creature counts on each hand's
+// hits by that hand's own weapon. With a weapon in each hand the odd hits of
+// a round are the main hand's and the even ones the off hand's (as their
+// procs, handProcLocked): a slashing main hand with a piercer in the off hand
+// has its off hand's hits 25% more (Rakish Assault's 25 off pierce) and its
+// main hand's as they were; two piercers have every hit more; a slasher alone
+// none; a piercer in the main hand with a slasher in the off hand, the main
+// hand's alone. The two-hander's every hit is its own.
+func TestRakishCountsOnEachHandsWeapon(t *testing.T) {
+	now := time.Now()
+	rakish := &NPC{Level: 50, Effects: []*ActiveEffect{{Until: now.Add(time.Minute), Mods: StatMods{Pierce: -25}}}}
+	plain := &NPC{Level: 50}
+	const slash, pierce, slash2 = 1, 5, 2
+	for _, tc := range []struct {
+		name      string
+		main, off int // attack types; off 0: nothing in the off hand
+		two       bool
+		want      [4]bool // hits 1-4: the debuff counted
+	}{
+		{"1HS + 1HP", slash, pierce, false, [4]bool{false, true, false, true}},
+		{"1HP + 1HP", pierce, pierce, false, [4]bool{true, true, true, true}},
+		{"1HS alone", slash, 0, false, [4]bool{}},
+		{"1HP alone", pierce, 0, false, [4]bool{true, true, true, true}},
+		{"1HP + 1HS", pierce, slash, false, [4]bool{true, false, true, false}},
+		{"2HS", slash2, 0, true, [4]bool{}},
+	} {
+		p := &Player{Class: 6 /* rogue */, Level: 50, Str: 300, Dex: 300, PrimaryType: byte(tc.main)}
+		p.Gear.WeaponDamage, p.Gear.WeaponCond, p.Gear.WeaponSlot, p.Gear.WeaponType = 300, 1, 14, tc.main
+		if tc.two {
+			p.Gear.WeaponSlot, p.Gear.WeaponTwoHanded = 16, true
+		}
+		if tc.off != 0 {
+			p.Gear.OffArmed, p.Gear.OffType, p.SecondaryType = true, tc.off, byte(tc.off)
+		}
+		fixed := func(int) int { return 0 }
+		for i, counted := range tc.want {
+			p.RoundHits = i + 1
+			base, got := playerMeleeHit(p, plain, fixed), playerMeleeHit(p, rakish, fixed)
+			want := base
+			if counted {
+				want = base * 125 / 100
+			}
+			if base <= 0 || got != want {
+				t.Errorf("%s, hit %d: %d under Rakish, %d without; want %d", tc.name, i+1, got, base, want)
+			}
+		}
 	}
 }

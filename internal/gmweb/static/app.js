@@ -17,6 +17,7 @@ const NAV = [
     ['characters', 'Characters', 'users'],
     ['petitions', 'Petitions', 'send'],
     ['transfers', 'Character transfers', 'users'],
+    ['pwresets', 'Password resets', 'lock'],
   ]],
   ['World', [
     ['npcs', 'NPCs', 'skull'],
@@ -77,6 +78,7 @@ const VIEWS = {
   characters: () => import('./views/characters.js'),
   petitions: () => import('./views/petitions.js'),
   transfers: () => import('./views/transfers.js'),
+  pwresets: () => import('./views/pwresets.js'),
   npcs: () => import('./views/npcs.js'),
   merchants: () => import('./views/merchants.js'),
   campfix: () => import('./views/campfix.js'),
@@ -211,7 +213,8 @@ async function waitingBadge() {
   if (!state.session) return;
   for (const [page, name, args] of [['petitions', 'petition_list', { status: 'waiting', limit: 1 }],
     ['transfers', 'transfer_list', { status: 'waiting', limit: 1 }],
-    ['campfix', 'campfix_list', { counts: true }]]) {
+    ['campfix', 'campfix_list', { counts: true }],
+    ['pwresets', 'pwreset_list', { counts: true }]]) {
     const link = nav?.querySelector(`a[data-page="${page}"]`);
     if (!link) continue;
     try {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -22,8 +23,9 @@ import (
 // freeport near dabrish that says Real Estate Listings").
 //
 // The homes' world is a server world (serverworlds.go; world.homes.world, slot 13, tools/worlds/homesteads.json):
-// one disc zone with a house, its built recipe's "home" block the places (the door a player lands at, the yard's
-// board, the yard's edge). Every character has a home there, free: its own instance of the world.
+// one disc zone (a crater's rim high over a valley) with a cottage in a fenced yard placed on it as the zone's extras,
+// invisible collision boxes outside the fence its edge; its built recipe's "home" block the places (the door a
+// player lands at, the yard's board). Every character has a home there, free: its own instance of the world.
 //
 // The Real Estate Listings board (any NPC of the name; tools/place_homes_board.py stands one near Dabrish and
 // its twin in the yard) asks a box under mark 0x68000000: go to my home, visit a friend's home (the homes the
@@ -111,11 +113,6 @@ type homeJSON struct {
 	Name  string    `json:"name"`
 	Door  arenaSpot `json:"door"`
 	Board arenaSpot `json:"board"`
-	Yard  struct {
-		X float32 `json:"x"`
-		Z float32 `json:"z"`
-		R float32 `json:"r"`
-	} `json:"yard"`
 }
 
 // ReadHome is a built world's homes' places (its recipe's "home" block), checked.
@@ -135,15 +132,8 @@ func ReadHome(b worlds.Built) (entity.HomesLayout, error) {
 	d, bd := h.Door.spot(), h.Board.spot()
 	lay.Door = entity.HomeSpot{X: d.X, Y: d.Y, Z: d.Z, Facing: d.Facing}
 	lay.Board = entity.HomeSpot{X: bd.X, Y: bd.Y, Z: bd.Z, Facing: bd.Facing}
-	lay.YardX, lay.YardZ, lay.YardRadius = h.Yard.X, h.Yard.Z, h.Yard.R
 	if d.X == 0 && d.Z == 0 {
 		return lay, fmt.Errorf("world %d's home: its door is at 0, 0", b.World)
-	}
-	if lay.YardRadius <= 0 {
-		return lay, fmt.Errorf("world %d's home: a yard of radius %.1f", b.World, lay.YardRadius)
-	}
-	if !lay.InYard(d.X, d.Z) || (bd.X != 0 || bd.Z != 0) && !lay.InYard(bd.X, bd.Z) {
-		return lay, fmt.Errorf("world %d's home: its door or board is outside its yard", b.World)
 	}
 	return lay, nil
 }
@@ -205,10 +195,13 @@ func SetupHomes(gw *entity.World, c config.HomesConfig, db *database.SQLiteDB) b
 		}
 	}
 	gw.SetHomes(true, world, lay, names, guests, stays)
-	log.Printf("Homes: %s in world %d: the door at (%.1f, %.1f, %.1f), a yard of %.0f round (%.1f, %.1f); %d homes with guests, %d stays",
-		lay.Name, world, lay.Door.X, lay.Door.Y, lay.Door.Z, lay.YardRadius, lay.YardX, lay.YardZ, len(guests), len(stays))
+	log.Printf("Homes: %s in world %d: the door at (%.1f, %.1f, %.1f); %d homes with guests, %d stays",
+		lay.Name, world, lay.Door.X, lay.Door.Y, lay.Door.Z, len(guests), len(stays))
 	return true
 }
+
+// homesNearDoor is how far from the door a saved place in a home may be (the yard is about 70 across).
+const homesNearDoor = 150
 
 // DefaultHomesWorld is the homes' world's slot when world.homes.world is unset.
 const DefaultHomesWorld = 13
@@ -521,6 +514,13 @@ func homeLogin(gw *entity.World, record *database.CharacterRecord, held func(wor
 		return false
 	}
 	if resume && held != nil && held(uint8(record.World)) {
+		// a place far from the home's door is no place in it (saved before the homes' world was rebuilt
+		// elsewhere: the cottage moved from Tunaria zone 100 to zone 55's rim on 2026-11-11): at the door
+		if d := gw.HomesDoor(); math.Hypot(float64(record.X-d.X), float64(record.Z-d.Z)) > homesNearDoor {
+			log.Printf("loginSpawn: '%s' was saved in the homes' world at (%.1f, %.1f, %.1f), %0.f from the door: at the door",
+				record.CharName, record.X, record.Y, record.Z, math.Hypot(float64(record.X-d.X), float64(record.Z-d.Z)))
+			record.X, record.Y, record.Z, record.Facing = d.X, d.Y, d.Z, d.Facing
+		}
 		if _, err := ValidateTeleport(record.X, record.Y, record.Z, byte(record.World)); err == nil {
 			owner := gw.HomeHostName(host)
 			if host == record.ServerID || owner == "" {

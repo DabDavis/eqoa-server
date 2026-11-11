@@ -20,7 +20,7 @@ type homesRig struct {
 
 func homesTestLayout() HomesLayout {
 	return HomesLayout{Name: "the Test Homesteads", Door: HomeSpot{X: 1000, Y: 50, Z: 1000, Facing: 1},
-		Board: HomeSpot{X: 1010, Y: 50, Z: 1000}, YardX: 1000, YardZ: 1000, YardRadius: 60}
+		Board: HomeSpot{X: 1010, Y: 50, Z: 1000}}
 }
 
 func newHomes(t *testing.T, n int) *homesRig {
@@ -195,7 +195,7 @@ func TestHomesGroupLetsInWhileGrouped(t *testing.T) {
 	}
 }
 
-func TestHomesKickAndYard(t *testing.T) {
+func TestHomesKickAndNoSnapBack(t *testing.T) {
 	r := newHomes(t, 2)
 	a, b := r.ps[0], r.ps[1]
 	r.w.HomeInvite(a.CharServerID, a.Name, HomeGuest{ID: b.CharServerID, Name: b.Name})
@@ -212,10 +212,10 @@ func TestHomesKickAndYard(t *testing.T) {
 	if b.World != 0 {
 		t.Fatal("kicked, b stays")
 	}
-	// past the yard: back to the door
+	// past the old yard's circle: nothing moves it (the world's fence and blockers are the edge)
 	a.X = 1000 + 100
 	r.tick(5 * time.Second)
-	if due := r.land(); len(due) != 1 || a.X != 1000 {
+	if due := r.land(); len(due) != 0 || a.X != 1100 {
 		t.Fatalf("past the yard: %d travels, x %.0f", len(due), a.X)
 	}
 	// a player in the world with no instance (a GM's move) is put in its own

@@ -262,7 +262,7 @@ func (w *World) duelFoeLocked(p *Player, target EntityID) bool {
 	if target == foe {
 		return true
 	}
-	if pet := w.NPCs[target]; pet != nil && pet.Owner == foe && !d.petOut[foe] && !pet.isMerc() { // a merc is no duel's (merc.go)
+	if pet := w.NPCs[target]; pet != nil && pet.Owner == foe && !d.petOut[foe] && !pet.isMerc() || pet.isMercPet() { // a merc is no duel's (merc.go)
 		return true
 	}
 	return false
@@ -901,7 +901,7 @@ func (w *World) duelViewLocked(sess *session.Session, id EntityID, buf []byte) {
 // creature's (0, not a pet's 3) to its owner's opponent while it is in the
 // duel.
 func (w *World) duelViewPetLocked(sess *session.Session, pet *NPC, buf []byte) {
-	if pet.Owner == 0 || len(w.duels.of) == 0 || pet.isMerc() { // a merc is no duel's (merc.go)
+	if pet.Owner == 0 || len(w.duels.of) == 0 || pet.isMerc() || pet.isMercPet() { // a merc is no duel's (merc.go)
 		return
 	}
 	if d := w.duelOnLocked(pet.Owner); d == nil || d.petOut[pet.Owner] {

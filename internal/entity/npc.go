@@ -272,6 +272,9 @@ type NPC struct {
 	// familiar's (familiar.go: never owned); nil for every other NPC
 	merc     *mercState
 	familiar *familiarState
+	// mercPet is the merc whose pet this is (mercpet.go: Owner its merc's
+	// hirer's), nil for every other NPC
+	mercPet *mercState
 }
 
 // isMerc reports a hired mercenary.

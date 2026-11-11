@@ -425,7 +425,7 @@ func (w *World) playerShieldsLocked(sess *session.Session, p *Player, npc *NPC, 
 // its owner's as the pet's hits are (petDamageLocked). Called after the
 // hit, while the pet stands. It reports the creature's death.
 func (w *World) petShieldsLocked(pet, npc *NPC, now time.Time) bool {
-	ps := w.pets[pet.Owner]
+	ps := w.petStateOfNPCLocked(pet)
 	if ps == nil || ps.npc != pet || len(pet.Effects) == 0 || pet.Dead || npc.Dead {
 		return false
 	}

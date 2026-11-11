@@ -26,6 +26,7 @@ import (
 //     only one below mercEmergencyPct. Never a player in a duel, in Mr.
 //     Moogie's challenge or flagged for PvP (ownfight.go: no help in a fight
 //     that is a player's own);
+//   - with no pet of its own out, its summoning (mercpet.go);
 //   - out of a fight, a buff (mercBuffTurnLocked): the best rank of each line
 //     its book holds of what lasts mercBuffLasts or more, on itself (a self
 //     buff, or one of a target's its owner already has), its owner (one of a
@@ -287,6 +288,9 @@ func mercReaches(m *NPC, s *CastSpell, x, y, z, extra float32) bool {
 // It reports a cast begun. Must be called with the lock held.
 func (w *World) mercCastTurnLocked(ms *mercState, t *NPC, now time.Time) bool {
 	if w.mercHealTurnLocked(ms, now) {
+		return true
+	}
+	if w.mercSummonTurnLocked(ms, now) { // its pet, when it has none out (mercpet.go)
 		return true
 	}
 	if t == nil {
@@ -691,6 +695,10 @@ func (w *World) mercCastSystemLocked(now time.Time) {
 // Must be called with the lock held.
 func (w *World) mercLandLocked(c *mercCast, now time.Time) {
 	ms, s, m := c.ms, &c.spell, c.ms.npc
+	if s.Def.Summons() {
+		w.mercSummonLandLocked(ms, s, now) // its pet (mercpet.go)
+		return
+	}
 	if mercUseOf(s).atFoe() {
 		t := w.NPCs[c.target]
 		if t == nil || t.Dead || t.World != m.World || !mercMayFight(m, t) {

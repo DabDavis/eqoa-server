@@ -433,7 +433,7 @@ func summoned(npc *NPC) bool { return npc.Owner != 0 && npc.Charm == nil }
 // owner's (while the owner is in the world), anything else its own.
 func (w *World) balanceLevelOf(npc *NPC) int {
 	if summoned(npc) {
-		if o := w.Players[npc.Owner]; o != nil {
+		if o := w.petMasterLocked(npc); o != nil {
 			return o.Level
 		}
 	}
@@ -455,7 +455,7 @@ func (w *World) applyBalanceLocked(npc *NPC) {
 	if summoned(npc) {
 		// its level's, or a workbook pet's own (petstats.go)
 		npc.MaxHP = pct(npc.petBaseHP(), w.balance.Level(w.balanceLevelOf(npc)).PetHPPct)
-		if o := w.Players[npc.Owner]; o != nil {
+		if o := w.petMasterLocked(npc); o != nil {
 			// its owner's class and level's share of it (balanceclasslevel)
 			npc.MaxHP = pct(npc.MaxHP, w.balance.PetHPPctAt(o.Class, o.Level))
 		}

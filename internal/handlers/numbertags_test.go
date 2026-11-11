@@ -22,7 +22,7 @@ func numberTagsOffers(sess *session.Session) [][]byte {
 	return out
 }
 
-// The first 0x0014 offers the number tags, a u8 1 (the layout) after the
+// The first 0x0014 offers the number tags, a u8 2 (the layout) after the
 // opcode, once; the second 0x0014 offers nothing more.
 func TestNumberTagsOfferedAtWorldEntry(t *testing.T) {
 	h := &CharacterHandler{}
@@ -33,7 +33,7 @@ func TestNumberTagsOfferedAtWorldEntry(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if got, want := numberTagsOffers(sess), []byte{0x38, 0x7E, 1}; len(got) != 1 || !bytes.Equal(got[0], want) {
+	if got, want := numberTagsOffers(sess), []byte{0x38, 0x7E, 2}; len(got) != 1 || !bytes.Equal(got[0], want) {
 		t.Fatalf("world entry offered %x, want one %x", got, want)
 	}
 	if sess.NumberTags() {
@@ -55,8 +55,20 @@ func TestHandleNumberTags(t *testing.T) {
 		}
 	}
 	answer([]byte{1})
-	if !sess.NumberTags() {
-		t.Fatal("answered 1: not tagged")
+	if !sess.NumberTags() || sess.NumberTagsLayout() != 1 {
+		t.Fatalf("answered 1 (an older vanilla): layout %d", sess.NumberTagsLayout())
+	}
+	answer([]byte{2})
+	if sess.NumberTagsLayout() != 2 {
+		t.Fatalf("answered 2: layout %d", sess.NumberTagsLayout())
+	}
+	answer([]byte{9})
+	if sess.NumberTagsLayout() != 2 {
+		t.Fatalf("answered a later layout: %d, want the newest told (2)", sess.NumberTagsLayout())
+	}
+	answer([]byte{1})
+	if sess.NumberTagsLayout() != 1 {
+		t.Fatalf("answered 1 again: layout %d", sess.NumberTagsLayout())
 	}
 	answer(nil)
 	if !sess.NumberTags() {

@@ -89,6 +89,28 @@ func (w *World) npcsNearLocked(name string, world uint8, x, z, reach float32) []
 	return out
 }
 
+// NearestNPC is the living NPC named name (any case) nearest (x, z) in world within
+// reach, not hidden: what a trigger's protect step guards. False: none.
+func (w *World) NearestNPC(name string, world uint8, x, z, reach float32) (EntityID, bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	now := time.Now()
+	var best *NPC
+	var bestD float32
+	for _, n := range w.npcsNearLocked(strings.TrimSpace(name), world, x, z, reach) {
+		if n.hiddenAt(now) {
+			continue
+		}
+		if d := distXZ(n.X, n.Z, x, z); best == nil || d < bestD {
+			best, bestD = n, d
+		}
+	}
+	if best == nil {
+		return 0, false
+	}
+	return best.ServerID, true
+}
+
 // PlayerNear reports a living player within reach of (x, z) in world.
 func (w *World) PlayerNear(world uint8, x, z, reach float32) bool {
 	w.mu.RLock()

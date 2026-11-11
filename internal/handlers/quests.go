@@ -1179,6 +1179,12 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 			return
 		}
 	}
+	// a held trigger (database.QuestEvent's Hold): the trigger fired, the step
+	// left to its queststep (questhold.go)
+	if ev := database.HoldTrigger(st); ev != nil && opt == nil {
+		q.holdLocked(sess, p, c, qu, st, *ev)
+		return
+	}
 	// what doing the step puts in the pack must fit it, after what it takes,
 	// else nothing changes hands and the step stays to do (questroom.go)
 	var extraRw *database.ClassReward

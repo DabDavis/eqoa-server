@@ -63,9 +63,12 @@ type Kept struct {
 	AckMasks           bool `json:"ack_masks,omitempty"`
 	FlyClient          bool `json:"fly_client,omitempty"`
 	NumberTags         bool `json:"number_tags,omitempty"`
-	NPCTints           bool `json:"npc_tints,omitempty"`
-	MobInfo            bool `json:"mob_info,omitempty"`
-	MercsTold          bool `json:"mercs_told,omitempty"`
+	// NumberTagsLayout is the number tags' layout the client asked for, when
+	// past 1 (a kept file before it has NumberTags alone: layout 1)
+	NumberTagsLayout uint8 `json:"number_tags_layout,omitempty"`
+	NPCTints         bool  `json:"npc_tints,omitempty"`
+	MobInfo          bool  `json:"mob_info,omitempty"`
+	MercsTold        bool  `json:"mercs_told,omitempty"`
 	// MercsLayout is the layout of OpcodeMercsData the client asked for (2
 	// names each merc's hirer, the client's "<X's Mercenary>" tag): without
 	// it a kept session fell back to 1 and every tag went (2026-11-11).
@@ -203,7 +206,8 @@ func (s *Session) Keep() Kept {
 		BugReports:         s.bugReports,
 		AckMasks:           s.ackMasks,
 		FlyClient:          s.flyClient,
-		NumberTags:         s.numberTags,
+		NumberTags:         s.numberTags != 0,
+		NumberTagsLayout:   s.numberTags,
 		NPCTints:           s.npcTints,
 		MobInfo:            s.mobInfo,
 		MercsTold:          s.mercsTold,
@@ -360,7 +364,10 @@ func (s *Session) restore(k Kept, now time.Time) {
 	s.bugReports = k.BugReports
 	s.ackMasks = k.AckMasks
 	s.flyClient = k.FlyClient
-	s.numberTags = k.NumberTags
+	s.numberTags = k.NumberTagsLayout
+	if s.numberTags == 0 && k.NumberTags {
+		s.numberTags = 1
+	}
 	// the client keeps its tints; a data step in the hold may have changed
 	// them, so the next refresh sends them whatever they are (handlers/keep.go)
 	s.npcTints, s.npcTintsSent = k.NPCTints, ""

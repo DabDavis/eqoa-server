@@ -97,13 +97,23 @@ const (
 	// last one fell, one more beside it, set on target (the user, 2026-11-09: "cause tunare to
 	// resummon her pets"), from this step to the run's end
 	TriggerResummon = "resummon"
+	// The NPC named npc nearest the run's place guarded from this step to the run's end:
+	// its death (or its going) fails the run, text said to its players, its spawns taken
+	// away and the rest left undone (petition 1617: "If the herbman dies while you are
+	// making potions, you will have to wait until someone else triggers the event")
+	TriggerProtect = "protect"
+	// A quest's step (quest, step) done for each player the scope takes who is on it and
+	// holds what it needs, as at its NPC: what a held trigger event (database.QuestEvent's
+	// Hold) left undone ("Since the popups have an Area of Effect, your quest will still be
+	// advanced if you have the necessary items")
+	TriggerQuestStep = "queststep"
 )
 
 // TriggerActions is every action, in the order the panel offers them.
 var TriggerActions = []string{TriggerBroadcast, TriggerPopup, TriggerSay, TriggerGive, TriggerVisual,
 	TriggerTeleport, TriggerSpawn, TriggerDespawn, TriggerStop, TriggerWait,
 	TriggerLock, TriggerPlace, TriggerClock, TriggerEnd, TriggerAwaitTalk, TriggerAwaitDead, TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic,
-	TriggerResummon}
+	TriggerResummon, TriggerProtect, TriggerQuestStep}
 
 // TriggerStep is one step of a trigger, kept in the steps column's array.
 type TriggerStep struct {
@@ -148,6 +158,9 @@ type TriggerStep struct {
 	// time after npc's last one fell, target, radius and casts the sic it is given, attackable,
 	// hostile and minutes its spawn's, text a line in its players' chat as it comes
 	By string `json:"by,omitempty"`
+	// Quest and QuestStep (queststep): the quest's id and the step done
+	Quest     int `json:"quest,omitempty"`
+	QuestStep int `json:"step,omitempty"`
 }
 
 // GMTrigger is one row of gmtriggers.
@@ -405,6 +418,14 @@ func StepProblems(steps []TriggerStep) []string {
 				add(i, "walk's place is 0, 0")
 			}
 		case TriggerAwaitDead:
+		case TriggerProtect:
+			if strings.TrimSpace(s.NPC) == "" {
+				add(i, "protect names no NPC")
+			}
+		case TriggerQuestStep:
+			if s.Quest <= 0 || s.QuestStep <= 0 {
+				add(i, "queststep names no quest and step (quest, step)")
+			}
 		case TriggerSic:
 			if strings.TrimSpace(s.Target) == "" {
 				add(i, "sic names no target")
@@ -430,7 +451,7 @@ func StepProblems(steps []TriggerStep) []string {
 			}
 		case TriggerBroadcast, TriggerPopup, TriggerSay, TriggerGive, TriggerVisual, TriggerTeleport, TriggerSpawn,
 			TriggerDespawn, TriggerStop, TriggerWait, TriggerLock, TriggerPlace, TriggerClock, TriggerEnd,
-			TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic, TriggerResummon:
+			TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic, TriggerResummon, TriggerProtect, TriggerQuestStep:
 		default:
 			add(i, "do %q is not one of %s", s.Do, strings.Join(TriggerActions, ", "))
 		}

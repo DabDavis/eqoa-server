@@ -68,7 +68,7 @@ const (
 	mercBootedLine  = "%s removed your mercenary %s from the group: it is dismissed."
 	mercAskLine     = "Accept the box to have %s in your group: a mercenary fights only in your group, and a no dismisses it."
 	mercBoxUpLine   = "Answer the group box you have up first."
-	mercOutLine     = "Your mercenary %s is dismissed: a mercenary fights only in your group. A Mercenary Liaison will hire you another."
+	mercOutLine     = "Your mercenary %s is dismissed: a mercenary fights only in your group. The Mercenary Recruitment board will hire you another."
 	mercOutFullLine = "Your mercenary %s is dismissed: your group has no place for it."
 )
 

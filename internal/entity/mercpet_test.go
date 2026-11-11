@@ -274,3 +274,44 @@ func TestNoPlayersPetOutlivesItsOwner(t *testing.T) {
 		t.Error("the dead merc's pet's body never went")
 	}
 }
+
+// A pick of a pet kind (/merc pet, petition 1564): the best of the picked
+// kind's summonings, the best of all when the book has none of it; a new pick
+// sends the pet out of another summoning away, and the picked one comes.
+func TestMercPetPick(t *testing.T) {
+	r := newMercRig(t)
+	earth := bookSpell(632, "Earth Elementaling", 0, 0, 0, 10, "Summons an Earth Elementaling to aid you")
+	air := bookSpell(648, "Air Elementaling", 0, 0, 0, 10, "Summons an Air Elementaling to aid you")
+	earth.Level, air.Level = 1, 12
+	r.w.mu.Lock() // the bodies the pets wear
+	r.w.putNPCLocked(&NPC{ServerID: 4900, Name: "Earth Elementaling", Level: 5, HP: 200, MaxHP: 200, ModelID: 0x8A416241, Size: 1,
+		NPCType: 0x80, X: 20000, Z: 20000, World: 0})
+	r.w.putNPCLocked(&NPC{ServerID: 4901, Name: "Air Elementaling", Level: 12, HP: 400, MaxHP: 400, ModelID: 0x8A416242, Size: 1,
+		NPCType: 0x80, X: 20000, Z: 20000, World: 0})
+	r.w.mu.Unlock()
+	k := r.kit(10, 0, 0, earth, air)
+	ms := r.hire(k, MercAssist)
+	if s := ms.mercPetSpell(); s == nil || s.SpellID != air.SpellID {
+		t.Fatalf("no pick: %v, want its best (the air)", s)
+	}
+	ms.kit.PetPick = []string{"earth"}
+	if s := ms.mercPetSpell(); s == nil || s.SpellID != earth.SpellID {
+		t.Fatalf("earth picked: %v", s)
+	}
+	ms.kit.PetPick = []string{"ghilan"}
+	if s := ms.mercPetSpell(); s == nil || s.SpellID != air.SpellID {
+		t.Fatalf("a kind it has none of: %v, want its best", s)
+	}
+	ms.kit.PetPick = nil
+	r.run(0, 10*time.Second)
+	if ms.pet == nil || ms.pet.spell != air.SpellID {
+		t.Fatalf("its pet: %+v", ms.pet)
+	}
+	first := ms.pet.npc
+	k.PetPick = []string{"earth"}
+	r.w.SetMercKit(r.p.CharServerID, k)
+	r.run(10*time.Second+100*time.Millisecond, 20*time.Second)
+	if ms.pet == nil || ms.pet.spell != earth.SpellID || !first.Dead {
+		t.Errorf("after the pick: pet %+v, the air one dead %v", ms.pet, first.Dead)
+	}
+}

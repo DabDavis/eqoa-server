@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/eqoa/server/internal/session"
@@ -88,12 +89,38 @@ func (w *World) petMasterLocked(npc *NPC) *Player {
 
 // mercPetSpell is the summoning the merc casts: the highest level of its
 // book's (a pet's, not a charm's, a familiar item's or a trip's), the dearest
-// of those, the highest id of those; nil for a book with none.
+// of those, the highest id of those; nil for a book with none. Its hirer's
+// pick of a kind (MercKit.PetPick, /merc pet: petition 1564) takes the best of
+// that kind's, and the best of all when its book has none of it yet.
 func (ms *mercState) mercPetSpell() *CastSpell {
+	if s := ms.mercPetSpellOf(ms.kit.PetPick); s != nil {
+		return s
+	}
+	return ms.mercPetSpellOf(nil)
+}
+
+// MercPetKindOf reports whether a summoning's name is of a kind: holding one
+// of its words (lower case); any summoning, for no words.
+func MercPetKindOf(name string, words []string) bool {
+	if len(words) == 0 {
+		return true
+	}
+	name = strings.ToLower(name)
+	for _, w := range words {
+		if strings.Contains(name, w) {
+			return true
+		}
+	}
+	return false
+}
+
+// mercPetSpellOf is mercPetSpell's best of the book's summonings of the kind
+// whose words are given (MercPetKindOf), nil for none.
+func (ms *mercState) mercPetSpellOf(words []string) *CastSpell {
 	var best *CastSpell
 	for i := range ms.kit.Spells {
 		s := &ms.kit.Spells[i]
-		if !s.Def.Summons() || s.Def.Charms() || s.Familiar != nil || s.Travel != nil {
+		if !s.Def.Summons() || s.Def.Charms() || s.Familiar != nil || s.Travel != nil || !MercPetKindOf(s.Name, words) {
 			continue
 		}
 		if best == nil || s.Level > best.Level || s.Level == best.Level && (s.PowerCost > best.PowerCost ||

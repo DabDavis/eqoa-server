@@ -397,3 +397,24 @@ func TestTheReceiveWindowComesThroughARestart(t *testing.T) {
 		t.Fatalf("an older binary's file: ack %d mask %b, want 6 and none", rep.Ack, rep.Mask)
 	}
 }
+
+// The mercs' layout the client asked for comes through a restart: 2 (each
+// merc with its hirer, the client's "<X's Mercenary>" tag) stays 2. Before
+// (2026-11-11) only that it asked came through, the layout fell back to 1,
+// and every kept player's tags went. The control: a client that asked for 1
+// keeps 1, and one that never asked keeps none.
+func TestKeptMercsLayout(t *testing.T) {
+	for _, want := range []uint8{2, 1, 0} {
+		m := session.NewManager()
+		s := m.CreateSession(&net.UDPAddr{IP: net.IPv4(198, 51, 100, 7), Port: 40123}, 0x2EC7D061, 0x2EC7D061, 0x1234, 0xB991, false)
+		m.PromoteSessionToMaster(s, 500000042)
+		s.SetMercsLayout(want)
+		r, _ := keptRoundTrip(t, s)
+		if got := r.MercsLayout(); got != want {
+			t.Errorf("layout %d came back %d", want, got)
+		}
+		if got := r.MercsTold(); got != (want != 0) {
+			t.Errorf("layout %d: told %v", want, got)
+		}
+	}
+}

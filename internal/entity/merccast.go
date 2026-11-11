@@ -27,6 +27,8 @@ import (
 //     Moogie's challenge or flagged for PvP (ownfight.go: no help in a fight
 //     that is a player's own);
 //   - with no pet of its own out, its summoning (mercpet.go);
+//   - its pet's heal when it is hurt, then its pet's buffs, the best of
+//     each line kept on it (mercpetbuff.go);
 //   - out of a fight, a buff (mercBuffTurnLocked): the best rank of each line
 //     its book holds of what lasts mercBuffLasts or more, on itself (a self
 //     buff, or one of a target's its owner already has), its owner (one of a
@@ -284,13 +286,17 @@ func mercReaches(m *NPC, s *CastSpell, x, y, z, extra float32) bool {
 }
 
 // mercCastTurnLocked is the merc's cast this turn, if any (the file's doc):
-// a heal, else out of a fight a buff, else a tank's taunt, else an attack.
-// It reports a cast begun. Must be called with the lock held.
+// a heal, else its pet's summoning, heal or buff, else out of a fight a
+// buff, else a tank's taunt, else an attack. It reports a cast begun. Must
+// be called with the lock held.
 func (w *World) mercCastTurnLocked(ms *mercState, t *NPC, now time.Time) bool {
 	if w.mercHealTurnLocked(ms, now) {
 		return true
 	}
 	if w.mercSummonTurnLocked(ms, now) { // its pet, when it has none out (mercpet.go)
+		return true
+	}
+	if w.mercPetCareTurnLocked(ms, now) { // its pet's heal, then its pet's buffs (mercpetbuff.go)
 		return true
 	}
 	if t == nil {
@@ -731,6 +737,10 @@ func (w *World) mercLandLocked(c *mercCast, now time.Time) {
 func (w *World) mercHelpLocked(ms *mercState, s *CastSpell, id EntityID, now time.Time) {
 	cs := &castState{spell: *s, caster: ms.npc.ServerID, targets: []EntityID{id}}
 	cs.spell.figures = figuresPet // a pet's figures to a client that colours them (numbertags.go)
+	// its own pet (mercpetbuff.go)
+	if w.mercPetLandLocked(ms, cs, id, now) {
+		return
+	}
 	if p := w.Players[id]; p != nil {
 		// not on one whose fight became its own while the cast was on its way
 		// (ownfight.go, petition 1491)

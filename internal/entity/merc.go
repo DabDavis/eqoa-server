@@ -181,6 +181,10 @@ type mercState struct {
 	bookOf *Player
 	// pet is its own pet, nil for none out (mercpet.go)
 	pet *petState
+	// petBook is its pet's heals and buffs (mercpetbuff.go), made for
+	// petBookOf, its body, as book is
+	petBook   *mercPetSpells
+	petBookOf *Player
 }
 
 // mercNoCollideID is a merc's entry on its owner's non-collide list (0x1003:

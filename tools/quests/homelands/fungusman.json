@@ -172,5 +172,181 @@
     "declined": "There is no hurry. The elves live a long time.",
     "started": "Grow well, up in the light!",
     "journal": "Tell Gatekeeper Gillford when you are ready to go up to the elves."
+  },
+  "L7": {
+    "name": "Warmth for the Spore-Beds",
+    "giver": "Warden Morel",
+    "offer": [
+      "You are a sprout no longer, and a grown cap should see the snow once. The Homelands keep an outpost at the Goldfeather Eyrie, and every home sends its young there.",
+      "Ride Inkcap's coach to the Eyrie. Bring me three clumps of drift rat fur and a badger's pelt from the snow east of the outpost. Fur keeps the spore-beds warm.",
+      "Will you go up into the cold?"
+    ],
+    "accept": "I will go.",
+    "decline": "Not now.",
+    "declined": "There is no hurry. There is never any hurry.",
+    "started": "Inkcap's coach will take you. Keep your cap covered.",
+    "hunts": [
+      {
+        "target": "drift rat",
+        "count": 3,
+        "drop": {
+          "name": "drift rat fur",
+          "description": "A clump of white fur from a drift rat of the Goldfeather Eyrie's snow.",
+          "like": "clump of rat fur"
+        },
+        "hunt": {
+          "journal": "Take three clumps of drift rat fur from the drift rats east of the Eyrie outpost."
+        }
+      },
+      {
+        "target": "snowfield badger",
+        "count": 1,
+        "drop": {
+          "name": "snowfield badger pelt",
+          "description": "The thick pelt of a snowfield badger of the Goldfeather Eyrie.",
+          "like": "beast pelt"
+        },
+        "hunt": {
+          "journal": "Take a snowfield badger pelt from the badgers on the snow east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring the drift rat fur and the badger pelt to Warden Morel.",
+      "says": "Fur, and a pelt. The spore-beds will be warm all season. Now watch, slowly, and learn this."
+    }
+  },
+  "L10": {
+    "name": "Dry Wood",
+    "giver": "Warden Morel",
+    "offer": [
+      "Your arms have gone soft with the damp, as everything does down here. The Eyrie outpost keeps its wood dry, which is more than we can do.",
+      "Quartermaster Dunmore will give you a dry shaft. Then bring me two feathers from the pale owls north of the outpost.",
+      "Will you bring me the shaft and the feathers?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then hold what you have, and hold it tight.",
+    "started": "A shaft from Dunmore, feathers from the owls. Go on.",
+    "materials": [
+      {
+        "merchant": "Quartermaster Dunmore",
+        "items": [
+          "wooden shaft"
+        ],
+        "journal": "Ask Quartermaster Dunmore at the Eyrie outpost for a dry wooden shaft.",
+        "says": "Dry wood for Guk? Morel's word came by the coach, very slowly. Here, the driest I have. Keep it out of the river."
+      }
+    ],
+    "target": "pale owl",
+    "count": 2,
+    "drop": {
+      "name": "pale owl feather",
+      "description": "A long white flight feather from a pale owl of the Goldfeather Eyrie.",
+      "like": "ruined owl feathers"
+    },
+    "hunt": {
+      "journal": "Take two pale owl feathers from the pale owls north of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the wooden shaft and the pale owl feathers to Warden Morel.",
+      "says": "Dry wood, and white feathers. Give me a little while... there. It is yours. Keep it from the damp, if you can."
+    }
+  },
+  "L13": {
+    "name": "Claws for the Diggers",
+    "giver": "Warden Morel",
+    "offer": [
+      "The frostpaw cubs north of the Eyrie outpost, past the river, have claws as sharp as the old cat's. Our spore-diggers need claws like that, for the hard ground at the hall's edge.",
+      "Bring me two of their claws. Take friends: the cubs run in litters, and they are quicker than we are. Most things are.",
+      "Will you bring me two frostpaw cub claws?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not yet.",
+    "declined": "The ground can wait to be dug. It has waited a long time.",
+    "started": "North, past the river. Mind the litters.",
+    "kind": "loot",
+    "target": "frostpaw cub",
+    "count": 2,
+    "drop": {
+      "name": "frostpaw cub claw",
+      "description": "A small, sharp claw from a frostpaw cub of the Goldfeather Eyrie.",
+      "like": "Cracked Rat Claw"
+    },
+    "hunt": {
+      "journal": "Take two frostpaw cub claws from the frostpaw cubs north of the Eyrie outpost, past the river."
+    },
+    "give": {
+      "journal": "Bring the two frostpaw cub claws to Warden Morel.",
+      "says": "Sharp, both of them. The diggers will reach the deep beds by spring. Now watch, and learn this."
+    }
+  },
+  "L15": {
+    "name": "The Cold That Kills",
+    "giver": "Warden Morel",
+    "offer": [
+      "Something walks the ice caves north-east of the Eyrie outpost, the Rimeheart. Where it walks the ground freezes deep, and nothing grows. Nothing at all.",
+      "A cap cannot let that be. Break it, and bring me a shard, so the elders can see what kind of cold it was.",
+      "Will you break the Rimeheart?"
+    ],
+    "accept": "I will break it.",
+    "decline": "Not yet.",
+    "declined": "Then the ground stays frozen. That troubles me, slowly.",
+    "started": "Take friends. Cold is the one thing we cannot outwait.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the shard of the Rimeheart to Warden Morel.",
+      "says": "Ice that never melts... the spores shrink from it. It is good that it is broken. You have done the hall proud. Learn this."
+    }
+  },
+  "L20": {
+    "name": "Up Into the Open Air",
+    "giver": "Elder Moldcap",
+    "offer": [
+      "Morel says you are grown, cap and stem. Before a cap of the hall chooses its path, it stands once with the other homes at the Eyrie, in the open air.",
+      "Find Scout Feyla on the frozen river at the Eyrie, and help her as she asks. Then come back down to me, and choose your path.",
+      "Will you go up and stand with the homes?"
+    ],
+    "accept": "I will go.",
+    "decline": "Not yet.",
+    "declined": "Stay a while. The light will still be there.",
+    "started": "Go on. Mind the brightness.",
+    "road": [
+      {
+        "target": "Scout Feyla",
+        "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+        "says": "A fungus man, this far from the dark? Well met. The Goldfeather raiders carry war-talons. Bring two to Warden Halvek at the outpost: he keeps the count."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 2,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take two war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "target": "Warden Halvek",
+      "journal": "Bring the two war-talons to Warden Halvek at the Eyrie outpost.",
+      "says": "Two talons, and Feyla sent you. The raiders have learned something tonight. Go home, friend: your elder waits below."
+    },
+    "final": {
+      "target": "Elder Moldcap",
+      "journal": "Return to Elder Moldcap in Guk.",
+      "says": "Ahh. You went up into the light, and came back down to us. The other homes know the hall now, through you. There is one thing more."
+    },
+    "picked": "Then it is yours. Grow into it, slowly."
   }
 }

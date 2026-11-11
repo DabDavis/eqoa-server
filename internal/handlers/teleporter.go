@@ -116,6 +116,18 @@ var teleRaidGroups = []string{
 	"Zaoran Plateau",
 }
 
+// telePlaces are places it sends to by name, each an answer of its first box
+// after Raids, for nothing as every trip of it: the Isle of Dread (the owner,
+// 2026-11-11: "lets add isle of dread free to teleporter npc freeport"),
+// landing as Norach's trip does, on the fishing raft in the cove south of
+// Graumord's pier, facing the pier.
+var telePlaces = []struct {
+	label string
+	at    wayPlace
+}{
+	{"Isle of Dread", wayPlace{World: 0, X: 24578, Y: 52.6, Z: 3626, Facing: 3.9}},
+}
+
 // teleRaids are its raids, each with where it lands (measured 2026-11-09 over
 // the box's ground and environment files and its creatures: a scratch walk
 // from each boss on the terrain and what is placed on it).
@@ -197,6 +209,7 @@ type teleSpot struct {
 	bx, bz    float32 // what a raid's landing faces
 	camp      string  // a #tele camp's key
 	gm        *entity.GMCampSpot
+	place     *wayPlace // a place of telePlaces: lands there, facing as it says
 }
 
 // teleNode is a box's answer: a further box (kids, asked under ask) or a trip.
@@ -450,6 +463,15 @@ func (t *Teleporter) tree(gw *entity.World, sess *session.Session) *teleNode {
 	}
 	if len(raids.kids) > 0 {
 		root.kids = append(root.kids, raids)
+	}
+	for i := range telePlaces {
+		pl := &telePlaces[i]
+		if !CanLoadWorld(sess, pl.at.World) {
+			continue
+		}
+		at := pl.at
+		root.kids = append(root.kids, &teleNode{label: pl.label,
+			spot: &teleSpot{label: pl.label, world: at.World, place: &at}})
 	}
 	sort.SliceStable(camps, func(i, j int) bool {
 		a, b := camps[i], camps[j]
@@ -709,6 +731,9 @@ func heading(x, z, tx, tz float32) float32 {
 func teleLanding(gw *entity.World, sp *teleSpot) (entity.CoachDest, bool) {
 	dest := entity.CoachDest{Name: sp.label, World: sp.world, Via: TeleporterName}
 	switch {
+	case sp.place != nil:
+		dest.X, dest.Y, dest.Z, dest.World, dest.Facing = sp.place.X, sp.place.Y, sp.place.Z, sp.place.World, sp.place.Facing
+		return dest, true
 	case sp.raid != nil && sp.raid.at != nil:
 		dest.X, dest.Y, dest.Z = sp.raid.at.X, sp.raid.at.Y, sp.raid.at.Z
 	case sp.raid != nil:

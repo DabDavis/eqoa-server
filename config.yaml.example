@@ -119,6 +119,19 @@ world:
   #   min_level: 1
   #   touch_reach: 5
 
+  # The players' homes (entity/homes.go, handlers/homes.go): a world of the
+  # server's own (built by cmd/worldbuild from tools/worlds/homesteads.json,
+  # slot 13, the Homesteads: a fenced cottage and its yard, and listed in
+  # server_worlds) of which every character has its own copy, free. The Real
+  # Estate Listings board beside Dabrish and its twin in every yard
+  # (tools/place_homes_board_20261111.py) and /home go home, visit a friend's
+  # home and leave; /home invite, uninvite, kick, list. Only a client that holds
+  # the world goes in (vanilla). Off unless enabled; world unset is 13
+  # (claude-notes/player-homes-20261111.md).
+  # homes:
+  #   enabled: true
+  #   world: 13
+
   # How many records the pack (worn items among them, as CLIENT's 40 counts
   # them) and the bank hold for a client that holds more (vanilla, offered them
   # with opcode 0x7E29). Unset or 40: CLIENT's 40, nothing offered; at most 255.

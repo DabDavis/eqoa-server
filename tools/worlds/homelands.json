@@ -8376,10 +8376,1035 @@
       "stable": true,
       "note": "The homes' shared ground (the owner, 2026-11-11: \"a new zone for the higher level mobs/quest objectives ... shared by all the homeland races, so players can group together\"): Tunaria's snowfield under the Goldfeather aviaks' eyrie (cell 7,3), creatures of levels 6-20 for the homes' L7-L20 quests; no race's home, a stable on the homes' coach network (every home's coach and Freeport's run to it)",
       "shared": {
-        "npcs": [],
-        "peaceful": [],
-        "hostile": [],
-        "lines": {}
+        "npcs": [
+          {
+            "name": "Coachwoman Brenna",
+            "like": 132167,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              14470.0,
+              66.5,
+              7500.0
+            ],
+            "toward": [
+              14600,
+              7240
+            ],
+            "note": "the shared ground's stable on the homes' coach network: every home's coach and Freeport's run here, hers to them; a rider lands on her spot, on the open ice of the frozen river (no creature within 300)"
+          },
+          {
+            "name": "Warden Halvek",
+            "like": 128811,
+            "level": 35,
+            "role": "talker",
+            "at": [
+              14540,
+              66.5,
+              7330
+            ],
+            "toward": [
+              14470.0,
+              7500.0
+            ],
+            "note": "the outpost's warden, a hill giant: the homes' L15 spoils are carried to him, and he is a stop on their L20 roads"
+          },
+          {
+            "name": "Quartermaster Dunmore",
+            "like": 103588,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              14500,
+              66.5,
+              7400
+            ],
+            "toward": [
+              14470.0,
+              7500.0
+            ],
+            "note": "the outpost's quartermaster: hands over the homes' L10 materials; sells a Halas merchant's goods (a window: CLIENT asks a merchant for nothing else)",
+            "stock": "Merchant Mallie"
+          },
+          {
+            "name": "Spiritmaster Oswin",
+            "like": 130401,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              14440,
+              66.5,
+              7460
+            ],
+            "toward": [
+              14470.0,
+              7500.0
+            ],
+            "note": "binds at the outpost, so a group that meets here wakes here"
+          },
+          {
+            "name": "Scout Feyla",
+            "like": 115272,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              14920,
+              66.5,
+              6720
+            ],
+            "toward": [
+              15130,
+              7220
+            ],
+            "note": "watches the Goldfeather eyrie from the frozen river's north-east reach: a stop on the homes' L20 roads"
+          },
+          {
+            "name": "Outpost sentry",
+            "like": 100884,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              14600,
+              66.5,
+              7240
+            ],
+            "toward": [
+              14900,
+              6900
+            ]
+          },
+          {
+            "name": "Outpost sentry",
+            "like": 131351,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              14420,
+              66.5,
+              7540
+            ],
+            "toward": [
+              14100,
+              7800
+            ]
+          },
+          {
+            "name": "Outpost sentry",
+            "like": 132181,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              14560,
+              66.5,
+              7280
+            ],
+            "toward": [
+              15130,
+              7220
+            ]
+          },
+          {
+            "name": "drift rat",
+            "like": 138609,
+            "level": 6,
+            "role": "foe",
+            "at": [
+              14242.3,
+              47.0,
+              7470.6
+            ],
+            "facing": 64,
+            "note": "L6-7 (the homes' L7 hunts): the zone's rats' spots on the snow south and east of the outpost; peaceful"
+          },
+          {
+            "name": "drift rat",
+            "like": 138609,
+            "level": 7,
+            "role": "foe",
+            "at": [
+              15577.3,
+              205.8,
+              7534.2
+            ],
+            "facing": 116
+          },
+          {
+            "name": "drift rat",
+            "like": 138609,
+            "level": 6,
+            "role": "foe",
+            "at": [
+              15059.9,
+              67.5,
+              7821.9
+            ],
+            "facing": 80
+          },
+          {
+            "name": "drift rat",
+            "like": 138609,
+            "level": 7,
+            "role": "foe",
+            "at": [
+              15625.0,
+              69.2,
+              7826.8
+            ],
+            "facing": 114
+          },
+          {
+            "name": "drift rat",
+            "like": 138609,
+            "level": 6,
+            "role": "foe",
+            "at": [
+              15235.0,
+              80.6,
+              7831.6
+            ],
+            "facing": 186
+          },
+          {
+            "name": "drift rat",
+            "like": 138609,
+            "level": 7,
+            "role": "foe",
+            "at": [
+              15107.7,
+              145.0,
+              7697.1
+            ],
+            "facing": 17
+          },
+          {
+            "name": "drift rat",
+            "like": 138609,
+            "level": 6,
+            "role": "foe",
+            "at": [
+              15202.4,
+              132.2,
+              7738.3
+            ],
+            "facing": 22
+          },
+          {
+            "name": "drift rat",
+            "like": 138609,
+            "level": 7,
+            "role": "foe",
+            "at": [
+              15828.0,
+              97.5,
+              7607.6
+            ],
+            "facing": 80
+          },
+          {
+            "name": "drift rat",
+            "like": 138609,
+            "level": 6,
+            "role": "foe",
+            "at": [
+              15272.5,
+              185.8,
+              7640.8
+            ],
+            "facing": 210
+          },
+          {
+            "name": "snowfield badger",
+            "like": 137862,
+            "level": 7,
+            "role": "foe",
+            "at": [
+              14634.9,
+              148.9,
+              7656.0
+            ],
+            "facing": 27,
+            "note": "L7-9 (the homes' L7 hunts): the zone's badgers' spots; peaceful"
+          },
+          {
+            "name": "snowfield badger",
+            "like": 137862,
+            "level": 8,
+            "role": "foe",
+            "at": [
+              15641.4,
+              69.4,
+              7826.0
+            ],
+            "facing": 119
+          },
+          {
+            "name": "snowfield badger",
+            "like": 137862,
+            "level": 9,
+            "role": "foe",
+            "at": [
+              14528.4,
+              128.3,
+              7722.9
+            ],
+            "facing": 200
+          },
+          {
+            "name": "snowfield badger",
+            "like": 137862,
+            "level": 7,
+            "role": "foe",
+            "at": [
+              15471.8,
+              225.1,
+              7007.4
+            ],
+            "facing": 11
+          },
+          {
+            "name": "snowfield badger",
+            "like": 137862,
+            "level": 8,
+            "role": "foe",
+            "at": [
+              14707.4,
+              218.9,
+              7771.7
+            ],
+            "facing": 38
+          },
+          {
+            "name": "snowfield badger",
+            "like": 137862,
+            "level": 9,
+            "role": "foe",
+            "at": [
+              14580.9,
+              215.4,
+              7812.0
+            ],
+            "facing": 96
+          },
+          {
+            "name": "snowfield badger",
+            "like": 137862,
+            "level": 7,
+            "role": "foe",
+            "at": [
+              14615.5,
+              153.4,
+              7683.9
+            ],
+            "facing": 126
+          },
+          {
+            "name": "snowfield badger",
+            "like": 137862,
+            "level": 8,
+            "role": "foe",
+            "at": [
+              15047.0,
+              237.7,
+              7472.8
+            ],
+            "facing": 245
+          },
+          {
+            "name": "snowfield badger",
+            "like": 137862,
+            "level": 9,
+            "role": "foe",
+            "at": [
+              15612.2,
+              69.4,
+              7825.7
+            ],
+            "facing": 52
+          },
+          {
+            "name": "snowfield badger",
+            "like": 137862,
+            "level": 7,
+            "role": "foe",
+            "at": [
+              14280.6,
+              53.2,
+              7008.4
+            ],
+            "facing": 128
+          },
+          {
+            "name": "rime spider",
+            "like": 100294,
+            "level": 9,
+            "role": "foe",
+            "at": [
+              15272.7,
+              183.3,
+              7648.9
+            ],
+            "facing": 190,
+            "note": "L9-11 (the homes' L10 hunts): the wooly spiders' spots; peaceful"
+          },
+          {
+            "name": "rime spider",
+            "like": 100294,
+            "level": 10,
+            "role": "foe",
+            "at": [
+              14302.9,
+              64.8,
+              6480.5
+            ],
+            "facing": 75
+          },
+          {
+            "name": "rime spider",
+            "like": 100294,
+            "level": 11,
+            "role": "foe",
+            "at": [
+              14272.8,
+              72.5,
+              6779.2
+            ],
+            "facing": 216
+          },
+          {
+            "name": "rime spider",
+            "like": 100294,
+            "level": 9,
+            "role": "foe",
+            "at": [
+              15207.3,
+              136.4,
+              7731.8
+            ],
+            "facing": 82
+          },
+          {
+            "name": "rime spider",
+            "like": 100294,
+            "level": 10,
+            "role": "foe",
+            "at": [
+              14444.3,
+              71.8,
+              6354.9
+            ],
+            "facing": 155
+          },
+          {
+            "name": "rime spider",
+            "like": 100294,
+            "level": 11,
+            "role": "foe",
+            "at": [
+              15404.4,
+              255.0,
+              7428.8
+            ],
+            "facing": 227
+          },
+          {
+            "name": "rime spider",
+            "like": 100294,
+            "level": 9,
+            "role": "foe",
+            "at": [
+              14542.1,
+              132.9,
+              7722.6
+            ],
+            "facing": 119
+          },
+          {
+            "name": "pale owl",
+            "like": 100296,
+            "level": 10,
+            "role": "foe",
+            "at": [
+              14507.5,
+              62.0,
+              6489.4
+            ],
+            "facing": 241,
+            "note": "L10-12 (the homes' L10 hunts): the owls' spots; peaceful"
+          },
+          {
+            "name": "pale owl",
+            "like": 100296,
+            "level": 11,
+            "role": "foe",
+            "at": [
+              15583.2,
+              207.0,
+              7521.2
+            ],
+            "facing": 79
+          },
+          {
+            "name": "pale owl",
+            "like": 100296,
+            "level": 12,
+            "role": "foe",
+            "at": [
+              14281.2,
+              107.8,
+              6294.3
+            ],
+            "facing": 238
+          },
+          {
+            "name": "pale owl",
+            "like": 100296,
+            "level": 10,
+            "role": "foe",
+            "at": [
+              14300.5,
+              103.5,
+              6274.8
+            ],
+            "facing": 254
+          },
+          {
+            "name": "pale owl",
+            "like": 100296,
+            "level": 11,
+            "role": "foe",
+            "at": [
+              14454.6,
+              72.4,
+              7084.0
+            ],
+            "facing": 76
+          },
+          {
+            "name": "pale owl",
+            "like": 100296,
+            "level": 12,
+            "role": "foe",
+            "at": [
+              14415.0,
+              47.0,
+              6909.7
+            ],
+            "facing": 206
+          },
+          {
+            "name": "pale owl",
+            "like": 100296,
+            "level": 10,
+            "role": "foe",
+            "at": [
+              14299.3,
+              71.6,
+              6468.2
+            ],
+            "facing": 158
+          },
+          {
+            "name": "pale owl",
+            "like": 100296,
+            "level": 11,
+            "role": "foe",
+            "at": [
+              14474.8,
+              142.8,
+              6218.0
+            ],
+            "facing": 84
+          },
+          {
+            "name": "pale owl",
+            "like": 100296,
+            "level": 12,
+            "role": "foe",
+            "at": [
+              15812.2,
+              101.9,
+              7494.9
+            ],
+            "facing": 29
+          },
+          {
+            "name": "pale owl",
+            "like": 100296,
+            "level": 10,
+            "role": "foe",
+            "at": [
+              14921.4,
+              91.0,
+              6365.1
+            ],
+            "facing": 134
+          },
+          {
+            "name": "frostpaw cub",
+            "like": 100298,
+            "level": 12,
+            "role": "foe",
+            "at": [
+              15383.2,
+              183.8,
+              6692.1
+            ],
+            "facing": 167,
+            "note": "L12-14 (the homes' L13 hunts): the snow leopard cubs' spots north of the river; peaceful"
+          },
+          {
+            "name": "frostpaw cub",
+            "like": 100298,
+            "level": 13,
+            "role": "foe",
+            "at": [
+              15160.0,
+              68.3,
+              6437.5
+            ],
+            "facing": 158
+          },
+          {
+            "name": "frostpaw cub",
+            "like": 100298,
+            "level": 14,
+            "role": "foe",
+            "at": [
+              14524.7,
+              57.6,
+              6855.6
+            ],
+            "facing": 71
+          },
+          {
+            "name": "frostpaw cub",
+            "like": 100298,
+            "level": 12,
+            "role": "foe",
+            "at": [
+              14929.4,
+              66.5,
+              6752.6
+            ],
+            "facing": 224
+          },
+          {
+            "name": "frostpaw cub",
+            "like": 100298,
+            "level": 13,
+            "role": "foe",
+            "at": [
+              15333.3,
+              196.0,
+              6919.0
+            ],
+            "facing": 116
+          },
+          {
+            "name": "frostpaw cub",
+            "like": 100298,
+            "level": 14,
+            "role": "foe",
+            "at": [
+              14285.5,
+              72.5,
+              6779.4
+            ],
+            "facing": 156
+          },
+          {
+            "name": "frostpaw cub",
+            "like": 100298,
+            "level": 12,
+            "role": "foe",
+            "at": [
+              14632.9,
+              54.5,
+              6984.2
+            ],
+            "facing": 8
+          },
+          {
+            "name": "frostpaw cub",
+            "like": 100298,
+            "level": 13,
+            "role": "foe",
+            "at": [
+              14597.9,
+              47.0,
+              6651.6
+            ],
+            "facing": 174
+          },
+          {
+            "name": "frostpaw cub",
+            "like": 100298,
+            "level": 14,
+            "role": "foe",
+            "at": [
+              14616.9,
+              57.5,
+              7013.2
+            ],
+            "facing": 188
+          },
+          {
+            "name": "frostpaw cub",
+            "like": 100298,
+            "level": 12,
+            "role": "foe",
+            "at": [
+              14166.7,
+              65.6,
+              6354.1
+            ],
+            "facing": 231
+          },
+          {
+            "name": "frostpaw cub",
+            "like": 100298,
+            "level": 13,
+            "role": "foe",
+            "at": [
+              14395.9,
+              48.2,
+              6622.7
+            ],
+            "facing": 94
+          },
+          {
+            "name": "frostpaw cub",
+            "like": 100298,
+            "level": 14,
+            "role": "foe",
+            "at": [
+              14527.0,
+              57.7,
+              6509.4
+            ],
+            "facing": 19
+          },
+          {
+            "name": "Old Frostjaw",
+            "like": 135182,
+            "level": 14,
+            "role": "foe",
+            "at": [
+              15215.5,
+              138.2,
+              6641.4
+            ],
+            "facing": 134,
+            "size": 1.2,
+            "note": "L14, the homes' L13 named foe: a snow leopard's spot in the north; hostile"
+          },
+          {
+            "name": "rime elemental",
+            "like": 100306,
+            "level": 15,
+            "role": "foe",
+            "at": [
+              15594.0,
+              54.1,
+              6745.2
+            ],
+            "facing": 127,
+            "note": "L15-17 (the homes' L15 hunts): the frost elementals' and freezing gusts' spots in the east; hostile"
+          },
+          {
+            "name": "rime elemental",
+            "like": 100306,
+            "level": 16,
+            "role": "foe",
+            "at": [
+              15734.1,
+              60.2,
+              6740.6
+            ],
+            "facing": 63
+          },
+          {
+            "name": "rime elemental",
+            "like": 100306,
+            "level": 17,
+            "role": "foe",
+            "at": [
+              15698.8,
+              60.2,
+              6759.4
+            ],
+            "facing": 202
+          },
+          {
+            "name": "rime elemental",
+            "like": 100306,
+            "level": 15,
+            "role": "foe",
+            "at": [
+              15696.9,
+              60.2,
+              6794.2
+            ],
+            "facing": 73
+          },
+          {
+            "name": "rime elemental",
+            "like": 100306,
+            "level": 16,
+            "role": "foe",
+            "at": [
+              15780.4,
+              70.5,
+              6752.5
+            ],
+            "facing": 219
+          },
+          {
+            "name": "rime elemental",
+            "like": 100306,
+            "level": 17,
+            "role": "foe",
+            "at": [
+              15646.4,
+              60.2,
+              6784.9
+            ],
+            "facing": 250
+          },
+          {
+            "name": "rime elemental",
+            "like": 100306,
+            "level": 15,
+            "role": "foe",
+            "at": [
+              15774.8,
+              60.2,
+              6822.6
+            ],
+            "facing": 254
+          },
+          {
+            "name": "rime elemental",
+            "like": 100306,
+            "level": 16,
+            "role": "foe",
+            "at": [
+              15709.7,
+              60.2,
+              6722.5
+            ],
+            "facing": 162
+          },
+          {
+            "name": "rime elemental",
+            "like": 100306,
+            "level": 17,
+            "role": "foe",
+            "at": [
+              15593.5,
+              43.5,
+              6801.2
+            ],
+            "facing": 150
+          },
+          {
+            "name": "rime elemental",
+            "like": 100306,
+            "level": 15,
+            "role": "foe",
+            "at": [
+              15631.7,
+              60.2,
+              6731.0
+            ],
+            "facing": 21
+          },
+          {
+            "name": "Rimeheart",
+            "like": 100283,
+            "level": 17,
+            "role": "foe",
+            "at": [
+              15610.5,
+              43.6,
+              6687.0
+            ],
+            "facing": 161,
+            "size": 1.4,
+            "note": "L17, the homes' L15 named foe: an elemental at the elementals' heart in the east; hostile"
+          },
+          {
+            "name": "Goldfeather raider",
+            "like": 102851,
+            "level": 18,
+            "role": "foe",
+            "at": [
+              15189.5,
+              157.4,
+              7233.9
+            ],
+            "facing": 0,
+            "note": "L18-20 (the homes' L20 hunts): the Goldfeather aviaks' warrior camps on the river's north reach, and the plateau round their eyrie's huts; hostile"
+          },
+          {
+            "name": "Goldfeather raider",
+            "like": 102851,
+            "level": 19,
+            "role": "foe",
+            "at": [
+              15135.4,
+              154.4,
+              7259.8
+            ],
+            "facing": 53
+          },
+          {
+            "name": "Goldfeather raider",
+            "like": 102851,
+            "level": 20,
+            "role": "foe",
+            "at": [
+              15085.9,
+              148.3,
+              7225.9
+            ],
+            "facing": 106
+          },
+          {
+            "name": "Goldfeather raider",
+            "like": 102851,
+            "level": 18,
+            "role": "foe",
+            "at": [
+              15090.5,
+              145.6,
+              7166.1
+            ],
+            "facing": 159
+          },
+          {
+            "name": "Goldfeather raider",
+            "like": 102851,
+            "level": 19,
+            "role": "foe",
+            "at": [
+              15144.6,
+              149.2,
+              7140.2
+            ],
+            "facing": 212
+          },
+          {
+            "name": "Goldfeather raider",
+            "like": 102851,
+            "level": 20,
+            "role": "foe",
+            "at": [
+              15194.1,
+              153.4,
+              7174.1
+            ],
+            "facing": 9
+          },
+          {
+            "name": "Goldfeather raider",
+            "like": 102851,
+            "level": 18,
+            "role": "foe",
+            "at": [
+              15189.9,
+              162.4,
+              7298.0
+            ],
+            "facing": 62
+          },
+          {
+            "name": "Goldfeather raider",
+            "like": 102851,
+            "level": 19,
+            "role": "foe",
+            "at": [
+              15145.8,
+              155.2,
+              7090.2
+            ],
+            "facing": 115
+          },
+          {
+            "name": "Goldfeather raider",
+            "like": 102851,
+            "level": 20,
+            "role": "foe",
+            "at": [
+              15238.0,
+              156.9,
+              7150.1
+            ],
+            "facing": 168
+          },
+          {
+            "name": "Goldfeather raider",
+            "like": 102851,
+            "level": 18,
+            "role": "foe",
+            "at": [
+              15232.2,
+              160.2,
+              7260.0
+            ],
+            "facing": 221
+          }
+        ],
+        "peaceful": [
+          "drift rat",
+          "snowfield badger",
+          "rime spider",
+          "pale owl",
+          "frostpaw cub"
+        ],
+        "hostile": [
+          "Old Frostjaw",
+          "rime elemental",
+          "Rimeheart",
+          "Goldfeather raider"
+        ],
+        "templates": {
+          "drift rat": "roamer",
+          "snowfield badger": "roamer",
+          "rime spider": "roamer",
+          "pale owl": "roamer",
+          "frostpaw cub": "roamer",
+          "Old Frostjaw": "roamer",
+          "rime elemental": "roamer",
+          "Rimeheart": "roamer",
+          "Goldfeather raider": "roamer"
+        },
+        "loot": {
+          "drift rat": "arctic",
+          "snowfield badger": "arctic",
+          "rime spider": "arctic",
+          "pale owl": "arctic",
+          "frostpaw cub": "arctic",
+          "Old Frostjaw": "arctic",
+          "rime elemental": "arctic",
+          "Rimeheart": "arctic",
+          "Goldfeather raider": "arctic"
+        },
+        "lines": {
+          "Outpost sentry": [
+            "Keep to the river ice, %p. The Goldfeathers watch the snow from their eyrie.",
+            "Every home of the Homelands sends its hunters here. Find a group before you climb.",
+            "The rime walks in the east. Do not go alone."
+          ],
+          "Warden Halvek": [
+            "Hunters of every home stand this watch together, %p.",
+            "The eyrie above us is the Goldfeathers'. They do not share their snow."
+          ],
+          "Scout Feyla": [
+            "Quiet. The raiders change their watch at dusk.",
+            "From here you can count their fires, %p."
+          ]
+        }
       }
     }
   ]

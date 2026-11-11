@@ -2,7 +2,7 @@
   "race": "lizardman",
   "home": "Cazic-Thule",
   "city": "Freeport",
-  "note": "The Mirewatch's people are tools/worlds/homelands.json's (Cazic-Thule): Elder Hsslarn on the west shore of the temple island gives the first two, Huntmaster Kessrak beside him the three hunts; Hidebinder Ssilith, just east of the elder, is the outfitter; Coachman Rassk keeps the stable south-east of the elder, short of the east bridge (his coach runs to Freeport and to the other homes); the bog beetles (the south shore of the temple island), the marsh serpents (the south end of the east island, past the gatekeeper) and the alligator Old Snapjaw (alone on the north shore, over the north bridge) are placed for these quests.",
+  "note": "The Mirewatch's people are tools/worlds/homelands.json's (Cazic-Thule): Elder Hsslarn on the west shore of the temple island gives the first two, Huntmaster Kessrak beside him the three hunts; Hidebinder Ssilith, just east of the elder, is the outfitter; Coachman Rassk keeps the stable south-east of the elder, short of the east bridge (his coach runs to Freeport and to the other homes); the bog beetles (the south shore of the temple island), the marsh serpents (the south end of the east island, past the gatekeeper) and the alligator Old Snapjaw (alone on the north shore, over the north bridge) are placed for these quests. Levels 7-20 (2026-11-11): Kessrak gives L7-L15, Hsslarn the L20 path; objectives on the Homelands' shared ground, the Goldfeather Eyrie (Rassk's coach): the cold that slows a lizard's blood, owl pinions for a spear, a brood thinned, the watch kept with Scout Feyla.",
   "L1": {
     "name": "A Hatchling's Fang Cord",
     "giver": "Elder Hsslarn",
@@ -172,5 +172,175 @@
     "declined": "The coin will keep. So will Freeport.",
     "started": "Hunt well, and send word home now and then!",
     "journal": "Tell Gatekeeper Vosskar when you are ready to go to Freeport."
+  },
+  "L7": {
+    "name": "Hides Against the Cold",
+    "giver": "Huntmaster Kessrak",
+    "offer": [
+      "The homes keep a hunters' outpost on the snow under the Goldfeather Eyrie. The cold there slows our blood, hatchling. A cold Mirewatch hunter is a dead one.",
+      "Ride Rassk's coach to the Eyrie. Take two badger pelts and two clumps of rat fur from the snow east of the outpost. I will make you a warm wrap.",
+      "Will you hunt the cold snow?"
+    ],
+    "accept": "I will hunt there.",
+    "decline": "Not now.",
+    "declined": "Then stay by the warm mud a while longer.",
+    "started": "Keep moving out there. When your blood slows, so do you.",
+    "hunts": [
+      {
+        "target": "snowfield badger",
+        "count": 2,
+        "drop": {
+          "name": "snowfield badger pelt",
+          "description": "The thick pelt of a snowfield badger of the Goldfeather Eyrie.",
+          "like": "beast pelt"
+        },
+        "hunt": {
+          "journal": "Take two snowfield badger pelts from the badgers on the snow east of the Eyrie outpost."
+        }
+      },
+      {
+        "target": "drift rat",
+        "count": 2,
+        "drop": {
+          "name": "drift rat fur",
+          "description": "A clump of white fur from a drift rat of the Goldfeather Eyrie's snow.",
+          "like": "clump of rat fur"
+        },
+        "hunt": {
+          "journal": "Take two clumps of drift rat fur from the drift rats east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring the badger pelts and the drift rat fur to Huntmaster Kessrak.",
+      "says": "Thick pelts. Good. You hunted in the cold and came back with warm blood. Now learn this."
+    }
+  },
+  "L10": {
+    "name": "A Spear That Flies True",
+    "giver": "Huntmaster Kessrak",
+    "offer": [
+      "Your blade has drunk enough. It is time you carried a better one. I have the iron. What I lack are feathers for the balance.",
+      "The pale owls of the Eyrie fly the snow north of the outpost. Their pinions are long and straight. Bring me three.",
+      "Will you bring me the pinions?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then your old blade must serve.",
+    "started": "Three pinions. Owls see well. Come at them low.",
+    "target": "pale owl",
+    "count": 3,
+    "drop": {
+      "name": "pale owl pinion",
+      "description": "A long white flight feather from a pale owl of the Goldfeather Eyrie.",
+      "like": "White Owl Feather"
+    },
+    "hunt": {
+      "journal": "Take three pale owl pinions from the pale owls north of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring three pale owl pinions to Huntmaster Kessrak.",
+      "says": "Straight and white. Good. Iron for the bite, feather for the balance... there. It is yours. Keep it dry."
+    }
+  },
+  "L13": {
+    "name": "Thinning the Cubs",
+    "giver": "Huntmaster Kessrak",
+    "offer": [
+      "Word comes by the coach. The frostpaw cubs north of the Eyrie outpost have grown bold, and they take the outpost's snares and its hunters' catch.",
+      "A Mirewatch hunter thins a brood before it grows. Kill six of them, then come back to me. Hunt with the other homes if they will have you.",
+      "Will you thin the frostpaw cubs?"
+    ],
+    "accept": "I will thin them.",
+    "decline": "Not yet.",
+    "declined": "Then the cubs grow, and the snares stay empty.",
+    "started": "Six. They are young, not weak.",
+    "kind": "kill",
+    "target": "frostpaw cub",
+    "count": 6,
+    "hunt": {
+      "journal": "Kill six frostpaw cubs on the snow north of the Eyrie outpost."
+    },
+    "back": {
+      "journal": "Return to Huntmaster Kessrak.",
+      "says": "Six. The outpost's snares will fill again. You hunt like one of the Mirewatch. Learn this."
+    }
+  },
+  "L15": {
+    "name": "The Cold That Walks",
+    "giver": "Huntmaster Kessrak",
+    "offer": [
+      "In the ice caves north-east of the Eyrie outpost there is a thing the hunters call the Rimeheart. Where it walks, the cold grows. Our blood cannot bear it.",
+      "Break it. Take a shard to Warden Halvek, so the outpost knows it is done. Then come back to me.",
+      "Will you face the Rimeheart?"
+    ],
+    "accept": "I will face it.",
+    "decline": "Not yet.",
+    "declined": "Then the caves grow colder, and we stay away.",
+    "started": "Wrap yourself well, and do not go alone.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "carry": {
+      "target": "Warden Halvek",
+      "journal": "Bring the shard of the Rimeheart to Warden Halvek at the Eyrie outpost.",
+      "says": "A lizard of the Mirewatch broke the Rimeheart, in this cold? I will tell every home. Tell Kessrak the outpost owes the Mirewatch."
+    },
+    "back": {
+      "journal": "Return to Huntmaster Kessrak.",
+      "says": "Halvek's word came by the coach. The cold is broken, and you are still warm. Learn this, the last thing I have."
+    }
+  },
+  "L20": {
+    "name": "The Watcher's Spear",
+    "giver": "Elder Hsslarn",
+    "offer": [
+      "Kessrak says you are a hatchling no longer. Good. The Mirewatch has always kept watch. Now it keeps watch for the other homes as well.",
+      "Their scout, Feyla, watches the Goldfeather eyrie from the river north-east of their outpost. Go and lend her your spear. Then come back to me.",
+      "Will you keep the watch?"
+    ],
+    "accept": "I will keep it.",
+    "decline": "Not yet.",
+    "declined": "The watch waits. It always waits.",
+    "started": "Rassk's coach will take you. Watch well.",
+    "road": [
+      {
+        "target": "Scout Feyla",
+        "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+        "says": "A Mirewatch spear? Good, I need one. The Goldfeather raiders carry their eyrie's war-talons. Take three, and they will stay off the river."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 3,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "journal": "Bring the three war-talons to Scout Feyla.",
+      "says": "Three talons. The river is quiet. Tell Warden Halvek the watch was kept, then go home."
+    },
+    "after": [
+      {
+        "target": "Warden Halvek",
+        "journal": "Tell Warden Halvek at the Eyrie outpost that the watch was kept.",
+        "says": "Feyla's signal came already. The Mirewatch kept our watch. Go home, hunter, and tell your elder so."
+      }
+    ],
+    "final": {
+      "journal": "Return to Elder Hsslarn in the Mirewatch.",
+      "says": "You kept the watch for every home, and came back to ours. The Mirewatch is proud. Now choose your path."
+    }
   }
 }

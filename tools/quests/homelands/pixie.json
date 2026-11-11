@@ -2,7 +2,7 @@
   "race": "pixie",
   "home": "Misty Thicket",
   "city": "Tethelin and Fayspire",
-  "note": "The thicket's people are tools/worlds/homelands.json's (Misty Thicket): Elder Brightwing under the tall pines gives the first two, Huntress Thistledown a few steps north of her the three hunts; Spinner Gossamer, a few steps south-east, is the outfitter; Coachman Fernwick keeps the stable on open ground farther south-east (his coach runs to Freeport and to the other homes); the bramble rats (the brambles to the south-west), the thicket beetles (the low ground to the east) and the hornet Redsting (alone, far to the south) are placed for these quests.",
+  "note": "The thicket's people are tools/worlds/homelands.json's (Misty Thicket): Elder Brightwing under the tall pines gives the first two, Huntress Thistledown a few steps north of her the three hunts; Spinner Gossamer, a few steps south-east, is the outfitter; Coachman Fernwick keeps the stable on open ground farther south-east (his coach runs to Freeport and to the other homes); the bramble rats (the brambles to the south-west), the thicket beetles (the low ground to the east) and the hornet Redsting (alone, far to the south) are placed for these quests. Levels 7-20 (2026-11-11): Thistledown gives L7-L15, Brightwing the L20 path; objectives on the Homelands' shared ground, the Goldfeather Eyrie (Fernwick's coach): wand whiskers, frost silk, the grey cat Old Frostjaw, a shard for Scout Feyla, her eyes lent.",
   "L1": {
     "name": "A Spark's Dewdrop Ring",
     "giver": "Elder Brightwing",
@@ -172,5 +172,179 @@
     "declined": "The elves are patient. They live a long time.",
     "started": "Fly well, little spark!",
     "journal": "Tell Gatekeeper Thistlewhirl when you are ready to go to the elves."
+  },
+  "L7": {
+    "name": "Whiskers and Fur",
+    "giver": "Huntress Thistledown",
+    "offer": [
+      "Little spark, you have grown! Well, a little. The homes keep a hunters' outpost on the snow under the Goldfeather Eyrie, and pixies hunt there too.",
+      "Ride Fernwick's coach there. Drift rat whiskers make the best wand cores, and a badger pelt makes a fine warm nest. Find both east of the outpost.",
+      "Will you hunt the Eyrie's snow?"
+    ],
+    "accept": "I will hunt there.",
+    "decline": "Not now.",
+    "declined": "The snow will wait. It is good at that.",
+    "started": "Two whiskers and a pelt. Keep your wings dry, they freeze!",
+    "hunts": [
+      {
+        "target": "drift rat",
+        "count": 2,
+        "drop": {
+          "name": "drift rat whisker",
+          "description": "A stiff white whisker from a drift rat of the Goldfeather Eyrie's snow.",
+          "like": "bent rat whiskers"
+        },
+        "hunt": {
+          "journal": "Take two drift rat whiskers from the drift rats east of the Eyrie outpost."
+        }
+      },
+      {
+        "target": "snowfield badger",
+        "count": 1,
+        "drop": {
+          "name": "snowfield badger pelt",
+          "description": "The thick pelt of a snowfield badger of the Goldfeather Eyrie.",
+          "like": "beast pelt"
+        },
+        "hunt": {
+          "journal": "Take a snowfield badger pelt from the badgers on the snow east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring the drift rat whiskers and the badger pelt to Huntress Thistledown.",
+      "says": "Whiskers for wands, and a nest for winter! You hunt like a pixie twice your size. Now watch my hands, and learn this."
+    }
+  },
+  "L10": {
+    "name": "Silk for a Spark",
+    "giver": "Huntress Thistledown",
+    "offer": [
+      "Your arms are too small for you now, little spark. I will make you new ones, light as a wing and sharp as a sting.",
+      "Spinner Gossamer has a shaft for me. Then bring me two skeins of silk from the rime spiders north-east of the Eyrie outpost. Frost silk holds a spell.",
+      "Will you bring me the shaft and the silk?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then your old arms will have to do.",
+    "started": "Gossamer first, then the spiders. Do not get stuck in their webs!",
+    "materials": [
+      {
+        "merchant": "Spinner Gossamer",
+        "items": [
+          "wooden shaft"
+        ],
+        "journal": "Ask Spinner Gossamer for the shaft Huntress Thistledown put by.",
+        "says": "Thistledown's shaft, yes, yes. Here! I polished it with morning dew. It is very shiny now."
+      }
+    ],
+    "target": "rime spider",
+    "count": 2,
+    "drop": {
+      "name": "rime spider silk",
+      "description": "A skein of frosted silk from a rime spider of the Goldfeather Eyrie.",
+      "like": "Black Widow Silk"
+    },
+    "hunt": {
+      "journal": "Take two skeins of silk from the rime spiders north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the wooden shaft and the rime spider silk to Huntress Thistledown.",
+      "says": "Frost silk! A pinch of dust, a twist, a wink... there. It is yours, little spark, and it will not freeze in your hand."
+    }
+  },
+  "L13": {
+    "name": "The Grey Cat",
+    "giver": "Huntress Thistledown",
+    "offer": [
+      "There is a great grey cat on the slopes north-east of the Eyrie outpost. Old Frostjaw, they call him. He has eaten three of their hunters, and he looks up at us.",
+      "A cat is a terrible beast to a pixie. That is why you must hunt him: so you will never fear one again. Take friends from the other homes.",
+      "Will you hunt Old Frostjaw?"
+    ],
+    "accept": "I will hunt him.",
+    "decline": "Not yet.",
+    "declined": "Then stay off the slopes, little spark.",
+    "started": "Stay above him if you can. And take friends!",
+    "kind": "kill",
+    "target": "Old Frostjaw",
+    "count": 1,
+    "hunt": {
+      "journal": "Kill Old Frostjaw on the slopes north-east of the Eyrie outpost."
+    },
+    "back": {
+      "journal": "Return to Huntress Thistledown.",
+      "says": "The grey cat is gone, and here you are, wings and all! No cat will frighten you now. Learn this."
+    }
+  },
+  "L15": {
+    "name": "A Shard for the Scout",
+    "giver": "Huntress Thistledown",
+    "offer": [
+      "Scout Feyla of the Eyrie watches the river and sees everything, a little like us. She has sent word: something walks in the ice caves north-east of the outpost.",
+      "The Rimeheart, she calls it. Break it, take her a shard so she can see it is done, and come back to me.",
+      "Will you face the Rimeheart?"
+    ],
+    "accept": "I will face it.",
+    "decline": "Not yet.",
+    "declined": "Then the scout keeps watching, and the caves grow colder.",
+    "started": "Do not go into those caves alone, little spark. Not even a little bit alone.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "carry": {
+      "target": "Scout Feyla",
+      "journal": "Bring the shard of the Rimeheart to Scout Feyla on the river, north-east of the Eyrie outpost.",
+      "says": "A pixie broke the Rimeheart? I watched the caves go quiet and wondered. Tell Thistledown the river thanks the thicket."
+    },
+    "back": {
+      "journal": "Return to Huntress Thistledown.",
+      "says": "Feyla's word came by the coach, and it was very nice word. You are the bravest spark in the thicket. Learn this."
+    }
+  },
+  "L20": {
+    "name": "Feyla's Eyes",
+    "giver": "Elder Brightwing",
+    "offer": [
+      "Thistledown says you hunt grey cats and ice now! My little spark. The Eyrie's scout has asked for the sharpest eyes in the Homelands, and a pixie's are.",
+      "Go to Scout Feyla on the river, north-east of the Eyrie outpost, and help her watch. When it is done, come home, and you will choose your path.",
+      "Will you lend the scout your eyes?"
+    ],
+    "accept": "I will go.",
+    "decline": "Not yet.",
+    "declined": "Then the scout watches alone a little longer.",
+    "started": "Fernwick's coach will take you. Fly well, and come home!",
+    "road": [
+      {
+        "target": "Scout Feyla",
+        "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+        "says": "Brightwing's spark! Good. The Goldfeather raiders carry war-talons. Take two, and show them to Warden Halvek so he can send them home."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 2,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take two war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "target": "Warden Halvek",
+      "journal": "Bring the two war-talons to Warden Halvek at the Eyrie outpost.",
+      "says": "Feyla's pixie, with two talons? The raiders will know the river is watched. Fly home, little one. Your elder is waiting."
+    },
+    "final": {
+      "journal": "Return to Elder Brightwing in the thicket.",
+      "says": "There you are! The whole thicket has heard. You flew out a spark and came home a light. Now, one thing more: choose your path."
+    }
   }
 }

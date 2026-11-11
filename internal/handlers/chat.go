@@ -1153,18 +1153,18 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 			log.Printf("GM: %s tank profile %d", player.Name, now)
 		}
 
-	case "#scale":
-		// #scale <factor>: the GM's target (a player or an NPC), else the GM, at
+	case "#size":
+		// #size <factor>: the GM's target (a player or an NPC), else the GM, at
 		// factor of its own size; 1 gives it back (entity/gmscale.go)
 		f, err := strconv.ParseFloat(strings.TrimSpace(strings.Join(parts[1:], "")), 32)
 		if len(parts) < 2 || err != nil {
-			h.gmReply(sess, "Usage: #scale <factor> (or /scale): your target, else you; 2.5 is two and a half times its own size, 1 its own")
+			h.gmReply(sess, "Usage: #size <factor> (or /size): your target, else you; 2.5 is two and a half times its own size, 1 its own")
 			return
 		}
 		line, ok := h.gameWorld.GMScale(player, float32(f))
 		h.gmReply(sess, line)
 		if ok {
-			log.Printf("GM: %s scale %g: %s", player.Name, f, line)
+			log.Printf("GM: %s size %g: %s", player.Name, f, line)
 		}
 
 	case "#setlevel":
@@ -1426,7 +1426,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #hddsetup [check|create|format] - hard disk setup")
 		h.gmReply(sess, "  #speed <val> - set speed")
 		h.gmReply(sess, "  #setlevel [name] <lvl> - set a level, nothing else (no name: your target player, else you)")
-		h.gmReply(sess, "  #scale <factor> - your target (player or NPC), else you, at factor of its own size; 1 gives it back")
+		h.gmReply(sess, "  #size <factor> - your target (player or NPC), else you, at factor of its own size; 1 gives it back")
 		h.gmReply(sess, "  #testmode - toggle: you take every hit in full and cannot die (1 HP left)")
 		h.gmReply(sess, "  #tankprofile1 / 2 / 3 - toggle: AGI 400 and AC 1000 / 2000 / 3000")
 		h.gmReply(sess, "  #hp <cur> [max] - set HP")

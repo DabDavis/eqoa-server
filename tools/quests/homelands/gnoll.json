@@ -1,0 +1,176 @@
+{
+  "race": "gnoll",
+  "home": "Blackburrow",
+  "city": "Neriak",
+  "note": "The burrow's people are tools/worlds/homelands.json's (Blackburrow): Elder Grawl, just east of the fire pit, gives the first two, Packleader Varg beside him the three hunts; Hidescraper Yipp, a few steps south by the tents, is the outfitter; Coachman Skulk keeps the stable on the road outside the south-east gate (his coach runs to Freeport and to the other homes); the hill badgers (the hill to the north-west), the ridge vipers (the scrub to the south) and the wolf Greymuzzle (alone on the rise far to the north-east) are placed for these quests.",
+  "L1": {
+    "name": "A Pup's Pack Collar",
+    "giver": "Elder Grawl",
+    "offer": [
+      "Come closer, pup. Let me smell you. Hrrn. Milk and ashes. You are ours, then. But the guards cannot smell as I can, and they bite what they do not know.",
+      "Every pup wears the pack collar. Hidescraper Yipp cuts them, a few steps south of here, by the tents.",
+      "Will you fetch your collar and show it to me?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "Then stay by the fire, pup, where the guards can see you.",
+    "started": "South, by the tents. Follow the smell of wet hide.",
+    "merchant": "Hidescraper Yipp",
+    "piece": {
+      "name": "pup's pack collar",
+      "description": "A collar of badger hide, branded with the mark of Blackburrow. Every pup of the pack wears one.",
+      "like": "glass trinket",
+      "set": {
+        "AC": 4
+      }
+    },
+    "fetch": {
+      "journal": "Ask Hidescraper Yipp, a few steps south of Elder Grawl, for a pup's pack collar.",
+      "says": "Grawl's new pup? Chin up. Badger hide, the pack's brand, a good tight knot. There. A pup pays nothing. A grown gnoll pays double."
+    },
+    "show": {
+      "journal": "Show the pup's pack collar to Elder Grawl.",
+      "says": "Good. Now you wear the pack's mark, and the pack will know you by sight as I know you by scent."
+    }
+  },
+  "L2": {
+    "name": "Bound to the Burrow",
+    "giver": "Elder Grawl",
+    "offer": [
+      "A gnoll who falls far from the pack is lost to it. Have Spiritmaster Rakk bind your spirit to the burrow, so that you wake here when you fall.",
+      "Then give your name to Coachman Skulk for his ledger. His coach runs to Freeport and to the other homes of the Homelands, for those their stables know.",
+      "Will you see them both and come back to me?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "Then do not stray past the fence, pup.",
+    "started": "Rakk is a few steps east of here. Skulk waits on the road outside the south-east gate.",
+    "spiritmaster": "Spiritmaster Rakk",
+    "coachman": "Coachman Skulk",
+    "bind": {
+      "journal": "Have Spiritmaster Rakk, a few steps east of the elder, bind your spirit to the burrow.",
+      "says": "It is done. Fall where you will, pup: you wake here, with the pack's fire in your nose. Now go and give Coachman Skulk your name."
+    },
+    "ledger": {
+      "journal": "Give your name to Coachman Skulk, on the road outside the south-east gate, for his ledger.",
+      "says": "A pup for the ledger. My coach runs to Freeport and to every other home of the Homelands, for travelers whose names their ledgers hold. Yours is in mine now."
+    },
+    "back": {
+      "journal": "Return to Elder Grawl.",
+      "says": [
+        "Good. The burrow holds your spirit, and the road knows your name.",
+        "Skulk's coach will carry you to Freeport if its ledger knows you, but the road to Neriak is earned. Packleader Varg, beside me, has work for you."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Badgers on the Hill",
+    "giver": "Packleader Varg",
+    "offer": [
+      "So you are the pup. Hrr. The hill badgers are digging under our fence from the north-west, and a badger hole breaks a guard's leg as well as a spear does.",
+      "Hunt them on the hill and bring me three pelts. Then I will teach you something worth your teeth.",
+      "Will you hunt them?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "A pup that will not hunt is a pup that does not eat.",
+    "started": "Three pelts. Out the north gate and up the hill to the north-west. They bite low.",
+    "target": "hill badger",
+    "count": 3,
+    "drop": {
+      "name": "hill badger pelt",
+      "description": "The striped pelt of a hill badger from the hill north-west of Blackburrow.",
+      "like": "bear pelt"
+    },
+    "hunt": {
+      "journal": "Take three hill badger pelts from the hill badgers on the hill north-west of the stockade."
+    },
+    "give": {
+      "journal": "Bring three hill badger pelts to Packleader Varg.",
+      "says": "Three pelts, and your own still on you. Good hunting, pup. Now watch me, and learn this."
+    }
+  },
+  "L4": {
+    "name": "A Pup's Arms",
+    "giver": "Packleader Varg",
+    "offer": [
+      "Teeth are for pups. The dark elves want hunters who carry steel. I will make you proper gear, but you fetch what I need.",
+      "Hidescraper Yipp has a leather strip and a shaft for me. Then take a fang from the ridge vipers in the scrub south of the fence.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then gnaw on what you catch, and catch little.",
+    "started": "Leather and a shaft from Yipp, a fang from the vipers. Run, pup.",
+    "materials": [
+      {
+        "merchant": "Hidescraper Yipp",
+        "items": [
+          "leather strip",
+          "wooden shaft"
+        ],
+        "journal": "Ask Hidescraper Yipp for the leather strip and the wooden shaft.",
+        "says": "For Varg? Here. A strip of good hide and a straight shaft. Tell him the next badger pelt is mine."
+      }
+    ],
+    "target": "ridge viper",
+    "count": 1,
+    "drop": {
+      "name": "ridge viper fang",
+      "description": "The hooked fang of a ridge viper from the scrub south of Blackburrow.",
+      "like": "Tree Viper Fang"
+    },
+    "hunt": {
+      "journal": "Take a ridge viper fang from the ridge vipers in the scrub south of the stockade."
+    },
+    "give": {
+      "journal": "Bring the leather strip, the wooden shaft and the ridge viper fang to Packleader Varg.",
+      "says": "All three. Hold still... there. The fang's venom is in the edge now. It is yours. Do not lick it."
+    }
+  },
+  "L5": {
+    "name": "Greymuzzle",
+    "giver": "Packleader Varg",
+    "offer": [
+      "One hunt more, pup. An old wolf we call Greymuzzle has claimed the rise far to the north-east. He has pulled down two of our foragers, and he hunts alone, which makes him clever.",
+      "He will come for your throat the moment he smells you, so strike first. Bring me his fang, and I will teach you the last thing I have for a pup.",
+      "Will you hunt Greymuzzle?"
+    ],
+    "accept": "I will hunt him.",
+    "decline": "Not yet.",
+    "declined": "He will still be hungry tomorrow.",
+    "started": "North-east, up on the rise. Come at him from downwind.",
+    "target": "Greymuzzle",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "Greymuzzle's fang",
+      "description": "A long yellow fang from the old wolf Greymuzzle.",
+      "like": "bear fang"
+    },
+    "hunt": {
+      "journal": "Take Greymuzzle's fang from the old wolf Greymuzzle on the rise far north-east of the stockade."
+    },
+    "give": {
+      "journal": "Bring Greymuzzle's fang to Packleader Varg.",
+      "says": [
+        "Greymuzzle's own fang! The foragers will howl your name tonight. You are a pup no longer.",
+        "Learn this, and see Gatekeeper Brindle at the south-east gate when you are ready for Neriak."
+      ]
+    }
+  },
+  "flight": {
+    "name": "The Road to Neriak",
+    "giver": "Gatekeeper Brindle",
+    "offer": [
+      "The dark elves of Neriak have use for gnolls with sharp noses and sharper teeth, and they treat the pack fairly enough. Varg says you are ready.",
+      "You have earned the road, pup. I will set you down among your own guild in Neriak, and your spirit will rest there.",
+      "Shall I send you to Neriak?"
+    ],
+    "accept": "Send me to Neriak.",
+    "decline": "Not yet.",
+    "declined": "Neriak will keep. The dark elves are not going anywhere.",
+    "started": "Hunt well, and keep your nose to the wind!",
+    "journal": "Tell Gatekeeper Brindle when you are ready to go to Neriak."
+  }
+}

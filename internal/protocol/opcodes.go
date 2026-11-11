@@ -944,6 +944,46 @@ const (
 	OpcodeMobInfo GameOpcode = 0x7E4E
 )
 
+// Mercenaries told apart and dismissed from the menu, and the group search's
+// registration and its "Allow anyone in my group to invite" (the GM Jibrish's
+// petitions 1475, 1476 and 1488, 2026-11-11; handlers/mercui.go,
+// handlers/groupreg.go). None is retail: a PS2 ignores every offer (CLIENT's
+// dispatcher has no case above 0x1402 and no default) and never answers, so it
+// is sent nothing else.
+const (
+	// OpcodeMercsOffer both ways: the server's offer once the player is in the
+	// world, where world.mercs is on (a u8, the layout of OpcodeMercsData, 1),
+	// and the client's answer (a u8, 1 to be sent OpcodeMercsData, 0 to stop).
+	OpcodeMercsOffer GameOpcode = 0x7E5A
+	// OpcodeMercsData is the mercenaries the player may see, to a client that
+	// answered 1, at once and whenever it changes: a u8 layout (1), a u8 of
+	// flags (bit 0: the player's own merc is out), a u16 count and each merc
+	// in the player's world by its name (a u8 byte count and the bytes, as its
+	// entity channel names it). Vanilla draws their names in the pet's colour
+	// tinted red (petition 1488) and shows Group > Dismiss Mercenary while
+	// bit 0 is set (petition 1475). Each is the whole set.
+	OpcodeMercsData GameOpcode = 0x7E5B
+	// OpcodeMercDismiss is the client's Dismiss Mercenary: a u8, 1. The
+	// player's merc goes as at /merc dismiss.
+	OpcodeMercDismiss GameOpcode = 0x7E5C
+
+	// OpcodeGroupRegOffer both ways: the server's offer once the player is in
+	// the world (a u8, the layout of OpcodeGroupRegState, 1) and the client's
+	// answer (a u8, 1 to be sent OpcodeGroupRegState, 0 to stop).
+	OpcodeGroupRegOffer GameOpcode = 0x7E5D
+	// OpcodeGroupRegState is the group search's standing, to a client that
+	// answered 1, at once and whenever it changes: a u8 layout (1) and a u8 of
+	// flags: bit 0 the character is registered (0x0801 sub 2, /lfg on), bit 1
+	// its own "Allow anyone in my group to invite" is on, bit 2 its group's
+	// members may invite now (no group, a raid group, or a regular group whose
+	// leader has the setting on; else only its leader invites).
+	OpcodeGroupRegState GameOpcode = 0x7E5E
+	// OpcodeGroupInvitesSetting is the client's "Allow anyone in my group to
+	// invite": a u8, 1 yes, 0 no. Kept for the character (table
+	// chargroupinvites); in force for its group at once while it leads one.
+	OpcodeGroupInvitesSetting GameOpcode = 0x7E5F
+)
+
 // Item links in chat, EQ1's: a player puts a link to one of its own items in a
 // line, and whoever clicks it sees the item as the linker held it then
 // (handlers/itemlinks.go; the GM Jibrish's petition 1463, 2026-11-10). A PS2,
@@ -1260,6 +1300,18 @@ func (op GameOpcode) String() string {
 		return "ServerWorldsData"
 	case OpcodeServerWorldsChars:
 		return "ServerWorldsChars"
+	case OpcodeMercsOffer:
+		return "MercsOffer"
+	case OpcodeMercsData:
+		return "MercsData"
+	case OpcodeMercDismiss:
+		return "MercDismiss"
+	case OpcodeGroupRegOffer:
+		return "GroupRegOffer"
+	case OpcodeGroupRegState:
+		return "GroupRegState"
+	case OpcodeGroupInvitesSetting:
+		return "GroupInvitesSetting"
 
 	case OpcodeCapes:
 		return "Capes"

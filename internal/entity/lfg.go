@@ -18,8 +18,14 @@ import (
 // the window's type 0 is a group's leader with room looking for players, so
 // it lists registered characters in no group; type 1 is a character in no
 // group looking for one, so it lists the registered leaders of groups with
-// room. Rows are players either way (the window's title is always "Search for
-// Player"), filtered by the row's own class, race and level.
+// room, and (the GM Jibrish's petition 1476, 2026-11-11: "Players can
+// register for group, allowing them to show up in other players searches
+// through that window ... Any player can use this to select their name on the
+// list and invite them to group") the registered characters in no group too.
+// One in a group of its own and its merc's alone counts as in none: an invite
+// takes it (mercgroup.go). Rows are players either way (the window's title is
+// always "Search for Player"), filtered by the row's own class, race and
+// level.
 
 // LFGMaxRows is the most rows a search returns (ours: the client allocates 56
 // bytes a row and shows ten at a time).
@@ -133,13 +139,17 @@ func (w *World) LFGSearch(sess *session.Session, q LFGQuery) []LFGRow {
 			continue
 		}
 		g := w.groups[p.GroupID]
+		// in no group, or in one of its own and its merc's alone, which gives
+		// way to an invite (mercgroup.go): one an invite takes
+		solo := p.GroupID == 0 || g == nil || w.mercOnlyGroupLocked(p)
 		switch q.Type {
 		case 0: // players for a group: in none
-			if p.GroupID != 0 && g != nil {
+			if !solo {
 				continue
 			}
-		case 1: // groups for a player: their leaders, with room (one more and a group of four is a raid group: raid.go)
-			if p.GroupID == 0 || g == nil || len(g.Members) == 0 || g.Members[0] != p.ServerID || len(g.Members) >= GroupWindowSize {
+		case 1: // a group for a player: the leaders with room (one more and a group of four is a raid group: raid.go),
+			// and the players in none, whom one can invite into a group of one's own (petition 1476)
+			if !solo && (len(g.Members) == 0 || g.Members[0] != p.ServerID || len(g.Members) >= GroupWindowSize) {
 				continue
 			}
 		default:

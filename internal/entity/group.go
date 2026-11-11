@@ -251,6 +251,11 @@ func (w *World) groupInviteLocked(sess *session.Session, inviter, target *Player
 		w.sendGroupNotice(sess, 3, "")
 		return
 	}
+	// its leader's "Allow anyone in my group to invite" off: only the leader's
+	// (groupinvites.go)
+	if w.groupInviteRefusedLocked(sess, inviter) {
+		return
+	}
 	if target.GroupID != 0 && !w.mercOnlyGroupLocked(target) { // its and its merc's alone gives way (mercgroup.go)
 		w.sendGroupNotice(sess, 2, target.Name)
 		return

@@ -644,7 +644,7 @@ func (w *World) areaCreaturesLocked(p *Player, cs *castState, cx, cy, cz, r floa
 	for _, id := range w.SpatialIndex.QueryRadius(cx, cz, queryRadius(cone, r)) {
 		npc := w.NPCs[id]
 		if npc == nil || areaHas(cs.targets, id) || npc.Dead || npc.Owner != 0 || npc.NPCType&0x80 != 0 ||
-			npc.World != p.World || npc.hiddenAt(now) || challengeBars(npc, p.ServerID) {
+			!w.npcSharesLocked(npc, p) || npc.hiddenAt(now) || challengeBars(npc, p.ServerID) {
 			continue
 		}
 		if w.apartLocked(p, npc) || undead && !w.undeadLocked(npc) { // water.go, undead.go
@@ -672,14 +672,14 @@ func (w *World) areaFriendsLocked(p *Player, cs *castState, cx, cy, cz, r float3
 			continue
 		}
 		if t := w.Players[id]; t != nil {
-			if !t.IsDead() && t.World == p.World {
+			if !t.IsDead() && SamePlace(t, p) {
 				if dd := dist3(t.X, t.Y, t.Z, cx, cy, cz); dd <= r && w.reachesLocked(place, t.X, t.Y, t.Z) {
 					out = append(out, areaNear{id, dd})
 				}
 			}
 			continue
 		}
-		if pet := w.NPCs[id]; pet != nil && pet.Owner != 0 && w.Players[pet.Owner] != nil && !pet.Dead && pet.World == p.World {
+		if pet := w.NPCs[id]; pet != nil && pet.Owner != 0 && w.Players[pet.Owner] != nil && !pet.Dead && w.npcSharesLocked(pet, p) {
 			if dd := dist3(pet.X, pet.Y, pet.Z, cx, cy, cz); dd <= r && w.reachesLocked(place, pet.X, pet.Y, pet.Z) {
 				out = append(out, areaNear{id, dd})
 			}
@@ -698,7 +698,7 @@ func (w *World) groupNearLocked(p *Player, r float32) []areaNear {
 	}
 	var out []areaNear
 	add := func(id EntityID, world uint8, x, y, z float32) {
-		if dd := dist3(x, y, z, p.X, p.Y, p.Z); world == p.World && dd <= r {
+		if dd := dist3(x, y, z, p.X, p.Y, p.Z); world == p.World && dd <= r && w.instanceOfLocked(id) == p.instanceKey() {
 			out = append(out, areaNear{id, dd})
 		}
 	}

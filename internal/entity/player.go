@@ -161,6 +161,9 @@ type Player struct {
 	// teleport, so logging out in Guk and back in returns you to Guk rather
 	// than dropping you at Guk's coordinates inside Tunaria.
 	World uint8
+	// Instance is the copy of an instanced world it stands in (homes.go: a home, by its owner's character id);
+	// nothing outside an instanced world
+	Instance uint32
 
 	// Coaching / Teleport
 	TeleportCounter   uint32

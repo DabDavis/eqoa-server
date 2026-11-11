@@ -2259,5 +2259,31 @@
    ]
   ]
  ],
- "quests": "zp-factions.json"
+ "quests": "zp-factions.json",
+ "sql_after": [
+  [
+   "UPDATE quests SET requires = (SELECT CAST(questid AS TEXT) FROM quest_import_quests WHERE key = ?), factionreq = ? WHERE questid IN (SELECT questid FROM quest_import_quests WHERE key LIKE ?) AND requires = '' AND factionreq = ''",
+   [
+    "ZP/factions/zek/align",
+    "Soldiers of Rallos Zek:0",
+    "ZP/armour/zek/%"
+   ]
+  ],
+  [
+   "UPDATE quests SET requires = (SELECT CAST(questid AS TEXT) FROM quest_import_quests WHERE key = ?), factionreq = ? WHERE questid IN (SELECT questid FROM quest_import_quests WHERE key LIKE ?) AND requires = '' AND factionreq = ''",
+   [
+    "ZP/factions/marr/align",
+    "Mithaniel Marr's Crusaders:0",
+    "ZP/armour/honor/%"
+   ]
+  ],
+  [
+   "UPDATE quests SET requires = (SELECT CAST(questid AS TEXT) FROM quest_import_quests WHERE key = ?), factionreq = ? WHERE questid IN (SELECT questid FROM quest_import_quests WHERE key LIKE ?) AND requires = '' AND factionreq = ''",
+   [
+    "ZP/factions/akessan/captains",
+    "Akessan Collective:0",
+    "ZP/armour/akessan/%"
+   ]
+  ]
+ ]
 }

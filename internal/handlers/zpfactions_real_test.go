@@ -96,6 +96,54 @@ func TestRealZaoranPlateauFactions(t *testing.T) {
 		return fmt.Sprintf("Zek %d, Marr %d, Akessan %d", r.standing(c, zek), r.standing(c, marr), r.standing(c, ake))
 	}
 
+	// #494's armour lieutenants stand out of the world (a headstone raises them): talked to as they are
+	lieutenant := map[string]string{zek: "Krognar", marr: "Merkym", ake: "Akessan Collector"}
+	armour := map[string]string{zek: "ZP/armour/zek/helm", marr: "ZP/armour/honor/helm", ake: "ZP/armour/akessan/helm"}
+	for _, k := range armour {
+		var id int
+		r.db.QueryRow(`SELECT questid FROM quest_import_quests WHERE key = ?`, k).Scan(&id)
+		keys[k] = id
+	}
+	original := func(name string) *entity.NPC {
+		for _, n := range r.gw.NPCs {
+			if n.SpawnOnly && strings.EqualFold(n.Name, name) {
+				return n
+			}
+		}
+		t.Fatalf("no %s kept out of the world", name)
+		return nil
+	}
+	// helmAt gives the character the helm's two gems and talks to the side's lieutenant: what it said, and
+	// whether the helm's quest was finished once more (offered, taken and handed in)
+	helmAt := func(t *testing.T, c *wereChar, fac string) (string, bool) {
+		qu := quest(armour[fac])
+		for _, it := range qu.First().Items {
+			pat, err := r.qe.items.GetItemPattern(it.PatternID)
+			if err != nil || pat == nil {
+				t.Fatalf("gem %d: %v", it.PatternID, err)
+			}
+			if got, err := GiveItemNow(c.sess, r.gw, r.inv, *pat, it.Count); err != nil || got != it.Count {
+				t.Fatalf("gem %q: %d (%v)", pat.ItemName, got, err)
+			}
+		}
+		_, before := c.w.progress(qu.ID)
+		lt := original(lieutenant[fac])
+		r.standBeside(c, lt)
+		questMsgs(c.sess)
+		r.qe.Talk(c.sess, c.p, lt)
+		said := strings.Join(questMsgs(c.sess), " | ")
+		c.w.settle()
+		for i := 0; i < 3; i++ { // the hand-in's step, at the same lieutenant
+			if _, d := c.w.progress(qu.ID); d > before {
+				break
+			}
+			r.qe.Talk(c.sess, c.p, lt)
+			c.w.settle()
+		}
+		_, after := c.w.progress(qu.ID)
+		return said, after > before
+	}
+
 	t.Run("passage", func(t *testing.T) {
 		c := r.newChar(wereArchetype{"zp", 0, 6}, 60)
 		for _, a := range []string{"tranquility", "spite", "honor", "war", "growth"} {
@@ -145,6 +193,10 @@ func TestRealZaoranPlateauFactions(t *testing.T) {
 		t.Run(s.name, func(t *testing.T) {
 			c := r.newChar(wereArchetype{s.name, s.class, s.race}, 60)
 			newcomer := r.newChar(wereArchetype{s.name + "new", s.class, s.race}, 60)
+			// not aligned yet: the side's lieutenant will not make its armour
+			if said, done := helmAt(t, c, s.faction); done || !strings.Contains(said, "I work only for those who have stood with "+s.faction) {
+				t.Errorf("before the alignment, %s: done %v, said %q", lieutenant[s.faction], done, said)
+			}
 			do(t, c, s.intro)
 			t.Logf("after %s: %s", s.intro, stand(c))
 			if s.name == "akessan" {
@@ -194,6 +246,18 @@ func TestRealZaoranPlateauFactions(t *testing.T) {
 					if why := r.why(c, quest(other.align)); why == "" {
 						t.Errorf("%s is still offered to it", other.align)
 					}
+				}
+			}
+			// aligned: its side's lieutenant makes the helm; the other sides' refuse it
+			if said, done := helmAt(t, c, s.faction); !done {
+				t.Errorf("aligned, %s did not make the helm: %q", lieutenant[s.faction], said)
+			}
+			for _, f := range []string{zek, marr, ake} {
+				if f == s.faction {
+					continue
+				}
+				if said, done := helmAt(t, c, f); done || !strings.Contains(said, lieutenant[f]) || !strings.Contains(said, "I work only for") {
+					t.Errorf("aligned with %s, %s: done %v, said %q", s.faction, lieutenant[f], done, said)
 				}
 			}
 			if why := r.why(c, quest(s.ability)); why == "" {

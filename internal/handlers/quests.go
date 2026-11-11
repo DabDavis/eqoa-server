@@ -646,6 +646,10 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 		q.offerLocked(sess, p, c, qu)
 		return true
 	}
+	if line := q.handInRefusalLocked(look, p, c, npc.Name); line != "" {
+		q.tellLocked(c, sess, npc.Name, line)
+		return true
+	}
 	if q.stepAtLocked(sess, p, c, look, npc.Name, npc.ServerID, false) {
 		return true
 	}
@@ -753,6 +757,32 @@ func (q *QuestEngine) readyHandInLocked(look *factionLook, p *entity.Player, c *
 	}
 	return nil
 }
+
+// handInRefusalLocked is what a giver says to a player who holds a hand-in's
+// items but has not stood with the giver's side (the owner, 2026-11-11: Zaoran
+// Plateau's armour only for a player aligned with its lieutenant's side): a
+// hand-in that wants a standing (FactionReqs) is refused for a quest to finish
+// first or for that standing, in its giver's voice (ours: no recording has
+// one), or "" when there is none such.
+func (q *QuestEngine) handInRefusalLocked(look *factionLook, p *entity.Player, c *questChar, giver string) string {
+	for _, qu := range q.cat.givers[foldName(giver)] {
+		st := qu.First()
+		if len(qu.FactionReqs) == 0 || st == nil || st.Kind != database.StepGive || len(st.Items) == 0 || foldName(st.Target) != foldName(giver) {
+			continue
+		}
+		if q.lackingLocked(p, st) != "" {
+			continue
+		}
+		why := q.mayTakeLocked(look, p, c, qu)
+		if strings.HasPrefix(why, "quest ") || strings.HasPrefix(why, "one of quests ") || strings.HasPrefix(why, "its standing ") {
+			return fmt.Sprintf(handInNotYours, qu.FactionReqs[0].Faction)
+		}
+	}
+	return ""
+}
+
+// handInNotYours is that refusal: the side the giver works for.
+const handInNotYours = "I work only for those who have stood with %s, and you have not. Come back when you have."
 
 // offerAtLocked is the quest a giver talked to offers the player, or nil: the
 // next it has (nextOfferLocked) that the player has not just said no to, so a

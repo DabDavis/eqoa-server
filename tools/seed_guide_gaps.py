@@ -23,6 +23,7 @@ A set's file (JSON) holds whatever of these it needs:
   step_events [{quest, step, target, events}]: events added to a step of a quest in the game
   dialog     [{name, line}]: an NPC's own lines, said when nothing else answers
   sql        [[statement, params]]: anything else, in the same transaction
+  sql_after  [[statement, params]]: the same, run after the set's quests are written (a row that names them)
   quests     "<file>": tools/quests/data/<file>, through import_quests.py's plan and write
 
 --save-plan <file> on a copy and --plan <file> on the live database write the same rows in one
@@ -307,6 +308,8 @@ def run(db, spec, say):
         drafts += db.execute("SELECT q.name, q.notes FROM quests q JOIN quest_import_quests i ON i.questid = q.questid WHERE i.file LIKE ? AND q.enabled = 0", ("%" + os.path.basename(path),)).fetchall()
         for name, notes in drafts:
             say(f"DRAFT {name}: {notes[-300:]}")
+    for stmt, params in spec.get("sql_after", []):
+        db.execute(stmt, params)
 
 
 def log_changes(db, name, ch):

@@ -15,9 +15,12 @@ written by tools/seed_guide_gaps.py's machinery, every row it changes logged in 
     Liason's and the Akessans' chain, each side's repeatable weapon turn-in (+16 and 2.4M a stack of four, the Akessan
     Collector's measure), the Master Spellsmiths' abilities at 2,000 (a mystical parchment for #494's scroll of the
     class's archetype);
-  - the camps' named and the guide's loot table for each, the armour gems from every named (#494's "zp armour gems").
+  - the camps' named and the guide's loot table for each, the armour gems from every named (#494's "zp armour gems");
+  - #494's 18 ZP armour turn-ins gated by side (the owner, 2026-11-11): each needs its side's alignment quest finished
+    (Soldiers of Rallos Zek, Mithaniel Marr's Crusaders, The Captains' Weapons for the Akessans) and a standing of 0 or
+    better with the side; a player holding the gems who has not is refused in the lieutenant's voice (handlers/quests.go).
 
-Refused, nothing written, unless #494's zp-armour set is in (its gem table), the portal quest's show step is as
+Refused, nothing written, unless #494's zp-armour set is in (its gem table) with its 18 armour quests as imported, the portal quest's show step is as
 imported (tunar 0), and none of the set's NPC names is in world 5 yet. Report only by default (the set run and rolled
 back: the counts it would write); --apply in one transaction with a gm_audit line; --undo exact, with its own line.
 NPCs, quests, factions, factionhits and npcfaction are read at the server's start: a restart after either.
@@ -68,6 +71,11 @@ def refusals(db, s):
     for n in s["npcs"]:
         if not isinstance(n.get("facing", 0), int) or not 0 <= n.get("facing", 0) < 256:
             out.append(f"{n['name']}: facing {n.get('facing')!r} is not a whole 0-255 (npcs.facing, 256 a turn)")
+    if sgg.has(db, "quest_import_quests"):
+        n = db.execute("""SELECT count(*) FROM quests q JOIN quest_import_quests i ON i.questid = q.questid
+            WHERE i.key LIKE 'ZP/armour/%' AND q.requires = '' AND q.factionreq = ''""").fetchone()[0]
+        if n != 18:
+            out.append(f"#494's 18 ZP armour quests are not all as imported (no requires, no standing): {n} are")
     names = sorted({n["name"] for n in s["npcs"]})
     here = [r[0] for r in db.execute(f"SELECT DISTINCT npc_name FROM npcs WHERE world = 5 AND npc_name IN ({','.join('?' * len(names))})", names)]
     if here:

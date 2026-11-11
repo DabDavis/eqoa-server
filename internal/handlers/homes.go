@@ -274,7 +274,7 @@ func (hs *Homes) askRoot(sess *session.Session, p *entity.Player, npc entity.Ent
 // wayOutName is where the way out goes, as an answer names it.
 func (hs *Homes) wayOutName(p *entity.Player) string {
 	if s, ok := hs.gw.HomeStayOf(p.CharServerID); ok && (s.From.X != 0 || s.From.Z != 0) {
-		if n := worldName(s.From.World); n != "" {
+		if n := worldName(s.From.World); n != "" && n != "?" {
 			return n
 		}
 	}

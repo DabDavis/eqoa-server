@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/eqoa/pkg/pkg/buffer"
@@ -447,5 +448,19 @@ func TestAnItemIsWornOnlyByWhoMayWearIt(t *testing.T) {
 	}
 	if out := equip(4); len(out) == 0 || out[len(out)-1][0] != 0x3F {
 		t.Errorf("bracers with no masks: %x, want the equip", out)
+	}
+}
+
+// The GM panel names the item types by database.ItemTypeWords: the quick
+// slots take the types it says they do.
+func TestItemTypeWordsAreWhatTheQuickSlotsTake(t *testing.T) {
+	for _, w := range database.ItemTypeWords {
+		e := &database.CharInventoryEntry{Pattern: database.ItemPatternRecord{ProcAnim: w.Value, EquipSlot: -1}}
+		if got, want := quickSlotFits(e, 0), strings.Contains(w.Help, "quick slot 1 or 2"); got != want {
+			t.Errorf("type %d %q: quick slot 1 takes it %v", w.Value, w.Name, got)
+		}
+		if got, want := quickSlotFits(e, 2), strings.Contains(w.Help, "quick slot 3"); got != want {
+			t.Errorf("type %d %q: quick slot 3 takes it %v", w.Value, w.Name, got)
+		}
 	}
 }

@@ -132,6 +132,7 @@ func (s *Server) registerOps() {
 	s.registerPathOps()
 	s.registerVisualOps()
 	s.registerLookOps() // looks.go: what wears each body, model, icon and visual, for the pickers
+	s.registerItemOps() // ops_items.go: item_reading, an item record in words
 	s.registerSuggestionOps()
 	s.registerMapLayerOps()
 	s.registerMapMarkOps()

@@ -120,12 +120,15 @@ var teleRaidGroups = []string{
 // after Raids, for nothing as every trip of it: the Isle of Dread (the owner,
 // 2026-11-11: "lets add isle of dread free to teleporter npc freeport"),
 // landing as Norach's trip does, on the fishing raft in the cove south of
-// Graumord's pier, facing the pier.
+// Graumord's pier, facing the pier; and the Plane of Sky (petition 1605, the GM
+// Jibrish: "a teleport option on the main page of the teleporter that goes to
+// plane of sky and lands exactly where im standing"), where he stood.
 var telePlaces = []struct {
 	label string
 	at    wayPlace
 }{
 	{"Isle of Dread", wayPlace{World: 0, X: 24578, Y: 52.6, Z: 3626, Facing: 3.9}},
+	{"Plane of Sky", wayPlace{World: 4, X: 5000.09, Y: 333.54, Z: 4998.23, Facing: 3.068}},
 }
 
 // teleRaids are its raids, each with where it lands (measured 2026-11-09 over

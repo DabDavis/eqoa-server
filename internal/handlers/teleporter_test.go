@@ -128,7 +128,7 @@ func TestTeleporterBoxes(t *testing.T) {
 		}
 		return l
 	}
-	if got := strings.Join(labels(root), "|"); got != "Raids|Isle of Dread|Camps, levels 1-25|Camps, levels 28-61" {
+	if got := strings.Join(labels(root), "|"); got != "Raids|Isle of Dread|Plane of Sky|Camps, levels 1-25|Camps, levels 28-61" {
 		t.Errorf("the first box: %q", got)
 	}
 	if got := strings.Join(labels(root.kids[0]), "|"); got != strings.Join(teleRaidGroups, "|") {
@@ -229,6 +229,15 @@ func TestTeleporterTrips(t *testing.T) {
 		math.Abs(float64(r.pa.Facing)-3.9) > 0.01 || r.pa.Tunar != tunar {
 		t.Errorf("the Isle of Dread: %q, world %d (%.2f, %.2f, %.2f) facing %.2f, tunar %d -> %d", got, r.pa.World,
 			r.pa.X, r.pa.Y, r.pa.Z, r.pa.Facing, tunar, r.pa.Tunar)
+	}
+
+	// the Plane of Sky (petition 1605, Jibrish): where he stood, for nothing
+	back()
+	got = pickPath(t, r, tp, "Plane of Sky")
+	if !hasMsg(got, "teleport") || r.pa.World != 4 || r.pa.X != 5000.09 || r.pa.Z != 4998.23 ||
+		math.Abs(float64(r.pa.Facing)-3.068) > 0.01 || r.pa.Tunar != tunar {
+		t.Errorf("the Plane of Sky: %q, world %d (%.2f, %.2f, %.2f) facing %.2f", got, r.pa.World,
+			r.pa.X, r.pa.Y, r.pa.Z, r.pa.Facing)
 	}
 
 	back()

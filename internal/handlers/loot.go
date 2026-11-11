@@ -41,7 +41,8 @@ import (
 //
 // A corpse's items are its NPC's npcitem rows (the same table a merchant's
 // wares are in), taken when it is first opened after a death and gone with
-// the corpse. Anyone may loot a corpse. One with nothing on it opens too, as
+// the corpse. A corpse is its kill group's to loot, one looter at a time
+// (lootrights.go). One with nothing on it opens too, as
 // the game's "Empty" (word 641, CLIENT opens the window whatever the count),
 // and a corpse whose window closes with nothing left on it goes at once
 // (World.ClearCorpse: out of every view, its creature's respawn time running
@@ -65,6 +66,7 @@ type lootState struct {
 	mu      sync.Mutex
 	corpses map[entity.EntityID]*corpse
 	open    map[*session.Session]entity.EntityID
+	since   map[*session.Session]time.Time  // each open window's last opening or take (lootrights.go)
 	drops   map[entity.EntityID]*questDrops // loot steps' drops (questloot.go)
 	// rolls are a raid's need before greed rolls going on, by id, and nextRoll the
 	// last id given (raidloot.go)
@@ -77,6 +79,7 @@ type lootState struct {
 func (h *NPCWindowHandler) loots() *lootState {
 	h.lootOnce.Do(func() {
 		h.loot = &lootState{corpses: map[entity.EntityID]*corpse{}, open: map[*session.Session]entity.EntityID{},
+			since: map[*session.Session]time.Time{},
 			drops: map[entity.EntityID]*questDrops{}, rolls: map[int]*lootRoll{}}
 	})
 	return h.loot
@@ -111,6 +114,16 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 			return true
 		}
 	}
+	// the kill group's alone (lootrights.go)
+	var opener *entity.Player
+	if h.playerOf != nil {
+		opener = h.playerOf(sess)
+	}
+	if !h.mayLoot(opener, npc.ServerID, died) {
+		log.Printf("Loot: %s may not open %q's corpse: another's kill", sessName(h, sess), npc.Name)
+		queueReliable(sess, protocol.OpcodeLootOptions, buildLootOption(lootAnotherOwner))
+		return true
+	}
 	var won []winTake
 	defer func() { tellWinsQuests(won) }() // after the lock: a raid's won items taken (raidloot.go)
 	ls := h.loots()
@@ -126,7 +139,14 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 	if answered, won = h.raidOpenLocked(sess, ls, npc, c); answered { // its raid's rules first (raidloot.go)
 		return true
 	}
+	now := h.lootClock()
+	if holder, held := h.heldByOtherLocked(ls, sess, npc, now); held { // one looter at a time (lootrights.go)
+		log.Printf("Loot: %s may not open %q's corpse: %s is looting it", sessName(h, sess), npc.Name, holder)
+		queueReliable(sess, protocol.OpcodeLootOptions, buildLootOption(lootBeingLooted))
+		return true
+	}
 	ls.open[sess] = npc.ServerID
+	ls.since[sess] = now
 	h.giveCorpseCoins(sess, npc, c.tunar)
 	c.tunar = 0
 	view := ls.viewLocked(npc.ServerID, c, h.charOf(sess))
@@ -323,12 +343,14 @@ func (h *NPCWindowHandler) corpseGoneLocked(ls *lootState, id entity.EntityID) {
 	for s, open := range ls.open {
 		if open == id {
 			delete(ls.open, s)
+			delete(ls.since, s)
 			queueReliable(s, protocol.OpcodeClientCloseLoot, closeLootPayload())
 		}
 	}
 	h.raidCorpseGoneLocked(ls, id) // its rolls end with it (raidloot.go)
 	delete(ls.corpses, id)
 	delete(ls.drops, id)
+	h.killRights.Delete(id) // its kill group with it (lootrights.go)
 }
 
 // CorpsesGone is the World's hook for corpses that decayed (OnCorpseGone):
@@ -360,10 +382,14 @@ func (h *NPCWindowHandler) resendCorpse(sess *session.Session, ls *lootState, c 
 	view := ls.viewLocked(id, c, h.charOf(sess))
 	if len(view) == 0 {
 		delete(ls.open, sess)
+		delete(ls.since, sess)
 		if open && ls.emptyLocked(id, c) {
 			h.emptiedLocked(ls, id, c)
 		}
 		return
+	}
+	if open {
+		ls.since[sess] = h.lootClock() // a take: still looting (lootrights.go)
 	}
 	SendLoot(sess, view)
 	h.masterListLocked(sess, c) // after every 0x0018 to its master looter (raidloot.go)
@@ -407,6 +433,7 @@ func (h *NPCWindowHandler) HandleLootClose(sess *session.Session, msg *protocol.
 	ls.mu.Lock()
 	id, open := ls.open[sess]
 	delete(ls.open, sess)
+	delete(ls.since, sess)
 	queueReliable(sess, protocol.OpcodeClientCloseLoot, closeLootPayload())
 	if c := ls.corpses[id]; open && c != nil && ls.emptyLocked(id, c) {
 		h.emptiedLocked(ls, id, c)
@@ -665,6 +692,7 @@ func (h *NPCWindowHandler) openCorpse(sess *session.Session, ls *lootState) (*co
 	inv := sessionInvList(sess)
 	if c == nil || player == nil || inv == nil {
 		delete(ls.open, sess)
+		delete(ls.since, sess)
 		return nil, nil, nil
 	}
 	return c, player, inv

@@ -116,6 +116,7 @@ type spellJSON struct {
 	Harmful    *bool        `json:"harmful"`
 	DurationS  float64      `json:"duration_s"`
 	Stack      int          `json:"stack"`
+	SheetType  string       `json:"sheet_type"`
 	Level      int          `json:"level"`
 	MinLevel   int          `json:"min_level"`
 	Radius     float64      `json:"radius"`
@@ -257,7 +258,8 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 	if len(s.Effects) == 0 {
 		return SpellDef{}, fmt.Errorf("no effects")
 	}
-	d := SpellDef{Workbook: true, Stack: s.Stack, StackLevel: s.Level, MinLevel: s.MinLevel}
+	d := SpellDef{Workbook: true, Stack: s.Stack, StackLevel: s.Level, MinLevel: s.MinLevel,
+		AltersLook: strings.EqualFold(strings.TrimSpace(s.SheetType), "Alter Appearance")}
 	scope := strings.ToLower(strings.TrimSpace(s.Scope))
 	if scope == "target" && allTargetArea(s.Effects) {
 		// a spell for a target whose every effect is for the area round it

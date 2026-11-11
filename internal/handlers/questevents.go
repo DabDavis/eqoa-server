@@ -459,7 +459,7 @@ func (q *QuestEngine) respawnLost() {
 				}
 			}
 			world, x, _, z, ok := q.gw.PlayerPlace(p)
-			if !ok || !q.gw.SpawnOnlyNear(world, x, z, questRespawnReach, names) {
+			if !ok || !q.gw.SpawnOnlyNear(world, x, z, questRespawnReach, names) && !q.byStepNPC(qu, st, names, world, x, z) {
 				continue
 			}
 			log.Printf("Quests: %q step %d: %s came back for %s", qu.Name, st.Step, p.Name, strings.Join(names, ", "))
@@ -467,6 +467,69 @@ func (q *QuestEngine) respawnLost() {
 				q.spawnLocked(p, c, qu, st.Step, e)
 			}
 		}
+	}
+}
+
+// byStepNPC reports the player within questRespawnReach of the NPC of the
+// step before a kill step (a talk, show or give at it) when every creature the
+// step's spawns bring stands out of the world: where those spawns first came
+// (petition 1539: Pages of Pardon's bloodletters come at the High Shaman, the
+// spawn-only one standing 380 off in another of Guk's halls), so they come
+// again there too.
+func (q *QuestEngine) byStepNPC(qu *database.Quest, st *database.QuestStep, names []string, world uint8, x, z float32) bool {
+	var prev *database.QuestStep
+	for i := range qu.Steps {
+		if s := &qu.Steps[i]; s.Step < st.Step && (prev == nil || s.Step > prev.Step) {
+			prev = s
+		}
+	}
+	if prev == nil || !database.AtNPC(prev.Kind) || strings.TrimSpace(prev.Target) == "" {
+		return false
+	}
+	for _, n := range names {
+		if !q.gw.SpawnOnlyNamed(n) {
+			return false
+		}
+	}
+	_, _, _, _, _, ok := q.gw.SpawnOfNPCNear(prev.Target, world, x, z, questRespawnReach)
+	return ok
+}
+
+// nextWaveLocked is a kill on a kill step whose spawns are its creatures
+// (stepSpawns), the step still short of its count: when the creature killed was
+// one of the character's spawns of the step and none of them is left alive, the
+// step's spawns come again before the player, as the step first made them, no
+// more than the kills still wanted (petition 1539, Froglegs: "2 bloodletters
+// spawn, killed them and no more spawn": Pages of Pardon's six bloodletters, the
+// guide's waves, came two and never again). Must be called with q.mu held.
+func (q *QuestEngine) nextWaveLocked(p *entity.Player, c *questChar, qu *database.Quest, st *database.QuestStep, killed entity.EntityID, left int) {
+	if q.gw == nil || p == nil || left <= 0 {
+		return
+	}
+	evs, _ := stepSpawns(qu, st)
+	if len(evs) == 0 {
+		return
+	}
+	mine := false
+	for _, s := range q.spawns[c.serverID] {
+		if s.quest != qu.ID || s.step != st.Step {
+			continue
+		}
+		if s.id == killed {
+			mine = true
+		} else if q.gw.NPCAlive(s.id) {
+			return // the wave is not over
+		}
+	}
+	if !mine {
+		return
+	}
+	log.Printf("Quests: %q step %d: the next wave for %s (%d kills to go)", qu.Name, st.Step, p.Name, left)
+	for i, e := range evs {
+		if i >= left {
+			break
+		}
+		q.spawnLocked(p, c, qu, st.Step, e)
 	}
 }
 

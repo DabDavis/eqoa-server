@@ -162,3 +162,39 @@ func TestASelfOrGroupBuffWithAPriceLandsOutsideADuel(t *testing.T) {
 		t.Fatalf("the groupmate's effects %+v: want Grim Resolve", mate.Effects)
 	}
 }
+
+// Petition 1529: a wizard's epic power path buff (Aktrana's Cerebral
+// Fortress) was taken off by Scorpion's Pestilence, the scorpion form's
+// buff, the two sharing a stack type and +PoT. A form's buff (the workbook's
+// "Alter Appearance" sheet) has no line, as a form has none: both stay on,
+// whichever goes on first.
+func TestAFormsBuffDoesNotTakeOffAPowerPathBuff(t *testing.T) {
+	wb := func(id int, name, desc, js string) CastSpell {
+		t.Helper()
+		d, err := ParseSpellJSON(name, desc, js)
+		if err != nil {
+			t.Fatalf("%s: %v", name, err)
+		}
+		return CastSpell{SpellID: id, DisplayIndex: id % 40, Level: 60, Scope: 0, Name: name, Icon: uint32(id),
+			CastTime: time.Second, PowerCost: 1, Range: 30, Def: d}
+	}
+	fortress := wb(701098, "Aktrana's Cerebral Fortress", "", `{"v":1,"scope":"self","target_type":"Self","harmful":false,"duration_s":1200,"stack":2,"level":60,"min_level":1,"req_equipment":"Any","sheet_type":"Statistic Change","effects":[{"id":"08D9","type":"Statistic Change","kind":"stat","stat":"pot","amount":200},{"id":"08DA","type":"Statistic Change","kind":"stat","stat":"maxpower","amount":2000},{"id":"08DB","type":"Statistic Change","kind":"power","amount":2000}]}`)
+	pestilence := wb(900782, "Scorpion's Pestilence", "A buff that increases your DEX, INT and power regeneration. Changes your appearance.", `{"v":1,"scope":"self","target_type":"Self","harmful":false,"duration_s":1800,"stack":2,"level":60,"min_level":1,"req_equipment":"Any","sheet_type":"Alter Appearance","effects":[{"id":"03AD","type":"Statistic Change","kind":"stat","stat":"dex","amount":50},{"id":"03AD","type":"Statistic Change","kind":"stat","stat":"int","amount":50},{"id":"03AD","type":"Statistic Change","kind":"stat","stat":"pot","amount":25}]}`)
+	if BuffLine(&fortress) == "" {
+		t.Fatalf("the Fortress has no line")
+	}
+	if l := BuffLine(&pestilence); l != "" {
+		t.Fatalf("Scorpion's Pestilence has a line: %q", l)
+	}
+	for _, order := range [][2]CastSpell{{fortress, pestilence}, {pestilence, fortress}} {
+		c := newCaster(t)
+		c.castOn(t, order[0], 0)
+		c.castOn(t, order[1], 10*time.Second)
+		if got := c.effectNames(); len(got) != 2 {
+			t.Errorf("%s then %s: effects %v, want both", order[0].Name, order[1].Name, got)
+		}
+		if c.p.Mods.PoT < 225 {
+			t.Errorf("%s then %s: PoT +%d, want both's 225", order[0].Name, order[1].Name, c.p.Mods.PoT)
+		}
+	}
+}

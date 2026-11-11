@@ -82,14 +82,21 @@ import (
 // lines that share a stat but neither holds the other (+STR +DEX against +STR
 // +AGI) are one line, as before; so are the same stats (a line's ranks).
 
+// A form's buff (petition 1529, 2026-11-11): a workbook spell of the sheet's
+// "Alter Appearance" type that is not itself read as an illusion (Scorpion's
+// Pestilence, the scorpion form's +DEX +INT +PoT; Form of the Master) has no
+// line, as every form has none. Until then Pestilence, of the self stack type
+// and sharing +PoT, took the wizard's epic power path buff (Aktrana's
+// Cerebral Fortress, 20 minutes) off well before its recast came back.
+
 // BuffLine is a spell's line, "" for one that has none: no lasting part but
 // ticks, an illusion, a pet's summoning or a charm. (A spell that lands on a
 // player is one cast on a friend or a self spell: Reckless Force's line reads
 // as harmful, "Decrease AGI by 10", and is a buff.)
 func BuffLine(s *CastSpell) string {
 	d := &s.Def
-	if d.FormKind != FormNone || d.Summons() || d.Charms() {
-		return ""
+	if d.FormKind != FormNone || d.AltersLook || d.Summons() || d.Charms() {
+		return "" // a form's buff (AltersLook) is a form's: no line (petition 1529)
 	}
 	seen := map[string]bool{}
 	var keys []string

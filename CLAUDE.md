@@ -882,6 +882,15 @@ offer, **0x7E4D** answer, a u8 each, sent with the world entry's offers; kept ov
 talk named, the level, the name: `protocol/opcodes.go`) and vanilla shows the two lines in that details box while Q is held; anyone else
 (a PS2, an older vanilla) a dialogue box (0x0046) of the same two lines. The name is cleaned as `consoletext.go` cleans a relayed line.
 
+### The profanity filter from a client's setting (`handlers/profanity.go`)
+
+The GM Jibrish's petition 1490, 2026-11-11: "Under options then interface add an option to turn the profanity filter on or off." The
+filter is the server's and each hearer's (`lineFor`, `Player.ProfanityFilterOff`: on at every login; retail's 0x0045 and `/filter` turn
+it over). The server offers at every world entry, with the item links' offer (**0x7E60**, `OpcodeProfanityChoice`, a u8 1; a PS2 ignores
+it), and vanilla answers on the same opcode with its Options > Interface row (a u8: 1 on, 0 off), at once and whenever the row changes:
+it SETS the filter (never turns it over) and nothing is answered. Kept over a keep restart (`KeptPlayer.ProfanityOff`, which also keeps a
+0x0045 or `/filter` off). Only the mask turns: what a PS2 cannot be sent (`consoletext.go`) stays filtered for everyone.
+
 ### Item links in chat, EQ1's (`handlers/itemlinks.go`)
 
 The GM Jibrish's petition 1463, 2026-11-10: a player puts a link to one of its own items in a chat line and whoever clicks it sees

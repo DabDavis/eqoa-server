@@ -3319,12 +3319,12 @@
       "home": {
         "flavor": "Gnolls are hyena-faced hunters of Blackburrow in the Homelands, cunning in a pack and fierce alone, who serve the dark elves of Neriak.",
         "start": {
-          "x": 12564.9,
+          "x": 12596.0,
           "y": 54.16,
-          "z": 12961.9,
+          "z": 12972.0,
           "toward": [
-            12558.3,
-            12959.5
+            12588.0,
+            12972.0
           ]
         },
         "mainland": {
@@ -3336,55 +3336,6 @@
           "facing": 0.04
         },
         "npcs": [
-          {
-            "name": "Elder Grawl",
-            "like": 103575,
-            "level": 30,
-            "role": "talker",
-            "at": [
-              12558.3,
-              54.16,
-              12959.5
-            ],
-            "toward": [
-              12564.9,
-              12961.9
-            ],
-            "note": "the starter quests' giver, a spiritist's look, by the fire pit of the gnolls' stockade south of the burrow"
-          },
-          {
-            "name": "Grocer Snaggle",
-            "like": 103668,
-            "level": 25,
-            "role": "talker",
-            "at": [
-              12574.7,
-              54.16,
-              12986.7
-            ],
-            "toward": [
-              12558.3,
-              12959.5
-            ],
-            "stock": "Grocer Droel",
-            "note": "a forager's look, by the cook pots; a Neriak grocer's food"
-          },
-          {
-            "name": "Spiritmaster Rakk",
-            "like": 103577,
-            "level": 30,
-            "role": "talker",
-            "at": [
-              12624.0,
-              54.16,
-              12960.2
-            ],
-            "toward": [
-              12558.3,
-              12959.5
-            ],
-            "note": "binds, as every spiritmaster; a shaman's look"
-          },
           {
             "name": "Gatekeeper Brindle",
             "like": 103565,
@@ -3402,20 +3353,69 @@
             "note": "sends a gnoll who has done the starter quests to Neriak (The Road to Neriak); at the stockade's south-east gate"
           },
           {
+            "name": "Elder Grawl",
+            "like": 103575,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              12588.0,
+              54.16,
+              12972.0
+            ],
+            "toward": [
+              12596.0,
+              12972.0
+            ],
+            "note": "the starter quests' giver, a gnoll spiritist's look, on the yard's open floor just east of the fire pit (the pit behind him)"
+          },
+          {
+            "name": "Grocer Snaggle",
+            "like": 103668,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12570.0,
+              54.16,
+              12998.0
+            ],
+            "toward": [
+              12596.0,
+              12972.0
+            ],
+            "stock": "Grocer Droel",
+            "note": "the burrow's grocer, south of the fire pit; a Neriak grocer's food (Grocer Droel)"
+          },
+          {
+            "name": "Spiritmaster Rakk",
+            "like": 103577,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              12614.0,
+              54.16,
+              12966.0
+            ],
+            "toward": [
+              12596.0,
+              12972.0
+            ],
+            "note": "binds, as every spiritmaster; a gnoll shaman's look; on open floor between the tents, a few steps east of the elder"
+          },
+          {
             "name": "Packleader Varg",
             "like": 103565,
             "level": 30,
             "role": "talker",
             "at": [
-              12574.0,
+              12592.0,
               54.16,
-              12946.0
+              12984.0
             ],
             "toward": [
-              12564.9,
-              12961.9
+              12596.0,
+              12972.0
             ],
-            "note": "gives the three hunts (levels 3-5), a few steps north of the elder by the fire pit: a gnoll soldier's look"
+            "note": "gives the three hunts (levels 3-5), beside the elder: a gnoll soldier's look"
           },
           {
             "name": "Hidescraper Yipp",
@@ -3428,11 +3428,11 @@
               12992.0
             ],
             "toward": [
-              12564.9,
-              12961.9
+              12596.0,
+              12972.0
             ],
             "stock": "Tailor Eroz",
-            "note": "the burrow's outfitter, south-east of the fire pit among the tents: hands over the level 1 collar and the level 4 materials; a Neriak tailor's cloth (Tailor Eroz); a gnoll forager's look"
+            "note": "the burrow's outfitter, a few steps south of the elder, by the tents: hands over the level 1 collar and the level 4 materials; a Neriak tailor's cloth (Tailor Eroz); a gnoll forager's look"
           },
           {
             "name": "Coachman Skulk",
@@ -3456,13 +3456,13 @@
             "level": 30,
             "role": "talker",
             "at": [
-              12612.0,
+              12622.0,
               54.16,
               12940.0
             ],
             "toward": [
-              12564.9,
-              12961.9
+              12596.0,
+              12972.0
             ],
             "stock": "Spell Archivist",
             "optional": true,

@@ -4617,16 +4617,16 @@
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "Come closer, pup. Let me smell you. Hrrn. Milk and ashes. You are ours, then. But the guards cannot smell as I can, and they bite what they do not know.\nEvery pup wears the pack collar. Hidescraper Yipp cuts them, among the tents south-east of the fire.\nWill you fetch your collar and show it to me?",
+      "offer": "Come closer, pup. Let me smell you. Hrrn. Milk and ashes. You are ours, then. But the guards cannot smell as I can, and they bite what they do not know.\nEvery pup wears the pack collar. Hidescraper Yipp cuts them, a few steps south of here, by the tents.\nWill you fetch your collar and show it to me?",
       "accept": "I will fetch it.",
       "decline": "Not now.",
       "declined": "Then stay by the fire, pup, where the guards can see you.",
-      "started": "South-east, among the tents. Follow the smell of wet hide.",
+      "started": "South, by the tents. Follow the smell of wet hide.",
       "steps": [
         {
           "kind": "talk",
           "target": "Hidescraper Yipp",
-          "journal": "Ask Hidescraper Yipp, among the tents south-east of the fire pit, for a pup's pack collar.",
+          "journal": "Ask Hidescraper Yipp, a few steps south of Elder Grawl, for a pup's pack collar.",
           "says": "Grawl's new pup? Chin up. Badger hide, the pack's brand, a good tight knot. There. A pup pays nothing. A grown gnoll pays double.",
           "events": [
             {
@@ -4684,12 +4684,12 @@
       "accept": "I will see them both.",
       "decline": "Not now.",
       "declined": "Then do not stray past the fence, pup.",
-      "started": "Rakk is across the yard to the east. Skulk waits on the road outside the south-east gate.",
+      "started": "Rakk is a few steps east of here. Skulk waits on the road outside the south-east gate.",
       "steps": [
         {
           "kind": "talk",
           "target": "Spiritmaster Rakk",
-          "journal": "Have Spiritmaster Rakk, across the yard east of the fire pit, bind your spirit to the burrow.",
+          "journal": "Have Spiritmaster Rakk, a few steps east of the elder, bind your spirit to the burrow.",
           "says": "It is done. Fall where you will, pup: you wake here, with the pack's fire in your nose. Now go and give Coachman Skulk your name."
         },
         {

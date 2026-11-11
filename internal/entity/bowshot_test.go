@@ -9,18 +9,20 @@ import (
 // because 2 arrows are shot for one hit", "tmac should hit 2000 on level 50
 // training dummy with bow"), on the ranged roll since 2026-11-11 (the beta
 // sheet's: DEX the top, WIS the bottom): Tmac as the Heirloom snapshot has him
-// (a level 60 ranger, STR 106, DEX 453, WIS 260, the heirloom bow's 759) rolls
-// 503-512 an arrow on a level 50 training dummy, and shoots it for 2,000 on
-// average at Range4 (two arrows), 1,000 at Range2 (one arrow). The controls:
+// (a level 60 ranger, STR 106, DEX 453 within his masteries' cap, WIS 260, the
+// heirloom bow's 759) rolls 503-523 an arrow on a level 50 training dummy, and
+// shoots it for 2,000 on average at Range4 (two arrows), 1,000 at Range2 (one
+// arrow). The controls:
 // the same player's melee swing (Attack4) and a thrown potion's roll stay the
 // melee roll (STR and DEX, 455 here).
 func TestABowShotIsItsArrows(t *testing.T) {
 	p := &Player{Class: classRanger, Level: 60, Str: 106, Dex: 453, Wis: 260}
 	p.Gear.WeaponDamage, p.Gear.WeaponCond, p.Gear.WeaponSlot = 759, 1, 18
+	p.CMEffects[cmSlotCap+3] = 100 // his DEX cap past the level's 400
 	npc := &NPC{Level: 50, Dummy: TrainingDummy}
 	floor, low, high := playerRangedRoll(p, npc)
-	if floor != 86 || low != 503 || high != 512 {
-		t.Fatalf("the ranged roll %d (floor), %d-%d, want 86, 503-512", floor, low, high)
+	if floor != 87 || low != 503 || high != 523 {
+		t.Fatalf("the ranged roll %d (floor), %d-%d, want 87, 503-523", floor, low, high)
 	}
 	melee := playerMeleeHit(p, npc, func(int) int { return 0 })
 	if melee != 455 {

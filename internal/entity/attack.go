@@ -690,15 +690,15 @@ func (w *World) playerRoundHitsLocked(p *Player, npc *NPC, now time.Time) bool {
 // stat sheet's, 2026-11-11), and Range4, the swing from level 35, looses two
 // arrows for its one hit, each its own roll. rangedShare is fitted to the
 // user's figure on Tmac as the Heirloom snapshot of 2026-11-11 has him (a level
-// 60 elf ranger, DEX 453, WIS 260, his level 60 heirloom bow's DMG 759): an
-// arrow rolls 503-512 on a level 50 training dummy, 507.5 on average, so 1.97
-// makes his shot 2,000 on average (1,982-2,018). Until 2026-11-11 a shot rolled
+// 60 elf ranger, DEX 453 (his masteries raise its cap), WIS 260, his level 60
+// heirloom bow's DMG 759): an arrow rolls 503-523 on a level 50 training dummy,
+// 513 on average, so 1.95 makes his shot 2,000 on average (1,962-2,040). Until 2026-11-11 a shot rolled
 // the melee roll (STR and DEX) times 2.11, fitted on a ranger of STR 227 and
 // DEX 366 with a bow of 754 (474 an arrow); on Tmac's own stats that shot was
 // 1,920. Ours: no record of the live game's bow damage exists.
 const (
 	swingRange1, swingRange4 = 8, 11
-	rangedShare              = 1.97
+	rangedShare              = 1.95
 )
 
 // playerShotHit is one landed player swing's damage before the balance: a

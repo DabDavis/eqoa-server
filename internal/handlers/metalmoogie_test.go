@@ -198,7 +198,7 @@ func metalMsgs(s *session.Session) []string {
 // answered in a line.
 func TestMrMoogieOffersToProveWorth(t *testing.T) {
 	f := newMetalFixture(t)
-	anna, pa := f.join("Anna", 100, 100)
+	anna, _ := f.join("Anna", 100, 100)
 	cora, pc := f.join("Cora", 102, 100)
 	got := f.talk(anna, f.moogie)
 	want := "|" + strings.Join([]string{moogieClearOpt, moogieHealOpt, moogieResetOpt, moogieProveOpt, moogieNoOpt}, "|")
@@ -210,7 +210,7 @@ func TestMrMoogieOffersToProveWorth(t *testing.T) {
 		t.Errorf("Anna's pick: %q", got)
 	}
 	c := f.standing()
-	if c == nil || c.CurrentEnemy != pa.ServerID || !c.DuelSpawn() {
+	if c == nil || c.CurrentEnemy != 0 || !c.DuelSpawn() { // he goes for her at the countdown's FIGHT (petition 1623)
 		t.Fatalf("no Metal Moogie standing for Anna: %+v", c)
 	}
 	got = f.talk(cora, f.moogie)

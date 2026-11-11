@@ -296,7 +296,7 @@ func (w *World) threatensLocked(npc *NPC, p *Player) bool {
 		return false
 	}
 	if npc.challenge != nil {
-		return npc.challenge.player == p.ServerID // its challenger alone (metalmoogie.go)
+		return !npc.challenge.held && npc.challenge.player == p.ServerID // its challenger alone, after the countdown (metalmoogie.go)
 	}
 	if npc.EventAggro {
 		return true

@@ -14,7 +14,7 @@ import (
 // or a priest a weapon and a shield, a melee class two weapons from 20 but
 // a monk's bare hands, a caster a two-hander), carries a book, and its role
 // has something of its own in it: a healer a heal, a tank a taunt, a caster a
-// hit. Each kit is logged with its figures.
+// hit; a tank or a melee fighter a bow. Each kit is logged with its figures.
 func TestRealMercKits(t *testing.T) {
 	path := os.Getenv("EQOA_REAL_DB")
 	if path == "" {
@@ -60,6 +60,11 @@ func TestRealMercKits(t *testing.T) {
 			if len(k.Spells) == 0 {
 				t.Errorf("%s %d: no book", entity.ClassName(class), level)
 			}
+			// a tank or a melee fighter carries a bow at its level's figures
+			// (entity/mercshoot.go); a healer or a caster none
+			if shoots := role == "tank" || role == "melee fighter"; shoots != (k.Bow.Damage > 0) || shoots && (k.Bow.Type != 7 || k.Bow.Range <= 0 || k.Bow.Model == 0) {
+				t.Errorf("%s %d: bow %+v", entity.ClassName(class), level, k.Bow)
+			}
 			heals, taunts, hits := 0, 0, 0
 			for i := range k.Spells {
 				switch entity.MercUseName(&k.Spells[i]) {
@@ -75,9 +80,9 @@ func TestRealMercKits(t *testing.T) {
 			case role == "healer" && heals == 0, role == "tank" && level >= 30 && taunts == 0, role == "caster" && hits == 0:
 				t.Errorf("%s %d: %d heals, %d taunts, %d hits in %d spells", entity.ClassName(class), level, heals, taunts, hits, len(k.Spells))
 			}
-			t.Logf("%-13s %2d: AC %4d, weapon %4d, chest %d robe %d, hands %v, %3d spells (%d heals, %d taunts, %d hits)",
+			t.Logf("%-13s %2d: AC %4d, weapon %4d, chest %d robe %d, hands %v, %3d spells (%d heals, %d taunts, %d hits), bow %q %d reach %d",
 				entity.ClassName(class), level, k.Gear.AC, k.Gear.WeaponDamage, k.Look.Chest, k.Look.Robe, k.Worn[14:19],
-				len(k.Spells), heals, taunts, hits)
+				len(k.Spells), heals, taunts, hits, k.Bow.Name, k.Bow.Damage, k.Bow.Range)
 		}
 	}
 }

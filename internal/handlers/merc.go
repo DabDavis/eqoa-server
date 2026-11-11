@@ -483,9 +483,36 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 			k.AttackType, k.Range = it.Pattern.AttackType, it.Pattern.Unk5
 		}
 	}
+	if role := entity.MercRoleName(row.Class); role == "tank" || role == "melee fighter" {
+		k.Bow = m.bow(row.Class, row.Race, k.Level) // its bow at range (entity/mercshoot.go)
+	}
 	k.Spells, err = entity.SimBookFromDB(m.db, row.Class, k.Level, false)
 	k.Spells = mercPathBook(row.Class, row.Path, k.Spells) // its path's, no other's (mercpath.go)
 	return k, err
+}
+
+// bow is the bow a tank's or a melee fighter's merc shoots at range (the
+// owner, 2026-11-11: "lets make melee/tank mercs have a bow also"): its
+// class's heirloom bow (a ranger's: its lowest record, the seed's own, as its
+// other heirlooms), else the plain heirloom bow of the ranger's (no epic's),
+// at the level's figures (Heirlooms.ViewFor). None in the database: none.
+func (m *Mercs) bow(class, race, level int) entity.MercBow {
+	var id int
+	err := m.db.QueryRow(`SELECT patternid FROM heirlooms WHERE role = 'ranged' AND class = ? ORDER BY patternid LIMIT 1`, class).Scan(&id)
+	if err != nil {
+		err = m.db.QueryRow(`SELECT patternid FROM heirlooms WHERE role = 'ranged' AND epic = 0 ORDER BY patternid LIMIT 1`).Scan(&id)
+	}
+	if err != nil {
+		return entity.MercBow{}
+	}
+	rec, err := database.NewItemPatternStore(m.db).GetItemPattern(id)
+	if err != nil || rec == nil {
+		return entity.MercBow{}
+	}
+	if m.heir != nil {
+		m.heir.ViewFor(race, level, rec)
+	}
+	return entity.MercBow{Model: uint32(rec.Model), Type: byte(rec.AttackType), Damage: rec.WeaponDamage, Range: rec.Unk5, Name: rec.ItemName}
 }
 
 // heirlooms is what a merc of class and race wears at level: the class's

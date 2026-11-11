@@ -220,6 +220,15 @@ func (w *World) mercTurnLocked(ms *mercState, dt float32, now time.Time) {
 	if ms.target == 0 {
 		t = nil
 	}
+	// its bow (mercshoot.go): an arrow on its way lands, and the bow or its
+	// melee hands in hand by its target's distance
+	if w.mercShotLandLocked(ms, now) {
+		t = w.NPCs[ms.target]
+		if ms.target == 0 {
+			t = nil
+		}
+	}
+	w.mercHandsLocked(ms, t)
 	if now.Before(ms.busy) {
 		// a cast on its way: it stands and faces where it casts
 		m.stopMoving()
@@ -253,6 +262,12 @@ func (w *World) mercMeleeLocked(ms *mercState, t *NPC, dt float32, now time.Time
 	m := ms.npc
 	reach := mercReach(t)
 	if d := distXZ(m.X, m.Z, t.X, t.Z); d > reach || w.petStackedLocked(m, t.X, t.Y, t.Z, now) {
+		// out of its reach: its bow's shot, or the pull it waits for
+		// (mercshoot.go)
+		if d > reach && w.mercShootLocked(ms, t, now) {
+			m.loseDueHits(now)
+			return
+		}
 		// out of its reach, or its target on the floor over or under it: round
 		// what stands between (petwalk.go)
 		x, z := m.X, m.Z

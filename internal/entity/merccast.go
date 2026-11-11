@@ -36,9 +36,14 @@ import (
 //     while half its power or more is left;
 //   - a tank's taunt (mercTauntTurnLocked): its target's hate on itself by
 //     its book's taunts (a hate line: Taunt, Provoke, the Pillars), the best
-//     that is ready, on cooldown while it fights; and when its target already
-//     fights it, the nearest creature fighting another of its team, which it
-//     takes on and taunts (the owner: "if tank they taunt");
+//     that is ready, while its target fights another than itself (one of its
+//     team, or none yet); and when its target already fights it, the nearest
+//     creature fighting another of its team, which it takes on and taunts
+//     (the owner: "if tank they taunt"). A target that fights it already is
+//     held: no taunt, its power for its attacks (the owner, 2026-11-11: "lets
+//     make melee/tanks use their damage abilities also"; until then a tank
+//     taunted on every cooldown, and its taunts, Bait to Rage of Zek, ran its
+//     power out: a level 60 warrior's 5,650 in a minute, its strikes waiting);
 //   - its attacks at its target (mercAttackTurnLocked): its damage over time
 //     kept up (cast again only once the one it put on is about to run out),
 //     then its biggest hit that is ready. A healer casts them only with no
@@ -547,6 +552,9 @@ func (w *World) mercTauntTurnLocked(ms *mercState, t *NPC, now time.Time) bool {
 			ms.target, t = o.ServerID, o
 			m.endRound()
 		}
+	}
+	if t.CurrentEnemy == m.ServerID {
+		return false // it holds it: its power for its attacks (the owner, 2026-11-11)
 	}
 	for _, sp := range ms.mercBook() {
 		if sp.use != useTaunt || !ms.mercReady(sp.s, now) || !mercReaches(m, sp.s, t.X, t.Y, t.Z, npcReachExtra(t)) ||

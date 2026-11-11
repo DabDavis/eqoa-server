@@ -125,6 +125,8 @@ type MercKit struct {
 	AttackType, Range int
 	// Spells is its book: the class's up to its level
 	Spells []CastSpell
+	// Bow is the bow a tank or a melee fighter shoots at range (mercshoot.go)
+	Bow MercBow
 }
 
 // MercLook is what a merc's channel shows of its body and its heirlooms.
@@ -185,6 +187,11 @@ type mercState struct {
 	// petBookOf, its body, as book is
 	petBook   *mercPetSpells
 	petBookOf *Player
+	// bowOut: its bow in its hands (mercshoot.go); shot its arrow on its way,
+	// shotReady when it may shoot again
+	bowOut    bool
+	shot      *mercShot
+	shotReady time.Time
 }
 
 // mercNoCollideID is a merc's entry on its owner's non-collide list (0x1003:
@@ -603,6 +610,7 @@ func (w *World) rekitMercLocked(ms *mercState, kit MercKit) {
 	n := ms.npc
 	hp, pw := share(n.HP, n.MaxHP), share(n.Power, n.MaxPower)
 	ms.kit = kit
+	ms.bowOut, ms.shot = false, nil // its hands the new kit's (mercshoot.go)
 	w.dressMercLocked(n, &kit, ms.owner)
 	ms.body = newMercBody(n.ServerID, &kit)
 	n.Level = ms.body.Level

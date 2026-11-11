@@ -88,7 +88,7 @@ const (
 	mercRestLine  = "Your mercenary %s rests for %d more seconds."
 	mercBackLine  = "Your mercenary %s is back at your side."
 	mercKitFailed = "The liaison's ledger is out of order. Try again."
-	mercHelpLine  = "/merc stance passive|assist|aggressive, /merc follow, /merc stay, /merc attack (your target), /merc group, /merc revive, /merc dismiss. /familiar dismiss sends a familiar away."
+	mercHelpLine  = "/merc stance passive|assist|aggressive, /merc follow, /merc stay, /merc attack (your target), /merc path, /merc group, /merc revive, /merc dismiss. /familiar dismiss sends a familiar away."
 )
 
 // mercRoles are the liaison's first answers, each role's classes in their
@@ -379,7 +379,7 @@ func (m *Mercs) hire(sess *session.Session, p *entity.Player, class, race, sex i
 	}
 	now := m.now()
 	row := database.MercRow{ServerID: p.CharServerID, Name: mercName(p.CharServerID, class, race, now), Class: class, Race: race,
-		Sex: min(max(sex, 0), 1), Stance: int(entity.MercAssist), Hired: now}
+		Sex: min(max(sex, 0), 1), Stance: int(entity.MercAssist), Hired: now, Path: -1}
 	row.Face, row.HairColor, row.HairLength, row.HairStyle = m.look(race, row.Sex, row.Name)
 	kit, err := m.kit(row, p.Level)
 	if err != nil {
@@ -399,6 +399,9 @@ func (m *Mercs) hire(sess *session.Session, p *entity.Player, class, race, sex i
 	}
 	log.Printf("Merc: %s hires %q (%s %s, sex %d)", p.Name, name, entity.RaceName(race), entity.ClassName(class), row.Sex)
 	mercSay(sess, fmt.Sprintf(mercHiredLine, name, entity.RaceName(race), entity.ClassName(class)))
+	if k := mercPathOf(class, row.Path); k >= 0 {
+		SendClientMessage(sess, fmt.Sprintf(mercPathIsLine, name, mercPathName(class, k)))
+	}
 }
 
 // look is a merc's face and hair: one of the looks this server's NPCs of its
@@ -481,6 +484,7 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 		}
 	}
 	k.Spells, err = entity.SimBookFromDB(m.db, row.Class, k.Level, false)
+	k.Spells = mercPathBook(row.Class, row.Path, k.Spells) // its path's, no other's (mercpath.go)
 	return k, err
 }
 
@@ -717,6 +721,8 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 			return
 		}
 		SendClientMessage(sess, "Your mercenary attacks "+name+".")
+	case "path":
+		m.path(sess, p, strings.Join(words[1:], " "))
 	case "group":
 		if line := m.gw.AskMercGroup(sess); line != "" {
 			SendClientMessage(sess, line)
@@ -746,7 +752,7 @@ func (m *Mercs) dismiss(sess *session.Session, p *entity.Player) {
 // mercVerbs are /merc's words, which "/t merc <word>" takes as the command
 // (chat.go: anything else to a "merc" is a tell).
 var mercVerbs = map[string]bool{"status": true, "dismiss": true, "stance": true, "follow": true, "stay": true, "attack": true,
-	"group": true, "revive": true, "help": true}
+	"group": true, "revive": true, "help": true, "path": true}
 
 // mercWords reports a tell's body that is /merc's: none, or one of its words
 // first.

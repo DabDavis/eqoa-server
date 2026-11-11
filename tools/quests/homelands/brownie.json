@@ -1,0 +1,176 @@
+{
+  "race": "brownie",
+  "home": "Mayfly Glade",
+  "city": "Rivervale",
+  "note": "The glade's people are tools/worlds/homelands.json's (Mayfly Glade): Elder Thimbleroot inside the stockade gives the first two, Hedgewarden Tansy a few steps north of him the three hunts; Weaver Mossbutton, at the north side of the stockade, is the outfitter; Coachman Twigg keeps the stable on the grass outside the east gate (his coach runs to Freeport and to the other homes); the mayfly swarms (the hollow south of the stockade), the glade snakes (the woods to the west) and the badger Old Greyback (alone, far to the north-west) are placed for these quests.",
+  "L1": {
+    "name": "A Sprout's Acorn Sash",
+    "giver": "Elder Thimbleroot",
+    "offer": [
+      "Well, well! A new sprout, and not a crumb on you yet. We shall mend that. But first things first: no brownie of the glade goes about without an acorn sash.",
+      "Weaver Mossbutton stitches them, up at the north side of the stockade. Tell her I sent you, or she will talk your ears off first.",
+      "Will you fetch your sash and show it to me?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "No hurry, sprout. The acorns are not going anywhere.",
+    "started": "Off you trot. North side, by the big leaves. Follow the humming.",
+    "merchant": "Weaver Mossbutton",
+    "piece": {
+      "name": "acorn-cap sash",
+      "description": "A sash of plaited grass sewn with acorn caps. Every brownie of Mayfly Glade wears one, and keeps a crumb or two tucked in it.",
+      "like": "Dun Cloth Belt",
+      "set": {
+        "AC": 4
+      }
+    },
+    "fetch": {
+      "journal": "Ask Weaver Mossbutton, at the north side of the stockade, for an acorn-cap sash.",
+      "says": "A new sprout! Arms up. Plaited grass, seven acorn caps, one for luck. There. Not a button to pay, dear. Mind you keep it tidy."
+    },
+    "show": {
+      "journal": "Show the acorn-cap sash to Elder Thimbleroot.",
+      "says": "Now you look a proper brownie. Keep a crumb tucked in it. You never know when you will want one."
+    }
+  },
+  "L2": {
+    "name": "Bound to the Glade",
+    "giver": "Elder Thimbleroot",
+    "offer": [
+      "The wide world is full of large feet, sprout. Have Spiritmaster Fennick bind your spirit to the glade, so that you wake here if one of them lands on you.",
+      "Then give your name to Coachman Twigg for his ledger. His coach runs to Freeport and to the other homes of the Homelands, for those their stables know.",
+      "Will you see them both and come back to me?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "Then look up often, sprout. Very often.",
+    "started": "Fennick is by the west fence. Twigg waits on the grass outside the east gate.",
+    "spiritmaster": "Spiritmaster Fennick",
+    "coachman": "Coachman Twigg",
+    "bind": {
+      "journal": "Have Spiritmaster Fennick, by the west fence of the stockade, bind your spirit to the glade.",
+      "says": "There now. Whatever lands on you, you will wake here among friends, and likely in time for supper. Off to Coachman Twigg with you."
+    },
+    "ledger": {
+      "journal": "Give your name to Coachman Twigg, outside the east gate, for his ledger.",
+      "says": "Name in the book, sprout! My coach runs to Freeport and to every other home of the Homelands, for travelers whose names their ledgers hold. Yours is in mine now."
+    },
+    "back": {
+      "journal": "Return to Elder Thimbleroot.",
+      "says": [
+        "Splendid. Now you can always come home, one way or the other.",
+        "Twigg's coach will carry you to Freeport if its ledger knows you, but the road to Rivervale is earned. Hedgewarden Tansy, just north of me, has work for you."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Mayflies in the Honey",
+    "giver": "Hedgewarden Tansy",
+    "offer": [
+      "So you are the new sprout. Good, I need quick hands. The mayflies are swarming in the hollow south of the stockade, and they are into the honey pots again.",
+      "Swat a few swarms and bring me three wings. Then I will show you a trick worth having.",
+      "Will you thin them out?"
+    ],
+    "accept": "I will thin them out.",
+    "decline": "Not now.",
+    "declined": "Then it is dry bread for supper, and you may tell Pippkin why.",
+    "started": "Three wings. Out the east gate and round to the south, down in the hollow.",
+    "target": "mayfly swarm",
+    "count": 3,
+    "drop": {
+      "name": "mayfly wing",
+      "description": "A glassy wing from a mayfly swarm of the hollow south of the stockade.",
+      "like": "Pixie Nettle Wing"
+    },
+    "hunt": {
+      "journal": "Take three mayfly wings from the mayfly swarms in the hollow south of the stockade."
+    },
+    "give": {
+      "journal": "Bring three mayfly wings to Hedgewarden Tansy.",
+      "says": "Three wings, and no honey on your fingers. I am almost surprised. Now watch closely, sprout, and learn this."
+    }
+  },
+  "L4": {
+    "name": "A Sprout's Arms",
+    "giver": "Hedgewarden Tansy",
+    "offer": [
+      "A brownie's wits are sharp, but a wolf does not mind wits. I will make you proper gear, if you fetch what I need.",
+      "Weaver Mossbutton has a leather strip and a shaft put by for me. Then take a fang from the glade snakes in the woods west of the stockade.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then stay inside the fence, where your wits are enough.",
+    "started": "Leather and a shaft from Mossbutton, a fang from the snakes. Hop to it.",
+    "materials": [
+      {
+        "merchant": "Weaver Mossbutton",
+        "items": [
+          "leather strip",
+          "wooden shaft"
+        ],
+        "journal": "Ask Weaver Mossbutton for the leather strip and the wooden shaft.",
+        "says": "For Tansy? Here you are, dear: a strip of leather and a nice straight shaft. Tell her she still has my good needle."
+      }
+    ],
+    "target": "glade snake",
+    "count": 1,
+    "drop": {
+      "name": "glade snake fang",
+      "description": "The thin fang of a glade snake from the woods west of the stockade.",
+      "like": "Tree Viper Fang"
+    },
+    "hunt": {
+      "journal": "Take a glade snake fang from the glade snakes in the woods west of the stockade."
+    },
+    "give": {
+      "journal": "Bring the leather strip, the wooden shaft and the glade snake fang to Hedgewarden Tansy.",
+      "says": "All three! A moment... the fang for a point, the leather for a grip. There. It is yours, sprout. Do not poke the grocer with it."
+    }
+  },
+  "L5": {
+    "name": "Old Greyback",
+    "giver": "Hedgewarden Tansy",
+    "offer": [
+      "One thing more before Rivervale has you. An old badger we call Greyback has dug in among the trees far to the north-west. He has dug up two of our gardens and chased the gardeners up a pine.",
+      "He is bigger than three of us and cross as a wet cat, so strike first. Bring me his claw, and I will teach you the last trick I have for a sprout.",
+      "Will you see to Old Greyback?"
+    ],
+    "accept": "I will see to him.",
+    "decline": "Not yet.",
+    "declined": "He will not grow any sweeter while you wait.",
+    "started": "North-west, a good long walk through the trees. Mind his claws.",
+    "target": "Old Greyback",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "Greyback's claw",
+      "description": "A blunt grey claw, as long as a brownie's arm, from the badger Old Greyback.",
+      "like": "Cracked Rat Claw"
+    },
+    "hunt": {
+      "journal": "Take Greyback's claw from the badger Old Greyback in the woods far north-west of the stockade."
+    },
+    "give": {
+      "journal": "Bring Greyback's claw to Hedgewarden Tansy.",
+      "says": [
+        "Greyback's own claw! The gardeners can come down from their pine. You are a sprout no longer.",
+        "Learn this, and see Gatekeeper Burrowby at the east gate when you are ready for Rivervale."
+      ]
+    }
+  },
+  "flight": {
+    "name": "The Road to Rivervale",
+    "giver": "Gatekeeper Burrowby",
+    "offer": [
+      "The halflings of Rivervale keep good tables and open doors, and they have always been kind to our kind. Tansy says you are ready for them.",
+      "You have earned the road, sprout. I will set you down among your own guild in Rivervale, and your spirit will rest there.",
+      "Shall I send you to Rivervale?"
+    ],
+    "accept": "Send me to Rivervale.",
+    "decline": "Not yet.",
+    "declined": "Rivervale will keep. Halflings are patient about guests.",
+    "started": "Mind your manners, and save me a pie!",
+    "journal": "Tell Gatekeeper Burrowby when you are ready to go to Rivervale."
+  }
+}

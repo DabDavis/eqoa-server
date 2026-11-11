@@ -1246,15 +1246,82 @@
             "level": 35,
             "role": "talker",
             "at": [
-              19493.1,
+              19487.0,
               84.84,
-              12239.4
+              12247.0
             ],
             "toward": [
               19380.0,
-              12222.0
+              12229.0
             ],
-            "note": "sends a goblin who has done the starter quests to Neriak (the quest The Road to Neriak); a goblin warrior's look"
+            "note": "sends a goblin who has done the starter quests to Neriak (the quest The Road to Neriak); a goblin warrior's look; on open floor before the east huts"
+          },
+          {
+            "name": "Pitmaster Grukk",
+            "like": 108307,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              19392.0,
+              84.84,
+              12236.0
+            ],
+            "toward": [
+              19380.0,
+              12229.0
+            ],
+            "note": "gives the three hunts (levels 3-5), a few steps from the elder on the hall's open floor: a goblin warrior's arms"
+          },
+          {
+            "name": "Stitcher Nibb",
+            "like": 108218,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19370.0,
+              84.84,
+              12246.0
+            ],
+            "toward": [
+              19380.0,
+              12229.0
+            ],
+            "stock": "Tailor Desrez",
+            "note": "the cavern's outfitter, across the hall from the elder (open floor): hands over the level 1 ear ring and the level 4 materials; a Neriak tailor's cloth (Tailor Desrez)"
+          },
+          {
+            "name": "Coachman Rukkit",
+            "like": 108189,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19392.0,
+              84.84,
+              12324.0
+            ],
+            "toward": [
+              19380.0,
+              12229.0
+            ],
+            "note": "the cavern's stable, in the south chamber down the passage from the hall (open floor, clear of the huts): the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot (open floor, nothing that attacks near)"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 108230,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              19416.0,
+              84.84,
+              12248.0
+            ],
+            "toward": [
+              19380.0,
+              12229.0
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), in a witch doctor's look; left out where the database has none to take wares from"
           },
           {
             "name": "Moss Mouth lookout",
@@ -1307,38 +1374,38 @@
           {
             "name": "tunnel rat",
             "body": "0x12098DE0",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.8,
             "at": [
-              19458.7,
-              81.47,
-              12164.1
+              19316.8,
+              84.84,
+              12375.7
             ],
-            "note": "the starter quest's rats, at the dire wolves' spots in the hall's pit"
+            "note": "the level 3 quest's rats, at the goblins' spots in the long west tunnel that runs south from the hall and down its slope to the cavern's mouth"
           },
           {
             "name": "tunnel rat",
             "body": "0x12098DE0",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.8,
             "at": [
-              19447.1,
-              81.47,
-              12166.9
+              19269.0,
+              84.84,
+              12383.5
             ]
           },
           {
             "name": "tunnel rat",
             "body": "0x12098DE0",
-            "level": 1,
+            "level": 3,
             "role": "foe",
             "size": 0.8,
             "at": [
-              19459.6,
-              81.47,
-              12175.5
+              19300.9,
+              84.84,
+              12375.6
             ]
           },
           {
@@ -1348,21 +1415,21 @@
             "role": "foe",
             "size": 0.8,
             "at": [
-              19438.5,
-              81.47,
-              12187.3
+              19326.4,
+              84.84,
+              12439.3
             ]
           },
           {
             "name": "tunnel rat",
             "body": "0x12098DE0",
-            "level": 1,
+            "level": 3,
             "role": "foe",
             "size": 0.8,
             "at": [
-              19443.5,
-              81.47,
-              12192.6
+              19327.4,
+              84.84,
+              12462.5
             ]
           },
           {
@@ -1372,14 +1439,125 @@
             "role": "foe",
             "size": 0.8,
             "at": [
-              19444.6,
-              81.47,
-              12199.0
+              19362.5,
+              84.84,
+              12468.7
             ]
+          },
+          {
+            "name": "tunnel rat",
+            "body": "0x12098DE0",
+            "level": 3,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19351.3,
+              84.84,
+              12470.8
+            ]
+          },
+          {
+            "name": "tunnel rat",
+            "body": "0x12098DE0",
+            "level": 3,
+            "role": "foe",
+            "size": 0.8,
+            "at": [
+              19354.3,
+              63.62,
+              12545.0
+            ]
+          },
+          {
+            "name": "cave bat",
+            "body": "0x80F533D0",
+            "level": 3,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              19517.4,
+              84.84,
+              12068.3
+            ],
+            "note": "the level 4 quest's bats (the bat's body, smaller), at the enthralled goblins' spots in the far north-east chamber"
+          },
+          {
+            "name": "cave bat",
+            "body": "0x80F533D0",
+            "level": 3,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              19509.8,
+              84.84,
+              12059.5
+            ]
+          },
+          {
+            "name": "cave bat",
+            "body": "0x80F533D0",
+            "level": 4,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              19525.4,
+              84.84,
+              12072.3
+            ]
+          },
+          {
+            "name": "cave bat",
+            "body": "0x80F533D0",
+            "level": 3,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              19537.0,
+              84.84,
+              12071.7
+            ]
+          },
+          {
+            "name": "cave bat",
+            "body": "0x80F533D0",
+            "level": 4,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              19531.0,
+              84.84,
+              12047.0
+            ]
+          },
+          {
+            "name": "cave bat",
+            "body": "0x80F533D0",
+            "level": 4,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              19523.4,
+              84.84,
+              12066.1
+            ]
+          },
+          {
+            "name": "Mother Mossweb",
+            "body": "0x13ECB2D8",
+            "level": 5,
+            "role": "foe",
+            "size": 1.2,
+            "at": [
+              19407.1,
+              59.41,
+              12725.1
+            ],
+            "note": "the level 5 quest's foe (the black widow's body), alone in the old camp outside the cavern's mouth, far to the south, at a witch doctor's spot; hostile"
           }
         ],
         "peaceful": [
-          "tunnel rat"
+          "tunnel rat",
+          "cave bat"
         ],
         "lines": {
           "Gatekeeper Skabber": [
@@ -1394,8 +1572,15 @@
           "Elder Snikkit": [
             "Mind Mudgrub and mind Skabber, and you will do well, little one.",
             "A goblin who keeps his ears open lives long enough to grow wise. Look at me."
+          ],
+          "Pitmaster Grukk": [
+            "Keep your knife where you can reach it, %p.",
+            "Rats, bats, spiders. The dark is never empty. Remember that in Neriak."
           ]
-        }
+        },
+        "hostile": [
+          "Mother Mossweb"
+        ]
       }
     },
     {
@@ -1906,6 +2091,73 @@
             "note": "sends a lizardman who has done the starter quests to Freeport (The Road to Freeport); on the east island, over the long bridge"
           },
           {
+            "name": "Huntmaster Kessrak",
+            "like": 112629,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              14950.0,
+              56.21,
+              30926.0
+            ],
+            "toward": [
+              14965.2,
+              30941.4
+            ],
+            "note": "gives the three hunts (levels 3-5), a few steps from the elder: a Tae Ew devastator's look"
+          },
+          {
+            "name": "Hidebinder Ssilith",
+            "like": 108992,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              15000.0,
+              54.12,
+              30930.0
+            ],
+            "toward": [
+              14965.2,
+              30941.4
+            ],
+            "stock": "Tailor Bariston",
+            "note": "the Mirewatch's outfitter, just east of the elder: hands over the level 1 fang cord and the level 4 materials; a Freeport tailor's cloth (Tailor Bariston); a lizardman caitiff's look"
+          },
+          {
+            "name": "Coachman Rassk",
+            "like": 112635,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              15045.0,
+              54.12,
+              30985.0
+            ],
+            "toward": [
+              14965.2,
+              30941.4
+            ],
+            "note": "the Mirewatch's stable, south-east of the elder and short of the east bridge: the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot (open ground, nothing that attacks near)"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 112637,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              14985.0,
+              54.12,
+              30960.0
+            ],
+            "toward": [
+              14965.2,
+              30941.4
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), in a hierophant's look; left out where the database has none to take wares from"
+          },
+          {
             "name": "Mirewatch sentinel",
             "like": 112623,
             "level": 25,
@@ -1956,7 +2208,7 @@
           {
             "name": "bog beetle",
             "body": "0x4140233B",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.7,
             "at": [
@@ -1964,12 +2216,12 @@
               54.12,
               31188.5
             ],
-            "note": "the starter quest's beetles, at the Tae Ew's spots on the southern banks"
+            "note": "the level 3 quest's beetles (the huge beetle's body, smaller), on the south shore of the temple island"
           },
           {
             "name": "bog beetle",
             "body": "0x4140233B",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.7,
             "at": [
@@ -1981,7 +2233,7 @@
           {
             "name": "bog beetle",
             "body": "0x4140233B",
-            "level": 2,
+            "level": 3,
             "role": "foe",
             "size": 0.7,
             "at": [
@@ -1993,13 +2245,25 @@
           {
             "name": "bog beetle",
             "body": "0x4140233B",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "size": 0.7,
             "at": [
-              15191.6,
+              14830.0,
               54.12,
-              31186.9
+              31200.0
+            ]
+          },
+          {
+            "name": "bog beetle",
+            "body": "0x4140233B",
+            "level": 3,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              14900.0,
+              54.12,
+              31180.0
             ]
           },
           {
@@ -2009,26 +2273,113 @@
             "role": "foe",
             "size": 0.7,
             "at": [
+              14825.0,
+              54.12,
+              31208.0
+            ]
+          },
+          {
+            "name": "bog beetle",
+            "body": "0x4140233B",
+            "level": 3,
+            "role": "foe",
+            "size": 0.7,
+            "at": [
+              14845.0,
+              54.12,
+              31190.0
+            ]
+          },
+          {
+            "name": "marsh serpent",
+            "body": "0x8751FF83",
+            "level": 3,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              15191.6,
+              54.12,
+              31186.9
+            ],
+            "note": "the level 4 quest's serpents (the anaconda's body, small), at the south end of the east island"
+          },
+          {
+            "name": "marsh serpent",
+            "body": "0x8751FF83",
+            "level": 3,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
               15202.9,
               54.12,
               31192.9
             ]
           },
           {
-            "name": "bog beetle",
-            "body": "0x4140233B",
-            "level": 1,
+            "name": "marsh serpent",
+            "body": "0x8751FF83",
+            "level": 4,
             "role": "foe",
-            "size": 0.7,
+            "size": 0.6,
             "at": [
-              15201.6,
+              15240.0,
               54.12,
-              31193.8
+              31200.0
             ]
+          },
+          {
+            "name": "marsh serpent",
+            "body": "0x8751FF83",
+            "level": 3,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              15170.0,
+              54.12,
+              31150.0
+            ]
+          },
+          {
+            "name": "marsh serpent",
+            "body": "0x8751FF83",
+            "level": 4,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              15320.0,
+              62.97,
+              31170.0
+            ]
+          },
+          {
+            "name": "marsh serpent",
+            "body": "0x8751FF83",
+            "level": 4,
+            "role": "foe",
+            "size": 0.6,
+            "at": [
+              15280.0,
+              56.46,
+              31195.0
+            ]
+          },
+          {
+            "name": "Old Snapjaw",
+            "body": "0x3E0EBFE1",
+            "level": 5,
+            "role": "foe",
+            "size": 1.0,
+            "at": [
+              14825.0,
+              54.12,
+              30642.0
+            ],
+            "note": "the level 5 quest's foe (the alligator's body), alone on the north shore, just west of the north bridge's far end; hostile"
           }
         ],
         "peaceful": [
-          "bog beetle"
+          "bog beetle",
+          "marsh serpent"
         ],
         "lines": {
           "Gatekeeper Vosskar": [
@@ -2043,8 +2394,15 @@
           "Elder Hsslarn": [
             "Patience, hatchling. The swamp rewards those who wait.",
             "Keep your scales dry and your blade sharp, and the mainland will treat you well."
+          ],
+          "Huntmaster Kessrak": [
+            "Still water, still mind, %p. Then strike.",
+            "A hunter who hurries feeds the swamp. Remember it in Freeport."
           ]
-        }
+        },
+        "hostile": [
+          "Old Snapjaw"
+        ]
       }
     },
     {
@@ -2533,6 +2891,74 @@
             "note": "sends a brownie who has done the starter quests to Rivervale (The Road to Rivervale); at the stockade's gate"
           },
           {
+            "name": "Hedgewarden Tansy",
+            "like": 112746,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              11126.0,
+              75.25,
+              18686.0
+            ],
+            "toward": [
+              11129.1,
+              18702.0
+            ],
+            "note": "gives the three hunts (levels 3-5), a few steps north of the elder inside the stockade: a brownie guard's look"
+          },
+          {
+            "name": "Weaver Mossbutton",
+            "like": 112836,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              11112.0,
+              75.25,
+              18664.0
+            ],
+            "toward": [
+              11129.1,
+              18702.0
+            ],
+            "stock": "Tailor Celly",
+            "note": "the glade's outfitter, at the north side of the stockade: hands over the level 1 sash and the level 4 materials; a Rivervale tailor's cloth (Tailor Celly)"
+          },
+          {
+            "name": "Coachman Twigg",
+            "like": 112748,
+            "body": "0x49468331",
+            "level": 25,
+            "role": "talker",
+            "at": [
+              11180.0,
+              77.12,
+              18680.0
+            ],
+            "toward": [
+              11150.5,
+              18691.8
+            ],
+            "note": "the glade's stable, on the grass outside the east gate: the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot (open grass, nothing that attacks near); the red-capped little fellow's body (the brownie elder's of the disc)"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 112787,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              11140.0,
+              75.25,
+              18674.0
+            ],
+            "toward": [
+              11129.1,
+              18702.0
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), a brownie elder's look; left out where the database has none to take wares from"
+          },
+          {
             "name": "Glade watcher",
             "like": 112746,
             "level": 25,
@@ -2584,24 +3010,35 @@
           {
             "name": "mayfly swarm",
             "body": "0x2917BF34",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "at": [
-              10573.2,
-              51.93,
-              18860.3
+              11070.0,
+              54.12,
+              18930.0
             ],
-            "note": "the starter quest's mayflies, at the sacred monarchs' spots in the open glade west of the stockade"
+            "note": "the level 3 quest's mayflies (the dragonflies' body), in the hollow among the trees south of the stockade"
           },
           {
             "name": "mayfly swarm",
             "body": "0x2917BF34",
-            "level": 1,
+            "level": 2,
             "role": "foe",
             "at": [
-              10586.8,
-              52.53,
-              18829.4
+              11110.0,
+              52.38,
+              18950.0
+            ]
+          },
+          {
+            "name": "mayfly swarm",
+            "body": "0x2917BF34",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              11152.0,
+              49.08,
+              18939.0
             ]
           },
           {
@@ -2610,47 +3047,145 @@
             "level": 2,
             "role": "foe",
             "at": [
-              10596.6,
+              11190.0,
+              47.73,
+              18960.0
+            ]
+          },
+          {
+            "name": "mayfly swarm",
+            "body": "0x2917BF34",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              11130.0,
+              49.82,
+              18990.0
+            ]
+          },
+          {
+            "name": "mayfly swarm",
+            "body": "0x2917BF34",
+            "level": 2,
+            "role": "foe",
+            "at": [
+              11090.0,
+              52.38,
+              18985.0
+            ]
+          },
+          {
+            "name": "mayfly swarm",
+            "body": "0x2917BF34",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              11170.0,
+              47.21,
+              19000.0
+            ]
+          },
+          {
+            "name": "mayfly swarm",
+            "body": "0x2917BF34",
+            "level": 2,
+            "role": "foe",
+            "at": [
+              11050.0,
+              52.38,
+              18965.0
+            ]
+          },
+          {
+            "name": "glade snake",
+            "body": "0x5276C760",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              10896.0,
               53.7,
-              18803.8
-            ]
+              18650.0
+            ],
+            "size": 0.8,
+            "note": "the level 4 quest's snakes (the grass viper's body), in the woods west of the stockade"
           },
           {
-            "name": "mayfly swarm",
-            "body": "0x2917BF34",
-            "level": 1,
+            "name": "glade snake",
+            "body": "0x5276C760",
+            "level": 3,
             "role": "foe",
             "at": [
-              10572.3,
+              10858.0,
+              60.55,
+              18698.0
+            ],
+            "size": 0.8
+          },
+          {
+            "name": "glade snake",
+            "body": "0x5276C760",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              10830.0,
+              62.74,
+              18720.0
+            ],
+            "size": 0.8
+          },
+          {
+            "name": "glade snake",
+            "body": "0x5276C760",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              10880.0,
               54.12,
-              18815.1
-            ]
+              18740.0
+            ],
+            "size": 0.8
           },
           {
-            "name": "mayfly swarm",
-            "body": "0x2917BF34",
-            "level": 2,
+            "name": "glade snake",
+            "body": "0x5276C760",
+            "level": 4,
             "role": "foe",
             "at": [
-              10547.7,
+              10850.0,
               54.12,
-              18796.1
-            ]
+              18770.0
+            ],
+            "size": 0.8
           },
           {
-            "name": "mayfly swarm",
-            "body": "0x2917BF34",
-            "level": 1,
+            "name": "glade snake",
+            "body": "0x5276C760",
+            "level": 4,
             "role": "foe",
             "at": [
-              10540.5,
-              54.13,
-              18816.1
-            ]
+              10900.0,
+              53.25,
+              18700.0
+            ],
+            "size": 0.8
+          },
+          {
+            "name": "Old Greyback",
+            "body": "0x8C4F05A3",
+            "level": 5,
+            "role": "foe",
+            "size": 1.2,
+            "at": [
+              10900.0,
+              54.12,
+              18420.0
+            ],
+            "note": "the level 5 quest's foe (the badger's body, large), alone in the woods far north-west of the stockade; hostile"
           }
         ],
         "peaceful": [
-          "mayfly swarm"
+          "mayfly swarm",
+          "glade snake"
         ],
         "lines": {
           "Gatekeeper Burrowby": [
@@ -2665,8 +3200,15 @@
           "Elder Thimbleroot": [
             "A brownie with a full belly is a brownie ready for anything.",
             "Rivervale is a fine place. The halflings bake almost as well as we do."
+          ],
+          "Hedgewarden Tansy": [
+            "Mind the hedge, %p, and the hedge will mind you.",
+            "Quick feet, sharp eyes, full pockets. That is all a brownie needs."
           ]
-        }
+        },
+        "hostile": [
+          "Old Greyback"
+        ]
       }
     },
     {
@@ -2761,6 +3303,73 @@
             "note": "sends a pixie who has done the starter quests to the elves, Tethelin or Fayspire by class (The Elves' Wood)"
           },
           {
+            "name": "Huntress Thistledown",
+            "like": 819,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              17036.0,
+              68.54,
+              10418.0
+            ],
+            "toward": [
+              17046.9,
+              10438.6
+            ],
+            "note": "gives the three hunts (levels 3-5), a few steps north of the elder under the pines"
+          },
+          {
+            "name": "Spinner Gossamer",
+            "like": 818,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              17076.0,
+              73.56,
+              10462.0
+            ],
+            "toward": [
+              17046.9,
+              10438.6
+            ],
+            "stock": "Tailor Everleaf",
+            "note": "the thicket's outfitter, a few steps south-east of the elder: hands over the level 1 ring and the level 4 materials; a Fayspire tailor's cloth (Tailor Everleaf)"
+          },
+          {
+            "name": "Coachman Fernwick",
+            "like": 821,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              17100.0,
+              77.12,
+              10502.0
+            ],
+            "toward": [
+              17046.9,
+              10438.6
+            ],
+            "note": "the thicket's stable, on open ground south-east of the elder: the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot (nothing that attacks near)"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 820,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              17020.0,
+              72.27,
+              10466.0
+            ],
+            "toward": [
+              17046.9,
+              10438.6
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name); left out where the database has none to take wares from"
+          },
+          {
             "name": "Thicket warden",
             "like": 819,
             "level": 25,
@@ -2811,79 +3420,190 @@
           {
             "name": "bramble rat",
             "body": "0x12098DE0",
-            "level": 1,
+            "level": 2,
             "role": "foe",
-            "size": 0.6,
             "at": [
-              16830.3,
-              61.45,
-              10540.3
+              16830.0,
+              61.42,
+              10540.0
             ],
-            "note": "the starter quest's rats, at the wolf spiders' and their neighbours' spots in the brambles to the south-west"
-          },
-          {
-            "name": "bramble rat",
-            "body": "0x12098DE0",
-            "level": 1,
-            "role": "foe",
             "size": 0.6,
-            "at": [
-              16779.6,
-              54.12,
-              10620.2
-            ]
+            "note": "the level 3 quest's rats (the rat's body, small), in the brambles south-west of the pines, well clear of the elder"
           },
           {
             "name": "bramble rat",
             "body": "0x12098DE0",
             "level": 2,
             "role": "foe",
-            "size": 0.6,
             "at": [
-              16725.7,
+              16780.0,
               54.12,
-              10550.7
-            ]
+              10620.0
+            ],
+            "size": 0.6
           },
           {
             "name": "bramble rat",
             "body": "0x12098DE0",
-            "level": 1,
+            "level": 3,
             "role": "foe",
-            "size": 0.6,
             "at": [
-              16895.9,
-              58.96,
-              10523.4
-            ]
+              16726.0,
+              54.13,
+              10550.0
+            ],
+            "size": 0.6
           },
           {
             "name": "bramble rat",
             "body": "0x12098DE0",
             "level": 2,
             "role": "foe",
-            "size": 0.6,
             "at": [
-              16915.5,
-              55.84,
-              10570.9
-            ]
+              16896.0,
+              58.95,
+              10523.0
+            ],
+            "size": 0.6
           },
           {
             "name": "bramble rat",
             "body": "0x12098DE0",
-            "level": 1,
+            "level": 3,
             "role": "foe",
-            "size": 0.6,
             "at": [
-              16955.0,
-              57.77,
-              10541.8
-            ]
+              16758.0,
+              57.82,
+              10583.0
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "bramble rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "at": [
+              16805.0,
+              59.38,
+              10600.0
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "bramble rat",
+            "body": "0x12098DE0",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              16850.0,
+              61.25,
+              10590.0
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "bramble rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
+            "at": [
+              16704.0,
+              54.12,
+              10606.0
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "thicket beetle",
+            "body": "0x4140233B",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              17300.0,
+              58.5,
+              10520.0
+            ],
+            "size": 0.6,
+            "note": "the level 4 quest's beetles (the huge beetle's body, small), on the low ground east of the pines"
+          },
+          {
+            "name": "thicket beetle",
+            "body": "0x4140233B",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              17340.0,
+              54.12,
+              10545.0
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "thicket beetle",
+            "body": "0x4140233B",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              17378.0,
+              54.13,
+              10530.0
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "thicket beetle",
+            "body": "0x4140233B",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              17322.0,
+              54.12,
+              10587.0
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "thicket beetle",
+            "body": "0x4140233B",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              17365.0,
+              54.12,
+              10600.0
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "thicket beetle",
+            "body": "0x4140233B",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              17400.0,
+              54.12,
+              10570.0
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "Redsting",
+            "body": "0x859D0C8A",
+            "level": 5,
+            "role": "foe",
+            "size": 1.0,
+            "at": [
+              17050.0,
+              54.12,
+              10840.0
+            ],
+            "note": "the level 5 quest's foe (the flame hornet's body), alone in the woods far south of the pines; hostile"
           }
         ],
         "peaceful": [
-          "bramble rat"
+          "bramble rat",
+          "thicket beetle"
         ],
         "lines": {
           "Gatekeeper Thistlewhirl": [
@@ -2898,8 +3618,15 @@
           "Elder Brightwing": [
             "The thicket remembers every pixie it has raised. It will remember you.",
             "Be quick, be kind, and never let a goblin near your purse."
+          ],
+          "Huntress Thistledown": [
+            "Wings tucked, eyes open, %p. That is the whole of hunting.",
+            "The thicket hides us because we let it. Never trample what hides you."
           ]
-        }
+        },
+        "hostile": [
+          "Redsting"
+        ]
       }
     },
     {
@@ -2994,6 +3721,73 @@
             "note": "sends a fairy who has done the starter quests to Qeynos, its rangers and druids to Surefall Glade (The Road to Qeynos); toward the pass"
           },
           {
+            "name": "Warden Larkspur",
+            "like": 115272,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              7054.0,
+              113.03,
+              11622.0
+            ],
+            "toward": [
+              7041.2,
+              11613.8
+            ],
+            "note": "gives the three hunts (levels 3-5), a few steps east of the elder: a faerie guard's look"
+          },
+          {
+            "name": "Petalweaver Lissa",
+            "like": 115265,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              7018.0,
+              114.14,
+              11629.0
+            ],
+            "toward": [
+              7041.2,
+              11613.8
+            ],
+            "stock": "Tailor Dibbs",
+            "note": "the valley's outfitter, just west of the elder: hands over the level 1 bracelet and the level 4 materials; a Qeynos tailor's cloth (Tailor Dibbs)"
+          },
+          {
+            "name": "Coachman Tumbleseed",
+            "like": 115263,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              6994.0,
+              109.76,
+              11560.0
+            ],
+            "toward": [
+              7041.2,
+              11613.8
+            ],
+            "note": "the valley's stable, on the open grass north-west of the elder: the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot (nothing that attacks near)"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 115250,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              7004.0,
+              114.94,
+              11645.0
+            ],
+            "toward": [
+              7041.2,
+              11613.8
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name); left out where the database has none to take wares from"
+          },
+          {
             "name": "Tower watcher",
             "like": 115273,
             "level": 25,
@@ -3044,79 +3838,172 @@
           {
             "name": "dusk beetle",
             "body": "0x1806DCEA",
-            "level": 1,
+            "level": 2,
             "role": "foe",
-            "size": 0.8,
             "at": [
-              6810.9,
-              110.73,
-              11613.1
+              6812.0,
+              110.55,
+              11615.0
             ],
-            "note": "the starter quest's beetles, at the faeries' spots in the gardens at either end of the valley"
+            "size": 0.8,
+            "note": "the level 3 quest's beetles (the fire beetle's body, smaller), at the west end of the valley"
           },
           {
             "name": "dusk beetle",
             "body": "0x1806DCEA",
-            "level": 1,
+            "level": 2,
             "role": "foe",
-            "size": 0.8,
             "at": [
               6815.0,
-              110.06,
-              11623.8
-            ]
+              110.05,
+              11624.0
+            ],
+            "size": 0.8
+          },
+          {
+            "name": "dusk beetle",
+            "body": "0x1806DCEA",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              6848.0,
+              111.52,
+              11602.0
+            ],
+            "size": 0.8
           },
           {
             "name": "dusk beetle",
             "body": "0x1806DCEA",
             "level": 2,
             "role": "foe",
-            "size": 0.8,
             "at": [
-              6904.4,
-              110.79,
-              11610.2
-            ]
+              6870.0,
+              110.52,
+              11630.0
+            ],
+            "size": 0.8
           },
           {
             "name": "dusk beetle",
             "body": "0x1806DCEA",
-            "level": 1,
+            "level": 3,
             "role": "foe",
-            "size": 0.8,
             "at": [
-              7297.3,
-              110.0,
-              11540.3
-            ]
+              6830.0,
+              112.06,
+              11590.0
+            ],
+            "size": 0.8
           },
           {
             "name": "dusk beetle",
             "body": "0x1806DCEA",
             "level": 2,
             "role": "foe",
-            "size": 0.8,
             "at": [
-              7301.6,
-              109.9,
-              11540.4
-            ]
+              6890.0,
+              110.56,
+              11585.0
+            ],
+            "size": 0.8
           },
           {
             "name": "dusk beetle",
             "body": "0x1806DCEA",
-            "level": 1,
+            "level": 3,
             "role": "foe",
-            "size": 0.8,
             "at": [
-              7333.5,
-              109.93,
-              11546.4
+              6790.0,
+              109.52,
+              11630.0
+            ],
+            "size": 0.8
+          },
+          {
+            "name": "valley raven",
+            "body": "0xA91A77D6",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              7299.0,
+              109.96,
+              11542.0
+            ],
+            "note": "the level 4 quest's ravens (the raven's body), among the trees east of the elder, half way to the valley's east end"
+          },
+          {
+            "name": "valley raven",
+            "body": "0xA91A77D6",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              7302.0,
+              109.47,
+              11565.0
             ]
+          },
+          {
+            "name": "valley raven",
+            "body": "0xA91A77D6",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              7332.0,
+              109.94,
+              11546.0
+            ]
+          },
+          {
+            "name": "valley raven",
+            "body": "0xA91A77D6",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              7250.0,
+              109.51,
+              11570.0
+            ]
+          },
+          {
+            "name": "valley raven",
+            "body": "0xA91A77D6",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              7280.0,
+              109.38,
+              11600.0
+            ]
+          },
+          {
+            "name": "valley raven",
+            "body": "0xA91A77D6",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              7330.0,
+              108.51,
+              11590.0
+            ]
+          },
+          {
+            "name": "Cindersnap",
+            "body": "0xFB2E2618",
+            "level": 5,
+            "role": "foe",
+            "size": 0.5,
+            "at": [
+              7520.0,
+              113.18,
+              11616.0
+            ],
+            "note": "the level 5 quest's foe (the fire drake's body, half its size: a young drake), alone at the far east end of the valley; hostile"
           }
         ],
         "peaceful": [
-          "dusk beetle"
+          "dusk beetle",
+          "valley raven"
         ],
         "lines": {
           "Gatekeeper Starling": [
@@ -3131,8 +4018,15 @@
           "Elder Moonpetal": [
             "Laugh often, little friend. It is the oldest magic there is.",
             "The valley will always remember you, wherever the winds take you."
+          ],
+          "Warden Larkspur": [
+            "Light feet and a light heart, %p. The rest is practice.",
+            "The cliffs keep the world out. We keep the valley. Remember us in Qeynos."
           ]
-        }
+        },
+        "hostile": [
+          "Cindersnap"
+        ]
       }
     },
     {
@@ -3144,12 +4038,12 @@
       "home": {
         "flavor": "Gnolls are hyena-faced hunters of Blackburrow in the Homelands, cunning in a pack and fierce alone, who serve the dark elves of Neriak.",
         "start": {
-          "x": 12564.9,
+          "x": 12596.0,
           "y": 54.16,
-          "z": 12961.9,
+          "z": 12972.0,
           "toward": [
-            12558.3,
-            12959.5
+            12588.0,
+            12972.0
           ]
         },
         "mainland": {
@@ -3161,55 +4055,6 @@
           "facing": 0.04
         },
         "npcs": [
-          {
-            "name": "Elder Grawl",
-            "like": 103575,
-            "level": 30,
-            "role": "talker",
-            "at": [
-              12558.3,
-              54.16,
-              12959.5
-            ],
-            "toward": [
-              12564.9,
-              12961.9
-            ],
-            "note": "the starter quests' giver, a spiritist's look, by the fire pit of the gnolls' stockade south of the burrow"
-          },
-          {
-            "name": "Grocer Snaggle",
-            "like": 103668,
-            "level": 25,
-            "role": "talker",
-            "at": [
-              12574.7,
-              54.16,
-              12986.7
-            ],
-            "toward": [
-              12558.3,
-              12959.5
-            ],
-            "stock": "Grocer Droel",
-            "note": "a forager's look, by the cook pots; a Neriak grocer's food"
-          },
-          {
-            "name": "Spiritmaster Rakk",
-            "like": 103577,
-            "level": 30,
-            "role": "talker",
-            "at": [
-              12624.0,
-              54.16,
-              12960.2
-            ],
-            "toward": [
-              12558.3,
-              12959.5
-            ],
-            "note": "binds, as every spiritmaster; a shaman's look"
-          },
           {
             "name": "Gatekeeper Brindle",
             "like": 103565,
@@ -3225,6 +4070,122 @@
               12959.5
             ],
             "note": "sends a gnoll who has done the starter quests to Neriak (The Road to Neriak); at the stockade's south-east gate"
+          },
+          {
+            "name": "Elder Grawl",
+            "like": 103575,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              12588.0,
+              54.16,
+              12972.0
+            ],
+            "toward": [
+              12596.0,
+              12972.0
+            ],
+            "note": "the starter quests' giver, a gnoll spiritist's look, on the yard's open floor just east of the fire pit (the pit behind him)"
+          },
+          {
+            "name": "Grocer Snaggle",
+            "like": 103668,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12570.0,
+              54.16,
+              12998.0
+            ],
+            "toward": [
+              12596.0,
+              12972.0
+            ],
+            "stock": "Grocer Droel",
+            "note": "the burrow's grocer, south of the fire pit; a Neriak grocer's food (Grocer Droel)"
+          },
+          {
+            "name": "Spiritmaster Rakk",
+            "like": 103577,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              12614.0,
+              54.16,
+              12966.0
+            ],
+            "toward": [
+              12596.0,
+              12972.0
+            ],
+            "note": "binds, as every spiritmaster; a gnoll shaman's look; on open floor between the tents, a few steps east of the elder"
+          },
+          {
+            "name": "Packleader Varg",
+            "like": 103565,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              12592.0,
+              54.16,
+              12984.0
+            ],
+            "toward": [
+              12596.0,
+              12972.0
+            ],
+            "note": "gives the three hunts (levels 3-5), beside the elder: a gnoll soldier's look"
+          },
+          {
+            "name": "Hidescraper Yipp",
+            "like": 103668,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12598.0,
+              54.16,
+              12992.0
+            ],
+            "toward": [
+              12596.0,
+              12972.0
+            ],
+            "stock": "Tailor Eroz",
+            "note": "the burrow's outfitter, a few steps south of the elder, by the tents: hands over the level 1 collar and the level 4 materials; a Neriak tailor's cloth (Tailor Eroz); a gnoll forager's look"
+          },
+          {
+            "name": "Coachman Skulk",
+            "like": 103588,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              12722.0,
+              54.16,
+              13062.0
+            ],
+            "toward": [
+              12694.7,
+              13031.8
+            ],
+            "note": "the burrow's stable, on the road outside the south-east gate: the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot (open road, nothing that attacks near)"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 103577,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              12622.0,
+              54.16,
+              12940.0
+            ],
+            "toward": [
+              12596.0,
+              12972.0
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), a gnoll shaman's look; left out where the database has none to take wares from"
           },
           {
             "name": "Burrow guard",
@@ -3277,79 +4238,178 @@
           {
             "name": "hill badger",
             "body": "0x8C4F05A3",
-            "level": 1,
+            "level": 2,
             "role": "foe",
-            "size": 0.7,
             "at": [
               12304.1,
               82.32,
               12784.4
             ],
-            "note": "the starter quest's badgers, at a creature camp's spots on the hill north-west of the stockade"
+            "size": 0.7,
+            "note": "the level 3 quest's badgers (the badger's body, smaller), on the hill north-west of the stockade"
           },
           {
             "name": "hill badger",
             "body": "0x8C4F05A3",
-            "level": 1,
+            "level": 2,
             "role": "foe",
-            "size": 0.7,
             "at": [
               12306.9,
               85.61,
               12793.6
-            ]
+            ],
+            "size": 0.7
           },
           {
             "name": "hill badger",
             "body": "0x8C4F05A3",
-            "level": 2,
+            "level": 3,
             "role": "foe",
-            "size": 0.7,
             "at": [
               12316.6,
               79.81,
               12789.7
-            ]
-          },
-          {
-            "name": "hill badger",
-            "body": "0x8C4F05A3",
-            "level": 1,
-            "role": "foe",
-            "size": 0.7,
-            "at": [
-              12306.2,
-              81.19,
-              12762.2
-            ]
+            ],
+            "size": 0.7
           },
           {
             "name": "hill badger",
             "body": "0x8C4F05A3",
             "level": 2,
             "role": "foe",
-            "size": 0.7,
             "at": [
-              12308.9,
-              80.11,
-              12774.9
-            ]
+              12306.2,
+              81.19,
+              12762.2
+            ],
+            "size": 0.7
           },
           {
             "name": "hill badger",
             "body": "0x8C4F05A3",
-            "level": 1,
+            "level": 3,
             "role": "foe",
-            "size": 0.7,
+            "at": [
+              12308.9,
+              80.11,
+              12774.9
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "hill badger",
+            "body": "0x8C4F05A3",
+            "level": 2,
+            "role": "foe",
             "at": [
               12312.9,
               78.24,
               12767.2
-            ]
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "hill badger",
+            "body": "0x8C4F05A3",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              12336.0,
+              67.66,
+              12756.0
+            ],
+            "size": 0.7
+          },
+          {
+            "name": "ridge viper",
+            "body": "0xD914A1AB",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              12500.0,
+              54.16,
+              13190.0
+            ],
+            "size": 0.8,
+            "note": "the level 4 quest's vipers (the copperhead's body), in the scrub south of the stockade"
+          },
+          {
+            "name": "ridge viper",
+            "body": "0xD914A1AB",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              12538.0,
+              54.16,
+              13220.0
+            ],
+            "size": 0.8
+          },
+          {
+            "name": "ridge viper",
+            "body": "0xD914A1AB",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              12580.0,
+              60.62,
+              13198.0
+            ],
+            "size": 0.8
+          },
+          {
+            "name": "ridge viper",
+            "body": "0xD914A1AB",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              12616.0,
+              73.76,
+              13244.0
+            ],
+            "size": 0.8
+          },
+          {
+            "name": "ridge viper",
+            "body": "0xD914A1AB",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              12480.0,
+              54.16,
+              13240.0
+            ],
+            "size": 0.8
+          },
+          {
+            "name": "ridge viper",
+            "body": "0xD914A1AB",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              12600.0,
+              56.44,
+              13176.0
+            ],
+            "size": 0.8
+          },
+          {
+            "name": "Greymuzzle",
+            "body": "0x30F8E15A",
+            "level": 5,
+            "role": "foe",
+            "size": 1.1,
+            "at": [
+              12922.0,
+              79.86,
+              12782.0
+            ],
+            "note": "the level 5 quest's foe (the wolf's body), alone on the rise far north-east of the stockade; hostile"
           }
         ],
         "peaceful": [
-          "hill badger"
+          "hill badger",
+          "ridge viper"
         ],
         "lines": {
           "Gatekeeper Brindle": [
@@ -3364,8 +4424,15 @@
           "Elder Grawl": [
             "The pack is strong because each gnoll is strong. Remember that.",
             "Wherever you go, pup, the pack goes with you."
+          ],
+          "Packleader Varg": [
+            "Nose to the wind, %p. Always.",
+            "A gnoll alone is a meal. A pack is a hunt. Find your pack in Neriak."
           ]
-        }
+        },
+        "hostile": [
+          "Greymuzzle"
+        ]
       }
     },
     {
@@ -3460,6 +4527,73 @@
             "note": "sends an orc who has done the starter quests to Halas (The Road to Halas); a scout's look"
           },
           {
+            "name": "Warleader Krugg",
+            "like": 100916,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              19855.0,
+              54.12,
+              8771.0
+            ],
+            "toward": [
+              19832.3,
+              8761.0
+            ],
+            "note": "gives the three hunts (levels 3-5), a few steps east of the elder, clear of the round huts: an orc brute's look"
+          },
+          {
+            "name": "Hidecutter Marga",
+            "like": 100884,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19802.0,
+              54.12,
+              8782.0
+            ],
+            "toward": [
+              19832.3,
+              8761.0
+            ],
+            "stock": "Tailor Freya",
+            "note": "the camp's outfitter, south-west of the elder: hands over the level 1 war band and the level 4 materials; a Halas tailor's cloth (Tailor Freya)"
+          },
+          {
+            "name": "Coachman Dursh",
+            "like": 100886,
+            "level": 25,
+            "role": "talker",
+            "at": [
+              19804.0,
+              58.02,
+              8850.0
+            ],
+            "toward": [
+              19832.3,
+              8761.0
+            ],
+            "note": "the camp's stable, on open ground south of the elder: the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot (nothing that attacks near)"
+          },
+          {
+            "name": "Spell Archivist",
+            "like": 100877,
+            "level": 30,
+            "role": "talker",
+            "at": [
+              19868.0,
+              54.13,
+              8792.0
+            ],
+            "toward": [
+              19832.3,
+              8761.0
+            ],
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), an orc mystic's look; left out where the database has none to take wares from"
+          },
+          {
             "name": "Thedruk sentry",
             "like": 100916,
             "level": 25,
@@ -3510,79 +4644,178 @@
           {
             "name": "camp rat",
             "body": "0x12098DE0",
-            "level": 1,
+            "level": 2,
             "role": "foe",
-            "size": 0.8,
             "at": [
               19436.1,
               50.73,
               8691.8
             ],
-            "note": "the starter quest's rats, at the orc raiders' spots on the slope west of the camp"
+            "size": 0.8,
+            "note": "the level 3 quest's rats (the rat's body), in the grass west of the camp, beyond the bare hill"
           },
           {
             "name": "camp rat",
             "body": "0x12098DE0",
-            "level": 1,
+            "level": 2,
             "role": "foe",
-            "size": 0.8,
             "at": [
               19486.6,
               50.91,
               8703.6
-            ]
+            ],
+            "size": 0.8
           },
           {
             "name": "camp rat",
             "body": "0x12098DE0",
-            "level": 2,
+            "level": 3,
             "role": "foe",
-            "size": 0.8,
             "at": [
               19443.1,
               43.5,
               8736.7
-            ]
-          },
-          {
-            "name": "camp rat",
-            "body": "0x12098DE0",
-            "level": 1,
-            "role": "foe",
-            "size": 0.8,
-            "at": [
-              19511.4,
-              51.04,
-              8754.0
-            ]
+            ],
+            "size": 0.8
           },
           {
             "name": "camp rat",
             "body": "0x12098DE0",
             "level": 2,
             "role": "foe",
-            "size": 0.8,
             "at": [
-              19449.1,
-              43.5,
-              8789.0
-            ]
+              19511.4,
+              51.04,
+              8754.0
+            ],
+            "size": 0.8
           },
           {
             "name": "camp rat",
             "body": "0x12098DE0",
-            "level": 1,
+            "level": 3,
             "role": "foe",
-            "size": 0.8,
+            "at": [
+              19449.1,
+              43.5,
+              8789.0
+            ],
+            "size": 0.8
+          },
+          {
+            "name": "camp rat",
+            "body": "0x12098DE0",
+            "level": 2,
+            "role": "foe",
             "at": [
               19516.0,
               52.38,
               8801.8
-            ]
+            ],
+            "size": 0.8
+          },
+          {
+            "name": "camp rat",
+            "body": "0x12098DE0",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              19470.0,
+              43.5,
+              8770.0
+            ],
+            "size": 0.8
+          },
+          {
+            "name": "scree spider",
+            "body": "0xCAB991F3",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              19698.0,
+              66.25,
+              8502.0
+            ],
+            "size": 0.5,
+            "note": "the level 4 quest's spiders (the stone spider's body, half its size), among the rocks north of the camp"
+          },
+          {
+            "name": "scree spider",
+            "body": "0xCAB991F3",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              19740.0,
+              66.04,
+              8524.0
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "scree spider",
+            "body": "0xCAB991F3",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              19780.0,
+              71.13,
+              8492.0
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "scree spider",
+            "body": "0xCAB991F3",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              19758.0,
+              55.9,
+              8552.0
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "scree spider",
+            "body": "0xCAB991F3",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              19720.0,
+              56.9,
+              8560.0
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "scree spider",
+            "body": "0xCAB991F3",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              19682.0,
+              56.48,
+              8540.0
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "Old Scarback",
+            "body": "0x1C9CE70A",
+            "level": 5,
+            "role": "foe",
+            "size": 1.0,
+            "at": [
+              19698.0,
+              70.02,
+              9078.0
+            ],
+            "note": "the level 5 quest's foe (the young black bear's body), alone on the slope far south of the camp; hostile"
           }
         ],
         "peaceful": [
-          "camp rat"
+          "camp rat",
+          "scree spider"
         ],
         "lines": {
           "Gatekeeper Thrakka": [
@@ -3597,8 +4830,15 @@
           "Elder Gorruk": [
             "An orc is measured by the fights he finishes, not the ones he starts.",
             "Make the camp proud, whelp."
+          ],
+          "Warleader Krugg": [
+            "Stand straight, %p. An orc who slouches is an orc who loses.",
+            "Hit first. Hit last. What comes between is noise."
           ]
-        }
+        },
+        "hostile": [
+          "Old Scarback"
+        ]
       }
     },
     {

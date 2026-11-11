@@ -58,8 +58,20 @@ import (
 // "/t merc ...") is its commands: its state, stance, follow, stay, attack,
 // group, revive and dismiss.
 
-// MercLiaisonName is the liaison's name: an NPC of it is one.
-const MercLiaisonName = "Mercenary Liaison"
+// MercLiaisonName is the liaison's name: an NPC of it is one. Since
+// 2026-11-11 it is a bulletin board (the owner: "change mercenary liason NPC
+// to a Bulletin Board Model (like in highpass) and it is named Mercenary
+// Recruitment"); mercLiaisonOldName, the name it stood under before, is one
+// too, so a row not yet renamed keeps hiring.
+const MercLiaisonName = "Mercenary Recruitment"
+
+const mercLiaisonOldName = "Mercenary Liaison"
+
+// isMercLiaison is whether an NPC's name makes it a liaison.
+func isMercLiaison(name string) bool {
+	n := strings.TrimSpace(name)
+	return strings.EqualFold(n, MercLiaisonName) || strings.EqualFold(n, mercLiaisonOldName)
+}
 
 // mercBoxMark marks a liaison's question's id.
 const mercBoxMark = 0x5F000000
@@ -78,13 +90,13 @@ func MercsOn() bool { return mercsOn.Load() }
 // The liaison's words and the merc's lines (ours). A question is 127
 // characters at most (questAskChars).
 const (
-	mercAskRole   = "Mercenary Liaison: 'Which calling do you need? A mercenary fights at your level for nothing, one at a time.'"
-	mercAskClass  = "Mercenary Liaison: 'Which kind of %s?'"
-	mercAskRace   = "Mercenary Liaison: 'Of which race?'"
-	mercAskSex    = "Mercenary Liaison: 'A man or a woman?'"
+	mercAskRole   = "Mercenary Recruitment: 'Which calling do you need? A mercenary fights at your level for nothing, one at a time.'"
+	mercAskClass  = "Mercenary Recruitment: 'Which kind of %s?'"
+	mercAskRace   = "Mercenary Recruitment: 'Of which race?'"
+	mercAskSex    = "Mercenary Recruitment: 'A man or a woman?'"
 	mercHiredLine = "%s the %s %s is yours. Type /merc to see what it heeds."
 	mercOffLine   = "Mercenaries are off on this server."
-	mercNoneLine  = "You have no mercenary. A Mercenary Liaison, beside each city's announcements board, hires one for nothing."
+	mercNoneLine  = "You have no mercenary. The Mercenary Recruitment board, beside each city's announcements board, hires one for nothing."
 	mercRestLine  = "Your mercenary %s rests for %d more seconds."
 	mercBackLine  = "Your mercenary %s is back at your side."
 	mercKitFailed = "The liaison's ledger is out of order. Try again."
@@ -214,7 +226,7 @@ func mercSay(sess *session.Session, line string) {
 // Talk is a talk to npc: the liaison's first question when npc is one and
 // mercenaries are on, else false (a liaison then says nothing: no dialog).
 func (m *Mercs) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) bool {
-	if m == nil || npc == nil || npc.Dead || !strings.EqualFold(strings.TrimSpace(npc.Name), MercLiaisonName) || !MercsOn() {
+	if m == nil || npc == nil || npc.Dead || !isMercLiaison(npc.Name) || !MercsOn() {
 		return false
 	}
 	answers := make([]string, len(mercRoles))
@@ -826,7 +838,7 @@ func (m *Mercs) dismiss(sess *session.Session, p *entity.Player) {
 			log.Printf("Merc: %s's dismissal of %q not kept: %v", p.Name, name, err)
 		}
 	}
-	SendClientMessage(sess, fmt.Sprintf("You dismiss %s. A Mercenary Liaison will hire you another.", name))
+	SendClientMessage(sess, fmt.Sprintf("You dismiss %s. The Mercenary Recruitment board will hire you another.", name))
 }
 
 // mercVerbs are /merc's words, which "/t merc <word>" takes as the command

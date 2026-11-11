@@ -1154,8 +1154,8 @@ func (w *World) sendDamageIndication(sess *session.Session, sourceObjectID uint3
 	writer.WriteUint32(sourceObjectID)
 	writer.Write7BitEncodedInt64(int64(amount))
 	writer.WriteUint32(targetObjectID)
-	if kind.tagged() && sess.NumberTags() {
-		writer.WriteByte(byte(kind))
+	if b, ok := kind.wireByte(sess.NumberTagsLayout()); ok {
+		writer.WriteByte(b)
 	}
 
 	msg.SetSize(writer.Position())

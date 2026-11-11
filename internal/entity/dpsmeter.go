@@ -233,7 +233,7 @@ func (w *World) dpsFigureLocked(sess *session.Session, n int, kind numberKind, t
 	if p == nil || n <= 0 || w.friendlyFigureLocked(sess, p, target) {
 		return
 	}
-	w.dpsCountLocked(p, n, kind&numberByPet != 0, dpsMeterNow())
+	w.dpsCountLocked(p, n, kind.byHelper(), dpsMeterNow())
 }
 
 // friendlyFigureLocked is whether a figure on target (the id sess's client knows

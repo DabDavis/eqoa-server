@@ -561,7 +561,7 @@ func (w *World) petAreaFoesLocked(pet, t *NPC, area SpellArea, now time.Time) []
 	var out []near
 	for _, id := range w.SpatialIndex.QueryRadius(cx, cz, queryRadius(cone, r)) {
 		o := w.NPCs[id]
-		if o == nil || o == t || !petMayFight(pet, o) || o.hiddenAt(now) {
+		if o == nil || o == t || !petMayFight(pet, o) || o.hiddenAt(now) || w.metalSparesLocked(o, pet.Owner) {
 			continue
 		}
 		if in, d := inArea(cone, cx, cy, cz, r, o.X, o.Y, o.Z, npcReachExtra(o)); in && w.reachesLocked(place, o.X, o.Y, o.Z) {

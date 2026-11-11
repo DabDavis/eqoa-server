@@ -809,7 +809,7 @@ func (w *World) mercLandLocked(c *mercCast, now time.Time) {
 // figures. Must be called with the lock held.
 func (w *World) mercHelpLocked(ms *mercState, s *CastSpell, id EntityID, now time.Time) {
 	cs := &castState{spell: *s, caster: ms.npc.ServerID, targets: []EntityID{id}}
-	cs.spell.figures = figuresPet // a pet's figures to a client that colours them (numbertags.go)
+	cs.spell.figures = figuresMerc // a merc's figures to a client that colours them (numbertags.go)
 	// its own pet (mercpetbuff.go)
 	if w.mercPetLandLocked(ms, cs, id, now) {
 		return

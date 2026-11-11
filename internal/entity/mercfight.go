@@ -29,7 +29,7 @@ import (
 // a player's roll on its heirloom weapon, STR and DEX (offence.go) through the
 // balance as a player's melee (meleeDealtLocked); a healer and a caster stand
 // off, in reach of their spells, and do not swing. A hit is told to its owner
-// as its pet's figure (numbertags.go), angers the creature at the merc
+// as its merc's figure (numbertags.go; its pet's to a layout 1 client), angers the creature at the merc
 // (updateAggro: it is the merc that a creature turns on), and a kill is its
 // owner's as a pet's (petLandHitLocked): its experience by killexp.go's split
 // of the players near (a merc takes no share and cuts none), its factions and
@@ -352,7 +352,8 @@ func (w *World) mercMeleeHitLocked(ms *mercState, t *NPC, now time.Time) bool {
 }
 
 // mercDamageLocked is n of the merc's damage on t, the balance's already: its
-// owner told the figure as its pet's (numbertags.go), t's hate for the merc,
+// owner told the figure as its merc's (numbertags.go: its pet's to a client of
+// layout 1), t's hate for the merc,
 // a root broken; on a kill, its owner's experience, factions and quests as a
 // pet's kill. A training dummy takes nothing, its hate the merc's (dummy.go).
 // It reports a kill. Must be called with the lock held.
@@ -364,7 +365,7 @@ func (w *World) mercDamageLocked(ms *mercState, t *NPC, n int, kind numberKind, 
 			return
 		}
 		if tid := w.objectIDForEntityLocked(sess, t.ServerID); tid != 0 {
-			w.sendDamageIndication(sess, sess.PlayerObjectID(), -n, tid, kind.byPet())
+			w.sendDamageIndication(sess, sess.PlayerObjectID(), -n, tid, kind.byMerc())
 		}
 	}
 	m.LastCombatTime = now

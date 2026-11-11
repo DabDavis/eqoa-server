@@ -140,6 +140,9 @@ func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c
 		case database.EventVampire:
 			q.vampireLocked(p, qu)
 		case database.EventTrigger:
+			if e.Hold {
+				continue // fired at the step's NPC, before the step is done (holdLocked)
+			}
 			if _, err := Triggers().FireNamed(e.Trigger, TriggerFirer{Name: p.Name, Sess: sess, Player: p, Quiet: true}); err != nil {
 				log.Printf("Quests: %q step %d fires %q: %v", qu.Name, step, e.Trigger, err)
 			}

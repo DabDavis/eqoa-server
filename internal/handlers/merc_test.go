@@ -151,7 +151,7 @@ func TestMercLiaisonHires(t *testing.T) {
 	if !ok || info.Class != 0 || info.Race != 0 || info.Level != 30 || info.Stance != entity.MercAssist {
 		t.Fatalf("hired: %+v %v (sent %q)", info, ok, got)
 	}
-	if !hasMsg(got, "box:Mercenary Liaison: "+info.Name+" the Human Warrior is yours.*") {
+	if !hasMsg(got, "box:Mercenary Recruitment: "+info.Name+" the Human Warrior is yours.*") {
 		t.Errorf("the hire's line: %q", got)
 	}
 	row, kept, err := db.Merc(r.pa.CharServerID)

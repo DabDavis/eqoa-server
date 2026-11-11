@@ -116,3 +116,91 @@ func TestMercSummonsItsPet(t *testing.T) {
 		t.Error("a warrior merc summoned a pet")
 	}
 }
+
+// mercWithPet is a magician merc of the stance hired for the rig's owner, its
+// Fire Elemental summoned (10 s in).
+func mercWithPet(t *testing.T, r *mercRig, stance MercStance) *mercState {
+	t.Helper()
+	r.w.mu.Lock()
+	r.w.putNPCLocked(&NPC{ServerID: 4900, Name: "Fire Elemental", Level: 39, HP: 2340, MaxHP: 2340, ModelID: 0x8A416241, Size: 1,
+		NPCType: 0x80, X: 20000, Z: 20000, World: 0})
+	r.w.mu.Unlock()
+	fire := bookSpell(717, "Fire Elemental", 0, 8*time.Second, 45*time.Second, 300, "Summons a Fire Elemental to aid you")
+	fire.Level = 28
+	ms := r.hire(r.kit(10, 0, 0, fire), stance)
+	r.run(0, 10*time.Second)
+	if ms.pet == nil {
+		t.Fatal("no pet after the summoning")
+	}
+	return ms
+}
+
+// The merc's pet joins its hirer's fight (the owner, 2026-11-11: "the
+// mercenary pets should attack when player or merc attacks"): the hirer's
+// auto-attack on a creature, the pet on it; the hirer switching to another,
+// the pet switches, though its merc was told to attack the first; a creature
+// the hirer hurt with a spell (on its hate list), the pet on it. The control:
+// a passive merc's pet stays out of the hirer's fight, and takes what its
+// merc is told to attack.
+func TestMercPetAssistsItsHirer(t *testing.T) {
+	r := newMercRig(t)
+	ms := mercWithPet(t, r, MercAssist)
+	ps := ms.pet
+	a := r.creature("crab", 28, 8)
+	b := r.creature("crab", 28, -8)
+	for _, c := range []*NPC{a, b} {
+		c.HP, c.MaxHP = 1_000_000, 1_000_000
+	}
+	r.w.mu.Lock()
+	r.p.AttackTarget, r.p.AutoAttack = a.ServerID, true
+	r.w.mu.Unlock()
+	r.run(10100*time.Millisecond, 11*time.Second)
+	if ps.target != a.ServerID {
+		t.Fatalf("the hirer attacks crab a: the pet's target %d, want %d", ps.target, a.ServerID)
+	}
+	// /merc attack on a, then the hirer switches to b: the pet goes with it
+	r.w.mu.Lock()
+	ms.ordered, ms.target = a.ServerID, a.ServerID
+	r.p.AttackTarget = b.ServerID
+	r.w.mu.Unlock()
+	r.run(11100*time.Millisecond, 12*time.Second)
+	if ps.target != b.ServerID {
+		t.Fatalf("the hirer switched to crab b: the pet's target %d, want %d", ps.target, b.ServerID)
+	}
+	// a creature its hirer hurt (a harmful spell), the hirer swinging at none
+	c := r.creature("crab", 28, 12)
+	c.HP, c.MaxHP = 1_000_000, 1_000_000
+	r.w.mu.Lock()
+	r.p.AttackTarget, r.p.AutoAttack = 0, false
+	ms.ordered, ms.target = 0, 0
+	for _, n := range []*NPC{a, b} {
+		n.Threats, n.CurrentEnemy = nil, 0
+	}
+	ps.target = 0
+	c.Threats = map[EntityID]int64{r.p.ServerID: 50}
+	r.w.mu.Unlock()
+	r.tick(12100 * time.Millisecond)
+	if ps.target != c.ServerID {
+		t.Errorf("a crab the hirer hurt: the pet's target %d, want %d", ps.target, c.ServerID)
+	}
+
+	// the control: a passive merc's pet
+	r2 := newMercRig(t)
+	ms2 := mercWithPet(t, r2, MercPassive)
+	d := r2.creature("crab", 28, 8)
+	d.HP, d.MaxHP = 1_000_000, 1_000_000
+	r2.w.mu.Lock()
+	r2.p.AttackTarget, r2.p.AutoAttack = d.ServerID, true
+	r2.w.mu.Unlock()
+	r2.run(10100*time.Millisecond, 12*time.Second)
+	if ms2.pet.target != 0 {
+		t.Errorf("a passive merc's pet took on the hirer's target %d", ms2.pet.target)
+	}
+	r2.w.mu.Lock()
+	ms2.ordered, ms2.target = d.ServerID, d.ServerID
+	r2.w.mu.Unlock()
+	r2.run(12100*time.Millisecond, 13*time.Second)
+	if ms2.pet.target != d.ServerID {
+		t.Errorf("a passive merc told to attack: its pet's target %d, want %d", ms2.pet.target, d.ServerID)
+	}
+}

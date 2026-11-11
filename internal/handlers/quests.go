@@ -915,7 +915,12 @@ func (q *QuestEngine) mayTakeAtLocked(look *factionLook, p *entity.Player, c *qu
 	case len(qu.Races) > 0 && !questRaceTakes(qu.Races, p.Race):
 		return "not for that race"
 	}
-	if g, unmet := database.UnmetRequire(qu.Required(), c.hasFinished); unmet {
+	// a homeland's quest stands finished when the city class quest it stands
+	// for is (standsFinishedLocked): for its own offer and for the next one's
+	finished := func(id int) bool {
+		return c.hasFinished(id) || q.standsFinishedLocked(p, c, q.cat.byID[id])
+	}
+	if g, unmet := database.UnmetRequire(qu.Required(), finished); unmet {
 		if len(g) == 1 {
 			return fmt.Sprintf("quest %d is to be finished first", g[0])
 		}
@@ -928,6 +933,9 @@ func (q *QuestEngine) mayTakeAtLocked(look *factionLook, p *entity.Player, c *qu
 		if cq.Done > 0 && !qu.Repeatable {
 			return "finished"
 		}
+	}
+	if !qu.Repeatable && q.standsFinishedLocked(p, c, qu) {
+		return "finished: the city class quest it stands for is"
 	}
 	// a hand-in done on the answer (a dostep on its first step) is offered only to
 	// one who holds it: else the answer would leave the player a quest it cannot do

@@ -488,6 +488,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	if charStore != nil {
 		chatHandler.SetCampStore(charStore.DB())
 		supportHandler.SetMarks(charStore.DB())
+		// /markportal and the portals it makes (gmportal.go)
+		portals := NewGMPortals(charStore.DB())
+		chatHandler.portals, interactHandler.portals = portals, portals
 	}
 	// a character transfer applied at the login is told once in the world
 	// (transfers.go)

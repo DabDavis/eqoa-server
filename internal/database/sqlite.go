@@ -789,6 +789,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureHeroes(); err != nil { // heroes.go: the Testing Heroes' stock, purchases and bonus training points
 		return err
 	}
+	if err := db.ensureGMPortals(); err != nil { // gmportals.go: a GM's portals, /markportal
+		return err
+	}
 
 	log.Printf("SQLite schema initialized")
 	return nil

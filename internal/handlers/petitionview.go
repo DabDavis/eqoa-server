@@ -38,6 +38,8 @@ type serverView struct {
 	// server's own record of the client stopping, when it kept one
 	Crash   string              `json:"crash,omitempty"`
 	Stopped *session.ClientStop `json:"stopped,omitempty"`
+	// a GM's portal (gmportal.go): the row, its entry and its landing
+	Portal *portalView `json:"portal,omitempty"`
 }
 
 // viewMark is one of the filer's marks (/mark), numbered as /marks numbers

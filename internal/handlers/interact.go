@@ -50,6 +50,8 @@ type InteractHandler struct {
 	buffer *Buffer
 	// mercs is the Mercenary Liaisons' (merc.go)
 	mercs *Mercs
+	// portals is the GMs' portals (gmportal.go); nil: none
+	portals *GMPortals
 
 	// dialogLines is npcdialog (database.NPCDialog): what a town's people and
 	// the guards say (entity/dialog.go). Nil: they say nothing.
@@ -398,6 +400,12 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 	}
 	// an Armor Dyer (dyer.go)
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.dyer.Talk(sess, player, npc) {
+		return nil
+	}
+
+	// A GM's portal switched on at this NPC (gmportal.go, /markportal): Yes
+	// or No to its place (a waysender's own trips listed with it).
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.portalTalk(sess, player, npc) {
 		return nil
 	}
 

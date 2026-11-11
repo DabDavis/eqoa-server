@@ -82,6 +82,14 @@ import (
 // lines that share a stat but neither holds the other (+STR +DEX against +STR
 // +AGI) are one line, as before; so are the same stats (a line's ranks).
 
+// Two procs (petition 1359, 2026-11-11): nested lines that both carry a
+// proc (Graal's Final Strike's "stack2 player proc" within Stormblade's
+// "stack2 player +INT proc") hold one proc slot between them, so they go as
+// one line by rank: the higher rank (the workbook's level) wins, and of two
+// of one rank the bigger proc. Until then only their stats were weighed:
+// Graal's has none, so Stormblade (49) took Graal's (60) off and Graal's was
+// refused under Stormblade, its rank and its bigger proc never looked at.
+
 // A form's buff (petition 1529, 2026-11-11): a workbook spell of the sheet's
 // "Alter Appearance" type that is not itself read as an illusion (Scorpion's
 // Pestilence, the scorpion form's +DEX +INT +PoT; Form of the Master) has no
@@ -204,6 +212,31 @@ func keysWithin(a, b []string) bool {
 	return true
 }
 
+// procRivals reports nested lines that both carry a proc (the doc above:
+// they go as one line by rank).
+func procRivals(a, b *ActiveEffect) bool {
+	if !nestedLines(a.Line, b.Line) {
+		return false
+	}
+	_, ka, _ := stackLineParts(a.Line)
+	_, kb, _ := stackLineParts(b.Line)
+	return hasProcKey(ka) && hasProcKey(kb)
+}
+
+// hasProcKey reports a line's keys holding an offensive proc.
+func hasProcKey(keys []string) bool {
+	return slices.Contains(keys, "proc") || slices.Contains(keys, "proc@self")
+}
+
+// procOutranks reports a proc rival above b: of a higher rank, or of one rank
+// with the bigger proc.
+func procOutranks(a, b *ActiveEffect) bool {
+	if a.Rank != b.Rank {
+		return a.Rank > b.Rank
+	}
+	return a.Proc+a.ProcMax > b.Proc+b.ProcMax
+}
+
 // covers reports whether a gives every stat b raises, as much or more: b would
 // add nothing to a.
 func covers(a, b StatMods) bool {
@@ -288,7 +321,11 @@ func (w *World) lineTakesLocked(caster *Player, casterSess *session.Session, t *
 		if e.SpellID == ae.SpellID {
 			continue
 		}
-		if nestedLines(e.Line, ae.Line) {
+		if procRivals(e, ae) {
+			if !procOutranks(e, ae) {
+				continue // the higher rank, or the bigger proc (petition 1359)
+			}
+		} else if nestedLines(e.Line, ae.Line) {
 			if !covers(e.Mods, ae.Mods) {
 				continue // both on, each shared stat its stronger once (the doc above)
 			}
@@ -321,7 +358,16 @@ func (w *World) shareTakesLocked(caster *Player, ae *ActiveEffect) bool {
 		if e.SpellID == ae.SpellID {
 			continue
 		}
-		if nested := nestedLines(e.Line, ae.Line); nested && covers(e.Mods, ae.Mods) || !nested && sameLine(e.Line, ae.Line) && e.Rank > ae.Rank {
+		refused := false
+		switch {
+		case procRivals(e, ae):
+			refused = procOutranks(e, ae) // petition 1359
+		case nestedLines(e.Line, ae.Line):
+			refused = covers(e.Mods, ae.Mods)
+		default:
+			refused = sameLine(e.Line, ae.Line) && e.Rank > ae.Rank
+		}
+		if refused {
 			log.Printf("Cast: %s's share of %q (rank %d) does not take: %q (rank %d) is on", caster.Name, ae.Name, ae.Rank, e.Name, e.Rank)
 			return false
 		}
@@ -339,6 +385,10 @@ func (w *World) dropLineLocked(t *Player, ae *ActiveEffect) {
 	var drop []int
 	for _, e := range t.Effects {
 		if e.SpellID == ae.SpellID {
+			continue
+		}
+		if procRivals(e, ae) {
+			drop = append(drop, e.SpellID) // one proc slot: lineTakesLocked let ae on (petition 1359)
 			continue
 		}
 		if nestedLines(e.Line, ae.Line) {

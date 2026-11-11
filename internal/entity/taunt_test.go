@@ -51,6 +51,7 @@ func TestATauntTakesTheTop(t *testing.T) {
 		t.Errorf("the taunter's threat is %d, want the top (100000) and Goad's %d: %d", got, goadHate, want)
 	}
 
+	r.p.artReady = time.Time{} // its 0.5 s over (TestATauntLandsAtOnceThenHoldsHalfASecond)
 	r.cast(t, goad(), boss.ServerID)
 	if got, want := boss.Threats[me], int64(100_000+2*goadHate); got != want || boss.CurrentEnemy != me {
 		t.Errorf("a second Goad on top: threat %d (want %d), enemy %d", got, want, boss.CurrentEnemy)
@@ -193,5 +194,47 @@ func TestTauntsLeaveDummiesPreferredFoesAndProcs(t *testing.T) {
 	r.w.mu.Unlock()
 	if boss.CurrentEnemy != dps || boss.Threats[r.p.ServerID] >= 100_000 {
 		t.Errorf("a proc's hate took the boss: enemy %d, threat %d", boss.CurrentEnemy, boss.Threats[r.p.ServerID])
+	}
+}
+
+// A taunt lands at once and holds the next ability 0.5 s (board #575, petition 1434): its hate is on
+// the creature the first tick after its cast, an art 0.4 s after it is not answered, one 0.5 s after it
+// goes; the control, an art that is no taunt, still holds the next art the arts' 1.5 s, and a spell
+// that is no taunt still lands castLand after its cast time.
+func TestATauntLandsAtOnceThenHoldsHalfASecond(t *testing.T) {
+	c := newCaster(t)
+	c.npc.HP, c.npc.MaxHP = 100000, 100000
+	c.w.balance = SeedBalance()
+	taunt := artOf(803, "Goad")
+	taunt.Def = ParseSpellText("Target, Increase Hate by 954")
+	if !isTaunt(&taunt) || !isArt(&taunt) {
+		t.Fatal("Goad is not read as a taunt and an art")
+	}
+	if !c.w.StartCast(c.sess, taunt, c.npcO, c.at(0)) {
+		t.Fatal("the taunt was not begun")
+	}
+	c.tick(simTick)
+	if c.npc.Threats[c.p.ServerID] < 954 || c.npc.CurrentEnemy != c.p.ServerID {
+		t.Fatalf("a tick after the taunt the creature's hate is %v, enemy %d", c.npc.Threats, c.npc.CurrentEnemy)
+	}
+	kick := artOf(801, "Kick")
+	if c.w.StartCast(c.sess, kick, c.npcO, c.at(400*time.Millisecond)) {
+		t.Error("an art 0.4 s after a taunt began")
+	}
+	if !c.w.StartCast(c.sess, kick, c.npcO, c.at(tauntLockout)) {
+		t.Error("an art 0.5 s after a taunt was held")
+	}
+	if c.w.StartCast(c.sess, artOf(802, "Bash"), c.npcO, c.at(tauntLockout+time.Second)) {
+		t.Error("an art 1 s after an art that is no taunt began")
+	}
+
+	c = newCaster(t)
+	c.npc.HP, c.npc.MaxHP = 100000, 100000
+	if !c.w.StartCast(c.sess, strike(), c.npcO, c.at(0)) {
+		t.Fatal("the strike was not begun")
+	}
+	c.tick(strike().CastTime + castLand - simTick)
+	if c.npc.HP != c.npc.MaxHP {
+		t.Error("a spell that is no taunt landed before castLand")
 	}
 }

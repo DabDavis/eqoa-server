@@ -195,7 +195,7 @@ func (w *World) ctfStepLocked(p *Player, now time.Time) {
 	if !w.ctf.on || m == nil || !p.inMatch(m) || p.World != w.ctf.set.World || p.IsDead() || p.respawnPending() {
 		return
 	}
-	if len(w.ctf.lay.Field) >= 3 && !ctfInside(w.ctf.lay.Field, p.X, p.Z) {
+	if !w.ctf.lay.InField(p.X, p.Z) {
 		if p.ctf.carries {
 			for _, f := range m.flags {
 				if f != nil && f.state == ctfFlagCarried && f.carrier == p.ServerID {

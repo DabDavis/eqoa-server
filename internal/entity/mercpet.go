@@ -227,7 +227,8 @@ func (w *World) mercPetTurnLocked(ms *mercState, sess *session.Session, fight bo
 // starts on another), its merc's target, the one it fights while that still
 // fights it, its merc or its hirer or was hurt by its hirer, else the nearest
 // creature within petAssist of its hirer that does: one fighting the pet, its
-// merc or its hirer, or hurt by its hirer (a hit, a harmful spell), and for an
+// merc or its hirer, or hurt by its hirer (a hit, a harmful spell), one
+// fighting anyone of its hirer's group (mercDefendsLocked), and for an
 // aggressive merc's also one its hirer's group fights (mercTeamFightsLocked).
 // A creature past petLeash from the hirer is none of its, as the merc's.
 // Must be called with the lock held.
@@ -269,6 +270,9 @@ func (w *World) mercPetChooseTargetLocked(ms *mercState, ps *petState) {
 			return true
 		}
 		if _, hurt := npc.Threats[owner.ServerID]; hurt {
+			return true
+		}
+		if w.mercDefendsLocked(ms, npc) { // anyone of its hirer's group attacked
 			return true
 		}
 		return ms.stance == MercAggressive && w.mercTeamFightsLocked(ms, npc)

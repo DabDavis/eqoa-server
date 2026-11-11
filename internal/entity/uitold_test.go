@@ -224,3 +224,29 @@ func TestLeadersSettingDecidesMembersInvites(t *testing.T) {
 	}
 	_ = ts
 }
+
+// Layout 2 (the owner, 2026-11-11: a merc's "<Owner's Mercenary>" tag): a
+// client that answered 2 is told each merc's name and its hirer's; one that
+// answered 1, beside it, the names alone as before.
+func TestMercsToldWithTheirHirers(t *testing.T) {
+	r := newMercRig(t)
+	old, _ := r.player("Old", 1, 0)
+	r.sess.SetMercsLayout(2)
+	old.SetMercsLayout(1)
+	r.hire(r.kit(0, 0, 0), MercAssist)
+	got := r.uiTold(0, r.sess, protocol.OpcodeMercsData)
+	if len(got) != 1 {
+		t.Fatalf("%d messages", len(got))
+	}
+	want := []byte{2, 1, 1, 0, 7, 'R', 'a', 'l', 't', 'h', 'a', 's', 5, 'O', 'w', 'n', 'e', 'r'}
+	if !bytes.Equal(got[0], want) {
+		t.Errorf("layout 2: % x, want % x", got[0], want)
+	}
+	got = r.uiTold(0, old, protocol.OpcodeMercsData)
+	if len(got) != 1 {
+		t.Fatalf("layout 1: %d messages", len(got))
+	}
+	if own, names := mercsRead(t, got[0]); own || len(names) != 1 || names[0] != "Ralthas" {
+		t.Errorf("layout 1: own %v names %v", own, names)
+	}
+}

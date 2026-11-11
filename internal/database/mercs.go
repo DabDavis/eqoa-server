@@ -12,7 +12,9 @@ import (
 // comes back at the next login and through any restart: its name, class,
 // race and sex, its face and hair as the liaison chose them, its stance, and
 // when the rest after its death ends (UTC, RFC 3339; ” none). hired is when
-// (UTC, RFC 3339).
+// (UTC, RFC 3339). path is the class path its book takes (handlers/mercpath.go:
+// the index of its class's path, -1 its class's default; the owner,
+// 2026-11-11: "lets add path choice to each merc").
 const charMercSchema = `
 	CREATE TABLE IF NOT EXISTS charmerc (
 		serverid    INTEGER PRIMARY KEY,
@@ -26,7 +28,8 @@ const charMercSchema = `
 		hair_style  INTEGER NOT NULL DEFAULT 0,
 		stance      INTEGER NOT NULL DEFAULT 2,
 		dead_until  TEXT NOT NULL DEFAULT '',
-		hired       TEXT NOT NULL DEFAULT ''
+		hired       TEXT NOT NULL DEFAULT '',
+		path        INTEGER NOT NULL DEFAULT -1
 	);`
 
 // familiars: what a familiar is and does, by the item whose Use calls it
@@ -59,6 +62,16 @@ func (db *SQLiteDB) ensureMercs() error {
 	if _, err := db.Exec(charMercSchema); err != nil {
 		return fmt.Errorf("charmerc: %w", err)
 	}
+	// path, to a table made before it
+	var n int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('charmerc') WHERE name = 'path'`).Scan(&n); err != nil {
+		return fmt.Errorf("charmerc: %w", err)
+	}
+	if n == 0 {
+		if _, err := db.Exec(`ALTER TABLE charmerc ADD COLUMN path INTEGER NOT NULL DEFAULT -1`); err != nil {
+			return fmt.Errorf("charmerc: its path column: %w", err)
+		}
+	}
 	if _, err := db.Exec(familiarsSchema); err != nil {
 		return fmt.Errorf("familiars: %w", err)
 	}
@@ -72,6 +85,7 @@ type MercRow struct {
 	Class, Race, Sex                       int
 	Face, HairColor, HairLength, HairStyle int
 	Stance                                 int
+	Path                                   int       // its class path, -1 its class's default
 	DeadUntil                              time.Time // zero: alive
 	Hired                                  time.Time
 }
@@ -80,9 +94,9 @@ type MercRow struct {
 func (db *SQLiteDB) Merc(serverID uint32) (MercRow, bool, error) {
 	var r MercRow
 	var dead, hired string
-	err := db.QueryRow(`SELECT serverid, name, class, race, sex, face, hair_color, hair_length, hair_style, stance, dead_until, hired
-		FROM charmerc WHERE serverid = ?`, serverID).Scan(&r.ServerID, &r.Name, &r.Class, &r.Race, &r.Sex, &r.Face, &r.HairColor,
-		&r.HairLength, &r.HairStyle, &r.Stance, &dead, &hired)
+	err := db.QueryRow(`SELECT serverid, name, class, race, sex, face, hair_color, hair_length, hair_style, stance, dead_until, hired,
+		path FROM charmerc WHERE serverid = ?`, serverID).Scan(&r.ServerID, &r.Name, &r.Class, &r.Race, &r.Sex, &r.Face, &r.HairColor,
+		&r.HairLength, &r.HairStyle, &r.Stance, &dead, &hired, &r.Path)
 	if errors.Is(err, sql.ErrNoRows) {
 		return MercRow{}, false, nil
 	}
@@ -104,8 +118,15 @@ func (db *SQLiteDB) SetMerc(r MercRow) error {
 		hired = r.Hired.UTC().Format(time.RFC3339)
 	}
 	_, err := db.Exec(`INSERT OR REPLACE INTO charmerc (serverid, name, class, race, sex, face, hair_color, hair_length, hair_style,
-		stance, dead_until, hired) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.ServerID, r.Name, r.Class, r.Race, r.Sex, r.Face,
-		r.HairColor, r.HairLength, r.HairStyle, r.Stance, dead, hired)
+		stance, dead_until, hired, path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.ServerID, r.Name, r.Class, r.Race, r.Sex, r.Face,
+		r.HairColor, r.HairLength, r.HairStyle, r.Stance, dead, hired, r.Path)
+	return err
+}
+
+// SetMercPath keeps the character's merc's class path (-1 its class's
+// default).
+func (db *SQLiteDB) SetMercPath(serverID uint32, path int) error {
+	_, err := db.Exec(`UPDATE charmerc SET path = ? WHERE serverid = ?`, path, serverID)
 	return err
 }
 

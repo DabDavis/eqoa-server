@@ -24,8 +24,12 @@ import (
 // is out, sends OpcodeMercDismiss, which is /merc dismiss. A PS2 ignores the
 // offer and keeps /merc dismiss (a PS2's "/t merc dismiss").
 
-// mercsLayout is OpcodeMercsData's layout the offer names.
-const mercsLayout = 1
+// mercsLayout is OpcodeMercsData's layout the offer names; mercsLayoutMost
+// the highest a client's answer may ask for (HandleAnswer).
+const (
+	mercsLayout     = 1
+	mercsLayoutMost = 2
+)
 
 // SendMercsOffer offers the session's client the mercs' names, where
 // world.mercs is on; elsewhere nothing goes.
@@ -56,14 +60,18 @@ func (h *MercUIHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeMercDismiss, h.HandleDismiss)
 }
 
-// HandleAnswer is the client's answer: a u8, 1 to be told, 0 to stop.
+// HandleAnswer is the client's answer: a u8, the layout of OpcodeMercsData
+// it reads (1 the names; 2 each with its hirer's name, for the tag under a
+// merc's name plate: the owner, 2026-11-11), 0 to stop. The offer still
+// names layout 1, which every vanilla build answers: one that reads 2 answers
+// 2, and a server older than this takes any answer but 0 as 1.
 func (h *MercUIHandler) HandleAnswer(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	if len(data) < 1 {
 		log.Printf("Mercs: a short answer from %s", sess.RemoteAddr())
 		return nil
 	}
-	sess.SetMercsTold(data[0] != 0)
+	sess.SetMercsLayout(min(data[0], mercsLayoutMost))
 	return nil
 }
 

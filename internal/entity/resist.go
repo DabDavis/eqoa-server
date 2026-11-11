@@ -17,7 +17,7 @@ import (
 // failure works. Otherwise, the partial failure") come to the same odds.
 // Used where a resist cuts a spell: a sparring dummy's element strike
 // (sparring.go); a pact's price on its caster (lifetap.go) has its own scale
-// below (RollPactResist: 90% at 350). Until then the
+// below (RollPactResist: 90% at 315). Until then the
 // share was resist / (resist + 200), with no cap (200 took half, 600 took 75%).
 
 const (
@@ -85,13 +85,14 @@ func RollResist(resist int) (float64, ResistOutcome) {
 }
 
 // A pact's price (lifetap.go payPriceLocked) has its own scale (petition
-// 1532, Mortician: "id say cut by 90%" at 350 arcane resist): the caster's
+// 1532, Mortician: "id say cut by 90%" at 350 arcane resist; the owner,
+// 2026-11-11: "max ar is 315 for 90%"): the caster's
 // arcane resist cuts it in proportion up to PactResistCap, where it takes
 // PactResistCapShare, no more past it. The shared scale above (75% at 315)
 // is left as it is for every other spell.
 const (
 	// PactResistCap is the most arcane resist that counts against a pact's price.
-	PactResistCap = 350
+	PactResistCap = 315
 	// PactResistCapShare is the share of the price a resist at PactResistCap takes.
 	PactResistCapShare = 0.90
 )

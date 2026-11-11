@@ -1059,8 +1059,10 @@ const (
 const (
 	// OpcodeProfanityChoice is not retail, both ways. Server to client at
 	// every world entry: a u8, 1, the layout. Client to server, at once and
-	// whenever its setting changes: a u8, 1 the filter on (lines masked), 0
-	// off (lines as said); a wider answer is read by its first byte. Nothing
+	// whenever its setting changes: a u8, 0 off (lines as said), 2 Medium
+	// (only racial slurs masked: petition 1625), any other (1, which an older
+	// client sends for its On) High (every profane word masked); a wider
+	// answer is read by its first byte. Nothing
 	// is answered. The choice is the player's own (lineFor) and is kept
 	// through a keep restart (entity.KeptPlayer). Only the profanity mask
 	// turns: what a PS2 cannot be sent (consoletext.go) stays filtered for

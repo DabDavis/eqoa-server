@@ -123,10 +123,34 @@ func (r *metalRig) see(sess *session.Session, id EntityID) uint32 {
 	return 0
 }
 
-// challenge is the session's player asking Mr. Moogie, and the Metal Moogie standing after.
+// challenge is the session's player asking Mr. Moogie, and the Metal Moogie standing after, his
+// countdown run out (petition 1623): the rig's clock moved on by it, so d+0 after is the FIGHT, and the
+// challenger's countdown lines drained. rise is the challenge alone.
 func (r *metalRig) challenge(sess *session.Session, d time.Duration) (string, bool, *NPC) {
 	r.t.Helper()
 	line, ok := r.w.MetalMoogieChallenge(sess, r.moogie.ServerID, r.at(d))
+	if ok {
+		for s := 0; s <= MetalCountdown; s++ {
+			r.w.mu.Lock()
+			r.w.metalMoogieSystem(r.at(d + time.Duration(s)*time.Second))
+			r.w.mu.Unlock()
+		}
+		r.t0 = r.t0.Add(MetalCountdown * time.Second)
+		drain(sess)
+	}
+	return r.standing(line, ok)
+}
+
+// rise is the session's player asking Mr. Moogie, and the Metal Moogie standing after, held in his
+// countdown.
+func (r *metalRig) rise(sess *session.Session, d time.Duration) (string, bool, *NPC) {
+	r.t.Helper()
+	line, ok := r.w.MetalMoogieChallenge(sess, r.moogie.ServerID, r.at(d))
+	return r.standing(line, ok)
+}
+
+// standing is the Metal Moogie standing, with the challenge's answer.
+func (r *metalRig) standing(line string, ok bool) (string, bool, *NPC) {
 	r.w.mu.RLock()
 	defer r.w.mu.RUnlock()
 	if r.w.metal == nil {
@@ -553,7 +577,7 @@ func TestMetalMoogieDuelEnds(t *testing.T) {
 			if tc.line != "" && !hasLine(got, tc.line) {
 				t.Errorf("told %q, want %q", got, tc.line)
 			}
-			if line, ok, again := r.challenge(sa, 2*time.Second); tc.line != "" && (!ok || again == nil) {
+			if line, ok, again := r.rise(sa, 2*time.Second); tc.line != "" && (!ok || again == nil) {
 				t.Errorf("a new challenge after the end: %q %v", line, ok)
 			}
 		})

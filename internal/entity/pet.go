@@ -708,6 +708,10 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 		}
 		npc, isNPC := ent.(*NPC)
 		if ok && isNPC && challengeBars(npc, p.ServerID) {
+			if npc.challenge.player == p.ServerID {
+				w.sendChatToSession(sess, MetalLineWait) // the countdown (metalmoogie.go, petition 1623)
+				return
+			}
 			w.sendChatToSession(sess, fmt.Sprintf(duelLine(MetalLinePet, npc), npc.challenge.name)) // another's duel (metalmoogie.go)
 			return
 		}
@@ -1294,6 +1298,9 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 		tell()
 		w.dummyEngagedLocked(t, pet.ServerID, n, now)
 		return false
+	}
+	if t.duelHeld() {
+		return false // a Metal Moogie's countdown: nothing lands (metalmoogie.go, petition 1623)
 	}
 	if balanced {
 		n = w.petDealtLocked(pet, t, n) // balance.go

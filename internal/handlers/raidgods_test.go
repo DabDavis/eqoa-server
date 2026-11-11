@@ -136,7 +136,7 @@ func TestATributeSummonsMetalMoogieV2(t *testing.T) {
 			c = n
 		}
 	}
-	if c == nil || c.CurrentEnemy != pa.ServerID || !c.DuelSpawn() || c.Size != 9 || c.MaxHP != v2.MaxHP {
+	if c == nil || c.CurrentEnemy != 0 || !c.DuelSpawn() || c.Size != 9 || c.MaxHP != v2.MaxHP {
 		t.Fatalf("no V2 standing for Anna as his original is: %+v", c)
 	}
 	if n := f.held(pa); n != 0 {

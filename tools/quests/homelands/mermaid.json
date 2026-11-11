@@ -1,0 +1,355 @@
+{
+  "race": "mermaid",
+  "home": "Erud's Crossing",
+  "city": "Highbourne",
+  "note": "The merfolk's hut village on the northern isle of Erud's Crossing. Its people are tools/worlds/homelands.json's (Erud's Crossing): Elder Coralyn, at the village's edge, gives the first two and the level 20 road; Tidewarden Merrow, a few steps north-west of her, the hunts; Shellwright Pearla, a few steps south, is the outfitter; Coachman Dorran keeps the stable at the village's west edge (his coach runs to Freeport and to the other homes); Gatekeeper Thalassa stands on the north shore. The shore crabs and strand turtles (the shore and hills east of the village) and Old Shrieker, an old harpy of the rookery at the isle's far east end, are placed for these quests. Merfolk speak of the tide and the sea, warmly, with a song never far off.",
+  "L1": {
+    "name": "A Shell for the Shore",
+    "giver": "Elder Coralyn",
+    "offer": [
+      "Welcome up out of the waves, little fin. The land is loud and dry, but you will learn it, as we all did.",
+      "Every young one of the village wears a tide shell, so the sea knows its own. Shellwright Pearla carves them, a few steps south of here.",
+      "Will you fetch your shell and show it to me?"
+    ],
+    "accept": "I will fetch it.",
+    "decline": "Not now.",
+    "declined": "The tide will bring you back to me.",
+    "started": "Pearla is a few steps to the south, by the huts.",
+    "merchant": "Shellwright Pearla",
+    "piece": {
+      "name": "tide shell earring",
+      "description": "A small spiral shell from the warm shallows of Erud's Crossing, carved for a young one of the merfolk.",
+      "like": "Shell Earring",
+      "set": {
+        "POWMAX": 5
+      }
+    },
+    "fetch": {
+      "journal": "Ask Shellwright Pearla, a few steps south of Elder Coralyn, for a tide shell.",
+      "says": "A new fin on the strand! Hold still. There: listen to it and you will hear the sea, wherever you are."
+    },
+    "show": {
+      "journal": "Show the tide shell earring to Elder Coralyn.",
+      "says": "It suits you. Now the sea will know you, even on the land."
+    }
+  },
+  "L2": {
+    "name": "Anchored at the Strand",
+    "giver": "Elder Coralyn",
+    "offer": [
+      "The land unmakes careless swimmers. Have Spiritmaster Nerissa anchor your spirit to the strand, so the tide brings you home.",
+      "Then give your name to Coachman Dorran for his ledger. His coach runs to Freeport and to the other homes of the Homelands.",
+      "Will you see them both and return to me?"
+    ],
+    "accept": "I will see them both.",
+    "decline": "Not now.",
+    "declined": "Then swim no farther than you can swim back.",
+    "started": "Nerissa waits to the south-west, and Dorran at the village's west edge.",
+    "spiritmaster": "Spiritmaster Nerissa",
+    "coachman": "Coachman Dorran",
+    "bind": {
+      "journal": "Have Spiritmaster Nerissa, south-west of the elder, bind your spirit to the strand.",
+      "says": "It is done. Whatever drowns you on the land, the tide will bring you back here. Now give Coachman Dorran your name."
+    },
+    "ledger": {
+      "journal": "Give your name to Coachman Dorran, at the village's west edge, for his ledger.",
+      "says": "A fin on my coach? Stranger things have ridden it. It runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now."
+    },
+    "back": {
+      "journal": "Return to Elder Coralyn.",
+      "says": [
+        "Good. Now you have a shore to come home to.",
+        "Tidewarden Merrow, a few steps north-west, has work for you. Listen to him: he is grumpy, but he is right."
+      ]
+    }
+  },
+  "L3": {
+    "name": "Crabs on the Strand",
+    "giver": "Tidewarden Merrow",
+    "offer": [
+      "The new fin. Good. The shore crabs have grown bold on the strand east of the village, and they pinch the little ones at the water's edge.",
+      "Thin them, and bring me three of their claws. Then I will teach you a thing the tidewardens know.",
+      "Will you hunt them?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "Then the little ones keep their toes out of the water.",
+    "started": "Three claws. East, along the shore.",
+    "target": "shore crab",
+    "count": 3,
+    "drop": {
+      "name": "shore crab claw",
+      "description": "The claw of a shore crab from the strand east of the merfolk's village.",
+      "like": "crab claw"
+    },
+    "hunt": {
+      "journal": "Take three shore crab claws from the shore crabs on the strand east of the village."
+    },
+    "give": {
+      "journal": "Bring three shore crab claws to Tidewarden Merrow.",
+      "says": "Three claws, and all your fingers still on. Now watch, and learn this."
+    }
+  },
+  "L4": {
+    "name": "Arms from the Sea",
+    "giver": "Tidewarden Merrow",
+    "offer": [
+      "You will need better than your bare hands among the dry folk. I will make you proper gear, but you will bring what it needs.",
+      "Shellwright Pearla has cord and a shaft set aside. Then take a shell plate from the strand turtles on the hills east of the village.",
+      "Will you bring me all three?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then keep your fins sharp.",
+    "started": "Cord and a shaft from Pearla, a shell plate from the turtles. Go.",
+    "materials": [
+      {
+        "merchant": "Shellwright Pearla",
+        "items": [
+          "silk cord",
+          "wooden shaft"
+        ],
+        "journal": "Ask Shellwright Pearla for the silk cord and the wooden shaft.",
+        "says": "For Merrow? He never says please. Here: cord, and a shaft cut straight from driftwood."
+      }
+    ],
+    "target": "strand turtle",
+    "count": 1,
+    "drop": {
+      "name": "strand turtle shell plate",
+      "description": "A plate of a strand turtle's shell from the hills east of the merfolk's village.",
+      "like": "starcrab shell"
+    },
+    "hunt": {
+      "journal": "Take a shell plate from the strand turtles on the hills east of the village."
+    },
+    "give": {
+      "journal": "Bring the silk cord, the wooden shaft and the shell plate to Tidewarden Merrow.",
+      "says": "All three. A moment... there. It is yours. Keep it out of the salt when you can."
+    }
+  },
+  "L5": {
+    "name": "Old Shrieker",
+    "giver": "Tidewarden Merrow",
+    "offer": [
+      "One task more. An old harpy nests at the far east end of the isle. Old Shrieker, the little ones call her, and she has taken fish from our nets for years.",
+      "She is mean and she is old, and she will come at you on sight. Bring her down, and bring me her crest feather so the village knows.",
+      "Will you hunt Old Shrieker?"
+    ],
+    "accept": "I will hunt her.",
+    "decline": "Not yet.",
+    "declined": "She will be there. She always is.",
+    "started": "East, past the turtles, to the rookery at the isle's end. She will see you first.",
+    "target": "Old Shrieker",
+    "kind": "loot",
+    "count": 1,
+    "drop": {
+      "name": "Old Shrieker's crest feather",
+      "description": "A long grey crest feather of Old Shrieker, the harpy of the rookery at the east end of the merfolk's isle.",
+      "like": "broken vulture feather"
+    },
+    "hunt": {
+      "journal": "Take Old Shrieker's crest feather from Old Shrieker at the rookery far east of the village."
+    },
+    "give": {
+      "journal": "Bring Old Shrieker's crest feather to Tidewarden Merrow.",
+      "says": [
+        "The old screamer is gone? The nets will be full tonight. You are a little fin no longer.",
+        "Learn this, and go to Gatekeeper Thalassa on the north shore when you are ready for Highbourne."
+      ]
+    }
+  },
+  "flight": {
+    "name": "The Tide to Highbourne",
+    "giver": "Gatekeeper Thalassa",
+    "offer": [
+      "The scholars of Highbourne, on Tunaria's western shore, have long traded with the merfolk. They will teach you as one of their own.",
+      "You have earned the tide, little fin. I will set you down among your own guild in Highbourne, and your spirit will rest there.",
+      "Shall I send you to Highbourne?"
+    ],
+    "accept": "Send me to Highbourne.",
+    "decline": "Not yet.",
+    "declined": "The tide will wait for you.",
+    "started": "Swim well, and sing for us!",
+    "journal": "Tell Gatekeeper Thalassa when you are ready to go to Highbourne."
+  },
+  "L7": {
+    "name": "Two Tasks on the Ice",
+    "giver": "Tidewarden Merrow",
+    "offer": [
+      "The Homelands keep a hunters' outpost on the frozen river under the Goldfeather Eyrie. Every home sends its young hunters there, and so will the strand.",
+      "Ride Dorran's coach to the Eyrie. Bring me drift rat fur and a badger's pelt from the snow east of the outpost.",
+      "Will you hunt the Eyrie's snow for me?"
+    ],
+    "accept": "I will hunt there.",
+    "decline": "Not now.",
+    "declined": "The snow will keep. Come back when you are ready.",
+    "started": "Dorran's coach will take you. Keep your scales warm: that water is frozen.",
+    "hunts": [
+      {
+        "target": "drift rat",
+        "count": 2,
+        "drop": {
+          "name": "drift rat fur",
+          "description": "A clump of white fur from a drift rat of the Goldfeather Eyrie's snow.",
+          "like": "clump of rat fur"
+        },
+        "hunt": {
+          "journal": "Take two clumps of drift rat fur from the drift rats east of the Eyrie outpost."
+        }
+      },
+      {
+        "target": "snowfield badger",
+        "count": 1,
+        "drop": {
+          "name": "snowfield badger pelt",
+          "description": "The thick pelt of a snowfield badger of the Goldfeather Eyrie.",
+          "like": "beast pelt"
+        },
+        "hunt": {
+          "journal": "Take a snowfield badger pelt from the badgers on the snow east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring the drift rat fur and the badger pelt to Tidewarden Merrow.",
+      "says": "Good fur, and a good pelt. The cold did not stop you. Now watch closely, and learn this."
+    }
+  },
+  "L10": {
+    "name": "Arms of the Eyrie",
+    "giver": "Tidewarden Merrow",
+    "offer": [
+      "You have grown past the arms of a little fin. I will make you better, but the outpost has what I need.",
+      "Quartermaster Dunmore keeps good ore at the Eyrie outpost. Then bring me silk from the rime spiders north-east of it.",
+      "Will you bring me the ore and the silk?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then your old arms will have to do.",
+    "started": "Ore from Dunmore, silk from the spiders. Go.",
+    "materials": [
+      {
+        "merchant": "Quartermaster Dunmore",
+        "items": [
+          "iron ore"
+        ],
+        "journal": "Ask Quartermaster Dunmore at the Eyrie outpost for the ore Merrow needs.",
+        "says": "One of the merfolk, this far from the sea? Merrow's word came by the coach. Here, the best ore in my stores."
+      }
+    ],
+    "target": "rime spider",
+    "count": 2,
+    "drop": {
+      "name": "rime spider silk",
+      "description": "A skein of frosted silk from a rime spider of the Goldfeather Eyrie.",
+      "like": "Black Widow Silk"
+    },
+    "hunt": {
+      "journal": "Take two skeins of silk from the rime spiders north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the iron ore and the rime spider silk to Tidewarden Merrow.",
+      "says": "Ore for the blade, silk to bind the grip. A moment... there. It is yours: carry it well."
+    }
+  },
+  "L13": {
+    "name": "Old Frostjaw",
+    "giver": "Tidewarden Merrow",
+    "offer": [
+      "The outpost's hunters have lost three of their own to an old snow leopard they call Frostjaw. He hunts the slopes north-east of the outpost.",
+      "Bring him down, and I will teach you what the tidewardens teach at your age. Take friends from the other homes if you are wise.",
+      "Will you hunt Old Frostjaw?"
+    ],
+    "accept": "I will hunt him.",
+    "decline": "Not yet.",
+    "declined": "He will not grow old enough to die on his own.",
+    "started": "Go with friends. He strikes first and he strikes hard.",
+    "kind": "kill",
+    "target": "Old Frostjaw",
+    "count": 1,
+    "hunt": {
+      "journal": "Kill Old Frostjaw on the slopes north-east of the Eyrie outpost."
+    },
+    "back": {
+      "journal": "Return to Tidewarden Merrow.",
+      "says": "Frostjaw is gone? Then the outpost sleeps easier, and the strand is proud of you. Learn this."
+    }
+  },
+  "L15": {
+    "name": "The Heart of the Rime",
+    "giver": "Tidewarden Merrow",
+    "offer": [
+      "Something old walks in the ice caves north-east of the Eyrie outpost. The hunters call it the Rimeheart, and the cold that follows it kills the snow's game.",
+      "Break it, and carry a shard of it to Warden Halvek, so the outpost knows it is done. Then come back to me.",
+      "Will you face the Rimeheart?"
+    ],
+    "accept": "I will face it.",
+    "decline": "Not yet.",
+    "declined": "Then the caves grow colder.",
+    "started": "Do not go into those caves alone.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "carry": {
+      "target": "Warden Halvek",
+      "journal": "Bring the shard of the Rimeheart to Warden Halvek at the Eyrie outpost.",
+      "says": "So the Rimeheart is broken, and by one of the merfolk. I will send word to every home. Tell Merrow the Eyrie owes the strand a debt."
+    },
+    "back": {
+      "journal": "Return to Tidewarden Merrow.",
+      "says": "Halvek's word came by the coach before you did. You have done the strand proud. Learn this."
+    }
+  },
+  "L20": {
+    "name": "The Long Tide",
+    "giver": "Elder Coralyn",
+    "offer": [
+      "Merrow says you are no little fin now. One of the merfolk who goes out into the world stands a watch at the Eyrie once, so the other homes know us.",
+      "Go to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.",
+      "Will you stand the watch?"
+    ],
+    "accept": "I will stand it.",
+    "decline": "Not yet.",
+    "declined": "The tide waits for those who are ready.",
+    "started": "Swim well, and come home.",
+    "road": [
+      {
+        "target": "Warden Halvek",
+        "journal": "Find Warden Halvek at the Eyrie outpost.",
+        "says": "Coralyn sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+      },
+      {
+        "target": "Scout Feyla",
+        "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+        "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 3,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "journal": "Bring the three war-talons to Scout Feyla.",
+      "says": "Three talons. The eyrie will be quiet tonight. Go home, swimmer: your elder waits for you."
+    },
+    "final": {
+      "target": "Elder Coralyn",
+      "journal": "Return to Elder Coralyn in the merfolk's village.",
+      "says": "You swam out a little fin and came home a hunter of the Homelands. The strand has one more thing to give you."
+    }
+  }
+}

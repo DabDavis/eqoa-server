@@ -332,6 +332,11 @@ class TheControls(unittest.TestCase):
         self.dir = tempfile.mkdtemp()
         for f in ("class-rewards.json", "legacy.json", "aviak.json"):
             shutil.copy(os.path.join(gh.SPECS, f), self.dir)
+        # a race that came after the legacy three (the Mermaid, 32) has its spec alone
+        legacy_races = load(os.path.join(gh.SPECS, "legacy.json"))["races"]
+        for race in gh.RACES:
+            if race not in legacy_races and race != "aviak":
+                shutil.copy(os.path.join(gh.SPECS, race + ".json"), self.dir)
         self.spec = load(os.path.join(self.dir, "aviak.json"))
         # the aviak's legacy three back beside its spec would be both: the made-up legacy has none of it
         legacy = load(os.path.join(self.dir, "legacy.json"))

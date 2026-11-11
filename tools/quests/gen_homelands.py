@@ -45,13 +45,13 @@ CITY = "homelands"
 
 # The homes, in the file's order (the order the first three quests of each were written in).
 RACES = ["hillgiant", "kerran", "kappa", "kobold", "ratman", "satyr", "dryad", "gargoyle", "jalraeth", "aviak", "goblin",
-         "lizardman", "brownie", "pixie", "fairy", "gnoll", "orc", "minotaur", "skeleton", "fungusman", "wisp"]
+         "lizardman", "brownie", "pixie", "fairy", "gnoll", "orc", "minotaur", "skeleton", "fungusman", "wisp", "mermaid"]
 
 # Each home's race (racedefs.id): the zone of tools/worlds/homelands.json that is its home, and whose alone its
 # quests are (a quest's races of 11 and up name a race of racedefs by its own id: handlers/quests.go).
 RACE_IDS = {"hillgiant": 11, "kerran": 12, "goblin": 13, "aviak": 14, "lizardman": 15, "kappa": 16, "brownie": 17, "pixie": 18,
             "fairy": 19, "gnoll": 20, "orc": 21, "kobold": 22, "minotaur": 23, "ratman": 24, "satyr": 25, "dryad": 26,
-            "skeleton": 27, "fungusman": 28, "gargoyle": 29, "jalraeth": 30, "wisp": 31}
+            "skeleton": 27, "fungusman": 28, "gargoyle": 29, "jalraeth": 30, "wisp": 31, "mermaid": 32}
 
 # The cities' figures (EQOA-Data's guides; Sandstorm gave 430 and 2,200 for the first two, questrec16; levels 7-20 the
 # figure 74 of the 75 city class quests of the level give on the Heirloom server).

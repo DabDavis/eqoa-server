@@ -9406,6 +9406,416 @@
           ]
         }
       }
+    },
+    {
+      "name": "Erud's Crossing",
+      "from": "ODUS.ESF",
+      "zone": 10,
+      "race": 32,
+      "note": "Mermaid: Odus's Erud's Crossing, two islands in the warm sea between Odus and Tunaria, a hut village on the northern one and Saftemoot's volcano on the southern; singing sirens, sea turtles and deep mares swim it (Erud's Crossing, cell 5,1). The game's own merfolk live under the Vastly Deep (the ratmen's home here) and in the Abysmal Sea (cell 2,4, Envar's here). Added 2026-11-11 (petition 1620, Jibrish), the 23rd zone.",
+      "home": {
+        "flavor": "Merfolk are the sea's own people, mermaids, sirens and mermen of the warm waters of Erud's Crossing; drawn to the scholars of Highbourne, they rise from the waves to learn beside them.",
+        "start": {
+          "x": 11185.0,
+          "y": 54.19,
+          "z": 2480.0,
+          "toward": [
+            11179.4,
+            2476.4
+          ]
+        },
+        "mainland": {
+          "place": "Highbourne",
+          "world": 0,
+          "x": 4727.4,
+          "y": 54.1,
+          "z": 21654.9,
+          "facing": 1.24
+        },
+        "npcs": [
+          {
+            "name": "Elder Coralyn",
+            "body": "0x74BA7C3D",
+            "level": 30,
+            "role": "talker",
+            "at": [
+              11179.4,
+              54.27,
+              2476.4
+            ],
+            "toward": [
+              11185.0,
+              2480.0
+            ],
+            "size": 0.75,
+            "note": "gives the first two starter quests (the shell charm; the spiritmaster and the coachman) and the level 20 road; a mermaid of the village (her race's body), at the edge of the hut village on the island's north shore"
+          },
+          {
+            "name": "Tidewarden Merrow",
+            "body": "0xA316EB78",
+            "level": 30,
+            "role": "talker",
+            "at": [
+              11174.4,
+              54.27,
+              2471.6
+            ],
+            "toward": [
+              11185.0,
+              2480.0
+            ],
+            "size": 0.62,
+            "note": "gives the hunts of levels 3-5 and 7-15, a few steps north-west of the elder: a merman (the race's male body)"
+          },
+          {
+            "name": "Shellwright Pearla",
+            "body": "0xBF21FEF5",
+            "level": 25,
+            "role": "talker",
+            "at": [
+              11188.4,
+              54.12,
+              2497.4
+            ],
+            "toward": [
+              11185.0,
+              2480.0
+            ],
+            "size": 0.58,
+            "stock": "Lucas Anstol",
+            "note": "the village's outfitter, a siren, a few steps south of the start: hands over the level 1 shell charm and the level 4 materials; a Freeport merchant's goods (Lucas Anstol)"
+          },
+          {
+            "name": "Grocer Kelpa",
+            "body": "0xBF21FEF5",
+            "level": 25,
+            "role": "talker",
+            "at": [
+              11211.6,
+              54.12,
+              2498.6
+            ],
+            "toward": [
+              11185.0,
+              2480.0
+            ],
+            "size": 0.58,
+            "stock": "Grocer Deorda",
+            "note": "the village's grocer, south-east of the start; a Highbourne grocer's food"
+          },
+          {
+            "name": "Spiritmaster Nerissa",
+            "body": "0x1740427C",
+            "level": 30,
+            "role": "talker",
+            "at": [
+              11170.6,
+              53.93,
+              2508.1
+            ],
+            "toward": [
+              11185.0,
+              2480.0
+            ],
+            "size": 0.5,
+            "note": "binds, as every spiritmaster: an enchanting siren, south-west of the start"
+          },
+          {
+            "name": "Coachman Dorran",
+            "body": "0xA316EB78",
+            "level": 25,
+            "role": "talker",
+            "at": [
+              11161.7,
+              53.27,
+              2499.4
+            ],
+            "toward": [
+              11185.0,
+              2480.0
+            ],
+            "size": 0.62,
+            "note": "the village's stable at its west edge (open shore): the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot"
+          },
+          {
+            "name": "Spell Archivist",
+            "body": "0x1740427C",
+            "level": 30,
+            "role": "talker",
+            "at": [
+              11208.1,
+              54.12,
+              2490.0
+            ],
+            "toward": [
+              11185.0,
+              2480.0
+            ],
+            "size": 0.5,
+            "stock": "Spell Archivist",
+            "optional": true,
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), so a novice that casts has its spells; an enchanting siren, east of the start; left out where the database has none to take wares from"
+          },
+          {
+            "name": "Gatekeeper Thalassa",
+            "body": "0xBF21FEF5",
+            "level": 35,
+            "role": "talker",
+            "at": [
+              11114.3,
+              55.31,
+              2383.8
+            ],
+            "toward": [
+              11185.0,
+              2480.0
+            ],
+            "size": 0.58,
+            "note": "on the north shore, north-west of the village: sends one who has done the five starter quests to Highbourne (the quest The Tide to Highbourne)"
+          },
+          {
+            "name": "Strand sentinel",
+            "body": "0xA316EB78",
+            "level": 25,
+            "role": "talker",
+            "at": [
+              11214.8,
+              63.81,
+              2472.6
+            ],
+            "facing": 64,
+            "size": 0.62,
+            "note": "the village's guards, on the hut platforms"
+          },
+          {
+            "name": "Strand sentinel",
+            "body": "0xA316EB78",
+            "level": 25,
+            "role": "talker",
+            "at": [
+              11159.5,
+              63.84,
+              2447.1
+            ],
+            "facing": 192,
+            "size": 0.62
+          },
+          {
+            "name": "Strand sentinel",
+            "body": "0xA316EB78",
+            "level": 25,
+            "role": "talker",
+            "at": [
+              11235.6,
+              63.88,
+              2430.3
+            ],
+            "facing": 128,
+            "size": 0.62
+          },
+          {
+            "name": "shore crab",
+            "body": "0x09185B98",
+            "level": 2,
+            "role": "foe",
+            "at": [
+              11307.0,
+              54.55,
+              2305.8
+            ],
+            "size": 0.6,
+            "note": "the level 3 quest's crabs (a rock crab's body, small), on the shore east of the village (the island's own sea wisps' and dervishes' spots)"
+          },
+          {
+            "name": "shore crab",
+            "body": "0x09185B98",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              11335.1,
+              55.47,
+              2312.4
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "shore crab",
+            "body": "0x09185B98",
+            "level": 2,
+            "role": "foe",
+            "at": [
+              11264.3,
+              58.67,
+              2286.8
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "shore crab",
+            "body": "0x09185B98",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              11351.8,
+              54.82,
+              2486.3
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "shore crab",
+            "body": "0x09185B98",
+            "level": 2,
+            "role": "foe",
+            "at": [
+              11319.3,
+              60.31,
+              2476.7
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "shore crab",
+            "body": "0x09185B98",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              11457.5,
+              58.3,
+              2458.6
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "shore crab",
+            "body": "0x09185B98",
+            "level": 2,
+            "role": "foe",
+            "at": [
+              11448.0,
+              54.36,
+              2375.0
+            ],
+            "size": 0.6
+          },
+          {
+            "name": "strand turtle",
+            "body": "0xA2518C18",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              11281.6,
+              78.32,
+              2361.5
+            ],
+            "size": 0.5,
+            "note": "the level 4 quest's turtles (the stoneshell seaturtle's body, half its size), on the hills east of the village (the island's own turtles' spots)"
+          },
+          {
+            "name": "strand turtle",
+            "body": "0xA2518C18",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              11407.5,
+              66.49,
+              2350.9
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "strand turtle",
+            "body": "0xA2518C18",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              11413.3,
+              82.64,
+              2410.9
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "strand turtle",
+            "body": "0xA2518C18",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              11421.9,
+              74.48,
+              2509.0
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "strand turtle",
+            "body": "0xA2518C18",
+            "level": 3,
+            "role": "foe",
+            "at": [
+              11435.3,
+              66.91,
+              2407.6
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "strand turtle",
+            "body": "0xA2518C18",
+            "level": 4,
+            "role": "foe",
+            "at": [
+              11362.7,
+              61.52,
+              2551.7
+            ],
+            "size": 0.5
+          },
+          {
+            "name": "Old Shrieker",
+            "body": "0xF274BBED",
+            "level": 5,
+            "role": "foe",
+            "at": [
+              11785.1,
+              54.95,
+              2250.4
+            ],
+            "toward": [
+              11185.0,
+              2480.0
+            ],
+            "size": 0.8,
+            "note": "the level 5 quest's foe: an old harpy of the rookery at the island's far east end (the Shiran harpies' spot), alone"
+          }
+        ],
+        "peaceful": [
+          "shore crab",
+          "strand turtle"
+        ],
+        "hostile": [
+          "Old Shrieker"
+        ],
+        "lines": {
+          "Gatekeeper Thalassa": [
+            "Not yet, little fin. The tide carries only those who have done their village's asking.",
+            "Do what Elder Coralyn and Tidewarden Merrow ask of you. Then come back to the shore."
+          ],
+          "Strand sentinel": [
+            "The tide is turning, %r.",
+            "Mind the harpies to the east. They have long memories and short tempers.",
+            "A new face? Elder Coralyn waits at the edge of the village."
+          ],
+          "Elder Coralyn": [
+            "The sea gave you to us, %p. Now the land will want you too.",
+            "Sing when you are afraid. It frightens the fear."
+          ],
+          "Tidewarden Merrow": [
+            "Keep your fins wet and your eyes open.",
+            "The strand is ours, %p. Everything that crawls on it knows it."
+          ]
+        }
+      }
     }
   ]
 }

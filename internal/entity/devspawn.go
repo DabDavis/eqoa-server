@@ -63,6 +63,13 @@ func (w *World) NPCByName(name string) (x, y, z, facing float32, world uint8, ok
 }
 
 func (w *World) npcByNameLocked(name string) *NPC {
+	if id, ok := ParseRowKey(name); ok {
+		// "#n": that npcs row, whatever its name (npcrow.go)
+		if npc := w.NPCs[id]; npc != nil && !npc.Temporary {
+			return npc
+		}
+		return nil
+	}
 	var best *NPC
 	for _, npc := range w.NPCs {
 		if npc.Temporary || !strings.EqualFold(npc.Name, name) {
@@ -99,6 +106,7 @@ func (w *World) SpawnNPCCopy(name string, x, y, z, facing float32, world uint8) 
 // with the lock held.
 func (w *World) spawnCopyLocked(t *NPC, x, y, z, facing float32, world uint8) *NPC {
 	c := *t
+	c.CopyOf = t.row() // a copy of a copy is of the same row (npcrow.go)
 	c.ServerID = w.allocFreeIDLocked()
 	c.X, c.Y, c.Z, c.Facing = x, y, z, facing
 	c.SpawnX, c.SpawnY, c.SpawnZ, c.SpawnFacing = x, y, z, facing

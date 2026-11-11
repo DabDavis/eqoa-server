@@ -141,6 +141,11 @@ func (w *World) visibilitySystem() {
 				if npc.hiddenAt(time.Now()) {
 					continue
 				}
+				// a quest's wall the player is past: out of its view, so its
+				// client walks through (questwalls.go)
+				if w.wallPassedLocked(npc, player) {
+					continue
+				}
 				// A corpse is in view while it lies (corpse.go): emptied
 				// and closed, or decayed, it leaves every view.
 				if npc.Dead && !npc.corpseLies(time.Now(), w.corpseDecay) {
@@ -166,8 +171,19 @@ func (w *World) visibilitySystem() {
 		// The player's pet first, wherever it is (pet.go)
 		candidates = w.pinPetLocked(player, candidates)
 
-		// Sort by distance (closest first)
+		// Sort by distance (closest first), a quest's wall near the player
+		// before everything (questwalls.go): a crowd never pushes it out
+		pinWall := func(c entityDist) bool {
+			if c.DistSq > questWallPin*questWallPin {
+				return false
+			}
+			n, ok := w.NPCs[c.ID]
+			return ok && w.isQuestWallLocked(n)
+		}
 		sort.Slice(candidates, func(i, j int) bool {
+			if pi, pj := pinWall(candidates[i]), pinWall(candidates[j]); pi != pj {
+				return pi
+			}
 			return candidates[i].DistSq < candidates[j].DistSq
 		})
 

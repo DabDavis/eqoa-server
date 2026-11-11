@@ -114,6 +114,9 @@ const (
 type AggroRule struct {
 	Aggressive bool
 	Radius     float32
+	// Holding is an item: the rule is for the players holding it alone, every
+	// other left alone (questwalls.go; the Estate's Guardian and Cazic's Scent)
+	Holding int
 }
 
 // aggroState is the world's aggro: off (SetAggro), factions left out of it
@@ -273,6 +276,11 @@ func (w *World) threatensLocked(npc *NPC, p *Player) bool {
 	}
 	if npc.EventAggro {
 		return true
+	}
+	if r, ok := w.aggro.ruleFor(npc.Name); ok && r.Holding > 0 {
+		// for the holders of an item alone (questwalls.go): "will become KoS
+		// and attack you if you have Cazic's Scent on you" (t196)
+		return r.Aggressive && w.holdsLocked(p, r.Holding)
 	}
 	if npc.Level <= NeutralWildlifeLevel {
 		if r, ruled := w.aggro.ruleFor(npc.Name); ruled {
@@ -468,7 +476,7 @@ func (w *World) LoadAggroRules(db *database.SQLiteDB) (int, error) {
 	}
 	rules := make(map[string]AggroRule, len(rows))
 	for _, r := range rows {
-		rules[r.Name] = AggroRule{Aggressive: r.Aggressive, Radius: float32(r.Radius)}
+		rules[r.Name] = AggroRule{Aggressive: r.Aggressive, Radius: float32(r.Radius), Holding: r.Holding}
 	}
 	w.SetAggroRules(rules)
 	return len(rules), nil

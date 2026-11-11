@@ -1,0 +1,19 @@
+{
+  "world": 13,
+  "name": "the Homesteads",
+  "note": "The players' homes (handlers/homes.go, entity/homes.go; claude-notes/player-homes-20261111.md): one zone of the disc where it stands, Tunaria's cell (2, 9), whose fenced cottage (a green-roofed stone cottage with a door to the north, a stone path to a gate in a low fence round its yard, at (5798, 57.7, 18170)) is every character's home: the world is built once and every character stands in its own copy of it (an instance, by its owner's character id). The home block is read by the server, never written into the file: the door a player lands at (on the path before the cottage's door, facing it), the yard's board (the Real Estate Listings' twin, tools/place_homes_board_20261111.py, the way out), and the yard's edge (a circle round the fence: past it a player goes back to the door). Built by cmd/worldbuild from the operator's disc; no extras.",
+  "zones": [
+    {
+      "name": "The Homesteads",
+      "from": "TUNARIA.ESF",
+      "zone": 100,
+      "note": "Tunaria cell (2, 9): the fenced cottage in its north-east part is the home; its people (the chapel's brothers and sisters of world 0) are not in world 13, which has no NPCs but the yard's board"
+    }
+  ],
+  "home": {
+    "name": "the Homesteads",
+    "door": {"x": 5798, "y": 57.72, "z": 18146, "facing": 0},
+    "board": {"x": 5812, "y": 57.72, "z": 18142, "toward": [5798, 18146]},
+    "yard": {"x": 5798, "z": 18167, "r": 50}
+  }
+}

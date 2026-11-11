@@ -217,7 +217,7 @@ func (w *World) rezNamesAnotherLocked(targets []EntityID, p *Player) bool {
 func (w *World) rezGroupNearLocked(p *Player, pct int, r float32, now time.Time) []areaNear {
 	var out []areaNear
 	for _, m := range w.groupMembersLocked(p) {
-		if m == p || m.World != p.World || (rezAmount(m, pct, now) <= 0 && !m.Rez.returns(now)) {
+		if m == p || !SamePlace(m, p) || (rezAmount(m, pct, now) <= 0 && !m.Rez.returns(now)) {
 			continue
 		}
 		if d := dist3(m.X, m.Y, m.Z, p.X, p.Y, p.Z); d <= r {

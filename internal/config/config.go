@@ -383,6 +383,12 @@ type WorldConfig struct {
 	// only with its world built and listed in ServerWorlds (its places are the built recipe's "arena").
 	CTF CTFConfig `yaml:"ctf"`
 
+	// Homes are the players' homes (entity/homes.go, handlers/homes.go): a world of the server's own (World,
+	// unset 13: the Homesteads, tools/worlds/homesteads.json) of which every character has its own copy, its home,
+	// reached from the Real Estate Listings board beside Dabrish and /home. Off unless enabled, and only with its
+	// world built and listed in ServerWorlds.
+	Homes HomesConfig `yaml:"homes"`
+
 	// QuestMarksBelow is how many levels below the player's a quest's lowest
 	// level may be for its giver's "!" on a client's map
 	// (handlers/questmarks.go; a quest's name is marked once, at its nearest
@@ -391,6 +397,12 @@ type WorldConfig struct {
 	// below 50); a number, that many; -1, every quest the player may take,
 	// however low.
 	QuestMarksBelow int `yaml:"quest_marks_below"`
+}
+
+// HomesConfig is world.homes: the players' homes' switch and their world's slot.
+type HomesConfig struct {
+	Enabled bool `yaml:"enabled"`
+	World   int  `yaml:"world"`
 }
 
 // CTFConfig is world.ctf: capture the flag's switch, its world and its numbers. A number left unset (0) is

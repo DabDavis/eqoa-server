@@ -20,6 +20,9 @@ type NPC struct {
 	// needed to ask; now an NPC at Guk's (1200, 0, 1000) and a Tunarian at the
 	// same coordinates are different places, so visibility has to filter on it.
 	World uint8
+	// Instance is the copy of an instanced world it stands in (homes.go), 0 every copy (the yard's board); an
+	// NPC with an owner stands in its owner's
+	Instance uint32
 
 	// Model
 	ModelID int64

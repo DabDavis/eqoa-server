@@ -74,6 +74,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.metalMoogieSystem(now) // Mr. Moogie's challenge (metalmoogie.go)
 	w.bufferSystem(now)      // Buffer's casts landing (buffer.go)
 	w.ctfSystem(now)         // capture the flag's queue and match (ctf.go)
+	w.homesSystem(now)       // the homes: who may stand in each, the yards' edges (homes.go)
 	t.mark(tsDuels)
 	gates := w.castSystem(now)
 	t.mark(tsCasts)

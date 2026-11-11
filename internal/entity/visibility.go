@@ -136,6 +136,10 @@ func (w *World) visibilitySystem() {
 				if npc.World != player.World {
 					continue
 				}
+				// an instanced world's other copies (homes.go): another's home, its pets
+				if !w.npcSharesLocked(npc, player) {
+					continue
+				}
 				// out of every view: the panel remaking it, or spawn-only
 				// (spawnonly.go)
 				if npc.hiddenAt(time.Now()) {
@@ -159,7 +163,7 @@ func (w *World) visibilitySystem() {
 
 			// Check other players
 			if other, ok := w.Players[id]; ok {
-				if other.World != player.World {
+				if !SamePlace(other, player) { // its world, and its instance (homes.go)
 					continue
 				}
 				dx := other.X - player.X

@@ -185,6 +185,10 @@ func (w *World) mercPetGoesLocked(ms *mercState, now time.Time) {
 	if ps == nil {
 		return
 	}
+	if ps.npc.Charm != nil {
+		w.mercCharmReleaseLocked(ms, false) // a charmed one is let go where it stands (mercharm.go)
+		return
+	}
 	ms.pet = nil
 	pet := ps.npc
 	w.dropAggroLocked(pet.ServerID)
@@ -208,11 +212,17 @@ func (w *World) mercPetTurnLocked(ms *mercState, sess *session.Session, fight bo
 	pet, m := ps.npc, ms.npc
 	if pet.Dead || w.NPCs[pet.ServerID] != pet {
 		ms.pet = nil
+		if pet.Charm != nil {
+			pet.mercPet = nil // a charmed creature's corpse, its charm's hold kept to its return (corpse.go)
+		}
 		w.dropAggroLocked(pet.ServerID)
 		if pet.Dead && sess != nil {
 			w.sendChatToSession(sess, fmt.Sprintf(mercPetDiedLine, m.Name))
 		}
 		log.Printf("Merc: %s's %q's pet %q is gone (dead %v)", ms.owner.Name, m.Name, pet.Name, pet.Dead)
+		return
+	}
+	if w.mercCharmTurnLocked(ms, sess, now) { // a charm's end (mercharm.go)
 		return
 	}
 	ps.last = now

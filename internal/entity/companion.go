@@ -6,6 +6,9 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode"
+
+	"github.com/eqoa/server/internal/database"
 )
 
 // companion.go — a creature and its own pet fight as one (the owner, 2026-11-09:
@@ -30,11 +33,15 @@ import (
 // So the pairs are read off the rows at their spawns (linkCompanionsLocked,
 // again whenever the world's NPCs change in number): an NPC whose name is a
 // pet's (companionName) is the companion of the creature its name names
-// ("<owner>'s pet", "Servant of <owner>") within companionNamedReach of its
-// spawn, else of the nearest creature within companionReach of it; never one
+// ("<owner>'s pet", "Servant of <owner>": the name, or its first or last
+// words, punctuation aside, companionNamesOwner) within companionNamedReach of
+// its spawn, else of the nearest creature within companionReach of it; never one
 // that is a pet itself, has the NPC bit (0x80: a merchant or a quest giver,
 // who fights no one), is a training dummy, a spawn-only original or a GM's
-// copy. The live game's caster fought with its pet beside it, and now:
+// copy; and no kind a pet's word names that is no one's pet (companionNotPets).
+// The live game's caster fought with its pet beside it, and now:
+//   - the pet walks with its owner as it wanders (companionsFollowLocked,
+//     2026-11-11), and does not wander of itself (movement.go's whyCompanion);
 //   - a hostile act on either one (updateAggro: a hit, a spell, a resisted
 //     charm) or either one noticing a player (aggro.go) brings the other into
 //     the fight against the same foe (companionJoinLocked), whoever did it: a
@@ -54,8 +61,29 @@ import (
 // companionNamedReach how near one whose name names its owner.
 const (
 	companionReach      float32 = 4
-	companionNamedReach float32 = 30
+	companionNamedReach float32 = 40
 )
+
+// companionFollowAt is the most a pet keeps off its owner as it walks with it
+// (companionsFollowLocked): its place beside it at the spawns, nearer when
+// that was further; companionCatchUp is how far behind it hurries, half as
+// fast again, as a player's pet does (merc.go's followLocked).
+const (
+	companionFollowAt float32 = 3
+	companionCatchUp  float32 = 8
+)
+
+// companionNotPets are the kinds a pet's word names that are no one's pet
+// (database.NPCClassKey's keys): Zaoran Plateau's Blood Thirsty Minion camps
+// (tools/guidegaps/zp-minions.json: "the new Blood Thirsty Minion camps", a
+// creature of their own, 20 rows standing in fives with no caster near), and
+// a village's animal (Qeynos hills' "village pet" among the farmers). Read as
+// pets, they were the owner's "pets not connected to their master"
+// (2026-11-11): a third of the 60 the log counted with none.
+var companionNotPets = map[string]bool{
+	"blood thirsty minion": true,
+	"village pet":          true,
+}
 
 // companionWords are the words a pet's name ends in (any case). "servant"
 // only names an owner's ("Moogie's Servant", "Servant of Vorin": the
@@ -70,7 +98,43 @@ var companionOwnerName = regexp.MustCompile(`(?i)^(?:(.+)'s (?:pet|minion|famili
 // companionName is whether an NPC's name is a pet's.
 func companionName(name string) bool {
 	name = strings.TrimSpace(name)
+	if companionNotPets[database.NPCClassKey(name)] {
+		return false
+	}
 	return companionWords.MatchString(name) || companionOwnerName.MatchString(name)
+}
+
+// companionFold is a name as companionNamesOwner compares it: lower case, its
+// letters and digits alone, one space between its words ("Tal'Thir" and
+// "Tal Thir" alike).
+func companionFold(s string) string {
+	var b strings.Builder
+	space := false
+	for _, r := range strings.ToLower(s) {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			if space && b.Len() > 0 {
+				b.WriteByte(' ')
+			}
+			space = false
+			b.WriteRune(r)
+			continue
+		}
+		space = true
+	}
+	return b.String()
+}
+
+// companionNamesOwner is whether a pet's name's owner (named, from
+// companionOwnerName) is the creature called owner: the same name, or its
+// first or last words ("Servant of Vorin" High Priest Vorin's, "maiden's
+// servant" the Dawn Maiden's, "Minion of Vhi'zan" Vhi'zan Kaah's), punctuation
+// aside ("Servant of Tal Thir" Tal'Thir's).
+func companionNamesOwner(named, owner string) bool {
+	n, o := companionFold(named), companionFold(owner)
+	if n == "" || o == "" {
+		return false
+	}
+	return n == o || strings.HasPrefix(o, n+" ") || strings.HasSuffix(o, " "+n)
 }
 
 // companionFighter is whether an NPC takes part in a pair at all: a creature
@@ -112,7 +176,7 @@ func (w *World) linkCompanionsLocked() {
 	for _, pet := range pets {
 		named := ""
 		if m := companionOwnerName.FindStringSubmatch(strings.TrimSpace(pet.Name)); m != nil {
-			named = strings.ToLower(strings.TrimSpace(m[1] + m[2]))
+			named = strings.TrimSpace(m[1] + m[2])
 		}
 		var owner *NPC
 		best := float32(math.MaxFloat32)
@@ -123,7 +187,7 @@ func (w *World) linkCompanionsLocked() {
 					d := distXZ(pet.SpawnX, pet.SpawnZ, o.SpawnX, o.SpawnZ)
 					score := d
 					switch {
-					case named != "" && d <= companionNamedReach && strings.EqualFold(strings.TrimSpace(o.Name), named):
+					case named != "" && d <= companionNamedReach && companionNamesOwner(named, o.Name):
 						score = d - companionNamedReach - companionReach // the owner its name names, before any other
 					case d <= companionReach:
 					default:
@@ -226,5 +290,55 @@ func (w *World) companionsBackLocked(owner *NPC) {
 		if p := w.NPCs[id]; p != nil && p.Dead && (p.withMaster || !p.CorpseGone.IsZero()) && companionFighter(p) {
 			w.respawnNPCLocked(p)
 		}
+	}
+}
+
+// companionsFollowLocked walks an owner's pets with it as it wanders (the
+// owner, 2026-11-11: "there are many pets not connected to their master"): a
+// Companion Spirit stood on its spawn while its hobgoblin oracle wandered up
+// to 70 off, 26 pairs of the 178 so. Each living pet of its own, in its
+// world, out of any fight, not rooted, makes for its place beside the owner
+// (its spawn's offset from the owner's, at most companionFollowAt), at the
+// owner's pace or half as fast again once companionCatchUp behind, and stands
+// there. Called after each step of the owner's wander (roam.go); a pet does
+// not wander of itself (movement.go's whyCompanion). Must be called with the
+// lock held.
+func (w *World) companionsFollowLocked(owner *NPC, now time.Time) {
+	ids := w.companions[owner.ServerID]
+	if len(ids) == 0 || !companionFighter(owner) {
+		return
+	}
+	for _, id := range ids {
+		pet := w.NPCs[id]
+		if pet == nil || !companionFighter(pet) {
+			continue
+		}
+		dt := float32(0.05)
+		if !pet.roam.last.IsZero() {
+			dt = min(float32(now.Sub(pet.roam.last).Seconds()), 0.5) // a stalled tick does not jump it
+		}
+		pet.roam.last = now
+		if pet.Dead || pet.World != owner.World || pet.CurrentEnemy != 0 || len(pet.Threats) > 0 ||
+			pet.chase.on || pet.chase.returning || pet.DummyTarget != 0 || pet.rooted(now) || pet.hiddenAt(now) {
+			continue // its fight, its way home, its root: its own
+		}
+		ox, oz := pet.SpawnX-owner.SpawnX, pet.SpawnZ-owner.SpawnZ
+		if l := float32(math.Sqrt(float64(ox*ox + oz*oz))); l > companionFollowAt {
+			ox, oz = ox*companionFollowAt/l, oz*companionFollowAt/l
+		}
+		x, z := owner.X+ox, owner.Z+oz
+		d := distXZ(pet.X, pet.Z, x, z)
+		if d < 0.5 {
+			if pet.moving() {
+				pet.stopMoving()
+			}
+			continue
+		}
+		speed := NPCWalkSpeed * owner.snareFactor(now)
+		if d > companionCatchUp {
+			speed *= 1.5
+		}
+		speed *= pet.snareFactor(now)
+		w.stepNPCToward(pet, x, z, speed, dt)
 	}
 }

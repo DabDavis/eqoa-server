@@ -278,6 +278,7 @@ func (w *World) roamSystem(now time.Time) {
 	}
 	for _, npc := range w.roamers {
 		w.roamStepLocked(npc, now)
+		w.companionsFollowLocked(npc, now) // its own pets beside it (companion.go)
 	}
 }
 
@@ -285,6 +286,7 @@ func (w *World) roamSystem(now time.Time) {
 // player in its world; one that left every player's range stops where it
 // is. Must be called with the lock held.
 func (w *World) findRoamersLocked(now time.Time) {
+	w.linkCompanionsLocked() // the creatures' own pets, who walk with them and not of themselves (companion.go)
 	found := make(map[EntityID]bool)
 	var next []*NPC
 	for _, p := range w.Players {

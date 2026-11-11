@@ -135,7 +135,7 @@
  ],
  "triggers": [
   {
-   "slot": 156,
+   "slot": 160,
    "name": "Rain 3 Portal Opens",
    "scope": "near",
    "radius": 100,

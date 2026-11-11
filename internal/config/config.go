@@ -299,6 +299,15 @@ type WorldConfig struct {
 	PackSlots int `yaml:"pack_slots"`
 	BankSlots int `yaml:"bank_slots"`
 
+	// MaxCharacters is how many characters an account may hold (the server
+	// owner, 2026-11-11: "lets make max 20 for now"; entity/charslots.go,
+	// handlers/charslots.go). A client whose select page lists them all and
+	// scrolls (vanilla) says so in its answer to the live look's offer
+	// (protocol.OpcodeLiveLook, bit 1) and is listed and may make that many;
+	// every other client (a PS2, whose page holds 8) is sent the 8 most
+	// recently played and may make none past 8. Unset or 0: 20; at most 64.
+	MaxCharacters int `yaml:"max_characters"`
+
 	// Capes is an equip slot of this server's own, a cape's (entity/capes.go,
 	// handlers/capes.go): items of wear slot 28 worn in equip slot 22, each
 	// drawn in its record's style (model) by a client that draws capes

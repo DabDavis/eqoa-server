@@ -720,6 +720,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureNoRentVanish(); err != nil { // norent.go
 		return err
 	}
+	if err := db.ensureCharPlayed(); err != nil { // charplayed.go
+		return err
+	}
 	if err := db.ensureClassTemplates(); err != nil { // classtemplates.go
 		return err
 	}
@@ -1111,6 +1114,10 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 	}
 	// and when it last left the world (norent.go)
 	if _, err := s.db.Exec(`DELETE FROM charlogout WHERE serverid = ?`, serverID); err != nil {
+		return err
+	}
+	// and when it last entered it (charplayed.go)
+	if _, err := s.db.Exec(`DELETE FROM charplayed WHERE serverid = ?`, serverID); err != nil {
 		return err
 	}
 	// and its welcome guide's day and never (welcome.go)

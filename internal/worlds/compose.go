@@ -88,6 +88,10 @@ type Recipe struct {
 	// Arena is the game a world is the place of, as its maker writes it (tools/worlds/arena.json's capture the
 	// flag: handlers/ctf.go reads it): carried into the built recipe as it is, never into the file.
 	Arena json.RawMessage `json:"arena,omitempty"`
+	// Home is the players' homes' places in a world that is their homes (tools/worlds/homesteads.json: the door,
+	// the yard's board, the yard's edge; handlers/homes.go reads it): carried into the built recipe as it is,
+	// never into the file.
+	Home json.RawMessage `json:"home,omitempty"`
 }
 
 // RecipeZone is one zone of a recipe: zone Zone of the disc's file From.

@@ -289,6 +289,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 
+	// The Real Estate Listings (homes.go): the players' homes.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.homesTalk(sess, player, npc) {
+		return nil
+	}
+
 	// The Teleporter (teleporter.go): every raid and every camp.
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.teleporterTalk(sess, player, npc) {
 		return nil
@@ -656,6 +661,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// the PvP Events herald's (ctf.go); an old one does nothing
 	if h.answerCTF(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// the Real Estate Listings' (homes.go); an old one does nothing
+	if h.answerHomes(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// the Testing Heroes Vendor's (heroes.go); an old one does nothing

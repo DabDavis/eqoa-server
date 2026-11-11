@@ -2,7 +2,7 @@
   "race": "kerran",
   "home": "Kerra Isle",
   "city": "Qeynos",
-  "note": "The kerrans' stilt village on Kerra Isle, off Odus, the wild island (no city of the erudites stands there yet: the words name none). Its people are tools/worlds/homelands.json's (Kerra Isle): Elder Ssharu, on the village's landward side, gives the first two; Huntress Kazhra, beside her, the three hunts; Weaver Shimra, under the first stilt house to the north-east, is the outfitter; Coachman Tolhra keeps the stable a few steps north (his coach, and the ferry that carries it, runs to Freeport and to the other homes). The isle crabs (the sand spit to the north), the fern vipers (the ferns to the west) and the great crab Old Snapclaw (the island's far south-west) are placed for these quests.",
+  "note": "The kerrans' stilt village on Kerra Isle, off Odus, the wild island (no city of the erudites stands there yet: the words name none). Its people are tools/worlds/homelands.json's (Kerra Isle): Elder Ssharu, on the village's landward side, gives the first two; Huntress Kazhra, beside her, the three hunts; Weaver Shimra, under the first stilt house to the north-east, is the outfitter; Coachman Tolhra keeps the stable a few steps north (his coach, and the ferry that carries it, runs to Freeport and to the other homes). The isle crabs (the sand spit to the north), the fern vipers (the ferns to the west) and the great crab Old Snapclaw (the island's far south-west) are placed for these quests. Levels 7-20 (2026-11-11): Huntress Kazhra gives L7-L15, Elder Ssharu the L20 path; their objectives are on the Homelands' shared ground, the Goldfeather Eyrie (Tolhra's coach): drift rats and badgers, rime spider silk for Shimra's grips, Old Frostjaw (cat to cat), the Rimeheart's shard to Scout Feyla, then Feyla's raiders, their talons shown to Warden Halvek.",
   "L1": {
     "name": "A Cub's Claw Band",
     "giver": "Elder Ssharu",
@@ -172,5 +172,169 @@
     "declined": "The tide will wait.",
     "started": "Keep your claws sharp and your fur dry!",
     "journal": "Tell Gatekeeper Raszhar when you are ready to cross to Qeynos."
+  },
+  "L7": {
+    "name": "A Hunt in the Snow",
+    "giver": "Huntress Kazhra",
+    "offer": [
+      "Mrrr. Your claws are longer now. Time you hunted somewhere colder than the isle. The Homelands keep an outpost on the frozen river under the Goldfeather Eyrie.",
+      "Take Tolhra's coach there. On the snow east of it are drift rats and badgers. Bring me two of each: fur and pelts.",
+      "Will you hunt the snow for me?"
+    ],
+    "accept": "I will hunt there.",
+    "decline": "Not now.",
+    "declined": "Stay by the fire, then. Your paws will thank you.",
+    "started": "Low and quiet. Snow shows every track.",
+    "hunts": [
+      {
+        "target": "drift rat",
+        "count": 2,
+        "drop": {
+          "name": "drift rat fur",
+          "description": "A clump of white fur from a drift rat of the Goldfeather Eyrie's snow.",
+          "like": "clump of rat fur"
+        },
+        "hunt": {
+          "journal": "Take two clumps of drift rat fur from the drift rats east of the Eyrie outpost."
+        }
+      },
+      {
+        "target": "snowfield badger",
+        "count": 2,
+        "drop": {
+          "name": "snowfield badger pelt",
+          "description": "The thick pelt of a snowfield badger of the Goldfeather Eyrie.",
+          "like": "beast pelt"
+        },
+        "hunt": {
+          "journal": "Take two snowfield badger pelts from the badgers on the snow east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring the drift rat fur and the badger pelts to Huntress Kazhra.",
+      "says": "Two and two, and your ears not frozen off. A real hunt. Now watch closely, and learn this."
+    }
+  },
+  "L10": {
+    "name": "Silk for a Grip",
+    "giver": "Huntress Kazhra",
+    "offer": [
+      "Your arms are a cub's arms still. Shimra weaves grips that never slip, wet paws or dry, but palm will not do for what you need now.",
+      "The rime spiders north-east of the Eyrie outpost spin a frosted silk. Bring me three skeins, and Shimra and I will make you something better.",
+      "Will you bring me the silk?"
+    ],
+    "accept": "I will bring it.",
+    "decline": "Not now.",
+    "declined": "Then keep the cub's arms a while.",
+    "started": "Three skeins. Spiders bite. So do you.",
+    "target": "rime spider",
+    "count": 3,
+    "drop": {
+      "name": "rime spider silk",
+      "description": "A skein of frosted silk from a rime spider of the Goldfeather Eyrie.",
+      "like": "Black Widow Silk"
+    },
+    "hunt": {
+      "journal": "Take three skeins of silk from the rime spiders north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the three skeins of rime spider silk to Huntress Kazhra.",
+      "says": "Fine silk. Shimra will purr. Sit a moment while we work... there. It is yours. Keep it as sharp as your claws."
+    }
+  },
+  "L13": {
+    "name": "The Old Cat of the Slopes",
+    "giver": "Huntress Kazhra",
+    "offer": [
+      "There is an old snow leopard on the slopes north-east of the Eyrie outpost. Frostjaw, they call him. He kills the outpost's hunters, and not for hunger.",
+      "A cat who hunts like that shames every cat. Bring him down. Take friends from the other homes. He is older than you, and wiser.",
+      "Will you hunt Old Frostjaw?"
+    ],
+    "accept": "I will hunt him.",
+    "decline": "Not yet.",
+    "declined": "He will not grow kinder.",
+    "started": "Do not stalk him. He will smell you. Meet him head on.",
+    "kind": "kill",
+    "target": "Old Frostjaw",
+    "count": 1,
+    "hunt": {
+      "journal": "Kill Old Frostjaw on the slopes north-east of the Eyrie outpost."
+    },
+    "back": {
+      "journal": "Return to Huntress Kazhra.",
+      "says": "Frostjaw is gone. Good. Cat to cat, it had to be one of us. Learn this."
+    }
+  },
+  "L15": {
+    "name": "A Shard for the Scout",
+    "giver": "Huntress Kazhra",
+    "offer": [
+      "Scout Feyla, on the river by the Eyrie, hunts as well as any kerran. She sent word: the cold from the ice caves north-east of the outpost is spreading. The Rimeheart.",
+      "Break it, and take a shard to Feyla so she knows it is done. Then come back and tell me.",
+      "Will you face the Rimeheart for Feyla?"
+    ],
+    "accept": "I will face it.",
+    "decline": "Not yet.",
+    "declined": "Then Feyla's river freezes deeper.",
+    "started": "Go with others. That much cold is no place for one cat.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "carry": {
+      "target": "Scout Feyla",
+      "journal": "Bring the shard of the Rimeheart to Scout Feyla, north-east of the Eyrie outpost.",
+      "says": "You broke it? I felt the cold ease this morning. Tell Kazhra she taught you well."
+    },
+    "back": {
+      "journal": "Return to Huntress Kazhra.",
+      "says": "Feyla says I taught you well. Mrrr. I did. Learn this."
+    }
+  },
+  "L20": {
+    "name": "The Hunter's Crossing",
+    "giver": "Elder Ssharu",
+    "offer": [
+      "Kazhra says you are a hunter now, not a cub. A hunter of the isle proves it once on strange ground, so the other homes know our claws.",
+      "Go to Scout Feyla on the frozen river under the Goldfeather Eyrie. Do what she asks. Then come back to me, and choose your path.",
+      "Will you make the hunter's crossing?"
+    ],
+    "accept": "I will make it.",
+    "decline": "Not yet.",
+    "declined": "The isle is patient. Eat something first.",
+    "started": "Land on your feet, cub. Hunter, I mean.",
+    "road": [
+      {
+        "target": "Scout Feyla",
+        "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+        "says": "Kazhra's hunter. Good. The Goldfeather raiders carry war-talons. Take three, then show them to Warden Halvek at the outpost."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 3,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "target": "Warden Halvek",
+      "journal": "Bring the three war-talons to Warden Halvek at the Eyrie outpost.",
+      "says": "Three talons, and Feyla's word on you. The isle breeds hunters. Go home and tell your elder."
+    },
+    "final": {
+      "journal": "Return to Elder Ssharu on Kerra Isle.",
+      "says": "You crossed as a cub and came home a hunter. The isle has one more thing to give you."
+    }
   }
 }

@@ -1718,10 +1718,20 @@ func checkNewChar(race, class, sex, hairColor, hairLength, hairStyle, face, city
 	return ""
 }
 
+// listRecordMost is the most bytes a 0x002C record takes: a name's u32 and 24
+// bytes at most, nine zigzags of at most 10 bytes, the live look's 71 bytes of
+// gear (entity.LiveGearSize), with room to spare.
+const listRecordMost = 256
+
 // SendCharacterSelectEQOA sends the character list (opcode 0x2C).
 func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeCharacterSelect)
-	writer := buffer.NewWriter(msg.Span())
+	// a buffer of its own: a message's (protocol.DefaultMessageSize, 1,300
+	// bytes) holds 13 of the live look's records, and a list of more
+	// (world.max_characters, charslots.go) was cut there; the queue splits
+	// a longer message into segments (session/queue.go)
+	listBuf := make([]byte, 256+entity.MaxCharSlots*listRecordMost)
+	writer := buffer.NewWriter(listBuf)
 
 	// Write opcode in data (C# reference format: writer.Write(message.Opcode);)
 	writer.WriteUint16(uint16(protocol.OpcodeCharacterSelect))
@@ -1816,12 +1826,12 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 		}
 	}
 
-	msg.SetSize(writer.Position())
+	msg.SetData(listBuf[:writer.Position()])
 	sess.Queue().AddWithSequence(msg)
 
 	log.Printf("Sent character list (%d chars, %d bytes%s) to %s",
 		len(records), writer.Position(), map[bool]string{true: ", the live look"}[sess.LiveLook()], sess.RemoteAddr())
-	log.Printf("CharacterList hex dump: %x", msg.Span()[:writer.Position()])
+	log.Printf("CharacterList hex dump: %x", msg.Data())
 
 	// The live look's offer, after the list, so a PS2's list keeps the
 	// sequence number it always had (livelook.go); then creation's, where it

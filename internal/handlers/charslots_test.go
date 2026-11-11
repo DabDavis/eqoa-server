@@ -234,4 +234,19 @@ func TestCreationCapByClient(t *testing.T) {
 	if create(van, "Vatwentyone") {
 		t.Fatal("vanilla made a 21st")
 	}
+
+	// its list of 20 in the live look (about 2 KB, past a message's 1,300
+	// bytes, where it was cut): whole, in the queue's segments
+	van.SetLiveLook(true)
+	mark := len(van.Queue().PeekPending())
+	h.SendCharacterSelectEQOA(van)
+	var list []byte
+	for _, m := range van.Queue().PeekPending()[mark:] {
+		if m.Opcode == protocol.OpcodeCharacterSelect {
+			list = append(list, m.Data()...)
+		}
+	}
+	if names := listNamesOf(t, list, entity.LiveGearSize); len(names) != 20 || names[19] != "Va"+letters(19) {
+		t.Fatalf("a list of 20 (%d bytes): %v", len(list), names)
+	}
 }

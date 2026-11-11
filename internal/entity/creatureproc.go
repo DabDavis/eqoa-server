@@ -19,9 +19,9 @@ import (
 //   - A proc (database.AbilityProc) rolls at each of its melee hits that lands: its pinned spell's proc,
 //     as a buff's proc on a pet is (proc.go: the figure of its proc line, a range rolled, a bearer's
 //     scale taken from three a level as a pet's every stat is; the chance its spell names, else a pet's
-//     of its level under it as it was until 2026-11-11: 3% and 1 more for each 20 of a pet's INT, three
-//     a level, at most 25%: 13% at Innoruuk's 70; creatureProcChancePct), cut by its spell's resist; or
-//     one of its own figures (proc_chance, proc_damage, proc_name, resist). Largesse of Plague (700794, the necromancer's pet buff) is a proc of 650
+//     of its level under it (proc.go's INT rule, the beta sheet's: 25% and 1 more for each 10 of a pet's
+//     INT, three a level; the owner, 2026-11-11, "creatures too": Innoruuk's 46% at 70, 13% before),
+//     cut by its spell's resist; or one of its own figures (proc_chance, proc_damage, proc_name, resist). Largesse of Plague (700794, the necromancer's pet buff) is a proc of 650
 //     disease, DR.
 //   - A veil (database.AbilityVeil) is at every melee hit that lands, not a share of them: a tap of
 //     TapPct percent of its own most hit points (1% of Innoruuk's 500,002: 5,000), so a change of its
@@ -128,12 +128,10 @@ func (p *templateProc) chanceFor(npc *NPC) int {
 }
 
 // creatureProcChancePct is the chance a creature's proc of no chance of its own fires, at its level: a
-// pet's of that level under the rule before the beta sheet's INT rule (proc.go, 2026-11-11), kept so for
-// a creature (Innoruuk's 13% at 70, where the sheet's would make 46%): the sheet speaks of a player's
-// buff, and a boss's proc is the owner's to retune (the stat-rules lane's report). It is the weapon
-// proc's figures (weaponProcChancePct) on a pet's INT, three a level.
+// pet's of that level, proc.go's INT rule on three INT a level (the owner, 2026-11-11: "creatures too";
+// Innoruuk's Largesse 13% to 46% at 70).
 func creatureProcChancePct(level int) int {
-	return weaponProcChancePct(petIntPerLvl * level)
+	return procChancePct(petIntPerLvl * level)
 }
 
 // rollFor is one of the proc's figures for npc: its range rolled on the template's dice, a bearer's scale

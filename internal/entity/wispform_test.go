@@ -132,3 +132,30 @@ func TestAMortalWispLosesItsWispFromTheLooks(t *testing.T) {
 		t.Error("the glamours ended: every wisp back")
 	}
 }
+
+// The Wisp's rows as tools/wisp_kit_20261111.py writes them parse to their
+// figures and are listed for race 31 alone (its bit, 1 << 31), any class; the
+// control: the human (race 0), whose mask is 1, and the Jal'Raeth (30).
+func TestTheWispsMasteriesAreTheWisps(t *testing.T) {
+	withWispRace(t)
+	row := func(id, cat int, effects string) database.CMRankRow {
+		return database.CMRankRow{ID: id, Category: cat, Classes: 32767, Races: 1 << 31, Effects: effects, Enabled: true}
+	}
+	will := ParseCMRank(row(2141, 1, "PoT:10"))
+	mc := ParseCMRank(row(2143, CMCategoryMaster, "DEXMax:50,INTMax:25,WISMax:25,Pow:500,STRMax:-25,STAMax:-25,AGIMax:-25,AC:-250"))
+	if will.Effects[cmSlotPoT] != 10 {
+		t.Errorf("Will-of-the-Wisp: %v", will.Effects)
+	}
+	e := mc.Effects
+	if e[10] != 50 || e[12] != 25 || e[11] != 25 || e[cmSlotPower] != 500 || e[7] != -25 || e[8] != -25 || e[9] != -25 || e[cmSlotAC] != -250 {
+		t.Errorf("Transcendent: %v", e)
+	}
+	for class := 0; class < 15; class++ {
+		if !will.OfferedTo(class, 31) || !mc.OfferedTo(class, 31) {
+			t.Errorf("a Wisp of class %d is not offered them", class)
+		}
+	}
+	if will.OfferedTo(0, 0) || will.OfferedTo(0, 30) || mc.OfferedTo(13, 0) {
+		t.Error("the controls: a human or a Jal'Raeth is offered the Wisp's")
+	}
+}

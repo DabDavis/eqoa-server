@@ -419,7 +419,7 @@
    "factions_required": [
     [
      "Soldiers of Rallos Zek",
-     0
+     -350
     ]
    ]
   },
@@ -724,7 +724,7 @@
    "factions_required": [
     [
      "Mithaniel Marr's Crusaders",
-     0
+     -350
     ]
    ]
   },

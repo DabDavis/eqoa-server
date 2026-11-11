@@ -183,7 +183,7 @@ func (w *World) npcStatsLocked(npc *NPC, viewer *Player, now time.Time) []string
 	}
 	extra := npcReachExtra(npc)
 	out = append(out, fmt.Sprintf("Reach %.1f%+.0f; attacks on sight: %s (within %.0f); leash %.0f, roams within %.0f",
-		meleeReach, extra, yesNo(w.hostileLocked(npc)), npc.AggroRadius, npc.LeashRadius, npc.RoamRadius))
+		meleeReach, extra, yesNo(w.hostileLocked(npc)), npc.AggroRadius, w.leashLocked(npc), npc.RoamRadius))
 	if f, ok := w.factionAggroLocked(npc); ok && viewer != nil {
 		// of a faction, its body counts for nothing: the viewer's standing
 		// decides (aggro.go), and the line above is what it would do without

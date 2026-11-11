@@ -26,7 +26,7 @@ import (
 //     is out of reach are lost (the next round begins in reach);
 //   - in reach, fights its rounds (rounds.go), turned to its enemy every
 //     tick, and once it has closed in, stands;
-//   - gives up past its leash (LeashRadius from where the fight began, 300
+//   - gives up past its leash (leashLocked from where the fight began, 300
 //     for every NPC loaded: F3 20261027-170731, jib's "at least 3 times the
 //     range" of the 100 it was, which PoD's Twins left after about 30 m) or
 //     when its enemy is far off or gone to another world: its threats are
@@ -87,6 +87,23 @@ const npcGiveUp float32 = 300
 // DefaultLeash is the leash of an NPC that has none set, and of every NPC
 // loaded (ours: three times the 100 it was, F3 20261027-170731).
 const DefaultLeash float32 = 300
+
+// leashLocked is how far npc follows from where its fight began: a town
+// guard's after a creature (guards.go), else a GM's npcaggro leash for its
+// name (petition 1535), else its own, else DefaultLeash. Must be called with
+// the lock held.
+func (w *World) leashLocked(npc *NPC) float32 {
+	if g := w.guardLeashLocked(npc); g > 0 {
+		return g
+	}
+	if l := w.aggro.leashFor(npc.Name); l > 0 {
+		return l
+	}
+	if npc.LeashRadius > 0 {
+		return npc.LeashRadius
+	}
+	return DefaultLeash
+}
 
 // chaseState is a fight's movement: where it began (the leash's centre, and
 // home after it), its last step, and the way home.
@@ -220,13 +237,7 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 	npc.chase.heldSince = time.Time{}
 	dt := npc.chaseStepDT(now)
 	d := distXZ(npc.X, npc.Z, x, z)
-	leash := npc.LeashRadius
-	if leash <= 0 {
-		leash = DefaultLeash
-	}
-	if g := w.guardLeashLocked(npc); g > 0 {
-		leash = g // a town guard after a creature (guards.go)
-	}
+	leash := w.leashLocked(npc)
 	if d > npcGiveUp || distXZ(npc.X, npc.Z, npc.chase.fromX, npc.chase.fromZ) > leash {
 		return false, true
 	}

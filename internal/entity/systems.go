@@ -174,7 +174,7 @@ func (w *World) aiSystem(now time.Time) {
 			}
 			continue
 		}
-		if npc.tmpl != nil && (len(npc.tmpl.summons) > 0 || npc.tmpl.enrage != nil || len(npc.tmpl.selfBuffs) > 0) {
+		if npc.tmpl != nil && (len(npc.tmpl.summons) > 0 || npc.tmpl.enrage != nil || npc.tmpl.lastStand != nil || len(npc.tmpl.selfBuffs) > 0) {
 			phased = append(phased, npc)
 		}
 

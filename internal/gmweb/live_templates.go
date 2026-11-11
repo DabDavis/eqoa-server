@@ -23,6 +23,7 @@ const classTemplateAbilitiesHelp = `a JSON list, each {"kind": nuke | aoe | life
 	`proc (a creature's melee proc on every fight: "spell"/"spell_id" a proc buff whose proc it has at a pet's chance of its level, the buff cast on itself as its fight begins and again at the buff's time, or "proc_chance", "proc_damage", "proc_name", "resist"; "fx" its look at what each proc hits) | ` +
 	`veil (a creature's: at every melee hit that lands, "tap_pct" % of its own most hit points taken from what it hit into itself, cut by "resist"; "fx" its look at what each tap hits (none: no look), "name", or "spell"/"spell_id" a buff of that name cast on itself as its fight begins and again at its time) | ` +
 	`killsay (a creature's: "say" its line in /say when a hit of its own kills one of "foes", names) | ` +
+	`laststand (a creature's, once a fight at "below" % or under while a non-player (a pet, a mercenary, an NPC) alive on its hate list is hitting it: healed to full, its damage "damage_pct" % (200 doubled) for the rest of that fight; "say" its line) | ` +
 	`"every": seconds from one cast's start to the next (2-3600), "first": seconds into a fight before the first, ` +
 	`"chain": true to cast it as soon as the ability before it is cast (its clock then unused), ` +
 	`"chance": % of its due casts (100), "damage_pct": % of its spell's figures (100), ` +

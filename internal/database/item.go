@@ -69,6 +69,38 @@ func (p *ItemPatternRecord) ProcSource() (name, desc string) {
 	return p.ItemName, p.ItemDesc
 }
 
+// CLIENT's item type, VIItem +0x4C, itempattern.procanim (Return Home's import
+// named the column; it is no animation and no proc). What CLIENT does with it:
+// VIInfoText::IsUsable (2, 5, 7, 8: the HUD's usable items menu lists it, with
+// Use), VIWndItemMenu::AssignSlot (2 goes on quick slot 1 or 2, 7 on slot 3),
+// VIWndGame::SetMenu0310Item (5's menu has no Prepare), VIInfoText::IsCharged
+// (8 is never "charged"), and any type but 0 shows the race, class and level
+// lines in an item's info as a worn item's do.
+const (
+	ItemTypePlain     = 0
+	ItemTypeUsable    = 2 // food, drink, potions: quick slots 1-2
+	ItemTypeNoPrepare = 5
+	ItemTypeGem       = 7 // the fang, the portals, the rock: quick slot 3 (and the live client's 4th)
+	ItemTypeUsable8   = 8
+)
+
+// ItemTypeWord is one item type the panel names (gmweb's catalog).
+type ItemTypeWord struct {
+	Value      int
+	Name, Help string
+}
+
+// ItemTypeWords are the item types CLIENT acts on (ItemType* above). Any
+// other value is no type CLIENT names: it acts as a type but 0 does (the
+// info's race, class and level lines) and nothing more.
+var ItemTypeWords = []ItemTypeWord{
+	{ItemTypePlain, "Plain", "no use: equipment, loot, tokens"},
+	{ItemTypeUsable, "Usable: food, drink, potion", "listed with Use; Prepare puts it on quick slot 1 or 2"},
+	{ItemTypeNoPrepare, "Usable, no quick slot", "listed with Use; its menu has no Prepare"},
+	{ItemTypeGem, "Usable: gem / clicky", "listed with Use; Prepare puts it on quick slot 3 (the fang, the portals)"},
+	{ItemTypeUsable8, "Usable (8)", "listed with Use; never counted as charged (VIInfoText::IsCharged)"},
+}
+
 // ItemPatternStore queries the itempattern table.
 type ItemPatternStore struct {
 	db *SQLiteDB

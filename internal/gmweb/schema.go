@@ -39,6 +39,9 @@ type Column struct {
 	// the columns the server itself writes unsigned). The game takes the low
 	// 32 bits of either; the page writes the column's own form.
 	Store string `json:"store,omitempty"`
+	// Unit is what the number counts (tunar, seconds, percent, world units),
+	// said beside it.
+	Unit string `json:"unit,omitempty"`
 }
 
 // Table is one table.

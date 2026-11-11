@@ -226,6 +226,8 @@ type World struct {
 	companionsAt int
 	// Every item's use, and the hooks that give and take potions (potion.go)
 	potions potionTable
+	// A ranged weapon's shot's power (rangedpower.go)
+	rangedPower rangedPower
 	// Where the water is (water.go), and how the creatures of a name move,
 	// table npcmove (movement.go)
 	env         Env

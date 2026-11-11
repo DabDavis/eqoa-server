@@ -6,23 +6,23 @@ import (
 	"time"
 )
 
-// Petition 1489: a potion thrown by Use costs 20% of its thrower's most power
-// (1,025: 205), and with less than that it is refused, told, nothing thrown;
+// Petitions 1489 and 1581: a potion thrown by Use costs 10% of its thrower's
+// most power (1,025: 103), and with less than that it is refused, told, nothing thrown;
 // world.throw_power_pct sets the share (25: 256), 0 none.
 func TestAThrowCostsPower(t *testing.T) {
 	c := newCaster(t)
 	c.npc.HP, c.npc.MaxHP = 100, 100
-	c.p.Power = 300
+	c.p.Power = 150
 	if r := c.use(t, thrown(), c.npcO, 0); r != "" {
 		t.Fatalf("refused: %q", r)
 	}
-	if c.p.Power != 95 || c.npc.HP != 80 {
-		t.Errorf("after a throw: %d power, the creature at %d; want 95, 80", c.p.Power, c.npc.HP)
+	if c.p.Power != 47 || c.npc.HP != 80 {
+		t.Errorf("after a throw: %d power, the creature at %d; want 47, 80", c.p.Power, c.npc.HP)
 	}
 	if r := c.use(t, thrown(), c.npcO, time.Second); r != ThrowNoPower {
-		t.Errorf("95 power for a 205 throw: %q, want %q", r, ThrowNoPower)
+		t.Errorf("47 power for a 103 throw: %q, want %q", r, ThrowNoPower)
 	}
-	if c.p.Power != 95 || c.npc.HP != 80 {
+	if c.p.Power != 47 || c.npc.HP != 80 {
 		t.Errorf("refused, yet %d power, the creature at %d", c.p.Power, c.npc.HP)
 	}
 
@@ -45,7 +45,7 @@ func TestAThrowCostsPower(t *testing.T) {
 func TestAnAutoAttackThrowCostsPower(t *testing.T) {
 	c := newCaster(t)
 	c.npc.HP, c.npc.MaxHP = 100, 100
-	c.p.Power = 300
+	c.p.Power = 150
 	c.w.SetPotionEffects([]PotionEffect{thrown()})
 	swing := Swing{Kind: 8, Delay: 3500 * time.Millisecond, Reach: 20, Potion: thrownID, PotionLeft: 3}
 	if !c.w.EngageAttack(c.sess, c.npcO, swing, c.at(0)) {
@@ -59,13 +59,13 @@ func TestAnAutoAttackThrowCostsPower(t *testing.T) {
 	}
 	round(250 * time.Millisecond)
 	round(800 * time.Millisecond)
-	if c.npc.HP != 80 || c.p.Power != 95 || c.p.Swing.PotionLeft != 2 {
-		t.Fatalf("one throw: the creature at %d, %d power, %d left; want 80, 95, 2", c.npc.HP, c.p.Power, c.p.Swing.PotionLeft)
+	if c.npc.HP != 80 || c.p.Power != 47 || c.p.Swing.PotionLeft != 2 {
+		t.Fatalf("one throw: the creature at %d, %d power, %d left; want 80, 47, 2", c.npc.HP, c.p.Power, c.p.Swing.PotionLeft)
 	}
 	round(3750 * time.Millisecond)
 	round(4300 * time.Millisecond)
-	if c.npc.HP != 80 || c.p.Power != 95 || c.p.Swing.PotionLeft != 2 || c.p.AttackTarget != 0 {
-		t.Errorf("short of power: the creature at %d, %d power, %d left, fighting %d; want 80, 95, 2, none",
+	if c.npc.HP != 80 || c.p.Power != 47 || c.p.Swing.PotionLeft != 2 || c.p.AttackTarget != 0 {
+		t.Errorf("short of power: the creature at %d, %d power, %d left, fighting %d; want 80, 47, 2, none",
 			c.npc.HP, c.p.Power, c.p.Swing.PotionLeft, c.p.AttackTarget)
 	}
 	if red := redLines(c.sess); len(red) == 0 || red[len(red)-1] != ThrowNoPower {

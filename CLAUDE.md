@@ -1793,6 +1793,10 @@ tall; colour rows skin, hair, tail and shells (the women's), rects of their one 
 bodies (`swimmerbody.go`: no walk and no swing of their own), so **a player in one is sent treading water and swimming**
 (the channel's byte 58 through `bodyLoco`, as an NPC's), and every viewer's swing on it plays its attack (44); vanilla
 does the same for the player's own character (`seabody`). Its home is Erud's Crossing (world 10's 23rd zone, Odus 10).
+**In water a Mermaid moves at Spirit of the Wolf's speed** (petition 1650, Jibrish: "detect if its in water and swim at SoW
+speed by default"; `entity/seaspeed.go`): a race whose own body is a sea creature's, while its client's walk flags say it is in a
+liquid or at its surface, has MoveRate's 100 (SpeedNow 1.3 x its run speed), told by 0x00F8 when it changes; it does not stack with
+SoW (the rate stops at 100), and the move judge reads the same SpeedNow.
 **A Wisp in its own form shows nothing worn but its cape** (`entity/wispform.go`, the owner's of 2026-11-11): the channel's
 held items, armour, tints and robe zeroed (attack types kept, a ctf banner kept) and the character list's gear bare, so
 vanilla draws the wisp and its cape alone and a PS2 a bare human with empty hands; in any other body (a glamour, a GM's

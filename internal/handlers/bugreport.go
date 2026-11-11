@@ -196,11 +196,18 @@ func cleanNote(s string) string {
 // told; via says how it came ("support", "chat"). It is refused by the store,
 // or by the account's limit (errReportLimit).
 func (h *SupportHandler) fileTicket(sess *session.Session, me *entity.Player, cat, sub int64, text, via string, now time.Time) (database.Petition, error) {
+	return h.fileTicketWith(sess, me, cat, sub, text, via, now, nil)
+}
+
+// fileTicketWith is fileTicket with more of the server view's fields set (more,
+// when not nil: a portal's, gmportal.go).
+func (h *SupportHandler) fileTicketWith(sess *session.Session, me *entity.Player, cat, sub int64, text, via string, now time.Time,
+	more func(v *serverView)) (database.Petition, error) {
 	if !h.isGM(sess) && !h.limit.allow(sess.AccountID(), now) {
 		return database.Petition{}, errReportLimit
 	}
 	c, s := CSNames(cat, sub)
-	view := h.serverView(sess, me, via, now)
+	view := h.serverViewWith(sess, me, via, now, more)
 	p, err := h.store.FilePetition(database.Petition{ServerID: me.CharServerID, CharName: me.Name,
 		AccountID: sess.AccountID(), Category: cat, Subcategory: sub, ServerView: view,
 		Text: fmt.Sprintf("Your request (%s / %s) has been received:\n\n%s", c, s, database.PetitionText(text))}, now)

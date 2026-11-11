@@ -2,7 +2,7 @@
   "race": "jalraeth",
   "home": "Envar",
   "city": "Highbourne",
-  "note": "The silent order round the old temple of Envar. Its people are tools/worlds/homelands.json's (Envar): Elder Ithrael, on the road before the temple's east door, gives the first two; Watcher Vaeris, a few steps south of him, the three hunts; Artificer Maelis, on the road's north side, is the outfitter; Coachman Therun keeps the stable a few steps north-east (his coach runs to Freeport and to the other homes). The ash grubs (the dead hills to the east), the cinder adders (the low hills to the north-east) and the Hollow Pilgrim, one of the temple's dead that wandered out (the hill beyond the grubs), are placed for these quests. The Jal'Raeth speak little, and of stillness. Highbourne stands on Tunaria's west coast: the flight's words name no land across the sea.",
+  "note": "The silent order round the old temple of Envar. Its people are tools/worlds/homelands.json's (Envar): Elder Ithrael, on the road before the temple's east door, gives the first two; Watcher Vaeris, a few steps south of him, the three hunts; Artificer Maelis, on the road's north side, is the outfitter; Coachman Therun keeps the stable a few steps north-east (his coach runs to Freeport and to the other homes). The ash grubs (the dead hills to the east), the cinder adders (the low hills to the north-east) and the Hollow Pilgrim, one of the temple's dead that wandered out (the hill beyond the grubs), are placed for these quests. The Jal'Raeth speak little, and of stillness. Highbourne stands on Tunaria's west coast: the flight's words name no land across the sea. Levels 7-20 (2026-11-11): Watcher Vaeris gives L7-L15, Elder Ithrael the L20 path; their objectives are on the Homelands' shared ground, the Goldfeather Eyrie (Therun's coach): badger pelts and drift rat fur, Maelis's shaft and rime spider silk, five frostpaw cubs (no more), the Rimeheart's shard for the order to study, then a vigil with Spiritmaster Oswin and Scout Feyla's raiders.",
   "L1": {
     "name": "A Novice's Prayer Beads",
     "giver": "Elder Ithrael",
@@ -172,5 +172,178 @@
     "declined": "The door will wait.",
     "started": "Drift well, and keep your mind still!",
     "journal": "Tell Gatekeeper Tavrin when you are ready to go to Highbourne."
+  },
+  "L7": {
+    "name": "Two Tasks in the Cold",
+    "giver": "Watcher Vaeris",
+    "offer": [
+      "The order sends its novices into the cold once, to learn that stillness is not sleep. The Homelands keep an outpost on the frozen river under the Goldfeather Eyrie.",
+      "Ride Therun's coach there. Take two badger pelts and a clump of drift rat fur from the snow east of the outpost. Do not hurry.",
+      "Will you do the two tasks?"
+    ],
+    "accept": "I will do them.",
+    "decline": "Not now.",
+    "declined": "The cold will wait. It always does.",
+    "started": "Breathe slowly. The cold is only loud.",
+    "hunts": [
+      {
+        "target": "snowfield badger",
+        "count": 2,
+        "drop": {
+          "name": "snowfield badger pelt",
+          "description": "The thick pelt of a snowfield badger of the Goldfeather Eyrie.",
+          "like": "beast pelt"
+        },
+        "hunt": {
+          "journal": "Take two snowfield badger pelts from the badgers on the snow east of the Eyrie outpost."
+        }
+      },
+      {
+        "target": "drift rat",
+        "count": 1,
+        "drop": {
+          "name": "drift rat fur",
+          "description": "A clump of white fur from a drift rat of the Goldfeather Eyrie's snow.",
+          "like": "clump of rat fur"
+        },
+        "hunt": {
+          "journal": "Take a clump of drift rat fur from the drift rats east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring the two badger pelts and the drift rat fur to Watcher Vaeris.",
+      "says": "Two pelts and a clump of fur, and your breath still even. The cold taught you. Now watch, and learn this."
+    }
+  },
+  "L10": {
+    "name": "A Tool for the Road",
+    "giver": "Watcher Vaeris",
+    "offer": [
+      "The tool I gave you served a novice. You need a better one. Do not grow fond of this one either.",
+      "Artificer Maelis has a shaft for me. Then take two skeins of silk from the rime spiders north-east of the Eyrie outpost, to bind it.",
+      "Will you bring me the shaft and the silk?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then the old tool must do. Tools usually do.",
+    "started": "A shaft from Maelis, silk from the spiders. Be patient with both.",
+    "materials": [
+      {
+        "merchant": "Artificer Maelis",
+        "items": [
+          "wooden shaft"
+        ],
+        "journal": "Ask Artificer Maelis for the wooden shaft Vaeris set aside.",
+        "says": "For Vaeris, again. Here. Cut straight, and dried a full season. A tool is only as still as the hand that holds it."
+      }
+    ],
+    "target": "rime spider",
+    "count": 2,
+    "drop": {
+      "name": "rime spider silk",
+      "description": "A skein of frosted silk from a rime spider of the Goldfeather Eyrie.",
+      "like": "Black Widow Silk"
+    },
+    "hunt": {
+      "journal": "Take two skeins of silk from the rime spiders north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the wooden shaft and the rime spider silk to Watcher Vaeris.",
+      "says": "Shaft and silk. Be patient a moment... there. It is yours. Use it, and do not name it."
+    }
+  },
+  "L13": {
+    "name": "Hunger in the Snow",
+    "giver": "Watcher Vaeris",
+    "offer": [
+      "There is too much hunger on the snow north of the Eyrie outpost. The frostpaw cubs grow, and the snow's game thins, and the outpost's hunters go hungry.",
+      "We take nothing for sport. Thin them by five, no more, and the snow will be still again.",
+      "Will you thin the frostpaw cubs?"
+    ],
+    "accept": "I will thin them.",
+    "decline": "Not yet.",
+    "declined": "Then the hunger grows.",
+    "started": "Five. Count them, and stop at five.",
+    "kind": "kill",
+    "target": "frostpaw cub",
+    "count": 5,
+    "hunt": {
+      "journal": "Kill five frostpaw cubs on the snow north of the Eyrie outpost."
+    },
+    "back": {
+      "journal": "Return to Watcher Vaeris.",
+      "says": "Five, and you stopped. That is harder than it sounds. Learn this."
+    }
+  },
+  "L15": {
+    "name": "The Unmelting Shard",
+    "giver": "Watcher Vaeris",
+    "offer": [
+      "Something in the ice caves north-east of the Eyrie outpost does not rest. The hunters call it the Rimeheart. It is old, and it is never still.",
+      "The order would study such a thing. Break it, and bring me a shard. Ice that does not melt has something to teach.",
+      "Will you bring me a shard of the Rimeheart?"
+    ],
+    "accept": "I will bring one.",
+    "decline": "Not yet.",
+    "declined": "It will still be there. That is its trouble.",
+    "started": "Go with others. Stillness is not standing alone.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the shard of the Rimeheart to Watcher Vaeris.",
+      "says": "It is cold even through the cloth. The order will sit with it a long while. You have done well. Learn this."
+    }
+  },
+  "L20": {
+    "name": "The Vigil at the Eyrie",
+    "giver": "Elder Ithrael",
+    "offer": [
+      "Vaeris says you are a novice no longer. Each of the order keeps one vigil far from Envar, among other peoples, so that it learns its stillness is its own.",
+      "Sit with Spiritmaster Oswin at the Eyrie outpost, then go where Scout Feyla needs you. When it is done, return, and choose your path.",
+      "Will you keep the vigil?"
+    ],
+    "accept": "I will keep it.",
+    "decline": "Not yet.",
+    "declined": "A vigil kept too soon is only waiting.",
+    "started": "Be still. Then go.",
+    "road": [
+      {
+        "target": "Spiritmaster Oswin",
+        "journal": "Sit the vigil with Spiritmaster Oswin at the Eyrie outpost.",
+        "says": "A Jal'Raeth, come to sit with me? Sit, then. ... Good. The scout on the river has need of a steady hand. Go to Feyla."
+      },
+      {
+        "target": "Scout Feyla",
+        "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+        "says": "Oswin sent you? Then you will not panic. The Goldfeather raiders carry war-talons. Bring me three."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 3,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "journal": "Bring the three war-talons to Scout Feyla.",
+      "says": "Three. And not a word wasted. Go home, quiet one. Your elder will want to hear it, though you will not say much."
+    },
+    "final": {
+      "journal": "Return to Elder Ithrael at Envar.",
+      "says": "The vigil is kept. You went out into the noise and came back still. The order has one more thing to give you."
+    }
   }
 }

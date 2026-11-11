@@ -34,6 +34,10 @@ type serverView struct {
 	Quests []QuestState `json:"quests,omitempty"`
 	Lines  []viewLine   `json:"lines,omitempty"`
 	Marks  []viewMark   `json:"marks,omitempty"`
+	// a crash report's (crashreport.go): the client's report whole, and the
+	// server's own record of the client stopping, when it kept one
+	Crash   string              `json:"crash,omitempty"`
+	Stopped *session.ClientStop `json:"stopped,omitempty"`
 }
 
 // viewMark is one of the filer's marks (/mark), numbered as /marks numbers
@@ -128,6 +132,12 @@ func discName(v byte) string {
 // serverView is the view of sess's character now, as JSON ("" when it cannot
 // be made: the petition is kept without it).
 func (h *SupportHandler) serverView(sess *session.Session, me *entity.Player, via string, now time.Time) string {
+	return h.serverViewWith(sess, me, via, now, nil)
+}
+
+// serverViewWith is serverView with more of its fields set (more, when not
+// nil) before it is made JSON.
+func (h *SupportHandler) serverViewWith(sess *session.Session, me *entity.Player, via string, now time.Time, more func(v *serverView)) string {
 	v := serverView{
 		Filed: now.UTC().Format(time.RFC3339),
 		Via:   via,
@@ -156,6 +166,9 @@ func (h *SupportHandler) serverView(sess *session.Session, me *entity.Player, vi
 			v.Marks = append(v.Marks, viewMark{N: i + 1, World: m.World, X: m.X, Y: m.Y, Z: m.Z, Facing: m.Facing,
 				Note: m.Note, Char: m.CharName, At: m.At})
 		}
+	}
+	if more != nil {
+		more(&v)
 	}
 	b, err := json.Marshal(v)
 	if err != nil {

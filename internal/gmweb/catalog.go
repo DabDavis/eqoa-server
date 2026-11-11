@@ -935,13 +935,16 @@ var catalog = map[string]tableNote{
 			"a creature (a body no player race has, not an NPC-bit NPC) standing outside the towns attacks a player " +
 			"below three times its level who comes within 30, and shows that player the red face; townsfolk, guards " +
 			"and bandits with players' bodies do not. aggressive 1 makes every NPC of the name attack on sight, 0 never; " +
-			"radius how near (0: 30). An NPC with the NPC bit (0x80) never does: no one may attack it.",
-		Live:   "At once: the next look round (half a second) and the next target box use it.",
+			"radius how near (0: 30); -1 leaves aggro to the rules, as with no row (a row for its leash alone). " +
+			"leash: how far from where a fight began they follow before going home (0: 300; a town guard after a " +
+			"creature keeps its 100). An NPC with the NPC bit (0x80) never does: no one may attack it.",
+		Live:   "At once: the next look round (half a second), the next target box and the next step of a chase use it.",
 		Search: []string{"npc_name", "note"},
 		Cols: map[string]colNote{
 			"npc_name":   {Label: "NPC name", Help: "as in NPCs, exactly (a trailing space included)"},
-			"aggressive": {Label: "Attacks on sight", Help: "1 yes, 0 never"},
+			"aggressive": {Label: "Attacks on sight", Help: "1 yes, 0 never, -1 as the rules (no row): for a leash alone"},
 			"radius":     {Label: "Radius", Help: "how near a player must come; 0 the default, 30"},
+			"leash":      {Label: "Leash", Help: "how far from where a fight began they follow; 0 the default, 300"},
 			"note":       {Label: "Note"},
 			"source":     {Label: "Source", Help: "gm, or seed for tools/seed_npc_aggro.py's rows (its --undo deletes those)"},
 		},

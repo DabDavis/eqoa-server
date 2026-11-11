@@ -924,6 +924,9 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// and links to items in chat lines (itemlinks.go): a client that takes
 	// them answers, a PS2 ignores it and is sent the item's name in the line
 	SendItemLinksOffer(sess)
+	// and the profanity filter set from the client's own setting
+	// (profanity.go, petition 1490): a PS2 ignores it, its filter on
+	SendProfanityChoiceOffer(sess)
 
 	// Offer quest marks for the map (questmarks.go): a client that draws them
 	// asks, a PS2 ignores it

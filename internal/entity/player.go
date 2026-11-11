@@ -223,7 +223,8 @@ type Player struct {
 	RoundHits     int
 
 	// ProfanityFilterOff: the player turned the profanity filter off
-	// (handlers/profanity.go, opcode 0x0045); it is on at every login.
+	// (handlers/profanity.go: opcode 0x0045, /filter, or its client's setting
+	// by OpcodeProfanityChoice); it is on at every login.
 	ProfanityFilterOff bool
 
 	// PowerBars: the player's client draws others' power bars and asked

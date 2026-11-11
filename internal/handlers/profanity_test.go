@@ -91,3 +91,52 @@ func TestSlashFilterTurnsItOver(t *testing.T) {
 		t.Fatalf("a plain line: %v", got)
 	}
 }
+
+// The client's setting (OpcodeProfanityChoice, petition 1490) sets the
+// hearer's filter, never turns it over: 0 off (the line as said), 0 again
+// still off, 1 on (masked); nothing is answered, and the speaker's own filter
+// does not change what another hears. The controls: a short answer changes
+// nothing, and Bob, who never answered (a PS2), keeps his on.
+func TestProfanityChoiceSetsTheHearersFilter(t *testing.T) {
+	c := newChatWorld(t)
+	as, _ := c.join(1, "Ann", 100, 100, 0)
+	bs, _ := c.join(2, "Bob", 110, 110, 0)
+	cs, cp := c.join(3, "Cid", 120, 120, 0)
+	if got := buildProfanityChoiceOffer(); string(got) != "\x60\x7e\x01" {
+		t.Fatalf("the offer: % x", got)
+	}
+	choose := func(b ...byte) {
+		t.Helper()
+		if err := c.h.HandleProfanityChoice(cs, incoming(protocol.OpcodeProfanityChoice, b)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	choose()
+	if cp.ProfanityFilterOff {
+		t.Fatal("a short answer turned the filter off")
+	}
+	choose(0)
+	choose(0, 9)
+	if !cp.ProfanityFilterOff {
+		t.Fatal("0 left the filter on")
+	}
+	if got := cs.Queue().GetPending(); len(got) != 0 {
+		t.Fatalf("the choice was answered: %d messages", len(got))
+	}
+	c.say(as, "well shit")
+	if got := texts(heard(t, cs)); len(got) != 1 || got[0] != "Ann: well shit" {
+		t.Fatalf("Cid (off by his setting) heard %v", got)
+	}
+	if got := texts(heard(t, bs)); len(got) != 1 || got[0] != "Ann: well ****" {
+		t.Fatalf("Bob (no setting) heard %v", got)
+	}
+	cs.Queue().GetPending()
+	choose(1)
+	if cp.ProfanityFilterOff {
+		t.Fatal("1 left the filter off")
+	}
+	c.say(as, "well shit")
+	if got := texts(heard(t, cs)); len(got) != 1 || got[0] != "Ann: well ****" {
+		t.Fatalf("Cid (on again) heard %v", got)
+	}
+}

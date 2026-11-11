@@ -121,6 +121,7 @@ func (h *ChatHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeClientShout, h.HandleShoutChat)
 	r.Register(protocol.OpcodeChangeChatMode, h.HandleChangeChatMode)
 	r.Register(protocol.OpcodeProfanityFilter, h.HandleProfanityFilter)
+	r.Register(protocol.OpcodeProfanityChoice, h.HandleProfanityChoice)
 	r.Register(protocol.OpcodeRollRequest, h.HandleRollRequest) // roll.go: the L2 menu's roll
 	// item links (itemlinks.go): the offer's answer, a line with links, a click
 	r.Register(protocol.OpcodeItemLinksOffer, h.HandleItemLinksAnswer)

@@ -361,6 +361,7 @@ func (q *QuestEngine) run() {
 			q.syncProgress()
 		case <-tick.C:
 			q.checkReach()
+			q.checkSurvive() // questsurvive.go: the Trial of Endurance's kind of step
 			q.checkWaiting() // questroom.go: steps that waited for room
 			q.expireSpawns()
 			q.respawnLost() // questevents.go: a spawn-only creature's lost spawns

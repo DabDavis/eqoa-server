@@ -198,6 +198,9 @@ func (q *QuestEngine) progressLocked(l *invList, p *entity.Player, c *questChar)
 			if id, need, ok := st.LootItem(); ok {
 				qp.goals = append(qp.goals, progressGoal{text: name(id), have: cq.Count, need: need})
 			}
+		case st.Kind == database.StepSurvive:
+			// its minutes so far of its whole (questsurvive.go)
+			qp.goals = append(qp.goals, progressGoal{text: "Minutes survived", have: cq.Count / 60, need: max(st.Count, 1) / 60})
 		default:
 			// a reach step (and any other): what the journal says to do
 			if line := strings.TrimSpace(c.say(st.Journal)); line != "" {

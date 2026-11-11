@@ -160,12 +160,21 @@ const QuestSpawnAhead float32 = 4
 // A hostile one may be attacked (the NPC bit 0x80 cleared) and attacks the
 // player at once. It returns the copy's id and the name as the NPC spells it.
 func (w *World) SpawnForQuest(name string, p *Player, hostile bool) (EntityID, string, bool) {
+	return w.SpawnForQuestOf(name, p, hostile, 0, 1)
+}
+
+// SpawnForQuestOf is SpawnForQuest's i-th copy of n (a spawn event's count):
+// the n round the player's front, a step apart, the middle one before it.
+func (w *World) SpawnForQuestOf(name string, p *Player, hostile bool, i, n int) (EntityID, string, bool) {
 	if p == nil {
 		return 0, "", false
 	}
 	w.mu.RLock()
 	x, y, z, world, facing := p.X, p.Y, p.Z, p.World, float64(p.Facing)
 	w.mu.RUnlock()
+	if n > 1 {
+		facing += (float64(i) - float64(n-1)/2) * 0.7
+	}
 	// the facing CLIENT reads: the direction (sin h, cos h) (npcmove.go)
 	sx := x + QuestSpawnAhead*float32(math.Sin(facing))
 	sz := z + QuestSpawnAhead*float32(math.Cos(facing))

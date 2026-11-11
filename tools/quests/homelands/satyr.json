@@ -234,8 +234,8 @@
     "count": 3,
     "drop": {
       "name": "pale owl feather",
-      "description": "A soft white feather from a pale owl of the Goldfeather Eyrie.",
-      "like": "White Owl Feather"
+      "description": "A long white flight feather from a pale owl of the Goldfeather Eyrie.",
+      "like": "ruined owl feathers"
     },
     "hunt": {
       "journal": "Take three pale owl feathers from the pale owls north of the Eyrie outpost."
@@ -264,7 +264,7 @@
     "drop": {
       "name": "frostpaw tuft",
       "description": "A tuft of thick white fur from a frostpaw cub of the Goldfeather Eyrie.",
-      "like": "torn leopard pelt"
+      "like": "Beast Fur"
     },
     "hunt": {
       "journal": "Take three frostpaw tufts from the frostpaw cubs north of the Eyrie outpost, past the river."

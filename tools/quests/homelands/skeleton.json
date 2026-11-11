@@ -191,7 +191,7 @@
         "count": 2,
         "drop": {
           "name": "snowfield badger claw",
-          "description": "A blunt digging claw from a snowfield badger of the Goldfeather Eyrie.",
+          "description": "A long digging claw from a snowfield badger of the Goldfeather Eyrie.",
           "like": "Beast Claw"
         },
         "hunt": {

@@ -1083,11 +1083,19 @@ The owner, 2026-11-11: "lets add player homes, will be in a new world and instan
 to their home. their home is a very small zone with a yard around and a house thats it. add a bulletin board in freeport
 near dabrish that says Real Estate Listings". `claude-notes/player-homes-20261111.md` has the design and what the rig showed.
 
-- **The world**: slot **13, the Homesteads** (`tools/worlds/homesteads.json`): Tunaria zone 100 (cell 2, 9) where it
-  stands, whose green fenced cottage (door to the north, a stone path to a gate) is every home; 9,493,348 bytes, CRC
-  2c61d844, no extras. Its recipe's `"home"` block (`worlds.Recipe.Home`, carried into `world13.json`, read by
-  `ReadHome`): the `door` a player lands at (facing the cottage), the yard's `board`, the `yard` circle (r 50 round the
-  fence: past it a player goes back to the door). `world.homes.enabled` (off by default) with 13 in `server_worlds`.
+- **The world**: slot **13, the Homesteads** (`tools/worlds/homesteads.json`): since the owner's "natural barriers not
+  the tele back to the house ... on a mountain top high and yard is surrounded by a fence or wall not too high and the
+  edges have bboxes blocking the player" (2026-11-11), Tunaria zone 55 (cell 9, 5) where it stands: a crater's rim at
+  280 over a lake valley and its village. On the rim's southern tip stands Tunaria zone 100's green cottage with its
+  own low fence (4.3 high), gate, path and stones, carried there whole as the zone's **extras** and turned to face the
+  valley; outside every side of the fence, its inner face 0.4 off the fence's line, stand **invisible blockers**
+  (CHAR.ESF's collision-only box `0x6F412342`, 30 a side, drawn nowhere: `claude-notes/invisible-blockers-20261029.md`),
+  their bottoms under the lowest ground beneath them, a second box over where the ground falls away. The server's walls
+  and the game's walk both stop at them; **the server moves nobody back** (no yard circle). 9,076,817 bytes, CRC
+  d47debb1, 60 extras. The extras are made by the lane's `homedecor.py` (`~/.cache/phomes1111/tools/`) from the zone 100
+  cottage's actors; the recipe's `"home"` block (`ReadHome`) is the `door` (on the path, facing the cottage) and the
+  yard's `board`; `fence` is a note for tools. A login saved far from the door (150; the old world's place) starts at
+  the door. `world.homes.enabled` (off by default) with 13 in `server_worlds`.
 - **Instances**: `Player.Instance` and `NPC.Instance`, a home's owner's character id; meaningful only in a world marked
   `entity.SetInstancedWorld` (`instanceKey()` is 0 elsewhere, so nothing outside changes). An NPC with an owner (pet,
   merc, merc's pet, familiar, genie, portal) stands in its owner's instance (`npcInstanceLocked`); an NPC of the world's
@@ -1099,6 +1107,10 @@ near dabrish that says Real Estate Listings". `claude-notes/player-homes-2026111
   grouped with the owner (online) a member of its group. `homesSystem` (once a second) sends anyone else out, to where they
   came from (table `charhomestay`: the host and the place before the homes), else in front of Freeport's board; a player
   in world 13 with no instance (a GM's move) goes into its own. Free: no deed, no price.
+- **A server world rebuilt across a keep restart** (session `Kept.ServerWorldCRCs`, `stillHeld`): a kept client held
+  the old file, so the slot is no longer held after the restart (a player in it starts where it came from; the board
+  says its game cannot see it) until its next login builds the new one. A snapshot from before CRCs were kept drops
+  world 13 alone (`rebuiltBeforeCRCs`).
 - **The board** (any NPC named `Real Estate Listings`, `entity.HomesBoardName`; `tools/place_homes_board_20261111.py`
   stands one beside Dabrish and its twin in the yard, the body a `--model` parameter): a box under **mark 0x68000000**:
   Go to my home, Visit a friend's home (the homes the player was invited to and its group's members', five a box, More

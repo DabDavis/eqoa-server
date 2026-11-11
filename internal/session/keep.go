@@ -19,6 +19,7 @@ package session
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"sync/atomic"
 	"time"
@@ -85,6 +86,10 @@ type Kept struct {
 	ServerWorldsOffered bool    `json:"server_worlds_offered,omitempty"`
 	ServerWorldsTaken   bool    `json:"server_worlds_taken,omitempty"`
 	ServerWorlds        []uint8 `json:"server_worlds,omitempty"`
+	// ServerWorldCRCs are the CRCs of those worlds as this server had them built when the session was kept, one a
+	// slot of ServerWorlds (none from a server before 2026-11-11): a world rebuilt across the restart (another
+	// CRC now) is no longer one the client holds, as its file is the old one (ServerWorldCRC)
+	ServerWorldCRCs []uint32 `json:"server_world_crcs,omitempty"`
 
 	Clock *KeptClock `json:"clock,omitempty"`
 	Conn  KeptConn   `json:"conn"`
@@ -225,6 +230,7 @@ func (s *Session) Keep() Kept {
 		ServerWorldsOffered: s.serverWorldsOffered,
 		ServerWorldsTaken:   s.serverWorldsTaken,
 		ServerWorlds:        append([]uint8(nil), s.serverWorlds...),
+		ServerWorldCRCs:     serverWorldCRCs(s.serverWorlds),
 	}
 	if s.clock.ready {
 		k.Clock = &KeptClock{Remote: s.clock.remote, LocalUnix: unixOfTimer(s.clock.local), Blend: s.clock.blend}
@@ -358,7 +364,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 	s.creationOffered = k.CreationOffered
 	s.serverWorldsOffered = k.ServerWorldsOffered
 	s.serverWorldsTaken = k.ServerWorldsTaken
-	s.serverWorlds = append([]uint8(nil), k.ServerWorlds...)
+	s.serverWorlds = stillHeld(k.ServerWorlds, k.ServerWorldCRCs)
 
 	s.capes = k.Capes
 	s.capesOffered = k.CapesOffered
@@ -612,4 +618,47 @@ func (s *Session) ResumePending() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.resume.pending
+}
+
+// rebuiltBeforeCRCs are the slots rebuilt in the release that began keeping CRCs (2026-11-11: world 13, the
+// homes, moved from Tunaria zone 100 to zone 55's rim): a snapshot of the server before it (no CRCs) cannot tell, so
+// these are not held after it.
+var rebuiltBeforeCRCs = map[uint8]bool{13: true}
+
+// ServerWorldCRC is the CRC of the server's own world in a slot as this process has it built (handlers/serverworlds.go
+// sets it with the worlds it loads, before the kept sessions are put back); nil, or ok false, for none.
+var ServerWorldCRC func(slot uint8) (crc uint32, ok bool)
+
+// serverWorldCRCs is the CRC of each slot as built now (0: not known).
+func serverWorldCRCs(slots []uint8) []uint32 {
+	if len(slots) == 0 || ServerWorldCRC == nil {
+		return nil
+	}
+	out := make([]uint32, len(slots))
+	for i, w := range slots {
+		out[i], _ = ServerWorldCRC(w)
+	}
+	return out
+}
+
+// stillHeld is the slots a kept client holds after the restart: every slot kept, but one whose world was rebuilt
+// (kept with one CRC, built now with another): the client's file of it is the old one, and sending it there would
+// put it in a world it does not have (the homes moved to a mountain top, 2026-11-11). A snapshot without CRCs (a
+// server from before) keeps every slot.
+func stillHeld(slots []uint8, crcs []uint32) []uint8 {
+	out := make([]uint8, 0, len(slots))
+	for i, w := range slots {
+		if len(crcs) == 0 && rebuiltBeforeCRCs[w] {
+			log.Printf("Keep: the client held world %d, rebuilt since its snapshot (kept without CRCs): not held until it builds it again (its next login)", w)
+			continue
+		}
+		if i < len(crcs) && crcs[i] != 0 && ServerWorldCRC != nil {
+			if now, ok := ServerWorldCRC(w); ok && now != crcs[i] {
+				log.Printf("Keep: the client held world %d as CRC %08x, built now as %08x: not held until it builds it again (its next login)", w, crcs[i], now)
+				continue
+			}
+		}
+		out = append(out, w)
+	}
+	return out
 }

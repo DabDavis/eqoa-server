@@ -27,8 +27,9 @@ import (
 //
 // Who may stand in a home: its owner, a character it invited (table charhomeguests, /home invite), and, while
 // grouped with the owner (online), a member of the owner's group. A player in a home it may no longer stand in (an
-// invite taken back, a kick, the group left) is sent out, to where it came from (homesSystem, once a second). A
-// player past the yard's edge (the recipe's "home" block: a circle) is put back at the door. Where a player
+// invite taken back, a kick, the group left) is sent out, to where it came from (homesSystem, once a second). The
+// yard's edge is the world's own (a low fence with invisible collision boxes outside it, the recipe's extras): the
+// server moves nobody back from it. Where a player
 // came from (its last place outside the homes' world) is kept with its stay (table charhomestay) so the way out
 // goes back there after a logout and a restart too; a login inside a home resumes there while the player may
 // still stand in it (HomeLogin), else it starts where it came from.
@@ -40,8 +41,8 @@ const HomesBoardName = "Real Estate Listings"
 // homesCheckEvery is how often the homes' world is looked over (homesSystem).
 const homesCheckEvery = time.Second
 
-// homesQuietAfterMove is how long a player the server just moved is left alone by the yard's edge (its client's
-// reports from before the move come after it).
+// homesQuietAfterMove is how long a player the server just moved is left alone by homesSystem (its client's reports
+// from before the move come after it).
 const homesQuietAfterMove = 3 * time.Second
 
 // homesOut is how far in front of a board a player sent to it stands.
@@ -149,16 +150,9 @@ type HomesLayout struct {
 	Door HomeSpot
 	// Board is where the yard's board stands (tools/place_homes_board.py places it there).
 	Board HomeSpot
-	// Yard is the yard's edge: a circle in (x, z); past it a player goes back to the door.
-	YardX, YardZ, YardRadius float32
-}
-
-// InYard reports whether (x, z) is inside the yard (always, with no yard).
-func (l HomesLayout) InYard(x, z float32) bool {
-	if l.YardRadius <= 0 {
-		return true
-	}
-	return math.Hypot(float64(x-l.YardX), float64(z-l.YardZ)) <= float64(l.YardRadius)
+	// The yard's edge is the world's own: a low fence with invisible collision boxes outside it (the recipe's
+	// extras), which the game's walk and the server's ground both stop at; the server moves nobody back (the
+	// owner, 2026-11-11: "natural barriers not the tele back to the house").
 }
 
 // HomeStay is where a character stands in the homes: whose home (Host, a character id) and where it came from
@@ -184,7 +178,7 @@ type homesState struct {
 	names   map[uint32]string            // a host's name, by id (an invite's)
 	stays   map[uint32]HomeStay
 	checkAt time.Time
-	// movedAt is when the server last moved a player in the homes (the yard's edge leaves it alone a while)
+	// movedAt is when the server last moved a player in the homes (homesSystem leaves it alone a while)
 	movedAt map[EntityID]time.Time
 }
 
@@ -224,6 +218,13 @@ func (w *World) HomesName() string {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	return w.homes.lay.Name
+}
+
+// HomesDoor is the homes' door spot (where a player sent home lands).
+func (w *World) HomesDoor() HomeSpot {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.homes.lay.Door
 }
 
 func (w *World) addGuestLocked(host uint32, g HomeGuest) {
@@ -391,7 +392,6 @@ const (
 	homeLineUninvited = "You are no longer welcome in %s's home, and you step out."
 	homeLineKicked    = "%s shows you out of the home."
 	homeLineGroupGone = "You are no longer in %s's group, and you step out of the home."
-	homeLineYard      = "That is the edge of the yard: back to the door."
 	homeLineWelcome   = "Welcome to %s's home."
 	homeLineOwn       = "Welcome home."
 )
@@ -541,7 +541,7 @@ func (w *World) homeInstanceOnLoadLocked(char uint32, world uint8) uint32 {
 }
 
 // homesSystem looks over the homes' world once a second: a player in a home it may not stand in goes out; one
-// with no instance (a GM's move) is put in its own; one past the yard's edge goes back to the door. Must be called
+// with no instance (a GM's move) is put in its own. Must be called
 // with the lock held.
 func (w *World) homesSystem(now time.Time) {
 	if !w.homes.on || now.Before(w.homes.checkAt) {
@@ -572,18 +572,6 @@ func (w *World) homesSystem(now time.Time) {
 			w.homes.movedAt[p.ServerID] = now
 			w.homeSendOutLocked(p, line)
 			continue
-		}
-		if !w.homes.lay.InYard(p.X, p.Z) {
-			sess := w.findSessionByEntityIDLocked(p.ServerID)
-			if sess == nil {
-				continue
-			}
-			d := w.homes.lay.Door
-			w.homes.movedAt[p.ServerID] = now
-			w.gates.due = append(w.gates.due, GateTravel{Sess: sess, P: p, To: GateSpot{World: w.homes.world, X: d.X, Y: d.Y,
-				Z: d.Z, Place: "the door"}, Spell: "the yard's edge", Facing: d.Facing, HasFacing: true})
-			w.sendColoredLocked(sess, homeLineYard, homesColour)
-			log.Printf("Homes: %s past the yard's edge at (%.1f, %.1f): back to the door", p.Name, p.X, p.Z)
 		}
 	}
 }

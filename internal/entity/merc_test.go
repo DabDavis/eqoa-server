@@ -104,8 +104,23 @@ func (r *mercRig) kit(class, race, sex int, spells ...CastSpell) MercKit {
 	return k
 }
 
-// hire hires the kit's merc for the owner, which must come.
+// hire hires the kit's merc for the owner, which must come, and answers yes
+// to its box (a merc fights only in its owner's group: mercgroup.go).
 func (r *mercRig) hire(k MercKit, stance MercStance) *mercState {
+	r.t.Helper()
+	ms := r.hireAsked(k, stance)
+	r.w.mu.Lock()
+	_, up := r.w.invites[r.p.ServerID][r.p.ServerID]
+	r.w.mu.Unlock()
+	if up {
+		r.w.GroupAccept(r.sess, r.sess.PlayerObjectID())
+	}
+	return ms
+}
+
+// hireAsked hires the kit's merc for the owner, which must come, its box left
+// unanswered.
+func (r *mercRig) hireAsked(k MercKit, stance MercStance) *mercState {
 	r.t.Helper()
 	if _, why := r.w.HireMerc(r.sess, k, stance, r.at(0)); why != "" {
 		r.t.Fatalf("the hire was refused: %s", why)
@@ -462,7 +477,7 @@ func TestMercDismissStanceLogout(t *testing.T) {
 func TestMercTakesAGroupPlace(t *testing.T) {
 	r := newMercRig(t)
 	r.sent()
-	ms := r.hire(r.kit(9, 0, 0), MercAssist)
+	ms := r.hireAsked(r.kit(9, 0, 0), MercAssist)
 	if got := r.sent(); got[protocol.OpcodeGroupInviteReceived] != 1 {
 		t.Fatalf("a player in no group was not asked into one with its merc: %v", got)
 	}
@@ -528,7 +543,7 @@ func TestMercTakesAGroupPlace(t *testing.T) {
 // group to an invitation (the inviter told so, the group kept).
 func TestMercGroupGivesWay(t *testing.T) {
 	r := newMercRig(t)
-	ms := r.hire(r.kit(9, 0, 0), MercAssist)
+	ms := r.hireAsked(r.kit(9, 0, 0), MercAssist)
 	r.w.GroupAccept(r.sess, r.sess.PlayerObjectID())
 	own := r.p.GroupID
 	isess, inviter := r.player("Inviter", 0, 0)
@@ -581,16 +596,19 @@ func TestMercGroupGivesWay(t *testing.T) {
 	if g := r.w.groups[r.p.GroupID]; g == nil || len(g.Members) != 2 {
 		t.Fatalf("the owner and its merc are not a group again: %+v", g)
 	}
-	// out of the group of it and its merc alone: not asked again
+	// out of the group of it and its merc alone: not asked again, dismissed
+	// (petition 1504: a merc fights only in its owner's group)
 	r.sent()
 	r.w.GroupLeave(r.sess)
 	r.run(3*time.Second, 4*time.Second)
 	if got := r.sent(); got[protocol.OpcodeGroupInviteReceived] != 0 || r.p.GroupID != 0 {
 		t.Errorf("leaving the group of it and its merc asked again (%v) or kept a group (%d)", got, r.p.GroupID)
 	}
+	if r.w.mercs[r.p.ServerID] != nil || r.w.NPCs[ms.npc.ServerID] != nil {
+		t.Fatal("the merc stayed after its owner left the group of the two of them")
+	}
 	// a raid flag's box too: the group of the owner and its merc gives way
-	r.w.AskMercGroup(r.sess)
-	r.w.GroupAccept(r.sess, r.sess.PlayerObjectID())
+	ms = r.hire(r.kit(9, 0, 0), MercAssist)
 	if g := r.w.groups[r.p.GroupID]; g == nil || len(g.Members) != 2 {
 		t.Fatalf("/merc group made no group of the owner and its merc: %+v", g)
 	}
@@ -610,7 +628,7 @@ func TestMercGroupGivesWay(t *testing.T) {
 func TestMercKeepRestart(t *testing.T) {
 	r := newMercRig(t)
 	k := r.kit(0, 0, 0)
-	ms := r.hire(k, MercAssist)
+	ms := r.hireAsked(k, MercAssist)
 	r.w.GroupAccept(r.sess, r.sess.PlayerObjectID())
 	ms.stance = MercAggressive
 	ms.npc.HP = ms.npc.MaxHP / 2
@@ -645,7 +663,7 @@ func TestMercKeepRestart(t *testing.T) {
 // A player's group spell reaches the group's merc (castTargetsLocked's group).
 func TestGroupSpellsReachTheMerc(t *testing.T) {
 	r := newMercRig(t)
-	ms := r.hire(r.kit(0, 0, 0), MercAssist)
+	ms := r.hireAsked(r.kit(0, 0, 0), MercAssist)
 	r.w.GroupAccept(r.sess, r.sess.PlayerObjectID())
 	spell := bookSpell(700189, "Group Daring", 2, 0, 0, 0, "Group, Increase AC by 200, Increase Maximum HP by 200, Radius 30, 30min")
 	r.w.mu.Lock()

@@ -104,7 +104,7 @@ var gmCommands = map[string]bool{
 	"#grantcm": true, "#npcinfo": true, "#fx": true, "#spellfx": true,
 	"#aggro": true, "#fly": true, "#movecheck": true, "#ticks": true, "#net": true, "#packetlog": true, "#stats": true, "#cm": true, "#cmreset": true, "#debt": true,
 	"#trigger": true, "#craftskill": true, "#craftlearn": true,
-	"#clearbuffs": true, "#nukebuffs": true, "#dye": true, "#vampire": true,
+	"#clearbuffs": true, "#nukebuffs": true, "#reward": true, "#dye": true, "#vampire": true,
 	"#rst_mastr": true, "#rst_both": true, "#rem_abil": true, "#banktunar": true, "#servdown": true,
 	"#giveitem": true, "#mark": true, "#marks": true, "#camp": true, "#path": true,
 }

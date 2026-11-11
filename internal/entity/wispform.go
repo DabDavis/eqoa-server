@@ -30,6 +30,9 @@ import (
 // character changes: its inventory, its stats and its weapon's rolls are as
 // worn; only what the channel shows.
 //
+// Under its Wisp's Raiment (inRaiment, a self buff of Trickster Flame's) a Wisp
+// is in its own form, the wisp in its helm, and shows all it wears.
+//
 // In a mortal form all of it shows as on anyone. An illusion of a human is a
 // human's body, the Wisp's own model, which a client cannot tell from the
 // Wisp's own form: so a Wisp in another form is sent without its wisp (the race
@@ -68,10 +71,28 @@ func (p *Player) inOtherBody() bool {
 	return false
 }
 
-// WispForm is whether the player is a Wisp in its own form: shown with nothing
-// worn but its cape.
+// WispForm is whether the player is a Wisp in its own form shown with nothing
+// worn but its cape: not under its Raiment (inRaiment).
 func (p *Player) WispForm() bool {
-	return IsWispRace(p.Race) && !p.inOtherBody()
+	return IsWispRace(p.Race) && !p.inOtherBody() && !p.inRaiment()
+}
+
+// inRaiment is whether the player wears a Wisp's Raiment (EffectRaiment: the
+// Trickster Flame's form of the wisp in all its gear, the owner, 2026-11-11:
+// "there isn't a form that shows the wisp with all the gear as an orb"): a
+// Wisp in its own form, its wisp in the race looks still, shown in all it
+// wears, as before the kit hid it; vanilla draws it so, the human's body
+// invisible but for its armour, its weapons in its hands and the wisp in its
+// helm (its wisp.rs). It is a form: it ends as an illusion does (Remove
+// Illusion, a glamour cast over it: endIllusionsLocked), at its time, or
+// clicked off.
+func (p *Player) inRaiment() bool {
+	for _, e := range p.Effects {
+		if e.Rules.Raiment {
+			return true
+		}
+	}
+	return false
 }
 
 // wispMortal is whether the player is a Wisp in another form (a mortal one):

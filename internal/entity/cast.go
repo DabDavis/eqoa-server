@@ -1532,6 +1532,10 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 			}
 		case EffectEndIllusion:
 			w.endIllusionsLocked(t, 0) // illusion.go
+		case EffectRaiment:
+			// a form of its own: another form off first, its own again
+			// refreshed (wispform.go)
+			w.endIllusionsLocked(t, cs.spell.SpellID)
 		case EffectIllusion:
 			illusion = true
 		case EffectCure:

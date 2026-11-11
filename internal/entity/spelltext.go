@@ -80,6 +80,10 @@ const (
 	// an item's use alone gives them (potion.go: the Tome of Heroic Training, petition 1471); a
 	// spell's cast with the words lands none
 	EffectTrainingPoints
+	// EffectRaiment shows a Wisp in its own form in all it wears while it lasts (wispform.go: the
+	// Trickster Flame's Wisp's Raiment, the owner, 2026-11-11); ended as an illusion is (Remove
+	// Illusion, a glamour)
+	EffectRaiment
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales

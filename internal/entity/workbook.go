@@ -118,6 +118,9 @@ type EffectRules struct {
 	// Boon (Mr. Moogie's Duelist's Favor, metalmoogie.go); a GM's #clearbuffs
 	// ends it
 	Kept bool `json:",omitempty"`
+	// Raiment: a Wisp in its own form shown in all it wears (EffectRaiment,
+	// wispform.go); ended as an illusion is
+	Raiment bool `json:",omitempty"`
 }
 
 // rulesOf is a cast's rules for what lasts of it.
@@ -154,6 +157,8 @@ func (ae *ActiveEffect) workbookLasting(e SpellEffect, d *SpellDef) bool {
 		ae.Invis, ae.Rules.Hide = true, true
 	case EffectDisguise:
 		ae.Rules.Disguise = true
+	case EffectRaiment:
+		ae.Rules.Raiment = true
 	case EffectMarkHeal:
 		ae.Rules.MarkHeal = max(ae.Rules.MarkHeal, e.Amount) // markheal.go
 	case EffectProcHeal:

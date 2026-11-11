@@ -141,6 +141,20 @@ var wayRoutes = map[string][]wayRoute{
 		{To: "Stone of Morathals", Arrive: "Dockmaster Bibbin"},
 	},
 
+	// The Black Market and the Stone of Morathals (the owner, 2026-11-11:
+	// "Waysender Mazaran should be the evil waysender back to Stone of Morthalis
+	// and vice versa to their Waysender", "mazaran location is called Black
+	// Market"): Mazaran (Odus, among the Jextalan shopkeepers) and the Stone's
+	// evil waysender, Iskan, who stands with the Partisans of Morthalis on the
+	// town's evil side (EQOA-Data's map marks the evil Stone west and south of
+	// the good; Kurah stands out among its hogs). No fee: none was asked.
+	"Waysender Mazaran": {
+		{To: "Stone of Morathals", Arrive: "Waysender Iskan"},
+	},
+	"Waysender Iskan": {
+		{To: "the Black Market", Arrive: "Waysender Mazaran"},
+	},
+
 	// Between Tunaria and the Rathe (the user, 2026-11-07: "Gatekeeper Furryfoot
 	// needs to send the player to rathe", "also door in the cyclops wall"; a
 	// player: "can we get gatekeeper to oggok area?", "door in cyclops wall also

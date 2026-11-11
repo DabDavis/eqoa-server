@@ -5922,6 +5922,2090 @@
       "notes": "Ours: the gatekeeper's port to Halas, the aviak's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json."
     },
     {
+      "key": "homelands/aviak/L7",
+      "name": "Two Tasks on the Ice",
+      "giver": "Huntmaster Arrok",
+      "classes": [],
+      "races": [
+        14
+      ],
+      "minlevel": 7,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L5"
+      ],
+      "offer": "The Homelands keep a hunters' outpost on the frozen river under the Goldfeather Eyrie. Every home sends its young hunters there, and so will the Roost.\nRide Harrek's coach to the Eyrie. Bring me drift rat fur and a badger's pelt from the snow east of the outpost.\nWill you hunt the Eyrie's snow for me?",
+      "accept": "I will hunt there.",
+      "decline": "Not now.",
+      "declined": "The snow will keep. Come back when you are ready.",
+      "started": "Harrek's coach will take you. Keep your feathers warm.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "drift rat",
+          "items": [
+            {
+              "item": "drift rat fur",
+              "count": 2
+            }
+          ],
+          "count": 2,
+          "chance": 0.5,
+          "journal": "Take two clumps of drift rat fur from the drift rats east of the Eyrie outpost."
+        },
+        {
+          "kind": "loot",
+          "target": "snowfield badger",
+          "items": [
+            {
+              "item": "snowfield badger pelt",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 0.5,
+          "journal": "Take a snowfield badger pelt from the badgers on the snow east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Huntmaster Arrok",
+          "items": [
+            {
+              "item": "drift rat fur",
+              "count": 2
+            },
+            {
+              "item": "snowfield badger pelt",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the drift rat fur and the badger pelt to Huntmaster Arrok.",
+          "says": "Good fur, and a good pelt. The cold did not frighten you. Now watch closely, and learn this.",
+          "rewards": {
+            "xp": 157474,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Furious Defense"
+                ]
+              },
+              "1": {
+                "items": [
+                  "bracers of the glade"
+                ],
+                "spells": [
+                  "Tangling Weeds"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Protectorate"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Shadow Tunic"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Chapels Leggings"
+                ],
+                "spells": [
+                  "Sprint"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Artful Strike"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Acrobatics"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Nature's Blessing"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Minor Malady"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Endure Ailment"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Infusion"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Strengthen Bone +"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Endure Arcane"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Burning Flare"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Sublimation"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 7
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the aviak's level 7, at Aviak Village, on the cities' level 7 quest: two tasks of the hunt, their spoils handed in; each class is taught what its own city's level 7 quest teaches it. Finishing it finishes the character's own city class quest of level 7 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L10",
+      "name": "Arms of the Eyrie",
+      "giver": "Huntmaster Arrok",
+      "classes": [],
+      "races": [
+        14
+      ],
+      "minlevel": 10,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L7"
+      ],
+      "offer": "You have grown past the arms a fledgling carries. I will make you better, but the outpost has what I need.\nQuartermaster Dunmore keeps good ore at the Eyrie outpost. Then bring me silk from the rime spiders north-east of it.\nWill you bring me the ore and the silk?",
+      "accept": "I will bring them.",
+      "decline": "Not now.",
+      "declined": "Then your old arms will have to do.",
+      "started": "Ore from Dunmore, silk from the spiders. Go.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Quartermaster Dunmore",
+          "journal": "Ask Quartermaster Dunmore at the Eyrie outpost for the ore Arrok needs.",
+          "says": "Arrok's hunter? His word came by the coach. Here, the best ore in my stores. Do not drop it in the river.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "iron ore",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "loot",
+          "target": "rime spider",
+          "items": [
+            {
+              "item": "rime spider silk",
+              "count": 2
+            }
+          ],
+          "count": 2,
+          "chance": 0.5,
+          "journal": "Take two skeins of silk from the rime spiders north-east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Huntmaster Arrok",
+          "items": [
+            {
+              "item": "iron ore",
+              "count": 1
+            },
+            {
+              "item": "rime spider silk",
+              "count": 2
+            }
+          ],
+          "journal": "Bring the iron ore and the rime spider silk to Huntmaster Arrok.",
+          "says": "Ore for the blade, silk to bind the grip. A moment... there. It is yours: carry it well.",
+          "rewards": {
+            "xp": 556753,
+            "byclass": {
+              "0": {
+                "items": [
+                  "Sturdy Two-Handed Sword"
+                ]
+              },
+              "1": {
+                "items": [
+                  "shortsword of the glade"
+                ]
+              },
+              "2": {
+                "items": [
+                  "Mordschien"
+                ]
+              },
+              "3": {
+                "items": [
+                  "Blade of the Nanchael"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Brass Nuckles"
+                ]
+              },
+              "5": {
+                "items": [
+                  "Sturdy Short Sword"
+                ]
+              },
+              "6": {
+                "items": [
+                  "sturdy dagger"
+                ]
+              },
+              "7": {
+                "items": [
+                  "Light Branch Club"
+                ]
+              },
+              "8": {
+                "items": [
+                  "Raveneye Hammer"
+                ]
+              },
+              "9": {
+                "items": [
+                  "Sturdy Mace"
+                ]
+              },
+              "10": {
+                "items": [
+                  "sturdy staff"
+                ]
+              },
+              "11": {
+                "items": [
+                  "dagger of essence"
+                ]
+              },
+              "12": {
+                "items": [
+                  "rod of eyes"
+                ]
+              },
+              "13": {
+                "items": [
+                  "Staff of Malconius"
+                ]
+              },
+              "14": {
+                "items": [
+                  "small dirk"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 10
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the aviak's level 10, at Aviak Village, on the cities' level 10 quest: a new weapon, of what a camp hands over and a creature's drop; each class is given what its own city's level 10 quest gives it (class-rewards.json has the four classes the cities give nothing). Finishing it finishes the character's own city class quest of level 10 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L13",
+      "name": "Old Frostjaw",
+      "giver": "Huntmaster Arrok",
+      "classes": [],
+      "races": [
+        14
+      ],
+      "minlevel": 13,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L10"
+      ],
+      "offer": "The outpost's hunters have lost three of their own to an old snow leopard they call Frostjaw. He hunts the slopes north-east of the outpost.\nBring him down, and I will teach you what the Roost teaches its hunters at your age. Take friends from the other homes if you are wise.\nWill you hunt Old Frostjaw?",
+      "accept": "I will hunt him.",
+      "decline": "Not yet.",
+      "declined": "He will not grow old enough to die on his own.",
+      "started": "Go with friends. He strikes first and he strikes hard.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "Old Frostjaw",
+          "count": 1,
+          "journal": "Kill Old Frostjaw on the slopes north-east of the Eyrie outpost."
+        },
+        {
+          "kind": "talk",
+          "target": "Huntmaster Arrok",
+          "journal": "Return to Huntmaster Arrok.",
+          "says": "Frostjaw is gone? Then the outpost sleeps easier, and so do I. Learn this.",
+          "rewards": {
+            "xp": 550698,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Rapid Strike"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Flametongue"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Towering Wall"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Scream of Pain"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Mind & Body"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Anthem of Light"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Night Breath"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Regenerative Aura"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Tribal Brawn"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Ward Death"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Lava Wind"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Ward Death"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Lumbering Arms"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Element Guard"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Quickening"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 13
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the aviak's level 13, at Aviak Village, on the cities' level 13 quest: a named foe brought down; each class is taught what its own city's level 13 quest teaches it. Finishing it finishes the character's own city class quest of level 13 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L15",
+      "name": "The Heart of the Rime",
+      "giver": "Huntmaster Arrok",
+      "classes": [],
+      "races": [
+        14
+      ],
+      "minlevel": 15,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L13"
+      ],
+      "offer": "Something old walks in the ice caves north-east of the Eyrie outpost. The hunters call it the Rimeheart, and the cold that follows it kills the snow's game.\nBreak it, and carry a shard of it to Warden Halvek, so the outpost knows it is done. Then come back to me.\nWill you face the Rimeheart?",
+      "accept": "I will face it.",
+      "decline": "Not yet.",
+      "declined": "Then the caves grow colder.",
+      "started": "Do not go into those caves alone.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "Rimeheart",
+          "items": [
+            {
+              "item": "shard of the Rimeheart",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 1.0,
+          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Warden Halvek",
+          "items": [
+            {
+              "item": "shard of the Rimeheart",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the shard of the Rimeheart to Warden Halvek at the Eyrie outpost.",
+          "says": "So the Rimeheart is broken. I will send word to every home. Tell Arrok the Eyrie owes the Roost a debt."
+        },
+        {
+          "kind": "talk",
+          "target": "Huntmaster Arrok",
+          "journal": "Return to Huntmaster Arrok.",
+          "says": "Halvek's word came by the coach before you did. You have done the Roost proud. Learn this.",
+          "rewards": {
+            "xp": 883791,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Stomp"
+                ]
+              },
+              "1": {
+                "items": [
+                  "tunic of the glade"
+                ],
+                "spells": [
+                  "Tangling Roots"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Knight's Bash"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Punish Death"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Bandage"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Crashing Verses"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Vaulter's Balance"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Endure Elements"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Endure Poison"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Endure Affliction"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Endure Fire"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Endure Disease"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Alarming Visage"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Shocking Gaze"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Faulty Refinement"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 15
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the aviak's level 15, at Aviak Village, on the cities' level 15 quest: a named foe's spoil carried where it is wanted; each class is taught what its own city's level 15 quest teaches it. Finishing it finishes the character's own city class quest of level 15 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L20/warrior",
+      "name": "The Long Watch",
+      "giver": "Elder Kraawk",
+      "classes": [
+        0
+      ],
+      "races": [
+        14
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L15"
+      ],
+      "offer": "Arrok says you are no fledgling now. A hunter of the Roost stands the long watch at the Eyrie once, so the other homes know our feathers.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the long watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The watch waits for those who are ready.",
+      "started": "Fly well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Kraawk sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, hunter: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Kraawk",
+          "journal": "Return to Elder Kraawk in the Roost.",
+          "says": "You flew out a fledgling and came home a hunter of the Homelands. The Roost has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Bellow",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Bellow"
+                ]
+              }
+            },
+            {
+              "answer": "Pillar of Might",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Pillar of Might"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the aviak's level 20 for the warrior, at Aviak Village, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L20/ranger",
+      "name": "The Long Watch",
+      "giver": "Elder Kraawk",
+      "classes": [
+        1
+      ],
+      "races": [
+        14
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L15"
+      ],
+      "offer": "Arrok says you are no fledgling now. A hunter of the Roost stands the long watch at the Eyrie once, so the other homes know our feathers.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the long watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The watch waits for those who are ready.",
+      "started": "Fly well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Kraawk sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, hunter: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Kraawk",
+          "journal": "Return to Elder Kraawk in the Roost.",
+          "says": "You flew out a fledgling and came home a hunter of the Homelands. The Roost has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Sparrow Eye",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Sparrow Eye"
+                ]
+              }
+            },
+            {
+              "answer": "Strikeblade",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Strikeblade"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the aviak's level 20 for the ranger, at Aviak Village, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L20/paladin",
+      "name": "The Long Watch",
+      "giver": "Elder Kraawk",
+      "classes": [
+        2
+      ],
+      "races": [
+        14
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L15"
+      ],
+      "offer": "Arrok says you are no fledgling now. A hunter of the Roost stands the long watch at the Eyrie once, so the other homes know our feathers.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the long watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The watch waits for those who are ready.",
+      "started": "Fly well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Kraawk sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, hunter: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Kraawk",
+          "journal": "Return to Elder Kraawk in the Roost.",
+          "says": "You flew out a fledgling and came home a hunter of the Homelands. The Roost has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Fortify",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Fortify"
+                ]
+              }
+            },
+            {
+              "answer": "Shining Bastion",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Shining Bastion"
+                ]
+              }
+            },
+            {
+              "answer": "Clay Barrier",
+              "says": "Then it is yours.",
+              "rewards": {
+                "spells": [
+                  "Clay Barrier"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the aviak's level 20 for the paladin, at Aviak Village, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L20/shadowknight",
+      "name": "The Long Watch",
+      "giver": "Elder Kraawk",
+      "classes": [
+        3
+      ],
+      "races": [
+        14
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L15"
+      ],
+      "offer": "Arrok says you are no fledgling now. A hunter of the Roost stands the long watch at the Eyrie once, so the other homes know our feathers.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the long watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The watch waits for those who are ready.",
+      "started": "Fly well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Kraawk sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, hunter: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Kraawk",
+          "journal": "Return to Elder Kraawk in the Roost.",
+          "says": "You flew out a fledgling and came home a hunter of the Homelands. The Roost has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Bloodwasp",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Bloodwasp"
+                ]
+              }
+            },
+            {
+              "answer": "Shadow Tower",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Shadow Tower"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the aviak's level 20 for the shadowknight, at Aviak Village, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L20/monk",
+      "name": "The Long Watch",
+      "giver": "Elder Kraawk",
+      "classes": [
+        4
+      ],
+      "races": [
+        14
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L15"
+      ],
+      "offer": "Arrok says you are no fledgling now. A hunter of the Roost stands the long watch at the Eyrie once, so the other homes know our feathers.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the long watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The watch waits for those who are ready.",
+      "started": "Fly well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Kraawk sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, hunter: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Kraawk",
+          "journal": "Return to Elder Kraawk in the Roost.",
+          "says": "You flew out a fledgling and came home a hunter of the Homelands. The Roost has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Stone Stance",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Stone Stance"
+                ]
+              }
+            },
+            {
+              "answer": "Stasis Strike",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Stasis Strike"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the aviak's level 20 for the monk, at Aviak Village, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L20/bard",
+      "name": "The Long Watch",
+      "giver": "Elder Kraawk",
+      "classes": [
+        5
+      ],
+      "races": [
+        14
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L15"
+      ],
+      "offer": "Arrok says you are no fledgling now. A hunter of the Roost stands the long watch at the Eyrie once, so the other homes know our feathers.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the long watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The watch waits for those who are ready.",
+      "started": "Fly well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Kraawk sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, hunter: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Kraawk",
+          "journal": "Return to Elder Kraawk in the Roost.",
+          "says": "You flew out a fledgling and came home a hunter of the Homelands. The Roost has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Power Dance",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Power Dance"
+                ]
+              }
+            },
+            {
+              "answer": "Sweeping Combat",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Sweeping Combat"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the aviak's level 20 for the bard, at Aviak Village, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L20/rogue",
+      "name": "The Long Watch",
+      "giver": "Elder Kraawk",
+      "classes": [
+        6
+      ],
+      "races": [
+        14
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L15"
+      ],
+      "offer": "Arrok says you are no fledgling now. A hunter of the Roost stands the long watch at the Eyrie once, so the other homes know our feathers.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the long watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The watch waits for those who are ready.",
+      "started": "Fly well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Kraawk sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, hunter: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Kraawk",
+          "journal": "Return to Elder Kraawk in the Roost.",
+          "says": "You flew out a fledgling and came home a hunter of the Homelands. The Roost has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Avoidance",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Avoidance"
+                ]
+              }
+            },
+            {
+              "answer": "Minor Wound",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Minor Wound"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the aviak's level 20 for the rogue, at Aviak Village, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L20/druid",
+      "name": "The Long Watch",
+      "giver": "Elder Kraawk",
+      "classes": [
+        7
+      ],
+      "races": [
+        14
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L15"
+      ],
+      "offer": "Arrok says you are no fledgling now. A hunter of the Roost stands the long watch at the Eyrie once, so the other homes know our feathers.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the long watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The watch waits for those who are ready.",
+      "started": "Fly well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Kraawk sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, hunter: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Kraawk",
+          "journal": "Return to Elder Kraawk in the Roost.",
+          "says": "You flew out a fledgling and came home a hunter of the Homelands. The Roost has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Enkindle",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Enkindle"
+                ]
+              }
+            },
+            {
+              "answer": "Creeping Health",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Creeping Health"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the aviak's level 20 for the druid, at Aviak Village, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L20/shaman",
+      "name": "The Long Watch",
+      "giver": "Elder Kraawk",
+      "classes": [
+        8
+      ],
+      "races": [
+        14
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L15"
+      ],
+      "offer": "Arrok says you are no fledgling now. A hunter of the Roost stands the long watch at the Eyrie once, so the other homes know our feathers.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the long watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The watch waits for those who are ready.",
+      "started": "Fly well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Kraawk sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, hunter: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Kraawk",
+          "journal": "Return to Elder Kraawk in the Roost.",
+          "says": "You flew out a fledgling and came home a hunter of the Homelands. The Roost has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Decaying Wind",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Decaying Wind"
+                ]
+              }
+            },
+            {
+              "answer": "Spiritual Guide",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Spiritual Guide"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the aviak's level 20 for the shaman, at Aviak Village, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L20/cleric",
+      "name": "The Long Watch",
+      "giver": "Elder Kraawk",
+      "classes": [
+        9
+      ],
+      "races": [
+        14
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L15"
+      ],
+      "offer": "Arrok says you are no fledgling now. A hunter of the Roost stands the long watch at the Eyrie once, so the other homes know our feathers.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the long watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The watch waits for those who are ready.",
+      "started": "Fly well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Kraawk sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, hunter: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Kraawk",
+          "journal": "Return to Elder Kraawk in the Roost.",
+          "says": "You flew out a fledgling and came home a hunter of the Homelands. The Roost has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Disease Ward",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Disease Ward"
+                ]
+              }
+            },
+            {
+              "answer": "Field Dress",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Field Dress"
+                ]
+              }
+            },
+            {
+              "answer": "Elemental Ward",
+              "says": "Then it is yours.",
+              "rewards": {
+                "spells": [
+                  "Elemental Ward"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the aviak's level 20 for the cleric, at Aviak Village, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L20/magician",
+      "name": "The Long Watch",
+      "giver": "Elder Kraawk",
+      "classes": [
+        10
+      ],
+      "races": [
+        14
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L15"
+      ],
+      "offer": "Arrok says you are no fledgling now. A hunter of the Roost stands the long watch at the Eyrie once, so the other homes know our feathers.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the long watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The watch waits for those who are ready.",
+      "started": "Fly well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Kraawk sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, hunter: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Kraawk",
+          "journal": "Return to Elder Kraawk in the Roost.",
+          "says": "You flew out a fledgling and came home a hunter of the Homelands. The Roost has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Frozen Mark",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Frozen Mark"
+                ]
+              }
+            },
+            {
+              "answer": "Lava Stone",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Lava Stone"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the aviak's level 20 for the magician, at Aviak Village, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L20/necromancer",
+      "name": "The Long Watch",
+      "giver": "Elder Kraawk",
+      "classes": [
+        11
+      ],
+      "races": [
+        14
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L15"
+      ],
+      "offer": "Arrok says you are no fledgling now. A hunter of the Roost stands the long watch at the Eyrie once, so the other homes know our feathers.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the long watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The watch waits for those who are ready.",
+      "started": "Fly well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Kraawk sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, hunter: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Kraawk",
+          "journal": "Return to Elder Kraawk in the Roost.",
+          "says": "You flew out a fledgling and came home a hunter of the Homelands. The Roost has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Blood Gale",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Blood Gale"
+                ]
+              }
+            },
+            {
+              "answer": "Power Gale",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Power Gale"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the aviak's level 20 for the necromancer, at Aviak Village, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L20/enchanter",
+      "name": "The Long Watch",
+      "giver": "Elder Kraawk",
+      "classes": [
+        12
+      ],
+      "races": [
+        14
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L15"
+      ],
+      "offer": "Arrok says you are no fledgling now. A hunter of the Roost stands the long watch at the Eyrie once, so the other homes know our feathers.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the long watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The watch waits for those who are ready.",
+      "started": "Fly well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Kraawk sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, hunter: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Kraawk",
+          "journal": "Return to Elder Kraawk in the Roost.",
+          "says": "You flew out a fledgling and came home a hunter of the Homelands. The Roost has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Spacious Mind",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Spacious Mind"
+                ]
+              }
+            },
+            {
+              "answer": "Power Boon",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Power Boon"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the aviak's level 20 for the enchanter, at Aviak Village, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L20/wizard",
+      "name": "The Long Watch",
+      "giver": "Elder Kraawk",
+      "classes": [
+        13
+      ],
+      "races": [
+        14
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L15"
+      ],
+      "offer": "Arrok says you are no fledgling now. A hunter of the Roost stands the long watch at the Eyrie once, so the other homes know our feathers.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the long watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The watch waits for those who are ready.",
+      "started": "Fly well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Kraawk sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, hunter: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Kraawk",
+          "journal": "Return to Elder Kraawk in the Roost.",
+          "says": "You flew out a fledgling and came home a hunter of the Homelands. The Roost has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Blazing Clash",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Blazing Clash"
+                ]
+              }
+            },
+            {
+              "answer": "Mental Focus",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Mental Focus"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the aviak's level 20 for the wizard, at Aviak Village, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/aviak/L20/alchemist",
+      "name": "The Long Watch",
+      "giver": "Elder Kraawk",
+      "classes": [
+        14
+      ],
+      "races": [
+        14
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/aviak/L15"
+      ],
+      "offer": "Arrok says you are no fledgling now. A hunter of the Roost stands the long watch at the Eyrie once, so the other homes know our feathers.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the long watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The watch waits for those who are ready.",
+      "started": "Fly well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Kraawk sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, hunter: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Kraawk",
+          "journal": "Return to Elder Kraawk in the Roost.",
+          "says": "You flew out a fledgling and came home a hunter of the Homelands. The Roost has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Student's Knack",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Student's Knack"
+                ]
+              }
+            },
+            {
+              "answer": "Klik'Anon Cocktail",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Klik'Anon Cocktail"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the aviak's level 20 for the alchemist, at Aviak Village, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/aviak.json: change that file, never this quest's rows by hand."
+    },
+    {
       "key": "homelands/goblin/L1",
       "name": "A Tunnel-Runner's Ear Ring",
       "giver": "Elder Snikkit",
@@ -12790,6 +14874,36 @@
       "description": "The chipped tusk of the old boar Razortusk.",
       "notrade": true,
       "like": "plagueswine tusk"
+    },
+    {
+      "name": "drift rat fur",
+      "description": "A clump of white fur from a drift rat of the Goldfeather Eyrie's snow.",
+      "notrade": true,
+      "like": "clump of rat fur"
+    },
+    {
+      "name": "snowfield badger pelt",
+      "description": "The thick pelt of a snowfield badger of the Goldfeather Eyrie.",
+      "notrade": true,
+      "like": "beast pelt"
+    },
+    {
+      "name": "rime spider silk",
+      "description": "A skein of frosted silk from a rime spider of the Goldfeather Eyrie.",
+      "notrade": true,
+      "like": "Black Widow Silk"
+    },
+    {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "notrade": true,
+      "like": "cracked elemental shard"
+    },
+    {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "notrade": true,
+      "like": "chipped aviak talon"
     },
     {
       "name": "tunnel-runner's ear ring",

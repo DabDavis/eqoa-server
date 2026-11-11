@@ -2,7 +2,7 @@
   "race": "aviak",
   "home": "Aviak Village",
   "city": "Halas",
-  "note": "The worked example (tools/quests/homelands/README.md). The Roost's people are tools/worlds/homelands.json's (Aviak Village): Elder Kraawk gives the first two, Huntmaster Arrok beside him the three hunts; Weaver Tikkri is the outfitter, Coachman Harrek keeps the stable (his coach runs to Freeport and to the other homes); the scrub rats (the grass to the north), the brush wasps (the hill to the west) and the boar Razortusk (the east rise) are placed for these quests.",
+  "note": "The worked example (tools/quests/homelands/README.md). The Roost's people are tools/worlds/homelands.json's (Aviak Village): Elder Kraawk gives the first two, Huntmaster Arrok beside him the three hunts; Weaver Tikkri is the outfitter, Coachman Harrek keeps the stable (his coach runs to Freeport and to the other homes); the scrub rats (the grass to the north), the brush wasps (the hill to the west) and the boar Razortusk (the east rise) are placed for these quests. Levels 7-20 (2026-11-11): Arrok gives L7-L15, Kraawk the L20 path; their objectives are on the Homelands' shared ground, the Goldfeather Eyrie (tools/worlds/homelands.json's shared block: the outpost on the frozen river, reached by Harrek's coach), whose people (Quartermaster Dunmore, Warden Halvek, Scout Feyla) and creatures every home's chain shares. Its drops are the shared ground's: copy their blocks as they are.",
   "L1": {
     "name": "A Fledgling's Wingband",
     "giver": "Elder Kraawk",
@@ -172,5 +172,184 @@
     "declined": "The winds will wait for you.",
     "started": "Fly well, and do not forget the Roost!",
     "journal": "Tell Gatekeeper Windwhistle when you are ready to fly to Halas."
+  },
+  "L7": {
+    "name": "Two Tasks on the Ice",
+    "giver": "Huntmaster Arrok",
+    "offer": [
+      "The Homelands keep a hunters' outpost on the frozen river under the Goldfeather Eyrie. Every home sends its young hunters there, and so will the Roost.",
+      "Ride Harrek's coach to the Eyrie. Bring me drift rat fur and a badger's pelt from the snow east of the outpost.",
+      "Will you hunt the Eyrie's snow for me?"
+    ],
+    "accept": "I will hunt there.",
+    "decline": "Not now.",
+    "declined": "The snow will keep. Come back when you are ready.",
+    "started": "Harrek's coach will take you. Keep your feathers warm.",
+    "hunts": [
+      {
+        "target": "drift rat",
+        "count": 2,
+        "drop": {
+          "name": "drift rat fur",
+          "description": "A clump of white fur from a drift rat of the Goldfeather Eyrie's snow.",
+          "like": "clump of rat fur"
+        },
+        "hunt": {
+          "journal": "Take two clumps of drift rat fur from the drift rats east of the Eyrie outpost."
+        }
+      },
+      {
+        "target": "snowfield badger",
+        "count": 1,
+        "drop": {
+          "name": "snowfield badger pelt",
+          "description": "The thick pelt of a snowfield badger of the Goldfeather Eyrie.",
+          "like": "beast pelt"
+        },
+        "hunt": {
+          "journal": "Take a snowfield badger pelt from the badgers on the snow east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring the drift rat fur and the badger pelt to Huntmaster Arrok.",
+      "says": "Good fur, and a good pelt. The cold did not frighten you. Now watch closely, and learn this."
+    }
+  },
+  "L10": {
+    "name": "Arms of the Eyrie",
+    "giver": "Huntmaster Arrok",
+    "offer": [
+      "You have grown past the arms a fledgling carries. I will make you better, but the outpost has what I need.",
+      "Quartermaster Dunmore keeps good ore at the Eyrie outpost. Then bring me silk from the rime spiders north-east of it.",
+      "Will you bring me the ore and the silk?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then your old arms will have to do.",
+    "started": "Ore from Dunmore, silk from the spiders. Go.",
+    "materials": [
+      {
+        "merchant": "Quartermaster Dunmore",
+        "items": [
+          "iron ore"
+        ],
+        "journal": "Ask Quartermaster Dunmore at the Eyrie outpost for the ore Arrok needs.",
+        "says": "Arrok's hunter? His word came by the coach. Here, the best ore in my stores. Do not drop it in the river."
+      }
+    ],
+    "target": "rime spider",
+    "count": 2,
+    "drop": {
+      "name": "rime spider silk",
+      "description": "A skein of frosted silk from a rime spider of the Goldfeather Eyrie.",
+      "like": "Black Widow Silk"
+    },
+    "hunt": {
+      "journal": "Take two skeins of silk from the rime spiders north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the iron ore and the rime spider silk to Huntmaster Arrok.",
+      "says": "Ore for the blade, silk to bind the grip. A moment... there. It is yours: carry it well."
+    }
+  },
+  "L13": {
+    "name": "Old Frostjaw",
+    "giver": "Huntmaster Arrok",
+    "offer": [
+      "The outpost's hunters have lost three of their own to an old snow leopard they call Frostjaw. He hunts the slopes north-east of the outpost.",
+      "Bring him down, and I will teach you what the Roost teaches its hunters at your age. Take friends from the other homes if you are wise.",
+      "Will you hunt Old Frostjaw?"
+    ],
+    "accept": "I will hunt him.",
+    "decline": "Not yet.",
+    "declined": "He will not grow old enough to die on his own.",
+    "started": "Go with friends. He strikes first and he strikes hard.",
+    "kind": "kill",
+    "target": "Old Frostjaw",
+    "count": 1,
+    "hunt": {
+      "journal": "Kill Old Frostjaw on the slopes north-east of the Eyrie outpost."
+    },
+    "back": {
+      "journal": "Return to Huntmaster Arrok.",
+      "says": "Frostjaw is gone? Then the outpost sleeps easier, and so do I. Learn this."
+    }
+  },
+  "L15": {
+    "name": "The Heart of the Rime",
+    "giver": "Huntmaster Arrok",
+    "offer": [
+      "Something old walks in the ice caves north-east of the Eyrie outpost. The hunters call it the Rimeheart, and the cold that follows it kills the snow's game.",
+      "Break it, and carry a shard of it to Warden Halvek, so the outpost knows it is done. Then come back to me.",
+      "Will you face the Rimeheart?"
+    ],
+    "accept": "I will face it.",
+    "decline": "Not yet.",
+    "declined": "Then the caves grow colder.",
+    "started": "Do not go into those caves alone.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "carry": {
+      "target": "Warden Halvek",
+      "journal": "Bring the shard of the Rimeheart to Warden Halvek at the Eyrie outpost.",
+      "says": "So the Rimeheart is broken. I will send word to every home. Tell Arrok the Eyrie owes the Roost a debt."
+    },
+    "back": {
+      "journal": "Return to Huntmaster Arrok.",
+      "says": "Halvek's word came by the coach before you did. You have done the Roost proud. Learn this."
+    }
+  },
+  "L20": {
+    "name": "The Long Watch",
+    "giver": "Elder Kraawk",
+    "offer": [
+      "Arrok says you are no fledgling now. A hunter of the Roost stands the long watch at the Eyrie once, so the other homes know our feathers.",
+      "Go to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.",
+      "Will you stand the long watch?"
+    ],
+    "accept": "I will stand it.",
+    "decline": "Not yet.",
+    "declined": "The watch waits for those who are ready.",
+    "started": "Fly well, and come home.",
+    "road": [
+      {
+        "target": "Warden Halvek",
+        "journal": "Find Warden Halvek at the Eyrie outpost.",
+        "says": "Kraawk sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+      },
+      {
+        "target": "Scout Feyla",
+        "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+        "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 3,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "journal": "Bring the three war-talons to Scout Feyla.",
+      "says": "Three talons. The eyrie will be quiet tonight. Go home, hunter: your elder waits for you."
+    },
+    "final": {
+      "target": "Elder Kraawk",
+      "journal": "Return to Elder Kraawk in the Roost.",
+      "says": "You flew out a fledgling and came home a hunter of the Homelands. The Roost has one more thing to give you."
+    }
   }
 }

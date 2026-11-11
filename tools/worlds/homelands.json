@@ -9414,7 +9414,7 @@
       "race": 32,
       "note": "Mermaid: Odus's Erud's Crossing, two islands in the warm sea between Odus and Tunaria, a hut village on the northern one and Saftemoot's volcano on the southern; singing sirens, sea turtles and deep mares swim it (Erud's Crossing, cell 5,1). The game's own merfolk live under the Vastly Deep (the ratmen's home here) and in the Abysmal Sea (cell 2,4, Envar's here). Added 2026-11-11 (petition 1620, Jibrish), the 23rd zone.",
       "home": {
-        "flavor": "Merfolk are the sea's own people, mermaids, sirens and mermen of the warm waters of Erud's Crossing; drawn to the scholars of Highbourne, they rise from the waves to learn beside them.",
+        "flavor": "Merfolk are the sea's own people, who swim the warm waters of Erud's Crossing in the Homelands; Highbourne's scholars take them in.",
         "start": {
           "x": 11185.0,
           "y": 54.19,

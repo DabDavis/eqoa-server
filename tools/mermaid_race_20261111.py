@@ -41,8 +41,7 @@ RACE, NAME, SHORT, WIRE, CITY = 32, "Mermaid", "MER", 8, 0
 BONUS = (0, 5, 15, 0, 5, 0, 10)  # STR STA AGI DEX WIS INT CHA
 MALE, FEMALE = 0xA316EB78, 0x74BA7C3D
 SIZE = 0.75
-DESCRIPTION = ("Merfolk are the sea's own people, mermaids and sirens and mermen who swim the warm waters of Erud's "
-               "Crossing; drawn to the scholars of Highbourne, they rise from the waves to learn and fight beside them.")
+DESCRIPTION = ("Merfolk are the sea's own people, who swim the warm waters of Erud's Crossing in the Homelands; Highbourne's scholars take them in.")
 NOTE = ("the merman's and the mermaid's bodies (CHAR.ESF, by sight; the sirens of Odus her options); as an Erudite: "
         "Highbourne, across Erud's Crossing from the merfolk's waters off Odus; bonuses ours, 35 as every race's")
 SIZE_NOTE = "the merfolk float upright, tails under them: the mermaid 2.63 tall at her scale, 1.97 at 0.75 (petition 1620)"

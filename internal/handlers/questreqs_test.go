@@ -449,12 +449,12 @@ func TestAQuestOnlyTripWaitsForItsQuest(t *testing.T) {
 }
 
 // Norach (the owner, 2026-11-11: "he will teleport you to Isle of Dread onto
-// the little raft for 10k"): with the medallion quest that gated his trip a
-// draft (tools/norach_20261111.py), anyone is asked the trip for 10,000; a
-// player short of it is told the fare and kept, tunar untouched; one with it
-// pays and lands standing on the raft's deck in the cove south of Graumord,
-// facing the pier. The control: while the quest is in the game, it still
-// gates the trip.
+// the little raft for 10k", then "Keep the medallion gate"): a player who has
+// not finished The Medallion of the Faceless is refused; one who has is asked
+// the trip for 10,000; short of it, told the fare and kept, tunar untouched;
+// with it, pays and lands standing on the raft's deck in the cove south of
+// Graumord, facing the pier. A finisher keeps the trip if the quest is later
+// made a draft (QuestOnly), and no one else gets it then.
 func TestNorachFerriesToTheRaftForTenThousand(t *testing.T) {
 	f := newQuestFixture(t)
 	f.exec(`UPDATE quests SET enabled = 0 WHERE questid = 10010`)
@@ -474,10 +474,9 @@ func TestNorachFerriesToTheRaftForTenThousand(t *testing.T) {
 	}
 	f.tw.talk(norach)
 	if got := dialogueBoxes(f.tw.s); !slices.Equal(got, []string{"You may not travel to the Isle of Dread until you have finished The Medallion of the Faceless."}) {
-		t.Fatalf("the quest in the game (the control): %q", got)
+		t.Fatalf("not finished: %q", got)
 	}
-	f.exec(`UPDATE quests SET enabled = 0 WHERE questid = 101309`)
-	if err := f.qe.Reload(); err != nil {
+	if _, err := f.qe.SetCharacterQuest(f.sid, 101309, QuestComplete, 0); err != nil {
 		t.Fatal(err)
 	}
 	f.tw.p.Tunar = 9999

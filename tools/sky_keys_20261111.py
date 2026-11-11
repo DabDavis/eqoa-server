@@ -16,13 +16,13 @@ row it changes logged in guide_set_log so the undo is exact:
     Jester, the iron knight, the Arch Bishop Lancel, the dark baroness, King Ruthra; the Whirlwind, the glacial
     champion, Enraged Aeyinar; the Erych Arbiter, the warlord of Narcillian, the elite harpy queen, the Quintessence;
   - the Rain 3 Portal (a spawn-only NPC with the essence of rain's body), which Granavik's death stands where he fell
-    for 15 minutes (trigger slot 156, Rain 3 Portal Opens; npcdeath granavik), taking a Rain Key 3 to the fourth isle;
+    for 15 minutes (trigger slot 160, Rain 3 Portal Opens; npcdeath granavik), taking a Rain Key 3 to the fourth isle;
   - the chains' 23 essence steps lose their own teleport (the passage, handlers/skypass.go, moves the player and its
     group now, the key in hand); the snow chain's way back to the igloo village keeps its own;
   - questunlocks: the chain of snow (101307) opens the Mark of Desolation's trip to the first isle of desolation.
 
 Refused, nothing written, unless the rain key is there as imported, none of the keys' names nor the portal's is taken,
-trigger slot 156 is free, each boss stands in world 4, and each of the 23 steps has exactly its one teleport. Report only
+trigger slot 160 is free, each boss stands in world 4, and each of the 23 steps has exactly its one teleport. Report only
 by default (the set run and rolled back); --apply in one transaction with a gm_audit line; a second --apply refuses
 (the set is in); --undo exact, with its own line. Keys characters hold go with an undo. The code (skypass.go) and this
 go together: NPCs, quests, triggers and npcdeath are read at the server's start, so a restart after either.

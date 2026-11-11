@@ -208,7 +208,7 @@ def triggers(ids):
               {"do": "broadcast", "text": "CazicThule wakes in his estate."},
               {"do": "clock", "seconds": 2700}, {"do": "awaitdead", "npc": "CazicThule"},
               {"do": "broadcast", "text": "CazicThule has fallen."}, {"do": "end"}, {"do": "despawn"},
-              {"do": "wait", "seconds": 86400}]
+              ] + [{"do": "wait", "seconds": 14400}] * 6  # the lock held 24 h (a wait is 4 h at most)
     return [
         trig(150, "The Trial of Celerity", celerity, at=POOL, radius=80, notes="t196's Trial Two; 640's red copies at 63"),
         trig(151, "The Trial of Contention", contention, at=CENTER, radius=150, notes="t196's Trial Three; 616's Watchman"),

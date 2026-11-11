@@ -390,7 +390,7 @@ func TestAStepsChoiceGivesThePickedOption(t *testing.T) {
 }
 
 // A trip only a quest opens (the Portal guides': the portal guardian's
-// Zaoran Plateau, for 1 tunar a trip): with no quest unlocking it, or only a
+// Zaoran Plateau, for 5,000 tunar a trip): with no quest unlocking it, or only a
 // draft, no one is offered it and the guardian says so; once a quest in the
 // game unlocks it, he names that quest; finished, it is offered with its fee
 // and lands on its place, not in front of an NPC. A player who finished the
@@ -436,15 +436,15 @@ func TestAQuestOnlyTripWaitsForItsQuest(t *testing.T) {
 	if err := f.qe.Reload(); err != nil {
 		t.Fatal(err)
 	}
-	f.tw.p.Tunar = 12
+	f.tw.p.Tunar = 5012
 	f.tw.talk(guardian)
 	if got := optionBox(t, f.tw.s); !slices.Equal(got, []string{"Yes", "No"}) {
 		t.Fatalf("finished, the guardian asked %q", got)
 	}
 	f.tw.pick(guardian, 0)
 	x, z, world, moved := teleported(f.tw.s)
-	if !moved || world != 5 || x != 4899 || z != 7049 || f.tw.p.Tunar != 11 {
-		t.Errorf("Yes: to (%.1f, %.1f) world %d (%v), tunar %d; want (4899, 7049) world 5 for 1", x, z, world, moved, f.tw.p.Tunar)
+	if !moved || world != 5 || x != 4899 || z != 7049 || f.tw.p.Tunar != 12 {
+		t.Errorf("Yes: to (%.1f, %.1f) world %d (%v), tunar %d; want (4899, 7049) world 5 for 5000", x, z, world, moved, f.tw.p.Tunar)
 	}
 }
 

@@ -284,7 +284,7 @@ func groupShareReach(cs *castState) float32 {
 
 // payPriceLocked takes a price of n hit points off the caster, less its
 // arcane resist's share on the pact's own scale (resist.go RollPactResist:
-// 90% at 350, petition 1532): the figure on the caster, a line saying it,
+// 90% at 315: petition 1532, the owner 2026-11-11): the figure on the caster, a line saying it,
 // and a death when nothing is left.
 func (w *World) payPriceLocked(cs *castState, caster *Player, sess *session.Session, n int, now time.Time) {
 	share, how := RollPactResist(caster.StatNow(StatAR)) // resist.go

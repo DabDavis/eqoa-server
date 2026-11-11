@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"math"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -36,52 +37,64 @@ func ctfHerald(t *testing.T, r *portalRig) *entity.NPC {
 	return nil
 }
 
-// The arena's recipe (tools/worlds/arena.json) as cmd/worldbuild carries it into the built recipe: its arena block
-// reads, both teams' stands and camps and every power-up stand inside its field, the stands apart, and the composer
-// takes the recipe (one zone of the disc, in a slot past the disc's).
+// The arenas' recipes as cmd/worldbuild carries them into the built recipe: the Spirit Ring (tools/worlds/ring.json,
+// slot 12, the default, a round field) and the Canyon of Banners (tools/worlds/arena.json, slot 11, kept): each arena
+// block reads, both teams' stands and camps and every power-up inside its field, the stands as far apart as the
+// arena is meant to be, the camps facing their stands, and the composer takes the recipe (one zone of the disc).
 func TestCTFArenaRecipe(t *testing.T) {
-	r, err := worlds.ReadRecipe(filepath.Join("..", "..", "tools", "worlds", "arena.json"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if r.World != 11 || len(r.Zones) != 1 || r.Zones[0].From != "TUNARIA.ESF" || r.Zones[0].Zone != 121 {
-		t.Fatalf("the recipe: world %d, zones %+v", r.World, r.Zones)
-	}
-	lay, err := ReadArena(worlds.Built{Recipe: r})
-	if err != nil {
-		t.Fatal(err)
-	}
-	inside := func(x, z float32) bool {
-		in := false
-		f := lay.Field
-		for i, j := 0, len(f)-1; i < len(f); j, i = i, i+1 {
-			if (f[i][1] > z) != (f[j][1] > z) && x < (f[j][0]-f[i][0])*(z-f[i][1])/(f[j][1]-f[i][1])+f[i][0] {
-				in = !in
+	for _, c := range []struct {
+		file       string
+		world      int
+		zone       int
+		ring       bool
+		near, far  float32 // the stands' distance apart
+		default_ok bool
+	}{
+		{"ring.json", 12, 51, true, 250, 350, true},
+		{"arena.json", 11, 121, false, 450, 1000, false},
+	} {
+		r, err := worlds.ReadRecipe(filepath.Join("..", "..", "tools", "worlds", c.file))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if r.World != c.world || len(r.Zones) != 1 || r.Zones[0].From != "TUNARIA.ESF" || r.Zones[0].Zone != c.zone {
+			t.Fatalf("%s: world %d, zones %+v", c.file, r.World, r.Zones)
+		}
+		if got := int(entity.DefaultCTFSettings().World) == c.world; got != c.default_ok {
+			t.Fatalf("%s: the default world is %d", c.file, entity.DefaultCTFSettings().World)
+		}
+		lay, err := ReadArena(worlds.Built{Recipe: r})
+		if err != nil {
+			t.Fatalf("%s: %v", c.file, err)
+		}
+		if (lay.Ring.Radius > 0) != c.ring || (!c.ring && len(lay.Field) < 3) {
+			t.Fatalf("%s: field %v, ring %+v", c.file, lay.Field, lay.Ring)
+		}
+		for i, tm := range lay.Teams {
+			if tm.Body == 0 || tm.Name == "" || !lay.InField(tm.Stand.X, tm.Stand.Z) || !lay.InField(tm.Camp.X, tm.Camp.Z) {
+				t.Fatalf("%s: team %d: %+v", c.file, i, tm)
+			}
+			// a camp faces its stand
+			cp, st := tm.Camp, tm.Stand
+			if h := heading(cp.X, cp.Z, st.X, st.Z); abs32(h-cp.Facing) > 0.01 {
+				t.Fatalf("%s: team %d's camp faces %.2f, its stand is at %.2f", c.file, i, cp.Facing, h)
 			}
 		}
-		return in
-	}
-	for i, tm := range lay.Teams {
-		if tm.Body == 0 || tm.Name == "" || !inside(tm.Stand.X, tm.Stand.Z) || !inside(tm.Camp.X, tm.Camp.Z) {
-			t.Fatalf("team %d: %+v", i, tm)
+		a, b := lay.Teams[0].Stand, lay.Teams[1].Stand
+		if d := float32(math.Hypot(float64(a.X-b.X), float64(a.Z-b.Z))); d < c.near || d > c.far {
+			t.Fatalf("%s: the stands are %.0f apart", c.file, d)
 		}
-	}
-	a, b := lay.Teams[0].Stand, lay.Teams[1].Stand
-	if dx, dz := a.X-b.X, a.Z-b.Z; dx*dx+dz*dz < 300*300 {
-		t.Fatalf("the stands are %.0f apart", dx*dx+dz*dz)
-	}
-	if len(lay.PowerUps) != 3 {
-		t.Fatalf("%d power-ups", len(lay.PowerUps))
-	}
-	for _, u := range lay.PowerUps {
-		if !inside(u.At.X, u.At.Z) {
-			t.Fatalf("%s outside the field", u.Name)
+		if len(lay.PowerUps) != 3 {
+			t.Fatalf("%s: %d power-ups", c.file, len(lay.PowerUps))
 		}
-	}
-	// a camp faces its stand
-	c := lay.Teams[0].Camp
-	if h := heading(c.X, c.Z, a.X, a.Z); abs32(h-c.Facing) > 0.01 {
-		t.Fatalf("the camp faces %.2f, its stand is at %.2f", c.Facing, h)
+		for _, u := range lay.PowerUps {
+			if !lay.InField(u.At.X, u.At.Z) {
+				t.Fatalf("%s: %s outside the field", c.file, u.Name)
+			}
+		}
+		if c.ring && lay.InField(lay.Ring.X+lay.Ring.Radius+1, lay.Ring.Z) {
+			t.Fatalf("%s: a step past the ring is in the field", c.file)
+		}
 	}
 }
 
@@ -102,6 +115,12 @@ func TestCTFArenaRefusals(t *testing.T) {
 		`{"teams": [{"name": "a", "short": "A", "flag": "A Banner", "flag_body": "0x1", "stand": {"x": 1, "z": 1}, "camp": {"x": 2, "z": 2}},
 		            {"name": "b", "short": "B", "flag": "B Banner", "flag_body": "0x2", "stand": {"x": 3, "z": 3}, "camp": {"x": 4, "z": 4}}],
 		 "powerups": [{"kind": "fire", "at": {"x": 1, "z": 1}}]}`,
+		`{"teams": [{"name": "a", "short": "A", "flag": "A Banner", "flag_body": "0x1", "stand": {"x": 1, "z": 1}, "camp": {"x": 2, "z": 2}},
+		            {"name": "b", "short": "B", "flag": "B Banner", "flag_body": "0x2", "stand": {"x": 3, "z": 3}, "camp": {"x": 4, "z": 4}}],
+		 "field_circle": {"x": 0, "z": 0, "r": 0}}`,
+		`{"teams": [{"name": "a", "short": "A", "flag": "A Banner", "flag_body": "0x1", "stand": {"x": 1, "z": 1}, "camp": {"x": 2, "z": 2}},
+		            {"name": "b", "short": "B", "flag": "B Banner", "flag_body": "0x2", "stand": {"x": 3, "z": 3}, "camp": {"x": 400, "z": 4}}],
+		 "field_circle": {"x": 0, "z": 0, "r": 100}}`,
 	} {
 		if _, err := ReadArena(worlds.Built{Recipe: worlds.Recipe{World: 11, Arena: []byte(js)}}); err == nil {
 			t.Fatalf("taken: %s", js)
@@ -119,11 +138,11 @@ func TestCTFSettingsFromConfig(t *testing.T) {
 	if d != entity.DefaultCTFSettings() {
 		t.Fatalf("defaults %+v", d)
 	}
-	if d.TeamSize != 10 || d.MinPerTeam != 2 || d.ScoreLimit != 3 || d.TimeLimit != 20*time.Minute || d.WaveEvery != 30*time.Second {
+	if d.World != 12 || d.TeamSize != 10 || d.MinPerTeam != 2 || d.ScoreLimit != 3 || d.TimeLimit != 20*time.Minute || d.WaveEvery != 30*time.Second {
 		t.Fatalf("the numbers the note gives: %+v", d)
 	}
-	s := CTFSettings(config.CTFConfig{World: 12, TeamSize: 3, MinPerTeam: 5, ScoreLimit: 5, TimeLimit: time.Minute, WoundAfter: -1})
-	if s.World != 12 || s.TeamSize != 3 || s.MinPerTeam != 3 || s.ScoreLimit != 5 || s.TimeLimit != time.Minute || s.WoundAfter != 0 {
+	s := CTFSettings(config.CTFConfig{World: 11, TeamSize: 3, MinPerTeam: 5, ScoreLimit: 5, TimeLimit: time.Minute, WoundAfter: -1})
+	if s.World != 11 || s.TeamSize != 3 || s.MinPerTeam != 3 || s.ScoreLimit != 5 || s.TimeLimit != time.Minute || s.WoundAfter != 0 {
 		t.Fatalf("set: %+v", s)
 	}
 }
@@ -139,6 +158,7 @@ func TestCTFHeraldEndToEnd(t *testing.T) {
 		{Name: "the Ember Band", Short: "Ember", Flag: "Ember Banner", Body: 1, Stand: entity.CTFSpot{X: 100, Z: 100}, Camp: entity.CTFSpot{X: 100, Z: 150}},
 		{Name: "the Dusk Band", Short: "Dusk", Flag: "Dusk Banner", Body: 2, Stand: entity.CTFSpot{X: 900, Z: 100}, Camp: entity.CTFSpot{X: 900, Z: 150}}}}
 	set := entity.DefaultCTFSettings()
+	set.World = 11 // the Canyon of Banners, by config (world.ctf.world)
 	r.gw.SetCTF(true, set, lay)
 	ctfRulesLines = ctfRules(set, lay)
 	herald := ctfHerald(t, r)
@@ -195,6 +215,7 @@ func TestCTFHeraldReachesOnlyWhoHoldsTheArena(t *testing.T) {
 		{Name: "the Ember Band", Short: "Ember", Flag: "Ember Banner", Body: 1, Stand: entity.CTFSpot{X: 100, Z: 100}, Camp: entity.CTFSpot{X: 100, Z: 150}},
 		{Name: "the Dusk Band", Short: "Dusk", Flag: "Dusk Banner", Body: 2, Stand: entity.CTFSpot{X: 900, Z: 100}, Camp: entity.CTFSpot{X: 900, Z: 150}}}}
 	set := entity.DefaultCTFSettings()
+	set.World = 11 // the Canyon of Banners, by config (world.ctf.world)
 	r.gw.SetCTF(true, set, lay)
 	herald := ctfHerald(t, r)
 	for _, c := range []struct {
@@ -243,6 +264,7 @@ func TestCTFHeraldReachesOnlyWhoHoldsTheArena(t *testing.T) {
 func TestCTFLoginInTheArena(t *testing.T) {
 	r := newPortalRig(t)
 	set := entity.DefaultCTFSettings()
+	set.World = 11 // the Canyon of Banners, by config (world.ctf.world)
 	r.gw.SetCTF(true, set, entity.CTFLayout{Name: "the Test Canyon"})
 	ctfHerald(t, r)
 	got := &database.CharacterRecord{CharName: "Arenite", World: 11, X: 20500, Y: 6, Z: 21100}

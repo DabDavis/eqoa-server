@@ -957,10 +957,16 @@ restarts and swaps; nothing before its first deploy is in it, and each shard cou
 The owner, 2026-11-10: "since we have a template for making new worlds and zones lets add a new PvP world. One zone for Capture
 the Flag. players will join from PvP Events NPC next to Dabrish, will have 2 teams", then "for the ctf we are making it like
 warsong gulch from WoW": that game's rules, never its map, names or look. `claude-notes/ctf-world-20261110.md` has the design,
-every number and what the rig measured. **`world.ctf.enabled`** (off by default) turns it on, with its world (`world.ctf.world`,
-11) one of `world.server_worlds`: a composed world of one disc zone, **Box Canyons** (Tunaria zone 121), built from
-`tools/worlds/arena.json` by `cmd/worldbuild`, whose `"arena"` block (carried into `worldN.json`, never the file) is the
-places: each team's banner stand and camp, the power-ups, the field's edge, the bodies. Every number is in config with its
+every number and what the rig measured. **`world.ctf.enabled`** (off by default) turns it on, with its world (`world.ctf.world`)
+one of `world.server_worlds`: a composed world of one disc zone, built by `cmd/worldbuild` from a recipe whose `"arena"`
+block (carried into `worldN.json`, never the file) is the places: each team's banner stand and camp, the power-ups, the
+field's edge (a polygon, `field`, and/or a circle, `field_circle`: `CTFLayout.InField`), the bodies. **Two arenas, either the
+CTF map by config**: **the Spirit Ring**, slot **12, the default** since 2026-11-11 (the owner: "the map is too large, keep that
+map around for something else and add a much smaller map a rough circle"; `tools/worlds/ring.json`: the round walled hollow
+of Spirit Talkers Wood, Tunaria zone 51, stand to stand 325 walked, a ring edge of 300; `claude-notes/ctf-ring-20261111.md`),
+and **the Canyon of Banners**, slot 11 (`tools/worlds/arena.json`: Box Canyons, Tunaria zone 121, stand to stand 932), kept
+and buildable: `world.ctf.world: 11` with 11 in `server_worlds` plays it again. A slot not played need not be listed in
+`server_worlds` (each listed world is offered to, and built by, every client at login). Every number is in config with its
 default (`config.yaml.example`, `entity.DefaultCTFSettings`).
 
 - **Joining**: the **PvP Events** herald (any NPC of the name; `tools/place_ctf_herald.py` stands one behind Dabrish in a war
@@ -1013,8 +1019,9 @@ default (`config.yaml.example`, `entity.DefaultCTFSettings`).
   Ember, the enchanters' for Dusk, at 0.17) where the built world holds that art among its zone's extras (the recipe's
   decoration, the homes-edges composer's format: towers, walls, boulders, catapults, the guild banners by the stands, the
   sun flags mid-valley, boulders across the south run), else a CHAR.ESF orb (`fallback_body`): vanilla draws a zone's art
-  as an NPC's body once the zone is in. The deployed world 11 (the decorated arena, 47 extras) is 5,732,225 bytes, CRC
-  6c892af2, as the homes-edges composer built it before the merge. Tests: `TestCTF*` (`entity/ctf_test.go`,
+  as an NPC's body once the zone is in. World 11 (the decorated Canyon, 47 extras) is 5,732,225 bytes, CRC 6c892af2;
+  world 12 (the decorated Spirit Ring, 27 extras: the guild banners, breastworks, camps, sun flags on the mound, a boulder and
+  a wall in each lane) is 5,795,018 bytes, CRC 2f292767. Tests: `TestCTF*` (`entity/ctf_test.go`,
   `entity/ctfaway_test.go`, `handlers/ctf_test.go`, `handlers/ctfaway_test.go`), `TestBoxMarksAreEachFeaturesOwn`,
   `TestHeraldAndLiaisonAnswersAreTheirOwn` (`handlers/boxmarks_test.go`).
 

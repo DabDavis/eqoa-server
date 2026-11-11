@@ -608,6 +608,39 @@ func TestCTFFieldEdge(t *testing.T) {
 	}
 }
 
+// A round field (a hollow's rim: tools/worlds/ring.json's field_circle): a player of the match past its radius goes back
+// to its camp and drops the banner it carried, one inside it anywhere (the rectangle's corners too) does not.
+func TestCTFRoundFieldEdge(t *testing.T) {
+	r := newCTF(t, 2)
+	r.w.mu.Lock()
+	r.w.ctf.lay.Field = nil
+	r.w.ctf.lay.Ring = CTFRing{X: 500, Z: 500, Radius: 450}
+	r.w.mu.Unlock()
+	ember, _ := r.startMatch(t)
+	a := ember[0]
+	live := r.live()
+	lay := r.w.ctf.lay
+	if !lay.InField(500, 60) || lay.InField(60, 60) || !lay.InField(940, 500) || lay.InField(960, 500) {
+		t.Fatal("the ring's edge is not its radius")
+	}
+	r.step(a, lay.Teams[1].Stand.X, lay.Teams[1].Stand.Z, live+time.Second)
+	if !a.ctf.carries {
+		t.Fatal("the banner was not taken")
+	}
+	r.step(a, 500, 940, live+2*time.Second) // inside, near the edge
+	if !a.ctf.carries || len(r.arrive()) != 0 {
+		t.Fatal("sent back from inside the ring")
+	}
+	r.step(a, 60, 60, live+3*time.Second) // inside the old box, outside the ring
+	if a.ctf.carries || r.w.ctf.m.flags[1].state != ctfFlagDropped {
+		t.Fatal("the banner left the field")
+	}
+	due := r.arrive()
+	if len(due) != 1 || due[0].To.X != lay.Teams[0].Camp.X || due[0].To.Z != lay.Teams[0].Camp.Z {
+		t.Fatalf("not sent to its camp: %+v", due)
+	}
+}
+
 // The power-ups: the speed one puts on Spirit of the Wolf's run speed, the heal fills hit points and power; each
 // gone until PowerUpEvery has passed.
 func TestCTFPowerUps(t *testing.T) {

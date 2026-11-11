@@ -188,7 +188,9 @@ func TestHeraldAndLiaisonAnswersAreTheirOwn(t *testing.T) {
 	lay := entity.CTFLayout{Name: "the Test Canyon", Teams: [2]entity.CTFTeamLayout{
 		{Name: "the Ember Band", Short: "Ember", Flag: "Ember Banner", Body: 1, Stand: entity.CTFSpot{X: 100, Z: 100}, Camp: entity.CTFSpot{X: 100, Z: 150}},
 		{Name: "the Dusk Band", Short: "Dusk", Flag: "Dusk Banner", Body: 2, Stand: entity.CTFSpot{X: 900, Z: 100}, Camp: entity.CTFSpot{X: 900, Z: 150}}}}
-	r.gw.SetCTF(true, entity.DefaultCTFSettings(), lay)
+	set := entity.DefaultCTFSettings()
+	set.World = 11 // the Canyon of Banners, by config (world.ctf.world)
+	r.gw.SetCTF(true, set, lay)
 	herald := ctfHerald(t, r)
 	r.anna.SetServerWorlds([]uint8{11})
 	lia := r.liaison()

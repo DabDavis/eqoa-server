@@ -172,5 +172,158 @@
     "declined": "Neriak will keep. The dark elves are not going anywhere.",
     "started": "Hunt well, and keep your nose to the wind!",
     "journal": "Tell Gatekeeper Brindle when you are ready to go to Neriak."
+  },
+  "L7": {
+    "name": "The Snow's Scent",
+    "giver": "Packleader Varg",
+    "offer": [
+      "Hrr. You are no pup now, and a hunter of the pack must know every scent of the Homelands. The cold has scents of its own.",
+      "Ride Skulk's coach to the Goldfeather Eyrie. The badgers there dig through the snow east of the hunters' outpost. Bring me three of their pelts.",
+      "Will you learn the snow's scent?"
+    ],
+    "accept": "I will hunt there.",
+    "decline": "Not now.",
+    "declined": "Your nose will not grow keener by the fire.",
+    "started": "Skulk's coach will take you. Hunt downwind.",
+    "hunts": [
+      {
+        "target": "snowfield badger",
+        "count": 3,
+        "drop": {
+          "name": "snowfield badger pelt",
+          "description": "The thick pelt of a snowfield badger of the Goldfeather Eyrie.",
+          "like": "beast pelt"
+        },
+        "hunt": {
+          "journal": "Take three snowfield badger pelts from the badgers on the snow east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring the three snowfield badger pelts to Packleader Varg.",
+      "says": "Three pelts, and the snow still on them. Hrr, I smell the Eyrie on you. Now watch me, hunter, and learn this."
+    }
+  },
+  "L10": {
+    "name": "A Colder Venom",
+    "giver": "Packleader Varg",
+    "offer": [
+      "A hunter needs better teeth than a pup. The rime spiders of the Eyrie carry a venom colder than the ridge vipers' ever was.",
+      "Bring me two of their fangs, from the spiders north-east of the outpost, whole, and I will make you a weapon fit for a hunter of the pack.",
+      "Will you bring me the fangs?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then hunt with dull teeth.",
+    "started": "North-east of the outpost. Mind their bite, and keep the fangs whole.",
+    "target": "rime spider",
+    "count": 2,
+    "drop": {
+      "name": "rime spider fang",
+      "description": "A hooked, frost-white fang from a rime spider of the Goldfeather Eyrie.",
+      "like": "small spider fang"
+    },
+    "hunt": {
+      "journal": "Take two rime spider fangs from the rime spiders north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the two rime spider fangs to Packleader Varg.",
+      "says": "Whole, both of them. Hold still... the cold venom is in it now. It is yours. Still, do not lick it."
+    }
+  },
+  "L13": {
+    "name": "Frostjaw's Fang",
+    "giver": "Packleader Varg",
+    "offer": [
+      "Hrr. The outpost's hunters whine of an old snow leopard, Old Frostjaw, on the slopes north-east of the outpost. A cat that old is clever, as Greymuzzle was.",
+      "A pack hunts together. Take friends from the other homes, bring him down, and bring me his fang to hang beside Greymuzzle's.",
+      "Will you hunt Old Frostjaw?"
+    ],
+    "accept": "I will hunt him.",
+    "decline": "Not yet.",
+    "declined": "Cats sleep long. He will keep.",
+    "started": "Hunt him as a pack. He strikes first.",
+    "kind": "loot",
+    "target": "Old Frostjaw",
+    "count": 1,
+    "drop": {
+      "name": "Old Frostjaw's fang",
+      "description": "A long fang, yellowed with age, from the old snow leopard Old Frostjaw.",
+      "like": "bear fang"
+    },
+    "hunt": {
+      "journal": "Take Old Frostjaw's fang from the old snow leopard on the slopes north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring Old Frostjaw's fang to Packleader Varg.",
+      "says": "Frostjaw's own fang, to hang beside Greymuzzle's. The burrow will howl your name again tonight. Learn this."
+    }
+  },
+  "L15": {
+    "name": "The Thing With No Scent",
+    "giver": "Packleader Varg",
+    "offer": [
+      "Something walks the ice caves north-east of the Eyrie outpost that has no scent at all. The hunters call it the Rimeheart. No blood, no breath. My hackles rise.",
+      "Break it, and bring me a shard of it. I want to know what a thing with no scent is made of.",
+      "Will you break the Rimeheart?"
+    ],
+    "accept": "I will break it.",
+    "decline": "Not yet.",
+    "declined": "Then it walks on, and the game flees the snow.",
+    "started": "Go with the pack. The caves are colder than the snow.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the shard of the Rimeheart to Packleader Varg.",
+      "says": "Hrr. Ice that never melts, and it smells of nothing. The pack will speak of this hunt a long time. Learn this."
+    }
+  },
+  "L20": {
+    "name": "The Pack's Run",
+    "giver": "Elder Grawl",
+    "offer": [
+      "Varg says you hunt like a grown gnoll now. Every hunter of Blackburrow runs once with the other homes at the Eyrie, so they learn the pack's scent.",
+      "Go to Scout Feyla, who watches the Goldfeather eyrie from the frozen river. Do as she asks, then come home to me and choose your path.",
+      "Will you run with the homes?"
+    ],
+    "accept": "I will run with them.",
+    "decline": "Not yet.",
+    "declined": "The run waits for those who are ready.",
+    "started": "Run well, and come home to the fire.",
+    "road": [
+      {
+        "target": "Scout Feyla",
+        "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+        "says": "A gnoll of Blackburrow? Good, I could use a nose. The Goldfeather raiders carry war-talons. Bring me three, and they will not raid the river again this winter."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 3,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "journal": "Bring the three war-talons to Scout Feyla.",
+      "says": "Three talons. Your nose found them faster than my eyes would have. Go home, hunter: your elder waits by the fire."
+    },
+    "final": {
+      "target": "Elder Grawl",
+      "journal": "Return to Elder Grawl in Blackburrow.",
+      "says": "Hrrn. You smell of snow and blood and the other homes. You left a pup and came home a hunter of the pack. One thing more, then."
+    },
+    "picked": "Hrr. Then it is yours. Carry it with the pack's pride."
   }
 }

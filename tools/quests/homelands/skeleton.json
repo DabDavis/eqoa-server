@@ -192,7 +192,7 @@
         "drop": {
           "name": "snowfield badger claw",
           "description": "A blunt digging claw from a snowfield badger of the Goldfeather Eyrie.",
-          "like": "shattered badger claw"
+          "like": "Beast Claw"
         },
         "hunt": {
           "journal": "Take two snowfield badger claws from the badgers on the snow east of the Eyrie outpost."

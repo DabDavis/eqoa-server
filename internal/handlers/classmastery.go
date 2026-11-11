@@ -466,9 +466,8 @@ func (h *ClassMasteryHandler) remove(sess *session.Session, token uint32, id int
 	name := fmt.Sprintf("mastery %d", id)
 	if res.Rank != nil {
 		name = res.Rank.Name
-		gives, takes := res.Rank.BookChange()
-		h.takeAbilities(sess, p, gives)
-		h.giveAbilities(sess, p, takes)
+		h.takeAbilities(sess, p, res.TakeOut) // what the ranks kept give or replace stays (entity's cmRemovalBookLocked)
+		h.giveAbilities(sess, p, res.GiveBack)
 	}
 	SendColoredChat(sess, fmt.Sprintf("You have removed %s: its %d mastery points are gone, to be earned again.", name, res.Paid), 255, 255, 0)
 	list := h.gameWorld.CMList(sess, h.cmKnowsOf(p))

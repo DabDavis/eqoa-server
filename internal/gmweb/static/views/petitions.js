@@ -65,7 +65,9 @@ export async function render(box) {
       ? h('details', null, h('summary', { class: 'small' }, `${title} (${list.length})`), h('pre', { class: 'json' }, list.join('\n'))) : null);
     const t = v.target;
     const parts = [
-      kv('Filed', `${when(v.filed)} via ${v.via === 'chat' ? '/bug' : "Support's form"}`),
+      kv('Filed', `${when(v.filed)} via ${v.via === 'chat' ? '/bug' : v.via === 'crash report' ? "the client's crash report (sent at its next login)" : "Support's form"}`),
+      v.stopped ? kv('Client stopped', `last heard ${when(v.stopped.heard)}, ${v.stopped.how} (the server's record)`) : null,
+      v.crash ? h('details', { open: true }, h('summary', { class: 'small' }, "The client's crash report"), h('pre', { class: 'json' }, v.crash)) : null,
       kv('Server', `build ${v.server?.build}, up ${v.server?.up}, ${v.server?.players} in the world`),
       kv('Client', `${v.client?.disc}${v.client?.f3 ? ', vanilla with F3' : ''}${v.client?.mailForms ? ', live mail forms' : ''}`),
       kv('Character', `${c.name}, level ${c.level} ${c.race} ${c.class}${c.dead ? ', dead' : ''}`),

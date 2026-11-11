@@ -319,7 +319,7 @@ func npcResistKindPct(npc *NPC, st Stat, now time.Time) int {
 	if off == 0 {
 		return 0
 	}
-	return int(ResistShare(off)*100 + 0.5)
+	return int(resistDebuffShare(off)*100 + 0.5)
 }
 
 // npcResistDebuff is how far a creature's resist of a kind is lowered now:

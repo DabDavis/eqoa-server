@@ -23,13 +23,23 @@ import (
 const (
 	// ResistCap is the most of a resist that counts (jib's "315 cap").
 	ResistCap = 315
-	// ResistCapShare is the share a resist at the cap takes.
-	ResistCapShare = 0.75
+	// ResistCapShare is the share of a spell's damage of its element a resist
+	// at the cap takes: 90% (the owner, 2026-11-11: "if resist is 315+ it
+	// should stop 90% damage for its element"; jib's 75% before).
+	ResistCapShare = 0.90
 
 	resistFullFailure    = 0.025 // a resist at the cap fails altogether
 	resistPartialFailure = 0.05  // and, besides, in part
-	resistPartialLow     = 0.45  // a partial failure's share, from
-	resistPartialHigh    = 0.74  // to
+	// a partial failure's share, from and to: jib's 45-74% of his 75% cap
+	// share, kept in that proportion to ResistCapShare (54-88.8% at 90%)
+	resistPartialLow  = 0.45 / 0.75 * ResistCapShare
+	resistPartialHigh = 0.74 / 0.75 * ResistCapShare
+
+	// resistDebuffCapShare is the old line (75% at the cap) a resist debuff on
+	// a creature still reads for the points it takes off its chance to resist
+	// (enchanter.go, workbook.go): that is no spell's damage, so the owner's
+	// 90% left it as it was.
+	resistDebuffCapShare = 0.75
 )
 
 // ResistOutcome is how a resist went on one spell.
@@ -49,6 +59,13 @@ var resistRand = rand.Float64
 func ResistShare(resist int) float64 {
 	r := min(max(resist, 0), ResistCap)
 	return ResistCapShare * float64(r) / ResistCap
+}
+
+// resistDebuffShare is a resist debuff's points off a creature's chance to
+// resist, as a share: the old line, resistDebuffCapShare at ResistCap.
+func resistDebuffShare(off int) float64 {
+	r := min(max(off, 0), ResistCap)
+	return resistDebuffCapShare * float64(r) / ResistCap
 }
 
 // RollResist is the share a resist takes off one spell's damage: its

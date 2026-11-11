@@ -53,7 +53,7 @@ func TestMercSummonsItsPet(t *testing.T) {
 
 	// it fights what its merc fights; the kill is the hirer's
 	crab := r.creature("crab", 28, 6)
-	crab.HP, crab.MaxHP = 400, 400
+	crab.HP, crab.MaxHP = 150, 150
 	r.w.mu.Lock()
 	r.p.AttackTarget = crab.ServerID
 	r.p.AutoAttack = true

@@ -1064,3 +1064,59 @@ func TestNestedResistLines(t *testing.T) {
 		t.Errorf("the control: effects %v, STR %d DEX %d; want the higher alone", got, c.p.Mods.Str, c.p.Mods.Dex)
 	}
 }
+
+// Petition 1359: Graal's Final Strike ("stack2 player proc", level 60, a 500
+// proc) and Stormblade ("stack2 player +INT proc", level 49, a 300 proc) are
+// nested lines that both carry a proc: the higher rank wins in either order.
+// Stormblade over Graal's is refused, its caster told; Graal's over
+// Stormblade takes it off. Of one rank, the bigger proc wins (Graal's Final
+// Strike over Graal's Venomus Strike, both 60).
+func TestNestedProcLinesGoByRank(t *testing.T) {
+	noResist(t)
+	graal := wbSpell(931, 60, 0, "Graal's Final Strike", `{"v":1,"scope":"self","stack":2,"level":60,"duration_s":300,`+
+		`"effects":[{"kind":"proc","procs":[{"kind":"hp","amount":-500,"scale":"str","scale_pct":10,"on":"offense","scope":"target"}]}]}`)
+	storm := wbSpell(932, 49, 0, "Stormblade", `{"v":1,"scope":"self","stack":2,"level":49,"duration_s":300,`+
+		`"effects":[{"kind":"stat","stat":"int","amount":100},`+
+		`{"kind":"proc","procs":[{"kind":"hp","amount":-300,"scale":"str","scale_pct":10,"on":"offense","scope":"target"}]}]}`)
+	venom := wbSpell(933, 60, 0, "Graal's Venomus Strike", `{"v":1,"scope":"self","stack":2,"level":60,"duration_s":300,`+
+		`"effects":[{"kind":"stat","stat":"int","amount":175},`+
+		`{"kind":"proc","procs":[{"kind":"hp","amount":-300,"scale":"str","scale_pct":10,"on":"offense","scope":"target"}]}]}`)
+	if g, s := BuffLine(&graal), BuffLine(&storm); !nestedLines(g, s) {
+		t.Fatalf("lines %q and %q are not nested: the test reads nothing", g, s)
+	}
+	want := func(c *caster, label string, names ...string) {
+		t.Helper()
+		if got := c.effectNames(); strings.Join(got, ",") != strings.Join(names, ",") {
+			t.Errorf("%s: effects %v, want %v", label, got, names)
+		}
+	}
+
+	c := newCaster(t)
+	c.castOn(t, graal, 0)
+	c.castOn(t, storm, 10*time.Second)
+	want(c, "Stormblade over Graal's", graal.Name)
+	if red := redLines(c.sess); len(red) == 0 || !strings.Contains(red[len(red)-1], graal.Name+", which is stronger") {
+		t.Errorf("the caster was not told: %q", red)
+	}
+	if c.p.Mods.Int != 0 {
+		t.Errorf("INT %d with Stormblade refused, want 0", c.p.Mods.Int)
+	}
+
+	c = newCaster(t)
+	c.castOn(t, storm, 0)
+	c.castOn(t, graal, 10*time.Second)
+	want(c, "Graal's over Stormblade", graal.Name)
+	if c.p.Mods.Int != 0 {
+		t.Errorf("INT %d after Stormblade was taken off, want 0", c.p.Mods.Int)
+	}
+
+	// one rank: the bigger proc, either order
+	c = newCaster(t)
+	c.castOn(t, venom, 0)
+	c.castOn(t, graal, 10*time.Second)
+	want(c, "Final Strike over Venomus Strike", graal.Name)
+	c = newCaster(t)
+	c.castOn(t, graal, 0)
+	c.castOn(t, venom, 10*time.Second)
+	want(c, "Venomus Strike over Final Strike", graal.Name)
+}

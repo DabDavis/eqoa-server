@@ -50,7 +50,10 @@ import (
 //     team mate hurt and mercHealerSpare of its power left; a caster keeps its
 //     power for its best: a lesser spell only while what is left after it
 //     pays for the best one (the owner: "casters keep their power for their
-//     best spells (don't spam to empty)").
+//     best spells (don't spam to empty)"). A caster or a healer below
+//     mercThriftyBelow of its power casts the hit that does the most for its
+//     power instead (mercThrifty: the owner, 2026-11-11, "magician mercs need
+//     to cast spells for damage like the necro").
 //
 // What a merc's book holds that it never casts (mercSkips): a summoning, a
 // charm, an illusion, a gate or a trip, a resurrection, invisibility, a run
@@ -71,8 +74,10 @@ const (
 	// a healer first with its biggest
 	mercEmergencyPct = 40
 	// mercHealerSpare is the share of its power a healer keeps for its heals:
-	// it casts at its owner's foe only above it
-	mercHealerSpare = 70
+	// it casts at its owner's foe only above it (70 until 2026-11-11, when a
+	// cleric that had buffed and healed never had it in a fight again: none
+	// of its hits in a minute's fight at 30 or 60)
+	mercHealerSpare = 40
 	// mercBuffSpare: a merc buffs out of a fight only with this share of its
 	// power or more
 	mercBuffSpare = 50
@@ -578,9 +583,11 @@ func (w *World) mercAttackTurnLocked(ms *mercState, t *NPC, now time.Time) bool 
 		return false
 	}
 	book := ms.mercBook()
+	// a caster or a healer short of power casts thriftily (mercThrifty)
+	thrifty := (ms.role == roleCaster || ms.role == roleHealer) && m.Power*100 < m.MaxPower*mercThriftyBelow
 	// what a caster keeps its power for: its best hit's cost
 	reserve := 0
-	if ms.role == roleCaster {
+	if ms.role == roleCaster && !thrifty {
 		for _, sp := range book {
 			if sp.use == useNuke && w.petUndeadMayLocked(sp.s, t) {
 				reserve = sp.s.PowerCost
@@ -601,6 +608,13 @@ func (w *World) mercAttackTurnLocked(ms *mercState, t *NPC, now time.Time) bool 
 			w.mercCastLocked(ms, sp.s, t.ServerID, false, now)
 			return true
 		}
+	}
+	if thrifty {
+		if sp := mercThrifty(book, func(sp mercSpell) bool { return sp.use == useNuke && can(sp, true) }); sp != nil {
+			w.mercCastLocked(ms, sp.s, t.ServerID, false, now)
+			return true
+		}
+		return false
 	}
 	first := true
 	for _, sp := range book {
@@ -623,6 +637,38 @@ func (w *World) mercAttackTurnLocked(ms *mercState, t *NPC, now time.Time) bool 
 		}
 	}
 	return false
+}
+
+// mercThriftyBelow is the share of its power below which a caster or a
+// healer casts its hits thriftily (mercThrifty).
+const mercThriftyBelow = 25
+
+// mercThrifty is the hit of the book a merc short of power casts (the owner,
+// 2026-11-11: "magician mercs need to cast spells for damage like the
+// necro"): of those ok allows, the one that does the most for its power (its
+// worth over its cost; a free one first), the bigger of two as good. A
+// magician's book is hits alone, each to be cast again 3 s on: cast biggest
+// first it emptied its power in half a minute and then cast one Blaze in
+// every 25 s of its power's return, where a necromancer's damage over time,
+// its pacts and its life taps kept it casting. Its power's return is what it
+// casts with then, and the hit that does most for it does the most damage.
+func mercThrifty(book []mercSpell, ok func(mercSpell) bool) *mercSpell {
+	var best *mercSpell
+	var bestEff float64
+	for i := range book {
+		sp := &book[i]
+		if !ok(*sp) {
+			continue
+		}
+		eff := sp.worth / float64(max(sp.s.PowerCost, 1))
+		if sp.s.PowerCost <= 0 {
+			eff = math.Inf(1)
+		}
+		if best == nil || eff > bestEff || eff == bestEff && sp.worth > best.worth {
+			best, bestEff = sp, eff
+		}
+	}
+	return best
 }
 
 // mercDoTUpLocked is whether the merc's damage over time s is up on t: on its

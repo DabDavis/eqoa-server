@@ -202,7 +202,7 @@ func (p *Player) ownBody() (model uint32, size float32) {
 func (w *World) endIllusionsLocked(t *Player, keep int) bool {
 	gone := false
 	for _, e := range append([]*ActiveEffect(nil), t.Effects...) {
-		if e.Form != 0 && e.SpellID != keep {
+		if (e.Form != 0 || e.Rules.Raiment) && e.SpellID != keep { // a Wisp's Raiment a form too (wispform.go)
 			w.removeEffectLocked(t, e.SpellID)
 			log.Printf("Cast: %q ends on %s: the illusion is gone", e.Name, t.Name)
 			gone = true

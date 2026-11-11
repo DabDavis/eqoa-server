@@ -103,6 +103,8 @@ type Player struct {
 	// (cast.go's MoveRate): the MOVEMENT RATE of the masteries the character
 	// bought (cmbuy.go).
 	MoveRateBonus int
+	// seaSpeed: a sea folk race in water moves at Spirit of the Wolf's rate (seaspeed.go)
+	seaSpeed bool
 
 	// Factions is the character's standing with each faction it has moved
 	// off the faction's starting standing (faction.go; table charfactions).

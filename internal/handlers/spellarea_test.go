@@ -23,6 +23,12 @@ func TestACastsAreaAndItsRow(t *testing.T) {
 	if got.Area.Centre != entity.AreaOnCaster || got.Area.Radius != 12 || got.Area.Max != 3 || len(got.Area.Effects) != 1 {
 		t.Errorf("a row round its caster, 12, 3: %+v", got.Area)
 	}
+	cl := castSpell(&database.CharSpellEntry{Pattern: database.SpellPatternRecord{SpellID: 700534, SpellName: "Cleave", Scope: 1}},
+		"Target, Decrease Hitpoints by 600 ; Increase 30% based on STR", 0)
+	if got := withAreaRow(cl, database.SpellAreaRow{Centre: entity.AreaRuleCone, Radius: 6, MaxTargets: 3, Cone: 60}, true); got.Area.Centre != entity.AreaCone ||
+		got.Area.Radius != 6 || got.Area.Max != 3 || got.Area.Cone != 60 || got.Area.Effects != nil {
+		t.Errorf("Cleave's cone row: %+v", got.Area)
+	}
 	if got := withAreaRow(spell, database.SpellAreaRow{Centre: entity.AreaRuleNone}, true); got.Area.Centre != entity.AreaNone {
 		t.Errorf("a row saying not an area spell: %+v", got.Area)
 	}

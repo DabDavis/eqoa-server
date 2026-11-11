@@ -235,6 +235,10 @@ type Session struct {
 	// what it was last sent ("" none since its answer)
 	mercsTold bool
 	mercsSent string
+	// mercsLayout is the layout of OpcodeMercsData its answer asked for: 1
+	// the names, 2 each with its hirer's name (the merc's tag under its
+	// name plate)
+	mercsLayout uint8
 
 	// groupReg: the client answered the group search's offer 1
 	// (protocol.OpcodeGroupRegOffer, handlers/groupreg.go), so it is sent its
@@ -366,9 +370,28 @@ func (s *Session) TakeNPCTints(body string, empty bool) bool {
 // sent the mercs it may see (TakeMercs); either way what it was sent is
 // forgotten.
 func (s *Session) SetMercsTold(on bool) {
+	var layout uint8
+	if on {
+		layout = 1
+	}
+	s.SetMercsLayout(layout)
+}
+
+// SetMercsLayout records the client's answer to the mercs' offer as the
+// layout of OpcodeMercsData it reads (0 none: it is sent nothing); either
+// way what it was sent is forgotten.
+func (s *Session) SetMercsLayout(layout uint8) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.mercsTold, s.mercsSent = on, ""
+	s.mercsTold, s.mercsLayout, s.mercsSent = layout != 0, layout, ""
+}
+
+// MercsLayout is the layout of OpcodeMercsData the client reads, 0 for a
+// client that never asked.
+func (s *Session) MercsLayout() uint8 {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.mercsLayout
 }
 
 // MercsTold is whether the client asked for the mercs it may see.

@@ -1057,6 +1057,27 @@ const (
 	// turns: what a PS2 cannot be sent (consoletext.go) stays filtered for
 	// every client.
 	OpcodeProfanityChoice GameOpcode = 0x7E60
+
+	// OpcodeCrashReportOffer is not retail: the server takes a client's crash
+	// reports (handlers/crashreport.go), sent once the player is in the
+	// world: a u32 version (1), then a u32, the most bytes of a report's text
+	// it takes. A client that kept a report of a crash of its own (vanilla:
+	// a panic's message and backtrace, its build and platform) sends each with
+	// OpcodeCrashReport and lets it go at the server's OpcodeCrashReportFiled.
+	// CLIENT has no such case, so a PS2 ignores the offer and sends nothing.
+	OpcodeCrashReportOffer GameOpcode = 0x7E64
+	// OpcodeCrashReport is a crash report, from a client the server offered
+	// them (OpcodeCrashReportOffer): a u32 version (1), a u32 number of the
+	// client's own for the report (the answer names it), a u32 byte count and
+	// that many bytes of UTF-8 text, at most the offer's most. A report longer
+	// than a DRDP piece (1,300 bytes) comes in pieces, put back together
+	// (session/fragments.go). Each is filed as a petition, Bug Report / Crash.
+	OpcodeCrashReport GameOpcode = 0x7E65
+	// OpcodeCrashReportFiled is the server's answer to OpcodeCrashReport: the
+	// u32 number the client gave it, then a u32, the petition it was filed as
+	// (0: not kept, and not to be sent again). The client lets the report go
+	// at any answer.
+	OpcodeCrashReportFiled GameOpcode = 0x7E66
 )
 
 // =============================================================================
@@ -1293,6 +1314,12 @@ func (op GameOpcode) String() string {
 		return "BugReportOffer"
 	case OpcodeBugReportNote:
 		return "BugReportNote"
+	case OpcodeCrashReportOffer:
+		return "CrashReportOffer"
+	case OpcodeCrashReport:
+		return "CrashReport"
+	case OpcodeCrashReportFiled:
+		return "CrashReportFiled"
 	case OpcodeMemberInvites:
 		return "MemberInvites"
 	case OpcodeRaidRosterOffer:

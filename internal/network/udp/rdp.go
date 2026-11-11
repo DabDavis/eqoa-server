@@ -505,6 +505,9 @@ func (r *RDPHandler) TickSession(sess *session.Session) {
 		sess.SetPendingTermination(true)
 		return
 	}
+	// One in the world silent ClientStoppedSilence: its client stopped, said
+	// once (session/clientstopped.go); heard again, it was hung.
+	clientStopped(sess, silent, time.Now())
 	// One in the world silent InGameSilentEnd: its client is gone (below).
 	if r.listener.silentInWorldOver(sess, silent) {
 		return
@@ -613,6 +616,29 @@ func (l *Listener) silentInWorldOver(sess *session.Session, silent time.Duration
 	log.Printf("Session: %s silent %.0fs in the world: its client is gone, ended", sess.Label(), silent.Seconds())
 	sess.SetPendingTermination(true)
 	return true
+}
+
+// clientStopped says a session in the world whose client has been silent
+// session.ClientStoppedSilence stopped (a crash, a hang or a dropped line),
+// once, naming its character: never while its world loads (the state channels
+// held: a PS2 reads one off the disc in up to 22 s), after its client quit
+// (0x09B0) or once it was replaced or is ending. A client heard from again
+// under the silence after it was said is said to have been hung.
+func clientStopped(sess *session.Session, silent time.Duration, now time.Time) {
+	if silent < session.ClientStoppedSilence {
+		session.NoteClientHeard(sess, now)
+		return
+	}
+	if sess.PendingTermination() || !sess.CharacterInWorld() || sess.StateChannelsHeld() {
+		return
+	}
+	if _, replaced := sess.ReplacedFor(); replaced {
+		return
+	}
+	if _, quit := sess.QuittingSince(); quit {
+		return
+	}
+	session.NoteClientStopped(sess, "silent in the world", now)
 }
 
 // testAfterDrain, set by a test alone, runs in PreparePacket between the

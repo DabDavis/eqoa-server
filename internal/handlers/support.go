@@ -138,6 +138,8 @@ type SupportHandler struct {
 	quests   *QuestEngine     // a petition's quests under way (petitionview.go)
 	marks    markReader       // a GM filer's marks (petitionview.go, gmcamps.go)
 	limit    reportLimiter
+	// crashLimit counts each account's crash reports (crashreport.go)
+	crashLimit reportLimiter
 }
 
 // SetSessions gives the handler the sessions, to tell GMs of a new petition.
@@ -158,6 +160,7 @@ func (h *SupportHandler) RegisterHandlers(r *Registry) {
 	r.Register(opcodeCSRequest, h.handleRequest)
 	r.Register(protocol.OpcodeBugReportOffer, h.handleBugReportOffer)
 	r.Register(protocol.OpcodeBugReportNote, h.handleBugReportNote)
+	r.Register(protocol.OpcodeCrashReport, h.handleCrashReport)
 	if h.gameWorld != nil {
 		h.gameWorld.OnPlayerEntered(h.announceAnswers)
 		h.gameWorld.OnPlayerEntered(h.noticeReporting)

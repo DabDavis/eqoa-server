@@ -193,9 +193,12 @@ type Session struct {
 	// ackMasks: the client answered the bug report offer (any answer: a PS2
 	// never does), so our acks carry their mask (network/udp/rdp.go); never
 	// cleared, as CLIENT refuses a mask taken back (SetAckMasks)
-	ackMasks     bool
-	bugNote      string
-	bugNoteAt    time.Time
+	ackMasks  bool
+	bugNote   string
+	bugNoteAt time.Time
+	// stoppedNoted: its client was said to have stopped in the world
+	// (clientstopped.go), and not heard from since
+	stoppedNoted bool
 	reportNotice bool
 	boonNotice   bool
 

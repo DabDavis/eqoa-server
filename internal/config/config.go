@@ -586,6 +586,13 @@ type AuthConfig struct {
 	// only; empty on the shard that owns the accounts.
 	SharedDB      string        `yaml:"shared_db"`
 	SharedRefresh time.Duration `yaml:"shared_refresh"`
+
+	// PasswordURL is the account pages' password page as players reach it
+	// (eqoaclassic: "eqoaclassic.com/eqoa/password"), named by the line the
+	// world says to an account whose password is a temporary one a GM set
+	// (handlers.PasswordTempNotice); empty: "the account website's Change
+	// password page".
+	PasswordURL string `yaml:"password_url"`
 }
 
 // AccountSeed is a pre-registered account.

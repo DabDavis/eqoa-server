@@ -417,6 +417,9 @@ func main() {
 	// Initialize handler registry
 	handlerRegistry := handlers.NewRegistry()
 	handlers.RegisterDefaultHandlers(handlerRegistry, charStore, accountStore, sessionMgr, cfg.Server.ServerIP, gameWorld, inventoryStore, spellbookStore)
+	// a temporary password a GM set (a password reset): the world says to set
+	// one's own on the website (handlers/pwtemp.go), on every shard
+	gameWorld.OnPlayerEntered(handlers.PasswordTempNotice(db, cfg.Auth.PasswordURL))
 
 	// The server list every client is sent, and the kept items at a login
 	// (world.heirlooms): a shard's two differences of code from another.
@@ -792,6 +795,12 @@ func main() {
 		// the character transfer page (internal/transfers): a player asks, a GM
 		// decides in the panel, the next login applies it (handlers/transfers.go)
 		charTransfers := transfers.New(db, accountServer.CheckLogin)
+		// a password reset request from the Forgot password form
+		// (tcp/accountpassword.go): online GMs are told, as of a transfer
+		accountServer.PwResetTell = func(r database.PwReset, account string) {
+			handlers.TellGMs(sessionMgr, accountStore, nil, fmt.Sprintf("[Password reset] #%d for account %s, on the GM panel's Password resets",
+				r.ID, account))
+		}
 		charTransfers.Tell = func(t database.Transfer) {
 			handlers.TellGMs(sessionMgr, accountStore, nil, fmt.Sprintf("[Transfer] #%d: %s (level %d %s, %s) for %s, on the GM panel's Character transfers",
 				t.ID, t.FromName, t.FromLevel, t.FromClass, t.FromServer, t.CharName))

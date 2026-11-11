@@ -524,15 +524,18 @@ func (s *Server) registerAccountOps() {
 		Name: "set_account_password", Title: "Set an account's password", Scope: scopeWrite, Destructive: true,
 		Description: "Give an account a new password (hashed as the game's are). Its sessions in this panel end and " +
 			"its API tokens and connected agents are revoked. An account at or above your level is changed only by " +
-			"itself or a higher one.",
+			"itself or a higher one. temporary makes its owner set their own on the account pages before anything else " +
+			"(as a password reset's; pwreset_start makes one up for you); otherwise the account's temporary flag is cleared.",
 		Input: obj(map[string]any{
-			"account":  idOrName("the account, by name or accountid"),
-			"password": str("4 to 31 characters (the game's login carries no more)"),
+			"account":   idOrName("the account, by name or accountid"),
+			"password":  str("4 to 31 characters (the game's login carries no more)"),
+			"temporary": boolean("its owner must set their own at the next sign-in on the account pages"),
 		}, "account", "password"),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct {
-				Account  any
-				Password string
+				Account   any
+				Password  string
+				Temporary bool
 			}
 			if err := c.decode(&req); err != nil {
 				return nil, err
@@ -551,7 +554,11 @@ func (s *Server) registerAccountOps() {
 			if err != nil {
 				return nil, err
 			}
-			if _, err := c.s.d.DB.Exec(`UPDATE accountinfo SET pwhash = ? WHERE accountid = ?`, hash, acc.ID); err != nil {
+			temp := 0
+			if req.Temporary {
+				temp = 1
+			}
+			if _, err := c.s.d.DB.Exec(`UPDATE accountinfo SET pwhash = ?, pwtemp = ? WHERE accountid = ?`, hash, temp, acc.ID); err != nil {
 				return nil, err
 			}
 			keep := ""
@@ -562,7 +569,8 @@ func (s *Server) registerAccountOps() {
 			// a token is as good as the password it was made with
 			revoked := c.s.revokeAccountTokens(acc.ID)
 			c.s.audit(c.a, "account", "accountinfo", map[string]any{"accountid": acc.ID}, nil, nil,
-				fmt.Sprintf("set the password of %s (%d token(s) revoked)", acc.Username, revoked))
+				fmt.Sprintf("set the password of %s%s (%d token(s) revoked)", acc.Username,
+					map[bool]string{true: ", temporary"}[req.Temporary], revoked))
 			return map[string]any{"account": acc.Username, "panelSessionsEnded": ended, "tokensRevoked": revoked}, nil
 		},
 	})

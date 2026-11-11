@@ -895,23 +895,53 @@ def undo(db):
 
 # ---- characters holding the regular rewards ---------------------------------------------------------------------------
 
+def epic_only(db, sid):
+    """Whether a spell is got by an epic quest alone (classspells "eqoa-data epic"): one a level or a path gives too
+    (Warcry, Towering Mind, the 60 epics' third options) is no epic reward to swap."""
+    if not has_table(db, "classspells"):
+        return True
+    srcs = {r[0] for r in db.execute("SELECT source FROM classspells WHERE spellid = ?", (sid,))}
+    return bool(srcs) and all(ae_kind(x) == "epic" for x in srcs)
+
+
+def ae_kind(source):
+    s = (source or "").strip().lower()
+    s = s[len("eqoa-data "):] if s.startswith("eqoa-data ") else s
+    return (s.split() or [""])[0]
+
+
 def swap_report(db):
     """Who holds a regular epic reward that has an Ascended one now (nothing written): the swap a GM may ask for."""
     w = World(db)
-    p = build_plan(db)
     out = []
-    items = {b: c for b, c in w.item_copy.items() if b in p.items}
-    spells = {b: c for b, c in w.spell_copy.items() if b in p.spells and not p.spells[b]["helper"]}
+    items, spells = {}, {}  # regular -> Ascended, of what the epic quests reward now
+    for qid, _, kind in epic_quests(db):
+        for st in dict_rows(db, "SELECT * FROM queststeps WHERE questid = ?", (qid,)):
+            texts = [("items", st["rewarditems"]), ("spells", st["spells"])]
+            for blob in ("byclass", "choices"):
+                try:
+                    j = json.loads(st[blob] or "{}") or {}
+                except ValueError:
+                    continue
+                for o in (j.get("options") or []) if blob == "choices" else list(j.values()):
+                    if isinstance(o, dict):
+                        texts += [("items", o.get("items")), ("spells", o.get("spells"))]
+            for what, text in texts:
+                for i, _ in counts(text):
+                    if what == "items" and i in w.item_base:
+                        items[w.item_base[i]] = i
+                    elif what == "spells" and kind == "60" and i in w.spell_base and epic_only(db, w.spell_base[i]):
+                        spells[w.spell_base[i]] = i
     if has_table(db, "charinventory") and items:
         q = ",".join("?" * len(items))
         for sid, pid, n in db.execute(f"SELECT serverid, patternid, count(*) FROM charinventory WHERE patternid IN ({q}) "
                                       "GROUP BY serverid, patternid ORDER BY serverid", list(items)):
-            who = one(db, "SELECT charname FROM characters WHERE serverid = ?", (sid,)) if has_table(db, "characters") else None
+            who = one(db, "SELECT charName AS charname FROM characters WHERE serverid = ?", (sid,)) if has_table(db, "characters") else None
             out.append(f"{(who or {}).get('charname', sid)}: item {pid} {w.item(pid)['itemname']} x{n} -> {items[pid]}")
     if has_table(db, "spells") and spells:
         q = ",".join("?" * len(spells))
         for sid, spid in db.execute(f"SELECT serverid, spellid FROM spells WHERE spellid IN ({q}) ORDER BY serverid", list(spells)):
-            who = one(db, "SELECT charname FROM characters WHERE serverid = ?", (sid,)) if has_table(db, "characters") else None
+            who = one(db, "SELECT charName AS charname FROM characters WHERE serverid = ?", (sid,)) if has_table(db, "characters") else None
             out.append(f"{(who or {}).get('charname', sid)}: spell {spid} {w.spell(spid)['spellname']} -> {spells[spid]}")
     return out
 

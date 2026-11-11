@@ -65,9 +65,15 @@ func (w *World) stepNPCLocked(npc *NPC, x, z, speed, dt float32, leg *roamState)
 		npc.stopMoving()
 		return dist == 0
 	}
+	oldY, oldSwim := npc.Y, npc.swimming
 	if step := speed * dt; dist <= step {
 		npc.X, npc.Z = x, z
-		w.groundNPCLocked(npc)
+		if w.intoGroundLocked(npc, w.groundNPCLocked(npc)) {
+			// into the ground (groundnpc.go): not taken
+			npc.X, npc.Y, npc.Z, npc.swimming = oldX, oldY, oldZ, oldSwim
+			npc.stopMoving()
+			return false
+		}
 		if dist > 0 {
 			npc.Facing = headingTo(dx, dz)
 		}
@@ -81,9 +87,12 @@ func (w *World) stepNPCLocked(npc *NPC, x, z, speed, dt float32, leg *roamState)
 		npc.X += ux * step
 		npc.Z += uz * step
 		if y, ok := leg.legY(npc); ok {
-			npc.Y = y
-		} else {
-			w.groundNPCLocked(npc)
+			npc.Y = y // its leg's floor, checked whole (roam.go)
+		} else if w.intoGroundLocked(npc, w.groundNPCLocked(npc)) {
+			// into the ground (groundnpc.go): not taken
+			npc.X, npc.Y, npc.Z, npc.swimming = oldX, oldY, oldZ, oldSwim
+			npc.stopMoving()
+			return false
 		}
 		npc.VelX, npc.VelY, npc.VelZ = ux*speed, 0, uz*speed
 	}

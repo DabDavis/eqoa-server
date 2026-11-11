@@ -1040,6 +1040,25 @@ const (
 	OpcodeItemLinkRecord GameOpcode = 0x7E53
 )
 
+// The profanity filter as a client's own setting (the GM Jibrish's petition
+// 1490, 2026-11-11: "Under options then interface add an option to turn the
+// profanity filter on or off"). The filter itself is retail's 0x0045 and the
+// server's (handlers/profanity.go): on at every login, masking what that one
+// player hears. A client with the setting is told it may say so at world
+// entry and answers with it; a PS2 ignores the offer, keeps the filter on and
+// may still turn it over with 0x0045 (or /filter).
+const (
+	// OpcodeProfanityChoice is not retail, both ways. Server to client at
+	// every world entry: a u8, 1, the layout. Client to server, at once and
+	// whenever its setting changes: a u8, 1 the filter on (lines masked), 0
+	// off (lines as said); a wider answer is read by its first byte. Nothing
+	// is answered. The choice is the player's own (lineFor) and is kept
+	// through a keep restart (entity.KeptPlayer). Only the profanity mask
+	// turns: what a PS2 cannot be sent (consoletext.go) stays filtered for
+	// every client.
+	OpcodeProfanityChoice GameOpcode = 0x7E60
+)
+
 // =============================================================================
 // Game Version Constants
 // =============================================================================

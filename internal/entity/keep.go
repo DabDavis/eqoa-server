@@ -52,6 +52,9 @@ type KeptPlayer struct {
 	// DPSMeter: its client draws a damage meter (dpsmeter.go); its fight ends
 	// at the restart
 	DPSMeter bool `json:"dps_meter,omitempty"`
+	// ProfanityOff: the player turned the profanity filter off (0x0045,
+	// /filter, or its client's setting: handlers/profanity.go)
+	ProfanityOff bool `json:"profanity_off,omitempty"`
 	// Pet: its pet, summoned or charmed (keeppet.go), nil none
 	Pet *KeptPet `json:"pet,omitempty"`
 	// Merc and Familiar: its mercenary and its familiar (keepmerc.go), nil
@@ -112,6 +115,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 	k.RecordWindow = p.RecordWindow
 	k.Jumps = p.Jumps
 	k.DPSMeter = p.dps != nil
+	k.ProfanityOff = p.ProfanityFilterOff
 	if p.pvp.on {
 		k.PvP, k.PvPHoldMS = true, max(0, p.pvp.hold.Sub(now).Milliseconds())
 	}
@@ -146,6 +150,7 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	}
 	p.RaceLabels, p.raceLabelsSent = k.RaceLabels, "" // the client keeps its list; a data step may have changed it
 	p.PowerBars, p.powerBarsSent, p.powerBarsDue = k.PowerBars, "", k.PowerBars
+	p.ProfanityFilterOff = k.ProfanityOff
 	p.PetEffects, p.petEffectsSent, p.petEffectsDue = k.PetEffects, "", k.PetEffects // its pet's set again once the pet is back
 	p.RaidRoster, p.raidRosterSent = k.RaidRoster, ""
 	p.RaidWindows, p.raidStateSent = k.RaidWindows, "" // the state again at the next pass (raidrules.go)

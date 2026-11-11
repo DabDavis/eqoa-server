@@ -27,9 +27,11 @@ import (
 //     the merc's is, so the server keeps it on the players' side as every pet:
 //     no player's hit or harmful spell, no guard's, a creature fights it as a
 //     pet (npcFightPetLocked);
-//   - it assists the merc: it fights the merc's target, else the nearest
-//     creature within petAssist of the merc fighting the pet or the merc, and
-//     follows the merc out of a fight; never a player, never a duel's or Mr.
+//   - it assists the merc and its hirer, by the merc's stance
+//     (mercPetChooseTargetLocked): its hirer's auto-attack's target, the
+//     merc's, what fights it, the merc or the hirer or the hirer hurt; a
+//     passive merc's only what the merc was told to attack. It follows the
+//     merc out of a fight; never a player, never a duel's or Mr.
 //     Moogie's (mercMayFight), so it is in no duel, no PvP fight and no
 //     challenge (ownfight.go; duel.go leaves it out as it does the merc);
 //   - a kill of its is the hirer's, as the merc's (pet.go's petLandHitLocked:
@@ -166,8 +168,8 @@ func (w *World) mercPetGoesLocked(ms *mercState, now time.Time) {
 }
 
 // mercPetTurnLocked is the merc's pet's turn: a dead one forgotten (its hirer
-// told), then, when fight, the merc's target or the nearest creature fighting
-// the pet or the merc, fought as a pet fights; else it follows the merc (its
+// told), then, when fight, its target (mercPetChooseTargetLocked) fought as
+// a pet fights; else it follows the merc (its
 // template's heals and buffs while it does). With fight false (its merc
 // standing down: its hirer down, out of its group) it stands where it is.
 // Must be called with the lock held.
@@ -217,35 +219,73 @@ func (w *World) mercPetTurnLocked(ms *mercState, sess *session.Session, fight bo
 	}
 }
 
-// mercPetChooseTargetLocked gives the merc's pet the merc's target, else the
-// nearest creature within petAssist of the merc fighting the pet or the merc,
-// else none. Must be called with the lock held.
+// mercPetChooseTargetLocked gives the merc's pet its target by its merc's
+// stance (the owner, 2026-11-11: "the mercenary pets should attack when player
+// or merc attacks"): a passive merc's pet only what its merc was told to
+// attack (/merc attack: the merc's target), nothing of its own; any other's,
+// in turn, its hirer's auto-attack's target (so it switches when its hirer
+// starts on another), its merc's target, the one it fights while that still
+// fights it, its merc or its hirer or was hurt by its hirer, else the nearest
+// creature within petAssist of its hirer that does: one fighting the pet, its
+// merc or its hirer, or hurt by its hirer (a hit, a harmful spell), and for an
+// aggressive merc's also one its hirer's group fights (mercTeamFightsLocked).
+// A creature past petLeash from the hirer is none of its, as the merc's.
+// Must be called with the lock held.
 func (w *World) mercPetChooseTargetLocked(ms *mercState, ps *petState) {
-	pet, m := ps.npc, ms.npc
-	if t := w.NPCs[ms.target]; ms.target != 0 && mercMayFight(pet, t) {
-		if ps.target != t.ServerID {
-			ps.target = t.ServerID
+	pet, m, owner := ps.npc, ms.npc, ms.owner
+	valid := func(id EntityID) *NPC {
+		t := w.NPCs[id]
+		if id == 0 || t == nil || !mercMayFight(pet, t) || distXZ(owner.X, owner.Z, t.X, t.Z) > petLeash {
+			return nil
+		}
+		return t
+	}
+	set := func(t *NPC) {
+		id := EntityID(0)
+		if t != nil {
+			id = t.ServerID
+		}
+		if ps.target != id {
+			ps.target = id
 			pet.endRound()
 		}
+	}
+	if ms.stance == MercPassive {
+		set(valid(ms.target))
 		return
 	}
-	if t := w.NPCs[ps.target]; ps.target != 0 && mercMayFight(pet, t) && distXZ(m.X, m.Z, t.X, t.Z) <= petLeash &&
-		(t.CurrentEnemy == pet.ServerID || t.CurrentEnemy == m.ServerID) {
-		return // one fighting it or its merc, still
+	if owner.Attacking() {
+		if t := valid(owner.AttackTarget); t != nil {
+			set(t)
+			return
+		}
 	}
-	ps.target = 0
+	if t := valid(ms.target); t != nil {
+		set(t)
+		return
+	}
+	mine := func(npc *NPC) bool {
+		if npc.CurrentEnemy == pet.ServerID || npc.CurrentEnemy == m.ServerID || npc.CurrentEnemy == owner.ServerID {
+			return true
+		}
+		if _, hurt := npc.Threats[owner.ServerID]; hurt {
+			return true
+		}
+		return ms.stance == MercAggressive && w.mercTeamFightsLocked(ms, npc)
+	}
+	if t := valid(ps.target); t != nil && mine(t) {
+		return // still its fight
+	}
 	var best *NPC
 	var bestD float32
-	for _, id := range w.SpatialIndex.QueryRadius(m.X, m.Z, petAssist) {
-		npc := w.NPCs[id]
-		if npc == nil || !mercMayFight(pet, npc) || (npc.CurrentEnemy != pet.ServerID && npc.CurrentEnemy != m.ServerID) {
+	for _, id := range w.SpatialIndex.QueryRadius(owner.X, owner.Z, petAssist) {
+		npc := valid(id)
+		if npc == nil || !mine(npc) {
 			continue
 		}
 		if d := distXZ(pet.X, pet.Z, npc.X, npc.Z); best == nil || d < bestD {
 			best, bestD = npc, d
 		}
 	}
-	if best != nil {
-		ps.target = best.ServerID
-	}
+	set(best)
 }

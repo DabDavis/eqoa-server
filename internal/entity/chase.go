@@ -305,8 +305,8 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 	guarded := w.routesFor(npc) && !now.Before(npc.chase.route.failedUntil)
 	npc.X += ux * step
 	npc.Z += uz * step
-	w.groundNPCLocked(npc)
-	if (guarded && (npc.Y < oldY-legDrop || npc.Y > oldY+routeClimb)) || w.inGroundLocked(npc.World, npc.X, npc.Y, npc.Z) {
+	noFloor := w.groundNPCLocked(npc)
+	if (guarded && (npc.Y < oldY-legDrop || npc.Y > oldY+routeClimb)) || w.intoGroundLocked(npc, noFloor) {
 		// off an edge the look ahead stepped over (or into the water below it),
 		// or into the ground (a bank too high out of the water, a face too
 		// steep: groundnpc.go): not taken, and the way searched at the next

@@ -192,6 +192,7 @@ func TestKeptPlayerTargetLockoutsOffers(t *testing.T) {
 		{spellID: 901, displayIndex: 5, until: now.Add(-time.Second)}}
 	old.p.PowerBars, old.p.DuelWindow, old.p.GM, old.p.PetEffects = true, true, true, true
 	old.p.ProfanityFilterOff = true
+	old.p.ProfanityFilterMedium = true            // petition 1625: the tier kept with it
 	old.p.LFG, old.p.GroupChatHidden = true, true // petition 1582: a registration over the restart
 	kp, ok := old.w.KeepPlayer(old.sess, now)
 	if !ok || kp.Target != 100001 || len(kp.Lockouts) != 1 || kp.Lockouts[0].LeftMS < 39000 || !kp.PowerBars || !kp.DuelWindow || kp.Dead || !kp.PetEffects {
@@ -204,6 +205,9 @@ func TestKeptPlayerTargetLockoutsOffers(t *testing.T) {
 	}
 	if !r.p.GM {
 		t.Error("a GM kept over the restart is no GM")
+	}
+	if !r.p.ProfanityFilterMedium {
+		t.Error("the profanity filter's Medium tier was lost over the restart")
 	}
 	if !r.p.ProfanityFilterOff {
 		t.Error("the profanity filter turned off came back on over the restart")

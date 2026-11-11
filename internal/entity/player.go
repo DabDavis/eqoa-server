@@ -243,6 +243,10 @@ type Player struct {
 	// (handlers/profanity.go: opcode 0x0045, /filter, or its client's setting
 	// by OpcodeProfanityChoice); it is on at every login.
 	ProfanityFilterOff bool
+	// ProfanityFilterMedium: its client's setting is Medium (petition 1625):
+	// only racial slurs masked, not swears. Read only while the filter is on
+	// (ProfanityFilterOff false); High (every word) otherwise.
+	ProfanityFilterMedium bool
 
 	// PowerBars: the player's client draws others' power bars and asked
 	// for their power (powerbars.go, opcode 0x7E01); powerBarsSent is the

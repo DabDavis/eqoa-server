@@ -548,21 +548,23 @@ func (w *World) petAreaFoesLocked(pet, t *NPC, area SpellArea, now time.Time) []
 	}
 	r := area.radiusFor(true)
 	cx, cy, cz := t.X, t.Y, t.Z
-	if area.Centre == AreaOnCaster {
-		cx, cy, cz = pet.X, pet.Y, pet.Z // a caster's area: round the pet (a charmed crawler's)
+	onCaster := area.Centre == AreaOnCaster || area.Centre == AreaCone
+	if onCaster {
+		cx, cy, cz = pet.X, pet.Y, pet.Z // a caster's area: round the pet (a charmed crawler's); a cone's apex
 	}
-	place := areaPlace{world: pet.World, caster: [3]float32{pet.X, pet.Y, pet.Z}, centre: [3]float32{cx, cy, cz}, onOther: area.Centre != AreaOnCaster}
+	cone := area.coneOf(pet.X, pet.Y, pet.Z, pet.Facing, true, t.X, t.Z) // area.go: in front of the pet, at t
+	place := areaPlace{world: pet.World, caster: [3]float32{pet.X, pet.Y, pet.Z}, centre: [3]float32{cx, cy, cz}, onOther: !onCaster}
 	type near struct {
 		npc *NPC
 		d   float32
 	}
 	var out []near
-	for _, id := range w.SpatialIndex.QueryRadius(cx, cz, r) {
+	for _, id := range w.SpatialIndex.QueryRadius(cx, cz, queryRadius(cone, r)) {
 		o := w.NPCs[id]
 		if o == nil || o == t || !petMayFight(pet, o) || o.hiddenAt(now) {
 			continue
 		}
-		if d := dist3(o.X, o.Y, o.Z, cx, cy, cz); d <= r && w.reachesLocked(place, o.X, o.Y, o.Z) {
+		if in, d := inArea(cone, cx, cy, cz, r, o.X, o.Y, o.Z, npcReachExtra(o)); in && w.reachesLocked(place, o.X, o.Y, o.Z) {
 			out = append(out, near{o, d})
 		}
 	}

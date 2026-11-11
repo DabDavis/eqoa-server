@@ -320,7 +320,7 @@ func TestTemplateSpells(t *testing.T) {
 			(1, 'Target, Decrease Hitpoints by 210 aoe Decrease Hitpoints by 90', 1234, 't'),
 			(2, 'Target, Decrease Hitpoints by 104', 0, 't'),
 			(5, 'Target, Decrease Hitpoints by 16', 170421806, 't')`,
-		`INSERT INTO spellarea (spellid, centre, radius, maxtargets) VALUES (1, 1, 20, 4)`,
+		`INSERT INTO spellarea (spellid, centre, radius, maxtargets, cone) VALUES (1, 1, 20, 4, 45)`,
 		`INSERT INTO classspells (class, spellid, source) VALUES (13, 1, 'dump'), (13, 2, 'dump'), (13, 3, 'eqoa-data cm')`,
 	} {
 		if _, err := db.Exec(q); err != nil {
@@ -334,7 +334,7 @@ func TestTemplateSpells(t *testing.T) {
 	if spells[0].Pattern.SpellName != "Static Shock" || spells[1].Pattern.SpellName != "Energy Storm" {
 		t.Errorf("by level: %s, %s", spells[0].Pattern.SpellName, spells[1].Pattern.SpellName)
 	}
-	if s := spells[1]; s.FX != 1234 || !s.HasArea || s.Area.Radius != 20 || s.Area.MaxTargets != 4 || s.Pattern.CastTime != 2 {
+	if s := spells[1]; s.FX != 1234 || !s.HasArea || s.Area.Radius != 20 || s.Area.MaxTargets != 4 || s.Area.Cone != 45 || s.Pattern.CastTime != 2 {
 		t.Errorf("Energy Storm: %+v", s)
 	}
 	if spells[0].HasArea {

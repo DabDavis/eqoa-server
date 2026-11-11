@@ -355,12 +355,13 @@ func (w *World) areaFoesLocked(p *Player, cs *castState, cx, cy, cz, r float32) 
 		return nil
 	}
 	place := w.areaPlaceLocked(p, cs)
+	cone := w.playerConeLocked(p, cs) // area.go: a cone's foes in front of its caster
 	var out []areaNear
 	for id, t := range w.Players {
 		if areaHas(cs.targets, id) || !p.pvpFoe(t) {
 			continue
 		}
-		if dd := dist3(t.X, t.Y, t.Z, cx, cy, cz); dd <= r && w.reachesLocked(place, t.X, t.Y, t.Z) {
+		if in, dd := inArea(cone, cx, cy, cz, r, t.X, t.Y, t.Z, 0); in && w.reachesLocked(place, t.X, t.Y, t.Z) {
 			out = append(out, areaNear{id, dd})
 		}
 	}

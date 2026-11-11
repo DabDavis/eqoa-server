@@ -18,12 +18,41 @@ func TestSpellAreaRows(t *testing.T) {
 		(700145, 0, 20.5, 4, 'wider'), (701065, 2, 0, 0, 'Rampage round its caster'), (1624, -1, 0, 0, '')`); err != nil {
 		t.Fatal(err)
 	}
-	for id, want := range map[int]SpellAreaRow{700145: {0, 20.5, 4}, 701065: {2, 0, 0}, 1624: {-1, 0, 0}} {
+	if _, err := db.Exec(`INSERT INTO spellarea (spellid, centre, radius, maxtargets, note, cone) VALUES (700534, 3, 6, 3, 'Cleave', 60)`); err != nil {
+		t.Fatal(err)
+	}
+	for id, want := range map[int]SpellAreaRow{700145: {0, 20.5, 4, 0}, 701065: {2, 0, 0, 0}, 1624: {-1, 0, 0, 0}, 700534: {3, 6, 3, 60}} {
 		if got, ok, err := s.SpellArea(id); !ok || err != nil || got != want {
 			t.Errorf("spell %d: %+v %v %v, want %+v", id, got, ok, err, want)
 		}
 	}
 	if _, ok, _ := s.SpellArea(9999); ok {
 		t.Error("a spell with no row has one")
+	}
+}
+
+// A spellarea made before column cone gets it, 0 on its rows: as each was.
+func TestSpellAreaGetsItsConeColumn(t *testing.T) {
+	path := t.TempDir() + "/old.db"
+	db, err := NewSQLite(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, q := range []string{`DROP TABLE spellarea`,
+		`CREATE TABLE spellarea (spellid INTEGER PRIMARY KEY, centre INTEGER NOT NULL DEFAULT 0, radius REAL NOT NULL DEFAULT 0,
+			maxtargets INTEGER NOT NULL DEFAULT 0, note TEXT NOT NULL DEFAULT '')`,
+		`INSERT INTO spellarea (spellid, centre, radius, maxtargets, note) VALUES (700145, 1, 25, 0, 'old')`} {
+		if _, err := db.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	db.Close()
+	if db, err = NewSQLite(path); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	got, ok, err := NewSpellbookStore(db).SpellArea(700145)
+	if !ok || err != nil || got != (SpellAreaRow{1, 25, 0, 0}) {
+		t.Errorf("the old row: %+v %v %v", got, ok, err)
 	}
 }

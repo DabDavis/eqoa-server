@@ -100,7 +100,18 @@ type chaseState struct {
 	// goal is the enemy its way was made for: a new enemy gets a way of its
 	// own (forRoute), the chase's start kept for the leash
 	goal EntityID
+	// heldSince is when its steps toward its enemy began to be refused, the
+	// ground in the way (chaseHeld); zero once one is not
+	heldSince time.Time
+	// homeHeldSince is the same on its way home (homeSystem)
+	homeHeldSince time.Time
 }
+
+// chaseHeld is how long a chase's steps may be refused, the ground in their way
+// and nothing to go round by (a swimmer under a bank too high to climb, its
+// enemy on the land over it), before it gives up as past its leash: its enemy
+// is out of its reach where it is, and stays so (petition 1500).
+const chaseHeld = 8 * time.Second
 
 // forRoute keeps the chase's way for the enemy id, dropping one made for
 // another (petition 1280: a creature turned from a player to a pet ran on
@@ -201,6 +212,12 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 		npc.chase = chaseState{on: true, fromX: npc.X, fromY: npc.Y, fromZ: npc.Z}
 	}
 	npc.chase.returning = false
+	if w.liftOutLocked(npc) {
+		log.Printf("Chase: %s was in the ground at (%.1f, %.1f, %.1f): set on the floor over it", npc.Name, npc.X, npc.Y, npc.Z)
+	}
+	// its steps held by the ground since (kept only by a step refused again)
+	held := npc.chase.heldSince
+	npc.chase.heldSince = time.Time{}
 	dt := npc.chaseStepDT(now)
 	d := distXZ(npc.X, npc.Z, x, z)
 	leash := npc.LeashRadius
@@ -288,14 +305,21 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 	guarded := w.routesFor(npc) && !now.Before(npc.chase.route.failedUntil)
 	npc.X += ux * step
 	npc.Z += uz * step
-	w.groundNPCLocked(npc)
-	if guarded && (npc.Y < oldY-legDrop || npc.Y > oldY+routeClimb) {
-		// off an edge the look ahead stepped over (or into the water below it):
-		// not taken, and the way searched at the next step (chaseroute.go)
+	noFloor := w.groundNPCLocked(npc)
+	if (guarded && (npc.Y < oldY-legDrop || npc.Y > oldY+routeClimb)) || w.intoGroundLocked(npc, noFloor) {
+		// off an edge the look ahead stepped over (or into the water below it),
+		// or into the ground (a bank too high out of the water, a face too
+		// steep: groundnpc.go): not taken, and the way searched at the next
+		// step (chaseroute.go)
 		npc.X, npc.Y, npc.Z, npc.swimming = oldX, oldY, oldZ, oldSwim
 		npc.chase.route.edge = true
 		npc.stopMoving()
-		return d <= reach && absf(y-npc.Y) <= routeLevel, false
+		if held.IsZero() {
+			held = now
+		}
+		npc.chase.heldSince = held
+		in := d <= reach && absf(y-npc.Y) <= routeLevel
+		return in, !in && now.Sub(held) >= chaseHeld
 	}
 	if w.SpatialIndex != nil {
 		w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.X, npc.Z)
@@ -329,6 +353,7 @@ func (w *World) goHomeLocked(npc *NPC) {
 	}
 	npc.chase.on = false
 	npc.chase.route = chaseRoute{} // the fight's way round: home is found anew
+	npc.chase.heldSince, npc.chase.homeHeldSince = time.Time{}, time.Time{}
 	if distXZ(npc.X, npc.Z, npc.chase.fromX, npc.chase.fromZ) < 0.5 {
 		w.atHomeLocked(npc)
 		return
@@ -406,9 +431,31 @@ func (w *World) homeSystem(now time.Time) {
 		// the ground is asked from the height it left at or its own, the higher: below a
 		// floor it left, it would walk home underneath it
 		npc.Y = max(npc.Y, npc.chase.fromY)
+		w.liftOutLocked(npc) // groundnpc.go
+		bx, bz := npc.X, npc.Z
 		if w.stepNPCToward(npc, npc.chase.fromX, npc.chase.fromZ, speed, dt) {
 			w.atHomeLocked(npc)
 			continue
+		}
+		if npc.X == bx && npc.Z == bz && dt > 0 {
+			// its step refused, the ground in the way (groundnpc.go): held so
+			// long, it is set where its fight began, as a creature that evades
+			// home (petition 1500)
+			if npc.chase.homeHeldSince.IsZero() {
+				npc.chase.homeHeldSince = now
+			} else if now.Sub(npc.chase.homeHeldSince) >= chaseHeld {
+				log.Printf("Chase: %s held by the ground on its way home at (%.1f, %.1f, %.1f): set home", npc.Name, npc.X, npc.Y, npc.Z)
+				oldX, oldZ := npc.X, npc.Z
+				npc.X, npc.Y, npc.Z = npc.chase.fromX, npc.chase.fromY, npc.chase.fromZ
+				npc.swimming = false
+				if w.SpatialIndex != nil {
+					w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.X, npc.Z)
+				}
+				w.atHomeLocked(npc)
+				continue
+			}
+		} else {
+			npc.chase.homeHeldSince = time.Time{}
 		}
 		kept = append(kept, npc)
 	}

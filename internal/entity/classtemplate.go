@@ -119,6 +119,9 @@ type ClassTemplate struct {
 	// points (AbilitySummon, summon.go; AbilityEnrage, enrage.go: one at most)
 	summons []templateSummon
 	enrage  *database.TemplateAbility
+	// lastStand is its fight's last stand (AbilityLastStand, laststand.go: one
+	// at most)
+	lastStand *database.TemplateAbility
 	// procs and veils are melee procs it always has beside its template's
 	// (AbilityProc, AbilityVeil: creatureproc.go); selfBuffs the buffs those of
 	// a pinned spell are, cast on itself as its fight begins and at each one's
@@ -209,6 +212,8 @@ type templateFight struct {
 	summoned uint32
 	adds     []EntityID
 	enraged  *enrageOn
+	// lastStand is its last stand once it has stood this fight (laststand.go)
+	lastStand *lastStandOn
 	// buffNext is when each of its template's buffs on itself is cast next
 	// (selfbuff.go: index as selfBuffs'; nil before its first)
 	buffNext []time.Time
@@ -252,9 +257,9 @@ func (n *NPC) TemplateName() string {
 // at least 1.
 func (n *NPC) meleeOut(hit int) int {
 	if n.tmpl == nil || n.tmpl.MeleePct == 100 {
-		return hit
+		return n.stoodOut(hit) // its last stand's (laststand.go)
 	}
-	return max(1, int(math.Round(float64(hit)*float64(n.tmpl.MeleePct)/100)))
+	return n.stoodOut(max(1, int(math.Round(float64(hit)*float64(n.tmpl.MeleePct)/100))))
 }
 
 // meleeTaken is a player's or a pet's melee hit on the NPC as its template
@@ -559,6 +564,14 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 					t.enrage = &e // enrage.go
 				} else {
 					t.problems = append(t.problems, fmt.Sprintf("ability %d: a second enrage (the first is its own)", i+1))
+				}
+				continue
+			case database.AbilityLastStand:
+				if t.lastStand == nil {
+					l := ra
+					t.lastStand = &l // laststand.go
+				} else {
+					t.problems = append(t.problems, fmt.Sprintf("ability %d: a second last stand (the first is its own)", i+1))
 				}
 				continue
 			case database.AbilityVeil:
@@ -941,7 +954,7 @@ func (w *World) templateCastLocked(npc *NPC, i int, target EntityID, now time.Ti
 		debuff: a.Kind == database.AbilityDebuff, noCure: a.NoCure, strip: a.Kind == database.AbilityStrip,
 		dot: a.Kind == database.AbilityDoT, ability: i, lands: now.Add(ct + castLand)}
 	if a.Damage > 0 {
-		c.fixed, c.fixedResist, c.tap = npc.shared(a.Damage), shieldResistStat(a.Resist), a.Kind == database.AbilityLifetap
+		c.fixed, c.fixedResist, c.tap = npc.stoodOut(npc.shared(a.Damage)), shieldResistStat(a.Resist), a.Kind == database.AbilityLifetap
 	}
 	if a.Kind == database.AbilityHeal {
 		c.heal, c.target, c.healPct = true, npc.ServerID, a.HealPct
@@ -1625,7 +1638,7 @@ func (w *World) templateKickLocked(npc *NPC, target EntityID, now time.Time) {
 	f.kickSeen = now
 	if f.kickLeft <= 0 && !now.Before(f.busy) {
 		f.kickLeft = templateJitter(t.KickEvery, 0)
-		w.templateStrikeLocked(npc, target, now, npc.shared(t.KickDamage), "Kick")
+		w.templateStrikeLocked(npc, target, now, npc.stoodOut(npc.shared(t.KickDamage)), "Kick")
 	}
 }
 
@@ -1787,6 +1800,9 @@ func (w *World) templateLineLocked(npc *NPC, now time.Time) string {
 		}
 		if w := enrageWords(npc); w != "" {
 			parts = append(parts, w) // enrage.go
+		}
+		if w := lastStandWords(npc); w != "" {
+			parts = append(parts, w) // laststand.go
 		}
 	}
 	parts = append(parts, procsWords(npc)...) // creatureproc.go

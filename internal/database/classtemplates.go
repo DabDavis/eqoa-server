@@ -175,12 +175,21 @@ const (
 	// its hits kills one of Foes (by name: the GM Jibrish's petition 1458, Mr.
 	// Moogie at Innoruuk's death, "Dab got dunked again").
 	AbilityKillSay = "killsay"
+	// AbilityLastStand casts nothing: once a fight, when its creature's hit
+	// points are at Below percent or under while a non-player is hitting it (an
+	// NPC alive on its hate list: a pet, a mercenary, a creature a trigger set on
+	// it), it heals to its full and its damage is DamagePct percent (200:
+	// doubled) for the rest of that fight; its line in /say (Say)
+	// (entity/laststand.go; the GM Jibrish's petition 1522: Mr. Moogie "If he
+	// reaches 2% hp he completely heals to full and doubles his damage if a non
+	// player character is hitting him").
+	AbilityLastStand = "laststand"
 )
 
 // AbilityKinds are the kinds, in the order the help lists them.
 var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot, AbilityDebuff,
 	AbilityStrip, AbilityHealShield, AbilityMeleeKind, AbilityDoT, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage,
-	AbilityProc, AbilityVeil, AbilityKillSay}
+	AbilityProc, AbilityVeil, AbilityKillSay, AbilityLastStand}
 
 // passiveKind is whether an ability of the kind casts nothing on a clock of its
 // own: what it does is a rule its creature keeps (a heal shield, a melee kind,
@@ -189,7 +198,7 @@ var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal
 func passiveKind(k string) bool {
 	switch k {
 	case AbilityHealShield, AbilityMeleeKind, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage, AbilityProc, AbilityVeil,
-		AbilityKillSay:
+		AbilityKillSay, AbilityLastStand:
 		return true
 	}
 	return false
@@ -244,8 +253,9 @@ var AbilityStats = []string{"ac", "str", "sta", "agi", "dex", "wis", "int", "cha
 // (TemplateAbility.Element), as its resist names it.
 var AbilityElements = []string{"fire", "cold", "lightning", "poison", "disease", "arcane"}
 
-// MaxTemplateAbilities is the most abilities a template has.
-const MaxTemplateAbilities = 8
+// MaxTemplateAbilities is the most abilities a template has (8 until Mr.
+// Moogie's ninth, petition 1522).
+const MaxTemplateAbilities = 12
 
 // TemplateAbility is one of a template's abilities, as its JSON says it. A
 // field left out (or 0) is its default.
@@ -717,22 +727,26 @@ func checkKindFields(n int, a TemplateAbility) error {
 func checkPassiveAbility(n int, a TemplateAbility) error {
 	finite := func(v float64) bool { return !math.IsNaN(v) && !math.IsInf(v, 0) }
 	pinned := a.Spell != "" || a.SpellID != 0
-	moment := a.Kind == AbilitySummon || a.Kind == AbilityEnrage
+	moment := a.Kind == AbilitySummon || a.Kind == AbilityEnrage || a.Kind == AbilityLastStand
+	damagePct := a.DamagePct
+	if a.Kind == AbilityLastStand {
+		damagePct = 0 // a last stand's damage after it (checked below)
+	}
 	switch {
 	case a.Chain:
 		return fmt.Errorf("ability %d: a %s casts nothing to chain", n, a.Kind)
 	case a.Every != 0 && a.Kind != AbilityEnrage:
 		return fmt.Errorf("ability %d: a %s has no clock (every)", n, a.Kind)
-	case a.First != 0 || a.Chance != 0 || a.DamagePct != 0 || a.MaxRecast != 0 || a.MaxCast != 0 || a.Cast != 0 || a.Cooldown != 0 || a.HealPct != 0:
+	case a.First != 0 || a.Chance != 0 || damagePct != 0 || a.MaxRecast != 0 || a.MaxCast != 0 || a.Cast != 0 || a.Cooldown != 0 || a.HealPct != 0:
 		return fmt.Errorf("ability %d: a %s takes none of a cast's fields (first, chance, damage_pct, max_recast, max_cast, cast, cooldown, heal_pct)", n, a.Kind)
 	case a.Line != "" || (pinned && a.Kind != AbilityProc && a.Kind != AbilityVeil):
 		return fmt.Errorf("ability %d: a %s casts no spell (line, spell, spell_id)", n, a.Kind)
 	case moment && (a.Below < 1 || a.Below > 100):
 		return fmt.Errorf("ability %d: a %s's below %d: 1 to 100 percent of its hit points", n, a.Kind, a.Below)
 	case !moment && a.Below != 0:
-		return fmt.Errorf("ability %d: below is a summon's or an enrage's", n)
+		return fmt.Errorf("ability %d: below is a summon's, an enrage's or a last stand's", n)
 	case a.Say != "" && !moment && a.Kind != AbilityKillSay:
-		return fmt.Errorf("ability %d: a say is a summon's, an enrage's or a killsay's (or a cast's)", n)
+		return fmt.Errorf("ability %d: a say is a summon's, an enrage's, a last stand's or a killsay's (or a cast's)", n)
 	case len(a.Say) > SayMost:
 		return fmt.Errorf("ability %d: a say of more than %d characters", n, SayMost)
 	case strings.ContainsAny(a.Say, "|\n\r"):
@@ -798,6 +812,10 @@ func checkPassiveAbility(n int, a TemplateAbility) error {
 			return fmt.Errorf("ability %d: a veil's tap_pct %v: above 0 to 100 percent of its hit points", n, a.TapPct)
 		case a.SpellID < 0 || (a.SpellID != 0 && a.Spell != ""):
 			return fmt.Errorf("ability %d: a spell pinned by name or by id, not both", n)
+		}
+	case AbilityLastStand:
+		if a.DamagePct < 0 || a.DamagePct > 1000 {
+			return fmt.Errorf("ability %d: a last stand's damage_pct %d: 0 (100, as it was) to 1000 percent of its damage after it", n, a.DamagePct)
 		}
 	case AbilityKillSay:
 		switch {

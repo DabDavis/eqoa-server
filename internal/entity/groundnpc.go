@@ -81,31 +81,121 @@ func (w *World) spawnOnGroundLocked(npc *NPC) bool {
 // the floor there if it spawned on the ground; one that spawned swimming
 // keeps its height, above the floor; one that stands on something the ground
 // leaves out keeps its spawn's height near its spawn and takes the terrain
-// once it has left it (a creature that never wanders off it: roam.go).
-// Must be called with the lock held.
-func (w *World) groundNPCLocked(npc *NPC) {
+// once it has left it (a creature that never wanders off it: roam.go). It
+// reports a place the ground was asked for a floor and had none for it, its
+// height kept (intoGroundLocked's question). Must be called with the lock
+// held.
+func (w *World) groundNPCLocked(npc *NPC) (noFloor bool) {
 	if w.ground == nil {
-		return
+		return false
 	}
 	if w.spawnOnGroundLocked(npc) {
-		if y, ok := w.ground.Floor(npc.World, npc.X, npc.Y, npc.Z); ok {
+		y, ok := w.floorOrBankLocked(npc.World, npc.X, npc.Y, npc.Z)
+		if ok {
 			npc.Y = y
 		}
 		w.swimLocked(npc) // water.go: in deep water it swims at the surface
-		return
+		return !ok
 	}
 	if w.spawnInWaterLocked(npc) {
-		if y, ok := w.ground.Floor(npc.World, npc.X, npc.Y, npc.Z); ok && y > npc.Y {
+		y, ok := w.floorOrBankLocked(npc.World, npc.X, npc.Y, npc.Z)
+		if ok && y > npc.Y {
 			npc.Y = y
 		}
-		return
+		return !ok
 	}
 	if distXZ(npc.X, npc.Z, npc.SpawnX, npc.SpawnZ) <= platformReach {
 		npc.Y = npc.SpawnY
-		return
+		return false
 	}
-	if y, ok := w.ground.Floor(npc.World, npc.X, npc.Y, npc.Z); ok {
+	y, ok := w.floorOrBankLocked(npc.World, npc.X, npc.Y, npc.Z)
+	if ok {
 		npc.Y = y
 	}
 	w.swimLocked(npc)
+	return !ok
+}
+
+// Under the ground (petition 1500, Jibrish: "Players are able to run monsters
+// into the water, swim down, then run quickly on land and the mobs can end up
+// underneath the world floor, unable to hit the player"). The ground's floor
+// at a place is the highest within its step (floorStepUp) over the height it
+// is asked from, and a creature that moved where none was kept the height it
+// had: a swimmer, its feet swimDepth under the surface, that came to a bank
+// rising more than half a unit over the water went on under it, and any
+// creature that ran into a face steeper than the step (a chase stepping a unit
+// a tick, five after a stalled tick) went on inside the rock, its height left
+// as it was, until the ground came down to it again. CLIENT sets a creature
+// down only on a floor within 1.5 under the height it is sent, so it showed
+// it under the terrain, out of every player's reach.
+//
+// Now a creature's floor is the one within its step under it, else the one
+// over it within bankClimb (a swimmer out onto a bank, a step a little higher
+// than the ground's); and a move that would still leave it in the ground (no
+// floor under it, the ground over it: inGroundLocked) is not taken (chase.go,
+// chaseroute.go, npcmove.go), and one found there already is set on the floor
+// over it (liftOutLocked).
+const (
+	// floorStepUp is the ground's own step (ground.StepUp): how far over the
+	// height it is asked from a floor may be
+	floorStepUp float32 = 2
+	// bankClimb is how far over its height a creature with no floor under it
+	// climbs onto one: a swimmer's depth and a step on a route (routeClimb), a
+	// bank 2.5 over the water's surface
+	bankClimb float32 = swimDepth + routeClimb
+	// groundOver is how far over a creature the ground is looked for when it
+	// has no floor under it
+	groundOver float32 = 400
+)
+
+// floorOrBankLocked is the floor a creature at (x, y, z) stands on: the
+// ground's within its step under y, else the one over it within bankClimb;
+// false with neither. Must be called with the lock held.
+func (w *World) floorOrBankLocked(world uint8, x, y, z float32) (float32, bool) {
+	if f, ok := w.ground.Floor(world, x, y, z); ok {
+		return f, true
+	}
+	if f, ok := w.ground.Floor(world, x, y+bankClimb-floorStepUp, z); ok && f > y {
+		return f, true
+	}
+	return y, false
+}
+
+// inGroundLocked reports a place in the ground: no floor within the step under
+// it, and the ground over it. Must be called with the lock held.
+func (w *World) inGroundLocked(world uint8, x, y, z float32) bool {
+	if w.ground == nil {
+		return false
+	}
+	if _, ok := w.ground.Floor(world, x, y, z); ok {
+		return false
+	}
+	_, over := w.ground.Floor(world, x, y+groundOver, z)
+	return over
+}
+
+// intoGroundLocked reports a creature that moved into the ground: its
+// grounding found no floor for it (noFloor, groundNPCLocked's) and it stands
+// under the ground there. A summoned pet's and a mercenary's height is their
+// own walk's (petwalk.go, pet.go's petStepLocked), not judged so. Must be
+// called with the lock held.
+func (w *World) intoGroundLocked(npc *NPC, noFloor bool) bool {
+	return noFloor && !npc.walksTerrain() && w.inGroundLocked(npc.World, npc.X, npc.Y, npc.Z)
+}
+
+// liftOutLocked sets a creature found in the ground on the floor over it, the
+// lowest one (a creature put there before this rule, or by anything else), and
+// reports whether it moved it. Must be called with the lock held.
+func (w *World) liftOutLocked(npc *NPC) bool {
+	if npc.walksTerrain() || !w.inGroundLocked(npc.World, npc.X, npc.Y, npc.Z) {
+		return false
+	}
+	for up := floorStepUp; up <= groundOver; up += floorStepUp {
+		if f, ok := w.ground.Floor(npc.World, npc.X, npc.Y+up, npc.Z); ok && f > npc.Y {
+			npc.Y = f
+			w.swimLocked(npc)
+			return true
+		}
+	}
+	return false
 }

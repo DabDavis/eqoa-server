@@ -65,6 +65,12 @@ type Player struct {
 	// (capes.go; handlers.wornLook sets them)
 	CapeStyle uint8
 	CapeColor uint32
+	// HiddenLocs are the equip slots whose look the character hides (a bit
+	// each, table charhiddenlooks) and HiddenParts what of the look that
+	// hides, by HideChest...HideCape (handlers.wornLook sets them): sent as
+	// nothing worn, the items kept (hidelook.go)
+	HiddenLocs  uint32
+	HiddenParts uint16
 
 	// PlayerInfo
 	AccountID    int

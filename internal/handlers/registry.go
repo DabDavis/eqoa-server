@@ -569,6 +569,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	NewNPCTintsHandler(gameWorld).RegisterHandlers(r)
 	// A damage meter (0x7E3B, 0x7E3D; dpsmeter.go): a client that draws one
 	NewDPSMeterHandler(gameWorld).RegisterHandlers(r)
+	// The worn looks a character hides (0x7E6D; hidelook.go)
+	NewHideLookHandler(charHandler).RegisterHandlers(r)
 	// A monster's name and level in the details box (0x7E4D; mobinfo.go): a
 	// client that shows them there
 	NewMobInfoHandler().RegisterHandlers(r)

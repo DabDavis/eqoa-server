@@ -238,6 +238,8 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 	if p.WispForm() {
 		hideWornGear(buf)
 	}
+	// and the worn looks the character hides (hidelook.go)
+	hideLookParts(buf, p.HiddenParts)
 
 	// Offset 111: eqoa.live constant = 6 across ALL entities
 	buf[111] = 6

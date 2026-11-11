@@ -786,6 +786,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCampfix(); err != nil { // campfix.go: the players' camp reports
 		return err
 	}
+	if err := db.ensurePwResets(); err != nil { // pwresets.go: forgotten passwords, a GM's to reset
+		return err
+	}
 	if err := db.ensureHeroes(); err != nil { // heroes.go: the Testing Heroes' stock, purchases and bonus training points
 		return err
 	}

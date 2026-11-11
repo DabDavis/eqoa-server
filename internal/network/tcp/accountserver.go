@@ -104,6 +104,20 @@ type AccountServer struct {
 	// /api/mapmarks/suggest (package mapmarks), the suggestion handed the
 	// client's address as getClientIP reads it. Nil: both answer 404.
 	MapMarks MapMarksRoutes
+
+	// PwResetTell, when set, says a new password reset request to the GMs in
+	// the world (accountpassword.go), with the account's name.
+	PwResetTell func(r database.PwReset, account string)
+	// Now is the clock of the password reset form's limits (tests set it);
+	// nil: time.Now.
+	Now func() time.Time
+
+	// the password reset form's senders (accountpassword.go): the salt their
+	// addresses are hashed with, and each address's forms in the last hour
+	pwMu     sync.Mutex
+	pwSalt   string
+	pwSent   map[string][]time.Time
+	pwPruned time.Time
 }
 
 // SpellFXRoutes is the community spell-visual page's half of this server
@@ -137,6 +151,9 @@ func (s *AccountServer) CheckLogin(r *http.Request, username, password string) (
 	}
 	if account.Banned {
 		return 0, "", "This account is suspended"
+	}
+	if s.passwordTemporary(account.ID) {
+		return 0, "", TempPasswordRefusal
 	}
 	return account.ID, account.Username, ""
 }
@@ -263,6 +280,9 @@ func (s *AccountServer) Handler() http.Handler {
 	mux.HandleFunc("/login", s.handleLoginPage)
 	mux.HandleFunc("/characters", s.handleCharactersPage)
 	mux.HandleFunc("/logout", s.handleLogout)
+	mux.HandleFunc("/password", s.handlePasswordPage)
+	mux.HandleFunc("/api/password/forgot", s.handleAPIForgot)
+	mux.HandleFunc("/api/password/change", s.handleAPIChangePassword)
 	mux.HandleFunc("/api/register", s.handleAPIRegister)
 	mux.HandleFunc("/api/login", s.handleAPILogin)
 	mux.HandleFunc("/api/characters", s.handleAPICharacters)
@@ -384,9 +404,18 @@ func (s *AccountServer) getSession(r *http.Request) *webSession {
 	s.sessionsMu.RLock()
 	sess := s.sessions[cookie.Value]
 	s.sessionsMu.RUnlock()
-	if sess != nil {
-		sess.LastAccess = time.Now()
+	if sess == nil {
+		return nil
 	}
+	// a temporary password set since (a GM's reset): nothing but the change
+	// form until its owner sets their own
+	if s.passwordTemporary(sess.AccountID) {
+		s.sessionsMu.Lock()
+		delete(s.sessions, cookie.Value)
+		s.sessionsMu.Unlock()
+		return nil
+	}
+	sess.LastAccess = time.Now()
 	return sess
 }
 
@@ -710,6 +739,8 @@ func (s *AccountServer) handleLoginPage(w http.ResponseWriter, r *http.Request) 
             </div>
             <button type="submit" style="width:100%">Login</button>
         </form>
+        <p style="text-align:center;margin:12px 0 0"><a href="/password#forgot" style="color:#e94560">Forgot password?</a>
+            &middot; <a href="/password#change" style="color:#e94560">Change password</a></p>
     </div>
     <script>
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
@@ -726,6 +757,8 @@ func (s *AccountServer) handleLoginPage(w http.ResponseWriter, r *http.Request) 
                 const data = await response.json();
                 if (data.success) {
                     window.location.href = '/characters';
+                } else if (data.mustChange) {
+                    window.location.href = '/password?temporary=1&account=' + encodeURIComponent(username) + '#change';
                 } else {
                     msg.className = 'message error';
                     msg.textContent = data.error || 'Login failed';
@@ -1074,6 +1107,12 @@ func (s *AccountServer) handleAPILogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// a temporary password a GM set: its owner sets their own first
+	// (accountpassword.go), and no session is made with it
+	if s.passwordTemporary(account.ID) {
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "mustChange": true, "error": TempPasswordRefusal})
+		return
+	}
 	s.createSession(w, account.ID, account.Username)
 	json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
 }

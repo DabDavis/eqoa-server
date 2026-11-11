@@ -84,7 +84,7 @@ var snapshotRules = map[string]snapshotRule{
 	// Credentials and the people behind the accounts.
 	"accountinfo": {
 		keep: []string{"accountid", "username", "acctstatus", "acctlevel", "acctcreation",
-			"result", "subtime", "partime", "subfeatures", "gamefeatures"},
+			"result", "subtime", "partime", "subfeatures", "gamefeatures", "pwtemp"},
 		scan:   []string{"pwhash", "email", "ipaddress"},
 		also:   renamePlayerAccounts,
 		verify: playersRenamed,
@@ -127,6 +127,11 @@ var snapshotRules = map[string]snapshotRule{
 		why: "a player's own words to the staff and the staff's answers, with the account they came from"},
 	"chartransfers": {clear: true,
 		why: "a player's own words about a character on another server, the GMs' answers, with the account they came from"},
+	"pwresets": {clear: true, scan: []string{"addr_hash"},
+		why: "a player's request for a new password: the account, the contact they gave (a Discord name, a character), " +
+			"their note, their address's salted hash, and the GMs' decisions"},
+	"pwreset_meta": {clear: true, scan: []string{"value"},
+		why: "the salt the password reset form's senders' addresses are hashed with, as spellfx_meta's"},
 	"campfix_reports": {clear: true,
 		why: "a player's camp report (handlers/campfix.go): the account and the character that sent it, its own note, " +
 			"and the GMs' review of it"},

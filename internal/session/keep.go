@@ -66,11 +66,15 @@ type Kept struct {
 	NPCTints           bool `json:"npc_tints,omitempty"`
 	MobInfo            bool `json:"mob_info,omitempty"`
 	MercsTold          bool `json:"mercs_told,omitempty"`
-	GroupReg           bool `json:"group_reg,omitempty"`
-	ItemLinks          bool `json:"item_links,omitempty"`
-	ReportNotice       bool `json:"report_notice,omitempty"`
-	BoonNotice         bool `json:"boon_notice,omitempty"`
-	WorldLoadPending   bool `json:"world_load_pending,omitempty"`
+	// MercsLayout is the layout of OpcodeMercsData the client asked for (2
+	// names each merc's hirer, the client's "<X's Mercenary>" tag): without
+	// it a kept session fell back to 1 and every tag went (2026-11-11).
+	MercsLayout      uint8 `json:"mercs_layout,omitempty"`
+	GroupReg         bool  `json:"group_reg,omitempty"`
+	ItemLinks        bool  `json:"item_links,omitempty"`
+	ReportNotice     bool  `json:"report_notice,omitempty"`
+	BoonNotice       bool  `json:"boon_notice,omitempty"`
+	WorldLoadPending bool  `json:"world_load_pending,omitempty"`
 
 	// the server's own worlds offered and taken, and those the client holds
 	ServerWorldsOffered bool    `json:"server_worlds_offered,omitempty"`
@@ -203,6 +207,7 @@ func (s *Session) Keep() Kept {
 		NPCTints:           s.npcTints,
 		MobInfo:            s.mobInfo,
 		MercsTold:          s.mercsTold,
+		MercsLayout:        s.mercsLayout,
 		GroupReg:           s.groupReg,
 		ItemLinks:          s.itemLinks,
 		ReportNotice:       s.reportNotice,
@@ -365,7 +370,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 	s.mobInfo = k.MobInfo
 	// what they were sent is sent again at the next refresh (the client
 	// keeps it; the world may have changed in the hold)
-	s.mercsTold, s.mercsSent = k.MercsTold, ""
+	s.mercsTold, s.mercsLayout, s.mercsSent = k.MercsTold, k.MercsLayout, ""
 	s.groupReg, s.groupRegSent = k.GroupReg, ""
 	s.itemLinks = k.ItemLinks
 	s.reportNotice = k.ReportNotice

@@ -240,7 +240,8 @@ class Race:
             "steps": [],
             "events": [{"on": "finish", "do": "classquest", "level": level}],
             "unresolved": [],
-            "notes": f"Ours (the Homelands' starter quests): the {self.race}'s level {level}, at {self.spec.get('home', 'its home')}, "
+            "notes": f"Ours (the Homelands' {'starter quests' if level <= 5 else 'chain past the flight'}): the {self.race}'s level "
+                     f"{level}, at {self.spec.get('home', 'its home')}, "
                      f"on {WHAT[level]}. Finishing it finishes the character's own city class quest of level {level} too "
                      f"(the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. "
                      f"Written by tools/quests/gen_homelands.py from tools/quests/homelands/{self.race}.json: change that "

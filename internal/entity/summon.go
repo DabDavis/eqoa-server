@@ -133,6 +133,9 @@ func (w *World) templatePhasesLocked(npc *NPC, now time.Time) {
 	if len(t.selfBuffs) > 0 {
 		w.selfBuffsLocked(npc, npc.fight(), now) // selfbuff.go
 	}
+	if len(t.moments) > 0 && npc.add == nil {
+		w.bossMomentsLocked(npc, npc.fight(), now) // bossmoments.go
+	}
 	if npc.add != nil || (len(t.summons) == 0 && t.enrage == nil && t.lastStand == nil) {
 		return
 	}

@@ -176,5 +176,179 @@
     "declined": "The halls will wait for you.",
     "started": "Keep your nose to the stone!",
     "journal": "Tell Gatekeeper Ksarr when you are ready to go down to the deep halls of Moradhim."
+  },
+  "L7": {
+    "name": "Cold Pickings",
+    "giver": "Tunnelrunner Chisk",
+    "offer": [
+      "You are quick on the sand, whisker. Now be quick on the snow. The homes keep a hunters' outpost under the Goldfeather Eyrie, and Rusk's coach runs there.",
+      "There are rats in that snow. No kin of ours, whatever the outpost's hunters say. Their white fur sells well. Bring me three clumps.",
+      "Will you hunt the drift rats?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "The fur will keep. The rats will not.",
+    "started": "Rusk's coach will take you. Keep your tail out of the snow.",
+    "hunts": [
+      {
+        "target": "drift rat",
+        "count": 3,
+        "drop": {
+          "name": "drift rat fur",
+          "description": "A clump of white fur from a drift rat of the Goldfeather Eyrie's snow.",
+          "like": "clump of rat fur"
+        },
+        "hunt": {
+          "journal": "Take three clumps of drift rat fur from the drift rats east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring three clumps of drift rat fur to Tunnelrunner Chisk.",
+      "says": "White, soft and clean. Tikka will get a good price for it. And you came back with all your toes. Now watch my paws, and learn this."
+    }
+  },
+  "L10": {
+    "name": "Silk for the Nets",
+    "giver": "Tunnelrunner Chisk",
+    "offer": [
+      "A whisker your size needs a better bite. I will make you a proper weapon, and Tikka wants spider silk to mend her nets while I am at it.",
+      "Net cord from Tikka, ore from Quartermaster Dunmore at the Eyrie outpost, then three skeins from the rime spiders north-east of it.",
+      "Will you bring me all of it?"
+    ],
+    "accept": "I will bring it.",
+    "decline": "Not now.",
+    "declined": "Then bite harder with what you have.",
+    "started": "Tikka first. Then the coach.",
+    "materials": [
+      {
+        "merchant": "Ragpicker Tikka",
+        "items": [
+          {
+            "name": "salvaged net cord",
+            "description": "A length of tarred cord picked out of a net the tide left on the ratmen's shore.",
+            "like": "silk cord"
+          }
+        ],
+        "journal": "Ask Ragpicker Tikka at the shore camp for salvaged net cord.",
+        "says": "Cord for Chisk again? Here. Bring back more silk than he needs, whisker, and the heap will remember you kindly."
+      },
+      {
+        "merchant": "Quartermaster Dunmore",
+        "items": [
+          "iron ore"
+        ],
+        "journal": "Ask Quartermaster Dunmore at the Eyrie outpost for the ore Chisk needs.",
+        "says": "From the shore camp? Your elder pays me in dried fish, and I have learned to like it. Here, the ore. It is all there."
+      }
+    ],
+    "target": "rime spider",
+    "count": 3,
+    "drop": {
+      "name": "rime spider silk",
+      "description": "A skein of frosted silk from a rime spider of the Goldfeather Eyrie.",
+      "like": "Black Widow Silk"
+    },
+    "hunt": {
+      "journal": "Take three skeins of silk from the rime spiders north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the net cord, the iron ore and the rime spider silk to Tunnelrunner Chisk.",
+      "says": "Ore, cord and silk. Two skeins for Tikka, one for the grip. A moment... there. It is yours: it bites better than you do."
+    }
+  },
+  "L13": {
+    "name": "Thieves in the Stores",
+    "giver": "Tunnelrunner Chisk",
+    "offer": [
+      "Frostpaw cubs have found the way into the Eyrie outpost's stores. They eat what the hunters dry, and a camp that starves is no use to anyone.",
+      "Thin them out on the snow north of the outpost, past the river. Six should teach the rest. Then I will teach you something.",
+      "Will you hunt the frostpaw cubs?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not yet.",
+    "declined": "Then the cubs eat well, and the hunters do not.",
+    "started": "Six. They are cubs, but they bite like their mothers.",
+    "kind": "kill",
+    "target": "frostpaw cub",
+    "count": 6,
+    "hunt": {
+      "journal": "Kill six frostpaw cubs on the snow north of the Eyrie outpost, past the river."
+    },
+    "back": {
+      "journal": "Return to Tunnelrunner Chisk.",
+      "says": "Six cubs, and the outpost's stores are safe. Dunmore sent the camp a whole cask for it. Learn this."
+    }
+  },
+  "L15": {
+    "name": "The Cold Spirit",
+    "giver": "Tunnelrunner Chisk",
+    "offer": [
+      "The Rimeheart in the ice caves north-east of the Eyrie outpost is no beast. Skritch says it is a cold spirit, and a broken spirit does not always stay broken.",
+      "Break it, and take its shard to Spiritmaster Oswin at the outpost, so he can lay it to rest. Then come back to me.",
+      "Will you break the Rimeheart?"
+    ],
+    "accept": "I will break it.",
+    "decline": "Not yet.",
+    "declined": "Then the caves grow colder, and so do we.",
+    "started": "Do not go into those caves alone, whisker.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "carry": {
+      "target": "Spiritmaster Oswin",
+      "journal": "Bring the shard of the Rimeheart to Spiritmaster Oswin at the Eyrie outpost.",
+      "says": "Give it here, carefully. There... the cold has gone out of it. It will not walk again. Your elder was right to send it to me."
+    },
+    "back": {
+      "journal": "Return to Tunnelrunner Chisk.",
+      "says": "Oswin laid it to rest? Good. Things that come back are bad for business. You are the best runner I have trained. Learn this."
+    }
+  },
+  "L20": {
+    "name": "A Bounty in Talons",
+    "giver": "Elder Skritch",
+    "offer": [
+      "Chisk says you run like a tunnelrunner now. Before a ratman of the Deep chooses its path, it brings the camp something the other homes will owe us for.",
+      "Quartermaster Dunmore at the Eyrie outpost pays a bounty on the Goldfeather raiders. Find him, earn it, and come back to me.",
+      "Will you earn Dunmore's bounty?"
+    ],
+    "accept": "I will earn it.",
+    "decline": "Not yet.",
+    "declined": "Then someone else will be paid. Hss.",
+    "started": "Come back richer, whisker.",
+    "road": [
+      {
+        "target": "Quartermaster Dunmore",
+        "journal": "Find Quartermaster Dunmore at the Eyrie outpost.",
+        "says": "Skritch sent you? Good. The raiders round the eyrie east of here have robbed my stores twice this month. Three of their war-talons, and the bounty is yours."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 3,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "journal": "Bring the three war-talons to Quartermaster Dunmore.",
+      "says": "Three talons, as promised. The bounty goes to your camp on Rusk's coach, every coin. Go on home: your elder will want to count it."
+    },
+    "final": {
+      "target": "Elder Skritch",
+      "journal": "Return to Elder Skritch at the shore camp.",
+      "says": "Dunmore's coin came, and the Eyrie owes the Deep. You went out a whisker and came back a ratman the homes know. Now choose your path."
+    }
   }
 }

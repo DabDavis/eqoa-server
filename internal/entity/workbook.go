@@ -107,6 +107,9 @@ type EffectRules struct {
 	// rounds, 0 no limit (procsOfRound). A form's (weaponproc.go).
 	ProcChance int `json:",omitempty"`
 	ProcRound  int `json:",omitempty"`
+	// ProcFX is its proc's own look on what each proc hits (SpellEffect.ProcFX); 0 the
+	// stand-in of its kind (proc.go)
+	ProcFX uint32 `json:",omitempty"`
 	// MarkHeal: a mark on a creature, each weapon hit landed on it healing its
 	// hitter this much (markheal.go: Mark of Faith)
 	MarkHeal int `json:",omitempty"`

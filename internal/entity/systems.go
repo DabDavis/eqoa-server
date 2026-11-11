@@ -400,6 +400,7 @@ func (w *World) stateSyncSystem() {
 		return
 	}
 
+	var mortal []string // the Wisps in a mortal form (wispform.go)
 	w.SessionManager.ForEach(func(sess *session.Session) bool {
 		if !sess.CharacterInWorld() {
 			return true
@@ -408,6 +409,9 @@ func (w *World) stateSyncSystem() {
 		player := w.sessionPlayerLocked(sess)
 		if player == nil {
 			return true
+		}
+		if player.wispMortal() {
+			mortal = append(mortal, player.Name)
 		}
 
 		objectID := sess.PlayerObjectID()
@@ -425,6 +429,7 @@ func (w *World) stateSyncSystem() {
 
 		return true
 	})
+	w.noteWispFormsLocked(mortal)
 }
 
 // entityChannelSyncSystem re-serializes all occupied entity channels every tick.

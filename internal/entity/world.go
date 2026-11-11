@@ -30,6 +30,9 @@ type World struct {
 	routeSpent   int
 	routeHeights []float32
 
+	// the Wisps in a mortal form, for the race looks (wispform.go)
+	wispLooks wispLooks
+
 	mu             sync.RWMutex
 	Players        map[EntityID]*Player
 	NPCs           map[EntityID]*NPC

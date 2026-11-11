@@ -206,10 +206,17 @@ const (
 	StepKill  = "kill"  // kill count creatures named target (or one of its others, Also)
 	StepLoot  = "loot"  // kill creatures named target (or Also) until count of the item (items) are taken off their corpses during the step
 	StepReach = "reach" // come within radius of a place
+	// StepSurvive: count seconds pass while the player is in the world (alive
+	// or dead: the t196 walkthrough's questor died at 29 minutes, was rezzed and
+	// had the popup), its kept spawns made again as each one's corpse goes; done
+	// once they have, the player alive (within radius of x, z when they are
+	// set) and none of its kept spawns alive: the Trial of Endurance's 30
+	// minutes of thoughtbleeders, "you must kill them all" (handlers/questsurvive.go)
+	StepSurvive = "survive"
 )
 
 // StepKinds is every step kind, in the order the panel offers them.
-var StepKinds = []string{StepTalk, StepShow, StepGive, StepKill, StepLoot, StepReach}
+var StepKinds = []string{StepTalk, StepShow, StepGive, StepKill, StepLoot, StepReach, StepSurvive}
 
 // When a quest's events happen: a quest's when it is taken and when it is
 // finished, a step's when it becomes the step to do and when it is done.
@@ -293,6 +300,13 @@ type QuestEvent struct {
 	// Level (classquest): the level of the city class quests finished too (the
 	// import key 1-20/<city>/<class>/L<level>: ClassQuestLevel)
 	Level int `json:"level,omitempty"`
+	// Count (spawn): how many copies, round the player (0: one)
+	Count int `json:"count,omitempty"`
+	// Minutes (spawn): how long they stay at most (0: the engine's ten)
+	Minutes float64 `json:"minutes,omitempty"`
+	// Keep (spawn, a survive step's start): each one made again as its corpse
+	// goes, while the step's time runs (handlers/questsurvive.go)
+	Keep bool `json:"keep,omitempty"`
 }
 
 // reClassQuestKey is a starting city's class quest's import key
@@ -380,6 +394,12 @@ func EventProblems(s string, step bool) []string {
 			}
 			if !step {
 				add(i, "a spawn is a step's: it goes when the step is done")
+			}
+			if e.Count < 0 || e.Count > 12 {
+				add(i, "spawn's count %d is not 0 to 12", e.Count)
+			}
+			if e.Minutes < 0 || e.Minutes > 120 {
+				add(i, "spawn's minutes %g is not 0 to 120", e.Minutes)
 			}
 		case EventAttack:
 			if !step {

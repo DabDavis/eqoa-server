@@ -89,6 +89,9 @@ type questSpawn struct {
 	id          entity.EntityID
 	quest, step int
 	until       time.Time
+	// npc is the event's NPC as written (a survive step's kept spawns are
+	// counted by it: questsurvive.go)
+	npc string
 }
 
 // questEventsLocked does a quest's own events of one time.
@@ -283,16 +286,31 @@ func (q *QuestEngine) spawnLocked(p *entity.Player, c *questChar, qu *database.Q
 	if q.gw == nil || step == 0 {
 		return
 	}
-	id, name, ok := q.gw.SpawnForQuest(strings.TrimSpace(e.NPC), p, e.Hostile)
-	if !ok {
-		log.Printf("Quests: %q step %d: no NPC %q to spawn", qu.Name, step, e.NPC)
-		return
+	n := max(e.Count, 1)
+	q.spawnSomeLocked(p, c, qu, step, e, 0, n, n)
+}
+
+// spawnSomeLocked places copies from..upto-1 of a spawn event's n, round the
+// player, and remembers them: each lives the event's minutes, else
+// questSpawnLife.
+func (q *QuestEngine) spawnSomeLocked(p *entity.Player, c *questChar, qu *database.Quest, step int, e database.QuestEvent, from, upto, n int) {
+	life := questSpawnLife
+	if e.Minutes > 0 {
+		life = time.Duration(e.Minutes * float64(time.Minute))
 	}
-	if q.spawns == nil {
-		q.spawns = map[uint32][]questSpawn{}
+	for i := from; i < upto; i++ {
+		id, name, ok := q.gw.SpawnForQuestOf(strings.TrimSpace(e.NPC), p, e.Hostile, i, n)
+		if !ok {
+			log.Printf("Quests: %q step %d: no NPC %q to spawn", qu.Name, step, e.NPC)
+			return
+		}
+		if q.spawns == nil {
+			q.spawns = map[uint32][]questSpawn{}
+		}
+		q.spawns[c.serverID] = append(q.spawns[c.serverID], questSpawn{id: id, quest: qu.ID, step: step,
+			until: time.Now().Add(life), npc: strings.TrimSpace(e.NPC)})
+		log.Printf("Quests: %q step %d spawned %q (%d) for %s", qu.Name, step, name, id, p.Name)
 	}
-	q.spawns[c.serverID] = append(q.spawns[c.serverID], questSpawn{id: id, quest: qu.ID, step: step, until: time.Now().Add(questSpawnLife)})
-	log.Printf("Quests: %q step %d spawned %q (%d) for %s", qu.Name, step, name, id, p.Name)
 }
 
 // attackLocked is an attack event of the quest's step: the NPC it names, else

@@ -190,6 +190,8 @@ type World struct {
 	factions factionTable
 	// heroes is the Testing Heroes: the switch and the loot's raid bosses (heroes.go)
 	heroes heroesState
+	// petHealGroup is world.pet_heal_group (petmemberheal.go)
+	petHealGroup bool
 
 	// Who hears every credited kill (questhooks.go: the quests)
 	onKill []KillFunc

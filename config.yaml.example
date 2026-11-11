@@ -165,6 +165,15 @@ world:
   # sets it): no credit, no faction in the window, no vendor.
   # testing_heroes: true
 
+  # A magician's water pet heals the worst off of its side, not only its owner
+  # or itself (entity/petmemberheal.go): its single-target heals land on the
+  # lowest share of hit points below the heal's threshold among its owner,
+  # itself, the owner's group or raid group's players within the heal's reach
+  # (not one in a fight of its own: a duel, PvP) and their pets and
+  # mercenaries. Off unless set (the Heirloom Test Server sets it): its owner
+  # or itself, as before.
+  # pet_heal_group: true
+
   # The quest marks on a client's map (handlers/questmarks.go, vanilla's Quest
   # Markers): a giver's "!" only for quests whose lowest level is at most this
   # many below the player's (a quest's name is marked once, at its nearest

@@ -489,6 +489,12 @@ func main() {
 	// a kill that gives experience credited with the faction, a raid boss's
 	// five times (the loot's raid bosses read now and every minute, as a GM
 	// makes one on the panel), and the vendor that sells for the standing
+	// a magician's water pet's heals on the worst off of its group and raid
+	// group (world.pet_heal_group; entity/petmemberheal.go)
+	gameWorld.SetPetHealGroup(cfg.World.PetHealGroup)
+	if cfg.World.PetHealGroup {
+		log.Printf("Pet heals: a magician's water pet heals the worst off of its owner's group and raid group (world.pet_heal_group)")
+	}
 	gameWorld.SetTestingHeroes(cfg.World.TestingHeroes)
 	handlers.SetTestingHeroes(cfg.World.TestingHeroes)
 	if cfg.World.TestingHeroes {

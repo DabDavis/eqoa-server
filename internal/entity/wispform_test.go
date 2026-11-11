@@ -5,6 +5,7 @@ import (
 	"net"
 	"slices"
 	"testing"
+	"time"
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/session"
@@ -229,5 +230,83 @@ func TestAWispBuysItsMasteries(t *testing.T) {
 	}
 	if e := f.CMEffects; e[cmSlotPoT] != 15 || e[cmSlotPower] != 500 || e[cmSlotAC] != -250 || e[10] != 50 || e[7] != -25 {
 		t.Errorf("the Wisp's effects: %v", e)
+	}
+}
+
+// raimentJSON is the Wisp's Raiment's workbook record as
+// tools/wisp_raiment_20261111.py writes it.
+const raimentJSON = `{"v":1,"scope":"self","target_type":"Self","harmful":false,"duration_s":3600,"stack":0,"level":1,` +
+	`"min_level":1,"req_equipment":"Any","sheet_type":"Alter Appearance","effects":[{"id":"7E00","type":"Wisp's Raiment","kind":"raiment"}]}`
+
+// The Wisp's Raiment (Trickster Flame's; the owner, 2026-11-11: "there isn't a
+// form that shows the wisp with all the gear as an orb") shows a Wisp in its
+// own form in all it wears, its wisp kept in the race looks (no mortal form);
+// it ends with Remove Illusion, a glamour cast over it takes its place, it is
+// kept over a logout, and it ends at its hour. The control: before it the Wisp
+// shows nothing worn, and on a human it changes nothing.
+func TestTheWispsRaimentShowsItsGear(t *testing.T) {
+	withWispRace(t)
+	c := illusionRig(t)
+	g := geared(31)
+	c.p.Race, c.p.ModelID, c.p.Name = 31, g.ModelID, "Glim"
+	c.p.Primary, c.p.Secondary, c.p.Shield, c.p.PrimaryType, c.p.SecondaryType = g.Primary, g.Secondary, g.Shield, 1, 2
+	c.p.Chest, c.p.Bracer, c.p.Gloves, c.p.Legs, c.p.Boots, c.p.Helm = 3, 3, 3, 3, 3, 3
+	c.p.RobeWorn, c.p.Robe = true, 4
+	c.w.SetRaceModels(map[[2]int]uint32{{0, 0}: bodyHumanMale, {0, 1}: bodyHumanFemale})
+	shows := func(p *Player) bool {
+		b := SerializePlayerUpdate(7, p)
+		return binary.LittleEndian.Uint32(b[67:71]) != 0 && b[93] != 0 && b[109] != 0xFF
+	}
+	if shows(c.p) || !c.p.WispForm() {
+		t.Fatal("the control: a Wisp in its own form shows nothing worn")
+	}
+	raiment := illusionSpell(9100, "Wisp's Raiment", "", "")
+	raiment.Def = SpellDefFrom("Wisp's Raiment", "Self, Shows Gear, 60min", "", raimentJSON)
+	raiment.Scope = 0
+	if raiment.Def.Target != TargetSelf || raiment.Def.Duration != time.Hour || raiment.Def.FormKind != FormNone {
+		t.Fatalf("the record reads as %+v", raiment.Def)
+	}
+	c.land(t, raiment, 0xFFFFFFFF, 0)
+	if !shows(c.p) || c.p.WispForm() || c.p.wispMortal() {
+		t.Fatalf("under its Raiment: gear %v, own form %v, mortal %v; want its gear, its wisp kept", shows(c.p), c.p.WispForm(), c.p.wispMortal())
+	}
+	if m, _ := channelBody(c.p); m != bodyHumanMale {
+		t.Errorf("its body %#x, want its own", m)
+	}
+
+	rows := savedEffects(c.p, c.at(30*time.Second))
+	d := illusionRig(t)
+	d.p.Race = 31
+	if d.w.RestoreEffects(d.sess, rows, d.at(0)) != 1 || !d.p.inRaiment() {
+		t.Fatalf("after a logout: %+v", d.p.Effects)
+	}
+
+	end := illusionSpell(1793, "Remove Illusion", "", "This ability removes the current illusion on you.")
+	end.Scope = 0
+	c.land(t, end, 0xFFFFFFFF, 20*time.Second)
+	if shows(c.p) || !c.p.WispForm() || len(c.p.Effects) != 0 {
+		t.Fatalf("after Remove Illusion: gear %v, effects %+v; want its own form", shows(c.p), c.p.Effects)
+	}
+
+	c.land(t, raiment, 0xFFFFFFFF, 40*time.Second)
+	glamour := illusionSpell(496, "Glamour: Human", "Target, Faction Change, Increase AC by 50, Gives Form, 60min", "CM: Illusion and faction change.")
+	c.land(t, glamour, 0xFFFFFFFF, 60*time.Second)
+	if c.p.inRaiment() || !c.p.wispMortal() || !shows(c.p) {
+		t.Fatalf("a glamour over the Raiment: raiment %v, mortal %v; want the glamour alone", c.p.inRaiment(), c.p.wispMortal())
+	}
+	c.land(t, raiment, 0xFFFFFFFF, 80*time.Second)
+	if !c.p.inRaiment() || c.p.wispMortal() {
+		t.Fatalf("the Raiment over a glamour: raiment %v, mortal %v; want the Raiment alone", c.p.inRaiment(), c.p.wispMortal())
+	}
+	c.tick(80*time.Second + 5*time.Second + castLand + time.Hour)
+	if shows(c.p) || !c.p.WispForm() {
+		t.Fatal("after its hour: its own form, nothing worn")
+	}
+
+	h := illusionRig(t)
+	h.p.Race, h.p.Chest, h.p.Primary = 0, 3, g.Primary
+	h.land(t, raiment, 0xFFFFFFFF, 0)
+	if !shows(h.p) && SerializePlayerUpdate(7, h.p)[93] == 0 {
+		t.Error("the control: a human under it shows as ever")
 	}
 }

@@ -243,8 +243,8 @@
     "count": 2,
     "drop": {
       "name": "pale owl talon",
-      "description": "A curved black talon from a pale owl of the Goldfeather Eyrie.",
-      "like": "chipped eagle talon"
+      "description": "A hooked talon from a pale owl of the Goldfeather Eyrie.",
+      "like": "chipped buzzard talon"
     },
     "hunt": {
       "journal": "Take two pale owl talons from the pale owls north of the Eyrie outpost."

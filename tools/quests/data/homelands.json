@@ -55773,12 +55773,6 @@
       "like": "Beast Claw"
     },
     {
-      "name": "drift rat fur",
-      "description": "A clump of white fur from a drift rat of the Goldfeather Eyrie's snow.",
-      "notrade": true,
-      "like": "clump of rat fur"
-    },
-    {
       "name": "pale owl talon",
       "description": "A hooked talon from a pale owl of the Goldfeather Eyrie.",
       "notrade": true,
@@ -55786,21 +55780,9 @@
     },
     {
       "name": "Old Frostjaw's claw",
-      "description": "A great hooked foreclaw of the snow leopard Old Frostjaw.",
+      "description": "A hooked claw as long as a finger, taken from Old Frostjaw.",
       "notrade": true,
       "like": "Broken Leopard Claw"
-    },
-    {
-      "name": "shard of the Rimeheart",
-      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
-      "notrade": true,
-      "like": "cracked elemental shard"
-    },
-    {
-      "name": "Goldfeather war-talon",
-      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
-      "notrade": true,
-      "like": "chipped aviak talon"
     },
     {
       "name": "tideline ring",
@@ -55841,12 +55823,6 @@
       "like": "chipped snake fang"
     },
     {
-      "name": "rime spider silk",
-      "description": "A skein of frosted silk from a rime spider of the Goldfeather Eyrie.",
-      "notrade": true,
-      "like": "Black Widow Silk"
-    },
-    {
       "name": "reveler's bangle",
       "description": "A bangle of carved vine-wood that clicks in time when its wearer dances. Every young satyr of the glade wears one.",
       "notrade": true,
@@ -55885,22 +55861,16 @@
       "like": "bat fang"
     },
     {
-      "name": "snowfield badger pelt",
-      "description": "The thick pelt of a snowfield badger of the Goldfeather Eyrie.",
-      "notrade": true,
-      "like": "beast pelt"
-    },
-    {
       "name": "pale owl feather",
-      "description": "A soft white feather from a pale owl of the Goldfeather Eyrie.",
+      "description": "A long white flight feather from a pale owl of the Goldfeather Eyrie.",
       "notrade": true,
-      "like": "White Owl Feather"
+      "like": "ruined owl feathers"
     },
     {
       "name": "frostpaw tuft",
       "description": "A tuft of thick white fur from a frostpaw cub of the Goldfeather Eyrie.",
       "notrade": true,
-      "like": "torn leopard pelt"
+      "like": "Beast Fur"
     },
     {
       "name": "Goldfeather war-horn",
@@ -56175,12 +56145,6 @@
       "like": "Cracked Rat Claw"
     },
     {
-      "name": "frostpaw tuft",
-      "description": "A tuft of thick white fur from a frostpaw cub of the Goldfeather Eyrie.",
-      "notrade": true,
-      "like": "Beast Fur"
-    },
-    {
       "name": "dewdrop ring",
       "description": "A ring of spider silk holding one drop of morning dew that never dries. Every pixie of the Misty Thicket wears one.",
       "notrade": true,
@@ -56251,22 +56215,10 @@
       "like": "basilisk scale"
     },
     {
-      "name": "snowfield badger claw",
-      "description": "A blunt digging claw from a snowfield badger of the Goldfeather Eyrie.",
-      "notrade": true,
-      "like": "Beast Claw"
-    },
-    {
       "name": "moonpetal thread",
       "description": "A spool of thread spun from moonpetals. It glows faintly in the dark.",
       "notrade": true,
       "like": "Black Widow Silk"
-    },
-    {
-      "name": "Old Frostjaw's claw",
-      "description": "A hooked claw as long as a finger, taken from Old Frostjaw.",
-      "notrade": true,
-      "like": "Broken Leopard Claw"
     },
     {
       "name": "pup's pack collar",
@@ -56301,18 +56253,6 @@
       "like": "bear fang"
     },
     {
-      "name": "rime spider fang",
-      "description": "A hooked, frost-white fang from a rime spider of the Goldfeather Eyrie.",
-      "notrade": true,
-      "like": "small spider fang"
-    },
-    {
-      "name": "Old Frostjaw's fang",
-      "description": "A long fang, yellowed with age, from the old snow leopard Old Frostjaw.",
-      "notrade": true,
-      "like": "bear fang"
-    },
-    {
       "name": "Thedruk war band",
       "description": "A band of boiled hide, branded with the camp's mark. Every whelp of Thedruk wears one on its arm.",
       "notrade": true,
@@ -56343,12 +56283,6 @@
       "description": "A black claw, notched from old fights, from the bear Old Scarback.",
       "notrade": true,
       "like": "Cracked Rat Claw"
-    },
-    {
-      "name": "pale owl talon",
-      "description": "A curved black talon from a pale owl of the Goldfeather Eyrie.",
-      "notrade": true,
-      "like": "chipped eagle talon"
     },
     {
       "name": "calf's nose ring",
@@ -56413,18 +56347,6 @@
       "description": "A seal of old ivory, pried from a king's door by the robber Sela.",
       "notrade": true,
       "like": "bit of ivory"
-    },
-    {
-      "name": "snowfield badger claw",
-      "description": "A blunt digging claw from a snowfield badger of the Goldfeather Eyrie.",
-      "notrade": true,
-      "like": "Beast Claw"
-    },
-    {
-      "name": "pale owl feather",
-      "description": "A long white flight feather from a pale owl of the Goldfeather Eyrie.",
-      "notrade": true,
-      "like": "ruined owl feathers"
     },
     {
       "name": "sprout's root sash",

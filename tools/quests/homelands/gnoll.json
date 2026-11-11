@@ -220,8 +220,8 @@
     "count": 2,
     "drop": {
       "name": "rime spider fang",
-      "description": "A hooked, frost-white fang from a rime spider of the Goldfeather Eyrie.",
-      "like": "small spider fang"
+      "description": "A fang of clear, frosted chitin from a rime spider of the Goldfeather Eyrie.",
+      "like": "Icefang Spiderling Fang"
     },
     "hunt": {
       "journal": "Take two rime spider fangs from the rime spiders north-east of the Eyrie outpost."
@@ -248,8 +248,8 @@
     "count": 1,
     "drop": {
       "name": "Old Frostjaw's fang",
-      "description": "A long fang, yellowed with age, from the old snow leopard Old Frostjaw.",
-      "like": "bear fang"
+      "description": "A long yellowed fang of the snow leopard Old Frostjaw.",
+      "like": "chipped bear fang"
     },
     "hunt": {
       "journal": "Take Old Frostjaw's fang from the old snow leopard on the slopes north-east of the Eyrie outpost."

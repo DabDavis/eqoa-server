@@ -853,9 +853,9 @@
           "sprite": "0x6F412342",
           "from": "CHAR.ESF",
           "at": [
-            19284.95,
+            19289.45,
             292.97,
-            10373.13
+            10377.63
           ],
           "scale": 6.0,
           "note": "an invisible blocker outside the north fence (CHAR.ESF's collision-only box, 30 a side)"
@@ -864,9 +864,9 @@
           "sprite": "0x6F412342",
           "from": "CHAR.ESF",
           "at": [
-            19284.95,
-            244.56,
-            10477.05
+            19289.45,
+            253.09,
+            10472.55
           ],
           "scale": 6.0,
           "note": "an invisible blocker outside the south fence (CHAR.ESF's collision-only box, 30 a side)"
@@ -875,9 +875,9 @@
           "sprite": "0x6F412342",
           "from": "CHAR.ESF",
           "at": [
-            19284.95,
-            274.56,
-            10477.05
+            19289.45,
+            283.09,
+            10472.55
           ],
           "scale": 6.0,
           "note": "an invisible blocker outside the south fence (CHAR.ESF's collision-only box, 30 a side)"
@@ -886,9 +886,9 @@
           "sprite": "0x6F412342",
           "from": "CHAR.ESF",
           "at": [
-            19310.56,
+            19312.81,
             292.97,
-            10373.13
+            10377.63
           ],
           "scale": 6.0,
           "note": "an invisible blocker outside the north fence (CHAR.ESF's collision-only box, 30 a side)"
@@ -897,9 +897,9 @@
           "sprite": "0x6F412342",
           "from": "CHAR.ESF",
           "at": [
-            19310.56,
-            272.45,
-            10477.05
+            19312.81,
+            276.06,
+            10472.55
           ],
           "scale": 6.0,
           "note": "an invisible blocker outside the south fence (CHAR.ESF's collision-only box, 30 a side)"
@@ -908,9 +908,9 @@
           "sprite": "0x6F412342",
           "from": "CHAR.ESF",
           "at": [
-            19310.56,
-            302.45,
-            10477.05
+            19312.81,
+            306.06,
+            10472.55
           ],
           "scale": 6.0,
           "note": "an invisible blocker outside the south fence (CHAR.ESF's collision-only box, 30 a side)"
@@ -921,7 +921,7 @@
           "at": [
             19336.17,
             292.97,
-            10373.13
+            10377.63
           ],
           "scale": 6.0,
           "note": "an invisible blocker outside the north fence (CHAR.ESF's collision-only box, 30 a side)"
@@ -931,8 +931,8 @@
           "from": "CHAR.ESF",
           "at": [
             19336.17,
-            286.92,
-            10477.05
+            287.63,
+            10472.55
           ],
           "scale": 6.0,
           "note": "an invisible blocker outside the south fence (CHAR.ESF's collision-only box, 30 a side)"
@@ -941,9 +941,9 @@
           "sprite": "0x6F412342",
           "from": "CHAR.ESF",
           "at": [
-            19361.77,
-            292.69,
-            10373.13
+            19359.52,
+            292.32,
+            10377.63
           ],
           "scale": 6.0,
           "note": "an invisible blocker outside the north fence (CHAR.ESF's collision-only box, 30 a side)"
@@ -952,9 +952,9 @@
           "sprite": "0x6F412342",
           "from": "CHAR.ESF",
           "at": [
-            19361.77,
-            286.92,
-            10477.05
+            19359.52,
+            287.94,
+            10472.55
           ],
           "scale": 6.0,
           "note": "an invisible blocker outside the south fence (CHAR.ESF's collision-only box, 30 a side)"
@@ -963,9 +963,9 @@
           "sprite": "0x6F412342",
           "from": "CHAR.ESF",
           "at": [
-            19387.38,
-            288.66,
-            10373.13
+            19382.88,
+            289.47,
+            10377.63
           ],
           "scale": 6.0,
           "note": "an invisible blocker outside the north fence (CHAR.ESF's collision-only box, 30 a side)"
@@ -974,9 +974,9 @@
           "sprite": "0x6F412342",
           "from": "CHAR.ESF",
           "at": [
-            19387.38,
-            277.51,
-            10477.05
+            19382.88,
+            279.7,
+            10472.55
           ],
           "scale": 6.0,
           "note": "an invisible blocker outside the south fence (CHAR.ESF's collision-only box, 30 a side)"
@@ -985,9 +985,9 @@
           "sprite": "0x6F412342",
           "from": "CHAR.ESF",
           "at": [
-            19284.95,
-            288.37,
-            10403.13
+            19289.45,
+            288.36,
+            10407.63
           ],
           "scale": 6.0,
           "note": "an invisible blocker outside the west fence (CHAR.ESF's collision-only box, 30 a side)"
@@ -996,9 +996,9 @@
           "sprite": "0x6F412342",
           "from": "CHAR.ESF",
           "at": [
-            19387.38,
-            283.39,
-            10403.13
+            19382.88,
+            284.95,
+            10407.63
           ],
           "scale": 6.0,
           "note": "an invisible blocker outside the east fence (CHAR.ESF's collision-only box, 30 a side)"
@@ -1007,8 +1007,8 @@
           "sprite": "0x6F412342",
           "from": "CHAR.ESF",
           "at": [
-            19284.95,
-            280.21,
+            19289.45,
+            282.35,
             10425.09
           ],
           "scale": 6.0,
@@ -1018,8 +1018,8 @@
           "sprite": "0x6F412342",
           "from": "CHAR.ESF",
           "at": [
-            19387.38,
-            280.21,
+            19382.88,
+            283.33,
             10425.09
           ],
           "scale": 6.0,
@@ -1029,9 +1029,9 @@
           "sprite": "0x6F412342",
           "from": "CHAR.ESF",
           "at": [
-            19284.95,
-            268.48,
-            10447.05
+            19289.45,
+            275.28,
+            10442.55
           ],
           "scale": 6.0,
           "note": "an invisible blocker outside the west fence (CHAR.ESF's collision-only box, 30 a side)"
@@ -1040,9 +1040,9 @@
           "sprite": "0x6F412342",
           "from": "CHAR.ESF",
           "at": [
-            19284.95,
-            298.48,
-            10447.05
+            19289.45,
+            305.28,
+            10442.55
           ],
           "scale": 6.0,
           "note": "an invisible blocker outside the west fence (CHAR.ESF's collision-only box, 30 a side)"
@@ -1051,9 +1051,9 @@
           "sprite": "0x6F412342",
           "from": "CHAR.ESF",
           "at": [
-            19387.38,
-            279.02,
-            10447.05
+            19382.88,
+            281.69,
+            10442.55
           ],
           "scale": 6.0,
           "note": "an invisible blocker outside the east fence (CHAR.ESF's collision-only box, 30 a side)"
@@ -1082,10 +1082,10 @@
       ]
     },
     "fence": {
-      "x0": 19300.95,
-      "z0": 10389.13,
-      "x1": 19371.38,
-      "z1": 10461.05
+      "x0": 19304.85,
+      "z0": 10393.03,
+      "x1": 19367.48,
+      "z1": 10457.15
     }
   }
 }

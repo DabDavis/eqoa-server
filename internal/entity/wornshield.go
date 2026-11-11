@@ -124,10 +124,8 @@ var wornShields = map[string]WornShield{
 	// breastplate of the anointed", then "lets turn off the healing effect on
 	// hit from heirloom")
 
-	// the Testing Heroes Vendor's (petition 1471, the GM Jibrish: "a nerfed version of
-	// breastplate of the annointed regular. Heal proc does 30% less, call it weakened
-	// BPOA"): a record of its own, a copy of the breastplate's by tools/seed_testing_heroes.py
-	"weakened breastplate of the anointed": anointed.weakened(),
+	// (a record named "Weakened <one of these>" is that one's at WeakenedPercent:
+	// WornShieldOf)
 }
 
 var wornShieldsByPattern = map[int]WornShield{
@@ -138,14 +136,24 @@ var wornShieldsByPattern = map[int]WornShield{
 // back at each hit, 75 at most, the heal's figure hate (the file's doc).
 var anointed = WornShield{Heal: 15, HealPct: 10, HealMax: 75, Scale: StatCha, Hate: true}
 
-// WeakenedPercent is what a weakened record's hit effect is of its base's: 30% less
-// (petition 1471).
-const WeakenedPercent = 70
+// WeakenedPrefix is what a weakened record's name is its base's after: the Testing
+// Heroes Vendor's copies (petition 1471, the GM Jibrish: "a nerfed version of
+// breastplate of the annointed regular ... call it weakened BPOA"; 1516, the
+// Seraphic Planar Breastplate's "weakened -50% stats including proc"), each a record
+// of its own (tools/seed_testing_heroes.py, tools/heroes_more_20261111.py), whose
+// hit effect is its base's by name at WeakenedPercent (WornShieldOf). The record's
+// own figures are halved where it is written; this is only what no column holds.
+const WeakenedPrefix = "Weakened "
+
+// WeakenedPercent is what a weakened record's hit effect is of its base's: half
+// (petition 1520, the GM Jibrish: "they need to be 50% as effective now on proc and
+// stats"; 70, "30% less", from petition 1471 until then).
+const WeakenedPercent = 50
 
 // weakened is the hit effect as a weakened record's worn item has it: its damage,
 // heal and power figures at WeakenedPercent, in whole numbers, half up, as a copy's
-// are scaled (ascended.go, imported.go): the Anointed's 15 + 10% of CHA to 75 is 11
-// + 7% to 53.
+// are scaled (ascended.go, imported.go): the Anointed's 15 + 10% of CHA to 75 is 8
+// + 5% to 38, the Seraphic Planar's 75 to 120 is 38 to 60.
 func (s WornShield) weakened() WornShield {
 	f := func(v int) int {
 		if v <= 0 {
@@ -163,18 +171,27 @@ func (s WornShield) weakened() WornShield {
 // supposed to be breast plate not chest piece").
 var seraphicPlanar = WornShield{Damage: 75, DamageMax: 120, Heal: 75, HealMax: 120, Scale: StatInt, Line: true}
 
-// WornShieldOf is the item's, by its record (patternid), else by its name;
-// false for an item that does nothing at a hit. A copy's is its base's: an
-// import's damped (imported.go), an Ascended record's a tenth more
-// (ascended.go), both for an import of an Ascended record.
+// WornShieldOf is the item's, by its record (patternid), else by its name (a
+// "Weakened <name>" its base's, weakened); false for an item that does nothing at
+// a hit. A copy's is its base's: an import's damped (imported.go), an Ascended
+// record's a tenth more (ascended.go), both for an import of an Ascended record.
 func WornShieldOf(patternID int, itemName string) (WornShield, bool) {
 	record, lookup, imported, ascended := copyRecord(patternID, itemName)
 	s, ok := wornShieldsByPattern[record]
+	weak := false
 	if !ok {
-		s, ok = wornShields[strings.ToLower(strings.TrimSpace(lookup))]
+		key := strings.ToLower(strings.TrimSpace(lookup))
+		s, ok = wornShields[key]
+		if base, cut := strings.CutPrefix(key, strings.ToLower(WeakenedPrefix)); !ok && cut {
+			s, ok = wornShields[strings.TrimSpace(base)]
+			weak = ok
+		}
 	}
 	if ok {
 		s.Item = itemName
+		if weak {
+			s = s.weakened()
+		}
 		if ascended {
 			s = s.ascended()
 		}

@@ -50,6 +50,25 @@ func TestASeaCreatureTreadsWaterOnTheChannel(t *testing.T) {
 	}
 }
 
+// A player in a sea creature's body (the Mermaid race, petition 1620) on the
+// channel: treading water standing, swimming walking or running, as its
+// client reports the gait; a corpse and a jump's fall as they are, and a
+// player of a land body as before.
+func TestAPlayerInASeaBodyTreadsWaterOnTheChannel(t *testing.T) {
+	const mermaid = 0x74BA7C3D
+	p := &Player{ModelID: int64(mermaid), Size: 1}
+	for _, c := range []struct{ gait, want byte }{{LocoStand, LocoTread}, {LocoWalk, LocoSwim}, {LocoRun, LocoSwim}, {14, 14}, {6, 6}, {LocoTread, LocoTread}} {
+		p.Animation = c.gait
+		if b := SerializePlayerUpdate(1, p); b[58] != c.want {
+			t.Fatalf("a mermaid's gait %d: animation %d, want %d", c.gait, b[58], c.want)
+		}
+	}
+	human := &Player{ModelID: 0x70D898C6, Size: 1, Animation: LocoRun}
+	if b := SerializePlayerUpdate(1, human); b[58] != LocoRun {
+		t.Fatalf("a human running: animation %d", b[58])
+	}
+}
+
 // swimmerBodies is every CHAR.ESF body whose play list is the sea
 // creature's six slots: re-read off the disc's CHAR.ESF (EQOA_CHAR_ESF, or
 // the extracted one at ~/claude-eqoa/extracted-assets), skipped without it.

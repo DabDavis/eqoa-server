@@ -130,3 +130,88 @@ func TestWhoIsACreaturesPet(t *testing.T) {
 		}
 	}
 }
+
+// The owner, 2026-11-11: "there are many pets not connected to their master".
+// A creature that wanders takes its pet with it (a hobgoblin oracle and its
+// Companion Spirit 1.5 off it, as Sandstorm's census saw the oracles walk):
+// the pet does not wander of itself, keeps within reach of its owner the
+// whole walk, and stands beside it at each rest; a pet in a fight stays in it.
+func TestACreaturesPetWalksWithIt(t *testing.T) {
+	w := roamWorld(t)
+	owner := addNPC(w, 100, "wolf", 1005, 1000, creatureModel, 0)
+	pet := addNPC(w, 101, "Companion Spirit", 1006.5, 1000, creatureModel, 0)
+	w.linkCompanionsLocked()
+	if ok, why, _ := w.movementLocked(pet); ok || why != whyCompanion {
+		t.Fatalf("the spirit's movement: %v, %q", ok, MoveWhyText(why, ""))
+	}
+	var far, rested float32
+	var restedN int
+	run(w, time.Now(), 20*time.Minute, func(now time.Time) {
+		d := distXZ(pet.X, pet.Z, owner.X, owner.Z)
+		far = max(far, d)
+		if !owner.moving() && !pet.moving() {
+			rested = max(rested, d)
+			restedN++
+		}
+	})
+	if moved := distXZ(owner.X, owner.Z, owner.SpawnX, owner.SpawnZ); moved < 5 && far < 1 {
+		t.Fatalf("the wolf never wandered (%.1f off its spawn)", moved)
+	}
+	if far > companionFollowAt+2 || rested > companionFollowAt+0.5 || restedN == 0 {
+		t.Errorf("the spirit: at most %.1f off the wolf walking, %.1f standing (%d ticks); want within %v", far, rested, restedN, companionFollowAt)
+	}
+	t.Logf("the spirit at most %.2f off the wolf on the walk, %.2f at rest; the wolf %.1f off its spawn", far, rested,
+		distXZ(owner.X, owner.Z, owner.SpawnX, owner.SpawnZ))
+
+	// in a fight it is the fight's
+	pet.CurrentEnemy = 1
+	px, pz := pet.X, pet.Z
+	owner.X += 20
+	w.companionsFollowLocked(owner, time.Now().Add(time.Hour))
+	if pet.X != px || pet.Z != pz {
+		t.Errorf("the spirit in a fight followed its owner")
+	}
+}
+
+// The pets the log counted with no owner (2026-11-11, eqoaclassic's rows):
+// a servant names its owner by a word of its name, punctuation aside ("Servant
+// of Vorin" by High Priest Vorin 31.8 off, "Servant of Tal Thir" by Tal'Thir
+// 36.2 off, "maiden's servant" by the Dawn Maiden 5.8 off), and a kind a pet's
+// word names that is no one's pet is none (Zaoran Plateau's Blood Thirsty
+// Minions, a village pet).
+func TestAPetsNameFindsItsOwner(t *testing.T) {
+	for _, c := range []struct {
+		named, owner string
+		want         bool
+	}{{"Vorin", "High Priest Vorin", true}, {"Tal Thir", "Tal'Thir", true}, {"maiden", "Dawn Maiden", true},
+		{"Vhi'zan", "Vhi'zan Kaah", true}, {"Goran", "Goran", true}, {"Vorin", "Vorinson", false}, {"Tal", "Tal'Thir", true},
+		{"Thir", "Tal'Thir", true}, {"Krrgar", "clan kolbok mystic", false}, {"", "Goran", false}} {
+		if got := companionNamesOwner(c.named, c.owner); got != c.want {
+			t.Errorf("companionNamesOwner(%q, %q) = %v", c.named, c.owner, got)
+		}
+	}
+	w := NewWorld()
+	add := func(id EntityID, name string, x, z float32) *NPC {
+		n := &NPC{ServerID: id, Name: name, X: x, Z: z, SpawnX: x, SpawnZ: z}
+		w.NPCs[id] = n
+		return n
+	}
+	vorin := add(1, "High Priest Vorin", 5375, 9350)
+	add(2, "anointed skeleton", 5375, 9346) // 4.1 off the servant, as on the rows
+	servant := add(3, "Servant of Vorin", 5375-31.8, 9350)
+	maiden := add(4, "Dawn Maiden", 8434, 5171)
+	mserv := add(5, "maiden's servant", 8434+5.8, 5171)
+	tal := add(6, "Tal'Thir", 5162, 9158+36.2)
+	tserv := add(7, "Servant of Tal Thir", 5162, 9158)
+	minion := add(8, "Blood Thirsty Minion", 9000, 9000)
+	add(9, "Blood Thirsty Minion", 9001, 9000)
+	w.linkCompanionsLocked()
+	for pet, want := range map[*NPC]*NPC{servant: vorin, mserv: maiden, tserv: tal} {
+		if w.companionOf[pet.ServerID] != want.ServerID {
+			t.Errorf("%s is %d's, want %s's", pet.Name, w.companionOf[pet.ServerID], want.Name)
+		}
+	}
+	if companionName(minion.Name) || companionName("village pet") || len(w.companionOf) != 3 {
+		t.Errorf("Blood Thirsty Minions as pets: %v %v", companionName(minion.Name), w.companionOf)
+	}
+}

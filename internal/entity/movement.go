@@ -177,6 +177,7 @@ const (
 	whyOffGround
 	whySpawnOnly
 	whyCampSpawn
+	whyCompanion
 )
 
 // MoveWhyText says why, in a GM's words (the panel's NPC page); word is the
@@ -215,6 +216,8 @@ func MoveWhyText(why moveWhy, word string) string {
 		return "spawned only (NPC spawn only): it stands on its spawn out of every view, there for the quests and triggers that copy it"
 	case whyCampSpawn:
 		return "a camp's static spawn (Camp spawns, a GM's /camp): it stands on its spawn until pulled, whatever its kind, and pops one of its kinds each time it comes back"
+	case whyCompanion:
+		return "a creature's own pet (companion.go): it keeps beside its owner, walking where its owner wanders"
 	}
 	return ""
 }
@@ -238,6 +241,10 @@ func (w *World) movementLocked(npc *NPC) (wanders bool, why moveWhy, word string
 		// a camp's static spawn, by its row (campspawn.go): ahead of every
 		// rule by name, as a path is
 		return false, whyCampSpawn, ""
+	case w.companionOf[npc.ServerID] != 0 && companionFighter(npc):
+		// a creature's own pet (companion.go): it does not wander of itself,
+		// it walks beside its owner (companionsFollowLocked)
+		return false, whyCompanion, ""
 	case npc.ModelID == 0:
 		return false, whyNoBody, ""
 	case npc.NPCType&0x80 != 0:

@@ -77,3 +77,58 @@ func TestCMQuestGroupIsMetByAnyOfItsQuests(t *testing.T) {
 		t.Errorf("the control: Both with only Mirin done: %q", got)
 	}
 }
+
+// require_spells "a|b": a rank needs a, or b standing in for it (petition
+// 1583, Wisp: the lightning nova line, Static Destruction, was locked to a
+// wizard who owned Icy Destruction, which had traded away the Explode both
+// need; each gives Fiery Explode, which the other then accepts). The
+// control: the same rank needing Explode alone stays locked. And a removal
+// leaves what a rank kept gives or replaces: removing Static with Icy kept
+// takes out Static Explode only and hands back no Explode; removing Icy
+// alone takes both its spells and hands Explode back.
+func TestCMRequireSpellAltAndRemovalKeepsOtherRanksBook(t *testing.T) {
+	w := NewWorld()
+	all, races := 32767, 2047
+	w.SetCMCatalog([]database.CMRankRow{
+		{ID: 1, Classes: all, Races: races, Name: "Icy Destruction 1", Level: 20, Requires: "Explode@12", RequireSpells: "11|22",
+			Adds: "Icy Explode@12; Fiery Explode@12", AddSpells: "21,22", Removes: "Explode@12", RemoveSpells: "11", Enabled: true},
+		{ID: 2, Classes: all, Races: races, Name: "Static Destruction 1", Level: 20, Requires: "Explode@12", RequireSpells: "11|22",
+			Adds: "Static Explode@12; Fiery Explode@12", AddSpells: "23,22", Removes: "Explode@12", RemoveSpells: "11", Enabled: true},
+		{ID: 3, Classes: all, Races: races, Name: "Old Static 1", Level: 20, Requires: "Explode@12", RequireSpells: "11",
+			Adds: "Static Explode@12", AddSpells: "23", Removes: "Explode@12", RemoveSpells: "11", Enabled: true},
+	})
+	if got := w.cms.byID[2].Requires; len(got) != 1 || got[0].SpellID != 11 || !reflect.DeepEqual(got[0].Alts, []int{22}) {
+		t.Fatalf("Static's requirement read %+v", got)
+	}
+	p := &Player{Level: 60, CMs: map[int]int{1: 25}}
+	k := CMKnows{Book: map[int]bool{21: true, 22: true}} // Icy bought: Explode traded for Icy and Fiery Explode
+	if got := w.cmBlockLocked(p, w.cms.byID[2], k); got != "" {
+		t.Errorf("Static Destruction 1 after Icy: %q, want buyable", got)
+	}
+	if got := w.cmBlockLocked(p, w.cms.byID[3], k); got != "You must know Explode to buy Old Static 1." {
+		t.Errorf("the control, Explode alone needed: %q", got)
+	}
+	if got := w.cmBlockLocked(&Player{Level: 60}, w.cms.byID[2], CMKnows{Book: map[int]bool{11: true}}); got != "" {
+		t.Errorf("Static with Explode itself: %q", got)
+	}
+	if got := w.cmBlockLocked(&Player{Level: 60}, w.cms.byID[2], CMKnows{Book: map[int]bool{}}); got != "You must know Explode to buy Static Destruction 1." {
+		t.Errorf("Static with neither: %q", got)
+	}
+
+	ids := func(as []CMAbility) []int {
+		out := []int{}
+		for _, a := range as {
+			out = append(out, a.SpellID)
+		}
+		return out
+	}
+	// both owned, Static removed (the player's ranks without it)
+	back, out := w.cmRemovalBookLocked(&Player{CMs: map[int]int{1: 25}}, w.cms.byID[2])
+	if !reflect.DeepEqual(ids(back), []int{}) || !reflect.DeepEqual(ids(out), []int{23}) {
+		t.Errorf("removing Static with Icy kept: back %v, out %v; want none back, [23] out", ids(back), ids(out))
+	}
+	back, out = w.cmRemovalBookLocked(&Player{CMs: map[int]int{}}, w.cms.byID[1])
+	if !reflect.DeepEqual(ids(back), []int{11}) || !reflect.DeepEqual(ids(out), []int{21, 22}) {
+		t.Errorf("the control, Icy alone removed: back %v, out %v; want [11] back, [21 22] out", ids(back), ids(out))
+	}
+}

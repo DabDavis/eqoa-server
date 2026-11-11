@@ -65,6 +65,21 @@ func TestRealMercKits(t *testing.T) {
 			if shoots := role == "tank" || role == "melee fighter"; shoots != (k.Bow.Damage > 0) || shoots && (k.Bow.Type != 7 || k.Bow.Range <= 0 || k.Bow.Model == 0) {
 				t.Errorf("%s %d: bow %+v", entity.ClassName(class), level, k.Bow)
 			}
+			// a tank's resists at the cap and its AC its level's at least
+			// (entity/mercroles.go)
+			if role == "tank" {
+				wr := (k.Base[4] + k.Gear.Wis) / 7
+				for _, r := range []int{k.Gear.PR, k.Gear.DR, k.Gear.FR, k.Gear.CR, k.Gear.LR, k.Gear.AR} {
+					if r+wr < entity.ResistCap {
+						t.Errorf("%s %d: a resist %d+%d under the cap", entity.ClassName(class), level, r, wr)
+					}
+				}
+				if k.Gear.AC < entity.MercTankAC(level) {
+					t.Errorf("%s %d: AC %d", entity.ClassName(class), level, k.Gear.AC)
+				}
+			}
+			t.Logf("%-13s %2d: base STR %d STA %d AGI %d DEX %d WIS %d INT %d", entity.ClassName(class), level, k.Base[0], k.Base[1], k.Base[2],
+				k.Base[3], k.Base[4], k.Base[5])
 			heals, taunts, hits := 0, 0, 0
 			for i := range k.Spells {
 				switch entity.MercUseName(&k.Spells[i]) {

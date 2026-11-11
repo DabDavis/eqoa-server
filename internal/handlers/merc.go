@@ -456,7 +456,7 @@ const mercDualFrom = 20
 func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 	k := entity.MercKit{Class: row.Class, Race: row.Race, Sex: row.Sex, Level: max(level, 1), Name: row.Name}
 	k.Look = entity.MercLook{Face: row.Face, HairColor: row.HairColor, HairLength: row.HairLength, HairStyle: row.HairStyle, Robe: -1}
-	k.Base = entity.SimBaseStats(row.Class, row.Race, k.Level)
+	k.Base = entity.MercBaseStats(row.Class, row.Race, k.Level) // its role's (entity/mercroles.go)
 	if m.db == nil {
 		return k, nil
 	}
@@ -465,6 +465,12 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 		return k, err
 	}
 	k.Gear = wornGear(items)
+	if entity.MercIsTank(row.Class) {
+		// a tank's resists at the cap and its armour the best of its level's
+		// (entity/mercroles.go)
+		entity.MercTankResists(&k.Gear, k.Base[4]+k.Gear.Wis)
+		k.Gear.AC = max(k.Gear.AC, entity.MercTankAC(k.Level))
+	}
 	var p entity.Player
 	wornLook(&p, items)
 	l := &k.Look

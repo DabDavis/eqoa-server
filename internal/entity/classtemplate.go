@@ -118,6 +118,8 @@ type ClassTemplate struct {
 	// summons and enrage are its fight's moments below a share of its hit
 	// points (AbilitySummon, summon.go; AbilityEnrage, enrage.go: one at most)
 	summons []templateSummon
+	// moments is its boss's moments on clocks of their own (bossmoments.go)
+	moments []database.TemplateAbility
 	enrage  *database.TemplateAbility
 	// lastStand is its fight's last stand (AbilityLastStand, laststand.go: one
 	// at most)
@@ -217,6 +219,9 @@ type templateFight struct {
 	// buffNext is when each of its template's buffs on itself is cast next
 	// (selfbuff.go: index as selfBuffs'; nil before its first)
 	buffNext []time.Time
+	// momentNext is when each of its template's moments comes next
+	// (bossmoments.go: index as moments'; nil before its first)
+	momentNext []time.Time
 }
 
 // templateContactGap is the longest gap between two of a templated NPC's
@@ -318,7 +323,14 @@ func (w *World) templateForLocked(npc *NPC) *ClassTemplate {
 	if len(w.templates.use) == 0 || npc.Owner != 0 || npc.Dummy != NotDummy {
 		return nil
 	}
-	name := w.templates.use[database.NPCClassKey(npc.Name)]
+	// its own row's first ("#n", npcrow.go), then its name's
+	name := ""
+	if r := npc.row(); r != 0 {
+		name = w.templates.use[RowKey(r)]
+	}
+	if name == "" {
+		name = w.templates.use[database.NPCClassKey(npc.Name)]
+	}
 	if name == "" {
 		return nil
 	}
@@ -549,6 +561,9 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 				continue
 			case database.AbilityHitHeal:
 				t.hitHeal += ra.Heal // hitheal.go
+				continue
+			case database.AbilitySelfDoT, database.AbilityRaidHeal, database.AbilityPowerZero:
+				t.moments = append(t.moments, ra) // bossmoments.go
 				continue
 			case database.AbilityPrefer:
 				for _, f := range ra.Foes {

@@ -206,6 +206,9 @@ type World struct {
 	// The NPC names that stand out of the world, there only for the quests'
 	// and triggers' spawns that copy them, table npcspawnonly (spawnonly.go)
 	spawnOnly map[string]bool
+	// qwalls is the quests' walls and what each character passes and holds
+	// (questwalls.go)
+	qwalls questWallState
 	// The NPCs' body tints by name, table npctint, as the clients that draw
 	// them are told (npctint.go)
 	npcTints npcTintState

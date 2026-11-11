@@ -115,7 +115,7 @@ func (w *World) applyNPCSettingsLocked(npc *NPC) {
 	w.applyBalanceLocked(npc)  // its hit points (balance.go)
 	w.applyTemplateLocked(npc) // its name's class template (classtemplate.go)
 	// out of the world, there for the spawns that copy it alone (spawnonly.go)
-	npc.SpawnOnly = w.spawnOnlyLocked(npc.Name)
+	npc.SpawnOnly = w.npcSpawnOnlyLocked(npc)
 }
 
 // corpseLies reports a dead NPC whose corpse is still where it fell at now:

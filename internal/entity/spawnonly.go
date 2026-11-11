@@ -46,6 +46,13 @@ func (w *World) spawnOnlyLocked(name string) bool {
 	return w.spawnOnly[database.NPCClassKey(name)]
 }
 
+// npcSpawnOnlyLocked is whether the NPC stands out of the world: its name's
+// row, or its own npcs row's ("#n", npcrow.go). Must be called with the lock
+// held.
+func (w *World) npcSpawnOnlyLocked(npc *NPC) bool {
+	return w.spawnOnlyLocked(npc.Name) || w.spawnOnly[RowKey(npc.ServerID)]
+}
+
 // SpawnOnlyNamed is whether the NPCs of that name stand out of the world
 // (handlers/questevents.go: a quest step's spawns come again by its NPC).
 func (w *World) SpawnOnlyNamed(name string) bool {
@@ -68,7 +75,7 @@ func (w *World) SetSpawnOnly(names map[string]bool) (held, changed int) {
 		if npc.Temporary || npc.Owner != 0 {
 			continue
 		}
-		want := names[database.NPCClassKey(npc.Name)]
+		want := names[database.NPCClassKey(npc.Name)] || names[RowKey(npc.ServerID)]
 		if want {
 			held++
 		}

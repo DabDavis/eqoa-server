@@ -66,6 +66,29 @@ func (db *SQLiteDB) SetCharLooks(serverID uint32, looks []CharLook) error {
 	return tx.Commit()
 }
 
+// SetCharLookParts replaces serverID's rows of parts with looks (each of one
+// of them; none: the part's rows go), the others kept, in one transaction,
+// source naming where (character select's Customize: "customize").
+func (db *SQLiteDB) SetCharLookParts(serverID uint32, parts []string, looks []CharLook, source string) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	for _, p := range parts {
+		if _, err := tx.Exec(`DELETE FROM charlook WHERE serverid = ? AND part = ?`, serverID, p); err != nil {
+			return err
+		}
+	}
+	for _, l := range looks {
+		if _, err := tx.Exec(`INSERT INTO charlook (serverid, part, kind, value, source) VALUES (?, ?, ?, ?, ?)`,
+			serverID, l.Part, l.Kind, int64(l.Value), source); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
 // CharLooks is serverID's rows, by part.
 func (db *SQLiteDB) CharLooks(serverID uint32) ([]CharLook, error) {
 	rows, err := db.Query(`SELECT part, kind, value FROM charlook WHERE serverid = ? ORDER BY part`, serverID)

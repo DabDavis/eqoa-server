@@ -29,6 +29,10 @@ type CreationRules struct {
 	Races bool
 	// AllClasses: every class for every race (world.all_classes).
 	AllClasses bool
+	// Skins: the game's ten races' skin shades (world.skin_shades,
+	// raceoptions.go's gameRaceRows), offered in the races' options to a
+	// client that shows them; nothing to do with creation's own offer.
+	Skins bool
 }
 
 // On reports anything past the game's own: a client that can is to be told.

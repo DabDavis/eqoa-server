@@ -1,0 +1,564 @@
+{
+ "notes": "Petition 1617 (Lickinfrogs): the Froglok Herbalist's protection event, EQOA-Data's Good Tank Episode 1 and questmasters t238: every 5 minutes two froglok come for the herbalist (watchmen dark blue, guardsmen white, a lookout yellow and a scout red), three rounds, then two red bouncers; the step is done for the players near who hold the ingredients when the brew is done (the guide's 'the popups have an Area of Effect'); the herbalist's death fails it, nothing taken. Levels for a 60, templates, the spawn point and the potion from the herbalist himself (no Guk (S) human in the data) are ours.",
+ "templates": [
+  {
+   "name": "guk bouncer",
+   "class": 0,
+   "hp_pct": 260,
+   "level": 64,
+   "melee": 190,
+   "crit": 1000,
+   "note": "The Froglok Herbalist's bouncers (petition 1617): 'they con red and are very difficult. They are NOT to be underestimated' (Good Tank Ep1). Figures ours: a group's two red L64s, 2.6x a roamer's hit points, 1.9x its melee, a 1,000 crit."
+  }
+ ],
+ "npcs": [
+  {
+   "name": "froglok watchman",
+   "like": "froglok guk warrior",
+   "world": 0,
+   "x": 24771.0,
+   "y": 10.0,
+   "z": 29266.0,
+   "facing": 0,
+   "level": 53,
+   "type": 0,
+   "note": "petition 1617; EQOA-Data's Good Tank Ep1 + questmasters t238: the herbalist's protection event (tools/guk_herbalist_20261111.py)",
+   "template": "roamer"
+  },
+  {
+   "name": "froglok guardsman",
+   "like": "froglok zol knight",
+   "world": 0,
+   "x": 24771.0,
+   "y": 10.0,
+   "z": 29266.0,
+   "facing": 0,
+   "level": 60,
+   "type": 0,
+   "note": "petition 1617; EQOA-Data's Good Tank Ep1 + questmasters t238: the herbalist's protection event (tools/guk_herbalist_20261111.py)",
+   "template": "roamer"
+  },
+  {
+   "name": "froglok lookout",
+   "like": "froglok yun warrior",
+   "world": 0,
+   "x": 24771.0,
+   "y": 10.0,
+   "z": 29266.0,
+   "facing": 0,
+   "level": 61,
+   "type": 0,
+   "note": "petition 1617; EQOA-Data's Good Tank Ep1 + questmasters t238: the herbalist's protection event (tools/guk_herbalist_20261111.py)",
+   "template": "roamer"
+  },
+  {
+   "name": "froglok scout",
+   "like": "froglok assassin",
+   "world": 0,
+   "x": 24771.0,
+   "y": 10.0,
+   "z": 29266.0,
+   "facing": 0,
+   "level": 63,
+   "type": 0,
+   "note": "petition 1617; EQOA-Data's Good Tank Ep1 + questmasters t238: the herbalist's protection event (tools/guk_herbalist_20261111.py)"
+  },
+  {
+   "name": "froglok bouncer",
+   "like": "froglok executioner",
+   "world": 0,
+   "x": 24771.0,
+   "y": 10.0,
+   "z": 29266.0,
+   "facing": 0,
+   "level": 64,
+   "type": 0,
+   "note": "petition 1617; EQOA-Data's Good Tank Ep1 + questmasters t238: the herbalist's protection event (tools/guk_herbalist_20261111.py)",
+   "size": 1.3,
+   "template": "guk bouncer"
+  }
+ ],
+ "triggers": [
+  {
+   "slot": 161,
+   "name": "The Froglok Herbalist",
+   "scope": "near",
+   "radius": 80,
+   "world": 0,
+   "x": 24750.0,
+   "y": 10.0,
+   "z": 29320.9,
+   "steps": [
+    {
+     "do": "lock",
+     "lock": "guk herbalist"
+    },
+    {
+     "do": "protect",
+     "npc": "froglok herbalist",
+     "radius": 10,
+     "text": "The froglok herbalist falls, and his brew spills into the muck. Your ingredients are still yours: bring them to him again when he is back."
+    },
+    {
+     "do": "clock",
+     "seconds": 5400,
+     "empty": 600
+    },
+    {
+     "do": "say",
+     "npc": "froglok herbalist",
+     "text": "Now guard me while I brew! The Guk's own will come for me, two at a time, for the better part of an hour. Do not let them reach me."
+    },
+    {
+     "do": "spawn",
+     "npc": "#WATCHMAN",
+     "count": 2,
+     "world": 0,
+     "x": 24771.0,
+     "y": 10.0,
+     "z": 29266.0,
+     "spread": 4,
+     "minutes": 90,
+     "attackable": true
+    },
+    {
+     "do": "sic",
+     "npc": "froglok watchman",
+     "target": "froglok herbalist",
+     "radius": 90
+    },
+    {
+     "do": "broadcast",
+     "text": "Two froglok watchmen come for the herbalist!"
+    },
+    {
+     "do": "wait",
+     "seconds": 300
+    },
+    {
+     "do": "spawn",
+     "npc": "#GUARDSMAN",
+     "count": 2,
+     "world": 0,
+     "x": 24771.0,
+     "y": 10.0,
+     "z": 29266.0,
+     "spread": 4,
+     "minutes": 90,
+     "attackable": true
+    },
+    {
+     "do": "sic",
+     "npc": "froglok guardsman",
+     "target": "froglok herbalist",
+     "radius": 90
+    },
+    {
+     "do": "broadcast",
+     "text": "Two froglok guardsmen come for the herbalist!"
+    },
+    {
+     "do": "wait",
+     "seconds": 300
+    },
+    {
+     "do": "spawn",
+     "npc": "#LOOKOUT",
+     "count": 1,
+     "world": 0,
+     "x": 24771.0,
+     "y": 10.0,
+     "z": 29266.0,
+     "spread": 4,
+     "minutes": 90,
+     "attackable": true
+    },
+    {
+     "do": "spawn",
+     "npc": "#SCOUT",
+     "count": 1,
+     "world": 0,
+     "x": 24771.0,
+     "y": 10.0,
+     "z": 29266.0,
+     "spread": 4,
+     "minutes": 90,
+     "attackable": true
+    },
+    {
+     "do": "sic",
+     "npc": "froglok lookout",
+     "target": "froglok herbalist",
+     "radius": 90
+    },
+    {
+     "do": "sic",
+     "npc": "froglok scout",
+     "target": "froglok herbalist",
+     "radius": 90
+    },
+    {
+     "do": "broadcast",
+     "text": "A froglok lookout and a froglok scout come for the herbalist!"
+    },
+    {
+     "do": "wait",
+     "seconds": 300
+    },
+    {
+     "do": "spawn",
+     "npc": "#WATCHMAN",
+     "count": 2,
+     "world": 0,
+     "x": 24771.0,
+     "y": 10.0,
+     "z": 29266.0,
+     "spread": 4,
+     "minutes": 90,
+     "attackable": true
+    },
+    {
+     "do": "sic",
+     "npc": "froglok watchman",
+     "target": "froglok herbalist",
+     "radius": 90
+    },
+    {
+     "do": "broadcast",
+     "text": "Two froglok watchmen come for the herbalist!"
+    },
+    {
+     "do": "wait",
+     "seconds": 300
+    },
+    {
+     "do": "spawn",
+     "npc": "#GUARDSMAN",
+     "count": 2,
+     "world": 0,
+     "x": 24771.0,
+     "y": 10.0,
+     "z": 29266.0,
+     "spread": 4,
+     "minutes": 90,
+     "attackable": true
+    },
+    {
+     "do": "sic",
+     "npc": "froglok guardsman",
+     "target": "froglok herbalist",
+     "radius": 90
+    },
+    {
+     "do": "broadcast",
+     "text": "Two froglok guardsmen come for the herbalist!"
+    },
+    {
+     "do": "wait",
+     "seconds": 300
+    },
+    {
+     "do": "spawn",
+     "npc": "#LOOKOUT",
+     "count": 1,
+     "world": 0,
+     "x": 24771.0,
+     "y": 10.0,
+     "z": 29266.0,
+     "spread": 4,
+     "minutes": 90,
+     "attackable": true
+    },
+    {
+     "do": "spawn",
+     "npc": "#SCOUT",
+     "count": 1,
+     "world": 0,
+     "x": 24771.0,
+     "y": 10.0,
+     "z": 29266.0,
+     "spread": 4,
+     "minutes": 90,
+     "attackable": true
+    },
+    {
+     "do": "sic",
+     "npc": "froglok lookout",
+     "target": "froglok herbalist",
+     "radius": 90
+    },
+    {
+     "do": "sic",
+     "npc": "froglok scout",
+     "target": "froglok herbalist",
+     "radius": 90
+    },
+    {
+     "do": "broadcast",
+     "text": "A froglok lookout and a froglok scout come for the herbalist!"
+    },
+    {
+     "do": "wait",
+     "seconds": 300
+    },
+    {
+     "do": "spawn",
+     "npc": "#WATCHMAN",
+     "count": 2,
+     "world": 0,
+     "x": 24771.0,
+     "y": 10.0,
+     "z": 29266.0,
+     "spread": 4,
+     "minutes": 90,
+     "attackable": true
+    },
+    {
+     "do": "sic",
+     "npc": "froglok watchman",
+     "target": "froglok herbalist",
+     "radius": 90
+    },
+    {
+     "do": "broadcast",
+     "text": "Two froglok watchmen come for the herbalist!"
+    },
+    {
+     "do": "wait",
+     "seconds": 300
+    },
+    {
+     "do": "spawn",
+     "npc": "#GUARDSMAN",
+     "count": 2,
+     "world": 0,
+     "x": 24771.0,
+     "y": 10.0,
+     "z": 29266.0,
+     "spread": 4,
+     "minutes": 90,
+     "attackable": true
+    },
+    {
+     "do": "sic",
+     "npc": "froglok guardsman",
+     "target": "froglok herbalist",
+     "radius": 90
+    },
+    {
+     "do": "broadcast",
+     "text": "Two froglok guardsmen come for the herbalist!"
+    },
+    {
+     "do": "wait",
+     "seconds": 300
+    },
+    {
+     "do": "spawn",
+     "npc": "#LOOKOUT",
+     "count": 1,
+     "world": 0,
+     "x": 24771.0,
+     "y": 10.0,
+     "z": 29266.0,
+     "spread": 4,
+     "minutes": 90,
+     "attackable": true
+    },
+    {
+     "do": "spawn",
+     "npc": "#SCOUT",
+     "count": 1,
+     "world": 0,
+     "x": 24771.0,
+     "y": 10.0,
+     "z": 29266.0,
+     "spread": 4,
+     "minutes": 90,
+     "attackable": true
+    },
+    {
+     "do": "sic",
+     "npc": "froglok lookout",
+     "target": "froglok herbalist",
+     "radius": 90
+    },
+    {
+     "do": "sic",
+     "npc": "froglok scout",
+     "target": "froglok herbalist",
+     "radius": 90
+    },
+    {
+     "do": "broadcast",
+     "text": "A froglok lookout and a froglok scout come for the herbalist!"
+    },
+    {
+     "do": "wait",
+     "seconds": 300
+    },
+    {
+     "do": "spawn",
+     "npc": "#BOUNCER",
+     "count": 2,
+     "world": 0,
+     "x": 24771.0,
+     "y": 10.0,
+     "z": 29266.0,
+     "spread": 4,
+     "minutes": 90,
+     "hostile": true
+    },
+    {
+     "do": "sic",
+     "npc": "froglok bouncer",
+     "target": "froglok herbalist",
+     "radius": 90
+    },
+    {
+     "do": "popup",
+     "text": "The Guk sends its bouncers for the herbalist. They are not to be underestimated!"
+    },
+    {
+     "do": "awaitdead"
+    },
+    {
+     "do": "queststep",
+     "quest": 101035,
+     "step": 4
+    },
+    {
+     "do": "queststep",
+     "quest": 101097,
+     "step": 4
+    },
+    {
+     "do": "broadcast",
+     "text": "The froglok herbalist's brew is done."
+    },
+    {
+     "do": "end"
+    },
+    {
+     "do": "despawn"
+    }
+   ],
+   "notes": "petition 1617; EQOA-Data's Good Tank Ep1 + questmasters t238: the herbalist's protection event (tools/guk_herbalist_20261111.py)"
+  }
+ ],
+ "sql": [
+  [
+   "UPDATE npcs SET npc_type = 128 WHERE id = 107883 AND npc_name = 'froglok herbalist' AND npc_type = 0",
+   []
+  ],
+  [
+   "UPDATE queststeps SET events = ?, says = ?, journal = ? WHERE questid = ? AND step = 4 AND events = ? AND says = ?",
+   [
+    "[{\"on\":\"done\",\"do\":\"trigger\",\"trigger\":\"The Froglok Herbalist\",\"hold\":true,\"says\":\"The ingredients! Stay close: I brew at once, and the Guk will not like it.\",\"text\":\"I am brewing already. Stay near me with your ingredients: when the brew is done there is a potion for you too.\"},{\"on\":\"done\",\"do\":\"give\",\"items\":\"701141\"}]",
+    "It is done. Here: carry this potion to the one who sent you, and drink none of it on the way.",
+    "Bring the three ingredients to the froglok herbalist at the bottom of Guk, past two bridges, and guard him while he brews: about an hour. Bring friends.",
+    101035,
+    "[{\"on\":\"done\",\"do\":\"give\",\"items\":\"701141\"}]",
+    "The ingredients! Guard me while I brew: they will come for me. Here, drink this when it is done."
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = ?, says = ?, journal = ? WHERE questid = ? AND step = 4 AND events = ? AND says = ?",
+   [
+    "[{\"on\":\"done\",\"do\":\"trigger\",\"trigger\":\"The Froglok Herbalist\",\"hold\":true,\"says\":\"The ingredients! Stay close: I brew at once, and the Guk will not like it.\",\"text\":\"I am brewing already. Stay near me with your ingredients: when the brew is done there is a potion for you too.\"},{\"on\":\"done\",\"do\":\"give\",\"items\":\"701141\"}]",
+    "It is done. Here: carry this potion to the one who sent you, and drink none of it on the way.",
+    "Bring the three ingredients to the froglok herbalist at the bottom of Guk, past two bridges, and guard him while he brews: about an hour. Bring friends.",
+    101097,
+    "[{\"on\":\"done\",\"do\":\"give\",\"items\":\"701141\"}]",
+    "The ingredients! Guard me while I brew: they will come for me. Here, drink this when it is done."
+   ]
+  ]
+ ],
+ "sql_after": [
+  [
+   "INSERT INTO npcspawnonly (name, note, source) SELECT '#' || id, ?, 'guide gaps guk-herbalist' FROM npcs WHERE npc_name = ? AND world = 0 AND x_coord = ? AND z_coord = ?",
+   [
+    "froglok watchman: copied by trigger 161 (The Froglok Herbalist), petition 1617",
+    "froglok watchman",
+    24771.0,
+    29266.0
+   ]
+  ],
+  [
+   "UPDATE gmtriggers SET steps = replace(steps, '\"#WATCHMAN\"', '\"#' || (SELECT id FROM npcs WHERE npc_name = ? AND world = 0 AND x_coord = ? AND z_coord = ?) || '\"') WHERE slot = 161",
+   [
+    "froglok watchman",
+    24771.0,
+    29266.0
+   ]
+  ],
+  [
+   "INSERT INTO npcspawnonly (name, note, source) SELECT '#' || id, ?, 'guide gaps guk-herbalist' FROM npcs WHERE npc_name = ? AND world = 0 AND x_coord = ? AND z_coord = ?",
+   [
+    "froglok guardsman: copied by trigger 161 (The Froglok Herbalist), petition 1617",
+    "froglok guardsman",
+    24771.0,
+    29266.0
+   ]
+  ],
+  [
+   "UPDATE gmtriggers SET steps = replace(steps, '\"#GUARDSMAN\"', '\"#' || (SELECT id FROM npcs WHERE npc_name = ? AND world = 0 AND x_coord = ? AND z_coord = ?) || '\"') WHERE slot = 161",
+   [
+    "froglok guardsman",
+    24771.0,
+    29266.0
+   ]
+  ],
+  [
+   "INSERT INTO npcspawnonly (name, note, source) SELECT '#' || id, ?, 'guide gaps guk-herbalist' FROM npcs WHERE npc_name = ? AND world = 0 AND x_coord = ? AND z_coord = ?",
+   [
+    "froglok lookout: copied by trigger 161 (The Froglok Herbalist), petition 1617",
+    "froglok lookout",
+    24771.0,
+    29266.0
+   ]
+  ],
+  [
+   "UPDATE gmtriggers SET steps = replace(steps, '\"#LOOKOUT\"', '\"#' || (SELECT id FROM npcs WHERE npc_name = ? AND world = 0 AND x_coord = ? AND z_coord = ?) || '\"') WHERE slot = 161",
+   [
+    "froglok lookout",
+    24771.0,
+    29266.0
+   ]
+  ],
+  [
+   "INSERT INTO npcspawnonly (name, note, source) SELECT '#' || id, ?, 'guide gaps guk-herbalist' FROM npcs WHERE npc_name = ? AND world = 0 AND x_coord = ? AND z_coord = ?",
+   [
+    "froglok scout: copied by trigger 161 (The Froglok Herbalist), petition 1617",
+    "froglok scout",
+    24771.0,
+    29266.0
+   ]
+  ],
+  [
+   "UPDATE gmtriggers SET steps = replace(steps, '\"#SCOUT\"', '\"#' || (SELECT id FROM npcs WHERE npc_name = ? AND world = 0 AND x_coord = ? AND z_coord = ?) || '\"') WHERE slot = 161",
+   [
+    "froglok scout",
+    24771.0,
+    29266.0
+   ]
+  ],
+  [
+   "INSERT INTO npcspawnonly (name, note, source) SELECT '#' || id, ?, 'guide gaps guk-herbalist' FROM npcs WHERE npc_name = ? AND world = 0 AND x_coord = ? AND z_coord = ?",
+   [
+    "froglok bouncer: copied by trigger 161 (The Froglok Herbalist), petition 1617",
+    "froglok bouncer",
+    24771.0,
+    29266.0
+   ]
+  ],
+  [
+   "UPDATE gmtriggers SET steps = replace(steps, '\"#BOUNCER\"', '\"#' || (SELECT id FROM npcs WHERE npc_name = ? AND world = 0 AND x_coord = ? AND z_coord = ?) || '\"') WHERE slot = 161",
+   [
+    "froglok bouncer",
+    24771.0,
+    29266.0
+   ]
+  ]
+ ]
+}

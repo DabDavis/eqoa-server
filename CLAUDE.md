@@ -2102,8 +2102,10 @@ vendor says his ledger is closed, said once in the log: a faction the table lack
   0x0036, kept at once with **`charbonustp`** (how many of `characters.totalTP` no level gave: `TopUpTrainingBonus` makes the
   levels up beside them, or the next level would give five fewer). **The cap on unspent points**: CLIENT has none (m_p40 is
   a whole int) and neither had the server, so the tome's is what the stats can still take (`Player.TrainingRoom`: each base
-  to its cap); past it the use is refused in red and the tome kept. **Weakened Breastplate of the Anointed** (965003, 250):
-  a copy of record 1076; its heal is read by its name at 70% (`WornShield.weakened`: 11 + 7% of CHA to 53, where the
+  to its cap); past it the use is refused in red and the tome kept. **Weakened Breastplate of the Anointed** (965003, 350
+  since petition 1520, 250 before): a copy of record 1076, every class and race, its scaled figures (the Ascended rule's
+  columns) half the Breastplate's; its heal is its base's by the name rule at `WeakenedPercent` 50 (70 before 1520): any
+  record named `"Weakened <name>"` has `<name>`'s hit effect weakened (`WornShieldOf`; 8 + 5% of CHA to 38, where the
   Breastplate's is 15 + 10% to 75). **Breastplate of the Anointed** (1076, 500). **Ascended Breastplate of the Anointed**
   (1000): the Ascended records' own rule (stats and heal a tenth more), the record the server has or one the tool makes.
   All three are Lore, each a record of its own.
@@ -2119,6 +2121,13 @@ boss 5, a grey kill nothing; each of the five was bought (the last to exactly -2
 a human a gnome at size 4.00 with 4 charges left and 27m28s showing a login later, gone at a death; the tome gave 462 to 467
 unspent and was refused at a made-up 9,000; hit by the same creature the three breastplates healed 16, 23 and 26; standing,
 charges and points came through a logout, a stop and a keep restart.
+
+**The second stock** (`tools/heroes_more_20261111.py`, petitions 1515-1524, the GM Jibrish): **Weakened Seraphic Planar
+Breastplate** (965004, 2000: a copy of 8527, every class and race, figures half, its hit effect by the name rule, 38-60 where
+the drop's is 75-120), **Seraphic Planar Breastplate** (8527, 2250), **Ascended Seraphic Planar Breastplate** (2750, the
+Ascended rule's record), **Heroic Ceremonial Vestments** (965005, 4000: a copy of 5192, every class and race, 10 more of each
+of the seven stats and six resists). A standing holds at most +2000, 4000 to spend: the robe is bought only at the top. The
+greeting says all of a standing above -2000 is spent (petition 1515: it always was; the words now say so).
 
 ### Teleport orbs: a step onto a pad sends the player to its pair (`entity/orbs.go`, table `orbs`, `tools/seed_orbs.py`)
 

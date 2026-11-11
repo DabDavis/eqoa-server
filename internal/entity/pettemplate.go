@@ -142,7 +142,7 @@ func (w *World) petTakenLocked(pet *NPC, n int) int {
 		b := pet.merc.body
 		return max(1, pct(n, w.balance.MeleeTakenPctAt(b.Class, b.Level)))
 	}
-	ps := w.pets[pet.Owner]
+	ps := w.petStateOfNPCLocked(pet)
 	if ps == nil || ps.npc != pet || ps.tmpl == nil || ps.tmpl.tmpl.TakenPct == 100 || n <= 0 {
 		return n
 	}
@@ -520,7 +520,7 @@ func (w *World) petCastSystemLocked(now time.Time) {
 	w.petCasts = keep
 	for _, c := range due {
 		ps := c.ps
-		if ps.npc.Dead || w.pets[ps.owner.ServerID] != ps || ps.tmpl != c.tmpl {
+		if ps.npc.Dead || !w.petLiveLocked(ps) || ps.tmpl != c.tmpl {
 			continue
 		}
 		w.petLandLocked(c, now)
@@ -800,7 +800,10 @@ func petTickFigure(pet *NPC, effects []SpellEffect, pct int) int {
 func (w *World) petTickLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 	ae.NextTick = ae.NextTick.Add(effectTick)
 	ps := w.pets[ae.Caster]
-	if ps == nil || ps.npc.ServerID != ae.pet || ps.npc.Dead || npc.Dead || ae.HPTick >= 0 {
+	if ps == nil || ps.npc.ServerID != ae.pet {
+		ps = w.petStateOfNPCLocked(w.NPCs[ae.pet]) // a merc's pet's (mercpet.go)
+	}
+	if ps == nil || ps.npc.ServerID != ae.pet || !w.petLiveLocked(ps) || ps.npc.Dead || npc.Dead || ae.HPTick >= 0 {
 		return
 	}
 	n := -creatureResists(ae.Rules.Resist, npc, ae.HPTick, now)

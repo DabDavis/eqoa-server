@@ -179,6 +179,8 @@ type mercState struct {
 	// body when it was made
 	book   []mercSpell
 	bookOf *Player
+	// pet is its own pet, nil for none out (mercpet.go)
+	pet *petState
 }
 
 // mercNoCollideID is a merc's entry on its owner's non-collide list (0x1003:
@@ -471,6 +473,7 @@ func (w *World) mercGoesLocked(ms *mercState, sess *session.Session, now time.Ti
 		delete(w.mercs, ms.owner.ServerID)
 	}
 	w.mercLeaveGroupLocked(ms)
+	w.mercPetGoesLocked(ms, now) // its pet with it (mercpet.go)
 	w.dropAggroLocked(n.ServerID)
 	if sess != nil && ms.noCollide {
 		sendNoCollideRemove(sess, mercNoCollideID)
@@ -652,6 +655,7 @@ func (w *World) mercDiedLocked(ms *mercState, sess *session.Session, now time.Ti
 	n := ms.npc
 	delete(w.mercs, ms.owner.ServerID)
 	w.mercLeaveGroupLocked(ms)
+	w.mercPetGoesLocked(ms, now) // its pet with it (mercpet.go)
 	w.dropAggroLocked(n.ServerID)
 	if sess != nil {
 		if ms.noCollide {
@@ -732,6 +736,7 @@ func (w *World) mercSystem(now time.Time) {
 			ms.target, ms.ordered = 0, 0
 			n.endRound()
 			n.stopMoving()
+			w.mercPetTurnLocked(ms, sess, false, dt, now)
 			continue
 		}
 		if owner.IsDead() || owner.respawnPending() {
@@ -740,6 +745,7 @@ func (w *World) mercSystem(now time.Time) {
 			ms.target, ms.ordered = 0, 0
 			n.endRound()
 			n.stopMoving()
+			w.mercPetTurnLocked(ms, sess, false, dt, now)
 			continue
 		}
 		if n.World != owner.World || distXZ(n.X, n.Z, owner.X, owner.Z) > petLost {
@@ -755,6 +761,8 @@ func (w *World) mercSystem(now time.Time) {
 			syncMercBody(ms)
 		}
 		w.mercTurnLocked(ms, dt, now)
+		syncMercBody(ms)
+		w.mercPetTurnLocked(ms, sess, true, dt, now) // its own pet (mercpet.go)
 	}
 }
 

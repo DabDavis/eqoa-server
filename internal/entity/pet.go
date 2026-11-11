@@ -144,6 +144,8 @@ type petState struct {
 	// spell is the summoning spell that made it, 0 for a charmed one: what a
 	// restart summons it again by (keeppet.go)
 	spell int
+	// merc is the merc whose pet it is, nil for a player's own (mercpet.go)
+	merc *mercState
 }
 
 // petOfLocked is the player's pet, alive, or nil.
@@ -381,7 +383,31 @@ func besideOwner(p *Player) (x, y, z float32) {
 // summonPetLocked is a summoning landing: the caster's new pet, the old one
 // gone. Must be called with the lock held.
 func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Session, now time.Time) {
-	spell := &cs.spell
+	ps := w.makePetLocked(&cs.spell, caster, caster, nil, now)
+	if ps == nil {
+		return
+	}
+	if old := w.pets[caster.ServerID]; old != nil {
+		w.dismissPetLocked(old, sess, "", now)
+	}
+	pet := ps.npc
+	w.putNPCLocked(pet)
+	w.SpatialIndex.Insert(pet.ServerID, pet.X, pet.Z)
+	if w.pets == nil {
+		w.pets = make(map[EntityID]*petState)
+	}
+	w.pets[caster.ServerID] = ps
+	if sess != nil {
+		w.announcePetLocked(ps, sess)
+	}
+}
+
+// makePetLocked makes the pet a summoning spell of caster's makes, beside
+// caster, owned by owner (the caster itself; a merc's pet its merc's body
+// casts, its merc's owner's: mercpet.go, ms its merc), neither in the world
+// nor anyone's yet; nil when no creature gives it a body. Must be called with
+// the lock held.
+func (w *World) makePetLocked(spell *CastSpell, caster, owner *Player, ms *mercState, now time.Time) *petState {
 	name := petSpellName(spell.Name)
 	sheet := w.templates.sheets[spell.SpellID] // the workbook's numbers for it, nil none (petstats.go)
 	var t *NPC
@@ -396,10 +422,7 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 	if t == nil {
 		log.Printf("Pet: %s's %q: no creature of its name, its line's %q or its class's stand-in in this world: no pet",
 			caster.Name, spell.Name, spell.Def.Pet)
-		return
-	}
-	if old := w.pets[caster.ServerID]; old != nil {
-		w.dismissPetLocked(old, sess, "", now)
+		return nil
 	}
 	level := petLevel(spell.Level, caster.Level)
 	if spell.Def.PetLevel > 0 {
@@ -409,6 +432,8 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 		level = petLevel(sheet.Level, caster.Level) // the workbook's
 	}
 	pet := newPet(t, w.allocFreeIDLocked(), caster, name, level)
+	pet.Owner = owner.ServerID
+	pet.mercPet = ms
 	if sheet != nil {
 		applyPetSheet(pet, sheet) // its body, weapons and numbers (petstats.go)
 	}
@@ -438,17 +463,8 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 		pet.SwingFixed, pet.SwingKind, pet.SwingRound = true, k, round // Sandstorm's (petrotation.go)
 		hitScale = was / petHitRate(pet)                               // its damage a second kept
 	}
-	w.putNPCLocked(pet)
-	w.SpatialIndex.Insert(pet.ServerID, pet.X, pet.Z)
-	if w.pets == nil {
-		w.pets = make(map[EntityID]*petState)
-	}
-	ps := &petState{owner: caster, npc: pet, stance: petSheetStance(sheet), last: now,
-		taunts: caster.Class == classEnchanter && pt == nil, kind: kind, hitScale: hitScale, tmpl: pt, spell: spell.SpellID}
-	w.pets[caster.ServerID] = ps
-	if sess != nil {
-		w.announcePetLocked(ps, sess)
-	}
+	ps := &petState{owner: owner, npc: pet, stance: petSheetStance(sheet), last: now,
+		taunts: caster.Class == classEnchanter && pt == nil, kind: kind, hitScale: hitScale, tmpl: pt, spell: spell.SpellID, merc: ms}
 	tmplName := "no template"
 	if pt != nil {
 		tmplName = fmt.Sprintf("template %q (class %d, swing %d)", pt.tmpl.Name, pet.Class, npcSwingKind(pet))
@@ -458,6 +474,7 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 	if sheet != nil {
 		logPetSheet(pet, sheet)
 	}
+	return ps
 }
 
 // announcePetLocked tells the owner its pet's id (0x007E) when it has not

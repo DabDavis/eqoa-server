@@ -375,7 +375,7 @@ func (w *World) SetPlayerLook(serverID uint32, face, hairStyle, hairLength, hair
 
 // SetPlayerLevel sets an online player's level where the game holds it: its
 // stats recalculated for it (hit points and power kept within the new
-// maxima) and the stat channel sent at the next tick. It reports false for a
+// maxima, filled to them on a rise: fillOnDing) and the stat channel sent at the next tick. It reports false for a
 // character not in the world.
 func (w *World) SetPlayerLevel(serverID uint32, level int) bool {
 	w.mu.Lock()
@@ -390,6 +390,9 @@ func (w *World) SetPlayerLevel(serverID uint32, level int) bool {
 	p.TotalXP = TotalXP(p.Level, 0)
 	p.TopUpTrainingPoints()
 	p.RecalcStats(false)
+	if p.Level > was {
+		p.fillOnDing()
+	}
 	p.StatsDirty = true
 	if p.Level != was { // the level's hearers (questhooks.go: the heirlooms' figures)
 		var sess *session.Session

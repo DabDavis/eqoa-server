@@ -179,3 +179,16 @@ func (w *World) SetGear(id EntityID, g Gear, fill bool) {
 		p.ArmorBody = w.armorBodyLocked(p) // armorbody.go
 	}
 }
+
+// fillOnDing fills hit points and power to their maxima now (buffs counted)
+// and sends the stat channel at the next tick, as a level gained did in the
+// live game (the owner, 2026-11-11: "if you ding'd you went full hp and
+// mana"). A dead player is left as it is. Only a real level gain calls it,
+// never mastery points at the cap.
+func (p *Player) fillOnDing() {
+	if p.HP <= 0 {
+		return
+	}
+	p.HP, p.Power = p.MaxHPNow(), p.MaxPowerNow()
+	p.StatsDirty = true
+}

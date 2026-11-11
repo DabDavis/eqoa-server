@@ -187,6 +187,15 @@ const (
 	bodyHumanMale   = 0x70D898C6
 	bodyHumanFemale = 0x0D537335
 	bodyWillOWisp   = 0x8143DC70
+
+	// the Mermaid (2026-11-11, petition 1620, Jibrish: "Add mermaid as a
+	// playable race"): the merfolk's four bodies, one 24-node skeleton and one
+	// play list (a sea creature's: swimmerbody.go), the merman the male's, the
+	// mermaid the female's, the sirens of Odus her options
+	bodyMerman          = 0xA316EB78
+	bodyMermaid         = 0x74BA7C3D
+	bodySiren           = 0xBF21FEF5
+	bodyEnchantingSiren = 0x1740427C
 )
 
 // The giants' kinds, every one on the hill giant's skeleton and as tall (4.81).
@@ -271,6 +280,31 @@ var (
 	fungusCap     = [][4]uint8{{115, 128, 255, 255}, {184, 0, 255, 140}}
 	fungusGrowths = [][4]uint8{{0, 51, 31, 122}, {0, 209, 110, 255}}
 )
+
+// The merfolk's parts: rects of their one texture (one palette entry), which
+// the four bodies lay out alike (read off each triangle's UV centre and bone:
+// the hair a strip at the left, the face beside it, the torso and the arms to
+// the right of them; below, the tail, the scales of the hips, the fins and,
+// on the women, a shell over each breast).
+var (
+	merfolkBodies = []uint32{bodyMerman, bodyMermaid, bodySiren, bodyEnchantingSiren}
+	merfolkSkin   = [][4]uint8{{63, 0, 128, 128}, {128, 0, 224, 128}, {224, 0, 255, 192}}
+	merfolkHair   = [][4]uint8{{0, 0, 63, 128}}
+	merfolkTail   = [][4]uint8{{0, 128, 128, 255}, {128, 128, 224, 190}, {168, 192, 255, 255}}
+	merfolkShells = [][4]uint8{{128, 190, 168, 255}}
+	// a mermaid's skin: the tones and the sea's own
+	merfolkSkins = append(append([]OptionStep{}, tones...), OptionStep{"Sea green", Dye(150, 28, 100), 0},
+		OptionStep{"Deep blue", Dye(215, 30, 95), 0}, OptionStep{"Pearl", Dye(270, 10, 125), 0})
+)
+
+// merfolkParts is the part of rects on each merfolk body.
+func merfolkParts(rects [][4]uint8) []OptionPart {
+	out := make([]OptionPart, 0, len(merfolkBodies))
+	for _, b := range merfolkBodies {
+		out = append(out, within(b, []uint8{0}, rects...))
+	}
+	return out
+}
 
 // raceOptionRows are each race's rows, by its own male body. Measured by eye
 // with vanilla's eqoa dress on the bodies' own triangles and textures
@@ -419,6 +453,17 @@ var raceOptionRows = map[uint32][]OptionRow{
 		{Key: "wisp", Label: "Wisp", Kind: KindTexture, Always: true,
 			Parts: []OptionPart{whole(bodyHumanMale, 2), whole(bodyHumanFemale, 7)},
 			Male:  []OptionStep{{"Will o' wisp", bodyWillOWisp, 0}}},
+	},
+	// the Mermaid: the merman alone for a man (at the mermaid's height), the
+	// mermaid and the two sirens for a woman, each as tall; the colours on every
+	// one of them (the shells on the women's alone: the merman has none)
+	bodyMerman: {
+		{Key: "body", Label: "Kind", Kind: KindBody, Male: []OptionStep{{"Merman", bodyMerman, 0.83}},
+			Female: []OptionStep{{"Mermaid", bodyMermaid, 1}, {"Siren", bodySiren, 0.77}, {"Enchanting siren", bodyEnchantingSiren, 0.667}}},
+		{Key: "skin", Label: "Skin", Kind: KindColour, Parts: merfolkParts(merfolkSkin), Male: merfolkSkins},
+		{Key: "hair", Label: "Hair", Kind: KindColour, Parts: merfolkParts(merfolkHair), Male: dyes},
+		{Key: "tail", Label: "Tail", Kind: KindColour, Parts: merfolkParts(merfolkTail), Male: dyes},
+		{Key: "shells", Label: "Shells", Kind: KindColour, Parts: merfolkParts(merfolkShells)[1:], Male: dyes},
 	},
 	bodyGargoyle: {{Key: "body", Label: "Stone", Kind: KindBody, Male: []OptionStep{
 		{"Granite", bodyGargoyle, 1}, {"Moss", 0x4E2A945C, 1.25}, {"Ice", 0xAEC5D9F6, 0.83}, {"Obsidian", 0x001355C8, 1.99},

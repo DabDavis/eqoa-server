@@ -472,3 +472,36 @@ func TestTheJalRaethAndTheWisp(t *testing.T) {
 		t.Errorf("the control: the satyr's first hair laid %v", looks)
 	}
 }
+
+// The Mermaid (32, petition 1620): a merman for a man at the mermaid's height, a
+// mermaid or a siren of either kind for a woman (each as tall), and skin, hair,
+// tail and shell colours on every one of them but the merman's shells, which
+// he has none of. A siren chosen is her look, the mermaid her race's own.
+func TestTheMermaid(t *testing.T) {
+	withOptionRaces(t, database.RaceDefRow{ID: 32, Name: "Mermaid", WireRace: 8, BodyMale: signed(bodyMerman), BodyFemale: signed(bodyMermaid)})
+	body, looks, err := ResolveOptions(32, 1, []OptionChoice{{"body", 1}, {"skin", 8}, {"hair", 5}, {"tail", 6}, {"shells", 3}})
+	if err != nil || body != signed(bodySiren) || len(looks) != 4 {
+		t.Fatalf("a siren in colours: %#x %v %v", uint32(body), looks, err)
+	}
+	if OptionBodySize(32, bodyMerman) != 0.83 || OptionBodySize(32, bodyMermaid) != 1 || OptionBodySize(32, bodyEnchantingSiren) != 0.667 {
+		t.Error("the sizes")
+	}
+	if !ChosenBody(32, bodySiren) || ChosenBody(32, bodyMermaid) || ChosenBody(32, bodyMerman) {
+		t.Error("a siren chosen, the merman and the mermaid the race's own")
+	}
+	if body, _, err := ResolveOptions(32, 0, []OptionChoice{{"body", 1}}); err == nil {
+		t.Errorf("a merman chose a second body: %#x", uint32(body))
+	}
+	for _, r := range RaceOptions(32) {
+		for _, b := range []uint32{bodyMerman, bodyMermaid, bodySiren, bodyEnchantingSiren} {
+			if r.Kind == KindColour && len(r.PartsOf(b)) != 1 && !(r.Key == "shells" && b == bodyMerman) {
+				t.Errorf("row %s on %08X: %v", r.Key, b, r.PartsOf(b))
+			}
+		}
+	}
+	for _, b := range []uint32{bodyMerman, bodyMermaid, bodySiren, bodyEnchantingSiren} {
+		if !swimmerBodies[b] {
+			t.Errorf("%08X is no swimmer's body: its swing would play nothing", b)
+		}
+	}
+}

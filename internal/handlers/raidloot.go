@@ -387,12 +387,13 @@ func (h *NPCWindowHandler) startRaidLootLocked(ls *lootState, npc *entity.NPC, k
 	c := h.rollCorpse(npc, k.Died, level)
 	ls.corpses[npc.ServerID] = c
 	boss := h.raidBoss(npc.Name, r.TemplateHPPct)
-	var covered []string
+	var covered []linkedItem
 	for i := range c.items {
 		if raidCovers(&c.items[i].Pattern, boss) {
-			covered = append(covered, c.items[i].Pattern.ItemName)
+			covered = append(covered, lootItem(c.items[i], 0))
 		}
 	}
+	coveredList := linkedItems{covered, ", "}
 	log.Printf("Raid loot: group %d's kill of %q (boss %v, %s): %d items, %d the rules hold", r.Group, npc.Name, boss, r.Rule, len(c.items), len(covered))
 	if len(covered) == 0 {
 		return // a corpse like any other
@@ -403,8 +404,8 @@ func (h *NPCWindowHandler) startRaidLootLocked(ls *lootState, npc *entity.NPC, k
 	if r.Rule == entity.LootMaster {
 		rc.master, rc.masterName, rc.until = r.Leader.ServerID, r.Leader.Name, now.Add(raidHoldFor)
 		h.holdCorpseFor(npc.ServerID, k.Died, rc.until)
-		h.raidSayLocked(rc, nil, fmt.Sprintf("%s's loot (%s) is the master looter's: %s's alone for %s.",
-			npc.Name, strings.Join(covered, ", "), rc.masterName, spanWords(raidHoldFor)))
+		h.raidSayLocked(rc, nil, h.linkedf(npc.Name, "%s's loot (%s) is the master looter's: %s's alone for %s.",
+			npc.Name, coveredList, rc.masterName, spanWords(raidHoldFor)))
 		if s, _ := h.raidSeatOf(rc.master); s != nil {
 			how := "Open it to take, assign or abandon its loot."
 			if !h.raidWindowsOf(s) {
@@ -433,8 +434,8 @@ func (h *NPCWindowHandler) startRaidLootLocked(ls *lootState, npc *entity.NPC, k
 	}
 	c.items = keep
 	h.holdCorpseFor(npc.ServerID, k.Died, now.Add(raidRollFor+raidHoldFor))
-	h.raidSayLocked(rc, nil, fmt.Sprintf("Need before greed on %s's loot: %s. Need, Greed or Pass within %d seconds.",
-		npc.Name, strings.Join(covered, ", "), int(raidRollFor/time.Second)))
+	h.raidSayLocked(rc, nil, h.linkedf(npc.Name, "Need before greed on %s's loot: %s. Need, Greed or Pass within %d seconds.",
+		npc.Name, coveredList, int(raidRollFor/time.Second)))
 	for _, roll := range rolls {
 		h.offerRollLocked(roll, now)
 	}
@@ -503,7 +504,7 @@ func (h *NPCWindowHandler) offerRollLocked(r *lootRoll, now time.Time) {
 			queueReliable(sess, protocol.OpcodeRaidRoll, rollPayload(r, s, now, readsCapes(sess)))
 			continue
 		}
-		SendColoredChat(sess, rollOfferLine(r, s), raidR, raidG, raidB)
+		h.rollOfferLinked(r, s).colored(sess, raidR, raidG, raidB)
 	}
 }
 
@@ -514,6 +515,15 @@ func rollOfferLine(r *lootRoll, s *rollSeat) string {
 		return fmt.Sprintf("Roll %d: %s. /t need %d, /t greed %d or /t pass %d within %d seconds.", r.id, item, r.id, r.id, r.id, secs)
 	}
 	return fmt.Sprintf("Roll %d: %s (you cannot use it). /t greed %d or /t pass %d within %d seconds.", r.id, item, r.id, r.id, secs)
+}
+
+// rollOfferLinked is rollOfferLine with the item linked (lootlinks.go).
+func (h *NPCWindowHandler) rollOfferLinked(r *lootRoll, s *rollSeat) *serverLine {
+	item, secs := lootItem(r.item.rec, 0), int(raidRollFor/time.Second)
+	if s.mayNeed {
+		return h.linkedf(s.Name, "Roll %d: %s. /t need %d, /t greed %d or /t pass %d within %d seconds.", r.id, item, r.id, r.id, r.id, secs)
+	}
+	return h.linkedf(s.Name, "Roll %d: %s (you cannot use it). /t greed %d or /t pass %d within %d seconds.", r.id, item, r.id, r.id, secs)
 }
 
 // closeRollFor closes a seat's window on a roll (a seat with no windows has nothing to
@@ -527,12 +537,12 @@ func (h *NPCWindowHandler) closeRollFor(r *lootRoll, s *rollSeat, now time.Time)
 
 // raidSayLocked tells a raid's members and the given seats (its claimants) a line in the
 // raid's orange. Must be called with ls.mu held.
-func (h *NPCWindowHandler) raidSayLocked(rc *raidCorpse, seats []*rollSeat, line string) {
+func (h *NPCWindowHandler) raidSayLocked(rc *raidCorpse, seats []*rollSeat, line *serverLine) {
 	told := map[*session.Session]bool{}
 	say := func(s *session.Session) {
 		if s != nil && !told[s] {
 			told[s] = true
-			SendColoredChat(s, line, raidR, raidG, raidB)
+			line.colored(s, raidR, raidG, raidB)
 		}
 	}
 	if h.raid.sessions != nil {
@@ -550,7 +560,7 @@ func (h *NPCWindowHandler) raidSayLocked(rc *raidCorpse, seats []*rollSeat, line
 		s, _ := h.raidSeatOf(st.ServerID)
 		say(s)
 	}
-	log.Printf("Raid loot: group %d: %s", rc.group, line)
+	log.Printf("Raid loot: group %d: %s", rc.group, line.text)
 }
 
 // corpseRaidLocked is the raid hold of a roll's corpse, if it still lies. Must be called
@@ -635,13 +645,14 @@ func (h *NPCWindowHandler) rollChoiceLocked(ls *lootState, sess *session.Session
 	}
 	_, rc := ls.corpseRaidLocked(r)
 	item := r.item.rec.Pattern.ItemName
+	linked := lootItem(r.item.rec, 0)
 	s.choice = choice
 	if choice == rollPass {
-		SendColoredChat(sess, fmt.Sprintf("You pass on %s.", item), raidR, raidG, raidB)
+		h.linkedf(s.Name, "You pass on %s.", linked).colored(sess, raidR, raidG, raidB)
 	} else {
 		s.roll = h.raidIntn(raidRollTop + 1)
 		if rc != nil {
-			h.raidSayLocked(rc, r.seats, fmt.Sprintf("%s rolls %s on %s: %d.", s.Name, choice, item, s.roll))
+			h.raidSayLocked(rc, r.seats, h.linkedf(s.Name, "%s rolls %s on %s: %d.", s.Name, choice, linked, s.roll))
 		}
 	}
 	log.Printf("Raid loot: %s chooses %s on roll %d (%s): %d", s.Name, choice, r.id, item, s.roll)
@@ -685,8 +696,8 @@ func (h *NPCWindowHandler) decideLocked(r *lootRoll, rc *raidCorpse) *rollSeat {
 				}
 			}
 			if rc != nil {
-				h.raidSayLocked(rc, r.seats, fmt.Sprintf("A tie at %s %d on %s between %s: again, %s.", tier, was,
-					r.item.rec.Pattern.ItemName, strings.Join(names, " and "), strings.Join(parts, ", ")))
+				h.raidSayLocked(rc, r.seats, h.linkedf(rc.from, "A tie at %s %d on %s between %s: again, %s.", tier, was,
+					lootItem(r.item.rec, 0), strings.Join(names, " and "), strings.Join(parts, ", ")))
 			}
 			top = next
 		}
@@ -712,25 +723,25 @@ func (h *NPCWindowHandler) endRollLocked(ls *lootState, r *lootRoll, now time.Ti
 	if c == nil {
 		return nil // the corpse went with it
 	}
-	item := hi.rec.Pattern.ItemName
+	item := lootItem(hi.rec, 0)
 	win := h.decideLocked(r, rc)
 	if win == nil {
 		rc.drop(hi)
 		c.items = append(c.items, hi.rec)
-		h.raidSayLocked(rc, r.seats, fmt.Sprintf("No one rolled on %s: it lies on %s's corpse for anyone.", item, rc.from))
+		h.raidSayLocked(rc, r.seats, h.linkedf(rc.from, "No one rolled on %s: it lies on %s's corpse for anyone.", item, rc.from))
 		return nil
 	}
 	hi.winner, hi.winnerName, hi.until = win.ServerID, win.Name, now.Add(raidHoldFor)
-	h.raidSayLocked(rc, r.seats, fmt.Sprintf("%s wins %s with %s %d.", win.Name, item, win.choice, win.roll))
+	h.raidSayLocked(rc, r.seats, h.linkedf(win.Name, "%s wins %s with %s %d.", win.Name, item, win.choice, win.roll))
 	took, why := h.giveWonLocked(c, hi)
 	if took != nil {
 		return []winTake{*took}
 	}
 	h.holdCorpseFor(r.corpse, r.died, hi.until)
 	if s, _ := h.raidSeatOf(win.ServerID); s != nil {
-		SendColoredChat(s, wonWaitsLine(item, rc.from, why, raidHoldFor), raidR, raidG, raidB)
+		h.wonWaitsLinked(win.Name, hi.rec, rc.from, why, raidHoldFor).colored(s, raidR, raidG, raidB)
 	}
-	h.raidSayLocked(rc, nil, fmt.Sprintf("%s waits on %s's corpse for %s for %s.", item, rc.from, win.Name, spanWords(raidHoldFor)))
+	h.raidSayLocked(rc, nil, h.linkedf(win.Name, "%s waits on %s's corpse for %s for %s.", item, rc.from, win.Name, spanWords(raidHoldFor)))
 	return nil
 }
 
@@ -740,6 +751,14 @@ func wonWaitsLine(item, from, why string, left time.Duration) string {
 		return fmt.Sprintf("You won %s, but you hold one already (Lore). It waits on %s's corpse for you for %s.", item, from, spanWords(left))
 	}
 	return fmt.Sprintf("You won %s, but your pack is full. Make room and open %s's corpse within %s to take it.", item, from, spanWords(left))
+}
+
+// wonWaitsLinked is wonWaitsLine with the item linked (lootlinks.go).
+func (h *NPCWindowHandler) wonWaitsLinked(who string, rec database.CharInventoryEntry, from, why string, left time.Duration) *serverLine {
+	if why == "lore" {
+		return h.linkedf(who, "You won %s, but you hold one already (Lore). It waits on %s's corpse for you for %s.", lootItem(rec, 0), from, spanWords(left))
+	}
+	return h.linkedf(who, "You won %s, but your pack is full. Make room and open %s's corpse within %s to take it.", lootItem(rec, 0), from, spanWords(left))
 }
 
 // drop takes hi out of the hold.
@@ -776,7 +795,7 @@ func (h *NPCWindowHandler) giveWonLocked(c *corpse, hi *heldItem) (*winTake, str
 		return nil, "full"
 	}
 	queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, key, readsCapes(sess)))
-	tellLooted(sess, rec.Pattern.ItemName, took)
+	h.tellLooted(sess, p.Name, rec, took)
 	c.raid.drop(hi)
 	log.Printf("Raid loot: %s takes %q (won)", p.Name, rec.Pattern.ItemName)
 	return &winTake{sess: sess, p: p, take: lootTake{rec.Pattern.PatternID, took}}, ""
@@ -809,7 +828,7 @@ func (h *NPCWindowHandler) raidOpenLocked(sess *session.Session, ls *lootState, 
 				SendClientMessage(sess, fmt.Sprintf(loreLine, hi.rec.Pattern.ItemName))
 			} else {
 				SendClientMessage(sess, lootNoRoom)
-				SendColoredChat(sess, wonWaitsLine(hi.rec.Pattern.ItemName, rc.from, why, hi.until.Sub(now)), raidR, raidG, raidB)
+				h.wonWaitsLinked(sessName(h, sess), hi.rec, rc.from, why, hi.until.Sub(now)).colored(sess, raidR, raidG, raidB)
 			}
 		}
 		log.Printf("Raid loot: %s claims %d won items on %q's corpse, %d taken", sessName(h, sess), len(mine), npc.Name, len(won))
@@ -869,11 +888,21 @@ func (h *NPCWindowHandler) listMasterLootLocked(sess *session.Session, c *corpse
 		SendColoredChat(sess, fmt.Sprintf("Master looter: nothing is left on %s's corpse.", c.raid.from), raidR, raidG, raidB)
 		return
 	}
-	var parts []string
+	format := "Master looter, %s left: "
+	args := []any{spanWords(c.raid.until.Sub(now))}
 	for i, it := range c.items {
-		parts = append(parts, fmt.Sprintf("%d %s", i+1, lootStackName(it)))
+		if i > 0 {
+			format += ", "
+		}
+		if it.StackLeft > 1 { // lootStackName's
+			format += "%d %d %s"
+			args = append(args, i+1, it.StackLeft, lootItem(it, 0))
+		} else {
+			format += "%d %s"
+			args = append(args, i+1, lootItem(it, 0))
+		}
 	}
-	SendColoredChat(sess, fmt.Sprintf("Master looter, %s left: %s.", spanWords(c.raid.until.Sub(now)), strings.Join(parts, ", ")), raidR, raidG, raidB)
+	h.linkedf(c.raid.from, format+".", args...).colored(sess, raidR, raidG, raidB)
 	SendColoredChat(sess, "Take as usual, or /t assign <number> <name>, or /t abandon to let anyone loot it all.", raidR, raidG, raidB)
 }
 
@@ -883,6 +912,15 @@ func lootStackName(e database.CharInventoryEntry) string {
 		return fmt.Sprintf("%d %s", e.StackLeft, e.Pattern.ItemName)
 	}
 	return e.Pattern.ItemName
+}
+
+// lootStackNamed is linkedf(format, a, lootStackName(rec), b) with the item linked: the
+// count, when more than one, before it and outside the link.
+func (h *NPCWindowHandler) lootStackNamed(who, format, a string, rec database.CharInventoryEntry, b string) *serverLine {
+	if rec.StackLeft > 1 {
+		return h.linkedf(who, format, a, linkedCount{rec.StackLeft, lootItem(rec, 0)}, b)
+	}
+	return h.linkedf(who, format, a, lootItem(rec, 0), b)
 }
 
 // masterCandidate is one the master looter may give to.
@@ -1046,10 +1084,10 @@ func (h *NPCWindowHandler) MasterAssign(sess *session.Session, key int, id uint3
 		return
 	}
 	queueReliable(to.sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, k, readsCapes(to.sess)))
-	tellLooted(to.sess, rec.Pattern.ItemName, took)
+	h.tellLooted(to.sess, to.name, rec, took)
 	ls.tookLocked(cid, c, h.charOf(sess), key, took)
 	won = append(won, winTake{sess: to.sess, p: to.p, take: lootTake{rec.Pattern.PatternID, took}})
-	h.raidSayLocked(rc, nil, fmt.Sprintf("%s assigns %s to %s.", rc.masterName, lootStackName(rec), to.name))
+	h.raidSayLocked(rc, nil, h.lootStackNamed(to.name, "%s assigns %s to %s.", rc.masterName, rec, to.name))
 	if open, ok := ls.open[sess]; ok && open == cid {
 		h.resendCorpse(sess, ls, c) // and its 0x7E47 (masterListLocked)
 		return
@@ -1073,7 +1111,7 @@ func (h *NPCWindowHandler) MasterAbandon(sess *session.Session) {
 	if h.raidWindowsOf(sess) {
 		queueReliable(sess, protocol.OpcodeRaidMasterLoot, masterLootOffPayload())
 	}
-	h.raidSayLocked(rc, nil, fmt.Sprintf("%s abandons %s's loot: anyone may loot anything on it.", rc.masterName, rc.from))
+	h.raidSayLocked(rc, nil, plainLine(fmt.Sprintf("%s abandons %s's loot: anyone may loot anything on it.", rc.masterName, rc.from)))
 }
 
 // RaidTick ends the rolls whose time is up, lets the won items whose winners did not take
@@ -1105,7 +1143,7 @@ func (h *NPCWindowHandler) RaidTick(now time.Time) {
 				queueReliable(s, protocol.OpcodeRaidMasterLoot, masterLootOffPayload())
 			}
 			rc.master = 0
-			h.raidSayLocked(rc, nil, fmt.Sprintf("The master looter's hold on %s's corpse is over: anyone may loot it.", rc.from))
+			h.raidSayLocked(rc, nil, plainLine(fmt.Sprintf("The master looter's hold on %s's corpse is over: anyone may loot it.", rc.from)))
 		}
 		for _, hi := range append([]*heldItem(nil), rc.held...) {
 			if hi.roll != nil || now.Before(hi.until) {
@@ -1114,7 +1152,7 @@ func (h *NPCWindowHandler) RaidTick(now time.Time) {
 			rc.drop(hi)
 			c.items = append(c.items, hi.rec)
 			if s, _ := h.raidSeatOf(hi.winner); s != nil {
-				SendColoredChat(s, fmt.Sprintf("Your claim on %s is over: it lies on %s's corpse for anyone.", hi.rec.Pattern.ItemName, rc.from), raidR, raidG, raidB)
+				h.linkedf(hi.winnerName, "Your claim on %s is over: it lies on %s's corpse for anyone.", lootItem(hi.rec, 0), rc.from).colored(s, raidR, raidG, raidB)
 			}
 			log.Printf("Raid loot: %s's claim on %q (%s's corpse) is over", hi.winnerName, hi.rec.Pattern.ItemName, rc.from)
 		}

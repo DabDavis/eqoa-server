@@ -318,6 +318,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// The merchant, bank and blacksmith windows (merchant.go, bank.go,
 	// blacksmith.go): the requests InteractWithTarget sends instead of 0x0004.
 	npcWindowHandler := NewNPCWindowHandler(sessionMgr, invStore)
+	npcWindowHandler.links = chatHandler.links      // loot lines' item links (lootlinks.go)
 	keepWindows.Store(npcWindowHandler)             // what a restart carries of the corpses (keep.go)
 	npcWindowHandler.takeOff = equipHandler.TakeOff // a worn item banked or traded comes off first
 	if gameWorld != nil {

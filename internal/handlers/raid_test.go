@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -143,7 +144,7 @@ func TestARaidGroupHearsWhatIsLooted(t *testing.T) {
 	}
 	h := &NPCWindowHandler{}
 	h.SetGameWorld(r.c.gw)
-	h.tellGroupLooted(r.p[4], "a Rusty Sword", 1)
+	h.tellGroupLooted(r.p[4], database.CharInventoryEntry{Pattern: database.ItemPatternRecord{ItemName: "a Rusty Sword"}}, 1)
 	for i, s := range r.sess {
 		got := heard(t, s)
 		switch {

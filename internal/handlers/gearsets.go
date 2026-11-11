@@ -69,11 +69,11 @@ func quickSlotFits(e *database.CharInventoryEntry, pos int) bool {
 	t := e.Pattern.ProcAnim
 	switch pos {
 	case 0, 1:
-		return t == 2
+		return t == database.ItemTypeUsable
 	case 2:
-		return t == 7
+		return t == database.ItemTypeGem
 	case 3:
-		return t == 7 || fitsSlot3(e.Pattern.EquipSlot)
+		return t == database.ItemTypeGem || fitsSlot3(e.Pattern.EquipSlot)
 	}
 	return false
 }

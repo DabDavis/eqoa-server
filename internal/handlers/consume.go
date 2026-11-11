@@ -67,7 +67,7 @@ var (
 
 // usableType is CLIENT's item type of the things it offers to use and the
 // HUD's first two quick slots take: food, drink, potions (VIInfoText::IsUsable).
-const usableType = 2
+const usableType = database.ItemTypeUsable
 
 // consumableEffectIcon is a meal's and a drink's effect icon, spellpattern.icon
 // as it reaches the wire: Regenerative Aura's ("Increase HP per tic", the

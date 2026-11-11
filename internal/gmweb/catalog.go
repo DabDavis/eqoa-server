@@ -18,6 +18,9 @@ import (
 type EnumValue struct {
 	Value int    `json:"value"`
 	Label string `json:"label"`
+	// Help is what the value does, said beside it (a list's tooltip, an
+	// agent's describe_table)
+	Help string `json:"help,omitempty"`
 }
 
 // FlagBit is one bit of a bit set.
@@ -42,7 +45,7 @@ func groupOrder(g string) int {
 func numbered(labels ...string) []EnumValue {
 	out := make([]EnumValue, len(labels))
 	for i, l := range labels {
-		out[i] = EnumValue{i, l}
+		out[i] = EnumValue{Value: i, Label: l}
 	}
 	return out
 }
@@ -53,7 +56,7 @@ func raceEnum() []EnumValue {
 	out := numbered("Human", "Elf", "Dark Elf", "Gnome", "Dwarf", "Troll", "Barbarian",
 		"Halfling", "Erudite", "Ogre", "Froglok")
 	for _, d := range entity.RaceDefs() {
-		out = append(out, EnumValue{d.ID, d.Name})
+		out = append(out, EnumValue{Value: d.ID, Label: d.Name})
 	}
 	return out
 }
@@ -64,7 +67,7 @@ func enums() map[string][]EnumValue {
 	worlds := handlers.WorldNames()
 	w := make([]EnumValue, len(worlds))
 	for i, n := range worlds {
-		w[i] = EnumValue{i, n}
+		w[i] = EnumValue{Value: i, Label: n}
 	}
 	return map[string][]EnumValue{
 		// verified on the wire (root CLAUDE.md, "Race/Class IDs"); raceEnum
@@ -77,27 +80,33 @@ func enums() map[string][]EnumValue {
 		"world":    w,
 		// handlers/equip.go: charinventory.equiploc, CLIENT's equip slots, and
 		// the cape's of this server's own past them (handlers/capes.go)
-		"equiploc": append([]EnumValue{{-1, "Not worn"}}, numbered("Head", "Hands", "Left ear", "Right ear",
+		"equiploc": append([]EnumValue{{Value: -1, Label: "Not worn"}}, numbered("Head", "Hands", "Left ear", "Right ear",
 			"Neck", "Chest", "Right bracelet", "Left bracelet", "Bracers", "Left ring", "Right ring", "Belt",
 			"Legs", "Feet", "Primary", "Secondary", "Two-handed", "Shield", "Ranged", "Held", "Held 2", "Robe", "Cape")...),
-		// handlers/equip.go: itempattern.equipslot, the item's wear slot; 28 the
-		// cape's (handlers/capes.go)
-		"wearslot": numbered("None", "Head", "Robe", "Earring", "Neck", "Chest", "Forearm", "Both forearms",
-			"Ring", "Belt", "Legs", "Feet", "Primary", "Shield", "Secondary", "Two-handed", "Bow", "Thrown",
-			"Held", "Hands", "Fishing pole", "Bait", "Tool (1)", "Tool (2)", "Tool (3)", "Tool (4)", "Tool (5)", "Tool (6)", "Cape"),
-		"location":   {{0, "Inventory"}, {1, "Bank"}, {2, "Kept from the inventory"}, {3, "Kept from the bank"}},
-		"acctstatus": {{1, "Active"}, {0, "Inactive"}, {-1, "Banned"}},
-		"bool":       {{0, "No"}, {1, "Yes"}},
+		// itempattern.equipslot, the item's wear slot: wearSlotEnum
+		"wearslot": wearSlotEnum(),
+		// the item record's coded columns (itemenums.go)
+		"attacktype": attackTypeEnum(),
+		"itemtype":   itemTypeEnum(),
+		"notrade":    {{Value: 0, Label: "Tradeable"}, {Value: 1, Label: "NO TRADE", Help: "never traded, auctioned or given to another player; its info says NO TRADE"}},
+		"rent": {{Value: 0, Label: "NO RENT", Help: "its info says NO RENT; never auctioned or bought back; it vanishes at a logout of more than 5 minutes only when table norentvanish names it"},
+			{Value: 1, Label: "Kept (not No Rent)"}},
+		"lore":       {{Value: 0, Label: "Not lore"}, {Value: 1, Label: "LORE", Help: "one at most, bank included; never auctioned; its info says LORE"}},
+		"craftmat":   {{Value: 0, Label: "No"}, {Value: 1, Label: "Tradeskill material", Help: "it goes into a combine (CLIENT's AddToCombine refuses an item of 0)"}},
+		"ammokind":   ammoKindEnum(),
+		"location":   {{Value: 0, Label: "Inventory"}, {Value: 1, Label: "Bank"}, {Value: 2, Label: "Kept from the inventory"}, {Value: 3, Label: "Kept from the bank"}},
+		"acctstatus": {{Value: 1, Label: "Active"}, {Value: 0, Label: "Inactive"}, {Value: -1, Label: "Banned"}},
+		"bool":       {{Value: 0, Label: "No"}, {Value: 1, Label: "Yes"}},
 		// npcmove.roam (entity/movement.go)
-		"roam": {{-1, "As its kind (wildlife wanders)"}, {1, "Wanders"}, {0, "Stands until pulled"}},
+		"roam": {{Value: -1, Label: "As its kind (wildlife wanders)"}, {Value: 1, Label: "Wanders"}, {Value: 0, Label: "Stands until pulled"}},
 		// spellarea.centre (entity/area.go)
-		"areacentre": {{0, "As its line reads"}, {1, "Round its target"}, {2, "Round its caster"}, {-1, "Not an area spell"}},
+		"areacentre": {{Value: 0, Label: "As its line reads"}, {Value: 1, Label: "Round its target"}, {Value: 2, Label: "Round its caster"}, {Value: -1, Label: "Not an area spell"}},
 		// factionstart (entity/faction.go): -1 any
-		"raceany":  append([]EnumValue{{-1, "Any race"}}, raceEnum()...),
-		"classany": append([]EnumValue{{-1, "Any class"}}, numbered("Warrior", "Ranger", "Paladin", "Shadow Knight", "Monk", "Bard", "Rogue", "Druid", "Shaman", "Cleric", "Magician", "Necromancer", "Enchanter", "Wizard", "Alchemist")...),
-		"humtype":  {{-1, "Any city"}, {0, "Not a human"}, {1, "East (Freeport)"}, {2, "West (Qeynos, Surefall Glade)"}},
+		"raceany":  append([]EnumValue{{Value: -1, Label: "Any race"}}, raceEnum()...),
+		"classany": append([]EnumValue{{Value: -1, Label: "Any class"}}, numbered("Warrior", "Ranger", "Paladin", "Shadow Knight", "Monk", "Bard", "Rogue", "Druid", "Shaman", "Cleric", "Magician", "Necromancer", "Enchanter", "Wizard", "Alchemist")...),
+		"humtype":  {{Value: -1, Label: "Any city"}, {Value: 0, Label: "Not a human"}, {Value: 1, Label: "East (Freeport)"}, {Value: 2, Label: "West (Qeynos, Surefall Glade)"}},
 		// npcfaction.world (entity/faction.go)
-		"worldany": append([]EnumValue{{-1, "Any world"}}, w...),
+		"worldany": append([]EnumValue{{Value: -1, Label: "Any world"}}, w...),
 		// craftrecipes.skill, charcraftskills.skill (handlers/craftrules.go):
 		// CLIENT's six slots
 		"craftskill": numbered("Weapon Crafting", "Armor Crafting", "Tailoring", "Jewel Crafting", "Carpentry", "Alchemy"),
@@ -106,7 +115,7 @@ func enums() map[string][]EnumValue {
 		// chardyes.slot (database/chardyes.go, entity/livelook.go)
 		"dyeslot": numbered("Chest", "Bracer", "Gloves", "Legs", "Boots", "Helm", "Primary", "Secondary", "Shield", "Robe", "Cape"),
 		// classtemplates.class (entity/classtemplate.go): -1 the NPC's own
-		"templateclass": append([]EnumValue{{-1, "The NPC's own (NPC classes)"}}, numbered("Warrior", "Ranger", "Paladin", "Shadow Knight", "Monk", "Bard", "Rogue", "Druid", "Shaman", "Cleric", "Magician", "Necromancer", "Enchanter", "Wizard", "Alchemist")...),
+		"templateclass": append([]EnumValue{{Value: -1, Label: "The NPC's own (NPC classes)"}}, numbered("Warrior", "Ranger", "Paladin", "Shadow Knight", "Monk", "Bard", "Rogue", "Druid", "Shaman", "Cleric", "Magician", "Necromancer", "Enchanter", "Wizard", "Alchemist")...),
 	}
 }
 
@@ -115,10 +124,6 @@ func flagSets() map[string][]FlagBit {
 	classes := []FlagBit{}
 	for _, e := range enums()["class"] {
 		classes = append(classes, FlagBit{1 << e.Value, e.Label, ""})
-	}
-	races := []FlagBit{}
-	for _, e := range enums()["race"][:10] {
-		races = append(races, FlagBit{1 << e.Value, e.Label, ""})
 	}
 	allRaces := []FlagBit{}
 	for _, e := range enums()["race"] {
@@ -136,14 +141,15 @@ func flagSets() map[string][]FlagBit {
 			{0x400, "Large (+3 reach)", "players reach it from 3 further (CLIENT's TargetInRange)"},
 			{0x800, "Huge (+5 reach)", "players reach it from 5 further"},
 		},
-		"classmask":  classes,  // itempattern.classuse: 32767 = every class
-		"racemask":   races,    // itempattern.raceuse: 1023 = every race
-		"racemask11": allRaces, // cmcatalog.races: 2047 = every race, the froglok too; a custom race's bit besides
+		"classmask":  classes,        // itempattern.classuse: 32767 = every class
+		"racemask":   itemRaceBits(), // itempattern.raceuse: 1023 = every race (the froglok's bit added); itemenums.go
+		"racemask11": allRaces,       // cmcatalog.races: 2047 = every race, the froglok too; a custom race's bit besides
 	}
 }
 
 type colNote struct {
 	Label, Help, Enum, Flags, Ref, Format, Section string
+	Unit                                           string // Column.Unit
 	Look, Store                                    string // Column.Look, Column.Store
 	Secret, ReadOnly                               bool
 }
@@ -1540,54 +1546,83 @@ var catalog = map[string]tableNote{
 	},
 	"itempattern": {
 		Label: "Items", Group: "Items & spells", Title: "itemname", Sort: "patternid",
-		Help: "Every item that exists, by patternid. model is the ITEM.ESF DictID worn or held, itemicon the ITEMICON.ESF " +
-			"icon; equipslot where it is worn; classuse and raceuse who may (bit sets: 32767 every class, 1023 every race); " +
-			"weapondamage is the DMG the offence roll uses; stats and resists are what wearing it adds.",
+		Help: "Every item that exists, by patternid. Each column is a field of the item record CLIENT reads (VIItem, in " +
+			"this order on the wire), named here by what CLIENT and the server do with it; a coded column's picker gives " +
+			"each value's name and number. model is the ITEM.ESF DictID worn or held, itemicon the ITEMICON.ESF icon; " +
+			"equipslot where it is worn; classuse and raceuse who may (bit sets: 32767 every class, 1023 every race); " +
+			"attacktype the weapon's kind (1H Blunt is 3, 1H Pierce 5); weapondamage the DMG the offence roll uses; " +
+			"stats and resists what wearing it adds. No column holds a proc: a weapon's proc is read from its " +
+			"Description (\"Procs a 100 point DD Spell.\", \"Procs 2000 slashing damage, a 10% chance each hit.\") or, " +
+			"for the epics, its name, and a worn item's hit effect from its name: item_reading says what the server " +
+			"reads for a record, and the item editor shows it beside the form.",
 		Live:   "Merchants' windows show it at once; a player's own items take it at their next login.",
-		Show:   []string{"patternid", "itemicon", "itemname", "equipslot", "levelreq", "itemcost", "maxstack", "weapondamage", "AC"},
+		Show:   []string{"patternid", "itemicon", "itemname", "equipslot", "attacktype", "levelreq", "itemcost", "maxstack", "weapondamage", "AC"},
 		Search: []string{"itemname", "itemdesc"},
 		Cols: map[string]colNote{
-			"patternid":    {Label: "Item", ReadOnly: true},
-			"itemname":     {Label: "Name", Section: "Identity"},
-			"itemdesc":     {Label: "Description", Format: "multiline", Section: "Identity"},
-			"itemcost":     {Label: "Value (tunar)", Section: "Identity"},
-			"itemicon":     {Label: "Icon", Format: hex32, Look: lookItemIcon, Store: storeInt32, Section: "Look", Help: "the ITEMICON.ESF picture the inventory shows"},
-			"model":        {Label: "Model", Format: hex32, Look: lookItemLook, Store: storeInt32, Section: "Look", Help: itemModelHelp},
-			"color":        {Label: "Colour", Format: hex32, Look: lookItemColor, Store: storeUint32, Section: "Look", Help: itemColorHelp},
-			"equipslot":    {Label: "Worn in", Enum: "wearslot", Section: "Use"},
-			"levelreq":     {Label: "Level required", Section: "Use"},
-			"classuse":     {Label: "Classes", Flags: "classmask", Section: "Use"},
-			"raceuse":      {Label: "Races", Flags: "racemask", Section: "Use"},
-			"maxstack":     {Label: "Stacks to", Section: "Use"},
-			"maxhp":        {Label: "Condition (max)", Section: "Use"},
-			"duration":     {Section: "Use"},
-			"trade":        {Label: "No trade", Help: "1: it can never be traded (the client's m_noTrade: its info says NO TRADE)", Section: "Use"},
-			"rent":         {Section: "Use"},
-			"lore":         {Label: "Lore", Section: "Use"},
-			"craft":        {Section: "Use"},
-			"attacktype":   {Label: "Attack type", Section: "Combat"},
-			"weapondamage": {Label: "Weapon DMG", Section: "Combat"},
-			"procanim":     {Label: "Proc animation", Section: "Combat"},
-			"weaponproc":   {Label: "Range (Return Home's copy, unread)", Help: "not a proc: Return Home's import put the record's range here (a bow's 25-50) and nothing reads it. A weapon procs by its Description (\"Procs a 100 point DD Spell.\", \"Proc a 25 point lifetap.\", \"Procs: Life Tap\"; entity/weaponproc.go)", Section: "Combat"},
-			"str":          {Label: "STR", Section: "Stats"},
-			"sta":          {Label: "STA", Section: "Stats"},
-			"agi":          {Label: "AGI", Section: "Stats"},
-			"dex":          {Label: "DEX", Section: "Stats"},
-			"wis":          {Label: "WIS", Section: "Stats"},
-			"intelligence": {Label: "INT", Section: "Stats"},
-			"cha":          {Label: "CHA", Section: "Stats"},
-			"HPMAX":        {Label: "Max HP", Section: "Stats"},
-			"POWMAX":       {Label: "Max power", Section: "Stats"},
-			"PoT":          {Label: "Power over time", Section: "Stats"},
-			"HoT":          {Label: "Health over time", Section: "Stats"},
-			"AC":           {Label: "AC", Section: "Stats"},
-			"PR":           {Label: "Poison resist", Section: "Resists"},
-			"DR":           {Label: "Disease resist", Section: "Resists"},
-			"FR":           {Label: "Fire resist", Section: "Resists"},
-			"CR":           {Label: "Cold resist", Section: "Resists"},
-			"LR":           {Label: "Lightning resist", Section: "Resists"},
-			"AR":           {Label: "Arcane resist", Section: "Resists"},
-			"fish":         {Label: "Fishing", Section: "Stats"},
+			"patternid": {Label: "Item", ReadOnly: true},
+			"itemname":  {Label: "Name", Section: "Identity"},
+			"itemdesc": {Label: "Description", Format: "multiline", Section: "Identity", Help: "shown under the item's info. " +
+				"A weapon's proc is read from it: \"Procs a 100 point DD Spell.\", \"Proc a 25 point lifetap.\", \"Procs a 70 point " +
+				"Disease DoT.\", \"Procs 150 Ice Damage.\", \"Procs 400-600 fire\" (a range), \"..., a 10% chance each hit.\" (its " +
+				"own chance), \"works only on goblins\" (entity/weaponproc.go); the panel shows what it reads as you type"},
+			"itemcost": {Label: "Value", Unit: "tunar", Section: "Identity", Help: "what a merchant's price goes by; an auction's least starting bid"},
+			"itemicon": {Label: "Icon", Format: hex32, Look: lookItemIcon, Store: storeInt32, Section: "Look", Help: "the ITEMICON.ESF picture the inventory shows"},
+			"unk2": {Label: "Second icon", Format: hex32, Look: lookItemIcon, Store: storeInt32, Section: "Look", Help: "CLIENT's m_icon2: when not 0 the " +
+				"icon shown instead of Icon (VIClient::ItemIcon, by the disc's expansion flag 2, set on Frontiers); 0 the Icon"},
+			"model": {Label: "Model", Format: hex32, Look: lookItemLook, Store: storeInt32, Section: "Look", Help: itemModelHelp},
+			"color": {Label: "Colour", Format: hex32, Look: lookItemColor, Store: storeUint32, Section: "Look", Help: itemColorHelp},
+			"equipslot": {Label: "Worn in", Enum: "wearslot", Section: "Use", Help: "CLIENT's wear slot (its item window's Equip: line); " +
+				"-1 not worn"},
+			"levelreq": {Label: "Level required", Section: "Use", Help: "the server refuses to equip or scribe it below this level"},
+			"classuse": {Label: "Classes", Flags: "classmask", Section: "Use", Help: "who may wear it: 32767 every class; 0 is not checked (anyone)"},
+			"raceuse": {Label: "Races", Flags: "racemask", Section: "Use", Help: "who may wear it: 1023 every race (the froglok then too); " +
+				"0 is not checked (anyone); a custom race goes by the bit of the race it passes as"},
+			"maxstack": {Label: "Stacks to", Section: "Use", Help: "1: it does not stack"},
+			"maxhp": {Label: "Condition (max)", Section: "Use", Help: "the item's hit points (its info's HP: now/most); a weapon below its " +
+				"most hits for less (its condition's worth, entity/offence.go) and sells and repairs by it; 0: it never wears"},
+			"duration": {Label: "Durability (DUR)", Section: "Use", Help: "CLIENT's m_durability, shown in the item's info as DUR: N; the server reads nothing of it"},
+			"trade":    {Label: "No trade", Enum: "notrade", Section: "Use", Help: "CLIENT's m_noTrade"},
+			"rent":     {Label: "Rent", Enum: "rent", Section: "Use", Help: "CLIENT's m_rent: 0 is No Rent (backwards: 1 is the ordinary item)"},
+			"lore":     {Label: "Lore", Enum: "lore", Section: "Use", Help: "CLIENT's m_lore"},
+			"craft": {Label: "Tradeskill material", Enum: "craftmat", Section: "Use", Help: "CLIENT's m_p54: not 0, a combine takes it; " +
+				"an unworn one of it that is not of item type 8 reads as charged in its info"},
+			"procanim": {Label: "Item type", Enum: "itemtype", Section: "Use", Help: "CLIENT's item type (VIItem +0x4C): whether and how it is " +
+				"used (the HUD's usable items menu, the quick slots). Not an animation and not a proc, whatever the column's name: " +
+				"no column holds a proc (the item editor's In a fight card shows what the server reads)"},
+			"unk3": {Label: "Ammunition kind", Enum: "ammokind", Section: "Use", Help: "CLIENT's m_p18, read on the pack's items when a bow " +
+				"or a crossbow shoots (HasAmmoFor); on a weapon itself it does nothing. 3 and 12 on a few records: unknown"},
+			"unk6": {Label: "Food", Section: "Use", Help: "CLIENT's m_p58: above 0 an inventory item's info shows Food: N; nothing else reads it (every record 0)"},
+			"unk1": {Label: "Unknown (m_p08)", Section: "Other", Help: "CLIENT reads and keeps it, shows nothing of it; the server passes it on"},
+			"unk4": {Label: "Unknown (m_p24)", Section: "Other", Help: "CLIENT reads and keeps it, shows nothing of it; the server passes it on"},
+			"attacktype": {Label: "Attack type", Enum: "attacktype", Section: "Combat", Help: "the weapon's kind, as CLIENT's item window " +
+				"words it (ATT: 1HB); it sets how far a swing reaches and the melee resist its hits are taken by (each value says)"},
+			"weapondamage": {Label: "Weapon DMG", Section: "Combat", Help: "the DMG CLIENT shows and the offence roll uses (entity/offence.go)"},
+			"unk5": {Label: "Range", Unit: "world units", Section: "Combat", Help: "CLIENT's m_range (RNG): how far a Bow, 2H Crossbow or Thrown " +
+				"weapon (attack type 7, 9, 10) reaches; a melee weapon reaches 4.5 whatever this says"},
+			"weaponproc": {Label: "Range (Return Home's copy, unread)", Help: "not a proc: Return Home's import put the record's range here " +
+				"(a bow's 25-50) and nothing reads it; Range (unk5) is the one read. A weapon procs by its Description (entity/weaponproc.go)",
+				Section: "Combat"},
+			"str":          {Label: "STR", Section: "Stats", Help: "added while worn"},
+			"sta":          {Label: "STA", Section: "Stats", Help: "added while worn"},
+			"agi":          {Label: "AGI", Section: "Stats", Help: "added while worn"},
+			"dex":          {Label: "DEX", Section: "Stats", Help: "added while worn; also a weapon proc's chance (1% more each 20)"},
+			"wis":          {Label: "WIS", Section: "Stats", Help: "added while worn"},
+			"intelligence": {Label: "INT", Section: "Stats", Help: "added while worn"},
+			"cha":          {Label: "CHA", Section: "Stats", Help: "added while worn"},
+			"HPMAX":        {Label: "Max HP", Section: "Stats", Help: "added while worn"},
+			"POWMAX":       {Label: "Max power", Section: "Stats", Help: "added while worn"},
+			"HoT": {Label: "Health over time", Unit: "HP a 6 s tick", Section: "Stats", Help: "worn: the best item's in full, the second's at 40%, " +
+				"every further one 1 (entity/regen.go)"},
+			"PoT": {Label: "Power over time", Unit: "power a 6 s tick", Section: "Stats", Help: "worn: the best item's in full, the second's at 40%, " +
+				"every further one 1 (entity/regen.go)"},
+			"AC":   {Label: "AC", Section: "Stats", Help: "added while worn"},
+			"PR":   {Label: "Poison resist", Section: "Resists"},
+			"DR":   {Label: "Disease resist", Section: "Resists"},
+			"FR":   {Label: "Fire resist", Section: "Resists"},
+			"CR":   {Label: "Cold resist", Section: "Resists"},
+			"LR":   {Label: "Lightning resist", Section: "Resists"},
+			"AR":   {Label: "Arcane resist", Section: "Resists"},
+			"fish": {Label: "Fishing", Section: "Stats", Help: "added to the fishing skill while worn (handlers/fishing.go)"},
 		},
 	},
 	"spellpattern": {
@@ -2260,7 +2295,7 @@ func applyCatalog(t *Table) {
 			continue
 		}
 		c.Label, c.Help, c.Enum, c.Flags, c.Ref, c.Format, c.Section = cn.Label, cn.Help, cn.Enum, cn.Flags, cn.Ref, cn.Format, cn.Section
-		c.Look, c.Store = cn.Look, cn.Store
+		c.Look, c.Store, c.Unit = cn.Look, cn.Store, cn.Unit
 		c.Secret, c.ReadOnly = cn.Secret, cn.ReadOnly
 	}
 	// the default search: every text column

@@ -106,8 +106,24 @@ func (w *World) LoadRaceArmorBodies(db *database.SQLiteDB) (int, error) {
 // a client that lays armour on a body with no slots (vanilla) lays it on that one. Must be called
 // with the lock held.
 func (w *World) armorBodyLocked(p *Player) uint32 {
-	if ChosenBody(p.Race, uint32(p.ModelID)) {
+	if !takesArmorBody(p.Race, uint32(p.ModelID)) {
 		return 0
 	}
 	return w.armorBodies[p.Race][p.Gear.Armor]
+}
+
+// takesArmorBody reports whether a character of race wearing model is shown in its race's armour
+// bodies: not a body it chose (ChosenBody), and not its race's own female body where that is
+// another than the male's (the hill giantess, F34501CB: the rows are the male's armour, a male
+// giant's body each, and she keeps her own look in any armour as a chosen female giant does; the
+// GM Jibrish's petition 1647, 2026-11-11, gave the hill giant, the orc and the satyr their female
+// bodies in racedefs). Any other body (the race's own male one, a GM's) takes them as before.
+func takesArmorBody(race int, model uint32) bool {
+	if ChosenBody(race, model) {
+		return false
+	}
+	if f := uint32(raceOwnBody(race, 1)); f != 0 && f != uint32(raceOwnBody(race, 0)) && model == f {
+		return false
+	}
+	return true
 }

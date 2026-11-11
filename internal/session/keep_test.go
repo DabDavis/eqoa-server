@@ -54,7 +54,7 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	s.SetLiveLook(true)
 	s.SetBugReports(true)
 	s.SetFlyClient(true)
-	s.SetNumberTags(true)
+	s.SetNumberTagsLayout(2) // a client that reads the merc's bit
 	s.SetNPCTints(true)
 	s.SetMobInfo(true)
 	s.SetItemLinks(true)
@@ -93,8 +93,8 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 		t.Fatal("flags not kept")
 	}
 	// its figures' tags (entity/numbertags.go): still asked for
-	if !r.NumberTags() {
-		t.Fatal("the number tags' answer not kept")
+	if !r.NumberTags() || r.NumberTagsLayout() != 2 {
+		t.Fatalf("the number tags' answer not kept: layout %d", r.NumberTagsLayout())
 	}
 	// the NPCs' body tints (entity/npctint.go): still asked for, and what the
 	// client holds unknown, so the next set goes even when it is empty; the
@@ -416,5 +416,27 @@ func TestKeptMercsLayout(t *testing.T) {
 		if got := r.MercsTold(); got != (want != 0) {
 			t.Errorf("layout %d: told %v", want, got)
 		}
+	}
+}
+
+// A session kept before the number tags' layout was (NumberTags alone) comes
+// back reading layout 1: its merc's figures told as its pet's, as before.
+func TestAKeptNumberTagsAnswerWithoutItsLayoutIsLayoutOne(t *testing.T) {
+	addr := &net.UDPAddr{IP: net.IPv4(198, 51, 100, 8), Port: 40124}
+	m := session.NewManager()
+	s := m.CreateSession(addr, 0x2EC7D062, 0x2EC7D062, 0x1235, 0xB992, false)
+	m.PromoteSessionToMaster(s, 500000043)
+	s.SetNumberTagsLayout(2)
+	k := s.Keep()
+	if !k.NumberTags || k.NumberTagsLayout != 2 {
+		t.Fatalf("kept %v layout %d", k.NumberTags, k.NumberTagsLayout)
+	}
+	k.NumberTagsLayout = 0 // an older build's file
+	r, err := session.NewManager().Resume(k)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r.NumberTagsLayout() != 1 {
+		t.Fatalf("layout %d, want 1", r.NumberTagsLayout())
 	}
 }

@@ -207,12 +207,13 @@ type Session struct {
 	// build) is sent none.
 	flyClient bool
 
-	// numberTags: the client answered the number tags' offer 1
-	// (protocol.OpcodeNumberTagsAnswer, handlers/numbertags.go), so each 0x00DB
-	// it is sent of a figure its player or its player's pet made carries a byte
-	// more, what made it (entity/numbertags.go). A client that never answered
-	// (a PS2, an older build) is sent the retail body alone.
-	numberTags bool
+	// numberTags is the tags' layout the client answered the number tags'
+	// offer with (protocol.OpcodeNumberTagsAnswer, handlers/numbertags.go): 1
+	// or more, each 0x00DB it is sent of a figure its player, its player's pet
+	// or (from layout 2) its player's merc made carries a byte more, what made
+	// it (entity/numbertags.go). 0, a client that never answered (a PS2, an
+	// older build) or stopped, is sent the retail body alone.
+	numberTags uint8
 
 	// npcTints: the client answered the NPC tints' offer 1
 	// (protocol.OpcodeNPCTintsAnswer, handlers/npctint.go), so it is sent the
@@ -314,16 +315,33 @@ func (s *Session) FlyClient() bool {
 }
 
 // SetNumberTags records the client's answer to the number tags' offer: on, its
-// own and its pet's figures are told with what made them.
+// own and its pet's figures are told with what made them (layout 1).
 func (s *Session) SetNumberTags(on bool) {
+	var layout uint8
+	if on {
+		layout = 1
+	}
+	s.SetNumberTagsLayout(layout)
+}
+
+// SetNumberTagsLayout records the client's answer to the number tags' offer
+// as the tags' layout it reads: 0 none, 1 the kinds and the pet's bit, 2 the
+// merc's bit as well (entity/numbertags.go).
+func (s *Session) SetNumberTagsLayout(layout uint8) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.numberTags = on
+	s.numberTags = layout
 }
 
 // NumberTags is whether the client asked for its figures' tags
 // (SetNumberTags). A client that never answered (a PS2) did not.
 func (s *Session) NumberTags() bool {
+	return s.NumberTagsLayout() != 0
+}
+
+// NumberTagsLayout is the tags' layout the client asked for, 0 none
+// (SetNumberTagsLayout).
+func (s *Session) NumberTagsLayout() uint8 {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.numberTags

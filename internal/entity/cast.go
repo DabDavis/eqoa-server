@@ -1587,7 +1587,8 @@ func (w *World) healLocked(caster *Player, casterSess *session.Session, t *Playe
 // tellAmountLocked sends 0x00DB (caster, amount, target) to the caster, told
 // as kind (what made it, numbertags.go: 0 for a figure none of the caster's
 // made), and, when the target is another player, to it as a figure another
-// made on it (untagged).
+// made on it (untagged), but for its own merc's (the caster a merc's body,
+// kind the merc's: told as kind).
 func (w *World) tellAmountLocked(caster *Player, casterSess *session.Session, target EntityID, amount int, kind numberKind) {
 	if casterSess != nil {
 		if tid := w.objectIDSeenByLocked(casterSess, target); tid != 0 {
@@ -1597,9 +1598,15 @@ func (w *World) tellAmountLocked(caster *Player, casterSess *session.Session, ta
 	if target == caster.ServerID {
 		return
 	}
+	// a merc's heal on its owner is its owner's merc's figure (numbertags.go);
+	// any other's on the player, another's making
+	var tk numberKind
+	if kind&numberByMerc != 0 && w.mercHiredByLocked(caster.ServerID, target) {
+		tk = kind
+	}
 	if ts := w.findSessionByEntityIDLocked(target); ts != nil {
 		if cid := w.objectIDSeenByLocked(ts, caster.ServerID); cid != 0 {
-			w.sendDamageIndication(ts, cid, amount, ts.PlayerObjectID(), 0)
+			w.sendDamageIndication(ts, cid, amount, ts.PlayerObjectID(), tk)
 		}
 	}
 }
@@ -1696,6 +1703,11 @@ func (w *World) runTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 		caster, kind := w.Players[ae.Caster], ae.tickKind(true)
 		if caster == nil {
 			caster, kind = t, 0
+			// a merc's on its owner (its caster the merc, no player): its
+			// owner's merc's figure (numbertags.go)
+			if ae.figures == figuresMerc && w.mercHiredByLocked(ae.Caster, t.ServerID) {
+				kind = ae.tickKind(true)
+			}
 		}
 		w.healLocked(caster, w.findSessionByEntityIDLocked(caster.ServerID), t, ae.HPTick, kind)
 	}

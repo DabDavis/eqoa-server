@@ -1377,6 +1377,36 @@ level, mastery points, the class's spells, item records put right or made, items
 id its own); `-wait <gameserver.log>` applies only once the character's session has been cleaned up, `-backup`
 copies the database first. First used 2026-11-05 for a Sandstorm 60 (the user's "lets do a manual migration").
 
+### Forgotten passwords: a GM-approved reset (`tcp/accountpassword.go`, `database/pwresets.go`, `gmweb/ops_pwreset.go`)
+
+The owner, 2026-11-11: "lets add forgot password? to eqoaclassic"; no account has an e-mail and the box sends no mail,
+so a GM resets it: "The form takes the account name plus a contact (Discord name, or a character name and level) and
+files a request into the GM panel/board. A GM confirms it is them and sets a temporary password with one click; the
+player must change it at next login." **The page** is `/password` on the account server (public as
+`/eqoa/password`, its routes `/eqoa/account/api/password/{forgot,change}`: nginx locations of their own, as the
+transfer page's), linked from the account login page and the transfer page's sign-in. Every write is JSON with an
+`X-EQOA-Account` header (no other site's page can send it).
+- **Forgot**: account name, contact (2-200 characters), an optional note, a hidden honeypot field (`website`). The
+  answer is the same whether or not the account exists or a request was kept ("If the account exists, a GM will
+  contact you"). Limits: 5 forms an hour an address (in memory), 3 kept a day an address (by its salted hash,
+  `pwreset_meta`'s salt), 3 a day an account and one waiting at a time (silently not kept past them), 200 waiting in
+  all. A kept request is a row of `pwresets` (waiting, done, declined; cleared from snapshots) with a work board
+  entry, and online GMs are told.
+- **The panel's Password resets page** (ops `pwreset_list`, `pwreset_get` with the account's characters and last
+  login, `pwreset_approve`, `pwreset_decline`, `pwreset_start` for a Discord ask): an approval makes a temporary
+  password (`auth.TempPassword`: three words and two digits), keeps only its bcrypt hash, sets
+  `accountinfo.pwtemp`, ends the account's panel sessions and tokens, and answers the password ONCE: never stored,
+  logged or audited (the audit says it was set). Audited and revertible as the camp reports' decisions; GM level,
+  not an account at or above the GM's; refused on a shard whose accounts are a copy (`sharedAccountOps`).
+  `set_account_password` takes `temporary` too and otherwise clears the flag.
+- **A temporary password** (`pwtemp` 1) signs in on the pages to nothing but the Change form: `/api/login` answers
+  `mustChange` (the login page sends the player to `/password?temporary=1#change`), a session made before the reset
+  is dropped (`getSession`), the transfer page's sign-in refuses it with a link. **The game's login takes it** (no
+  game client can change a password here: STATION's PassChng 0x2A is answered success and changes nothing), and
+  each world entry says in red to change it at `auth.password_url` (`handlers.PasswordTempNotice`). The Change form
+  (account, current password, new) clears the flag and ends the account's web sessions. `pwtemp` is a column of
+  `accountinfo`, so a shard's mirrored copy has it.
+
 ### Rehabilitators: a character's resets, for every client (`handlers/rehab.go`, `rehabpaths.go`, `rehabtemplates.go`, `database/rehab.go`)
 
 The user, 2026-10-30: "Rehabilitator Anja in Muniels tea garden and another near freeport NPC, talk to them".

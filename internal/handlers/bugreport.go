@@ -83,6 +83,11 @@ type reportLimiter struct {
 
 // allow is whether account may file at now, kept as a filing when it may.
 func (l *reportLimiter) allow(account int, now time.Time) bool {
+	return l.allowN(account, now, reportsPerHour)
+}
+
+// allowN is allow with perHour filings an hour.
+func (l *reportLimiter) allowN(account int, now time.Time, perHour int) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if l.off {
@@ -97,7 +102,7 @@ func (l *reportLimiter) allow(account int, now time.Time) bool {
 			kept = append(kept, t)
 		}
 	}
-	if len(kept) >= reportsPerHour || (len(kept) > 0 && now.Sub(kept[len(kept)-1]) < reportGap) {
+	if len(kept) >= perHour || (len(kept) > 0 && now.Sub(kept[len(kept)-1]) < reportGap) {
 		l.seen[account] = kept
 		return false
 	}

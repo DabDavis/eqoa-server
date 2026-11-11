@@ -82,6 +82,12 @@ func (t Takeover) String() string {
 	return b.String()
 }
 
+// TakenOverSilence is how long a session's client must have been silent in
+// the world for a login that takes its character over to say it stopped: a
+// live client is heard ten times a second, and is silent longer only while it
+// loads a world.
+const TakenOverSilence = 10 * time.Second
+
 // TakeOverPlayer gives sess the character's Player still in the world
 // (charServerID: its characters row), taken from every other session that
 // had it, and says what it carried; nil when the character has no Player in
@@ -127,6 +133,14 @@ func (w *World) TakeOverPlayer(sess *session.Session, charServerID uint32) (*Pla
 	t.From = len(from)
 	w.mu.Unlock()
 
+	// a session its client had stopped on (a crash, a hang: silent a while
+	// in the world, no logout) is said so, as the tick says a longer one
+	// (session/clientstopped.go)
+	for _, s := range from {
+		if silent := now.Sub(s.LastActivity()); silent >= TakenOverSilence && s.CharacterInWorld() {
+			session.NoteClientStopped(s, fmt.Sprintf("taken over by a login after %.0fs silent", silent.Seconds()), now)
+		}
+	}
 	// told as a replaced login is: 0x07A4, kept ReplacedGrace to hear it
 	if w.SessionManager != nil {
 		for _, s := range from {

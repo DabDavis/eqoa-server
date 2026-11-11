@@ -1811,7 +1811,15 @@ in the window had hung its second ability under its first).
   character's look, by name, a GM's under both names, each part resolved to the palette entries and rects of the character's
   own body: drawn only on that body, never under an illusion or an armour body), and the looks again after a creation, a
   deletion, a GM's edit of charlook, racedefs or a custom race's character, and a keep restart (the session flags are kept).
-  A PS2 ignores the offer. **A login's world entry sends them again** with creation's races (`resendPregameExtras`, from
+  A PS2 ignores the offer. **The game's ten races' skin shades** (`entity/skinshades.go`, `world.skin_shades`; the owner,
+  2026-11-11: "humans, ogres, gnomes, elfs, etc. can have dark skin like erudites, erudites can have light skin like
+  humans"): a `skin` colour row of mode 3 (`Shade`: an absolute hue, saturation and lightness the skin becomes) on each game
+  race's two bodies' skin entries (the two-layer limbs' first layer, which no armour touches, and the face; the halfling's
+  feet), sent only to a client that answered **2** (it shows a game race's rows under the four; one that answered 1 showed a
+  race's rows instead of the four and is sent none of a game race's), kept as charlook `skin`, re-chosen at select's
+  Customize by a `'R'` block after 0x002A's five ints (`keepSelectedOptions`, `ReselectOptions`, charlook source
+  `customize`). The looks go to every client that asked; a PS2 and an older client draw the race's own skin.
+  **A login's world entry sends them again** with creation's races (`resendPregameExtras`, from
   `SendMemoryDump`): they went on the lobby's connection, which the client closes at the promotion, so one that selected
   before they all came had lost them (vanilla's `eqoa play` selects a second after its list: a Wisp drawn as a plain human).
 - **Armour**: `racearmorbody` rows are the race's own body's: a body the character chose (`ChosenBody`) is its look and is

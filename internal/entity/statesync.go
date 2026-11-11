@@ -417,8 +417,9 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 
 	// Offset 58: the animation CLIENT's sprite plays (UpdateCreatures'
 	// SetLocomotion, a VICSpriteAnimID): 0 standing, 1 walking (npcmove.go);
-	// a corpse's 14 is serializeEntityForChannel's
-	buf[58] = n.Loco
+	// a corpse's 14 is serializeEntityForChannel's; a sea creature's body
+	// the water's (swimmerbody.go)
+	buf[58] = bodyLoco(modelID, n.Loco)
 
 	// Target = 0 (no target) — eqoa.live: 0 for NPCs, player OID for pets
 	binary.LittleEndian.PutUint32(buf[59:63], 0x00000000)

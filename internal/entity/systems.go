@@ -536,7 +536,10 @@ func (w *World) breathSystem(now time.Time) {
 			// in eight steps, 48 s of air). The breath reaches the client on
 			// the stat channel (byte 232, statChannelSyncSystem).
 			p.DrowningCounter += 6 // 6 ticks per breathSystem call
-			if p.DrowningCounter >= 60 && p.Breath > 0 {
+			// a breath step every 6 s, later by the Hold Breath ranks owned
+			// (cmbuy.go: "Breath:N", N% longer a step)
+			step := 60 * (100 + max(p.CMBreathPct, 0)) / 100
+			if p.DrowningCounter >= step && p.Breath > 0 {
 				p.DrowningCounter = 0
 				p.Breath = max(0, p.Breath-BreathStep)
 			} else if p.Breath <= 0 {

@@ -313,11 +313,14 @@ var wayRoutes = map[string][]wayRoute{
 	"Norach": {
 		{To: "the Isle of Dread", At: &wayPlace{World: 0, X: 24578, Y: 52.6, Z: 3626, Facing: 3.9}, Fee: 10000, QuestOnly: true},
 	},
-	// "return to Lake Rathe (c) and speak with the portal guardian. Bring 1
-	// tunar for passage each time!" (zaoran-plateau): the plateau, zone 5 of
-	// the Secrets world (5), at the ZP1 marker
+	// "With the five Ruins and 5,000 tunar you can talk to portal NPC and be
+	// ported to Zaoran Plateau" (questmasters1.com's Zaoran Plateau page, 2006-07,
+	// the owner's guide of 2026-11-11, over EQOA-Data's zaoran-plateau "Bring 1
+	// tunar for passage each time!"): 5,000 a trip; the five runes are the
+	// quest's that opens it (The Way to Zaoran Plateau). The plateau is zone 5 of
+	// the Secrets world (5), at the ZP1 marker.
 	"portal guardian": {
-		{To: "Zaoran Plateau", At: &wayPlace{World: 5, X: 4899, Y: 148, Z: 7049}, Fee: 1, QuestOnly: true},
+		{To: "Zaoran Plateau", At: &wayPlace{World: 5, X: 4899, Y: 148, Z: 7049}, Fee: 5000, QuestOnly: true},
 	},
 	// the Fire Giant Magus subdued sends raiders to Lord Nagafen's island
 	// (soluseks-eye), by the Nagafen Teleport Arrive marker in Lavastorm

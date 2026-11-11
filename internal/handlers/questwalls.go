@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"strings"
 
@@ -75,5 +76,6 @@ func (q *QuestEngine) syncQuestState() {
 		}
 		c.qstate.sent = sent
 		q.gw.SetQuestState(id, passes, holds)
+		log.Printf("Quests: %s passes %d walls and holds %d watched items (%s)", p.Name, len(passes), len(holds), sent)
 	}
 }

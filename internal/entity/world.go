@@ -1012,7 +1012,8 @@ func (w *World) addThreatLocked(npc *NPC, attackerID EntityID, damage int) {
 // share (splitXP, mastery.go); each point made is told as CLIENT's Recv03 is
 // (0x1402 sub-op 3), the debt left as 0x00D9 (CLIENT's mark on the player's
 // own target bar while it is above 0), and a level that changes the stat cap
-// tells it (0x001C). A town's boon on the player multiplies the whole award
+// tells it (0x001C). A level gained fills hit points and power (fillOnDing).
+// A town's boon on the player multiplies the whole award
 // first (boon.go), and its lines say so.
 func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 	pct := w.boonPctLocked(player)
@@ -1056,6 +1057,9 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 
 	if t := player.TrainerCap(); t != statCap {
 		SendStatCap(sess, t)
+	}
+	if player.Level > startLevel {
+		player.fillOnDing()
 	}
 	if player.Level != startLevel {
 		for _, fn := range w.onLevelUp {

@@ -2921,9 +2921,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "retired 2026-11-11 (the owner: Norach takes anyone to the Isle of Dread's raft for 10,000; handlers/waysender.go, tools/norach_20261111.py): a draft"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/isle-of-dread.json, ## Isle of Dread (IoD) Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Finishing it flags the player for Norach's trip to the Isle of Dread (unlocks: the route should take the guide's 10,000 tunar each time); the first trip is the hand-in's own (a teleport to Graumord, the isle's town, ours)."
   },
   {
@@ -2980,7 +2978,9 @@
    "races": [],
    "minlevel": 50,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    "Portal/isle-of-dread/portal"
+   ],
    "factions_required": [
     [
      "Citizens of Graumord",

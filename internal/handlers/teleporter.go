@@ -686,6 +686,15 @@ const teleGroupWords = "Teleporter: %s takes the group to %s."
 // moves players (BeginWarp under the World's lock), not by travel, which is
 // for the session's own player.
 func (h *InteractHandler) teleGroup(p *entity.Player, npc entity.EntityID, dest entity.CoachDest, label string) {
+	h.moveGroup(p, npc, dest, fmt.Sprintf(teleGroupWords, p.Name, label), "Teleporter", nil)
+}
+
+// moveGroup is teleGroup's move for any NPC's trip: each member by the NPC
+// (teleReach), alive, whose client loads the world, told words and moved to
+// dest; each then given to also (nil: nothing more). who names the mover in
+// the log.
+func (h *InteractHandler) moveGroup(p *entity.Player, npc entity.EntityID, dest entity.CoachDest, words, who string, also func(*session.Session, *entity.Player)) {
+	label := dest.Name
 	gw := h.gameWorld
 	w, x, _, z, here := gw.NPCSpot(npc)
 	if !here {
@@ -704,18 +713,21 @@ func (h *InteractHandler) teleGroup(p *entity.Player, npc entity.EntityID, dest 
 			continue
 		}
 		if !CanLoadWorld(ms, dest.World) {
-			log.Printf("Teleporter: %s stays: their client cannot load world %d (%s's trip to %s)", m.Name, dest.World, p.Name, label)
+			log.Printf("%s: %s stays: their client cannot load world %d (%s's trip to %s)", who, m.Name, dest.World, p.Name, label)
 			continue
 		}
 		_, counter, changed, ok := gw.BeginWarp(m.ServerID, dest.World)
 		if !ok {
 			continue
 		}
-		SendClientMessage(ms, fmt.Sprintf(teleGroupWords, p.Name, label))
+		SendClientMessage(ms, words)
 		sendTeleportWarp(ms, dest.World, dest.X, dest.Y, dest.Z, dest.Facing, counter)
 		beginWorldLoad(ms, changed)
 		gw.UpdatePosition(m.ServerID, dest.X, dest.Y, dest.Z, dest.Facing)
-		log.Printf("Teleporter: %s goes with %s to %s", m.Name, p.Name, label)
+		log.Printf("%s: %s goes with %s to %s", who, m.Name, p.Name, label)
+		if also != nil {
+			also(ms, m)
+		}
 	}
 }
 

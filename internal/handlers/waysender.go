@@ -345,6 +345,16 @@ var wayRoutes = map[string][]wayRoute{
 	"Mark of the Majestic": {
 		{To: "Snow 1", At: &wayPlace{World: 4, X: 5670.8, Y: 552.9, Z: 6358.8}, QuestOnly: true},
 	},
+	// "For those flaggged, to get to deso 1, port up to the main PoS isle ...
+	// then pass through to the Isle of Wonder. You speak to an npc up there, and
+	// then you'll be ported off to Deso 1" (plane-of-sky, desolation): the Mark
+	// of Desolation, for those who finished the chain of snow (questunlocks:
+	// tools/sky_keys_20261111.py), to the north end of the first isle, clear of
+	// the erych (the isle's essence, its way on, stands at the south end:
+	// skypass.go)
+	"Mark of Desolation": {
+		{To: "Desolation 1", At: &wayPlace{World: 4, X: 4763.5, Y: 565.5, Z: 6038.5, Facing: 6.25}, QuestOnly: true},
+	},
 	// A raid's portals (tools/guidegaps/): each stands only while a trigger's run has
 	// spawned it, so no quest gate. "There's Rallos", through the portal the Mark of
 	// Rallos wakes (zaoran-plateau): the raid first; the isle's own pad.

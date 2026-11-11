@@ -144,6 +144,26 @@ func (p *Player) meleeWeapon() (dmg int, cond float64, twoHanded bool) {
 
 // playerMeleeRoll is the player's roll on the NPC: its floor and its ends.
 func playerMeleeRoll(p *Player, npc *NPC) (floor, low, high int) {
+	return playerRollOn(p, npc, p.StatNow(StatStr), p.StatNow(StatDex))
+}
+
+// playerRangedRoll is the player's roll on the NPC for one arrow of a ranged
+// swing (attack.go's playerShotHit): the melee roll's lines, the same
+// coefficients, with DEX where the melee's top has STR (the floor's too) and
+// WIS where its bottom has DEX. The beta's stat sheet (betaformula.webp,
+// adopted by the owner 2026-11-11): "For ranged attacks Dexterity factors in
+// to the maximum damage potential", "Wisdom factors in to how much of your
+// maximum damage potential you hit for each shot/throw in ranged combat". Until
+// then a shot rolled the melee's, STR and DEX. Ours: no record of the live
+// game's ranged roll exists.
+func playerRangedRoll(p *Player, npc *NPC) (floor, low, high int) {
+	return playerRollOn(p, npc, p.StatNow(StatDex), p.StatNow(StatWis))
+}
+
+// playerRollOn is a roll of the player's on the NPC with top the stat that
+// raises its top and floor (STR in melee), bottom the one that raises its
+// bottom (DEX in melee).
+func playerRollOn(p *Player, npc *NPC, top, bottom int) (floor, low, high int) {
 	dmg, cond, two := p.meleeWeapon()
 	d := float64(dmg) * rollWorth(cond)
 	fl := float64(dmg) * floorWorth(cond)
@@ -152,7 +172,7 @@ func playerMeleeRoll(p *Player, npc *NPC) (floor, low, high int) {
 		fl *= offFloorTwo
 	}
 	a := offenceArchs[archetypeOf(p.Class)]
-	str, dex := float64(p.StatNow(StatStr)), float64(p.StatNow(StatDex))
+	str, dex := float64(top), float64(bottom)
 	def := a.Defence * targetDefenceAt(npc, npc.Level-p.Mods.OffMod) // an OFF mod's levels (workbookmore.go)
 	def += npc.creatureDefence(p.Level)                              // its effects' AC and AGI (pet.go)
 	high = int(math.Round(offHighD*d + offHighSTR*str + a.High - def))
@@ -165,7 +185,18 @@ func playerMeleeRoll(p *Player, npc *NPC) (floor, low, high int) {
 // source (rand.Intn), with what the player's effects add to every hit
 // (Frenzy's "Increase Damage per Hit by 500": vampire.go).
 func playerMeleeHit(p *Player, npc *NPC, intn func(int) int) int {
-	floor, low, high := playerMeleeRoll(p, npc)
+	return playerHitOf(p, npc, intn, playerMeleeRoll)
+}
+
+// playerRangedHit is playerMeleeHit on the ranged roll: one arrow's, before
+// rangedShare (attack.go).
+func playerRangedHit(p *Player, npc *NPC, intn func(int) int) int {
+	return playerHitOf(p, npc, intn, playerRangedRoll)
+}
+
+// playerHitOf is one hit of the player's on the NPC on that roll.
+func playerHitOf(p *Player, npc *NPC, intn func(int) int, roll func(*Player, *NPC) (int, int, int)) int {
+	floor, low, high := roll(p, npc)
 	hit := low + intn(high-low+1)
 	// as its class template takes it (classtemplate.go), and the creature's
 	// melee resist debuff of the weapon's kind (workbookmore.go)

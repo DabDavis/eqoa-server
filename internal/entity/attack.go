@@ -685,22 +685,25 @@ func (w *World) playerRoundHitsLocked(p *Player, npc *NPC, now time.Time) bool {
 // A bow's shot (the user, 2026-11-06: "at level 35 bow damage should double,
 // because 2 arrows are shot for one hit", then "tmac should hit 2000 on level
 // 50 training dummy with bow"): every ranged swing's roll (CLIENT's Range1-4,
-// GetSwing's kinds 8-11) is rangedShare times the melee roll on the bow, and
-// Range4, the swing from level 35, looses two arrows for its one hit, each its
-// own roll. rangedShare is fitted to the user's figure: a level 60 elf ranger
-// in heirlooms (STR about 227, DEX 366) with the level 60 heirloom bow (the
-// Quicksilver longbow's 754) rolls 474 an arrow on a level 50 training dummy,
-// so 2.11 makes the shot about 2,000 (474 x 2.11 x 2); and a melee class's
-// round at 60 (Attack4, four hits in 6 s) lands about as much as the bow's
-// shot every 5 s. Ours: no record of the live game's bow damage exists.
+// GetSwing's kinds 8-11) is rangedShare times the ranged roll on the bow
+// (offence.go's playerRangedRoll: DEX sets its top, WIS its bottom, the beta
+// stat sheet's, 2026-11-11), and Range4, the swing from level 35, looses two
+// arrows for its one hit, each its own roll. rangedShare is fitted to the
+// user's figure on Tmac as the Heirloom snapshot of 2026-11-11 has him (a level
+// 60 elf ranger, DEX 453 (his masteries raise its cap), WIS 260, his level 60
+// heirloom bow's DMG 759): an arrow rolls 503-523 on a level 50 training dummy,
+// 513 on average, so 1.95 makes his shot 2,000 on average (1,962-2,040). Until 2026-11-11 a shot rolled
+// the melee roll (STR and DEX) times 2.11, fitted on a ranger of STR 227 and
+// DEX 366 with a bow of 754 (474 an arrow); on Tmac's own stats that shot was
+// 1,920. Ours: no record of the live game's bow damage exists.
 const (
 	swingRange1, swingRange4 = 8, 11
-	rangedShare              = 2.11
+	rangedShare              = 1.95
 )
 
 // playerShotHit is one landed player swing's damage before the balance: a
 // melee roll (playerMeleeHit), or a bow's shot of one arrow, or two at Range4,
-// each rangedShare times a roll.
+// each rangedShare times a ranged roll (playerRangedHit).
 func playerShotHit(p *Player, npc *NPC, intn func(int) int) int {
 	kind := p.Swing.Kind
 	if kind < swingRange1 || kind > swingRange4 || p.Swing.Potion != 0 {
@@ -712,7 +715,7 @@ func playerShotHit(p *Player, npc *NPC, intn func(int) int) int {
 	}
 	hit := 0
 	for range arrows {
-		hit += int(math.Round(float64(playerMeleeHit(p, npc, intn)) * rangedShare))
+		hit += int(math.Round(float64(playerRangedHit(p, npc, intn)) * rangedShare))
 	}
 	return hit
 }

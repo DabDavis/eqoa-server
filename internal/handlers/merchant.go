@@ -54,6 +54,9 @@ type NPCWindowHandler struct {
 	sessionManager *session.Manager
 	gameWorld      *entity.World
 	inv            *database.InventoryStore
+	// links are the item links a loot line names its items by (lootlinks.go): the
+	// chat's store, so a click asks for them as for a player's
+	links *ItemLinks
 
 	// find and playerOf are the World's FindEntityByObjectID and
 	// SessionPlayer, corpseLies and clearCorpse its CorpseLies and

@@ -496,8 +496,8 @@ func (h *NPCWindowHandler) HandleLootItem(sess *session.Session, msg *protocol.M
 			queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, k, readsCapes(sess)))
 			ls.tookLocked(id, c, char, i, took)
 			looted = append(looted, lootTake{rec.Pattern.PatternID, took})
-			tellLooted(sess, rec.Pattern.ItemName, took)
-			h.tellGroupLooted(player, rec.Pattern.ItemName, took)
+			h.tellLooted(sess, player.Name, rec, took)
+			h.tellGroupLooted(player, rec, took)
 			log.Printf("Loot: %s took %d %q", player.Name, took, rec.Pattern.ItemName)
 		}
 	}
@@ -542,8 +542,8 @@ func (h *NPCWindowHandler) HandleLootAll(sess *session.Session, msg *protocol.Me
 		if took > 0 {
 			ls.tookLocked(id, c, char, i, took)
 			looted = append(looted, lootTake{rec.Pattern.PatternID, took})
-			tellLooted(sess, rec.Pattern.ItemName, took)
-			h.tellGroupLooted(player, rec.Pattern.ItemName, took)
+			h.tellLooted(sess, player.Name, rec, took)
+			h.tellGroupLooted(player, rec, took)
 		}
 		if took != rec.StackLeft {
 			left = true
@@ -619,8 +619,8 @@ func (h *NPCWindowHandler) lootAllByOne(sess *session.Session, ls *lootState, c 
 				queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, k, readsCapes(sess)))
 				ls.tookLocked(id, c, char, i, took)
 				looted = append(looted, lootTake{rec.Pattern.PatternID, took})
-				tellLooted(sess, rec.Pattern.ItemName, took)
-				h.tellGroupLooted(player, rec.Pattern.ItemName, took)
+				h.tellLooted(sess, player.Name, rec, took)
+				h.tellGroupLooted(player, rec, took)
 			}
 		}
 		if took != rec.StackLeft {
@@ -638,24 +638,47 @@ func (h *NPCWindowHandler) lootAllByOne(sess *session.Session, ls *lootState, c 
 // tellLooted says what a corpse gave, unless the client's Loot Messages option
 // is off (faction.go). The words are ours, after the coins' Sandstorm line
 // (corpsecoins.go): no recording shows an item's.
-func tellLooted(sess *session.Session, item string, n int) {
+//
+// The item is a link to a client that takes links (lootlinks.go), the line otherwise as
+// it was.
+func (h *NPCWindowHandler) tellLooted(sess *session.Session, who string, rec database.CharInventoryEntry, n int) {
 	if !sess.LootMessagesOff() {
-		SendClientMessage(sess, lootStackLine(n, item))
+		h.lootStackLinked(who, rec, n).client(sess)
 	}
 }
 
 // tellGroupLooted tells the looter's group what it took, each member by its own Loot
 // Messages option (petition 1145, Larrybird: "i cant see what my other grp is loooting
 // could be uber rare gear oooo no").
-func (h *NPCWindowHandler) tellGroupLooted(looter *entity.Player, item string, n int) {
+func (h *NPCWindowHandler) tellGroupLooted(looter *entity.Player, rec database.CharInventoryEntry, n int) {
 	if h.groupOf == nil || looter == nil {
 		return
 	}
+	var line *serverLine // one line, its link made once, for the whole group
 	for _, s := range h.groupOf(looter) {
 		if !s.LootMessagesOff() {
-			SendClientMessage(s, groupLootLine(looter.Name, n, item))
+			if line == nil {
+				line = h.groupLootLinked(looter.Name, rec, n)
+			}
+			line.client(s)
 		}
 	}
+}
+
+// groupLootLinked is groupLootLine with the item linked (lootlinks.go).
+func (h *NPCWindowHandler) groupLootLinked(name string, rec database.CharInventoryEntry, n int) *serverLine {
+	if n > 1 {
+		return h.linkedf(name, "%s receives %d %s from the corpse.", name, n, lootItem(rec, n))
+	}
+	return h.linkedf(name, "%s receives %s from the corpse.", name, lootItem(rec, n))
+}
+
+// lootStackLinked is lootStackLine with the item linked (lootlinks.go).
+func (h *NPCWindowHandler) lootStackLinked(who string, rec database.CharInventoryEntry, n int) *serverLine {
+	if n > 1 {
+		return h.linkedf(who, "You receive %d %s from the corpse.", n, lootItem(rec, n))
+	}
+	return h.linkedf(who, "You receive %s from the corpse.", lootItem(rec, n))
 }
 
 // groupLootLine is a group member's line for what another took.

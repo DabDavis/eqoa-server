@@ -956,6 +956,16 @@ restart with the links (`KeepItemLinks`, `RestoreItemLinks`, the snapshot's `ite
 after the largest kept. The log says `ItemLinks: <who> linked "<name>" (item <its charinventory row>, link <id>)` as a link is made and
 `ItemLinks: <who> viewed link <id> ("<name>", <linker>'s)` at each answered ask.
 
+**Loot lines link their items** (`handlers/lootlinks.go`; the owner, 2026-11-11: "when loot is looted make the items as item
+links"): the looter's "You receive", its group's "receives" (a take, Take All, a won or assigned item), and the raid's lines (need
+before greed's announcement, a roll offered by line, rolls, ties, wins, "No one rolled", waits, claims over, the master looter's
+announcement, list by number and assign) go with their items as links (0x7E51 around the same 0x0A7A / 0x0A7B) to a client that took
+links, and **byte for byte as before to every other**. Built by `linkedf` (Sprintf with `lootItem`/`linkedItems`/`linkedCount` args);
+a link is the corpse's record as `wireRecord` sends it, the count taken, under owner 0 and row `-PatternID` (so the same record looted
+again by anyone is the same link), made only when its line first reaches a client that takes links (a line only PS2s hear makes none),
+in the chat's store (`NPCWindowHandler.links`): the same hour, 10,000 and keep restart. A line makes no ask; clicks count against the
+clicker's 30 asks a window as any. Error lines (Lore held, no room, "cannot use") and coins stay plain.
+
 ### The combat record: PvP and duels, lifetime (`entity/combatrecord.go`, `handlers/combatrecord.go`, table `charrecord`)
 
 The user, 2026-11-07: "lets add a combat record for pvp and duels to the menu for players, has lifetime kills, deaths, etc.". A row a

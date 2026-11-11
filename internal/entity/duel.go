@@ -1085,6 +1085,9 @@ func (w *World) duelRoundLocked(p *Player, now time.Time) bool {
 			if p.Swing.Potion != 0 { // a worn thrown potion: its own harm, not the melee's (potion.go)
 				return w.thrownPotionAtFoeLocked(p, t, now)
 			}
+			if !w.shotPowerLocked(w.findSessionByEntityIDLocked(p.ServerID), p) {
+				return true // a bow's shot without the power: the fight let go (rangedpower.go)
+			}
 			// a bow's shot as on a creature, its arrows and their share
 			// (attack.go playerShotHit; "ranger bow only hitting for 90 in
 			// pvp mode on": it was a melee roll on the bow)
@@ -1092,6 +1095,9 @@ func (w *World) duelRoundLocked(p *Player, now time.Time) bool {
 			return w.duelHurtLocked(d, p, p.ServerID, t, n, now, numberMelee) ||
 				w.duelAnswerLocked(d, t, duelMark{t: p}, now) || // duelprocs.go
 				w.duelProcsLocked(d, p, duelMark{t: t}, now)
+		}
+		if !w.shotPowerLocked(w.findSessionByEntityIDLocked(p.ServerID), p) {
+			return true // as at a foe
 		}
 		n := playerShotHit(p, duelStandIn(pet.Level), rand.Intn)
 		w.duelHurtPetLocked(d, p, pet, n, now, numberMelee)

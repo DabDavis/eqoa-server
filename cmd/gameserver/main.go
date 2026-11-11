@@ -253,6 +253,9 @@ func main() {
 	if cfg.World.ThrowPowerPct != nil {
 		gameWorld.SetThrowPowerPct(max(*cfg.World.ThrowPowerPct, 0)) // entity/potion.go
 	}
+	if cfg.World.RangedPowerPct != nil {
+		gameWorld.SetRangedPowerPct(max(*cfg.World.RangedPowerPct, 0)) // entity/rangedpower.go
+	}
 	// The sun on vampires (entity/vampire.go, table charvampire)
 	gameWorld.SetVampireSun(vampireSunOf(cfg.World))
 	if n, err := db.Vampires(); err != nil {

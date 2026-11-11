@@ -267,8 +267,10 @@ type potionTable struct {
 // none), rounded, and is refused when its thrower has less: told in red
 // (ThrowNoPower), nothing thrown and nothing used; an auto-attack's throw lets
 // the fight go. Until then a throw cost none. An item whose use charms (the
-// Puppet Strings) is no potion thrown: it costs none.
-const DefaultThrowPowerPct = 20
+// Puppet Strings) is no potion thrown: it costs none. 20% until petition 1581
+// (the GM Jibrish: "should take exactly 10% of the players maximum mana", as a
+// ranged weapon's shot does now: rangedpower.go).
+const DefaultThrowPowerPct = 10
 
 // A draught's health and poison resist (petition 1489, Fullmetal: "PR
 // Resistance - 315 should negate full strength 54 Draught damage upwards of 65%

@@ -179,8 +179,13 @@ type WorldConfig struct {
 	FactionAggro *bool `yaml:"faction_aggro"`
 
 	// ThrowPowerPct is what a thrown potion costs its thrower, a percent of
-	// its most power (entity/potion.go, petition 1489): unset, 20; 0, none.
+	// its most power (entity/potion.go, petitions 1489, 1581): unset, 10; 0, none.
 	ThrowPowerPct *int `yaml:"throw_power_pct"`
+
+	// RangedPowerPct is what a ranged weapon's shot (a bow, a throwing
+	// weapon; no combat art, no spell) costs its shooter, a percent of its
+	// most power (entity/rangedpower.go, petition 1581): unset, 10; 0, none.
+	RangedPowerPct *int `yaml:"ranged_power_pct"`
 
 	// The sun on a vampire (table charvampire, entity/vampire.go): it takes
 	// VampireSunDamage (unset 50, Sandstorm's; 0 none) every

@@ -733,6 +733,9 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 	if attacker.Swing.Potion != 0 {
 		return w.thrownPotionHitLocked(sess, attacker, npc, objectID) // potion.go
 	}
+	if !w.shotPowerLocked(sess, attacker) {
+		return true // a bow's shot without the power: the fight let go (rangedpower.go)
+	}
 	damage := w.meleeDealtLocked(npc, attacker, playerShotHit(attacker, npc, meleeIntn), meleeIntn) // balance.go
 	if npc.Dummy != NotDummy {
 		// told, taken off nothing; the dummy fights back (dummy.go)

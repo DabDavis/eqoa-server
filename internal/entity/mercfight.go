@@ -17,7 +17,9 @@ import (
 // fought by its owner's pet; aggressive, also one fighting or fought by any of
 // its owner's group (players, their pets and mercs). /merc attack sets it on
 // its owner's target whatever its stance, until that dies or goes. A target
-// petLeash from its owner is let go, as a pet's.
+// petLeash from its owner is let go, as a pet's; one not ordered and not its
+// owner's auto-attack's, already past petAssist from its owner (its owner
+// walked off from it), too (mercLeftBehindLocked).
 //
 // A tank or a melee fighter goes to its target and swings a player's rounds of
 // its class and level (GetSwing on its heirlooms, rounds.go's timing), each hit
@@ -90,7 +92,7 @@ func (w *World) mercChooseTargetLocked(ms *mercState) {
 		}
 		ms.ordered = 0
 	}
-	if ms.target != 0 && valid(ms.target) == nil {
+	if ms.target != 0 && (valid(ms.target) == nil || w.mercLeftBehindLocked(ms, ms.target)) {
 		ms.target = 0
 		m.endRound()
 	}
@@ -140,6 +142,20 @@ func (w *World) mercChooseTargetLocked(ms *mercState) {
 	if best != nil {
 		ms.target = best.ServerID
 	}
+}
+
+// mercLeftBehindLocked reports a target the merc's owner has walked off
+// from: farther than petAssist from its owner (as far as the merc looks round
+// its owner for a fight) and not its owner's auto-attack's. /merc attack's
+// order is kept to petLeash (petition 1504, Lifeispain: "when I just left the
+// dummy the merc is still fighting it by itself"). Must be called with the
+// lock held.
+func (w *World) mercLeftBehindLocked(ms *mercState, id EntityID) bool {
+	owner, t := ms.owner, w.NPCs[id]
+	if t == nil || id == ms.ordered || owner.Attacking() && owner.AttackTarget == id {
+		return false
+	}
+	return distXZ(owner.X, owner.Z, t.X, t.Z) > petAssist
 }
 
 // mercTurnLocked is the merc's turn: its target, then a cast its role wants

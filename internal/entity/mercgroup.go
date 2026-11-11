@@ -36,15 +36,18 @@ import (
 // own box, as a raid flag's caller is asked: from itself, named "Mercenary
 // <name>" (CLIENT's word 636 is "<name> invites you to join a group"); its yes
 // makes the group of two, its owner leading (member 0), and its client shows
-// the merc in it. Its no leaves the merc out of any group until /merc group asks
-// again, its owner joins one (the merc with it) or invites someone (the merc in
-// the group that makes). The merc leaves the group when it is dismissed, dies,
-// or its owner leaves the group or the world; the group is then shrunk as for
-// any member (one left alone is told it is disbanded). Its owner out of a group
-// of others (it left, was booted, or its leader disbanded it) is asked again,
-// as at a hire; out of the group of it and its merc alone (its own leave or
-// disband) it is not. A leader's boot of a merc (0x0626 naming it) dismisses
-// it, its owner told.
+// the merc in it. A merc fights only in its owner's group (petition 1504,
+// Lifeispain: "I declined but it is still following me around ... It still is
+// fighting for me even though not in group"): while its box (or another's box
+// it waits behind) is up it stands where it is and fights nothing, and its no
+// dismisses it, as /merc dismiss does (its hire ended, its row dropped). The
+// merc leaves the group when it is dismissed, dies, or its owner leaves the
+// group or the world; the group is then shrunk as for any member (one left
+// alone is told it is disbanded). Its owner out of a group of others (it left,
+// was booted, or its leader disbanded it) is asked again, as at a hire; out of
+// the group of it and its merc alone (its own leave or disband) it is
+// dismissed, as at a no; in a group with no place for it, too. A leader's boot
+// of a merc (0x0626 naming it) dismisses it, its owner told.
 //
 // A group of a player and its merc alone is no bar to another player's box (an
 // invitation, a raid flag's): CLIENT shows none to a client in a group (Msg0773
@@ -63,8 +66,10 @@ const (
 	mercNoRoomLine  = "%s's mercenary needs a place in the group too, and the group has room for one."
 	mercNoRoomYours = "The group has no room for you and your mercenary."
 	mercBootedLine  = "%s removed your mercenary %s from the group: it is dismissed."
-	mercAskLine     = "Accept the box to have %s in your group."
+	mercAskLine     = "Accept the box to have %s in your group: a mercenary fights only in your group, and a no dismisses it."
 	mercBoxUpLine   = "Answer the group box you have up first."
+	mercOutLine     = "Your mercenary %s is dismissed: a mercenary fights only in your group. A Mercenary Liaison will hire you another."
+	mercOutFullLine = "Your mercenary %s is dismissed: your group has no place for it."
 )
 
 // groupView is one member as a client's group window shows it: a player of
@@ -321,9 +326,30 @@ func (w *World) mercLeaveGroupLocked(ms *mercState) {
 	}
 }
 
+// mercInOwnGroupLocked reports the merc a member of its owner's group. Must
+// be called with the lock held.
+func (w *World) mercInOwnGroupLocked(ms *mercState) bool {
+	g := w.groups[ms.owner.GroupID]
+	return ms.owner.GroupID != 0 && g != nil && groupHas(g, ms.npc.ServerID)
+}
+
+// mercOutLocked dismisses a merc out of its owner's group with nothing to
+// ask (the file's doc): gone, its owner told the line, the handlers told its
+// hire is over. Must be called with the lock held.
+func (w *World) mercOutLocked(ms *mercState, sess *session.Session, line string) {
+	name := ms.npc.Name
+	w.mercGoesLocked(ms, sess, ms.last)
+	if sess != nil {
+		w.sendChatToSession(sess, fmt.Sprintf(line, name))
+	}
+	w.noteMercLocked(MercNote{Kind: MercNoteDismissed, Owner: ms.owner, Sess: sess, Name: name})
+	log.Printf("Merc: %s's %q dismissed out of its owner's group", ms.owner.Name, name)
+}
+
 // mercGroupUpkeepLocked keeps the merc in its owner's group, and in no other:
-// its owner joined one, or its group went (a disband). Every 5 ticks, with the
-// group system; must be called with the lock held.
+// its owner joined one, or its group went (a disband); one out of it with no
+// box to wait on is dismissed (the file's doc). Every 5 ticks, with the group
+// system; must be called with the lock held.
 func (w *World) mercGroupUpkeepLocked(ms *mercState, sess *session.Session) {
 	if w.TickCount%5 != 0 {
 		return
@@ -344,6 +370,9 @@ func (w *World) mercGroupUpkeepLocked(ms *mercState, sess *session.Session) {
 	case own != nil:
 		ms.regroup = false
 		w.mercIntoGroupLocked(ms, own)
+		if !groupHas(own, id) {
+			w.mercOutLocked(ms, sess, mercOutFullLine)
+		}
 	case ms.regroup:
 		// a keep restart's: its owner's client holds the group of the two of
 		// them, which no box need ask again (keepmerc.go)
@@ -353,6 +382,10 @@ func (w *World) mercGroupUpkeepLocked(ms *mercState, sess *session.Session) {
 		// out of a group of others, or a box its group gave way to answered no:
 		// asked again, once no other box is up (mercAskLocked)
 		w.mercAskLocked(ms, sess)
+	case sess != nil && !w.boxWaitingLocked(o):
+		// asked, and out of a group with no box up: its no, or its owner's
+		// leave of the group of the two of them
+		w.mercOutLocked(ms, sess, mercOutLine)
 	}
 }
 
@@ -384,6 +417,9 @@ func (w *World) mercOwnNoLocked(sess *session.Session, p *Player, why byte) {
 		return
 	}
 	log.Printf("Merc: %s declined a group with its mercenary", p.Name)
+	if ms := w.mercOfLocked(p); ms != nil && !w.mercInOwnGroupLocked(ms) {
+		w.mercOutLocked(ms, sess, mercOutLine) // petition 1504: a declined merc goes
+	}
 }
 
 // groupMercsLocked adds to a group spell's targets the mercs of the caster's

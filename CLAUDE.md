@@ -1730,6 +1730,13 @@ it, leaving the held items, the helm and the name), and vanilla could not tell a
 start spots, items and standings are `~/.cache/jalraeth1109/deploy/new_races_20261109.py` (exact `--undo`; run it with a
 binary of `LastCustomRace` 52: an older one refuses race 31's row). **`LastCustomRace` is 52** (was 30): a race's bit in
 `cmcatalog.races` stays an integer a JSON number holds, and the GM panel tests flag bits with BigInt (`lib/fmt.js`).
+**A Wisp in its own form shows nothing worn but its cape** (`entity/wispform.go`, the owner's of 2026-11-11): the channel's
+held items, armour, tints and robe zeroed (attack types kept, a ctf banner kept) and the character list's gear bare, so
+vanilla draws the wisp and its cape alone and a PS2 a bare human with empty hands; in any other body (a glamour, a GM's
+form) all of it shows, and the race looks (0x7E24) leave the Wisp's wisp row out while it is so (a Human glamour is its own
+model): the state tick notes the Wisps in another form and re-sends the looks from `RefreshRaceLooks`' last read. Its
+racials (Will-of-the-Wisp, Trickster Flame: the six CM glamours + Remove Illusion) and Master Class Transcendent are
+cmcatalog 2141-2145, `tools/wisp_kit_20261111.py`.
 - **Kept**: a body chosen is `characters.modelid`, which every client draws (a PS2 too), the entity channel's scale its size
   against the race's own (`Player.Body`: `OptionBodySize`); a colour or a texture past a row's first step is a **`charlook`**
   row (serverid, part = the row's key, kind 2/3, value), which only a client that asked is told. A character with no row and

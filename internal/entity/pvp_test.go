@@ -802,7 +802,7 @@ func TestPvPThrownPotionsLandAtTheShare(t *testing.T) {
 
 // The user, 2026-11-09: "ranger bow only hitting for 90 in pvp mode on". A
 // bow's swing on a foe is its shot as on a creature (playerShotHit: two
-// arrows from Range4, each rangedShare times a roll), then the PvP share;
+// arrows from Range4, each rangedShare times a ranged roll), then the PvP share;
 // it was one melee roll on the bow, halved. The control is
 // TestPvPMeleeLandsAtTheDuelShare: a melee swing's hit as it was.
 func TestPvPBowShootsAsOnACreature(t *testing.T) {
@@ -815,7 +815,7 @@ func TestPvPBowShootsAsOnACreature(t *testing.T) {
 		t.Fatal("not engaged")
 	}
 	d.a.AutoAttack = true
-	floor, low, high := playerMeleeRoll(d.a, duelStandIn(d.b.Level))
+	floor, low, high := playerRangedRoll(d.a, duelStandIn(d.b.Level))
 	arrow := func(roll int) int { return int(math.Round(float64(max(floor, roll)) * rangedShare)) }
 	lo, hi := duelHalf(2*arrow(low)), duelHalf(2*arrow(high))
 	d.b.HP, d.b.MaxHP = 1_000_000, 1_000_000

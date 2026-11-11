@@ -384,6 +384,45 @@ func TestWorkbookLull(t *testing.T) {
 	}
 }
 
+// The beta sheet's CHA rule (the owner, 2026-11-11: "Spells that modify an NPCs
+// behavior (Charm, Lull, Etc) will have a CHA mod on them that increases their
+// duration"): a lull lasts its time and its CHA share of its caster's CHA in
+// seconds, its effect's own (Soothe's 10%) else charm's 25% (Soothing Verse's
+// DEX 15% is not CHA). Landed by a caster of CHA 100: a 12 s lull of no share
+// 37 s, of 10% CHA 22 s, of 15% DEX 37 s; the control, CHA 0: 12 s.
+func TestALullLastsLongerByCHA(t *testing.T) {
+	for i, c := range []struct {
+		scale string
+		cha   int
+		want  time.Duration
+	}{{``, 100, 37 * time.Second}, {`,"scale":"cha","scale_pct":10`, 100, 22 * time.Second},
+		{`,"scale":"dex","scale_pct":15`, 100, 37 * time.Second}, {``, 0, 12 * time.Second}} {
+		noResist(t)
+		lull := wbSpell(951+i, 5, 1, "Test Hush", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"duration_s":12,
+			"effects":[{"kind":"lull","resist":"ar"`+c.scale+`,"dispel_on_cast":true,"dispel_on_contact":true}]}`)
+		cs := newCaster(t)
+		cs.p.Cha = c.cha
+		if !cs.w.StartCast(cs.sess, lull, cs.npcO, cs.at(0)) {
+			t.Fatal("not begun")
+		}
+		at := lull.CastTime + castLand
+		cs.tick(at)
+		if len(cs.npc.Effects) != 1 {
+			t.Fatalf("%q: effects %+v", c.scale, cs.npc.Effects)
+		}
+		if got := cs.npc.Effects[0].Until.Sub(cs.at(at)); got != c.want {
+			t.Errorf("%q, CHA %d: the lull lasts %v, want %v", c.scale, c.cha, got, c.want)
+		}
+		if !cs.npc.lulledAt(cs.at(at+c.want-time.Second)) || cs.npc.lulledAt(cs.at(at+c.want)) {
+			t.Errorf("%q, CHA %d: not lulled to its end alone", c.scale, c.cha)
+		}
+	}
+	// a spell that does not lull gets nothing
+	if d := ParseSpellText("Target, Root, 36sec"); lullBonus(&d, 300) != 0 {
+		t.Errorf("a root's CHA share: %v", lullBonus(&d, 300))
+	}
+}
+
 // A root that ends at contact (the workbook's Root, Arcane Bindings,
 // Caltrops) holds after its landing and ends at the next hit; until
 // 2026-11-01 its own landing's anger was that contact, and it never held.

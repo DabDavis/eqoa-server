@@ -565,7 +565,8 @@ func (m *StatMods) sum(o StatMods) {
 
 // StatNow is a stat as the client sees it: the player's own, plus effects,
 // STR to CHA within its cap, the level's and what its masteries raise it by
-// (mastery.go).
+// (mastery.go); a resist with its WIS's share (gear.go's wisResist) of the
+// WIS it has now.
 func (p *Player) StatNow(st Stat) int {
 	m := &p.Mods
 	switch st {
@@ -596,17 +597,17 @@ func (p *Player) StatNow(st Stat) int {
 	case StatMaxPower:
 		return p.MaxPowerNow()
 	case StatFR:
-		return p.FireR + m.FR
+		return p.FireR + m.FR + p.wisResistNow()
 	case StatCR:
-		return p.ColdR + m.CR
+		return p.ColdR + m.CR + p.wisResistNow()
 	case StatPR:
-		return p.PoisonR + m.PR
+		return p.PoisonR + m.PR + p.wisResistNow()
 	case StatDR:
-		return p.DiseaseR + m.DR
+		return p.DiseaseR + m.DR + p.wisResistNow()
 	case StatLR:
-		return p.LightningR + m.LR
+		return p.LightningR + m.LR + p.wisResistNow()
 	case StatAR:
-		return p.ArcaneR + m.AR
+		return p.ArcaneR + m.AR + p.wisResistNow()
 	}
 	return 0
 }
@@ -1403,6 +1404,7 @@ func lastingParts(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 	if dur <= 0 {
 		return nil
 	}
+	dur += lullBonus(d, caster.StatNow(StatCha)) // a lull's CHA share (workbook.go)
 	ae := &ActiveEffect{SpellID: cs.spell.SpellID, Name: cs.spell.Name, Icon: cs.spell.Icon, Caster: caster.ServerID,
 		Until: now.Add(dur), NextTick: now, Ticks: d.Ticks}
 	ae.Rules = rulesOf(d) // workbook.go

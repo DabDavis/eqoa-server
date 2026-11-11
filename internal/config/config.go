@@ -386,6 +386,14 @@ type WorldConfig struct {
 	// Heirloom Test Server sets it.
 	TestingHeroes bool `yaml:"testing_heroes"`
 
+	// PetHealGroup lets a magician's water pet heal its owner's group and raid
+	// group (entity/petmemberheal.go; the user, 2026-11-11: "lets allow mage
+	// water pets to heal other group/raid members also on heirloom server"):
+	// its heals on its owner or itself (targets owner and either) land on the
+	// worst off of its side in the heal's reach instead (target member). Unset
+	// or false: its owner or itself, as before. The Heirloom Test Server sets it.
+	PetHealGroup bool `yaml:"pet_heal_group"`
+
 	// MobInfo shows a monster's name and level, and nothing else, when a
 	// player talks to it (□, Q on vanilla's keyboard) and it has nothing to
 	// say, or stands out of the talk's reach (handlers/mobinfo.go; the GM

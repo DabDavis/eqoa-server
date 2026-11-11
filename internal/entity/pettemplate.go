@@ -326,9 +326,11 @@ func (w *World) petWantsLocked(ps *petState, a *templateAbility, now time.Time) 
 			top := o.MaxHPNow()
 			return top > 0 && !o.IsDead() && o.HP*100 < top*a.BelowOr()
 		}
-		switch a.TargetOr() {
+		switch w.petHealTargetLocked(ps, a) {
 		case database.AbilityOnOwner:
 			return owner()
+		case database.AbilityOnMember:
+			return w.petMemberPickLocked(ps, a) != 0 // the worst off of its side (petmemberheal.go)
 		case database.AbilityOnEither:
 			return owner() || ps.npc.HP*100 < ps.npc.MaxHP*a.BelowOr()
 		case database.AbilityOnGroup:
@@ -415,15 +417,21 @@ func (w *World) petCastLocked(ps *petState, i int, t *NPC, now time.Time) bool {
 	}
 	ct := a.castTime(spell)
 	c := &petCast{ps: ps, tmpl: ps.tmpl, a: a, spell: spell, lands: now.Add(ct + castLand)}
+	on := w.petHealTargetLocked(ps, a)
 	switch {
 	case petAtFoe(a.Kind):
 		if t == nil || t.Dead || !w.petUndeadMayLocked(spell, t) {
 			return false // a spell for undead alone not cast at the living (a chained one too)
 		}
 		c.target = t.ServerID
-	case a.TargetOr() == database.AbilityOnOwner:
+	case on == database.AbilityOnMember:
+		// the worst off of its side in reach (petmemberheal.go)
+		if c.target = w.petMemberPickLocked(ps, a); c.target == 0 {
+			return false
+		}
+	case on == database.AbilityOnOwner:
 		c.target = ps.owner.ServerID
-	case a.TargetOr() == database.AbilityOnEither:
+	case on == database.AbilityOnEither:
 		// its owner or itself, the lower share of its hit points
 		c.target = pet.ServerID
 		if o := ps.owner; !o.IsDead() && o.MaxHPNow() > 0 && pet.MaxHP > 0 &&
@@ -899,8 +907,12 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 		if pet.sheet != nil {
 			n, _ = sheetFigure(pet, c.spell.Def.Effects, a.DamageOr(), true) // its stats scale it (petstats.go)
 		}
-		if a.TargetOr() == database.AbilityOnGroup {
+		switch w.petHealTargetLocked(ps, a) {
+		case database.AbilityOnGroup:
 			w.petGroupHealLocked(ps, c.spell, n) // everyone of its side in reach (petgroupheal.go)
+			return
+		case database.AbilityOnMember:
+			w.petMemberHealLocked(ps, c, n) // the one it was cast at, still of its side (petmemberheal.go)
 			return
 		}
 		if c.target == ps.owner.ServerID {
@@ -1090,7 +1102,8 @@ func petOnly(a *templateAbility) bool {
 	switch {
 	case a.Kind == database.AbilityTaunt, a.Kind == database.AbilityBuff, a.Kind == database.AbilityRoot:
 		return true
-	case a.Kind == database.AbilityHeal && (a.TargetOr() == database.AbilityOnOwner || a.TargetOr() == database.AbilityOnGroup):
+	case a.Kind == database.AbilityHeal && (a.TargetOr() == database.AbilityOnOwner || a.TargetOr() == database.AbilityOnGroup ||
+		a.TargetOr() == database.AbilityOnMember):
 		return true // a creature's heal of its share is its own now (abilitytimes.go: petition 1394)
 	}
 	return false

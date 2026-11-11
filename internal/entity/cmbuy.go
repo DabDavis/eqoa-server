@@ -647,6 +647,11 @@ func (w *World) CMOpenedBy(sess *session.Session, questID int, k CMKnows) []stri
 //     first a "???" of its own until then);
 //   - else: one after another in rank order, the first under the class, so a
 //     locked master class is one "???", as when its ranks were a chain.
+//
+// A purchase or a removal that changes these keys is answered with the whole
+// list again before its reply (handlers' listAgain): a class locked at the
+// opening and made buyable in the window would otherwise keep its chain, its
+// second ability under its first.
 func (w *World) cmListParentsLocked(out []CMEntry) {
 	at := make(map[int]int, len(out))
 	for i, e := range out {

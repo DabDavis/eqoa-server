@@ -104,6 +104,27 @@ type CMAbility struct {
 	Name    string
 	Level   int
 	SpellID int
+	// Alts are other spells that stand for it where a rank needs it
+	// (require_spells "a|b": the book holding any one meets it), so two
+	// lines that each trade the same spell away can both be owned: Icy and
+	// Static Destruction each replace Explode, Detonate, Annihilate, Nova
+	// and Supernova and each give the Fiery one, which the other then
+	// accepts (petition 1583, Wisp, 2026-11-11: "Wizard lightning Nova CM
+	// line is missing")
+	Alts []int
+}
+
+// heldIn is whether the book holds the ability or one of its Alts.
+func (a CMAbility) heldIn(book map[int]bool) bool {
+	if book[a.SpellID] {
+		return true
+	}
+	for _, id := range a.Alts {
+		if book[id] {
+			return true
+		}
+	}
+	return false
 }
 
 // CMRank is one rank of cmcatalog, read.
@@ -259,7 +280,8 @@ func parseStatList(s string) map[string]int {
 }
 
 // parseAbilities reads "Name@level; Name@level" and, beside it, the spell ids
-// they were found as ("12,34", in the same order; missing ones 0).
+// they were found as ("12,34", in the same order; missing ones 0), each id
+// with the ids that stand in for it after a "|" ("12|56,34": Alts).
 func parseAbilities(names, ids string) []CMAbility {
 	var out []CMAbility
 	for _, f := range strings.Split(names, ";") {
@@ -276,8 +298,15 @@ func parseAbilities(names, ids string) []CMAbility {
 	}
 	idList := strings.Split(ids, ",")
 	for i := range out {
-		if i < len(idList) {
-			out[i].SpellID, _ = strconv.Atoi(strings.TrimSpace(idList[i]))
+		if i >= len(idList) {
+			continue
+		}
+		alts := strings.Split(idList[i], "|") // "a|b": a, or b standing in for it (CMAbility.Alts)
+		out[i].SpellID, _ = strconv.Atoi(strings.TrimSpace(alts[0]))
+		for _, f := range alts[1:] {
+			if id, err := strconv.Atoi(strings.TrimSpace(f)); err == nil && id > 0 {
+				out[i].Alts = append(out[i].Alts, id)
+			}
 		}
 	}
 	return out
@@ -554,7 +583,7 @@ func (w *World) cmBlockLocked(p *Player, r *CMRank, k CMKnows) string {
 		}
 	}
 	for _, a := range r.Requires {
-		if a.SpellID > 0 && !k.Book[a.SpellID] { // a name never found is not checked
+		if a.SpellID > 0 && !a.heldIn(k.Book) { // a name never found is not checked
 			return fmt.Sprintf("You must know %s to buy %s.", a.Name, r.Name)
 		}
 	}
@@ -788,6 +817,13 @@ type CMResult struct {
 	Mastery Mastery
 	State   CMState
 	Removed []int
+	// GiveBack and TakeOut are a removal's change to the book: what the rank
+	// replaced, back in, and what it gave, out; but not a spell a rank the
+	// player keeps gave (it stays) or replaced (it stays out), so with Icy and
+	// Static Destruction both owned, removing one keeps the Fiery spells the
+	// other gives and does not hand back the Nova the other replaced
+	// (cmRemovalBookLocked)
+	GiveBack, TakeOut []CMAbility
 }
 
 // BuyCM buys a rank for the session's player: its points and ranks changed
@@ -866,7 +902,43 @@ func (w *World) RemoveCM(sess *session.Session, id int) CMResult {
 	p.Mastery.Spent = max(0, spent)
 	w.cmChangedLocked(p)
 	log.Printf("Mastery: %s removed %s (%d), its %d points gone: %s", p.Name, name, id, paid, masteryLine(p.Mastery))
-	return CMResult{Rank: r, Paid: paid, Mastery: p.Mastery, State: p.cmStateLocked(), Removed: []int{id}}
+	res := CMResult{Rank: r, Paid: paid, Mastery: p.Mastery, State: p.cmStateLocked(), Removed: []int{id}}
+	if r != nil {
+		res.GiveBack, res.TakeOut = w.cmRemovalBookLocked(p, r)
+	}
+	return res
+}
+
+// cmRemovalBookLocked is the book's change at the removal of r, the player's
+// ranks without it already (CMResult.GiveBack and TakeOut). Must be called
+// with the lock held.
+func (w *World) cmRemovalBookLocked(p *Player, r *CMRank) (giveBack, takeOut []CMAbility) {
+	gives, takes := r.BookChange()
+	keptGives, keptTakes := map[int]bool{}, map[int]bool{}
+	for oid := range p.CMs {
+		o := w.cmRank(oid)
+		if o == nil {
+			continue
+		}
+		g, t := o.BookChange()
+		for _, a := range g {
+			keptGives[a.SpellID] = true
+		}
+		for _, a := range t {
+			keptTakes[a.SpellID] = true
+		}
+	}
+	for _, a := range takes {
+		if a.SpellID <= 0 || !keptTakes[a.SpellID] {
+			giveBack = append(giveBack, a)
+		}
+	}
+	for _, a := range gives {
+		if a.SpellID <= 0 || !keptGives[a.SpellID] {
+			takeOut = append(takeOut, a)
+		}
+	}
+	return giveBack, takeOut
 }
 
 // CMRankByID is a rank of the catalog (nil when none). The catalog is never

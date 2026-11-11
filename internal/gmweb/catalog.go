@@ -1483,7 +1483,7 @@ var catalog = map[string]tableNote{
 			"minstats":       {Label: "Base stats needed", Help: "STR:100,STA:150 (base and training, and what masteries add)"},
 			"requires":       {Label: "Abilities needed", Help: "Name@level; ... as shown"},
 			"require_ranks":  {Label: "Masteries needed", Help: "other masteries' ranks owned first, their ids (6634, ...); the rank before it in its own line is Rank before; an id the catalog lacks is not checked, and a rank another one needs is not removed before it"},
-			"require_spells": {Label: "Abilities needed (spells)", Help: "their spellpattern ids, in the same order: the book must hold them; 0 is not checked"},
+			"require_spells": {Label: "Abilities needed (spells)", Help: "their spellpattern ids, in the same order: the book must hold them; 0 is not checked; 12|56: 12, or 56 standing in for it (a spell another line traded 12 for)"},
 			"require_quests": {Label: "Quests needed", Help: "quests finished first, their ids (quests.questid: 101195, ...); a quest not in the game (a draft, or none) bars no one, and a quest put in or taken out counts at once"},
 			"effects":        {Label: "Gives", Help: "STR:1,STRMax:15 in EQOA-Data's names (the table's help lists them)"},
 			"adds":           {Label: "Adds abilities", Help: "Name@level; ... as shown"},

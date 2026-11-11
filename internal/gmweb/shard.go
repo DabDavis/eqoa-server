@@ -12,7 +12,7 @@ package gmweb
 
 // sharedAccountOps are the operations a copy of the accounts refuses.
 var sharedAccountOps = []string{"create_account", "set_account_password", "ban_account", "set_account_level", "set_account_tester",
-	"set_account_storyteller"}
+	"set_account_storyteller", "pwreset_approve", "pwreset_decline", "pwreset_start"}
 
 const sharedAccountsWord = "this shard's accounts are a copy of the main shard's: change them on that server's GM panel"
 

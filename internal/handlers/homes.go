@@ -47,7 +47,6 @@ const (
 	homesAnswerHome = "Go to my home"
 	homesAnswerVis  = "Visit a friend's home"
 	homesAnswerOut  = "Return to %s"
-	homesAnswerBye  = "Leave"
 	homesAnswerMore = "More homes"
 	homesClosed     = "Real Estate Listings: 'There are no homes on this server.'"
 	homesNoWorld    = "Real Estate Listings: 'Your game cannot see the Homesteads, so you cannot go there. It needs a client that builds the server's worlds (eqoa-rust-client-vanilla).'"
@@ -64,7 +63,6 @@ const (
 	homesDoHome homesDo = iota
 	homesDoVisit
 	homesDoOut
-	homesDoBye
 	homesDoMore
 	homesDoFriend
 )
@@ -262,7 +260,8 @@ func (hs *Homes) askRoot(sess *session.Session, p *entity.Player, npc entity.Ent
 	} else {
 		answers = append(answers, homesAnswer{do: homesDoHome, label: homesAnswerHome})
 	}
-	answers = append(answers, homesAnswer{do: homesDoVisit, label: homesAnswerVis}, homesAnswer{do: homesDoBye, label: homesAnswerBye})
+	// no answer of its own to leave the box: every client adds its Exit
+	answers = append(answers, homesAnswer{do: homesDoVisit, label: homesAnswerVis})
 	hs.ask(sess, p, question, answers, npc)
 }
 

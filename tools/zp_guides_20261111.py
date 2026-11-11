@@ -65,6 +65,9 @@ def refusals(db, s):
         WHERE i.key = ? AND s.step = 1""", (PORTAL_KEY,)).fetchone() if sgg.has(db, "quest_import_quests") else None
     if not row or row[0] != "show" or row[1] != 0:
         out.append(f"the portal quest's step 1 is not the imported show step with no tunar: {row}")
+    for n in s["npcs"]:
+        if not isinstance(n.get("facing", 0), int) or not 0 <= n.get("facing", 0) < 256:
+            out.append(f"{n['name']}: facing {n.get('facing')!r} is not a whole 0-255 (npcs.facing, 256 a turn)")
     names = sorted({n["name"] for n in s["npcs"]})
     here = [r[0] for r in db.execute(f"SELECT DISTINCT npc_name FROM npcs WHERE world = 5 AND npc_name IN ({','.join('?' * len(names))})", names)]
     if here:

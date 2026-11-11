@@ -486,14 +486,19 @@ with the code), each usable by any creature's template:
 - a **proc** it always has (`proc`, beside its template's `proc_chance` and a fight's: a proc buff's spell pinned, its proc's
   figure, resist and own chance, else the chance a pet of its level has under it (25% and 1 more for each 10 of a pet's INT,
   three a level, the beta sheet's since 2026-11-11, "creatures too": 46% at 70, 13% before), or `proc_chance`/`proc_damage`/`proc_name`/`resist` of its own; `fx` its look at
-  what each proc hits, the creature special's for none: Innoruuk's Largesse of Plague, 650 disease, DR, the disease hit
-  0x0CACDEE1) and a **veil** (`veil`, `tap_pct` % of its own most hit points at every melee hit that lands, from what it hit
+  what each proc hits, the creature special's for none; a pinned spell's own `proc_fx` (below) over it: Innoruuk's Largesse
+  of Plague, 650 disease, DR, 0x830D8A97 since 2026-11-11, the disease hit 0x0CACDEE1 before) and a **veil** (`veil`, `tap_pct` % of its own most hit points at every melee hit that lands, from what it hit
   into itself, cut by `resist`; `fx` its look at what each tap hits, none for none; `name`, or a spell pinned: Innoruuk's
   Veil of Death +, 1%, AR, silent), on players, pets and creatures alike (`entity/creatureproc.go`). **A proc or veil of a
   pinned spell is that buff on its creature, cast on itself**: as its fight begins, a 0x00B1 from it at itself with the
   buff's own visual, and again at the buff's time (its record's: Largesse's 5 minutes, Veil of Death +'s 30; none, once a
   fight), never at what it fights (the owner, 2026-11-10, watching: each proc and tap had sent the buff's visual at Mr.
   Moogie; no effect is put on it, so no strip takes it: `entity/selfbuff.go`);
+- **a proc's own look** (`proc_fx` on an Offensive Proc's proc in `spelleffect.effects`, or on the Offensive Proc for
+  each of its procs: a SPELLFX.CSF DictID, a number or `"0x..."`): the 0x00B1 at what each proc of that buff hits, from
+  its bearer: a pet's (none before, its figure alone), a player's (the damage shield's `fxShieldHit` for none), a duel's,
+  a template's pinned on the spell; kept on the effect (`EffectRules.ProcFX`), so a buff landed before an edit keeps its
+  look until recast. The owner, 2026-11-11: "0x830d8a97 is the dictid for LoP proc" (`tools/largesse_proc_fx_20261111.py`);
 - a **line at a kill** (`killsay`, `foes` names, `say`: its line in /say when a hit of its own kills one of them, its melee,
   casts, specials, kicks, procs, veil, rampage or damage over time, on a creature or a player; not a pet's kill, an add's
   (a Servant of Moogie's: an add says none of its creature's lines) or another's; petition 1458, Mr. Moogie's "Dab got dunked again" at Innoruuk's death: `entity/selfbuff.go`);

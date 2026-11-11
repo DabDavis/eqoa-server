@@ -1301,7 +1301,7 @@ var catalog = map[string]tableNote{
 			"each special_jitter seconds either way, counting only its time at its enemy (not closing in, rooted away or " +
 			"casting: Sandstorm's specials come with its rounds) (the user's SOE roamer: a crit every 30 s or so), either only from " +
 			"special_from on (a level: the roamer's 10); " +
-			"and in its fights it casts its abilities from where it stands, its melee waiting while it casts. An ability " +
+			"and in its fights it casts its abilities from where it stands, standing still for each cast, its melee rounds going on through it while its enemy is in reach. An ability " +
 			"casts the highest spell of its kind (nuke: a harmful hit of one target; aoe: one on an area, the spell's area " +
 			"and its Spell areas row; lifetap: a hit that heals its caster; heal: a heal on itself, below its share of hit " +
 			"points) its class has at or below the NPC's level (Class spells; a mastery's, an epic's or a master class's " +

@@ -1489,9 +1489,8 @@ func (w *World) npcFightPetLocked(npc, pet *NPC, now time.Time) {
 		npc.endRound()
 		npc.RoundTarget = pet.ServerID
 	}
-	if npc.tmpl != nil && w.templateTurnLocked(npc, pet.ServerID, now) {
-		npc.loseDueHits(now) // casting at the pet: no swing meanwhile (classtemplate.go)
-		return
+	if npc.tmpl != nil {
+		w.templateTurnLocked(npc, pet.ServerID, now) // its casts at the pet; its rounds go on beside one (classtemplate.go)
 	}
 	if npc.tmpl != nil {
 		defer func() {
@@ -1507,7 +1506,7 @@ func (w *World) npcFightPetLocked(npc, pet *NPC, now time.Time) {
 			next = now
 		}
 		npc.RoundStart, npc.RoundHits = next, 0
-		w.broadcastNPCSwingLocked(npc, pet.ServerID, uint32(delay/time.Millisecond), fx)
+		w.npcSwingLocked(npc, pet.ServerID, uint32(delay/time.Millisecond), fx, now) // none while it casts
 	}
 	for npc.RoundHits < len(hits) && !now.Before(npc.RoundStart.Add(hits[npc.RoundHits])) {
 		npc.RoundHits++

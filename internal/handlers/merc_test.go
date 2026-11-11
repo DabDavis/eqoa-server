@@ -228,8 +228,8 @@ func TestMercKitIsItsClassesHeirlooms(t *testing.T) {
 	if war.Gear.AC < 50 || war.Gear.WeaponDamage != 120 {
 		t.Errorf("the warrior's gear: AC %d, weapon %d; the level's best tunic's 50 and sword's 120", war.Gear.AC, war.Gear.WeaponDamage)
 	}
-	if war.Base != entity.SimBaseStats(0, 0, 30) {
-		t.Errorf("the warrior's base stats %v, a player's %v", war.Base, entity.SimBaseStats(0, 0, 30))
+	if war.Base != entity.MercBaseStats(0, 0, 30) { // a tank's: STA and AGI (entity/mercroles.go)
+		t.Errorf("the warrior's base stats %v, a tank merc's %v", war.Base, entity.MercBaseStats(0, 0, 30))
 	}
 	if len(war.Spells) != 1 || war.Spells[0].Name != "Taunt" {
 		t.Errorf("the warrior's book: %v", war.Spells)

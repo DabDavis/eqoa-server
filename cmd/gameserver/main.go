@@ -444,6 +444,9 @@ func main() {
 	if cfg.World.Capes {
 		log.Printf("Capes: worn in equip slot 22 by a client that draws them (world.capes)")
 	}
+	entity.SetCharSlots(cfg.World.MaxCharacters) // entity/charslots.go, handlers/charslots.go
+	log.Printf("Characters: an account holds %d, listed whole to a client that scrolls them (vanilla); a PS2 is listed its %d most recently played (world.max_characters)",
+		entity.CharSlots(), entity.ClientCharCap(false))
 	entity.SetItemSlots(cfg.World.PackSlots, cfg.World.BankSlots) // entity/itemslots.go, handlers/itemlists.go
 	if entity.ItemSlotsOffered() {
 		pack, bank := entity.ItemSlots()
@@ -734,6 +737,7 @@ func main() {
 	if cfg.Server.AccountPort != 0 {
 		accountServer = tcp.NewAccountServer(db, cfg.Server.AccountPort, cfg.Auth.BCryptCost)
 		accountServer.SetNewCharacterRules(newRules)
+		accountServer.MaxCharacters = entity.CharSlots()
 		// races past the game's, where creation takes them (entity/creation.go)
 		if creation.On() {
 			accountServer.SetExtraRaces(handlers.NewCharRace)

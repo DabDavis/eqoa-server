@@ -137,6 +137,11 @@ type Session struct {
 	// records (entity/livelook.go). liveLookOffered: the offer went out.
 	liveLook        bool
 	liveLookOffered bool
+	// manyChars: the client's answer to the live look's offer said its select
+	// page lists every character and scrolls them (bit 1, vanilla): it is
+	// listed and may make the server's world.max_characters, not CLIENT's 8
+	// (handlers/charslots.go).
+	manyChars bool
 	// creationOffered: the creation offer went out (protocol.OpcodeCreationOffer,
 	// handlers/creation.go), once a session as the live look's.
 	creationOffered bool
@@ -557,6 +562,22 @@ func (s *Session) LiveLook() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.liveLook
+}
+
+// SetManyChars records whether the session's client lists every character
+// (its select page scrolls).
+func (s *Session) SetManyChars(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.manyChars = on
+}
+
+// ManyChars is whether the session's client lists every character; false
+// for a PS2, whose page holds 8.
+func (s *Session) ManyChars() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.manyChars
 }
 
 // OfferLiveLookOnce reports whether the live look's offer is still to be

@@ -368,10 +368,11 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 		return nil
 	}
 
-	// PS2 limit: 8 characters per account
+	// the characters an account may hold (world.max_characters), CLIENT's 8 on
+	// a client whose page holds 8 (a PS2's; charslots.go)
 	charCount, _ := h.store.CountByAccount(uint32(accountID))
-	if charCount >= 8 {
-		log.Printf("CreateCharacter: account %d already has %d characters (max 8)", accountID, charCount)
+	if most := charCap(sess); charCount >= most {
+		log.Printf("CreateCharacter: REFUSED '%s': account %d already has %d characters (its client makes %d at most, the server's %d)", name, accountID, charCount, most, entity.CharSlots())
 		h.sendCreateRefusal(sess, protocol.OpcodeCreateCharFailed)
 		return nil
 	}
@@ -592,6 +593,8 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	h.giveRockOfFreeport(uint32(record.ServerID), sessionListSizes(sess))
 
 	log.Printf("SelectedChar: selected '%s' (level %d race=%d class=%d)", record.CharName, record.Level, record.Race, record.TClass)
+	// when it was last played: the order a PS2's 8 are listed in (charslots.go)
+	h.stampPlayed(uint32(record.ServerID))
 
 	// Promote to a master session HERE, not when the character list was sent.
 	// Sandstorm's order (pcaps/ps2_sandstorm.pcap): character list at t=1.14s on
@@ -1737,6 +1740,9 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 			records = []*database.CharacterRecord{}
 		}
 		log.Printf("SendCharacterSelectEQOA: found %d characters for account %d", len(records), accountID)
+		// a client whose page holds fewer (a PS2's 8): the most recently
+		// played (charslots.go)
+		records = h.sessionChars(sess, records)
 		for i, r := range records {
 			log.Printf("SendCharacterSelectEQOA:   [%d] ServerID=%d Name='%s' Race=%d Class=%d ModelID=0x%X", i, r.ServerID, r.CharName, r.Race, r.TClass, r.ModelID)
 		}

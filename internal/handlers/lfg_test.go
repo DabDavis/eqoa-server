@@ -152,7 +152,7 @@ func newLFGWorld(t *testing.T) *lfgWorld {
 
 // Register, search both ways, unregister: either type finds every registered
 // character (petition 1582, the GM Jibrish: registered players "should
-// display" on the search's list), in no group or leading one, full or not; the
+// display" on the search's list), in no group or leading one with room; the
 // rows read back as the live client reads them, the id the one 0x0625 takes;
 // nothing unregistered, out of the range typed, a member who does not lead
 // its group, or the searcher itself.
@@ -162,8 +162,8 @@ func TestLFGRegisterSearchUnregister(t *testing.T) {
 		t.Fatalf("registered: Bob %v Fay %v Gus %v Dave %v", w.pb.LFG, w.pf.LFG, w.pg.LFG, w.pd.LFG)
 	}
 	rows := lfgSearch(t, w.h, w.alice, 0, -1, -1, 15, 30)
-	if got := rowNames(rows); strings.Join(got, ",") != "Bob,Fay,Gus" {
-		t.Fatalf("players for a group: %v, want Bob, Fay and Gus", got)
+	if got := rowNames(rows); strings.Join(got, ",") != "Bob,Fay" {
+		t.Fatalf("players for a group: %v, want Bob and Fay", got)
 	}
 	b := rows[0]
 	if b.level != 22 || b.class != 9 || b.race != 1 || b.world != 2 || b.x != w.pb.X || b.y != w.pb.Y || b.z != w.pb.Z {
@@ -177,13 +177,12 @@ func TestLFGRegisterSearchUnregister(t *testing.T) {
 	}
 	// the wider range takes Cara too; the searcher never finds itself
 	lfgSend(t, w.h, w.alice, 2, nil)
-	if got := rowNames(lfgSearch(t, w.h, w.alice, 0, -1, -1, 1, 60)); strings.Join(got, ",") != "Bob,Cara,Fay,Gus" {
+	if got := rowNames(lfgSearch(t, w.h, w.alice, 0, -1, -1, 1, 60)); strings.Join(got, ",") != "Bob,Cara,Fay" {
 		t.Errorf("1-60: %v", got)
 	}
-	// a group for a player: the same (Gus's four are full, and listed: he
-	// registered)
-	if got := rowNames(lfgSearch(t, w.h, w.alice, 1, -1, -1, 1, 60)); strings.Join(got, ",") != "Bob,Cara,Fay,Gus" {
-		t.Errorf("a group for a player: %v, want Bob, Cara, Fay and Gus", got)
+	// a group for a player: the same (Gus's four are full: one more is a raid)
+	if got := rowNames(lfgSearch(t, w.h, w.alice, 1, -1, -1, 1, 60)); strings.Join(got, ",") != "Bob,Cara,Fay" {
+		t.Errorf("a group for a player: %v, want Bob, Cara and Fay", got)
 	}
 	// Bob unregisters (a line says so), and the answer is the empty one
 	w.bob.Queue().GetPending()
@@ -193,7 +192,7 @@ func TestLFGRegisterSearchUnregister(t *testing.T) {
 	}
 	w.alice.Queue().GetPending()
 	lfgSend(t, w.h, w.alice, 3, nil)
-	if got := rowNames(lfgSearch(t, w.h, w.alice, 0, -1, -1, 15, 30)); strings.Join(got, ",") != "Fay,Gus" {
+	if got := rowNames(lfgSearch(t, w.h, w.alice, 0, -1, -1, 15, 30)); strings.Join(got, ",") != "Fay" {
 		t.Errorf("after Bob unregistered: %v", got)
 	}
 	// the empty answer is exactly u8 0x40, zz 0 (no class)
@@ -323,7 +322,7 @@ func TestLFGChatCommands(t *testing.T) {
 func TestLFGEndsAtLogout(t *testing.T) {
 	w := newLFGWorld(t)
 	w.gw.RemovePlayerBySession(w.bob)
-	if got := rowNames(lfgSearch(t, w.h, w.alice, 0, -1, -1, 1, 60)); strings.Join(got, ",") != "Cara,Fay,Gus" {
+	if got := rowNames(lfgSearch(t, w.h, w.alice, 0, -1, -1, 1, 60)); strings.Join(got, ",") != "Cara,Fay" {
 		t.Errorf("after Bob's logout: %v", got)
 	}
 	again, pb := w.join(2, "Bob", 1020, 2002, 0)
@@ -332,7 +331,7 @@ func TestLFGEndsAtLogout(t *testing.T) {
 		t.Error("the new login came in registered")
 	}
 	_ = again
-	if got := rowNames(lfgSearch(t, w.h, w.alice, 0, -1, -1, 1, 60)); strings.Join(got, ",") != "Cara,Fay,Gus" {
+	if got := rowNames(lfgSearch(t, w.h, w.alice, 0, -1, -1, 1, 60)); strings.Join(got, ",") != "Cara,Fay" {
 		t.Errorf("after Bob's new login: %v", got)
 	}
 }
@@ -392,20 +391,20 @@ func TestGroupChatShowHide(t *testing.T) {
 // level counted for Erin's).
 func TestLFGWindowsOwnRangeTakesEveryLevel(t *testing.T) {
 	w := newLFGWorld(t)
-	if got := rowNames(lfgSearch(t, w.h, w.alice, 1, -1, -1, 14, 27)); strings.Join(got, ",") != "Bob,Cara,Fay,Gus" {
+	if got := rowNames(lfgSearch(t, w.h, w.alice, 1, -1, -1, 14, 27)); strings.Join(got, ",") != "Bob,Cara,Fay" {
 		t.Errorf("the window's own 14-27: %v, want every registered character", got)
 	}
 	for _, r := range [][2]byte{{14, 26}, {15, 27}} {
-		if got := rowNames(lfgSearch(t, w.h, w.alice, 1, -1, -1, r[0], r[1])); strings.Join(got, ",") != "Bob,Fay,Gus" {
-			t.Errorf("typed %d-%d: %v, want Bob, Fay and Gus", r[0], r[1], got)
+		if got := rowNames(lfgSearch(t, w.h, w.alice, 1, -1, -1, r[0], r[1])); strings.Join(got, ",") != "Bob,Fay" {
+			t.Errorf("typed %d-%d: %v, want Bob and Fay", r[0], r[1], got)
 		}
 	}
 	for _, r := range [][2]byte{{17, 25}, {17, 31}} {
-		if got := rowNames(lfgSearch(t, w.h, w.fay, 0, -1, -1, r[0], r[1])); strings.Join(got, ",") != "Bob,Cara,Gus" {
-			t.Errorf("Fay's group's %d-%d: %v, want Bob, Cara and Gus", r[0], r[1], got)
+		if got := rowNames(lfgSearch(t, w.h, w.fay, 0, -1, -1, r[0], r[1])); strings.Join(got, ",") != "Bob,Cara" {
+			t.Errorf("Fay's group's %d-%d: %v, want Bob and Cara", r[0], r[1], got)
 		}
 	}
-	if got := rowNames(lfgSearch(t, w.h, w.fay, 0, -1, -1, 17, 29)); strings.Join(got, ",") != "Bob,Gus" {
-		t.Errorf("Fay's typed 17-29: %v, want Bob and Gus", got)
+	if got := rowNames(lfgSearch(t, w.h, w.fay, 0, -1, -1, 17, 29)); strings.Join(got, ",") != "Bob" {
+		t.Errorf("Fay's typed 17-29: %v, want Bob", got)
 	}
 }

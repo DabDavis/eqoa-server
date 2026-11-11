@@ -21,10 +21,11 @@ import (
 // the query's classes, races and levels take, of either type (the window's
 // type 0 is a group's leader looking for players, type 1 a character in no
 // group looking for one; the window's title is always "Search for Player"),
-// but the searcher, its own group and a member of a group it does not lead
-// (registered before it joined: a member cannot register). Until then a type 0 search left out
-// every registered group leader and a type 1 search a full group's (petition
-// 1476's rule, inferred: no capture of SOE's server holds a search).
+// but the searcher, its own group, a member of a group it does not lead
+// (registered before it joined: a member cannot register) and the leader of a
+// full group (one more is a raid group). Until then a type 0 search left out
+// every registered group leader (petition 1476's rule, inferred: no capture of
+// SOE's server holds a search).
 //
 // The levels: the window opens with the range its searcher hunts with
 // (LevelRange, the live client's 0x012EC0C0: a level 60 searcher's is 45-60),
@@ -150,6 +151,12 @@ func (w *World) LFGSearch(sess *session.Session, q LFGQuery) []LFGRow {
 		// one registered before it joined a group it does not lead looks
 		// for none now (a member cannot register: SetLFG)
 		if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil && len(g.Members) > 0 && g.Members[0] != p.ServerID {
+			continue
+		}
+		// nor a full group's leader: one more and a group of four is a raid
+		// group (raid.go); one in a group of its own and its merc's alone
+		// gives way to an invite (mercgroup.go)
+		if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil && len(g.Members) >= GroupWindowSize && !w.mercOnlyGroupLocked(p) {
 			continue
 		}
 		if !lfgBit(q.Classes, p.Class) || !lfgBit(q.Races, WireRace(p.Race)) || (!anyLevel && (p.Level < q.MinLevel || p.Level > q.MaxLevel)) {

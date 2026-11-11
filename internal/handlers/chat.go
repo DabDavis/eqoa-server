@@ -74,6 +74,10 @@ type ChatHandler struct {
 	dyes     dyeStore     // #dye's (dye.go)
 	vampires vampireStore // #vampire's (vampirecmd.go)
 
+	// #reward's record and its audit log (reward.go)
+	rewards     rewardStore
+	rewardAudit rewardAuditor
+
 	// safe is where /testinvis keeps a player's safe mode (safemode.go)
 	safe safeModeStore
 	// welcome is /tutorial's box (welcome.go); nil: no guide
@@ -1274,6 +1278,11 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// #effect [<icon> [name] | clear]
 		h.effectCommand(sess, parts[1:])
 
+	case "#reward":
+		// #reward [player]: GM's Reward on the GM's target, a player, for an
+		// hour (reward.go; petition 1501)
+		h.rewardCommand(sess, player, parts[1:])
+
 	case "#clearbuffs", "#nukebuffs":
 		// #clearbuffs: every effect on the GM ended now, as its time running
 		// out ends it (clearbuffscmd.go; F3 20261029-011146)
@@ -1409,6 +1418,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #template [player] - level 60, every spell of your class, 1,000,000 tunar, the best gear you may wear")
 		h.gmReply(sess, "  #effect [<icon hex> [name] | clear] - list, add or clear the effects channel's slots (the spells behind them go on)")
 		h.gmReply(sess, "  #clearbuffs - every buff on you ended now, as its time running out ends it (#nukebuffs too)")
+		h.gmReply(sess, "  #reward [player] - GM's Reward on your target (a player) for an hour: DS 25, heal 25 when hit, +100 AC, +50 stats")
 		h.gmReply(sess, "  #faction <faction> [standing] - your standing with a faction, or set it")
 		h.gmReply(sess, "  #grantcm <amount> - mastery points, never past 1500 spent and unspent")
 		h.gmReply(sess, "  #debt [amount] - your experience debt, or set it (0 clears)")

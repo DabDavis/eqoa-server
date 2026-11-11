@@ -128,3 +128,34 @@ func auditValue(v any) any {
 	}
 	return v
 }
+
+// AuditGMLive writes a line for a GM's act in the game that is no row change
+// (a buff given, as the panel's kicks and messages are "live" lines with no
+// table): the account named as SetSpellVisual names it, the detail the act.
+// It returns the line's id.
+func (db *SQLiteDB) AuditGMLive(who GMEdit, detail string) (int64, error) {
+	if _, err := db.Exec(GMAuditSchema); err != nil {
+		return 0, err
+	}
+	tx, err := db.Begin()
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+	if who.Username == "" {
+		if err := tx.QueryRow(`SELECT username FROM accountinfo WHERE accountid = ?`, who.AccountID).Scan(&who.Username); err != nil {
+			return 0, fmt.Errorf("account %d: %w", who.AccountID, err)
+		}
+	}
+	res, err := tx.Exec(`INSERT INTO gm_audit (at, accountid, username, via, ip, action, tbl, rowkey, before, after, detail)
+		VALUES (?, ?, ?, ?, ?, 'live', '', '', NULL, NULL, ?)`,
+		time.Now().UTC().Format(time.RFC3339), who.AccountID, who.Username, who.Via, who.IP, detail)
+	if err != nil {
+		return 0, err
+	}
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return id, tx.Commit()
+}

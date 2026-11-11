@@ -366,3 +366,38 @@ func TestFamiliarItemCallsIt(t *testing.T) {
 		t.Error("/familiar dismiss left Healbot")
 	}
 }
+
+// Petition 1504 (Lifeispain): a merc back at a login is asked into a group,
+// and the no dismisses it, its row dropped as /merc dismiss drops it; the next
+// login brings none. The control: the row is kept until the answer.
+func TestADeclinedMercsHireEnds(t *testing.T) {
+	r, m, db := newMercFixture(t)
+	r.gw.OnMercNote(m.note) // as Start hears the World
+	if err := db.SetMerc(database.MercRow{ServerID: r.pa.CharServerID, Name: "Ullin", Class: 9, Race: 0, Stance: 2}); err != nil {
+		t.Fatal(err)
+	}
+	m.comeBack(r.anna, r.pa)
+	if _, ok := r.gw.MercInfoOf(r.anna); !ok {
+		t.Fatal("no merc at the login")
+	}
+	r.gw.Tick(time.Now())
+	if _, kept, _ := db.Merc(r.pa.CharServerID); !kept {
+		t.Fatal("the hire was ended before the answer")
+	}
+	r.drain()
+	r.gw.GroupDecline(r.anna, r.anna.PlayerObjectID(), 1)
+	r.gw.Tick(time.Now())
+	if _, ok := r.gw.MercInfoOf(r.anna); ok {
+		t.Fatal("the declined merc stayed")
+	}
+	if _, kept, _ := db.Merc(r.pa.CharServerID); kept {
+		t.Error("the declined merc's hire was kept")
+	}
+	if got := r.msgs(r.anna); !hasMsg(got, "chat:Your mercenary Ullin is dismissed*") {
+		t.Errorf("the owner's lines: %q", got)
+	}
+	m.comeBack(r.anna, r.pa)
+	if _, ok := r.gw.MercInfoOf(r.anna); ok {
+		t.Error("a login after the no brought the merc back")
+	}
+}

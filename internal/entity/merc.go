@@ -723,6 +723,17 @@ func (w *World) mercSystem(now time.Time) {
 			w.mercTellLocked(ms, sess)
 		}
 		w.mercGroupUpkeepLocked(ms, sess)
+		if w.mercs[id] != ms {
+			continue // dismissed out of its owner's group (mercgroup.go)
+		}
+		if !w.mercInOwnGroupLocked(ms) {
+			// out of its owner's group, its box (or another's) up: it stands
+			// where it is and fights nothing until the answer (mercgroup.go)
+			ms.target, ms.ordered = 0, 0
+			n.endRound()
+			n.stopMoving()
+			continue
+		}
 		if owner.IsDead() || owner.respawnPending() {
 			// its owner down: it stands where it is, out of every fight of its
 			// own (a creature fighting it still does), until its owner is back

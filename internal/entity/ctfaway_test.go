@@ -55,7 +55,20 @@ func (r *ctfAwayRig) hire(t *testing.T, i int, name string) *mercState {
 	if _, why := r.w.HireMerc(r.ss[i], ctfMercKit(r.ps[i], name), MercAssist, r.at(0)); why != "" {
 		t.Fatalf("%s's hire was refused: %s", r.ps[i].Name, why)
 	}
+	r.yesToMerc(i)
 	return r.w.mercs[r.ps[i].ServerID]
+}
+
+// yesToMerc answers yes to player i's merc's box, if one is up (a merc fights
+// and follows only in its owner's group: mercgroup.go).
+func (r *ctfAwayRig) yesToMerc(i int) {
+	p := r.ps[i]
+	r.w.mu.Lock()
+	ask, up := r.w.invites[p.ServerID][p.ServerID]
+	r.w.mu.Unlock()
+	if up && ask.merc {
+		r.w.GroupAccept(r.ss[i], r.ss[i].PlayerObjectID())
+	}
 }
 
 // callHealbot is Healbot's item landing for player i at x.

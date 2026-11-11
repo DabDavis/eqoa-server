@@ -98,9 +98,11 @@ func (w *World) RestoreMerc(sess *session.Session, kit MercKit, k KeptMerc, now 
 	n.HP = keptShare(k.HPPct, n.MaxHP)
 	n.Power = min(n.MaxPower, int(k.PowerPct*float64(n.MaxPower)+0.5))
 	syncMercBody(ms)
-	// not asked again: its client holds what it answered before; one that
-	// waited outside the arena is asked, as at its return from there
-	ms.asked = !k.Away
+	// grouped, not asked again: its client holds the group (regroup); out of
+	// a group (its box was up at the restart, which the new process does not
+	// hold) or waiting outside the arena, asked, as at its return from there:
+	// a merc fights only in its owner's group (mercgroup.go)
+	ms.asked = k.Grouped && !k.Away
 	// its group place at the group upkeep, once the kept groups are formed
 	// again (RestoreGroups comes after every session's character)
 	ms.regroup = k.Grouped

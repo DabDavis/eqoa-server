@@ -29,6 +29,9 @@ type KillCredit struct {
 	Level    int
 	World    uint8
 	Players  []KillPlayer
+	// Group is the killer's group (Player.GroupID, a raid's too) at the death,
+	// 0 for none: the loot's kill group (handlers/lootrights.go)
+	Group uint32
 	// Raid is the killer's raid's loot rule and seats when it has one but free for
 	// all (raidrules.go's RaidKill), nil otherwise
 	Raid *RaidKill
@@ -78,7 +81,8 @@ func (w *World) creditKillLocked(sess *session.Session, p *Player, npc *NPC) {
 	if npc.Temporary {
 		spawn = 0
 	}
-	c := KillCredit{NPCName: npc.Name, NPCSpawn: spawn, NPCID: npc.ServerID, Died: npc.DeathTime, Level: npc.Level, World: npc.World, Raid: raid}
+	c := KillCredit{NPCName: npc.Name, NPCSpawn: spawn, NPCID: npc.ServerID, Died: npc.DeathTime, Level: npc.Level, World: npc.World, Raid: raid,
+		Group: p.GroupID}
 	c.Players = append(c.Players, KillPlayer{Session: sess, ServerID: p.CharServerID, Name: p.Name})
 	if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil {
 		for _, id := range g.Members {

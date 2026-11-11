@@ -404,3 +404,48 @@ func (g twoFloors) Floor(_ uint8, x, y, z float32) (float32, bool) {
 	}
 	return y, false
 }
+
+// Petition 1535: a GM's npcaggro leash for a name (the West Plateau's
+// phantoms, 600) is how far its creatures follow, and a row with no word on
+// aggro (aggressive -1) leaves their aggro as the rules have it. The control:
+// with no leash row it gives up just past DefaultLeash.
+func TestAnAggroRowsLeashIsHowFarItFollows(t *testing.T) {
+	for _, tc := range []struct {
+		rules map[string]AggroRule
+		want  float32
+	}{
+		{nil, DefaultLeash},
+		{map[string]AggroRule{}, DefaultLeash},
+		{map[string]AggroRule{"PHANTOM": {NoWord: true, Leash: 600}}, 600},
+	} {
+		c := newCaster(t)
+		c.npc.Name = "phantom"
+		c.npc.Level, c.npc.HP, c.npc.MaxHP = 10, 500, 500
+		c.npc.SpawnX, c.npc.SpawnZ = 102, 100
+		c.npc.LeashRadius = DefaultLeash
+		if tc.rules != nil {
+			c.w.SetAggroRules(tc.rules)
+		}
+		if _, ruled := c.w.aggro.ruleFor(c.npc.Name); ruled {
+			t.Errorf("leash %v: a NoWord row counted as an aggro rule", tc.want)
+		}
+		c.p.X, c.p.HP, c.p.MaxHP = 110, 5000, 5000
+		c.npc.CurrentEnemy = c.p.ServerID
+		c.npc.Threats = map[EntityID]int64{c.p.ServerID: 10}
+		gaveUp := false
+		for d := time.Duration(0); d <= 150*time.Second; d += 100 * time.Millisecond {
+			c.chaseTick(d)
+			if c.npc.CurrentEnemy == 0 {
+				gaveUp = true
+				break
+			}
+			c.p.X += 1.2
+		}
+		if !gaveUp {
+			t.Fatalf("leash %v: still chasing after 150 s", tc.want)
+		}
+		if out := c.npc.X - 102; out < tc.want || out > tc.want+1 {
+			t.Errorf("gave up %.2f from where it began, want just past %.0f", out, tc.want)
+		}
+	}
+}

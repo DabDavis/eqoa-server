@@ -234,6 +234,11 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 		buf[110] = p.RobeTint
 	}
 
+	// a Wisp in its own form shows nothing worn but its cape (wispform.go)
+	if p.WispForm() {
+		hideWornGear(buf)
+	}
+
 	// Offset 111: eqoa.live constant = 6 across ALL entities
 	buf[111] = 6
 

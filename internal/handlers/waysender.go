@@ -157,6 +157,19 @@ var wayRoutes = map[string][]wayRoute{
 	"Waysender Iskan": {
 		{To: "the Black Market", Arrive: "Waysender Mazaran"},
 	},
+	// Arcadin and the Stone's good side (petition 1541, Neo: "talking to
+	// Waysender Yuresh does not port you to stone of morathalis"): Yuresh
+	// stands by Arcadin's docks (Dockmaster Killeron's), and Arcadin is the
+	// good Stone's town (the coaches' routes, entity/coachroutes.go: "Stone
+	// of Morathals (Good)" to Arcadin), so he lands on the good Stone's
+	// waysender, Kurah, among its hogs, and Kurah sends back to him. Free,
+	// as Mazaran's and Iskan's.
+	"Waysender Yuresh": {
+		{To: "Stone of Morathals", Arrive: "Waysender Kurah"},
+	},
+	"Waysender Kurah": {
+		{To: "Arcadin", Arrive: "Waysender Yuresh"},
+	},
 
 	// Between Tunaria and the Rathe (the user, 2026-11-07: "Gatekeeper Furryfoot
 	// needs to send the player to rathe", "also door in the cyclops wall"; a
@@ -231,6 +244,15 @@ var wayRoutes = map[string][]wayRoute{
 	},
 	"Portal to the Dead Hills": {
 		{To: "the Dead Hills", Arrive: "Necrologist Zizclank"},
+	},
+	// The First Seal (petition 1534, Fullmetal: "Spirit Takers Portal is not
+	// responding and will not port to Caretaker"): the guide's black orb
+	// portal in Spirit Talkers Woods, to the Heyokah Burial Ground, landing
+	// in front of the Caretaker; open to anyone (the quest's amulet and the
+	// ground's damage are not in, 30-40-49.json's notes). No guide gives a
+	// way back: it is a walk, or Return Home.
+	"Spirit Talker's Portal": {
+		{To: "the Heyokah Burial Ground", Arrive: "The Caretaker"},
 	},
 	// Inside PoD: Queen Qy'tha "inside whirling portal within the lake in
 	// entrance area" ("be ported to the wasp hive"), and the Twins and

@@ -763,8 +763,19 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 
 	p.Power -= spell.PowerCost
 	p.StatsDirty = true
+	// a taunt lands at once, then holds every ability tauntLockout (taunt.go); else the arts' cooldown
+	// after an art, the cast's busy time and Sandstorm's landing
+	taunt := isTaunt(&spell)
+	busy, land := castBusy, castLand
+	if taunt {
+		busy, land = tauntLockout, 0
+	}
 	if isArt(&spell) {
-		p.artReady = now.Add(w.balance.ArtCooldown(p.Level))
+		if taunt {
+			p.artReady = now.Add(tauntLockout)
+		} else {
+			p.artReady = now.Add(w.balance.ArtCooldown(p.Level))
+		}
 	}
 	w.pvpCastBegunLocked(p, &spell, targets, now) // pvp.go: an attack given
 	w.breakInvisLocked(p, "a spell cast")         // invis.go
@@ -776,7 +787,7 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	if spell.Travel == nil && spell.Familiar == nil { // an item's travel or familiar is no ability: nothing to lock out
 		p.Lockouts = append(p.Lockouts, castLockout{spellID: spell.SpellID, displayIndex: spell.DisplayIndex, until: now.Add(lockout)})
 	}
-	cs := &castState{spell: spell, caster: p.ServerID, targets: targets, ends: now.Add(spell.CastTime + castBusy), lands: now.Add(spell.CastTime + castLand),
+	cs := &castState{spell: spell, caster: p.ServerID, targets: targets, ends: now.Add(spell.CastTime + busy), lands: now.Add(spell.CastTime + land),
 		castEnds: now.Add(spell.CastTime)}
 	w.areaStartLocked(p, cs, now) // area.go: an area spell's others
 	p.Casting = cs
@@ -792,7 +803,7 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	}
 	w.broadcastCastLocked(p, target, spell.CastTime, spell.visual(), cs.others...)
 	log.Printf("Cast: %s begins %q (spell %d) on %#x: %v cast, %d power (%d left), lands in %v",
-		p.Name, spell.Name, spell.SpellID, targetObjectID, spell.CastTime, spell.PowerCost, p.Power, spell.CastTime+castLand)
+		p.Name, spell.Name, spell.SpellID, targetObjectID, spell.CastTime, spell.PowerCost, p.Power, spell.CastTime+land)
 	return true
 }
 
@@ -1697,6 +1708,9 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 		return // another's duel: nothing of the spell lands (metalmoogie.go)
 	}
 	caster.LastCombatTime = now
+	// a taunt (taunt.go), as its record is, before a resist takes a part; a proc's hate (an offensive
+	// or defensive proc's, figuresProc) is added as a hit's
+	taunt := cs.spell.figures != figuresProc && isTaunt(&cs.spell)
 	cs, took := w.resistLocked(cs, caster, casterSess, npc, now) // workbook.go: its resists
 	if !took {
 		w.updateAggro(npc, caster.ServerID, 1) // resisted, it is angered all the same
@@ -1715,7 +1729,11 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 				}
 			}
 		case EffectHate:
-			w.updateAggro(npc, caster.ServerID, spellAmount(e, caster))
+			if taunt {
+				w.tauntHateLocked(npc, caster.ServerID, spellAmount(e, caster)) // taunt.go: the top of its hate
+			} else {
+				w.updateAggro(npc, caster.ServerID, spellAmount(e, caster))
+			}
 		case EffectForget:
 			w.forgetLocked(npc, caster) // vampire.go: Vampiric Gaze
 		case EffectPickpocket:

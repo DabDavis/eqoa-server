@@ -10,6 +10,9 @@ func TestTheBlackMarketAndTheStoneSendToEachOther(t *testing.T) {
 	for _, c := range []struct{ from, to, arrive string }{
 		{"Waysender Mazaran", "Stone of Morathals", "Waysender Iskan"},
 		{"Waysender Iskan", "the Black Market", "Waysender Mazaran"},
+		{"Waysender Yuresh", "Stone of Morathals", "Waysender Kurah"},
+		{"Waysender Kurah", "Arcadin", "Waysender Yuresh"},
+		{"Spirit Talker's Portal", "the Heyokah Burial Ground", "The Caretaker"},
 	} {
 		if !IsWaysender(c.from) {
 			t.Fatalf("%s sends nowhere", c.from)
@@ -18,8 +21,5 @@ func TestTheBlackMarketAndTheStoneSendToEachOther(t *testing.T) {
 		if len(r) != 1 || r[0].To != c.to || r[0].Arrive != c.arrive || r[0].Fee != 0 || r[0].MinLevel != 0 || r[0].QuestOnly {
 			t.Errorf("%s's trips: %+v", c.from, r)
 		}
-	}
-	if len(wayRoutes["Waysender Kurah"]) != 0 {
-		t.Error("the control: Kurah has a trip")
 	}
 }

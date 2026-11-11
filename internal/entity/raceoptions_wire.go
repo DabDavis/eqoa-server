@@ -139,6 +139,13 @@ func lookParts(race int, body uint32, looks []database.CharLook) (kinds []Option
 // body, a GM's under both its names; a character whose rows lay nothing is left
 // out.
 func EncodeRaceLooks(chars []database.LookCharacter) []byte {
+	return encodeRaceLooks(chars, nil)
+}
+
+// encodeRaceLooks is EncodeRaceLooks with the Wisps of mortal (by name) in a
+// mortal form (wispform.go): their wisp row lays nothing, so a client draws the
+// body they show whole.
+func encodeRaceLooks(chars []database.LookCharacter, mortal map[string]bool) []byte {
 	type entry struct {
 		name string
 		body uint32
@@ -149,7 +156,11 @@ func EncodeRaceLooks(chars []database.LookCharacter) []byte {
 	var list []entry
 	for _, c := range chars {
 		body := uint32(c.ModelID)
-		k, v, p := lookParts(c.Race, body, c.Looks)
+		looks := c.Looks
+		if mortal[c.Name] {
+			looks = withoutRow(looks, wispRowKey)
+		}
+		k, v, p := lookParts(c.Race, body, looks)
 		if len(p) == 0 {
 			continue
 		}
@@ -217,7 +228,27 @@ func (w *World) RefreshRaceLooks(db *database.SQLiteDB, only ...*session.Session
 		log.Printf("RaceLooks: the characters: %v", err)
 		return 0
 	}
-	body := EncodeRaceLooks(chars)
+	if w == nil {
+		return w.sendRaceLooks(chars, only...)
+	}
+	l := &w.wispLooks
+	l.send.Lock()
+	defer l.send.Unlock()
+	l.mu.Lock()
+	l.chars, l.have = chars, true
+	l.mu.Unlock()
+	return w.sendRaceLooks(chars, only...)
+}
+
+// sendRaceLooks sends the looks of chars (the Wisps in a mortal form without
+// their wisp: wispform.go) to each session that asked and was last sent
+// another (only: those alone), reporting how many.
+func (w *World) sendRaceLooks(chars []database.LookCharacter, only ...*session.Session) int {
+	var mortal map[string]bool
+	if w != nil {
+		mortal = w.wispLooks.mortalNames()
+	}
+	body := encodeRaceLooks(chars, mortal)
 	sent := 0
 	send := func(s *session.Session) bool {
 		if s.TakeRaceLooks(string(body)) {
@@ -237,4 +268,15 @@ func (w *World) RefreshRaceLooks(db *database.SQLiteDB, only ...*session.Session
 		log.Printf("RaceLooks: %d characters' looks, %d bytes, to %d clients", binary.LittleEndian.Uint16(body[1:3]), len(body), sent)
 	}
 	return sent
+}
+
+// withoutRow is looks less the rows of part key.
+func withoutRow(looks []database.CharLook, key string) []database.CharLook {
+	out := make([]database.CharLook, 0, len(looks))
+	for _, l := range looks {
+		if l.Part != key {
+			out = append(out, l)
+		}
+	}
+	return out
 }

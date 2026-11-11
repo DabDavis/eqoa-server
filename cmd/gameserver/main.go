@@ -250,6 +250,9 @@ func main() {
 	if cfg.World.FactionAggro != nil && !*cfg.World.FactionAggro {
 		gameWorld.SetFactionAggro(false)
 	}
+	if cfg.World.ThrowPowerPct != nil {
+		gameWorld.SetThrowPowerPct(max(*cfg.World.ThrowPowerPct, 0)) // entity/potion.go
+	}
 	// The sun on vampires (entity/vampire.go, table charvampire)
 	gameWorld.SetVampireSun(vampireSunOf(cfg.World))
 	if n, err := db.Vampires(); err != nil {

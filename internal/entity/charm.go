@@ -325,20 +325,7 @@ func (w *World) charmLocked(caster *Player, sess *session.Session, npc *NPC, spe
 // landing (charmLocked) or one a restart carried (keeppet.go). Must be called
 // with the lock held.
 func (w *World) holdCharmLocked(caster *Player, sess *session.Session, npc *NPC, hold *charmHold, now time.Time) {
-	npc.Charm = hold
-	npc.Owner = caster.ServerID
-	npc.NPCType = charmNPCType
-	petPowerLocked(npc) // a pet's power, as a summoned one's (npcregen.go)
-	npc.Threats, npc.CurrentEnemy = nil, 0
-	npc.endRound()
-	npc.endTemplateFight() // its enemy template's clocks (classtemplate.go)
-	w.wakeNPCLocked(npc)   // a pet's regeneration (npcsets.go)
-	npc.RoundTarget = 0
-	npc.stopMoving()
-	npc.roam = roamState{}
-	if caster.AttackTarget == npc.ServerID {
-		caster.disengage()
-	}
+	w.takeCharmedLocked(caster, npc, hold)
 	if w.pets == nil {
 		w.pets = make(map[EntityID]*petState)
 	}
@@ -358,6 +345,27 @@ func (w *World) holdCharmLocked(caster *Player, sess *session.Session, npc *NPC,
 	}
 	log.Printf("Charm: %s's %q takes %s (level %d, %d/%d HP, power %d), %s, %s", caster.Name, hold.spell, npc.Name, npc.Level,
 		npc.HP, npc.MaxHP, npc.Power, lasts, fights)
+}
+
+// takeCharmedLocked is what a charm changes on the creature it takes for
+// owner (a player's pet, or a merc's: mercharm.go): its hold, its owner, its
+// flags, a pet's power, out of every fight and its roaming. Must be called
+// with the lock held.
+func (w *World) takeCharmedLocked(owner *Player, npc *NPC, hold *charmHold) {
+	npc.Charm = hold
+	npc.Owner = owner.ServerID
+	npc.NPCType = charmNPCType
+	petPowerLocked(npc) // a pet's power, as a summoned one's (npcregen.go)
+	npc.Threats, npc.CurrentEnemy = nil, 0
+	npc.endRound()
+	npc.endTemplateFight() // its enemy template's clocks (classtemplate.go)
+	w.wakeNPCLocked(npc)   // a pet's regeneration (npcsets.go)
+	npc.RoundTarget = 0
+	npc.stopMoving()
+	npc.roam = roamState{}
+	if owner.AttackTarget == npc.ServerID {
+		owner.disengage()
+	}
 }
 
 // charmTemplateLocked is the pet template a charmed creature fights by: its

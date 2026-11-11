@@ -88,7 +88,7 @@ const (
 	mercRestLine  = "Your mercenary %s rests for %d more seconds."
 	mercBackLine  = "Your mercenary %s is back at your side."
 	mercKitFailed = "The liaison's ledger is out of order. Try again."
-	mercHelpLine  = "/merc stance passive|assist|aggressive, /merc follow, /merc stay, /merc attack (your target), /merc path, /merc pet, /merc group, /merc revive, /merc dismiss. /familiar dismiss sends a familiar away."
+	mercHelpLine  = "/merc stance passive|assist|aggressive, /merc follow, /merc stay, /merc attack (your target), /merc path, /merc pet, /merc charm [off], /merc group, /merc revive, /merc dismiss. /familiar dismiss sends a familiar away."
 )
 
 // mercRoles are the liaison's first answers, each role's classes in their
@@ -759,6 +759,18 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 		m.path(sess, p, strings.Join(words[1:], " "))
 	case "pet":
 		m.pet(sess, p, strings.Join(words[1:], " ")) // mercpetkind.go
+	case "charm": // entity/mercharm.go
+		var line, why string
+		if len(words) > 1 && (words[1] == "off" || words[1] == "release") {
+			line, why = m.gw.MercCharmOff(sess)
+		} else {
+			line, why = m.gw.MercCharm(sess, m.now())
+		}
+		if why != "" {
+			SendErrorMessage(sess, why)
+			return
+		}
+		SendClientMessage(sess, line)
 	case "group":
 		if line := m.gw.AskMercGroup(sess); line != "" {
 			SendClientMessage(sess, line)
@@ -788,7 +800,7 @@ func (m *Mercs) dismiss(sess *session.Session, p *entity.Player) {
 // mercVerbs are /merc's words, which "/t merc <word>" takes as the command
 // (chat.go: anything else to a "merc" is a tell).
 var mercVerbs = map[string]bool{"status": true, "dismiss": true, "stance": true, "follow": true, "stay": true, "attack": true,
-	"group": true, "revive": true, "help": true, "path": true, "pet": true}
+	"group": true, "revive": true, "help": true, "path": true, "pet": true, "charm": true}
 
 // mercWords reports a tell's body that is /merc's: none, or one of its words
 // first.

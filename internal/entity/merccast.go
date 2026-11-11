@@ -192,6 +192,9 @@ type mercSpell struct {
 	s     *CastSpell
 	use   mercUse
 	worth float64
+	// short: a buff that lasts under mercBuffLasts, kept in a bard's book
+	// (its songs) and an enchanter's (its power bursts) alone (mercsongs.go)
+	short bool
 }
 
 // mercBook is the merc's book as it casts it, its spells' worth on its body
@@ -208,23 +211,27 @@ func (ms *mercState) mercBook() []mercSpell {
 		if u == useNone {
 			continue
 		}
+		short := false
 		if u == useBuff {
 			if s.Def.Duration < mercBuffLasts {
-				continue // a fight's buff
+				if !mercKeepsShort(ms.kit.Class, s) {
+					continue // a fight's buff
+				}
+				short = true
 			}
 			// the best rank of its line alone: a lower one would only be
 			// refused or take off the better
 			if line := BuffLine(s); line != "" {
 				if j, ok := best[line]; ok {
 					if lineRank(s) > lineRank(out[j].s) {
-						out[j] = mercSpell{s: s, use: u, worth: mercWorth(s, u, ms.body)}
+						out[j] = mercSpell{s: s, use: u, worth: mercWorth(s, u, ms.body), short: short}
 					}
 					continue
 				}
 				best[line] = len(out)
 			}
 		}
-		out = append(out, mercSpell{s: s, use: u, worth: mercWorth(s, u, ms.body)})
+		out = append(out, mercSpell{s: s, use: u, worth: mercWorth(s, u, ms.body), short: short})
 	}
 	// the biggest first: each turn takes the first of its kind it may cast
 	sort.SliceStable(out, func(i, j int) bool { return out[i].worth > out[j].worth })
@@ -307,6 +314,11 @@ func (w *World) mercCastTurnLocked(ms *mercState, t *NPC, now time.Time) bool {
 		return true
 	}
 	if w.mercPetCareTurnLocked(ms, now) { // its pet's heal, then its pet's buffs (mercpetbuff.go)
+		return true
+	}
+	// a bard's songs kept up, an enchanter's procs and power on its team, in
+	// a fight or out of one (mercsongs.go)
+	if w.mercSongTurnLocked(ms, now) || w.mercTeamBuffTurnLocked(ms, now) {
 		return true
 	}
 	if t == nil {
@@ -488,7 +500,7 @@ func (w *World) mercBuffTurnLocked(ms *mercState, now time.Time) bool {
 	}
 	ownerNear := o.World == m.World
 	for _, sp := range ms.mercBook() {
-		if sp.use != useBuff || !ms.mercReady(sp.s, now) {
+		if sp.use != useBuff || sp.short || !ms.mercReady(sp.s, now) {
 			continue
 		}
 		s := sp.s
@@ -506,7 +518,7 @@ func (w *World) mercBuffTurnLocked(ms *mercState, now time.Time) bool {
 				w.mercCastLocked(ms, s, o.ServerID, false, now)
 				return true
 			}
-			if mine {
+			if mine && !mercGivesProc(s) { // its own swings run no procs (mercsongs.go)
 				w.mercCastLocked(ms, s, m.ServerID, false, now)
 				return true
 			}
@@ -581,6 +593,9 @@ func (w *World) mercAttackTurnLocked(ms *mercState, t *NPC, now time.Time) bool 
 	m := ms.npc
 	if ms.role == roleHealer && m.Power*100 < m.MaxPower*mercHealerSpare {
 		return false
+	}
+	if ms.kit.Class == classBard && m.Power*100 < m.MaxPower*mercBardSpare {
+		return false // its power for its songs (mercsongs.go)
 	}
 	book := ms.mercBook()
 	// a caster or a healer short of power casts thriftily (mercThrifty)
@@ -755,6 +770,10 @@ func (w *World) mercCastSystemLocked(now time.Time) {
 // Must be called with the lock held.
 func (w *World) mercLandLocked(c *mercCast, now time.Time) {
 	ms, s, m := c.ms, &c.spell, c.ms.npc
+	if s.Def.Charms() {
+		w.mercCharmLandLocked(ms, s, c.target, now) // /merc charm (mercharm.go)
+		return
+	}
 	if s.Def.Summons() {
 		w.mercSummonLandLocked(ms, s, now) // its pet (mercpet.go)
 		return

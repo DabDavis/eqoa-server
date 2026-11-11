@@ -96,7 +96,13 @@ export function duration(sec) {
 // cell is a grid cell's content for a value of a column.
 export function cell(meta, col, v) {
   if (v === null || v === undefined) return h('span', { class: 'faint' }, '—');
-  if (col.enum) return String(enumLabel(meta, col, v));
+  // an enumeration's name with its number beside it ("1H Blunt (3)"), and what
+  // the value does as the cell's tooltip
+  if (col.enum) {
+    const e = meta.enums?.[col.enum]?.find((x) => String(x.value) === String(v));
+    if (!e) return String(v);
+    return h('span', { title: e.help || '' }, `${e.label} (${v})`);
+  }
   // a look column: its picture or colour beside the number (lib/look.js)
   if (col.look) {
     const lc = lookCell(meta, col, v);

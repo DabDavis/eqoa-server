@@ -39,8 +39,8 @@ func TestACreaturesDamageShieldAnswersAMeleeHit(t *testing.T) {
 		t.Errorf("no line said it: %q", got)
 	}
 	p.FireR = ResistCap
-	if hit(guard) || p.HP != 1375 {
-		t.Errorf("with fire resist at the cap: HP %d, want 1375 (a quarter of 500)", p.HP)
+	if hit(guard) || p.HP != 1450 {
+		t.Errorf("with fire resist at the cap: HP %d, want 1450 (a tenth of 500)", p.HP)
 	}
 	p.FireR = 0
 
@@ -92,10 +92,10 @@ func TestACreaturesMeleeProc(t *testing.T) {
 		t.Errorf("a proc with no resist: %d, want 3000", got)
 	}
 	p.FireR = ResistCap
-	if got, _ := roll(guard, 0); got != 750 {
-		t.Errorf("a proc at the resist's cap: %d, want a quarter, 750", got)
+	if got, _ := roll(guard, 0); got != 300 {
+		t.Errorf("a proc at the resist's cap: %d, want a tenth, 300", got)
 	}
-	if got := strings.Join(linesOf(drain(sess)), "|"); !strings.Contains(got, "Gnoll Guard's Dragonfire hits you for 750 (your resist took 75%).") {
+	if got := strings.Join(linesOf(drain(sess)), "|"); !strings.Contains(got, "Gnoll Guard's Dragonfire hits you for 300 (your resist took 90%).") {
 		t.Errorf("its line: %q", got)
 	}
 	if got, _ := roll(plain, 0); got != 0 {
@@ -219,9 +219,10 @@ func TestACreaturesResistFailure(t *testing.T) {
 	if share, how := nagafen.rollResist(0); share != 0 || how != ResistHeld {
 		t.Errorf("no resist: %v %v, nothing to fail", share, how)
 	}
-	// Jibrish's figures: 3,000 before FR, "around 1 - 1.5k" at 215
+	// Jibrish's figures: 3,000 before FR, "around 1 - 1.5k" at 215 (1,464 on the
+	// old 75% line, 1,157 on the 90% one)
 	dice(0.5)
-	if share, _ := nagafen.rollResist(215); int(math.Round(3000*(1-share))) != 1464 {
+	if share, _ := nagafen.rollResist(215); int(math.Round(3000*(1-share))) != 1157 {
 		t.Errorf("3,000 at 215 FR: %v", 3000*(1-share))
 	}
 

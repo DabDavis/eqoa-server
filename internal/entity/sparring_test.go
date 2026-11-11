@@ -25,7 +25,7 @@ func TestASparringDummyQuadsAtAnyLevel(t *testing.T) {
 
 // A strike's damage follows the dummy's level and the share the player's
 // resist took (resist.go): a level 60's 600 at the middle of its spread, a
-// resist of 210 taking half, the cap's 75% a quarter left, never below 1.
+// resist of 210 taking 60%, the cap's 90% a tenth left, never below 1.
 func TestASparStrikeFollowsLevelAndResist(t *testing.T) {
 	for _, tt := range []struct {
 		level, resist int
@@ -33,11 +33,11 @@ func TestASparStrikeFollowsLevelAndResist(t *testing.T) {
 		want          int
 	}{
 		{60, 0, 0.5, 600},
-		{60, 210, 0.5, 300},
+		{60, 210, 0.5, 240},
 		{10, 0, 0.5, 100},
 		{60, 0, 0, 480},
 		{60, 0, 0.999999, 720},
-		{60, 314, 0.5, 151},
+		{60, 314, 0.5, 62},
 	} {
 		if got := sparStrikeDamage(tt.level, ResistShare(tt.resist), tt.roll); got != tt.want {
 			t.Errorf("level %d on resist %d (roll %v): %d, want %d", tt.level, tt.resist, tt.roll, got, tt.want)

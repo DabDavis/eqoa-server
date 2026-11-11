@@ -283,8 +283,9 @@ func TestAPactAtTheResistCap(t *testing.T) {
 // A pact's price is cut on its own scale (petition 1532, Mortician: "at 350
 // AR the price should be cut by 90%"): in proportion from none at 0 to 90% at
 // 350, no more past it, no dice below the cap. Mortician's 117 took 28% on
-// the shared scale; it takes 30% now. The shared scale (75% at 315) is
-// unchanged for every other spell.
+// the shared scale (then 75% at 315); it takes 30% now. The shared scale is
+// 90% at 315 since 2026-11-11 (the owner), and a pact's partial failure stays
+// 54-88.8% of its price.
 func TestAPactsResistScale(t *testing.T) {
 	for _, tt := range []struct {
 		ar   int
@@ -299,8 +300,18 @@ func TestAPactsResistScale(t *testing.T) {
 	if share, how := RollPactResist(349); how != ResistHeld || share != PactResistShare(349) {
 		t.Errorf("349 AR: %v %v", share, how)
 	}
-	if got := ResistShare(315); got != 0.75 {
+	if got := ResistShare(315); math.Abs(got-0.9) > 1e-12 {
 		t.Errorf("the shared scale moved: %v at 315", got)
+	}
+	for _, tt := range []struct {
+		dice  []float64
+		share float64
+	}{{[]float64{0.025, 0}, 0.54}, {[]float64{0.0749, 0.999999999}, 0.888}} {
+		dice := append([]float64(nil), tt.dice...)
+		resistRand = func() float64 { d := dice[0]; dice = dice[1:]; return d }
+		if share, how := RollPactResist(PactResistCap); how != ResistPartial || math.Abs(share-tt.share) > 1e-6 {
+			t.Errorf("pact partial, dice %v: %v %v, want %v", tt.dice, share, how, tt.share)
+		}
 	}
 	// Mortician's own figure: Loathsome Pact's 1640, 1183 at 117 AR on the shared scale.
 	if got := int(math.Round(1640 * (1 - PactResistShare(117)))); got != 1147 {

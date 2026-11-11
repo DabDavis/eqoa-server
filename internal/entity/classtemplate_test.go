@@ -494,7 +494,7 @@ func TestAHealIsCastBelowItsShare(t *testing.T) {
 }
 
 // A spell's hit is cut by the player's resist to its element, by its name:
-// Fire Bolt by fire resist at the cap, 75% (the dice holding it). An ability
+// Fire Bolt by fire resist at the cap, 90% (the dice holding it). An ability
 // that pins its spell casts it whatever the class's spells are.
 func TestATemplatesSpellIsResisted(t *testing.T) {
 	r := newTemplateRig(t)
@@ -516,7 +516,7 @@ func TestATemplatesSpellIsResisted(t *testing.T) {
 		r.tick(d)
 		lines = append(lines, linesOf(drain(sess))...)
 	}
-	if strings.Join(lines, "|") != "Gnoll Pyro's Fire Bolt hits you for 25 (your resist took 75%)." {
+	if strings.Join(lines, "|") != "Gnoll Pyro's Fire Bolt hits you for 10 (your resist took 90%)." {
 		t.Errorf("lines %q", lines)
 	}
 	for name, want := range map[string]Stat{"Ice Storm": StatCR, "Fire Storm": StatFR, "Energy Storm": StatLR, "Siphon Life": StatAR,

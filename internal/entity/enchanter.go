@@ -43,7 +43,7 @@ import (
 //   - An arcane resist debuff on a creature (the Paralytic line, "Decrease
 //     Resist Arcane by 25, 15min") lowers the chance it resists what this
 //     server rolls an arcane resist for: a proc (proc.go) and a charm
-//     (charm.go). By resist.go's own scale (ResistShare: 75% at 315), N AR
+//     (charm.go). By resist.go's debuff line (resistDebuffShare: 75% at 315), N AR
 //     off takes that share of a hundred off the creature's chance in percent
 //     (25 AR: 6 points). The strongest one counts: the five Paralytic ranks
 //     are one line, and cast one over another they do not add up (ours, as
@@ -177,7 +177,7 @@ func npcResistOffPct(npc *NPC, now time.Time) int {
 	if off == 0 {
 		return 0
 	}
-	return int(math.Round(ResistShare(off) * 100))
+	return int(math.Round(resistDebuffShare(off) * 100))
 }
 
 // npcArcaneOff is how far a creature's arcane resist is lowered now: the

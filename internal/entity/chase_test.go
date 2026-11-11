@@ -347,3 +347,60 @@ func TestACreatureComesHomeAtItsHeight(t *testing.T) {
 		t.Errorf("a level fight came home at %.2f", got)
 	}
 }
+
+// A creature under its enemy, on the floor below with no way up (a clump of
+// slime 10 under its players, 2026-11-11), never swings through the floor: it
+// stands, holds, and gives up at chaseHeld as a blocked chase does.
+func TestACreatureUnderItsEnemyDoesNotFightThroughTheFloor(t *testing.T) {
+	c := newCaster(t)
+	c.npc.Name, c.npc.Level, c.npc.HP, c.npc.MaxHP = "clump of slime", 50, 9000, 9000
+	c.npc.OffMod, c.npc.WeaponDamage = NPCOffMod(50), NPCWeaponDamage(50)
+	c.npc.LeashRadius = DefaultLeash
+	c.w.SetGround(twoFloors{lower: c.npc.Y, upper: c.npc.Y + 10})
+	c.p.X, c.p.Y, c.p.Z = c.npc.X+1, c.npc.Y+10, c.npc.Z // overhead, 1 across
+	c.p.HP, c.p.MaxHP = 5000, 5000
+	c.npc.CurrentEnemy = c.p.ServerID
+	c.npc.Threats = map[EntityID]int64{c.p.ServerID: 10}
+	gaveUp := time.Duration(0)
+	for d := time.Duration(0); d <= 12*time.Second; d += 100 * time.Millisecond {
+		c.chaseTick(d)
+		if c.p.HP < 5000 {
+			t.Fatalf("hit through the floor at %v: HP %d", d, c.p.HP)
+		}
+		if gaveUp == 0 && c.npc.CurrentEnemy != c.p.ServerID {
+			gaveUp = d
+		}
+	}
+	if gaveUp == 0 || gaveUp < chaseHeld-time.Second {
+		t.Fatalf("gave up at %v, want about %v", gaveUp, chaseHeld)
+	}
+	// the control: on its floor it fights
+	c2 := newCaster(t)
+	c2.w.SetGround(twoFloors{lower: c2.npc.Y, upper: c2.npc.Y + 10})
+	c2.npc.Name, c2.npc.Level, c2.npc.HP, c2.npc.MaxHP = "clump of slime", 50, 9000, 9000
+	c2.npc.OffMod, c2.npc.WeaponDamage = NPCOffMod(50), NPCWeaponDamage(50)
+	c2.p.X, c2.p.Y, c2.p.Z = c2.npc.X+1, c2.npc.Y, c2.npc.Z
+	c2.p.HP, c2.p.MaxHP = 5000, 5000
+	c2.npc.CurrentEnemy = c2.p.ServerID
+	c2.npc.Threats = map[EntityID]int64{c2.p.ServerID: 10}
+	for d := time.Duration(0); d <= 12*time.Second && c2.p.HP == 5000; d += 100 * time.Millisecond {
+		c2.chaseTick(d)
+	}
+	if c2.p.HP == 5000 {
+		t.Fatal("the control: never hit its enemy on its own floor")
+	}
+}
+
+// twoFloors is a floor at lower and another overhead at upper, everywhere:
+// the floor found is the highest no more than 2 over the height asked from.
+type twoFloors struct{ lower, upper float32 }
+
+func (g twoFloors) Floor(_ uint8, x, y, z float32) (float32, bool) {
+	if y+2 >= g.upper {
+		return g.upper, true
+	}
+	if y+2 >= g.lower {
+		return g.lower, true
+	}
+	return y, false
+}

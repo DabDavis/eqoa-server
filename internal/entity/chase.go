@@ -277,6 +277,19 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 			npc.stopMoving()
 			log.Printf("Chase: %s stands %.2f off its enemy (reach %.2f)", npc.Name, d, reach)
 		}
+		if !shooting && absf(y-npc.Y) > routeLevel && w.floorKnownLocked(npc.World, x, y, z) {
+			// under or over its enemy, on another floor the ground knows, with
+			// no way found to it: no fight through the floor (a clump of slime
+			// on the floor 10 under its players, 2026-11-11), and held as a
+			// blocked step is, so it gives up at chaseHeld. Where the ground
+			// knows no floor under the enemy (something it stands on that the
+			// baked ground lacks) the creature fights by the map, as before
+			if held.IsZero() {
+				held = now
+			}
+			npc.chase.heldSince = held
+			return false, now.Sub(held) >= chaseHeld
+		}
 		return d <= reach, false
 	}
 	ux, uz := (x-npc.X)/d, (z-npc.Z)/d
@@ -461,3 +474,19 @@ func (w *World) homeSystem(now time.Time) {
 	}
 	w.returning = kept
 }
+
+// floorKnownLocked reports a floor of the ground under a body at (x, y, z),
+// within floorKnownBelow under it: where it stands is a floor the server
+// knows, so a creature on another floor is truly on another floor. False
+// without a ground. Must be called with the lock held.
+func (w *World) floorKnownLocked(world uint8, x, y, z float32) bool {
+	if w.ground == nil {
+		return false
+	}
+	f, ok := w.ground.Floor(world, x, y, z)
+	return ok && y-f <= floorKnownBelow && f-y <= floorKnownBelow
+}
+
+// floorKnownBelow is how far over a known floor a standing body may be
+// reported (a player's reports ride a little over the ground; a jump).
+const floorKnownBelow float32 = 3

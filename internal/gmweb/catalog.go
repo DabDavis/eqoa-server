@@ -1661,7 +1661,9 @@ var catalog = map[string]tableNote{
 			"line":    {Label: "What it does", Format: "multiline"},
 			"fxdict":  {Label: "Visual", Format: hex32, Look: lookVisual, Store: storeUint32, Help: "a SPELLFX.CSF visual (0x00B1's); 0 the server's stand-in of its kind"},
 			"effects": {Label: "Effects (JSON)", Format: "multiline", Help: "EQOAEmu's spell workbook's effects as JSON " +
-				"(entity/spelljson.go): when not empty, what the spell does, the line then only words; empty, the line is read."},
+				"(entity/spelljson.go): when not empty, what the spell does, the line then only words; empty, the line is read. An Offensive Proc's \"proc_fx\" (a SPELLFX.CSF DictID, a number or " +
+				"\"0x...\", on the proc's entry or its Offensive Proc) is its look on what each proc hits, a player's, a pet's or a " +
+				"creature template's pinned on the spell; none, the stand-in."},
 		},
 	},
 	"spellarea": {

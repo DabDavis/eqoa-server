@@ -164,6 +164,33 @@ type effectJSON struct {
 	// HatePct is the share of a hit's damage, in percent, that is its hate
 	// on the creature it lands on (SpellEffect.HateOff); absent, all of it
 	HatePct *float64 `json:"hate_pct"`
+	// ProcFX is a proc's own look on what each of its procs hits (ours, not the workbook's:
+	// the owner, 2026-11-11, of Largesse of Plague's, 0x830D8A97): a SPELLFX.CSF DictID, a
+	// number or a "0x..." string, on the proc's own entry or on its Offensive Proc (for each
+	// of its procs); none, the stand-in of its kind (proc.go)
+	ProcFX fxJSON `json:"proc_fx"`
+}
+
+// fxJSON is a visual's DictID in the effects JSON: a number (2198702743) or a hex string
+// ("0x830D8A97").
+type fxJSON uint32
+
+func (f *fxJSON) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err == nil {
+		v, err := strconv.ParseUint(strings.TrimPrefix(strings.ToLower(strings.TrimSpace(s)), "0x"), 16, 32)
+		if err != nil {
+			return fmt.Errorf("proc_fx %q: %v", s, err)
+		}
+		*f = fxJSON(v)
+		return nil
+	}
+	var n uint32
+	if err := json.Unmarshal(b, &n); err != nil {
+		return fmt.Errorf("proc_fx %s: a DictID, a number or \"0x...\"", b)
+	}
+	*f = fxJSON(n)
+	return nil
 }
 
 // debuffScaleJSON is an effect's debuff_scale: {"stat": a resist's name, as
@@ -903,6 +930,10 @@ func (d *SpellDef) readProcsJSON(name, kind string, e effectJSON) {
 			se.Amount, se.AmountMax = -n, -n
 			se.ScaleBearer = se.Scale != StatNone // the proc effect's own modifier: its bearer's (the legend)
 			se.Undead = undead
+			se.ProcFX = uint32(p.ProcFX)
+			if se.ProcFX == 0 {
+				se.ProcFX = uint32(e.ProcFX) // its Offensive Proc's, for each of its procs
+			}
 			if def {
 				se.Kind = EffectShield
 				// a defensive proc's or a shield's damage is worked out at

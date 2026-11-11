@@ -101,6 +101,9 @@ func (w *World) duelProcsLocked(d *Duel, p *Player, m duelMark, now time.Time) b
 	}
 	for _, h := range p.procsOfRound(hits) {
 		log.Printf("Duel %d: %s's proc hits %s for %d", d.ID, p.Name, m.name(), h.n)
+		if fx := h.ae.Rules.ProcFX; fx != 0 {
+			w.broadcastCastLocked(p, m.id(), 0, fx) // its own look (proc.go's procHitFX)
+		}
 		over := w.duelHurtMarkLocked(d, p, m, h.n, now, numberProc)
 		w.procTapLocked(p, sess, h.ae, nil)
 		if over {

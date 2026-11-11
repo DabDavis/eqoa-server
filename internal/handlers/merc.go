@@ -481,6 +481,15 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 	}
 	l.Primary, l.Secondary, l.Shield = p.Primary, p.Secondary, p.Shield
 	l.PrimaryType, l.SecondaryType = p.PrimaryType, p.SecondaryType
+	if row.Class == mercAlchemist {
+		if bottle := m.potionBottle(); bottle != 0 {
+			// held as an alchemist player holds its thrown potions (worn in
+			// the ranged slot, 18: the second hand's look), its staff's
+			// figures kept and its look not shown
+			l.Primary, l.PrimaryType = 0, 0
+			l.Secondary, l.SecondaryType = bottle, thrownAttackType
+		}
+	}
 	for _, it := range items {
 		if it.EquipLoc >= 14 && it.EquipLoc <= 18 {
 			k.Worn[it.EquipLoc] = true
@@ -496,6 +505,30 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 	k.Spells = mercPathBook(row.Class, row.Path, k.Spells) // its path's, no other's (mercpath.go)
 	k.PetPick = mercPetPick(row.Class, row.Pet)            // the pet kind its hirer picked (mercpetkind.go)
 	return k, err
+}
+
+// An alchemist's merc holds a potion bottle (petition 1585, Hogbear: "alc
+// option feels off with alc not holding a potion bottle, they got a staff
+// instead"): the look of the thrown potions (attack type 10, thrown) the
+// alchemists throw, in its second hand as a player holds one worn in the
+// ranged slot (handlers' wornLook: 18 is the second hand's); its heirloom
+// staff's figures stay its gear. The model is read off the potions' records
+// (potionBottle), never chosen by hand; none found, the staff is shown.
+const (
+	mercAlchemist    = 14
+	thrownAttackType = 10
+)
+
+// potionBottle is the thrown potions' look: the model most thrown potion
+// records (attack type 10, "Potion" in the name) share, 0 none.
+func (m *Mercs) potionBottle() uint32 {
+	var model int64
+	err := m.db.QueryRow(`SELECT model FROM itempattern WHERE attacktype = ? AND itemname LIKE '%Potion%' AND model NOT IN (0, -1)
+		GROUP BY model ORDER BY count(*) DESC, model LIMIT 1`, thrownAttackType).Scan(&model)
+	if err != nil {
+		return 0
+	}
+	return uint32(model)
 }
 
 // bow is the bow a tank's or a melee fighter's merc shoots at range (the

@@ -33,6 +33,7 @@ var mercHeirlooms = []mercHeirloom{
 	{714012, 0, "shield", 13, 1890000000, 0}, {714013, 0, "main", 14, 1205436896, 1}, {714300, 0, "main", 14, 1205436897, 1},
 	{714188, 13, "head", 1, 1, 0}, {714189, 13, "chest", 5, 1, 0}, {714194, 13, "robe", 2, 5, 0},
 	{714201, 13, "twohand", 15, 495410893, 4},
+	{714215, 14, "twohand", 15, 724832212, 4},
 }
 
 // newMercFixture is a portal rig's world over a database of the fixture's
@@ -213,7 +214,14 @@ func TestMercLiaisonOtherRaces(t *testing.T) {
 // both hands and its robe; base stats a player's at the level; its book its
 // class's to its level.
 func TestMercKitIsItsClassesHeirlooms(t *testing.T) {
-	_, m, _ := newMercFixture(t)
+	_, m, db := newMercFixture(t)
+	put := func(r database.ItemPatternRecord) {
+		t.Helper()
+		r.Rent, r.RaceUse, r.MaxStack, r.ClassUse = 1, 32767, 1, 1<<14
+		if err := database.NewItemPatternStore(db).UpsertItemPattern(&r); err != nil {
+			t.Fatal(err)
+		}
+	}
 	war, err := m.kit(database.MercRow{Name: "Ralthas", Class: 0, Race: 0}, 30)
 	if err != nil {
 		t.Fatal(err)
@@ -240,6 +248,26 @@ func TestMercKitIsItsClassesHeirlooms(t *testing.T) {
 	}
 	if !wiz.Worn[16] || wiz.Worn[14] || wiz.Look.Robe != 5 || wiz.Look.Primary != 495410893 || len(wiz.Spells) != 1 {
 		t.Errorf("the wizard: hands %v robe %d primary %d book %d", wiz.Worn[14:19], wiz.Look.Robe, wiz.Look.Primary, len(wiz.Spells))
+	}
+	// petition 1585: an alchemist holds a thrown potion's bottle (the potions'
+	// records' model, 0x45708337 on the disc's), not its staff, whose figures
+	// it keeps; the control: with no potion record it shows its staff
+	alc, err := m.kit(database.MercRow{Name: "Brewa", Class: 14, Race: 0}, 30)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if alc.Look.Primary != 724832212 || alc.Look.Secondary != 0 {
+		t.Errorf("no potion record: the alchemist holds %d and %d, want its staff", alc.Look.Primary, alc.Look.Secondary)
+	}
+	put(database.ItemPatternRecord{PatternID: 900010, ItemName: "Volatile Potion", EquipSlot: 16, LevelReq: 1, Model: 1165001527, AttackType: 10})
+	put(database.ItemPatternRecord{PatternID: 900011, ItemName: "Acerbic Potion", EquipSlot: 16, LevelReq: 1, Model: 1165001527, AttackType: 10})
+	put(database.ItemPatternRecord{PatternID: 900012, ItemName: "a throwing knife", EquipSlot: 16, LevelReq: 1, Model: 777, AttackType: 10})
+	alc, _ = m.kit(database.MercRow{Name: "Brewa", Class: 14, Race: 0}, 30)
+	if l := alc.Look; l.Primary != 0 || l.PrimaryType != 0 || l.Secondary != 1165001527 || l.SecondaryType != 10 || !alc.Worn[16] {
+		t.Errorf("the alchemist's hands: %+v (worn %v)", l, alc.Worn[14:19])
+	}
+	if wiz, _ := m.kit(database.MercRow{Name: "Velith", Class: 13, Race: 2, Sex: 1}, 30); wiz.Look.Primary != 495410893 || wiz.Look.Secondary != 0 {
+		t.Errorf("a wizard took the bottle: %+v", wiz.Look)
 	}
 	// below 20 a melee fighter holds one weapon; from 20 two
 	low, _ := m.kit(database.MercRow{Name: "Rax", Class: 0, Race: 0}, 10)

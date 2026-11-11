@@ -1330,6 +1330,7 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 				if kp.Session != nil {
 					SendClientMessage(kp.Session, fmt.Sprintf("%s: %d of %d.", k.NPCName, min(cq.Count, need), need))
 				}
+				q.nextWaveLocked(p, c, qu, st, k.NPCID, need-cq.Count) // questevents.go
 				continue
 			}
 			if q.waitsForRoomLocked(kp.Session, p, c, qu, cq, st) {

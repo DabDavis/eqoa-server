@@ -56,6 +56,16 @@ type Group struct {
 	flagged bool
 	// rules: a raid's loot rule, helper and main assist (raidrules.go)
 	rules raidRules
+	// dps: the damage meter's fight of the group, a raid's too (dpsmeter.go):
+	// one fight every member's meter is shown
+	dps *dpsFight
+}
+
+// GroupIDOf is p's group's id (a raid's too), 0 for none.
+func (w *World) GroupIDOf(p *Player) uint32 {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return p.GroupID
 }
 
 // GroupMembers is p's group's members (the leader first), or none.

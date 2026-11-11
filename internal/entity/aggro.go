@@ -110,10 +110,15 @@ const (
 )
 
 // AggroRule is a GM's word on the creatures of one name (table npcaggro):
-// whether they attack a player on sight, and how near (0: their own radius).
+// whether they attack a player on sight, and how near (0: their own radius);
+// how far they follow from where a fight began (Leash, 0: DefaultLeash). NoWord:
+// the row says nothing of aggro (aggressive -1: a row for its leash alone), so
+// the world's rules decide it as for a name with no row.
 type AggroRule struct {
 	Aggressive bool
 	Radius     float32
+	Leash      float32
+	NoWord     bool
 	// Holding is an item: the rule is for the players holding it alone, every
 	// other left alone (questwalls.go; the Estate's Guardian and Cazic's Scent)
 	Holding int
@@ -134,6 +139,7 @@ type aggroState struct {
 	off        bool
 	factionOff bool
 	rules      map[string]AggroRule // by NPCClassKey
+	leash      map[string]float32   // by NPCClassKey: the rows' leashes, NoWord's too
 	gen        uint32
 	reach      float32
 	ignored    map[uint32]bool
@@ -142,10 +148,11 @@ type aggroState struct {
 	byName     map[string]aggroLookup
 }
 
-// aggroLookup is a spelling's rule, or none.
+// aggroLookup is a spelling's rule, or none, and its leash (0: none).
 type aggroLookup struct {
-	rule AggroRule
-	ok   bool
+	rule  AggroRule
+	ok    bool
+	leash float32
 }
 
 // ruleFor is the GMs' rule for an NPC of this name, if any.
@@ -153,17 +160,34 @@ func (a *aggroState) ruleFor(name string) (AggroRule, bool) {
 	if len(a.rules) == 0 {
 		return AggroRule{}, false
 	}
+	l := a.lookup(name)
+	return l.rule, l.ok
+}
+
+// leashFor is the GMs' leash for an NPC of this name, 0 none (npcaggro's
+// leash, petition 1535).
+func (a *aggroState) leashFor(name string) float32 {
+	if len(a.leash) == 0 {
+		return 0
+	}
+	return a.lookup(name).leash
+}
+
+// lookup is a spelling's rule and leash, looked up once.
+func (a *aggroState) lookup(name string) aggroLookup {
 	a.cacheMu.Lock()
 	defer a.cacheMu.Unlock()
 	l, seen := a.byName[name]
 	if !seen {
-		l.rule, l.ok = a.rules[database.NPCClassKey(name)]
+		k := database.NPCClassKey(name)
+		l.rule, l.ok = a.rules[k]
+		l.leash = a.leash[k]
 		if a.byName == nil {
 			a.byName = make(map[string]aggroLookup)
 		}
 		a.byName[name] = l
 	}
-	return l.rule, l.ok
+	return l
 }
 
 // NeutralWildlifeLevel is the highest level of wildlife (wildlife.go: an
@@ -445,22 +469,34 @@ func (w *World) SetAggroRules(rules map[string]AggroRule) {
 	defer w.mu.Unlock()
 	// by NPCClassKey; two spellings of one name: the peaceful rule wins (the
 	// GMs' rows agree on eqoaclassic, every spelling pair of them)
+	// a NoWord row is its leash alone; two spellings' leashes: the longer
 	keyed := make(map[string]AggroRule, len(rules))
+	var leash map[string]float32
 	for name, r := range rules {
 		k := database.NPCClassKey(name)
+		if r.Leash > 0 && r.Leash > leash[k] {
+			if leash == nil {
+				leash = make(map[string]float32)
+			}
+			leash[k] = r.Leash
+		}
+		if r.NoWord {
+			continue
+		}
 		if o, dup := keyed[k]; dup && !o.Aggressive && r.Aggressive {
 			continue
 		}
 		keyed[k] = r
 	}
 	w.aggro.rules = keyed
+	w.aggro.leash = leash
 	w.aggro.cacheMu.Lock()
 	w.aggro.byName = nil
 	w.aggro.cacheMu.Unlock()
 	w.aggro.gen++
 	w.aggro.reach = DefaultAggroRadius
 	for _, r := range rules {
-		if r.Aggressive && r.Radius > w.aggro.reach {
+		if r.Aggressive && !r.NoWord && r.Radius > w.aggro.reach {
 			w.aggro.reach = r.Radius
 		}
 	}
@@ -476,7 +512,7 @@ func (w *World) LoadAggroRules(db *database.SQLiteDB) (int, error) {
 	}
 	rules := make(map[string]AggroRule, len(rows))
 	for _, r := range rows {
-		rules[r.Name] = AggroRule{Aggressive: r.Aggressive, Radius: float32(r.Radius), Holding: r.Holding}
+		rules[r.Name] = AggroRule{Aggressive: r.Aggressive, Radius: float32(r.Radius), Leash: float32(r.Leash), NoWord: r.NoWord, Holding: r.Holding}
 	}
 	w.SetAggroRules(rules)
 	return len(rules), nil

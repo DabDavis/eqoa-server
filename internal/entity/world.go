@@ -30,6 +30,9 @@ type World struct {
 	routeSpent   int
 	routeHeights []float32
 
+	// the Wisps in a mortal form, for the race looks (wispform.go)
+	wispLooks wispLooks
+
 	mu             sync.RWMutex
 	Players        map[EntityID]*Player
 	NPCs           map[EntityID]*NPC
@@ -64,6 +67,8 @@ type World struct {
 
 	// dpsFight is the last damage meter fight's number given (dpsmeter.go)
 	dpsFight uint32
+	// dpsLive is every damage meter fight under way, the system's to end
+	dpsLive []*dpsFight
 
 	// Buddy and ignore lists (social.go), in memory only
 	social socialLists

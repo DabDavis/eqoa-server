@@ -40,17 +40,29 @@ import (
 // would be told (petLandHitLocked), as the pet's share, or a necromancer's meter
 // would leave its pet out.
 //
-// The scope is the group as the server holds it at each figure: a figure counts
-// on the meter of its maker and of every member of its maker's group (a group of
-// up to four, a raid group of any size), so a member who joins mid-fight counts
-// from then on and one who leaves counts no more, its line kept, marked, until
-// the fight ends; alone, the player and its pet. Each client's meter has its own
-// fight: it starts at the first figure counted on it and ends DPSMeterIdle after
-// the last, longer than anything that keeps a fight going leaves quiet (a damage
-// over time's six-second tick, effectTick; a round of six seconds; a long cast),
-// or, while the player or its group is still on a living creature's hate list
-// (dpsEngagedLocked), DPSMeterHeld after it: a boss fight's quiet stretch is the
-// same fight.
+// The scope is the group as the server holds it at each figure, and the fight
+// is the group's (the owner, 2026-11-11: "drunkenfist came in the raid late and
+// the dps meter was not the same as other players. we should sync it up per
+// group and raid"): one fight per group, a raid group's too (Group.dps), and
+// alone the player's own (Player.dpsSolo). A figure counts on its maker's group's
+// fight (counted whatever its members' clients draw), and every member's meter
+// is shown that same fight: the same number, length, lines and whole, each
+// receiver's own line flagged. So a member who joins mid-fight is shown the
+// group's fight under way at once, every line from its first figure; one who
+// leaves counts no more on it, its line kept, marked, until the fight ends, and
+// its own meter's view of it ends there (one last message, over: its client keeps
+// it as the last fight) and goes on to its own fight (alone, or its new group's)
+// at its next figure. A group formed or disbanded mid-fight is the same: its
+// members' views of the fights they were shown end, and the new scope's fight
+// starts at its next figure. A fight starts at the first figure counted on it and
+// ends DPSMeterIdle after the last, longer than anything that keeps a fight going
+// leaves quiet (a damage over time's six-second tick, effectTick; a round of six
+// seconds; a long cast), or, while any member of the group (or its pet) is still
+// on a living creature's hate list (dpsEngagedLocked), DPSMeterHeld after it: a
+// boss fight's quiet stretch is the same fight. A reset is the client's own: it
+// drops the fight under way from its view only (nothing more is sent of it to
+// that client; the group's others go on being shown it) and it is shown the
+// group's next fight; alone, the fight is its own and ends there.
 // Its length is from its first figure to its latest, so a fight's quiet end adds
 // nothing, and the client divides each line's damage by it (at least a second):
 // every line over the same span, so DPS ranks as damage does and a healer's one
@@ -106,17 +118,31 @@ type dpsLine struct {
 	pet    int64
 }
 
-// dpsMeter is a client's meter: its fight, by number, under way (live) from its
-// first figure to its latest, each maker's line, and what it was last sent of
-// it (due: send at the next pass, just asked).
-type dpsMeter struct {
-	fight       uint32
+// dpsFight is one fight of a group (a raid group's too) or of a player alone:
+// its number, under way (live) from its first figure to its latest, and each
+// maker's line. group: the group it is of, when it is one's (it may have been
+// disbanded since); solo: else the player.
+type dpsFight struct {
+	number      uint32
 	live        bool
 	start, last time.Time
 	lines       map[EntityID]*dpsLine
-	sent        string
-	sentAt      time.Time
-	due         bool
+	group       *Group
+	solo        *Player
+}
+
+// dpsMeter is a client's meter: the fight it is shown (view, its player's
+// group's or its own), the number of that fight told and not yet told over
+// (shown), the number of a fight the client reset (dropped: nothing more of it is
+// sent), and what it was last sent of its view (due: send at the next pass, just
+// asked).
+type dpsMeter struct {
+	view    *dpsFight
+	shown   uint32
+	dropped uint32
+	sent    string
+	sentAt  time.Time
+	due     bool
 }
 
 // SetDPSMeter makes sess's player's client be sent the meter (on) or stop (off,
@@ -148,8 +174,10 @@ func (w *World) DPSMeter(sess *session.Session) bool {
 	return p != nil && p.dps != nil
 }
 
-// ResetDPSMeter drops the fight under way on sess's player's meter: nothing more
-// is sent of it, and the next figure starts another under another number. False
+// ResetDPSMeter drops the fight under way from sess's player's meter: nothing
+// more is sent of it to that client, and it is shown its group's next fight. The
+// group's other members' meters go on with it; a player alone's fight is its own
+// and ends there, so its next figure starts another under another number. False
 // when sess has no player or its client never asked for a meter.
 func (w *World) ResetDPSMeter(sess *session.Session) bool {
 	w.mu.Lock()
@@ -158,13 +186,42 @@ func (w *World) ResetDPSMeter(sess *session.Session) bool {
 	if p == nil || p.dps == nil {
 		return false
 	}
-	p.dps.endLocked()
+	m := p.dps
+	if f := *w.dpsScopeLocked(p); f != nil && f.live {
+		if f.group == nil {
+			f.live, f.lines = false, nil // the system drops it from dpsLive
+		} else {
+			m.dropped = f.number
+		}
+	}
+	m.shown, m.sent, m.due = 0, "", false
 	return true
 }
 
-// endLocked ends m's fight with nothing more sent of it.
-func (m *dpsMeter) endLocked() {
-	m.live, m.lines, m.sent, m.due = false, nil, "", false
+// dpsScopeLocked is where p's fight is kept: its group's (a raid group's too)
+// when it is in one, else its own. Must be called with the lock held.
+func (w *World) dpsScopeLocked(p *Player) **dpsFight {
+	if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil {
+		return &g.dps
+	}
+	return &p.dpsSolo
+}
+
+// dpsMembersLocked is who a fight is of now, in the world or not: its group's
+// members while the group stands, its player alone's, and the makers of its lines
+// for a group disbanded since. Must be called with the lock held.
+func (w *World) dpsMembersLocked(f *dpsFight) []EntityID {
+	switch {
+	case f.group != nil && w.groups[f.group.ID] == f.group:
+		return f.group.Members
+	case f.group == nil && f.solo != nil:
+		return []EntityID{f.solo.ServerID}
+	}
+	out := make([]EntityID, 0, len(f.lines))
+	for id := range f.lines {
+		out = append(out, id)
+	}
+	return out
 }
 
 // dpsFigureLocked counts n of damage told to sess's player as kind's
@@ -201,36 +258,17 @@ func (w *World) friendlyFigureLocked(sess *session.Session, p *Player, target ui
 }
 
 // dpsCountLocked counts n of maker's damage (byPet: its pet's) at now on the
-// meter of maker and of each other member of its group in the world: the scope
-// is the group as it is at this figure. Must be called with the lock held.
+// fight of maker's group as it is at this figure (alone, maker's own): one with
+// no fight under way starts one, under a number no other fight of this process
+// had. Every member's meter is shown that fight. Must be called with the lock
+// held.
 func (w *World) dpsCountLocked(maker *Player, n int, byPet bool, now time.Time) {
 	if maker == nil || n <= 0 {
 		return
 	}
-	w.dpsAddLocked(maker, maker, n, byPet, now)
-	g := w.groups[maker.GroupID]
-	if maker.GroupID == 0 || g == nil {
-		return
-	}
-	for _, id := range g.Members {
-		if id == maker.ServerID {
-			continue
-		}
-		if v := w.Players[id]; v != nil {
-			w.dpsAddLocked(v, maker, n, byPet, now)
-		}
-	}
-}
-
-// dpsAddLocked counts n of maker's damage on viewer's meter, if it has one: a
-// meter with no fight under way starts one, under a number no other fight of
-// this process had. Must be called with the lock held.
-func (w *World) dpsAddLocked(viewer, maker *Player, n int, byPet bool, now time.Time) {
-	m := viewer.dps
-	if m == nil {
-		return
-	}
-	if !m.live {
+	at := w.dpsScopeLocked(maker)
+	f := *at
+	if f == nil || !f.live {
 		if w.dpsFight == 0 {
 			// numbers from the clock's milliseconds: a restarted process's
 			// differ from the last one's, so a client keeping a fight from
@@ -241,20 +279,26 @@ func (w *World) dpsAddLocked(viewer, maker *Player, n int, byPet bool, now time.
 		if w.dpsFight == 0 {
 			w.dpsFight++
 		}
-		m.fight, m.live, m.start, m.last = w.dpsFight, true, now, now
-		m.lines, m.sent = map[EntityID]*dpsLine{}, ""
+		f = &dpsFight{number: w.dpsFight, live: true, start: now, last: now, lines: map[EntityID]*dpsLine{}}
+		if g := w.groups[maker.GroupID]; maker.GroupID != 0 && g != nil {
+			f.group = g
+		} else {
+			f.solo = maker
+		}
+		*at = f
+		w.dpsLive = append(w.dpsLive, f)
 	}
-	l := m.lines[maker.ServerID]
+	l := f.lines[maker.ServerID]
 	if l == nil {
 		l = &dpsLine{name: maker.Name, class: maker.Class}
-		m.lines[maker.ServerID] = l
+		f.lines[maker.ServerID] = l
 	}
 	l.damage += int64(n)
 	if byPet {
 		l.pet += int64(n)
 	}
-	if now.After(m.last) {
-		m.last = now
+	if now.After(f.last) {
+		f.last = now
 	}
 }
 
@@ -265,17 +309,16 @@ type dpsRow struct {
 	flags byte
 }
 
-// dpsRowsLocked is every line of p's meter's fight in the order sent (the most
-// damage first, then by name): each maker counted, and each member of p's group
-// in the world, none of damage too; p's own flagged 1, one no longer in p's group
-// flagged 2. Must be called with the lock held.
-func (w *World) dpsRowsLocked(p *Player, m *dpsMeter) []dpsRow {
-	scope := map[EntityID]bool{p.ServerID: true}
-	if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil {
-		for _, id := range g.Members {
-			if w.Players[id] != nil {
-				scope[id] = true
-			}
+// dpsRowsLocked is every line of fight f as p's meter is sent it, in the order
+// sent (the most damage first, then by name): each maker counted, and each member
+// of f's group in the world, none of damage too; p's own flagged 1, one no longer
+// in f's group flagged 2. Every member is sent the same lines but for flag 1.
+// Must be called with the lock held.
+func (w *World) dpsRowsLocked(p *Player, m *dpsFight) []dpsRow {
+	scope := map[EntityID]bool{}
+	for _, id := range w.dpsMembersLocked(m) {
+		if w.Players[id] != nil || id == p.ServerID {
+			scope[id] = true
 		}
 	}
 	rows := make([]dpsRow, 0, len(m.lines)+len(scope))
@@ -287,6 +330,9 @@ func (w *World) dpsRowsLocked(p *Player, m *dpsMeter) []dpsRow {
 			o := w.Players[id]
 			if id == p.ServerID {
 				o = p
+			}
+			if o == nil {
+				continue
 			}
 			rows = append(rows, dpsRow{id: id, line: dpsLine{name: o.Name, class: o.Class}})
 		}
@@ -370,42 +416,86 @@ func encodeDPSMeter(fight uint32, over bool, length time.Duration, rows []dpsRow
 	return out
 }
 
-// dpsMeterSystem tells each client with a meter its fight: as it goes, when
-// something in it changed and at most every dpsMeterEvery (at once after the
-// ask), and once more as it ends, DPSMeterIdle after its last figure. Every
-// dpsMeterTicks; must be called with the lock held.
+// dpsMeterSystem ends the fights gone quiet, DPSMeterIdle after the last figure
+// (DPSMeterHeld while one of its members is engaged), and tells each client with
+// a meter its group's fight: as it goes, when something in it changed and at
+// most every dpsMeterEvery (at once after the ask or a change of group), and once
+// more as it ends; a client whose player left the fight's group is told its view
+// is over. Every dpsMeterTicks; must be called with the lock held.
 func (w *World) dpsMeterSystem(now time.Time) {
 	if w.TickCount%dpsMeterTicks != 0 || w.SessionManager == nil {
 		return
 	}
 	var engaged map[EntityID]bool // dpsEngagedLocked, once a pass and only if asked
-	w.SessionManager.ForEach(func(s *session.Session) bool {
-		p := w.sessionPlayerLocked(s)
-		if p == nil || p.dps == nil || !p.dps.live {
-			return true
+	ending := map[*dpsFight]bool{}
+	live := w.dpsLive[:0]
+	for _, f := range w.dpsLive {
+		if !f.live {
+			continue
 		}
-		m := p.dps
-		quiet := now.Sub(m.last)
+		quiet := now.Sub(f.last)
 		over := quiet >= DPSMeterIdle
 		if over && quiet < DPSMeterHeld {
 			if engaged == nil {
 				engaged = w.dpsEngagedLocked()
 			}
-			over = !engaged[p.ServerID]
+			over = true
+			for _, id := range w.dpsMembersLocked(f) {
+				if engaged[id] {
+					over = false
+					break
+				}
+			}
 		}
-		body := encodeDPSMeter(m.fight, over, m.last.Sub(m.start), w.dpsRowsLocked(p, m))
+		if over {
+			ending[f] = true
+		} else {
+			live = append(live, f)
+		}
+	}
+	clear(w.dpsLive[len(live):])
+	w.dpsLive = live
+	send := func(s *session.Session, m *dpsMeter, body []byte) {
+		m.sent, m.sentAt, m.due = string(body), now, false
+		sendGroupMsg(s, protocol.OpcodeDPSMeterData, func(b *buffer.Writer) { b.WriteBytes(body) })
+	}
+	w.SessionManager.ForEach(func(s *session.Session) bool {
+		p := w.sessionPlayerLocked(s)
+		if p == nil || p.dps == nil {
+			return true
+		}
+		m := p.dps
+		f := *w.dpsScopeLocked(p)
+		if m.view != f {
+			// another group, or none: the view of the last fight ends, told
+			// once more as it stands, over, when it was being told
+			if old := m.view; old != nil && old.live && m.shown == old.number {
+				send(s, m, encodeDPSMeter(old.number, true, old.last.Sub(old.start), w.dpsRowsLocked(p, old)))
+			}
+			m.view, m.shown, m.sent, m.due = f, 0, "", true
+		}
+		if f == nil || !f.live || f.number == m.dropped {
+			return true
+		}
+		over := ending[f]
+		body := encodeDPSMeter(f.number, over, f.last.Sub(f.start), w.dpsRowsLocked(p, f))
 		switch {
 		case over:
-			log.Printf("DPSMeter: %s's fight %d over (%d ms)", p.Name, m.fight, m.last.Sub(m.start).Milliseconds())
-			m.endLocked()
+			log.Printf("DPSMeter: %s's fight %d over (%d ms)", p.Name, f.number, f.last.Sub(f.start).Milliseconds())
 		case m.due:
 		case string(body) == m.sent || now.Sub(m.sentAt) < dpsMeterEvery:
 			return true
 		}
-		m.sent, m.sentAt, m.due = string(body), now, false
-		sendGroupMsg(s, protocol.OpcodeDPSMeterData, func(b *buffer.Writer) { b.WriteBytes(body) })
+		send(s, m, body)
+		m.shown = f.number
+		if over {
+			m.shown = 0
+		}
 		return true
 	})
+	for f := range ending {
+		f.live, f.lines = false, nil
+	}
 }
 
 // dpsEngagedLocked is every player still in a fight now: one on a living

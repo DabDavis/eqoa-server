@@ -128,7 +128,7 @@ func TestTeleporterBoxes(t *testing.T) {
 		}
 		return l
 	}
-	if got := strings.Join(labels(root), "|"); got != "Raids|Camps, levels 1-25|Camps, levels 28-61" {
+	if got := strings.Join(labels(root), "|"); got != "Raids|Isle of Dread|Camps, levels 1-25|Camps, levels 28-61" {
 		t.Errorf("the first box: %q", got)
 	}
 	if got := strings.Join(labels(root.kids[0]), "|"); got != strings.Join(teleRaidGroups, "|") {
@@ -153,7 +153,7 @@ func TestTeleporterBoxes(t *testing.T) {
 			t.Errorf("the camp on Xrag's rock is listed apart from the xrag camp: %q", s)
 		}
 	}
-	if n != 1 || len(trips) != len(teleRaids)+len(campDests)+1 {
+	if n != 1 || len(trips) != len(teleRaids)+len(telePlaces)+len(campDests)+1 {
 		t.Errorf("%d trips, %d of the GM's frost bats: %q", len(trips), n, trips)
 	}
 	// the camps in their levels' order
@@ -162,7 +162,7 @@ func TestTeleporterBoxes(t *testing.T) {
 		lo, _ := parseLevels(strings.TrimSuffix(s[i+1:], ")"))
 		return lo
 	}
-	camps := trips[len(teleRaids):]
+	camps := trips[len(teleRaids)+len(telePlaces):]
 	if !sort.SliceIsSorted(camps, func(i, j int) bool { return lv(camps[i]) < lv(camps[j]) }) {
 		t.Errorf("the camps out of their levels' order: %q", camps)
 	}
@@ -218,6 +218,17 @@ func TestTeleporterTrips(t *testing.T) {
 	pickPath(t, r, tp, "Raids", "Odus, Lavastorm and the Plane of Sky", "Lord Nagafen, Lavastorm (60)")
 	if r.pa.World != 3 || math.Abs(float64(r.pa.Z-4426.88)) > 0.01 || math.Abs(float64(r.pa.X-4867.64)) > 0.01 {
 		t.Errorf("by the Nagafen Teleport Arrive: world %d (%.2f, %.2f, %.2f)", r.pa.World, r.pa.X, r.pa.Y, r.pa.Z)
+	}
+
+	// the Isle of Dread (the owner, 2026-11-11): on Norach's raft, facing the
+	// pier, for nothing
+	back()
+	tunar := r.pa.Tunar
+	got = pickPath(t, r, tp, "Isle of Dread")
+	if !hasMsg(got, "teleport") || r.pa.World != 0 || r.pa.X != 24578 || r.pa.Y != 52.6 || r.pa.Z != 3626 ||
+		math.Abs(float64(r.pa.Facing)-3.9) > 0.01 || r.pa.Tunar != tunar {
+		t.Errorf("the Isle of Dread: %q, world %d (%.2f, %.2f, %.2f) facing %.2f, tunar %d -> %d", got, r.pa.World,
+			r.pa.X, r.pa.Y, r.pa.Z, r.pa.Facing, tunar, r.pa.Tunar)
 	}
 
 	back()

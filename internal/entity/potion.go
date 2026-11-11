@@ -253,6 +253,93 @@ type potionTable struct {
 	byPattern map[int]*PotionEffect
 	onSummon  SummonItemFunc
 	onThrown  ThrownPotionFunc
+	// throwPct is a throw's power, a percent of the thrower's most
+	// (SetThrowPowerPct; throwPctSet false: DefaultThrowPowerPct)
+	throwPct    int
+	throwPctSet bool
+}
+
+// A throw's power (petition 1489, Fullmetal's alchemist notes: "No mana drain
+// on pot throws", then "Can do 3 tests of 15% 20% or 25% of Total Power of
+// Player per thrown Pot"): every potion thrown, by Use or as the ranged
+// auto-attack's, at a creature or a foe, costs DefaultThrowPowerPct of its
+// thrower's most power (world.throw_power_pct: a GM's test of 15 or 25; 0
+// none), rounded, and is refused when its thrower has less: told in red
+// (ThrowNoPower), nothing thrown and nothing used; an auto-attack's throw lets
+// the fight go. Until then a throw cost none. An item whose use charms (the
+// Puppet Strings) is no potion thrown: it costs none.
+const DefaultThrowPowerPct = 20
+
+// A draught's health and poison resist (petition 1489, Fullmetal: "PR
+// Resistance - 315 should negate full strength 54 Draught damage upwards of 65%
+// of the time. Anything lower should raise the chance it does full damage"):
+// a drink's health cost (the draughts', the infusions of every level) is taken
+// whole or not at all, none with a chance of DraughtResistMostPct (65%) times
+// its drinker's poison resist over DraughtResistFull (315, at most 1), told
+// (DraughtResisted). Until then a drinker's PR counted for nothing.
+const (
+	DraughtResistMostPct = 65
+	DraughtResistFull    = 315
+	DraughtResisted      = "You resist the draught's poison."
+)
+
+var draughtResistRGB = [3]byte{255, 255, 255}
+
+// draughtIntn is the draught resist's roll (a test sets it).
+var draughtIntn = rand.Intn
+
+// draughtResisted rolls a draught's health against a poison resist of pr: true,
+// none of it taken (the doc above).
+func draughtResisted(pr int) bool {
+	if pr <= 0 {
+		return false
+	}
+	chance := DraughtResistMostPct * 100 * min(pr, DraughtResistFull) / DraughtResistFull // in hundredths of a percent
+	return draughtIntn(10000) < chance
+}
+
+// ThrowNoPower is the refusal of a throw its thrower has not the power for
+// (ours: the cast's "Not enough power." and what it was for).
+const ThrowNoPower = "Not enough power to throw that."
+
+// SetThrowPowerPct sets a throw's power, a percent of the thrower's most
+// (world.throw_power_pct; 0 none, below 0 the default).
+func (w *World) SetThrowPowerPct(pct int) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.potions.throwPct, w.potions.throwPctSet = min(pct, 100), pct >= 0
+}
+
+// throwPowerCost is what a throw costs p now.
+func (t *potionTable) throwPowerCost(p *Player) int {
+	pct := DefaultThrowPowerPct
+	if t.throwPctSet {
+		pct = t.throwPct
+	}
+	if pct <= 0 || p.MaxPower <= 0 {
+		return 0
+	}
+	return (p.MaxPower*pct + 50) / 100
+}
+
+// throwPowerLocked takes a throw's power from p and reports true, or tells p
+// it has not enough (sess nil: untold) and reports false, nothing taken. Must
+// be called with the lock held.
+func (w *World) throwPowerLocked(sess *session.Session, p *Player, pe *PotionEffect) bool {
+	cost := w.potions.throwPowerCost(p)
+	if cost <= 0 {
+		return true
+	}
+	if p.Power < cost {
+		log.Printf("Potion: %s has %d power, %q's throw costs %d: refused", p.Name, p.Power, pe.ItemName, cost)
+		if sess != nil {
+			w.sendColoredLocked(sess, ThrowNoPower, castRefusalRGB)
+		}
+		return false
+	}
+	p.Power -= cost
+	p.StatsDirty = true
+	return true
 }
 
 func (t *potionTable) note(pe PotionEffect) {
@@ -407,6 +494,10 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 		}
 		// at a duel's or a PvP fight's foe (castTargetsLocked's duel and pvp halves)
 		if t := w.Players[targets[0]]; t != nil && spell.duel {
+			if p.Power < w.potions.throwPowerCost(p) {
+				return ThrowNoPower, nil, nil
+			}
+			w.throwPowerLocked(nil, p, &pe)
 			w.broadcastCastLocked(p, t.ServerID, 0, spell.visual())
 			w.throwAtFoeLocked(sess, p, &pe, t, now)
 			w.potionUsedLocked(p, &pe, now)
@@ -417,6 +508,10 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 		if npc == nil {
 			return castNoTarget, nil, nil
 		}
+		if p.Power < w.potions.throwPowerCost(p) {
+			return ThrowNoPower, nil, nil
+		}
+		w.throwPowerLocked(nil, p, &pe)
 		// played as a spell's is: the thrower's own swing is the client's
 		// only in an auto-attack
 		w.broadcastCastLocked(p, npc.ServerID, 0, spell.visual())
@@ -467,6 +562,11 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 	// still break it"), before its own effects land: an invisibility potion's
 	// stays (invis.go)
 	w.breakInvisLocked(p, "a potion")
+	if cost > 0 && draughtResisted(p.StatNow(StatPR)) {
+		log.Printf("Potion: %s's poison resist (%d) takes none of %q's %d health", p.Name, p.StatNow(StatPR), pe.ItemName, cost)
+		w.sendColoredLocked(sess, DraughtResisted, draughtResistRGB)
+		cost = 0
+	}
 	if cost > 0 {
 		p.HP -= cost
 		p.StatsDirty = true
@@ -569,6 +669,9 @@ func (w *World) thrownPotionAtFoeLocked(p *Player, t *Player, now time.Time) boo
 		return true
 	}
 	sess := w.findSessionByEntityIDLocked(p.ServerID)
+	if !w.throwPowerLocked(sess, p, pe) {
+		return true // not enough power: the fight let go (the doc above)
+	}
 	over := w.throwAtFoeLocked(sess, p, pe, t, now)
 	p.Swing.PotionLeft--
 	if fn := w.potions.onThrown; fn != nil && sess != nil {
@@ -590,6 +693,9 @@ func (w *World) thrownPotionHitLocked(sess *session.Session, p *Player, npc *NPC
 	if pe == nil || !pe.Thrown() {
 		p.disengage()
 		return true
+	}
+	if !w.throwPowerLocked(sess, p, pe) {
+		return true // not enough power: the fight let go (the doc above)
 	}
 	w.throwLocked(sess, p, pe, npc, time.Now())
 	p.Swing.PotionLeft--

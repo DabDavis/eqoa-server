@@ -178,6 +178,10 @@ type WorldConfig struct {
 	// unset, it does; false, every NPC by the rules of no faction.
 	FactionAggro *bool `yaml:"faction_aggro"`
 
+	// ThrowPowerPct is what a thrown potion costs its thrower, a percent of
+	// its most power (entity/potion.go, petition 1489): unset, 20; 0, none.
+	ThrowPowerPct *int `yaml:"throw_power_pct"`
+
 	// The sun on a vampire (table charvampire, entity/vampire.go): it takes
 	// VampireSunDamage (unset 50, Sandstorm's; 0 none) every
 	// VampireSunInterval (unset or 0: 6s, the regeneration's tick) while its

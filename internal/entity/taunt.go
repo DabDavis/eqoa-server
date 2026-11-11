@@ -1,0 +1,92 @@
+package entity
+
+import "time"
+
+// taunt.go — a taunt puts its caster at the top of the creature's hate (the owner, 2026-11-11, in a
+// Cazic-Thule raid: "taunts are having a hard time keeping aggro, does hate work well?").
+//
+// Until 2026-11-11 a taunt's hate was added to its caster's threat as a hit's damage is (one point a
+// point of damage): Goad's 954 + 16% of STR against raid damage of 100k in four minutes. Measured that
+// night over 4 minutes on Cazic-Thule: the tank's 61k damage and 63 taunts (~45k hate) came to ~105k,
+// under the top damage dealer's 115k, so the boss turned from the tank.
+//
+// Now (EQ's rule, the agreed direction): a taunt that lands sets its caster's threat on the creature
+// to the highest threat anyone else holds on it, plus the taunt's hate (tauntHateLocked); one already
+// on top only adds the hate. The creature turns to the taunter at once, and stays until someone's
+// damage passes that margin before the next taunt. A resisted taunt does nothing more than it did
+// (cast.go: the hate of 1 any resisted spell gives). A creature's preferred foes (prefer.go) still
+// come before a taunter: pickEnemyLocked chooses.
+//
+// What a taunt is (isTaunt): a harmful ability at a target (Scope 1) with hate on it, not on its
+// caster: Taunt, Provoke, Bait, Incite, Goad, the shouts (each creature the shout reaches), the
+// knights' touches and glorious lines, the pillars, towers and bastions, Rampage, Ozmo's lines, the
+// masteries that "gain the attention of your enemy" (Soldier's Cry, Protect the Vale, Rage of Zek),
+// the pets' taunt spells. Not one: a hit whose damage outweighs its hate (Hero's Blow, Tongue Lash,
+// Planar Fury): its hate is a hit's extra, added as before, so a damage dealer's hit with hate does
+// not take a raid boss from its tank. A negative hate (the rogues' evades, the clashes) is never a
+// taunt and takes away as before.
+//
+// Who taunts this way: a player's taunt (cast.go landOnNPCLocked, the shouts through area.go), a
+// mercenary's (merccast.go, which already put itself on top, now by the same rule), a pet's
+// (pet.go/pettemplate.go petTopHateLocked: the top and 1, already). Not changed: a defensive proc's
+// hate (dshield.go, a buff's "hate" on a creature's hit: a little hate a hit, not a taunt), a
+// dummy's own hate (dummy.go), a Metal Moogie's challenge (metalmoogie.go).
+
+// tauntLockout is how long after a taunt no ability starts, a spell or an art (board #575: the GM
+// Jibrish, 2026-11-10, petition 1434, "taunts land at once but should have a very brief lockout before
+// the next ability can be used, probably .5 seconds, lets try that and see how it goes"). A taunt
+// lands at the end of its cast time (0 for every taunt of the records) with no castLand, keeps its
+// caster busy this long in place of castBusy, and holds the next art this long in place of the arts'
+// cooldown (balance.ArtCooldown); each taunt's own recovery is as it was. A trial: the one figure.
+const tauntLockout = 500 * time.Millisecond
+
+// isTaunt reports a taunt (the file's doc).
+func isTaunt(s *CastSpell) bool {
+	d := &s.Def
+	if !d.Harmful || s.Scope != 1 {
+		return false
+	}
+	hate, hit := 0, 0
+	for _, e := range d.Effects {
+		if e.Self {
+			continue
+		}
+		switch e.Kind {
+		case EffectHate:
+			if e.Amount > 0 {
+				hate += e.Amount
+			}
+		case EffectHP:
+			if e.Amount < 0 {
+				hit += -e.Amount
+			}
+		}
+	}
+	return hate > 0 && hit <= hate
+}
+
+// tauntHateLocked is a landed taunt's hate on npc (the file's doc): by's threat raised to the
+// highest of the others' first, then hate added as any hate is (updateAggro: its enemy chosen again,
+// its friends called). A dummy, a Metal Moogie's challenge and a familiar keep their own rules
+// (updateAggro and addThreatLocked refuse them). Must be called with the lock held.
+func (w *World) tauntHateLocked(npc *NPC, by EntityID, hate int) {
+	if hate <= 0 {
+		w.updateAggro(npc, by, hate) // a taunt's hate that takes away (none of the records'): as ever
+		return
+	}
+	if npc.Dummy == NotDummy && npc.challenge == nil && !w.isFamiliarIDLocked(by) {
+		var top int64
+		for id, v := range npc.Threats {
+			if id != by && v > top {
+				top = v
+			}
+		}
+		if npc.Threats == nil {
+			npc.Threats = make(map[EntityID]int64)
+		}
+		if npc.Threats[by] < top {
+			npc.Threats[by] = top
+		}
+	}
+	w.updateAggro(npc, by, hate)
+}

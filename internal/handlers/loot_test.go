@@ -120,26 +120,17 @@ func TestACorpseWithItemsGoesOnlyEmptied(t *testing.T) {
 	}
 }
 
-// A corpse that decays closes every window open on it, and is forgotten.
+// A corpse that decays closes the window open on it, and is forgotten. (A
+// second looter is refused while it is open: lootrights.go.)
 func TestADecayedCorpseClosesItsWindows(t *testing.T) {
 	f := newCorpseFixture(t, 1)
 	f.h.OpenCorpse(f.sess, f.npc)
-	other := testSession()
-	f.h.OpenCorpse(other, f.npc)
 	f.sent()
-	other.Queue().GetPending()
 
 	f.h.CorpsesGone([]entity.EntityID{f.npc.ServerID})
 	mustOps(t, f.sent(), protocol.OpcodeClientCloseLoot)
-	var others []byte
-	for _, m := range other.Queue().GetPending() {
-		others = append(others, m.Data()[:2]...)
-	}
-	if len(others) != 2 || opOf(others) != protocol.OpcodeClientCloseLoot {
-		t.Fatalf("the other looter was sent % x", others)
-	}
 	ls := f.h.loots()
-	if len(ls.open) != 0 || ls.corpses[f.npc.ServerID] != nil {
+	if len(ls.open) != 0 || len(ls.since) != 0 || ls.corpses[f.npc.ServerID] != nil {
 		t.Fatalf("a decayed corpse is remembered: %d open, record %v", len(ls.open), ls.corpses[f.npc.ServerID])
 	}
 }

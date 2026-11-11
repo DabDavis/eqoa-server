@@ -260,6 +260,9 @@ type Player struct {
 	// (dpsmeter.go, opcodes 0x7E3A-0x7E3D): its fight as that client is
 	// shown it; nil when it never asked or stopped
 	dps *dpsMeter
+	// dpsSolo: the damage meter's fight of the player alone, in no group
+	// (dpsmeter.go; a group's is Group.dps), counted whatever its client draws
+	dpsSolo *dpsFight
 
 	// DuelWindow: the player's client has the live game's duel window and
 	// answered the duel offer (duel.go, opcode 0x7E09): its duels go by

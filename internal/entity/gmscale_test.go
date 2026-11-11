@@ -24,3 +24,17 @@ func TestGMScale(t *testing.T) {
 		t.Errorf("50 is refused: %v", gm.Size)
 	}
 }
+
+// /speed (the owner): a factor of the own speed, 1 gives it back.
+func TestGMSpeed(t *testing.T) {
+	p := &Player{Speed: 8}
+	if got := p.SetGMSpeed(2); got != 16 {
+		t.Fatalf("2x of 8: %v", got)
+	}
+	if got := p.SetGMSpeed(10); got != 80 || p.GMSpeedBase() != 8 {
+		t.Errorf("10x is of the own 8, not of 16: %v (base %v)", got, p.GMSpeedBase())
+	}
+	if got := p.SetGMSpeed(1); got != 8 || p.gmSpeedBase != 0 {
+		t.Errorf("1 gives 8 back: %v", got)
+	}
+}

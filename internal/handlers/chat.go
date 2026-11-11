@@ -1003,7 +1003,7 @@ func worldName(w byte) string {
 
 // handleGMCommand processes server-side GM commands (start with #): a GM's
 // alone (devcmds.go: accountinfo.acctlevel 1 or more), but #hddsetup, which
-// is everyone's, and a sub GM's (devcmds.go's subGMCommands: #fly), those
+// is everyone's, and a sub GM's (devcmds.go's subGMCommands: #fly, #speed), those
 // alone for a sub GM.
 func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Player, message string) {
 	parts := strings.Fields(message)
@@ -1123,21 +1123,22 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		log.Printf("GM: %s set world to %d", player.Name, w)
 
 	case "#speed":
-		// #speed <value>
+		// #speed <factor>: the GM's (or a sub GM's) run speed at factor of its
+		// own, 1 to 10 (the owner, 2026-11-11: "/speed 2 (doubles speed) etc. to
+		// 10, /speed 1 default"); 1 gives its own back
+		base := player.GMSpeedBase()
 		if len(parts) < 2 {
-			h.gmReply(sess, fmt.Sprintf("Speed: %.1f. Usage: #speed <value>", player.Speed))
+			h.gmReply(sess, fmt.Sprintf("Speed: %.1f (%gx of %.1f). Usage: #speed <1-10>, 1 your own", player.Speed, player.Speed/base, base))
 			return
 		}
-		speed, _ := strconv.ParseFloat(parts[1], 32)
-		if speed < 0 {
-			speed = 0
+		f, err := strconv.ParseFloat(parts[1], 32)
+		if err != nil || f < 1 || f > 10 {
+			h.gmReply(sess, "Usage: #speed <1-10> (or /speed): 2 is twice your own speed, 1 your own")
+			return
 		}
-		if speed > 100 {
-			speed = 100
-		}
-		player.Speed = float32(speed)
-		SendPlayerSpeed(sess, float32(speed))
-		h.gmReply(sess, fmt.Sprintf("Speed set to %.1f", speed))
+		speed := player.SetGMSpeed(float32(f))
+		SendPlayerSpeed(sess, speed)
+		h.gmReply(sess, fmt.Sprintf("Speed %gx: %.1f", f, speed))
 
 	case "#testmode":
 		// #testmode: a toggle: every hit taken and shown in full, never a death
@@ -1441,7 +1442,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #world [n] - show/set world without teleporting")
 		h.gmReply(sess, "  #guildhall - enter guild hall")
 		h.gmReply(sess, "  #hddsetup [check|create|format] - hard disk setup")
-		h.gmReply(sess, "  #speed <val> - set speed")
+		h.gmReply(sess, "  #speed <1-10> - your run speed at that many times your own; 1 gives it back")
 		h.gmReply(sess, "  #setlevel [name] <lvl> - set a level, nothing else (no name: your target player, else you)")
 		h.gmReply(sess, "  #size <factor> - your target (player or NPC), else you, at factor of its own size; 1 gives it back")
 		h.gmReply(sess, "  #testmode - toggle: you take every hit in full and cannot die (1 HP left)")

@@ -25,6 +25,9 @@ type NPC struct {
 	ModelID int64
 	Size    float32
 
+	// gmScaleBase is its size before a GM's /scale (gmscale.go), 0 when unscaled.
+	gmScaleBase float32
+
 	// NPCInfo
 	NPCID   int
 	NPCType int

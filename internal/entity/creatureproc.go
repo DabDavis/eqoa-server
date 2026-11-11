@@ -106,8 +106,14 @@ func procOf(db *database.SQLiteDB, a database.TemplateAbility) (templateProc, *t
 		if e.Kind != EffectProc {
 			continue
 		}
+		// its look: the spell's own proc look (proc_fx: Largesse of Plague's 0x830D8A97, the
+		// owner 2026-11-11), else the ability's fx
+		fx := e.ProcFX
+		if fx == 0 {
+			fx = a.FX
+		}
 		p := templateProc{chance: s.Def.ProcChance, least: e.Amount, most: max(e.AmountMax, e.Amount), cap: e.Cap,
-			resist: e.Resist, undeadOnly: e.Undead, name: s.Name, fx: a.FX, spellID: s.SpellID, fromItsSpell: true}
+			resist: e.Resist, undeadOnly: e.Undead, name: s.Name, fx: fx, spellID: s.SpellID, fromItsSpell: true}
 		if p.resist == StatNone {
 			p.resist = rulesOf(&s.Def).Resist
 		}

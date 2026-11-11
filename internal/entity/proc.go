@@ -188,6 +188,16 @@ func (w *World) procHealLocked(caster *Player, casterSess *session.Session, t *P
 	w.healLocked(caster, casterSess, t, n, numberProc)
 }
 
+// procHitFX is the look of ae's proc on what it hits: its own (EffectRules.ProcFX, the effects
+// JSON's proc_fx: the owner, 2026-11-11, "0x830d8a97 is the dictid for LoP proc"), else a
+// damage shield's answer's (fxShieldHit).
+func procHitFX(ae *ActiveEffect) uint32 {
+	if ae != nil && ae.Rules.ProcFX != 0 {
+		return ae.Rules.ProcFX
+	}
+	return fxShieldHit
+}
+
 // playerProcsLocked runs a player's procs after one of its melee hits on a
 // creature still standing. It reports a kill.
 func (w *World) playerProcsLocked(sess *session.Session, p *Player, npc *NPC, now time.Time) bool {
@@ -201,7 +211,7 @@ func (w *World) playerProcsLocked(sess *session.Session, p *Player, npc *NPC, no
 		log.Printf("Proc: %s's %q hits %s for %d", p.Name, h.ae.Name, npc.Name, n)
 		// seen as a damage shield's answer is (petition 1156: "does not proc",
 		// when all it showed was one more figure among the swings')
-		w.broadcastCastLocked(p, npc.ServerID, 0, fxShieldHit)
+		w.broadcastCastLocked(p, npc.ServerID, 0, procHitFX(h.ae))
 		killed := w.spellHitLocked(p, sess, npc, n, numberProc)
 		w.procTapLocked(p, sess, h.ae, npc)
 		if killed {
@@ -225,13 +235,18 @@ func (w *World) petProcsLocked(ps *petState, t *NPC, now time.Time) bool {
 	// a pet has no stats of its own: each is its INT's stand-in, 3 a level
 	petStat := func(Stat) int { return petIntPerLvl * pet.Level }
 	undead := func() bool { return w.undeadLocked(t) }
-	hits, resisted := procRolls(pet.Effects, petStat, pet.Level, t.Level, npcResistOffPct(t, now), undead, now, procIntn)
+	hits, resisted := procRollsOf(pet.Effects, petStat, pet.Level, t.Level, npcResistOffPct(t, now), undead, now, procIntn)
 	if resisted > 0 {
 		log.Printf("Proc: the pet %q's proc resisted by %s", pet.Name, t.Name)
 	}
-	for _, n := range hits {
-		log.Printf("Proc: the pet %q's proc hits %s for %d", pet.Name, t.Name, n)
-		if w.petDamageLocked(ps, t, n, now, numberProc) {
+	for _, h := range hits {
+		log.Printf("Proc: the pet %q's %q hits %s for %d", pet.Name, h.ae.Name, t.Name, h.n)
+		if fx := h.ae.Rules.ProcFX; fx != 0 {
+			// its own look at what it hits (Largesse of Plague's); a proc of none shows its
+			// figure alone, as before
+			w.broadcastNPCSwingLocked(pet, t.ServerID, 0, fx)
+		}
+		if w.petDamageLocked(ps, t, h.n, now, numberProc) {
 			return true
 		}
 	}

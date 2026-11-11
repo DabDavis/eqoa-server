@@ -58,6 +58,7 @@ type Kept struct {
 	ItemListsOffered   bool `json:"item_lists_offered,omitempty"`
 	RaceOptionsOffered bool `json:"race_options_offered,omitempty"`
 	RaceLooks          bool `json:"race_looks,omitempty"`
+	RaceSkins          bool `json:"race_skins,omitempty"`
 	RaceCatalogueSent  bool `json:"race_catalogue_sent,omitempty"`
 	BugReports         bool `json:"bug_reports,omitempty"`
 	AckMasks           bool `json:"ack_masks,omitempty"`
@@ -202,6 +203,7 @@ func (s *Session) Keep() Kept {
 		ItemListsOffered:   s.itemListsOffered,
 		RaceOptionsOffered: s.raceOptionsOffered,
 		RaceLooks:          s.raceLooks,
+		RaceSkins:          s.raceSkins,
 		RaceCatalogueSent:  s.raceCatalogueSent,
 		BugReports:         s.bugReports,
 		AckMasks:           s.ackMasks,
@@ -361,6 +363,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 	// the client keeps its lists; a data step in the hold may have changed the
 	// looks, so the next refresh sends them again (handlers/keep.go)
 	s.raceOptionsOffered, s.raceLooks, s.raceCatalogueSent, s.raceLooksSent = k.RaceOptionsOffered, k.RaceLooks, k.RaceCatalogueSent, ""
+	s.raceSkins = k.RaceSkins
 	s.bugReports = k.BugReports
 	s.ackMasks = k.AckMasks
 	s.flyClient = k.FlyClient

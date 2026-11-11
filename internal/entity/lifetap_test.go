@@ -2,6 +2,7 @@ package entity
 
 import (
 	"encoding/binary"
+	"math"
 	"strings"
 	"testing"
 	"time"
@@ -219,8 +220,8 @@ func gloomPact() CastSpell {
 }
 
 // A pact heals a friend and costs its caster twice that, less its arcane
-// resist's share (resist.go): at none the whole 50, at 210 half; the line
-// says so.
+// resist's share on the pact's scale (resist.go, 90% at 350): at none the
+// whole 50, at 210 54% (23 of 50); the line says so.
 func TestAPactCostsItsCaster(t *testing.T) {
 	c, friend, fo := pactRig(t)
 	msgs := c.landSeen(t, gloomPact(), fo)
@@ -241,14 +242,15 @@ func TestAPactCostsItsCaster(t *testing.T) {
 	r, friend2, fo2 := pactRig(t)
 	r.p.ArcaneR = 210
 	r.landSeen(t, gloomPact(), fo2)
-	if friend2.HP != 125 || r.p.HP != 475 {
-		t.Errorf("at arcane resist 210: friend %d, caster %d; want 125 and 475", friend2.HP, r.p.HP)
+	if friend2.HP != 125 || r.p.HP != 477 {
+		t.Errorf("at arcane resist 210: friend %d, caster %d; want 125 and 477", friend2.HP, r.p.HP)
 	}
 }
 
-// At the resist cap a pact's price is a quarter (13 of 50), but the dice may
-// fail the resist: wholly (the whole 50, "your resist failed") or in part (a
-// share of 45% at the bottom of its range: 28 of 50, "took only 45%").
+// At the pact's resist cap (350, petition 1532) a pact's price is a tenth (5
+// of 50), but the dice may fail the resist: wholly (the whole 50, "your
+// resist failed") or in part (a share of 54% at the bottom of its range: 23
+// of 50, "took only 54%").
 func TestAPactAtTheResistCap(t *testing.T) {
 	defer func(f func() float64) { resistRand = f }(resistRand)
 	for _, tt := range []struct {
@@ -257,9 +259,9 @@ func TestAPactAtTheResistCap(t *testing.T) {
 		hp    int
 		words string
 	}{
-		{"held", []float64{0.5}, 487, "your resist took 75%"},
+		{"held", []float64{0.5}, 495, "your resist took 90%"},
 		{"failed", []float64{0.01}, 450, "your resist failed"},
-		{"failed in part", []float64{0.05, 0}, 472, "your resist took only 45%"},
+		{"failed in part", []float64{0.05, 0}, 477, "your resist took only 54%"},
 	} {
 		dice := append([]float64(nil), tt.dice...)
 		resistRand = func() float64 { d := dice[0]; dice = dice[1:]; return d }
@@ -275,6 +277,34 @@ func TestAPactAtTheResistCap(t *testing.T) {
 		if c.p.HP != tt.hp || !said || len(dice) != 0 {
 			t.Errorf("%s: caster %d HP (want %d), said %q %v, dice left %d", tt.name, c.p.HP, tt.hp, tt.words, said, len(dice))
 		}
+	}
+}
+
+// A pact's price is cut on its own scale (petition 1532, Mortician: "at 350
+// AR the price should be cut by 90%"): in proportion from none at 0 to 90% at
+// 350, no more past it, no dice below the cap. Mortician's 117 took 28% on
+// the shared scale; it takes 30% now. The shared scale (75% at 315) is
+// unchanged for every other spell.
+func TestAPactsResistScale(t *testing.T) {
+	for _, tt := range []struct {
+		ar   int
+		want float64
+	}{{-20, 0}, {0, 0}, {117, 0.9 * 117 / 350}, {175, 0.45}, {315, 0.81}, {349, 0.9 * 349 / 350}, {350, 0.9}, {600, 0.9}} {
+		if got := PactResistShare(tt.ar); math.Abs(got-tt.want) > 1e-9 {
+			t.Errorf("pact share at %d AR: %v, want %v", tt.ar, got, tt.want)
+		}
+	}
+	defer func(f func() float64) { resistRand = f }(resistRand)
+	resistRand = func() float64 { t.Fatal("dice rolled below the pact's cap"); return 0 }
+	if share, how := RollPactResist(349); how != ResistHeld || share != PactResistShare(349) {
+		t.Errorf("349 AR: %v %v", share, how)
+	}
+	if got := ResistShare(315); got != 0.75 {
+		t.Errorf("the shared scale moved: %v at 315", got)
+	}
+	// Mortician's own figure: Loathsome Pact's 1640, 1183 at 117 AR on the shared scale.
+	if got := int(math.Round(1640 * (1 - PactResistShare(117)))); got != 1147 {
+		t.Errorf("1640 at 117 AR: %d", got)
 	}
 }
 

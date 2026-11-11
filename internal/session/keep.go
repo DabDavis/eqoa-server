@@ -50,6 +50,7 @@ type Kept struct {
 	MailLiveForms      bool `json:"mail_live_forms,omitempty"`
 	LiveLook           bool `json:"live_look,omitempty"`
 	LiveLookOffered    bool `json:"live_look_offered,omitempty"`
+	ManyChars          bool `json:"many_chars,omitempty"`
 	CreationOffered    bool `json:"creation_offered,omitempty"`
 	Capes              bool `json:"capes,omitempty"`
 	CapesOffered       bool `json:"capes_offered,omitempty"`
@@ -195,6 +196,7 @@ func (s *Session) Keep() Kept {
 		MailLiveForms:      s.mailLiveForms,
 		LiveLook:           s.liveLook,
 		LiveLookOffered:    s.liveLookOffered,
+		ManyChars:          s.manyChars,
 		CreationOffered:    s.creationOffered,
 		Capes:              s.capes,
 		CapesOffered:       s.capesOffered,
@@ -352,6 +354,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 	s.mailLiveForms = k.MailLiveForms
 	s.liveLook = k.LiveLook
 	s.liveLookOffered = k.LiveLookOffered
+	s.manyChars = k.ManyChars
 	s.creationOffered = k.CreationOffered
 	s.serverWorldsOffered = k.ServerWorldsOffered
 	s.serverWorldsTaken = k.ServerWorldsTaken

@@ -41,6 +41,10 @@ type AccountServer struct {
 	// reason not). Nil: the game's ten races alone, as before.
 	extraRaces func(race, class, sex int) (int64, string)
 
+	// MaxCharacters, wired by main.go (world.max_characters, entity/charslots.go):
+	// the characters an account may hold. 0: CLIENT's 8.
+	MaxCharacters int
+
 	// TELEPORT, wired by main.go. The account pages can move a character, which
 	// is the game's business rather than the web server's, so the two things it
 	// cannot work out for itself are handed in.
@@ -1264,10 +1268,15 @@ func (s *AccountServer) handleAPICreateCharacter(w http.ResponseWriter, r *http.
 		}
 	}
 
-	// Check character limit (8 per account)
+	// Check character limit (world.max_characters; a PS2 lists the 8 most
+	// recently played of them, handlers/charslots.go)
+	most := s.MaxCharacters
+	if most <= 0 {
+		most = 8
+	}
 	chars, _ := s.charStore.GetByAccountID(sess.AccountID)
-	if len(chars) >= 8 {
-		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Maximum 8 characters per account"})
+	if len(chars) >= most {
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": fmt.Sprintf("Maximum %d characters per account", most)})
 		return
 	}
 

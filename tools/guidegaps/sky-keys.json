@@ -1,0 +1,487 @@
+{
+ "notes": "The Plane of Sky's passages (petition 1608, the GM Jibrish: 'This needs to ask for a key from the boss and then teleport people to the next island'; petition 1612: 'after granavik dies he needs to drop 20 keys, and open a portal to the next island called Rain Key 3'): a key per isle, twenty on its boss's corpse (npcitem: one stack of 20, every kill), the isle's essence taking one to send the giver and the group by it on (handlers/skypass.go); Granavik's death opens the Rain 3 Portal where he fell for 15 minutes, which takes a Rain Key 3 to the fourth isle; the chains' essence steps lose their own teleports (the passage moves the player now, key in hand); the Mark of Desolation sends those who finished the chain of snow to the first isle of desolation (waysender.go). The isles' order and bosses: EQOA-Data's Portal/plane-of-sky guide and the sky-twins set's shard bosses; the keys' names follow Jibrish's 'Rain Key 3'.",
+ "items": [
+  {
+   "name": "Rain Key 1",
+   "like": "rain key",
+   "description": "A key Artiokanis carried, of the first isle of rain. The essence of rain there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Rain Key 2",
+   "like": "rain key",
+   "description": "A key Kaglanor carried, of the second isle of rain. The essence of rain there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Rain Key 3",
+   "like": "rain key",
+   "description": "A key Granavik carried, of the third isle of rain. The essence of rain (or the portal he leaves) there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Rain Key 4",
+   "like": "rain key",
+   "description": "A key Spirit of Narciliisisin carried, of the fourth isle of rain. The essence of rain there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Rain Key 5",
+   "like": "rain key",
+   "description": "A key Chimareon the Tyrant carried, of the fifth isle of rain. The essence of rain there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Day Key 1",
+   "like": "rain key",
+   "description": "A key brightstar princess carried, of the first isle of day. The essence of day there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Day Key 2",
+   "like": "rain key",
+   "description": "A key Imerzan carried, of the second isle of day. The essence of day there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Day Key 3",
+   "like": "rain key",
+   "description": "A key torrential wind carried, of the third isle of day. The essence of day there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Day Key 4",
+   "like": "rain key",
+   "description": "A key Randarin the Relentless carried, of the fourth isle of day. The essence of day there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Night Key 1",
+   "like": "rain key",
+   "description": "A key Ancient Jester carried, of the first isle of night. The essence of night there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Night Key 2",
+   "like": "rain key",
+   "description": "A key iron knight carried, of the second isle of night. The essence of night there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Night Key 3",
+   "like": "rain key",
+   "description": "A key Arch Bishop Lancel carried, of the third isle of night. The essence of night there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Night Key 4",
+   "like": "rain key",
+   "description": "A key dark baroness carried, of the fourth isle of night. The essence of night there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Night Key 5",
+   "like": "rain key",
+   "description": "A key King Ruthra carried, of the fifth isle of night. The essence of night there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Snow Key 2",
+   "like": "rain key",
+   "description": "A key Whirlwind carried, of the igloo village's isle of snow. The essence of snow there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Snow Key 3",
+   "like": "rain key",
+   "description": "A key glacial champion carried, of the third isle of snow. The essence of snow there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Snow Key 4",
+   "like": "rain key",
+   "description": "A key Enraged Aeyinar carried, of the fourth isle of snow. The essence of snow there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Desolation Key 1",
+   "like": "rain key",
+   "description": "A key Erych Arbiter carried, of the first isle of desolation. The essence of desolation there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Desolation Key 2",
+   "like": "rain key",
+   "description": "A key warlord of Narcillian carried, of the second isle of desolation. The essence of desolation there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Desolation Key 3",
+   "like": "rain key",
+   "description": "A key elite harpy queen carried, of the third isle of desolation. The essence of desolation there takes it and sends its bearer, and the group beside them, on to the next isle."
+  },
+  {
+   "name": "Desolation Key 4",
+   "like": "rain key",
+   "description": "A key Quintessence of Veeshan carried, of the fourth isle of desolation. The essence of desolation there takes it and sends its bearer, and the group beside them, on to the next isle."
+  }
+ ],
+ "npcs": [
+  {
+   "name": "Rain 3 Portal",
+   "world": 4,
+   "x": 4318.0,
+   "y": -69.0,
+   "z": 4700.0,
+   "facing": 0,
+   "level": 60,
+   "type": 128,
+   "spawnonly": true,
+   "note": "Granavik's portal (petition 1612): stood where he fell for 15 minutes by the trigger Rain 3 Portal Opens; takes a Rain Key 3 to the fourth isle of rain (handlers/skypass.go).",
+   "body": "81437470",
+   "size": 1.0,
+   "look": {
+    "zone": 8,
+    "unk_a": 1,
+    "unk_b": 82,
+    "hp_percent": 255,
+    "robe_style": "255",
+    "race": "6",
+    "unk_i": "15",
+    "unk_n": 1
+   }
+  }
+ ],
+ "triggers": [
+  {
+   "slot": 156,
+   "name": "Rain 3 Portal Opens",
+   "scope": "near",
+   "radius": 100,
+   "world": 4,
+   "x": 4318.0,
+   "y": -69.0,
+   "z": 4700.0,
+   "steps": [
+    {
+     "do": "lock",
+     "lock": "rain 3 portal"
+    },
+    {
+     "do": "spawn",
+     "npc": "Rain 3 Portal",
+     "spread": 5,
+     "minutes": 15
+    },
+    {
+     "do": "broadcast",
+     "text": "A portal tears open where Granavik fell. A Rain Key 3 opens it to the next isle; it closes in fifteen minutes."
+    }
+   ],
+   "notes": "Petition 1612 (Jibrish): Granavik's death opens a portal to the next isle. Fired where he fell (npcdeath)."
+  }
+ ],
+ "deaths": [
+  {
+   "name": "Granavik",
+   "trigger": "Rain 3 Portal Opens",
+   "chance": 100,
+   "note": "Petition 1612 (Jibrish): his portal to the fourth isle of rain."
+  }
+ ],
+ "sql": [
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Rain Key 1",
+    "Artiokanis"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Rain Key 2",
+    "Kaglanor"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Rain Key 3",
+    "Granavik"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Rain Key 4",
+    "Spirit of Narciliisisin"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Rain Key 5",
+    "Chimareon the Tyrant"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Day Key 1",
+    "brightstar princess"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Day Key 2",
+    "Imerzan"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Day Key 3",
+    "torrential wind"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Day Key 4",
+    "Randarin the Relentless"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Night Key 1",
+    "Ancient Jester"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Night Key 2",
+    "iron knight"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Night Key 3",
+    "Arch Bishop Lancel"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Night Key 4",
+    "dark baroness"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Night Key 5",
+    "King Ruthra"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Snow Key 2",
+    "Whirlwind"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Snow Key 3",
+    "glacial champion"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Snow Key 4",
+    "Enraged Aeyinar"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Desolation Key 1",
+    "Erych Arbiter"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Desolation Key 2",
+    "warlord of Narcillian"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Desolation Key 3",
+    "elite harpy queen"
+   ]
+  ],
+  [
+   "INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) SELECT n.npc_id, 20, 0, 0, (SELECT patternid FROM itempattern WHERE itemname = ?), -1, 1, COALESCE((SELECT MAX(listnumber) + 1 FROM npcitem WHERE npcid = n.npc_id), 0) FROM npcs n WHERE n.world = 4 AND lower(n.npc_name) = lower(?)",
+   [
+    "Desolation Key 4",
+    "Quintessence of Veeshan"
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101301,
+    2
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101301,
+    4
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101302,
+    4
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101303,
+    5
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101303,
+    9
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101303,
+    11
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101304,
+    2
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101304,
+    4
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101305,
+    4
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101305,
+    7
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101305,
+    10
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101306,
+    2
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101306,
+    8
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101306,
+    10
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101306,
+    15
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101306,
+    17
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101307,
+    8
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101307,
+    11
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101307,
+    17
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101308,
+    4
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101308,
+    9
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101308,
+    12
+   ]
+  ],
+  [
+   "UPDATE queststeps SET events = '' WHERE questid = ? AND step = ? AND json_valid(events) AND json_array_length(events) = 1 AND json_extract(events, '$[0].do') = 'teleport' AND json_extract(events, '$[0].on') = 'done'",
+   [
+    101308,
+    14
+   ]
+  ],
+  [
+   "INSERT OR IGNORE INTO questunlocks (questid, npc, dest) VALUES (101307, 'Mark of Desolation', 'Desolation 1')",
+   []
+  ]
+ ]
+}

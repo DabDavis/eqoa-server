@@ -369,6 +369,12 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 
+	// A Plane of Sky essence's passage, with its isle's key (skypass.go), before
+	// its quest steps, which only the passage does.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.skyPassTalk(sess, player, npc) {
+		return nil
+	}
+
 	// A quest's step at this NPC, or a quest it offers (quests.go), before
 	// the NPC's own business.
 	if npc, ok := targetEntity.(*entity.NPC); ok && Quests().Talk(sess, player, npc) {
@@ -806,7 +812,12 @@ func (h *InteractHandler) travel(sess *session.Session, player *entity.Player, d
 	if dest.Via != "" {
 		sess.Queue().AddWithSequence(buildClientMessage(dest.Via + ": " + wayGo))
 	}
+	h.warp(sess, player, dest)
+}
 
+// warp is travel's teleport alone: the player sent to the trip's landing, no
+// level, fee or words (a Plane of Sky passage's key is its fare: skypass.go).
+func (h *InteractHandler) warp(sess *session.Session, player *entity.Player, dest entity.CoachDest) {
 	log.Printf("Coaching: teleporting %s to %s (%.1f, %.1f, %.1f) world=%d",
 		player.Name, dest.Name, dest.X, dest.Y, dest.Z, dest.World)
 

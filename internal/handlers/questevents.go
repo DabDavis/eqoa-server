@@ -713,6 +713,10 @@ func (q *QuestEngine) LoggedIn(serverID uint32) {
 	defer q.mu.Unlock()
 	if c := q.chars[serverID]; c != nil {
 		c.windowOffered, c.windowNotYet, c.declined = nil, nil, nil
+	} else if q.store != nil {
+		// read at once, so the World learns its walls in its first second
+		// (questwalls.go)
+		q.charLocked(serverID)
 	}
 }
 

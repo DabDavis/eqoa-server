@@ -318,7 +318,14 @@ func (w *World) templateForLocked(npc *NPC) *ClassTemplate {
 	if len(w.templates.use) == 0 || npc.Owner != 0 || npc.Dummy != NotDummy {
 		return nil
 	}
-	name := w.templates.use[database.NPCClassKey(npc.Name)]
+	// its own row's first ("#n", npcrow.go), then its name's
+	name := ""
+	if r := npc.row(); r != 0 {
+		name = w.templates.use[RowKey(r)]
+	}
+	if name == "" {
+		name = w.templates.use[database.NPCClassKey(npc.Name)]
+	}
 	if name == "" {
 		return nil
 	}

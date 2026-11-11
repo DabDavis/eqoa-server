@@ -173,6 +173,9 @@ type questCatalog struct {
 // questChar is one character's quests.
 type questChar struct {
 	serverID uint32
+	// qstate is what the World was last told of its walls and items
+	// (questwalls.go)
+	qstate questState
 	quests   map[int]*database.CharQuest
 	token    uint32
 	box      *questBox
@@ -363,6 +366,7 @@ func (q *QuestEngine) run() {
 			q.respawnLost() // questevents.go: a spawn-only creature's lost spawns
 			q.syncMarks(time.Now())
 			q.syncProgress()
+			q.syncQuestState() // questwalls.go: the walls passed, the items held
 		}
 	}
 }

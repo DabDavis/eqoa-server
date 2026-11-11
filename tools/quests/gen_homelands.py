@@ -53,9 +53,19 @@ RACE_IDS = {"hillgiant": 11, "kerran": 12, "goblin": 13, "aviak": 14, "lizardman
             "fairy": 19, "gnoll": 20, "orc": 21, "kobold": 22, "minotaur": 23, "ratman": 24, "satyr": 25, "dryad": 26,
             "skeleton": 27, "fungusman": 28, "gargoyle": 29, "jalraeth": 30, "wisp": 31}
 
-# The cities' figures (EQOA-Data's guides; Sandstorm gave 430 and 2,200 for the first two, questrec16).
-XP = {1: 430, 2: 2200, 3: 6900, 4: 17000, 5: 36500}
+# The cities' figures (EQOA-Data's guides; Sandstorm gave 430 and 2,200 for the first two, questrec16; levels 7-20 the
+# figure 74 of the 75 city class quests of the level give on the Heirloom server).
+XP = {1: 430, 2: 2200, 3: 6900, 4: 17000, 5: 36500, 7: 157474, 10: 556753, 13: 550698, 15: 883791, 20: 2814929}
 LEVELS = (1, 2, 3, 4, 5)
+# the chain past the gatekeeper's flight (the owner, 2026-11-11: "add up to lvl 20 path quests for them all"): the cities'
+# levels, each optional in a spec but each after the one before
+HIGHER = (7, 10, 13, 15, 20)
+# CLIENT's class ids (root CLAUDE.md), as the quests' keys of level 20 name them: one quest a class, each asking that
+# class's own path pick
+CLASS_NAMES = ["warrior", "ranger", "paladin", "shadowknight", "monk", "bard", "rogue", "druid", "shaman", "cleric",
+               "magician", "necromancer", "enchanter", "wizard", "alchemist"]
+# the cities' level 20 question, and an option's words when it is picked
+PATH_ASK, PATH_PICKED = "Which do you take?", "Then it is yours."
 # a hunt's drop: one kill in two (the cities' files' own figure); a named foe always drops
 CHANCE, NAMED_CHANCE = 0.5, 1.0
 # CLIENT's room (handlers/quests.go): a box 217 characters with the speaker's name and ": " before the line, a question
@@ -73,11 +83,27 @@ WHAT = {
     4: "the cities' level 4 quest: new gear of a merchant's materials and a drop; each class is given what its own "
        "city's level 4 quest gives it (class-rewards.json has the two classes the cities give nothing)",
     5: "the cities' level 5 quest: a foe to bring down; each class is taught what its own city's level 5 quest teaches it",
+    7: "the cities' level 7 quest: two tasks of the hunt, their spoils handed in; each class is taught what its own city's "
+       "level 7 quest teaches it",
+    10: "the cities' level 10 quest: a new weapon, of what a camp hands over and a creature's drop; each class is given what "
+        "its own city's level 10 quest gives it (class-rewards.json has the four classes the cities give nothing)",
+    13: "the cities' level 13 quest: a named foe brought down; each class is taught what its own city's level 13 quest "
+        "teaches it",
+    15: "the cities' level 15 quest: a named foe's spoil carried where it is wanted; each class is taught what its own "
+        "city's level 15 quest teaches it",
+    20: "the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the "
+        "options its class's city asks (\"Which do you take?\")",
 }
 
 
 class SpecError(Exception):
     pass
+
+
+def prev_level(level):
+    """The level of the chain's quest before level's."""
+    chain = LEVELS + HIGHER
+    return chain[chain.index(level) - 1]
 
 
 def lines_of(v):
@@ -205,7 +231,7 @@ class Race:
             "giver": giver,
             "classes": [], "races": [RACE_IDS[self.race]],
             "minlevel": level, "maxlevel": 60,
-            "requires": [f"homelands/{self.race}/L{level - 1}"] if level > 1 else [],
+            "requires": [f"homelands/{self.race}/L{prev_level(level)}"] if level > 1 else [],
             "offer": self.offer(f"{where} offer", giver, q.get("offer") if isinstance(q, dict) else None),
             "accept": self.answer(where, q, "accept"),
             "decline": self.answer(where, q, "decline"),
@@ -236,8 +262,12 @@ class Race:
 
     def reward(self, level):
         rw = {"xp": XP[level]}
-        if level >= 3:
-            rw["byclass"] = {c: copy.deepcopy(self.rewards[c][f"L{level}"]) for c in sorted(self.rewards, key=int)}
+        if level >= 3 and level != 20:
+            by = {c: copy.deepcopy(self.rewards[c][f"L{level}"]) for c in sorted(self.rewards, key=int)}
+            # a class its cities give only experience at the level has no entry
+            by = {c: v for c, v in by.items() if v}
+            if by:
+                rw["byclass"] = by
         return rw
 
     def l1(self, q):
@@ -264,9 +294,9 @@ class Race:
                         self.step("L2 ledger", "talk", coach, q.get("ledger") or {}), back]
         return out
 
-    def hunt(self, level, q, lo, hi, chance):
+    def hunt(self, level, q, lo, hi, chance, where=None):
         """A loot step: (the step, its drop's name, how many)."""
-        where = f"L{level}"
+        where = where or f"L{level}"
         target = self.need(where, q, "target")
         count = q.get("count") if isinstance(q, dict) else None
         if not isinstance(count, int) or isinstance(count, bool) or not lo <= count <= hi:
@@ -335,6 +365,151 @@ class Race:
         last["rewards"] = self.reward(5)
         return out
 
+    # --- past the flight: levels 7-20, on the cities' shapes (their objectives in the Homelands' shared ground)
+
+    def talks(self, where, q, key, lo, hi):
+        """A list of talk steps (a road's stops): each {target, journal, says}."""
+        stops = q.get(key) if isinstance(q, dict) else None
+        if stops is None and lo == 0:
+            return []
+        if not isinstance(stops, list) or not lo <= len(stops) <= hi:
+            self.bad(where, f"{key}: {lo} to {hi} stops, each {{target, journal, says}}")
+            return []
+        return [self.step(f"{where} {key} {i}", "talk", self.need(f"{where} {key} {i}", st, "target"), st)
+                for i, st in enumerate(stops, 1)]
+
+    def l7(self, q):
+        """Two tasks of the hunt (Halas's Three Tasks): one or two kinds' drops, handed in together."""
+        out, giver = self.base(7, q)
+        hunts = q.get("hunts")
+        if not isinstance(hunts, list) or not 1 <= len(hunts) <= 2:
+            self.bad("L7", "hunts: one or two {target, count, drop, hunt}, as the cities' level 7 tasks")
+            hunts = []
+        steps, handed = [], []
+        for i, h in enumerate(hunts, 1):
+            st, drop, n = self.hunt(7, h if isinstance(h, dict) else {}, 1, 3, CHANCE, where=f"L7 hunt {i}")
+            steps.append(st)
+            handed.append({"item": drop, "count": n})
+        give = self.step("L7 give", "give", giver, q.get("give") or {}, items=handed)
+        give["rewards"] = self.reward(7)
+        out["steps"] = steps + [give]
+        return out
+
+    def l10(self, q):
+        """A new weapon (the cities' level 10): what a camp or a merchant hands over, and a creature's drop."""
+        return self.gear(10, q, 0, 2)
+
+    def l13(self, q):
+        """A named foe brought down (Gunkat, Battle Plans): a kill, or a foe's drop brought back."""
+        return self.foe(13, q, kill=(1, 8), loot=(1, 3))
+
+    def l15(self, q):
+        """A named foe's spoil (Trukat, Numla, Kurnor): taken off it (it always drops), carried to whoever wants it when
+        the spec says (carry), then back to the giver."""
+        out, giver = self.base(15, q)
+        chance = q.get("chance", NAMED_CHANCE)
+        if not isinstance(chance, (int, float)) or isinstance(chance, bool) or not 0 < chance <= 1:
+            self.bad("L15", f"chance {chance!r}")
+            chance = NAMED_CHANCE
+        hunt, drop, n = self.hunt(15, q, 1, 3, float(chance))
+        carry = q.get("carry")
+        if carry is None:
+            last = self.step("L15 give", "give", giver, q.get("give") or {}, items=[{"item": drop, "count": n}])
+            out["steps"] = [hunt, last]
+        else:
+            to = self.need("L15 carry", carry, "target")
+            st = self.step("L15 carry", "give", to, carry, items=[{"item": drop, "count": n}])
+            last = self.step("L15 back", "talk", giver, q.get("back") or {})
+            out["steps"] = [hunt, st, last]
+        last["rewards"] = self.reward(15)
+        return out
+
+    def l20(self, q):
+        """The road (Halas's River Road): stops along the way, a hunt whose drop someone on it wants, more stops, and the
+        last word at the giver (final), who asks which path the character takes: one quest a class, each its city's pick.
+        """
+        out, giver = self.base(20, q)
+        road = self.talks("L20", q, "road", 1, 3)
+        hunt, drop, n = self.hunt(20, q, 1, 3, CHANCE)
+        hd = q.get("handin") if isinstance(q.get("handin"), dict) else {}
+        to = hd.get("target") or (road[-1]["target"] if road else giver)
+        handin = self.step("L20 handin", "give", to, hd, items=[{"item": drop, "count": n}])
+        after = self.talks("L20", q, "after", 0, 2)
+        fin = q.get("final") if isinstance(q.get("final"), dict) else {}
+        final = self.step("L20 final", "talk", fin.get("target") or giver, fin)
+        picked = self.said("L20 picked", final["target"], q.get("picked") or PATH_PICKED)
+        steps = road + [hunt, handin] + after + [final]
+        outs = []
+        for c in sorted(self.rewards, key=int):
+            opts = self.rewards[c]["L20"]
+            qc = copy.deepcopy(out)
+            qc["key"] = f"homelands/{self.race}/L20/{CLASS_NAMES[int(c)]}"
+            qc["classes"] = [int(c)]
+            st = copy.deepcopy(steps)
+            st[-1]["rewards"] = self.reward(20)
+            st[-1]["choose"] = PATH_ASK
+            st[-1]["choices"] = [{"answer": o["answer"], "says": picked, "rewards": {k: list(o[k]) for k in ("items", "spells") if o.get(k)}}
+                                 for o in opts]
+            qc["steps"] = st
+            qc["notes"] = qc["notes"].replace("level 20,", f"level 20 for the {CLASS_NAMES[int(c)]},", 1)
+            outs.append(qc)
+        return outs
+
+    def gear(self, level, q, lo, hi):
+        """Materials one to two merchants hand over (lo may be 0) and a creature's drop, handed in for the class's gear."""
+        where = f"L{level}"
+        out, giver = self.base(level, q)
+        mats = q.get("materials", [] if lo == 0 else None) if isinstance(q, dict) else None
+        if not isinstance(mats, list) or not lo <= len(mats) <= hi:
+            self.bad(where, f"materials: {lo} to {hi} hand-overs ({{merchant, items, journal, says}})")
+            mats = []
+        steps, handed = [], []
+        for i, m in enumerate(mats, 1):
+            w = f"{where} materials {i}"
+            merchant = self.need(w, m, "merchant")
+            its = [self.item(w, it) for it in (m.get("items") if isinstance(m, dict) and isinstance(m.get("items"), list) else [])]
+            if not 1 <= len(its) <= 2:
+                self.bad(w, "one or two items a merchant")
+            st = self.step(w, "talk", merchant, m)
+            st["events"] = [{"on": "done", "do": "give", "items": [{"item": it, "count": 1} for it in its]}]
+            steps.append(st)
+            handed += its
+        hunt, drop, n = self.hunt(level, q, 1, 3 if level > 4 else 2, CHANCE)
+        give = self.step(f"{where} give", "give", giver, q.get("give") or {},
+                         items=[{"item": it, "count": 1} for it in handed] + [{"item": drop, "count": n}])
+        give["rewards"] = self.reward(level)
+        out["steps"] = steps + [hunt, give]
+        return out
+
+    def foe(self, level, q, kill, loot):
+        """A foe to bring down: kind "loot" (its drop brought back; a named foe always drops) or "kill" (a count, then
+        back to the giver)."""
+        where = f"L{level}"
+        out, giver = self.base(level, q)
+        kind = q.get("kind", "loot" if level == 5 else "kill") if isinstance(q, dict) else "loot"
+        if kind == "loot":
+            chance = q.get("chance", NAMED_CHANCE)
+            if not isinstance(chance, (int, float)) or isinstance(chance, bool) or not 0 < chance <= 1:
+                self.bad(where, f"chance {chance!r}")
+                chance = NAMED_CHANCE
+            hunt, drop, n = self.hunt(level, q, loot[0], loot[1], float(chance))
+            last = self.step(f"{where} give", "give", giver, q.get("give") or {}, items=[{"item": drop, "count": n}])
+            out["steps"] = [hunt, last]
+        elif kind == "kill":
+            target = self.need(where, q, "target")
+            count = q.get("count")
+            if not isinstance(count, int) or isinstance(count, bool) or not kill[0] <= count <= kill[1]:
+                self.bad(where, f"count {count!r} (one named foe, or up to {kill[1]} of a tougher kind)")
+                count = kill[0]
+            hunt = self.step(f"{where} hunt", "kill", target, q.get("hunt") or {}, count=count)
+            last = self.step(f"{where} back", "talk", giver, q.get("back") or {})
+            out["steps"] = [hunt, last]
+        else:
+            self.bad(where, f"kind {kind!r} (loot: a foe's drop brought back; kill: a count of a kind)")
+            return out
+        last["rewards"] = self.reward(level)
+        return out
+
     def flight(self, q):
         where = "flight"
         giver = self.need(where, q, "giver")
@@ -370,9 +545,10 @@ class Race:
             self.bad("race", f"the file is {self.race}.json and says race {s.get('race')!r}")
         for k in ("home", "city"):
             self.need("spec", s, k)
-        unknown = set(s) - {"race", "home", "city", "L1", "L2", "L3", "L4", "L5", "flight", "note"}
+        known = {"race", "home", "city", "flight", "note"} | {f"L{k}" for k in LEVELS + HIGHER}
+        unknown = set(s) - known
         if unknown:
-            self.bad("spec", f"has {sorted(unknown)} (race, home, city, L1-L5, flight and note are read)")
+            self.bad("spec", f"has {sorted(unknown)} (race, home, city, L1-L5, flight, L7, L10, L13, L15, L20 and note are read)")
         build = {1: self.l1, 2: self.l2, 3: self.l3, 4: self.l4, 5: self.l5}
         out = []
         for k in LEVELS:
@@ -385,11 +561,26 @@ class Race:
             self.bad("flight", "missing")
         else:
             out.append(self.flight(s["flight"]))
+        # past the flight: each level optional, but none without the one before it (a content lane adds them in order)
+        higher = {7: self.l7, 10: self.l10, 13: self.l13, 15: self.l15, 20: self.l20}
+        for i, k in enumerate(HIGHER):
+            q = s.get(f"L{k}")
+            if q is None:
+                for later in HIGHER[i + 1:]:
+                    if s.get(f"L{later}") is not None:
+                        self.bad(f"L{later}", f"comes after L{k}, which the spec lacks")
+                break
+            if not isinstance(q, dict):
+                self.bad(f"L{k}", "is not a quest")
+                break
+            got = higher[k](q)
+            out += got if isinstance(got, list) else [got]
         return out
 
 
 def load_rewards(path=None):
-    """class-rewards.json: {class id: {"L3": {...}, "L4": {...}, "L5": {...}}}, every class."""
+    """class-rewards.json: {class id: {"L3": {...}, "L4": {...}, "L5": {...}, "L7" .. "L15": {...}, "L20": [options]}},
+    every class."""
     doc = json.load(open(path or os.path.join(SPECS, "class-rewards.json")))
     out = {}
     for c in map(str, range(15)):
@@ -403,6 +594,22 @@ def load_rewards(path=None):
                     not all(isinstance(n, str) and n.strip() for k in rw for n in rw[k]):
                 raise SpecError(f"class-rewards.json class {c} {lv}: {rw!r} is not {{items: [names]}} or {{spells: [names]}}")
             out[c][lv] = {k: list(rw[k]) for k in ("items", "spells") if rw.get(k)}
+        for lv in ("L7", "L10", "L13", "L15"):
+            # levels 7-20 (the homes' chain past the flight): a class its cities give only experience at a level has {}
+            rw = ent.get(lv)
+            if not isinstance(rw, dict) or set(rw) - {"items", "spells"} or \
+                    not all(isinstance(rw[k], list) and all(isinstance(n, str) and n.strip() for n in rw[k]) for k in rw):
+                raise SpecError(f"class-rewards.json class {c} {lv}: {rw!r} is not {{items: [names], spells: [names]}} (or {{}})")
+            out[c][lv] = {k: list(rw[k]) for k in ("items", "spells") if rw.get(k)}
+        opts = (ent.get("L20") or {}).get("choices") if isinstance(ent.get("L20"), dict) else None
+        if not isinstance(opts, list) or not 2 <= len(opts) <= 6 or not all(
+                isinstance(o, dict) and isinstance(o.get("answer"), str) and 0 < len(o["answer"].strip()) <= ANSWER
+                and not set(o) - {"answer", "items", "spells"} and (o.get("items") or o.get("spells"))
+                and all(isinstance(n, str) and n.strip() for k in ("items", "spells") for n in o.get(k, []))
+                for o in opts):
+            raise SpecError(f"class-rewards.json class {c} L20: the path pick is {{choices: [{{answer, items or spells}}, ...]}}, "
+                            f"2 to 6 options (the client shows six), each answer {ANSWER} characters at most")
+        out[c]["L20"] = [{"answer": o["answer"].strip(), **{k: list(o[k]) for k in ("items", "spells") if o.get(k)}} for o in opts]
     return out
 
 

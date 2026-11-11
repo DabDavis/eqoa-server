@@ -2,9 +2,12 @@ package entity
 
 import (
 	"encoding/binary"
+	"net"
+	"slices"
 	"testing"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/session"
 )
 
 func withWispRace(t *testing.T) {
@@ -157,5 +160,74 @@ func TestTheWispsMasteriesAreTheWisps(t *testing.T) {
 	}
 	if will.OfferedTo(0, 0) || will.OfferedTo(0, 30) || mc.OfferedTo(13, 0) {
 		t.Error("the controls: a human or a Jal'Raeth is offered the Wisp's")
+	}
+}
+
+// The Wisp's rows in a World: a Wisp of level 60 is listed Will-of-the-Wisp,
+// Trickster Flame and Transcendent's three ranks, buys the racials (Trickster
+// Flame giving the six glamours and Remove Illusion) and Transcendent once 500
+// points are spent, its PoT, power and AC then the ranks'. The control: a human
+// is listed none of them and refused one.
+func TestAWispBuysItsMasteries(t *testing.T) {
+	withWispRace(t)
+	w := NewWorld()
+	mgr := session.NewManager()
+	w.SessionManager = mgr
+	wisp, all := 1<<31, 32767
+	w.SetCMCatalog([]database.CMRankRow{
+		{ID: 1701, Category: 1, Classes: all, Races: 1, Name: "Retreat", Cost: 15, Level: 6, Enabled: true},
+		{ID: 2141, Category: 1, Classes: all, Races: wisp, Mastery: "Will-of-the-Wisp", Name: "Will-of-the-Wisp", Cost: 5, Level: 6, Effects: "PoT:10", Enabled: true},
+		{ID: 2142, Category: 1, Classes: all, Races: wisp, Mastery: "Trickster Flame", Name: "Trickster Flame", Cost: 10, Level: 6, Effects: "PoT:5",
+			Adds:      "Glamour: Human@1; Glamour: Elf@4; Glamour: Erudite@8; Glamour: Halfling@12; Glamour: Dwarf@16; Glamour: Gnome@20; Remove Illusion@1",
+			AddSpells: "496,503,507,517,524,531,1793", Enabled: true},
+		{ID: 2143, Category: CMCategoryMaster, Classes: all, Races: wisp, Mastery: "Transcendent", Rank: 1, Name: "Transcendent", Cost: 200, Level: 55, Spent: 500,
+			Effects: "DEXMax:50,INTMax:25,WISMax:25,Pow:500,STRMax:-25,STAMax:-25,AGIMax:-25,AC:-250", Enabled: true},
+		{ID: 2144, Category: CMCategoryMaster, Classes: all, Races: wisp, Mastery: "Transcendent", Rank: 2, Name: "Unbound Will", Parent: 2143, Cost: 75, Level: 60, Effects: "Pow:500,PoT:20", Enabled: true},
+		{ID: 2145, Category: CMCategoryMaster, Classes: all, Races: wisp, Mastery: "Transcendent", Rank: 3, Name: "Pale Fire", Parent: 2143, Cost: 75, Level: 60, Effects: "INT:25,WIS:25", Enabled: true},
+	})
+	in := func(port, id int, p *Player) *session.Session {
+		s := mgr.CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 0, 9), Port: port}, uint32(id), uint32(id), 1, 2, true)
+		w.Players[p.ServerID] = p
+		s.SetECSEntity(p)
+		s.SetCharacterInWorld(true)
+		return s
+	}
+	f := &Player{ServerID: 677, CharServerID: 677, Name: "Flicker", Race: 31, Class: 13, Level: 60, Mastery: Mastery{Points: 1000}}
+	h := &Player{ServerID: 678, CharServerID: 678, Name: "Hum", Race: 0, Class: 13, Level: 60, Mastery: Mastery{Points: 1000}}
+	fs, hs := in(7201, 677, f), in(7202, 678, h)
+	ids := func(l []CMEntry) []int {
+		var out []int
+		for _, e := range l {
+			out = append(out, e.ID)
+		}
+		return out
+	}
+	if got := ids(w.CMList(fs, CMKnows{})); !slices.Equal(got, []int{2141, 2142, 2143, 2144, 2145}) {
+		t.Errorf("the Wisp's list: %v", got)
+	}
+	if got := ids(w.CMList(hs, CMKnows{})); !slices.Equal(got, []int{1701}) {
+		t.Errorf("the control, a human's list: %v", got)
+	}
+	if r := w.BuyCM(hs, 2141, CMKnows{}); r.Refusal == "" {
+		t.Error("a human bought Will-of-the-Wisp")
+	}
+	for _, id := range []int{2141, 2142} {
+		if r := w.BuyCM(fs, id, CMKnows{}); r.Refusal != "" {
+			t.Fatalf("%d: %s", id, r.Refusal)
+		}
+	}
+	if r := w.BuyCM(fs, 2143, CMKnows{}); r.Refusal == "" {
+		t.Error("Transcendent with 15 points spent")
+	}
+	f.Mastery.Spent = 500
+	r := w.BuyCM(fs, 2143, CMKnows{})
+	if r.Refusal != "" {
+		t.Fatal(r.Refusal)
+	}
+	if gives, _ := w.cms.byID[2142].BookChange(); len(gives) != 7 || gives[0].SpellID != 496 || gives[6].Name != "Remove Illusion" {
+		t.Errorf("Trickster Flame gives %v", gives)
+	}
+	if e := f.CMEffects; e[cmSlotPoT] != 15 || e[cmSlotPower] != 500 || e[cmSlotAC] != -250 || e[10] != 50 || e[7] != -25 {
+		t.Errorf("the Wisp's effects: %v", e)
 	}
 }

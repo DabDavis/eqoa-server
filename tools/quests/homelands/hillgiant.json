@@ -2,7 +2,7 @@
   "race": "hillgiant",
   "home": "West Plateau",
   "city": "Oggok",
-  "note": "The hill giants' camp on the West Plateau of Odus, the wild island (no city of the erudites stands on it yet: the words name none). Its people are tools/worlds/homelands.json's (West Plateau): Elder Hrolmog, at the foot of the old steps, gives the first two; Stonehand Borrik, beside him, the three hunts; Hidewife Marna, a few steps south-west, is the outfitter; Coachman Durgo keeps the stable on the plain to the south (his coach runs to Freeport and to the other homes). The plateau skinks (the plain to the west), the rock badgers (the plain to the south) and the old wolf Greyjaw (far to the north, beyond the gatekeeper) are placed for these quests. A giant speaks slow and short.",
+  "note": "The hill giants' camp on the West Plateau of Odus, the wild island (no city of the erudites stands on it yet: the words name none). Its people are tools/worlds/homelands.json's (West Plateau): Elder Hrolmog, at the foot of the old steps, gives the first two; Stonehand Borrik, beside him, the three hunts; Hidewife Marna, a few steps south-west, is the outfitter; Coachman Durgo keeps the stable on the plain to the south (his coach runs to Freeport and to the other homes). The plateau skinks (the plain to the west), the rock badgers (the plain to the south) and the old wolf Greyjaw (far to the north, beyond the gatekeeper) are placed for these quests. A giant speaks slow and short. Levels 7-20 (2026-11-11): Stonehand Borrik gives L7-L15, Elder Hrolmog the L20 path; their objectives are on the Homelands' shared ground, the Goldfeather Eyrie (Durgo's coach), whose Warden Halvek is a hill giant, their kin: badger pelts for Marna, Dunmore's ore with Marna's leather and rime spider silk, Old Frostjaw, the Rimeheart's shard to Halvek, then Halvek's own errand against the raiders.",
   "L1": {
     "name": "A Young Giant's Tooth",
     "giver": "Elder Hrolmog",
@@ -172,5 +172,174 @@
     "declined": "The way will keep. Stone does.",
     "started": "Stand still and hold your breath. Walk tall in Oggok!",
     "journal": "Tell Gatekeeper Thundrik when you are ready to go to Oggok."
+  },
+  "L7": {
+    "name": "Pelts for Marna",
+    "giver": "Stonehand Borrik",
+    "offer": [
+      "You are bigger now. Good. Marna wants pelts for the cold months. Our plateau has no snow. The Goldfeather Eyrie has lots.",
+      "Ride Durgo's coach to the Eyrie outpost. Badgers live on the snow east of it. Bring me three pelts.",
+      "Will you hunt badgers for Marna?"
+    ],
+    "accept": "I will hunt them.",
+    "decline": "Not now.",
+    "declined": "Then Marna is cold. She will tell you about it.",
+    "started": "Three pelts. Not torn. Marna is fussy.",
+    "hunts": [
+      {
+        "target": "snowfield badger",
+        "count": 3,
+        "drop": {
+          "name": "snowfield badger pelt",
+          "description": "The thick pelt of a snowfield badger of the Goldfeather Eyrie.",
+          "like": "beast pelt"
+        },
+        "hunt": {
+          "journal": "Take three snowfield badger pelts from the badgers on the snow east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring the three snowfield badger pelts to Stonehand Borrik.",
+      "says": "Three. Good thick ones. Marna will stop shouting. Now watch my hands, and learn this."
+    }
+  },
+  "L10": {
+    "name": "A Bigger Thing to Hit With",
+    "giver": "Stonehand Borrik",
+    "offer": [
+      "You grew. Your arms did not. I will make you a bigger thing to hit with.",
+      "The quartermaster at the Eyrie outpost has ore. Marna has leather. Then bring one skein of silk off the rime spiders north-east of the outpost, to wrap the grip.",
+      "Will you bring me ore, leather and silk?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then hit things with the small one.",
+    "started": "Ore, leather, silk. Three things. Count on your fingers.",
+    "materials": [
+      {
+        "merchant": "Quartermaster Dunmore",
+        "items": [
+          "iron ore"
+        ],
+        "journal": "Ask Quartermaster Dunmore at the Eyrie outpost for the ore Borrik wants.",
+        "says": "Borrik's? He sent word by the coach: \"big ore.\" Here, the biggest I have. Mind your feet when you carry it."
+      },
+      {
+        "merchant": "Hidewife Marna",
+        "items": [
+          "leather strip"
+        ],
+        "journal": "Ask Hidewife Marna for a leather strip.",
+        "says": "For Borrik's grip? Here. Badger leather, from your pelts. See? Nothing wasted."
+      }
+    ],
+    "target": "rime spider",
+    "count": 1,
+    "drop": {
+      "name": "rime spider silk",
+      "description": "A skein of frosted silk from a rime spider of the Goldfeather Eyrie.",
+      "like": "Black Widow Silk"
+    },
+    "hunt": {
+      "journal": "Take a skein of silk from the rime spiders north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the iron ore, the leather strip and the rime spider silk to Stonehand Borrik.",
+      "says": "All three. Stand back. This is louder than last time... there. It is yours. It is big. Good."
+    }
+  },
+  "L13": {
+    "name": "Frostjaw",
+    "giver": "Stonehand Borrik",
+    "offer": [
+      "Warden Halvek at the Eyrie outpost is a giant. Our blood. He sent word. An old snow leopard, Frostjaw, eats his hunters on the slopes north-east of the outpost.",
+      "Halvek cannot leave the outpost. You can. Kill Frostjaw. Take friends. Leopards are fast. Giants are not.",
+      "Will you kill Old Frostjaw?"
+    ],
+    "accept": "I will kill him.",
+    "decline": "Not yet.",
+    "declined": "Then Halvek loses more hunters.",
+    "started": "Hit him hard. Then hit him again.",
+    "kind": "kill",
+    "target": "Old Frostjaw",
+    "count": 1,
+    "hunt": {
+      "journal": "Kill Old Frostjaw on the slopes north-east of the Eyrie outpost."
+    },
+    "back": {
+      "journal": "Return to Stonehand Borrik.",
+      "says": "Frostjaw is dead? Hah! Halvek will drink to you. So will I. Learn this."
+    }
+  },
+  "L15": {
+    "name": "Ice for Halvek",
+    "giver": "Stonehand Borrik",
+    "offer": [
+      "Halvek sent word again. Something cold walks the ice caves north-east of the Eyrie outpost. The Rimeheart. It makes the snow too cold even for giants.",
+      "Break it. Take a piece to Halvek, so he knows. Then come back.",
+      "Will you break the Rimeheart?"
+    ],
+    "accept": "I will break it.",
+    "decline": "Not yet.",
+    "declined": "Then Halvek stays cold.",
+    "started": "Do not go alone. Even giants do not go alone.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "carry": {
+      "target": "Warden Halvek",
+      "journal": "Bring the shard of the Rimeheart to Warden Halvek at the Eyrie outpost.",
+      "says": "A giant of the plateau broke the Rimeheart? Good blood. Tell Borrik the Eyrie owes the camp a feast."
+    },
+    "back": {
+      "journal": "Return to Stonehand Borrik.",
+      "says": "Halvek's word came on the coach. A feast! You are a real giant now. Learn this."
+    }
+  },
+  "L20": {
+    "name": "Standing with Halvek",
+    "giver": "Elder Hrolmog",
+    "offer": [
+      "Hmm. Borrik says you are grown. A grown giant stands with its kin once. Halvek is our kin. He keeps the outpost at the Goldfeather Eyrie.",
+      "Go. Stand with him. Do what he asks. Then come home, and choose your road.",
+      "Will you stand with Halvek?"
+    ],
+    "accept": "I will stand with him.",
+    "decline": "Not yet.",
+    "declined": "Then grow a little more.",
+    "started": "Go. Walk tall.",
+    "road": [
+      {
+        "target": "Warden Halvek",
+        "journal": "Find Warden Halvek at the Eyrie outpost.",
+        "says": "Hrolmog sends a giant! Good. The Goldfeather raiders mock my sentries from their eyrie. Bring me three of their war-talons."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 3,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "journal": "Bring the three war-talons to Warden Halvek.",
+      "says": "Three talons! They will not mock us now. Go home, kin. Tell Hrolmog you stood well."
+    },
+    "final": {
+      "journal": "Return to Elder Hrolmog in the giants' camp.",
+      "says": "Halvek's word came first. You stood well. You are not small now. The camp has one more thing for you."
+    }
   }
 }

@@ -75,23 +75,24 @@ func usesPotion(pe *entity.PotionEffect, p *database.ItemPatternRecord, interact
 }
 
 // usePotion answers a Use of the potion at list index idx (row): used and one
-// taken off the stack, or refused with a red line and kept.
-func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, idx int, row *database.CharInventoryEntry, pe entity.PotionEffect, target uint32) {
+// taken off the stack (none of a kept heirloom's, neverSpent), or refused with
+// a red line and kept. It reports whether it was used.
+func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, idx int, row *database.CharInventoryEntry, pe entity.PotionEffect, target uint32) bool {
 	refuse := func(text string) {
 		log.Printf("Potion: %s, %q: %s", player.Name, row.Pattern.ItemName, text)
 		SendColoredChat(sess, text, scribeRefusalRGB[0], scribeRefusalRGB[1], scribeRefusalRGB[2])
 	}
 	if player.Level < row.Pattern.LevelReq {
 		refuse(scribeTooLow)
-		return
+		return false
 	}
 	if h.gameWorld == nil {
-		return
+		return false
 	}
 	// a vampire drinks no invisibility or speed potion (entity/vampire.go)
 	if text := h.gameWorld.VampirePotionRefusal(sess, pe); text != "" {
 		refuse(text)
-		return
+		return false
 	}
 	// what using it costs (its line's "Reagent X xN": one of Envar's gems,
 	// the cracked gem the last one left): held first, taken with it
@@ -100,20 +101,20 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 	if reagent != "" {
 		var ok bool
 		if held, ok = reagentHeld(h.inventoryStore, sess, player, "Potion", row.Pattern.ItemName, &pe.Def); !ok {
-			return
+			return false
 		}
 	}
 	used := time.Now()
 	refusal, err := h.gameWorld.UsePotion(sess, pe, target, used)
 	switch {
 	case errors.Is(err, entity.ErrPotionNoPlayer):
-		return
+		return false
 	case err != nil:
 		log.Printf("Potion: %s, %q: %v", player.Name, row.Pattern.ItemName, err)
-		return
+		return false
 	case refusal != "":
 		refuse(refusal)
-		return
+		return false
 	}
 	// training points it gave (entity/potion.go), kept at once with how many of
 	// the character's no level gave: before the charge is spent, so a stop
@@ -126,15 +127,19 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 			log.Printf("Potion: %s, %q: keeping its cooldown: %v", player.Name, row.Pattern.ItemName, err)
 		}
 	}
-	if row.Charges > 0 {
+	switch {
+	case neverSpent(&row.Pattern):
+		// a kept heirloom (the Heirloom Jar of Breath, jarofbreath.go): its
+		// use takes nothing
+	case row.Charges > 0:
 		if err := h.spendCharge(sess, player, idx, row); err != nil {
 			log.Printf("Potion: %s, %q: a charge: %v", player.Name, row.Pattern.ItemName, err)
-			return
+			return false
 		}
-	} else {
+	default:
 		if err := h.takeOne(sess, player, idx, row); err != nil {
 			log.Printf("Potion: %s, %q: taking one: %v", player.Name, row.Pattern.ItemName, err)
-			return
+			return false
 		}
 		queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(idx, 0, 1))
 	}
@@ -156,6 +161,7 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 	for _, it := range pe.Summons() {
 		h.summonItem(sess, player.CharServerID, it.Name, it.Count, row.Pattern.ItemName)
 	}
+	return true
 }
 
 // trainingKeeper keeps a character's training points with those an item gave

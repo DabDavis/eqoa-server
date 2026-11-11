@@ -564,6 +564,11 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 			h.dice(sess, player, time.Now())
 			return nil
 		}
+		// the Heirloom Jar of Breath, never spent: its potion's use (jarofbreath.go)
+		if IsJarOfBreath(&row.Pattern) {
+			h.useJarOfBreath(sess, player, idx, row, target)
+			return nil
+		}
 		if c, ok := consumableOf(&row.Pattern); ok {
 			h.consume(sess, player, idx, row, c)
 			return nil

@@ -257,8 +257,9 @@ type WorldConfig struct {
 	Jump bool `yaml:"jump"`
 
 	// Heirlooms false gives no character the kept items at its login: the
-	// Genie's Lamp, the Heirloom Fang of the Wolf and the Summoning Portal
-	// (handlers/genie.go, wolffang.go, summonportal.go). Unset: given, to a
+	// Genie's Lamp, the Heirloom Fang of the Wolf, the Summoning Portal and
+	// the Heirloom Jar of Breath (handlers/genie.go, wolffang.go,
+	// summonportal.go, jarofbreath.go). Unset: given, to a
 	// character holding none, while their records exist. The records, the
 	// Heirloom Outfitters and the start rows are data: a server without them
 	// has none in its database as well.

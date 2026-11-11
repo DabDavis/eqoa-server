@@ -436,7 +436,8 @@ func SetHeirloomsGiven(on bool) {
 
 // giveKeptItems is a login's gift, on a server that gives them: a character with
 // no Genie's Lamp gets one, one with no Heirloom Fang of the Wolf that
-// (wolffang.go), and one with no Summoning Portal that (summonportal.go). room
+// (wolffang.go), one with no Summoning Portal that (summonportal.go), and one
+// with no Heirloom Jar of Breath that (jarofbreath.go). room
 // is the records its client's pack and bank hold (itemlists.go's listCaps).
 func (h *CharacterHandler) giveKeptItems(serverID uint32, room listSizes) {
 	if !heirloomsGiven.Load() {
@@ -445,6 +446,7 @@ func (h *CharacterHandler) giveKeptItems(serverID uint32, room listSizes) {
 	h.giveGenieLamp(serverID, room)
 	h.giveWolfFang(serverID, room)
 	h.giveSummoningPortal(serverID, room)
+	h.giveJarOfBreath(serverID, room)
 }
 
 // giveGenieLamp gives a character with no lamp one at its login, before its

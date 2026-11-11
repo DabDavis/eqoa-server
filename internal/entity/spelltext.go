@@ -780,6 +780,12 @@ func (d *SpellDef) parsePart(part, verb string) string {
 	case part == "invis" || part == "invisibility":
 		d.Effects = append(d.Effects, SpellEffect{Kind: EffectInvis})
 		return verb
+	case part == "enduring breath":
+		// the workbook's breath in a line's words (its "Enduring Breath"
+		// lines: Hold Breath, the bards' ballads), so an item's line
+		// (itemeffect: the Heirloom Jar of Breath) holds breath as they do
+		d.Effects = append(d.Effects, SpellEffect{Kind: EffectBreath})
+		return verb
 	case strings.Contains(part, "bind point") || strings.Contains(part, "bind location"):
 		d.Effects = append(d.Effects, SpellEffect{Kind: EffectGate})
 		return verb

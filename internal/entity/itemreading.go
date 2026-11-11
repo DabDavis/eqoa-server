@@ -120,7 +120,7 @@ func StatName(st Stat) string {
 // fires, in words (weaponProcChancePct).
 func WeaponProcChanceRule() string {
 	return fmt.Sprintf("%d%% a landed hit, 1 more for each %d DEX of the wielder, %d%% at most",
-		procBasePct, procIntPer, procMostPct)
+		weaponProcBasePct, weaponProcDexPer, weaponProcMostPct)
 }
 
 // Explain is a weapon proc in plain words: what it does, how often, what the

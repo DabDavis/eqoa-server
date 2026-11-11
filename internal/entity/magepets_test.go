@@ -406,8 +406,10 @@ func TestTheBadiElderCritIsBalanced(t *testing.T) {
 // The Badi Elder's quad on a creature of its owner's level: its hits 276-693
 // (484.5 on average) with nothing on it, and about 500 a hit with the
 // magician's epic line on it (Magi`Kot's Sacrificial Breeding, cast by its
-// owner: its 135 proc on 12% of the hits, a pet's INT being 3 a level). Its
-// melee dice sweep the roll evenly, the procs' are seeded.
+// owner: its 135 proc on 12% of the hits, a pet's INT being 3 a level), about
+// 545 since the beta sheet's INT rule (2026-11-11: 25% and 1 each 10 INT, 43%
+// for the level 60 pet's 180). Its melee dice sweep the roll evenly, the
+// procs' are seeded.
 func TestTheBadiElderQuadsNear500WithTheEpicLine(t *testing.T) {
 	r, _ := magePetRig(t, true)
 	pet, _ := r.summon(t, summonBadiElder, 0)
@@ -453,8 +455,8 @@ func TestTheBadiElderQuadsNear500WithTheEpicLine(t *testing.T) {
 		t.Fatalf("Magi`Kot's Sacrificial Breeding on the pet: %+v, want its 135 proc", proc)
 	}
 	buffed := average()
-	if bare < 484 || bare > 485 || buffed < 497 || buffed > 504 {
-		t.Errorf("its hits average %.1f bare and %.1f with the epic line's buff: want 484.5 and about 500", bare, buffed)
+	if bare < 484 || bare > 485 || buffed < 538 || buffed > 550 {
+		t.Errorf("its hits average %.1f bare and %.1f with the epic line's buff: want 484.5 and about 545", bare, buffed)
 	}
 	t.Logf("the Badi Elder's quad on a level 60: %.1f a hit bare, %.1f with Magi`Kot's Sacrificial Breeding", bare, buffed)
 }

@@ -311,15 +311,17 @@ func TestAWeaponProcGoesByDEXNotINT(t *testing.T) {
 	if got := weaponProcChancePct(400); got != 23 {
 		t.Fatalf("DEX 400: %d%%, want 23", got)
 	}
-	if got := weaponProcChancePct(655); got != procMostPct {
-		t.Fatalf("DEX 655: %d%%, want the most, %d", got, procMostPct)
+	if got := weaponProcChancePct(655); got != weaponProcMostPct {
+		t.Fatalf("DEX 655: %d%%, want the most, %d", got, weaponProcMostPct)
 	}
 	words := "This katana severs heads with great efficiency. Procs 2000 slashing damage."
 	r := weaponRig(t, "Katana of Severing", words)
 	r.friend.Dex, r.friend.Int = 400, 0
 	pct := weaponProcChancePct(r.friend.StatNow(StatDex))
-	if pct <= procChancePct(r.friend.StatNow(StatInt)) {
-		t.Fatalf("the rig: DEX's rule %d%% is not past INT's %d%%", pct, procChancePct(r.friend.StatNow(StatInt)))
+	if pct >= procChancePct(r.friend.StatNow(StatInt)) {
+		// INT's rule (the beta sheet's, 25% at no INT) is past DEX's here: a roll
+		// at DEX's chance, under INT's, must not proc
+		t.Fatalf("the rig: DEX's rule %d%% is not under INT's %d%%", pct, procChancePct(r.friend.StatNow(StatInt)))
 	}
 	r.npc.HP, r.npc.MaxHP = 50000, 50000
 	procIntn = dice(pct-1, 99)

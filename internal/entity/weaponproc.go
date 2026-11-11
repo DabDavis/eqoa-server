@@ -133,11 +133,19 @@ func (wp *WeaponProc) chancePct(dex int) int {
 }
 
 // weaponProcChancePct is the chance, in percent, that a hit procs a weapon of
-// no chance of its own for a wielder of that DEX: proc.go's figures (3%, one
-// more each 20, at most 25%), by DEX (the file's doc).
+// no chance of its own for a wielder of that DEX: 3%, one more each 20, at
+// most 25%, by DEX (the file's doc): what proc.go's INT rule was until the beta
+// sheet's took its place on 2026-11-11, kept for a weapon (petition 1360).
 func weaponProcChancePct(dex int) int {
-	return min(procBasePct+max(dex, 0)/procIntPer, procMostPct)
+	return min(weaponProcBasePct+max(dex, 0)/weaponProcDexPer, weaponProcMostPct)
 }
+
+// A weapon's proc chance by DEX (weaponProcChancePct).
+const (
+	weaponProcBasePct = 3
+	weaponProcDexPer  = 20
+	weaponProcMostPct = 25
+)
 
 // procDoTFor is how long a weapon's damage over time lasts (ours).
 const procDoTFor = 30 * time.Second

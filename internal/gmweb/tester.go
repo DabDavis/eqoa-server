@@ -150,6 +150,7 @@ var testerOps = map[string]func(c *opCtx) error{
 	"spell_visual":   nil, // one spell's record and visual
 	"visual_uses":    nil, // the spells' visuals
 	"look_names":     nil, // what wears each icon and model, off a tester's own tables alone (looks.go)
+	"item_reading":   nil, // an item record in words (ops_items.go); its itemeffect row is a tester's table
 	"audit_log":      testerAudit,
 	// changing
 	"insert_row":       testerWrites,

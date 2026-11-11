@@ -89,11 +89,17 @@ export class RecordForm {
       else if (lf.wide) wrap.classList.add('wide');
     } else if (c.enum) {
       const list = this.meta.enums?.[c.enum] || [];
-      const opts = list.map((e) => h('option', { value: String(e.value) }, `${e.label} (${e.value})`));
-      if (v !== null && v !== undefined && !list.some((e) => String(e.value) === String(v))) opts.unshift(h('option', { value: String(v) }, String(v)));
+      const opts = list.map((e) => h('option', { value: String(e.value), title: e.help || '' }, `${e.label} (${e.value})`));
+      if (v !== null && v !== undefined && !list.some((e) => String(e.value) === String(v))) opts.unshift(h('option', { value: String(v) }, `unknown (${v})`));
       if (!c.notnull) opts.unshift(h('option', { value: '' }, '—'));
       input = h('select', null, ...opts);
       input.value = v === null || v === undefined ? '' : String(v);
+      // what the chosen value does, under the list
+      const said = h('span', { class: 'hint enum-help' });
+      const show = () => { const e = list.find((x) => String(x.value) === input.value); said.textContent = e?.help ? '→ ' + e.help : ''; };
+      input.addEventListener('change', show);
+      show();
+      extra = said;
     } else if (c.format === 'multiline' || c.format === 'json') {
       input = h('textarea', { class: c.format === 'json' ? 'code' : '' });
       input.value = v ?? '';
@@ -176,7 +182,8 @@ export class RecordForm {
     // a look field holds buttons and swatches: not a <label>, whose every
     // click would go to its first button
     wrap.appendChild(h(lf ? 'div' : 'label', { class: lf ? 'look-label' : null },
-      h('span', null, c.label || c.name, c.label && c.label !== c.name ? h('span', { class: 'faint' }, ' · ' + c.name) : null),
+      h('span', { title: c.help || '' }, c.label || c.name, c.unit ? h('span', { class: 'muted' }, ` (${c.unit})`) : null,
+        c.label && c.label !== c.name ? h('span', { class: 'faint' }, ' · ' + c.name) : null),
       control, extra, flagBox, refLine,
       hint.length ? h('span', { class: 'hint' }, hint.join(' ')) : null));
     return wrap;

@@ -741,6 +741,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharDyes(); err != nil { // chardyes.go
 		return err
 	}
+	if err := db.ensureCharHiddenLooks(); err != nil { // charhiddenlooks.go: worn looks a character hides
+		return err
+	}
 	if err := db.ensureCharLook(); err != nil { // charlook.go: a custom race's look as chosen
 		return err
 	}

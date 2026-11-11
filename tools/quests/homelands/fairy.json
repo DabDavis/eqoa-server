@@ -2,7 +2,7 @@
   "race": "fairy",
   "home": "Twisted Tower",
   "city": "Qeynos (rangers and druids Surefall Glade)",
-  "note": "The valley's people are tools/worlds/homelands.json's (Twisted Tower): Elder Moonpetal in the middle of the valley gives the first two, Warden Larkspur a few steps east of her the three hunts; Petalweaver Lissa, just west of the elder, is the outfitter; Coachman Tumbleseed keeps the stable on the grass to the north-west (his coach runs to Freeport and to the other homes); the dusk beetles (the west end of the valley), the valley ravens (the trees to the east) and the young drake Cindersnap (alone at the far east end) are placed for these quests.",
+  "note": "The valley's people are tools/worlds/homelands.json's (Twisted Tower): Elder Moonpetal in the middle of the valley gives the first two, Warden Larkspur a few steps east of her the three hunts; Petalweaver Lissa, just west of the elder, is the outfitter; Coachman Tumbleseed keeps the stable on the grass to the north-west (his coach runs to Freeport and to the other homes); the dusk beetles (the west end of the valley), the valley ravens (the trees to the east) and the young drake Cindersnap (alone at the far east end) are placed for these quests. Levels 7-20 (2026-11-11): Larkspur gives L7-L15, Moonpetal the L20 path; objectives on the Homelands' shared ground, the Goldfeather Eyrie (Tumbleseed's coach), with the valley's laughter: badger claws, moonpetal thread, Old Frostjaw's claw, a shard for Halvek.",
   "L1": {
     "name": "A Fairy's Moonpetal Bracelet",
     "giver": "Elder Moonpetal",
@@ -172,5 +172,208 @@
     "declined": "The humans will wait. They are slower than we are.",
     "started": "Fly true, little friend!",
     "journal": "Tell Gatekeeper Starling when you are ready to go to the humans of Qeynos."
+  },
+  "L7": {
+    "name": "Claws and a Laugh",
+    "giver": "Warden Larkspur",
+    "offer": [
+      "Little friend! The homes keep a hunters' outpost under the Goldfeather Eyrie, on the snow, and nobody there laughs. I mean to change that. You will help.",
+      "Ride Tumbleseed's coach there. Bring me two badger claws and a clump of rat fur from the snow east of the outpost. I will tell you the joke later.",
+      "Will you hunt the Eyrie's snow?"
+    ],
+    "accept": "I will hunt there.",
+    "decline": "Not now.",
+    "declined": "Then the joke waits. It is a good one.",
+    "started": "Two claws and some fur. And smile at the hunters as you pass!",
+    "hunts": [
+      {
+        "target": "snowfield badger",
+        "count": 2,
+        "drop": {
+          "name": "snowfield badger claw",
+          "description": "A long digging claw from a snowfield badger of the Goldfeather Eyrie.",
+          "like": "Beast Claw"
+        },
+        "hunt": {
+          "journal": "Take two snowfield badger claws from the badgers on the snow east of the Eyrie outpost."
+        }
+      },
+      {
+        "target": "drift rat",
+        "count": 1,
+        "drop": {
+          "name": "drift rat fur",
+          "description": "A clump of white fur from a drift rat of the Goldfeather Eyrie's snow.",
+          "like": "clump of rat fur"
+        },
+        "hunt": {
+          "journal": "Take a clump of drift rat fur from the drift rats east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring the badger claws and the drift rat fur to Warden Larkspur.",
+      "says": "Claws, fur, and you, still in one piece! A tickle-stick for the hunters, you see. Never mind. Watch me, and learn this."
+    }
+  },
+  "L10": {
+    "name": "Moonlight and Iron",
+    "giver": "Warden Larkspur",
+    "offer": [
+      "You need better than a toy now, little friend. Lissa has spun thread from moonpetals for me, and the Eyrie's quartermaster keeps iron.",
+      "Then bring me two pinions from the pale owls north of the Eyrie outpost. Moonlight, iron and an owl's quiet: a fine weapon.",
+      "Will you gather it all?"
+    ],
+    "accept": "I will gather it.",
+    "decline": "Not now.",
+    "declined": "Then mind the old one does not break.",
+    "started": "Lissa, then Dunmore, then the owls. Off you go!",
+    "materials": [
+      {
+        "merchant": "Petalweaver Lissa",
+        "items": [
+          {
+            "name": "moonpetal thread",
+            "description": "A spool of thread spun from moonpetals. It glows faintly in the dark.",
+            "like": "Black Widow Silk"
+          }
+        ],
+        "journal": "Ask Petalweaver Lissa, beside Elder Moonpetal, for the moonpetal thread.",
+        "says": "Larkspur's thread! Spun at moonrise, all of it. Hold it up: see how it glows? A gift, of course."
+      },
+      {
+        "merchant": "Quartermaster Dunmore",
+        "items": [
+          "iron ore"
+        ],
+        "journal": "Ask Quartermaster Dunmore at the Eyrie outpost for iron ore.",
+        "says": "A fairy, asking for iron? Ha! That is the first laugh this outpost has had all month. Here. Do not drop it on your wings."
+      }
+    ],
+    "target": "pale owl",
+    "count": 2,
+    "drop": {
+      "name": "pale owl pinion",
+      "description": "A long white flight feather from a pale owl of the Goldfeather Eyrie.",
+      "like": "White Owl Feather"
+    },
+    "hunt": {
+      "journal": "Take two pale owl pinions from the pale owls north of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the moonpetal thread, the iron ore and the owl pinions to Warden Larkspur.",
+      "says": "Thread, iron, feathers... and a wish, and a little laugh to seal it. There! It is yours, little friend. It strikes quiet as an owl."
+    }
+  },
+  "L13": {
+    "name": "A Claw for the Watchers",
+    "giver": "Warden Larkspur",
+    "offer": [
+      "This is no laughing matter. A snow leopard the Eyrie folk call Old Frostjaw hunts the slopes north-east of their outpost, and he has killed three of them.",
+      "Bring him down and bring me one of his claws, and our watchers will hang it by the north pass to remind the cats. Take friends from the other homes.",
+      "Will you hunt Old Frostjaw?"
+    ],
+    "accept": "I will hunt him.",
+    "decline": "Not yet.",
+    "declined": "Then he hunts on. Do not let it be long.",
+    "started": "With friends, little friend. Always with friends.",
+    "kind": "loot",
+    "target": "Old Frostjaw",
+    "count": 1,
+    "drop": {
+      "name": "Old Frostjaw's claw",
+      "description": "A hooked claw as long as a finger, taken from Old Frostjaw.",
+      "like": "Broken Leopard Claw"
+    },
+    "hunt": {
+      "journal": "Take a claw from Old Frostjaw, on the slopes north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring Old Frostjaw's claw to Warden Larkspur.",
+      "says": "His claw! It is as long as I am. The watchers will cheer, and so do I. Learn this."
+    }
+  },
+  "L15": {
+    "name": "The Heart Without a Laugh",
+    "giver": "Warden Larkspur",
+    "offer": [
+      "They say the Rimeheart in the ice caves north-east of the Eyrie outpost is a heart that never laughed, and the cold it makes is the cold of that.",
+      "Break it, little friend. Carry a shard to Warden Halvek so his outpost knows, and then come back and tell me how it went.",
+      "Will you break the Rimeheart?"
+    ],
+    "accept": "I will break it.",
+    "decline": "Not yet.",
+    "declined": "Then the caves stay cold, and no one laughs.",
+    "started": "Go with friends, and go warm.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "carry": {
+      "target": "Warden Halvek",
+      "journal": "Bring the shard of the Rimeheart to Warden Halvek at the Eyrie outpost.",
+      "says": "A fairy broke the Rimeheart. Ha! I will never hear the end of it from the other homes. Tell Larkspur the Eyrie thanks the valley."
+    },
+    "back": {
+      "journal": "Return to Warden Larkspur.",
+      "says": "Halvek laughed? Halvek! Then you did two great things today. Learn this, little friend, the last I have."
+    }
+  },
+  "L20": {
+    "name": "The Long Laugh",
+    "giver": "Elder Moonpetal",
+    "offer": [
+      "Larkspur says you made the Eyrie's warden laugh, and broke its coldest heart. You are no new fairy now, little friend. You are a fairy of the Homelands.",
+      "The Eyrie's warden and scout have work for you still. Go to Warden Halvek at the outpost and do as they ask. Then come home, and choose your road.",
+      "Will you go back to the Eyrie?"
+    ],
+    "accept": "I will go.",
+    "decline": "Not yet.",
+    "declined": "Then rest, and come when the wind is right.",
+    "started": "Tumbleseed's coach will take you. Fly true!",
+    "road": [
+      {
+        "target": "Warden Halvek",
+        "journal": "Find Warden Halvek at the Eyrie outpost.",
+        "says": "Moonpetal's fairy again! The scout needs a hand, and you have two. Scout Feyla is on the river's far reach. Go to her."
+      },
+      {
+        "target": "Scout Feyla",
+        "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+        "says": "The fairy who made Halvek laugh! The Goldfeather raiders carry war-talons. Bring me three, and the river can rest."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 3,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "journal": "Bring the three war-talons to Scout Feyla.",
+      "says": "Three talons! The river rests. Tell Dunmore at the outpost he can open the stores again, then go home."
+    },
+    "after": [
+      {
+        "target": "Quartermaster Dunmore",
+        "journal": "Tell Quartermaster Dunmore at the Eyrie outpost the river is safe.",
+        "says": "Safe? Then the stores open, and tonight there will be laughing at the Eyrie. Go home, fairy. Your elder is waiting."
+      }
+    ],
+    "picked": "A happy choice! It is yours, little friend.",
+    "final": {
+      "journal": "Return to Elder Moonpetal in the valley.",
+      "says": "Home again, and the whole Eyrie laughing behind you! That is the oldest magic, little friend. Keep it close."
+    }
   }
 }

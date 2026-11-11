@@ -176,5 +176,203 @@
     "declined": "The deep ways will wait for you.",
     "started": "Mind your tail in the gnome city!",
     "journal": "Tell Gatekeeper Ruknar when you are ready to go through the deep ways to Klick'Anon."
+  },
+  "L7": {
+    "name": "Claws in the Snow",
+    "giver": "Packleader Yarrk",
+    "offer": [
+      "You dig well enough for a pup. Now dig in the cold. The homes keep a hunters' outpost under the Goldfeather Eyrie, and Drekk's coach runs there.",
+      "Snowfield badgers dig nearly as well as we do. Bring me two of their claws for the diggers, and drift rat fur to line the pups' nest.",
+      "Will you hunt the Eyrie's snow for me?"
+    ],
+    "accept": "I will hunt there.",
+    "decline": "Not now.",
+    "declined": "The snow will keep, pup.",
+    "started": "Drekk's coach will take you. Keep your tail out of the drifts.",
+    "hunts": [
+      {
+        "target": "snowfield badger",
+        "count": 2,
+        "drop": {
+          "name": "snowfield badger claw",
+          "description": "A long digging claw from a snowfield badger of the Goldfeather Eyrie.",
+          "like": "Beast Claw"
+        },
+        "hunt": {
+          "journal": "Take two snowfield badger claws from the badgers on the snow east of the Eyrie outpost."
+        }
+      },
+      {
+        "target": "drift rat",
+        "count": 1,
+        "drop": {
+          "name": "drift rat fur",
+          "description": "A clump of white fur from a drift rat of the Goldfeather Eyrie's snow.",
+          "like": "clump of rat fur"
+        },
+        "hunt": {
+          "journal": "Take a clump of drift rat fur from the drift rats east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring the badger claws and the drift rat fur to Packleader Yarrk.",
+      "says": "Good claws, long and hooked. The diggers will fight over them. And the nest will be warm. Now watch my paws, and learn this."
+    }
+  },
+  "L10": {
+    "name": "A Digger's Bite",
+    "giver": "Packleader Yarrk",
+    "offer": [
+      "Your arms are a pup's arms still. I will make you a digger's weapon, with a hooked edge like an owl's talon.",
+      "Lacing from Stitcher Vikka, ore from Quartermaster Dunmore at the Eyrie outpost, then two talons from the pale owls north of it.",
+      "Will you bring me all of it?"
+    ],
+    "accept": "I will bring it.",
+    "decline": "Not now.",
+    "declined": "Then keep your milk teeth sharp.",
+    "started": "Vikka first, then the coach. Go.",
+    "materials": [
+      {
+        "merchant": "Stitcher Vikka",
+        "items": [
+          {
+            "name": "rat-hide lacing",
+            "description": "A long lace cut from tunnel-rat hide by the Warrens' stitchers.",
+            "like": "leather strip"
+          }
+        ],
+        "journal": "Ask Stitcher Vikka in the Warrens for rat-hide lacing.",
+        "says": "More lacing for Yarrk? Here. Tell him his pups wear out my hides faster than the rats can grow them."
+      },
+      {
+        "merchant": "Quartermaster Dunmore",
+        "items": [
+          "iron ore"
+        ],
+        "journal": "Ask Quartermaster Dunmore at the Eyrie outpost for the ore Yarrk needs.",
+        "says": "Yarrk's pup? The kobolds pay me in tunnel maps, and good ones. Here, the best ore in my stores. Mind your tail on the ice."
+      }
+    ],
+    "target": "pale owl",
+    "count": 2,
+    "drop": {
+      "name": "pale owl talon",
+      "description": "A hooked talon from a pale owl of the Goldfeather Eyrie.",
+      "like": "chipped buzzard talon"
+    },
+    "hunt": {
+      "journal": "Take two pale owl talons from the pale owls north of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the rat-hide lacing, the iron ore and the pale owl talons to Packleader Yarrk.",
+      "says": "Ore for the head, talons for the hooks, lacing for the grip. A moment... there. It is yours: it bites deeper than milk teeth."
+    }
+  },
+  "L13": {
+    "name": "Frostjaw's Claw",
+    "giver": "Packleader Yarrk",
+    "offer": [
+      "The outpost's hunters say an old snow leopard hunts the slopes north-east of them. They call him Old Frostjaw, and he digs out anything that hides from him.",
+      "A kobold respects a good digger, and then kills it. Bring me his foreclaw, and I will teach you what packleaders know. Take others with you, pup.",
+      "Will you bring me Old Frostjaw's claw?"
+    ],
+    "accept": "I will bring it.",
+    "decline": "Not yet.",
+    "declined": "He will dig up some other pup, then.",
+    "started": "He strikes first. Do not be under him when he does.",
+    "kind": "loot",
+    "target": "Old Frostjaw",
+    "count": 1,
+    "drop": {
+      "name": "Old Frostjaw's claw",
+      "description": "A hooked claw as long as a finger, taken from Old Frostjaw.",
+      "like": "Broken Leopard Claw"
+    },
+    "hunt": {
+      "journal": "Take Old Frostjaw's claw from the old snow leopard on the slopes north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring Old Frostjaw's claw to Packleader Yarrk.",
+      "says": "Old Frostjaw's own claw! Yip! It will hang over the warren's mouth, so the pups know what waits up top. Learn this."
+    }
+  },
+  "L15": {
+    "name": "The Clan's Bargain",
+    "giver": "Packleader Yarrk",
+    "offer": [
+      "Quartermaster Dunmore pays the clan in ore for what comes out of deep places. He wants a shard of the Rimeheart, the cold thing in the ice caves north-east of the outpost.",
+      "Break it, give Dunmore the shard, and come home. The clan keeps its bargains, pup.",
+      "Will you break the Rimeheart?"
+    ],
+    "accept": "I will break it.",
+    "decline": "Not yet.",
+    "declined": "Then Dunmore waits, and so does his ore.",
+    "started": "Not alone, pup. The caves are colder than any tunnel.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "carry": {
+      "target": "Quartermaster Dunmore",
+      "journal": "Bring the shard of the Rimeheart to Quartermaster Dunmore at the Eyrie outpost.",
+      "says": "A shard of the Rimeheart, and it still bites my fingers. Tell Yarrk his ore goes on Drekk's next coach. The clan has my thanks."
+    },
+    "back": {
+      "journal": "Return to Packleader Yarrk.",
+      "says": "The ore came on the coach before you did. The clan's bargain is kept, and you kept it. Learn this, the last thing a packleader teaches."
+    }
+  },
+  "L20": {
+    "name": "The Clan's Due",
+    "giver": "Elder Grikkis",
+    "offer": [
+      "Yarrk says you dig like a packleader now. Before a kobold of the Warrens chooses its path, it pays the clan's due to those who share the ground with us.",
+      "Scout Feyla at the Eyrie has asked the homes for help against the Goldfeather raiders. Go to her, then to Warden Halvek, then home to me.",
+      "Will you pay the clan's due?"
+    ],
+    "accept": "I will pay it.",
+    "decline": "Not yet.",
+    "declined": "The due will wait. It always does.",
+    "started": "Dig deep, and come home.",
+    "road": [
+      {
+        "target": "Scout Feyla",
+        "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+        "says": "A kobold of the Warrens? Grikkis keeps his word. The raiders strike from the eyrie east of the outpost. Bring me three of their war-talons."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 3,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "journal": "Bring the three war-talons to Scout Feyla.",
+      "says": "Three talons. They will raid less, and limp more. Warden Halvek will want to hear it from you: he is at the outpost."
+    },
+    "after": [
+      {
+        "target": "Warden Halvek",
+        "journal": "Tell Warden Halvek at the Eyrie outpost that the raiders are beaten back.",
+        "says": "Feyla's signal came before you did. The Warrens have paid their due and more. Go home, digger: your elder waits."
+      }
+    ],
+    "final": {
+      "target": "Elder Grikkis",
+      "journal": "Return to Elder Grikkis in the Warrens.",
+      "says": "You left a pup and came back a digger every home knows by name. Now, before the clan, choose your path."
+    }
   }
 }

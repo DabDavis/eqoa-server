@@ -176,5 +176,191 @@
     "declined": "The crag will wait for you.",
     "started": "Stand firm in Oggok, and guard it well!",
     "journal": "Tell Gatekeeper Kragg when you are ready to fly to Oggok."
+  },
+  "L7": {
+    "name": "Grit for the Mortar",
+    "giver": "Talonmaster Krall",
+    "offer": [
+      "Stone does not feel the cold, wakeling. Go and prove it. The homes keep a hunters' outpost under the Goldfeather Eyrie, and Durn's coach runs there.",
+      "Drift rat teeth, ground fine, make the mortar we mend the crag's cracks with. Bring me three from the snow east of the outpost.",
+      "Will you bring me the teeth?"
+    ],
+    "accept": "I will bring them.",
+    "decline": "Not now.",
+    "declined": "Then the cracks wait.",
+    "started": "Durn's coach will take you. Do not stand still too long out there.",
+    "hunts": [
+      {
+        "target": "drift rat",
+        "count": 3,
+        "drop": {
+          "name": "drift rat incisor",
+          "description": "A yellow gnawing tooth from a drift rat of the Goldfeather Eyrie's snow.",
+          "like": "Cracked Rat Tooth"
+        },
+        "hunt": {
+          "journal": "Take three drift rat incisors from the drift rats east of the Eyrie outpost."
+        }
+      }
+    ],
+    "give": {
+      "journal": "Bring three drift rat incisors to Talonmaster Krall.",
+      "says": "Three teeth. Hard ones. The crag will hold another winter. Now watch, and learn this."
+    }
+  },
+  "L10": {
+    "name": "A Fang Set in Stone",
+    "giver": "Talonmaster Krall",
+    "offer": [
+      "Your arms are a wakeling's. I will make you a guardian's weapon, with a rime spider's fang set in it, hard as frost.",
+      "A thong from Hidecutter Vess, ore from Quartermaster Dunmore at the Eyrie outpost, two fangs from the rime spiders north-east of it.",
+      "Will you bring me all of it?"
+    ],
+    "accept": "I will bring it.",
+    "decline": "Not now.",
+    "declined": "Then strike harder with what you have.",
+    "started": "Vess first. Then the coach.",
+    "materials": [
+      {
+        "merchant": "Hidecutter Vess",
+        "items": [
+          {
+            "name": "crag-hide thong",
+            "description": "A thong cut from crag-lizard hide by the hidecutters of the gargoyles' roost.",
+            "like": "leather strip"
+          }
+        ],
+        "journal": "Ask Hidecutter Vess on the crag for a crag-hide thong.",
+        "says": "Another thong for Krall. Here. Hide is scarce on the barrens: bring this one home on the weapon."
+      },
+      {
+        "merchant": "Quartermaster Dunmore",
+        "items": [
+          "iron ore"
+        ],
+        "journal": "Ask Quartermaster Dunmore at the Eyrie outpost for the ore Krall needs.",
+        "says": "One of the crag's? Your folk stood my wall a whole night once and never blinked. Here, the ore, and welcome."
+      }
+    ],
+    "target": "rime spider",
+    "count": 2,
+    "drop": {
+      "name": "rime spider fang",
+      "description": "A fang of clear, frosted chitin from a rime spider of the Goldfeather Eyrie.",
+      "like": "Icefang Spiderling Fang"
+    },
+    "hunt": {
+      "journal": "Take two rime spider fangs from the rime spiders north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring the crag-hide thong, the iron ore and the rime spider fangs to Talonmaster Krall.",
+      "says": "Ore, hide and fang. Wait... there. It is yours. Stone made it, and frost hardened it: do not shame it."
+    }
+  },
+  "L13": {
+    "name": "The Leopard at the Stones",
+    "giver": "Talonmaster Krall",
+    "offer": [
+      "An old snow leopard they call Old Frostjaw hunts the slopes north-east of the Eyrie outpost. He sharpens his claws on the standing stones there.",
+      "A gargoyle does not let stone be scored. Break his jaw and bring me his fang. Take others with you: he is old, and old means clever.",
+      "Will you bring me Old Frostjaw's fang?"
+    ],
+    "accept": "I will bring it.",
+    "decline": "Not yet.",
+    "declined": "Then the stones take the scoring.",
+    "started": "He strikes first. Stand firm and let him break on you.",
+    "kind": "loot",
+    "target": "Old Frostjaw",
+    "count": 1,
+    "drop": {
+      "name": "Old Frostjaw's fang",
+      "description": "A long yellowed fang of the snow leopard Old Frostjaw.",
+      "like": "chipped bear fang"
+    },
+    "hunt": {
+      "journal": "Take Old Frostjaw's fang from the old snow leopard on the slopes north-east of the Eyrie outpost."
+    },
+    "give": {
+      "journal": "Bring Old Frostjaw's fang to Talonmaster Krall.",
+      "says": "His fang. It will be set in the crag beside the sleepers, so they know a guardian woke among them. Learn this."
+    }
+  },
+  "L15": {
+    "name": "Cold That Cracks Stone",
+    "giver": "Talonmaster Krall",
+    "offer": [
+      "There is a cold in the ice caves north-east of the Eyrie outpost that cracks stone. The hunters call it the Rimeheart. A sleeper that wakes too near it will never wake again.",
+      "Break it. Carry a shard to Warden Halvek, so the outpost knows its watch is safe. Then come back.",
+      "Will you break the Rimeheart?"
+    ],
+    "accept": "I will break it.",
+    "decline": "Not yet.",
+    "declined": "Then the cold keeps cracking.",
+    "started": "Not alone. Even stone breaks alone.",
+    "target": "Rimeheart",
+    "count": 1,
+    "drop": {
+      "name": "shard of the Rimeheart",
+      "description": "A shard of blue ice that never melts, broken from the Rimeheart.",
+      "like": "cracked elemental shard"
+    },
+    "hunt": {
+      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+    },
+    "carry": {
+      "target": "Warden Halvek",
+      "journal": "Bring the shard of the Rimeheart to Warden Halvek at the Eyrie outpost.",
+      "says": "The Rimeheart, broken by one of the crag's. My watch sleeps easier, and so do I. Tell Krall the Eyrie owes his crag."
+    },
+    "back": {
+      "journal": "Return to Talonmaster Krall.",
+      "says": "Halvek's word came before you did. Good. You stood where stone cracks and did not. Learn this."
+    }
+  },
+  "L20": {
+    "name": "The Guardian's Watch",
+    "giver": "Elder Gorrak",
+    "offer": [
+      "Krall says you stand like a guardian now. Before a gargoyle of the crag chooses its path, it stands guard for the homes we share the land with.",
+      "Warden Halvek at the Eyrie outpost needs a guardian on his wall. Go to him, do as he asks, and come back to me.",
+      "Will you stand guard at the Eyrie?"
+    ],
+    "accept": "I will stand guard.",
+    "decline": "Not yet.",
+    "declined": "Then the wall stands without you.",
+    "started": "Stand firm, and come home.",
+    "road": [
+      {
+        "target": "Warden Halvek",
+        "journal": "Find Warden Halvek at the Eyrie outpost.",
+        "says": "Gorrak's guardian? Good. A wall needs stone. The raiders round the eyrie east of here test mine every night: bring me three of their war-talons."
+      }
+    ],
+    "target": "Goldfeather raider",
+    "count": 3,
+    "drop": {
+      "name": "Goldfeather war-talon",
+      "description": "A war-talon of the Goldfeather aviaks, bound in gold thread.",
+      "like": "chipped aviak talon"
+    },
+    "hunt": {
+      "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+    },
+    "handin": {
+      "journal": "Bring the three war-talons to Warden Halvek.",
+      "says": "Three talons. They will test someone else's wall now. Ask Scout Feyla up the river if the eyrie has gone quiet."
+    },
+    "after": [
+      {
+        "target": "Scout Feyla",
+        "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+        "says": "Quiet as stone up there. Not a raider in the air. Go home, guardian: your elder waits for you."
+      }
+    ],
+    "final": {
+      "target": "Elder Gorrak",
+      "journal": "Return to Elder Gorrak on the crag.",
+      "says": "You left a wakeling and came back a guardian every home knows. The crag has one more thing to give you."
+    }
   }
 }

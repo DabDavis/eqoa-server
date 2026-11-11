@@ -75,13 +75,14 @@ func SetServerWorlds(built []worlds.Built) {
 }
 
 // coachHomesOf is the races' homes of the server's own worlds, for their
-// stables (entity/coachhomes.go): each zone a recipe gives a race, by its name
-// and its ground as built.
+// stables (entity/coachhomes.go): each zone a recipe gives a race, and each it
+// gives a stable of its own (the homes' shared ground), by its name and its
+// ground as built.
 func coachHomesOf(built []worlds.Built) []entity.CoachHome {
 	var out []entity.CoachHome
 	for _, b := range built {
 		for i, z := range b.Zones {
-			if z.Race == 0 || i >= len(b.Parts) {
+			if z.Race == 0 && !z.Stable || i >= len(b.Parts) {
 				continue
 			}
 			box := b.Parts[i].Box

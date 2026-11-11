@@ -98,7 +98,7 @@ func main() {
 	flag.BoolVar(&trace, "trace", false, "print the way to the first ways out")
 	near := flag.String("near", "", "with -trace: only ways out near x,z")
 	flag.StringVar(&mapOut, "map", "", "with -near: a picture of the walk round there")
-	keep := flag.String("keep", "", "a recipe whose homes' starts and people (zones[].home) no rock may cover")
+	keep := flag.String("keep", "", "a recipe whose homes' starts and people (zones[].home, zones[].shared) no rock may cover")
 	flag.Parse()
 	if *keep != "" {
 		k, err := readKeep(*keep)
@@ -338,7 +338,8 @@ func covers(x, z, r float32) bool {
 }
 
 // readKeep reads the places a recipe's homes put people at (its zones'
-// home.start and home.npcs[].at, tools/seed_race_homes.py's).
+// home.start and home.npcs[].at, tools/seed_race_homes.py's; and the homes'
+// shared ground's people, shared.npcs[].at).
 func readKeep(path string) ([][2]float32, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
@@ -352,6 +353,11 @@ func readKeep(path string) ([][2]float32, error) {
 					At []float32 `json:"at"`
 				} `json:"npcs"`
 			} `json:"home"`
+			Shared *struct {
+				NPCs []struct {
+					At []float32 `json:"at"`
+				} `json:"npcs"`
+			} `json:"shared"`
 		} `json:"zones"`
 	}
 	if err := json.Unmarshal(b, &r); err != nil {
@@ -359,6 +365,13 @@ func readKeep(path string) ([][2]float32, error) {
 	}
 	var out [][2]float32
 	for _, z := range r.Zones {
+		if z.Shared != nil {
+			for _, n := range z.Shared.NPCs {
+				if len(n.At) == 3 {
+					out = append(out, [2]float32{n.At[0], n.At[2]})
+				}
+			}
+		}
 		if z.Home == nil {
 			continue
 		}

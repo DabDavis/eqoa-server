@@ -74,8 +74,8 @@ class TheFile(unittest.TestCase):
         cls.rewards = gh.load_rewards()
         cls.by_race = collections.defaultdict(dict)
         for q in cls.doc["quests"]:
-            _, race, part = q["key"].split("/")
-            cls.by_race[race][part] = q
+            _, race, *part = q["key"].split("/")
+            cls.by_race[race]["/".join(part)] = q
 
     def test_the_file_is_what_the_specs_give(self):
         self.assertEqual(self.problems, [])
@@ -94,7 +94,12 @@ class TheFile(unittest.TestCase):
             self.assertEqual(self.how[race], "spec" if spec else "legacy", f"{race}: a spec is taken over its legacy three")
             parts = sorted(self.by_race[race])
             if spec:
-                self.assertEqual(parts, ["L1", "L2", "L3", "L4", "L5", "flight"], race)
+                higher = [k for k in gh.HIGHER if f"L{k}" in load(os.path.join(gh.SPECS, race + ".json"))]
+                self.assertEqual(higher, list(gh.HIGHER[:len(higher)]), f"{race}: levels past the flight in order, none skipped")
+                want = ["L1", "L2", "L3", "L4", "L5", "flight"] + [f"L{k}" for k in higher if k != 20]
+                if 20 in higher:
+                    want += [f"L20/{c}" for c in gh.CLASS_NAMES]
+                self.assertEqual(parts, sorted(want), race)
             else:
                 self.assertEqual(len(parts), 3, race)
                 self.assertEqual([q["key"] for q in legacy[race]], [q["key"] for q in self.doc["quests"] if q["key"].split("/")[1] == race])
@@ -143,6 +148,55 @@ class TheFile(unittest.TestCase):
             self.assertEqual(f["steps"][0]["events"], [{"on": "start", "do": "dostep"},
                                                        {"on": "done", "do": "teleport", "bind": True, "to": "mainland"}], race)
             self.assertNotIn("rewards", f["steps"][0], f"{race}: the flight gives nothing (it is repeatable)")
+            self.higher_on_template(race, qs)
+
+    def higher_on_template(self, race, qs):
+        """Levels 7-20 (the chain past the flight): each the cities' level, after the one before, the cities'
+        experience, its class rewards (L20: one quest a class, its city's path pick), the classquest event."""
+        prev = 5
+        for k in gh.HIGHER:
+            keys = [f"L{k}"] if k != 20 else [f"L20/{c}" for c in gh.CLASS_NAMES]
+            if keys[0] not in qs:
+                break
+            for i, key in enumerate(keys):
+                q, w = qs[key], f"{race} {key}"
+                self.assertEqual((q["minlevel"], q["maxlevel"], q["races"]), (k, 60, [gh.RACE_IDS[race]]), w)
+                self.assertEqual(q["classes"], [] if k != 20 else [i], w)
+                self.assertEqual(q["requires"], [f"homelands/{race}/L{prev}"], w)
+                self.assertEqual(q["events"], [{"on": "finish", "do": "classquest", "level": k}], w)
+                self.assertNotIn("repeatable", q, w)
+                last = q["steps"][-1]
+                self.assertEqual(last["target"], q["giver"], f"{w}: the last word is its giver's")
+                self.assertEqual(last["rewards"]["xp"], gh.XP[k], w)
+                self.assertEqual([st for st in q["steps"][:-1] if "rewards" in st], [], f"{w}: the reward is the last step's")
+                if k == 20:
+                    self.assertNotIn("byclass", last["rewards"], w)
+                    self.assertEqual(last["choose"], gh.PATH_ASK, w)
+                    self.assertEqual([{"answer": o["answer"], **o["rewards"]} for o in last["choices"]], self.rewards[str(i)]["L20"],
+                                     f"{w}: the class's own city path pick")
+                else:
+                    want = {c: self.rewards[c][f"L{k}"] for c in map(str, range(15)) if self.rewards[c][f"L{k}"]}
+                    self.assertEqual(last["rewards"].get("byclass"), want, w)
+                kinds = [st["kind"] for st in q["steps"]]
+                if k == 7:
+                    self.assertIn(kinds, (["loot", "give"], ["loot", "loot", "give"]), w)
+                    self.assertEqual(last["items"], [st["items"][0] for st in q["steps"][:-1]], f"{w}: the drops handed in")
+                elif k == 10:
+                    self.assertIn(kinds, (["loot", "give"], ["talk", "loot", "give"], ["talk", "talk", "loot", "give"]), w)
+                elif k == 13:
+                    self.assertIn(kinds, (["kill", "talk"], ["loot", "give"]), w)
+                elif k == 15:
+                    self.assertIn(kinds, (["loot", "give"], ["loot", "give", "talk"]), w)
+                    self.assertEqual(q["steps"][0]["chance"], 1.0, f"{w}: a named foe always drops")
+                else:
+                    loot = kinds.index("loot")
+                    self.assertTrue(1 <= loot <= 3 and kinds[:loot] == ["talk"] * loot, w)
+                    self.assertEqual(kinds[loot + 1], "give", w)
+                    self.assertTrue(all(kd == "talk" for kd in kinds[loot + 2:]), w)
+            if k == 20:
+                for key in keys[1:]:
+                    self.assertEqual(qs[key]["steps"][:-1], qs[keys[0]]["steps"][:-1], f"{race}: the classes' roads are one")
+            prev = k
 
     def test_the_made_items(self):
         names = [it["name"].lower() for it in self.doc["items"]]
@@ -180,6 +234,8 @@ class TheFile(unittest.TestCase):
     def test_the_specs_people_stand_in_their_homes(self):
         recipe = load(RECIPE)
         homes = {}
+        shared = [z["shared"] for z in recipe["zones"] if z.get("shared")]
+        self.assertEqual(len(shared), 1, "one shared ground")
         for z in recipe["zones"]:
             h = z.get("home")
             if h:
@@ -192,8 +248,9 @@ class TheFile(unittest.TestCase):
                 continue
             zone, h = homes[ids[race]]
             people = collections.defaultdict(list)
-            for n in h["npcs"]:
+            for n in h["npcs"] + shared[0]["npcs"]:   # past the flight, the shared ground's people are a home's too
                 people[n["name"]].append(n)
+            rules = h.get("peaceful", []) + h.get("hostile", []) + shared[0].get("peaceful", []) + shared[0].get("hostile", [])
             talkers, foes, hands = set(), set(), set()
             for q in self.by_race[race].values():
                 talkers.add(q["giver"])
@@ -207,30 +264,46 @@ class TheFile(unittest.TestCase):
             for name in sorted(foes):
                 self.assertIn(name, people, f"{race}: {name} is none of {zone}'s creatures (tools/worlds/homelands.json)")
                 self.assertTrue(all(n.get("role") == "foe" for n in people[name]), f"{race}: {name} is hunted: a foe")
-                self.assertIn(name, h.get("peaceful", []) + h.get("hostile", []), f"{race}: {name} has a rule (peaceful or hostile)")
-            hunted = [st["target"] for k in (3, 4) for st in self.by_race[race][f"L{k}"]["steps"] if st["kind"] == "loot"]
+                self.assertIn(name, rules, f"{race}: {name} has a rule (peaceful or hostile)")
+            hunted = [st["target"] for q in self.by_race[race].values() for st in q["steps"]
+                      if st["kind"] == "loot" and st.get("chance") == gh.CHANCE]
             for name in hunted:
                 self.assertGreaterEqual(len(people[name]), 6, f"{race}: {name}: six spawns or more for a hunt two players share")
             for name in sorted(hands):
                 self.assertTrue(all(n.get("stock") for n in people[name]),
                                 f"{race}: {name} hands things over and is a merchant of the home: give it a stock (a window that sells)")
             for kind, n in (("Coachman ", 1), ("Spiritmaster ", 1), ("Gatekeeper ", 1)):
-                have = [name for name in people if name.startswith(kind)]
-                self.assertEqual(len(have), n, f"{zone}: one {kind.strip()}")
+                have = [n_["name"] for n_ in h["npcs"] if n_["name"].startswith(kind)]
+                self.assertEqual(len(set(have)), n, f"{zone}: one {kind.strip()}")
+        # the shared ground: a stable and a spiritmaster, its hunts' kinds six spawns or more, every creature with a rule
+        sh = shared[0]
+        names = collections.Counter(n["name"] for n in sh["npcs"])
+        self.assertEqual(len([n for n in names if n.startswith(("Coachman ", "Coachwoman "))]), 1)
+        self.assertEqual(len([n for n in names if n.startswith("Spiritmaster ")]), 1)
+        for n in sh["npcs"]:
+            if n["role"] == "foe":
+                self.assertIn(n["name"], sh["peaceful"] + sh["hostile"], n["name"])
 
 
 class TheCompass(unittest.TestCase):
     def test_a_journals_directions_are_where_its_step_goes(self):
         doc, how, _ = gh.build()
-        homes = {z["race"]: (z["name"], z["home"]) for z in load(RECIPE)["zones"] if z.get("home")}
+        recipe = load(RECIPE)["zones"]
+        homes = {z["race"]: (z["name"], z["home"]) for z in recipe if z.get("home")}
+        shared = [z for z in recipe if z.get("shared")][0]
+        stable = [n["at"] for n in shared["shared"]["npcs"] if n["name"].startswith(("Coachman ", "Coachwoman "))][0]
         for q in doc["quests"]:
-            _, race, part = q["key"].split("/")
+            _, race, part = q["key"].split("/", 2)
             if how[race] != "spec" or part == "flight":   # a flight's north is its city's
                 continue
             zone, h = homes[gh.RACE_IDS[race]]
-            sx, sz = h["start"]["x"], h["start"]["z"]
             for st in q["steps"]:
+                # a home's people from its start; the shared ground's from its stable, where the coach sets a rider down
+                sx, sz = h["start"]["x"], h["start"]["z"]
                 at = [n["at"] for n in h["npcs"] if n["name"] == st["target"]]
+                if not at:
+                    zone, (sx, _, sz) = shared["name"], stable
+                    at = [n["at"] for n in shared["shared"]["npcs"] if n["name"] == st["target"]]
                 if not at:
                     continue
                 dx = sum(a[0] for a in at) / len(at) - sx
@@ -307,6 +380,41 @@ class TheControls(unittest.TestCase):
         self.assertIn("says race 'eagle'", self.problems(lambda s: s.update(race="eagle")))
         self.assertIn("has ['L6']", self.problems(lambda s: s.update(L6={})))
 
+    def test_the_chain_past_the_flight(self):
+        # each level after the one before it; a home may stop at any level (a content lane adds them in order)
+        self.assertIn("L10: comes after L7, which the spec lacks", self.problems(lambda s: s.pop("L7")))
+        self.assertIn("L20: comes after L15, which the spec lacks", self.problems(lambda s: s.pop("L15")))
+        self.assertEqual(self.problems(lambda s: [s.pop(f"L{k}") for k in (10, 13, 15, 20)]), "", "a home that stops at L7")
+        self.assertEqual(self.problems(lambda s: [s.pop(f"L{k}") for k in (7, 10, 13, 15, 20)]), "", "one that stops at its flight")
+        self.assertIn("hunts: one or two", self.problems(lambda s: s["L7"].update(hunts=[])))
+        self.assertIn("count 4", self.problems(lambda s: s["L7"]["hunts"][0].update(count=4)))
+        self.assertIn("materials: 0 to 2", self.problems(lambda s: s["L10"].update(materials=[{}, {}, {}])))
+        self.assertIn("count 9", self.problems(lambda s: s["L13"].update(count=9)))
+        self.assertIn("road: 1 to 3 stops", self.problems(lambda s: s["L20"].update(road=[])))
+        self.assertIn("after: 0 to 2 stops", self.problems(lambda s: s["L20"].update(after=[{}, {}, {}])))
+        self.assertIn("a box shows 217", self.problems(lambda s: s["L20"]["final"].update(says="x" * 205)))
+        # a home of L10 with no materials, an L13 of a drop, an L15 handed to its giver, an L20 with a stop after
+        def change(s):
+            s["L10"]["materials"] = []
+            s["L13"].update(kind="loot", drop={"name": "Frostjaw's fang", "description": "A fang.", "like": "Broken Leopard Claw"},
+                            give={"journal": "Bring Frostjaw's fang to Huntmaster Arrok.", "says": "Good."})
+            s["L15"].pop("carry")
+            s["L15"]["give"] = {"journal": "Bring the shard to Huntmaster Arrok.", "says": "Good."}
+            s["L20"]["after"] = [{"target": "Warden Halvek", "journal": "Tell Warden Halvek.", "says": "Go home."}]
+        spec = copy.deepcopy(self.spec)
+        change(spec)
+        with open(os.path.join(self.dir, "aviak.json"), "w") as f:
+            json.dump(spec, f)
+        doc, _, problems = gh.build(self.dir)
+        self.assertEqual(problems, [])
+        q = {x["key"]: x for x in doc["quests"]}
+        self.assertEqual([st["kind"] for st in q["homelands/aviak/L10"]["steps"]], ["loot", "give"])
+        self.assertEqual([(st["kind"], st.get("chance")) for st in q["homelands/aviak/L13"]["steps"]], [("loot", 1.0), ("give", None)])
+        self.assertEqual([st["kind"] for st in q["homelands/aviak/L15"]["steps"]], ["loot", "give"])
+        self.assertEqual([st["target"] for st in q["homelands/aviak/L20/wizard"]["steps"]],
+                         ["Warden Halvek", "Scout Feyla", "Goldfeather raider", "Scout Feyla", "Warden Halvek", "Elder Kraawk"])
+        self.assertEqual(q["homelands/aviak/L20/wizard"]["classes"], [13])
+
     def test_a_kill_for_the_fifth_and_a_made_material(self):
         def change(s):
             s["L5"] = {**{k: s["L5"][k] for k in ("name", "giver", "offer", "accept", "decline", "declined", "started")},
@@ -373,6 +481,17 @@ class OnARealDatabase(unittest.TestCase):
                         given[nm.lower().replace(" (rge)", "")] += 1
                 self.assertTrue(given, f"{classes[c]} L{lv}: no city quest of the level here")
                 self.assertEqual(given.most_common(1)[0][0], name.lower(), f"{classes[c]} L{lv}: the cities give {dict(given)}")
+            # levels 7-20: each spell the class's own, each item one it may use (the path's scrolls too)
+            for lv in ("L7", "L10", "L13", "L15", "L20"):
+                rws = rewards[str(c)][lv] if lv != "L20" else rewards[str(c)]["L20"]
+                for rw in (rws if isinstance(rws, list) else [rws]):
+                    for name in rw.get("spells", []):
+                        self.assertTrue([s for s in spell_ids[name.lower()] if (c, s) in own], f"{classes[c]} {lv}: {name} is no spell of its own")
+                    for name in rw.get("items", []):
+                        row = db.execute("SELECT classuse FROM itempattern WHERE lower(itemname) = lower(?) ORDER BY patternid LIMIT 1",
+                                         (name,)).fetchone()
+                        self.assertIsNotNone(row, f"{classes[c]} {lv}: no record {name!r}")
+                        self.assertTrue(row[0] & (1 << c), f"{classes[c]} {lv}: {name} is not the class's to use")
             (item,) = rewards[str(c)]["L4"]["items"]
             row = db.execute("SELECT classuse, levelreq FROM itempattern WHERE lower(itemname) = lower(?) ORDER BY patternid LIMIT 1",
                              (item,)).fetchone()

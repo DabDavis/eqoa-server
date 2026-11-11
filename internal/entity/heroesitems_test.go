@@ -181,8 +181,8 @@ func TestALevelsTopUpLeavesTheBonusPoints(t *testing.T) {
 	}
 }
 
-// The three breastplates' heals: the Weakened's 30% less (11 and 7% of CHA to
-// 53), the Breastplate's own (15 and 10% to 75), the Ascended's a tenth more
+// The three breastplates' heals: the Weakened's half (petition 1520: 8 and 5% of
+// CHA to 38), the Breastplate's own (15 and 10% to 75), the Ascended's a tenth more
 // (the Ascended records' rule), each holding hate as the Anointed's does.
 func TestTheThreeBreastplatesOfTheAnointed(t *testing.T) {
 	defer SetAscendedItems(nil)
@@ -192,19 +192,19 @@ func TestTheThreeBreastplatesOfTheAnointed(t *testing.T) {
 		t.Fatalf("the Breastplate: %+v %v", base, ok)
 	}
 	weak, ok := WornShieldOf(960777, "Weakened Breastplate of the Anointed")
-	if !ok || weak.Heal != 11 || weak.HealPct != 7 || weak.HealMax != 53 || !weak.Hate || weak.Scale != StatCha || weak.Damage != 0 {
+	if !ok || weak.Heal != 8 || weak.HealPct != 5 || weak.HealMax != 38 || !weak.Hate || weak.Scale != StatCha || weak.Damage != 0 {
 		t.Fatalf("the Weakened: %+v %v", weak, ok)
 	}
 	asc, ok := WornShieldOf(980777, "Ascended Breastplate of the Anointed")
 	if !ok || asc.Heal <= base.Heal || asc.HealMax <= base.HealMax || !asc.Hate {
 		t.Fatalf("the Ascended: %+v %v", asc, ok)
 	}
-	if WeakenedPercent != 70 {
-		t.Errorf("the petition's 30%% less: %d%%", WeakenedPercent)
+	if WeakenedPercent != 50 {
+		t.Errorf("petition 1520's 50%%: %d%%", WeakenedPercent)
 	}
 
 	// on a wearer, hit by the crab, at three CHAs: each heal of the Weakened's
-	// is within a point of 70% of the Breastplate's, the Ascended's of 110%
+	// is within a point of half the Breastplate's, the Ascended's of 110%
 	c, crab := casterAndCrab(t)
 	heal := func(s WornShield, cha int) int {
 		c.p.Gear.Shields = []WornShield{s}
@@ -217,14 +217,54 @@ func TestTheThreeBreastplatesOfTheAnointed(t *testing.T) {
 	}
 	for _, cha := range []int{0, 100, 200} {
 		b, w, a := heal(base, cha), heal(weak, cha), heal(asc, cha)
-		if d := w*100 - b*70; d < -100 || d > 100 {
-			t.Errorf("CHA %d: the Weakened heals %d of the Breastplate's %d, want 70%% within a point", cha, w, b)
+		if d := w*100 - b*WeakenedPercent; d < -100 || d > 100 {
+			t.Errorf("CHA %d: the Weakened heals %d of the Breastplate's %d, want %d%% within a point", cha, w, b, WeakenedPercent)
 		}
 		if d := a*100 - b*110; d < -100 || d > 100 {
 			t.Errorf("CHA %d: the Ascended heals %d of the Breastplate's %d, want 110%% within a point", cha, a, b)
 		}
 		if !(w < b && b < a) {
 			t.Errorf("CHA %d: %d, %d, %d: not weakened < normal < ascended", cha, w, b, a)
+		}
+	}
+}
+
+// Any record named "Weakened <a worn item's name>" has that item's hit effect at
+// WeakenedPercent, with no name of its own to list (petitions 1516, 1520: the
+// weakened Seraphic Planar Breastplate, its 75-to-120 line at half, 38 to 60, its
+// Ascended record a tenth more); an item's own name with no effect, "Weakened"
+// or not, has none.
+func TestAWeakenedRecordIsItsBasesByName(t *testing.T) {
+	defer SetAscendedItems(nil)
+	SetAscendedItems(map[int]int{980778: 8527})
+	base, ok := WornShieldOf(8527, "Seraphic Planar Breastplate")
+	if !ok || base.Damage != 75 || base.DamageMax != 120 || base.Heal != 75 || base.HealMax != 120 || !base.Line || base.Scale != StatInt {
+		t.Fatalf("the Seraphic Planar: %+v %v", base, ok)
+	}
+	weak, ok := WornShieldOf(965004, "  weakened Seraphic Planar Breastplate ")
+	if !ok || weak.Damage != 38 || weak.DamageMax != 60 || weak.Heal != 38 || weak.HealMax != 60 || !weak.Line || weak.Scale != StatInt {
+		t.Fatalf("the Weakened Seraphic Planar: %+v %v", weak, ok)
+	}
+	if weak.Item != "  weakened Seraphic Planar Breastplate " {
+		t.Errorf("the log's name: %q", weak.Item)
+	}
+	asc, ok := WornShieldOf(980778, "Ascended Seraphic Planar Breastplate")
+	if !ok || asc.Damage != 83 || asc.DamageMax != 132 || asc.Heal != 83 || asc.HealMax != 132 {
+		t.Fatalf("the Ascended Seraphic Planar: %+v %v", asc, ok)
+	}
+	// a weakened figure scales a stat as its base's does: half, a point either way
+	c, _ := casterAndCrab(t)
+	for _, v := range []int{0, 200, 400} {
+		c.p.Int, c.p.Mods.Int = v, 0
+		bd, bh, _ := base.forWearer(c.p, func(int) int { return 0 })
+		wd, wh, _ := weak.forWearer(c.p, func(int) int { return 0 })
+		if d := wd*100 - bd*WeakenedPercent; d < -100 || d > 100 || wh != wd || bh != bd {
+			t.Errorf("INT %d: the Weakened %d/%d of %d/%d", v, wd, wh, bd, bh)
+		}
+	}
+	for _, name := range []string{"Weakened Ceremonial Vestments", "Weakened ", "Ceremonial Vestments"} {
+		if s, ok := WornShieldOf(965005, name); ok {
+			t.Errorf("%q: %+v", name, s)
 		}
 	}
 }

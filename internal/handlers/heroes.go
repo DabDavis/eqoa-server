@@ -77,7 +77,9 @@ func IsHeroesBox(id uint32) bool { return id&0xFF000000 == heroesBoxMark }
 // His words. A question is 127 characters at most (questAskChars), an answer
 // 63 (questAnswerChars), a box 217 (questBoxChars: say cuts a longer one).
 const (
-	heroesGreeting = "Well met, %s. Every kill that gives you experience earns 1 faction with the Testing Heroes, a raid boss 5. You stand at %d: %d above the bottom, yours to spend."
+	// the greeting says the floor (petition 1515, the GM Jibrish: ""-2000" is actually "you have no
+	// currency". 0 means you have 2000 to spend"): what is spent is the standing above it, never above 0
+	heroesGreeting = "Well met, %s. Every kill that gives you experience earns 1 faction with the Testing Heroes, a raid boss 5. You stand at %d. All of it above %d is yours to spend: %d."
 	heroesAskList  = "Testing Heroes Vendor: 'You have %d to spend. What will you have?'"
 	heroesAskBuy   = "Testing Heroes Vendor: 'The %s, for %d of your %d?'"
 	heroesYes      = "Yes, I will take it"
@@ -222,7 +224,7 @@ func (h *Heroes) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) 
 		h.say(sess, heroesClosed)
 		return true
 	}
-	h.say(sess, fmt.Sprintf(heroesGreeting, p.Name, standing, balance))
+	h.say(sess, fmt.Sprintf(heroesGreeting, p.Name, standing, entity.FactionMin, balance))
 	if len(wares) == 0 {
 		h.say(sess, heroesEmpty)
 		return true

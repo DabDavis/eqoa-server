@@ -170,7 +170,7 @@ func TestTheHeroesVendorListsHisStock(t *testing.T) {
 	r := newHeroesRig(t)
 	got, box := r.visit()
 	r.want("Anna", got,
-		"box:Testing Heroes Vendor: Well met, Anna. Every kill that gives you experience earns 1 faction with the Testing Heroes, a raid boss 5. You stand at -2000: 0 above the bottom, yours to spend.",
+		"box:Testing Heroes Vendor: Well met, Anna. Every kill that gives you experience earns 1 faction with the Testing Heroes, a raid boss 5. You stand at -2000. All of it above -2000 is yours to spend: 0.",
 		fmt.Sprintf("ask#%d:Testing Heroes Vendor: 'You have 0 to spend. What will you have?'|%s", box, heroesList))
 	if !IsHeroesBox(box) || box&0xFF000000 != 0x64000000 || IsHeroesBox(0x63000001) {
 		t.Errorf("the box %#x is not under his mark 0x64000000", box)
@@ -247,6 +247,43 @@ func TestTheHeroesVendorSellsEachWare(t *testing.T) {
 				t.Errorf("the old box answered again: %q, %d held, %d logged", got, r.held(r.ids[i]), r.purchases())
 			}
 		})
+	}
+}
+
+// Petition 1515 (the GM Jibrish: "should accept anything above -2000, not just
+// above 0 ... 0 means you have 2000 to spend"): a standing below 0 buys with
+// what it holds above -2000. At -1500, 500 to spend: the greeting says so, the
+// Weakened (250) is bought to -1750, the Elixir (25) to -1775, and the
+// Breastplate (500) is then 225 short.
+func TestTheHeroesVendorSpendsANegativeStanding(t *testing.T) {
+	r := newHeroesRig(t)
+	r.pa.Factions = map[string]int{entity.HeroesFaction: -1500}
+	got, box := r.visit()
+	if !hasMsg(got, "box:Testing Heroes Vendor: Well met, Anna. Every kill that gives you experience earns 1 faction with the Testing Heroes, a raid boss 5. You stand at -1500. All of it above -2000 is yours to spend: 500.") ||
+		!hasMsg(got, fmt.Sprintf("ask#%d:Testing Heroes Vendor: 'You have 500 to spend. What will you have?'|%s", box, heroesList)) {
+		t.Fatalf("the greeting at -1500: %q", got)
+	}
+	_, buy := r.choose(box, 2)
+	got, _ = r.choose(buy, 0)
+	if !hasMsg(got, "chat:-1750 faction with Testing Heroes (-250)") ||
+		!hasMsg(got, "box:Testing Heroes Vendor: The Weakened Breastplate of the Anointed is yours. You have 250 left to spend.") {
+		t.Fatalf("the Weakened at -1500: %q", got)
+	}
+	_, box = r.visit()
+	_, buy = r.choose(box, 0)
+	got, _ = r.choose(buy, 0)
+	if !hasMsg(got, "box:Testing Heroes Vendor: The Elixir of the Giant Gnome is yours. You have 225 left to spend.") {
+		t.Fatalf("the Elixir at -1750: %q", got)
+	}
+	_, box = r.visit()
+	got, next := r.choose(box, 3)
+	r.want("Anna", got, "box:Testing Heroes Vendor: The Breastplate of the Anointed costs 500 faction and you have 225 to spend: 275 more to earn.")
+	if next != 0 || r.standing() != -1775 || r.held(r.ids[2]) != 1 || r.held(r.ids[0]) != 1 || r.held(r.ids[3]) != 0 || r.purchases() != 2 {
+		t.Errorf("after: box %#x, standing %d, held %d %d %d, %d logged", next, r.standing(), r.held(r.ids[2]), r.held(r.ids[0]), r.held(r.ids[3]), r.purchases())
+	}
+	var kept int
+	if err := r.db.QueryRow(`SELECT standing FROM charfactions WHERE serverid = ? AND faction = ?`, r.pa.CharServerID, entity.HeroesFaction).Scan(&kept); err != nil || kept != -1775 {
+		t.Errorf("the standing kept: %d (%v)", kept, err)
 	}
 }
 
@@ -489,7 +526,7 @@ func TestTheHeroesVendorsBoxesFit(t *testing.T) {
 	if l := len(fmt.Sprintf(heroesAskList, 4000)); l > questAskChars {
 		t.Errorf("the list's question is %d characters", l)
 	}
-	if l := len(HeroesVendorName + ": " + fmt.Sprintf(heroesGreeting, "Abcdefghijklmnopqrst", -2000, 4000)); l > questBoxChars {
+	if l := len(HeroesVendorName + ": " + fmt.Sprintf(heroesGreeting, "Abcdefghijklmnopqrst", entity.FactionMin, entity.FactionMin, entity.FactionMax-entity.FactionMin)); l > questBoxChars {
 		t.Errorf("the greeting is %d characters for a long name, a box %d", l, questBoxChars)
 	}
 

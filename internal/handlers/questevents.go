@@ -169,20 +169,15 @@ func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c
 // after the homeland's five), not the tunic again. Every quest that matches:
 // a race that passes as a human could take Freeport's and Qeynos's alike. One
 // the character has a row in already (under way, or finished) is left as it
-// is; a class its race's cities have no chain for has none to finish.
+// is. A class its race's cities have no chain for (an Aviak druid: Halas
+// trains none) finishes the class's quests of the level in every city
+// (cityClassQuestsLocked): the homes' chain goes to level 20 (the owner,
+// 2026-11-11), and the path quests of level 30 ask a city's level 20 done.
 func (q *QuestEngine) classQuestLocked(p *entity.Player, c *questChar, by *database.Quest, level int) {
 	if p == nil || c == nil || level < 1 {
 		return
 	}
-	for _, qu := range q.cat.all {
-		if !qu.Enabled || qu.ID == by.ID || database.ClassQuestLevel(qu.Source) != level {
-			continue
-		}
-		// a city's class quest names its classes and its races: one that
-		// names none is no class's own
-		if !containsInt(qu.Classes, p.Class) || !questRaceTakes(qu.Races, p.Race) {
-			continue
-		}
+	for _, qu := range q.cityClassQuestsLocked(p, level, by.ID) {
 		if c.quests[qu.ID] != nil {
 			continue
 		}
@@ -191,6 +186,65 @@ func (q *QuestEngine) classQuestLocked(p *entity.Player, c *questChar, by *datab
 		q.saveLocked(cq)
 		log.Printf("Quests: %s's %q (%s) is finished with %q", p.Name, qu.Name, database.QuestImportKey(qu.Source), by.Name)
 	}
+}
+
+// cityClassQuestsLocked are the city class quests of a level that stand for
+// the player's (a classquest event's of that level, other than except): those
+// in the game that take its class and its race as the quests ask it; when no
+// city has a chain for its class and race, the class's of every city.
+func (q *QuestEngine) cityClassQuestsLocked(p *entity.Player, level, except int) []*database.Quest {
+	var byRace, byClass []*database.Quest
+	for _, qu := range q.cat.all {
+		if !qu.Enabled || qu.ID == except || database.ClassQuestLevel(qu.Source) != level {
+			continue
+		}
+		// a city's class quest names its classes and its races: one that
+		// names none is no class's own
+		if !containsInt(qu.Classes, p.Class) || len(qu.Races) == 0 {
+			continue
+		}
+		byClass = append(byClass, qu)
+		if questRaceTakes(qu.Races, p.Race) {
+			byRace = append(byRace, qu)
+		}
+	}
+	if len(byRace) > 0 {
+		return byRace
+	}
+	return byClass
+}
+
+// classQuestLevel is the level of the city class quests a quest's classquest
+// event finishes (a homeland's quest), 0 when it has none.
+func classQuestLevel(qu *database.Quest) int {
+	for _, e := range database.EventsOn(qu.Events, database.EventFinish) {
+		if e.Do == database.EventClassQuest && e.Level > 0 {
+			return e.Level
+		}
+	}
+	return 0
+}
+
+// standsFinishedLocked is whether a quest with a classquest event (a
+// homeland's) stands finished for the player because a city class quest it
+// stands for is: one who did its city's level 7 on the mainland (the
+// gatekeeper's flight comes after the home's level 5, and the homes' coaches
+// bring it back) is not offered the home's level 7 again, nor paid twice, and
+// the home's level 10, which asks its level 7, is offered.
+func (q *QuestEngine) standsFinishedLocked(p *entity.Player, c *questChar, qu *database.Quest) bool {
+	if qu == nil || p == nil {
+		return false
+	}
+	level := classQuestLevel(qu)
+	if level == 0 {
+		return false
+	}
+	for _, city := range q.cityClassQuestsLocked(p, level, qu.ID) {
+		if c.hasFinished(city.ID) {
+			return true
+		}
+	}
+	return false
 }
 
 // triggerBusyLocked is what is said when a step's doing would fire a trigger whose

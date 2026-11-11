@@ -362,3 +362,97 @@ func TestClassQuestEventAndLevel(t *testing.T) {
 		}
 	}
 }
+
+// The homes' chain past the flight (the owner, 2026-11-11: "add up to lvl 20
+// path quests for them all"): a homeland quest stands finished when the city
+// class quest it stands for is (standsFinishedLocked). An Aviak warrior who
+// did Halas's level 7 on the mainland is not offered the home's level 7 (nor
+// paid for it twice), and the home's level 10, which asks the home's level 7,
+// is offered. The controls: an Aviak rogue (Halas's warrior's level 7 is no
+// rogue's) is offered the home's level 7, and the warrior is not offered the
+// home's level 10 before Halas's level 7 is done.
+func TestAHomelandsQuestStandsFinishedWithItsCitys(t *testing.T) {
+	const homeL7, homeL10 = 20007, 20010
+	f := newHomesQuestFixture(t)
+	classquest := func(level int) string {
+		return fmt.Sprintf(`[{"on":"finish","do":"classquest","level":%d}]`, level)
+	}
+	for _, q := range []struct {
+		id, level, requires int
+		name                string
+	}{{homeL7, 7, homeL3, "Two Tasks"}, {homeL10, 10, homeL7, "A Weapon of Your Own"}} {
+		f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel, maxlevel, classes, races, requires, offer, accept, decline,
+			started, source, events) VALUES (?, ?, 1, 'Elder Kraawk', ?, 60, '', '14', ?, ?, 'I will.', 'Not now.', 'Go.', ?, ?)`,
+			q.id, q.name, q.level, fmt.Sprint(q.requires), q.name+": will you?",
+			fmt.Sprintf("EQOA-Data homelands/aviak/L%d (tools/import_quests.py)", q.level), classquest(q.level))
+		f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal, says, xp) VALUES (?, 1, 'talk', 'Elder Kraawk', 'Again.', 'Done.', 10)`, q.id)
+	}
+	f.reload()
+	finish := func(ids ...int) {
+		for _, id := range ids {
+			f.exec(`INSERT INTO charquests (serverid, questid, step, done) VALUES (?, ?, 0, 1)`, f.sid, id)
+		}
+		f.qe.ReloadCharacter(f.sid)
+		f.qe.LoggedIn(f.sid)
+	}
+	f.tw.p.Level = 10
+	finish(homeL1, homeL3)
+	if got := f.offer(f.elder); got != "Two Tasks: will you?|I will.|Not now." {
+		t.Fatalf("the control: with the home's 1 and 3 done the elder offers %q, want its level 7", got)
+	}
+	f.qe.LoggedIn(f.sid)
+	finish(halasWarL7) // done on the mainland
+	if got := f.offer(f.elder); got != "A Weapon of Your Own: will you?|I will.|Not now." {
+		t.Errorf("with Halas's level 7 done the elder offers %q, want the home's level 10 (its 7 stands finished)", got)
+	}
+	f.qe.mu.Lock()
+	c := f.qe.charLocked(f.sid)
+	why := f.qe.mayTakeLocked(f.qe.lookAt(f.tw.s), f.tw.p, c, f.qe.cat.byID[homeL7])
+	f.qe.mu.Unlock()
+	if !strings.HasPrefix(why, "finished") {
+		t.Errorf("the home's level 7 with Halas's done: %q, want it finished", why)
+	}
+	// a rogue: Halas's warrior's level 7 stands for nothing of its
+	f.tw.p.Class = 6
+	f.qe.LoggedIn(f.sid)
+	if got := f.offer(f.elder); got != "Two Tasks: will you?|I will.|Not now." {
+		t.Errorf("an Aviak rogue is offered %q, want the home's level 7", got)
+	}
+}
+
+// A class its race's cities train none of finishes the class's quests of the
+// level in every city: an Aviak druid (a barbarian on the wire; Halas trains
+// no druid) finishing the home's level 1 has Rivervale's druid's level 1 done
+// too, and stands finished for the home's level 1 once Rivervale's is (so the
+// level 30 path quests, which ask a city's level 20, chain). An Aviak warrior
+// is not given Rivervale's druid's.
+func TestAClassQuestOfNoCityOfItsRaceFinishesEveryCitys(t *testing.T) {
+	const rivDruL1 = 21501
+	f := newHomesQuestFixture(t)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel, maxlevel, classes, races, offer, accept, decline, started, source)
+		VALUES (?, 'A Druid''s Cap', 1, 'Lucky Ribbonhat', 1, 60, '7', '7', 'Will you?', 'I will.', 'Not now.', 'Go.',
+		'EQOA-Data 1-20/rivervale/druid/L1 (tools/import_quests.py)')`, rivDruL1)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal, says, xp) VALUES (?, 1, 'talk', 'Lucky Ribbonhat', 'Again.', 'Done.', 10)`, rivDruL1)
+	f.reload()
+	f.tw.p.Class = 0
+	f.do(f.elder)
+	if _, done := f.progress(rivDruL1); done != -1 {
+		t.Fatalf("the control: an Aviak warrior's homeland quest finished Rivervale's druid's (done %d)", done)
+	}
+	f.exec(`DELETE FROM charquests`)
+	f.qe.ReloadCharacter(f.sid)
+	f.qe.LoggedIn(f.sid)
+	f.tw.p.Class = 7
+	f.do(f.elder)
+	if _, done := f.progress(rivDruL1); done != 1 {
+		t.Errorf("an Aviak druid's homeland level 1: Rivervale's druid's level 1 done %d, want 1", done)
+	}
+	f.exec(`DELETE FROM charquests WHERE questid = ?`, homeL1)
+	f.qe.ReloadCharacter(f.sid)
+	f.qe.mu.Lock()
+	why := f.qe.mayTakeLocked(f.qe.lookAt(f.tw.s), f.tw.p, f.qe.charLocked(f.sid), f.qe.cat.byID[homeL1])
+	f.qe.mu.Unlock()
+	if !strings.HasPrefix(why, "finished") {
+		t.Errorf("an Aviak druid with Rivervale's druid's level 1 done may take the home's level 1: %q", why)
+	}
+}

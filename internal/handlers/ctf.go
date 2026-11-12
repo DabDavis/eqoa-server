@@ -161,7 +161,7 @@ func (h *InteractHandler) ctfTalk(sess *session.Session, p *entity.Player, npc *
 	switch {
 	case !ctfHere && !siegeHere:
 		teleSay(sess, ctfHeraldNoArena)
-		log.Printf("CTF: %s at the herald: its game cannot load world %d nor %d", p.Name, world, sWorld)
+		log.Printf("CTF: %s at the herald: its game holds neither arena (worlds %d and %d)", p.Name, world, sWorld)
 		return true
 	case !siegeHere:
 		// capture the flag alone, as it always was
@@ -217,7 +217,7 @@ func (c *CTFHerald) ask(sess *session.Session, p *entity.Player, question string
 	}
 	c.asked[p.CharServerID] = ctfAsk{box: id, answers: answers, games: games, npc: npc}
 	c.mu.Unlock()
-	two := len(games) > 1
+	two := len(games) > 1 // both games offered: each sign-up says which
 	words := make([]string, 0, len(answers))
 	for _, a := range answers {
 		switch {
@@ -227,10 +227,10 @@ func (c *CTFHerald) ask(sess *session.Session, p *entity.Player, question string
 			words = append(words, ctfAnswerLeaveTwo)
 		case a == ctfDoRules && two:
 			words = append(words, ctfAnswerRulesTwo)
-		case a == ctfDoJoin, a == siegeDoJoin && !two:
-			words = append(words, map[bool]string{true: siegeAnswerJoin, false: ctfAnswerJoin}[a == siegeDoJoin])
-		case a == ctfDoLeave, a == siegeDoLeave && !two:
-			words = append(words, map[bool]string{true: siegeAnswerLeave, false: ctfAnswerLeave}[a == siegeDoLeave])
+		case a == ctfDoJoin:
+			words = append(words, ctfAnswerJoin)
+		case a == ctfDoLeave:
+			words = append(words, ctfAnswerLeave)
 		case a == siegeDoJoin:
 			words = append(words, siegeAnswerJoin)
 		case a == siegeDoLeave:

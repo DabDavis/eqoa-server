@@ -1011,8 +1011,14 @@ func (w *World) addThreatLocked(npc *NPC, attackerID EntityID, damage int) {
 	if npc.Dummy != NotDummy || challengeBars(npc, attackerID) {
 		return // a dummy's one player (dummy.go), a Metal Moogie's challenger (metalmoogie.go)
 	}
-	if npc.siege != nil && !npc.siege.king {
-		return // a siege's gate holds no hate: it never fights (siege.go)
+	if s := npc.siege; s != nil {
+		if s.hits == nil {
+			s.hits = map[EntityID]int64{}
+		}
+		s.hits[attackerID] += int64(damage) // who struck it, for the last blow's count (siege.go)
+		if !s.king {
+			return // a siege's gate holds no hate: it never fights
+		}
 	}
 	if w.isFamiliarIDLocked(attackerID) {
 		return // a familiar draws no one's hate (familiar.go)

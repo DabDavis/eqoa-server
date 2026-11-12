@@ -101,6 +101,9 @@ type npcSiege struct {
 	m    *ctfMatch
 	king bool
 	gate int
+	// hits is what each one struck it for (addThreatLocked's, a gate's too though it holds no hate): whose the last
+	// blow is counted by
+	hits map[EntityID]int64
 }
 
 // memberOf reports id among ids.
@@ -254,8 +257,8 @@ func (w *World) siegeOpenLocked(m *ctfMatch) {
 		int(math.Round(w.ctf.set.TimeLimit.Minutes())), lay.Siege.King.Name), ctfGold)
 }
 
-// siegeNPCDownLocked is a siege's NPC dying (killNPC's, before its hate is let go): a gate broken or the King
-// slain, the last blow its highest hater's among the players. The tick takes it from there (siegeTickLocked): the
+// siegeNPCDownLocked is a siege's NPC dying (killNPC's): a gate broken or the King slain, the last blow counted to
+// the player of its match who struck it for the most (its hits). The tick takes it from there (siegeTickLocked): the
 // NPC is still in its killer's hands now. Must be called with the lock held.
 func (w *World) siegeNPCDownLocked(npc *NPC) {
 	s := npc.siege
@@ -264,7 +267,7 @@ func (w *World) siegeNPCDownLocked(npc *NPC) {
 	}
 	var top *Player
 	var best int64 = -1
-	for id, t := range npc.Threats {
+	for id, t := range s.hits {
 		if p := w.Players[id]; p != nil && p.inMatch(s.m) && (t > best || t == best && top != nil && p.ServerID < top.ServerID) {
 			top, best = p, t
 		}

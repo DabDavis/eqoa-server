@@ -57,3 +57,18 @@ func TestAMermaidSwimsAtSpiritOfTheWolfsSpeed(t *testing.T) {
 		}
 	}
 }
+
+// The sea folk breathe water (the owner, 2026-11-12): a Mermaid holds her
+// breath for good, so the breath system takes none and never drowns her, and
+// her regen runs underwater; a Jal'Raeth does not.
+func TestAMermaidBreathesUnderwater(t *testing.T) {
+	withOptionRaces(t,
+		database.RaceDefRow{ID: 32, Name: "Mermaid", WireRace: 8, BodyMale: signed(bodyMerman), BodyFemale: signed(bodyMermaid)},
+		database.RaceDefRow{ID: 30, Name: "Jal'Raeth", WireRace: 8, BodyMale: signed(bodyJalRaeth), BodyFemale: signed(bodyJalRaeth)})
+	if !(&Player{Race: 32}).holdsBreath() {
+		t.Error("a mermaid holds her breath")
+	}
+	if (&Player{Race: 30}).holdsBreath() {
+		t.Error("the control: a Jal'Raeth does not")
+	}
+}

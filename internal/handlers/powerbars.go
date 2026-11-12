@@ -15,8 +15,8 @@ import (
 //
 // Once the player is in the world the server offers it (a u32, 1); a client
 // that draws the bars answers 1 to have them and 0 to stop, and from then on
-// is sent the power of its group's members, its target and its target's
-// target (OpcodePowerBarsData) whenever it changes. A PS2 ignores the offer,
+// is sent the power of its group's members (players and mercs), its pet, its
+// target and its target's target (OpcodePowerBarsData) whenever it changes. A PS2 ignores the offer,
 // as it ignores OpcodeEntityView's, and is never sent any.
 
 // buildPowerBarsOffer is OpcodePowerBars from the server: a u32, 1.

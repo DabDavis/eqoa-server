@@ -1234,12 +1234,6 @@
    "minlevel": 50,
    "maxlevel": 60,
    "requires": [],
-   "factions_required": [
-    [
-     "The Pusling",
-     150
-    ]
-   ],
    "repeatable": true,
    "offer": "Scuzz toads around the lakes of this plane have bulging eyes, good for stew. Bring Pluxklez four, and Pluxklez gives stew, and the puslings remember it. Again and again!",
    "accept": "I will bring eyes.",
@@ -1285,7 +1279,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Spell Quest (github.com/Jadiction/EQOA-Data, MIT). Its note on Pluxklez: 251,000 experience and scuzz toad stew for four eyes (the guide's figures). The scuzz toads' spawn cycle from the jellies and piranhas is left out: they stand at the lake (tools/quests/npcs/qe.json); the stew takes the sondereel fish soup's effect, not the guide's 156 a tick; the drop chance is ours. Petition 1651 (Skywalker, 2026-11-12): the eyes are bulging toad eyes and tradeable; the quest asks 150 with The Pusling and gives the stew and 10 with The Pusling a turn-in, no experience (tools/pluxklez_quest_20261112.py)."
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Spell Quest (github.com/Jadiction/EQOA-Data, MIT). Its note on Pluxklez: 251,000 experience and scuzz toad stew for four eyes (the guide's figures). The scuzz toads' spawn cycle from the jellies and piranhas is left out: they stand at the lake (tools/quests/npcs/qe.json); the stew takes the sondereel fish soup's effect, not the guide's 156 a tick; the drop chance is ours. Petition 1651 (Skywalker, 2026-11-12): the eyes are bulging toad eyes and tradeable; the quest gives the stew and 10 with The Pusling a turn-in, no experience; no standing is asked (the owner over the petition's 150: none could reach it) (tools/pluxklez_quest_20261112.py)."
   },
   {
    "key": "Portal/plane-of-sky/portal-1",

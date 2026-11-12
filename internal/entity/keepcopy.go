@@ -3,7 +3,7 @@ package entity
 // keepcopy.go — the corpses of the copies through a restart that keeps the
 // sessions (the owner, 2026-11-12: "the rolling reset is deleting loot on mobs").
 // keepnpc.go carries the creatures of rows; a copy (Temporary, CopyOf: a quest
-// step's spawn, a GM trigger's, a GM's /spawn, a creature's summoned add) has no
+// step's spawn, a GM trigger's, a GM's /spawn) has no
 // row, so the new process had nothing to make it from and its corpse was simply
 // gone, with what was on it: Graal the Leviathan, a quest step's spawn, dies at
 // 08:07 and lies to be looted; a restart in that minute took the corpse, its
@@ -25,7 +25,8 @@ package entity
 // which a restart stops; a creature's fight, whose adds go with it), so carried it
 // would stand in the world for good, which nothing takes away. Nor a corpse of a
 // copy in an instance (dungeons close at a restart, by design), of a siege's, of a
-// Metal Moogie's challenge (its tribute is its duel's) or of a copy of no row.
+// Metal Moogie's challenge (its tribute is its duel's), of an add's (it carries
+// nothing: masterdeath.go) or of a copy of no row.
 
 import (
 	"log"
@@ -61,7 +62,7 @@ type KeptCopy struct {
 // doc) at now.
 func (w *World) keepsCopyCorpse(npc *NPC, now time.Time) bool {
 	return npc.Temporary && npc.CopyOf != 0 && npc.Instance == 0 && npc.Owner == 0 && npc.Charm == nil &&
-		npc.GenieOf == 0 && npc.PortalOf == 0 && npc.Dummy == NotDummy && npc.siege == nil && npc.challenge == nil &&
+		npc.GenieOf == 0 && npc.PortalOf == 0 && npc.Dummy == NotDummy && !npc.DuelSpawn() && !npc.CorpseOfNothing() &&
 		npc.corpseLies(now, w.corpseDecay)
 }
 

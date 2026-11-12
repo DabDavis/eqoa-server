@@ -95,8 +95,8 @@ func (w *World) mercDefendsLocked(ms *mercState, npc *NPC) bool {
 		if pet := w.petOfLocked(o); pet != nil && e == pet.ServerID {
 			return true
 		}
-		if om := w.mercs[o.ServerID]; om != nil && om.owner == o {
-			if e == om.npc.ServerID || om.pet != nil && e == om.pet.npc.ServerID {
+		for _, om := range w.mercs[o.ServerID] {
+			if om.owner == o && (e == om.npc.ServerID || om.pet != nil && e == om.pet.npc.ServerID) {
 				return true
 			}
 		}
@@ -415,7 +415,7 @@ func (w *World) mercTickLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 		return
 	}
 	ms := m.merc
-	if w.mercs[ms.owner.ServerID] != ms {
+	if !w.mercLiveLocked(ms) {
 		return
 	}
 	hit := -creatureResists(ae.Rules.Resist, npc, arcaneDebuffed(ae.Rules.Resist, npc, ae.HPTick, now), now)

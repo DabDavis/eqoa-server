@@ -107,12 +107,12 @@ func mercPetSaid(class int, pick string) string {
 }
 
 // pet is /merc pet [word]: the kinds said, or one picked (the file's doc).
-func (m *Mercs) pet(sess *session.Session, p *entity.Player, word string) {
+func (m *Mercs) pet(sess *session.Session, p *entity.Player, slot int, word string) {
 	if m.db == nil {
 		SendErrorMessage(sess, mercNoneLine)
 		return
 	}
-	row, ok, err := m.db.Merc(p.CharServerID)
+	row, ok, err := m.db.Merc(p.CharServerID, slot)
 	if err != nil || !ok {
 		SendClientMessage(sess, mercNoneLine)
 		return
@@ -135,7 +135,7 @@ func (m *Mercs) pet(sess *session.Session, p *entity.Player, word string) {
 		}
 		pick = strings.ToLower(k.name)
 	}
-	if err := m.db.SetMercPet(p.CharServerID, pick); err != nil {
+	if err := m.db.SetMercPet(p.CharServerID, slot, pick); err != nil {
 		log.Printf("Merc: %s's pet pick not kept: %v", p.Name, err)
 		return
 	}

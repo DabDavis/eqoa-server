@@ -108,7 +108,7 @@ func TestRealFollowersSpreadAndStroll(t *testing.T) {
 						res.through++
 						if os.Getenv("EQOA_TRACE") != "" {
 							t.Logf("THROUGH %s %s (%.1f,%.1f,%.1f)->(%.1f,%.1f,%.1f) owner (%.1f,%.1f,%.1f) route %d idle %+v", phase, n.Name,
-								p[0], p[1], p[2], n.X, n.Y, n.Z, r.p.X, r.p.Y, r.p.Z, len(n.way.route.pts), r.w.mercs[r.p.ServerID].idle)
+								p[0], p[1], p[2], n.X, n.Y, n.Z, r.p.X, r.p.Y, r.p.Z, len(n.way.route.pts), r.w.merc1(r.p.ServerID).idle)
 						}
 					}
 				}
@@ -157,7 +157,7 @@ func TestRealFollowersSpreadAndStroll(t *testing.T) {
 				}
 			}
 		}
-		ms := r.w.mercs[r.p.ServerID]
+		ms := r.w.merc1(r.p.ServerID)
 		for range 400 {
 			was := ms.idle.strolls
 			mx, my, mz := ms.npc.X, ms.npc.Y, ms.npc.Z

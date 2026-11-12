@@ -1148,7 +1148,7 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 		return err
 	}
 	// nor have a mercenary hired (mercs.go)
-	if err := s.db.DeleteMerc(serverID); err != nil {
+	if err := s.db.DeleteMercs(serverID); err != nil {
 		return err
 	}
 	// nor its "Allow anyone in my group to invite" (groupinvites.go)

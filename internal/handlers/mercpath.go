@@ -147,12 +147,12 @@ func mercPathAll(class int) string {
 }
 
 // path is /merc path [word]: the paths said, or one picked (the file's doc).
-func (m *Mercs) path(sess *session.Session, p *entity.Player, word string) {
+func (m *Mercs) path(sess *session.Session, p *entity.Player, slot int, word string) {
 	if m.db == nil {
 		SendErrorMessage(sess, mercNoneLine)
 		return
 	}
-	row, ok, err := m.db.Merc(p.CharServerID)
+	row, ok, err := m.db.Merc(p.CharServerID, slot)
 	if err != nil || !ok {
 		SendClientMessage(sess, mercNoneLine)
 		return
@@ -172,7 +172,7 @@ func (m *Mercs) path(sess *session.Session, p *entity.Player, word string) {
 		SendErrorMessage(sess, fmt.Sprintf(mercPathWhich, class, mercPathAll(row.Class)))
 		return
 	}
-	if err := m.db.SetMercPath(p.CharServerID, k); err != nil {
+	if err := m.db.SetMercPath(p.CharServerID, slot, k); err != nil {
 		log.Printf("Merc: %s's path not kept: %v", p.Name, err)
 		return
 	}

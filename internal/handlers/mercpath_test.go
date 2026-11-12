@@ -88,7 +88,7 @@ func TestMercPathCommand(t *testing.T) {
 	if !saidLine(got, " takes the path of Blood: /merc path names the others.") {
 		t.Errorf("the hire's lines: %q", got)
 	}
-	row, ok, _ := db.Merc(r.pa.CharServerID)
+	row, ok, _ := db.Merc(r.pa.CharServerID, 1)
 	if !ok || row.Path != -1 {
 		t.Fatalf("the hire's row: %v path %d", ok, row.Path)
 	}
@@ -102,7 +102,7 @@ func TestMercPathCommand(t *testing.T) {
 		t.Errorf("/merc path: %q", got)
 	}
 	r.say(r.anna, "/merc path frog")
-	if row, _, _ := db.Merc(r.pa.CharServerID); row.Path != -1 {
+	if row, _, _ := db.Merc(r.pa.CharServerID, 1); row.Path != -1 {
 		t.Errorf("a word of no path set path %d", row.Path)
 	}
 	r.drain()
@@ -110,7 +110,7 @@ func TestMercPathCommand(t *testing.T) {
 	if got := r.msgs(r.anna); !saidLine(got, " takes the path of Power.") {
 		t.Errorf("/merc path power: %q", got)
 	}
-	row, _, _ = db.Merc(r.pa.CharServerID)
+	row, _, _ = db.Merc(r.pa.CharServerID, 1)
 	if row.Path != 1 {
 		t.Fatalf("the path kept: %d", row.Path)
 	}

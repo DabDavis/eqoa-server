@@ -125,7 +125,7 @@ func (r *mercRig) hireAsked(k MercKit, stance MercStance) *mercState {
 	if _, why := r.w.HireMerc(r.sess, k, stance, r.at(0)); why != "" {
 		r.t.Fatalf("the hire was refused: %s", why)
 	}
-	ms := r.w.mercs[r.p.ServerID]
+	ms := r.w.merc1(r.p.ServerID)
 	if ms == nil {
 		r.t.Fatal("no merc after the hire")
 	}
@@ -443,12 +443,12 @@ func TestMercNeverFightsAPlayer(t *testing.T) {
 	r.w.mu.Lock()
 	r.w.addThreatLocked(crab, r.p.ServerID, 50)
 	r.w.mu.Unlock()
-	r.w.SetMercStance(r.sess, MercPassive)
+	r.w.SetMercStance(r.sess, 0, MercPassive)
 	r.run(2*time.Second, 3*time.Second)
 	if ms.target != 0 {
 		t.Fatalf("a passive merc took on %d", ms.target)
 	}
-	r.w.SetMercStance(r.sess, MercAssist)
+	r.w.SetMercStance(r.sess, 0, MercAssist)
 	r.run(3*time.Second, 4*time.Second)
 	if ms.target != crab.ServerID {
 		t.Errorf("an assisting merc left the crab fighting its owner alone (target %d)", ms.target)
@@ -494,15 +494,15 @@ func TestMercDismissStanceLogout(t *testing.T) {
 	ms := r.hire(r.kit(0, 0, 0), MercAssist)
 	r.group()
 	ms.target = r.creature("Desert Crab", 28, 3).ServerID
-	r.w.SetMercStance(r.sess, MercPassive)
+	r.w.SetMercStance(r.sess, 0, MercPassive)
 	if ms.target != 0 || ms.stance != MercPassive {
 		t.Errorf("passive: target %d stance %d", ms.target, ms.stance)
 	}
-	if name, ok := r.w.DismissMerc(r.sess, r.at(0)); !ok || name != "Ralthas" {
+	if name, ok := r.w.DismissMerc(r.sess, 1, r.at(0)); !ok || name != "Ralthas" {
 		t.Fatalf("dismiss: %q %v", name, ok)
 	}
-	if r.w.NPCs[ms.npc.ServerID] != nil || r.w.mercs[r.p.ServerID] != nil || r.p.GroupID != 0 {
-		t.Errorf("after the dismissal: npc %v, merc %v, group %d", r.w.NPCs[ms.npc.ServerID] != nil, r.w.mercs[r.p.ServerID] != nil, r.p.GroupID)
+	if r.w.NPCs[ms.npc.ServerID] != nil || r.w.merc1(r.p.ServerID) != nil || r.p.GroupID != 0 {
+		t.Errorf("after the dismissal: npc %v, merc %v, group %d", r.w.NPCs[ms.npc.ServerID] != nil, r.w.merc1(r.p.ServerID) != nil, r.p.GroupID)
 	}
 	ms = r.hire(r.kit(0, 0, 0), MercAssist)
 	r.w.RemovePlayer(r.p.ServerID)
@@ -559,12 +559,15 @@ func TestMercTakesAGroupPlace(t *testing.T) {
 		t.Errorf("a new merc in the old one's place was refused: %s", why)
 	}
 	_, fourth := r.player("Fourth", 0, 0)
-	if r.w.DismissMerc(r.sess, r.at(0)); len(g.Members) != 3 {
+	if r.w.DismissMerc(r.sess, 1, r.at(0)); len(g.Members) != 3 {
 		t.Fatalf("the dismissal left %d members", len(g.Members))
 	}
 	r.group(fourth)
-	if _, why := r.w.HireMerc(r.sess, r.kit(0, 0, 0), MercAssist, r.at(0)); why != mercGroupFull {
-		t.Errorf("a group of four took a merc: %q", why)
+	// a group of four players: the merc goes on standby (mercbench.go), its
+	// hire kept, out of the group and the world
+	if _, why := r.w.HireMerc(r.sess, r.kit(0, 0, 0), MercAssist, r.at(0)); why != "" || len(g.Members) != 4 ||
+		r.w.benchedAtLocked(r.p, 1) == nil || r.w.merc1(r.p.ServerID) != nil {
+		t.Errorf("a group of four players took a merc (%q, %d members) or it is not on standby", why, len(g.Members))
 	}
 	g.flagged = true
 	if _, why := r.w.HireMerc(r.sess, r.kit(0, 0, 0), MercAssist, r.at(0)); why != "" || len(g.Members) != 5 {
@@ -649,7 +652,7 @@ func TestMercGroupGivesWay(t *testing.T) {
 	if got := r.sent(); got[protocol.OpcodeGroupInviteReceived] != 0 || r.p.GroupID != 0 {
 		t.Errorf("leaving the group of it and its merc asked again (%v) or kept a group (%d)", got, r.p.GroupID)
 	}
-	if r.w.mercs[r.p.ServerID] != nil || r.w.NPCs[ms.npc.ServerID] != nil {
+	if r.w.merc1(r.p.ServerID) != nil || r.w.NPCs[ms.npc.ServerID] != nil {
 		t.Fatal("the merc stayed after its owner left the group of the two of them")
 	}
 	// a raid flag's box too: the group of the owner and its merc gives way
@@ -679,6 +682,9 @@ func TestMercKeepRestart(t *testing.T) {
 	ms.npc.HP = ms.npc.MaxHP / 2
 	ms.npc.X += 1 // within its slot's slack (followslot.go)
 	kp, ok := r.w.KeepPlayer(r.sess, r.at(0))
+	if len(kp.Mercs) == 1 {
+		kp.Merc = &kp.Mercs[0] // one merc: the test of one
+	}
 	if !ok || kp.Merc == nil || !kp.Merc.Grouped || kp.Merc.Stance != byte(MercAggressive) {
 		t.Fatalf("kept: %+v", kp.Merc)
 	}
@@ -690,7 +696,7 @@ func TestMercKeepRestart(t *testing.T) {
 	if !r2.w.RestoreMerc(r2.sess, k, *kp.Merc, r2.at(0)) {
 		t.Fatal("the merc did not come back")
 	}
-	m := r2.w.mercs[r2.p.ServerID]
+	m := r2.w.merc1(r2.p.ServerID)
 	r2.run(0, 600*time.Millisecond) // the group upkeep, once the kept groups are formed again
 	if m.npc.X != place[0] || m.npc.Z != place[2] || m.stance != MercAggressive || m.npc.HP != m.npc.MaxHP/2 {
 		t.Errorf("back at (%.1f, %.1f) stance %d HP %d/%d, want (%.1f, %.1f), aggressive, half", m.npc.X, m.npc.Z, m.stance,
@@ -734,7 +740,7 @@ func TestMercBesideTheClassPet(t *testing.T) {
 	if _, why := r.w.HireMerc(r.sess, kit, MercAssist, r.at(10*time.Second)); why != "" {
 		t.Fatalf("the hire was refused with a pet out: %s", why)
 	}
-	ms := r.w.mercs[r.p.ServerID]
+	ms := r.w.merc1(r.p.ServerID)
 	if ms == nil || r.w.petOfLocked(r.p) != pet || r.w.pets[r.p.ServerID].npc == ms.npc {
 		t.Fatalf("pet %v, merc %v: not both out, apart", r.w.petOfLocked(r.p) != nil, ms != nil)
 	}

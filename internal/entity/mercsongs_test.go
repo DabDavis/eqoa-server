@@ -31,12 +31,12 @@ func TestMercCharm(t *testing.T) {
 	m := ms.npc
 	big := r.creature("Hill Giant", 45, 10)
 	r.charmTarget(big)
-	if _, why := r.w.MercCharm(r.sess, r.at(0)); why != charmTooHigh {
+	if _, why := r.w.MercCharm(r.sess, 0, r.at(0)); why != charmTooHigh {
 		t.Fatalf("a level 45 at a cap of 28: %q", why)
 	}
 	crab := r.creature("Desert Crab", 20, 10)
 	r.charmTarget(crab)
-	line, why := r.w.MercCharm(r.sess, r.at(0))
+	line, why := r.w.MercCharm(r.sess, 0, r.at(0))
 	if why != "" || line == "" {
 		t.Fatalf("/merc charm: %q %q", line, why)
 	}
@@ -44,7 +44,7 @@ func TestMercCharm(t *testing.T) {
 	if ms.pet == nil || ms.pet.npc != crab || crab.Charm == nil || crab.Owner != r.p.ServerID || !crab.isMercPet() {
 		t.Fatalf("after the cast: pet %+v, charm %v, owner %d", ms.pet, crab.Charm, crab.Owner)
 	}
-	if _, why := r.w.MercCharm(r.sess, r.at(9*time.Second)); why != mercCharmHasOne {
+	if _, why := r.w.MercCharm(r.sess, 0, r.at(9*time.Second)); why != mercCharmHasOne {
 		t.Errorf("a second charm: %q", why)
 	}
 	// its time out (a minute and its CHA share): let go, at the merc
@@ -60,17 +60,17 @@ func TestMercCharm(t *testing.T) {
 	r.charmTarget(crab2)
 	ms.ready = map[int]time.Time{}
 	ms.busy = time.Time{}
-	if _, why := r.w.MercCharm(r.sess, r.at(3*time.Minute+time.Second)); why != "" {
+	if _, why := r.w.MercCharm(r.sess, 0, r.at(3*time.Minute+time.Second)); why != "" {
 		t.Fatalf("a second crab: %q", why)
 	}
 	r.run(3*time.Minute+1100*time.Millisecond, 3*time.Minute+9*time.Second)
 	if ms.pet == nil || ms.pet.npc != crab2 {
 		t.Fatal("the second crab was not charmed")
 	}
-	if _, why := r.w.MercCharmOff(r.sess); why != "" || crab2.Charm != nil || ms.pet != nil {
+	if _, why := r.w.MercCharmOff(r.sess, 0); why != "" || crab2.Charm != nil || ms.pet != nil {
 		t.Errorf("/merc charm off: %q, charm %v", why, crab2.Charm)
 	}
-	if _, why := r.w.MercCharmOff(r.sess); why != mercCharmNoneOut {
+	if _, why := r.w.MercCharmOff(r.sess, 0); why != mercCharmNoneOut {
 		t.Errorf("off with none: %q", why)
 	}
 }

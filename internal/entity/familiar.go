@@ -214,7 +214,7 @@ func (w *World) DismissFamiliar(sess *session.Session) (string, bool) {
 		return "", false
 	}
 	if fs == nil || fs.owner != p {
-		return w.ctfDismissAwayLocked(p, false) // one waiting outside the arena (ctfaway.go)
+		return w.ctfDismissAwayLocked(p, 0, false) // one waiting outside the arena (ctfaway.go)
 	}
 	name := fs.npc.Name
 	w.familiarGoesLocked(fs, sess)

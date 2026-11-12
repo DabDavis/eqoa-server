@@ -99,6 +99,12 @@ func (ms *mercState) mercPetSpell() *CastSpell {
 	return ms.mercPetSpellOf(nil)
 }
 
+// MercPetFor is the summoning a merc of the kit casts (mercPetSpell), nil for
+// none: the handlers' real-data test's.
+func MercPetFor(kit MercKit) *CastSpell {
+	return (&mercState{kit: kit}).mercPetSpell()
+}
+
 // MercPetKindOf reports whether a summoning's name is of a kind: holding one
 // of its words (lower case); any summoning, for no words.
 func MercPetKindOf(name string, words []string) bool {

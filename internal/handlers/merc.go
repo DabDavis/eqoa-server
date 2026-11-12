@@ -144,6 +144,7 @@ const (
 	mercStageSpells  // its spells, a page
 	mercStageStance  // its stance
 	mercStageDismiss // its dismissal, to be sure
+	mercStagePet     // its pet's kind
 )
 
 // mercAsk is a liaison's open question: its box, its stage, what was chosen
@@ -359,7 +360,7 @@ func (m *Mercs) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 			a.page++
 			m.askRaces(sess, p, a)
 		}
-	case mercStageMenu, mercStageSpells, mercStageStance, mercStageDismiss:
+	case mercStageMenu, mercStageSpells, mercStageStance, mercStageDismiss, mercStagePet:
 		m.menuAnswer(sess, p, a, n) // its own menu (mercmenu.go)
 	case mercStagePath:
 		if n >= len(archivistPathLines[a.class]) {
@@ -659,6 +660,12 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 		k.Bow = m.bow(row.Class, row.Race, k.Level) // its bow at range (entity/mercshoot.go)
 	}
 	k.Spells, err = entity.SimBookFromDB(m.db, row.Class, k.Level, false)
+	if err == nil {
+		// a magician's masteries' elementals past its book's (mercpetkind.go)
+		var more []entity.CastSpell
+		more, err = m.mercMasteryPets(row.Class, k.Level, k.Spells)
+		k.Spells = append(k.Spells, more...)
+	}
 	k.Spells = mercPathBook(row.Class, row.Path, k.Spells) // its path's, no other's (mercpath.go)
 	k.PetPick = mercPetPick(row.Class, row.Pet)            // the pet kind its hirer picked (mercpetkind.go)
 	return k, err

@@ -26,6 +26,7 @@ import (
 //     marked;
 //   - a healer's Defensive or Offensive, the other of what it is (/merc
 //     defensive, offensive);
+//   - a pet class's Pet: its kinds and Best (/merc pet: mercpetkind.go);
 //   - Dismiss, asked again before it goes (/merc dismiss).
 //
 // Another player's merc has no menu: its talk is anything else's.
@@ -41,6 +42,7 @@ const (
 	mercSpellOnLine = "%s casts %s again."
 	mercSpellOff    = "%s leaves %s alone."
 	mercNoSpells    = "%s casts no spells."
+	mercPetAsk      = "%s summons %s. Which pet?"
 )
 
 // mercAdvice is each class's merc's advice, in its voice (ours).
@@ -89,6 +91,9 @@ func (m *Mercs) menu(sess *session.Session, p *entity.Player, slot int) {
 	if mode := entity.MercModeName(info.Class, info.Offensive); mode != "" {
 		answers = append(answers, map[bool]string{false: "Be offensive", true: "Be defensive"}[info.Offensive])
 	}
+	if len(mercPetKinds[info.Class]) > 0 {
+		answers = append(answers, "Pet: "+m.menuPetSaid(p, slot, info.Class))
+	}
 	answers = append(answers, "Dismiss")
 	m.mu.Lock()
 	m.askLocked(sess, p, mercAsk{stage: mercStageMenu, slot: slot},
@@ -110,6 +115,9 @@ func (m *Mercs) menuAnswer(sess *session.Session, p *entity.Player, a mercAsk, n
 		choices := []string{"advice", "spells", "stance"}
 		if healer {
 			choices = append(choices, "mode")
+		}
+		if len(mercPetKinds[info.Class]) > 0 {
+			choices = append(choices, "pet")
 		}
 		choices = append(choices, "dismiss")
 		if n >= len(choices) {
@@ -141,6 +149,16 @@ func (m *Mercs) menuAnswer(sess *session.Session, p *entity.Player, a mercAsk, n
 			m.mu.Unlock()
 		case "mode":
 			order(map[bool]string{false: "offensive", true: "defensive"}[info.Offensive])
+		case "pet":
+			a.stage = mercStagePet
+			var answers []string
+			for _, k := range menuPetKinds(info.Class) {
+				answers = append(answers, k.name)
+			}
+			answers = append(answers, "Best")
+			m.mu.Lock()
+			m.askLocked(sess, p, a, fmt.Sprintf(mercPetAsk, info.Name, m.menuPetSaid(p, a.slot, info.Class)), answers)
+			m.mu.Unlock()
 		case "dismiss":
 			a.stage = mercStageDismiss
 			m.mu.Lock()
@@ -155,9 +173,46 @@ func (m *Mercs) menuAnswer(sess *session.Session, p *entity.Player, a mercAsk, n
 		if n == 0 {
 			order("dismiss")
 		}
+	case mercStagePet:
+		kinds := menuPetKinds(info.Class)
+		switch {
+		case n < len(kinds):
+			order("pet " + strings.ToLower(kinds[n].name))
+		case n == len(kinds):
+			order("pet " + mercPetBest)
+		}
 	case mercStageSpells:
 		m.menuSpellChoice(sess, p, a, info, n)
 	}
+}
+
+// menuPetKinds is the class's kinds its menu offers: each but one that
+// another's words hold (the magician's Efreet and Ghilan, the Fire and Water
+// lines' tops since 2026-11-12), so the box keeps its six answers with Best.
+func menuPetKinds(class int) []mercPetKind {
+	var out []mercPetKind
+	for _, k := range mercPetKinds[class] {
+		alias := false
+		for _, o := range mercPetKinds[class] {
+			alias = alias || o.name != k.name && slices.Contains(o.words, strings.ToLower(k.name))
+		}
+		if !alias {
+			out = append(out, k)
+		}
+	}
+	return out
+}
+
+// menuPetSaid is the pet kind the merc of the slot summons, in words
+// (mercPetSaid of its row's pick).
+func (m *Mercs) menuPetSaid(p *entity.Player, slot, class int) string {
+	pick := ""
+	if m.db != nil {
+		if row, ok, _ := m.db.Merc(p.CharServerID, slot); ok {
+			pick = row.Pet
+		}
+	}
+	return mercPetSaid(class, pick)
 }
 
 // menuSpells asks a page of the merc's spells, each on or off.

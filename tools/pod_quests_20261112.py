@@ -19,6 +19,12 @@ one since its import, or one would be a draft):
     non-dust pieces for Yarfsnoogle's bag, and the bag back for them.
   - Portal/plane-of-disease/noroxus-1 and -2 (Honcho Ulgurglch): level 51, The Pusling 1000; the jellyfish goo of
     the cyanea virullatas and the Last House toxicologists, the wiki's names.
+  - Portal/plane-of-disease/bert (Witchdoctor Muglchlur; the wiki's "Plane of Disease: Bertoxxulous Quest"): The
+    Pusling 1000 (was 1); the scepter is the wiki's Bonescepter; Bertoxxulous spawns only at his throne: the step at
+    the throne fires trigger "Bertoxxulous Rises" (he stays 60 minutes; the throne answers no one again for 3 days
+    16 hours, killed or not; a lock, which a restart lets go), and the Bloody Portal Opens trigger's shut time is the
+    wiki's Closed Portal respawn, 60 minutes to 3 hours (was 45).
+  The Pusling standings asked are PUSLING_GATES below, one edit away.
 
 Beside the quests, as data:
   - renames, every row keyed by the name (npcs in world 5, npcclass, npctemplate, npcmove, npcundead, npccharm,
@@ -39,6 +45,9 @@ Beside the quests, as data:
   - the reward records as the wiki gives them: NO TRADE and LORE, durability 14,100 (the gear HP), the totems'
     and the cleaver's 70; the Totem of Avhi worn by alchemists too, the robe by monks, druids and shamans, the
     shield by warriors; the shield's power -75 and the robe's and shield's fire and cold -10 (were 63);
+  - The Pusling on a kill (factionhits, to the killer): Bertoxxulous, Noroxus, Uzrathixius and Poxathixius +100,
+    Queen Qy'tha +75 (their wiki pages); the Plane of Disease's spells table rolled 99% a Bertoxxulous kill, 35% a
+    Noroxus, 75% a twin (their pages' "Chance to Drop"; were 25, 25, 50, 50); Bertoxxulous's soul dust two a kill;
   - the givers' levels 65 (Honcho Ulgurglch, Yarfsnoogle, Witchdoctor Yurplag);
   - characters on the two rewritten quests: a step before the hand-in moved to the hand-in (1), Grum's to 2.
 
@@ -70,16 +79,37 @@ PORTAL = os.path.join(HERE, "quests", "data", "portal.json")
 
 sgg.TABLES = tuple(sgg.TABLES) + tuple(t for t in ("charquests", "npctint", "campspawns", "lootpool") if t not in sgg.TABLES)
 
+# THE PUSLING STANDING EACH QUEST ASKS (the wiki's; the owner is deciding whether to keep them: one edit here, then the
+# tool run again after an --undo). A key left out asks none. These override the file's factions_required.
+PUSLING_GATES = {
+    "Portal/plane-of-disease/weapon": 1000,
+    "Portal/plane-of-disease/spell": 2000,
+    "Portal/plane-of-disease/noroxus-1": 1000,
+    "Portal/plane-of-disease/noroxus-2": 1000,
+    "Portal/plane-of-disease/bert": 1000,
+}
+# The Pusling on a kill (factionhits: the killer's standing, the engine's way; the wiki's is everyone near): the NPC
+# pages' "Opposing: The Pusling (+N)"; the diseased insects' +2 are made in make_npcs
+PUSLING_KILLS = {"Bertoxxulous": 100, "Noroxus": 100, "Uzrathixius": 100, "Poxathixius": 100, "Queen Qy'tha": 75}
+# the Plane of Disease's spell table's chance a kill, the NPC pages' "Chance to Drop"
+SPELL_TABLE, SPELL_CHANCES = "pod spells", {"bertoxxulous": 99, "noroxus": 35, "uzrathixius": 75, "poxathixius": 75}
+# the throne: Bertoxxulous an hour, then none for 3 days 16 hours (22 waits of the engine's longest, 4 h)
+BERT, THRONE, BERT_TRIGGER, BERT_MINUTES, BERT_WAITS = "Bertoxxulous", "Throne of Bertoxxulous", "Bertoxxulous Rises", 60, 22
+# the Closed Portal's respawn, the wiki's 60 minutes to 3 hours (the Bloody Portal Opens trigger's last wait: 45 min to 3 h)
+PORTAL_TRIGGER, PORTAL_WAIT = "Bloody Portal Opens", ({"seconds": 2700, "upto": 10800}, {"seconds": 3600, "upto": 10800})
+
 # key -> (giver, name) as imported
 QUESTS = {
     "Portal/plane-of-disease/spell": ("Yarfsnoogle", "Yarfsnoogle's Anatomy"),
     "Portal/plane-of-disease/weapon": ("Witchdoctor Yurplag", "The Plague Weapons"),
     "Portal/plane-of-disease/noroxus-1": ("Honcho Ulgurglch", "The Fuming Portal"),
     "Portal/plane-of-disease/noroxus-2": ("Honcho Ulgurglch", "Blood of Noroxus"),
+    "Portal/plane-of-disease/bert": ("Witchdoctor Muglchlur", "Bertoxxulous and the Throne of Plague"),
 }
 # the rows of a quest whose logged digest is stale, as they stood on 2026-11-11 (heirloom-20261111g): the same rows the
 # file wrote (written again from it, nothing differs), so no GM's change
-ROWS_AS_FILE = {"Portal/plane-of-disease/spell": "34d05e9247d236efebebe29d78606683"}
+ROWS_AS_FILE = {"Portal/plane-of-disease/spell": "34d05e9247d236efebebe29d78606683",
+                "Portal/plane-of-disease/bert": "0cb8bc618b5508f6868c996a80a48af5"}
 NEW_QUESTS = ("Portal/plane-of-disease/spell-bag", "Portal/plane-of-disease/spell-unbag")
 # the steps a character on the old quest moves to: old step -> new step
 STEP_MAP = {"Portal/plane-of-disease/spell": {**{n: 1 for n in range(1, 10)}, 10: 2},
@@ -97,7 +127,8 @@ NAME_KEYED = [("npcclass", "name"), ("npctemplate", "name"), ("npcmove", "name")
               ("npcspawnonly", "name"), ("npcdeath", "name"), ("npctint", "name"), ("queststeptargets", "target")]
 ITEM_RENAMES = [("viturille skin", "jellyfish goo", "Goo of a cyanea virullata from the nox pools. It lets you through the fuming portal."),
                 ("front legs of the Mantis Matriarch", "matriarch's front legs", "The front legs of the Mantis Matriarch."),
-                ("mandibles of the Millipede Matriarch", "matriarch's mandible", "The mandible of the Millipede Matriarch.")]
+                ("mandibles of the Millipede Matriarch", "matriarch's mandible", "The mandible of the Millipede Matriarch."),
+                ("scepter of plague", "Bonescepter", "Made by Witchdoctor Muglchlur from the Queen's stinger. The Throne of Bertoxxulous answers it.")]
 
 NOTRADE_LORE = {"trade": 1, "lore": 1, "maxhp": 14100}
 # name -> {column: (before, after)}; before None: whatever it is
@@ -176,6 +207,10 @@ def load_portal():
         d = json.load(f)
     keys = set(QUESTS) | set(NEW_QUESTS)
     quests = [q for q in d["quests"] if q["key"] in keys]
+    for q in quests:
+        others = [f for f in q.get("factions_required") or [] if f[0] != PUSLING]
+        gate = PUSLING_GATES.get(q["key"])
+        q["factions_required"] = others + ([[PUSLING, gate]] if gate else [])
     items = [it for it in d["items"] if it["name"] in NEW_ITEMS]
     return {"city": d["city"], "quests": quests, "items": items}
 
@@ -245,6 +280,18 @@ def check(db):
             bad.append(f"no {c!r} in world {WORLD}")
         if not item_ids(db, piece):
             bad.append(f"no item {piece!r}")
+    if len(world_npcs(db, THRONE)) != 1:
+        bad.append(f"{len(world_npcs(db, THRONE))} {THRONE!r} in world {WORLD}, want 1")
+    if not world_npcs(db, BERT):
+        bad.append(f"no {BERT!r} in world {WORLD}")
+    for t in (BERT_TRIGGER,):
+        if db.execute("SELECT 1 FROM gmtriggers WHERE name = ?", (t,)).fetchone():
+            bad.append(f"a trigger is named {t!r} already")
+    if not db.execute("SELECT 1 FROM gmtriggers WHERE name = ?", (PORTAL_TRIGGER,)).fetchone():
+        bad.append(f"no trigger {PORTAL_TRIGGER!r}")
+    for npc in PUSLING_KILLS:
+        if db.execute("SELECT 1 FROM factionhits WHERE lower(npc_name) = ? AND faction = ?", (key(npc), PUSLING)).fetchone():
+            bad.append(f"{npc} gives {PUSLING} on a kill already")
     if not world_npcs(db, "Grum"):
         bad.append("no Grum in world 5")
     if not db.execute("SELECT 1 FROM factions WHERE name = ?", (PUSLING,)).fetchone():
@@ -388,7 +435,14 @@ def make_loot(db, say):
                        (key(n), tname, chance, rolls, "the wiki's Plane of Disease quests", SOURCE))
 
     for creature, piece in ANATOMY:
-        table(f"pod quest {key(creature)}", quest_item_id(db, piece), [creature], 100, 1)
+        # Bertoxxulous's soul dust 200% (his page; EQOA-Data's "Soul Dust x 2"): two sure rolls
+        table(f"pod quest {key(creature)}", quest_item_id(db, piece), [creature], 100, 2 if creature == BERT else 1)
+    for npc, chance in SPELL_CHANCES.items():
+        n = db.execute("UPDATE npcloot SET chance = ? WHERE npc_name = ? AND tablename = ?", (chance, npc, SPELL_TABLE)).rowcount
+        if n != 1:
+            raise SystemExit(f"refused: {npc} does not roll {SPELL_TABLE!r} (npcloot)")
+    for npc, delta in PUSLING_KILLS.items():
+        db.execute("INSERT OR REPLACE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, ?, ?)", (npc, PUSLING, delta, SOURCE))
     for k, boss, piece in INSECTS:
         table(f"pod quest {boss}", quest_item_id(db, piece), [boss], 75, 2)
     insects = [n for k, boss, _ in INSECTS for n in (f"{k} larva", f"diseased {k}", boss)]
@@ -427,6 +481,34 @@ def import_quests_now(db, say):
         db.execute(f"UPDATE itempattern SET {', '.join(f'"{c}" = ?' for c in cols)} WHERE patternid = ?", list(cols.values()) + [pid])
 
 
+def bert_throne(db, say):
+    """Bertoxxulous only at the throne, as the wiki's quest has him: spawn-only, the quest's show step fires the trigger."""
+    tx, ty, tz = db.execute("SELECT x_coord, y_coord, z_coord FROM npcs WHERE lower(trim(npc_name)) = ? AND world = ?",
+                            (key(THRONE), WORLD)).fetchone()
+    db.execute("INSERT OR REPLACE INTO npcspawnonly (name, note, source) VALUES (?, ?, ?)",
+               (key(BERT), f"raised at his throne by the bonescepter (trigger {BERT_TRIGGER}): the wiki's Bertoxxulous Quest", SOURCE))
+    steps = [{"do": "lock", "lock": "throne of bertoxxulous"},
+             {"do": "spawn", "npc": BERT, "hostile": True, "spread": 8.0, "minutes": BERT_MINUTES},
+             {"do": "broadcast", "text": "Bertoxxulous the Plaguebringer rises from his throne!"},
+             {"do": "awaitdead"}] + [{"do": "wait", "seconds": 14400}] * BERT_WAITS
+    slot = db.execute("SELECT COALESCE(max(slot), 0) FROM gmtriggers").fetchone()[0] + 1
+    db.execute("""INSERT INTO gmtriggers (slot, name, enabled, scope, radius, world, x, y, z, steps, notes)
+        VALUES (?, ?, 1, 'near', 200, ?, ?, ?, ?, ?, ?)""",
+               (slot, BERT_TRIGGER, WORLD, tx, ty, tz, json.dumps(steps, separators=(",", ":")),
+                "The wiki's Plane of Disease: Bertoxxulous Quest: the bonescepter at the throne spawns him; he stays 60 minutes, "
+                "and the throne answers again 3 days 16 hours on (its respawn), killed or not. Fired by quest 'Bertoxxulous and the "
+                "Throne of Plague' step 2. A restart lets the lock go."))
+    say(f"trigger {slot} {BERT_TRIGGER}; {BERT} spawn only")
+    row = db.execute("SELECT slot, steps FROM gmtriggers WHERE name = ?", (PORTAL_TRIGGER,)).fetchone()
+    old, new = PORTAL_WAIT
+    st = json.loads(row[1])
+    if st[-1] != {"do": "wait", **old}:
+        raise SystemExit(f"refused: trigger {PORTAL_TRIGGER!r}'s last step is {st[-1]}, want the wait {old}")
+    st[-1] = {"do": "wait", **new}
+    db.execute("UPDATE gmtriggers SET steps = ? WHERE slot = ?", (json.dumps(st, separators=(",", ":")), row[0]))
+    say(f"trigger {row[0]} {PORTAL_TRIGGER}: shut {new['seconds'] // 60} minutes to {new['upto'] // 3600} hours")
+
+
 def run(db, spec, say):
     ids = {k: q for k, q, in db.execute("SELECT key, questid FROM quest_import_quests")}
     rename_npcs(db, say)
@@ -434,6 +516,7 @@ def run(db, spec, say):
     fix_items(db, say)
     make_npcs(db, say)
     make_triggers(db, say)
+    bert_throne(db, say)
     move_progress(db, ids, say)
     import_quests_now(db, say)
     make_loot(db, say)

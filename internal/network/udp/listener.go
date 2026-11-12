@@ -1047,6 +1047,12 @@ func (l *Listener) processClientUpdate(sess *session.Session, msg *protocol.Mess
 			reportWorldMismatch(sess, player, decoded[0])
 			return true
 		}
+		if player != nil && sess.ResumeMoved() {
+			// a resumed session whose character was put elsewhere (session.SetResumeMoved): this report is of the
+			// place its client left; the dump moves it to the server's
+			sess.NoteResumeReport(time.Now(), resumeReportWait)
+			return true
+		}
 		if player != nil {
 			reportWorldMismatch(sess, player, decoded[0])
 			u := entity.ClientUpdate{X: posX, Y: posY, Z: posZ, Facing: facing, HasFacing: hasFacing, Animation: animation,

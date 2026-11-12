@@ -62,7 +62,7 @@ type mercIdle struct {
 	off bool
 	// walking to (x, z) since walkFrom, then doing then on arriving
 	walking  bool
-	x, z     float32
+	x, y, z  float32
 	walkFrom time.Time
 	then     byte
 	// turning to turnTo; back: when to turn back to its owner after a look
@@ -111,7 +111,9 @@ func (w *World) mercIdleLocked(ms *mercState, dt float32, now time.Time) bool {
 	}
 	switch {
 	case id.walking:
-		w.petWalkLocked(n, o.ServerID, id.x, id.z, o.X, o.Y, o.Z, min(NPCWalkSpeed, max(o.SpeedNow(), 3)), dt, now)
+		// the place itself its goal: a way round, if one is wanted, ends there
+		// (the place's floor its owner's, as the place was checked from it)
+		w.petWalkLocked(n, n.ServerID, id.x, id.z, id.x, id.y, id.z, min(NPCWalkSpeed, max(o.SpeedNow(), 3)), dt, now)
 		if distXZ(n.X, n.Z, id.x, id.z) <= followArrive {
 			n.stopMoving()
 			id.walking = false
@@ -149,8 +151,9 @@ func (w *World) mercIdleChooseLocked(ms *mercState, now time.Time) {
 	o, n, id := ms.owner, ms.npc, &ms.idle
 	r := w.roamRand().Float32()
 	if r < mercStrollShare {
-		if x, z, ok := w.mercStrollSpotLocked(ms); ok {
-			id.walking, id.x, id.z, id.walkFrom, id.off = true, x, z, now, true
+		if x, y, z, ok := w.mercStrollSpotLocked(ms); ok {
+			id.walking, id.x, id.y, id.z, id.walkFrom, id.off = true, x, y, z, now, true
+			n.way = petWay{}
 			id.strolls++
 			switch t := w.roamRand().Float32(); {
 			case t < 0.5:
@@ -164,7 +167,8 @@ func (w *World) mercIdleChooseLocked(ms *mercState, now time.Time) {
 		}
 	} else if r < mercStrollShare+mercHomeShare && id.off {
 		if x, z, ok := w.followSlotLocked(n, o, slotMerc); ok {
-			id.walking, id.x, id.z, id.walkFrom, id.off, id.then = true, x, z, now, false, idleThenStand
+			id.walking, id.x, id.y, id.z, id.walkFrom, id.off, id.then = true, x, o.Y, z, now, false, idleThenStand
+			n.way = petWay{}
 			id.strolls++
 			return
 		}
@@ -209,7 +213,7 @@ func (w *World) mercIdleLookLocked(ms *mercState, now time.Time) {
 // mercStrollSpotLocked is a place the merc may stroll to (the file's doc),
 // false with none found in mercStrollTries. Must be called with the lock
 // held.
-func (w *World) mercStrollSpotLocked(ms *mercState) (x, z float32, ok bool) {
+func (w *World) mercStrollSpotLocked(ms *mercState) (x, y, z float32, ok bool) {
 	o, n := ms.owner, ms.npc
 	rnd := w.roamRand()
 	sibs := w.followSiblingsLocked(o, n)
@@ -234,11 +238,11 @@ func (w *World) mercStrollSpotLocked(ms *mercState) (x, z float32, ok bool) {
 		if near {
 			continue
 		}
+		y = o.Y
 		if w.ground != nil {
-			if !w.legFromLocked(n, n.X, n.Y, n.Z, x, z, nil, legRoute) || !w.legFromLocked(n, o.X, o.Y, o.Z, x, z, nil, legRoute) {
+			if !w.followLegLocked(n, x, z) || !w.followSpotWalkableLocked(n, o, x, z) {
 				continue
 			}
-			y := o.Y
 			if f, ok := w.ground.Floor(o.World, x, o.Y, z); ok {
 				y = f
 			}
@@ -246,7 +250,7 @@ func (w *World) mercStrollSpotLocked(ms *mercState) (x, z float32, ok bool) {
 				continue
 			}
 		}
-		return x, z, true
+		return x, y, z, true
 	}
-	return 0, 0, false
+	return 0, 0, 0, false
 }

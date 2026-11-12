@@ -35,13 +35,15 @@ type KeptPlayer struct {
 	PowerBars    bool          `json:"power_bars,omitempty"`
 	PetEffects   bool          `json:"pet_effects,omitempty"`
 	RaidRoster   bool          `json:"raid_roster,omitempty"`
-	RaidWindows  bool          `json:"raid_windows,omitempty"`
-	DuelWindow   bool          `json:"duel_window,omitempty"`
-	GM           bool          `json:"gm,omitempty"`
-	Flying       bool          `json:"flying,omitempty"`
-	Place        [3]float32    `json:"place"`
-	World        uint8         `json:"world"`
-	RaceLabels   bool          `json:"race_labels,omitempty"`
+	// RaidRosterGroups: its roster carries group numbers (raidsubgroups.go)
+	RaidRosterGroups bool       `json:"raid_roster_groups,omitempty"`
+	RaidWindows      bool       `json:"raid_windows,omitempty"`
+	DuelWindow       bool       `json:"duel_window,omitempty"`
+	GM               bool       `json:"gm,omitempty"`
+	Flying           bool       `json:"flying,omitempty"`
+	Place            [3]float32 `json:"place"`
+	World            uint8      `json:"world"`
+	RaceLabels       bool       `json:"race_labels,omitempty"`
 	// RecordWindow: its client has the combat record window (combatrecord.go)
 	RecordWindow bool `json:"record_window,omitempty"`
 	// PvP: its flag (pvp.go), and how long it must yet stay on
@@ -103,6 +105,9 @@ type KeptGroup struct {
 	Loot    LootRule `json:"loot,omitempty"`
 	Helper  uint32   `json:"helper,omitempty"`
 	Assist  uint32   `json:"assist,omitempty"`
+	// Subs: each member's group inside the raid, by Members' places
+	// (raidsubgroups.go); none from a server before them: filled again
+	Subs []uint8 `json:"subs,omitempty"`
 }
 
 // KeepPlayer is what a restart carries of sess's player, false when it has
@@ -115,7 +120,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 		return KeptPlayer{}, false
 	}
 	k := KeptPlayer{CharServerID: p.CharServerID, Name: p.Name, Dead: p.IsDead() || p.respawnPending(),
-		Target: p.TargetObjectID, PowerBars: p.PowerBars, RaidRoster: p.RaidRoster, RaidWindows: p.RaidWindows, DuelWindow: p.DuelWindow, GM: p.GM, Flying: p.Flying,
+		Target: p.TargetObjectID, PowerBars: p.PowerBars, RaidRoster: p.RaidRoster, RaidRosterGroups: p.RaidRosterGroups, RaidWindows: p.RaidWindows, DuelWindow: p.DuelWindow, GM: p.GM, Flying: p.Flying,
 		Place: [3]float32{p.X, p.Y, p.Z}, World: p.World, PetEffects: p.PetEffects}
 	k.RaceLabels = p.RaceLabels
 	k.RecordWindow = p.RecordWindow
@@ -160,7 +165,7 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	p.ProfanityFilterOff, p.ProfanityFilterMedium = k.ProfanityOff, k.ProfanityMedium
 	p.LFG, p.GroupChatHidden = k.LFG, k.GroupChatHidden
 	p.PetEffects, p.petEffectsSent, p.petEffectsDue = k.PetEffects, "", k.PetEffects // its pet's set again once the pet is back
-	p.RaidRoster, p.raidRosterSent = k.RaidRoster, ""
+	p.RaidRoster, p.raidRosterSent, p.RaidRosterGroups = k.RaidRoster, "", k.RaidRosterGroups
 	p.RaidWindows, p.raidStateSent = k.RaidWindows, "" // the state again at the next pass (raidrules.go)
 	if k.DPSMeter {
 		p.dps = &dpsMeter{} // the next figure starts its fight (dpsmeter.go)
@@ -254,9 +259,16 @@ func (w *World) KeepGroups() []KeptGroup {
 	var out []KeptGroup
 	for _, g := range w.groups {
 		k := KeptGroup{ID: g.ID, Flagged: g.flagged, Loot: g.rules.loot}
+		var subs map[EntityID]uint8 // a raid's groups inside it (raidsubgroups.go)
+		if raidingLocked(g) {
+			subs = w.subgroupsLocked(g)
+		}
 		for _, id := range g.Members {
 			if p := w.Players[id]; p != nil {
 				k.Members = append(k.Members, p.CharServerID)
+				if subs != nil {
+					k.Subs = append(k.Subs, subs[id])
+				}
 			}
 		}
 		if p := w.Players[g.rules.helper]; p != nil {
@@ -292,9 +304,15 @@ func (w *World) RestoreGroups(groups []KeptGroup) (int, error) {
 		}
 		g := &Group{ID: k.ID, lastRoster: map[EntityID]string{}, raid: len(k.Members) > GroupWindowSize,
 			flagged: k.Flagged, rules: raidRules{loot: k.Loot}}
-		for _, c := range k.Members {
+		for i, c := range k.Members {
 			if p := w.playerByCharacterLocked(c); p != nil && p.GroupID == 0 {
 				g.Members = append(g.Members, p.ServerID)
+				if i < len(k.Subs) && k.Subs[i] > 0 {
+					if g.subs == nil {
+						g.subs = map[EntityID]uint8{}
+					}
+					g.subs[p.ServerID] = k.Subs[i]
+				}
 				if c == k.Helper && c != 0 {
 					g.rules.helper = p.ServerID
 				}

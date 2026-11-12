@@ -56,6 +56,8 @@ type Group struct {
 	flagged bool
 	// rules: a raid's loot rule, helper and main assist (raidrules.go)
 	rules raidRules
+	// subs: each player member's group number inside a raid (raidsubgroups.go)
+	subs map[EntityID]uint8
 	// dps: the damage meter's fight of the group, a raid's too (dpsmeter.go):
 	// one fight every member's meter is shown
 	dps *dpsFight

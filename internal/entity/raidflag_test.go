@@ -393,7 +393,7 @@ func TestARaidRosterRecordCutsALongName(t *testing.T) {
 	r := newRaidRig(t, 2, 30)
 	r.p[1].Name = strings.Repeat("x", 40)
 	r.w.mu.Lock()
-	long, short := r.w.raidRosterRecord(r.sess[0], r.p[1]), r.w.raidRosterRecord(r.sess[0], r.p[0])
+	long, short := r.w.raidRosterRecord(r.sess[0], r.p[1], 0), r.w.raidRosterRecord(r.sess[0], r.p[0], 0)
 	r.w.mu.Unlock()
 	if long[4] != 23 || len(long) != 9+23 {
 		t.Errorf("a long name: length byte %d, %d bytes", long[4], len(long))

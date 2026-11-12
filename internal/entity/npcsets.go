@@ -185,7 +185,7 @@ func aiQuiet(npc *NPC) bool {
 // regenQuiet reports an NPC npcRegenSystem has nothing to do for: a corpse,
 // a dummy, or a creature out of a fight, past its calm ticks and whole.
 func regenQuiet(npc *NPC) bool {
-	if npc.Dead || npc.Dummy != NotDummy {
+	if npc.Dead || npc.Dummy != NotDummy || npc.siege != nil { // a siege's heals from its defenders alone (siege.go)
 		return true
 	}
 	return npc.Owner == 0 && npc.CurrentEnemy == 0 && npc.calmTicks > npcCalmTicks && npc.HP >= npc.MaxHP

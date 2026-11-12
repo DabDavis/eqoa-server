@@ -302,7 +302,7 @@ type Player struct {
 	// 0x1501/0x1502, not boxes, and its opponent stays a player to it
 	DuelWindow bool
 
-	// ctf: its part in capture the flag, the arena's match (ctf.go)
+	// ctf: its part in an arena game's match, capture the flag's or the siege's (ctf.go, siege.go)
 	ctf ctfPlayer
 
 	// pvp: its PvP flag and what goes with it (pvp.go); targetToken its last

@@ -1144,6 +1144,16 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 			}
 			return []EntityID{t.ServerID}, ""
 		}
+		if !d.Harmful && siegeHelps(t, p.ServerID) {
+			// a siege's King, helped by his defenders as a pet by its master (siege.go)
+			if outOfRange(p, t.X, t.Y, t.Z, spell.Range) {
+				return nil, refuseOutOfRange(p, spell, t.Name, t.X, t.Y, t.Z, spell.Range)
+			}
+			if !w.helpSeenLocked(p, d, t.World, t.X, t.Y, t.Z, false) { // sight.go
+				return nil, castNotSeen
+			}
+			return []EntityID{t.ServerID}, ""
+		}
 		if !d.Harmful {
 			return nil, castNotFriendly
 		}

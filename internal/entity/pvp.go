@@ -466,7 +466,7 @@ func (w *World) PlayerFace(t *Player) byte {
 // for the other team's and a player's blue for its own team's, else PlayerFace's.
 func (w *World) PlayerFaceFor(viewer, t *Player) byte {
 	w.mu.RLock()
-	m := w.ctf.m
+	m := w.ctfMatchOfLocked(viewer) // either game's (read only: no swap)
 	if viewer.inMatch(m) && t.inMatch(m) {
 		w.mu.RUnlock()
 		if viewer.ctf.team != t.ctf.team {

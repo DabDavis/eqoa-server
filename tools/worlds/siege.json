@@ -1,0 +1,92 @@
+{
+  "world": 15,
+  "name": "Zentar's Keep",
+  "note": "The siege arena (handlers/ctf.go, entity/siege.go; claude-notes/siege-world-20261112.md): one zone of the disc where it stands, Zentars Keep (Tunaria's cell 2, 3), whose dark castle of four towers, a hall and a walled courtyard stands on a snowy point over a frozen lake. Composed without the world's people (the npcs table has none in this slot), its east gatehouse is open: the way in.",
+  "zones": [
+    {
+      "name": "Zentar's Keep",
+      "from": "TUNARIA.ESF",
+      "zone": 22,
+      "note": "Zentars Keep (cell 2, 3): the castle round (5465, 6480): four towers, a hall on its west, a walled courtyard, the east gatehouse its one way in; the frozen lake round its point. No extras: the gates' portcullis is the zone's own art"
+    }
+  ],
+  "arena": {
+    "game": "siege",
+    "name": "Zentar's Keep",
+    "note": "The castle's one way in is its east gatehouse: an outer door off the causeway (x 5520) into the guardroom and an inner door (x 5495.6) onto the ramp down to the courtyard, each 4.1 wide (z 6475.2-6479.3) and 4 high over the floor at 59.5 (measured off the baked ground; vanilla walked through both in world 15). Each door is shut by a gate: a copy of its spawn-only NPC (tools/siege_20261112.py), the castle's own portcullis (0xAA243482, 4 by 4 by 0.3, the one drawn raised over the outer door) let down into it, as solid as the walls. The King stands in the courtyard before the well, the defenders' camp beside him, the attackers' camp on the shore 80 east of the outer door. The field is a circle round the castle that takes in the shore before the gatehouse.",
+    "teams": [
+      {
+        "name": "the Keep's Guard",
+        "short": "Guard",
+        "camp": {
+          "x": 5466,
+          "y": 54.1,
+          "z": 6474,
+          "toward": [
+            5494,
+            6477
+          ]
+        }
+      },
+      {
+        "name": "the Besiegers",
+        "short": "Besiegers",
+        "camp": {
+          "x": 5600,
+          "y": 54.1,
+          "z": 6478,
+          "toward": [
+            5521,
+            6477
+          ]
+        }
+      }
+    ],
+    "king": {
+      "name": "King Zentar",
+      "original": "King Zentar",
+      "at": {
+        "x": 5467.5,
+        "y": 54.1,
+        "z": 6460,
+        "facing": 0
+      },
+      "body": "0x70D898C6",
+      "size": 1,
+      "level": 60
+    },
+    "gates": [
+      {
+        "name": "Outer Gate",
+        "original": "Outer Gate",
+        "at": {
+          "x": 5520.4,
+          "y": 59.5,
+          "z": 6477.25,
+          "facing": 90
+        },
+        "body": "0xAA243482",
+        "size": 1,
+        "level": 60
+      },
+      {
+        "name": "Inner Gate",
+        "original": "Inner Gate",
+        "at": {
+          "x": 5495.6,
+          "y": 59.5,
+          "z": 6477.25,
+          "facing": 90
+        },
+        "body": "0xAA243482",
+        "size": 1,
+        "level": 60
+      }
+    ],
+    "field_circle": {
+      "x": 5500,
+      "z": 6478,
+      "r": 170
+    }
+  }
+}

@@ -59,16 +59,24 @@ SKIP = {"basher lesheg", "basher kwag", "dagel copperbeard"}
 KINDS = {"companion spirit", "feral spirit", "kindred spirit", "mummified guardian", "swarming bones", "animation"}
 BOSSES = {"guk": ["froglok king"], "blackburrow": ["Abyssaxis"], "runnyeye": ["King Merdid", "Xorbb"]}
 TEMPLATES = {
-    # name: (hp_pct, melee_pct, special_damage (a crit's share), resist_pct, abilities, note)
-    "dungeon trash": (150, 180, 7.4, 30, [],
-                      "The instanced dungeons' creatures (tools/dungeons_20261112.py): levels 60-62, about 24k hit points, 180% melee, "
-                      "the roamer's crit, 30% resists. Ours: tune freely (this row is every dungeon's trash)."),
-    "dungeon named": (500, 300, 15.0, 40, [],
-                      "The instanced dungeons' named (tools/dungeons_20261112.py): levels 63-64, about 80k hit points, 300% melee, "
-                      "a crit, 40% resists. Ours: tune freely."),
-    "dungeon boss": (1600, 550, 30.0, 50, [{"kind": "aoe", "spell_id": 905023, "every": 30, "first": 15, "damage_pct": 50}],
-                     "The instanced dungeons' bosses (tools/dungeons_20261112.py): level 65, about 260k hit points, 550% melee, "
-                     "a crit, 50% resists, Pestilent Breath at half every 30 s. Ours: tune freely."),
+    # name: (hp_pct, melee_pct, special_damage (a crit's share), resist_pct (every kind: a resist_pct needs its kinds, or
+# the server leaves the template unused), abilities, note)
+    # A first pull a 4-6 player level 60 raid in raid gear takes (the owner, 2026-11-12: lower the first numbers, which
+    # had killed two level 60 GMs in seconds; those deaths were in fact of creatures with NO template, the first rows
+    # lacking a resist_kind: naked clones of 1,243 hit points hit for ~2,000). Measured with cmd/balancesim (tier 0.5
+    # gear, groups of 2-3): trash 10-12 s for three players at 97-99% hit points left; a named 98 s for two (78% left);
+    # the boss won by three in 60% of fights (1.7 dead a fight), never by two. Jibrish tunes from here.
+    "dungeon trash": (100, 130, 7.4, 10, [],
+                      "The instanced dungeons' creatures (tools/dungeons_20261112.py): levels 60-62, about 15k hit points, "
+                      "130% melee, the roamer's crit, 10% resists. A first pull for a 4-6 player L60 raid in raid gear (balancesim: "
+                      "three players kill one in 10-12 s); ours: tune freely (this row is every dungeon's trash)."),
+    "dungeon named": (250, 200, 10.0, 20, [],
+                      "The instanced dungeons' named (tools/dungeons_20261112.py): levels 63-64, about 40k hit points, 200% melee, "
+                      "a crit, 20% resists (balancesim: two players win in 98 s). Ours: tune freely."),
+    "dungeon boss": (500, 150, 15.0, 30, [{"kind": "aoe", "spell_id": 905023, "every": 30, "first": 15, "damage_pct": 25}],
+                     "The instanced dungeons' bosses (tools/dungeons_20261112.py): level 65, about 84k hit points, 150% melee, "
+                     "a crit, 30% resists, Pestilent Breath at a quarter every 30 s (balancesim: three players win 60%, two never; "
+                     "a raid's fight). Ours: tune freely."),
 }
 # (dungeon, table, name, base patternid): each a raid boss's drop copied under the dungeon's name
 ITEMS = [
@@ -302,7 +310,7 @@ def main():
         insert(db, now, "classtemplates", {"name": name, "class": -1, "hp_pct": hp, "taken_pct": 100, "melee_pct": melee,
                                            "special": "Critical Hit", "special_chance": 0, "special_damage": crit,
                                            "special_every": 30.0, "special_first": 0.0, "special_jitter": 5.0,
-                                           "resist_pct": resist, "abilities": json.dumps(abilities), "note": note,
+                                           "resist_pct": resist, "resist_kind": "FR,CR,LR,AR,PR,DR", "abilities": json.dumps(abilities), "note": note,
                                            "source": RUN})
     # the items and their tables
     pid = ITEM_FIRST

@@ -1,23 +1,310 @@
 {
   "world": 14,
   "name": "the Dungeons",
-  "note": "The instanced raid dungeons (handlers/dungeons.go, entity/dungeons.go; claude-notes/dungeon-world-20261112.md): the disc's own Tunarian zones of Blackburrow, Runnyeye (with Misty Thicket before its gate, the way in) and Guk, each where it stands on Tunaria; every raid, group or lone player that goes in fights in a copy of its own (an instance). The dungeons block is read by the server, never written into the file: each dungeon's key, name, the boxes its creatures stand in (the world's npcs rows inside them are its templates, tools/dungeons_20261112.py) and where a player sent in lands, facing the way in. The open edges are closed by cmd/worldedges' rocks (dungeons-edges.json). Built by cmd/worldbuild from the operator's disc.",
-  "extraFiles": ["dungeons-edges.json"],
+  "note": "The instanced raid dungeons (handlers/dungeons.go, entity/dungeons.go; claude-notes/dungeon-world-20261112.md): the disc's own zones of ten dungeons (Blackburrow, Runnyeye with Misty Thicket before its gate, Guk; since 2026-11-12 also the Tomb of Kings, Castle Felstar, Collonridge Cemetery, Vox's lair in Permafrost, Box Canyons, and Odus's Toxxulia's lair and the Warrens), each where it stands on Tunaria; every raid, group or lone player that goes in fights in a copy of its own (an instance). The dungeons block is read by the server, never written into the file: each dungeon's key, name, the boxes its creatures stand in (the world's npcs rows inside them are its templates, tools/dungeons_20261112.py) and where a player sent in lands, facing the way in. The open edges are closed by cmd/worldedges' rocks (dungeons-edges.json), kept by -keep clear of every creature, entrance and each new dungeon's box (petitions 1808/1812: a rock over a landing or a tunnel is an invisible wall). Built by cmd/worldbuild from the operator's disc.",
+  "extraFiles": [
+    "dungeons-edges.json"
+  ],
   "zones": [
-    {"name": "Blackburrow", "from": "TUNARIA.ESF", "zone": 65, "note": "Tunaria cell (6, 6): the gnolls' burrow, a pit and its tunnels under the hills round (12900, 12400)"},
-    {"name": "Misty Thicket", "from": "TUNARIA.ESF", "zone": 54, "note": "Tunaria cell (8, 5): the valley before Runnyeye's gate, where its raids land; its own creatures are not in world 14"},
-    {"name": "Runnyeye", "from": "TUNARIA.ESF", "zone": 67, "note": "Tunaria cell (8, 6): the goblins' warren in the valley's end (16250-16450, 12040-12320), King Merdid's halls, and Xorbb's pit to the south-east"},
-    {"name": "Guk", "from": "TUNARIA.ESF", "zone": 157, "note": "Tunaria cell (12, 14): the froglok city, its gate and upper halls at (24850-25050, 29200-29470) and its sunken halls north under the swamp"}
+    {
+      "name": "Blackburrow",
+      "from": "TUNARIA.ESF",
+      "zone": 65,
+      "note": "Tunaria cell (6, 6): the gnolls' burrow, a pit and its tunnels under the hills round (12900, 12400)"
+    },
+    {
+      "name": "Misty Thicket",
+      "from": "TUNARIA.ESF",
+      "zone": 54,
+      "note": "Tunaria cell (8, 5): the valley before Runnyeye's gate, where its raids land; its own creatures are not in world 14"
+    },
+    {
+      "name": "Runnyeye",
+      "from": "TUNARIA.ESF",
+      "zone": 67,
+      "note": "Tunaria cell (8, 6): the goblins' warren in the valley's end (16250-16450, 12040-12320), King Merdid's halls, and Xorbb's pit to the south-east"
+    },
+    {
+      "name": "Guk",
+      "from": "TUNARIA.ESF",
+      "zone": 157,
+      "note": "Tunaria cell (12, 14): the froglok city, its gate and upper halls at (24850-25050, 29200-29470) and its sunken halls north under the swamp"
+    },
+    {
+      "name": "Permafrost",
+      "from": "TUNARIA.ESF",
+      "zone": 9,
+      "note": "Tunaria cell (2, 2): Lady Vox's ice giants' keep inside the mountain, its gate south at (4864, 4640)"
+    },
+    {
+      "name": "Castle Felstar",
+      "from": "TUNARIA.ESF",
+      "zone": 43,
+      "note": "Tunaria cell (10, 4): the haunted castle of House Felstar and its walled grounds"
+    },
+    {
+      "name": "Collonridge Cemetery",
+      "from": "TUNARIA.ESF",
+      "zone": 44,
+      "note": "Tunaria cell (11, 4): the walled cemetery compound of the twin necromancers"
+    },
+    {
+      "name": "Saerk Towers",
+      "from": "TUNARIA.ESF",
+      "zone": 69,
+      "note": "Tunaria cell (10, 6): north of the Tomb of Kings, in the world so the tomb's north edge (its crypt's rooms 40 from it) is no edge to close; its own creatures are not in world 14"
+    },
+    {
+      "name": "Tomb of Kings",
+      "from": "TUNARIA.ESF",
+      "zone": 82,
+      "note": "Tunaria cell (10, 7): the Holciel court's crypt, its long hall north from the valley at (21070, 14400)"
+    },
+    {
+      "name": "Box Canyons",
+      "from": "TUNARIA.ESF",
+      "zone": 121,
+      "note": "Tunaria cell (10, 10): the canyon maze, Skahyir's cave in its south-east"
+    },
+    {
+      "name": "Toxxulia's Lair",
+      "from": "ODUS.ESF",
+      "zone": 20,
+      "note": "Odus cell (3, 3): Toxxulia's den under the plagued forest, its door at (7122, 7256)"
+    },
+    {
+      "name": "The Warrens",
+      "from": "ODUS.ESF",
+      "zone": 27,
+      "note": "Odus cell (4, 4): clan Kolbok's den in the hills, King Bardag's halls"
+    }
   ],
   "dungeons": [
-    {"key": "guk", "name": "Guk", "boxes": [[24580, 28700, 25100, 29480]],
-      "entrance": {"x": 24825, "y": 58.4, "z": 29570, "toward": [24825, 29450]},
-      "note": "the gate from the south, 100 from the gate's frogloks; the sunken halls (y -12) behind the upper ones"},
-    {"key": "blackburrow", "name": "Blackburrow", "boxes": [[12600, 12050, 13700, 12700]],
-      "entrance": {"x": 12590, "y": 62.1, "z": 12760, "toward": [12590, 12700]},
-      "note": "before the burrow's south-west mouth (its tunnel up to the gnolls at (12663, 12596), then the pit, y -63, at its heart); until 2026-11-12 before the north-east mouth at (13115, 12095), which the north edge's rocks bury: a player landed under a rock and stuck (petition 1808)"},
-    {"key": "runnyeye", "name": "Runnyeye", "boxes": [[16150, 11950, 16600, 12400], [17550, 13450, 17880, 13700]],
-      "entrance": {"x": 16330, "y": 83.0, "z": 11880, "toward": [16330, 12050]},
-      "note": "in Misty Thicket's valley, 165 north of the warren's gate; Xorbb's pit to the south-east"}
+    {
+      "key": "guk",
+      "name": "Guk",
+      "boxes": [
+        [
+          24580,
+          28700,
+          25100,
+          29480
+        ]
+      ],
+      "entrance": {
+        "x": 24825,
+        "y": 58.4,
+        "z": 29570,
+        "toward": [
+          24825,
+          29450
+        ]
+      },
+      "note": "the gate from the south, 100 from the gate's frogloks; the sunken halls (y -12) behind the upper ones"
+    },
+    {
+      "key": "blackburrow",
+      "name": "Blackburrow",
+      "boxes": [
+        [
+          12600,
+          12050,
+          13700,
+          12700
+        ]
+      ],
+      "entrance": {
+        "x": 12590,
+        "y": 62.1,
+        "z": 12760,
+        "toward": [
+          12590,
+          12700
+        ]
+      },
+      "note": "before the burrow's south-west mouth (its tunnel up to the gnolls at (12663, 12596), then the pit, y -63, at its heart); until 2026-11-12 before the north-east mouth at (13115, 12095), which the north edge's rocks bury: a player landed under a rock and stuck (petition 1808)"
+    },
+    {
+      "key": "runnyeye",
+      "name": "Runnyeye",
+      "boxes": [
+        [
+          16150,
+          11950,
+          16600,
+          12400
+        ],
+        [
+          17550,
+          13450,
+          17880,
+          13700
+        ]
+      ],
+      "entrance": {
+        "x": 16330,
+        "y": 83.0,
+        "z": 11880,
+        "toward": [
+          16330,
+          12050
+        ]
+      },
+      "note": "in Misty Thicket's valley, 165 north of the warren's gate; Xorbb's pit to the south-east"
+    },
+    {
+      "key": "tomb",
+      "name": "Tomb of Kings",
+      "boxes": [
+        [
+          20700,
+          14000,
+          21320,
+          14650
+        ]
+      ],
+      "entrance": {
+        "x": 21070,
+        "y": 42.6,
+        "z": 14485,
+        "toward": [
+          21070,
+          14380
+        ]
+      },
+      "note": "in the valley before the crypt's hall, 75 south of its first ghosts; the court at the hall's north end"
+    },
+    {
+      "key": "felstar",
+      "name": "Castle Felstar",
+      "boxes": [
+        [
+          20450,
+          8250,
+          21100,
+          8750
+        ]
+      ],
+      "entrance": {
+        "x": 20700,
+        "y": 67.4,
+        "z": 8700,
+        "toward": [
+          20700,
+          8500
+        ]
+      },
+      "note": "south of the castle, 110 from the nearest creature"
+    },
+    {
+      "key": "collonridge",
+      "name": "Collonridge Cemetery",
+      "boxes": [
+        [
+          22500,
+          8550,
+          22950,
+          8950
+        ]
+      ],
+      "entrance": {
+        "x": 22700,
+        "y": 54.1,
+        "z": 8950,
+        "toward": [
+          22700,
+          8850
+        ]
+      },
+      "note": "south of the walled compound, 104 from the nearest creature"
+    },
+    {
+      "key": "vox",
+      "name": "Vox's Lair",
+      "boxes": [
+        [
+          4470,
+          4200,
+          5290,
+          4680
+        ]
+      ],
+      "entrance": {
+        "x": 4864,
+        "y": 58.4,
+        "z": 4930,
+        "toward": [
+          4864,
+          4640
+        ]
+      },
+      "note": "south of the keep's gate tunnel, 310 from its first guard; Lady Vox in her hall at its heart"
+    },
+    {
+      "key": "toxxulia",
+      "name": "Toxxulia's Lair",
+      "boxes": [
+        [
+          6480,
+          7010,
+          7370,
+          7320
+        ]
+      ],
+      "entrance": {
+        "x": 7122,
+        "y": 65.0,
+        "z": 7340,
+        "toward": [
+          7122,
+          7256
+        ]
+      },
+      "note": "before the den's door in the plagued forest, 85 from its guards; Toxxulia at its bottom (y -40)"
+    },
+    {
+      "key": "boxcanyon",
+      "name": "Box Canyon",
+      "boxes": [
+        [
+          20150,
+          20150,
+          21850,
+          21850
+        ]
+      ],
+      "entrance": {
+        "x": 20480,
+        "y": 6.5,
+        "z": 21200,
+        "toward": [
+          20470,
+          21070
+        ]
+      },
+      "note": "on a canyon floor in the west (the arena's Ember camp), 82 from the nearest creature; Skahyir's cave in the south-east; the box keeps 150 off the cell's edges (the canyon's rim, where the edge's rocks stand)"
+    },
+    {
+      "key": "warrens",
+      "name": "Warren's Den",
+      "boxes": [
+        [
+          8600,
+          8150,
+          9100,
+          8850
+        ]
+      ],
+      "entrance": {
+        "x": 8722,
+        "y": 96.9,
+        "z": 8160,
+        "toward": [
+          8735,
+          8240
+        ]
+      },
+      "note": "before the den's north way in; King Bardag's hall at its heart"
+    }
   ]
 }

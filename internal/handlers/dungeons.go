@@ -49,7 +49,7 @@ const (
 	dungeonsAskBoard = "Raids for level 60 heroes in Tunaria's old dungeons. Each party gets its own copy. Where to?"
 	dungeonsTooFar   = "Come back to the Instanced Raids board or a Dungeon Warden to answer."
 	dungeonsReach    = 30
-	dungeonsHelp     = "/dungeon names your party's open dungeons; /dungeon enter <Guk|Blackburrow|Runnyeye> goes in (a group's leader, or a player alone, opens its party's instance); /dungeon leave goes back out; /dungeon reset <name> closes the instance you opened while no one is inside. Or read the Instanced Raids board by Freeport's well."
+	dungeonsHelp     = "/dungeon names your party's open dungeons; /dungeon enter <%s> goes in (a group's leader, or a player alone, opens its party's instance); /dungeon leave goes back out; /dungeon reset <name> closes the instance you opened while no one is inside. Or read the Instanced Raids board by Freeport's well."
 )
 
 type dungeonsDo int
@@ -57,12 +57,17 @@ type dungeonsDo int
 const (
 	dungeonsDoEnter dungeonsDo = iota
 	dungeonsDoOut
+	dungeonsDoMore
 )
+
+// dungeonsAnsMore is the answer that shows the next box of dungeons (a box holds maxDialogOptions answers).
+const dungeonsAnsMore = "More dungeons"
 
 type dungeonsAnswer struct {
 	do    dungeonsDo
 	key   string
 	label string
+	page  int
 }
 
 type dungeonsAsk struct {
@@ -208,13 +213,13 @@ func (h *InteractHandler) dungeonsTalk(sess *session.Session, p *entity.Player, 
 		dungeonsSay(sess, dungeonsAs(npc), dungeonsNoWorld)
 		log.Printf("Dungeons: %s at the warden: its game cannot load world %d", p.Name, world)
 	default:
-		ds.askRoot(sess, p, npc)
+		ds.askRoot(sess, p, npc, 0)
 	}
 	return true
 }
 
 // askRoot is the warden's box.
-func (ds *Dungeons) askRoot(sess *session.Session, p *entity.Player, npc *entity.NPC) {
+func (ds *Dungeons) askRoot(sess *session.Session, p *entity.Player, npc *entity.NPC, page int) {
 	_, world := ds.gw.DungeonsOn()
 	as := dungeonsAs(npc)
 	question := dungeonsAskOut
@@ -240,7 +245,7 @@ func (ds *Dungeons) askRoot(sess *session.Session, p *entity.Player, npc *entity
 		dungeonsSay(sess, as, "No dungeon is open for your party, and only your group's leader may open one.")
 		return
 	}
-	ds.ask(sess, p, as+question, answers, npc.ServerID)
+	ds.ask(sess, p, as+question, dungeonsPage(answers, page), npc.ServerID)
 }
 
 func (ds *Dungeons) ask(sess *session.Session, p *entity.Player, question string, answers []dungeonsAnswer, npc entity.EntityID) {
@@ -285,8 +290,25 @@ func (h *InteractHandler) answerDungeons(sess *session.Session, p *entity.Player
 		ds.enter(sess, p, a.key)
 	case dungeonsDoOut:
 		ds.leave(sess)
+	case dungeonsDoMore:
+		if npc := gw.NPCByID(asked.npc); npc != nil {
+			ds.askRoot(sess, p, npc, a.page)
+		}
 	}
 	return true
+}
+
+// dungeonsPage is the page'th box of the answers: maxDialogOptions a box, the last of a box that does not hold the rest
+// "More dungeons" (to the next page, after the last back to the first).
+func dungeonsPage(answers []dungeonsAnswer, page int) []dungeonsAnswer {
+	if len(answers) <= maxDialogOptions {
+		return answers
+	}
+	per := maxDialogOptions - 1
+	pages := (len(answers) + per - 1) / per
+	page %= pages
+	out := append([]dungeonsAnswer(nil), answers[page*per:min(len(answers), (page+1)*per)]...)
+	return append(out, dungeonsAnswer{do: dungeonsDoMore, page: (page + 1) % pages, label: dungeonsAnsMore})
 }
 
 // enter sends the session's player into its party's instance of the dungeon key.
@@ -333,7 +355,7 @@ func dungeonCommand(gw *entity.World, sess *session.Session, rest string) {
 		dungeonsTell(sess, gw.DungeonStatus(sess))
 	case "enter", "go":
 		if arg == "" {
-			dungeonsTell(sess, dungeonsHelp)
+			dungeonsTell(sess, dungeonsHelpLine(gw))
 			return
 		}
 		ds.enter(sess, p, arg)
@@ -341,13 +363,28 @@ func dungeonCommand(gw *entity.World, sess *session.Session, rest string) {
 		ds.leave(sess)
 	case "reset", "close":
 		if arg == "" {
-			dungeonsTell(sess, dungeonsHelp)
+			dungeonsTell(sess, dungeonsHelpLine(gw))
 			return
 		}
 		dungeonsTell(sess, gw.DungeonReset(sess, arg))
 	default:
-		dungeonsTell(sess, dungeonsHelp)
+		dungeonsTell(sess, dungeonsHelpLine(gw))
 	}
+}
+
+// dungeonsHelpLine is /dungeon's help, naming the world's dungeons by their keys (what /dungeon enter takes, as their
+// names do).
+func dungeonsHelpLine(gw *entity.World) string {
+	var keys []string
+	if gw != nil {
+		for _, d := range gw.DungeonDefs() {
+			keys = append(keys, d.Key)
+		}
+	}
+	if len(keys) == 0 {
+		keys = []string{"name"}
+	}
+	return fmt.Sprintf(dungeonsHelp, strings.Join(keys, "|"))
 }
 
 // dungeonLogin starts a character saved in the dungeons' world: in its party's open instance while there is one

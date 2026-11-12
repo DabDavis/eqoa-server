@@ -1582,6 +1582,24 @@ Walked end to end in the headless vanilla client.
   later run gives it). Apply it just before the restart that brings the code: NPCs and quests are read at the start,
   and a GM's quest save in between would have the old server hand out roses its merchants still buy.
 
+### Quest marks over NPCs' heads: "!" to take, "?" to move on (`handlers/questheadmarks.go`, `entity/questheadmarks.go`, table `questmarks`, `quests.markers`)
+The GM Jibrish's petition 1813 (2026-11-12): a yellow "!" over a giver of a quest the player may take now
+(`mayTakeLocked`, every rule the offer's), a "?" over the NPC of a step of a quest under way that the player can do there
+now (a talk; a show or give with the items and tunar held, `lackingLocked`; the giver willing, `giverWontDeal`; a step
+pinned to a spawn marks that spawn alone), and "?" in a giver's "!" place for a hand-in whose items are held
+(`readyHandInLocked`'s kind). Which quests: `quests.markers` **flagged** (unset) the rows of table `questmarks`
+(questid, note; the GM panel's "Quest marks", live at once through the quests' reload), **all** every quest (a "!" only
+near the player's level, `markLevelNear`), **off** none and no offer. Not retail: the offer **0x7E61** (u8 layout 1) at
+world entry; a client that draws them (vanilla's Extended > UI > Name Plates > Quest Markers, on by default) answers
+**0x7E62** (u8 1, or 0 to stop; kept over a keep restart, `KeptExtras.QuestHeadMarks`) and is sent **0x7E63** (u16 count,
+each the NPC's u32 object id as its client knows it and a u8 mark, 1 "!" 2 "?"), the whole set in view whenever it
+changes. No per-tick scan of the quests: the engine works a character's marks out by NPC name only when its quests
+change (`nudge`'s `gen`), its level, class, race, tunar or pack (the session's list) change, or 30 s pass (a standing);
+the World (`questHeadMarksSystem`, every 2 ticks) only maps them onto the NPCs on the session's slots and sends a set
+that differs. A PS2 ignores the offer. `tools/questmarks_20261112.py` flags each race and class's first quest
+(defaultcharacter's starts: the class or race quest of level 1 requiring none whose giver stands nearest the start;
+97 on Heirloom: 75 city class quests, 22 homeland quests); read at the start and at a panel quest edit.
+
 ### A quest's items wait for room in the pack (`handlers/questroom.go`, every quest)
 
 The user, 2026-10-30: "giver waits for room" (until then `GiveItemNow` gave what fitted and said the rest was lost: an

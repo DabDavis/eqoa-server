@@ -299,6 +299,14 @@ type Player struct {
 	buffWindowSent string
 	buffWindowDue  bool
 
+	// QuestHeadMarks: the player's client draws the quest marks over the
+	// NPCs' heads and asked for them (questheadmarks.go, opcodes
+	// 0x7E61-0x7E63); questHeadSent is the set it was last sent,
+	// questHeadDue sends the next whatever it is (just asked).
+	QuestHeadMarks bool
+	questHeadSent  string
+	questHeadDue   bool
+
 	// dps: the player's client draws a damage meter and asked for it
 	// (dpsmeter.go, opcodes 0x7E3A-0x7E3D): its fight as that client is
 	// shown it; nil when it never asked or stopped

@@ -32,6 +32,13 @@ type QuestsConfig struct {
 	// Breastplate and the Leggings: find Tilvyis S`Lynx in the south of
 	// Neriak"). Unset: on.
 	NextGiverPointer *bool `yaml:"next_giver_pointer"`
+
+	// Markers is which quests show a "!" and a "?" over their NPCs' heads to
+	// a client that draws them (handlers/questheadmarks.go, the GM Jibrish's
+	// petition 1813): "flagged" (unset) the quests of table questmarks,
+	// "all" every quest (a "!" only near the player's level, as the map's),
+	// "off" none and no offer made.
+	Markers string `yaml:"markers"`
 }
 
 // ShardConfig is a line of the server list.

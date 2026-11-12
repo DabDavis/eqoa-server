@@ -723,6 +723,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureQuestNotYet(); err != nil { // questnotyet.go
 		return err
 	}
+	if err := db.ensureQuestMarks(); err != nil { // questmarks.go
+		return err
+	}
 	if err := db.ensureCraft(); err != nil { // craft.go
 		return err
 	}

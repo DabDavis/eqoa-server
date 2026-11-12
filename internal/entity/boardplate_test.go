@@ -7,14 +7,14 @@ import (
 )
 
 // A papered board in view brings its plate on the next slot: under the board's
-// name, where it stands, on the human's body at 1.5 times its size, not
-// selectable, its skins hidden, nothing worn, never a fight's. A sign post's
-// board (a CSprite, plated by the client) brings none.
+// name, where it stands, on the human's body at the size that puts its name
+// half a unit over the board's top, not selectable, its skins hidden, nothing
+// worn, never a fight's. A plain sign post brings none.
 func TestAPaperedBoardBringsItsNamePlate(t *testing.T) {
 	w, sess := slotsFixture(t, 0)
 	board := &NPC{ServerID: 162678, Name: "Mercenary Recruitment", X: 1005, Y: 54, Z: 1000, Facing: 1.25, ModelID: int64(PaperedBoardBody),
 		Size: 1, NPCType: 0x80, Level: 1, HP: 10, MaxHP: 10}
-	sign := &NPC{ServerID: 645, Name: "Freeport Announcements", X: 1006, Z: 1000, ModelID: 0x6A82352C, Size: 1, NPCType: 0x80, Level: 1, HP: 10, MaxHP: 10}
+	sign := &NPC{ServerID: 645, Name: "signpost", X: 1006, Z: 1000, ModelID: 0x6A82352C, Size: 1, NPCType: 0x80, Level: 1, HP: 10, MaxHP: 10}
 	for _, n := range []*NPC{board, sign} {
 		w.NPCs[n.ServerID] = n
 		w.SpatialIndex.Insert(n.ServerID, n.X, n.Z)
@@ -39,8 +39,9 @@ func TestAPaperedBoardBringsItsNamePlate(t *testing.T) {
 	if model := binary.LittleEndian.Uint32(buf[28:32]); model != bodyHumanMale {
 		t.Errorf("plate's body %#x, want the human's", model)
 	}
-	if size := math.Float32frombits(binary.LittleEndian.Uint32(buf[36:40])); size != 1.5 {
-		t.Errorf("plate's size %v, want 1.5", size)
+	size := math.Float32frombits(binary.LittleEndian.Uint32(buf[36:40]))
+	if top := size * humanPlate; math.Abs(float64(top-3.5)) > 1e-5 {
+		t.Errorf("plate's size %v: its name at %v, want 3.5", size, top)
 	}
 	// the board's own place, facing, world, NPC bits and level
 	for _, r := range [][2]int{{5, 18}, {140, 141}, {145, 147}} {
@@ -70,8 +71,8 @@ func TestAPaperedBoardBringsItsNamePlate(t *testing.T) {
 	// a bigger board, a bigger plate; moved and renamed, the plate follows
 	board.Size, board.X, board.Name = 2, 1004, "Real Estate Listings"
 	buf = w.serializeEntityForChannel(sess, vs.ChannelEntity[1], vs.ChannelObjectID[1])
-	if size := math.Float32frombits(binary.LittleEndian.Uint32(buf[36:40])); size != 3 {
-		t.Errorf("size 2 board's plate %v, want 3", size)
+	if top := math.Float32frombits(binary.LittleEndian.Uint32(buf[36:40])) * humanPlate; math.Abs(float64(top-6.5)) > 1e-5 {
+		t.Errorf("size 2 board's plate's name at %v, want 6.5", top)
 	}
 	if string(buf[116:116+len(board.Name)]) != board.Name {
 		t.Errorf("renamed board's plate named %q", buf[116:140])
@@ -144,5 +145,52 @@ func TestAKeepRestartKeepsAPlate(t *testing.T) {
 	}
 	if _, gone := w.RestoreView(sess, k); gone != 2 {
 		t.Errorf("a renamed board's plate kept (gone %d)", gone)
+	}
+}
+
+// Which NPCs are boards with a plate: the papered board whatever its name; on
+// the sign post and the grave's body (no name node either) one named as a
+// board; nothing else on them, and no CSprite with a name node of its own.
+func TestWhichBoardsHaveAPlate(t *testing.T) {
+	for _, c := range []struct {
+		name  string
+		model uint32
+		size  float32
+		want  bool
+		top   float32 // its name's height over its feet
+	}{
+		{"Mercenary Recruitment", PaperedBoardBody, 1, true, 3.5},
+		{"Real Estate Listings", PaperedBoardBody, 1, true, 3.5},
+		{"PvP Events", PaperedBoardBody, 1, true, 3.5},
+		{"Freeport Announcements", SignpostBody, 1, true, 4.266},
+		{"Surefall Anouncements", SignpostBody, 1, true, 4.266},
+		{"Guild Board", 0x6DE5B2CC, 0.3, true, 1.025},
+		{"Duel Tournament Board", 0x6DE5B2CC, 0.5, true, 1.375},
+		{"signpost", SignpostBody, 1, false, 0},
+		{"Akessan Bridge", SignpostBody, 1, false, 0},
+		{"cursed grave", 0x6DE5B2CC, 1, false, 0},
+		{"Bookshelf", 0x6DE5B2CC, 0.3, false, 0},
+		{"Herald Moonbright", bodyHumanMale, 1, false, 0},
+		{"Guild Board", bodyHumanMale, 1, false, 0},
+		{"", PaperedBoardBody, 1, false, 0},
+	} {
+		n := &NPC{Name: c.name, ModelID: int64(c.model), Size: c.size}
+		if got := n.hasPlate(); got != c.want {
+			t.Errorf("%q on %#x: plate %v, want %v", c.name, c.model, got, c.want)
+		}
+		if c.want {
+			if top := plateSize(n) * humanPlate; math.Abs(float64(top-c.top)) > 1e-4 {
+				t.Errorf("%q: name at %v, want %v", c.name, top, c.top)
+			}
+		}
+	}
+	dead := &NPC{Name: "Mercenary Recruitment", ModelID: int64(PaperedBoardBody), Dead: true}
+	if dead.hasPlate() {
+		t.Error("a dead board has a plate")
+	}
+	// an illusion's body is the one drawn: a board shown as a human has none
+	ill := &NPC{Name: "Mercenary Recruitment", ModelID: int64(PaperedBoardBody), Size: 1, Effects: []*ActiveEffect{{Form: bodyHumanMale}}}
+	if ill.hasPlate() {
+		t.Error("a board in a human's illusion has a plate")
 	}
 }

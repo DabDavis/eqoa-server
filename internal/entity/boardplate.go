@@ -3,60 +3,89 @@ package entity
 import (
 	"encoding/binary"
 	"math"
+	"regexp"
 )
 
 // boardplate.go — a bulletin board's name plate (the owner, 2026-11-12: "for
 // the bulletin board lets add a nameplate above").
 //
-// The papered bulletin board (PaperedBoardBody: Highpass's board, which the
-// Mercenary Recruitment boards, the Real Estate Listings and the PvP Events
-// board stand on, sent to every client in ss-art.csf) is a SimpleSprite, and
-// CLIENT puts a name plate on a CSprite alone: VIClientPart06D00::Apply calls
-// VICSprite::SetName only when the actor's sprite is of type 5, and the plate
-// is a VINameSprite attached at the CSprite's name node. No byte of the
-// channel gives any other sprite one, so no flag on the board can.
+// CLIENT puts a name plate on a CSprite with a name node alone:
+// VIClientPart06D00::Apply calls VICSprite::SetName only when the actor's
+// sprite is of type 5, and SetName attaches the plate (a VINameSprite) at the
+// CSprite's name node, doing nothing for one without (m_node[Name] == -1).
+// No board has one: the papered bulletin board (PaperedBoardBody: Highpass's
+// board, the Mercenary Recruitment boards', the Real Estate Listings', the
+// PvP Events') is a SimpleSprite, and the towns' announcement boards stand on
+// the sign post's CSprite (0x6A82352C) and the Guild Board and the Duel
+// Tournament Board on 0x6DE5B2CC, both without a name node (read off CHAR.ESF
+// 2026-11-12: node slots all -1 but the post's 4). No byte of the channel
+// gives any of them one, so no flag on the board can.
 //
-// So each such board in a player's view brings a second entity with it, its
-// plate: a human's body (bodyHumanMale) under the board's name, with its
-// skins hidden (byte 154 bit 0: VICreatureEntity::ApplyLook's
-// SetSkinsVisible(0), which leaves held items, a helm and the name, and it
-// holds none), not selectable (byte 26 bit 0 clear: CLIENT's target cycle
-// and pick skip it, vanilla's too), standing on the board's spot at the size
-// that puts its name node over the board's top (plateScale). It is no NPC of
-// the world: it is never in World.NPCs or the spatial index, so no system
-// (aggro, combat, quests, the GM panel) ever sees it; the visibility system
-// adds it after its board (boardPlatesLocked) and serializes it from the
-// board as it stands now (serializePlate), so a board moved, renamed or out of
-// view takes its plate with it. Boards on a CSprite body (the announcement
-// boards' sign post, the Guild Board) have their own plates and get none.
+// So each board in a player's view brings a second entity with it, its plate:
+// a human's body (bodyHumanMale, whose plate stands humanPlate over its feet)
+// under the board's name, with its skins hidden (byte 154 bit 0:
+// VICreatureEntity::ApplyLook's SetSkinsVisible(0), which leaves held items, a
+// helm and the name, and it holds none), not selectable (byte 26 bit 0 clear:
+// CLIENT's target cycle and pick skip it, vanilla's too), standing on the
+// board's spot at the size that puts its name plateAbove over the board's top.
+// It is no NPC of the world: it is never in World.NPCs or the spatial index,
+// so no system (aggro, combat, quests, the GM panel) ever sees it; the
+// visibility system adds it after its board (boardPlatesLocked) and serializes
+// it from the board as it stands now (serializePlate), so a board moved,
+// renamed, resized or out of view takes its plate with it.
+//
+// A board is an NPC on the papered board, whatever its name, or one on
+// another body without a name node (boardTops) named as a board
+// (boardNamed): the sign post's other NPCs are signs, and 0x6DE5B2CC's are
+// graves, a bookshelf, dig sites, which get none.
 
 // PaperedBoardBody is the papered bulletin board's sprite (0x260EB42F,
 // 638497839: a zone actor of 23 Tunaria zones, cmd/artbuild's ss-art.csf).
 const PaperedBoardBody uint32 = 0x260EB42F
 
-// plateBodies are the board bodies that get a plate: bodies that are no
-// CSprite, which every client shows without a name.
-var plateBodies = map[uint32]bool{PaperedBoardBody: true}
+// boardTops is each board body's top over its feet at size 1, by its box: the
+// papered board's 3.0 (board1111's measure), the sign post's 3.766 and
+// 0x6DE5B2CC's 1.75 (their CSprite headers).
+var boardTops = map[uint32]float32{PaperedBoardBody: 3.0, SignpostBody: 3.766, 0x6DE5B2CC: 1.75}
+
+// boardNamed is a board by its name: "... Announcements" (and Surefall's
+// "Anouncements"), "... Board", "... Listings".
+var boardNamed = regexp.MustCompile(`(?i)(\bann?ouncements?|\bboard|\blistings?)\s*$`)
+
+// humanPlate is where the human's plate stands over its feet at size 1: its
+// name node at rest (1.499) and the plate 0.6 over it (vanilla's, scaled with
+// the body), read off CHAR.ESF's 0x70D898C6 through vanilla's CSprite.
+const humanPlate float32 = 2.096
+
+// plateAbove is how far over a board's top its name is.
+const plateAbove float32 = 0.5
 
 // plateIDBase puts a plate's entity id far past every NPC row and allocated
 // id (an entity id, never sent: the client knows it by its object id): a
 // board's plate is plateIDBase + the board's id.
 const plateIDBase EntityID = 0x6F000000
 
-// plateScale is the plate body's size for a board of size 1: the human's
-// name node (1.733 over its feet; the plate is drawn 0.6 over it, scaled
-// with it) at 1.5 puts the name at 3.5, half a unit over the board's top
-// (its box is 3.0 high at size 1).
-const plateScale float32 = 1.5
-
-// hasPlate reports whether n is a board shown with a plate: named, alive, on
-// a plate body as it is drawn now.
+// hasPlate reports whether n is a board shown with a plate: named, alive, a
+// board by its body as it is drawn now (and its name, off the papered board).
 func (n *NPC) hasPlate() bool {
 	if n == nil || n.Name == "" || n.Dead {
 		return false
 	}
 	model, _ := n.Body()
-	return plateBodies[model]
+	if _, ok := boardTops[model]; !ok {
+		return false
+	}
+	return model == PaperedBoardBody || boardNamed.MatchString(n.Name)
+}
+
+// plateSize is the size of board's plate body: its name plateAbove over the
+// board's top, at the board's size.
+func plateSize(board *NPC) float32 {
+	model, size := board.Body()
+	if size <= 0 {
+		size = 1
+	}
+	return (boardTops[model]*size + plateAbove) / humanPlate
 }
 
 // plateID is the id of n's plate.
@@ -89,13 +118,9 @@ func (w *World) boardPlatesLocked(cands []entityDist) []entityDist {
 
 // serializePlate is the channel of board's plate under objectID: the
 // board's own (its place, facing, world, name, NPC bits), on the human's
-// body at plateScale times the board's size, with nothing worn or held, its
+// body at plateSize, with nothing worn or held, its
 // skins hidden and not selectable.
 func serializePlate(objectID uint32, board *NPC) []byte {
-	_, size := board.Body()
-	if size <= 0 {
-		size = 1
-	}
 	p := &NPC{
 		ServerID: plateID(board),
 		Name:     board.Name,
@@ -103,7 +128,7 @@ func serializePlate(objectID uint32, board *NPC) []byte {
 		Facing:  board.Facing,
 		World:   board.World,
 		ModelID: bodyHumanMale,
-		Size:    size * plateScale,
+		Size:    plateSize(board),
 		NPCType: board.NPCType,
 		Level:   board.Level,
 		Race:    "0",

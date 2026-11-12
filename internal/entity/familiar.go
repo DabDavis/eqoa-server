@@ -109,13 +109,6 @@ func FamiliarCast(d FamiliarDef) CastSpell {
 	return CastSpell{SpellID: familiarCastID, Name: d.Name, CastTime: d.Cast, FX: fx, Familiar: &def}
 }
 
-// familiarSpot is a place behind its owner's right, petFollow off it: its
-// follow slot's (followslot.go; the pet takes the right, the merc behind the
-// left).
-func familiarSpot(p *Player) (x, y, z float32) {
-	return followSpot(p, slotFamiliar)
-}
-
 // isFamiliarIDLocked reports a familiar's entity id (addThreatLocked's
 // refusal). Must be called with the lock held.
 func (w *World) isFamiliarIDLocked(id EntityID) bool {
@@ -143,7 +136,7 @@ func (w *World) summonFamiliarLocked(p *Player, sess *session.Session, d *Famili
 	n := &NPC{ServerID: id, Name: d.Name, World: p.World, Level: p.Level, ModelID: int64(d.Model), Size: NPCSize(d.Size),
 		NPCType: 0x80, Faction: FactionFriendly, Temporary: true, RespawnTime: petCorpseTime, CorpseDecay: petCorpseTime,
 		MaxHP: max(d.HP, 1), HP: max(d.HP, 1)}
-	n.X, n.Y, n.Z = familiarSpot(p)
+	n.X, n.Y, n.Z = w.followPlaceLocked(n, p, slotFamiliar)
 	n.Facing = headingTo(p.X-n.X, p.Z-n.Z)
 	n.SpawnX, n.SpawnY, n.SpawnZ, n.SpawnFacing = n.X, n.Y, n.Z, n.Facing
 	fs := &familiarState{owner: p, npc: n, def: *d, last: now}
@@ -281,7 +274,7 @@ func (w *World) familiarSystem(now time.Time) {
 		if n.World != owner.World || distXZ(n.X, n.Z, owner.X, owner.Z) > petLost {
 			oldX, oldZ := n.X, n.Z
 			n.World = owner.World
-			n.X, n.Y, n.Z = familiarSpot(owner)
+			n.X, n.Y, n.Z = w.followPlaceLocked(n, owner, slotFamiliar)
 			n.stopMoving()
 			w.SpatialIndex.Update(n.ServerID, oldX, oldZ, n.X, n.Z)
 		} else {

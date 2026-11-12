@@ -349,10 +349,15 @@ func dungeonLogin(gw *entity.World, record *database.CharacterRecord, held func(
 		return false
 	}
 	if resume && held != nil && held(uint8(record.World)) {
-		if _, err := ValidateTeleport(record.X, record.Y, record.Z, byte(record.World)); err == nil {
-			log.Printf("loginSpawn: '%s' resumes in its party's dungeon instance %d at (%.1f, %.1f, %.1f) world=%d",
-				record.CharName, inst, record.X, record.Y, record.Z, record.World)
-			return true
+		// at its dungeon's entrance, never where it logged out: a place a player got stuck in (petition 1808: under
+		// a rock of Blackburrow's north edge, the old landing) would hold it again, and a fight may stand there
+		if e, ok := gw.DungeonEntrance(inst); ok {
+			if _, err := ValidateTeleport(e.X, e.Y, e.Z, byte(record.World)); err == nil {
+				log.Printf("loginSpawn: '%s' resumes in its party's dungeon instance %d, at its entrance (%.1f, %.1f, %.1f) world=%d (logged out at (%.1f, %.1f, %.1f))",
+					record.CharName, inst, e.X, e.Y, e.Z, record.World, record.X, record.Y, record.Z)
+				record.X, record.Y, record.Z, record.Facing = e.X, e.Y, e.Z, e.Facing
+				return true
+			}
 		}
 	}
 	if out.X == 0 && out.Z == 0 {

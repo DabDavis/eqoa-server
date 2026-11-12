@@ -317,6 +317,13 @@ func main() {
 		log.Printf("Creatures: %d wander by their own rows (npcwander)", n)
 	}
 	log.Printf("Creatures: %s", gameWorld.MoveSummary())
+	// A line over an NPC's name by its npcs row (entity/npctitle.go, table
+	// npctitle): the Testing Heroes Vendor's "XP Grinding Rewards"
+	if n, err := gameWorld.LoadNPCTitles(db); err != nil {
+		log.Printf("WARNING: %v; no NPC shows a title", err)
+	} else if n > 0 {
+		log.Printf("NPCs: %d show a title over their names (npctitle)", n)
+	}
 	// The NPCs that stand out of the world, there only as the originals the
 	// quests' and triggers' spawns copy (entity/spawnonly.go, table
 	// npcspawnonly)

@@ -247,6 +247,7 @@ type World struct {
 	env         Env
 	moveRules   map[string]database.NPCMoveRule
 	rowWander   map[EntityID]float32   // npcwander: a row's own wander, its radius (movement.go)
+	npcTitles   map[EntityID]string    // npctitle: a line over an NPC's name, by its row (npctitle.go)
 	apartToldAt map[EntityID]time.Time // when a player was last told its melee crossed the water's edge
 	// Whether each NPC name is wildlife's (wildlife.go), worked out once a
 	// name; its own lock, as the GM panel reads under the World's read lock

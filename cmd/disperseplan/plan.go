@@ -196,7 +196,7 @@ func plan(w *entity.World, db *database.SQLiteDB, rows []entity.DisperseRow) pla
 		}
 		cre = append(cre, r)
 	}
-	camps := link(cre)
+	camps := link(cre, campLink)
 	// a GM's camps first, each one camp: the rows of its kinds within gmKinds of
 	// its spot, or the camps within gmReach of it
 	gmOf := map[int]string{}
@@ -388,8 +388,7 @@ func plan(w *entity.World, db *database.SQLiteDB, rows []entity.DisperseRow) pla
 	for _, wd := range out.Wander {
 		got[wd.ID] = true
 	}
-	for ci, c := range camps {
-		_ = ci
+	for _, c := range link(cre, loneReach) { // a camp of a standing kind, spread or not
 		var still []*entity.DisperseRow
 		for _, r := range c {
 			if got[int64(r.ID)] || r.Wanders {
@@ -417,11 +416,19 @@ func plan(w *entity.World, db *database.SQLiteDB, rows []entity.DisperseRow) pla
 		if len(c) < 3 {
 			continue // a pair stands together
 		}
+		var cx, cz, rad float32
+		for _, r := range c {
+			cx += r.X / float32(len(c))
+			cz += r.Z / float32(len(c))
+		}
+		for _, r := range c {
+			rad = max(rad, dist(r.X, r.Z, cx, cz))
+		}
 		n := (len(still) + 3) / 4
 		perm := rnd.Perm(len(still))
 		for k := 0; k < n; k++ {
 			r := still[perm[k]]
-			out.Wander = append(out.Wander, wander{ID: int64(r.ID), World: r.World, Name: r.Name, Radius: 45,
+			out.Wander = append(out.Wander, wander{ID: int64(r.ID), World: r.World, Name: r.Name, Radius: min(max(rad+25, 45), 90),
 				Note: "one in four of a standing camp wanders round it", X: r.X, Z: r.Z})
 			got[int64(r.ID)] = true
 		}
@@ -448,6 +455,11 @@ func plan(w *entity.World, db *database.SQLiteDB, rows []entity.DisperseRow) pla
 	sort.Slice(out.Wander, func(i, j int) bool { return out.Wander[i].ID < out.Wander[j].ID })
 	return out
 }
+
+// loneReach links a standing kind's camps, spread ones and a dungeon's rooms
+// too: one alone within it wanders, two stand together, one in four of three
+// or more wanders round them.
+const loneReach = 40
 
 // keepsPost reports a kind that keeps its post: a guard's word in its name
 // (entity/wildlife.go's wildlifeGuards), or the fire giants (F3
@@ -530,13 +542,13 @@ func place(w *entity.World, rnd *rand.Rand, occ *occupancy, r *entity.DisperseRo
 
 // link is the camps: creatures within campLink of one another (and within 6
 // up or down), by world.
-func link(rs []*entity.DisperseRow) [][]*entity.DisperseRow {
+func link(rs []*entity.DisperseRow, reach float32) [][]*entity.DisperseRow {
 	type key struct {
 		w      uint8
 		cx, cz int32
 	}
 	cell := func(r *entity.DisperseRow) key {
-		return key{r.World, int32(math.Floor(float64(r.X / campLink))), int32(math.Floor(float64(r.Z / campLink)))}
+		return key{r.World, int32(math.Floor(float64(r.X / reach))), int32(math.Floor(float64(r.Z / reach)))}
 	}
 	grid := map[key][]int{}
 	for i, r := range rs {
@@ -560,7 +572,7 @@ func link(rs []*entity.DisperseRow) [][]*entity.DisperseRow {
 			for dz := int32(-1); dz <= 1; dz++ {
 				for _, j := range grid[key{k.w, k.cx + dx, k.cz + dz}] {
 					o := rs[j]
-					if j > i && dist(r.X, r.Z, o.X, o.Z) <= campLink && math.Abs(float64(r.Y-o.Y)) < 6 {
+					if j > i && dist(r.X, r.Z, o.X, o.Z) <= reach && math.Abs(float64(r.Y-o.Y)) < 6 {
 						if a, b := find(i), find(j); a != b {
 							par[a] = b
 						}

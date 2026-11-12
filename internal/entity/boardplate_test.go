@@ -64,6 +64,10 @@ func TestAPaperedBoardBringsItsNamePlate(t *testing.T) {
 			t.Errorf("plate wears armour set %d at byte %d", buf[i], i)
 		}
 	}
+	// the plate holds still (plateLoco), its NPC keeps its own idle
+	if buf[58] != plateLoco || own[58] != LocoStand {
+		t.Errorf("locomotion: plate %d, board %d; want %d, %d", buf[58], own[58], plateLoco, LocoStand)
+	}
 	if own[26] != 1 || own[154] != 0 {
 		t.Errorf("the board itself changed: selectable %d, hidden %d", own[26], own[154])
 	}

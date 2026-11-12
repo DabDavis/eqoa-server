@@ -322,10 +322,13 @@ func TestCreaturesFightBackAtThePet(t *testing.T) {
 		t.Fatalf("the crab never hurt the pet: %d HP", pet.HP)
 	}
 	r.tick(20100 * time.Millisecond)
-	msgs := r.sent()
+	var msgs [][]byte
 	var ops []protocol.GameOpcode
-	for _, m := range msgs {
-		ops = append(ops, opOfMsg(m))
+	for _, m := range r.sent() {
+		if opOfMsg(m) == protocol.OpcodeCastingCombat {
+			continue // the crab's swings, at the pet and then at its owner (pethate.go)
+		}
+		msgs, ops = append(msgs, m), append(ops, opOfMsg(m))
 	}
 	if len(msgs) < 3 || ops[len(ops)-3] != protocol.OpcodeClearPet || ops[len(ops)-2] != protocol.OpcodeNoCollideRemove ||
 		!strings.Contains(chatText(msgs[len(msgs)-1]), "pet has died") {
@@ -333,6 +336,9 @@ func TestCreaturesFightBackAtThePet(t *testing.T) {
 	}
 	if r.w.petOfLocked(r.p) != nil || r.enemy.CurrentEnemy == pet.ServerID {
 		t.Error("the dead pet is still a pet, or still fought")
+	}
+	if r.enemy.CurrentEnemy != r.p.ServerID {
+		t.Errorf("the crab fights %d: want the pet's owner, its hate theirs (petition 1656)", r.enemy.CurrentEnemy)
 	}
 }
 

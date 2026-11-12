@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -21,7 +23,9 @@ import (
 // "air", "bones"; ” its best: petition 1564). offensive is a healer's
 // /merc offensive (1: it casts its hits and damage over time as well as its
 // heals; 0, defensive, the default, heals and buffs alone: the owner,
-// 2026-11-12, "add defensive/offensive for healers"). A merc on standby (out of a
+// 2026-11-12, "add defensive/offensive for healers"). spells_off is the
+// spells its hirer turned off in its menu (handlers/mercmenu.go), their ids
+// comma-separated. A merc on standby (out of a
 // full group for a player: entity/mercbench.go) keeps its row as it is.
 const charMercSchema = `
 	CREATE TABLE IF NOT EXISTS charmerc (
@@ -41,6 +45,7 @@ const charMercSchema = `
 		path        INTEGER NOT NULL DEFAULT -1,
 		pet         TEXT NOT NULL DEFAULT '',
 		offensive   INTEGER NOT NULL DEFAULT 0,
+		spells_off  TEXT NOT NULL DEFAULT '',
 		PRIMARY KEY (serverid, slot)
 	);`
 
@@ -79,9 +84,9 @@ func (db *SQLiteDB) ensureMercs() error {
 		return fmt.Errorf("charmerc: %w", err)
 	}
 	if n > 0 {
-		// path, pet and offensive, to a table made before them
+		// path, pet, offensive and spells_off, to a table made before them
 		for _, col := range []struct{ name, def string }{{"path", "INTEGER NOT NULL DEFAULT -1"}, {"pet", "TEXT NOT NULL DEFAULT ''"},
-			{"offensive", "INTEGER NOT NULL DEFAULT 0"}} {
+			{"offensive", "INTEGER NOT NULL DEFAULT 0"}, {"spells_off", "TEXT NOT NULL DEFAULT ''"}} {
 			if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('charmerc') WHERE name = ?`, col.name).Scan(&n); err != nil {
 				return fmt.Errorf("charmerc: %w", err)
 			}
@@ -145,20 +150,22 @@ type MercRow struct {
 	Path                                   int       // its class path, -1 its class's default
 	Pet                                    string    // the pet kind its hirer picked, "" its best
 	Offensive                              bool      // a healer's /merc offensive (false: defensive)
+	SpellsOff                              []int     // the spells turned off in its menu, by id
 	DeadUntil                              time.Time // zero: alive
 	Hired                                  time.Time
 }
 
-const mercCols = `serverid, slot, name, class, race, sex, face, hair_color, hair_length, hair_style, stance, dead_until, hired, path, pet, offensive`
+const mercCols = `serverid, slot, name, class, race, sex, face, hair_color, hair_length, hair_style, stance, dead_until, hired, path, pet, offensive, spells_off`
 
 // scanMerc reads a row of mercCols.
 func scanMerc(sc interface{ Scan(...any) error }) (MercRow, error) {
 	var r MercRow
-	var dead, hired string
+	var dead, hired, off string
 	if err := sc.Scan(&r.ServerID, &r.Slot, &r.Name, &r.Class, &r.Race, &r.Sex, &r.Face, &r.HairColor, &r.HairLength, &r.HairStyle,
-		&r.Stance, &dead, &hired, &r.Path, &r.Pet, &r.Offensive); err != nil {
+		&r.Stance, &dead, &hired, &r.Path, &r.Pet, &r.Offensive, &off); err != nil {
 		return MercRow{}, err
 	}
+	r.SpellsOff = parseSpellIDs(off)
 	r.DeadUntil, _ = time.Parse(time.RFC3339, dead)
 	r.Hired, _ = time.Parse(time.RFC3339, hired)
 	return r, nil
@@ -204,9 +211,9 @@ func (db *SQLiteDB) SetMerc(r MercRow) error {
 	if !r.Hired.IsZero() {
 		hired = r.Hired.UTC().Format(time.RFC3339)
 	}
-	_, err := db.Exec(`INSERT OR REPLACE INTO charmerc (`+mercCols+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.ServerID,
+	_, err := db.Exec(`INSERT OR REPLACE INTO charmerc (`+mercCols+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.ServerID,
 		max(r.Slot, 1), r.Name, r.Class, r.Race, r.Sex, r.Face, r.HairColor, r.HairLength, r.HairStyle, r.Stance, dead, hired, r.Path, r.Pet,
-		r.Offensive)
+		r.Offensive, joinSpellIDs(r.SpellsOff))
 	return err
 }
 
@@ -221,6 +228,33 @@ func (db *SQLiteDB) SetMercPath(serverID uint32, slot, path int) error {
 func (db *SQLiteDB) SetMercPet(serverID uint32, slot int, pet string) error {
 	_, err := db.Exec(`UPDATE charmerc SET pet = ? WHERE serverid = ? AND slot = ?`, pet, serverID, max(slot, 1))
 	return err
+}
+
+// SetMercSpellsOff keeps the spells the character's merc's menu turned off.
+func (db *SQLiteDB) SetMercSpellsOff(serverID uint32, slot int, off []int) error {
+	_, err := db.Exec(`UPDATE charmerc SET spells_off = ? WHERE serverid = ? AND slot = ?`, joinSpellIDs(off), serverID, max(slot, 1))
+	return err
+}
+
+// parseSpellIDs reads charmerc.spells_off: ids comma-separated (a word not
+// a number passed over).
+func parseSpellIDs(s string) []int {
+	var out []int
+	for _, f := range strings.Split(s, ",") {
+		if n, err := strconv.Atoi(strings.TrimSpace(f)); err == nil {
+			out = append(out, n)
+		}
+	}
+	return out
+}
+
+// joinSpellIDs writes charmerc.spells_off.
+func joinSpellIDs(ids []int) string {
+	parts := make([]string, len(ids))
+	for i, id := range ids {
+		parts[i] = strconv.Itoa(id)
+	}
+	return strings.Join(parts, ",")
 }
 
 // SetMercOffensive keeps the character's healer merc's offensive (true) or

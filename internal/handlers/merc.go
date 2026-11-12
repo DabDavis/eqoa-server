@@ -111,7 +111,7 @@ const (
 	mercRestLine  = "Your mercenary %s rests for %d more seconds."
 	mercBackLine  = "Your mercenary %s is back at your side."
 	mercKitFailed = "The liaison's ledger is out of order. Try again."
-	mercHelpLine  = "/merc [name or 1-3] stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, attack (your target), path, pet, charm [off], group, revive, dismiss: with no name, every merc out. /familiar dismiss sends a familiar away."
+	mercHelpLine  = "/merc [name or 1-3] menu, stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, attack (your target), path, pet, charm [off], group, revive, dismiss: with no name, every merc out. /familiar dismiss sends a familiar away."
 )
 
 // mercRoles are the liaison's first answers, each role's classes in their
@@ -140,6 +140,10 @@ const (
 	mercStageRace
 	mercStageSex
 	mercStagePath
+	mercStageMenu    // a merc's own menu (mercmenu.go)
+	mercStageSpells  // its spells, a page
+	mercStageStance  // its stance
+	mercStageDismiss // its dismissal, to be sure
 )
 
 // mercAsk is a liaison's open question: its box, its stage, what was chosen
@@ -149,6 +153,7 @@ type mercAsk struct {
 	stage, role, class int
 	race, page         int
 	path               int // the path picked (mercStagePath), -1 its class's default
+	slot               int // the merc a menu is of (mercmenu.go)
 	others             bool
 	npc                entity.EntityID
 }
@@ -239,6 +244,12 @@ func mercSay(sess *session.Session, line string) {
 // Talk is a talk to npc: the liaison's first question when npc is one and
 // mercenaries are on, else false (a liaison then says nothing: no dialog).
 func (m *Mercs) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) bool {
+	if m != nil && npc != nil && !npc.Dead && MercsOn() && m.gw != nil {
+		if slot, ok := m.gw.MercOwnSlot(sess, npc.ServerID); ok {
+			m.menu(sess, p, slot) // its own menu (mercmenu.go)
+			return true
+		}
+	}
 	if m == nil || npc == nil || npc.Dead || !isMercLiaison(npc.Name) || !MercsOn() {
 		return false
 	}
@@ -348,6 +359,8 @@ func (m *Mercs) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 			a.page++
 			m.askRaces(sess, p, a)
 		}
+	case mercStageMenu, mercStageSpells, mercStageStance, mercStageDismiss:
+		m.menuAnswer(sess, p, a, n) // its own menu (mercmenu.go)
 	case mercStagePath:
 		if n >= len(archivistPathLines[a.class]) {
 			return true
@@ -599,7 +612,8 @@ const mercDualFrom = 20
 
 // kit is the merc of the row at level as it fights (the file's doc).
 func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
-	k := entity.MercKit{Class: row.Class, Race: row.Race, Sex: row.Sex, Level: max(level, 1), Name: row.Name, Offensive: row.Offensive}
+	k := entity.MercKit{Class: row.Class, Race: row.Race, Sex: row.Sex, Level: max(level, 1), Name: row.Name, Offensive: row.Offensive,
+		SpellsOff: row.SpellsOff}
 	k.Look = entity.MercLook{Face: row.Face, HairColor: row.HairColor, HairLength: row.HairLength, HairStyle: row.HairStyle, Robe: -1}
 	k.Base = entity.MercBaseStats(row.Class, row.Race, k.Level) // its role's (entity/mercroles.go)
 	if m.db == nil {
@@ -987,6 +1001,10 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 		return true
 	}
 	switch verb {
+	case "menu":
+		if slot = m.oneSlot(sess, rows, slot, "menu"); slot > 0 {
+			m.menu(sess, p, slot)
+		}
 	case "", "status", "revive", "list":
 		m.status(sess, p, rows, slot, verb == "revive")
 	case "dismiss":
@@ -1160,7 +1178,7 @@ func (m *Mercs) dismiss(sess *session.Session, p *entity.Player, slot int) {
 // (chat.go: anything else to a "merc" is a tell).
 var mercVerbs = map[string]bool{"status": true, "dismiss": true, "stance": true, "follow": true, "stay": true, "attack": true,
 	"group": true, "revive": true, "help": true, "path": true, "pet": true, "charm": true, "list": true, "defensive": true,
-	"offensive": true}
+	"offensive": true, "menu": true}
 
 // mercWords reports a tell's body that is /merc's: none, or one of its words
 // first.

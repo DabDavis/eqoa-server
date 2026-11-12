@@ -132,6 +132,9 @@ type MercKit struct {
 	// PetPick is the words of the pet kind its hirer picked (/merc pet:
 	// mercpet.go's mercPetSpell), none for its best
 	PetPick []string
+	// SpellsOff is the spells its hirer turned off in its menu (handlers'
+	// mercmenu.go), by id: its book keeps them out (mercBook)
+	SpellsOff []int
 	// Offensive: a healer's /merc offensive, its hits and damage over time
 	// cast as well as its heals; false, defensive (the default), heals and
 	// buffs alone (merccast.go's mercAttackTurnLocked)

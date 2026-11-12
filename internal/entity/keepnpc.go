@@ -60,7 +60,8 @@ package entity
 //   - what no row made (Temporary): a player's pet (made again by its spell
 //     beside its master who comes back: keeppet.go), a GM's /spawn, a quest's or
 //     a trigger's copy, a genie, a portal. Nothing makes the rest again: they
-//     are gone.
+//     are gone, but for a copy's corpse that lies, which keepcopy.go carries
+//     (2026-11-12) with what is on it.
 //
 // A data step in the swap's hold (tools/swap_keep.sh's before.sh) runs after the
 // file is written, so each entry says what its row was, and the row as it is now

@@ -215,3 +215,32 @@ func TestAPetsNameFindsItsOwner(t *testing.T) {
 		t.Errorf("Blood Thirsty Minions as pets: %v %v", companionName(minion.Name), w.companionOf)
 	}
 }
+
+// Petition 1832 (Waldorf, 2026-11-12): "Same with the Necs and their pets". Guk's Mummified Guardian is a
+// necromancer's though its name says no pet: it finds the necromancer 6.8 off (the rows' 166145) over a wizard
+// 3.5 off, and one at 1.5 off a "necromaner" (the rows' misspelt kind) still finds that one, the nearest.
+func TestAMummifiedGuardianIsANecromancersPet(t *testing.T) {
+	w, _, _, _, _ := companionWorld(t)
+	add := func(n *NPC) *NPC {
+		n.SpawnX, n.SpawnY, n.SpawnZ = n.X, n.Y, n.Z
+		w.NPCs[n.ServerID] = n
+		return n
+	}
+	nec := add(&NPC{ServerID: 4201, Name: "froglok tal necromancer", X: 500, Z: 500})
+	add(&NPC{ServerID: 4202, Name: "froglok urd wizard", X: 506.8, Z: 503.5})
+	g := add(&NPC{ServerID: 4203, Name: "Mummified Guardian", X: 506.8, Z: 500})
+	typo := add(&NPC{ServerID: 4204, Name: "ghoul tal necromaner", X: 700, Z: 700})
+	g2 := add(&NPC{ServerID: 4205, Name: "Mummified Guardian", X: 701.5, Z: 700})
+	w.mu.Lock()
+	w.linkCompanionsLocked()
+	w.mu.Unlock()
+	if w.companionOf[g.ServerID] != nec.ServerID {
+		t.Errorf("the guardian is %d's, want the necromancer's %d", w.companionOf[g.ServerID], nec.ServerID)
+	}
+	if w.companionOf[g2.ServerID] != typo.ServerID {
+		t.Errorf("the second guardian is %d's, want the necromaner's %d", w.companionOf[g2.ServerID], typo.ServerID)
+	}
+	if !companionName("mummified guardian") || companionName("serpent guardian") {
+		t.Error("companionName of the guardians")
+	}
+}

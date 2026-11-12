@@ -1923,6 +1923,10 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 	SendItemListsOffer(sess)
 	// and the race options', every session's once (raceoptions.go)
 	SendRaceOptionsOffer(sess)
+	// and more of each character for select (selectinfo.go): the offer once,
+	// and to a client that took it the list's after every list
+	SendSelectInfoOffer(sess)
+	h.sendSelectInfo(sess, records)
 }
 
 // worldPaths maps a world index to the esfPath the client loads it from.

@@ -165,6 +165,11 @@ type Session struct {
 	// capesOffered: the offer went out, once a session as the live look's.
 	capes        bool
 	capesOffered bool
+	// selectInfo: the client answered the select info's offer 1
+	// (protocol.OpcodeSelectInfo, handlers/selectinfo.go); selectInfoOffered:
+	// the offer went out, once a session.
+	selectInfo        bool
+	selectInfoOffered bool
 	// itemListsPack, itemListsBank: the client's answer to the item lists'
 	// offer (protocol.OpcodeItemLists, handlers/itemlists.go), the records it
 	// holds of the pack and the bank; 0 for a client that never answered (a
@@ -813,6 +818,39 @@ func (s *Session) OfferCapesOnce() bool {
 	defer s.mu.Unlock()
 	first := !s.capesOffered
 	s.capesOffered = true
+	return first
+}
+
+// SetSelectInfo records the client's answer to the select info's offer.
+func (s *Session) SetSelectInfo(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.selectInfo = on
+}
+
+// SelectInfo is whether the client asked for the select info. A client that
+// never answered (a PS2) did not.
+func (s *Session) SelectInfo() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.selectInfo
+}
+
+// SelectInfoOffered is whether the select info's offer went out on this
+// session: only then is an answer taken.
+func (s *Session) SelectInfoOffered() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.selectInfoOffered
+}
+
+// OfferSelectInfoOnce reports whether the select info's offer is still to be
+// made to this session, and marks it made.
+func (s *Session) OfferSelectInfoOnce() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	first := !s.selectInfoOffered
+	s.selectInfoOffered = true
 	return first
 }
 

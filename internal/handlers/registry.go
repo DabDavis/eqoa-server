@@ -607,6 +607,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 
 	// the cape slot (0x7E25; capes.go): the answer to its offer, on a server with world.capes
 	NewCapesHandler(charHandler).RegisterHandlers(r)
+	// more of each character at select (0x7E67; selectinfo.go): the answer to its offer
+	NewSelectInfoHandler(charHandler).RegisterHandlers(r)
 	// a pack and a bank past CLIENT's 40 (0x7E29; itemlists.go): the answer to
 	// their offer, on a server with world.pack_slots or world.bank_slots
 	NewItemListsHandler().RegisterHandlers(r)

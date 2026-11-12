@@ -46,6 +46,14 @@ import (
 // (raceOptionRows: the will o' wisp, laid always).
 const wispRowKey = "wisp"
 
+// wispColourKey is the Wisp's colour row (raceoptions.go): its wisp's colour,
+// left out of the looks with the wisp in a mortal form.
+const wispColourKey = "wispcolor"
+
+// wispParts are the parts the wisp and its colour are laid on: a head entry of
+// each human body, never drawn on a Wisp (no worn slot's).
+var wispParts = []OptionPart{whole(bodyHumanMale, 2), whole(bodyHumanFemale, 7)}
+
 // IsWispRace is whether race's characters are Wisps: its options have the wisp
 // row, laid always.
 func IsWispRace(race int) bool {

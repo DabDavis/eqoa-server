@@ -1739,7 +1739,7 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 	for _, e := range cs.spell.Def.Effects {
 		switch e.Kind {
 		case EffectHP:
-			if n := creatureResists(e.Resist, npc, arcaneDebuffed(e.Resist, npc, debuffScaled(e, npc, spellAmount(e, caster), now), now), now); n < 0 {
+			if n := creatureResists(e.Resist, npc, arcaneDebuffed(e.Resist, npc, meleeArtDebuffed(&cs.spell.Def, e, caster, npc, debuffScaled(e, npc, spellAmount(e, caster), now), now), now), now); n < 0 {
 				killed := w.spellHitHateLocked(caster, casterSess, npc, -n, e.HateOff, cs.spell.hitKind())
 				// a life tap's heal (lifetap.go): what landed, after the
 				// con's cut (balance.go)

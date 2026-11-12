@@ -18,7 +18,8 @@ import (
 // most: a newcomer goes into the lowest numbered group with room, in the order they
 // joined (so a raid of nine is 4, 4 and 1 until someone is moved), and keeps its number
 // until it leaves or is moved; one leaving frees its place and moves no one else. A
-// mercenary takes no place (it is in no roster). The leader (Members[0]) and its helper
+// mercenary takes no place: it has no number of its own and is never moved, and its
+// roster record (raidroster.go) carries its owner's number. The leader (Members[0]) and its helper
 // (the "co-leader", Group.rules.helper) move a member to another group with room
 // (/raidgroup <name> <n>, vanilla's window: 0x7E48 op 12) or swap two members' places
 // (/raidswap <a> <b>, op 13); a group full at RaidSubgroupSize refuses a move and names
@@ -30,8 +31,8 @@ import (
 // as before, and a PS2's window of four (shownMembersLocked) is unchanged.
 //
 // To vanilla they go as one more byte after each 0x7E1A record, to a client that answered
-// the roster's offer 2 (the offer is 2 since: an older vanilla answers 1 and is sent the
-// records as before); a PS2 never asked for the roster. Everyone, a PS2 too, hears its own
+// the roster's offer 2 or 3 (the offer is 3 since the mercs' kinds, raidroster.go: an
+// older vanilla answers 1 or 2 and is sent the records it reads); a PS2 never asked for the roster. Everyone, a PS2 too, hears its own
 // move in chat, and /raidgroup alone lists the groups. A keep restart keeps the numbers
 // (KeptGroup.Subs).
 

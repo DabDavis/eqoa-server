@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -174,5 +175,49 @@ func TestDungeonKeepRestartSendsOut(t *testing.T) {
 	}
 	if due, _ := sess.TakeResumeDue(time.Now().Add(2 * time.Second)); !due || sess.ResumeMoved() {
 		t.Fatalf("the dump due %v, still moved %v", due, sess.ResumeMoved())
+	}
+}
+
+// Petition 1834 (Waldorf, 2026-11-12): "When in a group, selecting a raid instance from the board should transport
+// the group all at once if within range". Anna leads; Cora beside her goes in with her, into her instance; Bert, of
+// the group but 15,000 off, stays where he is.
+func TestDungeonEntryTakesTheGroupNear(t *testing.T) {
+	r := newPortalRig(t)
+	block := `[{"key":"bb","name":"Test Burrow","boxes":[[900,900,1100,1100]],"entrance":{"x":1000,"y":50,"z":1150,"toward":[1000,1000]}}]`
+	SetServerWorlds([]worlds.Built{{Recipe: worlds.Recipe{World: 14, Name: "the Test Dungeons", Dungeons: json.RawMessage(block)}}})
+	t.Cleanup(func() {
+		SetServerWorlds(nil)
+		r.gw.SetDungeons(false, 14, nil, entity.DungeonSettings{})
+	})
+	if !SetupDungeons(r.gw, config.DungeonsConfig{Enabled: true}, nil) {
+		t.Fatal("the dungeons are not on")
+	}
+	for _, s := range []*session.Session{r.anna, r.cora, r.bert} {
+		s.SetServerWorlds([]uint8{14})
+	}
+	r.group(t, r.anna, r.pa, r.cora, r.pc)
+	r.gw.GroupInvite(r.anna, r.gw.IDSeenBy(r.anna, r.pb))
+	r.gw.GroupAccept(r.bert, r.gw.IDSeenBy(r.bert, r.pa))
+	if len(r.gw.GroupMembers(r.pa)) != 3 {
+		t.Fatalf("group: %v", r.gw.GroupMembers(r.pa))
+	}
+	r.drain()
+	dungeonCommand(r.gw, r.anna, "enter bb")
+	r.travel()
+	if r.pa.World != 14 || r.pa.InstanceKey() == 0 {
+		t.Fatalf("Anna not in: world %d instance %d", r.pa.World, r.pa.InstanceKey())
+	}
+	if r.pc.World != 14 || r.pc.InstanceKey() != r.pa.InstanceKey() {
+		t.Fatalf("Cora not taken along: world %d instance %d (Anna's %d)", r.pc.World, r.pc.InstanceKey(), r.pa.InstanceKey())
+	}
+	if r.pb.World != 0 || r.pb.InstanceKey() != 0 {
+		t.Fatalf("Bert, far off, was taken: world %d instance %d", r.pb.World, r.pb.InstanceKey())
+	}
+	found := false
+	for _, m := range r.msgs(r.cora) {
+		found = found || strings.Contains(m, "Anna takes the group into the instance.")
+	}
+	if !found {
+		t.Fatalf("Cora not told: %q", r.msgs(r.cora))
 	}
 }

@@ -325,6 +325,41 @@ func (ds *Dungeons) enter(sess *session.Session, p *entity.Player, key string) {
 	}
 	if why, ok := ds.gw.DungeonEnter(sess, key, ds.now()); !ok {
 		dungeonsTell(sess, why)
+		return
+	}
+	ds.takeGroup(p, key, world)
+}
+
+// dungeonsGroupWords is what a member the leader's entry takes along is told.
+const dungeonsGroupWords = "%s takes the group into the instance."
+
+// takeGroup sends along the members of p's group standing near p (teleReach, as the Teleporter takes a group: petition
+// 1834, Waldorf, 2026-11-12, "selecting a raid instance from the board should transport the group all at once if
+// within range. Similar to the way the Portal was fixed"), alive, in the world and able to load the dungeons' world,
+// each into the same instance as though they had picked it. A member farther off, or whose entry is refused, stays.
+func (ds *Dungeons) takeGroup(p *entity.Player, key string, world uint8) {
+	gw := ds.gw
+	pw, px, _, pz, _, ok := gw.PlayerSpot(p)
+	if !ok {
+		return
+	}
+	for _, m := range gw.GroupMembers(p) {
+		if m.ServerID == p.ServerID {
+			continue
+		}
+		mw, mx, _, mz, dead, ok := gw.PlayerSpot(m)
+		if !ok || dead || mw != pw || (mx-px)*(mx-px)+(mz-pz)*(mz-pz) > teleReach*teleReach {
+			continue
+		}
+		ms := gw.FindSessionByEntityID(m.ServerID)
+		if ms == nil || !ms.CharacterInWorld() || ms.PendingTermination() || !dungeonsReaches(ms, world) {
+			continue
+		}
+		if why, ok := gw.DungeonEnter(ms, key, ds.now()); !ok {
+			log.Printf("Dungeons: %s stays (%s's entry): %s", m.Name, p.Name, why)
+			continue
+		}
+		dungeonsTell(ms, fmt.Sprintf(dungeonsGroupWords, p.Name))
 	}
 }
 

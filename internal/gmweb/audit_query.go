@@ -190,7 +190,11 @@ func (fl *auditFilter) where(skip string) (w string, args []any, needsLine bool,
 		}
 	}
 	if n := strings.TrimSpace(fl.Name); n != "" {
-		add(`f.names LIKE ? ESCAPE '\'`, like(n))
+		// a word of the name begins with it: "bat" finds a bat and a bat's wing,
+		// not a combat dummy
+		w := likeEscape(strings.ToLower(n))
+		add(`(f.names LIKE ? ESCAPE '\' OR f.names LIKE ? ESCAPE '\' OR f.names LIKE ? ESCAPE '\')`,
+			"%\n"+w+"%", "% "+w+"%", "%("+w+"%")
 	}
 	if fl.RowID != nil {
 		add("(f.rid = ? OR f.ids LIKE ?)", *fl.RowID, fmt.Sprintf("%% %d %%", *fl.RowID))
@@ -490,19 +494,27 @@ func (s *Server) auditList(f auditFilter) ([]auditEntry, int64, error) {
 // auditQuery is a page of the log, newest first, its total, and with
 // f.Counts what each filter's choices would give.
 func (s *Server) auditQuery(f auditFilter) ([]auditEntry, int64, *auditCounts, error) {
-	if err := s.indexAudit(); err != nil {
-		return nil, 0, nil, fmt.Errorf("indexing the audit log: %w", err)
+	list, total, counts, _, err := s.auditQueryIndexed(f)
+	return list, total, counts, err
+}
+
+// auditQueryIndexed is auditQuery, and whether the index was still being
+// made (the answer from the lines indexed so far).
+func (s *Server) auditQueryIndexed(f auditFilter) ([]auditEntry, int64, *auditCounts, bool, error) {
+	busy, err := s.indexAuditIfFree()
+	if err != nil {
+		return nil, 0, nil, busy, fmt.Errorf("indexing the audit log: %w", err)
 	}
 	if err := f.applyPreset(); err != nil {
-		return nil, 0, nil, err
+		return nil, 0, nil, busy, err
 	}
 	w, args, line, err := f.where(dimNone)
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, 0, nil, busy, err
 	}
 	var total int64
 	if err := s.d.DB.QueryRow(`SELECT COUNT(*)`+f.from(line)+w, args...).Scan(&total); err != nil {
-		return nil, 0, nil, err
+		return nil, 0, nil, busy, err
 	}
 	if f.Limit <= 0 {
 		f.Limit = 50
@@ -514,14 +526,14 @@ func (s *Server) auditQuery(f auditFilter) ([]auditEntry, int64, *auditCounts, e
 	rs, err := s.d.DB.Query(`SELECT f.id`+f.from(line)+w+` ORDER BY f.id DESC LIMIT ? OFFSET ?`,
 		append(args, f.Limit, max(0, f.Offset))...)
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, 0, nil, busy, err
 	}
 	var ids []any
 	for rs.Next() {
 		var id int64
 		if err := rs.Scan(&id); err != nil {
 			rs.Close()
-			return nil, 0, nil, err
+			return nil, 0, nil, busy, err
 		}
 		ids = append(ids, id)
 	}
@@ -536,10 +548,10 @@ func (s *Server) auditQuery(f auditFilter) ([]auditEntry, int64, *auditCounts, e
 		rs, err := s.d.DB.Query(`SELECT a.`+cols+`, f.thing, f.kind, f.source, f.agent, f.tool, f.grp, f.world, f.refs, f.isrevert
 			FROM gm_audit a JOIN gm_audit_facets f ON f.id = a.id WHERE a.id IN (`+ph+`) ORDER BY a.id DESC`, ids...)
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, 0, nil, busy, err
 		}
 		if list, err = scanAuditFaceted(rs, tables); err != nil {
-			return nil, 0, nil, err
+			return nil, 0, nil, busy, err
 		}
 	}
 	if f.hideSQL {
@@ -552,10 +564,10 @@ func (s *Server) auditQuery(f auditFilter) ([]auditEntry, int64, *auditCounts, e
 	var counts *auditCounts
 	if f.Counts {
 		if counts, err = s.auditCounts(f); err != nil {
-			return nil, 0, nil, err
+			return nil, 0, nil, busy, err
 		}
 	}
-	return list, total, counts, nil
+	return list, total, counts, busy, nil
 }
 
 // scanAuditFaceted reads lines with their facets, and works out each changed

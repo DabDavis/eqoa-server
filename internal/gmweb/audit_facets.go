@@ -58,7 +58,7 @@ CREATE INDEX IF NOT EXISTS idx_gm_audit_reverted ON gm_audit(reverted_by) WHERE 
 
 // facetVersion is the derivation's version: a line indexed by an older one is
 // indexed again (indexAudit), so a better rule reaches the old lines.
-const facetVersion = 1
+const facetVersion = 2
 
 // facetBatch is how many lines one transaction indexes.
 const facetBatch = 500
@@ -590,11 +590,16 @@ func (fc *facetCtx) facetOf(r rawAudit) facet {
 			refCol(c)
 		}
 	}
-	all := append(names, owners...)
+	all := append(append([]string(nil), names...), owners...)
+	// the thing as a line shows it: two names at most (an item and whose)
+	shown := all
+	if len(shown) > 2 {
+		shown = shown[:2]
+	}
+	f.Thing = strings.Join(shown, " · ")
 	if len(all) > 3 {
 		all = all[:3]
 	}
-	f.Thing = strings.Join(all, " · ")
 	// what the name filter searches: every name the line had, before and after
 	lc := []string{}
 	for _, n := range all {
@@ -652,7 +657,9 @@ func (s *Server) indexAuditLocked() error {
 		last.Int64 = 0
 	}
 	var stale int64
-	s.d.DB.QueryRow(`SELECT COUNT(*) FROM gm_audit_facets WHERE ver < ?`, facetVersion).Scan(&stale)
+	if !s.facetVerChecked { // once a server: a line is indexed by this rule from then on
+		s.d.DB.QueryRow(`SELECT COUNT(*) FROM gm_audit_facets WHERE ver < ?`, facetVersion).Scan(&stale)
+	}
 	if stale > 0 {
 		if _, err := s.d.DB.Exec(`DELETE FROM gm_audit_facets WHERE ver < ?`, facetVersion); err != nil {
 			return err
@@ -660,6 +667,7 @@ func (s *Server) indexAuditLocked() error {
 		last.Int64 = 0
 	}
 	if last.Int64 >= top.Int64 && stale == 0 {
+		s.facetVerChecked = true
 		return nil
 	}
 	tables, err := s.tables()
@@ -704,6 +712,7 @@ func (s *Server) indexAuditLocked() error {
 			time.Sleep(5 * time.Millisecond) // the game's turn at the one connection
 		}
 	}
+	s.facetVerChecked = true
 	if n > 1000 {
 		log.Printf("GM panel: indexed %d audit lines for the log's filters in %v", n, time.Since(start).Round(time.Millisecond))
 	}
@@ -738,7 +747,9 @@ func (s *Server) writeFacets(list []facet) error {
 // reindexAudit works one line's facets out again, after its words changed
 // (a revert's "reverts entry N", a ban's reason).
 func (s *Server) reindexAudit(id int64) {
-	s.facetMu.Lock()
+	if !s.facetMu.TryLock() {
+		return // a run is indexing: it reaches this line, the newest, as it stands
+	}
 	defer s.facetMu.Unlock()
 	// the lines before it first: the index goes on from its largest id
 	if err := s.indexAuditLocked(); err != nil {
@@ -759,6 +770,17 @@ func (s *Server) reindexAudit(id int64) {
 	if err := s.writeFacets([]facet{fc.facetOf(r)}); err != nil {
 		log.Printf("GM panel: could not index audit line %d: %v", id, err)
 	}
+}
+
+// indexAuditIfFree indexes the new lines unless a run is at it already (the
+// first after a start takes a while on a big log): busy says the facets are
+// still being made, and a reader answers from those made so far.
+func (s *Server) indexAuditIfFree() (busy bool, err error) {
+	if !s.facetMu.TryLock() {
+		return true, nil
+	}
+	defer s.facetMu.Unlock()
+	return false, s.indexAuditLocked()
 }
 
 // indexAuditInBackground indexes what a server start finds, so the first

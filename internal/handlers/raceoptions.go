@@ -58,8 +58,9 @@ func (h *RaceOptionsHandler) RegisterHandlers(r *Registry) {
 // HandleRaceOptions makes the client's answer the session's: a u32, nonzero to
 // be sent the races' options and the looks, 0 to stop; 2 or more, a client
 // that shows a game race's rows (the skin shades) under the four, which is sent
-// them too and may re-choose them with 0x002A (selectedRaceOptions). On, both
-// go out at once.
+// them too and may re-choose them with 0x002A (selectedRaceOptions); 3 or
+// more, a client that draws the barbarians' tattoo (vanilla since 2026-11-12:
+// entity/tattoos.go), is sent that row too. On, both go out at once.
 func (h *RaceOptionsHandler) HandleRaceOptions(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	if len(data) < 4 {

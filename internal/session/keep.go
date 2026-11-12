@@ -45,27 +45,28 @@ type Kept struct {
 	PlayerObjectID    uint32 `json:"object"`
 
 	// what the client answered or was told (session.go)
-	DiscVersion        byte `json:"disc_version"`
-	FactionMessagesOff bool `json:"faction_messages_off,omitempty"`
-	LootMessagesOff    bool `json:"loot_messages_off,omitempty"`
-	MailLiveForms      bool `json:"mail_live_forms,omitempty"`
-	LiveLook           bool `json:"live_look,omitempty"`
-	LiveLookOffered    bool `json:"live_look_offered,omitempty"`
-	ManyChars          bool `json:"many_chars,omitempty"`
-	CreationOffered    bool `json:"creation_offered,omitempty"`
-	Capes              bool `json:"capes,omitempty"`
-	CapesOffered       bool `json:"capes_offered,omitempty"`
-	ItemListsPack      int  `json:"item_lists_pack,omitempty"`
-	ItemListsBank      int  `json:"item_lists_bank,omitempty"`
-	ItemListsOffered   bool `json:"item_lists_offered,omitempty"`
-	RaceOptionsOffered bool `json:"race_options_offered,omitempty"`
-	RaceLooks          bool `json:"race_looks,omitempty"`
-	RaceSkins          bool `json:"race_skins,omitempty"`
-	RaceCatalogueSent  bool `json:"race_catalogue_sent,omitempty"`
-	BugReports         bool `json:"bug_reports,omitempty"`
-	AckMasks           bool `json:"ack_masks,omitempty"`
-	FlyClient          bool `json:"fly_client,omitempty"`
-	NumberTags         bool `json:"number_tags,omitempty"`
+	DiscVersion        byte   `json:"disc_version"`
+	FactionMessagesOff bool   `json:"faction_messages_off,omitempty"`
+	LootMessagesOff    bool   `json:"loot_messages_off,omitempty"`
+	MailLiveForms      bool   `json:"mail_live_forms,omitempty"`
+	LiveLook           bool   `json:"live_look,omitempty"`
+	LiveLookOffered    bool   `json:"live_look_offered,omitempty"`
+	ManyChars          bool   `json:"many_chars,omitempty"`
+	CreationOffered    bool   `json:"creation_offered,omitempty"`
+	Capes              bool   `json:"capes,omitempty"`
+	CapesOffered       bool   `json:"capes_offered,omitempty"`
+	ItemListsPack      int    `json:"item_lists_pack,omitempty"`
+	ItemListsBank      int    `json:"item_lists_bank,omitempty"`
+	ItemListsOffered   bool   `json:"item_lists_offered,omitempty"`
+	RaceOptionsOffered bool   `json:"race_options_offered,omitempty"`
+	RaceLooks          bool   `json:"race_looks,omitempty"`
+	RaceSkins          bool   `json:"race_skins,omitempty"`
+	RaceAnswer         uint32 `json:"race_answer,omitempty"`
+	RaceCatalogueSent  bool   `json:"race_catalogue_sent,omitempty"`
+	BugReports         bool   `json:"bug_reports,omitempty"`
+	AckMasks           bool   `json:"ack_masks,omitempty"`
+	FlyClient          bool   `json:"fly_client,omitempty"`
+	NumberTags         bool   `json:"number_tags,omitempty"`
 	// NumberTagsLayout is the number tags' layout the client asked for, when
 	// past 1 (a kept file before it has NumberTags alone: layout 1)
 	NumberTagsLayout uint8 `json:"number_tags_layout,omitempty"`
@@ -211,6 +212,7 @@ func (s *Session) Keep() Kept {
 		RaceOptionsOffered: s.raceOptionsOffered,
 		RaceLooks:          s.raceLooks,
 		RaceSkins:          s.raceSkins,
+		RaceAnswer:         s.raceAnswer,
 		RaceCatalogueSent:  s.raceCatalogueSent,
 		BugReports:         s.bugReports,
 		AckMasks:           s.ackMasks,
@@ -373,6 +375,11 @@ func (s *Session) restore(k Kept, now time.Time) {
 	// looks, so the next refresh sends them again (handlers/keep.go)
 	s.raceOptionsOffered, s.raceLooks, s.raceCatalogueSent, s.raceLooksSent = k.RaceOptionsOffered, k.RaceLooks, k.RaceCatalogueSent, ""
 	s.raceSkins = k.RaceSkins
+	// a hold from before the answer was kept: the one its flags say
+	s.raceAnswer = k.RaceAnswer
+	if s.raceAnswer == 0 && s.raceLooks {
+		s.raceAnswer = map[bool]uint32{false: 1, true: 2}[s.raceSkins]
+	}
 	s.bugReports = k.BugReports
 	s.ackMasks = k.AckMasks
 	s.flyClient = k.FlyClient

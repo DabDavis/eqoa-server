@@ -82,6 +82,10 @@ type OptionRow struct {
 	// wisp (a body's sprite, not a texture), which every Wisp wears, so its
 	// charlook row is written at any step and every client that asked is told.
 	Always bool
+	// Answer is the least answer to the options' offer a client must have
+	// given to be told the row (0 or 1: any that asked; 3: the barbarians'
+	// tattoo, which a client that answered 2 cannot draw: tattoos.go).
+	Answer uint32
 }
 
 // Steps is the row's steps for sex (1 female).

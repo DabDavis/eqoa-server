@@ -76,8 +76,13 @@ func (w *World) uiToldSystem(now time.Time) {
 	})
 }
 
-// mercNamed is a merc out by its name and its hirer's.
-type mercNamed struct{ name, owner string }
+// mercNamed is a merc out by its name and its hirer's, its class and its
+// mode (OpcodeMercsData's layout 3: 0 none, 1 a defensive healer, 2 an
+// offensive one).
+type mercNamed struct {
+	name, owner string
+	class, mode byte
+}
 
 // mercNamesLocked is every merc out by its world, each world's sorted by
 // name, then hirer. Must be called with the lock held.
@@ -91,7 +96,14 @@ func (w *World) mercNamesLocked() map[uint8][]mercNamed {
 		if ms.owner != nil {
 			owner = ms.owner.Name
 		}
-		out[ms.npc.World] = append(out[ms.npc.World], mercNamed{ms.npc.Name, owner})
+		var mode byte
+		if MercIsHealer(ms.kit.Class) {
+			mode = 1
+			if ms.kit.Offensive {
+				mode = 2
+			}
+		}
+		out[ms.npc.World] = append(out[ms.npc.World], mercNamed{ms.npc.Name, owner, byte(ms.kit.Class), mode})
 	}
 	for _, n := range out {
 		sort.Slice(n, func(i, j int) bool {
@@ -116,9 +128,10 @@ func (w *World) ownMercOutLocked(p *Player) bool {
 }
 
 // mercsBody is OpcodeMercsData's body (past the opcode) in the layout the
-// client asked for: 1 the names, 2 each with its hirer's.
+// client asked for: 1 the names, 2 each with its hirer's, 3 each with its
+// class and mode as well.
 func mercsBody(layout uint8, own bool, names []mercNamed) []byte {
-	layout = min(max(layout, uiToldLayout), 2)
+	layout = min(max(layout, uiToldLayout), 3)
 	b := []byte{layout, 0}
 	if own {
 		b[1] = 1
@@ -135,6 +148,9 @@ func mercsBody(layout uint8, own bool, names []mercNamed) []byte {
 		str(n.name)
 		if layout >= 2 {
 			str(n.owner)
+		}
+		if layout >= 3 {
+			b = append(b, n.class, n.mode)
 		}
 	}
 	return b

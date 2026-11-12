@@ -250,3 +250,24 @@ func TestMercsToldWithTheirHirers(t *testing.T) {
 		t.Errorf("layout 1: own %v names %v", own, names)
 	}
 }
+
+// Layout 3 (2026-11-12): each merc's name, its hirer's, its class and its
+// mode (0 none, 1 a defensive healer, 2 an offensive one), for vanilla's □
+// details box; a healer's mode told again when it changes.
+func TestMercsToldWithClassAndMode(t *testing.T) {
+	r := newMercRig(t)
+	r.sess.SetMercsLayout(3)
+	r.hire(r.kit(9, 0, 0), MercAssist)
+	got := r.uiTold(0, r.sess, protocol.OpcodeMercsData)
+	want := []byte{3, 1, 1, 0, 7, 'R', 'a', 'l', 't', 'h', 'a', 's', 5, 'O', 'w', 'n', 'e', 'r', 9, 1}
+	if len(got) != 1 || !bytes.Equal(got[0], want) {
+		t.Fatalf("layout 3: % x, want % x", got, want)
+	}
+	if slots, _ := r.w.SetMercOffensive(r.sess, 0, true); len(slots) != 1 {
+		t.Fatal("not offensive")
+	}
+	got = r.uiTold(2*time.Second, r.sess, protocol.OpcodeMercsData)
+	if want[len(want)-1] = 2; len(got) != 1 || !bytes.Equal(got[0], want) {
+		t.Errorf("offensive: % x, want % x", got, want)
+	}
+}

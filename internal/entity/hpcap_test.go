@@ -189,3 +189,14 @@ func TestTesterProSpeedIsTheMoveChecksSpeed(t *testing.T) {
 		t.Fatalf("the check's speed %v, want %v", s, c.p.Speed*speedBuff*2)
 	}
 }
+
+// Spiritform's "Set Maximum HP to 0" (the shaman's invulnerable form) is no
+// ceiling: unread, as before the Tester Pro.
+func TestSpiritformIsNoHPCeiling(t *testing.T) {
+	d := ParseSpellText("Self, Set Maximum HP to 0, Invulnerable, Form, 20sec")
+	for _, e := range d.Effects {
+		if e.Kind == EffectHPCap {
+			t.Fatalf("read as a ceiling: %+v", d.Effects)
+		}
+	}
+}

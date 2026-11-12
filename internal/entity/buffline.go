@@ -117,8 +117,11 @@ func BuffLine(s *CastSpell) string {
 				sign = "-"
 			}
 			k = sign + statLineNames[min(max(int(e.Stat), 0), len(statLineNames)-1)]
-		case EffectShield, EffectDefProc, EffectProc, EffectSpeed, EffectInvis, EffectPowerCap:
+		case EffectShield, EffectDefProc, EffectProc, EffectSpeed, EffectInvis, EffectPowerCap, EffectHPCap, EffectStatPin:
 			k = buffKindNames[e.Kind]
+			if e.Kind == EffectSpeed && e.SowPct != 0 {
+				k += fmt.Sprint(e.SowPct) // a speed of its own (hpcap.go): not the movement buff's line
+			}
 		default:
 			continue
 		}
@@ -301,7 +304,7 @@ var statLineNames = []string{"none", "STR", "STA", "AGI", "DEX", "WIS", "INT", "
 	"defmod", "?"}
 
 var buffKindNames = map[EffectKind]string{EffectShield: "shield", EffectDefProc: "defproc", EffectProc: "proc",
-	EffectSpeed: "speed", EffectInvis: "invis", EffectPowerCap: "powercap"}
+	EffectSpeed: "speed", EffectInvis: "invis", EffectPowerCap: "powercap", EffectHPCap: "hpcap", EffectStatPin: "statpin"}
 
 const (
 	lineStrongerSelf = "You already have %s, which is stronger."

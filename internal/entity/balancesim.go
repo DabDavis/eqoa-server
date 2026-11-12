@@ -784,7 +784,7 @@ func simRole(s *CastSpell) spellRole {
 			} else if e.Amount > 0 {
 				heal = true
 			}
-		case EffectGate, EffectInvis, EffectPowerCap, EffectIllusion, EffectEndIllusion:
+		case EffectGate, EffectInvis, EffectPowerCap, EffectIllusion, EffectEndIllusion, EffectHPCap, EffectStatPin:
 			bad = true
 		case EffectStat, EffectShield, EffectDefProc, EffectProc:
 			lasting = true

@@ -38,7 +38,7 @@ const dungeonsBoxMark = 0x6B000000
 
 // The warden's words (ours).
 const (
-	dungeonsAskOut   = "Beyond my gates stand the old dungeons of Tunaria, their creatures grown strong enough to test a raid of heroes of the sixtieth season. Each party fights them in a copy of its own. Where would you go?"
+	dungeonsAskOut   = "Tunaria's old dungeons, made for raids of level 60 heroes. Each party gets its own copy. Where to?"
 	dungeonsAskIn    = "You stand in %s. Where would you go?"
 	dungeonsAnsOpen  = "Enter %s"
 	dungeonsAnsNew   = "Open %s"
@@ -46,7 +46,7 @@ const (
 	dungeonsClosed   = "The dungeons are sealed on this server."
 	dungeonsNoWorld  = "Your game cannot see the dungeons, so you cannot go there. It needs a client that builds the server's worlds (eqoa-rust-client-vanilla)."
 	dungeonsNotOpen  = "No instance of %s is open for your party, and only your group's leader may open one."
-	dungeonsAskBoard = "Notices of the old dungeons of Tunaria, their creatures grown strong enough to test a raid of heroes of the sixtieth season. Each party fights them in a copy of its own. Where would you go?"
+	dungeonsAskBoard = "Raids for level 60 heroes in Tunaria's old dungeons. Each party gets its own copy. Where to?"
 	dungeonsTooFar   = "Come back to the Instanced Raids board or a Dungeon Warden to answer."
 	dungeonsReach    = 30
 	dungeonsHelp     = "/dungeon names your party's open dungeons; /dungeon enter <Guk|Blackburrow|Runnyeye> goes in (a group's leader, or a player alone, opens its party's instance); /dungeon leave goes back out; /dungeon reset <name> closes the instance you opened while no one is inside. Or read the Instanced Raids board by Freeport's well."

@@ -534,3 +534,32 @@ func TestACustomRaceBodyLeavesItsCreaturesHostile(t *testing.T) {
 		t.Error("the race's body is in the players' models")
 	}
 }
+
+// Petition 1814 (Skywalker): a creature whose name's npcaggro row says
+// see_invis notices an invisible player and attacks it on sight, its
+// invisibility kept; a creature without one walks past it as ever; a GM's
+// Toggle Invis hides from both.
+func TestASeeInvisCreatureAttacksAnInvisiblePlayer(t *testing.T) {
+	f := newAggroFix(t, 30)
+	bear := f.npc(2001, "Brown Bear", 25, bearBody, 1010, 1000)
+	larva := f.npc(2002, "moth larva", 25, bearBody, 990, 1000)
+	f.w.SetAggroRules(map[string]AggroRule{"Moth Larva": {NoWord: true, SeeInvis: true}})
+	f.p.Effects = []*ActiveEffect{{SpellID: 99, Name: "Invisibility", Invis: true}}
+	f.look()
+	if f.attacks(bear) {
+		t.Error("a creature without see_invis attacked an invisible player")
+	}
+	if !f.attacks(larva) {
+		t.Fatal("the see_invis larva did not attack the invisible player")
+	}
+	if !f.p.Invisible() {
+		t.Error("being seen ended the invisibility")
+	}
+	larva.Threats, larva.CurrentEnemy = nil, 0
+	f.p.Effects = nil
+	f.p.GMHidden = true
+	f.look()
+	if f.attacks(larva) || f.attacks(bear) {
+		t.Error("a GM hidden by Toggle Invis was seen")
+	}
+}

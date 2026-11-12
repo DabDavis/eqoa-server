@@ -89,7 +89,7 @@ type KeptView struct {
 // character's (its entity id may be another, CreatePlayer), with its name to
 // tell the same one; and the id the client knows it by.
 type KeptSlot struct {
-	Kind   string `json:"kind,omitempty"` // "npc", "player", "" empty
+	Kind   string `json:"kind,omitempty"` // "npc", "player", "plate" (a board's name plate: boardplate.go), "" empty
 	ID     uint32 `json:"id,omitempty"`
 	Name   string `json:"name,omitempty"`
 	Object uint32 `json:"object,omitempty"`
@@ -197,6 +197,9 @@ func (w *World) KeepView(sess *session.Session) KeptView {
 		}
 		if npc, ok := w.NPCs[id]; ok {
 			k.Slots[i] = KeptSlot{Kind: "npc", ID: uint32(id), Name: npc.Name, Object: vs.ChannelObjectID[i]}
+		} else if b := w.plateBoardLocked(id); b != nil {
+			// a board's name plate (boardplate.go): kept as its board's
+			k.Slots[i] = KeptSlot{Kind: "plate", ID: uint32(b.ServerID), Name: b.Name, Object: vs.ChannelObjectID[i]}
 		} else if p, ok := w.Players[id]; ok {
 			k.Slots[i] = KeptSlot{Kind: "player", ID: p.CharServerID, Name: p.Name, Object: vs.ChannelObjectID[i]}
 		}
@@ -232,6 +235,10 @@ func (w *World) RestoreView(sess *session.Session, k KeptView) (kept, gone int) 
 		case "npc":
 			if npc, ok := w.NPCs[EntityID(s.ID)]; ok && !npc.Temporary && npc.Name == s.Name {
 				id = npc.ServerID
+			}
+		case "plate":
+			if b, ok := w.NPCs[EntityID(s.ID)]; ok && !b.Temporary && b.Name == s.Name && b.hasPlate() {
+				id = plateID(b)
 			}
 		case "player":
 			if p := w.playerByCharacterLocked(s.ID); p != nil && p.Name == s.Name {

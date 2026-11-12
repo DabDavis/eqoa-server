@@ -96,7 +96,7 @@ func TestBufferTalkBuffsTheSpeakerASecondLater(t *testing.T) {
 	if r.pa.Mods.AC != 565 {
 		t.Errorf("her AC +%d, want 565 (Test Order's and the GM Armor's)", r.pa.Mods.AC)
 	}
-	if !hasMsg(r.msgs(r.anna), "chat:Buffer says, 'There you are, Anna: Test Avatar, Test Order, Test Heart, Test Ward and GM Armor, for five hours of play.'") {
+	if !hasMsg(r.msgs(r.anna), "chat:Bruce Buffer says, 'There you are, Anna: Test Avatar, Test Order, Test Heart, Test Ward and GM Armor, for five hours of play.'") {
 		t.Error("his line at the landing")
 	}
 	if len(r.pc.Effects) != 0 {

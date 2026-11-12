@@ -569,6 +569,11 @@ func (m *StatMods) sum(o StatMods) {
 // WIS it has now.
 func (p *Player) StatNow(st Stat) int {
 	m := &p.Mods
+	if st >= StatStr && st <= StatCha {
+		if n, ok := p.statPin(); ok { // hpcap.go: held whatever else adds
+			return n
+		}
+	}
 	switch st {
 	case StatStr:
 		return p.capStat(StatStr, p.Str+m.Str)
@@ -619,6 +624,9 @@ func (p *Player) MaxHPNow() int {
 	if sta := p.StatNow(StatSta); sta != p.Sta {
 		n += p.maxHPFor(sta) - p.maxHPFor(p.Sta)
 	}
+	if top, ok := p.hpCap(); ok { // hpcap.go
+		n = min(n, top)
+	}
 	return max(n, 1)
 }
 
@@ -627,7 +635,7 @@ func (p *Player) MaxHPNow() int {
 func (p *Player) MaxPowerNow() int {
 	n := p.MaxPower + p.Mods.MaxPower
 	m := p.Mods
-	if m.Str|m.Sta|m.Agi|m.Dex|m.Wis|m.Int|m.Cha != 0 {
+	if _, pinned := p.statPin(); pinned || m.Str|m.Sta|m.Agi|m.Dex|m.Wis|m.Int|m.Cha != 0 {
 		n += CalculateMaxPower(p.Level, p.Class, p.StatNow(StatStr), p.StatNow(StatSta), p.StatNow(StatAgi), p.StatNow(StatDex),
 			p.StatNow(StatWis), p.StatNow(StatInt), p.StatNow(StatCha)) -
 			CalculateMaxPower(p.Level, p.Class, p.Str, p.Sta, p.Agi, p.Dex, p.Wis, p.Int, p.Cha)
@@ -707,7 +715,7 @@ func (p *Player) SpeedNow() float32 {
 	case r <= moveRateBase:
 		return p.Speed * slow
 	case r >= moveRateMax:
-		return p.Speed * speedBuff * slow
+		return p.Speed * speedBuff * p.sowFactor() * slow // a speed of its own past the buff's (hpcap.go)
 	default:
 		f := 1 + (speedBuff-1)*float64(r-moveRateBase)/float64(moveRateMax-moveRateBase)
 		return p.Speed * float32(f) * slow
@@ -1448,6 +1456,13 @@ func lastingParts(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 			ae.Snare = true
 		case EffectSpeed:
 			ae.Speed = true
+			ae.Rules.SowPct = max(ae.Rules.SowPct, e.SowPct) // a speed of its own (hpcap.go)
+		case EffectHPCap:
+			if !ae.Rules.HPCapped || e.Amount < ae.Rules.HPCap {
+				ae.Rules.HPCap, ae.Rules.HPCapped = max(e.Amount, 1), true
+			}
+		case EffectStatPin:
+			ae.Rules.StatPin, ae.Rules.StatPinned = max(e.Amount, 0), true
 		case EffectInvis:
 			ae.Invis = true
 		case EffectProc:
@@ -1532,6 +1547,12 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 			// one that lasts holds the power down as it goes on
 			if !cs.spell.Def.lasts() && t.Power > e.Amount {
 				t.Power = max(e.Amount, 0)
+				t.StatsDirty = true
+			}
+		case EffectHPCap:
+			// lasting no time, the ceiling is hit points taken down now (hpcap.go)
+			if !cs.spell.Def.lasts() && t.HP > max(e.Amount, 1) {
+				t.HP = max(e.Amount, 1)
 				t.StatsDirty = true
 			}
 		case EffectEndIllusion:
@@ -1739,7 +1760,7 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 	for _, e := range cs.spell.Def.Effects {
 		switch e.Kind {
 		case EffectHP:
-			if n := creatureResists(e.Resist, npc, arcaneDebuffed(e.Resist, npc, debuffScaled(e, npc, spellAmount(e, caster), now), now), now); n < 0 {
+			if n := creatureResists(e.Resist, npc, arcaneDebuffed(e.Resist, npc, meleeArtDebuffed(&cs.spell.Def, e, caster, npc, debuffScaled(e, npc, spellAmount(e, caster), now), now), now), now); n < 0 {
 				killed := w.spellHitHateLocked(caster, casterSess, npc, -n, e.HateOff, cs.spell.hitKind())
 				// a life tap's heal (lifetap.go): what landed, after the
 				// con's cut (balance.go)

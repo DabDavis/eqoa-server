@@ -126,7 +126,7 @@ func mercSkips(s *CastSpell) bool {
 		switch e.Kind {
 		case EffectGate, EffectSummon, EffectCharm, EffectIllusion, EffectEndIllusion, EffectResurrect, EffectInvis, EffectHide,
 			EffectSpeed, EffectSize, EffectSummonPlayer, EffectPickpocket, EffectForget, EffectLull, EffectCure, EffectPowerCap,
-			EffectBreath, EffectDisguise, EffectMarkHeal, EffectRaiment:
+			EffectBreath, EffectDisguise, EffectMarkHeal, EffectRaiment, EffectHPCap, EffectStatPin:
 			return true
 		}
 	}

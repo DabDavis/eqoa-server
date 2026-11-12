@@ -77,14 +77,14 @@ func (ae *ActiveEffect) gives() bool {
 	r := &ae.Rules
 	return ae.Mods.gives() || ae.HPTick > 0 || ae.PowerTick > 0 || ae.Speed || ae.Invis || ae.Form != 0 ||
 		ae.Shield != nil || ae.Proc != 0 || ae.ProcMax != 0 || len(ae.ProcSpells) > 0 || ae.Food != nil ||
-		r.MitigatePct > 0 || r.Breath || r.Hide || r.ProcHeal != 0 || r.Disguise || r.Grow > 0
+		r.MitigatePct > 0 || r.Breath || r.Hide || r.ProcHeal != 0 || r.Disguise || r.Grow > 0 || r.SowPct > 100
 }
 
 // costs reports whether an effect costs its bearer anything: a stat taken, a tick that takes hit
 // points or power, a hold, a slow, a power ceiling.
 func (ae *ActiveEffect) costs() bool {
 	return ae.Mods.harmful() || ae.HPTick < 0 || ae.PowerTick < 0 || ae.Root || ae.Snare || ae.PowerCapped ||
-		ae.Rules.SpeedPct < 0
+		ae.Rules.SpeedPct < 0 || ae.Rules.HPCapped || ae.Rules.StatPinned
 }
 
 // gives is whether the changes raise anything.

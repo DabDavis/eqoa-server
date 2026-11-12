@@ -101,3 +101,46 @@ func TestRealMercKits(t *testing.T) {
 		}
 	}
 }
+
+// On a real database (EQOA_REAL_DB): a magician merc summons its earth line by
+// default, the masteries' past its book (the owner, 2026-11-12: "magician merc
+// at lvl 60 is not summoning Badi"): Badi Elder at 60, Summon Badi (60) at 55,
+// Summon Badi at 49; picked, the air line's Djinni Vizier, the fire line's
+// Efreeti Lord and the water line's Ghilan Noble at 60; best, the dearest of
+// 60. The other pet classes summon their book's level 60 pet.
+func TestRealMercPetsAtTheirLevel(t *testing.T) {
+	path := os.Getenv("EQOA_REAL_DB")
+	if path == "" {
+		t.Skip("EQOA_REAL_DB unset")
+	}
+	db, err := database.NewSQLite(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	m := NewMercs(nil, db, NewHeirlooms(db))
+	pet := func(class, level int, pick string) string {
+		k, err := m.kit(database.MercRow{Name: "Real", Class: class, Race: 0, Path: -1, Pet: pick}, level)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if s := entity.MercPetFor(k); s != nil {
+			return s.Name
+		}
+		return ""
+	}
+	for _, c := range []struct {
+		class, level int
+		pick, want   string
+	}{
+		{10, 60, "", "Summon Badi Elder"}, {10, 55, "", "Summon Badi (60)"}, {10, 50, "", "Summon Badi"},
+		{10, 40, "", "Earth Elemental (39)"}, {10, 60, "air", "Summon Djinni Vizier (60)"},
+		{10, 60, "fire", "Summon Efreeti Lord"}, {10, 60, "water", "Summon Ghilan Noble"}, {10, 60, "best", "Summon Efreeti Lord"},
+		{11, 60, "", "Swarming Death"}, {12, 60, "", "Storm of Blades"}, {8, 60, "", "Primal Spirit"}, {13, 60, "", "Arch Familiar"},
+		{7, 60, "", ""},
+	} {
+		if got := pet(c.class, c.level, c.pick); got != c.want {
+			t.Errorf("%s %d %q: %q, want %q", entity.ClassName(c.class), c.level, c.pick, got, c.want)
+		}
+	}
+}
